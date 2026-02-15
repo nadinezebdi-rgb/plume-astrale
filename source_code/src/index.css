@@ -1,0 +1,186 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Système de design mystique - Numérologie & Astrologie */
+
+@layer base {
+  :root {
+    /* Palette mystique */
+    --background: 14 23% 8%; /* Bleu nuit profond */
+    --foreground: 45 15% 95%; /* Blanc cassé */
+
+    --card: 250 25% 12%; /* Violet sombre */
+    --card-foreground: 45 15% 95%;
+
+    --popover: 250 25% 12%;
+    --popover-foreground: 45 15% 95%;
+
+    --primary: 250 60% 35%; /* Violet profond mystique */
+    --primary-foreground: 45 15% 95%;
+    --primary-glow: 250 80% 65%; /* Violet lumineux */
+
+    --secondary: 45 50% 70%; /* Or doux */
+    --secondary-foreground: 250 25% 12%;
+
+    --muted: 250 15% 20%;
+    --muted-foreground: 45 10% 70%;
+
+    --accent: 45 85% 55%; /* Or brillant */
+    --accent-foreground: 250 25% 12%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 45 15% 95%;
+
+    --border: 250 20% 25%;
+    --input: 250 20% 18%;
+    --ring: 250 60% 35%;
+
+    --radius: 0.75rem;
+
+    /* Gradients mystiques */
+    --gradient-primary: linear-gradient(135deg, hsl(250 60% 35%), hsl(250 80% 65%));
+    --gradient-secondary: linear-gradient(135deg, hsl(45 85% 55%), hsl(45 70% 70%));
+    --gradient-cosmic: linear-gradient(180deg, hsl(14 23% 8%), hsl(250 25% 12%));
+    --gradient-celestial: radial-gradient(circle at 50% 0%, hsl(250 80% 65% / 0.3), transparent 70%);
+
+    /* Ombres mystiques */
+    --shadow-mystical: 0 10px 30px -10px hsl(250 60% 35% / 0.4);
+    --shadow-golden: 0 5px 20px -5px hsl(45 85% 55% / 0.3);
+    --shadow-cosmic: 0 0 40px hsl(250 80% 65% / 0.2);
+
+    /* Animations */
+    --transition-mystical: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-glow: all 0.6s ease-in-out;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', sans-serif;
+    background: var(--gradient-cosmic);
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer components {
+  /* Composants mystiques */
+  .mystical-card {
+    @apply bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl;
+    box-shadow: var(--shadow-mystical);
+  }
+
+  .golden-button {
+    @apply bg-gradient-to-r from-accent to-secondary text-accent-foreground;
+    @apply font-medium px-6 py-3 rounded-lg transition-all duration-300;
+    @apply hover:shadow-lg hover:scale-105;
+    box-shadow: var(--shadow-golden);
+  }
+
+  .cosmic-glow {
+    @apply relative;
+  }
+
+  .cosmic-glow::before {
+    content: '';
+    @apply absolute inset-0 rounded-full opacity-20 blur-xl;
+    background: var(--gradient-primary);
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  .celestial-bg {
+    background: var(--gradient-celestial);
+  }
+
+  .mystical-text {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+
+  .sacred-border {
+    @apply border border-primary/30 rounded-lg;
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.1);
+  }
+}
+
+@layer utilities {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s linear infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 20px hsl(var(--primary) / 0.2); }
+  to { box-shadow: 0 0 30px hsl(var(--primary) / 0.4); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.4; }
+}
