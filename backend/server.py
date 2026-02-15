@@ -76,6 +76,7 @@ class CheckoutRequest(BaseModel):
     user_email: Optional[str] = None
     user_data: Optional[Dict] = None
     discount_code: Optional[str] = None
+    shipping_address: Optional[Dict] = None  # For physical book
 
 class DiscountValidationRequest(BaseModel):
     code: str
