@@ -413,7 +413,50 @@ const Apercu = () => {
               Accès immédiat après paiement • Téléchargement illimité
             </p>
             
-            <div className="mt-8 pt-6 border-t border-[#C5A059]/10">
+            {/* Discount Code Section */}
+            <div className="mt-8 pt-6 border-t border-[#C5A059]/20">
+              {!showDiscountInput ? (
+                <button
+                  onClick={() => setShowDiscountInput(true)}
+                  className="text-[#C5A059]/70 hover:text-[#C5A059] text-sm underline transition-colors"
+                  data-testid="btn-show-discount"
+                >
+                  J'ai un code de réduction
+                </button>
+              ) : (
+                <div className="max-w-sm mx-auto space-y-3">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={discountCode}
+                      onChange={(e) => {
+                        setDiscountCode(e.target.value.toUpperCase());
+                        setDiscountError('');
+                        setDiscountSuccess('');
+                      }}
+                      placeholder="Code de réduction"
+                      className="flex-1 px-4 py-2 bg-[#1A0B2E] border border-[#C5A059]/30 rounded-full text-[#E0D9F6] text-center placeholder:text-[#E0D9F6]/30 focus:outline-none focus:border-[#C5A059]"
+                      data-testid="input-discount-code"
+                    />
+                    <button
+                      onClick={handleApplyDiscount}
+                      disabled={isLoading}
+                      className="px-6 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 transition-colors disabled:opacity-50"
+                      data-testid="btn-apply-discount"
+                    >
+                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
+                    </button>
+                  </div>
+                  
+                  {discountError && (
+                    <p className="text-red-400 text-sm">{discountError}</p>
+                  )}
+                  
+                  {discountSuccess && (
+                    <p className="text-emerald-400 text-sm">{discountSuccess}</p>
+                  )}
+                </div>
+              )}
               <p className="text-[#E0D9F6]/40 text-xs italic">
                 "Ce manuscrit m'accompagne chaque jour. C'est devenu mon livre de chevet spirituel." — Marie L.
               </p>
