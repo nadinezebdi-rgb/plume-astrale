@@ -270,10 +270,17 @@ const Apercu = () => {
             </div>
             
             <div className="mb-8">
-              <div className="text-4xl font-bold text-gold-gradient mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
-                19,90€
+              <div className="flex justify-center items-end gap-4">
+                <div className="text-center">
+                  <div className="text-2xl text-[#E0D9F6]/70" style={{ fontFamily: 'Cinzel, serif' }}>
+                    À partir de
+                  </div>
+                </div>
+                <div className="text-4xl font-bold text-gold-gradient" style={{ fontFamily: 'Cinzel, serif' }}>
+                  9,90€
+                </div>
               </div>
-              <p className="text-[#E0D9F6]/50 text-sm">
+              <p className="text-[#E0D9F6]/50 text-sm mt-2">
                 Paiement unique • Accès immédiat • Garantie 30 jours
               </p>
             </div>
