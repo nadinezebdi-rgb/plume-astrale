@@ -306,66 +306,162 @@ const Resultats = () => {
               <div className="space-y-8 animate-fade-in">
                 {/* Soleil */}
                 <div className="card-mystical">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
-                      <Sun className="w-8 h-8" strokeWidth={1} />
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
+                        <Sun className="w-8 h-8" strokeWidth={1} />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+                          Votre Soleil
+                        </h2>
+                        <p className="text-[#C5A059]">
+                          {sunPlanet ? `${getSigneFrancais(sunPlanet.sign)} • Maison ${sunPlanet.house}` : `Chemin de Vie ${cheminVie}`}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-                        Votre Soleil
-                      </h2>
-                      <p className="text-[#C5A059]">Chemin de Vie {cheminVie} : {cheminVieInfo.titre}</p>
-                    </div>
+                    {sunPlanet && (
+                      <div className="text-right">
+                        <span className="text-[#E0D9F6]/50 text-sm">Position</span>
+                        <p className="text-[#C5A059]">{sunPlanet.normDegree?.toFixed(1)}°</p>
+                      </div>
+                    )}
                   </div>
                   <p className="text-[#E0D9F6]/80 leading-relaxed font-light mb-6">
-                    Votre essence fondamentale rayonne d'une énergie unique. Votre Soleil, combiné à votre chemin de vie {cheminVie}, 
-                    révèle une nature profondément créative et visionnaire. Vous êtes venu(e) sur Terre pour manifester 
-                    cette lumière intérieure de manière authentique.
+                    {sunPlanet ? (
+                      <>
+                        Votre Soleil en <span className="text-[#C5A059]">{getSigneFrancais(sunPlanet.sign)}</span> révèle 
+                        votre essence profonde et votre identité fondamentale. Situé dans la <span className="text-[#C5A059]">Maison {sunPlanet.house}</span>, 
+                        il éclaire particulièrement le domaine de votre vie lié à cette maison. 
+                        Combiné à votre chemin de vie {cheminVie} ({cheminVieInfo.titre}), vous rayonnez d'une énergie unique.
+                      </>
+                    ) : (
+                      <>
+                        Votre essence fondamentale rayonne d'une énergie unique. Votre Soleil, combiné à votre chemin de vie {cheminVie}, 
+                        révèle une nature profondément créative et visionnaire. Vous êtes venu(e) sur Terre pour manifester 
+                        cette lumière intérieure de manière authentique.
+                      </>
+                    )}
                   </p>
+                  {sunPlanet && (
+                    <div className="bg-[#1A0B2E]/50 rounded-xl p-4 border border-[#C5A059]/10">
+                      <p className="text-[#C5A059] text-sm mb-2">Caractéristiques du Soleil en {getSigneFrancais(sunPlanet.sign)}</p>
+                      <p className="text-[#E0D9F6]/60 font-light text-sm">
+                        Élément {getElementFromSign(getSigneFrancais(sunPlanet.sign))} • 
+                        {sunPlanet.isRetro === 'true' ? ' Rétrograde' : ' Direct'} • 
+                        Vitesse {sunPlanet.speed?.toFixed(2)}°/jour
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Lune */}
                 <div className="card-mystical">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
-                      <Moon className="w-8 h-8" strokeWidth={1} />
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
+                        <Moon className="w-8 h-8" strokeWidth={1} />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+                          Votre Lune
+                        </h2>
+                        <p className="text-[#C5A059]">
+                          {moonPlanet ? `${getSigneFrancais(moonPlanet.sign)} • Maison ${moonPlanet.house}` : 'Votre monde émotionnel'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-                        Votre Lune
-                      </h2>
-                      <p className="text-[#C5A059]">Votre monde émotionnel</p>
-                    </div>
+                    {moonPlanet && (
+                      <div className="text-right">
+                        <span className="text-[#E0D9F6]/50 text-sm">Position</span>
+                        <p className="text-[#C5A059]">{moonPlanet.normDegree?.toFixed(1)}°</p>
+                      </div>
+                    )}
                   </div>
                   <p className="text-[#E0D9F6]/80 leading-relaxed font-light">
-                    Votre Lune représente votre moi caché, votre monde émotionnel et votre sensibilité intérieure. 
-                    Influencée par l'élément Terre, vous possédez une intelligence émotionnelle remarquable. 
-                    Vous percevez les non-dits, ressentez les énergies ambiantes et naviguez avec aisance 
-                    dans l'océan des émotions.
+                    {moonPlanet ? (
+                      <>
+                        Votre Lune en <span className="text-[#C5A059]">{getSigneFrancais(moonPlanet.sign)}</span> représente 
+                        votre moi caché, votre monde émotionnel et votre sensibilité intérieure. 
+                        Influencée par l'élément {getElementFromSign(getSigneFrancais(moonPlanet.sign))}, vous possédez 
+                        une intelligence émotionnelle remarquable. La Maison {moonPlanet.house} colore la façon dont vous 
+                        exprimez et nourrissez vos émotions.
+                      </>
+                    ) : (
+                      <>
+                        Votre Lune représente votre moi caché, votre monde émotionnel et votre sensibilité intérieure. 
+                        Influencée par l'élément Terre, vous possédez une intelligence émotionnelle remarquable. 
+                        Vous percevez les non-dits, ressentez les énergies ambiantes et naviguez avec aisance 
+                        dans l'océan des émotions.
+                      </>
+                    )}
                   </p>
                 </div>
 
                 {/* Ascendant */}
                 <div className="card-mystical">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
-                      <Star className="w-8 h-8" strokeWidth={1} />
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
+                        <Star className="w-8 h-8" strokeWidth={1} />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+                          Ascendant {ascendantPlanet ? getSigneFrancais(ascendantPlanet.sign) : ascendant}
+                        </h2>
+                        <p className="text-[#C5A059]">
+                          Élément {ascendantPlanet ? getElementFromSign(getSigneFrancais(ascendantPlanet.sign)) : ascendantInfo.element} • Votre masque social
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-                        Ascendant {ascendant}
-                      </h2>
-                      <p className="text-[#C5A059]">Élément {ascendantInfo.element} • Votre masque social</p>
-                    </div>
+                    {ascendantPlanet && (
+                      <div className="text-right">
+                        <span className="text-[#E0D9F6]/50 text-sm">Position</span>
+                        <p className="text-[#C5A059]">{ascendantPlanet.normDegree?.toFixed(1)}°</p>
+                      </div>
+                    )}
                   </div>
                   <p className="text-[#E0D9F6]/80 leading-relaxed font-light mb-4">
-                    {ascendantInfo.description}
+                    {ascendantPlanet ? (
+                      <>
+                        Votre Ascendant en <span className="text-[#C5A059]">{getSigneFrancais(ascendantPlanet.sign)}</span> est 
+                        votre masque social, la première impression que vous donnez aux autres. Il influence votre apparence 
+                        physique et votre façon d'aborder le monde.
+                      </>
+                    ) : (
+                      ascendantInfo.description
+                    )}
                   </p>
                   <div className="bg-[#1A0B2E]/50 rounded-xl p-4 border border-[#C5A059]/10">
                     <p className="text-[#C5A059] text-sm mb-2">Traits dominants</p>
                     <p className="text-[#E0D9F6]/60 font-light">{ascendantInfo.traits}</p>
                   </div>
                 </div>
+
+                {/* Planètes supplémentaires */}
+                {planetsData && (
+                  <div className="card-mystical">
+                    <h3 className="text-xl mb-6" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+                      Positions Planétaires Complètes
+                    </h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {planetsData.filter(p => !['Sun', 'Moon', 'Ascendant'].includes(p.name)).slice(0, 6).map((planet, index) => (
+                        <div key={index} className="bg-[#1A0B2E]/50 rounded-xl p-4 border border-[#C5A059]/10">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-[#F3E5AB]">{planet.name}</p>
+                              <p className="text-[#C5A059] text-sm">{getSigneFrancais(planet.sign)}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[#E0D9F6]/60 text-sm">Maison {planet.house}</p>
+                              <p className="text-[#E0D9F6]/40 text-xs">{planet.normDegree?.toFixed(1)}°</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
