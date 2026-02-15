@@ -65,6 +65,15 @@ class CheckoutRequest(BaseModel):
     origin_url: str
     user_email: Optional[str] = None
     user_data: Optional[Dict] = None
+    discount_code: Optional[str] = None
+
+class DiscountValidationRequest(BaseModel):
+    code: str
+
+class DiscountValidationResponse(BaseModel):
+    valid: bool
+    discount_percent: Optional[int] = None
+    message: str
 
 class PaymentTransaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
