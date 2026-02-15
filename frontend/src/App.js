@@ -16,6 +16,8 @@ import Resultats from "@/pages/Resultats";
 import Tarot from "@/pages/Tarot";
 import Compatibilite from "@/pages/Compatibilite";
 import Horoscope from "@/pages/Horoscope";
+import Livre from "@/pages/Livre";
+import CommandeSucces from "@/pages/CommandeSucces";
 
 // 404 Component
 const NotFound = () => (
