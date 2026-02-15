@@ -10,6 +10,7 @@ from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+from services.astrology_api import get_astrology_service, AstrologyAPIService
 
 
 ROOT_DIR = Path(__file__).parent
