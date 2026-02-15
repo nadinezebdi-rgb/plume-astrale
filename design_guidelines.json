@@ -1,0 +1,118 @@
+{
+  "identity": {
+    "name": "Astral Soul Path",
+    "tone": "Esoteric, Mystical, Profound, High-Impact",
+    "core_concept": "The Modern Oracle",
+    "keywords": ["Cosmic", "Deep", "Gold", "Constellation", "Soul", "Ritual"]
+  },
+  "palette": {
+    "theme": "dark",
+    "primary": {
+      "void_dark": "#0F0518",
+      "deep_purple": "#1A0B2E",
+      "nebula_indigo": "#2D1B4E"
+    },
+    "accent": {
+      "stardust_gold": "#C5A059",
+      "bright_gold": "#FFD700",
+      "mystic_teal": "#1B93A4" 
+    },
+    "text": {
+      "heading": "#F3E5AB",
+      "body": "#E0D9F6",
+      "muted": "#9CA3AF"
+    },
+    "gradients": {
+      "cosmic_void": "linear-gradient(180deg, #0F0518 0%, #1A0B2E 100%)",
+      "gold_glow": "linear-gradient(45deg, #C5A059, #FFD700)",
+      "glass_surface": "linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)"
+    }
+  },
+  "typography": {
+    "headings": {
+      "font_family": "Cinzel, serif",
+      "weights": ["400", "700"],
+      "usage": "All section titles, hero text, card headers"
+    },
+    "body": {
+      "font_family": "Quicksand, sans-serif",
+      "weights": ["300", "400", "600"],
+      "usage": "Paragraphs, inputs, buttons, labels"
+    }
+  },
+  "visual_enhancers": {
+    "border_radius": "rounded-xl",
+    "glassmorphism": "backdrop-blur-xl bg-white/5 border border-white/10",
+    "shadows": {
+      "glow": "0 0 20px rgba(197, 160, 89, 0.2)",
+      "deep": "0 10px 40px rgba(0, 0, 0, 0.5)"
+    },
+    "textures": "Use noise overlay opacity-5 mix-blend-overlay on solid backgrounds"
+  },
+  "layout_strategies": {
+    "landing_page": "Parallax scrolling with star fields. Hero section must be immersive.",
+    "bento_grid": "Use for 'Full Results' dashboard. Uneven grid cells for different soul aspects.",
+    "form_ritual": "Single input focus or step-by-step 'ritual' progression rather than a boring form list."
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-transparent border border-[#C5A059] text-[#C5A059] hover:bg-[#C5A059] hover:text-[#0F0518] transition-all duration-500 uppercase tracking-widest shadow-[0_0_15px_rgba(197,160,89,0.3)]",
+      "cta_pulse": "animate-pulse shadow-[0_0_20px_#FFD700]"
+    },
+    "cards": {
+      "style": "Glassmorphism with 1px gold border (opacity 20%). Hover state increases border opacity and adds inner glow.",
+      "content_padding": "p-8 md:p-12"
+    },
+    "inputs": {
+      "style": "bg-transparent border-b border-[#C5A059]/30 focus:border-[#C5A059] text-xl text-center text-[#E0D9F6] outline-none placeholder:text-[#E0D9F6]/30 transition-all font-light"
+    }
+  },
+  "images": {
+    "hero_bg": "https://images.unsplash.com/photo-1630873273144-cfa9079fdd72?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxkYXJrJTIwcHVycGxlJTIwbmVidWxhJTIwc3RhcnMlMjBjb25zdGVsbGF0aW9uJTIwYmFja2dyb3VuZCUyMHRleHR1cmV8ZW58MHx8fHwxNzcxMTY5NzQ2fDA&ixlib=rb-4.1.0&q=85",
+    "section_bg_clouds": "https://images.unsplash.com/photo-1763929919160-90aace0eca42?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwzfHxkYXJrJTIwcHVycGxlJTIwbmVidWxhJTIwc3RhcnMlMjBjb25zdGVsbGF0aW9uJTIwYmFja2dyb3VuZCUyMHRleHR1cmV8ZW58MHx8fHwxNzcxMTY5NzQ2fDA&ixlib=rb-4.1.0&q=85",
+    "mystical_atmosphere": "https://images.unsplash.com/photo-1760462830575-4fbeb89bcef1?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwxfHxteXN0aWNhbCUyMHdvbWFuJTIwc2lsaG91ZXR0ZSUyMGNyeXN0YWxzJTIwc3Bpcml0dWFsJTIwYXRtb3NwaGVyZXxlbnwwfHx8fDE3NzExNjk3NDd8MA&ixlib=rb-4.1.0&q=85",
+    "ritual_candle": "https://images.unsplash.com/photo-1603669435608-eb647988e585?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwzfHxteXN0aWNhbCUyMHdvbWFuJTIwc2lsaG91ZXR0ZSUyMGNyeXN0YWxzJTIwc3Bpcml0dWFsJTIwYXRtb3NwaGVyZXxlbnwwfHx8fDE3NzExNjk3NDd8MA&ixlib=rb-4.1.0&q=85"
+  },
+  "assets_instructions": {
+    "icons": "Use lucide-react with thin stroke-width (1px) for a delicate, refined look. Use Star, Moon, Sun, Sparkles icons.",
+    "particles": "Install 'tsparticles' and 'react-tsparticles'. Create a 'StarField' component that renders subtle moving white dots behind the content."
+  },
+  "page_structure": {
+    "landing": {
+      "sections": ["Hero (Cosmic Promise)", "Testimonials (Social Proof)", "Features (What you get)", "CTA (Begin Journey)"],
+      "vibe": "Immersive, heavy use of scroll animations."
+    },
+    "form": {
+      "concept": "The Ritual",
+      "steps": ["Name", "Time", "Place"],
+      "ui": "Center screen, one question at a time (Typeform style but mystical)."
+    },
+    "free_preview": {
+      "concept": "The Glimpse",
+      "content": ["Life Path Number (Chemin de vie)", "Personal Year (Année personnelle)"],
+      "goal": "Show high value, blur the rest. Make the user feel 'seen' instantly.",
+      "paywall": "Blur the 'Deep Soul Analysis' sections with a glass overlay and a lock icon."
+    },
+    "full_results": {
+      "sections": ["Celestial Identity", "Life Mission", "Heart & Relations", "Challenges & Talents", "Council of the Quill"],
+      "layout": "Tabbed interface or long scroll with sticky nav."
+    }
+  },
+  "instructions_to_main_agent": [
+    "Install 'framer-motion' for scroll reveals and entry animations.",
+    "Install 'react-tsparticles' and 'tsparticles-slim' for the background.",
+    "Refactor 'App.js' to use 'react-router-dom'. Create routes: '/', '/ritual', '/revelation' (preview), '/payment', '/soul-path' (full).",
+    "Ensure the Free Preview page is accessible BEFORE payment.",
+    "Use the provided image URLs as background images with low opacity overlays.",
+    "Do NOT use gradients for text unless it is a very large headline.",
+    "Avoid the infinity symbol as requested. Use constellations, stars, or simple geometric lines.",
+    "Ensure all text contrast meets WCAG AA standards, especially gold on dark purple."
+  ],
+  "universal_guidelines": {
+    "spacing": "Use p-12 or p-24 for section spacing. Do not cram content.",
+    "typography": "Don't use Inter. Use Quicksand for body.",
+    "buttons": "No solid block buttons. Use ghost buttons with borders or glowing effects.",
+    "interactions": "All interactive elements must have a hover state that changes color or glow.",
+    "mobile": "Ensure font sizes scale down on mobile. p-4 padding on mobile containers."
+  }
+}
