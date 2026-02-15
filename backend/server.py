@@ -31,7 +31,15 @@ PRODUCTS = {
         "name": "Le Manuscrit de la Plume",
         "amount": 29.90,
         "currency": "eur",
-        "description": "Votre guide spirituel personnel à conserver précieusement"
+        "description": "Votre guide spirituel personnel à conserver précieusement (PDF)"
+    },
+    "livre": {
+        "name": "Le Livre de la Plume",
+        "amount": 49.90,
+        "currency": "eur",
+        "description": "Votre manuscrit imprimé en livre relié - Livraison sous 5 jours",
+        "requires_address": True,
+        "delivery_days": 5
     }
 }
 
