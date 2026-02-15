@@ -209,16 +209,32 @@ const Resultats = () => {
     { domaine: "Créativité", conseil: "Exprimez votre créativité sous toutes ses formes. Laissez votre âme s'exprimer." }
   ];
 
-  if (!userData) {
+  if (!userData || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-12 h-12 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin" />
+        <div className="text-center">
+          <div className="w-12 h-12 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[#E0D9F6]/70">Calcul de votre thème astral...</p>
+        </div>
       </div>
     );
   }
 
   const cheminVieInfo = getCheminVieComplet(cheminVie);
   const ascendantInfo = getAscendantComplet(ascendant);
+  
+  // Get planet data for display
+  const sunPlanet = planetsData?.find(p => p.name === 'Sun');
+  const moonPlanet = planetsData?.find(p => p.name === 'Moon');
+  const venusPlanet = planetsData?.find(p => p.name === 'Venus');
+  const marsPlanet = planetsData?.find(p => p.name === 'Mars');
+  const mercuryPlanet = planetsData?.find(p => p.name === 'Mercury');
+  const jupiterPlanet = planetsData?.find(p => p.name === 'Jupiter');
+  const saturnPlanet = planetsData?.find(p => p.name === 'Saturn');
+  const ascendantPlanet = planetsData?.find(p => p.name === 'Ascendant');
+  
+  // Build aspects from horoscope data
+  const realAspects = horoscopeData?.aspects?.slice(0, 6) || aspectsPlanetaires;
 
   return (
     <div className="min-h-screen relative">
