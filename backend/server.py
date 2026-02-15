@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, Request
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,9 +6,10 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone
+from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 
 
 ROOT_DIR = Path(__file__).parent
@@ -18,6 +19,19 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# Stripe configuration
+STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
+
+# Fixed product packages - prices defined server-side only
+PRODUCTS = {
+    "manuscrit": {
+        "name": "Le Manuscrit de la Plume",
+        "amount": 29.90,
+        "currency": "eur",
+        "description": "Votre guide spirituel personnel à conserver précieusement"
+    }
+}
 
 # Create the main app without a prefix
 app = FastAPI()
