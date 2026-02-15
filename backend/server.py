@@ -51,6 +51,29 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+# Payment Models
+class CheckoutRequest(BaseModel):
+    product_id: str
+    origin_url: str
+    user_email: Optional[str] = None
+    user_data: Optional[Dict] = None
+
+class PaymentTransaction(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    session_id: str
+    product_id: str
+    product_name: str
+    amount: float
+    currency: str
+    user_email: Optional[str] = None
+    user_data: Optional[Dict] = None
+    payment_status: str = "pending"
+    status: str = "initiated"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
