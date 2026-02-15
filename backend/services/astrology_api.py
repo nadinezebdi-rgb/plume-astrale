@@ -98,8 +98,14 @@ class AstrologyAPIService:
     
     async def get_geo_details(self, place: str) -> Optional[Dict]:
         """Get latitude, longitude and timezone for a place"""
-        data = {"place": place, "maxRows": 1}
-        return await self._make_request("geo_details", data)
+        # Use just the city name for better results
+        city_name = place.split(",")[0].strip()
+        data = {"place": city_name, "maxRows": 1}
+        result = await self._make_request("geo_details", data)
+        
+        if result and "geonames" in result and len(result["geonames"]) > 0:
+            return result["geonames"]
+        return None
     
     @staticmethod
     def get_zodiac_sign_from_date(date_str: str) -> str:
