@@ -241,61 +241,65 @@ const Apercu = () => {
             ))}
           </div>
 
-          {/* CTA Premium */}
+          {/* CTA Manuscrit Premium */}
           <div className="card-mystical text-center p-10 md:p-14 glow-gold">
             <Sparkles className="w-12 h-12 text-[#C5A059] mx-auto mb-6" strokeWidth={1} />
             
             <h2 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-              Déverrouillez Votre Destinée Complète
+              Le Manuscrit de la Plume
             </h2>
             
-            <p className="text-[#E0D9F6]/70 mb-8 max-w-xl mx-auto font-light">
-              Accédez à votre analyse complète : identité céleste, aspects planétaires, 
-              guidance personnalisée et manuscrit PDF premium
+            <p className="text-[#E0D9F6]/80 mb-6 max-w-xl mx-auto font-light text-lg leading-relaxed">
+              Un trésor céleste à conserver précieusement toute votre vie.
             </p>
             
-            <div className="flex flex-wrap justify-center gap-4 mb-8 text-sm">
-              <div className="flex items-center gap-2 text-[#E0D9F6]/60">
-                <Star className="w-4 h-4 text-[#C5A059]" strokeWidth={1} />
-                <span>5 sections complètes</span>
+            <p className="text-[#E0D9F6]/60 mb-8 max-w-xl mx-auto font-light leading-relaxed">
+              Ce manuscrit unique, créé spécialement pour vous, deviendra votre guide spirituel personnel. 
+              Vous y reviendrez encore et encore, découvrant de nouvelles révélations à chaque lecture.
+            </p>
+            
+            <div className="flex flex-wrap justify-center gap-6 mb-10 text-sm">
+              <div className="flex items-center gap-2 text-[#E0D9F6]/70">
+                <Star className="w-5 h-5 text-[#C5A059]" strokeWidth={1} />
+                <span>Analyse complète de votre âme</span>
               </div>
-              <div className="flex items-center gap-2 text-[#E0D9F6]/60">
-                <Moon className="w-4 h-4 text-[#C5A059]" strokeWidth={1} />
-                <span>Aspects planétaires</span>
+              <div className="flex items-center gap-2 text-[#E0D9F6]/70">
+                <Moon className="w-5 h-5 text-[#C5A059]" strokeWidth={1} />
+                <span>Guidance personnalisée 2026</span>
               </div>
-              <div className="flex items-center gap-2 text-[#E0D9F6]/60">
-                <Heart className="w-4 h-4 text-[#C5A059]" strokeWidth={1} />
-                <span>PDF téléchargeable</span>
+              <div className="flex items-center gap-2 text-[#E0D9F6]/70">
+                <Heart className="w-5 h-5 text-[#C5A059]" strokeWidth={1} />
+                <span>Document PDF à garder pour toujours</span>
               </div>
             </div>
             
-            <div className="mb-8">
-              <div className="flex justify-center items-end gap-4">
-                <div className="text-center">
-                  <div className="text-2xl text-[#E0D9F6]/70" style={{ fontFamily: 'Cinzel, serif' }}>
-                    À partir de
-                  </div>
-                </div>
-                <div className="text-4xl font-bold text-gold-gradient" style={{ fontFamily: 'Cinzel, serif' }}>
-                  9,90€
-                </div>
+            <div className="mb-10 py-6 border-t border-b border-[#C5A059]/20">
+              <div className="text-5xl font-bold text-gold-gradient mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
+                29,90€
               </div>
-              <p className="text-[#E0D9F6]/50 text-sm mt-2">
-                Paiement unique • Accès immédiat • Garantie 30 jours
+              <p className="text-[#C5A059]/80 text-sm">
+                Un investissement unique pour une guidance éternelle
               </p>
             </div>
             
             <button 
-              onClick={() => navigate('/choix')}
-              className="btn-mystical-filled rounded-full flex items-center gap-3 mx-auto animate-glow-pulse"
+              onClick={() => navigate('/paiement', { state: { plan: 'manuscrit', price: 29.90 } })}
+              className="btn-mystical-filled rounded-full flex items-center gap-3 mx-auto animate-glow-pulse text-lg px-10 py-4"
               data-testid="cta-unlock-full"
             >
-              <Sparkles className="w-5 h-5" />
-              Recevoir mon manuscrit complet
+              <Sparkles className="w-6 h-6" />
+              Recevoir Mon Manuscrit de la Plume
             </button>
-            <p className="text-[#E0D9F6]/40 text-sm mt-4">
-              Accès immédiat • PDF téléchargeable
+            
+            <p className="text-[#E0D9F6]/50 text-sm mt-6 font-light">
+              Accès immédiat après paiement • Téléchargement illimité
             </p>
+            
+            <div className="mt-8 pt-6 border-t border-[#C5A059]/10">
+              <p className="text-[#E0D9F6]/40 text-xs italic">
+                "Ce manuscrit m'accompagne chaque jour. C'est devenu mon livre de chevet spirituel." — Marie L.
+              </p>
+            </div>
           </div>
         </div>
       </div>

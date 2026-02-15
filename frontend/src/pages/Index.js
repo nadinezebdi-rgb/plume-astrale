@@ -95,19 +95,15 @@ const Index = () => {
             alliant numérologie sacrée, astrologie précise et lecture d'âme intuitive
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-slide-up opacity-0 stagger-4">
+          <div className="flex flex-col gap-6 justify-center items-center animate-slide-up opacity-0 stagger-4">
             <button 
               onClick={() => navigate('/formulaire')}
               className="btn-mystical-filled rounded-full flex items-center gap-3"
               data-testid="cta-begin-journey"
             >
               <Sparkles className="w-5 h-5" />
-              Commencer Mon Voyage
+              Votre Étude Gratuite Ici
             </button>
-            
-            <p className="text-[#C5A059]/70 text-sm">
-              Aperçu gratuit • Dès 9,90€
-            </p>
           </div>
           
           <div className="flex justify-center items-center gap-8 mt-16 text-sm text-[#E0D9F6]/50 animate-slide-up opacity-0 stagger-5">
