@@ -106,7 +106,7 @@ const Index = () => {
             </button>
             
             <p className="text-[#C5A059]/70 text-sm">
-              Aperçu gratuit • Étude complète 19,90€
+              Aperçu gratuit • Dès 9,90€
             </p>
           </div>
           
