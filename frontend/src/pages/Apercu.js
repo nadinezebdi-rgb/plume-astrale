@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Moon, Lock, Sparkles, ArrowRight, Heart, Eye, Sun, Zap } from 'lucide-react';
+import { Star, Moon, Lock, Sparkles, ArrowRight, Heart, Eye, Sun, Zap, Loader2 } from 'lucide-react';
 import StarField from '@/components/StarField/StarField';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const Apercu = () => {
   const navigate = useNavigate();
