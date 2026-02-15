@@ -21,20 +21,16 @@ L'utilisateur avait un site fonctionnel (backend Supabase + Stripe + génératio
 
 ## Structure Tarifaire Actuelle
 
-### Essentiel - 9,90€ (paiement unique)
-- Chemin de vie complet
+### Manuscrit de la Plume - 29,90€ (paiement unique)
+- Analyse complète de votre âme
+- Chemin de vie détaillé
 - Année personnelle 2026
 - Identité céleste (Soleil, Lune, Ascendant)
+- Guidance personnalisée 2026
 - Mission de vie
-- PDF téléchargeable
+- PDF téléchargeable à garder pour toujours
 
-### Premium - 29,90€ (paiement unique)
-- Tout le contenu Essentiel
-- **Tirage Tarot personnalisé** (3 cartes)
-- **Compatibilité amoureuse illimitée**
-- **Horoscope mensuel détaillé**
-- **Guidance IA personnalisée**
-- Manuscrit PDF premium
+**Positionnement** : "Un trésor céleste à conserver précieusement toute votre vie"
 
 ## Ce qui a été implémenté
 
