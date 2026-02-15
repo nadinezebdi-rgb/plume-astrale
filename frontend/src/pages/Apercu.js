@@ -11,6 +11,75 @@ const Apercu = () => {
   const [cheminVie, setCheminVie] = useState(0);
   const [anneePersonnelle, setAnneePersonnelle] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [showDiscountInput, setShowDiscountInput] = useState(false);
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountError, setDiscountError] = useState('');
+  const [discountSuccess, setDiscountSuccess] = useState('');
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) {
+      setDiscountError('Veuillez entrer un code');
+      return;
+    }
+
+    setIsLoading(true);
+    setDiscountError('');
+    setDiscountSuccess('');
+
+    try {
+      // First validate the code
+      const validateResponse = await fetch(`${API_URL}/api/discount/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: discountCode })
+      });
+
+      const validateData = await validateResponse.json();
+
+      if (!validateData.valid) {
+        setDiscountError(validateData.message);
+        setIsLoading(false);
+        return;
+      }
+
+      // If 100% discount, grant free access
+      if (validateData.discount_percent === 100) {
+        const accessResponse = await fetch(`${API_URL}/api/access/free`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: 'manuscrit',
+            origin_url: window.location.origin,
+            user_email: userData?.email || null,
+            user_data: userData,
+            discount_code: discountCode
+          })
+        });
+
+        const accessData = await accessResponse.json();
+
+        if (accessData.success) {
+          // Mark as paid and redirect
+          localStorage.setItem('plume_astrale_paid', 'true');
+          localStorage.setItem('plume_astrale_plan', 'manuscrit');
+          localStorage.setItem('plume_astrale_payment_date', new Date().toISOString());
+          
+          setDiscountSuccess('Accès accordé ! Redirection...');
+          setTimeout(() => {
+            navigate('/resultats');
+          }, 1500);
+        } else {
+          setDiscountError('Erreur lors de l\'activation');
+        }
+      }
+
+    } catch (error) {
+      console.error('Discount error:', error);
+      setDiscountError('Une erreur est survenue');
+    }
+
+    setIsLoading(false);
+  };
 
   const handlePurchase = async () => {
     setIsLoading(true);
