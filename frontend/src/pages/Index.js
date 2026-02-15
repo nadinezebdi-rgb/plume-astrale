@@ -211,7 +211,7 @@ const Index = () => {
             
             <p className="text-lg text-[#E0D9F6]/70 mb-10 max-w-2xl mx-auto font-light">
               Commencez votre voyage de découverte personnelle. 
-              Obtenez un aperçu gratuit de votre chemin de vie.
+              Découvrez gratuitement les premiers secrets de votre chemin de vie.
             </p>
             
             <button 
@@ -220,7 +220,7 @@ const Index = () => {
               data-testid="cta-reveal-path"
             >
               <Moon className="w-5 h-5" strokeWidth={1} />
-              Révéler Mon Chemin
+              Accéder à Mon Étude Gratuite
               <ArrowRight className="w-5 h-5" strokeWidth={1} />
             </button>
             
