@@ -114,21 +114,31 @@ class AstrologyAPIService:
         day = date.day
         month = date.month
         
-        zodiac_dates = [
-            (1, 20, "capricorn"), (2, 19, "aquarius"), (3, 20, "pisces"),
-            (4, 20, "aries"), (5, 21, "taurus"), (6, 21, "gemini"),
-            (7, 22, "cancer"), (8, 23, "leo"), (9, 23, "virgo"),
-            (10, 23, "libra"), (11, 22, "scorpio"), (12, 22, "sagittarius"),
-            (13, 0, "capricorn")  # For December 22-31
-        ]
-        
-        for i, (m, d, sign) in enumerate(zodiac_dates):
-            if month == m and day <= d:
-                return zodiac_dates[i-1][2] if i > 0 else "capricorn"
-            elif month < m:
-                return zodiac_dates[i-1][2] if i > 0 else "capricorn"
-        
-        return "sagittarius"
+        # Zodiac date ranges (end dates for each sign)
+        if (month == 3 and day >= 21) or (month == 4 and day <= 19):
+            return "aries"
+        elif (month == 4 and day >= 20) or (month == 5 and day <= 20):
+            return "taurus"
+        elif (month == 5 and day >= 21) or (month == 6 and day <= 20):
+            return "gemini"
+        elif (month == 6 and day >= 21) or (month == 7 and day <= 22):
+            return "cancer"
+        elif (month == 7 and day >= 23) or (month == 8 and day <= 22):
+            return "leo"
+        elif (month == 8 and day >= 23) or (month == 9 and day <= 22):
+            return "virgo"
+        elif (month == 9 and day >= 23) or (month == 10 and day <= 22):
+            return "libra"
+        elif (month == 10 and day >= 23) or (month == 11 and day <= 21):
+            return "scorpio"
+        elif (month == 11 and day >= 22) or (month == 12 and day <= 21):
+            return "sagittarius"
+        elif (month == 12 and day >= 22) or (month == 1 and day <= 19):
+            return "capricorn"
+        elif (month == 1 and day >= 20) or (month == 2 and day <= 18):
+            return "aquarius"
+        else:
+            return "pisces"
     
     @staticmethod
     def get_zodiac_french_name(sign: str) -> str:
