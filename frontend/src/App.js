@@ -11,6 +11,7 @@ import Formulaire from "@/pages/Formulaire";
 import Apercu from "@/pages/Apercu";
 import Choix from "@/pages/Choix";
 import Paiement from "@/pages/Paiement";
+import PaiementSucces from "@/pages/PaiementSucces";
 import Resultats from "@/pages/Resultats";
 import Tarot from "@/pages/Tarot";
 import Compatibilite from "@/pages/Compatibilite";
