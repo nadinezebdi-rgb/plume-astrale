@@ -118,8 +118,17 @@ const Formulaire = () => {
     // Simuler un délai de traitement
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Stocker les données
-    localStorage.setItem('plume_astrale_data', JSON.stringify(formData));
+    // Stocker les données avec validation
+    const dataToStore = {
+      prenom: formData.prenom || '',
+      email: formData.email,
+      dateNaissance: formData.dateNaissance,
+      heureNaissance: formData.heureNaissance,
+      ville: formData.ville,
+      pays: formData.pays
+    };
+    
+    localStorage.setItem('plume_astrale_data', JSON.stringify(dataToStore));
     
     setIsSubmitting(false);
     navigate('/apercu');
