@@ -274,6 +274,77 @@ async def get_products():
     """Get available products"""
     return PRODUCTS
 
+@api_router.post("/discount/validate", response_model=DiscountValidationResponse)
+async def validate_discount_code(request: DiscountValidationRequest):
+    """Validate a discount code"""
+    code = request.code.upper().strip()
+    
+    if code in DISCOUNT_CODES:
+        discount = DISCOUNT_CODES[code]
+        return DiscountValidationResponse(
+            valid=True,
+            discount_percent=discount["discount_percent"],
+            message=discount["description"]
+        )
+    
+    return DiscountValidationResponse(
+        valid=False,
+        discount_percent=None,
+        message="Code de réduction invalide"
+    )
+
+@api_router.post("/access/free")
+async def grant_free_access(request: CheckoutRequest):
+    """Grant free access with a 100% discount code"""
+    
+    # Validate discount code
+    if not request.discount_code:
+        raise HTTPException(status_code=400, detail="Code de réduction requis")
+    
+    code = request.discount_code.upper().strip()
+    
+    if code not in DISCOUNT_CODES:
+        raise HTTPException(status_code=400, detail="Code de réduction invalide")
+    
+    discount = DISCOUNT_CODES[code]
+    
+    if discount["discount_percent"] != 100:
+        raise HTTPException(status_code=400, detail="Ce code ne donne pas un accès gratuit")
+    
+    # Validate product
+    if request.product_id not in PRODUCTS:
+        raise HTTPException(status_code=400, detail="Produit invalide")
+    
+    product = PRODUCTS[request.product_id]
+    
+    # Create a free transaction record
+    transaction = PaymentTransaction(
+        session_id=f"free_{str(uuid.uuid4())}",
+        product_id=request.product_id,
+        product_name=product["name"],
+        amount=0.0,
+        currency=product["currency"],
+        user_email=request.user_email,
+        user_data=request.user_data,
+        payment_status="paid",
+        status="complete"
+    )
+    
+    doc = transaction.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    doc['discount_code'] = code
+    
+    await db.payment_transactions.insert_one(doc)
+    
+    logger.info(f"Free access granted with code {code} for {request.user_email}")
+    
+    return {
+        "success": True,
+        "message": "Accès gratuit accordé",
+        "redirect_url": f"{request.origin_url}/paiement/succes?session_id={transaction.session_id}"
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
