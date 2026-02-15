@@ -526,6 +526,182 @@ async def get_zodiac_from_date(date: str):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Format de date invalide: {str(e)}")
 
+# ========== PDF GENERATION ROUTES ==========
+
+from fastapi.responses import Response
+
+class PDFRequest(BaseModel):
+    user_data: Dict
+    
+class BookOrderRequest(BaseModel):
+    product_id: str = "livre"
+    origin_url: str
+    user_email: str
+    user_data: Dict
+    shipping_address: Dict  # Required for book orders
+
+@api_router.post("/pdf/generate")
+async def generate_pdf(request: PDFRequest):
+    """Generate PDF manuscript"""
+    try:
+        user_data = request.user_data
+        
+        # Get astrology data if possible
+        planets_data = None
+        horoscope_data = None
+        
+        if user_data.get('dateNaissance') and user_data.get('heureNaissance'):
+            try:
+                service = get_astrology_service()
+                
+                lat, lon, tz = 48.8566, 2.3522, 1.0
+                if user_data.get('ville'):
+                    geo_data = await service.get_geo_details(f"{user_data['ville']}")
+                    if geo_data and len(geo_data) > 0:
+                        place = geo_data[0]
+                        lat = float(place.get('latitude', lat))
+                        lon = float(place.get('longitude', lon))
+                
+                planets_data = await service.get_planets_tropical(
+                    user_data['dateNaissance'],
+                    user_data['heureNaissance'],
+                    lat, lon, tz
+                )
+                
+                horoscope_data = await service.get_western_horoscope(
+                    user_data['dateNaissance'],
+                    user_data['heureNaissance'],
+                    lat, lon, tz
+                )
+            except Exception as e:
+                logger.warning(f"Could not fetch astrology data: {e}")
+        
+        # Generate PDF
+        pdf_bytes = generate_manuscrit_pdf(user_data, planets_data, horoscope_data)
+        
+        # Return PDF as downloadable file
+        filename = f"manuscrit_plume_{user_data.get('prenom', 'celestial')}.pdf"
+        
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"PDF generation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération du PDF: {str(e)}")
+
+@api_router.post("/order/book")
+async def order_physical_book(request: BookOrderRequest, http_request: Request):
+    """Create order for physical book with shipping address"""
+    
+    # Validate shipping address
+    required_fields = ['name', 'street', 'city', 'postal_code', 'country']
+    for field in required_fields:
+        if not request.shipping_address.get(field):
+            raise HTTPException(status_code=400, detail=f"Champ obligatoire manquant: {field}")
+    
+    product = PRODUCTS.get("livre")
+    if not product:
+        raise HTTPException(status_code=400, detail="Produit livre non trouvé")
+    
+    # Build URLs
+    success_url = f"{request.origin_url}/commande/succes?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{request.origin_url}/livre"
+    
+    # Initialize Stripe
+    host_url = str(http_request.base_url)
+    webhook_url = f"{host_url}api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    # Create checkout session
+    checkout_request = CheckoutSessionRequest(
+        amount=product["amount"],
+        currency=product["currency"],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "product_id": "livre",
+            "product_name": product["name"],
+            "user_email": request.user_email,
+            "delivery_days": str(product.get("delivery_days", 5))
+        }
+    )
+    
+    try:
+        session = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        # Create book order record
+        order_id = str(uuid.uuid4())
+        order = {
+            "id": order_id,
+            "session_id": session.session_id,
+            "product_id": "livre",
+            "product_name": product["name"],
+            "amount": product["amount"],
+            "currency": product["currency"],
+            "user_email": request.user_email,
+            "user_data": request.user_data,
+            "shipping_address": request.shipping_address,
+            "payment_status": "pending",
+            "order_status": "awaiting_payment",
+            "estimated_delivery_days": product.get("delivery_days", 5),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.book_orders.insert_one(order)
+        
+        logger.info(f"Book order created: {order_id}")
+        
+        return {
+            "url": session.url,
+            "session_id": session.session_id,
+            "order_id": order_id
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating book order: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+@api_router.get("/order/book/{session_id}")
+async def get_book_order_status(session_id: str, http_request: Request):
+    """Get book order status"""
+    
+    order = await db.book_orders.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if not order:
+        raise HTTPException(status_code=404, detail="Commande non trouvée")
+    
+    # Check payment status if pending
+    if order.get("payment_status") == "pending":
+        try:
+            host_url = str(http_request.base_url)
+            webhook_url = f"{host_url}api/webhook/stripe"
+            stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+            
+            status = await stripe_checkout.get_checkout_status(session_id)
+            
+            if status.payment_status == "paid":
+                await db.book_orders.update_one(
+                    {"session_id": session_id},
+                    {"$set": {
+                        "payment_status": "paid",
+                        "order_status": "processing",
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                order["payment_status"] = "paid"
+                order["order_status"] = "processing"
+                
+        except Exception as e:
+            logger.error(f"Error checking order status: {e}")
+    
+    return order
+
 # Include the router in the main app
 app.include_router(api_router)
 
