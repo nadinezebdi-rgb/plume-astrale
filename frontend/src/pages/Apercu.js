@@ -279,13 +279,16 @@ const Apercu = () => {
             </div>
             
             <button 
-              onClick={() => navigate('/paiement')}
+              onClick={() => navigate('/choix')}
               className="btn-mystical-filled rounded-full flex items-center gap-3 mx-auto animate-glow-pulse"
               data-testid="cta-unlock-full"
             >
               <Sparkles className="w-5 h-5" />
-              Débloquer Mon Manuscrit Céleste
+              Recevoir mon manuscrit complet
             </button>
+            <p className="text-[#E0D9F6]/40 text-sm mt-4">
+              Accès immédiat • PDF téléchargeable
+            </p>
           </div>
         </div>
       </div>
