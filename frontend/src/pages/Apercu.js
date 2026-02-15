@@ -322,12 +322,22 @@ const Apercu = () => {
             </div>
             
             <button 
-              onClick={() => navigate('/paiement', { state: { plan: 'manuscrit', price: 29.90 } })}
-              className="btn-mystical-filled rounded-full flex items-center gap-3 mx-auto animate-glow-pulse text-lg px-10 py-4"
+              onClick={handlePurchase}
+              disabled={isLoading}
+              className="btn-mystical-filled rounded-full flex items-center gap-3 mx-auto animate-glow-pulse text-lg px-10 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="cta-unlock-full"
             >
-              <Sparkles className="w-6 h-6" />
-              Recevoir Mon Manuscrit de la Plume
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  Redirection vers le paiement...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-6 h-6" />
+                  Recevoir Mon Manuscrit de la Plume
+                </>
+              )}
             </button>
             
             <p className="text-[#E0D9F6]/50 text-sm mt-6 font-light">
