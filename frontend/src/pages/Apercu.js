@@ -10,6 +10,43 @@ const Apercu = () => {
   const [userData, setUserData] = useState(null);
   const [cheminVie, setCheminVie] = useState(0);
   const [anneePersonnelle, setAnneePersonnelle] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handlePurchase = async () => {
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch(`${API_URL}/api/checkout/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_id: 'manuscrit',
+          origin_url: window.location.origin,
+          user_email: userData?.email || null,
+          user_data: userData
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la création du paiement');
+      }
+
+      const data = await response.json();
+      
+      // Redirect to Stripe Checkout
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('URL de paiement non reçue');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Une erreur est survenue. Veuillez réessayer.');
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const data = localStorage.getItem('plume_astrale_data');
