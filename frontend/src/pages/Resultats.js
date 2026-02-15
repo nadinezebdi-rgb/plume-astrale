@@ -293,9 +293,18 @@ const Resultats = () => {
             
             {/* Actions */}
             <div className="flex flex-wrap justify-center gap-4 mt-8">
-              <button className="btn-mystical rounded-full flex items-center gap-2 text-sm" data-testid="btn-download">
-                <Download className="w-4 h-4" strokeWidth={1} />
-                Télécharger PDF
+              <button 
+                onClick={downloadPDF}
+                disabled={isDownloading}
+                className="btn-mystical-filled rounded-full flex items-center gap-2 text-sm disabled:opacity-50" 
+                data-testid="btn-download"
+              >
+                {isDownloading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" strokeWidth={1} />
+                )}
+                {isDownloading ? 'Génération...' : 'Télécharger PDF'}
               </button>
               <button className="btn-mystical rounded-full flex items-center gap-2 text-sm" data-testid="btn-email">
                 <Mail className="w-4 h-4" strokeWidth={1} />
@@ -305,6 +314,27 @@ const Resultats = () => {
                 <Share2 className="w-4 h-4" strokeWidth={1} />
                 Partager
               </button>
+            </div>
+            
+            {/* Book promotion */}
+            <div className="mt-8 p-4 rounded-xl bg-gradient-to-r from-[#C5A059]/10 to-transparent border border-[#C5A059]/30">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <Gift className="w-8 h-8 text-[#C5A059]" />
+                  <div className="text-left">
+                    <p className="text-[#F3E5AB] font-medium">Envie d'un livre à offrir ?</p>
+                    <p className="text-[#E0D9F6]/60 text-sm">Recevez votre manuscrit imprimé en édition reliée</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/livre')}
+                  className="btn-mystical rounded-full flex items-center gap-2 text-sm whitespace-nowrap"
+                  data-testid="btn-order-book"
+                >
+                  <Book className="w-4 h-4" />
+                  Commander le livre • 49,90€
+                </button>
+              </div>
             </div>
           </div>
 
