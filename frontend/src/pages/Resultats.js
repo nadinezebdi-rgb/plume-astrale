@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Moon, Heart, Zap, Download, Mail, Share2, Sparkles, Sun, Eye, CheckCircle } from 'lucide-react';
+import { Star, Moon, Heart, Zap, Download, Mail, Share2, Sparkles, Sun, Eye, CheckCircle, Loader2 } from 'lucide-react';
 import StarField from '@/components/StarField/StarField';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const Resultats = () => {
   const navigate = useNavigate();
@@ -10,24 +12,116 @@ const Resultats = () => {
   const [cheminVie, setCheminVie] = useState(0);
   const [anneePersonnelle, setAnneePersonnelle] = useState(0);
   const [ascendant, setAscendant] = useState('');
+  const [planetsData, setPlanetsData] = useState(null);
+  const [horoscopeData, setHoroscopeData] = useState(null);
+  const [zodiacSign, setZodiacSign] = useState('');
+  const [zodiacFrench, setZodiacFrench] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const data = localStorage.getItem('plume_astrale_data');
-    const paid = localStorage.getItem('plume_astrale_paid');
+    const loadData = async () => {
+      const data = localStorage.getItem('plume_astrale_data');
+      const paid = localStorage.getItem('plume_astrale_paid');
+      
+      if (!data || !paid) {
+        navigate('/formulaire');
+        return;
+      }
+      
+      const parsedData = JSON.parse(data);
+      setUserData(parsedData);
+      
+      const dateNaissance = new Date(parsedData.dateNaissance);
+      setCheminVie(calculerCheminVie(dateNaissance));
+      setAnneePersonnelle(calculerAnneePersonnelle(dateNaissance));
+      
+      // Fetch real astrology data from API
+      try {
+        // Get planets data
+        const planetsResponse = await fetch(`${API_URL}/api/astrology/planets`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date_naissance: parsedData.dateNaissance,
+            heure_naissance: parsedData.heureNaissance,
+            ville: parsedData.ville,
+            pays: parsedData.pays
+          })
+        });
+        
+        if (planetsResponse.ok) {
+          const planetsResult = await planetsResponse.json();
+          if (planetsResult.success) {
+            setPlanetsData(planetsResult.data);
+            
+            // Find Sun sign and Ascendant from API data
+            const sunData = planetsResult.data.find(p => p.name === 'Sun');
+            const ascendantData = planetsResult.data.find(p => p.name === 'Ascendant');
+            
+            if (sunData) {
+              setZodiacSign(sunData.sign);
+              setZodiacFrench(getSigneFrancais(sunData.sign));
+            }
+            
+            if (ascendantData) {
+              setAscendant(getSigneFrancais(ascendantData.sign));
+            } else {
+              setAscendant(calculerAscendant(parsedData));
+            }
+          }
+        }
+        
+        // Get horoscope data
+        const horoscopeResponse = await fetch(`${API_URL}/api/astrology/horoscope`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date_naissance: parsedData.dateNaissance,
+            heure_naissance: parsedData.heureNaissance,
+            ville: parsedData.ville,
+            pays: parsedData.pays
+          })
+        });
+        
+        if (horoscopeResponse.ok) {
+          const horoscopeResult = await horoscopeResponse.json();
+          if (horoscopeResult.success) {
+            setHoroscopeData(horoscopeResult.data);
+            setZodiacFrench(horoscopeResult.zodiac_french);
+          }
+        }
+        
+      } catch (error) {
+        console.error('Error fetching astrology data:', error);
+        // Fallback to calculated ascendant
+        setAscendant(calculerAscendant(parsedData));
+      }
+      
+      setIsLoading(false);
+    };
     
-    if (!data || !paid) {
-      navigate('/formulaire');
-      return;
-    }
-    
-    const parsedData = JSON.parse(data);
-    setUserData(parsedData);
-    
-    const dateNaissance = new Date(parsedData.dateNaissance);
-    setCheminVie(calculerCheminVie(dateNaissance));
-    setAnneePersonnelle(calculerAnneePersonnelle(dateNaissance));
-    setAscendant(calculerAscendant(parsedData));
+    loadData();
   }, [navigate]);
+
+  const getSigneFrancais = (sign) => {
+    const signes = {
+      'Aries': 'Bélier', 'Taurus': 'Taureau', 'Gemini': 'Gémeaux',
+      'Cancer': 'Cancer', 'Leo': 'Lion', 'Virgo': 'Vierge',
+      'Libra': 'Balance', 'Scorpio': 'Scorpion', 'Sagittarius': 'Sagittaire',
+      'Capricorn': 'Capricorne', 'Aquarius': 'Verseau', 'Pisces': 'Poissons'
+    };
+    return signes[sign] || sign;
+  };
+
+  const getElementFromSign = (sign) => {
+    const elements = {
+      'Bélier': 'Feu', 'Lion': 'Feu', 'Sagittaire': 'Feu',
+      'Taureau': 'Terre', 'Vierge': 'Terre', 'Capricorne': 'Terre',
+      'Gémeaux': 'Air', 'Balance': 'Air', 'Verseau': 'Air',
+      'Cancer': 'Eau', 'Scorpion': 'Eau', 'Poissons': 'Eau'
+    };
+    return elements[sign] || 'Terre';
+  };
 
   const calculerCheminVie = (date) => {
     const jour = date.getDate();
