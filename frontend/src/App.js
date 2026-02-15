@@ -45,6 +45,8 @@ function App() {
           <Route path="/paiement" element={<Paiement />} />
           <Route path="/paiement/succes" element={<PaiementSucces />} />
           <Route path="/resultats" element={<Resultats />} />
+          <Route path="/livre" element={<Livre />} />
+          <Route path="/commande/succes" element={<CommandeSucces />} />
           <Route path="/tarot" element={<Tarot />} />
           <Route path="/compatibilite" element={<Compatibilite />} />
           <Route path="/horoscope" element={<Horoscope />} />
