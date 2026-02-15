@@ -346,6 +346,176 @@ async def grant_free_access(request: CheckoutRequest):
         "redirect_url": f"{request.origin_url}/paiement/succes?session_id={transaction.session_id}"
     }
 
+# ========== ASTROLOGY API ROUTES ==========
+
+class AstrologyRequest(BaseModel):
+    date_naissance: str  # Format: YYYY-MM-DD
+    heure_naissance: str  # Format: HH:MM
+    ville: Optional[str] = "Paris"
+    pays: Optional[str] = "France"
+
+class HoroscopeRequest(BaseModel):
+    zodiac_sign: str
+
+@api_router.post("/astrology/horoscope")
+async def get_western_horoscope(request: AstrologyRequest):
+    """Get complete western horoscope data"""
+    try:
+        service = get_astrology_service()
+        
+        # Get geo details for the city (default to Paris coordinates)
+        lat, lon, tz = 48.8566, 2.3522, 1.0
+        
+        if request.ville:
+            geo_data = await service.get_geo_details(f"{request.ville}, {request.pays}")
+            if geo_data and len(geo_data) > 0:
+                place = geo_data[0] if isinstance(geo_data, list) else geo_data.get('geonames', [{}])[0]
+                lat = float(place.get('latitude', lat))
+                lon = float(place.get('longitude', lon))
+                tz = float(place.get('timezone', tz))
+        
+        # Get western horoscope
+        horoscope_data = await service.get_western_horoscope(
+            request.date_naissance,
+            request.heure_naissance,
+            lat, lon, tz
+        )
+        
+        if not horoscope_data:
+            raise HTTPException(status_code=500, detail="Impossible de récupérer les données astrologiques")
+        
+        # Also get the zodiac sign
+        zodiac_sign = service.get_zodiac_sign_from_date(request.date_naissance)
+        zodiac_french = service.get_zodiac_french_name(zodiac_sign)
+        
+        return {
+            "success": True,
+            "zodiac_sign": zodiac_sign,
+            "zodiac_french": zodiac_french,
+            "data": horoscope_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Astrology API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+@api_router.post("/astrology/planets")
+async def get_planets(request: AstrologyRequest):
+    """Get tropical planet positions"""
+    try:
+        service = get_astrology_service()
+        
+        lat, lon, tz = 48.8566, 2.3522, 1.0
+        
+        if request.ville:
+            geo_data = await service.get_geo_details(f"{request.ville}, {request.pays}")
+            if geo_data and len(geo_data) > 0:
+                place = geo_data[0] if isinstance(geo_data, list) else geo_data.get('geonames', [{}])[0]
+                lat = float(place.get('latitude', lat))
+                lon = float(place.get('longitude', lon))
+                tz = float(place.get('timezone', tz))
+        
+        planets_data = await service.get_planets_tropical(
+            request.date_naissance,
+            request.heure_naissance,
+            lat, lon, tz
+        )
+        
+        if not planets_data:
+            raise HTTPException(status_code=500, detail="Impossible de récupérer les positions planétaires")
+        
+        return {
+            "success": True,
+            "data": planets_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Planets API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+@api_router.get("/astrology/daily/{zodiac_sign}")
+async def get_daily_horoscope(zodiac_sign: str):
+    """Get daily horoscope for a zodiac sign"""
+    try:
+        service = get_astrology_service()
+        
+        data = await service.get_daily_horoscope(zodiac_sign)
+        
+        if not data:
+            raise HTTPException(status_code=500, detail="Impossible de récupérer l'horoscope du jour")
+        
+        return {
+            "success": True,
+            "zodiac_sign": zodiac_sign,
+            "zodiac_french": service.get_zodiac_french_name(zodiac_sign),
+            "data": data
+        }
+        
+    except Exception as e:
+        logger.error(f"Daily horoscope error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+@api_router.get("/astrology/weekly/{zodiac_sign}")
+async def get_weekly_horoscope(zodiac_sign: str):
+    """Get weekly horoscope for a zodiac sign"""
+    try:
+        service = get_astrology_service()
+        
+        data = await service.get_weekly_horoscope(zodiac_sign)
+        
+        if not data:
+            raise HTTPException(status_code=500, detail="Impossible de récupérer l'horoscope de la semaine")
+        
+        return {
+            "success": True,
+            "zodiac_sign": zodiac_sign,
+            "zodiac_french": service.get_zodiac_french_name(zodiac_sign),
+            "data": data
+        }
+        
+    except Exception as e:
+        logger.error(f"Weekly horoscope error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+@api_router.get("/astrology/monthly/{zodiac_sign}")
+async def get_monthly_horoscope(zodiac_sign: str):
+    """Get monthly horoscope for a zodiac sign"""
+    try:
+        service = get_astrology_service()
+        
+        data = await service.get_monthly_horoscope(zodiac_sign)
+        
+        if not data:
+            raise HTTPException(status_code=500, detail="Impossible de récupérer l'horoscope du mois")
+        
+        return {
+            "success": True,
+            "zodiac_sign": zodiac_sign,
+            "zodiac_french": service.get_zodiac_french_name(zodiac_sign),
+            "data": data
+        }
+        
+    except Exception as e:
+        logger.error(f"Monthly horoscope error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+@api_router.get("/astrology/zodiac/{date}")
+async def get_zodiac_from_date(date: str):
+    """Get zodiac sign from a birth date (format: YYYY-MM-DD)"""
+    try:
+        service = get_astrology_service()
+        zodiac_sign = service.get_zodiac_sign_from_date(date)
+        
+        return {
+            "success": True,
+            "date": date,
+            "zodiac_sign": zodiac_sign,
+            "zodiac_french": service.get_zodiac_french_name(zodiac_sign)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Format de date invalide: {str(e)}")
+
 # Include the router in the main app
 app.include_router(api_router)
 
