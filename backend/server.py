@@ -33,6 +33,14 @@ PRODUCTS = {
     }
 }
 
+# Discount codes - defined server-side only for security
+DISCOUNT_CODES = {
+    "ASTRO100": {
+        "discount_percent": 100,
+        "description": "Accès gratuit complet"
+    }
+}
+
 # Create the main app without a prefix
 app = FastAPI()
 
