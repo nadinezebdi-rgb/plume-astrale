@@ -4,13 +4,17 @@
 Application de génération de thèmes astraux et chemins d'âme - Un outil spirituel qui combine numérologie, astrologie, tarot et lecture d'âme.
 
 ## Date de mise à jour
-15 Février 2026 (Session 3 - Intégration Stripe)
+15 Février 2026 (Session 3 - Intégration Stripe + AstrologyAPI)
 
 ## Dernières modifications
 - ✅ Intégration Stripe complète pour le Manuscrit de la Plume (29,90€)
-- ✅ Page de succès de paiement avec polling du statut
-- ✅ Bouton "Votre Étude Gratuite Ici" sur la page d'accueil (sans prix)
-- ✅ Transactions de paiement stockées en base de données MongoDB
+- ✅ Code de réduction ASTRO100 (100% gratuit) fonctionnel
+- ✅ **Intégration AstrologyAPI** avec données réelles :
+  - Positions planétaires (Soleil, Lune, Mars, Venus, etc.)
+  - Ascendant calculé astronomiquement
+  - Maisons astrologiques
+  - Degrés et signes zodiacaux
+- ✅ Page Resultats mise à jour avec données API en temps réel
 
 ## Problème initial
 L'utilisateur avait un site fonctionnel (backend Supabase + Stripe + génération PDF) mais le design n'était pas ésotérique et le flux freemium n'était pas logique.
