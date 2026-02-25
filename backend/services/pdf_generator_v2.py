@@ -1,16 +1,18 @@
 """
 Générateur PDF Manuscrit Complet
-Version enrichie avec contenu astrologique détaillé
+Version enrichie avec contenu astrologique détaillé et illustrations
 """
 import io
 import os
 import random
 from datetime import datetime
+from pathlib import Path
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm, mm
 from reportlab.lib.colors import HexColor
 from reportlab.pdfgen import canvas
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
+from reportlab.lib.utils import ImageReader
 import logging
 
 from services.astro_content import (
@@ -27,6 +29,21 @@ LIGHT_PURPLE = HexColor('#1A0B2E')
 CREAM = HexColor('#F3E5AB')
 LIGHT_TEXT = HexColor('#E0D9F6')
 MEDIUM_PURPLE = HexColor('#2D1B4E')
+SOFT_GOLD = HexColor('#D4AF37')
+DEEP_BLUE = HexColor('#0A0A2E')
+
+# Assets path
+ASSETS_DIR = Path(__file__).parent.parent / "assets"
+ZODIAC_IMG_DIR = ASSETS_DIR / "zodiac"
+
+# Mapping zodiac signs to image files
+ZODIAC_IMAGES = {
+    "Gemini": "gemini.png",
+    "Cancer": "cancer.png",
+    "Leo": "leo.png",
+    "Virgo": "virgo.png",
+    "Libra": "libra.png",
+}
 
 class ManuscritCompletGenerator:
     """Generate complete PDF manuscripts with rich astrological content"""
@@ -35,6 +52,7 @@ class ManuscritCompletGenerator:
         self.width, self.height = A4
         self.margin = 2 * cm
         self.page_num = 0
+        self._image_cache = {}
         
     def _get_french_sign(self, sign):
         """Convert English sign to French"""
