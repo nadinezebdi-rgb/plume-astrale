@@ -73,7 +73,13 @@ PRODUCTS = {
 DISCOUNT_CODES = {
     "ASTRO100": {
         "discount_percent": 100,
-        "description": "Accès gratuit complet"
+        "description": "Acces gratuit complet",
+        "products": ["manuscrit"]
+    },
+    "PLUME2026": {
+        "discount_percent": 100,
+        "description": "Acces gratuit a tous les services",
+        "products": "all"
     }
 }
 
