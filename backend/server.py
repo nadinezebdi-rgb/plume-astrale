@@ -37,7 +37,7 @@ STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
 PRODUCTS = {
     "manuscrit": {
         "name": "Theme Astral Professionnel",
-        "amount": 29.90,
+        "amount": 24.90,
         "currency": "eur",
         "description": "Votre theme astral professionnel complet - 68 pages (PDF)"
     },
