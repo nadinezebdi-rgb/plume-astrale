@@ -201,6 +201,56 @@ class ManuscritCompletGenerator:
         
         return y - height - 1*cm
     
+    def _draw_zodiac_image(self, c, sign, y, width=7*cm, height=7*cm):
+        """Draw zodiac illustration or placeholder"""
+        img_path = self._get_zodiac_image(sign)
+        x = (self.width - width) / 2
+        
+        if img_path:
+            try:
+                # Draw image with rounded corners effect (border)
+                c.saveState()
+                
+                # Gold border behind image
+                c.setStrokeColor(GOLD)
+                c.setStrokeAlpha(0.6)
+                c.setLineWidth(1.5)
+                c.roundRect(x - 2, y - height - 2, width + 4, height + 4, 8)
+                c.setStrokeAlpha(1.0)
+                
+                # Draw the image
+                c.drawImage(img_path, x, y - height, width=width, height=height, 
+                           preserveAspectRatio=True, mask='auto')
+                
+                c.restoreState()
+                return y - height - 0.8*cm
+            except Exception as e:
+                logger.warning(f"Could not load image for {sign}: {e}")
+        
+        # Fallback to styled placeholder
+        signe_info = SIGNES_DETAILS.get(sign, {})
+        symbole = signe_info.get('symbole', '★')
+        
+        c.setFillColor(MEDIUM_PURPLE)
+        c.setFillAlpha(0.4)
+        c.roundRect(x, y - height, width, height, 10, fill=1)
+        c.setFillAlpha(1.0)
+        
+        c.setStrokeColor(GOLD)
+        c.setStrokeAlpha(0.4)
+        c.setLineWidth(1)
+        c.roundRect(x, y - height, width, height, 10)
+        c.setStrokeAlpha(1.0)
+        
+        # Large zodiac symbol
+        c.setFillColor(GOLD)
+        c.setFillAlpha(0.6)
+        c.setFont("Helvetica-Bold", 48)
+        c.drawCentredString(self.width / 2, y - height/2 - 0.3*cm, symbole)
+        c.setFillAlpha(1.0)
+        
+        return y - height - 0.8*cm
+    
     def _new_page(self, c):
         """Start a new page"""
         c.showPage()
