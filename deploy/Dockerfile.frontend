@@ -1,12 +1,13 @@
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and craco config
 COPY frontend/package.json ./
+COPY frontend/craco.config.js ./
 
 # Install dependencies
-RUN yarn install
+RUN yarn install --network-timeout 300000
 
 # Copy frontend source
 COPY frontend/ .
@@ -14,6 +15,8 @@ COPY frontend/ .
 # Set build-time env
 ARG REACT_APP_BACKEND_URL
 ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
+ENV NODE_OPTIONS=--max-old-space-size=2048
+ENV GENERATE_SOURCEMAP=false
 
 # Build
 RUN yarn build
