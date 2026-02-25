@@ -479,6 +479,9 @@ class ManuscritCompletGenerator:
             
             y -= 2*cm
         
+        # Moon sign illustration
+        y = self._draw_zodiac_image(c, moon_sign, y, width=5*cm, height=5*cm)
+        
         # Description from PLANETES_DETAILS
         lune_info = PLANETES_DETAILS.get('Moon', {})
         description = lune_info.get('description', '')
