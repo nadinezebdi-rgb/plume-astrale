@@ -717,6 +717,117 @@ async def get_book_order_status(session_id: str, http_request: Request):
     
     return order
 
+
+# ========== DAILY CONTENT ROUTES ==========
+
+@api_router.get("/daily/{zodiac_sign}")
+async def get_daily_horoscope(zodiac_sign: str):
+    """Get daily horoscope, advice, and spiritual phrase for a zodiac sign"""
+    valid_signs = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"]
+    if zodiac_sign not in valid_signs:
+        raise HTTPException(status_code=400, detail=f"Signe invalide. Signes valides: {', '.join(valid_signs)}")
+    
+    content = get_daily_content(zodiac_sign)
+    return content
+
+
+# ========== TAROT OUI/NON ROUTES ==========
+
+class TarotOuiNonRequest(BaseModel):
+    question: str
+
+@api_router.post("/tarot/oui-non")
+async def tarot_oui_non_endpoint(request: TarotOuiNonRequest):
+    """Tirage Tarot Oui/Non - tire un arcane majeur"""
+    if not request.question.strip():
+        raise HTTPException(status_code=400, detail="Veuillez poser une question")
+    
+    result = tirage_oui_non(request.question)
+    return result
+
+
+# ========== TAROLOGIE MEDIUMNITE ROUTES ==========
+
+class MediumniteRequest(BaseModel):
+    prenom: str
+    date_naissance: str
+
+@api_router.post("/tarologie/tirage")
+async def tarologie_tirage(request: MediumniteRequest):
+    """Tirage complet tarologie médiumnité - 7 cartes + lecture"""
+    if not request.prenom.strip():
+        raise HTTPException(status_code=400, detail="Prénom requis")
+    
+    result = tirage_mediumnite_complet(request.prenom, request.date_naissance)
+    return result
+
+@api_router.post("/tarologie/pdf")
+async def tarologie_pdf(request: MediumniteRequest):
+    """Generate PDF for tarologie médiumnité reading"""
+    from fastapi.responses import Response
+    
+    tirage_data = tirage_mediumnite_complet(request.prenom, request.date_naissance)
+    pdf_bytes = generate_mediumnite_pdf(tirage_data)
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=tarologie_mediumnite_{request.prenom}.pdf"}
+    )
+
+
+# ========== PDF PREVIEW ROUTE ==========
+
+@api_router.post("/pdf/preview")
+async def generate_pdf_preview(request: Request):
+    """Generate preview images of the first pages of the PDF manuscript"""
+    import base64
+    
+    body = await request.json()
+    user_data = body.get("user_data", {})
+    
+    # Generate the full PDF first
+    astrology_service = get_astrology_service()
+    planets_data = None
+    horoscope_data = None
+    
+    if astrology_service:
+        try:
+            date_naissance = user_data.get('dateNaissance', '1990-01-01')
+            heure_naissance = user_data.get('heureNaissance', '12:00')
+            
+            date_parts = date_naissance.split('-')
+            hour, minute = heure_naissance.split(':')
+            
+            planets_data = await astrology_service.get_planets(
+                day=int(date_parts[2]), month=int(date_parts[1]), year=int(date_parts[0]),
+                hour=int(hour), min=int(minute), lat=48.8566, lon=2.3522, tzone=1.0
+            )
+        except Exception as e:
+            logger.error(f"Error fetching astrology data for preview: {e}")
+    
+    pdf_bytes = generate_manuscrit_complet(user_data, planets_data, horoscope_data)
+    
+    # Convert first pages to preview images using pdf2image or fitz
+    try:
+        import fitz  # PyMuPDF
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        previews = []
+        for page_num in range(min(3, len(doc))):
+            page = doc[page_num]
+            # Render at 150 DPI for good quality preview
+            mat = fitz.Matrix(150/72, 150/72)
+            pix = page.get_pixmap(matrix=mat)
+            img_bytes = pix.tobytes("jpeg", jpg_quality=70)
+            b64 = base64.b64encode(img_bytes).decode('utf-8')
+            previews.append(f"data:image/jpeg;base64,{b64}")
+        doc.close()
+        
+        return {"previews": previews, "total_pages": len(doc)}
+    except ImportError:
+        logger.warning("PyMuPDF not installed, returning PDF size only")
+        return {"previews": [], "total_pages": 0, "pdf_size": len(pdf_bytes)}
+
 # Include the router in the main app
 app.include_router(api_router)
 
