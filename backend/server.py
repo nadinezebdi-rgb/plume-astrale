@@ -27,9 +27,8 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Mount static assets
+# Static assets dir
 ASSETS_DIR = Path(__file__).parent / "assets"
-app.mount("/api/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
 
 # Stripe configuration
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
