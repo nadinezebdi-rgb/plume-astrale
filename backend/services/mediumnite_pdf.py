@@ -127,42 +127,52 @@ class MediumnitePDFGenerator:
         c.setFont("Helvetica", 10)
         c.drawCentredString(self.width / 2, 4 * cm, f"Date du tirage : {tirage_data.get('date', '')[:10]}")
 
-        # === TIRAGE 7 CARTES ===
+        # === TIRAGE EN CROIX ===
         tirage = tirage_data.get("tirage", [])
+        is_croix = tirage_data.get("type") == "croix"
         
         self._new_page(c)
         y = self.height - 3 * cm
         c.setFillColor(GOLD)
         c.setFont("Helvetica-Bold", 20)
-        c.drawCentredString(self.width / 2, y, "Le Tirage des 7 Arcanes")
+        title = "Le Tirage en Croix" if is_croix else "Le Tirage des 7 Arcanes"
+        c.drawCentredString(self.width / 2, y, title)
         y -= 0.8 * cm
         c.setFillColor(LIGHT_TEXT)
         c.setFillAlpha(0.6)
         c.setFont("Helvetica-Oblique", 10)
-        c.drawCentredString(self.width / 2, y, "Sept cles pour deverrouiller les mysteres de votre destinee")
+        subtitle = "Cinq arcanes pour eclairer votre situation" if is_croix else "Sept cles pour deverrouiller les mysteres de votre destinee"
+        c.drawCentredString(self.width / 2, y, subtitle)
         c.setFillAlpha(1.0)
         y -= 1.5 * cm
 
         for i, item in enumerate(tirage):
-            if y < 6 * cm:
+            carte = item.get("carte", {})
+            position = item.get("position_nom", item.get("position", ""))
+            message = item.get("interpretation", item.get("message", ""))
+            description = carte.get("description_arcane", "")
+            mots_cles = carte.get("mots_cles", carte.get("energie", ""))
+
+            # Calculate box height based on content
+            msg_lines = self._wrap_text(message, "Helvetica", 10, self.width - 2 * self.margin - 1 * cm)
+            desc_lines = self._wrap_text(description, "Helvetica-Oblique", 9, self.width - 2 * self.margin - 1 * cm) if description else []
+            content_h = max(4.5 * cm, 2.5 * cm + len(msg_lines) * 0.35 * cm + len(desc_lines) * 0.32 * cm)
+
+            if y - content_h < 3 * cm:
                 self._new_page(c)
                 y = self.height - 3 * cm
 
-            carte = item.get("carte", {})
-            position = item.get("position", "")
-            message = item.get("message", "")
-
-            # Card box
-            box_h = 3.5 * cm
             box_w = self.width - 2 * self.margin
+
+            # Card box background
             c.setFillColor(MEDIUM_PURPLE)
             c.setFillAlpha(0.5)
-            c.roundRect(self.margin, y - box_h, box_w, box_h, 8, fill=1)
+            c.roundRect(self.margin, y - content_h, box_w, content_h, 8, fill=1)
             c.setFillAlpha(1.0)
 
             c.setStrokeColor(GOLD)
             c.setStrokeAlpha(0.4)
-            c.roundRect(self.margin, y - box_h, box_w, box_h, 8)
+            c.roundRect(self.margin, y - content_h, box_w, content_h, 8)
             c.setStrokeAlpha(1.0)
 
             # Position label
@@ -176,23 +186,33 @@ class MediumnitePDFGenerator:
             nom = carte.get("nom", "Inconnue")
             c.drawString(self.margin + 0.5 * cm, y - 1.4 * cm, f"Arcane : {nom}")
 
-            # Energie
+            # Mots-cles
             c.setFillColor(GOLD)
             c.setFillAlpha(0.7)
             c.setFont("Helvetica-Oblique", 9)
-            c.drawRightString(self.width - self.margin - 0.5 * cm, y - 0.7 * cm, carte.get("energie", ""))
+            c.drawRightString(self.width - self.margin - 0.5 * cm, y - 0.7 * cm, mots_cles)
             c.setFillAlpha(1.0)
 
-            # Message
+            # Description of the arcane (if available)
             msg_y = y - 2.1 * cm
-            lines = self._wrap_text(message, "Helvetica", 10, box_w - 1 * cm)
-            for line in lines:
+            if desc_lines:
+                c.setFillColor(GOLD)
+                c.setFillAlpha(0.7)
+                for line in desc_lines:
+                    c.setFont("Helvetica-Oblique", 9)
+                    c.drawString(self.margin + 0.5 * cm, msg_y, line)
+                    msg_y -= 12
+                c.setFillAlpha(1.0)
+                msg_y -= 4
+
+            # Interpretation message
+            for line in msg_lines:
                 c.setFillColor(LIGHT_TEXT)
                 c.setFont("Helvetica", 10)
                 c.drawString(self.margin + 0.5 * cm, msg_y, line)
                 msg_y -= 13
 
-            y -= box_h + 0.6 * cm
+            y -= content_h + 0.6 * cm
 
         # === LECTURE MEDIUMNIQUE ===
         self._new_page(c)
