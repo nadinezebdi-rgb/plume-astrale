@@ -456,7 +456,7 @@ const Apercu = () => {
             
             <div className="mb-10 py-6 border-t border-b border-[#C5A059]/20">
               <div className="text-5xl font-bold text-gold-gradient mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
-                24,90€
+                29,90€
               </div>
               <p className="text-[#C5A059]/80 text-sm">
                 Un investissement unique pour une guidance éternelle

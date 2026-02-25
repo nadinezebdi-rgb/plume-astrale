@@ -45,7 +45,7 @@ const Choix = () => {
     },
     premium: {
       name: 'Premium',
-      price: '24,90',
+      price: '29,90',
       description: 'L\'expérience cosmique complète',
       badge: 'Recommandé',
       features: [
