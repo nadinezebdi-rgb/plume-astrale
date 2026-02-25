@@ -119,14 +119,17 @@ const TarotOuiNon = () => {
                   <span className="text-[#C5A059] text-sm uppercase tracking-widest">Arcane Tire</span>
                 </div>
                 
-                <div className="w-32 h-48 mx-auto mb-6 rounded-xl flex items-center justify-center" 
-                     style={{ background: 'linear-gradient(135deg, #1A0B2E, #2D1B4E)', border: '2px solid #C5A059' }}>
-                  <div className="text-center">
-                    <span className="text-[#C5A059] text-3xl font-bold block" style={{ fontFamily: 'Cinzel, serif' }}>
-                      {result.carte.numero === 0 ? '0' : result.carte.numero}
-                    </span>
-                    <span className="text-[#F3E5AB] text-xs mt-1 block">{result.carte.nom}</span>
-                  </div>
+                <div className="w-32 h-44 mx-auto mb-6 rounded-xl overflow-hidden" 
+                     style={{ border: '2px solid #C5A059' }}>
+                  {result.carte.image ? (
+                    <img src={`${API_URL}${result.carte.image}`} alt={result.carte.nom} className="w-full h-full object-cover" data-testid="carte-image" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1A0B2E, #2D1B4E)' }}>
+                      <span className="text-[#C5A059] text-3xl font-bold" style={{ fontFamily: 'Cinzel, serif' }}>
+                        {result.carte.numero === 0 ? '0' : result.carte.numero}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <h2 className="text-2xl mb-2" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
