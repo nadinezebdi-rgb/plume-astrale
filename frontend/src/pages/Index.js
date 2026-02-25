@@ -102,7 +102,15 @@ const Index = () => {
               data-testid="cta-begin-journey"
             >
               <Sparkles className="w-5 h-5" />
-              Votre Étude Gratuite Ici
+              Votre Etude Gratuite Ici
+            </button>
+            <button 
+              onClick={() => navigate('/compatibilite-amoureuse')}
+              className="btn-mystical rounded-full flex items-center gap-3 border-[#C5A059] hover:bg-[#C5A059]/10"
+              data-testid="cta-compatibility"
+            >
+              <Heart className="w-5 h-5" />
+              Testez Votre Compatibilite Amoureuse
             </button>
           </div>
           
