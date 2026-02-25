@@ -232,6 +232,7 @@ def tirage_oui_non(question: str) -> dict:
             "numero": carte["numero"],
             "nom": carte["nom"],
             "energie": carte["energie"],
+            "image": f"/api/assets/tarot/{TAROT_IMAGE_MAP.get(carte['numero'], '')}",
         },
         "orientation": orientation,
         "reponse": reponse,
