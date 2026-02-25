@@ -11,6 +11,7 @@ set -e
 DOMAIN="plume-astrale.fr"
 EMAIL="nadine.zebdi@gmail.com"
 APP_DIR="/root/plume-astrale"
+VPS_IP="187.124.9.214"
 
 echo "=========================================="
 echo "  PLUME ASTRALE - Deploiement"
