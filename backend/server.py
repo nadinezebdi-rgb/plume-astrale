@@ -791,16 +791,16 @@ async def tarologie_tirage(request: MediumniteRequest):
 
 @api_router.post("/tarologie/pdf")
 async def tarologie_pdf(request: MediumniteRequest):
-    """Generate PDF for tarologie médiumnité reading"""
+    """Generate PDF for tarologie en croix reading"""
     from fastapi.responses import Response
     
-    tirage_data = tirage_mediumnite_complet(request.prenom, request.date_naissance)
+    tirage_data = tirage_en_croix(request.prenom, request.date_naissance)
     pdf_bytes = generate_mediumnite_pdf(tirage_data)
     
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename=tarologie_mediumnite_{request.prenom}.pdf"}
+        headers={"Content-Disposition": f"attachment; filename=tarologie_croix_{request.prenom}.pdf"}
     )
 
 
