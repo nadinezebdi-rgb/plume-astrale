@@ -17,6 +17,7 @@ const Navbar = () => {
 
   const publicLinks = [
     { to: '/', label: 'Accueil', icon: <Sparkles className="w-4 h-4" strokeWidth={1} /> },
+    { to: '/compatibilite-amoureuse', label: 'Compatibilite', icon: <Heart className="w-4 h-4" strokeWidth={1} />, highlight: true },
     { to: '/quotidien', label: 'Guidance du Jour', icon: <Sun className="w-4 h-4" strokeWidth={1} /> },
     { to: '/tarot-oui-non', label: 'Tarot Oui/Non', icon: <Eye className="w-4 h-4" strokeWidth={1} /> },
     { to: '/tarologie', label: 'Tarologie', icon: <BookOpen className="w-4 h-4" strokeWidth={1} /> },
