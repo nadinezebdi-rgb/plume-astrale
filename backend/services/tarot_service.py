@@ -265,7 +265,12 @@ def tirage_mediumnite_complet(prenom: str, date_naissance: str) -> dict:
         orient = orientations[rng.randint(0, 2)]
         tirage.append({
             "position": position,
-            "carte": {"numero": carte["numero"], "nom": carte["nom"], "energie": carte["energie"]},
+            "carte": {
+                "numero": carte["numero"],
+                "nom": carte["nom"],
+                "energie": carte["energie"],
+                "image": f"/api/assets/tarot/{TAROT_IMAGE_MAP.get(carte['numero'], '')}",
+            },
             "message": carte[orient],
         })
 
