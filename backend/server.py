@@ -37,9 +37,15 @@ STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
 PRODUCTS = {
     "manuscrit": {
         "name": "Theme Astral Professionnel",
-        "amount": 24.90,
+        "amount": 29.90,
         "currency": "eur",
         "description": "Votre theme astral professionnel complet - 68 pages (PDF)"
+    },
+    "chemin_ame": {
+        "name": "Le Chemin d'Ame",
+        "amount": 24.90,
+        "currency": "eur",
+        "description": "Votre chemin d'ame personnalise - Numerologie, previsions et guidance (PDF)"
     },
     "livre": {
         "name": "Le Livre de la Plume",
