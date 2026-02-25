@@ -35,7 +35,7 @@ const Paiement = () => {
     },
     premium: {
       name: 'Premium',
-      price: '29,90',
+      price: '24,90',
       features: [
         "Tout le contenu Essentiel",
         "Tirage Tarot personnalisé (3 cartes)",
