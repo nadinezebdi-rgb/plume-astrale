@@ -930,6 +930,10 @@ async def generate_compatibility(request: CompatibilityRequest):
 
 
 # Include the router in the main app
+# Mount static assets for tarot/zodiac images
+app.mount("/api/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
+
+# Include the API router
 app.include_router(api_router)
 
 app.add_middleware(
