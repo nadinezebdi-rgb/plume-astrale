@@ -543,6 +543,9 @@ class ManuscritCompletGenerator:
             
             y -= 2*cm
         
+        # Ascendant sign illustration
+        y = self._draw_zodiac_image(c, asc_sign, y, width=5*cm, height=5*cm)
+        
         # Ascendant description
         asc_text = f"""Votre Ascendant en {asc_fr} est la façon dont le monde vous perçoit au premier abord. 
 C'est votre masque social, votre personnalité apparente, et la manière dont vous abordez naturellement les nouvelles situations.
