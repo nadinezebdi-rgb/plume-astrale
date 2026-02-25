@@ -199,11 +199,15 @@ const Tarologie = () => {
                       </div>
                     )}
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-16 rounded-lg flex items-center justify-center flex-shrink-0"
-                           style={{ background: 'linear-gradient(135deg, #1A0B2E, #2D1B4E)', border: '1px solid #C5A059' }}>
-                        <span className="text-[#C5A059] font-bold" style={{ fontFamily: 'Cinzel, serif' }}>
-                          {item.carte.numero}
-                        </span>
+                      <div className="w-14 h-20 rounded-lg overflow-hidden flex-shrink-0"
+                           style={{ border: '1px solid #C5A059' }}>
+                        {item.carte.image ? (
+                          <img src={`${API_URL}${item.carte.image}`} alt={item.carte.nom} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1A0B2E, #2D1B4E)' }}>
+                            <span className="text-[#C5A059] font-bold" style={{ fontFamily: 'Cinzel, serif' }}>{item.carte.numero}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
