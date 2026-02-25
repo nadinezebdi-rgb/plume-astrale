@@ -261,7 +261,7 @@ const Compatibilite2 = () => {
                     <div>
                       <h3 className="text-[#F3E5AB] font-medium mb-1">Theme Astral Pro</h3>
                       <p className="text-[#E0D9F6]/50 text-sm">68 pages d'analyse personnelle</p>
-                      <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">24,90 EUR</span>
+                      <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">29,90 EUR</span>
                     </div>
                     <Star className="w-5 h-5 text-[#C5A059] group-hover:scale-110 transition-transform" />
                   </div>

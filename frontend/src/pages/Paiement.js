@@ -167,7 +167,7 @@ const Paiement = () => {
                     data-testid="select-premium"
                   >
                     <p className="text-[#F3E5AB]">Premium</p>
-                    <p className="text-[#C5A059] font-bold">24,90€</p>
+                    <p className="text-[#C5A059] font-bold">29,90€</p>
                   </button>
                 </div>
               </div>
