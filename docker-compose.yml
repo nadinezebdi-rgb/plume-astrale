@@ -1,0 +1,70 @@
+services:
+  mongodb:
+    image: mongo:7
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - plume_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.backend
+    restart: always
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017
+      - DB_NAME=plume_astrale
+      - CORS_ORIGINS=*
+      - STRIPE_API_KEY=${STRIPE_API_KEY}
+      - ASTROLOGY_API_USER_ID=${ASTROLOGY_API_USER_ID}
+      - ASTROLOGY_API_KEY=${ASTROLOGY_API_KEY}
+      - ASTROLOGY_PDF_USER_ID=${ASTROLOGY_PDF_USER_ID}
+      - ASTROLOGY_PDF_API_KEY=${ASTROLOGY_PDF_API_KEY}
+    depends_on:
+      - mongodb
+    networks:
+      - plume_network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.frontend
+      args:
+        - REACT_APP_BACKEND_URL=https://plume-astrale.fr
+    restart: always
+    networks:
+      - plume_network
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf
+      - certbot_etc:/etc/letsencrypt
+      - certbot_var:/var/lib/letsencrypt
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - plume_network
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_etc:/etc/letsencrypt
+      - certbot_var:/var/lib/letsencrypt
+    depends_on:
+      - nginx
+
+volumes:
+  mongo_data:
+  certbot_etc:
+  certbot_var:
+
+networks:
+  plume_network:
+    driver: bridge
