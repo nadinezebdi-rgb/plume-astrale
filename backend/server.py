@@ -32,16 +32,16 @@ STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
 # Fixed product packages - prices defined server-side only
 PRODUCTS = {
     "manuscrit": {
-        "name": "Le Manuscrit de la Plume",
+        "name": "Theme Astral Professionnel",
         "amount": 29.90,
         "currency": "eur",
-        "description": "Votre guide spirituel personnel à conserver précieusement (PDF)"
+        "description": "Votre theme astral professionnel complet - 68 pages (PDF)"
     },
     "livre": {
         "name": "Le Livre de la Plume",
         "amount": 49.90,
         "currency": "eur",
-        "description": "Votre manuscrit imprimé en livre relié - Livraison sous 5 jours",
+        "description": "Votre manuscrit imprime en livre relie - Livraison sous 5 jours",
         "requires_address": True,
         "delivery_days": 5
     },
@@ -49,13 +49,19 @@ PRODUCTS = {
         "name": "Tarot Oui/Non",
         "amount": 4.99,
         "currency": "eur",
-        "description": "Tirage d'un Arcane Majeur pour répondre à votre question"
+        "description": "Tirage d'un Arcane Majeur pour repondre a votre question"
     },
     "tarologie_mediumnite": {
-        "name": "Tarologie & Médiumnité",
+        "name": "Tarologie & Mediumnite",
         "amount": 35.00,
         "currency": "eur",
-        "description": "Tirage complet 7 cartes + lecture médiumnique en PDF"
+        "description": "Tirage complet 7 cartes + lecture mediumnique en PDF"
+    },
+    "compatibilite": {
+        "name": "Compatibilite Astrale",
+        "amount": 29.90,
+        "currency": "eur",
+        "description": "Analyse de compatibilite amoureuse complete - 24 pages (PDF)"
     }
 }
 
