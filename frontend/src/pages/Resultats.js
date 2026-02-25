@@ -79,6 +79,31 @@ const Resultats = () => {
     setIsDownloading(false);
   };
 
+  const downloadCheminAme = async () => {
+    setIsDownloadingChemin(true);
+    try {
+      const response = await fetch(`${API_URL}/api/pdf/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_data: userData })
+      });
+      if (!response.ok) throw new Error('PDF generation failed');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chemin_ame_${userData?.prenom || 'celestial'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Chemin ame PDF error:', error);
+    }
+    setIsDownloadingChemin(false);
+  };
+
+
   useEffect(() => {
     const loadData = async () => {
       const data = localStorage.getItem('plume_astrale_data');
