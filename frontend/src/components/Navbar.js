@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, Menu, X, Star, Moon, Heart, Sun } from 'lucide-react';
+import { Sparkles, Menu, X, Star, Moon, Heart, Sun, Eye, BookOpen } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,14 +16,17 @@ const Navbar = () => {
   }, [location]);
 
   const publicLinks = [
-    { to: '/', label: 'Accueil', icon: <Sparkles className="w-4 h-4" strokeWidth={1} /> }
+    { to: '/', label: 'Accueil', icon: <Sparkles className="w-4 h-4" strokeWidth={1} /> },
+    { to: '/quotidien', label: 'Guidance du Jour', icon: <Sun className="w-4 h-4" strokeWidth={1} /> },
+    { to: '/tarot-oui-non', label: 'Tarot Oui/Non', icon: <Eye className="w-4 h-4" strokeWidth={1} /> },
+    { to: '/tarologie', label: 'Tarologie', icon: <BookOpen className="w-4 h-4" strokeWidth={1} /> },
   ];
 
   const premiumLinks = [
     { to: '/resultats', label: 'Mon Manuscrit', icon: <Star className="w-4 h-4" strokeWidth={1} /> },
-    { to: '/horoscope', label: 'Horoscope', icon: <Sun className="w-4 h-4" strokeWidth={1} /> },
-    { to: '/tarot', label: 'Tarot', icon: <Moon className="w-4 h-4" strokeWidth={1} />, premium: true },
-    { to: '/compatibilite', label: 'Compatibilité', icon: <Heart className="w-4 h-4" strokeWidth={1} />, premium: true }
+    { to: '/horoscope', label: 'Horoscope', icon: <Moon className="w-4 h-4" strokeWidth={1} /> },
+    { to: '/tarot', label: 'Tarot Avance', icon: <Moon className="w-4 h-4" strokeWidth={1} />, premium: true },
+    { to: '/compatibilite', label: 'Compatibilite', icon: <Heart className="w-4 h-4" strokeWidth={1} />, premium: true }
   ];
 
   const links = isPaid ? [...publicLinks, ...premiumLinks] : publicLinks;
