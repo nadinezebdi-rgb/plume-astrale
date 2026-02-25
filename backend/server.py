@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime, timezone
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 from services.astrology_api import get_astrology_service, AstrologyAPIService
-from services.pdf_generator import generate_manuscrit_pdf
+from services.pdf_generator_v2 import generate_manuscrit_complet
 
 
 ROOT_DIR = Path(__file__).parent
