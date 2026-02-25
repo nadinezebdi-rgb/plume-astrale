@@ -5,6 +5,74 @@ import StarField from '@/components/StarField/StarField';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
+const PdfPreview = ({ userData }) => {
+  const [previews, setPreviews] = useState([]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userData) return;
+    const fetchPreviews = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/pdf/preview`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_data: userData }),
+        });
+        const data = await res.json();
+        setPreviews(data.previews || []);
+        setTotalPages(data.total_pages || 0);
+      } catch (e) {
+        console.error('Preview error:', e);
+      }
+      setLoading(false);
+    };
+    fetchPreviews();
+  }, [userData]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center py-8">
+        <Loader2 className="w-8 h-8 text-[#C5A059] animate-spin mb-3" />
+        <p className="text-[#E0D9F6]/50 text-sm">Preparation de l'apercu...</p>
+      </div>
+    );
+  }
+
+  if (previews.length === 0) return null;
+
+  return (
+    <div data-testid="pdf-preview-section">
+      <h3 className="text-center text-[#C5A059] text-sm uppercase tracking-widest mb-4">
+        Apercu de votre Manuscrit ({totalPages} pages)
+      </h3>
+      <div className="flex gap-3 justify-center overflow-x-auto pb-4">
+        {previews.map((src, i) => (
+          <div key={i} className="relative flex-shrink-0 group">
+            <img
+              src={src}
+              alt={`Page ${i + 1}`}
+              className="w-40 md:w-48 rounded-lg shadow-2xl border border-[#C5A059]/20"
+              data-testid={`pdf-preview-page-${i}`}
+            />
+            {i === previews.length - 1 && (
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0F0518] rounded-lg" />
+            )}
+          </div>
+        ))}
+        {/* Blurred placeholder for remaining pages */}
+        <div className="relative flex-shrink-0 w-40 md:w-48 rounded-lg flex items-center justify-center"
+             style={{ background: 'linear-gradient(135deg, #1A0B2E, #0F0518)', border: '1px dashed #C5A059', minHeight: '240px', opacity: 0.7 }}>
+          <div className="text-center p-4">
+            <Lock className="w-6 h-6 text-[#C5A059]/50 mx-auto mb-2" />
+            <p className="text-[#C5A059]/60 text-xs">+{totalPages - previews.length} pages</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Apercu = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
