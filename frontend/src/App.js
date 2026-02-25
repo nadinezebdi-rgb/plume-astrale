@@ -21,6 +21,7 @@ import CommandeSucces from "@/pages/CommandeSucces";
 import Quotidien from "@/pages/Quotidien";
 import TarotOuiNon from "@/pages/TarotOuiNon";
 import Tarologie from "@/pages/Tarologie";
+import Compatibilite2 from "@/pages/Compatibilite2";
 
 // 404 Component
 const NotFound = () => (
