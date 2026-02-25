@@ -57,9 +57,11 @@ const Navbar = () => {
                 key={link.to}
                 to={link.to}
                 className={`flex items-center gap-2 text-sm transition-colors ${
-                  location.pathname === link.to
-                    ? 'text-[#C5A059]'
-                    : 'text-[#E0D9F6]/70 hover:text-[#C5A059]'
+                  link.highlight
+                    ? 'px-3 py-1.5 rounded-full border border-[#C5A059] text-[#C5A059] hover:bg-[#C5A059]/10 font-medium'
+                    : location.pathname === link.to
+                      ? 'text-[#C5A059]'
+                      : 'text-[#E0D9F6]/70 hover:text-[#C5A059]'
                 }`}
               >
                 {link.icon}
