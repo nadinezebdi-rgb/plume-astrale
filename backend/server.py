@@ -833,6 +833,98 @@ async def generate_pdf_preview(request: Request):
         logger.warning("PyMuPDF not installed, returning PDF size only")
         return {"previews": [], "total_pages": 0, "pdf_size": len(pdf_bytes)}
 
+
+# ========== PRO HOROSCOPE PDF ROUTE ==========
+
+class ProPdfRequest(BaseModel):
+    name: str
+    gender: str
+    day: int
+    month: int
+    year: int
+    hour: int
+    minute: int
+    lat: float = 48.8566
+    lon: float = 2.3522
+    timezone: float = 1.0
+    place: str = "Paris, France"
+
+@api_router.post("/pdf/pro-horoscope")
+async def get_pro_horoscope_pdf(request: ProPdfRequest):
+    """Generate a 68-page professional horoscope PDF via AstrologyAPI"""
+    pdf_url = await generate_pro_horoscope_pdf(
+        name=request.name,
+        gender=request.gender,
+        day=request.day, month=request.month, year=request.year,
+        hour=request.hour, minute=request.minute,
+        lat=request.lat, lon=request.lon,
+        timezone=request.timezone,
+        place=request.place,
+    )
+    
+    if not pdf_url:
+        raise HTTPException(status_code=500, detail="Erreur lors de la generation du PDF professionnel")
+    
+    return {"pdf_url": pdf_url}
+
+
+# ========== COMPATIBILITY / MATCH MAKING ROUTE ==========
+
+class PersonData(BaseModel):
+    first_name: str
+    last_name: str = ""
+    gender: str
+    day: int
+    month: int
+    year: int
+    hour: int
+    minute: int
+    lat: float = 48.8566
+    lon: float = 2.3522
+    timezone: float = 1.0
+    place: str = "Paris, France"
+
+class CompatibilityRequest(BaseModel):
+    person1: PersonData
+    person2: PersonData
+
+@api_router.post("/compatibility/generate")
+async def generate_compatibility(request: CompatibilityRequest):
+    """Generate a 24-page compatibility/match making PDF"""
+    
+    # Determine male/female roles based on gender
+    if request.person1.gender.lower() in ["male", "homme", "m"]:
+        male_data = request.person1
+        female_data = request.person2
+    else:
+        male_data = request.person2
+        female_data = request.person1
+    
+    pdf_url = await generate_match_making_pdf(
+        male_data={
+            "first_name": male_data.first_name,
+            "last_name": male_data.last_name or male_data.first_name,
+            "day": male_data.day, "month": male_data.month, "year": male_data.year,
+            "hour": male_data.hour, "minute": male_data.minute,
+            "lat": male_data.lat, "lon": male_data.lon,
+            "timezone": male_data.timezone, "place": male_data.place,
+        },
+        female_data={
+            "first_name": female_data.first_name,
+            "last_name": female_data.last_name or female_data.first_name,
+            "day": female_data.day, "month": female_data.month, "year": female_data.year,
+            "hour": female_data.hour, "minute": female_data.minute,
+            "lat": female_data.lat, "lon": female_data.lon,
+            "timezone": female_data.timezone, "place": female_data.place,
+        },
+    )
+    
+    if not pdf_url:
+        raise HTTPException(status_code=500, detail="Erreur lors de la generation du rapport de compatibilite")
+    
+    return {"pdf_url": pdf_url}
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
