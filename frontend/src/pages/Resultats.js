@@ -336,15 +336,20 @@ const Resultats = () => {
                 ) : (
                   <Download className="w-4 h-4" strokeWidth={1} />
                 )}
-                {isDownloading ? 'Génération...' : 'Télécharger PDF'}
+                {isDownloading ? 'Generation...' : 'Theme Astral Pro (68p)'}
               </button>
-              <button className="btn-mystical rounded-full flex items-center gap-2 text-sm" data-testid="btn-email">
-                <Mail className="w-4 h-4" strokeWidth={1} />
-                Envoyer par Email
-              </button>
-              <button className="btn-mystical rounded-full flex items-center gap-2 text-sm" data-testid="btn-share">
-                <Share2 className="w-4 h-4" strokeWidth={1} />
-                Partager
+              <button 
+                onClick={downloadCheminAme}
+                disabled={isDownloadingChemin}
+                className="btn-mystical rounded-full flex items-center gap-2 text-sm disabled:opacity-50 border-[#C5A059]" 
+                data-testid="btn-download-chemin"
+              >
+                {isDownloadingChemin ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" strokeWidth={1} />
+                )}
+                {isDownloadingChemin ? 'Generation...' : 'Chemin d\'Ame (24,90€)'}
               </button>
             </div>
             
