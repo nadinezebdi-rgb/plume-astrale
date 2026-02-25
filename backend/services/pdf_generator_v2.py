@@ -43,6 +43,10 @@ ZODIAC_IMAGES = {
     "Leo": "leo.jpg",
     "Virgo": "virgo.jpg",
     "Libra": "libra.jpg",
+    "Scorpio": "scorpio.jpg",
+    "Sagittarius": "sagittarius.jpg",
+    "Capricorn": "capricorn.jpg",
+    "Aquarius": "aquarius.jpg",
 }
 
 class ManuscritCompletGenerator:
