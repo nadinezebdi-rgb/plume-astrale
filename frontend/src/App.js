@@ -57,6 +57,7 @@ function App() {
           <Route path="/quotidien" element={<Quotidien />} />
           <Route path="/tarot-oui-non" element={<TarotOuiNon />} />
           <Route path="/tarologie" element={<Tarologie />} />
+          <Route path="/compatibilite-amoureuse" element={<Compatibilite2 />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
