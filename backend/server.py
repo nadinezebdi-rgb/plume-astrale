@@ -43,6 +43,18 @@ PRODUCTS = {
         "description": "Votre manuscrit imprimé en livre relié - Livraison sous 5 jours",
         "requires_address": True,
         "delivery_days": 5
+    },
+    "tarot_oui_non": {
+        "name": "Tarot Oui/Non",
+        "amount": 4.99,
+        "currency": "eur",
+        "description": "Tirage d'un Arcane Majeur pour répondre à votre question"
+    },
+    "tarologie_mediumnite": {
+        "name": "Tarologie & Médiumnité",
+        "amount": 35.00,
+        "currency": "eur",
+        "description": "Tirage complet 7 cartes + lecture médiumnique en PDF"
     }
 }
 
