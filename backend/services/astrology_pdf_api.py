@@ -104,33 +104,25 @@ async def generate_match_making_pdf(
     
     auth = _get_pdf_auth()
     
+    # API requires specific parameter names: m_min (not m_minute), m_lat (not m_latitude), m_tzone (not m_timezone)
     data = {
-        "m_first_name": male_data.get("first_name", ""),
-        "m_last_name": male_data.get("last_name", ""),
         "m_day": male_data["day"],
         "m_month": male_data["month"],
         "m_year": male_data["year"],
         "m_hour": male_data["hour"],
-        "m_minute": male_data["minute"],
-        "m_latitude": male_data["lat"],
-        "m_longitude": male_data["lon"],
-        "m_timezone": male_data.get("timezone", 1.0),
-        "m_place": male_data.get("place", "Paris, France"),
-        "f_first_name": female_data.get("first_name", ""),
-        "f_last_name": female_data.get("last_name", ""),
+        "m_min": male_data["minute"],  # API expects m_min, not m_minute
+        "m_lat": male_data["lat"],     # API expects m_lat, not m_latitude
+        "m_lon": male_data["lon"],     # API expects m_lon, not m_longitude
+        "m_tzone": male_data.get("timezone", 1.0),  # API expects m_tzone
         "f_day": female_data["day"],
         "f_month": female_data["month"],
         "f_year": female_data["year"],
         "f_hour": female_data["hour"],
-        "f_minute": female_data["minute"],
-        "f_latitude": female_data["lat"],
-        "f_longitude": female_data["lon"],
-        "f_timezone": female_data.get("timezone", 1.0),
-        "f_place": female_data.get("place", "Paris, France"),
+        "f_min": female_data["minute"],  # API expects f_min
+        "f_lat": female_data["lat"],     # API expects f_lat
+        "f_lon": female_data["lon"],     # API expects f_lon
+        "f_tzone": female_data.get("timezone", 1.0),  # API expects f_tzone
         "language": language,
-        "ashtakoot": True,
-        "dashakoot": True,
-        "papasamyam": True,
         "chart_style": "SOUTH_INDIAN",
         **COMPANY_BRANDING,
     }
