@@ -18,6 +18,7 @@ const Resultats = () => {
   const [zodiacFrench, setZodiacFrench] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isDownloadingChemin, setIsDownloadingChemin] = useState(false);
 
   const downloadPDF = async () => {
     setIsDownloading(true);
