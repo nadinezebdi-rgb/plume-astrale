@@ -85,9 +85,9 @@ const Index = () => {
           
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-normal mb-8 animate-slide-up opacity-0 stagger-2 leading-tight"
               style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-            Révélez Votre
+            Devenez qui vous etes
             <br />
-            <span className="text-gold-gradient">Destinée Cosmique</span>
+            <span className="text-gold-gradient text-3xl md:text-4xl lg:text-5xl">decouvrez ce que les astres ont prevu pour vous...</span>
           </h1>
           
           <p className="text-lg md:text-xl text-[#E0D9F6]/80 mb-12 max-w-2xl mx-auto font-light leading-relaxed animate-slide-up opacity-0 stagger-3">
