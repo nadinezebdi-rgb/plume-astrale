@@ -36,8 +36,10 @@ DEEP_BLUE = HexColor('#0A0A2E')
 ASSETS_DIR = Path(__file__).parent.parent / "assets"
 ZODIAC_IMG_DIR = ASSETS_DIR / "zodiac"
 
-# Mapping zodiac signs to image files
+# Mapping zodiac signs to image files (all 12 signs)
 ZODIAC_IMAGES = {
+    "Aries": "aries.jpg",
+    "Taurus": "taurus.jpg",
     "Gemini": "gemini.jpg",
     "Cancer": "cancer.jpg",
     "Leo": "leo.jpg",
@@ -47,6 +49,7 @@ ZODIAC_IMAGES = {
     "Sagittarius": "sagittarius.jpg",
     "Capricorn": "capricorn.jpg",
     "Aquarius": "aquarius.jpg",
+    "Pisces": "pisces.jpg",
 }
 
 class ManuscritCompletGenerator:
