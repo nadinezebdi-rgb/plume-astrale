@@ -208,6 +208,28 @@ const Formulaire = () => {
           
           {/* Input */}
           <div className="space-y-6 mb-12">
+            {currentStep.type === 'gender' ? (
+              <div className="flex gap-4 justify-center">
+                {[{ val: 'female', label: 'Femme' }, { val: 'male', label: 'Homme' }].map(g => (
+                  <button
+                    key={g.val}
+                    onClick={() => setFormData({...formData, genre: g.val})}
+                    className={`px-8 py-4 rounded-xl border text-lg transition-all ${
+                      formData.genre === g.val
+                        ? 'border-[#C5A059] bg-[#C5A059]/20 text-[#F3E5AB]'
+                        : 'border-[#C5A059]/20 text-[#E0D9F6]/60 hover:border-[#C5A059]/50'
+                    }`}
+                    data-testid={`genre-${g.val}`}
+                    style={{ fontFamily: 'Cinzel, serif' }}
+                  >
+                    {g.label}
+                  </button>
+                ))}
+                {errors.genre && (
+                  <p className="text-red-400 text-sm mt-2">{errors.genre}</p>
+                )}
+              </div>
+            ) : (
             <div className="relative">
               <input
                 type={currentStep.type}
@@ -223,6 +245,7 @@ const Formulaire = () => {
                 <p className="text-red-400 text-sm mt-2">{errors[currentStep.field]}</p>
               )}
             </div>
+            )}
             
             {currentStep.extra && (
               <div className="relative">
