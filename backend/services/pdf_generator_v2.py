@@ -400,8 +400,8 @@ class ManuscritCompletGenerator:
             
             y -= 2*cm
         
-        # Image placeholder for zodiac sign
-        y = self._draw_image_placeholder(c, y, 6*cm, 6*cm, f"Illustration {signe_fr}")
+        # Zodiac sign illustration
+        y = self._draw_zodiac_image(c, zodiac_sign, y, width=6*cm, height=6*cm)
         
         # Description
         y -= 0.5*cm
