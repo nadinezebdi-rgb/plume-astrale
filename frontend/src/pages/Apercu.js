@@ -417,6 +417,11 @@ const Apercu = () => {
             ))}
           </div>
 
+          {/* PDF Preview */}
+          <div className="mb-10 animate-slide-up opacity-0 stagger-5">
+            <PdfPreview userData={userData} />
+          </div>
+
           {/* CTA Manuscrit Premium */}
           <div className="card-mystical text-center p-10 md:p-14 glow-gold">
             <Sparkles className="w-12 h-12 text-[#C5A059] mx-auto mb-6" strokeWidth={1} />
