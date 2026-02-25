@@ -31,7 +31,7 @@ services:
       context: .
       dockerfile: deploy/Dockerfile.frontend
       args:
-        - REACT_APP_BACKEND_URL=https://plume-astrale.fr
+        - REACT_APP_BACKEND_URL=
     restart: always
     networks:
       - plume_network
