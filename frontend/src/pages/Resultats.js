@@ -22,22 +22,61 @@ const Resultats = () => {
   const downloadPDF = async () => {
     setIsDownloading(true);
     try {
-      const response = await fetch(`${API_URL}/api/pdf/generate`, {
+      // Parse birth data for the pro API
+      const dateNaissance = userData?.dateNaissance || '1990-01-01';
+      const heureNaissance = userData?.heureNaissance || '12:00';
+      const [year, month, day] = dateNaissance.split('-').map(Number);
+      const [hour, minute] = heureNaissance.split(':').map(Number);
+      
+      // Determine gender - default to female if not specified  
+      const gender = userData?.genre || 'female';
+
+      const response = await fetch(`${API_URL}/api/pdf/pro-horoscope`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_data: userData })
+        body: JSON.stringify({
+          name: userData?.prenom || 'Voyageur',
+          gender: gender,
+          day, month, year,
+          hour, minute,
+          lat: 48.8566, lon: 2.3522, timezone: 1.0,
+          place: userData?.ville || 'Paris, France'
+        })
       });
 
       if (!response.ok) throw new Error('PDF generation failed');
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `manuscrit_plume_${userData?.prenom || 'celestial'}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const data = await response.json();
+      if (data.pdf_url) {
+        // Open the PDF URL from AstrologyAPI
+        window.open(data.pdf_url, '_blank');
+      } else {
+        throw new Error('No PDF URL returned');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      // Fallback to our custom PDF
+      try {
+        const response = await fetch(`${API_URL}/api/pdf/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_data: userData })
+        });
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `manuscrit_plume_${userData?.prenom || 'celestial'}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } catch (e) {
+        console.error('Fallback PDF error:', e);
+      }
+    }
+    setIsDownloading(false);
+  };
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Download error:', error);
