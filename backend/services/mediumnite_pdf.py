@@ -1,0 +1,284 @@
+"""
+Générateur PDF Tarologie Médiumnité
+PDF complet avec tirage 7 cartes + lecture médiumnique
+"""
+import io
+import random
+from pathlib import Path
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+from reportlab.lib.colors import HexColor
+from reportlab.pdfgen import canvas
+
+GOLD = HexColor('#C5A059')
+DARK_PURPLE = HexColor('#0F0518')
+LIGHT_PURPLE = HexColor('#1A0B2E')
+CREAM = HexColor('#F3E5AB')
+LIGHT_TEXT = HexColor('#E0D9F6')
+MEDIUM_PURPLE = HexColor('#2D1B4E')
+
+
+class MediumnitePDFGenerator:
+    def __init__(self):
+        self.width, self.height = A4
+        self.margin = 2 * cm
+        self.page_num = 0
+
+    def _draw_bg(self, c, seed=0):
+        c.setFillColor(DARK_PURPLE)
+        c.rect(0, 0, self.width, self.height, fill=1)
+        c.setFillColor(LIGHT_PURPLE)
+        c.setFillAlpha(0.3)
+        for i in range(8):
+            c.rect(0, self.height - (i+1)*cm, self.width, cm, fill=1)
+        c.setFillAlpha(1.0)
+        random.seed(self.page_num * 50 + seed)
+        c.setFillColor(HexColor('#FFFFFF'))
+        for _ in range(40):
+            x, y = random.uniform(0, self.width), random.uniform(0, self.height)
+            c.setFillAlpha(random.uniform(0.1, 0.4))
+            c.circle(x, y, random.uniform(0.3, 1.0), fill=1)
+        c.setFillAlpha(1.0)
+
+    def _new_page(self, c):
+        if self.page_num > 0:
+            c.showPage()
+        self.page_num += 1
+        self._draw_bg(c, self.page_num)
+        # Footer
+        c.setFillColor(GOLD)
+        c.setFillAlpha(0.4)
+        c.setFont("Helvetica", 8)
+        c.drawCentredString(self.width / 2, 1.2 * cm, f"— {self.page_num} —")
+        c.setFillAlpha(1.0)
+
+    def _wrap_text(self, text, font_name, font_size, max_width):
+        from reportlab.pdfbase.pdfmetrics import stringWidth
+        words = text.split()
+        lines, current = [], ""
+        for word in words:
+            test = f"{current} {word}".strip()
+            if stringWidth(test, font_name, font_size) <= max_width:
+                current = test
+            else:
+                if current:
+                    lines.append(current)
+                current = word
+        if current:
+            lines.append(current)
+        return lines
+
+    def _draw_text(self, c, text, y, font="Helvetica", size=11, color=LIGHT_TEXT, leading=16):
+        max_w = self.width - 2 * self.margin
+        lines = self._wrap_text(text, font, size, max_w)
+        for line in lines:
+            if y < 3 * cm:
+                self._new_page(c)
+                y = self.height - 3 * cm
+            c.setFillColor(color)
+            c.setFont(font, size)
+            c.drawString(self.margin, y, line)
+            y -= leading
+        return y
+
+    def generate(self, tirage_data: dict) -> bytes:
+        buffer = io.BytesIO()
+        c = canvas.Canvas(buffer, pagesize=A4)
+        self.page_num = 0
+
+        prenom = tirage_data.get("prenom", "Voyageur")
+
+        # === PAGE TITRE ===
+        self._new_page(c)
+        y = self.height - 6 * cm
+
+        # Decorative line
+        c.setStrokeColor(GOLD)
+        c.setStrokeAlpha(0.6)
+        c.setLineWidth(0.5)
+        c.line(self.width * 0.2, y + 2 * cm, self.width * 0.8, y + 2 * cm)
+        c.setStrokeAlpha(1.0)
+
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica", 12)
+        c.drawCentredString(self.width / 2, y + 1 * cm, "LECTURE SACREE")
+
+        c.setFillColor(CREAM)
+        c.setFont("Helvetica-Bold", 28)
+        c.drawCentredString(self.width / 2, y, "Tarologie & Mediumnite")
+
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica", 14)
+        c.drawCentredString(self.width / 2, y - 1.5 * cm, f"Pour {prenom}")
+
+        c.setStrokeColor(GOLD)
+        c.setStrokeAlpha(0.6)
+        c.line(self.width * 0.2, y - 2.5 * cm, self.width * 0.8, y - 2.5 * cm)
+        c.setStrokeAlpha(1.0)
+
+        c.setFillColor(LIGHT_TEXT)
+        c.setFillAlpha(0.6)
+        c.setFont("Helvetica-Oblique", 11)
+        c.drawCentredString(self.width / 2, y - 4 * cm, "Un voyage au coeur de votre ame")
+        c.drawCentredString(self.width / 2, y - 5 * cm, "a travers les Arcanes et la guidance mediumnique")
+        c.setFillAlpha(1.0)
+
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica", 10)
+        c.drawCentredString(self.width / 2, 4 * cm, f"Date du tirage : {tirage_data.get('date', '')[:10]}")
+
+        # === TIRAGE 7 CARTES ===
+        tirage = tirage_data.get("tirage", [])
+        
+        self._new_page(c)
+        y = self.height - 3 * cm
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Bold", 20)
+        c.drawCentredString(self.width / 2, y, "Le Tirage des 7 Arcanes")
+        y -= 0.8 * cm
+        c.setFillColor(LIGHT_TEXT)
+        c.setFillAlpha(0.6)
+        c.setFont("Helvetica-Oblique", 10)
+        c.drawCentredString(self.width / 2, y, "Sept cles pour deverrouiller les mysteres de votre destinee")
+        c.setFillAlpha(1.0)
+        y -= 1.5 * cm
+
+        for i, item in enumerate(tirage):
+            if y < 6 * cm:
+                self._new_page(c)
+                y = self.height - 3 * cm
+
+            carte = item.get("carte", {})
+            position = item.get("position", "")
+            message = item.get("message", "")
+
+            # Card box
+            box_h = 3.5 * cm
+            box_w = self.width - 2 * self.margin
+            c.setFillColor(MEDIUM_PURPLE)
+            c.setFillAlpha(0.5)
+            c.roundRect(self.margin, y - box_h, box_w, box_h, 8, fill=1)
+            c.setFillAlpha(1.0)
+
+            c.setStrokeColor(GOLD)
+            c.setStrokeAlpha(0.4)
+            c.roundRect(self.margin, y - box_h, box_w, box_h, 8)
+            c.setStrokeAlpha(1.0)
+
+            # Position label
+            c.setFillColor(GOLD)
+            c.setFont("Helvetica-Bold", 11)
+            c.drawString(self.margin + 0.5 * cm, y - 0.7 * cm, f"Position {i+1} : {position}")
+
+            # Card name
+            c.setFillColor(CREAM)
+            c.setFont("Helvetica-Bold", 13)
+            nom = carte.get("nom", "Inconnue")
+            c.drawString(self.margin + 0.5 * cm, y - 1.4 * cm, f"Arcane : {nom}")
+
+            # Energie
+            c.setFillColor(GOLD)
+            c.setFillAlpha(0.7)
+            c.setFont("Helvetica-Oblique", 9)
+            c.drawRightString(self.width - self.margin - 0.5 * cm, y - 0.7 * cm, carte.get("energie", ""))
+            c.setFillAlpha(1.0)
+
+            # Message
+            msg_y = y - 2.1 * cm
+            lines = self._wrap_text(message, "Helvetica", 10, box_w - 1 * cm)
+            for line in lines:
+                c.setFillColor(LIGHT_TEXT)
+                c.setFont("Helvetica", 10)
+                c.drawString(self.margin + 0.5 * cm, msg_y, line)
+                msg_y -= 13
+
+            y -= box_h + 0.6 * cm
+
+        # === LECTURE MEDIUMNIQUE ===
+        self._new_page(c)
+        y = self.height - 3 * cm
+
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Bold", 20)
+        c.drawCentredString(self.width / 2, y, "Lecture Mediumnique")
+        y -= 0.8 * cm
+        c.setFillColor(LIGHT_TEXT)
+        c.setFillAlpha(0.6)
+        c.setFont("Helvetica-Oblique", 10)
+        c.drawCentredString(self.width / 2, y, "Messages recus pour votre ame")
+        c.setFillAlpha(1.0)
+        y -= 2 * cm
+
+        lecture = tirage_data.get("lecture_mediumnique", {})
+        sections = [
+            ("Empreinte du Passe", lecture.get("passe", "")),
+            ("Energies du Present", lecture.get("present", "")),
+            ("Visions du Futur", lecture.get("futur", "")),
+            ("Message de Votre Ame", lecture.get("conseil_ame", "")),
+        ]
+
+        for titre, texte in sections:
+            if y < 5 * cm:
+                self._new_page(c)
+                y = self.height - 3 * cm
+
+            # Section separator
+            c.setStrokeColor(GOLD)
+            c.setStrokeAlpha(0.3)
+            c.line(self.margin, y, self.width - self.margin, y)
+            c.setStrokeAlpha(1.0)
+            y -= 0.8 * cm
+
+            c.setFillColor(GOLD)
+            c.setFont("Helvetica-Bold", 14)
+            c.drawString(self.margin, y, titre)
+            y -= 1 * cm
+
+            y = self._draw_text(c, texte, y)
+            y -= 1 * cm
+
+        # === PAGE FINALE ===
+        self._new_page(c)
+        y = self.height / 2 + 2 * cm
+
+        c.setStrokeColor(GOLD)
+        c.setStrokeAlpha(0.4)
+        c.line(self.width * 0.3, y + 1 * cm, self.width * 0.7, y + 1 * cm)
+        c.setStrokeAlpha(1.0)
+
+        c.setFillColor(CREAM)
+        c.setFont("Helvetica-Bold", 18)
+        c.drawCentredString(self.width / 2, y, "Message Final")
+        y -= 1.5 * cm
+
+        c.setFillColor(LIGHT_TEXT)
+        c.setFont("Helvetica-Oblique", 12)
+        msg_final = (
+            f"Cher(e) {prenom}, cette lecture est un cadeau de l'univers. "
+            "Les cartes et les messages mediumniques vous guident mais ne vous enferment pas. "
+            "Vous restez le maitre de votre destinee. Utilisez ces revelations comme des phares "
+            "pour eclairer votre chemin, et rappelez-vous : votre lumiere interieure est votre "
+            "plus grande force."
+        )
+        y = self._draw_text(c, msg_final, y, "Helvetica-Oblique", 12, LIGHT_TEXT, 18)
+
+        y -= 1.5 * cm
+        c.setStrokeColor(GOLD)
+        c.setStrokeAlpha(0.4)
+        c.line(self.width * 0.3, y, self.width * 0.7, y)
+        c.setStrokeAlpha(1.0)
+
+        y -= 1 * cm
+        c.setFillColor(GOLD)
+        c.setFillAlpha(0.5)
+        c.setFont("Helvetica", 9)
+        c.drawCentredString(self.width / 2, y, "Plume Astrale - Tarologie & Mediumnite")
+        c.setFillAlpha(1.0)
+
+        c.save()
+        return buffer.getvalue()
+
+
+def generate_mediumnite_pdf(tirage_data: dict) -> bytes:
+    gen = MediumnitePDFGenerator()
+    return gen.generate(tirage_data)
