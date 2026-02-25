@@ -14,7 +14,7 @@ from emergentintegrations.payments.stripe.checkout import StripeCheckout, Checko
 from services.astrology_api import get_astrology_service, AstrologyAPIService
 from services.pdf_generator_v2 import generate_manuscrit_complet
 from services.daily_content import get_daily_content
-from services.tarot_service import tirage_oui_non, tirage_mediumnite_complet
+from services.tarot_service import tirage_oui_non, tirage_mediumnite_complet, tirage_en_croix
 from services.mediumnite_pdf import generate_mediumnite_pdf
 from services.astrology_pdf_api import generate_pro_horoscope_pdf, generate_match_making_pdf
 
@@ -782,11 +782,11 @@ class MediumniteRequest(BaseModel):
 
 @api_router.post("/tarologie/tirage")
 async def tarologie_tirage(request: MediumniteRequest):
-    """Tirage complet tarologie médiumnité - 7 cartes + lecture"""
+    """Tirage en croix - 5 cartes avec interprétations"""
     if not request.prenom.strip():
         raise HTTPException(status_code=400, detail="Prénom requis")
     
-    result = tirage_mediumnite_complet(request.prenom, request.date_naissance)
+    result = tirage_en_croix(request.prenom, request.date_naissance)
     return result
 
 @api_router.post("/tarologie/pdf")

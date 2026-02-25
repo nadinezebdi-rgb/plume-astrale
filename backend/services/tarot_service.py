@@ -289,3 +289,62 @@ def tirage_mediumnite_complet(prenom: str, date_naissance: str) -> dict:
         "lecture_mediumnique": lecture,
         "date": datetime.now().isoformat(),
     }
+
+
+def tirage_en_croix(prenom: str, date_naissance: str) -> dict:
+    """Tirage en croix - 5 cartes avec interprétations selon la position"""
+    from services.tarot_interpretations import INTERPRETATIONS_CROIX
+
+    seed = int(hashlib.md5(f"{prenom}-{date_naissance}-croix-{datetime.now().date().isoformat()}".encode()).hexdigest(), 16)
+    rng = random.Random(seed)
+
+    # Tirer 5 cartes uniques
+    indices = rng.sample(range(len(ARCANES_TAROT)), 5)
+    cartes = [ARCANES_TAROT[i] for i in indices]
+
+    # Les 5 positions du tirage en croix
+    positions = [
+        {"id": "centre", "nom": "La Situation Presente", "description": "Ce qui vous definit en ce moment"},
+        {"id": "obstacle", "nom": "Ce Qui S'Oppose", "description": "Les obstacles et resistances"},
+        {"id": "conseil", "nom": "Le Conseil", "description": "Ce qui peut vous aider"},
+        {"id": "futur", "nom": "L'Aboutissement", "description": "Le futur proche et son potentiel"},
+        {"id": "synthese", "nom": "La Synthese", "description": "Le fondement cache de la situation"},
+    ]
+
+    tirage = []
+    for carte, position in zip(cartes, positions):
+        numero = carte["numero"]
+        interp = INTERPRETATIONS_CROIX.get(numero, {})
+        position_id = position["id"]
+
+        tirage.append({
+            "position_id": position_id,
+            "position_nom": position["nom"],
+            "position_description": position["description"],
+            "carte": {
+                "numero": numero,
+                "nom": carte["nom"],
+                "energie": carte["energie"],
+                "image": f"/api/assets/tarot/{TAROT_IMAGE_MAP.get(numero, '')}",
+                "mots_cles": interp.get("mots_cles", carte["energie"]),
+                "description_arcane": interp.get("description", ""),
+            },
+            "interpretation": interp.get(position_id, ""),
+        })
+
+    # Lecture médiumnique complémentaire
+    lecture = {
+        "passe": rng.choice(THEMES_MEDIUMNITE["passe"]),
+        "present": rng.choice(THEMES_MEDIUMNITE["present"]),
+        "futur": rng.choice(THEMES_MEDIUMNITE["futur"]),
+        "conseil_ame": rng.choice(THEMES_MEDIUMNITE["conseil_ame"]),
+    }
+
+    return {
+        "prenom": prenom,
+        "date_naissance": date_naissance,
+        "type": "croix",
+        "tirage": tirage,
+        "lecture_mediumnique": lecture,
+        "date": datetime.now().isoformat(),
+    }
