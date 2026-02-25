@@ -21,13 +21,22 @@ const Formulaire = () => {
   const steps = [
     {
       id: 'prenom',
-      title: 'Quel est votre prénom ?',
-      subtitle: 'Le nom que porte votre âme en cette vie',
+      title: 'Quel est votre prenom ?',
+      subtitle: 'Le nom que porte votre ame en cette vie',
       icon: <User className="w-8 h-8" strokeWidth={1} />,
       field: 'prenom',
       type: 'text',
-      placeholder: 'Votre prénom',
+      placeholder: 'Votre prenom',
       required: false
+    },
+    {
+      id: 'genre',
+      title: 'Quel est votre genre ?',
+      subtitle: 'Les energies masculines et feminines influencent votre theme',
+      icon: <Sparkles className="w-8 h-8" strokeWidth={1} />,
+      field: 'genre',
+      type: 'gender',
+      required: true
     },
     {
       id: 'email',
