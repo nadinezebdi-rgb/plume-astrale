@@ -18,6 +18,9 @@ import Compatibilite from "@/pages/Compatibilite";
 import Horoscope from "@/pages/Horoscope";
 import Livre from "@/pages/Livre";
 import CommandeSucces from "@/pages/CommandeSucces";
+import Quotidien from "@/pages/Quotidien";
+import TarotOuiNon from "@/pages/TarotOuiNon";
+import Tarologie from "@/pages/Tarologie";
 
 // 404 Component
 const NotFound = () => (
