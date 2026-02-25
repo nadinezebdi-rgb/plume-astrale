@@ -813,7 +813,8 @@ async def generate_pdf_preview(request: Request):
         import fitz  # PyMuPDF
         doc = fitz.open(stream=pdf_bytes, filetype="pdf")
         previews = []
-        for page_num in range(min(3, len(doc))):
+        total_pages = len(doc)
+        for page_num in range(min(3, total_pages)):
             page = doc[page_num]
             # Render at 150 DPI for good quality preview
             mat = fitz.Matrix(150/72, 150/72)
@@ -823,7 +824,7 @@ async def generate_pdf_preview(request: Request):
             previews.append(f"data:image/jpeg;base64,{b64}")
         doc.close()
         
-        return {"previews": previews, "total_pages": len(doc)}
+        return {"previews": previews, "total_pages": total_pages}
     except ImportError:
         logger.warning("PyMuPDF not installed, returning PDF size only")
         return {"previews": [], "total_pages": 0, "pdf_size": len(pdf_bytes)}
