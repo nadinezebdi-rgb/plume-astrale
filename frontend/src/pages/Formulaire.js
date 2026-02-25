@@ -131,6 +131,7 @@ const Formulaire = () => {
     // Stocker les données avec validation
     const dataToStore = {
       prenom: formData.prenom || '',
+      genre: formData.genre || 'female',
       email: formData.email,
       dateNaissance: formData.dateNaissance,
       heureNaissance: formData.heureNaissance,
