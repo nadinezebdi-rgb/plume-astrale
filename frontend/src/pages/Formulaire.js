@@ -9,6 +9,7 @@ const Formulaire = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     prenom: '',
+    genre: '',
     email: '',
     dateNaissance: '',
     heureNaissance: '',
