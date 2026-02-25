@@ -15,6 +15,7 @@ from services.pdf_generator_v2 import generate_manuscrit_complet
 from services.daily_content import get_daily_content
 from services.tarot_service import tirage_oui_non, tirage_mediumnite_complet
 from services.mediumnite_pdf import generate_mediumnite_pdf
+from services.astrology_pdf_api import generate_pro_horoscope_pdf, generate_match_making_pdf
 
 
 ROOT_DIR = Path(__file__).parent
