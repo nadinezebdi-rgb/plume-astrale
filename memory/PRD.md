@@ -32,6 +32,13 @@
 - 12 illustrations zodiacales - /app/backend/assets/zodiac/
 - 22 cartes Tarot de Marseille - /app/backend/assets/tarot/
 
+## Completed - 25 Fev 2026
+- [x] Tirage en Croix (5 cartes) avec interpretations detaillees par position
+- [x] 22 arcanes x 5 positions d'interpretation (centre, obstacle, conseil, futur, synthese)
+- [x] PDF generation pour le tirage en croix
+- [x] Disposition visuelle en croix (haut/gauche/centre/droite/bas)
+- [x] Modele freemium: carte centre visible, 4 autres verrouillees
+
 ## Backlog
 - [ ] Abonnement Stripe 14,99€/mois
 - [ ] Deploiement Railway
