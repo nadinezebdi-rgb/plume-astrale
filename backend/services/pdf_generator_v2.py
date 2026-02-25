@@ -58,6 +58,21 @@ class ManuscritCompletGenerator:
         """Convert English sign to French"""
         return SIGNES_DETAILS.get(sign, {}).get('nom_fr', sign)
     
+    def _get_zodiac_image(self, sign):
+        """Get zodiac image path if it exists"""
+        if sign in self._image_cache:
+            return self._image_cache[sign]
+        
+        filename = ZODIAC_IMAGES.get(sign)
+        if filename:
+            path = ZODIAC_IMG_DIR / filename
+            if path.exists():
+                self._image_cache[sign] = str(path)
+                return str(path)
+        
+        self._image_cache[sign] = None
+        return None
+    
     def _draw_background(self, c, variant=0):
         """Draw mystical background with stars"""
         c.setFillColor(DARK_PURPLE)
@@ -73,11 +88,11 @@ class ManuscritCompletGenerator:
         # Stars
         random.seed(self.page_num * 100 + variant)
         c.setFillColor(HexColor('#FFFFFF'))
-        for _ in range(40):
+        for _ in range(50):
             x = random.uniform(0, self.width)
             y = random.uniform(0, self.height)
-            size = random.uniform(0.2, 1.0)
-            alpha = random.uniform(0.1, 0.4)
+            size = random.uniform(0.2, 1.2)
+            alpha = random.uniform(0.1, 0.5)
             c.setFillAlpha(alpha)
             c.circle(x, y, size, fill=1)
         c.setFillAlpha(1.0)
