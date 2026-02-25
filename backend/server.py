@@ -577,7 +577,7 @@ async def generate_pdf(request: PDFRequest):
                 logger.warning(f"Could not fetch astrology data: {e}")
         
         # Generate PDF
-        pdf_bytes = generate_manuscrit_pdf(user_data, planets_data, horoscope_data)
+        pdf_bytes = generate_manuscrit_complet(user_data, planets_data, horoscope_data)
         
         # Return PDF as downloadable file
         filename = f"manuscrit_plume_{user_data.get('prenom', 'celestial')}.pdf"
