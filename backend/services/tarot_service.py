@@ -196,6 +196,19 @@ THEMES_MEDIUMNITE = {
 }
 
 
+# Mapping card number to image file
+TAROT_IMAGE_MAP = {
+    0: "00_mat.jpg", 1: "01_bateleur.jpg", 2: "02_papesse.jpg",
+    3: "03_imperatrice.jpg", 4: "04_empereur.jpg", 5: "05_pape.jpg",
+    6: "06_amoureux.jpg", 7: "07_chariot.jpg", 8: "08_justice.jpg",
+    9: "09_hermite.jpg", 10: "10_roue_fortune.jpg", 11: "11_force.jpg",
+    12: "12_pendu.jpg", 13: "13_arcane_sans_nom.jpg", 14: "14_temperance.jpg",
+    15: "15_diable.jpg", 16: "16_maison_dieu.jpg", 17: "17_etoile.jpg",
+    18: "18_lune.jpg", 19: "19_soleil.jpg", 20: "20_jugement.jpg",
+    21: "21_monde.jpg",
+}
+
+
 def tirage_oui_non(question: str) -> dict:
     """Tirage de tarot Oui/Non - tire une carte des arcanes majeurs"""
     seed = int(hashlib.md5(f"{question}-{datetime.now().isoformat()}".encode()).hexdigest(), 16)
