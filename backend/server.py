@@ -354,6 +354,11 @@ async def grant_free_access(request: CheckoutRequest):
     if discount["discount_percent"] != 100:
         raise HTTPException(status_code=400, detail="Ce code ne donne pas un accès gratuit")
     
+    # Check if code is valid for this product
+    allowed_products = discount.get("products", "all")
+    if allowed_products != "all" and request.product_id not in allowed_products:
+        raise HTTPException(status_code=400, detail="Ce code n'est pas valide pour ce produit")
+    
     # Validate product
     if request.product_id not in PRODUCTS:
         raise HTTPException(status_code=400, detail="Produit invalide")
