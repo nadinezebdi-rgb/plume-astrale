@@ -38,11 +38,11 @@ ZODIAC_IMG_DIR = ASSETS_DIR / "zodiac"
 
 # Mapping zodiac signs to image files
 ZODIAC_IMAGES = {
-    "Gemini": "gemini.png",
-    "Cancer": "cancer.png",
-    "Leo": "leo.png",
-    "Virgo": "virgo.png",
-    "Libra": "libra.png",
+    "Gemini": "gemini.jpg",
+    "Cancer": "cancer.jpg",
+    "Leo": "leo.jpg",
+    "Virgo": "virgo.jpg",
+    "Libra": "libra.jpg",
 }
 
 class ManuscritCompletGenerator:
