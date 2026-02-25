@@ -77,13 +77,6 @@ const Resultats = () => {
     }
     setIsDownloading(false);
   };
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Download error:', error);
-      alert('Erreur lors du téléchargement. Veuillez réessayer.');
-    }
-    setIsDownloading(false);
-  };
 
   useEffect(() => {
     const loadData = async () => {
