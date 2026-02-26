@@ -872,21 +872,43 @@ class ProPdfRequest(BaseModel):
 
 @api_router.post("/pdf/pro-horoscope")
 async def get_pro_horoscope_pdf(request: ProPdfRequest):
-    """Generate a 68-page professional horoscope PDF via AstrologyAPI"""
-    pdf_url = await generate_pro_horoscope_pdf(
-        name=request.name,
-        gender=request.gender,
-        day=request.day, month=request.month, year=request.year,
-        hour=request.hour, minute=request.minute,
-        lat=request.lat, lon=request.lon,
-        timezone=request.timezone,
-        place=request.place,
+    """Generate professional horoscope PDF in French with Plume Astrale design"""
+    from fastapi.responses import Response
+
+    # Build user_data dict for the PDF generator
+    user_data = {
+        "prenom": request.name,
+        "dateNaissance": f"{request.year}-{request.month:02d}-{request.day:02d}",
+        "heureNaissance": f"{request.hour:02d}:{request.minute:02d}",
+        "ville": request.place,
+        "genre": request.gender,
+    }
+
+    # Fetch real planet data from AstrologyAPI JSON endpoint
+    planets_data = None
+    horoscope_data = None
+    try:
+        astro_service = get_astrology_service()
+        date_str = f"{request.year}-{request.month:02d}-{request.day:02d}"
+        time_str = f"{request.hour:02d}:{request.minute:02d}"
+        planets_data = await astro_service.get_planets_tropical(
+            date_str, time_str, request.lat, request.lon, request.timezone
+        )
+        horoscope_data = await astro_service.get_western_horoscope(
+            date_str, time_str, request.lat, request.lon, request.timezone
+        )
+    except Exception as e:
+        logger.warning(f"Could not fetch API data, generating with defaults: {e}")
+
+    # Generate our own beautiful French PDF
+    pdf_bytes = generate_manuscrit_complet(user_data, planets_data, horoscope_data)
+    filename = f"theme_astral_pro_{request.name}.pdf"
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
-    
-    if not pdf_url:
-        raise HTTPException(status_code=500, detail="Erreur lors de la generation du PDF professionnel")
-    
-    return {"pdf_url": pdf_url}
 
 
 # ========== COMPATIBILITY / MATCH MAKING ROUTE ==========
