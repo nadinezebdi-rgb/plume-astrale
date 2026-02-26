@@ -42,7 +42,17 @@ ZODIAC_IMAGES = {
     "Capricorn": "capricorn.jpg", "Aquarius": "aquarius.jpg", "Pisces": "pisces.jpg",
 }
 
-ILLUSTRATION_FILES = ["eso_priestess.jpg", "eso_birds.jpg", "eso_koi.jpg", "eso_landscape.jpg"]
+ILLUSTRATION_FILES = [
+    "eso_priestess.jpg",       # 0: intro
+    "eso_birds.jpg",           # 1: ascendant
+    "eso_koi.jpg",             # 2: maisons
+    "eso_landscape.jpg",       # 3: cover + final
+    "eso_lion_zodiac.jpg",     # 4: carte du ciel / soleil
+    "eso_crystal_bird.jpg",    # 5: planetes
+    "eso_crystal_priestess.jpg", # 6: lune
+    "eso_balance_desert.jpg",  # 7: chemin de vie
+    "eso_cosmic_balance.jpg",  # 8: previsions
+]
 
 # Pedagogical texts
 INTRO_WHAT_IS = """Votre theme astral, aussi appele carte du ciel ou theme natal, est une photographie du ciel au moment exact de votre naissance. Il montre la position de chaque planete dans les douze signes du zodiaque et dans les douze maisons astrologiques. C'est une carte unique, aussi personnelle que vos empreintes digitales.
