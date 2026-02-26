@@ -627,6 +627,11 @@ class ManuscritCompletGenerator:
 
         planet_intro = "Chaque planete de votre theme natal represente une facette de votre personnalite. Mercure gouverne votre intellect, Venus votre facon d'aimer, Mars votre energie d'action, Jupiter votre expansion et Saturne votre structure. Voici ce que revelent leurs positions dans votre carte du ciel."
         y = self._draw_centered_block(c, planet_intro, y, font_size=10, color=LIGHT_TEXT)
+
+        # Crystal bird illustration
+        illust = self._get_illustration(5)  # crystal bird
+        if illust:
+            y = self._draw_image_safe(c, illust, y, w=7*cm, h=7*cm)
         y -= 0.3*cm
 
         main_planets = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn']
