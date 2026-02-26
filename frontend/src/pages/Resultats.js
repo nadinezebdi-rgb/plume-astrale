@@ -111,6 +111,30 @@ const Resultats = () => {
     setIsDownloadingChemin(false);
   };
 
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    setPromoError('');
+    setPromoSuccess('');
+    try {
+      const res = await fetch(`${API_URL}/api/discount/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoCode }),
+      });
+      const data = await res.json();
+      if (data.valid && data.discount_percent === 100) {
+        setHasFreeAccess(true);
+        setPromoSuccess('Code valide ! Acces gratuit a toutes les prestations.');
+      } else {
+        setPromoError(data.message || 'Code invalide');
+      }
+    } catch (e) {
+      setPromoError('Erreur de connexion');
+    }
+    setPromoLoading(false);
+  };
+
 
   useEffect(() => {
     const loadData = async () => {
