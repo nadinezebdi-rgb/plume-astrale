@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Moon, Heart, Zap, Download, Mail, Share2, Sparkles, Sun, Eye, CheckCircle, Loader2, Book, Gift } from 'lucide-react';
+import { Star, Moon, Heart, Zap, Download, Mail, Share2, Sparkles, Sun, Eye, CheckCircle, Loader2, Book, Gift, Tag } from 'lucide-react';
 import StarField from '@/components/StarField/StarField';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -19,6 +19,12 @@ const Resultats = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDownloadingChemin, setIsDownloadingChemin] = useState(false);
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoError, setPromoError] = useState('');
+  const [promoSuccess, setPromoSuccess] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [hasFreeAccess, setHasFreeAccess] = useState(false);
 
   const downloadPDF = async () => {
     setIsDownloading(true);
