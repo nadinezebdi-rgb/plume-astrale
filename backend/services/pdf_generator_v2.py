@@ -454,7 +454,11 @@ class ManuscritCompletGenerator:
         y = self._chapter_header(c, "Votre Carte du Ciel", "La photographie celeste de votre naissance")
         intro = "Voici une representation simplifiee de votre carte natale. Chaque symbole dans le cercle interieur represente un astre, place dans le signe qu'il occupait a votre naissance. Les douze sections du cercle exterieur representent les douze signes du zodiaque."
         y = self._draw_centered_block(c, intro, y, font_size=10, color=LIGHT_TEXT)
-        y = self._draw_natal_chart(c, y, planets_data, zodiac_sign)
+
+        # Use the lion zodiac wheel illustration instead of drawn chart
+        illust = self._get_illustration(4)  # lion zodiac wheel
+        if illust:
+            y = self._draw_image_safe(c, illust, y, w=10*cm, h=10*cm)
 
         # Planet positions summary
         if planets_data:
