@@ -1,47 +1,55 @@
 # Plume Astrale - PRD
 
-## Date: 25 Février 2026
+## Date: 26 Fevrier 2026
 
-## Structure Tarifaire
-| Produit | Prix | Type |
-|---------|------|------|
-| Theme Astral Pro (manuscrit) | 29,90€ | PDF 68p (AstrologyAPI) |
-| Chemin d'Ame (chemin_ame) | 24,90€ | PDF custom avec illustrations |
-| Compatibilite Astrale | 29,90€ | PDF 24p (AstrologyAPI) |
-| Tarologie & Mediumnite | 35,00€ | PDF custom + 7 cartes |
-| Tarot Oui/Non | 4,99€ | Consultation arcane |
-| Livre physique | 49,90€ | Version imprimée |
-| Abonnement Quotidien | 14,99€/mois | A FAIRE |
+## Produit
+Plateforme esoterique complete proposant des analyses astrologiques, numerologiques et de tarologie personnalisees.
+
+## Produits & Prix
+| Produit | Prix | Description |
+|---------|------|-------------|
+| Theme Astral Pro | 29,90 EUR | PDF francais avec design Plume Astrale |
+| Compatibilite Amoureuse | 29,90 EUR | Rapport de compatibilite via AstrologyAPI |
+| Chemin d'Ame | 24,90 EUR | Manuscrit personnalise avec illustrations |
+| Tarologie & Mediumnite | 35,00 EUR | Tirage en Croix 5 cartes + interpretations |
+| Livre Physique | 49,90 EUR | Edition reliee (Print-on-Demand) |
 
 ## Codes Promo
-- ASTRO100 : gratuit manuscrit uniquement
-- PLUME2026 : gratuit TOUS les services
+- `PLUME2026` : Acces gratuit a TOUS les produits
+- `ASTRO100` : Acces gratuit au Chemin d'Ame uniquement
 
-## Pages
-/ | Accueil "Devenez qui vous etes"
-/formulaire | Formulaire 6 etapes (avec genre)
-/apercu | Apercu + preview PDF
-/resultats | Résultats + 2 PDF (Pro + Chemin d'Ame)
-/compatibilite-amoureuse | Compatibilite (produit d'appel)
-/quotidien | Guidance quotidienne 12 signes
-/tarot-oui-non | Tarot Oui/Non avec images
-/tarologie | Tarologie & Mediumnite
-/livre | Commande livre physique
+## Deploiement
+- **VPS Hostinger** : KVM 1, Ubuntu 24.04, IP 187.124.9.214
+- **Domaine** : plume-astrale.fr (DNS A record → VPS)
+- **SSL** : Let's Encrypt, expire le 27 mai 2026
+- **Stack** : Docker Compose (MongoDB + Backend + Frontend + Nginx)
+- **Github** : https://github.com/nadinezebdi-rgb/plume-astrale
 
-## Assets
-- 12 illustrations zodiacales - /app/backend/assets/zodiac/
-- 22 cartes Tarot de Marseille - /app/backend/assets/tarot/
+## Completed - 26 Fev 2026
+- [x] Tirage en Croix (5 cartes) avec interpretations detaillees
+- [x] PDF Theme Astral Pro en FRANCAIS (remplace l'ancien PDF anglais)
+- [x] Code promo PLUME2026 sur TOUTES les prestations
+- [x] Favicon esoterique (oeil de providence / croissant de lune)
+- [x] Badge "Made with Emergent" retire
+- [x] Deploiement VPS Hostinger avec Docker Compose
+- [x] SSL Let's Encrypt active (HTTPS)
+- [x] DNS plume-astrale.fr → 187.124.9.214
 
 ## Completed - 25 Fev 2026
-- [x] Tirage en Croix (5 cartes) avec interpretations detaillees par position
-- [x] 22 arcanes x 5 positions d'interpretation (centre, obstacle, conseil, futur, synthese)
-- [x] PDF generation pour le tirage en croix
-- [x] Disposition visuelle en croix (haut/gauche/centre/droite/bas)
-- [x] Modele freemium: carte centre visible, 4 autres verrouillees
+- [x] Integration illustrations zodiacales dans PDF
+- [x] Generation 22 cartes Tarot de Marseille
+- [x] Produit Compatibilite Amoureuse
+- [x] Produit Chemin d'Ame (24,90 EUR)
+- [x] Code promo universel PLUME2026
+- [x] Champ genre dans le formulaire
+- [x] Pages: /quotidien, /tarot-oui-non, /tarologie, /compatibilite
+- [x] Apercu visuel du PDF avant achat
 
 ## Backlog
-- [ ] Abonnement Stripe 14,99€/mois
-- [ ] Deploiement Railway
-- [ ] Dashboard admin KPIs
-- [ ] Print-on-Demand
-- [ ] Emails automatiques
+- [ ] (P1) Abonnement Stripe 14,99 EUR/mois pour contenu quotidien
+- [ ] (P1) Tableau de bord admin (suivi ventes)
+- [ ] (P2) Print-on-Demand automatise
+- [ ] (P2) Emails automatiques J+5
+- [ ] (P2) Section d'aide Notion
+- [ ] (P3) React Context pour centraliser l'etat frontend
+- [ ] (P3) Renouvellement automatique certificat SSL (cron certbot)
