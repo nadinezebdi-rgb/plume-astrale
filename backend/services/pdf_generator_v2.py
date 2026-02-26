@@ -675,6 +675,11 @@ class ManuscritCompletGenerator:
 
         y = self._chapter_header(c, f"Chemin de Vie {chemin_vie}", f"{chemin_info.get('titre', 'Le Voyageur')}")
 
+        # Balance desert illustration
+        illust = self._get_illustration(7)  # balance desert
+        if illust:
+            y = self._draw_image_safe(c, illust, y, w=8*cm, h=5*cm)
+
         path_intro = f"En numerologie, votre Chemin de Vie est le nombre le plus important de votre profil. Il se calcule a partir de votre date de naissance complete et revele la grande direction de votre existence. Votre Chemin de Vie {chemin_vie} indique que votre mission d'ame est centree sur le theme suivant :"
         y = self._draw_centered_block(c, path_intro, y, font_size=10.5, color=LIGHT_TEXT)
 
