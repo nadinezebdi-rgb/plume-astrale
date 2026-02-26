@@ -560,6 +560,11 @@ class ManuscritCompletGenerator:
         moon_intro = "La Lune en astrologie represente votre monde interieur : vos emotions, vos instincts, vos besoins de securite. Si le Soleil est ce que vous montrez au monde, la Lune est ce que vous ressentez dans l'intimite. Elle revele la facon dont vous avez ete nourri(e) emotionnellement dans l'enfance et ce dont vous avez besoin pour vous sentir en securite aujourd'hui. Comprendre votre Lune, c'est comprendre les racines de vos reactions emotionnelles."
         y = self._draw_centered_block(c, moon_intro, y, font_size=10, color=LIGHT_TEXT)
 
+        # Crystal priestess illustration for Moon
+        illust = self._get_illustration(6)  # crystal priestess
+        if illust:
+            y = self._draw_image_safe(c, illust, y, w=7*cm, h=7*cm)
+
         img = self._get_zodiac_image(moon_sign)
         if img:
             y = self._draw_image_safe(c, img, y, w=5*cm, h=5*cm)
