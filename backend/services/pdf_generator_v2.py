@@ -768,6 +768,11 @@ Voici des actions concretes pour honorer cette double influence :
 
         y = self._chapter_header(c, f"Previsions 2026", f"Annee Personnelle {annee_perso} : {annee_info.get('theme', 'Evolution')}")
 
+        # Cosmic balance illustration
+        illust = self._get_illustration(8)  # cosmic balance
+        if illust:
+            y = self._draw_image_safe(c, illust, y, w=7*cm, h=7*cm)
+
         resume = annee_info.get('resume', '')
         y = self._draw_centered_block(c, resume, y, font_size=11, color=CREAM)
 
