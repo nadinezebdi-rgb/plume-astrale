@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Loader2, ArrowLeft, Sparkles, Download, Star, Users } from 'lucide-react';
+import { Heart, Loader2, ArrowLeft, Sparkles, Download, Star, Users, Tag } from 'lucide-react';
 import StarField from '@/components/StarField/StarField';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -11,6 +11,11 @@ const Compatibilite2 = () => {
   const [loading, setLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [error, setError] = useState('');
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoError, setPromoError] = useState('');
+  const [promoSuccess, setPromoSuccess] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
 
   const [person1, setPerson1] = useState({
     first_name: '', last_name: '', gender: 'male',
@@ -52,6 +57,31 @@ const Compatibilite2 = () => {
     } catch (e) {
       console.error('Payment error:', e);
     }
+  };
+
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    setPromoError('');
+    setPromoSuccess('');
+    try {
+      const res = await fetch(`${API_URL}/api/discount/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoCode }),
+      });
+      const data = await res.json();
+      if (data.valid && data.discount_percent === 100) {
+        setPromoSuccess('Code valide ! Generation gratuite...');
+        // Generate for free
+        await handleGenerateFree();
+      } else {
+        setPromoError(data.message || 'Code invalide');
+      }
+    } catch (e) {
+      setPromoError('Erreur de connexion');
+    }
+    setPromoLoading(false);
   };
 
   const handleGenerateFree = async () => {
