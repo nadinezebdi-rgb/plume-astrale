@@ -47,13 +47,15 @@ const Resultats = () => {
 
       if (!response.ok) throw new Error('PDF generation failed');
 
-      const data = await response.json();
-      if (data.pdf_url) {
-        // Open the PDF URL from AstrologyAPI
-        window.open(data.pdf_url, '_blank');
-      } else {
-        throw new Error('No PDF URL returned');
-      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `theme_astral_pro_${userData?.prenom || 'celestial'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Download error:', error);
       // Fallback to our custom PDF
