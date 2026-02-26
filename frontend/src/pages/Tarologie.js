@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Loader2, ArrowLeft, Sparkles, Download, Lock, Eye } from 'lucide-react';
+import { Star, Loader2, ArrowLeft, Sparkles, Download, Lock, Eye, Tag } from 'lucide-react';
 import StarField from '@/components/StarField/StarField';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -62,6 +62,11 @@ const Tarologie = () => {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [hasPaid, setHasPaid] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoError, setPromoError] = useState('');
+  const [promoSuccess, setPromoSuccess] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
 
   React.useEffect(() => {
     const data = localStorage.getItem('plume_astrale_data');
@@ -92,6 +97,36 @@ const Tarologie = () => {
       console.error('Tirage error:', e);
     }
     setLoading(false);
+  };
+
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    setPromoError('');
+    setPromoSuccess('');
+    try {
+      const res = await fetch(`${API_URL}/api/discount/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoCode }),
+      });
+      const data = await res.json();
+      if (data.valid && data.discount_percent === 100) {
+        await fetch(`${API_URL}/api/access/free`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ product_id: 'tarologie_mediumnite', discount_code: promoCode, user_data: { prenom, dateNaissance } }),
+        });
+        localStorage.setItem('plume_tarologie_paid', 'true');
+        setHasPaid(true);
+        setPromoSuccess('Code valide ! Acces complet debloque.');
+      } else {
+        setPromoError(data.message || 'Code invalide');
+      }
+    } catch (e) {
+      setPromoError('Erreur de connexion');
+    }
+    setPromoLoading(false);
   };
 
   const handlePurchase = async () => {
