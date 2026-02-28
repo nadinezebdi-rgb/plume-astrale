@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, Menu, X, Star, Moon, Heart, Sun, Eye, BookOpen } from 'lucide-react';
+import { Sparkles, Menu, X, Star, Moon, Heart, Sun, Eye, BookOpen, Hash } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,6 +20,7 @@ const Navbar = () => {
     { to: '/compatibilite-amoureuse', label: 'Compatibilite', icon: <Heart className="w-4 h-4" strokeWidth={1} />, highlight: true },
     { to: '/quotidien', label: 'Guidance du Jour', icon: <Sun className="w-4 h-4" strokeWidth={1} /> },
     { to: '/tarot-oui-non', label: 'Tarot Oui/Non', icon: <Eye className="w-4 h-4" strokeWidth={1} /> },
+    { to: '/numerologie', label: 'Numerologie', icon: <Hash className="w-4 h-4" strokeWidth={1} /> },
     { to: '/tarologie', label: 'Tarologie', icon: <BookOpen className="w-4 h-4" strokeWidth={1} /> },
   ];
 
