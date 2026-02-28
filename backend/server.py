@@ -39,7 +39,7 @@ PRODUCTS = {
         "name": "Theme Astral Professionnel",
         "amount": 29.90,
         "currency": "eur",
-        "description": "Votre theme astral professionnel complet - 68 pages (PDF)"
+        "description": "Votre theme astral professionnel complet - 28+ pages enrichies (PDF)"
     },
     "chemin_ame": {
         "name": "Le Chemin d'Ame",
