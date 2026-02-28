@@ -965,6 +965,7 @@ async def get_pro_horoscope_pdf(request: ProPdfRequest):
     # Fetch real planet data from AstrologyAPI JSON endpoint
     planets_data = None
     horoscope_data = None
+    chart_svg_url = None
     try:
         astro_service = get_astrology_service()
         date_str = f"{request.year}-{request.month:02d}-{request.day:02d}"
@@ -975,11 +976,14 @@ async def get_pro_horoscope_pdf(request: ProPdfRequest):
         horoscope_data = await astro_service.get_western_horoscope(
             date_str, time_str, request.lat, request.lon, request.timezone
         )
+        chart_svg_url = await astro_service.get_natal_wheel_chart(
+            date_str, time_str, request.lat, request.lon, request.timezone
+        )
     except Exception as e:
         logger.warning(f"Could not fetch API data, generating with defaults: {e}")
 
     # Generate our own beautiful French PDF
-    pdf_bytes = generate_manuscrit_complet(user_data, planets_data, horoscope_data)
+    pdf_bytes = generate_manuscrit_complet(user_data, planets_data, horoscope_data, chart_svg_url=chart_svg_url)
     filename = f"theme_astral_pro_{request.name}.pdf"
 
     return Response(
