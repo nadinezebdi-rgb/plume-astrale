@@ -1421,6 +1421,6 @@ Voici des actions concretes pour honorer cette double influence :
         return buffer.getvalue()
 
 
-def generate_manuscrit_complet(user_data, planets_data=None, horoscope_data=None):
+def generate_manuscrit_complet(user_data, planets_data=None, horoscope_data=None, chart_svg_url=None):
     gen = ManuscritCompletGenerator()
-    return gen.generate(user_data, planets_data, horoscope_data)
+    return gen.generate(user_data, planets_data, horoscope_data, chart_svg_url=chart_svg_url)
