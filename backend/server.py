@@ -841,6 +841,168 @@ async def get_moon_phase():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ========== NUMEROLOGY ROUTES ==========
+
+class NumerologyRequest(BaseModel):
+    prenom: str
+    dateNaissance: str
+    heureNaissance: str = "12:00"
+    ville: str = "Paris"
+
+@api_router.post("/numerology/complete")
+async def get_numerology(request: NumerologyRequest):
+    """Get complete numerology profile with French translation"""
+    try:
+        service = get_astrology_service()
+        
+        lat, lon, tz = 48.8566, 2.3522, 1.0
+        if request.ville:
+            geo_data = await service.get_geo_details(request.ville)
+            if geo_data and len(geo_data) > 0:
+                place = geo_data[0]
+                lat = float(place.get('latitude', lat))
+                lon = float(place.get('longitude', lon))
+        
+        # Fetch numerology from API
+        numero_data = await service.get_numerological_numbers(
+            date_str=request.dateNaissance,
+            time_str=request.heureNaissance,
+            name=request.prenom,
+            lat=lat, lon=lon, timezone=tz
+        )
+        
+        if not numero_data or numero_data.get('status') == False:
+            # API blocked - use local calculation as fallback
+            return await _local_numerology(request.prenom, request.dateNaissance)
+        
+        # Translate API response to French
+        translated = {}
+        for key, value in numero_data.items():
+            if isinstance(value, dict) and 'meaning' in value:
+                meaning_fr = await translate_to_french(value['meaning'])
+                translated[key] = {**value, 'meaning_fr': meaning_fr}
+            elif isinstance(value, str) and len(value) > 20:
+                translated[key] = await translate_to_french(value)
+            else:
+                translated[key] = value
+        
+        return {"success": True, "source": "api", "data": translated}
+        
+    except Exception as e:
+        logger.error(f"Numerology error: {e}")
+        return await _local_numerology(request.prenom, request.dateNaissance)
+
+
+async def _local_numerology(prenom: str, date_naissance: str):
+    """Fallback local numerology calculation"""
+    try:
+        parts = date_naissance.split('-')
+        year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+    except:
+        year, month, day = 1990, 1, 1
+    
+    def reduce(n):
+        while n > 9 and n not in [11, 22, 33]:
+            n = sum(int(d) for d in str(n))
+        return n
+    
+    life_path = reduce(day + month + year)
+    
+    # Expression number from name
+    letter_values = {
+        'a':1,'b':2,'c':3,'d':4,'e':5,'f':6,'g':7,'h':8,'i':9,
+        'j':1,'k':2,'l':3,'m':4,'n':5,'o':6,'p':7,'q':8,'r':9,
+        's':1,'t':2,'u':3,'v':4,'w':5,'x':6,'y':7,'z':8
+    }
+    vowels = set('aeiouy')
+    name_lower = prenom.lower()
+    
+    expression = reduce(sum(letter_values.get(c, 0) for c in name_lower if c.isalpha()))
+    soul_urge = reduce(sum(letter_values.get(c, 0) for c in name_lower if c in vowels))
+    personality = reduce(sum(letter_values.get(c, 0) for c in name_lower if c.isalpha() and c not in vowels))
+    personal_year = reduce(day + month + 2026)
+    personal_month = reduce(personal_year + 2)  # February 2026
+    personal_day = reduce(personal_year + 2 + 28)
+    birthday_number = reduce(day)
+    
+    titles = {
+        1: "Le Pionnier", 2: "Le Diplomate", 3: "L'Artiste",
+        4: "Le Batisseur", 5: "L'Aventurier", 6: "Le Guerisseur",
+        7: "Le Sage", 8: "Le Leader", 9: "L'Humanitaire",
+        11: "L'Inspirateur", 22: "Le Maitre Batisseur", 33: "Le Guide Spirituel"
+    }
+    
+    descriptions = {
+        1: "Vous etes ne(e) pour mener, innover et ouvrir de nouveaux chemins. Votre independance et votre courage sont vos plus grands atouts.",
+        2: "Votre mission est de creer l'harmonie et de faciliter la cooperation. Votre sensibilite et votre diplomatie sont des dons precieux.",
+        3: "Vous etes ici pour exprimer votre creativite et inspirer les autres par votre joie de vivre. L'art sous toutes ses formes est votre langage.",
+        4: "Votre mission est de construire des fondations solides et durables. Votre discipline et votre fiabilite sont admirables.",
+        5: "Vous etes ne(e) pour explorer, experimenter et embrasser le changement. La liberte est votre oxygene vital.",
+        6: "Votre mission est de nourrir, guerir et creer de la beaute autour de vous. L'amour et la responsabilite guident vos pas.",
+        7: "Vous etes ici pour approfondir la connaissance et chercher la verite. Votre intuition et votre sagesse sont vos guides interieurs.",
+        8: "Votre mission est de manifester l'abondance et d'exercer un pouvoir responsable. Votre ambition peut transformer le monde.",
+        9: "Vous etes ne(e) pour servir l'humanite et incarner la compassion universelle. Votre vision transcende les frontieres.",
+        11: "Votre mission est d'inspirer et d'illuminer les autres par votre vision spirituelle. Vous etes un(e) messager(e) de lumiere.",
+        22: "Vous etes ici pour batir des structures qui servent l'humanite. Votre potentiel de realisation est immense.",
+        33: "Votre mission est d'enseigner par l'exemple et de guerir par l'amour inconditionnel. Vous incarnez la compassion en action.",
+    }
+    
+    return {
+        "success": True,
+        "source": "local",
+        "data": {
+            "chemin_de_vie": {
+                "nombre": life_path,
+                "titre": titles.get(life_path, "Le Voyageur"),
+                "description": descriptions.get(life_path, "")
+            },
+            "nombre_expression": {
+                "nombre": expression,
+                "titre": titles.get(expression, ""),
+                "description": f"Votre nombre d'expression {expression} revele comment vous vous presentez au monde et quels talents vous portez naturellement."
+            },
+            "nombre_ame": {
+                "nombre": soul_urge,
+                "titre": titles.get(soul_urge, ""),
+                "description": f"Votre nombre d'ame {soul_urge} revele vos desirs les plus profonds et ce qui motive vraiment votre coeur."
+            },
+            "nombre_personnalite": {
+                "nombre": personality,
+                "titre": titles.get(personality, ""),
+                "description": f"Votre nombre de personnalite {personality} montre l'image que vous projetez aux autres et la premiere impression que vous laissez."
+            },
+            "nombre_anniversaire": {
+                "nombre": birthday_number,
+                "description": f"Ne(e) un {day}, votre nombre d'anniversaire {birthday_number} vous confere des talents specifiques qui colorent votre chemin de vie."
+            },
+            "annee_personnelle_2026": {
+                "nombre": personal_year,
+                "theme": titles.get(personal_year, "Evolution"),
+                "description": f"Votre annee personnelle {personal_year} en 2026 vous invite a explorer le theme de {titles.get(personal_year, 'evolution').lower()}."
+            },
+            "mois_personnel": {
+                "nombre": personal_month,
+                "description": f"Ce mois personnel {personal_month} met l'accent sur {titles.get(personal_month, 'evolution').lower()}."
+            }
+        }
+    }
+
+
+# ========== TRANSLATION ROUTE ==========
+
+@api_router.post("/translate")
+async def translate_content(request: Request):
+    """Translate astrological content to French"""
+    body = await request.json()
+    text = body.get("text", "")
+    if not text:
+        raise HTTPException(status_code=400, detail="No text provided")
+    
+    translated = await translate_to_french(text)
+    return {"success": True, "original": text, "translated": translated}
+
+
+
 # ========== TAROT OUI/NON ROUTES ==========
 
 class TarotOuiNonRequest(BaseModel):
