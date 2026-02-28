@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Moon, Sparkles, Heart, ArrowRight, Sun } from 'lucide-react';
+import { Star, Moon, Sparkles, Heart, ArrowRight, Sun, Hash } from 'lucide-react';
 import StarField from '@/components/StarField/StarField';
 
 const Index = () => {
