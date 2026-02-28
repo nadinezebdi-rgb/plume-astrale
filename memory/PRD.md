@@ -37,57 +37,67 @@ Plateforme esoterique complete proposant des analyses astrologiques, numerologiq
 - Maisons Astrologiques personnalisees (planetes dans chaque maison)
 - Section Chiron, Lilith Noire & Noeud Nord (guerison/ombre/destinee)
 - 60+ descriptions planete-en-signe dans `astro_content_extended.py`
-- Utilisation complete de horoscope_data (aspects, maisons, Chiron, Lilith, Node)
-- 28 pages au total (contre ~20 auparavant)
-- Tests: 22/22 backend (iteration_7)
+- Tests: 22/22 (iteration_7)
 
 ### 2. Carte Astrale Partageable (Instagram / WhatsApp)
-- Endpoint POST /api/share/generate-card genere une image PNG 1080x1350 (ratio 4:5 Instagram)
-- Contenu: mini carte du ciel, Soleil/Lune/Ascendant, Chemin de Vie, positions planetaires, branding
-- Bouton Instagram: telecharge l'image PNG prete a poster
-- Bouton WhatsApp: partage texte pre-rempli avec infos astrales
-- Bouton Copier: copie le texte dans le presse-papier avec feedback visuel
-- Integration sur la page /resultats
-- Tests: 13/13 backend + frontend (iteration_8)
+- Endpoint POST /api/share/generate-card genere image PNG 1080x1350
+- 3 boutons: Instagram (download), WhatsApp (texte), Copier
+- Tests: 13/13 (iteration_8)
+
+### 3. Integration AstrologyAPI Phase 1
+- `natal_wheel_chart` : Vraie carte du ciel SVG integree au PDF via cairosvg
+- `moon_phase_report` : Phase lunaire en francais sur /quotidien + endpoint /api/moon-phase
+- `house_cusps/tropical` : Endpoint ajoute au service
+- Tests: 20/20 (iteration_9)
+
+### 4. Refonte Page d'Accueil (P0)
+- 2 boutons d'entree principaux : Tarot / Astrologie
+- Section "Nos Services" avec Compatibilite, Guidance du Jour, Tarologie
+- Temoignages + trust indicators
+- Tests: Pass (iteration_10)
+
+### 5. Flux Tarot Oui/Non avec Conversion (P0)
+- Compteur 3 tirages gratuits via localStorage
+- Formulaire de capture au 4eme tirage (prenom, email, date/heure naissance, ville)
+- Cross-sell astrologie apres inscription
+- Donnees sauvegardees dans localStorage pour upsell astrologie
+- Tests: 12/12 backend + frontend (iteration_10)
 
 ## Completed - 26 Fev 2026
 - [x] Tirage en Croix (5 cartes) avec interpretations detaillees
-- [x] PDF Theme Astral Pro en FRANCAIS (remplace l'ancien PDF anglais)
-- [x] Code promo PLUME2026 sur TOUTES les prestations
-- [x] Favicon esoterique
-- [x] Badge "Made with Emergent" retire
-- [x] Deploiement VPS Hostinger avec Docker Compose
-- [x] SSL Let's Encrypt active (HTTPS)
-- [x] DNS plume-astrale.fr -> 187.124.9.214
+- [x] PDF Theme Astral Pro en FRANCAIS
+- [x] Code promo PLUME2026 sur toutes les prestations
+- [x] Favicon esoterique + badge "Made with Emergent" retire
+- [x] Deploiement VPS Hostinger avec Docker Compose + SSL
 
 ## Completed - 25 Fev 2026
 - [x] Integration illustrations zodiacales dans PDF
 - [x] Generation 22 cartes Tarot de Marseille
 - [x] Produit Compatibilite Amoureuse
 - [x] Produit Chemin d'Ame (24,90 EUR)
-- [x] Code promo universel PLUME2026
-- [x] Champ genre dans le formulaire
 - [x] Pages: /quotidien, /tarot-oui-non, /tarologie, /compatibilite
 - [x] Apercu visuel du PDF avant achat
 
 ## Backlog (Nouvelle Strategie)
-### P0
-- [ ] Refonte page d'accueil : 2 boutons (Tarot / Astrologie)
-- [ ] Flux Tarot Oui/Non : 3 tirages gratuits + capture donnees natales au 4eme
 
-### P1
-- [ ] Integration SendGrid (capture emails)
-- [ ] Upsell Tarot approfondi (29 EUR)
+### P1 - En attente
+- [ ] Integration SendGrid (capture emails des inscriptions Tarot)
+- [ ] Upsell Tarot approfondi (29 EUR) - utiliserait tarot_predictions API (bloque par plan)
 - [ ] Upsell "Lecture Clarte" Astrologie (49 EUR)
 
-### P2
-- [ ] Cartographie annuelle Premium (199 EUR)
+### P2 - Futur
+- [ ] Cartographie annuelle Premium (199 EUR) - utiliserait solar_return API (bloque par plan)
 - [ ] Abonnement Stripe 14,99 EUR/mois
-- [ ] Tableau de bord admin (suivi ventes)
+- [ ] Tableau de bord admin (suivi ventes/KPI)
 
-### P3
+### P3 - Nice to have
 - [ ] Print-on-Demand automatise
 - [ ] Emails automatiques J+5
 - [ ] React Context pour centraliser l'etat frontend
 - [ ] Renouvellement auto certificat SSL
 - [ ] Script de deploiement automatise (deploy.sh)
+
+## Notes sur l'API AstrologyAPI
+- Plan actuel limite a: planets/tropical, western_horoscope, natal_wheel_chart, house_cusps, moon_phase_report, geo_details
+- Endpoints bloques: tarot_predictions, yes_no_tarot, daily horoscope, sign reports, numerology, solar return, transits, compatibility reports, chart interpretation
+- Upgrade du plan necessaire pour debloquer les endpoints avances
