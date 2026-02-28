@@ -826,6 +826,7 @@ async def generate_pdf_preview(request: Request):
     astrology_service = get_astrology_service()
     planets_data = None
     horoscope_data = None
+    chart_svg_url = None
     
     if astrology_service:
         try:
@@ -848,10 +849,14 @@ async def generate_pdf_preview(request: Request):
                 date_str=date_naissance, time_str=heure_naissance,
                 lat=lat, lon=lon, timezone=tz
             )
+            chart_svg_url = await astrology_service.get_natal_wheel_chart(
+                date_str=date_naissance, time_str=heure_naissance,
+                lat=lat, lon=lon, timezone=tz
+            )
         except Exception as e:
             logger.error(f"Error fetching astrology data for preview: {e}")
     
-    pdf_bytes = generate_manuscrit_complet(user_data, planets_data, horoscope_data)
+    pdf_bytes = generate_manuscrit_complet(user_data, planets_data, horoscope_data, chart_svg_url=chart_svg_url)
     
     # Convert first pages to preview images using pdf2image or fitz
     try:
