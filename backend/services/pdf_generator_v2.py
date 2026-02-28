@@ -457,15 +457,45 @@ class ManuscritCompletGenerator:
         y = self._chapter_header(c, "Comment lire ce manuscrit ?", "Un guide pas a pas")
         y = self._draw_centered_block(c, INTRO_HOW_TO_USE, y, font_size=10.5, color=LIGHT_TEXT)
 
-    def _page_natal_chart(self, c, planets_data, zodiac_sign, horoscope_data):
+    def _page_natal_chart(self, c, planets_data, zodiac_sign, horoscope_data, chart_svg_url=None):
         self._new_page(c)
         y = self._chapter_header(c, "Votre Carte du Ciel", "La photographie celeste de votre naissance")
-        intro = "Voici une representation de votre carte natale. Chaque abreviation dans le cercle interieur represente un astre, place dans le signe qu'il occupait a votre naissance. Les planetes en rouge (R) sont retrogrades. Les douze sections du cercle exterieur representent les douze signes du zodiaque."
-        y = self._draw_centered_block(c, intro, y, font_size=10, color=LIGHT_TEXT)
 
-        # Draw the actual natal chart
-        all_planets = self._get_all_planets(planets_data, horoscope_data)
-        y = self._draw_natal_chart(c, y, all_planets, zodiac_sign)
+        # Try to use the real SVG chart from AstrologyAPI
+        used_real_chart = False
+        if chart_svg_url and HAS_CAIROSVG:
+            try:
+                resp = httpx.get(chart_svg_url, timeout=15.0)
+                if resp.status_code == 200:
+                    png_data = cairosvg.svg2png(bytestring=resp.content, output_width=800, output_height=800)
+                    img_reader = ImageReader(io.BytesIO(png_data))
+                    chart_w = 11*cm
+                    chart_h = 11*cm
+                    x = (self.width - chart_w) / 2
+                    c.saveState()
+                    c.setStrokeColor(GOLD)
+                    c.setStrokeAlpha(0.5)
+                    c.setLineWidth(1)
+                    c.roundRect(x - 3, y - chart_h - 3, chart_w + 6, chart_h + 6, 8)
+                    c.setStrokeAlpha(1.0)
+                    c.drawImage(img_reader, x, y - chart_h, width=chart_w, height=chart_h, preserveAspectRatio=True, mask='auto')
+                    c.restoreState()
+                    y = y - chart_h - 0.8*cm
+                    c.setFillColor(GOLD)
+                    c.setFillAlpha(0.6)
+                    c.setFont("Helvetica-Oblique", 8)
+                    c.drawCentredString(self.width / 2, y, "Carte du ciel generee par AstrologyAPI")
+                    c.setFillAlpha(1.0)
+                    y -= 0.6*cm
+                    used_real_chart = True
+            except Exception as e:
+                logger.warning(f"Failed to render SVG chart: {e}")
+
+        if not used_real_chart:
+            intro = "Voici une representation de votre carte natale. Chaque abreviation dans le cercle interieur represente un astre, place dans le signe qu'il occupait a votre naissance. Les planetes en rouge (R) sont retrogrades."
+            y = self._draw_centered_block(c, intro, y, font_size=10, color=LIGHT_TEXT)
+            all_planets = self._get_all_planets(planets_data, horoscope_data)
+            y = self._draw_natal_chart(c, y, all_planets, zodiac_sign)
 
         # Planet positions summary table
         self._new_page(c)
