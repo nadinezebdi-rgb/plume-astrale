@@ -868,6 +868,64 @@ async def generate_pdf_preview(request: Request):
         return {"previews": [], "total_pages": 0, "pdf_size": len(pdf_bytes)}
 
 
+# ========== SHARE CARD ROUTE ==========
+
+@api_router.post("/share/generate-card")
+async def generate_share_card_endpoint(request: Request):
+    """Generate a shareable astrological profile card image (PNG)"""
+    from fastapi.responses import Response
+    
+    body = await request.json()
+    user_data = body.get("user_data", {})
+    
+    astrology_service = get_astrology_service()
+    planets_data = None
+    
+    if astrology_service:
+        try:
+            date_naissance = user_data.get('dateNaissance', '1990-01-01')
+            heure_naissance = user_data.get('heureNaissance', '12:00')
+            
+            lat, lon, tz = 48.8566, 2.3522, 1.0
+            if user_data.get('ville'):
+                geo_data = await astrology_service.get_geo_details(user_data['ville'])
+                if geo_data and len(geo_data) > 0:
+                    place = geo_data[0]
+                    lat = float(place.get('latitude', lat))
+                    lon = float(place.get('longitude', lon))
+            
+            planets_data = await astrology_service.get_planets_tropical(
+                date_str=date_naissance, time_str=heure_naissance,
+                lat=lat, lon=lon, timezone=tz
+            )
+        except Exception as e:
+            logger.error(f"Error fetching astrology data for share card: {e}")
+    
+    # Calculate life path
+    chemin_vie = 1
+    try:
+        date_str = user_data.get('dateNaissance', '1990-01-01')
+        parts = date_str.split('-')
+        t = int(parts[2]) + int(parts[1]) + int(parts[0])
+        while t > 9 and t not in [11, 22, 33]:
+            t = sum(int(x) for x in str(t))
+        chemin_vie = t
+    except Exception:
+        pass
+    
+    card_bytes = generate_share_card(user_data, planets_data, chemin_vie)
+    
+    prenom = user_data.get('prenom', 'astral')
+    return Response(
+        content=card_bytes,
+        media_type="image/png",
+        headers={
+            "Content-Disposition": f'attachment; filename="profil_astral_{prenom}.png"'
+        }
+    )
+
+
+
 # ========== PRO HOROSCOPE PDF ROUTE ==========
 
 class ProPdfRequest(BaseModel):
