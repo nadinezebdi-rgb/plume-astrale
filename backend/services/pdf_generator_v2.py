@@ -675,7 +675,7 @@ class ManuscritCompletGenerator:
             y = self._draw_image_safe(c, illust, y, w=7*cm, h=7*cm)
 
         if moon_data:
-            y = self._draw_info_box(c, f"Lune en {moon_fr} - Maison {moon_data.get('house','?')}")
+            y = self._draw_info_box(c, f"Lune en {moon_fr} - Maison {moon_data.get('house','?')}", y)
 
         lune_info = PLANETES_DETAILS.get('Moon', {})
         en_signe = lune_info.get('en_signe', {}).get(moon_sign, '')
