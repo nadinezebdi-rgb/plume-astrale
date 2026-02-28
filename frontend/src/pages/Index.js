@@ -116,7 +116,20 @@ const Index = () => {
             </h2>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-4 gap-5">
+            <button
+              onClick={() => navigate('/numerologie')}
+              className="card-mystical group text-left hover:border-[#C5A059]/50 transition-all"
+              data-testid="cta-numerologie"
+            >
+              <Hash className="w-7 h-7 text-[#A78BFA] mb-3" strokeWidth={1} />
+              <h3 className="text-base mb-1" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+                Numerologie
+              </h3>
+              <p className="text-[#E0D9F6]/50 text-xs font-light">
+                Decouvrez les nombres sacres qui guident votre destinee
+              </p>
+            </button>
             <button
               onClick={() => navigate('/compatibilite-amoureuse')}
               className="card-mystical group text-left hover:border-[#C5A059]/50 transition-all"
@@ -127,7 +140,7 @@ const Index = () => {
                 Compatibilite Amoureuse
               </h3>
               <p className="text-[#E0D9F6]/50 text-xs font-light">
-                Decouvrez la connexion cosmique entre vous et votre partenaire
+                La connexion cosmique entre vous et votre partenaire
               </p>
             </button>
             <button
