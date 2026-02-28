@@ -25,25 +25,36 @@ Plateforme esoterique complete proposant des analyses astrologiques, numerologiq
 - **Stack** : Docker Compose (MongoDB + Backend + Frontend + Nginx)
 - **Github** : https://github.com/nadinezebdi-rgb/plume-astrale
 
-## Completed - 28 Fev 2026
-- [x] **ENRICHISSEMENT MASSIF du PDF Theme Astral Pro (V3 -> V4)**
-  - Carte du ciel calculee avec positions reelles des planetes
-  - Section Equilibre Elementaire (Feu/Terre/Air/Eau + Modalites)
-  - Pages individuelles pour Mercure, Venus, Mars avec interpretations par signe
-  - Page combinee Jupiter & Saturne avec interpretations detaillees
-  - Section Planetes Retrogrades avec explications personnalisees
-  - Section Aspects Planetaires (harmonieux + defis de croissance)
-  - Maisons Astrologiques personnalisees (planetes dans chaque maison)
-  - Section Chiron, Lilith Noire & Noeud Nord (guerison/ombre/destinee)
-  - Contenu etendu: 60+ descriptions planete-en-signe, aspects, retrogrades
-  - Utilisation complete des donnees API (horoscope_data: aspects, maisons, Chiron, Lilith, Node)
-  - 28 pages au total (contre ~20 auparavant)
+## Completed - 28 Fev 2026 (session actuelle)
+
+### 1. Enrichissement Massif du PDF "Theme Astral Pro" (V3 -> V4)
+- Carte du ciel calculee avec positions reelles des planetes
+- Section Equilibre Elementaire (Feu/Terre/Air/Eau + Modalites)
+- Pages individuelles pour Mercure, Venus, Mars avec interpretations par signe
+- Page combinee Jupiter & Saturne avec interpretations detaillees
+- Section Planetes Retrogrades avec explications personnalisees
+- Section Aspects Planetaires (harmonieux + defis de croissance)
+- Maisons Astrologiques personnalisees (planetes dans chaque maison)
+- Section Chiron, Lilith Noire & Noeud Nord (guerison/ombre/destinee)
+- 60+ descriptions planete-en-signe dans `astro_content_extended.py`
+- Utilisation complete de horoscope_data (aspects, maisons, Chiron, Lilith, Node)
+- 28 pages au total (contre ~20 auparavant)
+- Tests: 22/22 backend (iteration_7)
+
+### 2. Carte Astrale Partageable (Instagram / WhatsApp)
+- Endpoint POST /api/share/generate-card genere une image PNG 1080x1350 (ratio 4:5 Instagram)
+- Contenu: mini carte du ciel, Soleil/Lune/Ascendant, Chemin de Vie, positions planetaires, branding
+- Bouton Instagram: telecharge l'image PNG prete a poster
+- Bouton WhatsApp: partage texte pre-rempli avec infos astrales
+- Bouton Copier: copie le texte dans le presse-papier avec feedback visuel
+- Integration sur la page /resultats
+- Tests: 13/13 backend + frontend (iteration_8)
 
 ## Completed - 26 Fev 2026
 - [x] Tirage en Croix (5 cartes) avec interpretations detaillees
 - [x] PDF Theme Astral Pro en FRANCAIS (remplace l'ancien PDF anglais)
 - [x] Code promo PLUME2026 sur TOUTES les prestations
-- [x] Favicon esoterique (oeil de providence / croissant de lune)
+- [x] Favicon esoterique
 - [x] Badge "Made with Emergent" retire
 - [x] Deploiement VPS Hostinger avec Docker Compose
 - [x] SSL Let's Encrypt active (HTTPS)
