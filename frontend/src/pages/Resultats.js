@@ -478,6 +478,49 @@ const Resultats = () => {
                 </div>
               )}
             </div>
+
+            {/* Share Section */}
+            <div className="mt-6 p-5 rounded-xl bg-gradient-to-r from-[#2D1B4E]/60 to-[#1A0B2E]/60 border border-[#C5A059]/20">
+              <div className="text-center">
+                <p className="text-[#F3E5AB] font-medium mb-1" style={{ fontFamily: 'Cinzel, serif' }}>
+                  Partagez votre profil astral
+                </p>
+                <p className="text-[#E0D9F6]/50 text-sm mb-4">
+                  {zodiacFrench && `Soleil en ${zodiacFrench}`}{ascendant ? ` | Ascendant ${ascendant}` : ''} | Chemin de Vie {cheminVie}
+                </p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  <button
+                    onClick={generateShareCard}
+                    disabled={isGeneratingCard}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#E1306C]/20 to-[#833AB4]/20 border border-[#E1306C]/40 text-[#E1306C] hover:from-[#E1306C]/30 hover:to-[#833AB4]/30 transition-all text-sm disabled:opacity-50"
+                    data-testid="share-instagram-btn"
+                  >
+                    {isGeneratingCard ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Instagram className="w-4 h-4" />
+                    )}
+                    {isGeneratingCard ? 'Creation...' : 'Image pour Instagram'}
+                  </button>
+                  <button
+                    onClick={shareWhatsApp}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#25D366]/15 border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366]/25 transition-all text-sm"
+                    data-testid="share-whatsapp-btn"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp
+                  </button>
+                  <button
+                    onClick={copyShareLink}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059] hover:bg-[#C5A059]/20 transition-all text-sm"
+                    data-testid="share-copy-btn"
+                  >
+                    {linkCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {linkCopied ? 'Copie !' : 'Copier'}
+                  </button>
+                </div>
+              </div>
+            </div>
             
             {/* Book promotion */}
             <div className="mt-8 p-4 rounded-xl bg-gradient-to-r from-[#C5A059]/10 to-transparent border border-[#C5A059]/30">
