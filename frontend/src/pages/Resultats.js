@@ -25,6 +25,50 @@ const Resultats = () => {
   const [promoSuccess, setPromoSuccess] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
   const [hasFreeAccess, setHasFreeAccess] = useState(false);
+  const [isGeneratingCard, setIsGeneratingCard] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const generateShareCard = async () => {
+    setIsGeneratingCard(true);
+    try {
+      const response = await fetch(`${API_URL}/api/share/generate-card`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_data: userData })
+      });
+      if (!response.ok) throw new Error('Card generation failed');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `profil_astral_${userData?.prenom || 'celestial'}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Share card error:', error);
+    }
+    setIsGeneratingCard(false);
+  };
+
+  const shareWhatsApp = () => {
+    const prenom = userData?.prenom || '';
+    const signe = zodiacFrench || '';
+    const text = `${prenom ? prenom + ' - ' : ''}Mon profil astral : Soleil en ${signe}${ascendant ? ', Ascendant ' + ascendant : ''}, Chemin de Vie ${cheminVie}. Decouvre le tien sur plume-astrale.fr`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
+  const copyShareLink = () => {
+    const prenom = userData?.prenom || '';
+    const signe = zodiacFrench || '';
+    const text = `${prenom ? prenom + ' - ' : ''}Profil Astral : Soleil en ${signe}${ascendant ? ', Ascendant ' + ascendant : ''}, Chemin de Vie ${cheminVie} - plume-astrale.fr`;
+    navigator.clipboard.writeText(text);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
 
   const downloadPDF = async () => {
     setIsDownloading(true);
