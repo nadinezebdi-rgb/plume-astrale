@@ -7,6 +7,7 @@ import io
 import os
 import math
 import random
+import httpx
 from datetime import datetime
 from pathlib import Path
 from reportlab.lib.pagesizes import A4
@@ -16,6 +17,11 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.lib.utils import ImageReader
 import logging
+try:
+    import cairosvg
+    HAS_CAIROSVG = True
+except ImportError:
+    HAS_CAIROSVG = False
 
 from services.astro_content import (
     SIGNES_DETAILS, PLANETES_DETAILS, MAISONS_DETAILS,
