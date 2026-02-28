@@ -1378,7 +1378,7 @@ Voici des actions concretes pour honorer cette double influence :
 
     # ============= MAIN =============
 
-    def generate(self, user_data, planets_data=None, horoscope_data=None):
+    def generate(self, user_data, planets_data=None, horoscope_data=None, chart_svg_url=None):
         buffer = io.BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
 
@@ -1396,7 +1396,7 @@ Voici des actions concretes pour honorer cette double influence :
         self._page_cover(c, user_data, zodiac_sign)
         self._page_sommaire(c)
         self._page_introduction(c)
-        self._page_natal_chart(c, planets_data, zodiac_sign, horoscope_data)
+        self._page_natal_chart(c, planets_data, zodiac_sign, horoscope_data, chart_svg_url=chart_svg_url)
         self._page_elements(c, planets_data, horoscope_data)
         self._page_sun(c, planets_data, zodiac_sign)
         self._page_moon(c, planets_data)
