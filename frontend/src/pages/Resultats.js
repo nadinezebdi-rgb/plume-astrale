@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Moon, Heart, Zap, Download, Mail, Share2, Sparkles, Sun, Eye, CheckCircle, Loader2, Book, Gift, Tag } from 'lucide-react';
+import { Star, Moon, Heart, Zap, Download, Mail, Share2, Sparkles, Sun, Eye, CheckCircle, Loader2, Book, Gift, Tag, Instagram, MessageCircle, Copy, Check } from 'lucide-react';
 import StarField from '@/components/StarField/StarField';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
