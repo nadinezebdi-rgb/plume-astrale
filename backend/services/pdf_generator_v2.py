@@ -1,6 +1,7 @@
 """
-Generateur PDF Manuscrit Complet V3
-Version enrichie avec contenu pedagogique, illustrations, carte du ciel et texte centre
+Generateur PDF Manuscrit Complet V4
+Version massivement enrichie avec contenu pedagogique, carte du ciel, aspects,
+equilibre elementaire, retrogrades, Chiron, Lilith, Noeud Nord
 """
 import io
 import os
@@ -20,6 +21,14 @@ from services.astro_content import (
     SIGNES_DETAILS, PLANETES_DETAILS, MAISONS_DETAILS,
     CHEMINS_VIE, PREVISIONS_ANNEE_PERSONNELLE, ARCANES_MAJEURS
 )
+from services.astro_content_extended import (
+    MERCURE_EN_SIGNE, VENUS_EN_SIGNE, MARS_EN_SIGNE,
+    JUPITER_EN_SIGNE, SATURNE_EN_SIGNE,
+    ASPECTS_TYPES, ASPECTS_PLANETES, get_aspect_interpretation,
+    RETROGRADE_DESCRIPTIONS, ELEMENTS_DOMINANTS, MODALITES_DESCRIPTIONS,
+    CHIRON_EN_SIGNE, LILITH_EN_SIGNE, NOEUD_NORD_EN_SIGNE,
+    SIGNE_ELEMENT, SIGNE_MODALITE
+)
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +39,10 @@ CREAM = HexColor('#F3E5AB')
 LIGHT_TEXT = HexColor('#E0D9F6')
 MEDIUM_PURPLE = HexColor('#2D1B4E')
 SOFT_GOLD = HexColor('#D4AF37')
+FIRE_COLOR = HexColor('#E84040')
+EARTH_COLOR = HexColor('#6BAF6B')
+AIR_COLOR = HexColor('#6BB5E8')
+WATER_COLOR = HexColor('#4A78D0')
 
 ASSETS_DIR = Path(__file__).parent.parent / "assets"
 ZODIAC_IMG_DIR = ASSETS_DIR / "zodiac"
@@ -43,18 +56,17 @@ ZODIAC_IMAGES = {
 }
 
 ILLUSTRATION_FILES = [
-    "eso_priestess.jpg",       # 0: intro
-    "eso_birds.jpg",           # 1: ascendant
-    "eso_koi.jpg",             # 2: maisons
-    "eso_landscape.jpg",       # 3: cover + final
-    "eso_lion_zodiac.jpg",     # 4: carte du ciel / soleil
-    "eso_crystal_bird.jpg",    # 5: planetes
-    "eso_crystal_priestess.jpg", # 6: lune
-    "eso_balance_desert.jpg",  # 7: chemin de vie
-    "eso_cosmic_balance.jpg",  # 8: previsions
+    "eso_priestess.jpg",
+    "eso_birds.jpg",
+    "eso_koi.jpg",
+    "eso_landscape.jpg",
+    "eso_lion_zodiac.jpg",
+    "eso_crystal_bird.jpg",
+    "eso_crystal_priestess.jpg",
+    "eso_balance_desert.jpg",
+    "eso_cosmic_balance.jpg",
 ]
 
-# Pedagogical texts
 INTRO_WHAT_IS = """Votre theme astral, aussi appele carte du ciel ou theme natal, est une photographie du ciel au moment exact de votre naissance. Il montre la position de chaque planete dans les douze signes du zodiaque et dans les douze maisons astrologiques. C'est une carte unique, aussi personnelle que vos empreintes digitales.
 
 Imaginez le ciel comme un grand cadran divise en douze secteurs (les maisons) et parcouru par dix astres principaux (le Soleil, la Lune et huit planetes). Au moment ou vous avez pris votre premier souffle, chaque astre occupait un signe et une maison precis. Cette configuration celeste revele vos talents naturels, vos defis, votre facon d'aimer, de travailler, de communiquer et d'evoluer.
@@ -73,39 +85,19 @@ Les Planetes (Mercure, Venus, Mars, Jupiter, Saturne) ajoutent des nuances essen
 
 Les Maisons representent les domaines concrets de votre vie : la famille, le travail, les relations, la spiritualite, etc.
 
+Les Aspects sont les angles entre les planetes, revelant comment vos differentes facettes interagissent entre elles - en harmonie ou en tension creatrice.
+
 Lisez chaque section avec curiosite et bienveillance. Certains passages vous parleront immediatement, d'autres prendront sens avec le temps. Revenez-y regulierement : un theme astral se revele tout au long d'une vie."""
 
-WHAT_ARE_HOUSES = """En astrologie, les douze maisons representent les douze grands domaines de l'experience humaine. Si les signes du zodiaque decrivent comment les energies s'expriment, les maisons revelent ou elles se manifestent dans votre vie quotidienne.
-
-Chaque maison est associee a un domaine precis. Lorsqu'une planete se trouve dans une maison, elle colore ce domaine de son energie. Par exemple, Venus (amour, beaute) en Maison 10 (carriere) pourrait indiquer une personne qui s'epanouit dans un metier artistique ou qui charme naturellement dans sa vie professionnelle.
-
-Voici les douze maisons et leurs significations :
-
-Maison 1 - L'Identite : C'est vous, votre apparence, votre temperament, la premiere impression que vous donnez. C'est la maison de l'Ascendant.
-
-Maison 2 - Les Ressources : Vos talents, votre rapport a l'argent, vos valeurs materielles et la facon dont vous gagnez votre vie.
-
-Maison 3 - La Communication : Votre facon de penser, de parler, vos relations avec les freres et soeurs, les courts voyages et l'apprentissage au quotidien.
-
-Maison 4 - Les Racines : Votre famille, votre foyer, vos origines, votre monde interieur et votre besoin de securite emotionnelle.
-
-Maison 5 - La Creation : La joie de vivre, les loisirs, les enfants, les histoires d'amour, l'expression creative et artistique.
-
-Maison 6 - Le Quotidien : Le travail au jour le jour, la sante, les routines, le service aux autres et la gestion des details pratiques.
-
-Maison 7 - Les Relations : Le couple, les associations, les contrats. C'est le miroir de la Maison 1 : l'autre vous revele a vous-meme.
-
-Maison 8 - La Transformation : Les crises, les heritages, la sexualite profonde, la mort symbolique et la renaissance. C'est la maison des metamorphoses.
-
-Maison 9 - L'Expansion : Les voyages lointains, les etudes superieures, la philosophie, la spiritualite et la quete de sens.
-
-Maison 10 - La Vocation : Votre carriere, votre reputation, votre contribution au monde. C'est le sommet de votre carte du ciel.
-
-Maison 11 - Les Ideaux : Les amis, les projets collectifs, les espoirs, les reves pour l'avenir et votre role dans la communaute.
-
-Maison 12 - L'Invisible : L'inconscient, les secrets, la solitude creatrice, la spiritualite profonde et les epreuves qui menent a la sagesse."""
-
 SIGN_ORDER = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"]
+
+PLANET_EN_SIGNE_MAP = {
+    "Mercury": MERCURE_EN_SIGNE,
+    "Venus": VENUS_EN_SIGNE,
+    "Mars": MARS_EN_SIGNE,
+    "Jupiter": JUPITER_EN_SIGNE,
+    "Saturn": SATURNE_EN_SIGNE,
+}
 
 
 class ManuscritCompletGenerator:
@@ -199,6 +191,15 @@ class ManuscritCompletGenerator:
         self._draw_separator(c, y - 0.4*cm)
         return y - 1.5*cm
 
+    def _sub_header(self, c, text, y, size=14):
+        if y < 3.5*cm:
+            self._new_page(c)
+            y = self.height - 3.5*cm
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Bold", size)
+        c.drawCentredString(self.width / 2, y, text)
+        return y - 0.8*cm
+
     def _wrap(self, c, text, font="Helvetica", size=11, max_w=None):
         if max_w is None:
             max_w = self.width - 2 * self.margin
@@ -239,28 +240,6 @@ class ManuscritCompletGenerator:
             y -= lh * cm * 0.3
         return y
 
-    def _draw_left_block(self, c, text, y, font_size=11, color=LIGHT_TEXT, indent=0, leading=1.45):
-        c.setFillColor(color)
-        c.setFont("Helvetica", font_size)
-        paragraphs = text.strip().split('\n')
-        lh = font_size * leading / 28.35
-        for para in paragraphs:
-            para = para.strip()
-            if not para:
-                y -= lh * cm * 0.5
-                continue
-            lines = self._wrap(c, para, "Helvetica", font_size, self.width - 2*self.margin - indent)
-            for line in lines:
-                if y < 2.5*cm:
-                    self._new_page(c)
-                    y = self.height - 3.5*cm
-                    c.setFillColor(color)
-                    c.setFont("Helvetica", font_size)
-                c.drawString(self.margin + indent, y, line)
-                y -= lh * cm
-            y -= lh * cm * 0.2
-        return y
-
     def _draw_image_safe(self, c, path, y, w=7*cm, h=7*cm):
         x = (self.width - w) / 2
         try:
@@ -278,15 +257,28 @@ class ManuscritCompletGenerator:
             c.restoreState()
             return y - 0.5*cm
 
+    def _draw_info_box(self, c, text, y, color=GOLD):
+        """Draw text in a styled box"""
+        if y < 3*cm:
+            self._new_page(c)
+            y = self.height - 3.5*cm
+        c.setFillColor(MEDIUM_PURPLE)
+        c.setFillAlpha(0.5)
+        c.roundRect(self.margin, y - 1*cm, self.width - 2*self.margin, 1*cm, 5, fill=1)
+        c.setFillAlpha(1.0)
+        c.setFillColor(color)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawCentredString(self.width/2, y - 0.7*cm, text)
+        return y - 1.8*cm
+
     def _draw_natal_chart(self, c, y, planets_data, zodiac_sign):
-        """Draw a simple natal chart wheel"""
+        """Draw a natal chart wheel with planet positions"""
         cx = self.width / 2
-        cy = y - 7*cm
-        r_outer = 6*cm
-        r_inner = 4*cm
+        cy = y - 6.5*cm
+        r_outer = 5.5*cm
+        r_inner = 3.8*cm
         r_planet = 3*cm
 
-        # Outer circle
         c.setStrokeColor(GOLD)
         c.setStrokeAlpha(0.6)
         c.setLineWidth(1.5)
@@ -295,7 +287,6 @@ class ManuscritCompletGenerator:
         c.circle(cx, cy, r_inner)
         c.setStrokeAlpha(1.0)
 
-        # Draw 12 house lines
         for i in range(12):
             angle = math.radians(i * 30)
             x1 = cx + r_inner * math.cos(angle)
@@ -306,7 +297,6 @@ class ManuscritCompletGenerator:
             c.line(x1, y1, x2, y2)
         c.setStrokeAlpha(1.0)
 
-        # Sign symbols in outer ring
         for i, sign in enumerate(SIGN_ORDER):
             angle = math.radians(i * 30 + 15)
             sx = cx + (r_outer + r_inner) / 2 * math.cos(angle)
@@ -319,32 +309,36 @@ class ManuscritCompletGenerator:
             c.drawCentredString(sx, sy - 3, sym)
         c.setFillAlpha(1.0)
 
-        # Place planets if available
         if planets_data:
-            planet_syms = {'Sun': 'Sol', 'Moon': 'Lun', 'Mercury': 'Mer', 'Venus': 'Ven',
-                           'Mars': 'Mar', 'Jupiter': 'Jup', 'Saturn': 'Sat'}
+            planet_syms = {
+                'Sun': 'Sol', 'Moon': 'Lun', 'Mercury': 'Mer', 'Venus': 'Ven',
+                'Mars': 'Mar', 'Jupiter': 'Jup', 'Saturn': 'Sat',
+                'Uranus': 'Ura', 'Neptune': 'Nep', 'Pluto': 'Plu'
+            }
             placed = 0
             for p in planets_data:
                 name = p.get('name', '')
-                if name in planet_syms and placed < 7:
+                if name in planet_syms:
                     sign = p.get('sign', '')
                     idx = SIGN_ORDER.index(sign) if sign in SIGN_ORDER else 0
-                    deg = p.get('normDegree', 15)
+                    deg = p.get('normDegree', p.get('norm_degree', 15))
                     total_angle = idx * 30 + deg
                     angle = math.radians(total_angle)
-                    px = cx + r_planet * math.cos(angle)
-                    py = cy + r_planet * math.sin(angle)
-                    c.setFillColor(CREAM)
+                    offset = 0.3*cm * (placed % 3)
+                    px = cx + (r_planet - offset) * math.cos(angle)
+                    py = cy + (r_planet - offset) * math.sin(angle)
+                    is_retro = str(p.get('isRetro', p.get('is_retro', 'false'))).lower() == 'true'
+                    c.setFillColor(CREAM if not is_retro else HexColor('#FF9999'))
                     c.setFont("Helvetica-Bold", 7)
-                    c.drawCentredString(px, py, planet_syms[name])
+                    label = planet_syms[name] + ("R" if is_retro else "")
+                    c.drawCentredString(px, py, label)
                     placed += 1
 
-        # Center label
         c.setFillColor(GOLD)
         c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cx, cy - 0.3*cm, "Votre Carte du Ciel")
 
-        return cy - r_outer - 1.5*cm
+        return cy - r_outer - 1*cm
 
     # ============= PAGES =============
 
@@ -356,8 +350,7 @@ class ManuscritCompletGenerator:
         signe_fr = signe_info.get('nom_fr', zodiac_sign)
         symbole = signe_info.get('symbole', '')
 
-        # Illustration at top
-        illust = self._get_illustration(3)  # landscape
+        illust = self._get_illustration(3)
         if illust:
             self._draw_image_safe(c, illust, self.height - 1*cm, w=self.width, h=8*cm)
 
@@ -406,39 +399,48 @@ class ManuscritCompletGenerator:
         y = self._chapter_header(c, "Sommaire", "Votre voyage a travers les etoiles")
         chapters = [
             ("I", "Qu'est-ce qu'un Theme Astral ?", "Introduction et guide de lecture"),
-            ("II", "Votre Carte du Ciel", "La photographie du ciel a votre naissance"),
-            ("III", "Votre Soleil", "L'essence de qui vous etes"),
-            ("IV", "Votre Lune", "Votre monde emotionnel interieur"),
-            ("V", "Votre Ascendant", "Le masque social et la premiere impression"),
-            ("VI", "Les Planetes de Votre Theme", "Mercure, Venus, Mars, Jupiter, Saturne"),
-            ("VII", "Les Maisons Astrologiques", "Les 12 domaines de votre vie"),
-            ("VIII", "Votre Chemin de Vie", "Numerologie et mission d'ame"),
-            ("IX", "Previsions 2026", "Votre annee personnelle en detail"),
-            ("X", "Vision sur 5 Ans", "2026-2030"),
-            ("XI", "Le Tirage du Tarot", "Messages pour votre chemin"),
-            ("XII", "Conseils Personnalises", "Guidance pour votre evolution"),
+            ("II", "Votre Carte du Ciel", "La photographie celeste de votre naissance"),
+            ("III", "Equilibre Elementaire", "Feu, Terre, Air, Eau dans votre theme"),
+            ("IV", "Votre Soleil", "L'essence de qui vous etes"),
+            ("V", "Votre Lune", "Votre monde emotionnel interieur"),
+            ("VI", "Votre Ascendant", "Le masque social et la premiere impression"),
+            ("VII", "Mercure - Votre Esprit", "Facon de penser et communiquer"),
+            ("VIII", "Venus - Votre Coeur", "Facon d'aimer et de valoriser"),
+            ("IX", "Mars - Votre Energie", "Force d'action et d'affirmation"),
+            ("X", "Jupiter & Saturne", "Expansion et structure de vie"),
+            ("XI", "Planetes Retrogrades", "Les energies interiorisees"),
+            ("XII", "Les Aspects Planetaires", "L'alchimie entre vos planetes"),
+            ("XIII", "Les Maisons Astrologiques", "Les 12 domaines de votre vie"),
+            ("XIV", "Chiron & Noeud Nord", "Guerison et destinee karmique"),
+            ("XV", "Votre Chemin de Vie", "Numerologie et mission d'ame"),
+            ("XVI", "Previsions 2026", "Votre annee personnelle en detail"),
+            ("XVII", "Vision sur 5 Ans", "2026-2030"),
+            ("XVIII", "Le Tirage du Tarot", "Messages pour votre chemin"),
+            ("XIX", "Conseils Personnalises", "Guidance pour votre evolution"),
         ]
         for num, title, sub in chapters:
+            if y < 2.5*cm:
+                self._new_page(c)
+                y = self.height - 3.5*cm
             c.setFillColor(GOLD)
-            c.setFont("Helvetica", 11)
-            c.drawString(self.margin + 0.3*cm, y, num)
+            c.setFont("Helvetica", 10)
+            c.drawString(self.margin + 0.2*cm, y, num)
             c.setFillColor(CREAM)
-            c.setFont("Helvetica-Bold", 11)
-            c.drawString(self.margin + 1.3*cm, y, title)
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(self.margin + 1.2*cm, y, title)
             c.setFillColor(LIGHT_TEXT)
             c.setFillAlpha(0.6)
-            c.setFont("Helvetica-Oblique", 9)
-            c.drawString(self.margin + 1.3*cm, y - 0.4*cm, sub)
+            c.setFont("Helvetica-Oblique", 8)
+            c.drawString(self.margin + 1.2*cm, y - 0.35*cm, sub)
             c.setFillAlpha(1.0)
-            y -= 1.2*cm
+            y -= 1.05*cm
 
     def _page_introduction(self, c):
         self._new_page(c)
         y = self._chapter_header(c, "Qu'est-ce qu'un Theme Astral ?", "Comprendre votre carte celeste")
         y = self._draw_centered_block(c, INTRO_WHAT_IS, y, font_size=10.5, color=LIGHT_TEXT)
 
-        # Illustration
-        illust = self._get_illustration(0)  # priestess
+        illust = self._get_illustration(0)
         if illust:
             if y < 9*cm:
                 self._new_page(c)
@@ -449,37 +451,158 @@ class ManuscritCompletGenerator:
         y = self._chapter_header(c, "Comment lire ce manuscrit ?", "Un guide pas a pas")
         y = self._draw_centered_block(c, INTRO_HOW_TO_USE, y, font_size=10.5, color=LIGHT_TEXT)
 
-    def _page_natal_chart(self, c, planets_data, zodiac_sign):
+    def _page_natal_chart(self, c, planets_data, zodiac_sign, horoscope_data):
         self._new_page(c)
         y = self._chapter_header(c, "Votre Carte du Ciel", "La photographie celeste de votre naissance")
-        intro = "Voici une representation simplifiee de votre carte natale. Chaque symbole dans le cercle interieur represente un astre, place dans le signe qu'il occupait a votre naissance. Les douze sections du cercle exterieur representent les douze signes du zodiaque."
+        intro = "Voici une representation de votre carte natale. Chaque abreviation dans le cercle interieur represente un astre, place dans le signe qu'il occupait a votre naissance. Les planetes en rouge (R) sont retrogrades. Les douze sections du cercle exterieur representent les douze signes du zodiaque."
         y = self._draw_centered_block(c, intro, y, font_size=10, color=LIGHT_TEXT)
 
-        # Use the lion zodiac wheel illustration instead of drawn chart
-        illust = self._get_illustration(4)  # lion zodiac wheel
-        if illust:
-            y = self._draw_image_safe(c, illust, y, w=10*cm, h=10*cm)
+        # Draw the actual natal chart
+        all_planets = self._get_all_planets(planets_data, horoscope_data)
+        y = self._draw_natal_chart(c, y, all_planets, zodiac_sign)
 
-        # Planet positions summary
-        if planets_data:
-            if y < 6*cm:
+        # Planet positions summary table
+        self._new_page(c)
+        y = self._sub_header(c, "Positions de vos Astres", self.height - 3.5*cm)
+
+        all_to_show = ['Sun','Moon','Ascendant','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto']
+        for p in (all_planets or []):
+            name = p.get('name', '')
+            if name not in all_to_show:
+                continue
+            if y < 3*cm:
                 self._new_page(c)
                 y = self.height - 3.5*cm
-            c.setFillColor(GOLD)
-            c.setFont("Helvetica-Bold", 12)
-            c.drawCentredString(self.width / 2, y, "Positions de vos astres")
+            info = PLANETES_DETAILS.get(name, {})
+            nom_fr = info.get('nom_fr', name)
+            sym = info.get('symbole', '')
+            sign_fr = self._get_french_sign(p.get('sign', ''))
+            house = p.get('house', '?')
+            deg = p.get('normDegree', p.get('norm_degree', 0))
+            is_retro = str(p.get('isRetro', p.get('is_retro', 'false'))).lower() == 'true'
+            retro_txt = " (Retrograde)" if is_retro else ""
+
+            c.setFillColor(CREAM)
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(self.margin + 0.5*cm, y, f"{sym} {nom_fr}")
+            c.setFillColor(LIGHT_TEXT)
+            c.setFont("Helvetica", 10)
+            c.drawString(self.margin + 5.5*cm, y, f"en {sign_fr}")
+            c.drawString(self.margin + 10*cm, y, f"Maison {house}")
+            c.drawString(self.margin + 13*cm, y, f"{deg:.1f} deg{retro_txt}")
+            y -= 0.55*cm
+
+        # Houses table
+        if horoscope_data and 'houses' in horoscope_data:
             y -= 0.8*cm
-            for p in planets_data:
-                name = p.get('name', '')
-                if name in ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Ascendant']:
-                    info = PLANETES_DETAILS.get(name, {})
-                    nom_fr = info.get('nom_fr', name)
-                    sign_fr = self._get_french_sign(p.get('sign', ''))
-                    house = p.get('house', '?')
-                    c.setFillColor(CREAM)
-                    c.setFont("Helvetica", 10)
-                    c.drawCentredString(self.width / 2, y, f"{nom_fr} en {sign_fr} - Maison {house}")
-                    y -= 0.45*cm
+            y = self._sub_header(c, "Cuspides de vos Maisons", y, size=12)
+            for h in horoscope_data['houses']:
+                if y < 2.5*cm:
+                    self._new_page(c)
+                    y = self.height - 3.5*cm
+                house_num = h.get('house', '?')
+                sign_fr = self._get_french_sign(h.get('sign', ''))
+                deg = h.get('degree', 0)
+                maison_info = MAISONS_DETAILS.get(house_num, {})
+                domaine = maison_info.get('domaine', '')
+
+                c.setFillColor(GOLD)
+                c.setFont("Helvetica-Bold", 9)
+                c.drawString(self.margin + 0.3*cm, y, f"Maison {house_num}")
+                c.setFillColor(CREAM)
+                c.setFont("Helvetica", 9)
+                c.drawString(self.margin + 3.5*cm, y, f"en {sign_fr}")
+                c.setFillColor(LIGHT_TEXT)
+                c.setFillAlpha(0.7)
+                c.setFont("Helvetica-Oblique", 8)
+                c.drawString(self.margin + 7*cm, y, domaine[:50])
+                c.setFillAlpha(1.0)
+                y -= 0.45*cm
+
+    def _page_elements(self, c, planets_data, horoscope_data):
+        """Elemental and modal balance analysis"""
+        self._new_page(c)
+        y = self._chapter_header(c, "Equilibre Elementaire", "La repartition des energies dans votre theme")
+
+        all_planets = self._get_all_planets(planets_data, horoscope_data)
+        if not all_planets:
+            y = self._draw_centered_block(c, "Donnees planetaires non disponibles pour cette analyse.", y)
+            return
+
+        # Count elements and modalities
+        elements = {"Feu": 0, "Terre": 0, "Air": 0, "Eau": 0}
+        modalities = {"Cardinal": 0, "Fixe": 0, "Mutable": 0}
+        personal_planets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Ascendant']
+
+        for p in all_planets:
+            if p.get('name') in personal_planets:
+                sign = p.get('sign', '')
+                elem = SIGNE_ELEMENT.get(sign)
+                mod = SIGNE_MODALITE.get(sign)
+                if elem:
+                    elements[elem] += 1
+                if mod:
+                    modalities[mod] += 1
+
+        # Draw element bars
+        intro = "Chaque planete de votre theme se trouve dans un signe, et chaque signe appartient a un element (Feu, Terre, Air, Eau) et une modalite (Cardinal, Fixe, Mutable). La repartition de vos planetes revele l'equilibre energetique fondamental de votre personnalite."
+        y = self._draw_centered_block(c, intro, y, font_size=10, color=LIGHT_TEXT)
+        y -= 0.5*cm
+
+        element_colors = {"Feu": FIRE_COLOR, "Terre": EARTH_COLOR, "Air": AIR_COLOR, "Eau": WATER_COLOR}
+        element_emojis = {"Feu": "Feu", "Terre": "Terre", "Air": "Air", "Eau": "Eau"}
+        total = max(sum(elements.values()), 1)
+        bar_max_w = 8*cm
+
+        for elem, count in elements.items():
+            if y < 3*cm:
+                self._new_page(c)
+                y = self.height - 3.5*cm
+            c.setFillColor(CREAM)
+            c.setFont("Helvetica-Bold", 11)
+            c.drawString(self.margin + 0.5*cm, y, f"{element_emojis[elem]}")
+            c.setFillColor(LIGHT_TEXT)
+            c.setFont("Helvetica", 10)
+            c.drawString(self.margin + 3*cm, y, f"{count} planete(s)")
+
+            # Draw bar
+            bar_w = (count / total) * bar_max_w
+            bar_x = self.margin + 7*cm
+            c.setFillColor(element_colors[elem])
+            c.setFillAlpha(0.7)
+            c.roundRect(bar_x, y - 0.15*cm, bar_w, 0.5*cm, 3, fill=1)
+            c.setFillAlpha(1.0)
+            y -= 1*cm
+
+        # Dominant element text
+        dominant_elem = max(elements, key=elements.get)
+        weak_elem = min(elements, key=elements.get)
+        y -= 0.5*cm
+        y = self._sub_header(c, f"Element Dominant : {dominant_elem}", y, size=12)
+        dom_text = ELEMENTS_DOMINANTS.get(dominant_elem, {}).get('dominant', '')
+        y = self._draw_centered_block(c, dom_text, y, font_size=10)
+
+        if elements[weak_elem] <= 1:
+            y = self._sub_header(c, f"Element a Cultiver : {weak_elem}", y, size=12)
+            weak_text = ELEMENTS_DOMINANTS.get(weak_elem, {}).get('faible', '')
+            y = self._draw_centered_block(c, weak_text, y, font_size=10)
+
+        # Modalities
+        y -= 0.5*cm
+        y = self._sub_header(c, "Repartition des Modalites", y, size=12)
+        dominant_mod = max(modalities, key=modalities.get)
+        for mod, count in modalities.items():
+            if y < 2.5*cm:
+                self._new_page(c)
+                y = self.height - 3.5*cm
+            c.setFillColor(GOLD if mod == dominant_mod else LIGHT_TEXT)
+            c.setFont("Helvetica-Bold" if mod == dominant_mod else "Helvetica", 10)
+            c.drawCentredString(self.width / 2, y, f"{mod} : {count} planete(s)")
+            y -= 0.5*cm
+
+        y -= 0.3*cm
+        mod_desc = MODALITES_DESCRIPTIONS.get(dominant_mod, '')
+        y = self._draw_centered_block(c, f"Modalite dominante ({dominant_mod}) : {mod_desc}", y, font_size=10)
 
     def _page_sun(self, c, planets_data, zodiac_sign):
         self._new_page(c)
@@ -489,38 +612,29 @@ class ManuscritCompletGenerator:
 
         y = self._chapter_header(c, f"Votre Soleil en {signe_fr}", f"{symbole} L'essence de qui vous etes")
 
-        # Pedagogical intro to what the Sun represents
         sun_intro = "En astrologie, le Soleil represente votre identite profonde, votre vitalite et ce qui vous fait vibrer. C'est le noyau de votre personnalite, la lumiere que vous portez en vous et que vous etes appele(e) a partager avec le monde. Le signe dans lequel se trouve votre Soleil revele vos motivations fondamentales, vos aspirations et la maniere dont vous brillez le mieux."
         y = self._draw_centered_block(c, sun_intro, y, font_size=10, color=LIGHT_TEXT)
 
-        # Zodiac image
         img = self._get_zodiac_image(zodiac_sign)
         if img:
             y = self._draw_image_safe(c, img, y, w=6*cm, h=6*cm)
 
-        # Sun data
-        sun_data = next((p for p in planets_data if p.get('name') == 'Sun'), None) if planets_data else None
+        sun_data = next((p for p in (planets_data or []) if p.get('name') == 'Sun'), None)
         if sun_data:
-            c.setFillColor(MEDIUM_PURPLE)
-            c.setFillAlpha(0.5)
-            c.roundRect(self.margin, y - 1*cm, self.width - 2*self.margin, 1*cm, 5, fill=1)
-            c.setFillAlpha(1.0)
-            c.setFillColor(GOLD)
-            c.setFont("Helvetica-Bold", 10)
-            c.drawCentredString(self.width/2, y - 0.7*cm, f"Soleil en {signe_fr} - Maison {sun_data.get('house','?')} - Degre {sun_data.get('normDegree',0):.1f}")
-            y -= 1.8*cm
+            y = self._draw_info_box(c, f"Soleil en {signe_fr} - Maison {sun_data.get('house','?')} - {sun_data.get('normDegree', sun_data.get('norm_degree',0)):.1f} deg", y)
 
-        # Long description
+        # Sun in sign specific interpretation
+        sun_en_signe = PLANETES_DETAILS.get('Sun', {}).get('en_signe', {}).get(zodiac_sign, '')
+        if sun_en_signe:
+            y = self._draw_centered_block(c, sun_en_signe, y, font_size=10.5, color=CREAM)
+
         desc = signe.get('description_longue', '')
         y = self._draw_centered_block(c, desc, y, font_size=10.5, color=LIGHT_TEXT)
 
-        # Forces
+        # Forces & defis
         self._new_page(c)
         y = self.height - 4*cm
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 14)
-        c.drawCentredString(self.width / 2, y, "Vos Forces Solaires")
-        y -= 1*cm
+        y = self._sub_header(c, "Vos Forces Solaires", y)
         for f in signe.get('forces', []):
             c.setFillColor(LIGHT_TEXT)
             c.setFont("Helvetica", 11)
@@ -528,17 +642,13 @@ class ManuscritCompletGenerator:
             y -= 0.5*cm
 
         y -= 0.5*cm
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 14)
-        c.drawCentredString(self.width / 2, y, "Vos Defis a Transcender")
-        y -= 1*cm
+        y = self._sub_header(c, "Vos Defis a Transcender", y)
         for d in signe.get('defis', []):
             c.setFillColor(LIGHT_TEXT)
             c.setFont("Helvetica", 11)
             c.drawCentredString(self.width / 2, y, f"- {d}")
             y -= 0.5*cm
 
-        # Affirmation
         y -= 1*cm
         c.setFillColor(MEDIUM_PURPLE)
         c.setFillAlpha(0.5)
@@ -550,48 +660,44 @@ class ManuscritCompletGenerator:
 
     def _page_moon(self, c, planets_data):
         self._new_page(c)
-        moon_data = next((p for p in planets_data if p.get('name') == 'Moon'), None) if planets_data else None
+        moon_data = next((p for p in (planets_data or []) if p.get('name') == 'Moon'), None)
         moon_sign = moon_data.get('sign', 'Cancer') if moon_data else 'Cancer'
         moon_info = SIGNES_DETAILS.get(moon_sign, {})
         moon_fr = moon_info.get('nom_fr', moon_sign)
 
         y = self._chapter_header(c, f"Votre Lune en {moon_fr}", "Votre monde emotionnel interieur")
 
-        moon_intro = "La Lune en astrologie represente votre monde interieur : vos emotions, vos instincts, vos besoins de securite. Si le Soleil est ce que vous montrez au monde, la Lune est ce que vous ressentez dans l'intimite. Elle revele la facon dont vous avez ete nourri(e) emotionnellement dans l'enfance et ce dont vous avez besoin pour vous sentir en securite aujourd'hui. Comprendre votre Lune, c'est comprendre les racines de vos reactions emotionnelles."
+        moon_intro = "La Lune en astrologie represente votre monde interieur : vos emotions, vos instincts, vos besoins de securite. Si le Soleil est ce que vous montrez au monde, la Lune est ce que vous ressentez dans l'intimite. Elle revele la facon dont vous avez ete nourri(e) emotionnellement dans l'enfance et ce dont vous avez besoin pour vous sentir en securite aujourd'hui."
         y = self._draw_centered_block(c, moon_intro, y, font_size=10, color=LIGHT_TEXT)
 
-        # Crystal priestess illustration for Moon
-        illust = self._get_illustration(6)  # crystal priestess
+        illust = self._get_illustration(6)
         if illust:
             y = self._draw_image_safe(c, illust, y, w=7*cm, h=7*cm)
 
-        img = self._get_zodiac_image(moon_sign)
-        if img:
-            y = self._draw_image_safe(c, img, y, w=5*cm, h=5*cm)
-
         if moon_data:
-            c.setFillColor(MEDIUM_PURPLE)
-            c.setFillAlpha(0.5)
-            c.roundRect(self.margin, y - 1*cm, self.width - 2*self.margin, 1*cm, 5, fill=1)
-            c.setFillAlpha(1.0)
-            c.setFillColor(GOLD)
-            c.setFont("Helvetica-Bold", 10)
-            c.drawCentredString(self.width/2, y - 0.7*cm, f"Lune en {moon_fr} - Maison {moon_data.get('house','?')}")
-            y -= 1.8*cm
+            y = self._draw_info_box(c, f"Lune en {moon_fr} - Maison {moon_data.get('house','?')}")
 
         lune_info = PLANETES_DETAILS.get('Moon', {})
         en_signe = lune_info.get('en_signe', {}).get(moon_sign, '')
         if en_signe:
-            y = self._draw_centered_block(c, en_signe, y, font_size=10.5, color=LIGHT_TEXT)
+            y = self._draw_centered_block(c, en_signe, y, font_size=10.5, color=CREAM)
 
         element = moon_info.get('element', 'Terre')
         needs = {"Feu": "action et passion", "Terre": "securite et stabilite", "Air": "communication et echanges", "Eau": "connexion emotionnelle et intimite"}
         txt = f"Avec une Lune en signe de {element}, vos emotions ont besoin de {needs.get(element, 'harmonie')} pour s'epanouir. Vous percevez le monde a travers le filtre de cet element, ce qui influence profondement vos reactions instinctives et vos besoins fondamentaux."
         y = self._draw_centered_block(c, txt, y, font_size=10.5)
 
+        # Moon house meaning
+        if moon_data:
+            house = moon_data.get('house', 1)
+            h_info = MAISONS_DETAILS.get(house, {})
+            if h_info:
+                h_txt = f"Votre Lune en Maison {house} ({h_info.get('domaine', '')}) signifie que vos besoins emotionnels les plus profonds s'expriment dans le domaine de {h_info.get('domaine', '').lower()}. {h_info.get('description', '')}"
+                y = self._draw_centered_block(c, h_txt, y, font_size=10)
+
     def _page_ascendant(self, c, planets_data):
         self._new_page(c)
-        asc_data = next((p for p in planets_data if p.get('name') == 'Ascendant'), None) if planets_data else None
+        asc_data = next((p for p in (planets_data or []) if p.get('name') == 'Ascendant'), None)
         asc_sign = asc_data.get('sign', 'Leo') if asc_data else 'Leo'
         asc_info = SIGNES_DETAILS.get(asc_sign, {})
         asc_fr = asc_info.get('nom_fr', asc_sign)
@@ -601,42 +707,89 @@ class ManuscritCompletGenerator:
         asc_intro = "L'Ascendant est le signe qui se levait a l'horizon Est au moment precis de votre naissance. Il represente la premiere impression que vous donnez aux autres, votre apparence physique, et la maniere dont vous abordez spontanement les nouvelles situations. Si le Soleil est votre essence et la Lune votre vie interieure, l'Ascendant est la porte d'entree par laquelle le monde vous decouvre."
         y = self._draw_centered_block(c, asc_intro, y, font_size=10, color=LIGHT_TEXT)
 
-        # Illustration
-        illust = self._get_illustration(1)  # birds
+        illust = self._get_illustration(1)
         if illust:
             y = self._draw_image_safe(c, illust, y, w=7*cm, h=7*cm)
 
         desc = f"Avec un Ascendant en {asc_fr}, vous degagez naturellement l'energie de ce signe. {asc_info.get('description_courte', '')} Les gens vous percoivent d'abord a travers cette lentille avant de decouvrir votre Soleil. L'element {asc_info.get('element', '')} colore votre approche de la vie quotidienne."
         y = self._draw_centered_block(c, desc, y, font_size=10.5)
 
-        # Traits
         y -= 0.3*cm
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 12)
-        c.drawCentredString(self.width / 2, y, "Traits visibles de votre Ascendant")
-        y -= 0.8*cm
+        y = self._sub_header(c, "Traits visibles de votre Ascendant", y, size=12)
         for f in asc_info.get('forces', [])[:5]:
+            if y < 2.5*cm:
+                self._new_page(c)
+                y = self.height - 3.5*cm
             c.setFillColor(LIGHT_TEXT)
             c.setFont("Helvetica", 10)
             c.drawCentredString(self.width / 2, y, f"- {f}")
             y -= 0.45*cm
 
-    def _page_planets(self, c, planets_data):
+    def _page_planet_detail(self, c, planet_name, planets_data, illust_idx=None):
+        """Detailed page for a single planet"""
         self._new_page(c)
-        y = self._chapter_header(c, "Les Planetes de Votre Theme", "Les forces qui vous animent")
+        planet_data = next((p for p in (planets_data or []) if p.get('name') == planet_name), None)
+        if not planet_data:
+            return
 
-        planet_intro = "Chaque planete de votre theme natal represente une facette de votre personnalite. Mercure gouverne votre intellect, Venus votre facon d'aimer, Mars votre energie d'action, Jupiter votre expansion et Saturne votre structure. Voici ce que revelent leurs positions dans votre carte du ciel."
-        y = self._draw_centered_block(c, planet_intro, y, font_size=10, color=LIGHT_TEXT)
+        pinfo = PLANETES_DETAILS.get(planet_name, {})
+        pfr = pinfo.get('nom_fr', planet_name)
+        sym = pinfo.get('symbole', '')
+        sign = planet_data.get('sign', '')
+        sign_fr = self._get_french_sign(sign)
+        house = planet_data.get('house', '?')
+        is_retro = str(planet_data.get('isRetro', planet_data.get('is_retro', 'false'))).lower() == 'true'
 
-        # Crystal bird illustration
-        illust = self._get_illustration(5)  # crystal bird
-        if illust:
-            y = self._draw_image_safe(c, illust, y, w=7*cm, h=7*cm)
-        y -= 0.3*cm
+        titles = {
+            "Mercury": ("Mercure - Votre Esprit", "Comment vous pensez et communiquez"),
+            "Venus": ("Venus - Votre Coeur", "Comment vous aimez et ce que vous valorisez"),
+            "Mars": ("Mars - Votre Energie", "Comment vous agissez et vous affirmez"),
+        }
+        title, subtitle = titles.get(planet_name, (f"{pfr}", pinfo.get('domaine', '')))
+        y = self._chapter_header(c, title, subtitle)
 
-        main_planets = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn']
-        for pname in main_planets:
-            planet = next((p for p in planets_data if p.get('name') == pname), None) if planets_data else None
+        # General planet description
+        y = self._draw_centered_block(c, pinfo.get('description', ''), y, font_size=10, color=LIGHT_TEXT)
+
+        if illust_idx is not None:
+            illust = self._get_illustration(illust_idx)
+            if illust:
+                y = self._draw_image_safe(c, illust, y, w=6*cm, h=6*cm)
+
+        # Position info box
+        retro_txt = " - Retrograde" if is_retro else ""
+        y = self._draw_info_box(c, f"{sym} {pfr} en {sign_fr} - Maison {house}{retro_txt}")
+
+        # Sign-specific interpretation
+        en_signe_map = PLANET_EN_SIGNE_MAP.get(planet_name, {})
+        en_signe = en_signe_map.get(sign, '')
+        if en_signe:
+            y = self._draw_centered_block(c, en_signe, y, font_size=10.5, color=CREAM)
+
+        # House interpretation
+        h_info = MAISONS_DETAILS.get(house if isinstance(house, int) else int(house) if str(house).isdigit() else 1, {})
+        if h_info:
+            h_txt = f"{pfr} en Maison {house} oriente cette energie vers le domaine de {h_info.get('domaine', '').lower()}. {h_info.get('description', '')}"
+            y = self._draw_centered_block(c, h_txt, y, font_size=10)
+
+        # Retrograde note
+        if is_retro:
+            retro_desc = RETROGRADE_DESCRIPTIONS.get(planet_name, '')
+            if retro_desc:
+                y -= 0.3*cm
+                y = self._sub_header(c, f"{pfr} Retrograde dans votre Theme", y, size=12)
+                y = self._draw_centered_block(c, retro_desc, y, font_size=10, color=HexColor('#FF9999'))
+
+    def _page_jupiter_saturn(self, c, planets_data):
+        """Combined Jupiter & Saturn page"""
+        self._new_page(c)
+        y = self._chapter_header(c, "Jupiter & Saturne", "Expansion et structure de votre vie")
+
+        intro = "Jupiter et Saturne forment le couple cosmique qui structure votre rapport au monde. Jupiter est le Grand Benefique, indiquant ou vous trouvez la chance et l'expansion. Saturne est le Grand Maitre, revelant ou vous devez developper discipline et maturite. Ensemble, ils dessinent l'architecture de votre destin social."
+        y = self._draw_centered_block(c, intro, y, font_size=10, color=LIGHT_TEXT)
+
+        for pname in ['Jupiter', 'Saturn']:
+            planet = next((p for p in (planets_data or []) if p.get('name') == pname), None)
             if not planet:
                 continue
             if y < 5*cm:
@@ -646,28 +799,277 @@ class ManuscritCompletGenerator:
             pinfo = PLANETES_DETAILS.get(pname, {})
             pfr = pinfo.get('nom_fr', pname)
             sym = pinfo.get('symbole', '')
-            sign_fr = self._get_french_sign(planet.get('sign', ''))
+            sign = planet.get('sign', '')
+            sign_fr = self._get_french_sign(sign)
             house = planet.get('house', '?')
+            is_retro = str(planet.get('isRetro', planet.get('is_retro', 'false'))).lower() == 'true'
 
-            c.setFillColor(GOLD)
-            c.setFont("Helvetica-Bold", 12)
-            c.drawCentredString(self.width / 2, y, f"{sym} {pfr} en {sign_fr} - Maison {house}")
-            y -= 0.7*cm
+            y = self._sub_header(c, f"{sym} {pfr} en {sign_fr} - Maison {house}", y)
 
-            desc = pinfo.get('description', '')
-            y = self._draw_centered_block(c, desc, y, font_size=10, color=LIGHT_TEXT)
+            y = self._draw_centered_block(c, pinfo.get('description', ''), y, font_size=10, color=LIGHT_TEXT)
+
+            en_signe_map = PLANET_EN_SIGNE_MAP.get(pname, {})
+            en_signe = en_signe_map.get(sign, '')
+            if en_signe:
+                y = self._draw_centered_block(c, en_signe, y, font_size=10, color=CREAM)
+
+            if is_retro:
+                retro = RETROGRADE_DESCRIPTIONS.get(pname, '')
+                if retro:
+                    y = self._draw_centered_block(c, f"[Retrograde] {retro}", y, font_size=9.5, color=HexColor('#FF9999'))
+            y -= 0.5*cm
+
+    def _page_retrogrades(self, c, planets_data, horoscope_data):
+        """Page dedicated to retrograde planets"""
+        all_planets = self._get_all_planets(planets_data, horoscope_data)
+        retro_planets = [p for p in (all_planets or []) if str(p.get('isRetro', p.get('is_retro', 'false'))).lower() == 'true']
+
+        if not retro_planets:
+            return  # Skip if no retrogrades
+
+        self._new_page(c)
+        y = self._chapter_header(c, "Planetes Retrogrades", "Les energies interiorisees de votre theme")
+
+        intro = f"Dans votre theme natal, {len(retro_planets)} planete(s) sont en mouvement retrograde apparent. Une planete retrograde n'est pas affaiblie : son energie est dirigee vers l'interieur plutot que vers l'exterieur. C'est une invitation a la reflexion, a la revision et a la maitrise interieure de cette energie."
+        y = self._draw_centered_block(c, intro, y, font_size=10, color=LIGHT_TEXT)
+        y -= 0.3*cm
+
+        for p in retro_planets:
+            name = p.get('name', '')
+            if name in ['Node', 'Chiron', 'Part of Fortune', 'Lilith']:
+                continue
+            if y < 4*cm:
+                self._new_page(c)
+                y = self.height - 3.5*cm
+
+            pinfo = PLANETES_DETAILS.get(name, {})
+            pfr = pinfo.get('nom_fr', name)
+            sym = pinfo.get('symbole', '')
+            sign_fr = self._get_french_sign(p.get('sign', ''))
+
+            y = self._sub_header(c, f"{sym} {pfr} Retrograde en {sign_fr}", y, size=12)
+            desc = RETROGRADE_DESCRIPTIONS.get(name, '')
+            if desc:
+                y = self._draw_centered_block(c, desc, y, font_size=10)
             y -= 0.3*cm
 
-    def _page_houses(self, c):
+    def _page_aspects(self, c, horoscope_data):
+        """Major aspects between planets"""
+        if not horoscope_data or 'aspects' not in horoscope_data:
+            return
+
+        self._new_page(c)
+        y = self._chapter_header(c, "Les Aspects Planetaires", "L'alchimie entre vos planetes")
+
+        intro = "Les aspects sont les angles que forment les planetes entre elles dans votre carte du ciel. Ils revelent comment les differentes facettes de votre personnalite interagissent. Les trigones et sextiles indiquent des talents naturels et des facilites. Les carres et oppositions signalent des tensions qui vous poussent a grandir. Les conjonctions fusionnent les energies."
+        y = self._draw_centered_block(c, intro, y, font_size=10, color=LIGHT_TEXT)
+        y -= 0.3*cm
+
+        aspects = horoscope_data.get('aspects', [])
+        # Filter to personal planet aspects
+        personal = {'Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'}
+
+        # Group by harmonious vs challenging
+        harmonious = []
+        challenging = []
+        for a in aspects:
+            p1 = a.get('aspecting_planet', '')
+            p2 = a.get('aspected_planet', '')
+            if p1 not in personal or p2 not in personal:
+                continue
+            atype = a.get('type', '')
+            if atype in ('Trine', 'Sextile'):
+                harmonious.append(a)
+            elif atype in ('Square', 'Opposition'):
+                challenging.append(a)
+            elif atype == 'Conjunction':
+                harmonious.append(a)
+
+        # Harmonious aspects
+        if harmonious:
+            y = self._sub_header(c, "Aspects Harmonieux - Vos Talents", y, size=13)
+            for a in harmonious[:8]:
+                if y < 4*cm:
+                    self._new_page(c)
+                    y = self.height - 3.5*cm
+
+                p1 = a['aspecting_planet']
+                p2 = a['aspected_planet']
+                atype = a['type']
+                orb = a.get('orb', 0)
+
+                p1_fr = PLANETES_DETAILS.get(p1, {}).get('nom_fr', p1)
+                p2_fr = PLANETES_DETAILS.get(p2, {}).get('nom_fr', p2)
+                aspect_info = ASPECTS_TYPES.get(atype, {})
+                aspect_fr = aspect_info.get('nom_fr', atype)
+
+                c.setFillColor(GOLD)
+                c.setFont("Helvetica-Bold", 10)
+                c.drawCentredString(self.width / 2, y, f"{p1_fr} {aspect_fr} {p2_fr} (orbe: {orb} deg)")
+                y -= 0.6*cm
+
+                interp = get_aspect_interpretation(p1, p2, atype)
+                if interp:
+                    y = self._draw_centered_block(c, interp, y, font_size=9.5, color=LIGHT_TEXT)
+                else:
+                    gen_desc = aspect_info.get('description', '')
+                    if gen_desc:
+                        y = self._draw_centered_block(c, gen_desc, y, font_size=9.5, color=LIGHT_TEXT)
+                y -= 0.2*cm
+
+        # Challenging aspects
+        if challenging:
+            if y < 5*cm:
+                self._new_page(c)
+                y = self.height - 3.5*cm
+            y = self._sub_header(c, "Aspects de Croissance - Vos Defis", y, size=13)
+            for a in challenging[:8]:
+                if y < 4*cm:
+                    self._new_page(c)
+                    y = self.height - 3.5*cm
+
+                p1 = a['aspecting_planet']
+                p2 = a['aspected_planet']
+                atype = a['type']
+                orb = a.get('orb', 0)
+
+                p1_fr = PLANETES_DETAILS.get(p1, {}).get('nom_fr', p1)
+                p2_fr = PLANETES_DETAILS.get(p2, {}).get('nom_fr', p2)
+                aspect_info = ASPECTS_TYPES.get(atype, {})
+                aspect_fr = aspect_info.get('nom_fr', atype)
+
+                c.setFillColor(HexColor('#FF9999'))
+                c.setFont("Helvetica-Bold", 10)
+                c.drawCentredString(self.width / 2, y, f"{p1_fr} {aspect_fr} {p2_fr} (orbe: {orb} deg)")
+                y -= 0.6*cm
+
+                interp = get_aspect_interpretation(p1, p2, atype)
+                if interp:
+                    y = self._draw_centered_block(c, interp, y, font_size=9.5, color=LIGHT_TEXT)
+                else:
+                    gen_desc = aspect_info.get('description', '')
+                    if gen_desc:
+                        y = self._draw_centered_block(c, gen_desc, y, font_size=9.5, color=LIGHT_TEXT)
+                y -= 0.2*cm
+
+    def _page_houses(self, c, planets_data, horoscope_data):
+        """Personalized houses with planets in each house"""
         self._new_page(c)
         y = self._chapter_header(c, "Les Maisons Astrologiques", "Les 12 domaines de votre vie")
 
-        # Illustration
-        illust = self._get_illustration(2)  # koi
+        illust = self._get_illustration(2)
         if illust:
             y = self._draw_image_safe(c, illust, y, w=7*cm, h=7*cm)
 
-        y = self._draw_centered_block(c, WHAT_ARE_HOUSES, y, font_size=10, color=LIGHT_TEXT)
+        intro = "Les douze maisons representent les grands domaines de votre existence. Les planetes qui s'y trouvent colorent ces domaines de leur energie specifique."
+        y = self._draw_centered_block(c, intro, y, font_size=10, color=LIGHT_TEXT)
+
+        # Build planet-per-house map
+        all_planets = self._get_all_planets(planets_data, horoscope_data)
+        house_planets = {}
+        for p in (all_planets or []):
+            h = p.get('house', 0)
+            if h and p.get('name') not in ('Ascendant', 'Part of Fortune'):
+                if h not in house_planets:
+                    house_planets[h] = []
+                house_planets[h].append(p)
+
+        for house_num in range(1, 13):
+            if y < 4*cm:
+                self._new_page(c)
+                y = self.height - 3.5*cm
+
+            m_info = MAISONS_DETAILS.get(house_num, {})
+            m_name = m_info.get('nom', f'Maison {house_num}')
+
+            # House sign from horoscope data
+            house_sign = ""
+            if horoscope_data and 'houses' in horoscope_data:
+                h_data = next((h for h in horoscope_data['houses'] if h.get('house') == house_num), None)
+                if h_data:
+                    house_sign = f" en {self._get_french_sign(h_data.get('sign', ''))}"
+
+            c.setFillColor(GOLD)
+            c.setFont("Helvetica-Bold", 11)
+            c.drawString(self.margin + 0.3*cm, y, f"{m_name}{house_sign}")
+
+            # Planets in this house
+            planets_in_house = house_planets.get(house_num, [])
+            if planets_in_house:
+                names = [PLANETES_DETAILS.get(p['name'], {}).get('nom_fr', p['name']) for p in planets_in_house]
+                c.setFillColor(CREAM)
+                c.setFont("Helvetica-Oblique", 9)
+                c.drawString(self.margin + 0.3*cm, y - 0.4*cm, f"Planetes presentes : {', '.join(names)}")
+                y -= 0.85*cm
+            else:
+                y -= 0.5*cm
+
+            # Description
+            desc = m_info.get('description', '')
+            if desc:
+                y = self._draw_centered_block(c, desc, y, font_size=9.5, color=LIGHT_TEXT)
+            y -= 0.2*cm
+
+    def _page_chiron_node(self, c, horoscope_data):
+        """Chiron and North Node page"""
+        if not horoscope_data:
+            return
+
+        planets = horoscope_data.get('planets', [])
+        chiron = next((p for p in planets if p.get('name') == 'Chiron'), None)
+        node = next((p for p in planets if p.get('name') == 'Node'), None)
+        lilith = horoscope_data.get('lilith')
+
+        if not chiron and not node:
+            return
+
+        self._new_page(c)
+        y = self._chapter_header(c, "Chiron, Lilith & Noeud Nord", "Guerison, ombre et destinee karmique")
+
+        intro = "Ces trois points celestes revelent des dimensions profondes de votre parcours d'ame : la blessure qui devient votre don de guerison (Chiron), l'ombre a integrer (Lilith), et la direction de votre evolution karmique (Noeud Nord)."
+        y = self._draw_centered_block(c, intro, y, font_size=10, color=LIGHT_TEXT)
+
+        # Chiron
+        if chiron:
+            sign = chiron.get('sign', '')
+            sign_fr = self._get_french_sign(sign)
+            house = chiron.get('house', '?')
+            y = self._sub_header(c, f"Chiron en {sign_fr} - Maison {house}", y, size=13)
+            chiron_intro = "Chiron est le Guerisseur Blesse, un asteroide qui revele votre blessure la plus profonde et, paradoxalement, votre plus grand pouvoir de guerison."
+            y = self._draw_centered_block(c, chiron_intro, y, font_size=10, color=LIGHT_TEXT)
+            chiron_desc = CHIRON_EN_SIGNE.get(sign, '')
+            if chiron_desc:
+                y = self._draw_centered_block(c, chiron_desc, y, font_size=10.5, color=CREAM)
+
+        # Lilith
+        if lilith and isinstance(lilith, dict):
+            sign = lilith.get('sign', '')
+            sign_fr = self._get_french_sign(sign)
+            house = lilith.get('house', '?')
+            if y < 5*cm:
+                self._new_page(c)
+                y = self.height - 3.5*cm
+            y = self._sub_header(c, f"Lilith Noire en {sign_fr} - Maison {house}", y, size=13)
+            lilith_intro = "Lilith Noire represente votre part d'ombre, votre pouvoir brut et non domestique, la partie de vous que la societe vous a appris a reprimer."
+            y = self._draw_centered_block(c, lilith_intro, y, font_size=10, color=LIGHT_TEXT)
+            lilith_desc = LILITH_EN_SIGNE.get(sign, '')
+            if lilith_desc:
+                y = self._draw_centered_block(c, lilith_desc, y, font_size=10.5, color=CREAM)
+
+        # North Node
+        if node:
+            sign = node.get('sign', '')
+            sign_fr = self._get_french_sign(sign)
+            house = node.get('house', '?')
+            if y < 5*cm:
+                self._new_page(c)
+                y = self.height - 3.5*cm
+            y = self._sub_header(c, f"Noeud Nord en {sign_fr} - Maison {house}", y, size=13)
+            node_intro = "Le Noeud Nord indique la direction de votre evolution karmique, les qualites que votre ame est venue developper dans cette vie."
+            y = self._draw_centered_block(c, node_intro, y, font_size=10, color=LIGHT_TEXT)
+            node_desc = NOEUD_NORD_EN_SIGNE.get(sign, '')
+            if node_desc:
+                y = self._draw_centered_block(c, node_desc, y, font_size=10.5, color=CREAM)
 
     def _page_life_path(self, c, chemin_vie, annee_perso):
         self._new_page(c)
@@ -675,15 +1077,13 @@ class ManuscritCompletGenerator:
 
         y = self._chapter_header(c, f"Chemin de Vie {chemin_vie}", f"{chemin_info.get('titre', 'Le Voyageur')}")
 
-        # Balance desert illustration
-        illust = self._get_illustration(7)  # balance desert
+        illust = self._get_illustration(7)
         if illust:
             y = self._draw_image_safe(c, illust, y, w=8*cm, h=5*cm)
 
         path_intro = f"En numerologie, votre Chemin de Vie est le nombre le plus important de votre profil. Il se calcule a partir de votre date de naissance complete et revele la grande direction de votre existence. Votre Chemin de Vie {chemin_vie} indique que votre mission d'ame est centree sur le theme suivant :"
         y = self._draw_centered_block(c, path_intro, y, font_size=10.5, color=LIGHT_TEXT)
 
-        # Keyword box
         c.setFillColor(MEDIUM_PURPLE)
         c.setFillAlpha(0.5)
         c.roundRect(3*cm, y - 1.2*cm, self.width - 6*cm, 1.2*cm, 10, fill=1)
@@ -693,69 +1093,53 @@ class ManuscritCompletGenerator:
         c.drawCentredString(self.width / 2, y - 0.8*cm, f"Mot-cle : {chemin_info.get('mot_cle', 'Evolution')}")
         y -= 2.2*cm
 
-        # Mission
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 13)
-        c.drawCentredString(self.width / 2, y, "Votre Mission d'Ame")
-        y -= 0.8*cm
+        y = self._sub_header(c, "Votre Mission d'Ame", y, size=13)
         mission = chemin_info.get('mission', '')
         y = self._draw_centered_block(c, mission, y, font_size=10.5)
 
-        # Forces
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 13)
-        c.drawCentredString(self.width / 2, y, "Vos Dons Naturels")
-        y -= 0.8*cm
+        y = self._sub_header(c, "Vos Dons Naturels", y, size=13)
         for f in chemin_info.get('forces', []):
             c.setFillColor(LIGHT_TEXT)
             c.setFont("Helvetica", 11)
             c.drawCentredString(self.width / 2, y, f"- {f}")
             y -= 0.5*cm
 
-        y -= 0.5*cm
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 13)
-        c.drawCentredString(self.width / 2, y, "Defis a Transcender")
-        y -= 0.8*cm
+        y -= 0.3*cm
+        y = self._sub_header(c, "Defis a Transcender", y, size=13)
         for d in chemin_info.get('defis', []):
             c.setFillColor(LIGHT_TEXT)
             c.setFont("Helvetica", 11)
             c.drawCentredString(self.width / 2, y, f"- {d}")
             y -= 0.5*cm
 
-        # REAL concrete advice page
+        # Concrete advice page
         self._new_page(c)
         y = self._chapter_header(c, "Conseils Concrets", f"Pour votre Chemin de Vie {chemin_vie} et votre Annee {annee_perso}")
 
         annee_info = PREVISIONS_ANNEE_PERSONNELLE.get(annee_perso, PREVISIONS_ANNEE_PERSONNELLE.get(1, {}))
-
         conseil_chemin = chemin_info.get('conseil', '')
-        conseil_annee = annee_info.get('conseil_cle', '')
         theme_annee = annee_info.get('theme', 'Evolution')
 
-        real_advice = f"""Votre Chemin de Vie {chemin_vie} vous invite a incarner pleinement le theme de {chemin_info.get('mot_cle', 'evolution').lower()}. Concretement, cela signifie que les situations qui vous font le plus grandir sont celles ou vous exercez cette qualite. Ne fuyez pas ces occasions : ce sont vos rendez-vous avec votre destinee.
+        real_advice = f"""Votre Chemin de Vie {chemin_vie} vous invite a incarner pleinement le theme de {chemin_info.get('mot_cle', 'evolution').lower()}. Concretement, cela signifie que les situations qui vous font le plus grandir sont celles ou vous exercez cette qualite.
 
 Conseil pour votre chemin : {conseil_chemin}
 
-Votre annee personnelle 2026 est une annee {annee_perso}, dont le theme est : {theme_annee}. Cela signifie que l'energie dominante de cette annee vous pousse vers ce domaine. Combiner votre chemin de vie avec votre annee personnelle donne une orientation tres precise :
-
-{conseil_annee}
+Votre annee personnelle 2026 est une annee {annee_perso}, dont le theme est : {theme_annee}. L'energie dominante de cette annee vous pousse vers ce domaine.
 
 Voici des actions concretes pour honorer cette double influence :
 
 1. Chaque matin, prenez 5 minutes pour vous aligner avec l'intention de votre chemin de vie. Demandez-vous : comment puis-je exprimer mon don de {chemin_info.get('mot_cle', 'evolution').lower()} aujourd'hui ?
 
-2. Cette annee, concentrez-vous particulierement sur le domaine de {theme_annee.lower()}. C'est la ou l'univers place ses ressources pour vous.
+2. Cette annee, concentrez-vous sur le domaine de {theme_annee.lower()}. C'est la ou l'univers place ses ressources pour vous.
 
 3. Notez dans un journal les synchronicites et les signes que vous recevez. Votre chemin de vie {chemin_vie} est particulierement receptif aux messages subtils de l'univers.
 
-4. Si vous ressentez de la resistance, c'est souvent le signe que vous approchez d'une percee importante. Vos defis sont vos meilleurs professeurs.
+4. Si vous ressentez de la resistance, c'est souvent le signe que vous approchez d'une percee importante.
 
-5. Entourez-vous de personnes qui resonent avec vos valeurs profondes. La qualite de vos relations amplifie ou diminue l'energie de votre chemin."""
+5. Entourez-vous de personnes qui resonent avec vos valeurs profondes."""
 
         y = self._draw_centered_block(c, real_advice, y, font_size=10, color=LIGHT_TEXT)
 
-        # Colors and stones
         if y > 3*cm:
             y -= 0.5*cm
             c.setFillColor(GOLD)
@@ -768,44 +1152,32 @@ Voici des actions concretes pour honorer cette double influence :
 
         y = self._chapter_header(c, f"Previsions 2026", f"Annee Personnelle {annee_perso} : {annee_info.get('theme', 'Evolution')}")
 
-        # Cosmic balance illustration
-        illust = self._get_illustration(8)  # cosmic balance
+        illust = self._get_illustration(8)
         if illust:
             y = self._draw_image_safe(c, illust, y, w=7*cm, h=7*cm)
 
         resume = annee_info.get('resume', '')
         y = self._draw_centered_block(c, resume, y, font_size=11, color=CREAM)
 
-        # Domains
         domaines = annee_info.get('domaines', {})
         labels = {'carriere': 'Carriere & Travail', 'amour': 'Amour & Relations', 'sante': 'Sante & Bien-etre', 'finances': 'Finances', 'spirituel': 'Spiritualite'}
         for dom, txt in domaines.items():
             if y < 4*cm:
                 self._new_page(c)
                 y = self.height - 3.5*cm
-            c.setFillColor(GOLD)
-            c.setFont("Helvetica-Bold", 12)
-            c.drawCentredString(self.width / 2, y, labels.get(dom, dom))
-            y -= 0.7*cm
+            y = self._sub_header(c, labels.get(dom, dom), y, size=12)
             y = self._draw_centered_block(c, txt, y, font_size=10)
 
-        # Strong months
         self._new_page(c)
         y = self.height - 4*cm
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 14)
-        c.drawCentredString(self.width / 2, y, "Conseil Cle pour 2026")
-        y -= 1.2*cm
+        y = self._sub_header(c, "Conseil Cle pour 2026", y)
         conseil = annee_info.get('conseil_cle', '')
         y = self._draw_centered_block(c, conseil, y, font_size=11, color=CREAM)
 
         mois = ['Janvier','Fevrier','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Decembre']
         mois_forts = annee_info.get('mois_forts', [])
         y -= 0.5*cm
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 12)
-        c.drawCentredString(self.width / 2, y, "Mois les plus favorables :")
-        y -= 0.7*cm
+        y = self._sub_header(c, "Mois les plus favorables :", y, size=12)
         c.setFillColor(LIGHT_TEXT)
         c.setFont("Helvetica", 11)
         c.drawCentredString(self.width / 2, y, ", ".join([mois[m-1] for m in mois_forts if m <= 12]))
@@ -814,7 +1186,7 @@ Voici des actions concretes pour honorer cette double influence :
         self._new_page(c)
         y = self._chapter_header(c, "Vision sur 5 Ans", "2026 - 2030 : Votre trajectoire cosmique")
 
-        intro = "Les cinq prochaines annees forment un chapitre important de votre vie. Chaque annee apporte ses propres energies et opportunites, suivant le cycle naturel de la numerologie. Voici un apercu de ce qui vous attend."
+        intro = "Les cinq prochaines annees forment un chapitre important de votre vie. Chaque annee apporte ses propres energies et opportunites, suivant le cycle naturel de la numerologie."
         y = self._draw_centered_block(c, intro, y, font_size=10.5)
         y -= 0.3*cm
 
@@ -825,10 +1197,7 @@ Voici des actions concretes pour honorer cette double influence :
             year = 2026 + off
             ap = ((annee_perso_base - 1 + off) % 9) + 1
             ai = PREVISIONS_ANNEE_PERSONNELLE.get(ap, {})
-            c.setFillColor(GOLD)
-            c.setFont("Helvetica-Bold", 12)
-            c.drawCentredString(self.width / 2, y, f"{year} - Annee {ap} : {ai.get('theme', 'Evolution')}")
-            y -= 0.7*cm
+            y = self._sub_header(c, f"{year} - Annee {ap} : {ai.get('theme', 'Evolution')}", y, size=12)
             resume = ai.get('resume', '')[:200] + "..."
             y = self._draw_centered_block(c, resume, y, font_size=10)
             y -= 0.3*cm
@@ -850,10 +1219,7 @@ Voici des actions concretes pour honorer cette double influence :
                 self._new_page(c)
                 y = self.height - 3.5*cm
             card = ARCANES_MAJEURS.get(card_num, {})
-            c.setFillColor(GOLD)
-            c.setFont("Helvetica-Bold", 12)
-            c.drawCentredString(self.width / 2, y, f"{pos} : {card.get('nom', '')}")
-            y -= 0.5*cm
+            y = self._sub_header(c, f"{pos} : {card.get('nom', '')}", y, size=12)
             c.setFillColor(CREAM)
             c.setFont("Helvetica-Oblique", 10)
             c.drawCentredString(self.width / 2, y, f"Mot-cle : {card.get('mot_cle', '')}")
@@ -869,23 +1235,14 @@ Voici des actions concretes pour honorer cette double influence :
 
         y = self._chapter_header(c, "Conseils Personnalises", "Guidance pour votre evolution")
 
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 12)
-        c.drawCentredString(self.width / 2, y, f"Pour votre signe {signe.get('nom_fr', '')} :")
-        y -= 0.7*cm
+        y = self._sub_header(c, f"Pour votre signe {signe.get('nom_fr', '')} :", y, size=12)
         y = self._draw_centered_block(c, signe.get('conseil_annee', ''), y, font_size=10.5)
 
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 12)
-        c.drawCentredString(self.width / 2, y, f"Pour votre Chemin de Vie {chemin_vie} :")
-        y -= 0.7*cm
+        y = self._sub_header(c, f"Pour votre Chemin de Vie {chemin_vie} :", y, size=12)
         y = self._draw_centered_block(c, chemin.get('conseil', ''), y, font_size=10.5)
 
         y -= 0.5*cm
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 12)
-        c.drawCentredString(self.width / 2, y, "Trois Cles pour Votre Evolution :")
-        y -= 0.8*cm
+        y = self._sub_header(c, "Trois Cles pour Votre Evolution :", y, size=12)
         cles = [
             "Honorez votre unicite. Votre combinaison astrologique est unique dans tout l'univers. Cessez de vous comparer aux autres et embrassez pleinement ce qui fait votre singularite.",
             "Ecoutez votre intuition. Votre Lune vous parle constamment a travers vos emotions et vos reves. Faites-lui confiance, meme quand la logique dit le contraire.",
@@ -897,7 +1254,7 @@ Voici des actions concretes pour honorer cette double influence :
     def _page_final(self, c, user_data):
         self._new_page(c)
 
-        illust = self._get_illustration(3)  # landscape
+        illust = self._get_illustration(3)
         if illust:
             self._draw_image_safe(c, illust, self.height - 1*cm, w=self.width, h=7*cm)
 
@@ -955,41 +1312,13 @@ Voici des actions concretes pour honorer cette double influence :
         c.drawCentredString(self.width / 2, y - 1.4*cm, "www.plume-astrale.fr")
         c.setFillAlpha(1.0)
 
-    # ============= MAIN =============
+    # ============= HELPERS =============
 
-    def generate(self, user_data, planets_data=None, horoscope_data=None):
-        buffer = io.BytesIO()
-        c = canvas.Canvas(buffer, pagesize=A4)
-
-        zodiac_sign = 'Taurus'
-        if planets_data:
-            sun = next((p for p in planets_data if p.get('name') == 'Sun'), None)
-            if sun:
-                zodiac_sign = sun.get('sign', 'Taurus')
-
-        date_str = user_data.get('dateNaissance', '1990-01-01')
-        chemin_vie = self._calc_life_path(date_str)
-        annee_perso = self._calc_personal_year(date_str, 2026)
-
-        self._page_cover(c, user_data, zodiac_sign)
-        self._page_sommaire(c)
-        self._page_introduction(c)
-        self._page_natal_chart(c, planets_data, zodiac_sign)
-        self._page_sun(c, planets_data, zodiac_sign)
-        self._page_moon(c, planets_data)
-        self._page_ascendant(c, planets_data)
-        self._page_planets(c, planets_data)
-        self._page_houses(c)
-        self._page_life_path(c, chemin_vie, annee_perso)
-        self._page_previsions(c, annee_perso)
-        self._page_5_year(c, annee_perso)
-        self._page_tarot(c)
-        self._page_conseils(c, zodiac_sign, chemin_vie)
-        self._page_final(c, user_data)
-
-        c.save()
-        buffer.seek(0)
-        return buffer.getvalue()
+    def _get_all_planets(self, planets_data, horoscope_data):
+        """Get the best available planet data, preferring horoscope_data"""
+        if horoscope_data and 'planets' in horoscope_data:
+            return horoscope_data['planets']
+        return planets_data
 
     def _calc_life_path(self, date_str):
         try:
@@ -1010,6 +1339,50 @@ Voici des actions concretes pour honorer cette double influence :
             return t
         except:
             return 1
+
+    # ============= MAIN =============
+
+    def generate(self, user_data, planets_data=None, horoscope_data=None):
+        buffer = io.BytesIO()
+        c = canvas.Canvas(buffer, pagesize=A4)
+
+        zodiac_sign = 'Taurus'
+        if planets_data:
+            sun = next((p for p in planets_data if p.get('name') == 'Sun'), None)
+            if sun:
+                zodiac_sign = sun.get('sign', 'Taurus')
+
+        date_str = user_data.get('dateNaissance', '1990-01-01')
+        chemin_vie = self._calc_life_path(date_str)
+        annee_perso = self._calc_personal_year(date_str, 2026)
+
+        # Build all pages
+        self._page_cover(c, user_data, zodiac_sign)
+        self._page_sommaire(c)
+        self._page_introduction(c)
+        self._page_natal_chart(c, planets_data, zodiac_sign, horoscope_data)
+        self._page_elements(c, planets_data, horoscope_data)
+        self._page_sun(c, planets_data, zodiac_sign)
+        self._page_moon(c, planets_data)
+        self._page_ascendant(c, planets_data)
+        self._page_planet_detail(c, 'Mercury', planets_data, illust_idx=5)
+        self._page_planet_detail(c, 'Venus', planets_data)
+        self._page_planet_detail(c, 'Mars', planets_data)
+        self._page_jupiter_saturn(c, planets_data)
+        self._page_retrogrades(c, planets_data, horoscope_data)
+        self._page_aspects(c, horoscope_data)
+        self._page_houses(c, planets_data, horoscope_data)
+        self._page_chiron_node(c, horoscope_data)
+        self._page_life_path(c, chemin_vie, annee_perso)
+        self._page_previsions(c, annee_perso)
+        self._page_5_year(c, annee_perso)
+        self._page_tarot(c)
+        self._page_conseils(c, zodiac_sign, chemin_vie)
+        self._page_final(c, user_data)
+
+        c.save()
+        buffer.seek(0)
+        return buffer.getvalue()
 
 
 def generate_manuscrit_complet(user_data, planets_data=None, horoscope_data=None):
