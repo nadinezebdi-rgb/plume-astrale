@@ -176,6 +176,23 @@ const Quotidien = () => {
                 </p>
               </div>
 
+              {/* Phase Lunaire */}
+              {content.phase_lunaire && (
+                <div className="card-mystical" data-testid="phase-lunaire">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Moon className="w-6 h-6 text-[#F3E5AB]" strokeWidth={1.5} />
+                    <h3 className="text-[#C5A059] text-sm uppercase tracking-widest">Phase Lunaire</h3>
+                    <div className="flex-1" />
+                    <span className="text-[#F3E5AB] font-medium" style={{ fontFamily: 'Cinzel, serif' }}>
+                      {content.phase_lunaire.phase}
+                    </span>
+                  </div>
+                  <p className="text-[#E0D9F6]/70 text-sm font-light leading-relaxed mb-3">
+                    {content.phase_lunaire.conseil}
+                  </p>
+                </div>
+              )}
+
               {/* Energie + Lucky */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="card-mystical" data-testid="energie-jour">
