@@ -764,7 +764,69 @@ async def get_daily_horoscope(zodiac_sign: str):
         raise HTTPException(status_code=400, detail=f"Signe invalide. Signes valides: {', '.join(valid_signs)}")
     
     content = get_daily_content(zodiac_sign)
+    
+    # Enrich with moon phase from API
+    try:
+        service = get_astrology_service()
+        moon_data = await service.get_moon_phase_report()
+        if moon_data and not moon_data.get('status') == False:
+            moon_phases_fr = {
+                "New Moon": "Nouvelle Lune",
+                "Waxing Crescent": "Premier Croissant",
+                "First Quarter": "Premier Quartier",
+                "Gibbous Moon": "Lune Gibbeuse",
+                "Full Moon": "Pleine Lune",
+                "Disseminating Moon": "Lune Disséminante",
+                "Last Quarter": "Dernier Quartier",
+                "Balsamic Moon": "Lune Balsamique",
+                "Waning Crescent": "Dernier Croissant",
+            }
+            phase = moon_data.get('moon_phase', '')
+            content['phase_lunaire'] = {
+                'phase': moon_phases_fr.get(phase, phase),
+                'phase_en': phase,
+                'signification': moon_data.get('significance', ''),
+                'conseil': moon_data.get('report', ''),
+                'date': moon_data.get('considered_date', '')
+            }
+    except Exception as e:
+        logger.warning(f"Could not fetch moon phase: {e}")
+    
     return content
+
+@api_router.get("/moon-phase")
+async def get_moon_phase():
+    """Get current moon phase from AstrologyAPI"""
+    try:
+        service = get_astrology_service()
+        moon_data = await service.get_moon_phase_report()
+        if moon_data and not moon_data.get('status') == False:
+            moon_phases_fr = {
+                "New Moon": "Nouvelle Lune",
+                "Waxing Crescent": "Premier Croissant",
+                "First Quarter": "Premier Quartier",
+                "Gibbous Moon": "Lune Gibbeuse",
+                "Full Moon": "Pleine Lune",
+                "Disseminating Moon": "Lune Disséminante",
+                "Last Quarter": "Dernier Quartier",
+                "Balsamic Moon": "Lune Balsamique",
+                "Waning Crescent": "Dernier Croissant",
+            }
+            phase = moon_data.get('moon_phase', '')
+            return {
+                "success": True,
+                "phase": moon_phases_fr.get(phase, phase),
+                "phase_en": phase,
+                "signification": moon_data.get('significance', ''),
+                "conseil": moon_data.get('report', ''),
+                "date": moon_data.get('considered_date', '')
+            }
+        raise HTTPException(status_code=500, detail="Données lunaires indisponibles")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Moon phase error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ========== TAROT OUI/NON ROUTES ==========
