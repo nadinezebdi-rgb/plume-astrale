@@ -18,6 +18,7 @@ from services.tarot_service import tirage_oui_non, tirage_mediumnite_complet, ti
 from services.mediumnite_pdf import generate_mediumnite_pdf
 from services.astrology_pdf_api import generate_pro_horoscope_pdf, generate_match_making_pdf
 from services.share_card_generator import generate_share_card
+from services.translation_service import translate_to_french, translate_dict_values
 
 
 ROOT_DIR = Path(__file__).parent
