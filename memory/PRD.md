@@ -5,99 +5,99 @@
 ## Produit
 Plateforme esoterique complete proposant des analyses astrologiques, numerologiques et de tarologie personnalisees.
 
-## Produits & Prix
-| Produit | Prix | Description |
-|---------|------|-------------|
-| Theme Astral Pro | 29,90 EUR | PDF francais enrichi 28+ pages avec design Plume Astrale |
-| Compatibilite Amoureuse | 29,90 EUR | Rapport de compatibilite via AstrologyAPI |
-| Chemin d'Ame | 24,90 EUR | Manuscrit personnalise avec illustrations |
-| Tarologie & Mediumnite | 35,00 EUR | Tirage en Croix 5 cartes + interpretations |
-| Livre Physique | 49,90 EUR | Edition reliee (Print-on-Demand) |
-
-## Codes Promo
-- `PLUME2026` : Acces gratuit a TOUS les produits
-- `ASTRO100` : Acces gratuit au Chemin d'Ame uniquement
-
 ## Deploiement
-- **VPS Hostinger** : KVM 1, Ubuntu 24.04, IP 187.124.9.214
-- **Domaine** : plume-astrale.fr (DNS A record -> VPS)
-- **SSL** : Let's Encrypt, expire le 27 mai 2026
-- **Stack** : Docker Compose (MongoDB + Backend + Frontend + Nginx)
+- **VPS Hostinger** : plume-astrale.fr (Docker Compose + Nginx + SSL)
 - **Github** : https://github.com/nadinezebdi-rgb/plume-astrale
+- **Code Promo** : PLUME2026 (acces gratuit a tout)
 
 ## Completed - 28 Fev 2026 (session actuelle)
 
-### 1. Enrichissement Massif du PDF "Theme Astral Pro" (V3 -> V4)
-- Carte du ciel calculee avec positions reelles des planetes
-- Section Equilibre Elementaire (Feu/Terre/Air/Eau + Modalites)
-- Pages individuelles pour Mercure, Venus, Mars avec interpretations par signe
-- Page combinee Jupiter & Saturne avec interpretations detaillees
-- Section Planetes Retrogrades avec explications personnalisees
-- Section Aspects Planetaires (harmonieux + defis de croissance)
-- Maisons Astrologiques personnalisees (planetes dans chaque maison)
-- Section Chiron, Lilith Noire & Noeud Nord (guerison/ombre/destinee)
-- 60+ descriptions planete-en-signe dans `astro_content_extended.py`
+### 1. Enrichissement PDF "Theme Astral Pro" (V4) — 28+ pages
+- Carte du ciel SVG reelle (AstrologyAPI natal_wheel_chart)
+- Equilibre elementaire, aspects, retrogrades, Chiron/Lilith/Noeud Nord
 - Tests: 22/22 (iteration_7)
 
-### 2. Carte Astrale Partageable (Instagram / WhatsApp)
-- Endpoint POST /api/share/generate-card genere image PNG 1080x1350
-- 3 boutons: Instagram (download), WhatsApp (texte), Copier
+### 2. Carte Astrale Partageable (Instagram/WhatsApp)
+- PNG 1080x1350 avec profil astral + 3 boutons partage
 - Tests: 13/13 (iteration_8)
 
 ### 3. Integration AstrologyAPI Phase 1
-- `natal_wheel_chart` : Vraie carte du ciel SVG integree au PDF via cairosvg
-- `moon_phase_report` : Phase lunaire en francais sur /quotidien + endpoint /api/moon-phase
-- `house_cusps/tropical` : Endpoint ajoute au service
+- natal_wheel_chart SVG dans le PDF, moon_phase_report en francais sur /quotidien
 - Tests: 20/20 (iteration_9)
 
-### 4. Refonte Page d'Accueil (P0)
-- 2 boutons d'entree principaux : Tarot / Astrologie
-- Section "Nos Services" avec Compatibilite, Guidance du Jour, Tarologie
-- Temoignages + trust indicators
-- Tests: Pass (iteration_10)
+### 4. Refonte Page d'Accueil + Flux Tarot Oui/Non
+- 2 CTAs principaux (Tarot/Astrologie) + section "Nos Services"
+- Compteur 3 tirages gratuits + formulaire capture donnees natales au 4eme
+- Tests: 12/12 (iteration_10)
 
-### 5. Flux Tarot Oui/Non avec Conversion (P0)
-- Compteur 3 tirages gratuits via localStorage
-- Formulaire de capture au 4eme tirage (prenom, email, date/heure naissance, ville)
-- Cross-sell astrologie apres inscription
-- Donnees sauvegardees dans localStorage pour upsell astrologie
-- Tests: 12/12 backend + frontend (iteration_10)
+### 5. Numerologie + Traduction IA
+- Page /numerologie complete (chemin de vie, expression, ame, personnalite, anniversaire, annee personnelle)
+- Service de traduction GPT-4o-mini via Emergent LLM key (cache en memoire)
+- Endpoint /api/translate pour traduction a la demande
+- Fallback local quand API numerologie bloquee par plan
+- Tests: 12/12 (iteration_11)
 
-## Completed - 26 Fev 2026
-- [x] Tirage en Croix (5 cartes) avec interpretations detaillees
-- [x] PDF Theme Astral Pro en FRANCAIS
-- [x] Code promo PLUME2026 sur toutes les prestations
-- [x] Favicon esoterique + badge "Made with Emergent" retire
-- [x] Deploiement VPS Hostinger avec Docker Compose + SSL
+## Architecture Actuelle
+```
+/app/backend/
+  server.py                    # FastAPI - tous les endpoints
+  services/
+    astrology_api.py           # Client AstrologyAPI (planets, horoscope, natal_wheel, moon_phase, numerology, tarot, compatibility)
+    astro_content.py           # Contenu astrologique de base
+    astro_content_extended.py  # Contenu etendu (planetes en signe, aspects, retrogrades, Chiron, Lilith, Node)
+    pdf_generator_v2.py        # Generateur PDF 28+ pages (reportlab)
+    share_card_generator.py    # Generateur carte partageable (Pillow)
+    translation_service.py     # Traduction IA (Emergent LLM key + GPT-4o-mini)
+    tarot_service.py           # Service tarot local
+    daily_content.py           # Contenu quotidien
+    pdf_service.py             # PDF legacy
+    astrology_pdf_api.py       # PDF API legacy
 
-## Completed - 25 Fev 2026
-- [x] Integration illustrations zodiacales dans PDF
-- [x] Generation 22 cartes Tarot de Marseille
-- [x] Produit Compatibilite Amoureuse
-- [x] Produit Chemin d'Ame (24,90 EUR)
-- [x] Pages: /quotidien, /tarot-oui-non, /tarologie, /compatibilite
-- [x] Apercu visuel du PDF avant achat
+/app/frontend/src/
+  pages/
+    Index.js                   # Accueil (2 CTAs + Nos Services)
+    TarotOuiNon.js             # Tarot Oui/Non (3 tirages gratuits + inscription)
+    Numerologie.js             # Profil numerologique
+    Quotidien.js               # Guidance du jour + phase lunaire
+    Resultats.js               # Resultats + partage social
+    Formulaire.js              # Formulaire astrologie
+    Tarologie.js               # Tarologie complete
+    Compatibilite2.js          # Compatibilite amoureuse
+  components/
+    Navbar.js                  # Navigation (avec Numerologie)
+```
 
-## Backlog (Nouvelle Strategie)
+## Endpoints API
+| Methode | Route | Description |
+|---------|-------|-------------|
+| POST | /api/numerology/complete | Profil numerologique complet |
+| POST | /api/translate | Traduction IA anglais->francais |
+| POST | /api/share/generate-card | Carte partageable PNG |
+| POST | /api/pdf/pro-horoscope | PDF Theme Astral Pro |
+| POST | /api/pdf/generate | PDF alternatif |
+| POST | /api/pdf/preview | Apercu PDF |
+| POST | /api/tarot/oui-non | Tirage Oui/Non |
+| GET | /api/moon-phase | Phase lunaire actuelle |
+| GET | /api/daily/{sign} | Guidance du jour + lune |
+| POST | /api/discount/validate | Validation code promo |
 
-### P1 - En attente
-- [ ] Integration SendGrid (capture emails des inscriptions Tarot)
-- [ ] Upsell Tarot approfondi (29 EUR) - utiliserait tarot_predictions API (bloque par plan)
+## Backlog
+
+### P1 - Prochaines etapes
+- [ ] Integration SendGrid (emails captures Tarot + newsletter)
+- [ ] Endpoints Growth (quand user upgrade): Tarot API, Synastry, Zodiac Compatibility, Natal Interpretations
+- [ ] Upsell Tarot approfondi (29 EUR)
 - [ ] Upsell "Lecture Clarte" Astrologie (49 EUR)
 
-### P2 - Futur
-- [ ] Cartographie annuelle Premium (199 EUR) - utiliserait solar_return API (bloque par plan)
-- [ ] Abonnement Stripe 14,99 EUR/mois
-- [ ] Tableau de bord admin (suivi ventes/KPI)
+### P2
+- [ ] Cartographie annuelle Premium (199 EUR) - Solar Return API
+- [ ] Abonnement Stripe 14,99 EUR/mois - Transit API
+- [ ] Tableau de bord admin
 
-### P3 - Nice to have
-- [ ] Print-on-Demand automatise
-- [ ] Emails automatiques J+5
-- [ ] React Context pour centraliser l'etat frontend
-- [ ] Renouvellement auto certificat SSL
-- [ ] Script de deploiement automatise (deploy.sh)
+### P3
+- [ ] Print-on-Demand, emails automatiques, React Context, deploy.sh
 
-## Notes sur l'API AstrologyAPI
-- Plan actuel limite a: planets/tropical, western_horoscope, natal_wheel_chart, house_cusps, moon_phase_report, geo_details
-- Endpoints bloques: tarot_predictions, yes_no_tarot, daily horoscope, sign reports, numerology, solar return, transits, compatibility reports, chart interpretation
-- Upgrade du plan necessaire pour debloquer les endpoints avances
+## Notes API AstrologyAPI
+- Plan Starter actuel: planets, western_horoscope, natal_wheel_chart, house_cusps, moon_phase, geo_details
+- Plan Growth (99$/mois recommande): +Tarot, Synastry, Compatibility, Natal Interpretations, Numerology avancee
+- Plan Business (199$/mois): +Daily/Monthly Horoscope, Solar Return, Transits
