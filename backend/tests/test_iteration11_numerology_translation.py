@@ -202,29 +202,8 @@ class TestRegressionEndpoints:
         print(f"Daily horoscope for Aries OK - keys: {list(data.keys())}")
 
 
-class TestHomepageRegression:
-    """Verify homepage CTAs still exist"""
-    
-    def test_homepage_has_tarot_cta(self):
-        """Verify homepage has cta-tarot-entry"""
-        response = requests.get(f"{BASE_URL}")
-        assert response.status_code == 200
-        assert "cta-tarot-entry" in response.text, "Missing cta-tarot-entry on homepage"
-        print("Homepage has cta-tarot-entry")
-    
-    def test_homepage_has_astrology_cta(self):
-        """Verify homepage has cta-astrology-entry"""
-        response = requests.get(f"{BASE_URL}")
-        assert response.status_code == 200
-        assert "cta-astrology-entry" in response.text, "Missing cta-astrology-entry on homepage"
-        print("Homepage has cta-astrology-entry")
-    
-    def test_homepage_has_numerologie_card(self):
-        """Verify homepage has cta-numerologie card"""
-        response = requests.get(f"{BASE_URL}")
-        assert response.status_code == 200
-        assert "cta-numerologie" in response.text, "Missing cta-numerologie on homepage"
-        print("Homepage has cta-numerologie card")
+# Homepage regression tests moved to Playwright frontend testing
+# React SPA pages cannot be tested via HTTP GET of raw HTML
 
 
 if __name__ == "__main__":
