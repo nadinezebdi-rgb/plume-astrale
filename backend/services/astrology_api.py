@@ -125,6 +125,31 @@ class AstrologyAPIService:
         data = self._parse_birth_data(date_str, time_str, lat, lon, timezone)
         return await self._make_request("house_cusps/tropical", data)
     
+    async def get_numerological_numbers(self, date_str: str, time_str: str, name: str = "", lat: float = 48.8566, lon: float = 2.3522, timezone: float = 1.0) -> Optional[Dict]:
+        """Get all numerological numbers (lifepath, expression, soul urge, etc.)"""
+        data = self._parse_birth_data(date_str, time_str, lat, lon, timezone)
+        if name:
+            data['name'] = name
+        return await self._make_request("numero_table", data)
+    
+    async def get_natal_chart_interpretation(self, date_str: str, time_str: str, lat: float = 48.8566, lon: float = 2.3522, timezone: float = 1.0) -> Optional[Dict]:
+        """Get natal chart interpretation text"""
+        data = self._parse_birth_data(date_str, time_str, lat, lon, timezone)
+        return await self._make_request("natal_chart_interpretation", data)
+    
+    async def get_zodiac_compatibility(self, sign1: str, sign2: str) -> Optional[Dict]:
+        """Get zodiac compatibility between two signs"""
+        data = {"zodiac1": sign1, "zodiac2": sign2}
+        return await self._make_request("zodiac_compatibility", data)
+    
+    async def get_tarot_predictions(self) -> Optional[Dict]:
+        """Get tarot card predictions (Growth plan)"""
+        return await self._make_request("tarot_predictions", {})
+    
+    async def get_yes_no_tarot(self) -> Optional[Dict]:
+        """Get yes/no tarot reading (Growth plan)"""
+        return await self._make_request("yes_no_tarot", {})
+    
     @staticmethod
     def get_zodiac_sign_from_date(date_str: str) -> str:
         """Calculate zodiac sign from birth date"""
