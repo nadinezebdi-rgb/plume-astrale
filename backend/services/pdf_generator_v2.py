@@ -758,7 +758,7 @@ class ManuscritCompletGenerator:
 
         # Position info box
         retro_txt = " - Retrograde" if is_retro else ""
-        y = self._draw_info_box(c, f"{sym} {pfr} en {sign_fr} - Maison {house}{retro_txt}")
+        y = self._draw_info_box(c, f"{sym} {pfr} en {sign_fr} - Maison {house}{retro_txt}", y)
 
         # Sign-specific interpretation
         en_signe_map = PLANET_EN_SIGNE_MAP.get(planet_name, {})
