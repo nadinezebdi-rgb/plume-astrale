@@ -781,12 +781,23 @@ async def get_daily_horoscope(zodiac_sign: str):
                 "Balsamic Moon": "Lune Balsamique",
                 "Waning Crescent": "Dernier Croissant",
             }
+            moon_conseils_fr = {
+                "New Moon": "C'est le moment ideal pour planter de nouvelles intentions et commencer de nouveaux projets. Prenez le temps de vous recentrer sur vos desirs profonds.",
+                "Waxing Crescent": "L'energie de croissance commence a se manifester. Nourrissez vos projets avec determination et patience. Les premiers signes de progres apparaissent.",
+                "First Quarter": "Un tournant se presente. Des decisions importantes doivent etre prises. Agissez avec courage et faites confiance a votre elan interieur.",
+                "Gibbous Moon": "Restez concentre(e) et determine(e) dans la poursuite de vos objectifs. Votre esprit analytique est a son apogee. Peaufinez vos projets avec passion et precision.",
+                "Full Moon": "La lumiere de la Pleine Lune eclaire tout ce qui etait cache. C'est un moment de revelation, de culmination et de gratitude. Celebrez vos reussites.",
+                "Disseminating Moon": "Partagez votre sagesse et vos realisations avec les autres. C'est le moment de transmettre et d'enseigner ce que vous avez appris.",
+                "Last Quarter": "Temps de reflexion et de lacher-prise. Liberez-vous de ce qui ne vous sert plus. Faites de la place pour le nouveau cycle qui approche.",
+                "Balsamic Moon": "Phase de repos et d'introspection profonde. Ecoutez vos reves et votre intuition. Preparez-vous en silence pour le renouveau imminent.",
+                "Waning Crescent": "Le cycle se termine doucement. Prenez du recul, reposez-vous et laissez partir ce qui doit partir. La renaissance est proche.",
+            }
             phase = moon_data.get('moon_phase', '')
             content['phase_lunaire'] = {
                 'phase': moon_phases_fr.get(phase, phase),
                 'phase_en': phase,
                 'signification': moon_data.get('significance', ''),
-                'conseil': moon_data.get('report', ''),
+                'conseil': moon_conseils_fr.get(phase, moon_data.get('report', '')),
                 'date': moon_data.get('considered_date', '')
             }
     except Exception as e:
