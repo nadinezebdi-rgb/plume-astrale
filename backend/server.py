@@ -824,9 +824,21 @@ async def generate_pdf_preview(request: Request):
             date_naissance = user_data.get('dateNaissance', '1990-01-01')
             heure_naissance = user_data.get('heureNaissance', '12:00')
             
+            lat, lon, tz = 48.8566, 2.3522, 1.0
+            if user_data.get('ville'):
+                geo_data = await astrology_service.get_geo_details(user_data['ville'])
+                if geo_data and len(geo_data) > 0:
+                    place = geo_data[0]
+                    lat = float(place.get('latitude', lat))
+                    lon = float(place.get('longitude', lon))
+            
             planets_data = await astrology_service.get_planets_tropical(
                 date_str=date_naissance, time_str=heure_naissance,
-                lat=48.8566, lon=2.3522, timezone=1.0
+                lat=lat, lon=lon, timezone=tz
+            )
+            horoscope_data = await astrology_service.get_western_horoscope(
+                date_str=date_naissance, time_str=heure_naissance,
+                lat=lat, lon=lon, timezone=tz
             )
         except Exception as e:
             logger.error(f"Error fetching astrology data for preview: {e}")
