@@ -1,6 +1,6 @@
 # Plume Astrale - PRD
 
-## Date: 26 Fevrier 2026
+## Date: 28 Fevrier 2026
 
 ## Produit
 Plateforme esoterique complete proposant des analyses astrologiques, numerologiques et de tarologie personnalisees.
@@ -8,7 +8,7 @@ Plateforme esoterique complete proposant des analyses astrologiques, numerologiq
 ## Produits & Prix
 | Produit | Prix | Description |
 |---------|------|-------------|
-| Theme Astral Pro | 29,90 EUR | PDF francais avec design Plume Astrale |
+| Theme Astral Pro | 29,90 EUR | PDF francais enrichi 28+ pages avec design Plume Astrale |
 | Compatibilite Amoureuse | 29,90 EUR | Rapport de compatibilite via AstrologyAPI |
 | Chemin d'Ame | 24,90 EUR | Manuscrit personnalise avec illustrations |
 | Tarologie & Mediumnite | 35,00 EUR | Tirage en Croix 5 cartes + interpretations |
@@ -20,10 +20,24 @@ Plateforme esoterique complete proposant des analyses astrologiques, numerologiq
 
 ## Deploiement
 - **VPS Hostinger** : KVM 1, Ubuntu 24.04, IP 187.124.9.214
-- **Domaine** : plume-astrale.fr (DNS A record → VPS)
+- **Domaine** : plume-astrale.fr (DNS A record -> VPS)
 - **SSL** : Let's Encrypt, expire le 27 mai 2026
 - **Stack** : Docker Compose (MongoDB + Backend + Frontend + Nginx)
 - **Github** : https://github.com/nadinezebdi-rgb/plume-astrale
+
+## Completed - 28 Fev 2026
+- [x] **ENRICHISSEMENT MASSIF du PDF Theme Astral Pro (V3 -> V4)**
+  - Carte du ciel calculee avec positions reelles des planetes
+  - Section Equilibre Elementaire (Feu/Terre/Air/Eau + Modalites)
+  - Pages individuelles pour Mercure, Venus, Mars avec interpretations par signe
+  - Page combinee Jupiter & Saturne avec interpretations detaillees
+  - Section Planetes Retrogrades avec explications personnalisees
+  - Section Aspects Planetaires (harmonieux + defis de croissance)
+  - Maisons Astrologiques personnalisees (planetes dans chaque maison)
+  - Section Chiron, Lilith Noire & Noeud Nord (guerison/ombre/destinee)
+  - Contenu etendu: 60+ descriptions planete-en-signe, aspects, retrogrades
+  - Utilisation complete des donnees API (horoscope_data: aspects, maisons, Chiron, Lilith, Node)
+  - 28 pages au total (contre ~20 auparavant)
 
 ## Completed - 26 Fev 2026
 - [x] Tirage en Croix (5 cartes) avec interpretations detaillees
@@ -33,7 +47,7 @@ Plateforme esoterique complete proposant des analyses astrologiques, numerologiq
 - [x] Badge "Made with Emergent" retire
 - [x] Deploiement VPS Hostinger avec Docker Compose
 - [x] SSL Let's Encrypt active (HTTPS)
-- [x] DNS plume-astrale.fr → 187.124.9.214
+- [x] DNS plume-astrale.fr -> 187.124.9.214
 
 ## Completed - 25 Fev 2026
 - [x] Integration illustrations zodiacales dans PDF
@@ -45,11 +59,24 @@ Plateforme esoterique complete proposant des analyses astrologiques, numerologiq
 - [x] Pages: /quotidien, /tarot-oui-non, /tarologie, /compatibilite
 - [x] Apercu visuel du PDF avant achat
 
-## Backlog
-- [ ] (P1) Abonnement Stripe 14,99 EUR/mois pour contenu quotidien
-- [ ] (P1) Tableau de bord admin (suivi ventes)
-- [ ] (P2) Print-on-Demand automatise
-- [ ] (P2) Emails automatiques J+5
-- [ ] (P2) Section d'aide Notion
-- [ ] (P3) React Context pour centraliser l'etat frontend
-- [ ] (P3) Renouvellement automatique certificat SSL (cron certbot)
+## Backlog (Nouvelle Strategie)
+### P0
+- [ ] Refonte page d'accueil : 2 boutons (Tarot / Astrologie)
+- [ ] Flux Tarot Oui/Non : 3 tirages gratuits + capture donnees natales au 4eme
+
+### P1
+- [ ] Integration SendGrid (capture emails)
+- [ ] Upsell Tarot approfondi (29 EUR)
+- [ ] Upsell "Lecture Clarte" Astrologie (49 EUR)
+
+### P2
+- [ ] Cartographie annuelle Premium (199 EUR)
+- [ ] Abonnement Stripe 14,99 EUR/mois
+- [ ] Tableau de bord admin (suivi ventes)
+
+### P3
+- [ ] Print-on-Demand automatise
+- [ ] Emails automatiques J+5
+- [ ] React Context pour centraliser l'etat frontend
+- [ ] Renouvellement auto certificat SSL
+- [ ] Script de deploiement automatise (deploy.sh)
