@@ -107,6 +107,24 @@ class AstrologyAPIService:
             return result["geonames"]
         return None
     
+    async def get_natal_wheel_chart(self, date_str: str, time_str: str, lat: float = 48.8566, lon: float = 2.3522, timezone: float = 1.0) -> Optional[str]:
+        """Get natal wheel chart SVG URL from the API"""
+        data = self._parse_birth_data(date_str, time_str, lat, lon, timezone)
+        result = await self._make_request("natal_wheel_chart", data)
+        if result and result.get('status') and result.get('chart_url'):
+            return result['chart_url']
+        return None
+    
+    async def get_moon_phase_report(self) -> Optional[Dict]:
+        """Get current moon phase report"""
+        data = {}
+        return await self._make_request("moon_phase_report", data)
+    
+    async def get_house_cusps_tropical(self, date_str: str, time_str: str, lat: float = 48.8566, lon: float = 2.3522, timezone: float = 1.0) -> Optional[Dict]:
+        """Get detailed house cusps"""
+        data = self._parse_birth_data(date_str, time_str, lat, lon, timezone)
+        return await self._make_request("house_cusps/tropical", data)
+    
     @staticmethod
     def get_zodiac_sign_from_date(date_str: str) -> str:
         """Calculate zodiac sign from birth date"""
