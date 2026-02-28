@@ -496,6 +496,8 @@ class ManuscritCompletGenerator:
             y = self._draw_centered_block(c, intro, y, font_size=10, color=LIGHT_TEXT)
             all_planets = self._get_all_planets(planets_data, horoscope_data)
             y = self._draw_natal_chart(c, y, all_planets, zodiac_sign)
+        else:
+            all_planets = self._get_all_planets(planets_data, horoscope_data)
 
         # Planet positions summary table
         self._new_page(c)
