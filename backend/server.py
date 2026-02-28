@@ -593,6 +593,7 @@ async def generate_pdf(request: PDFRequest):
         # Get astrology data if possible
         planets_data = None
         horoscope_data = None
+        chart_svg_url = None
         
         if user_data.get('dateNaissance') and user_data.get('heureNaissance'):
             try:
