@@ -617,11 +617,17 @@ async def generate_pdf(request: PDFRequest):
                     user_data['heureNaissance'],
                     lat, lon, tz
                 )
+                
+                chart_svg_url = await service.get_natal_wheel_chart(
+                    user_data['dateNaissance'],
+                    user_data['heureNaissance'],
+                    lat, lon, tz
+                )
             except Exception as e:
                 logger.warning(f"Could not fetch astrology data: {e}")
         
         # Generate PDF
-        pdf_bytes = generate_manuscrit_complet(user_data, planets_data, horoscope_data)
+        pdf_bytes = generate_manuscrit_complet(user_data, planets_data, horoscope_data, chart_svg_url=chart_svg_url)
         
         # Return PDF as downloadable file
         filename = f"manuscrit_plume_{user_data.get('prenom', 'celestial')}.pdf"
