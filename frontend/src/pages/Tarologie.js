@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Loader2, ArrowLeft, Sparkles, Download, Lock, Eye, Tag } from 'lucide-react';
-import StarField from '@/components/StarField/StarField';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -172,25 +171,22 @@ const Tarologie = () => {
   const getCard = (posId) => tirage?.tirage?.find(c => c.position_id === posId);
 
   return (
-    <div className="min-h-screen relative">
-      <StarField />
-      <div className="relative z-10 py-12 px-4 md:px-6">
-        <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen">
+      <div className="px-6 md:px-8 py-20 md:py-28">
+        <div className="max-w-3xl mx-auto">
           
-          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-[#C5A059]/60 hover:text-[#C5A059] mb-8 transition-colors" data-testid="back-btn">
-            <ArrowLeft className="w-4 h-4" /> Retour
+          <button onClick={() => navigate(-1)} className="link-editorial text-xs mb-12" data-testid="back-btn">
+            <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Retour
           </button>
 
           {/* Header */}
-          <div className="text-center mb-10">
-            <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-3 font-light">
-              Lecture Sacree
-            </p>
-            <h1 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+          <div className="mb-12">
+            <p className="section-label">Lecture sacree</p>
+            <h1 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
               Tarologie & Mediumnite
             </h1>
-            <p className="text-[#E0D9F6]/60 font-light max-w-lg mx-auto">
-              Un tirage en croix de 5 Arcanes Majeurs avec interpretations profondes et lecture mediumnique
+            <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
+              Un tirage en croix de 5 Arcanes Majeurs avec interpretations profondes
             </p>
           </div>
 
