@@ -19,14 +19,14 @@ const CrossCard = ({ item, index, isLocked, onPurchase }) => {
   return (
     <div className={`relative group ${isLocked ? 'overflow-hidden' : ''}`} data-testid={`carte-croix-${item.position_id}`}>
       {isLocked && (
-        <div className="absolute inset-0 bg-[#0B0B0F]/85 backdrop-blur-sm z-10 flex items-center justify-center rounded-2xl">
+        <div className="absolute inset-0 bg-[#0B0B0F]/85 backdrop-blur-sm z-10 flex items-center justify-center rounded-sm">
           <div className="text-center">
             <Lock className="w-6 h-6 text-[#C4A882]/50 mx-auto mb-1" />
             <p className="text-[#C4A882]/70 text-xs">Verrouille</p>
           </div>
         </div>
       )}
-      <div className="bg-[#141418]/80 border border-[#C4A882]/20 rounded-2xl p-3 hover:border-[#C4A882]/50 transition-all duration-300">
+      <div className="bg-[#141418]/80 border border-[#C4A882]/20 rounded-sm p-3 hover:border-[#C4A882]/50 transition-all duration-300">
         {/* Position number badge */}
         <div className="flex items-center gap-2 mb-2">
           <span className="w-6 h-6 rounded-full bg-[#C4A882]/20 border border-[#C4A882]/40 flex items-center justify-center text-[#C4A882] text-xs font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
@@ -191,7 +191,7 @@ const Tarologie = () => {
           </div>
 
           {/* What's included */}
-          <div className="bg-[#141418]/60 border border-[#C4A882]/20 rounded-2xl p-6 mb-8" data-testid="offer-details">
+          <div className="bg-[rgba(255,255,255,0.02)] border border-[#C4A882]/20 rounded-sm p-6 mb-8" data-testid="offer-details">
             <h3 className="text-[#C4A882] text-sm uppercase tracking-widest mb-4">Ce qui est inclus</h3>
             <div className="grid md:grid-cols-2 gap-3">
               {[
@@ -215,7 +215,7 @@ const Tarologie = () => {
           </div>
 
           {/* Form */}
-          <div className="bg-[#141418]/60 border border-[#C4A882]/20 rounded-2xl p-6 mb-8" data-testid="tarologie-form">
+          <div className="bg-[rgba(255,255,255,0.02)] border border-[#C4A882]/20 rounded-sm p-6 mb-8" data-testid="tarologie-form">
             <h3 className="text-[#E8E4DD] mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Vos Informations</h3>
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div>
@@ -225,7 +225,7 @@ const Tarologie = () => {
                   value={prenom}
                   onChange={(e) => setPrenom(e.target.value)}
                   placeholder="Votre prenom"
-                  className="w-full px-4 py-3 bg-[#0B0B0F] border border-[#C4A882]/30 rounded-xl text-[#A9A5A0] placeholder:text-[#A9A5A0]/30 focus:outline-none focus:border-[#C4A882] transition-colors"
+                  className="w-full px-4 py-3 bg-[#0B0B0F] border border-[#C4A882]/30 rounded-sm text-[#A9A5A0] placeholder:text-[#A9A5A0]/30 focus:outline-none focus:border-[#C4A882] transition-colors"
                   data-testid="prenom-input"
                 />
               </div>
@@ -235,7 +235,7 @@ const Tarologie = () => {
                   type="date"
                   value={dateNaissance}
                   onChange={(e) => setDateNaissance(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#0B0B0F] border border-[#C4A882]/30 rounded-xl text-[#A9A5A0] focus:outline-none focus:border-[#C4A882] transition-colors"
+                  className="w-full px-4 py-3 bg-[#0B0B0F] border border-[#C4A882]/30 rounded-sm text-[#A9A5A0] focus:outline-none focus:border-[#C4A882] transition-colors"
                   data-testid="date-input"
                 />
               </div>
@@ -336,7 +336,7 @@ const Tarologie = () => {
 
               {/* Interpretation for Centre (always visible) */}
               {getCard('centre') && (
-                <div className="bg-[#141418]/80 border border-[#C4A882]/30 rounded-2xl p-6" data-testid="interpretation-centre">
+                <div className="bg-[#141418]/80 border border-[#C4A882]/30 rounded-sm p-6" data-testid="interpretation-centre">
                   <div className="flex items-center gap-3 mb-4">
                     <span className="w-8 h-8 rounded-full bg-[#C4A882]/20 border border-[#C4A882] flex items-center justify-center text-[#C4A882] font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>1</span>
                     <div>
@@ -351,7 +351,7 @@ const Tarologie = () => {
 
               {/* Interpretations for other cards (locked unless paid) */}
               {!hasPaid && (
-                <div className="bg-[#141418]/80 border border-[#C4A882]/20 rounded-2xl p-6 relative overflow-hidden" data-testid="interpretations-locked">
+                <div className="bg-[#141418]/80 border border-[#C4A882]/20 rounded-sm p-6 relative overflow-hidden" data-testid="interpretations-locked">
                   <div className="absolute inset-0 bg-[#0B0B0F]/80 backdrop-blur-sm z-10 flex items-center justify-center">
                     <div className="text-center px-6">
                       <Lock className="w-10 h-10 text-[#C4A882] mx-auto mb-3" />
@@ -393,7 +393,7 @@ const Tarologie = () => {
                     if (!card) return null;
                     const posInfo = POSITION_LABELS[posId];
                     return (
-                      <div key={posId} className="bg-[#141418]/80 border border-[#C4A882]/20 rounded-2xl p-6" data-testid={`interpretation-${posId}`}>
+                      <div key={posId} className="bg-[#141418]/80 border border-[#C4A882]/20 rounded-sm p-6" data-testid={`interpretation-${posId}`}>
                         <div className="flex items-center gap-3 mb-4">
                           <span className="w-8 h-8 rounded-full bg-[#C4A882]/20 border border-[#C4A882] flex items-center justify-center text-[#C4A882] font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{posInfo.icon}</span>
                           <div>
@@ -411,7 +411,7 @@ const Tarologie = () => {
 
               {/* Lecture mediumnique - locked */}
               {!hasPaid && tirage.lecture_mediumnique && (
-                <div className="bg-[#141418]/80 border border-[#C4A882]/20 rounded-2xl p-6 relative overflow-hidden" data-testid="lecture-locked">
+                <div className="bg-[#141418]/80 border border-[#C4A882]/20 rounded-sm p-6 relative overflow-hidden" data-testid="lecture-locked">
                   <div className="absolute inset-0 bg-[#0B0B0F]/80 backdrop-blur-sm z-10 flex items-center justify-center">
                     <div className="text-center px-6">
                       <Lock className="w-8 h-8 text-[#C4A882]/50 mx-auto mb-2" />
@@ -430,7 +430,7 @@ const Tarologie = () => {
 
               {/* Full lecture if paid */}
               {hasPaid && tirage.lecture_mediumnique && (
-                <div className="bg-[#141418]/80 border border-[#C4A882]/20 rounded-2xl p-6" data-testid="lecture-full">
+                <div className="bg-[#141418]/80 border border-[#C4A882]/20 rounded-sm p-6" data-testid="lecture-full">
                   <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
                     Lecture Mediumnique
                   </h3>

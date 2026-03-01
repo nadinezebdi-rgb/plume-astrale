@@ -478,7 +478,7 @@ const Resultats = () => {
             </div>
 
             {/* Share Section */}
-            <div className="mt-6 p-5 rounded-xl bg-gradient-to-r from-[#1A1A20]/60 to-[#141418]/60 border border-[#C4A882]/20">
+            <div className="mt-6 p-5 rounded-sm bg-gradient-to-r from-[#1A1A20]/60 to-[#141418]/60 border border-[#C4A882]/20">
               <div className="text-center">
                 <p className="text-[#E8E4DD] font-medium mb-1" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                   Partagez votre profil astral
@@ -521,7 +521,7 @@ const Resultats = () => {
             </div>
             
             {/* Book promotion */}
-            <div className="mt-8 p-4 rounded-xl bg-gradient-to-r from-[#C4A882]/10 to-transparent border border-[#C4A882]/30">
+            <div className="mt-8 p-4 rounded-sm bg-gradient-to-r from-[#C4A882]/10 to-transparent border border-[#C4A882]/30">
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <div className="flex items-center gap-3">
                   <Gift className="w-8 h-8 text-[#C4A882]" />
@@ -606,7 +606,7 @@ const Resultats = () => {
                     )}
                   </p>
                   {sunPlanet && (
-                    <div className="bg-[#141418]/50 rounded-xl p-4 border border-[#C4A882]/10">
+                    <div className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
                       <p className="text-[#C4A882] text-sm mb-2">Caractéristiques du Soleil en {getSigneFrancais(sunPlanet.sign)}</p>
                       <p className="text-[#A9A5A0]/60 font-light text-sm">
                         Élément {getElementFromSign(getSigneFrancais(sunPlanet.sign))} • 
@@ -694,7 +694,7 @@ const Resultats = () => {
                       ascendantInfo.description
                     )}
                   </p>
-                  <div className="bg-[#141418]/50 rounded-xl p-4 border border-[#C4A882]/10">
+                  <div className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
                     <p className="text-[#C4A882] text-sm mb-2">Traits dominants</p>
                     <p className="text-[#A9A5A0]/60 font-light">{ascendantInfo.traits}</p>
                   </div>
@@ -708,7 +708,7 @@ const Resultats = () => {
                     </h3>
                     <div className="grid md:grid-cols-2 gap-4">
                       {planetsData.filter(p => !['Sun', 'Moon', 'Ascendant'].includes(p.name)).slice(0, 6).map((planet, index) => (
-                        <div key={index} className="bg-[#141418]/50 rounded-xl p-4 border border-[#C4A882]/10">
+                        <div key={index} className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
                           <div className="flex justify-between items-start">
                             <div>
                               <p className="text-[#E8E4DD]">{planet.name}</p>
@@ -764,7 +764,7 @@ const Resultats = () => {
                       <p className="text-[#A9A5A0]/80 font-light leading-relaxed">{cheminVieInfo.mission}</p>
                     </div>
                     
-                    <div className="bg-[#C4A882]/10 rounded-xl p-6 border border-[#C4A882]/20">
+                    <div className="bg-[#C4A882]/10 rounded-sm p-6 border border-[#C4A882]/20">
                       <h3 className="text-[#E8E4DD] mb-3">Conseils d'Évolution</h3>
                       <p className="text-[#A9A5A0]/80 font-light leading-relaxed">{cheminVieInfo.conseils}</p>
                     </div>
@@ -790,11 +790,11 @@ const Resultats = () => {
                   </p>
                   
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-[#141418]/50 rounded-xl p-4 border border-[#C4A882]/10">
+                    <div className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
                       <p className="text-[#C4A882] text-sm mb-2">Périodes favorables</p>
                       <p className="text-[#A9A5A0]/60 font-light text-sm">Mars-Mai et Septembre-Novembre</p>
                     </div>
-                    <div className="bg-[#141418]/50 rounded-xl p-4 border border-[#C4A882]/10">
+                    <div className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
                       <p className="text-[#C4A882] text-sm mb-2">Points d'attention</p>
                       <p className="text-[#A9A5A0]/60 font-light text-sm">Évitez les décisions impulsives en juin-juillet</p>
                     </div>
@@ -868,7 +868,7 @@ const Resultats = () => {
                   
                   <div className="space-y-6">
                     {aspectsPlanetaires.map((aspect, index) => (
-                      <div key={index} className="bg-[#141418]/50 rounded-xl p-6 border border-[#C4A882]/10">
+                      <div key={index} className="bg-[#141418]/50 rounded-sm p-6 border border-[#C4A882]/10">
                         <div className="flex items-center gap-3 mb-3">
                           <span className={`px-3 py-1 rounded-full text-xs ${
                             aspect.aspect === 'Trigone' ? 'bg-emerald-500/20 text-emerald-400' :
@@ -908,7 +908,7 @@ const Resultats = () => {
                     et créative destinée à construire et à inspirer.
                   </p>
                   
-                  <div className="bg-[#C4A882]/10 rounded-xl p-6 border border-[#C4A882]/20 mb-8">
+                  <div className="bg-[#C4A882]/10 rounded-sm p-6 border border-[#C4A882]/20 mb-8">
                     <p className="text-[#E8E4DD] text-center italic" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                       "Que les étoiles vous guident, que la Plume vous éclaire, 
                       et que votre destinée se révèle dans toute sa splendeur."

@@ -230,17 +230,17 @@ const Compatibilite = () => {
 
                   {/* Detailed Analysis */}
                   <div className="grid md:grid-cols-3 gap-4 text-left">
-                    <div className="bg-[#141418]/50 rounded-xl p-4 border border-[#C4A882]/10">
+                    <div className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
                       <Flame className="w-5 h-5 text-red-400 mb-2" />
                       <p className="text-[#E8E4DD] text-sm mb-1">Passion</p>
                       <p className="text-[#A9A5A0]/50 text-xs">Intensité émotionnelle forte. Attention aux tempêtes.</p>
                     </div>
-                    <div className="bg-[#141418]/50 rounded-xl p-4 border border-[#C4A882]/10">
+                    <div className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
                       <Heart className="w-5 h-5 text-pink-400 mb-2" />
                       <p className="text-[#E8E4DD] text-sm mb-1">Affection</p>
                       <p className="text-[#A9A5A0]/50 text-xs">Tendresse naturelle. Communication du cœur fluide.</p>
                     </div>
-                    <div className="bg-[#141418]/50 rounded-xl p-4 border border-[#C4A882]/10">
+                    <div className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
                       <Star className="w-5 h-5 text-[#C4A882] mb-2" />
                       <p className="text-[#E8E4DD] text-sm mb-1">Durabilité</p>
                       <p className="text-[#A9A5A0]/50 text-xs">Fondations solides si respect mutuel maintenu.</p>
