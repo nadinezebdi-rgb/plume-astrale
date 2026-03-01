@@ -133,6 +133,7 @@ const Choix = () => {
           <span>Satisfait ou rembourse 30j</span>
         </div>
       </div>
+      </div>
     </div>
   );
 };
