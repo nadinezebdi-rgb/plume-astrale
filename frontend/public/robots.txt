@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /paiement/succes
+Disallow: /commande/succes
+Disallow: /resultats
+Disallow: /apercu
+Disallow: /choix
+
+Sitemap: https://plume-astrale.fr/sitemap.xml
