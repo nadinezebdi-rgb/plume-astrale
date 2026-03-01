@@ -127,6 +127,7 @@ class TestDiscountCodes:
             json={
                 "product_id": "tarologie_mediumnite",
                 "discount_code": "PLUME2026",
+                "origin_url": "https://plume-tarot-test.preview.emergentagent.com",
                 "user_data": {"prenom": "Test", "dateNaissance": "1990-01-01"}
             }
         )
@@ -171,18 +172,22 @@ class TestProducts:
     """Test product listing endpoint"""
     
     def test_products_list(self):
-        """Test products endpoint returns product list"""
+        """Test products endpoint returns product dict"""
         response = requests.get(f"{BASE_URL}/api/products")
         assert response.status_code == 200
         data = response.json()
         
-        assert isinstance(data, list)
+        # Products endpoint returns a dictionary keyed by product_id
+        assert isinstance(data, dict)
         assert len(data) > 0
         
-        # Verify product structure
-        for product in data:
-            assert "id" in product
+        # Verify expected products exist
+        expected_products = ["manuscrit", "tarologie_mediumnite", "livre", "compatibilite"]
+        for product_id in expected_products:
+            assert product_id in data, f"Missing product: {product_id}"
+            product = data[product_id]
             assert "name" in product
+            assert "amount" in product
         
         print(f"SUCCESS: Products endpoint returned {len(data)} products")
 
