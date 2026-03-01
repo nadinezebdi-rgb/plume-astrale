@@ -1,113 +1,105 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, Menu, X, Star, Moon, Heart, Sun, Eye, BookOpen, Hash } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
-  const [plan, setPlan] = useState(null);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
     const paid = localStorage.getItem('plume_astrale_paid');
-    const userPlan = localStorage.getItem('plume_astrale_plan');
     setIsPaid(paid === 'true');
-    setPlan(userPlan);
   }, [location]);
 
-  const publicLinks = [
-    { to: '/', label: 'Accueil', icon: <Sparkles className="w-4 h-4" strokeWidth={1} /> },
-    { to: '/compatibilite-amoureuse', label: 'Compatibilite', icon: <Heart className="w-4 h-4" strokeWidth={1} />, highlight: true },
-    { to: '/quotidien', label: 'Guidance du Jour', icon: <Sun className="w-4 h-4" strokeWidth={1} /> },
-    { to: '/tarot-oui-non', label: 'Tarot Oui/Non', icon: <Eye className="w-4 h-4" strokeWidth={1} /> },
-    { to: '/numerologie', label: 'Numerologie', icon: <Hash className="w-4 h-4" strokeWidth={1} /> },
-    { to: '/tarologie', label: 'Tarologie', icon: <BookOpen className="w-4 h-4" strokeWidth={1} /> },
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const links = [
+    { to: '/tarot-oui-non', label: 'Tirage' },
+    { to: '/formulaire', label: 'Theme Astral' },
+    { to: '/numerologie', label: 'Numerologie' },
+    { to: '/quotidien', label: 'Guidance' },
+    { to: '/tarologie', label: 'Tarologie' },
+    { to: '/compatibilite-amoureuse', label: 'Compatibilite' },
   ];
 
-  const premiumLinks = [
-    { to: '/resultats', label: 'Mon Manuscrit', icon: <Star className="w-4 h-4" strokeWidth={1} /> },
-    { to: '/horoscope', label: 'Horoscope', icon: <Moon className="w-4 h-4" strokeWidth={1} /> },
-    { to: '/tarot', label: 'Tarot Avance', icon: <Moon className="w-4 h-4" strokeWidth={1} />, premium: true },
-    { to: '/compatibilite', label: 'Compatibilite', icon: <Heart className="w-4 h-4" strokeWidth={1} />, premium: true }
-  ];
-
-  const links = isPaid ? [...publicLinks, ...premiumLinks] : publicLinks;
-
-  // Ne pas afficher la navbar sur certaines pages
-  const hideNavbarPaths = ['/', '/formulaire', '/apercu', '/choix', '/paiement'];
-  if (hideNavbarPaths.includes(location.pathname)) {
-    return null;
+  if (isPaid) {
+    links.push({ to: '/resultats', label: 'Mon Manuscrit' });
   }
 
+  // Hide on homepage
+  if (location.pathname === '/') return null;
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0F0518]/90 backdrop-blur-lg border-b border-[#C5A059]/10">
-      <div className="max-w-6xl mx-auto px-4">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrolled ? 'bg-[#0B0B0F]/95 backdrop-blur-md' : 'bg-transparent'
+      }`}
+      data-testid="navbar"
+    >
+      <div className="max-w-6xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-[#C5A059]" strokeWidth={1} />
-            <span className="text-lg" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-              Plume Astrale
-            </span>
+          <Link
+            to="/"
+            className="text-base tracking-widest transition-colors duration-300 hover:opacity-70"
+            style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400, letterSpacing: '0.15em' }}
+          >
+            Plume Astrale
           </Link>
 
-          {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-6">
+          {/* Desktop */}
+          <div className="hidden md:flex items-center gap-8">
             {links.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`flex items-center gap-2 text-sm transition-colors ${
-                  link.highlight
-                    ? 'px-3 py-1.5 rounded-full border border-[#C5A059] text-[#C5A059] hover:bg-[#C5A059]/10 font-medium'
-                    : location.pathname === link.to
-                      ? 'text-[#C5A059]'
-                      : 'text-[#E0D9F6]/70 hover:text-[#C5A059]'
+                className={`text-xs tracking-widest uppercase transition-colors duration-300 ${
+                  location.pathname === link.to
+                    ? 'text-[#C4A882]'
+                    : 'text-[#A9A5A0]/70 hover:text-[#C4A882]'
                 }`}
+                style={{ letterSpacing: '0.12em' }}
               >
-                {link.icon}
-                <span>{link.label}</span>
-                {link.premium && plan !== 'premium' && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#C5A059]/20 text-[#C5A059]">
-                    Premium
-                  </span>
-                )}
+                {link.label}
               </Link>
             ))}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile toggle */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-[#E0D9F6]/70 hover:text-[#C5A059]"
+            className="md:hidden text-[#A9A5A0] hover:text-[#C4A882] transition-colors"
+            data-testid="mobile-menu-toggle"
           >
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isOpen ? <X className="w-5 h-5" strokeWidth={1.5} /> : <Menu className="w-5 h-5" strokeWidth={1.5} />}
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile menu */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t border-[#C5A059]/10">
-            {links.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 py-3 px-2 rounded-lg transition-colors ${
-                  location.pathname === link.to
-                    ? 'text-[#C5A059] bg-[#C5A059]/10'
-                    : 'text-[#E0D9F6]/70 hover:text-[#C5A059]'
-                }`}
-              >
-                {link.icon}
-                <span>{link.label}</span>
-                {link.premium && plan !== 'premium' && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#C5A059]/20 text-[#C5A059]">
-                    Premium
-                  </span>
-                )}
-              </Link>
-            ))}
+          <div className="md:hidden py-6 border-t border-[#C4A882]/10 animate-fade-in">
+            <div className="flex flex-col gap-4">
+              {links.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setIsOpen(false)}
+                  className={`text-xs tracking-widest uppercase py-2 transition-colors duration-300 ${
+                    location.pathname === link.to
+                      ? 'text-[#C4A882]'
+                      : 'text-[#A9A5A0]/70 hover:text-[#C4A882]'
+                  }`}
+                  style={{ letterSpacing: '0.12em' }}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </div>
