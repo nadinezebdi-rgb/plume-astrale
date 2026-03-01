@@ -351,6 +351,7 @@ const Apercu = () => {
           </div>
         </div>
       </div>
+      </div>
     </div>
   );
 };
