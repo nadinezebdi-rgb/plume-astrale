@@ -49,6 +49,36 @@ const Livre = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    setPromoError('');
+    setPromoSuccess('');
+    try {
+      const res = await fetch(`${API_URL}/api/discount/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoCode }),
+      });
+      const data = await res.json();
+      if (data.valid && data.discount_percent === 100) {
+        await fetch(`${API_URL}/api/access/free`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ product_id: 'livre', discount_code: promoCode, user_data: userData }),
+        });
+        setPromoSuccess('Code valide ! Commande gratuite validee.');
+        localStorage.setItem('plume_astrale_book_order', JSON.stringify({ promo: true, code: promoCode }));
+        setTimeout(() => navigate('/commande-succes'), 1200);
+      } else {
+        setPromoError(data.message || 'Code invalide');
+      }
+    } catch (e) {
+      setPromoError('Erreur de connexion');
+    }
+    setPromoLoading(false);
+  };
+
   const handleOrder = async () => {
     if (!validateForm()) return;
     
