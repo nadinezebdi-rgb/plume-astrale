@@ -81,7 +81,9 @@ const TarotOuiNon = () => {
   // Registration form
   if (showForm && !hasRegistered) {
     return (
-      <div className="min-h-screen flex flex-col justify-center px-6 md:px-8 py-12">
+      <div className="min-h-screen relative">
+        <StarField count={50} />
+        <div className="relative z-10 flex flex-col justify-center px-6 md:px-8 py-12" style={{ minHeight: '100vh' }}>
         <div className="max-w-md mx-auto w-full">
           <button onClick={() => setShowForm(false)} className="link-editorial text-xs mb-12" data-testid="back-form-btn">
             <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Retour
