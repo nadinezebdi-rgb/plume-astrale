@@ -91,7 +91,9 @@ const Quotidien = () => {
   const signeInfo = SIGNES.find(s => s.key === selectedSign);
 
   return (
-    <div className="min-h-screen px-6 md:px-8 py-20 md:py-28">
+    <div className="min-h-screen relative">
+      <StarField count={60} />
+      <div className="relative z-10 px-6 md:px-8 py-20 md:py-28">
       <div className="max-w-2xl mx-auto">
 
         <button onClick={() => navigate('/')} className="link-editorial text-xs mb-12">

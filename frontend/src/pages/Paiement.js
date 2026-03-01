@@ -83,7 +83,9 @@ const Paiement = () => {
   const currentPlan = plans[selectedPlan];
 
   return (
-    <div className="min-h-screen px-6 md:px-8 py-20 md:py-28">
+    <div className="min-h-screen relative">
+      <StarField count={60} />
+      <div className="relative z-10 px-6 md:px-8 py-20 md:py-28">
       <div className="max-w-xl mx-auto">
 
         <button onClick={() => navigate('/choix')} className="link-editorial text-xs mb-12" data-testid="btn-back-choix">
