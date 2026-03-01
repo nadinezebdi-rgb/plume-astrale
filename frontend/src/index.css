@@ -96,8 +96,10 @@
 }
 
 @keyframes twinkle {
-  0%, 100% { opacity: 0; transform: scale(0.5); }
+  0%, 100% { opacity: 0; transform: scale(0.4); }
+  40% { opacity: var(--peak-opacity); transform: scale(1.2); }
   50% { opacity: var(--peak-opacity); transform: scale(1); }
+  60% { opacity: calc(var(--peak-opacity) * 0.8); transform: scale(1.1); }
 }
 
 /* Floating orbs */
