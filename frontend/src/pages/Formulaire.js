@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
+import StarField from '@/components/StarField/StarField';
 
 const Formulaire = () => {
   const navigate = useNavigate();
