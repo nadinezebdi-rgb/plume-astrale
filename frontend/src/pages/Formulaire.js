@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, ArrowLeft, Calendar, Clock, MapPin, Mail, User } from 'lucide-react';
-import StarField from '@/components/StarField/StarField';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 
 const Formulaire = () => {
   const navigate = useNavigate();
@@ -23,7 +22,6 @@ const Formulaire = () => {
       id: 'prenom',
       title: 'Quel est votre prenom ?',
       subtitle: 'Le nom que porte votre ame en cette vie',
-      icon: <User className="w-8 h-8" strokeWidth={1} />,
       field: 'prenom',
       type: 'text',
       placeholder: 'Votre prenom',
@@ -32,8 +30,7 @@ const Formulaire = () => {
     {
       id: 'genre',
       title: 'Quel est votre genre ?',
-      subtitle: 'Les energies masculines et feminines influencent votre theme',
-      icon: <Sparkles className="w-8 h-8" strokeWidth={1} />,
+      subtitle: 'Les energies influencent votre theme',
       field: 'genre',
       type: 'gender',
       required: true
@@ -41,8 +38,7 @@ const Formulaire = () => {
     {
       id: 'email',
       title: 'Votre adresse email',
-      subtitle: 'Pour recevoir votre manuscrit céleste',
-      icon: <Mail className="w-8 h-8" strokeWidth={1} />,
+      subtitle: 'Pour recevoir votre manuscrit',
       field: 'email',
       type: 'email',
       placeholder: 'votre@email.com',
@@ -50,27 +46,24 @@ const Formulaire = () => {
     },
     {
       id: 'date',
-      title: 'Quand êtes-vous né(e) ?',
-      subtitle: 'Le jour où les étoiles se sont alignées pour vous',
-      icon: <Calendar className="w-8 h-8" strokeWidth={1} />,
+      title: 'Quand etes-vous ne(e) ?',
+      subtitle: 'Le jour ou les etoiles se sont alignees pour vous',
       field: 'dateNaissance',
       type: 'date',
       required: true
     },
     {
       id: 'heure',
-      title: 'À quelle heure ?',
+      title: 'A quelle heure ?',
       subtitle: 'Essentiel pour calculer votre ascendant',
-      icon: <Clock className="w-8 h-8" strokeWidth={1} />,
       field: 'heureNaissance',
       type: 'time',
       required: true
     },
     {
       id: 'lieu',
-      title: 'Où êtes-vous né(e) ?',
-      subtitle: 'Le lieu de votre première respiration terrestre',
-      icon: <MapPin className="w-8 h-8" strokeWidth={1} />,
+      title: 'Ou etes-vous ne(e) ?',
+      subtitle: 'Le lieu de votre premiere respiration',
       field: 'ville',
       type: 'text',
       placeholder: 'Ville de naissance',
@@ -87,21 +80,17 @@ const Formulaire = () => {
 
   const validateStep = () => {
     const newErrors = {};
-    
     if (currentStep.required && !formData[currentStep.field]) {
       newErrors[currentStep.field] = 'Ce champ est requis';
     }
-    
     if (currentStep.field === 'email' && formData.email) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
         newErrors.email = 'Format d\'email invalide';
       }
     }
-    
     if (currentStep.extra?.required && !formData[currentStep.extra.field]) {
       newErrors[currentStep.extra.field] = 'Ce champ est requis';
     }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -117,18 +106,12 @@ const Formulaire = () => {
   };
 
   const handleBack = () => {
-    if (step > 0) {
-      setStep(step - 1);
-    }
+    if (step > 0) setStep(step - 1);
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    
-    // Simuler un délai de traitement
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Stocker les données avec validation
     const dataToStore = {
       prenom: formData.prenom || '',
       genre: formData.genre || 'female',
@@ -138,172 +121,137 @@ const Formulaire = () => {
       ville: formData.ville,
       pays: formData.pays
     };
-    
     localStorage.setItem('plume_astrale_data', JSON.stringify(dataToStore));
-    
     setIsSubmitting(false);
     navigate('/apercu');
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleNext();
-    }
+    if (e.key === 'Enter') handleNext();
   };
 
-  const progress = ((step + 1) / steps.length) * 100;
-
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-4 py-12">
-      <StarField />
-      
-      {/* Background */}
-      <div 
-        className="fixed inset-0 opacity-10"
-        style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1603669435608-eb647988e585?w=1920&auto=format&fit=crop&q=80')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      />
-      
-      <div className="relative z-10 w-full max-w-2xl">
-        {/* Progress Bar */}
-        <div className="mb-12">
-          <div className="flex justify-between items-center mb-4">
-            <button
-              onClick={handleBack}
-              className={`flex items-center gap-2 text-[#C5A059]/70 hover:text-[#C5A059] transition-colors ${step === 0 ? 'invisible' : ''}`}
-              data-testid="btn-back"
-            >
-              <ArrowLeft className="w-4 h-4" strokeWidth={1} />
-              <span className="text-sm">Retour</span>
-            </button>
-            <span className="text-[#E0D9F6]/50 text-sm">
-              {step + 1} / {steps.length}
-            </span>
-          </div>
-          <div className="h-1 bg-[#2D1B4E] rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-[#C5A059] to-[#FFD700] transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+    <div className="min-h-screen flex flex-col justify-center px-6 md:px-8 py-12">
+      <div className="max-w-lg mx-auto w-full">
+
+        {/* Progress */}
+        <div className="flex items-center justify-between mb-16">
+          <button
+            onClick={handleBack}
+            className={`link-editorial text-xs ${step === 0 ? 'invisible' : ''}`}
+            data-testid="btn-back"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} />
+            Retour
+          </button>
+          <span className="text-xs" style={{ color: 'var(--pa-muted)', letterSpacing: '0.1em' }}>
+            {step + 1} / {steps.length}
+          </span>
         </div>
-        
-        {/* Form Card */}
-        <div className="card-mystical text-center">
-          {/* Icon */}
-          <div className="text-[#C5A059] mb-8 animate-float">
-            {currentStep.icon}
-          </div>
-          
-          {/* Title */}
-          <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+
+        {/* Progress bar */}
+        <div className="h-px mb-16 relative" style={{ background: 'var(--pa-divider)' }}>
+          <div
+            className="h-px absolute left-0 top-0 transition-all duration-700"
+            style={{ width: `${((step + 1) / steps.length) * 100}%`, background: 'var(--pa-accent)' }}
+          />
+        </div>
+
+        {/* Question */}
+        <div className="text-center mb-12">
+          <h1
+            className="text-2xl md:text-4xl mb-4"
+            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
+          >
             {currentStep.title}
           </h1>
-          
-          <p className="text-[#E0D9F6]/60 mb-12 font-light">
+          <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
             {currentStep.subtitle}
           </p>
-          
-          {/* Input */}
-          <div className="space-y-6 mb-12">
-            {currentStep.type === 'gender' ? (
-              <div className="flex gap-4 justify-center">
-                {[{ val: 'female', label: 'Femme' }, { val: 'male', label: 'Homme' }].map(g => (
-                  <button
-                    key={g.val}
-                    onClick={() => setFormData({...formData, genre: g.val})}
-                    className={`px-8 py-4 rounded-xl border text-lg transition-all ${
-                      formData.genre === g.val
-                        ? 'border-[#C5A059] bg-[#C5A059]/20 text-[#F3E5AB]'
-                        : 'border-[#C5A059]/20 text-[#E0D9F6]/60 hover:border-[#C5A059]/50'
-                    }`}
-                    data-testid={`genre-${g.val}`}
-                    style={{ fontFamily: 'Cinzel, serif' }}
-                  >
-                    {g.label}
-                  </button>
-                ))}
-                {errors.genre && (
-                  <p className="text-red-400 text-sm mt-2">{errors.genre}</p>
-                )}
-              </div>
-            ) : (
-            <div className="relative">
+        </div>
+
+        {/* Input */}
+        <div className="mb-12">
+          {currentStep.type === 'gender' ? (
+            <div className="flex gap-4 justify-center">
+              {[{ val: 'female', label: 'Femme' }, { val: 'male', label: 'Homme' }].map(g => (
+                <button
+                  key={g.val}
+                  onClick={() => setFormData({...formData, genre: g.val})}
+                  className={`px-10 py-4 text-sm tracking-widest uppercase transition-all duration-300 ${
+                    formData.genre === g.val
+                      ? 'border-[#C4A882] bg-[#C4A882]/10 text-[#E8E4DD]'
+                      : 'border-[#C4A882]/15 text-[#A9A5A0] hover:border-[#C4A882]/30'
+                  }`}
+                  style={{ border: `1px solid`, borderColor: formData.genre === g.val ? 'var(--pa-accent)' : 'var(--pa-divider)', letterSpacing: '0.12em' }}
+                  data-testid={`genre-${g.val}`}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <input
+              type={currentStep.type}
+              value={formData[currentStep.field]}
+              onChange={(e) => setFormData({...formData, [currentStep.field]: e.target.value})}
+              onKeyPress={handleKeyPress}
+              placeholder={currentStep.placeholder}
+              className="input-editorial text-center text-lg w-full"
+              autoFocus
+              data-testid={`input-${currentStep.field}`}
+            />
+          )}
+          {errors[currentStep.field] && (
+            <p className="text-red-400/70 text-xs text-center mt-3">{errors[currentStep.field]}</p>
+          )}
+
+          {currentStep.extra && (
+            <div className="mt-6">
               <input
-                type={currentStep.type}
-                value={formData[currentStep.field]}
-                onChange={(e) => setFormData({...formData, [currentStep.field]: e.target.value})}
+                type="text"
+                value={formData[currentStep.extra.field]}
+                onChange={(e) => setFormData({...formData, [currentStep.extra.field]: e.target.value})}
                 onKeyPress={handleKeyPress}
-                placeholder={currentStep.placeholder}
-                className="input-mystical"
-                autoFocus
-                data-testid={`input-${currentStep.field}`}
+                placeholder={currentStep.extra.placeholder}
+                className="input-editorial text-center text-lg w-full"
+                data-testid={`input-${currentStep.extra.field}`}
               />
-              {errors[currentStep.field] && (
-                <p className="text-red-400 text-sm mt-2">{errors[currentStep.field]}</p>
+              {errors[currentStep.extra.field] && (
+                <p className="text-red-400/70 text-xs text-center mt-3">{errors[currentStep.extra.field]}</p>
               )}
             </div>
-            )}
-            
-            {currentStep.extra && (
-              <div className="relative">
-                <input
-                  type="text"
-                  value={formData[currentStep.extra.field]}
-                  onChange={(e) => setFormData({...formData, [currentStep.extra.field]: e.target.value})}
-                  onKeyPress={handleKeyPress}
-                  placeholder={currentStep.extra.placeholder}
-                  className="input-mystical"
-                  data-testid={`input-${currentStep.extra.field}`}
-                />
-                {errors[currentStep.extra.field] && (
-                  <p className="text-red-400 text-sm mt-2">{errors[currentStep.extra.field]}</p>
-                )}
-              </div>
-            )}
-          </div>
-          
-          {/* Submit Button */}
+          )}
+        </div>
+
+        {/* Action */}
+        <div className="text-center">
           <button
             onClick={handleNext}
             disabled={isSubmitting}
-            className="btn-mystical-filled rounded-full flex items-center gap-3 mx-auto"
+            className="btn-editorial mx-auto"
             data-testid="btn-next"
           >
             {isSubmitting ? (
-              <>
-                <div className="w-5 h-5 border-2 border-[#0F0518] border-t-transparent rounded-full animate-spin" />
-                <span>Calcul des astres...</span>
-              </>
+              <span>Calcul en cours...</span>
             ) : step === steps.length - 1 ? (
               <>
-                <Sparkles className="w-5 h-5" />
-                <span>Révéler Mon Aperçu</span>
+                <span>Reveler mon apercu</span>
+                <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
               </>
             ) : (
               <>
                 <span>Continuer</span>
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
               </>
             )}
           </button>
-          
+
           {step === steps.length - 1 && (
-            <p className="text-[#E0D9F6]/40 text-sm mt-6 font-light">
+            <p className="text-xs mt-6" style={{ color: 'var(--pa-muted)' }}>
               En continuant, vous acceptez nos conditions d'utilisation
             </p>
           )}
-        </div>
-        
-        {/* Security Badge */}
-        <div className="mt-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1A0B2E]/50 rounded-full border border-[#C5A059]/10">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-sm text-[#E0D9F6]/50">Connexion sécurisée</span>
-          </div>
         </div>
       </div>
     </div>
