@@ -161,7 +161,7 @@ const PremiumExperience = () => {
             const Icon = step.icon;
             const isActive = i === currentStep;
             const isCompleted = completedSteps.has(i);
-            const isAccessible = allRevealed || i <= Math.max(...completedSteps, -1) + 1;
+            const isAccessible = allRevealed || i <= (completedSteps.size > 0 ? Math.max(...completedSteps) : -1) + 1;
             return (
               <button
                 key={step.key}
