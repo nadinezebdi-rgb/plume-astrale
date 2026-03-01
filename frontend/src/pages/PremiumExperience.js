@@ -91,7 +91,8 @@ const PremiumExperience = () => {
   };
 
   const handleStepClick = (index) => {
-    if (allRevealed || index <= Math.max(...completedSteps, 0) + 1) {
+    const maxCompleted = completedSteps.size > 0 ? Math.max(...completedSteps) : -1;
+    if (allRevealed || index <= maxCompleted + 1) {
       setCurrentStep(index);
     }
   };
