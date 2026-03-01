@@ -3,14 +3,95 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#0F0518" />
-        <meta name="description" content="Plume Astrale - Révélez votre destinée cosmique à travers la numérologie, l'astrologie et la lecture d'âme" />
+        <meta name="theme-color" content="#0C0918" />
+        <meta name="description" content="Plume Astrale — Guidance symbolique personnalisee. Astrologie, tarot et numerologie. Calculs precis, interpretation experte. Decouvrez votre theme natal." />
+        <meta name="author" content="Plume Astrale" />
+        <meta name="robots" content="index, follow" />
+        <meta name="googlebot" content="index, follow" />
+        <link rel="canonical" href="https://plume-astrale.fr" />
+
+        <!-- Open Graph defaults (overridden per page by react-helmet-async) -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://plume-astrale.fr" />
+        <meta property="og:title" content="Plume Astrale | Guidance Symbolique Personnalisee" />
+        <meta property="og:description" content="Astrologie, tarot et numerologie. Calculs precis, interpretation experte. Decouvrez votre theme natal et votre guidance quotidienne." />
+        <meta property="og:image" content="https://plume-astrale.fr/og-image.png" />
+        <meta property="og:site_name" content="Plume Astrale" />
+        <meta property="og:locale" content="fr_FR" />
+
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Plume Astrale | Guidance Symbolique Personnalisee" />
+        <meta name="twitter:description" content="Astrologie, tarot et numerologie. Calculs precis, interpretation experte." />
+        <meta name="twitter:image" content="https://plume-astrale.fr/og-image.png" />
+
+        <!-- Fonts (only the ones actually used) -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet" />
+
         <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
         <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-        <title>Plume Astrale | Votre Manuscrit Céleste Personnel</title>
+        <title>Plume Astrale | Guidance Symbolique Personnalisee — Astrologie & Tarot</title>
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Plume Astrale",
+            "url": "https://plume-astrale.fr",
+            "description": "Guidance symbolique personnalisee — Astrologie, tarot et numerologie",
+            "inLanguage": "fr",
+            "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://plume-astrale.fr/?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+            }
+        }
+        </script>
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "ProfessionalService",
+            "name": "Plume Astrale",
+            "url": "https://plume-astrale.fr",
+            "description": "Espace de guidance symbolique fonde sur des calculs astrologiques precis et une interpretation experte.",
+            "serviceType": ["Astrologie", "Tarot", "Numerologie", "Guidance spirituelle"],
+            "areaServed": {
+                "@type": "Country",
+                "name": "France"
+            },
+            "hasOfferCatalog": {
+                "@type": "OfferCatalog",
+                "name": "Services Plume Astrale",
+                "itemListElement": [
+                    {
+                        "@type": "Offer",
+                        "name": "Tirage Tarot Oui/Non",
+                        "description": "3 tirages gratuits par jour — Reponse symbolique immediate",
+                        "price": "0",
+                        "priceCurrency": "EUR"
+                    },
+                    {
+                        "@type": "Offer",
+                        "name": "Theme Astral Professionnel",
+                        "description": "Votre theme astral complet en PDF — 28+ pages",
+                        "price": "29.90",
+                        "priceCurrency": "EUR"
+                    },
+                    {
+                        "@type": "Offer",
+                        "name": "Experience Premium — Cartographie Celeste",
+                        "description": "Parcours guide en 5 etapes + PDF Premium — Astrologie, numerologie et projection 12 mois",
+                        "price": "199",
+                        "priceCurrency": "EUR"
+                    }
+                ]
+            }
+        }
+        </script>
+
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
         <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
         <script>
@@ -29,7 +110,7 @@
         </script>
     </head>
     <body>
-        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <noscript>Plume Astrale — Guidance symbolique personnalisee. Activez JavaScript pour acceder a votre theme natal, tirage de tarot et numerologie.</noscript>
         <div id="root"></div>
     </body>
 </html>
