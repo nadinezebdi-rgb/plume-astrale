@@ -54,10 +54,10 @@ const SEO_DATA = {
 const SEO = ({ path }) => {
   const data = SEO_DATA[path] || SEO_DATA['/'];
   const canonical = `${DOMAIN}${path === '/' ? '' : path}`;
+  const pageTitle = data.title;
 
   return (
-    <Helmet>
-      <title>{data.title}</title>
+    <Helmet title={pageTitle}>
       <meta name="description" content={data.description} />
       <meta name="keywords" content={data.keywords} />
       <link rel="canonical" href={canonical} />
@@ -65,7 +65,7 @@ const SEO = ({ path }) => {
       {/* Open Graph */}
       <meta property="og:type" content="website" />
       <meta property="og:url" content={canonical} />
-      <meta property="og:title" content={data.title} />
+      <meta property="og:title" content={pageTitle} />
       <meta property="og:description" content={data.description} />
       <meta property="og:image" content={DEFAULT_IMAGE} />
       <meta property="og:site_name" content="Plume Astrale" />
@@ -73,7 +73,7 @@ const SEO = ({ path }) => {
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={data.title} />
+      <meta name="twitter:title" content={pageTitle} />
       <meta name="twitter:description" content={data.description} />
       <meta name="twitter:image" content={DEFAULT_IMAGE} />
     </Helmet>
