@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Moon, Lock, Sparkles, ArrowRight, Heart, Eye, Sun, Zap, Loader2 } from 'lucide-react';
-import StarField from '@/components/StarField/StarField';
+import { ArrowRight, Loader2, Lock, Tag } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -32,9 +31,8 @@ const PdfPreview = ({ userData }) => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center py-8">
-        <Loader2 className="w-8 h-8 text-[#C5A059] animate-spin mb-3" />
-        <p className="text-[#E0D9F6]/50 text-sm">Preparation de l'apercu...</p>
+      <div className="flex justify-center py-8">
+        <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--pa-accent)' }} />
       </div>
     );
   }
@@ -43,29 +41,29 @@ const PdfPreview = ({ userData }) => {
 
   return (
     <div data-testid="pdf-preview-section">
-      <h3 className="text-center text-[#C5A059] text-sm uppercase tracking-widest mb-4">
-        Apercu de votre Manuscrit ({totalPages} pages)
-      </h3>
+      <p className="text-xs tracking-widest uppercase text-center mb-6" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>
+        Apercu de votre manuscrit — {totalPages} pages
+      </p>
       <div className="flex gap-3 justify-center overflow-x-auto pb-4">
         {previews.map((src, i) => (
-          <div key={i} className="relative flex-shrink-0 group">
+          <div key={i} className="relative flex-shrink-0">
             <img
               src={src}
               alt={`Page ${i + 1}`}
-              className="w-40 md:w-48 rounded-lg shadow-2xl border border-[#C5A059]/20"
+              className="w-36 md:w-44 rounded-sm"
+              style={{ border: '1px solid var(--pa-divider)' }}
               data-testid={`pdf-preview-page-${i}`}
             />
             {i === previews.length - 1 && (
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0F0518] rounded-lg" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0B0B0F] rounded-sm" />
             )}
           </div>
         ))}
-        {/* Blurred placeholder for remaining pages */}
-        <div className="relative flex-shrink-0 w-40 md:w-48 rounded-lg flex items-center justify-center"
-             style={{ background: 'linear-gradient(135deg, #1A0B2E, #0F0518)', border: '1px dashed #C5A059', minHeight: '240px', opacity: 0.7 }}>
+        <div className="relative flex-shrink-0 w-36 md:w-44 rounded-sm flex items-center justify-center"
+             style={{ border: '1px dashed var(--pa-divider)', minHeight: '220px' }}>
           <div className="text-center p-4">
-            <Lock className="w-6 h-6 text-[#C5A059]/50 mx-auto mb-2" />
-            <p className="text-[#C5A059]/60 text-xs">+{totalPages - previews.length} pages</p>
+            <Lock className="w-5 h-5 mx-auto mb-2" style={{ color: 'var(--pa-muted)' }} strokeWidth={1} />
+            <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>+{totalPages - previews.length} pages</p>
           </div>
         </div>
       </div>
@@ -85,190 +83,111 @@ const Apercu = () => {
   const [discountSuccess, setDiscountSuccess] = useState('');
 
   const handleApplyDiscount = async () => {
-    if (!discountCode.trim()) {
-      setDiscountError('Veuillez entrer un code');
-      return;
-    }
-
+    if (!discountCode.trim()) { setDiscountError('Veuillez entrer un code'); return; }
     setIsLoading(true);
     setDiscountError('');
     setDiscountSuccess('');
-
     try {
-      // First validate the code
       const validateResponse = await fetch(`${API_URL}/api/discount/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: discountCode })
       });
-
       const validateData = await validateResponse.json();
-
-      if (!validateData.valid) {
-        setDiscountError(validateData.message);
-        setIsLoading(false);
-        return;
-      }
-
-      // If 100% discount, grant free access
+      if (!validateData.valid) { setDiscountError(validateData.message); setIsLoading(false); return; }
       if (validateData.discount_percent === 100) {
         const accessResponse = await fetch(`${API_URL}/api/access/free`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            product_id: 'manuscrit',
-            origin_url: window.location.origin,
-            user_email: userData?.email || null,
-            user_data: userData,
-            discount_code: discountCode
-          })
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ product_id: 'manuscrit', origin_url: window.location.origin, user_email: userData?.email, user_data: userData, discount_code: discountCode })
         });
-
         const accessData = await accessResponse.json();
-
         if (accessData.success) {
-          // Mark as paid and redirect
           localStorage.setItem('plume_astrale_paid', 'true');
           localStorage.setItem('plume_astrale_plan', 'manuscrit');
           localStorage.setItem('plume_astrale_payment_date', new Date().toISOString());
-          
-          setDiscountSuccess('Accès accordé ! Redirection...');
-          setTimeout(() => {
-            navigate('/resultats');
-          }, 1500);
-        } else {
-          setDiscountError('Erreur lors de l\'activation');
-        }
+          setDiscountSuccess('Acces accorde ! Redirection...');
+          setTimeout(() => navigate('/resultats'), 1500);
+        } else { setDiscountError('Erreur lors de l\'activation'); }
       }
-
-    } catch (error) {
-      console.error('Discount error:', error);
-      setDiscountError('Une erreur est survenue');
-    }
-
+    } catch (error) { setDiscountError('Une erreur est survenue'); }
     setIsLoading(false);
   };
 
   const handlePurchase = async () => {
     setIsLoading(true);
-    
     try {
       const response = await fetch(`${API_URL}/api/checkout/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: 'manuscrit',
-          origin_url: window.location.origin,
-          user_email: userData?.email || null,
-          user_data: userData
-        })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: 'manuscrit', origin_url: window.location.origin, user_email: userData?.email, user_data: userData })
       });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la création du paiement');
-      }
-
       const data = await response.json();
-      
-      // Redirect to Stripe Checkout
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error('URL de paiement non reçue');
-      }
+      if (data.url) { window.location.href = data.url; }
     } catch (error) {
       console.error('Payment error:', error);
-      alert('Une erreur est survenue. Veuillez réessayer.');
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
     const data = localStorage.getItem('plume_astrale_data');
-    if (!data) {
-      navigate('/formulaire');
-      return;
-    }
-    
+    if (!data) { navigate('/formulaire'); return; }
     const parsedData = JSON.parse(data);
     setUserData(parsedData);
-    
-    // Calculs numérologie
     const dateNaissance = new Date(parsedData.dateNaissance);
     setCheminVie(calculerCheminVie(dateNaissance));
     setAnneePersonnelle(calculerAnneePersonnelle(dateNaissance));
   }, [navigate]);
 
   const calculerCheminVie = (date) => {
-    const jour = date.getDate();
-    const mois = date.getMonth() + 1;
-    const annee = date.getFullYear();
-    let somme = jour + mois + annee;
-    
+    let somme = date.getDate() + (date.getMonth() + 1) + date.getFullYear();
     while (somme > 9 && somme !== 11 && somme !== 22 && somme !== 33) {
-      somme = somme.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+      somme = somme.toString().split('').reduce((acc, d) => acc + parseInt(d), 0);
     }
     return somme;
   };
 
   const calculerAnneePersonnelle = (dateNaissance) => {
-    const jour = dateNaissance.getDate();
-    const mois = dateNaissance.getMonth() + 1;
-    const anneeActuelle = new Date().getFullYear();
-    let somme = jour + mois + anneeActuelle;
-    
-    while (somme > 9) {
-      somme = somme.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
-    }
+    let somme = dateNaissance.getDate() + (dateNaissance.getMonth() + 1) + new Date().getFullYear();
+    while (somme > 9) { somme = somme.toString().split('').reduce((acc, d) => acc + parseInt(d), 0); }
     return somme;
   };
 
   const getCheminVieInfo = (chemin) => {
-    const interpretations = {
-      1: { titre: "Le Pionnier", apercu: "Vous êtes né(e) pour diriger et innover. Votre énergie naturelle vous pousse vers l'indépendance et la création de nouveaux chemins." },
-      2: { titre: "Le Diplomate", apercu: "Votre don pour l'harmonie fait de vous un médiateur naturel. Sensibilité et coopération sont vos forces." },
-      3: { titre: "L'Artiste", apercu: "Créativité et communication sont vos forces. Vous inspirez les autres par votre joie de vivre et votre expression unique." },
-      4: { titre: "Le Bâtisseur", apercu: "Stabilité et méthode caractérisent votre approche. Vous construisez des fondations solides pour l'avenir." },
-      5: { titre: "L'Aventurier", apercu: "Liberté et changement nourrissent votre âme. Vous êtes fait(e) pour explorer de nouveaux horizons." },
-      6: { titre: "Le Guérisseur", apercu: "Amour et service aux autres définissent votre essence. Vous êtes un pilier de soutien pour votre entourage." },
-      7: { titre: "Le Sage", apercu: "Recherche spirituelle et analyse profonde vous caractérisent. Vous cherchez la vérité au-delà des apparences." },
-      8: { titre: "Le Leader", apercu: "Ambition et réussite matérielle vous motivent. Vous transformez les idées en succès concrets." },
-      9: { titre: "L'Humanitaire", apercu: "Compassion universelle et service à l'humanité vous animent. Vous élevez la conscience collective." },
-      11: { titre: "L'Inspirateur", apercu: "Intuition et inspiration vous connectent aux dimensions supérieures. Vous êtes un canal de lumière." },
-      22: { titre: "Le Maître Bâtisseur", apercu: "Vision et réalisation se conjuguent en vous. Vous matérialisez des projets d'envergure mondiale." },
-      33: { titre: "Le Maître Guérisseur", apercu: "Amour inconditionnel et sagesse universelle émanent de vous. Vous guidez l'humanité vers l'élévation." }
+    const i = {
+      1: { titre: "Le Pionnier", apercu: "Vous etes ne(e) pour diriger et innover. Votre energie naturelle vous pousse vers l'independance et la creation de nouveaux chemins." },
+      2: { titre: "Le Diplomate", apercu: "Votre don pour l'harmonie fait de vous un mediateur naturel. Sensibilite et cooperation sont vos forces." },
+      3: { titre: "L'Artiste", apercu: "Creativite et communication sont vos forces. Vous inspirez les autres par votre joie de vivre." },
+      4: { titre: "Le Batisseur", apercu: "Stabilite et methode caracterisent votre approche. Vous construisez des fondations solides." },
+      5: { titre: "L'Aventurier", apercu: "Liberte et changement nourrissent votre ame. Vous etes fait(e) pour explorer de nouveaux horizons." },
+      6: { titre: "Le Guerisseur", apercu: "Amour et service aux autres definissent votre essence. Vous etes un pilier de soutien." },
+      7: { titre: "Le Sage", apercu: "Recherche spirituelle et analyse profonde vous caracterisent. Vous cherchez la verite." },
+      8: { titre: "Le Leader", apercu: "Ambition et reussite materielle vous motivent. Vous transformez les idees en succes." },
+      9: { titre: "L'Humanitaire", apercu: "Compassion universelle et service a l'humanite vous animent." },
+      11: { titre: "L'Inspirateur", apercu: "Intuition et inspiration vous connectent aux dimensions superieures." },
+      22: { titre: "Le Maitre Batisseur", apercu: "Vision et realisation se conjuguent en vous." },
+      33: { titre: "Le Maitre Guerisseur", apercu: "Amour inconditionnel et sagesse universelle emanent de vous." }
     };
-    return interpretations[chemin] || interpretations[1];
+    return i[chemin] || i[1];
   };
 
   const getAnneePersonnelleInfo = (annee) => {
-    const interpretations = {
-      1: { titre: "Nouveaux Départs", apercu: "2026 marque un nouveau cycle. C'est le moment d'initier des projets majeurs." },
-      2: { titre: "Coopération", apercu: "Cette année favorise les partenariats. Patience et diplomatie sont vos atouts." },
-      3: { titre: "Créativité", apercu: "Votre créativité s'épanouit. Expression artistique et communication sont favorisées." },
-      4: { titre: "Construction", apercu: "Travail et organisation sont à l'honneur. Posez des bases solides." },
-      5: { titre: "Liberté", apercu: "Changements et nouvelles expériences vous attendent. Embrassez l'aventure." },
-      6: { titre: "Responsabilité", apercu: "Famille et responsabilités sont au centre. Votre rôle de soutien est essentiel." },
-      7: { titre: "Réflexion", apercu: "Introspection et développement spirituel sont favorisés. Prenez du temps pour vous." },
-      8: { titre: "Réussite", apercu: "Succès matériel et reconnaissance sont à portée. Votre ambition porte ses fruits." },
-      9: { titre: "Accomplissement", apercu: "Fin d'un cycle. C'est le moment de partager vos acquis et préparer le renouveau." }
+    const i = {
+      1: { titre: "Nouveaux Departs", apercu: "2026 marque un nouveau cycle. C'est le moment d'initier des projets majeurs." },
+      2: { titre: "Cooperation", apercu: "Cette annee favorise les partenariats. Patience et diplomatie sont vos atouts." },
+      3: { titre: "Creativite", apercu: "Votre creativite s'epanouit. Expression et communication sont favorisees." },
+      4: { titre: "Construction", apercu: "Travail et organisation sont a l'honneur. Posez des bases solides." },
+      5: { titre: "Liberte", apercu: "Changements et nouvelles experiences vous attendent." },
+      6: { titre: "Responsabilite", apercu: "Famille et responsabilites sont au centre." },
+      7: { titre: "Reflexion", apercu: "Introspection et developpement spirituel sont favorises." },
+      8: { titre: "Reussite", apercu: "Succes materiel et reconnaissance sont a portee." },
+      9: { titre: "Accomplissement", apercu: "Fin d'un cycle. C'est le moment de partager vos acquis." }
     };
-    return interpretations[annee] || interpretations[1];
+    return i[annee] || i[1];
   };
-
-  const lockedSections = [
-    { icon: <Sun className="w-6 h-6" strokeWidth={1} />, title: "Identité Céleste", desc: "Soleil, Lune & Ascendant" },
-    { icon: <Heart className="w-6 h-6" strokeWidth={1} />, title: "Cœur & Relations", desc: "Venus, Mars & Synthèse affective" },
-    { icon: <Zap className="w-6 h-6" strokeWidth={1} />, title: "Défis & Talents", desc: "Aspects planétaires révélés" },
-    { icon: <Eye className="w-6 h-6" strokeWidth={1} />, title: "Conseil de la Plume", desc: "Guidance personnalisée 2026" }
-  ];
 
   if (!userData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-12 h-12 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin" />
+        <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--pa-accent)' }} />
       </div>
     );
   }
@@ -277,263 +196,155 @@ const Apercu = () => {
   const anneePersonnelleInfo = getAnneePersonnelleInfo(anneePersonnelle);
 
   return (
-    <div className="min-h-screen relative">
-      <StarField />
-      
-      <div className="relative z-10 py-12 px-4 md:px-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-4 font-light animate-fade-in">
-              Votre Aperçu Cosmique
-            </p>
-            
-            <h1 className="text-3xl md:text-5xl mb-4 animate-slide-up opacity-0 stagger-1" 
-                style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-              {userData.prenom ? `${userData.prenom}, ` : ''}Les Étoiles Vous Parlent
-            </h1>
-            
-            <p className="text-lg text-[#E0D9F6]/70 font-light animate-slide-up opacity-0 stagger-2">
-              Découvrez les premiers secrets de votre destinée
-            </p>
-          </div>
+    <div className="min-h-screen px-6 md:px-8 py-20 md:py-28">
+      <div className="max-w-2xl mx-auto">
 
-          {/* Progress Steps */}
-          <div className="flex justify-center items-center gap-4 mb-12 text-sm animate-slide-up opacity-0 stagger-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#C5A059] text-[#0F0518] flex items-center justify-center font-semibold">✓</div>
-              <span className="text-[#C5A059]">Informations</span>
-            </div>
-            <ArrowRight className="w-4 h-4 text-[#E0D9F6]/30" />
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#C5A059] text-[#0F0518] flex items-center justify-center font-semibold">2</div>
-              <span className="text-[#C5A059]">Aperçu</span>
-            </div>
-            <ArrowRight className="w-4 h-4 text-[#E0D9F6]/30" />
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full border border-[#C5A059]/30 text-[#E0D9F6]/50 flex items-center justify-center font-semibold">3</div>
-              <span className="text-[#E0D9F6]/50">Étude complète</span>
-            </div>
-          </div>
+        {/* Header */}
+        <div className="mb-16">
+          <p className="section-label">Votre apercu</p>
+          <h1
+            className="text-3xl md:text-5xl mb-4"
+            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
+          >
+            {userData.prenom ? `${userData.prenom}, ` : ''}les etoiles vous parlent.
+          </h1>
+          <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
+            Decouvrez les premiers secrets de votre destinee
+          </p>
+        </div>
 
-          {/* Free Content */}
-          <div className="space-y-8 mb-12">
-            {/* Chemin de Vie */}
-            <div className="card-mystical animate-slide-up opacity-0 stagger-4" data-testid="chemin-vie-card">
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
-                    <Star className="w-8 h-8" strokeWidth={1} />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-                      Chemin de Vie : {cheminVie}
-                    </h2>
-                    <p className="text-[#C5A059] text-lg">{cheminVieInfo.titre}</p>
-                  </div>
-                </div>
-                <span className="px-4 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-sm border border-emerald-500/30">
-                  Gratuit
-                </span>
-              </div>
-              
-              <p className="text-[#E0D9F6]/80 text-lg leading-relaxed mb-6 font-light">
-                {cheminVieInfo.apercu}
+        {/* Chemin de Vie */}
+        <div className="mb-16" data-testid="chemin-vie-card">
+          <div className="flex items-baseline gap-4 mb-6">
+            <span className="text-5xl" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
+              {cheminVie}
+            </span>
+            <div>
+              <p className="text-xs tracking-widest uppercase" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>
+                Chemin de Vie
               </p>
-              
-              <div className="bg-[#1A0B2E]/50 rounded-xl p-6 border border-[#C5A059]/10">
-                <div className="flex items-start gap-3">
-                  <Lock className="w-5 h-5 text-[#C5A059]/50 mt-1 flex-shrink-0" />
-                  <div>
-                    <p className="text-[#E0D9F6]/60 mb-2 font-medium">Dans l'étude complète :</p>
-                    <p className="text-[#E0D9F6]/40 text-sm italic font-light">
-                      Dons naturels, défis principaux, mission de vie détaillée, conseils d'évolution personnalisés...
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Année Personnelle */}
-            <div className="card-mystical animate-slide-up opacity-0 stagger-5" data-testid="annee-personnelle-card">
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
-                    <Moon className="w-8 h-8" strokeWidth={1} />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-                      Année 2026 : {anneePersonnelle}
-                    </h2>
-                    <p className="text-[#C5A059] text-lg">{anneePersonnelleInfo.titre}</p>
-                  </div>
-                </div>
-                <span className="px-4 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-sm border border-emerald-500/30">
-                  Gratuit
-                </span>
-              </div>
-              
-              <p className="text-[#E0D9F6]/80 text-lg leading-relaxed mb-6 font-light">
-                {anneePersonnelleInfo.apercu}
-              </p>
-              
-              <div className="bg-[#1A0B2E]/50 rounded-xl p-6 border border-[#C5A059]/10">
-                <div className="flex items-start gap-3">
-                  <Lock className="w-5 h-5 text-[#C5A059]/50 mt-1 flex-shrink-0" />
-                  <div>
-                    <p className="text-[#E0D9F6]/60 mb-2 font-medium">Dans l'étude complète :</p>
-                    <p className="text-[#E0D9F6]/40 text-sm italic font-light">
-                      Conseils mois par mois, périodes favorables, défis à anticiper, stratégies d'alignement...
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <p className="text-sm mt-1" style={{ color: 'var(--pa-heading)' }}>{cheminVieInfo.titre}</p>
             </div>
           </div>
+          <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--pa-body)', lineHeight: '2' }}>
+            {cheminVieInfo.apercu}
+          </p>
+          <div className="flex items-start gap-3 py-4 px-5 rounded-sm" style={{ background: 'var(--pa-glass)', border: '1px solid var(--pa-divider)' }}>
+            <Lock className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--pa-muted)' }} strokeWidth={1} />
+            <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
+              <span style={{ color: 'var(--pa-body)' }}>Dans l'etude complete :</span> Dons naturels, defis principaux, mission de vie detaillee, conseils d'evolution...
+            </p>
+          </div>
+        </div>
 
-          {/* Locked Content Preview */}
-          <div className="grid md:grid-cols-2 gap-6 mb-12">
-            {lockedSections.map((section, index) => (
-              <div 
-                key={index}
-                className="card-mystical opacity-60 relative overflow-hidden"
-                data-testid={`locked-section-${index}`}
-              >
-                <div className="absolute inset-0 bg-[#0F0518]/60 backdrop-blur-sm z-10 flex items-center justify-center">
-                  <Lock className="w-8 h-8 text-[#C5A059]/50" />
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-[#2D1B4E]/50 text-[#E0D9F6]/30">
-                    {section.icon}
-                  </div>
-                  <div>
-                    <h3 className="text-xl" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-                      {section.title}
-                    </h3>
-                    <p className="text-[#E0D9F6]/40 text-sm">{section.desc}</p>
-                  </div>
-                </div>
+        {/* Annee Personnelle */}
+        <div className="mb-16" data-testid="annee-personnelle-card">
+          <div className="flex items-baseline gap-4 mb-6">
+            <span className="text-5xl" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
+              {anneePersonnelle}
+            </span>
+            <div>
+              <p className="text-xs tracking-widest uppercase" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>
+                Annee Personnelle 2026
+              </p>
+              <p className="text-sm mt-1" style={{ color: 'var(--pa-heading)' }}>{anneePersonnelleInfo.titre}</p>
+            </div>
+          </div>
+          <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--pa-body)', lineHeight: '2' }}>
+            {anneePersonnelleInfo.apercu}
+          </p>
+          <div className="flex items-start gap-3 py-4 px-5 rounded-sm" style={{ background: 'var(--pa-glass)', border: '1px solid var(--pa-divider)' }}>
+            <Lock className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--pa-muted)' }} strokeWidth={1} />
+            <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
+              <span style={{ color: 'var(--pa-body)' }}>Dans l'etude complete :</span> Conseils mois par mois, periodes favorables, defis a anticiper...
+            </p>
+          </div>
+        </div>
+
+        {/* Locked sections */}
+        <div className="mb-16">
+          <p className="text-xs tracking-widest uppercase mb-6" style={{ color: 'var(--pa-muted)', letterSpacing: '0.12em' }}>
+            Contenu verrouille
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            {['Identite Celeste', 'Coeur & Relations', 'Defis & Talents', 'Conseil de la Plume'].map((title, i) => (
+              <div key={i} className="py-5 px-4 text-center rounded-sm" style={{ border: '1px solid var(--pa-divider)', background: 'var(--pa-glass)' }} data-testid={`locked-section-${i}`}>
+                <Lock className="w-4 h-4 mx-auto mb-2" style={{ color: 'var(--pa-muted)' }} strokeWidth={1} />
+                <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>{title}</p>
               </div>
             ))}
           </div>
+        </div>
 
-          {/* PDF Preview */}
-          <div className="mb-10 animate-slide-up opacity-0 stagger-5">
-            <PdfPreview userData={userData} />
+        {/* PDF Preview */}
+        <div className="mb-16">
+          <PdfPreview userData={userData} />
+        </div>
+
+        <div className="divider-subtle" />
+
+        {/* CTA Manuscrit */}
+        <div className="text-center py-8">
+          <h2
+            className="text-2xl md:text-3xl mb-4"
+            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
+          >
+            Le Manuscrit de la Plume
+          </h2>
+          <p className="text-sm mb-3 max-w-md mx-auto" style={{ color: 'var(--pa-body)', lineHeight: '1.9' }}>
+            Un tresor celeste a conserver precieusement toute votre vie.
+          </p>
+          <p className="text-sm mb-10 max-w-md mx-auto" style={{ color: 'var(--pa-muted)', lineHeight: '1.9' }}>
+            Ce manuscrit unique deviendra votre guide spirituel personnel.
+          </p>
+
+          <div className="mb-10 py-6" style={{ borderTop: '1px solid var(--pa-divider)', borderBottom: '1px solid var(--pa-divider)' }}>
+            <div className="text-4xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
+              29,90 EUR
+            </div>
+            <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
+              Acces immediat, PDF telechargeable
+            </p>
           </div>
 
-          {/* CTA Manuscrit Premium */}
-          <div className="card-mystical text-center p-10 md:p-14 glow-gold">
-            <Sparkles className="w-12 h-12 text-[#C5A059] mx-auto mb-6" strokeWidth={1} />
-            
-            <h2 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-              Le Manuscrit de la Plume
-            </h2>
-            
-            <p className="text-[#E0D9F6]/80 mb-6 max-w-xl mx-auto font-light text-lg leading-relaxed">
-              Un trésor céleste à conserver précieusement toute votre vie.
-            </p>
-            
-            <p className="text-[#E0D9F6]/60 mb-8 max-w-xl mx-auto font-light leading-relaxed">
-              Ce manuscrit unique, créé spécialement pour vous, deviendra votre guide spirituel personnel. 
-              Vous y reviendrez encore et encore, découvrant de nouvelles révélations à chaque lecture.
-            </p>
-            
-            <div className="flex flex-wrap justify-center gap-6 mb-10 text-sm">
-              <div className="flex items-center gap-2 text-[#E0D9F6]/70">
-                <Star className="w-5 h-5 text-[#C5A059]" strokeWidth={1} />
-                <span>Analyse complète de votre âme</span>
-              </div>
-              <div className="flex items-center gap-2 text-[#E0D9F6]/70">
-                <Moon className="w-5 h-5 text-[#C5A059]" strokeWidth={1} />
-                <span>Guidance personnalisée 2026</span>
-              </div>
-              <div className="flex items-center gap-2 text-[#E0D9F6]/70">
-                <Heart className="w-5 h-5 text-[#C5A059]" strokeWidth={1} />
-                <span>Document PDF à garder pour toujours</span>
-              </div>
-            </div>
-            
-            <div className="mb-10 py-6 border-t border-b border-[#C5A059]/20">
-              <div className="text-5xl font-bold text-gold-gradient mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
-                29,90€
-              </div>
-              <p className="text-[#C5A059]/80 text-sm">
-                Un investissement unique pour une guidance éternelle
-              </p>
-            </div>
-            
-            <button 
-              onClick={handlePurchase}
-              disabled={isLoading}
-              className="btn-mystical-filled rounded-full flex items-center gap-3 mx-auto animate-glow-pulse text-lg px-10 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
-              data-testid="cta-unlock-full"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                  Redirection vers le paiement...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-6 h-6" />
-                  Recevoir Mon Manuscrit de la Plume
-                </>
-              )}
-            </button>
-            
-            <p className="text-[#E0D9F6]/50 text-sm mt-6 font-light">
-              Accès immédiat après paiement • Téléchargement illimité
-            </p>
-            
-            {/* Discount Code Section */}
-            <div className="mt-8 pt-6 border-t border-[#C5A059]/20">
-              {!showDiscountInput ? (
-                <button
-                  onClick={() => setShowDiscountInput(true)}
-                  className="text-[#C5A059]/70 hover:text-[#C5A059] text-sm underline transition-colors"
-                  data-testid="btn-show-discount"
-                >
-                  J'ai un code de réduction
-                </button>
-              ) : (
-                <div className="max-w-sm mx-auto space-y-3">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={discountCode}
-                      onChange={(e) => {
-                        setDiscountCode(e.target.value.toUpperCase());
-                        setDiscountError('');
-                        setDiscountSuccess('');
-                      }}
-                      placeholder="Code de réduction"
-                      className="flex-1 px-4 py-2 bg-[#1A0B2E] border border-[#C5A059]/30 rounded-full text-[#E0D9F6] text-center placeholder:text-[#E0D9F6]/30 focus:outline-none focus:border-[#C5A059]"
-                      data-testid="input-discount-code"
-                    />
-                    <button
-                      onClick={handleApplyDiscount}
-                      disabled={isLoading}
-                      className="px-6 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 transition-colors disabled:opacity-50"
-                      data-testid="btn-apply-discount"
-                    >
-                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
-                    </button>
-                  </div>
-                  
-                  {discountError && (
-                    <p className="text-red-400 text-sm">{discountError}</p>
-                  )}
-                  
-                  {discountSuccess && (
-                    <p className="text-emerald-400 text-sm">{discountSuccess}</p>
-                  )}
+          <button
+            onClick={handlePurchase}
+            disabled={isLoading}
+            className="btn-editorial-filled mx-auto mb-6 disabled:opacity-50"
+            data-testid="cta-unlock-full"
+          >
+            {isLoading ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Redirection...</>
+            ) : (
+              <>Recevoir mon manuscrit</>
+            )}
+          </button>
+
+          {/* Discount */}
+          <div className="mt-6">
+            {!showDiscountInput ? (
+              <button onClick={() => setShowDiscountInput(true)}
+                className="text-xs transition-colors duration-300 hover:text-[#C4A882]" style={{ color: 'var(--pa-muted)' }}
+                data-testid="btn-show-discount">
+                <Tag className="w-3 h-3 inline mr-1" strokeWidth={1} /> J'ai un code de reduction
+              </button>
+            ) : (
+              <div className="max-w-sm mx-auto space-y-2">
+                <div className="flex gap-2">
+                  <input type="text" value={discountCode}
+                    onChange={(e) => { setDiscountCode(e.target.value.toUpperCase()); setDiscountError(''); }}
+                    placeholder="Code promo" className="input-boxed flex-1 text-center text-sm"
+                    data-testid="input-discount-code" />
+                  <button onClick={handleApplyDiscount} disabled={isLoading}
+                    className="btn-editorial text-xs px-5 py-2 disabled:opacity-50"
+                    data-testid="btn-apply-discount">
+                    {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Appliquer'}
+                  </button>
                 </div>
-              )}
-              <p className="text-[#E0D9F6]/40 text-xs italic">
-                "Ce manuscrit m'accompagne chaque jour. C'est devenu mon livre de chevet spirituel." — Marie L.
-              </p>
-            </div>
+                {discountError && <p className="text-red-400/70 text-xs">{discountError}</p>}
+                {discountSuccess && <p className="text-emerald-400 text-xs">{discountSuccess}</p>}
+              </div>
+            )}
           </div>
         </div>
       </div>
