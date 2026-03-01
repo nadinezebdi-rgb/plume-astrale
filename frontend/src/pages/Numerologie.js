@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
-import StarField from '@/components/StarField/StarField';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -57,7 +56,6 @@ const Numerologie = () => {
 
   return (
     <div className="min-h-screen relative">
-      <StarField count={60} />
       <div className="relative z-10 px-6 md:px-8 py-20 md:py-28">
       <div className="max-w-xl mx-auto">
 

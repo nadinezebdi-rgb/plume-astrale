@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
-import StarField from '@/components/StarField/StarField';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 const MAX_FREE_TIRAGES = 3;
@@ -82,7 +81,6 @@ const TarotOuiNon = () => {
   if (showForm && !hasRegistered) {
     return (
       <div className="min-h-screen relative">
-        <StarField count={50} />
         <div className="relative z-10 flex flex-col justify-center px-6 md:px-8 py-12" style={{ minHeight: '100vh' }}>
         <div className="max-w-md mx-auto w-full">
           <button onClick={() => setShowForm(false)} className="link-editorial text-xs mb-12" data-testid="back-form-btn">
@@ -157,7 +155,6 @@ const TarotOuiNon = () => {
 
   return (
     <div className="min-h-screen relative">
-      <StarField count={60} />
       <div className="relative z-10 px-6 md:px-8 py-20 md:py-28">
       <div className="max-w-xl mx-auto">
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import StarField from '@/components/StarField/StarField';
 
 const PLUME_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/v8g1i6qn_une%20plume.png";
 const SOLEIL_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/sm8ajzvy_symbole%20dor%C3%A9.png";
@@ -12,7 +11,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen relative" data-testid="homepage">
-      <StarField count={160} />
 
       {/* ─── HERO ─── */}
       <section className="relative z-10 min-h-screen flex flex-col justify-center px-6 md:px-8" data-testid="hero-section">
