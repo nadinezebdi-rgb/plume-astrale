@@ -60,7 +60,9 @@ const Navbar = () => {
                 key={link.to}
                 to={link.to}
                 className={`text-xs tracking-widest uppercase transition-colors duration-300 ${
-                  location.pathname === link.to
+                  link.accent
+                    ? 'text-[#C5A059] hover:text-[#D4B46A]'
+                    : location.pathname === link.to
                     ? 'text-[#C4A882]'
                     : 'text-[#A9A5A0]/70 hover:text-[#C4A882]'
                 }`}
