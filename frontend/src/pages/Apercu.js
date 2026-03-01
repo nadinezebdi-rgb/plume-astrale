@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Loader2, Lock, Tag } from 'lucide-react';
+import StarField from '@/components/StarField/StarField';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 

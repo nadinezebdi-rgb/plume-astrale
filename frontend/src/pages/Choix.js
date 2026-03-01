@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import StarField from '@/components/StarField/StarField';
 
 const Choix = () => {
   const navigate = useNavigate();
