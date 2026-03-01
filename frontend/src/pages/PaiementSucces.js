@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Sparkles, CheckCircle, Download, Loader2 } from 'lucide-react';
-import StarField from '@/components/StarField/StarField';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -68,18 +67,17 @@ const PaiementSucces = () => {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4 py-12">
-      <StarField />
       
       <div className="relative z-10 w-full max-w-2xl">
         <div className="card-mystical text-center p-10 md:p-14">
           
           {status === 'checking' && (
             <>
-              <Loader2 className="w-16 h-16 text-[#C5A059] mx-auto mb-8 animate-spin" />
-              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+              <Loader2 className="w-16 h-16 text-[#C4A882] mx-auto mb-8 animate-spin" />
+              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
                 Vérification en cours...
               </h1>
-              <p className="text-[#E0D9F6]/70 font-light">
+              <p className="text-[#A9A5A0]/70 font-light">
                 Nous confirmons votre paiement auprès de Stripe
               </p>
             </>
@@ -89,18 +87,18 @@ const PaiementSucces = () => {
             <>
               <div className="relative mb-8">
                 <CheckCircle className="w-20 h-20 text-emerald-500 mx-auto" strokeWidth={1.5} />
-                <Sparkles className="w-8 h-8 text-[#C5A059] absolute top-0 right-1/3 animate-pulse" />
+                <Sparkles className="w-8 h-8 text-[#C4A882] absolute top-0 right-1/3 animate-pulse" />
               </div>
               
-              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
                 Félicitations !
               </h1>
               
-              <p className="text-[#C5A059] text-xl mb-6">
+              <p className="text-[#C4A882] text-xl mb-6">
                 Votre Manuscrit de la Plume est prêt
               </p>
               
-              <p className="text-[#E0D9F6]/70 mb-10 font-light leading-relaxed">
+              <p className="text-[#A9A5A0]/70 mb-10 font-light leading-relaxed">
                 Ce trésor céleste vous accompagnera tout au long de votre vie.
                 Conservez-le précieusement et revenez-y à chaque moment de questionnement.
               </p>
@@ -126,7 +124,7 @@ const PaiementSucces = () => {
                 </button>
               </div>
               
-              <p className="text-[#E0D9F6]/40 text-sm mt-8 font-light">
+              <p className="text-[#A9A5A0]/40 text-sm mt-8 font-light">
                 Un email de confirmation a été envoyé à votre adresse
               </p>
             </>
@@ -138,11 +136,11 @@ const PaiementSucces = () => {
                 <span className="text-4xl text-red-400">!</span>
               </div>
               
-              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
                 Une erreur est survenue
               </h1>
               
-              <p className="text-[#E0D9F6]/70 mb-10 font-light">
+              <p className="text-[#A9A5A0]/70 mb-10 font-light">
                 Nous n'avons pas pu confirmer votre paiement. 
                 Si vous avez été débité, contactez notre support.
               </p>

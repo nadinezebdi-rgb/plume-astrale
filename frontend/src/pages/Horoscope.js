@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sun, Moon, Star, Heart, Briefcase, Activity, Coins, RefreshCw } from 'lucide-react';
-import StarField from '@/components/StarField/StarField';
 
 const Horoscope = () => {
   const navigate = useNavigate();
@@ -72,7 +71,7 @@ const Horoscope = () => {
         {[1, 2, 3, 4, 5].map((i) => (
           <Star 
             key={i} 
-            className={`w-4 h-4 ${i <= score ? 'text-[#C5A059] fill-[#C5A059]' : 'text-[#E0D9F6]/20'}`} 
+            className={`w-4 h-4 ${i <= score ? 'text-[#C4A882] fill-[#C4A882]' : 'text-[#A9A5A0]/20'}`} 
             strokeWidth={1} 
           />
         ))}
@@ -83,7 +82,7 @@ const Horoscope = () => {
   if (!userData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-12 h-12 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-2 border-[#C4A882] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -93,21 +92,20 @@ const Horoscope = () => {
 
   return (
     <div className="min-h-screen relative">
-      <StarField />
       
       <div className="relative z-10 py-12 px-4 md:px-6">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-4 font-light">
+            <p className="text-[#C4A882] uppercase tracking-[0.3em] text-sm mb-4 font-light">
               Votre Horoscope
             </p>
             
-            <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+            <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
               {userSign}
             </h1>
             
-            <p className="text-lg text-[#E0D9F6]/70 font-light">
+            <p className="text-lg text-[#A9A5A0]/70 font-light">
               {userData.prenom ? `${userData.prenom}, ` : ''}découvrez ce que les astres vous réservent
             </p>
           </div>
@@ -124,8 +122,8 @@ const Horoscope = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm transition-all ${
                   activeTab === tab.id 
-                    ? 'bg-[#C5A059] text-[#0F0518]' 
-                    : 'bg-[#1A0B2E]/50 text-[#E0D9F6]/70 hover:bg-[#1A0B2E] border border-[#C5A059]/20'
+                    ? 'bg-[#C4A882] text-[#0B0B0F]' 
+                    : 'bg-[#141418]/50 text-[#A9A5A0]/70 hover:bg-[#141418] border border-[#C4A882]/20'
                 }`}
                 data-testid={`tab-${tab.id}`}
               >
@@ -140,12 +138,12 @@ const Horoscope = () => {
             {/* General */}
             <div className="card-mystical">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+                <h2 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
                   {currentHoroscope.title}
                 </h2>
-                <span className="text-[#C5A059] text-sm">{currentHoroscope.date}</span>
+                <span className="text-[#C4A882] text-sm">{currentHoroscope.date}</span>
               </div>
-              <p className="text-[#E0D9F6]/80 font-light leading-relaxed">
+              <p className="text-[#A9A5A0]/80 font-light leading-relaxed">
                 {currentHoroscope.general}
               </p>
             </div>
@@ -159,11 +157,11 @@ const Horoscope = () => {
                     <Heart className="w-5 h-5" strokeWidth={1} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-[#F3E5AB]">Amour</h3>
+                    <h3 className="text-[#E8E4DD]">Amour</h3>
                     {renderStars(currentHoroscope.amour.score)}
                   </div>
                 </div>
-                <p className="text-[#E0D9F6]/70 text-sm font-light">
+                <p className="text-[#A9A5A0]/70 text-sm font-light">
                   {currentHoroscope.amour.text}
                 </p>
               </div>
@@ -175,11 +173,11 @@ const Horoscope = () => {
                     <Briefcase className="w-5 h-5" strokeWidth={1} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-[#F3E5AB]">Travail</h3>
+                    <h3 className="text-[#E8E4DD]">Travail</h3>
                     {renderStars(currentHoroscope.travail.score)}
                   </div>
                 </div>
-                <p className="text-[#E0D9F6]/70 text-sm font-light">
+                <p className="text-[#A9A5A0]/70 text-sm font-light">
                   {currentHoroscope.travail.text}
                 </p>
               </div>
@@ -191,11 +189,11 @@ const Horoscope = () => {
                     <Activity className="w-5 h-5" strokeWidth={1} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-[#F3E5AB]">Santé</h3>
+                    <h3 className="text-[#E8E4DD]">Santé</h3>
                     {renderStars(currentHoroscope.sante.score)}
                   </div>
                 </div>
-                <p className="text-[#E0D9F6]/70 text-sm font-light">
+                <p className="text-[#A9A5A0]/70 text-sm font-light">
                   {currentHoroscope.sante.text}
                 </p>
               </div>
@@ -203,15 +201,15 @@ const Horoscope = () => {
               {/* Finance */}
               <div className="card-mystical">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-full bg-[#C5A059]/20 text-[#C5A059]">
+                  <div className="p-2 rounded-full bg-[#C4A882]/20 text-[#C4A882]">
                     <Coins className="w-5 h-5" strokeWidth={1} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-[#F3E5AB]">Finances</h3>
+                    <h3 className="text-[#E8E4DD]">Finances</h3>
                     {renderStars(currentHoroscope.finance.score)}
                   </div>
                 </div>
-                <p className="text-[#E0D9F6]/70 text-sm font-light">
+                <p className="text-[#A9A5A0]/70 text-sm font-light">
                   {currentHoroscope.finance.text}
                 </p>
               </div>
@@ -219,14 +217,14 @@ const Horoscope = () => {
 
             {/* Lucky Numbers */}
             <div className="card-mystical text-center">
-              <h3 className="text-lg mb-4" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
+              <h3 className="text-lg mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
                 Nombres Chanceux
               </h3>
               <div className="flex justify-center gap-4">
                 {[3, 7, 12, 21, 33].map((num) => (
                   <div 
                     key={num}
-                    className="w-12 h-12 rounded-full bg-[#C5A059]/20 border border-[#C5A059]/30 flex items-center justify-center text-[#C5A059] font-medium"
+                    className="w-12 h-12 rounded-full bg-[#C4A882]/20 border border-[#C4A882]/30 flex items-center justify-center text-[#C4A882] font-medium"
                   >
                     {num}
                   </div>
@@ -236,7 +234,7 @@ const Horoscope = () => {
           </div>
 
           {/* Refresh Notice */}
-          <div className="mt-8 text-center text-[#E0D9F6]/40 text-sm flex items-center justify-center gap-2">
+          <div className="mt-8 text-center text-[#A9A5A0]/40 text-sm flex items-center justify-center gap-2">
             <RefreshCw className="w-4 h-4" />
             <span>Horoscope mis à jour chaque jour à minuit</span>
           </div>
