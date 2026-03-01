@@ -1,6 +1,6 @@
 # Plume Astrale - PRD
 
-## Date: 28 Fevrier 2026
+## Date: 01 Mars 2026
 
 ## Produit
 Plateforme esoterique complete proposant des analyses astrologiques, numerologiques et de tarologie personnalisees.
@@ -10,7 +10,7 @@ Plateforme esoterique complete proposant des analyses astrologiques, numerologiq
 - **Github** : https://github.com/nadinezebdi-rgb/plume-astrale
 - **Code Promo** : PLUME2026 (acces gratuit a tout)
 
-## Completed - 28 Fev 2026 (session actuelle)
+## Completed - 28 Fev 2026
 
 ### 1. Enrichissement PDF "Theme Astral Pro" (V4) — 28+ pages
 - Carte du ciel SVG reelle (AstrologyAPI natal_wheel_chart)
@@ -33,21 +33,27 @@ Plateforme esoterique complete proposant des analyses astrologiques, numerologiq
 ### 5. Numerologie + Traduction IA
 - Page /numerologie complete (chemin de vie, expression, ame, personnalite, anniversaire, annee personnelle)
 - Service de traduction GPT-4o-mini via Emergent LLM key (cache en memoire)
-- Endpoint /api/translate pour traduction a la demande
-- Fallback local quand API numerologie bloquee par plan
 - Tests: 12/12 (iteration_11)
+
+## Completed - 01 Mars 2026
+
+### 6. Code Promo PLUME2026 sur toutes les pages de paiement
+- Ajoute sur: Paiement.js, Livre.js, Compatibilite.js
+- Deja present sur: Tarologie.js, Compatibilite2.js, Apercu.js, Resultats.js
+- 7 pages de paiement au total avec code promo fonctionnel
+- Tests: 13/13 (iteration_12)
 
 ## Architecture Actuelle
 ```
 /app/backend/
   server.py                    # FastAPI - tous les endpoints
   services/
-    astrology_api.py           # Client AstrologyAPI (planets, horoscope, natal_wheel, moon_phase, numerology, tarot, compatibility)
+    astrology_api.py           # Client AstrologyAPI
     astro_content.py           # Contenu astrologique de base
-    astro_content_extended.py  # Contenu etendu (planetes en signe, aspects, retrogrades, Chiron, Lilith, Node)
-    pdf_generator_v2.py        # Generateur PDF 28+ pages (reportlab)
-    share_card_generator.py    # Generateur carte partageable (Pillow)
-    translation_service.py     # Traduction IA (Emergent LLM key + GPT-4o-mini)
+    astro_content_extended.py  # Contenu etendu
+    pdf_generator_v2.py        # Generateur PDF 28+ pages
+    share_card_generator.py    # Generateur carte partageable
+    translation_service.py     # Traduction IA (Emergent LLM key)
     tarot_service.py           # Service tarot local
     daily_content.py           # Contenu quotidien
     pdf_service.py             # PDF legacy
@@ -56,15 +62,20 @@ Plateforme esoterique complete proposant des analyses astrologiques, numerologiq
 /app/frontend/src/
   pages/
     Index.js                   # Accueil (2 CTAs + Nos Services)
-    TarotOuiNon.js             # Tarot Oui/Non (3 tirages gratuits + inscription)
-    Numerologie.js             # Profil numerologique
+    TarotOuiNon.js             # Tarot Oui/Non (3 tirages gratuits)
+    Numerologie.js             # Profil numerologique (gratuit)
     Quotidien.js               # Guidance du jour + phase lunaire
-    Resultats.js               # Resultats + partage social
+    Resultats.js               # Resultats + partage social + promo
     Formulaire.js              # Formulaire astrologie
-    Tarologie.js               # Tarologie complete
-    Compatibilite2.js          # Compatibilite amoureuse
+    Tarologie.js               # Tarologie complete + promo
+    Compatibilite.js           # Compatibilite simple + promo
+    Compatibilite2.js          # Compatibilite detaillee + promo
+    Apercu.js                  # Apercu du manuscrit + promo
+    Paiement.js                # Finalisation paiement + promo
+    Livre.js                   # Commande livre physique + promo
+    Choix.js                   # Selection de plan
   components/
-    Navbar.js                  # Navigation (avec Numerologie)
+    Navbar.js                  # Navigation
 ```
 
 ## Endpoints API
@@ -80,6 +91,8 @@ Plateforme esoterique complete proposant des analyses astrologiques, numerologiq
 | GET | /api/moon-phase | Phase lunaire actuelle |
 | GET | /api/daily/{sign} | Guidance du jour + lune |
 | POST | /api/discount/validate | Validation code promo |
+| POST | /api/access/free | Acces gratuit via code promo |
+| POST | /api/checkout/create | Creation session Stripe |
 
 ## Backlog
 
@@ -96,8 +109,18 @@ Plateforme esoterique complete proposant des analyses astrologiques, numerologiq
 
 ### P3
 - [ ] Print-on-Demand, emails automatiques, React Context, deploy.sh
+- [ ] Nettoyage fichiers legacy (pdf_service.py, astrology_pdf_api.py)
 
 ## Notes API AstrologyAPI
 - Plan Starter actuel: planets, western_horoscope, natal_wheel_chart, house_cusps, moon_phase, geo_details
 - Plan Growth (99$/mois recommande): +Tarot, Synastry, Compatibility, Natal Interpretations, Numerology avancee
 - Plan Business (199$/mois): +Daily/Monthly Horoscope, Solar Return, Transits
+
+## Deploiement Manuel
+L'utilisateur doit executer les commandes suivantes sur son VPS:
+```bash
+cd /root/plume-astrale
+git pull origin main
+docker compose down
+docker compose up -d --build
+```
