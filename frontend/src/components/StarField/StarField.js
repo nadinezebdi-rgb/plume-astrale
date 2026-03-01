@@ -1,84 +1,45 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useMemo } from 'react';
 
-const StarField = () => {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    let animationFrameId;
-    let stars = [];
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      initStars();
-    };
-
-    const initStars = () => {
-      stars = [];
-      const numStars = Math.floor((canvas.width * canvas.height) / 8000);
-      
-      for (let i = 0; i < numStars; i++) {
-        stars.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          radius: Math.random() * 1.5 + 0.5,
-          opacity: Math.random() * 0.8 + 0.2,
-          twinkleSpeed: Math.random() * 0.02 + 0.005,
-          twinklePhase: Math.random() * Math.PI * 2,
-        });
-      }
-    };
-
-    const draw = (time) => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      stars.forEach((star) => {
-        const twinkle = Math.sin(time * star.twinkleSpeed + star.twinklePhase);
-        const currentOpacity = star.opacity * (0.5 + twinkle * 0.5);
-
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${currentOpacity})`;
-        ctx.fill();
-
-        // Glow effect for brighter stars
-        if (star.radius > 1) {
-          ctx.beginPath();
-          ctx.arc(star.x, star.y, star.radius * 3, 0, Math.PI * 2);
-          const gradient = ctx.createRadialGradient(
-            star.x, star.y, 0,
-            star.x, star.y, star.radius * 3
-          );
-          gradient.addColorStop(0, `rgba(197, 160, 89, ${currentOpacity * 0.3})`);
-          gradient.addColorStop(1, 'rgba(197, 160, 89, 0)');
-          ctx.fillStyle = gradient;
-          ctx.fill();
-        }
-      });
-
-      animationFrameId = requestAnimationFrame(draw);
-    };
-
-    resize();
-    window.addEventListener('resize', resize);
-    animationFrameId = requestAnimationFrame(draw);
-
-    return () => {
-      window.removeEventListener('resize', resize);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
+const StarField = ({ count = 80 }) => {
+  const stars = useMemo(() => {
+    return Array.from({ length: count }, (_, i) => {
+      const size = Math.random() < 0.15 ? 2.5 : Math.random() < 0.4 ? 1.5 : 1;
+      return {
+        id: i,
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        size,
+        duration: `${3 + Math.random() * 6}s`,
+        delay: `${Math.random() * 5}s`,
+        peakOpacity: size > 2 ? 0.9 : size > 1 ? 0.6 : 0.35,
+      };
+    });
+  }, [count]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0"
-      style={{ background: 'transparent' }}
-    />
+    <div className="starfield" aria-hidden="true">
+      {/* Ambient orbs */}
+      <div className="orb orb-violet" style={{ width: '500px', height: '500px', top: '10%', left: '-10%', animationDelay: '0s' }} />
+      <div className="orb orb-violet" style={{ width: '400px', height: '400px', bottom: '5%', right: '-5%', animationDelay: '-7s' }} />
+      <div className="orb orb-gold" style={{ width: '300px', height: '300px', top: '40%', right: '15%', animationDelay: '-12s' }} />
+
+      {/* Stars */}
+      {stars.map(s => (
+        <div
+          key={s.id}
+          className="star"
+          style={{
+            left: s.left,
+            top: s.top,
+            width: `${s.size}px`,
+            height: `${s.size}px`,
+            '--duration': s.duration,
+            '--peak-opacity': s.peakOpacity,
+            animationDelay: s.delay,
+          }}
+        />
+      ))}
+    </div>
   );
 };
 
