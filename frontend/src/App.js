@@ -39,7 +39,7 @@ const NotFound = () => (
 
 function App() {
   return (
-    <div className="App min-h-screen" style={{ background: 'linear-gradient(180deg, #0F0518 0%, #1A0B2E 100%)' }}>
+    <div className="App min-h-screen" style={{ background: '#0B0B0F' }}>
       <BrowserRouter>
         <Navbar />
         <Routes>
