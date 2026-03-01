@@ -164,17 +164,20 @@ const TarotOuiNon = () => {
         </button>
 
         {/* Header */}
-        <div className="mb-12">
-          <p className="section-label">Tirage sacre</p>
-          <h1
-            className="text-3xl md:text-4xl mb-4"
-            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
-          >
+        <div className="mb-12 flex items-start gap-6">
+          <img src="https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/fupfyxdu_img2.png" alt="" className="w-20 md:w-28 flex-shrink-0 rounded-lg opacity-80" style={{ filter: 'drop-shadow(0 0 20px rgba(197,160,89,0.15))' }} />
+          <div>
+            <p className="section-label">Tirage sacre</p>
+            <h1
+              className="text-3xl md:text-4xl mb-4"
+              style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
+            >
             Tarot Oui / Non
           </h1>
           <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
             Posez votre question et laissez les Arcanes Majeurs vous repondre
           </p>
+          </div>
         </div>
 
         {/* Counter */}
