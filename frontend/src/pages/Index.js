@@ -6,9 +6,9 @@ import StarField from '@/components/StarField/StarField';
 const PLUME_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/v8g1i6qn_une%20plume.png";
 const SOLEIL_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/sm8ajzvy_symbole%20dor%C3%A9.png";
 
-const OEIL_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/nihwrgs8_naoline._fait_le_symbole_du_3EME_OEIL_EN_dor_--v_7_8b4c1e84-a225-4f12-b054-40c6ec26ce0a_0.png";
+const OEIL_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/800sdwlc_3%C3%A8me%20oeil.png";
 
-const SectionDivider = () => <div className="w-10 h-px mx-auto my-8 md:my-10" style={{ background: 'var(--pa-accent)', opacity: 0.3 }} />;
+const SectionDivider = () => <div className="w-8 h-px mx-auto my-4 md:my-5" style={{ background: 'var(--pa-accent)', opacity: 0.25 }} />;
 
 const Index = () => {
   const navigate = useNavigate();
