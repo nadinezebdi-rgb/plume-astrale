@@ -54,6 +54,38 @@ const Paiement = () => {
     }
   };
 
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    setPromoError('');
+    setPromoSuccess('');
+    try {
+      const res = await fetch(`${API_URL}/api/discount/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoCode }),
+      });
+      const data = await res.json();
+      if (data.valid && data.discount_percent === 100) {
+        await fetch(`${API_URL}/api/access/free`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ product_id: 'manuscrit', discount_code: promoCode, user_email: userData?.email, user_data: userData }),
+        });
+        localStorage.setItem('plume_astrale_paid', 'true');
+        localStorage.setItem('plume_astrale_plan', selectedPlan);
+        localStorage.setItem('plume_astrale_payment_date', new Date().toISOString());
+        setPromoSuccess('Code valide ! Acces complet debloque.');
+        setTimeout(() => navigate('/resultats'), 1200);
+      } else {
+        setPromoError(data.message || 'Code invalide');
+      }
+    } catch (e) {
+      setPromoError('Erreur de connexion');
+    }
+    setPromoLoading(false);
+  };
+
   const handlePayment = async () => {
     if (!userData) return;
     

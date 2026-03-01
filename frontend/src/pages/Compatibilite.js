@@ -84,6 +84,32 @@ const Compatibilite = () => {
     setIsPaid(paid === 'true' && plan === 'premium');
   }, [navigate]);
 
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    setPromoError('');
+    setPromoSuccess('');
+    try {
+      const res = await fetch(`${API_URL}/api/discount/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoCode }),
+      });
+      const data = await res.json();
+      if (data.valid && data.discount_percent === 100) {
+        localStorage.setItem('plume_astrale_paid', 'true');
+        localStorage.setItem('plume_astrale_plan', 'premium');
+        setIsPaid(true);
+        setPromoSuccess('Code valide ! Acces premium debloque.');
+      } else {
+        setPromoError(data.message || 'Code invalide');
+      }
+    } catch (e) {
+      setPromoError('Erreur de connexion');
+    }
+    setPromoLoading(false);
+  };
+
   const handleCalculate = () => {
     if (partnerSign) {
       setShowResult(true);
