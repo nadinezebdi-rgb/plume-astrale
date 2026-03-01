@@ -63,7 +63,9 @@ const Numerologie = () => {
           <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Accueil
         </button>
 
-        <div className="mb-12">
+        <div className="mb-12 flex items-start gap-6">
+          <img src="https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/tba0xz5m_IMG5.png" alt="" className="w-20 md:w-28 flex-shrink-0 rounded-lg opacity-80" style={{ filter: 'drop-shadow(0 0 20px rgba(197,160,89,0.15))' }} />
+          <div>
           <p className="section-label">Science des nombres</p>
           <h1
             className="text-3xl md:text-4xl mb-4"
@@ -74,6 +76,7 @@ const Numerologie = () => {
           <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
             Decouvrez les nombres sacres qui guident votre destinee
           </p>
+          </div>
         </div>
 
         {!result ? (
