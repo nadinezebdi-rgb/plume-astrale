@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Components
 import Navbar from "@/components/Navbar";
+import StarField from "@/components/StarField/StarField";
 
 // Pages
 import Index from "@/pages/Index";
@@ -39,7 +40,8 @@ const NotFound = () => (
 
 function App() {
   return (
-    <div className="App min-h-screen" style={{ background: 'linear-gradient(180deg, #0C0918 0%, #080614 50%, #0C0918 100%)' }}>
+    <div className="App min-h-screen relative" style={{ background: 'linear-gradient(180deg, #0C0918 0%, #080614 50%, #0C0918 100%)' }}>
+      <StarField count={160} />
       <BrowserRouter>
         <Navbar />
         <Routes>
