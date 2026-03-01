@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 // Components
 import Navbar from "@/components/Navbar";
 import StarField from "@/components/StarField/StarField";
+import SEO from "@/components/SEO";
 
 // Pages
 import Index from "@/pages/Index";
