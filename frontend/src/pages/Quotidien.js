@@ -294,6 +294,7 @@ const Quotidien = () => {
           </div>
         )}
       </div>
+      </div>
     </div>
   );
 };
