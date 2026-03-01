@@ -26,6 +26,7 @@ const Navbar = () => {
     { to: '/quotidien', label: 'Guidance' },
     { to: '/tarologie', label: 'Tarologie' },
     { to: '/compatibilite-amoureuse', label: 'Compatibilite' },
+    { to: '/premium', label: 'Premium', accent: true },
   ];
 
   if (isPaid) {
