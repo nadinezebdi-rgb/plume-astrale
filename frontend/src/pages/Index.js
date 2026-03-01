@@ -1,213 +1,369 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Moon, Sparkles, Heart, ArrowRight, Sun, Hash } from 'lucide-react';
-import StarField from '@/components/StarField/StarField';
+import { ArrowRight, Minus } from 'lucide-react';
+
+const SectionDivider = () => (
+  <div className="divider-subtle" />
+);
 
 const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen relative">
-      <StarField />
-      
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 md:px-6 noise-overlay">
-        <div 
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1630873273144-cfa9079fdd72?w=1920&auto=format&fit=crop&q=80')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0F0518]/50 to-[#0F0518]" />
-        
-        <div className="relative z-10 text-center max-w-4xl mx-auto py-24">
-          <div className="animate-slide-up opacity-0 stagger-1">
-            <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-6 font-light">
-              Plume Astrale
-            </p>
-          </div>
-          
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-normal mb-6 animate-slide-up opacity-0 stagger-2 leading-tight"
-              style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-            Devenez qui vous etes
-          </h1>
-          
-          <p className="text-lg md:text-xl text-[#E0D9F6]/70 mb-16 max-w-2xl mx-auto font-light leading-relaxed animate-slide-up opacity-0 stagger-3">
-            Choisissez votre porte d'entree vers la connaissance de soi
+    <div className="min-h-screen" data-testid="homepage">
+
+      {/* ─── HERO ─── */}
+      <section className="min-h-screen flex flex-col justify-center px-6 md:px-8" data-testid="hero-section">
+        <div className="max-w-3xl mx-auto w-full">
+          {/* Wordmark */}
+          <p
+            className="text-xs tracking-widest uppercase mb-16 md:mb-24 opacity-50"
+            style={{ color: 'var(--pa-accent)', letterSpacing: '0.25em' }}
+          >
+            Plume Astrale
           </p>
-          
-          {/* Two main CTAs */}
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto animate-slide-up opacity-0 stagger-4">
-            
-            {/* Tarot Entry */}
-            <button 
+
+          {/* Headline */}
+          <h1
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-8 md:mb-10 leading-tight"
+            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
+          >
+            Lorsque certaines periodes<br className="hidden sm:block" /> deviennent floues,
+            <br />
+            <span style={{ fontStyle: 'italic', opacity: 0.85 }}>il est possible de les comprendre.</span>
+          </h1>
+
+          {/* Subtitle */}
+          <p
+            className="text-sm md:text-base max-w-xl mb-16 md:mb-20 leading-relaxed"
+            style={{ color: 'var(--pa-body)', lineHeight: '1.9' }}
+          >
+            Plume Astrale est un espace digital de guidance symbolique,
+            alliant calculs astrologiques precis et interpretation experte
+            pour vous accompagner avec clarte et discernement.
+          </p>
+
+          {/* Two entry CTAs */}
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+            <button
               onClick={() => navigate('/tarot-oui-non')}
-              className="group relative overflow-hidden rounded-2xl border border-[#C5A059]/30 bg-gradient-to-br from-[#2D1B4E]/80 to-[#1A0B2E]/80 p-8 md:p-10 text-left transition-all hover:border-[#C5A059]/60 hover:shadow-[0_0_30px_rgba(197,160,89,0.15)]"
+              className="btn-editorial"
               data-testid="cta-tarot-entry"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#C5A059]/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500" />
-              <Star className="w-10 h-10 text-[#C5A059] mb-5 group-hover:scale-110 transition-transform" strokeWidth={1} />
-              <h2 className="text-xl md:text-2xl mb-3" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-                Obtenir une reponse immediate
-              </h2>
-              <p className="text-[#E0D9F6]/60 text-sm mb-5 font-light leading-relaxed">
-                Le Tarot Oui/Non repond a vos questions les plus pressantes.
-                Posez votre question et laissez les Arcanes vous guider.
-              </p>
-              <div className="flex items-center gap-2 text-[#C5A059] text-sm font-medium">
-                <Sparkles className="w-4 h-4" />
-                3 tirages gratuits
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
+              <Minus className="w-4 h-4 opacity-40" strokeWidth={1} />
+              Recevoir une reponse immediate
             </button>
-
-            {/* Astrology Entry */}
-            <button 
+            <button
               onClick={() => navigate('/formulaire')}
-              className="group relative overflow-hidden rounded-2xl border border-[#C5A059]/30 bg-gradient-to-br from-[#2D1B4E]/80 to-[#1A0B2E]/80 p-8 md:p-10 text-left transition-all hover:border-[#C5A059]/60 hover:shadow-[0_0_30px_rgba(197,160,89,0.15)]"
+              className="btn-editorial"
               data-testid="cta-astrology-entry"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#C5A059]/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500" />
-              <Moon className="w-10 h-10 text-[#C5A059] mb-5 group-hover:scale-110 transition-transform" strokeWidth={1} />
-              <h2 className="text-xl md:text-2xl mb-3" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-                Comprendre ma periode actuelle
-              </h2>
-              <p className="text-[#E0D9F6]/60 text-sm mb-5 font-light leading-relaxed">
-                Votre theme astral complet revele les energies qui vous guident.
-                Decouvrez votre carte du ciel personnalisee.
-              </p>
-              <div className="flex items-center gap-2 text-[#C5A059] text-sm font-medium">
-                <Sun className="w-4 h-4" />
-                Apercu gratuit
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
+              <Minus className="w-4 h-4 opacity-40" strokeWidth={1} />
+              Comprendre ma periode actuelle
             </button>
-          </div>
-          
-          {/* Trust indicators */}
-          <div className="flex flex-wrap justify-center items-center gap-6 md:gap-10 mt-14 text-sm text-[#E0D9F6]/40 animate-slide-up opacity-0 stagger-5">
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-[#C5A059]" strokeWidth={1} />
-              <span>Calculs Precis</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Moon className="w-4 h-4 text-[#C5A059]" strokeWidth={1} />
-              <span>28+ Pages PDF</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Heart className="w-4 h-4 text-[#C5A059]" strokeWidth={1} />
-              <span>Guidance Personnalisee</span>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Other services - compact */}
-      <section className="relative py-20 px-4 md:px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-4 font-light">
-              Nos Services
+      <SectionDivider />
+
+      {/* ─── NOTRE CADRE ─── */}
+      <section className="section-editorial" data-testid="section-cadre">
+        <div className="section-narrow">
+          <p className="section-label">Notre cadre</p>
+          <h2
+            className="text-2xl sm:text-3xl md:text-4xl mb-10 md:mb-14"
+            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}
+          >
+            Un cadre clair, une approche responsable.
+          </h2>
+
+          <div className="space-y-6 text-sm md:text-base" style={{ color: 'var(--pa-body)', lineHeight: '2' }}>
+            <p>
+              Plume Astrale n'est pas un outil de prediction automatique.
             </p>
-            <h2 className="text-2xl md:text-4xl" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-              Explorez d'autres chemins
-            </h2>
+            <p>
+              La plateforme s'appuie sur des outils de calcul astral professionnels,
+              similaires a ceux utilises par des astrologues confirmes,
+              et propose une interpretation structuree et symbolique des donnees obtenues.
+            </p>
+            <p style={{ color: 'var(--pa-heading)', opacity: 0.8 }}>
+              Nous ne decidons rien a votre place.
+              <br />
+              Nous eclairons des dynamiques.
+            </p>
+            <p>
+              La lecture reste un espace de reflexion.
+              <br />
+              La decision vous appartient toujours.
+            </p>
           </div>
-          
-          <div className="grid md:grid-cols-4 gap-5">
+        </div>
+      </section>
+
+      <SectionDivider />
+
+      {/* ─── REPONSE IMMEDIATE (TAROT) ─── */}
+      <section className="section-editorial" data-testid="section-tarot">
+        <div className="section-narrow">
+          <p className="section-label">La reponse immediate</p>
+          <h2
+            className="text-2xl sm:text-3xl md:text-4xl mb-10 md:mb-14"
+            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}
+          >
+            Lorsque vous avez besoin d'un eclairage rapide.
+          </h2>
+
+          <div className="space-y-6 text-sm md:text-base mb-12 md:mb-16" style={{ color: 'var(--pa-body)', lineHeight: '2' }}>
+            <p>
+              Le tirage Oui / Non vous permet d'explorer une question precise.
+              Trois tirages gratuits vous sont offerts pour ouvrir la reflexion.
+            </p>
+            <p>
+              Chaque reponse met en lumiere une dynamique symbolique.
+              <br />
+              Elle ne constitue ni un verdict, ni une obligation.
+            </p>
+          </div>
+
+          <button
+            onClick={() => navigate('/tarot-oui-non')}
+            className="link-editorial group"
+            data-testid="cta-tarot"
+          >
+            Faire un tirage
+            <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={1.5} />
+          </button>
+        </div>
+      </section>
+
+      <SectionDivider />
+
+      {/* ─── COMPREHENSION APPROFONDIE (ASTROLOGIE) ─── */}
+      <section className="section-editorial" data-testid="section-astrology">
+        <div className="section-narrow">
+          <p className="section-label">La comprehension approfondie</p>
+          <h2
+            className="text-2xl sm:text-3xl md:text-4xl mb-10 md:mb-14"
+            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}
+          >
+            Comprendre la periode que vous traversez.
+          </h2>
+
+          <div className="space-y-6 text-sm md:text-base" style={{ color: 'var(--pa-body)', lineHeight: '2' }}>
+            <p>
+              Votre theme natal et vos transits actuels revelent des mouvements plus profonds.
+              A travers des calculs astrologiques precis et une lecture experte,
+              nous mettons en coherence :
+            </p>
+
+            <ul className="space-y-3 pl-0">
+              {[
+                'Les tensions presentes',
+                'Les axes d\'evolution',
+                'Les cycles en cours',
+                'Les decisions a clarifier',
+              ].map((item, i) => (
+                <li key={i} className="flex items-center gap-4">
+                  <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--pa-accent)' }} />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            <p className="pt-4" style={{ color: 'var(--pa-heading)', opacity: 0.8 }}>
+              Il ne s'agit pas de predire.
+              <br />
+              Il s'agit de comprendre.
+            </p>
+          </div>
+
+          <div className="mt-12 md:mt-16">
             <button
-              onClick={() => navigate('/numerologie')}
-              className="card-mystical group text-left hover:border-[#C5A059]/50 transition-all"
-              data-testid="cta-numerologie"
+              onClick={() => navigate('/formulaire')}
+              className="link-editorial group"
+              data-testid="cta-astrology"
             >
-              <Hash className="w-7 h-7 text-[#A78BFA] mb-3" strokeWidth={1} />
-              <h3 className="text-base mb-1" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-                Numerologie
-              </h3>
-              <p className="text-[#E0D9F6]/50 text-xs font-light">
-                Decouvrez les nombres sacres qui guident votre destinee
-              </p>
-            </button>
-            <button
-              onClick={() => navigate('/compatibilite-amoureuse')}
-              className="card-mystical group text-left hover:border-[#C5A059]/50 transition-all"
-              data-testid="cta-compatibilite"
-            >
-              <Heart className="w-7 h-7 text-[#E8526E] mb-3" strokeWidth={1} />
-              <h3 className="text-base mb-1" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-                Compatibilite Amoureuse
-              </h3>
-              <p className="text-[#E0D9F6]/50 text-xs font-light">
-                La connexion cosmique entre vous et votre partenaire
-              </p>
-            </button>
-            <button
-              onClick={() => navigate('/quotidien')}
-              className="card-mystical group text-left hover:border-[#C5A059]/50 transition-all"
-              data-testid="cta-quotidien"
-            >
-              <Sun className="w-7 h-7 text-[#C5A059] mb-3" strokeWidth={1} />
-              <h3 className="text-base mb-1" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-                Guidance du Jour
-              </h3>
-              <p className="text-[#E0D9F6]/50 text-xs font-light">
-                Horoscope quotidien avec phase lunaire en temps reel
-              </p>
-            </button>
-            <button
-              onClick={() => navigate('/tarologie')}
-              className="card-mystical group text-left hover:border-[#C5A059]/50 transition-all"
-              data-testid="cta-tarologie"
-            >
-              <Sparkles className="w-7 h-7 text-[#A78BFA] mb-3" strokeWidth={1} />
-              <h3 className="text-base mb-1" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-                Tarologie Complete
-              </h3>
-              <p className="text-[#E0D9F6]/50 text-xs font-light">
-                Tirage en Croix 5 cartes + lecture mediumnique
-              </p>
+              Decouvrir mon apercu gratuit
+              <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={1.5} />
             </button>
           </div>
         </div>
       </section>
 
-      {/* Testimonials - compact */}
-      <section className="relative py-16 px-4 md:px-6 bg-[#1A0B2E]/30">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>
-              Ames Eclairees
-            </h2>
+      <SectionDivider />
+
+      {/* ─── COMMENT NOUS TRAVAILLONS ─── */}
+      <section className="section-editorial" data-testid="section-method">
+        <div className="section-narrow">
+          <p className="section-label">Notre methode</p>
+          <h2
+            className="text-2xl sm:text-3xl md:text-4xl mb-10 md:mb-14"
+            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}
+          >
+            Une approche structuree et transparente.
+          </h2>
+
+          <div className="space-y-6 text-sm md:text-base" style={{ color: 'var(--pa-body)', lineHeight: '2' }}>
+            <p>Plume Astrale combine :</p>
+
+            <ul className="space-y-3 pl-0">
+              {[
+                'Des outils de calcul astrologique professionnels',
+                'Une base symbolique rigoureuse',
+                'Une interpretation experte',
+                'Une restitution claire et accessible',
+              ].map((item, i) => (
+                <li key={i} className="flex items-center gap-4">
+                  <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--pa-accent)' }} />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            <p className="pt-2">
+              Chaque lecture est personnalisee a partir de vos donnees de naissance.
+              Le contenu est genere a partir de calculs precis,
+              puis structure selon une grille d'interpretation coherente.
+            </p>
+
+            <p style={{ color: 'var(--pa-heading)', opacity: 0.8 }}>
+              Nous ne produisons pas des phrases generiques.
+              <br />
+              Nous traduisons des configurations symboliques.
+            </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { name: "Marie L.", text: "Une revelation spirituelle. Cette lecture m'a reconnectee a mon essence profonde." },
-              { name: "Thomas R.", text: "Incroyablement precis. Les aspects planetaires ont mis en lumiere des schemas que je ressentais sans comprendre." },
-              { name: "Sophie M.", text: "Le manuscrit est magnifique. Un vrai guide pour mon annee personnelle." }
-            ].map((t, i) => (
-              <div key={i} className="card-mystical">
-                <div className="flex mb-3">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-3.5 h-3.5 text-[#C5A059] fill-[#C5A059]" />
-                  ))}
+        </div>
+      </section>
+
+      <SectionDivider />
+
+      {/* ─── POUR ALLER PLUS LOIN ─── */}
+      <section className="section-editorial" data-testid="section-further">
+        <div className="section-narrow">
+          <p className="section-label">Pour aller plus loin</p>
+          <h2
+            className="text-2xl sm:text-3xl md:text-4xl mb-10 md:mb-14"
+            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}
+          >
+            Approfondir ou rester en lien.
+          </h2>
+
+          <div className="space-y-6 text-sm md:text-base" style={{ color: 'var(--pa-body)', lineHeight: '2' }}>
+            <p>Selon votre besoin, vous pouvez :</p>
+
+            <div className="space-y-8 py-4">
+              {[
+                { label: 'Lecture Synthese', desc: 'Explorer une lecture synthese de votre cycle actuel' },
+                { label: 'Cartographie Annuelle', desc: 'Acceder a une cartographie approfondie annuelle' },
+                { label: 'Suivi Mensuel', desc: 'Maintenir un suivi symbolique mensuel' },
+              ].map((item, i) => (
+                <div key={i} className="flex gap-6 items-start">
+                  <span
+                    className="text-xs tracking-widest mt-1 flex-shrink-0 w-6 text-right"
+                    style={{ color: 'var(--pa-accent)', fontFamily: 'DM Sans, sans-serif' }}
+                  >
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <p style={{ color: 'var(--pa-heading)', fontWeight: 400 }}>{item.label}</p>
+                    <p className="text-sm mt-1" style={{ color: 'var(--pa-muted)' }}>{item.desc}</p>
+                  </div>
                 </div>
-                <p className="text-[#E0D9F6]/70 mb-4 italic font-light text-sm leading-relaxed">"{t.text}"</p>
-                <p className="text-[#C5A059] text-sm">— {t.name}</p>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            <p className="pt-2">
+              Chaque niveau correspond a un degre d'exploration different.
+              <br />
+              Vous avancez a votre rythme.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Disclaimer */}
-      <section className="relative py-12 px-4 md:px-6">
-        <p className="text-center text-xs text-[#E0D9F6]/30 max-w-xl mx-auto font-light">
-          Cet outil est un support de developpement personnel et de reflexion interieure.
-          Il ne remplace aucun avis medical, psychologique ou juridique.
-        </p>
+      <SectionDivider />
+
+      {/* ─── NOTRE POSTURE ─── */}
+      <section className="section-editorial" data-testid="section-posture">
+        <div className="section-narrow">
+          <p className="section-label">Notre posture</p>
+          <h2
+            className="text-2xl sm:text-3xl md:text-4xl mb-10 md:mb-14"
+            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}
+          >
+            Une guidance symbolique,
+            <br />
+            <span style={{ fontStyle: 'italic' }}>pas une verite absolue.</span>
+          </h2>
+
+          <div className="space-y-6 text-sm md:text-base" style={{ color: 'var(--pa-body)', lineHeight: '2' }}>
+            <p>
+              Plume Astrale n'est ni un substitut medical,
+              ni un outil de decision automatique.
+            </p>
+            <p style={{ color: 'var(--pa-heading)', opacity: 0.8 }}>
+              La symbolique eclaire.
+              <br />
+              Elle n'impose pas.
+            </p>
+            <p>
+              Nous croyons a l'autonomie interieure.
+              <br />
+              Nos lectures sont des reperes, pas des directives.
+            </p>
+          </div>
+        </div>
       </section>
+
+      <SectionDivider />
+
+      {/* ─── SECTION FINALE ─── */}
+      <section className="section-editorial pb-32 md:pb-40" data-testid="section-final">
+        <div className="section-narrow text-center">
+          <h2
+            className="text-2xl sm:text-3xl md:text-4xl mb-8 md:mb-10"
+            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}
+          >
+            Prenez un moment pour vous<br /> comprendre autrement.
+          </h2>
+
+          <p
+            className="text-sm md:text-base mb-14 md:mb-16 max-w-md mx-auto"
+            style={{ color: 'var(--pa-body)', lineHeight: '2' }}
+          >
+            Que vous cherchiez une reponse immediate
+            ou une comprehension plus profonde,
+            vous pouvez commencer ici.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
+            <button
+              onClick={() => navigate('/tarot-oui-non')}
+              className="btn-editorial"
+              data-testid="cta-final-tarot"
+            >
+              <Minus className="w-4 h-4 opacity-40" strokeWidth={1} />
+              Recevoir une reponse
+            </button>
+            <button
+              onClick={() => navigate('/formulaire')}
+              className="btn-editorial"
+              data-testid="cta-final-astrology"
+            >
+              <Minus className="w-4 h-4 opacity-40" strokeWidth={1} />
+              Comprendre ma periode
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer minimal */}
+      <footer className="py-12 px-6 text-center" style={{ borderTop: '1px solid var(--pa-divider)' }}>
+        <p className="text-xs tracking-widest" style={{ color: 'var(--pa-muted)', letterSpacing: '0.15em' }}>
+          Plume Astrale — Guidance symbolique personnalisee
+        </p>
+      </footer>
     </div>
   );
 };
