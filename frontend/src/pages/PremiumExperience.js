@@ -361,7 +361,7 @@ const PremiumExperience = () => {
                 {isStepCompleted ? 'Etape suivante' : 'Valider et continuer'} <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
               </button>
             ) : (
-              <button onClick={handleStepComplete} className={`btn-editorial-filled text-xs ${isStepCompleted ? '' : ''}`} data-testid="premium-complete">
+              <button onClick={allRevealed ? handleDownloadPDF : handleStepComplete} className="btn-editorial-filled text-xs" data-testid="premium-complete">
                 {allRevealed ? (
                   <>{pdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" strokeWidth={1.5} />} Telecharger le PDF</>
                 ) : (
