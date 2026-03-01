@@ -301,6 +301,7 @@ const TarotOuiNon = () => {
           </div>
         )}
       </div>
+      </div>
     </div>
   );
 };
