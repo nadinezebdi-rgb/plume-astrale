@@ -181,6 +181,7 @@ const Numerologie = () => {
           </div>
         )}
       </div>
+      </div>
     </div>
   );
 };
