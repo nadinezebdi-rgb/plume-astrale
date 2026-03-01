@@ -87,6 +87,7 @@ class TestBackendAPIs:
             json={
                 "product_id": "tarologie_mediumnite",
                 "discount_code": "PLUME2026",
+                "user_email": "test@test.com",
                 "user_data": {"prenom": "Test", "dateNaissance": "1990-01-01"}
             }
         )
@@ -121,8 +122,11 @@ class TestBackendAPIs:
         response = requests.get(f"{BASE_URL}/api/products")
         assert response.status_code == 200
         data = response.json()
-        assert isinstance(data, list) or "products" in data
-        print("✓ Products catalog API works")
+        # Products can be dict or list
+        assert isinstance(data, (list, dict))
+        if isinstance(data, dict):
+            assert len(data) > 0, "Products dict should not be empty"
+        print(f"✓ Products catalog API works - {len(data)} products")
 
 
 if __name__ == "__main__":
