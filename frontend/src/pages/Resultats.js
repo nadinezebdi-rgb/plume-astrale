@@ -398,9 +398,9 @@ const Resultats = () => {
   const realAspects = horoscopeData?.aspects?.slice(0, 6) || aspectsPlanetaires;
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen">
       
-      <div className="relative z-10 py-12 px-4 md:px-6">
+      <div className="px-6 md:px-8 py-20 md:py-28">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">

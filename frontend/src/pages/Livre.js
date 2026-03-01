@@ -124,7 +124,7 @@ const Livre = () => {
   };
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen">
       
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-12">
         {/* Back button */}

@@ -188,8 +188,8 @@ const Compatibilite2 = () => {
   );
 
   return (
-    <div className="min-h-screen relative">
-      <div className="relative z-10 py-12 px-4 md:px-6">
+    <div className="min-h-screen">
+      <div className="px-6 md:px-8 py-20 md:py-28">
         <div className="max-w-3xl mx-auto">
 
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-[#C4A882]/60 hover:text-[#C4A882] mb-8 transition-colors" data-testid="back-btn">
