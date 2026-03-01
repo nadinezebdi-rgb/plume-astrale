@@ -93,6 +93,7 @@ const Horoscope = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO path="/horoscope" />
       
       <div className="px-6 md:px-8 py-20 md:py-28">
         <div className="max-w-4xl mx-auto">

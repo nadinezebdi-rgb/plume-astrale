@@ -156,6 +156,7 @@ const TarotOuiNon = () => {
 
   return (
     <div className="min-h-screen relative">
+      <SEO path="/tarot-oui-non" />
       <div className="relative z-10 px-6 md:px-8 py-20 md:py-28">
       <div className="max-w-xl mx-auto">
 
