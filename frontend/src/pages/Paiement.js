@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, Shield, CheckCircle, ArrowLeft, Sparkles, Star, Heart, Crown } from 'lucide-react';
+import { CreditCard, Shield, CheckCircle, ArrowLeft, Sparkles, Star, Heart, Crown, Tag, Loader2 } from 'lucide-react';
 import StarField from '@/components/StarField/StarField';
 
 const Paiement = () => {

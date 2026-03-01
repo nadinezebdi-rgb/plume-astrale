@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Sparkles, Star, Flame, ArrowRight } from 'lucide-react';
+import { Heart, Sparkles, Star, Flame, ArrowRight, Tag, Loader2 } from 'lucide-react';
 import StarField from '@/components/StarField/StarField';
 
 const Compatibilite = () => {
