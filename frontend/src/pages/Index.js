@@ -123,7 +123,10 @@ const Index = () => {
               </div>
             ))}
           </div>
-          <p className="text-base" style={{ color: 'var(--pa-body)' }}>Vous avancez &agrave; votre rythme.</p>
+          <p className="text-base mb-5" style={{ color: 'var(--pa-body)' }}>Vous avancez &agrave; votre rythme.</p>
+          <button onClick={() => navigate('/premium')} className="link-editorial group" data-testid="cta-premium">
+            D&eacute;couvrir l'Exp&eacute;rience Premium <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={1.5} />
+          </button>
         </div>
 
         <Line />
