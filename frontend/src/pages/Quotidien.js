@@ -112,6 +112,7 @@ const Quotidien = () => {
           <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
             {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
+          </div>
         </div>
 
         {/* Sign toggle */}
