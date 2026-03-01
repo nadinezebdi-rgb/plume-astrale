@@ -123,7 +123,13 @@ const Formulaire = () => {
     };
     localStorage.setItem('plume_astrale_data', JSON.stringify(dataToStore));
     setIsSubmitting(false);
-    navigate('/apercu');
+    const premiumRedirect = localStorage.getItem('plume_astrale_premium_redirect');
+    if (premiumRedirect) {
+      localStorage.removeItem('plume_astrale_premium_redirect');
+      navigate('/premium/experience');
+    } else {
+      navigate('/apercu');
+    }
   };
 
   const handleKeyPress = (e) => {
