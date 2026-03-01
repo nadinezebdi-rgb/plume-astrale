@@ -26,12 +26,12 @@ import Numerologie from "@/pages/Numerologie";
 
 // 404 Component
 const NotFound = () => (
-  <div className="min-h-screen flex items-center justify-center px-4">
+  <div className="min-h-screen flex items-center justify-center px-6">
     <div className="text-center">
-      <h1 className="text-6xl mb-4" style={{ fontFamily: 'Cinzel, serif', color: '#F3E5AB' }}>404</h1>
-      <p className="text-[#E0D9F6]/70 mb-8">Cette page n'existe pas dans notre cosmos</p>
-      <a href="/" className="btn-mystical rounded-full inline-block">
-        Retourner à l'accueil
+      <h1 className="text-6xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 300 }}>404</h1>
+      <p className="text-sm mb-8" style={{ color: 'var(--pa-muted)' }}>Cette page n'existe pas</p>
+      <a href="/" className="btn-editorial inline-flex">
+        Retourner a l'accueil
       </a>
     </div>
   </div>
