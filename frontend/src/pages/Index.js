@@ -65,7 +65,7 @@ const Index = () => {
       <SectionDivider />
 
       {/* ─── NOTRE CADRE ─── */}
-      <section className="relative z-10 py-12 md:py-16 px-6 md:px-8" data-testid="section-cadre">
+      <section className="relative z-10 py-6 md:py-8 px-6 md:px-8" data-testid="section-cadre">
         <div className="max-w-2xl mx-auto">
           <p className="section-label mb-4">Notre cadre</p>
           <h2 className="text-2xl md:text-3xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}>
@@ -82,7 +82,7 @@ const Index = () => {
       <SectionDivider />
 
       {/* ─── RÉPONSE IMMÉDIATE ─── */}
-      <section className="relative z-10 py-12 md:py-16 px-6 md:px-8" data-testid="section-tarot">
+      <section className="relative z-10 py-6 md:py-8 px-6 md:px-8" data-testid="section-tarot">
         <div className="max-w-2xl mx-auto">
           <p className="section-label mb-4">R&eacute;ponse imm&eacute;diate</p>
           <h2 className="text-2xl md:text-3xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}>
@@ -101,7 +101,7 @@ const Index = () => {
       <SectionDivider />
 
       {/* ─── COMPRÉHENSION APPROFONDIE + Soleil ─── */}
-      <section className="relative z-10 py-12 md:py-16 px-6 md:px-8" data-testid="section-astrology">
+      <section className="relative z-10 py-6 md:py-8 px-6 md:px-8" data-testid="section-astrology">
         <div className="max-w-3xl mx-auto flex flex-col md:flex-row items-start gap-8 md:gap-14">
           {/* Soleil doré */}
           <div className="w-32 md:w-44 flex-shrink-0 mx-auto md:mx-0 opacity-80">
@@ -137,7 +137,7 @@ const Index = () => {
       <SectionDivider />
 
       {/* ─── MÉTHODE ─── */}
-      <section className="relative z-10 py-12 md:py-16 px-6 md:px-8" data-testid="section-method">
+      <section className="relative z-10 py-6 md:py-8 px-6 md:px-8" data-testid="section-method">
         <div className="max-w-2xl mx-auto">
           <p className="section-label mb-4">M&eacute;thode</p>
           <div className="space-y-4 text-sm md:text-base" style={{ color: 'var(--pa-body)', lineHeight: '1.9' }}>
@@ -153,7 +153,7 @@ const Index = () => {
       <SectionDivider />
 
       {/* ─── POUR ALLER PLUS LOIN ─── */}
-      <section className="relative z-10 py-12 md:py-16 px-6 md:px-8" data-testid="section-further">
+      <section className="relative z-10 py-6 md:py-8 px-6 md:px-8" data-testid="section-further">
         <div className="max-w-2xl mx-auto">
           <p className="section-label mb-4">Pour aller plus loin</p>
           <h2 className="text-2xl md:text-3xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}>
@@ -174,7 +174,7 @@ const Index = () => {
       <SectionDivider />
 
       {/* ─── POSTURE ─── */}
-      <section className="relative z-10 py-12 md:py-16 px-6 md:px-8" data-testid="section-posture">
+      <section className="relative z-10 py-6 md:py-8 px-6 md:px-8" data-testid="section-posture">
         <div className="max-w-2xl mx-auto">
           <p className="section-label mb-4">Posture</p>
           <h2 className="text-2xl md:text-3xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}>
@@ -190,7 +190,7 @@ const Index = () => {
       <SectionDivider />
 
       {/* ─── 3ÈME OEIL ─── */}
-      <section className="relative z-10 py-10 md:py-14 px-6 md:px-8">
+      <section className="relative z-10 py-6 md:py-8 px-6 md:px-8">
         <div className="max-w-xs mx-auto text-center">
           <img
             src={OEIL_IMG}
@@ -204,7 +204,7 @@ const Index = () => {
       <SectionDivider />
 
       {/* ─── FINAL ─── */}
-      <section className="relative z-10 py-16 md:py-20 pb-24 md:pb-32 px-6 md:px-8" data-testid="section-final">
+      <section className="relative z-10 py-8 md:py-12 pb-16 md:pb-20 px-6 md:px-8" data-testid="section-final">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-2xl md:text-3xl mb-8" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}>
             Prenez un moment pour vous<br /> comprendre autrement.
