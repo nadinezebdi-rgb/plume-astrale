@@ -294,6 +294,30 @@ const Paiement = () => {
                   Accès immédiat • PDF téléchargeable
                 </p>
 
+                {/* Promo Code */}
+                <div className="mt-4 text-center">
+                  {!showPromo ? (
+                    <button onClick={() => setShowPromo(true)} className="text-[#C5A059]/60 hover:text-[#C5A059] text-sm underline transition-colors" data-testid="show-promo-btn">
+                      <Tag className="w-3 h-3 inline mr-1" /> J'ai un code de reduction
+                    </button>
+                  ) : (
+                    <div className="max-w-sm mx-auto space-y-2">
+                      <div className="flex gap-2">
+                        <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
+                          placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0F0518] border border-[#C5A059]/30 rounded-full text-[#E0D9F6] text-center placeholder:text-[#E0D9F6]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+                          data-testid="promo-input" />
+                        <button onClick={handleApplyPromo} disabled={promoLoading}
+                          className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"
+                          data-testid="apply-promo-btn">
+                          {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
+                        </button>
+                      </div>
+                      {promoError && <p className="text-red-400 text-xs" data-testid="promo-error">{promoError}</p>}
+                      {promoSuccess && <p className="text-emerald-400 text-xs" data-testid="promo-success">{promoSuccess}</p>}
+                    </div>
+                  )}
+                </div>
+
                 {/* Guarantee */}
                 <div className="mt-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                   <div className="flex items-center gap-2 text-emerald-400 font-medium mb-2">
