@@ -15,7 +15,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen relative" data-testid="homepage">
-      <StarField count={90} />
+      <StarField count={160} />
 
       {/* ─── HERO ─── */}
       <section className="relative z-10 min-h-screen flex flex-col justify-center px-6 md:px-8" data-testid="hero-section">
@@ -184,6 +184,20 @@ const Index = () => {
             <p>La symbolique &eacute;claire.<br />Elle n'impose pas.</p>
             <p style={{ color: 'var(--pa-heading)', opacity: 0.85 }}>Nos lectures sont des rep&egrave;res.<br />Pas des directives.</p>
           </div>
+        </div>
+      </section>
+
+      <SectionDivider />
+
+      {/* ─── 3ÈME OEIL ─── */}
+      <section className="relative z-10 py-10 md:py-14 px-6 md:px-8">
+        <div className="max-w-xs mx-auto text-center">
+          <img
+            src={OEIL_IMG}
+            alt="Troisieme oeil"
+            className="w-40 md:w-56 mx-auto"
+            style={{ filter: 'drop-shadow(0 0 35px rgba(197, 160, 89, 0.25))' }}
+          />
         </div>
       </section>
 
