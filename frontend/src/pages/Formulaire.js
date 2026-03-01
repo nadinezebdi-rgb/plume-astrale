@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const Formulaire = () => {
   const navigate = useNavigate();
@@ -138,6 +139,7 @@ const Formulaire = () => {
 
   return (
     <div className="min-h-screen relative">
+      <SEO path="/formulaire" />
       <div className="relative z-10 flex flex-col justify-center px-6 md:px-8 py-12" style={{ minHeight: '100vh' }}>
       <div className="max-w-lg mx-auto w-full">
 
