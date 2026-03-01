@@ -10,6 +10,11 @@ const Livre = () => {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showAddressForm, setShowAddressForm] = useState(false);
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoError, setPromoError] = useState('');
+  const [promoSuccess, setPromoSuccess] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
   const [address, setAddress] = useState({
     name: '',
     street: '',
