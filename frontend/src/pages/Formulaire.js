@@ -257,6 +257,7 @@ const Formulaire = () => {
           )}
         </div>
       </div>
+      </div>
     </div>
   );
 };
