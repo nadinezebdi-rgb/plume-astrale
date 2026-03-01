@@ -74,6 +74,12 @@ PRODUCTS = {
         "amount": 29.90,
         "currency": "eur",
         "description": "Analyse de compatibilite amoureuse complete - 24 pages (PDF)"
+    },
+    "premium": {
+        "name": "Experience Premium",
+        "amount": 199.00,
+        "currency": "eur",
+        "description": "Cartographie celeste complete - Parcours guide en 5 etapes + PDF Premium"
     }
 }
 
