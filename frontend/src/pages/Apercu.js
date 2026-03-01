@@ -55,7 +55,7 @@ const PdfPreview = ({ userData }) => {
               data-testid={`pdf-preview-page-${i}`}
             />
             {i === previews.length - 1 && (
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0B0B0F] rounded-sm" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0C0918] rounded-sm" />
             )}
           </div>
         ))}
@@ -324,7 +324,7 @@ const Apercu = () => {
           <div className="mt-6">
             {!showDiscountInput ? (
               <button onClick={() => setShowDiscountInput(true)}
-                className="text-xs transition-colors duration-300 hover:text-[#C4A882]" style={{ color: 'var(--pa-muted)' }}
+                className="text-xs transition-colors duration-300 hover:text-[#C5A059]" style={{ color: 'var(--pa-muted)' }}
                 data-testid="btn-show-discount">
                 <Tag className="w-3 h-3 inline mr-1" strokeWidth={1} /> J'ai un code de reduction
               </button>

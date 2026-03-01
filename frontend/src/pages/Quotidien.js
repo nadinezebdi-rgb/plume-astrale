@@ -244,7 +244,7 @@ const Quotidien = () => {
               <div className="space-y-8">
                 {[
                   { key: 'amour', label: 'Amour', color: '#C97878' },
-                  { key: 'carriere', label: 'Carriere', color: '#C4A882' },
+                  { key: 'carriere', label: 'Carriere', color: '#C5A059' },
                   { key: 'sante', label: 'Sante', color: '#7CB88A' },
                   { key: 'spirituel', label: 'Spirituel', color: '#A78BFA' },
                 ].map(({ key, label, color }) => (
@@ -267,7 +267,7 @@ const Quotidien = () => {
                 <button onClick={() => navigate('/tarot-oui-non')} className="block w-full text-left group" data-testid="cta-tarot-oui-non">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm mb-0.5 transition-colors duration-300 group-hover:text-[#C4A882]" style={{ color: 'var(--pa-heading)' }}>
+                      <p className="text-sm mb-0.5 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
                         Tarot Oui/Non
                       </p>
                       <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Posez votre question aux arcanes</p>
@@ -278,7 +278,7 @@ const Quotidien = () => {
                 <button onClick={() => navigate('/tarologie')} className="block w-full text-left group" data-testid="cta-tarologie">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm mb-0.5 transition-colors duration-300 group-hover:text-[#C4A882]" style={{ color: 'var(--pa-heading)' }}>
+                      <p className="text-sm mb-0.5 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
                         Tarologie & Mediumnite — 35 EUR
                       </p>
                       <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Lecture complete et PDF personnalise</p>

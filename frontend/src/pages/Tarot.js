@@ -70,7 +70,7 @@ const Tarot = () => {
   if (!userData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-12 h-12 border-2 border-[#C4A882] border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -82,15 +82,15 @@ const Tarot = () => {
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <p className="text-[#C4A882] uppercase tracking-[0.3em] text-sm mb-4 font-light">
+            <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-4 font-light">
               Tirage de Tarot
             </p>
             
-            <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+            <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
               Les Arcanes Vous Parlent
             </h1>
             
-            <p className="text-lg text-[#A9A5A0]/70 font-light max-w-2xl mx-auto">
+            <p className="text-lg text-[#B8B0C8]/70 font-light max-w-2xl mx-auto">
               {userData.prenom ? `${userData.prenom}, ` : ''}concentrez-vous sur votre question et révélez les cartes
             </p>
           </div>
@@ -99,7 +99,7 @@ const Tarot = () => {
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             {cards.map((card, index) => (
               <div key={index} className="text-center">
-                <p className="text-[#C4A882] uppercase tracking-widest text-sm mb-4">
+                <p className="text-[#C5A059] uppercase tracking-widest text-sm mb-4">
                   {positions[index]}
                 </p>
                 
@@ -112,27 +112,27 @@ const Tarot = () => {
                 >
                   {revealedCards.includes(index) ? (
                     <div className="py-8">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#C4A882]/20 flex items-center justify-center">
-                        <Sparkles className="w-8 h-8 text-[#C4A882]" strokeWidth={1} />
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#C5A059]/20 flex items-center justify-center">
+                        <Sparkles className="w-8 h-8 text-[#C5A059]" strokeWidth={1} />
                       </div>
-                      <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                      <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                         {card.name}
                       </h3>
-                      <p className="text-[#A9A5A0]/70 text-sm mb-4 font-light">
+                      <p className="text-[#B8B0C8]/70 text-sm mb-4 font-light">
                         {card.meaning}
                       </p>
-                      <div className="bg-[#C4A882]/10 rounded-lg p-4 border border-[#C4A882]/20">
-                        <p className="text-[#C4A882] text-sm italic">
+                      <div className="bg-[#C5A059]/10 rounded-lg p-4 border border-[#C5A059]/20">
+                        <p className="text-[#C5A059] text-sm italic">
                           "{card.advice}"
                         </p>
                       </div>
                     </div>
                   ) : (
                     <div className="py-12">
-                      <div className="w-20 h-28 mx-auto rounded-lg bg-gradient-to-b from-[#1A1A20] to-[#141418] border border-[#C4A882]/30 flex items-center justify-center">
-                        <Star className="w-8 h-8 text-[#C4A882]/50" strokeWidth={1} />
+                      <div className="w-20 h-28 mx-auto rounded-lg bg-gradient-to-b from-[#1C1735] to-[#15112A] border border-[#C5A059]/30 flex items-center justify-center">
+                        <Star className="w-8 h-8 text-[#C5A059]/50" strokeWidth={1} />
                       </div>
-                      <p className="text-[#A9A5A0]/40 text-sm mt-4">
+                      <p className="text-[#B8B0C8]/40 text-sm mt-4">
                         {isPaid ? 'Cliquez pour révéler' : 'Premium requis'}
                       </p>
                     </div>
@@ -155,11 +155,11 @@ const Tarot = () => {
               </button>
             ) : (
               <div className="card-mystical max-w-md mx-auto text-center">
-                <Sparkles className="w-10 h-10 text-[#C4A882] mx-auto mb-4" strokeWidth={1} />
-                <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                <Sparkles className="w-10 h-10 text-[#C5A059] mx-auto mb-4" strokeWidth={1} />
+                <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                   Tirage Premium
                 </h3>
-                <p className="text-[#A9A5A0]/60 mb-6 font-light">
+                <p className="text-[#B8B0C8]/60 mb-6 font-light">
                   Débloquez le tirage de Tarot avec l'offre Premium
                 </p>
                 <button
@@ -175,14 +175,14 @@ const Tarot = () => {
 
           {/* Interpretation Guide */}
           {isPaid && revealedCards.length === 3 && (
-            <div className="mt-12 card-mystical bg-[#C4A882]/5">
-              <h3 className="text-xl mb-4 text-center" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+            <div className="mt-12 card-mystical bg-[#C5A059]/5">
+              <h3 className="text-xl mb-4 text-center" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                 Interprétation de Votre Tirage
               </h3>
-              <p className="text-[#A9A5A0]/70 font-light text-center leading-relaxed">
-                <strong className="text-[#C4A882]">{cards[0].name}</strong> dans le passé montre les fondations de votre situation. 
-                <strong className="text-[#C4A882]"> {cards[1].name}</strong> au présent révèle les énergies actuelles. 
-                <strong className="text-[#C4A882]"> {cards[2].name}</strong> pour le futur indique la direction probable si vous suivez votre chemin actuel.
+              <p className="text-[#B8B0C8]/70 font-light text-center leading-relaxed">
+                <strong className="text-[#C5A059]">{cards[0].name}</strong> dans le passé montre les fondations de votre situation. 
+                <strong className="text-[#C5A059]"> {cards[1].name}</strong> au présent révèle les énergies actuelles. 
+                <strong className="text-[#C5A059]"> {cards[2].name}</strong> pour le futur indique la direction probable si vous suivez votre chemin actuel.
               </p>
             </div>
           )}

@@ -51,7 +51,7 @@ const Numerologie = () => {
     { key: 'nombre_ame', label: 'Nombre de l\'Ame', color: '#C97878' },
     { key: 'nombre_personnalite', label: 'Nombre de Personnalite', color: '#7CB88A' },
     { key: 'nombre_anniversaire', label: 'Nombre d\'Anniversaire', color: '#6BB5E8' },
-    { key: 'annee_personnelle_2026', label: 'Annee Personnelle 2026', color: '#C4A882' },
+    { key: 'annee_personnelle_2026', label: 'Annee Personnelle 2026', color: '#C5A059' },
   ].filter(c => result[c.key]) : [];
 
   return (
@@ -169,7 +169,7 @@ const Numerologie = () => {
             </div>
 
             <button onClick={() => setResult(null)}
-              className="text-xs mt-10 block transition-colors duration-300 hover:text-[#C4A882]"
+              className="text-xs mt-10 block transition-colors duration-300 hover:text-[#C5A059]"
               style={{ color: 'var(--pa-muted)' }}
               data-testid="new-reading-btn"
             >

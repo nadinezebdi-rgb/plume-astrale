@@ -130,7 +130,7 @@ const Livre = () => {
         {/* Back button */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-[#C4A882] hover:text-[#E8E4DD] mb-8 transition-colors"
+          className="flex items-center gap-2 text-[#C5A059] hover:text-[#F0E6D3] mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Retour
@@ -138,15 +138,15 @@ const Livre = () => {
         
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#C4A882]/10 border border-[#C4A882]/30 mb-6">
-            <Gift className="w-4 h-4 text-[#C4A882]" />
-            <span className="text-[#C4A882] text-sm">Édition limitée</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/30 mb-6">
+            <Gift className="w-4 h-4 text-[#C5A059]" />
+            <span className="text-[#C5A059] text-sm">Édition limitée</span>
           </div>
           
-          <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+          <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
             Le Livre de la Plume
           </h1>
-          <p className="text-[#A9A5A0]/70 text-lg font-light">
+          <p className="text-[#B8B0C8]/70 text-lg font-light">
             Votre manuscrit céleste imprimé en livre relié
           </p>
         </div>
@@ -156,13 +156,13 @@ const Livre = () => {
           <div className="flex flex-col md:flex-row gap-8 items-center">
             {/* Book visual */}
             <div className="w-full md:w-1/3">
-              <div className="aspect-[3/4] rounded-lg bg-gradient-to-br from-[#141418] to-[#0B0B0F] border-2 border-[#C4A882]/30 flex items-center justify-center shadow-2xl">
+              <div className="aspect-[3/4] rounded-lg bg-gradient-to-br from-[#15112A] to-[#0C0918] border-2 border-[#C5A059]/30 flex items-center justify-center shadow-2xl">
                 <div className="text-center p-6">
-                  <Book className="w-16 h-16 text-[#C4A882] mx-auto mb-4" strokeWidth={1} />
-                  <p className="text-[#E8E4DD] text-sm" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                  <Book className="w-16 h-16 text-[#C5A059] mx-auto mb-4" strokeWidth={1} />
+                  <p className="text-[#F0E6D3] text-sm" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                     Le Manuscrit<br />de la Plume
                   </p>
-                  <p className="text-[#C4A882]/60 text-xs mt-2">
+                  <p className="text-[#C5A059]/60 text-xs mt-2">
                     {userData?.prenom || 'Votre nom'}
                   </p>
                 </div>
@@ -171,53 +171,53 @@ const Livre = () => {
             
             {/* Details */}
             <div className="flex-1">
-              <h2 className="text-2xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+              <h2 className="text-2xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                 Un Trésor à Offrir ou à S'Offrir
               </h2>
               
-              <p className="text-[#A9A5A0]/70 font-light mb-6 leading-relaxed">
+              <p className="text-[#B8B0C8]/70 font-light mb-6 leading-relaxed">
                 Recevez votre manuscrit céleste imprimé sur papier premium, 
                 relié avec soin. Un objet précieux à garder sur votre table de chevet 
                 ou à offrir à un être cher.
               </p>
               
               <div className="space-y-3 mb-8">
-                <div className="flex items-center gap-3 text-[#A9A5A0]/80">
-                  <CheckCircle className="w-5 h-5 text-[#C4A882]" />
+                <div className="flex items-center gap-3 text-[#B8B0C8]/80">
+                  <CheckCircle className="w-5 h-5 text-[#C5A059]" />
                   <span>Impression haute qualité sur papier premium</span>
                 </div>
-                <div className="flex items-center gap-3 text-[#A9A5A0]/80">
-                  <CheckCircle className="w-5 h-5 text-[#C4A882]" />
+                <div className="flex items-center gap-3 text-[#B8B0C8]/80">
+                  <CheckCircle className="w-5 h-5 text-[#C5A059]" />
                   <span>Couverture rigide avec finition mate</span>
                 </div>
-                <div className="flex items-center gap-3 text-[#A9A5A0]/80">
-                  <CheckCircle className="w-5 h-5 text-[#C4A882]" />
+                <div className="flex items-center gap-3 text-[#B8B0C8]/80">
+                  <CheckCircle className="w-5 h-5 text-[#C5A059]" />
                   <span>Illustrations exclusives pour chaque signe</span>
                 </div>
-                <div className="flex items-center gap-3 text-[#A9A5A0]/80">
-                  <CheckCircle className="w-5 h-5 text-[#C4A882]" />
+                <div className="flex items-center gap-3 text-[#B8B0C8]/80">
+                  <CheckCircle className="w-5 h-5 text-[#C5A059]" />
                   <span>Format élégant 15x21cm</span>
                 </div>
               </div>
               
               <div className="flex items-center gap-4 mb-6">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-[#C4A882]/10 border border-[#C4A882]/30">
-                  <Truck className="w-4 h-4 text-[#C4A882]" />
-                  <span className="text-[#C4A882] text-sm">Livraison incluse</span>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/30">
+                  <Truck className="w-4 h-4 text-[#C5A059]" />
+                  <span className="text-[#C5A059] text-sm">Livraison incluse</span>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-[#C4A882]/10 border border-[#C4A882]/30">
-                  <Clock className="w-4 h-4 text-[#C4A882]" />
-                  <span className="text-[#C4A882] text-sm">Expédié sous 5 jours</span>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/30">
+                  <Clock className="w-4 h-4 text-[#C5A059]" />
+                  <span className="text-[#C5A059] text-sm">Expédié sous 5 jours</span>
                 </div>
               </div>
               
               {/* Price */}
-              <div className="border-t border-[#C4A882]/20 pt-6">
+              <div className="border-t border-[#C5A059]/20 pt-6">
                 <div className="flex items-end gap-3 mb-4">
                   <span className="text-4xl font-bold text-gold-gradient" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                     49,90€
                   </span>
-                  <span className="text-[#A9A5A0]/50 text-sm mb-1">
+                  <span className="text-[#B8B0C8]/50 text-sm mb-1">
                     Livraison offerte
                   </span>
                 </div>
@@ -237,24 +237,24 @@ const Livre = () => {
               <Gift className="w-6 h-6" />
               Commander Mon Livre
             </button>
-            <p className="text-[#A9A5A0]/50 text-sm mt-4">
+            <p className="text-[#B8B0C8]/50 text-sm mt-4">
               Paiement sécurisé par Stripe • Satisfait ou remboursé
             </p>
 
             {/* Promo Code */}
             <div className="mt-4">
               {!showPromo ? (
-                <button onClick={() => setShowPromo(true)} className="text-[#C4A882]/60 hover:text-[#C4A882] text-sm underline transition-colors" data-testid="show-promo-btn">
+                <button onClick={() => setShowPromo(true)} className="text-[#C5A059]/60 hover:text-[#C5A059] text-sm underline transition-colors" data-testid="show-promo-btn">
                   <Tag className="w-3 h-3 inline mr-1" /> J'ai un code de reduction
                 </button>
               ) : (
                 <div className="max-w-sm mx-auto space-y-2">
                   <div className="flex gap-2">
                     <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0B0B0F] border border-[#C4A882]/30 rounded-full text-[#A9A5A0] text-center placeholder:text-[#A9A5A0]/30 focus:outline-none focus:border-[#C4A882] text-sm"
+                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
                       data-testid="promo-input" />
                     <button onClick={handleApplyPromo} disabled={promoLoading}
-                      className="px-5 py-2 bg-[#C4A882]/20 border border-[#C4A882]/50 rounded-full text-[#C4A882] hover:bg-[#C4A882]/30 text-sm disabled:opacity-50"
+                      className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"
                       data-testid="apply-promo-btn">
                       {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
                     </button>
@@ -267,18 +267,18 @@ const Livre = () => {
           </div>
         ) : (
           <div className="card-mystical p-8">
-            <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+            <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
               Adresse de Livraison
             </h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-[#A9A5A0]/70 text-sm mb-2">Nom complet *</label>
+                <label className="block text-[#B8B0C8]/70 text-sm mb-2">Nom complet *</label>
                 <input
                   type="text"
                   value={address.name}
                   onChange={(e) => setAddress({ ...address, name: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] focus:outline-none focus:border-[#C4A882]"
+                  className="w-full px-4 py-3 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059]"
                   placeholder="Marie Dupont"
                   data-testid="input-name"
                 />
@@ -286,12 +286,12 @@ const Livre = () => {
               </div>
               
               <div>
-                <label className="block text-[#A9A5A0]/70 text-sm mb-2">Adresse *</label>
+                <label className="block text-[#B8B0C8]/70 text-sm mb-2">Adresse *</label>
                 <input
                   type="text"
                   value={address.street}
                   onChange={(e) => setAddress({ ...address, street: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] focus:outline-none focus:border-[#C4A882]"
+                  className="w-full px-4 py-3 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059]"
                   placeholder="12 rue des Étoiles"
                   data-testid="input-street"
                 />
@@ -299,36 +299,36 @@ const Livre = () => {
               </div>
               
               <div>
-                <label className="block text-[#A9A5A0]/70 text-sm mb-2">Complément d'adresse</label>
+                <label className="block text-[#B8B0C8]/70 text-sm mb-2">Complément d'adresse</label>
                 <input
                   type="text"
                   value={address.street2}
                   onChange={(e) => setAddress({ ...address, street2: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] focus:outline-none focus:border-[#C4A882]"
+                  className="w-full px-4 py-3 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059]"
                   placeholder="Appartement 3B"
                 />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[#A9A5A0]/70 text-sm mb-2">Code postal *</label>
+                  <label className="block text-[#B8B0C8]/70 text-sm mb-2">Code postal *</label>
                   <input
                     type="text"
                     value={address.postal_code}
                     onChange={(e) => setAddress({ ...address, postal_code: e.target.value })}
-                    className="w-full px-4 py-3 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] focus:outline-none focus:border-[#C4A882]"
+                    className="w-full px-4 py-3 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059]"
                     placeholder="75001"
                     data-testid="input-postal"
                   />
                   {errors.postal_code && <p className="text-red-400 text-sm mt-1">{errors.postal_code}</p>}
                 </div>
                 <div>
-                  <label className="block text-[#A9A5A0]/70 text-sm mb-2">Ville *</label>
+                  <label className="block text-[#B8B0C8]/70 text-sm mb-2">Ville *</label>
                   <input
                     type="text"
                     value={address.city}
                     onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                    className="w-full px-4 py-3 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] focus:outline-none focus:border-[#C4A882]"
+                    className="w-full px-4 py-3 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059]"
                     placeholder="Paris"
                     data-testid="input-city"
                   />
@@ -337,11 +337,11 @@ const Livre = () => {
               </div>
               
               <div>
-                <label className="block text-[#A9A5A0]/70 text-sm mb-2">Pays *</label>
+                <label className="block text-[#B8B0C8]/70 text-sm mb-2">Pays *</label>
                 <select
                   value={address.country}
                   onChange={(e) => setAddress({ ...address, country: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] focus:outline-none focus:border-[#C4A882]"
+                  className="w-full px-4 py-3 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059]"
                   data-testid="input-country"
                 >
                   <option value="France">France</option>
@@ -383,7 +383,7 @@ const Livre = () => {
         )}
         
         {/* Trust badges */}
-        <div className="flex flex-wrap justify-center gap-6 mt-12 text-[#A9A5A0]/50 text-sm">
+        <div className="flex flex-wrap justify-center gap-6 mt-12 text-[#B8B0C8]/50 text-sm">
           <span>🔒 Paiement sécurisé</span>
           <span>📦 Livraison suivie</span>
           <span>✨ Qualité premium</span>

@@ -272,7 +272,7 @@ const TarotOuiNon = () => {
 
               <div className="space-y-6" data-testid="upsell-tarologie">
                 <button onClick={() => navigate('/tarologie')} className="block w-full text-left group">
-                  <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#C4A882]" style={{ color: 'var(--pa-heading)' }}>
+                  <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
                     Tarologie & Mediumnite — 35 EUR
                   </p>
                   <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
@@ -282,7 +282,7 @@ const TarotOuiNon = () => {
 
                 {hasRegistered && (
                   <button onClick={() => navigate('/resultats')} className="block w-full text-left group" data-testid="astro-cross-sell">
-                    <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#C4A882]" style={{ color: 'var(--pa-heading)' }}>
+                    <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
                       Votre Theme Astral Complet
                     </p>
                     <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>

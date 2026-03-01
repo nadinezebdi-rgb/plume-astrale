@@ -110,31 +110,31 @@ const Compatibilite2 = () => {
 
   const PersonForm = ({ person, onChange, label, genderDefault }) => (
     <div className="space-y-4">
-      <h3 className="text-lg flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
-        <Heart className="w-5 h-5 text-[#C4A882]" strokeWidth={1.5} /> {label}
+      <h3 className="text-lg flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+        <Heart className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} /> {label}
       </h3>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-[#C4A882] text-xs uppercase tracking-widest mb-1">Prenom</label>
+          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Prenom</label>
           <input type="text" value={person.first_name} onChange={(e) => onChange('first_name', e.target.value)}
-            className="w-full px-3 py-2 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] placeholder:text-[#A9A5A0]/30 focus:outline-none focus:border-[#C4A882] text-sm"
+            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
             placeholder="Prenom" data-testid={`${label}-first-name`} />
         </div>
         <div>
-          <label className="block text-[#C4A882] text-xs uppercase tracking-widest mb-1">Nom</label>
+          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Nom</label>
           <input type="text" value={person.last_name} onChange={(e) => onChange('last_name', e.target.value)}
-            className="w-full px-3 py-2 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] placeholder:text-[#A9A5A0]/30 focus:outline-none focus:border-[#C4A882] text-sm"
+            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
             placeholder="Nom" data-testid={`${label}-last-name`} />
         </div>
       </div>
 
       <div>
-        <label className="block text-[#C4A882] text-xs uppercase tracking-widest mb-1">Genre</label>
+        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Genre</label>
         <div className="flex gap-3">
           {[{ val: 'male', label: 'Homme' }, { val: 'female', label: 'Femme' }].map(g => (
             <button key={g.val} onClick={() => onChange('gender', g.val)}
-              className={`flex-1 py-2 rounded-lg border text-sm transition-all ${person.gender === g.val ? 'border-[#C4A882] bg-[#C4A882]/20 text-[#E8E4DD]' : 'border-[#C4A882]/20 text-[#A9A5A0]/60 hover:border-[#C4A882]/40'}`}
+              className={`flex-1 py-2 rounded-lg border text-sm transition-all ${person.gender === g.val ? 'border-[#C5A059] bg-[#C5A059]/20 text-[#F0E6D3]' : 'border-[#C5A059]/20 text-[#B8B0C8]/60 hover:border-[#C5A059]/40'}`}
               data-testid={`${label}-gender-${g.val}`}>
               {g.label}
             </button>
@@ -144,44 +144,44 @@ const Compatibilite2 = () => {
 
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="block text-[#C4A882] text-xs uppercase tracking-widest mb-1">Jour</label>
+          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Jour</label>
           <input type="number" min="1" max="31" value={person.day} onChange={(e) => onChange('day', e.target.value)}
-            className="w-full px-3 py-2 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] focus:outline-none focus:border-[#C4A882] text-sm"
+            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
             placeholder="JJ" data-testid={`${label}-day`} />
         </div>
         <div>
-          <label className="block text-[#C4A882] text-xs uppercase tracking-widest mb-1">Mois</label>
+          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Mois</label>
           <input type="number" min="1" max="12" value={person.month} onChange={(e) => onChange('month', e.target.value)}
-            className="w-full px-3 py-2 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] focus:outline-none focus:border-[#C4A882] text-sm"
+            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
             placeholder="MM" data-testid={`${label}-month`} />
         </div>
         <div>
-          <label className="block text-[#C4A882] text-xs uppercase tracking-widest mb-1">Annee</label>
+          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Annee</label>
           <input type="number" min="1920" max="2025" value={person.year} onChange={(e) => onChange('year', e.target.value)}
-            className="w-full px-3 py-2 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] focus:outline-none focus:border-[#C4A882] text-sm"
+            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
             placeholder="AAAA" data-testid={`${label}-year`} />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-[#C4A882] text-xs uppercase tracking-widest mb-1">Heure</label>
+          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Heure</label>
           <input type="number" min="0" max="23" value={person.hour} onChange={(e) => onChange('hour', e.target.value)}
-            className="w-full px-3 py-2 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] focus:outline-none focus:border-[#C4A882] text-sm"
+            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
             data-testid={`${label}-hour`} />
         </div>
         <div>
-          <label className="block text-[#C4A882] text-xs uppercase tracking-widest mb-1">Minute</label>
+          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Minute</label>
           <input type="number" min="0" max="59" value={person.minute} onChange={(e) => onChange('minute', e.target.value)}
-            className="w-full px-3 py-2 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] focus:outline-none focus:border-[#C4A882] text-sm"
+            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
             data-testid={`${label}-minute`} />
         </div>
       </div>
 
       <div>
-        <label className="block text-[#C4A882] text-xs uppercase tracking-widest mb-1">Lieu de naissance</label>
+        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Lieu de naissance</label>
         <input type="text" value={person.place} onChange={(e) => onChange('place', e.target.value)}
-          className="w-full px-3 py-2 bg-[#141418] border border-[#C4A882]/30 rounded-lg text-[#A9A5A0] placeholder:text-[#A9A5A0]/30 focus:outline-none focus:border-[#C4A882] text-sm"
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
           placeholder="Ville, Pays" data-testid={`${label}-place`} />
       </div>
     </div>
@@ -192,24 +192,24 @@ const Compatibilite2 = () => {
       <div className="px-6 md:px-8 py-20 md:py-28">
         <div className="max-w-3xl mx-auto">
 
-          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-[#C4A882]/60 hover:text-[#C4A882] mb-8 transition-colors" data-testid="back-btn">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-[#C5A059]/60 hover:text-[#C5A059] mb-8 transition-colors" data-testid="back-btn">
             <ArrowLeft className="w-4 h-4" /> Retour
           </button>
 
           {/* Header */}
           <div className="text-center mb-10">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #C4A882, #E8E4DD)' }}>
-                <Heart className="w-8 h-8 text-[#0B0B0F]" />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #C5A059, #F0E6D3)' }}>
+                <Heart className="w-8 h-8 text-[#0C0918]" />
               </div>
             </div>
-            <p className="text-[#C4A882] uppercase tracking-[0.3em] text-sm mb-3 font-light">
+            <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-3 font-light">
               Connexion Celeste
             </p>
-            <h1 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+            <h1 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
               Compatibilite Astrale
             </h1>
-            <p className="text-[#A9A5A0]/60 font-light max-w-lg mx-auto">
+            <p className="text-[#B8B0C8]/60 font-light max-w-lg mx-auto">
               Decouvrez les secrets cosmiques de votre relation amoureuse. Un rapport complet de 24 pages revele les forces, defis et destins de votre union.
             </p>
           </div>
@@ -218,10 +218,10 @@ const Compatibilite2 = () => {
           <div className="flex items-center justify-center gap-2 mb-8">
             {[1, 2, 3].map(s => (
               <div key={s} className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step >= s ? 'bg-[#C4A882] text-[#0B0B0F]' : 'border border-[#C4A882]/30 text-[#C4A882]/40'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step >= s ? 'bg-[#C5A059] text-[#0C0918]' : 'border border-[#C5A059]/30 text-[#C5A059]/40'}`}>
                   {s}
                 </div>
-                {s < 3 && <div className={`w-12 h-0.5 ${step > s ? 'bg-[#C4A882]' : 'bg-[#C4A882]/20'}`} />}
+                {s < 3 && <div className={`w-12 h-0.5 ${step > s ? 'bg-[#C5A059]' : 'bg-[#C5A059]/20'}`} />}
               </div>
             ))}
           </div>
@@ -263,17 +263,17 @@ const Compatibilite2 = () => {
               {/* Promo Code */}
               <div className="mt-4 text-center">
                 {!showPromo ? (
-                  <button onClick={() => setShowPromo(true)} className="text-[#C4A882]/60 hover:text-[#C4A882] text-sm underline transition-colors" data-testid="show-promo-btn">
+                  <button onClick={() => setShowPromo(true)} className="text-[#C5A059]/60 hover:text-[#C5A059] text-sm underline transition-colors" data-testid="show-promo-btn">
                     <Tag className="w-3 h-3 inline mr-1" /> J'ai un code de reduction
                   </button>
                 ) : (
                   <div className="max-w-sm mx-auto space-y-2">
                     <div className="flex gap-2">
                       <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                        placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0B0B0F] border border-[#C4A882]/30 rounded-full text-[#A9A5A0] text-center placeholder:text-[#A9A5A0]/30 focus:outline-none focus:border-[#C4A882] text-sm"
+                        placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
                         data-testid="promo-input" />
                       <button onClick={handleApplyPromo} disabled={promoLoading || !isStep2Valid}
-                        className="px-5 py-2 bg-[#C4A882]/20 border border-[#C4A882]/50 rounded-full text-[#C4A882] hover:bg-[#C4A882]/30 text-sm disabled:opacity-50"
+                        className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"
                         data-testid="apply-promo-btn">
                         {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
                       </button>
@@ -290,14 +290,14 @@ const Compatibilite2 = () => {
           {step === 3 && pdfUrl && (
             <div className="space-y-6 animate-fade-in" data-testid="step-3">
               <div className="card-mystical text-center p-10 glow-gold">
-                <Sparkles className="w-12 h-12 text-[#C4A882] mx-auto mb-4" strokeWidth={1} />
-                <h2 className="text-2xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                <Sparkles className="w-12 h-12 text-[#C5A059] mx-auto mb-4" strokeWidth={1} />
+                <h2 className="text-2xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                   Votre Rapport est Pret !
                 </h2>
-                <p className="text-[#A9A5A0]/60 mb-2">
-                  Analyse de compatibilite entre <span className="text-[#E8E4DD] font-medium">{person1.first_name}</span> et <span className="text-[#E8E4DD] font-medium">{person2.first_name}</span>
+                <p className="text-[#B8B0C8]/60 mb-2">
+                  Analyse de compatibilite entre <span className="text-[#F0E6D3] font-medium">{person1.first_name}</span> et <span className="text-[#F0E6D3] font-medium">{person2.first_name}</span>
                 </p>
-                <p className="text-[#C4A882]/60 text-sm mb-6">24 pages d'analyse astrologique detaillee</p>
+                <p className="text-[#C5A059]/60 text-sm mb-6">24 pages d'analyse astrologique detaillee</p>
 
                 <a href={pdfUrl} target="_blank" rel="noopener noreferrer"
                   className="btn-mystical-filled rounded-full inline-flex items-center gap-2 px-8 py-3"
@@ -308,30 +308,30 @@ const Compatibilite2 = () => {
 
               {/* Upsells */}
               <div className="grid md:grid-cols-2 gap-4">
-                <button onClick={() => navigate('/formulaire')} className="card-mystical hover:border-[#C4A882]/50 transition-all group text-left" data-testid="upsell-manuscrit">
+                <button onClick={() => navigate('/formulaire')} className="card-mystical hover:border-[#C5A059]/50 transition-all group text-left" data-testid="upsell-manuscrit">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-[#E8E4DD] font-medium mb-1">Theme Astral Pro</h3>
-                      <p className="text-[#A9A5A0]/50 text-sm">68 pages d'analyse personnelle</p>
-                      <span className="text-[#C4A882] font-bold text-sm mt-1 inline-block">29,90 EUR</span>
+                      <h3 className="text-[#F0E6D3] font-medium mb-1">Theme Astral Pro</h3>
+                      <p className="text-[#B8B0C8]/50 text-sm">68 pages d'analyse personnelle</p>
+                      <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">29,90 EUR</span>
                     </div>
-                    <Star className="w-5 h-5 text-[#C4A882] group-hover:scale-110 transition-transform" />
+                    <Star className="w-5 h-5 text-[#C5A059] group-hover:scale-110 transition-transform" />
                   </div>
                 </button>
-                <button onClick={() => navigate('/tarologie')} className="card-mystical hover:border-[#C4A882]/50 transition-all group text-left" data-testid="upsell-tarologie">
+                <button onClick={() => navigate('/tarologie')} className="card-mystical hover:border-[#C5A059]/50 transition-all group text-left" data-testid="upsell-tarologie">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-[#E8E4DD] font-medium mb-1">Tarologie & Mediumnite</h3>
-                      <p className="text-[#A9A5A0]/50 text-sm">Tirage 7 cartes + lecture mediumnique</p>
-                      <span className="text-[#C4A882] font-bold text-sm mt-1 inline-block">35 EUR</span>
+                      <h3 className="text-[#F0E6D3] font-medium mb-1">Tarologie & Mediumnite</h3>
+                      <p className="text-[#B8B0C8]/50 text-sm">Tirage 7 cartes + lecture mediumnique</p>
+                      <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">35 EUR</span>
                     </div>
-                    <Sparkles className="w-5 h-5 text-[#C4A882] group-hover:scale-110 transition-transform" />
+                    <Sparkles className="w-5 h-5 text-[#C5A059] group-hover:scale-110 transition-transform" />
                   </div>
                 </button>
               </div>
 
               <button onClick={() => { setStep(1); setPdfUrl(null); }}
-                className="text-[#C4A882]/50 hover:text-[#C4A882] text-sm mx-auto block transition-colors" data-testid="new-test-btn">
+                className="text-[#C5A059]/50 hover:text-[#C5A059] text-sm mx-auto block transition-colors" data-testid="new-test-btn">
                 Tester une autre compatibilite
               </button>
             </div>

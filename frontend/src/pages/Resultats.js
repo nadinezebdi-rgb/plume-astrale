@@ -374,8 +374,8 @@ const Resultats = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-2 border-[#C4A882] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-[#A9A5A0]/70">Calcul de votre thème astral...</p>
+          <div className="w-12 h-12 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[#B8B0C8]/70">Calcul de votre thème astral...</p>
         </div>
       </div>
     );
@@ -409,17 +409,17 @@ const Resultats = () => {
               <span>Étude Complète Débloquée</span>
             </div>
             
-            <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+            <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
               Votre Manuscrit Céleste
             </h1>
             
             {userData.prenom && (
-              <p className="text-xl text-[#C4A882] mb-4">
+              <p className="text-xl text-[#C5A059] mb-4">
                 {userData.prenom}, découvrez qui vous êtes vraiment
               </p>
             )}
             
-            <p className="text-[#A9A5A0]/70 font-light">
+            <p className="text-[#B8B0C8]/70 font-light">
               Analyse personnalisée basée sur vos données de naissance
             </p>
             
@@ -441,7 +441,7 @@ const Resultats = () => {
               <button 
                 onClick={downloadCheminAme}
                 disabled={isDownloadingChemin}
-                className="btn-mystical rounded-full flex items-center gap-2 text-sm disabled:opacity-50 border-[#C4A882]" 
+                className="btn-mystical rounded-full flex items-center gap-2 text-sm disabled:opacity-50 border-[#C5A059]" 
                 data-testid="btn-download-chemin"
               >
                 {isDownloadingChemin ? (
@@ -456,17 +456,17 @@ const Resultats = () => {
             {/* Promo Code */}
             <div className="mt-4">
               {!showPromo ? (
-                <button onClick={() => setShowPromo(true)} className="text-[#C4A882]/60 hover:text-[#C4A882] text-sm underline transition-colors" data-testid="show-promo-btn">
+                <button onClick={() => setShowPromo(true)} className="text-[#C5A059]/60 hover:text-[#C5A059] text-sm underline transition-colors" data-testid="show-promo-btn">
                   <Tag className="w-3 h-3 inline mr-1" /> J'ai un code de reduction
                 </button>
               ) : (
                 <div className="max-w-sm mx-auto space-y-2">
                   <div className="flex gap-2">
                     <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0B0B0F] border border-[#C4A882]/30 rounded-full text-[#A9A5A0] text-center placeholder:text-[#A9A5A0]/30 focus:outline-none focus:border-[#C4A882] text-sm"
+                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
                       data-testid="promo-input" />
                     <button onClick={handleApplyPromo} disabled={promoLoading}
-                      className="px-5 py-2 bg-[#C4A882]/20 border border-[#C4A882]/50 rounded-full text-[#C4A882] hover:bg-[#C4A882]/30 text-sm disabled:opacity-50"
+                      className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"
                       data-testid="apply-promo-btn">
                       {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
                     </button>
@@ -478,12 +478,12 @@ const Resultats = () => {
             </div>
 
             {/* Share Section */}
-            <div className="mt-6 p-5 rounded-sm bg-gradient-to-r from-[#1A1A20]/60 to-[#141418]/60 border border-[#C4A882]/20">
+            <div className="mt-6 p-5 rounded-sm bg-gradient-to-r from-[#1C1735]/60 to-[#15112A]/60 border border-[#C5A059]/20">
               <div className="text-center">
-                <p className="text-[#E8E4DD] font-medium mb-1" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                <p className="text-[#F0E6D3] font-medium mb-1" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                   Partagez votre profil astral
                 </p>
-                <p className="text-[#A9A5A0]/50 text-sm mb-4">
+                <p className="text-[#B8B0C8]/50 text-sm mb-4">
                   {zodiacFrench && `Soleil en ${zodiacFrench}`}{ascendant ? ` | Ascendant ${ascendant}` : ''} | Chemin de Vie {cheminVie}
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
@@ -510,7 +510,7 @@ const Resultats = () => {
                   </button>
                   <button
                     onClick={copyShareLink}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#C4A882]/10 border border-[#C4A882]/30 text-[#C4A882] hover:bg-[#C4A882]/20 transition-all text-sm"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059] hover:bg-[#C5A059]/20 transition-all text-sm"
                     data-testid="share-copy-btn"
                   >
                     {linkCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -521,13 +521,13 @@ const Resultats = () => {
             </div>
             
             {/* Book promotion */}
-            <div className="mt-8 p-4 rounded-sm bg-gradient-to-r from-[#C4A882]/10 to-transparent border border-[#C4A882]/30">
+            <div className="mt-8 p-4 rounded-sm bg-gradient-to-r from-[#C5A059]/10 to-transparent border border-[#C5A059]/30">
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <div className="flex items-center gap-3">
-                  <Gift className="w-8 h-8 text-[#C4A882]" />
+                  <Gift className="w-8 h-8 text-[#C5A059]" />
                   <div className="text-left">
-                    <p className="text-[#E8E4DD] font-medium">Envie d'un livre à offrir ?</p>
-                    <p className="text-[#A9A5A0]/60 text-sm">Recevez votre manuscrit imprimé en édition reliée</p>
+                    <p className="text-[#F0E6D3] font-medium">Envie d'un livre à offrir ?</p>
+                    <p className="text-[#B8B0C8]/60 text-sm">Recevez votre manuscrit imprimé en édition reliée</p>
                   </div>
                 </div>
                 <button
@@ -550,8 +550,8 @@ const Resultats = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm transition-all duration-300 ${
                   activeTab === tab.id 
-                    ? 'bg-[#C4A882] text-[#0B0B0F]' 
-                    : 'bg-[#141418]/50 text-[#A9A5A0]/70 hover:bg-[#141418] border border-[#C4A882]/20'
+                    ? 'bg-[#C5A059] text-[#0C0918]' 
+                    : 'bg-[#15112A]/50 text-[#B8B0C8]/70 hover:bg-[#15112A] border border-[#C5A059]/20'
                 }`}
                 data-testid={`tab-${tab.id}`}
               >
@@ -570,30 +570,30 @@ const Resultats = () => {
                 <div className="card-mystical">
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-4">
-                      <div className="p-4 rounded-full bg-[#C4A882]/10 text-[#C4A882]">
+                      <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
                         <Sun className="w-8 h-8" strokeWidth={1} />
                       </div>
                       <div>
-                        <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                        <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                           Votre Soleil
                         </h2>
-                        <p className="text-[#C4A882]">
+                        <p className="text-[#C5A059]">
                           {sunPlanet ? `${getSigneFrancais(sunPlanet.sign)} • Maison ${sunPlanet.house}` : `Chemin de Vie ${cheminVie}`}
                         </p>
                       </div>
                     </div>
                     {sunPlanet && (
                       <div className="text-right">
-                        <span className="text-[#A9A5A0]/50 text-sm">Position</span>
-                        <p className="text-[#C4A882]">{sunPlanet.normDegree?.toFixed(1)}°</p>
+                        <span className="text-[#B8B0C8]/50 text-sm">Position</span>
+                        <p className="text-[#C5A059]">{sunPlanet.normDegree?.toFixed(1)}°</p>
                       </div>
                     )}
                   </div>
-                  <p className="text-[#A9A5A0]/80 leading-relaxed font-light mb-6">
+                  <p className="text-[#B8B0C8]/80 leading-relaxed font-light mb-6">
                     {sunPlanet ? (
                       <>
-                        Votre Soleil en <span className="text-[#C4A882]">{getSigneFrancais(sunPlanet.sign)}</span> révèle 
-                        votre essence profonde et votre identité fondamentale. Situé dans la <span className="text-[#C4A882]">Maison {sunPlanet.house}</span>, 
+                        Votre Soleil en <span className="text-[#C5A059]">{getSigneFrancais(sunPlanet.sign)}</span> révèle 
+                        votre essence profonde et votre identité fondamentale. Situé dans la <span className="text-[#C5A059]">Maison {sunPlanet.house}</span>, 
                         il éclaire particulièrement le domaine de votre vie lié à cette maison. 
                         Combiné à votre chemin de vie {cheminVie} ({cheminVieInfo.titre}), vous rayonnez d'une énergie unique.
                       </>
@@ -606,9 +606,9 @@ const Resultats = () => {
                     )}
                   </p>
                   {sunPlanet && (
-                    <div className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
-                      <p className="text-[#C4A882] text-sm mb-2">Caractéristiques du Soleil en {getSigneFrancais(sunPlanet.sign)}</p>
-                      <p className="text-[#A9A5A0]/60 font-light text-sm">
+                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
+                      <p className="text-[#C5A059] text-sm mb-2">Caractéristiques du Soleil en {getSigneFrancais(sunPlanet.sign)}</p>
+                      <p className="text-[#B8B0C8]/60 font-light text-sm">
                         Élément {getElementFromSign(getSigneFrancais(sunPlanet.sign))} • 
                         {sunPlanet.isRetro === 'true' ? ' Rétrograde' : ' Direct'} • 
                         Vitesse {sunPlanet.speed?.toFixed(2)}°/jour
@@ -621,29 +621,29 @@ const Resultats = () => {
                 <div className="card-mystical">
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-4">
-                      <div className="p-4 rounded-full bg-[#C4A882]/10 text-[#C4A882]">
+                      <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
                         <Moon className="w-8 h-8" strokeWidth={1} />
                       </div>
                       <div>
-                        <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                        <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                           Votre Lune
                         </h2>
-                        <p className="text-[#C4A882]">
+                        <p className="text-[#C5A059]">
                           {moonPlanet ? `${getSigneFrancais(moonPlanet.sign)} • Maison ${moonPlanet.house}` : 'Votre monde émotionnel'}
                         </p>
                       </div>
                     </div>
                     {moonPlanet && (
                       <div className="text-right">
-                        <span className="text-[#A9A5A0]/50 text-sm">Position</span>
-                        <p className="text-[#C4A882]">{moonPlanet.normDegree?.toFixed(1)}°</p>
+                        <span className="text-[#B8B0C8]/50 text-sm">Position</span>
+                        <p className="text-[#C5A059]">{moonPlanet.normDegree?.toFixed(1)}°</p>
                       </div>
                     )}
                   </div>
-                  <p className="text-[#A9A5A0]/80 leading-relaxed font-light">
+                  <p className="text-[#B8B0C8]/80 leading-relaxed font-light">
                     {moonPlanet ? (
                       <>
-                        Votre Lune en <span className="text-[#C4A882]">{getSigneFrancais(moonPlanet.sign)}</span> représente 
+                        Votre Lune en <span className="text-[#C5A059]">{getSigneFrancais(moonPlanet.sign)}</span> représente 
                         votre moi caché, votre monde émotionnel et votre sensibilité intérieure. 
                         Influencée par l'élément {getElementFromSign(getSigneFrancais(moonPlanet.sign))}, vous possédez 
                         une intelligence émotionnelle remarquable. La Maison {moonPlanet.house} colore la façon dont vous 
@@ -664,29 +664,29 @@ const Resultats = () => {
                 <div className="card-mystical">
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-4">
-                      <div className="p-4 rounded-full bg-[#C4A882]/10 text-[#C4A882]">
+                      <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
                         <Star className="w-8 h-8" strokeWidth={1} />
                       </div>
                       <div>
-                        <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                        <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                           Ascendant {ascendantPlanet ? getSigneFrancais(ascendantPlanet.sign) : ascendant}
                         </h2>
-                        <p className="text-[#C4A882]">
+                        <p className="text-[#C5A059]">
                           Élément {ascendantPlanet ? getElementFromSign(getSigneFrancais(ascendantPlanet.sign)) : ascendantInfo.element} • Votre masque social
                         </p>
                       </div>
                     </div>
                     {ascendantPlanet && (
                       <div className="text-right">
-                        <span className="text-[#A9A5A0]/50 text-sm">Position</span>
-                        <p className="text-[#C4A882]">{ascendantPlanet.normDegree?.toFixed(1)}°</p>
+                        <span className="text-[#B8B0C8]/50 text-sm">Position</span>
+                        <p className="text-[#C5A059]">{ascendantPlanet.normDegree?.toFixed(1)}°</p>
                       </div>
                     )}
                   </div>
-                  <p className="text-[#A9A5A0]/80 leading-relaxed font-light mb-4">
+                  <p className="text-[#B8B0C8]/80 leading-relaxed font-light mb-4">
                     {ascendantPlanet ? (
                       <>
-                        Votre Ascendant en <span className="text-[#C4A882]">{getSigneFrancais(ascendantPlanet.sign)}</span> est 
+                        Votre Ascendant en <span className="text-[#C5A059]">{getSigneFrancais(ascendantPlanet.sign)}</span> est 
                         votre masque social, la première impression que vous donnez aux autres. Il influence votre apparence 
                         physique et votre façon d'aborder le monde.
                       </>
@@ -694,29 +694,29 @@ const Resultats = () => {
                       ascendantInfo.description
                     )}
                   </p>
-                  <div className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
-                    <p className="text-[#C4A882] text-sm mb-2">Traits dominants</p>
-                    <p className="text-[#A9A5A0]/60 font-light">{ascendantInfo.traits}</p>
+                  <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
+                    <p className="text-[#C5A059] text-sm mb-2">Traits dominants</p>
+                    <p className="text-[#B8B0C8]/60 font-light">{ascendantInfo.traits}</p>
                   </div>
                 </div>
 
                 {/* Planètes supplémentaires */}
                 {planetsData && (
                   <div className="card-mystical">
-                    <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                    <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                       Positions Planétaires Complètes
                     </h3>
                     <div className="grid md:grid-cols-2 gap-4">
                       {planetsData.filter(p => !['Sun', 'Moon', 'Ascendant'].includes(p.name)).slice(0, 6).map((planet, index) => (
-                        <div key={index} className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
+                        <div key={index} className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
                           <div className="flex justify-between items-start">
                             <div>
-                              <p className="text-[#E8E4DD]">{planet.name}</p>
-                              <p className="text-[#C4A882] text-sm">{getSigneFrancais(planet.sign)}</p>
+                              <p className="text-[#F0E6D3]">{planet.name}</p>
+                              <p className="text-[#C5A059] text-sm">{getSigneFrancais(planet.sign)}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-[#A9A5A0]/60 text-sm">Maison {planet.house}</p>
-                              <p className="text-[#A9A5A0]/40 text-xs">{planet.normDegree?.toFixed(1)}°</p>
+                              <p className="text-[#B8B0C8]/60 text-sm">Maison {planet.house}</p>
+                              <p className="text-[#B8B0C8]/40 text-xs">{planet.normDegree?.toFixed(1)}°</p>
                             </div>
                           </div>
                         </div>
@@ -732,11 +732,11 @@ const Resultats = () => {
               <div className="space-y-8 animate-fade-in">
                 <div className="card-mystical">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#C4A882]/10 text-[#C4A882]">
+                    <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
                       <Star className="w-8 h-8" strokeWidth={1} />
                     </div>
                     <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                         Chemin de Vie {cheminVie} : {cheminVieInfo.titre}
                       </h2>
                     </div>
@@ -744,29 +744,29 @@ const Resultats = () => {
                   
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-[#C4A882] mb-3 flex items-center gap-2">
+                      <h3 className="text-[#C5A059] mb-3 flex items-center gap-2">
                         <Sparkles className="w-4 h-4" /> Vos Dons Naturels
                       </h3>
-                      <p className="text-[#A9A5A0]/80 font-light leading-relaxed">{cheminVieInfo.dons}</p>
+                      <p className="text-[#B8B0C8]/80 font-light leading-relaxed">{cheminVieInfo.dons}</p>
                     </div>
                     
-                    <div className="border-t border-[#C4A882]/10 pt-6">
-                      <h3 className="text-[#C4A882] mb-3 flex items-center gap-2">
+                    <div className="border-t border-[#C5A059]/10 pt-6">
+                      <h3 className="text-[#C5A059] mb-3 flex items-center gap-2">
                         <Zap className="w-4 h-4" /> Vos Défis Principaux
                       </h3>
-                      <p className="text-[#A9A5A0]/80 font-light leading-relaxed">{cheminVieInfo.defis}</p>
+                      <p className="text-[#B8B0C8]/80 font-light leading-relaxed">{cheminVieInfo.defis}</p>
                     </div>
                     
-                    <div className="border-t border-[#C4A882]/10 pt-6">
-                      <h3 className="text-[#C4A882] mb-3 flex items-center gap-2">
+                    <div className="border-t border-[#C5A059]/10 pt-6">
+                      <h3 className="text-[#C5A059] mb-3 flex items-center gap-2">
                         <Star className="w-4 h-4" /> Votre Mission
                       </h3>
-                      <p className="text-[#A9A5A0]/80 font-light leading-relaxed">{cheminVieInfo.mission}</p>
+                      <p className="text-[#B8B0C8]/80 font-light leading-relaxed">{cheminVieInfo.mission}</p>
                     </div>
                     
-                    <div className="bg-[#C4A882]/10 rounded-sm p-6 border border-[#C4A882]/20">
-                      <h3 className="text-[#E8E4DD] mb-3">Conseils d'Évolution</h3>
-                      <p className="text-[#A9A5A0]/80 font-light leading-relaxed">{cheminVieInfo.conseils}</p>
+                    <div className="bg-[#C5A059]/10 rounded-sm p-6 border border-[#C5A059]/20">
+                      <h3 className="text-[#F0E6D3] mb-3">Conseils d'Évolution</h3>
+                      <p className="text-[#B8B0C8]/80 font-light leading-relaxed">{cheminVieInfo.conseils}</p>
                     </div>
                   </div>
                 </div>
@@ -774,29 +774,29 @@ const Resultats = () => {
                 {/* Année Personnelle */}
                 <div className="card-mystical">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#C4A882]/10 text-[#C4A882]">
+                    <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
                       <Moon className="w-8 h-8" strokeWidth={1} />
                     </div>
                     <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                         Année Personnelle 2026 : {anneePersonnelle}
                       </h2>
                     </div>
                   </div>
-                  <p className="text-[#A9A5A0]/80 font-light leading-relaxed mb-6">
+                  <p className="text-[#B8B0C8]/80 font-light leading-relaxed mb-6">
                     Les énergies cosmiques de 2026 vous invitent à la réflexion, à la transformation et à la préparation 
                     d'un nouveau cycle. C'est une période propice pour trouver l'équilibre intérieur, lâcher prise 
                     sur ce qui ne vous sert plus, et approfondir votre spiritualité.
                   </p>
                   
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
-                      <p className="text-[#C4A882] text-sm mb-2">Périodes favorables</p>
-                      <p className="text-[#A9A5A0]/60 font-light text-sm">Mars-Mai et Septembre-Novembre</p>
+                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
+                      <p className="text-[#C5A059] text-sm mb-2">Périodes favorables</p>
+                      <p className="text-[#B8B0C8]/60 font-light text-sm">Mars-Mai et Septembre-Novembre</p>
                     </div>
-                    <div className="bg-[#141418]/50 rounded-sm p-4 border border-[#C4A882]/10">
-                      <p className="text-[#C4A882] text-sm mb-2">Points d'attention</p>
-                      <p className="text-[#A9A5A0]/60 font-light text-sm">Évitez les décisions impulsives en juin-juillet</p>
+                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
+                      <p className="text-[#C5A059] text-sm mb-2">Points d'attention</p>
+                      <p className="text-[#B8B0C8]/60 font-light text-sm">Évitez les décisions impulsives en juin-juillet</p>
                     </div>
                   </div>
                 </div>
@@ -808,16 +808,16 @@ const Resultats = () => {
               <div className="space-y-8 animate-fade-in">
                 <div className="card-mystical">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#C4A882]/10 text-[#C4A882]">
+                    <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
                       <Heart className="w-8 h-8" strokeWidth={1} />
                     </div>
                     <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                         Vénus - Votre Langage Amoureux
                       </h2>
                     </div>
                   </div>
-                  <p className="text-[#A9A5A0]/80 font-light leading-relaxed">
+                  <p className="text-[#B8B0C8]/80 font-light leading-relaxed">
                     Votre Vénus, influencée par l'énergie Terre, vous prédispose à un amour fidèle, sensuel et 
                     profondément engagé. L'amour se construit avec patience, soin et attention aux détails. 
                     Votre loyauté est sans faille et votre tendresse s'exprime par des gestes concrets.
@@ -826,26 +826,26 @@ const Resultats = () => {
 
                 <div className="card-mystical">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#C4A882]/10 text-[#C4A882]">
+                    <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
                       <Zap className="w-8 h-8" strokeWidth={1} />
                     </div>
                     <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                         Mars - Votre Force d'Action
                       </h2>
                     </div>
                   </div>
-                  <p className="text-[#A9A5A0]/80 font-light leading-relaxed">
+                  <p className="text-[#B8B0C8]/80 font-light leading-relaxed">
                     Votre Mars en énergie Terre confère une action méthodique et persévérante. Vous agissez avec 
                     une détermination implacable, sans vous précipiter. L'endurance est votre arme secrète.
                   </p>
                 </div>
 
-                <div className="card-mystical bg-[#C4A882]/5">
-                  <h3 className="text-xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                <div className="card-mystical bg-[#C5A059]/5">
+                  <h3 className="text-xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                     Synthèse Affective
                   </h3>
-                  <p className="text-[#A9A5A0]/80 font-light leading-relaxed">
+                  <p className="text-[#B8B0C8]/80 font-light leading-relaxed">
                     La combinaison de votre Vénus et Mars révèle un équilibre entre réceptivité et affirmation. 
                     L'élément Terre dominant colore vos relations de stabilité et de sensualité. 
                     Pour des relations épanouissantes, cultivez l'authenticité et acceptez la vulnérabilité comme force.
@@ -858,17 +858,17 @@ const Resultats = () => {
             {activeTab === 'defis' && (
               <div className="animate-fade-in">
                 <div className="card-mystical mb-8">
-                  <h2 className="text-2xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                  <h2 className="text-2xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                     Aspects Planétaires de Votre Thème
                   </h2>
-                  <p className="text-[#A9A5A0]/70 font-light mb-8">
+                  <p className="text-[#B8B0C8]/70 font-light mb-8">
                     Les aspects révèlent vos talents innés et vos défis de croissance. Les carrés et oppositions 
                     sont vos meilleurs professeurs.
                   </p>
                   
                   <div className="space-y-6">
                     {aspectsPlanetaires.map((aspect, index) => (
-                      <div key={index} className="bg-[#141418]/50 rounded-sm p-6 border border-[#C4A882]/10">
+                      <div key={index} className="bg-[#15112A]/50 rounded-sm p-6 border border-[#C5A059]/10">
                         <div className="flex items-center gap-3 mb-3">
                           <span className={`px-3 py-1 rounded-full text-xs ${
                             aspect.aspect === 'Trigone' ? 'bg-emerald-500/20 text-emerald-400' :
@@ -877,9 +877,9 @@ const Resultats = () => {
                           }`}>
                             {aspect.aspect}
                           </span>
-                          <span className="text-[#E8E4DD]">{aspect.planetes}</span>
+                          <span className="text-[#F0E6D3]">{aspect.planetes}</span>
                         </div>
-                        <p className="text-[#A9A5A0]/70 font-light text-sm">{aspect.description}</p>
+                        <p className="text-[#B8B0C8]/70 font-light text-sm">{aspect.description}</p>
                       </div>
                     ))}
                   </div>
@@ -892,53 +892,53 @@ const Resultats = () => {
               <div className="space-y-8 animate-fade-in">
                 <div className="card-mystical">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#C4A882]/10 text-[#C4A882]">
+                    <div className="p-4 rounded-full bg-[#C5A059]/10 text-[#C5A059]">
                       <Sparkles className="w-8 h-8" strokeWidth={1} />
                     </div>
                     <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                         Message de la Plume Astrale
                       </h2>
                     </div>
                   </div>
                   
-                  <p className="text-[#A9A5A0]/80 font-light leading-relaxed mb-6">
+                  <p className="text-[#B8B0C8]/80 font-light leading-relaxed mb-6">
                     {userData.prenom ? `${userData.prenom}, votre` : 'Votre'} thème astral est unique. Votre chemin de vie {cheminVie} ({cheminVieInfo.titre}), 
                     combiné à votre ascendant {ascendant} et à l'élément Terre dominant, révèle une âme profonde 
                     et créative destinée à construire et à inspirer.
                   </p>
                   
-                  <div className="bg-[#C4A882]/10 rounded-sm p-6 border border-[#C4A882]/20 mb-8">
-                    <p className="text-[#E8E4DD] text-center italic" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                  <div className="bg-[#C5A059]/10 rounded-sm p-6 border border-[#C5A059]/20 mb-8">
+                    <p className="text-[#F0E6D3] text-center italic" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                       "Que les étoiles vous guident, que la Plume vous éclaire, 
                       et que votre destinée se révèle dans toute sa splendeur."
                     </p>
                   </div>
                   
-                  <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+                  <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                     Trois Clés Essentielles pour 2026
                   </h3>
                   
                   <div className="space-y-4">
                     <div className="flex gap-4">
-                      <div className="w-8 h-8 rounded-full bg-[#C4A882]/20 flex items-center justify-center text-[#C4A882] flex-shrink-0">1</div>
+                      <div className="w-8 h-8 rounded-full bg-[#C5A059]/20 flex items-center justify-center text-[#C5A059] flex-shrink-0">1</div>
                       <div>
-                        <p className="text-[#E8E4DD] mb-1">Honorez votre essence d'Artiste</p>
-                        <p className="text-[#A9A5A0]/60 font-light text-sm">Inspirez, communiquez la joie, élevez les vibrations.</p>
+                        <p className="text-[#F0E6D3] mb-1">Honorez votre essence d'Artiste</p>
+                        <p className="text-[#B8B0C8]/60 font-light text-sm">Inspirez, communiquez la joie, élevez les vibrations.</p>
                       </div>
                     </div>
                     <div className="flex gap-4">
-                      <div className="w-8 h-8 rounded-full bg-[#C4A882]/20 flex items-center justify-center text-[#C4A882] flex-shrink-0">2</div>
+                      <div className="w-8 h-8 rounded-full bg-[#C5A059]/20 flex items-center justify-center text-[#C5A059] flex-shrink-0">2</div>
                       <div>
-                        <p className="text-[#E8E4DD] mb-1">Cultivez la force de votre élément Terre</p>
-                        <p className="text-[#A9A5A0]/60 font-light text-sm">Maîtrisez et utilisez consciemment vos outils de navigation.</p>
+                        <p className="text-[#F0E6D3] mb-1">Cultivez la force de votre élément Terre</p>
+                        <p className="text-[#B8B0C8]/60 font-light text-sm">Maîtrisez et utilisez consciemment vos outils de navigation.</p>
                       </div>
                     </div>
                     <div className="flex gap-4">
-                      <div className="w-8 h-8 rounded-full bg-[#C4A882]/20 flex items-center justify-center text-[#C4A882] flex-shrink-0">3</div>
+                      <div className="w-8 h-8 rounded-full bg-[#C5A059]/20 flex items-center justify-center text-[#C5A059] flex-shrink-0">3</div>
                       <div>
-                        <p className="text-[#E8E4DD] mb-1">Transformez les défis en sagesse</p>
-                        <p className="text-[#A9A5A0]/60 font-light text-sm">Les aspects difficiles sont des invitations à grandir.</p>
+                        <p className="text-[#F0E6D3] mb-1">Transformez les défis en sagesse</p>
+                        <p className="text-[#B8B0C8]/60 font-light text-sm">Les aspects difficiles sont des invitations à grandir.</p>
                       </div>
                     </div>
                   </div>
@@ -948,8 +948,8 @@ const Resultats = () => {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {conseilsAlignement.map((conseil, index) => (
                     <div key={index} className="card-mystical">
-                      <h4 className="text-[#C4A882] mb-3">{conseil.domaine}</h4>
-                      <p className="text-[#A9A5A0]/70 font-light text-sm">{conseil.conseil}</p>
+                      <h4 className="text-[#C5A059] mb-3">{conseil.domaine}</h4>
+                      <p className="text-[#B8B0C8]/70 font-light text-sm">{conseil.conseil}</p>
                     </div>
                   ))}
                 </div>
@@ -960,14 +960,14 @@ const Resultats = () => {
           {/* Footer */}
           <div className="mt-16 text-center">
             <div className="card-mystical p-8 glow-gold">
-              <h2 className="text-2xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+              <h2 className="text-2xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                 Votre Voyage ne Fait que Commencer
               </h2>
-              <p className="text-[#A9A5A0]/60 mb-6 font-light">
+              <p className="text-[#B8B0C8]/60 mb-6 font-light">
                 Cette étude est un guide pour votre évolution personnelle. 
                 Revisitez-la régulièrement pour approfondir votre compréhension.
               </p>
-              <p className="text-sm text-[#A9A5A0]/40 font-light">
+              <p className="text-sm text-[#B8B0C8]/40 font-light">
                 Cet outil est un support de développement personnel. 
                 Il ne remplace aucun avis médical, psychologique ou juridique.
               </p>

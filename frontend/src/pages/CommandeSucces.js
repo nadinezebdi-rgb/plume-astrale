@@ -105,11 +105,11 @@ const CommandeSucces = () => {
           
           {status === 'checking' && (
             <>
-              <Loader2 className="w-16 h-16 text-[#C4A882] mx-auto mb-8 animate-spin" />
-              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+              <Loader2 className="w-16 h-16 text-[#C5A059] mx-auto mb-8 animate-spin" />
+              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                 Vérification de votre commande...
               </h1>
-              <p className="text-[#A9A5A0]/70 font-light">
+              <p className="text-[#B8B0C8]/70 font-light">
                 Nous confirmons votre paiement
               </p>
             </>
@@ -119,32 +119,32 @@ const CommandeSucces = () => {
             <>
               <div className="relative mb-8">
                 <CheckCircle className="w-20 h-20 text-emerald-500 mx-auto" strokeWidth={1.5} />
-                <Sparkles className="w-8 h-8 text-[#C4A882] absolute top-0 right-1/3 animate-pulse" />
+                <Sparkles className="w-8 h-8 text-[#C5A059] absolute top-0 right-1/3 animate-pulse" />
               </div>
               
-              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                 Commande Confirmée !
               </h1>
               
-              <p className="text-[#C4A882] text-xl mb-6">
+              <p className="text-[#C5A059] text-xl mb-6">
                 Votre Livre de la Plume est en préparation
               </p>
               
               {/* Order details */}
-              <div className="bg-[#141418]/50 rounded-sm p-6 mb-8 text-left">
-                <h3 className="text-[#E8E4DD] mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+              <div className="bg-[#15112A]/50 rounded-sm p-6 mb-8 text-left">
+                <h3 className="text-[#F0E6D3] mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                   Détails de la commande
                 </h3>
                 
                 <div className="space-y-3 text-sm">
-                  <div className="flex items-center gap-3 text-[#A9A5A0]/70">
-                    <Package className="w-4 h-4 text-[#C4A882]" />
+                  <div className="flex items-center gap-3 text-[#B8B0C8]/70">
+                    <Package className="w-4 h-4 text-[#C5A059]" />
                     <span>Le Livre de la Plume - Édition reliée</span>
                   </div>
                   
                   {order?.shipping_address && (
-                    <div className="flex items-start gap-3 text-[#A9A5A0]/70">
-                      <Truck className="w-4 h-4 text-[#C4A882] mt-1" />
+                    <div className="flex items-start gap-3 text-[#B8B0C8]/70">
+                      <Truck className="w-4 h-4 text-[#C5A059] mt-1" />
                       <div>
                         <p>{order.shipping_address.name}</p>
                         <p>{order.shipping_address.street}</p>
@@ -155,14 +155,14 @@ const CommandeSucces = () => {
                     </div>
                   )}
                   
-                  <div className="flex items-center gap-3 text-[#A9A5A0]/70">
-                    <Calendar className="w-4 h-4 text-[#C4A882]" />
+                  <div className="flex items-center gap-3 text-[#B8B0C8]/70">
+                    <Calendar className="w-4 h-4 text-[#C5A059]" />
                     <span>Livraison estimée : {getDeliveryDate()}</span>
                   </div>
                 </div>
               </div>
               
-              <p className="text-[#A9A5A0]/60 mb-8 font-light">
+              <p className="text-[#B8B0C8]/60 mb-8 font-light">
                 Un email de confirmation a été envoyé. 
                 Vous recevrez un numéro de suivi dès l'expédition.
               </p>
@@ -193,11 +193,11 @@ const CommandeSucces = () => {
                 <span className="text-4xl text-red-400">!</span>
               </div>
               
-              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                 Une erreur est survenue
               </h1>
               
-              <p className="text-[#A9A5A0]/70 mb-10 font-light">
+              <p className="text-[#B8B0C8]/70 mb-10 font-light">
                 Nous n'avons pas pu confirmer votre commande. 
                 Si vous avez été débité, contactez notre support.
               </p>

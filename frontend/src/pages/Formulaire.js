@@ -180,8 +180,8 @@ const Formulaire = () => {
                   onClick={() => setFormData({...formData, genre: g.val})}
                   className={`px-10 py-4 text-sm tracking-widest uppercase transition-all duration-300 ${
                     formData.genre === g.val
-                      ? 'border-[#C4A882] bg-[#C4A882]/10 text-[#E8E4DD]'
-                      : 'border-[#C4A882]/15 text-[#A9A5A0] hover:border-[#C4A882]/30'
+                      ? 'border-[#C5A059] bg-[#C5A059]/10 text-[#F0E6D3]'
+                      : 'border-[#C5A059]/15 text-[#B8B0C8] hover:border-[#C5A059]/30'
                   }`}
                   style={{ border: `1px solid`, borderColor: formData.genre === g.val ? 'var(--pa-accent)' : 'var(--pa-divider)', letterSpacing: '0.12em' }}
                   data-testid={`genre-${g.val}`}

@@ -73,11 +73,11 @@ const PaiementSucces = () => {
           
           {status === 'checking' && (
             <>
-              <Loader2 className="w-16 h-16 text-[#C4A882] mx-auto mb-8 animate-spin" />
-              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+              <Loader2 className="w-16 h-16 text-[#C5A059] mx-auto mb-8 animate-spin" />
+              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                 Vérification en cours...
               </h1>
-              <p className="text-[#A9A5A0]/70 font-light">
+              <p className="text-[#B8B0C8]/70 font-light">
                 Nous confirmons votre paiement auprès de Stripe
               </p>
             </>
@@ -87,18 +87,18 @@ const PaiementSucces = () => {
             <>
               <div className="relative mb-8">
                 <CheckCircle className="w-20 h-20 text-emerald-500 mx-auto" strokeWidth={1.5} />
-                <Sparkles className="w-8 h-8 text-[#C4A882] absolute top-0 right-1/3 animate-pulse" />
+                <Sparkles className="w-8 h-8 text-[#C5A059] absolute top-0 right-1/3 animate-pulse" />
               </div>
               
-              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                 Félicitations !
               </h1>
               
-              <p className="text-[#C4A882] text-xl mb-6">
+              <p className="text-[#C5A059] text-xl mb-6">
                 Votre Manuscrit de la Plume est prêt
               </p>
               
-              <p className="text-[#A9A5A0]/70 mb-10 font-light leading-relaxed">
+              <p className="text-[#B8B0C8]/70 mb-10 font-light leading-relaxed">
                 Ce trésor céleste vous accompagnera tout au long de votre vie.
                 Conservez-le précieusement et revenez-y à chaque moment de questionnement.
               </p>
@@ -124,7 +124,7 @@ const PaiementSucces = () => {
                 </button>
               </div>
               
-              <p className="text-[#A9A5A0]/40 text-sm mt-8 font-light">
+              <p className="text-[#B8B0C8]/40 text-sm mt-8 font-light">
                 Un email de confirmation a été envoyé à votre adresse
               </p>
             </>
@@ -136,11 +136,11 @@ const PaiementSucces = () => {
                 <span className="text-4xl text-red-400">!</span>
               </div>
               
-              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8E4DD' }}>
+              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                 Une erreur est survenue
               </h1>
               
-              <p className="text-[#A9A5A0]/70 mb-10 font-light">
+              <p className="text-[#B8B0C8]/70 mb-10 font-light">
                 Nous n'avons pas pu confirmer votre paiement. 
                 Si vous avez été débité, contactez notre support.
               </p>
