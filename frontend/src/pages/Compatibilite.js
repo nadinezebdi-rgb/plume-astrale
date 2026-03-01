@@ -3,12 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, Sparkles, Star, Flame, ArrowRight, Tag, Loader2 } from 'lucide-react';
 import StarField from '@/components/StarField/StarField';
 
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+
 const Compatibilite = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [isPaid, setIsPaid] = useState(false);
   const [partnerSign, setPartnerSign] = useState('');
   const [showResult, setShowResult] = useState(false);
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoError, setPromoError] = useState('');
+  const [promoSuccess, setPromoSuccess] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
 
   const signes = [
     'Bélier', 'Taureau', 'Gémeaux', 'Cancer', 

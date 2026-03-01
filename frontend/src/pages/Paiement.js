@@ -3,11 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { CreditCard, Shield, CheckCircle, ArrowLeft, Sparkles, Star, Heart, Crown, Tag, Loader2 } from 'lucide-react';
 import StarField from '@/components/StarField/StarField';
 
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+
 const Paiement = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState('essentiel');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoError, setPromoError] = useState('');
+  const [promoSuccess, setPromoSuccess] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
 
   useEffect(() => {
     const data = localStorage.getItem('plume_astrale_data');
