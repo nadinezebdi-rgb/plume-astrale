@@ -160,6 +160,7 @@ const Formulaire = () => {
 
         {/* Question */}
         <div className="text-center mb-12">
+          <img src="https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/xb75bltg_img3.png" alt="" className="w-16 md:w-20 mx-auto mb-6 opacity-70" style={{ filter: 'drop-shadow(0 0 15px rgba(197,160,89,0.12))' }} />
           <h1
             className="text-2xl md:text-4xl mb-4"
             style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
