@@ -1297,6 +1297,56 @@ async def generate_compatibility(request: CompatibilityRequest):
     return {"pdf_url": pdf_url}
 
 
+# ========== PREMIUM EXPERIENCE ROUTES ==========
+
+from services.premium_service import generate_premium_content
+from services.premium_pdf_generator import generate_premium_pdf
+
+class PremiumRequest(BaseModel):
+    prenom: str
+    dateNaissance: str
+    heureNaissance: str = "12:00"
+    ville: str = "Paris"
+
+@api_router.post("/premium/generate")
+async def premium_generate(request: PremiumRequest):
+    """Generate the 5-step premium content using LLM"""
+    try:
+        user_data = {
+            "prenom": request.prenom,
+            "dateNaissance": request.dateNaissance,
+            "heureNaissance": request.heureNaissance,
+            "ville": request.ville,
+        }
+        content = await generate_premium_content(user_data)
+        return {"success": True, "data": content}
+    except Exception as e:
+        logger.error(f"Premium generate error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la generation du contenu premium: {str(e)}")
+
+@api_router.post("/premium/pdf")
+async def premium_pdf(request: Request):
+    """Generate the Premium PDF from the full premium data"""
+    from fastapi.responses import Response
+    try:
+        body = await request.json()
+        premium_data = body.get("data", {})
+        if not premium_data:
+            raise HTTPException(status_code=400, detail="Donnees premium manquantes")
+        pdf_bytes = generate_premium_pdf(premium_data)
+        prenom = premium_data.get("prenom", "premium")
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=cartographie_premium_{prenom}.pdf"}
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Premium PDF error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur PDF: {str(e)}")
+
+
 # Include the router in the main app
 # Mount static assets for tarot/zodiac images
 app.mount("/api/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
