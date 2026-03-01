@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 
 const DOMAIN = 'https://plume-astrale.fr';
-const DEFAULT_IMAGE = 'https://plume-astrale.fr/og-image.png';
+const DEFAULT_IMAGE = 'https://static.prod-images.emergentagent.com/jobs/4ab45f1c-820b-4113-96c8-845aa5b0f3e2/images/e6ac5f3284cff4212addcf06b794de85c24a62bc2c57b60538aadfec8e4f2aa8.png';
 
 const SEO_DATA = {
   '/': {
