@@ -202,6 +202,7 @@ const Paiement = () => {
           <span>Rembourse sous 30j</span>
         </div>
       </div>
+      </div>
     </div>
   );
 };
