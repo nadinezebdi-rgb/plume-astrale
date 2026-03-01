@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const PLUME_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/v8g1i6qn_une%20plume.png";
 const SOLEIL_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/sm8ajzvy_symbole%20dor%C3%A9.png";
@@ -13,6 +14,7 @@ const Index = () => {
 
   return (
     <div className="relative z-10" data-testid="homepage">
+      <SEO path="/" />
 
       {/* ─── HERO ─── */}
       <section className="pt-24 pb-12 px-6 md:px-8" data-testid="hero-section">
