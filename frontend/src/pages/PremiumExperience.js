@@ -208,7 +208,7 @@ const PremiumExperience = () => {
                 style={{
                   background: isActive ? 'rgba(197,160,89,0.12)' : 'transparent',
                   border: `1px solid ${isActive ? 'var(--pa-accent)' : 'var(--pa-divider)'}`,
-                  opacity: (allRevealed || i <= Math.max(...completedSteps, -1) + 1) ? 1 : 0.35,
+                  opacity: (allRevealed || i <= (completedSteps.size > 0 ? Math.max(...completedSteps) : -1) + 1) ? 1 : 0.35,
                 }}
                 data-testid={`premium-mobile-step-${i}`}
               >
