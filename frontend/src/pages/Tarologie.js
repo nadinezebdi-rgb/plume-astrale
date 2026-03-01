@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Loader2, ArrowLeft, Sparkles, Download, Lock, Eye, Tag } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 

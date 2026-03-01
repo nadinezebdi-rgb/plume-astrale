@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sun, Moon, Star, Heart, Briefcase, Activity, Coins, RefreshCw } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const Horoscope = () => {
   const navigate = useNavigate();

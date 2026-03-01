@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Sparkles, BookOpen, Eye, TrendingUp, Tag, Loader2 } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -98,6 +99,7 @@ const PremiumLanding = () => {
 
   return (
     <div className="relative z-10" data-testid="premium-landing">
+      <SEO path="/premium" />
       {/* Hero */}
       <section className="pt-28 pb-16 px-6 md:px-8" data-testid="premium-hero">
         <div className="max-w-3xl mx-auto text-center">
