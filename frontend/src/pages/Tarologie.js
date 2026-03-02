@@ -13,6 +13,12 @@ const POSITION_LABELS = {
   synthese: { label: 'La Synthese', icon: '5' },
 };
 
+const PREDICTION_CATS = [
+  { key: 'love', label: 'Amour', icon: Heart, color: '#C97878' },
+  { key: 'career', label: 'Carriere', icon: Briefcase, color: '#7CB88A' },
+  { key: 'finance', label: 'Finances', icon: Coins, color: '#C5A059' },
+];
+
 const CrossCard = ({ item, index, isLocked, onPurchase }) => {
   if (!item) return null;
   const posInfo = POSITION_LABELS[item.position_id] || {};
