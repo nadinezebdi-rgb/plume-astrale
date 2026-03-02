@@ -1027,15 +1027,23 @@ async def tarot_oui_non_endpoint(request: TarotOuiNonRequest):
         if api_result and api_result.get('name'):
             # Translate description to French
             description_fr = await translate_to_french(api_result.get('description', ''))
+            # Determine orientation from API value
+            api_value = str(api_result.get('value', '')).lower().strip()
+            if api_value == 'yes':
+                orientation = 'oui'
+            elif api_value == 'no':
+                orientation = 'non'
+            else:
+                orientation = 'neutre'
             return {
                 "question": request.question,
                 "carte": {
-                    "numero": api_result.get('value', 0),
+                    "numero": 1,
                     "nom": api_result.get('name', ''),
-                    "energie": description_fr[:80] if description_fr else '',
+                    "energie": api_result.get('name', ''),
                     "image": "",
                 },
-                "orientation": "oui" if "yes" in api_result.get('name', '').lower() or api_result.get('value', 0) > 50 else "non" if "no" in api_result.get('name', '').lower() or api_result.get('value', 0) < 30 else "neutre",
+                "orientation": orientation,
                 "reponse": description_fr,
                 "source": "api",
                 "date": datetime.now().isoformat(),
