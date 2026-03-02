@@ -49,6 +49,11 @@ const SEO_DATA = {
     description: 'Consultez votre horoscope hebdomadaire et mensuel pour chaque signe du zodiaque. Previsions astrologiques detaillees et traduites en francais.',
     keywords: 'horoscope hebdomadaire, horoscope mensuel, previsions astrologiques, horoscope signe',
   },
+  '/charte-de-confiance': {
+    title: 'Charte de Confiance | Approche Responsable — Plume Astrale',
+    description: 'Notre cadre : calculs astrologiques professionnels, lecture symbolique experte, restitution claire. Une guidance symbolique, pas une verite absolue. Decouvrez notre engagement ethique.',
+    keywords: 'charte confiance astrologie, ethique tarot, guidance responsable, approche astrologique, deontologie astrologie',
+  },
 };
 
 const SEO = ({ path }) => {

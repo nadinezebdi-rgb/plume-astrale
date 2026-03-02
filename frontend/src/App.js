@@ -27,6 +27,7 @@ import Compatibilite2 from "@/pages/Compatibilite2";
 import Numerologie from "@/pages/Numerologie";
 import PremiumLanding from "@/pages/PremiumLanding";
 import PremiumExperience from "@/pages/PremiumExperience";
+import CharteConfiance from "@/pages/CharteConfiance";
 
 // 404 Component
 const NotFound = () => (
@@ -67,6 +68,7 @@ function App() {
           <Route path="/numerologie" element={<Numerologie />} />
           <Route path="/premium" element={<PremiumLanding />} />
           <Route path="/premium/experience" element={<PremiumExperience />} />
+          <Route path="/charte-de-confiance" element={<CharteConfiance />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
