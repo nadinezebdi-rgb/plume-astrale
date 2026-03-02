@@ -1049,6 +1049,43 @@ async def tarot_oui_non_endpoint(request: TarotOuiNonRequest):
     return result
 
 
+# ========== TAROT PREDICTIONS (Growth Plan) ==========
+
+@api_router.get("/tarot/predictions")
+async def tarot_predictions_endpoint():
+    """Get tarot predictions for Love, Career, Finance from AstrologyAPI Growth Plan"""
+    try:
+        service = get_astrology_service()
+        api_result = await service.get_tarot_predictions()
+        if not api_result:
+            raise HTTPException(status_code=503, detail="Service de predictions indisponible")
+        
+        # Translate each category
+        translated = {}
+        for category in ['love', 'career', 'finance']:
+            cat_data = api_result.get(category, {})
+            if isinstance(cat_data, dict):
+                total_text = cat_data.get('total', '')
+                score = cat_data.get('score', 0)
+                translated_text = await translate_to_french(total_text) if total_text else ''
+                translated[category] = {
+                    "score": score,
+                    "texte": translated_text,
+                }
+            elif isinstance(cat_data, str):
+                translated[category] = {
+                    "score": 0,
+                    "texte": await translate_to_french(cat_data),
+                }
+        
+        return {"success": True, "source": "api", "predictions": translated}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Tarot predictions error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur predictions: {str(e)}")
+
+
 # ========== TAROLOGIE MEDIUMNITE ROUTES ==========
 
 class MediumniteRequest(BaseModel):
