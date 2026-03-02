@@ -212,6 +212,34 @@ const Tarologie = () => {
             </p>
           </div>
 
+          {/* Predictions from API */}
+          <div className="mb-10" data-testid="tarot-predictions">
+            <p className="section-label mb-4">Vos predictions du jour</p>
+            {predLoading ? (
+              <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--pa-muted)' }}>
+                <Loader2 className="w-4 h-4 animate-spin" /> Consultation des cartes...
+              </div>
+            ) : predictions ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {PREDICTION_CATS.map(({ key, label, icon: Icon, color }) => {
+                  const pred = predictions[key];
+                  if (!pred) return null;
+                  return (
+                    <div key={key} className="card-editorial p-5" data-testid={`prediction-${key}`}>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Icon className="w-4 h-4" style={{ color }} strokeWidth={1.5} />
+                        <span className="text-xs tracking-widest uppercase" style={{ color, letterSpacing: '0.1em' }}>{label}</span>
+                      </div>
+                      <p className="text-sm leading-relaxed" style={{ color: 'var(--pa-body)' }}>
+                        {pred.texte?.length > 200 ? pred.texte.substring(0, 200) + '...' : pred.texte}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+
           {/* What's included */}
           <div className="bg-[rgba(255,255,255,0.02)] border border-[#C5A059]/20 rounded-sm p-6 mb-8" data-testid="offer-details">
             <h3 className="text-[#C5A059] text-sm uppercase tracking-widest mb-4">Ce qui est inclus</h3>
