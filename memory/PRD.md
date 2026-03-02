@@ -1,6 +1,6 @@
 # Plume Astrale - PRD
 
-## Date: 01 Mars 2026
+## Date: 02 Mars 2026
 
 ## Produit
 Espace digital de guidance symbolique, alliant calculs astrologiques precis et interpretation experte.
@@ -12,44 +12,38 @@ https://plume-astrale.fr
 - Fond violet profond (#0C0918) avec etoiles scintillantes et orbes
 - Ecriture doree (#C5A059), headings (#F0E6D3)
 - Typo: Cormorant Garamond (headings), DM Sans (body)
-- Symboles: plume doree (hero), soleil dore (section astrologie)
 - Code Promo: PLUME2026
 
 ## Tech Stack
 - Frontend: React, React Router, TailwindCSS, Lucide React, react-helmet-async
 - Backend: FastAPI (Python), reportlab (PDF), emergentintegrations (LLM + Stripe)
-- APIs: AstrologyAPI, Emergent LLM (gpt-4o-mini) pour traduction + interpretations
+- APIs: AstrologyAPI (Growth Plan), Emergent LLM (gpt-4o-mini)
 - Paiement: Stripe
-- Deploiement: Docker Compose, Nginx (manuel par l'utilisateur)
+- Deploiement: Docker Compose, Nginx
+
+## AstrologyAPI Growth Plan
+- **Disponible**: western_horoscope, planets/tropical, daily/weekly/monthly horoscope, geo_details, natal_wheel_chart, house_cusps, tarot_predictions, yes_no_tarot
+- **Bloque (plan superieur)**: numero_table, natal_chart_interpretation, match_making, current_transit, general_ascendant_report
 
 ## Completed
 1. PDF Theme Astral Pro 28+ pages
 2. Carte Astrale Partageable PNG
 3. Integration AstrologyAPI Phase 1
 4. Flux Tarot Oui/Non (3 tirages gratuits)
-5. Numerologie + Traduction IA
+5. Numerologie + Traduction IA (local, API bloquee)
 6. Code Promo PLUME2026 toutes pages
-7. Refonte design editoriale complete
-8. Retour violet + etoiles scintillantes
-9. Integration symboles (plume + soleil), espaces resserres, titre agrandi
-10. **Experience Premium 199 EUR** (01 Mars 2026):
-    - Backend: premium_service.py, premium_pdf_generator.py, endpoints /api/premium/generate + /api/premium/pdf
-    - Frontend: PremiumLanding.js, PremiumExperience.js (parcours guide 5 etapes avec sidebar)
-    - Tests: 100% backend + frontend
-11. **SEO Complet** (01 Mars 2026):
-    - react-helmet-async: meta tags dynamiques par page (title, description, keywords, OG, Twitter)
-    - JSON-LD structured data (WebSite + ProfessionalService + OfferCatalog)
-    - sitemap.xml (9 pages publiques avec priorites et frequences)
-    - robots.txt (crawl autorise, pages privees exclues)
-    - Canonical URLs pointant vers plume-astrale.fr
-    - Open Graph + Twitter Cards avec image generee
-    - Nettoyage fonts inutilisees (Cinzel/Quicksand supprimees)
-    - SEO ajoute sur: Index, Premium, TarotOuiNon, Formulaire, Numerologie, Quotidien, Tarologie, Compatibilite, Horoscope
+7. Refonte design editoriale complete (violet/dore/etoiles)
+8. Experience Premium 199 EUR (parcours guide 5 etapes + PDF)
+9. SEO Complet (meta tags, sitemap, robots.txt, JSON-LD, OG)
+10. **Integration Growth Plan AstrologyAPI** (02 Mars 2026):
+    - Tarot Oui/Non: utilise l'API yes_no_tarot avec traduction FR (fallback local)
+    - Predictions Tarot: endpoint /api/tarot/predictions (amour, carriere, finances)
+    - Section "Vos predictions du jour" ajoutee sur la page Tarologie
 
 ## Backlog
 ### P1
 - [ ] Integration emails (SendGrid/Resend/Brevo) — capture leads + envoi PDF
-- [ ] Endpoints Growth AstrologyAPI (bloque par plan utilisateur)
+- [ ] Endpoints Growth AstrologyAPI avances (bloque par plan superieur: numero_table, match_making, current_transit)
 
 ### P2
 - [ ] Abonnement Stripe 14,99 EUR/mois (contenu recurrent)
@@ -57,35 +51,5 @@ https://plume-astrale.fr
 
 ### P3
 - [ ] Emails automatiques relance
+- [ ] Blog SEO (horoscope mensuel, articles numerologie)
 - [ ] React Context pour etat global
-- [ ] Script de deploiement automatise
-
-## Architecture
-```
-/app
-├── backend
-│   ├── server.py
-│   ├── services/
-│   │   ├── premium_service.py
-│   │   ├── premium_pdf_generator.py
-│   │   ├── pdf_generator_v2.py
-│   │   ├── translation_service.py
-│   │   ├── tarot_service.py
-│   │   └── ...
-├── frontend
-│   ├── public/
-│   │   ├── index.html              (meta tags, JSON-LD, OG)
-│   │   ├── sitemap.xml
-│   │   └── robots.txt
-│   └── src/
-│       ├── components/
-│       │   ├── SEO.js              (meta tags dynamiques par page)
-│       │   ├── Navbar.js
-│       │   └── StarField/
-│       ├── pages/
-│       │   ├── Index.js
-│       │   ├── PremiumLanding.js
-│       │   ├── PremiumExperience.js
-│       │   └── ...
-│       └── index.js                (HelmetProvider)
-```
