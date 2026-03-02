@@ -73,6 +73,8 @@ const Tarologie = () => {
   const [promoError, setPromoError] = useState('');
   const [promoSuccess, setPromoSuccess] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
+  const [predictions, setPredictions] = useState(null);
+  const [predLoading, setPredLoading] = useState(false);
 
   React.useEffect(() => {
     const data = localStorage.getItem('plume_astrale_data');
@@ -85,7 +87,19 @@ const Tarologie = () => {
     }
     const paid = localStorage.getItem('plume_tarologie_paid');
     if (paid === 'true') setHasPaid(true);
+    // Fetch predictions
+    fetchPredictions();
   }, []);
+
+  const fetchPredictions = async () => {
+    setPredLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/tarot/predictions`);
+      const data = await res.json();
+      if (data.success) setPredictions(data.predictions);
+    } catch (e) { /* silent fail */ }
+    setPredLoading(false);
+  };
 
   const handleTirage = async () => {
     if (!prenom.trim() || !dateNaissance) return;
