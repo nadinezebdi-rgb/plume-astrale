@@ -5,6 +5,85 @@ import SEO from '@/components/SEO';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
+const PersonForm = ({ person, onChange, label }) => (
+  <div className="space-y-4">
+    <h3 className="text-lg flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+      <Heart className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} /> {label}
+    </h3>
+
+    <div className="grid grid-cols-2 gap-3">
+      <div>
+        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Prenom</label>
+        <input type="text" value={person.first_name} onChange={(e) => onChange('first_name', e.target.value)}
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+          placeholder="Prenom" data-testid={`${label}-first-name`} />
+      </div>
+      <div>
+        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Nom</label>
+        <input type="text" value={person.last_name} onChange={(e) => onChange('last_name', e.target.value)}
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+          placeholder="Nom" data-testid={`${label}-last-name`} />
+      </div>
+    </div>
+
+    <div>
+      <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Genre</label>
+      <div className="flex gap-3">
+        {[{ val: 'male', label: 'Homme' }, { val: 'female', label: 'Femme' }].map(g => (
+          <button key={g.val} type="button" onClick={() => onChange('gender', g.val)}
+            className={`flex-1 py-2 rounded-lg border text-sm transition-all ${person.gender === g.val ? 'border-[#C5A059] bg-[#C5A059]/20 text-[#F0E6D3]' : 'border-[#C5A059]/20 text-[#B8B0C8]/60 hover:border-[#C5A059]/40'}`}
+            data-testid={`${label}-gender-${g.val}`}>
+            {g.label}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div className="grid grid-cols-3 gap-3">
+      <div>
+        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Jour</label>
+        <input type="number" min="1" max="31" value={person.day} onChange={(e) => onChange('day', e.target.value)}
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          placeholder="JJ" data-testid={`${label}-day`} />
+      </div>
+      <div>
+        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Mois</label>
+        <input type="number" min="1" max="12" value={person.month} onChange={(e) => onChange('month', e.target.value)}
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          placeholder="MM" data-testid={`${label}-month`} />
+      </div>
+      <div>
+        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Annee</label>
+        <input type="number" min="1920" max="2025" value={person.year} onChange={(e) => onChange('year', e.target.value)}
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          placeholder="AAAA" data-testid={`${label}-year`} />
+      </div>
+    </div>
+
+    <div className="grid grid-cols-2 gap-3">
+      <div>
+        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Heure</label>
+        <input type="number" min="0" max="23" value={person.hour} onChange={(e) => onChange('hour', e.target.value)}
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          data-testid={`${label}-hour`} />
+      </div>
+      <div>
+        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Minute</label>
+        <input type="number" min="0" max="59" value={person.minute} onChange={(e) => onChange('minute', e.target.value)}
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          data-testid={`${label}-minute`} />
+      </div>
+    </div>
+
+    <div>
+      <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Lieu de naissance</label>
+      <input type="text" value={person.place} onChange={(e) => onChange('place', e.target.value)}
+        className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+        placeholder="Ville, Pays" data-testid={`${label}-place`} />
+    </div>
+  </div>
+);
+
 const Compatibilite2 = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -113,85 +192,6 @@ const Compatibilite2 = () => {
     }
     setLoading(false);
   };
-
-  const PersonForm = ({ person, onChange, label, genderDefault }) => (
-    <div className="space-y-4">
-      <h3 className="text-lg flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-        <Heart className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} /> {label}
-      </h3>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Prenom</label>
-          <input type="text" value={person.first_name} onChange={(e) => onChange('first_name', e.target.value)}
-            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
-            placeholder="Prenom" data-testid={`${label}-first-name`} />
-        </div>
-        <div>
-          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Nom</label>
-          <input type="text" value={person.last_name} onChange={(e) => onChange('last_name', e.target.value)}
-            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
-            placeholder="Nom" data-testid={`${label}-last-name`} />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Genre</label>
-        <div className="flex gap-3">
-          {[{ val: 'male', label: 'Homme' }, { val: 'female', label: 'Femme' }].map(g => (
-            <button key={g.val} onClick={() => onChange('gender', g.val)}
-              className={`flex-1 py-2 rounded-lg border text-sm transition-all ${person.gender === g.val ? 'border-[#C5A059] bg-[#C5A059]/20 text-[#F0E6D3]' : 'border-[#C5A059]/20 text-[#B8B0C8]/60 hover:border-[#C5A059]/40'}`}
-              data-testid={`${label}-gender-${g.val}`}>
-              {g.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Jour</label>
-          <input type="number" min="1" max="31" value={person.day} onChange={(e) => onChange('day', e.target.value)}
-            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
-            placeholder="JJ" data-testid={`${label}-day`} />
-        </div>
-        <div>
-          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Mois</label>
-          <input type="number" min="1" max="12" value={person.month} onChange={(e) => onChange('month', e.target.value)}
-            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
-            placeholder="MM" data-testid={`${label}-month`} />
-        </div>
-        <div>
-          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Annee</label>
-          <input type="number" min="1920" max="2025" value={person.year} onChange={(e) => onChange('year', e.target.value)}
-            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
-            placeholder="AAAA" data-testid={`${label}-year`} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Heure</label>
-          <input type="number" min="0" max="23" value={person.hour} onChange={(e) => onChange('hour', e.target.value)}
-            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
-            data-testid={`${label}-hour`} />
-        </div>
-        <div>
-          <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Minute</label>
-          <input type="number" min="0" max="59" value={person.minute} onChange={(e) => onChange('minute', e.target.value)}
-            className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
-            data-testid={`${label}-minute`} />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Lieu de naissance</label>
-        <input type="text" value={person.place} onChange={(e) => onChange('place', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
-          placeholder="Ville, Pays" data-testid={`${label}-place`} />
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen">
