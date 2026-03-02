@@ -1016,11 +1016,36 @@ class TarotOuiNonRequest(BaseModel):
 
 @api_router.post("/tarot/oui-non")
 async def tarot_oui_non_endpoint(request: TarotOuiNonRequest):
-    """Tirage Tarot Oui/Non - tire un arcane majeur"""
+    """Tirage Tarot Oui/Non - API Growth Plan avec fallback local"""
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Veuillez poser une question")
     
+    # Try API first (Growth Plan)
+    try:
+        service = get_astrology_service()
+        api_result = await service.get_yes_no_tarot()
+        if api_result and api_result.get('name'):
+            # Translate description to French
+            description_fr = await translate_to_french(api_result.get('description', ''))
+            return {
+                "question": request.question,
+                "carte": {
+                    "numero": api_result.get('value', 0),
+                    "nom": api_result.get('name', ''),
+                    "energie": description_fr[:80] if description_fr else '',
+                    "image": "",
+                },
+                "orientation": "oui" if "yes" in api_result.get('name', '').lower() or api_result.get('value', 0) > 50 else "non" if "no" in api_result.get('name', '').lower() or api_result.get('value', 0) < 30 else "neutre",
+                "reponse": description_fr,
+                "source": "api",
+                "date": datetime.now().isoformat(),
+            }
+    except Exception as e:
+        logger.warning(f"Yes/No Tarot API fallback: {e}")
+    
+    # Fallback to local
     result = tirage_oui_non(request.question)
+    result["source"] = "local"
     return result
 
 
