@@ -38,6 +38,11 @@ const Compatibilite2 = () => {
   const isStep1Valid = person1.first_name && person1.day && person1.month && person1.year;
   const isStep2Valid = person2.first_name && person2.day && person2.month && person2.year;
 
+  const goToStep = (s) => {
+    setStep(s);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handlePurchase = async () => {
     try {
       const res = await fetch(`${API_URL}/api/checkout/create`, {
@@ -99,7 +104,7 @@ const Compatibilite2 = () => {
       const data = await res.json();
       if (data.pdf_url) {
         setPdfUrl(data.pdf_url);
-        setStep(3);
+        goToStep(3);
       } else {
         setError(data.detail || 'Erreur lors de la generation');
       }
@@ -232,10 +237,10 @@ const Compatibilite2 = () => {
           {step === 1 && (
             <div className="card-mystical animate-fade-in" data-testid="step-1">
               <PersonForm person={person1} onChange={updatePerson(setPerson1)} label="Personne 1" />
-              <button onClick={() => setStep(2)} disabled={!isStep1Valid}
+              <button onClick={() => goToStep(2)} disabled={!isStep1Valid}
                 className="btn-mystical-filled rounded-full flex items-center gap-2 mx-auto mt-6 px-8 py-3 disabled:opacity-50"
                 data-testid="next-step-btn">
-                Continuer <Users className="w-4 h-4" />
+                Continuer vers Personne 2 <Users className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -252,7 +257,7 @@ const Compatibilite2 = () => {
               )}
 
               <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                <button onClick={() => setStep(1)} className="btn-mystical rounded-full px-6 py-3 flex items-center gap-2 justify-center" data-testid="prev-step-btn">
+                <button onClick={() => goToStep(1)} className="btn-mystical rounded-full px-6 py-3 flex items-center gap-2 justify-center" data-testid="prev-step-btn">
                   <ArrowLeft className="w-4 h-4" /> Retour
                 </button>
                 <button onClick={handleGenerateFree} disabled={!isStep2Valid || loading}
@@ -332,7 +337,7 @@ const Compatibilite2 = () => {
                 </button>
               </div>
 
-              <button onClick={() => { setStep(1); setPdfUrl(null); }}
+              <button onClick={() => { goToStep(1); setPdfUrl(null); }}
                 className="text-[#C5A059]/50 hover:text-[#C5A059] text-sm mx-auto block transition-colors" data-testid="new-test-btn">
                 Tester une autre compatibilite
               </button>
