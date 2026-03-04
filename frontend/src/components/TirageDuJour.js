@@ -95,7 +95,7 @@ const TirageDuJour = () => {
               onClick={() => setIsRevealed(true)}
             >
               {/* Motif décoratif */}
-              <div className="absolute inset-0 opacity-30">
+              <div className="absolute inset-0 opacity-30 pointer-events-none">
                 <div className="absolute inset-4 border border-[#C5A059]/50 rounded-lg"></div>
               </div>
               <Star className="w-14 h-14 text-[#C5A059]/60 group-hover:text-[#C5A059] transition-colors" strokeWidth={1} />

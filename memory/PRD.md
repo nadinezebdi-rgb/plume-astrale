@@ -9,29 +9,19 @@
 - **Base de données**: MongoDB
 - **APIs externes**: Astrology API (Plan Growth), Stripe
 
-## Ce qui a été implémenté - Session du 4 Mars 2026
+## Ce qui a été implémenté
 
-### 1. Page Tirage Tarot en Direct ✨
+### Session du 4 Mars 2026 (Fork précédent)
+
+#### 1. Page Tirage Tarot en Direct
 **Route: `/tirage-tarot`**
+- Formulaire de question avec champ texte et exemples
+- 6 domaines : Amour, Travail, Argent, Santé, Spirituel, Général
+- 2 types de tirage : Marseille (3 cartes - 19€) et Celtique (10 cartes - 29€)
+- Animation en direct : révélation carte par carte
+- Images tarot : Fond décoratif avec images tarot
 
-#### Fonctionnalités:
-- 📝 **Formulaire de question** avec champ texte et exemples
-- 🎯 **6 domaines** : Amour, Travail, Argent, Santé, Spirituel, Général
-- 🃏 **2 types de tirage** : 
-  - Marseille (3 cartes - 19€) : Passé, Présent, Futur
-  - Celtique (10 cartes - 29€) : Analyse complète
-- ✨ **Animation en direct** : révélation carte par carte
-- 🎴 **Images tarot** : Fond décoratif avec vos images tarot
-- 📊 **Synthèse complète** avec tendance et conseils
-
-#### Design des cartes:
-- Dos de carte mystique avec étoile et motifs
-- Face révélée avec numéro, nom, orientation
-- Indicateurs visuels : ☀ Droit / ☾ Renversé
-- Mots-clés, élément, planète
-- Interprétation et conseil personnalisé
-
-### 2. Nouveaux Produits Premium
+#### 2. Nouveaux Produits Premium
 
 | Produit | Prix | Description |
 |---------|------|-------------|
@@ -42,65 +32,57 @@
 | Analyse Amour Premium | 49€ | Compatibilité + Synastrie |
 | Le Cercle (mensuel) | 14,90€ | Tarot + Lune + Horoscope quotidien |
 
-### 3. 22 Arcanes Majeurs Complets
-Chaque arcane contient:
-- Nom français et anglais
-- Mots-clés, élément, planète
-- Description poétique
-- Interprétations droit/renversé pour : général, amour, travail
-- Conseil spécifique
-- **Tous les textes en français avec accents** (269 occurrences)
+#### 3. 22 Arcanes Majeurs Complets
+- Chaque arcane contient nom français/anglais, mots-clés, élément, planète, interprétations
 
-### 4. Endpoints API
+### Session du 4 Mars 2026 (Fork actuel)
+
+#### 4. Tirage du Jour (P0) ✅
+- Composant `TirageDuJour` intégré sur la page d'accueil
+- Endpoint `GET /api/tarot/jour` fonctionnel
+- Date affichée en format français (ex: "04 mars 2026")
+- Badge GRATUIT visible
+- Carte face cachée avec bouton "Révéler ma carte"
+- Carte révélée : nom, orientation, mots-clés, interprétation, message énergie
+- Détails dépliables : Affirmation du jour, En Amour, Au Travail, Rituel suggéré
+- Même carte pour tous les utilisateurs chaque jour (seed basé sur la date)
+
+#### 5. Audit des accents français (P1) ✅
+- **Backend** : Corrections dans tarot_interpretations.py, astro_content_extended.py, premium_service.py, pdf_generator_v2.py, premium_pdf_generator.py, astrology_pdf_api.py, server.py (PRODUCTS)
+- **Frontend** : Corrections dans Navbar.js, SEO.js, Choix.js, Paiement.js, PremiumLanding.js, Tarologie.js, Quotidien.js, TarotOuiNon.js, Apercu.js, CharteConfiance.js
+- Tous les textes visibles par l'utilisateur ont les accents français corrects
+
+### Endpoints API
 
 | Endpoint | Description |
 |----------|-------------|
+| `GET /api/tarot/jour` | Tirage du jour gratuit |
 | `GET /api/tarot/domaines` | 6 domaines de questions |
 | `POST /api/tarot/marseille` | Tirage 3 cartes avec question |
 | `POST /api/tarot/celtique` | Tirage Croix Celtique 10 cartes |
 | `GET /api/tarot/arcanes` | Liste des 22 arcanes majeurs |
 
-### 5. Corrections Accents Français
-- ✅ Tous les fichiers backend corrigés
-- ✅ `tarot_premium.py` - 22 arcanes complets
-- ✅ `astro_content_extended.py` - Planètes et aspects
-- ✅ Messages, descriptions, interprétations en français
-
-### 6. Images Tarot
-Fichiers dans `/app/frontend/public/images/tarot/`:
-- `tarot_cards_1.png` (1.5 MB)
-- `tarot_cards_2.png` (10.8 MB)
-
-## Fichiers Créés/Modifiés
-
-### Nouveaux fichiers:
-- `/app/backend/services/tarot_premium.py` - Service complet tarot (815 lignes)
-- `/app/backend/services/astrology_api_premium.py` - API Astrology premium
-- `/app/frontend/src/pages/TirageTarot.js` - Page tirage en direct
-
-### Fichiers modifiés:
-- `/app/backend/server.py` - Nouveaux endpoints et produits
-- `/app/frontend/src/App.js` - Route tirage-tarot
-- `/app/frontend/src/App.css` - Animations cartes
-
 ## Backlog
 
 ### P0 - Terminé ✅
+- [x] Tirage du Jour intégré sur la page d'accueil
+- [x] Accents français corrigés dans toute l'application
 - [x] Formulaire de question pour tirages
 - [x] Animation révélation cartes en direct
 - [x] Tirage Celtique 10 cartes avec question
-- [x] Accents français partout
-- [x] Images tarot intégrées
 
 ### P1 - À faire
+- [ ] Vérifier et améliorer la mise en page des PDFs (grands espaces blancs, centrage)
 - [ ] Intégrer paiement Stripe avant tirage
 - [ ] Images individuelles des 22 arcanes
-- [ ] PDF de synthèse du tirage
 
 ### P2 - Nice to have
+- [ ] Visualisation natal_wheel_chart
+- [ ] PDF de synthèse du tirage
 - [ ] Voix off pour tirage guidé
 - [ ] Historique des tirages par utilisateur
 - [ ] Partage social des tirages
+- [ ] Génération PDF pour nouveaux rapports premium
 
 ## Dernière mise à jour
-4 Mars 2026 - 17:15
+4 Mars 2026 - Session Fork actuelle
