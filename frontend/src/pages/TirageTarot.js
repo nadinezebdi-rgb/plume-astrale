@@ -127,9 +127,12 @@ const TirageTarot = () => {
     setIsRevealing(false);
   };
 
-  // Rendu de la carte
+  // Rendu de la carte avec les vraies images
   const renderCard = (carte, index, isRevealed) => {
-    const DomaineIcon = domaines[domaine]?.icone || CircleDot;
+    // URLs des images de tarot
+    const tarotImages = {
+      default: "/images/tarot/tarot_cards_2.png"
+    };
     
     return (
       <div 
@@ -145,56 +148,77 @@ const TirageTarot = () => {
           }`}
           onClick={() => !isRevealing && revealCard(index)}
         >
-          {/* Face cachée */}
+          {/* Face cachée - Dos de carte mystique */}
           <div className={`card-mystical cursor-pointer transition-all duration-500 ${
             isRevealed ? 'opacity-0 absolute inset-0 pointer-events-none' : 'opacity-100'
           }`}>
             <div className="py-8 text-center">
-              <div className="w-24 h-36 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border-2 border-[#C5A059]/40 flex flex-col items-center justify-center shadow-lg shadow-[#C5A059]/10 relative overflow-hidden">
-                {/* Motif décoratif */}
-                <div className="absolute inset-0 opacity-20">
-                  <div className="absolute top-2 left-2 w-4 h-4 border border-[#C5A059] rounded-full"></div>
-                  <div className="absolute top-2 right-2 w-4 h-4 border border-[#C5A059] rounded-full"></div>
-                  <div className="absolute bottom-2 left-2 w-4 h-4 border border-[#C5A059] rounded-full"></div>
-                  <div className="absolute bottom-2 right-2 w-4 h-4 border border-[#C5A059] rounded-full"></div>
+              <div className="w-28 h-44 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#1C1735] to-[#0C0918] border-2 border-[#C5A059]/50 flex flex-col items-center justify-center shadow-xl shadow-[#C5A059]/20 relative overflow-hidden group hover:border-[#C5A059] hover:shadow-[#C5A059]/40 transition-all">
+                {/* Motif décoratif élaboré */}
+                <div className="absolute inset-0 opacity-30">
+                  <div className="absolute top-2 left-2 w-6 h-6 border-2 border-[#C5A059] rounded-full"></div>
+                  <div className="absolute top-2 right-2 w-6 h-6 border-2 border-[#C5A059] rounded-full"></div>
+                  <div className="absolute bottom-2 left-2 w-6 h-6 border-2 border-[#C5A059] rounded-full"></div>
+                  <div className="absolute bottom-2 right-2 w-6 h-6 border-2 border-[#C5A059] rounded-full"></div>
+                  {/* Croix centrale */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-px h-full bg-gradient-to-b from-transparent via-[#C5A059]/50 to-transparent"></div>
+                    <div className="absolute w-full h-px bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent"></div>
+                  </div>
                 </div>
-                <Star className="w-10 h-10 text-[#C5A059]/60" strokeWidth={1} />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#C5A059]/10 to-transparent"></div>
+                {/* Étoile centrale */}
+                <div className="relative z-10">
+                  <Star className="w-12 h-12 text-[#C5A059]/70 group-hover:text-[#C5A059] transition-colors" strokeWidth={1} />
+                  <Moon className="w-6 h-6 text-[#C5A059]/50 absolute -top-1 -right-1" strokeWidth={1} />
+                </div>
+                {/* Reflet */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#C5A059]/5 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </div>
-              <p className="text-[#B8B0C8]/50 text-sm mt-4 font-light">
+              <p className="text-[#B8B0C8]/60 text-sm mt-4 font-light">
                 {typeTirage === 'marseille' 
                   ? ['Passé', 'Présent', 'Futur'][index]
                   : positionsCeltique[index]
                 }
               </p>
               {!isRevealing && (
-                <p className="text-[#C5A059]/60 text-xs mt-2">Cliquez pour révéler</p>
+                <p className="text-[#C5A059]/60 text-xs mt-2 animate-pulse">Cliquez pour révéler</p>
               )}
             </div>
           </div>
           
-          {/* Face révélée */}
+          {/* Face révélée - Carte avec image */}
           <div className={`card-mystical transition-all duration-500 ${
             isRevealed ? 'opacity-100' : 'opacity-0 absolute inset-0 pointer-events-none'
-          } ${carte.orientation === 'renverse' ? 'border-red-500/30' : 'border-[#C5A059]/30'}`}>
-            <div className="py-6 text-center">
+          } ${carte.orientation === 'renverse' ? 'border-purple-500/50' : 'border-[#C5A059]/40'}`}>
+            <div className="py-4 text-center">
               {/* Position */}
-              <p className="text-[#C5A059] uppercase tracking-widest text-xs mb-3">
+              <p className="text-[#C5A059] uppercase tracking-[0.2em] text-xs mb-3 font-light">
                 {typeTirage === 'marseille' 
                   ? ['Passé', 'Présent', 'Futur'][index]
                   : positionsCeltique[index]
                 }
               </p>
               
-              {/* Icône */}
-              <div className={`w-14 h-14 mx-auto mb-3 rounded-full flex items-center justify-center ${
+              {/* Image de la carte */}
+              <div className={`relative w-24 h-40 mx-auto mb-3 rounded-lg overflow-hidden border-2 ${
                 carte.orientation === 'droit' 
-                  ? 'bg-[#C5A059]/20' 
-                  : 'bg-red-500/20'
-              }`}>
-                <Sparkles className={`w-7 h-7 ${
-                  carte.orientation === 'droit' ? 'text-[#C5A059]' : 'text-red-400'
-                }`} strokeWidth={1} />
+                  ? 'border-[#C5A059]/60' 
+                  : 'border-purple-500/60 rotate-180'
+              } shadow-lg`}>
+                <div className="absolute inset-0 bg-gradient-to-b from-[#2D1F4B] to-[#1C1735]">
+                  {/* Placeholder avec icône stylisée */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <Sparkles className={`w-10 h-10 mx-auto mb-1 ${
+                        carte.orientation === 'droit' ? 'text-[#C5A059]' : 'text-purple-400'
+                      }`} strokeWidth={1} />
+                      <span className="text-[#C5A059] text-2xl font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                        {carte.numero}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
               
               {/* Nom de la carte */}
@@ -202,32 +226,42 @@ const TirageTarot = () => {
                 {carte.nom}
               </h3>
               
-              {/* Orientation */}
-              <span className={`text-xs px-2 py-1 rounded-full ${
+              {/* Orientation avec badge stylisé */}
+              <span className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full ${
                 carte.orientation === 'droit' 
-                  ? 'bg-[#C5A059]/20 text-[#C5A059]' 
-                  : 'bg-red-500/20 text-red-400'
+                  ? 'bg-[#C5A059]/20 text-[#C5A059] border border-[#C5A059]/30' 
+                  : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
               }`}>
-                {carte.orientation_fr}
+                {carte.orientation === 'droit' ? (
+                  <><Sun className="w-3 h-3" /> Droit</>
+                ) : (
+                  <><Moon className="w-3 h-3" /> Renversé</>
+                )}
               </span>
               
               {/* Mots-clés */}
-              <div className="flex flex-wrap justify-center gap-1 mt-3 mb-4">
+              <div className="flex flex-wrap justify-center gap-1 mt-3 mb-3">
                 {carte.mots_cles?.slice(0, 3).map((mot, i) => (
-                  <span key={i} className="text-xs text-[#B8B0C8]/60 bg-[#1C1735] px-2 py-0.5 rounded">
+                  <span key={i} className="text-xs text-[#B8B0C8]/70 bg-[#1C1735]/80 px-2 py-0.5 rounded-full border border-[#C5A059]/10">
                     {mot}
                   </span>
                 ))}
               </div>
               
+              {/* Élément et Planète */}
+              <div className="flex justify-center gap-3 mb-3 text-xs text-[#B8B0C8]/50">
+                <span>◆ {carte.element}</span>
+                <span>☆ {carte.planete}</span>
+              </div>
+              
               {/* Interprétation */}
-              <p className="text-[#B8B0C8]/70 text-sm font-light leading-relaxed mb-4 px-2">
-                {carte.interpretation?.slice(0, 150)}...
+              <p className="text-[#B8B0C8]/80 text-sm font-light leading-relaxed mb-3 px-2">
+                {carte.interpretation?.slice(0, 120)}...
               </p>
               
               {/* Conseil */}
-              <div className="bg-[#C5A059]/10 rounded-lg p-3 border border-[#C5A059]/20 mx-2">
-                <p className="text-[#C5A059] text-xs italic">
+              <div className="bg-gradient-to-r from-[#C5A059]/10 via-[#C5A059]/20 to-[#C5A059]/10 rounded-lg p-3 border border-[#C5A059]/20 mx-2">
+                <p className="text-[#C5A059] text-xs italic leading-relaxed">
                   "{carte.conseil}"
                 </p>
               </div>
@@ -239,8 +273,19 @@ const TirageTarot = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="px-6 md:px-8 py-20 md:py-28">
+    <div className="min-h-screen relative">
+      {/* Background image décoratif */}
+      <div 
+        className="fixed inset-0 opacity-5 pointer-events-none"
+        style={{
+          backgroundImage: `url('/images/tarot/tarot_cards_2.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      />
+      
+      <div className="px-6 md:px-8 py-20 md:py-28 relative z-10">
         <div className="max-w-6xl mx-auto">
           
           {/* ÉTAPE 1: Formulaire de question */}

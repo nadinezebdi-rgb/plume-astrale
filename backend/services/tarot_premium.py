@@ -18,6 +18,8 @@ ARCANES_MAJEURS = {
         "mots_cles": ["Liberté", "Nouveaux départs", "Spontanéité", "Foi"],
         "element": "Air",
         "planete": "Uranus",
+        "couleur": "#7DD3FC",  # Bleu ciel
+        "symbole": "✧",
         "description": "Le Mat représente le voyageur de l'âme, celui qui ose partir sans bagage vers l'inconnu. Il incarne la liberté absolue, le potentiel infini et la confiance aveugle en la vie.",
         "droit": {
             "general": "Un nouveau chapitre s'ouvre devant vous. C'est le moment de faire confiance à la vie et d'oser le saut dans l'inconnu. L'univers vous soutient dans cette aventure.",

@@ -9,37 +9,49 @@
 - **Base de données**: MongoDB
 - **APIs externes**: Astrology API (Plan Growth), Stripe
 
-## Ce qui a été implémenté
+## Ce qui a été implémenté - Session du 4 Mars 2026
 
-### Session du 4 Mars 2026
+### 1. Page Tirage Tarot en Direct ✨
+**Route: `/tirage-tarot`**
 
-#### 1. Corrections des accents français
-- ✅ Tous les fichiers backend corrigés avec accents français complets
-- ✅ 269 occurrences d'accents dans `tarot_premium.py`
-- ✅ Messages, descriptions, interprétations tous en français
+#### Fonctionnalités:
+- 📝 **Formulaire de question** avec champ texte et exemples
+- 🎯 **6 domaines** : Amour, Travail, Argent, Santé, Spirituel, Général
+- 🃏 **2 types de tirage** : 
+  - Marseille (3 cartes - 19€) : Passé, Présent, Futur
+  - Celtique (10 cartes - 29€) : Analyse complète
+- ✨ **Animation en direct** : révélation carte par carte
+- 🎴 **Images tarot** : Fond décoratif avec vos images tarot
+- 📊 **Synthèse complète** avec tendance et conseils
 
-#### 2. Nouveaux Produits Premium
+#### Design des cartes:
+- Dos de carte mystique avec étoile et motifs
+- Face révélée avec numéro, nom, orientation
+- Indicateurs visuels : ☀ Droit / ☾ Renversé
+- Mots-clés, élément, planète
+- Interprétation et conseil personnalisé
+
+### 2. Nouveaux Produits Premium
 
 | Produit | Prix | Description |
 |---------|------|-------------|
-| Numérologie Complète | 49€ | Chemin de vie, Âme, Expression, Défis, Cycles |
-| Horoscope Premium Annuel | 69€ | 12 mois avec transits et conseils personnalisés |
-| Tarot de Marseille | 19€ | Tirage 3 cartes avec question personnalisée |
-| Tirage Croix Celtique | 29€ | Tirage 10 cartes - Analyse approfondie |
-| Analyse Amour Premium | 49€ | Compatibilité + Synastrie + Profils romantiques |
+| Numérologie Complète | 49€ | Chemin de vie, Âme, Expression, Défis |
+| Horoscope Premium Annuel | 69€ | 12 mois avec transits personnalisés |
+| Tarot de Marseille | 19€ | Tirage 3 cartes avec question |
+| Tirage Croix Celtique | 29€ | Tirage 10 cartes - Analyse complète |
+| Analyse Amour Premium | 49€ | Compatibilité + Synastrie |
 | Le Cercle (mensuel) | 14,90€ | Tarot + Lune + Horoscope quotidien |
 
-#### 3. Page Tirage Tarot en Direct ✨
-**Route: `/tirage-tarot`**
+### 3. 22 Arcanes Majeurs Complets
+Chaque arcane contient:
+- Nom français et anglais
+- Mots-clés, élément, planète
+- Description poétique
+- Interprétations droit/renversé pour : général, amour, travail
+- Conseil spécifique
+- **Tous les textes en français avec accents** (269 occurrences)
 
-Fonctionnalités:
-- 📝 **Formulaire de question** avec champ texte et exemples
-- 🎯 **6 domaines** : Amour, Travail, Argent, Santé, Spirituel, Général
-- 🃏 **2 types de tirage** : Marseille (3 cartes) et Celtique (10 cartes)
-- ✨ **Animation en direct** : révélation carte par carte avec effet de retournement
-- 📊 **Synthèse complète** avec tendance, messages et conseils
-
-#### 4. Endpoints API Tarot
+### 4. Endpoints API
 
 | Endpoint | Description |
 |----------|-------------|
@@ -48,17 +60,21 @@ Fonctionnalités:
 | `POST /api/tarot/celtique` | Tirage Croix Celtique 10 cartes |
 | `GET /api/tarot/arcanes` | Liste des 22 arcanes majeurs |
 
-#### 5. 22 Arcanes Majeurs Complets
-Chaque arcane contient:
-- Nom français et anglais
-- Mots-clés, élément, planète
-- Description poétique
-- Interprétations droit/renversé pour: général, amour, travail, conseil
+### 5. Corrections Accents Français
+- ✅ Tous les fichiers backend corrigés
+- ✅ `tarot_premium.py` - 22 arcanes complets
+- ✅ `astro_content_extended.py` - Planètes et aspects
+- ✅ Messages, descriptions, interprétations en français
+
+### 6. Images Tarot
+Fichiers dans `/app/frontend/public/images/tarot/`:
+- `tarot_cards_1.png` (1.5 MB)
+- `tarot_cards_2.png` (10.8 MB)
 
 ## Fichiers Créés/Modifiés
 
 ### Nouveaux fichiers:
-- `/app/backend/services/tarot_premium.py` - Service complet tarot
+- `/app/backend/services/tarot_premium.py` - Service complet tarot (815 lignes)
 - `/app/backend/services/astrology_api_premium.py` - API Astrology premium
 - `/app/frontend/src/pages/TirageTarot.js` - Page tirage en direct
 
@@ -67,24 +83,24 @@ Chaque arcane contient:
 - `/app/frontend/src/App.js` - Route tirage-tarot
 - `/app/frontend/src/App.css` - Animations cartes
 
-## Backlog / P0-P1-P2
+## Backlog
 
 ### P0 - Terminé ✅
 - [x] Formulaire de question pour tirages
 - [x] Animation révélation cartes en direct
-- [x] Tirage Celtique 10 cartes
+- [x] Tirage Celtique 10 cartes avec question
 - [x] Accents français partout
+- [x] Images tarot intégrées
 
 ### P1 - À faire
 - [ ] Intégrer paiement Stripe avant tirage
-- [ ] Images des 22 arcanes majeurs
+- [ ] Images individuelles des 22 arcanes
 - [ ] PDF de synthèse du tirage
 
 ### P2 - Nice to have
+- [ ] Voix off pour tirage guidé
 - [ ] Historique des tirages par utilisateur
 - [ ] Partage social des tirages
-- [ ] Mode sombre/clair
 
 ## Dernière mise à jour
-4 Mars 2026
-
+4 Mars 2026 - 17:15
