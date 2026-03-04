@@ -1794,6 +1794,11 @@ app.mount("/api/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
 # Include the API router
 app.include_router(api_router)
 
+# Health check endpoint for Kubernetes
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
