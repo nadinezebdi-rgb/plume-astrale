@@ -102,6 +102,30 @@ PRODUCTS = {
         "amount": 39.00,
         "currency": "eur",
         "description": "Karma, Destinée, Personnalité + Numérologie complète en PDF Premium"
+    },
+    "numerologie_complete": {
+        "name": "Numérologie Complète",
+        "amount": 49.00,
+        "currency": "eur",
+        "description": "Analyse numérologique approfondie - Chemin de vie, Nombre d'âme, Expression, Défis et Cycles personnels"
+    },
+    "horoscope_premium": {
+        "name": "Horoscope Premium Annuel",
+        "amount": 69.00,
+        "currency": "eur",
+        "description": "Prévisions astrologiques détaillées - 12 mois complets avec transits et conseils personnalisés"
+    },
+    "tarot_marseille": {
+        "name": "Tirage Tarot de Marseille",
+        "amount": 19.00,
+        "currency": "eur",
+        "description": "Tirage personnalisé avec votre question - Interprétation complète des Arcanes Majeurs"
+    },
+    "tarot_celtique": {
+        "name": "Tirage Croix Celtique",
+        "amount": 29.00,
+        "currency": "eur",
+        "description": "Tirage complet 10 cartes - Analyse approfondie de votre situation avec guidance détaillée"
     }
 }
 
@@ -1639,6 +1663,110 @@ async def premium_horoscope(zodiac_sign: str):
     except Exception as e:
         logger.error(f"Horoscope error: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur horoscope: {str(e)}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ENDPOINTS TAROT PREMIUM - Tirages avec Question
+# ═══════════════════════════════════════════════════════════════════════════════
+
+from services.tarot_premium import (
+    tirage_marseille_question, 
+    tirage_croix_celtique, 
+    DOMAINES_QUESTIONS,
+    ARCANES_MAJEURS
+)
+
+class TarotQuestionRequest(BaseModel):
+    """Requête pour tirage tarot avec question"""
+    question: str
+    domaine: str = "general"  # amour, travail, argent, sante, spirituel, general
+
+@api_router.get("/tarot/domaines")
+async def get_domaines_tarot():
+    """
+    📋 DOMAINES DE QUESTIONS
+    Liste des domaines disponibles pour les tirages
+    """
+    return {
+        "success": True,
+        "domaines": DOMAINES_QUESTIONS
+    }
+
+@api_router.post("/tarot/marseille")
+async def tarot_marseille(request: TarotQuestionRequest):
+    """
+    🎴 TIRAGE TAROT DE MARSEILLE (19€)
+    3 cartes: Passé - Présent - Futur
+    Avec votre question personnalisée
+    """
+    try:
+        if not request.question or len(request.question) < 5:
+            raise HTTPException(status_code=400, detail="Veuillez formuler une question d'au moins 5 caractères")
+        
+        result = tirage_marseille_question(
+            question=request.question,
+            domaine=request.domaine
+        )
+        
+        return {
+            "success": True,
+            "product": "tarot_marseille",
+            "data": result
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Tarot Marseille error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur tirage Marseille: {str(e)}")
+
+@api_router.post("/tarot/celtique")
+async def tarot_celtique(request: TarotQuestionRequest):
+    """
+    🔮 TIRAGE CROIX CELTIQUE (29€)
+    10 cartes - Le tirage le plus complet
+    Analyse approfondie de votre situation
+    """
+    try:
+        if not request.question or len(request.question) < 5:
+            raise HTTPException(status_code=400, detail="Veuillez formuler une question d'au moins 5 caractères")
+        
+        result = tirage_croix_celtique(
+            question=request.question,
+            domaine=request.domaine
+        )
+        
+        return {
+            "success": True,
+            "product": "tarot_celtique",
+            "data": result
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Tarot Celtique error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur tirage Celtique: {str(e)}")
+
+@api_router.get("/tarot/arcanes")
+async def get_arcanes_majeurs():
+    """
+    📖 ARCANES MAJEURS
+    Liste complète des 22 arcanes avec descriptions
+    """
+    arcanes_list = []
+    for num, arcane in ARCANES_MAJEURS.items():
+        arcanes_list.append({
+            "numero": num,
+            "nom": arcane["nom"],
+            "mots_cles": arcane["mots_cles"],
+            "element": arcane["element"],
+            "planete": arcane["planete"],
+            "description": arcane["description"]
+        })
+    
+    return {
+        "success": True,
+        "arcanes": arcanes_list
+    }
 
 
 # Include the router in the main app

@@ -17,57 +17,56 @@
 - ✅ `server.py` - Messages lunaires, conseils
 - ✅ `translation_service.py` - System prompt
 - ✅ `tarot_interpretations.py` - 22 arcanes majeurs
-- ✅ `astro_content_extended.py` - Planètes, aspects, rétrogrades
+- ✅ `astro_content_extended.py` - Planètes, aspects, rétrogrades (CORRIGÉ)
+- ✅ `astro_content.py` - Qualités des signes
 - ✅ `pdf_generator_v2.py` - Textes d'introduction, titres
 - ✅ `premium_service.py` - Titres et réflexions
+- ✅ `tarot_premium.py` - 22 arcanes majeurs complets avec accents
 
-#### 2. Amélioration mise en page PDF
-- ✅ `_draw_centered_block()` - Gestion adaptative des espaces
-- ✅ `_draw_short_phrase()` - Petites phrases centrées avec décoration
-- ✅ `_draw_quote_box()` - Citations élégantes
-- ✅ `_fill_remaining_space()` - Éviter les grands espaces blancs
-- ✅ `_draw_info_box()` - Hauteur adaptative, styles multiples
+#### 2. Nouveaux Produits Premium
 
-#### 3. Intégration Astrology API Premium (Plan Growth)
-Nouveau fichier: `/app/backend/services/astrology_api_premium.py`
+| Produit | Prix | Description |
+|---------|------|-------------|
+| Numérologie Complète | 49€ | Chemin de vie, Âme, Expression, Défis, Cycles |
+| Horoscope Premium Annuel | 69€ | 12 mois avec transits et conseils personnalisés |
+| Tarot de Marseille | 19€ | Tirage 3 cartes avec question personnalisée |
+| Tirage Croix Celtique | 29€ | Tirage 10 cartes - Analyse approfondie |
+| Analyse Amour Premium | 49€ | Compatibilité + Synastrie + Profils romantiques |
+| Le Cercle (mensuel) | 14,90€ | Tarot + Lune + Horoscope quotidien |
 
-**Endpoints créés:**
+#### 3. Nouveaux Endpoints Tarot
 
-| Endpoint | Produit | Prix | Description |
-|----------|---------|------|-------------|
-| `/api/premium/love-analysis` | Offre Amour | 49€ | Compatibilité + Synastrie + Profils romantiques |
-| `/api/premium/circle-daily` | Le Cercle | 14,90€/mois | Tarot + Lune + Horoscope quotidien |
-| `/api/premium/user-profile` | Profil Complet | 39€ | Karma + Personnalité + Numérologie |
-| `/api/premium/natal-chart` | Carte du ciel | - | SVG visuel |
-| `/api/premium/lunar-metrics` | Métriques lunaires | - | Phase, énergie, rituels |
-| `/api/premium/tarot-daily` | Tarot du jour | - | Carte, signification, conseil |
-| `/api/premium/numerology` | Numérologie | - | Chemin de vie, Âme, Expression |
-| `/api/premium/horoscope/{sign}` | Horoscope Premium | - | Prévisions par domaine |
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/tarot/domaines` | Liste des 6 domaines de questions |
+| `POST /api/tarot/marseille` | Tirage 3 cartes avec question |
+| `POST /api/tarot/celtique` | Tirage Croix Celtique 10 cartes |
+| `GET /api/tarot/arcanes` | Liste des 22 arcanes majeurs |
 
-## Produits configurés (PRODUCTS)
-
-```python
-"amour_premium": 49.00€   # Analyse Amour Premium
-"cercle_mensuel": 14.90€  # Abonnement mensuel
-"profil_complet": 39.00€  # Profil Astro-Numérologique
-```
+#### 4. Domaines de Questions Tarot
+- ❤️ Amour & Relations
+- 💼 Carrière & Travail
+- 💰 Finances & Abondance
+- 🌿 Santé & Bien-être
+- ✨ Spiritualité & Développement
+- 🔮 Question Générale
 
 ## Backlog / P0-P1-P2
 
 ### P0 - Critique
 - [ ] Configurer les clés Astrology API en production
-- [ ] Tester les endpoints avec l'API réelle
-- [ ] Intégrer Stripe Checkout pour les nouveaux produits
+- [ ] Créer les pages frontend pour les nouveaux tirages tarot
+- [ ] Intégrer le formulaire de question attractif
 
 ### P1 - Important
-- [ ] Créer les pages frontend pour les nouveaux produits
-- [ ] Générer les PDF Premium pour chaque offre
-- [ ] Système d'abonnement pour Le Cercle
+- [ ] Page Tirage Marseille avec formulaire
+- [ ] Page Tirage Celtique avec visualisation
+- [ ] Générer les PDF Premium pour chaque tirage
 
 ### P2 - Nice to have
-- [ ] Cache des réponses API fréquentes
-- [ ] Notifications email pour les abonnés du Cercle
-- [ ] Dashboard utilisateur avec historique
+- [ ] Historique des tirages par utilisateur
+- [ ] Partage social des tirages
+- [ ] Notifications pour Le Cercle
 
 ## Variables d'environnement requises
 
