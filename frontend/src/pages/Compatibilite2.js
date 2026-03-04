@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Loader2, ArrowLeft, Sparkles, Download, Star, Users, Tag } from 'lucide-react';
+import { Heart, Loader2, ArrowLeft, Sparkles, Download, Star, Users, Tag, MessageCircle } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-const PersonForm = ({ person, onChange, label }) => (
+const PersonForm = ({ person, onChange, label, num }) => (
   <div className="space-y-4">
     <h3 className="text-lg flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
       <Heart className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} /> {label}
@@ -13,16 +13,16 @@ const PersonForm = ({ person, onChange, label }) => (
 
     <div className="grid grid-cols-2 gap-3">
       <div>
-        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Prenom</label>
+        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Pr&eacute;nom</label>
         <input type="text" value={person.first_name} onChange={(e) => onChange('first_name', e.target.value)}
           className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
-          placeholder="Prenom" data-testid={`${label}-first-name`} />
+          placeholder="Pr&#233;nom" data-testid={`person${num}-first-name`} />
       </div>
       <div>
         <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Nom</label>
         <input type="text" value={person.last_name} onChange={(e) => onChange('last_name', e.target.value)}
           className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
-          placeholder="Nom" data-testid={`${label}-last-name`} />
+          placeholder="Nom" data-testid={`person${num}-last-name`} />
       </div>
     </div>
 
@@ -32,7 +32,7 @@ const PersonForm = ({ person, onChange, label }) => (
         {[{ val: 'male', label: 'Homme' }, { val: 'female', label: 'Femme' }].map(g => (
           <button key={g.val} type="button" onClick={() => onChange('gender', g.val)}
             className={`flex-1 py-2 rounded-lg border text-sm transition-all ${person.gender === g.val ? 'border-[#C5A059] bg-[#C5A059]/20 text-[#F0E6D3]' : 'border-[#C5A059]/20 text-[#B8B0C8]/60 hover:border-[#C5A059]/40'}`}
-            data-testid={`${label}-gender-${g.val}`}>
+            data-testid={`person${num}-gender-${g.val}`}>
             {g.label}
           </button>
         ))}
@@ -44,19 +44,19 @@ const PersonForm = ({ person, onChange, label }) => (
         <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Jour</label>
         <input type="number" min="1" max="31" value={person.day} onChange={(e) => onChange('day', e.target.value)}
           className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
-          placeholder="JJ" data-testid={`${label}-day`} />
+          placeholder="JJ" data-testid={`person${num}-day`} />
       </div>
       <div>
         <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Mois</label>
         <input type="number" min="1" max="12" value={person.month} onChange={(e) => onChange('month', e.target.value)}
           className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
-          placeholder="MM" data-testid={`${label}-month`} />
+          placeholder="MM" data-testid={`person${num}-month`} />
       </div>
       <div>
-        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Annee</label>
+        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Ann&eacute;e</label>
         <input type="number" min="1920" max="2025" value={person.year} onChange={(e) => onChange('year', e.target.value)}
           className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
-          placeholder="AAAA" data-testid={`${label}-year`} />
+          placeholder="AAAA" data-testid={`person${num}-year`} />
       </div>
     </div>
 
@@ -65,13 +65,13 @@ const PersonForm = ({ person, onChange, label }) => (
         <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Heure</label>
         <input type="number" min="0" max="23" value={person.hour} onChange={(e) => onChange('hour', e.target.value)}
           className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
-          data-testid={`${label}-hour`} />
+          data-testid={`person${num}-hour`} />
       </div>
       <div>
         <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Minute</label>
         <input type="number" min="0" max="59" value={person.minute} onChange={(e) => onChange('minute', e.target.value)}
           className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
-          data-testid={`${label}-minute`} />
+          data-testid={`person${num}-minute`} />
       </div>
     </div>
 
@@ -79,7 +79,7 @@ const PersonForm = ({ person, onChange, label }) => (
       <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Lieu de naissance</label>
       <input type="text" value={person.place} onChange={(e) => onChange('place', e.target.value)}
         className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
-        placeholder="Ville, Pays" data-testid={`${label}-place`} />
+        placeholder="Ville, Pays" data-testid={`person${num}-place`} />
     </div>
   </div>
 );
@@ -90,6 +90,7 @@ const Compatibilite2 = () => {
   const [loading, setLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [error, setError] = useState('');
+  const [question, setQuestion] = useState('');
   const [showPromo, setShowPromo] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoError, setPromoError] = useState('');
@@ -130,12 +131,12 @@ const Compatibilite2 = () => {
         body: JSON.stringify({
           product_id: 'compatibilite',
           origin_url: window.location.origin,
-          user_data: { person1, person2 }
+          user_data: { person1, person2, question }
         }),
       });
       const data = await res.json();
       if (data.url) {
-        localStorage.setItem('plume_compat_data', JSON.stringify({ person1, person2 }));
+        localStorage.setItem('plume_compat_data', JSON.stringify({ person1, person2, question }));
         window.location.href = data.url;
       }
     } catch (e) {
@@ -156,8 +157,7 @@ const Compatibilite2 = () => {
       });
       const data = await res.json();
       if (data.valid && data.discount_percent === 100) {
-        setPromoSuccess('Code valide ! Generation gratuite...');
-        // Generate for free
+        setPromoSuccess('Code valide ! G\u00e9n\u00e9ration gratuite...');
         await handleGenerateFree();
       } else {
         setPromoError(data.message || 'Code invalide');
@@ -178,20 +178,28 @@ const Compatibilite2 = () => {
         body: JSON.stringify({
           person1: { ...person1, day: parseInt(person1.day), month: parseInt(person1.month), year: parseInt(person1.year), hour: parseInt(person1.hour), minute: parseInt(person1.minute) },
           person2: { ...person2, day: parseInt(person2.day), month: parseInt(person2.month), year: parseInt(person2.year), hour: parseInt(person2.hour), minute: parseInt(person2.minute) },
+          question,
         }),
       });
       const data = await res.json();
       if (data.pdf_url) {
         setPdfUrl(data.pdf_url);
-        goToStep(3);
+        goToStep(4);
       } else {
-        setError(data.detail || 'Erreur lors de la generation');
+        setError(data.detail || 'Erreur lors de la g\u00e9n\u00e9ration');
       }
     } catch (e) {
       setError('Erreur de connexion');
     }
     setLoading(false);
   };
+
+  const questionExamples = [
+    "Avons-nous une r\u00e9elle compatibilit\u00e9 sur le long terme ?",
+    "Comment g\u00e9rer nos diff\u00e9rences de caract\u00e8re ?",
+    "Sommes-nous faits pour fonder une famille ensemble ?",
+    "Comment raviver la flamme dans notre couple ?",
+  ];
 
   return (
     <div className="min-h-screen">
@@ -211,24 +219,24 @@ const Compatibilite2 = () => {
               </div>
             </div>
             <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-3 font-light">
-              Connexion Celeste
+              Connexion C&eacute;leste
             </p>
             <h1 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-              Compatibilite Astrale
+              Compatibilit&eacute; Astrale
             </h1>
             <p className="text-[#B8B0C8]/60 font-light max-w-lg mx-auto">
-              Découvrez les secrets cosmiques de votre relation amoureuse. Un rapport complet de 24 pages révèle les forces, défis et destins de votre union.
+              D&eacute;couvrez les secrets cosmiques de votre relation amoureuse. Un rapport complet r&eacute;v&egrave;le les forces, d&eacute;fis et cl&eacute;s de votre union.
             </p>
           </div>
 
           {/* Progress steps */}
           <div className="flex items-center justify-center gap-2 mb-8">
-            {[1, 2, 3].map(s => (
+            {[1, 2, 3, 4].map(s => (
               <div key={s} className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step >= s ? 'bg-[#C5A059] text-[#0C0918]' : 'border border-[#C5A059]/30 text-[#C5A059]/40'}`}>
                   {s}
                 </div>
-                {s < 3 && <div className={`w-12 h-0.5 ${step > s ? 'bg-[#C5A059]' : 'bg-[#C5A059]/20'}`} />}
+                {s < 4 && <div className={`w-8 h-0.5 ${step > s ? 'bg-[#C5A059]' : 'bg-[#C5A059]/20'}`} />}
               </div>
             ))}
           </div>
@@ -236,11 +244,11 @@ const Compatibilite2 = () => {
           {/* Step 1: Person 1 */}
           {step === 1 && (
             <div className="card-mystical animate-fade-in" data-testid="step-1">
-              <PersonForm person={person1} onChange={updatePerson(setPerson1)} label="Personne 1" />
+              <PersonForm person={person1} onChange={updatePerson(setPerson1)} label="Partenaire 1" num={1} />
               <button onClick={() => goToStep(2)} disabled={!isStep1Valid}
                 className="btn-mystical-filled rounded-full flex items-center gap-2 mx-auto mt-6 px-8 py-3 disabled:opacity-50"
                 data-testid="next-step-btn">
-                Continuer vers Personne 2 <Users className="w-4 h-4" />
+                Continuer vers Partenaire 2 <Users className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -248,8 +256,50 @@ const Compatibilite2 = () => {
           {/* Step 2: Person 2 */}
           {step === 2 && (
             <div className="card-mystical animate-fade-in" data-testid="step-2">
-              <PersonForm person={person2} onChange={updatePerson(setPerson2)} label="Personne 2" />
-              
+              <PersonForm person={person2} onChange={updatePerson(setPerson2)} label="Partenaire 2" num={2} />
+              <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                <button onClick={() => goToStep(1)} className="btn-mystical rounded-full px-6 py-3 flex items-center gap-2 justify-center" data-testid="prev-step-btn">
+                  <ArrowLeft className="w-4 h-4" /> Retour
+                </button>
+                <button onClick={() => goToStep(3)} disabled={!isStep2Valid}
+                  className="btn-mystical-filled rounded-full flex items-center gap-2 justify-center px-8 py-3 disabled:opacity-50 flex-1"
+                  data-testid="to-question-btn">
+                  Continuer <MessageCircle className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Question */}
+          {step === 3 && (
+            <div className="card-mystical animate-fade-in" data-testid="step-3-question">
+              <h3 className="text-lg flex items-center gap-2 mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                <MessageCircle className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} /> Votre Question
+              </h3>
+              <p className="text-[#B8B0C8]/60 text-sm mb-4">
+                Posez une question sp&eacute;cifique sur votre relation. Notre analyse astrologique y r&eacute;pondra dans votre rapport.
+              </p>
+
+              <textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-3 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm resize-none"
+                placeholder="Ex : Avons-nous une r&#233;elle compatibilit&#233; sur le long terme ?"
+                data-testid="question-input"
+              />
+
+              {/* Example questions */}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {questionExamples.map((q, i) => (
+                  <button key={i} onClick={() => setQuestion(q)}
+                    className="text-xs px-3 py-1.5 rounded-full border border-[#C5A059]/20 text-[#C5A059]/70 hover:border-[#C5A059]/50 hover:text-[#C5A059] transition-all"
+                    data-testid={`question-example-${i}`}>
+                    {q}
+                  </button>
+                ))}
+              </div>
+
               {error && (
                 <div className="mt-4 p-3 rounded-lg bg-red-900/30 border border-red-500/30 text-red-300 text-sm" data-testid="error-msg">
                   {error}
@@ -257,13 +307,13 @@ const Compatibilite2 = () => {
               )}
 
               <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                <button onClick={() => goToStep(1)} className="btn-mystical rounded-full px-6 py-3 flex items-center gap-2 justify-center" data-testid="prev-step-btn">
+                <button onClick={() => goToStep(2)} className="btn-mystical rounded-full px-6 py-3 flex items-center gap-2 justify-center" data-testid="back-to-p2-btn">
                   <ArrowLeft className="w-4 h-4" /> Retour
                 </button>
-                <button onClick={handleGenerateFree} disabled={!isStep2Valid || loading}
+                <button onClick={handleGenerateFree} disabled={loading}
                   className="btn-mystical-filled rounded-full flex items-center gap-2 justify-center px-8 py-3 disabled:opacity-50 flex-1"
                   data-testid="generate-btn">
-                  {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Generation en cours...</> : <><Sparkles className="w-5 h-5" /> Generer le Rapport — 29,90 EUR</>}
+                  {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> G&eacute;n&eacute;ration en cours...</> : <><Sparkles className="w-5 h-5" /> G&eacute;n&eacute;rer le Rapport &mdash; 29,90 EUR</>}
                 </button>
               </div>
 
@@ -271,7 +321,7 @@ const Compatibilite2 = () => {
               <div className="mt-4 text-center">
                 {!showPromo ? (
                   <button onClick={() => setShowPromo(true)} className="text-[#C5A059]/60 hover:text-[#C5A059] text-sm underline transition-colors" data-testid="show-promo-btn">
-                    <Tag className="w-3 h-3 inline mr-1" /> J'ai un code de reduction
+                    <Tag className="w-3 h-3 inline mr-1" /> J'ai un code de r&eacute;duction
                   </button>
                 ) : (
                   <div className="max-w-sm mx-auto space-y-2">
@@ -279,7 +329,7 @@ const Compatibilite2 = () => {
                       <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
                         placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
                         data-testid="promo-input" />
-                      <button onClick={handleApplyPromo} disabled={promoLoading || !isStep2Valid}
+                      <button onClick={handleApplyPromo} disabled={promoLoading}
                         className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"
                         data-testid="apply-promo-btn">
                         {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
@@ -293,23 +343,23 @@ const Compatibilite2 = () => {
             </div>
           )}
 
-          {/* Step 3: Result */}
-          {step === 3 && pdfUrl && (
-            <div className="space-y-6 animate-fade-in" data-testid="step-3">
+          {/* Step 4: Result */}
+          {step === 4 && pdfUrl && (
+            <div className="space-y-6 animate-fade-in" data-testid="step-4-result">
               <div className="card-mystical text-center p-10 glow-gold">
                 <Sparkles className="w-12 h-12 text-[#C5A059] mx-auto mb-4" strokeWidth={1} />
                 <h2 className="text-2xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-                  Votre Rapport est Pret !
+                  Votre Rapport est Pr&ecirc;t !
                 </h2>
                 <p className="text-[#B8B0C8]/60 mb-2">
-                  Analyse de compatibilite entre <span className="text-[#F0E6D3] font-medium">{person1.first_name}</span> et <span className="text-[#F0E6D3] font-medium">{person2.first_name}</span>
+                  Analyse de compatibilit&eacute; entre <span className="text-[#F0E6D3] font-medium">{person1.first_name}</span> et <span className="text-[#F0E6D3] font-medium">{person2.first_name}</span>
                 </p>
-                <p className="text-[#C5A059]/60 text-sm mb-6">24 pages d'analyse astrologique detaillee</p>
+                <p className="text-[#C5A059]/60 text-sm mb-6">Rapport d&eacute;taill&eacute; avec profils individuels, analyse des &eacute;l&eacute;ments, r&eacute;solution de conflits et cl&eacute;s de r&eacute;ussite</p>
 
-                <a href={pdfUrl} target="_blank" rel="noopener noreferrer"
+                <a href={pdfUrl} download={`compatibilite_${person1.first_name}_${person2.first_name}.pdf`}
                   className="btn-mystical-filled rounded-full inline-flex items-center gap-2 px-8 py-3"
                   data-testid="download-pdf-btn">
-                  <Download className="w-5 h-5" /> Telecharger le PDF
+                  <Download className="w-5 h-5" /> T&eacute;l&eacute;charger le PDF
                 </a>
               </div>
 
@@ -318,7 +368,7 @@ const Compatibilite2 = () => {
                 <button onClick={() => navigate('/formulaire')} className="card-mystical hover:border-[#C5A059]/50 transition-all group text-left" data-testid="upsell-manuscrit">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-[#F0E6D3] font-medium mb-1">Thème Astral Pro</h3>
+                      <h3 className="text-[#F0E6D3] font-medium mb-1">Th&egrave;me Astral Pro</h3>
                       <p className="text-[#B8B0C8]/50 text-sm">68 pages d'analyse personnelle</p>
                       <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">29,90 EUR</span>
                     </div>
@@ -328,8 +378,8 @@ const Compatibilite2 = () => {
                 <button onClick={() => navigate('/tarologie')} className="card-mystical hover:border-[#C5A059]/50 transition-all group text-left" data-testid="upsell-tarologie">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-[#F0E6D3] font-medium mb-1">Tarologie & Mediumnite</h3>
-                      <p className="text-[#B8B0C8]/50 text-sm">Tirage 7 cartes + lecture mediumnique</p>
+                      <h3 className="text-[#F0E6D3] font-medium mb-1">Tarologie & M&eacute;diumni&eacute;</h3>
+                      <p className="text-[#B8B0C8]/50 text-sm">Tirage 7 cartes + lecture m&eacute;diumnique</p>
                       <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">35 EUR</span>
                     </div>
                     <Sparkles className="w-5 h-5 text-[#C5A059] group-hover:scale-110 transition-transform" />
@@ -337,9 +387,9 @@ const Compatibilite2 = () => {
                 </button>
               </div>
 
-              <button onClick={() => { goToStep(1); setPdfUrl(null); }}
+              <button onClick={() => { goToStep(1); setPdfUrl(null); setQuestion(''); }}
                 className="text-[#C5A059]/50 hover:text-[#C5A059] text-sm mx-auto block transition-colors" data-testid="new-test-btn">
-                Tester une autre compatibilite
+                Tester une autre compatibilit&eacute;
               </button>
             </div>
           )}

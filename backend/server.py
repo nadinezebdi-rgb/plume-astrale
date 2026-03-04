@@ -1375,40 +1375,30 @@ class PersonData(BaseModel):
 class CompatibilityRequest(BaseModel):
     person1: PersonData
     person2: PersonData
+    question: str = ""
 
 @api_router.post("/compatibility/generate")
 async def generate_compatibility(request: CompatibilityRequest):
-    """Generate a 24-page compatibility/match making PDF"""
+    """Génère un rapport de compatibilité astrale complet en PDF."""
+    from services.compatibility_pdf_generator import generate_compatibility_pdf
+    import base64 as b64
     
-    # Determine male/female roles based on gender
-    if request.person1.gender.lower() in ["male", "homme", "m"]:
-        male_data = request.person1
-        female_data = request.person2
-    else:
-        male_data = request.person2
-        female_data = request.person1
+    p1 = {
+        "first_name": request.person1.first_name,
+        "last_name": request.person1.last_name or request.person1.first_name,
+        "day": request.person1.day, "month": request.person1.month, "year": request.person1.year,
+    }
+    p2 = {
+        "first_name": request.person2.first_name,
+        "last_name": request.person2.last_name or request.person2.first_name,
+        "day": request.person2.day, "month": request.person2.month, "year": request.person2.year,
+    }
     
-    pdf_url = await generate_match_making_pdf(
-        male_data={
-            "first_name": male_data.first_name,
-            "last_name": male_data.last_name or male_data.first_name,
-            "day": male_data.day, "month": male_data.month, "year": male_data.year,
-            "hour": male_data.hour, "minute": male_data.minute,
-            "lat": male_data.lat, "lon": male_data.lon,
-            "timezone": male_data.timezone, "place": male_data.place,
-        },
-        female_data={
-            "first_name": female_data.first_name,
-            "last_name": female_data.last_name or female_data.first_name,
-            "day": female_data.day, "month": female_data.month, "year": female_data.year,
-            "hour": female_data.hour, "minute": female_data.minute,
-            "lat": female_data.lat, "lon": female_data.lon,
-            "timezone": female_data.timezone, "place": female_data.place,
-        },
-    )
+    pdf_bytes = generate_compatibility_pdf(p1, p2, request.question)
     
-    if not pdf_url:
-        raise HTTPException(status_code=500, detail="Erreur lors de la generation du rapport de compatibilite")
+    # Save PDF and return as data URL
+    pdf_b64 = b64.b64encode(pdf_bytes).decode()
+    pdf_url = f"data:application/pdf;base64,{pdf_b64}"
     
     return {"pdf_url": pdf_url}
 
