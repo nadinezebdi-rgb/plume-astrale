@@ -28,6 +28,7 @@ import Numerologie from "@/pages/Numerologie";
 import PremiumLanding from "@/pages/PremiumLanding";
 import PremiumExperience from "@/pages/PremiumExperience";
 import CharteConfiance from "@/pages/CharteConfiance";
+import TirageTarot from "@/pages/TirageTarot";
 
 // 404 Component
 const NotFound = () => (
@@ -69,6 +70,7 @@ function App() {
           <Route path="/premium" element={<PremiumLanding />} />
           <Route path="/premium/experience" element={<PremiumExperience />} />
           <Route path="/charte-de-confiance" element={<CharteConfiance />} />
+          <Route path="/tirage-tarot" element={<TirageTarot />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
