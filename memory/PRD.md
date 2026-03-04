@@ -1,55 +1,83 @@
-# Plume Astrale - PRD
+# Plume Astrale - PRD (Product Requirements Document)
 
-## Date: 02 Mars 2026
+## Projet
+**Plume Astrale** - Plateforme de guidance astrologique et symbolique
 
-## Produit
-Espace digital de guidance symbolique, alliant calculs astrologiques precis et interpretation experte.
+## Architecture
+- **Frontend**: React.js avec Tailwind CSS
+- **Backend**: Python FastAPI
+- **Base de données**: MongoDB
+- **APIs externes**: Astrology API (Plan Growth), Stripe
 
-## Domaine
-https://plume-astrale.fr
+## Ce qui a été implémenté
 
-## Direction Artistique (v3)
-- Fond violet profond (#0C0918) avec etoiles scintillantes et orbes
-- Ecriture doree (#C5A059), headings (#F0E6D3)
-- Typo: Cormorant Garamond (headings), DM Sans (body)
-- Code Promo: PLUME2026
+### Session du 4 Mars 2026
 
-## Tech Stack
-- Frontend: React, React Router, TailwindCSS, Lucide React, react-helmet-async
-- Backend: FastAPI (Python), reportlab (PDF), emergentintegrations (LLM + Stripe)
-- APIs: AstrologyAPI (Growth Plan), Emergent LLM (gpt-4o-mini)
-- Paiement: Stripe
-- Deploiement: Docker Compose, Nginx
+#### 1. Corrections des accents français
+- ✅ `server.py` - Messages lunaires, conseils
+- ✅ `translation_service.py` - System prompt
+- ✅ `tarot_interpretations.py` - 22 arcanes majeurs
+- ✅ `astro_content_extended.py` - Planètes, aspects, rétrogrades
+- ✅ `pdf_generator_v2.py` - Textes d'introduction, titres
+- ✅ `premium_service.py` - Titres et réflexions
 
-## AstrologyAPI Growth Plan
-- **Disponible**: western_horoscope, planets/tropical, daily/weekly/monthly horoscope, geo_details, natal_wheel_chart, house_cusps, tarot_predictions, yes_no_tarot
-- **Bloque (plan superieur)**: numero_table, natal_chart_interpretation, match_making, current_transit, general_ascendant_report
+#### 2. Amélioration mise en page PDF
+- ✅ `_draw_centered_block()` - Gestion adaptative des espaces
+- ✅ `_draw_short_phrase()` - Petites phrases centrées avec décoration
+- ✅ `_draw_quote_box()` - Citations élégantes
+- ✅ `_fill_remaining_space()` - Éviter les grands espaces blancs
+- ✅ `_draw_info_box()` - Hauteur adaptative, styles multiples
 
-## Completed
-1. PDF Theme Astral Pro 28+ pages
-2. Carte Astrale Partageable PNG
-3. Integration AstrologyAPI Phase 1
-4. Flux Tarot Oui/Non (3 tirages gratuits)
-5. Numerologie + Traduction IA (local, API bloquee)
-6. Code Promo PLUME2026 toutes pages
-7. Refonte design editoriale complete (violet/dore/etoiles)
-8. Experience Premium 199 EUR (parcours guide 5 etapes + PDF)
-9. SEO Complet (meta tags, sitemap, robots.txt, JSON-LD, OG)
-10. **Integration Growth Plan AstrologyAPI** (02 Mars 2026):
-    - Tarot Oui/Non: utilise l'API yes_no_tarot avec traduction FR (fallback local)
-    - Predictions Tarot: endpoint /api/tarot/predictions (amour, carriere, finances)
-    - Section "Vos predictions du jour" ajoutee sur la page Tarologie
+#### 3. Intégration Astrology API Premium (Plan Growth)
+Nouveau fichier: `/app/backend/services/astrology_api_premium.py`
 
-## Backlog
-### P1
-- [ ] Integration emails (SendGrid/Resend/Brevo) — capture leads + envoi PDF
-- [ ] Endpoints Growth AstrologyAPI avances (bloque par plan superieur: numero_table, match_making, current_transit)
+**Endpoints créés:**
 
-### P2
-- [ ] Abonnement Stripe 14,99 EUR/mois (contenu recurrent)
-- [ ] Tableau de bord admin
+| Endpoint | Produit | Prix | Description |
+|----------|---------|------|-------------|
+| `/api/premium/love-analysis` | Offre Amour | 49€ | Compatibilité + Synastrie + Profils romantiques |
+| `/api/premium/circle-daily` | Le Cercle | 14,90€/mois | Tarot + Lune + Horoscope quotidien |
+| `/api/premium/user-profile` | Profil Complet | 39€ | Karma + Personnalité + Numérologie |
+| `/api/premium/natal-chart` | Carte du ciel | - | SVG visuel |
+| `/api/premium/lunar-metrics` | Métriques lunaires | - | Phase, énergie, rituels |
+| `/api/premium/tarot-daily` | Tarot du jour | - | Carte, signification, conseil |
+| `/api/premium/numerology` | Numérologie | - | Chemin de vie, Âme, Expression |
+| `/api/premium/horoscope/{sign}` | Horoscope Premium | - | Prévisions par domaine |
 
-### P3
-- [ ] Emails automatiques relance
-- [ ] Blog SEO (horoscope mensuel, articles numerologie)
-- [ ] React Context pour etat global
+## Produits configurés (PRODUCTS)
+
+```python
+"amour_premium": 49.00€   # Analyse Amour Premium
+"cercle_mensuel": 14.90€  # Abonnement mensuel
+"profil_complet": 39.00€  # Profil Astro-Numérologique
+```
+
+## Backlog / P0-P1-P2
+
+### P0 - Critique
+- [ ] Configurer les clés Astrology API en production
+- [ ] Tester les endpoints avec l'API réelle
+- [ ] Intégrer Stripe Checkout pour les nouveaux produits
+
+### P1 - Important
+- [ ] Créer les pages frontend pour les nouveaux produits
+- [ ] Générer les PDF Premium pour chaque offre
+- [ ] Système d'abonnement pour Le Cercle
+
+### P2 - Nice to have
+- [ ] Cache des réponses API fréquentes
+- [ ] Notifications email pour les abonnés du Cercle
+- [ ] Dashboard utilisateur avec historique
+
+## Variables d'environnement requises
+
+```bash
+# Backend (.env)
+ASTROLOGY_API_USER_ID=xxx
+ASTROLOGY_API_KEY=xxx
+STRIPE_API_KEY=xxx
+MONGO_URL=xxx
+```
+
+## Dernière mise à jour
+4 Mars 2026

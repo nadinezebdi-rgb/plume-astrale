@@ -12,6 +12,7 @@ import uuid
 from datetime import datetime, timezone
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 from services.astrology_api import get_astrology_service, AstrologyAPIService
+from services.astrology_api_premium import get_premium_astrology_service, AstrologyAPIPremium
 from services.pdf_generator_v2 import generate_manuscrit_complet
 from services.daily_content import get_daily_content
 from services.tarot_service import tirage_oui_non, tirage_mediumnite_complet, tirage_en_croix
@@ -76,10 +77,31 @@ PRODUCTS = {
         "description": "Analyse de compatibilite amoureuse complete - 24 pages (PDF)"
     },
     "premium": {
-        "name": "Experience Premium",
+        "name": "Expérience Premium",
         "amount": 199.00,
         "currency": "eur",
-        "description": "Cartographie celeste complete - Parcours guide en 5 etapes + PDF Premium"
+        "description": "Cartographie céleste complète - Parcours guidé en 5 étapes + PDF Premium"
+    },
+    # ═══ NOUVEAUX PRODUITS PREMIUM ═══
+    "amour_premium": {
+        "name": "Analyse Amour Premium",
+        "amount": 49.00,
+        "currency": "eur",
+        "description": "Analyse complète de compatibilité amoureuse - Synastrie, profil romantique et guidance"
+    },
+    "cercle_mensuel": {
+        "name": "Le Cercle - Abonnement Mensuel",
+        "amount": 14.90,
+        "currency": "eur",
+        "description": "Accès quotidien: Tarot, Lune, Horoscope Premium - Contenu personnalisé chaque jour",
+        "subscription": True,
+        "interval": "month"
+    },
+    "profil_complet": {
+        "name": "Profil Astro-Numérologique Complet",
+        "amount": 39.00,
+        "currency": "eur",
+        "description": "Karma, Destinée, Personnalité + Numérologie complète en PDF Premium"
     }
 }
 
@@ -1415,6 +1437,208 @@ async def premium_pdf(request: Request):
     except Exception as e:
         logger.error(f"Premium PDF error: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur PDF: {str(e)}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ENDPOINTS PREMIUM - ASTROLOGY API PLAN GROWTH
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class PersonData(BaseModel):
+    date: str  # YYYY-MM-DD
+    time: str  # HH:MM
+    lat: float
+    lon: float
+    timezone: float = 1.0
+    name: Optional[str] = ""
+
+class LoveAnalysisRequest(BaseModel):
+    """Requête pour l'analyse Amour Premium (49€)"""
+    person1: PersonData
+    person2: PersonData
+
+class CircleDailyRequest(BaseModel):
+    """Requête pour le contenu quotidien Le Cercle"""
+    zodiac_sign: str
+    user_id: Optional[str] = None
+
+class UserProfileRequest(BaseModel):
+    """Requête pour le profil utilisateur complet"""
+    date: str
+    time: str
+    lat: float
+    lon: float
+    timezone: float = 1.0
+    name: Optional[str] = ""
+
+@api_router.post("/premium/love-analysis")
+async def premium_love_analysis(request: LoveAnalysisRequest):
+    """
+    🌹 OFFRE AMOUR PREMIUM (49€)
+    Analyse complète de compatibilité amoureuse:
+    - Compatibilité zodiacale
+    - Synastrie (aspects inter-charts)
+    - Profils romantiques des deux personnes
+    - Synthèse et conseils
+    """
+    try:
+        service = get_premium_astrology_service()
+        
+        person1 = request.person1.model_dump()
+        person2 = request.person2.model_dump()
+        
+        result = await service.get_love_compatibility_full(person1, person2)
+        
+        return {
+            "success": True,
+            "product": "amour_premium",
+            "data": result
+        }
+    except Exception as e:
+        logger.error(f"Love analysis error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur analyse amour: {str(e)}")
+
+
+@api_router.post("/premium/circle-daily")
+async def premium_circle_daily(request: CircleDailyRequest):
+    """
+    🌙 LE CERCLE - Contenu Quotidien (14,90€/mois)
+    Contenu personnalisé chaque jour:
+    - Tarot du jour
+    - Métriques lunaires
+    - Horoscope premium
+    - Message quotidien personnalisé
+    """
+    try:
+        service = get_premium_astrology_service()
+        
+        result = await service.get_circle_daily_content(request.zodiac_sign)
+        
+        return {
+            "success": True,
+            "product": "cercle_mensuel",
+            "data": result
+        }
+    except Exception as e:
+        logger.error(f"Circle daily error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur contenu cercle: {str(e)}")
+
+
+@api_router.post("/premium/user-profile")
+async def premium_user_profile(request: UserProfileRequest):
+    """
+    ⭐ PROFIL UTILISATEUR COMPLET (39€)
+    Rapports complets:
+    - Karma et Destinée
+    - Personnalité (système tropical)
+    - Numérologie complète (si nom fourni)
+    """
+    try:
+        service = get_premium_astrology_service()
+        
+        user_data = request.model_dump()
+        result = await service.get_full_user_profile(user_data)
+        
+        return {
+            "success": True,
+            "product": "profil_complet",
+            "data": result
+        }
+    except Exception as e:
+        logger.error(f"User profile error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur profil utilisateur: {str(e)}")
+
+
+@api_router.get("/premium/natal-chart/{date}/{time}/{lat}/{lon}")
+async def premium_natal_chart(date: str, time: str, lat: float, lon: float, timezone: float = 1.0):
+    """
+    🌌 CARTE DU CIEL VISUELLE
+    Génère la carte natale en SVG
+    """
+    try:
+        service = get_premium_astrology_service()
+        
+        # time is URL encoded, replace - with :
+        time_formatted = time.replace("-", ":")
+        
+        result = await service.get_natal_wheel_chart(date, time_formatted, lat, lon, timezone)
+        
+        if result:
+            return {"success": True, "data": result}
+        else:
+            raise HTTPException(status_code=404, detail="Impossible de générer la carte du ciel")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Natal chart error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur carte du ciel: {str(e)}")
+
+
+@api_router.get("/premium/lunar-metrics")
+async def premium_lunar_metrics():
+    """
+    🌙 MÉTRIQUES LUNAIRES
+    Phase actuelle, énergie, rituels recommandés
+    """
+    try:
+        service = get_premium_astrology_service()
+        result = await service.get_lunar_metrics()
+        
+        return {"success": True, "data": result}
+    except Exception as e:
+        logger.error(f"Lunar metrics error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur métriques lunaires: {str(e)}")
+
+
+@api_router.get("/premium/tarot-daily")
+async def premium_tarot_daily():
+    """
+    🎴 TAROT DU JOUR
+    Carte tirée, signification, conseil
+    """
+    try:
+        service = get_premium_astrology_service()
+        result = await service.get_tarot_predictions()
+        
+        return {"success": True, "data": result}
+    except Exception as e:
+        logger.error(f"Tarot daily error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur tarot quotidien: {str(e)}")
+
+
+class NumerologyRequest(BaseModel):
+    date: str
+    name: str
+
+@api_router.post("/premium/numerology")
+async def premium_numerology(request: NumerologyRequest):
+    """
+    🔢 PROFIL NUMÉROLOGIQUE COMPLET
+    Chemin de vie, Âme, Expression, Défis
+    """
+    try:
+        service = get_premium_astrology_service()
+        result = await service.get_full_numerology_profile(request.date, request.name)
+        
+        return {"success": True, "data": result}
+    except Exception as e:
+        logger.error(f"Numerology error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur numérologie: {str(e)}")
+
+
+@api_router.get("/premium/horoscope/{zodiac_sign}")
+async def premium_horoscope(zodiac_sign: str):
+    """
+    ♈ HOROSCOPE PREMIUM
+    Prévisions détaillées par domaine
+    """
+    try:
+        service = get_premium_astrology_service()
+        result = await service.get_daily_horoscope_premium(zodiac_sign)
+        
+        return {"success": True, "data": result}
+    except Exception as e:
+        logger.error(f"Horoscope error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur horoscope: {str(e)}")
 
 
 # Include the router in the main app
