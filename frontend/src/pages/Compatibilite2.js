@@ -213,9 +213,12 @@ const Compatibilite2 = () => {
 
           {/* Header */}
           <div className="text-center mb-10">
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #C5A059, #F0E6D3)' }}>
-                <Heart className="w-8 h-8 text-[#0C0918]" />
+            {/* Hero image */}
+            <div className="flex justify-center mb-6">
+              <div className="relative w-48 h-48 md:w-64 md:h-64">
+                <img src="/images/compatibilite/mains-constellations.png" alt="Connexion c&eacute;leste"
+                  className="w-full h-full object-contain rounded-full opacity-90" data-testid="hero-image" />
+                <div className="absolute inset-0 rounded-full" style={{ background: 'radial-gradient(circle, transparent 60%, #0C0918 100%)' }} />
               </div>
             </div>
             <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-3 font-light">
@@ -273,6 +276,11 @@ const Compatibilite2 = () => {
           {/* Step 3: Question */}
           {step === 3 && (
             <div className="card-mystical animate-fade-in" data-testid="step-3-question">
+              {/* Visual: couple passion */}
+              <div className="flex justify-center mb-6">
+                <img src="/images/compatibilite/couple-passion.png" alt="Union des &acirc;mes"
+                  className="w-40 h-40 object-contain rounded-xl opacity-80" data-testid="question-image" />
+              </div>
               <h3 className="text-lg flex items-center gap-2 mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                 <MessageCircle className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} /> Votre Question
               </h3>
@@ -347,7 +355,13 @@ const Compatibilite2 = () => {
           {step === 4 && pdfUrl && (
             <div className="space-y-6 animate-fade-in" data-testid="step-4-result">
               <div className="card-mystical text-center p-10 glow-gold">
-                <Sparkles className="w-12 h-12 text-[#C5A059] mx-auto mb-4" strokeWidth={1} />
+                {/* Visual grid */}
+                <div className="flex justify-center gap-4 mb-6">
+                  <img src="/images/compatibilite/visage-dualite.png" alt="Dualit&eacute; cosmique"
+                    className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-xl opacity-80" />
+                  <img src="/images/compatibilite/coeur-mosaique.png" alt="Union sacr&eacute;e"
+                    className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-xl opacity-80" />
+                </div>
                 <h2 className="text-2xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                   Votre Rapport est Pr&ecirc;t !
                 </h2>

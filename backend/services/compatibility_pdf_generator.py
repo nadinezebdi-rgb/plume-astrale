@@ -3,12 +3,20 @@ Générateur PDF de Compatibilité Astrale - Plume Astrale
 Rapport riche et personnalisé pour un couple
 """
 import io
+import os
 import random
 from datetime import datetime
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib.colors import HexColor
 from reportlab.pdfgen import canvas
+
+# ═══════════════════ IMAGES ═══════════════════
+ASSETS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'images', 'compatibilite')
+IMG_COVER = os.path.join(ASSETS_DIR, 'mains-constellations.jpg')
+IMG_PASSION = os.path.join(ASSETS_DIR, 'couple-passion.jpg')
+IMG_HEART = os.path.join(ASSETS_DIR, 'coeur-mosaique.jpg')
+IMG_DUALITY = os.path.join(ASSETS_DIR, 'visage-dualite.jpg')
 
 # ═══════════════════ COULEURS ═══════════════════
 DEEP_PURPLE = HexColor('#0C0918')
@@ -377,25 +385,32 @@ class CompatibilityPDFGenerator:
         c.drawCentredString(self.width / 2, 1.2 * cm, f"Compatibilité Astrale — Plume Astrale — page {page_num}")
         c.setFillAlpha(1.0)
 
+    def _draw_image_centered(self, c, img_path, y, img_w, img_h):
+        """Dessine une image centrée si le fichier existe."""
+        if os.path.exists(img_path):
+            x = (self.width - img_w) / 2
+            c.drawImage(img_path, x, y - img_h, img_w, img_h, preserveAspectRatio=True, mask='auto')
+            return y - img_h - 0.5 * cm
+        return y
+
     # ═══════════════════ PAGES ═══════════════════
 
     def _page_cover(self, c, p1, p2, s1, s2):
         self._draw_bg(c)
-        y = self.height - 6 * cm
 
-        # Decorative line
-        c.setStrokeColor(GOLD)
-        c.setLineWidth(1)
-        c.line(4 * cm, y + 2 * cm, self.width - 4 * cm, y + 2 * cm)
+        # Cover image at the top
+        y = self.height - 2 * cm
+        y = self._draw_image_centered(c, IMG_COVER, y, 10 * cm, 10 * cm)
 
         c.setFillColor(GOLD)
         c.setFont("Helvetica", 11)
-        c.drawCentredString(self.width / 2, y + 1 * cm, "PLUME ASTRALE")
+        c.drawCentredString(self.width / 2, y, "PLUME ASTRALE")
+        y -= 1.2 * cm
 
         c.setFillColor(CREAM)
         c.setFont("Helvetica-Bold", 30)
         c.drawCentredString(self.width / 2, y, "Compatibilité Astrale")
-        y -= 2 * cm
+        y -= 1.8 * cm
 
         c.setFillColor(GOLD)
         c.setFont("Helvetica-Bold", 20)
@@ -583,6 +598,9 @@ class CompatibilityPDFGenerator:
         self._new_page(c)
         y = self._chapter_header(c, "L'Attraction et la Passion", "Ce qui vous attire l'un vers l'autre")
 
+        # Image couple-passion
+        y = self._draw_image_centered(c, IMG_PASSION, y, 7 * cm, 7 * cm)
+
         n1 = p1['first_name']
         n2 = p2['first_name']
         info1 = SIGNES.get(s1, {})
@@ -658,6 +676,9 @@ class CompatibilityPDFGenerator:
         self._new_page(c)
         y = self._chapter_header(c, "Défis et Résolution de Conflits", "Transformer les tensions en croissance")
 
+        # Image coeur-mosaique
+        y = self._draw_image_centered(c, IMG_HEART, y, 5 * cm, 5 * cm)
+
         n1 = p1['first_name']
         n2 = p2['first_name']
         info1 = SIGNES.get(s1, {})
@@ -707,6 +728,9 @@ class CompatibilityPDFGenerator:
         """Page de compatibilité réelle."""
         self._new_page(c)
         y = self._chapter_header(c, "Votre Compatibilité Réelle", "Au-delà des clichés astrologiques")
+
+        # Image visage-dualite
+        y = self._draw_image_centered(c, IMG_DUALITY, y, 6 * cm, 6 * cm)
 
         n1 = p1['first_name']
         n2 = p2['first_name']
