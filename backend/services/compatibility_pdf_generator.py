@@ -860,7 +860,46 @@ class CompatibilityPDFGenerator:
         c.drawCentredString(self.width / 2, y - 1.4 * cm, "www.plume-astrale.fr")
         c.setFillAlpha(1.0)
 
-    def generate(self, person1, person2, question=""):
+    def _page_api_insights(self, c, api_data, p1, p2):
+        """Page avec les données enrichies de l'API AstrologyAPI."""
+        if not api_data:
+            return
+        
+        n1 = p1['first_name']
+        n2 = p2['first_name']
+        
+        # Zodiac compatibility from API
+        zc = api_data.get('zodiac_compat', {})
+        if zc and zc.get('analysis'):
+            self._new_page(c)
+            y = self._chapter_header(c, "Analyse Astrologique Approfondie", "Données calculées par notre moteur céleste")
+            
+            score = zc.get('overall_score', 0)
+            if score:
+                y = self._sub_header(c, f"Score de Compatibilité Zodiacale : {score}%", y, size=14)
+                y = self._score_bar(c, score, y)
+                y -= 0.2 * cm
+            
+            analysis = zc.get('analysis', '')
+            if analysis:
+                y = self._draw_text_block(c, analysis, y, font_size=10.5, color=CREAM)
+        
+        # Romantic personality reports
+        for person_data, person, label in [
+            (api_data.get('romantic_p1'), p1, n1),
+            (api_data.get('romantic_p2'), p2, n2),
+        ]:
+            paragraphs = (person_data or {}).get('report_paragraphs', [])
+            if paragraphs:
+                self._new_page(c)
+                y = self._chapter_header(c, f"Personnalité Romantique de {label}", "Analyse astrologique détaillée")
+                for para in paragraphs[:6]:
+                    y = self._draw_text_block(c, para, y, font_size=10, color=LIGHT_TEXT)
+                    if y < 3 * cm:
+                        self._new_page(c)
+                        y = self.height - 3.5 * cm
+
+    def generate(self, person1, person2, question="", api_data=None):
         """Génère le PDF complet de compatibilité."""
         buffer = io.BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
@@ -879,6 +918,11 @@ class CompatibilityPDFGenerator:
         self._page_communication(c, s1, s2, person1, person2)
         self._page_conflicts(c, s1, s2, person1, person2)
         self._page_real_compatibility(c, s1, s2, person1, person2, lp1, lp2, question)
+        
+        # API-enriched pages
+        if api_data:
+            self._page_api_insights(c, api_data, person1, person2)
+        
         self._page_future(c, s1, s2, person1, person2, lp1, lp2)
         self._page_final(c, person1, person2, s1, s2)
 
@@ -887,7 +931,7 @@ class CompatibilityPDFGenerator:
         return buffer.getvalue()
 
 
-def generate_compatibility_pdf(person1: dict, person2: dict, question: str = "") -> bytes:
+def generate_compatibility_pdf(person1: dict, person2: dict, question: str = "", api_data: dict = None) -> bytes:
     """Point d'entrée pour générer le PDF de compatibilité."""
     gen = CompatibilityPDFGenerator()
-    return gen.generate(person1, person2, question)
+    return gen.generate(person1, person2, question, api_data)

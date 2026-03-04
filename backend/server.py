@@ -1379,7 +1379,7 @@ class CompatibilityRequest(BaseModel):
 
 @api_router.post("/compatibility/generate")
 async def generate_compatibility(request: CompatibilityRequest):
-    """Génère un rapport de compatibilité astrale complet en PDF."""
+    """Génère un rapport de compatibilité astrale complet en PDF enrichi avec l'API."""
     from services.compatibility_pdf_generator import generate_compatibility_pdf
     import base64 as b64
     
@@ -1394,13 +1394,52 @@ async def generate_compatibility(request: CompatibilityRequest):
         "day": request.person2.day, "month": request.person2.month, "year": request.person2.year,
     }
     
-    pdf_bytes = generate_compatibility_pdf(p1, p2, request.question)
+    # Fetch real API data for enrichment
+    api_data = {}
+    try:
+        service = get_premium_astrology_service()
+        if not service.mock_mode:
+            from services.compatibility_pdf_generator import _get_zodiac
+            s1_en = _zodiac_to_english(_get_zodiac(p1['day'], p1['month']))
+            s2_en = _zodiac_to_english(_get_zodiac(p2['day'], p2['month']))
+            
+            import asyncio
+            zodiac_compat, romantic1, romantic2 = await asyncio.gather(
+                service.get_zodiac_compatibility(s1_en, s2_en),
+                service.get_romantic_personality_report(
+                    f"{p1['year']}-{p1['month']:02d}-{p1['day']:02d}", "12:00",
+                    request.person1.lat, request.person1.lon, request.person1.timezone
+                ),
+                service.get_romantic_personality_report(
+                    f"{p2['year']}-{p2['month']:02d}-{p2['day']:02d}", "12:00",
+                    request.person2.lat, request.person2.lon, request.person2.timezone
+                ),
+            )
+            api_data = {
+                "zodiac_compat": zodiac_compat,
+                "romantic_p1": romantic1,
+                "romantic_p2": romantic2,
+            }
+    except Exception as e:
+        logger.warning(f"API enrichment failed (using local data): {e}")
     
-    # Save PDF and return as data URL
+    pdf_bytes = generate_compatibility_pdf(p1, p2, request.question, api_data)
+    
     pdf_b64 = b64.b64encode(pdf_bytes).decode()
     pdf_url = f"data:application/pdf;base64,{pdf_b64}"
     
     return {"pdf_url": pdf_url}
+
+
+def _zodiac_to_english(fr_sign):
+    """Convertit un signe français en anglais pour l'API"""
+    mapping = {
+        "Bélier": "aries", "Taureau": "taurus", "Gémeaux": "gemini",
+        "Cancer": "cancer", "Lion": "leo", "Vierge": "virgo",
+        "Balance": "libra", "Scorpion": "scorpio", "Sagittaire": "sagittarius",
+        "Capricorne": "capricorn", "Verseau": "aquarius", "Poissons": "pisces"
+    }
+    return mapping.get(fr_sign, "aries")
 
 
 # ========== PREMIUM EXPERIENCE ROUTES ==========
@@ -1653,6 +1692,58 @@ async def premium_horoscope(zodiac_sign: str):
     except Exception as e:
         logger.error(f"Horoscope error: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur horoscope: {str(e)}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# RAPPORTS PLANÉTAIRES & CARTE DU CIEL
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@api_router.get("/premium/planet-reports/{date}/{time}/{lat}/{lon}")
+async def get_planet_reports(date: str, time: str, lat: float, lon: float, timezone: float = 1.0):
+    """Rapports planétaires complets (sign + house) pour toutes les planètes"""
+    try:
+        service = get_premium_astrology_service()
+        result = await service.get_all_planet_reports(date, time, lat, lon, timezone)
+        return {"success": True, "data": result}
+    except Exception as e:
+        logger.error(f"Planet reports error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/premium/personality/{date}/{time}/{lat}/{lon}")
+async def get_personality(date: str, time: str, lat: float, lon: float, timezone: float = 1.0):
+    """Rapport de personnalité tropical"""
+    try:
+        service = get_premium_astrology_service()
+        result = await service.get_personality_report_tropical(date, time, lat, lon, timezone)
+        return {"success": True, "data": result}
+    except Exception as e:
+        logger.error(f"Personality report error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/premium/romantic/{date}/{time}/{lat}/{lon}")
+async def get_romantic(date: str, time: str, lat: float, lon: float, timezone: float = 1.0):
+    """Rapport de personnalité romantique"""
+    try:
+        service = get_premium_astrology_service()
+        result = await service.get_romantic_personality_report(date, time, lat, lon, timezone)
+        return {"success": True, "data": result}
+    except Exception as e:
+        logger.error(f"Romantic report error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/premium/zodiac-compat/{sign1}/{sign2}")
+async def get_zodiac_compat(sign1: str, sign2: str):
+    """Compatibilité entre deux signes du zodiaque (données API réelles)"""
+    try:
+        service = get_premium_astrology_service()
+        result = await service.get_zodiac_compatibility(sign1, sign2)
+        return {"success": True, "data": result}
+    except Exception as e:
+        logger.error(f"Zodiac compat error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

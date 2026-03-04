@@ -93,12 +93,12 @@ class AstrologyAPIPremium:
         )
         
         return {
-            "p1_day": p1["day"], "p1_month": p1["month"], "p1_year": p1["year"],
-            "p1_hour": p1["hour"], "p1_min": p1["min"],
-            "p1_lat": p1["lat"], "p1_lon": p1["lon"], "p1_tzone": p1["tzone"],
-            "p2_day": p2["day"], "p2_month": p2["month"], "p2_year": p2["year"],
-            "p2_hour": p2["hour"], "p2_min": p2["min"],
-            "p2_lat": p2["lat"], "p2_lon": p2["lon"], "p2_tzone": p2["tzone"]
+            "p_day": p1["day"], "p_month": p1["month"], "p_year": p1["year"],
+            "p_hour": p1["hour"], "p_min": p1["min"],
+            "p_lat": p1["lat"], "p_lon": p1["lon"], "p_tzone": p1["tzone"],
+            "s_day": p2["day"], "s_month": p2["month"], "s_year": p2["year"],
+            "s_hour": p2["hour"], "s_min": p2["min"],
+            "s_lat": p2["lat"], "s_lon": p2["lon"], "s_tzone": p2["tzone"]
         }
 
     # ═══════════════════════════════════════════════════════════════════════════
@@ -131,7 +131,7 @@ class AstrologyAPIPremium:
         Retourne: style amoureux, besoins émotionnels, points forts/faibles
         """
         data = self._parse_birth_data(date_str, time_str, lat, lon, timezone)
-        result = await self._make_request("romantic_personality_report", data)
+        result = await self._make_request("romantic_personality_report/tropical", data)
         return self._format_romantic_report(result)
     
     async def get_love_compatibility_full(self, person1: Dict, person2: Dict) -> Dict:
@@ -348,6 +348,67 @@ class AstrologyAPIPremium:
         }
 
     # ═══════════════════════════════════════════════════════════════════════════
+    # RAPPORTS PLANÉTAIRES ET MAISONS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    async def get_general_sign_report(self, date_str: str, time_str: str,
+                                       lat: float, lon: float,
+                                       timezone: float, planet: str) -> Optional[Dict]:
+        """Rapport général d'un signe pour une planète donnée"""
+        data = self._parse_birth_data(date_str, time_str, lat, lon, timezone)
+        result = await self._make_request(f"general_sign_report/tropical/{planet}", data)
+        if result and 'report' in result:
+            paragraphs = result['report']
+            return {"planet": planet, "report_paragraphs": paragraphs if isinstance(paragraphs, list) else [paragraphs]}
+        return None
+
+    async def get_general_house_report(self, date_str: str, time_str: str,
+                                        lat: float, lon: float,
+                                        timezone: float, planet: str) -> Optional[Dict]:
+        """Rapport général d'une maison pour une planète donnée"""
+        data = self._parse_birth_data(date_str, time_str, lat, lon, timezone)
+        result = await self._make_request(f"general_house_report/tropical/{planet}", data)
+        if result and 'report' in result:
+            paragraphs = result['report']
+            return {"planet": planet, "report_paragraphs": paragraphs if isinstance(paragraphs, list) else [paragraphs]}
+        return None
+
+    async def get_friendship_report(self, date_str: str, time_str: str,
+                                     lat: float, lon: float,
+                                     timezone: float) -> Optional[Dict]:
+        """Rapport d'amitié"""
+        data = self._parse_birth_data(date_str, time_str, lat, lon, timezone)
+        result = await self._make_request("friendship_report", data)
+        if result and 'report' in result:
+            paragraphs = result['report']
+            return {"report_paragraphs": paragraphs if isinstance(paragraphs, list) else [paragraphs]}
+        return None
+
+    async def get_all_planet_reports(self, date_str: str, time_str: str,
+                                      lat: float, lon: float,
+                                      timezone: float = 1.0) -> Dict:
+        """Récupère les rapports pour toutes les planètes principales"""
+        import asyncio
+        planets = ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn"]
+        
+        sign_tasks = [self.get_general_sign_report(date_str, time_str, lat, lon, timezone, p) for p in planets]
+        house_tasks = [self.get_general_house_report(date_str, time_str, lat, lon, timezone, p) for p in planets]
+        
+        results = await asyncio.gather(*sign_tasks, *house_tasks, return_exceptions=True)
+        
+        sign_reports = {}
+        house_reports = {}
+        for i, planet in enumerate(planets):
+            r = results[i]
+            if r and not isinstance(r, Exception):
+                sign_reports[planet] = r
+            r2 = results[len(planets) + i]
+            if r2 and not isinstance(r2, Exception):
+                house_reports[planet] = r2
+        
+        return {"sign_reports": sign_reports, "house_reports": house_reports}
+
+    # ═══════════════════════════════════════════════════════════════════════════
     # CARTE DU CIEL VISUELLE
     # ═══════════════════════════════════════════════════════════════════════════
     
@@ -382,15 +443,8 @@ class AstrologyAPIPremium:
             "sign2": sign2,
             "sign1_fr": self._get_sign_french(sign1),
             "sign2_fr": self._get_sign_french(sign2),
-            "overall_score": result.get('percentage', 75),
-            "love_score": result.get('love_percentage', 70),
-            "trust_score": result.get('trust_percentage', 72),
-            "communication_score": result.get('communication_percentage', 68),
-            "emotional_score": result.get('emotional_percentage', 74),
-            "analysis": result.get('description', ''),
-            "strengths": result.get('strengths', []),
-            "challenges": result.get('challenges', []),
-            "advice": result.get('advice', '')
+            "overall_score": result.get('compatibility_percentage', 75),
+            "analysis": result.get('compatibility_report', ''),
         }
     
     def _format_synastry(self, result: Optional[Dict]) -> Dict:
@@ -422,22 +476,19 @@ class AstrologyAPIPremium:
         }
     
     def _format_romantic_report(self, result: Optional[Dict]) -> Dict:
-        """Formate le rapport romantique"""
-        if not result:
+        """Formate le rapport romantique - API retourne {report: [paragraphs]}"""
+        if not result or 'report' not in result:
             return {
+                "report_paragraphs": [],
                 "love_style": "Passionné et attentionné",
                 "emotional_needs": ["Sécurité émotionnelle", "Attention sincère"],
-                "ideal_partner_traits": ["Fidélité", "Communication"],
-                "relationship_patterns": "Vous recherchez la profondeur dans vos relations",
-                "growth_areas": ["Exprimer vos besoins clairement"]
             }
         
+        paragraphs = result.get('report', [])
         return {
-            "love_style": result.get('love_style', ''),
-            "emotional_needs": result.get('emotional_needs', []),
-            "ideal_partner_traits": result.get('ideal_partner', []),
-            "relationship_patterns": result.get('patterns', ''),
-            "growth_areas": result.get('growth', [])
+            "report_paragraphs": paragraphs if isinstance(paragraphs, list) else [paragraphs],
+            "love_style": paragraphs[0] if paragraphs else "",
+            "emotional_needs": [],
         }
     
     def _format_tarot_predictions(self, result: Optional[Dict]) -> Dict:
@@ -524,45 +575,33 @@ class AstrologyAPIPremium:
         }
     
     def _format_karma_report(self, result: Optional[Dict]) -> Dict:
-        """Formate le rapport karma/destinée"""
-        if not result:
+        """Formate le rapport karma/destinée - API retourne {karma_destiny_report: [paragraphs]}"""
+        if not result or 'karma_destiny_report' not in result:
             return {
-                "north_node": {"sign": "Cancer", "house": 4},
-                "south_node": {"sign": "Capricorne", "house": 10},
+                "report_paragraphs": [],
                 "karmic_lessons": ["Apprendre l'équilibre entre vie personnelle et ambitions"],
                 "soul_mission": "Développer la compassion et l'intelligence émotionnelle",
-                "past_life_themes": ["Leadership", "Responsabilité"],
-                "destiny_path": "Vers une vie plus connectée aux autres"
             }
         
+        paragraphs = result.get('karma_destiny_report', [])
         return {
-            "north_node": result.get('north_node', {}),
-            "south_node": result.get('south_node', {}),
-            "karmic_lessons": result.get('lessons', []),
-            "soul_mission": result.get('mission', ''),
-            "past_life_themes": result.get('past_life', []),
-            "destiny_path": result.get('destiny', '')
+            "report_paragraphs": paragraphs if isinstance(paragraphs, list) else [paragraphs],
+            "karmic_lessons": [],
+            "soul_mission": paragraphs[0] if paragraphs else "",
         }
     
     def _format_personality_report(self, result: Optional[Dict]) -> Dict:
-        """Formate le rapport de personnalité"""
-        if not result:
+        """Formate le rapport de personnalité - API retourne {report: [paragraphs]}"""
+        if not result or 'report' not in result:
             return {
+                "report_paragraphs": [],
                 "sun_analysis": "Votre Soleil révèle votre essence profonde...",
-                "moon_analysis": "Votre Lune montre votre monde émotionnel...",
-                "ascendant_analysis": "Votre Ascendant définit votre approche de la vie...",
-                "strengths": ["Créativité", "Détermination", "Intuition"],
-                "challenges": ["Patience", "Flexibilité"],
-                "life_themes": ["Expression personnelle", "Relations profondes"]
             }
         
+        paragraphs = result.get('report', [])
         return {
-            "sun_analysis": result.get('sun', ''),
-            "moon_analysis": result.get('moon', ''),
-            "ascendant_analysis": result.get('ascendant', ''),
-            "strengths": result.get('strengths', []),
-            "challenges": result.get('challenges', []),
-            "life_themes": result.get('themes', [])
+            "report_paragraphs": paragraphs if isinstance(paragraphs, list) else [paragraphs],
+            "sun_analysis": paragraphs[0] if paragraphs else "",
         }
     
     def _format_lifepath(self, result: Optional[Dict]) -> Dict:
