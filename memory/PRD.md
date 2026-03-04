@@ -7,82 +7,80 @@
 - **Frontend**: React.js avec Tailwind CSS
 - **Backend**: Python FastAPI
 - **Base de données**: MongoDB
-- **APIs externes**: Astrology API (Plan Growth), Stripe
+- **APIs externes**: Astrology API (Plan Growth)
 
 ## Ce qui a été implémenté
 
-### Session du 4 Mars 2026 (Fork précédent)
+### Session du 4 Mars 2026 (Forks précédents)
 
-#### 1. Page Tirage Tarot en Direct
-**Route: `/tirage-tarot`**
-- Formulaire de question avec champ texte et exemples
-- 6 domaines : Amour, Travail, Argent, Santé, Spirituel, Général
-- 2 types de tirage : Marseille (3 cartes - 19€) et Celtique (10 cartes - 29€)
-- Animation en direct : révélation carte par carte
-- Images tarot : Fond décoratif avec images tarot
+#### 1. Application complète
+- Page d'accueil, formulaire thème astral, numérologie, tarologie, compatibilité, quotidien, horoscope
+- Génération PDF thème astral (pdf_generator_v2.py - 28+ pages)
+- Tirage Tarot Oui/Non gratuit
+- Tirage en Croix (Tarologie & Médiumnité)
+- Premium Landing & Parcours guidé
 
-#### 2. Nouveaux Produits Premium
+#### 2. Tirage Tarot en Direct
+- Formulaire de question avec domaines
+- Tirage Marseille (3 cartes - 19€) et Celtique (10 cartes - 29€)
+- Animation révélation carte par carte
 
-| Produit | Prix | Description |
-|---------|------|-------------|
-| Numérologie Complète | 49€ | Chemin de vie, Âme, Expression, Défis |
-| Horoscope Premium Annuel | 69€ | 12 mois avec transits personnalisés |
-| Tarot de Marseille | 19€ | Tirage 3 cartes avec question |
-| Tirage Croix Celtique | 29€ | Tirage 10 cartes - Analyse complète |
-| Analyse Amour Premium | 49€ | Compatibilité + Synastrie |
-| Le Cercle (mensuel) | 14,90€ | Tarot + Lune + Horoscope quotidien |
+### Session du 4 Mars 2026 (Fork actuel) ✅
 
-#### 3. 22 Arcanes Majeurs Complets
-- Chaque arcane contient nom français/anglais, mots-clés, élément, planète, interprétations
-
-### Session du 4 Mars 2026 (Fork actuel)
-
-#### 4. Tirage du Jour (P0) ✅
+#### 3. Tirage du Jour (P0) ✅
 - Composant `TirageDuJour` intégré sur la page d'accueil
 - Endpoint `GET /api/tarot/jour` fonctionnel
-- Date affichée en format français (ex: "04 mars 2026")
-- Badge GRATUIT visible
-- Carte face cachée avec bouton "Révéler ma carte"
-- Carte révélée : nom, orientation, mots-clés, interprétation, message énergie
-- Détails dépliables : Affirmation du jour, En Amour, Au Travail, Rituel suggéré
-- Même carte pour tous les utilisateurs chaque jour (seed basé sur la date)
+- Date en français, badge GRATUIT, révélation interactive
+- Détails dépliables : Affirmation, Amour, Travail, Rituel
 
-#### 5. Audit des accents français (P1) ✅
-- **Backend** : Corrections dans tarot_interpretations.py, astro_content_extended.py, premium_service.py, pdf_generator_v2.py, premium_pdf_generator.py, astrology_pdf_api.py, server.py (PRODUCTS)
-- **Frontend** : Corrections dans Navbar.js, SEO.js, Choix.js, Paiement.js, PremiumLanding.js, Tarologie.js, Quotidien.js, TarotOuiNon.js, Apercu.js, CharteConfiance.js
-- Tous les textes visibles par l'utilisateur ont les accents français corrects
+#### 4. Audit des accents français (P1) ✅
+- Corrections dans ~20 fichiers (backend + frontend)
+- Navbar, SEO, Choix, Paiement, Tarologie, Quotidien, TarotOuiNon, Apercu, CharteConfiance
+- PRODUCTS server.py, tarot_interpretations.py, pdf_generator_v2.py, premium_service.py
 
-### Endpoints API
+#### 5. Rapport de Compatibilité Astrale enrichi ✅
+- **NOUVEAU** : Générateur PDF custom (`compatibility_pdf_generator.py`) - 11 pages de contenu riche
+- Remplace l'ancien API externe (AstrologyAPI match_making_pdf) qui produisait un PDF vide
+- **Frontend** : Formulaire 4 étapes (Partenaire 1 → Partenaire 2 → Question → Téléchargement)
+- **Contenu du rapport** :
+  - Couverture avec noms et signes
+  - Profils astrologiques distincts des 2 partenaires
+  - Portrait détaillé de chaque partenaire (forces, vigilance, chemin de vie)
+  - Analyse élémentaire avec score de compatibilité (barre visuelle)
+  - Comment les différences deviennent une force
+  - Attraction et passion (ce que chacun trouve chez l'autre)
+  - Communication et complicité (styles de communication distincts)
+  - Défis et résolution de conflits (zones de tension + stratégies concrètes)
+  - Compatibilité réelle avec score global + réponse à la question de l'utilisateur
+  - Clés de réussite pour l'avenir
+  - Message final personnalisé
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/tarot/jour` | Tirage du jour gratuit |
-| `GET /api/tarot/domaines` | 6 domaines de questions |
-| `POST /api/tarot/marseille` | Tirage 3 cartes avec question |
-| `POST /api/tarot/celtique` | Tirage Croix Celtique 10 cartes |
-| `GET /api/tarot/arcanes` | Liste des 22 arcanes majeurs |
+#### 6. Fix déploiement ✅
+- Ajout endpoint `/health` pour Kubernetes health check
+
+## Endpoints API
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/health` | GET | Health check Kubernetes |
+| `/api/tarot/jour` | GET | Tirage du jour gratuit |
+| `/api/compatibility/generate` | POST | Rapport compatibilité PDF (person1, person2, question) |
+| `/api/tarot/domaines` | GET | 6 domaines de questions |
+| `/api/tarot/marseille` | POST | Tirage 3 cartes |
+| `/api/tarot/celtique` | POST | Tirage Croix Celtique 10 cartes |
 
 ## Backlog
 
-### P0 - Terminé ✅
-- [x] Tirage du Jour intégré sur la page d'accueil
-- [x] Accents français corrigés dans toute l'application
-- [x] Formulaire de question pour tirages
-- [x] Animation révélation cartes en direct
-- [x] Tirage Celtique 10 cartes avec question
-
 ### P1 - À faire
-- [ ] Vérifier et améliorer la mise en page des PDFs (grands espaces blancs, centrage)
-- [ ] Intégrer paiement Stripe avant tirage
-- [ ] Images individuelles des 22 arcanes
+- [ ] Améliorer la mise en page du PDF thème astral principal (pdf_generator_v2.py) — grands espaces blancs, accents restants
+- [ ] Intégrer paiement Stripe pour tous les produits
+- [ ] Images individuelles des 22 arcanes dans les tirages
 
 ### P2 - Nice to have
 - [ ] Visualisation natal_wheel_chart
-- [ ] PDF de synthèse du tirage
-- [ ] Voix off pour tirage guidé
+- [ ] PDF de synthèse du tirage tarot
 - [ ] Historique des tirages par utilisateur
 - [ ] Partage social des tirages
-- [ ] Génération PDF pour nouveaux rapports premium
 
 ## Dernière mise à jour
-4 Mars 2026 - Session Fork actuelle
+4 Mars 2026 - Fork actuel
