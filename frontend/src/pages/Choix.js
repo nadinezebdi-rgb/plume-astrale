@@ -27,23 +27,23 @@ const Choix = () => {
 
   const essentielFeatures = [
     { text: 'Chemin de vie complet', on: true },
-    { text: 'Annee personnelle 2026', on: true },
-    { text: 'Identite celeste', on: true },
+    { text: 'Ann\u00e9e personnelle 2026', on: true },
+    { text: 'Identit\u00e9 c\u00e9leste', on: true },
     { text: 'Mission de vie', on: true },
-    { text: 'PDF telechargeable', on: true },
-    { text: 'Tirage Tarot personnalise', on: false },
-    { text: 'Compatibilite amoureuse', on: false },
+    { text: 'PDF t\u00e9l\u00e9chargeable', on: true },
+    { text: 'Tirage Tarot personnalis\u00e9', on: false },
+    { text: 'Compatibilit\u00e9 amoureuse', on: false },
     { text: 'Horoscope mensuel', on: false },
   ];
 
   const premiumFeatures = [
     { text: 'Chemin de vie complet', on: true },
-    { text: 'Annee personnelle 2026', on: true },
-    { text: 'Identite celeste', on: true },
+    { text: 'Ann\u00e9e personnelle 2026', on: true },
+    { text: 'Identit\u00e9 c\u00e9leste', on: true },
     { text: 'Mission de vie', on: true },
-    { text: 'PDF telechargeable', on: true },
-    { text: 'Tirage Tarot personnalise', on: true, highlight: true },
-    { text: 'Compatibilite amoureuse', on: true, highlight: true },
+    { text: 'PDF t\u00e9l\u00e9chargeable', on: true },
+    { text: 'Tirage Tarot personnalis\u00e9', on: true, highlight: true },
+    { text: 'Compatibilit\u00e9 amoureuse', on: true, highlight: true },
     { text: 'Horoscope mensuel', on: true, highlight: true },
   ];
 
@@ -89,7 +89,7 @@ const Choix = () => {
             </div>
 
             <button onClick={() => handleSelectPlan('essentiel')} className="btn-editorial w-full justify-center" data-testid="btn-essentiel">
-              Decouvrir l'essentiel
+              Découvrir l'essentiel
             </button>
           </div>
 

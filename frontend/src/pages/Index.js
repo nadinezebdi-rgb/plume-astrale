@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import SEO from '@/components/SEO';
+import TirageDuJour from '@/components/TirageDuJour';
 
 const PLUME_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/v8g1i6qn_une%20plume.png";
 const SOLEIL_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/sm8ajzvy_symbole%20dor%C3%A9.png";
@@ -39,6 +40,11 @@ const Index = () => {
             <img src={PLUME_IMG} alt="" className="w-full h-auto" style={{ filter: 'drop-shadow(0 0 30px rgba(197,160,89,0.15))' }} />
           </div>
         </div>
+      </section>
+
+      {/* ─── TIRAGE DU JOUR ─── */}
+      <section className="max-w-2xl mx-auto px-6 md:px-8 pb-4" data-testid="section-tirage-du-jour">
+        <TirageDuJour />
       </section>
 
       {/* ─── CONTENT ─── */}

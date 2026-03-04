@@ -103,7 +103,7 @@ const CharteConfiance = () => {
               'Calculs astrologiques professionnels',
               'Lecture symbolique experte',
               'Restitution claire et structuree',
-              'Chaque lecture est personnalisee',
+              'Chaque lecture est personnalis\u00e9e',
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-3">
                 <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--pa-accent)' }} />

@@ -76,7 +76,7 @@ const Numerologie = () => {
             Votre Profil Numerologique
           </h1>
           <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
-            Decouvrez les nombres sacres qui guident votre destinee
+            Découvrez les nombres sacrés qui guident votre destinée
           </p>
           </div>
         </div>
@@ -169,7 +169,7 @@ const Numerologie = () => {
                 Theme astral complet avec carte du ciel et previsions detaillees
               </p>
               <button onClick={() => navigate('/formulaire')} className="link-editorial text-xs group">
-                Decouvrir mon Theme Astral
+                Découvrir mon Thème Astral
                 <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={1.5} />
               </button>
             </div>

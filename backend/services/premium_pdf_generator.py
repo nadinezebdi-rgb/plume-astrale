@@ -185,7 +185,7 @@ class PremiumPDFGenerator:
             ("nombre_expression", "Nombre d'expression"),
             ("nombre_ame", "Nombre d'ame"),
             ("annee_personnelle", "Annee personnelle"),
-            ("periode", "Periode"),
+            ("periode", "Période"),
         ]
         for field, label in data_fields:
             val = step_data.get(field)
@@ -266,7 +266,7 @@ class PremiumPDFGenerator:
         lines = [
             f"Cher(e) {prenom},",
             "",
-            "Ce document est le fruit d'une lecture croisee de votre theme natal,",
+            "Ce document est le fruit d'une lecture croisée de votre thème natal,",
             "de votre numerologie et des cycles en cours.",
             "",
             "Il ne predit pas votre avenir. Il eclaire des dynamiques.",

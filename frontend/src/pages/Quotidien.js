@@ -191,11 +191,11 @@ const Quotidien = () => {
               </div>
             )}
 
-            {/* Energie + Lucky */}
+            {/* Énergie + Lucky */}
             <div className="grid md:grid-cols-2 gap-10 mb-12">
               <div data-testid="energie-jour">
                 <p className="text-xs tracking-widest uppercase mb-4" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>
-                  Energie du jour
+                  &Eacute;nergie du jour
                 </p>
                 <div className="flex items-baseline gap-2 mb-4">
                   <span className="text-4xl" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
@@ -285,9 +285,9 @@ const Quotidien = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm mb-0.5 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
-                        Tarologie & Mediumnite — 35 EUR
+                        Tarologie & M&eacute;diumni&eacute; — 35 EUR
                       </p>
-                      <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Lecture complete et PDF personnalise</p>
+                      <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Lecture compl&egrave;te et PDF personnalis&eacute;</p>
                     </div>
                     <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" style={{ color: 'var(--pa-accent)' }} strokeWidth={1.5} />
                   </div>

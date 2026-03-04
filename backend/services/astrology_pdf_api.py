@@ -16,7 +16,7 @@ COMPANY_BRANDING = {
     "footer_link": "plumeastrale.com",
     "logo_url": "",
     "company_name": "Plume Astrale",
-    "company_info": "Votre guide spirituel personnalise - Astrologie, Tarot et Mediumnite",
+    "company_info": "Votre guide spirituel personnalisé - Astrologie, Tarot et Médiumnité",
     "domain_url": "https://plumeastrale.com",
     "company_email": "contact@plumeastrale.com",
     "company_landline": "+33 1 00 00 00 00",

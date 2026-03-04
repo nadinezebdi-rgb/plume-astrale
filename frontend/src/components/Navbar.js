@@ -27,10 +27,10 @@ const Navbar = () => {
   const links = [
     { to: '/', label: 'Accueil' },
     { to: '/tarot-oui-non', label: 'Tirage' },
-    { to: '/formulaire', label: 'Theme Astral' },
-    { to: '/numerologie', label: 'Numerologie' },
+    { to: '/formulaire', label: 'Th\u00e8me Astral' },
+    { to: '/numerologie', label: 'Num\u00e9rologie' },
     { to: '/tarologie', label: 'Tarologie' },
-    { to: '/compatibilite-amoureuse', label: 'Compatibilite' },
+    { to: '/compatibilite-amoureuse', label: 'Compatibilit\u00e9' },
     { to: '/charte-de-confiance', label: 'Charte de Confiance' },
     { to: '/premium', label: 'Premium', accent: true },
   ];

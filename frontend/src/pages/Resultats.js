@@ -436,7 +436,7 @@ const Resultats = () => {
                 ) : (
                   <Download className="w-4 h-4" strokeWidth={1} />
                 )}
-                {isDownloading ? 'Generation...' : `Theme Astral Pro${hasFreeAccess ? '' : ' (29,90€)'}`}
+                {isDownloading ? 'Generation...' : `Thème Astral Pro${hasFreeAccess ? '' : ' (29,90€)'}`}
               </button>
               <button 
                 onClick={downloadCheminAme}

@@ -814,3 +814,114 @@ def _generer_conseil_action(cartes: List[Dict], domaine: str) -> str:
 2. **Gérez votre environnement** : {environnement['nom']} ({environnement['orientation_fr']}) indique que votre entourage {environnement['interpretation'][:100]}...
 
 3. **Action recommandée** : Intégrez la sagesse des cartes dans vos décisions quotidiennes. Les arcanes vous guident, mais c'est vous qui tracez le chemin."""
+
+
+
+def _format_date_fr(dt: datetime) -> str:
+    """Formatte une date en français (ex: 04 mars 2026)"""
+    mois_fr = {
+        1: "janvier", 2: "février", 3: "mars", 4: "avril",
+        5: "mai", 6: "juin", 7: "juillet", 8: "août",
+        9: "septembre", 10: "octobre", 11: "novembre", 12: "décembre"
+    }
+    return f"{dt.day:02d} {mois_fr[dt.month]} {dt.year}"
+
+
+def tirage_du_jour() -> Dict:
+    """
+    Tirage du Jour - Une carte gratuite par jour
+    La même carte pour tous les utilisateurs ce jour-là
+    Basé sur la date pour garantir la cohérence
+    """
+    # Utiliser la date du jour comme seed pour avoir la même carte pour tous
+    today = datetime.now().strftime("%Y-%m-%d")
+    seed_value = int(hashlib.md5(today.encode()).hexdigest(), 16) % (2**32)
+    random.seed(seed_value)
+    
+    # Tirer une carte
+    numero = random.randint(0, 21)
+    orientation = random.choice(["droit", "renverse"])
+    
+    arcane = ARCANES_MAJEURS[numero]
+    interpretation = arcane["droit"] if orientation == "droit" else arcane["renverse"]
+    
+    # Message du jour personnalisé selon l'orientation
+    if orientation == "droit":
+        message_energie = "Les énergies sont favorables aujourd'hui. Cette carte vous encourage à avancer avec confiance."
+    else:
+        message_energie = "Une journée d'introspection s'annonce. Cette carte vous invite à la réflexion et à l'ajustement."
+    
+    # Conseil du jour basé sur l'élément
+    conseils_elements = {
+        "Feu": "Laissez votre passion vous guider. L'action et l'enthousiasme sont vos alliés aujourd'hui.",
+        "Eau": "Écoutez vos émotions et votre intuition. Elles ont des messages importants pour vous.",
+        "Air": "La communication et la réflexion seront clés. Exprimez vos idées avec clarté.",
+        "Terre": "Restez ancré(e) et pragmatique. Construisez pas à pas vers vos objectifs."
+    }
+    
+    return {
+        "type": "tirage_du_jour",
+        "date": today,
+        "date_fr": _format_date_fr(datetime.now()),
+        "carte": {
+            "numero": numero,
+            "nom": arcane["nom"],
+            "nom_en": arcane["nom_en"],
+            "orientation": orientation,
+            "orientation_fr": "Droit" if orientation == "droit" else "Renversé",
+            "mots_cles": arcane["mots_cles"],
+            "element": arcane["element"],
+            "planete": arcane["planete"],
+            "description": arcane["description"],
+            "interpretation_generale": interpretation["general"],
+            "interpretation_amour": interpretation["amour"],
+            "interpretation_travail": interpretation["travail"],
+            "conseil": interpretation["conseil"]
+        },
+        "message_energie": message_energie,
+        "conseil_element": conseils_elements.get(arcane["element"], "Suivez votre intuition."),
+        "affirmation_du_jour": _generer_affirmation(arcane, orientation),
+        "rituel_suggere": _generer_rituel(arcane["element"])
+    }
+
+
+def _generer_affirmation(arcane: Dict, orientation: str) -> str:
+    """Génère une affirmation positive basée sur la carte"""
+    affirmations = {
+        "Le Mat": "Je fais confiance au voyage de la vie et j'accueille l'inconnu avec joie.",
+        "Le Bateleur": "J'ai tous les outils en moi pour créer la vie que je désire.",
+        "La Papesse": "J'écoute ma sagesse intérieure et je fais confiance à mon intuition.",
+        "L'Impératrice": "L'abondance coule vers moi naturellement. Je suis créateur/créatrice de beauté.",
+        "L'Empereur": "Je suis maître/maîtresse de ma vie. Je construis avec force et sagesse.",
+        "Le Pape": "Je suis guidé(e) par une sagesse supérieure. J'apprends et je transmets.",
+        "L'Amoureux": "Mon cœur connaît le chemin. Je choisis avec amour.",
+        "Le Chariot": "Je suis déterminé(e) et victorieux/victorieuse. Rien ne peut m'arrêter.",
+        "La Justice": "L'équilibre revient dans ma vie. La vérité me libère.",
+        "L'Hermite": "Dans le silence, je trouve la lumière. Ma sagesse intérieure me guide.",
+        "La Roue de Fortune": "Je danse avec les cycles de la vie. La chance est de mon côté.",
+        "La Force": "Je dompte mes peurs avec douceur. Ma force intérieure est infinie.",
+        "Le Pendu": "Je lâche prise et je m'ouvre à une nouvelle perspective.",
+        "L'Arcane sans Nom": "Je me transforme et je renaîs plus fort(e) que jamais.",
+        "Tempérance": "L'harmonie habite mon cœur. Je trouve l'équilibre en tout.",
+        "Le Diable": "Je me libère de mes chaînes. Ma lumière dissipe les ombres.",
+        "La Maison Dieu": "De chaque destruction naît une renaissance. Je suis résilient(e).",
+        "L'Étoile": "L'espoir illumine mon chemin. Je suis guidé(e) par les étoiles.",
+        "La Lune": "J'explore mes profondeurs avec courage. Mes rêves me parlent.",
+        "Le Soleil": "La joie rayonne en moi et autour de moi. Je célèbre la vie.",
+        "Le Jugement": "Je réponds à l'appel de mon âme. Une nouvelle vie commence.",
+        "Le Monde": "Je suis complet(e) et accompli(e). Le monde m'appartient."
+    }
+    
+    return affirmations.get(arcane["nom"], "Je suis aligné(e) avec mon chemin de vie.")
+
+
+def _generer_rituel(element: str) -> str:
+    """Génère un rituel suggéré basé sur l'élément de la carte"""
+    rituels = {
+        "Feu": "Allumez une bougie et visualisez vos objectifs se réalisant. Laissez la flamme représenter votre passion intérieure.",
+        "Eau": "Prenez un bain relaxant ou buvez une tisane en méditant sur vos émotions. Laissez l'eau purifier votre énergie.",
+        "Air": "Faites quelques respirations profondes près d'une fenêtre ouverte. Laissez l'air frais clarifier vos pensées.",
+        "Terre": "Marchez pieds nus sur l'herbe ou tenez une pierre dans vos mains. Connectez-vous à l'énergie stable de la terre."
+    }
+    
+    return rituels.get(element, "Prenez 5 minutes pour méditer et vous connecter à votre guidance intérieure.")

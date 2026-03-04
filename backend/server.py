@@ -39,22 +39,22 @@ STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
 # Fixed product packages - prices defined server-side only
 PRODUCTS = {
     "manuscrit": {
-        "name": "Theme Astral Professionnel",
+        "name": "Thème Astral Professionnel",
         "amount": 29.90,
         "currency": "eur",
-        "description": "Votre theme astral professionnel complet - 28+ pages enrichies (PDF)"
+        "description": "Votre thème astral professionnel complet - 28+ pages enrichies (PDF)"
     },
     "chemin_ame": {
-        "name": "Le Chemin d'Ame",
+        "name": "Le Chemin d'Âme",
         "amount": 24.90,
         "currency": "eur",
-        "description": "Votre chemin d'ame personnalise - Numerologie, previsions et guidance (PDF)"
+        "description": "Votre chemin d'âme personnalisé - Numérologie, prévisions et guidance (PDF)"
     },
     "livre": {
         "name": "Le Livre de la Plume",
         "amount": 49.90,
         "currency": "eur",
-        "description": "Votre manuscrit imprime en livre relie - Livraison sous 5 jours",
+        "description": "Votre manuscrit imprimé en livre relié - Livraison sous 5 jours",
         "requires_address": True,
         "delivery_days": 5
     },
@@ -62,19 +62,19 @@ PRODUCTS = {
         "name": "Tarot Oui/Non",
         "amount": 4.99,
         "currency": "eur",
-        "description": "Tirage d'un Arcane Majeur pour repondre a votre question"
+        "description": "Tirage d'un Arcane Majeur pour répondre à votre question"
     },
     "tarologie_mediumnite": {
-        "name": "Tarologie & Mediumnite",
+        "name": "Tarologie & Médiumnité",
         "amount": 35.00,
         "currency": "eur",
-        "description": "Tirage complet 7 cartes + lecture mediumnique en PDF"
+        "description": "Tirage complet 7 cartes + lecture médiumnique en PDF"
     },
     "compatibilite": {
-        "name": "Compatibilite Astrale",
+        "name": "Compatibilité Astrale",
         "amount": 29.90,
         "currency": "eur",
-        "description": "Analyse de compatibilite amoureuse complete - 24 pages (PDF)"
+        "description": "Analyse de compatibilité amoureuse complète - 24 pages (PDF)"
     },
     "premium": {
         "name": "Expérience Premium",
@@ -1672,6 +1672,7 @@ async def premium_horoscope(zodiac_sign: str):
 from services.tarot_premium import (
     tirage_marseille_question, 
     tirage_croix_celtique, 
+    tirage_du_jour,
     DOMAINES_QUESTIONS,
     ARCANES_MAJEURS
 )
@@ -1691,6 +1692,23 @@ async def get_domaines_tarot():
         "success": True,
         "domaines": DOMAINES_QUESTIONS
     }
+
+@api_router.get("/tarot/jour")
+async def get_tirage_du_jour():
+    """
+    🌟 TIRAGE DU JOUR - GRATUIT
+    Une carte par jour, la même pour tous les utilisateurs
+    Message personnalisé, affirmation et rituel suggéré
+    """
+    try:
+        result = tirage_du_jour()
+        return {
+            "success": True,
+            "data": result
+        }
+    except Exception as e:
+        logger.error(f"Tirage du jour error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur tirage du jour: {str(e)}")
 
 @api_router.post("/tarot/marseille")
 async def tarot_marseille(request: TarotQuestionRequest):

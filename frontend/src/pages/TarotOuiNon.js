@@ -139,7 +139,7 @@ const TarotOuiNon = () => {
           {/* Astrology suggestion */}
           <div className="mt-12 pt-8" style={{ borderTop: '1px solid var(--pa-divider)' }} data-testid="astro-upsell-from-tarot">
             <p className="text-sm mb-3" style={{ color: 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif', fontSize: '1.1rem' }}>
-              Decouvrez aussi votre Theme Astral
+              Découvrez aussi votre Thème Astral
             </p>
             <p className="text-xs mb-4" style={{ color: 'var(--pa-muted)' }}>
               28+ pages personnalisees avec carte du ciel et previsions
@@ -281,17 +281,17 @@ const TarotOuiNon = () => {
               <div className="space-y-6" data-testid="upsell-tarologie">
                 <button onClick={() => navigate('/tarologie')} className="block w-full text-left group">
                   <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
-                    Tarologie & Mediumnite — 35 EUR
+                    Tarologie & M&eacute;diumni&eacute; — 35 EUR
                   </p>
                   <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
-                    5 cartes, lecture mediumnique et PDF personnalise
+                    5 cartes, lecture m&eacute;diumnique et PDF personnalis&eacute;
                   </p>
                 </button>
 
                 {hasRegistered && (
                   <button onClick={() => navigate('/resultats')} className="block w-full text-left group" data-testid="astro-cross-sell">
                     <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
-                      Votre Theme Astral Complet
+                      Votre Thème Astral Complet
                     </p>
                     <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
                       Carte du ciel, aspects planetaires et previsions 2026

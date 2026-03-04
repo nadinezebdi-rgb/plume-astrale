@@ -127,7 +127,7 @@ class TestDiscountCodes:
             json={
                 "product_id": "tarologie_mediumnite",
                 "discount_code": "PLUME2026",
-                "origin_url": "https://cosmic-path-6.preview.emergentagent.com",
+                "origin_url": "https://plume-astrale-daily.preview.emergentagent.com",
                 "user_data": {"prenom": "Test", "dateNaissance": "1990-01-01"}
             }
         )

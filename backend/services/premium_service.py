@@ -81,7 +81,7 @@ SIGN_FORCES = {
     'Vierge': {'forces':['Analyse','Precision','Service'],'tensions':['Perfectionnisme','Autocritique','Anxiete']},
     'Balance': {'forces':['Harmonie','Diplomatie','Esthetisme'],'tensions':['Indecision','Dependance relationnelle','Evitement du conflit']},
     'Scorpion': {'forces':['Intensite','Transformation','Lucidite'],'tensions':['Obsession','Manipulation','Difficulte a lacher prise']},
-    'Sagittaire': {'forces':['Vision','Optimisme','Liberte'],'tensions':['Exces','Impatience','Fuite de la realite']},
+    'Sagittaire': {'forces':['Vision','Optimisme','Liberté'],'tensions':['Excès','Impatience','Fuite de la réalité']},
     'Capricorne': {'forces':['Discipline','Ambition','Endurance'],'tensions':['Rigidite','Isolement emotionnel','Pessimisme']},
     'Verseau': {'forces':['Innovation','Independance','Humanisme'],'tensions':['Detachement','Rebellion','Imprevisibilite']},
     'Poissons': {'forces':['Empathie','Creativite','Spiritualite'],'tensions':['Confusion','Fuite','Absorption des emotions d\'autrui']},
@@ -103,8 +103,8 @@ async def generate_premium_content(user_data: dict) -> dict:
 
     # Generate LLM-powered deep interpretations
     llm_prompts = {
-        "fondement": f"En 3 paragraphes poetiques et profonds (150 mots max), ecris une synthese du theme natal pour un {sign} (element {element}, modalite {modality}) avec ascendant probable base sur l'heure {heure}. Forces: {', '.join(sign_data['forces'])}. Tensions: {', '.join(sign_data['tensions'])}. Prenom: {prenom}. Tutoie le lecteur. Ton: bienveillant, structure, symbolique. Ne mentionne pas que c'est une estimation.",
-        "chemin_ame": f"En 3 paragraphes (150 mots max), relie le chemin de vie {life_path} ({CHEMIN_TITLES.get(life_path, '')}) avec le signe {sign} de {prenom}. Explique comment ce nombre influence ses decisions et se manifeste dans ses cycles de vie. Tutoie. Ton: profond, eclairant, pas fataliste.",
+        "fondement": f"En 3 paragraphes poétiques et profonds (150 mots max), ecris une synthèse du thème natal pour un {sign} (element {element}, modalité {modality}) avec ascendant probable base sur l'heure {heure}. Forces: {', '.join(sign_data['forces'])}. Tensions: {', '.join(sign_data['tensions'])}. Prenom: {prenom}. Tutoie le lecteur. Ton: bienveillant, structure, symbolique. Ne mentionne pas que c'est une estimation.",
+        "chemin_ame": f"En 3 paragraphes (150 mots max), relie le chemin de vie {life_path} ({CHEMIN_TITLES.get(life_path, '')}) avec le signe {sign} de {prenom}. Explique comment ce nombre influence ses decisions et se manifeste dans ses cycles de vie. Tutoie. Ton: profond, éclairant, pas fataliste.",
         "cycle": f"En 3 paragraphes (150 mots max), analyse le cycle actuel de {prenom} ({sign}, chemin de vie {life_path}, annee personnelle {personal_year}) en mars 2026. Quels sont les transits dominants symboliques? Quel axe clarifier? Quel conseil symbolique? Tutoie. Ton: actuel, concret, responsable.",
         "schemas": f"En 3 paragraphes (150 mots max), identifie les schemas repetitifs typiques d'un {sign} avec chemin de vie {life_path} et nombre d'expression {expression}. Ce qui revient, ce que cela revele, ce que cela invite a transformer. Pour {prenom}. Tutoie. Ton: lucide mais bienveillant.",
         "projection": f"En 4-5 paragraphes (200 mots max), projette les 12 prochains mois (mars 2026 a fevrier 2027) pour {prenom} ({sign}, annee personnelle {personal_year}, chemin de vie {life_path}). Identifie 2-3 periodes sensibles, 2 fenetres d'ouverture, les mouvements progressifs. Tutoie. Ton: responsable, pas predictif, symbolique."
@@ -121,7 +121,7 @@ async def generate_premium_content(user_data: dict) -> dict:
             chat = LlmChat(
                 api_key=os.environ.get("EMERGENT_LLM_KEY"),
                 session_id=f"premium_{key}_{prenom[:3]}",
-                system_message="Tu es un astrologue expert et bienveillant. Tu rediges des lectures astrologiques personnalisees pour la plateforme Plume Astrale. Ton style est poetique, structure, responsable. Tu ne predis pas l'avenir, tu eclaires des dynamiques. Tu tutoies le lecteur."
+                system_message="Tu es un astrologue expert et bienveillant. Tu rédiges des lectures astrologiques personnalisées pour la plateforme Plume Astrale. Ton style est poétique, structuré, responsable. Tu ne prédis pas l'avenir, tu éclaires des dynamiques. Tu tutoies le lecteur."
             )
             chat.with_model("openai", "gpt-4o-mini")
             msg = UserMessage(text=prompt)
@@ -156,7 +156,7 @@ async def generate_premium_content(user_data: dict) -> dict:
         },
         "step_3_cycle": {
             "title": "Votre Cycle Actuel",
-            "subtitle": "Les mouvements de cette periode",
+            "subtitle": "Les mouvements de cette période",
             "annee_personnelle": personal_year,
             "periode": "Mars 2026",
             "interpretation": interpretations.get("cycle", ""),

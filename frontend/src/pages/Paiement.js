@@ -25,7 +25,7 @@ const Paiement = () => {
 
   const plans = {
     essentiel: { name: 'Essentiel', price: '9,90', features: ['Chemin de vie complet', 'Annee personnelle 2026', 'Identite celeste', 'Mission de vie', 'PDF telechargeable'] },
-    premium: { name: 'Premium', price: '29,90', features: ['Tout le contenu Essentiel', 'Tirage Tarot personnalise', 'Compatibilite amoureuse', 'Horoscope mensuel', 'Guidance personnalisee', 'Manuscrit PDF premium'] }
+    premium: { name: 'Premium', price: '29,90', features: ['Tout le contenu Essentiel', 'Tirage Tarot personnalis\u00e9', 'Compatibilit\u00e9 amoureuse', 'Horoscope mensuel', 'Guidance personnalis\u00e9e', 'Manuscrit PDF premium'] }
   };
 
   const handleApplyPromo = async () => {

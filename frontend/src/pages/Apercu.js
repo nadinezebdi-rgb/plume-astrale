@@ -42,7 +42,7 @@ const PdfPreview = ({ userData }) => {
   return (
     <div data-testid="pdf-preview-section">
       <p className="text-xs tracking-widest uppercase text-center mb-6" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>
-        Apercu de votre manuscrit — {totalPages} pages
+        Aper&ccedil;u de votre manuscrit — {totalPages} pages
       </p>
       <div className="flex gap-3 justify-center overflow-x-auto pb-4">
         {previews.map((src, i) => (
@@ -153,12 +153,12 @@ const Apercu = () => {
 
   const getCheminVieInfo = (chemin) => {
     const i = {
-      1: { titre: "Le Pionnier", apercu: "Vous etes ne(e) pour diriger et innover. Votre energie naturelle vous pousse vers l'independance et la creation de nouveaux chemins." },
+      1: { titre: "Le Pionnier", apercu: "Vous \u00eates n\u00e9(e) pour diriger et innover. Votre \u00e9nergie naturelle vous pousse vers l'ind\u00e9pendance et la cr\u00e9ation de nouveaux chemins." },
       2: { titre: "Le Diplomate", apercu: "Votre don pour l'harmonie fait de vous un mediateur naturel. Sensibilite et cooperation sont vos forces." },
       3: { titre: "L'Artiste", apercu: "Creativite et communication sont vos forces. Vous inspirez les autres par votre joie de vivre." },
       4: { titre: "Le Batisseur", apercu: "Stabilite et methode caracterisent votre approche. Vous construisez des fondations solides." },
-      5: { titre: "L'Aventurier", apercu: "Liberte et changement nourrissent votre ame. Vous etes fait(e) pour explorer de nouveaux horizons." },
-      6: { titre: "Le Guerisseur", apercu: "Amour et service aux autres definissent votre essence. Vous etes un pilier de soutien." },
+      5: { titre: "L'Aventurier", apercu: "Liberté et changement nourrissent votre ame. Vous êtes fait(e) pour explorer de nouveaux horizons." },
+      6: { titre: "Le Guérisseur", apercu: "Amour et service aux autres définissent votre essence. Vous êtes un pilier de soutien." },
       7: { titre: "Le Sage", apercu: "Recherche spirituelle et analyse profonde vous caracterisent. Vous cherchez la verite." },
       8: { titre: "Le Leader", apercu: "Ambition et reussite materielle vous motivent. Vous transformez les idees en succes." },
       9: { titre: "L'Humanitaire", apercu: "Compassion universelle et service a l'humanite vous animent." },
@@ -210,7 +210,7 @@ const Apercu = () => {
             {userData.prenom ? `${userData.prenom}, ` : ''}les etoiles vous parlent.
           </h1>
           <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
-            Decouvrez les premiers secrets de votre destinee
+            Découvrez les premiers secrets de votre destinée
           </p>
         </div>
 
@@ -233,7 +233,7 @@ const Apercu = () => {
           <div className="flex items-start gap-3 py-4 px-5 rounded-sm" style={{ background: 'var(--pa-glass)', border: '1px solid var(--pa-divider)' }}>
             <Lock className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--pa-muted)' }} strokeWidth={1} />
             <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
-              <span style={{ color: 'var(--pa-body)' }}>Dans l'etude complete :</span> Dons naturels, defis principaux, mission de vie detaillee, conseils d'evolution...
+              <span style={{ color: 'var(--pa-body)' }}>Dans l'etude complete :</span> Dons naturels, défis principaux, mission de vie detaillee, conseils d'evolution...
             </p>
           </div>
         </div>
@@ -257,7 +257,7 @@ const Apercu = () => {
           <div className="flex items-start gap-3 py-4 px-5 rounded-sm" style={{ background: 'var(--pa-glass)', border: '1px solid var(--pa-divider)' }}>
             <Lock className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--pa-muted)' }} strokeWidth={1} />
             <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
-              <span style={{ color: 'var(--pa-body)' }}>Dans l'etude complete :</span> Conseils mois par mois, periodes favorables, defis a anticiper...
+              <span style={{ color: 'var(--pa-body)' }}>Dans l'etude complete :</span> Conseils mois par mois, periodes favorables, défis a anticiper...
             </p>
           </div>
         </div>

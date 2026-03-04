@@ -173,56 +173,56 @@ ASPECTS_PLANETES = {
 
 # ============= RETROGRADES =============
 RETROGRADE_DESCRIPTIONS = {
-    "Mercury": "Mercure retrograde dans votre theme natal indique que votre processus de pensee est introspectif et profond. Vous revisitez souvent vos idées et vos communications. Cette position vous donne une capacité exceptionnelle de reflexion et d'analyse retrospective. Vous apprenez souvent davantage des revisions que des premieres tentatives.",
+    "Mercury": "Mercure rétrograde dans votre thème natal indique que votre processus de pensée est introspectif et profond. Vous revisitez souvent vos idées et vos communications. Cette position vous donne une capacité exceptionnelle de réflexion et d'analyse rétrospective. Vous apprenez souvent davantage des revisions que des premieres tentatives.",
     "Venus": "Venus retrograde suggere que votre relation à l'amour et à la beauté est interiorisee. Vous avez un sens unique de l'esthetique et de la valeur qui ne correspond pas toujours aux normes sociales. En amour, vous avez besoin de temps pour comprendre vos sentiments. Les relations karmiques font partie de votre parcours.",
     "Mars": "Mars retrograde indique que votre énergie d'action est dirigee vers l'intérieur. Vous pouvez avoir du mal à exprimer directement votre colère ou votre désir. Votre force est plus subtile et stratégique que frontale. Apprenez à canaliser cette énergie intérieure de maniere constructive.",
     "Jupiter": "Jupiter retrograde signifie que votre croissance et votre expansion se font d'abord intérieurement. La chance vient de votre monde intérieur avant de se manifester exterieurement. Vous trouvez la sagesse en vous-meme plutôt que dans les enseignements exterieurs.",
     "Saturn": "Saturne retrograde suggere que vos leçons karmiques sont profondement interiorisees. Vous êtes souvent plus dur(e) avec vous-meme qu'avec les autres. La structuré que vous devez construire est d'abord intérieure. Avec le temps, votre autodiscipline devient votre plus grande force.",
     "Uranus": "Uranus retrograde indique que votre originalite et votre rebellion se vivent intérieurement. Vous remettez en question les normes de maniere privee avant de les défier publiquement. Votre revolution personnelle est un processus intime et profond.",
-    "Neptune": "Neptune retrograde signifie que votre spiritualité et votre imagination sont tournees vers l'intérieur. Vos rêves sont particulierement significatifs et vous avez une capacité naturelle de meditation. La frontiere entre reve et realite est fluide pour vous.",
+    "Neptune": "Neptune rétrograde signifie que votre spiritualité et votre imagination sont tournées vers l'intérieur. Vos rêves sont particulièrement significatifs et vous avez une capacité naturelle de méditation. La frontiere entre rêve et réalité est fluide pour vous.",
     "Pluto": "Pluton retrograde indique que vos transformations les plus profondes se font dans l'intimite de votre être. Vous possedez un pouvoir intérieur immense. Les renaissances que vous vivez sont silencieuses mais radicales."
 }
 
 # ============= ELEMENTS =============
 ELEMENTS_DOMINANTS = {
     "Feu": {
-        "dominant": "Votre theme est domine par l'element Feu, ce qui vous confère une énergie vitale exceptionnelle, de l'enthousiasme et un esprit d'initiative. Vous êtes naturellement optimiste, passionné(e) et tourné(e) vers l'action. Votre défi est d'apprendre la patience et la constance.",
+        "dominant": "Votre theme est dominé par l'élément Feu, ce qui vous confère une énergie vitale exceptionnelle, de l'enthousiasme et un esprit d'initiative. Vous êtes naturellement optimiste, passionné(e) et tourné(e) vers l'action. Votre défi est d'apprendre la patience et la constance.",
         "faible": "Avec peu de Feu dans votre theme, vous pouvez manquer parfois d'initiative spontanée ou de confiance en vous. Cultivez l'audace et l'action pour équilibrer votre theme."
     },
     "Terre": {
-        "dominant": "Votre theme est domine par l'element Terre, vous ancrant solidement dans la realite. Vous êtes pragmatique, fiable et perseverant(e). Les realisations concrêtes et la sécurité matérielle sont importantes pour vous. Votre défi est de ne pas trop vous attacher au monde materiel.",
+        "dominant": "Votre theme est dominé par l'élément Terre, vous ancrant solidement dans la réalité. Vous êtes pragmatique, fiable et persévérant(e). Les réalisations concrètes et la sécurité matérielle sont importantes pour vous. Votre défi est de ne pas trop vous attacher au monde matériel.",
         "faible": "Avec peu de Terre dans votre theme, vous pouvez avoir du mal à concretiser vos idées ou à maintenir une stabilité matérielle. Cultivez l'ancrage et la discipline pratique."
     },
     "Air": {
-        "dominant": "Votre theme est domine par l'element Air, faisant de vous un(e) penseur(se) et communicant(e) né(e). Les idées, les relations sociales et les échanges intellectuels sont votre oxygene. Votre défi est de rester connecte(e) à vos émotions et à votre corps.",
+        "dominant": "Votre theme est dominé par l'élément Air, faisant de vous un(e) penseur(se) et communicant(e) né(e). Les idées, les relations sociales et les échanges intellectuels sont votre oxygene. Votre défi est de rester connecte(e) à vos émotions et à votre corps.",
         "faible": "Avec peu d'Air dans votre theme, la communication abstraite et les relations sociales peuvent être un défi. Cultivez l'ecoute, l'objectivite et le détachement sain."
     },
     "Eau": {
-        "dominant": "Votre theme est domine par l'element Eau, vous conférant une sensibilite et une intuition profondes. Vous percevez les courants émotionnels invisibles et ressentez ce que les autres ne voient pas. Votre défi est de ne pas vous laisser submerger par les émotions.",
+        "dominant": "Votre theme est dominé par l'élément Eau, vous conférant une sensibilite et une intuition profondes. Vous percevez les courants émotionnels invisibles et ressentez ce que les autres ne voient pas. Votre défi est de ne pas vous laisser submerger par les émotions.",
         "faible": "Avec peu d'Eau dans votre theme, l'acces à vos émotions profondes peut être difficile. Cultivez l'empathie, l'intuition et la connexion émotionnelle avec les autres."
     }
 }
 
 MODALITES_DESCRIPTIONS = {
-    "Cardinal": "Energie d'initiation et de leadership. Vous êtes un(e) lanceur(se) de projets et un(e) moteur de changement.",
-    "Fixe": "Energie de stabilité et de persévérance. Vous êtes fiable, determiné(e) et resistant(e) au changement.",
-    "Mutable": "Energie d'adaptation et de flexibilite. Vous excellez dans les transitions et les ajustements."
+    "Cardinal": "Énergie d'initiation et de leadership. Vous êtes un(e) lanceur(se) de projets et un(e) moteur de changement.",
+    "Fixe": "Énergie de stabilité et de persévérance. Vous êtes fiable, déterminé(e) et résistant(e) au changement.",
+    "Mutable": "Énergie d'adaptation et de flexibilité. Vous excellez dans les transitions et les ajustements."
 }
 
 # ============= CHIRON EN SIGNE =============
 CHIRON_EN_SIGNE = {
-    "Aries": "Votre blessure profonde touche votre identite et votre droit d'exister. Vous guerissez en apprenant à vous affirmer avec authenticité et en aidant les autres à trouver leur propre voix.",
-    "Taurus": "Votre blessure concerne la sécurité et l'estime de soi. Vous guerissez en construisant une valeur intérieure qui ne depend pas des possessions matérielles.",
-    "Gemini": "Votre blessure touche la communication et la pensee. Vous guerissez en apprenant que vos idées ont de la valeur et en partageant votre sagesse unique.",
-    "Cancer": "Votre blessure concerne la famille et la sécurité émotionnelle. Vous guerissez en creant la famille émotionnelle que vous meritez et en offrant aux autres le soin que vous avez cherche.",
-    "Leo": "Votre blessure touche l'expression de soi et la créativité. Vous guerissez en osant briller malgre la peur du rejet et en encourageant les autres à faire de meme.",
-    "Virgo": "Votre blessure concerne le perfectionnisme et le service. Vous guerissez en acceptant votre humanite imparfaite et en decouvrant que vous êtes utile tel(le) que vous êtes.",
-    "Libra": "Votre blessure touche les relations et l'équilibre. Vous guerissez en trouvant votre propre centre plutôt que de vous définir à travers les autres.",
-    "Scorpio": "Votre blessure concerne le pouvoir et la transformation. Vous guerissez en apprenant à faire confiance apres la trahison et en transformant votre douleur en sagesse profonde.",
-    "Sagittarius": "Votre blessure touche le sens et la foi. Vous guerissez en trouvant votre propre verite plutôt que de suivre les croyances des autres.",
-    "Capricorn": "Votre blessure concerne l'autorité et la reussite. Vous guerissez en définissant le succes selon vos propres termes plutôt que ceux de la societe.",
-    "Aquarius": "Votre blessure touche l'appartenance et l'originalite. Vous guerissez en acceptant que votre difference est votre contribution unique au monde.",
-    "Pisces": "Votre blessure concerne la connexion spirituelle et les limites. Vous guerissez en trouvant l'équilibre entre la compassion universelle et la protection de votre espace intérieur."
+    "Aries": "Votre blessure profonde touche votre identite et votre droit d'exister. Vous guérissez en apprenant à vous affirmer avec authenticité et en aidant les autres à trouver leur propre voix.",
+    "Taurus": "Votre blessure concerne la sécurité et l'estime de soi. Vous guérissez en construisant une valeur intérieure qui ne depend pas des possessions matérielles.",
+    "Gemini": "Votre blessure touche la communication et la pensee. Vous guérissez en apprenant que vos idées ont de la valeur et en partageant votre sagesse unique.",
+    "Cancer": "Votre blessure concerne la famille et la sécurité émotionnelle. Vous guérissez en creant la famille émotionnelle que vous meritez et en offrant aux autres le soin que vous avez cherche.",
+    "Leo": "Votre blessure touche l'expression de soi et la créativité. Vous guérissez en osant briller malgre la peur du rejet et en encourageant les autres à faire de meme.",
+    "Virgo": "Votre blessure concerne le perfectionnisme et le service. Vous guérissez en acceptant votre humanite imparfaite et en decouvrant que vous êtes utile tel(le) que vous êtes.",
+    "Libra": "Votre blessure touche les relations et l'équilibre. Vous guérissez en trouvant votre propre centre plutôt que de vous définir à travers les autres.",
+    "Scorpio": "Votre blessure concerne le pouvoir et la transformation. Vous guérissez en apprenant à faire confiance apres la trahison et en transformant votre douleur en sagesse profonde.",
+    "Sagittarius": "Votre blessure touche le sens et la foi. Vous guérissez en trouvant votre propre vérité plutôt que de suivre les croyances des autres.",
+    "Capricorn": "Votre blessure concerne l'autorité et la reussite. Vous guérissez en définissant le succes selon vos propres termes plutôt que ceux de la societe.",
+    "Aquarius": "Votre blessure touche l'appartenance et l'originalite. Vous guérissez en acceptant que votre difference est votre contribution unique au monde.",
+    "Pisces": "Votre blessure concerne la connexion spirituelle et les limites. Vous guérissez en trouvant l'équilibre entre la compassion universelle et la protection de votre espace intérieur."
 }
 
 # ============= NOEUD NORD EN SIGNE =============
@@ -245,16 +245,16 @@ NOEUD_NORD_EN_SIGNE = {
 LILITH_EN_SIGNE = {
     "Aries": "Lilith Noire en Bélier revele une puissance brute d'affirmation de soi. Vous portez en vous une rage creatrice qui, une fois apprivoisee, devient une force de liberation.",
     "Taurus": "Lilith en Taureau pointe vers des enjeux de possessivite et de rapport au plaisir. Votre défi est de profiter de l'abondance sans vous y attacher de maniere obsessionnelle.",
-    "Gemini": "Lilith en Gémeaux revele un pouvoir lie à la parole et à la connaissance. Vos mots peuvent guerir ou blessér avec une force inhabituelle.",
+    "Gemini": "Lilith en Gémeaux révèle un pouvoir lie à la parole et à la connaissance. Vos mots peuvent guerir ou blessér avec une force inhabituelle.",
     "Cancer": "Lilith en Cancer met en lumiere des enjeux émotionnels profonds lies à la mere et au foyer. Votre pouvoir réside dans votre capacité à transformer les blessures familiales en sagesse.",
-    "Leo": "Lilith en Lion revele un pouvoir créatif intense et un magnetisme hors du commun. Votre défi est d'utiliser ce charisme pour inspirer plutôt que pour dominer.",
+    "Leo": "Lilith en Lion révèle un pouvoir créatif intense et un magnetisme hors du commun. Votre défi est d'utiliser ce charisme pour inspirer plutôt que pour dominer.",
     "Virgo": "Lilith en Vierge pointe vers la perfection comme instrument de pouvoir. Votre défi est d'accepter l'imperfection comme une forme de beauté et de liberation.",
     "Libra": "Lilith en Balance revele des enjeux de pouvoir dans les relations. Votre défi est de trouver l'équilibre entre independance et intimite sans manipulation.",
     "Scorpio": "Lilith est puissante en Scorpion, amplifiant votre magnetisme et votre capacité de transformation. Vous pouvez acceder à des profondeurs psychiques que peu de personnes osent explorer.",
-    "Sagittarius": "Lilith en Sagittaire revele un pouvoir lie à la liberté et à la verite. Votre défi est de vivre selon vos propres croyances sans imposer votre vision aux autres.",
+    "Sagittarius": "Lilith en Sagittaire révèle un pouvoir lie à la liberté et à la vérité. Votre défi est de vivre selon vos propres croyances sans imposer votre vision aux autres.",
     "Capricorn": "Lilith en Capricorne met en lumiere des enjeux d'autorité et d'ambition. Votre défi est d'utiliser votre pouvoir de maniere ethique et au service du bien commun.",
-    "Aquarius": "Lilith en Verseau revele un pouvoir de rebellion et d'originalite. Votre défi est de rester fidele à votre vision unique tout en restant connecte(e) aux autres.",
-    "Pisces": "Lilith en Poissons revele un pouvoir spirituel et psychique profond. Votre défi est de canaliser cette sensibilite sans vous perdre dans les illusions."
+    "Aquarius": "Lilith en Verseau révèle un pouvoir de rebellion et d'originalite. Votre défi est de rester fidele à votre vision unique tout en restant connecte(e) aux autres.",
+    "Pisces": "Lilith en Poissons révèle un pouvoir spirituel et psychique profond. Votre défi est de canaliser cette sensibilite sans vous perdre dans les illusions."
 }
 
 # Helper function to get aspect interpretation

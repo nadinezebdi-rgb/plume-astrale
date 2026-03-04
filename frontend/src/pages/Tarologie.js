@@ -203,12 +203,12 @@ const Tarologie = () => {
 
           {/* Header */}
           <div className="mb-12">
-            <p className="section-label">Lecture sacree</p>
+            <p className="section-label">Lecture sacr&eacute;e</p>
             <h1 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
-              Tarologie & Mediumnite
+              Tarologie & M&eacute;diumni&eacute;
             </h1>
             <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
-              Un tirage en croix de 5 Arcanes Majeurs avec interpretations profondes
+              Un tirage en croix de 5 Arcanes Majeurs avec interpr&eacute;tations profondes
             </p>
           </div>
 
@@ -249,7 +249,7 @@ const Tarologie = () => {
                 'Interpretation detaillee par position',
                 'Analyse des obstacles et conseils',
                 'Vision du futur et synthese profonde',
-                'Lecture mediumnique personnalisee',
+                'Lecture m\u00e9diumnique personnalis\u00e9e',
                 'PDF complet a telecharger',
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2 text-[#B8B0C8]/70 text-sm">
@@ -299,7 +299,7 @@ const Tarologie = () => {
                 data-testid="preview-tirage-btn"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Eye className="w-5 h-5" />}
-                Decouvrir mon Tirage en Croix
+                Découvrir mon Tirage en Croix
               </button>
               <button
                 onClick={handlePurchase}
@@ -409,14 +409,14 @@ const Tarologie = () => {
                         4 Interpretations + Lecture Mediumnique
                       </h3>
                       <p className="text-[#B8B0C8]/60 text-sm mb-4">
-                        Debloquez les interpretations completes et la lecture mediumnique pour 35 EUR
+                        D&eacute;bloquez les interpr&eacute;tations compl&egrave;tes et la lecture m&eacute;diumnique pour 35 EUR
                       </p>
                       <button
                         onClick={handlePurchase}
                         className="btn-mystical-filled rounded-full px-8 py-3 inline-flex items-center gap-2"
                         data-testid="unlock-interpretations-btn"
                       >
-                        <Sparkles className="w-5 h-5" /> Debloquer tout le tirage
+                        <Sparkles className="w-5 h-5" /> D&eacute;bloquer tout le tirage
                       </button>
                     </div>
                   </div>
@@ -465,7 +465,7 @@ const Tarologie = () => {
                   <div className="absolute inset-0 bg-[#0C0918]/80 backdrop-blur-sm z-10 flex items-center justify-center">
                     <div className="text-center px-6">
                       <Lock className="w-8 h-8 text-[#C5A059]/50 mx-auto mb-2" />
-                      <p className="text-[#C5A059]/70 text-sm">Lecture mediumnique incluse</p>
+                      <p className="text-[#C5A059]/70 text-sm">Lecture m&eacute;diumnique incluse</p>
                     </div>
                   </div>
                   <div className="opacity-20 p-4">

@@ -11,7 +11,7 @@ import requests
 import os
 
 # Use the public URL from frontend .env
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://cosmic-path-6.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://plume-astrale-daily.preview.emergentagent.com')
 
 
 class TestTirageEnCroix:

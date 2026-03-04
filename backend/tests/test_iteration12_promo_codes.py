@@ -8,7 +8,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://cosmic-path-6.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://plume-astrale-daily.preview.emergentagent.com').rstrip('/')
 
 class TestPromoCodeBackend:
     """Test promo code validation and free access endpoints"""
@@ -54,7 +54,7 @@ class TestPromoCodeBackend:
             "discount_code": "PLUME2026",
             "user_email": "test_iter12@test.com",
             "user_data": {"prenom": "TestMarie", "dateNaissance": "1990-06-15"},
-            "origin_url": "https://cosmic-path-6.preview.emergentagent.com"
+            "origin_url": "https://plume-astrale-daily.preview.emergentagent.com"
         })
         assert response.status_code == 200
         data = response.json()
@@ -69,7 +69,7 @@ class TestPromoCodeBackend:
             "discount_code": "PLUME2026",
             "user_email": "test_iter12_taro@test.com",
             "user_data": {"prenom": "TestJean"},
-            "origin_url": "https://cosmic-path-6.preview.emergentagent.com"
+            "origin_url": "https://plume-astrale-daily.preview.emergentagent.com"
         })
         assert response.status_code == 200
         data = response.json()
@@ -83,7 +83,7 @@ class TestPromoCodeBackend:
             "discount_code": "PLUME2026",
             "user_email": "test_iter12_livre@test.com",
             "user_data": {"prenom": "TestLivre"},
-            "origin_url": "https://cosmic-path-6.preview.emergentagent.com"
+            "origin_url": "https://plume-astrale-daily.preview.emergentagent.com"
         })
         assert response.status_code == 200
         data = response.json()
@@ -97,7 +97,7 @@ class TestPromoCodeBackend:
             "discount_code": "PLUME2026",
             "user_email": "test_iter12_compat@test.com",
             "user_data": {"person1": {"prenom": "Test1"}, "person2": {"prenom": "Test2"}},
-            "origin_url": "https://cosmic-path-6.preview.emergentagent.com"
+            "origin_url": "https://plume-astrale-daily.preview.emergentagent.com"
         })
         assert response.status_code == 200
         data = response.json()
@@ -111,7 +111,7 @@ class TestPromoCodeBackend:
             "discount_code": "INVALID123",
             "user_email": "test@test.com",
             "user_data": {"prenom": "Test"},
-            "origin_url": "https://cosmic-path-6.preview.emergentagent.com"
+            "origin_url": "https://plume-astrale-daily.preview.emergentagent.com"
         })
         assert response.status_code == 400
         print(f"PASS: Free access correctly rejected for invalid code")
@@ -122,7 +122,7 @@ class TestPromoCodeBackend:
             "product_id": "manuscrit",
             "user_email": "test@test.com",
             "user_data": {"prenom": "Test"},
-            "origin_url": "https://cosmic-path-6.preview.emergentagent.com"
+            "origin_url": "https://plume-astrale-daily.preview.emergentagent.com"
         })
         assert response.status_code == 400
         print(f"PASS: Free access correctly rejected when no code provided")

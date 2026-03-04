@@ -165,8 +165,8 @@ const PremiumLanding = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
               'Analyse natale croisee (signe + element + modalite)',
-              'Numerologie complete (chemin de vie + expression + ame)',
-              'Lecture du cycle actuel personnalisee par IA',
+              'Num\u00e9rologie compl\u00e8te (chemin de vie + expression + \u00e2me)',
+              'Lecture du cycle actuel personnalis\u00e9e par IA',
               'Identification des schemas repetitifs',
               'Projection 12 mois avec periodes sensibles',
               'PDF Premium telechargeale (30+ pages)',

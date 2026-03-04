@@ -73,11 +73,11 @@ ILLUSTRATION_FILES = [
     "eso_cosmic_balance.jpg",
 ]
 
-INTRO_WHAT_IS = """Votre theme astral, aussi appele carte du ciel ou theme natal, est une photographie du ciel au moment exact de votre naissance. Il montre la position de chaque planete dans les douze signes du zodiaque et dans les douze maisons astrologiques. C'est une carte unique, aussi personnelle que vos empreintes digitales.
+INTRO_WHAT_IS = """Votre thème astral, aussi appelé carte du ciel ou thème natal, est une photographie du ciel au moment exact de votre naissance. Il montre la position de chaque planete dans les douze signes du zodiaque et dans les douze maisons astrologiques. C'est une carte unique, aussi personnelle que vos empreintes digitales.
 
 Imaginez le ciel comme un grand cadran divise en douze secteurs (les maisons) et parcouru par dix astres principaux (le Soleil, la Lune et huit planetes). Au moment ou vous avez pris votre premier souffle, chaque astre occupait un signe et une maison precis. Cette configuration celeste revele vos talents naturels, vos defis, votre facon d'aimer, de travailler, de communiquer et d'evoluer.
 
-Ce document est concu comme un guide de decouverte de soi. Il ne predit pas un destin fige : les etoiles inclinent, mais ne determinent pas. Votre libre arbitre reste toujours le capitaine de votre navire. En revanche, connaitre votre theme astral vous offre une boussole precieuse pour naviguer avec plus de conscience et d'alignement."""
+Ce document est conçu comme un guide de découverte de soi. Il ne prédit pas un destin figé : les étoiles inclinent, mais ne déterminent pas. Votre libre arbitre reste toujours le capitaine de votre navire. En revanche, connaître votre thème astral vous offre une boussole précieuse pour naviguer avec plus de conscience et d'alignement."""
 
 INTRO_HOW_TO_USE = """Ce manuscrit est divise en plusieurs chapitres, chacun eclairant une facette de votre personnalite :
 
@@ -93,7 +93,7 @@ Les Maisons representent les domaines concrets de votre vie : la famille, le tra
 
 Les Aspects sont les angles entre les planetes, revelant comment vos differentes facettes interagissent entre elles - en harmonie ou en tension creatrice.
 
-Lisez chaque section avec curiosite et bienveillance. Certains passages vous parleront immediatement, d'autres prendront sens avec le temps. Revenez-y regulierement : un theme astral se revele tout au long d'une vie."""
+Lisez chaque section avec curiosité et bienveillance. Certains passages vous parleront immédiatement, d'autres prendront sens avec le temps. Revenez-y régulièrement : un thème astral se révèle tout au long d'une vie."""
 
 SIGN_ORDER = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"]
 
@@ -371,7 +371,7 @@ class ManuscritCompletGenerator:
 
         c.setFillColor(CREAM)
         c.setFont("Helvetica-Bold", 36)
-        c.drawCentredString(self.width / 2, y - 3.5*cm, "Le Theme Astral")
+        c.drawCentredString(self.width / 2, y - 3.5*cm, "Le Thème Astral")
         c.setFont("Helvetica-Bold", 28)
         c.drawCentredString(self.width / 2, y - 5*cm, f"de {prenom}")
 
@@ -389,7 +389,7 @@ class ManuscritCompletGenerator:
         c.setFillColor(CREAM)
         c.setFillAlpha(0.7)
         c.setFont("Helvetica-Oblique", 11)
-        c.drawCentredString(self.width / 2, y - 10*cm, "Les etoiles inclinent, mais ne determinent pas.")
+        c.drawCentredString(self.width / 2, y - 10*cm, "Les étoiles inclinent, mais ne déterminent pas.")
         c.setFillAlpha(1.0)
 
         c.setStrokeColor(GOLD)
@@ -404,7 +404,7 @@ class ManuscritCompletGenerator:
         self._new_page(c)
         y = self._chapter_header(c, "Sommaire", "Votre voyage a travers les etoiles")
         chapters = [
-            ("I", "Qu'est-ce qu'un Theme Astral ?", "Introduction et guide de lecture"),
+            ("I", "Qu'est-ce qu'un Thème Astral ?", "Introduction et guide de lecture"),
             ("II", "Votre Carte du Ciel", "La photographie celeste de votre naissance"),
             ("III", "Equilibre Elementaire", "Feu, Terre, Air, Eau dans votre theme"),
             ("IV", "Votre Soleil", "L'essence de qui vous etes"),
@@ -412,7 +412,7 @@ class ManuscritCompletGenerator:
             ("VI", "Votre Ascendant", "Le masque social et la premiere impression"),
             ("VII", "Mercure - Votre Esprit", "Facon de penser et communiquer"),
             ("VIII", "Venus - Votre Coeur", "Facon d'aimer et de valoriser"),
-            ("IX", "Mars - Votre Energie", "Force d'action et d'affirmation"),
+            ("IX", "Mars - Votre Énergie", "Force d'action et d'affirmation"),
             ("X", "Jupiter & Saturne", "Expansion et structure de vie"),
             ("XI", "Planetes Retrogrades", "Les energies interiorisees"),
             ("XII", "Les Aspects Planetaires", "L'alchimie entre vos planetes"),
@@ -443,7 +443,7 @@ class ManuscritCompletGenerator:
 
     def _page_introduction(self, c):
         self._new_page(c)
-        y = self._chapter_header(c, "Qu'est-ce qu'un Theme Astral ?", "Comprendre votre carte celeste")
+        y = self._chapter_header(c, "Qu'est-ce qu'un Thème Astral ?", "Comprendre votre carte céleste")
         y = self._draw_centered_block(c, INTRO_WHAT_IS, y, font_size=10.5, color=LIGHT_TEXT)
 
         illust = self._get_illustration(0)
@@ -601,7 +601,7 @@ class ManuscritCompletGenerator:
             c.drawString(self.margin + 0.5*cm, y, f"{element_emojis[elem]}")
             c.setFillColor(LIGHT_TEXT)
             c.setFont("Helvetica", 10)
-            c.drawString(self.margin + 3*cm, y, f"{count} planete(s)")
+            c.drawString(self.margin + 3*cm, y, f"{count} planète(s)")
 
             # Draw bar
             bar_w = (count / total) * bar_max_w
@@ -635,7 +635,7 @@ class ManuscritCompletGenerator:
                 y = self.height - 3.5*cm
             c.setFillColor(GOLD if mod == dominant_mod else LIGHT_TEXT)
             c.setFont("Helvetica-Bold" if mod == dominant_mod else "Helvetica", 10)
-            c.drawCentredString(self.width / 2, y, f"{mod} : {count} planete(s)")
+            c.drawCentredString(self.width / 2, y, f"{mod} : {count} planète(s)")
             y -= 0.5*cm
 
         y -= 0.3*cm
@@ -781,7 +781,7 @@ class ManuscritCompletGenerator:
         titles = {
             "Mercury": ("Mercure - Votre Esprit", "Comment vous pensez et communiquez"),
             "Venus": ("Venus - Votre Coeur", "Comment vous aimez et ce que vous valorisez"),
-            "Mars": ("Mars - Votre Energie", "Comment vous agissez et vous affirmez"),
+            "Mars": ("Mars - Votre Énergie", "Comment vous agissez et vous affirmez"),
         }
         title, subtitle = titles.get(planet_name, (f"{pfr}", pinfo.get('domaine', '')))
         y = self._chapter_header(c, title, subtitle)
@@ -868,7 +868,7 @@ class ManuscritCompletGenerator:
         self._new_page(c)
         y = self._chapter_header(c, "Planetes Retrogrades", "Les energies interiorisees de votre theme")
 
-        intro = f"Dans votre theme natal, {len(retro_planets)} planete(s) sont en mouvement retrograde apparent. Une planete retrograde n'est pas affaiblie : son energie est dirigee vers l'interieur plutot que vers l'exterieur. C'est une invitation a la reflexion, a la revision et a la maitrise interieure de cette energie."
+        intro = f"Dans votre thème natal, {len(retro_planets)} planète(s) sont en mouvement retrograde apparent. Une planète rétrograde n'est pas affaiblie : son énergie est dirigée vers l'intérieur plutôt que vers l'extérieur. C'est une invitation à la réflexion, à la révision et à la maîtrise intérieure de cette énergie."
         y = self._draw_centered_block(c, intro, y, font_size=10, color=LIGHT_TEXT)
         y -= 0.3*cm
 
@@ -1284,7 +1284,7 @@ Voici des actions concretes pour honorer cette double influence :
         cles = [
             "Honorez votre unicite. Votre combinaison astrologique est unique dans tout l'univers. Cessez de vous comparer aux autres et embrassez pleinement ce qui fait votre singularite.",
             "Ecoutez votre intuition. Votre Lune vous parle constamment a travers vos emotions et vos reves. Faites-lui confiance, meme quand la logique dit le contraire.",
-            "Agissez avec conscience. Utilisez les informations de ce manuscrit comme un guide, pas comme un destin fige. Vous restez toujours le createur de votre realite."
+            "Agissez avec conscience. Utilisez les informations de ce manuscrit comme un guide, pas comme un destin figé. Vous restez toujours le createur de votre realite."
         ]
         for cle in cles:
             y = self._draw_centered_block(c, cle, y, font_size=10, color=LIGHT_TEXT)

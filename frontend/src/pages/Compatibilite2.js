@@ -217,7 +217,7 @@ const Compatibilite2 = () => {
               Compatibilite Astrale
             </h1>
             <p className="text-[#B8B0C8]/60 font-light max-w-lg mx-auto">
-              Decouvrez les secrets cosmiques de votre relation amoureuse. Un rapport complet de 24 pages revele les forces, defis et destins de votre union.
+              Découvrez les secrets cosmiques de votre relation amoureuse. Un rapport complet de 24 pages révèle les forces, défis et destins de votre union.
             </p>
           </div>
 
@@ -318,7 +318,7 @@ const Compatibilite2 = () => {
                 <button onClick={() => navigate('/formulaire')} className="card-mystical hover:border-[#C5A059]/50 transition-all group text-left" data-testid="upsell-manuscrit">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-[#F0E6D3] font-medium mb-1">Theme Astral Pro</h3>
+                      <h3 className="text-[#F0E6D3] font-medium mb-1">Thème Astral Pro</h3>
                       <p className="text-[#B8B0C8]/50 text-sm">68 pages d'analyse personnelle</p>
                       <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">29,90 EUR</span>
                     </div>
