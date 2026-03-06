@@ -1,147 +1,113 @@
 <analysis>**original_problem_statement:**
-The user initially reported that the application's content was in English and lacked proper French translations, specifically pointing out missing accents in lunar messages and PDF reports.
+The user wants to fundamentally overhaul the Plume Astrale application by replacing the existing pay-per-service model with a comprehensive credit-based system.
 
-This was expanded to a multi-part request:
-1.  **Translation & Formatting:**
-    *   Fix poor translations and add missing French accents (, , , etc.) throughout the entire application (API responses, frontend text, PDF reports).
-    *   Improve the layout of generated PDFs to remove large empty white spaces and to center-align short sentences.
-2.  **Astrology API Expansion (Plan Growth):**
-    *   Integrate new premium endpoints from the Astrology API to create paid products.
-    *   **Amour (49€):** Use , , .
-    *   **Cercle (14,90€/mois):** Automate , , .
-    *   **Profil Utilisateur:** Integrate , , and numerology reports.
-    *   Visually display the .
-    *   Prepare for PDF generation and Stripe checkout for these reports.
-3.  **Tarot Feature Enhancement:**
-    *   Update pricing for Numerologie complete (49€) and horoscope premium (69€).
-    *   Make the tarot draw more engaging with a user question form.
-    *   Implement both Tarot de Marseille and Celtic Cross draw types.
-    *   Create a live draw experience with card animations, using custom images provided by the user.
-4.  **New Feature:**
-    *   Add a Tirage du Jour (Daily Draw) feature, providing one free card per day.
+**PRODUCT REQUIREMENTS:**
+1.  **Mandatory User Authentication:**
+    *   Users must register with an email and password.
+    *   After registration, they must complete an astrological profile (DOB, time, place, country).
+2.  **Credit Economy:**
+    *   **Registration Bonus:** New users automatically receive 20 free credits.
+    *   **Daily Bonus:** Users receive 1 free credit daily, starting the day after they sign up.
+    *   **Credit Wallet:** Each user will have a server-side wallet tracking their .
+    *   **Transaction History:** A  table must log all credit movements (purchase, usage, bonus).
+3.  **Stripe Integration for Credit Packs:**
+    *   **Pack Découverte:** 10 credits for 9€
+    *   **Pack Exploration:** 50 credits for 24,99€
+    *   **Pack Premium:** 100 credits for 44,99€
+4.  **Service Pricing in Credits:**
+    *   **Tarot Oui / Non:** 1 free draw per user account, then 2 credits.
+    *   **Lecture Tarot approfondie:** 10 credits.
+    *   **Lecture astrologique cycle actuel:** 10 credits.
+    *   **Numérologie – Chemin d’âme:** 10 credits.
+    *   **Cartographie astrologique complète Premium:** 60 credits.
+5.  **UI & UX:**
+    *   The user's credit balance must be clearly displayed in the UI.
+    *   An Acheter des crédits (Buy Credits) button should be prominent.
+    *   Each service must show its cost in credits.
+    *   If a user has insufficient credits, they should be prompted to purchase more.
+6.  **Security:** All credit transactions and balance checks must be performed and validated on the backend to prevent client-side manipulation.
 
 **User's preferred language**: French
 
 **what currently exists?**
-The project is Plume Astrale, a full-stack astrology and tarot application using React for the frontend and Python/FastAPI for the backend. The agent has successfully cloned the latest version of the code from GitHub.
-
-Key features implemented in this session:
-*   Backend services for new premium astrology reports ().
-*   Backend services for advanced tarot draws, including Marseille and Celtic Cross ().
-*   New API endpoints in  for all the new premium features.
-*   A new interactive frontend page for premium tarot draws () featuring a question form, draw selection, and card-flipping animations using custom images.
-*   Extensive corrections have been made across multiple files to add missing French accents.
-*   Backend logic and a frontend component for a Tirage du Jour (Daily Draw) have been created.
+A full-stack astrology and tarot application (React frontend, FastAPI backend). The app features various services like premium tarot draws, compatibility reports, and daily draws. The agent has successfully implemented several features, including extensive French accent corrections, custom PDF generation, and paywalls for specific content. The user has provided their API keys for the third-party Astrology API, which have been configured.
 
 **Last working item**:
-- Last item agent was working: Implementing the Tirage du Jour (Daily Draw) feature. The agent created the backend logic and API endpoint () and a new frontend React component ().
-- Status: IN PROGRESS
+- Last item agent was working: Initiating the implementation of the new credit and Stripe payment system. The agent has just called the  tool to get the official playbook for Stripe integration.
+- Status: NOT STARTED
 - Agent Testing Done: N
 - Which testing method agent to use? both
-  - Backend: Use  to test the new  endpoint.
-  - Frontend: After integrating the component, use the screenshot tool to visually verify it on the homepage.
+    - **Backend:** Use  to test the new endpoints for registration (with bonus credits), login, credit purchase (via Stripe webhook), and credit deduction for services.
+    - **Frontend:** Use the testing agent to simulate the full user journey: registration, seeing the bonus, purchasing a credit pack, and successfully using credits to access a service.
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-- Issue 1: Finish Tirage du Jour (Daily Draw) implementation (P0)
-- Issue 2: Verify and fix PDF generation layout (P1)
-- Issue 3: Comprehensive audit for French accents (P1, Recurring)
-- Issue 4: Integrate visual  (P2)
-- Issue 5: Implement Stripe payment flow (P2)
+- Issue 1: Comprehensive API Integration Enrichment (P1)
 
 Issues Detail:
 - Issue 1:
-  - Attempted fixes: The backend endpoint and frontend component have been created.
+  - Attempted fixes: The agent has connected to the Astrology API, fixed parameter formats, and corrected data formatters. Some backend endpoints were created but are not fully integrated.
   - Next debug checklist:
-    1.  Edit  to import and render the  component.
-    2.  Ensure the component correctly calls the  endpoint and displays the returned card data and image.
-    3.  Test the backend endpoint with .
-  - Why fix this issue and what will be achieved with the fix? To complete the user's latest feature request and add an engaging daily feature to the homepage.
-  - Status: IN PROGRESS
+    1.  **Natal Wheel Chart:** Create a frontend component to render the SVG string returned by the  endpoint.
+    2.  **Enrich Numerology:** Update  to use the correct  endpoint and display the data on the frontend.
+    3.  **Enrich Existing Reports:** Update the  to use the dynamic data from the new  endpoint instead of static content.
+  - Why fix this issue and what will be achieved with the fix? This will leverage the user's paid API subscription to its full potential, making the application's content significantly richer and more valuable.
+  - Status: IN PROGRESS (Paused by user to prioritize the credit system)
   - Is recurring issue? N
   - Should Test frontend/backend/both after fix? Both
-  - Blocked on other issue: None
-
-- Issue 2:
-  - Attempted fixes: The agent added logic to  to handle text centering.
-  - Next debug checklist:
-    1.  Create a temporary endpoint or script to generate a sample PDF using the modified .
-    2.  Review the generated PDF to check if the layout issues (large white spaces, uncentered text) are resolved.
-    3.  Refine the ReportLab logic in  based on the visual output.
-  - Why fix this issue and what will be achieved with the fix? This directly addresses a core user complaint about the quality of the generated reports.
-  - Status: IN PROGRESS
-  - Is recurring issue? Y
-  - Should Test frontend/backend/both after fix? Backend (generates the PDF)
-  - Blocked on other issue: None
-
-- Issue 3:
-  - Attempted fixes: The agent performed multiple  operations across many files throughout the session.
-  - Next debug checklist:
-    1.  Systematically  for common un-accented French words (e.g., Energie, Celebrez, reflexion, qualite) across the entire  directory.
-    2.  Manually review all files containing user-facing strings, especially newly created ones like  and .
-  - Why fix this issue and what will be achieved with the fix? To resolve one of the user's primary and most persistent complaints, ensuring a professional and native feel for the application.
-  - Status: IN PROGRESS
-  - Is recurring issue? Y
-  - Should Test frontend/backend/both after fix? Both
-  - Blocked on other issue: None
-
-- Issue 4:
-  - Attempted fixes: None.
-  - Next debug checklist:
-    1.  Identify a suitable library for rendering the  on the frontend (e.g., a D3.js or other charting library compatible with React).
-    2.  Create a new component that takes the API data and renders the chart.
-    3.  Integrate this component into the user profile page.
-  - Why fix this issue and what will be achieved with the fix? Fulfills a specific requirement from the user's Astrology API Expansion request for a better user experience.
-  - Status: NOT STARTED
-  - Is recurring issue? N
-  - Should Test frontend/backend/both after fix? Frontend
-  - Blocked on other issue: None
-
-- Issue 5:
-  - Attempted fixes: None.
-  - Next debug checklist:
-    1.  Get Stripe keys from the user.
-    2.  Use the  for Stripe integration.
-    3.  Add backend endpoints to create Stripe Checkout Sessions.
-    4.  Add frontend logic to redirect users to the Stripe checkout page when they click to buy a premium report.
-  - Why fix this issue and what will be achieved with the fix? This is critical for monetizing the new premium features.
-  - Status: NOT STARTED
-  - Is recurring issue? N
-  - Should Test frontend/backend/both after fix? Both
-  - Blocked on other issue: None
+  - Blocked on other issue: Blocked by Implement the Credit System.
 
 **In progress Task List**:
-N/A
+- Task 1: Implement the Credit System (P0)
+
+Task Detail:
+- Task 1:
+  - Where to resume: The agent has received the user's detailed requirements and called the Stripe integration subagent. The next step is to receive the playbook and begin implementation, starting with the backend models and authentication.
+  - What will be achieved with this? This will transform the application's business model, creating a more scalable and engaging platform that encourages repeat use.
+  - Status: NOT STARTED
+  - Should Test frontend/backend/both after fix? Both
+  - Blocked on something: Waiting for the  response.
 
 **Upcoming and Future Tasks**
+
 Upcoming Tasks:
-- (P0) Integrate  into the homepage.
-- (P1) Test and finalize PDF layout improvements.
-- (P1) Final accent audit across the application.
+- (P0) **Phase 1: User Authentication & Wallet Backend:**
+  - Create MongoDB/Pydantic models for , , and .
+  - Implement  endpoint, ensuring it creates the user, wallet, and grants the 20-credit bonus.
+  - Implement a JWT-based  endpoint.
+- (P0) **Phase 2: Stripe Backend & Credit Purchase:**
+  - Implement the  and  endpoints based on the Stripe playbook.
+- (P0) **Phase 3: Frontend Authentication & UI:**
+  - Create  and  pages.
+  - Implement a global  to manage user state.
+  - Create a  and a  display component.
+- (P0) **Phase 4: Service Gating:**
+  - Modify a pilot service (e.g., Tarot Oui/Non) to require authentication and deduct credits server-side.
 
 Future Tasks:
-- (P2) Implement  visualization.
-- (P2) Integrate Stripe for premium product payments.
-- (P2) Add PDF generation capability for all new premium reports.
+- (P1) Convert all remaining premium services to use the new credit system.
+- (P1) Build a frontend page for users to view their  history.
+- (P1) Implement the logic for the 1 free credit per day bonus.
+- (P2) Resume and complete the Comprehensive API Integration Enrichment task.
+- (P2) Explore user-suggested strategic improvements (high-conversion sales page, subscription model).
 
 **Completed work in this session**
-- **Codebase Setup:** Successfully cloned the latest version of the  repository, replacing a previously incorrect/outdated version.
-- **Accent Correction:** Performed extensive corrections across numerous backend files to add missing French accents (e.g., in , , , ).
-- **Premium Astrology Features (Backend):**
-  - Created  to integrate new Growth Plan API endpoints.
-  - Added backend API routes in  for Amour, Cercle, and Numerology premium reports.
-- **Enhanced Tarot Features (Backend & Frontend):**
-  - Updated product pricing in .
-  - Created  with logic for Marseille and Celtic Cross tarot draws.
-  - Created a new premium tarot page  with a question form, draw selection, and card flip animations.
-  - Integrated custom tarot card images provided by the user into the frontend and linked them via the backend service.
-- **Daily Draw Feature (Initial Implementation):**
-  - Created backend endpoint  in  and service logic in .
-  - Created the frontend component .
+- **Tarot Paywalls:**
+  - Implemented a 4,99€ paywall for the Tarot de Marseille synthesis in .
+  - Converted Tarot Oui/Non to a 1 free draw per day, then 4,99€ model in .
+- **API Integration Debugging:**
+  - Successfully configured the user's Astrology API credentials in .
+  - Identified and fixed incorrect API parameter formats (e.g., / prefixes) and data parsers in .
+- **Enhanced Compatibility Report:**
+  - Replaced an empty template PDF with a rich, 11-page custom-generated PDF with dynamic content and improved layout ().
+  - Integrated user-provided images into both the compatibility webpage and the generated PDF, including image compression to solve file size issues.
+- **Deployment Health Check Fix:**
+  - Added a root-level  endpoint to the FastAPI app () to satisfy Kubernetes deployment requirements.
+- **Comprehensive Accent Correction:**
+  - Performed an exhaustive audit and correction of French accents and special characters across the entire frontend and backend codebase.
 
 **Earlier issues found/mentioned but not fixed**
-- The full scope of PDF layout improvements (removing all large white spaces) is still pending verification.
-- Stripe integration and  were requested but deferred.
+- The full integration of all available endpoints from the user's Astrology API subscription remains incomplete, notably the  visualization. This was paused to prioritize the new credit system.
 
 **Known issue recurrence from previous fork**
 - N/A
@@ -150,84 +116,84 @@ Future Tasks:
 
 
 **Key Technical Concepts**
-- **Backend:** Python, FastAPI
-- **Frontend:** React.js
-- **PDF Generation:** ReportLab library
-- **Styling:** CSS (with animations)
-- **API:** RESTful API design and consumption of a 3rd party Astrology API.
+- **Backend:** FastAPI, Pydantic, Motor (for async MongoDB)
+- **Frontend:** React.js, Axios
+- **Authentication:** JWT (planned)
+- **Payments:** Stripe (planned)
+- **Database:** MongoDB
 
 **key DB schema**
-No database schema was directly modified, but the application relies on data structures defined in Python files, such as in , which lists the available products and their prices.
+New collections to be created:
+- : 
+- : 
+- : 
 
 **changes in tech stack**
-None.
+- **Addition:** Stripe for payment processing.
 
 **All files of reference**
-*   Created:
-    *   : To handle new premium astrology API calls.
-    *   : To manage new tarot draw types (Marseille, Celtic).
-    *   : The new interactive page for tarot draws.
-    *   : Component for the daily tarot draw feature.
-    *   : Directory containing all the user-provided tarot card images.
-*   Updated:
-    *   : To add new API endpoints for all the premium features.
-    *   : To update product pricing.
-    *   , , : For accent corrections.
-    *   : For layout improvements.
-    *   : To add the route for the new tarot page.
-    *   : To add CSS animations for card flipping.
+*   **To be created:**
+    *   , 
+    *   , , 
+    *   , , 
+    *   
+*   **To be modified:**
+    *   : Add new auth/payment routers and protect existing service endpoints.
+    *   All premium service files (e.g., , ): To integrate the new credit-based logic.
+    *   : To add new routes and route protection.
 
 **Areas that need refactoring**:
-None identified.
+- The temporary paywall logic in  and  should be removed and replaced with the standardized credit-checking mechanism.
+- Unused state and handlers related to the old registration form in  should be cleaned up.
 
 **key api endpoints**
-*   
-*   
-*   
-*   
-*    (New, needs testing)
+*   **New Endpoints (Planned):**
+    *   
+    *   
+    *   
+    *   
+    *   
+*   **Endpoints to be secured:** All existing premium service endpoints (e.g., , ) will need to be protected and modified to deduct credits.
 
 **Critical Info for New Agent**
-1.  **Codebase Sync:** The agent initially worked on an outdated version of the code. It has since cloned the correct, full repository from GitHub. Be aware that the user is sensitive to seeing old versions of the site.
-2.  **Recurring Accent Issue:** The user has repeatedly asked for all text to be in proper French with accents. This is a top priority. Multiple fixes have been applied, but a full audit is necessary as this is a recurring problem.
-3.  **Preview Unavailability:** The Emergent preview environment was frequently unavailable during the session. The agent relied on checking service logs (backend                          RUNNING   pid 46, uptime 0:00:06
-code-server                      STOPPED   Not started
-frontend                         STOPPED   Mar 04 05:22 PM
-mongodb                          RUNNING   pid 49, uptime 0:00:06
-nginx-code-proxy                 RUNNING   pid 45, uptime 0:00:06) and testing backend APIs directly with . Be prepared to use this workflow if the visual preview fails.
+1.  **Credit System is the #1 Priority:** The user has provided a detailed plan for a complete architectural shift to a user account and credit-based model. This is the sole focus. All previous tasks are on hold.
+2.  **Wait for Stripe Playbook:** The agent has already requested the Stripe integration playbook. Do not start the Stripe implementation until that response is received. Follow it exactly.
+3.  **Server-Side Validation is Crucial:** The user explicitly requires all credit transactions (additions and deductions) to be handled and validated on the backend. Do not implement any credit logic that trusts the client.
+4.  **Authentication First:** The entire system depends on user accounts. The first implementation step should be a secure authentication system (e.g., JWT) with registration and login endpoints.
 
 **documents and test reports created in this job**
-- /app/memory/PRD.md (Updated multiple times)
+-  (Updated)
+-  (Last report, showed 100% pass rate for paywall features)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **oui un tirage du jour**: User confirms they want a Daily Draw feature. (In progress)
-2.  **tu peux utiliser les images de tarot**: User provides tarot images and gives permission to use them. (Completed)
-3.  **oui pour le tirage en direct , ,j'adore il faut pas oublier la partie question pour le tirage celtique**: User expresses excitement for the live draw and reminds the agent to include the question form. (Completed)
-4.  **numerologie complete 49€ horoscope premium 69€ , le trage de tarot n'est pas assez attractif...**: User requests price updates and significant enhancements to the tarot feature, including Marseille/Celtic draws and a question form. (Completed)
-5.  **Objet : Optimisation de l'intégration Astrology API...**: Detailed request to integrate new premium astrology endpoints and prepare for monetization. (Partially completed, backend done, frontend/Stripe pending)
-6.  **le site avait été complétement modifié je ne comprends pas pourquoi j'ai encore ce site**: User points out that the agent is working on an old version of the site, prompting a re-clone of the repository. (Resolved)
-7.  **oui travaille la mise en page de tous les pdfs**: User explicitly asks the agent to work on the layout of all PDF files. (In progress)
-8.  **https://github.com/nadinezebdi-rgb/plume-astrale.git**: User provides the GitHub repository link. (Completed)
-9.  **emergent-agent-e1...**: User seems to be interacting with the git/VSC interface. (Informational)
-10. **@nadinezebdi-rgb ➜ /workspaces/plume-astrale (main) *: User shows their terminal prompt, indicating they are in the correct codespace. (Informational)
+1.  **User provides detailed credit system requirements:** This is the current P0 task. (In Progress)
+2.  **User confirms registration flow:** Email+Password, 20 bonus credits, daily credit starts on Day 2. (In Progress)
+3.  **User requests paywalls for Tarot:** Add a 4,99€ button for Marseille synthesis, and limit Oui/Non to 1 free draw. (Completed)
+4.  **User wants full API integration:** Expressed desire to use all features of the Astrology API plan. (Paused)
+5.  **User provides API credentials:** Shared User ID and Key for the Astrology API. (Completed)
+6.  **User approves new visual assets.** (Completed)
+7.  **User provides new visual assets.** (Completed)
+8.  **User requests richer compatibility PDF content.** (Completed)
+9.  **User selects P1 for PDF work.** (Completed, then superseded)
+10. **User confirms images are suitable.** (Completed)
 
 **Project Health Check:**
-- Broken: The frontend preview URL was consistently unavailable.
-- Mocked: None.
+- Broken: None
+- Mocked: None
 
 **3rd Party Integrations**
-- **Astrology API**: A third-party API for which the user has a Growth plan. The specific provider is not named, but the endpoints (, , etc.) are known and used in . No API key management was performed in this session.
+- **Astrology API:** Actively used. Credentials are set in .
+- **Stripe:** Pending integration. The  subagent has been called to retrieve the implementation plan.
 
 **Testing status**
-- Testing agent used after significant changes: NO
+- Testing agent used after significant changes: YES
 - Troubleshoot agent used after agent stuck in loop: NO
 - Test files created: []
-- Known regressions: The issue with missing French accents has recurred multiple times, suggesting previous fixes may be incomplete or overwritten.
+- Known regressions: None
 
 **Credentials to test flow:**
-No credentials were required for the work done. The third-party Astrology API seems to be keyed in an environment variable that was already present.
+- **Astrology API:** Located in .
+- **Stripe:** Await test keys from the  response.
 
 **What agent forgot to execute**
-- The agent did not implement the  visualization requested by the user in Message #241.
-- The agent did not start the Stripe integration for payments, also from Message #241.
-- The agent implemented PDF layout helper functions but did not create a test to generate a PDF and visually confirm the fixes, which was the user's core complaint.</analysis>
+- The task to fully integrate all available Astrology API endpoints (especially ) has been intentionally deprioritized by the user in favor of the new credit system. It is not forgotten, but on hold.</analysis>
