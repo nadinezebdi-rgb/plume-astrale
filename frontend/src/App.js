@@ -34,6 +34,7 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import BuyCredits from "@/pages/BuyCredits";
 import CreditSuccess from "@/pages/CreditSuccess";
+import Cercle from "@/pages/Cercle";
 
 // 404 Component
 const NotFound = () => (
@@ -61,6 +62,7 @@ function App() {
             <Route path="/inscription" element={<Register />} />
             <Route path="/acheter-credits" element={<BuyCredits />} />
             <Route path="/credits/succes" element={<CreditSuccess />} />
+            <Route path="/cercle" element={<Cercle />} />
             <Route path="/formulaire" element={<Formulaire />} />
             <Route path="/apercu" element={<Apercu />} />
             <Route path="/choix" element={<Choix />} />

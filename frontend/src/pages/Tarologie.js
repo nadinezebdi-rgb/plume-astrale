@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Loader2, ArrowLeft, Sparkles, Download, Lock, Eye, Tag, Heart, Briefcase, Coins } from 'lucide-react';
+import { Star, Loader2, ArrowLeft, Sparkles, Download, Lock, Eye, Tag, Heart, Briefcase, Coins, LogIn, ArrowRight, BookOpen } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
+import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -61,6 +63,7 @@ const CrossCard = ({ item, index, isLocked, onPurchase }) => {
 
 const Tarologie = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, token, creditBalance, refreshBalance } = useAuth();
   const [prenom, setPrenom] = useState('');
   const [dateNaissance, setDateNaissance] = useState('');
   const [loading, setLoading] = useState(false);
@@ -75,6 +78,7 @@ const Tarologie = () => {
   const [promoLoading, setPromoLoading] = useState(false);
   const [predictions, setPredictions] = useState(null);
   const [predLoading, setPredLoading] = useState(false);
+  const [showContent, setShowContent] = useState(false);
 
   React.useEffect(() => {
     const data = localStorage.getItem('plume_astrale_data');
@@ -103,6 +107,27 @@ const Tarologie = () => {
 
   const handleTirage = async () => {
     if (!prenom.trim() || !dateNaissance) return;
+
+    // Deduct credits if not already paid
+    if (!hasPaid) {
+      try {
+        await axios.post(`${API_URL}/api/credits/use`,
+          { service_id: 'lecture_tarot' },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        await refreshBalance();
+        setHasPaid(true);
+      } catch (err) {
+        const detail = err.response?.data?.detail || '';
+        if (detail.includes('insuffisants')) {
+          navigate('/acheter-credits');
+          return;
+        }
+        alert(detail || 'Erreur');
+        return;
+      }
+    }
+
     setLoading(true);
     setSelectedCard(null);
     try {
@@ -212,7 +237,99 @@ const Tarologie = () => {
             </p>
           </div>
 
+          {/* Educational intro — visible when no tirage yet */}
+          {!tirage && !showContent && (
+            <div className="space-y-8 mb-10 animate-fade-in">
+              {/* Qu'est-ce que la tarologie */}
+              <div>
+                <h2 className="text-xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+                  Qu'est-ce que la Tarologie ?
+                </h2>
+                <div className="space-y-3 text-sm leading-relaxed" style={{ color: 'var(--pa-body)', lineHeight: '1.9' }}>
+                  <p>
+                    La tarologie est l'art d'interpr&eacute;ter les <span style={{ color: '#C5A059' }}>Arcanes Majeurs du Tarot</span> pour
+                    &eacute;clairer une situation, comprendre des dynamiques invisibles et ouvrir des perspectives.
+                  </p>
+                  <p>
+                    Ce n'est pas de la divination. C'est un <span style={{ color: '#C5A059' }}>miroir symbolique</span> : chaque carte
+                    refl&egrave;te un aspect de votre v&eacute;cu, de vos blocages ou de vos ressources cach&eacute;es.
+                  </p>
+                </div>
+              </div>
+
+              {/* À quoi ça sert */}
+              <div>
+                <h3 className="text-lg mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+                  &Agrave; quoi sert une lecture de Tarot ?
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { icon: <Eye className="w-4 h-4" style={{ color: '#A78BFA' }} strokeWidth={1.5} />, title: 'Clarifier une situation confuse', desc: 'Quand vous tournez en rond dans une d\u00e9cision, les cartes mettent en lumi\u00e8re ce que votre mental ne voit plus.', color: '#A78BFA' },
+                    { icon: <Heart className="w-4 h-4" style={{ color: '#C97878' }} strokeWidth={1.5} />, title: 'Comprendre une relation', desc: 'Le tarot r\u00e9v\u00e8le les dynamiques \u00e9motionnelles en jeu \u2014 ce qui nourrit ou bloque une relation.', color: '#C97878' },
+                    { icon: <BookOpen className="w-4 h-4" style={{ color: '#7CB88A' }} strokeWidth={1.5} />, title: 'Identifier vos blocages', desc: 'Certaines cartes pointent vers des peurs, des sch\u00e9mas r\u00e9p\u00e9titifs ou des croyances limitantes \u00e0 d\u00e9passer.', color: '#7CB88A' },
+                    { icon: <Sparkles className="w-4 h-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />, title: 'Ouvrir de nouvelles voies', desc: 'Le tirage ne donne pas d\u2019ordres. Il ouvre un espace de r\u00e9flexion pour avancer avec plus de conscience.', color: '#C5A059' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex gap-4 items-start p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${item.color}15` }}>
+                      <div className="mt-0.5">{item.icon}</div>
+                      <div>
+                        <h4 className="text-sm mb-1" style={{ color: item.color, fontWeight: 500 }}>{item.title}</h4>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--pa-body)', lineHeight: '1.8' }}>{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Le tirage en croix */}
+              <div className="p-5 rounded-xl" style={{ background: 'rgba(197,160,89,0.05)', border: '1px solid rgba(197,160,89,0.12)' }}>
+                <h3 className="text-base mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#C5A059', fontWeight: 400 }}>
+                  Le tirage en Croix &mdash; 5 positions
+                </h3>
+                <div className="space-y-2">
+                  {[
+                    { n: '1', label: 'La Situation Pr\u00e9sente', desc: 'O\u00f9 vous en \u00eates maintenant' },
+                    { n: '2', label: 'Ce Qui S\'Oppose', desc: 'Les obstacles ou r\u00e9sistances' },
+                    { n: '3', label: 'Le Conseil', desc: 'Ce que les cartes vous sugg\u00e8rent' },
+                    { n: '4', label: 'L\'Aboutissement', desc: 'La direction vers laquelle cela tend' },
+                    { n: '5', label: 'La Synth\u00e8se', desc: 'Le message global du tirage' },
+                  ].map(p => (
+                    <div key={p.n} className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs" style={{ background: 'rgba(197,160,89,0.15)', color: '#C5A059', border: '1px solid rgba(197,160,89,0.3)' }}>{p.n}</span>
+                      <span className="text-sm" style={{ color: 'var(--pa-heading)' }}>{p.label}</span>
+                      <span className="text-xs" style={{ color: 'var(--pa-muted)' }}>&mdash; {p.desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div className="text-center pt-2">
+                {!isAuthenticated ? (
+                  <div className="space-y-3" data-testid="credit-gate-login">
+                    <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
+                      <span style={{ color: '#C5A059' }}>10 cr&eacute;dits</span> &middot; 20 cr&eacute;dits offerts &agrave; l'inscription
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
+                      <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', background: 'rgba(197,160,89,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Cr&eacute;er un compte</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowContent(true)}
+                    className="text-xs uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-500"
+                    style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }}
+                    data-testid="start-tirage-btn"
+                  >
+                    Commencer mon tirage &mdash; 10 cr&eacute;dits
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Predictions from API */}
+          {showContent && (
           <div className="mb-10" data-testid="tarot-predictions">
             <p className="section-label mb-4">Vos predictions du jour</p>
             {predLoading ? (
@@ -239,8 +356,10 @@ const Tarologie = () => {
               </div>
             ) : null}
           </div>
+          )}
 
           {/* What's included */}
+          {showContent && (
           <div className="bg-[rgba(255,255,255,0.02)] border border-[#C5A059]/20 rounded-sm p-6 mb-8" data-testid="offer-details">
             <h3 className="text-[#C5A059] text-sm uppercase tracking-widest mb-4">Ce qui est inclus</h3>
             <div className="grid md:grid-cols-2 gap-3">
@@ -259,12 +378,14 @@ const Tarologie = () => {
               ))}
             </div>
             <div className="mt-6 pt-4 border-t border-[#C5A059]/20 text-center">
-              <span className="text-3xl font-bold text-gold-gradient" style={{ fontFamily: 'Cormorant Garamond, serif' }}>35 EUR</span>
-              <p className="text-[#B8B0C8]/50 text-sm mt-1">Acces immediat + PDF telecharger</p>
+              <span className="text-3xl font-bold text-gold-gradient" style={{ fontFamily: 'Cormorant Garamond, serif' }}>10 cr&eacute;dits</span>
+              <p className="text-[#B8B0C8]/50 text-sm mt-1">Acc&egrave;s imm&eacute;diat + PDF &agrave; t&eacute;l&eacute;charger</p>
             </div>
           </div>
+          )}
 
           {/* Form */}
+          {showContent && (
           <div className="bg-[rgba(255,255,255,0.02)] border border-[#C5A059]/20 rounded-sm p-6 mb-8" data-testid="tarologie-form">
             <h3 className="text-[#F0E6D3] mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Vos Informations</h3>
             <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -307,7 +428,7 @@ const Tarologie = () => {
                 className="btn-mystical-filled rounded-full flex items-center gap-2 justify-center px-6 py-3 disabled:opacity-50 flex-1"
                 data-testid="purchase-btn"
               >
-                <Lock className="w-5 h-5" /> Obtenir ma Lecture — 35 EUR
+                <Lock className="w-5 h-5" /> Obtenir ma Lecture &mdash; 10 cr&eacute;dits
               </button>
             </div>
 
@@ -335,6 +456,7 @@ const Tarologie = () => {
               )}
             </div>
           </div>
+          )}
 
           {/* Cross Spread */}
           {tirage && (
@@ -409,7 +531,7 @@ const Tarologie = () => {
                         4 Interpretations + Lecture Mediumnique
                       </h3>
                       <p className="text-[#B8B0C8]/60 text-sm mb-4">
-                        D&eacute;bloquez les interpr&eacute;tations compl&egrave;tes et la lecture m&eacute;diumnique pour 35 EUR
+                        D&eacute;bloquez les interpr&eacute;tations compl&egrave;tes et la lecture m&eacute;diumnique pour 10 cr&eacute;dits
                       </p>
                       <button
                         onClick={handlePurchase}

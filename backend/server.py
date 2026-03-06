@@ -148,6 +148,13 @@ DISCOUNT_CODES = {
     }
 }
 
+# Credit promo codes
+CREDIT_PROMO_CODES = {
+    "PLUMEASTRALE": {"credits": 100, "description": "100 crédits offerts", "max_uses_per_user": 1},
+    "TESTPLUME": {"credits": 200, "description": "200 crédits de test", "max_uses_per_user": 1},
+    "BIENVENUE": {"credits": 50, "description": "50 crédits de bienvenue", "max_uses_per_user": 1},
+}
+
 # ═══ CREDIT PACKS ═══
 CREDIT_PACKS = {
     "decouverte": {
@@ -525,6 +532,34 @@ async def check_free_tarot(request: Request):
     user = await get_current_user(request, db)
     used = await check_free_tarot_used(db, user["id"])
     return {"free_used": used}
+
+@api_router.post("/credits/promo")
+async def apply_promo_code(request: Request):
+    """Apply a promo code to get free credits."""
+    user = await get_current_user(request, db)
+    body = await request.json()
+    code = (body.get("code") or "").strip().upper()
+
+    if code not in CREDIT_PROMO_CODES:
+        raise HTTPException(status_code=400, detail="Code promo invalide")
+
+    promo = CREDIT_PROMO_CODES[code]
+
+    # Check if already used by this user
+    existing = await db.credit_transactions.find_one(
+        {"user_id": user["id"], "description": {"$regex": f"Promo: {code}"}},
+        {"_id": 0},
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail="Ce code a déjà été utilisé sur votre compte")
+
+    result = await add_credits(db, user["id"], promo["credits"], f"Promo: {code} — {promo['description']}")
+    return {
+        "success": True,
+        "credits_added": promo["credits"],
+        "description": promo["description"],
+        "credit_balance": result["credit_balance"],
+    }
 
 # ========== STRIPE PAYMENT ROUTES ==========
 

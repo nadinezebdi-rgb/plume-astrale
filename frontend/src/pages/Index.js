@@ -162,6 +162,7 @@ const Index = () => {
             Prenez un moment pour vous comprendre autrement.
           </h2>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button onClick={() => navigate('/cercle')} className="btn-editorial text-xs px-6 py-2.5" data-testid="cta-final-cercle">Entrer dans le Cercle</button>
             <button onClick={() => navigate('/tarot-oui-non')} className="btn-editorial text-xs px-6 py-2.5" data-testid="cta-final-tarot">Recevoir une r&eacute;ponse</button>
             <button onClick={() => navigate('/formulaire')} className="btn-editorial text-xs px-6 py-2.5" data-testid="cta-final-astrology">Comprendre ma p&eacute;riode</button>
           </div>

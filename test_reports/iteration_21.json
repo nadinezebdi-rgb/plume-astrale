@@ -1,0 +1,118 @@
+{
+  "summary": "Iteration 21 - Testing NEW features: Promo codes system, Enhanced Numérologie/Tarologie educational content, and Le Cercle community page. All 12 backend tests passed (100%). All frontend tests passed - promo code application, auth gates, educational content display, Cercle page with daily insights/zodiac selector/services verified.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Numérologie form", "issues": ["Minor: Time input shows '12:00 PM' instead of 24h format (but date picker works correctly)"]}
+    ]
+  },
+
+  "passed_tests": [
+    "Backend: POST /api/credits/promo - PLUMEASTRALE gives 100 credits",
+    "Backend: POST /api/credits/promo - TESTPLUME gives 200 credits",
+    "Backend: POST /api/credits/promo - BIENVENUE gives 50 credits",
+    "Backend: POST /api/credits/promo - invalid code returns 400 error",
+    "Backend: POST /api/credits/promo - duplicate use returns 400 error",
+    "Backend: POST /api/credits/promo - codes are case insensitive",
+    "Backend: POST /api/credits/promo - requires authentication (401)",
+    "Backend: GET /api/tarot/jour - returns daily card for Cercle page",
+    "Backend: GET /api/credits/packs - returns 3 packs",
+    "Backend: GET /api/credits/service-costs - returns correct costs",
+    "Backend: POST /api/numerology/complete - returns valid data",
+    "Backend: POST /api/tarologie/tirage - returns 5-card cross spread",
+    "Frontend: /acheter-credits - 'J'ai un code promo' button toggles promo input",
+    "Frontend: /acheter-credits - applying TESTPLUME shows success, adds 200 credits",
+    "Frontend: /numerologie - shows educational content (Qu'est-ce que la numérologie?, Les nombres clés)",
+    "Frontend: /numerologie - shows auth gate when not logged in",
+    "Frontend: /numerologie - shows 'Commencer mon analyse — 10 crédits' when authenticated",
+    "Frontend: /tarologie - shows educational intro (Qu'est-ce que la Tarologie?, À quoi ça sert?, Le tirage en Croix)",
+    "Frontend: /tarologie - shows auth gate when not logged in",
+    "Frontend: /tarologie - shows 'Commencer mon tirage — 10 crédits' when authenticated",
+    "Frontend: /cercle - shows 3 daily insight cards (Énergie, Nombre, Arcane du jour)",
+    "Frontend: /cercle - shows 'Carte du Jour' section from API",
+    "Frontend: /cercle - shows 12 zodiac signs selector",
+    "Frontend: /cercle - auto-detects user's zodiac from birth_date (Cancer for 1992-07-15)",
+    "Frontend: /cercle - shows 6 service links with credit costs",
+    "Frontend: /cercle - shows credit balance footer when authenticated",
+    "Frontend: /cercle - shows join CTA when not authenticated",
+    "Frontend: Navbar includes 'Le Cercle' link",
+    "Frontend: Index page includes 'Entrer dans le Cercle' CTA button"
+  ],
+
+  "test_report_links": [
+    "/app/backend/tests/test_iteration21_promo_cercle.py",
+    "/app/test_reports/pytest/pytest_results_iteration21.xml"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [
+    "Console warnings in Register.js about <span> inside <select>/<option> - likely from development tooling, not critical"
+  ],
+
+  "updated_files": [
+    "/app/backend/tests/test_iteration21_promo_cercle.py"
+  ],
+
+  "success_rate": {
+    "backend": "100% (12/12 tests passed)",
+    "frontend": "100% (all flows verified)"
+  },
+
+  "test_credentials": {
+    "registered_user": "testcercle77525@plume.com / TestPass123!",
+    "promo_codes_tested": ["TESTPLUME (200 cr)", "PLUMEASTRALE (100 cr)", "BIENVENUE (50 cr)"]
+  },
+
+  "seed_data_creation": "No seed data required - tests create unique users",
+
+  "retest_needed": false,
+
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Iteration 21 verified NEW features: Promo codes (PLUMEASTRALE=100cr, TESTPLUME=200cr, BIENVENUE=50cr, one-time per user), Enhanced Numérologie page with educational content before form, Enhanced Tarologie page with educational intro, and new Le Cercle community page with daily insights, carte du jour, zodiac selector, service navigation. All features working correctly. Backend test: /app/backend/tests/test_iteration21_promo_cercle.py",
+
+  "features_verified": {
+    "promo_codes": {
+      "PLUMEASTRALE": "100 credits",
+      "TESTPLUME": "200 credits",
+      "BIENVENUE": "50 credits",
+      "one_time_per_user": true,
+      "case_insensitive": true,
+      "invalid_code_error": true,
+      "duplicate_use_error": true
+    },
+    "numerologie_page": {
+      "educational_content": ["Qu'est-ce que la numérologie?", "Les nombres clés de votre profil", "À qui s'adresse cette analyse?"],
+      "auth_gate": true,
+      "cta_button": "Commencer mon analyse — 10 crédits",
+      "credit_deduction": true
+    },
+    "tarologie_page": {
+      "educational_content": ["Qu'est-ce que la Tarologie?", "À quoi sert une lecture de Tarot?", "Le tirage en Croix — 5 positions"],
+      "auth_gate": true,
+      "cta_button": "Commencer mon tirage — 10 crédits",
+      "credit_deduction": true
+    },
+    "cercle_page": {
+      "daily_insights": ["Énergie du jour", "Nombre du jour", "Arcane du jour"],
+      "carte_du_jour": "from /api/tarot/jour",
+      "zodiac_selector": "12 signs with auto-detection",
+      "services": ["Tarot Oui/Non", "Lecture Tarot", "Numérologie", "Compatibilité", "Tarologie", "Cartographie Premium"],
+      "credits_footer": true
+    },
+    "navbar": {
+      "le_cercle_link": true
+    },
+    "index_page": {
+      "entrer_dans_le_cercle_cta": true
+    }
+  }
+}

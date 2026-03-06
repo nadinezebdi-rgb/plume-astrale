@@ -1,11 +1,75 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Coins, Sparkles, Star, Zap, ArrowRight, Shield } from 'lucide-react';
+import { Coins, Sparkles, Star, Zap, ArrowRight, Shield, Tag, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 
 const API = process.env.REACT_APP_BACKEND_URL;
+
+const PromoCodeSection = ({ token, onSuccess }) => {
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleApply = async () => {
+    if (!code.trim()) return;
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await axios.post(`${API}/api/credits/promo`, { code }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSuccess(`${res.data.description} — ${res.data.credits_added} crédits ajoutés !`);
+      setCode('');
+      if (onSuccess) onSuccess();
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Code invalide');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="text-center mb-10" data-testid="promo-section">
+      {!open ? (
+        <button onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 text-xs transition-colors hover:text-[#C5A059]" style={{ color: 'var(--pa-muted)' }} data-testid="show-promo-btn">
+          <Tag className="w-3 h-3" /> J'ai un code promo
+        </button>
+      ) : (
+        <div className="max-w-sm mx-auto space-y-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={code}
+              onChange={e => { setCode(e.target.value.toUpperCase()); setError(''); }}
+              placeholder="Code promo"
+              className="flex-1 px-4 py-2 bg-transparent border rounded-full text-center text-sm outline-none transition-colors"
+              style={{ borderColor: 'rgba(197,160,89,0.3)', color: 'var(--pa-body)' }}
+              onFocus={e => e.target.style.borderColor = '#C5A059'}
+              onBlur={e => e.target.style.borderColor = 'rgba(197,160,89,0.3)'}
+              data-testid="promo-code-input"
+            />
+            <button
+              onClick={handleApply}
+              disabled={loading || !code.trim()}
+              className="px-5 py-2 rounded-full text-xs uppercase tracking-widest transition-all disabled:opacity-50"
+              style={{ border: '1px solid rgba(197,160,89,0.4)', color: '#C5A059', letterSpacing: '0.08em' }}
+              data-testid="apply-promo-btn"
+            >
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Appliquer'}
+            </button>
+          </div>
+          {error && <p className="text-xs" style={{ color: '#fca5a5' }} data-testid="promo-error">{error}</p>}
+          {success && <p className="text-xs" style={{ color: '#7CB88A' }} data-testid="promo-success">{success}</p>}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const PACK_ICONS = {
   decouverte: <Star className="w-7 h-7" strokeWidth={1.5} />,
@@ -162,12 +226,19 @@ export default function BuyCredits() {
         </div>
 
         {/* No-expiry reassurance */}
-        <div className="flex items-center justify-center gap-2 mt-6 mb-10">
+        <div className="flex items-center justify-center gap-2 mt-6 mb-6">
           <Shield className="w-4 h-4" style={{ color: 'var(--pa-muted)' }} strokeWidth={1.5} />
           <p className="text-xs" style={{ color: 'var(--pa-muted)' }} data-testid="no-expiry-note">
             Les cr&eacute;dits n'expirent pas et peuvent &ecirc;tre utilis&eacute;s &agrave; votre rythme.
           </p>
         </div>
+
+        {/* Promo Code */}
+        <PromoCodeSection token={token} onSuccess={async () => {
+          const res = await axios.get(`${API}/api/wallet/balance`, { headers: { Authorization: `Bearer ${token}` } });
+          // refresh via context
+          window.location.reload();
+        }} />
 
         {/* Service costs — "Que pouvez-vous faire avec vos crédits ?" */}
         <div className="rounded-2xl p-6 md:p-8" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(197,160,89,0.1)' }}>

@@ -22,6 +22,7 @@ const Navbar = () => {
 
   const links = [
     { to: '/', label: 'Accueil' },
+    { to: '/cercle', label: 'Le Cercle' },
     { to: '/tarot-oui-non', label: 'Tirage' },
     { to: '/formulaire', label: 'Th\u00e8me Astral' },
     { to: '/numerologie', label: 'Num\u00e9rologie' },
