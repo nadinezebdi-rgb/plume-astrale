@@ -38,16 +38,17 @@ const CosmicBg = () => {
         [244, 197, 66],
         [96, 165, 250],
       ];
-      for (let i = 0; i < 300; i++) {
+      for (let i = 0; i < 400; i++) {
         stars.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          r: Math.random() * 1.8 + 0.2,
+          r: Math.random() * 2.5 + 0.3,
           speed: Math.random() * 0.5 + 0.05,
-          opacity: Math.random() * 0.7 + 0.2,
+          opacity: Math.random() * 0.8 + 0.2,
           phase: Math.random() * Math.PI * 2,
           color: colors[Math.floor(Math.random() * colors.length)],
           parallax: Math.random() * 0.3 + 0.1,
+          twinkleSpeed: Math.random() * 2 + 1,
         });
       }
     };
@@ -102,9 +103,10 @@ const CosmicBg = () => {
         ctx.fillRect(n.x - n.r, n.y - n.r, n.r * 2, n.r * 2);
       });
 
-      // Stars with parallax
+      // Stars with parallax and bright twinkle
       stars.forEach(s => {
-        const o = s.opacity * (0.4 + 0.6 * Math.sin(time * 0.001 * s.speed + s.phase));
+        const twinkle = 0.3 + 0.7 * Math.pow(Math.sin(time * 0.001 * s.twinkleSpeed + s.phase), 2);
+        const o = s.opacity * twinkle;
         const px = s.x + mx * s.parallax * 0.01;
         const py = s.y + my * s.parallax * 0.01;
 
@@ -113,11 +115,18 @@ const CosmicBg = () => {
         ctx.fillStyle = `rgba(${s.color[0]},${s.color[1]},${s.color[2]},${o})`;
         ctx.fill();
 
-        // Glow for larger stars
-        if (s.r > 1.2) {
+        // Bright glow for all visible stars
+        if (s.r > 0.8) {
           ctx.beginPath();
-          ctx.arc(px, py, s.r * 4, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${s.color[0]},${s.color[1]},${s.color[2]},${o * 0.08})`;
+          ctx.arc(px, py, s.r * 5, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${s.color[0]},${s.color[1]},${s.color[2]},${o * 0.12})`;
+          ctx.fill();
+        }
+        // Extra glow for large stars
+        if (s.r > 1.5) {
+          ctx.beginPath();
+          ctx.arc(px, py, s.r * 8, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${s.color[0]},${s.color[1]},${s.color[2]},${o * 0.05})`;
           ctx.fill();
         }
       });

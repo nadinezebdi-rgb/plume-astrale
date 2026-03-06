@@ -43,30 +43,30 @@ const Navbar = () => {
       style={{ borderBottom: scrolled ? '1px solid rgba(197,160,89,0.08)' : '1px solid transparent' }}
       data-testid="navbar"
     >
-      <div className="max-w-6xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link
             to="/"
-            className="text-base tracking-widest transition-colors duration-300 hover:opacity-70"
-            style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400, letterSpacing: '0.15em' }}
+            className="text-base tracking-widest transition-colors duration-300 hover:opacity-80 whitespace-nowrap"
+            style={{ fontFamily: 'Cinzel, serif', color: '#D4B46A', fontWeight: 500, letterSpacing: '0.12em', textShadow: '0 0 12px rgba(212,180,106,0.25)' }}
             data-testid="navbar-logo"
           >
             Plume Astrale
           </Link>
 
           {/* Desktop links */}
-          <div className="hidden lg:flex items-center gap-5">
+          <div className="hidden lg:flex items-center gap-3">
             {links.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`text-[10px] tracking-widest uppercase transition-colors duration-300 ${
+                className={`text-[13px] tracking-widest uppercase transition-colors duration-300 whitespace-nowrap ${
                   location.pathname === link.to
-                    ? 'text-[#C4A882]'
-                    : 'text-[#A9A5A0]/70 hover:text-[#C4A882]'
+                    ? 'text-[#D4B46A]'
+                    : 'text-[#D4B46A]/60 hover:text-[#F4D98C]'
                 }`}
-                style={{ letterSpacing: '0.1em' }}
+                style={{ letterSpacing: '0.08em', fontWeight: location.pathname === link.to ? 500 : 400 }}
                 data-testid={`nav-link-${link.to.replace(/\//g, '') || 'home'}`}
               >
                 {link.label}
@@ -78,21 +78,21 @@ const Navbar = () => {
                 {/* Credit balance */}
                 <Link
                   to="/acheter-credits"
-                  className="flex items-center gap-1.5 text-[10px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
-                  style={{ border: '1px solid rgba(197,160,89,0.25)', color: '#C5A059', letterSpacing: '0.08em' }}
+                  className="flex items-center gap-1.5 text-[12px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-[#D4B46A]/15 whitespace-nowrap"
+                  style={{ border: '1px solid rgba(212,180,106,0.4)', color: '#D4B46A', letterSpacing: '0.08em', fontWeight: 500, textShadow: '0 0 8px rgba(212,180,106,0.2)' }}
                   data-testid="navbar-credit-balance"
                 >
-                  <Coins className="w-3 h-3" strokeWidth={1.5} />
+                  <Coins className="w-3.5 h-3.5" strokeWidth={1.5} />
                   {creditBalance} crédits
                 </Link>
                 {/* User menu */}
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-1.5 text-[10px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-red-500/10"
-                  style={{ border: '1px solid rgba(169,165,160,0.2)', color: '#A9A5A0', letterSpacing: '0.08em' }}
+                  className="flex items-center gap-1.5 text-[12px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-red-500/10 whitespace-nowrap"
+                  style={{ border: '1px solid rgba(212,180,106,0.25)', color: '#D4B46A', letterSpacing: '0.08em', fontWeight: 400 }}
                   data-testid="navbar-logout-btn"
                 >
-                  <LogOut className="w-3 h-3" strokeWidth={1.5} />
+                  <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
                   Déconnexion
                 </button>
               </>
@@ -100,21 +100,23 @@ const Navbar = () => {
               <>
                 <Link
                   to="/connexion"
-                  className="flex items-center gap-1.5 text-[10px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
-                  style={{ border: '1px solid rgba(197,160,89,0.35)', color: '#C5A059', letterSpacing: '0.08em' }}
+                  className="flex items-center gap-1.5 text-[12px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-[#D4B46A]/15 whitespace-nowrap"
+                  style={{ border: '1px solid rgba(212,180,106,0.45)', color: '#D4B46A', letterSpacing: '0.08em', fontWeight: 500, textShadow: '0 0 8px rgba(212,180,106,0.15)' }}
                   data-testid="navbar-login-btn"
                 >
-                  <LogIn className="w-3 h-3" strokeWidth={1.5} />
+                  <LogIn className="w-3.5 h-3.5" strokeWidth={1.5} />
                   Connexion
                 </Link>
                 <Link
                   to="/inscription"
-                  className="flex items-center gap-1.5 text-[10px] tracking-widest uppercase px-4 py-1.5 rounded-full transition-all duration-500"
+                  className="flex items-center gap-1.5 text-[12px] tracking-widest uppercase px-4 py-1.5 rounded-full transition-all duration-500 whitespace-nowrap"
                   style={{
-                    border: '1px solid rgba(197,160,89,0.5)',
-                    color: '#C5A059',
-                    background: 'rgba(197,160,89,0.08)',
+                    border: '1px solid rgba(212,180,106,0.6)',
+                    color: '#D4B46A',
+                    background: 'rgba(212,180,106,0.12)',
                     letterSpacing: '0.08em',
+                    fontWeight: 500,
+                    textShadow: '0 0 8px rgba(212,180,106,0.2)',
                   }}
                   data-testid="navbar-register-btn"
                 >
@@ -142,12 +144,12 @@ const Navbar = () => {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`text-xs tracking-widest uppercase py-2 transition-colors duration-300 ${
+                  className={`text-[13px] tracking-widest uppercase py-2 transition-colors duration-300 ${
                     location.pathname === link.to
-                      ? 'text-[#C4A882]'
-                      : 'text-[#A9A5A0]/70 hover:text-[#C4A882]'
+                      ? 'text-[#D4B46A]'
+                      : 'text-[#D4B46A]/50 hover:text-[#F4D98C]'
                   }`}
-                  style={{ letterSpacing: '0.12em' }}
+                  style={{ letterSpacing: '0.12em', fontWeight: location.pathname === link.to ? 500 : 400 }}
                   data-testid={`mobile-nav-link-${link.to.replace(/\//g, '') || 'home'}`}
                 >
                   {link.label}
@@ -158,20 +160,20 @@ const Navbar = () => {
                 <>
                   <Link
                     to="/acheter-credits"
-                    className="flex items-center gap-2 text-xs tracking-widest uppercase py-2 transition-colors duration-300"
-                    style={{ color: '#C5A059', letterSpacing: '0.12em' }}
+                    className="flex items-center gap-2 text-[13px] tracking-widest uppercase py-2 transition-colors duration-300"
+                    style={{ color: '#D4B46A', letterSpacing: '0.12em', fontWeight: 500 }}
                     data-testid="mobile-credit-balance"
                   >
-                    <Coins className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    <Coins className="w-4 h-4" strokeWidth={1.5} />
                     {creditBalance} crédits
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 text-xs tracking-widest uppercase py-2 transition-colors duration-300 text-left"
-                    style={{ color: '#A9A5A0', letterSpacing: '0.12em' }}
+                    className="flex items-center gap-2 text-[13px] tracking-widest uppercase py-2 transition-colors duration-300 text-left"
+                    style={{ color: '#D4B46A', letterSpacing: '0.12em' }}
                     data-testid="mobile-logout-btn"
                   >
-                    <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    <LogOut className="w-4 h-4" strokeWidth={1.5} />
                     Déconnexion
                   </button>
                 </>
@@ -179,17 +181,17 @@ const Navbar = () => {
                 <>
                   <Link
                     to="/connexion"
-                    className="flex items-center justify-center gap-2 text-xs tracking-widest uppercase mt-3 px-6 py-2.5 rounded-full transition-all"
-                    style={{ border: '1px solid rgba(197,160,89,0.35)', color: '#C5A059', letterSpacing: '0.1em' }}
+                    className="flex items-center justify-center gap-2 text-[13px] tracking-widest uppercase mt-3 px-6 py-2.5 rounded-full transition-all"
+                    style={{ border: '1px solid rgba(212,180,106,0.45)', color: '#D4B46A', letterSpacing: '0.1em', fontWeight: 500 }}
                     data-testid="mobile-login-btn"
                   >
-                    <LogIn className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    <LogIn className="w-4 h-4" strokeWidth={1.5} />
                     Connexion
                   </Link>
                   <Link
                     to="/inscription"
-                    className="flex items-center justify-center gap-2 text-xs tracking-widest uppercase mt-1 px-6 py-2.5 rounded-full transition-all"
-                    style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', background: 'rgba(197,160,89,0.08)', letterSpacing: '0.1em' }}
+                    className="flex items-center justify-center gap-2 text-[13px] tracking-widest uppercase mt-1 px-6 py-2.5 rounded-full transition-all"
+                    style={{ border: '1px solid rgba(212,180,106,0.6)', color: '#D4B46A', background: 'rgba(212,180,106,0.12)', letterSpacing: '0.1em', fontWeight: 500 }}
                     data-testid="mobile-register-btn"
                   >
                     Créer un compte

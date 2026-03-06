@@ -1,21 +1,24 @@
 import React, { useMemo } from 'react';
 
-const StarField = ({ count = 160 }) => {
+const StarField = ({ count = 260 }) => {
   const stars = useMemo(() => {
     return Array.from({ length: count }, (_, i) => {
       const rand = Math.random();
-      const isBright = rand < 0.12;
-      const isMedium = rand < 0.35;
-      const size = isBright ? 3 : isMedium ? 2 : 1;
+      const isBright = rand < 0.2;
+      const isMedium = rand < 0.5;
+      const size = isBright ? 3.5 : isMedium ? 2.5 : 1.5;
       return {
         id: i,
         left: `${Math.random() * 100}%`,
         top: `${Math.random() * 100}%`,
         size,
-        duration: `${1.5 + Math.random() * 4}s`,
-        delay: `${Math.random() * 4}s`,
-        peakOpacity: isBright ? 1 : isMedium ? 0.75 : 0.4,
-        glow: isBright,
+        duration: `${1.2 + Math.random() * 3}s`,
+        delay: `${Math.random() * 3}s`,
+        peakOpacity: isBright ? 1 : isMedium ? 0.85 : 0.55,
+        glow: isBright || isMedium,
+        color: isBright
+          ? (Math.random() > 0.5 ? 'rgba(244,197,66,0.9)' : 'rgba(255,255,255,0.95)')
+          : 'rgba(255,255,255,0.8)',
       };
     });
   }, [count]);
@@ -41,7 +44,10 @@ const StarField = ({ count = 160 }) => {
             '--duration': s.duration,
             '--peak-opacity': s.peakOpacity,
             animationDelay: s.delay,
-            boxShadow: s.glow ? `0 0 ${s.size * 3}px ${s.size}px rgba(255, 255, 255, 0.3), 0 0 ${s.size * 6}px ${s.size * 2}px rgba(197, 160, 89, 0.15)` : 'none',
+            background: s.color,
+            boxShadow: s.glow
+              ? `0 0 ${s.size * 4}px ${s.size * 1.5}px rgba(255,255,255,0.4), 0 0 ${s.size * 8}px ${s.size * 3}px rgba(244,197,66,0.2)`
+              : `0 0 ${s.size * 2}px ${s.size}px rgba(255,255,255,0.15)`,
           }}
         />
       ))}

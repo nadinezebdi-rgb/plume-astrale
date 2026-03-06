@@ -35,42 +35,32 @@
 ### Streak System
 - Check-in quotidien : +1 credit/jour
 - Paliers bonus : 7j (+3cr), 14j (+5cr), 30j (+10cr), 60j (+15cr), 100j (+25cr)
-- Streak brise si un jour manque -> retour a 1
-- Visual : flamme avec badge compteur, barre de progression, timeline 5 paliers
-- Popup recompense apres check-in (modal avec flamme, credits gagnes, prochain palier)
-- Collection MongoDB : streaks {user_id, streak_count, longest_streak, total_checkins, last_checkin}
-- Endpoints : GET /api/streak/status, POST /api/streak/checkin
 
 ### Homepage Cosmique Interactive (6 Mars 2026)
-- Fond anime avec etoiles, etoiles filantes, nebuleuses, effet parallaxe souris
-- Roue natale interactive SVG (12 signes zodiac, 7 planetes, rotation continue, hover interactif)
-- Widget "Indice Cosmique" avec barres de progression animees (Amour, Carriere, Energie, Intuition)
-- Carte profil cosmique partageable (telechargement PNG 1080x1350 via /api/share/generate-card)
-- Sections: Hero, Roue Natale, Tirage du Jour, Indice Cosmique, Services (6 cartes), Le Cercle CTA, Final CTA
-- Composants: NatalWheel.js, ShareableCard.js, CosmicBg (canvas), CosmicScore
+- Fond anime avec etoiles brillantes, etoiles filantes, nebuleuses, parallaxe souris
+- 400 etoiles canvas + 260 etoiles CSS avec halos lumineux dores/blancs
+- Roue natale interactive SVG (12 signes zodiac, 7 planetes, rotation continue, hover)
+- Widget "Indice Cosmique" avec barres animees (Amour, Carriere, Energie, Intuition)
+- Carte profil cosmique partageable (PNG 1080x1350)
+- Navbar doree 13px avec Cinzel + text-shadow dore
 
 ## Tests — 100% pass rate
-- Iteration 19: Auth + Wallet + Credits (21/21)
-- Iteration 20: Credit Gating frontend (13/13)
-- Iteration 21: Promo codes + Education + Cercle (12/12)
-- Iteration 22: Streak system (9/9 + all frontend flows)
 - Iteration 23: Homepage cosmique interactive (16/16 backend + all frontend verified)
 
 ## Backlog
 
 ### P1
 - [ ] Page historique des transactions
-- [ ] Enrichir contenu Numerologie (donnees API dynamiques au lieu de texte statique)
+- [ ] Enrichir contenu Numerologie (donnees API dynamiques)
 - [ ] Enrichir contenu Tarologie (interpretations plus profondes)
-- [ ] Bonus automatique "1 credit gratuit/jour" (au lieu du check-in manuel)
+- [ ] Bonus automatique "1 credit gratuit/jour"
 
 ### P2
-- [ ] Integration Astrology API enrichie (natal_wheel_chart, planet reports)
-- [ ] Personnaliser les scores "Alignement Cosmique" avec donnees utilisateur
+- [ ] Personnaliser les scores Alignement Cosmique avec donnees utilisateur
+- [ ] Integration Astrology API enrichie
 - [ ] PDF synthese tirage tarot
 - [ ] Historique tirages par utilisateur
 - [ ] Systeme de parrainage (+5cr par ami)
-- [ ] Page de vente optimisee / abonnement
 
 ## Derniere mise a jour
-6 Mars 2026 — Homepage cosmique interactive complete + tests 100%
+6 Mars 2026 — Etoiles tres lumineuses + Navbar doree 13px
