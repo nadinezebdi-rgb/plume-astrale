@@ -4,8 +4,9 @@ import { Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
-const MAX_FREE_TIRAGES = 3;
+const MAX_FREE_TIRAGES = 1;
 const STORAGE_KEY = 'plume_tarot_tirages';
+const STORAGE_DATE_KEY = 'plume_tarot_date';
 const DATA_KEY = 'plume_tarot_user_data';
 
 const TarotOuiNon = () => {
@@ -22,15 +23,24 @@ const TarotOuiNon = () => {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) setTirageCount(parseInt(saved, 10) || 0);
+    // Reset counter daily
+    const today = new Date().toDateString();
+    const savedDate = localStorage.getItem(STORAGE_DATE_KEY);
+    if (savedDate !== today) {
+      localStorage.setItem(STORAGE_DATE_KEY, today);
+      localStorage.setItem(STORAGE_KEY, '0');
+      setTirageCount(0);
+    } else {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) setTirageCount(parseInt(saved, 10) || 0);
+    }
     const userData = localStorage.getItem(DATA_KEY);
     if (userData) setHasRegistered(true);
   }, []);
 
   const handleTirage = async () => {
     if (!question.trim()) return;
-    if (tirageCount >= MAX_FREE_TIRAGES && !hasRegistered) {
+    if (tirageCount >= MAX_FREE_TIRAGES) {
       setShowForm(true);
       return;
     }
@@ -70,7 +80,7 @@ const TarotOuiNon = () => {
     setShowForm(false);
   };
 
-  const remainingFree = Math.max(0, MAX_FREE_TIRAGES - tirageCount);
+  const canDrawFree = tirageCount < MAX_FREE_TIRAGES;
 
   const getOrientationStyle = (orientation) => {
     if (orientation === 'oui') return { color: '#7CB88A', label: 'OUI' };
@@ -78,8 +88,8 @@ const TarotOuiNon = () => {
     return { color: 'var(--pa-accent)', label: 'NEUTRE' };
   };
 
-  // Registration form
-  if (showForm && !hasRegistered) {
+  // Paywall for additional draws
+  if (showForm && tirageCount >= MAX_FREE_TIRAGES) {
     return (
       <div className="min-h-screen relative">
         <div className="relative z-10 flex flex-col justify-center px-6 md:px-8 py-12" style={{ minHeight: '100vh' }}>
@@ -88,64 +98,48 @@ const TarotOuiNon = () => {
             <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Retour
           </button>
 
-          <div data-testid="registration-form">
-            <p className="section-label">Inscription</p>
+          <div data-testid="paywall-form">
+            <p className="section-label">Tirage suppl&eacute;mentaire</p>
             <h2
               className="text-2xl md:text-3xl mb-4"
               style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
             >
               Continuez vos tirages
             </h2>
-            <p className="text-sm mb-10" style={{ color: 'var(--pa-muted)' }}>
-              Vous avez utilise vos {MAX_FREE_TIRAGES} tirages gratuits.
-              Renseignez vos informations pour continuer.
+            <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
+              Vous avez utilis&eacute; votre tirage gratuit du jour.
             </p>
 
-            <form onSubmit={handleRegistration} className="space-y-6">
-              <div>
-                <label className="block text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>Prenom *</label>
-                <input type="text" required value={formData.prenom} onChange={e => setFormData({...formData, prenom: e.target.value})}
-                  placeholder="Votre prenom" className="input-boxed" data-testid="form-prenom" />
-              </div>
-              <div>
-                <label className="block text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>Email *</label>
-                <input type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
-                  placeholder="votre@email.com" className="input-boxed" data-testid="form-email" />
-              </div>
-              <div>
-                <label className="block text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>Date de naissance *</label>
-                <input type="date" required value={formData.dateNaissance} onChange={e => setFormData({...formData, dateNaissance: e.target.value})}
-                  className="input-boxed" data-testid="form-date" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>Heure</label>
-                  <input type="time" value={formData.heureNaissance} onChange={e => setFormData({...formData, heureNaissance: e.target.value})}
-                    className="input-boxed" data-testid="form-heure" />
-                </div>
-                <div>
-                  <label className="block text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>Ville</label>
-                  <input type="text" value={formData.ville} onChange={e => setFormData({...formData, ville: e.target.value})}
-                    placeholder="Paris" className="input-boxed" data-testid="form-ville" />
-                </div>
-              </div>
-
-              <button type="submit" className="btn-editorial w-full justify-center mt-4" data-testid="form-submit">
-                Debloquer mes tirages
+            <div className="card-mystical mb-8 text-center glow-gold">
+              <p className="text-3xl font-bold mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-accent)' }}>
+                4,99 &euro;
+              </p>
+              <p className="text-sm mb-4" style={{ color: 'var(--pa-muted)' }}>par tirage suppl&eacute;mentaire</p>
+              <ul className="text-xs text-left mx-auto max-w-xs space-y-2 mb-6" style={{ color: 'var(--pa-body)' }}>
+                <li>&#x2714; Tirage Oui/Non avec Arcane Majeur</li>
+                <li>&#x2714; R&eacute;ponse d&eacute;taill&eacute;e et personnalis&eacute;e</li>
+                <li>&#x2714; Conseil des Arcanes</li>
+              </ul>
+              <button className="btn-editorial w-full justify-center" data-testid="buy-tirage-btn">
+                Obtenir mon tirage — 4,99 &euro;
               </button>
-            </form>
+            </div>
+
+            <p className="text-center text-xs" style={{ color: 'var(--pa-muted)' }}>
+              Revenez demain pour un nouveau tirage gratuit
+            </p>
           </div>
 
           {/* Astrology suggestion */}
           <div className="mt-12 pt-8" style={{ borderTop: '1px solid var(--pa-divider)' }} data-testid="astro-upsell-from-tarot">
             <p className="text-sm mb-3" style={{ color: 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif', fontSize: '1.1rem' }}>
-              Découvrez aussi votre Thème Astral
+              D&eacute;couvrez aussi votre Th&egrave;me Astral
             </p>
             <p className="text-xs mb-4" style={{ color: 'var(--pa-muted)' }}>
-              28+ pages personnalisees avec carte du ciel et previsions
+              28+ pages personnalis&eacute;es avec carte du ciel et pr&eacute;visions
             </p>
             <button onClick={() => navigate('/formulaire')} className="link-editorial text-xs">
-              Voir mon apercu gratuit <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.5} />
+              Voir mon aper&ccedil;u gratuit <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.5} />
             </button>
           </div>
         </div>
@@ -183,16 +177,14 @@ const TarotOuiNon = () => {
         </div>
 
         {/* Counter */}
-        {!hasRegistered && (
-          <div className="mb-8" data-testid="tirage-counter">
-            <span className="text-xs tracking-widest" style={{ color: 'var(--pa-accent)', letterSpacing: '0.1em' }}>
-              {remainingFree > 0
-                ? `${remainingFree} tirage${remainingFree > 1 ? 's' : ''} gratuit${remainingFree > 1 ? 's' : ''} restant${remainingFree > 1 ? 's' : ''}`
-                : 'Tirages gratuits epuises'
-              }
-            </span>
-          </div>
-        )}
+        <div className="mb-8" data-testid="tirage-counter">
+          <span className="text-xs tracking-widest" style={{ color: 'var(--pa-accent)', letterSpacing: '0.1em' }}>
+            {tirageCount === 0
+              ? '1 tirage gratuit aujourd\'hui'
+              : 'Tirage gratuit utilis\u00e9 — 4,99\u20ac par tirage suppl\u00e9mentaire'
+            }
+          </span>
+        </div>
 
         {/* Question */}
         <div className="mb-8" data-testid="question-form">

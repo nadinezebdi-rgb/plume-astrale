@@ -22,6 +22,7 @@ const TirageTarot = () => {
   const [currentRevealIndex, setCurrentRevealIndex] = useState(-1);
   const [isRevealing, setIsRevealing] = useState(false);
   const [showDomaines, setShowDomaines] = useState(false);
+  const [syntheseUnlocked, setSyntheseUnlocked] = useState(false);
 
   // Domaines avec icônes
   const domaines = {
@@ -531,6 +532,31 @@ const TirageTarot = () => {
                 </p>
               </div>
 
+              {/* Bouton Voir la Synthèse / Synthèse payante */}
+              {!syntheseUnlocked ? (
+                <div className="text-center py-8" data-testid="synthese-paywall">
+                  <div className="card-mystical glow-gold max-w-md mx-auto py-8">
+                    <Sparkles className="w-10 h-10 text-[#C5A059] mx-auto mb-4" strokeWidth={1} />
+                    <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                      Synth&egrave;se Compl&egrave;te
+                    </h3>
+                    <p className="text-[#B8B0C8]/60 text-sm mb-6 px-4">
+                      D&eacute;couvrez l'analyse d&eacute;taill&eacute;e de votre tirage : tendance g&eacute;n&eacute;rale, messages pass&eacute;/pr&eacute;sent/futur et conseil des Arcanes
+                    </p>
+                    <p className="text-3xl font-bold mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#C5A059' }}>
+                      4,99 &euro;
+                    </p>
+                    <button
+                      onClick={() => setSyntheseUnlocked(true)}
+                      className="btn-mystical-filled rounded-full px-8 py-3 inline-flex items-center gap-2"
+                      data-testid="btn-unlock-synthese"
+                    >
+                      <Eye className="w-5 h-5" /> Voir la synth&egrave;se
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
               {/* Synthèse pour Marseille */}
               {typeTirage === 'marseille' && tirageData.synthese && (
                 <div className="space-y-6">
@@ -634,6 +660,8 @@ const TirageTarot = () => {
                     </div>
                   </div>
                 </div>
+              )}
+                </>
               )}
 
               {/* Actions finales */}
