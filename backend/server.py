@@ -20,6 +20,11 @@ from services.mediumnite_pdf import generate_mediumnite_pdf
 from services.astrology_pdf_api import generate_pro_horoscope_pdf, generate_match_making_pdf
 from services.share_card_generator import generate_share_card
 from services.translation_service import translate_to_french, translate_dict_values
+from services.auth_service import hash_password, verify_password, create_token, get_current_user
+from services.wallet_service import (
+    create_wallet, get_wallet, deduct_credits, add_credits,
+    get_transactions, check_free_tarot_used, mark_free_tarot_used
+)
 
 
 ROOT_DIR = Path(__file__).parent
@@ -143,6 +148,40 @@ DISCOUNT_CODES = {
     }
 }
 
+# ═══ CREDIT PACKS ═══
+CREDIT_PACKS = {
+    "decouverte": {
+        "name": "Pack Découverte",
+        "credits": 10,
+        "amount": 9.00,
+        "currency": "eur",
+        "description": "10 crédits pour explorer nos services",
+    },
+    "exploration": {
+        "name": "Pack Exploration",
+        "credits": 50,
+        "amount": 24.99,
+        "currency": "eur",
+        "description": "50 crédits — notre meilleur rapport qualité-prix",
+    },
+    "premium": {
+        "name": "Pack Premium",
+        "credits": 100,
+        "amount": 44.99,
+        "currency": "eur",
+        "description": "100 crédits pour un accès complet",
+    },
+}
+
+# Service costs in credits
+SERVICE_COSTS = {
+    "tarot_oui_non": 2,
+    "lecture_tarot": 10,
+    "lecture_astrologique": 10,
+    "numerologie": 10,
+    "cartographie_premium": 60,
+}
+
 # Create the main app without a prefix
 app = FastAPI()
 
@@ -152,14 +191,30 @@ api_router = APIRouter(prefix="/api")
 
 # Define Models
 class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
+    model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     client_name: str
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class StatusCheckCreate(BaseModel):
     client_name: str
+
+# Auth Models
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
+    birth_date: str          # YYYY-MM-DD
+    birth_time: str          # HH:MM (24h)
+    birth_place: str
+    birth_country: str = "France"
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class CreditCheckoutRequest(BaseModel):
+    pack_id: str
+    origin_url: str
 
 # Payment Models
 class CheckoutRequest(BaseModel):
@@ -168,7 +223,7 @@ class CheckoutRequest(BaseModel):
     user_email: Optional[str] = None
     user_data: Optional[Dict] = None
     discount_code: Optional[str] = None
-    shipping_address: Optional[Dict] = None  # For physical book
+    shipping_address: Optional[Dict] = None
 
 class DiscountValidationRequest(BaseModel):
     code: str
@@ -222,6 +277,254 @@ async def get_status_checks():
             check['timestamp'] = datetime.fromisoformat(check['timestamp'])
     
     return status_checks
+
+# ========== AUTH ROUTES ==========
+
+@api_router.post("/auth/register")
+async def register(req: RegisterRequest):
+    """Register a new user with astrological profile + 20 bonus credits."""
+    email = req.email.strip().lower()
+    existing = await db.users.find_one({"email": email}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Cet email est déjà utilisé")
+
+    user_id = str(uuid.uuid4())
+    user_doc = {
+        "id": user_id,
+        "email": email,
+        "password_hash": hash_password(req.password),
+        "birth_date": req.birth_date,
+        "birth_time": req.birth_time,
+        "birth_place": req.birth_place,
+        "birth_country": req.birth_country,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.users.insert_one(user_doc)
+    wallet = await create_wallet(db, user_id)
+    token = create_token(user_id, email)
+    return {
+        "token": token,
+        "user": {
+            "id": user_id,
+            "email": email,
+            "birth_date": req.birth_date,
+            "birth_time": req.birth_time,
+            "birth_place": req.birth_place,
+            "birth_country": req.birth_country,
+        },
+        "credit_balance": wallet["credit_balance"],
+    }
+
+@api_router.post("/auth/login")
+async def login(req: LoginRequest):
+    """Login and return JWT + credit balance."""
+    email = req.email.strip().lower()
+    user = await db.users.find_one({"email": email}, {"_id": 0})
+    if not user or not verify_password(req.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
+
+    token = create_token(user["id"], email)
+    wallet = await get_wallet(db, user["id"])
+    return {
+        "token": token,
+        "user": {
+            "id": user["id"],
+            "email": user["email"],
+            "birth_date": user.get("birth_date"),
+            "birth_time": user.get("birth_time"),
+            "birth_place": user.get("birth_place"),
+            "birth_country": user.get("birth_country"),
+        },
+        "credit_balance": wallet["credit_balance"] if wallet else 0,
+    }
+
+@api_router.get("/auth/me")
+async def get_me(request: Request):
+    """Get current user profile + credit balance."""
+    user = await get_current_user(request, db)
+    wallet = await get_wallet(db, user["id"])
+    return {
+        "user": {
+            "id": user["id"],
+            "email": user["email"],
+            "birth_date": user.get("birth_date"),
+            "birth_time": user.get("birth_time"),
+            "birth_place": user.get("birth_place"),
+            "birth_country": user.get("birth_country"),
+        },
+        "credit_balance": wallet["credit_balance"] if wallet else 0,
+    }
+
+# ========== WALLET & CREDITS ROUTES ==========
+
+@api_router.get("/wallet/balance")
+async def wallet_balance(request: Request):
+    """Get current credit balance."""
+    user = await get_current_user(request, db)
+    wallet = await get_wallet(db, user["id"])
+    return {"credit_balance": wallet["credit_balance"] if wallet else 0}
+
+@api_router.get("/wallet/transactions")
+async def wallet_transactions(request: Request):
+    """Get credit transaction history."""
+    user = await get_current_user(request, db)
+    txs = await get_transactions(db, user["id"])
+    return {"transactions": txs}
+
+@api_router.get("/credits/packs")
+async def get_credit_packs():
+    """Return available credit packs (public)."""
+    packs = []
+    for pack_id, pack in CREDIT_PACKS.items():
+        packs.append({
+            "id": pack_id,
+            "name": pack["name"],
+            "credits": pack["credits"],
+            "amount": pack["amount"],
+            "currency": pack["currency"],
+            "description": pack["description"],
+        })
+    return {"packs": packs}
+
+@api_router.get("/credits/service-costs")
+async def get_service_costs():
+    """Return service credit costs (public)."""
+    return {"costs": SERVICE_COSTS}
+
+@api_router.post("/credits/checkout")
+async def create_credit_checkout(req: CreditCheckoutRequest, request: Request):
+    """Create Stripe checkout session for a credit pack. Requires auth."""
+    user = await get_current_user(request, db)
+
+    if req.pack_id not in CREDIT_PACKS:
+        raise HTTPException(status_code=400, detail="Pack invalide")
+
+    pack = CREDIT_PACKS[req.pack_id]
+    success_url = f"{req.origin_url}/credits/succes?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{req.origin_url}/acheter-credits"
+
+    host_url = str(request.base_url)
+    webhook_url = f"{host_url}api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+
+    checkout_request = CheckoutSessionRequest(
+        amount=pack["amount"],
+        currency=pack["currency"],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "type": "credit_purchase",
+            "pack_id": req.pack_id,
+            "credits": str(pack["credits"]),
+            "user_id": user["id"],
+            "user_email": user["email"],
+        },
+    )
+
+    session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+
+    # Record pending payment transaction
+    tx_doc = {
+        "id": str(uuid.uuid4()),
+        "session_id": session.session_id,
+        "type": "credit_purchase",
+        "pack_id": req.pack_id,
+        "pack_name": pack["name"],
+        "credits": pack["credits"],
+        "amount": pack["amount"],
+        "currency": pack["currency"],
+        "user_id": user["id"],
+        "user_email": user["email"],
+        "payment_status": "pending",
+        "status": "initiated",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.payment_transactions.insert_one(tx_doc)
+
+    return {"url": session.url, "session_id": session.session_id}
+
+@api_router.get("/credits/checkout/status/{session_id}")
+async def credit_checkout_status(session_id: str, request: Request):
+    """Poll credit checkout status and add credits if paid."""
+    user = await get_current_user(request, db)
+
+    existing = await db.payment_transactions.find_one(
+        {"session_id": session_id, "type": "credit_purchase"}, {"_id": 0}
+    )
+    if not existing:
+        raise HTTPException(status_code=404, detail="Transaction introuvable")
+
+    # Already processed — return immediately
+    if existing.get("payment_status") == "paid":
+        wallet = await get_wallet(db, user["id"])
+        return {
+            "status": "complete",
+            "payment_status": "paid",
+            "already_processed": True,
+            "credit_balance": wallet["credit_balance"] if wallet else 0,
+        }
+
+    host_url = str(request.base_url)
+    webhook_url = f"{host_url}api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    status: CheckoutStatusResponse = await stripe_checkout.get_checkout_status(session_id)
+
+    if status.payment_status == "paid":
+        # Idempotent: check again to avoid double-credit
+        recheck = await db.payment_transactions.find_one(
+            {"session_id": session_id, "type": "credit_purchase"}, {"_id": 0}
+        )
+        if recheck and recheck.get("payment_status") != "paid":
+            await db.payment_transactions.update_one(
+                {"session_id": session_id},
+                {"$set": {"payment_status": "paid", "status": "complete",
+                           "updated_at": datetime.now(timezone.utc).isoformat()}},
+            )
+            credits_to_add = existing.get("credits", 0)
+            await add_credits(db, user["id"], credits_to_add,
+                              f"Achat {existing.get('pack_name', '')} ({credits_to_add} crédits)")
+
+    wallet = await get_wallet(db, user["id"])
+    return {
+        "status": status.status,
+        "payment_status": status.payment_status,
+        "credit_balance": wallet["credit_balance"] if wallet else 0,
+    }
+
+@api_router.post("/credits/use")
+async def use_credits(request: Request):
+    """Deduct credits for a service. Body: {service_id: str}"""
+    user = await get_current_user(request, db)
+    body = await request.json()
+    service_id = body.get("service_id")
+
+    if service_id not in SERVICE_COSTS:
+        raise HTTPException(status_code=400, detail="Service inconnu")
+
+    # Special case: Tarot Oui/Non first draw is free
+    if service_id == "tarot_oui_non":
+        free_used = await check_free_tarot_used(db, user["id"])
+        if not free_used:
+            await mark_free_tarot_used(db, user["id"])
+            wallet = await get_wallet(db, user["id"])
+            return {"success": True, "free_draw": True, "credit_balance": wallet["credit_balance"]}
+
+    cost = SERVICE_COSTS[service_id]
+    try:
+        result = await deduct_credits(db, user["id"], cost,
+                                       f"Service: {service_id} ({cost} crédits)")
+    except ValueError as e:
+        raise HTTPException(status_code=402, detail=str(e))
+
+    return {"success": True, "free_draw": False, "credit_balance": result["credit_balance"]}
+
+@api_router.get("/credits/check-free-tarot")
+async def check_free_tarot(request: Request):
+    """Check if user has used their free Tarot Oui/Non draw."""
+    user = await get_current_user(request, db)
+    used = await check_free_tarot_used(db, user["id"])
+    return {"free_used": used}
 
 # ========== STRIPE PAYMENT ROUTES ==========
 

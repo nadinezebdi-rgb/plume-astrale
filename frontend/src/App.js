@@ -1,6 +1,7 @@
 import "@/App.css";
 import "@/index.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/context/AuthContext";
 
 // Components
 import Navbar from "@/components/Navbar";
@@ -29,6 +30,10 @@ import PremiumLanding from "@/pages/PremiumLanding";
 import PremiumExperience from "@/pages/PremiumExperience";
 import CharteConfiance from "@/pages/CharteConfiance";
 import TirageTarot from "@/pages/TirageTarot";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import BuyCredits from "@/pages/BuyCredits";
+import CreditSuccess from "@/pages/CreditSuccess";
 
 // 404 Component
 const NotFound = () => (
@@ -48,31 +53,37 @@ function App() {
     <div className="App min-h-screen relative" style={{ background: 'linear-gradient(180deg, #0C0918 0%, #080614 50%, #0C0918 100%)' }}>
       <StarField count={160} />
       <BrowserRouter>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/formulaire" element={<Formulaire />} />
-          <Route path="/apercu" element={<Apercu />} />
-          <Route path="/choix" element={<Choix />} />
-          <Route path="/paiement" element={<Paiement />} />
-          <Route path="/paiement/succes" element={<PaiementSucces />} />
-          <Route path="/resultats" element={<Resultats />} />
-          <Route path="/livre" element={<Livre />} />
-          <Route path="/commande/succes" element={<CommandeSucces />} />
-          <Route path="/tarot" element={<Tarot />} />
-          <Route path="/compatibilite" element={<Compatibilite />} />
-          <Route path="/horoscope" element={<Horoscope />} />
-          <Route path="/quotidien" element={<Quotidien />} />
-          <Route path="/tarot-oui-non" element={<TarotOuiNon />} />
-          <Route path="/tarologie" element={<Tarologie />} />
-          <Route path="/compatibilite-amoureuse" element={<Compatibilite2 />} />
-          <Route path="/numerologie" element={<Numerologie />} />
-          <Route path="/premium" element={<PremiumLanding />} />
-          <Route path="/premium/experience" element={<PremiumExperience />} />
-          <Route path="/charte-de-confiance" element={<CharteConfiance />} />
-          <Route path="/tirage-tarot" element={<TirageTarot />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/connexion" element={<Login />} />
+            <Route path="/inscription" element={<Register />} />
+            <Route path="/acheter-credits" element={<BuyCredits />} />
+            <Route path="/credits/succes" element={<CreditSuccess />} />
+            <Route path="/formulaire" element={<Formulaire />} />
+            <Route path="/apercu" element={<Apercu />} />
+            <Route path="/choix" element={<Choix />} />
+            <Route path="/paiement" element={<Paiement />} />
+            <Route path="/paiement/succes" element={<PaiementSucces />} />
+            <Route path="/resultats" element={<Resultats />} />
+            <Route path="/livre" element={<Livre />} />
+            <Route path="/commande/succes" element={<CommandeSucces />} />
+            <Route path="/tarot" element={<Tarot />} />
+            <Route path="/compatibilite" element={<Compatibilite />} />
+            <Route path="/horoscope" element={<Horoscope />} />
+            <Route path="/quotidien" element={<Quotidien />} />
+            <Route path="/tarot-oui-non" element={<TarotOuiNon />} />
+            <Route path="/tarologie" element={<Tarologie />} />
+            <Route path="/compatibilite-amoureuse" element={<Compatibilite2 />} />
+            <Route path="/numerologie" element={<Numerologie />} />
+            <Route path="/premium" element={<PremiumLanding />} />
+            <Route path="/premium/experience" element={<PremiumExperience />} />
+            <Route path="/charte-de-confiance" element={<CharteConfiance />} />
+            <Route path="/tirage-tarot" element={<TirageTarot />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </div>
   );

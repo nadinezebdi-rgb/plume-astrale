@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight, Coins, LogOut, User, LogIn } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isPaid, setIsPaid] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const paid = localStorage.getItem('plume_astrale_paid');
-    setIsPaid(paid === 'true');
-  }, [location]);
+  const { isAuthenticated, user, creditBalance, logout } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -31,13 +27,12 @@ const Navbar = () => {
     { to: '/numerologie', label: 'Num\u00e9rologie' },
     { to: '/tarologie', label: 'Tarologie' },
     { to: '/compatibilite-amoureuse', label: 'Compatibilit\u00e9' },
-    { to: '/charte-de-confiance', label: 'Charte de Confiance' },
-    { to: '/premium', label: 'Premium', accent: true },
   ];
 
-  if (isPaid) {
-    links.push({ to: '/resultats', label: 'Mon Manuscrit' });
-  }
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <nav
@@ -60,15 +55,13 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop links */}
-          <div className="hidden lg:flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-5">
             {links.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
                 className={`text-[10px] tracking-widest uppercase transition-colors duration-300 ${
-                  link.accent
-                    ? 'text-[#C5A059] hover:text-[#D4B46A]'
-                    : location.pathname === link.to
+                  location.pathname === link.to
                     ? 'text-[#C4A882]'
                     : 'text-[#A9A5A0]/70 hover:text-[#C4A882]'
                 }`}
@@ -78,19 +71,56 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-            {/* CTA */}
-            <button
-              onClick={() => navigate('/tarot-oui-non')}
-              className="flex items-center gap-1.5 text-[10px] tracking-widest uppercase px-4 py-1.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/20"
-              style={{
-                border: '1px solid rgba(197,160,89,0.4)',
-                color: '#C5A059',
-                letterSpacing: '0.08em',
-              }}
-              data-testid="navbar-cta"
-            >
-              Recevoir une reponse <ArrowRight className="w-3 h-3" strokeWidth={1.5} />
-            </button>
+
+            {isAuthenticated ? (
+              <>
+                {/* Credit balance */}
+                <Link
+                  to="/acheter-credits"
+                  className="flex items-center gap-1.5 text-[10px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
+                  style={{ border: '1px solid rgba(197,160,89,0.25)', color: '#C5A059', letterSpacing: '0.08em' }}
+                  data-testid="navbar-credit-balance"
+                >
+                  <Coins className="w-3 h-3" strokeWidth={1.5} />
+                  {creditBalance} crédits
+                </Link>
+                {/* User menu */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 text-[10px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-red-500/10"
+                  style={{ border: '1px solid rgba(169,165,160,0.2)', color: '#A9A5A0', letterSpacing: '0.08em' }}
+                  data-testid="navbar-logout-btn"
+                >
+                  <LogOut className="w-3 h-3" strokeWidth={1.5} />
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/connexion"
+                  className="flex items-center gap-1.5 text-[10px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
+                  style={{ border: '1px solid rgba(197,160,89,0.35)', color: '#C5A059', letterSpacing: '0.08em' }}
+                  data-testid="navbar-login-btn"
+                >
+                  <LogIn className="w-3 h-3" strokeWidth={1.5} />
+                  Connexion
+                </Link>
+                <Link
+                  to="/inscription"
+                  className="flex items-center gap-1.5 text-[10px] tracking-widest uppercase px-4 py-1.5 rounded-full transition-all duration-500"
+                  style={{
+                    border: '1px solid rgba(197,160,89,0.5)',
+                    color: '#C5A059',
+                    background: 'rgba(197,160,89,0.08)',
+                    letterSpacing: '0.08em',
+                  }}
+                  data-testid="navbar-register-btn"
+                >
+                  Créer un compte
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile toggle */}
@@ -112,9 +142,7 @@ const Navbar = () => {
                   key={link.to}
                   to={link.to}
                   className={`text-xs tracking-widest uppercase py-2 transition-colors duration-300 ${
-                    link.accent
-                      ? 'text-[#C5A059]'
-                      : location.pathname === link.to
+                    location.pathname === link.to
                       ? 'text-[#C4A882]'
                       : 'text-[#A9A5A0]/70 hover:text-[#C4A882]'
                   }`}
@@ -124,19 +152,49 @@ const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
-              {/* Mobile CTA */}
-              <button
-                onClick={() => navigate('/tarot-oui-non')}
-                className="flex items-center justify-center gap-2 text-xs tracking-widest uppercase mt-3 px-6 py-2.5 rounded-full transition-all"
-                style={{
-                  border: '1px solid rgba(197,160,89,0.4)',
-                  color: '#C5A059',
-                  letterSpacing: '0.1em',
-                }}
-                data-testid="mobile-navbar-cta"
-              >
-                Recevoir une reponse <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.5} />
-              </button>
+
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/acheter-credits"
+                    className="flex items-center gap-2 text-xs tracking-widest uppercase py-2 transition-colors duration-300"
+                    style={{ color: '#C5A059', letterSpacing: '0.12em' }}
+                    data-testid="mobile-credit-balance"
+                  >
+                    <Coins className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    {creditBalance} crédits
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 text-xs tracking-widest uppercase py-2 transition-colors duration-300 text-left"
+                    style={{ color: '#A9A5A0', letterSpacing: '0.12em' }}
+                    data-testid="mobile-logout-btn"
+                  >
+                    <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    Déconnexion
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/connexion"
+                    className="flex items-center justify-center gap-2 text-xs tracking-widest uppercase mt-3 px-6 py-2.5 rounded-full transition-all"
+                    style={{ border: '1px solid rgba(197,160,89,0.35)', color: '#C5A059', letterSpacing: '0.1em' }}
+                    data-testid="mobile-login-btn"
+                  >
+                    <LogIn className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    Connexion
+                  </Link>
+                  <Link
+                    to="/inscription"
+                    className="flex items-center justify-center gap-2 text-xs tracking-widest uppercase mt-1 px-6 py-2.5 rounded-full transition-all"
+                    style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', background: 'rgba(197,160,89,0.08)', letterSpacing: '0.1em' }}
+                    data-testid="mobile-register-btn"
+                  >
+                    Créer un compte
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}
