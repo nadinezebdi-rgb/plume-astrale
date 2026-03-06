@@ -1,50 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowLeft, ArrowRight, Coins, LogIn } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
+import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
-const MAX_FREE_TIRAGES = 1;
-const STORAGE_KEY = 'plume_tarot_tirages';
-const STORAGE_DATE_KEY = 'plume_tarot_date';
-const DATA_KEY = 'plume_tarot_user_data';
 
 const TarotOuiNon = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, token, creditBalance, refreshBalance } = useAuth();
   const [question, setQuestion] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
-  const [tirageCount, setTirageCount] = useState(0);
-  const [showForm, setShowForm] = useState(false);
-  const [hasRegistered, setHasRegistered] = useState(false);
-  const [formData, setFormData] = useState({
-    prenom: '', email: '', dateNaissance: '', heureNaissance: '', ville: '',
-  });
+  const [freeUsed, setFreeUsed] = useState(null); // null=loading, true/false
+  const [creditError, setCreditError] = useState('');
 
+  // Check free tarot status on mount
   useEffect(() => {
-    // Reset counter daily
-    const today = new Date().toDateString();
-    const savedDate = localStorage.getItem(STORAGE_DATE_KEY);
-    if (savedDate !== today) {
-      localStorage.setItem(STORAGE_DATE_KEY, today);
-      localStorage.setItem(STORAGE_KEY, '0');
-      setTirageCount(0);
-    } else {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setTirageCount(parseInt(saved, 10) || 0);
-    }
-    const userData = localStorage.getItem(DATA_KEY);
-    if (userData) setHasRegistered(true);
-  }, []);
+    if (!isAuthenticated || !token) { setFreeUsed(false); return; }
+    axios.get(`${API_URL}/api/credits/check-free-tarot`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(r => setFreeUsed(r.data.free_used)).catch(() => setFreeUsed(false));
+  }, [isAuthenticated, token]);
+
+  const currentCost = freeUsed ? 2 : 0;
 
   const handleTirage = async () => {
     if (!question.trim()) return;
-    if (tirageCount >= MAX_FREE_TIRAGES) {
-      setShowForm(true);
+
+    // Must be authenticated
+    if (!isAuthenticated) return;
+
+    // Deduct credits first (server-side)
+    setCreditError('');
+    setLoading(true);
+    try {
+      const creditRes = await axios.post(`${API_URL}/api/credits/use`,
+        { service_id: 'tarot_oui_non' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Update free status
+      if (creditRes.data.free_draw) {
+        setFreeUsed(true);
+      }
+    } catch (err) {
+      const detail = err.response?.data?.detail || '';
+      if (detail.includes('insuffisants')) {
+        setCreditError('insufficient');
+      } else {
+        setCreditError(detail || 'Erreur lors de la déduction des crédits');
+      }
+      setLoading(false);
       return;
     }
-    setLoading(true);
+
+    // Now do the actual tarot draw
     setResult(null);
     setIsRevealed(false);
     try {
@@ -55,9 +67,7 @@ const TarotOuiNon = () => {
       });
       const data = await res.json();
       setResult(data);
-      const newCount = tirageCount + 1;
-      setTirageCount(newCount);
-      localStorage.setItem(STORAGE_KEY, newCount.toString());
+      await refreshBalance();
       setTimeout(() => setIsRevealed(true), 1500);
     } catch (e) {
       console.error('Tarot error:', e);
@@ -65,84 +75,86 @@ const TarotOuiNon = () => {
     setLoading(false);
   };
 
-  const handleRegistration = (e) => {
-    e.preventDefault();
-    if (!formData.prenom || !formData.email || !formData.dateNaissance) return;
-    localStorage.setItem(DATA_KEY, JSON.stringify(formData));
-    localStorage.setItem('plume_astrale_data', JSON.stringify({
-      prenom: formData.prenom,
-      dateNaissance: formData.dateNaissance,
-      heureNaissance: formData.heureNaissance || '12:00',
-      ville: formData.ville || 'Paris',
-      email: formData.email,
-    }));
-    setHasRegistered(true);
-    setShowForm(false);
-  };
-
-  const canDrawFree = tirageCount < MAX_FREE_TIRAGES;
-
   const getOrientationStyle = (orientation) => {
     if (orientation === 'oui') return { color: '#7CB88A', label: 'OUI' };
     if (orientation === 'non') return { color: '#C97878', label: 'NON' };
     return { color: 'var(--pa-accent)', label: 'NEUTRE' };
   };
 
-  // Paywall for additional draws
-  if (showForm && tirageCount >= MAX_FREE_TIRAGES) {
+  // Not authenticated gate
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen relative">
-        <div className="relative z-10 flex flex-col justify-center px-6 md:px-8 py-12" style={{ minHeight: '100vh' }}>
-        <div className="max-w-md mx-auto w-full">
-          <button onClick={() => setShowForm(false)} className="link-editorial text-xs mb-12" data-testid="back-form-btn">
-            <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Retour
-          </button>
-
-          <div data-testid="paywall-form">
-            <p className="section-label">Tirage suppl&eacute;mentaire</p>
-            <h2
-              className="text-2xl md:text-3xl mb-4"
-              style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
-            >
-              Continuez vos tirages
-            </h2>
-            <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
-              Vous avez utilis&eacute; votre tirage gratuit du jour.
-            </p>
-
-            <div className="card-mystical mb-8 text-center glow-gold">
-              <p className="text-3xl font-bold mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-accent)' }}>
-                4,99 &euro;
-              </p>
-              <p className="text-sm mb-4" style={{ color: 'var(--pa-muted)' }}>par tirage suppl&eacute;mentaire</p>
-              <ul className="text-xs text-left mx-auto max-w-xs space-y-2 mb-6" style={{ color: 'var(--pa-body)' }}>
-                <li>&#x2714; Tirage Oui/Non avec Arcane Majeur</li>
-                <li>&#x2714; R&eacute;ponse d&eacute;taill&eacute;e et personnalis&eacute;e</li>
-                <li>&#x2714; Conseil des Arcanes</li>
-              </ul>
-              <button className="btn-editorial w-full justify-center" data-testid="buy-tirage-btn">
-                Obtenir mon tirage — 4,99 &euro;
-              </button>
-            </div>
-
-            <p className="text-center text-xs" style={{ color: 'var(--pa-muted)' }}>
-              Revenez demain pour un nouveau tirage gratuit
-            </p>
-          </div>
-
-          {/* Astrology suggestion */}
-          <div className="mt-12 pt-8" style={{ borderTop: '1px solid var(--pa-divider)' }} data-testid="astro-upsell-from-tarot">
-            <p className="text-sm mb-3" style={{ color: 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif', fontSize: '1.1rem' }}>
-              D&eacute;couvrez aussi votre Th&egrave;me Astral
-            </p>
-            <p className="text-xs mb-4" style={{ color: 'var(--pa-muted)' }}>
-              28+ pages personnalis&eacute;es avec carte du ciel et pr&eacute;visions
-            </p>
-            <button onClick={() => navigate('/formulaire')} className="link-editorial text-xs">
-              Voir mon aper&ccedil;u gratuit <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.5} />
+        <SEO path="/tarot-oui-non" />
+        <div className="relative z-10 px-6 md:px-8 py-20 md:py-28">
+          <div className="max-w-xl mx-auto">
+            <button onClick={() => navigate('/')} className="link-editorial text-xs mb-12" data-testid="back-btn">
+              <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Accueil
             </button>
+            <div className="mb-12 flex items-start gap-6">
+              <img src="https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/fupfyxdu_img2.png" alt="" className="w-20 md:w-28 flex-shrink-0 rounded-lg opacity-80" style={{ filter: 'drop-shadow(0 0 20px rgba(197,160,89,0.15))' }} />
+              <div>
+                <p className="section-label">Tirage sacr&eacute;</p>
+                <h1 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
+                  Tarot Oui / Non
+                </h1>
+                <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
+                  Posez votre question et laissez les Arcanes Majeurs vous r&eacute;pondre
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-login">
+              <LogIn className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+              <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+                Connexion requise
+              </h2>
+              <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>
+                Connectez-vous pour acc&eacute;der au Tarot Oui / Non.
+              </p>
+              <p className="text-sm mb-6" style={{ color: '#C5A059' }}>
+                1er tirage gratuit &middot; puis 2 cr&eacute;dits &middot; 20 cr&eacute;dits offerts &agrave; l'inscription
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-login-btn">
+                  Se connecter
+                </button>
+                <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300" style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', background: 'rgba(197,160,89,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">
+                  Cr&eacute;er un compte
+                </button>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Insufficient credits gate
+  if (creditError === 'insufficient') {
+    return (
+      <div className="min-h-screen relative">
+        <SEO path="/tarot-oui-non" />
+        <div className="relative z-10 px-6 md:px-8 py-20 md:py-28">
+          <div className="max-w-xl mx-auto">
+            <button onClick={() => navigate('/')} className="link-editorial text-xs mb-12" data-testid="back-btn">
+              <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Accueil
+            </button>
+            <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-insufficient">
+              <Coins className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+              <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+                Cr&eacute;dits insuffisants
+              </h2>
+              <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>
+                Ce tirage co&ucirc;te <span style={{ color: '#C5A059', fontWeight: 600 }}>2 cr&eacute;dits</span>.
+              </p>
+              <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
+                Votre solde : <span style={{ color: '#C5A059' }}>{creditBalance} cr&eacute;dits</span>
+              </p>
+              <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-500" style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
+                Acheter des cr&eacute;dits <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -163,25 +175,23 @@ const TarotOuiNon = () => {
         <div className="mb-12 flex items-start gap-6">
           <img src="https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/fupfyxdu_img2.png" alt="" className="w-20 md:w-28 flex-shrink-0 rounded-lg opacity-80" style={{ filter: 'drop-shadow(0 0 20px rgba(197,160,89,0.15))' }} />
           <div>
-            <p className="section-label">Tirage sacre</p>
-            <h1
-              className="text-3xl md:text-4xl mb-4"
-              style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
-            >
-            Tarot Oui / Non
-          </h1>
-          <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
-            Posez votre question et laissez les Arcanes Majeurs vous repondre
-          </p>
+            <p className="section-label">Tirage sacr&eacute;</p>
+            <h1 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
+              Tarot Oui / Non
+            </h1>
+            <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
+              Posez votre question et laissez les Arcanes Majeurs vous r&eacute;pondre
+            </p>
           </div>
         </div>
 
-        {/* Counter */}
-        <div className="mb-8" data-testid="tirage-counter">
+        {/* Credit cost info */}
+        <div className="mb-8 flex items-center gap-2" data-testid="tirage-counter">
+          <Coins className="w-4 h-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
           <span className="text-xs tracking-widest" style={{ color: 'var(--pa-accent)', letterSpacing: '0.1em' }}>
-            {tirageCount === 0
-              ? '1 tirage gratuit aujourd\'hui'
-              : 'Tirage gratuit utilis\u00e9 — 4,99\u20ac par tirage suppl\u00e9mentaire'
+            {freeUsed === false
+              ? '1er tirage gratuit'
+              : `2 cr\u00e9dits par tirage \u00b7 Solde : ${creditBalance} cr\u00e9dits`
             }
           </span>
         </div>
@@ -198,6 +208,9 @@ const TarotOuiNon = () => {
             className="input-boxed resize-none h-24 w-full"
             data-testid="question-input"
           />
+          {creditError && creditError !== 'insufficient' && (
+            <p className="text-xs mt-2" style={{ color: '#fca5a5' }}>{creditError}</p>
+          )}
           <button
             onClick={handleTirage}
             disabled={loading || !question.trim()}
@@ -207,7 +220,7 @@ const TarotOuiNon = () => {
             {loading ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Consultation des Arcanes...</>
             ) : (
-              <>Tirer une carte</>
+              <>{freeUsed === false ? 'Tirer une carte (gratuit)' : 'Tirer une carte (2 cr\u00e9dits)'}</>
             )}
           </button>
         </div>
@@ -219,7 +232,7 @@ const TarotOuiNon = () => {
             {/* Card */}
             <div className="text-center mb-12" data-testid="carte-result">
               <p className="text-xs tracking-widest uppercase mb-6" style={{ color: 'var(--pa-muted)', letterSpacing: '0.12em' }}>
-                Arcane tire
+                Arcane tir&eacute;
               </p>
 
               <div className="w-28 h-40 mx-auto mb-6 rounded-lg overflow-hidden"
@@ -269,27 +282,23 @@ const TarotOuiNon = () => {
               <p className="text-xs tracking-widest uppercase mb-6" style={{ color: 'var(--pa-muted)', letterSpacing: '0.12em' }}>
                 Pour aller plus loin
               </p>
-
               <div className="space-y-6" data-testid="upsell-tarologie">
-                <button onClick={() => navigate('/tarologie')} className="block w-full text-left group">
+                <button onClick={() => navigate('/tirage-tarot')} className="block w-full text-left group">
                   <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
-                    Tarologie & M&eacute;diumni&eacute; — 35 EUR
+                    Lecture Tarot approfondie &mdash; 10 cr&eacute;dits
                   </p>
                   <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
-                    5 cartes, lecture m&eacute;diumnique et PDF personnalis&eacute;
+                    Tirage Marseille ou Croix Celtique avec interpr&eacute;tation compl&egrave;te
                   </p>
                 </button>
-
-                {hasRegistered && (
-                  <button onClick={() => navigate('/resultats')} className="block w-full text-left group" data-testid="astro-cross-sell">
-                    <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
-                      Votre Thème Astral Complet
-                    </p>
-                    <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
-                      Carte du ciel, aspects planetaires et previsions 2026
-                    </p>
-                  </button>
-                )}
+                <button onClick={() => navigate('/formulaire')} className="block w-full text-left group">
+                  <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
+                    Votre Th&egrave;me Astral Complet
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
+                    Carte du ciel, aspects plan&eacute;taires et pr&eacute;visions 2026
+                  </p>
+                </button>
               </div>
             </div>
           </div>

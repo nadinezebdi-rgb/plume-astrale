@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowLeft, ArrowRight, Coins, LogIn } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
+import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const Numerologie = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, token, creditBalance, refreshBalance } = useAuth();
   const [formData, setFormData] = useState({
     prenom: '', dateNaissance: '', heureNaissance: '12:00', ville: 'Paris',
   });
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
 
   React.useEffect(() => {
     const saved = localStorage.getItem('plume_astrale_data');
@@ -32,6 +36,27 @@ const Numerologie = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.prenom || !formData.dateNaissance) return;
+
+    // Deduct credits first if not already unlocked
+    if (!unlocked) {
+      try {
+        await axios.post(`${API_URL}/api/credits/use`,
+          { service_id: 'numerologie' },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        await refreshBalance();
+        setUnlocked(true);
+      } catch (err) {
+        const detail = err.response?.data?.detail || '';
+        if (detail.includes('insuffisants')) {
+          navigate('/acheter-credits');
+          return;
+        }
+        alert(detail || 'Erreur');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/numerology/complete`, {
@@ -81,8 +106,32 @@ const Numerologie = () => {
           </div>
         </div>
 
-        {!result ? (
+        {/* Auth/Credit gate */}
+        {!isAuthenticated ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-login">
+            <LogIn className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+            <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Connexion requise</h2>
+            <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
+              Connectez-vous pour accéder à la Numérologie.
+              <br /><span style={{ color: '#C5A059' }}>10 crédits &middot; 20 crédits offerts à l'inscription</span>
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
+              <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', background: 'rgba(197,160,89,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Créer un compte</button>
+            </div>
+          </div>
+        ) : !result ? (
           <div data-testid="numerology-form">
+            {/* Credit cost info */}
+            <div className="mb-6 flex items-center gap-2">
+              <Coins className="w-4 h-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+              <span className="text-xs tracking-widest" style={{ color: 'var(--pa-accent)', letterSpacing: '0.1em' }}>
+                {creditBalance < 10
+                  ? `Crédits insuffisants (${creditBalance}/10)`
+                  : `10 crédits \u00b7 Solde : ${creditBalance} crédits`
+                }
+              </span>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>Prenom complet *</label>
@@ -107,9 +156,14 @@ const Numerologie = () => {
                 </div>
               </div>
 
-              <button type="submit" disabled={loading} className="btn-editorial mt-4 disabled:opacity-30" data-testid="submit-btn">
-                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Calcul en cours...</> : <>Reveler mes nombres</>}
+              <button type="submit" disabled={loading || (!unlocked && creditBalance < 10)} className="btn-editorial mt-4 disabled:opacity-30" data-testid="submit-btn">
+                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Calcul en cours...</> : unlocked ? <>Révéler mes nombres</> : <>Révéler mes nombres (10 crédits)</>}
               </button>
+              {!unlocked && creditBalance < 10 && (
+                <button type="button" onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs mt-3 transition-colors hover:text-[#C5A059]" style={{ color: 'var(--pa-muted)' }}>
+                  Acheter des crédits <ArrowRight className="w-3 h-3" />
+                </button>
+              )}
             </form>
           </div>
         ) : (

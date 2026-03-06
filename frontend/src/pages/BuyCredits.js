@@ -1,34 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Coins, Sparkles, Star, Zap } from 'lucide-react';
+import { Coins, Sparkles, Star, Zap, ArrowRight, Shield } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 const PACK_ICONS = {
-  decouverte: <Star className="w-6 h-6" strokeWidth={1.5} />,
-  exploration: <Sparkles className="w-6 h-6" strokeWidth={1.5} />,
-  premium: <Zap className="w-6 h-6" strokeWidth={1.5} />,
+  decouverte: <Star className="w-7 h-7" strokeWidth={1.5} />,
+  exploration: <Sparkles className="w-7 h-7" strokeWidth={1.5} />,
+  premium: <Zap className="w-7 h-7" strokeWidth={1.5} />,
 };
 
-const PACK_COLORS = {
-  decouverte: { border: 'rgba(197,160,89,0.2)', bg: 'rgba(197,160,89,0.04)' },
-  exploration: { border: 'rgba(197,160,89,0.35)', bg: 'rgba(197,160,89,0.07)' },
-  premium: { border: 'rgba(255,215,0,0.4)', bg: 'rgba(255,215,0,0.06)' },
+const PACK_PROJECTIONS = {
+  decouverte: [
+    '5 tirages Oui / Non',
+    '1 lecture approfondie',
+  ],
+  exploration: [
+    '5 lectures astrologiques',
+    '5 lectures tarot approfondies',
+    '25 tirages Oui / Non',
+  ],
+  premium: [
+    '1 cartographie Premium compl\u00e8te',
+    '4 lectures approfondies',
+    '40 tirages Oui / Non',
+  ],
 };
 
 export default function BuyCredits() {
-  const { isAuthenticated, token, creditBalance } = useAuth();
+  const { isAuthenticated, token, creditBalance, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [packs, setPacks] = useState([]);
   const [loadingPack, setLoadingPack] = useState(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) { navigate('/connexion'); return; }
     axios.get(`${API}/api/credits/packs`).then(r => setPacks(r.data.packs));
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, authLoading]);
 
   const handleBuy = async (packId) => {
     setLoadingPack(packId);
@@ -48,35 +60,55 @@ export default function BuyCredits() {
     <div className="min-h-screen pt-24 pb-16 px-4" data-testid="buy-credits-page">
       <SEO path="/acheter-credits" />
       <div className="max-w-3xl mx-auto">
+
+        {/* Bonus inscription banner */}
+        {creditBalance <= 20 && (
+          <div className="mb-8 p-4 rounded-xl text-center" style={{ background: 'rgba(197,160,89,0.08)', border: '1px solid rgba(197,160,89,0.2)' }} data-testid="bonus-banner">
+            <p className="text-sm" style={{ color: '#C5A059' }}>
+              20 cr&eacute;dits offerts &agrave; l'inscription pour commencer votre exploration
+            </p>
+          </div>
+        )}
+
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-4">
           <div className="flex items-center justify-center gap-3 mb-3">
             <Coins className="w-6 h-6" style={{ color: '#C5A059' }} strokeWidth={1.5} />
             <h1 className="text-3xl sm:text-4xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
-              Acheter des crédits
+              Acheter des cr&eacute;dits
             </h1>
           </div>
-          <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
-            Votre solde actuel : <span style={{ color: '#C5A059', fontWeight: 600 }} data-testid="current-balance">{creditBalance} crédits</span>
+          <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>
+            Votre solde actuel : <span style={{ color: '#C5A059', fontWeight: 600 }} data-testid="current-balance">{creditBalance} cr&eacute;dits</span>
           </p>
         </div>
+
+        {/* Value reminder */}
+        <p className="text-center text-sm mb-10" style={{ color: 'var(--pa-body)', opacity: 0.8 }}>
+          Chaque exp&eacute;rience est personnalis&eacute;e &agrave; partir de vos donn&eacute;es astrologiques.
+        </p>
 
         {/* Packs */}
         <div className="grid gap-5 md:grid-cols-3">
           {packs.map((pack) => {
-            const colors = PACK_COLORS[pack.id] || PACK_COLORS.decouverte;
             const isPopular = pack.id === 'exploration';
+            const projections = PACK_PROJECTIONS[pack.id] || [];
             return (
               <div
                 key={pack.id}
-                className="rounded-2xl p-6 relative transition-all duration-300 hover:scale-[1.02]"
-                style={{ background: colors.bg, border: `1px solid ${colors.border}`, backdropFilter: 'blur(12px)' }}
+                className={`rounded-2xl p-6 relative transition-all duration-300 hover:scale-[1.02] ${isPopular ? 'md:-translate-y-2' : ''}`}
+                style={{
+                  background: isPopular ? 'rgba(197,160,89,0.07)' : 'rgba(255,255,255,0.03)',
+                  border: isPopular ? '1px solid rgba(197,160,89,0.4)' : '1px solid rgba(197,160,89,0.15)',
+                  backdropFilter: 'blur(12px)',
+                }}
                 data-testid={`pack-card-${pack.id}`}
               >
                 {isPopular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] uppercase tracking-widest"
-                    style={{ background: '#C5A059', color: '#0C0918', letterSpacing: '0.08em', fontWeight: 600 }}>
-                    Populaire
+                    style={{ background: '#C5A059', color: '#0C0918', letterSpacing: '0.08em', fontWeight: 600 }}
+                    data-testid="popular-badge">
+                    Le plus choisi
                   </div>
                 )}
                 <div className="flex flex-col items-center text-center pt-2">
@@ -88,20 +120,36 @@ export default function BuyCredits() {
                     {pack.amount.toFixed(2).replace('.', ',')} &euro;
                   </div>
                   <p className="text-sm mb-1" style={{ color: 'var(--pa-body)' }}>
-                    {pack.credits} crédits
+                    {pack.credits} cr&eacute;dits
                   </p>
-                  <p className="text-xs mb-5" style={{ color: 'var(--pa-muted)' }}>
-                    {(pack.amount / pack.credits).toFixed(2).replace('.', ',')} &euro; / crédit
+                  <p className="text-xs mb-4" style={{ color: 'var(--pa-muted)' }}>
+                    {(pack.amount / pack.credits).toFixed(2).replace('.', ',')} &euro; / cr&eacute;dit
                   </p>
+
+                  {/* Usage projection */}
+                  {projections.length > 0 && (
+                    <div className="w-full mb-4 py-3 px-3 rounded-lg text-left" style={{ background: 'rgba(197,160,89,0.05)', border: '1px solid rgba(197,160,89,0.08)' }}>
+                      <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: 'var(--pa-muted)', letterSpacing: '0.08em' }}>
+                        {isPopular ? 'Avec 50 cr\u00e9dits vous pouvez par exemple :' : 'Exemple d\'utilisation :'}
+                      </p>
+                      {projections.map((p, i) => (
+                        <p key={i} className="text-xs py-0.5" style={{ color: 'var(--pa-body)' }}>
+                          &bull; {p}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+
                   <button
                     onClick={() => handleBuy(pack.id)}
                     disabled={loadingPack === pack.id}
                     className="w-full py-2.5 text-xs uppercase tracking-widest rounded-full transition-all duration-500"
                     style={{
                       border: `1px solid ${isPopular ? '#C5A059' : 'rgba(197,160,89,0.4)'}`,
-                      color: loadingPack === pack.id ? 'var(--pa-muted)' : '#C5A059',
-                      background: isPopular ? 'rgba(197,160,89,0.1)' : 'transparent',
+                      color: loadingPack === pack.id ? 'var(--pa-muted)' : isPopular ? '#0C0918' : '#C5A059',
+                      background: isPopular ? '#C5A059' : 'transparent',
                       letterSpacing: '0.1em',
+                      fontWeight: isPopular ? 600 : 400,
                     }}
                     data-testid={`buy-pack-${pack.id}`}
                   >
@@ -113,26 +161,68 @@ export default function BuyCredits() {
           })}
         </div>
 
-        {/* Service costs */}
-        <div className="mt-12 rounded-2xl p-6 md:p-8" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(197,160,89,0.1)' }}>
+        {/* No-expiry reassurance */}
+        <div className="flex items-center justify-center gap-2 mt-6 mb-10">
+          <Shield className="w-4 h-4" style={{ color: 'var(--pa-muted)' }} strokeWidth={1.5} />
+          <p className="text-xs" style={{ color: 'var(--pa-muted)' }} data-testid="no-expiry-note">
+            Les cr&eacute;dits n'expirent pas et peuvent &ecirc;tre utilis&eacute;s &agrave; votre rythme.
+          </p>
+        </div>
+
+        {/* Service costs — "Que pouvez-vous faire avec vos crédits ?" */}
+        <div className="rounded-2xl p-6 md:p-8" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(197,160,89,0.1)' }}>
           <h2 className="text-xl mb-5 text-center" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
-            Coût des services
+            Que pouvez-vous faire avec vos cr&eacute;dits ?
           </h2>
           <div className="space-y-3">
             {[
-              { name: 'Tarot Oui / Non', cost: '1er tirage gratuit, puis 2 crédits' },
-              { name: 'Lecture Tarot approfondie', cost: '10 crédits' },
-              { name: 'Lecture astrologique', cost: '10 crédits' },
-              { name: 'Numérologie — Chemin d\'âme', cost: '10 crédits' },
-              { name: 'Cartographie Premium', cost: '60 crédits' },
+              { name: 'Tarot Oui / Non', cost: '1er tirage gratuit, puis 2 cr\u00e9dits' },
+              { name: 'Lecture Tarot approfondie', cost: '10 cr\u00e9dits' },
+              { name: 'Lecture astrologique', cost: '10 cr\u00e9dits' },
+              { name: 'Num\u00e9rologie \u2014 Chemin d\'&acirc;me', cost: '10 cr\u00e9dits' },
+              { name: 'Cartographie Premium', cost: '60 cr\u00e9dits' },
             ].map(s => (
               <div key={s.name} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(197,160,89,0.08)' }}>
                 <span className="text-sm" style={{ color: 'var(--pa-body)' }}>{s.name}</span>
-                <span className="text-sm" style={{ color: '#C5A059' }}>{s.cost}</span>
+                <span className="text-sm font-medium" style={{ color: '#C5A059' }}>{s.cost}</span>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Continue exploration CTA */}
+        <div className="mt-12 text-center">
+          <h3 className="text-lg mb-5" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+            Continuer l'exploration
+          </h3>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              to="/tarot-oui-non"
+              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
+              style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', letterSpacing: '0.08em' }}
+              data-testid="cta-tarot"
+            >
+              Tirage tarot <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+            <Link
+              to="/formulaire"
+              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
+              style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', letterSpacing: '0.08em' }}
+              data-testid="cta-theme"
+            >
+              Th&egrave;me astral <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+            <Link
+              to="/numerologie"
+              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
+              style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', letterSpacing: '0.08em' }}
+              data-testid="cta-numerologie"
+            >
+              Num&eacute;rologie <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+
       </div>
     </div>
   );

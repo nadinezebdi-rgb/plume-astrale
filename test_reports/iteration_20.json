@@ -1,0 +1,104 @@
+{
+  "summary": "Iteration 20 - Testing credit-gated services and enhanced Buy Credits page with Gary Vee marketing improvements. All 13 backend API tests passed (100%). All frontend flows verified working: auth gates on service pages, credit balance display, first-free-tarot, service cost display, and Buy Credits page enhancements.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "passed_tests": [
+    "Backend: POST /api/auth/register - creates user with 20 bonus credits",
+    "Backend: POST /api/auth/login - returns JWT + credit balance",
+    "Backend: POST /api/auth/login - returns 401 for invalid credentials",
+    "Backend: POST /api/credits/use for tarot_oui_non - first draw is FREE (free_draw: true)",
+    "Backend: POST /api/credits/use for tarot_oui_non - second deducts 2 credits",
+    "Backend: POST /api/credits/use for lecture_tarot - deducts 10 credits",
+    "Backend: POST /api/credits/use for numerologie - deducts 10 credits",
+    "Backend: POST /api/credits/use for lecture_astrologique - deducts 10 credits",
+    "Backend: POST /api/credits/use for cartographie_premium - returns 402 when insufficient (20 < 60)",
+    "Backend: GET /api/credits/packs - returns 3 packs with correct values",
+    "Backend: GET /api/credits/service-costs - returns correct service costs",
+    "Backend: POST /api/credits/use - returns 400 for unknown service",
+    "Backend: POST /api/credits/use - returns 401 without auth",
+    "Frontend: /inscription - 2-step registration flow with 24h hour input (0-23)",
+    "Frontend: /inscription - shows '20 crédits offerts à l'inscription'",
+    "Frontend: Registration redirects to homepage with 20 credits in navbar",
+    "Frontend: /acheter-credits - redirects to login when not authenticated",
+    "Frontend: /acheter-credits - shows 3 packs with usage projections",
+    "Frontend: /acheter-credits - shows 'Le plus choisi' badge on Exploration pack",
+    "Frontend: /acheter-credits - shows no-expiry note",
+    "Frontend: /acheter-credits - shows service costs table with correct prices",
+    "Frontend: /acheter-credits - shows CTA buttons (Tarot, Thème Astral, Numérologie)",
+    "Frontend: /tarot-oui-non - shows auth gate when not logged in",
+    "Frontend: /tarot-oui-non - shows '1er tirage gratuit' when authenticated",
+    "Frontend: /tarot-oui-non - shows '2 crédits par tirage' after first free draw",
+    "Frontend: /tirage-tarot - shows auth gate (step 0) when not logged in",
+    "Frontend: /numerologie - shows auth gate when not logged in",
+    "Frontend: /compatibilite-amoureuse - shows auth gate (step 0) when not logged in",
+    "Frontend: /premium/experience - shows auth gate when not logged in",
+    "Frontend: /premium/experience - shows insufficient credits gate (needs 60, has 20)",
+    "Frontend: Navbar shows credit balance when authenticated"
+  ],
+
+  "test_report_links": [
+    "/app/backend/tests/test_iteration20_credit_gates.py",
+    "/app/test_reports/pytest/pytest_results_iteration20.xml"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [],
+
+  "updated_files": [],
+
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "100% (all flows verified)"
+  },
+
+  "test_credentials": {
+    "pattern": "test_*@plume.com / TestPass123!",
+    "note": "Each test creates unique users to avoid collision"
+  },
+
+  "seed_data_creation": "No seed data required - tests create their own users",
+
+  "retest_needed": false,
+
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Iteration 20 verified credit-gated services and Buy Credits page with Gary Vee enhancements. All service pages (TarotOuiNon, TirageTarot, Numerologie, Compatibilite2, PremiumExperience) now have step 0 auth/credit gates. Buy Credits page shows: usage projections, 'Le plus choisi' badge, no-expiry note, service costs table, CTA buttons. Backend test file: /app/backend/tests/test_iteration20_credit_gates.py. All features working correctly.",
+
+  "features_verified": {
+    "buy_credits_page_gary_vee_enhancements": {
+      "usage_projections": true,
+      "le_plus_choisi_badge": true,
+      "no_expiry_note": true,
+      "service_costs_table": true,
+      "cta_buttons": true,
+      "personalized_experience_reminder": true
+    },
+    "credit_gating": {
+      "tarot_oui_non": "Auth gate + first free + 2cr subsequent",
+      "tirage_tarot": "Step 0 gate + 10cr",
+      "numerologie": "Auth gate + 10cr",
+      "compatibilite_amoureuse": "Step 0 gate + 10cr",
+      "premium_experience": "Full-screen gate + 60cr + insufficient credits handling"
+    },
+    "navbar": {
+      "credit_balance_displayed": true,
+      "logout_button": true
+    },
+    "registration": {
+      "two_step_flow": true,
+      "24h_hour_input": true,
+      "20_credits_bonus_info": true
+    }
+  }
+}

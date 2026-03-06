@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Loader2, ArrowLeft, Sparkles, Download, Star, Users, Tag, MessageCircle } from 'lucide-react';
+import { Heart, Loader2, ArrowLeft, Sparkles, Download, Star, Users, Tag, MessageCircle, Coins, LogIn, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
+import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -86,7 +88,8 @@ const PersonForm = ({ person, onChange, label, num }) => (
 
 const Compatibilite2 = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const { isAuthenticated, token, creditBalance, refreshBalance } = useAuth();
+  const [step, setStep] = useState(0); // 0: auth gate, 1-4: existing steps
   const [loading, setLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [error, setError] = useState('');
@@ -96,6 +99,7 @@ const Compatibilite2 = () => {
   const [promoError, setPromoError] = useState('');
   const [promoSuccess, setPromoSuccess] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
+  const [creditUnlocked, setCreditUnlocked] = useState(false);
 
   const [person1, setPerson1] = useState({
     first_name: '', last_name: '', gender: 'male',
@@ -169,6 +173,26 @@ const Compatibilite2 = () => {
   };
 
   const handleGenerateFree = async () => {
+    // Deduct credits if not already done
+    if (!creditUnlocked) {
+      try {
+        await axios.post(`${API_URL}/api/credits/use`,
+          { service_id: 'lecture_astrologique' },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        await refreshBalance();
+        setCreditUnlocked(true);
+      } catch (err) {
+        const detail = err.response?.data?.detail || '';
+        if (detail.includes('insuffisants')) {
+          navigate('/acheter-credits');
+          return;
+        }
+        setError(detail || 'Erreur');
+        return;
+      }
+    }
+
     setLoading(true);
     setError('');
     try {
@@ -233,6 +257,7 @@ const Compatibilite2 = () => {
           </div>
 
           {/* Progress steps */}
+          {step >= 1 && (
           <div className="flex items-center justify-center gap-2 mb-8">
             {[1, 2, 3, 4].map(s => (
               <div key={s} className="flex items-center gap-2">
@@ -243,6 +268,48 @@ const Compatibilite2 = () => {
               </div>
             ))}
           </div>
+          )}
+
+          {/* Step 0: Auth Gate */}
+          {step === 0 && (
+            <div className="animate-fade-in">
+              {!isAuthenticated ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-login">
+                  <LogIn className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+                  <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Connexion requise</h2>
+                  <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
+                    Connectez-vous pour accéder à la Compatibilité Astrale.
+                    <br /><span style={{ color: '#C5A059' }}>10 crédits &middot; 20 crédits offerts à l'inscription</span>
+                  </p>
+                  <div className="flex gap-3">
+                    <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
+                    <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', background: 'rgba(197,160,89,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Créer un compte</button>
+                  </div>
+                </div>
+              ) : creditBalance < 10 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-insufficient">
+                  <Coins className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+                  <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Crédits insuffisants</h2>
+                  <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>Ce rapport coûte <span style={{ color: '#C5A059', fontWeight: 600 }}>10 crédits</span>.</p>
+                  <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span></p>
+                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
+                    Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center" data-testid="credit-gate-unlock">
+                  <Coins className="w-7 h-7 mb-3" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+                  <p className="text-sm mb-1" style={{ color: 'var(--pa-body)' }}>Rapport de Compatibilité Astrale</p>
+                  <p className="text-xs mb-5" style={{ color: 'var(--pa-muted)' }}>
+                    Coût : <span style={{ color: '#C5A059' }}>10 crédits</span> &middot; Solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span>
+                  </p>
+                  <button onClick={() => setStep(1)} className="text-xs uppercase tracking-widest px-8 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-start-btn">
+                    Commencer l'analyse
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Step 1: Person 1 */}
           {step === 1 && (
@@ -321,7 +388,7 @@ const Compatibilite2 = () => {
                 <button onClick={handleGenerateFree} disabled={loading}
                   className="btn-mystical-filled rounded-full flex items-center gap-2 justify-center px-8 py-3 disabled:opacity-50 flex-1"
                   data-testid="generate-btn">
-                  {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> G&eacute;n&eacute;ration en cours...</> : <><Sparkles className="w-5 h-5" /> G&eacute;n&eacute;rer le Rapport &mdash; 29,90 EUR</>}
+                  {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> G&eacute;n&eacute;ration en cours...</> : <><Sparkles className="w-5 h-5" /> G&eacute;n&eacute;rer le Rapport &mdash; 10 cr&eacute;dits</>}
                 </button>
               </div>
 
@@ -384,7 +451,7 @@ const Compatibilite2 = () => {
                     <div>
                       <h3 className="text-[#F0E6D3] font-medium mb-1">Th&egrave;me Astral Pro</h3>
                       <p className="text-[#B8B0C8]/50 text-sm">68 pages d'analyse personnelle</p>
-                      <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">29,90 EUR</span>
+                      <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">10 cr&eacute;dits</span>
                     </div>
                     <Star className="w-5 h-5 text-[#C5A059] group-hover:scale-110 transition-transform" />
                   </div>
@@ -394,7 +461,7 @@ const Compatibilite2 = () => {
                     <div>
                       <h3 className="text-[#F0E6D3] font-medium mb-1">Tarologie & M&eacute;diumni&eacute;</h3>
                       <p className="text-[#B8B0C8]/50 text-sm">Tirage 7 cartes + lecture m&eacute;diumnique</p>
-                      <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">35 EUR</span>
+                      <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">10 cr&eacute;dits</span>
                     </div>
                     <Sparkles className="w-5 h-5 text-[#C5A059] group-hover:scale-110 transition-transform" />
                   </div>

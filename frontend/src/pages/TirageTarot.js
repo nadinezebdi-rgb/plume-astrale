@@ -3,16 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, Star, Moon, Heart, Briefcase, Coins, Leaf, 
   Sun, RefreshCw, ArrowRight, ChevronDown, Eye, Wand2,
-  CircleDot, HelpCircle
+  CircleDot, HelpCircle, LogIn
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const TirageTarot = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, token, creditBalance, refreshBalance } = useAuth();
   
   // États
-  const [step, setStep] = useState(1); // 1: question, 2: tirage, 3: révélation
+  const [step, setStep] = useState(0); // 0: credit gate, 1: question, 2: tirage, 3: révélation
   const [question, setQuestion] = useState('');
   const [domaine, setDomaine] = useState('general');
   const [typeTirage, setTypeTirage] = useState('marseille'); // marseille ou celtique
@@ -23,6 +26,7 @@ const TirageTarot = () => {
   const [isRevealing, setIsRevealing] = useState(false);
   const [showDomaines, setShowDomaines] = useState(false);
   const [syntheseUnlocked, setSyntheseUnlocked] = useState(false);
+  const [creditUnlocked, setCreditUnlocked] = useState(false);
 
   // Domaines avec icônes
   const domaines = {
@@ -118,14 +122,37 @@ const TirageTarot = () => {
     }
   };
 
+  // Credit unlock handler
+  const handleCreditUnlock = async () => {
+    try {
+      await axios.post(`${API_URL}/api/credits/use`,
+        { service_id: 'lecture_tarot' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await refreshBalance();
+      setCreditUnlocked(true);
+      setStep(1);
+    } catch (err) {
+      const detail = err.response?.data?.detail || '';
+      if (detail.includes('insuffisants')) {
+        navigate('/acheter-credits');
+      } else {
+        alert(detail || 'Erreur');
+      }
+    }
+  };
+
   // Recommencer
   const recommencer = () => {
-    setStep(1);
+    setStep(creditUnlocked ? 1 : 0);
     setQuestion('');
     setTirageData(null);
     setRevealedCards([]);
     setCurrentRevealIndex(-1);
     setIsRevealing(false);
+    if (!creditUnlocked) {
+      setCreditUnlocked(false);
+    }
   };
 
   // Rendu de la carte avec les vraies images
@@ -289,6 +316,63 @@ const TirageTarot = () => {
       <div className="px-6 md:px-8 py-20 md:py-28 relative z-10">
         <div className="max-w-6xl mx-auto">
           
+          {/* ÉTAPE 0: Credit Gate */}
+          {step === 0 && (
+            <div className="max-w-2xl mx-auto">
+              <div className="text-center mb-10">
+                <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-4 font-light">
+                  Tirage de Tarot
+                </p>
+                <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                  Consultez les Arcanes
+                </h1>
+                <p className="text-lg text-[#B8B0C8]/70 font-light">
+                  Lecture Tarot approfondie
+                </p>
+              </div>
+
+              {!isAuthenticated ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-login">
+                  <LogIn className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+                  <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+                    Connexion requise
+                  </h2>
+                  <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
+                    Connectez-vous pour accéder au tirage de Tarot.
+                    <br /><span style={{ color: '#C5A059' }}>10 crédits &middot; 20 crédits offerts à l'inscription</span>
+                  </p>
+                  <div className="flex gap-3">
+                    <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
+                    <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', background: 'rgba(197,160,89,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Créer un compte</button>
+                  </div>
+                </div>
+              ) : creditBalance < 10 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-insufficient">
+                  <Coins className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+                  <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Crédits insuffisants</h2>
+                  <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>
+                    Le tirage coûte <span style={{ color: '#C5A059', fontWeight: 600 }}>10 crédits</span>.
+                  </p>
+                  <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span></p>
+                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
+                    Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-unlock">
+                  <Coins className="w-7 h-7 mb-3" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+                  <p className="text-sm mb-1" style={{ color: 'var(--pa-body)' }}>Lecture Tarot approfondie</p>
+                  <p className="text-xs mb-5" style={{ color: 'var(--pa-muted)' }}>
+                    Coût : <span style={{ color: '#C5A059' }}>10 crédits</span> &middot; Solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span>
+                  </p>
+                  <button onClick={handleCreditUnlock} className="text-xs uppercase tracking-widest px-8 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-unlock-btn">
+                    Utiliser 10 crédits
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ÉTAPE 1: Formulaire de question */}
           {step === 1 && (
             <div className="max-w-2xl mx-auto">
@@ -324,7 +408,7 @@ const TirageTarot = () => {
                       Tirage Marseille
                     </h3>
                     <p className="text-[#B8B0C8]/60 text-sm">3 cartes • Passé, Présent, Futur</p>
-                    <p className="text-[#C5A059] text-lg font-semibold mt-2">19€</p>
+                    <p className="text-[#C5A059] text-lg font-semibold mt-2">10 crédits</p>
                   </div>
                 </div>
 
@@ -345,7 +429,7 @@ const TirageTarot = () => {
                       Croix Celtique
                     </h3>
                     <p className="text-[#B8B0C8]/60 text-sm">10 cartes • Analyse complète</p>
-                    <p className="text-[#C5A059] text-lg font-semibold mt-2">29€</p>
+                    <p className="text-[#C5A059] text-lg font-semibold mt-2">10 crédits</p>
                   </div>
                 </div>
               </div>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Download, Loader2, Star, Sparkles, Eye, BookOpen, TrendingUp, Check, ChevronRight } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Download, Loader2, Star, Sparkles, Eye, BookOpen, TrendingUp, Check, ChevronRight, Coins, LogIn } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -14,24 +16,46 @@ const STEP_META = [
 
 const PremiumExperience = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, token, creditBalance, refreshBalance } = useAuth();
   const [userData, setUserData] = useState(null);
   const [premiumData, setPremiumData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState('');
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(new Set());
   const [allRevealed, setAllRevealed] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [error, setError] = useState('');
+  const [creditUnlocked, setCreditUnlocked] = useState(false);
+
+  // Auth/credit gate
+  const handleCreditUnlock = async () => {
+    try {
+      await axios.post(`${API_URL}/api/credits/use`,
+        { service_id: 'cartographie_premium' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await refreshBalance();
+      setCreditUnlocked(true);
+    } catch (err) {
+      const detail = err.response?.data?.detail || '';
+      if (detail.includes('insuffisants')) {
+        navigate('/acheter-credits');
+      } else {
+        alert(detail || 'Erreur');
+      }
+    }
+  };
 
   useEffect(() => {
+    if (!creditUnlocked) return;
     const data = localStorage.getItem('plume_astrale_data');
     if (!data) {
       navigate('/formulaire');
       return;
     }
     setUserData(JSON.parse(data));
-  }, [navigate]);
+  }, [navigate, creditUnlocked]);
 
   const generateContent = useCallback(async (data) => {
     setLoading(true);
@@ -119,6 +143,60 @@ const PremiumExperience = () => {
     }
     setPdfLoading(false);
   };
+
+  // Credit gate
+  if (!creditUnlocked) {
+    return (
+      <div className="min-h-screen relative z-10 px-6 md:px-8 py-20 md:py-28">
+        <div className="max-w-2xl mx-auto">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-[#C5A059]/60 hover:text-[#C5A059] mb-8 transition-colors" data-testid="back-btn">
+            <ArrowLeft className="w-4 h-4" /> Retour
+          </button>
+          <div className="text-center mb-10">
+            <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-4 font-light">Exp&eacute;rience Premium</p>
+            <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>Cartographie Astrale Compl&egrave;te</h1>
+            <p className="text-lg text-[#B8B0C8]/70 font-light">5 &eacute;tapes initiatiques &middot; PDF personnalis&eacute;</p>
+          </div>
+
+          {!isAuthenticated ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-login">
+              <LogIn className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+              <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Connexion requise</h2>
+              <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
+                Connectez-vous pour acc&eacute;der &agrave; la Cartographie Premium.
+                <br /><span style={{ color: '#C5A059' }}>60 cr&eacute;dits &middot; 20 cr&eacute;dits offerts &agrave; l'inscription</span>
+              </p>
+              <div className="flex gap-3">
+                <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
+                <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', background: 'rgba(197,160,89,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Cr&eacute;er un compte</button>
+              </div>
+            </div>
+          ) : creditBalance < 60 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-insufficient">
+              <Coins className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+              <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Cr&eacute;dits insuffisants</h2>
+              <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>La Cartographie co&ucirc;te <span style={{ color: '#C5A059', fontWeight: 600 }}>60 cr&eacute;dits</span>.</p>
+              <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#C5A059' }}>{creditBalance} cr&eacute;dits</span></p>
+              <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
+                Acheter des cr&eacute;dits <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-unlock">
+              <Coins className="w-7 h-7 mb-3" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+              <p className="text-sm mb-1" style={{ color: 'var(--pa-body)' }}>Cartographie Astrale Premium</p>
+              <p className="text-xs mb-5" style={{ color: 'var(--pa-muted)' }}>
+                Co&ucirc;t : <span style={{ color: '#C5A059' }}>60 cr&eacute;dits</span> &middot; Solde : <span style={{ color: '#C5A059' }}>{creditBalance} cr&eacute;dits</span>
+              </p>
+              <button onClick={handleCreditUnlock} className="text-xs uppercase tracking-widest px-8 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-unlock-btn">
+                Utiliser 60 cr&eacute;dits
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
