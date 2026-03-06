@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Sun, Moon, Star, Sparkles, Heart, TrendingUp, Calendar, ArrowRight, Coins, Users, Eye } from 'lucide-react';
+import { Sun, Moon, Star, Sparkles, Heart, TrendingUp, ArrowRight, Coins, Eye, Flame, Check } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 
@@ -21,6 +21,9 @@ const ZODIAC_SIGNS = [
   { sign: 'verseau', label: 'Verseau', dates: '20 jan \u2013 18 f\u00e9v', symbol: '\u2652' },
   { sign: 'poissons', label: 'Poissons', dates: '19 f\u00e9v \u2013 20 mar', symbol: '\u2653' },
 ];
+
+const MILESTONES = [7, 14, 30, 60, 100];
+const MILESTONE_BONUSES = { 7: 3, 14: 5, 30: 10, 60: 15, 100: 25 };
 
 const DAILY_INSIGHTS = [
   {
@@ -43,20 +46,223 @@ const DAILY_INSIGHTS = [
   },
 ];
 
+// Streak visual component
+const StreakCard = ({ streak, onCheckin, loading }) => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  if (!isAuthenticated) {
+    return (
+      <div className="rounded-2xl p-6 text-center mb-10" style={{ background: 'linear-gradient(135deg, rgba(197,160,89,0.08) 0%, rgba(197,160,89,0.03) 100%)', border: '1px solid rgba(197,160,89,0.2)' }} data-testid="streak-card-unauthenticated">
+        <Flame className="w-8 h-8 mx-auto mb-3" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+        <h3 className="text-lg mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+          Streak quotidien
+        </h3>
+        <p className="text-sm mb-4" style={{ color: 'var(--pa-muted)' }}>
+          Revenez chaque jour pour gagner des cr&eacute;dits et d&eacute;bloquer des bonus
+        </p>
+        <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.4)', color: '#C5A059', letterSpacing: '0.08em' }} data-testid="streak-register-btn">
+          Cr&eacute;er un compte
+        </button>
+      </div>
+    );
+  }
+
+  const count = streak?.streak_count || 0;
+  const checkedToday = streak?.checked_in_today || false;
+  const longest = streak?.longest_streak || 0;
+  const totalCheckins = streak?.total_checkins || 0;
+  const nextMilestone = streak?.next_milestone || {};
+
+  // Progress to next milestone
+  const progressMax = nextMilestone.days || 7;
+  const progressPct = progressMax > 0 ? Math.min((count / progressMax) * 100, 100) : 0;
+
+  return (
+    <div className="rounded-2xl p-6 md:p-8 mb-10" style={{ background: 'linear-gradient(135deg, rgba(197,160,89,0.08) 0%, rgba(255,215,0,0.03) 100%)', border: '1px solid rgba(197,160,89,0.25)' }} data-testid="streak-card">
+
+      {/* Header row */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Flame className="w-10 h-10" style={{ color: count > 0 ? '#FF6B35' : '#C5A059', filter: count >= 7 ? 'drop-shadow(0 0 8px rgba(255,107,53,0.4))' : 'none' }} strokeWidth={1.5} />
+            {count > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: '#FF6B35', color: '#fff' }}>
+                {count}
+              </span>
+            )}
+          </div>
+          <div>
+            <h3 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+              {count === 0 ? 'Commencez votre streak' : `${count} jour${count > 1 ? 's' : ''} cons\u00e9cutif${count > 1 ? 's' : ''}`}
+            </h3>
+            <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
+              {count === 0
+                ? 'Faites votre premier check-in pour d\u00e9marrer'
+                : `Record : ${longest} jours \u00b7 ${totalCheckins} check-ins au total`
+              }
+            </p>
+          </div>
+        </div>
+
+        {/* Check-in button */}
+        {checkedToday ? (
+          <div className="flex items-center gap-2 px-5 py-2.5 rounded-full" style={{ background: 'rgba(124,184,138,0.1)', border: '1px solid rgba(124,184,138,0.3)' }} data-testid="streak-checked-today">
+            <Check className="w-4 h-4" style={{ color: '#7CB88A' }} strokeWidth={2} />
+            <span className="text-xs uppercase tracking-widest" style={{ color: '#7CB88A', letterSpacing: '0.08em' }}>Check-in fait</span>
+          </div>
+        ) : (
+          <button
+            onClick={onCheckin}
+            disabled={loading}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-full text-xs uppercase tracking-widest transition-all duration-500 hover:scale-105"
+            style={{
+              background: 'linear-gradient(135deg, #C5A059 0%, #D4AF37 100%)',
+              color: '#0C0918',
+              letterSpacing: '0.08em',
+              fontWeight: 600,
+              boxShadow: '0 2px 12px rgba(197,160,89,0.3)',
+            }}
+            data-testid="streak-checkin-btn"
+          >
+            <Flame className="w-4 h-4" strokeWidth={2} />
+            {loading ? 'Check-in...' : 'Check-in du jour'}
+          </button>
+        )}
+      </div>
+
+      {/* Progress to next milestone */}
+      {nextMilestone.days && (
+        <div className="mb-5">
+          <div className="flex justify-between mb-1.5">
+            <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--pa-muted)', letterSpacing: '0.08em' }}>
+              Prochain palier : {nextMilestone.days} jours
+            </span>
+            <span className="text-[10px]" style={{ color: '#C5A059' }}>
+              +{nextMilestone.bonus} cr&eacute;dits bonus
+            </span>
+          </div>
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(197,160,89,0.1)' }}>
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${progressPct}%`,
+                background: 'linear-gradient(90deg, #C5A059 0%, #FF6B35 100%)',
+              }}
+              data-testid="streak-progress-bar"
+            />
+          </div>
+          <p className="text-[10px] mt-1.5 text-right" style={{ color: 'var(--pa-muted)' }}>
+            {nextMilestone.remaining > 0 ? `Encore ${nextMilestone.remaining} jour${nextMilestone.remaining > 1 ? 's' : ''}` : 'Palier atteint !'}
+          </p>
+        </div>
+      )}
+
+      {/* Milestone timeline */}
+      <div className="flex items-center justify-between">
+        {MILESTONES.map((m, i) => {
+          const reached = count >= m;
+          const isCurrent = nextMilestone.days === m;
+          return (
+            <div key={m} className="flex flex-col items-center gap-1">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold transition-all"
+                style={{
+                  background: reached ? 'linear-gradient(135deg, #C5A059 0%, #FF6B35 100%)' : isCurrent ? 'rgba(197,160,89,0.15)' : 'rgba(255,255,255,0.03)',
+                  color: reached ? '#0C0918' : isCurrent ? '#C5A059' : 'var(--pa-muted)',
+                  border: reached ? 'none' : `1px solid ${isCurrent ? 'rgba(197,160,89,0.4)' : 'rgba(197,160,89,0.1)'}`,
+                  boxShadow: reached ? '0 0 8px rgba(197,160,89,0.3)' : 'none',
+                }}
+                data-testid={`milestone-${m}`}
+              >
+                {reached ? <Check className="w-3.5 h-3.5" strokeWidth={2.5} /> : m}
+              </div>
+              <span className="text-[9px]" style={{ color: reached ? '#C5A059' : 'var(--pa-muted)' }}>
+                +{MILESTONE_BONUSES[m]}cr
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// Streak reward popup
+const StreakRewardPopup = ({ result, onClose }) => {
+  if (!result || result.already_checked_in) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }} onClick={onClose} data-testid="streak-reward-popup">
+      <div className="rounded-2xl p-8 max-w-sm w-full text-center" style={{ background: '#0C0918', border: '1px solid rgba(197,160,89,0.3)' }} onClick={e => e.stopPropagation()}>
+        <div className="relative mb-4">
+          <Flame className="w-16 h-16 mx-auto" style={{ color: '#FF6B35', filter: 'drop-shadow(0 0 20px rgba(255,107,53,0.4))' }} strokeWidth={1.5} />
+          <span className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1 text-2xl font-bold" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#FF6B35' }}>
+            {result.streak_count}
+          </span>
+        </div>
+
+        <h2 className="text-2xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+          {result.milestone_name ? result.milestone_name + ' !' : `Jour ${result.streak_count}`}
+        </h2>
+
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <Coins className="w-5 h-5" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+          <span className="text-lg" style={{ color: '#C5A059', fontWeight: 500 }}>
+            +{result.credits_earned} cr&eacute;dit{result.credits_earned > 1 ? 's' : ''}
+          </span>
+        </div>
+
+        {result.milestone_bonus > 0 && (
+          <p className="text-sm mb-3 px-3 py-1.5 rounded-full inline-block" style={{ background: 'rgba(255,107,53,0.1)', border: '1px solid rgba(255,107,53,0.2)', color: '#FF6B35' }}>
+            Bonus palier : +{result.milestone_bonus} cr&eacute;dits
+          </p>
+        )}
+
+        <p className="text-xs mb-5" style={{ color: 'var(--pa-muted)' }}>
+          {result.next_milestone?.remaining > 0
+            ? `Prochain palier dans ${result.next_milestone.remaining} jour${result.next_milestone.remaining > 1 ? 's' : ''} (+${result.next_milestone.bonus} bonus)`
+            : 'Continuez votre streak !'
+          }
+        </p>
+
+        <button
+          onClick={onClose}
+          className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all"
+          style={{ border: '1px solid rgba(197,160,89,0.4)', color: '#C5A059', letterSpacing: '0.08em' }}
+          data-testid="streak-close-popup"
+        >
+          Continuer
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export default function Cercle() {
   const navigate = useNavigate();
-  const { isAuthenticated, creditBalance, user } = useAuth();
+  const { isAuthenticated, creditBalance, user, token, refreshBalance } = useAuth();
   const [dailyCard, setDailyCard] = useState(null);
   const [selectedSign, setSelectedSign] = useState(null);
+  const [streak, setStreak] = useState(null);
+  const [checkinLoading, setCheckinLoading] = useState(false);
+  const [checkinResult, setCheckinResult] = useState(null);
 
+  // Fetch daily card + streak status
   useEffect(() => {
-    // Fetch daily tarot card
     axios.get(`${API_URL}/api/tarot/jour`).then(r => {
       if (r.data) setDailyCard(r.data);
     }).catch(() => {});
   }, []);
 
-  // Determine user's zodiac from birth_date if available
+  useEffect(() => {
+    if (!isAuthenticated || !token) return;
+    axios.get(`${API_URL}/api/streak/status`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => setStreak(r.data))
+      .catch(() => {});
+  }, [isAuthenticated, token]);
+
+  // Determine user's zodiac from birth_date
   useEffect(() => {
     if (user?.birth_date) {
       const parts = user.birth_date.split('-');
@@ -82,6 +288,29 @@ export default function Cercle() {
     return -1;
   };
 
+  const handleCheckin = async () => {
+    setCheckinLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/api/streak/checkin`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCheckinResult(res.data);
+      setStreak(prev => ({
+        ...prev,
+        streak_count: res.data.streak_count,
+        checked_in_today: true,
+        longest_streak: res.data.longest_streak,
+        total_checkins: res.data.total_checkins,
+        next_milestone: res.data.next_milestone,
+      }));
+      await refreshBalance();
+    } catch (err) {
+      console.error('Checkin error:', err);
+    } finally {
+      setCheckinLoading(false);
+    }
+  };
+
   const today = new Date();
   const dateStr = today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -91,7 +320,7 @@ export default function Cercle() {
       <div className="max-w-4xl mx-auto">
 
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <p className="text-xs uppercase tracking-widest mb-3" style={{ color: 'var(--pa-accent)', letterSpacing: '0.15em' }}>
             Votre espace quotidien
           </p>
@@ -102,6 +331,15 @@ export default function Cercle() {
             {dateStr}
           </p>
         </div>
+
+        {/* Streak Card */}
+        <StreakCard streak={streak} onCheckin={handleCheckin} loading={checkinLoading} />
+
+        {/* Streak reward popup */}
+        <StreakRewardPopup
+          result={checkinResult}
+          onClose={() => setCheckinResult(null)}
+        />
 
         {/* Daily insights */}
         <div className="grid gap-4 md:grid-cols-3 mb-12">

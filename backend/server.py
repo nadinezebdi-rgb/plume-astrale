@@ -25,6 +25,7 @@ from services.wallet_service import (
     create_wallet, get_wallet, deduct_credits, add_credits,
     get_transactions, check_free_tarot_used, mark_free_tarot_used
 )
+from services.streak_service import get_streak, do_checkin
 
 
 ROOT_DIR = Path(__file__).parent
@@ -559,6 +560,34 @@ async def apply_promo_code(request: Request):
         "credits_added": promo["credits"],
         "description": promo["description"],
         "credit_balance": result["credit_balance"],
+    }
+
+# ========== STREAK ROUTES ==========
+
+@api_router.get("/streak/status")
+async def streak_status(request: Request):
+    """Get current streak info."""
+    user = await get_current_user(request, db)
+    streak = await get_streak(db, user["id"])
+    return streak
+
+@api_router.post("/streak/checkin")
+async def streak_checkin(request: Request):
+    """Perform daily check-in, earn credits + streak bonus."""
+    user = await get_current_user(request, db)
+    result = await do_checkin(db, user["id"])
+
+    # Add earned credits to wallet
+    if not result["already_checked_in"] and result["credits_earned"] > 0:
+        desc = f"Check-in jour {result['streak_count']}"
+        if result["milestone_name"]:
+            desc += f" + {result['milestone_name']} (+{result['milestone_bonus']} bonus)"
+        await add_credits(db, user["id"], result["credits_earned"], desc)
+
+    wallet = await get_wallet(db, user["id"])
+    return {
+        **result,
+        "credit_balance": wallet["credit_balance"] if wallet else 0,
     }
 
 # ========== STRIPE PAYMENT ROUTES ==========
