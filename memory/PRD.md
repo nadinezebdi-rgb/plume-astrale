@@ -4,83 +4,102 @@
 **Plume Astrale** - Plateforme de guidance astrologique et symbolique
 
 ## Architecture
-- **Frontend**: React.js avec Tailwind CSS
+- **Frontend**: React.js avec Tailwind CSS + Shadcn UI
 - **Backend**: Python FastAPI
 - **Base de données**: MongoDB
+- **Paiement**: Stripe (via emergentintegrations)
+- **Authentification**: JWT (PyJWT + bcrypt)
 - **APIs externes**: Astrology API (Plan Growth)
 
 ## Ce qui a été implémenté
 
-### Session du 4 Mars 2026 (Forks précédents)
+### Sessions précédentes (forks antérieurs)
 
-#### 1. Application complète
+#### Application complète
 - Page d'accueil, formulaire thème astral, numérologie, tarologie, compatibilité, quotidien, horoscope
 - Génération PDF thème astral (pdf_generator_v2.py - 28+ pages)
-- Tirage Tarot Oui/Non gratuit
-- Tirage en Croix (Tarologie & Médiumnité)
+- Tirage Tarot Oui/Non, Tirage en Croix, Tirage Tarot de Marseille/Celtique
 - Premium Landing & Parcours guidé
+- Rapport de Compatibilité Astrale enrichi (11 pages PDF)
+- Tirage du Jour gratuit
+- Paywalls Stripe par service
+- Correction accents français
+- Health check Kubernetes
 
-#### 2. Tirage Tarot en Direct
-- Formulaire de question avec domaines
-- Tirage Marseille (3 cartes - 19€) et Celtique (10 cartes - 29€)
-- Animation révélation carte par carte
+### Session du 6 Mars 2026 — Système de Crédits (P0)
 
-### Session du 4 Mars 2026 (Fork actuel) ✅
+#### Phase 1 : Backend Auth & Wallet
+- `POST /api/auth/register` — inscription avec profil astrologique + 20 crédits bonus
+- `POST /api/auth/login` — connexion JWT + solde crédits
+- `GET /api/auth/me` — profil utilisateur + solde (protégé)
+- `GET /api/wallet/balance` — solde crédits (protégé)
+- `GET /api/wallet/transactions` — historique des transactions (protégé)
+- Modèles MongoDB : `users`, `user_wallets`, `credit_transactions`
+- Services : `auth_service.py`, `wallet_service.py`
+- Bonus quotidien : +1 crédit/jour (dès J+1, automatique à la requête)
 
-#### 3. Tirage du Jour (P0) ✅
-- Composant `TirageDuJour` intégré sur la page d'accueil
-- Endpoint `GET /api/tarot/jour` fonctionnel
-- Date en français, badge GRATUIT, révélation interactive
-- Détails dépliables : Affirmation, Amour, Travail, Rituel
+#### Phase 2 : Stripe Credit Packs
+- `GET /api/credits/packs` — 3 packs (public)
+- `GET /api/credits/service-costs` — coûts des services (public)
+- `POST /api/credits/checkout` — session Stripe pour achat (protégé)
+- `GET /api/credits/checkout/status/{session_id}` — polling + ajout crédits (protégé)
+- Packs : Découverte (10 cr / 9€), Exploration (50 cr / 24,99€), Premium (100 cr / 44,99€)
+- Idempotence : pas de double crédit pour une même session Stripe
 
-#### 4. Audit des accents français (P1) ✅
-- Corrections dans ~20 fichiers (backend + frontend)
-- Navbar, SEO, Choix, Paiement, Tarologie, Quotidien, TarotOuiNon, Apercu, CharteConfiance
-- PRODUCTS server.py, tarot_interpretations.py, pdf_generator_v2.py, premium_service.py
+#### Phase 3 : Frontend Auth & UI
+- `AuthContext` global (register, login, logout, useCredits, refreshBalance)
+- Page Connexion (`/connexion`)
+- Page Inscription en 2 étapes (`/inscription`) — identifiants + profil astrologique
+- Page Acheter des crédits (`/acheter-credits`) — 3 packs avec prix, badge "Populaire"
+- Page Succès paiement crédits (`/credits/succes`) — polling statut
+- Navbar : affiche Connexion/Inscription (déconnecté) ou solde crédits/Déconnexion (connecté)
+- Input heure de naissance en format 24h (champs séparés H:M, 0-23)
 
-#### 5. Rapport de Compatibilité Astrale enrichi ✅
-- **NOUVEAU** : Générateur PDF custom (`compatibility_pdf_generator.py`) - 11 pages de contenu riche
-- Remplace l'ancien API externe (AstrologyAPI match_making_pdf) qui produisait un PDF vide
-- **Frontend** : Formulaire 4 étapes (Partenaire 1 → Partenaire 2 → Question → Téléchargement)
-- **Contenu du rapport** :
-  - Couverture avec noms et signes
-  - Profils astrologiques distincts des 2 partenaires
-  - Portrait détaillé de chaque partenaire (forces, vigilance, chemin de vie)
-  - Analyse élémentaire avec score de compatibilité (barre visuelle)
-  - Comment les différences deviennent une force
-  - Attraction et passion (ce que chacun trouve chez l'autre)
-  - Communication et complicité (styles de communication distincts)
-  - Défis et résolution de conflits (zones de tension + stratégies concrètes)
-  - Compatibilité réelle avec score global + réponse à la question de l'utilisateur
-  - Clés de réussite pour l'avenir
-  - Message final personnalisé
-
-#### 6. Fix déploiement ✅
-- Ajout endpoint `/health` pour Kubernetes health check
+#### Phase 4 : Gating des services
+- `POST /api/credits/use` — déduction crédits par service
+- `GET /api/credits/check-free-tarot` — vérification tirage gratuit
+- Tarot Oui/Non : 1er tirage gratuit par compte, puis 2 crédits
+- Coûts définis serveur : tarot_oui_non=2, lecture_tarot=10, lecture_astrologique=10, numerologie=10, cartographie_premium=60
 
 ## Endpoints API
 
-| Endpoint | Méthode | Description |
-|----------|---------|-------------|
-| `/health` | GET | Health check Kubernetes |
-| `/api/tarot/jour` | GET | Tirage du jour gratuit |
-| `/api/compatibility/generate` | POST | Rapport compatibilité PDF (person1, person2, question) |
-| `/api/tarot/domaines` | GET | 6 domaines de questions |
-| `/api/tarot/marseille` | POST | Tirage 3 cartes |
-| `/api/tarot/celtique` | POST | Tirage Croix Celtique 10 cartes |
+| Endpoint | Méthode | Auth | Description |
+|----------|---------|------|-------------|
+| `/health` | GET | Non | Health check Kubernetes |
+| `/api/auth/register` | POST | Non | Inscription + 20 crédits bonus |
+| `/api/auth/login` | POST | Non | Connexion JWT |
+| `/api/auth/me` | GET | Oui | Profil + solde |
+| `/api/wallet/balance` | GET | Oui | Solde crédits |
+| `/api/wallet/transactions` | GET | Oui | Historique transactions |
+| `/api/credits/packs` | GET | Non | Packs disponibles |
+| `/api/credits/service-costs` | GET | Non | Coûts des services |
+| `/api/credits/checkout` | POST | Oui | Checkout Stripe |
+| `/api/credits/checkout/status/{id}` | GET | Oui | Statut paiement + ajout crédits |
+| `/api/credits/use` | POST | Oui | Déduction crédits |
+| `/api/credits/check-free-tarot` | GET | Oui | Vérif tirage gratuit |
+| `/api/tarot/jour` | GET | Non | Tirage du jour gratuit |
+| `/api/compatibility/generate` | POST | Non | Rapport compatibilité PDF |
+| `/api/tarot/domaines` | GET | Non | 6 domaines de questions |
+| `/api/tarot/marseille` | POST | Non | Tirage 3 cartes |
+| `/api/tarot/celtique` | POST | Non | Tirage Croix Celtique 10 cartes |
 
 ## Backlog
 
-### P1 - À faire
-- [ ] Améliorer la mise en page du PDF thème astral principal (pdf_generator_v2.py) — grands espaces blancs, accents restants
-- [ ] Intégrer paiement Stripe pour tous les produits
-- [ ] Images individuelles des 22 arcanes dans les tirages
+### P0 — En cours
+- [ ] Intégrer le gating crédits dans les pages frontend des services (TarotOuiNon, TirageTarot, etc.)
+- [ ] Convertir tous les services premium au système de crédits
 
-### P2 - Nice to have
+### P1 — À faire
+- [ ] Page historique des transactions pour l'utilisateur
+- [ ] Compléter l'intégration Astrology API (natal_wheel_chart, enrichment)
+- [ ] Améliorer la mise en page du PDF thème astral principal
+
+### P2 — Nice to have
 - [ ] Visualisation natal_wheel_chart
 - [ ] PDF de synthèse du tirage tarot
 - [ ] Historique des tirages par utilisateur
 - [ ] Partage social des tirages
+- [ ] Page de vente optimisée / modèle abonnement
 
 ## Dernière mise à jour
-4 Mars 2026 - Fork actuel
+6 Mars 2026 — Système de crédits Phase 1-4 backend + frontend complet
