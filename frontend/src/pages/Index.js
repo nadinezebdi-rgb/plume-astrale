@@ -1,177 +1,548 @@
-import React from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Star, Sparkles, Eye, Moon, Heart, Hash, TrendingUp, Flame } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import TirageDuJour from '@/components/TirageDuJour';
+import NatalWheel from '@/components/NatalWheel';
+import ShareableCard from '@/components/ShareableCard';
 
 const PLUME_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/v8g1i6qn_une%20plume.png";
-const SOLEIL_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/sm8ajzvy_symbole%20dor%C3%A9.png";
 const OEIL_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/lkljttvo_img1.png";
 
-const Line = () => <div className="w-8 h-px my-8" style={{ background: 'var(--pa-accent)', opacity: 0.3 }} />;
+/* ─── Enhanced cosmic animated background with shooting stars ─── */
+const CosmicBg = () => {
+  const canvasRef = useRef(null);
+  const mouseRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animId;
+    let stars = [];
+    let shootingStars = [];
+    let nebulae = [];
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = document.documentElement.scrollHeight || window.innerHeight * 4;
+    };
+
+    const initStars = () => {
+      stars = [];
+      const colors = [
+        [248, 250, 252],
+        [232, 121, 249],
+        [167, 139, 250],
+        [244, 197, 66],
+        [96, 165, 250],
+      ];
+      for (let i = 0; i < 300; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 1.8 + 0.2,
+          speed: Math.random() * 0.5 + 0.05,
+          opacity: Math.random() * 0.7 + 0.2,
+          phase: Math.random() * Math.PI * 2,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          parallax: Math.random() * 0.3 + 0.1,
+        });
+      }
+    };
+
+    const initNebulae = () => {
+      nebulae = [];
+      for (let i = 0; i < 5; i++) {
+        nebulae.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 200 + 100,
+          color: [
+            [139, 92, 246, 0.03],
+            [232, 121, 249, 0.02],
+            [244, 197, 66, 0.015],
+          ][Math.floor(Math.random() * 3)],
+          drift: Math.random() * 0.2 - 0.1,
+          phase: Math.random() * Math.PI * 2,
+        });
+      }
+    };
+
+    const spawnShootingStar = () => {
+      if (shootingStars.length > 2) return;
+      if (Math.random() > 0.003) return;
+      const startX = Math.random() * canvas.width;
+      const startY = Math.random() * canvas.height * 0.5;
+      shootingStars.push({
+        x: startX,
+        y: startY,
+        vx: (Math.random() - 0.3) * 8,
+        vy: Math.random() * 4 + 2,
+        life: 1,
+        decay: 0.015 + Math.random() * 0.01,
+        length: 40 + Math.random() * 60,
+      });
+    };
+
+    const draw = (time) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
+
+      // Nebulae
+      nebulae.forEach(n => {
+        const pulse = 0.8 + 0.2 * Math.sin(time * 0.0003 + n.phase);
+        const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * pulse);
+        grad.addColorStop(0, `rgba(${n.color[0]},${n.color[1]},${n.color[2]},${n.color[3] * pulse})`);
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.fillRect(n.x - n.r, n.y - n.r, n.r * 2, n.r * 2);
+      });
+
+      // Stars with parallax
+      stars.forEach(s => {
+        const o = s.opacity * (0.4 + 0.6 * Math.sin(time * 0.001 * s.speed + s.phase));
+        const px = s.x + mx * s.parallax * 0.01;
+        const py = s.y + my * s.parallax * 0.01;
+
+        ctx.beginPath();
+        ctx.arc(px, py, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${s.color[0]},${s.color[1]},${s.color[2]},${o})`;
+        ctx.fill();
+
+        // Glow for larger stars
+        if (s.r > 1.2) {
+          ctx.beginPath();
+          ctx.arc(px, py, s.r * 4, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${s.color[0]},${s.color[1]},${s.color[2]},${o * 0.08})`;
+          ctx.fill();
+        }
+      });
+
+      // Shooting stars
+      spawnShootingStar();
+      shootingStars = shootingStars.filter(ss => {
+        ss.x += ss.vx;
+        ss.y += ss.vy;
+        ss.life -= ss.decay;
+        if (ss.life <= 0) return false;
+
+        const tailX = ss.x - ss.vx * (ss.length / 8);
+        const tailY = ss.y - ss.vy * (ss.length / 8);
+
+        const grad = ctx.createLinearGradient(tailX, tailY, ss.x, ss.y);
+        grad.addColorStop(0, `rgba(248,250,252,0)`);
+        grad.addColorStop(0.7, `rgba(248,250,252,${ss.life * 0.4})`);
+        grad.addColorStop(1, `rgba(244,197,66,${ss.life * 0.8})`);
+
+        ctx.beginPath();
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(ss.x, ss.y);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Head glow
+        ctx.beginPath();
+        ctx.arc(ss.x, ss.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(248,250,252,${ss.life * 0.9})`;
+        ctx.fill();
+        return true;
+      });
+
+      animId = requestAnimationFrame(draw);
+    };
+
+    const handleMouse = (e) => {
+      mouseRef.current = { x: e.clientX - window.innerWidth / 2, y: e.clientY - window.innerHeight / 2 };
+    };
+
+    resize();
+    initStars();
+    initNebulae();
+    animId = requestAnimationFrame(draw);
+    window.addEventListener('resize', () => { resize(); initStars(); initNebulae(); });
+    window.addEventListener('mousemove', handleMouse);
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('mousemove', handleMouse);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" style={{ opacity: 0.7 }} />;
+};
+
+/* ─── Cosmic alignment bars with stagger animation ─── */
+const CosmicScore = () => {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold: 0.3 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  const scores = [
+    { label: 'Amour', pct: 70, color: '#E879F9', icon: Heart },
+    { label: 'Carriere', pct: 55, color: '#F4C542', icon: TrendingUp },
+    { label: 'Energie', pct: 85, color: '#A78BFA', icon: Sparkles },
+    { label: 'Intuition', pct: 90, color: '#60A5FA', icon: Eye },
+  ];
+
+  return (
+    <div ref={ref} className="space-y-5" data-testid="cosmic-score">
+      <p className="text-xs uppercase tracking-[0.2em] mb-4" style={{ fontFamily: 'Cinzel, serif', color: '#F4C542', letterSpacing: '0.2em' }}>
+        Alignement Cosmique
+      </p>
+      {scores.map((s, i) => {
+        const Icon = s.icon;
+        return (
+          <div key={s.label}>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="flex items-center gap-2 text-sm" style={{ fontFamily: 'Inter, sans-serif', color: '#F8FAFC', fontWeight: 400 }}>
+                <Icon className="w-3.5 h-3.5" style={{ color: s.color }} strokeWidth={1.5} />
+                {s.label}
+              </span>
+              <span className="text-sm font-medium tabular-nums" style={{ fontFamily: 'Inter, sans-serif', color: s.color, fontWeight: 600 }}>
+                {visible ? s.pct : 0}%
+              </span>
+            </div>
+            <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: visible ? `${s.pct}%` : '0%',
+                  background: `linear-gradient(90deg, ${s.color}40, ${s.color})`,
+                  boxShadow: visible ? `0 0 16px ${s.color}50, inset 0 1px 0 rgba(255,255,255,0.15)` : 'none',
+                  transition: `width 1.5s cubic-bezier(0.16, 1, 0.3, 1) ${i * 250}ms`,
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/* ─── Cosmic glassmorphism card ─── */
+const CosmicCard = ({ children, className = '', glow = 'purple', testId, onClick }) => {
+  const glowMap = {
+    gold: 'rgba(244,197,66,0.12)',
+    pink: 'rgba(232,121,249,0.12)',
+    purple: 'rgba(139,92,246,0.12)',
+  };
+  return (
+    <div
+      onClick={onClick}
+      className={`rounded-2xl p-6 transition-all duration-300 ${onClick ? 'cursor-pointer hover:-translate-y-1' : ''} ${className}`}
+      style={{
+        background: 'rgba(255,255,255,0.03)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        boxShadow: `0 0 40px ${glowMap[glow] || glowMap.purple}`,
+      }}
+      data-testid={testId}
+    >
+      {children}
+    </div>
+  );
+};
+
+/* ─── CTA Button cosmic gradient ─── */
+const CosmicBtn = ({ children, onClick, testId, secondary }) => (
+  <button
+    onClick={onClick}
+    className="inline-flex items-center gap-2 px-8 py-4 rounded-full text-sm font-semibold transition-all duration-300 hover:scale-105"
+    style={secondary ? {
+      background: 'transparent',
+      border: '1px solid rgba(232,121,249,0.4)',
+      color: '#E879F9',
+      fontFamily: 'Inter, sans-serif',
+    } : {
+      background: 'linear-gradient(135deg, #F4C542, #E879F9)',
+      color: '#0F172A',
+      fontFamily: 'Inter, sans-serif',
+      fontWeight: 600,
+      boxShadow: '0 0 20px rgba(244,197,66,0.3)',
+    }}
+    data-testid={testId}
+  >
+    {children}
+  </button>
+);
 
 const Index = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, creditBalance } = useAuth();
 
   return (
-    <div className="relative z-10" data-testid="homepage">
+    <div className="relative z-10" style={{ background: 'linear-gradient(180deg, #2B0A3D 0%, #1E1B4B 30%, #0F172A 70%, #2B0A3D 100%)' }} data-testid="homepage">
       <SEO path="/" />
+      <CosmicBg />
+
+      {/* Nebula orbs */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute top-[10%] left-[15%] w-[500px] h-[500px] rounded-full opacity-30"
+          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%)', filter: 'blur(80px)', animation: 'orbFloat 25s ease-in-out infinite' }} />
+        <div className="absolute top-[50%] right-[10%] w-[400px] h-[400px] rounded-full opacity-20"
+          style={{ background: 'radial-gradient(circle, rgba(232,121,249,0.2) 0%, transparent 70%)', filter: 'blur(80px)', animation: 'orbFloat 30s ease-in-out infinite reverse' }} />
+        <div className="absolute bottom-[20%] left-[40%] w-[350px] h-[350px] rounded-full opacity-25"
+          style={{ background: 'radial-gradient(circle, rgba(244,197,66,0.12) 0%, transparent 70%)', filter: 'blur(80px)', animation: 'orbFloat 20s ease-in-out infinite' }} />
+      </div>
 
       {/* ─── HERO ─── */}
-      <section className="pt-24 pb-12 px-6 md:px-8" data-testid="hero-section">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-14">
-          <div className="flex-1">
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 400, color: 'var(--pa-accent)', letterSpacing: '0.04em' }}>
-              Plume Astrale
+      <section className="relative z-10 min-h-screen flex items-center pt-20 pb-16 px-6 md:px-8" data-testid="hero-section">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10 md:gap-16 w-full">
+          <div className="flex-1 text-center md:text-left">
+            <p className="text-xs uppercase tracking-[0.3em] mb-4 animate-fade-in"
+              style={{ fontFamily: 'Inter, sans-serif', color: '#E879F9', letterSpacing: '0.3em', fontWeight: 500 }}>
+              Guidance Cosmique Personnalisee
+            </p>
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl mb-5"
+              style={{ fontFamily: 'Cinzel, serif', fontWeight: 600, color: '#F8FAFC', lineHeight: 1.05, letterSpacing: '0.02em' }}>
+              Plume<br />Astrale
             </h1>
-            <p className="text-2xl sm:text-3xl md:text-4xl mb-5 leading-snug" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
-              Lorsque certaines p&eacute;riodes deviennent floues,<br />
-              <span style={{ fontStyle: 'italic', opacity: 0.85 }}>il est possible de les comprendre.</span>
+            <p className="text-xl sm:text-2xl md:text-3xl mb-6 leading-snug"
+              style={{ fontFamily: 'Playfair Display, serif', fontWeight: 400, color: '#F8FAFC', opacity: 0.85, fontStyle: 'italic' }}>
+              Lorsque certaines periodes deviennent floues,
+              il est possible de les comprendre.
             </p>
-            <p className="text-base max-w-lg mb-8" style={{ color: 'var(--pa-body)', lineHeight: '1.7' }}>
-              Un espace de guidance symbolique, fond&eacute; sur des calculs astrologiques pr&eacute;cis et une interpr&eacute;tation experte.
+            <p className="text-base max-w-lg mb-8 mx-auto md:mx-0"
+              style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.6)', lineHeight: '1.8', fontWeight: 300 }}>
+              Un espace de guidance symbolique, fonde sur des calculs astrologiques precis et une interpretation experte.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button onClick={() => navigate('/tarot-oui-non')} className="btn-editorial text-xs px-6 py-2.5" data-testid="cta-tarot-entry">Recevoir une r&eacute;ponse imm&eacute;diate</button>
-              <button onClick={() => navigate('/formulaire')} className="btn-editorial text-xs px-6 py-2.5" data-testid="cta-astrology-entry">Comprendre ma p&eacute;riode actuelle</button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+              <CosmicBtn onClick={() => navigate('/formulaire')} testId="cta-discover">
+                <Sparkles className="w-4 h-4" /> Decouvrir mon analyse
+              </CosmicBtn>
+              <CosmicBtn onClick={() => navigate('/tarot-oui-non')} testId="cta-tarot-entry" secondary>
+                Recevoir une reponse <ArrowRight className="w-4 h-4" />
+              </CosmicBtn>
             </div>
           </div>
-          <div className="w-48 md:w-64 lg:w-80 flex-shrink-0 opacity-90">
-            <img src={PLUME_IMG} alt="" className="w-full h-auto" style={{ filter: 'drop-shadow(0 0 30px rgba(197,160,89,0.15))' }} />
+          <div className="w-48 md:w-64 lg:w-80 flex-shrink-0">
+            <img src={PLUME_IMG} alt="" className="w-full h-auto animate-pulse-slow"
+              style={{ filter: 'drop-shadow(0 0 40px rgba(232,121,249,0.2)) drop-shadow(0 0 80px rgba(139,92,246,0.15))' }} />
           </div>
+        </div>
+      </section>
+
+      {/* ─── INTERACTIVE NATAL WHEEL ─── */}
+      <section className="relative z-10 py-16 px-6 md:px-8" data-testid="section-natal-wheel">
+        <div className="max-w-4xl mx-auto">
+          <CosmicCard glow="purple" testId="natal-wheel-card">
+            <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+              <div className="w-64 md:w-80 flex-shrink-0">
+                <NatalWheel />
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <p className="text-xs uppercase tracking-[0.2em] mb-3"
+                  style={{ fontFamily: 'Inter, sans-serif', color: '#E879F9', letterSpacing: '0.25em', fontWeight: 500 }}>
+                  Roue Natale Interactive
+                </p>
+                <h2 className="text-2xl md:text-3xl mb-3"
+                  style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC', fontWeight: 500 }}>
+                  Votre carte du ciel
+                </h2>
+                <p className="text-sm mb-5"
+                  style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.5)', lineHeight: '1.8' }}>
+                  Explorez les 12 signes et les planetes majeures. Survolez chaque symbole
+                  pour decouvrir ses energies. Creez votre profil pour une roue personnalisee.
+                </p>
+                <CosmicBtn onClick={() => navigate(isAuthenticated ? '/formulaire' : '/inscription')} testId="cta-wheel">
+                  <Star className="w-4 h-4" /> {isAuthenticated ? 'Mon theme complet' : 'Creer mon profil'}
+                </CosmicBtn>
+              </div>
+            </div>
+          </CosmicCard>
         </div>
       </section>
 
       {/* ─── TIRAGE DU JOUR ─── */}
-      <section className="max-w-2xl mx-auto px-6 md:px-8 pb-4" data-testid="section-tirage-du-jour">
+      <section className="relative z-10 max-w-2xl mx-auto px-6 md:px-8 pb-8" data-testid="section-tirage-du-jour">
         <TirageDuJour />
       </section>
 
-      {/* ─── CONTENT ─── */}
-      <div className="max-w-2xl mx-auto px-6 md:px-8">
-
-        <Line />
-
-        {/* NOTRE CADRE */}
-        <div data-testid="section-cadre">
-          <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--pa-accent)', letterSpacing: '0.2em' }}>Notre cadre</p>
-          <h2 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>Un cadre clair. Une approche responsable.</h2>
-          <div className="space-y-3 text-base" style={{ color: 'var(--pa-body)', lineHeight: '1.8' }}>
-            <p>Plume Astrale ne pr&eacute;dit pas votre avenir. Elle &eacute;claire des dynamiques.</p>
-            <p>Les calculs sont pr&eacute;cis. L'interpr&eacute;tation est structur&eacute;e.</p>
-            <p style={{ color: 'var(--pa-heading)', opacity: 0.85 }}>La d&eacute;cision vous appartient toujours.</p>
-          </div>
-        </div>
-
-        <Line />
-
-        {/* RÉPONSE IMMÉDIATE */}
-        <div data-testid="section-tarot">
-          <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--pa-accent)', letterSpacing: '0.2em' }}>R&eacute;ponse imm&eacute;diate</p>
-          <h2 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>Besoin d'un &eacute;clairage rapide ?</h2>
-          <div className="space-y-3 text-base mb-6" style={{ color: 'var(--pa-body)', lineHeight: '1.8' }}>
-            <p>Le tirage Oui / Non ouvre une r&eacute;flexion. Trois tirages gratuits pour commencer.</p>
-            <p>Une r&eacute;ponse n'est jamais un verdict. C'est un symbole &agrave; explorer.</p>
-          </div>
-          <button onClick={() => navigate('/tarot-oui-non')} className="link-editorial group" data-testid="cta-tarot">
-            Faire un tirage <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={1.5} />
-          </button>
-        </div>
-
-        <Line />
-
-        {/* COMPRÉHENSION APPROFONDIE + Soleil */}
-        <div className="flex flex-col md:flex-row items-start gap-6 md:gap-10" data-testid="section-astrology">
-          <div className="w-28 md:w-40 flex-shrink-0 mx-auto md:mx-0 opacity-80">
-            <img src={SOLEIL_IMG} alt="" className="w-full h-auto rounded-full" style={{ filter: 'drop-shadow(0 0 20px rgba(197,160,89,0.12))' }} />
-          </div>
-          <div className="flex-1">
-            <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--pa-accent)', letterSpacing: '0.2em' }}>Compr&eacute;hension approfondie</p>
-            <h2 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>Comprendre la p&eacute;riode que vous traversez.</h2>
-            <div className="space-y-3 text-base" style={{ color: 'var(--pa-body)', lineHeight: '1.8' }}>
-              <p>&Agrave; partir de votre th&egrave;me natal et de vos transits :</p>
-              <ul className="space-y-1.5 pl-0">
-                {['Les tensions pr\u00e9sentes','Les cycles en cours','Les axes d\'\u00e9volution'].map((t,i) => (
-                  <li key={i} className="flex items-center gap-3"><span style={{ color: 'var(--pa-accent)' }}>&ndash;</span><span>{t}</span></li>
-                ))}
-              </ul>
-              <p style={{ color: 'var(--pa-heading)', opacity: 0.85 }}>Il ne s'agit pas de pr&eacute;dire. Il s'agit de relier les &eacute;l&eacute;ments.</p>
+      {/* ─── COSMIC SCORE ─── */}
+      <section className="relative z-10 py-16 px-6 md:px-8" data-testid="section-score">
+        <div className="max-w-4xl mx-auto">
+          <CosmicCard glow="purple" testId="cosmic-score-card">
+            <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center">
+              <div className="flex-1">
+                <h2 className="text-2xl md:text-3xl mb-3"
+                  style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC', fontWeight: 500 }}>
+                  Votre Indice Cosmique
+                </h2>
+                <p className="text-sm mb-6"
+                  style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.5)' }}>
+                  Base sur les transits planetaires actuels et votre theme natal.
+                  Creez votre profil pour un alignement personnalise.
+                </p>
+                <CosmicScore />
+              </div>
+              <div className="w-40 md:w-52 flex-shrink-0">
+                <img src={OEIL_IMG} alt="" className="w-full h-auto rounded-xl"
+                  style={{ filter: 'drop-shadow(0 0 30px rgba(232,121,249,0.2))' }} />
+              </div>
             </div>
-            <button onClick={() => navigate('/formulaire')} className="link-editorial group mt-5" data-testid="cta-astrology">
-              D&eacute;couvrir mon aper&ccedil;u <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={1.5} />
-            </button>
-          </div>
+          </CosmicCard>
         </div>
+      </section>
 
-        <Line />
-
-        {/* MÉTHODE */}
-        <div data-testid="section-method">
-          <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--pa-accent)', letterSpacing: '0.2em' }}>M&eacute;thode</p>
-          <div className="space-y-3 text-base" style={{ color: 'var(--pa-body)', lineHeight: '1.8' }}>
-            <p style={{ color: 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif', fontSize: '1.3rem', lineHeight: '1.5' }}>
-              Calculs astrologiques professionnels.<br />Lecture symbolique experte.<br />Restitution claire et accessible.
+      {/* ─── SERVICES ─── */}
+      <section className="relative z-10 py-16 px-6 md:px-8" data-testid="section-services">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-xs uppercase tracking-[0.2em] mb-3"
+              style={{ fontFamily: 'Inter, sans-serif', color: '#E879F9', letterSpacing: '0.25em', fontWeight: 500 }}>
+              Vos Experiences
             </p>
-            <p>Chaque lecture est personnalis&eacute;e &agrave; partir de vos donn&eacute;es de naissance.</p>
-            <p style={{ color: 'var(--pa-heading)', opacity: 0.85 }}>Nous traduisons des configurations symboliques. Rien de plus. Rien de moins.</p>
+            <h2 className="text-3xl md:text-4xl"
+              style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC', fontWeight: 500 }}>
+              Explorez votre univers interieur
+            </h2>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { to: '/tarot-oui-non', icon: Eye, title: 'Tarot Oui / Non', desc: 'Posez une question, recevez une reponse claire des Arcanes', cost: '1er gratuit', glow: 'pink' },
+              { to: '/tirage-tarot', icon: Sparkles, title: 'Lecture Tarot', desc: 'Tirage Marseille ou Croix Celtique avec interpretation', cost: '10 credits', glow: 'purple' },
+              { to: '/numerologie', icon: Hash, title: 'Numerologie', desc: "Chemin de vie, nombre d'ame et annee personnelle", cost: '10 credits', glow: 'gold' },
+              { to: '/tarologie', icon: Moon, title: 'Tarologie', desc: 'Tirage en croix de 5 Arcanes avec lecture profonde', cost: '10 credits', glow: 'purple' },
+              { to: '/compatibilite-amoureuse', icon: Heart, title: 'Compatibilite', desc: 'Rapport astral complet entre deux personnes (PDF)', cost: '10 credits', glow: 'pink' },
+              { to: '/premium/experience', icon: TrendingUp, title: 'Cartographie Premium', desc: '5 etapes initiatiques + manuscrit PDF personnalise', cost: '60 credits', glow: 'gold' },
+            ].map(s => {
+              const Icon = s.icon;
+              return (
+                <CosmicCard key={s.to} glow={s.glow} onClick={() => navigate(s.to)} testId={`service-card-${s.to.replace(/\//g, '')}`}>
+                  <Icon className="w-6 h-6 mb-3" style={{ color: s.glow === 'gold' ? '#F4C542' : s.glow === 'pink' ? '#E879F9' : '#A78BFA' }} strokeWidth={1.5} />
+                  <h3 className="text-lg mb-2" style={{ fontFamily: 'Playfair Display, serif', color: '#F8FAFC', fontWeight: 500 }}>
+                    {s.title}
+                  </h3>
+                  <p className="text-sm mb-3" style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.5)', lineHeight: '1.6' }}>
+                    {s.desc}
+                  </p>
+                  <span className="text-xs uppercase tracking-wider" style={{ fontFamily: 'Inter, sans-serif', color: '#F4C542', letterSpacing: '0.08em', fontWeight: 500 }}>
+                    {s.cost}
+                  </span>
+                </CosmicCard>
+              );
+            })}
           </div>
         </div>
+      </section>
 
-        <Line />
+      {/* ─── SHAREABLE PROFILE CARD ─── */}
+      {isAuthenticated && (
+        <section className="relative z-10 py-12 px-6 md:px-8" data-testid="section-share-card">
+          <div className="max-w-3xl mx-auto">
+            <CosmicCard glow="pink" className="text-center" testId="share-card-section">
+              <p className="text-xs uppercase tracking-[0.2em] mb-3"
+                style={{ fontFamily: 'Inter, sans-serif', color: '#E879F9', letterSpacing: '0.25em', fontWeight: 500 }}>
+                Votre Profil Cosmique
+              </p>
+              <h2 className="text-2xl md:text-3xl mb-3"
+                style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC', fontWeight: 500 }}>
+                Partagez votre empreinte celeste
+              </h2>
+              <p className="text-sm max-w-md mx-auto mb-6"
+                style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.5)', lineHeight: '1.8' }}>
+                Generez votre carte de profil cosmique personnalisee et partagez-la
+                sur vos reseaux sociaux.
+              </p>
+              <ShareableCard />
+            </CosmicCard>
+          </div>
+        </section>
+      )}
 
-        {/* POUR ALLER PLUS LOIN */}
-        <div data-testid="section-further">
-          <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--pa-accent)', letterSpacing: '0.2em' }}>Pour aller plus loin</p>
-          <h2 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>Approfondir. Ou rester en lien.</h2>
-          <div className="space-y-3 py-1 mb-3">
-            {['Lecture synth\u00e8se','Cartographie annuelle','Suivi mensuel'].map((t,i) => (
-              <div key={i} className="flex gap-3 items-baseline">
-                <span className="text-xs tracking-widest flex-shrink-0 w-5 text-right" style={{ color: 'var(--pa-accent)' }}>{String(i+1).padStart(2,'0')}</span>
-                <span className="text-base" style={{ color: 'var(--pa-heading)' }}>{t}</span>
+      {/* ─── NOTRE APPROCHE ─── */}
+      <section className="relative z-10 py-16 px-6 md:px-8" data-testid="section-cadre">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-xs uppercase tracking-[0.2em] mb-3"
+            style={{ fontFamily: 'Inter, sans-serif', color: '#F4C542', letterSpacing: '0.25em', fontWeight: 500 }}>
+            Notre approche
+          </p>
+          <h2 className="text-3xl md:text-4xl mb-6"
+            style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC', fontWeight: 500 }}>
+            Un cadre clair. Une approche responsable.
+          </h2>
+          <div className="space-y-4 text-base"
+            style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.6)', lineHeight: '2' }}>
+            <p>Plume Astrale ne predit pas votre avenir. Elle eclaire des dynamiques.</p>
+            <p>Les calculs sont precis. L'interpretation est structuree.</p>
+            <p style={{ color: '#F8FAFC', fontFamily: 'Playfair Display, serif', fontSize: '1.2rem', fontStyle: 'italic' }}>
+              La decision vous appartient toujours.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-6 mt-10">
+            {[
+              { n: '01', label: 'Calculs astrologiques professionnels' },
+              { n: '02', label: 'Lecture symbolique experte' },
+              { n: '03', label: 'Restitution claire et accessible' },
+            ].map(m => (
+              <div key={m.n} className="text-center">
+                <span className="text-3xl block mb-2" style={{ fontFamily: 'Cinzel, serif', color: '#F4C542', fontWeight: 400 }}>{m.n}</span>
+                <span className="text-xs" style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.5)' }}>{m.label}</span>
               </div>
             ))}
           </div>
-          <p className="text-base mb-5" style={{ color: 'var(--pa-body)' }}>Vous avancez &agrave; votre rythme.</p>
-          <button onClick={() => navigate('/premium')} className="link-editorial group" data-testid="cta-premium">
-            D&eacute;couvrir l'Exp&eacute;rience Premium <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={1.5} />
-          </button>
         </div>
+      </section>
 
-        <Line />
-
-        {/* POSTURE */}
-        <div data-testid="section-posture">
-          <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--pa-accent)', letterSpacing: '0.2em' }}>Posture</p>
-          <h2 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
-            Une guidance symbolique, <span style={{ fontStyle: 'italic' }}>pas une v&eacute;rit&eacute; absolue.</span>
-          </h2>
-          <div className="space-y-3 text-base" style={{ color: 'var(--pa-body)', lineHeight: '1.8' }}>
-            <p>La symbolique &eacute;claire. Elle n'impose pas.</p>
-            <p style={{ color: 'var(--pa-heading)', opacity: 0.85 }}>Nos lectures sont des rep&egrave;res. Pas des directives.</p>
-          </div>
+      {/* ─── LE CERCLE CTA ─── */}
+      <section className="relative z-10 py-16 px-6 md:px-8" data-testid="section-cercle">
+        <div className="max-w-4xl mx-auto">
+          <CosmicCard glow="pink" className="text-center">
+            <Flame className="w-10 h-10 mx-auto mb-4" style={{ color: '#FF6B35' }} strokeWidth={1.5} />
+            <h2 className="text-2xl md:text-3xl mb-3"
+              style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC', fontWeight: 500 }}>
+              Rejoignez le Cercle
+            </h2>
+            <p className="text-base max-w-md mx-auto mb-6"
+              style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.6)', lineHeight: '1.8' }}>
+              Votre espace quotidien. Insights cosmiques, carte du jour, streak de check-in.
+              Revenez chaque jour pour gagner des credits bonus.
+            </p>
+            <CosmicBtn onClick={() => navigate('/cercle')} testId="cta-final-cercle">
+              <Flame className="w-4 h-4" /> Entrer dans le Cercle
+            </CosmicBtn>
+          </CosmicCard>
         </div>
+      </section>
 
-        {/* 3ÈME OEIL */}
-        <div className="flex justify-center py-8">
-          <img src={OEIL_IMG} alt="" className="w-40 md:w-52 h-auto rounded-lg" style={{ filter: 'drop-shadow(0 0 35px rgba(197,160,89,0.2))' }} />
+      {/* ─── FINAL CTA ─── */}
+      <section className="relative z-10 py-20 px-6 md:px-8 text-center" data-testid="section-final">
+        <h2 className="text-3xl md:text-4xl lg:text-5xl mb-6"
+          style={{ fontFamily: 'Cinzel, serif', fontWeight: 500, color: '#F8FAFC' }}>
+          Prenez un moment pour vous<br />comprendre autrement.
+        </h2>
+        <p className="text-base mb-8 max-w-md mx-auto"
+          style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.5)' }}>
+          {!isAuthenticated ? "20 credits offerts a l'inscription." : `Votre solde : ${creditBalance} credits`}
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <CosmicBtn onClick={() => navigate(isAuthenticated ? '/formulaire' : '/inscription')} testId="cta-final-main">
+            <Sparkles className="w-4 h-4" /> {isAuthenticated ? 'Decouvrir mon analyse' : 'Commencer gratuitement'}
+          </CosmicBtn>
+          <CosmicBtn onClick={() => navigate('/acheter-credits')} testId="cta-final-credits" secondary>
+            Voir les offres <ArrowRight className="w-4 h-4" />
+          </CosmicBtn>
         </div>
-
-        {/* FINAL */}
-        <div className="text-center pb-14" data-testid="section-final">
-          <h2 className="text-3xl md:text-4xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
-            Prenez un moment pour vous comprendre autrement.
-          </h2>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button onClick={() => navigate('/cercle')} className="btn-editorial text-xs px-6 py-2.5" data-testid="cta-final-cercle">Entrer dans le Cercle</button>
-            <button onClick={() => navigate('/tarot-oui-non')} className="btn-editorial text-xs px-6 py-2.5" data-testid="cta-final-tarot">Recevoir une r&eacute;ponse</button>
-            <button onClick={() => navigate('/formulaire')} className="btn-editorial text-xs px-6 py-2.5" data-testid="cta-final-astrology">Comprendre ma p&eacute;riode</button>
-          </div>
-        </div>
-      </div>
+      </section>
 
       {/* Footer */}
-      <footer className="py-6 px-6 text-center" style={{ borderTop: '1px solid var(--pa-divider)' }}>
-        <p className="text-xs tracking-widest" style={{ color: 'var(--pa-muted)', letterSpacing: '0.15em' }}>Plume Astrale &mdash; Guidance symbolique personnalis&eacute;e.</p>
+      <footer className="relative z-10 py-8 px-6 text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <p className="text-xs tracking-widest"
+          style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.3)', letterSpacing: '0.15em' }}>
+          Plume Astrale — Guidance symbolique personnalisee.
+        </p>
       </footer>
     </div>
   );

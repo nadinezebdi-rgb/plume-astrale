@@ -260,7 +260,7 @@ class TestNewProductCheckouts:
             f"{BASE_URL}/api/checkout/create",
             json={
                 "product_id": "tarot_oui_non",
-                "origin_url": "https://plume-credits.preview.emergentagent.com",
+                "origin_url": "https://astral-credits.preview.emergentagent.com",
                 "user_data": {"question": "Test question"}
             }
         )
@@ -277,7 +277,7 @@ class TestNewProductCheckouts:
             f"{BASE_URL}/api/checkout/create",
             json={
                 "product_id": "tarologie_mediumnite",
-                "origin_url": "https://plume-credits.preview.emergentagent.com",
+                "origin_url": "https://astral-credits.preview.emergentagent.com",
                 "user_data": {"prenom": "Marie", "dateNaissance": "1990-06-15"}
             }
         )
@@ -343,7 +343,7 @@ class TestExistingFlowRegression:
             f"{BASE_URL}/api/access/free",
             json={
                 "product_id": "manuscrit",
-                "origin_url": "https://plume-credits.preview.emergentagent.com",
+                "origin_url": "https://astral-credits.preview.emergentagent.com",
                 "user_data": TEST_USER_DATA,
                 "discount_code": "ASTRO100"
             }

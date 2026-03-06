@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://plume-credits.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://astral-credits.preview.emergentagent.com')
 
 # Test data based on provided test context
 TEST_USER_DATA = {
@@ -91,7 +91,7 @@ class TestFreeAccess:
             f"{BASE_URL}/api/access/free",
             json={
                 "product_id": "manuscrit",
-                "origin_url": "https://plume-credits.preview.emergentagent.com",
+                "origin_url": "https://astral-credits.preview.emergentagent.com",
                 "user_email": "test@example.com",
                 "user_data": TEST_USER_DATA,
                 "discount_code": "ASTRO100"
@@ -110,7 +110,7 @@ class TestFreeAccess:
             f"{BASE_URL}/api/access/free",
             json={
                 "product_id": "manuscrit",
-                "origin_url": "https://plume-credits.preview.emergentagent.com",
+                "origin_url": "https://astral-credits.preview.emergentagent.com",
                 "user_email": "test@example.com",
                 "user_data": TEST_USER_DATA
             },
