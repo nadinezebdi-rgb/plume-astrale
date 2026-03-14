@@ -39,17 +39,18 @@ const Tarot = () => {
     const data = localStorage.getItem('plume_astrale_data');
     const paid = localStorage.getItem('plume_astrale_paid');
     const plan = localStorage.getItem('plume_astrale_plan');
-    
+
     if (!data) {
       navigate('/formulaire');
       return;
     }
-    
+
     setUserData(JSON.parse(data));
     setIsPaid(paid === 'true' && plan === 'premium');
-    
+
     // Tirer 3 cartes aléatoires
     drawCards();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   const drawCards = () => {
