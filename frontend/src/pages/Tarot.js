@@ -1,16 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Star, Moon, Heart, RefreshCw } from 'lucide-react';
 
-const Tarot = () => {
-  const navigate = useNavigate();
-  const [userData, setUserData] = useState(null);
-  const [isPaid, setIsPaid] = useState(false);
-  const [cards, setCards] = useState([]);
-  const [isRevealing, setIsRevealing] = useState(false);
-  const [revealedCards, setRevealedCards] = useState([]);
-
-  const tarotDeck = [
+const tarotDeck = [
     { name: "Le Bateleur", meaning: "Nouveau départ, potentiel, volonté. Les outils sont entre vos mains pour créer votre réalité.", advice: "Passez à l'action avec confiance." },
     { name: "La Papesse", meaning: "Intuition, sagesse intérieure, mystère. Écoutez votre voix intérieure.", advice: "Prenez du recul et méditez avant d'agir." },
     { name: "L'Impératrice", meaning: "Abondance, créativité, nature. La fertilité dans tous les domaines.", advice: "Nourrissez vos projets avec amour." },
@@ -35,29 +27,37 @@ const Tarot = () => {
     { name: "Le Mat", meaning: "Liberté, foi, nouveau voyage. L'âme en quête.", advice: "Osez l'inconnu avec légèreté." }
   ];
 
-  useEffect(() => {
-    const data = localStorage.getItem('plume_astrale_data');
-    const paid = localStorage.getItem('plume_astrale_paid');
-    const plan = localStorage.getItem('plume_astrale_plan');
-    
-    if (!data) {
-      navigate('/formulaire');
-      return;
-    }
-    
-    setUserData(JSON.parse(data));
-    setIsPaid(paid === 'true' && plan === 'premium');
-    
-    // Tirer 3 cartes aléatoires
-    drawCards();
-  }, [navigate]);
+const Tarot = () => {
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  const [isPaid, setIsPaid] = useState(false);
+  const [cards, setCards] = useState([]);
+  const [isRevealing, setIsRevealing] = useState(false);
+  const [revealedCards, setRevealedCards] = useState([]);
 
-  const drawCards = () => {
+  const drawCards = useCallback(() => {
     const shuffled = [...tarotDeck].sort(() => Math.random() - 0.5);
     setCards(shuffled.slice(0, 3));
     setRevealedCards([]);
     setIsRevealing(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    const data = localStorage.getItem('plume_astrale_data');
+    const paid = localStorage.getItem('plume_astrale_paid');
+    const plan = localStorage.getItem('plume_astrale_plan');
+
+    if (!data) {
+      navigate('/formulaire');
+      return;
+    }
+
+    setUserData(JSON.parse(data));
+    setIsPaid(paid === 'true' && plan === 'premium');
+
+    // Tirer 3 cartes aléatoires
+    drawCards();
+  }, [navigate, drawCards]);
 
   const revealCard = (index) => {
     if (!revealedCards.includes(index)) {
