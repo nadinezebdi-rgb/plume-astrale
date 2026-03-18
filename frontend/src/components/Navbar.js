@@ -26,6 +26,8 @@ const Navbar = () => {
     { to: '/tarot-oui-non', label: 'Tirage' },
     { to: '/formulaire', label: 'Th\u00e8me Astral' },
     { to: '/numerologie', label: 'Num\u00e9rologie' },
+    { to: '/tarologie', label: 'Tarologie' },
+    { to: '/compatibilite-amoureuse', label: 'Compatibilit\u00e9' },
   ];
 
   const handleLogout = () => {
@@ -36,7 +38,7 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled || isOpen ? 'bg-[#0B0B0F]/95 backdrop-blur-md' : 'bg-[#0B0B0F]/60 backdrop-blur-sm'
+        scrolled || isOpen ? 'bg-[#1A1050]/95 backdrop-blur-md' : 'bg-[#1A1050]/60 backdrop-blur-sm'
       }`}
       style={{ borderBottom: scrolled ? '1px solid rgba(197,160,89,0.08)' : '1px solid transparent' }}
       data-testid="navbar"
