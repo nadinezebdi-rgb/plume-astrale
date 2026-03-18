@@ -28,7 +28,6 @@ const Navbar = () => {
     { to: '/numerologie', label: 'Num\u00e9rologie' },
     { to: '/tarologie', label: 'Tarologie' },
     { to: '/compatibilite-amoureuse', label: 'Compatibilit\u00e9' },
-    { to: '/journal-cosmique', label: 'Journal' },
   ];
 
   const handleLogout = () => {
