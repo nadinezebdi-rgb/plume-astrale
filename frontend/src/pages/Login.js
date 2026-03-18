@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { LogIn, Eye, EyeOff } from 'lucide-react';
+import { LogIn, Eye, EyeOff, Gift } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, loginAsGuest } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,9 +22,22 @@ export default function Login() {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Erreur de connexion');
+      setError(err.response?.data?.detail || 'Erreur de connexion. Vérifiez vos identifiants ou essayez le mode découverte.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGuestLogin = () => {
+    setGuestLoading(true);
+    setError('');
+    try {
+      loginAsGuest();
+      navigate('/');
+    } catch {
+      setError('Erreur lors de la connexion en mode invité');
+    } finally {
+      setGuestLoading(false);
     }
   };
 
@@ -92,6 +106,33 @@ export default function Login() {
               {loading ? 'Connexion...' : 'Se connecter'}
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px" style={{ background: 'rgba(197,160,89,0.15)' }} />
+            <span className="text-xs" style={{ color: 'var(--pa-muted)' }}>ou</span>
+            <div className="flex-1 h-px" style={{ background: 'rgba(197,160,89,0.15)' }} />
+          </div>
+
+          {/* Guest access */}
+          <button
+            onClick={handleGuestLogin}
+            disabled={guestLoading}
+            className="w-full py-3 text-xs uppercase tracking-widest rounded-full flex items-center justify-center gap-2 transition-all duration-500"
+            style={{
+              border: '1px solid rgba(52,211,153,0.4)',
+              color: '#34D399',
+              background: 'rgba(52,211,153,0.06)',
+              letterSpacing: '0.12em',
+            }}
+            data-testid="login-guest-button"
+          >
+            <Gift className="w-4 h-4" />
+            {guestLoading ? 'Connexion...' : 'Accès gratuit — Mode découverte'}
+          </button>
+          <p className="text-center text-xs mt-2" style={{ color: 'var(--pa-muted)' }}>
+            50 crédits offerts, aucun mot de passe requis
+          </p>
 
           <p className="text-center mt-6 text-sm" style={{ color: 'var(--pa-muted)' }}>
             Pas encore de compte ?{' '}

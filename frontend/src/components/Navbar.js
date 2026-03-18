@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ArrowRight, Coins, LogOut, User, LogIn } from 'lucide-react';
+import { Menu, X, ArrowRight, Coins, LogOut, User, LogIn, Gift } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const Navbar = () => {
@@ -26,8 +26,7 @@ const Navbar = () => {
     { to: '/tarot-oui-non', label: 'Tirage' },
     { to: '/formulaire', label: 'Th\u00e8me Astral' },
     { to: '/numerologie', label: 'Num\u00e9rologie' },
-    { to: '/tarologie', label: 'Tarologie' },
-    { to: '/compatibilite-amoureuse', label: 'Compatibilit\u00e9' },
+    { to: '/essai-gratuit', label: 'Essai Gratuit' },
   ];
 
   const handleLogout = () => {
@@ -64,7 +63,9 @@ const Navbar = () => {
                 className={`text-[13px] tracking-widest uppercase transition-colors duration-300 whitespace-nowrap ${
                   location.pathname === link.to
                     ? 'text-[#D4B46A]'
-                    : 'text-[#D4B46A]/60 hover:text-[#F4D98C]'
+                    : link.to === '/essai-gratuit'
+                      ? 'text-[#34D399]/80 hover:text-[#34D399]'
+                      : 'text-[#D4B46A]/60 hover:text-[#F4D98C]'
                 }`}
                 style={{ letterSpacing: '0.08em', fontWeight: location.pathname === link.to ? 500 : 400 }}
                 data-testid={`nav-link-${link.to.replace(/\//g, '') || 'home'}`}
@@ -83,18 +84,18 @@ const Navbar = () => {
                   data-testid="navbar-credit-balance"
                 >
                   <Coins className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  {creditBalance} crédits
+                  {creditBalance} cr.
                 </Link>
-                {/* User menu */}
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-1.5 text-[12px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-red-500/10 whitespace-nowrap"
-                  style={{ border: '1px solid rgba(212,180,106,0.25)', color: '#D4B46A', letterSpacing: '0.08em', fontWeight: 400 }}
-                  data-testid="navbar-logout-btn"
+                {/* Mon Compte */}
+                <Link
+                  to="/mon-compte"
+                  className="flex items-center gap-1.5 text-[12px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-[#D4B46A]/15 whitespace-nowrap"
+                  style={{ border: '1px solid rgba(212,180,106,0.3)', color: '#D4B46A', letterSpacing: '0.08em', fontWeight: 400 }}
+                  data-testid="navbar-account-btn"
                 >
-                  <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  Déconnexion
-                </button>
+                  <User className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  Mon Compte
+                </Link>
               </>
             ) : (
               <>
@@ -147,11 +148,14 @@ const Navbar = () => {
                   className={`text-[13px] tracking-widest uppercase py-2 transition-colors duration-300 ${
                     location.pathname === link.to
                       ? 'text-[#D4B46A]'
-                      : 'text-[#D4B46A]/50 hover:text-[#F4D98C]'
+                      : link.to === '/essai-gratuit'
+                        ? 'text-[#34D399]/70 hover:text-[#34D399]'
+                        : 'text-[#D4B46A]/50 hover:text-[#F4D98C]'
                   }`}
                   style={{ letterSpacing: '0.12em', fontWeight: location.pathname === link.to ? 500 : 400 }}
                   data-testid={`mobile-nav-link-${link.to.replace(/\//g, '') || 'home'}`}
                 >
+                  {link.to === '/essai-gratuit' && <Gift className="w-3.5 h-3.5 inline mr-2" strokeWidth={1.5} />}
                   {link.label}
                 </Link>
               ))}
@@ -166,6 +170,15 @@ const Navbar = () => {
                   >
                     <Coins className="w-4 h-4" strokeWidth={1.5} />
                     {creditBalance} crédits
+                  </Link>
+                  <Link
+                    to="/mon-compte"
+                    className="flex items-center gap-2 text-[13px] tracking-widest uppercase py-2 transition-colors duration-300"
+                    style={{ color: '#D4B46A', letterSpacing: '0.12em', fontWeight: 500 }}
+                    data-testid="mobile-account-btn"
+                  >
+                    <User className="w-4 h-4" strokeWidth={1.5} />
+                    Mon Compte
                   </Link>
                   <button
                     onClick={handleLogout}

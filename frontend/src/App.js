@@ -35,6 +35,8 @@ import Register from "@/pages/Register";
 import BuyCredits from "@/pages/BuyCredits";
 import CreditSuccess from "@/pages/CreditSuccess";
 import Cercle from "@/pages/Cercle";
+import MonCompte from "@/pages/MonCompte";
+import EssaiGratuit from "@/pages/EssaiGratuit";
 
 // 404 Component
 const NotFound = () => (
@@ -83,6 +85,8 @@ function App() {
             <Route path="/premium/experience" element={<PremiumExperience />} />
             <Route path="/charte-de-confiance" element={<CharteConfiance />} />
             <Route path="/tirage-tarot" element={<TirageTarot />} />
+            <Route path="/mon-compte" element={<MonCompte />} />
+            <Route path="/essai-gratuit" element={<EssaiGratuit />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

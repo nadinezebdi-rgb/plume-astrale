@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { UserPlus, Eye, EyeOff, ChevronRight, ChevronLeft } from 'lucide-react';
+import { UserPlus, Eye, EyeOff, ChevronRight, ChevronLeft, Gift } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 const COUNTRIES = [
@@ -11,7 +11,7 @@ const COUNTRIES = [
 ];
 
 export default function Register() {
-  const { register } = useAuth();
+  const { register, loginAsGuest } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(1); // 1: credentials, 2: astro profile
   const [showPw, setShowPw] = useState(false);
@@ -224,10 +224,28 @@ export default function Register() {
           {step === 1 && (
             <div className="mt-6 p-4 rounded-xl text-center" style={{ background: 'rgba(197,160,89,0.06)', border: '1px solid rgba(197,160,89,0.1)' }}>
               <p className="text-sm" style={{ color: '#C5A059' }} data-testid="register-bonus-info">
-                20 crédits offerts à l'inscription
+                50 crédits offerts à l'inscription
               </p>
             </div>
           )}
+
+          {/* Guest access */}
+          <div className="mt-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1 h-px" style={{ background: 'rgba(197,160,89,0.15)' }} />
+              <span className="text-xs" style={{ color: 'var(--pa-muted)' }}>ou</span>
+              <div className="flex-1 h-px" style={{ background: 'rgba(197,160,89,0.15)' }} />
+            </div>
+            <button
+              onClick={() => { loginAsGuest(); navigate('/'); }}
+              className="w-full py-2.5 text-xs uppercase tracking-widest rounded-full flex items-center justify-center gap-2 transition-all duration-500"
+              style={{ border: '1px solid rgba(52,211,153,0.4)', color: '#34D399', background: 'rgba(52,211,153,0.06)', letterSpacing: '0.12em' }}
+              data-testid="register-guest-button"
+            >
+              <Gift className="w-4 h-4" />
+              Accès gratuit sans inscription
+            </button>
+          </div>
         </div>
       </div>
     </div>
