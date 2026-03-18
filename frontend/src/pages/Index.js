@@ -38,13 +38,13 @@ const CosmicBg = () => {
         [244, 197, 66],
         [96, 165, 250],
       ];
-      for (let i = 0; i < 400; i++) {
+      for (let i = 0; i < 150; i++) {
         stars.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          r: Math.random() * 2.5 + 0.3,
+          r: Math.random() * 1.8 + 0.2,
           speed: Math.random() * 0.5 + 0.05,
-          opacity: Math.random() * 0.8 + 0.2,
+          opacity: Math.random() * 0.5 + 0.1,
           phase: Math.random() * Math.PI * 2,
           color: colors[Math.floor(Math.random() * colors.length)],
           parallax: Math.random() * 0.3 + 0.1,
@@ -55,15 +55,15 @@ const CosmicBg = () => {
 
     const initNebulae = () => {
       nebulae = [];
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 3; i++) {
         nebulae.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          r: Math.random() * 200 + 100,
+          r: Math.random() * 150 + 80,
           color: [
-            [139, 92, 246, 0.03],
-            [232, 121, 249, 0.02],
-            [244, 197, 66, 0.015],
+            [139, 92, 246, 0.015],
+            [232, 121, 249, 0.01],
+            [244, 197, 66, 0.008],
           ][Math.floor(Math.random() * 3)],
           drift: Math.random() * 0.2 - 0.1,
           phase: Math.random() * Math.PI * 2,
@@ -115,18 +115,11 @@ const CosmicBg = () => {
         ctx.fillStyle = `rgba(${s.color[0]},${s.color[1]},${s.color[2]},${o})`;
         ctx.fill();
 
-        // Bright glow for all visible stars
-        if (s.r > 0.8) {
+        // Subtle glow for larger stars only
+        if (s.r > 1.2) {
           ctx.beginPath();
-          ctx.arc(px, py, s.r * 5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${s.color[0]},${s.color[1]},${s.color[2]},${o * 0.12})`;
-          ctx.fill();
-        }
-        // Extra glow for large stars
-        if (s.r > 1.5) {
-          ctx.beginPath();
-          ctx.arc(px, py, s.r * 8, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${s.color[0]},${s.color[1]},${s.color[2]},${o * 0.05})`;
+          ctx.arc(px, py, s.r * 3, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${s.color[0]},${s.color[1]},${s.color[2]},${o * 0.06})`;
           ctx.fill();
         }
       });
@@ -181,7 +174,7 @@ const CosmicBg = () => {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" style={{ opacity: 0.7 }} />;
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" style={{ opacity: 0.4 }} />;
 };
 
 /* ─── Cosmic alignment bars with stagger animation ─── */
@@ -291,18 +284,16 @@ const Index = () => {
   const { isAuthenticated, creditBalance } = useAuth();
 
   return (
-    <div className="relative z-10" style={{ background: 'linear-gradient(180deg, #2B0A3D 0%, #1E1B4B 30%, #0F172A 70%, #2B0A3D 100%)' }} data-testid="homepage">
+    <div className="relative z-10" style={{ background: 'linear-gradient(180deg, #1A1030 0%, #161233 30%, #111025 70%, #1A1030 100%)' }} data-testid="homepage">
       <SEO path="/" />
       <CosmicBg />
 
       {/* Nebula orbs */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-[10%] left-[15%] w-[500px] h-[500px] rounded-full opacity-30"
-          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%)', filter: 'blur(80px)', animation: 'orbFloat 25s ease-in-out infinite' }} />
-        <div className="absolute top-[50%] right-[10%] w-[400px] h-[400px] rounded-full opacity-20"
-          style={{ background: 'radial-gradient(circle, rgba(232,121,249,0.2) 0%, transparent 70%)', filter: 'blur(80px)', animation: 'orbFloat 30s ease-in-out infinite reverse' }} />
-        <div className="absolute bottom-[20%] left-[40%] w-[350px] h-[350px] rounded-full opacity-25"
-          style={{ background: 'radial-gradient(circle, rgba(244,197,66,0.12) 0%, transparent 70%)', filter: 'blur(80px)', animation: 'orbFloat 20s ease-in-out infinite' }} />
+        <div className="absolute top-[10%] left-[15%] w-[350px] h-[350px] rounded-full opacity-15"
+          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)', filter: 'blur(80px)', animation: 'orbFloat 25s ease-in-out infinite' }} />
+        <div className="absolute top-[50%] right-[10%] w-[300px] h-[300px] rounded-full opacity-10"
+          style={{ background: 'radial-gradient(circle, rgba(232,121,249,0.12) 0%, transparent 70%)', filter: 'blur(80px)', animation: 'orbFloat 30s ease-in-out infinite reverse' }} />
       </div>
 
       {/* ─── HERO ─── */}

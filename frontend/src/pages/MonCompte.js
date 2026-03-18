@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, History, Bell, BellOff, Settings, LogOut, Coins, Calendar, ChevronRight, Star, Sparkles, Clock, Gift, Shield } from 'lucide-react';
-import { useAuth, getHistory, getNotifPrefs, setNotifPrefs, requestNotifPermission, getTrials } from '@/context/AuthContext';
+import { User, History, Bell, BellOff, Settings, LogOut, Coins, Calendar, ChevronRight, Star, Sparkles, Clock, Shield } from 'lucide-react';
+import { useAuth, getHistory, getNotifPrefs, setNotifPrefs, requestNotifPermission } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 
 const SERVICE_LABELS = {
@@ -63,9 +63,6 @@ export default function MonCompte() {
 
   if (!isAuthenticated || !user) return null;
 
-  const trials = getTrials();
-  const trialCount = Object.keys(trials).length;
-
   const handleNotifToggle = async () => {
     if (!notifPrefs.enabled) {
       const granted = await requestNotifPermission();
@@ -119,7 +116,6 @@ export default function MonCompte() {
   const getTypeIcon = (type) => {
     switch (type) {
       case 'consultation': return <Sparkles className="w-4 h-4" style={{ color: '#A78BFA' }} />;
-      case 'essai_gratuit': return <Gift className="w-4 h-4" style={{ color: '#34D399' }} />;
       case 'inscription': return <Star className="w-4 h-4" style={{ color: '#F4C542' }} />;
       default: return <Clock className="w-4 h-4" style={{ color: '#C5A059' }} />;
     }
@@ -169,13 +165,6 @@ export default function MonCompte() {
               Recharger
             </button>
           </div>
-          {trialCount > 0 && (
-            <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(197,160,89,0.1)' }}>
-              <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
-                <Gift className="w-3 h-3 inline mr-1" /> {trialCount} essai(s) gratuit(s) utilisé(s)
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Tabs */}
@@ -245,13 +234,6 @@ export default function MonCompte() {
 
             <div className="mt-8 pt-6 flex flex-col sm:flex-row gap-3" style={{ borderTop: '1px solid rgba(197,160,89,0.1)' }}>
               <button
-                onClick={() => navigate('/essai-gratuit')}
-                className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-5 py-2.5 rounded-full transition-all duration-300"
-                style={{ border: '1px solid rgba(52,211,153,0.4)', color: '#34D399', letterSpacing: '0.08em' }}
-              >
-                <Gift className="w-3.5 h-3.5" /> Essais gratuits
-              </button>
-              <button
                 onClick={handleLogout}
                 className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-5 py-2.5 rounded-full transition-all duration-300 hover:bg-red-500/10"
                 style={{ border: '1px solid rgba(220,38,38,0.3)', color: '#fca5a5', letterSpacing: '0.08em' }}
@@ -271,11 +253,11 @@ export default function MonCompte() {
                 <History className="w-8 h-8 mx-auto mb-4" style={{ color: 'rgba(197,160,89,0.3)' }} strokeWidth={1.5} />
                 <p className="text-sm mb-4" style={{ color: 'var(--pa-muted)' }}>Aucune consultation pour le moment</p>
                 <button
-                  onClick={() => navigate('/essai-gratuit')}
+                  onClick={() => navigate('/tarot-oui-non')}
                   className="text-xs uppercase tracking-widest px-5 py-2 rounded-full transition-all"
                   style={{ border: '1px solid rgba(197,160,89,0.4)', color: '#C5A059', letterSpacing: '0.08em' }}
                 >
-                  Commencer un essai gratuit
+                  Commencer une consultation
                 </button>
               </div>
             ) : (
@@ -292,11 +274,6 @@ export default function MonCompte() {
                     {item.credits && (
                       <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(197,160,89,0.1)', color: '#C5A059' }}>
                         -{item.credits} cr.
-                      </span>
-                    )}
-                    {item.type === 'essai_gratuit' && (
-                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(52,211,153,0.1)', color: '#34D399' }}>
-                        Gratuit
                       </span>
                     )}
                   </div>

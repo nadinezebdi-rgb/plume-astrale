@@ -11,10 +11,12 @@ export const useAuth = () => {
   return ctx;
 };
 
+/* ── Admin email — this account gets unlimited free access ── */
+const ADMIN_EMAIL = 'admin@plumeastrale.fr';
+
 /* ── Demo helpers ── */
 const DEMO_KEY = 'pa_demo_user';
 const HISTORY_KEY = 'pa_history';
-const TRIALS_KEY = 'pa_free_trials';
 const NOTIF_KEY = 'pa_notifications';
 
 const loadDemoUser = () => {
@@ -47,19 +49,6 @@ export const addHistory = (entry) => {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 };
 
-/* ── Free trial helpers ── */
-export const getTrials = () => {
-  try { return JSON.parse(localStorage.getItem(TRIALS_KEY)) || {}; } catch { return {}; }
-};
-
-export const markTrial = (serviceId) => {
-  const trials = getTrials();
-  trials[serviceId] = new Date().toISOString();
-  localStorage.setItem(TRIALS_KEY, JSON.stringify(trials));
-};
-
-export const hasTrialed = (serviceId) => !!getTrials()[serviceId];
-
 /* ── Notification helpers ── */
 export const getNotifPrefs = () => {
   try { return JSON.parse(localStorage.getItem(NOTIF_KEY)) || { enabled: false, hour: 8 }; } catch { return { enabled: false, hour: 8 }; }
@@ -88,11 +77,16 @@ export const AuthProvider = ({ children }) => {
   const [creditBalance, setCreditBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const authHeader = useCallback(() => {
     if (!token) return {};
     return { Authorization: `Bearer ${token}` };
   }, [token]);
+
+  const checkAdmin = (email) => {
+    return email && email.toLowerCase() === ADMIN_EMAIL;
+  };
 
   // Fetch user profile on mount / token change
   useEffect(() => {
@@ -103,6 +97,7 @@ export const AuthProvider = ({ children }) => {
           setUser(res.data.user);
           setCreditBalance(res.data.credit_balance);
           setIsDemo(false);
+          setIsAdmin(checkAdmin(res.data.user?.email));
         })
         .catch(() => {
           localStorage.removeItem('pa_token');
@@ -111,8 +106,9 @@ export const AuthProvider = ({ children }) => {
           const demo = loadDemoUser();
           if (demo) {
             setUser(demo);
-            setCreditBalance(demo.credits || 50);
+            setCreditBalance(demo.credits || 20);
             setIsDemo(true);
+            setIsAdmin(checkAdmin(demo.email));
           }
         })
         .finally(() => setLoading(false));
@@ -123,8 +119,9 @@ export const AuthProvider = ({ children }) => {
     const demo = loadDemoUser();
     if (demo) {
       setUser(demo);
-      setCreditBalance(demo.credits || 50);
+      setCreditBalance(demo.credits || 20);
       setIsDemo(true);
+      setIsAdmin(checkAdmin(demo.email));
     }
     setLoading(false);
   }, [token]);
@@ -160,6 +157,7 @@ export const AuthProvider = ({ children }) => {
         setUser(res.data.user);
         setCreditBalance(res.data.credit_balance);
         setIsDemo(false);
+        setIsAdmin(checkAdmin(res.data.user?.email));
         return res.data;
       } catch (err) {
         // If backend is unreachable (network error), fall back to demo
@@ -175,13 +173,14 @@ export const AuthProvider = ({ children }) => {
 
   const registerDemo = (data) => {
     const demoUser = createDemoUser(data);
-    demoUser.credits = 50;
+    demoUser.credits = 20;
     saveDemoUser(demoUser);
     setUser(demoUser);
-    setCreditBalance(50);
+    setCreditBalance(20);
     setIsDemo(true);
-    addHistory({ type: 'inscription', label: 'Inscription (mode découverte)', service: 'account' });
-    return { user: demoUser, credit_balance: 50 };
+    setIsAdmin(checkAdmin(demoUser.email));
+    addHistory({ type: 'inscription', label: 'Inscription', service: 'account' });
+    return { user: demoUser, credit_balance: 20 };
   };
 
   const login = async (email, password) => {
@@ -194,6 +193,7 @@ export const AuthProvider = ({ children }) => {
         setUser(res.data.user);
         setCreditBalance(res.data.credit_balance);
         setIsDemo(false);
+        setIsAdmin(checkAdmin(res.data.user?.email));
         return res.data;
       } catch (err) {
         if (!err.response) {
@@ -211,29 +211,20 @@ export const AuthProvider = ({ children }) => {
     let demoUser = loadDemoUser();
     if (demoUser && demoUser.email === email) {
       setUser(demoUser);
-      setCreditBalance(demoUser.credits || 50);
+      setCreditBalance(demoUser.credits || 20);
       setIsDemo(true);
-      return { user: demoUser, credit_balance: demoUser.credits || 50 };
+      setIsAdmin(checkAdmin(email));
+      return { user: demoUser, credit_balance: demoUser.credits || 20 };
     }
     // Create new demo user with this email
     demoUser = createDemoUser({ email });
-    demoUser.credits = 50;
+    demoUser.credits = 20;
     saveDemoUser(demoUser);
     setUser(demoUser);
-    setCreditBalance(50);
+    setCreditBalance(20);
     setIsDemo(true);
-    return { user: demoUser, credit_balance: 50 };
-  };
-
-  const loginAsGuest = () => {
-    const demoUser = createDemoUser({ email: 'invite@plumeastrale.fr', name: 'Invité' });
-    demoUser.credits = 50;
-    saveDemoUser(demoUser);
-    setUser(demoUser);
-    setCreditBalance(50);
-    setIsDemo(true);
-    addHistory({ type: 'connexion', label: 'Connexion en mode invité', service: 'account' });
-    return { user: demoUser, credit_balance: 50 };
+    setIsAdmin(checkAdmin(email));
+    return { user: demoUser, credit_balance: 20 };
   };
 
   const logout = () => {
@@ -243,6 +234,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setCreditBalance(0);
     setIsDemo(false);
+    setIsAdmin(false);
   };
 
   const refreshBalance = useCallback(async () => {
@@ -259,6 +251,12 @@ export const AuthProvider = ({ children }) => {
   }, [token, isDemo]);
 
   const useCredits = async (serviceId) => {
+    // Admin bypass — free access to everything
+    if (isAdmin) {
+      addHistory({ type: 'consultation', label: serviceId, service: serviceId, credits: 0, admin: true });
+      return { credit_balance: creditBalance };
+    }
+
     if (isDemo) {
       const demo = loadDemoUser();
       const cost = 10; // default cost
@@ -277,11 +275,6 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
-  const applyFreeTrial = (serviceId) => {
-    markTrial(serviceId);
-    addHistory({ type: 'essai_gratuit', label: `Essai gratuit — ${serviceId}`, service: serviceId });
-  };
-
   const updateDemoProfile = (updates) => {
     if (!isDemo) return;
     const demo = loadDemoUser();
@@ -292,10 +285,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const value = {
-    user, token, creditBalance, loading, isDemo,
-    authHeader, register, login, loginAsGuest, logout,
+    user, token, creditBalance, loading, isDemo, isAdmin,
+    authHeader, register, login, logout,
     refreshBalance, useCredits, setCreditBalance,
-    applyFreeTrial, updateDemoProfile,
+    updateDemoProfile,
     isAuthenticated: !!user,
   };
 

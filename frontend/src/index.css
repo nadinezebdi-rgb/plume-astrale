@@ -6,18 +6,18 @@
 
 @layer base {
   :root {
-    --pa-bg: #0C0918;
-    --pa-bg-deep: #080614;
-    --pa-surface: #15112A;
-    --pa-surface-hover: #1C1735;
-    --pa-heading: #F0E6D3;
-    --pa-body: #B8B0C8;
-    --pa-muted: #6E6588;
+    --pa-bg: #0F0D1A;
+    --pa-bg-deep: #0B091A;
+    --pa-surface: #1A1630;
+    --pa-surface-hover: #221D3D;
+    --pa-heading: #F5EDE0;
+    --pa-body: #CCC5D8;
+    --pa-muted: #8A82A0;
     --pa-accent: #C5A059;
     --pa-accent-hover: #D4B46A;
     --pa-divider: rgba(197, 160, 89, 0.12);
-    --pa-glass: rgba(255, 255, 255, 0.03);
-    --pa-violet-glow: rgba(120, 80, 200, 0.08);
+    --pa-glass: rgba(255, 255, 255, 0.04);
+    --pa-violet-glow: rgba(120, 80, 200, 0.06);
 
     --background: 260 40% 6%;
     --foreground: 35 40% 92%;
@@ -113,11 +113,11 @@
 }
 
 .orb-violet {
-  background: radial-gradient(circle, rgba(120, 70, 200, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(120, 70, 200, 0.06) 0%, transparent 70%);
 }
 
 .orb-gold {
-  background: radial-gradient(circle, rgba(197, 160, 89, 0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(197, 160, 89, 0.03) 0%, transparent 70%);
 }
 
 @keyframes orbFloat {

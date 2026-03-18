@@ -36,8 +36,6 @@ import BuyCredits from "@/pages/BuyCredits";
 import CreditSuccess from "@/pages/CreditSuccess";
 import Cercle from "@/pages/Cercle";
 import MonCompte from "@/pages/MonCompte";
-import EssaiGratuit from "@/pages/EssaiGratuit";
-
 // 404 Component
 const NotFound = () => (
   <div className="min-h-screen flex items-center justify-center px-6">
@@ -53,8 +51,8 @@ const NotFound = () => (
 
 function App() {
   return (
-    <div className="App min-h-screen relative" style={{ background: 'linear-gradient(180deg, #0C0918 0%, #080614 50%, #0C0918 100%)' }}>
-      <StarField count={160} />
+    <div className="App min-h-screen relative" style={{ background: 'linear-gradient(180deg, #0F0D1A 0%, #0B091A 50%, #0F0D1A 100%)' }}>
+      <StarField count={60} />
       <BrowserRouter>
         <AuthProvider>
           <Navbar />
@@ -86,7 +84,6 @@ function App() {
             <Route path="/charte-de-confiance" element={<CharteConfiance />} />
             <Route path="/tirage-tarot" element={<TirageTarot />} />
             <Route path="/mon-compte" element={<MonCompte />} />
-            <Route path="/essai-gratuit" element={<EssaiGratuit />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

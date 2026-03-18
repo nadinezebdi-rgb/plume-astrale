@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ArrowRight, Coins, LogOut, User, LogIn, Gift } from 'lucide-react';
+import { Menu, X, Coins, LogOut, User, LogIn, Shield } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const Navbar = () => {
@@ -8,7 +8,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, user, creditBalance, logout } = useAuth();
+  const { isAuthenticated, isAdmin, user, creditBalance, logout } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -26,7 +26,6 @@ const Navbar = () => {
     { to: '/tarot-oui-non', label: 'Tirage' },
     { to: '/formulaire', label: 'Th\u00e8me Astral' },
     { to: '/numerologie', label: 'Num\u00e9rologie' },
-    { to: '/essai-gratuit', label: 'Essai Gratuit' },
   ];
 
   const handleLogout = () => {
@@ -63,9 +62,7 @@ const Navbar = () => {
                 className={`text-[13px] tracking-widest uppercase transition-colors duration-300 whitespace-nowrap ${
                   location.pathname === link.to
                     ? 'text-[#D4B46A]'
-                    : link.to === '/essai-gratuit'
-                      ? 'text-[#34D399]/80 hover:text-[#34D399]'
-                      : 'text-[#D4B46A]/60 hover:text-[#F4D98C]'
+                    : 'text-[#D4B46A]/60 hover:text-[#F4D98C]'
                 }`}
                 style={{ letterSpacing: '0.08em', fontWeight: location.pathname === link.to ? 500 : 400 }}
                 data-testid={`nav-link-${link.to.replace(/\//g, '') || 'home'}`}
@@ -76,6 +73,17 @@ const Navbar = () => {
 
             {isAuthenticated ? (
               <>
+                {/* Admin badge */}
+                {isAdmin && (
+                  <span
+                    className="flex items-center gap-1 text-[11px] tracking-widest uppercase px-2.5 py-1 rounded-full whitespace-nowrap"
+                    style={{ border: '1px solid rgba(168,85,247,0.4)', color: '#A855F7', letterSpacing: '0.06em', fontWeight: 500 }}
+                    data-testid="navbar-admin-badge"
+                  >
+                    <Shield className="w-3 h-3" strokeWidth={1.5} />
+                    Admin
+                  </span>
+                )}
                 {/* Credit balance */}
                 <Link
                   to="/acheter-credits"
@@ -84,7 +92,7 @@ const Navbar = () => {
                   data-testid="navbar-credit-balance"
                 >
                   <Coins className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  {creditBalance} cr.
+                  {isAdmin ? '\u221E' : creditBalance} cr.
                 </Link>
                 {/* Mon Compte */}
                 <Link
@@ -148,20 +156,26 @@ const Navbar = () => {
                   className={`text-[13px] tracking-widest uppercase py-2 transition-colors duration-300 ${
                     location.pathname === link.to
                       ? 'text-[#D4B46A]'
-                      : link.to === '/essai-gratuit'
-                        ? 'text-[#34D399]/70 hover:text-[#34D399]'
-                        : 'text-[#D4B46A]/50 hover:text-[#F4D98C]'
+                      : 'text-[#D4B46A]/50 hover:text-[#F4D98C]'
                   }`}
                   style={{ letterSpacing: '0.12em', fontWeight: location.pathname === link.to ? 500 : 400 }}
                   data-testid={`mobile-nav-link-${link.to.replace(/\//g, '') || 'home'}`}
                 >
-                  {link.to === '/essai-gratuit' && <Gift className="w-3.5 h-3.5 inline mr-2" strokeWidth={1.5} />}
                   {link.label}
                 </Link>
               ))}
 
               {isAuthenticated ? (
                 <>
+                  {isAdmin && (
+                    <span
+                      className="flex items-center gap-2 text-[13px] tracking-widest uppercase py-2"
+                      style={{ color: '#A855F7', letterSpacing: '0.12em', fontWeight: 500 }}
+                    >
+                      <Shield className="w-4 h-4" strokeWidth={1.5} />
+                      Mode Admin
+                    </span>
+                  )}
                   <Link
                     to="/acheter-credits"
                     className="flex items-center gap-2 text-[13px] tracking-widest uppercase py-2 transition-colors duration-300"
@@ -169,7 +183,7 @@ const Navbar = () => {
                     data-testid="mobile-credit-balance"
                   >
                     <Coins className="w-4 h-4" strokeWidth={1.5} />
-                    {creditBalance} crédits
+                    {isAdmin ? '\u221E' : creditBalance} crédits
                   </Link>
                   <Link
                     to="/mon-compte"

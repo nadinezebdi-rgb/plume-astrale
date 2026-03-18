@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { LogIn, Eye, EyeOff, Gift } from 'lucide-react';
+import { LogIn, Eye, EyeOff } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 export default function Login() {
-  const { login, loginAsGuest } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [guestLoading, setGuestLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,22 +21,9 @@ export default function Login() {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Erreur de connexion. Vérifiez vos identifiants ou essayez le mode découverte.');
+      setError(err.response?.data?.detail || 'Erreur de connexion. Vérifiez vos identifiants.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGuestLogin = () => {
-    setGuestLoading(true);
-    setError('');
-    try {
-      loginAsGuest();
-      navigate('/');
-    } catch {
-      setError('Erreur lors de la connexion en mode invité');
-    } finally {
-      setGuestLoading(false);
     }
   };
 
@@ -45,7 +31,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center px-4 pt-20 pb-12" data-testid="login-page">
       <SEO path="/connexion" />
       <div className="w-full max-w-md">
-        <div className="rounded-2xl p-8 md:p-10" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(197,160,89,0.15)', backdropFilter: 'blur(16px)' }}>
+        <div className="rounded-2xl p-8 md:p-10" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(197,160,89,0.18)', backdropFilter: 'blur(16px)' }}>
           <div className="flex items-center justify-center gap-3 mb-8">
             <LogIn className="w-5 h-5" style={{ color: '#C5A059' }} strokeWidth={1.5} />
             <h1 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
@@ -107,39 +93,18 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px" style={{ background: 'rgba(197,160,89,0.15)' }} />
-            <span className="text-xs" style={{ color: 'var(--pa-muted)' }}>ou</span>
-            <div className="flex-1 h-px" style={{ background: 'rgba(197,160,89,0.15)' }} />
-          </div>
-
-          {/* Guest access */}
-          <button
-            onClick={handleGuestLogin}
-            disabled={guestLoading}
-            className="w-full py-3 text-xs uppercase tracking-widest rounded-full flex items-center justify-center gap-2 transition-all duration-500"
-            style={{
-              border: '1px solid rgba(52,211,153,0.4)',
-              color: '#34D399',
-              background: 'rgba(52,211,153,0.06)',
-              letterSpacing: '0.12em',
-            }}
-            data-testid="login-guest-button"
-          >
-            <Gift className="w-4 h-4" />
-            {guestLoading ? 'Connexion...' : 'Accès gratuit — Mode découverte'}
-          </button>
-          <p className="text-center text-xs mt-2" style={{ color: 'var(--pa-muted)' }}>
-            50 crédits offerts, aucun mot de passe requis
-          </p>
-
           <p className="text-center mt-6 text-sm" style={{ color: 'var(--pa-muted)' }}>
             Pas encore de compte ?{' '}
             <Link to="/inscription" className="transition-colors hover:opacity-80" style={{ color: '#C5A059' }} data-testid="login-register-link">
               Créer un compte
             </Link>
           </p>
+
+          <div className="mt-4 p-3 rounded-xl text-center" style={{ background: 'rgba(197,160,89,0.06)', border: '1px solid rgba(197,160,89,0.1)' }}>
+            <p className="text-sm" style={{ color: '#C5A059' }}>
+              20 crédits offerts à l'inscription
+            </p>
+          </div>
         </div>
       </div>
     </div>
