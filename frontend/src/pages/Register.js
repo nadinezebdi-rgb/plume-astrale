@@ -186,7 +186,7 @@ export default function Register() {
                 <select
                   value={birthCountry} onChange={e => setBirthCountry(e.target.value)}
                   className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
-                  style={{ ...inputStyle, background: '#120A28' }}
+                  style={{ ...inputStyle, background: '#1A1050' }}
                   data-testid="register-birth-country"
                 >
                   {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}

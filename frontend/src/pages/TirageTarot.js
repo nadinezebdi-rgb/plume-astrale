@@ -181,7 +181,7 @@ const TirageTarot = () => {
             isRevealed ? 'opacity-0 absolute inset-0 pointer-events-none' : 'opacity-100'
           }`}>
             <div className="py-8 text-center">
-              <div className="w-28 h-44 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#1C1735] to-[#120A28] border-2 border-[#C5A059]/50 flex flex-col items-center justify-center shadow-xl shadow-[#C5A059]/20 relative overflow-hidden group hover:border-[#C5A059] hover:shadow-[#C5A059]/40 transition-all">
+              <div className="w-28 h-44 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#251A52] to-[#1A1050] border-2 border-[#C5A059]/50 flex flex-col items-center justify-center shadow-xl shadow-[#C5A059]/20 relative overflow-hidden group hover:border-[#C5A059] hover:shadow-[#C5A059]/40 transition-all">
                 {/* Motif décoratif élaboré */}
                 <div className="absolute inset-0 opacity-30">
                   <div className="absolute top-2 left-2 w-6 h-6 border-2 border-[#C5A059] rounded-full"></div>
@@ -234,7 +234,7 @@ const TirageTarot = () => {
                   ? 'border-[#C5A059]/60' 
                   : 'border-purple-500/60 rotate-180'
               } shadow-lg`}>
-                <div className="absolute inset-0 bg-gradient-to-b from-[#2D1F4B] to-[#1C1735]">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#2D1F4B] to-[#251A52]">
                   {/* Placeholder avec icône stylisée */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
@@ -270,7 +270,7 @@ const TirageTarot = () => {
               {/* Mots-clés */}
               <div className="flex flex-wrap justify-center gap-1 mt-3 mb-3">
                 {carte.mots_cles?.slice(0, 3).map((mot, i) => (
-                  <span key={i} className="text-xs text-[#B8B0C8]/70 bg-[#1C1735]/80 px-2 py-0.5 rounded-full border border-[#C5A059]/10">
+                  <span key={i} className="text-xs text-[#B8B0C8]/70 bg-[#251A52]/80 px-2 py-0.5 rounded-full border border-[#C5A059]/10">
                     {mot}
                   </span>
                 ))}
@@ -354,7 +354,7 @@ const TirageTarot = () => {
                     Le tirage coûte <span style={{ color: '#C5A059', fontWeight: 600 }}>10 crédits</span>.
                   </p>
                   <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span></p>
-                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#120A28', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
+                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#1A1050', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
                     Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -401,7 +401,7 @@ const TirageTarot = () => {
                   <div className="text-center py-4">
                     <div className="flex justify-center gap-2 mb-3">
                       {[1,2,3].map(i => (
-                        <div key={i} className="w-8 h-12 rounded bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border border-[#C5A059]/30"></div>
+                        <div key={i} className="w-8 h-12 rounded bg-gradient-to-b from-[#2D1F4B] to-[#251A52] border border-[#C5A059]/30"></div>
                       ))}
                     </div>
                     <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -422,7 +422,7 @@ const TirageTarot = () => {
                   <div className="text-center py-4">
                     <div className="flex justify-center gap-1 mb-3 flex-wrap" style={{ maxWidth: '120px', margin: '0 auto' }}>
                       {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                        <div key={i} className="w-4 h-6 rounded bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border border-[#C5A059]/30"></div>
+                        <div key={i} className="w-4 h-6 rounded bg-gradient-to-b from-[#2D1F4B] to-[#251A52] border border-[#C5A059]/30"></div>
                       ))}
                     </div>
                     <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -487,7 +487,7 @@ const TirageTarot = () => {
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     placeholder="Formulez votre question avec clarté et sincérité..."
-                    className="w-full bg-[#1C1735] border border-[#C5A059]/30 rounded-xl py-4 pl-12 pr-4 text-[#F0E6D3] placeholder-[#B8B0C8]/40 focus:outline-none focus:border-[#C5A059] transition-colors resize-none"
+                    className="w-full bg-[#251A52] border border-[#C5A059]/30 rounded-xl py-4 pl-12 pr-4 text-[#F0E6D3] placeholder-[#B8B0C8]/40 focus:outline-none focus:border-[#C5A059] transition-colors resize-none"
                     rows={4}
                     data-testid="input-question"
                   />
@@ -508,7 +508,7 @@ const TirageTarot = () => {
               >
                 {isLoading ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-[#1C1735] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-5 h-5 border-2 border-[#251A52] border-t-transparent rounded-full animate-spin"></div>
                     Préparation du tirage...
                   </>
                 ) : (

@@ -6,10 +6,10 @@
 
 @layer base {
   :root {
-    --pa-bg: #160E30;
-    --pa-bg-deep: #110B28;
-    --pa-surface: #201842;
-    --pa-surface-hover: #2B2252;
+    --pa-bg: #1E1245;
+    --pa-bg-deep: #1A1050;
+    --pa-surface: #2A1F55;
+    --pa-surface-hover: #352A65;
     --pa-heading: #F5EDE0;
     --pa-body: #CCC5D8;
     --pa-muted: #8A82A0;
@@ -17,26 +17,26 @@
     --pa-accent-hover: #D4B46A;
     --pa-divider: rgba(197, 160, 89, 0.12);
     --pa-glass: rgba(255, 255, 255, 0.05);
-    --pa-violet-glow: rgba(120, 80, 200, 0.12);
+    --pa-violet-glow: rgba(120, 80, 200, 0.18);
 
-    --background: 260 55% 10%;
+    --background: 258 60% 16%;
     --foreground: 35 40% 92%;
-    --card: 260 45% 14%;
+    --card: 258 50% 20%;
     --card-foreground: 35 40% 92%;
-    --popover: 260 45% 14%;
+    --popover: 258 50% 20%;
     --popover-foreground: 35 40% 92%;
     --primary: 40 45% 55%;
     --primary-foreground: 260 40% 6%;
-    --secondary: 260 40% 16%;
+    --secondary: 258 45% 22%;
     --secondary-foreground: 35 40% 92%;
-    --muted: 260 35% 18%;
-    --muted-foreground: 260 20% 52%;
+    --muted: 258 40% 24%;
+    --muted-foreground: 260 20% 58%;
     --accent: 40 45% 55%;
     --accent-foreground: 260 40% 6%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 260 20% 16%;
-    --input: 260 25% 14%;
+    --border: 258 25% 22%;
+    --input: 258 30% 20%;
     --ring: 40 45% 55%;
     --radius: 0.5rem;
   }
@@ -195,14 +195,14 @@
   /* Card — subtle violet glass */
   .card-editorial {
     @apply rounded-lg p-8 md:p-10 transition-all duration-500;
-    background: rgba(28, 18, 55, 0.6);
+    background: rgba(40, 25, 75, 0.6);
     border: 1px solid rgba(197, 160, 89, 0.08);
     backdrop-filter: blur(8px);
   }
 
   .card-editorial:hover {
     border-color: rgba(197, 160, 89, 0.15);
-    background: rgba(28, 18, 55, 0.8);
+    background: rgba(40, 25, 75, 0.8);
     box-shadow: 0 0 30px rgba(120, 70, 200, 0.06);
   }
 
@@ -222,7 +222,7 @@
   /* Input — boxed */
   .input-boxed {
     @apply w-full px-4 py-3 rounded-lg text-sm outline-none transition-all duration-300;
-    background: rgba(14, 8, 35, 0.5);
+    background: rgba(26, 16, 60, 0.5);
     border: 1px solid rgba(197, 160, 89, 0.15);
     color: var(--pa-heading);
     font-family: 'DM Sans', sans-serif;
@@ -232,7 +232,7 @@
   .input-boxed::placeholder { color: var(--pa-muted); }
   .input-boxed:focus {
     border-color: rgba(197, 160, 89, 0.4);
-    background: rgba(14, 8, 35, 0.7);
+    background: rgba(26, 16, 60, 0.7);
     box-shadow: 0 0 15px rgba(197, 160, 89, 0.06);
   }
 
@@ -252,7 +252,7 @@
   .btn-mystical-filled { @apply btn-editorial-filled; }
   .btn-mystical-filled:hover { background: var(--pa-accent-hover); border-color: var(--pa-accent-hover); transform: translateY(-1px); }
   .card-mystical { @apply card-editorial; }
-  .card-mystical:hover { border-color: rgba(197, 160, 89, 0.15); background: rgba(21, 17, 42, 0.8); }
+  .card-mystical:hover { border-color: rgba(197, 160, 89, 0.15); background: rgba(35, 22, 65, 0.8); }
   .text-gold-gradient { color: var(--pa-accent); -webkit-text-fill-color: var(--pa-accent); background: none; }
   .glow-gold { box-shadow: 0 0 20px rgba(197, 160, 89, 0.1); border-color: rgba(197, 160, 89, 0.2); }
   .input-mystical { @apply input-editorial; }

@@ -17,13 +17,13 @@ const PersonForm = ({ person, onChange, label, num }) => (
       <div>
         <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Pr&eacute;nom</label>
         <input type="text" value={person.first_name} onChange={(e) => onChange('first_name', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#1E1245] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
           placeholder="Pr&#233;nom" data-testid={`person${num}-first-name`} />
       </div>
       <div>
         <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Nom</label>
         <input type="text" value={person.last_name} onChange={(e) => onChange('last_name', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#1E1245] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
           placeholder="Nom" data-testid={`person${num}-last-name`} />
       </div>
     </div>
@@ -45,19 +45,19 @@ const PersonForm = ({ person, onChange, label, num }) => (
       <div>
         <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Jour</label>
         <input type="number" min="1" max="31" value={person.day} onChange={(e) => onChange('day', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#1E1245] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
           placeholder="JJ" data-testid={`person${num}-day`} />
       </div>
       <div>
         <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Mois</label>
         <input type="number" min="1" max="12" value={person.month} onChange={(e) => onChange('month', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#1E1245] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
           placeholder="MM" data-testid={`person${num}-month`} />
       </div>
       <div>
         <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Ann&eacute;e</label>
         <input type="number" min="1920" max="2025" value={person.year} onChange={(e) => onChange('year', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#1E1245] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
           placeholder="AAAA" data-testid={`person${num}-year`} />
       </div>
     </div>
@@ -66,13 +66,13 @@ const PersonForm = ({ person, onChange, label, num }) => (
       <div>
         <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Heure</label>
         <input type="number" min="0" max="23" value={person.hour} onChange={(e) => onChange('hour', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#1E1245] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
           data-testid={`person${num}-hour`} />
       </div>
       <div>
         <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Minute</label>
         <input type="number" min="0" max="59" value={person.minute} onChange={(e) => onChange('minute', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#1E1245] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
           data-testid={`person${num}-minute`} />
       </div>
     </div>
@@ -80,7 +80,7 @@ const PersonForm = ({ person, onChange, label, num }) => (
     <div>
       <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Lieu de naissance</label>
       <input type="text" value={person.place} onChange={(e) => onChange('place', e.target.value)}
-        className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+        className="w-full px-3 py-2 bg-[#1E1245] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
         placeholder="Ville, Pays" data-testid={`person${num}-place`} />
     </div>
   </div>
@@ -242,7 +242,7 @@ const Compatibilite2 = () => {
               <div className="relative w-48 h-48 md:w-64 md:h-64">
                 <img src="/images/compatibilite/mains-constellations.png" alt="Connexion c&eacute;leste"
                   className="w-full h-full object-contain rounded-full opacity-90" data-testid="hero-image" />
-                <div className="absolute inset-0 rounded-full" style={{ background: 'radial-gradient(circle, transparent 60%, #120A28 100%)' }} />
+                <div className="absolute inset-0 rounded-full" style={{ background: 'radial-gradient(circle, transparent 60%, #1A1050 100%)' }} />
               </div>
             </div>
             <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-3 font-light">
@@ -261,7 +261,7 @@ const Compatibilite2 = () => {
           <div className="flex items-center justify-center gap-2 mb-8">
             {[1, 2, 3, 4].map(s => (
               <div key={s} className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step >= s ? 'bg-[#C5A059] text-[#120A28]' : 'border border-[#C5A059]/30 text-[#C5A059]/40'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step >= s ? 'bg-[#C5A059] text-[#1A1050]' : 'border border-[#C5A059]/30 text-[#C5A059]/40'}`}>
                   {s}
                 </div>
                 {s < 4 && <div className={`w-8 h-0.5 ${step > s ? 'bg-[#C5A059]' : 'bg-[#C5A059]/20'}`} />}
@@ -292,7 +292,7 @@ const Compatibilite2 = () => {
                   <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Crédits insuffisants</h2>
                   <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>Ce rapport coûte <span style={{ color: '#C5A059', fontWeight: 600 }}>10 crédits</span>.</p>
                   <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span></p>
-                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#120A28', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
+                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#1A1050', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
                     Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -359,7 +359,7 @@ const Compatibilite2 = () => {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-3 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm resize-none"
+                className="w-full px-4 py-3 bg-[#1E1245] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm resize-none"
                 placeholder="Ex : Avons-nous une r&#233;elle compatibilit&#233; sur le long terme ?"
                 data-testid="question-input"
               />
@@ -402,7 +402,7 @@ const Compatibilite2 = () => {
                   <div className="max-w-sm mx-auto space-y-2">
                     <div className="flex gap-2">
                       <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                        placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#120A28] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+                        placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#1A1050] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
                         data-testid="promo-input" />
                       <button onClick={handleApplyPromo} disabled={promoLoading}
                         className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"

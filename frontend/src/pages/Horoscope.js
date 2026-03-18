@@ -124,8 +124,8 @@ const Horoscope = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm transition-all ${
                   activeTab === tab.id 
-                    ? 'bg-[#C5A059] text-[#120A28]' 
-                    : 'bg-[#15112A]/50 text-[#B8B0C8]/70 hover:bg-[#15112A] border border-[#C5A059]/20'
+                    ? 'bg-[#C5A059] text-[#1A1050]' 
+                    : 'bg-[#1E1245]/50 text-[#B8B0C8]/70 hover:bg-[#1E1245] border border-[#C5A059]/20'
                 }`}
                 data-testid={`tab-${tab.id}`}
               >

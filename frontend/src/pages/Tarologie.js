@@ -28,14 +28,14 @@ const CrossCard = ({ item, index, isLocked, onPurchase }) => {
   return (
     <div className={`relative group ${isLocked ? 'overflow-hidden' : ''}`} data-testid={`carte-croix-${item.position_id}`}>
       {isLocked && (
-        <div className="absolute inset-0 bg-[#120A28]/85 backdrop-blur-sm z-10 flex items-center justify-center rounded-sm">
+        <div className="absolute inset-0 bg-[#1A1050]/85 backdrop-blur-sm z-10 flex items-center justify-center rounded-sm">
           <div className="text-center">
             <Lock className="w-6 h-6 text-[#C5A059]/50 mx-auto mb-1" />
             <p className="text-[#C5A059]/70 text-xs">Verrouille</p>
           </div>
         </div>
       )}
-      <div className="bg-[#15112A]/80 border border-[#C5A059]/20 rounded-sm p-3 hover:border-[#C5A059]/50 transition-all duration-300">
+      <div className="bg-[#1E1245]/80 border border-[#C5A059]/20 rounded-sm p-3 hover:border-[#C5A059]/50 transition-all duration-300">
         {/* Position number badge */}
         <div className="flex items-center gap-2 mb-2">
           <span className="w-6 h-6 rounded-full bg-[#C5A059]/20 border border-[#C5A059]/40 flex items-center justify-center text-[#C5A059] text-xs font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
@@ -48,7 +48,7 @@ const CrossCard = ({ item, index, isLocked, onPurchase }) => {
           {item.carte.image ? (
             <img src={`${API_URL}${item.carte.image}`} alt={item.carte.nom} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-[#15112A] to-[#1C1735]">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-[#1E1245] to-[#251A52]">
               <span className="text-[#C5A059] text-2xl font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{item.carte.numero}</span>
             </div>
           )}
@@ -396,7 +396,7 @@ const Tarologie = () => {
                   value={prenom}
                   onChange={(e) => setPrenom(e.target.value)}
                   placeholder="Votre prenom"
-                  className="w-full px-4 py-3 bg-[#120A28] border border-[#C5A059]/30 rounded-sm text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] transition-colors"
+                  className="w-full px-4 py-3 bg-[#1A1050] border border-[#C5A059]/30 rounded-sm text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] transition-colors"
                   data-testid="prenom-input"
                 />
               </div>
@@ -406,7 +406,7 @@ const Tarologie = () => {
                   type="date"
                   value={dateNaissance}
                   onChange={(e) => setDateNaissance(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#120A28] border border-[#C5A059]/30 rounded-sm text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] transition-colors"
+                  className="w-full px-4 py-3 bg-[#1A1050] border border-[#C5A059]/30 rounded-sm text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] transition-colors"
                   data-testid="date-input"
                 />
               </div>
@@ -442,7 +442,7 @@ const Tarologie = () => {
                 <div className="max-w-sm mx-auto space-y-2">
                   <div className="flex gap-2">
                     <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#120A28] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#1A1050] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
                       data-testid="promo-input" />
                     <button onClick={handleApplyPromo} disabled={promoLoading}
                       className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"
@@ -508,7 +508,7 @@ const Tarologie = () => {
 
               {/* Interpretation for Centre (always visible) */}
               {getCard('centre') && (
-                <div className="bg-[#15112A]/80 border border-[#C5A059]/30 rounded-sm p-6" data-testid="interpretation-centre">
+                <div className="bg-[#1E1245]/80 border border-[#C5A059]/30 rounded-sm p-6" data-testid="interpretation-centre">
                   <div className="flex items-center gap-3 mb-4">
                     <span className="w-8 h-8 rounded-full bg-[#C5A059]/20 border border-[#C5A059] flex items-center justify-center text-[#C5A059] font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>1</span>
                     <div>
@@ -523,8 +523,8 @@ const Tarologie = () => {
 
               {/* Interpretations for other cards (locked unless paid) */}
               {!hasPaid && (
-                <div className="bg-[#15112A]/80 border border-[#C5A059]/20 rounded-sm p-6 relative overflow-hidden" data-testid="interpretations-locked">
-                  <div className="absolute inset-0 bg-[#120A28]/80 backdrop-blur-sm z-10 flex items-center justify-center">
+                <div className="bg-[#1E1245]/80 border border-[#C5A059]/20 rounded-sm p-6 relative overflow-hidden" data-testid="interpretations-locked">
+                  <div className="absolute inset-0 bg-[#1A1050]/80 backdrop-blur-sm z-10 flex items-center justify-center">
                     <div className="text-center px-6">
                       <Lock className="w-10 h-10 text-[#C5A059] mx-auto mb-3" />
                       <h3 className="text-[#F0E6D3] text-lg mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
@@ -565,7 +565,7 @@ const Tarologie = () => {
                     if (!card) return null;
                     const posInfo = POSITION_LABELS[posId];
                     return (
-                      <div key={posId} className="bg-[#15112A]/80 border border-[#C5A059]/20 rounded-sm p-6" data-testid={`interpretation-${posId}`}>
+                      <div key={posId} className="bg-[#1E1245]/80 border border-[#C5A059]/20 rounded-sm p-6" data-testid={`interpretation-${posId}`}>
                         <div className="flex items-center gap-3 mb-4">
                           <span className="w-8 h-8 rounded-full bg-[#C5A059]/20 border border-[#C5A059] flex items-center justify-center text-[#C5A059] font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{posInfo.icon}</span>
                           <div>
@@ -583,8 +583,8 @@ const Tarologie = () => {
 
               {/* Lecture mediumnique - locked */}
               {!hasPaid && tirage.lecture_mediumnique && (
-                <div className="bg-[#15112A]/80 border border-[#C5A059]/20 rounded-sm p-6 relative overflow-hidden" data-testid="lecture-locked">
-                  <div className="absolute inset-0 bg-[#120A28]/80 backdrop-blur-sm z-10 flex items-center justify-center">
+                <div className="bg-[#1E1245]/80 border border-[#C5A059]/20 rounded-sm p-6 relative overflow-hidden" data-testid="lecture-locked">
+                  <div className="absolute inset-0 bg-[#1A1050]/80 backdrop-blur-sm z-10 flex items-center justify-center">
                     <div className="text-center px-6">
                       <Lock className="w-8 h-8 text-[#C5A059]/50 mx-auto mb-2" />
                       <p className="text-[#C5A059]/70 text-sm">Lecture m&eacute;diumnique incluse</p>
@@ -602,7 +602,7 @@ const Tarologie = () => {
 
               {/* Full lecture if paid */}
               {hasPaid && tirage.lecture_mediumnique && (
-                <div className="bg-[#15112A]/80 border border-[#C5A059]/20 rounded-sm p-6" data-testid="lecture-full">
+                <div className="bg-[#1E1245]/80 border border-[#C5A059]/20 rounded-sm p-6" data-testid="lecture-full">
                   <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                     Lecture Mediumnique
                   </h3>

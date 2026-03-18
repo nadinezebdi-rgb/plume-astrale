@@ -133,7 +133,7 @@ const Tarot = () => {
                     </div>
                   ) : (
                     <div className="py-12">
-                      <div className="w-20 h-28 mx-auto rounded-lg bg-gradient-to-b from-[#1C1735] to-[#15112A] border border-[#C5A059]/30 flex items-center justify-center">
+                      <div className="w-20 h-28 mx-auto rounded-lg bg-gradient-to-b from-[#251A52] to-[#1E1245] border border-[#C5A059]/30 flex items-center justify-center">
                         <Star className="w-8 h-8 text-[#C5A059]/50" strokeWidth={1} />
                       </div>
                       <p className="text-[#B8B0C8]/40 text-sm mt-4">

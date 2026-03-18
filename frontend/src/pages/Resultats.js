@@ -463,7 +463,7 @@ const Resultats = () => {
                 <div className="max-w-sm mx-auto space-y-2">
                   <div className="flex gap-2">
                     <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#120A28] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#1A1050] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
                       data-testid="promo-input" />
                     <button onClick={handleApplyPromo} disabled={promoLoading}
                       className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"
@@ -478,7 +478,7 @@ const Resultats = () => {
             </div>
 
             {/* Share Section */}
-            <div className="mt-6 p-5 rounded-sm bg-gradient-to-r from-[#1C1735]/60 to-[#15112A]/60 border border-[#C5A059]/20">
+            <div className="mt-6 p-5 rounded-sm bg-gradient-to-r from-[#251A52]/60 to-[#1E1245]/60 border border-[#C5A059]/20">
               <div className="text-center">
                 <p className="text-[#F0E6D3] font-medium mb-1" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                   Partagez votre profil astral
@@ -550,8 +550,8 @@ const Resultats = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm transition-all duration-300 ${
                   activeTab === tab.id 
-                    ? 'bg-[#C5A059] text-[#120A28]' 
-                    : 'bg-[#15112A]/50 text-[#B8B0C8]/70 hover:bg-[#15112A] border border-[#C5A059]/20'
+                    ? 'bg-[#C5A059] text-[#1A1050]' 
+                    : 'bg-[#1E1245]/50 text-[#B8B0C8]/70 hover:bg-[#1E1245] border border-[#C5A059]/20'
                 }`}
                 data-testid={`tab-${tab.id}`}
               >
@@ -606,7 +606,7 @@ const Resultats = () => {
                     )}
                   </p>
                   {sunPlanet && (
-                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
+                    <div className="bg-[#1E1245]/50 rounded-sm p-4 border border-[#C5A059]/10">
                       <p className="text-[#C5A059] text-sm mb-2">Caractéristiques du Soleil en {getSigneFrancais(sunPlanet.sign)}</p>
                       <p className="text-[#B8B0C8]/60 font-light text-sm">
                         Élément {getElementFromSign(getSigneFrancais(sunPlanet.sign))} • 
@@ -694,7 +694,7 @@ const Resultats = () => {
                       ascendantInfo.description
                     )}
                   </p>
-                  <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
+                  <div className="bg-[#1E1245]/50 rounded-sm p-4 border border-[#C5A059]/10">
                     <p className="text-[#C5A059] text-sm mb-2">Traits dominants</p>
                     <p className="text-[#B8B0C8]/60 font-light">{ascendantInfo.traits}</p>
                   </div>
@@ -708,7 +708,7 @@ const Resultats = () => {
                     </h3>
                     <div className="grid md:grid-cols-2 gap-4">
                       {planetsData.filter(p => !['Sun', 'Moon', 'Ascendant'].includes(p.name)).slice(0, 6).map((planet, index) => (
-                        <div key={index} className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
+                        <div key={index} className="bg-[#1E1245]/50 rounded-sm p-4 border border-[#C5A059]/10">
                           <div className="flex justify-between items-start">
                             <div>
                               <p className="text-[#F0E6D3]">{planet.name}</p>
@@ -790,11 +790,11 @@ const Resultats = () => {
                   </p>
                   
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
+                    <div className="bg-[#1E1245]/50 rounded-sm p-4 border border-[#C5A059]/10">
                       <p className="text-[#C5A059] text-sm mb-2">Périodes favorables</p>
                       <p className="text-[#B8B0C8]/60 font-light text-sm">Mars-Mai et Septembre-Novembre</p>
                     </div>
-                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
+                    <div className="bg-[#1E1245]/50 rounded-sm p-4 border border-[#C5A059]/10">
                       <p className="text-[#C5A059] text-sm mb-2">Points d'attention</p>
                       <p className="text-[#B8B0C8]/60 font-light text-sm">Évitez les décisions impulsives en juin-juillet</p>
                     </div>
@@ -868,7 +868,7 @@ const Resultats = () => {
                   
                   <div className="space-y-6">
                     {aspectsPlanetaires.map((aspect, index) => (
-                      <div key={index} className="bg-[#15112A]/50 rounded-sm p-6 border border-[#C5A059]/10">
+                      <div key={index} className="bg-[#1E1245]/50 rounded-sm p-6 border border-[#C5A059]/10">
                         <div className="flex items-center gap-3 mb-3">
                           <span className={`px-3 py-1 rounded-full text-xs ${
                             aspect.aspect === 'Trigone' ? 'bg-emerald-500/20 text-emerald-400' :

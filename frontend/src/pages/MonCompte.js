@@ -420,7 +420,7 @@ export default function MonCompte() {
                     value={notifPrefs.hour}
                     onChange={e => handleNotifHour(e.target.value)}
                     className="w-full bg-transparent border-b py-2 text-base outline-none"
-                    style={{ borderColor: 'rgba(197,160,89,0.3)', color: 'var(--pa-body)', background: '#120A28' }}
+                    style={{ borderColor: 'rgba(197,160,89,0.3)', color: 'var(--pa-body)', background: '#1A1050' }}
                   >
                     {[6, 7, 8, 9, 10, 11, 12].map(h => (
                       <option key={h} value={h}>{h}h00</option>

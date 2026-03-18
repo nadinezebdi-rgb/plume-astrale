@@ -91,7 +91,7 @@ const TirageDuJour = () => {
             
             {/* Carte face cachée */}
             <div 
-              className="w-32 h-48 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#1C1735] to-[#120A28] border-2 border-[#C5A059]/50 flex flex-col items-center justify-center shadow-xl shadow-[#C5A059]/20 cursor-pointer hover:border-[#C5A059] hover:shadow-[#C5A059]/40 transition-all group mb-6"
+              className="w-32 h-48 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#251A52] to-[#1A1050] border-2 border-[#C5A059]/50 flex flex-col items-center justify-center shadow-xl shadow-[#C5A059]/20 cursor-pointer hover:border-[#C5A059] hover:shadow-[#C5A059]/40 transition-all group mb-6"
               onClick={() => setIsRevealed(true)}
             >
               {/* Motif décoratif */}
@@ -119,7 +119,7 @@ const TirageDuJour = () => {
             {/* Carte et infos principales */}
             <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
               {/* Carte visuelle */}
-              <div className={`w-32 h-48 flex-shrink-0 rounded-xl bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border-2 ${
+              <div className={`w-32 h-48 flex-shrink-0 rounded-xl bg-gradient-to-b from-[#2D1F4B] to-[#251A52] border-2 ${
                 carte.orientation === 'droit' ? 'border-[#C5A059]/60' : 'border-purple-500/60'
               } flex flex-col items-center justify-center shadow-xl relative overflow-hidden ${
                 carte.orientation === 'renverse' ? 'rotate-180' : ''
@@ -150,11 +150,11 @@ const TirageDuJour = () => {
                     {carte.orientation === 'droit' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
                     {carte.orientation_fr}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-[#1C1735] text-[#B8B0C8]/70 border border-[#C5A059]/20">
+                  <span className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-[#251A52] text-[#B8B0C8]/70 border border-[#C5A059]/20">
                     {getElementIcon(carte.element)}
                     {carte.element}
                   </span>
-                  <span className="text-xs px-3 py-1 rounded-full bg-[#1C1735] text-[#B8B0C8]/70 border border-[#C5A059]/20">
+                  <span className="text-xs px-3 py-1 rounded-full bg-[#251A52] text-[#B8B0C8]/70 border border-[#C5A059]/20">
                     ☆ {carte.planete}
                   </span>
                 </div>
@@ -195,7 +195,7 @@ const TirageDuJour = () => {
               {showDetails && (
                 <div className="mt-4 space-y-4 animate-fadeIn">
                   {/* Affirmation du jour */}
-                  <div className="bg-gradient-to-r from-[#2D1F4B] to-[#1C1735] rounded-lg p-4 border border-[#C5A059]/20">
+                  <div className="bg-gradient-to-r from-[#2D1F4B] to-[#251A52] rounded-lg p-4 border border-[#C5A059]/20">
                     <h5 className="text-[#C5A059] text-sm mb-2 flex items-center gap-2">
                       <Sparkles className="w-4 h-4" /> Affirmation du Jour
                     </h5>
@@ -206,7 +206,7 @@ const TirageDuJour = () => {
 
                   {/* Amour et Travail */}
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-[#1C1735]/50 rounded-lg p-4 border border-pink-500/20">
+                    <div className="bg-[#251A52]/50 rounded-lg p-4 border border-pink-500/20">
                       <h5 className="text-pink-400 text-sm mb-2 flex items-center gap-2">
                         <Heart className="w-4 h-4" /> En Amour
                       </h5>
@@ -214,7 +214,7 @@ const TirageDuJour = () => {
                         {carte.interpretation_amour}
                       </p>
                     </div>
-                    <div className="bg-[#1C1735]/50 rounded-lg p-4 border border-blue-500/20">
+                    <div className="bg-[#251A52]/50 rounded-lg p-4 border border-blue-500/20">
                       <h5 className="text-blue-400 text-sm mb-2 flex items-center gap-2">
                         <Briefcase className="w-4 h-4" /> Au Travail
                       </h5>

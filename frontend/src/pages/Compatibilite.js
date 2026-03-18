@@ -170,8 +170,8 @@ const Compatibilite = () => {
                       onClick={() => setPartnerSign(signe)}
                       className={`p-3 rounded-lg transition-all ${
                         partnerSign === signe 
-                          ? 'bg-[#C5A059] text-[#120A28]' 
-                          : 'bg-[#15112A]/50 text-[#B8B0C8]/70 hover:bg-[#15112A] border border-[#C5A059]/20'
+                          ? 'bg-[#C5A059] text-[#1A1050]' 
+                          : 'bg-[#1E1245]/50 text-[#B8B0C8]/70 hover:bg-[#1E1245] border border-[#C5A059]/20'
                       }`}
                       data-testid={`sign-${signe}`}
                     >
@@ -217,7 +217,7 @@ const Compatibilite = () => {
                   </div>
 
                   {/* Progress Bar */}
-                  <div className="w-full h-3 bg-[#15112A] rounded-full mb-6 overflow-hidden">
+                  <div className="w-full h-3 bg-[#1E1245] rounded-full mb-6 overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-[#C5A059] to-[#D4B46A] transition-all duration-1000"
                       style={{ width: `${compatibility}%` }}
@@ -230,17 +230,17 @@ const Compatibilite = () => {
 
                   {/* Detailed Analysis */}
                   <div className="grid md:grid-cols-3 gap-4 text-left">
-                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
+                    <div className="bg-[#1E1245]/50 rounded-sm p-4 border border-[#C5A059]/10">
                       <Flame className="w-5 h-5 text-red-400 mb-2" />
                       <p className="text-[#F0E6D3] text-sm mb-1">Passion</p>
                       <p className="text-[#B8B0C8]/50 text-xs">Intensité émotionnelle forte. Attention aux tempêtes.</p>
                     </div>
-                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
+                    <div className="bg-[#1E1245]/50 rounded-sm p-4 border border-[#C5A059]/10">
                       <Heart className="w-5 h-5 text-pink-400 mb-2" />
                       <p className="text-[#F0E6D3] text-sm mb-1">Affection</p>
                       <p className="text-[#B8B0C8]/50 text-xs">Tendresse naturelle. Communication du cœur fluide.</p>
                     </div>
-                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
+                    <div className="bg-[#1E1245]/50 rounded-sm p-4 border border-[#C5A059]/10">
                       <Star className="w-5 h-5 text-[#C5A059] mb-2" />
                       <p className="text-[#F0E6D3] text-sm mb-1">Durabilité</p>
                       <p className="text-[#B8B0C8]/50 text-xs">Fondations solides si respect mutuel maintenu.</p>
@@ -284,7 +284,7 @@ const Compatibilite = () => {
                   <div className="max-w-sm mx-auto space-y-2">
                     <div className="flex gap-2">
                       <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                        placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#120A28] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+                        placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#1A1050] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
                         data-testid="promo-input" />
                       <button onClick={handleApplyPromo} disabled={promoLoading}
                         className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"

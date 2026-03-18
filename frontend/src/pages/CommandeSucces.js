@@ -131,7 +131,7 @@ const CommandeSucces = () => {
               </p>
               
               {/* Order details */}
-              <div className="bg-[#15112A]/50 rounded-sm p-6 mb-8 text-left">
+              <div className="bg-[#1E1245]/50 rounded-sm p-6 mb-8 text-left">
                 <h3 className="text-[#F0E6D3] mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                   Détails de la commande
                 </h3>

@@ -51,7 +51,7 @@ const NotFound = () => (
 
 function App() {
   return (
-    <div className="App min-h-screen relative" style={{ background: 'linear-gradient(180deg, #160E30 0%, #110B28 50%, #160E30 100%)' }}>
+    <div className="App min-h-screen relative" style={{ background: 'linear-gradient(180deg, #1E1245 0%, #1A1050 30%, #150D3A 70%, #1E1245 100%)' }}>
       <StarField count={180} />
       <BrowserRouter>
         <AuthProvider>

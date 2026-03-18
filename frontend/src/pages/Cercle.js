@@ -118,7 +118,7 @@ const StreakCard = ({ streak, onCheckin, loading }) => {
             className="flex items-center gap-2 px-6 py-2.5 rounded-full text-xs uppercase tracking-widest transition-all duration-500 hover:scale-105"
             style={{
               background: 'linear-gradient(135deg, #C5A059 0%, #D4AF37 100%)',
-              color: '#120A28',
+              color: '#1A1050',
               letterSpacing: '0.08em',
               fontWeight: 600,
               boxShadow: '0 2px 12px rgba(197,160,89,0.3)',
@@ -169,7 +169,7 @@ const StreakCard = ({ streak, onCheckin, loading }) => {
                 className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold transition-all"
                 style={{
                   background: reached ? 'linear-gradient(135deg, #C5A059 0%, #FF6B35 100%)' : isCurrent ? 'rgba(197,160,89,0.15)' : 'rgba(255,255,255,0.03)',
-                  color: reached ? '#120A28' : isCurrent ? '#C5A059' : 'var(--pa-muted)',
+                  color: reached ? '#1A1050' : isCurrent ? '#C5A059' : 'var(--pa-muted)',
                   border: reached ? 'none' : `1px solid ${isCurrent ? 'rgba(197,160,89,0.4)' : 'rgba(197,160,89,0.1)'}`,
                   boxShadow: reached ? '0 0 8px rgba(197,160,89,0.3)' : 'none',
                 }}
@@ -194,7 +194,7 @@ const StreakRewardPopup = ({ result, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }} onClick={onClose} data-testid="streak-reward-popup">
-      <div className="rounded-2xl p-8 max-w-sm w-full text-center" style={{ background: '#120A28', border: '1px solid rgba(197,160,89,0.3)' }} onClick={e => e.stopPropagation()}>
+      <div className="rounded-2xl p-8 max-w-sm w-full text-center" style={{ background: '#1A1050', border: '1px solid rgba(197,160,89,0.3)' }} onClick={e => e.stopPropagation()}>
         <div className="relative mb-4">
           <Flame className="w-16 h-16 mx-auto" style={{ color: '#FF6B35', filter: 'drop-shadow(0 0 20px rgba(255,107,53,0.4))' }} strokeWidth={1.5} />
           <span className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1 text-2xl font-bold" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#FF6B35' }}>
