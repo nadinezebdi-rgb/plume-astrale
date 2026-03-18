@@ -181,7 +181,7 @@ const TirageTarot = () => {
             isRevealed ? 'opacity-0 absolute inset-0 pointer-events-none' : 'opacity-100'
           }`}>
             <div className="py-8 text-center">
-              <div className="w-28 h-44 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#1C1735] to-[#0C0918] border-2 border-[#C5A059]/50 flex flex-col items-center justify-center shadow-xl shadow-[#C5A059]/20 relative overflow-hidden group hover:border-[#C5A059] hover:shadow-[#C5A059]/40 transition-all">
+              <div className="w-28 h-44 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#1C1735] to-[#120A28] border-2 border-[#C5A059]/50 flex flex-col items-center justify-center shadow-xl shadow-[#C5A059]/20 relative overflow-hidden group hover:border-[#C5A059] hover:shadow-[#C5A059]/40 transition-all">
                 {/* Motif décoratif élaboré */}
                 <div className="absolute inset-0 opacity-30">
                   <div className="absolute top-2 left-2 w-6 h-6 border-2 border-[#C5A059] rounded-full"></div>
@@ -354,7 +354,7 @@ const TirageTarot = () => {
                     Le tirage coûte <span style={{ color: '#C5A059', fontWeight: 600 }}>10 crédits</span>.
                   </p>
                   <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span></p>
-                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
+                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#120A28', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
                     Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>

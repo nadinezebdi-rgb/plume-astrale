@@ -156,7 +156,7 @@ const Livre = () => {
           <div className="flex flex-col md:flex-row gap-8 items-center">
             {/* Book visual */}
             <div className="w-full md:w-1/3">
-              <div className="aspect-[3/4] rounded-lg bg-gradient-to-br from-[#15112A] to-[#0C0918] border-2 border-[#C5A059]/30 flex items-center justify-center shadow-2xl">
+              <div className="aspect-[3/4] rounded-lg bg-gradient-to-br from-[#15112A] to-[#120A28] border-2 border-[#C5A059]/30 flex items-center justify-center shadow-2xl">
                 <div className="text-center p-6">
                   <Book className="w-16 h-16 text-[#C5A059] mx-auto mb-4" strokeWidth={1} />
                   <p className="text-[#F0E6D3] text-sm" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
@@ -251,7 +251,7 @@ const Livre = () => {
                 <div className="max-w-sm mx-auto space-y-2">
                   <div className="flex gap-2">
                     <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#120A28] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
                       data-testid="promo-input" />
                     <button onClick={handleApplyPromo} disabled={promoLoading}
                       className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"

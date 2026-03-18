@@ -242,7 +242,7 @@ const Compatibilite2 = () => {
               <div className="relative w-48 h-48 md:w-64 md:h-64">
                 <img src="/images/compatibilite/mains-constellations.png" alt="Connexion c&eacute;leste"
                   className="w-full h-full object-contain rounded-full opacity-90" data-testid="hero-image" />
-                <div className="absolute inset-0 rounded-full" style={{ background: 'radial-gradient(circle, transparent 60%, #0C0918 100%)' }} />
+                <div className="absolute inset-0 rounded-full" style={{ background: 'radial-gradient(circle, transparent 60%, #120A28 100%)' }} />
               </div>
             </div>
             <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-3 font-light">
@@ -261,7 +261,7 @@ const Compatibilite2 = () => {
           <div className="flex items-center justify-center gap-2 mb-8">
             {[1, 2, 3, 4].map(s => (
               <div key={s} className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step >= s ? 'bg-[#C5A059] text-[#0C0918]' : 'border border-[#C5A059]/30 text-[#C5A059]/40'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step >= s ? 'bg-[#C5A059] text-[#120A28]' : 'border border-[#C5A059]/30 text-[#C5A059]/40'}`}>
                   {s}
                 </div>
                 {s < 4 && <div className={`w-8 h-0.5 ${step > s ? 'bg-[#C5A059]' : 'bg-[#C5A059]/20'}`} />}
@@ -292,7 +292,7 @@ const Compatibilite2 = () => {
                   <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Crédits insuffisants</h2>
                   <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>Ce rapport coûte <span style={{ color: '#C5A059', fontWeight: 600 }}>10 crédits</span>.</p>
                   <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span></p>
-                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
+                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#120A28', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
                     Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -402,7 +402,7 @@ const Compatibilite2 = () => {
                   <div className="max-w-sm mx-auto space-y-2">
                     <div className="flex gap-2">
                       <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                        placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+                        placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#120A28] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
                         data-testid="promo-input" />
                       <button onClick={handleApplyPromo} disabled={promoLoading}
                         className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"

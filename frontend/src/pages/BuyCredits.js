@@ -170,7 +170,7 @@ export default function BuyCredits() {
               >
                 {isPopular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] uppercase tracking-widest"
-                    style={{ background: '#C5A059', color: '#0C0918', letterSpacing: '0.08em', fontWeight: 600 }}
+                    style={{ background: '#C5A059', color: '#120A28', letterSpacing: '0.08em', fontWeight: 600 }}
                     data-testid="popular-badge">
                     Le plus choisi
                   </div>
@@ -210,7 +210,7 @@ export default function BuyCredits() {
                     className="w-full py-2.5 text-xs uppercase tracking-widest rounded-full transition-all duration-500"
                     style={{
                       border: `1px solid ${isPopular ? '#C5A059' : 'rgba(197,160,89,0.4)'}`,
-                      color: loadingPack === pack.id ? 'var(--pa-muted)' : isPopular ? '#0C0918' : '#C5A059',
+                      color: loadingPack === pack.id ? 'var(--pa-muted)' : isPopular ? '#120A28' : '#C5A059',
                       background: isPopular ? '#C5A059' : 'transparent',
                       letterSpacing: '0.1em',
                       fontWeight: isPopular ? 600 : 400,

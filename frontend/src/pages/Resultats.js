@@ -463,7 +463,7 @@ const Resultats = () => {
                 <div className="max-w-sm mx-auto space-y-2">
                   <div className="flex gap-2">
                     <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#120A28] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
                       data-testid="promo-input" />
                     <button onClick={handleApplyPromo} disabled={promoLoading}
                       className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"
@@ -550,7 +550,7 @@ const Resultats = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm transition-all duration-300 ${
                   activeTab === tab.id 
-                    ? 'bg-[#C5A059] text-[#0C0918]' 
+                    ? 'bg-[#C5A059] text-[#120A28]' 
                     : 'bg-[#15112A]/50 text-[#B8B0C8]/70 hover:bg-[#15112A] border border-[#C5A059]/20'
                 }`}
                 data-testid={`tab-${tab.id}`}

@@ -150,7 +150,7 @@ const TarotOuiNon = () => {
               <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
                 Votre solde : <span style={{ color: '#C5A059' }}>{creditBalance} cr&eacute;dits</span>
               </p>
-              <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-500" style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
+              <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-500" style={{ border: '1px solid #C5A059', color: '#120A28', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
                 Acheter des cr&eacute;dits <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

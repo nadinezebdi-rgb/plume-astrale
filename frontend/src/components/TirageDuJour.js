@@ -91,7 +91,7 @@ const TirageDuJour = () => {
             
             {/* Carte face cachée */}
             <div 
-              className="w-32 h-48 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#1C1735] to-[#0C0918] border-2 border-[#C5A059]/50 flex flex-col items-center justify-center shadow-xl shadow-[#C5A059]/20 cursor-pointer hover:border-[#C5A059] hover:shadow-[#C5A059]/40 transition-all group mb-6"
+              className="w-32 h-48 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#1C1735] to-[#120A28] border-2 border-[#C5A059]/50 flex flex-col items-center justify-center shadow-xl shadow-[#C5A059]/20 cursor-pointer hover:border-[#C5A059] hover:shadow-[#C5A059]/40 transition-all group mb-6"
               onClick={() => setIsRevealed(true)}
             >
               {/* Motif décoratif */}

@@ -55,7 +55,7 @@ const PdfPreview = ({ userData }) => {
               data-testid={`pdf-preview-page-${i}`}
             />
             {i === previews.length - 1 && (
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0C0918] rounded-sm" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#120A28] rounded-sm" />
             )}
           </div>
         ))}
