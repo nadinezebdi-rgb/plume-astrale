@@ -39,18 +39,21 @@ const Tarot = () => {
     const data = localStorage.getItem('plume_astrale_data');
     const paid = localStorage.getItem('plume_astrale_paid');
     const plan = localStorage.getItem('plume_astrale_plan');
-    
+
     if (!data) {
       navigate('/formulaire');
       return;
     }
-    
+
     setUserData(JSON.parse(data));
     setIsPaid(paid === 'true' && plan === 'premium');
-    
+
     // Tirer 3 cartes aléatoires
-    drawCards();
-  }, [navigate]);
+    const shuffled = [...tarotDeck].sort(() => Math.random() - 0.5);
+    setCards(shuffled.slice(0, 3));
+    setRevealedCards([]);
+    setIsRevealing(false);
+  }, [navigate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const drawCards = () => {
     const shuffled = [...tarotDeck].sort(() => Math.random() - 0.5);

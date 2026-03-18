@@ -1,0 +1,13 @@
+[build]
+  command = "yarn build"
+  publish = "build"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# SPA fallback — serves index.html for all non-file, non-function routes
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
