@@ -1,6 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Star, Moon, Heart, RefreshCw } from 'lucide-react';
+
+const tarotDeck = [
+  { name: "Le Bateleur", meaning: "Nouveau départ, potentiel, volonté. Les outils sont entre vos mains pour créer votre réalité.", advice: "Passez à l'action avec confiance." },
+  { name: "La Papesse", meaning: "Intuition, sagesse intérieure, mystère. Écoutez votre voix intérieure.", advice: "Prenez du recul et méditez avant d'agir." },
+  { name: "L'Impératrice", meaning: "Abondance, créativité, nature. La fertilité dans tous les domaines.", advice: "Nourrissez vos projets avec amour." },
+  { name: "L'Empereur", meaning: "Structure, autorité, stabilité. Le pouvoir de construire.", advice: "Établissez des fondations solides." },
+  { name: "Le Pape", meaning: "Sagesse, enseignement, tradition. Le guide spirituel.", advice: "Cherchez conseil auprès d'un mentor." },
+  { name: "L'Amoureux", meaning: "Choix, amour, harmonie. L'union des opposés.", advice: "Suivez votre cœur dans vos décisions." },
+  { name: "Le Chariot", meaning: "Victoire, détermination, avancement. Le triomphe par la volonté.", advice: "Foncez vers vos objectifs avec détermination." },
+  { name: "La Justice", meaning: "Équilibre, vérité, karma. Ce qui est juste sera révélé.", advice: "Agissez avec intégrité et équité." },
+  { name: "L'Hermite", meaning: "Introspection, recherche, solitude. La lumière intérieure.", advice: "Prenez du temps pour vous retrouver." },
+  { name: "La Roue de Fortune", meaning: "Cycles, destin, changement. Rien n'est permanent.", advice: "Acceptez les changements comme opportunités." },
+  { name: "La Force", meaning: "Courage, patience, maîtrise. La force douce.", advice: "Domptez vos instincts avec douceur." },
+  { name: "Le Pendu", meaning: "Sacrifice, lâcher-prise, perspective. Voir autrement.", advice: "Changez votre point de vue sur la situation." },
+  { name: "La Mort", meaning: "Transformation, fin, renaissance. La métamorphose nécessaire.", advice: "Laissez mourir ce qui doit partir." },
+  { name: "Tempérance", meaning: "Équilibre, patience, modération. L'alchimie des énergies.", advice: "Trouvez le juste milieu." },
+  { name: "Le Diable", meaning: "Attachements, ombres, matérialisme. Face à ses chaînes.", advice: "Libérez-vous de ce qui vous enchaîne." },
+  { name: "La Maison Dieu", meaning: "Révélation, libération, choc. L'éclair de vérité.", advice: "Acceptez la vérité même si elle dérange." },
+  { name: "L'Étoile", meaning: "Espoir, inspiration, sérénité. La lumière après l'orage.", advice: "Gardez foi en vos rêves." },
+  { name: "La Lune", meaning: "Illusions, intuition, inconscient. Les mystères de la nuit.", advice: "Faites confiance à vos rêves et intuitions." },
+  { name: "Le Soleil", meaning: "Succès, joie, vitalité. La lumière triomphante.", advice: "Rayonnez votre lumière intérieure." },
+  { name: "Le Jugement", meaning: "Renaissance, appel, réveil. Le moment de vérité.", advice: "Répondez à votre vocation profonde." },
+  { name: "Le Monde", meaning: "Accomplissement, intégration, succès. Le cycle complet.", advice: "Célébrez vos réussites et préparez le nouveau cycle." },
+  { name: "Le Mat", meaning: "Liberté, foi, nouveau voyage. L'âme en quête.", advice: "Osez l'inconnu avec légèreté." }
+];
 
 const Tarot = () => {
   const navigate = useNavigate();
@@ -10,54 +35,29 @@ const Tarot = () => {
   const [isRevealing, setIsRevealing] = useState(false);
   const [revealedCards, setRevealedCards] = useState([]);
 
-  const tarotDeck = [
-    { name: "Le Bateleur", meaning: "Nouveau départ, potentiel, volonté. Les outils sont entre vos mains pour créer votre réalité.", advice: "Passez à l'action avec confiance." },
-    { name: "La Papesse", meaning: "Intuition, sagesse intérieure, mystère. Écoutez votre voix intérieure.", advice: "Prenez du recul et méditez avant d'agir." },
-    { name: "L'Impératrice", meaning: "Abondance, créativité, nature. La fertilité dans tous les domaines.", advice: "Nourrissez vos projets avec amour." },
-    { name: "L'Empereur", meaning: "Structure, autorité, stabilité. Le pouvoir de construire.", advice: "Établissez des fondations solides." },
-    { name: "Le Pape", meaning: "Sagesse, enseignement, tradition. Le guide spirituel.", advice: "Cherchez conseil auprès d'un mentor." },
-    { name: "L'Amoureux", meaning: "Choix, amour, harmonie. L'union des opposés.", advice: "Suivez votre cœur dans vos décisions." },
-    { name: "Le Chariot", meaning: "Victoire, détermination, avancement. Le triomphe par la volonté.", advice: "Foncez vers vos objectifs avec détermination." },
-    { name: "La Justice", meaning: "Équilibre, vérité, karma. Ce qui est juste sera révélé.", advice: "Agissez avec intégrité et équité." },
-    { name: "L'Hermite", meaning: "Introspection, recherche, solitude. La lumière intérieure.", advice: "Prenez du temps pour vous retrouver." },
-    { name: "La Roue de Fortune", meaning: "Cycles, destin, changement. Rien n'est permanent.", advice: "Acceptez les changements comme opportunités." },
-    { name: "La Force", meaning: "Courage, patience, maîtrise. La force douce.", advice: "Domptez vos instincts avec douceur." },
-    { name: "Le Pendu", meaning: "Sacrifice, lâcher-prise, perspective. Voir autrement.", advice: "Changez votre point de vue sur la situation." },
-    { name: "La Mort", meaning: "Transformation, fin, renaissance. La métamorphose nécessaire.", advice: "Laissez mourir ce qui doit partir." },
-    { name: "Tempérance", meaning: "Équilibre, patience, modération. L'alchimie des énergies.", advice: "Trouvez le juste milieu." },
-    { name: "Le Diable", meaning: "Attachements, ombres, matérialisme. Face à ses chaînes.", advice: "Libérez-vous de ce qui vous enchaîne." },
-    { name: "La Maison Dieu", meaning: "Révélation, libération, choc. L'éclair de vérité.", advice: "Acceptez la vérité même si elle dérange." },
-    { name: "L'Étoile", meaning: "Espoir, inspiration, sérénité. La lumière après l'orage.", advice: "Gardez foi en vos rêves." },
-    { name: "La Lune", meaning: "Illusions, intuition, inconscient. Les mystères de la nuit.", advice: "Faites confiance à vos rêves et intuitions." },
-    { name: "Le Soleil", meaning: "Succès, joie, vitalité. La lumière triomphante.", advice: "Rayonnez votre lumière intérieure." },
-    { name: "Le Jugement", meaning: "Renaissance, appel, réveil. Le moment de vérité.", advice: "Répondez à votre vocation profonde." },
-    { name: "Le Monde", meaning: "Accomplissement, intégration, succès. Le cycle complet.", advice: "Célébrez vos réussites et préparez le nouveau cycle." },
-    { name: "Le Mat", meaning: "Liberté, foi, nouveau voyage. L'âme en quête.", advice: "Osez l'inconnu avec légèreté." }
-  ];
+  const drawCards = useCallback(() => {
+    const shuffled = [...tarotDeck].sort(() => Math.random() - 0.5);
+    setCards(shuffled.slice(0, 3));
+    setRevealedCards([]);
+    setIsRevealing(false);
+  }, []);
 
   useEffect(() => {
     const data = localStorage.getItem('plume_astrale_data');
     const paid = localStorage.getItem('plume_astrale_paid');
     const plan = localStorage.getItem('plume_astrale_plan');
-    
+
     if (!data) {
       navigate('/formulaire');
       return;
     }
-    
+
     setUserData(JSON.parse(data));
     setIsPaid(paid === 'true' && plan === 'premium');
-    
+
     // Tirer 3 cartes aléatoires
     drawCards();
-  }, [navigate]);
-
-  const drawCards = () => {
-    const shuffled = [...tarotDeck].sort(() => Math.random() - 0.5);
-    setCards(shuffled.slice(0, 3));
-    setRevealedCards([]);
-    setIsRevealing(false);
-  };
+  }, [navigate, drawCards]);
 
   const revealCard = (index) => {
     if (!revealedCards.includes(index)) {

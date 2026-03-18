@@ -1,116 +1,133 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#0C0918" />
-        <meta name="description" content="Plume Astrale — Guidance symbolique personnalisee. Astrologie, tarot et numerologie. Calculs precis, interpretation experte. Decouvrez votre theme natal." />
-        <meta name="author" content="Plume Astrale" />
-        <meta name="robots" content="index, follow" />
-        <meta name="googlebot" content="index, follow" />
-        <link rel="canonical" href="https://plume-astrale.fr" />
+<head>
+  <meta charset="UTF-8">
+  <title>Plume Astrale</title>
 
-        <!-- Open Graph defaults (overridden per page by react-helmet-async) -->
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://plume-astrale.fr" />
-        <meta property="og:title" content="Plume Astrale | Guidance Symbolique Personnalisee" />
-        <meta property="og:description" content="Astrologie, tarot et numerologie. Calculs precis, interpretation experte. Decouvrez votre theme natal et votre guidance quotidienne." />
-        <meta property="og:image" content="https://static.prod-images.emergentagent.com/jobs/4ab45f1c-820b-4113-96c8-845aa5b0f3e2/images/e6ac5f3284cff4212addcf06b794de85c24a62bc2c57b60538aadfec8e4f2aa8.png" />
-        <meta property="og:site_name" content="Plume Astrale" />
-        <meta property="og:locale" content="fr_FR" />
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
 
-        <!-- Twitter Card -->
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Plume Astrale | Guidance Symbolique Personnalisee" />
-        <meta name="twitter:description" content="Astrologie, tarot et numerologie. Calculs precis, interpretation experte." />
-        <meta name="twitter:image" content="https://static.prod-images.emergentagent.com/jobs/4ab45f1c-820b-4113-96c8-845aa5b0f3e2/images/e6ac5f3284cff4212addcf06b794de85c24a62bc2c57b60538aadfec8e4f2aa8.png" />
+  <style>
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #1C1445, #0F0B2E);
+      color: #F8F7FF;
+      font-family: 'Poppins', sans-serif;
+      overflow-x: hidden;
+    }
 
-        <!-- Fonts (only the ones actually used) -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet" />
+    .stars {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: url('https://www.transparenttextures.com/patterns/stardust.png');
+      opacity: 0.3;
+      animation: moveStars 120s linear infinite;
+    }
 
-        <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-        <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-        <title>Plume Astrale | Guidance Symbolique Personnalisee — Astrologie & Tarot</title>
+    @keyframes moveStars {
+      from { transform: translateY(0); }
+      to { transform: translateY(-2000px); }
+    }
 
-        <!-- JSON-LD Structured Data -->
-        <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "name": "Plume Astrale",
-            "url": "https://plume-astrale.fr",
-            "description": "Guidance symbolique personnalisee — Astrologie, tarot et numerologie",
-            "inLanguage": "fr",
-            "potentialAction": {
-                "@type": "SearchAction",
-                "target": "https://plume-astrale.fr/?q={search_term_string}",
-                "query-input": "required name=search_term_string"
-            }
-        }
-        </script>
-        <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "ProfessionalService",
-            "name": "Plume Astrale",
-            "url": "https://plume-astrale.fr",
-            "description": "Espace de guidance symbolique fonde sur des calculs astrologiques precis et une interpretation experte.",
-            "serviceType": ["Astrologie", "Tarot", "Numerologie", "Guidance spirituelle"],
-            "areaServed": {
-                "@type": "Country",
-                "name": "France"
-            },
-            "hasOfferCatalog": {
-                "@type": "OfferCatalog",
-                "name": "Services Plume Astrale",
-                "itemListElement": [
-                    {
-                        "@type": "Offer",
-                        "name": "Tirage Tarot Oui/Non",
-                        "description": "3 tirages gratuits par jour — Reponse symbolique immediate",
-                        "price": "0",
-                        "priceCurrency": "EUR"
-                    },
-                    {
-                        "@type": "Offer",
-                        "name": "Theme Astral Professionnel",
-                        "description": "Votre theme astral complet en PDF — 28+ pages",
-                        "price": "29.90",
-                        "priceCurrency": "EUR"
-                    },
-                    {
-                        "@type": "Offer",
-                        "name": "Experience Premium — Cartographie Celeste",
-                        "description": "Parcours guide en 5 etapes + PDF Premium — Astrologie, numerologie et projection 12 mois",
-                        "price": "199",
-                        "priceCurrency": "EUR"
-                    }
-                ]
-            }
-        }
-        </script>
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 700px;
+      margin: 80px auto;
+      padding: 20px;
+    }
 
-        <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
-        <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
-        <script>
-            if (window.self !== window.top) {
-                var debugMonitorScript = document.createElement('script');
-                debugMonitorScript.src = 'https://assets.emergent.sh/scripts/debug-monitor.js';
-                document.head.appendChild(debugMonitorScript);
-                window.tailwind = window.tailwind || {};
-                tailwind.config = {
-                    corePlugins: { preflight: false },
-                };
-                var tailwindScript = document.createElement('script');
-                tailwindScript.src = 'https://cdn.tailwindcss.com';
-                document.head.appendChild(tailwindScript);
-            }
-        </script>
-    </head>
-    <body>
-        <noscript>Plume Astrale — Guidance symbolique personnalisee. Activez JavaScript pour acceder a votre theme natal, tirage de tarot et numerologie.</noscript>
-        <div id="root"></div>
-    </body>
+    h1 {
+      font-family: 'Playfair Display', serif;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .energy {
+      text-align: center;
+      color: #F5D97B;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 30px;
+      border: 1px solid rgba(212,175,55,0.2);
+      box-shadow: 0 0 40px rgba(212,175,55,0.1);
+      animation: fadeIn 1.5s ease;
+    }
+
+    .loading {
+      text-align: center;
+      opacity: 0.7;
+    }
+
+    .btn {
+      margin-top: 20px;
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border-radius: 30px;
+      border: none;
+      background: linear-gradient(135deg, #D4AF37, #F5D97B);
+      color: #0F0B2E;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #D4AF37;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="stars"></div>
+
+<div class="container">
+
+  <h1>Bonjour Nadine ✨</h1>
+  <div class="energy">Énergie du jour : 78% 🔥</div>
+
+  <div class="card" id="journal">
+    <div class="loading">Connexion aux énergies...</div>
+  </div>
+
+  <button class="btn" onclick="loadJournal()">✨ Révéler mon message</button>
+
+</div>
+
+<script>
+async function loadJournal() {
+  document.getElementById("journal").innerHTML = "Connexion aux énergies... ✨";
+
+  const res = await fetch("/.netlify/edge-functions/journal", {
+    method: "POST",
+    body: JSON.stringify({
+      name: "Nadine",
+      sign: "Balance",
+      lifePath: 6,
+      tarotCard: "L'Étoile",
+      energyScore: 78
+    })
+  });
+
+  const data = await res.json();
+
+  document.getElementById("journal").innerHTML = data.journal;
+}
+</script>
+
+</body>
 </html>
