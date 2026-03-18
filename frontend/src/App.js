@@ -36,6 +36,7 @@ import BuyCredits from "@/pages/BuyCredits";
 import CreditSuccess from "@/pages/CreditSuccess";
 import Cercle from "@/pages/Cercle";
 import MonCompte from "@/pages/MonCompte";
+import Journal from "@/pages/Journal";
 // 404 Component
 const NotFound = () => (
   <div className="min-h-screen flex items-center justify-center px-6">
@@ -84,6 +85,7 @@ function App() {
             <Route path="/charte-de-confiance" element={<CharteConfiance />} />
             <Route path="/tirage-tarot" element={<TirageTarot />} />
             <Route path="/mon-compte" element={<MonCompte />} />
+            <Route path="/journal-cosmique" element={<Journal />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
