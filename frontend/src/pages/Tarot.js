@@ -48,9 +48,10 @@ const Tarot = () => {
     setUserData(JSON.parse(data));
     setIsPaid(paid === 'true' && plan === 'premium');
     
-    // Tirer 3 cartes aléatoires
-    drawCards();
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => {
+  drawCards();
+}, []);
 
   const drawCards = () => {
     const shuffled = [...tarotDeck].sort(() => Math.random() - 0.5);
