@@ -1,3 +1,8 @@
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "build"
+
 [[edge_functions]]
   path = "/.netlify/edge-functions/journal"
   function = "journal"
