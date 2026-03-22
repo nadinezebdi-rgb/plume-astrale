@@ -1,3 +1,3 @@
-export default async () => {
-  return new Response("EDGE OK 🔥");
+export default async (request: Request) => {
+  return new Response("OK JOURNAL 🔥");
 };
