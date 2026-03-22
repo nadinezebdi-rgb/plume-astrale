@@ -50,6 +50,7 @@ const Tarot = () => {
     
     // Tirer 3 cartes aléatoires
     drawCards();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   const drawCards = () => {

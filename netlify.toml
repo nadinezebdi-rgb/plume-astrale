@@ -1,3 +1,13 @@
+[build]
+  command = "cd frontend && yarn install && yarn build"
+  publish = "frontend/build"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+
 [[edge_functions]]
-  path = "/.netlify/edge-functions/journal"
+  path = "/api/journal"
   function = "journal"
