@@ -190,8 +190,6 @@ useEffect(() => {
         </div>
       </div>
     </div>
-  );
-
-
+)}
 export default Tarot;
 
