@@ -4,5 +4,5 @@
   publish = "build"
 
 [[edge_functions]]
-  path = "/.netlify/edge-functions/journal"
+  path = "/api/tarot/jour"
   function = "journal"
