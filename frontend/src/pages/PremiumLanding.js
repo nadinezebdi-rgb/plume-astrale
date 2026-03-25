@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Sparkles, BookOpen, Eye, TrendingUp, Tag, Loader2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const STEPS_PREVIEW = [
   { num: 'I', title: 'Votre Fondement', desc: 'Les forces et tensions qui vous definissent', icon: Star },

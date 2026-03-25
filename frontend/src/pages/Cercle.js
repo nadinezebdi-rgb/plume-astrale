@@ -5,7 +5,7 @@ import { Sun, Moon, Star, Sparkles, Heart, TrendingUp, ArrowRight, Coins, Eye, F
 import axios from 'axios';
 import SEO from '@/components/SEO';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const ZODIAC_SIGNS = [
   { sign: 'belier', label: 'B\u00e9lier', dates: '21 mar \u2013 19 avr', symbol: '\u2648' },

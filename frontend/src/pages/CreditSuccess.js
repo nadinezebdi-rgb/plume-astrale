@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function CreditSuccess() {
   const { token, refreshBalance, creditBalance } = useAuth();

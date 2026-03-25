@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Book, Sparkles, Truck, Clock, Gift, CheckCircle, Loader2, ArrowLeft, Tag } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const Livre = () => {
   const navigate = useNavigate();
