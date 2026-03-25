@@ -33,31 +33,41 @@ export default function Register() {
     setStep(2);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSignup = (e) => {
     e.preventDefault();
     if (!birthDate || !birthPlace) { setError('Veuillez remplir tous les champs obligatoires'); return; }
     setError('');
     setLoading(true);
 
-    const h = birthHour.padStart(2, '0');
-    const m = birthMinute.padStart(2, '0');
-    const birthTime = `${h}:${m}`;
+    const h = (birthHour || '14').padStart(2, '0');
+    const m = (birthMinute || '30').padStart(2, '0');
 
-    try {
-      await register({
-        email,
-        password,
-        birth_date: birthDate,
-        birth_time: birthTime,
-        birth_place: birthPlace,
-        birth_country: birthCountry,
-      });
-      navigate('/');
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Erreur lors de l\'inscription');
-    } finally {
-      setLoading(false);
-    }
+    const [year, month, day] = birthDate.split('-').map(Number);
+
+    const userData = {
+      prenom: birthPlace,
+      name: `${email.split('@')[0]}`,
+      day,
+      month,
+      year,
+      hour: parseInt(h, 10),
+      min: parseInt(m, 10),
+      lat: 48.8566,
+      lon: 2.3522,
+      tzone: 1,
+      lang: "fr",
+      email,
+      birth_place: birthPlace,
+      birth_country: birthCountry,
+      birth_time: `${h}:${m}`,
+    };
+
+    localStorage.setItem("plume_astrale_data", JSON.stringify(userData));
+    localStorage.setItem("plume_astrale_paid", "true");
+    localStorage.setItem("plume_astrale_plan", "premium");
+
+    setLoading(false);
+    navigate("/");
   };
 
   const inputStyle = {
@@ -130,7 +140,7 @@ export default function Register() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSignup} className="space-y-5">
               <div>
                 <label className="block text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--pa-muted)', letterSpacing: '0.1em' }}>Date de naissance *</label>
                 <input
