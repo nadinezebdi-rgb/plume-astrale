@@ -38,24 +38,8 @@
   --radius: 0.5rem;
 }
 
-/* SAFE version */
-* {
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
 body {
-  font-family: 'DM Sans', sans-serif;
   background: var(--pa-bg);
   color: var(--pa-body);
-  min-height: 100vh;
+  font-family: 'DM Sans', sans-serif;
 }
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Cormorant Garamond', serif;
-  color: var(--pa-heading);
-}
-update
