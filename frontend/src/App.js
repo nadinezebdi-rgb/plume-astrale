@@ -15,20 +15,22 @@ const handleSubmit = async (e) => {
     const birthTime = `${h}:${m}`;
 
     const user = {
-      email,
-      birth_date: birthDate,
-      birth_time: birthTime,
-      birth_place: birthPlace,
-      birth_country: birthCountry,
+      email: email || "Utilisateur",
+      prenom: email?.split("@")[0] || "Utilisateur",
+      dateNaissance: birthDate,
+      heureNaissance: birthTime,
+      lieuNaissance: birthPlace,
+      pays: birthCountry,
     };
 
+    // ✅ stockage clean
     localStorage.setItem("plume_astrale_data", JSON.stringify(user));
     localStorage.setItem("plume_astrale_paid", "false");
     localStorage.setItem("plume_astrale_plan", "free");
 
     console.log("USER CREATED :", user);
 
-    // ✅ CORRECTION ICI
+    // ✅ navigation OK
     navigate("/tarot");
 
   } catch (err) {
@@ -38,4 +40,3 @@ const handleSubmit = async (e) => {
     setLoading(false);
   }
 };
-
