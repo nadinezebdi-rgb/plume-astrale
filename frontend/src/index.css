@@ -1,6 +1,6 @@
-@tailwind base ; @tailwind composants ; @tailwind utilitaires ;   
-@layer base {
-  :root {
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
     --pa-bg: #0C0918;
     --pa-bg-deep: #080614;
     --pa-surface: #15112A;
