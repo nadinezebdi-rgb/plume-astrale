@@ -1,42 +1,83 @@
-const handleSubmit = async (e) => {
-  e.preventDefault();
+import React from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AuthProvider } from '@/context/AuthContext';
+import Navbar from '@/components/Navbar';
 
-  if (!birthDate || !birthPlace) {
-    setError('Veuillez remplir tous les champs obligatoires');
-    return;
-  }
+import Index from '@/pages/Index';
+import Register from '@/pages/Register';
+import Login from '@/pages/Login';
+import Formulaire from '@/pages/Formulaire';
+import Apercu from '@/pages/Apercu';
+import Resultats from '@/pages/Resultats';
+import Choix from '@/pages/Choix';
+import Paiement from '@/pages/Paiement';
+import PaiementSucces from '@/pages/PaiementSucces';
+import BuyCredits from '@/pages/BuyCredits';
+import CreditSuccess from '@/pages/CreditSuccess';
+import Tarot from '@/pages/Tarot';
+import TarotOuiNon from '@/pages/TarotOuiNon';
+import TirageTarot from '@/pages/TirageTarot';
+import Numerologie from '@/pages/Numerologie';
+import Quotidien from '@/pages/Quotidien';
+import Tarologie from '@/pages/Tarologie';
+import Horoscope from '@/pages/Horoscope';
+import Compatibilite from '@/pages/Compatibilite';
+import Compatibilite2 from '@/pages/Compatibilite2';
+import PremiumLanding from '@/pages/PremiumLanding';
+import PremiumExperience from '@/pages/PremiumExperience';
+import CharteConfiance from '@/pages/CharteConfiance';
+import Cercle from '@/pages/Cercle';
+import Livre from '@/pages/Livre';
+import CommandeSucces from '@/pages/CommandeSucces';
 
-  setError('');
-  setLoading(true);
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Index />} />
 
-  try {
-    const h = (birthHour || "00").padStart(2, '0');
-    const m = (birthMinute || "00").padStart(2, '0');
-    const birthTime = `${h}:${m}`;
+          <Route path="/inscription" element={<Register />} />
+          <Route path="/connexion" element={<Login />} />
 
-    const user = {
-      email: email || "Utilisateur",
-      prenom: email?.split("@")[0] || "Utilisateur",
-      dateNaissance: birthDate,
-      heureNaissance: birthTime,
-      lieuNaissance: birthPlace,
-      pays: birthCountry,
-    };
+          <Route path="/formulaire" element={<Formulaire />} />
+          <Route path="/apercu" element={<Apercu />} />
+          <Route path="/resultats" element={<Resultats />} />
 
-    // ✅ stockage clean
-    localStorage.setItem("plume_astrale_data", JSON.stringify(user));
-    localStorage.setItem("plume_astrale_paid", "false");
-    localStorage.setItem("plume_astrale_plan", "free");
+          <Route path="/choix" element={<Choix />} />
+          <Route path="/paiement" element={<Paiement />} />
+          <Route path="/paiement-succes" element={<PaiementSucces />} />
 
-    console.log("USER CREATED :", user);
+          <Route path="/acheter-credits" element={<BuyCredits />} />
+          <Route path="/credit-succes" element={<CreditSuccess />} />
 
-    // ✅ navigation OK
-    navigate("/tarot");
+          <Route path="/tarot" element={<Tarot />} />
+          <Route path="/tirage" element={<Navigate to="/tarot" replace />} />
+          <Route path="/tarot-oui-non" element={<TarotOuiNon />} />
+          <Route path="/tirage-tarot" element={<TirageTarot />} />
 
-  } catch (err) {
-    console.error("ERREUR :", err);
-    setError("Erreur lors de l'inscription");
-  } finally {
-    setLoading(false);
-  }
-};
+          <Route path="/numerologie" element={<Numerologie />} />
+          <Route path="/quotidien" element={<Quotidien />} />
+          <Route path="/tarologie" element={<Tarologie />} />
+          <Route path="/horoscope" element={<Horoscope />} />
+
+          <Route path="/compatibilite" element={<Compatibilite />} />
+          <Route path="/compatibilite-amoureuse" element={<Compatibilite2 />} />
+
+          <Route path="/premium" element={<PremiumLanding />} />
+          <Route path="/premium/experience" element={<PremiumExperience />} />
+
+          <Route path="/charte-de-confiance" element={<CharteConfiance />} />
+          <Route path="/cercle" element={<Cercle />} />
+          <Route path="/livre" element={<Livre />} />
+          <Route path="/commande-succes" element={<CommandeSucces />} />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;

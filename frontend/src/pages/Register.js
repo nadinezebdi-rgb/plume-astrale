@@ -49,29 +49,28 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const h = (birthHour || "00").padStart(2, '0');
-      const m = (birthMinute || "00").padStart(2, '0');
-      const birthTime = `${h}:${m}`;
+      const h = String(birthHour || '00').padStart(2, '0');
+      const m = String(birthMinute || '00').padStart(2, '0');
 
       const user = {
-        email,
-        birth_date: birthDate,
-        birth_time: birthTime,
-        birth_place: birthPlace,
-        birth_country: birthCountry,
+        email: email || 'Utilisateur',
+        prenom: email ? email.split('@')[0] : 'Utilisateur',
+        dateNaissance: birthDate,
+        heureNaissance: `${h}:${m}`,
+        lieuNaissance: birthPlace,
+        pays: birthCountry || 'France',
       };
 
-      // 🔥 STOCKAGE LOCAL
-      localStorage.setItem("plume_astrale_data", JSON.stringify(user));
-      localStorage.setItem("plume_astrale_paid", "false");
-      localStorage.setItem("plume_astrale_plan", "free");
+      localStorage.setItem('plume_astrale_data', JSON.stringify(user));
+      localStorage.setItem('plume_astrale_paid', 'false');
+      localStorage.setItem('plume_astrale_plan', 'free');
 
-      console.log("USER CREATED :", user);
+      console.log('USER CREATED :', user);
 
-      navigate("/tirage");
+      navigate('/tarot');
 
     } catch (err) {
-      console.error("ERREUR :", err);
+      console.error('ERREUR :', err);
       setError("Erreur lors de l'inscription");
     } finally {
       setLoading(false);
