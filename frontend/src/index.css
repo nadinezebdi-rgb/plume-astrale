@@ -4,79 +4,57 @@
 
 :root {
   --pa-bg: #0C0918;
+  --pa-bg-deep: #080614;
+  --pa-surface: #15112A;
+  --pa-surface-hover: #1C1735;
   --pa-heading: #F0E6D3;
   --pa-body: #B8B0C8;
+  --pa-muted: #6E6588;
   --pa-accent: #C5A059;
+  --pa-accent-hover: #D4B46A;
+  --pa-divider: rgba(197, 160, 89, 0.12);
+  --pa-glass: rgba(255, 255, 255, 0.03);
+  --pa-violet-glow: rgba(120, 80, 200, 0.08);
+
+  --background: 260 40% 6%;
+  --foreground: 35 40% 92%;
+  --card: 260 35% 10%;
+  --card-foreground: 35 40% 92%;
+  --popover: 260 35% 10%;
+  --popover-foreground: 35 40% 92%;
+  --primary: 40 45% 55%;
+  --primary-foreground: 260 40% 6%;
+  --secondary: 260 25% 14%;
+  --secondary-foreground: 35 40% 92%;
+  --muted: 260 20% 16%;
+  --muted-foreground: 260 15% 50%;
+  --accent: 40 45% 55%;
+  --accent-foreground: 260 40% 6%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 260 20% 16%;
+  --input: 260 25% 14%;
   --ring: 40 45% 55%;
   --radius: 0.5rem;
 }
-    --pa-bg: #0C0918;
-    --pa-bg-deep: #080614;
-    --pa-surface: #15112A;
-    --pa-surface-hover: #1C1735;
-    --pa-heading: #F0E6D3;
-    --pa-body: #B8B0C8;
-    --pa-muted: #6E6588;
-    --pa-accent: #C5A059;
-    --pa-accent-hover: #D4B46A;
-    --pa-divider: rgba(197, 160, 89, 0.12);
-    --pa-glass: rgba(255, 255, 255, 0.03);
-    --pa-violet-glow: rgba(120, 80, 200, 0.08);
 
-    --background: 260 40% 6%;
-    --foreground: 35 40% 92%;
-    --card: 260 35% 10%;
-    --card-foreground: 35 40% 92%;
-    --popover: 260 35% 10%;
-    --popover-foreground: 35 40% 92%;
-    --primary: 40 45% 55%;
-    --primary-foreground: 260 40% 6%;
-    --secondary: 260 25% 14%;
-    --secondary-foreground: 35 40% 92%;
-    --muted: 260 20% 16%;
-    --muted-foreground: 260 15% 50%;
-    --accent: 40 45% 55%;
-    --accent-foreground: 260 40% 6%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 260 20% 16%;
-    --input: 260 25% 14%;
-    --ring: 40 45% 55%;
-    --radius: 0.5rem;
-  }
-
-  * { @apply border-border; }
-
-  html {
-    scroll-behavior: smooth;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--pa-bg);
-    color: var(--pa-body);
-    min-height: 100vh;
-    overflow-x: hidden;
-    font-weight: 300;
-    line-height: 1.7;
-    letter-spacing: 0.01em;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Cormorant Garamond', serif;
-    color: var(--pa-heading);
-    font-weight: 300;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-  }
-
-  p { line-height: 1.8; }
-
-  ::selection {
-    background: rgba(197, 160, 89, 0.25);
-    color: var(--pa-heading);
-  }
+/* SAFE version */
+* {
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--pa-bg);
+  color: var(--pa-body);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--pa-heading);
+}
