@@ -30,7 +30,7 @@ function App() {
           <Route path="/tarot" element={<Tarot />} />
 
           {/* fallback */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="/" element={<div style={{color:"white"}}>SITE OK</div>} />
         </Routes>
 
       </div>
