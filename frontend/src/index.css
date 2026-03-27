@@ -1,4 +1,4 @@
-@tailwind base ; @tailwind composants ; @tailwind utilitaires ; 
+@tailwind base ; @tailwind composants ; @tailwind utilitaires ;   
 @layer base {
   :root {
     --pa-bg: #0C0918;
