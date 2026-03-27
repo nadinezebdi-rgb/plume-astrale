@@ -1,42 +1,41 @@
-const handleSubmit = async (e) => {
-  e.preventDefault();
+// composants simples (on sécurise)
+import Navbar from "./components/Navbar";
 
-  if (!birthDate || !birthPlace) {
-    setError('Veuillez remplir tous les champs obligatoires');
-    return;
-  }
+// pages
+import Index from "./pages/Index";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import Tarot from "./pages/Tarot";
 
-  setError('');
-  setLoading(true);
+// fallback simple
+const NotFound = () => (
+  <div style={{ color: "white", textAlign: "center", marginTop: "100px" }}>
+    Page non trouvée
+  </div>
+);
 
-  try {
-    const h = (birthHour || "00").padStart(2, '0');
-    const m = (birthMinute || "00").padStart(2, '0');
-    const birthTime = `${h}:${m}`;
+function App() {
+  return (
+    <BrowserRouter>
+      <div style={{ minHeight: "100vh", background: "#0C0918" }}>
 
-    const user = {
-      email: email || "Utilisateur",
-      prenom: email?.split("@")[0] || "Utilisateur",
-      dateNaissance: birthDate,
-      heureNaissance: birthTime,
-      lieuNaissance: birthPlace,
-      pays: birthCountry,
-    };
+        {/* Navbar */}
+        <Navbar />
 
-    // ✅ stockage clean
-    localStorage.setItem("plume_astrale_data", JSON.stringify(user));
-    localStorage.setItem("plume_astrale_paid", "false");
-    localStorage.setItem("plume_astrale_plan", "free");
+        {/* ROUTES */}
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/inscription" element={<Register />} />
+          <Route path="/connexion" element={<Login />} />
+          <Route path="/tarot" element={<Tarot />} />
 
-    console.log("USER CREATED :", user);
+          {/* fallback */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
 
-    // ✅ navigation OK
-    navigate("/tarot");
+      </div>
+    </BrowserRouter>
+  );
+}
 
-  } catch (err) {
-    console.error("ERREUR :", err);
-    setError("Erreur lors de l'inscription");
-  } finally {
-    setLoading(false);
-  }
-};
+export default App;
