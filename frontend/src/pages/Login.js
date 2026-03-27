@@ -13,19 +13,19 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      await login(email, password);
-      navigate('/');
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Erreur de connexion');
-    } finally {
-      setLoading(false);
-    }
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+  setLoading(true);
+  try {
+    await login(email, password);
+    navigate('/');
+  } catch (err) {
+    setError(err.response?.data?.detail || 'Erreur de connexion');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 pt-20 pb-12" data-testid="login-page">
