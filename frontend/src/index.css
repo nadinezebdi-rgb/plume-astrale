@@ -1,5 +1,15 @@
-@tailwind base ; @tailwind composants ; @t
- services publics ;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --pa-bg: #0C0918;
+  --pa-heading: #F0E6D3;
+  --pa-body: #B8B0C8;
+  --pa-accent: #C5A059;
+  --ring: 40 45% 55%;
+  --radius: 0.5rem;
+}
     --pa-bg: #0C0918;
     --pa-bg-deep: #080614;
     --pa-surface: #15112A;
