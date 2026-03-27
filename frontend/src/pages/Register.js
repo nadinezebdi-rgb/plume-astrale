@@ -68,7 +68,7 @@ export default function Register() {
 
       console.log("USER CREATED :", user);
 
-      navigate("/tirage");
+      naviguer ( "/" );
 
     } catch (err) {
       console.error("ERREUR :", err);
