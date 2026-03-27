@@ -15,13 +15,28 @@ export default function Login() {
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+
+  if (!email || !password) {
+    setError("Veuillez remplir tous les champs");
+    return;
+  }
+
   setError('');
   setLoading(true);
+
   try {
+    console.log("LOGIN ATTEMPT:", email);
+
     await login(email, password);
-    navigate('/');
+
+    console.log("LOGIN SUCCESS");
+
+    // redirection après connexion
+    navigate("/tarot");
+
   } catch (err) {
-    setError(err.response?.data?.detail || 'Erreur de connexion');
+    console.error("LOGIN ERROR:", err);
+    setError("Email ou mot de passe incorrect");
   } finally {
     setLoading(false);
   }
