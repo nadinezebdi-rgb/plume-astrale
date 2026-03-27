@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@tailwind base ; @tailwind composants ; @t
+ services publics ;
     --pa-bg: #0C0918;
     --pa-bg-deep: #080614;
     --pa-surface: #15112A;
