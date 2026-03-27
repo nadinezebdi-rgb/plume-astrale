@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Eye, EyeOff, ChevronRight, ChevronLeft } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const COUNTRIES = [
   'France', 'Belgique', 'Suisse', 'Canada', 'Luxembourg', 'Monaco',
@@ -10,6 +11,7 @@ const COUNTRIES = [
 
 export default function Register() {
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const [step, setStep] = useState(1);
   const [showPw, setShowPw] = useState(false);
@@ -53,26 +55,19 @@ export default function Register() {
       const m = (birthMinute || "00").padStart(2, '0');
       const birthTime = `${h}:${m}`;
 
-      const user = {
+      await register({
         email,
+        password,
         birth_date: birthDate,
         birth_time: birthTime,
         birth_place: birthPlace,
         birth_country: birthCountry,
-      };
-
-      // 🔥 STOCKAGE LOCAL
-      localStorage.setItem("plume_astrale_data", JSON.stringify(user));
-      localStorage.setItem("plume_astrale_paid", "false");
-      localStorage.setItem("plume_astrale_plan", "free");
-
-      console.log("USER CREATED :", user);
+      });
 
       navigate("/tirage");
 
     } catch (err) {
-      console.error("ERREUR :", err);
-      setError("Erreur lors de l'inscription");
+      setError(err.response?.data?.detail || "Erreur lors de l'inscription");
     } finally {
       setLoading(false);
     }

@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const PersonForm = ({ person, onChange, label, num }) => (
   <div className="space-y-4">

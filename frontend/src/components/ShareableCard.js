@@ -3,7 +3,7 @@ import { Download, Share2, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = process.env.REACT_APP_BACKEND_URL || '';
 
 const ShareableCard = () => {
   const { isAuthenticated, user } = useAuth();

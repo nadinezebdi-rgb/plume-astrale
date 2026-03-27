@@ -5,7 +5,7 @@ import { Coins, Sparkles, Star, Zap, ArrowRight, Shield, Tag, Loader2 } from 'lu
 import axios from 'axios';
 import SEO from '@/components/SEO';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = process.env.REACT_APP_BACKEND_URL || '';
 
 const PromoCodeSection = ({ token, onSuccess }) => {
   const [open, setOpen] = useState(false);
