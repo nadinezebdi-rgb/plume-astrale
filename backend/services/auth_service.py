@@ -1,6 +1,9 @@
 """Authentication service - JWT auth, password hashing, user management"""
 import os
-import jwt
+try:
+    import jwt
+except ImportError:
+    from jose import jwt
 from datetime import datetime, timezone, timedelta
 from passlib.context import CryptContext
 from fastapi import HTTPException, Request
