@@ -26,7 +26,9 @@ export default function Register() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [birthDate, setBirthDate] = useState('');
+  const [birthDay, setBirthDay] = useState('');
+  const [birthMonth, setBirthMonth] = useState('');
+  const [birthYear, setBirthYear] = useState('');
   const [birthHour, setBirthHour] = useState('');
   const [birthMinute, setBirthMinute] = useState('');
   const [birthPlace, setBirthPlace] = useState('');
@@ -48,6 +50,9 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const birthDate = birthYear && birthMonth && birthDay
+      ? `${birthYear}-${birthMonth.padStart(2,'0')}-${birthDay.padStart(2,'0')}`
+      : '';
     if (!birthDate || !birthPlace) {
       setError('Veuillez remplir tous les champs obligatoires');
       return;
@@ -63,7 +68,7 @@ export default function Register() {
       await register({
         email,
         password,
-        birth_date: birthDate,
+        birth_date: `${birthYear}-${birthMonth.padStart(2,'0')}-${birthDay.padStart(2,'0')}`,
         birth_time: `${h}:${m}`,
         birth_place: birthPlace,
         birth_country: birthCountry,
@@ -219,16 +224,31 @@ export default function Register() {
                 >
                   Date de naissance
                 </label>
-                <input
-                  type="date"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                  className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
-                  style={inputStyle}
-                  onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
-                  onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}
-                  data-testid="register-birthdate-input"
-                />
+                <div className="grid grid-cols-3 gap-2">
+                  <select value={birthDay} onChange={(e) => setBirthDay(e.target.value)}
+                    className="bg-transparent border-b py-2 text-base outline-none" style={inputStyle}
+                    onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
+                    onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}>
+                    <option value="">Jour</option>
+                    {Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={String(d)} style={{background:'#0C0918'}}>{d}</option>)}
+                  </select>
+                  <select value={birthMonth} onChange={(e) => setBirthMonth(e.target.value)}
+                    className="bg-transparent border-b py-2 text-base outline-none" style={inputStyle}
+                    onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
+                    onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}>
+                    <option value="">Mois</option>
+                    {['Janv','Févr','Mars','Avr','Mai','Juin','Juil','Août','Sept','Oct','Nov','Déc'].map((m,i)=>
+                      <option key={i+1} value={String(i+1)} style={{background:'#0C0918'}}>{m}</option>)}
+                  </select>
+                  <select value={birthYear} onChange={(e) => setBirthYear(e.target.value)}
+                    className="bg-transparent border-b py-2 text-base outline-none" style={inputStyle}
+                    onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
+                    onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}>
+                    <option value="">Année</option>
+                    {Array.from({length:100},(_,i)=>new Date().getFullYear()-i).map(y=>
+                      <option key={y} value={String(y)} style={{background:'#0C0918'}}>{y}</option>)}
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
