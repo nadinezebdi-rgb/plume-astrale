@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+from integrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 from services.astrology_api import get_astrology_service, AstrologyAPIService
 from services.astrology_api_premium import get_premium_astrology_service, AstrologyAPIPremium
 from services.pdf_generator_v2 import generate_manuscrit_complet

@@ -116,7 +116,7 @@ async def generate_premium_content(user_data: dict) -> dict:
             result = await translate_to_french(prompt)
             # translate_to_french uses LLM, so actually we call it differently
             # We need a direct LLM call here
-            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            from integrations.llm.chat import LlmChat, UserMessage
             import os
             chat = LlmChat(
                 api_key=os.environ.get("EMERGENT_LLM_KEY"),

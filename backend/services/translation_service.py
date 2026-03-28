@@ -6,7 +6,7 @@ import os
 import hashlib
 import logging
 from dotenv import load_dotenv
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+from integrations.llm.chat import LlmChat, UserMessage
 
 load_dotenv()
 logger = logging.getLogger(__name__)
