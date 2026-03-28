@@ -3,6 +3,18 @@
   command = "npm run build"
   publish = "build"
 
+[build.environment]
+  NODE_VERSION = "20"
+
+# Redirects pour SPA React (toutes les routes -> index.html)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[edge_functions]
+  directory = "netlify/edge-functions"
+
 [[edge_functions]]
   path = "/api/tarot/jour"
   function = "journal"

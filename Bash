@@ -1,3 +1,0 @@
-/netlify
-   /edge-functions
-      journal.ts

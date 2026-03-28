@@ -68,7 +68,7 @@ const Livre = () => {
         });
         setPromoSuccess('Code valide ! Commande gratuite validee.');
         localStorage.setItem('plume_astrale_book_order', JSON.stringify({ promo: true, code: promoCode }));
-        setTimeout(() => navigate('/commande-succes'), 1200);
+        setTimeout(() => navigate('/commande/succes'), 1200);
       } else {
         setPromoError(data.message || 'Code invalide');
       }
