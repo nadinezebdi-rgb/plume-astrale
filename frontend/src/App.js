@@ -18,6 +18,7 @@ import TirageTarot from "./pages/TirageTarot";
 import TarotOuiNon from "./pages/TarotOuiNon";
 import Tarologie from "./pages/Tarologie";
 import Numerologie from "./pages/Numerologie";
+import KarmaDestin from "./pages/KarmaDestin";
 import Horoscope from "./pages/Horoscope";
 import Compatibilite from "./pages/Compatibilite";
 import Compatibilite2 from "./pages/Compatibilite2";
@@ -51,6 +52,9 @@ function App() {
           <Route path="/paiement/succes" element={<PaiementSucces />} />
           <Route path="/resultats" element={<Resultats />} />
           <Route path="/numerologie" element={<Numerologie />} />
+
+          {/* ✦ NOUVELLES PAGES — Growth Plan ✦ */}
+          <Route path="/karma-destin" element={<KarmaDestin />} />
 
           {/* Tarot */}
           <Route path="/tarot" element={<Tarot />} />
