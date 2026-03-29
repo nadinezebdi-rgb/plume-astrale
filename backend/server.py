@@ -1441,20 +1441,31 @@ async def translate_content(request: Request):
 class TarotOuiNonRequest(BaseModel):
     question: str
 
+# ── Mapping nom anglais (AstrologyAPI) → arcane local FR ────────────────────
+_API_TO_LOCAL_ARCANE = {
+    "The Fool": 0, "The Magician": 1, "The High Priestess": 2,
+    "The Empress": 3, "The Emperor": 4, "The Hierophant": 5,
+    "The Lovers": 6, "The Chariot": 7, "Strength": 8, "The Hermit": 9,
+    "Wheel of Fortune": 10, "Justice": 11, "The Hanged Man": 12,
+    "Death": 13, "Temperance": 14, "The Devil": 15, "The Tower": 16,
+    "The Star": 17, "The Moon": 18, "The Sun": 19, "Judgement": 20,
+    "The World": 21,
+}
+from services.tarot_service import ARCANES_TAROT, TAROT_IMAGE_MAP
+
 @api_router.post("/tarot/oui-non")
 async def tarot_oui_non_endpoint(request: TarotOuiNonRequest):
-    """Tirage Tarot Oui/Non - API Growth Plan avec fallback local"""
+    """Tirage Tarot Oui/Non — AstrologyAPI pour l'orientation, données FR locales pour l'affichage."""
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Veuillez poser une question")
-    
-    # Try API first (Growth Plan)
+
+    orientation = None
+
+    # 1. Essayer l'API pour l'orientation (oui/non/neutre)
     try:
         service = get_astrology_service()
         api_result = await service.get_yes_no_tarot()
         if api_result and api_result.get('name'):
-            # Translate description to French
-            description_fr = await translate_to_french(api_result.get('description', ''))
-            # Determine orientation from API value
             api_value = str(api_result.get('value', '')).lower().strip()
             if api_value == 'yes':
                 orientation = 'oui'
@@ -1462,26 +1473,43 @@ async def tarot_oui_non_endpoint(request: TarotOuiNonRequest):
                 orientation = 'non'
             else:
                 orientation = 'neutre'
-            return {
-                "question": request.question,
-                "carte": {
-                    "numero": 1,
-                    "nom": api_result.get('name', ''),
-                    "energie": api_result.get('name', ''),
-                    "image": "",
-                },
-                "orientation": orientation,
-                "reponse": description_fr,
-                "source": "api",
-                "date": datetime.now().isoformat(),
-            }
+            # Trouver l'arcane local correspondant au nom anglais reçu
+            api_name = api_result.get('name', '')
+            local_idx = _API_TO_LOCAL_ARCANE.get(api_name)
+            if local_idx is not None:
+                carte_data = ARCANES_TAROT[local_idx]
+            else:
+                # Carte inconnue → choisir aléatoirement
+                import hashlib
+                seed = int(hashlib.md5(request.question.encode()).hexdigest(), 16)
+                carte_data = ARCANES_TAROT[seed % len(ARCANES_TAROT)]
     except Exception as e:
         logger.warning(f"Yes/No Tarot API fallback: {e}")
-    
-    # Fallback to local
-    result = tirage_oui_non(request.question)
-    result["source"] = "local"
-    return result
+        carte_data = None
+
+    # 2. Si l'API a échoué, tirage local complet
+    if carte_data is None or orientation is None:
+        result = tirage_oui_non(request.question)
+        result["source"] = "local"
+        return result
+
+    # 3. Construire la réponse avec données FR locales + image locale
+    reponse_fr = carte_data.get(orientation, carte_data.get("oui", ""))
+    image_path = f"/api/assets/tarot/{TAROT_IMAGE_MAP.get(carte_data['numero'], '')}"
+
+    return {
+        "question": request.question,
+        "carte": {
+            "numero": carte_data["numero"],
+            "nom": carte_data["nom"],           # ← nom FR local
+            "energie": carte_data["energie"],   # ← énergie FR locale
+            "image": image_path,                # ← image locale garantie
+        },
+        "orientation": orientation,
+        "reponse": reponse_fr,                  # ← interprétation FR détaillée
+        "source": "api+local",
+        "date": datetime.now().isoformat(),
+    }
 
 
 # ========== TAROT PREDICTIONS (Growth Plan) ==========
@@ -2567,3 +2595,4 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
