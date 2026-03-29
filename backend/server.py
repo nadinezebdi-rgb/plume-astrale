@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -2254,6 +2255,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ─── Global exception handler ─────────────────────────────────────────────────
+# Garantit que le header CORS est toujours présent, même sur les erreurs 500,
+# afin que le navigateur puisse lire la réponse et afficher un message lisible.
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled exception on %s %s", request.method, request.url)
+    origin = request.headers.get("origin", "*")
+    allowed_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
+    cors_origin = origin if ("*" in allowed_origins or origin in allowed_origins) else allowed_origins[0]
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Erreur interne du serveur. Veuillez réessayer."},
+        headers={
+            "Access-Control-Allow-Origin": cors_origin,
+            "Access-Control-Allow-Credentials": "true",
+        },
+    )
 
 # Configure logging
 logging.basicConfig(
