@@ -201,6 +201,8 @@ SERVICE_COSTS = {
     "lecture_tarot": 10,
     "lecture_astrologique": 10,
     "numerologie": 10,
+    "karma_destin": 15,        # ← Karma & Destin (Growth Plan)
+    "maisons_astro": 10,       # ← Maisons astrologiques (Growth Plan)
     "cartographie_premium": 60,
 }
 
@@ -1421,6 +1423,306 @@ async def _local_numerology(prenom: str, date_naissance: str):
     }
 
 
+# ========== KARMA & DESTIN ROUTE ==========
+
+class KarmaDestinRequest(BaseModel):
+    prenom: str
+    dateNaissance: str
+    heureNaissance: str = "12:00"
+    ville: str = "Paris"
+    pays: str = "France"
+
+@api_router.post("/astrology/karma-destiny")
+async def get_karma_destiny(request: KarmaDestinRequest):
+    """Rapport Karma & Destin personnel — Appel AstrologyAPI Growth Plan"""
+    try:
+        service = get_premium_astrology_service()
+        lat, lon, tz = 48.8566, 2.3522, 1.0
+        base_service = get_astrology_service()
+        if request.ville:
+            geo_data = await base_service.get_geo_details(f"{request.ville}, {request.pays}")
+            if geo_data and len(geo_data) > 0:
+                place = geo_data[0]
+                lat = float(place.get('latitude', lat))
+                lon = float(place.get('longitude', lon))
+                tz = float(place.get('timezone', tz))
+
+        # Formatter la date
+        parts = request.dateNaissance.split('-')
+        date_str = f"{parts[2]}/{parts[1]}/{parts[0]}" if len(parts) == 3 else request.dateNaissance
+
+        karma_data = await service.get_karma_destiny_report(
+            date_str=date_str,
+            time_str=request.heureNaissance,
+            lat=lat, lon=lon, timezone=tz
+        )
+
+        if not karma_data:
+            # Fallback local enrichi
+            return _local_karma_destiny(request.prenom, request.dateNaissance)
+
+        # Traduire en français les champs textuels
+        translated = {}
+        for key, value in karma_data.items():
+            if isinstance(value, str) and len(value) > 15:
+                translated[key] = await translate_to_french(value)
+            elif isinstance(value, dict):
+                sub = {}
+                for k2, v2 in value.items():
+                    if isinstance(v2, str) and len(v2) > 15:
+                        sub[k2] = await translate_to_french(v2)
+                    else:
+                        sub[k2] = v2
+                translated[key] = sub
+            else:
+                translated[key] = value
+
+        return {"success": True, "source": "api", "prenom": request.prenom, "data": translated}
+
+    except Exception as e:
+        logger.error(f"Karma destiny error: {e}")
+        return _local_karma_destiny(request.prenom, request.dateNaissance)
+
+
+def _local_karma_destiny(prenom: str, date_naissance: str):
+    """Fallback local pour Karma & Destin"""
+    import hashlib
+    seed = int(hashlib.md5(f"{prenom}{date_naissance}".encode()).hexdigest(), 16)
+
+    karmas = [
+        {"theme": "Karma de la Communication", "icon": "☿",
+         "description": f"{prenom}, votre karma principal tourne autour de la parole et de l'expression. Dans une ou plusieurs vies passées, vous avez soit abusé du pouvoir des mots, soit gardé le silence par peur. Cette vie vous invite à exprimer votre vérité avec bienveillance.",
+         "lecon": "Apprendre à dire ce qui est juste, au bon moment, avec le bon ton.",
+         "don_cache": "Vous possédez un talent naturel pour la médiation et la compréhension des autres."},
+        {"theme": "Karma de l'Abondance", "icon": "♃",
+         "description": f"{prenom}, votre âme porte la mémoire d'une relation complexe avec l'argent et les ressources. Vous êtes ici pour réconcilier richesse matérielle et richesse spirituelle, comprendre que l'abondance est un droit divin.",
+         "lecon": "Recevoir sans culpabilité et partager sans se vider.",
+         "don_cache": "Votre sens des affaires et votre intuition financière sont des outils karmiques puissants."},
+        {"theme": "Karma des Relations", "icon": "♀",
+         "description": f"{prenom}, vos liens affectifs portent des traces de vies antérieures. Certaines personnes dans votre entourage sont des âmes avec qui vous avez des comptes karmiques à solder — en bien comme en mal.",
+         "lecon": "Aimer sans se perdre, se connecter sans fusionner.",
+         "don_cache": "Votre capacité à aimer profondément est l'un de vos plus grands dons spirituels."},
+        {"theme": "Karma du Pouvoir", "icon": "♄",
+         "description": f"{prenom}, vous avez exercé ou subi le pouvoir dans des vies antérieures. Cette vie vous invite à trouver votre propre autorité intérieure — ni domination ni soumission.",
+         "lecon": "Exercer son influence au service du bien commun.",
+         "don_cache": "Votre leadership naturel est un héritage karmique à honorer avec sagesse."},
+        {"theme": "Karma de la Guérison", "icon": "⚕",
+         "description": f"{prenom}, votre âme est celle d'un guérisseur à travers les âges. Vous portez des mémoires de soins, de sacrifices et de dévouement. Cette vie vous demande de vous guérir vous-même avant de guérir les autres.",
+         "lecon": "La guérison commence toujours par soi-même.",
+         "don_cache": "Votre empathie et votre intuition corporelle sont des dons exceptionnels."},
+    ]
+
+    destins = [
+        {"mission": "Mission de Transmission", "description": f"Votre âme, {prenom}, est venue ici pour partager une connaissance rare. Vous êtes un pont entre le monde visible et invisible. Votre mission est de transmettre ce que vous savez — par l'enseignement, l'écriture ou simplement par l'exemple de votre vie."},
+        {"mission": "Mission de Création", "description": f"{prenom}, vous êtes une âme créatrice dans le sens le plus profond du terme. Votre mission est de co-créer avec l'univers — en manifestant des projets, des œuvres ou des espaces qui élèvent la vibration collective."},
+        {"mission": "Mission de Service", "description": f"Votre âme a choisi le chemin du service, {prenom}. Non pas par obligation, mais par amour pur. Votre mission est d'alléger la souffrance autour de vous et d'être un phare de lumière pour ceux qui se sentent perdus."},
+        {"mission": "Mission de Transformation", "description": f"{prenom}, vous êtes une âme alchimiste. Votre mission est de transformer ce qui est sombre en lumière — en vous-même d'abord, puis dans le monde qui vous entoure. Vous avez le don de voir le potentiel là où les autres ne voient que des obstacles."},
+    ]
+
+    karma_idx = seed % len(karmas)
+    destin_idx = (seed // len(karmas)) % len(destins)
+
+    noeuds = [
+        {"noeud_nord": "Verseau", "message": f"Votre nœud nord en Verseau vous pousse vers l'innovation, la fraternité et la vision collective. Lâchez le confort de l'individualisme (Nœud Sud Lion) pour embrasser votre rôle dans la communauté."},
+        {"noeud_nord": "Balance", "message": f"Votre nœud nord en Balance vous appelle vers le partenariat et l'harmonie. Évoluez au-delà de l'autosuffisance (Nœud Sud Bélier) pour co-créer avec les autres."},
+        {"noeud_nord": "Scorpion", "message": f"Votre nœud nord en Scorpion vous invite à plonger dans la profondeur et la transformation. Quittez la surface confortable (Nœud Sud Taureau) pour renaître."},
+        {"noeud_nord": "Poissons", "message": f"Votre nœud nord en Poissons vous appelle vers la spiritualité et la dissolution de l'ego. Transcendez l'hyperanalyse (Nœud Sud Vierge) pour faire confiance au flux de la vie."},
+    ]
+    noeud_idx = (seed * 3) % len(noeuds)
+
+    return {
+        "success": True, "source": "local", "prenom": prenom,
+        "data": {
+            "karma_principal": karmas[karma_idx],
+            "mission_de_vie": destins[destin_idx],
+            "noeuds_lunaires": noeuds[noeud_idx],
+            "message_akashique": f"Les archives akashiques de {prenom} révèlent une âme en chemin vers sa pleine réalisation. Chaque expérience vécue, chaque obstacle rencontré, est une pièce du puzzle de votre évolution. Faites confiance au processus.",
+            "nombre_karmique": (seed % 9) + 1,
+        }
+    }
+
+
+# ========== NUMÉROLOGIE APPROFONDIE (chemin de vie + âme + expression + défis) ==========
+
+class NumerologyDeepRequest(BaseModel):
+    prenom: str
+    dateNaissance: str
+    heureNaissance: str = "12:00"
+    ville: str = "Paris"
+
+@api_router.post("/numerology/deep-profile")
+async def get_numerology_deep(request: NumerologyDeepRequest):
+    """Profil numérologique approfondi : chemin de vie, âme, expression, défis, année personnelle"""
+    try:
+        service = get_premium_astrology_service()
+        parts = request.dateNaissance.split('-')
+        date_str = f"{parts[2]}/{parts[1]}/{parts[0]}" if len(parts) == 3 else request.dateNaissance
+
+        # Appels parallèles pour les 4 nombres clés
+        results = await asyncio.gather(
+            service.get_lifepath_number(date_str),
+            service.get_soul_urge_number(request.prenom),
+            service.get_expression_number(request.prenom),
+            service.get_challenge_numbers(date_str),
+            return_exceptions=True
+        )
+
+        lifepath_data, soul_data, expr_data, challenge_data = results
+
+        async def safe_translate(data, key):
+            if isinstance(data, dict) and key in data:
+                val = data[key]
+                if isinstance(val, str) and len(val) > 15:
+                    return await translate_to_french(val)
+                return val
+            return None
+
+        # Traduire les descriptions
+        lifepath_fr = await safe_translate(lifepath_data, 'meaning') if not isinstance(lifepath_data, Exception) else None
+        soul_fr = await safe_translate(soul_data, 'meaning') if not isinstance(soul_data, Exception) else None
+        expr_fr = await safe_translate(expr_data, 'meaning') if not isinstance(expr_data, Exception) else None
+
+        # Calculer l'année personnelle localement
+        try:
+            day = int(parts[2]); month = int(parts[1])
+            def reduce(n):
+                while n > 9 and n not in [11, 22, 33]:
+                    n = sum(int(d) for d in str(n))
+                return n
+            annee_perso = reduce(day + month + 2026)
+        except:
+            annee_perso = 5
+
+        themes_annee = {
+            1: "Nouveaux départs — Une page blanche s'ouvre. C'est votre année pour lancer, initier et affirmer votre identité.",
+            2: "Partenariats — L'année vous invite à coopérer, à écouter et à construire des alliances durables.",
+            3: "Expression — Votre créativité est à son apogée. Exprimez-vous, créez, communiquez.",
+            4: "Construction — Poser des bases solides. Travail, organisation, discipline portent leurs fruits.",
+            5: "Liberté — Changements, voyages, nouvelles expériences. Embrassez l'imprévu avec confiance.",
+            6: "Responsabilité — L'amour, la famille et le service sont au cœur de votre année.",
+            7: "Introspection — Retraite intérieure, méditation, développement spirituel.",
+            8: "Abondance — Finances, ambition et pouvoir personnel en pleine expansion.",
+            9: "Bilan — Clôture d'un cycle de 9 ans. Lâcher-prise et préparation au renouveau.",
+            11: "Illumination — Année maîtresse d'éveil spirituel et de mission de vie.",
+            22: "Maîtrise — Potentiel immense de réalisation. Vos rêves peuvent devenir concrets.",
+        }
+
+        return {
+            "success": True, "source": "api+local",
+            "data": {
+                "chemin_de_vie": {
+                    "nombre": lifepath_data.get('number') if not isinstance(lifepath_data, Exception) and lifepath_data else None,
+                    "description_api": lifepath_fr,
+                },
+                "nombre_ame": {
+                    "nombre": soul_data.get('number') if not isinstance(soul_data, Exception) and soul_data else None,
+                    "description_api": soul_fr,
+                },
+                "nombre_expression": {
+                    "nombre": expr_data.get('number') if not isinstance(expr_data, Exception) and expr_data else None,
+                    "description_api": expr_fr,
+                },
+                "nombres_defis": challenge_data if not isinstance(challenge_data, Exception) else None,
+                "annee_personnelle_2026": {
+                    "nombre": annee_perso,
+                    "theme": themes_annee.get(annee_perso, "Évolution et transformation"),
+                },
+            }
+        }
+    except Exception as e:
+        logger.error(f"Numerology deep error: {e}")
+        return await _local_numerology(request.prenom, request.dateNaissance)
+
+
+# ========== MAISONS ASTROLOGIQUES ==========
+
+class HousesRequest(BaseModel):
+    dateNaissance: str
+    heureNaissance: str = "12:00"
+    ville: str = "Paris"
+    pays: str = "France"
+
+@api_router.post("/astrology/houses")
+async def get_houses_report(request: HousesRequest):
+    """Rapport des 12 maisons astrologiques — Growth Plan"""
+    try:
+        service = get_premium_astrology_service()
+        base_service = get_astrology_service()
+        lat, lon, tz = 48.8566, 2.3522, 1.0
+
+        if request.ville:
+            geo_data = await base_service.get_geo_details(f"{request.ville}, {request.pays}")
+            if geo_data and len(geo_data) > 0:
+                place = geo_data[0]
+                lat = float(place.get('latitude', lat))
+                lon = float(place.get('longitude', lon))
+                tz = float(place.get('timezone', tz))
+
+        parts = request.dateNaissance.split('-')
+        date_str = f"{parts[2]}/{parts[1]}/{parts[0]}" if len(parts) == 3 else request.dateNaissance
+
+        # Appeler les rapports pour les planètes majeures
+        planets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn']
+        house_tasks = [
+            service.get_general_house_report(date_str, request.heureNaissance, lat, lon, tz, p)
+            for p in planets
+        ]
+        house_results = await asyncio.gather(*house_tasks, return_exceptions=True)
+
+        translated_houses = {}
+        for i, planet in enumerate(planets):
+            raw = house_results[i]
+            if isinstance(raw, Exception) or not raw:
+                continue
+            translated = {}
+            for k, v in raw.items():
+                if isinstance(v, str) and len(v) > 15:
+                    translated[k] = await translate_to_french(v)
+                else:
+                    translated[k] = v
+            translated_houses[planet] = translated
+
+        if not translated_houses:
+            return _local_houses_report(request.dateNaissance, request.heureNaissance)
+
+        return {"success": True, "source": "api", "houses": translated_houses}
+
+    except Exception as e:
+        logger.error(f"Houses report error: {e}")
+        return _local_houses_report(request.dateNaissance, request.heureNaissance)
+
+
+def _local_houses_report(date_naissance: str, heure_naissance: str):
+    """Descriptions locales des 12 maisons astrologiques"""
+    maisons = [
+        {"numero": 1, "nom": "Maison I — L'Ascendant", "theme": "Identité & Apparence",
+         "description": "La 1ère maison représente votre personnalité de surface, votre apparence physique et la manière dont vous vous présentez au monde. C'est le masque que vous portez, mais aussi votre vitalité fondamentale."},
+        {"numero": 2, "nom": "Maison II — Les Ressources", "theme": "Argent & Valeurs",
+         "description": "La 2ème maison gouverne vos ressources matérielles, votre rapport à l'argent et vos valeurs profondes. Elle révèle ce que vous possédez et ce que vous valorisez réellement dans la vie."},
+        {"numero": 3, "nom": "Maison III — La Communication", "theme": "Esprit & Fratrie",
+         "description": "La 3ème maison régit la communication, les déplacements courts, la fratrie et l'apprentissage quotidien. Elle montre comment votre mental fonctionne et comment vous vous exprimez."},
+        {"numero": 4, "nom": "Maison IV — Les Racines", "theme": "Foyer & Famille",
+         "description": "La 4ème maison représente vos origines, votre famille, votre foyer et vos fondations psychologiques. C'est l'endroit le plus intime de votre thème natal."},
+        {"numero": 5, "nom": "Maison V — La Créativité", "theme": "Amour & Expression",
+         "description": "La 5ème maison gouverne la créativité, les amours, les enfants et le plaisir. Elle révèle comment vous vous amusez, aimez et exprimez votre génie créateur."},
+        {"numero": 6, "nom": "Maison VI — Le Service", "theme": "Santé & Travail",
+         "description": "La 6ème maison concerne la santé, le travail quotidien, le service aux autres et les routines. Elle montre comment vous prenez soin de vous et comment vous servez."},
+        {"numero": 7, "nom": "Maison VII — Les Partenariats", "theme": "Relations & Contrats",
+         "description": "La 7ème maison représente tous vos partenariats significatifs — romantiques, professionnels ou légaux. Elle révèle ce que vous cherchez chez l'autre."},
+        {"numero": 8, "nom": "Maison VIII — La Transformation", "theme": "Mort & Renaissances",
+         "description": "La 8ème maison gouverne les transformations profondes, les héritages, la sexualité et les ressources partagées. C'est le domaine de la mort symbolique et de la renaissance."},
+        {"numero": 9, "nom": "Maison IX — La Philosophie", "theme": "Voyages & Croyances",
+         "description": "La 9ème maison régit les voyages lointains, la philosophie, la spiritualité et l'enseignement supérieur. Elle révèle votre quête de sens et d'élévation."},
+        {"numero": 10, "nom": "Maison X — La Carrière", "theme": "Ambition & Réputation",
+         "description": "La 10ème maison, ou Milieu du Ciel, représente votre vocation, votre réputation publique et vos ambitions. C'est le point culminant de votre thème natal."},
+        {"numero": 11, "nom": "Maison XI — Les Amis", "theme": "Groupe & Idéaux",
+         "description": "La 11ème maison gouverne vos amis, vos groupes d'appartenance, vos rêves collectifs et vos idéaux. Elle montre comment vous contribuez à la société."},
+        {"numero": 12, "nom": "Maison XII — L'Invisible", "theme": "Karma & Spiritualité",
+         "description": "La 12ème maison représente l'inconscient, les épreuves cachées, la spiritualité profonde et le karma collectif. C'est le lieu des retraites et des transformations secrètes."},
+    ]
+    return {"success": True, "source": "local", "houses": maisons}
+
+
 # ========== TRANSLATION ROUTE ==========
 
 @api_router.post("/translate")
@@ -2595,4 +2897,3 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
-
