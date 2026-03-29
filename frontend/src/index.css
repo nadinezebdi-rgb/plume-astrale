@@ -3,43 +3,70 @@
 @tailwind utilities;
 
 :root {
-  --pa-bg: #0C0918;
-  --pa-bg-deep: #080614;
-  --pa-surface: #15112A;
-  --pa-surface-hover: #1C1735;
-  --pa-heading: #F0E6D3;
-  --pa-body: #B8B0C8;
-  --pa-muted: #6E6588;
-  --pa-accent: #C5A059;
-  --pa-accent-hover: #D4B46A;
-  --pa-divider: rgba(197, 160, 89, 0.12);
-  --pa-glass: rgba(255, 255, 255, 0.03);
-  --pa-violet-glow: rgba(120, 80, 200, 0.08);
+  /* ── Fond principal : violet nuit légèrement éclairci (était #0C0918) ── */
+  --pa-bg:           #131024;
+  --pa-bg-deep:      #0D0B1E;
 
-  --background: 260 40% 6%;
-  --foreground: 35 40% 92%;
-  --card: 260 35% 10%;
-  --card-foreground: 35 40% 92%;
-  --popover: 260 35% 10%;
-  --popover-foreground: 35 40% 92%;
-  --primary: 40 45% 55%;
-  --primary-foreground: 260 40% 6%;
-  --secondary: 260 25% 14%;
-  --secondary-foreground: 35 40% 92%;
-  --muted: 260 20% 16%;
-  --muted-foreground: 260 15% 50%;
-  --accent: 40 45% 55%;
-  --accent-foreground: 260 40% 6%;
-  --destructive: 0 84% 60%;
+  /* ── Surfaces : plus visibles, meilleur contraste avec le fond ── */
+  --pa-surface:      #1E1A35;
+  --pa-surface-hover:#262145;
+
+  /* ── Textes : plus lumineux pour une lecture confortable ── */
+  --pa-heading:      #F5EEE0;      /* était #F0E6D3 — légèrement plus blanc */
+  --pa-body:         #CEC8DC;      /* était #B8B0C8 — +15% luminosité */
+  --pa-muted:        #8E88A8;      /* était #6E6588 — +20% luminosité */
+
+  /* ── Accent or : inchangé, reste la signature visuelle ── */
+  --pa-accent:       #C5A059;
+  --pa-accent-hover: #D4B46A;
+
+  /* ── Séparateurs et effets : légèrement plus visibles ── */
+  --pa-divider:      rgba(197, 160, 89, 0.18);   /* était 0.12 */
+  --pa-glass:        rgba(255, 255, 255, 0.05);  /* était 0.03 */
+  --pa-violet-glow:  rgba(120, 80, 200, 0.10);   /* était 0.08 */
+
+  /* ── Variables shadcn/ui mappées sur la nouvelle palette ── */
+  --background:           260 35% 10%;     /* légèrement plus clair */
+  --foreground:           35 40% 93%;
+  --card:                 260 30% 14%;     /* cartes plus visibles */
+  --card-foreground:      35 40% 93%;
+  --popover:              260 30% 14%;
+  --popover-foreground:   35 40% 93%;
+  --primary:              40 45% 55%;
+  --primary-foreground:   260 35% 10%;
+  --secondary:            260 22% 18%;     /* +4% luminosité */
+  --secondary-foreground: 35 40% 93%;
+  --muted:                260 18% 20%;     /* +4% luminosité */
+  --muted-foreground:     260 15% 58%;     /* +8% lisibilité */
+  --accent:               40 45% 55%;
+  --accent-foreground:    260 35% 10%;
+  --destructive:          0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --border: 260 20% 16%;
-  --input: 260 25% 14%;
-  --ring: 40 45% 55%;
-  --radius: 0.5rem;
+  --border:               260 18% 22%;     /* bordures plus visibles */
+  --input:                260 22% 18%;
+  --ring:                 40 45% 55%;
+  --radius:               0.5rem;
 }
 
 body {
   background: var(--pa-bg);
   color: var(--pa-body);
   font-family: 'DM Sans', sans-serif;
+  /* Amélioration du rendu texte pour la lisibilité */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
+
+/* ── Amélioration globale du contraste des paragraphes ── */
+p {
+  line-height: 1.75;
+}
+
+/* ── Amélioration des zones de contenu (cards, panels) ── */
+[class*="bg-[var(--pa-surface)]"],
+.pa-card {
+  background: var(--pa-surface);
+  border: 1px solid var(--pa-divider);
+}
+
