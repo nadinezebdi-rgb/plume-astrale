@@ -7,6 +7,61 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
+
+// ── Traduction des arcanes majeurs (API → Français) ──────────────────────────
+const ARCANES_FR = {
+  "The Fool": "Le Mat",
+  "The Magician": "Le Bateleur",
+  "The High Priestess": "La Papesse",
+  "The Empress": "L'Impératrice",
+  "The Emperor": "L'Empéreur",
+  "The Hierophant": "Le Pape",
+  "The Lovers": "L'Amoureux",
+  "The Chariot": "Le Chariot",
+  "Strength": "La Force",
+  "The Hermit": "L'Hermite",
+  "Wheel of Fortune": "La Roue de Fortune",
+  "Justice": "La Justice",
+  "The Hanged Man": "Le Pendu",
+  "Death": "L'Arcane sans Nom",
+  "Temperance": "La Tempérance",
+  "The Devil": "Le Diable",
+  "The Tower": "La Maison-Dieu",
+  "The Star": "L'Étoile",
+  "The Moon": "La Lune",
+  "The Sun": "Le Soleil",
+  "Judgement": "Le Jugement",
+  "The World": "Le Monde",
+};
+
+const ARCANES_DESC_FR = {
+  "The Fool":        "Le Mat symbolise le commencement, la liberté et le saut vers l'inconnu. Il vous invite à faire confiance à votre instinct et à avancer sans peur.",
+  "The Magician":    "Le Bateleur incarne la maîtrise, la volonté et la manifestation. L'univers place entre vos mains tous les outils nécessaires pour agir. Passez à l'action.",
+  "The High Priestess": "La Papesse représente la sagesse intérieure et l'intuition profonde. Écoutez votre voix intérieure — la réponse est déjà en vous.",
+  "The Empress":     "L'Impératrice symbolise l'abondance, la fertilité et la création. Ce qui vous tient à cœur est en train de s'épanouir naturellement.",
+  "The Emperor":     "L'Empéreur représente la structure, l'autorité et la stabilité. Affirmez votre pouvoir avec sagesse et construisez sur des bases solides.",
+  "The Hierophant":  "Le Pape invite à chercher guidance et sagesse dans les traditions et les valeurs. Faites confiance aux chemins éprouvés.",
+  "The Lovers":      "L'Amoureux symbolise le choix, l'union et l'alignement des valeurs. Suivez votre cœur — les décisions prises avec amour portent leurs fruits.",
+  "The Chariot":     "Le Chariot représente la victoire, la détermination et la maîtrise de soi. Avancez avec confiance — vous avez la force de surmonter les obstacles.",
+  "Strength":        "La Force incarne le courage doux, la patience et la maîtrise intérieure. Votre force réelle vient de la compassion, non de la contrainte.",
+  "The Hermit":      "L'Hermite invite à la solitude créatrice et à l'introspection. Retirez-vous du bruit pour trouver votre propre lumière intérieure.",
+  "Wheel of Fortune":"La Roue de Fortune symbolise les cycles, le destin et le renouveau. Un tournant favorable se présente — soyez prêt(e) à saisir l'opportunité.",
+  "Justice":         "La Justice représente l'équilibre, la vérité et la cause à effet. Agissez avec intégrité — ce que vous semez, vous le récolterez.",
+  "The Hanged Man":  "Le Pendu invite à voir les choses différemment et à lâcher prise. Parfois, l'immobilité est le chemin le plus sage.",
+  "Death":           "L'Arcane sans Nom symbolise la transformation profonde et le renouveau. Une fin prépare un nouveau commencement plus aligné.",
+  "Temperance":      "La Tempérance représente l'harmonie, la patience et la juste mesure. Trouvez l'équilibre entre vos désirs et la réalité.",
+  "The Devil":       "Le Diable met en lumière les liens qui vous enchaînent. Reconnaître ce qui vous retient est le premier pas vers la libération.",
+  "The Tower":       "La Maison-Dieu annonce un bouleversement libérateur. Ce qui s'effondre était fragile — laissez place à une structure plus vraie.",
+  "The Star":        "L'Étoile rayonne d'espoir, de foi et d'inspiration. Vous êtes guidé(e) — continuez d'avancer avec confiance vers votre étoile.",
+  "The Moon":        "La Lune invite à naviguer dans l'incertitude avec intuition. Les apparences sont trompeuses — fiez-vous à votre ressenti profond.",
+  "The Sun":         "Le Soleil symbolise la joie, la réussite et la clarté. La lumière brille sur votre chemin — célébrez et rayonnez.",
+  "Judgement":       "Le Jugement annonce une renaissance et un éveil de conscience. Un appel intérieur résonne — il est temps de répondre à votre vocation.",
+  "The World":       "Le Monde symbolise l'accomplissement, la totalité et le succès. Un cycle important touche à sa fin dans la plénitude.",
+};
+
+const translateCarte = (nom) => ARCANES_FR[nom] || nom;
+const getDescFr = (nom, descApi) => ARCANES_DESC_FR[nom] || descApi;
+
 const TarotOuiNon = () => {
   const navigate = useNavigate();
   const { isAuthenticated, token, creditBalance, refreshBalance } = useAuth();
@@ -249,9 +304,9 @@ const TarotOuiNon = () => {
               </div>
 
               <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)' }}>
-                {result.carte?.nom}
+                {translateCarte(result.carte?.nom || "")}
               </h2>
-              <p className="text-xs mb-6" style={{ color: 'var(--pa-muted)' }}>{result.carte?.energie}</p>
+              <p className="text-xs mb-6" style={{ color: 'var(--pa-muted)' }}>{translateCarte(result.carte?.energie || "")}</p>
 
               {(() => {
                 const style = getOrientationStyle(result.orientation);
@@ -273,7 +328,7 @@ const TarotOuiNon = () => {
                 Message des Arcanes
               </p>
               <p className="text-base leading-relaxed" style={{ color: 'var(--pa-body)', lineHeight: '2' }}>
-                {result.reponse}
+                {getDescFr(result.carte?.nom, result.reponse)}
               </p>
             </div>
 
