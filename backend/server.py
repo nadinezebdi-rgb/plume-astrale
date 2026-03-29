@@ -104,6 +104,14 @@ PRODUCTS = {
         "subscription": True,
         "interval": "month"
     },
+    "journal_quotidien": {
+        "name": "Journal Astral Quotidien",
+        "amount": 15.99,
+        "currency": "eur",
+        "description": "Journal astrologique personnalisé chaque jour + 20% de réduction sur tous les services",
+        "subscription": True,
+        "interval": "month"
+    },
     "profil_complet": {
         "name": "Profil Astro-Numérologique Complet",
         "amount": 39.00,
@@ -147,6 +155,11 @@ DISCOUNT_CODES = {
         "discount_percent": 100,
         "description": "Acces gratuit a tous les services",
         "products": "all"
+    },
+    "JOURNAL2026": {
+        "discount_percent": 100,
+        "description": "1 mois d'abonnement Journal Astral offert",
+        "products": ["journal_quotidien"]
     }
 }
 
@@ -2233,6 +2246,276 @@ async def get_arcanes_majeurs():
     return {
         "success": True,
         "arcanes": arcanes_list
+    }
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MON COMPTE — Profil, abonnement et réductions abonnés
+# ═══════════════════════════════════════════════════════════════════════════════
+
+SUBSCRIBER_DISCOUNT_PERCENT = 20  # 20 % de remise pour les abonnés actifs
+
+# ── helpers internes ──────────────────────────────────────────────────────────
+
+async def _get_active_subscription(db, user_id: str) -> dict | None:
+    """Retourne l'abonnement actif de l'utilisateur ou None."""
+    sub = await db.subscriptions.find_one(
+        {"user_id": user_id, "status": "active"},
+        {"_id": 0},
+    )
+    return sub
+
+
+async def _is_subscriber(db, user_id: str) -> bool:
+    """True si l'utilisateur a un abonnement journal_quotidien actif."""
+    return await _get_active_subscription(db, user_id) is not None
+
+
+# ── Mon Compte ────────────────────────────────────────────────────────────────
+
+@api_router.get("/account/profile")
+async def get_account_profile(request: Request):
+    """
+    👤 MON COMPTE — Profil complet
+    Retourne : infos utilisateur + solde crédits + statut abonnement + streak
+    """
+    user = await get_current_user(request, db)
+    wallet = await get_wallet(db, user["id"])
+    streak = await get_streak(db, user["id"])
+    subscription = await _get_active_subscription(db, user["id"])
+
+    return {
+        "user": {
+            "id": user["id"],
+            "email": user["email"],
+            "birth_date": user.get("birth_date"),
+            "birth_time": user.get("birth_time"),
+            "birth_place": user.get("birth_place"),
+            "birth_country": user.get("birth_country"),
+            "created_at": user.get("created_at"),
+        },
+        "credit_balance": wallet["credit_balance"] if wallet else 0,
+        "streak": streak,
+        "subscription": {
+            "active": subscription is not None,
+            "plan": subscription.get("product_id") if subscription else None,
+            "plan_name": subscription.get("product_name") if subscription else None,
+            "renewal_date": subscription.get("renewal_date") if subscription else None,
+            "discount_percent": SUBSCRIBER_DISCOUNT_PERCENT if subscription else 0,
+        },
+    }
+
+
+@api_router.get("/account/subscription")
+async def get_subscription_status(request: Request):
+    """
+    📋 STATUT ABONNEMENT
+    Indique si l'utilisateur a un abonnement actif + avantages
+    """
+    user = await get_current_user(request, db)
+    subscription = await _get_active_subscription(db, user["id"])
+
+    if not subscription:
+        return {
+            "active": False,
+            "message": "Aucun abonnement actif",
+            "available_plans": [
+                {
+                    "id": "journal_quotidien",
+                    "name": PRODUCTS["journal_quotidien"]["name"],
+                    "amount": PRODUCTS["journal_quotidien"]["amount"],
+                    "description": PRODUCTS["journal_quotidien"]["description"],
+                }
+            ],
+        }
+
+    return {
+        "active": True,
+        "plan": subscription.get("product_id"),
+        "plan_name": subscription.get("product_name"),
+        "start_date": subscription.get("start_date"),
+        "renewal_date": subscription.get("renewal_date"),
+        "benefits": [
+            "Journal astrologique personnalisé chaque jour",
+            f"{SUBSCRIBER_DISCOUNT_PERCENT}% de réduction sur tous les services",
+            "Accès prioritaire aux nouvelles fonctionnalités",
+        ],
+        "discount_percent": SUBSCRIBER_DISCOUNT_PERCENT,
+    }
+
+
+@api_router.post("/account/subscription/checkout")
+async def create_subscription_checkout(request: Request):
+    """
+    💳 SOUSCRIRE À L'ABONNEMENT JOURNAL
+    Crée une session Stripe pour l'abonnement journal_quotidien (15,99 €/mois)
+    """
+    user = await get_current_user(request, db)
+    body = await request.json()
+    origin_url = body.get("origin_url", "https://plume-astrale.fr")
+
+    # Vérifier si déjà abonné
+    existing = await _get_active_subscription(db, user["id"])
+    if existing:
+        raise HTTPException(status_code=400, detail="Vous avez déjà un abonnement actif")
+
+    product = PRODUCTS["journal_quotidien"]
+    success_url = f"{origin_url}/mon-compte?subscription=success"
+    cancel_url = f"{origin_url}/mon-compte"
+
+    host_url = str(request.base_url)
+    webhook_url = f"{host_url}api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+
+    checkout_request = CheckoutSessionRequest(
+        amount=product["amount"],
+        currency=product["currency"],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "type": "subscription",
+            "product_id": "journal_quotidien",
+            "product_name": product["name"],
+            "user_id": user["id"],
+            "user_email": user["email"],
+        },
+    )
+
+    session = await stripe_checkout.create_checkout_session(checkout_request)
+
+    # Enregistrer la tentative
+    tx_doc = {
+        "id": str(uuid.uuid4()),
+        "session_id": session.session_id,
+        "type": "subscription",
+        "product_id": "journal_quotidien",
+        "product_name": product["name"],
+        "amount": product["amount"],
+        "currency": product["currency"],
+        "user_id": user["id"],
+        "user_email": user["email"],
+        "payment_status": "pending",
+        "status": "initiated",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.payment_transactions.insert_one(tx_doc)
+
+    return {"url": session.url, "session_id": session.session_id}
+
+
+@api_router.delete("/account/subscription")
+async def cancel_subscription(request: Request):
+    """❌ RÉSILIER L'ABONNEMENT"""
+    user = await get_current_user(request, db)
+    subscription = await _get_active_subscription(db, user["id"])
+    if not subscription:
+        raise HTTPException(status_code=404, detail="Aucun abonnement actif à résilier")
+
+    await db.subscriptions.update_one(
+        {"user_id": user["id"], "status": "active"},
+        {"$set": {"status": "cancelled", "cancelled_at": datetime.now(timezone.utc).isoformat()}},
+    )
+    return {"success": True, "message": "Abonnement résilié. Actif jusqu'à la fin de la période en cours."}
+
+
+# ── Journal quotidien ─────────────────────────────────────────────────────────
+
+@api_router.get("/journal/today")
+async def get_journal_today(request: Request):
+    """
+    📖 JOURNAL ASTRAL DU JOUR (abonnés uniquement)
+    Contenu personnalisé : guidance astrologique, affirmation, rituel, citation
+    """
+    user = await get_current_user(request, db)
+
+    if not await _is_subscriber(db, user["id"]):
+        raise HTTPException(
+            status_code=403,
+            detail="Le Journal Astral est réservé aux abonnés. Abonnez-vous depuis Mon Compte."
+        )
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    # Contenu du jour basé sur le profil astrologique de l'utilisateur
+    birth_date = user.get("birth_date", "1990-01-01")
+    birth_place = user.get("birth_place", "Paris")
+
+    try:
+        service = get_astrology_service()
+        zodiac_sign = service.get_zodiac_sign_from_date(birth_date)
+        zodiac_fr = service.get_zodiac_french_name(zodiac_sign)
+        daily = get_daily_content(zodiac_sign)
+    except Exception:
+        zodiac_sign = "Aries"
+        zodiac_fr = "Bélier"
+        daily = {}
+
+    # Affirmations positives par signe
+    affirmations = {
+        "Aries": "Je suis courageux(se) et je trace mon propre chemin avec audace.",
+        "Taurus": "J'attire l'abondance et la stabilité dans ma vie avec sérénité.",
+        "Gemini": "Ma curiosité est un don — j'apprends et je grandis chaque jour.",
+        "Cancer": "Mon intuition me guide vers ce qui est juste pour moi.",
+        "Leo": "Je rayonne de confiance et j'inspire ceux qui m'entourent.",
+        "Virgo": "Je fais confiance à mon discernement pour créer l'ordre dans ma vie.",
+        "Libra": "J'équilibre mes besoins et ceux des autres avec grâce.",
+        "Scorpio": "Ma profondeur est une force — je me transforme et je renaîs.",
+        "Sagittarius": "La liberté et la sagesse guident chacun de mes pas.",
+        "Capricorn": "Ma persévérance construit les fondations de mon succès.",
+        "Aquarius": "Mon originalité est un cadeau que j'offre au monde.",
+        "Pisces": "Ma sensibilité est une force — je ressens et je comprends profondément.",
+    }
+
+    rituels = {
+        "Aries": "Commencez la journée par 5 minutes de respiration dynamique.",
+        "Taurus": "Allumez une bougie et notez 3 choses pour lesquelles vous êtes reconnaissant(e).",
+        "Gemini": "Écrivez librement pendant 10 minutes — laissez vos pensées s'exprimer.",
+        "Cancer": "Méditez près de l'eau ou tenez un cristal de lune dans vos mains.",
+        "Leo": "Regardez-vous dans le miroir et dites à voix haute votre affirmation du jour.",
+        "Virgo": "Organisez un espace de votre maison — l'ordre extérieur apaise l'esprit.",
+        "Libra": "Créez de la beauté : fleurs, musique douce ou une tasse de thé parfumé.",
+        "Scorpio": "Brûlez symboliquement une pensée négative — laissez partir ce qui ne vous sert plus.",
+        "Sagittarius": "Marchez en pleine nature et observez les signes qui vous entourent.",
+        "Capricorn": "Écrivez vos 3 objectifs prioritaires du jour et cochez-les en fin de journée.",
+        "Aquarius": "Connectez-vous à une cause qui vous tient à cœur — même un petit geste compte.",
+        "Pisces": "Notez vos rêves de la nuit — votre inconscient vous envoie des messages.",
+    }
+
+    return {
+        "date": today,
+        "user": user["email"],
+        "signe": zodiac_fr,
+        "signe_en": zodiac_sign,
+        "horoscope_du_jour": daily.get("horoscope", ""),
+        "guidance": daily.get("conseil_spirituel", ""),
+        "affirmation": affirmations.get(zodiac_sign, "Je suis aligné(e) avec mon chemin de vie."),
+        "rituel": rituels.get(zodiac_sign, "Prenez un moment pour vous recentrer en silence."),
+        "citation": daily.get("citation", ""),
+        "phase_lunaire": daily.get("phase_lunaire", {}),
+    }
+
+
+# ── Réductions abonnés ────────────────────────────────────────────────────────
+
+@api_router.get("/account/discount")
+async def get_subscriber_discount(request: Request):
+    """
+    🎁 RÉDUCTION ABONNÉ
+    Retourne le pourcentage de réduction applicable sur les services
+    """
+    user = await get_current_user(request, db)
+    is_sub = await _is_subscriber(db, user["id"])
+
+    return {
+        "is_subscriber": is_sub,
+        "discount_percent": SUBSCRIBER_DISCOUNT_PERCENT if is_sub else 0,
+        "message": (
+            f"En tant qu'abonné, vous bénéficiez de {SUBSCRIBER_DISCOUNT_PERCENT}% de réduction sur tous nos services."
+            if is_sub
+            else "Abonnez-vous au Journal Astral pour bénéficier de 20% de réduction sur tous nos services."
+        ),
     }
 
 
