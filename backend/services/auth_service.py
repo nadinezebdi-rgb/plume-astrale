@@ -1,11 +1,11 @@
 """Authentication service - JWT auth, password hashing, user management"""
 import os
+import bcrypt as _bcrypt
 try:
     import jwt
 except ImportError:
     from jose import jwt
 from datetime import datetime, timezone, timedelta
-from passlib.context import CryptContext
 from fastapi import HTTPException, Request
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
@@ -13,15 +13,15 @@ JWT_SECRET = os.environ.get("JWT_SECRET", "plume-astrale-secret-key-2026")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRY_HOURS = 72
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    """Hash a password using bcrypt directly (compatible with all bcrypt versions)."""
+    return _bcrypt.hashpw(password.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    """Verify a plain password against a bcrypt hash."""
+    return _bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
 
 
 def create_token(user_id: str, email: str) -> str:
@@ -54,3 +54,4 @@ async def get_current_user(request: Request, db: AsyncIOMotorDatabase) -> dict:
     if not user:
         raise HTTPException(status_code=401, detail="Utilisateur introuvable")
     return user
+
