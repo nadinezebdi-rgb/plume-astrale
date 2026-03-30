@@ -1,0 +1,30 @@
+--- Navbar.js  ORIGINAL
++++ Navbar.js  MODIFIÉ
+
+Ajouter DANS le bloc "isAuthenticated" du DESKTOP, AVANT le bouton déconnexion :
+
+  {/* Lien Mon Compte */}
+  <Link
+    to="/mon-compte"
+    className={`flex items-center gap-1.5 text-[12px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-[#D4B46A]/15 whitespace-nowrap ${
+      location.pathname === '/mon-compte' ? 'bg-[#D4B46A]/12' : ''
+    }`}
+    style={{ border: '1px solid rgba(212,180,106,0.35)', color: '#D4B46A', letterSpacing: '0.08em', fontWeight: 400 }}
+    data-testid="navbar-mon-compte"
+  >
+    <User className="w-3.5 h-3.5" strokeWidth={1.5} />
+    Mon compte
+  </Link>
+
+
+Ajouter dans le MENU MOBILE, dans le bloc "isAuthenticated", AVANT le bouton déconnexion :
+
+  <Link
+    to="/mon-compte"
+    className="flex items-center gap-2 text-[13px] tracking-widest uppercase py-2 transition-colors duration-300"
+    style={{ color: location.pathname === '/mon-compte' ? '#D4B46A' : '#D4B46A', letterSpacing: '0.12em', fontWeight: 400 }}
+    data-testid="mobile-mon-compte"
+  >
+    <User className="w-4 h-4" strokeWidth={1.5} />
+    Mon compte
+  </Link>
