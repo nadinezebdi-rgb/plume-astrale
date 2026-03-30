@@ -1,0 +1,16 @@
+--- App.js  ORIGINAL
++++ App.js  MODIFIÉ
+
+Ajouter APRÈS la ligne :
+  import CharteConfiance from "./pages/CharteConfiance";
+
+INSÉRER :
+  import MonCompte from "./pages/MonCompte";
+
+
+Ajouter APRÈS la route :
+  <Route path="/charte-de-confiance" element={<CharteConfiance />} />
+
+INSÉRER :
+  {/* Mon Compte */}
+  <Route path="/mon-compte" element={<MonCompte />} />
