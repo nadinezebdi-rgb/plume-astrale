@@ -32,7 +32,7 @@ import CommandeSucces from "./pages/CommandeSucces";
 import PremiumLanding from "./pages/PremiumLanding";
 import PremiumExperience from "./pages/PremiumExperience";
 import CharteConfiance from "./pages/CharteConfiance";
-
+import MonCompte from "./pages/MonCompte";
 function App() {
   return (
     <AuthProvider>
@@ -80,7 +80,7 @@ function App() {
           {/* Livre imprimé */}
           <Route path="/livre" element={<Livre />} />
           <Route path="/commande/succes" element={<CommandeSucces />} />
-
+<Route path="/mon-compte" element={<MonCompte />} />
           {/* Pages légales / confiance */}
           <Route path="/charte-de-confiance" element={<CharteConfiance />} />
         </Routes>
