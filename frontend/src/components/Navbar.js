@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ArrowRight, Coins, LogOut, User, LogIn } from 'lucide-react';
+import { Menu, X, Coins, LogOut, User, LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const Navbar = () => {
@@ -24,10 +24,12 @@ const Navbar = () => {
     { to: '/', label: 'Accueil' },
     { to: '/cercle', label: 'Le Cercle' },
     { to: '/tarot-oui-non', label: 'Tirage' },
-    { to: '/formulaire', label: 'Th\u00e8me Astral' },
-    { to: '/numerologie', label: 'Num\u00e9rologie' },
+    { to: '/formulaire', label: 'Thème Astral' },
+    { to: '/numerologie', label: 'Numérologie' },
     { to: '/tarologie', label: 'Tarologie' },
-    { to: '/compatibilite-amoureuse', label: 'Compatibilit\u00e9' },
+    { to: '/compatibilite-amoureuse', label: 'Compatibilité' },
+    { to: '/quotidien', label: 'Journal' },
+    { to: '/karma-destin', label: 'Karma Destin' },
   ];
 
   const handleLogout = () => {
@@ -45,6 +47,7 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
+
           {/* Logo */}
           <Link
             to="/"
@@ -75,7 +78,20 @@ const Navbar = () => {
 
             {isAuthenticated ? (
               <>
-                {/* Credit balance */}
+                {/* Mon Compte */}
+                <Link
+                  to="/mon-compte"
+                  className={`flex items-center gap-1.5 text-[12px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-[#D4B46A]/15 whitespace-nowrap ${
+                    location.pathname === '/mon-compte' ? 'bg-[#D4B46A]/10' : ''
+                  }`}
+                  style={{ border: '1px solid rgba(212,180,106,0.4)', color: '#D4B46A', letterSpacing: '0.08em', fontWeight: 500, textShadow: '0 0 8px rgba(212,180,106,0.2)' }}
+                  data-testid="navbar-mon-compte"
+                >
+                  <User className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  Mon Compte
+                </Link>
+
+                {/* Crédits */}
                 <Link
                   to="/acheter-credits"
                   className="flex items-center gap-1.5 text-[12px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-[#D4B46A]/15 whitespace-nowrap"
@@ -85,10 +101,11 @@ const Navbar = () => {
                   <Coins className="w-3.5 h-3.5" strokeWidth={1.5} />
                   {creditBalance} crédits
                 </Link>
-                {/* User menu */}
+
+                {/* Déconnexion */}
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-1.5 text-[12px] tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-red-500/10 whitespace-nowrap"
+                  className="flex items-center gap-1.5 text-[12px] tracking-widests uppercase px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-red-500/10 whitespace-nowrap"
                   style={{ border: '1px solid rgba(212,180,106,0.25)', color: '#D4B46A', letterSpacing: '0.08em', fontWeight: 400 }}
                   data-testid="navbar-logout-btn"
                 >
@@ -158,6 +175,15 @@ const Navbar = () => {
 
               {isAuthenticated ? (
                 <>
+                  <Link
+                    to="/mon-compte"
+                    className="flex items-center gap-2 text-[13px] tracking-widest uppercase py-2 transition-colors duration-300"
+                    style={{ color: '#D4B46A', letterSpacing: '0.12em', fontWeight: 500 }}
+                    data-testid="mobile-mon-compte"
+                  >
+                    <User className="w-4 h-4" strokeWidth={1.5} />
+                    Mon Compte
+                  </Link>
                   <Link
                     to="/acheter-credits"
                     className="flex items-center gap-2 text-[13px] tracking-widest uppercase py-2 transition-colors duration-300"
