@@ -3,47 +3,47 @@
 @tailwind utilities;
 
 :root {
-  /* ── Fond principal : violet nuit légèrement éclairci (était #0C0918) ── */
-  --pa-bg:           #131024;
-  --pa-bg-deep:      #0D0B1E;
+  /* ── Fond principal : violet nuit profond ── */
+  --pa-bg:           #0E0920;
+  --pa-bg-deep:      #07051A;
 
-  /* ── Surfaces : plus visibles, meilleur contraste avec le fond ── */
-  --pa-surface:      #1E1A35;
-  --pa-surface-hover:#262145;
+  /* ── Surfaces ── */
+  --pa-surface:      #1A1535;
+  --pa-surface-hover:#231E48;
 
-  /* ── Textes : plus lumineux pour une lecture confortable ── */
-  --pa-heading:      #F5EEE0;      /* était #F0E6D3 — légèrement plus blanc */
-  --pa-body:         #CEC8DC;      /* était #B8B0C8 — +15% luminosité */
-  --pa-muted:        #8E88A8;      /* était #6E6588 — +20% luminosité */
+  /* ── Textes ── */
+  --pa-heading:      #F5EEE0;
+  --pa-body:         #CEC8DC;
+  --pa-muted:        #8E88A8;
 
-  /* ── Accent or : inchangé, reste la signature visuelle ── */
+  /* ── Accent or ── */
   --pa-accent:       #C5A059;
   --pa-accent-hover: #D4B46A;
 
-  /* ── Séparateurs et effets : légèrement plus visibles ── */
-  --pa-divider:      rgba(197, 160, 89, 0.18);   /* était 0.12 */
-  --pa-glass:        rgba(255, 255, 255, 0.05);  /* était 0.03 */
-  --pa-violet-glow:  rgba(120, 80, 200, 0.10);   /* était 0.08 */
+  /* ── Séparateurs et effets ── */
+  --pa-divider:      rgba(197, 160, 89, 0.18);
+  --pa-glass:        rgba(255, 255, 255, 0.05);
+  --pa-violet-glow:  rgba(140, 80, 220, 0.18);
 
-  /* ── Variables shadcn/ui mappées sur la nouvelle palette ── */
-  --background:           260 35% 10%;     /* légèrement plus clair */
+  /* ── Variables shadcn/ui ── */
+  --background:           260 45% 9%;
   --foreground:           35 40% 93%;
-  --card:                 260 30% 14%;     /* cartes plus visibles */
+  --card:                 260 38% 13%;
   --card-foreground:      35 40% 93%;
-  --popover:              260 30% 14%;
+  --popover:              260 38% 13%;
   --popover-foreground:   35 40% 93%;
   --primary:              40 45% 55%;
-  --primary-foreground:   260 35% 10%;
-  --secondary:            260 22% 18%;     /* +4% luminosité */
+  --primary-foreground:   260 45% 9%;
+  --secondary:            260 28% 17%;
   --secondary-foreground: 35 40% 93%;
-  --muted:                260 18% 20%;     /* +4% luminosité */
-  --muted-foreground:     260 15% 58%;     /* +8% lisibilité */
+  --muted:                260 22% 18%;
+  --muted-foreground:     260 15% 58%;
   --accent:               40 45% 55%;
-  --accent-foreground:    260 35% 10%;
+  --accent-foreground:    260 45% 9%;
   --destructive:          0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --border:               260 18% 22%;     /* bordures plus visibles */
-  --input:                260 22% 18%;
+  --border:               260 22% 20%;
+  --input:                260 28% 17%;
   --ring:                 40 45% 55%;
   --radius:               0.5rem;
 }
@@ -52,21 +52,62 @@ body {
   background: var(--pa-bg);
   color: var(--pa-body);
   font-family: 'DM Sans', sans-serif;
-  /* Amélioration du rendu texte pour la lisibilité */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* ── Amélioration globale du contraste des paragraphes ── */
+/* Dégradé violet de fond */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(110, 50, 200, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(80, 20, 180, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, rgba(30, 15, 60, 0.95) 0%, #07051A 100%);
+  pointer-events: none;
+}
+
+/* Étoiles fixes de fond */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.85) 0%, transparent 100%),
+    radial-gradient(1px 1px at 22% 38%, rgba(255,255,255,0.70) 0%, transparent 100%),
+    radial-gradient(1px 1px at 35% 8%,  rgba(255,255,255,0.90) 0%, transparent 100%),
+    radial-gradient(1px 1px at 48% 55%, rgba(255,255,255,0.65) 0%, transparent 100%),
+    radial-gradient(1px 1px at 62% 20%, rgba(255,255,255,0.80) 0%, transparent 100%),
+    radial-gradient(1px 1px at 75% 70%, rgba(255,255,255,0.75) 0%, transparent 100%),
+    radial-gradient(1px 1px at 88% 35%, rgba(255,255,255,0.85) 0%, transparent 100%),
+    radial-gradient(1px 1px at 5%  80%, rgba(255,255,255,0.60) 0%, transparent 100%),
+    radial-gradient(1px 1px at 17% 92%, rgba(255,255,255,0.70) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 65%, rgba(255,255,255,0.55) 0%, transparent 100%),
+    radial-gradient(1px 1px at 53% 88%, rgba(255,255,255,0.75) 0%, transparent 100%),
+    radial-gradient(1px 1px at 67% 48%, rgba(255,255,255,0.65) 0%, transparent 100%),
+    radial-gradient(1px 1px at 82% 12%, rgba(255,255,255,0.80) 0%, transparent 100%),
+    radial-gradient(1px 1px at 92% 60%, rgba(255,255,255,0.70) 0%, transparent 100%),
+    radial-gradient(1px 1px at 44% 30%, rgba(255,255,255,0.60) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 50%, rgba(200,160,255,0.70) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 75%, rgba(180,140,255,0.65) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 25%, rgba(210,170,255,0.75) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 90%, rgba(190,150,255,0.60) 0%, transparent 100%),
+    radial-gradient(1px 1px at 58% 42%, rgba(220,180,255,0.55) 0%, transparent 100%);
+  pointer-events: none;
+}
+
 p {
   line-height: 1.75;
 }
 
-/* ── Amélioration des zones de contenu (cards, panels) ── */
 [class*="bg-[var(--pa-surface)]"],
 .pa-card {
   background: var(--pa-surface);
   border: 1px solid var(--pa-divider);
 }
-
