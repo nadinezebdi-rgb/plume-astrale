@@ -33,7 +33,8 @@ import PremiumLanding from "./pages/PremiumLanding";
 import PremiumExperience from "./pages/PremiumExperience";
 import CharteConfiance from "./pages/CharteConfiance";
 import MonCompte from "./pages/MonCompte";
-
+{/* Mon Compte */}
+<Route path="/mon-compte" element={<MonCompte />} />
 function App() {
   return (
     <AuthProvider>
