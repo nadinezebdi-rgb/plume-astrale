@@ -33,6 +33,7 @@ import PremiumLanding from "./pages/PremiumLanding";
 import PremiumExperience from "./pages/PremiumExperience";
 import CharteConfiance from "./pages/CharteConfiance";
 import MonCompte from "./pages/MonCompte";
+
 function App() {
   return (
     <AuthProvider>
