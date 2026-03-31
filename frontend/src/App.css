@@ -2,7 +2,99 @@
   min-height: 100vh;
 }
 
-/* Animation de retournement de carte */
+/* ══════════════════════════════════════════════════
+   STARFIELD — fond violet étoilé scintillant
+   ══════════════════════════════════════════════════ */
+
+.starfield {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* ── Orbes / nébuleuses violettes ── */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: orb-pulse 14s ease-in-out infinite;
+}
+
+.orb-violet {
+  background: radial-gradient(circle, rgba(130, 60, 255, 0.22) 0%, rgba(80, 20, 180, 0.10) 50%, transparent 70%);
+}
+
+.orb-gold {
+  background: radial-gradient(circle, rgba(197, 160, 89, 0.14) 0%, rgba(140, 100, 40, 0.06) 50%, transparent 70%);
+}
+
+@keyframes orb-pulse {
+  0%, 100% { opacity: 0.7;  transform: scale(1);    }
+  33%       { opacity: 1;    transform: scale(1.08); }
+  66%       { opacity: 0.55; transform: scale(0.94); }
+}
+
+/* ── Étoiles scintillantes ── */
+.star {
+  position: absolute;
+  border-radius: 50%;
+  animation-name: twinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  opacity: 0;
+}
+
+@keyframes twinkle {
+  0%   { opacity: 0;   transform: scale(0.6); }
+  30%  { opacity: var(--peak-opacity, 0.9); transform: scale(1.2); }
+  50%  { opacity: calc(var(--peak-opacity, 0.9) * 0.5); transform: scale(0.9); }
+  70%  { opacity: var(--peak-opacity, 0.9); transform: scale(1.1); }
+  100% { opacity: 0;   transform: scale(0.6); }
+}
+
+@keyframes twinkle-slow {
+  0%   { opacity: 0;    transform: scale(0.7) rotate(0deg);   }
+  40%  { opacity: var(--peak-opacity, 0.85); transform: scale(1.3) rotate(15deg); }
+  60%  { opacity: calc(var(--peak-opacity, 0.85) * 0.45); transform: scale(0.95) rotate(-5deg); }
+  100% { opacity: 0;    transform: scale(0.7) rotate(0deg);   }
+}
+
+@keyframes twinkle-fast {
+  0%   { opacity: 0;   transform: scale(0.5); }
+  20%  { opacity: var(--peak-opacity, 1); transform: scale(1.4); }
+  40%  { opacity: calc(var(--peak-opacity, 1) * 0.3); transform: scale(0.8); }
+  60%  { opacity: calc(var(--peak-opacity, 1) * 0.8); transform: scale(1.2); }
+  80%  { opacity: calc(var(--peak-opacity, 1) * 0.2); transform: scale(0.7); }
+  100% { opacity: 0;   transform: scale(0.5); }
+}
+
+/* ── Étoiles filantes ── */
+.shooting-star {
+  position: absolute;
+  left: -5%;
+  height: 1.5px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.9) 40%,
+    rgba(212, 180, 106, 0.7) 70%,
+    transparent 100%
+  );
+  border-radius: 100%;
+  animation: shooting-star-anim 10s ease-in-out infinite;
+  opacity: 0;
+}
+
+@keyframes shooting-star-anim {
+  0%   { transform: translateX(0)    translateY(0)    rotate(-25deg); opacity: 0; }
+  5%   { opacity: 0.9; }
+  55%  { transform: translateX(700px) translateY(320px) rotate(-25deg); opacity: 0.5; }
+  70%  { transform: translateX(900px) translateY(410px) rotate(-25deg); opacity: 0; }
+  100% { transform: translateX(900px) translateY(410px) rotate(-25deg); opacity: 0; }
+}
+
+/* ── Animation de retournement de carte ── */
 .transform-style-preserve-3d {
   transform-style: preserve-3d;
 }
@@ -19,48 +111,28 @@
   transform: rotateY(0deg);
 }
 
-/* Animation de brillance pour les cartes révélées */
 @keyframes cardReveal {
-  0% {
-    opacity: 0;
-    transform: scale(0.8) rotateY(-180deg);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1.05) rotateY(-90deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotateY(0deg);
-  }
+  0%   { opacity: 0;   transform: scale(0.8) rotateY(-180deg); }
+  50%  { opacity: 0.5; transform: scale(1.05) rotateY(-90deg); }
+  100% { opacity: 1;   transform: scale(1) rotateY(0deg); }
 }
 
 .card-reveal-animation {
   animation: cardReveal 0.8s ease-out forwards;
 }
 
-/* Effet de lueur sur les cartes */
 @keyframes cardGlow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(197, 160, 89, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(197, 160, 89, 0.4);
-  }
+  0%, 100% { box-shadow: 0 0 20px rgba(197, 160, 89, 0.2); }
+  50%       { box-shadow: 0 0 40px rgba(197, 160, 89, 0.4); }
 }
 
 .card-mystical:hover {
   animation: cardGlow 2s ease-in-out infinite;
 }
 
-/* Animation de pulsation pour le bouton de révélation */
 @keyframes pulse-gold {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(197, 160, 89, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 15px rgba(197, 160, 89, 0);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(197, 160, 89, 0.4); }
+  50%       { box-shadow: 0 0 0 15px rgba(197, 160, 89, 0); }
 }
 
 .btn-mystical-filled {
@@ -70,4 +142,3 @@
 .btn-mystical-filled:hover {
   animation: none;
 }
-
