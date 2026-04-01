@@ -45,7 +45,7 @@ export default function Admin() {
       const res = await axios.get(`${API}/api/admin/stats`, { headers });
       setStats(res.data);
     } catch (e) {
-      setMsg('Erreur stats : ' + (e.response?.data?.detail || e.message));
+      { headers: { 'mon_espace': secret } }
     }
   }, [secret]);
 
