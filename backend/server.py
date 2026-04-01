@@ -2897,15 +2897,8 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
-    @app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
-    }
-
 
 # ─── ADMIN ROUTES ──────────────────────────────────────────────────────────────
-
-def check_admin(request: Request):
 
 def check_admin(request: Request):
     secret = request.headers.get("x-admin-secret", "")
@@ -2983,3 +2976,8 @@ async def admin_toggle_premium(request: Request):
     is_premium = body.get("is_premium", False)
     await db.users.update_one({"id": user_id}, {"$set": {"is_premium": is_premium}})
     return {"success": True, "is_premium": is_premium}
+
+# Health check endpoint for Kubernetes
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
