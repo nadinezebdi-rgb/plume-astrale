@@ -30,6 +30,29 @@ from services.streak_service import get_streak, do_checkin
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+# ─── EMAIL SERVICE ────────────────────────────────────────────────────────────
+
+async def send_email(to: str, subject: str, body: str):
+    try:
+        EMAIL = os.environ.get("EMAIL")
+        EMAIL_PASS = os.environ.get("EMAIL_PASS")
+        if not EMAIL or not EMAIL_PASS:
+            logger.warning("Email non configure (EMAIL / EMAIL_PASS manquants)")
+            return
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = f"Plume Astrale <{EMAIL}>"
+        msg["To"] = to
+        msg.attach(MIMEText(body, "html"))
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(EMAIL, EMAIL_PASS)
+            server.sendmail(EMAIL, to, msg.as_string())
+
+        logger.info(f"Email envoye a {to} — {subject}")
+    except Exception as e:
+        logger.error(f"Erreur email vers {to}: {e}")
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
