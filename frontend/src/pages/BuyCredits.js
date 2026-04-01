@@ -23,7 +23,7 @@ const PromoCodeSection = ({ token, onSuccess }) => {
       const res = await axios.post(`${API}/api/credits/promo`, { code }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSuccess(`${res.data.description} — ${res.data.credits_added} crédits ajoutés !`);
+      setSuccess(res.data.description + ' — ' + res.data.credits_added + ' credits ajoutes !');
       setCode('');
       if (onSuccess) onSuccess();
     } catch (err) {
@@ -36,8 +36,13 @@ const PromoCodeSection = ({ token, onSuccess }) => {
   return (
     <div className="text-center mb-10" data-testid="promo-section">
       {!open ? (
-        <button onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 text-xs transition-colors hover:text-[#C5A059]" style={{ color: 'var(--pa-muted)' }} data-testid="show-promo-btn">
-          <Tag className="w-3 h-3" /> J'ai un code promo
+        <button
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-1.5 text-xs transition-colors hover:text-[#C5A059]"
+          style={{ color: 'var(--pa-muted)' }}
+          data-testid="show-promo-btn"
+        >
+          <Tag className="w-3 h-3" /> Code promo
         </button>
       ) : (
         <div className="max-w-sm mx-auto space-y-2">
@@ -71,65 +76,62 @@ const PromoCodeSection = ({ token, onSuccess }) => {
   );
 };
 
-const STATIC_PACKS = [
+const PACKS = [
   {
     id: 'starter',
     name: 'Starter',
     credits: 20,
     amount: 4.99,
-    icon: <Star className="w-7 h-7" strokeWidth={1.5} />,
+    icon: Star,
     badge: null,
-    projections: [
-      '10 tirages Oui / Non',
-      '2 lectures astrologiques',
-    ],
+    projections: ['10 tirages Oui / Non', '2 lectures astrologiques'],
   },
   {
     id: 'popular',
     name: 'Populaire',
     credits: 120,
     amount: 19.99,
-    icon: <Sparkles className="w-7 h-7" strokeWidth={1.5} />,
-    badge: '🔥 Le plus choisi',
-    projections: [
-      '60 tirages Oui / Non',
-      '12 lectures approfondies',
-      '2 cartographies complètes',
-    ],
+    icon: Sparkles,
+    badge: 'Le plus choisi',
+    projections: ['60 tirages Oui / Non', '12 lectures approfondies', '2 cartographies'],
   },
   {
     id: 'premium',
     name: 'Premium',
     credits: 350,
     amount: 49,
-    icon: <Zap className="w-7 h-7" strokeWidth={1.5} />,
-    badge: '💎 Meilleure valeur',
-    projections: [
-      '175 tirages Oui / Non',
-      '35 lectures approfondies',
-      '5 cartographies complètes',
-    ],
+    icon: Zap,
+    badge: 'Meilleure valeur',
+    projections: ['175 tirages Oui / Non', '35 lectures approfondies', '5 cartographies'],
   },
+];
+
+const SERVICE_COSTS = [
+  { name: 'Tarot Oui / Non', cost: '1er tirage gratuit, puis 2 credits' },
+  { name: 'Lecture Tarot approfondie', cost: '10 credits' },
+  { name: 'Lecture astrologique', cost: '10 credits' },
+  { name: 'Numerologie', cost: '10 credits' },
+  { name: 'Cartographie Premium', cost: '60 credits' },
 ];
 
 export default function BuyCredits() {
   const { isAuthenticated, token, creditBalance, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [packs] = useState(STATIC_PACKS);
   const [loadingPack, setLoadingPack] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;
-    if (!isAuthenticated) { navigate('/connexion'); return; }
+    if (!isAuthenticated) { navigate('/connexion'); }
   }, [isAuthenticated, navigate, authLoading]);
 
   const handleBuy = async (packId) => {
     setLoadingPack(packId);
     try {
-      const res = await axios.post(`${API}/api/credits/checkout`, {
-        pack_id: packId,
-        origin_url: window.location.origin,
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.post(
+        `${API}/api/credits/checkout`,
+        { pack_id: packId, origin_url: window.location.origin },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       window.location.href = res.data.url;
     } catch (err) {
       alert(err.response?.data?.detail || 'Erreur');
@@ -143,9 +145,13 @@ export default function BuyCredits() {
       <div className="max-w-3xl mx-auto">
 
         {creditBalance <= 20 && (
-          <div className="mb-8 p-4 rounded-xl text-center" style={{ background: 'rgba(197,160,89,0.08)', border: '1px solid rgba(197,160,89,0.2)' }} data-testid="bonus-banner">
+          <div
+            className="mb-8 p-4 rounded-xl text-center"
+            style={{ background: 'rgba(197,160,89,0.08)', border: '1px solid rgba(197,160,89,0.2)' }}
+            data-testid="bonus-banner"
+          >
             <p className="text-sm" style={{ color: '#C5A059' }}>
-              20 crédits offerts à l'inscription pour commencer votre exploration
+              20 credits offerts a l&#39;inscription pour commencer votre exploration
             </p>
           </div>
         )}
@@ -153,23 +159,29 @@ export default function BuyCredits() {
         <div className="text-center mb-4">
           <div className="flex items-center justify-center gap-3 mb-3">
             <Coins className="w-6 h-6" style={{ color: '#C5A059' }} strokeWidth={1.5} />
-            <h1 className="text-3xl sm:text-4xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
-              Acheter des crédits
+            <h1
+              className="text-3xl sm:text-4xl"
+              style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}
+            >
+              Acheter des credits
             </h1>
           </div>
           <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>
-            Votre solde actuel : <span style={{ color: '#C5A059', fontWeight: 600 }} data-testid="current-balance">{creditBalance} crédits</span>
+            Votre solde actuel :
+            <span style={{ color: '#C5A059', fontWeight: 600 }} data-testid="current-balance">
+              {' '}{creditBalance} credits
+            </span>
           </p>
         </div>
 
         <p className="text-center text-sm mb-10" style={{ color: 'var(--pa-body)', opacity: 0.8 }}>
-          Chaque expérience est personnalisée à partir de vos données astrologiques.
+          Chaque experience est personnalisee a partir de vos donnees astrologiques.
         </p>
 
-        {/* Packs */}
         <div className="grid gap-5 md:grid-cols-3">
-          {packs.map((pack) => {
+          {PACKS.map((pack) => {
             const isPopular = pack.id === 'popular';
+            const Icon = pack.icon;
             return (
               <div
                 key={pack.id}
@@ -191,29 +203,31 @@ export default function BuyCredits() {
                   </div>
                 )}
                 <div className="flex flex-col items-center text-center pt-2">
-                  <div className="mb-3" style={{ color: '#C5A059' }}>{pack.icon}</div>
+                  <div className="mb-3" style={{ color: '#C5A059' }}>
+                    <Icon className="w-7 h-7" strokeWidth={1.5} />
+                  </div>
                   <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
                     {pack.name}
                   </h3>
                   <div className="text-3xl mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#C5A059', fontWeight: 400 }}>
-                    {pack.amount % 1 === 0 ? pack.amount : pack.amount.toFixed(2).replace('.', ',')} €
+                    {pack.amount % 1 === 0 ? pack.amount : pack.amount.toFixed(2).replace('.', ',')} &euro;
                   </div>
                   <p className="text-sm mb-1" style={{ color: 'var(--pa-body)' }}>
-                    {pack.credits} crédits
+                    {pack.credits} credits
                   </p>
                   <p className="text-xs mb-4" style={{ color: 'var(--pa-muted)' }}>
-                    {(pack.amount / pack.credits).toFixed(2).replace('.', ',')} € / crédit
+                    {(pack.amount / pack.credits).toFixed(2).replace('.', ',')} &euro; / credit
                   </p>
-
                   <div className="w-full mb-4 py-3 px-3 rounded-lg text-left" style={{ background: 'rgba(197,160,89,0.05)', border: '1px solid rgba(197,160,89,0.08)' }}>
                     <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: 'var(--pa-muted)', letterSpacing: '0.08em' }}>
-                      Exemple d'utilisation :
+                      Exemple :
                     </p>
                     {pack.projections.map((p, i) => (
-                      <p key={i} className="text-xs py-0.5" style={{ color: 'var(--pa-body)' }}>• {p}</p>
+                      <p key={i} className="text-xs py-0.5" style={{ color: 'var(--pa-body)' }}>
+                        &bull; {p}
+                      </p>
                     ))}
                   </div>
-
                   <button
                     onClick={() => handleBuy(pack.id)}
                     disabled={loadingPack === pack.id}
@@ -238,7 +252,7 @@ export default function BuyCredits() {
         <div className="flex items-center justify-center gap-2 mt-6 mb-6">
           <Shield className="w-4 h-4" style={{ color: 'var(--pa-muted)' }} strokeWidth={1.5} />
           <p className="text-xs" style={{ color: 'var(--pa-muted)' }} data-testid="no-expiry-note">
-            Les crédits n'expirent pas et peuvent être utilisés à votre rythme.
+            Les credits ne expirent pas et peuvent etre utilises a votre rythme.
           </p>
         </div>
 
@@ -246,16 +260,10 @@ export default function BuyCredits() {
 
         <div className="rounded-2xl p-6 md:p-8" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(197,160,89,0.1)' }}>
           <h2 className="text-xl mb-5 text-center" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
-            Que pouvez-vous faire avec vos crédits ?
+            Que faire avec vos credits ?
           </h2>
           <div className="space-y-3">
-            {[
-              { name: 'Tarot Oui / Non', cost: '1er tirage gratuit, puis 2 crédits' },
-              { name: 'Lecture Tarot approfondie', cost: '10 crédits' },
-              { name: 'Lecture astrologique', cost: '10 crédits' },
-              { name: 'Numérologie — Chemin d\'âme', cost: '10 crédits' },
-              { name: 'Cartographie Premium', cost: '60 crédits' },
-            ].map(s => (
+            {SERVICE_COSTS.map(s => (
               <div key={s.name} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(197,160,89,0.08)' }}>
                 <span className="text-sm" style={{ color: 'var(--pa-body)' }}>{s.name}</span>
                 <span className="text-sm font-medium" style={{ color: '#C5A059' }}>{s.cost}</span>
@@ -266,19 +274,31 @@ export default function BuyCredits() {
 
         <div className="mt-12 text-center">
           <h3 className="text-lg mb-5" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
-            Continuer l'exploration
+            Continuer l&#39;exploration
           </h3>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/tarot-oui-non" className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
-              style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', letterSpacing: '0.08em' }} data-testid="cta-tarot">
+            <Link to="/tarot-oui-non"
+              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
+              style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', letterSpacing: '0.08em' }}
+              data-testid="cta-tarot">
               Tirage tarot <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-            <Link to="/formulaire" className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
-              style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', letterSpacing: '0.08em' }} data-testid="cta-theme">
-              Thème astral <ArrowRight className="w-3.5 h-3.5" />
+            <Link to="/formulaire"
+              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
+              style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', letterSpacing: '0.08em' }}
+              data-testid="cta-theme">
+              Theme astral <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-            <Link to="/numerologie" className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
-              style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', letterSpacing: '0.08em' }} data-testid="cta-numerologie">
-              Numérologie <ArrowRight className="w-3.5 h-3.5" />
+            <Link to="/numerologie"
+              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-[#C5A059]/10"
+              style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', letterSpacing: '0.08em' }}
+              data-testid="cta-numerologie">
+              Numerologie <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
