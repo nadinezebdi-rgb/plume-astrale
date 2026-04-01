@@ -2897,3 +2897,84 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+    @app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+    # ─── ADMIN ROUTES ──────────────────────────────────────────────────────────────
+
+def check_admin(request: Request):
+    secret = request.headers.get("x-admin-secret", "")
+    if secret != os.environ.get("ADMIN_SECRET", ""):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+@api_router.get("/admin/stats")
+async def admin_stats(request: Request):
+    check_admin(request)
+    try:
+        total_users = await db.users.count_documents({})
+        premium_users = await db.users.count_documents({"is_premium": True})
+        from datetime import datetime, timezone
+        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        new_today = await db.users.count_documents({"created_at": {"$gte": today_start}})
+        pipeline_credits = [{"$group": {"_id": None, "total": {"$sum": "$credits"}}}]
+        credits_result = await db.wallets.aggregate(pipeline_credits).to_list(1)
+        total_credits = credits_result[0]["total"] if credits_result else 0
+        pipeline_revenue = [
+            {"$match": {"status": "paid"}},
+            {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
+        ]
+        revenue_result = await db.payments.aggregate(pipeline_revenue).to_list(1)
+        total_revenue = revenue_result[0]["total"] if revenue_result else 0
+        last_payments = await db.payments.find(
+            {"status": "paid"},
+            {"_id": 0, "email": 1, "amount": 1, "product": 1, "created_at": 1}
+        ).sort("created_at", -1).limit(10).to_list(10)
+        return {
+            "total_users": total_users,
+            "premium_users": premium_users,
+            "new_today": new_today,
+            "total_credits": total_credits,
+            "total_revenue": round(total_revenue, 2),
+            "last_payments": last_payments,
+        }
+    except Exception as e:
+        logger.error(f"Admin stats error: {e}")
+        return {"total_users": 0, "premium_users": 0, "new_today": 0,
+                "total_credits": 0, "total_revenue": 0, "last_payments": []}
+
+@api_router.get("/admin/users")
+async def admin_users(request: Request, page: int = 1, limit: int = 20):
+    check_admin(request)
+    skip = (page - 1) * limit
+    users = await db.users.find(
+        {},
+        {"_id": 0, "id": 1, "email": 1, "name": 1, "is_premium": 1, "created_at": 1}
+    ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+    total = await db.users.count_documents({})
+    for user in users:
+        uid = user.get("id", "")
+        wallet = await db.wallets.find_one({"user_id": uid}, {"_id": 0, "credits": 1})
+        user["credits"] = wallet["credits"] if wallet else 0
+    return {"users": users, "total": total, "page": page}
+
+@api_router.post("/admin/credits")
+async def admin_set_credits(request: Request):
+    check_admin(request)
+    body = await request.json()
+    user_id = body.get("user_id")
+    credits = int(body.get("credits", 0))
+    await db.wallets.update_one(
+        {"user_id": user_id},
+        {"$set": {"credits": credits}},
+        upsert=True
+    )
+    return {"success": True, "credits": credits}
+
+@api_router.post("/admin/premium")
+async def admin_toggle_premium(request: Request):
+    check_admin(request)
+    body = await request.json()
+    user_id = body.get("user_id")
+    is_premium = body.get("is_premium", False)
+    await db.users.update_one({"id": user_id}, {"$set": {"is_premium": is_premium}})
+    return {"success": True, "is_premium": is_premium}
