@@ -82,14 +82,18 @@ export default function Admin() {
     return () => clearInterval(interval);
   }, [autoRefresh, authed, fetchStats]);
 
-  const handleSetCredits = async (userId) => {
+ const handleSetCredits = async (userId) => {
     const credits = editCredits[userId];
     if (credits === undefined) return;
     try {
-      await axios.post(`${API}/api/admin/credits`, { user_id: userId, credits: parseInt(credits) }, { headers });
+      await axios.post(
+        `${API}/api/admin/credits`,
+        { user_id: userId, credits: parseInt(credits) },
+        { headers: { 'x-admin-secret': secret } }
+      );
       setMsg('Credits mis a jour !');
       fetchUsers(page);
-     { headers: { 'mon_espace': secret } }
+      setTimeout(() => setMsg(''), 3000);
     } catch (e) {
       setMsg('Erreur : ' + (e.response?.data?.detail || e.message));
     }
@@ -97,14 +101,19 @@ export default function Admin() {
 
   const handleTogglePremium = async (userId, current) => {
     try {
-      await axios.post(`${API}/api/admin/premium`, { user_id: userId, is_premium: !current }, { headers });
+      await axios.post(
+        `${API}/api/admin/premium`,
+        { user_id: userId, is_premium: !current },
+        { headers: { 'mon_espace': secret } }
+      );
       setMsg(!current ? 'Premium active !' : 'Premium desactive');
       fetchUsers(page);
-     { headers: { 'mon_espace': secret } }
+      setTimeout(() => setMsg(''), 3000);
     } catch (e) {
       setMsg('Erreur : ' + (e.response?.data?.detail || e.message));
     }
   };
+
 
   const bg = { minHeight: '100vh', background: '#0B0B0F', color: '#F0E6D3', fontFamily: 'DM Sans, sans-serif' };
 
