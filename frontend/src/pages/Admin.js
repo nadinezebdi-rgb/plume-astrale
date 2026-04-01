@@ -5,19 +5,12 @@ import { Users, TrendingUp, Coins, Crown, RefreshCw, Shield, Eye, EyeOff, Star, 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 const StatCard = ({ icon: Icon, label, value, color, sub }) => (
-  <div style={{
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(212,180,106,0.15)',
-    borderRadius: 16, padding: 24,
-    display: 'flex', flexDirection: 'column', gap: 8,
-  }}>
+  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,180,106,0.15)', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <span style={{ fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(212,180,106,0.6)' }}>{label}</span>
       <Icon style={{ width: 18, height: 18, color: color || '#C5A059' }} strokeWidth={1.5} />
     </div>
-    <div style={{ fontSize: 36, fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: color || '#F5EEE0' }}>
-      {value}
-    </div>
+    <div style={{ fontSize: 36, fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: color || '#F5EEE0' }}>{value}</div>
     {sub && <div style={{ fontSize: 12, color: 'rgba(212,180,106,0.5)' }}>{sub}</div>}
   </div>
 );
@@ -37,15 +30,15 @@ export default function Admin() {
   const [msg, setMsg] = useState('');
   const [autoRefresh, setAutoRefresh] = useState(false);
 
-  const headers = { 'x-admin-secret': secret };
-
   const fetchStats = useCallback(async () => {
     if (!secret) return;
     try {
-      const res = await axios.get(`${API}/api/admin/stats`, { headers });
+      const res = await axios.get(`${API}/api/admin/stats`, {
+        headers: { 'x-admin-secret': secret }
+      });
       setStats(res.data);
     } catch (e) {
-      { headers: { 'mon_espace': secret } }
+      setMsg('Erreur stats : ' + (e.response?.data?.detail || e.message));
     }
   }, [secret]);
 
@@ -53,10 +46,12 @@ export default function Admin() {
     if (!secret) return;
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/api/admin/users?page=${p}&limit=20`, { headers });
+      const res = await axios.get(`${API}/api/admin/users?page=${p}&limit=20`, {
+        headers: { 'x-admin-secret': secret }
+      });
       setUsers(res.data.users || []);
       setTotalUsers(res.data.total || 0);
-      { headers: { 'mon_espace': secret } }
+      setPage(p);
     } catch (e) {
       setMsg('Erreur users : ' + (e.response?.data?.detail || e.message));
     } finally {
@@ -74,15 +69,15 @@ export default function Admin() {
     if (!authed || !secret) return;
     fetchStats();
     fetchUsers(1);
-  }, [authed, secret]);
+  }, [authed, secret, fetchStats, fetchUsers]);
 
   useEffect(() => {
-    }, [authed, secret, fetchStats, fetchUsers]);
+    if (!autoRefresh || !authed) return;
     const interval = setInterval(() => { fetchStats(); }, 30000);
     return () => clearInterval(interval);
   }, [autoRefresh, authed, fetchStats]);
 
- const handleSetCredits = async (userId) => {
+  const handleSetCredits = async (userId) => {
     const credits = editCredits[userId];
     if (credits === undefined) return;
     try {
@@ -104,7 +99,7 @@ export default function Admin() {
       await axios.post(
         `${API}/api/admin/premium`,
         { user_id: userId, is_premium: !current },
-        { headers: { 'mon_espace': secret } }
+        { headers: { 'x-admin-secret': secret } }
       );
       setMsg(!current ? 'Premium active !' : 'Premium desactive');
       fetchUsers(page);
@@ -113,7 +108,6 @@ export default function Admin() {
       setMsg('Erreur : ' + (e.response?.data?.detail || e.message));
     }
   };
-
 
   const bg = { minHeight: '100vh', background: '#0B0B0F', color: '#F0E6D3', fontFamily: 'DM Sans, sans-serif' };
 
@@ -131,12 +125,8 @@ export default function Admin() {
       <div style={Object.assign({}, bg, { display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 80 })}>
         <div style={{ width: 360, padding: 40, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,180,106,0.2)', borderRadius: 20, textAlign: 'center' }}>
           <Shield style={{ width: 40, height: 40, color: '#C5A059', margin: '0 auto 16px' }} strokeWidth={1} />
-          <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, fontWeight: 300, color: '#F5EEE0', marginBottom: 8 }}>
-            Admin Panel
-          </h1>
-          <p style={{ fontSize: 12, color: 'rgba(212,180,106,0.5)', marginBottom: 28, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            Plume Astrale
-          </p>
+          <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, fontWeight: 300, color: '#F5EEE0', marginBottom: 8 }}>Admin Panel</h1>
+          <p style={{ fontSize: 12, color: 'rgba(212,180,106,0.5)', marginBottom: 28, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Plume Astrale</p>
           <div style={{ position: 'relative', marginBottom: 16 }}>
             <input
               type={showSecret ? 'text' : 'password'}
@@ -166,12 +156,8 @@ export default function Admin() {
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
           <div>
-            <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 32, fontWeight: 300, color: '#F5EEE0', margin: 0 }}>
-              Admin Dashboard
-            </h1>
-            <p style={{ fontSize: 12, color: 'rgba(212,180,106,0.5)', margin: '4px 0 0', letterSpacing: '0.1em' }}>
-              Plume Astrale — Vue en temps reel
-            </p>
+            <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 32, fontWeight: 300, color: '#F5EEE0', margin: 0 }}>Admin Dashboard</h1>
+            <p style={{ fontSize: 12, color: 'rgba(212,180,106,0.5)', margin: '4px 0 0', letterSpacing: '0.1em' }}>Plume Astrale — Vue en temps reel</p>
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <button onClick={() => setAutoRefresh(!autoRefresh)}
@@ -207,11 +193,9 @@ export default function Admin() {
               <StatCard icon={Coins} label="Credits Actifs" value={stats.total_credits} color="#D4B46A" sub="En circulation" />
             </div>
             <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(212,180,106,0.1)', borderRadius: 16, padding: 24 }}>
-              <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 300, color: '#F5EEE0', margin: '0 0 20px' }}>
-                Derniers paiements
-              </h2>
+              <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 300, color: '#F5EEE0', margin: '0 0 20px' }}>Derniers paiements</h2>
               {stats.last_payments.length === 0 ? (
-                <p style={{ color: 'rgba(212,180,106,0.4)', fontSize: 13 }}>Aucun paiement enregistre</p>
+                <p style={{ color: 'rgba(212,180,106,0.4)', fontSize: 13 }}>Aucun paiement</p>
               ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
@@ -243,14 +227,10 @@ export default function Admin() {
               <p style={{ fontSize: 13, color: 'rgba(212,180,106,0.5)' }}>{totalUsers} utilisateurs</p>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => fetchUsers(page - 1)} disabled={page <= 1}
-                  style={{ padding: '6px 16px', borderRadius: 999, fontSize: 12, cursor: page > 1 ? 'pointer' : 'default', border: '1px solid rgba(212,180,106,0.2)', background: 'transparent', color: '#D4B46A', opacity: page <= 1 ? 0.4 : 1 }}>
-                  Prev
-                </button>
+                  style={{ padding: '6px 16px', borderRadius: 999, fontSize: 12, cursor: 'pointer', border: '1px solid rgba(212,180,106,0.2)', background: 'transparent', color: '#D4B46A', opacity: page <= 1 ? 0.4 : 1 }}>Prev</button>
                 <span style={{ padding: '6px 12px', fontSize: 12, color: 'rgba(212,180,106,0.5)' }}>Page {page}</span>
                 <button onClick={() => fetchUsers(page + 1)} disabled={users.length < 20}
-                  style={{ padding: '6px 16px', borderRadius: 999, fontSize: 12, cursor: users.length >= 20 ? 'pointer' : 'default', border: '1px solid rgba(212,180,106,0.2)', background: 'transparent', color: '#D4B46A', opacity: users.length < 20 ? 0.4 : 1 }}>
-                  Suiv
-                </button>
+                  style={{ padding: '6px 16px', borderRadius: 999, fontSize: 12, cursor: 'pointer', border: '1px solid rgba(212,180,106,0.2)', background: 'transparent', color: '#D4B46A', opacity: users.length < 20 ? 0.4 : 1 }}>Suiv</button>
               </div>
             </div>
             {loading ? (
@@ -276,9 +256,7 @@ export default function Admin() {
                               onChange={e => setEditCredits(prev => ({ ...prev, [user.id]: e.target.value }))}
                               style={{ width: 70, padding: '4px 8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(212,180,106,0.2)', borderRadius: 8, color: '#D4B46A', fontSize: 13, outline: 'none' }} />
                             <button onClick={() => handleSetCredits(user.id)}
-                              style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', border: '1px solid rgba(197,160,89,0.4)', background: 'rgba(197,160,89,0.1)', color: '#C5A059' }}>
-                              OK
-                            </button>
+                              style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', border: '1px solid rgba(197,160,89,0.4)', background: 'rgba(197,160,89,0.1)', color: '#C5A059' }}>OK</button>
                           </div>
                         </td>
                         <td style={{ padding: '12px 16px' }}>
@@ -315,9 +293,11 @@ export default function Admin() {
               <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 300, color: '#F5EEE0', margin: '0 0 20px' }}>Historique</h2>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr>{['Email', 'Produit', 'Montant', 'Date'].map(h => (
-                    <th key={h} style={{ textAlign: 'left', padding: '8px 12px', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(212,180,106,0.5)', borderBottom: '1px solid rgba(212,180,106,0.08)' }}>{h}</th>
-                  ))}</tr>
+                  <tr>
+                    {['Email', 'Produit', 'Montant', 'Date'].map(h => (
+                      <th key={h} style={{ textAlign: 'left', padding: '8px 12px', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(212,180,106,0.5)', borderBottom: '1px solid rgba(212,180,106,0.08)' }}>{h}</th>
+                    ))}
+                  </tr>
                 </thead>
                 <tbody>
                   {stats.last_payments.map((p, i) => (
@@ -333,6 +313,7 @@ export default function Admin() {
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
