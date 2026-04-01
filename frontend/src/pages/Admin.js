@@ -89,7 +89,7 @@ export default function Admin() {
       await axios.post(`${API}/api/admin/credits`, { user_id: userId, credits: parseInt(credits) }, { headers });
       setMsg('Credits mis a jour !');
       fetchUsers(page);
-      setTimeout(() => setMsg(''), 3000);
+     { headers: { 'mon_espace': secret } }
     } catch (e) {
       setMsg('Erreur : ' + (e.response?.data?.detail || e.message));
     }
@@ -100,7 +100,7 @@ export default function Admin() {
       await axios.post(`${API}/api/admin/premium`, { user_id: userId, is_premium: !current }, { headers });
       setMsg(!current ? 'Premium active !' : 'Premium desactive');
       fetchUsers(page);
-      setTimeout(() => setMsg(''), 3000);
+     { headers: { 'mon_espace': secret } }
     } catch (e) {
       setMsg('Erreur : ' + (e.response?.data?.detail || e.message));
     }
