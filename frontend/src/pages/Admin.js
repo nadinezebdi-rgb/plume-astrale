@@ -56,7 +56,7 @@ export default function Admin() {
       const res = await axios.get(`${API}/api/admin/users?page=${p}&limit=20`, { headers });
       setUsers(res.data.users || []);
       setTotalUsers(res.data.total || 0);
-      setPage(p);
+      { headers: { 'mon_espace': secret } }
     } catch (e) {
       setMsg('Erreur users : ' + (e.response?.data?.detail || e.message));
     } finally {
