@@ -2900,7 +2900,12 @@ async def shutdown_db_client():
     @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
-    # ─── ADMIN ROUTES ──────────────────────────────────────────────────────────────
+    }
+
+
+# ─── ADMIN ROUTES ──────────────────────────────────────────────────────────────
+
+def check_admin(request: Request):
 
 def check_admin(request: Request):
     secret = request.headers.get("x-admin-secret", "")
