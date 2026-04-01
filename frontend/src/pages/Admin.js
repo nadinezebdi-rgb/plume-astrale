@@ -77,7 +77,7 @@ export default function Admin() {
   }, [authed, secret]);
 
   useEffect(() => {
-    if (!autoRefresh || !authed) return;
+    }, [authed, secret, fetchStats, fetchUsers]);
     const interval = setInterval(() => { fetchStats(); }, 30000);
     return () => clearInterval(interval);
   }, [autoRefresh, authed, fetchStats]);
