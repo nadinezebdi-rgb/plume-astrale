@@ -56,13 +56,39 @@ const KarmaDestin = () => {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/astrology/karma-destiny`, {
+      // Fetch karma-destiny from backend
+      const karmaPromise = fetch(`${API_URL}/api/astrology/karma-destiny`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (data.success) setResult(data);
+      }).then(r => r.json());
+
+      // Fetch natal chart from Astrology API via Netlify Function
+      const birthDate = new Date(formData.dateNaissance);
+      const [hh, mm] = (formData.heureNaissance || '12:00').split(':');
+      const natalPromise = fetch('/api/astrology/natal-chart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          day: birthDate.getDate(),
+          month: birthDate.getMonth() + 1,
+          year: birthDate.getFullYear(),
+          hour: parseInt(hh),
+          min: parseInt(mm),
+          lat: 48.8566,
+          lon: 2.3522,
+          tzone: 1,
+        }),
+      }).then(r => r.json()).catch(() => null);
+
+      const [karmaData, natalData] = await Promise.all([karmaPromise, natalPromise]);
+      if (karmaData.success) {
+        // Enrich karma result with natal chart data from Astrology API
+        if (natalData?.success) {
+          karmaData.natal_chart = natalData.data;
+        }
+        setResult(karmaData);
+      }
     } catch (e) {
       setError('Une erreur est survenue. Veuillez réessayer.');
     }
@@ -301,6 +327,50 @@ const KarmaDestin = () => {
               )}
 
               {/* Actions */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+
+              {/* Natal Chart from Astrology API */}
+              {result.natal_chart && (
+                <div className="rounded-2xl p-6 md:p-8 w-full" style={{ background: 'var(--pa-surface)', border: '1px solid rgba(197,160,89,0.2)' }}>
+                  <p className="text-xs tracking-widest uppercase mb-4" style={{ color: '#C5A059', letterSpacing: '0.12em' }}>
+                    ☿ Carte Natale — Astrology API
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    {result.natal_chart.soleil && (
+                      <div className="p-3 rounded-xl" style={{ background: 'rgba(197,160,89,0.06)', border: '1px solid rgba(197,160,89,0.15)' }}>
+                        <p className="text-xs uppercase tracking-widest mb-1" style={{ color: '#C5A059' }}>☉ Soleil</p>
+                        <p className="text-sm" style={{ color: 'var(--pa-heading)' }}>{result.natal_chart.soleil.signe}</p>
+                      </div>
+                    )}
+                    {result.natal_chart.lune && (
+                      <div className="p-3 rounded-xl" style={{ background: 'rgba(107,181,232,0.06)', border: '1px solid rgba(107,181,232,0.15)' }}>
+                        <p className="text-xs uppercase tracking-widest mb-1" style={{ color: '#6BB5E8' }}>☽ Lune</p>
+                        <p className="text-sm" style={{ color: 'var(--pa-heading)' }}>{result.natal_chart.lune.signe}</p>
+                      </div>
+                    )}
+                    {result.natal_chart.ascendant && (
+                      <div className="p-3 rounded-xl" style={{ background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.15)' }}>
+                        <p className="text-xs uppercase tracking-widest mb-1" style={{ color: '#A78BFA' }}>↑ Ascendant</p>
+                        <p className="text-sm" style={{ color: 'var(--pa-heading)' }}>{result.natal_chart.ascendant.signe}</p>
+                      </div>
+                    )}
+                  </div>
+                  {result.natal_chart.planetes && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {result.natal_chart.planetes.slice(0, 9).map((p, i) => (
+                        <div key={i} className="flex items-center gap-2 text-xs" style={{ color: 'var(--pa-body)' }}>
+                          <span style={{ color: '#C5A059' }}>{p.nom}</span>
+                          <span style={{ color: 'var(--pa-muted)' }}>→</span>
+                          <span>{p.signe}</span>
+                          {p.retrograde && <span className="text-red-400">℞</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              </div>
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <button onClick={() => { setResult(null); setShowForm(true); setUnlocked(false); }}
                   className="flex-1 py-3 rounded-xl text-xs uppercase tracking-widest transition-all hover:bg-[rgba(197,160,89,0.08)]"
