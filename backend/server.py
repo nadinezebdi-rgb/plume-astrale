@@ -59,9 +59,9 @@ async def register(req: RegisterRequest):
         "birth_date": req.birth_date
     }
     fake_db["users"][email] = user_doc
-    fake_db["wallets"][user_id] = {"credit_balance": 1000}
+    fake_db["wallets"][user_id] = {"credit_balance": 50}
     token = create_token(user_id, email)
-    return {"token": token, "user": user_doc, "credit_balance": 1000}
+    return {"token": token, "user": user_doc, "credit_balance": 50}
 
 @api_router.post("/auth/login")
 async def login(req: BaseModel): # Simplifié pour le test
