@@ -144,4 +144,13 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": "Erreur interne. Le service tourne en mode limité (sans base de données)."},
     )
 
+# Test direct sans router pour vérifier la connexion
+@app.get("/api/tarot/jour")
+async def test_tarot_direct():
+    return {"success": True, "message": "Connexion API OK", "data": {"horoscope": "Test réussi"}}
+
+@app.get("/api/daily/{sign}")
+async def test_daily_direct(sign: str):
+    return {"success": True, "sign": sign, "horoscope": "Le ciel est clair pour vous aujourd'hui !"}
+
 app.include_router(api_router)
