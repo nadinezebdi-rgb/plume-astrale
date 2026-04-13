@@ -112,7 +112,48 @@ async def get_daily(zodiac_sign: str):
 @api_router.post("/credits/use")
 async def use_credits(request: Request):
     return {"success": True, "credit_balance": 990}
+# --- ROUTE POUR LE CHAT ASTRO IA ---
 
+@api_router.post("/astro-chat")
+async def astro_chat_endpoint(request: Request):
+    try:
+        body = await request.json()
+        user_message = body.get("message", "")
+        user_data = body.get("user_data", {}) # Données de naissance
+
+        # On récupère tes clés depuis les variables d'environnement Render
+        user_id = os.environ.get('ASTROLOGY_API_USER_ID')
+        api_key = os.environ.get('ASTROLOGY_API_KEY')
+
+        import httpx
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://json-chat.astrologyapi.com/api/chat",
+                auth=(user_id, api_key),
+                json={
+                    "language": "fr",
+                    "question": user_message,
+                    "name": user_data.get("name", "Utilisateur"),
+                    "day": int(user_data.get("day", 1)),
+                    "month": int(user_data.get("month", 1)),
+                    "year": int(user_data.get("year", 1990)),
+                    "hour": int(user_data.get("hour", 12)),
+                    "min": int(user_data.get("min", 0)),
+                    "lat": float(user_data.get("lat", 48.8566)),
+                    "lon": float(user_data.get("lon", 2.3522)),
+                    "tzone": 1.0,
+                    "gender": "female"
+                },
+                timeout=30.0
+            )
+            
+            data = response.json()
+            # On renvoie la réponse de l'IA au frontend
+            return {"success": True, "answer": data.get("response", "L'astrologue réfléchit...")}
+
+    except Exception as e:
+        logger.error(f"Erreur Chat API: {e}")
+        return {"success": False, "message": "Désolé, l'astrologue est occupé."}
 # ─── CONFIGURATION FINALE ───
 
 # On inclut le router UNE SEULE FOIS
