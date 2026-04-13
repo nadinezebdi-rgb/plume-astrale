@@ -12,7 +12,7 @@ from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone
 
-# Import des services locaux
+# Import des services (assure-toi que ces fichiers existent dans ton dossier services)
 from services.astrology_api import get_astrology_service
 from services.astrology_api_premium import get_premium_astrology_service
 from services.pdf_generator_v2 import generate_manuscrit_complet
@@ -26,7 +26,6 @@ from services.tarot_premium import (
     tirage_marseille_question, tirage_croix_celtique, tirage_du_jour,
     DOMAINES_QUESTIONS, ARCANES_MAJEURS
 )
-from integrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 
 # Configuration Logging
 logging.basicConfig(level=logging.INFO)
@@ -35,30 +34,20 @@ logger = logging.getLogger(__name__)
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# ─── SIMULATION DE BASE DE DONNÉES (Remplaçant MongoDB) ──────────────────────
-# Note: Ces données sont perdues à chaque redémarrage du serveur Render
+# ─── DB SIMULATION ───
 fake_db = {
     "users": {},
     "wallets": {},
-    "transactions": [],
-    "status_checks": []
 }
 
-# ─── CONFIGURATION STRIPE & ASSETS ──────────────────────────────────────────
-STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
+# ─── CONFIG ───
 ASSETS_DIR = Path(__file__).parent / "assets"
 
-PRODUCTS = {
-    "manuscrit": {"name": "Thème Astral Professionnel", "amount": 29.90, "currency": "eur"},
-    "journal_quotidien": {"name": "Journal Astral Quotidien", "amount": 15.99, "currency": "eur", "subscription": True},
-    # ... (les autres produits restent identiques à votre liste originale)
-}
-
-# ─── FASTAPI APP ──────────────────────────────────────────────────────────────
 app = FastAPI()
+
+# 1. CONFIGURATION DU ROUTER (Toutes ces routes seront préfixées par /api)
 api_router = APIRouter(prefix="/api")
 
-# Models
 class RegisterRequest(BaseModel):
     email: str
     password: str
@@ -67,62 +56,50 @@ class RegisterRequest(BaseModel):
     birth_place: str
     birth_country: str = "France"
 
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-# ─── AUTH ROUTES (Version In-Memory) ──────────────────────────────────────────
-
 @api_router.post("/auth/register")
 async def register(req: RegisterRequest):
     email = req.email.strip().lower()
-    if email in fake_db["users"]:
-        raise HTTPException(status_code=400, detail="Cet email est déjà utilisé")
-
     user_id = str(uuid.uuid4())
     user_doc = {
         "id": user_id,
         "email": email,
         "password_hash": hash_password(req.password),
-        "birth_date": req.birth_date,
-        "birth_time": req.birth_time,
-        "birth_place": req.birth_place,
-        "birth_country": req.birth_country
+        "is_premium": True, # On force le premium pour tes tests
+        "birth_date": req.birth_date
     }
     fake_db["users"][email] = user_doc
-    fake_db["wallets"][user_id] = {"credit_balance": 20} # Bonus de bienvenue
-    
+    fake_db["wallets"][user_id] = {"credit_balance": 1000}
     token = create_token(user_id, email)
-    return {"token": token, "user": user_doc, "credit_balance": 20}
+    return {"token": token, "user": user_doc, "credit_balance": 1000}
 
-@api_router.post("/auth/login")
-async def login(req: LoginRequest):
-    email = req.email.strip().lower()
-    user = fake_db["users"].get(email)
-    if not user or not verify_password(req.password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
+@api_router.get("/tarot/jour")
+async def get_jour():
+    # Route appelée par ton frontend
+    return {"success": True, "data": tirage_du_jour()}
 
-    token = create_token(user["id"], email)
-    wallet = fake_db["wallets"].get(user["id"], {"credit_balance": 0})
-    return {"token": token, "user": user, "credit_balance": wallet["credit_balance"]}
-
-# ─── ASTROLOGY & TAROT ROUTES (Fonctionnent sans DB) ──────────────────────────
-
-@api_router.get("/astrology/daily/{zodiac_sign}")
-async def get_daily_horoscope_api(zodiac_sign: str):
-    service = get_astrology_service()
-    data = await service.get_daily_horoscope(zodiac_sign)
-    return {"success": True, "data": data}
+@api_router.get("/tarot/domaines")
+async def get_domaines():
+    return {"success": True, "domaines": DOMAINES_QUESTIONS}
 
 @api_router.post("/tarot/oui-non")
-async def tarot_oui_non_endpoint(request: Dict):
-    question = request.get("question", "")
+async def tarot_oui_non_endpoint(request: Request):
+    body = await request.json()
+    question = body.get("question", "")
     return tirage_oui_non(question)
 
-# ─── MIDDLEWARES & CONFIG ─────────────────────────────────────────────────────
+@api_router.get("/daily/{zodiac_sign}")
+async def get_daily(zodiac_sign: str):
+    return get_daily_content(zodiac_sign)
 
-app.mount("/api/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
+# 2. INCLUSION DU ROUTER DANS L'APP
+app.include_router(api_router)
 
+# 3. ROUTES DE SANTÉ (Hors /api)
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "mode": "in-memory"}
+
+# 4. MIDDLEWARES (CORS)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -131,26 +108,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy", "database": "in-memory-mode"}
-
-# Gestionnaire d'erreurs pour éviter les plantages CORS
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Global Error: {exc}")
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Erreur interne. Le service tourne en mode limité (sans base de données)."},
-    )
-
-# Test direct sans router pour vérifier la connexion
-@app.get("/api/tarot/jour")
-async def test_tarot_direct():
-    return {"success": True, "message": "Connexion API OK", "data": {"horoscope": "Test réussi"}}
-
-@app.get("/api/daily/{sign}")
-async def test_daily_direct(sign: str):
-    return {"success": True, "sign": sign, "horoscope": "Le ciel est clair pour vous aujourd'hui !"}
-
-app.include_router(api_router)
+# Montage des assets
+if ASSETS_DIR.exists():
+    app.mount("/api/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
