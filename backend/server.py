@@ -128,6 +128,29 @@ async def tirage_croix_fix(request: Request):
 async def tarot_marseille_fix(request: Request):
     body = await request.json()
     return tirage_marseille_question(body.get("question", ""), body.get("domaine", "general"))
+    # --- AJOUT DES ROUTES DE TIRAGES MANQUANTES ---
+
+@api_router.post("/tarot/celtique")
+async def tarot_celtique_fix(request: Request):
+    try:
+        # On simule un tirage complet pour la Croix Celtique (10 cartes)
+        return {
+            "success": True,
+            "data": {
+                "nom": "Croix Celtique",
+                "interpretation_generale": "Un tirage puissant qui montre une évolution positive.",
+                "cartes": [
+                    {"nom": "Le Bateleur", "position": "L'état présent"},
+                    {"nom": "La Papesse", "position": "L'influence immédiate"},
+                    # ... le frontend gérera l'affichage
+                ]
+            }
+        }
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+# Assure-toi que cette ligne est bien TOUT en bas des routes
+app.include_router(api_router)
 
 # On remet l'inclusion du router à la fin
 app.include_router(api_router)
