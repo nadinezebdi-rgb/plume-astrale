@@ -305,50 +305,479 @@ const Index = () => {
           style={{ background: 'radial-gradient(circle, rgba(244,197,66,0.12) 0%, transparent 70%)', filter: 'blur(80px)', animation: 'orbFloat 20s ease-in-out infinite' }} />
       </div>
 
-      {/* ─── HERO ─── */}
-     {/* ─── HERO ORACLE (NEW CORE BUSINESS) ─── */}
-<section className="relative z-10 min-h-screen flex items-center pt-20 pb-16 px-6 md:px-8" data-testid="hero-section">
-  <div className="max-w-5xl mx-auto flex flex-col items-center text-center w-full">
+      <section className="relative z-10 min-h-screen flex items-center justify-center px-6 text-center overflow-hidden">
+
+  {/* Aura mystique */}
+  <div className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-30"
+    style={{
+      background: 'radial-gradient(circle, rgba(232,121,249,0.4), transparent)',
+      animation: 'pulse 6s infinite'
+    }}
+  />
+
+  <div className="max-w-2xl mx-auto relative z-10">
 
     <p className="text-xs uppercase tracking-[0.3em] mb-4"
-      style={{ fontFamily: 'Inter, sans-serif', color: '#E879F9', letterSpacing: '0.3em', fontWeight: 500 }}>
+      style={{ color: '#E879F9' }}>
       Oracle Personnel
     </p>
 
-    <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl mb-5"
-      style={{ fontFamily: 'Cinzel, serif', fontWeight: 600, color: '#F8FAFC', lineHeight: 1.05 }}>
+    <h1 className="text-5xl md:text-6xl mb-6"
+      style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC' }}>
       Pose ta question<br />à ton Oracle
     </h1>
 
-    <p className="text-lg max-w-xl mb-8"
-      style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.6)' }}>
-      Une réponse claire pour ce qui compte vraiment : amour, décisions, avenir.
+    <p className="mb-8 text-lg opacity-70">
+      Une réponse claire pour ce qui te traverse en ce moment.
     </p>
 
-    {/* CTA PRINCIPAL */}
-    <div className="flex flex-col sm:flex-row gap-4">
-      <CosmicBtn
-        onClick={() => navigate('/oracle')}
-        testId="cta-oracle-main"
-      >
-        🔮 Consulter mon Oracle
-      </CosmicBtn>
-
-      <CosmicBtn
-        onClick={() => navigate('/tarot-oui-non')}
-        secondary
-      >
-        Tester gratuitement
-      </CosmicBtn>
+    {/* 🔮 INPUT MYSTIQUE */}
+    <div className="mb-6">
+      <input
+        placeholder="Ex : Vais-je prendre la bonne décision ?"
+        className="w-full px-6 py-4 rounded-full text-center"
+        style={{
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(232,121,249,0.3)',
+          color: '#fff',
+          backdropFilter: 'blur(10px)'
+        }}
+      />
     </div>
 
-    {/* 🔥 PREUVE SOCIALE */}
-    <p className="text-xs mt-6 opacity-60"
-      style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.5)' }}>
-      +2 000 consultations déjà réalisées
+    {/* CTA */}
+    <button
+      onClick={() => navigate('/oracle')}
+      className="px-8 py-4 rounded-full text-sm font-semibold transition-all hover:scale-105"
+      style={{
+        background: 'linear-gradient(135deg, #F4C542, #E879F9)',
+        color: '#0F172A',
+        boxShadow: '0 0 25px rgba(232,121,249,0.4)'
+      }}
+    >
+      🔮 Consulter mon Oracle
+    </button>
+
+    {/* preuve sociale */}
+    <p className="text-xs mt-6 opacity-50">
+      +2 000 consultations réalisées
     </p>
 
   </div>
+</section><section className="relative z-10 min-h-screen flex items-center justify-center px-6 text-center overflow-hidden">
+
+  {/* Aura mystique */}
+  <div className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-30"
+    style={{
+      background: 'radial-gradient(circle, rgba(232,121,249,0.4), transparent)',
+      animation: 'pulse 6s infinite'
+    }}
+  />
+
+  <div className="max-w-2xl mx-auto relative z-10">
+
+    <p className="text-xs uppercase tracking-[0.3em] mb-4"
+      style={{ color: '#E879F9' }}>
+      Oracle Personnel
+    </p>
+
+    <h1 className="text-5xl md:text-6xl mb-6"
+      style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC' }}>
+      Pose ta question<br />à ton Oracle
+    </h1>
+
+    <p className="mb-8 text-lg opacity-70">
+      Une réponse claire pour ce qui te traverse en ce moment.
+    </p>
+
+    {/* 🔮 INPUT MYSTIQUE */}
+    <div className="mb-6">
+      <input
+        placeholder="Ex : Vais-je prendre la bonne décision ?"
+        className="w-full px-6 py-4 rounded-full text-center"
+        style={{
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(232,121,249,0.3)',
+          color: '#fff',
+          backdropFilter: 'blur(10px)'
+        }}
+      />
+    </div>
+
+    {/* CTA */}
+    <button
+      onClick={() => navigate('/oracle')}
+      className="px-8 py-4 rounded-full text-sm font-semibold transition-all hover:scale-105"
+      style={{
+        background: 'linear-gradient(135deg, #F4C542, #E879F9)',
+        color: '#0F172A',
+        boxShadow: '0 0 25px rgba(232,121,249,0.4)'
+      }}
+    >
+      🔮 Consulter mon Oracle
+    </button>
+
+    {/* preuve sociale */}
+    <p className="text-xs mt-6 opacity-50">
+      +2 000 consultations réalisées
+    </p>
+
+  </div>
+</section><section className="relative z-10 min-h-screen flex items-center justify-center px-6 text-center overflow-hidden">
+
+  {/* Aura mystique */}
+  <div className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-30"
+    style={{
+      background: 'radial-gradient(circle, rgba(232,121,249,0.4), transparent)',
+      animation: 'pulse 6s infinite'
+    }}
+  />
+
+  <div className="max-w-2xl mx-auto relative z-10">
+
+    <p className="text-xs uppercase tracking-[0.3em] mb-4"
+      style={{ color: '#E879F9' }}>
+      Oracle Personnel
+    </p>
+
+    <h1 className="text-5xl md:text-6xl mb-6"
+      style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC' }}>
+      Pose ta question<br />à ton Oracle
+    </h1>
+
+    <p className="mb-8 text-lg opacity-70">
+      Une réponse claire pour ce qui te traverse en ce moment.
+    </p>
+
+    {/* 🔮 INPUT MYSTIQUE */}
+    <div className="mb-6">
+      <input
+        placeholder="Ex : Vais-je prendre la bonne décision ?"
+        className="w-full px-6 py-4 rounded-full text-center"
+        style={{
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(232,121,249,0.3)',
+          color: '#fff',
+          backdropFilter: 'blur(10px)'
+        }}
+      />
+    </div>
+
+    {/* CTA */}
+    <button
+      onClick={() => navigate('/oracle')}
+      className="px-8 py-4 rounded-full text-sm font-semibold transition-all hover:scale-105"
+      style={{
+        background: 'linear-gradient(135deg, #F4C542, #E879F9)',
+        color: '#0F172A',
+        boxShadow: '0 0 25px rgba(232,121,249,0.4)'
+      }}
+    >
+      🔮 Consulter mon Oracle
+    </button>
+
+    {/* preuve sociale */}
+    <p className="text-xs mt-6 opacity-50">
+      +2 000 consultations réalisées
+    </p>
+
+  </div>
+</section><section className="relative z-10 min-h-screen flex items-center justify-center px-6 text-center overflow-hidden">
+
+  {/* Aura mystique */}
+  <div className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-30"
+    style={{
+      background: 'radial-gradient(circle, rgba(232,121,249,0.4), transparent)',
+      animation: 'pulse 6s infinite'
+    }}
+  />
+
+  <div className="max-w-2xl mx-auto relative z-10">
+
+    <p className="text-xs uppercase tracking-[0.3em] mb-4"
+      style={{ color: '#E879F9' }}>
+      Oracle Personnel
+    </p>
+
+    <h1 className="text-5xl md:text-6xl mb-6"
+      style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC' }}>
+      Pose ta question<br />à ton Oracle
+    </h1>
+
+    <p className="mb-8 text-lg opacity-70">
+      Une réponse claire pour ce qui te traverse en ce moment.
+    </p>
+
+    {/* 🔮 INPUT MYSTIQUE */}
+    <div className="mb-6">
+      <input
+        placeholder="Ex : Vais-je prendre la bonne décision ?"
+        className="w-full px-6 py-4 rounded-full text-center"
+        style={{
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(232,121,249,0.3)',
+          color: '#fff',
+          backdropFilter: 'blur(10px)'
+        }}
+      />
+    </div>
+
+    {/* CTA */}
+    <button
+      onClick={() => navigate('/oracle')}
+      className="px-8 py-4 rounded-full text-sm font-semibold transition-all hover:scale-105"
+      style={{
+        background: 'linear-gradient(135deg, #F4C542, #E879F9)',
+        color: '#0F172A',
+        boxShadow: '0 0 25px rgba(232,121,249,0.4)'
+      }}
+    >
+      🔮 Consulter mon Oracle
+    </button>
+
+    {/* preuve sociale */}
+    <p className="text-xs mt-6 opacity-50">
+      +2 000 consultations réalisées
+    </p>
+
+  </div>
+</section><section className="relative z-10 min-h-screen flex items-center justify-center px-6 text-center overflow-hidden">
+
+  {/* Aura mystique */}
+  <div className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-30"
+    style={{
+      background: 'radial-gradient(circle, rgba(232,121,249,0.4), transparent)',
+      animation: 'pulse 6s infinite'
+    }}
+  />
+
+  <div className="max-w-2xl mx-auto relative z-10">
+
+    <p className="text-xs uppercase tracking-[0.3em] mb-4"
+      style={{ color: '#E879F9' }}>
+      Oracle Personnel
+    </p>
+
+    <h1 className="text-5xl md:text-6xl mb-6"
+      style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC' }}>
+      Pose ta question<br />à ton Oracle
+    </h1>
+
+    <p className="mb-8 text-lg opacity-70">
+      Une réponse claire pour ce qui te traverse en ce moment.
+    </p>
+
+    {/* 🔮 INPUT MYSTIQUE */}
+    <div className="mb-6">
+      <input
+        placeholder="Ex : Vais-je prendre la bonne décision ?"
+        className="w-full px-6 py-4 rounded-full text-center"
+        style={{
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(232,121,249,0.3)',
+          color: '#fff',
+          backdropFilter: 'blur(10px)'
+        }}
+      />
+    </div>
+
+    {/* CTA */}
+    <button
+      onClick={() => navigate('/oracle')}
+      className="px-8 py-4 rounded-full text-sm font-semibold transition-all hover:scale-105"
+      style={{
+        background: 'linear-gradient(135deg, #F4C542, #E879F9)',
+        color: '#0F172A',
+        boxShadow: '0 0 25px rgba(232,121,249,0.4)'
+      }}
+    >
+      🔮 Consulter mon Oracle
+    </button>
+
+    {/* preuve sociale */}
+    <p className="text-xs mt-6 opacity-50">
+      +2 000 consultations réalisées
+    </p>
+
+  </div>
+</section><section className="relative z-10 min-h-screen flex items-center justify-center px-6 text-center overflow-hidden">
+
+  {/* Aura mystique */}
+  <div className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-30"
+    style={{
+      background: 'radial-gradient(circle, rgba(232,121,249,0.4), transparent)',
+      animation: 'pulse 6s infinite'
+    }}
+  />
+
+  <div className="max-w-2xl mx-auto relative z-10">
+
+    <p className="text-xs uppercase tracking-[0.3em] mb-4"
+      style={{ color: '#E879F9' }}>
+      Oracle Personnel
+    </p>
+
+    <h1 className="text-5xl md:text-6xl mb-6"
+      style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC' }}>
+      Pose ta question<br />à ton Oracle
+    </h1>
+
+    <p className="mb-8 text-lg opacity-70">
+      Une réponse claire pour ce qui te traverse en ce moment.
+    </p>
+
+    {/* 🔮 INPUT MYSTIQUE */}
+    <div className="mb-6">
+      <input
+        placeholder="Ex : Vais-je prendre la bonne décision ?"
+        className="w-full px-6 py-4 rounded-full text-center"
+        style={{
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(232,121,249,0.3)',
+          color: '#fff',
+          backdropFilter: 'blur(10px)'
+        }}
+      />
+    </div>
+
+    {/* CTA */}
+    <button
+      onClick={() => navigate('/oracle')}
+      className="px-8 py-4 rounded-full text-sm font-semibold transition-all hover:scale-105"
+      style={{
+        background: 'linear-gradient(135deg, #F4C542, #E879F9)',
+        color: '#0F172A',
+        boxShadow: '0 0 25px rgba(232,121,249,0.4)'
+      }}
+    >
+      🔮 Consulter mon Oracle
+    </button>
+
+    {/* preuve sociale */}
+    <p className="text-xs mt-6 opacity-50">
+      +2 000 consultations réalisées
+    </p>
+
+  </div>
+</section><section className="relative z-10 min-h-screen flex items-center justify-center px-6 text-center overflow-hidden">
+
+  {/* Aura mystique */}
+  <div className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-30"
+    style={{
+      background: 'radial-gradient(circle, rgba(232,121,249,0.4), transparent)',
+      animation: 'pulse 6s infinite'
+    }}
+  />
+
+  <div className="max-w-2xl mx-auto relative z-10">
+
+    <p className="text-xs uppercase tracking-[0.3em] mb-4"
+      style={{ color: '#E879F9' }}>
+      Oracle Personnel
+    </p>
+
+    <h1 className="text-5xl md:text-6xl mb-6"
+      style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC' }}>
+      Pose ta question<br />à ton Oracle
+    </h1>
+
+    <p className="mb-8 text-lg opacity-70">
+      Une réponse claire pour ce qui te traverse en ce moment.
+    </p>
+
+    {/* 🔮 INPUT MYSTIQUE */}
+    <div className="mb-6">
+      <input
+        placeholder="Ex : Vais-je prendre la bonne décision ?"
+        className="w-full px-6 py-4 rounded-full text-center"
+        style={{
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(232,121,249,0.3)',
+          color: '#fff',
+          backdropFilter: 'blur(10px)'
+        }}
+      />
+    </div>
+
+    {/* CTA */}
+    <button
+      onClick={() => navigate('/oracle')}
+      className="px-8 py-4 rounded-full text-sm font-semibold transition-all hover:scale-105"
+      style={{
+        background: 'linear-gradient(135deg, #F4C542, #E879F9)',
+        color: '#0F172A',
+        boxShadow: '0 0 25px rgba(232,121,249,0.4)'
+      }}
+    >
+      🔮 Consulter mon Oracle
+    </button>
+
+    {/* preuve sociale */}
+    <p className="text-xs mt-6 opacity-50">
+      +2 000 consultations réalisées
+    </p>
+
+  </div>
+</section><section className="relative z-10 min-h-screen flex items-center justify-center px-6 text-center overflow-hidden">
+
+  {/* Aura mystique */}
+  <div className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-30"
+    style={{
+      background: 'radial-gradient(circle, rgba(232,121,249,0.4), transparent)',
+      animation: 'pulse 6s infinite'
+    }}
+  />
+
+  <div className="max-w-2xl mx-auto relative z-10">
+
+    <p className="text-xs uppercase tracking-[0.3em] mb-4"
+      style={{ color: '#E879F9' }}>
+      Oracle Personnel
+    </p>
+
+    <h1 className="text-5xl md:text-6xl mb-6"
+      style={{ fontFamily: 'Cinzel, serif', color: '#F8FAFC' }}>
+      Pose ta question<br />à ton Oracle
+    </h1>
+
+    <p className="mb-8 text-lg opacity-70">
+      Une réponse claire pour ce qui te traverse en ce moment.
+    </p>
+
+    {/* 🔮 INPUT MYSTIQUE */}
+    <div className="mb-6">
+      <input
+        placeholder="Ex : Vais-je prendre la bonne décision ?"
+        className="w-full px-6 py-4 rounded-full text-center"
+        style={{
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(232,121,249,0.3)',
+          color: '#fff',
+          backdropFilter: 'blur(10px)'
+        }}
+      />
+    </div>
+
+    {/* CTA */}
+    <button
+      onClick={() => navigate('/oracle')}
+      className="px-8 py-4 rounded-full text-sm font-semibold transition-all hover:scale-105"
+      style={{
+        background: 'linear-gradient(135deg, #F4C542, #E879F9)',
+        color: '#0F172A',
+        boxShadow: '0 0 25px rgba(232,121,249,0.4)'
+      }}
+    >
+      🔮 Consulter mon Oracle
+    </button>
+
+    {/* preuve sociale */}
+    <p className="text-xs mt-6 opacity-50">
+      +2 000 consultations réalisées
+    </p>
+
+  </div>
+
 </section>
       {/* ─── INTERACTIVE NATAL WHEEL ─── */}
       <section className="relative z-10 py-16 px-6 md:px-8" data-testid="section-natal-wheel">
