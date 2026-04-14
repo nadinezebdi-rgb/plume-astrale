@@ -33,7 +33,9 @@ import PremiumExperience from "./pages/PremiumExperience";
 import CharteConfiance from "./pages/CharteConfiance";
 import MonCompte from "./pages/MonCompte";
 import Admin from "./pages/Admin";
+import Oracle from "./pages/Oracle";
 
+<Route path="/oracle" element={<Oracle />} />
 function App() {
   return (
     <AuthProvider>
