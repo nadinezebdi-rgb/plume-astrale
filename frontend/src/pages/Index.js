@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Sparkles, Eye, Moon, Heart, Hash, TrendingUp, Flame } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import SEO from '@/components/SEO';
-import TirageDuJour from '@/components/TirageDuJour';
-import NatalWheel from '@/components/NatalWheel';
-import ShareableCard from '@/components/ShareableCard';
+import { useAuth } from '../context/AuthContext';
+import SEO from '../components/SEO';
+import TirageDuJour from '../components/TirageDuJour';
+import NatalWheel from '../components/NatalWheel';
+import ShareableCard from '../components/ShareableCard';
 
 const PLUME_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/v8g1i6qn_une%20plume.png";
 const OEIL_IMG = "https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/lkljttvo_img1.png";
