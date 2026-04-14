@@ -306,42 +306,50 @@ const Index = () => {
       </div>
 
       {/* ─── HERO ─── */}
-      <section className="relative z-10 min-h-screen flex items-center pt-20 pb-16 px-6 md:px-8" data-testid="hero-section">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10 md:gap-16 w-full">
-          <div className="flex-1 text-center md:text-left">
-            <p className="text-xs uppercase tracking-[0.3em] mb-4 animate-fade-in"
-              style={{ fontFamily: 'Inter, sans-serif', color: '#E879F9', letterSpacing: '0.3em', fontWeight: 500 }}>
-              Guidance Cosmique Personnalisee
-            </p>
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl mb-5"
-              style={{ fontFamily: 'Cinzel, serif', fontWeight: 600, color: '#F8FAFC', lineHeight: 1.05, letterSpacing: '0.02em' }}>
-              Plume<br />Astrale
-            </h1>
-            <p className="text-xl sm:text-2xl md:text-3xl mb-6 leading-snug"
-              style={{ fontFamily: 'Playfair Display, serif', fontWeight: 400, color: '#F8FAFC', opacity: 0.85, fontStyle: 'italic' }}>
-              Lorsque certaines periodes deviennent floues,
-              il est possible de les comprendre.
-            </p>
-            <p className="text-base max-w-lg mb-8 mx-auto md:mx-0"
-              style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.6)', lineHeight: '1.8', fontWeight: 300 }}>
-              Un espace de guidance symbolique, fonde sur des calculs astrologiques precis et une interpretation experte.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-              <CosmicBtn onClick={() => navigate('/formulaire')} testId="cta-discover">
-                <Sparkles className="w-4 h-4" /> Decouvrir mon analyse
-              </CosmicBtn>
-              <CosmicBtn onClick={() => navigate('/tarot-oui-non')} testId="cta-tarot-entry" secondary>
-                Recevoir une reponse <ArrowRight className="w-4 h-4" />
-              </CosmicBtn>
-            </div>
-          </div>
-          <div className="w-48 md:w-64 lg:w-80 flex-shrink-0">
-            <img src={PLUME_IMG} alt="" className="w-full h-auto animate-pulse-slow"
-              style={{ filter: 'drop-shadow(0 0 40px rgba(232,121,249,0.2)) drop-shadow(0 0 80px rgba(139,92,246,0.15))' }} />
-          </div>
-        </div>
-      </section>
+     {/* ─── HERO ORACLE (NEW CORE BUSINESS) ─── */}
+<section className="relative z-10 min-h-screen flex items-center pt-20 pb-16 px-6 md:px-8" data-testid="hero-section">
+  <div className="max-w-5xl mx-auto flex flex-col items-center text-center w-full">
 
+    <p className="text-xs uppercase tracking-[0.3em] mb-4"
+      style={{ fontFamily: 'Inter, sans-serif', color: '#E879F9', letterSpacing: '0.3em', fontWeight: 500 }}>
+      Oracle Personnel
+    </p>
+
+    <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl mb-5"
+      style={{ fontFamily: 'Cinzel, serif', fontWeight: 600, color: '#F8FAFC', lineHeight: 1.05 }}>
+      Pose ta question<br />à ton Oracle
+    </h1>
+
+    <p className="text-lg max-w-xl mb-8"
+      style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.6)' }}>
+      Une réponse claire pour ce qui compte vraiment : amour, décisions, avenir.
+    </p>
+
+    {/* CTA PRINCIPAL */}
+    <div className="flex flex-col sm:flex-row gap-4">
+      <CosmicBtn
+        onClick={() => navigate('/oracle')}
+        testId="cta-oracle-main"
+      >
+        🔮 Consulter mon Oracle
+      </CosmicBtn>
+
+      <CosmicBtn
+        onClick={() => navigate('/tarot-oui-non')}
+        secondary
+      >
+        Tester gratuitement
+      </CosmicBtn>
+    </div>
+
+    {/* 🔥 PREUVE SOCIALE */}
+    <p className="text-xs mt-6 opacity-60"
+      style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(248,250,252,0.5)' }}>
+      +2 000 consultations déjà réalisées
+    </p>
+
+  </div>
+</section>
       {/* ─── INTERACTIVE NATAL WHEEL ─── */}
       <section className="relative z-10 py-16 px-6 md:px-8" data-testid="section-natal-wheel">
         <div className="max-w-4xl mx-auto">
