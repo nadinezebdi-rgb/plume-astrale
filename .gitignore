@@ -83,3 +83,9 @@ agenthub/agents/youtube/db
 
 # Mobile development
 android-sdk/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
