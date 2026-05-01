@@ -22,6 +22,7 @@ const NAV_ITEMS = [
     ],
   },
   { label: 'Horoscope', to: '/horoscope' },
+  { label: 'Chat IA', to: '/chat-astral' },
 ];
 
 const dropdownStyle = {

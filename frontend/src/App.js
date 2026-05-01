@@ -33,9 +33,9 @@ import PremiumExperience from "./pages/PremiumExperience";
 import CharteConfiance from "./pages/CharteConfiance";
 import MonCompte from "./pages/MonCompte";
 import Admin from "./pages/Admin";
+import ChatIA from "./pages/ChatIA";
 import Oracle from "./pages/Oracle";
 
-<Route path="/oracle" element={<Oracle />} />
 function App() {
   return (
     <AuthProvider>
@@ -77,6 +77,8 @@ function App() {
                 <Route path="/commande/succes" element={<CommandeSucces />} />
                 <Route path="/mon-compte" element={<MonCompte />} />
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
+                <Route path="/chat-astral" element={<ChatIA />} />
+                <Route path="/oracle" element={<Oracle />} />
               </Routes>
             </>
           } />
