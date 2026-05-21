@@ -81,5 +81,17 @@
 - Section dediee + section "Packs Univers Complet" conservee
 - Service "Chat Astral IA" ajoute dans le tableau des couts
 
-## Derniere mise a jour
-21 Mai 2026 — Chat IA AstrologyAPI en francais + packs conversation
+### Sprint 1 — Refonte design "Cosmique mystique premium" (21 Mai 2026)
+- Nouvelle palette tokens : Navy profond (#0A0E27) + Lavande mystique (#A78BFA, #C4B5FD) + Or vieilli (#C5A059, #E6C480)
+- Aurore animee de fond + champ d'etoiles multi-couches (lavande/or/blanc) + etoiles filantes via Canvas
+- Typographie editoriale : Fraunces (display italique luxe) + Cinzel (mystic uppercase) + Inter (body)
+- Composants reutilisables : pa-btn-primary (CTA or massif), pa-btn-ghost (lavande glass), pa-glass, pa-glass-gold, pa-shimmer-gold, pa-shimmer-lavender
+- Nouvelle home page editoriale "Sanctuaire numerique" :
+  - Hero "Ton oracle interieur, au quotidien" avec Lune realiste animee + tags flottants (phase lunaire + date)
+  - Mood orbs interactifs (5 humeurs colorees) → redirige Chat IA avec question pre-remplie
+  - Section "L'experience Plume" : 3 piliers (Oracle IA / Rituel quotidien / Theme natal)
+  - Quote editoriale "Les astres ne predisent pas ton avenir..."
+  - Section "Le rituel d'aujourd'hui" avec card scores animes (Energie/Confiance/Discipline/Intuition)
+  - CTA final premium
+- Positionnement clair "compagnon emotionnel quotidien"
+- Token AstroChat ajoute en env (en attente activation produit cote AstrologyAPI)

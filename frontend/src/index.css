@@ -3,111 +3,306 @@
 @tailwind utilities;
 
 :root {
-  /* ── Fond principal : violet nuit profond ── */
-  --pa-bg:           #0E0920;
-  --pa-bg-deep:      #07051A;
+  /* ─── COSMIC MYSTIC PALETTE — Navy + Lavender + Gold ─── */
+  --pa-bg:           #0A0E27;   /* deep navy night */
+  --pa-bg-deep:      #06081A;   /* abyss */
+  --pa-bg-mid:       #12173A;   /* mid navy */
 
   /* ── Surfaces ── */
-  --pa-surface:      #1A1535;
-  --pa-surface-hover:#231E48;
+  --pa-surface:      #161C44;
+  --pa-surface-hover:#1E2658;
+  --pa-glass:        rgba(167, 139, 250, 0.04);
+  --pa-glass-strong: rgba(167, 139, 250, 0.08);
 
-  /* ── Textes ── */
+  /* ── Textes ivory ── */
   --pa-heading:      #F5EEE0;
-  --pa-body:         #CEC8DC;
-  --pa-muted:        #8E88A8;
+  --pa-body:         #D9D3E8;
+  --pa-muted:        #9089B5;
+  --pa-faint:        rgba(217, 211, 232, 0.5);
 
-  /* ── Accent or ── */
+  /* ── Accent or vieilli ── */
   --pa-accent:       #C5A059;
-  --pa-accent-hover: #D4B46A;
+  --pa-accent-hover: #E6C480;
+  --pa-accent-bright:#F4D98C;
+
+  /* ── Accent lavande mystique ── */
+  --pa-lavender:        #A78BFA;
+  --pa-lavender-bright: #C4B5FD;
+  --pa-lavender-deep:   #7C6BF0;
 
   /* ── Séparateurs et effets ── */
-  --pa-divider:      rgba(197, 160, 89, 0.18);
-  --pa-glass:        rgba(255, 255, 255, 0.05);
-  --pa-violet-glow:  rgba(140, 80, 220, 0.18);
+  --pa-divider:      rgba(197, 160, 89, 0.15);
+  --pa-divider-soft: rgba(167, 139, 250, 0.12);
+  --pa-violet-glow:  rgba(167, 139, 250, 0.25);
+  --pa-gold-glow:    rgba(212, 180, 106, 0.30);
 
-  /* ── Variables shadcn/ui ── */
-  --background:           260 45% 9%;
+  /* ── shadcn/ui (mapped on the new navy/lavender base) ── */
+  --background:           227 53% 10%;
   --foreground:           35 40% 93%;
-  --card:                 260 38% 13%;
+  --card:                 230 48% 17%;
   --card-foreground:      35 40% 93%;
-  --popover:              260 38% 13%;
+  --popover:              230 48% 17%;
   --popover-foreground:   35 40% 93%;
   --primary:              40 45% 55%;
-  --primary-foreground:   260 45% 9%;
-  --secondary:            260 28% 17%;
+  --primary-foreground:   227 53% 10%;
+  --secondary:            233 40% 22%;
   --secondary-foreground: 35 40% 93%;
-  --muted:                260 22% 18%;
-  --muted-foreground:     260 15% 58%;
+  --muted:                233 30% 22%;
+  --muted-foreground:     250 18% 62%;
   --accent:               40 45% 55%;
-  --accent-foreground:    260 45% 9%;
+  --accent-foreground:    227 53% 10%;
   --destructive:          0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --border:               260 22% 20%;
-  --input:                260 28% 17%;
+  --border:               233 30% 24%;
+  --input:                233 30% 22%;
   --ring:                 40 45% 55%;
   --radius:               0.5rem;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--pa-bg);
+  background: var(--pa-bg-deep);
   color: var(--pa-body);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', 'DM Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   position: relative;
   overflow-x: hidden;
+  font-feature-settings: 'ss01', 'ss02', 'cv11';
 }
 
-/* Dégradé violet de fond */
+/* ═══════════════════════════════════════════════════════════
+   COSMIC AURORA — animated nebula layer
+═══════════════════════════════════════════════════════════ */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -3;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(110, 50, 200, 0.22) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(80, 20, 180, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 100% 100% at 50% 50%, rgba(30, 15, 60, 0.95) 0%, #07051A 100%);
+    radial-gradient(ellipse 90% 70% at 15% 8%, rgba(167, 139, 250, 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 85% 25%, rgba(124, 107, 240, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 60% at 50% 90%, rgba(197, 160, 89, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 70% at 90% 80%, rgba(140, 100, 220, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, rgba(18, 23, 58, 0.95) 0%, var(--pa-bg-deep) 100%);
   pointer-events: none;
+  animation: aurora-drift 30s ease-in-out infinite alternate;
 }
 
-/* Étoiles fixes de fond */
+@keyframes aurora-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+  50%  { transform: translate3d(-2%, 1%, 0) scale(1.04); opacity: 0.92; }
+  100% { transform: translate3d(2%, -1%, 0) scale(1); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STARFIELD — multilayer twinkling stars
+═══════════════════════════════════════════════════════════ */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -2;
   background-image:
-    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.85) 0%, transparent 100%),
-    radial-gradient(1px 1px at 22% 38%, rgba(255,255,255,0.70) 0%, transparent 100%),
-    radial-gradient(1px 1px at 35% 8%,  rgba(255,255,255,0.90) 0%, transparent 100%),
-    radial-gradient(1px 1px at 48% 55%, rgba(255,255,255,0.65) 0%, transparent 100%),
-    radial-gradient(1px 1px at 62% 20%, rgba(255,255,255,0.80) 0%, transparent 100%),
-    radial-gradient(1px 1px at 75% 70%, rgba(255,255,255,0.75) 0%, transparent 100%),
-    radial-gradient(1px 1px at 88% 35%, rgba(255,255,255,0.85) 0%, transparent 100%),
-    radial-gradient(1px 1px at 5%  80%, rgba(255,255,255,0.60) 0%, transparent 100%),
-    radial-gradient(1px 1px at 17% 92%, rgba(255,255,255,0.70) 0%, transparent 100%),
-    radial-gradient(1px 1px at 30% 65%, rgba(255,255,255,0.55) 0%, transparent 100%),
-    radial-gradient(1px 1px at 53% 88%, rgba(255,255,255,0.75) 0%, transparent 100%),
-    radial-gradient(1px 1px at 67% 48%, rgba(255,255,255,0.65) 0%, transparent 100%),
-    radial-gradient(1px 1px at 82% 12%, rgba(255,255,255,0.80) 0%, transparent 100%),
-    radial-gradient(1px 1px at 92% 60%, rgba(255,255,255,0.70) 0%, transparent 100%),
-    radial-gradient(1px 1px at 44% 30%, rgba(255,255,255,0.60) 0%, transparent 100%),
-    radial-gradient(1px 1px at 15% 50%, rgba(200,160,255,0.70) 0%, transparent 100%),
-    radial-gradient(1px 1px at 40% 75%, rgba(180,140,255,0.65) 0%, transparent 100%),
-    radial-gradient(1px 1px at 70% 25%, rgba(210,170,255,0.75) 0%, transparent 100%),
-    radial-gradient(1px 1px at 90% 90%, rgba(190,150,255,0.60) 0%, transparent 100%),
-    radial-gradient(1px 1px at 58% 42%, rgba(220,180,255,0.55) 0%, transparent 100%);
+    /* Bright white stars */
+    radial-gradient(1.2px 1.2px at 10% 15%, rgba(255,255,255,0.95) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 22% 38%, rgba(255,255,255,0.85) 0%, transparent 100%),
+    radial-gradient(1px 1px at 35% 8%,    rgba(255,255,255,0.95) 0%, transparent 100%),
+    radial-gradient(1px 1px at 48% 55%,   rgba(255,255,255,0.75) 0%, transparent 100%),
+    radial-gradient(1.3px 1.3px at 62% 20%, rgba(255,255,255,0.90) 0%, transparent 100%),
+    radial-gradient(1px 1px at 75% 70%,   rgba(255,255,255,0.80) 0%, transparent 100%),
+    radial-gradient(1.4px 1.4px at 88% 35%, rgba(255,255,255,0.95) 0%, transparent 100%),
+    radial-gradient(1px 1px at 5%  80%,   rgba(255,255,255,0.70) 0%, transparent 100%),
+    radial-gradient(1px 1px at 17% 92%,   rgba(255,255,255,0.80) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 65%,   rgba(255,255,255,0.65) 0%, transparent 100%),
+    radial-gradient(1px 1px at 53% 88%,   rgba(255,255,255,0.85) 0%, transparent 100%),
+    radial-gradient(1.3px 1.3px at 67% 48%, rgba(255,255,255,0.75) 0%, transparent 100%),
+    radial-gradient(1px 1px at 82% 12%,   rgba(255,255,255,0.90) 0%, transparent 100%),
+    radial-gradient(1px 1px at 92% 60%,   rgba(255,255,255,0.80) 0%, transparent 100%),
+    radial-gradient(1px 1px at 44% 30%,   rgba(255,255,255,0.70) 0%, transparent 100%),
+    /* Lavender stars */
+    radial-gradient(1.2px 1.2px at 15% 50%, rgba(196,181,253,0.85) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 75%,    rgba(180,140,255,0.75) 0%, transparent 100%),
+    radial-gradient(1.3px 1.3px at 70% 25%, rgba(210,170,255,0.85) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 90%,    rgba(190,150,255,0.70) 0%, transparent 100%),
+    radial-gradient(1.1px 1.1px at 58% 42%, rgba(220,180,255,0.65) 0%, transparent 100%),
+    /* Gold dust */
+    radial-gradient(1px 1px at 25% 25%,   rgba(244,217,140,0.65) 0%, transparent 100%),
+    radial-gradient(1px 1px at 65% 75%,   rgba(212,180,106,0.55) 0%, transparent 100%),
+    radial-gradient(0.8px 0.8px at 80% 50%, rgba(230,196,128,0.50) 0%, transparent 100%);
+  background-size: 100% 100%;
   pointer-events: none;
+  animation: stars-twinkle 6s ease-in-out infinite alternate;
 }
+
+@keyframes stars-twinkle {
+  0%   { opacity: 0.85; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.75; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TYPOGRAPHY UTILITIES
+═══════════════════════════════════════════════════════════ */
+.font-display    { font-family: 'Fraunces', 'Cormorant Garamond', serif; font-feature-settings: 'ss01'; }
+.font-serif-pa   { font-family: 'Cormorant Garamond', serif; }
+.font-mystic     { font-family: 'Cinzel', serif; letter-spacing: 0.12em; }
+.font-body-pa    { font-family: 'Inter', sans-serif; }
 
 p {
   line-height: 1.75;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   REUSABLE ANIMATIONS
+═══════════════════════════════════════════════════════════ */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 24px rgba(167,139,250,0.18), 0 0 0 1px rgba(167,139,250,0.10); }
+  50%      { box-shadow: 0 0 56px rgba(167,139,250,0.38), 0 0 0 1px rgba(167,139,250,0.20); }
+}
+@keyframes shimmer-text {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+@keyframes fade-up {
+  0%   { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-8px); }
+}
+@keyframes spin-slow {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-glow-pulse  { animation: glow-pulse 3.5s ease-in-out infinite; }
+.animate-fade-up     { animation: fade-up 0.8s ease-out both; }
+.animate-float-soft  { animation: float-soft 5s ease-in-out infinite; }
+.animate-spin-slow   { animation: spin-slow 80s linear infinite; }
+
+.pa-shimmer-gold {
+  background: linear-gradient(90deg, #C5A059 0%, #F4D98C 25%, #E6C480 50%, #F4D98C 75%, #C5A059 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-text 5s linear infinite;
+}
+
+.pa-shimmer-lavender {
+  background: linear-gradient(90deg, #A78BFA 0%, #C4B5FD 25%, #B8A5FF 50%, #C4B5FD 75%, #A78BFA 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-text 5s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COMPONENTS
+═══════════════════════════════════════════════════════════ */
 [class*="bg-[var(--pa-surface)]"],
 .pa-card {
   background: var(--pa-surface);
   border: 1px solid var(--pa-divider);
 }
+
+.pa-glass {
+  background: linear-gradient(135deg, rgba(167,139,250,0.06), rgba(255,255,255,0.02));
+  border: 1px solid rgba(167,139,250,0.15);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.pa-glass-gold {
+  background: linear-gradient(135deg, rgba(212,180,106,0.07), rgba(255,255,255,0.02));
+  border: 1px solid rgba(212,180,106,0.22);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.pa-btn-primary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #0A0E27;
+  background: linear-gradient(135deg, #E6C480 0%, #C5A059 50%, #A6864A 100%);
+  border: 1px solid rgba(244,217,140,0.4);
+  box-shadow: 0 8px 32px rgba(197,160,89,0.30), inset 0 1px 0 rgba(255,255,255,0.25);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+}
+.pa-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(197,160,89,0.45), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+.pa-btn-ghost {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 26px;
+  border-radius: 999px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pa-lavender-bright);
+  background: rgba(167,139,250,0.06);
+  border: 1px solid rgba(167,139,250,0.30);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+.pa-btn-ghost:hover {
+  background: rgba(167,139,250,0.14);
+  border-color: rgba(167,139,250,0.55);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+/* Soft halo around hero element */
+.pa-halo {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--pa-bg-deep); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(167,139,250,0.3), rgba(197,160,89,0.3));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(167,139,250,0.5), rgba(197,160,89,0.5));
+}
+
+/* Selection */
+::selection { background: rgba(167,139,250,0.35); color: #F5EEE0; }

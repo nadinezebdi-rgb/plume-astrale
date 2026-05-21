@@ -35,6 +35,18 @@ const ChatIA = () => {
     }
   }, [isAuthenticated]);
 
+  // Pre-fill input from mood-orb seed on home page
+  useEffect(() => {
+    try {
+      const seed = localStorage.getItem('pa_chat_seed');
+      if (seed) {
+        setInput(seed);
+        localStorage.removeItem('pa_chat_seed');
+        setTimeout(() => inputRef.current?.focus(), 200);
+      }
+    } catch (e) { /* ignore */ }
+  }, []);
+
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
