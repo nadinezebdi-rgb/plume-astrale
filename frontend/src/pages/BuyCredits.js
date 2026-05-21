@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Coins, Sparkles, Star, Zap, ArrowRight, Shield, Tag, Loader2 } from 'lucide-react';
+import { Coins, Sparkles, Star, Zap, ArrowRight, Shield, Tag, Loader2, MessageCircle, Moon } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 
@@ -106,8 +106,43 @@ const PACKS = [
   },
 ];
 
+// Packs dedies au Chat Astral IA (2 credits par message)
+const CHAT_PACKS = [
+  {
+    id: 'chat_lueur',
+    name: 'Lueur',
+    credits: 20,
+    amount: 4.99,
+    icon: MessageCircle,
+    badge: null,
+    messages: 10,
+    projections: ['10 messages chat IA', 'Reponses en francais', 'Donnees natales personnalisees'],
+  },
+  {
+    id: 'chat_constellation',
+    name: 'Constellation',
+    credits: 60,
+    amount: 12.99,
+    icon: Sparkles,
+    badge: 'Le plus choisi',
+    messages: 30,
+    projections: ['30 messages chat IA', 'Conversations approfondies', 'Acces a toutes les questions'],
+  },
+  {
+    id: 'chat_voie_lactee',
+    name: 'Voie Lactee',
+    credits: 150,
+    amount: 24.99,
+    icon: Moon,
+    badge: 'Meilleure valeur',
+    messages: 75,
+    projections: ['75 messages chat IA', 'Exploration spirituelle complete', 'Utilisable sur tout le site'],
+  },
+];
+
 const SERVICE_COSTS = [
   { name: 'Tarot Oui / Non', cost: '1er tirage gratuit, puis 2 credits' },
+  { name: 'Chat Astral IA', cost: '2 credits / message' },
   { name: 'Lecture Tarot approfondie', cost: '10 credits' },
   { name: 'Lecture astrologique', cost: '10 credits' },
   { name: 'Numerologie', cost: '10 credits' },
@@ -177,6 +212,101 @@ export default function BuyCredits() {
         <p className="text-center text-sm mb-10" style={{ color: 'var(--pa-body)', opacity: 0.8 }}>
           Chaque experience est personnalisee a partir de vos donnees astrologiques.
         </p>
+
+        {/* ===== SECTION CHAT PACKS ===== */}
+        <div className="mb-12">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3" style={{ background: 'rgba(197,160,89,0.08)', border: '1px solid rgba(197,160,89,0.2)' }}>
+              <MessageCircle className="w-3.5 h-3.5" style={{ color: '#C5A059' }} />
+              <span className="text-[11px] uppercase tracking-widest" style={{ color: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }}>
+                Nouveau — Chat Astral IA
+              </span>
+            </div>
+            <h2 className="text-2xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+              Packs Conversation
+            </h2>
+            <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
+              Pose tes questions a l&#39;oracle IA. 2 credits par message — en francais.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-3">
+            {CHAT_PACKS.map((pack) => {
+              const isPopular = pack.id === 'chat_constellation';
+              const Icon = pack.icon;
+              return (
+                <div
+                  key={pack.id}
+                  className={`rounded-2xl p-6 relative transition-all duration-300 hover:scale-[1.02] ${isPopular ? 'md:-translate-y-2' : ''}`}
+                  style={{
+                    background: isPopular ? 'rgba(197,160,89,0.07)' : 'rgba(255,255,255,0.03)',
+                    border: isPopular ? '1px solid rgba(197,160,89,0.4)' : '1px solid rgba(197,160,89,0.15)',
+                    backdropFilter: 'blur(12px)',
+                  }}
+                  data-testid={`chat-pack-card-${pack.id}`}
+                >
+                  {pack.badge && (
+                    <div
+                      className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] uppercase tracking-widest whitespace-nowrap"
+                      style={{ background: '#C5A059', color: '#0C0918', letterSpacing: '0.08em', fontWeight: 600 }}
+                    >
+                      {pack.badge}
+                    </div>
+                  )}
+                  <div className="flex flex-col items-center text-center pt-2">
+                    <div className="mb-3" style={{ color: '#C5A059' }}>
+                      <Icon className="w-7 h-7" strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+                      {pack.name}
+                    </h3>
+                    <div className="text-3xl mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#C5A059', fontWeight: 400 }}>
+                      {pack.amount % 1 === 0 ? pack.amount : pack.amount.toFixed(2).replace('.', ',')} &euro;
+                    </div>
+                    <p className="text-sm mb-0" style={{ color: 'var(--pa-body)' }}>
+                      {pack.messages} messages chat
+                    </p>
+                    <p className="text-xs mb-4" style={{ color: 'var(--pa-muted)' }}>
+                      ({pack.credits} credits — {(pack.amount / pack.messages).toFixed(2).replace('.', ',')} &euro;/message)
+                    </p>
+                    <div className="w-full mb-4 py-3 px-3 rounded-lg text-left" style={{ background: 'rgba(197,160,89,0.05)', border: '1px solid rgba(197,160,89,0.08)' }}>
+                      {pack.projections.map((p, i) => (
+                        <p key={i} className="text-xs py-0.5" style={{ color: 'var(--pa-body)' }}>
+                          &bull; {p}
+                        </p>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => handleBuy(pack.id)}
+                      disabled={loadingPack === pack.id}
+                      className="w-full py-2.5 text-xs uppercase tracking-widest rounded-full transition-all duration-500"
+                      style={{
+                        border: `1px solid ${isPopular ? '#C5A059' : 'rgba(197,160,89,0.4)'}`,
+                        color: loadingPack === pack.id ? 'var(--pa-muted)' : isPopular ? '#0C0918' : '#C5A059',
+                        background: isPopular ? '#C5A059' : 'transparent',
+                        letterSpacing: '0.1em',
+                        fontWeight: isPopular ? 600 : 400,
+                      }}
+                      data-testid={`buy-chat-pack-${pack.id}`}
+                    >
+                      {loadingPack === pack.id ? 'Redirection...' : 'Acheter'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ===== SECTION PACKS GENERAUX ===== */}
+        <div className="text-center mb-6">
+          <h2 className="text-2xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+            Packs Univers Complet
+          </h2>
+          <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
+            Utilisables sur tout le site — tarot, astrologie, numerologie, chat.
+          </p>
+        </div>
 
         <div className="grid gap-5 md:grid-cols-3">
           {PACKS.map((pack) => {

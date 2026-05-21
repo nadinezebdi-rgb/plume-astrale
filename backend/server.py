@@ -116,44 +116,130 @@ async def use_credits(request: Request):
 
 @api_router.post("/astro-chat")
 async def astro_chat_endpoint(request: Request):
+    """
+    Chat IA astrologique en français via AstrologyAPI / AstroChat
+    Endpoint: https://json-chat.astrologyapi.com/api/chat
+    Doc: https://astrologyapi.com/developers/v1/chat-api
+
+    Body attendu (flexible) :
+      { "message": "...", "user_data": {...} }
+      OU
+      { "message": "...", "name": "...", "day": ..., "month": ..., ... }
+    """
     try:
         body = await request.json()
-        user_message = body.get("message", "")
-        user_data = body.get("user_data", {}) # Données de naissance
+        user_message = (body.get("message") or body.get("q") or "").strip()
+        if not user_message:
+            return {"success": False, "message": "Question vide."}
 
-        # On récupère tes clés depuis les variables d'environnement Render
+        # Supporte les deux formats : nested user_data OU champs à plat
+        ud = body.get("user_data") or body
+
+        # Données de naissance avec fallback français (Paris)
+        name = str(ud.get("name") or "Voyageur")
+        day = int(ud.get("day") or 1)
+        month = int(ud.get("month") or 1)
+        year = int(ud.get("year") or 1990)
+        hour = int(ud.get("hour") or 12)
+        minute = int(ud.get("min") or ud.get("minute") or 0)
+        lat = str(ud.get("lat") or "48.8566")
+        lon = str(ud.get("lon") or "2.3522")
+        tzone = str(ud.get("tzone") or "1")
+        gender = str(ud.get("gender") or "female").lower()
+        if gender not in ("male", "female"):
+            gender = "female"
+        place = str(ud.get("place") or ud.get("birth_place") or "Paris")
+        country = str(ud.get("country") or "FR")
+        lang = str(ud.get("language") or body.get("lang") or "fr")
+
+        # Niveau d'expertise et tradition (Western pour audience française)
+        ep = str(body.get("ep") or "STANDARD").upper()
+        ac = str(body.get("ac") or "WESTERN").upper()
+        sid = str(body.get("sid") or "astro-6")
+
+        # Authentification : Access Token prioritaire, fallback Basic Auth
+        access_token = os.environ.get('ASTROLOGY_API_ACCESS_TOKEN')
         user_id = os.environ.get('ASTROLOGY_API_USER_ID')
         api_key = os.environ.get('ASTROLOGY_API_KEY')
 
-        import httpx
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                "https://json-chat.astrologyapi.com/api/chat",
-                auth=(user_id, api_key),
-                json={
-                    "language": "fr",
-                    "question": user_message,
-                    "name": user_data.get("name", "Utilisateur"),
-                    "day": int(user_data.get("day", 1)),
-                    "month": int(user_data.get("month", 1)),
-                    "year": int(user_data.get("year", 1990)),
-                    "hour": int(user_data.get("hour", 12)),
-                    "min": int(user_data.get("min", 0)),
-                    "lat": float(user_data.get("lat", 48.8566)),
-                    "lon": float(user_data.get("lon", 2.3522)),
-                    "tzone": 1.0,
-                    "gender": "female"
-                },
-                timeout=30.0
-            )
-            
-            data = response.json()
-            # On renvoie la réponse de l'IA au frontend
-            return {"success": True, "answer": data.get("response", "L'astrologue réfléchit...")}
+        payload = {
+            "language": lang,
+            "name": name,
+            "day": day,
+            "month": month,
+            "year": year,
+            "hour": hour,
+            "min": minute,
+            "place": place,
+            "lat": lat,
+            "lon": lon,
+            "tzone": tzone,
+            "gender": gender,
+            "country": country,
+            "ap": "KUNDLI",
+            "sid": sid,
+            "ep": ep,
+            "ac": ac,
+            "q": user_message,
+        }
 
+        headers = {
+            "Content-Type": "application/json",
+            "Accept-Language": lang,
+        }
+
+        import httpx
+        async with httpx.AsyncClient(timeout=45.0) as client:
+            if access_token:
+                headers["x-astrologyapi-key"] = access_token
+                response = await client.post(
+                    "https://json-chat.astrologyapi.com/api/chat",
+                    json=payload,
+                    headers=headers,
+                )
+            else:
+                # Fallback Basic Auth
+                response = await client.post(
+                    "https://json-chat.astrologyapi.com/api/chat",
+                    auth=(user_id or "", api_key or ""),
+                    json=payload,
+                    headers=headers,
+                )
+
+        try:
+            data = response.json()
+        except Exception:
+            logger.error(f"AstroChat non-JSON response: {response.status_code} {response.text[:300]}")
+            return {"success": False, "message": "Reponse invalide de l'oracle. Reessaie dans un instant."}
+
+        # Format de reponse officiel : { status: true, message: "...", response: {...} }
+        # Fallbacks pour les variantes
+        answer = (
+            data.get("message")
+            or data.get("answer")
+            or (data.get("response") if isinstance(data.get("response"), str) else None)
+        )
+
+        if data.get("status") is True and answer:
+            return {"success": True, "answer": answer, "raw": {"sid": sid, "ep": ep, "ac": ac}}
+
+        # Erreurs côté API (insufficient credit, invalid creds, etc.)
+        err = data.get("error") or data.get("msg") or data.get("message")
+        logger.warning(f"AstroChat API returned non-success: {data}")
+        if err and "credit" in str(err).lower():
+            return {
+                "success": False,
+                "code": "API_CREDIT",
+                "message": "Le service de chat n'est pas active sur le compte AstrologyAPI. Verifie l'activation d'AstroChat dans ton dashboard.",
+            }
+        return {"success": False, "message": str(err) if err else "L'oracle est momentanement indisponible."}
+
+    except httpx.TimeoutException:
+        logger.error("AstroChat timeout")
+        return {"success": False, "message": "L'oracle prend trop de temps a repondre. Reessaie."}
     except Exception as e:
-        logger.error(f"Erreur Chat API: {e}")
-        return {"success": False, "message": "Désolé, l'astrologue est occupé."}
+        logger.error(f"Erreur Chat API: {e}", exc_info=True)
+        return {"success": False, "message": "Une perturbation cosmique empeche la connexion."}
 # ─── CONFIGURATION FINALE ───
 
 # On inclut le router UNE SEULE FOIS
