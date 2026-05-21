@@ -8,7 +8,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://astral-credits.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://consultation-astro.preview.emergentagent.com')
 
 # Test user credentials for this iteration
 TEST_EMAIL = f"test_iter19_{uuid.uuid4().hex[:8]}@plume.com"
@@ -352,7 +352,7 @@ class TestCreditCheckout:
         response = requests.post(f"{BASE_URL}/api/credits/checkout", 
             json={
                 "pack_id": "decouverte",
-                "origin_url": "https://astral-credits.preview.emergentagent.com"
+                "origin_url": "https://consultation-astro.preview.emergentagent.com"
             },
             headers={"Authorization": f"Bearer {checkout_user['token']}"}
         )
@@ -368,7 +368,7 @@ class TestCreditCheckout:
         response = requests.post(f"{BASE_URL}/api/credits/checkout", 
             json={
                 "pack_id": "invalid_pack",
-                "origin_url": "https://astral-credits.preview.emergentagent.com"
+                "origin_url": "https://consultation-astro.preview.emergentagent.com"
             },
             headers={"Authorization": f"Bearer {checkout_user['token']}"}
         )
@@ -380,7 +380,7 @@ class TestCreditCheckout:
         response = requests.post(f"{BASE_URL}/api/credits/checkout", 
             json={
                 "pack_id": "decouverte",
-                "origin_url": "https://astral-credits.preview.emergentagent.com"
+                "origin_url": "https://consultation-astro.preview.emergentagent.com"
             }
         )
         assert response.status_code == 401

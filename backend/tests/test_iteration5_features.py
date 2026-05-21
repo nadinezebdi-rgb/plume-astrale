@@ -14,7 +14,7 @@ import os
 import time
 
 # Use the public URL from frontend .env
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://astral-credits.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://consultation-astro.preview.emergentagent.com')
 
 
 class TestProHoroscopePDF:
@@ -175,7 +175,7 @@ class TestCompatibiliteCheckout:
         """Test POST /api/checkout/create works for product_id 'compatibilite'"""
         payload = {
             "product_id": "compatibilite",
-            "origin_url": "https://astral-credits.preview.emergentagent.com",
+            "origin_url": "https://consultation-astro.preview.emergentagent.com",
             "user_email": "test@example.com",
             "user_data": {
                 "person1": {"first_name": "Marie"},
@@ -341,7 +341,7 @@ class TestExistingFlowRegression:
         """Test free access endpoint with ASTRO100"""
         payload = {
             "product_id": "manuscrit",
-            "origin_url": "https://astral-credits.preview.emergentagent.com",
+            "origin_url": "https://consultation-astro.preview.emergentagent.com",
             "discount_code": "ASTRO100",
             "user_email": "test@example.com"
         }

@@ -14,7 +14,7 @@ import uuid
 # Base URL from environment - NO default, fail fast if missing
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://astral-credits.preview.emergentagent.com"
+    BASE_URL = "https://consultation-astro.preview.emergentagent.com"
 
 
 class TestApiHealthCheck:
