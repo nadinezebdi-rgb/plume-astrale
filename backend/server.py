@@ -19,6 +19,7 @@ from services.tarot_premium import (
     tirage_marseille_question, tirage_croix_celtique, tirage_du_jour,
     DOMAINES_QUESTIONS
 )
+from services.plume_chat import plume_chat as plume_chat_service, get_session_history
 
 # Configuration Logging
 logging.basicConfig(level=logging.INFO)
@@ -240,6 +241,70 @@ async def astro_chat_endpoint(request: Request):
     except Exception as e:
         logger.error(f"Erreur Chat API: {e}", exc_info=True)
         return {"success": False, "message": "Une perturbation cosmique empeche la connexion."}
+
+
+# ═══════════════════════════════════════════════════════════
+# PLUME IA — Chat premium avec GPT-5.4 + theme natal reel
+# ═══════════════════════════════════════════════════════════
+_mongo_db = None
+
+def _get_db():
+    """Lazy MongoDB client initialization."""
+    global _mongo_db
+    if _mongo_db is not None:
+        return _mongo_db
+    try:
+        from motor.motor_asyncio import AsyncIOMotorClient
+        mongo_url = os.environ.get("MONGO_URL")
+        if not mongo_url:
+            return None
+        client = AsyncIOMotorClient(mongo_url)
+        db_name = os.environ.get("MONGO_DB_NAME", "plume_astrale")
+        _mongo_db = client[db_name]
+        return _mongo_db
+    except Exception as e:
+        logger.warning(f"Mongo unavailable: {e}")
+        return None
+
+
+@api_router.post("/plume-chat")
+async def plume_chat_endpoint(request: Request):
+    """
+    Chat IA Plume — astrologue mystique francais alimente par GPT-5.4
+    Body: { message, session_id, birth_data: {name, day, month, year, hour, min, lat, lon, tzone, place} }
+    """
+    try:
+        body = await request.json()
+        message = (body.get("message") or "").strip()
+        if not message:
+            return {"success": False, "message": "Message vide."}
+
+        session_id = body.get("session_id") or str(uuid.uuid4())
+        birth_data = body.get("birth_data") or body.get("user_data")
+
+        db = _get_db()
+        result = await plume_chat_service(
+            message=message,
+            session_id=session_id,
+            birth_data=birth_data,
+            db=db,
+        )
+        result["session_id"] = session_id
+        return result
+
+    except Exception as e:
+        logger.error(f"Plume chat endpoint error: {e}", exc_info=True)
+        return {"success": False, "message": "Une perturbation cosmique empeche la connexion."}
+
+
+@api_router.get("/plume-chat/history/{session_id}")
+async def plume_chat_history_endpoint(session_id: str):
+    """Recupere l'historique d'une session pour reprise de conversation."""
+    db = _get_db()
+    messages = await get_session_history(session_id, db)
+    return {"success": True, "messages": messages}
+
+
 # ─── CONFIGURATION FINALE ───
 
 # On inclut le router UNE SEULE FOIS

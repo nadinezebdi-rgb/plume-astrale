@@ -9,6 +9,7 @@ const API = process.env.REACT_APP_BACKEND_URL;
 const COST_PER_MESSAGE = 2;
 const FREE_MESSAGES_ANON = 3;
 const FREE_COUNT_KEY = 'pa_chat_free_count';
+const SESSION_KEY = 'pa_plume_session_id';
 
 const ChatIA = () => {
   const { isAuthenticated, user, token, creditBalance, refreshBalance } = useAuth();
@@ -18,14 +19,28 @@ const ChatIA = () => {
     {
       role: 'assistant',
       content:
-        "Bienvenue dans le Chat Astral. Pose-moi une question sur ton avenir, ta compatibilite, ton theme natal ou tout ce qui touche aux etoiles. Les astres sont a ton ecoute.",
+        "Bienvenue dans ton sanctuaire. Je suis Plume — pose-moi une question sur ton chemin, tes emotions, ton theme natal, tes liens. Les astres ecoutent.",
     },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [freeUsed, setFreeUsed] = useState(0);
+  const [sessionId, setSessionId] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Init or restore session ID (pour conversation multi-tour persistante)
+  useEffect(() => {
+    let sid = null;
+    try {
+      sid = localStorage.getItem(SESSION_KEY);
+    } catch (e) { /* ignore */ }
+    if (!sid) {
+      sid = `plume-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      try { localStorage.setItem(SESSION_KEY, sid); } catch (e) { /* ignore */ }
+    }
+    setSessionId(sid);
+  }, []);
 
   // Load anonymous free counter
   useEffect(() => {
@@ -168,28 +183,29 @@ const ChatIA = () => {
 
       const birthData = getBirthData();
       const res = await axios.post(
-        `${API}/api/astro-chat`,
-        { message: text, user_data: birthData },
-        { timeout: 50000 }
+        `${API}/api/plume-chat`,
+        {
+          message: text,
+          session_id: sessionId,
+          birth_data: birthData,
+        },
+        { timeout: 60000 }
       );
 
       const json = res.data;
+      if (json.session_id && json.session_id !== sessionId) {
+        setSessionId(json.session_id);
+        try { localStorage.setItem(SESSION_KEY, json.session_id); } catch (e) { /* ignore */ }
+      }
+
       if (json.success && json.answer) {
         setMessages(prev => [...prev, { role: 'assistant', content: json.answer }]);
         if (!isAuthenticated) incrementFreeUsed();
       } else {
-        // Cas spécifique : produit AstroChat pas activé côté API
-        if (json.code === 'API_CREDIT') {
-          setMessages(prev => [
-            ...prev,
-            { role: 'assistant', content: json.message },
-          ]);
-        } else {
-          setMessages(prev => [
-            ...prev,
-            { role: 'assistant', content: json.message || "Les astres sont momentanement voiles. Reessaie dans un instant." },
-          ]);
-        }
+        setMessages(prev => [
+          ...prev,
+          { role: 'assistant', content: json.message || "Les astres sont momentanement voiles. Reessaie dans un instant." },
+        ]);
       }
     } catch (e) {
       setMessages(prev => [
@@ -216,6 +232,10 @@ const ChatIA = () => {
         content: "Conversation reinitialisee. Pose-moi une nouvelle question, les etoiles sont pretes.",
       },
     ]);
+    // Nouvelle session pour repartir de zero
+    const newSid = `plume-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setSessionId(newSid);
+    try { localStorage.setItem(SESSION_KEY, newSid); } catch (e) { /* ignore */ }
   };
 
   // Quotas restants
@@ -249,11 +269,11 @@ const ChatIA = () => {
               letterSpacing: '0.12em',
               margin: 0,
             }}>
-              Chat Astral IA
+              Plume — Ton Oracle
             </h1>
           </div>
           <p style={{ color: 'rgba(212,180,106,0.5)', fontSize: 13, letterSpacing: '0.06em', margin: 0 }}>
-            Interroge les astres — reponses en francais
+            Astrologue IA en francais &mdash; alimente par ton vrai theme natal
           </p>
 
           {/* Quota badge */}

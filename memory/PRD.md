@@ -81,7 +81,17 @@
 - Section dediee + section "Packs Univers Complet" conservee
 - Service "Chat Astral IA" ajoute dans le tableau des couts
 
-### Sprint 1 — Refonte design "Cosmique mystique premium" (21 Mai 2026)
+### Plume IA — Chat astrologue premium (21 Mai 2026)
+- **Bascule complete depuis AstroChat → GPT-4o-mini via emergentintegrations**
+- Persona "Plume" : feminine, poetique, francaise, non fataliste, mystique
+- Endpoint `/api/plume-chat` (POST) : body { message, session_id, birth_data }
+- Endpoint `/api/plume-chat/history/{session_id}` (GET) : reprise de conversation
+- **Theme natal reel** injecte dans le system prompt via AstrologyAPI/western_horoscope (qui marche avec le plan Growth)
+- Multi-tour persistant via session_id stocke en localStorage `pa_plume_session_id`
+- Persistence MongoDB collection `plume_chat_messages`
+- Service : `/app/backend/services/plume_chat.py`
+- Cle : EMERGENT_LLM_KEY (universelle Emergent, deja en env)
+- Frontend ChatIA.js mis a jour : titre "Plume — Ton Oracle", session multi-tour, clear chat → nouvelle session
 - Nouvelle palette tokens : Navy profond (#0A0E27) + Lavande mystique (#A78BFA, #C4B5FD) + Or vieilli (#C5A059, #E6C480)
 - Aurore animee de fond + champ d'etoiles multi-couches (lavande/or/blanc) + etoiles filantes via Canvas
 - Typographie editoriale : Fraunces (display italique luxe) + Cinzel (mystic uppercase) + Inter (body)
