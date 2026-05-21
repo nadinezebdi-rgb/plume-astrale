@@ -7,7 +7,7 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel
-from typing import Dict
+from typing import Dict, Optional
 import uuid
 
 # Import des services
@@ -20,6 +20,11 @@ from services.tarot_premium import (
     DOMAINES_QUESTIONS
 )
 from services.plume_chat import plume_chat as plume_chat_service, get_session_history
+from services.daily_ritual import (
+    get_today_scores, get_daily_insight, submit_checkin, get_today_checkin,
+    update_streak, get_streak, journal_entry, get_journal_history,
+    MOODS, MOON_PHASES_FR, SCORE_THEMES,
+)
 
 # Configuration Logging
 logging.basicConfig(level=logging.INFO)
@@ -303,6 +308,111 @@ async def plume_chat_history_endpoint(session_id: str):
     db = _get_db()
     messages = await get_session_history(session_id, db)
     return {"success": True, "messages": messages}
+
+
+# ═══════════════════════════════════════════════════════════
+# SPRINT 2 — RITUEL QUOTIDIEN (mood + scores + insight + journal + streak)
+# ═══════════════════════════════════════════════════════════
+@api_router.get("/ritual/today")
+async def ritual_today_endpoint(
+    user_id: str,
+    name: Optional[str] = None,
+    day: Optional[int] = None,
+    month: Optional[int] = None,
+    year: Optional[int] = None,
+    hour: Optional[int] = None,
+    minute: Optional[int] = None,
+    lat: Optional[float] = None,
+    lon: Optional[float] = None,
+    tzone: Optional[float] = None,
+):
+    """
+    Renvoie tout le rituel du jour : scores, message, check-in actuel, streak.
+    user_id peut etre un UUID anonyme (frontend) ou un user.id authentifie.
+    """
+    db = _get_db()
+
+    birth_data = None
+    if day and month and year:
+        birth_data = {
+            "name": name or "Voyageur",
+            "day": day, "month": month, "year": year,
+            "hour": hour or 12, "min": minute or 0,
+            "lat": lat or 48.8566, "lon": lon or 2.3522,
+            "tzone": tzone or 1.0,
+        }
+
+    checkin = await get_today_checkin(user_id, db)
+    mood = checkin.get("mood") if checkin else None
+
+    scores_data = get_today_scores(user_id, mood=mood)
+    insight_data = await get_daily_insight(user_id, birth_data=birth_data, mood=mood, db=db)
+    streak = await get_streak(user_id, db)
+
+    return {
+        "success": True,
+        "date": scores_data["date"],
+        "scores": scores_data["scores"],
+        "moon_phase": scores_data["moon_phase"],
+        "moon_theme": scores_data["moon_theme"],
+        "insight": insight_data["insight"],
+        "checkin": checkin,
+        "streak": streak,
+    }
+
+
+@api_router.get("/ritual/moods")
+async def ritual_moods_endpoint():
+    """Liste des humeurs disponibles pour le frontend."""
+    return {"moods": [{"id": k, **v} for k, v in MOODS.items()]}
+
+
+@api_router.post("/ritual/checkin")
+async def ritual_checkin_endpoint(request: Request):
+    """Soumet l'humeur (et optionnellement l'intention) du jour. Increment streak."""
+    body = await request.json()
+    user_id = body.get("user_id")
+    mood = body.get("mood")
+    intention = body.get("intention")
+
+    if not user_id or not mood:
+        return {"success": False, "message": "user_id et mood requis."}
+    if mood not in MOODS:
+        return {"success": False, "message": "Humeur inconnue."}
+
+    db = _get_db()
+    result = await submit_checkin(user_id, mood, intention, db)
+    streak = await update_streak(user_id, db)
+    result["streak"] = streak
+    return result
+
+
+@api_router.post("/journal/entry")
+async def journal_entry_endpoint(request: Request):
+    """L'utilisateur ecrit son journal, Plume repond."""
+    body = await request.json()
+    user_id = body.get("user_id")
+    entry = (body.get("entry") or "").strip()
+    mood = body.get("mood")
+    birth_data = body.get("birth_data")
+
+    if not user_id or not entry:
+        return {"success": False, "message": "user_id et entry requis."}
+    if len(entry) < 5:
+        return {"success": False, "message": "Ecris au moins quelques mots."}
+    if len(entry) > 4000:
+        return {"success": False, "message": "L'entree est trop longue (max 4000 caracteres)."}
+
+    db = _get_db()
+    result = await journal_entry(user_id, entry, mood=mood, birth_data=birth_data, db=db)
+    return result
+
+
+@api_router.get("/journal/history")
+async def journal_history_endpoint(user_id: str, limit: int = 30):
+    db = _get_db()
+    history = await get_journal_history(user_id, db, limit=limit)
+    return {"success": True, "entries": history}
 
 
 # ─── CONFIGURATION FINALE ───

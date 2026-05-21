@@ -407,7 +407,7 @@ const Index = () => {
               kicker="Rituel quotidien"
               title="Ton journal cosmique"
               desc="Pose ton humeur, ton intention, ton message du jour. Recois en retour un eclairage astrologique apaisant."
-              to="/quotidien"
+              to="/mon-rituel"
               accent="gold"
               delay={200}
             />
@@ -499,7 +499,7 @@ const Index = () => {
                 ))}
               </div>
 
-              <Link to="/quotidien" className="pa-btn-ghost">
+              <Link to="/mon-rituel" className="pa-btn-ghost">
                 <BookHeart style={{ width: 16, height: 16 }} strokeWidth={1.5} />
                 Decouvrir mon rituel
               </Link>

@@ -35,6 +35,7 @@ import MonCompte from "./pages/MonCompte";
 import Admin from "./pages/Admin";
 import ChatIA from "./pages/ChatIA";
 import Oracle from "./pages/Oracle";
+import MonRituel from "./pages/MonRituel";
 
 function App() {
   return (
@@ -79,6 +80,7 @@ function App() {
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
                 <Route path="/chat-astral" element={<ChatIA />} />
                 <Route path="/oracle" element={<Oracle />} />
+                <Route path="/mon-rituel" element={<MonRituel />} />
               </Routes>
             </>
           } />
