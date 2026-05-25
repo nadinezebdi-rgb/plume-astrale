@@ -27,6 +27,7 @@ from services.daily_ritual import (
 )
 from services import wallet_service
 from services.supabase_client import get_admin_client
+from services.astrology_api import AstrologyAPIService
 from routes.admin import router as admin_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
@@ -99,6 +100,99 @@ async def update_profile_endpoint(
 async def wallet_balance(current_user: dict = Depends(get_current_user)):
     balance = await wallet_service.get_balance(current_user['id'])
     return {'credit_balance': balance}
+
+
+# Mapping signes anglais -> francais (pour l'API)
+_SIGNS_FR = {
+    'Aries': 'Belier', 'Taurus': 'Taureau', 'Gemini': 'Gemeaux',
+    'Cancer': 'Cancer', 'Leo': 'Lion', 'Virgo': 'Vierge',
+    'Libra': 'Balance', 'Scorpio': 'Scorpion', 'Sagittarius': 'Sagittaire',
+    'Capricorn': 'Capricorne', 'Aquarius': 'Verseau', 'Pisces': 'Poissons',
+}
+
+_SIGN_SYMBOLS = {
+    'Belier': '♈', 'Taureau': '♉', 'Gemeaux': '♊', 'Cancer': '♋',
+    'Lion': '♌', 'Vierge': '♍', 'Balance': '♎', 'Scorpion': '♏',
+    'Sagittaire': '♐', 'Capricorne': '♑', 'Verseau': '♒', 'Poissons': '♓',
+}
+
+_SIGN_THEMES = {
+    'Belier': "Audace, élan, action",
+    'Taureau': "Stabilité, sensualité, persévérance",
+    'Gemeaux': "Curiosité, parole, dualité",
+    'Cancer': "Émotion, foyer, mémoire",
+    'Lion': "Rayonnement, créativité, fierté",
+    'Vierge': "Précision, service, discernement",
+    'Balance': "Harmonie, relation, justice",
+    'Scorpion': "Intensité, transformation, profondeur",
+    'Sagittaire': "Aventure, sens, expansion",
+    'Capricorne': "Structure, ambition, patience",
+    'Verseau': "Liberté, innovation, idéal",
+    'Poissons': "Intuition, rêve, compassion",
+}
+
+_PLANET_DESC = {
+    'sun': ("Soleil", "ton essence, ce que tu rayonnes"),
+    'moon': ("Lune", "tes émotions, ton monde intérieur"),
+    'ascendant': ("Ascendant", "la façon dont tu te montres au monde"),
+}
+
+
+@api_router.get('/natal/essentials')
+async def natal_essentials(current_user: dict = Depends(get_current_user)):
+    """Retourne Soleil, Lune, Ascendant de l'utilisateur connecte (donnees natales).
+    Utilisé en haut de la page Consultation pour montrer que la guidance est personnalisée."""
+    profile = await wallet_service.get_profile(current_user['id'])
+    bd = profile.get('birth_date')
+    bt = profile.get('birth_time')
+    lat = profile.get('latitude')
+    lon = profile.get('longitude')
+    if not bd or not bt or lat is None or lon is None:
+        return {'success': False, 'message': 'Données natales incomplètes', 'has_data': False}
+
+    try:
+        time_str = bt[:5] if len(str(bt)) >= 5 else str(bt)
+        svc = AstrologyAPIService()
+        data = await svc.get_western_horoscope(str(bd), time_str, float(lat), float(lon), 1.0)
+        if not data or 'planets' not in data:
+            return {'success': False, 'message': 'API astrologique indisponible', 'has_data': False}
+
+        planets = {p['name'].lower(): p for p in data['planets']}
+        # Ascendant = signe de la maison 1
+        asc_sign_en = None
+        for h in (data.get('houses') or []):
+            if h.get('house') == 1:
+                asc_sign_en = h.get('sign')
+                break
+        if asc_sign_en:
+            planets['ascendant'] = {'name': 'Ascendant', 'sign': asc_sign_en, 'house': 1, 'normDegree': 0}
+
+        result = {}
+        for key in ['sun', 'moon', 'ascendant']:
+            p = planets.get(key)
+            if not p:
+                continue
+            sign_en = p.get('sign', '')
+            sign_fr = _SIGNS_FR.get(sign_en, sign_en)
+            label, desc = _PLANET_DESC[key]
+            result[key] = {
+                'label': label,
+                'sign': sign_fr,
+                'symbol': _SIGN_SYMBOLS.get(sign_fr, ''),
+                'description': desc,
+                'theme': _SIGN_THEMES.get(sign_fr, ''),
+                'house': p.get('house'),
+            }
+        return {
+            'success': True,
+            'has_data': True,
+            'prenom': profile.get('prenom'),
+            'birth_place': profile.get('birth_place'),
+            'essentials': result,
+        }
+    except Exception as e:
+        logger.error(f'natal_essentials error: {e}')
+        return {'success': False, 'message': str(e), 'has_data': False}
 
 
 @api_router.get('/wallet/transactions')

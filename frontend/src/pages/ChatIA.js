@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Send, Loader2, Sparkles, Trash2, Coins, LogIn, ShoppingBag } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
+import NatalEssentials from '@/components/NatalEssentials';
 import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -298,6 +299,9 @@ const ChatIA = () => {
             )}
           </div>
         </div>
+
+        {/* Bloc Comment Plume t'écoute — affiché uniquement si user connecté avec données natales */}
+        {isAuthenticated && token && <NatalEssentials token={token} prenom={user?.prenom} />}
 
         {/* Chat container */}
         <div style={{
