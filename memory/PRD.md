@@ -1,107 +1,91 @@
-# Plume Astrale - PRD
+# Plume Astrale — PRD
 
 ## Projet
-**Plume Astrale** - Plateforme de guidance astrologique et symbolique
+**Plume Astrale** — Plateforme de guidance astrologique en francais avec IA.
+Site prod : plume-astrale.fr
 
-## Architecture
-- **Frontend**: React.js + Tailwind CSS + Shadcn UI
-- **Backend**: Python FastAPI
-- **Base de donnees**: MongoDB (users, user_wallets, credit_transactions, streaks, payment_transactions)
-- **Paiement**: Stripe (via emergentintegrations)
-- **Auth**: JWT (PyJWT + bcrypt)
-- **APIs**: Astrology API (Plan Growth)
+## Architecture (Mai 2026 — Refonte Supabase)
+- **Frontend** : React.js + Tailwind + Shadcn UI + `@supabase/supabase-js`
+- **Backend** : Python FastAPI + Supabase (Postgres + Auth)
+- **Auth** : Supabase Auth (email/password) — JWT asymetriques ES256, verifies via JWKS
+- **Paiement** : Stripe (via emergentintegrations) — packs generiques + packs Chat dedies
+- **LLM** : EMERGENT_LLM_KEY (GPT-4o-mini) pour Plume Chat
+- **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
+- **Deploy** : Backend Railway / Frontend Netlify
 
-## Implemente — Session 6 Mars 2026
+## Implemente — Session Mai 2026 (Refonte complete Supabase)
 
-### Systeme de Credits (Phases 1-4)
-- Auth JWT : inscription profil astrologique + 20 credits bonus, connexion, /me
-- Wallet : solde, transactions, bonus quotidien (+1/jour)
-- Stripe : 3 packs (Decouverte 10cr/9eur, Exploration 50cr/24,99eur, Premium 100cr/44,99eur)
-- Gating credits sur tous les services premium
-- Page Acheter des credits optimisee Gary Vee (projections, "Le plus choisi", CTAs)
+### Backend (FastAPI + Supabase)
+- `config.py` : settings centralises, packs definis cote serveur (anti-tampering)
+- `middleware/auth.py` : verification JWT Supabase via JWKS (ES256) avec fallback HS256
+- `services/supabase_client.py` : client admin (service_role)
+- `services/wallet_service.py` : balance/deduct/add credits + promo redemption
+- `services/plume_chat.py` : historique persiste dans Supabase par user_id
 
-### Codes Promo
-- PLUMEASTRALE (100cr), TESTPLUME (200cr), BIENVENUE (50cr)
-- UI : bouton "J'ai un code promo" sur page achat
+### Endpoints
+- `GET /api/auth/me` — profil + solde
+- `PUT /api/auth/profile` — mise a jour donnees natales
+- `GET /api/wallet/balance`, `GET /api/wallet/transactions`
+- `POST /api/credits/use` — deduction avec 1er tarot oui/non gratuit
+- `POST /api/credits/promo` — codes PLUMEASTRALE/TESTPLUME/BIENVENUE
+- `POST /api/credits/checkout` — Stripe pour 6 packs (3 generiques + 3 chat)
+- `GET /api/payments/status/{sid}` — polling apres redirection Stripe
+- `POST /api/webhook/stripe` — fulfillment automatique
+- `POST /api/plume-chat`, `GET /api/plume-chat/history/{sid}` — auth optionnelle
+- `GET /api/packs` — liste publique des packs + couts services
+- Tarot : oui-non, marseille, celtique, jour
+- Ritual : today, moods, checkin
+- Journal : entry, history
 
-### Contenu Enrichi
-- Numerologie : section educative (Qu'est-ce que?, Nombres cles, A qui s'adresse)
-- Tarologie : intro educative (Qu'est-ce que?, A quoi ca sert?, 5 positions Croix)
+### Frontend
+- `src/lib/supabase.js` : client Supabase pour le frontend
+- `src/context/AuthContext.js` : refait avec supabase-js, persistance auto session, JWT vers backend
+- Pages Login/Register fonctionnent avec la nouvelle API
+- ChatIA.js : 3 messages gratuits anonymes, deduction 2cr/msg connecte, donnees natales auto
+- BuyCredits.js : 6 packs (3 generiques + 3 Chat : Lueur/Constellation/Voie Lactee)
 
-### Le Cercle — Hub Communautaire
-- Page /cercle : insights quotidiens, carte du jour, zodiac, services
-- Accessible depuis Navbar et Accueil
+### Schema Supabase (8 tables + RLS + trigger auto-signup)
+- `profiles` : donnees natales (prenom, birth_date, birth_time, birth_place, lat/lon, gender)
+- `wallets` : solde + free_tarot_used
+- `credit_transactions` : historique
+- `payment_transactions` : Stripe sessions
+- `promo_codes` + `promo_code_redemptions`
+- `plume_chat_messages` : historique multi-tour
+- `streaks` : check-in quotidien
+- `journal_entries`
+- Trigger `handle_new_user` : auto-cree profile + wallet (20cr) + log transaction
 
-### Streak System
-- Check-in quotidien : +1 credit/jour
-- Paliers bonus : 7j (+3cr), 14j (+5cr), 30j (+10cr), 60j (+15cr), 100j (+25cr)
+### Deployment
+- `backend/railway.toml` + `Procfile`
+- `frontend/netlify.toml`
+- `supabase/schema.sql` (idempotent — applicable a tout moment)
+- `DEPLOY.md` guide complet
 
-### Homepage Cosmique Interactive (6 Mars 2026)
-- Fond anime avec etoiles brillantes, etoiles filantes, nebuleuses, parallaxe souris
-- 400 etoiles canvas + 260 etoiles CSS avec halos lumineux dores/blancs
-- Roue natale interactive SVG (12 signes zodiac, 7 planetes, rotation continue, hover)
-- Widget "Indice Cosmique" avec barres animees (Amour, Carriere, Energie, Intuition)
-- Carte profil cosmique partageable (PNG 1080x1350)
-- Navbar doree 13px avec Cinzel + text-shadow dore
-
-## Tests — 100% pass rate
-- Iteration 23: Homepage cosmique interactive (16/16 backend + all frontend verified)
+### Tests E2E valides (25 Mai 2026)
+- Signup Supabase Auth (admin API) -> profile + wallet auto-crees (trigger)
+- Login JWT ES256 -> verif JWKS -> /api/auth/me 200 OK
+- Wallet balance 20 -> use chat_astral -> 18 -> promo BIENVENUE +50 -> 68
+- Stripe checkout pour chat_constellation -> URL Stripe valide retournee
+- Plume chat connecte : reponse francaise GPT-4o-mini
+- Frontend UI : login redirige proprement, quota affiche correctement
 
 ## Backlog
 
-### P1
-- [ ] Page historique des transactions
-- [ ] Enrichir contenu Numerologie (donnees API dynamiques)
-- [ ] Enrichir contenu Tarologie (interpretations plus profondes)
-- [ ] Bonus automatique "1 credit gratuit/jour"
+### P1 (prochaine session)
+- Page historique des transactions (`/api/wallet/transactions` deja pret)
+- Bonus automatique "1 credit gratuit/jour" via streak
+- Polling Stripe success page apres paiement
+- Reset password / email confirmation flow
 
 ### P2
-- [ ] Personnaliser les scores Alignement Cosmique avec donnees utilisateur
-- [ ] Integration Astrology API enrichie
-- [ ] PDF synthese tirage tarot
-- [ ] Historique tirages par utilisateur
-- [ ] Systeme de parrainage (+5cr par ami)
+- Page profil pour mettre a jour les donnees natales depuis l'UI
+- Geolocation auto pour lat/lon depuis birth_place
+- PDF synthese tirage tarot
+- Personnaliser scores Alignement Cosmique avec donnees utilisateur
+- Systeme de parrainage (+5cr par ami)
+- Numerologie/Tarologie : interpretations dynamiques via AstrologyAPI
 
-### Chat IA Astral (21 Mai 2026)
-- Page /chat-astral connectee a AstrologyAPI AstroChat (json-chat.astrologyapi.com/api/chat)
-- Reponses 100% en francais (language: "fr" + Accept-Language: fr)
-- Gating : 3 messages gratuits anonymes (localStorage), puis CTA inscription
-- Cout : 2 credits/message pour utilisateurs connectes (deduction via /api/credits/use)
-- Pre-remplissage donnees natales depuis profil auth + fallback localStorage
-- Body API complet : KUNDLI/WESTERN/STANDARD/astro-6
-- Auth : Access Token (x-astrologyapi-key) prioritaire, fallback Basic Auth
-- Variable env : ASTROLOGY_API_ACCESS_TOKEN (a ajouter quand active sur dashboard)
-- Diagnostic clair quand produit AstroChat non actif sur le compte
-
-### Packs Crédits Chat (21 Mai 2026)
-- 3 nouveaux packs dedies au Chat dans /acheter-credits :
-  - Lueur : 10 messages (20cr) / 4,99 EUR
-  - Constellation : 30 messages (60cr) / 12,99 EUR — "Le plus choisi"
-  - Voie Lactee : 75 messages (150cr) / 24,99 EUR — "Meilleure valeur"
-- Section dediee + section "Packs Univers Complet" conservee
-- Service "Chat Astral IA" ajoute dans le tableau des couts
-
-### Plume IA — Chat astrologue premium (21 Mai 2026)
-- **Bascule complete depuis AstroChat → GPT-4o-mini via emergentintegrations**
-- Persona "Plume" : feminine, poetique, francaise, non fataliste, mystique
-- Endpoint `/api/plume-chat` (POST) : body { message, session_id, birth_data }
-- Endpoint `/api/plume-chat/history/{session_id}` (GET) : reprise de conversation
-- **Theme natal reel** injecte dans le system prompt via AstrologyAPI/western_horoscope (qui marche avec le plan Growth)
-- Multi-tour persistant via session_id stocke en localStorage `pa_plume_session_id`
-- Persistence MongoDB collection `plume_chat_messages`
-- Service : `/app/backend/services/plume_chat.py`
-- Cle : EMERGENT_LLM_KEY (universelle Emergent, deja en env)
-- Frontend ChatIA.js mis a jour : titre "Plume — Ton Oracle", session multi-tour, clear chat → nouvelle session
-- Nouvelle palette tokens : Navy profond (#0A0E27) + Lavande mystique (#A78BFA, #C4B5FD) + Or vieilli (#C5A059, #E6C480)
-- Aurore animee de fond + champ d'etoiles multi-couches (lavande/or/blanc) + etoiles filantes via Canvas
-- Typographie editoriale : Fraunces (display italique luxe) + Cinzel (mystic uppercase) + Inter (body)
-- Composants reutilisables : pa-btn-primary (CTA or massif), pa-btn-ghost (lavande glass), pa-glass, pa-glass-gold, pa-shimmer-gold, pa-shimmer-lavender
-- Nouvelle home page editoriale "Sanctuaire numerique" :
-  - Hero "Ton oracle interieur, au quotidien" avec Lune realiste animee + tags flottants (phase lunaire + date)
-  - Mood orbs interactifs (5 humeurs colorees) → redirige Chat IA avec question pre-remplie
-  - Section "L'experience Plume" : 3 piliers (Oracle IA / Rituel quotidien / Theme natal)
-  - Quote editoriale "Les astres ne predisent pas ton avenir..."
-  - Section "Le rituel d'aujourd'hui" avec card scores animes (Energie/Confiance/Discipline/Intuition)
-  - CTA final premium
-- Positionnement clair "compagnon emotionnel quotidien"
-- Token AstroChat ajoute en env (en attente activation produit cote AstrologyAPI)
+### Action manuelle utilisateur (avant prod)
+- Desactiver "Confirm email" dans Supabase Auth (ou implementer flow)
+- Configurer Stripe webhook prod -> Railway
+- Ajouter Netlify URL dans Supabase Auth -> Redirect URLs
