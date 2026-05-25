@@ -78,6 +78,7 @@ function App() {
                 <Route path="/commande/succes" element={<CommandeSucces />} />
                 <Route path="/mon-compte" element={<MonCompte />} />
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
+                <Route path="/consultation" element={<ChatIA />} />
                 <Route path="/chat-astral" element={<ChatIA />} />
                 <Route path="/oracle" element={<Oracle />} />
                 <Route path="/mon-rituel" element={<MonRituel />} />

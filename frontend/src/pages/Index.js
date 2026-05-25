@@ -260,7 +260,7 @@ const Index = () => {
 
   const handleMoodSelect = (q) => {
     try { localStorage.setItem('pa_chat_seed', q); } catch (e) { /* ignore */ }
-    navigate('/chat-astral');
+    navigate('/consultation');
   };
 
   // Today's french date
@@ -323,11 +323,11 @@ const Index = () => {
 
             <div className="animate-fade-up flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
               style={{ animationDelay: '500ms' }}>
-              <button onClick={() => navigate(isAuthenticated ? '/chat-astral' : '/inscription')} className="pa-btn-primary" data-testid="hero-cta-primary">
+              <button onClick={() => navigate(isAuthenticated ? '/consultation' : '/inscription')} className="pa-btn-primary" data-testid="hero-cta-primary">
                 <Sparkles style={{ width: 16, height: 16 }} strokeWidth={1.5} />
                 {isAuthenticated ? 'Consulter mon oracle' : 'Commencer ma traversee'}
               </button>
-              <button onClick={() => navigate('/chat-astral')} className="pa-btn-ghost" data-testid="hero-cta-secondary">
+              <button onClick={() => navigate('/consultation')} className="pa-btn-ghost" data-testid="hero-cta-secondary">
                 <MessageCircle style={{ width: 16, height: 16 }} strokeWidth={1.5} />
                 Discuter avec l&#39;IA
               </button>
@@ -395,10 +395,10 @@ const Index = () => {
           <div className="grid md:grid-cols-3 gap-6">
             <PillarCard
               icon={MessageCircle}
-              kicker="Oracle IA"
-              title="Chat Astral"
+              kicker="Consultation"
+              title="Consultation astrale personnalisée"
               desc="Pose tes questions a un astrologue IA. Reponses personnalisees a partir de ton theme natal, en francais, 24/7."
-              to="/chat-astral"
+              to="/consultation"
               accent="lavender"
               delay={100}
             />
@@ -573,7 +573,7 @@ const Index = () => {
             <p className="text-base mb-10 max-w-xl mx-auto" style={{ color: 'var(--pa-body)' }}>
               20 credits offerts a l&#39;inscription. Premier message au chat gratuit. Pas de carte requise.
             </p>
-            <button onClick={() => navigate(isAuthenticated ? '/chat-astral' : '/inscription')} className="pa-btn-primary" style={{ padding: '16px 36px' }}>
+            <button onClick={() => navigate(isAuthenticated ? '/consultation' : '/inscription')} className="pa-btn-primary" style={{ padding: '16px 36px' }}>
               <Sparkles style={{ width: 16, height: 16 }} strokeWidth={1.5} />
               {isAuthenticated ? 'Continuer ma traversee' : 'Commencer gratuitement'}
             </button>

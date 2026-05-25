@@ -106,7 +106,7 @@ const PACKS = [
   },
 ];
 
-// Packs dedies au Chat Astral IA (2 credits par message)
+// Packs dedies a la Consultation astrale personnalisee (2 credits par message)
 const CHAT_PACKS = [
   {
     id: 'chat_lueur',
@@ -116,7 +116,7 @@ const CHAT_PACKS = [
     icon: MessageCircle,
     badge: null,
     messages: 10,
-    projections: ['10 messages chat IA', 'Reponses en francais', 'Donnees natales personnalisees'],
+    projections: ['10 messages de consultation', 'Reponses en francais', 'Guidance personnalisee'],
   },
   {
     id: 'chat_constellation',
@@ -126,7 +126,7 @@ const CHAT_PACKS = [
     icon: Sparkles,
     badge: 'Le plus choisi',
     messages: 30,
-    projections: ['30 messages chat IA', 'Conversations approfondies', 'Acces a toutes les questions'],
+    projections: ['30 messages de consultation', 'Conversations approfondies', 'Acces a toutes les questions'],
   },
   {
     id: 'chat_voie_lactee',
@@ -136,13 +136,13 @@ const CHAT_PACKS = [
     icon: Moon,
     badge: 'Meilleure valeur',
     messages: 75,
-    projections: ['75 messages chat IA', 'Exploration spirituelle complete', 'Utilisable sur tout le site'],
+    projections: ['75 messages de consultation', 'Exploration spirituelle complete', 'Utilisable sur tout le site'],
   },
 ];
 
 const SERVICE_COSTS = [
   { name: 'Tarot Oui / Non', cost: '1er tirage gratuit, puis 2 credits' },
-  { name: 'Chat Astral IA', cost: '2 credits / message' },
+  { name: 'Consultation astrale personnalisée', cost: '2 credits / message' },
   { name: 'Lecture Tarot approfondie', cost: '10 credits' },
   { name: 'Lecture astrologique', cost: '10 credits' },
   { name: 'Numerologie', cost: '10 credits' },
@@ -219,7 +219,7 @@ export default function BuyCredits() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3" style={{ background: 'rgba(197,160,89,0.08)', border: '1px solid rgba(197,160,89,0.2)' }}>
               <MessageCircle className="w-3.5 h-3.5" style={{ color: '#C5A059' }} />
               <span className="text-[11px] uppercase tracking-widest" style={{ color: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }}>
-                Nouveau — Chat Astral IA
+                Nouveau — Packs Consultation astrale
               </span>
             </div>
             <h2 className="text-2xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>

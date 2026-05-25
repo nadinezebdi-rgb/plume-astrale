@@ -23,7 +23,7 @@ const NAV_ITEMS = [
   },
   { label: 'Horoscope', to: '/horoscope' },
   { label: 'Mon Rituel', to: '/mon-rituel' },
-  { label: 'Chat IA', to: '/chat-astral' },
+  { label: 'Consultation', to: '/consultation' },
 ];
 
 const dropdownStyle = {

@@ -250,7 +250,7 @@ const ChatIA = () => {
 
   return (
     <>
-      <SEO title="Chat IA Astral — Plume Astrale" description="Pose tes questions aux etoiles avec notre chat IA astrologique en francais." />
+      <SEO title="Consultation astrale personnalisee — Plume Astrale" description="Pose toutes tes questions a ton theme natal en francais. Une guidance personnalisee, alimentee par ta carte du ciel reelle." />
       <div style={{
         minHeight: '100vh',
         background: 'linear-gradient(180deg, #0B0B0F 0%, #110E1A 50%, #0B0B0F 100%)',
@@ -269,11 +269,11 @@ const ChatIA = () => {
               letterSpacing: '0.12em',
               margin: 0,
             }}>
-              Plume — Ton Oracle
+              Consultation astrale personnalisée
             </h1>
           </div>
           <p style={{ color: 'rgba(212,180,106,0.5)', fontSize: 13, letterSpacing: '0.06em', margin: 0 }}>
-            Astrologue IA en francais &mdash; alimente par ton vrai theme natal
+            Une guidance intime, alimentée par ton thème natal réel
           </p>
 
           {/* Quota badge */}

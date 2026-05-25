@@ -616,7 +616,7 @@ const MonRituel = () => {
 
           {/* CTA chat */}
           <div className="mt-8 text-center">
-            <Link to="/chat-astral" className="pa-btn-ghost" style={{ fontSize: 11, padding: '12px 26px' }}>
+            <Link to="/consultation" className="pa-btn-ghost" style={{ fontSize: 11, padding: '12px 26px' }}>
               <Sparkles style={{ width: 14, height: 14 }} />
               Continuer avec Plume au chat
             </Link>

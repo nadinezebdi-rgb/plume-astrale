@@ -16,7 +16,7 @@ const STEPS_PREVIEW = [
 const FEATURES = [
   { emoji: '🌟', text: 'Horoscope quotidien personnalisé' },
   { emoji: '🃏', text: 'Tarot quotidien — 1 carte / jour' },
-  { emoji: '🤖', text: 'Chat IA — Pose ta question à l\'univers' },
+  { emoji: '🌟', text: 'Consultation astrale personnalisée — Une guidance vivante de ton thème natal' },
   { emoji: '💑', text: 'Compatibilité amoureuse illimitée' },
 ];
 
@@ -118,7 +118,7 @@ const PremiumLanding = () => {
             <span style={{ color: 'var(--pa-accent)', fontStyle: 'italic' }}>chaque jour</span>
           </h1>
           <p className="text-base md:text-lg max-w-xl mx-auto mb-10" style={{ color: 'var(--pa-body)', lineHeight: '1.8' }}>
-            Horoscope · Tarot · Chat IA · Compatibilité — tout ce dont tu as besoin pour naviguer ton destin.
+            Horoscope · Tarot · Consultation personnalisée · Compatibilité — tout ce dont tu as besoin pour naviguer ton destin.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
