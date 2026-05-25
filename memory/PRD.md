@@ -61,7 +61,21 @@ Site prod : plume-astrale.fr
 - `supabase/schema.sql` (idempotent — applicable a tout moment)
 - `DEPLOY.md` guide complet
 
-### Tests E2E valides (25 Mai 2026)
+#### Compte admin + Dashboard (25 Mai 2026)
+- Colonne `is_admin` ajoutee sur `profiles` (migration `supabase/admin_migration.sql`)
+- Compte super-admin : `admin@plume-astrale.fr` / `AdminPlume2026!` (9999 credits, Paris)
+- `backend/routes/admin.py` : endpoints proteges par dependency `require_admin`
+  - `GET /api/admin/stats` — KPIs (users, signups 7j/30j, revenu, conversion, engagement)
+  - `GET /api/admin/users?search=` — liste paginée + recherche email + balance + total depensé
+  - `GET /api/admin/payments` — historique Stripe (status, credits_granted)
+  - `GET /api/admin/transactions` — toutes les operations de credits
+  - `GET /api/admin/promo-codes` — codes + utilisations
+  - `POST /api/admin/users/{id}/grant-credits` — credit manuel admin
+- `frontend/src/pages/Admin.js` refait : 5 onglets, 11 KPI cards, tableaux complets, recherche
+- Navbar : link "Tableau de bord" auto-affiché si `user.is_admin === true`
+- `/auth/me` retourne maintenant `is_admin` dans le profil utilisateur
+
+## Tests E2E valides (25 Mai 2026)
 - Signup Supabase Auth (admin API) -> profile + wallet auto-crees (trigger)
 - Login JWT ES256 -> verif JWKS -> /api/auth/me 200 OK
 - Wallet balance 20 -> use chat_astral -> 18 -> promo BIENVENUE +50 -> 68
