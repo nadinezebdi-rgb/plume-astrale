@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Coins, LogOut, User, LogIn, ChevronDown } from 'lucide-react';
+import { Menu, X, Coins, LogOut, User, LogIn, ChevronDown, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const NAV_ITEMS = [
@@ -102,7 +102,7 @@ const DropdownMenu = ({ item, isActive }) => {
   );
 };
 
-const MonCompteDropdown = ({ creditBalance, handleLogout }) => {
+const MonCompteDropdown = ({ creditBalance, handleLogout, isAdmin }) => {
   const [open, setOpen] = useState(false);
   const timerRef = useRef(null);
 
@@ -201,7 +201,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, creditBalance, logout } = useAuth();
+  const { isAuthenticated, creditBalance, logout, user } = useAuth();
 
   useEffect(() => {
     var onScroll = function() { setScrolled(window.scrollY > 40); };
@@ -253,7 +253,7 @@ const Navbar = () => {
               })}
               <div style={{ width: 1, height: 16, background: '#D4B46A', opacity: 0.2 }} />
               {isAuthenticated ? (
-                <MonCompteDropdown creditBalance={creditBalance} handleLogout={handleLogout} />
+                <MonCompteDropdown creditBalance={creditBalance} handleLogout={handleLogout} isAdmin={user?.is_admin} />
               ) : (
                 <div style={{ display: 'flex', gap: 8 }}>
                   <Link to="/connexion"

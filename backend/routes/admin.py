@@ -1,0 +1,222 @@
+"""Admin endpoints — dashboard stats + listings (protected by is_admin flag)."""
+from fastapi import APIRouter, Depends, HTTPException, Query
+from datetime import datetime, timedelta, timezone
+from typing import Optional
+
+from middleware.auth import get_current_user
+from services.supabase_client import get_admin_client
+
+router = APIRouter(prefix='/admin', tags=['admin'])
+
+
+def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
+    """Dependency : verifie que l'utilisateur est admin."""
+    sb = get_admin_client()
+    r = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not r or not r.data or not r.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Acces admin requis')
+    return current_user
+
+
+@router.get('/stats')
+async def admin_stats(_admin: dict = Depends(require_admin)):
+    """KPIs principaux du dashboard."""
+    sb = get_admin_client()
+    now = datetime.now(timezone.utc)
+    today = now.date().isoformat()
+    week_ago = (now - timedelta(days=7)).isoformat()
+    month_ago = (now - timedelta(days=30)).isoformat()
+
+    # Total utilisateurs
+    total_users = sb.table('profiles').select('id', count='exact').execute().count or 0
+
+    # Signups aujourd'hui / 7j / 30j (via created_at)
+    signups_today = sb.table('profiles').select('id', count='exact').gte('created_at', today + 'T00:00:00').execute().count or 0
+    signups_7d = sb.table('profiles').select('id', count='exact').gte('created_at', week_ago).execute().count or 0
+    signups_30d = sb.table('profiles').select('id', count='exact').gte('created_at', month_ago).execute().count or 0
+
+    # Paiements completes (credits_granted=true)
+    paid_txs = sb.table('payment_transactions').select('*').eq('credits_granted', True).execute().data or []
+    total_revenue = sum(float(t.get('amount') or 0) for t in paid_txs)
+    revenue_7d = sum(float(t.get('amount') or 0) for t in paid_txs if t.get('created_at', '') >= week_ago)
+    revenue_30d = sum(float(t.get('amount') or 0) for t in paid_txs if t.get('created_at', '') >= month_ago)
+    total_paid_count = len(paid_txs)
+    paying_users = len({t['user_id'] for t in paid_txs if t.get('user_id')})
+
+    # Stripe sessions initiees mais pas payees (= abandons / en attente)
+    pending = sb.table('payment_transactions').select('session_id', count='exact').eq('credits_granted', False).execute().count or 0
+
+    # Credits en circulation
+    wallets = sb.table('wallets').select('credit_balance').execute().data or []
+    credits_in_wallets = sum(int(w['credit_balance']) for w in wallets)
+
+    # Messages chat envoyes
+    chat_msgs = sb.table('plume_chat_messages').select('id', count='exact').eq('role', 'user').execute().count or 0
+
+    # Codes promo utilises
+    promo_redemptions = sb.table('promo_code_redemptions').select('id', count='exact').execute().count or 0
+
+    conversion_rate = round((paying_users / total_users * 100), 2) if total_users else 0.0
+
+    return {
+        'users': {
+            'total': total_users,
+            'signups_today': signups_today,
+            'signups_7d': signups_7d,
+            'signups_30d': signups_30d,
+            'paying_users': paying_users,
+            'conversion_rate_pct': conversion_rate,
+        },
+        'revenue': {
+            'total_eur': round(total_revenue, 2),
+            'last_7d_eur': round(revenue_7d, 2),
+            'last_30d_eur': round(revenue_30d, 2),
+            'total_paid_count': total_paid_count,
+            'pending_count': pending,
+        },
+        'engagement': {
+            'credits_in_wallets': credits_in_wallets,
+            'chat_messages_sent': chat_msgs,
+            'promo_redemptions': promo_redemptions,
+        },
+        'updated_at': now.isoformat(),
+    }
+
+
+@router.get('/users')
+async def admin_users(
+    _admin: dict = Depends(require_admin),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+    search: Optional[str] = None,
+):
+    """Liste paginee des utilisateurs avec leur solde."""
+    sb = get_admin_client()
+    offset = (page - 1) * page_size
+
+    q = sb.table('profiles').select('*', count='exact').order('created_at', desc=True)
+    if search:
+        q = q.ilike('email', f'%{search}%')
+
+    res = q.range(offset, offset + page_size - 1).execute()
+    profiles = res.data or []
+    total = res.count or 0
+
+    # Recuperer wallets en batch
+    user_ids = [p['id'] for p in profiles]
+    wallets_map = {}
+    if user_ids:
+        w_res = sb.table('wallets').select('user_id,credit_balance,free_tarot_used').in_('user_id', user_ids).execute()
+        wallets_map = {w['user_id']: w for w in (w_res.data or [])}
+
+    # Recuperer total depense en batch
+    spent_map = {}
+    if user_ids:
+        p_res = sb.table('payment_transactions').select('user_id,amount').eq('credits_granted', True).in_('user_id', user_ids).execute()
+        for p in (p_res.data or []):
+            spent_map[p['user_id']] = spent_map.get(p['user_id'], 0) + float(p.get('amount') or 0)
+
+    users = []
+    for p in profiles:
+        w = wallets_map.get(p['id'], {})
+        users.append({
+            'id': p['id'],
+            'email': p.get('email'),
+            'prenom': p.get('prenom'),
+            'birth_date': p.get('birth_date'),
+            'birth_place': p.get('birth_place'),
+            'is_admin': p.get('is_admin', False),
+            'created_at': p.get('created_at'),
+            'credit_balance': w.get('credit_balance', 0),
+            'free_tarot_used': w.get('free_tarot_used', False),
+            'total_spent_eur': round(spent_map.get(p['id'], 0), 2),
+        })
+
+    return {'users': users, 'total': total, 'page': page, 'page_size': page_size}
+
+
+@router.get('/payments')
+async def admin_payments(
+    _admin: dict = Depends(require_admin),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+    status_filter: Optional[str] = Query(None, alias='status'),
+):
+    """Liste paginee des transactions Stripe."""
+    sb = get_admin_client()
+    offset = (page - 1) * page_size
+    q = sb.table('payment_transactions').select('*', count='exact').order('created_at', desc=True)
+    if status_filter:
+        q = q.eq('payment_status', status_filter)
+    res = q.range(offset, offset + page_size - 1).execute()
+    return {'payments': res.data or [], 'total': res.count or 0, 'page': page, 'page_size': page_size}
+
+
+@router.get('/transactions')
+async def admin_transactions(
+    _admin: dict = Depends(require_admin),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(100, ge=1, le=500),
+    tx_type: Optional[str] = None,
+):
+    """Liste paginee des transactions de credits."""
+    sb = get_admin_client()
+    offset = (page - 1) * page_size
+    q = sb.table('credit_transactions').select('*', count='exact').order('created_at', desc=True)
+    if tx_type:
+        q = q.eq('tx_type', tx_type)
+    res = q.range(offset, offset + page_size - 1).execute()
+    return {'transactions': res.data or [], 'total': res.count or 0, 'page': page, 'page_size': page_size}
+
+
+@router.get('/chat-sessions')
+async def admin_chat_sessions(
+    _admin: dict = Depends(require_admin),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+):
+    """Liste des sessions de chat avec compteur de messages."""
+    sb = get_admin_client()
+    # Aggregation : count par session_id + dernier message
+    res = sb.table('plume_chat_messages').select('*').order('created_at', desc=True).limit(page_size * 2).execute()
+    msgs = res.data or []
+
+    # Grouper par session
+    sessions = {}
+    for m in msgs:
+        sid = m['session_id']
+        if sid not in sessions:
+            sessions[sid] = {
+                'session_id': sid,
+                'user_id': m.get('user_id'),
+                'last_message_at': m['created_at'],
+                'last_message': m['content'][:100],
+                'message_count': 0,
+            }
+        sessions[sid]['message_count'] += 1
+
+    return {'sessions': list(sessions.values())[:page_size]}
+
+
+@router.get('/promo-codes')
+async def admin_promo_codes(_admin: dict = Depends(require_admin)):
+    """Liste des codes promo + nombre d'utilisations."""
+    sb = get_admin_client()
+    codes = sb.table('promo_codes').select('*').order('created_at', desc=True).execute().data or []
+    return {'codes': codes}
+
+
+@router.post('/users/{user_id}/grant-credits')
+async def admin_grant_credits(
+    user_id: str,
+    payload: dict,
+    _admin: dict = Depends(require_admin),
+):
+    """Crediter manuellement un utilisateur depuis le dashboard."""
+    from services.wallet_service import add_credits
+    amount = int(payload.get('amount', 0))
+    reason = payload.get('reason', 'Credit manuel admin')
+    if amount == 0:
+        raise HTTPException(status_code=400, detail='amount requis')
+    new_balance = await add_credits(user_id, amount, reason, tx_type='admin_grant')
+    return {'success': True, 'new_balance': new_balance}

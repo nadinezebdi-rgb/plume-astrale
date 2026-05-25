@@ -27,6 +27,7 @@ from services.daily_ritual import (
 )
 from services import wallet_service
 from services.supabase_client import get_admin_client
+from routes.admin import router as admin_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -41,6 +42,7 @@ ASSETS_DIR = Path(__file__).parent / 'assets'
 
 app = FastAPI(title='Plume Astrale API')
 api_router = APIRouter(prefix='/api')
+api_router.include_router(admin_router)
 
 
 # ════════════════════════════════════════════
@@ -75,6 +77,7 @@ async def get_me(current_user: dict = Depends(get_current_user)):
             'gender': profile.get('gender'),
             'latitude': profile.get('latitude'),
             'longitude': profile.get('longitude'),
+            'is_admin': profile.get('is_admin', False),
         },
         'credit_balance': balance,
     }
