@@ -19,8 +19,8 @@ const PlanetCard = ({ id, data }) => {
         minWidth: 200,
         padding: '18px 16px',
         borderRadius: 14,
-        background: 'linear-gradient(180deg, rgba(212,180,106,0.10) 0%, rgba(155,109,189,0.06) 100%)',
-        border: '1px solid rgba(212,180,106,0.35)',
+        background: 'linear-gradient(180deg, rgba(8,10,28,0.85) 0%, rgba(20,17,48,0.75) 100%)',
+        border: '1px solid rgba(212,180,106,0.40)',
         backdropFilter: 'blur(10px)',
         position: 'relative',
         overflow: 'hidden',
@@ -102,10 +102,10 @@ export default function NatalEssentials({ token, prenom: prenomProp }) {
         style={{
           padding: '18px 20px 20px',
           borderRadius: 16,
-          background: 'linear-gradient(180deg, rgba(20,16,32,0.85) 0%, rgba(17,14,26,0.7) 100%)',
-          border: '1px solid rgba(212,180,106,0.30)',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-          backdropFilter: 'blur(16px)',
+          background: 'linear-gradient(180deg, rgba(6,8,26,0.85) 0%, rgba(11,14,40,0.75) 100%)',
+          border: '1px solid rgba(212,180,106,0.35)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          backdropFilter: 'blur(20px)',
         }}
       >
         {/* En-tête */}

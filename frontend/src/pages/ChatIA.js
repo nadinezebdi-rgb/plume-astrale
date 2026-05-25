@@ -254,7 +254,7 @@ const ChatIA = () => {
       <SEO title="Consultation astrale personnalisee — Plume Astrale" description="Pose toutes tes questions a ton theme natal en francais. Une guidance personnalisee, alimentee par ta carte du ciel reelle." />
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(180deg, #0B0B0F 0%, #110E1A 50%, #0B0B0F 100%)',
+        background: 'linear-gradient(180deg, #131840 0%, #1B2150 50%, #131840 100%)',
         paddingTop: 80,
         display: 'flex',
         flexDirection: 'column',

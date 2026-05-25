@@ -4,9 +4,9 @@
 
 :root {
   /* ─── COSMIC MYSTIC PALETTE — Navy + Lavender + Gold ─── */
-  --pa-bg:           #0A0E27;   /* deep navy night */
-  --pa-bg-deep:      #06081A;   /* abyss */
-  --pa-bg-mid:       #12173A;   /* mid navy */
+  --pa-bg:           #131840;   /* navy night (eclairci) */
+  --pa-bg-deep:      #0E1230;   /* deep navy (eclairci) */
+  --pa-bg-mid:       #1B2150;   /* mid navy (eclairci) */
 
   /* ── Surfaces ── */
   --pa-surface:      #161C44;
