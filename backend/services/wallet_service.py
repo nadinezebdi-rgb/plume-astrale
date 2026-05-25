@@ -1,147 +1,106 @@
-"""Wallet service - credit balance management and transaction logging"""
-import uuid
-from datetime import datetime, timezone
-from motor.motor_asyncio import AsyncIOMotorDatabase
-
-REGISTRATION_BONUS = 20
-DAILY_BONUS = 1
+"""Wallet & credits — backed by Supabase Postgres via service_role client."""
+from fastapi import HTTPException
+from services.supabase_client import get_admin_client
 
 
-async def create_wallet(db: AsyncIOMotorDatabase, user_id: str) -> dict:
-    """Create a new wallet with registration bonus."""
-    wallet = {
-        "id": str(uuid.uuid4()),
-        "user_id": user_id,
-        "credit_balance": REGISTRATION_BONUS,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-        "last_daily_bonus": None,
+async def get_balance(user_id: str) -> int:
+    sb = get_admin_client()
+    res = sb.table('wallets').select('credit_balance').eq('user_id', user_id).maybe_single().execute()
+    if not res or not res.data:
+        # auto-create wallet if missing (failsafe en plus du trigger)
+        sb.table('wallets').insert({'user_id': user_id, 'credit_balance': 20}).execute()
+        return 20
+    return int(res.data['credit_balance'])
+
+
+async def has_used_free_tarot(user_id: str) -> bool:
+    sb = get_admin_client()
+    res = sb.table('wallets').select('free_tarot_used').eq('user_id', user_id).maybe_single().execute()
+    return bool(res and res.data and res.data.get('free_tarot_used'))
+
+
+async def mark_free_tarot_used(user_id: str):
+    sb = get_admin_client()
+    sb.table('wallets').update({'free_tarot_used': True}).eq('user_id', user_id).execute()
+
+
+async def deduct_credits(user_id: str, amount: int, description: str) -> int:
+    """Deduct `amount` credits if balance is sufficient. Returns new balance."""
+    sb = get_admin_client()
+    balance = await get_balance(user_id)
+    if balance < amount:
+        raise HTTPException(status_code=402, detail='Solde insuffisant')
+    new_balance = balance - amount
+    sb.table('wallets').update({'credit_balance': new_balance}).eq('user_id', user_id).execute()
+    sb.table('credit_transactions').insert({
+        'user_id': user_id,
+        'tx_type': 'deduction',
+        'amount': -amount,
+        'description': description,
+    }).execute()
+    return new_balance
+
+
+async def add_credits(user_id: str, amount: int, description: str, tx_type: str = 'purchase') -> int:
+    sb = get_admin_client()
+    balance = await get_balance(user_id)
+    new_balance = balance + amount
+    sb.table('wallets').update({'credit_balance': new_balance}).eq('user_id', user_id).execute()
+    sb.table('credit_transactions').insert({
+        'user_id': user_id,
+        'tx_type': tx_type,
+        'amount': amount,
+        'description': description,
+    }).execute()
+    return new_balance
+
+
+async def get_transactions(user_id: str, limit: int = 50) -> list:
+    sb = get_admin_client()
+    res = sb.table('credit_transactions').select('*').eq('user_id', user_id).order('created_at', desc=True).limit(limit).execute()
+    return res.data or []
+
+
+async def get_profile(user_id: str) -> dict:
+    sb = get_admin_client()
+    res = sb.table('profiles').select('*').eq('id', user_id).maybe_single().execute()
+    return (res.data if res else None) or {}
+
+
+async def update_profile(user_id: str, data: dict) -> dict:
+    sb = get_admin_client()
+    payload = {k: v for k, v in data.items() if v is not None}
+    if not payload:
+        return await get_profile(user_id)
+    sb.table('profiles').upsert({'id': user_id, **payload}).execute()
+    return await get_profile(user_id)
+
+
+async def redeem_promo(user_id: str, code: str) -> dict:
+    sb = get_admin_client()
+    code = code.strip().upper()
+    promo = sb.table('promo_codes').select('*').eq('code', code).eq('active', True).maybe_single().execute()
+    if not promo or not promo.data:
+        raise HTTPException(status_code=404, detail='Code promo invalide ou expire')
+    promo_data = promo.data
+    if promo_data.get('max_uses') and promo_data.get('used_count', 0) >= promo_data['max_uses']:
+        raise HTTPException(status_code=410, detail='Ce code promo a atteint sa limite')
+
+    # Verifier que l'utilisateur ne l'a pas deja utilise
+    redemption = sb.table('promo_code_redemptions').select('id').eq('user_id', user_id).eq('code', code).maybe_single().execute()
+    if redemption and redemption.data:
+        raise HTTPException(status_code=409, detail='Tu as deja utilise ce code promo')
+
+    credits = int(promo_data['credits'])
+    description = promo_data.get('description') or f'Code promo {code}'
+    new_balance = await add_credits(user_id, credits, description, tx_type='promo')
+
+    # Enregistrer la redemption
+    sb.table('promo_code_redemptions').insert({'user_id': user_id, 'code': code}).execute()
+    sb.table('promo_codes').update({'used_count': promo_data.get('used_count', 0) + 1}).eq('code', code).execute()
+
+    return {
+        'credits_added': credits,
+        'description': description,
+        'credit_balance': new_balance,
     }
-    await db.user_wallets.insert_one(wallet)
-
-    # Log the registration bonus transaction
-    await log_transaction(
-        db,
-        user_id=user_id,
-        tx_type="bonus",
-        amount=REGISTRATION_BONUS,
-        description="Bonus d'inscription",
-    )
-    return wallet
-
-
-async def get_wallet(db: AsyncIOMotorDatabase, user_id: str) -> dict:
-    """Get user wallet, applying daily bonus if eligible."""
-    wallet = await db.user_wallets.find_one({"user_id": user_id}, {"_id": 0})
-    if not wallet:
-        return None
-
-    # Check daily bonus eligibility
-    now = datetime.now(timezone.utc)
-    last_bonus = wallet.get("last_daily_bonus")
-
-    if last_bonus:
-        last_bonus_dt = datetime.fromisoformat(last_bonus) if isinstance(last_bonus, str) else last_bonus
-        # Give bonus if last bonus was before today (UTC)
-        if last_bonus_dt.date() < now.date():
-            wallet["credit_balance"] += DAILY_BONUS
-            wallet["last_daily_bonus"] = now.isoformat()
-            wallet["updated_at"] = now.isoformat()
-            await db.user_wallets.update_one(
-                {"user_id": user_id},
-                {"$set": {
-                    "credit_balance": wallet["credit_balance"],
-                    "last_daily_bonus": wallet["last_daily_bonus"],
-                    "updated_at": wallet["updated_at"],
-                }},
-            )
-            await log_transaction(db, user_id, "bonus", DAILY_BONUS, "Bonus quotidien")
-    else:
-        # First day after registration — give daily bonus if account was created before today
-        user = await db.users.find_one({"id": user_id}, {"_id": 0})
-        if user:
-            created = datetime.fromisoformat(user["created_at"]) if isinstance(user.get("created_at"), str) else user.get("created_at")
-            if created and created.date() < now.date():
-                wallet["credit_balance"] += DAILY_BONUS
-                wallet["last_daily_bonus"] = now.isoformat()
-                wallet["updated_at"] = now.isoformat()
-                await db.user_wallets.update_one(
-                    {"user_id": user_id},
-                    {"$set": {
-                        "credit_balance": wallet["credit_balance"],
-                        "last_daily_bonus": wallet["last_daily_bonus"],
-                        "updated_at": wallet["updated_at"],
-                    }},
-                )
-                await log_transaction(db, user_id, "bonus", DAILY_BONUS, "Bonus quotidien")
-
-    return wallet
-
-
-async def deduct_credits(db: AsyncIOMotorDatabase, user_id: str, amount: int, description: str) -> dict:
-    """Deduct credits from user wallet. Raises if insufficient."""
-    wallet = await get_wallet(db, user_id)
-    if not wallet:
-        raise ValueError("Portefeuille introuvable")
-    if wallet["credit_balance"] < amount:
-        raise ValueError("Crédits insuffisants")
-
-    new_balance = wallet["credit_balance"] - amount
-    now = datetime.now(timezone.utc).isoformat()
-    await db.user_wallets.update_one(
-        {"user_id": user_id},
-        {"$set": {"credit_balance": new_balance, "updated_at": now}},
-    )
-    await log_transaction(db, user_id, "usage", -amount, description)
-    return {"credit_balance": new_balance}
-
-
-async def add_credits(db: AsyncIOMotorDatabase, user_id: str, amount: int, description: str) -> dict:
-    """Add credits to user wallet."""
-    wallet = await get_wallet(db, user_id)
-    if not wallet:
-        raise ValueError("Portefeuille introuvable")
-
-    new_balance = wallet["credit_balance"] + amount
-    now = datetime.now(timezone.utc).isoformat()
-    await db.user_wallets.update_one(
-        {"user_id": user_id},
-        {"$set": {"credit_balance": new_balance, "updated_at": now}},
-    )
-    await log_transaction(db, user_id, "purchase", amount, description)
-    return {"credit_balance": new_balance}
-
-
-async def log_transaction(db: AsyncIOMotorDatabase, user_id: str, tx_type: str, amount: int, description: str):
-    """Log a credit transaction."""
-    tx = {
-        "id": str(uuid.uuid4()),
-        "user_id": user_id,
-        "type": tx_type,
-        "credits_amount": amount,
-        "description": description,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-    }
-    await db.credit_transactions.insert_one(tx)
-
-
-async def get_transactions(db: AsyncIOMotorDatabase, user_id: str, limit: int = 50) -> list:
-    """Get credit transaction history."""
-    txs = await db.credit_transactions.find(
-        {"user_id": user_id}, {"_id": 0}
-    ).sort("timestamp", -1).to_list(limit)
-    return txs
-
-
-async def check_free_tarot_used(db: AsyncIOMotorDatabase, user_id: str) -> bool:
-    """Check if user has already used their free Tarot Oui/Non draw."""
-    tx = await db.credit_transactions.find_one(
-        {"user_id": user_id, "description": "Tarot Oui/Non (tirage gratuit)"},
-        {"_id": 0},
-    )
-    return tx is not None
-
-
-async def mark_free_tarot_used(db: AsyncIOMotorDatabase, user_id: str):
-    """Mark the free Tarot Oui/Non as used (0-credit transaction)."""
-    await log_transaction(db, user_id, "usage", 0, "Tarot Oui/Non (tirage gratuit)")

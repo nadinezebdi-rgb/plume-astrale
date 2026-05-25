@@ -143,20 +143,13 @@ async def plume_chat(
     message: str,
     session_id: str,
     birth_data: Optional[Dict[str, Any]] = None,
-    db=None,
+    user_id: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """
-    Point d'entree principal.
-    - message : question de l'utilisateur
-    - session_id : identifiant de conversation (multi-tour)
-    - birth_data : optionnel, theme natal de l'utilisateur (nom, day, month, year, hour, min, lat, lon, tzone, place)
-    - db : motor.AsyncIOMotorDatabase, optionnel (pour persistance des messages)
-    """
+    """Point d'entree principal — historique stocke dans Supabase."""
     api_key = os.environ.get("EMERGENT_LLM_KEY")
     if not api_key:
         return {"success": False, "message": "Cle LLM non configuree."}
 
-    # Construire le system prompt avec contexte natal si dispo
     system_message = SYSTEM_PROMPT_PLUME
     if birth_data:
         horoscope = await _fetch_natal_chart(birth_data)
@@ -170,56 +163,48 @@ async def plume_chat(
             system_message=system_message,
         ).with_model("openai", "gpt-4o-mini")
 
-        # Recharger l'historique depuis MongoDB pour continuite multi-tour
-        if db is not None:
+        # Recharger l'historique pour multi-tour si user connecte
+        if user_id:
             try:
-                history = await db.plume_chat_messages.find(
-                    {"session_id": session_id}
-                ).sort("ts", 1).to_list(length=50)
-                # Replay l'historique dans LlmChat
-                for h in history:
+                from services.supabase_client import get_admin_client
+                sb = get_admin_client()
+                res = sb.table('plume_chat_messages').select('role,content').eq('session_id', session_id).order('created_at').limit(40).execute()
+                for h in (res.data or []):
                     if h.get("role") == "user":
                         await chat.send_message(UserMessage(text=h["content"]))
-                    # Les reponses assistant sont reconstruites automatiquement par LlmChat
-                    # via le contexte system, donc on n'a pas besoin de les replay manuellement.
-                    # Mais LlmChat a son propre historique interne — laissons-le gerer.
             except Exception as e:
                 logger.warning(f"Could not load history: {e}")
 
-        # Envoyer le nouveau message
-        user_message = UserMessage(text=message)
-        response_text = await chat.send_message(user_message)
+        response_text = await chat.send_message(UserMessage(text=message))
 
-        # Persister dans MongoDB
-        if db is not None:
+        # Persister dans Supabase si user connecte
+        if user_id:
             try:
-                now = datetime.now(timezone.utc)
-                await db.plume_chat_messages.insert_many([
-                    {"session_id": session_id, "role": "user", "content": message, "ts": now},
-                    {"session_id": session_id, "role": "assistant", "content": response_text, "ts": now},
-                ])
+                from services.supabase_client import get_admin_client
+                sb = get_admin_client()
+                sb.table('plume_chat_messages').insert([
+                    {"session_id": session_id, "user_id": user_id, "role": "user", "content": message},
+                    {"session_id": session_id, "user_id": user_id, "role": "assistant", "content": response_text},
+                ]).execute()
             except Exception as e:
                 logger.warning(f"Could not persist messages: {e}")
 
-        return {"success": True, "answer": response_text}
+        return {"success": True, "answer": response_text, "session_id": session_id}
 
     except Exception as e:
         logger.error(f"Plume chat error: {e}", exc_info=True)
-        return {
-            "success": False,
-            "message": "Les astres traversent une zone d'ombre. Reessaie dans un instant.",
-        }
+        return {"success": False, "message": "Les astres traversent une zone d'ombre. Reessaie dans un instant."}
 
 
-async def get_session_history(session_id: str, db) -> list:
+async def get_session_history(session_id: str, user_id: Optional[str] = None) -> list:
     """Recupere l'historique d'une session pour le frontend."""
-    if db is None:
+    if not user_id:
         return []
     try:
-        msgs = await db.plume_chat_messages.find(
-            {"session_id": session_id}
-        ).sort("ts", 1).to_list(length=100)
-        return [{"role": m["role"], "content": m["content"]} for m in msgs]
+        from services.supabase_client import get_admin_client
+        sb = get_admin_client()
+        res = sb.table('plume_chat_messages').select('role,content').eq('session_id', session_id).eq('user_id', user_id).order('created_at').limit(100).execute()
+        return [{"role": m["role"], "content": m["content"]} for m in (res.data or [])]
     except Exception as e:
         logger.warning(f"Could not load session history: {e}")
         return []

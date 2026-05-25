@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { supabase } from '@/lib/supabase';
 
 const API = process.env.REACT_APP_BACKEND_URL;
-
 const AuthContext = createContext(null);
 
 export const useAuth = () => {
@@ -12,49 +12,106 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
+  const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('pa_token'));
   const [creditBalance, setCreditBalance] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const token = session?.access_token || null;
 
   const authHeader = useCallback(() => {
     if (!token) return {};
     return { Authorization: `Bearer ${token}` };
   }, [token]);
 
-  // Fetch user profile on mount / token change
+  // Charger profil + balance depuis backend
+  const loadMe = useCallback(async (accessToken) => {
+    if (!accessToken) {
+      setUser(null);
+      setCreditBalance(0);
+      return;
+    }
+    try {
+      const res = await axios.get(`${API}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      setUser(res.data.user);
+      setCreditBalance(res.data.credit_balance ?? 0);
+    } catch (err) {
+      console.warn('loadMe failed', err);
+      setUser(null);
+      setCreditBalance(0);
+    }
+  }, []);
+
+  // Init : recuperer session existante + s'abonner aux changements
   useEffect(() => {
-    if (!token) { setLoading(false); return; }
-    axios.get(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => {
-        setUser(res.data.user);
-        setCreditBalance(res.data.credit_balance);
-      })
-      .catch(() => { localStorage.removeItem('pa_token'); setToken(null); })
-      .finally(() => setLoading(false));
-  }, [token]);
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      setSession(data.session);
+      loadMe(data.session?.access_token).finally(() => {
+        if (mounted) setLoading(false);
+      });
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      loadMe(newSession?.access_token);
+    });
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [loadMe]);
 
   const register = async (data) => {
-    const res = await axios.post(`${API}/api/auth/register`, data);
-    localStorage.setItem('pa_token', res.data.token);
-    setToken(res.data.token);
-    setUser(res.data.user);
-    setCreditBalance(res.data.credit_balance);
-    return res.data;
+    const { email, password, ...profileData } = data;
+    const { data: signUpData, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: profileData },
+    });
+    if (error) throw new Error(error.message);
+
+    // Si la session est creee immediatement (confirmation desactivee), on synchronise le profil
+    const newSession = signUpData.session;
+    if (newSession) {
+      try {
+        await axios.put(
+          `${API}/api/auth/profile`,
+          {
+            prenom: profileData.prenom,
+            birth_date: profileData.birth_date,
+            birth_time: profileData.birth_time,
+            birth_place: profileData.birth_place,
+            birth_country: profileData.birth_country,
+            latitude: profileData.latitude,
+            longitude: profileData.longitude,
+            gender: profileData.gender,
+          },
+          { headers: { Authorization: `Bearer ${newSession.access_token}` } }
+        );
+      } catch (e) { /* ignore */ }
+      setSession(newSession);
+      await loadMe(newSession.access_token);
+    }
+    return signUpData;
   };
 
   const login = async (email, password) => {
-    const res = await axios.post(`${API}/api/auth/login`, { email, password });
-    localStorage.setItem('pa_token', res.data.token);
-    setToken(res.data.token);
-    setUser(res.data.user);
-    setCreditBalance(res.data.credit_balance);
-    return res.data;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+    setSession(data.session);
+    await loadMe(data.session?.access_token);
+    return data;
   };
 
-  const logout = () => {
-    localStorage.removeItem('pa_token');
-    setToken(null);
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
     setUser(null);
     setCreditBalance(0);
   };
@@ -74,9 +131,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   const value = {
-    user, token, creditBalance, loading,
-    authHeader, register, login, logout,
-    refreshBalance, useCredits, setCreditBalance,
+    user,
+    session,
+    token,
+    creditBalance,
+    loading,
+    authHeader,
+    register,
+    login,
+    logout,
+    refreshBalance,
+    useCredits,
+    setCreditBalance,
     isAuthenticated: !!user,
   };
 

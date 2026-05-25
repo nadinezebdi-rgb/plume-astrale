@@ -1,437 +1,494 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Request
-from fastapi.responses import JSONResponse
+"""Plume Astrale — FastAPI backend (Supabase + Stripe + Astrology API)."""
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends
 from fastapi.staticfiles import StaticFiles
-from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
+import uuid
 from pathlib import Path
 from pydantic import BaseModel
-from typing import Dict, Optional
-import uuid
+from typing import Optional
 
-# Import des services
-from services.astrology_api import get_astrology_service
+# Config + middleware
+from config import get_settings
+from middleware.auth import get_current_user, get_optional_user
+
+# Services metier
 from services.daily_content import get_daily_content
 from services.tarot_service import tirage_oui_non, tirage_en_croix
-from services.auth_service import hash_password, verify_password, create_token
 from services.tarot_premium import (
     tirage_marseille_question, tirage_croix_celtique, tirage_du_jour,
-    DOMAINES_QUESTIONS
+    DOMAINES_QUESTIONS,
 )
 from services.plume_chat import plume_chat as plume_chat_service, get_session_history
 from services.daily_ritual import (
     get_today_scores, get_daily_insight, submit_checkin, get_today_checkin,
-    update_streak, get_streak, journal_entry, get_journal_history,
-    MOODS, MOON_PHASES_FR, SCORE_THEMES,
+    update_streak, get_streak, journal_entry, get_journal_history, MOODS,
+)
+from services import wallet_service
+from services.supabase_client import get_admin_client
+
+# Stripe (via emergentintegrations — gere les sandbox keys aussi)
+from emergentintegrations.payments.stripe.checkout import (
+    StripeCheckout, CheckoutSessionRequest,
 )
 
-# Configuration Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+settings = get_settings()
+ASSETS_DIR = Path(__file__).parent / 'assets'
 
-# ─── DB SIMULATION ───
-fake_db = {"users": {}, "wallets": {}}
+app = FastAPI(title='Plume Astrale API')
+api_router = APIRouter(prefix='/api')
 
-# ─── CONFIG ───
-ASSETS_DIR = Path(__file__).parent / "assets"
-app = FastAPI()
 
-# 1. INITIALISATION DU ROUTER
-api_router = APIRouter(prefix="/api")
+# ════════════════════════════════════════════
+# AUTH (Supabase JWT — frontend signe via supabase-js, backend verifie)
+# ════════════════════════════════════════════
+class ProfileUpdate(BaseModel):
+    prenom: Optional[str] = None
+    birth_date: Optional[str] = None
+    birth_time: Optional[str] = None
+    birth_place: Optional[str] = None
+    birth_country: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    gender: Optional[str] = None
 
-class RegisterRequest(BaseModel):
-    email: str
-    password: str
-    birth_date: str
-    birth_time: str
-    birth_place: str
-    birth_country: str = "France"
 
-# ─── ROUTES AUTHENTIFICATION ───
-
-@api_router.post("/auth/register")
-async def register(req: RegisterRequest):
-    email = req.email.strip().lower()
-    user_id = str(uuid.uuid4())
-    user_doc = {
-        "id": user_id,
-        "email": email,
-        "password_hash": hash_password(req.password),
-        "is_premium": True,
-        "birth_date": req.birth_date
+@api_router.get('/auth/me')
+async def get_me(current_user: dict = Depends(get_current_user)):
+    """Retourne profil + solde de credits de l'utilisateur authentifie."""
+    user_id = current_user['id']
+    profile = await wallet_service.get_profile(user_id)
+    balance = await wallet_service.get_balance(user_id)
+    return {
+        'user': {
+            'id': user_id,
+            'email': current_user.get('email') or profile.get('email'),
+            'prenom': profile.get('prenom'),
+            'birth_date': profile.get('birth_date'),
+            'birth_time': profile.get('birth_time'),
+            'birth_place': profile.get('birth_place'),
+            'birth_country': profile.get('birth_country'),
+            'gender': profile.get('gender'),
+            'latitude': profile.get('latitude'),
+            'longitude': profile.get('longitude'),
+        },
+        'credit_balance': balance,
     }
-    fake_db["users"][email] = user_doc
-    fake_db["wallets"][user_id] = {"credit_balance": 50}
-    token = create_token(user_id, email)
-    return {"token": token, "user": user_doc, "credit_balance": 50}
 
-@api_router.post("/auth/login")
-async def login(req: BaseModel): # Simplifié pour le test
-    # Logique de login si nécessaire
-    return {"status": "ok"}
 
-# ─── ROUTES TAROT (VRAIS SERVICES RECONNECTÉS) ───
+@api_router.put('/auth/profile')
+async def update_profile_endpoint(
+    payload: ProfileUpdate,
+    current_user: dict = Depends(get_current_user),
+):
+    profile = await wallet_service.update_profile(current_user['id'], payload.model_dump(exclude_unset=True))
+    return {'success': True, 'profile': profile}
 
-@api_router.get("/tarot/domaines")
+
+# ════════════════════════════════════════════
+# WALLET / CREDITS
+# ════════════════════════════════════════════
+@api_router.get('/wallet/balance')
+async def wallet_balance(current_user: dict = Depends(get_current_user)):
+    balance = await wallet_service.get_balance(current_user['id'])
+    return {'credit_balance': balance}
+
+
+@api_router.get('/wallet/transactions')
+async def wallet_transactions(current_user: dict = Depends(get_current_user), limit: int = 50):
+    transactions = await wallet_service.get_transactions(current_user['id'], limit=limit)
+    return {'transactions': transactions}
+
+
+class UseCreditsRequest(BaseModel):
+    service_id: str
+    amount: Optional[int] = None
+
+
+@api_router.post('/credits/use')
+async def use_credits(payload: UseCreditsRequest, current_user: dict = Depends(get_current_user)):
+    cost = payload.amount if payload.amount is not None else settings.SERVICE_COSTS.get(payload.service_id)
+    if not cost:
+        raise HTTPException(status_code=400, detail='Service inconnu')
+
+    # 1er tarot oui/non gratuit
+    if payload.service_id == 'tarot_oui_non':
+        used = await wallet_service.has_used_free_tarot(current_user['id'])
+        if not used:
+            await wallet_service.mark_free_tarot_used(current_user['id'])
+            balance = await wallet_service.get_balance(current_user['id'])
+            return {'success': True, 'free': True, 'credit_balance': balance}
+
+    new_balance = await wallet_service.deduct_credits(
+        current_user['id'], cost, f'Utilisation : {payload.service_id}'
+    )
+    return {'success': True, 'free': False, 'credit_balance': new_balance, 'cost': cost}
+
+
+class PromoRequest(BaseModel):
+    code: str
+
+
+@api_router.post('/credits/promo')
+async def redeem_promo(payload: PromoRequest, current_user: dict = Depends(get_current_user)):
+    return await wallet_service.redeem_promo(current_user['id'], payload.code)
+
+
+# ════════════════════════════════════════════
+# STRIPE — CHECKOUT + WEBHOOK
+# ════════════════════════════════════════════
+class CheckoutRequest(BaseModel):
+    pack_id: str
+    origin_url: str
+
+
+@api_router.post('/credits/checkout')
+async def create_checkout(
+    payload: CheckoutRequest,
+    http_request: Request,
+    current_user: dict = Depends(get_current_user),
+):
+    pack = settings.PACKS.get(payload.pack_id)
+    if not pack:
+        raise HTTPException(status_code=400, detail='Pack inconnu')
+
+    host_url = str(http_request.base_url).rstrip('/')
+    webhook_url = f'{host_url}/api/webhook/stripe'
+    stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
+
+    origin = payload.origin_url.rstrip('/')
+    success_url = f'{origin}/credits-success?session_id={{CHECKOUT_SESSION_ID}}'
+    cancel_url = f'{origin}/acheter-credits'
+
+    req = CheckoutSessionRequest(
+        amount=float(pack['amount']),
+        currency=pack['currency'],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            'user_id': current_user['id'],
+            'user_email': current_user.get('email') or '',
+            'pack_id': payload.pack_id,
+            'credits': str(pack['credits']),
+        },
+    )
+    session = await stripe_checkout.create_checkout_session(req)
+
+    # Enregistrer la transaction en pending
+    try:
+        sb = get_admin_client()
+        sb.table('payment_transactions').insert({
+            'session_id': session.session_id,
+            'user_id': current_user['id'],
+            'user_email': current_user.get('email'),
+            'pack_id': payload.pack_id,
+            'amount': float(pack['amount']),
+            'currency': pack['currency'],
+            'credits': int(pack['credits']),
+            'status': 'initiated',
+            'payment_status': 'unpaid',
+            'credits_granted': False,
+            'metadata': {'pack_name': pack['name']},
+        }).execute()
+    except Exception as e:
+        logger.warning(f'Could not log payment_transaction: {e}')
+
+    return {'url': session.url, 'session_id': session.session_id}
+
+
+@api_router.get('/payments/status/{session_id}')
+async def payment_status(session_id: str, current_user: dict = Depends(get_current_user)):
+    """Polling endpoint apres redirection Stripe."""
+    sb = get_admin_client()
+
+    tx_res = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
+    if not tx_res or not tx_res.data:
+        raise HTTPException(status_code=404, detail='Transaction inconnue')
+    tx = tx_res.data
+    if tx.get('user_id') and tx['user_id'] != current_user['id']:
+        raise HTTPException(status_code=403, detail='Accès refusé')
+
+    # Si deja accordes, on renvoie le status existant
+    if tx['credits_granted']:
+        balance = await wallet_service.get_balance(current_user['id'])
+        return {
+            'status': tx['status'],
+            'payment_status': tx['payment_status'],
+            'credits_granted': True,
+            'credits': tx['credits'],
+            'credit_balance': balance,
+        }
+
+    # Sinon on interroge Stripe
+    host_url = 'https://api.stripe.com'  # base inutilisee
+    stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url='')
+    checkout_status = await stripe_checkout.get_checkout_status(session_id)
+
+    updates = {
+        'status': checkout_status.status,
+        'payment_status': checkout_status.payment_status,
+    }
+    new_balance = None
+    # Si paye et pas encore credite -> on credite
+    if checkout_status.payment_status == 'paid' and not tx['credits_granted']:
+        credits = int(tx['credits'])
+        new_balance = await wallet_service.add_credits(
+            current_user['id'], credits,
+            f"Achat pack {tx['pack_id']} — {credits} credits",
+            tx_type='purchase',
+        )
+        updates['credits_granted'] = True
+
+    sb.table('payment_transactions').update(updates).eq('session_id', session_id).execute()
+
+    if new_balance is None:
+        new_balance = await wallet_service.get_balance(current_user['id'])
+    return {
+        'status': checkout_status.status,
+        'payment_status': checkout_status.payment_status,
+        'credits_granted': updates.get('credits_granted', tx['credits_granted']),
+        'credits': tx['credits'],
+        'credit_balance': new_balance,
+    }
+
+
+@api_router.post('/webhook/stripe')
+async def stripe_webhook(request: Request):
+    """Webhook Stripe — credite l'utilisateur quand le paiement est confirme."""
+    body = await request.body()
+    sig = request.headers.get('Stripe-Signature', '')
+    stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url='')
+    try:
+        evt = await stripe_checkout.handle_webhook(body, sig)
+    except Exception as e:
+        logger.error(f'Webhook error: {e}')
+        raise HTTPException(status_code=400, detail='Invalid webhook')
+
+    if evt.payment_status != 'paid':
+        return {'received': True}
+
+    sb = get_admin_client()
+    session_id = evt.session_id
+    tx_res = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
+    if not tx_res or not tx_res.data:
+        logger.warning(f'Webhook: tx {session_id} not found')
+        return {'received': True}
+    tx = tx_res.data
+    if tx['credits_granted']:
+        return {'received': True, 'already_granted': True}
+
+    user_id = tx['user_id'] or (evt.metadata or {}).get('user_id')
+    if not user_id:
+        logger.warning(f'Webhook: no user_id for {session_id}')
+        return {'received': True}
+
+    credits = int(tx['credits'])
+    await wallet_service.add_credits(user_id, credits, f"Achat pack {tx['pack_id']} — {credits} credits", tx_type='purchase')
+    sb.table('payment_transactions').update({
+        'credits_granted': True,
+        'status': 'completed',
+        'payment_status': 'paid',
+    }).eq('session_id', session_id).execute()
+    return {'received': True, 'granted': True}
+
+
+# ════════════════════════════════════════════
+# PACKS (lecture publique pour la page Acheter)
+# ════════════════════════════════════════════
+@api_router.get('/packs')
+async def list_packs():
+    return {'packs': settings.PACKS, 'service_costs': settings.SERVICE_COSTS}
+
+
+# ════════════════════════════════════════════
+# TAROT
+# ════════════════════════════════════════════
+@api_router.get('/tarot/domaines')
 async def get_domaines():
-    return {"success": True, "domaines": DOMAINES_QUESTIONS}
+    return {'success': True, 'domaines': DOMAINES_QUESTIONS}
 
-@api_router.get("/tarot/jour")
+
+@api_router.get('/tarot/jour')
 async def get_jour():
-    return {"success": True, "data": tirage_du_jour()}
+    return {'success': True, 'data': tirage_du_jour()}
 
-@api_router.post("/tarot/oui-non")
+
+@api_router.post('/tarot/oui-non')
 async def tarot_oui_non_endpoint(request: Request):
     body = await request.json()
-    return tirage_oui_non(body.get("question", ""))
+    return tirage_oui_non(body.get('question', ''))
 
-@api_router.post("/tarot/marseille")
+
+@api_router.post('/tarot/marseille')
 async def tarot_marseille_endpoint(request: Request):
     body = await request.json()
-    # Utilise le vrai service premium
-    result = tirage_marseille_question(body.get("question", ""), body.get("domaine", "general"))
-    return {"success": True, "data": result}
+    result = tirage_marseille_question(body.get('question', ''), body.get('domaine', 'general'))
+    return {'success': True, 'data': result}
 
-@api_router.post("/tarot/celtique")
+
+@api_router.post('/tarot/celtique')
 async def tarot_celtique_endpoint(request: Request):
     body = await request.json()
-    # Utilise le vrai service premium
-    result = tirage_croix_celtique(body.get("question", ""), body.get("domaine", "general"))
-    return {"success": True, "data": result}
+    result = tirage_croix_celtique(body.get('question', ''), body.get('domaine', 'general'))
+    return {'success': True, 'data': result}
 
-@api_router.post("/tarologie/tirage")
+
+@api_router.post('/tarologie/tirage')
 async def tirage_croix_endpoint(request: Request):
     body = await request.json()
-    return tirage_en_croix(body.get("prenom", "Ami"), "1990-01-01")
+    return tirage_en_croix(body.get('prenom', 'Ami'), '1990-01-01')
 
-# ─── ROUTES ASTROLOGIE (VRAIS SERVICES) ───
 
-@api_router.get("/daily/{zodiac_sign}")
+# ════════════════════════════════════════════
+# DAILY HOROSCOPE
+# ════════════════════════════════════════════
+@api_router.get('/daily/{zodiac_sign}')
 async def get_daily(zodiac_sign: str):
-    # Reconnexion au service de contenu quotidien
     return get_daily_content(zodiac_sign)
 
-@api_router.post("/credits/use")
-async def use_credits(request: Request):
-    return {"success": True, "credit_balance": 990}
-# --- ROUTE POUR LE CHAT ASTRO IA ---
 
-@api_router.post("/astro-chat")
-async def astro_chat_endpoint(request: Request):
-    """
-    Chat IA astrologique en français via AstrologyAPI / AstroChat
-    Endpoint: https://json-chat.astrologyapi.com/api/chat
-    Doc: https://astrologyapi.com/developers/v1/chat-api
-
-    Body attendu (flexible) :
-      { "message": "...", "user_data": {...} }
-      OU
-      { "message": "...", "name": "...", "day": ..., "month": ..., ... }
-    """
+# ════════════════════════════════════════════
+# PLUME CHAT IA
+# ════════════════════════════════════════════
+@api_router.post('/plume-chat')
+async def plume_chat_endpoint(
+    request: Request,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Body: { message, session_id, birth_data }. Auth optionnelle — invite OK."""
     try:
         body = await request.json()
-        user_message = (body.get("message") or body.get("q") or "").strip()
-        if not user_message:
-            return {"success": False, "message": "Question vide."}
-
-        # Supporte les deux formats : nested user_data OU champs à plat
-        ud = body.get("user_data") or body
-
-        # Données de naissance avec fallback français (Paris)
-        name = str(ud.get("name") or "Voyageur")
-        day = int(ud.get("day") or 1)
-        month = int(ud.get("month") or 1)
-        year = int(ud.get("year") or 1990)
-        hour = int(ud.get("hour") or 12)
-        minute = int(ud.get("min") or ud.get("minute") or 0)
-        lat = str(ud.get("lat") or "48.8566")
-        lon = str(ud.get("lon") or "2.3522")
-        tzone = str(ud.get("tzone") or "1")
-        gender = str(ud.get("gender") or "female").lower()
-        if gender not in ("male", "female"):
-            gender = "female"
-        place = str(ud.get("place") or ud.get("birth_place") or "Paris")
-        country = str(ud.get("country") or "FR")
-        lang = str(ud.get("language") or body.get("lang") or "fr")
-
-        # Niveau d'expertise et tradition (Western pour audience française)
-        ep = str(body.get("ep") or "STANDARD").upper()
-        ac = str(body.get("ac") or "WESTERN").upper()
-        sid = str(body.get("sid") or "astro-6")
-
-        # Authentification : Access Token prioritaire, fallback Basic Auth
-        access_token = os.environ.get('ASTROLOGY_API_ACCESS_TOKEN')
-        user_id = os.environ.get('ASTROLOGY_API_USER_ID')
-        api_key = os.environ.get('ASTROLOGY_API_KEY')
-
-        payload = {
-            "language": lang,
-            "name": name,
-            "day": day,
-            "month": month,
-            "year": year,
-            "hour": hour,
-            "min": minute,
-            "place": place,
-            "lat": lat,
-            "lon": lon,
-            "tzone": tzone,
-            "gender": gender,
-            "country": country,
-            "ap": "KUNDLI",
-            "sid": sid,
-            "ep": ep,
-            "ac": ac,
-            "q": user_message,
-        }
-
-        headers = {
-            "Content-Type": "application/json",
-            "Accept-Language": lang,
-        }
-
-        import httpx
-        async with httpx.AsyncClient(timeout=45.0) as client:
-            if access_token:
-                headers["x-astrologyapi-key"] = access_token
-                response = await client.post(
-                    "https://json-chat.astrologyapi.com/api/chat",
-                    json=payload,
-                    headers=headers,
-                )
-            else:
-                # Fallback Basic Auth
-                response = await client.post(
-                    "https://json-chat.astrologyapi.com/api/chat",
-                    auth=(user_id or "", api_key or ""),
-                    json=payload,
-                    headers=headers,
-                )
-
-        try:
-            data = response.json()
-        except Exception:
-            logger.error(f"AstroChat non-JSON response: {response.status_code} {response.text[:300]}")
-            return {"success": False, "message": "Reponse invalide de l'oracle. Reessaie dans un instant."}
-
-        # Format de reponse officiel : { status: true, message: "...", response: {...} }
-        # Fallbacks pour les variantes
-        answer = (
-            data.get("message")
-            or data.get("answer")
-            or (data.get("response") if isinstance(data.get("response"), str) else None)
-        )
-
-        if data.get("status") is True and answer:
-            return {"success": True, "answer": answer, "raw": {"sid": sid, "ep": ep, "ac": ac}}
-
-        # Erreurs côté API (insufficient credit, invalid creds, etc.)
-        err = data.get("error") or data.get("msg") or data.get("message")
-        logger.warning(f"AstroChat API returned non-success: {data}")
-        if err and "credit" in str(err).lower():
-            return {
-                "success": False,
-                "code": "API_CREDIT",
-                "message": "Le service de chat n'est pas active sur le compte AstrologyAPI. Verifie l'activation d'AstroChat dans ton dashboard.",
-            }
-        return {"success": False, "message": str(err) if err else "L'oracle est momentanement indisponible."}
-
-    except httpx.TimeoutException:
-        logger.error("AstroChat timeout")
-        return {"success": False, "message": "L'oracle prend trop de temps a repondre. Reessaie."}
-    except Exception as e:
-        logger.error(f"Erreur Chat API: {e}", exc_info=True)
-        return {"success": False, "message": "Une perturbation cosmique empeche la connexion."}
-
-
-# ═══════════════════════════════════════════════════════════
-# PLUME IA — Chat premium avec GPT-5.4 + theme natal reel
-# ═══════════════════════════════════════════════════════════
-_mongo_db = None
-
-def _get_db():
-    """Lazy MongoDB client initialization."""
-    global _mongo_db
-    if _mongo_db is not None:
-        return _mongo_db
-    try:
-        from motor.motor_asyncio import AsyncIOMotorClient
-        mongo_url = os.environ.get("MONGO_URL")
-        if not mongo_url:
-            return None
-        client = AsyncIOMotorClient(mongo_url)
-        db_name = os.environ.get("MONGO_DB_NAME", "plume_astrale")
-        _mongo_db = client[db_name]
-        return _mongo_db
-    except Exception as e:
-        logger.warning(f"Mongo unavailable: {e}")
-        return None
-
-
-@api_router.post("/plume-chat")
-async def plume_chat_endpoint(request: Request):
-    """
-    Chat IA Plume — astrologue mystique francais alimente par GPT-5.4
-    Body: { message, session_id, birth_data: {name, day, month, year, hour, min, lat, lon, tzone, place} }
-    """
-    try:
-        body = await request.json()
-        message = (body.get("message") or "").strip()
+        message = (body.get('message') or '').strip()
         if not message:
-            return {"success": False, "message": "Message vide."}
+            return {'success': False, 'message': 'Message vide.'}
 
-        session_id = body.get("session_id") or str(uuid.uuid4())
-        birth_data = body.get("birth_data") or body.get("user_data")
+        session_id = body.get('session_id') or f'plume-{uuid.uuid4().hex[:12]}'
+        birth_data = body.get('birth_data') or body.get('user_data')
+        user_id = current_user['id'] if current_user else None
 
-        db = _get_db()
         result = await plume_chat_service(
             message=message,
             session_id=session_id,
             birth_data=birth_data,
-            db=db,
+            user_id=user_id,
         )
-        result["session_id"] = session_id
+        result['session_id'] = session_id
         return result
-
     except Exception as e:
-        logger.error(f"Plume chat endpoint error: {e}", exc_info=True)
-        return {"success": False, "message": "Une perturbation cosmique empeche la connexion."}
+        logger.error(f'Plume chat endpoint error: {e}', exc_info=True)
+        return {'success': False, 'message': 'Une perturbation cosmique empeche la connexion.'}
 
 
-@api_router.get("/plume-chat/history/{session_id}")
-async def plume_chat_history_endpoint(session_id: str):
-    """Recupere l'historique d'une session pour reprise de conversation."""
-    db = _get_db()
-    messages = await get_session_history(session_id, db)
-    return {"success": True, "messages": messages}
+@api_router.get('/plume-chat/history/{session_id}')
+async def plume_chat_history_endpoint(
+    session_id: str,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    user_id = current_user['id'] if current_user else None
+    messages = await get_session_history(session_id, user_id)
+    return {'success': True, 'messages': messages}
 
 
-# ═══════════════════════════════════════════════════════════
-# SPRINT 2 — RITUEL QUOTIDIEN (mood + scores + insight + journal + streak)
-# ═══════════════════════════════════════════════════════════
-@api_router.get("/ritual/today")
+# ════════════════════════════════════════════
+# RITUEL QUOTIDIEN
+# ════════════════════════════════════════════
+@api_router.get('/ritual/today')
 async def ritual_today_endpoint(
     user_id: str,
     name: Optional[str] = None,
-    day: Optional[int] = None,
-    month: Optional[int] = None,
-    year: Optional[int] = None,
-    hour: Optional[int] = None,
-    minute: Optional[int] = None,
-    lat: Optional[float] = None,
-    lon: Optional[float] = None,
-    tzone: Optional[float] = None,
+    day: Optional[int] = None, month: Optional[int] = None, year: Optional[int] = None,
+    hour: Optional[int] = None, minute: Optional[int] = None,
+    lat: Optional[float] = None, lon: Optional[float] = None, tzone: Optional[float] = None,
 ):
-    """
-    Renvoie tout le rituel du jour : scores, message, check-in actuel, streak.
-    user_id peut etre un UUID anonyme (frontend) ou un user.id authentifie.
-    """
-    db = _get_db()
-
     birth_data = None
     if day and month and year:
         birth_data = {
-            "name": name or "Voyageur",
-            "day": day, "month": month, "year": year,
-            "hour": hour or 12, "min": minute or 0,
-            "lat": lat or 48.8566, "lon": lon or 2.3522,
-            "tzone": tzone or 1.0,
+            'name': name or 'Voyageur',
+            'day': day, 'month': month, 'year': year,
+            'hour': hour or 12, 'min': minute or 0,
+            'lat': lat or 48.8566, 'lon': lon or 2.3522, 'tzone': tzone or 1.0,
         }
-
-    checkin = await get_today_checkin(user_id, db)
-    mood = checkin.get("mood") if checkin else None
-
+    checkin = await get_today_checkin(user_id, None)
+    mood = checkin.get('mood') if checkin else None
     scores_data = get_today_scores(user_id, mood=mood)
-    insight_data = await get_daily_insight(user_id, birth_data=birth_data, mood=mood, db=db)
-    streak = await get_streak(user_id, db)
-
+    insight_data = await get_daily_insight(user_id, birth_data=birth_data, mood=mood, db=None)
+    streak = await get_streak(user_id, None)
     return {
-        "success": True,
-        "date": scores_data["date"],
-        "scores": scores_data["scores"],
-        "moon_phase": scores_data["moon_phase"],
-        "moon_theme": scores_data["moon_theme"],
-        "insight": insight_data["insight"],
-        "checkin": checkin,
-        "streak": streak,
+        'success': True,
+        'date': scores_data['date'],
+        'scores': scores_data['scores'],
+        'moon_phase': scores_data['moon_phase'],
+        'moon_theme': scores_data['moon_theme'],
+        'insight': insight_data['insight'],
+        'checkin': checkin,
+        'streak': streak,
     }
 
 
-@api_router.get("/ritual/moods")
+@api_router.get('/ritual/moods')
 async def ritual_moods_endpoint():
-    """Liste des humeurs disponibles pour le frontend."""
-    return {"moods": [{"id": k, **v} for k, v in MOODS.items()]}
+    return {'moods': [{'id': k, **v} for k, v in MOODS.items()]}
 
 
-@api_router.post("/ritual/checkin")
+@api_router.post('/ritual/checkin')
 async def ritual_checkin_endpoint(request: Request):
-    """Soumet l'humeur (et optionnellement l'intention) du jour. Increment streak."""
     body = await request.json()
-    user_id = body.get("user_id")
-    mood = body.get("mood")
-    intention = body.get("intention")
-
+    user_id = body.get('user_id')
+    mood = body.get('mood')
+    intention = body.get('intention')
     if not user_id or not mood:
-        return {"success": False, "message": "user_id et mood requis."}
+        return {'success': False, 'message': 'user_id et mood requis.'}
     if mood not in MOODS:
-        return {"success": False, "message": "Humeur inconnue."}
-
-    db = _get_db()
-    result = await submit_checkin(user_id, mood, intention, db)
-    streak = await update_streak(user_id, db)
-    result["streak"] = streak
+        return {'success': False, 'message': 'Humeur inconnue.'}
+    result = await submit_checkin(user_id, mood, intention, None)
+    streak = await update_streak(user_id, None)
+    result['streak'] = streak
     return result
 
 
-@api_router.post("/journal/entry")
+@api_router.post('/journal/entry')
 async def journal_entry_endpoint(request: Request):
-    """L'utilisateur ecrit son journal, Plume repond."""
     body = await request.json()
-    user_id = body.get("user_id")
-    entry = (body.get("entry") or "").strip()
-    mood = body.get("mood")
-    birth_data = body.get("birth_data")
-
+    user_id = body.get('user_id')
+    entry = (body.get('entry') or '').strip()
     if not user_id or not entry:
-        return {"success": False, "message": "user_id et entry requis."}
+        return {'success': False, 'message': 'user_id et entry requis.'}
     if len(entry) < 5:
-        return {"success": False, "message": "Ecris au moins quelques mots."}
+        return {'success': False, 'message': 'Ecris au moins quelques mots.'}
     if len(entry) > 4000:
-        return {"success": False, "message": "L'entree est trop longue (max 4000 caracteres)."}
-
-    db = _get_db()
-    result = await journal_entry(user_id, entry, mood=mood, birth_data=birth_data, db=db)
+        return {'success': False, 'message': "L'entree est trop longue (max 4000 caracteres)."}
+    result = await journal_entry(user_id, entry, mood=body.get('mood'), birth_data=body.get('birth_data'), db=None)
     return result
 
 
-@api_router.get("/journal/history")
+@api_router.get('/journal/history')
 async def journal_history_endpoint(user_id: str, limit: int = 30):
-    db = _get_db()
-    history = await get_journal_history(user_id, db, limit=limit)
-    return {"success": True, "entries": history}
+    history = await get_journal_history(user_id, None, limit=limit)
+    return {'success': True, 'entries': history}
 
 
-# ─── CONFIGURATION FINALE ───
-
-# On inclut le router UNE SEULE FOIS
+# ════════════════════════════════════════════
+# FINAL APP CONFIG
+# ════════════════════════════════════════════
 app.include_router(api_router)
 
-# Middlewares CORS
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
     allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
-@app.get("/health")
+
+@app.get('/health')
 async def health_check():
-    return {"status": "healthy"}
+    return {'status': 'healthy', 'service': 'plume-astrale'}
+
 
 if ASSETS_DIR.exists():
-    app.mount("/api/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
+    app.mount('/api/assets', StaticFiles(directory=str(ASSETS_DIR)), name='assets')
