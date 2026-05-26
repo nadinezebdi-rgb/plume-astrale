@@ -8,7 +8,6 @@ import { useAuth } from '../context/AuthContext';
 import SEO from '../components/SEO';
 import EnergyToday from '../components/EnergyToday';
 import SocialProof from '../components/SocialProof';
-import TrialBanner from '../components/TrialBanner';
 
 /* ═══════════════════════════════════════════════════════════
    COSMIC CANVAS — multilayer animated background
@@ -284,13 +283,8 @@ const Index = () => {
       <SEO path="/" />
       <CosmicCanvas />
 
-      {/* Trial banner — top of home page, just below fixed navbar */}
-      <div style={{ position: 'relative', zIndex: 40, marginTop: 64 }}>
-        <TrialBanner />
-      </div>
-
       {/* ═══════ HERO ═══════ */}
-      <section className="relative min-h-screen flex items-center justify-center px-6 pt-20 sm:pt-16 pb-16 z-10">
+      <section className="relative min-h-screen flex items-center justify-center px-6 pt-32 sm:pt-32 pb-16 z-10">
         {/* Editorial kicker bar */}
         <div className="absolute top-20 sm:top-24 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10 animate-fade-up"
           style={{ animationDelay: '0ms' }}>

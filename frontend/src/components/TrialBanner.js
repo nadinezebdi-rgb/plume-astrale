@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Gift, X, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const STORAGE_KEY = 'plume_trial_banner_dismissed_v1';
 const DISMISS_HOURS = 24;
+// Routes where banner should NOT appear (already on premium/payment flows)
+const HIDE_ON_PATHS = ['/premium', '/paiement', '/credits/succes', '/commande/succes', '/inscription', '/connexion'];
 
 function getRemainingDays(createdAt) {
   if (!createdAt) return null;
@@ -21,9 +23,14 @@ function getRemainingDays(createdAt) {
 
 export default function TrialBanner() {
   const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
   const [visible, setVisible] = useState(false);
 
+  // Hide on premium / payment / auth pages
+  const onHiddenRoute = HIDE_ON_PATHS.some((p) => location.pathname.startsWith(p));
+
   useEffect(() => {
+    if (onHiddenRoute) { setVisible(false); return; }
     // Hide for Premium members
     if (user?.is_premium || user?.premium_status === 'active') {
       setVisible(false);
@@ -41,7 +48,7 @@ export default function TrialBanner() {
       }
     } catch {}
     setVisible(true);
-  }, [user]);
+  }, [user, onHiddenRoute]);
 
   const handleDismiss = () => {
     try { localStorage.setItem(STORAGE_KEY, String(Date.now())); } catch {}
@@ -57,7 +64,10 @@ export default function TrialBanner() {
     <div
       data-testid="trial-banner"
       style={{
-        position: 'relative',
+        position: 'fixed',
+        top: 64,
+        left: 0,
+        right: 0,
         zIndex: 40,
         background: 'linear-gradient(90deg, rgba(212,180,106,0.18) 0%, rgba(244,217,140,0.28) 50%, rgba(212,180,106,0.18) 100%)',
         borderBottom: '1px solid rgba(212,180,106,0.35)',

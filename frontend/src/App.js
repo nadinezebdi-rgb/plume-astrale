@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar";
+import TrialBanner from "./components/TrialBanner";
 
 import Index from "./pages/Index";
 import Register from "./pages/Register";
@@ -51,6 +52,7 @@ function App() {
           <Route path="*" element={
             <>
               <Navbar />
+              <TrialBanner />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/inscription" element={<Register />} />

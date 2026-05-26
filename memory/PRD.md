@@ -145,7 +145,9 @@ Site prod : plume-astrale.fr
 
 ## Implemente — Feb 2026 (Bannière trial 7j + Lune rotative)
 - **TrialBanner** (`/app/frontend/src/components/TrialBanner.js`) :
-  - Bandeau doré sous navbar, visible sur landing `/`
+  - **Globale** dans `App.js` après `<Navbar />` (toutes les pages avec navbar)
+  - Cachée automatiquement sur : `/premium*`, `/paiement*`, `/credits/succes`, `/commande/succes`, `/inscription`, `/connexion` (HIDE_ON_PATHS)
+  - `position: fixed; top: 64px` (sous navbar, ne pousse pas le contenu)
   - "🎁 7 JOURS d'essai gratuit Premium — annulable a tout moment"
   - CTA "EN PROFITER" -> `/premium`, croix de fermeture (localStorage, 24h)
   - Si user connecté, calcule remaining days basé sur `user.created_at`
