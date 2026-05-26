@@ -28,6 +28,8 @@ from services.daily_ritual import (
 from services import wallet_service
 from services.supabase_client import get_admin_client
 from services.astrology_api import AstrologyAPIService
+from services.energy_service import get_energy_today
+from services import premium_subscription
 from routes.admin import router as admin_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
@@ -79,6 +81,8 @@ async def get_me(current_user: dict = Depends(get_current_user)):
             'latitude': profile.get('latitude'),
             'longitude': profile.get('longitude'),
             'is_admin': profile.get('is_admin', False),
+            'is_premium': profile.get('premium_status') == 'active',
+            'premium_status': profile.get('premium_status', 'free'),
         },
         'credit_balance': balance,
     }
@@ -102,7 +106,6 @@ async def wallet_balance(current_user: dict = Depends(get_current_user)):
     return {'credit_balance': balance}
 
 
-# Mapping signes anglais -> francais (pour l'API)
 _SIGNS_FR = {
     'Aries': 'Belier', 'Taurus': 'Taureau', 'Gemini': 'Gemeaux',
     'Cancer': 'Cancer', 'Leo': 'Lion', 'Virgo': 'Vierge',
@@ -193,6 +196,18 @@ async def natal_essentials(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         logger.error(f'natal_essentials error: {e}')
         return {'success': False, 'message': str(e), 'has_data': False}
+
+
+@api_router.get('/energy/today')
+async def energy_today(current_user: dict = Depends(get_current_user)):
+    """Energie du jour (4 sections : dominante / relationnel / attention / opportunite).
+    Cache automatique par user/jour."""
+    profile = await wallet_service.get_profile(current_user['id'])
+    if not profile.get('birth_date') or not profile.get('birth_time') or profile.get('latitude') is None:
+        return {'success': False, 'has_data': False, 'message': 'Donnees natales incompletes'}
+    result = await get_energy_today(current_user['id'], profile)
+    result['prenom'] = profile.get('prenom')
+    return result
 
 
 @api_router.get('/wallet/transactions')
@@ -355,42 +370,93 @@ async def payment_status(session_id: str, current_user: dict = Depends(get_curre
 
 @api_router.post('/webhook/stripe')
 async def stripe_webhook(request: Request):
-    """Webhook Stripe — credite l'utilisateur quand le paiement est confirme."""
+    """Webhook Stripe — credite l'utilisateur (one-shot) ou active Premium (subscription)."""
     body = await request.body()
     sig = request.headers.get('Stripe-Signature', '')
-    stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url='')
-    try:
-        evt = await stripe_checkout.handle_webhook(body, sig)
-    except Exception as e:
-        logger.error(f'Webhook error: {e}')
-        raise HTTPException(status_code=400, detail='Invalid webhook')
 
-    if evt.payment_status != 'paid':
-        return {'received': True}
+    # Detect subscription event via raw body parsing (apres handle_webhook ca devient typed)
+    import stripe, json as _json
+    stripe.api_key = settings.STRIPE_API_KEY
+    webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 
-    sb = get_admin_client()
-    session_id = evt.session_id
-    tx_res = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
-    if not tx_res or not tx_res.data:
-        logger.warning(f'Webhook: tx {session_id} not found')
-        return {'received': True}
-    tx = tx_res.data
-    if tx['credits_granted']:
-        return {'received': True, 'already_granted': True}
+    # Si webhook secret configure, verifier la signature
+    if webhook_secret:
+        try:
+            event = stripe.Webhook.construct_event(body, sig, webhook_secret)
+        except Exception as e:
+            logger.error(f'Webhook signature failed: {e}')
+            raise HTTPException(status_code=400, detail='Invalid signature')
+    else:
+        # Mode permissif (dev / pas de secret)
+        try:
+            event = _json.loads(body)
+        except Exception:
+            raise HTTPException(status_code=400, detail='Invalid body')
 
-    user_id = tx['user_id'] or (evt.metadata or {}).get('user_id')
-    if not user_id:
-        logger.warning(f'Webhook: no user_id for {session_id}')
-        return {'received': True}
+    event_type = event.get('type') if isinstance(event, dict) else event.type
+    data_obj = (event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object)
 
-    credits = int(tx['credits'])
-    await wallet_service.add_credits(user_id, credits, f"Achat pack {tx['pack_id']} — {credits} credits", tx_type='purchase')
-    sb.table('payment_transactions').update({
-        'credits_granted': True,
-        'status': 'completed',
-        'payment_status': 'paid',
-    }).eq('session_id', session_id).execute()
-    return {'received': True, 'granted': True}
+    # Route vers subscription handler si subscription
+    if event_type and ('subscription' in event_type or (event_type == 'checkout.session.completed' and (data_obj.get('mode') if isinstance(data_obj, dict) else getattr(data_obj, 'mode', None)) == 'subscription')):
+        evt_dict = event if isinstance(event, dict) else _json.loads(stripe.util.json_dumps(event))
+        premium_subscription.handle_subscription_webhook(evt_dict)
+        return {'received': True, 'type': event_type}
+
+    # Sinon : flow credits one-shot
+    if event_type == 'checkout.session.completed':
+        session_data = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
+        if session_data.get('payment_status') != 'paid':
+            return {'received': True}
+        sb = get_admin_client()
+        session_id = session_data.get('id')
+        tx_res = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
+        if not tx_res or not tx_res.data:
+            return {'received': True}
+        tx = tx_res.data
+        if tx['credits_granted']:
+            return {'received': True, 'already_granted': True}
+        user_id = tx['user_id'] or (session_data.get('metadata') or {}).get('user_id')
+        if not user_id:
+            return {'received': True}
+        credits = int(tx['credits'])
+        await wallet_service.add_credits(user_id, credits, f"Achat pack {tx['pack_id']} — {credits} credits", tx_type='purchase')
+        sb.table('payment_transactions').update({
+            'credits_granted': True,
+            'status': 'completed',
+            'payment_status': 'paid',
+        }).eq('session_id', session_id).execute()
+        return {'received': True, 'granted': True}
+
+    return {'received': True, 'type': event_type}
+
+
+class PremiumCheckoutRequest(BaseModel):
+    origin_url: str
+
+
+@api_router.post('/premium/checkout')
+async def premium_checkout(payload: PremiumCheckoutRequest, current_user: dict = Depends(get_current_user)):
+    """Cree une session Stripe pour souscrire au plan Premium 14,99€/mois."""
+    return await premium_subscription.create_premium_checkout(
+        current_user['id'], current_user.get('email') or '', payload.origin_url
+    )
+
+
+@api_router.get('/premium/status')
+async def premium_status(current_user: dict = Depends(get_current_user)):
+    """Statut Premium de l'utilisateur."""
+    return await premium_subscription.get_subscription_status(current_user['id'])
+
+
+class PortalRequest(BaseModel):
+    return_url: str
+
+
+@api_router.post('/premium/portal')
+async def premium_portal(payload: PortalRequest, current_user: dict = Depends(get_current_user)):
+    """Lien vers le Customer Portal Stripe (gerer/annuler son abonnement)."""
+    url = await premium_subscription.create_billing_portal(current_user['id'], payload.return_url)
+    return {'url': url}
 
 
 # ════════════════════════════════════════════

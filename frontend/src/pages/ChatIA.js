@@ -386,7 +386,7 @@ const ChatIA = () => {
             </h1>
           </div>
           <p style={{ color: 'rgba(212,180,106,0.5)', fontSize: 13, letterSpacing: '0.06em', margin: 0 }}>
-            Une guidance intime, alimentée par ton thème natal réel
+            Plume, ta guide spirituelle — alimentée par ton thème natal réel
           </p>
 
           {/* Quota badge */}

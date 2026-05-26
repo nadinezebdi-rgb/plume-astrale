@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/SEO';
+import EnergyToday from '../components/EnergyToday';
 
 /* ═══════════════════════════════════════════════════════════
    COSMIC CANVAS — multilayer animated background
@@ -295,29 +296,28 @@ const Index = () => {
             <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
               <h1 className="font-display mb-6"
                 style={{
-                  fontSize: 'clamp(40px, 7vw, 80px)',
-                  lineHeight: 0.95,
+                  fontSize: 'clamp(36px, 6vw, 68px)',
+                  lineHeight: 1.0,
                   color: 'var(--pa-heading)',
                   fontWeight: 300,
                   letterSpacing: '-0.02em',
                 }}>
-                Ton oracle <br />
+                Découvre les <br />
                 <span className="italic font-display pa-shimmer-gold" style={{ fontStyle: 'italic' }}>
-                  intérieur
-                </span>
-                ,<br />
-                au quotidien.
+                  cycles astrologiques
+                </span><br />
+                qui influencent ta vie.
               </h1>
             </div>
 
             <div className="animate-fade-up" style={{ animationDelay: '300ms' }}>
               <p className="text-base sm:text-lg max-w-xl mx-auto lg:mx-0 mb-2 leading-relaxed"
                 style={{ color: 'var(--pa-body)' }}>
-                Plume Astrale est ton <span style={{ color: 'var(--pa-lavender-bright)' }}>compagnon emotionnel</span> —
-                astrologie vivante, oracle personnalisé, rituels journaliers.
+                Analyses personnalisées basées sur <span style={{ color: 'var(--pa-lavender-bright)' }}>ton thème astral</span>,
+                tes relations et les mouvements planétaires actuels.
               </p>
               <p className="text-sm max-w-lg mx-auto lg:mx-0 mb-6" style={{ color: 'var(--pa-muted)' }}>
-                Pour traverser tes jours avec sens, lire en toi, et te reconnecter a l&#39;essentiel.
+                Une plateforme premium de guidance émotionnelle, pour traverser tes jours avec sens.
               </p>
 
               {!isAuthenticated && (
@@ -335,13 +335,13 @@ const Index = () => {
 
             <div className="animate-fade-up flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
               style={{ animationDelay: '500ms' }}>
-              <button onClick={() => navigate(isAuthenticated ? '/consultation' : '/inscription')} className="pa-btn-primary" data-testid="hero-cta-primary">
+              <button onClick={() => navigate(isAuthenticated ? '/energie' : '/inscription')} className="pa-btn-primary" data-testid="hero-cta-primary">
                 <Sparkles style={{ width: 16, height: 16 }} strokeWidth={1.5} />
-                {isAuthenticated ? 'Consulter mon oracle' : 'Commencer ma traversee'}
+                {isAuthenticated ? 'Voir mon énergie actuelle' : 'Découvrir mon thème'}
               </button>
-              <button onClick={() => navigate('/consultation')} className="pa-btn-ghost" data-testid="hero-cta-secondary">
+              <button onClick={() => navigate(isAuthenticated ? '/consultation' : '/connexion')} className="pa-btn-ghost" data-testid="hero-cta-secondary">
                 <MessageCircle style={{ width: 16, height: 16 }} strokeWidth={1.5} />
-                Démarrer ma consultation
+                {isAuthenticated ? 'Démarrer ma consultation' : 'Voir mon énergie actuelle'}
               </button>
             </div>
 
@@ -379,6 +379,26 @@ const Index = () => {
           style={{ transform: `translateX(-50%) translateY(${Math.min(scrollY / 5, 30)}px)`, opacity: Math.max(0, 0.5 - scrollY / 200) }}>
           <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: 'var(--pa-faint)' }}>Decouvrir</p>
           <div className="w-px h-12 animate-pulse" style={{ background: 'linear-gradient(180deg, rgba(167,139,250,0.4), transparent)' }} />
+        </div>
+      </section>
+
+      {/* ═══════ SECTION — ENERGIE ACTUELLE (cœur du produit) ═══════ */}
+      <section className="relative py-20 px-6 z-10" data-testid="home-energy-section">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12 animate-fade-up">
+            <p className="text-[10px] uppercase tracking-[0.4em] mb-4" style={{ color: 'var(--pa-lavender-bright)' }}>
+              Le cœur du produit
+            </p>
+            <h2 className="font-display mb-3" style={{
+              fontSize: 'clamp(28px, 4vw, 44px)', color: 'var(--pa-heading)', fontWeight: 300, lineHeight: 1.15,
+            }}>
+              Ton <span className="italic pa-shimmer-gold">énergie actuelle</span>
+            </h2>
+            <p className="text-base max-w-xl mx-auto" style={{ color: 'var(--pa-muted)' }}>
+              Chaque matin, une lecture personnalisée des cycles planétaires qui te traversent.
+            </p>
+          </div>
+          <EnergyToday />
         </div>
       </section>
 

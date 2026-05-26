@@ -22,6 +22,7 @@ const NAV_ITEMS = [
     ],
   },
   { label: 'Horoscope', to: '/horoscope' },
+  { label: 'Mon Énergie', to: '/energie' },
   { label: 'Mon Rituel', to: '/mon-rituel' },
   { label: 'Consultation', to: '/consultation' },
 ];
@@ -181,6 +182,24 @@ const MonCompteDropdown = ({ creditBalance, handleLogout, isAdmin }) => {
           </Link>
 
           <div style={{ margin: '4px 16px', borderTop: '1px solid rgba(212,180,106,0.1)' }} />
+
+          <Link to="/premium" style={Object.assign({}, itemStyle, { color: '#F4D98C' })}
+            onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,180,106,0.06)'; }}
+            onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; }}
+            data-testid="dropdown-premium">
+            <Sparkles style={{ width: 12, height: 12 }} strokeWidth={1.5} />
+            Premium 14,99€/mois
+          </Link>
+
+          {isAdmin && (
+            <Link to="/admin" style={Object.assign({}, itemStyle, { color: '#C5A059', fontWeight: 600 })}
+              onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,180,106,0.06)'; }}
+              onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; }}
+              data-testid="dropdown-admin">
+              <Sparkles style={{ width: 12, height: 12 }} strokeWidth={1.5} />
+              Tableau de bord
+            </Link>
+          )}
 
           <button onClick={handleLogout} style={Object.assign({}, itemStyle, { color: 'rgba(255,100,100,0.7)' })}
             onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(255,80,80,0.06)'; e.currentTarget.style.color = '#ff8080'; }}

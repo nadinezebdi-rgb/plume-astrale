@@ -33,6 +33,8 @@ import PremiumExperience from "./pages/PremiumExperience";
 import CharteConfiance from "./pages/CharteConfiance";
 import MonCompte from "./pages/MonCompte";
 import Admin from "./pages/Admin";
+import Energie from "./pages/Energie";
+import Premium from "./pages/Premium";
 import ChatIA from "./pages/ChatIA";
 import Oracle from "./pages/Oracle";
 import MonRituel from "./pages/MonRituel";
@@ -79,6 +81,9 @@ function App() {
                 <Route path="/mon-compte" element={<MonCompte />} />
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
                 <Route path="/consultation" element={<ChatIA />} />
+                <Route path="/energie" element={<Energie />} />
+                <Route path="/premium" element={<Premium />} />
+                <Route path="/premium/succes" element={<Premium />} />
                 <Route path="/chat-astral" element={<ChatIA />} />
                 <Route path="/oracle" element={<Oracle />} />
                 <Route path="/mon-rituel" element={<MonRituel />} />
