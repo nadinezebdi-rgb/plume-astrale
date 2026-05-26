@@ -214,14 +214,22 @@ export default function Premium() {
               title="Premium mensuel"
               price="14,99€"
               period="/ mois"
-              features={PREMIUM_FEATURES}
-              cta={isPremium ? 'Deja membre' : "S'abonner maintenant"}
+              features={['7 jours d\'essai gratuit', ...PREMIUM_FEATURES]}
+              cta={isPremium ? 'Deja membre' : "Demarrer mon essai gratuit"}
               highlighted
-              badge="Plus populaire"
+              badge="7 jours offerts"
               onCta={isPremium ? () => {} : handleSubscribe}
               loading={loading}
             />
           </div>
+
+          <p style={{
+            textAlign: 'center', marginTop: 28, fontSize: 12,
+            color: 'rgba(212,180,106,0.75)', lineHeight: 1.6, maxWidth: 600, margin: '28px auto 0',
+            fontStyle: 'italic',
+          }}>
+            ✦ Carte requise pour activer l&apos;essai — aucun debit pendant 7 jours, annulable a tout moment ✦
+          </p>
 
           <p style={{
             textAlign: 'center', marginTop: 40, fontSize: 12,

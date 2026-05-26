@@ -77,7 +77,10 @@ async def create_premium_checkout(user_id: str, user_email: str, origin_url: str
         success_url=f'{origin}/premium/succes?session_id={{CHECKOUT_SESSION_ID}}',
         cancel_url=f'{origin}/premium',
         metadata={'user_id': user_id, 'plan': 'premium_monthly'},
-        subscription_data={'metadata': {'user_id': user_id}},
+        subscription_data={
+            'metadata': {'user_id': user_id},
+            'trial_period_days': 7,  # 7 jours gratuits, annulable a tout moment
+        },
         locale='fr',
     )
     return {'url': session.url, 'session_id': session.id}

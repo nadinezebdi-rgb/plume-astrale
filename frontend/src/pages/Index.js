@@ -7,6 +7,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/SEO';
 import EnergyToday from '../components/EnergyToday';
+import SocialProof from '../components/SocialProof';
 
 /* ═══════════════════════════════════════════════════════════
    COSMIC CANVAS — multilayer animated background

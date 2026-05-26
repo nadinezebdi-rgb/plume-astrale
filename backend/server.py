@@ -467,6 +467,38 @@ async def list_packs():
     return {'packs': settings.PACKS, 'service_costs': settings.SERVICE_COSTS}
 
 
+@api_router.get('/stats/social-proof')
+async def social_proof():
+    """Compteur d'activite agrege pour preuve sociale.
+    Affiche uniquement quand >= 100 (seuil credibilite)."""
+    sb = get_admin_client()
+    from datetime import datetime, timedelta, timezone
+    week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+
+    # Aggregat : consultations chat + tirages + check-ins
+    try:
+        msgs = sb.table('plume_chat_messages').select('id', count='exact').eq('role', 'user').gte('created_at', week_ago).execute().count or 0
+    except Exception:
+        msgs = 0
+    try:
+        users = sb.table('profiles').select('id', count='exact').gte('created_at', week_ago).execute().count or 0
+    except Exception:
+        users = 0
+    try:
+        # Energies generees (cache)
+        energies = sb.table('energy_cache').select('user_id', count='exact').gte('created_at', week_ago).execute().count or 0
+    except Exception:
+        energies = 0
+
+    total = msgs + users + energies
+    SHOW_THRESHOLD = 100
+    return {
+        'consultations_7d': total,
+        'visible': total >= SHOW_THRESHOLD,
+        'label': f"{total} âmes ont consulté Plume cette semaine" if total >= SHOW_THRESHOLD else None,
+    }
+
+
 # ════════════════════════════════════════════
 # TAROT
 # ════════════════════════════════════════════
