@@ -72,7 +72,8 @@ function App() {
                 <Route path="/compatibilite-amoureuse" element={<Compatibilite2 />} />
                 <Route path="/quotidien" element={<Quotidien />} />
                 <Route path="/cercle" element={<Cercle />} />
-                <Route path="/premium" element={<PremiumLanding />} />
+                <Route path="/premium" element={<Premium />} />
+                <Route path="/premium/decouvrir" element={<PremiumLanding />} />
                 <Route path="/premium/experience" element={<PremiumExperience />} />
                 <Route path="/acheter-credits" element={<BuyCredits />} />
                 <Route path="/credits/succes" element={<CreditSuccess />} />
@@ -82,7 +83,6 @@ function App() {
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
                 <Route path="/consultation" element={<ChatIA />} />
                 <Route path="/energie" element={<Energie />} />
-                <Route path="/premium" element={<Premium />} />
                 <Route path="/premium/succes" element={<Premium />} />
                 <Route path="/chat-astral" element={<ChatIA />} />
                 <Route path="/oracle" element={<Oracle />} />
