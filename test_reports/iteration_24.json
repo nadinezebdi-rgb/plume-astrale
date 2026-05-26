@@ -1,0 +1,45 @@
+{
+  "summary": "Iteration 24 — Validated Plume Astrale Premium subscription flow with 7-day trial, SocialProof endpoint, and full non-regression on auth/energy/credits/wallet. 9/9 backend tests passing.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration24_premium_trial.py",
+    "/app/test_reports/pytest/iteration24.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "premium_subscription.create_premium_checkout persists stripe_customer_id on first call. Side-effect: subsequent /premium/portal calls will succeed (200) even before any actual subscription is purchased, since a Customer exists. This is acceptable per Stripe (portal handles trialing/no-subs gracefully) but the docstring 'Aucun abonnement actif' is misleading — it actually checks customer existence, not subscription activity. Consider also checking premium_status before allowing portal access if business rules require it.",
+    "premium_subscription.py uses module-level _PRICE_ID_CACHE without thread/process safety; harmless under single-worker uvicorn but flag if scaling out.",
+    "server.py is 690 lines — close to the 700-line soft cap from review guidelines; consider extracting premium/credits routes into routers for maintainability.",
+    "social_proof endpoint silently returns 0 on Supabase exceptions (msgs/users/energies fallbacks). If Supabase auth fails the counter could legitimately be 0 → label hidden, hiding a real outage. Consider logging warnings + a health-check flag in the response."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration24_premium_trial.py"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "not tested (backend-only request)"
+  },
+  "test_credentials": "Used /app/memory/test_credentials.md — plume_test_863a0303@gmail.com / TestPlume2026! and admin@plume-astrale.fr / AdminPlume2026!. Both authenticate via Supabase /auth/v1/token.",
+  "seed_data_creation": "None. Tests only generate Stripe Checkout sessions (no actual payment). Stripe customer_id may be persisted on the test user profile by Stripe.Customer.create — this is expected by the implementation.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Stripe live key sk_live_... is working — all Stripe API calls (Price, Customer, Checkout, Billing Portal) return 200. NO AuthenticationError observed. Premium checkout creates a subscription session with mode=subscription, currency=eur, locale=fr, and amount_total=0 (proving the 7-day trial is applied — Stripe doesn't echo subscription_data.trial_period_days on session.retrieve, so amount_total=0 + €14.99 unit price is the indirect proof). The portal endpoint returns 200 once a Customer exists; this is correct Stripe behavior. SocialProof threshold logic (>=100 → visible) verified.",
+  "validations_performed": {
+    "POST /api/premium/checkout": "200 — Stripe URL, mode=subscription, EUR, locale=fr, amount_total=0 (trial active)",
+    "GET /api/premium/status": "200 — is_premium=false, status=free for test user",
+    "POST /api/premium/portal": "200 (customer exists) — returns billing portal URL, no crash. 404 contract preserved for users without stripe_customer_id.",
+    "GET /api/stats/social-proof": "200 — {consultations_7d:int, visible:bool, label:str|null}, threshold 100 enforced",
+    "GET /api/auth/me": "200 — returns {user:{is_premium, premium_status, is_admin, ...}, credit_balance}",
+    "GET /api/energy/today": "200 — daily energy generated (AstrologyAPI + LLM)",
+    "POST /api/credits/checkout": "200 — Stripe one-shot checkout URL returned (non-regression OK)",
+    "GET /api/wallet/balance": "200 — credit_balance:int"
+  }
+}
