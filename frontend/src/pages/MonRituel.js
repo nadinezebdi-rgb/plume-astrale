@@ -329,7 +329,7 @@ const MonRituel = () => {
 
   return (
     <>
-      <SEO title="Mon Rituel — Plume Astrale" description="Ton rituel quotidien : humeur, scores cosmiques, journal IA. Ton compagnon emotionnel." />
+      <SEO title="Mon Rituel — Plume Astrale" description="Ton rituel quotidien : humeur, scores cosmiques, journal personnalisé. Ton compagnon emotionnel." />
 
       <div className="min-h-screen pt-24 pb-16 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
@@ -468,7 +468,7 @@ const MonRituel = () => {
             </section>
           )}
 
-          {/* ═══ JOURNAL IA ═══ */}
+          {/* ═══ JOURNAL INTIME ═══ */}
           <section className="pa-glass rounded-3xl p-6 sm:p-8 mb-8 animate-fade-up" style={{ animationDelay: '500ms' }}>
             <div className="mb-4">
               <p className="text-[10px] uppercase tracking-[0.3em] mb-1 flex items-center gap-2" style={{ color: 'var(--pa-lavender-bright)' }}>

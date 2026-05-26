@@ -240,14 +240,126 @@ const ChatIA = () => {
   };
 
   // Quotas restants
-  const anonRemaining = Math.max(0, FREE_MESSAGES_ANON - freeUsed);
   const messagesRemaining = isAuthenticated
     ? Math.floor((creditBalance ?? 0) / COST_PER_MESSAGE)
-    : anonRemaining;
+    : 0;
 
-  const blocked = isAuthenticated
-    ? (creditBalance ?? 0) < COST_PER_MESSAGE
-    : freeUsed >= FREE_MESSAGES_ANON;
+  const blocked = isAuthenticated && (creditBalance ?? 0) < COST_PER_MESSAGE;
+
+  // ═══ GATE : utilisateur non connecte → on bloque l'acces avec une offre d'inscription ═══
+  if (!isAuthenticated) {
+    return (
+      <>
+        <SEO title="Consultation astrale personnalisée — Plume Astrale" description="Inscris-toi et reçois 20 crédits offerts pour démarrer ta consultation personnalisée." />
+        <div style={{
+          minHeight: '100vh',
+          background: 'linear-gradient(180deg, #131840 0%, #1B2150 50%, #131840 100%)',
+          paddingTop: 80,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '80px 16px 32px',
+        }} data-testid="consultation-gate">
+          <div style={{
+            maxWidth: 560, width: '100%', padding: '36px 28px',
+            borderRadius: 20,
+            background: 'linear-gradient(180deg, rgba(6,8,26,0.85) 0%, rgba(11,14,40,0.75) 100%)',
+            border: '1px solid rgba(212,180,106,0.30)',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(20px)',
+            textAlign: 'center',
+          }}>
+            {/* Badge offre */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '5px 14px', marginBottom: 18,
+              borderRadius: 999,
+              background: 'rgba(212,180,106,0.15)',
+              border: '1px solid rgba(212,180,106,0.4)',
+              fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase',
+              color: '#F4D98C', fontFamily: 'Cinzel, serif',
+            }}>
+              <Sparkles style={{ width: 11, height: 11 }} />
+              Offre de lancement
+            </div>
+
+            <h1 style={{
+              fontFamily: 'Cormorant Garamond, serif',
+              fontSize: 'clamp(28px, 5vw, 38px)', color: '#F4E4BC',
+              lineHeight: 1.2, marginBottom: 14, fontWeight: 400,
+            }}>
+              Inscris-toi et reçois<br />
+              <span style={{ color: '#D4B46A' }}>20 crédits gratuits</span>
+            </h1>
+
+            <p style={{
+              color: 'rgba(255,255,255,0.7)', fontSize: 15, lineHeight: 1.6,
+              marginBottom: 24, maxWidth: 440, margin: '0 auto 24px',
+            }}>
+              Ta consultation est <strong style={{ color: '#F4D98C' }}>nourrie par ton thème natal réel</strong> —
+              calcul précis de ton Soleil, ta Lune, ton Ascendant et tes planètes.
+              Pour démarrer, j&apos;ai besoin de ta date, heure et lieu de naissance.
+            </p>
+
+            {/* Liste des avantages */}
+            <div style={{
+              textAlign: 'left', maxWidth: 380, margin: '0 auto 28px',
+              display: 'flex', flexDirection: 'column', gap: 10,
+            }}>
+              {[
+                '10 consultations offertes à l\'inscription',
+                'Calcul précis de ton thème natal',
+                'Réponses personnalisées en français',
+                'Historique de tes conversations',
+              ].map((t, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  fontSize: 13, color: 'rgba(255,255,255,0.8)',
+                }}>
+                  <span style={{ color: '#D4B46A', fontSize: 14 }}>✦</span>
+                  {t}
+                </div>
+              ))}
+            </div>
+
+            {/* CTAs */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button onClick={() => navigate('/inscription')}
+                data-testid="gate-register-btn"
+                style={{
+                  padding: '14px 28px', borderRadius: 999,
+                  background: '#D4B46A', border: 'none', color: '#0F1230',
+                  fontFamily: 'Cinzel, serif', fontSize: 12, fontWeight: 600,
+                  letterSpacing: '0.18em', textTransform: 'uppercase', cursor: 'pointer',
+                  boxShadow: '0 4px 20px rgba(212,180,106,0.3)',
+                }}>
+                Recevoir mes 20 crédits
+              </button>
+              <button onClick={() => navigate('/connexion')}
+                data-testid="gate-login-btn"
+                style={{
+                  padding: '10px 24px', borderRadius: 999,
+                  background: 'transparent', border: '1px solid rgba(212,180,106,0.3)',
+                  color: 'rgba(212,180,106,0.85)',
+                  fontFamily: 'Cinzel, serif', fontSize: 11,
+                  letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer',
+                }}>
+                J&apos;ai déjà un compte
+              </button>
+            </div>
+
+            {/* Trust badge */}
+            <div style={{
+              marginTop: 28, paddingTop: 20,
+              borderTop: '1px solid rgba(212,180,106,0.1)',
+              fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5,
+            }}>
+              Calculs astrologiques propulsés par <strong style={{ color: 'rgba(212,180,106,0.85)' }}>AstrologyAPI</strong> —
+              utilisée par des plateformes spécialisées dans le monde entier.
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -292,11 +404,7 @@ const ChatIA = () => {
             letterSpacing: '0.04em',
           }} data-testid="chat-quota-badge">
             <Coins style={{ width: 13, height: 13 }} />
-            {isAuthenticated ? (
-              <span>{creditBalance ?? 0} credits — {messagesRemaining} message{messagesRemaining > 1 ? 's' : ''} restant{messagesRemaining > 1 ? 's' : ''} ({COST_PER_MESSAGE} cr/msg)</span>
-            ) : (
-              <span>{anonRemaining} / {FREE_MESSAGES_ANON} message{anonRemaining > 1 ? 's' : ''} gratuit{anonRemaining > 1 ? 's' : ''} restant{anonRemaining > 1 ? 's' : ''}</span>
-            )}
+            <span>{creditBalance ?? 0} credits — {messagesRemaining} message{messagesRemaining > 1 ? 's' : ''} restant{messagesRemaining > 1 ? 's' : ''} ({COST_PER_MESSAGE} cr/msg)</span>
           </div>
         </div>
 

@@ -50,7 +50,7 @@ const OracleChat = ({ userData }) => {
             <p>{msg.content}</p>
           </div>
         ))}
-        {isLoading && <p style={styles.loading}>L'IA consulte les étoiles...</p>}
+        {isLoading && <p style={styles.loading}>L&#39;oracle consulte les étoiles...</p>}
       </div>
 
       <div style={styles.inputArea}>

@@ -195,7 +195,7 @@ const PremiumLanding = () => {
             {[
               'Analyse natale croisée (signe + élément + modalité)',
               'Numérologie complète (chemin de vie + expression + âme)',
-              'Lecture du cycle actuel personnalisée par IA',
+              'Lecture personnalisée de ton cycle actuel',
               'Identification des schémas répétitifs',
               'Projection 12 mois avec périodes sensibles',
               'PDF Premium téléchargeable (30+ pages)',

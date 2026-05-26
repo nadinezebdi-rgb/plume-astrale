@@ -314,11 +314,23 @@ const Index = () => {
               <p className="text-base sm:text-lg max-w-xl mx-auto lg:mx-0 mb-2 leading-relaxed"
                 style={{ color: 'var(--pa-body)' }}>
                 Plume Astrale est ton <span style={{ color: 'var(--pa-lavender-bright)' }}>compagnon emotionnel</span> —
-                astrologie vivante, oracle IA, rituels journaliers.
+                astrologie vivante, oracle personnalisé, rituels journaliers.
               </p>
-              <p className="text-sm max-w-lg mx-auto lg:mx-0 mb-10" style={{ color: 'var(--pa-muted)' }}>
+              <p className="text-sm max-w-lg mx-auto lg:mx-0 mb-6" style={{ color: 'var(--pa-muted)' }}>
                 Pour traverser tes jours avec sens, lire en toi, et te reconnecter a l&#39;essentiel.
               </p>
+
+              {!isAuthenticated && (
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4" style={{
+                  background: 'rgba(212,180,106,0.12)',
+                  border: '1px solid rgba(212,180,106,0.4)',
+                }} data-testid="launch-offer-badge">
+                  <Sparkles style={{ width: 12, height: 12, color: '#F4D98C' }} />
+                  <span style={{ fontSize: 11, letterSpacing: '0.12em', color: '#F4D98C', textTransform: 'uppercase', fontFamily: 'Cinzel, serif' }}>
+                    Offre de lancement — 20 crédits offerts à l&apos;inscription
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="animate-fade-up flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
@@ -329,7 +341,7 @@ const Index = () => {
               </button>
               <button onClick={() => navigate('/consultation')} className="pa-btn-ghost" data-testid="hero-cta-secondary">
                 <MessageCircle style={{ width: 16, height: 16 }} strokeWidth={1.5} />
-                Discuter avec l&#39;IA
+                Démarrer ma consultation
               </button>
             </div>
 
@@ -485,7 +497,7 @@ const Index = () => {
               <div className="space-y-3 mb-8">
                 {[
                   { icon: Sun, txt: 'Check-in matinal — pose ton humeur en 1 tap' },
-                  { icon: Stars, txt: 'Ton message du jour personnalise (IA + transits)' },
+                  { icon: Stars, txt: 'Ton message du jour personnalisé (transits planétaires)' },
                   { icon: Moon, txt: 'Reflexion du soir — questions d\'introspection' },
                   { icon: Heart, txt: 'Score d\'energie, confiance, discipline' },
                 ].map((it, i) => (
@@ -571,7 +583,7 @@ const Index = () => {
               <span className="italic pa-shimmer-lavender">votre boussole interieure</span> ?
             </h2>
             <p className="text-base mb-10 max-w-xl mx-auto" style={{ color: 'var(--pa-body)' }}>
-              20 credits offerts a l&#39;inscription. Premier message au chat gratuit. Pas de carte requise.
+              20 credits offerts a l&#39;inscription. Une consultation personnalisée et chaleureuse, alimentée par ton thème natal réel.
             </p>
             <button onClick={() => navigate(isAuthenticated ? '/consultation' : '/inscription')} className="pa-btn-primary" style={{ padding: '16px 36px' }}>
               <Sparkles style={{ width: 16, height: 16 }} strokeWidth={1.5} />
@@ -580,6 +592,29 @@ const Index = () => {
             <p className="text-[11px] uppercase tracking-widest mt-6" style={{ color: 'var(--pa-faint)' }}>
               +2 000 ames deja accompagnees
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ TRUST BADGE — AstrologyAPI ═══ */}
+      <section className="py-12 px-4" style={{ borderTop: '1px solid rgba(212,180,106,0.08)' }} data-testid="trust-astrology-api">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-[10px] uppercase tracking-[0.25em] mb-4" style={{ color: 'var(--pa-faint)', letterSpacing: '0.25em' }}>
+            Technologie de confiance
+          </p>
+          <p className="text-base mb-3" style={{ color: 'var(--pa-body)', fontFamily: 'Cormorant Garamond, serif', fontSize: 22, lineHeight: 1.4 }}>
+            Calculs astrologiques propulsés par <span style={{ color: '#D4B46A', fontWeight: 500 }}>AstrologyAPI</span>
+          </p>
+          <p className="text-sm max-w-xl mx-auto" style={{ color: 'var(--pa-muted)', lineHeight: 1.6 }}>
+            La même plateforme utilisée par des marques internationales et des applications d&apos;astrologie spécialisées —
+            calculs précis d&apos;éphémérides, fuseaux horaires, maisons astrologiques et aspects planétaires.
+          </p>
+          <div className="flex items-center justify-center gap-6 mt-6 text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-faint)' }}>
+            <span>Données réelles</span>
+            <span>·</span>
+            <span>Calculs précis</span>
+            <span>·</span>
+            <span>Paiement sécurisé Stripe</span>
           </div>
         </div>
       </section>

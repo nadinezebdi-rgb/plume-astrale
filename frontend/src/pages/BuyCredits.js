@@ -226,7 +226,7 @@ export default function BuyCredits() {
               Packs Conversation
             </h2>
             <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
-              Pose tes questions a l&#39;oracle IA. 2 credits par message — en francais.
+              Pose tes questions à l&#39;oracle. 2 crédits par message — en français.
             </p>
           </div>
 
