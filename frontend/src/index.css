@@ -189,6 +189,7 @@ p {
 .animate-fade-up     { animation: fade-up 0.8s ease-out both; }
 .animate-float-soft  { animation: float-soft 5s ease-in-out infinite; }
 .animate-spin-slow   { animation: spin-slow 80s linear infinite; }
+.animate-spin-moon   { animation: spin-slow 50s linear infinite; }
 
 .pa-shimmer-gold {
   background: linear-gradient(90deg, #C5A059 0%, #F4D98C 25%, #E6C480 50%, #F4D98C 75%, #C5A059 100%);

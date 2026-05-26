@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import SEO from '../components/SEO';
 import EnergyToday from '../components/EnergyToday';
 import SocialProof from '../components/SocialProof';
+import TrialBanner from '../components/TrialBanner';
 
 /* ═══════════════════════════════════════════════════════════
    COSMIC CANVAS — multilayer animated background
@@ -131,17 +132,21 @@ const MoonGlyph = () => (
       style={{
         background: 'radial-gradient(circle, rgba(167,139,250,0.30) 0%, rgba(167,139,250,0) 70%)',
       }} />
-    {/* Moon disk */}
-    <div className="absolute inset-8 rounded-full"
+    {/* Moon disk (lighting stays static for realism) */}
+    <div className="absolute inset-8 rounded-full overflow-hidden"
       style={{
         background: 'radial-gradient(circle at 35% 35%, #F5EEE0 0%, #D9D3E8 35%, #9089B5 75%, #4A4870 100%)',
         boxShadow: 'inset -20px -20px 50px rgba(20,15,40,0.6), 0 0 60px rgba(245,238,224,0.15)',
       }}>
-      {/* Craters */}
-      <div className="absolute rounded-full" style={{ width: 18, height: 18, top: '25%', left: '32%', background: 'rgba(74,72,112,0.4)', boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.3)' }} />
-      <div className="absolute rounded-full" style={{ width: 12, height: 12, top: '50%', left: '55%', background: 'rgba(74,72,112,0.35)' }} />
-      <div className="absolute rounded-full" style={{ width: 8, height: 8, top: '65%', left: '30%', background: 'rgba(74,72,112,0.3)' }} />
-      <div className="absolute rounded-full" style={{ width: 14, height: 14, top: '35%', left: '65%', background: 'rgba(74,72,112,0.3)' }} />
+      {/* Rotating craters layer — gives the impression of the moon spinning on its axis */}
+      <div className="absolute inset-0 animate-spin-moon">
+        <div className="absolute rounded-full" style={{ width: 18, height: 18, top: '25%', left: '32%', background: 'rgba(74,72,112,0.4)', boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.3)' }} />
+        <div className="absolute rounded-full" style={{ width: 12, height: 12, top: '50%', left: '55%', background: 'rgba(74,72,112,0.35)' }} />
+        <div className="absolute rounded-full" style={{ width: 8, height: 8, top: '65%', left: '30%', background: 'rgba(74,72,112,0.3)' }} />
+        <div className="absolute rounded-full" style={{ width: 14, height: 14, top: '35%', left: '65%', background: 'rgba(74,72,112,0.3)' }} />
+        <div className="absolute rounded-full" style={{ width: 6, height: 6, top: '70%', left: '60%', background: 'rgba(74,72,112,0.28)' }} />
+        <div className="absolute rounded-full" style={{ width: 10, height: 10, top: '20%', left: '60%', background: 'rgba(74,72,112,0.32)' }} />
+      </div>
     </div>
     {/* Rotating zodiac ring */}
     <svg className="absolute inset-0 animate-spin-slow" viewBox="0 0 260 260">
@@ -279,8 +284,13 @@ const Index = () => {
       <SEO path="/" />
       <CosmicCanvas />
 
+      {/* Trial banner — top of home page, just below fixed navbar */}
+      <div style={{ position: 'relative', zIndex: 40, marginTop: 64 }}>
+        <TrialBanner />
+      </div>
+
       {/* ═══════ HERO ═══════ */}
-      <section className="relative min-h-screen flex items-center justify-center px-6 pt-32 sm:pt-24 pb-16 z-10">
+      <section className="relative min-h-screen flex items-center justify-center px-6 pt-20 sm:pt-16 pb-16 z-10">
         {/* Editorial kicker bar */}
         <div className="absolute top-20 sm:top-24 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10 animate-fade-up"
           style={{ animationDelay: '0ms' }}>

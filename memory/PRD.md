@@ -142,3 +142,17 @@ Site prod : plume-astrale.fr
   - Boutons Connexion/Creer un compte compactes (padding 6/10-12, font 11px)
 - **Hero Index.js** : kicker "Sanctuaire Numerique" ne chevauche plus le titre sur mobile (pt-32 sm:pt-24, top-20 sm:top-24)
 - **Mobile audit (390px) — 7 pages testees sans overflow horizontal** : /, /premium, /energie, /horoscope, /acheter-credits, /formulaire, /consultation, /tarot-oui-non — toutes scrollW = clientW = 390
+
+## Implemente — Feb 2026 (Bannière trial 7j + Lune rotative)
+- **TrialBanner** (`/app/frontend/src/components/TrialBanner.js`) :
+  - Bandeau doré sous navbar, visible sur landing `/`
+  - "🎁 7 JOURS d'essai gratuit Premium — annulable a tout moment"
+  - CTA "EN PROFITER" -> `/premium`, croix de fermeture (localStorage, 24h)
+  - Si user connecté, calcule remaining days basé sur `user.created_at`
+  - Auto-hide si Premium actif
+  - Responsive : version courte mobile (<640px), longue desktop
+- **Lune rotative** (`/app/frontend/src/index.css` + `Index.js`) :
+  - Nouvelle animation `animate-spin-moon` 50s linear infinite
+  - Cratères dans un wrapper rotatif → l'éclairage solaire reste fixe (réaliste)
+  - 6 cratères au lieu de 4 pour plus de détail visuel
+  - Anneau zodiacal continue à tourner indépendamment (80s)
