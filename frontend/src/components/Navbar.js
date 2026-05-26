@@ -57,8 +57,8 @@ const DropdownMenu = ({ item, isActive }) => {
     display: 'flex',
     alignItems: 'center',
     gap: '4px',
-    fontSize: '13px',
-    letterSpacing: '0.08em',
+    fontSize: '12px',
+    letterSpacing: '0.07em',
     textTransform: 'uppercase',
     background: 'none',
     border: 'none',
@@ -257,13 +257,13 @@ const Navbar = () => {
           </Link>
 
           <div style={{ display: 'none' }} className="desktop-nav">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginLeft: 24 }}>
               {NAV_ITEMS.map(function(item) {
                 return item.children ? (
                   <DropdownMenu key={item.label} item={item} isActive={isParentActive(item)} />
                 ) : (
                   <Link key={item.to} to={item.to}
-                    style={{ fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', whiteSpace: 'nowrap', fontWeight: location.pathname === item.to ? 500 : 400, color: location.pathname === item.to ? '#D4B46A' : 'rgba(212,180,106,0.6)' }}
+                    style={{ fontSize: 12, letterSpacing: '0.07em', textTransform: 'uppercase', textDecoration: 'none', whiteSpace: 'nowrap', fontWeight: location.pathname === item.to ? 500 : 400, color: location.pathname === item.to ? '#D4B46A' : 'rgba(212,180,106,0.6)' }}
                     onMouseEnter={function(e) { if (location.pathname !== item.to) e.currentTarget.style.color = '#F4D98C'; }}
                     onMouseLeave={function(e) { if (location.pathname !== item.to) e.currentTarget.style.color = 'rgba(212,180,106,0.6)'; }}>
                     {item.label}
@@ -274,15 +274,15 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <MonCompteDropdown creditBalance={creditBalance} handleLogout={handleLogout} isAdmin={user?.is_admin} />
               ) : (
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 6 }}>
                   <Link to="/connexion"
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 999, border: '1px solid rgba(212,180,106,0.45)', color: '#D4B46A', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(212,180,106,0.45)', color: '#D4B46A', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}
                     data-testid="navbar-login-btn">
-                    <LogIn style={{ width: 14, height: 14 }} strokeWidth={1.5} />
+                    <LogIn style={{ width: 13, height: 13 }} strokeWidth={1.5} />
                     Connexion
                   </Link>
                   <Link to="/inscription"
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '6px 16px', borderRadius: 999, border: '1px solid rgba(212,180,106,0.6)', color: '#D4B46A', background: 'rgba(212,180,106,0.12)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 999, border: '1px solid rgba(212,180,106,0.6)', color: '#D4B46A', background: 'rgba(212,180,106,0.12)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}
                     data-testid="navbar-register-btn">
                     Creer un compte
                   </Link>
@@ -361,7 +361,7 @@ const Navbar = () => {
           </div>
         )}
       </div>
-      <style>{`.desktop-nav{display:none!important}@media(min-width:1024px){.desktop-nav{display:block!important}.mobile-toggle{display:none!important}}`}</style>
+      <style>{`.desktop-nav{display:none!important}@media(min-width:1240px){.desktop-nav{display:block!important}.mobile-toggle{display:none!important}}`}</style>
     </nav>
   );
 };

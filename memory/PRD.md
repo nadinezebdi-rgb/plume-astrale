@@ -133,3 +133,12 @@ Site prod : plume-astrale.fr
 - server.py 690 lignes -> extraire premium/credits routes dans routes/
 - _PRICE_ID_CACHE module-level non thread-safe (OK single-worker uvicorn)
 - social-proof : ajouter health flag pour distinguer "<100" vs "Supabase down"
+
+## Implemente — Feb 2026 (Fix Navbar + Mobile responsiveness)
+- **Navbar** : fix chevauchement logo "Plume Astrale" / "Accueil"
+  - Breakpoint desktop releve de 1024px a 1240px (sous lequel hamburger)
+  - Gap reduit a 14px + marginLeft 24px entre logo et items
+  - Font items 13->12px, letterSpacing 0.08->0.07em
+  - Boutons Connexion/Creer un compte compactes (padding 6/10-12, font 11px)
+- **Hero Index.js** : kicker "Sanctuaire Numerique" ne chevauche plus le titre sur mobile (pt-32 sm:pt-24, top-20 sm:top-24)
+- **Mobile audit (390px) — 7 pages testees sans overflow horizontal** : /, /premium, /energie, /horoscope, /acheter-credits, /formulaire, /consultation, /tarot-oui-non — toutes scrollW = clientW = 390

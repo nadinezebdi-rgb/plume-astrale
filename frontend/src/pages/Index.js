@@ -280,9 +280,9 @@ const Index = () => {
       <CosmicCanvas />
 
       {/* ═══════ HERO ═══════ */}
-      <section className="relative min-h-screen flex items-center justify-center px-6 pt-20 pb-16 z-10">
+      <section className="relative min-h-screen flex items-center justify-center px-6 pt-32 sm:pt-24 pb-16 z-10">
         {/* Editorial kicker bar */}
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10 animate-fade-up"
+        <div className="absolute top-20 sm:top-24 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10 animate-fade-up"
           style={{ animationDelay: '0ms' }}>
           <span className="h-px w-12" style={{ background: 'linear-gradient(90deg, transparent, rgba(167,139,250,0.5))' }} />
           <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: 'var(--pa-lavender-bright)' }}>
