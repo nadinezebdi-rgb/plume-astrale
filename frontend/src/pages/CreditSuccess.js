@@ -20,7 +20,7 @@ export default function CreditSuccess() {
 
     const poll = async () => {
       try {
-        const res = await axios.get(`${API}/api/credits/checkout/status/${sessionId}`, {
+        const res = await axios.get(`${API}/api/payments/status/${sessionId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.data.payment_status === 'paid') {

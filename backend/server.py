@@ -258,7 +258,7 @@ async def create_checkout(
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
 
     origin = payload.origin_url.rstrip('/')
-    success_url = f'{origin}/credits-success?session_id={{CHECKOUT_SESSION_ID}}'
+    success_url = f'{origin}/credits/succes?session_id={{CHECKOUT_SESSION_ID}}'
     cancel_url = f'{origin}/acheter-credits'
 
     req = CheckoutSessionRequest(
