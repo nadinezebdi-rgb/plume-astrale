@@ -103,3 +103,33 @@ Site prod : plume-astrale.fr
 - Desactiver "Confirm email" dans Supabase Auth (ou implementer flow)
 - Configurer Stripe webhook prod -> Railway
 - Ajouter Netlify URL dans Supabase Auth -> Redirect URLs
+
+## Implemente — Feb 2026 (Premium 14,99€ + 7j Trial + Social Proof)
+
+### Premium Subscription Mensuel
+- `services/premium_subscription.py` : Stripe Subscription mode=subscription, 14,99€/mois EUR, locale=fr
+- `trial_period_days: 7` -> essai gratuit 7 jours, annulable a tout moment
+- Auto-creation Stripe Customer + persistance `stripe_customer_id` dans `profiles`
+- Endpoints : `POST /api/premium/checkout`, `GET /api/premium/status`, `POST /api/premium/portal`
+- Webhook handlers : `checkout.session.completed` + `customer.subscription.*` -> sync `profiles.premium_status` et table `subscriptions`
+- Frontend : pages `Premium.js`, `PremiumLanding.js`, `PremiumExperience.js`
+
+### Social Proof component
+- `GET /api/stats/social-proof` -> `{consultations_7d, visible, label}`
+- Seuil minimum 100 (auto-hide en dessous)
+- `frontend/src/components/SocialProof.js` integre sur landing
+
+### Tests E2E valides (Feb 2026 — iteration_24)
+- 9/9 endpoints backend OK : premium/checkout (trial 7j active, amount_total=0), premium/status, premium/portal, stats/social-proof (threshold 100), auth/me (is_premium/is_admin), energy/today (AstrologyAPI+LLM), credits/checkout (non-regression), wallet/balance
+- Stripe live key sk_live_... 100% fonctionnelle, aucune AuthenticationError
+- Tests pytest : `/app/backend/tests/test_iteration24_premium_trial.py`
+
+### Backlog mis a jour
+**P1** : Module Compatibilite Relationnelle avance (amour/amitie/famille via AstrologyAPI) + PDF Premium luxe (themes natals & compatibilite)
+**P2** : Cartes virales Instagram/TikTok partage energie + Notifications Push web cycles emotionnels
+**P3** : Journal & historique emotionnel graphique + features sociales legeres
+
+### Refactoring suggere (non bloquant)
+- server.py 690 lignes -> extraire premium/credits routes dans routes/
+- _PRICE_ID_CACHE module-level non thread-safe (OK single-worker uvicorn)
+- social-proof : ajouter health flag pour distinguer "<100" vs "Supabase down"
