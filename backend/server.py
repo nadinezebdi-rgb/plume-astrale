@@ -257,6 +257,64 @@ async def redeem_promo(payload: PromoRequest, current_user: dict = Depends(get_c
 
 
 # ════════════════════════════════════════════
+# DISCOUNT CODES (réutilise promo_codes Supabase)
+# ════════════════════════════════════════════
+class DiscountValidateRequest(BaseModel):
+    code: str
+    product_id: str | None = None
+
+
+@api_router.post('/discount/validate')
+async def validate_discount(payload: DiscountValidateRequest):
+    """Valide un code de reduction. Renvoie discount_percent=100 si le code donne acces gratuit.
+    Public (pas d'auth requise) car appele depuis pages de checkout invitees."""
+    from services.wallet_service import get_admin_client
+    sb = get_admin_client()
+    code = payload.code.strip().upper() if payload.code else ''
+    if not code:
+        return {'valid': False, 'message': 'Code requis', 'discount_percent': 0}
+    res = sb.table('promo_codes').select('*').eq('code', code).eq('active', True).maybe_single().execute()
+    if not res or not res.data:
+        return {'valid': False, 'message': 'Code invalide ou expire', 'discount_percent': 0}
+    d = res.data
+    if d.get('max_uses') and d.get('used_count', 0) >= d['max_uses']:
+        return {'valid': False, 'message': 'Ce code a atteint sa limite', 'discount_percent': 0}
+    # Tout code promo valide donne 100% de reduction (acces gratuit)
+    return {
+        'valid': True,
+        'discount_percent': 100,
+        'message': d.get('description') or 'Code valide',
+        'credits': d.get('credits') or 0,
+        'premium_days': d.get('premium_days') or 0,
+    }
+
+
+class FreeAccessRequest(BaseModel):
+    product_id: str
+    discount_code: str
+    user_data: dict | None = None
+
+
+@api_router.post('/access/free')
+async def grant_free_access(payload: FreeAccessRequest, current_user: dict = Depends(get_current_user)):
+    """Applique un code de reduction (en redeem) pour debloquer l'acces a un produit.
+    Reutilise redeem_promo qui credite OU active Premium selon le code."""
+    try:
+        result = await wallet_service.redeem_promo(current_user['id'], payload.discount_code)
+        return {
+            'success': True,
+            'access_granted': True,
+            'product_id': payload.product_id,
+            **result,
+        }
+    except HTTPException as e:
+        if e.status_code == 409:
+            # Deja utilise -> on considere quand meme que l'acces est valide
+            return {'success': True, 'access_granted': True, 'already_redeemed': True}
+        raise
+
+
+# ════════════════════════════════════════════
 # STRIPE — CHECKOUT + WEBHOOK
 # ════════════════════════════════════════════
 class CheckoutRequest(BaseModel):
