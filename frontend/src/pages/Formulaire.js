@@ -87,6 +87,30 @@ const Formulaire = () => {
     }
   ];
 
+  const MONTHS_FR = [
+    'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre',
+  ];
+  const CURRENT_YEAR = new Date().getFullYear();
+  const YEARS = Array.from({ length: 100 }, (_, i) => CURRENT_YEAR - i);
+
+  // Helpers to split/merge YYYY-MM-DD and HH:MM
+  const dateParts = (formData.dateNaissance || '').split('-'); // [yyyy,mm,dd]
+  const dDay = dateParts[2] || '';
+  const dMonth = dateParts[1] || '';
+  const dYear = dateParts[0] || '';
+  const setDateParts = (y, m, d) => {
+    const date = (y && m && d) ? `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}` : '';
+    setFormData({ ...formData, dateNaissance: date });
+  };
+  const timeParts = (formData.heureNaissance || '').split(':');
+  const tHour = timeParts[0] || '';
+  const tMin = timeParts[1] || '';
+  const setTimeParts = (h, m) => {
+    const t = (h && m) ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}` : '';
+    setFormData({ ...formData, heureNaissance: t });
+  };
+
   const currentStep = steps[step];
 
   const validateStep = () => {
@@ -209,6 +233,67 @@ const Formulaire = () => {
                   {g.label}
                 </button>
               ))}
+            </div>
+          ) : currentStep.type === 'date' ? (
+            <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
+              <select
+                value={dDay}
+                onChange={(e) => setDateParts(dYear, dMonth, e.target.value)}
+                className="input-editorial w-full text-center"
+                data-testid="input-jour"
+              >
+                <option value="">Jour</option>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+              <select
+                value={dMonth}
+                onChange={(e) => setDateParts(dYear, e.target.value, dDay)}
+                className="input-editorial w-full text-center"
+                data-testid="input-mois"
+              >
+                <option value="">Mois</option>
+                {MONTHS_FR.map((mLabel, idx) => (
+                  <option key={idx} value={idx + 1}>{mLabel}</option>
+                ))}
+              </select>
+              <select
+                value={dYear}
+                onChange={(e) => setDateParts(e.target.value, dMonth, dDay)}
+                className="input-editorial w-full text-center"
+                data-testid="input-annee"
+              >
+                <option value="">Annee</option>
+                {YEARS.map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+          ) : currentStep.type === 'time' ? (
+            <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
+              <select
+                value={tHour}
+                onChange={(e) => setTimeParts(e.target.value, tMin || '00')}
+                className="input-editorial w-full text-center"
+                data-testid="input-heure"
+              >
+                <option value="">Heure</option>
+                {Array.from({ length: 24 }, (_, i) => i).map((h) => (
+                  <option key={h} value={h}>{String(h).padStart(2, '0')} h</option>
+                ))}
+              </select>
+              <select
+                value={tMin}
+                onChange={(e) => setTimeParts(tHour || '00', e.target.value)}
+                className="input-editorial w-full text-center"
+                data-testid="input-minute"
+              >
+                <option value="">Minute</option>
+                {Array.from({ length: 60 }, (_, i) => i).map((m) => (
+                  <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
+                ))}
+              </select>
             </div>
           ) : (
             <input

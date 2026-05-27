@@ -232,6 +232,47 @@ p {
   -webkit-backdrop-filter: blur(14px);
 }
 
+/* ═══════════ Editorial inputs (form fields, dropdowns) ═══════════ */
+.input-editorial {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(212,180,106,0.4);
+  color: #F4E4BC;
+  padding: 12px 6px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  outline: none;
+  transition: border-color 0.3s ease;
+  caret-color: #D4B46A;
+}
+.input-editorial:focus {
+  border-bottom-color: #D4B46A;
+}
+.input-editorial::placeholder {
+  color: rgba(212,180,106,0.45);
+  font-style: italic;
+}
+/* Hide the native date/time picker icons that show as black on dark bg */
+.input-editorial::-webkit-calendar-picker-indicator,
+.input-editorial::-webkit-clear-button {
+  filter: invert(0.8) brightness(1.2);
+  opacity: 0.7;
+}
+/* Selects use the same look */
+select.input-editorial {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, rgba(212,180,106,0.7) 50%), linear-gradient(135deg, rgba(212,180,106,0.7) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 30px;
+}
+select.input-editorial option {
+  background: #0F1230;
+  color: #F4E4BC;
+}
+
 .pa-btn-primary {
   position: relative;
   display: inline-flex;
