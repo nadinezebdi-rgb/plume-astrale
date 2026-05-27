@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
+import NatalDataModal from '@/components/NatalDataModal';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -366,6 +367,7 @@ const MonCompte = () => {
   const [subsLoading, setSubsLoading]     = useState(false);
   const [subsError, setSubsError]         = useState(null);
   const [activeTab, setActiveTab]         = useState('apercu');
+  const [natalModalOpen, setNatalModalOpen] = useState(false);
 
   // Redirection si non connecté
   useEffect(() => {
@@ -644,11 +646,26 @@ const MonCompte = () => {
                 data-testid="profil-card"
               >
                 <h2
-                  className="text-base mb-6 flex items-center gap-3"
+                  className="text-base mb-6 flex items-center justify-between gap-3"
                   style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}
                 >
-                  <User className="w-4 h-4" strokeWidth={1.5} style={{ color: 'var(--pa-accent)' }} />
-                  Informations personnelles
+                  <span className="flex items-center gap-3">
+                    <User className="w-4 h-4" strokeWidth={1.5} style={{ color: 'var(--pa-accent)' }} />
+                    Informations personnelles
+                  </span>
+                  <button
+                    onClick={() => setNatalModalOpen(true)}
+                    data-testid="edit-natal-btn"
+                    style={{
+                      fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+                      padding: '6px 12px', borderRadius: 999,
+                      border: '1px solid rgba(212,180,106,0.4)',
+                      color: 'var(--pa-accent)', background: 'transparent',
+                      cursor: 'pointer', fontFamily: 'Cinzel, serif', fontWeight: 500,
+                    }}
+                  >
+                    Modifier
+                  </button>
                 </h2>
 
                 <div className="space-y-4">
@@ -922,6 +939,13 @@ const MonCompte = () => {
 
         </div>
       </div>
+
+      {/* Natal data edit modal */}
+      <NatalDataModal
+        open={natalModalOpen}
+        onClose={() => setNatalModalOpen(false)}
+        onSuccess={chargerProfil}
+      />
     </div>
   );
 };

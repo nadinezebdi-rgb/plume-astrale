@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { useAuth } from '@/context/AuthContext';
 
 const Formulaire = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+
+  // Si user déjà connecté avec données natales -> rediriger vers son compte (pas de re-onboarding)
+  useEffect(() => {
+    if (isAuthenticated && user?.birth_date) {
+      navigate('/mon-compte', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
+
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({

@@ -1,0 +1,46 @@
+{
+  "summary": "Iteration 25 — Natal data sync feature E2E validated. Backend 6/6 PASS. Frontend: Saida overwrite, formulaire redirect, horoscope no-redirect, modal CRUD, localStorage resync, logout clear — all PASS. Two issues found: (1) HIGH — /mon-compte hard reload redirects to /connexion due to race condition; (2) MINOR — MonCompte.js calls non-existent /api/account/profile (404). Trial banner visible on /mon-compte.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/auth/profile (PUT) + /api/auth/me (GET)", "issue": "birth_time stored & returned as HH:MM:SS while frontend sends HH:MM. localStorage gets '12:00:00' — legacy Horoscope/Tarot pages may not handle this. Recommend normalizing to HH:MM in /auth/me response."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "MonCompte", "issue": "Hard reload (page refresh) on /mon-compte kicks user back to /connexion. useEffect at line 373-375 does `if (!token) navigate('/connexion')` immediately before AuthContext finishes restoring session from Supabase getSession(). Must gate on `loading === false` from useAuth().", "selector": "useEffect token-check at line 374", "priority": "HIGH"}
+    ],
+    "integration_issues": [
+      {"flow": "MonCompte init", "issue": "chargerProfil() calls GET /api/account/profile which does NOT exist in backend (404). Backend only exposes /api/auth/me. Console always logs 'Erreur chargement profil'. The setProfil/setFidelite/setSubscription state stays null; some sections may render fallbacks but it's a wasted request + permanent error log.", "affected_selectors": ["MonCompte.js:389"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration25_natal_profile.py",
+    "/app/test_reports/pytest/iteration25.xml"
+  ],
+  "action_items": [
+    "Fix /mon-compte hard-reload redirect: import `loading` from useAuth() and only redirect when `!loading && !token` (MonCompte.js line 373-375).",
+    "Replace GET /api/account/profile with GET /api/auth/me in MonCompte.chargerProfil (or add /api/account/profile route in backend). Currently dead 404 call producing permanent console error.",
+    "(Optional) Normalize birth_time format: backend should return HH:MM (trim seconds) in /auth/me to match the frontend input format and legacy localStorage consumers."
+  ],
+  "critical_code_review_comments": [
+    "MonCompte.js race condition (HIGH): useEffect navigate('/connexion') runs synchronously on first render when token is still null during AuthContext.getSession() hydration. Always gate on context.loading.",
+    "Backend birth_time format inconsistency: TIME column returns 'HH:MM:SS' from Postgres but frontend writes 'HH:MM'. Fix at serialization layer in /api/auth/me to return formatted 'HH:MM'.",
+    "MonCompte.js 386-398 references non-existent /api/account/profile — silent dead code path; either rename or implement the endpoint server-side.",
+    "AuthContext hydrateNatalLocalStorage stores `heureNaissance: user.birth_time` raw — if seconds suffix breaks AstrologyAPI input format, this would silently degrade Horoscope/Tarot data quality."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration25_natal_profile.py"
+  ],
+  "success_rate": {
+    "backend": "100% (6/6)",
+    "frontend": "85% — 6/7 user flows pass; hard-reload regression on /mon-compte"
+  },
+  "test_credentials": "Used /app/memory/test_credentials.md — admin@plume-astrale.fr / AdminPlume2026! (Paris/1990-05-15). User was edited then restored to Paris during test.",
+  "seed_data_creation": "None permanent. Admin profile temporarily edited to AdminTest25/Marseille, then restored to (empty prenom)/Paris. User plume_test_863a0303 profile temporarily edited for persistence test, then restored.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Validations confirmed via SPA navigation (login → click navbar-mon-compte → click 'Mon Profil' link). The dropdown 'MON COMPTE' navbar testid opens a menu — to reach /mon-compte click 'Mon Profil' inside the dropdown. All 10 natal-modal data-testids are present and functional. Trial banner '7 JOURS d'essai gratuit Premium' shows on /mon-compte. The HARD-RELOAD bug is reproducible: login → navigate to /mon-compte via SPA → click browser refresh → kicked to /connexion. Backend /api/account/profile does NOT exist; only /api/auth/me.",
+  "rca of the issue": "MonCompte.js line 373-375: `useEffect(() => { if (!token) navigate('/connexion'); }, [token])` triggers immediately when component mounts. On hard reload, AuthProvider's `supabase.auth.getSession()` is async — token starts as null then populates ~100-500ms later. The redirect fires before the token is restored. Fix: `const { token, loading } = useAuth(); useEffect(() => { if (!loading && !token) navigate('/connexion'); }, [token, loading]);`"
+}

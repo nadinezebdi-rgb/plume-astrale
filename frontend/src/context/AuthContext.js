@@ -3,7 +3,35 @@ import axios from 'axios';
 import { supabase } from '@/lib/supabase';
 
 const API = process.env.REACT_APP_BACKEND_URL;
+const NATAL_LS_KEY = 'plume_astrale_data';
 const AuthContext = createContext(null);
+
+// Sync profile data -> localStorage so legacy pages (Horoscope/Tarot/etc.) read the right data.
+// Always overwrite when a user is logged in to prevent leftover data from another session (e.g. "Saida").
+const hydrateNatalLocalStorage = (user) => {
+  if (!user) return;
+  try {
+    if (!user.birth_date) {
+      // Logged-in user has no natal data yet -> clear any leftover rogue data
+      localStorage.removeItem(NATAL_LS_KEY);
+      return;
+    }
+    const payload = {
+      prenom: user.prenom || '',
+      genre: user.gender || 'female',
+      email: user.email || '',
+      dateNaissance: user.birth_date || '',
+      heureNaissance: user.birth_time || '',
+      ville: user.birth_place || '',
+      pays: user.birth_country || '',
+    };
+    localStorage.setItem(NATAL_LS_KEY, JSON.stringify(payload));
+  } catch {}
+};
+
+const clearNatalLocalStorage = () => {
+  try { localStorage.removeItem(NATAL_LS_KEY); } catch {}
+};
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
@@ -37,6 +65,7 @@ export const AuthProvider = ({ children }) => {
       });
       setUser(res.data.user);
       setCreditBalance(res.data.credit_balance ?? 0);
+      hydrateNatalLocalStorage(res.data.user);
     } catch (err) {
       console.warn('loadMe failed', err);
       setUser(null);
@@ -114,6 +143,15 @@ export const AuthProvider = ({ children }) => {
     setSession(null);
     setUser(null);
     setCreditBalance(0);
+    clearNatalLocalStorage();
+  };
+
+  // Update natal/profile fields and re-sync localStorage
+  const updateProfile = async (fields) => {
+    if (!token) throw new Error('Non authentifié');
+    const res = await axios.put(`${API}/api/auth/profile`, fields, { headers: authHeader() });
+    await loadMe(token);
+    return res.data;
   };
 
   const refreshBalance = useCallback(async () => {
@@ -140,6 +178,7 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
+    updateProfile,
     refreshBalance,
     useCredits,
     setCreditBalance,
