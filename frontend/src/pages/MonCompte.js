@@ -355,7 +355,7 @@ const AbonnementCard = ({ subscription, onSouscrire, loading }) => {
 ───────────────────────────────────────────────────────────────── */
 const MonCompte = () => {
   const navigate = useNavigate();
-  const { user, token, creditBalance, logout, refreshBalance } = useAuth();
+  const { user, token, creditBalance, logout, refreshBalance, loading: authLoading } = useAuth();
 
   const [profil, setProfil]               = useState(null);
   const [fidelite, setFidelite]           = useState(null);
@@ -369,10 +369,10 @@ const MonCompte = () => {
   const [activeTab, setActiveTab]         = useState('apercu');
   const [natalModalOpen, setNatalModalOpen] = useState(false);
 
-  // Redirection si non connecté
+  // Redirection si non connecté — attendre que AuthContext finisse de restaurer la session
   useEffect(() => {
-    if (!token) navigate('/connexion');
-  }, [token, navigate]);
+    if (!authLoading && !token) navigate('/connexion');
+  }, [token, authLoading, navigate]);
 
   // Succès abonnement depuis Stripe
   useEffect(() => {
@@ -386,12 +386,27 @@ const MonCompte = () => {
   const chargerProfil = useCallback(async () => {
     if (!token) return;
     try {
-      const { data } = await axios.get(`${API_URL}/api/account/profile`, {
+      // 1) Profil + balance via /api/auth/me
+      const meRes = await axios.get(`${API_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setProfil(data.user);
-      setFidelite(data.streak);
-      setSubscription(data.subscription);
+      setProfil(meRes.data.user);
+
+      // 2) Streak/fidélité via /api/ritual/today (silent fail si indisponible)
+      try {
+        const ritualRes = await axios.get(`${API_URL}/api/ritual/today`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setFidelite(ritualRes.data.streak);
+      } catch { /* streak optional */ }
+
+      // 3) Premium subscription status (silent fail)
+      try {
+        const subRes = await axios.get(`${API_URL}/api/premium/status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSubscription(subRes.data);
+      } catch { /* subscription optional */ }
     } catch (err) {
       console.error('Erreur chargement profil', err);
     }

@@ -68,13 +68,17 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     user_id = current_user['id']
     profile = await wallet_service.get_profile(user_id)
     balance = await wallet_service.get_balance(user_id)
+    # Normalize birth_time : Postgres TIME returns 'HH:MM:SS', frontend expects 'HH:MM'
+    bt = profile.get('birth_time')
+    if isinstance(bt, str) and len(bt) >= 5:
+        bt = bt[:5]
     return {
         'user': {
             'id': user_id,
             'email': current_user.get('email') or profile.get('email'),
             'prenom': profile.get('prenom'),
             'birth_date': profile.get('birth_date'),
-            'birth_time': profile.get('birth_time'),
+            'birth_time': bt,
             'birth_place': profile.get('birth_place'),
             'birth_country': profile.get('birth_country'),
             'gender': profile.get('gender'),

@@ -143,6 +143,29 @@ Site prod : plume-astrale.fr
 - **Hero Index.js** : kicker "Sanctuaire Numerique" ne chevauche plus le titre sur mobile (pt-32 sm:pt-24, top-20 sm:top-24)
 - **Mobile audit (390px) — 7 pages testees sans overflow horizontal** : /, /premium, /energie, /horoscope, /acheter-credits, /formulaire, /consultation, /tarot-oui-non — toutes scrollW = clientW = 390
 
+## Implemente — Feb 2026 (Audit UX : fin du re-onboarding)
+**Problème** : 14 pages legacy (Horoscope, Tarot, Compatibilite, etc.) lisaient uniquement `localStorage.plume_astrale_data` -> redirection forcée vers `/formulaire` à chaque nouveau navigateur ; données fantômes (ex: "Saida") faussaient les résultats malgré un user connecté avec son propre profil natal.
+
+**Fix** :
+- `AuthContext` :
+  - `hydrateNatalLocalStorage(user)` synchronise `localStorage.plume_astrale_data` avec le profil Supabase à chaque `loadMe()`. Si user a `birth_date`, écrase avec ses données. Sinon, vide le localStorage (élimine les données rogue).
+  - `clearNatalLocalStorage()` appelé au logout
+  - `updateProfile(fields)` : PUT `/api/auth/profile` + re-loadMe pour resync auto
+- `Formulaire.js` : redirige vers `/mon-compte` si `isAuthenticated && user.birth_date` (replace), plus aucun re-onboarding pour user connecté
+- `MonCompte.js` :
+  - Bouton "Modifier" (testid `edit-natal-btn`) sur la carte "Informations personnelles"
+  - Race condition fix : redirect `/connexion` uniquement si `!authLoading && !token`
+  - `chargerProfil` migré de `/api/account/profile` (404) vers `/api/auth/me` + `/api/ritual/today` + `/api/premium/status`
+- `NatalDataModal.js` : nouveau composant avec tous les data-testid (prenom, gender, birth-date/time/place/country, save, close)
+- Backend `/api/auth/me` : normalise `birth_time` `HH:MM:SS` -> `HH:MM`
+
+**Tests E2E (iteration 25)** :
+- Login admin avec localStorage "Saida" rogue -> automatiquement écrasé par Paris/1990
+- Hard reload `/mon-compte` -> reste sur la page
+- Visiter `/formulaire` connecté -> redirige vers `/mon-compte`
+- Modal modification ouvre + pré-remplit + persiste via PUT /api/auth/profile
+- Backend 6/6 endpoints OK
+
 ## Implemente — Feb 2026 (Bannière trial 7j + Lune rotative)
 - **TrialBanner** (`/app/frontend/src/components/TrialBanner.js`) :
   - **Globale** dans `App.js` après `<Navbar />` (toutes les pages avec navbar)
