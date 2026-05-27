@@ -677,10 +677,20 @@ async def journal_history_endpoint(user_id: str, limit: int = 30):
 # ════════════════════════════════════════════
 app.include_router(api_router)
 
+# Build CORS origins list: env var + production domains always whitelisted
+_cors_from_env = [o.strip() for o in os.environ.get('CORS_ORIGINS', '').split(',') if o.strip()]
+_default_origins = [
+    'https://plume-astrale.fr',
+    'https://www.plume-astrale.fr',
+    'https://consultation-astro.preview.emergentagent.com',
+    'https://consultation-astro.emergent.host',
+]
+_allow_origins = list(set(_cors_from_env + _default_origins)) if _cors_from_env else _default_origins
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=_allow_origins,
     allow_methods=['*'],
     allow_headers=['*'],
 )
