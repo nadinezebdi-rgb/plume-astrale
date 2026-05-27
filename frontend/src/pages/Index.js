@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import SEO from '../components/SEO';
 import EnergyToday from '../components/EnergyToday';
 import SocialProof from '../components/SocialProof';
+import NatalCompletionPrompt from '../components/NatalCompletionPrompt';
 
 /* ═══════════════════════════════════════════════════════════
    COSMIC CANVAS — multilayer animated background
@@ -403,6 +404,12 @@ const Index = () => {
               Chaque matin, une lecture personnalisée des cycles planétaires qui te traversent.
             </p>
           </div>
+
+          {/* Soft nudge: complete birth_time if missing */}
+          <div className="mb-8">
+            <NatalCompletionPrompt />
+          </div>
+
           <EnergyToday />
         </div>
       </section>

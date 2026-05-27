@@ -159,6 +159,13 @@ Site prod : plume-astrale.fr
 - `NatalDataModal.js` : nouveau composant avec tous les data-testid (prenom, gender, birth-date/time/place/country, save, close)
 - Backend `/api/auth/me` : normalise `birth_time` `HH:MM:SS` -> `HH:MM`
 
+## Implemente — Feb 2026 (Nudge "Compléter ton heure de naissance")
+- `NatalCompletionPrompt.js` : nouveau composant compact qui s'affiche **uniquement** si user authentifié + a `birth_date` + manque `birth_time`
+- CTA "Compléter" ouvre directement `NatalDataModal` (réutilisation du modal MonCompte)
+- Intégré sur la home (`Index.js` sous le titre Énergie actuelle) + page Horoscope
+- Auto-hide si user complet ou non-connecté
+- Testid : `natal-completion-prompt`, `natal-completion-cta`
+
 **Tests E2E (iteration 25)** :
 - Login admin avec localStorage "Saida" rogue -> automatiquement écrasé par Paris/1990
 - Hard reload `/mon-compte` -> reste sur la page

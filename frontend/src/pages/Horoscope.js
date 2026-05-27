@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sun, Moon, Star, Heart, Briefcase, Activity, Coins, RefreshCw, Loader2 } from 'lucide-react';
 import SEO from '@/components/SEO';
+import NatalCompletionPrompt from '@/components/NatalCompletionPrompt';
 
 const periodMap = { jour: 'daily', semaine: 'weekly', mois: 'monthly' };
 
@@ -209,6 +210,11 @@ const Horoscope = () => {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Soft nudge: complete birth_time if missing */}
+          <div className="mb-8 max-w-2xl mx-auto">
+            <NatalCompletionPrompt />
           </div>
 
           {/* Tabs */}
