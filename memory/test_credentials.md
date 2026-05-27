@@ -4,7 +4,7 @@
 
 ```
 EMAIL    : admin@plume-astrale.fr
-PASSWORD : AdminPlume2026!
+PASSWORD : PlumeAdmin2026
 ```
 
 - **9999 crédits** pour tester tous les produits sans limite
