@@ -26,6 +26,13 @@ const Formulaire = () => {
     ville: '',
     pays: ''
   });
+  // Etats locaux pour les selects Date / Heure — necessaire pour pouvoir cliquer
+  // dans n'importe quel ordre sans que le state global ne reinitialise les parts
+  const [dDay, setDDay] = useState('');
+  const [dMonth, setDMonth] = useState('');
+  const [dYear, setDYear] = useState('');
+  const [tHour, setTHour] = useState('');
+  const [tMin, setTMin] = useState('');
   const [errors, setErrors] = useState({});
 
   const steps = [
@@ -94,21 +101,19 @@ const Formulaire = () => {
   const CURRENT_YEAR = new Date().getFullYear();
   const YEARS = Array.from({ length: 100 }, (_, i) => CURRENT_YEAR - i);
 
-  // Helpers to split/merge YYYY-MM-DD and HH:MM
-  const dateParts = (formData.dateNaissance || '').split('-'); // [yyyy,mm,dd]
-  const dDay = dateParts[2] || '';
-  const dMonth = dateParts[1] || '';
-  const dYear = dateParts[0] || '';
-  const setDateParts = (y, m, d) => {
+  // Met à jour formData.dateNaissance seulement quand les 3 parts sont remplies
+  const updateDate = (y, m, d) => {
+    setDYear(y);
+    setDMonth(m);
+    setDDay(d);
     const date = (y && m && d) ? `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}` : '';
-    setFormData({ ...formData, dateNaissance: date });
+    setFormData(prev => ({ ...prev, dateNaissance: date }));
   };
-  const timeParts = (formData.heureNaissance || '').split(':');
-  const tHour = timeParts[0] || '';
-  const tMin = timeParts[1] || '';
-  const setTimeParts = (h, m) => {
-    const t = (h && m) ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}` : '';
-    setFormData({ ...formData, heureNaissance: t });
+  const updateTime = (h, m) => {
+    setTHour(h);
+    setTMin(m);
+    const t = (h !== '' && m !== '') ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}` : '';
+    setFormData(prev => ({ ...prev, heureNaissance: t }));
   };
 
   const currentStep = steps[step];
@@ -238,35 +243,35 @@ const Formulaire = () => {
             <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
               <select
                 value={dDay}
-                onChange={(e) => setDateParts(dYear, dMonth, e.target.value)}
+                onChange={(e) => updateDate(dYear, dMonth, e.target.value)}
                 className="input-editorial w-full text-center"
                 data-testid="input-jour"
               >
                 <option value="">Jour</option>
                 {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                  <option key={d} value={d}>{d}</option>
+                  <option key={d} value={String(d)}>{d}</option>
                 ))}
               </select>
               <select
                 value={dMonth}
-                onChange={(e) => setDateParts(dYear, e.target.value, dDay)}
+                onChange={(e) => updateDate(dYear, e.target.value, dDay)}
                 className="input-editorial w-full text-center"
                 data-testid="input-mois"
               >
                 <option value="">Mois</option>
                 {MONTHS_FR.map((mLabel, idx) => (
-                  <option key={idx} value={idx + 1}>{mLabel}</option>
+                  <option key={idx} value={String(idx + 1)}>{mLabel}</option>
                 ))}
               </select>
               <select
                 value={dYear}
-                onChange={(e) => setDateParts(e.target.value, dMonth, dDay)}
+                onChange={(e) => updateDate(e.target.value, dMonth, dDay)}
                 className="input-editorial w-full text-center"
                 data-testid="input-annee"
               >
                 <option value="">Annee</option>
                 {YEARS.map((y) => (
-                  <option key={y} value={y}>{y}</option>
+                  <option key={y} value={String(y)}>{y}</option>
                 ))}
               </select>
             </div>
@@ -274,24 +279,24 @@ const Formulaire = () => {
             <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
               <select
                 value={tHour}
-                onChange={(e) => setTimeParts(e.target.value, tMin || '00')}
+                onChange={(e) => updateTime(e.target.value, tMin)}
                 className="input-editorial w-full text-center"
                 data-testid="input-heure"
               >
                 <option value="">Heure</option>
                 {Array.from({ length: 24 }, (_, i) => i).map((h) => (
-                  <option key={h} value={h}>{String(h).padStart(2, '0')} h</option>
+                  <option key={h} value={String(h)}>{String(h).padStart(2, '0')} h</option>
                 ))}
               </select>
               <select
                 value={tMin}
-                onChange={(e) => setTimeParts(tHour || '00', e.target.value)}
+                onChange={(e) => updateTime(tHour, e.target.value)}
                 className="input-editorial w-full text-center"
                 data-testid="input-minute"
               >
                 <option value="">Minute</option>
                 {Array.from({ length: 60 }, (_, i) => i).map((m) => (
-                  <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
+                  <option key={m} value={String(m)}>{String(m).padStart(2, '0')}</option>
                 ))}
               </select>
             </div>
