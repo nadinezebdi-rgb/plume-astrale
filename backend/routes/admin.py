@@ -277,3 +277,41 @@ async def admin_grant_credits(
         raise HTTPException(status_code=400, detail='amount requis')
     new_balance = await add_credits(user_id, amount, reason, tx_type='admin_grant')
     return {'success': True, 'new_balance': new_balance}
+
+
+@router.delete('/users/{user_id}')
+async def admin_delete_user(user_id: str, current_admin: dict = Depends(require_admin)):
+    """Supprimer definitivement un utilisateur (auth + profil + donnees liees).
+    Protection : impossible de se supprimer soi-meme ou de supprimer un autre admin."""
+    if user_id == current_admin['id']:
+        raise HTTPException(status_code=400, detail='Impossible de te supprimer toi-meme')
+    sb = get_admin_client()
+    target = sb.table('profiles').select('is_admin,email').eq('id', user_id).maybe_single().execute()
+    if not target or not target.data:
+        raise HTTPException(status_code=404, detail='Utilisateur introuvable')
+    if target.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Impossible de supprimer un admin')
+
+    # Cascade manuelle sur les tables qui ne sont pas ON DELETE CASCADE
+    try:
+        sb.table('wallets').delete().eq('user_id', user_id).execute()
+        sb.table('credit_transactions').delete().eq('user_id', user_id).execute()
+        sb.table('payment_transactions').delete().eq('user_id', user_id).execute()
+        sb.table('plume_chat_messages').delete().eq('user_id', user_id).execute()
+        sb.table('promo_code_redemptions').delete().eq('user_id', user_id).execute()
+        sb.table('subscriptions').delete().eq('user_id', user_id).execute()
+        sb.table('energy_cache').delete().eq('user_id', user_id).execute()
+    except Exception as e:
+        # tables optionnelles -> on ignore les erreurs
+        print(f'[admin_delete_user] cascade warning: {e}')
+
+    # Supprimer le profil
+    sb.table('profiles').delete().eq('id', user_id).execute()
+
+    # Supprimer le compte Supabase Auth
+    try:
+        sb.auth.admin.delete_user(user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Profil supprime, mais auth.users a echoue : {e}')
+
+    return {'success': True, 'deleted_user_id': user_id, 'email': target.data.get('email')}

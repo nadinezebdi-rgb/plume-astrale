@@ -87,6 +87,8 @@ async def get_me(current_user: dict = Depends(get_current_user)):
             'is_admin': profile.get('is_admin', False),
             'is_premium': profile.get('premium_status') == 'active',
             'premium_status': profile.get('premium_status', 'free'),
+            'premium_until': profile.get('premium_until'),
+            'created_at': profile.get('created_at'),
         },
         'credit_balance': balance,
     }

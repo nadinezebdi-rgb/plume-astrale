@@ -255,6 +255,27 @@ export default function Admin() {
                 { key: 'total_spent_eur', label: 'Depense', render: r => fmtEur(r.total_spent_eur) },
                 { key: 'is_admin', label: 'Admin', render: r => r.is_admin ? <span style={{ color: '#7CB88A' }}>Oui</span> : '—' },
                 { key: 'birth_place', label: 'Lieu naissance' },
+                { key: 'actions', label: '', render: r => r.is_admin ? null : (
+                  <button
+                    onClick={async () => {
+                      if (!window.confirm(`Supprimer definitivement ${r.email} ?\n\nToutes ses donnees (compte, credits, chats, paiements) seront perdues. Cette action est irreversible.`)) return;
+                      try {
+                        await axios.delete(`${API}/api/admin/users/${r.id}`, { headers: { Authorization: `Bearer ${token}` } });
+                        loadUsers(search);
+                      } catch (err) {
+                        alert(err?.response?.data?.detail || 'Erreur lors de la suppression');
+                      }
+                    }}
+                    data-testid={`admin-delete-user-${r.id}`}
+                    title="Supprimer cet utilisateur"
+                    style={{
+                      background: 'transparent', border: '1px solid rgba(255,100,100,0.3)',
+                      borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: '#fca5a5',
+                    }}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  </button>
+                ) },
               ]}
               rows={users}
             />
