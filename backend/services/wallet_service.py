@@ -91,9 +91,35 @@ async def redeem_promo(user_id: str, code: str) -> dict:
     if redemption and redemption.data:
         raise HTTPException(status_code=409, detail='Tu as deja utilise ce code promo')
 
-    credits = int(promo_data['credits'])
+    credits = int(promo_data.get('credits') or 0)
+    premium_days = int(promo_data.get('premium_days') or 0)
     description = promo_data.get('description') or f'Code promo {code}'
-    new_balance = await add_credits(user_id, credits, description, tx_type='promo')
+    new_balance = await get_balance(user_id)
+
+    # 1) Crediter si applicable
+    if credits > 0:
+        new_balance = await add_credits(user_id, credits, description, tx_type='promo')
+
+    # 2) Activer Premium si applicable
+    premium_until_iso = None
+    if premium_days > 0:
+        from datetime import datetime, timezone, timedelta
+        # Si user a deja un premium_until futur, on l'etend ; sinon on demarre maintenant
+        prof = sb.table('profiles').select('premium_until').eq('id', user_id).maybe_single().execute()
+        now = datetime.now(timezone.utc)
+        current_until = None
+        if prof and prof.data and prof.data.get('premium_until'):
+            try:
+                current_until = datetime.fromisoformat(prof.data['premium_until'].replace('Z', '+00:00'))
+            except Exception:
+                current_until = None
+        base = current_until if (current_until and current_until > now) else now
+        new_until = base + timedelta(days=premium_days)
+        premium_until_iso = new_until.isoformat()
+        sb.table('profiles').update({
+            'premium_status': 'active',
+            'premium_until': premium_until_iso,
+        }).eq('id', user_id).execute()
 
     # Enregistrer la redemption
     sb.table('promo_code_redemptions').insert({'user_id': user_id, 'code': code}).execute()
@@ -101,6 +127,8 @@ async def redeem_promo(user_id: str, code: str) -> dict:
 
     return {
         'credits_added': credits,
+        'premium_days_added': premium_days,
+        'premium_until': premium_until_iso,
         'description': description,
         'credit_balance': new_balance,
     }

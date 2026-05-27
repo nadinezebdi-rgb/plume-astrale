@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import {
   Users, Euro, TrendingUp, MessageCircle, Coins, ShoppingCart,
-  Loader2, RefreshCw, Search, Tag, Activity, Sparkles,
+  Loader2, RefreshCw, Search, Tag, Activity, Sparkles, Plus, Power, Trash2, Crown,
 } from 'lucide-react';
 import SEO from '@/components/SEO';
 
@@ -300,20 +300,181 @@ export default function Admin() {
         )}
 
         {tab === 'promo' && (
-          <Table
-            columns={[
-              { key: 'code', label: 'Code', render: r => <span style={{ fontFamily: 'monospace', color: '#C5A059', fontWeight: 600 }}>{r.code}</span> },
-              { key: 'credits', label: 'Credits', render: r => `+${r.credits} cr` },
-              { key: 'description', label: 'Description' },
-              { key: 'used_count', label: 'Utilisations' },
-              { key: 'max_uses', label: 'Limite', render: r => r.max_uses || '∞' },
-              { key: 'active', label: 'Actif', render: r => r.active ? <span style={{ color: '#7CB88A' }}>Oui</span> : 'Non' },
-            ]}
-            rows={promoCodes}
-          />
+          <PromoSection token={token} promoCodes={promoCodes} reload={loadPromo} />
         )}
 
       </div>
     </div>
+  );
+}
+
+// ═══════ Promo Codes Section (with create form + toggle/delete) ═══════
+function PromoSection({ token, promoCodes, reload }) {
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const [form, setForm] = useState({
+    code: '', type: 'premium', value: 30, max_uses: '', description: '',
+  });
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!form.code.trim()) { setMsg({ type: 'err', text: 'Code requis' }); return; }
+    setSaving(true);
+    try {
+      const payload = {
+        code: form.code.trim(),
+        description: form.description || undefined,
+        max_uses: form.max_uses ? Number(form.max_uses) : null,
+        active: true,
+      };
+      if (form.type === 'premium') payload.premium_days = Number(form.value || 0);
+      else payload.credits = Number(form.value || 0);
+      await axios.post(`${API}/api/admin/promo-codes`, payload, { headers: { Authorization: `Bearer ${token}` } });
+      setMsg({ type: 'ok', text: `Code "${form.code.toUpperCase()}" cree` });
+      setForm({ code: '', type: 'premium', value: 30, max_uses: '', description: '' });
+      setShowForm(false);
+      await reload();
+    } catch (err) {
+      setMsg({ type: 'err', text: err?.response?.data?.detail || 'Erreur' });
+    } finally { setSaving(false); }
+  };
+
+  const toggle = async (code, current) => {
+    try {
+      await axios.patch(`${API}/api/admin/promo-codes/${code}`, { active: !current }, { headers: { Authorization: `Bearer ${token}` } });
+      await reload();
+    } catch (e) { console.error(e); }
+  };
+
+  const remove = async (code) => {
+    if (!window.confirm(`Supprimer le code ${code} ?`)) return;
+    try {
+      await axios.delete(`${API}/api/admin/promo-codes/${code}`, { headers: { Authorization: `Bearer ${token}` } });
+      await reload();
+    } catch (e) { console.error(e); }
+  };
+
+  return (
+    <div>
+      {/* Toolbar */}
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
+          {promoCodes.length} code(s) · Premium offrent un acces complet (energie, compatibilites, cycles)
+        </p>
+        <button onClick={() => setShowForm(!showForm)} data-testid="admin-create-promo-btn"
+          className="flex items-center gap-2 px-4 py-2 rounded-full text-xs uppercase tracking-widest"
+          style={{ background: '#C5A059', color: '#0C0918', fontFamily: 'Cinzel, serif', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+          <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+          {showForm ? 'Annuler' : 'Nouveau code'}
+        </button>
+      </div>
+
+      {msg && (
+        <div className="mb-4 px-4 py-2 rounded-lg text-xs"
+          style={{
+            background: msg.type === 'ok' ? 'rgba(124,184,138,0.12)' : 'rgba(255,100,100,0.12)',
+            border: `1px solid ${msg.type === 'ok' ? 'rgba(124,184,138,0.4)' : 'rgba(255,100,100,0.4)'}`,
+            color: msg.type === 'ok' ? '#A3D6AC' : '#fca5a5',
+          }}>{msg.text}</div>
+      )}
+
+      {/* Create form */}
+      {showForm && (
+        <form onSubmit={submit} className="mb-8 p-5 rounded-2xl space-y-4"
+          style={{ background: 'rgba(197,160,89,0.06)', border: '1px solid rgba(197,160,89,0.25)' }}
+          data-testid="admin-promo-form">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Code (ex: FAMILLE2026)">
+              <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                style={fieldStyle} data-testid="promo-form-code"
+                placeholder="FAMILLE2026" required />
+            </Field>
+
+            <Field label="Type">
+              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} style={fieldStyle} data-testid="promo-form-type">
+                <option value="premium">Premium offert (jours)</option>
+                <option value="credits">Credits offerts</option>
+              </select>
+            </Field>
+
+            <Field label={form.type === 'premium' ? "Nombre de jours" : "Nombre de credits"}>
+              <input type="number" min={1} value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })}
+                style={fieldStyle} data-testid="promo-form-value" required />
+            </Field>
+
+            <Field label="Limite d'utilisations (vide = illimitee)">
+              <input type="number" min={1} value={form.max_uses} onChange={(e) => setForm({ ...form, max_uses: e.target.value })}
+                style={fieldStyle} data-testid="promo-form-max-uses" placeholder="ex: 10" />
+            </Field>
+
+            <Field label="Description (optionnel)" full>
+              <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+                style={fieldStyle} data-testid="promo-form-description"
+                placeholder="Acces Premium 1 mois — offre famille" />
+            </Field>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <button type="button" onClick={() => setShowForm(false)}
+              className="px-5 py-2 text-xs uppercase tracking-widest rounded-full"
+              style={{ background: 'transparent', color: '#C5A059', border: '1px solid rgba(197,160,89,0.3)' }}>
+              Annuler
+            </button>
+            <button type="submit" disabled={saving} data-testid="promo-form-submit"
+              className="px-6 py-2 text-xs uppercase tracking-widest rounded-full"
+              style={{ background: '#C5A059', color: '#0C0918', border: 'none', fontFamily: 'Cinzel, serif', fontWeight: 600 }}>
+              {saving ? 'Creation...' : 'Creer le code'}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Codes table */}
+      <Table
+        columns={[
+          { key: 'code', label: 'Code', render: r => <span style={{ fontFamily: 'monospace', color: '#C5A059', fontWeight: 600 }}>{r.code}</span> },
+          { key: 'type', label: 'Type', render: r => r.premium_days ? <span style={{ color: '#F4D98C', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown className="w-3 h-3" />Premium</span> : <span>Credits</span> },
+          { key: 'reward', label: 'Recompense', render: r => r.premium_days ? `${r.premium_days} jours Premium` : `+${r.credits} cr` },
+          { key: 'description', label: 'Description' },
+          { key: 'used_count', label: 'Utilisations' },
+          { key: 'max_uses', label: 'Limite', render: r => r.max_uses || '\u221E' },
+          { key: 'active', label: 'Statut', render: r => r.active
+            ? <span style={{ color: '#7CB88A' }}>Actif</span>
+            : <span style={{ color: 'var(--pa-muted)' }}>Inactif</span>
+          },
+          { key: 'actions', label: 'Actions', render: r => (
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => toggle(r.code, r.active)} title={r.active ? 'Desactiver' : 'Activer'}
+                data-testid={`promo-toggle-${r.code}`}
+                style={{ background: 'transparent', border: '1px solid rgba(197,160,89,0.3)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: r.active ? '#7CB88A' : '#999' }}>
+                <Power className="w-3 h-3" />
+              </button>
+              <button onClick={() => remove(r.code)} title="Supprimer"
+                data-testid={`promo-delete-${r.code}`}
+                style={{ background: 'transparent', border: '1px solid rgba(255,100,100,0.3)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: '#fca5a5' }}>
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
+          ) },
+        ]}
+        rows={promoCodes}
+      />
+    </div>
+  );
+}
+
+const fieldStyle = {
+  width: '100%', padding: '10px 12px', borderRadius: 8,
+  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(197,160,89,0.25)',
+  color: '#F4E4BC', fontSize: 13, outline: 'none',
+};
+
+function Field({ label, children, full }) {
+  return (
+    <label style={{ display: 'block', gridColumn: full ? '1 / -1' : undefined }}>
+      <span style={{ display: 'block', marginBottom: 6, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(197,160,89,0.85)', fontFamily: 'Cinzel, serif' }}>{label}</span>
+      {children}
+    </label>
   );
 }

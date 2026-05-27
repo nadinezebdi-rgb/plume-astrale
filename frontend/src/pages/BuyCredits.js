@@ -23,7 +23,14 @@ const PromoCodeSection = ({ token, onSuccess }) => {
       const res = await axios.post(`${API}/api/credits/promo`, { code }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSuccess(res.data.description + ' — ' + res.data.credits_added + ' credits ajoutes !');
+      const d = res.data;
+      let msg = d.description || 'Code applique';
+      if (d.premium_days_added > 0) {
+        msg += ` — Premium offert ${d.premium_days_added} jours !`;
+      } else if (d.credits_added > 0) {
+        msg += ` — ${d.credits_added} credits ajoutes !`;
+      }
+      setSuccess(msg);
       setCode('');
       if (onSuccess) onSuccess();
     } catch (err) {
