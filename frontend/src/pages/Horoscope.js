@@ -81,7 +81,7 @@ const Horoscope = () => {
         period: periodMap[period] || 'daily',
       };
 
-      const res = await fetch('/api/astrology/horoscope-prediction', {
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL || ''}/api/astrology/horoscope-prediction`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),

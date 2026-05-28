@@ -742,6 +742,81 @@ async def astrology_natal_chart(request: Request):
         return {'success': False, 'message': str(e)[:120]}
 
 
+# ═══════════════════════════════════════════════════
+# HOROSCOPE — astrology-api.io v3 (texte enrichi FR)
+# ═══════════════════════════════════════════════════
+class HoroscopeRequest(BaseModel):
+    day: int | None = None
+    month: int | None = None
+    year: int | None = None
+    hour: int | None = 12
+    min: int | None = 0
+    lat: float | None = 48.8566
+    lon: float | None = 2.3522
+    tzone: float | None = 1.0
+    period: str = 'daily'  # daily | weekly | monthly | yearly
+    sign: str | None = None  # fallback si pas de birth data
+
+
+@api_router.post('/astrology/horoscope-prediction')
+async def horoscope_prediction(payload: HoroscopeRequest):
+    """Horoscope personnalise via astrology-api.io v3.
+    Si birth data complete -> appel /horoscope/personal/{period} (richement personnalise).
+    Sinon -> fallback /horoscope/sign/{period} avec le signe."""
+    from services import astrology_io_service as aio
+
+    period = payload.period if payload.period in {'daily', 'weekly', 'monthly', 'yearly'} else 'daily'
+
+    # Si on a birth_date complete -> personalize
+    has_birth = bool(payload.day and payload.month and payload.year)
+    if has_birth:
+        birth_date = f"{payload.year:04d}-{payload.month:02d}-{payload.day:02d}"
+        birth_time = f"{(payload.hour or 12):02d}:{(payload.min or 0):02d}"
+        cache_key = aio._cache_key('personal', birth_date, birth_time, payload.lat, payload.lon, period)
+        data = await aio.get_cached_or_fetch(
+            cache_key,
+            lambda: aio.horoscope_personal(
+                birth_date, birth_time,
+                float(payload.lat or 48.8566),
+                float(payload.lon or 2.3522),
+                float(payload.tzone or 1.0),
+                period,
+                'fr',
+            ),
+        )
+        if data:
+            return {'success': True, 'data': data, 'source': 'personal'}
+
+    # Fallback : signe seulement
+    sign = payload.sign
+    if not sign and has_birth:
+        # Deduce sign from birth date
+        from datetime import date as _date
+        signs_dates = [
+            (((3, 21), (4, 19)), 'aries'), (((4, 20), (5, 20)), 'taurus'),
+            (((5, 21), (6, 20)), 'gemini'), (((6, 21), (7, 22)), 'cancer'),
+            (((7, 23), (8, 22)), 'leo'), (((8, 23), (9, 22)), 'virgo'),
+            (((9, 23), (10, 22)), 'libra'), (((10, 23), (11, 21)), 'scorpio'),
+            (((11, 22), (12, 21)), 'sagittarius'), (((12, 22), (1, 19)), 'capricorn'),
+            (((1, 20), (2, 18)), 'aquarius'), (((2, 19), (3, 20)), 'pisces'),
+        ]
+        m, d = payload.month, payload.day
+        for ((sm, sd), (em, ed)), s in signs_dates:
+            if (m == sm and d >= sd) or (m == em and d <= ed) or sm > em and (m == sm and d >= sd or m == em and d <= ed):
+                sign = s; break
+        if not sign:
+            sign = 'aries'
+
+    cache_key = aio._cache_key('sign', sign, period)
+    data = await aio.get_cached_or_fetch(
+        cache_key,
+        lambda: aio.horoscope_sign(sign or 'aries', period, 'fr'),
+    )
+    if data:
+        return {'success': True, 'data': data, 'source': 'sign'}
+    return {'success': False, 'message': 'Horoscope indisponible (API)'}
+
+
 @api_router.get('/tarot/jour')
 async def get_jour():
     return {'success': True, 'data': tirage_du_jour()}
