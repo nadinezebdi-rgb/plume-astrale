@@ -159,6 +159,19 @@ Site prod : plume-astrale.fr
 - `NatalDataModal.js` : nouveau composant avec tous les data-testid (prenom, gender, birth-date/time/place/country, save, close)
 - Backend `/api/auth/me` : normalise `birth_time` `HH:MM:SS` -> `HH:MM`
 
+## Implemente — Feb 2026 (Endpoints manquants + Node engines)
+- **Bug** : Numerologie, Karma & Destin et Theme natal cassés sur prod (endpoints 404)
+- **Solutions implémentées** :
+  - `services/numerology_service.py` : calculs purs (chemin de vie, expression, intime, realisation, annee perso, defis, cycles, nombre du jour)
+  - `POST /api/numerology/complete` + `POST /api/numerology/deep-profile`
+  - `POST /api/astrology/karma-destiny` : noeuds lunaires (calcul approximatif sans API externe)
+  - `POST /api/astrology/natal-chart` : wrapper AstrologyAPI (`get_western_horoscope`)
+  - `POST /api/discount/validate` + `POST /api/access/free` : codes de reduction sur tous les checkouts
+- **Fix Node** :
+  - `package.json` : `engines.node = ">=20.0.0 <23.0.0"`
+  - `.nvmrc` : `20.18.0` pour forcer la même version sur Vercel/Netlify
+- **Tests** : 100% des endpoints retournent `success: true` en local
+
 ## Implemente — Feb 2026 (Nudge "Compléter ton heure de naissance")
 - `NatalCompletionPrompt.js` : nouveau composant compact qui s'affiche **uniquement** si user authentifié + a `birth_date` + manque `birth_time`
 - CTA "Compléter" ouvre directement `NatalDataModal` (réutilisation du modal MonCompte)
