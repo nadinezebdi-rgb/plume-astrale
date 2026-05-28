@@ -600,11 +600,15 @@ async def numerology_deep(request: Request):
 # ════════════════════════════════════════════
 @api_router.post('/astrology/karma-destiny')
 async def astrology_karma_destiny(request: Request):
-    """Karma & destin base sur le nœud nord lunaire (calcul approximatif).
-    Retourne nœud nord, nœud sud, mission de vie + leçons karmiques."""
+    """Karma & destin : utilise AstrologyAPI pour calculer le Nœud Nord lunaire
+    exact (basé sur l'éphéméride réelle). Fallback approximatif si heure/lieu manquent."""
     body = await request.json()
     prenom = body.get('prenom', '').strip()
     date_naissance = body.get('dateNaissance')
+    heure = body.get('heureNaissance') or '12:00'
+    ville = body.get('ville') or 'Paris'
+    pays = body.get('pays') or 'France'
+
     if not date_naissance:
         raise HTTPException(status_code=400, detail='dateNaissance requise')
     try:
@@ -613,17 +617,13 @@ async def astrology_karma_destiny(request: Request):
     except ValueError:
         raise HTTPException(status_code=400, detail='Format date invalide (YYYY-MM-DD)')
 
-    # Nœud Nord moyen : cycle de 18.6 ans, à reculons depuis 2000-01-01 = Cancer 16°
-    # Approximation : 1 nœud par 18.6/12 ≈ 1.55 an dans chaque signe (en ordre inverse)
-    signes = ['Bélier', 'Taureau', 'Gémeaux', 'Cancer', 'Lion', 'Vierge',
-              'Balance', 'Scorpion', 'Sagittaire', 'Capricorne', 'Verseau', 'Poissons']
-    # Ref : 2000-01-01 → Cancer (idx 3)
-    ref = _dt(2000, 1, 1)
-    years_diff = (d - ref).days / 365.25
-    # Nœud Nord recule de ~1 signe tous les 18.6/12 ans
-    signe_idx = int((3 - (years_diff / (18.6 / 12)))) % 12
-    noeud_nord = signes[signe_idx]
-    noeud_sud = signes[(signe_idx + 6) % 12]
+    signes_fr = {
+        'Aries': 'Bélier', 'Taurus': 'Taureau', 'Gemini': 'Gémeaux', 'Cancer': 'Cancer',
+        'Leo': 'Lion', 'Virgo': 'Vierge', 'Libra': 'Balance', 'Scorpio': 'Scorpion',
+        'Sagittarius': 'Sagittaire', 'Capricorn': 'Capricorne', 'Aquarius': 'Verseau', 'Pisces': 'Poissons',
+    }
+    signes_ordre = ['Bélier', 'Taureau', 'Gémeaux', 'Cancer', 'Lion', 'Vierge',
+                    'Balance', 'Scorpion', 'Sagittaire', 'Capricorne', 'Verseau', 'Poissons']
 
     interpretations = {
         'Bélier': "Apprends à affirmer ton identité et à oser tes désirs.",
@@ -654,11 +654,57 @@ async def astrology_karma_destiny(request: Request):
         'Poissons': "Quitter la quête de perfection, lâcher prise.",
     }
 
+    noeud_nord = None
+    source = 'approximatif'
+    # 1) Tentative AstrologyAPI (precis, via ephemeride reelle)
+    try:
+        from services.astrology_api import get_astrology_service
+        svc = get_astrology_service()
+        # Geocoder le lieu pour avoir lat/lon/tz
+        lat, lon, tz = 48.8566, 2.3522, 1.0  # Paris par defaut
+        try:
+            geo = await svc.get_geo_details(f"{ville}, {pays}" if pays else ville)
+            if geo and isinstance(geo, list) and len(geo) > 0:
+                g = geo[0]
+                lat = float(g.get('latitude', lat))
+                lon = float(g.get('longitude', lon))
+                tz = float(g.get('timezone_offset', tz)) if g.get('timezone_offset') else tz
+            elif geo and isinstance(geo, dict):
+                lat = float(geo.get('latitude', lat))
+                lon = float(geo.get('longitude', lon))
+                tz = float(geo.get('timezone_offset', tz)) if geo.get('timezone_offset') else tz
+        except Exception:
+            pass  # garde Paris par défaut
+
+        wh = await svc.get_western_horoscope(date_naissance, heure, lat, lon, tz)
+        if wh and isinstance(wh, dict):
+            for p in wh.get('planets', []):
+                if p.get('name') == 'Node':
+                    sign_en = p.get('sign')
+                    noeud_nord = signes_fr.get(sign_en)
+                    source = 'astrologyapi'
+                    break
+    except Exception as e:
+        print(f'[karma-destiny] AstrologyAPI fallback: {e}')
+
+    # 2) Fallback approximatif si AstrologyAPI indispo
+    if not noeud_nord:
+        ref = _dt(2000, 1, 1)
+        years_diff = (d - ref).days / 365.25
+        signe_idx = int((3 - (years_diff / (18.6 / 12)))) % 12
+        noeud_nord = signes_ordre[signe_idx]
+
+    nn_idx = signes_ordre.index(noeud_nord)
+    noeud_sud = signes_ordre[(nn_idx + 6) % 12]
+
     return {
         'success': True,
         'data': {
             'prenom': prenom,
             'date_naissance': date_naissance,
+            'heure_naissance': heure,
+            'lieu_naissance': f"{ville}, {pays}" if pays else ville,
+            'source_calcul': source,  # 'astrologyapi' ou 'approximatif'
             'noeud_nord': {
                 'signe': noeud_nord,
                 'mission': interpretations.get(noeud_nord, ''),
@@ -675,15 +721,15 @@ async def astrology_karma_destiny(request: Request):
 
 @api_router.post('/astrology/natal-chart')
 async def astrology_natal_chart(request: Request):
-    """Wrapper vers AstrologyAPI pour le theme natal.
+    """Wrapper vers AstrologyAPI pour le theme natal complet.
     Le frontend Karma & Destin l'appelle pour enrichir le rapport."""
     body = await request.json()
     try:
         from services.astrology_api import get_astrology_service
         svc = get_astrology_service()
-        day = body.get('day', 1); month = body.get('month', 1); year = body.get('year', 2000)
-        hour = body.get('hour', 12); minute = body.get('min', 0)
-        date_str = f"{day:02d}/{month:02d}/{year}"
+        day = int(body.get('day', 1)); month = int(body.get('month', 1)); year = int(body.get('year', 2000))
+        hour = int(body.get('hour', 12)); minute = int(body.get('min', 0))
+        date_str = f"{year:04d}-{month:02d}-{day:02d}"
         time_str = f"{hour:02d}:{minute:02d}"
         data = await svc.get_western_horoscope(
             date_str, time_str,
