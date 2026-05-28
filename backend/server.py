@@ -571,6 +571,131 @@ async def get_domaines():
     return {'success': True, 'domaines': DOMAINES_QUESTIONS}
 
 
+# ════════════════════════════════════════════
+# NUMEROLOGIE
+# ════════════════════════════════════════════
+from services import numerology_service
+
+
+@api_router.post('/numerology/complete')
+async def numerology_complete(request: Request):
+    body = await request.json()
+    try:
+        return numerology_service.compute_complete(body)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@api_router.post('/numerology/deep-profile')
+async def numerology_deep(request: Request):
+    body = await request.json()
+    try:
+        return numerology_service.compute_deep(body)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ════════════════════════════════════════════
+# ASTROLOGIE (Karma & Destin + Natal chart)
+# ════════════════════════════════════════════
+@api_router.post('/astrology/karma-destiny')
+async def astrology_karma_destiny(request: Request):
+    """Karma & destin base sur le nœud nord lunaire (calcul approximatif).
+    Retourne nœud nord, nœud sud, mission de vie + leçons karmiques."""
+    body = await request.json()
+    prenom = body.get('prenom', '').strip()
+    date_naissance = body.get('dateNaissance')
+    if not date_naissance:
+        raise HTTPException(status_code=400, detail='dateNaissance requise')
+    try:
+        from datetime import datetime as _dt
+        d = _dt.strptime(date_naissance, '%Y-%m-%d')
+    except ValueError:
+        raise HTTPException(status_code=400, detail='Format date invalide (YYYY-MM-DD)')
+
+    # Nœud Nord moyen : cycle de 18.6 ans, à reculons depuis 2000-01-01 = Cancer 16°
+    # Approximation : 1 nœud par 18.6/12 ≈ 1.55 an dans chaque signe (en ordre inverse)
+    signes = ['Bélier', 'Taureau', 'Gémeaux', 'Cancer', 'Lion', 'Vierge',
+              'Balance', 'Scorpion', 'Sagittaire', 'Capricorne', 'Verseau', 'Poissons']
+    # Ref : 2000-01-01 → Cancer (idx 3)
+    ref = _dt(2000, 1, 1)
+    years_diff = (d - ref).days / 365.25
+    # Nœud Nord recule de ~1 signe tous les 18.6/12 ans
+    signe_idx = int((3 - (years_diff / (18.6 / 12)))) % 12
+    noeud_nord = signes[signe_idx]
+    noeud_sud = signes[(signe_idx + 6) % 12]
+
+    interpretations = {
+        'Bélier': "Apprends à affirmer ton identité et à oser tes désirs.",
+        'Taureau': "Construis une stabilité matérielle et sensorielle saine.",
+        'Gémeaux': "Communique, apprends, partage la connaissance.",
+        'Cancer': "Honore tes émotions et bâtis un nid affectif.",
+        'Lion': "Exprime ta créativité et ton individualité sans honte.",
+        'Vierge': "Sers humblement et perfectionne ton art.",
+        'Balance': "Cultive l'équilibre et les partenariats harmonieux.",
+        'Scorpion': "Plonge dans tes profondeurs et transforme-toi.",
+        'Sagittaire': "Élargis ton horizon par le voyage et la philosophie.",
+        'Capricorne': "Bâtis ton autorité par la discipline et la persévérance.",
+        'Verseau': "Innove et sers une cause collective.",
+        'Poissons': "Ouvre-toi à la spiritualité et à la compassion universelle.",
+    }
+    lecons = {
+        'Bélier': "Quitter la dépendance, oser être seul.",
+        'Taureau': "Lâcher l'intensité, accueillir le simple.",
+        'Gémeaux': "Sortir de la vérité absolue, accepter la nuance.",
+        'Cancer': "Quitter l'ambition pure, choisir la tendresse.",
+        'Lion': "Lâcher l'anonymat, briller pleinement.",
+        'Vierge': "Quitter la rêverie, ancrer dans le concret.",
+        'Balance': "Sortir de l'égoïsme, apprendre l'écoute.",
+        'Scorpion': "Quitter le confort, embrasser la transformation.",
+        'Sagittaire': "Quitter la dispersion, choisir la quête de sens.",
+        'Capricorne': "Quitter l'émotion fusionnelle, construire ta structure.",
+        'Verseau': "Sortir du règne personnel, servir le collectif.",
+        'Poissons': "Quitter la quête de perfection, lâcher prise.",
+    }
+
+    return {
+        'success': True,
+        'data': {
+            'prenom': prenom,
+            'date_naissance': date_naissance,
+            'noeud_nord': {
+                'signe': noeud_nord,
+                'mission': interpretations.get(noeud_nord, ''),
+            },
+            'noeud_sud': {
+                'signe': noeud_sud,
+                'memoire': interpretations.get(noeud_sud, ''),
+            },
+            'lecon_karmique': lecons.get(noeud_nord, ''),
+            'axe_evolution': f"{noeud_sud} → {noeud_nord}",
+        },
+    }
+
+
+@api_router.post('/astrology/natal-chart')
+async def astrology_natal_chart(request: Request):
+    """Wrapper vers AstrologyAPI pour le theme natal.
+    Le frontend Karma & Destin l'appelle pour enrichir le rapport."""
+    body = await request.json()
+    try:
+        from services.astrology_api import get_astrology_service
+        svc = get_astrology_service()
+        day = body.get('day', 1); month = body.get('month', 1); year = body.get('year', 2000)
+        hour = body.get('hour', 12); minute = body.get('min', 0)
+        date_str = f"{day:02d}/{month:02d}/{year}"
+        time_str = f"{hour:02d}:{minute:02d}"
+        data = await svc.get_western_horoscope(
+            date_str, time_str,
+            body.get('lat', 48.8566), body.get('lon', 2.3522), body.get('tzone', 1),
+        )
+        if data:
+            return {'success': True, 'data': data}
+        return {'success': False, 'message': 'Astrology API indisponible'}
+    except Exception as e:
+        return {'success': False, 'message': str(e)[:120]}
+
+
 @api_router.get('/tarot/jour')
 async def get_jour():
     return {'success': True, 'data': tirage_du_jour()}
