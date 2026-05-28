@@ -111,7 +111,7 @@ const Horoscope = () => {
         tzone: 1,
       };
 
-      const res = await fetch('/api/astrology/natal-chart', {
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL || ''}/api/astrology/natal-chart`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
@@ -155,6 +155,18 @@ const Horoscope = () => {
         ))}
       </div>
     );
+  };
+
+  // ── Mapping life_areas API v3 -> icones + couleurs FR
+  const AREA_META = {
+    identity:   { label: 'Identité',    color: 'rgba(212,180,106,0.2)', text: '#D4B46A' },
+    health:     { label: 'Santé',       color: 'rgba(167,238,167,0.18)', text: '#7CB88A' },
+    finance:    { label: 'Finances',    color: 'rgba(212,180,106,0.2)', text: '#D4B46A' },
+    career:     { label: 'Carrière',    color: 'rgba(167,200,255,0.18)', text: '#6BB5E8' },
+    love:       { label: 'Amour',       color: 'rgba(255,167,200,0.18)', text: '#F49AAE' },
+    relationships:{ label: 'Relations', color: 'rgba(244,217,140,0.18)', text: '#F4D98C' },
+    creativity: { label: 'Créativité',  color: 'rgba(196,167,238,0.18)', text: '#A78BFA' },
+    spirituality:{label: 'Spiritualité',color: 'rgba(212,180,106,0.18)', text: '#F4E4BC' },
   };
 
   if (!userData) {
@@ -250,122 +262,114 @@ const Horoscope = () => {
           {/* Horoscope Content */}
           {!loading && (
             <div className="space-y-6 animate-fade-in">
-              {/* API Prediction Banner */}
-              {apiData?.prediction && (
+              {/* OVERALL THEME (Astrology API v3) */}
+              {apiData?.overall_theme && (
                 <div className="card-mystical border border-[#C5A059]/20">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Coins className="w-4 h-4 text-[#C5A059]" strokeWidth={1.5} />
-                    <span className="text-xs tracking-widest uppercase text-[#C5A059]" style={{ letterSpacing: '0.12em' }}>
-                      Prédiction Astrology API
-                    </span>
+                  <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                    <h2 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                      {titleMap[activeTab]}
+                    </h2>
+                    <div className="flex items-center gap-3">
+                      {typeof apiData.overall_rating === 'number' && renderStars(apiData.overall_rating)}
+                      <span className="text-[#C5A059] text-sm">{apiData.date || ''}</span>
+                    </div>
                   </div>
-                  <p className="text-[#B8B0C8]/90 font-light leading-relaxed text-base" style={{ fontFamily: 'Cormorant Garamond, serif', lineHeight: '1.9' }}>
-                    {typeof apiData.prediction === 'string' ? apiData.prediction : (apiData.prediction.personal_life || apiData.prediction.prediction || JSON.stringify(apiData.prediction))}
+                  <p className="text-[#F0E6D3]/85 leading-relaxed text-base" style={{ fontFamily: 'Cormorant Garamond, serif', lineHeight: '1.85' }}>
+                    {apiData.overall_theme}
                   </p>
+                  {apiData.keywords && Array.isArray(apiData.keywords) && apiData.keywords.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {apiData.keywords.slice(0, 6).map((k, i) => (
+                        <span key={i} className="text-xs px-3 py-1 rounded-full bg-[#C5A059]/10 text-[#C5A059] border border-[#C5A059]/20">
+                          {k}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Planetary Transits */}
-              {apiData?.planets_summary && apiData.planets_summary.length > 0 && (
+              {/* LIFE AREAS (Astrology API v3) -- 8 zones de vie */}
+              {apiData?.life_areas && Array.isArray(apiData.life_areas) && apiData.life_areas.length > 0 ? (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {apiData.life_areas.map((area, idx) => {
+                    const meta = AREA_META[area.area] || { label: area.title || area.area, color: 'rgba(212,180,106,0.15)', text: '#D4B46A' };
+                    return (
+                      <div key={idx} className="card-mystical">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="p-2 rounded-full" style={{ background: meta.color, color: meta.text }}>
+                            <Star className="w-5 h-5" strokeWidth={1.2} fill="currentColor" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-[#F0E6D3]">{area.title || meta.label}</h3>
+                            {typeof area.rating === 'number' && renderStars(area.rating)}
+                          </div>
+                        </div>
+                        <p className="text-[#B8B0C8]/85 text-sm font-light leading-relaxed">
+                          {area.prediction || area.text || ''}
+                        </p>
+                        {area.advice && (
+                          <p className="mt-3 text-xs italic text-[#C5A059]/85">
+                            <span style={{ letterSpacing: '0.1em' }}>CONSEIL —</span> {area.advice}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Fallback static cards si jamais l'API est down */
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="card-mystical">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 rounded-full bg-pink-500/20 text-pink-400"><Heart className="w-5 h-5" strokeWidth={1} /></div>
+                      <div className="flex-1"><h3 className="text-[#F0E6D3]">Amour</h3>{renderStars(currentHoroscope.amour.score)}</div>
+                    </div>
+                    <p className="text-[#B8B0C8]/70 text-sm font-light">{currentHoroscope.amour.text}</p>
+                  </div>
+                  <div className="card-mystical">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 rounded-full bg-blue-500/20 text-blue-400"><Briefcase className="w-5 h-5" strokeWidth={1} /></div>
+                      <div className="flex-1"><h3 className="text-[#F0E6D3]">Travail</h3>{renderStars(currentHoroscope.travail.score)}</div>
+                    </div>
+                    <p className="text-[#B8B0C8]/70 text-sm font-light">{currentHoroscope.travail.text}</p>
+                  </div>
+                  <div className="card-mystical">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 rounded-full bg-emerald-500/20 text-emerald-400"><Activity className="w-5 h-5" strokeWidth={1} /></div>
+                      <div className="flex-1"><h3 className="text-[#F0E6D3]">Santé</h3>{renderStars(currentHoroscope.sante.score)}</div>
+                    </div>
+                    <p className="text-[#B8B0C8]/70 text-sm font-light">{currentHoroscope.sante.text}</p>
+                  </div>
+                  <div className="card-mystical">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 rounded-full bg-[#C5A059]/20 text-[#C5A059]"><Coins className="w-5 h-5" strokeWidth={1} /></div>
+                      <div className="flex-1"><h3 className="text-[#F0E6D3]">Finances</h3>{renderStars(currentHoroscope.finance.score)}</div>
+                    </div>
+                    <p className="text-[#B8B0C8]/70 text-sm font-light">{currentHoroscope.finance.text}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* PLANETARY INFLUENCES (v3) */}
+              {apiData?.planetary_influences && Array.isArray(apiData.planetary_influences) && apiData.planetary_influences.length > 0 && (
                 <div className="card-mystical">
                   <h3 className="text-sm tracking-widest uppercase mb-4 text-[#C5A059]" style={{ letterSpacing: '0.12em' }}>
-                    Transits planétaires actuels
+                    Influences planétaires
                   </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {apiData.planets_summary.map((p, i) => (
-                      <span key={i} className="text-xs px-3 py-1.5 rounded-full border" style={{
-                        background: p.retrograde ? 'rgba(252,165,165,0.08)' : 'rgba(197,160,89,0.06)',
-                        borderColor: p.retrograde ? 'rgba(252,165,165,0.2)' : 'rgba(197,160,89,0.15)',
-                        color: p.retrograde ? '#fca5a5' : '#B8B0C8',
-                      }}>
-                        {p.nom} en {p.signe} {p.retrograde ? '℞' : ''}
-                      </span>
+                  <div className="space-y-3">
+                    {apiData.planetary_influences.map((pi, i) => (
+                      <div key={i} className="text-sm">
+                        <span className="text-[#C5A059] font-medium">{pi.planet || pi.name}</span>
+                        {pi.aspect && <span className="text-[#B8B0C8]/50"> — {pi.aspect}</span>}
+                        {pi.description && <p className="text-[#B8B0C8]/70 mt-1">{pi.description}</p>}
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* General */}
-              <div className="card-mystical">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-                    {titleMap[activeTab]}
-                  </h2>
-                  <span className="text-[#C5A059] text-sm">{currentHoroscope.date}</span>
-                </div>
-                <p className="text-[#B8B0C8]/80 font-light leading-relaxed">
-                  {currentHoroscope.general}
-                </p>
-              </div>
-
-              {/* Categories */}
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Amour */}
-                <div className="card-mystical">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-full bg-pink-500/20 text-pink-400">
-                      <Heart className="w-5 h-5" strokeWidth={1} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-[#F0E6D3]">Amour</h3>
-                      {renderStars(currentHoroscope.amour.score)}
-                    </div>
-                  </div>
-                  <p className="text-[#B8B0C8]/70 text-sm font-light">
-                    {currentHoroscope.amour.text}
-                  </p>
-                </div>
-
-                {/* Travail */}
-                <div className="card-mystical">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-full bg-blue-500/20 text-blue-400">
-                      <Briefcase className="w-5 h-5" strokeWidth={1} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-[#F0E6D3]">Travail</h3>
-                      {renderStars(currentHoroscope.travail.score)}
-                    </div>
-                  </div>
-                  <p className="text-[#B8B0C8]/70 text-sm font-light">
-                    {currentHoroscope.travail.text}
-                  </p>
-                </div>
-
-                {/* Santé */}
-                <div className="card-mystical">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-full bg-emerald-500/20 text-emerald-400">
-                      <Activity className="w-5 h-5" strokeWidth={1} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-[#F0E6D3]">Santé</h3>
-                      {renderStars(currentHoroscope.sante.score)}
-                    </div>
-                  </div>
-                  <p className="text-[#B8B0C8]/70 text-sm font-light">
-                    {currentHoroscope.sante.text}
-                  </p>
-                </div>
-
-                {/* Finance */}
-                <div className="card-mystical">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-full bg-[#C5A059]/20 text-[#C5A059]">
-                      <Coins className="w-5 h-5" strokeWidth={1} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-[#F0E6D3]">Finances</h3>
-                      {renderStars(currentHoroscope.finance.score)}
-                    </div>
-                  </div>
-                  <p className="text-[#B8B0C8]/70 text-sm font-light">
-                    {currentHoroscope.finance.text}
-                  </p>
-                </div>
-              </div>
-
-              {/* Planetary Details */}
+              {/* Planetary Details (natal chart sidebar) */}
               {natalData?.planetes && (
                 <div className="card-mystical">
                   <h3 className="text-lg mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -384,22 +388,40 @@ const Horoscope = () => {
                 </div>
               )}
 
-              {/* Lucky Numbers */}
-              <div className="card-mystical text-center">
-                <h3 className="text-lg mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-                  Nombres Chanceux
-                </h3>
-                <div className="flex justify-center gap-4">
-                  {[3, 7, 12, 21, 33].map((num) => (
-                    <div
-                      key={num}
-                      className="w-12 h-12 rounded-full bg-[#C5A059]/20 border border-[#C5A059]/30 flex items-center justify-center text-[#C5A059] font-medium"
-                    >
-                      {num}
-                    </div>
-                  ))}
+              {/* LUCKY ELEMENTS (v3) */}
+              {apiData?.lucky_elements && (
+                <div className="card-mystical text-center">
+                  <h3 className="text-lg mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                    Éléments chanceux
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    {apiData.lucky_elements.numbers && (
+                      <div>
+                        <p className="text-[#C5A059]/70 text-xs uppercase tracking-widest mb-2">Nombres</p>
+                        <p className="text-[#F0E6D3]">{(apiData.lucky_elements.numbers || []).join(' · ')}</p>
+                      </div>
+                    )}
+                    {apiData.lucky_elements.colors && (
+                      <div>
+                        <p className="text-[#C5A059]/70 text-xs uppercase tracking-widest mb-2">Couleurs</p>
+                        <p className="text-[#F0E6D3]">{(apiData.lucky_elements.colors || []).join(' · ')}</p>
+                      </div>
+                    )}
+                    {apiData.lucky_elements.days && (
+                      <div>
+                        <p className="text-[#C5A059]/70 text-xs uppercase tracking-widest mb-2">Jours</p>
+                        <p className="text-[#F0E6D3]">{(apiData.lucky_elements.days || []).join(' · ')}</p>
+                      </div>
+                    )}
+                    {apiData.lucky_elements.gemstones && (
+                      <div>
+                        <p className="text-[#C5A059]/70 text-xs uppercase tracking-widest mb-2">Pierres</p>
+                        <p className="text-[#F0E6D3]">{(apiData.lucky_elements.gemstones || []).join(' · ')}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
