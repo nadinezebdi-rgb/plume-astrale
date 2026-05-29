@@ -24,6 +24,26 @@ async def mark_free_tarot_used(user_id: str):
     sb.table('wallets').update({'free_tarot_used': True}).eq('user_id', user_id).execute()
 
 
+async def is_premium_active(user_id: str) -> bool:
+    """True si l'utilisateur a un premium en cours."""
+    from datetime import datetime, timezone
+    sb = get_admin_client()
+    res = sb.table('profiles').select('premium_status, premium_until').eq('id', user_id).maybe_single().execute()
+    if not res or not res.data:
+        return False
+    data = res.data
+    if data.get('premium_status') != 'active':
+        return False
+    until = data.get('premium_until')
+    if not until:
+        return True
+    try:
+        dt = datetime.fromisoformat(str(until).replace('Z', '+00:00'))
+        return dt > datetime.now(timezone.utc)
+    except Exception:
+        return False
+
+
 async def deduct_credits(user_id: str, amount: int, description: str) -> int:
     """Deduct `amount` credits if balance is sufficient. Returns new balance."""
     sb = get_admin_client()
@@ -39,6 +59,16 @@ async def deduct_credits(user_id: str, amount: int, description: str) -> int:
         'description': description,
     }).execute()
     return new_balance
+
+
+async def charge_or_premium(user_id: str, service_id: str, amount: int, description: str) -> dict:
+    """Premium = pas de deduction. Sinon deduit amount credits.
+    Renvoie {'charged': bool, 'amount': int, 'is_premium': bool, 'new_balance': int|None}."""
+    premium = await is_premium_active(user_id)
+    if premium:
+        return {'charged': False, 'amount': 0, 'is_premium': True, 'new_balance': None}
+    new_balance = await deduct_credits(user_id, amount, description)
+    return {'charged': True, 'amount': amount, 'is_premium': False, 'new_balance': new_balance}
 
 
 async def add_credits(user_id: str, amount: int, description: str, tx_type: str = 'purchase') -> int:

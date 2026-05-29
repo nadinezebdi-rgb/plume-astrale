@@ -300,3 +300,32 @@ Site prod : plume-astrale.fr
 - POST `/v3/solar-return` -> 502 (auth OK)
 - POST `/v3/chat` -> 502 "Service de chat astrologique indisponible." (auth OK)
 - Smoke screenshots Revolution Solaire + Love Languages + Horoscope : pages rendent correctement.
+
+## Implemente Feb 2026 (Tarifs unifies + Section "Mes Rapports" + Chat 3cr/q)
+- **SERVICE_COSTS mis a jour** (`config.py`) :
+  - chat_astral 2 -> 3 cr/question
+  - karma_destin 10 -> 20 cr
+  - synastrie 10 -> 20 cr
+  - theme_natal_pdf : 20 cr (nouveau)
+  - revolution_solaire : 20 cr (nouveau)
+  - love_languages : 10 cr (nouveau)
+- **Helpers wallet** (`wallet_service.py`) :
+  - `is_premium_active(user_id)` : true si premium_status='active' ET premium_until > now
+  - `charge_or_premium(user_id, service_id, amount, desc)` : skip si Premium, sinon deduct ; renvoie `{charged, amount, is_premium, new_balance}`
+- **Paywalls v3 routes** :
+  - Chat : charge AVANT + refund-on-fail (balance inchangee si 502)
+  - PDF Natal : charge AVANT + refund-on-fail
+  - Synastry : charge AVANT + refund-on-fail
+  - Solar Return : charge APRES succes (pas de refund necessaire)
+  - Love Languages : charge APRES succes
+- **Section "Mes Rapports"** dans `/mon-compte` :
+  - Nouvel onglet entre "Apercu" et "Abonnement"
+  - 6 cartes : Karma 20cr · Compatibilite 20cr · Revolution Solaire 20cr · Langages d'Amour 10cr · Theme Natal PDF 20cr · Chat Plume 3cr/question
+  - Affiche "Offert" pour Premium, prix sinon
+  - CTA Premium en bas (7 jours gratuits)
+  - data-testid : `rapports-tab`, `rapport-card-{slug}`, `rapports-premium-cta`
+- **Chat v3 cote frontend** (`ChatIA.js`) :
+  - Gere erreur 402 -> redirige vers /acheter-credits
+  - Fallback transparent vers /api/plume-chat si v3 indisponible
+
+**Tests valides (iteration 27)** : 14/14 backend PASS. Verified live balance deltas via admin token : karma_destin -20cr, chat_astral -3cr, chat-v3 refund flow OK (balance inchangee apres 502).

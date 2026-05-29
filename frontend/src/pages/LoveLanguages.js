@@ -24,7 +24,13 @@ const LoveLanguages = () => {
         if (!cancel && res.data?.success) setData(res.data);
         else if (!cancel) setError('Service indisponible.');
       } catch (e) {
-        if (!cancel) setError(e.response?.data?.detail || 'Erreur lors du calcul.');
+        if (!cancel) {
+          if (e.response?.status === 402) {
+            navigate('/acheter-credits');
+            return;
+          }
+          setError(e.response?.data?.detail || 'Erreur lors du calcul.');
+        }
       }
       if (!cancel) setLoading(false);
     })();
