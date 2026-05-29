@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "plume-astrale",
+  "name": "plume-astrale-site",
   "compatibility_date": "2026-05-01",
   "observability": {
     "enabled": true
