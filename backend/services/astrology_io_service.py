@@ -1,14 +1,15 @@
 """Service Astrology API v3 (astrology-api.io)
-Bien plus riche que astrologyapi.com : horoscopes daily/weekly/monthly/yearly en FR,
-8+ life areas, ratings, mots-cles, emojis.
+Service unifie pour appeler l'API v3 :
+- Horoscopes daily/weekly/monthly/yearly (par signe ou personnalise)
+- Positions planetaires, cuspides des maisons, aspects, metriques lunaires
+- Themes natals, synastrie (compatibilite), composite, rapports textuels
 
-Cache 24h dans Supabase (table energy_cache reutilisable) pour limiter les appels.
+Tous les appels prennent en compte un cache 24h dans Supabase (table energy_cache).
 """
 import os
 import httpx
-import json
 import hashlib
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 
 
@@ -30,11 +31,24 @@ _SIGN_FR_TO_EN = {
     'Poissons': 'pisces', 'pisces': 'pisces',
 }
 
+_SIGN_EN_TO_FR = {
+    'Aries': 'Bélier', 'Taurus': 'Taureau', 'Gemini': 'Gémeaux', 'Cancer': 'Cancer',
+    'Leo': 'Lion', 'Virgo': 'Vierge', 'Libra': 'Balance', 'Scorpio': 'Scorpion',
+    'Sagittarius': 'Sagittaire', 'Capricorn': 'Capricorne', 'Aquarius': 'Verseau', 'Pisces': 'Poissons',
+}
 
-def _normalize_sign(sign: str) -> str:
+
+def normalize_sign(sign: str) -> str:
     if not sign:
         return 'aries'
     return _SIGN_FR_TO_EN.get(sign.strip(), sign.strip().lower())
+
+
+def sign_to_fr(sign: str) -> str:
+    if not sign:
+        return ''
+    s = sign.strip()
+    return _SIGN_EN_TO_FR.get(s.title(), s)
 
 
 def _api_key() -> str:
@@ -45,9 +59,9 @@ def _api_key() -> str:
 
 
 async def _call(path: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """POST helper. Retourne data ou None si echec."""
+    """POST helper. Retourne data ou None si echec. Logs minimal."""
     try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             r = await client.post(
                 f'{BASE_URL}{path}',
                 headers={
@@ -60,58 +74,238 @@ async def _call(path: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
                 print(f'[astrology_io] {path} -> {r.status_code} : {r.text[:200]}')
                 return None
             data = r.json()
-            return data.get('data', data) if isinstance(data, dict) else data
+            if isinstance(data, dict) and data.get('success') is False:
+                print(f"[astrology_io] {path} success=false : {data.get('error')}")
+                return None
+            # v3 wraps in {success, data, ...} OR returns flat
+            if isinstance(data, dict) and 'data' in data and data.get('success'):
+                return data['data']
+            return data
     except Exception as e:
         print(f'[astrology_io] {path} EXCEPTION : {e}')
         return None
 
 
-# ════════ HOROSCOPE BY SIGN (no birth data needed) ════════
+# ════════ HELPERS pour construire le Subject ════════
+
+def make_birth_data(
+    year: int, month: int, day: int,
+    hour: int = 12, minute: int = 0,
+    latitude: Optional[float] = None, longitude: Optional[float] = None,
+    city: Optional[str] = None, country_code: Optional[str] = None,
+    timezone_name: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Construit un objet birth_data compatible v3 (DateTimeLocation + BirthData)."""
+    bd: Dict[str, Any] = {
+        'year': int(year), 'month': int(month), 'day': int(day),
+        'hour': int(hour), 'minute': int(minute),
+    }
+    if latitude is not None and longitude is not None:
+        bd['latitude'] = float(latitude)
+        bd['longitude'] = float(longitude)
+    if city:
+        bd['city'] = city
+    if country_code:
+        bd['country_code'] = country_code.upper()[:2]
+    if timezone_name:
+        bd['timezone'] = timezone_name
+    return bd
+
+
+def make_subject(name: str, birth_data: Dict[str, Any]) -> Dict[str, Any]:
+    return {'name': name or 'Anonymous', 'birth_data': birth_data}
+
+
+def parse_profile(profile: Dict[str, Any], default_name: str = 'Voyageur') -> Optional[Dict[str, Any]]:
+    """A partir d'un profil Supabase user, retourne un birth_data v3 (ou None si incomplet)."""
+    bd = profile.get('birth_date')
+    bt = profile.get('birth_time') or '12:00'
+    if not bd:
+        return None
+    try:
+        y, m, d = str(bd)[:10].split('-')
+        h, mn = str(bt)[:5].split(':')
+        return make_birth_data(
+            int(y), int(m), int(d), int(h), int(mn),
+            latitude=profile.get('latitude'),
+            longitude=profile.get('longitude'),
+            city=(profile.get('birth_place') or '').split(',')[0].strip() or None,
+            country_code=_country_to_code(profile.get('birth_country')),
+        )
+    except Exception as e:
+        print(f'[astrology_io.parse_profile] {e}')
+        return None
+
+
+_COUNTRY_CODE_MAP = {
+    'france': 'FR', 'belgium': 'BE', 'belgique': 'BE', 'suisse': 'CH', 'switzerland': 'CH',
+    'canada': 'CA', 'maroc': 'MA', 'morocco': 'MA', 'algerie': 'DZ', 'algeria': 'DZ',
+    'tunisie': 'TN', 'tunisia': 'TN', 'senegal': 'SN', 'sénégal': 'SN', 'cote d\'ivoire': 'CI',
+    'united kingdom': 'GB', 'uk': 'GB', 'royaume-uni': 'GB', 'usa': 'US', 'us': 'US',
+    'united states': 'US', 'spain': 'ES', 'espagne': 'ES', 'italy': 'IT', 'italie': 'IT',
+    'germany': 'DE', 'allemagne': 'DE', 'portugal': 'PT',
+}
+
+
+def _country_to_code(country: Optional[str]) -> Optional[str]:
+    if not country:
+        return None
+    c = country.strip()
+    if len(c) == 2 and c.isalpha():
+        return c.upper()
+    return _COUNTRY_CODE_MAP.get(c.lower())
+
+
+# ════════ HOROSCOPE BY SIGN ════════
 
 async def horoscope_sign(sign: str, period: str = 'daily', language: str = 'fr') -> Optional[Dict]:
-    """period: daily | weekly | monthly | yearly"""
     valid = {'daily', 'weekly', 'monthly', 'yearly'}
     if period not in valid:
         period = 'daily'
     return await _call(
         f'/horoscope/sign/{period}',
-        {'sign': _normalize_sign(sign), 'language': language},
+        {'sign': normalize_sign(sign), 'language': language},
     )
 
 
-# ════════ PERSONAL HOROSCOPE (uses birth data for personalization) ════════
+# ════════ HOROSCOPE PERSONNALISE ════════
 
 async def horoscope_personal(
-    birth_date: str,   # YYYY-MM-DD
-    birth_time: str,   # HH:MM
-    lat: float,
-    lon: float,
-    tzone: float = 1.0,
+    birth_data: Dict[str, Any],
     period: str = 'daily',
     language: str = 'fr',
+    name: str = 'Voyageur',
 ) -> Optional[Dict]:
-    """Horoscope personnalise utilisant le theme natal de l'utilisateur.
-    Bien plus precis que horoscope par signe."""
     valid = {'daily', 'weekly', 'monthly', 'yearly'}
     if period not in valid:
         period = 'daily'
-
-    try:
-        y, m, d = birth_date.split('-')
-        h, mn = (birth_time or '12:00').split(':')[:2]
-    except Exception as e:
-        print(f'[astrology_io] parse birth_date/time error: {e}')
-        return None
-
     payload = {
-        'birth_data': {
-            'date': {'year': int(y), 'month': int(m), 'day': int(d)},
-            'time': {'hour': int(h), 'minute': int(mn)},
-            'location': {'latitude': float(lat), 'longitude': float(lon), 'timezone': float(tzone)},
-        },
+        'subject': make_subject(name, birth_data),
+        'horoscope_type': period,
         'language': language,
     }
     return await _call(f'/horoscope/personal/{period}', payload)
+
+
+# ════════ DATA : POSITIONS / CUSPIDES / ASPECTS / LUNAIRE ════════
+
+async def get_positions(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Positions planetaires precises (signes, degres, maisons)."""
+    return await _call('/data/positions', {
+        'subject': make_subject(name, birth_data),
+        'options': {'language': language, 'house_system': 'P'},
+    })
+
+
+async def get_house_cusps(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Cuspides des 12 maisons (Placidus)."""
+    return await _call('/data/house-cusps', {
+        'subject': make_subject(name, birth_data),
+        'options': {'language': language, 'house_system': 'P'},
+    })
+
+
+async def get_aspects(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Aspects planetaires (conjonctions, trigones, carres, etc)."""
+    return await _call('/data/aspects', {
+        'subject': make_subject(name, birth_data),
+        'options': {'language': language, 'house_system': 'P'},
+    })
+
+
+async def get_lunar_metrics(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Phase lunaire, signe lunaire, mansion, etc."""
+    return await _call('/data/lunar-metrics', {
+        'subject': make_subject(name, birth_data),
+        'options': {'language': language},
+    })
+
+
+# ════════ CHARTS : NATAL / SYNASTRY / COMPOSITE ════════
+
+async def natal_chart(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    return await _call('/charts/natal', {
+        'subject': make_subject(name, birth_data),
+        'options': {'language': language, 'house_system': 'P'},
+    })
+
+
+async def synastry_chart(
+    birth_data_1: Dict[str, Any], birth_data_2: Dict[str, Any],
+    name_1: str = 'Partenaire 1', name_2: str = 'Partenaire 2',
+    language: str = 'fr',
+) -> Optional[Dict]:
+    return await _call('/charts/synastry', {
+        'subject1': make_subject(name_1, birth_data_1),
+        'subject2': make_subject(name_2, birth_data_2),
+        'options': {'language': language, 'house_system': 'P'},
+    })
+
+
+async def composite_chart(
+    birth_data_1: Dict[str, Any], birth_data_2: Dict[str, Any],
+    name_1: str = 'Partenaire 1', name_2: str = 'Partenaire 2',
+    language: str = 'fr',
+) -> Optional[Dict]:
+    return await _call('/charts/composite', {
+        'subject1': make_subject(name_1, birth_data_1),
+        'subject2': make_subject(name_2, birth_data_2),
+        'options': {'language': language, 'house_system': 'P'},
+    })
+
+
+# ════════ INSIGHTS RELATIONNELS ════════
+
+async def relationship_compatibility_score(
+    birth_data_1: Dict[str, Any], birth_data_2: Dict[str, Any],
+    name_1: str = 'Personne 1', name_2: str = 'Personne 2',
+    language: str = 'fr',
+) -> Optional[Dict]:
+    """Score de compatibilite (0-100) + interpretation."""
+    return await _call('/insights/relationship/compatibility-score', {
+        'subjects': [
+            make_subject(name_1, birth_data_1),
+            make_subject(name_2, birth_data_2),
+        ],
+        'options': {'language': language},
+    })
+
+
+async def relationship_compatibility(
+    birth_data_1: Dict[str, Any], birth_data_2: Dict[str, Any],
+    name_1: str = 'Personne 1', name_2: str = 'Personne 2',
+    language: str = 'fr',
+) -> Optional[Dict]:
+    """Analyse complete de compatibilite (forces, defis, conseils)."""
+    return await _call('/insights/relationship/compatibility', {
+        'subjects': [
+            make_subject(name_1, birth_data_1),
+            make_subject(name_2, birth_data_2),
+        ],
+        'options': {'language': language},
+    })
+
+
+# ════════ RAPPORTS TEXTUELS ════════
+
+async def natal_report(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Rapport natal textuel (interpretation complete)."""
+    return await _call('/analysis/natal-report', {
+        'subject': make_subject(name, birth_data),
+        'options': {'language': language, 'house_system': 'P'},
+    })
+
+
+async def synastry_report(
+    birth_data_1: Dict[str, Any], birth_data_2: Dict[str, Any],
+    name_1: str = 'Partenaire 1', name_2: str = 'Partenaire 2',
+    language: str = 'fr',
+) -> Optional[Dict]:
+    return await _call('/analysis/synastry-report', {
+        'subject1': make_subject(name_1, birth_data_1),
+        'subject2': make_subject(name_2, birth_data_2),
+        'options': {'language': language, 'house_system': 'P'},
+    })
 
 
 # ════════ Cache helper (24h) using Supabase energy_cache table ════════

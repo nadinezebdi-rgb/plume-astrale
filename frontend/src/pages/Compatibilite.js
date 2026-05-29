@@ -1,305 +1,341 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Sparkles, Star, Flame, ArrowRight, Tag, Loader2 } from 'lucide-react';
+import axios from 'axios';
+import { Heart, Sparkles, Star, Users, Briefcase, Home, Loader2, LogIn, ArrowRight, Tag } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
+const RELATIONS = [
+  { id: 'love', label: 'Amour', icon: Heart, accent: 'pink-400' },
+  { id: 'friendship', label: 'Amitié', icon: Users, accent: 'blue-400' },
+  { id: 'family', label: 'Famille', icon: Home, accent: 'emerald-400' },
+  { id: 'work', label: 'Travail', icon: Briefcase, accent: 'amber-400' },
+];
+
+const initialPartner = () => ({
+  name: '',
+  day: '', month: '', year: '',
+  hour: '12', minute: '0',
+  city: '', country_code: 'FR',
+});
+
 const Compatibilite = () => {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState(null);
-  const [isPaid, setIsPaid] = useState(false);
-  const [partnerSign, setPartnerSign] = useState('');
-  const [showResult, setShowResult] = useState(false);
+  const { isAuthenticated, user, token, loading: authLoading } = useAuth();
+  const [relType, setRelType] = useState('love');
+  const [partner, setPartner] = useState(initialPartner());
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [showPromo, setShowPromo] = useState(false);
   const [promoCode, setPromoCode] = useState('');
-  const [promoError, setPromoError] = useState('');
-  const [promoSuccess, setPromoSuccess] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
-
-  const signes = [
-    'Bélier', 'Taureau', 'Gémeaux', 'Cancer', 
-    'Lion', 'Vierge', 'Balance', 'Scorpion',
-    'Sagittaire', 'Capricorne', 'Verseau', 'Poissons'
-  ];
-
-  const getSigneFromDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    
-    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 'Bélier';
-    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 'Taureau';
-    if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return 'Gémeaux';
-    if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return 'Cancer';
-    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'Lion';
-    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'Vierge';
-    if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return 'Balance';
-    if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return 'Scorpion';
-    if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return 'Sagittaire';
-    if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 'Capricorne';
-    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'Verseau';
-    return 'Poissons';
-  };
-
-  const getCompatibility = (sign1, sign2) => {
-    const compatibilityMatrix = {
-      'Bélier': { 'Bélier': 70, 'Taureau': 55, 'Gémeaux': 85, 'Cancer': 50, 'Lion': 95, 'Vierge': 45, 'Balance': 75, 'Scorpion': 60, 'Sagittaire': 93, 'Capricorne': 40, 'Verseau': 80, 'Poissons': 65 },
-      'Taureau': { 'Bélier': 55, 'Taureau': 85, 'Gémeaux': 45, 'Cancer': 90, 'Lion': 65, 'Vierge': 92, 'Balance': 70, 'Scorpion': 88, 'Sagittaire': 40, 'Capricorne': 95, 'Verseau': 35, 'Poissons': 85 },
-      'Gémeaux': { 'Bélier': 85, 'Taureau': 45, 'Gémeaux': 75, 'Cancer': 50, 'Lion': 88, 'Vierge': 60, 'Balance': 93, 'Scorpion': 40, 'Sagittaire': 80, 'Capricorne': 45, 'Verseau': 95, 'Poissons': 55 },
-      'Cancer': { 'Bélier': 50, 'Taureau': 90, 'Gémeaux': 50, 'Cancer': 80, 'Lion': 55, 'Vierge': 85, 'Balance': 60, 'Scorpion': 94, 'Sagittaire': 45, 'Capricorne': 70, 'Verseau': 40, 'Poissons': 96 },
-      'Lion': { 'Bélier': 95, 'Taureau': 65, 'Gémeaux': 88, 'Cancer': 55, 'Lion': 75, 'Vierge': 50, 'Balance': 85, 'Scorpion': 60, 'Sagittaire': 92, 'Capricorne': 55, 'Verseau': 70, 'Poissons': 45 },
-      'Vierge': { 'Bélier': 45, 'Taureau': 92, 'Gémeaux': 60, 'Cancer': 85, 'Lion': 50, 'Vierge': 78, 'Balance': 55, 'Scorpion': 88, 'Sagittaire': 40, 'Capricorne': 95, 'Verseau': 50, 'Poissons': 70 },
-      'Balance': { 'Bélier': 75, 'Taureau': 70, 'Gémeaux': 93, 'Cancer': 60, 'Lion': 85, 'Vierge': 55, 'Balance': 80, 'Scorpion': 65, 'Sagittaire': 78, 'Capricorne': 50, 'Verseau': 90, 'Poissons': 60 },
-      'Scorpion': { 'Bélier': 60, 'Taureau': 88, 'Gémeaux': 40, 'Cancer': 94, 'Lion': 60, 'Vierge': 88, 'Balance': 65, 'Scorpion': 85, 'Sagittaire': 55, 'Capricorne': 80, 'Verseau': 45, 'Poissons': 92 },
-      'Sagittaire': { 'Bélier': 93, 'Taureau': 40, 'Gémeaux': 80, 'Cancer': 45, 'Lion': 92, 'Vierge': 40, 'Balance': 78, 'Scorpion': 55, 'Sagittaire': 82, 'Capricorne': 50, 'Verseau': 85, 'Poissons': 60 },
-      'Capricorne': { 'Bélier': 40, 'Taureau': 95, 'Gémeaux': 45, 'Cancer': 70, 'Lion': 55, 'Vierge': 95, 'Balance': 50, 'Scorpion': 80, 'Sagittaire': 50, 'Capricorne': 85, 'Verseau': 55, 'Poissons': 75 },
-      'Verseau': { 'Bélier': 80, 'Taureau': 35, 'Gémeaux': 95, 'Cancer': 40, 'Lion': 70, 'Vierge': 50, 'Balance': 90, 'Scorpion': 45, 'Sagittaire': 85, 'Capricorne': 55, 'Verseau': 78, 'Poissons': 60 },
-      'Poissons': { 'Bélier': 65, 'Taureau': 85, 'Gémeaux': 55, 'Cancer': 96, 'Lion': 45, 'Vierge': 70, 'Balance': 60, 'Scorpion': 92, 'Sagittaire': 60, 'Capricorne': 75, 'Verseau': 60, 'Poissons': 88 }
-    };
-    
-    return compatibilityMatrix[sign1]?.[sign2] || 50;
-  };
-
-  const getCompatibilityDetails = (score) => {
-    if (score >= 90) return { level: 'Flamme Jumelle', color: 'text-pink-400', description: 'Une connexion rare et intense. Vos âmes vibrent à l\'unisson.' };
-    if (score >= 80) return { level: 'Âmes Sœurs', color: 'text-emerald-400', description: 'Une harmonie naturelle. Vous vous comprenez intuitivement.' };
-    if (score >= 70) return { level: 'Belle Alchimie', color: 'text-[#C5A059]', description: 'Une complémentarité enrichissante avec des défis stimulants.' };
-    if (score >= 60) return { level: 'Connexion Possible', color: 'text-blue-400', description: 'Des efforts mutuels peuvent créer une belle relation.' };
-    if (score >= 50) return { level: 'Travail Nécessaire', color: 'text-amber-400', description: 'Des différences à transcender pour grandir ensemble.' };
-    return { level: 'Défi Karmique', color: 'text-red-400', description: 'Une relation d\'apprentissage intense. Leçons importantes à tirer.' };
-  };
+  const [promoError, setPromoError] = useState('');
+  const [promoOk, setPromoOk] = useState(false);
 
   useEffect(() => {
-    const data = localStorage.getItem('plume_astrale_data');
-    const paid = localStorage.getItem('plume_astrale_paid');
-    const plan = localStorage.getItem('plume_astrale_plan');
-    
-    if (!data) {
-      navigate('/formulaire');
+    // Pas d'auto-redirect : l'utilisateur peut découvrir la page
+  }, [isAuthenticated]);
+
+  const handleField = (k, v) => setPartner(prev => ({ ...prev, [k]: v }));
+
+  const isValid =
+    partner.name.trim() &&
+    partner.day && partner.month && partner.year;
+
+  const handleSubmit = async () => {
+    if (!isValid) {
+      setError('Veuillez compléter le nom et la date de naissance du partenaire.');
       return;
     }
-    
-    setUserData(JSON.parse(data));
-    setIsPaid(paid === 'true' && plan === 'premium');
-  }, [navigate]);
+    if (!isAuthenticated) {
+      navigate('/connexion?next=/compatibilite');
+      return;
+    }
+    if (!user?.birth_date) {
+      setError('Vos données natales sont incomplètes. Renseignez-les depuis Mon Compte.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setResult(null);
+    try {
+      const body = {
+        relationship_type: relType,
+        person2: {
+          name: partner.name.trim(),
+          year: parseInt(partner.year, 10),
+          month: parseInt(partner.month, 10),
+          day: parseInt(partner.day, 10),
+          hour: parseInt(partner.hour || 12, 10),
+          minute: parseInt(partner.minute || 0, 10),
+          city: partner.city.trim() || undefined,
+          country_code: partner.country_code || undefined,
+        },
+      };
+      const res = await axios.post(`${API_URL}/api/astrology/v3/synastry`, body, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data?.success) {
+        setResult(res.data);
+      } else {
+        setError(res.data?.detail || 'Analyse impossible. Réessayez plus tard.');
+      }
+    } catch (e) {
+      setError(e.response?.data?.detail || 'Erreur lors de la connexion au service astrologique.');
+    }
+    setLoading(false);
+  };
 
   const handleApplyPromo = async () => {
     if (!promoCode.trim()) return;
-    setPromoLoading(true);
-    setPromoError('');
-    setPromoSuccess('');
+    setPromoLoading(true); setPromoError('');
     try {
-      const res = await fetch(`${API_URL}/api/discount/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: promoCode }),
-      });
-      const data = await res.json();
-      if (data.valid && data.discount_percent === 100) {
-        localStorage.setItem('plume_astrale_paid', 'true');
-        localStorage.setItem('plume_astrale_plan', 'premium');
-        setIsPaid(true);
-        setPromoSuccess('Code valide ! Acces premium debloque.');
+      const res = await axios.post(`${API_URL}/api/discount/validate`, { code: promoCode });
+      if (res.data.valid && res.data.discount_percent === 100) {
+        setPromoOk(true);
       } else {
-        setPromoError(data.message || 'Code invalide');
+        setPromoError(res.data.message || 'Code invalide');
       }
-    } catch (e) {
+    } catch {
       setPromoError('Erreur de connexion');
     }
     setPromoLoading(false);
   };
 
-  const handleCalculate = () => {
-    if (partnerSign) {
-      setShowResult(true);
-    }
-  };
-
-  if (!userData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-12 h-12 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  const userSign = getSigneFromDate(userData.dateNaissance);
-  const compatibility = partnerSign ? getCompatibility(userSign, partnerSign) : 0;
-  const details = getCompatibilityDetails(compatibility);
+  const currentRel = RELATIONS.find(r => r.id === relType);
 
   return (
-    <div className="min-h-screen">
-      
-      <div className="px-6 md:px-8 py-20 md:py-28">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-4 font-light">
-              Compatibilité Amoureuse
-            </p>
-            
-            <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-              L'Alchimie des Cœurs
-            </h1>
-            
-            <p className="text-lg text-[#B8B0C8]/70 font-light">
-              Découvrez votre connexion cosmique
-            </p>
-          </div>
+    <div className="min-h-screen px-6 md:px-8 py-20 md:py-28" data-testid="compatibilite-page">
+      <div className="max-w-3xl mx-auto">
 
-          {isPaid ? (
-            <div className="space-y-8">
-              {/* Your Sign */}
-              <div className="card-mystical text-center">
-                <p className="text-[#B8B0C8]/60 mb-2">Votre signe</p>
-                <div className="flex items-center justify-center gap-3">
-                  <Star className="w-6 h-6 text-[#C5A059]" strokeWidth={1} />
-                  <span className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-                    {userSign}
-                  </span>
-                </div>
-              </div>
-
-              {/* Partner Selection */}
-              <div className="card-mystical">
-                <p className="text-center text-[#B8B0C8]/60 mb-6">Sélectionnez le signe de votre partenaire</p>
-                <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-                  {signes.map((signe) => (
-                    <button
-                      key={signe}
-                      onClick={() => setPartnerSign(signe)}
-                      className={`p-3 rounded-lg transition-all ${
-                        partnerSign === signe 
-                          ? 'bg-[#C5A059] text-[#0C0918]' 
-                          : 'bg-[#15112A]/50 text-[#B8B0C8]/70 hover:bg-[#15112A] border border-[#C5A059]/20'
-                      }`}
-                      data-testid={`sign-${signe}`}
-                    >
-                      {signe}
-                    </button>
-                  ))}
-                </div>
-
-                {partnerSign && !showResult && (
-                  <button
-                    onClick={handleCalculate}
-                    className="btn-mystical-filled rounded-full flex items-center gap-2 mx-auto mt-8"
-                    data-testid="btn-calculate"
-                  >
-                    <Heart className="w-4 h-4" />
-                    Révéler notre compatibilité
-                  </button>
-                )}
-              </div>
-
-              {/* Result */}
-              {showResult && (
-                <div className="card-mystical text-center glow-gold animate-fade-in">
-                  <div className="flex justify-center items-center gap-4 mb-8">
-                    <div className="text-center">
-                      <Star className="w-8 h-8 text-[#C5A059] mx-auto mb-2" strokeWidth={1} />
-                      <p className="text-[#F0E6D3]">{userSign}</p>
-                    </div>
-                    <Heart className="w-10 h-10 text-pink-400 animate-pulse" />
-                    <div className="text-center">
-                      <Star className="w-8 h-8 text-[#C5A059] mx-auto mb-2" strokeWidth={1} />
-                      <p className="text-[#F0E6D3]">{partnerSign}</p>
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <div className="text-6xl font-bold text-gold-gradient mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
-                      {compatibility}%
-                    </div>
-                    <p className={`text-xl font-medium ${details.color}`}>
-                      {details.level}
-                    </p>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="w-full h-3 bg-[#15112A] rounded-full mb-6 overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-[#C5A059] to-[#D4B46A] transition-all duration-1000"
-                      style={{ width: `${compatibility}%` }}
-                    />
-                  </div>
-
-                  <p className="text-[#B8B0C8]/70 font-light mb-8 max-w-lg mx-auto">
-                    {details.description}
-                  </p>
-
-                  {/* Detailed Analysis */}
-                  <div className="grid md:grid-cols-3 gap-4 text-left">
-                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
-                      <Flame className="w-5 h-5 text-red-400 mb-2" />
-                      <p className="text-[#F0E6D3] text-sm mb-1">Passion</p>
-                      <p className="text-[#B8B0C8]/50 text-xs">Intensité émotionnelle forte. Attention aux tempêtes.</p>
-                    </div>
-                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
-                      <Heart className="w-5 h-5 text-pink-400 mb-2" />
-                      <p className="text-[#F0E6D3] text-sm mb-1">Affection</p>
-                      <p className="text-[#B8B0C8]/50 text-xs">Tendresse naturelle. Communication du cœur fluide.</p>
-                    </div>
-                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#C5A059]/10">
-                      <Star className="w-5 h-5 text-[#C5A059] mb-2" />
-                      <p className="text-[#F0E6D3] text-sm mb-1">Durabilité</p>
-                      <p className="text-[#B8B0C8]/50 text-xs">Fondations solides si respect mutuel maintenu.</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => { setPartnerSign(''); setShowResult(false); }}
-                    className="btn-mystical rounded-full mt-8"
-                    data-testid="btn-new-compatibility"
-                  >
-                    Tester une autre compatibilité
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="card-mystical max-w-md mx-auto text-center">
-              <Heart className="w-12 h-12 text-[#C5A059] mx-auto mb-4" strokeWidth={1} />
-              <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-                Compatibilité Premium
-              </h3>
-              <p className="text-[#B8B0C8]/60 mb-6 font-light">
-                Débloquez l'analyse de compatibilité avec l'offre Premium
-              </p>
-              <button
-                onClick={() => navigate('/choix')}
-                className="btn-mystical-filled rounded-full"
-                data-testid="btn-unlock-compatibility"
-              >
-                Recevoir mon manuscrit complet
-              </button>
-
-              {/* Promo Code */}
-              <div className="mt-4">
-                {!showPromo ? (
-                  <button onClick={() => setShowPromo(true)} className="text-[#C5A059]/60 hover:text-[#C5A059] text-sm underline transition-colors" data-testid="show-promo-btn">
-                    <Tag className="w-3 h-3 inline mr-1" /> J'ai un code de reduction
-                  </button>
-                ) : (
-                  <div className="max-w-sm mx-auto space-y-2">
-                    <div className="flex gap-2">
-                      <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                        placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
-                        data-testid="promo-input" />
-                      <button onClick={handleApplyPromo} disabled={promoLoading}
-                        className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"
-                        data-testid="apply-promo-btn">
-                        {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
-                      </button>
-                    </div>
-                    {promoError && <p className="text-red-400 text-xs" data-testid="promo-error">{promoError}</p>}
-                    {promoSuccess && <p className="text-emerald-400 text-xs" data-testid="promo-success">{promoSuccess}</p>}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+        {/* Header */}
+        <div className="text-center mb-12">
+          <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-3 font-light">
+            Synastrie Cosmique · Swiss Ephemeris
+          </p>
+          <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+            L'Alchimie de vos Liens
+          </h1>
+          <p className="text-base text-[#B8B0C8]/70 font-light max-w-xl mx-auto">
+            Analysez la résonance astrologique de vos relations amoureuses, amicales, familiales ou professionnelles.
+          </p>
         </div>
+
+        {/* Relationship type selector */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8" data-testid="relation-tabs">
+          {RELATIONS.map(r => {
+            const Icon = r.icon;
+            const active = r.id === relType;
+            return (
+              <button
+                key={r.id}
+                onClick={() => { setRelType(r.id); setResult(null); }}
+                data-testid={`relation-tab-${r.id}`}
+                className={`flex flex-col items-center gap-2 py-4 px-3 rounded-lg border transition-all ${
+                  active
+                    ? 'border-[#C5A059] bg-[#C5A059]/15 text-[#F0E6D3]'
+                    : 'border-[#C5A059]/20 text-[#B8B0C8]/60 hover:border-[#C5A059]/40 hover:text-[#B8B0C8]'
+                }`}
+              >
+                <Icon className="w-5 h-5" strokeWidth={1.4} />
+                <span className="text-sm">{r.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Auth gate */}
+        {!authLoading && !isAuthenticated && (
+          <div className="card-mystical text-center py-10 mb-6" data-testid="auth-gate">
+            <LogIn className="w-7 h-7 mb-3 mx-auto" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+            <p className="text-[#F0E6D3] mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.25rem' }}>
+              Connectez-vous pour analyser vos liens
+            </p>
+            <p className="text-sm text-[#B8B0C8]/60 mb-5">
+              Vos données natales sont nécessaires pour calculer la synastrie réelle.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <button onClick={() => navigate('/connexion?next=/compatibilite')}
+                className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full border border-[#C5A059]/50 text-[#C5A059]"
+                data-testid="gate-login">
+                Se connecter
+              </button>
+              <button onClick={() => navigate('/inscription')}
+                className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059]"
+                data-testid="gate-register">
+                Créer un compte
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Partner form */}
+        {isAuthenticated && !result && (
+          <div className="card-mystical" data-testid="partner-form">
+            <h3 className="text-lg mb-5 flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+              <currentRel.icon className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} />
+              Données de l'autre personne — {currentRel.label.toLowerCase()}
+            </h3>
+
+            {!user?.birth_date && (
+              <div className="mb-4 p-3 rounded-md bg-amber-900/30 border border-amber-500/30 text-amber-200 text-sm">
+                Renseignez d'abord vos propres données natales depuis <button onClick={() => navigate('/mon-compte')} className="underline">Mon Compte</button>.
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Prénom (ou alias)</label>
+                <input type="text" value={partner.name}
+                  onChange={(e) => handleField('name', e.target.value)}
+                  className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+                  placeholder="Prénom du partenaire"
+                  data-testid="partner-name" />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Jour</label>
+                  <input type="number" min="1" max="31" value={partner.day} onChange={(e) => handleField('day', e.target.value)}
+                    className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#C5A059] text-sm"
+                    placeholder="JJ" data-testid="partner-day" />
+                </div>
+                <div>
+                  <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Mois</label>
+                  <input type="number" min="1" max="12" value={partner.month} onChange={(e) => handleField('month', e.target.value)}
+                    className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#C5A059] text-sm"
+                    placeholder="MM" data-testid="partner-month" />
+                </div>
+                <div>
+                  <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Année</label>
+                  <input type="number" min="1920" max="2025" value={partner.year} onChange={(e) => handleField('year', e.target.value)}
+                    className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#C5A059] text-sm"
+                    placeholder="AAAA" data-testid="partner-year" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Heure (si connue)</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="number" min="0" max="23" value={partner.hour} onChange={(e) => handleField('hour', e.target.value)}
+                      className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#C5A059] text-sm"
+                      placeholder="HH" data-testid="partner-hour" />
+                    <input type="number" min="0" max="59" value={partner.minute} onChange={(e) => handleField('minute', e.target.value)}
+                      className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#C5A059] text-sm"
+                      placeholder="MM" data-testid="partner-minute" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Ville de naissance</label>
+                  <input type="text" value={partner.city} onChange={(e) => handleField('city', e.target.value)}
+                    className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#C5A059] text-sm"
+                    placeholder="Paris" data-testid="partner-city" />
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <div className="mt-5 p-3 rounded-md bg-red-900/30 border border-red-500/30 text-red-300 text-sm" data-testid="form-error">
+                {error}
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={handleSubmit}
+                disabled={!isValid || loading || !user?.birth_date}
+                className="btn-mystical-filled rounded-full px-8 py-3 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                data-testid="btn-analyze"
+              >
+                {loading ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Analyse cosmique...</>
+                ) : (
+                  <><Sparkles className="w-4 h-4" /> Révéler la synastrie</>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Result */}
+        {result && (
+          <div className="space-y-6 animate-fade-in" data-testid="result-card">
+            <div className="card-mystical text-center glow-gold">
+              <div className="flex justify-center items-center gap-5 mb-6">
+                <div className="text-center">
+                  <Star className="w-7 h-7 text-[#C5A059] mx-auto mb-1" strokeWidth={1} />
+                  <p className="text-[#F0E6D3] text-sm">{result.name_1}</p>
+                </div>
+                <currentRel.icon className="w-9 h-9 text-pink-400 animate-pulse" />
+                <div className="text-center">
+                  <Star className="w-7 h-7 text-[#C5A059] mx-auto mb-1" strokeWidth={1} />
+                  <p className="text-[#F0E6D3] text-sm">{result.name_2}</p>
+                </div>
+              </div>
+
+              <p className="text-[#C5A059] uppercase tracking-[0.3em] text-xs mb-1" data-testid="result-rel-type">
+                Compatibilité {result.relationship_label}
+              </p>
+              <div className="text-7xl font-bold text-gold-gradient mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }} data-testid="result-score">
+                {result.score}%
+              </div>
+              <p className={`text-xl font-medium ${result.color}`} data-testid="result-level">
+                {result.level}
+              </p>
+
+              <div className="w-full h-3 bg-[#15112A] rounded-full my-6 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#C5A059] to-[#D4B46A] transition-all duration-1000"
+                  style={{ width: `${result.score}%` }}
+                />
+              </div>
+
+              <p className="text-[#B8B0C8]/80 font-light max-w-lg mx-auto" data-testid="result-description">
+                {result.description}
+              </p>
+            </div>
+
+            {/* Key aspects */}
+            {result.aspects && result.aspects.length > 0 && (
+              <div className="card-mystical" data-testid="result-aspects">
+                <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                  <Sparkles className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} />
+                  Aspects astrologiques clés
+                </h3>
+                <ul className="space-y-3">
+                  {result.aspects.map((a, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm" data-testid={`aspect-${i}`}>
+                      <span className="text-[#C5A059] mt-1">·</span>
+                      <div>
+                        <span className="text-[#F0E6D3]">{a.planet_1} {a.aspect} {a.planet_2}</span>
+                        {a.orb !== null && <span className="text-[#B8B0C8]/50 ml-2">(orbe {a.orb}°)</span>}
+                        {a.description && <p className="text-[#B8B0C8]/70 mt-1 text-xs">{a.description}</p>}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button onClick={() => { setResult(null); setPartner(initialPartner()); }}
+                className="btn-mystical rounded-full px-6 py-2.5"
+                data-testid="btn-new-test">
+                Tester un autre lien
+              </button>
+              <button onClick={() => navigate('/horoscope')}
+                className="btn-mystical-filled rounded-full px-6 py-2.5 flex items-center gap-2 justify-center"
+                data-testid="btn-horoscope">
+                Mon horoscope <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
