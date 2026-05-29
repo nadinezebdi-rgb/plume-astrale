@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Heart, Sparkles, Star, Users, Briefcase, Home, Loader2, LogIn, ArrowRight, Tag } from 'lucide-react';
+import { Heart, Sparkles, Star, Users, Briefcase, Home, Loader2, LogIn, ArrowRight, Tag, Share2, Download, Copy, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -33,6 +33,8 @@ const Compatibilite = () => {
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError] = useState('');
   const [promoOk, setPromoOk] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [shareLinkCopied, setShareLinkCopied] = useState(false);
 
   useEffect(() => {
     // Pas d'auto-redirect : l'utilisateur peut découvrir la page
@@ -103,6 +105,61 @@ const Compatibilite = () => {
       setPromoError('Erreur de connexion');
     }
     setPromoLoading(false);
+  };
+
+  const downloadCard = async () => {
+    if (!result) return;
+    setSharing(true);
+    try {
+      const res = await axios.post(`${API_URL}/api/astrology/v3/synastry/share-card`, {
+        name_1: result.name_1,
+        name_2: result.name_2,
+        score: result.score,
+        level: result.level,
+        relationship_type: result.relationship_type,
+      }, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `synastrie_${result.name_1}_${result.name_2}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      setError("Impossible de generer la carte pour l'instant.");
+    }
+    setSharing(false);
+  };
+
+  const shareNative = async () => {
+    if (!result) return;
+    const text = `${result.name_1} & ${result.name_2} : ${result.score}% de compatibilité (${result.level}) — découvrez la vôtre sur plume-astrale.fr`;
+    if (navigator.share) {
+      try {
+        // Try sharing with image too
+        const res = await axios.post(`${API_URL}/api/astrology/v3/synastry/share-card`, {
+          name_1: result.name_1, name_2: result.name_2, score: result.score,
+          level: result.level, relationship_type: result.relationship_type,
+        }, { responseType: 'blob' });
+        const file = new File([res.data], 'synastrie.png', { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], text, title: 'Plume Astrale — Synastrie' });
+          return;
+        }
+        await navigator.share({ text, title: 'Plume Astrale — Synastrie', url: 'https://plume-astrale.fr/compatibilite' });
+      } catch {}
+    } else {
+      navigator.clipboard.writeText(text + ' https://plume-astrale.fr/compatibilite');
+      setShareLinkCopied(true);
+      setTimeout(() => setShareLinkCopied(false), 2500);
+    }
+  };
+
+  const shareWhatsApp = () => {
+    if (!result) return;
+    const text = `${result.name_1} & ${result.name_2} : ${result.score}% de compatibilité (${result.level}) sur Plume Astrale → https://plume-astrale.fr/compatibilite`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const currentRel = RELATIONS.find(r => r.id === relType);
@@ -320,6 +377,25 @@ const Compatibilite = () => {
                 </ul>
               </div>
             )}
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center" data-testid="result-share-actions">
+              <button onClick={downloadCard} disabled={sharing}
+                className="btn-mystical-filled rounded-full px-6 py-2.5 flex items-center gap-2 justify-center disabled:opacity-60"
+                data-testid="btn-download-card">
+                {sharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                Telecharger la carte
+              </button>
+              <button onClick={shareNative}
+                className="btn-mystical rounded-full px-6 py-2.5 flex items-center gap-2 justify-center"
+                data-testid="btn-share-native">
+                {shareLinkCopied ? <><Check className="w-4 h-4 text-emerald-400" /> Lien copie</> : <><Share2 className="w-4 h-4" /> Partager</>}
+              </button>
+              <button onClick={shareWhatsApp}
+                className="btn-mystical rounded-full px-6 py-2.5 flex items-center gap-2 justify-center"
+                data-testid="btn-share-whatsapp">
+                <Sparkles className="w-4 h-4" /> WhatsApp
+              </button>
+            </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button onClick={() => { setResult(null); setPartner(initialPartner()); }}
