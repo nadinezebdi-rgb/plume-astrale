@@ -35,7 +35,7 @@ const LoveLanguages = () => {
       if (!cancel) setLoading(false);
     })();
     return () => { cancel = true; };
-  }, [isAuthenticated, user?.birth_date, token]);
+  }, [isAuthenticated, user?.birth_date, token, navigate]);
 
   if (!isAuthenticated) {
     return (
