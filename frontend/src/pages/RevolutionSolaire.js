@@ -110,22 +110,16 @@ const RevolutionSolaire = () => {
     }
     setError(''); setLoading(true);
     try {
-      if (!unlocked) {
-        try {
-          await axios.post(`${API_URL}/api/credits/use`,
-            { service_id: 'lecture_astrologique', amount: 20 },
-            { headers: { Authorization: `Bearer ${token}` } });
-          setUnlocked(true);
-        } catch (err) {
-          const detail = err.response?.data?.detail || '';
-          if (detail.includes('insuffisants')) { navigate('/acheter-credits'); return; }
-        }
-      }
       const res = await axios.post(`${API_URL}/api/astrology/v3/solar-return`, {},
         { headers: { Authorization: `Bearer ${token}` } });
       if (res.data?.success) setResult(res.data);
       else setError('Service astrologique indisponible.');
     } catch (e) {
+      const status = e.response?.status;
+      if (status === 402) {
+        navigate('/acheter-credits');
+        return;
+      }
       setError(e.response?.data?.detail || 'Erreur lors du calcul de la révolution solaire.');
     }
     setLoading(false);

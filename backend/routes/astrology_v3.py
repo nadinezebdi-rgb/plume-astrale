@@ -228,6 +228,11 @@ async def synastry_v3(payload: SynastryRequest, current_user: dict = Depends(get
     name1 = (payload.person1.name if payload.person1 else None) or 'Vous'
     name2 = payload.person2.name or 'Partenaire'
 
+    # Paywall : 20cr (offert si Premium)
+    await wallet_service.charge_or_premium(
+        current_user['id'], 'synastrie', 20, f'Synastrie {rel_type}',
+    )
+
     # 1. Score de compatibilite (numerique)
     score_data = await aio.relationship_compatibility_score(bd1, bd2, name1, name2, 'fr')
     score = _extract_score(score_data) if score_data else None
@@ -304,7 +309,7 @@ async def synastry_share_card(payload: SynastryCardRequest):
 @router.post('/natal/pdf')
 async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_current_user)):
     """Genere un PDF complet du theme natal (chart wheel + interpretations en francais).
-    Si person n'est pas fourni, utilise le profil de l'utilisateur connecte.
+    Tarif : 20 credits (offert si Premium actif). Si person n'est pas fourni, utilise le profil.
     """
     bd = None
     name = 'Voyageur'
@@ -318,8 +323,18 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
     if not bd:
         raise HTTPException(status_code=400, detail='Donnees natales incompletes (date, heure et lieu requis).')
 
+    # Paywall
+    await wallet_service.charge_or_premium(
+        current_user['id'], 'theme_natal_pdf', 20, 'Theme Natal PDF',
+    )
+
     pdf = await aio.natal_report_pdf(bd, name=name, language='fr', chart_theme='dark')
     if not pdf:
+        # Refund si echec API
+        try:
+            await wallet_service.add_credits(current_user['id'], 20, 'Remboursement Theme Natal PDF (echec API)', tx_type='refund')
+        except Exception:
+            pass
         raise HTTPException(status_code=502, detail='Service astrologique indisponible (PDF).')
     return Response(
         content=pdf,
@@ -374,6 +389,11 @@ async def solar_return_v3(payload: SolarReturnRequest, current_user: dict = Depe
     report = await aio.solar_return_report(bd, ret_year, name=name, language='fr')
     if not chart and not report:
         raise HTTPException(status_code=502, detail='Service astrologique indisponible.')
+
+    # Paywall apres succes : 20cr (offert si Premium)
+    await wallet_service.charge_or_premium(
+        current_user['id'], 'revolution_solaire', 20, f'Revolution Solaire {ret_year}',
+    )
 
     return {
         'success': True,
@@ -431,6 +451,12 @@ async def love_languages_v3(payload: NatalRequest, current_user: dict = Depends(
     data = await aio.love_languages(bd, name=name, language='fr')
     if not data:
         raise HTTPException(status_code=502, detail='Service astrologique indisponible.')
+
+    # Paywall : 10cr (offert si Premium)
+    await wallet_service.charge_or_premium(
+        current_user['id'], 'love_languages', 10, "Langages d'Amour",
+    )
+
     return {'success': True, 'data': data, 'name': name}
 
 
@@ -449,6 +475,11 @@ async def astro_chat_v3(payload: AstroChatRequest, current_user: dict = Depends(
     """
     if not payload.message or not payload.message.strip():
         raise HTTPException(status_code=400, detail='Message vide.')
+
+    # Paywall : 3cr par question (offert si Premium)
+    charge_info = await wallet_service.charge_or_premium(
+        current_user['id'], 'chat_astral', 3, 'Chat astrologique - 1 question',
+    )
 
     profile = await wallet_service.get_profile(current_user['id'])
     bd = aio.parse_profile(profile)
@@ -480,6 +511,12 @@ async def astro_chat_v3(payload: AstroChatRequest, current_user: dict = Depends(
         language='fr',
     )
     if not response:
+        # Refund si echec API (l'utilisateur ne paie pas pour rien)
+        if charge_info.get('charged'):
+            try:
+                await wallet_service.add_credits(current_user['id'], 3, 'Remboursement chat (echec API)', tx_type='refund')
+            except Exception:
+                pass
         raise HTTPException(status_code=502, detail='Service de chat astrologique indisponible.')
 
     # Extraire la reponse (format OpenAI-compatible)
@@ -497,4 +534,6 @@ async def astro_chat_v3(payload: AstroChatRequest, current_user: dict = Depends(
         'success': True,
         'reply': reply_text,
         'session_id': session,
+        'charged': charge_info.get('amount', 0),
+        'is_premium': charge_info.get('is_premium', False),
     }

@@ -206,7 +206,13 @@ const ChatIA = () => {
             }
           }
         } catch (e) {
-          // fallback silencieux vers /api/plume-chat (LLM generique)
+          // Si 402 (solde insuffisant), on redirige
+          if (e.response?.status === 402) {
+            setSending(false);
+            navigate('/acheter-credits');
+            return;
+          }
+          // fallback silencieux vers /api/plume-chat (LLM generique) pour les autres erreurs
         }
       }
 

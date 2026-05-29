@@ -498,6 +498,7 @@ const MonCompte = () => {
   /* ─── Onglets ─── */
   const tabs = [
     { id: 'apercu',       label: 'Aperçu'       },
+    { id: 'rapports',     label: 'Mes Rapports' },
     { id: 'abonnement',   label: 'Abonnement'   },
     { id: 'credits',      label: 'Crédits'       },
     { id: 'fidelite',     label: 'Assiduité'    },
@@ -770,6 +771,109 @@ const MonCompte = () => {
                   ))}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ══════════════════════════════════════════════════
+              ONGLET MES RAPPORTS
+          ══════════════════════════════════════════════════ */}
+          {activeTab === 'rapports' && (
+            <div className="space-y-4" data-testid="rapports-tab">
+              <div className="mb-2">
+                <h2
+                  className="text-2xl mb-2"
+                  style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}
+                >
+                  Vos rapports astrologiques
+                </h2>
+                <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
+                  Chaque rapport est calcule avec les ephemerides Swiss Ephemeris.
+                  {profil?.premium_status === 'active'
+                    ? ' Tous les rapports sont offerts avec votre abonnement Premium.'
+                    : " Reservez vos lectures avec vos credits, ou debloquez l'acces illimite via l'abonnement Premium."}
+                </p>
+              </div>
+
+              {[
+                { to: '/karma-destin', title: 'Karma & Destin', subtitle: 'Lecture karmique avec Noeud Nord et mission de vie', price: 20, icon: '☉', accent: '#C5A059' },
+                { to: '/compatibilite', title: 'Compatibilite (4 liens)', subtitle: 'Amour · Amitie · Famille · Travail', price: 20, icon: '♡', accent: '#F472B6' },
+                { to: '/revolution-solaire', title: 'Revolution Solaire', subtitle: "Themes de votre prochaine annee, votre rituel d'anniversaire", price: 20, icon: '✦', accent: '#FDE68A' },
+                { to: '/love-languages', title: "Langages d'Amour", subtitle: 'Votre signature affective selon Venus, Mars et Lune', price: 10, icon: '♥', accent: '#FB7185' },
+                { to: '/formulaire', title: 'Theme Natal PDF', subtitle: 'Chart wheel + interpretations psychologiques (28 sections)', price: 20, icon: '✶', accent: '#A78BFA' },
+                { to: '/consultation', title: 'Chat avec Plume', subtitle: 'Conversation astrologique avec votre theme natal embarque', price: 3, perUse: true, icon: '✺', accent: '#7DD3FC' },
+              ].map(({ to, title, subtitle, price, perUse, icon, accent }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  data-testid={`rapport-card-${to.replace('/', '')}`}
+                  className="block rounded-2xl p-5 md:p-6 transition-all duration-300 hover:-translate-y-0.5"
+                  style={{
+                    background: 'var(--pa-surface)',
+                    border: '1px solid var(--pa-divider)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                  }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-xl"
+                      style={{
+                        background: `linear-gradient(135deg, ${accent}22 0%, ${accent}10 100%)`,
+                        border: `1px solid ${accent}55`,
+                        color: accent,
+                        fontFamily: 'Cormorant Garamond, serif',
+                      }}
+                    >
+                      {icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className="text-base md:text-lg mb-0.5"
+                        style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}
+                      >
+                        {title}
+                      </h3>
+                      <p className="text-xs leading-relaxed" style={{ color: 'var(--pa-muted)' }}>
+                        {subtitle}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      {profil?.premium_status === 'active' ? (
+                        <span className="text-[10px] tracking-widest uppercase px-2 py-0.5 rounded-full" style={{ background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ADE80', letterSpacing: '0.1em' }}>
+                          Offert
+                        </span>
+                      ) : (
+                        <span className="text-base" style={{ color: 'var(--pa-accent)', fontFamily: 'Cormorant Garamond, serif' }}>
+                          {price} cr
+                        </span>
+                      )}
+                      {perUse && !profil?.premium_status === 'active' && (
+                        <span className="text-[10px]" style={{ color: 'var(--pa-muted)' }}>/ question</span>
+                      )}
+                      <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.5} style={{ color: 'var(--pa-muted)' }} />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+
+              {profil?.premium_status !== 'active' && (
+                <Link
+                  to="/premium"
+                  className="block rounded-2xl p-5 md:p-6 text-center transition-all duration-300 hover:-translate-y-0.5"
+                  data-testid="rapports-premium-cta"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(197,160,89,0.1) 0%, rgba(167,139,250,0.08) 100%)',
+                    border: '1px solid rgba(197,160,89,0.35)',
+                  }}
+                >
+                  <Crown className="w-6 h-6 mx-auto mb-2" strokeWidth={1.3} style={{ color: 'var(--pa-accent)' }} />
+                  <p className="text-base mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)' }}>
+                    Acces illimite a tous vos rapports
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
+                    Decouvrez Premium · 7 jours d'essai offerts
+                  </p>
+                </Link>
+              )}
             </div>
           )}
 

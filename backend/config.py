@@ -47,11 +47,14 @@ class Settings:
         'numerologie': 10,
         'cartographie': 60,
         'cartographie_premium': 60,
-        'chat_astral': 2,
-        'karma_destin': 10,
-        'lecture_astrologique': 10,
+        'chat_astral': 3,
+        'karma_destin': 20,
+        'lecture_astrologique': 20,
         'lecture_tarot': 10,
-        'synastrie': 10,
+        'synastrie': 20,
+        'theme_natal_pdf': 20,
+        'revolution_solaire': 20,
+        'love_languages': 10,
     }
 
 
