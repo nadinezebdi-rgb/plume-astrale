@@ -229,7 +229,7 @@ async def synastry_v3(payload: SynastryRequest, current_user: dict = Depends(get
     name2 = payload.person2.name or 'Partenaire'
 
     # Paywall : 20cr (offert si Premium)
-    await wallet_service.charge_or_premium(
+    charge_info_syn = await wallet_service.charge_or_premium(
         current_user['id'], 'synastrie', 20, f'Synastrie {rel_type}',
     )
 
@@ -242,6 +242,12 @@ async def synastry_v3(payload: SynastryRequest, current_user: dict = Depends(get
 
     # Fallback si l'API echoue completement
     if not score_data and not synastry:
+        # Refund si echec API
+        if charge_info_syn.get('charged'):
+            try:
+                await wallet_service.add_credits(current_user['id'], 20, 'Remboursement Synastrie (echec API)', tx_type='refund')
+            except Exception:
+                pass
         raise HTTPException(status_code=502, detail='Service astrologique indisponible.')
 
     # Score deduit du synastry si pas de score direct
