@@ -240,3 +240,16 @@ Site prod : plume-astrale.fr
 - Affichage des cuspides et aspects natals sur la page MonCompte / Resultats
 **P2** : Cartes virales Instagram/TikTok partage energie + Notifications Push web cycles emotionnels
 **P3** : Journal & historique emotionnel graphique
+
+## Hotfix Feb 2026 (Karma "Service inconnu" + Carte partageable synastrie)
+- **Bug fix `karma_destin` & co.** : `config.SERVICE_COSTS` ne contenait pas `karma_destin`, `lecture_astrologique`, `lecture_tarot`, `cartographie_premium`, `synastrie`. L'endpoint `/api/credits/use` levait 400 "Service inconnu" -> page Karma cassee. Ajout des 5 entrees manquantes. Verifie : POST credits/use avec `karma_destin` deduit 10cr.
+- **Carte partageable synastrie** (`POST /api/astrology/v3/synastry/share-card`) :
+  - Public (pas d'auth) - renvoie un PNG 1080x1080 ratio Instagram square
+  - Inputs : `name_1`, `name_2`, `score`, `level`, `relationship_type`
+  - Design editorial : brand "PLUME ASTRALE", label compatibilite (AMOUR/AMITIE/FAMILLE/TRAVAIL), 2 prenoms + coeur or, score 160px, level, barre de progression, footer plume-astrale.fr
+  - Helper `generate_synastry_card()` ajoute dans `services/share_card_generator.py`
+- **Frontend `Compatibilite.js`** : 3 nouveaux boutons sur le resultat
+  - `btn-download-card` : telecharge le PNG via fetch blob
+  - `btn-share-native` : `navigator.share` avec File (image + texte), fallback clipboard
+  - `btn-share-whatsapp` : ouvre wa.me avec texte pre-rempli (score + lien)
+- Image testee : 49KB PNG 1080x1080 generee correctement avec PIL.

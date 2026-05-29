@@ -304,3 +304,115 @@ def generate_share_card(user_data, planets_data=None, chemin_vie=1):
     img_rgb.save(buffer, format='PNG', quality=90)
     buffer.seek(0)
     return buffer.getvalue()
+
+
+# ════════════════════════════════════════════
+# SYNASTRY SHARE CARD (compatibilite a 2)
+# ════════════════════════════════════════════
+
+def _draw_heart(draw, cx, cy, size, color):
+    """Draws a heart shape centered at (cx, cy)."""
+    # Two circles + triangle for heart shape
+    r = size // 2
+    draw.ellipse([cx - size + r//2, cy - r, cx - r//2 + r, cy], fill=color)
+    draw.ellipse([cx + r//2 - r, cy - r, cx + size - r//2, cy], fill=color)
+    draw.polygon([
+        (cx - size + 4, cy - 2),
+        (cx + size - 4, cy - 2),
+        (cx, cy + size - 2),
+    ], fill=color)
+
+
+_REL_FR = {
+    'love': 'Amour', 'friendship': 'Amitie', 'family': 'Famille', 'work': 'Travail',
+}
+
+
+def generate_synastry_card(name_1: str, name_2: str, score: int, level: str,
+                            relationship_type: str = 'love') -> bytes:
+    """Carte partageable 1080x1080 (Instagram square) pour un score de synastrie."""
+    W, H = 1080, 1080
+    img = Image.new('RGBA', (W, H), BG_DARK + (255,))
+    draw = ImageDraw.Draw(img)
+
+    # Gradient background
+    for y in range(H):
+        ratio = y / H
+        r = int(BG_GRADIENT_TOP[0] * (1 - ratio) + BG_DARK[0] * ratio)
+        g = int(BG_GRADIENT_TOP[1] * (1 - ratio) + BG_DARK[1] * ratio)
+        b = int(BG_GRADIENT_TOP[2] * (1 - ratio) + BG_DARK[2] * ratio)
+        draw.line([(0, y), (W, y)], fill=(r, g, b, 255))
+
+    _draw_stars(draw, W, H, count=120)
+
+    # Border
+    draw.rectangle([20, 20, W-20, H-20], outline=GOLD + (60,), width=1)
+    draw.rectangle([32, 32, W-32, H-32], outline=GOLD + (35,), width=1)
+
+    font_brand = _load_serif_font(28, bold=True)
+    font_rel = _load_font(20, bold=True)
+    font_name = _load_serif_font(56, bold=True)
+    font_amp = _load_serif_font(40, bold=True)
+    font_score = _load_serif_font(160, bold=True)
+    font_level = _load_serif_font(40, bold=True)
+    font_small = _load_font(20)
+    font_url = _load_serif_font(28, bold=True)
+
+    # Top brand
+    y = 70
+    draw.text((W//2, y), "PLUME ASTRALE", fill=GOLD + (255,), font=font_brand, anchor="mt")
+    y += 42
+    draw.line([(W//2 - 110, y), (W//2 + 110, y)], fill=GOLD + (120,), width=1)
+    y += 22
+    rel_label = _REL_FR.get(relationship_type, 'Synastrie')
+    draw.text((W//2, y), f"COMPATIBILITE  ·  {rel_label.upper()}", fill=CREAM + (220,), font=font_rel, anchor="mt")
+
+    # Names
+    y = 240
+    name_1_clean = (name_1 or 'Vous').strip()[:18]
+    name_2_clean = (name_2 or 'Partenaire').strip()[:18]
+    draw.text((W//2, y), name_1_clean, fill=LIGHT_TEXT + (255,), font=font_name, anchor="mt")
+    y += 80
+    # Heart separator
+    _draw_heart(draw, W//2, y + 20, 28, GOLD + (220,))
+    y += 50
+    draw.text((W//2, y), name_2_clean, fill=LIGHT_TEXT + (255,), font=font_name, anchor="mt")
+
+    # Score (big)
+    y = 510
+    score_text = f"{int(score)}%"
+    draw.text((W//2, y), score_text, fill=GOLD + (255,), font=font_score, anchor="mt")
+
+    # Level
+    y = 720
+    draw.text((W//2, y), level or 'Belle Alchimie', fill=CREAM + (240,), font=font_level, anchor="mt")
+
+    # Progress bar
+    y = 800
+    bar_w, bar_h = 700, 14
+    bx = (W - bar_w) // 2
+    draw.rectangle([bx, y, bx + bar_w, y + bar_h], fill=(40, 30, 60, 255), outline=GOLD + (80,), width=1)
+    fill_w = int((max(0, min(100, score)) / 100) * bar_w)
+    if fill_w > 0:
+        draw.rectangle([bx, y, bx + fill_w, y + bar_h], fill=GOLD + (255,))
+
+    # Tagline
+    y = 870
+    draw.text((W//2, y), "Synastrie cosmique calculee avec Swiss Ephemeris", fill=DIM_TEXT + (200,), font=font_small, anchor="mt")
+
+    # Footer
+    y = H - 130
+    draw.line([(180, y), (W-180, y)], fill=GOLD + (70,), width=1)
+    y += 24
+    draw.text((W//2, y), "plume-astrale.fr", fill=GOLD + (240,), font=font_url, anchor="mt")
+    y += 40
+    draw.text((W//2, y), "Decouvre ta compatibilite", fill=DIM_TEXT + (180,), font=font_small, anchor="mt")
+
+    # Convert to RGB
+    img_rgb = Image.new('RGB', (W, H), BG_DARK)
+    img_rgb.paste(img, mask=img.split()[3])
+
+    buffer = io.BytesIO()
+    img_rgb.save(buffer, format='PNG', quality=92)
+    buffer.seek(0)
+    return buffer.getvalue()

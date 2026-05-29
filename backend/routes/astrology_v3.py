@@ -6,12 +6,14 @@
 Tous les endpoints sont prefixes /api/astrology/v3 pour ne pas casser les anciens.
 """
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import Response
 from pydantic import BaseModel
 from typing import Optional, List
 
 from middleware.auth import get_current_user
 from services import astrology_io_service as aio
 from services import wallet_service
+from services.share_card_generator import generate_synastry_card
 
 
 router = APIRouter(prefix='/astrology/v3', tags=['astrology-v3'])
@@ -267,3 +269,33 @@ async def synastry_v3(payload: SynastryRequest, current_user: dict = Depends(get
         'raw_score_data': score_data,
         'raw_synastry': synastry,
     }
+
+
+class SynastryCardRequest(BaseModel):
+    name_1: str = 'Vous'
+    name_2: str = 'Partenaire'
+    score: int
+    level: Optional[str] = 'Belle Alchimie'
+    relationship_type: Optional[str] = 'love'
+
+
+@router.post('/synastry/share-card')
+async def synastry_share_card(payload: SynastryCardRequest):
+    """Genere une carte PNG 1080x1080 partageable (Instagram/WhatsApp) avec le score
+    et les prenoms. Endpoint public (aucune donnee sensible)."""
+    try:
+        png = generate_synastry_card(
+            payload.name_1, payload.name_2,
+            int(payload.score), payload.level or '',
+            payload.relationship_type or 'love',
+        )
+        return Response(
+            content=png,
+            media_type='image/png',
+            headers={
+                'Content-Disposition': f'attachment; filename="synastrie_{payload.name_1}_{payload.name_2}.png"',
+                'Cache-Control': 'no-store',
+            },
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Erreur generation carte: {e}')

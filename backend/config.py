@@ -46,7 +46,12 @@ class Settings:
         'tarologie': 10,
         'numerologie': 10,
         'cartographie': 60,
+        'cartographie_premium': 60,
         'chat_astral': 2,
+        'karma_destin': 10,
+        'lecture_astrologique': 10,
+        'lecture_tarot': 10,
+        'synastrie': 10,
     }
 
 
