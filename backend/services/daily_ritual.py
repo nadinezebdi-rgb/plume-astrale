@@ -11,9 +11,8 @@ Inclut :
 import os
 import hashlib
 import logging
-from datetime import datetime, date, timezone, timedelta
+from datetime import datetime, date, timezone
 from typing import Optional, Dict, Any, List
-import httpx
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 logger = logging.getLogger(__name__)

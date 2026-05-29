@@ -93,7 +93,6 @@ async def generate_premium_content(user_data: dict) -> dict:
     prenom = user_data.get('prenom', 'Cher voyageur')
     date_naissance = user_data.get('dateNaissance', '1990-01-01')
     heure = user_data.get('heureNaissance', '12:00')
-    ville = user_data.get('ville', 'Paris')
 
     sign = _get_zodiac(date_naissance)
     element = _get_element(sign)

@@ -9,7 +9,7 @@ Tous les appels prennent en compte un cache 24h dans Supabase (table energy_cach
 import os
 import httpx
 import hashlib
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 from datetime import datetime, timezone
 
 
