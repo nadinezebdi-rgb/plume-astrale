@@ -321,7 +321,7 @@ async def get_cached_or_fetch(key: str, fetch_fn, ttl_hours: int = 24) -> Option
         from services.wallet_service import get_admin_client
         sb = get_admin_client()
         today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-        cached = sb.table('energy_cache').select('*').eq('date', today).eq('user_id', key).maybe_single().execute()
+        cached = sb.table('energy_cache').select('*').eq('day', today).eq('user_id', key).maybe_single().execute()
         if cached and cached.data:
             return cached.data.get('energy_data') or cached.data.get('data')
     except Exception as e:
@@ -336,7 +336,7 @@ async def get_cached_or_fetch(key: str, fetch_fn, ttl_hours: int = 24) -> Option
         sb = get_admin_client()
         today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
         sb.table('energy_cache').upsert({
-            'date': today, 'user_id': key, 'energy_data': fresh,
+            'day': today, 'user_id': key, 'energy_data': fresh,
         }).execute()
     except Exception as e:
         print(f'[astrology_io.cache] write error: {e}')

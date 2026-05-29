@@ -201,3 +201,42 @@ Site prod : plume-astrale.fr
   - Cratères dans un wrapper rotatif → l'éclairage solaire reste fixe (réaliste)
   - 6 cratères au lieu de 4 pour plus de détail visuel
   - Anneau zodiacal continue à tourner indépendamment (80s)
+
+## Implemente — Feb 2026 (Integration astrology-api.io v3 sur theme & synastrie)
+- **Service `services/astrology_io_service.py` refactore** :
+  - Schema corrige : `birth_data` flat (year/month/day/hour/minute + latitude/longitude OU city/country_code) au lieu de la structure nested erronee
+  - Helpers `make_birth_data()`, `make_subject()`, `parse_profile()` reutilisables
+  - Nouveaux endpoints : `get_positions`, `get_house_cusps`, `get_aspects`, `get_lunar_metrics`, `natal_chart`, `synastry_chart`, `composite_chart`, `relationship_compatibility_score`, `relationship_compatibility`, `natal_report`, `synastry_report`
+  - Fix cache 24h : colonne `energy_cache.day` (etait `.date` -> erreur silencieuse)
+- **Nouveau routeur `routes/astrology_v3.py`** monte sous `/api/astrology/v3/*` :
+  - `POST /natal` -> theme natal Swiss Ephemeris (positions + cuspides + aspects)
+  - `POST /positions` -> positions planetaires precises
+  - `POST /lunar` -> phase / signe lunaire / mansion
+  - `POST /synastry` -> compatibilite entre 2 personnes pour 4 types de relations (love/friendship/family/work)
+    - Renvoie : score 0-100, level francais (Flamme Jumelle, Ames Soeurs, etc), description contextuelle, aspects cles
+    - Si person1 absent -> utilise profil de l'utilisateur connecte
+- **Frontend `Compatibilite.js` totalement refait** :
+  - 4 onglets (Amour / Amitie / Famille / Travail) avec icones Heart/Users/Home/Briefcase
+  - Formulaire compact pour le partenaire (nom, date JJ/MM/AAAA, heure HH:MM, ville)
+  - Auth gate si non connecte
+  - Resultat avec score, level, description, aspects astrologiques cles
+  - Tous data-testid : `compatibilite-page`, `relation-tab-{id}`, `partner-{field}`, `btn-analyze`, `result-card`, `result-score`, `result-level`, `aspect-{i}`
+- **`Tarot.js` refait avec design editorial premium** :
+  - 3 cartes (Passe / Present / Avenir) en grid
+  - 22 arcanes du Tarot de Marseille avec signification + element + conseil
+  - Carte verso elegante avec sparkles, hover scale, glow gold a la reveal
+  - Gate "Premium requis" si non-Premium, avec CTA `/premium` ou `/inscription`
+  - Tous data-testid : `tarot-page`, `tarot-card-{i}`, `tarot-actions`, `btn-reshuffle`, `tarot-premium-gate`
+- **`server.py`** :
+  - Inclus `astrology_v3_router`
+  - `POST /api/astrology/natal-chart` : fallback v3 si AstrologyAPI legacy echoue
+  - Endpoint `POST /api/astrology/horoscope-prediction` migrate vers signature corrigee de `horoscope_personal`
+
+**Tests E2E valides (iteration 26)** : 25/25 backend tests PASS (test_iteration26_astrology_v3.py). Auth requise, validation Pydantic OK, cache 24h Supabase fixe. En preview la cle locale est invalide (502 graceful) ; sur Railway production la cle est valide -> 200 OK automatique.
+
+### Backlog mis a jour (post iteration 26)
+**P1** :
+- Rapports PDF luxe pour theme natal et synastrie (premium)
+- Affichage des cuspides et aspects natals sur la page MonCompte / Resultats
+**P2** : Cartes virales Instagram/TikTok partage energie + Notifications Push web cycles emotionnels
+**P3** : Journal & historique emotionnel graphique
