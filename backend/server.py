@@ -31,6 +31,7 @@ from services.astrology_api import AstrologyAPIService
 from services.energy_service import get_energy_today
 from services import premium_subscription
 from routes.admin import router as admin_router
+from routes.astrology_v3 import router as astrology_v3_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -46,6 +47,7 @@ ASSETS_DIR = Path(__file__).parent / 'assets'
 app = FastAPI(title='Plume Astrale API')
 api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
+api_router.include_router(astrology_v3_router)
 
 
 # ════════════════════════════════════════════
@@ -721,7 +723,7 @@ async def astrology_karma_destiny(request: Request):
 
 @api_router.post('/astrology/natal-chart')
 async def astrology_natal_chart(request: Request):
-    """Wrapper vers AstrologyAPI pour le theme natal complet.
+    """Wrapper vers AstrologyAPI pour le theme natal complet (legacy + fallback v3).
     Le frontend Karma & Destin l'appelle pour enrichir le rapport."""
     body = await request.json()
     try:
@@ -736,10 +738,24 @@ async def astrology_natal_chart(request: Request):
             body.get('lat', 48.8566), body.get('lon', 2.3522), body.get('tzone', 1),
         )
         if data:
-            return {'success': True, 'data': data}
-        return {'success': False, 'message': 'Astrology API indisponible'}
+            return {'success': True, 'data': data, 'source': 'astrologyapi'}
+    except Exception as e:
+        logger.warning(f'natal-chart legacy failed, trying v3: {e}')
+
+    # Fallback v3
+    try:
+        from services import astrology_io_service as aio
+        bd = aio.make_birth_data(
+            int(body.get('year', 2000)), int(body.get('month', 1)), int(body.get('day', 1)),
+            int(body.get('hour', 12)), int(body.get('min', 0)),
+            latitude=body.get('lat'), longitude=body.get('lon'),
+        )
+        chart = await aio.natal_chart(bd, name=body.get('name', 'Voyageur'), language='fr')
+        if chart:
+            return {'success': True, 'data': chart, 'source': 'v3'}
     except Exception as e:
         return {'success': False, 'message': str(e)[:120]}
+    return {'success': False, 'message': 'Astrology API indisponible'}
 
 
 # ═══════════════════════════════════════════════════
@@ -770,19 +786,16 @@ async def horoscope_prediction(payload: HoroscopeRequest):
     # Si on a birth_date complete -> personalize
     has_birth = bool(payload.day and payload.month and payload.year)
     if has_birth:
-        birth_date = f"{payload.year:04d}-{payload.month:02d}-{payload.day:02d}"
-        birth_time = f"{(payload.hour or 12):02d}:{(payload.min or 0):02d}"
-        cache_key = aio._cache_key('personal', birth_date, birth_time, payload.lat, payload.lon, period)
+        bd = aio.make_birth_data(
+            payload.year, payload.month, payload.day,
+            payload.hour or 12, payload.min or 0,
+            latitude=payload.lat, longitude=payload.lon,
+        )
+        cache_key = aio._cache_key('personal', payload.year, payload.month, payload.day,
+                                   payload.hour, payload.min, payload.lat, payload.lon, period)
         data = await aio.get_cached_or_fetch(
             cache_key,
-            lambda: aio.horoscope_personal(
-                birth_date, birth_time,
-                float(payload.lat or 48.8566),
-                float(payload.lon or 2.3522),
-                float(payload.tzone or 1.0),
-                period,
-                'fr',
-            ),
+            lambda: aio.horoscope_personal(bd, period, 'fr'),
         )
         if data:
             return {'success': True, 'data': data, 'source': 'personal'}
