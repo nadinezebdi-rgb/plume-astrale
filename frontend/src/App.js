@@ -39,6 +39,8 @@ import Premium from "./pages/Premium";
 import ChatIA from "./pages/ChatIA";
 import Oracle from "./pages/Oracle";
 import MonRituel from "./pages/MonRituel";
+import RevolutionSolaire from "./pages/RevolutionSolaire";
+import LoveLanguages from "./pages/LoveLanguages";
 
 function App() {
   return (
@@ -89,6 +91,8 @@ function App() {
                 <Route path="/chat-astral" element={<ChatIA />} />
                 <Route path="/oracle" element={<Oracle />} />
                 <Route path="/mon-rituel" element={<MonRituel />} />
+                <Route path="/revolution-solaire" element={<RevolutionSolaire />} />
+                <Route path="/love-languages" element={<LoveLanguages />} />
               </Routes>
             </>
           } />

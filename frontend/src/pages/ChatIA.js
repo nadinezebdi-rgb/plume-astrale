@@ -183,20 +183,51 @@ const ChatIA = () => {
       }
 
       const birthData = getBirthData();
-      const res = await axios.post(
-        `${API}/api/plume-chat`,
-        {
-          message: text,
-          session_id: sessionId,
-          birth_data: birthData,
-        },
-        { timeout: 60000 }
-      );
+      // V3 Chat astrologique (natif, accès direct au thème natal) si user connecté avec données natales
+      let usedV3 = false;
+      let v3Answer = null;
+      if (isAuthenticated && user?.birth_date) {
+        try {
+          const history = messages
+            .filter(m => m.role === 'user' || m.role === 'assistant')
+            .slice(-10)
+            .map(m => ({ role: m.role, content: m.content }));
+          const r3 = await axios.post(
+            `${API}/api/astrology/v3/chat`,
+            { message: text, session_id: sessionId, history },
+            { headers: { Authorization: `Bearer ${token}` }, timeout: 60000 }
+          );
+          if (r3.data?.success && r3.data?.reply) {
+            usedV3 = true;
+            v3Answer = r3.data.reply;
+            if (r3.data.session_id && r3.data.session_id !== sessionId) {
+              setSessionId(r3.data.session_id);
+              try { localStorage.setItem(SESSION_KEY, r3.data.session_id); } catch (e) { /* ignore */ }
+            }
+          }
+        } catch (e) {
+          // fallback silencieux vers /api/plume-chat (LLM generique)
+        }
+      }
 
-      const json = res.data;
-      if (json.session_id && json.session_id !== sessionId) {
-        setSessionId(json.session_id);
-        try { localStorage.setItem(SESSION_KEY, json.session_id); } catch (e) { /* ignore */ }
+      let json;
+      if (usedV3) {
+        json = { success: true, answer: v3Answer };
+      } else {
+        const res = await axios.post(
+          `${API}/api/plume-chat`,
+          {
+            message: text,
+            session_id: sessionId,
+            birth_data: birthData,
+          },
+          { timeout: 60000 }
+        );
+        json = res.data;
+        if (json.session_id && json.session_id !== sessionId) {
+          setSessionId(json.session_id);
+          try { localStorage.setItem(SESSION_KEY, json.session_id); } catch (e) { /* ignore */ }
+        }
       }
 
       if (json.success && json.answer) {

@@ -10,7 +10,9 @@ const NAV_ITEMS = [
     children: [
       { to: '/tarot-oui-non', label: 'Tarot Oui / Non' },
       { to: '/tarologie', label: 'Tarologie' },
-      { to: '/compatibilite-amoureuse', label: 'Compatibilite Amoureuse' },
+      { to: '/compatibilite', label: 'Compatibilité (4 liens)' },
+      { to: '/compatibilite-amoureuse', label: 'Compatibilité Amoureuse PDF' },
+      { to: '/love-languages', label: "Langages d'Amour" },
     ],
   },
   {
@@ -19,6 +21,7 @@ const NAV_ITEMS = [
       { to: '/formulaire', label: 'Mon Theme Astral' },
       { to: '/numerologie', label: 'Numerologie' },
       { to: '/karma-destin', label: 'Karma & Destin' },
+      { to: '/revolution-solaire', label: 'Révolution Solaire' },
     ],
   },
   { label: 'Horoscope', to: '/horoscope' },

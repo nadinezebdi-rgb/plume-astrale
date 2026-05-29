@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sun, Moon, Star, Heart, Briefcase, Activity, Coins, RefreshCw, Loader2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import NatalCompletionPrompt from '@/components/NatalCompletionPrompt';
+import { TransitsToday } from '@/pages/RevolutionSolaire';
 
 const periodMap = { jour: 'daily', semaine: 'weekly', mois: 'monthly' };
 
@@ -227,6 +228,11 @@ const Horoscope = () => {
           {/* Soft nudge: complete birth_time if missing */}
           <div className="mb-8 max-w-2xl mx-auto">
             <NatalCompletionPrompt />
+          </div>
+
+          {/* Transits du jour sur votre theme natal */}
+          <div className="mb-8 max-w-2xl mx-auto">
+            <TransitsToday />
           </div>
 
           {/* Tabs */}

@@ -271,3 +271,32 @@ Site prod : plume-astrale.fr
   - Cover page + table of contents + 28 sections analytiques disponibles
   - `services/astrology_io_service.natal_report_pdf()` gere PDF binaire OU base64-in-JSON
 - **Test prod karma**: `astrologyapi` source confirmee, returns Taureau/Scorpion axis avec full data structure pour date 1985-06-12.
+
+## Implemente Feb 2026 (4 features P1 ROI eleve - API v3)
+- **Solar Return Report (Revolution Solaire)** : nouvelle page `/revolution-solaire`
+  - Backend `POST /api/astrology/v3/solar-return` wrappe `/charts/solar-return` + `/analysis/solar-return-report`
+  - Calcul auto du return_year (prochain anniversaire)
+  - UI affiche themes majeurs + life areas + summary, paywall 20 credits via `lecture_astrologique`
+- **Transits du Jour** : composant `TransitsToday` embarque dans Horoscope
+  - Backend `POST /api/astrology/v3/transits/today` wrappe `/charts/transit` + `/analysis/natal-transit-report`
+  - Affiche 5 aspects principaux (planete transitante x planete natale + orbe) + interpretation
+  - Refresh auto sur chaque visite page
+- **Love Languages cosmiques** : nouvelle page `/love-languages`
+  - Backend `POST /api/astrology/v3/love-languages` wrappe `/insights/relationship/love-languages`
+  - Affiche langage principal + secondaires + conseils
+  - CTA pour rebondir sur la compatibilite
+- **Chat Astrologique v3 (Plume Chat upgrade)** : 
+  - Backend `POST /api/astrology/v3/chat` wrappe `/chat/completions` avec `astrology.subjects` injectant le theme natal nativement
+  - Frontend `ChatIA.js` essaie v3 EN PREMIER si user connecte avec birth_date, fallback transparent vers `/api/plume-chat` (legacy GPT)
+  - Historique des 10 derniers messages envoyes a l'IA
+  - Session id persiste cote backend (gere par astrology-api.io)
+- **Service `astrology_io_service.py`** : 6 nouvelles methodes (`solar_return`, `solar_return_report`, `transits_today`, `transit_report_today`, `love_languages`, `astro_chat`)
+- **Navbar** : ajout entries "Révolution Solaire" (dans Theme Astral) et "Langages d'Amour" (dans Tirages)
+- 10 routes v3 au total : positions, lunar, natal, natal/pdf, synastry, synastry/share-card, solar-return, transits/today, love-languages, chat
+
+**Tests prod (cle locale invalide donc 502 graceful pour les 4)** :
+- POST `/v3/transits/today` -> 502 detail "Service astrologique indisponible." (auth OK)
+- POST `/v3/love-languages` -> 502 (auth OK)
+- POST `/v3/solar-return` -> 502 (auth OK)
+- POST `/v3/chat` -> 502 "Service de chat astrologique indisponible." (auth OK)
+- Smoke screenshots Revolution Solaire + Love Languages + Horoscope : pages rendent correctement.
