@@ -296,6 +296,52 @@ async def natal_report(birth_data: Dict[str, Any], name: str = 'Voyageur', langu
     })
 
 
+async def natal_report_pdf(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr', chart_theme: str = 'dark') -> Optional[bytes]:
+    """Genere un PDF complet du theme natal (chart wheel + interpretations).
+    Renvoie les bytes du PDF ou None si echec."""
+    payload = {
+        'subject': make_subject(name, birth_data),
+        'tradition': 'psychological',
+        'include_chart_svg': True,
+        'chart_theme': chart_theme,
+        'pdf_options': {
+            'language': language,
+            'include_cover_page': True,
+            'include_table_of_contents': True,
+        },
+    }
+    try:
+        async with httpx.AsyncClient(timeout=90.0) as client:
+            r = await client.post(
+                f'{BASE_URL}/pdf/natal-report',
+                headers={
+                    'Authorization': f'Bearer {_api_key()}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf',
+                },
+                json=payload,
+            )
+            if r.status_code != 200:
+                print(f'[astrology_io] /pdf/natal-report -> {r.status_code} : {r.text[:300]}')
+                return None
+            ctype = r.headers.get('content-type', '')
+            if 'application/pdf' in ctype:
+                return r.content
+            # Some APIs return base64 in JSON
+            try:
+                data = r.json()
+                import base64
+                b64 = data.get('pdf') or data.get('data') or ''
+                if b64:
+                    return base64.b64decode(b64)
+            except Exception:
+                pass
+            return None
+    except Exception as e:
+        print(f'[astrology_io] /pdf/natal-report EXCEPTION : {e}')
+        return None
+
+
 async def synastry_report(
     birth_data_1: Dict[str, Any], birth_data_2: Dict[str, Any],
     name_1: str = 'Partenaire 1', name_2: str = 'Partenaire 2',

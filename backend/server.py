@@ -602,8 +602,8 @@ async def numerology_deep(request: Request):
 # ════════════════════════════════════════════
 @api_router.post('/astrology/karma-destiny')
 async def astrology_karma_destiny(request: Request):
-    """Karma & destin : utilise AstrologyAPI pour calculer le Nœud Nord lunaire
-    exact (basé sur l'éphéméride réelle). Fallback approximatif si heure/lieu manquent."""
+    """Karma & destin — calcul precis du Noeud Nord via astrology-api.io v3, fallback
+    AstrologyAPI puis approximatif. Renvoie une lecture karmique riche prete a afficher."""
     body = await request.json()
     prenom = body.get('prenom', '').strip()
     date_naissance = body.get('dateNaissance')
@@ -616,6 +616,8 @@ async def astrology_karma_destiny(request: Request):
     try:
         from datetime import datetime as _dt
         d = _dt.strptime(date_naissance, '%Y-%m-%d')
+        hh_str, mm_str = (heure.split(':') + ['0'])[:2]
+        hh, mm = int(hh_str), int(mm_str)
     except ValueError:
         raise HTTPException(status_code=400, detail='Format date invalide (YYYY-MM-DD)')
 
@@ -627,69 +629,182 @@ async def astrology_karma_destiny(request: Request):
     signes_ordre = ['Bélier', 'Taureau', 'Gémeaux', 'Cancer', 'Lion', 'Vierge',
                     'Balance', 'Scorpion', 'Sagittaire', 'Capricorne', 'Verseau', 'Poissons']
 
-    interpretations = {
-        'Bélier': "Apprends à affirmer ton identité et à oser tes désirs.",
-        'Taureau': "Construis une stabilité matérielle et sensorielle saine.",
-        'Gémeaux': "Communique, apprends, partage la connaissance.",
-        'Cancer': "Honore tes émotions et bâtis un nid affectif.",
-        'Lion': "Exprime ta créativité et ton individualité sans honte.",
-        'Vierge': "Sers humblement et perfectionne ton art.",
-        'Balance': "Cultive l'équilibre et les partenariats harmonieux.",
-        'Scorpion': "Plonge dans tes profondeurs et transforme-toi.",
-        'Sagittaire': "Élargis ton horizon par le voyage et la philosophie.",
-        'Capricorne': "Bâtis ton autorité par la discipline et la persévérance.",
-        'Verseau': "Innove et sers une cause collective.",
-        'Poissons': "Ouvre-toi à la spiritualité et à la compassion universelle.",
-    }
-    lecons = {
-        'Bélier': "Quitter la dépendance, oser être seul.",
-        'Taureau': "Lâcher l'intensité, accueillir le simple.",
-        'Gémeaux': "Sortir de la vérité absolue, accepter la nuance.",
-        'Cancer': "Quitter l'ambition pure, choisir la tendresse.",
-        'Lion': "Lâcher l'anonymat, briller pleinement.",
-        'Vierge': "Quitter la rêverie, ancrer dans le concret.",
-        'Balance': "Sortir de l'égoïsme, apprendre l'écoute.",
-        'Scorpion': "Quitter le confort, embrasser la transformation.",
-        'Sagittaire': "Quitter la dispersion, choisir la quête de sens.",
-        'Capricorne': "Quitter l'émotion fusionnelle, construire ta structure.",
-        'Verseau': "Sortir du règne personnel, servir le collectif.",
-        'Poissons': "Quitter la quête de perfection, lâcher prise.",
+    KARMA_PROFILES = {
+        'Bélier': {
+            'icon': '♈',
+            'theme': "L'Eveil du Guerrier",
+            'description': "Votre ame revient dans cette vie pour apprendre l'audace et l'autonomie. Les blessures du passe vous ont enseigne la dependance ; cette incarnation vous invite a oser etre seul, a affirmer vos desirs sans demander pardon.",
+            'lecon': "Cesser d'attendre la permission. Choisir votre propre chemin meme s'il deplait.",
+            'don_cache': "Un courage instinctif. Vous savez agir vite et juste quand les autres hesitent.",
+        },
+        'Taureau': {
+            'icon': '♉',
+            'theme': "L'Ancrage Sacre",
+            'description': "Vous etes ici pour habiter pleinement votre corps et le monde sensoriel. Les vies passees vous ont rendu intense, obsessionnel ; cette incarnation vous propose la simplicite, la lenteur, le plaisir tranquille.",
+            'lecon': "Ralentir. Construire patiemment ce qui dure plutot que tout consommer.",
+            'don_cache': "Un sens inne de la valeur. Vous reconnaissez ce qui est precieux et stable.",
+        },
+        'Gémeaux': {
+            'icon': '♊',
+            'theme': "La Voix qui Relie",
+            'description': "Votre mission est de communiquer, d'apprendre et de partager. Vous arrivez avec une habitude de la verite absolue ; cette vie vous demande d'accueillir la nuance, la curiosite, le dialogue.",
+            'lecon': "Quitter le dogme. Ecouter avant d'enseigner.",
+            'don_cache': "Une intelligence agile. Vous tissez des liens entre les idees et les etres.",
+        },
+        'Cancer': {
+            'icon': '♋',
+            'theme': "Le Retour au Foyer",
+            'description': "Vous revenez pour apprendre l'art de la tendresse et du sanctuaire interieur. Les vies passees vous ont fait gravir des sommets ; cette vie vous invite a redescendre dans le coeur.",
+            'lecon': "Choisir l'intime avant l'ambition. Honorer vos emotions comme des messagers sacres.",
+            'don_cache': "Une intuition emotionnelle profonde. Vous percevez ce que les autres ne disent pas.",
+        },
+        'Lion': {
+            'icon': '♌',
+            'theme': "Le Rayonnement Assume",
+            'description': "Vous arrivez avec une habitude de l'effacement et du collectif. Cette vie vous invite a oser briller, a creer, a etre vu pour ce que vous etes vraiment.",
+            'lecon': "Sortir de l'ombre. Recevoir l'admiration sans la fuir.",
+            'don_cache': "Une noblesse naturelle. Vous inspirez les autres par votre simple presence.",
+        },
+        'Vierge': {
+            'icon': '♍',
+            'theme': "Le Service Sacre",
+            'description': "Votre mission est d'ancrer le reve dans le concret. Vous portez une habitude de la dispersion ou de l'idealisme ; cette vie vous demande de raffiner, servir, perfectionner.",
+            'lecon': "Quitter la reverie. Faire les petites choses avec une grande attention.",
+            'don_cache': "Un sens du detail qui guerit. Vous savez ce qu'il faut corriger pour que tout tienne.",
+        },
+        'Balance': {
+            'icon': '♎',
+            'theme': "Le Pont entre Deux Rives",
+            'description': "Cette incarnation vous invite a sortir de l'ego pour decouvrir l'art du partage. Vous portez une habitude de l'autonomie farouche ; cette vie vous propose l'altruisme et l'union.",
+            'lecon': "Cesser de tout porter seul. Apprendre a co-creer.",
+            'don_cache': "Le sens de la justice et de la beaute. Vous restaurez l'harmonie partout ou vous passez.",
+        },
+        'Scorpion': {
+            'icon': '♏',
+            'theme': "La Plongee Initiatique",
+            'description': "Vous etes ici pour traverser les seuils interieurs. Les vies passees vous ont rendu confortablement ancre ; cette incarnation vous propose la metamorphose, le mystere, la verite profonde.",
+            'lecon': "Quitter le confort. Embrasser ce qui meurt pour faire naitre ce qui veut vivre.",
+            'don_cache': "Une force de regeneration. Vous renaissez de chaque chute plus lumineux.",
+        },
+        'Sagittaire': {
+            'icon': '♐',
+            'theme': "La Quete du Sens",
+            'description': "Cette vie vous appelle a elargir vos horizons : voyages, philosophie, foi. Vous portez une habitude de la dispersion mentale ; cette incarnation vous invite a chercher la verite plutot que les details.",
+            'lecon': "Lever les yeux. Faire confiance a la vision plutot qu'au plan.",
+            'don_cache': "Un optimisme contagieux. Vous savez ouvrir les portes que les autres croient fermees.",
+        },
+        'Capricorne': {
+            'icon': '♑',
+            'theme': "La Construction Royale",
+            'description': "Votre mission est de batir une oeuvre solide et durable. Vous arrivez avec une habitude de l'emotion fusionnelle ; cette vie vous propose la maturite, la structure, la responsabilite assumee.",
+            'lecon': "Sortir du nid emotionnel. Devenir votre propre autorite.",
+            'don_cache': "Une endurance silencieuse. Vous tenez la, quand tous les autres abandonnent.",
+        },
+        'Verseau': {
+            'icon': '♒',
+            'theme': "Le Visionnaire au Service du Collectif",
+            'description': "Vous etes ici pour servir une cause plus grande que vous. Vous portez une habitude du regne personnel ou de la quete de pouvoir ; cette vie vous invite a la fraternite et a l'innovation.",
+            'lecon': "Lacher le tron. Offrir vos dons a la communaute.",
+            'don_cache': "Une intuition du futur. Vous voyez ce qui vient avant les autres.",
+        },
+        'Poissons': {
+            'icon': '♓',
+            'theme': "Le Lacher Prise Sacre",
+            'description': "Cette incarnation vous invite a faire confiance au mystere. Vous portez une habitude de la perfection et du controle ; cette vie vous propose la compassion universelle, l'abandon, la spiritualite vivante.",
+            'lecon': "Quitter le perfectionnisme. Vous laisser porter par plus grand que vous.",
+            'don_cache': "Un canal d'amour inconditionnel. Vous touchez les ames par simple presence.",
+        },
     }
 
+    MISSIONS = {
+        'Bélier': "Eveiller votre puissance personnelle et l'incarner sans excuse.",
+        'Taureau': "Construire une vie sensorielle, stable et porteuse de paix.",
+        'Gémeaux': "Devenir un pont vivant entre les idees et les coeurs.",
+        'Cancer': "Creer un refuge emotionnel pour vous et ceux que vous aimez.",
+        'Lion': "Rayonner votre creativite avec joie et generosite.",
+        'Vierge': "Servir avec precision, soigner par la qualite de votre attention.",
+        'Balance': "Restaurer l'harmonie dans vos relations et autour de vous.",
+        'Scorpion': "Traverser vos profondeurs et accompagner les autres dans la leur.",
+        'Sagittaire': "Transmettre une vision elargie, inspirer la quete de sens.",
+        'Capricorne': "Batir une oeuvre solide qui survivra a votre passage.",
+        'Verseau': "Innover au service d'un futur plus juste et libre.",
+        'Poissons': "Offrir une presence aimante, canaliser le sacre dans le quotidien.",
+    }
+
+    MESSAGES_AKASHIQUES = {
+        'Bélier': "Ton ame murmure : ose. Ce que tu crains de demander, demande-le. Ce que tu crains d'etre, sois-le.",
+        'Taureau': "Ton ame murmure : ralentis. Le tresor que tu cherches est deja dans le simple battement de ton coeur.",
+        'Gémeaux': "Ton ame murmure : ecoute. Chaque rencontre est un fragment du livre que tu es venu lire.",
+        'Cancer': "Ton ame murmure : reviens chez toi. Le foyer que tu cherches est dans ta poitrine.",
+        'Lion': "Ton ame murmure : brille. Tu n'es pas venu te cacher. Le monde a besoin de ta lumiere.",
+        'Vierge': "Ton ame murmure : soigne. Chaque geste juste est une priere silencieuse.",
+        'Balance': "Ton ame murmure : aime. Et laisse-toi aimer. C'est la meme chose.",
+        'Scorpion': "Ton ame murmure : plonge. Sous la peur dort le tresor que tu cherches depuis des vies.",
+        'Sagittaire': "Ton ame murmure : leve les yeux. L'horizon t'attend, et il est plus vaste que ta carte.",
+        'Capricorne': "Ton ame murmure : batis. Pierre apres pierre, tu construis le temple de ton ame.",
+        'Verseau': "Ton ame murmure : libere. La cage que tu vois autour de toi, tu peux l'ouvrir.",
+        'Poissons': "Ton ame murmure : abandonne-toi. Le courant qui te porte est plus sage que tes plans.",
+    }
+
+    # ── 1) Tentative v3 (positions planetaires precises) ─────────────
     noeud_nord = None
+    soleil_signe = None
+    lune_signe = None
     source = 'approximatif'
-    # 1) Tentative AstrologyAPI (precis, via ephemeride reelle)
     try:
-        from services.astrology_api import get_astrology_service
-        svc = get_astrology_service()
-        # Geocoder le lieu pour avoir lat/lon/tz
-        lat, lon, tz = 48.8566, 2.3522, 1.0  # Paris par defaut
-        try:
-            geo = await svc.get_geo_details(f"{ville}, {pays}" if pays else ville)
-            if geo and isinstance(geo, list) and len(geo) > 0:
-                g = geo[0]
-                lat = float(g.get('latitude', lat))
-                lon = float(g.get('longitude', lon))
-                tz = float(g.get('timezone_offset', tz)) if g.get('timezone_offset') else tz
-            elif geo and isinstance(geo, dict):
-                lat = float(geo.get('latitude', lat))
-                lon = float(geo.get('longitude', lon))
-                tz = float(geo.get('timezone_offset', tz)) if geo.get('timezone_offset') else tz
-        except Exception:
-            pass  # garde Paris par défaut
-
-        wh = await svc.get_western_horoscope(date_naissance, heure, lat, lon, tz)
-        if wh and isinstance(wh, dict):
-            for p in wh.get('planets', []):
-                if p.get('name') == 'Node':
-                    sign_en = p.get('sign')
-                    noeud_nord = signes_fr.get(sign_en)
-                    source = 'astrologyapi'
-                    break
+        from services import astrology_io_service as aio
+        bd_v3 = aio.make_birth_data(
+            d.year, d.month, d.day, hh, mm,
+            city=ville, country_code='FR' if pays.lower() == 'france' else None,
+        )
+        positions = await aio.get_positions(bd_v3, name=prenom or 'Voyageur', language='fr')
+        if positions and isinstance(positions, dict):
+            pts = positions.get('points') or positions.get('positions') or positions.get('planets') or []
+            for p in (pts if isinstance(pts, list) else []):
+                name = (p.get('name') or p.get('point') or '').lower()
+                sign_raw = p.get('sign') or (p.get('position') or {}).get('sign') or ''
+                sign_fr = signes_fr.get(str(sign_raw).title(), str(sign_raw))
+                if 'node' in name and ('north' in name or 'mean' in name or 'true' in name) and not noeud_nord:
+                    if 'south' not in name:
+                        noeud_nord = sign_fr
+                elif name == 'sun' or name == 'soleil':
+                    soleil_signe = sign_fr
+                elif name == 'moon' or name == 'lune':
+                    lune_signe = sign_fr
+            if noeud_nord:
+                source = 'astrology-api-v3'
     except Exception as e:
-        print(f'[karma-destiny] AstrologyAPI fallback: {e}')
+        print(f'[karma-destiny] v3 fallback: {e}')
 
-    # 2) Fallback approximatif si AstrologyAPI indispo
+    # ── 2) Tentative AstrologyAPI legacy ─────────────────────────────
+    if not noeud_nord:
+        try:
+            from services.astrology_api import get_astrology_service
+            svc = get_astrology_service()
+            lat, lon, tz = 48.8566, 2.3522, 1.0
+            try:
+                geo = await svc.get_geo_details(f"{ville}, {pays}" if pays else ville)
+                if geo and isinstance(geo, list) and len(geo) > 0:
+                    g = geo[0]
+                    lat = float(g.get('latitude', lat))
+                    lon = float(g.get('longitude', lon))
+                    tz = float(g.get('timezone_offset', tz)) if g.get('timezone_offset') else tz
+            except Exception:
+                pass
+            wh = await svc.get_western_horoscope(date_naissance, heure, lat, lon, tz)
+            if wh and isinstance(wh, dict):
+                for p in wh.get('planets', []):
+                    if p.get('name') == 'Node':
+                        noeud_nord = signes_fr.get(p.get('sign'))
+                        source = 'astrologyapi'
+                    elif p.get('name') == 'Sun' and not soleil_signe:
+                        soleil_signe = signes_fr.get(p.get('sign'))
+                    elif p.get('name') == 'Moon' and not lune_signe:
+                        lune_signe = signes_fr.get(p.get('sign'))
+        except Exception as e:
+            print(f'[karma-destiny] legacy fallback: {e}')
+
+    # ── 3) Fallback approximatif si tout echoue ──────────────────────
     if not noeud_nord:
         ref = _dt(2000, 1, 1)
         years_diff = (d - ref).days / 365.25
@@ -699,6 +814,17 @@ async def astrology_karma_destiny(request: Request):
     nn_idx = signes_ordre.index(noeud_nord)
     noeud_sud = signes_ordre[(nn_idx + 6) % 12]
 
+    # Nombre karmique : reduction des chiffres de la date jusqu'a 1 chiffre (maitres 11/22/33 preserves)
+    def reduce_nb(n: int) -> int:
+        while n > 9 and n not in (11, 22, 33):
+            n = sum(int(c) for c in str(n))
+        return n
+    raw = sum(int(c) for c in date_naissance.replace('-', ''))
+    nombre_karmique = reduce_nb(raw)
+
+    karma_principal = KARMA_PROFILES.get(noeud_nord, KARMA_PROFILES['Bélier'])
+    karma_sud = KARMA_PROFILES.get(noeud_sud, {})
+
     return {
         'success': True,
         'data': {
@@ -706,17 +832,37 @@ async def astrology_karma_destiny(request: Request):
             'date_naissance': date_naissance,
             'heure_naissance': heure,
             'lieu_naissance': f"{ville}, {pays}" if pays else ville,
-            'source_calcul': source,  # 'astrologyapi' ou 'approximatif'
+            'source_calcul': source,
+            'nombre_karmique': nombre_karmique,
+            'karma_principal': karma_principal,
+            'mission_de_vie': {
+                'mission': MISSIONS.get(noeud_nord, ''),
+                'description': karma_principal.get('description', ''),
+            },
+            'noeuds_lunaires': {
+                'noeud_nord': noeud_nord,
+                'noeud_sud': noeud_sud,
+                'message': (
+                    f"Votre Noeud Nord en {noeud_nord} indique la direction d'evolution de votre ame. "
+                    f"Votre Noeud Sud en {noeud_sud} represente la zone de confort herite des vies passees : "
+                    f"{(karma_sud.get('description') or '').split('.')[0]}."
+                ),
+            },
+            'message_akashique': MESSAGES_AKASHIQUES.get(noeud_nord, ''),
+            'axe_evolution': f"{noeud_sud} → {noeud_nord}",
+            # legacy fields preserved pour retro-compat
             'noeud_nord': {
                 'signe': noeud_nord,
-                'mission': interpretations.get(noeud_nord, ''),
+                'mission': MISSIONS.get(noeud_nord, ''),
             },
             'noeud_sud': {
                 'signe': noeud_sud,
-                'memoire': interpretations.get(noeud_sud, ''),
+                'memoire': KARMA_PROFILES.get(noeud_sud, {}).get('description', ''),
             },
-            'lecon_karmique': lecons.get(noeud_nord, ''),
-            'axe_evolution': f"{noeud_sud} → {noeud_nord}",
+            'lecon_karmique': karma_principal.get('lecon', ''),
+            # bonus pour le panel "Carte natale"
+            'soleil_signe': soleil_signe,
+            'lune_signe': lune_signe,
         },
     }
 

@@ -299,3 +299,33 @@ async def synastry_share_card(payload: SynastryCardRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Erreur generation carte: {e}')
+
+
+@router.post('/natal/pdf')
+async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_current_user)):
+    """Genere un PDF complet du theme natal (chart wheel + interpretations en francais).
+    Si person n'est pas fourni, utilise le profil de l'utilisateur connecte.
+    """
+    bd = None
+    name = 'Voyageur'
+    if payload.person:
+        bd = payload.person.to_birth_data()
+        name = payload.person.name or name
+    else:
+        profile = await wallet_service.get_profile(current_user['id'])
+        bd = aio.parse_profile(profile)
+        name = profile.get('prenom') or name
+    if not bd:
+        raise HTTPException(status_code=400, detail='Donnees natales incompletes (date, heure et lieu requis).')
+
+    pdf = await aio.natal_report_pdf(bd, name=name, language='fr', chart_theme='dark')
+    if not pdf:
+        raise HTTPException(status_code=502, detail='Service astrologique indisponible (PDF).')
+    return Response(
+        content=pdf,
+        media_type='application/pdf',
+        headers={
+            'Content-Disposition': f'attachment; filename="theme_natal_{name}.pdf"',
+            'Cache-Control': 'no-store',
+        },
+    )

@@ -253,3 +253,21 @@ Site prod : plume-astrale.fr
   - `btn-share-native` : `navigator.share` avec File (image + texte), fallback clipboard
   - `btn-share-whatsapp` : ouvre wa.me avec texte pre-rempli (score + lien)
 - Image testee : 49KB PNG 1080x1080 generee correctement avec PIL.
+
+## Hotfix Feb 2026 (Karma "page vide" + PDF Natal + audit API v3)
+- **Bug fix Karma & Destin "aucun contenu"** : le backend renvoyait uniquement `noeud_nord`/`noeud_sud`/`lecon_karmique` mais le frontend lisait `karma_principal`, `mission_de_vie`, `nombre_karmique`, `message_akashique`, `noeuds_lunaires` -> tous les blocs UI restaient invisibles apres deduction des credits.
+- **Refonte `/api/astrology/karma-destiny`** :
+  - Tentative 1 : `astrology-api.io v3 /data/positions` pour Node North + Soleil + Lune precis (Swiss Ephemeris)
+  - Tentative 2 : AstrologyAPI legacy (en preview - cle valide)
+  - Tentative 3 : approximation par ephemeride simplifiee (fallback ultime)
+  - 12 profils karmiques riches (theme, description, lecon, don cache) pour chaque signe du Noeud Nord
+  - 12 messages akashiques poetiques
+  - Calcul du `nombre_karmique` (reduction des chiffres de la date avec preservation maitres 11/22/33)
+  - Tous les champs du frontend remplis + retro-compatibilite des anciens champs
+- **Bug fix URL** dans `KarmaDestin.js` : `fetch('/api/astrology/natal-chart')` (sans `${API_URL}` -> 404 sur Vercel) -> remplace par `${API_URL}/api/astrology/v3/positions` avec parsing direct des `points`/`positions` pour extraire Soleil/Lune/Ascendant/9 planetes
+- **PDF Natal Premium** : nouveau endpoint `POST /api/astrology/v3/natal/pdf`
+  - Wrapper sur `/api/v3/pdf/natal-report` de astrology-api.io (chart wheel SVG + interpretations psychologiques en francais)
+  - Tradition "psychological" (depth jungien), theme `dark` cohérent avec la charte
+  - Cover page + table of contents + 28 sections analytiques disponibles
+  - `services/astrology_io_service.natal_report_pdf()` gere PDF binaire OU base64-in-JSON
+- **Test prod karma**: `astrologyapi` source confirmee, returns Taureau/Scorpion axis avec full data structure pour date 1985-06-12.
