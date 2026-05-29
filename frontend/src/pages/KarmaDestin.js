@@ -56,38 +56,67 @@ const KarmaDestin = () => {
 
     setLoading(true);
     try {
-      // Fetch karma-destiny from backend
+      // Fetch karma-destiny from backend (uses v3 ephemeride internally)
+      const birthDate = new Date(formData.dateNaissance);
+      const [hh, mm] = (formData.heureNaissance || '12:00').split(':');
+
       const karmaPromise = fetch(`${API_URL}/api/astrology/karma-destiny`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
-      }).then(r => r.json());
+      }).then(r => r.json()).catch(() => null);
 
-      // Fetch natal chart from Astrology API via Netlify Function
-      const birthDate = new Date(formData.dateNaissance);
-      const [hh, mm] = (formData.heureNaissance || '12:00').split(':');
-      const natalPromise = fetch('/api/astrology/natal-chart', {
+      // Fetch natal positions via v3 (precis Swiss Ephemeris)
+      const natalPromise = fetch(`${API_URL}/api/astrology/v3/positions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          day: birthDate.getDate(),
-          month: birthDate.getMonth() + 1,
-          year: birthDate.getFullYear(),
-          hour: parseInt(hh),
-          min: parseInt(mm),
-          lat: 48.8566,
-          lon: 2.3522,
-          tzone: 1,
+          person: {
+            name: formData.prenom,
+            year: birthDate.getFullYear(),
+            month: birthDate.getMonth() + 1,
+            day: birthDate.getDate(),
+            hour: parseInt(hh) || 12,
+            minute: parseInt(mm) || 0,
+            city: formData.ville,
+            country_code: 'FR',
+          },
         }),
       }).then(r => r.json()).catch(() => null);
 
       const [karmaData, natalData] = await Promise.all([karmaPromise, natalPromise]);
-      if (karmaData.success) {
-        // Enrich karma result with natal chart data from Astrology API
-        if (natalData?.success) {
-          karmaData.natal_chart = natalData.data;
+
+      if (karmaData?.success) {
+        // Enrich karma with natal positions (Soleil, Lune, Ascendant, autres planetes)
+        if (natalData?.success && natalData?.data) {
+          const pts = natalData.data.points || natalData.data.positions || natalData.data.planets || [];
+          const findSign = (n) => {
+            const p = (Array.isArray(pts) ? pts : []).find(x => (x.name || x.point || '').toLowerCase() === n);
+            if (!p) return null;
+            const signRaw = p.sign || p.position?.sign || '';
+            return { signe: signRaw, retrograde: !!(p.retrograde || p.is_retro) };
+          };
+          karmaData.natal_chart = {
+            soleil: findSign('sun') || (karmaData.data.soleil_signe ? { signe: karmaData.data.soleil_signe } : null),
+            lune: findSign('moon') || (karmaData.data.lune_signe ? { signe: karmaData.data.lune_signe } : null),
+            ascendant: findSign('ascendant'),
+            planetes: (Array.isArray(pts) ? pts : []).slice(0, 9).map(p => ({
+              nom: p.name || p.point || '',
+              signe: p.sign || p.position?.sign || '',
+              retrograde: !!(p.retrograde || p.is_retro),
+            })),
+          };
+        } else if (karmaData.data?.soleil_signe || karmaData.data?.lune_signe) {
+          karmaData.natal_chart = {
+            soleil: karmaData.data.soleil_signe ? { signe: karmaData.data.soleil_signe } : null,
+            lune: karmaData.data.lune_signe ? { signe: karmaData.data.lune_signe } : null,
+            ascendant: null,
+            planetes: [],
+          };
         }
         setResult(karmaData);
+      } else {
+        setError(karmaData?.detail || 'Une erreur est survenue. Veuillez réessayer.');
       }
     } catch (e) {
       setError('Une erreur est survenue. Veuillez réessayer.');
