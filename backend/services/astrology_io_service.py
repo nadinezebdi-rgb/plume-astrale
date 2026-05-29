@@ -354,6 +354,103 @@ async def synastry_report(
     })
 
 
+# ════════ SOLAR RETURN (rapport annuel d'anniversaire) ════════
+
+async def solar_return(birth_data: Dict[str, Any], return_year: int, name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    return await _call('/charts/solar-return', {
+        'subject': make_subject(name, birth_data),
+        'return_year': int(return_year),
+        'options': {'language': language, 'house_system': 'P'},
+    })
+
+
+async def solar_return_report(birth_data: Dict[str, Any], return_year: int, name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Rapport textuel complet de revolution solaire (themes de l'annee a venir)."""
+    return await _call('/analysis/solar-return-report', {
+        'subject': make_subject(name, birth_data),
+        'return_year': int(return_year),
+        'options': {'language': language, 'house_system': 'P'},
+        'include_life_areas': True,
+    })
+
+
+# ════════ TRANSITS DU JOUR ════════
+
+def _today_dt_payload() -> Dict[str, Any]:
+    """Construit un DateTimeLocation pour le moment present (UTC noon Paris)."""
+    now = datetime.now(timezone.utc)
+    return {
+        'year': now.year, 'month': now.month, 'day': now.day,
+        'hour': 12, 'minute': 0,
+        'latitude': 48.8566, 'longitude': 2.3522,
+        'timezone': 'Europe/Paris',
+    }
+
+
+async def transits_today(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr', orb: float = 2.0) -> Optional[Dict]:
+    """Transits planetaires affectant le theme natal aujourd'hui."""
+    return await _call('/charts/transit', {
+        'subject': make_subject(name, birth_data),
+        'transit_time': {'datetime': _today_dt_payload()},
+        'orb': float(orb),
+        'options': {'language': language, 'house_system': 'P'},
+    })
+
+
+async def transit_report_today(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr', orb: float = 2.0) -> Optional[Dict]:
+    """Rapport textuel des transits du jour (interpretations)."""
+    today = datetime.now(timezone.utc)
+    return await _call('/analysis/natal-transit-report', {
+        'subject': make_subject(name, birth_data),
+        'transit_time': {
+            'date_range': {
+                'start_date': {'year': today.year, 'month': today.month, 'day': today.day},
+                'end_date': {'year': today.year, 'month': today.month, 'day': today.day},
+            },
+        },
+        'orb': float(orb),
+        'report_options': {'language': language},
+    })
+
+
+# ════════ LOVE LANGUAGES ASTROLOGIQUES ════════
+
+async def love_languages(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Langages de l'amour astrologiques (besoin emotionnel principal selon Venus/Mars/Lune)."""
+    return await _call('/insights/relationship/love-languages', {
+        'subject': make_subject(name, birth_data),
+        'options': {'language': language, 'house_system': 'P'},
+    })
+
+
+# ════════ AI CHAT ASTROLOGIQUE (avec contexte natal embedded) ════════
+
+async def astro_chat(
+    messages: list,
+    birth_data: Optional[Dict[str, Any]] = None,
+    name: str = 'Voyageur',
+    session_id: Optional[str] = None,
+    language: str = 'fr',
+    temperature: float = 0.7,
+    max_tokens: int = 600,
+) -> Optional[Dict]:
+    """Chat AI astrologique avec le theme natal embarque (acces direct par l'IA aux positions)."""
+    payload: Dict[str, Any] = {
+        'messages': messages,
+        'temperature': temperature,
+        'max_tokens': max_tokens,
+        'astrology': {
+            'enabled_tools': ['positions', 'aspects', 'transits', 'natal'],
+            'defaults': {'language': language},
+        },
+    }
+    if birth_data:
+        payload['astrology']['subjects'] = [make_subject(name, birth_data)]
+    if session_id:
+        payload['astrology']['session_id'] = session_id
+    return await _call('/chat/completions', payload)
+
+
 # ════════ Cache helper (24h) using Supabase energy_cache table ════════
 
 def _cache_key(*parts) -> str:

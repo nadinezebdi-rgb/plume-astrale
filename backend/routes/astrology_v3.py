@@ -329,3 +329,172 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
             'Cache-Control': 'no-store',
         },
     )
+
+
+# ─── SOLAR RETURN (Revolution Solaire — rapport annuel d'anniversaire) ─────
+
+class SolarReturnRequest(BaseModel):
+    person: Optional[PersonInput] = None
+    return_year: Optional[int] = None  # default: prochain anniversaire
+
+
+@router.post('/solar-return')
+async def solar_return_v3(payload: SolarReturnRequest, current_user: dict = Depends(get_current_user)):
+    """Rapport de Revolution Solaire : themes astrologiques pour l'annee a venir
+    (de votre prochain anniversaire au suivant). Produit premium type 'rituel annuel'.
+    """
+    from datetime import datetime as _dt
+    bd = None
+    name = 'Voyageur'
+    if payload.person:
+        bd = payload.person.to_birth_data()
+        name = payload.person.name or name
+    else:
+        profile = await wallet_service.get_profile(current_user['id'])
+        bd = aio.parse_profile(profile)
+        name = profile.get('prenom') or name
+    if not bd:
+        raise HTTPException(status_code=400, detail='Donnees natales incompletes (date, heure et lieu requis).')
+
+    # Annee de revolution : par defaut, prochain anniversaire (annee courante ou suivante)
+    ret_year = payload.return_year
+    if not ret_year:
+        today = _dt.now()
+        birth_month = bd.get('month')
+        birth_day = bd.get('day')
+        if birth_month and birth_day:
+            if (today.month, today.day) >= (int(birth_month), int(birth_day)):
+                ret_year = today.year + 1
+            else:
+                ret_year = today.year
+        else:
+            ret_year = today.year + 1
+
+    chart = await aio.solar_return(bd, ret_year, name=name, language='fr')
+    report = await aio.solar_return_report(bd, ret_year, name=name, language='fr')
+    if not chart and not report:
+        raise HTTPException(status_code=502, detail='Service astrologique indisponible.')
+
+    return {
+        'success': True,
+        'return_year': ret_year,
+        'name': name,
+        'chart': chart,
+        'report': report,
+    }
+
+
+# ─── TRANSITS DU JOUR ─────────────────────────────────────────────────────
+
+@router.post('/transits/today')
+async def transits_today_v3(payload: NatalRequest, current_user: dict = Depends(get_current_user)):
+    """Transits planetaires du jour appliques au theme natal.
+    Renvoie chart + rapport textuel pour rituel quotidien / notification push.
+    """
+    bd = payload.person.to_birth_data() if payload.person else aio.parse_profile(
+        await wallet_service.get_profile(current_user['id'])
+    )
+    if not bd:
+        raise HTTPException(status_code=400, detail='Donnees natales incompletes.')
+    name = (payload.person.name if payload.person else None) or 'Voyageur'
+
+    chart = await aio.transits_today(bd, name=name, language='fr')
+    report = await aio.transit_report_today(bd, name=name, language='fr')
+    if not chart and not report:
+        raise HTTPException(status_code=502, detail='Service astrologique indisponible.')
+    return {
+        'success': True,
+        'chart': chart,
+        'report': report,
+    }
+
+
+# ─── LOVE LANGUAGES ───────────────────────────────────────────────────────
+
+@router.post('/love-languages')
+async def love_languages_v3(payload: NatalRequest, current_user: dict = Depends(get_current_user)):
+    """Langages de l'amour astrologiques selon Venus, Mars, Lune et leurs aspects.
+    Renvoie un langage principal + langages secondaires + conseils.
+    """
+    bd = None
+    name = 'Voyageur'
+    if payload.person:
+        bd = payload.person.to_birth_data()
+        name = payload.person.name or name
+    else:
+        profile = await wallet_service.get_profile(current_user['id'])
+        bd = aio.parse_profile(profile)
+        name = profile.get('prenom') or name
+    if not bd:
+        raise HTTPException(status_code=400, detail='Donnees natales incompletes.')
+
+    data = await aio.love_languages(bd, name=name, language='fr')
+    if not data:
+        raise HTTPException(status_code=502, detail='Service astrologique indisponible.')
+    return {'success': True, 'data': data, 'name': name}
+
+
+# ─── CHAT ASTROLOGIQUE V3 (avec contexte natal natif) ────────────────────
+
+class AstroChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+    history: Optional[List[dict]] = None  # [{'role':'user'|'assistant', 'content':...}]
+
+
+@router.post('/chat')
+async def astro_chat_v3(payload: AstroChatRequest, current_user: dict = Depends(get_current_user)):
+    """Chat AI astrologique : l'IA accede directement au theme natal de l'utilisateur
+    pour repondre avec precision (positions, transits, aspects). Plus pertinent que GPT generique.
+    """
+    if not payload.message or not payload.message.strip():
+        raise HTTPException(status_code=400, detail='Message vide.')
+
+    profile = await wallet_service.get_profile(current_user['id'])
+    bd = aio.parse_profile(profile)
+    name = profile.get('prenom') or 'Voyageur'
+
+    # Construire l'historique de la conversation
+    messages = [
+        {
+            'role': 'system',
+            'content': (
+                "Tu es Plume, guide astrologique francaise chaleureuse et poetique. Reponds en francais, "
+                "avec finesse, jamais de jargon excessif. Utilise le theme natal fourni pour personnaliser. "
+                "Style : phrases courtes, metaphores lumineuses, registre tutoiement bienveillant."
+            ),
+        }
+    ]
+    if payload.history:
+        for m in payload.history[-10:]:  # dernieres 10 interactions max
+            if m.get('role') in ('user', 'assistant') and m.get('content'):
+                messages.append({'role': m['role'], 'content': m['content']})
+    messages.append({'role': 'user', 'content': payload.message.strip()})
+
+    session = payload.session_id or f'plume-{current_user["id"][:8]}'
+    response = await aio.astro_chat(
+        messages=messages,
+        birth_data=bd,
+        name=name,
+        session_id=session,
+        language='fr',
+    )
+    if not response:
+        raise HTTPException(status_code=502, detail='Service de chat astrologique indisponible.')
+
+    # Extraire la reponse (format OpenAI-compatible)
+    reply_text = ''
+    try:
+        choices = response.get('choices') or []
+        if choices and isinstance(choices, list):
+            reply_text = (choices[0].get('message') or {}).get('content', '') or ''
+    except Exception:
+        pass
+    if not reply_text:
+        reply_text = str(response)[:500]
+
+    return {
+        'success': True,
+        'reply': reply_text,
+        'session_id': session,
+    }
