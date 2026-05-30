@@ -10,22 +10,37 @@ const NAV_ITEMS = [
     children: [
       { to: '/tarot-oui-non', label: 'Tarot Oui / Non' },
       { to: '/tarologie', label: 'Tarologie' },
-      { to: '/compatibilite', label: 'Compatibilité (4 liens)' },
-      { to: '/compatibilite-amoureuse', label: 'Compatibilité Amoureuse PDF' },
+      { to: '/compatibilite', label: 'Compatibilité' },
+      { to: '/compatibilite-amoureuse', label: 'Compatibilité PDF' },
       { to: '/love-languages', label: "Langages d'Amour" },
     ],
   },
   {
-    label: 'Theme Astral',
+    label: 'Thème Astral',
     children: [
-      { to: '/formulaire', label: 'Mon Theme Astral' },
-      { to: '/numerologie', label: 'Numerologie' },
+      { to: '/formulaire', label: 'Mon Thème Natal' },
+      { to: '/numerologie', label: 'Numérologie' },
       { to: '/karma-destin', label: 'Karma & Destin' },
       { to: '/revolution-solaire', label: 'Révolution Solaire' },
     ],
   },
-  { label: 'Horoscope', to: '/horoscope' },
-  { label: 'Mon Énergie', to: '/energie' },
+  {
+    label: 'Astrologies',
+    children: [
+      { to: '/astrologie-vedique', label: '🕉️ Astrologie Védique' },
+      { to: '/astrologie-chinoise', label: '🐉 Astrologie Chinoise' },
+      { to: '/human-design', label: '✨ Human Design' },
+      { to: '/techniques-traditionnelles', label: '🔮 Techniques Traditionnelles' },
+    ],
+  },
+  {
+    label: 'Insights',
+    children: [
+      { to: '/insights', label: '📈 Biorythmes & Bien-être' },
+      { to: '/energie', label: '⚡ Mon Énergie du Jour' },
+      { to: '/horoscope', label: '🌟 Horoscope' },
+    ],
+  },
   { label: 'Mon Rituel', to: '/mon-rituel' },
   { label: 'Consultation', to: '/consultation' },
 ];
