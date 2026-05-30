@@ -63,6 +63,7 @@ export default function AstrologieChinoise() {
       fetchData('zodiac', 'chinese/zodiac');
       fetchData('elements', 'chinese/elements');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user?.birth_date]);
 
   useEffect(() => {
@@ -70,6 +71,7 @@ export default function AstrologieChinoise() {
     if (activeTab === 'bazi') fetchData('bazi', 'chinese/bazi');
     if (activeTab === 'ziwei') fetchData('ziwei', 'chinese/zi-wei');
     if (activeTab === 'fengshui') fetchData('fengshui', 'chinese/feng-shui');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const tabs = [

@@ -58,6 +58,7 @@ export default function TechniquesTraditionnelles() {
       fetchData('arabicparts', 'traditional/arabic-parts');
       fetchData('planetaryhours', 'traditional/planetary-hours', 'get');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user?.birth_date]);
 
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function TechniquesTraditionnelles() {
       kabbalah: 'traditional/kabbalah',
     };
     if (map[activeTab]) fetchData(activeTab, map[activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const tabs = [

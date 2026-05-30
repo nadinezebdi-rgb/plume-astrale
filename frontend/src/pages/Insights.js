@@ -81,6 +81,7 @@ export default function Insights() {
       fetchData('biorhythms', 'insights/biorhythms');
       fetchData('personality', 'insights/personality');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user?.birth_date]);
 
   useEffect(() => {
@@ -93,6 +94,7 @@ export default function Insights() {
       energy: 'insights/energy-cycles',
     };
     if (map[activeTab]) fetchData(activeTab, map[activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const tabs = [

@@ -125,6 +125,7 @@ export default function AstrologieVedique() {
       fetchData('nakshatra', 'vedic/nakshatra');
       fetchData('dasha', 'vedic/dasha');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user?.birth_date]);
 
   useEffect(() => {
@@ -132,6 +133,7 @@ export default function AstrologieVedique() {
       if (activeTab === 'navamsa') fetchData('navamsa', 'vedic/navamsa');
       if (activeTab === 'divisional') fetchData('divisional', 'vedic/divisional-charts');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, isAuthenticated, user?.birth_date]);
 
   const tabs = [
