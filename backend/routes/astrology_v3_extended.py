@@ -754,3 +754,118 @@ async def pdf_synastry(payload: DuoRequest, current_user: dict = Depends(get_cur
         media_type='application/pdf',
         headers={'Content-Disposition': f'attachment; filename="synastronie-{n1}-{n2}.pdf"'},
     )
+
+
+# ════════════════════════════════════════════════════════════════════
+# FONCTIONNALITÉS ULTRA MANQUANTES — Horairie, Rectification, Électional, SVG
+# ════════════════════════════════════════════════════════════════════
+
+class HoraryQuestionRequest(BaseModel):
+    question: str
+    person: Optional[PersonInput] = None  # optionnel pour horairie IA
+
+
+class ElectionalSearchRequest(BaseModel):
+    start_year: int
+    start_month: int
+    start_day: int
+    end_year: int
+    end_month: int
+    end_day: int
+    activity: str = 'business'
+    person: Optional[PersonInput] = None
+
+
+class LifeEvent(BaseModel):
+    date: str          # "YYYY-MM-DD"
+    event_type: str    # marriage, career_change, accident, birth, death, move, etc.
+    description: Optional[str] = None
+
+
+class RectificationRequest(BaseModel):
+    person: Optional[PersonInput] = None
+    approximate_hour: int = 12
+    approximate_minute: int = 0
+    life_events: list[LifeEvent] = []
+
+
+class ChartSvgRequest(BaseModel):
+    person: Optional[PersonInput] = None
+    chart_type: str = 'natal'
+    theme: str = 'dark'
+
+
+# ─── Horairie IA ────────────────────────────────────────────────────
+
+@router.post('/horary/ask')
+async def horary_ask(payload: HoraryQuestionRequest, current_user: dict = Depends(get_current_user)):
+    """Horairie IA — pose une question, réponse avec analyse traditionnelle (10 crédits)."""
+    if not payload.question or len(payload.question.strip()) < 5:
+        raise HTTPException(422, "Question trop courte")
+    result = await aio.horary_ask(payload.question.strip())
+    if not result:
+        raise HTTPException(502, "Erreur API horairie")
+    return result
+
+
+@router.post('/horary/chart')
+async def horary_chart(payload: HoraryQuestionRequest, current_user: dict = Depends(get_current_user)):
+    """Horairie traditionnelle avec thème natal de base (2 crédits)."""
+    bd = await _resolve_person(current_user['id'], payload.person)
+    if not bd:
+        raise HTTPException(422, "Données natales requises")
+    name = (payload.person.name if payload.person else None) or current_user.get('prenom', 'Voyageur')
+    result = await aio.horary_chart(bd, payload.question, name)
+    if not result:
+        raise HTTPException(502, "Erreur API horairie")
+    return result
+
+
+# ─── Rectification heure de naissance ───────────────────────────────
+
+@router.post('/rectification')
+async def rectification(payload: RectificationRequest, current_user: dict = Depends(get_current_user)):
+    """Rectification automatique de l'heure de naissance (15 crédits)."""
+    bd = await _resolve_person(current_user['id'], payload.person)
+    if not bd:
+        raise HTTPException(422, "Données natales requises")
+    # Surcharger l'heure si précisée
+    if payload.approximate_hour is not None:
+        bd['hour'] = payload.approximate_hour
+        bd['minute'] = payload.approximate_minute
+    name = (payload.person.name if payload.person else None) or current_user.get('prenom', 'Voyageur')
+    events = [e.dict() for e in payload.life_events]
+    result = await aio.birth_time_rectification(bd, events, name)
+    if not result:
+        raise HTTPException(502, "Erreur API rectification")
+    return result
+
+
+# ─── Électional — recherche meilleurs moments ───────────────────────
+
+@router.post('/electional/search')
+async def electional_search(payload: ElectionalSearchRequest, current_user: dict = Depends(get_current_user)):
+    """Recherche les meilleurs moments pour une activité dans une période (5 crédits)."""
+    bd = await _resolve_person(current_user['id'], payload.person)
+    start = {'year': payload.start_year, 'month': payload.start_month, 'day': payload.start_day}
+    end   = {'year': payload.end_year,   'month': payload.end_month,   'day': payload.end_day}
+    result = await aio.electional_search(start, end, payload.activity, bd)
+    if not result:
+        raise HTTPException(502, "Erreur API électional")
+    return result
+
+
+# ─── Rendu Chart SVG ────────────────────────────────────────────────
+
+@router.post('/chart/svg')
+async def chart_svg(payload: ChartSvgRequest, current_user: dict = Depends(get_current_user)):
+    """Génère un chart SVG haute qualité (natal, transit, composite) — 10 crédits."""
+    bd = await _resolve_person(current_user['id'], payload.person)
+    if not bd:
+        raise HTTPException(422, "Données natales requises")
+    name = (payload.person.name if payload.person else None) or current_user.get('prenom', 'Voyageur')
+    svg = await aio.chart_svg_render(bd, name, payload.chart_type, payload.theme)
+    if not svg:
+        raise HTTPException(502, "Erreur génération SVG")
+    # Retourner en JSON avec le SVG string
+    return {'svg': svg, 'chart_type': payload.chart_type, 'theme': payload.theme}

@@ -971,3 +971,113 @@ async def pdf_synastry(
     except Exception as e:
         print(f'[astrology_io] /pdf/synastry EXCEPTION : {e}')
         return None
+
+
+# ════════════════════════════════════════════════════════════════════
+# FONCTIONNALITÉS ULTRA — MANQUANTES
+# ════════════════════════════════════════════════════════════════════
+
+# ════════ HORAIRIE (Ultra requis) ════════
+
+async def horary_ask(question: str, language: str = 'fr') -> Optional[Dict]:
+    """Horairie IA — pose une question, reçoit une réponse avec analyse traditionnelle."""
+    return await _call('/horary/ask', {
+        'question': question,
+        'language': language,
+    })
+
+async def horary_chart(birth_data: Dict[str, Any], question: str, name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Horairie traditionnelle — analyse de la question selon le thème horaire."""
+    return await _call('/horary/chart', {
+        'subject': make_subject(name, birth_data),
+        'question': question,
+        'options': {'language': language},
+    })
+
+
+# ════════ RECTIFICATION HEURE DE NAISSANCE (Ultra) ════════
+
+async def birth_time_rectification(
+    birth_data: Dict[str, Any],
+    life_events: list,
+    name: str = 'Voyageur',
+    language: str = 'fr',
+) -> Optional[Dict]:
+    """Rectification automatique de l'heure de naissance à partir d'événements de vie.
+    life_events: liste de dicts avec 'date', 'event_type', 'description'.
+    """
+    return await _call('/rectification/analyze', {
+        'subject': make_subject(name, birth_data),
+        'life_events': life_events,
+        'options': {'language': language},
+    })
+
+
+# ════════ ÉLECTIONAL — RECHERCHE DES MEILLEURS MOMENTS (Ultra) ════════
+
+async def electional_search(
+    start_date: Dict[str, Any],
+    end_date: Dict[str, Any],
+    activity: str = 'business',
+    birth_data: Optional[Dict[str, Any]] = None,
+    language: str = 'fr',
+) -> Optional[Dict]:
+    """Recherche des meilleurs moments pour une activité dans une période donnée.
+    activity: business | wedding | surgery | travel | investment | launch | meeting
+    """
+    payload: Dict[str, Any] = {
+        'date_range': {'start': start_date, 'end': end_date},
+        'activity': activity,
+        'options': {'language': language},
+    }
+    if birth_data:
+        payload['subject'] = make_subject('Voyageur', birth_data)
+    return await _call('/electional/search', payload)
+
+
+# ════════ RENDU CHART SVG (Ultra — 10 crédits) ════════
+
+async def chart_svg_render(
+    birth_data: Dict[str, Any],
+    name: str = 'Voyageur',
+    chart_type: str = 'natal',
+    theme: str = 'dark',
+    language: str = 'fr',
+) -> Optional[str]:
+    """Génère un chart SVG (natal, synastry, transit, composite).
+    Retourne le SVG sous forme de string.
+    chart_type: natal | synastry | transit | composite
+    theme: dark | light | cosmic | astrocom
+    """
+    result = await _call('/render/chart-svg', {
+        'subject': make_subject(name, birth_data),
+        'chart_type': chart_type,
+        'options': {
+            'language': language,
+            'theme': theme,
+            'house_system': 'P',
+            'show_aspects': True,
+            'show_arabic_parts': True,
+        },
+    })
+    if not result:
+        return None
+    # Retourner le SVG string
+    return result.get('svg') or result.get('chart_svg') or result.get('data')
+
+
+async def chart_svg_synastry(
+    birth_data_1: Dict[str, Any], birth_data_2: Dict[str, Any],
+    name_1: str = 'Personne 1', name_2: str = 'Personne 2',
+    theme: str = 'dark', language: str = 'fr',
+) -> Optional[str]:
+    """Génère un SVG synastronie biwheel."""
+    result = await _call('/render/chart-svg', {
+        'subject1': make_subject(name_1, birth_data_1),
+        'subject2': make_subject(name_2, birth_data_2),
+        'chart_type': 'synastry',
+        'options': {'language': language, 'theme': theme, 'house_system': 'P'},
+    })
+    if not result:
+        return None
+    return result.get('svg') or result.get('chart_svg') or result.get('data')

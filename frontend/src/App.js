@@ -48,6 +48,7 @@ import AstrologieChinoise from "./pages/AstrologieChinoise";
 import HumanDesign from "./pages/HumanDesign";
 import TechniquesTraditionnelles from "./pages/TechniquesTraditionnelles";
 import Insights from "./pages/Insights";
+import Horairie from "./pages/Horairie";
 
 function App() {
   return (
@@ -107,6 +108,7 @@ function App() {
                 <Route path="/human-design" element={<HumanDesign />} />
                 <Route path="/techniques-traditionnelles" element={<TechniquesTraditionnelles />} />
                 <Route path="/insights" element={<Insights />} />
+                <Route path="/horairie" element={<Horairie />} />
               </Routes>
             </>
           } />
