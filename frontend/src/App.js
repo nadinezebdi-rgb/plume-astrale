@@ -42,6 +42,13 @@ import MonRituel from "./pages/MonRituel";
 import RevolutionSolaire from "./pages/RevolutionSolaire";
 import LoveLanguages from "./pages/LoveLanguages";
 
+// ── Nouvelles pages (upgrade Ultra) ──────────────────────────────
+import AstrologieVedique from "./pages/AstrologieVedique";
+import AstrologieChinoise from "./pages/AstrologieChinoise";
+import HumanDesign from "./pages/HumanDesign";
+import TechniquesTraditionnelles from "./pages/TechniquesTraditionnelles";
+import Insights from "./pages/Insights";
+
 function App() {
   return (
     <AuthProvider>
@@ -93,6 +100,13 @@ function App() {
                 <Route path="/mon-rituel" element={<MonRituel />} />
                 <Route path="/revolution-solaire" element={<RevolutionSolaire />} />
                 <Route path="/love-languages" element={<LoveLanguages />} />
+
+                {/* ── Nouvelles pages Ultra ─────────────────────── */}
+                <Route path="/astrologie-vedique" element={<AstrologieVedique />} />
+                <Route path="/astrologie-chinoise" element={<AstrologieChinoise />} />
+                <Route path="/human-design" element={<HumanDesign />} />
+                <Route path="/techniques-traditionnelles" element={<TechniquesTraditionnelles />} />
+                <Route path="/insights" element={<Insights />} />
               </Routes>
             </>
           } />
