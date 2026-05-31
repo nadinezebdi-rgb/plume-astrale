@@ -3,7 +3,7 @@ Service Tarot - Oui/Non et Tarologie Médiumnité
 """
 import hashlib
 import random
-from datetime import datetime, date
+from datetime import datetime
 
 # 22 Arcanes Majeurs avec interprétations Oui/Non
 ARCANES_TAROT = [

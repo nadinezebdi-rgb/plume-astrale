@@ -88,8 +88,12 @@ android-sdk/
 .wrangler
 .dev.vars*
 !.dev.vars.example
-!.env.example
 .env.*
 credentials.json
 *.key
 .credentials
+.gitconfig
+
+!.env.example
+!backend/.env.example
+!frontend/.env.example

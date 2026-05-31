@@ -4,7 +4,6 @@ PDF complet avec tirage 7 cartes + lecture médiumnique
 """
 import io
 import random
-from pathlib import Path
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib.colors import HexColor
