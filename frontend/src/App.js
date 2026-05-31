@@ -41,6 +41,8 @@ import Oracle from "./pages/Oracle";
 import MonRituel from "./pages/MonRituel";
 import RevolutionSolaire from "./pages/RevolutionSolaire";
 import LoveLanguages from "./pages/LoveLanguages";
+import MotDePasseOublie from "./pages/MotDePasseOublie";
+import ReinitialiserMotDePasse from "./pages/ReinitialiserMotDePasse";
 
 function App() {
   return (
@@ -93,6 +95,8 @@ function App() {
                 <Route path="/mon-rituel" element={<MonRituel />} />
                 <Route path="/revolution-solaire" element={<RevolutionSolaire />} />
                 <Route path="/love-languages" element={<LoveLanguages />} />
+                <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
+                <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
               </Routes>
             </>
           } />

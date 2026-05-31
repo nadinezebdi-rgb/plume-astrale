@@ -92,6 +92,13 @@ const handleSubmit = async (e) => {
                 {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+
+            <div className="flex justify-end">
+              <Link to="/mot-de-passe-oublie" className="text-xs hover:opacity-80 transition-opacity" style={{ color: 'var(--pa-muted)', letterSpacing: '0.05em' }} data-testid="login-forgot-link">
+                Mot de passe oublié ?
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
