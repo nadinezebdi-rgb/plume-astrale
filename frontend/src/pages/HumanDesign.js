@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowLeft, Loader2, Zap, Circle, Diamond } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import PageHero from '@/components/PageHero';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -82,13 +83,11 @@ export default function HumanDesign() {
           <ArrowLeft className="w-4 h-4" /> Retour
         </button>
 
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <Sparkles className="w-6 h-6 text-[#C5A059]" strokeWidth={1.5} />
-            <h1 className="text-3xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>Human Design</h1>
-          </div>
-          <p className="text-[#B8B0C8]/70 text-sm font-light">Votre BodyGraph — Type, Profil, Autorité, Centres, Portes & Canaux</p>
-        </div>
+        <PageHero
+          image="/images/astrale/image-astrale-6.jpg"
+          title="Human Design"
+          subtitle="Type · Profil · Autorité · Centres · Canaux · Portes"
+        />
 
         {loading && (
           <div className="card-mystical flex items-center justify-center gap-3 py-12">

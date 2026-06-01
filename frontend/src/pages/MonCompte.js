@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
+import PageHero from '@/components/PageHero';
 import NatalDataModal from '@/components/NatalDataModal';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -560,6 +561,12 @@ const MonCompte = () => {
   return (
     <div className="min-h-screen relative" style={{ background: 'var(--pa-bg)' }}>
       <SEO path="/mon-compte" />
+      <PageHero
+        image="/images/astrale/image-astrale-8.jpg"
+        title={profil?.prenom ? `Bienvenue, ${profil.prenom}` : 'Mon Espace Personnel'}
+        subtitle="Votre univers astral personnalisé"
+        height="220px"
+      />
 
       {/* Fond décoratif */}
       <div

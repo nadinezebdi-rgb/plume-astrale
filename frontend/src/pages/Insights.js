@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowLeft, Loader2, Heart, Briefcase, Activity, Brain, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import PageHero from '@/components/PageHero';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -127,13 +128,11 @@ export default function Insights() {
           <ArrowLeft className="w-4 h-4" /> Retour
         </button>
 
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <Sparkles className="w-6 h-6 text-[#C5A059]" strokeWidth={1.5} />
-            <h1 className="text-3xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>Insights Personnalisés</h1>
-          </div>
-          <p className="text-[#B8B0C8]/70 text-sm font-light">Biorythmes · Personnalité · Archétypes Jungiens · Carrière · Santé · Bien-être</p>
-        </div>
+        <PageHero
+          image="/images/astrale/image-astrale-1.jpg"
+          title="Insights Personnalisés"
+          subtitle="Biorythmes · Archétypes · Carrière · Santé · Énergie"
+        />
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
