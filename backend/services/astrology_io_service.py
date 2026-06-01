@@ -771,7 +771,7 @@ async def tarot_spread(spread_type: str = 'celtic_cross', question: Optional[str
     }
     if question:
         payload['question'] = question
-    return await _call('/tarot/spreads', payload)
+    return await _call('/tarot/spread', payload)
 
 async def tarot_tree_of_life(language: str = 'fr') -> Optional[Dict]:
     """Tirage Tarot sur l'Arbre de Vie Kabbalistique (10 Sephiroth)."""
@@ -802,7 +802,7 @@ async def numerology_compatibility(
 async def numerology_personal_year(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Année personnelle + cycles de vie (thèmes pour chaque année)."""
     now = datetime.now(timezone.utc)
-    return await _call('/numerology/year', {
+    return await _call('/numerology/personal-year', {
         'subject': make_subject(name, birth_data),
         'year': now.year,
         'options': {'language': language},
@@ -817,7 +817,7 @@ async def numerology_forecast(birth_data: Dict[str, Any], name: str = 'Voyageur'
 
 async def numerology_lo_shu(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Carré Magique Lo Shu — numérologie chinoise + Feng Shui."""
-    return await _call('/numerology/loshu', {
+    return await _call('/numerology/lo-shu', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
@@ -846,14 +846,14 @@ async def biorhythms(birth_data: Dict[str, Any], name: str = 'Voyageur', languag
 
 async def moon_wellness(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Bien-être selon les cycles lunaires — recommendations personnalisées."""
-    return await _call('/insights/moon', {
+    return await _call('/insights/moon-wellness', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
 
 async def body_health(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Santé & corps astral — influences planétaires sur les systèmes corporels."""
-    return await _call('/insights/body', {
+    return await _call('/insights/body-health', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
@@ -881,7 +881,7 @@ async def personality_analysis(birth_data: Dict[str, Any], name: str = 'Voyageur
 
 async def energy_cycles(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Cycles d'énergie personnelle — optimisation workout/méditation/productivité."""
-    return await _call('/insights/energy', {
+    return await _call('/insights/energy-cycles', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
@@ -891,14 +891,14 @@ async def energy_cycles(birth_data: Dict[str, Any], name: str = 'Voyageur', lang
 
 async def astrocartography(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Astrocartographie — zones de puissance planétaire dans le monde."""
-    return await _call('/astrocartography', {
+    return await _call('/astrocartography/map', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
 
 async def astrocartography_city(birth_data: Dict[str, Any], city: str, country_code: str = 'FR', name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Analyse astrocartographique pour une ville spécifique."""
-    return await _call('/astrocartography/local', {
+    return await _call('/astrocartography/city', {
         'subject': make_subject(name, birth_data),
         'city': city,
         'country_code': country_code.upper(),
@@ -907,7 +907,7 @@ async def astrocartography_city(birth_data: Dict[str, Any], city: str, country_c
 
 async def relocation_scores(birth_data: Dict[str, Any], cities: list, name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Scores de relocation (carrière, amour, lifestyle) pour plusieurs villes."""
-    return await _call('/astrocartography/relocation', {
+    return await _call('/astrocartography/relocation-scores', {
         'subject': make_subject(name, birth_data),
         'cities': cities,
         'options': {'language': language},
@@ -981,7 +981,7 @@ async def pdf_synastry(
 
 async def horary_ask(question: str, language: str = 'fr') -> Optional[Dict]:
     """Horairie IA — pose une question, reçoit une réponse avec analyse traditionnelle."""
-    return await _call('/horary/ask', {
+    return await _call('/horary/analyze', {
         'question': question,
         'language': language,
     })
