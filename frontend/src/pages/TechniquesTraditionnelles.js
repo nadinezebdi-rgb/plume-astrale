@@ -142,7 +142,7 @@ export default function TechniquesTraditionnelles() {
                 const parts = results.arabicparts.lots || results.arabicparts.arabic_parts || results.arabicparts.parts || [];
                 return (
                   <div>
-                    {parts.slice(0, 12).map((p, i) => (
+                    {(Array.isArray(parts)?parts:[]).slice(0, 12).map((p, i) => (
                       <ItemCard key={i}
                         title={p.name || p.lot_name || `Part ${i+1}`}
                         subtitle={p.description || p.meaning || ''}
@@ -171,7 +171,7 @@ export default function TechniquesTraditionnelles() {
                 const stars = results.fixedstars.stars || results.fixedstars.fixed_stars || results.fixedstars.conjunctions || [];
                 return (
                   <div>
-                    {stars.slice(0, 8).map((s, i) => (
+                    {(Array.isArray(stars)?stars:[]).slice(0, 8).map((s, i) => (
                       <div key={i} className="rounded-xl p-3 mb-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                         <div className="flex justify-between items-start mb-1">
                           <p className="text-sm font-medium text-[#F0E6D3]">{s.star_name || s.name}</p>
@@ -206,7 +206,7 @@ export default function TechniquesTraditionnelles() {
                         </tr>
                       </thead>
                       <tbody>
-                        {digs.slice(0, 10).map((d, i) => {
+                        {(Array.isArray(digs)?digs:[]).slice(0, 10).map((d, i) => {
                           const dignity = d.dignity || d.essential_dignity || '';
                           const color = DIGNITY_COLORS[dignity?.toLowerCase()] || '#B8B0C8';
                           return (
@@ -237,7 +237,7 @@ export default function TechniquesTraditionnelles() {
                 const symbols = results.sabian.symbols || results.sabian.sabian_symbols || [];
                 return (
                   <div>
-                    {symbols.slice(0, 8).map((s, i) => (
+                    {(Array.isArray(symbols)?symbols:[]).slice(0, 8).map((s, i) => (
                       <div key={i} className="rounded-xl p-4 mb-3" style={{ background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.2)' }}>
                         <div className="flex justify-between items-center mb-2">
                           <p className="text-sm font-medium text-[#a78bfa]">{s.planet}</p>
@@ -272,7 +272,7 @@ export default function TechniquesTraditionnelles() {
                       </div>
                     )}
                     <div className="space-y-1">
-                      {hours.slice(0, 12).map((h, i) => (
+                      {(Array.isArray(hours)?hours:[]).slice(0, 12).map((h, i) => (
                         <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg"
                           style={{ background: h.is_current ? 'rgba(197,160,89,0.12)' : 'rgba(255,255,255,0.03)' }}>
                           <span className="text-xs text-[#B8B0C8]/50 w-12 flex-shrink-0">{h.time || `${String(i).padStart(2,'0')}:00`}</span>
@@ -297,7 +297,7 @@ export default function TechniquesTraditionnelles() {
                 const mp = results.midpoints.midpoints || [];
                 return (
                   <div>
-                    {mp.slice(0, 10).map((m, i) => (
+                    {(Array.isArray(mp)?mp:[]).slice(0, 10).map((m, i) => (
                       <ItemCard key={i}
                         title={`${m.planet_1}/${m.planet_2}`}
                         subtitle={m.interpretation || m.meaning || ''}
@@ -346,7 +346,7 @@ export default function TechniquesTraditionnelles() {
                 const ecl = results.eclipses.eclipses || [];
                 return (
                   <div>
-                    {ecl.slice(0, 4).map((e, i) => (
+                    {(Array.isArray(ecl)?ecl:[]).slice(0, 4).map((e, i) => (
                       <div key={i} className="rounded-xl p-4 mb-3" style={{ background: i % 2 === 0 ? 'rgba(248,113,113,0.08)' : 'rgba(96,165,250,0.08)', border: `1px solid ${i % 2 === 0 ? 'rgba(248,113,113,0.2)' : 'rgba(96,165,250,0.2)'}` }}>
                         <div className="flex justify-between items-center mb-2">
                           <p className="text-sm font-semibold" style={{ color: i % 2 === 0 ? '#f87171' : '#60a5fa' }}>
@@ -385,7 +385,7 @@ export default function TechniquesTraditionnelles() {
                           </tr>
                         </thead>
                         <tbody>
-                          {planets.slice(0, 10).map((p, i) => (
+                          {(Array.isArray(planets)?planets:[]).slice(0, 10).map((p, i) => (
                             <tr key={i} className="border-b border-white/5">
                               <td className="py-2 pr-4 font-medium text-[#F0E6D3]">{p.name || p.planet}</td>
                               <td className="py-2 pr-4 text-[#C5A059]">{p.draconic_sign || p.sign}</td>
