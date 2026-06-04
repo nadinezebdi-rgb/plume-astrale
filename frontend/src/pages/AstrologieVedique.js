@@ -214,7 +214,7 @@ export default function AstrologieVedique() {
                 {results.natal.ascendant && (
                   <div className="mt-4 rounded-lg p-3" style={{ background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)' }}>
                     <span className="text-xs text-[#a78bfa]">Ascendant védique</span>
-                    <p className="text-[#F0E6D3] font-medium">{results.natal.ascendant}</p>
+                    <p className="text-[#F0E6D3] font-medium">{results.natal.ascendant?.rashi || results.natal.ascendant?.sign || results.natal.ascendant?.nakshatra || '—'}</p>
                   </div>
                 )}
               </>
