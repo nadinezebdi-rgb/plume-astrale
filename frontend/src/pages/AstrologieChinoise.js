@@ -70,8 +70,6 @@ export default function AstrologieChinoise() {
   useEffect(() => {
     if (!isAuthenticated || !user?.birth_date) return;
     if (activeTab === 'bazi') fetchData('bazi', 'chinese/bazi');
-    if (activeTab === 'ziwei') fetchData('ziwei', 'chinese/zi-wei');
-    if (activeTab === 'fengshui') fetchData('fengshui', 'chinese/feng-shui');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
@@ -79,8 +77,6 @@ export default function AstrologieChinoise() {
     { id: 'zodiac', label: '🐉 Zodiaque', },
     { id: 'elements', label: '🌊 Wu Xing', },
     { id: 'bazi', label: '☯️ BaZi', },
-    { id: 'ziwei', label: '⭐ Zi Wei', },
-    { id: 'fengshui', label: '🧭 Feng Shui', },
   ];
 
   if (!isAuthenticated) return (
@@ -102,7 +98,7 @@ export default function AstrologieChinoise() {
         <PageHero
           image="/images/astrale/image-astrale-9.jpg"
           title="Astrologie Chinoise"
-          subtitle="BaZi · Zi Wei Dou Shu · Wu Xing · Feng Shui"
+          subtitle="BaZi · Wu Xing"
         />
 
         {/* Tabs */}
@@ -243,93 +239,6 @@ export default function AstrologieChinoise() {
                       </div>
                     </div>
                   )}
-                </div>
-              );
-            })() : null}
-          </Section>
-        )}
-
-        {/* Zi Wei */}
-        {activeTab === 'ziwei' && (
-          <Section title="Zi Wei Dou Shu — Purple Star" icon="⭐" testId="chinese-ziwei">
-            <p className="text-[#B8B0C8]/60 text-sm mb-4 font-light">L'astrologie chinoise la plus complète — 108 étoiles dans 12 palais.</p>
-            {loading.ziwei ? (
-              <div className="flex items-center gap-2 text-[#C5A059]/70 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Calcul Zi Wei…</div>
-            ) : errors.ziwei ? (
-              <p className="text-red-400/70 text-sm">{errors.ziwei}</p>
-            ) : results.ziwei ? (() => {
-              const d = results.ziwei;
-              return (
-                <div>
-                  {d.main_star && (
-                    <div className="text-center mb-4 rounded-xl p-4" style={{ background: 'rgba(197,160,89,0.1)', border: '1px solid rgba(197,160,89,0.25)' }}>
-                      <p className="text-xs text-[#B8B0C8]/50 mb-1">Étoile principale</p>
-                      <p className="text-xl font-semibold" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#C5A059' }}>{d.main_star}</p>
-                    </div>
-                  )}
-                  {d.palaces && (
-                    <div className="grid grid-cols-3 gap-2">
-                      {(d.palaces || []).slice(0, 12).map((p, i) => (
-                        <div key={i} className="rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                          <p className="text-xs text-[#C5A059]">{p.name || `Palais ${i+1}`}</p>
-                          <p className="text-xs text-[#B8B0C8]/60 mt-0.5">{(p.stars || []).slice(0,2).join(', ')}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {d.summary && <p className="text-[#B8B0C8]/80 text-sm mt-4 font-light leading-relaxed">{d.summary}</p>}
-                </div>
-              );
-            })() : null}
-          </Section>
-        )}
-
-        {/* Feng Shui */}
-        {activeTab === 'fengshui' && (
-          <Section title="Feng Shui — Harmonie & Directions" icon="🧭" testId="chinese-fengshui">
-            <p className="text-[#B8B0C8]/60 text-sm mb-4 font-light">Votre numéro Kua, directions favorables et étoiles volantes.</p>
-            {loading.fengshui ? (
-              <div className="flex items-center gap-2 text-[#C5A059]/70 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Calcul Feng Shui…</div>
-            ) : errors.fengshui ? (
-              <p className="text-red-400/70 text-sm">{errors.fengshui}</p>
-            ) : results.fengshui ? (() => {
-              const d = results.fengshui;
-              return (
-                <div>
-                  {d.kua_number && (
-                    <div className="text-center mb-4 rounded-xl p-4" style={{ background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.25)' }}>
-                      <p className="text-xs text-[#60a5fa] mb-1">Numéro Kua</p>
-                      <p className="text-4xl font-bold text-[#60a5fa]">{d.kua_number}</p>
-                      {d.group && <p className="text-sm text-[#B8B0C8]/60 mt-1">Groupe {d.group}</p>}
-                    </div>
-                  )}
-                  {d.lucky_directions && (
-                    <div className="mb-4">
-                      <p className="text-xs text-[#B8B0C8]/50 mb-2">Directions favorables</p>
-                      <div className="flex flex-wrap gap-2">
-                        {d.lucky_directions.map((dir, i) => (
-                          <span key={i} className="px-3 py-1 rounded-full text-sm"
-                            style={{ background: 'rgba(74,222,128,0.15)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.3)' }}>
-                            {dir}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {d.unlucky_directions && (
-                    <div className="mb-4">
-                      <p className="text-xs text-[#B8B0C8]/50 mb-2">Directions défavorables</p>
-                      <div className="flex flex-wrap gap-2">
-                        {d.unlucky_directions.map((dir, i) => (
-                          <span key={i} className="px-3 py-1 rounded-full text-sm"
-                            style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.25)' }}>
-                            {dir}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {d.summary && <p className="text-[#B8B0C8]/80 text-sm font-light leading-relaxed">{d.summary}</p>}
                 </div>
               );
             })() : null}
