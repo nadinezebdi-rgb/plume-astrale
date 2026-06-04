@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar";
-import TrialBanner from "./components/TrialBanner";
+import TrialBanner from "./components/TrialBanner";import ErrorBoundary from "./components/ErrorBoundary";
 
 import Index from "./pages/Index";
 import Register from "./pages/Register";
@@ -64,6 +64,7 @@ function App() {
             <>
               <Navbar />
               <TrialBanner />
+            <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/inscription" element={<Register />} />
@@ -111,6 +112,7 @@ function App() {
                 <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
                 <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
               </Routes>
+            </ErrorBoundary>
             </>
           } />
         </Routes>
