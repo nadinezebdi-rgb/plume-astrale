@@ -119,6 +119,7 @@ export default function AstrologieChinoise() {
         {/* Zodiaque */}
         {activeTab === 'zodiac' && (
           <Section title="Animal du Zodiaque Chinois" icon="🐉" testId="chinese-zodiac">
+            <img src="/images/astrale/chinois-zodiaque.jpg" alt="Dragon du zodiaque chinois" style={{ width: '100%', maxHeight: '320px', objectFit: 'cover', borderRadius: '16px', marginBottom: '1.5rem' }} />
             {loading.zodiac ? (
               <div className="flex items-center gap-2 text-[#C5A059]/70 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Calcul de votre animal…</div>
             ) : errors.zodiac ? (
@@ -161,6 +162,7 @@ export default function AstrologieChinoise() {
         {/* Wu Xing */}
         {activeTab === 'elements' && (
           <Section title="Wu Xing — Les 5 Éléments" icon="🌊" testId="chinese-elements">
+            <img src="/images/astrale/chinois-wuxing.jpg" alt="Les cinq elements Wu Xing" style={{ width: '100%', maxHeight: '320px', objectFit: 'cover', borderRadius: '16px', marginBottom: '1.5rem' }} />
             <p className="text-[#B8B0C8]/60 text-sm mb-4 font-light">L'équilibre des 5 éléments dans votre thème natal selon la Médecine Traditionnelle Chinoise.</p>
             {loading.elements ? (
               <div className="flex items-center gap-2 text-[#C5A059]/70 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Analyse des éléments…</div>
@@ -201,6 +203,7 @@ export default function AstrologieChinoise() {
         {/* BaZi */}
         {activeTab === 'bazi' && (
           <Section title="BaZi — 4 Piliers du Destin" icon="☯️" testId="chinese-bazi">
+            <img src="/images/astrale/chinois-bazi.jpg" alt="Ciel etoile et zodiaque BaZi" style={{ width: '100%', maxHeight: '320px', objectFit: 'cover', borderRadius: '16px', marginBottom: '1.5rem' }} />
             <p className="text-[#B8B0C8]/60 text-sm mb-4 font-light">Année, Mois, Jour et Heure de naissance — les 4 colonnes qui révèlent votre destin.</p>
             {loading.bazi ? (
               <div className="flex items-center gap-2 text-[#C5A059]/70 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Calcul des 4 Piliers…</div>
