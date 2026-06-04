@@ -815,7 +815,6 @@ const MonCompte = () => {
                     { to: '/tarot-oui-non',          label: 'Tarot Oui / Non',       icon: '🃏' },
                     { to: '/astrologie-vedique',     label: 'Astrologie Védique',    icon: '🕉️' },
                     { to: '/astrologie-chinoise',    label: 'Astrologie Chinoise',   icon: '🐉' },
-                    { to: '/human-design',           label: 'Human Design',          icon: '✨' },
                     { to: '/insights',               label: 'Biorythmes & Insights', icon: '📈' },
                     { to: '/techniques-traditionnelles', label: 'Traditions',        icon: '🔮' },
                     { to: '/acheter-credits',        label: 'Acheter des crédits',   icon: '✦' },
