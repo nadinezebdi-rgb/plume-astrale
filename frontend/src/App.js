@@ -43,7 +43,6 @@ import RevolutionSolaire from "./pages/RevolutionSolaire";
 import LoveLanguages from "./pages/LoveLanguages";
 import AstrologieVedique from "./pages/AstrologieVedique";
 import AstrologieChinoise from "./pages/AstrologieChinoise";
-import HumanDesign from "./pages/HumanDesign";
 import TechniquesTraditionnelles from "./pages/TechniquesTraditionnelles";
 import Insights from "./pages/Insights";
 import Horairie from "./pages/Horairie";
@@ -105,7 +104,6 @@ function App() {
                 <Route path="/love-languages" element={<LoveLanguages />} />
                 <Route path="/astrologie-vedique" element={<AstrologieVedique />} />
                 <Route path="/astrologie-chinoise" element={<AstrologieChinoise />} />
-                <Route path="/human-design" element={<HumanDesign />} />
                 <Route path="/techniques-traditionnelles" element={<TechniquesTraditionnelles />} />
                 <Route path="/insights" element={<Insights />} />
                 <Route path="/horairie" element={<Horairie />} />
