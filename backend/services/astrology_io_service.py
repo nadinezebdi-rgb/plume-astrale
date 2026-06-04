@@ -86,6 +86,42 @@ async def _call(path: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         return None
 
 
+async def _get(path: str, params: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    """GET helper. Retourne data ou None si echec."""
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.get(
+                f'{BASE_URL}{path}',
+                headers={
+                    'Authorization': f'Bearer {_api_key()}',
+                    'Accept': 'application/json',
+                },
+                params=params or {},
+            )
+            if r.status_code != 200:
+                print(f'[astrology_io] GET {path} -> {r.status_code} : {r.text[:200]}')
+                return None
+            data = r.json()
+            if isinstance(data, dict) and data.get('success') is False:
+                return None
+            if isinstance(data, dict) and 'data' in data and data.get('success'):
+                return data['data']
+            return data
+    except Exception as e:
+        print(f'[astrology_io] GET {path} EXCEPTION : {e}')
+        return None
+
+
+_CHINESE_ANIMALS = ["rat", "ox", "tiger", "rabbit", "dragon", "snake", "horse", "goat", "monkey", "rooster", "dog", "pig"]
+
+def chinese_animal_for_year(year: int) -> str:
+    """Animal du zodiaque chinois pour une annee."""
+    try:
+        return _CHINESE_ANIMALS[(int(year) - 4) % 12]
+    except Exception:
+        return "rat"
+
+
 # ════════ HELPERS pour construire le Subject ════════
 
 def make_birth_data(
@@ -533,9 +569,13 @@ async def vedic_divisional_charts(birth_data: Dict[str, Any], name: str = 'Voyag
 
 async def chinese_zodiac(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Animal du zodiaque chinois + caractéristiques + compatibilités."""
-    return await _call('/chinese/zodiac', {
-        'subject': make_subject(name, birth_data),
-        'options': {'language': language},
+    year = (birth_data or {}).get('year')
+    if not year:
+        return None
+    animal = chinese_animal_for_year(year)
+    return await _get(f'/chinese/zodiac/{animal}', {
+        'year': int(year),
+        'language': language,
     })
 
 async def chinese_horoscope(birth_data: Dict[str, Any], name: str = 'Voyageur', period: str = 'daily', language: str = 'fr') -> Optional[Dict]:
@@ -566,9 +606,12 @@ async def chinese_compatibility(
 
 async def chinese_elements(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Wu Xing (5 éléments) + analyse MTC."""
-    return await _call('/chinese/elements', {
-        'subject': make_subject(name, birth_data),
-        'options': {'language': language},
+    year = (birth_data or {}).get('year')
+    if not year:
+        return None
+    return await _get(f'/chinese/elements/balance/{int(year)}', {
+        'include_predictions': True,
+        'language': language,
     })
 
 async def zi_wei_dou_shu(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
@@ -648,7 +691,7 @@ async def solar_arc_planets(birth_data: Dict[str, Any], name: str = 'Voyageur', 
 
 async def arabic_parts(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """97+ Parts arabes (Part de Fortune, Part d'Esprit, etc.)."""
-    return await _call('/traditional/arabic-parts', {
+    return await _call('/traditional/lots', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language, 'house_system': 'P'},
     })
@@ -677,8 +720,8 @@ async def sabian_symbols(birth_data: Dict[str, Any], name: str = 'Voyageur', lan
 async def planetary_hours(language: str = 'fr') -> Optional[Dict]:
     """Heures planétaires du jour (timing traditionnel)."""
     now = datetime.now(timezone.utc)
-    return await _call('/traditional/planetary-hours', {
-        'datetime': {
+    return await _call('/electional/planetary-hours', {
+        'datetime_location': {
             'year': now.year, 'month': now.month, 'day': now.day,
             'hour': now.hour, 'minute': now.minute,
             'latitude': 48.8566, 'longitude': 2.3522, 'timezone': 'Europe/Paris',
