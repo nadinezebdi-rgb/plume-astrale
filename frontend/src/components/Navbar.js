@@ -29,7 +29,6 @@ const NAV_ITEMS = [
     children: [
       { to: '/astrologie-vedique', label: '🕉️ Astrologie Védique' },
       { to: '/astrologie-chinoise', label: '🐉 Astrologie Chinoise' },
-      { to: '/human-design', label: '✨ Human Design' },
       { to: '/techniques-traditionnelles', label: '🔮 Techniques Traditionnelles' },
       { to: '/horairie', label: '⏳ Horairie (Ultra)' },
     ],
