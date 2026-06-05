@@ -252,29 +252,22 @@ export default function Admin() {
                 { key: 'prenom', label: 'Prenom' },
                 { key: 'created_at', label: 'Inscrit le', render: r => fmtDate(r.created_at) },
                 { key: 'credit_balance', label: 'Solde', render: r => <span style={{ color: '#C5A059', fontWeight: 600 }}>{r.credit_balance} cr</span> },
+                { key: 'premium_status', label: 'Premium', render: r => (
+                  r.premium_status === 'active'
+                    ? <span style={{ color: '#FDE68A', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <Crown className="w-3 h-3" strokeWidth={1.5} />
+                        {r.premium_until ? new Date(r.premium_until).toLocaleDateString('fr-FR') : 'Actif'}
+                      </span>
+                    : <span style={{ color: 'var(--pa-muted)' }}>—</span>
+                ) },
                 { key: 'total_spent_eur', label: 'Depense', render: r => fmtEur(r.total_spent_eur) },
                 { key: 'is_admin', label: 'Admin', render: r => r.is_admin ? <span style={{ color: '#7CB88A' }}>Oui</span> : '—' },
-                { key: 'birth_place', label: 'Lieu naissance' },
-                { key: 'actions', label: '', render: r => r.is_admin ? null : (
-                  <button
-                    onClick={async () => {
-                      if (!window.confirm(`Supprimer definitivement ${r.email} ?\n\nToutes ses donnees (compte, credits, chats, paiements) seront perdues. Cette action est irreversible.`)) return;
-                      try {
-                        await axios.delete(`${API}/api/admin/users/${r.id}`, { headers: { Authorization: `Bearer ${token}` } });
-                        loadUsers(search);
-                      } catch (err) {
-                        alert(err?.response?.data?.detail || 'Erreur lors de la suppression');
-                      }
-                    }}
-                    data-testid={`admin-delete-user-${r.id}`}
-                    title="Supprimer cet utilisateur"
-                    style={{
-                      background: 'transparent', border: '1px solid rgba(255,100,100,0.3)',
-                      borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: '#fca5a5',
-                    }}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  </button>
+                { key: 'actions', label: 'Actions', render: r => (
+                  <UserActions
+                    user={r}
+                    token={token}
+                    onChange={() => loadUsers(search)}
+                  />
                 ) },
               ]}
               rows={users}
@@ -497,5 +490,293 @@ function Field({ label, children, full }) {
       <span style={{ display: 'block', marginBottom: 6, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(197,160,89,0.85)', fontFamily: 'Cinzel, serif' }}>{label}</span>
       {children}
     </label>
+  );
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   USER ACTIONS — credits + premium + suppression
+   ════════════════════════════════════════════════════════════════════ */
+function UserActions({ user, token, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [creditsAmount, setCreditsAmount] = useState('');
+  const [premiumDays, setPremiumDays] = useState('');
+  const [msg, setMsg] = useState('');
+
+  const flash = (text, ok = true) => {
+    setMsg(text);
+    setTimeout(() => setMsg(''), 2500);
+  };
+
+  const handleAddCredits = async () => {
+    const amt = parseInt(creditsAmount, 10);
+    if (!amt || isNaN(amt)) { flash('Montant invalide', false); return; }
+    setBusy(true);
+    try {
+      const r = await axios.post(
+        `${API}/api/admin/users/${user.id}/credits`,
+        { amount: amt, description: amt > 0 ? 'Cadeau admin' : 'Retrait admin' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      flash(`Solde : ${r.data.new_balance} cr`);
+      setCreditsAmount('');
+      onChange?.();
+    } catch (e) {
+      flash(e?.response?.data?.detail || 'Erreur', false);
+    }
+    setBusy(false);
+  };
+
+  const handleGrantPremium = async (action, days = null) => {
+    setBusy(true);
+    try {
+      const body = action === 'grant_days' ? { action, days: parseInt(days, 10) } : { action };
+      await axios.post(`${API}/api/admin/users/${user.id}/premium`, body,
+        { headers: { Authorization: `Bearer ${token}` } });
+      flash(
+        action === 'revoke' ? 'Premium retire'
+          : action === 'grant_lifetime' ? 'Premium a vie active'
+          : `+${days} jours Premium`
+      );
+      setPremiumDays('');
+      onChange?.();
+    } catch (e) {
+      flash(e?.response?.data?.detail || 'Erreur', false);
+    }
+    setBusy(false);
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Supprimer definitivement ${user.email} ?\n\nToutes ses donnees seront perdues. Action irreversible.`)) return;
+    setBusy(true);
+    try {
+      await axios.delete(`${API}/api/admin/users/${user.id}`, { headers: { Authorization: `Bearer ${token}` } });
+      onChange?.();
+    } catch (e) {
+      flash(e?.response?.data?.detail || 'Erreur', false);
+    }
+    setBusy(false);
+  };
+
+  if (user.is_admin) {
+    return <span style={{ color: 'var(--pa-muted)', fontSize: 11 }}>—</span>;
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        data-testid={`admin-actions-btn-${user.id}`}
+        style={{
+          background: 'rgba(197,160,89,0.1)', border: '1px solid rgba(197,160,89,0.35)',
+          borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
+          color: '#C5A059', fontSize: 11, letterSpacing: '0.08em',
+          textTransform: 'uppercase', fontWeight: 600,
+        }}
+        title="Gerer cet utilisateur"
+      >
+        Gerer
+      </button>
+
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(6px)', zIndex: 50,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            data-testid={`admin-actions-modal-${user.id}`}
+            style={{
+              background: '#0F0C1F', border: '1px solid rgba(197,160,89,0.3)',
+              borderRadius: 16, padding: 24, maxWidth: 460, width: '100%',
+              maxHeight: '90vh', overflowY: 'auto',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pa-muted)', marginBottom: 4 }}>
+                  Gerer l'utilisateur
+                </div>
+                <div style={{ fontSize: 15, color: 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif' }}>
+                  {user.email}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--pa-muted)', marginTop: 4 }}>
+                  Solde actuel : <span style={{ color: '#C5A059', fontWeight: 600 }}>{user.credit_balance} cr</span>
+                  {' · '}
+                  Premium : <span style={{ color: user.premium_status === 'active' ? '#FDE68A' : 'var(--pa-muted)' }}>
+                    {user.premium_status === 'active' ? (user.premium_until ? `actif jusqu'au ${new Date(user.premium_until).toLocaleDateString('fr-FR')}` : 'actif') : 'inactif'}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--pa-muted)', cursor: 'pointer', fontSize: 20, padding: 0, lineHeight: 1 }}
+                aria-label="Fermer"
+              >×</button>
+            </div>
+
+            {msg && (
+              <div style={{ background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ADE80', padding: 10, borderRadius: 8, fontSize: 12, marginBottom: 16 }} data-testid="admin-action-msg">
+                {msg}
+              </div>
+            )}
+
+            {/* Section credits */}
+            <div style={{ marginBottom: 20, padding: 16, background: 'rgba(197,160,89,0.05)', border: '1px solid rgba(197,160,89,0.15)', borderRadius: 12 }}>
+              <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#C5A059', marginBottom: 10, fontWeight: 600 }}>
+                💰 Credits
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="number"
+                  value={creditsAmount}
+                  onChange={(e) => setCreditsAmount(e.target.value)}
+                  placeholder="ex: 5000 ou -100"
+                  data-testid="admin-credits-input"
+                  style={{
+                    flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(197,160,89,0.25)',
+                    borderRadius: 8, padding: '8px 12px', color: 'var(--pa-body)', fontSize: 13, outline: 'none',
+                  }}
+                />
+                <button
+                  onClick={handleAddCredits}
+                  disabled={busy || !creditsAmount}
+                  data-testid="admin-add-credits-btn"
+                  style={{
+                    background: '#C5A059', color: '#0C0918', border: 'none',
+                    borderRadius: 8, padding: '8px 16px', cursor: busy ? 'wait' : 'pointer',
+                    fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+                    fontWeight: 700, opacity: busy ? 0.6 : 1,
+                  }}
+                >
+                  Appliquer
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                {[100, 500, 1000, 5000].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setCreditsAmount(String(n))}
+                    style={{
+                      background: 'transparent', border: '1px solid rgba(197,160,89,0.3)',
+                      borderRadius: 12, padding: '3px 10px', color: '#C5A059', fontSize: 10,
+                      cursor: 'pointer', letterSpacing: '0.05em',
+                    }}
+                  >
+                    +{n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Section Premium */}
+            <div style={{ marginBottom: 20, padding: 16, background: 'rgba(253,230,138,0.04)', border: '1px solid rgba(253,230,138,0.15)', borderRadius: 12 }}>
+              <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#FDE68A', marginBottom: 10, fontWeight: 600 }}>
+                👑 Premium
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                {[7, 30, 90, 365].map(d => (
+                  <button
+                    key={d}
+                    onClick={() => handleGrantPremium('grant_days', d)}
+                    disabled={busy}
+                    data-testid={`admin-premium-${d}d-btn`}
+                    style={{
+                      background: 'rgba(253,230,138,0.08)', border: '1px solid rgba(253,230,138,0.3)',
+                      borderRadius: 8, padding: '8px', cursor: busy ? 'wait' : 'pointer',
+                      color: '#FDE68A', fontSize: 11, letterSpacing: '0.05em',
+                    }}
+                  >
+                    +{d} jours
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <input
+                  type="number"
+                  value={premiumDays}
+                  onChange={(e) => setPremiumDays(e.target.value)}
+                  placeholder="Nombre de jours personnalise"
+                  style={{
+                    flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(253,230,138,0.2)',
+                    borderRadius: 8, padding: '6px 12px', color: 'var(--pa-body)', fontSize: 12, outline: 'none',
+                  }}
+                />
+                <button
+                  onClick={() => handleGrantPremium('grant_days', premiumDays)}
+                  disabled={busy || !premiumDays}
+                  style={{
+                    background: 'rgba(253,230,138,0.15)', border: '1px solid rgba(253,230,138,0.4)',
+                    borderRadius: 8, padding: '6px 14px', cursor: 'pointer',
+                    color: '#FDE68A', fontSize: 11, fontWeight: 600,
+                  }}
+                >
+                  OK
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => handleGrantPremium('grant_lifetime')}
+                  disabled={busy}
+                  data-testid="admin-premium-lifetime-btn"
+                  style={{
+                    flex: 1, background: 'linear-gradient(135deg, #FDE68A, #C5A059)',
+                    color: '#0C0918', border: 'none', borderRadius: 8, padding: '10px',
+                    cursor: 'pointer', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                  }}
+                >
+                  Premium a vie
+                </button>
+                {user.premium_status === 'active' && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Retirer le Premium de cet utilisateur ?')) {
+                        handleGrantPremium('revoke');
+                      }
+                    }}
+                    disabled={busy}
+                    data-testid="admin-premium-revoke-btn"
+                    style={{
+                      background: 'transparent', border: '1px solid rgba(255,100,100,0.4)',
+                      borderRadius: 8, padding: '10px 14px', cursor: 'pointer',
+                      color: '#fca5a5', fontSize: 11, letterSpacing: '0.08em',
+                    }}
+                  >
+                    Retirer
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Section suppression */}
+            <div style={{ padding: 16, background: 'rgba(255,100,100,0.04)', border: '1px solid rgba(255,100,100,0.15)', borderRadius: 12 }}>
+              <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fca5a5', marginBottom: 10, fontWeight: 600 }}>
+                ⚠️ Zone dangereuse
+              </div>
+              <button
+                onClick={handleDelete}
+                disabled={busy}
+                data-testid={`admin-delete-user-${user.id}`}
+                style={{
+                  background: 'transparent', border: '1px solid rgba(255,100,100,0.4)',
+                  borderRadius: 8, padding: '8px 14px', cursor: 'pointer',
+                  color: '#fca5a5', fontSize: 11, letterSpacing: '0.08em',
+                  textTransform: 'uppercase', fontWeight: 600,
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                }}
+              >
+                <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+                Supprimer le compte
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
