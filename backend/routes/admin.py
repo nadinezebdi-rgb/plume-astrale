@@ -126,6 +126,8 @@ async def admin_users(
             'birth_date': p.get('birth_date'),
             'birth_place': p.get('birth_place'),
             'is_admin': p.get('is_admin', False),
+            'premium_status': p.get('premium_status', 'free'),
+            'premium_until': p.get('premium_until'),
             'created_at': p.get('created_at'),
             'credit_balance': w.get('credit_balance', 0),
             'free_tarot_used': w.get('free_tarot_used', False),
@@ -133,6 +135,112 @@ async def admin_users(
         })
 
     return {'users': users, 'total': total, 'page': page, 'page_size': page_size}
+
+
+# ─────────────────────────────────────────────────────────────────
+# Admin actions on a single user : credits & premium
+# ─────────────────────────────────────────────────────────────────
+from pydantic import BaseModel
+from typing import Literal
+
+
+class AdminCreditsRequest(BaseModel):
+    amount: int  # positif = add, negatif = retirer
+    description: Optional[str] = 'Ajustement admin'
+
+
+@router.post('/users/{user_id}/credits')
+async def admin_adjust_credits(
+    user_id: str,
+    payload: AdminCreditsRequest,
+    _admin: dict = Depends(require_admin),
+):
+    """Ajoute (ou retire si negatif) des credits a un utilisateur."""
+    if payload.amount == 0:
+        raise HTTPException(status_code=400, detail='Le montant ne peut pas etre 0')
+
+    sb = get_admin_client()
+    w = sb.table('wallets').select('credit_balance').eq('user_id', user_id).maybe_single().execute()
+    current = int((w.data or {}).get('credit_balance', 0)) if w and w.data else 0
+    new_balance = max(0, current + payload.amount)
+
+    if w and w.data:
+        sb.table('wallets').update({'credit_balance': new_balance}).eq('user_id', user_id).execute()
+    else:
+        sb.table('wallets').insert({'user_id': user_id, 'credit_balance': new_balance}).execute()
+
+    sb.table('credit_transactions').insert({
+        'user_id': user_id,
+        'tx_type': 'admin_gift' if payload.amount > 0 else 'admin_deduction',
+        'amount': payload.amount,
+        'description': payload.description or 'Ajustement admin',
+    }).execute()
+
+    return {
+        'success': True,
+        'user_id': user_id,
+        'previous_balance': current,
+        'new_balance': new_balance,
+        'delta': payload.amount,
+    }
+
+
+class AdminPremiumRequest(BaseModel):
+    action: Literal['grant_days', 'grant_lifetime', 'revoke']
+    days: Optional[int] = None  # requis si action == grant_days
+
+
+@router.post('/users/{user_id}/premium')
+async def admin_set_premium(
+    user_id: str,
+    payload: AdminPremiumRequest,
+    _admin: dict = Depends(require_admin),
+):
+    """Gere le Premium d'un utilisateur :
+    - grant_days N : ajoute N jours a partir d'aujourd'hui ou prolonge si deja Premium
+    - grant_lifetime : Premium a vie (jusqu'en 2099)
+    - revoke : retire le Premium immediatement
+    """
+    sb = get_admin_client()
+
+    if payload.action == 'revoke':
+        sb.table('profiles').update({
+            'premium_status': 'free',
+            'premium_until': None,
+        }).eq('id', user_id).execute()
+        return {'success': True, 'user_id': user_id, 'premium_status': 'free', 'premium_until': None}
+
+    if payload.action == 'grant_lifetime':
+        until_iso = '2099-12-31T23:59:59+00:00'
+    elif payload.action == 'grant_days':
+        if not payload.days or payload.days <= 0:
+            raise HTTPException(status_code=400, detail="Le nombre de jours doit etre > 0")
+        # Si deja Premium actif futur, on prolonge ; sinon on demarre maintenant
+        prof = sb.table('profiles').select('premium_until').eq('id', user_id).maybe_single().execute()
+        base = datetime.now(timezone.utc)
+        if prof and prof.data and prof.data.get('premium_until'):
+            try:
+                current_until = datetime.fromisoformat(prof.data['premium_until'].replace('Z', '+00:00'))
+                if current_until > base:
+                    base = current_until
+            except Exception:
+                pass
+        until_iso = (base + timedelta(days=int(payload.days))).isoformat()
+    else:
+        raise HTTPException(status_code=400, detail='Action invalide')
+
+    sb.table('profiles').update({
+        'premium_status': 'active',
+        'premium_until': until_iso,
+    }).eq('id', user_id).execute()
+
+    return {
+        'success': True,
+        'user_id': user_id,
+        'premium_status': 'active',
+        'premium_until': until_iso,
+        'action': payload.action,
+    }
 
 
 @router.get('/payments')
