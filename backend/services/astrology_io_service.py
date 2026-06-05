@@ -552,14 +552,14 @@ async def vedic_dasha(birth_data: Dict[str, Any], name: str = 'Voyageur', langua
 
 async def vedic_navamsa(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Chart Navamsa (D9) — mariage, âme, partenaire idéal."""
-    return await _call('/vedic/navamsa-calculator', {
+    return await _call('/vedic/divisional-chart', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language, 'ayanamsa': 'lahiri'},
     })
 
 async def vedic_divisional_charts(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """16 charts divisionnels (D1-D60) en un seul appel."""
-    return await _call('/vedic/divisional-charts', {
+    return await _call('/vedic/divisional-chart', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language, 'ayanamsa': 'lahiri'},
     })
@@ -698,7 +698,7 @@ async def arabic_parts(birth_data: Dict[str, Any], name: str = 'Voyageur', langu
 
 async def fixed_stars(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """50+ Étoiles fixes avec influences sur les planètes natales."""
-    return await _call('/traditional/fixed-stars', {
+    return await _call('/fixed-stars/positions', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
@@ -712,7 +712,7 @@ async def dignities(birth_data: Dict[str, Any], name: str = 'Voyageur', language
 
 async def sabian_symbols(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """360 Symboles Sabians — image symbolique pour chaque degré."""
-    return await _call('/traditional/sabian-symbols', {
+    return await _call('/data/sabian-symbols', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
@@ -745,14 +745,14 @@ async def asteroids(birth_data: Dict[str, Any], name: str = 'Voyageur', language
 
 async def eclipse_data(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Éclipses solaires et lunaires proches + impact sur le thème natal."""
-    return await _call('/traditional/eclipses', {
+    return await _call('/eclipses/natal-check', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
 
 async def draconic_chart(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Chart draconique — thème de l'âme / karmique."""
-    return await _call('/traditional/draconic', {
+    return await _call('/charts/draconic', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
@@ -766,7 +766,7 @@ async def human_design(birth_data: Dict[str, Any], name: str = 'Voyageur', langu
 
 async def kabbalah(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Kabbale — Sephiroth, 72 anges, gématrie, corrections de l'âme."""
-    return await _call('/traditional/kabbalah', {
+    return await _call('/kabbalah/tree-of-life-chart', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
@@ -881,7 +881,7 @@ async def kabbalah_numerology(birth_data: Dict[str, Any], name_str: str = 'Voyag
 async def biorhythms(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Biorythmes (physique, émotionnel, intellectuel, intuitif)."""
     now = datetime.now(timezone.utc)
-    return await _call('/insights/biorhythms', {
+    return await _call('/insights/wellness/biorhythms', {
         'subject': make_subject(name, birth_data),
         'target_date': {'year': now.year, 'month': now.month, 'day': now.day},
         'options': {'language': language},
@@ -917,7 +917,7 @@ async def archetypes_jungian(birth_data: Dict[str, Any], name: str = 'Voyageur',
 
 async def personality_analysis(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Analyse de personnalité astrologique (traits, comportements, psychologie)."""
-    return await _call('/insights/personality', {
+    return await _call('/analysis/psychological', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
