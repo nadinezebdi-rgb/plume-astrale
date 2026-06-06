@@ -183,6 +183,7 @@ export const AuthProvider = ({ children }) => {
     useCredits,
     setCreditBalance,
     isAuthenticated: !!user,
+        setUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
