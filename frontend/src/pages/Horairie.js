@@ -15,8 +15,7 @@ const EXAMPLE_QUESTIONS = [
   "Dois-je accepter cette offre ?",
 ];
 
-export default function Horairie() {
-  const { isAuthenticated, token } = useAuth();
+h  const { isAuthenticated, token } = useAuth();
   const navigate = useNavigate();
   const [question, setQuestion] = useState('');
   const [result, setResult] = useState(null);
@@ -30,12 +29,25 @@ export default function Horairie() {
     try {
       const res = await axios.post(
         `${API_URL}/api/astrology/v3/horary/ask`,
-        { question: q },
+      { 
+                      question: q,
+                      question_time: {
+                                        year: new Date().getFullYear(),
+                                        month: new Date().getMonth() + 1,
+                                        day: new Date().getDate(),
+                                        hour: new Date().getHours(),
+                                        minute: new Date().getMinutes(),
+                                        second: 0,
+                                        latitude: 48.8566,
+                                        longitude: 2.3522,
+                                        timezone: "Europe/Paris"
+                      }
+      },h
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setResult(res.data);
     } catch (e) {
-      setError(e.response?.data?.detail || 'Erreur lors de la consultation horaire.');
+      setError(e.response?.data?.detail || 'Erreur lors de la  consultation.');
     }
     setLoading(false);
   };
@@ -58,7 +70,7 @@ export default function Horairie() {
 
         <PageHero
           image="/images/astrale/image-astrale-4.jpg"
-          title="Horairie"
+          title="LaQuestionDuMoment"
           subtitle="L'art divinatoire le plus précis — posez une question"
         />
 
@@ -68,7 +80,7 @@ export default function Horairie() {
             Votre question
           </h2>
           <p className="text-[#B8B0C8]/60 text-xs mb-4 font-light">
-            Posez une question précise sur un sujet qui vous tient à cœur. L'horairie répond aux questions binaires ou de timing.
+            Posez une question précise sur un sujet qui vous tient à cœur. L'LaQuestionDuMoment répond aux questions binaires ou de timing.
           </p>
           <textarea
             value={question}
@@ -132,7 +144,7 @@ export default function Horairie() {
               <div className="flex items-center gap-2 mb-4">
                 <Star className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} />
                 <h2 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-                  Réponse de l'horairie
+                  Réponse de l'LaQuestionDuMoment
                 </h2>
               </div>
 
@@ -199,7 +211,7 @@ export default function Horairie() {
 
             {/* Avertissement */}
             <p className="text-center text-[#B8B0C8]/30 text-xs">
-              L'horairie est un outil de guidance symbolique — elle éclaire sans dicter.
+              L'LaQuestionDuMoment est un outil de guidance symbolique — elle éclaire sans dicter.
             </p>
           </div>
         )}
