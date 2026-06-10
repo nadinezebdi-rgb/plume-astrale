@@ -15,7 +15,7 @@ const EXAMPLE_QUESTIONS = [
   "Dois-je accepter cette offre ?",
 ];
 
-h  const { isAuthenticated, token } = useAuth();
+ const { isAuthenticated, token } = useAuth();
   const navigate = useNavigate();
   const [question, setQuestion] = useState('');
   const [result, setResult] = useState(null);
