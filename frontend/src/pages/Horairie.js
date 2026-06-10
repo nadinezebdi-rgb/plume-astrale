@@ -15,7 +15,8 @@ const EXAMPLE_QUESTIONS = [
   "Dois-je accepter cette offre ?",
 ];
 
- const { isAuthenticated, token } = useAuth();
+export default function Horairie() {
+  const { isAuthenticated, token } = useAuth();
   const navigate = useNavigate();
   const [question, setQuestion] = useState('');
   const [result, setResult] = useState(null);
@@ -60,7 +61,7 @@ const EXAMPLE_QUESTIONS = [
       </div>
     </div>
   );
-
+}
   return (
     <div className="min-h-screen" style={{ background: '#0C0918' }}>
       <div className="max-w-2xl mx-auto px-4 py-8">
