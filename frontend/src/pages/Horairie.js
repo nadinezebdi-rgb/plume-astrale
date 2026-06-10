@@ -42,7 +42,7 @@ const EXAMPLE_QUESTIONS = [
                                         longitude: 2.3522,
                                         timezone: "Europe/Paris"
                       }
-      },h
+      },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setResult(res.data);
