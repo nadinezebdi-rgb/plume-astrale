@@ -49,6 +49,10 @@ import Horairie from "./pages/Horairie";
 
 import MotDePasseOublie from "./pages/MotDePasseOublie";
 import ReinitialiserMotDePasse from "./pages/ReinitialiserMotDePasse";
+import NotreCadre from "./pages/NotreCadre";
+import CercleSales from "./pages/CercleSales";
+import Desabonnement from "./pages/Desabonnement";
+import PremiumStickyCTA from "./components/PremiumStickyCTA";
 
 function App() {
   return (
@@ -84,7 +88,8 @@ function App() {
                 <Route path="/compatibilite" element={<Compatibilite />} />
                 <Route path="/compatibilite-amoureuse" element={<Compatibilite2 />} />
                 <Route path="/quotidien" element={<Quotidien />} />
-                <Route path="/cercle" element={<Cercle />} />
+                <Route path="/cercle-quotidien" element={<Cercle />} />
+                <Route path="/cercle-dashboard" element={<Cercle />} />
                 <Route path="/premium" element={<Premium />} />
                 <Route path="/premium/decouvrir" element={<PremiumLanding />} />
                 <Route path="/premium/experience" element={<PremiumExperience />} />
@@ -109,9 +114,15 @@ function App() {
                 <Route path="/horairie" element={<Horairie />} />
                 <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
                 <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
+                <Route path="/notre-cadre" element={<NotreCadre />} />
+                <Route path="/cercle" element={<CercleSales />} />
+                <Route path="/synastrie" element={<Compatibilite2 />} />
+                <Route path="/desabonnement" element={<Desabonnement />} />
               </Routes>
-            </ErrorBoundary>
-            </>
+ </ErrorBoundary>
+            <PremiumStickyCTA />
+                
+                  </>
           } />
         </Routes>
       </BrowserRouter>

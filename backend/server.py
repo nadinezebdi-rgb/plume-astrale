@@ -32,6 +32,7 @@ from services.energy_service import get_energy_today
 from services import premium_subscription
 from routes.admin import router as admin_router
 from routes.astrology_v3 import router as astrology_v3_router
+from routes.oracle import router as oracle_router
 from routes.astrology_v3_extended import router as astrology_v3_ext_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
@@ -49,6 +50,7 @@ app = FastAPI(title='Plume Astrale API')
 api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
 api_router.include_router(astrology_v3_router)
+api_router.include_router(oracle_router)
 api_router.include_router(astrology_v3_ext_router)
 
 
@@ -1163,6 +1165,12 @@ app.add_middleware(
 
 @app.get('/health')
 async def health_check():
+    return {'status': 'healthy', 'service': 'plume-astrale'}
+
+
+@app.get('/api/health')
+async def api_health_check():
+    """Mirror of /health under /api for Kubernetes ingress probes."""
     return {'status': 'healthy', 'service': 'plume-astrale'}
 
 

@@ -6,43 +6,48 @@ import { useAuth } from '@/context/AuthContext';
 const NAV_ITEMS = [
   { label: 'Accueil', to: '/' },
   {
-    label: 'Tirages',
-    children: [
-      { to: '/tarot-oui-non', label: 'Tarot Oui / Non' },
-      { to: '/tarologie', label: 'Tarologie' },
-      { to: '/compatibilite', label: 'Compatibilité' },
-      { to: '/compatibilite-amoureuse', label: 'Compatibilité PDF' },
-      { to: '/love-languages', label: "Langages d'Amour" },
+    label: 'Décoder ma période',
+    mega: true,
+    columns: [
+      {
+        title: 'Au quotidien',
+        children: [
+          { to: '/energie', label: "Mon énergie du jour" },
+          { to: '/horoscope', label: 'Horoscope' },
+          { to: '/quotidien', label: 'Biorythmes & bien-être' },
+          { to: '/tarot-oui-non', label: 'Tarot Oui / Non' },
+          { to: '/tarologie', label: 'Tarologie' },
+        ],
+      },
+      {
+        title: 'Mon thème',
+        children: [
+          { to: '/formulaire', label: 'Mon thème natal' },
+          { to: '/numerologie', label: 'Numérologie' },
+          { to: '/karma-destin', label: 'Karma & Destin' },
+          { to: '/revolution-solaire', label: 'Révolution solaire' },
+        ],
+      },
+      {
+        title: 'Relations',
+        children: [
+          { to: '/compatibilite', label: 'Compatibilité' },
+          { to: '/love-languages', label: "Langages d'amour" },
+          { to: '/synastrie', label: 'Synastrie — 49€', highlight: true },
+        ],
+      },
+      {
+        title: 'Explorations',
+        children: [
+          { to: '/consultation', label: 'Chat avec Plume' },
+          { to: '/oracle', label: 'Oracle' },
+          { to: '/mon-rituel', label: 'Mon rituel' },
+        ],
+      },
     ],
   },
-  {
-    label: 'Thème Astral',
-    children: [
-      { to: '/formulaire', label: 'Mon Thème Natal' },
-      { to: '/numerologie', label: 'Numérologie' },
-      { to: '/karma-destin', label: 'Karma & Destin' },
-      { to: '/revolution-solaire', label: 'Révolution Solaire' },
-    ],
-  },
-  {
-    label: 'Astrologies',
-    children: [
-      { to: '/astrologie-vedique', label: '🕉️ Astrologie Védique' },
-      { to: '/astrologie-chinoise', label: '🐉 Astrologie Chinoise' },
-      { to: '/techniques-traditionnelles', label: '🔮 Techniques Traditionnelles' },
-      { to: '/horairie', label: '⏳ Horairie (Ultra)' },
-    ],
-  },
-  {
-    label: 'Insights',
-    children: [
-      { to: '/insights', label: '📈 Biorythmes & Bien-être' },
-      { to: '/energie', label: '⚡ Mon Énergie du Jour' },
-      { to: '/horoscope', label: '🌟 Horoscope' },
-    ],
-  },
-  { label: 'Mon Rituel', to: '/mon-rituel' },
-  { label: 'Consultation', to: '/consultation' },
+  { label: 'Le Cercle', to: '/cercle', subtitle: '14,90€/mois' },
+  { label: 'Notre cadre', to: '/notre-cadre' },
 ];
 
 const dropdownStyle = {
@@ -96,7 +101,7 @@ const DropdownMenu = ({ item, isActive }) => {
           strokeWidth={1.5}
         />
       </button>
-      {open && (
+      {open && !item.mega && (
         <div style={Object.assign({}, dropdownStyle, {
           position: 'absolute', top: '100%', left: '50%',
           transform: 'translateX(-50%)', marginTop: 8,
@@ -113,6 +118,46 @@ const DropdownMenu = ({ item, isActive }) => {
               >
                 {child.label}
               </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {open && item.mega && (
+        <div style={Object.assign({}, dropdownStyle, {
+          position: 'absolute', top: '100%', left: '50%',
+          transform: 'translateX(-50%)', marginTop: 8,
+          padding: '24px 28px', borderRadius: 16, zIndex: 50,
+          width: 760, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24,
+        })} data-testid="mega-menu">
+          {item.columns.map(function(col) {
+            return (
+              <div key={col.title}>
+                <p style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(212,180,106,0.55)', fontFamily: 'Cinzel, serif', marginBottom: 12, fontWeight: 500, borderBottom: '1px solid rgba(212,180,106,0.15)', paddingBottom: 8 }}>
+                  {col.title}
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {col.children.map(function(c) {
+                    return (
+                      <Link key={c.to} to={c.to}
+                        style={{
+                          fontSize: 12, color: c.highlight ? '#F4D98C' : 'rgba(212,180,106,0.75)',
+                          textDecoration: 'none', padding: '6px 0',
+                          fontWeight: c.highlight ? 500 : 400,
+                          display: 'flex', alignItems: 'center', gap: 6,
+                          transition: 'color 0.2s',
+                        }}
+                        onMouseEnter={function(e) { e.currentTarget.style.color = '#F4D98C'; }}
+                        onMouseLeave={function(e) { e.currentTarget.style.color = c.highlight ? '#F4D98C' : 'rgba(212,180,106,0.75)'; }}
+                        data-testid={'mega-link-' + c.to.replace(/[^a-z0-9]/gi, '-')}
+                      >
+                        {c.highlight && <span style={{ color: '#F4D98C' }}>✦</span>}
+                        {c.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </div>
@@ -251,6 +296,11 @@ const Navbar = () => {
   var handleLogout = function() { logout(); navigate('/'); };
 
   var isParentActive = function(item) {
+    if (item.mega && item.columns) {
+      return item.columns.some(function(col) {
+        return col.children.some(function(c) { return location.pathname === c.to; });
+      });
+    }
     if (!item.children) return location.pathname === item.to;
     return item.children.some(function(c) { return location.pathname === c.to; });
   };
@@ -277,17 +327,36 @@ const Navbar = () => {
           <div style={{ display: 'none' }} className="desktop-nav">
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginLeft: 24 }}>
               {NAV_ITEMS.map(function(item) {
-                return item.children ? (
+                return (item.children || item.mega) ? (
                   <DropdownMenu key={item.label} item={item} isActive={isParentActive(item)} />
                 ) : (
                   <Link key={item.to} to={item.to}
                     style={{ fontSize: 12, letterSpacing: '0.07em', textTransform: 'uppercase', textDecoration: 'none', whiteSpace: 'nowrap', fontWeight: location.pathname === item.to ? 500 : 400, color: location.pathname === item.to ? '#D4B46A' : 'rgba(212,180,106,0.6)' }}
                     onMouseEnter={function(e) { if (location.pathname !== item.to) e.currentTarget.style.color = '#F4D98C'; }}
-                    onMouseLeave={function(e) { if (location.pathname !== item.to) e.currentTarget.style.color = 'rgba(212,180,106,0.6)'; }}>
+                    onMouseLeave={function(e) { if (location.pathname !== item.to) e.currentTarget.style.color = 'rgba(212,180,106,0.6)'; }}
+                    data-testid={'nav-' + item.label.toLowerCase().replace(/\s+/g, '-')}>
                     {item.label}
                   </Link>
                 );
               })}
+              <div style={{ width: 1, height: 16, background: '#D4B46A', opacity: 0.2 }} />
+
+              {/* CTA Premium sticky doré — seul element plein */}
+              <Link
+                to="/premium"
+                data-testid="navbar-premium-cta"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  textDecoration: 'none', padding: '8px 16px', borderRadius: 999,
+                  background: 'linear-gradient(135deg, #D4B46A 0%, #C5A059 100%)',
+                  color: '#0C0918', fontWeight: 700,
+                  boxShadow: '0 4px 18px rgba(212,180,106,0.35)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                ✦ L&apos;Expérience Premium
+              </Link>
               <div style={{ width: 1, height: 16, background: '#D4B46A', opacity: 0.2 }} />
               {isAuthenticated ? (
                 <MonCompteDropdown creditBalance={creditBalance} handleLogout={handleLogout} isAdmin={user?.is_admin} />
@@ -320,33 +389,61 @@ const Navbar = () => {
           <div style={{ padding: '20px 0', borderTop: '1px solid rgba(196,168,130,0.1)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {NAV_ITEMS.map(function(item) {
+                const isExpandable = item.children || item.mega;
                 return (
                   <div key={item.label || item.to}>
-                    {item.children ? (
+                    {isExpandable ? (
                       <div>
                         <button
                           onClick={function() { setMobileExpanded(mobileExpanded === item.label ? null : item.label); }}
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(212,180,106,0.6)' }}>
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(212,180,106,0.6)' }}
+                          data-testid={'mobile-nav-' + item.label.toLowerCase().replace(/\s+/g, '-')}>
                           {item.label}
                           <ChevronDown style={{ width: 16, height: 16, transform: mobileExpanded === item.label ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} strokeWidth={1.5} />
                         </button>
                         {mobileExpanded === item.label && (
-                          <div style={{ paddingLeft: 16, paddingBottom: 4 }}>
-                            {item.children.map(function(child) {
-                              return (
-                                <Link key={child.to} to={child.to}
-                                  style={{ display: 'block', fontSize: 12, letterSpacing: '0.06em', padding: '8px 0', color: 'rgba(212,180,106,0.5)', textDecoration: 'none' }}>
-                                  {child.label}
-                                </Link>
-                              );
-                            })}
+                          <div style={{ paddingLeft: 16, paddingBottom: 8 }}>
+                            {item.mega ? (
+                              item.columns.map(function(col) {
+                                return (
+                                  <div key={col.title} style={{ marginBottom: 10 }}>
+                                    <p style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(212,180,106,0.45)', fontFamily: 'Cinzel, serif', margin: '8px 0 4px', fontWeight: 500 }}>
+                                      {col.title}
+                                    </p>
+                                    {col.children.map(function(c) {
+                                      return (
+                                        <Link key={c.to} to={c.to}
+                                          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, letterSpacing: '0.06em', padding: '7px 0', color: c.highlight ? '#F4D98C' : 'rgba(212,180,106,0.6)', textDecoration: 'none', fontWeight: c.highlight ? 500 : 400 }}>
+                                          {c.highlight && <span>✦</span>}
+                                          {c.label}
+                                        </Link>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              item.children.map(function(child) {
+                                return (
+                                  <Link key={child.to} to={child.to}
+                                    style={{ display: 'block', fontSize: 12, letterSpacing: '0.06em', padding: '8px 0', color: 'rgba(212,180,106,0.5)', textDecoration: 'none' }}>
+                                    {child.label}
+                                  </Link>
+                                );
+                              })
+                            )}
                           </div>
                         )}
                       </div>
                     ) : (
                       <Link to={item.to}
-                        style={{ display: 'block', fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '12px 0', color: location.pathname === item.to ? '#D4B46A' : 'rgba(212,180,106,0.5)', textDecoration: 'none', fontWeight: location.pathname === item.to ? 500 : 400 }}>
+                        style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '12px 0', color: location.pathname === item.to ? '#D4B46A' : 'rgba(212,180,106,0.5)', textDecoration: 'none', fontWeight: location.pathname === item.to ? 500 : 400 }}>
                         {item.label}
+                        {item.subtitle && (
+                          <span style={{ fontSize: 10, color: 'rgba(212,180,106,0.45)', letterSpacing: '0.05em', textTransform: 'none' }}>
+                            — {item.subtitle}
+                          </span>
+                        )}
                       </Link>
                     )}
                   </div>

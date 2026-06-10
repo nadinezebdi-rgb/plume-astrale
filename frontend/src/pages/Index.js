@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/SEO';
+import HeroOracle from '../components/HeroOracle';
 import EnergyToday from '../components/EnergyToday';
 import SocialProof from '../components/SocialProof';
 import NatalCompletionPrompt from '../components/NatalCompletionPrompt';
@@ -399,6 +400,13 @@ const Index = () => {
           <div className="w-px h-12 animate-pulse" style={{ background: 'linear-gradient(180deg, rgba(167,139,250,0.4), transparent)' }} />
         </div>
       </section>
+
+      {/* ═══════ HERO ORACLE — Tunnel d'acquisition gratuit (NEW Phase 1) ═══════ */}
+      {!isAuthenticated && (
+        <section className="relative py-16 px-4 z-10" data-testid="home-hero-oracle">
+          <HeroOracle />
+        </section>
+      )}
 
       {/* ═══════ SECTION — ENERGIE ACTUELLE (cœur du produit) ═══════ */}
       <section className="relative py-20 px-6 z-10" data-testid="home-energy-section">
