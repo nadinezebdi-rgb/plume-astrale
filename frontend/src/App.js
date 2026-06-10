@@ -45,6 +45,7 @@ import MotDePasseOublie from "./pages/MotDePasseOublie";
 import ReinitialiserMotDePasse from "./pages/ReinitialiserMotDePasse";
 import NotreCadre from "./pages/NotreCadre";
 import CercleSales from "./pages/CercleSales";
+import Desabonnement from "./pages/Desabonnement";
 import PremiumStickyCTA from "./components/PremiumStickyCTA";
 
 function App() {
@@ -104,6 +105,7 @@ function App() {
                 <Route path="/notre-cadre" element={<NotreCadre />} />
                 <Route path="/cercle" element={<CercleSales />} />
                 <Route path="/synastrie" element={<Compatibilite2 />} />
+                <Route path="/desabonnement" element={<Desabonnement />} />
               </Routes>
               <PremiumStickyCTA />
             </>

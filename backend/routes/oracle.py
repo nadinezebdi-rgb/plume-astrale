@@ -177,21 +177,94 @@ async def oracle_teaser(payload: TeaserRequest):
 
 @router.post('/capture-email')
 async def oracle_capture_email(payload: EmailCaptureRequest):
-    """Enregistre l'email dans la table oracle_leads pour la sequence mail."""
+    """Enregistre l'email dans la table oracle_leads pour la sequence mail
+    ET envoie immediatement E1 (livraison teaser) via Resend."""
     email = (payload.email or '').strip().lower()
     if not email or '@' not in email:
         raise HTTPException(status_code=400, detail='Email invalide')
 
+    first_name = (payload.first_name or '').strip()[:80] or 'Voyageur'
+    birth_date = payload.birth_date
+
+    # 1) Upsert en base
     try:
         sb = get_admin_client()
         sb.table('oracle_leads').upsert({
             'email': email,
-            'first_name': (payload.first_name or '').strip()[:80] or None,
-            'birth_date': payload.birth_date or None,
+            'first_name': first_name if first_name != 'Voyageur' else None,
+            'birth_date': birth_date,
             'source': 'hero_oracle',
         }, on_conflict='email').execute()
     except Exception as e:
-        # Table peut ne pas exister encore - log mais on ne casse pas le funnel
-        print(f'[oracle.capture] {e}')
+        print(f'[oracle.capture] supabase upsert: {e}')
+
+    # 2) Calcul du teaser pour l'inclure dans l'email
+    lifepath_data = {'number': 0, 'archetype': "L'Âme libre"}
+    moon_data = {'phase': '', 'message': ''}
+    tarot_data = {'card_name': '', 'answer': ''}
+    if birth_date:
+        try:
+            d = datetime.strptime(birth_date, '%Y-%m-%d')
+            nb = calculate_chemin_de_vie(d.year, d.month, d.day)
+            lifepath_data = {
+                'number': nb,
+                'archetype': _LIFE_PATH_ARCHETYPES.get(nb, "L'Âme libre"),
+            }
+            moon_data = _moon_phase_simple(birth_date)
+            t = _tarot_oui_non(first_name, birth_date)
+            tarot_data = {'card_name': t['name'], 'answer': t['answer']}
+        except Exception as e:
+            print(f'[oracle.capture] teaser recompute: {e}')
+
+    # 3) Envoi E1 (Resend) en arriere-plan
+    try:
+        from services.resend_service import send_e1_teaser_now
+        await send_e1_teaser_now(email, first_name, lifepath_data, moon_data, tarot_data)
+    except Exception as e:
+        print(f'[oracle.capture] resend E1: {e}')
 
     return {'success': True, 'email': email}
+
+
+@router.post('/run-sequence')
+async def oracle_run_sequence():
+    """Endpoint declenche par un cron externe (Vercel cron, Railway cron, ou GitHub Actions).
+    Parcourt tous les leads non-desabonnes et envoie l'email suivant si la date est atteinte.
+    Idempotent : ne renvoie pas un email deja envoye.
+    """
+    try:
+        from services.resend_service import process_sequence_step
+        sb = get_admin_client()
+        # On limite a 200 leads par run pour eviter les surcharges
+        res = sb.table('oracle_leads').select('*')\
+            .is_('unsubscribed_at', 'null')\
+            .lt('email_sequence_step', 6)\
+            .limit(200)\
+            .execute()
+        leads = res.data or []
+        sent = 0
+        for lead in leads:
+            try:
+                new_step = await process_sequence_step(lead)
+                if new_step > 0:
+                    sent += 1
+            except Exception as e:
+                print(f'[oracle.run-sequence] lead {lead.get("email")}: {e}')
+        return {'success': True, 'processed': len(leads), 'sent': sent}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Sequence error: {e}')
+
+
+@router.get('/unsubscribe')
+async def oracle_unsubscribe(email: str):
+    """Lien direct de desabonnement (cliquable depuis chaque email)."""
+    try:
+        from datetime import datetime as _dt, timezone as _tz
+        sb = get_admin_client()
+        sb.table('oracle_leads').update({
+            'unsubscribed_at': _dt.now(_tz.utc).isoformat(),
+            'consent_marketing': False,
+        }).eq('email', email.strip().lower()).execute()
+        return {'success': True, 'message': "Vous êtes désabonné(e). À bientôt 🌙"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

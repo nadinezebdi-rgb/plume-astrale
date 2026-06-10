@@ -361,3 +361,27 @@ Site prod : plume-astrale.fr
 - Système streak doux + jour de grâce (DB Supabase, conditionné webhook Stripe)
 - Réflexion du soir déverrouillée ~19h avec journal privé
 - Cache journalier Supabase pour quota API
+
+## Resend integre (Feb 2026) — Sequence 6 emails Plume Astrale
+- **Service `services/resend_service.py`** (basé sur playbook Emergent) :
+  - 6 templates editoriaux (E1 a E6) en HTML+plain text
+  - Layout cohérent avec la marque (cards dorees, fond sombre, typo serif)
+  - Helper `_wrap()`, `_btn()`, `_h2()`, `_p()` réutilisables
+  - Fonction `send_e1_teaser_now()` : envoi immediat E1 a la capture email
+  - Fonction `process_sequence_step()` : envoi differe selon le planning (J+1, J+3, J+7, J+10, J+14)
+  - Tracking dans `oracle_leads.email_sequence_step` + `last_email_sent_at` (idempotent)
+- **Endpoints `routes/oracle.py`** :
+  - `POST /api/oracle/capture-email` : upsert + recalcul teaser + envoi E1 (best-effort)
+  - `POST /api/oracle/run-sequence` : a appeler depuis un cron externe (Railway cron / GitHub Actions) toutes les 6h
+  - `GET /api/oracle/unsubscribe?email=X` : desabonnement 1-clic (lien dans chaque email)
+- **Frontend `Desabonnement.js`** : page elegante "C&apos;est fait." avec retour accueil
+- **Env vars** (`backend/.env`) :
+  - `RESEND_API_KEY=re_124cm1X3...` (a configurer aussi sur Railway prod)
+  - `SENDER_EMAIL="Plume Astrale <onboarding@resend.dev>"` (TEMPORAIRE en mode test - cf. note)
+- **Test envoi reel** : ✅ Email E1 livre a `nadine.zebdi@gmail.com` (id Resend `c666abf5-3814-...`)
+- **ACTION USER REQUISE pour passer en production** :
+  1. Aller sur https://resend.com/domains et ajouter `plume-astrale.fr`
+  2. Configurer les enregistrements DNS donnés par Resend (chez le registrar)
+  3. Une fois vérifié, changer `SENDER_EMAIL` sur Railway : `Plume Astrale <hello@plume-astrale.fr>`
+  4. Exécuter `/app/supabase/oracle_leads_migration.sql` dans Supabase SQL Editor (sinon le tracking step ne fonctionne pas)
+  5. Configurer un cron externe : `POST https://api.plume-astrale.fr/api/oracle/run-sequence` toutes les 6h
