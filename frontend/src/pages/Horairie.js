@@ -61,7 +61,7 @@ export default function Horairie() {
       </div>
     </div>
   );
-}
+
   return (
     <div className="min-h-screen" style={{ background: '#0C0918' }}>
       <div className="max-w-2xl mx-auto px-4 py-8">
