@@ -1,5 +1,5 @@
 """JWT Supabase verification middleware + dependency."""
-from fastapi import HTTPException, status, Request, Depends
+from fastapi import HTTPException, Request
 from typing import Optional
 from functools import lru_cache
 import jwt

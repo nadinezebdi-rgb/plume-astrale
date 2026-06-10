@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Heart, Sparkles, Star, Users, Briefcase, Home, Loader2, LogIn, ArrowRight, Tag, Share2, Download, Copy, Check } from 'lucide-react';
@@ -166,6 +167,11 @@ const Compatibilite = () => {
 
   return (
     <div className="min-h-screen px-6 md:px-8 py-20 md:py-28" data-testid="compatibilite-page">
+      <PageHero
+        image="/images/astrale/image-astrale-8.jpg"
+        title="Compatibilité"
+        subtitle="Synastronie · Affinités cosmiques · Liens d'âmes"
+      />
       <div className="max-w-3xl mx-auto">
 
         {/* Header */}

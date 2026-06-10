@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
+import PageHero from '@/components/PageHero';
 import NatalDataModal from '@/components/NatalDataModal';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -368,6 +369,10 @@ const MonCompte = () => {
   const [subsError, setSubsError]         = useState(null);
   const [activeTab, setActiveTab]         = useState('apercu');
   const [natalModalOpen, setNatalModalOpen] = useState(false);
+  const [promoCode, setPromoCode]       = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoMsg, setPromoMsg]         = useState(null); // {type:'success'|'error', text}
+  const [pdfLoading, setPdfLoading]     = useState(false);
 
   // Redirection si non connecté — attendre que AuthContext finisse de restaurer la session
   useEffect(() => {
@@ -495,6 +500,55 @@ const MonCompte = () => {
     );
   }
 
+  /* ─── Code promo ─── */
+  const handlePromo = async () => {
+    const code = promoCode.trim().toUpperCase();
+    if (!code) return;
+    setPromoLoading(true); setPromoMsg(null);
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/credits/promo`,
+        { code },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const earned = res.data?.credits_earned ?? res.data?.credits ?? 0;
+      const msg = earned > 0
+        ? `✦ ${earned} crédits ajoutés à votre solde !`
+        : res.data?.message || 'Code appliqué avec succès.';
+      setPromoMsg({ type: 'success', text: msg });
+      setPromoCode('');
+      refreshBalance?.();
+    } catch (e) {
+      const detail = e.response?.data?.detail || 'Code invalide ou déjà utilisé.';
+      setPromoMsg({ type: 'error', text: detail });
+    }
+    setPromoLoading(false);
+  };
+
+  /* ─── Télécharger PDF thème natal ─── */
+  const handlePdfDownload = async () => {
+    if (!profil?.birth_date) return;
+    setPdfLoading(true);
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/astrology/v3/natal/pdf`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` }, responseType: 'blob' }
+      );
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `theme-natal-${profil?.prenom || 'plume'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      alert('Erreur lors de la génération du PDF. Réessayez dans quelques instants.');
+    }
+    setPdfLoading(false);
+  };
+
   /* ─── Onglets ─── */
   const tabs = [
     { id: 'apercu',       label: 'Aperçu'       },
@@ -507,6 +561,12 @@ const MonCompte = () => {
   return (
     <div className="min-h-screen relative" style={{ background: 'var(--pa-bg)' }}>
       <SEO path="/mon-compte" />
+      <PageHero
+        image="/images/astrale/image-astrale-8.jpg"
+        title={profil?.prenom ? `Bienvenue, ${profil.prenom}` : 'Mon Espace Personnel'}
+        subtitle="Votre univers astral personnalisé"
+        height="220px"
+      />
 
       {/* Fond décoratif */}
       <div
@@ -751,12 +811,13 @@ const MonCompte = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { to: '/quotidien',    label: 'Guidance du jour',  icon: '☀️' },
-                    { to: '/tarot-oui-non', label: 'Tarot Oui / Non',  icon: '🃏' },
-                    { to: '/tarologie',    label: 'Tarologie',          icon: '🔮' },
-                    { to: '/horoscope',    label: 'Horoscope',          icon: '⭐' },
-                    { to: '/numerologie',  label: 'Numérologie',        icon: '🔢' },
-                    { to: '/acheter-credits', label: 'Acheter des crédits', icon: '✦' },
+                    { to: '/quotidien',              label: 'Guidance du jour',      icon: '☀️' },
+                    { to: '/tarot-oui-non',          label: 'Tarot Oui / Non',       icon: '🃏' },
+                    { to: '/astrologie-vedique',     label: 'Astrologie Védique',    icon: '🕉️' },
+                    { to: '/astrologie-chinoise',    label: 'Astrologie Chinoise',   icon: '🐉' },
+                    { to: '/insights',               label: 'Biorythmes & Insights', icon: '📈' },
+                    { to: '/techniques-traditionnelles', label: 'Traditions',        icon: '🔮' },
+                    { to: '/acheter-credits',        label: 'Acheter des crédits',   icon: '✦' },
                   ].map(({ to, label, icon }) => (
                     <Link
                       key={to}
@@ -780,12 +841,32 @@ const MonCompte = () => {
           {activeTab === 'rapports' && (
             <div className="space-y-4" data-testid="rapports-tab">
               <div className="mb-2">
-                <h2
-                  className="text-2xl mb-2"
-                  style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}
-                >
-                  Vos rapports astrologiques
-                </h2>
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <h2
+                    className="text-2xl"
+                    style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}
+                  >
+                    Vos rapports astrologiques
+                  </h2>
+                  {profil?.birth_date && (
+                    <button
+                      onClick={handlePdfDownload}
+                      disabled={pdfLoading}
+                      data-testid="btn-pdf-natal"
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        padding: '8px 16px', borderRadius: 999, flexShrink: 0,
+                        background: 'rgba(167,139,250,0.15)',
+                        border: '1px solid rgba(167,139,250,0.4)',
+                        color: '#A78BFA', fontSize: 11,
+                        letterSpacing: '0.08em', textTransform: 'uppercase',
+                        cursor: pdfLoading ? 'wait' : 'pointer',
+                      }}
+                    >
+                      {pdfLoading ? '⏳ Génération…' : '✶ Télécharger PDF'}
+                    </button>
+                  )}
+                </div>
                 <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
                   Chaque rapport est calcule avec les ephemerides Swiss Ephemeris.
                   {profil?.premium_status === 'active'
@@ -799,7 +880,7 @@ const MonCompte = () => {
                 { to: '/compatibilite', title: 'Compatibilite (4 liens)', subtitle: 'Amour · Amitie · Famille · Travail', price: 20, icon: '♡', accent: '#F472B6' },
                 { to: '/revolution-solaire', title: 'Revolution Solaire', subtitle: "Themes de votre prochaine annee, votre rituel d'anniversaire", price: 20, icon: '✦', accent: '#FDE68A' },
                 { to: '/love-languages', title: "Langages d'Amour", subtitle: 'Votre signature affective selon Venus, Mars et Lune', price: 10, icon: '♥', accent: '#FB7185' },
-                { to: '/formulaire', title: 'Theme Natal PDF', subtitle: 'Chart wheel + interpretations psychologiques (28 sections)', price: 20, icon: '✶', accent: '#A78BFA' },
+                { to: '/formulaire', title: 'Thème Natal complet', subtitle: 'Chart wheel + interprétations psychologiques (28 sections)', price: 20, icon: '✶', accent: '#A78BFA' },
                 { to: '/consultation', title: 'Chat avec Plume', subtitle: 'Conversation astrologique avec votre theme natal embarque', price: 3, perUse: true, icon: '✺', accent: '#7DD3FC' },
               ].map(({ to, title, subtitle, price, perUse, icon, accent }) => (
                 <Link
@@ -964,6 +1045,63 @@ const MonCompte = () => {
                       </div>
                     ))}
                   </div>
+                )}
+              </div>
+
+              {/* Code promo */}
+              <div
+                className="rounded-2xl p-6"
+                style={{ background: 'var(--pa-surface)', border: '1px solid var(--pa-divider)' }}
+                data-testid="promo-section"
+              >
+                <h2 className="text-base mb-1 flex items-center gap-2"
+                  style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+                  <Gift className="w-4 h-4" strokeWidth={1.5} style={{ color: 'var(--pa-accent)' }} />
+                  Code de réduction
+                </h2>
+                <p className="text-xs mb-4" style={{ color: 'var(--pa-muted)' }}>
+                  Entrez un code promo pour obtenir des crédits ou débloquer un accès.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={e => { setPromoCode(e.target.value.toUpperCase()); setPromoMsg(null); }}
+                    onKeyDown={e => e.key === 'Enter' && handlePromo()}
+                    placeholder="VOTRECODERÉDUC"
+                    maxLength={32}
+                    style={{
+                      flex: 1, background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(212,180,106,0.25)',
+                      borderRadius: 999, padding: '10px 16px',
+                      color: 'var(--pa-heading)', fontSize: 13,
+                      letterSpacing: '0.08em', outline: 'none',
+                    }}
+                    data-testid="promo-input"
+                  />
+                  <button
+                    onClick={handlePromo}
+                    disabled={promoLoading || !promoCode.trim()}
+                    style={{
+                      padding: '10px 20px', borderRadius: 999,
+                      background: 'rgba(197,160,89,0.15)',
+                      border: '1px solid rgba(197,160,89,0.4)',
+                      color: 'var(--pa-accent)', fontSize: 12,
+                      letterSpacing: '0.08em', textTransform: 'uppercase',
+                      cursor: promoLoading ? 'wait' : 'pointer',
+                      opacity: promoCode.trim() ? 1 : 0.5, whiteSpace: 'nowrap',
+                    }}
+                    data-testid="promo-submit"
+                  >
+                    {promoLoading ? '…' : 'Appliquer'}
+                  </button>
+                </div>
+                {promoMsg && (
+                  <p className="mt-2 text-xs"
+                    style={{ color: promoMsg.type === 'success' ? '#4ADE80' : '#F87171' }}
+                    data-testid="promo-msg">
+                    {promoMsg.text}
+                  </p>
                 )}
               </div>
 
