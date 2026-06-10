@@ -112,10 +112,14 @@ _TAROT_22 = [
 
 
 def _tarot_oui_non(first_name: str, birth_date: str) -> dict:
-    """Tirage deterministe base sur prenom+date pour ce jour donne."""
+    """Tirage deterministe base sur prenom+date pour ce jour donne.
+    Utilise sha256 pour rester stable apres redemarrage du backend (PYTHONHASHSEED-safe)."""
+    import hashlib
     today = datetime.now().strftime('%Y-%m-%d')
-    seed = hash(f"{first_name}|{birth_date}|{today}") % 22
-    return _TAROT_22[abs(seed)]
+    seed_str = f"{first_name.lower()}|{birth_date}|{today}"
+    h = hashlib.sha256(seed_str.encode('utf-8')).hexdigest()
+    idx = int(h[:8], 16) % len(_TAROT_22)
+    return _TAROT_22[idx]
 
 
 def _wheel_url_attempt(birth_date: str) -> Optional[str]:

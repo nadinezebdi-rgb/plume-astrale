@@ -329,3 +329,35 @@ Site prod : plume-astrale.fr
   - Fallback transparent vers /api/plume-chat si v3 indisponible
 
 **Tests valides (iteration 27)** : 14/14 backend PASS. Verified live balance deltas via admin token : karma_destin -20cr, chat_astral -3cr, chat-v3 refund flow OK (balance inchangee apres 502).
+
+## Phase 1 cahier des charges implementee (Feb 2026)
+- **Nouvelle Navbar** :
+  - Mega-menu "Décoder ma période" (4 colonnes: Au quotidien · Mon thème · Relations · Explorations) consolidant les 16 outils
+  - Accordéon mobile (une section ouverte a la fois)
+  - CTA Premium STICKY DORÉ ("✦ L'Expérience Premium") seul élément plein, visible sur toutes les pages
+  - Items navbar : Accueil · Décoder ma période ▾ · Le Cercle · Notre cadre · [Premium] · Connexion · Inscription
+  - Synastrie 49€ mise en évidence (✦ doré) dans la colonne "Relations"
+- **HeroOracle.js** (4 états du tunnel d'acquisition) :
+  - idle : prénom + date | CTA "✦ Révéler mon énergie" + micro-réassurance "Gratuit · sans carte"
+  - computing : loading 1.5s mis en scène ("la Plume écoute ton ciel...")
+  - teaser : wheel + chemin de vie + phase lunaire + tarot oui/non ; interpretation floutée + capture email
+  - email_captured : invitation à affiner avec heure/lieu + pont Premium
+- **Endpoints publics Oracle** (`routes/oracle.py`) :
+  - `POST /api/oracle/teaser` : calcul chemin de vie + phase lunaire algo Conway + tarot oui/non déterministe sha256
+  - `POST /api/oracle/capture-email` : upsert dans table `oracle_leads` (graceful si table absente)
+  - Migration SQL Supabase : `/app/supabase/oracle_leads_migration.sql`
+- **PremiumStickyCTA.js** : barre fixe basse mobile (>=56px tactile, masquée sur pages commerciales/admin/auth/Premium-déjà-actif)
+- **Pages nouvelles** :
+  - `/notre-cadre` (NotreCadre.js) : charte symbolique anti-prédiction (cadre réglementaire UE), 4 sections (miroir · ce qu'on ne fera jamais · ce qu'on croit · vos données)
+  - `/cercle` (CercleSales.js) : page de vente abonnement avec 6 cards de valeur + 5 FAQ + CTA principal
+  - `/cercle-quotidien` : redirige vers l'ancien dashboard Cercle (sera refondu Phase 2)
+  - `/synastrie` : routé vers Compatibilite2 (Phase 3 retravaillera cette page)
+- **Build Vercel CI strict** : ✅ Compiled successfully (apostrophes JSX escapés, composants nested déplacés au module-scope)
+- **Tests** : 16/16 backend tests PASS (iteration 28), endpoints publics validés, validation Pydantic OK, capture-email gracieux si table absente
+- **Bug fix bonus** : `/api/health` ajouté (route directe sur `app` car `api_router` était freezed), tarot deterministe via sha256 (au lieu de hash() instable)
+
+### Prochaines etapes (Phase 2 — Le Cercle dashboard quotidien)
+- Refondre `/cercle-quotidien` selon spec `<DailyRitual />` : salutation, contexte lunaire, streak doux, Conseil de la Plume, check-in 1 tap, jauges 4 énergies, accès Réflexion du soir
+- Système streak doux + jour de grâce (DB Supabase, conditionné webhook Stripe)
+- Réflexion du soir déverrouillée ~19h avec journal privé
+- Cache journalier Supabase pour quota API
