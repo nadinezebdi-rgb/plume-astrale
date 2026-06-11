@@ -1080,11 +1080,11 @@ async def ritual_today_endpoint(
             'hour': hour or 12, 'min': minute or 0,
             'lat': lat or 48.8566, 'lon': lon or 2.3522, 'tzone': tzone or 1.0,
         }
-    checkin = await get_today_checkin(user_id, None)
+    checkin = await get_today_checkin(user_id)
     mood = checkin.get('mood') if checkin else None
     scores_data = get_today_scores(user_id, mood=mood)
-    insight_data = await get_daily_insight(user_id, birth_data=birth_data, mood=mood, db=None)
-    streak = await get_streak(user_id, None)
+    insight_data = await get_daily_insight(user_id, birth_data=birth_data, mood=mood)
+    streak = await get_streak(user_id)
     return {
         'success': True,
         'date': scores_data['date'],
@@ -1112,8 +1112,8 @@ async def ritual_checkin_endpoint(request: Request):
         return {'success': False, 'message': 'user_id et mood requis.'}
     if mood not in MOODS:
         return {'success': False, 'message': 'Humeur inconnue.'}
-    result = await submit_checkin(user_id, mood, intention, None)
-    streak = await update_streak(user_id, None)
+    result = await submit_checkin(user_id, mood, intention)
+    streak = await update_streak(user_id)
     result['streak'] = streak
     return result
 
@@ -1129,13 +1129,13 @@ async def journal_entry_endpoint(request: Request):
         return {'success': False, 'message': 'Ecris au moins quelques mots.'}
     if len(entry) > 4000:
         return {'success': False, 'message': "L'entree est trop longue (max 4000 caracteres)."}
-    result = await journal_entry(user_id, entry, mood=body.get('mood'), birth_data=body.get('birth_data'), db=None)
+    result = await journal_entry(user_id, entry, mood=body.get('mood'), birth_data=body.get('birth_data'))
     return result
 
 
 @api_router.get('/journal/history')
 async def journal_history_endpoint(user_id: str, limit: int = 30):
-    history = await get_journal_history(user_id, None, limit=limit)
+    history = await get_journal_history(user_id, limit=limit)
     return {'success': True, 'entries': history}
 
 
