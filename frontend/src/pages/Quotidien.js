@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { useAuth } from '@/context/AuthContext';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -32,6 +33,8 @@ const ScoreBar = ({ score, max = 10, label, color = 'var(--pa-accent)' }) => (
 
 const Quotidien = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [ritual, setRitual] = useState(null);
   const [selectedSign, setSelectedSign] = useState(null);
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -52,6 +55,15 @@ const Quotidien = () => {
       } catch (e) {}
     }
   }, []);
+
+  // Le Cercle — rituel quotidien (4 jauges + Conseil de la Plume)
+  useEffect(() => {
+    if (!user?.id) { setRitual(null); return; }
+    fetch(`${API_URL}/api/ritual/today?user_id=${encodeURIComponent(user.id)}`)
+      .then((r) => r.json())
+      .then((data) => { if (data && data.success) setRitual(data); })
+      .catch((e) => console.error('Error fetching ritual:', e));
+  }, [user]);
 
   const getZodiacSign = (date) => {
     const month = date.getMonth() + 1;
@@ -116,6 +128,39 @@ const Quotidien = () => {
           </p>
           </div>
         </div>
+
+        {/* Le Cercle — Rituel du jour */}
+        {ritual && (
+          <div className="mb-12" data-testid="ritual-cercle">
+            <div className="rounded-2xl p-6 md:p-8" style={{ background: 'linear-gradient(135deg, rgba(197,160,89,0.08) 0%, rgba(197,160,89,0.03) 100%)', border: '1px solid rgba(197,160,89,0.2)' }}>
+              <p className="text-xs tracking-widest uppercase mb-6" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>
+                Tes energies du jour
+              </p>
+              <div className="space-y-5 mb-8">
+                {[
+                  { key: 'energy', label: 'Energie', color: '#C5A059' },
+                  { key: 'confidence', label: 'Confiance', color: '#C97878' },
+                  { key: 'discipline', label: 'Discipline', color: '#7CB88A' },
+                  { key: 'intuition', label: 'Intuition', color: '#A78BFA' },
+                ].map(({ key, label, color }) => (
+                  <ScoreBar key={key} score={ritual.scores?.[key] ?? 0} max={100} label={label} color={color} />
+                ))}
+              </div>
+              <div className="divider-subtle" />
+              <p className="text-xs tracking-widest uppercase mb-4 mt-6" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>
+                Le Conseil de la Plume
+              </p>
+              <p className="text-base leading-relaxed italic" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 300, lineHeight: '1.9' }}>
+                {ritual.insight}
+              </p>
+              {ritual.streak?.streak_count > 0 && (
+                <p className="text-xs mt-6" style={{ color: 'var(--pa-muted)' }}>
+                  Serie en cours : {ritual.streak.streak_count} jour{ritual.streak.streak_count > 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Sign toggle */}
         {!showSignPicker && signeInfo && (
