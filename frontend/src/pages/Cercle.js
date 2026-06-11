@@ -247,6 +247,11 @@ export default function Cercle() {
   const [streak, setStreak] = useState(null);
   const [checkinLoading, setCheckinLoading] = useState(false);
   const [checkinResult, setCheckinResult] = useState(null);
+  const [ritual, setRitual] = useState(null);
+  const [journalText, setJournalText] = useState('');
+  const [journalLoading, setJournalLoading] = useState(false);
+  const [journalResponse, setJournalResponse] = useState(null);
+  const [journalHistory, setJournalHistory] = useState([]);
 
   // Fetch daily card + streak status
   useEffect(() => {
@@ -255,12 +260,26 @@ export default function Cercle() {
     }).catch(() => {});
   }, []);
 
-  useEffect(() => {
-    if (!isAuthenticated || !token) return;
-    axios.get(`${API_URL}/api/streak/status`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => setStreak(r.data))
+  // Rituel du jour : streak + scores + insight + check-in (endpoints reels /ritual/*)
+  const loadRitual = React.useCallback(() => {
+    if (!isAuthenticated || !user?.id) return;
+    axios.get(`${API_URL}/api/ritual/today?user_id=${encodeURIComponent(user.id)}`)
+      .then(r => {
+        const d = r.data || {};
+        setRitual(d);
+        const st = d.streak || {};
+        setStreak({
+          streak_count: st.current || 0,
+          longest_streak: st.longest || 0,
+          checked_in_today: !!d.checkin,
+          total_checkins: st.current || 0,
+          next_milestone: { days: 7 },
+        });
+      })
       .catch(() => {});
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, user]);
+
+  useEffect(() => { loadRitual(); }, [loadRitual]);
 
   // Determine user's zodiac from birth_date
   useEffect(() => {
@@ -291,18 +310,20 @@ export default function Cercle() {
   const handleCheckin = async () => {
     setCheckinLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/api/streak/checkin`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await axios.post(`${API_URL}/api/ritual/checkin`, {
+        user_id: user?.id,
+        mood: 'serein',
+        intention: '',
       });
       setCheckinResult(res.data);
+      const st = res.data.streak || {};
       setStreak(prev => ({
         ...prev,
-        streak_count: res.data.streak_count,
+        streak_count: st.current || 0,
         checked_in_today: true,
-        longest_streak: res.data.longest_streak,
-        total_checkins: res.data.total_checkins,
-        next_milestone: res.data.next_milestone,
+        longest_streak: st.longest || (prev?.longest_streak || 0),
       }));
+      loadRitual();
       await refreshBalance();
     } catch (err) {
       console.error('Checkin error:', err);
@@ -310,6 +331,36 @@ export default function Cercle() {
       setCheckinLoading(false);
     }
   };
+
+  const handleJournalSubmit = async () => {
+    if (journalText.trim().length < 5) return;
+    setJournalLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/api/journal/entry`, {
+        user_id: user?.id,
+        entry: journalText.trim(),
+        mood: ritual?.checkin?.mood || null,
+      });
+      if (res.data?.success) {
+        setJournalResponse(res.data.response);
+        setJournalText('');
+        loadJournalHistory();
+      }
+    } catch (err) {
+      console.error('Journal error:', err);
+    } finally {
+      setJournalLoading(false);
+    }
+  };
+
+  const loadJournalHistory = React.useCallback(() => {
+    if (!isAuthenticated || !user?.id) return;
+    axios.get(`${API_URL}/api/journal/history?user_id=${encodeURIComponent(user.id)}&limit=5`)
+      .then(r => { if (r.data?.success) setJournalHistory(r.data.entries || []); })
+      .catch(() => {});
+  }, [isAuthenticated, user]);
+
+  useEffect(() => { loadJournalHistory(); }, [loadJournalHistory]);
 
   const today = new Date();
   const dateStr = today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -340,6 +391,56 @@ export default function Cercle() {
           result={checkinResult}
           onClose={() => setCheckinResult(null)}
         />
+
+        {/* La Reflexion du soir — journal prive */}
+        {isAuthenticated && (
+          <div className="rounded-2xl p-6 md:p-8 mb-12" style={{ background: 'linear-gradient(135deg, rgba(167,139,250,0.07) 0%, rgba(167,139,250,0.02) 100%)', border: '1px solid rgba(167,139,250,0.2)' }} data-testid="reflexion-soir">
+            <div className="flex items-center gap-2 mb-3">
+              <Moon className="w-4 h-4" style={{ color: '#A78BFA' }} strokeWidth={1.5} />
+              <h3 className="text-xs uppercase tracking-widest" style={{ color: '#A78BFA', letterSpacing: '0.12em' }}>La Reflexion du soir</h3>
+            </div>
+            <p className="text-sm mb-4" style={{ color: 'var(--pa-muted)' }}>
+              Ton journal prive. Ce que tu ecris ici ne regarde que toi et la Plume.
+            </p>
+            <textarea
+              value={journalText}
+              onChange={(e) => setJournalText(e.target.value)}
+              rows={4}
+              maxLength={4000}
+              placeholder="Comment s'est passee ta journee ?"
+              className="w-full rounded-xl p-4 text-sm mb-4"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--pa-divider)', color: 'var(--pa-body)', resize: 'vertical' }}
+              data-testid="journal-input"
+            />
+            <button
+              onClick={handleJournalSubmit}
+              disabled={journalLoading || journalText.trim().length < 5}
+              className="text-xs uppercase tracking-widest px-6 py-2 rounded-full disabled:opacity-40"
+              style={{ border: '1px solid rgba(167,139,250,0.5)', color: '#A78BFA', letterSpacing: '0.08em' }}
+              data-testid="journal-submit"
+            >
+              {journalLoading ? 'Envoi...' : 'Confier a la Plume'}
+            </button>
+            {journalResponse && (
+              <p className="text-sm leading-relaxed italic mt-5" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 300, lineHeight: '1.9' }} data-testid="journal-response">
+                {journalResponse}
+              </p>
+            )}
+            {journalHistory.length > 0 && (
+              <div className="mt-8 pt-6" style={{ borderTop: '1px solid var(--pa-divider)' }}>
+                <p className="text-xs uppercase tracking-widest mb-4" style={{ color: 'var(--pa-muted)', letterSpacing: '0.12em' }}>Entrees precedentes</p>
+                <div className="space-y-4">
+                  {journalHistory.map((h, i) => (
+                    <div key={i} className="text-sm" data-testid={`journal-history-${i}`}>
+                      <p style={{ color: 'var(--pa-muted)' }} className="text-xs mb-1">{h.date}</p>
+                      <p style={{ color: 'var(--pa-body)' }}>{h.entry}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Daily insights */}
         <div className="grid gap-4 md:grid-cols-3 mb-12">
