@@ -7,13 +7,16 @@ Inclut :
 - message du jour personnalise par Plume IA (cache 24h)
 - streak (jours consecutifs de visite)
 - journal IA (entree texte + reponse Plume)
+
+Persistance : Supabase (service_role). LLM : OpenAI natif via integrations.llm.chat.
 """
 import os
 import hashlib
 import logging
 from datetime import datetime, date, timezone
 from typing import Optional, Dict, Any, List
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+from integrations.llm.chat import LlmChat, UserMessage
+from services.supabase_client import get_admin_client
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +50,7 @@ MOON_THEMES = {
     "Dernier Croissant":      "Repos. Accueille la pause, prepare la suite.",
 }
 
-# Themes des 3 scores (pour l'UI)
+# Themes des 4 scores (pour l'UI)
 SCORE_THEMES = {
     "energy":     {"label": "Energie",     "desc": "Ta vitalite et ton elan du jour"},
     "confidence": {"label": "Confiance",   "desc": "Ton ancrage et ta certitude interieure"},
@@ -105,29 +108,27 @@ def get_today_scores(user_id: str, mood: Optional[str] = None) -> Dict[str, Any]
 
 
 # ═══════════════════════════════════════════════════════════
-# MESSAGE DU JOUR — genere 1x/jour par utilisateur, cache MongoDB
+# MESSAGE DU JOUR — genere 1x/jour par utilisateur, cache Supabase
 # ═══════════════════════════════════════════════════════════
 async def get_daily_insight(
     user_id: str,
     birth_data: Optional[Dict] = None,
     mood: Optional[str] = None,
-    db=None,
 ) -> Dict[str, Any]:
-    """Recupere ou genere le message du jour personnalise."""
+    """Recupere ou genere le message du jour personnalise (Conseil de la Plume)."""
     today = date.today().isoformat()
-    cache_key = f"{user_id}-{today}"
 
-    # Recuperer du cache
-    if db is not None:
-        try:
-            cached = await db.daily_insights.find_one({"_id": cache_key})
-            if cached:
-                return {"insight": cached["insight"], "cached": True}
-        except Exception as e:
-            logger.warning(f"Cache read failed: {e}")
+    # Recuperer du cache Supabase
+    try:
+        sb = get_admin_client()
+        cached = sb.table('daily_insights').select('insight').eq('user_id', user_id).eq('date', today).maybe_single().execute()
+        if cached and cached.data and cached.data.get('insight'):
+            return {"insight": cached.data['insight'], "cached": True}
+    except Exception as e:
+        logger.warning(f"Cache read failed: {e}")
 
-    # Generer via Plume IA
-    api_key = os.environ.get("EMERGENT_LLM_KEY")
+    # Generer via Plume IA (OpenAI natif)
+    api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         return {"insight": "Les astres te chuchotent : sois present a ce qui est, ce jour t'appartient.", "cached": False}
 
@@ -139,7 +140,6 @@ async def get_daily_insight(
     name = (birth_data or {}).get("name", "Voyageur")
     sun_sign_hint = ""
     if birth_data and birth_data.get("month") and birth_data.get("day"):
-        # Approximation rapide du signe solaire
         m, d = birth_data["month"], birth_data["day"]
         signs = [
             (1, 20, "Capricorne"), (2, 19, "Verseau"), (3, 20, "Poissons"),
@@ -157,7 +157,7 @@ async def get_daily_insight(
 Date : {date.today().strftime('%d %B %Y')}.
 Phase lunaire actuelle : {moon_phase} — {moon_theme}
 
-Contraintes strictes :
+Contraintes :
 - Une seule reponse, 60 a 100 mots maximum.
 - Voix Plume : poetique, francaise, douce mais precise, jamais fataliste.
 - Donne une invitation concrete pour la journee (1 action, 1 attention).
@@ -169,23 +169,23 @@ Contraintes strictes :
     try:
         chat = LlmChat(
             api_key=api_key,
-            session_id=f"daily-{cache_key}",
+            session_id=f"daily-{user_id}-{today}",
             system_message="Tu es Plume, oracle astrologique francais. Tu generes des messages du jour courts, poetiques, ancres dans le reel.",
         ).with_model("openai", "gpt-4o-mini")
 
         response = await chat.send_message(UserMessage(text=prompt))
         insight = response.strip()
 
-        # Cacher
-        if db is not None:
-            try:
-                await db.daily_insights.replace_one(
-                    {"_id": cache_key},
-                    {"_id": cache_key, "user_id": user_id, "date": today, "insight": insight, "ts": datetime.now(timezone.utc)},
-                    upsert=True,
-                )
-            except Exception as e:
-                logger.warning(f"Cache write failed: {e}")
+        # Cacher dans Supabase
+        try:
+            sb = get_admin_client()
+            sb.table('daily_insights').upsert({
+                "user_id": user_id,
+                "date": today,
+                "insight": insight,
+            }, on_conflict="user_id,date").execute()
+        except Exception as e:
+            logger.warning(f"Cache write failed: {e}")
 
         return {"insight": insight, "cached": False}
 
@@ -195,64 +195,58 @@ Contraintes strictes :
 
 
 # ═══════════════════════════════════════════════════════════
-# CHECK-IN matinal (humeur + intention)
+# CHECK-IN MATINAL — humeur + intention
 # ═══════════════════════════════════════════════════════════
 async def submit_checkin(
     user_id: str,
     mood: str,
     intention: Optional[str] = None,
-    db=None,
 ) -> Dict[str, Any]:
     today = date.today().isoformat()
-    doc = {
-        "_id": f"{user_id}-{today}",
-        "user_id": user_id,
-        "date": today,
-        "mood": mood,
-        "intention": intention or "",
-        "ts": datetime.now(timezone.utc),
-    }
-    if db is not None:
-        try:
-            await db.daily_checkins.replace_one({"_id": doc["_id"]}, doc, upsert=True)
-        except Exception as e:
-            logger.warning(f"Checkin persist failed: {e}")
+    try:
+        sb = get_admin_client()
+        sb.table('daily_checkins').upsert({
+            "user_id": user_id,
+            "date": today,
+            "mood": mood,
+            "intention": intention or "",
+        }, on_conflict="user_id,date").execute()
+    except Exception as e:
+        logger.warning(f"Checkin persist failed: {e}")
 
     return {"success": True, "checkin": {"mood": mood, "intention": intention, "date": today}}
 
 
-async def get_today_checkin(user_id: str, db) -> Optional[Dict]:
-    if db is None:
-        return None
+async def get_today_checkin(user_id: str) -> Optional[Dict]:
     try:
         today = date.today().isoformat()
-        c = await db.daily_checkins.find_one({"_id": f"{user_id}-{today}"})
-        if c:
-            return {"mood": c.get("mood"), "intention": c.get("intention", ""), "date": c["date"]}
+        sb = get_admin_client()
+        res = sb.table('daily_checkins').select('mood,intention,date').eq('user_id', user_id).eq('date', today).maybe_single().execute()
+        if res and res.data:
+            return {"mood": res.data.get("mood"), "intention": res.data.get("intention", ""), "date": res.data.get("date")}
     except Exception as e:
         logger.warning(f"Get checkin failed: {e}")
     return None
 
 
 # ═══════════════════════════════════════════════════════════
-# STREAK — jours consecutifs
+# STREAK — jours consecutifs de visite
 # ═══════════════════════════════════════════════════════════
-async def update_streak(user_id: str, db) -> Dict[str, int]:
+async def update_streak(user_id: str) -> Dict[str, int]:
     """Met a jour la streak en fonction du dernier jour actif."""
-    if db is None:
-        return {"current": 1, "longest": 1}
-
     try:
+        sb = get_admin_client()
         today = date.today()
-        existing = await db.user_streaks.find_one({"_id": user_id})
+        res = sb.table('user_streaks').select('current,longest,last_date').eq('user_id', user_id).maybe_single().execute()
+        existing = res.data if res else None
 
         if not existing:
-            await db.user_streaks.insert_one({
-                "_id": user_id,
+            sb.table('user_streaks').insert({
+                "user_id": user_id,
                 "current": 1,
                 "longest": 1,
                 "last_date": today.isoformat(),
-            })
+            }).execute()
             return {"current": 1, "longest": 1}
 
         last_date = date.fromisoformat(existing.get("last_date", today.isoformat()))
@@ -269,10 +263,11 @@ async def update_streak(user_id: str, db) -> Dict[str, int]:
         else:
             current = 1
 
-        await db.user_streaks.update_one(
-            {"_id": user_id},
-            {"$set": {"current": current, "longest": longest, "last_date": today.isoformat()}},
-        )
+        sb.table('user_streaks').update({
+            "current": current,
+            "longest": longest,
+            "last_date": today.isoformat(),
+        }).eq('user_id', user_id).execute()
         return {"current": current, "longest": longest}
 
     except Exception as e:
@@ -280,11 +275,11 @@ async def update_streak(user_id: str, db) -> Dict[str, int]:
         return {"current": 1, "longest": 1}
 
 
-async def get_streak(user_id: str, db) -> Dict[str, int]:
-    if db is None:
-        return {"current": 0, "longest": 0}
+async def get_streak(user_id: str) -> Dict[str, int]:
     try:
-        s = await db.user_streaks.find_one({"_id": user_id})
+        sb = get_admin_client()
+        res = sb.table('user_streaks').select('current,longest,last_date').eq('user_id', user_id).maybe_single().execute()
+        s = res.data if res else None
         if s:
             # Reset si gap > 1
             today = date.today()
@@ -311,10 +306,7 @@ Regles strictes :
 - Apporter un eclairage astrologique LEGER (1 mention de planete ou de phase lunaire actuelle si pertinent).
 - Inviter a une micro-action ou une introspection, jamais a un changement radical.
 - Ne JAMAIS donner de diagnostic, de conseil medical, juridique, ou financier.
-- Si l'ecrit revele une detresse profonde, reconnaitre la souffrance et orienter vers une ressource humaine (3114, ami, professionnel).
-- Pas de salutation. Commence directement par accueillir ce qu'il/elle a partage.
-- Termine par une image evocatrice ou une invitation tendre.
-- Aucun emoji. Pas de liste a puces."""
+- Si l'ecrit revele une detresse profonde, reconnaitre la souffrance et orienter vers une ressource humaine (3114, ami, professionnel)."""
 
 
 async def journal_entry(
@@ -322,9 +314,8 @@ async def journal_entry(
     entry_text: str,
     mood: Optional[str] = None,
     birth_data: Optional[Dict] = None,
-    db=None,
 ) -> Dict[str, Any]:
-    api_key = os.environ.get("EMERGENT_LLM_KEY")
+    api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         return {"success": False, "message": "Service IA indisponible."}
 
@@ -367,19 +358,18 @@ Repond comme Plume."""
 
         response_text = await chat.send_message(UserMessage(text=prompt))
 
-        # Persister
-        if db is not None:
-            try:
-                await db.journal_entries.insert_one({
-                    "user_id": user_id,
-                    "date": date.today().isoformat(),
-                    "entry": entry_text,
-                    "response": response_text,
-                    "mood": mood,
-                    "ts": datetime.now(timezone.utc),
-                })
-            except Exception as e:
-                logger.warning(f"Journal persist failed: {e}")
+        # Persister dans Supabase
+        try:
+            sb = get_admin_client()
+            sb.table('journal_entries').insert({
+                "user_id": user_id,
+                "date": date.today().isoformat(),
+                "entry": entry_text,
+                "response": response_text,
+                "mood": mood,
+            }).execute()
+        except Exception as e:
+            logger.warning(f"Journal persist failed: {e}")
 
         return {"success": True, "response": response_text}
 
@@ -388,19 +378,18 @@ Repond comme Plume."""
         return {"success": False, "message": "Plume est momentanement silencieuse. Reessaie."}
 
 
-async def get_journal_history(user_id: str, db, limit: int = 30) -> List[Dict]:
-    if db is None:
-        return []
+async def get_journal_history(user_id: str, limit: int = 30) -> List[Dict]:
     try:
-        cur = db.journal_entries.find({"user_id": user_id}).sort("ts", -1).limit(limit)
+        sb = get_admin_client()
+        res = sb.table('journal_entries').select('date,entry,response,mood,ts').eq('user_id', user_id).order('ts', desc=True).limit(limit).execute()
         items = []
-        async for e in cur:
+        for e in (res.data or []):
             items.append({
                 "date": e.get("date"),
                 "entry": e.get("entry"),
                 "response": e.get("response"),
                 "mood": e.get("mood"),
-                "ts": e.get("ts").isoformat() if e.get("ts") else None,
+                "ts": e.get("ts"),
             })
         return items
     except Exception as e:
