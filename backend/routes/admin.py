@@ -423,3 +423,20 @@ async def admin_delete_user(user_id: str, current_admin: dict = Depends(require_
         raise HTTPException(status_code=500, detail=f'Profil supprime, mais auth.users a echoue : {e}')
 
     return {'success': True, 'deleted_user_id': user_id, 'email': target.data.get('email')}
+
+
+@router.post('/cron/send-daily-journal')
+async def cron_send_daily_journal(cron_secret: Optional[str] = Query(None)):
+    """Envoyer le journal quotidien à tous les utilisateurs (cron task).
+    
+    Validation optionnelle par secret. 
+    Appelé par une tâche cron externe (EasyCron, Railway Cron, etc).
+    """
+    import os
+    env_secret = os.getenv('CRON_SECRET')
+    if env_secret and (not cron_secret or cron_secret != env_secret):
+        raise HTTPException(status_code=403, detail='Invalid cron secret')
+    
+    from services.journal_email_service import send_daily_journal_batch
+    result = await send_daily_journal_batch()
+    return result
