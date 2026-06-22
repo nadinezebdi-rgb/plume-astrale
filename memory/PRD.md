@@ -522,3 +522,42 @@ Site prod : plume-astrale.fr
 - Activation PayPal 4x sur tunnel Synastrie 49€ (quand compte PayPal user prêt)
 - Enrichissement future : appel astrology-api.io v3 pour insertions d'aspects précis (positions de Vénus, Lune, etc.) dans chaque page thématique
 
+
+
+## Iteration 32 — Premières illustrations + 2 vidéos intégrées (Feb 2026)
+
+### Illustrations PDF Synastrie (3 / 22 livrées)
+- **`page-01.png`** (lunaire.png — silhouette + zodiac wheel + dragon céleste) → intégrée comme FOND PLEIN-CADRE de la couverture avec voile sombre 55% pour le contraste du texte. Le résultat est cinématographique.
+- **`page-06.png`** (fleurs violette.png) → Lunes en miroir (émotions, douceur féminine, violet brand-aligned)
+- **`page-09.png`** (dragon.png — dragon chinois rouge/bleu) → Mars en miroir (désir, puissance, action)
+
+### Améliorations du générateur PDF (`synastrie_pdf_generator.py`)
+- **Date française** : helper `_date_fr()` → "Composé le 22 juin 2026" (au lieu de "22 June 2026")
+- **Couverture image-aware** : `_bg_cover()` détecte `page-01.{png,jpg,...}` et l'utilise en plein-cadre + voile sombre. Fallback halo doré original sinon.
+- **Slots images améliorés** : `_illustration_slot()` détecte les vraies dimensions via `ImageReader`, calcule le ratio, centre l'image avec un fin cadre doré éditorial autour (effet "encadrement musée"). Marche pour ratios square ET landscape.
+
+### Vidéos intégrées
+- **`/videos/cercle-hero.mp4`** (13.2 MB) → Hero auto-play loop muted sur `/cercle` (sales page non-abonnés). Bordure dorée + ombre douce. Aspect-ratio 16:9 forcé.
+- **`/videos/virginia.mp4`** (13.2 MB) → Player avec contrôles sur `/notre-cadre` après le hero textuel, avec caption "Un mot de Virginia, fondatrice de Plume Astrale". Message personnel intentionnel = pas autoplay.
+
+### Backlog d'illustrations restantes (19 pages)
+Pour compléter le PDF visuellement, l'utilisateur doit fournir :
+- `page-03.png`, `page-04.png` (portraits natals personnels)
+- `page-05.png` (Soleils en miroir)
+- `page-07.png` (Mercure & Mercure)
+- `page-08.png` (Vénus en miroir)
+- `page-10.png` (Jupiter & Saturne)
+- `page-11.png` à `page-14.png` (Aspects harmonieux, tension, conjonctions, maisons)
+- `page-15.png` à `page-17.png` (Langages, Sensualité, Communication)
+- `page-18.png` à `page-21.png` (Vie commune, Enfants, Argent, Voyages)
+- `page-22.png`, `page-23.png` (Forces, Invitations)
+- `page-25.png` (Bénédiction)
+
+Toutes les pages sans image affichent un cadre doré pointillé "illustration · page XX" jusqu'à ce qu'une image soit fournie. Aucun redéploiement nécessaire.
+
+### Reste à faire (rappel actions user)
+- 🔴 Exécuter les 3 migrations SQL (`oracle_leads`, `cercle`, `synastrie`)
+- 🔴 DNS Resend pour `plume-astrale.fr`
+- 🟢 "Save to GitHub" pour déployer (inclut maintenant les 2 vidéos + 3 illustrations PDF)
+- 🟢 19 illustrations PDF restantes à fournir progressivement
+

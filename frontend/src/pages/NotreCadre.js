@@ -37,8 +37,23 @@ const NotreCadre = () => (
       <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(34px, 6vw, 54px)', color: '#F0E6D3', fontWeight: 300, lineHeight: 1.1, marginBottom: 16 }}>
         Notre cadre
       </h1>
-      <p style={{ fontSize: 16, color: 'rgba(184,176,200,0.85)', maxWidth: 540, margin: '0 auto', lineHeight: 1.65 }}>
-        Ce que nous croyons. Ce que nous ne ferons jamais. Comment nous accompagnons votre regard sur vous-même.
+      <p style={{ fontSize: 16, color: 'rgba(184,176,200,0.85)', maxWidth: 540, margin: '0 auto', lineHeight: 1.65 }}>        Ce que nous croyons. Ce que nous ne ferons jamais. Comment nous accompagnons votre regard sur vous-même.
+      </p>
+    </div>
+
+    {/* Message vidéo de la fondatrice */}
+    <div style={{
+      maxWidth: 640, margin: '0 auto 32px', borderRadius: 20, overflow: 'hidden',
+      border: '1px solid rgba(212,180,106,0.25)',
+      boxShadow: '0 14px 48px rgba(0,0,0,0.5), 0 0 50px rgba(212,180,106,0.08)',
+    }} data-testid="virginia-video">
+      <video
+        src="/videos/virginia.mp4"
+        controls playsInline preload="metadata"
+        style={{ width: '100%', display: 'block', aspectRatio: '16/9', objectFit: 'cover', background: '#0C0918' }}
+      />
+      <p style={{ fontSize: 11, color: 'rgba(184,176,200,0.6)', textAlign: 'center', padding: '10px 16px', margin: 0, fontStyle: 'italic', letterSpacing: '0.04em' }}>
+        Un mot de Virginia, fondatrice de Plume Astrale
       </p>
     </div>
 

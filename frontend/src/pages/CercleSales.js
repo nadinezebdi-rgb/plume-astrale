@@ -22,6 +22,19 @@ const CercleSales = () => (
       </p>
     </div>
 
+    {/* Vidéo immersive */}
+    <div style={{
+      maxWidth: 720, margin: '0 auto 50px', borderRadius: 22, overflow: 'hidden',
+      border: '1px solid rgba(212,180,106,0.25)',
+      boxShadow: '0 14px 48px rgba(0,0,0,0.5), 0 0 60px rgba(212,180,106,0.08)',
+    }} data-testid="cercle-hero-video">
+      <video
+        src="/videos/cercle-hero.mp4"
+        autoPlay loop muted playsInline
+        style={{ width: '100%', display: 'block', aspectRatio: '16/9', objectFit: 'cover', background: '#0C0918' }}
+      />
+    </div>
+
     {/* Valeur */}
     <section style={{
       background: 'rgba(255,255,255,0.025)',

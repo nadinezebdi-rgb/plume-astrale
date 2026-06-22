@@ -138,6 +138,15 @@ def _find_page_image(page_num):
     return None
 
 
+_MONTHS_FR = ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+              'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+
+
+def _date_fr(d=None):
+    d = d or datetime.now()
+    return f"{d.day} {_MONTHS_FR[d.month]} {d.year}"
+
+
 # ───────────────────── Generateur ─────────────────────
 class SynastriePDFGenerator:
     def __init__(self):
@@ -148,10 +157,29 @@ class SynastriePDFGenerator:
 
     # ── Backgrounds ──
     def _bg_cover(self, c):
-        """Fond couverture : violet profond + halo dore."""
+        """Fond couverture : illustration de fond si presente, sinon halo dore."""
         c.setFillColor(DEEP_PURPLE)
         c.rect(0, 0, self.w, self.h, fill=1, stroke=0)
-        # Halo dore subtil au centre haut
+
+        # Si page-01.{png,jpg,...} existe -> on l'utilise comme fond plein-cadre
+        cover_img = _find_page_image(1)
+        if cover_img:
+            try:
+                # Plein cadre, tamise pour laisser respirer le titre par-dessus
+                c.saveState()
+                c.drawImage(cover_img, 0, 0, self.w, self.h,
+                            preserveAspectRatio=True, anchor='c', mask='auto')
+                c.restoreState()
+                # Voile sombre haut/bas pour le contraste du texte
+                c.setFillColor(DEEP_PURPLE)
+                c.setFillAlpha(0.55)
+                c.rect(0, 0, self.w, self.h, fill=1, stroke=0)
+                c.setFillAlpha(1.0)
+                return
+            except Exception:
+                pass
+
+        # Fallback : halo dore subtil au centre haut (design original)
         for i, alpha in enumerate([0.04, 0.08, 0.12, 0.16, 0.20]):
             c.setFillColor(GOLD)
             c.setFillAlpha(alpha)
@@ -235,6 +263,7 @@ class SynastriePDFGenerator:
 
     def _illustration_slot(self, c, page_num, y, h=8 * cm):
         """Insere une illustration si presente, sinon cadre placeholder dore.
+        L'image preserve son ratio et est centree dans le slot avec un cadre dore subtil.
         Retourne le nouveau y (apres le slot)."""
         img_path = _find_page_image(page_num)
         slot_w = self.w - 2 * self.margin - 1 * cm
@@ -244,8 +273,27 @@ class SynastriePDFGenerator:
 
         if img_path:
             try:
-                c.drawImage(img_path, x, bottom, slot_w, slot_h,
-                            preserveAspectRatio=True, mask='auto')
+                # Detecte les dimensions reelles de l'image pour bien la centrer
+                from reportlab.lib.utils import ImageReader
+                ir = ImageReader(img_path)
+                iw, ih = ir.getSize()
+                ratio = iw / ih if ih else 1
+                # Scale pour fit dans le slot en preservant le ratio
+                if slot_w / slot_h > ratio:
+                    # Limite par hauteur
+                    draw_h = slot_h
+                    draw_w = draw_h * ratio
+                else:
+                    draw_w = slot_w
+                    draw_h = draw_w / ratio
+                draw_x = x + (slot_w - draw_w) / 2
+                draw_y = bottom + (slot_h - draw_h) / 2
+                # Cadre fin dore autour de l'image (elegance editoriale)
+                c.setStrokeColor(GOLD)
+                c.setLineWidth(0.4)
+                c.rect(draw_x - 2, draw_y - 2, draw_w + 4, draw_h + 4, fill=0, stroke=1)
+                c.drawImage(img_path, draw_x, draw_y, draw_w, draw_h, mask='auto')
+                return bottom - 0.6 * cm
             except Exception:
                 self._draw_placeholder(c, x, bottom, slot_w, slot_h, page_num)
         else:
@@ -324,7 +372,7 @@ class SynastriePDFGenerator:
         c.setFillColor(CREAM)
         c.setFillAlpha(0.7)
         c.setFont("Helvetica", 9.5)
-        c.drawCentredString(self.w / 2, y, f"Composé le {datetime.now().strftime('%d %B %Y')}")
+        c.drawCentredString(self.w / 2, y, f"Composé le {_date_fr()}")
         y -= 0.5 * cm
         c.drawCentredString(self.w / 2, y, "Document personnel et confidentiel")
         c.setFillAlpha(1.0)
