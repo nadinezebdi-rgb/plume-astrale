@@ -221,7 +221,7 @@ export default function Premium() {
               price="0€"
               features={FREE_FEATURES}
               cta={isAuthenticated ? 'Plan actuel' : 'Creer mon compte'}
-              onCta={() => navigate(isAuthenticated ? '/mon-profil' : '/inscription')}
+              onCta={() => navigate(isAuthenticated ? '/mon-compte' : '/inscription')}
             />
             <PricingCard
               title="Premium mensuel"

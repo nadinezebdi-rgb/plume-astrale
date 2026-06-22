@@ -385,3 +385,35 @@ Site prod : plume-astrale.fr
   3. Une fois vérifié, changer `SENDER_EMAIL` sur Railway : `Plume Astrale <hello@plume-astrale.fr>`
   4. Exécuter `/app/supabase/oracle_leads_migration.sql` dans Supabase SQL Editor (sinon le tracking step ne fonctionne pas)
   5. Configurer un cron externe : `POST https://api.plume-astrale.fr/api/oracle/run-sequence` toutes les 6h
+
+
+## Iteration 29 — Bugs P0 production resolus (Feb 2026)
+
+### Bug 1 : Redirection post-login erronee → CORRIGE
+- **Symptome** : apres connexion, l'utilisateur etait redirige sur `/tarot` (page legacy) au lieu de son espace personnel
+- **Root cause** : `Login.js:35` faisait `navigate('/tarot')` en dur (residu du tunnel oracle initial)
+- **Fix** : `navigate(redirect || '/mon-compte')` avec lecture du param `?redirect=...` depuis l'URL (utile pour les guards de routes protegees)
+- **Fichier** : `frontend/src/pages/Login.js` lignes 30-38
+- **Tests** : E2E playwright OK avec admin, redirection respecte `?redirect=/cercle`
+
+### Bug 2 : Portail Stripe 404 pour les premium grants manuels → CORRIGE
+- **Symptome** : le bouton "Gerer mon abonnement" sur `/premium` retournait 404 pour les utilisateurs ayant un premium offert manuellement par l'admin (sans `stripe_customer_id`)
+- **Root cause** : `Premium.js` affichait le bouton manage des que `isPremium === true`, mais le endpoint `/api/premium/portal` retourne legitimement 404 si l'utilisateur n'a pas de `stripe_customer_id` dans son profil
+- **Fix** :
+  1. Nouveau flag `hasStripeSubscription = !!status?.subscription_id` derive de la reponse de `/api/premium/status`
+  2. Le bouton manage n'est rendu QUE si `hasStripeSubscription === true`
+  3. Sinon affichage d'un texte editorial : "Acces offert — aucun abonnement Stripe a gerer."
+  4. `handleManage` gere maintenant le 404 avec un message clair (defense en profondeur)
+- **Fichier** : `frontend/src/pages/Premium.js` lignes 129-150 + 192-208
+- **Bonus** : correction d'une route brisee (`/mon-profil` → `/mon-compte`) sur le CTA du plan gratuit
+- **Tests** : iteration 29 → 6/6 backend PASS + 5/6 frontend PASS (juliette UI path bloque par mot de passe manquant mais validation code-review OK)
+
+### Action user encore requise
+- **CRITIQUE** : executer `/app/supabase/oracle_leads_migration.sql` dans le SQL Editor Supabase. Sans ca, la capture email Oracle continue de logger `PGRST205 - oracle_leads not found` (les leads ne sont PAS persistes, donc la sequence Resend ne fonctionne pas). Le endpoint retourne neanmoins 200 (graceful fallback), masquant le probleme.
+- **Production** : faire "Save to Github" pour redeployer les fix Login.js + Premium.js sur consultation-astro.emergent.host / plume-astrale.fr
+
+### Code review surface points (non bloquants)
+- `Premium.js:147` : `isPremium` melange `status` et `user` (2 sources) → preferer trust uniquement `status` une fois charge
+- `Premium.js:109` : silent .catch() sur le status fetch → ajouter logging/sentry
+- `Login.js:35` : redirect param sans allowlist → faible risque (react-router neutralise les URLs absolues) mais a securiser long terme
+- `premium_subscription.py:111` : portail Stripe ouvert tant que `stripe_customer_id` existe meme apres expiration → considerer aussi `status in ('active','trialing')`
