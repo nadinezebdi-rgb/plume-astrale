@@ -476,7 +476,7 @@ const Navbar = () => {
           </div>
         )}
       </div>
-      <style>{`.desktop-nav{display:none!important}@media(min-width:1240px){.desktop-nav{display:block!important}.mobile-toggle{display:none!important}}`}</style>
+      <style>{`.desktop-nav{display:none!important}@media(min-width:1024px){.desktop-nav{display:block!important}.mobile-toggle{display:none!important}}`}</style>
     </nav>
   );
 };

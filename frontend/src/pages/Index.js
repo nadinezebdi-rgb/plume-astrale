@@ -10,6 +10,7 @@ import HeroOracle from '../components/HeroOracle';
 import EnergyToday from '../components/EnergyToday';
 import SocialProof from '../components/SocialProof';
 import NatalCompletionPrompt from '../components/NatalCompletionPrompt';
+import VideoHero from '../components/VideoHero';
 
 /* ═══════════════════════════════════════════════════════════
    COSMIC CANVAS — multilayer animated background
@@ -287,6 +288,17 @@ const Index = () => {
 
       {/* ═══════ HERO ═══════ */}
       <section className="relative min-h-screen flex items-center justify-center px-6 pt-32 sm:pt-32 pb-16 z-10">
+        {/* Vidéo de fond en loop */}
+        <video
+          autoPlay muted loop playsInline
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center', opacity: 0.18, zIndex: 0,
+            pointerEvents: 'none',
+          }}
+        >
+          <source src="/videos/hero.mp4" type="video/mp4" />
+        </video>
         {/* Editorial kicker bar */}
         <div className="absolute top-20 sm:top-24 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10 animate-fade-up"
           style={{ animationDelay: '0ms' }}>

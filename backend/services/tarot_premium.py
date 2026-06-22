@@ -758,8 +758,6 @@ def _analyser_croix_celtique(cartes: List[Dict], question: str, domaine: str) ->
     else:
         energie_globale = "Challengeante - Période de transformation profonde"
     
-    # Analyser les planètes
-    planetes = [c["planete"] for c in cartes]
     
     return {
         "energie_globale": energie_globale,

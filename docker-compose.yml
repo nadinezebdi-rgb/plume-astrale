@@ -1,32 +1,21 @@
 services:
-  mongodb:
-    image: mongo:7
-    restart: always
-    volumes:
-      - mongo_data:/data/db
-    networks:
-      - plume_network
-
   backend:
     build:
       context: .
       dockerfile: deploy/Dockerfile.backend
     restart: always
     environment:
-      - MONGO_URL=${MONGO_URL:-mongodb://mongodb:27017}
-      - DB_NAME=${DB_NAME:-plume_astrale}
-      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
       - STRIPE_API_KEY=${STRIPE_API_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - EMERGENT_LLM_KEY=${EMERGENT_LLM_KEY}
       - ASTROLOGY_API_USER_ID=${ASTROLOGY_API_USER_ID}
       - ASTROLOGY_API_KEY=${ASTROLOGY_API_KEY}
-      - ASTROLOGY_PDF_USER_ID=${ASTROLOGY_PDF_USER_ID}
-      - ASTROLOGY_PDF_API_KEY=${ASTROLOGY_PDF_API_KEY}
-      - JWT_SECRET=${JWT_SECRET}
+      - ASTROLOGY_API_ACCESS_TOKEN=${ASTROLOGY_API_ACCESS_TOKEN}
     env_file:
       - .env
-    depends_on:
-      - mongodb
     networks:
       - plume_network
 
@@ -36,6 +25,8 @@ services:
       dockerfile: deploy/Dockerfile.frontend
       args:
         - REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
+        - REACT_APP_SUPABASE_URL=${SUPABASE_URL}
+        - REACT_APP_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
     restart: always
     networks:
       - plume_network
@@ -65,7 +56,6 @@ services:
       - nginx
 
 volumes:
-  mongo_data:
   certbot_etc:
   certbot_var:
 
