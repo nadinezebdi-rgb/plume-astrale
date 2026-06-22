@@ -250,10 +250,21 @@ export default function CercleDashboard() {
     if (!mood) return;
     setCheckinLoading(true);
     try {
-      await axios.post(`${API}/api/cercle/checkin`, { mood, intention }, {
+      const r = await axios.post(`${API}/api/cercle/checkin`, { mood, intention }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      await Promise.all([load(), refreshBalance()]);
+      // Optimistic update : reflète le check-in localement + maj streak depuis la réponse
+      setData(prev => prev ? {
+        ...prev,
+        checkin: { mood, intention },
+        streak: {
+          ...prev.streak,
+          streak_count: r.data.streak_count ?? prev.streak?.streak_count,
+          checked_in_today: true,
+          next_milestone: r.data.next_milestone ?? prev.streak?.next_milestone,
+        },
+      } : prev);
+      refreshBalance();
     } catch (e) {
       setErr(e.response?.data?.detail || 'Impossible d\'enregistrer ton check-in.');
     } finally {
@@ -309,7 +320,7 @@ export default function CercleDashboard() {
           <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: '#D4B46A', letterSpacing: '0.3em', fontFamily: 'Cinzel, serif' }}>
             Le Cercle
           </p>
-          <h1 className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: '#F0E6D3' }}>
+          <h1 className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: '#F0E6D3' }} data-testid="cercle-greeting">
             {greeting()}, <em style={{ color: '#D4B46A', fontStyle: 'italic' }}>{data.profile.prenom}</em>
           </h1>
           <p className="text-xs capitalize" style={{ color: 'rgba(184,176,200,0.6)' }}>{dateLabel}</p>

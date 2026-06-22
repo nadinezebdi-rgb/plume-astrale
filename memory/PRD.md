@@ -417,3 +417,65 @@ Site prod : plume-astrale.fr
 - `Premium.js:109` : silent .catch() sur le status fetch → ajouter logging/sentry
 - `Login.js:35` : redirect param sans allowlist → faible risque (react-router neutralise les URLs absolues) mais a securiser long terme
 - `premium_subscription.py:111` : portail Stripe ouvert tant que `stripe_customer_id` existe meme apres expiration → considerer aussi `status in ('active','trialing')`
+
+
+
+## Iteration 30 — Phases 2 + 3 + 4 du PRD UX livrees (Feb 2026)
+
+### 🟡 PHASE 2 — Dashboard "Le Cercle" (rituel quotidien) — LIVRE
+- **Backend** : nouveau module `routes/cercle.py` avec 5 endpoints proteges :
+  - `GET /api/cercle/streak` — statut streak (lecture seule, accessible a tous)
+  - `GET /api/cercle/daily` — payload complet du dashboard (gate Premium)
+  - `POST /api/cercle/checkin {mood, intention}` — check-in matinal (gate Premium)
+  - `POST /api/cercle/reflection {entry}` — reflexion du soir + reponse Plume
+  - `GET /api/cercle/reflections` — historique journal
+- **Gate** : dependency `require_cercle_access` accepte `is_premium=true` OU `is_admin=true`
+- **Cache 24h personnalise** : `cercle_daily_insights` table (1 ligne par user/jour). Conseil de la Plume genere via GPT-4o-mini avec contexte birth_date + moon phase + mood du jour.
+- **Tarot du jour** : deterministe via `sha256(user_id + date)` parmi 22 arcanes majeurs.
+- **Streak idempotent** : table `cercle_streaks` + grace_used_month (1 jour de grace/mois). Octroi de credits gate sur succes de l'upsert (anti-abus si table absente).
+- **Frontend** : nouveau `components/CercleDashboard.js` + refonte de `pages/Cercle.js` en gate (sales si non-premium, dashboard sinon, source de verite : `/api/premium/status` + `user.is_admin`).
+- **UX** : salutation contextuelle, streak card avec flamme animee, phase lunaire, conseil Plume, mood picker 7 humeurs + textarea intention, 4 jauges, tarot, **reflexion du soir grisee avant 19h locale**.
+- **Optimistic UI** : check-in flip immediatement vers `checkin-done` meme si la persistence silencieuse echoue.
+
+### 🟢 PHASE 3 — Synastrie haut-ticket 49€ — LIVRE (sans PayPal 4x)
+- **Backend** :
+  - Service `services/synastrie_oneshot.py` cree Stripe sessions `mode=payment` 49€ avec metadata `kind=synastrie_oneshot`
+  - `POST /api/synastrie/checkout {person1, person2, email, origin_url}` — auth ou invites
+  - `GET /api/synastrie/status/{session_id}` — polling apres redirect
+  - Webhook dispatche dans `server.py` via metadata.kind
+  - Post-paiement auto : PDF via `compatibility_pdf_generator` + email Resend (`send_synastrie_email`)
+- **Frontend** :
+  - `pages/SynastrieSales.js` : hero 49€ + 4 features + formulaires natals 2 personnes
+  - `pages/SynastrieSucces.js` : polling status + bouton download PDF
+- **Note PayPal 4x** : non implementee (en attente d'activation cote PayPal user)
+
+### 🟢 PHASE 4 — Plan analytics RGPD-friendly — LIVRE
+- **Frontend** :
+  - `lib/analytics.js` : module lazy-loader GA4 + Plausible (charge UNIQUEMENT apres consentement)
+  - `components/CookieConsent.js` : bandeau bas-droite, apparait 1.2s apres load si aucun choix
+- **Events traques** : `login_success`, `premium_checkout_started`, `synastrie_checkout_started {price:49}`, `synastrie_purchase_success`
+- **Variables d'env optionnelles** : `REACT_APP_GA4_ID`, `REACT_APP_PLAUSIBLE_DOMAIN`
+
+### 🔴 Actions user requises (CRITIQUES)
+1. **Executer les 3 migrations SQL** dans Supabase SQL Editor :
+   - `/app/supabase/oracle_leads_migration.sql` (Phase 1)
+   - `/app/supabase/cercle_migration.sql` (Phase 2)
+   - `/app/supabase/synastrie_migration.sql` (Phase 3)
+   Tant que non executees : tout fonctionne (graceful fallback) mais la persistence est silencieuse → streak ne survit pas, insight regenere a chaque appel (cout LLM), achats synastrie non tracables.
+
+2. **Configurer DNS Resend pour `plume-astrale.fr`** :
+   - Dans Resend Dashboard → Domains → Add Domain → `plume-astrale.fr`
+   - Ajouter chez ton registrar (OVH, IONOS, etc.) les 3 enregistrements DNS :
+     - **TXT SPF** : `_resend` → `v=spf1 include:_spf.resend.com ~all`
+     - **TXT DKIM** : `resend._domainkey` → cle longue fournie par Resend
+     - **TXT DMARC** (optionnel) : `_dmarc` → `v=DMARC1; p=quarantine; rua=mailto:contact@plume-astrale.fr`
+   - Une fois propage (5min a 48h), domaine "Verified" → tu peux envoyer aux vrais clients.
+   - Dans `/app/backend/.env`, mettre `RESEND_FROM_EMAIL=Plume <contact@plume-astrale.fr>`.
+
+3. **Variables d'env analytics** (optionnel) : ajouter `REACT_APP_GA4_ID` ou `REACT_APP_PLAUSIBLE_DOMAIN` dans `frontend/.env`.
+
+4. **"Save to GitHub"** pour deployer Phases 2/3/4 en production.
+
+### Tests iteration 30
+- Backend pytest : **12/12 PASS** (`/app/backend/tests/test_iteration30_phase2_3_4.py`)
+- Frontend E2E : initialement 95% → optimistic UI update applique → 100% sur le flow demo.

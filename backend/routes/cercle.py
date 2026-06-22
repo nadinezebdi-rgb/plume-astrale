@@ -269,7 +269,7 @@ async def _do_checkin(user_id: str) -> dict:
     milestone_bonus = STREAK_MILESTONES.get(new_streak, 0)
     credits_earned = DAILY_CHECKIN_CREDIT + milestone_bonus
 
-    # Persiste
+    # Persiste (et gate l'octroi de credits sur succes pour eviter l'abus quand la table manque)
     upsert_payload = {
         'user_id': user_id,
         'current_streak': new_streak,
@@ -279,16 +279,21 @@ async def _do_checkin(user_id: str) -> dict:
         'grace_used_month': state.get('grace_used_month'),
         'updated_at': datetime.now(timezone.utc).isoformat(),
     }
-    _safe_upsert('cercle_streaks', upsert_payload, on_conflict='user_id')
+    streak_persisted = _safe_upsert('cercle_streaks', upsert_payload, on_conflict='user_id')
 
-    # Credit le wallet
-    description = f"Check-in du Cercle (jour {new_streak})"
-    if milestone_bonus > 0:
-        description += f" — palier {new_streak}j +{milestone_bonus}cr"
-    try:
-        await add_credits(user_id, credits_earned, description, tx_type='reward')
-    except Exception as e:
-        logger.warning(f'[cercle] add_credits failed: {e}')
+    # Credit le wallet UNIQUEMENT si l'idempotence est garantie (table presente)
+    if streak_persisted:
+        description = f"Check-in du Cercle (jour {new_streak})"
+        if milestone_bonus > 0:
+            description += f" — palier {new_streak}j +{milestone_bonus}cr"
+        try:
+            await add_credits(user_id, credits_earned, description, tx_type='reward')
+        except Exception as e:
+            logger.warning(f'[cercle] add_credits failed: {e}')
+    else:
+        credits_earned = 0
+        milestone_bonus = 0
+        logger.warning(f'[cercle] streak upsert failed for {user_id} — skipping credit grant (idempotency unsafe)')
 
     return {
         'already_checked_in': False,
