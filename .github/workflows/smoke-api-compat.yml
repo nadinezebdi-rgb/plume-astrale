@@ -4,9 +4,21 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '.github/workflows/smoke-api-compat.yml'
+      - 'backend/**'
+      - 'frontend/**'
+      - 'tests/smoke_api_compat.py'
+      - 'README.md'
   pull_request:
     branches:
       - main
+    paths:
+      - '.github/workflows/smoke-api-compat.yml'
+      - 'backend/**'
+      - 'frontend/**'
+      - 'tests/smoke_api_compat.py'
+      - 'README.md'
   workflow_dispatch:
 
 jobs:
@@ -23,11 +35,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: 'backend/requirements.txt'
 
       - name: Install backend dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          python -m pip install --disable-pip-version-check -r backend/requirements.txt
 
       - name: Run compatibility smoke test
         run: |
