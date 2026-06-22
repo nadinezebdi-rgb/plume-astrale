@@ -106,6 +106,31 @@ export default function SynastrieSales() {
     }
   };
 
+  const handleInstagramCard = async () => {
+    setErr(null);
+    if (!person1.prenom || !person1.birth_date || !person2.prenom || !person2.birth_date) {
+      setErr('Renseignez au moins prenom + date pour les 2 personnes.');
+      return;
+    }
+    try {
+      const r = await axios.post(`${API}/api/synastrie/instagram-card`, {
+        person1, person2, email: 'preview@plume.fr',
+        origin_url: window.location.origin,
+      }, { responseType: 'blob' });
+      const blob = new Blob([r.data], { type: 'image/png' });
+      const url = URL.createObjectURL(blob);
+      // Telecharge automatiquement
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `synastrie_${person1.prenom}_${person2.prenom}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (e) {
+      setErr('Carte Instagram indisponible.');
+    }
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-24 px-4" data-testid="synastrie-sales-page">
       <SEO path="/synastrie" />
@@ -203,6 +228,15 @@ export default function SynastrieSales() {
             data-testid="synastrie-preview-btn"
           >
             ✦ Apercu gratuit du rapport (PDF)
+          </button>
+          {' · '}
+          <button
+            onClick={handleInstagramCard}
+            className="mt-4 text-[11px] underline"
+            style={{ color: 'rgba(167,139,250,0.7)', letterSpacing: '0.05em' }}
+            data-testid="synastrie-instagram-btn"
+          >
+            Visuel Instagram (PNG)
           </button>
         </div>
 

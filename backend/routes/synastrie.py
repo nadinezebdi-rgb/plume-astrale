@@ -88,3 +88,28 @@ async def synastrie_preview(payload: SynastrieCheckoutRequest):
     except Exception as e:
         logger.error(f'[synastrie] preview gen failed: {e}')
         raise HTTPException(status_code=500, detail=f'PDF generation failed: {e}')
+
+
+@router.post('/instagram-card')
+async def synastrie_instagram_card(payload: SynastrieCheckoutRequest):
+    """Genere un visuel carre 1080x1080 PNG (format Instagram) avec la couverture stylisee
+    + les prenoms du couple. Utilise pour le partage social et l'attache email."""
+    from services.synastrie_instagram_card import generate_instagram_card
+    from services.synastrie_pdf_generator import _sign_from_date
+    try:
+        p1 = payload.person1.model_dump()
+        p2 = payload.person2.model_dump()
+        png_bytes = generate_instagram_card(
+            prenom1=p1.get('prenom', ''),
+            prenom2=p2.get('prenom', ''),
+            sign1=_sign_from_date(p1.get('birth_date', '')),
+            sign2=_sign_from_date(p2.get('birth_date', '')),
+        )
+        return Response(
+            content=png_bytes,
+            media_type='image/png',
+            headers={'Content-Disposition': 'inline; filename="synastrie_instagram.png"'}
+        )
+    except Exception as e:
+        logger.error(f'[synastrie] instagram card gen failed: {e}')
+        raise HTTPException(status_code=500, detail=f'Card generation failed: {e}')

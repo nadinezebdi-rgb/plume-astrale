@@ -524,7 +524,27 @@ Site prod : plume-astrale.fr
 
 
 
-## Iteration 32 — Premières illustrations + 2 vidéos intégrées (Feb 2026)
+## Iteration 33 — Carte Instagram + retrait Virginia (Feb 2026)
+
+### ❌ Retrait Virginia
+- Suppression du bloc vidéo "Virginia" dans `NotreCadre.js`
+- Fichier `/app/frontend/public/videos/virginia.mp4` supprimé
+- Aucune mention "Virginia" subsistante dans le codebase
+
+### ✦ Carte Instagram 1080x1080
+- Nouveau service `services/synastrie_instagram_card.py` utilise Pillow pour generer un PNG 1080x1080
+- Fond : `page-01.png` (lunaire.png) cropé centré + leger blur + voile sombre vignetté top/bottom
+- Layout : "✦ PLUME ASTRALE ✦" + glyphes zodiacaux dorés + "Synastrie" + "le rapport de votre lien" + prenoms en or + "plume-astrale.fr"
+- Endpoint `POST /api/synastrie/instagram-card {person1, person2, ...}` → image/png
+- Bouton "Visuel Instagram (PNG)" sur `/synastrie` (à côté du bouton preview PDF) télécharge automatiquement le fichier `synastrie_[prenom1]_[prenom2].png`
+
+### Iteration 32 (rappel) — 3 illustrations PDF + 1 vidéo Cercle
+- page-01 (lunaire) en fond couverture
+- page-06 (violettes) → Lunes
+- page-09 (dragon) → Mars
+- `cercle-hero.mp4` autoplay sur `/cercle`
+
+
 
 ### Illustrations PDF Synastrie (3 / 22 livrées)
 - **`page-01.png`** (lunaire.png — silhouette + zodiac wheel + dragon céleste) → intégrée comme FOND PLEIN-CADRE de la couverture avec voile sombre 55% pour le contraste du texte. Le résultat est cinématographique.
