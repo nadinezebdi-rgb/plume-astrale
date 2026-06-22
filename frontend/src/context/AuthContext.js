@@ -33,6 +33,24 @@ const clearNatalLocalStorage = () => {
   try { localStorage.removeItem(NATAL_LS_KEY); } catch {}
 };
 
+const readNatalLocalStorage = () => {
+  try {
+    const raw = localStorage.getItem(NATAL_LS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const localNatalToProfileFields = (data) => ({
+  prenom: data?.prenom || undefined,
+  birth_date: data?.dateNaissance || undefined,
+  birth_time: data?.heureNaissance || undefined,
+  birth_place: data?.ville || undefined,
+  birth_country: data?.pays || undefined,
+  gender: data?.genre || undefined,
+});
+
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
@@ -66,6 +84,28 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data.user);
       setCreditBalance(res.data.credit_balance ?? 0);
       hydrateNatalLocalStorage(res.data.user);
+
+      // If user already entered natal data earlier (guest flow), sync once after login.
+      if (!res.data.user?.birth_date) {
+        const natal = readNatalLocalStorage();
+        if (natal?.dateNaissance) {
+          try {
+            await axios.put(
+              `${API}/api/auth/profile`,
+              localNatalToProfileFields(natal),
+              { headers: { Authorization: `Bearer ${accessToken}` } }
+            );
+            const refreshed = await axios.get(`${API}/api/auth/me`, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            });
+            setUser(refreshed.data.user);
+            setCreditBalance(refreshed.data.credit_balance ?? 0);
+            hydrateNatalLocalStorage(refreshed.data.user);
+          } catch {
+            // Ignore sync errors; user can still edit profile manually.
+          }
+        }
+      }
     } catch (err) {
       console.warn('loadMe failed', err);
       setUser(null);
