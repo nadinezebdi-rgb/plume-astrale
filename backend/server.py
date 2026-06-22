@@ -33,6 +33,8 @@ from services import premium_subscription
 from routes.admin import router as admin_router
 from routes.astrology_v3 import router as astrology_v3_router
 from routes.oracle import router as oracle_router
+from routes.cercle import router as cercle_router
+from routes.synastrie import router as synastrie_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -50,6 +52,8 @@ api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
 api_router.include_router(astrology_v3_router)
 api_router.include_router(oracle_router)
+api_router.include_router(cercle_router)
+api_router.include_router(synastrie_router)
 
 
 # ════════════════════════════════════════════
@@ -470,6 +474,19 @@ async def stripe_webhook(request: Request):
         premium_subscription.handle_subscription_webhook(evt_dict)
         return {'received': True, 'type': event_type}
 
+    # Route vers synastrie handler si kind=synastrie_oneshot
+    md = (data_obj.get('metadata') if isinstance(data_obj, dict) else getattr(data_obj, 'metadata', {})) or {}
+    if md.get('kind') == 'synastrie_oneshot':
+        from services.synastrie_oneshot import handle_synastrie_webhook
+        evt_dict = event if isinstance(event, dict) else _json.loads(stripe.util.json_dumps(event))
+        handle_synastrie_webhook(evt_dict)
+        # Tente generation PDF + email en arriere-plan (best-effort)
+        try:
+            await _trigger_synastrie_pdf_email(data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id)
+        except Exception as e:
+            logger.warning(f'[synastrie] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'synastrie_oneshot'}
+
     # Sinon : flow credits one-shot
     if event_type == 'checkout.session.completed':
         session_data = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
@@ -496,6 +513,65 @@ async def stripe_webhook(request: Request):
         return {'received': True, 'granted': True}
 
     return {'received': True, 'type': event_type}
+
+
+async def _trigger_synastrie_pdf_email(session_id: Optional[str]) -> None:
+    """Apres paiement synastrie : genere le PDF et envoie l'email via Resend."""
+    if not session_id:
+        return
+    from datetime import datetime, timezone
+    sb = get_admin_client()
+    r = sb.table('synastrie_purchases').select(
+        'id, email, person1_data, person2_data, pdf_path'
+    ).eq('stripe_session_id', session_id).maybe_single().execute()
+    if not r or not r.data:
+        return
+    rec = r.data
+    if rec.get('pdf_path'):
+        return  # deja genere
+
+    # Generation PDF best-effort
+    pdf_path = None
+    try:
+        from services.compatibility_pdf_generator import generate_compatibility_pdf
+        p1 = rec['person1_data']
+        p2 = rec['person2_data']
+
+        def _to_person(d):
+            return {
+                'prenom': d.get('prenom'),
+                'date_naissance': d.get('birth_date'),
+                'heure_naissance': d.get('birth_time') or '12:00',
+                'ville': d.get('birth_place') or 'Paris',
+                'latitude': d.get('latitude'),
+                'longitude': d.get('longitude'),
+            }
+        pdf_bytes = generate_compatibility_pdf(_to_person(p1), _to_person(p2), question='Synastrie complete', api_data=None)
+        out_dir = ASSETS_DIR / 'synastrie'
+        out_dir.mkdir(parents=True, exist_ok=True)
+        filename = f'synastrie_{rec["id"]}.pdf'
+        out_path = out_dir / filename
+        with open(out_path, 'wb') as f:
+            f.write(pdf_bytes)
+        pdf_path = f'/assets/synastrie/{filename}'
+        sb.table('synastrie_purchases').update({
+            'pdf_path': pdf_path,
+            'pdf_generated_at': datetime.now(timezone.utc).isoformat(),
+        }).eq('id', rec['id']).execute()
+        logger.info(f'[synastrie] PDF generated: {pdf_path}')
+    except Exception as e:
+        logger.error(f'[synastrie] PDF gen failed: {e}')
+
+    # Envoi email best-effort
+    try:
+        if pdf_path and rec.get('email'):
+            from services.resend_service import send_synastrie_email
+            await send_synastrie_email(rec['email'], rec['person1_data'].get('prenom', ''), rec['person2_data'].get('prenom', ''), pdf_path)
+            sb.table('synastrie_purchases').update({
+                'email_sent_at': datetime.now(timezone.utc).isoformat(),
+            }).eq('id', rec['id']).execute()
+    except Exception as e:
+        logger.warning(f'[synastrie] email send failed: {e}')
 
 
 class PremiumCheckoutRequest(BaseModel):

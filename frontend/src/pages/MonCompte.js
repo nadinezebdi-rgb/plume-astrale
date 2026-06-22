@@ -392,12 +392,12 @@ const MonCompte = () => {
       });
       setProfil(meRes.data.user);
 
-      // 2) Streak/fidélité via /api/ritual/today (silent fail si indisponible)
+      // 2) Streak/fidélité via /api/cercle/streak (silent fail si indisponible)
       try {
-        const ritualRes = await axios.get(`${API_URL}/api/ritual/today`, {
+        const ritualRes = await axios.get(`${API_URL}/api/cercle/streak`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setFidelite(ritualRes.data.streak);
+        setFidelite(ritualRes.data);
       } catch { /* streak optional */ }
 
       // 3) Premium subscription status (silent fail)
@@ -437,7 +437,7 @@ const MonCompte = () => {
     setCheckinLoading(true);
     setCheckinMsg(null);
     try {
-      const { data } = await axios.post(`${API_URL}/api/streak/checkin`, {}, {
+      const { data } = await axios.post(`${API_URL}/api/cercle/checkin`, { mood: 'paisible' }, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (data.already_checked_in) {
@@ -449,8 +449,13 @@ const MonCompte = () => {
         setCheckinMsg({ type: 'success', text: msg });
       }
       await Promise.all([chargerProfil(), refreshBalance()]);
-    } catch {
-      setCheckinMsg({ type: 'error', text: 'Une erreur est survenue. Réessayez.' });
+    } catch (err) {
+      const detail = err?.response?.data?.detail;
+      if (err?.response?.status === 403) {
+        setCheckinMsg({ type: 'info', text: detail || "L'assiduité quotidienne est réservée aux membres du Cercle." });
+      } else {
+        setCheckinMsg({ type: 'error', text: 'Une erreur est survenue. Réessayez.' });
+      }
     }
     setCheckinLoading(false);
   };

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Check, Sparkles, Crown, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
+import { event as trackEvent } from '@/lib/analytics';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -115,6 +116,7 @@ export default function Premium() {
     if (!isAuthenticated) { navigate('/inscription'); return; }
     setLoading(true);
     setErr(null);
+    trackEvent('premium_checkout_started');
     try {
       const r = await axios.post(`${API}/api/premium/checkout`,
         { origin_url: window.location.origin },

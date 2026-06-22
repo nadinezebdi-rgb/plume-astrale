@@ -22,8 +22,7 @@ import KarmaDestin from "./pages/KarmaDestin";
 import Horoscope from "./pages/Horoscope";
 import Compatibilite from "./pages/Compatibilite";
 import Compatibilite2 from "./pages/Compatibilite2";
-import Cercle from "./pages/Cercle";
-import Quotidien from "./pages/Quotidien";
+import Cercle from "./pages/Cercle";import Quotidien from "./pages/Quotidien";
 import BuyCredits from "./pages/BuyCredits";
 import CreditSuccess from "./pages/CreditSuccess";
 import Choix from "./pages/Choix";
@@ -44,9 +43,11 @@ import LoveLanguages from "./pages/LoveLanguages";
 import MotDePasseOublie from "./pages/MotDePasseOublie";
 import ReinitialiserMotDePasse from "./pages/ReinitialiserMotDePasse";
 import NotreCadre from "./pages/NotreCadre";
-import CercleSales from "./pages/CercleSales";
+import SynastrieSales from "./pages/SynastrieSales";
+import SynastrieSucces from "./pages/SynastrieSucces";
 import Desabonnement from "./pages/Desabonnement";
 import PremiumStickyCTA from "./components/PremiumStickyCTA";
+import CookieConsent from "./components/CookieConsent";
 
 function App() {
   return (
@@ -103,11 +104,13 @@ function App() {
                 <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
                 <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
                 <Route path="/notre-cadre" element={<NotreCadre />} />
-                <Route path="/cercle" element={<CercleSales />} />
-                <Route path="/synastrie" element={<Compatibilite2 />} />
+                <Route path="/cercle" element={<Cercle />} />
+                <Route path="/synastrie" element={<SynastrieSales />} />
+                <Route path="/synastrie/succes" element={<SynastrieSucces />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
               </Routes>
               <PremiumStickyCTA />
+              <CookieConsent />
             </>
           } />
         </Routes>
