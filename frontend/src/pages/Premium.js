@@ -81,7 +81,7 @@ function PricingCard({ title, price, period, features, cta, highlighted, onCta, 
       </ul>
 
       <button onClick={onCta} disabled={loading} style={{
-        width: '100%', padding: '14px 24px', borderRadius: 999, border: 'none',
+        width: '100%', padding: '14px 24px', borderRadius: 999,
         background: highlighted ? '#D4B46A' : 'transparent',
         color: highlighted ? '#0F1230' : '#D4B46A',
         border: highlighted ? 'none' : '1px solid rgba(212,180,106,0.4)',
@@ -128,18 +128,25 @@ export default function Premium() {
 
   const handleManage = async () => {
     setLoading(true);
+    setErr(null);
     try {
       const r = await axios.post(`${API}/api/premium/portal`,
         { return_url: window.location.href },
         { headers: { Authorization: `Bearer ${token}` } });
       window.location.href = r.data.url;
     } catch (e) {
-      setErr("Impossible d'ouvrir le portail de gestion.");
+      if (e.response?.status === 404) {
+        setErr("Votre accès Premium a été accordé manuellement (hors Stripe). Aucun portail de gestion n'est disponible pour ce type d'accès.");
+      } else {
+        setErr("Impossible d'ouvrir le portail de gestion. Réessayez dans quelques instants.");
+      }
       setLoading(false);
     }
   };
 
   const isPremium = status?.is_premium || user?.is_premium;
+  // Only show Stripe-managed subscriptions in the management UI
+  const hasStripeSubscription = !!status?.subscription_id;
 
   return (
     <>
@@ -185,14 +192,20 @@ export default function Premium() {
               <p style={{ fontSize: 14, color: '#A3D6AC', marginBottom: 10 }}>
                 ✦ Tu es membre Premium actif
               </p>
-              <button onClick={handleManage} disabled={loading} style={{
-                padding: '10px 22px', borderRadius: 999,
-                background: 'transparent', border: '1px solid rgba(124,184,138,0.5)',
-                color: '#A3D6AC', fontFamily: 'Cinzel, serif', fontSize: 11,
-                letterSpacing: '0.18em', textTransform: 'uppercase', cursor: 'pointer',
-              }} data-testid="manage-subscription-btn">
-                {loading ? 'Redirection...' : "Gerer mon abonnement"}
-              </button>
+              {hasStripeSubscription ? (
+                <button onClick={handleManage} disabled={loading} style={{
+                  padding: '10px 22px', borderRadius: 999,
+                  background: 'transparent', border: '1px solid rgba(124,184,138,0.5)',
+                  color: '#A3D6AC', fontFamily: 'Cinzel, serif', fontSize: 11,
+                  letterSpacing: '0.18em', textTransform: 'uppercase', cursor: 'pointer',
+                }} data-testid="manage-subscription-btn">
+                  {loading ? 'Redirection...' : "Gerer mon abonnement"}
+                </button>
+              ) : (
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', fontStyle: 'italic' }} data-testid="premium-manual-grant-note">
+                  Accès offert — aucun abonnement Stripe à gérer.
+                </p>
+              )}
             </div>
           )}
 

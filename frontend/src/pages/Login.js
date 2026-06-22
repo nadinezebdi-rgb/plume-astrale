@@ -31,8 +31,10 @@ const handleSubmit = async (e) => {
 
     console.log("LOGIN SUCCESS");
 
-    // redirection après connexion
-    navigate("/tarot");
+    // redirection après connexion : respecte ?redirect=... sinon /mon-compte
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get('redirect');
+    navigate(redirect || "/mon-compte");
 
   } catch (err) {
     console.error("LOGIN ERROR:", err);
