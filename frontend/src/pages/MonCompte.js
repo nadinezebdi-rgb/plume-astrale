@@ -527,7 +527,10 @@ const MonCompte = () => {
 
   /* ─── Télécharger PDF thème natal ─── */
   const handlePdfDownload = async () => {
-    if (!profil?.birth_date) return;
+    if (!profil?.birth_date) {
+      alert('Ajoutez votre date de naissance dans votre profil pour générer le PDF natal.');
+      return;
+    }
     setPdfLoading(true);
     try {
       const res = await axios.post(
@@ -831,6 +834,18 @@ const MonCompte = () => {
                     </Link>
                   ))}
                 </div>
+                <button
+                  onClick={() => setActiveTab('rapports')}
+                  className="w-full mt-1 rounded-xl px-4 py-3 flex items-center gap-3 transition-all duration-200 hover:border-[rgba(167,139,250,0.5)]"
+                  style={{ background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.35)' }}
+                  data-testid="quick-open-rapports-pdf"
+                >
+                  <span className="text-base">✶</span>
+                  <span className="text-xs" style={{ color: 'var(--pa-body)' }}>
+                    {profil?.birth_date ? 'Télécharger mon thème natal PDF' : 'Compléter mes infos pour le PDF natal'}
+                  </span>
+                  <ChevronRight className="w-3 h-3 ml-auto" strokeWidth={1.5} style={{ color: 'var(--pa-muted)' }} />
+                </button>
               </div>
             </div>
           )}
@@ -848,24 +863,23 @@ const MonCompte = () => {
                   >
                     Vos rapports astrologiques
                   </h2>
-                  {profil?.birth_date && (
-                    <button
-                      onClick={handlePdfDownload}
-                      disabled={pdfLoading}
-                      data-testid="btn-pdf-natal"
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 6,
-                        padding: '8px 16px', borderRadius: 999, flexShrink: 0,
-                        background: 'rgba(167,139,250,0.15)',
-                        border: '1px solid rgba(167,139,250,0.4)',
-                        color: '#A78BFA', fontSize: 11,
-                        letterSpacing: '0.08em', textTransform: 'uppercase',
-                        cursor: pdfLoading ? 'wait' : 'pointer',
-                      }}
-                    >
-                      {pdfLoading ? '⏳ Génération…' : '✶ Télécharger PDF'}
-                    </button>
-                  )}
+                  <button
+                    onClick={handlePdfDownload}
+                    disabled={pdfLoading || !profil?.birth_date}
+                    data-testid="btn-pdf-natal"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      padding: '8px 16px', borderRadius: 999, flexShrink: 0,
+                      background: profil?.birth_date ? 'rgba(167,139,250,0.15)' : 'rgba(148,163,184,0.15)',
+                      border: profil?.birth_date ? '1px solid rgba(167,139,250,0.4)' : '1px solid rgba(148,163,184,0.35)',
+                      color: profil?.birth_date ? '#A78BFA' : '#94A3B8',
+                      fontSize: 11,
+                      letterSpacing: '0.08em', textTransform: 'uppercase',
+                      cursor: (pdfLoading || !profil?.birth_date) ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {!profil?.birth_date ? '✶ Données incomplètes' : (pdfLoading ? '⏳ Génération…' : '✶ Télécharger PDF')}
+                  </button>
                 </div>
                 <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
                   Chaque rapport est calcule avec les ephemerides Swiss Ephemeris.
@@ -873,6 +887,11 @@ const MonCompte = () => {
                     ? ' Tous les rapports sont offerts avec votre abonnement Premium.'
                     : " Reservez vos lectures avec vos credits, ou debloquez l'acces illimite via l'abonnement Premium."}
                 </p>
+                {!profil?.birth_date && (
+                  <p className="text-xs mt-2" style={{ color: '#94A3B8' }}>
+                    Pour generer votre PDF natal, renseignez au minimum votre date de naissance dans votre profil.
+                  </p>
+                )}
               </div>
 
               {[

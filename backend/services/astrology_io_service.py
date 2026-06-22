@@ -112,6 +112,15 @@ async def _get(path: str, params: Optional[Dict[str, Any]] = None) -> Optional[D
         return None
 
 
+async def _call_first(paths: list[str], payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Try multiple API paths in order and return the first successful response."""
+    for p in paths:
+        data = await _call(p, payload)
+        if data:
+            return data
+    return None
+
+
 _CHINESE_ANIMALS = ["rat", "ox", "tiger", "rabbit", "dragon", "snake", "horse", "goat", "monkey", "rooster", "dog", "pig"]
 
 def chinese_animal_for_year(year: int) -> str:
@@ -481,7 +490,11 @@ async def astro_chat(
         },
     }
     if birth_data:
-        payload['astrology']['subjects'] = [make_subject(name, birth_data)]
+        payload['astrology']['subjects'] = [{
+            'id': 'subject_1',
+            'name': name or 'Voyageur',
+            'birth_data': birth_data,
+        }]
     if session_id:
         payload['astrology']['session_id'] = session_id
     return await _call('/chat/completions', payload)
@@ -616,17 +629,19 @@ async def chinese_elements(birth_data: Dict[str, Any], name: str = 'Voyageur', l
 
 async def zi_wei_dou_shu(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Purple Star Astrology (Zi Wei Dou Shu) — 108 étoiles."""
-    return await _call('/chinese/zi-wei-dou-shu', {
+    payload = {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
-    })
+    }
+    return await _call_first(['/chinese/zi-wei', '/chinese/zi-wei-dou-shu'], payload)
 
 async def feng_shui(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Feng Shui — numéro Kua, étoiles volantes, directions favorables."""
-    return await _call('/chinese/fengshui', {
+    payload = {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
-    })
+    }
+    return await _call_first(['/chinese/feng-shui', '/chinese/fengshui'], payload)
 
 
 # ════════ PRÉDICTIONS AVANCÉES ════════
@@ -634,10 +649,11 @@ async def feng_shui(birth_data: Dict[str, Any], name: str = 'Voyageur', language
 async def lunar_return(birth_data: Dict[str, Any], return_month: Optional[int] = None, return_year: Optional[int] = None, name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Retour Lunaire mensuel."""
     now = datetime.now(timezone.utc)
+    target_year = int(return_year or now.year)
+    target_month = int(return_month or now.month)
     payload = {
         'subject': make_subject(name, birth_data),
-        'return_month': return_month or now.month,
-        'return_year': return_year or now.year,
+        'return_date': f'{target_year:04d}-{target_month:02d}-01',
         'options': {'language': language, 'house_system': 'P'},
     }
     return await _call('/charts/lunar-return', payload)
@@ -645,31 +661,37 @@ async def lunar_return(birth_data: Dict[str, Any], return_month: Optional[int] =
 async def venus_return(birth_data: Dict[str, Any], return_year: Optional[int] = None, name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Retour de Vénus (amour & finances)."""
     now = datetime.now(timezone.utc)
+    target_year = int(return_year or now.year)
+    month = int((birth_data or {}).get('month') or now.month)
+    day = int((birth_data or {}).get('day') or now.day)
     return await _call('/charts/venus-return', {
         'subject': make_subject(name, birth_data),
-        'return_year': return_year or now.year,
+        'return_date': f'{target_year:04d}-{month:02d}-{day:02d}',
         'options': {'language': language, 'house_system': 'P'},
     })
 
 async def secondary_progressions(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Progressions secondaires (méthode jour-pour-année)."""
+    now = datetime.now(timezone.utc)
     return await _call('/charts/progressions', {
         'subject': make_subject(name, birth_data),
+        'target_date': f'{now.year:04d}-{now.month:02d}-{now.day:02d}',
         'options': {'language': language, 'house_system': 'P'},
     })
 
 async def profections(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Profections hellénistiques — seigneur de l'année."""
-    return await _call('/timing/profections', {
+    payload = {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
-    })
+    }
+    return await _call_first(['/timing/annual-profections', '/timing/profections'], payload)
 
 async def firdaria(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Firdaria (time-lord persan) — cycle de 75 ans."""
+    _ = language
     return await _call('/timing/firdaria', {
         'subject': make_subject(name, birth_data),
-        'options': {'language': language},
     })
 
 async def zodiacal_releasing(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
@@ -681,10 +703,11 @@ async def zodiacal_releasing(birth_data: Dict[str, Any], name: str = 'Voyageur',
 
 async def solar_arc_planets(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Directions solaires (Solar Arc) — technique prédictive principale."""
-    return await _call('/charts/solar-arc', {
+    payload = {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
-    })
+    }
+    return await _call_first(['/charts/solar-arc-directions', '/charts/solar-arc'], payload)
 
 
 # ════════ TECHNIQUES TRADITIONNELLES ════════
@@ -731,17 +754,13 @@ async def planetary_hours(language: str = 'fr') -> Optional[Dict]:
 
 async def midpoints(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Points médians (midpoints) + cosmobiologie."""
-    return await _call('/traditional/midpoints', {
-        'subject': make_subject(name, birth_data),
-        'options': {'language': language},
-    })
+    payload = {'subject': make_subject(name, birth_data), 'options': {'language': language}}
+    return await _call_first(['/data/midpoints', '/traditional/midpoints'], payload)
 
 async def asteroids(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Astéroïdes (Chiron, Cérès, Pallas, Junon, Vesta + archétypes féminins)."""
-    return await _call('/traditional/asteroids', {
-        'subject': make_subject(name, birth_data),
-        'options': {'language': language},
-    })
+    payload = {'subject': make_subject(name, birth_data), 'options': {'language': language}}
+    return await _call_first(['/data/asteroids', '/traditional/asteroids'], payload)
 
 async def eclipse_data(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Éclipses solaires et lunaires proches + impact sur le thème natal."""
@@ -767,7 +786,8 @@ async def human_design(birth_data: Dict[str, Any], name: str = 'Voyageur', langu
 async def kabbalah(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Kabbale — Sephiroth, 72 anges, gématrie, corrections de l'âme."""
     return await _call('/kabbalah/tree-of-life-chart', {
-        'subject': make_subject(name, birth_data),
+        'birth_data': birth_data,
+        'name': name,
         'options': {'language': language},
     })
 
@@ -1024,9 +1044,21 @@ async def pdf_synastry(
 
 async def horary_ask(question: str, language: str = 'fr') -> Optional[Dict]:
     """Horairie IA — pose une question, reçoit une réponse avec analyse traditionnelle."""
+    _ = language
+    now = datetime.now(timezone.utc)
     return await _call('/horary/analyze', {
         'question': question,
-        'language': language,
+        'category': 'general',
+        'question_time': {
+            'year': now.year,
+            'month': now.month,
+            'day': now.day,
+            'hour': now.hour,
+            'minute': now.minute,
+            'latitude': 48.8566,
+            'longitude': 2.3522,
+            'timezone': 'Europe/Paris',
+        },
     })
 
 async def horary_chart(birth_data: Dict[str, Any], question: str, name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
@@ -1068,9 +1100,21 @@ async def electional_search(
     """Recherche des meilleurs moments pour une activité dans une période donnée.
     activity: business | wedding | surgery | travel | investment | launch | meeting
     """
+    activity_map = {
+        'business': 'business_launch',
+        'launch': 'business_launch',
+        'meeting': 'contracts',
+    }
+    normalized_activity = activity_map.get(activity, activity)
+
     payload: Dict[str, Any] = {
-        'date_range': {'start': start_date, 'end': end_date},
-        'activity': activity,
+        'date_range': {'start_date': start_date, 'end_date': end_date},
+        'activity': normalized_activity,
+        'location': {
+            'latitude': 48.8566,
+            'longitude': 2.3522,
+            'timezone': 'Europe/Paris',
+        },
         'options': {'language': language},
     }
     if birth_data:

@@ -84,11 +84,8 @@ export default function TechniquesTraditionnelles() {
     { id: 'dignities', label: '👑 Dignités' },
     { id: 'sabian', label: '🔮 Sabians' },
     { id: 'planetaryhours', label: '🕐 Heures Planétaires' },
-    { id: 'midpoints', label: '📐 Midpoints' },
-    { id: 'asteroids', label: '🪐 Astéroïdes' },
     { id: 'eclipses', label: '🌑 Éclipses' },
     { id: 'draconic', label: '🐉 Draconique' },
-    { id: 'kabbalah', label: '✡️ Kabbale' },
   ];
 
   const LoadingState = ({ text }) => (

@@ -101,11 +101,6 @@ export default function Insights() {
   const tabs = [
     { id: 'biorhythms', label: '📈 Biorythmes', icon: Activity },
     { id: 'personality', label: '🧠 Personnalité', icon: Brain },
-    { id: 'archetypes', label: '🎭 Archétypes', icon: Sparkles },
-    { id: 'career', label: '💼 Carrière', icon: Briefcase },
-    { id: 'body', label: '💚 Santé', icon: Heart },
-    { id: 'moonwellness', label: '🌙 Bien-être Lunaire', icon: Zap },
-    { id: 'energy', label: '⚡ Énergie', icon: Zap },
   ];
 
   const LoadingState = ({ text }) => (
