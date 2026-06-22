@@ -14,8 +14,8 @@ from __future__ import annotations
 import os
 import asyncio
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Optional
+from datetime import datetime, timezone, timedelta, date
+from typing import Optional, Any
 
 import resend
 from dotenv import load_dotenv
@@ -26,7 +26,8 @@ load_dotenv(dotenv_path='/app/backend/.env')
 logger = logging.getLogger(__name__)
 
 resend.api_key = os.environ.get('RESEND_API_KEY')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'Plume Astrale <hello@plume-astrale.fr>')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'Plume Astrale <contact.plume@gmail.com>')
+DAILY_JOURNAL_SENDER_EMAIL = os.environ.get('DAILY_JOURNAL_SENDER_EMAIL', SENDER_EMAIL)
 
 
 SITE_URL = 'https://plume-astrale.fr'
@@ -212,13 +213,19 @@ EMAIL_BUILDERS = {
 }
 
 
-async def send_email(to_email: str, subject: str, html: str, text: str = '') -> Optional[str]:
+async def send_email(
+    to_email: str,
+    subject: str,
+    html: str,
+    text: str = '',
+    from_email: Optional[str] = None,
+) -> Optional[str]:
     """Envoi non-bloquant. Retourne l'email_id ou None si echec."""
     if not resend.api_key:
         logger.warning('RESEND_API_KEY non configure — email non envoye.')
         return None
     params = {
-        'from': SENDER_EMAIL,
+        'from': from_email or SENDER_EMAIL,
         'to': [to_email],
         'subject': subject,
         'html': html,
@@ -312,3 +319,204 @@ async def process_sequence_step(lead: dict) -> int:
         logger.warning(f'[resend] failed to update step after send: {e}')
 
     return next_step
+
+
+def _extract_sign_from_birth_date(value: str) -> str:
+    """Convertit YYYY-MM-DD en signe zodiacal occidental (EN)."""
+    y, m, d = [int(x) for x in str(value).split('-')]
+    if (m == 3 and d >= 21) or (m == 4 and d <= 19):
+        return 'Aries'
+    if (m == 4 and d >= 20) or (m == 5 and d <= 20):
+        return 'Taurus'
+    if (m == 5 and d >= 21) or (m == 6 and d <= 20):
+        return 'Gemini'
+    if (m == 6 and d >= 21) or (m == 7 and d <= 22):
+        return 'Cancer'
+    if (m == 7 and d >= 23) or (m == 8 and d <= 22):
+        return 'Leo'
+    if (m == 8 and d >= 23) or (m == 9 and d <= 22):
+        return 'Virgo'
+    if (m == 9 and d >= 23) or (m == 10 and d <= 22):
+        return 'Libra'
+    if (m == 10 and d >= 23) or (m == 11 and d <= 21):
+        return 'Scorpio'
+    if (m == 11 and d >= 22) or (m == 12 and d <= 21):
+        return 'Sagittarius'
+    if (m == 12 and d >= 22) or (m == 1 and d <= 19):
+        return 'Capricorn'
+    if (m == 1 and d >= 20) or (m == 2 and d <= 18):
+        return 'Aquarius'
+    return 'Pisces'
+
+
+def _to_birth_data(profile: dict) -> dict:
+    """Normalise le profil vers la structure attendue par daily_ritual.get_daily_insight."""
+    bd = str(profile.get('birth_date') or '')
+    bt = str(profile.get('birth_time') or '12:00')
+    try:
+        year, month, day = [int(x) for x in bd.split('-')]
+    except Exception:
+        year, month, day = 1990, 1, 1
+    hour = 12
+    minute = 0
+    try:
+        parts = bt.split(':')
+        if len(parts) >= 2:
+            hour = int(parts[0])
+            minute = int(parts[1])
+    except Exception:
+        pass
+    return {
+        'name': profile.get('prenom') or 'Voyageur',
+        'year': year,
+        'month': month,
+        'day': day,
+        'hour': hour,
+        'min': minute,
+        'lat': float(profile.get('latitude') or 48.8566),
+        'lon': float(profile.get('longitude') or 2.3522),
+        'city': profile.get('birth_place') or 'Paris',
+        'country_code': 'FR',
+    }
+
+
+def _build_daily_journal_email(first_name: str, daily: dict, plume_insight: str) -> tuple[str, str, str]:
+    today_fr = datetime.now().strftime('%d/%m/%Y')
+    subject = f"{first_name}, ton journal astrologique du {today_fr} ✦"
+    preview = f"{daily.get('signe_fr', '')} · Horoscope du jour + Conseil de la Plume"
+
+    love = (((daily.get('horoscope') or {}).get('amour')) or {})
+    career = (((daily.get('horoscope') or {}).get('carriere')) or {})
+    health = (((daily.get('horoscope') or {}).get('sante')) or {})
+
+    body = (
+        _h2(f"Ton journal du jour, {first_name}")
+        + _p(f"Signe du jour : <strong>{daily.get('signe_fr', '')}</strong> ({daily.get('element', '')})")
+        + f"""<div style=\"background:rgba(212,180,106,0.06);border:1px solid rgba(212,180,106,0.2);border-radius:14px;padding:20px;margin:20px 0;\">
+<p style=\"margin:0 0 8px;font-size:10px;letter-spacing:0.2em;color:#D4B46A;text-transform:uppercase;\">Conseil de la Plume</p>
+<p style=\"margin:0;font-size:16px;line-height:1.7;color:rgba(240,230,211,0.9);\">{plume_insight}</p>
+</div>"""
+        + f"""<div style=\"background:rgba(255,255,255,0.03);border:1px solid rgba(184,176,200,0.25);border-radius:14px;padding:20px;margin:0 0 16px;\">
+<p style=\"margin:0 0 8px;font-size:10px;letter-spacing:0.2em;color:#A78BFA;text-transform:uppercase;\">Horoscope amour ({love.get('score', '-')}/10)</p>
+<p style=\"margin:0;color:rgba(240,230,211,0.9);line-height:1.7;\">{love.get('texte', '')}</p>
+</div>"""
+        + f"""<div style=\"background:rgba(255,255,255,0.03);border:1px solid rgba(184,176,200,0.25);border-radius:14px;padding:20px;margin:0 0 16px;\">
+<p style=\"margin:0 0 8px;font-size:10px;letter-spacing:0.2em;color:#A78BFA;text-transform:uppercase;\">Horoscope carrière ({career.get('score', '-')}/10)</p>
+<p style=\"margin:0;color:rgba(240,230,211,0.9);line-height:1.7;\">{career.get('texte', '')}</p>
+</div>"""
+        + f"""<div style=\"background:rgba(255,255,255,0.03);border:1px solid rgba(184,176,200,0.25);border-radius:14px;padding:20px;margin:0 0 16px;\">
+<p style=\"margin:0 0 8px;font-size:10px;letter-spacing:0.2em;color:#A78BFA;text-transform:uppercase;\">Horoscope santé ({health.get('score', '-')}/10)</p>
+<p style=\"margin:0;color:rgba(240,230,211,0.9);line-height:1.7;\">{health.get('texte', '')}</p>
+</div>"""
+        + _p(f"Phrase du jour : <em>\"{daily.get('phrase_du_jour', '')}\"</em>")
+        + _p(f"Couleur : <strong>{daily.get('couleur_du_jour', '-')}</strong> · Numéros chance : <strong>{', '.join(str(n) for n in (daily.get('numeros_chance') or []))}</strong>")
+    )
+    html = _wrap(body, preview)
+    text = (
+        f"Ton journal astrologique du {today_fr}\n"
+        f"Signe: {daily.get('signe_fr', '')}\n\n"
+        f"Conseil de la Plume: {plume_insight}\n\n"
+        f"Amour ({love.get('score', '-')}/10): {love.get('texte', '')}\n"
+        f"Carriere ({career.get('score', '-')}/10): {career.get('texte', '')}\n"
+        f"Sante ({health.get('score', '-')}/10): {health.get('texte', '')}\n\n"
+        f"Phrase du jour: {daily.get('phrase_du_jour', '')}\n"
+    )
+    return subject, html, text
+
+
+async def send_daily_journal_for_profile(profile: dict, target_day: Optional[date] = None) -> bool:
+    """Envoie le journal quotidien a un profil utilisateur (si donnees suffisantes)."""
+    from services.daily_content import get_daily_content
+    from services.daily_ritual import get_daily_insight
+
+    email = (profile.get('email') or '').strip().lower()
+    birth_date = str(profile.get('birth_date') or '').strip()
+    user_id = profile.get('id')
+    if not email or '@' not in email or not birth_date or not user_id:
+        return False
+
+    run_day = target_day or date.today()
+    sign = _extract_sign_from_birth_date(birth_date)
+    daily = get_daily_content(sign, run_day)
+    birth_data = _to_birth_data(profile)
+    insight_data = await get_daily_insight(str(user_id), birth_data=birth_data, mood=None)
+    plume_insight = (insight_data or {}).get('insight') or daily.get('conseil_du_jour', '')
+
+    first_name = profile.get('prenom') or 'Voyageur'
+    subject, html, text = _build_daily_journal_email(first_name, daily, plume_insight)
+    email_id = await send_email(
+        email,
+        subject,
+        html.replace('{email}', email),
+        text,
+        from_email=DAILY_JOURNAL_SENDER_EMAIL,
+    )
+    return bool(email_id)
+
+
+async def process_daily_journal_batch(limit: int = 250, target_day: Optional[date] = None) -> dict[str, Any]:
+    """Envoie le journal du jour a tous les profils premium eligibles, 1 fois/jour max."""
+    sb = get_admin_client()
+    run_day = target_day or date.today()
+    run_iso = run_day.isoformat()
+
+    profiles_res = sb.table('profiles').select(
+        'id,email,prenom,birth_date,birth_time,birth_place,birth_country,latitude,longitude,premium_status'
+    ).eq('premium_status', 'active').limit(limit).execute()
+    profiles = profiles_res.data or []
+
+    eligible = [p for p in profiles if p.get('email') and p.get('birth_date')]
+    if not eligible:
+        return {'processed': len(profiles), 'eligible': 0, 'sent': 0, 'skipped': 0, 'failed': 0, 'date': run_iso}
+
+    user_ids = [p.get('id') for p in eligible if p.get('id')]
+    sent_today = set()
+    if user_ids:
+        try:
+            sent_res = sb.table('daily_journal_email_logs').select('user_id').eq('send_date', run_iso).eq('status', 'sent').in_('user_id', user_ids).execute()
+            sent_today = {row.get('user_id') for row in (sent_res.data or []) if row.get('user_id')}
+        except Exception as e:
+            logger.warning(f'[daily-journal] read log failed: {e}')
+
+    sent = 0
+    skipped = 0
+    failed = 0
+
+    for profile in eligible:
+        user_id = profile.get('id')
+        if user_id in sent_today:
+            skipped += 1
+            continue
+        ok = False
+        err_msg = None
+        try:
+            ok = await send_daily_journal_for_profile(profile, target_day=run_day)
+        except Exception as e:
+            ok = False
+            err_msg = str(e)
+
+        try:
+            sb.table('daily_journal_email_logs').upsert({
+                'user_id': user_id,
+                'email': profile.get('email'),
+                'send_date': run_iso,
+                'status': 'sent' if ok else 'failed',
+                'error': None if ok else (err_msg or 'send_failed'),
+                'sent_at': datetime.now(timezone.utc).isoformat() if ok else None,
+            }, on_conflict='user_id,send_date').execute()
+        except Exception as e:
+            logger.warning(f'[daily-journal] write log failed for {user_id}: {e}')
+
+        if ok:
+            sent += 1
+        else:
+            failed += 1
+
+    return {
+        'processed': len(profiles),
+        'eligible': len(eligible),
+        'sent': sent,
+        'skipped': skipped,
+        'failed': failed,
+        'date': run_iso,
+    }

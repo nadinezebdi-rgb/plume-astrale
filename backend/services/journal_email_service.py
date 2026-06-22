@@ -7,7 +7,7 @@ from services.daily_content import get_daily_content
 from services.supabase_client import get_admin_client
 
 RESEND_API_KEY = os.getenv('RESEND_API_KEY')
-SENDER_EMAIL = os.getenv('RESEND_SENDER_EMAIL', 'onboarding@resend.dev')
+SENDER_EMAIL = os.getenv('RESEND_SENDER_EMAIL', 'contact.plume@gmail.com')
 
 resend = Resend(api_key=RESEND_API_KEY) if RESEND_API_KEY else None
 
