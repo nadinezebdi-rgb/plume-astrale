@@ -88,6 +88,24 @@ export default function SynastrieSales() {
     }
   };
 
+  const handlePreview = async () => {
+    setErr(null);
+    if (!person1.prenom || !person1.birth_date || !person2.prenom || !person2.birth_date) {
+      setErr('Renseignez au moins prenom + date pour les 2 personnes.');
+      return;
+    }
+    try {
+      const r = await axios.post(`${API}/api/synastrie/preview`, {
+        person1, person2, email: 'preview@plume.fr',
+        origin_url: window.location.origin,
+      }, { responseType: 'blob' });
+      const blob = new Blob([r.data], { type: 'application/pdf' });
+      window.open(URL.createObjectURL(blob), '_blank');
+    } catch (e) {
+      setErr('Apercu indisponible.');
+    }
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-24 px-4" data-testid="synastrie-sales-page">
       <SEO path="/synastrie" />
@@ -177,6 +195,15 @@ export default function SynastrieSales() {
             <Check className="inline w-3 h-3 mr-1" strokeWidth={2} /> Paiement securise Stripe ·
             <Check className="inline w-3 h-3 mx-1" strokeWidth={2} /> PDF envoye par email immediatement apres paiement
           </p>
+
+          <button
+            onClick={handlePreview}
+            className="mt-4 text-[11px] underline"
+            style={{ color: 'rgba(212,180,106,0.65)', letterSpacing: '0.05em' }}
+            data-testid="synastrie-preview-btn"
+          >
+            ✦ Apercu gratuit du rapport (PDF)
+          </button>
         </div>
 
         <button onClick={() => navigate('/')} className="block mx-auto mt-10 text-xs" style={{ color: 'rgba(184,176,200,0.5)' }}>← Retour</button>

@@ -2,6 +2,7 @@
 import logging
 from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from middleware.auth import get_optional_user
@@ -67,3 +68,23 @@ async def synastrie_status_endpoint(session_id: str):
         'created_at': data.get('created_at'),
     }
     return safe
+
+
+@router.post('/preview')
+async def synastrie_preview(payload: SynastrieCheckoutRequest):
+    """Genere un PDF d'apercu (non-payant). Reserve a l'equipe pour visualiser le rapport
+    sans passer par Stripe. Activable via la variable d'env SYNASTRIE_PREVIEW_ENABLED."""
+    import os
+    if os.environ.get('SYNASTRIE_PREVIEW_ENABLED', '1') != '1':
+        raise HTTPException(status_code=403, detail='Preview disabled')
+    from services.synastrie_pdf_generator import generate_synastrie_pdf
+    try:
+        pdf_bytes = generate_synastrie_pdf(payload.person1.model_dump(), payload.person2.model_dump())
+        return Response(
+            content=pdf_bytes,
+            media_type='application/pdf',
+            headers={'Content-Disposition': 'inline; filename="synastrie_preview.pdf"'}
+        )
+    except Exception as e:
+        logger.error(f'[synastrie] preview gen failed: {e}')
+        raise HTTPException(status_code=500, detail=f'PDF generation failed: {e}')

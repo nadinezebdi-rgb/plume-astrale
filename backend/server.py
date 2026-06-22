@@ -533,20 +533,10 @@ async def _trigger_synastrie_pdf_email(session_id: Optional[str]) -> None:
     # Generation PDF best-effort
     pdf_path = None
     try:
-        from services.compatibility_pdf_generator import generate_compatibility_pdf
+        from services.synastrie_pdf_generator import generate_synastrie_pdf
         p1 = rec['person1_data']
         p2 = rec['person2_data']
-
-        def _to_person(d):
-            return {
-                'prenom': d.get('prenom'),
-                'date_naissance': d.get('birth_date'),
-                'heure_naissance': d.get('birth_time') or '12:00',
-                'ville': d.get('birth_place') or 'Paris',
-                'latitude': d.get('latitude'),
-                'longitude': d.get('longitude'),
-            }
-        pdf_bytes = generate_compatibility_pdf(_to_person(p1), _to_person(p2), question='Synastrie complete', api_data=None)
+        pdf_bytes = generate_synastrie_pdf(p1, p2)
         out_dir = ASSETS_DIR / 'synastrie'
         out_dir.mkdir(parents=True, exist_ok=True)
         filename = f'synastrie_{rec["id"]}.pdf'

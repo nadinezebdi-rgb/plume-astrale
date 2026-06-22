@@ -479,3 +479,46 @@ Site prod : plume-astrale.fr
 ### Tests iteration 30
 - Backend pytest : **12/12 PASS** (`/app/backend/tests/test_iteration30_phase2_3_4.py`)
 - Frontend E2E : initialement 95% → optimistic UI update applique → 100% sur le flow demo.
+
+
+## Iteration 31 — PDF Synastrie 25 pages livré (Feb 2026)
+
+### Nouveau service `services/synastrie_pdf_generator.py`
+- **Structure exacte 25 pages** (validée par user, choix 4C+1a) :
+  - Page 1 — Couverture sombre dorée (DEEP_PURPLE + GOLD + halo gradient)
+  - Page 2 — Sommaire poétique (6 sections, dotted lines, page numbers gold)
+  - Pages 3-4 — Portraits natals personnels
+  - Pages 5-10 — Les 7 lumières en miroir (Soleils/Lunes/Mercure/Vénus/Mars/Jupiter-Saturne)
+  - Pages 11-14 — Aspects + Maisons croisées
+  - Pages 15-17 — Vie amoureuse (Langages, Sensualité, Communication)
+  - Pages 18-21 — Bâtir ensemble (Vie commune, Enfants, Argent, Voyages)
+  - Pages 22-25 — Forces, Invitations, Transits, Bénédiction de la Plume
+- **Style "Mix" (choix 5C)** : couverture violet/dorée + pages intérieures crème (lisibilité optimale)
+- **Personnalisation complète** : prénoms, signes solaires calculés à partir des dates de naissance, alliance d'éléments (10 combinaisons : "Brasier partagé", "Volcan et roc", etc.), traits caractéristiques par signe
+- **Police Unicode** : FreeSerif registered pour rendre les glyphes zodiacaux (♉♓♎...) — fallback Helvetica sinon
+- **Slots illustration auto-détectés** : si une image `page-XX.{png,jpg,jpeg,webp}` existe dans `/app/backend/assets/synastrie_pdf/`, elle est insérée. Sinon → cadre doré pointillé "illustration · page XX" en placeholder.
+
+### Endpoint preview `/api/synastrie/preview`
+- Génère un PDF d'aperçu sans Stripe pour valider visuellement
+- Toggleable via env var `SYNASTRIE_PREVIEW_ENABLED` (défaut 1)
+- Bouton "✦ Aperçu gratuit du rapport (PDF)" ajouté en bas de `/synastrie`
+
+### Wiring webhook
+- `server.py` `_trigger_synastrie_pdf_email` utilise désormais `generate_synastrie_pdf` (au lieu de l'ancien `compatibility_pdf_generator`)
+- Le webhook Stripe `checkout.session.completed` avec `metadata.kind=synastrie_oneshot` déclenche : status=paid → génération PDF → envoi email Resend → maj email_sent_at
+
+### Tests
+- `python3 -c "from services.synastrie_pdf_generator import generate_synastrie_pdf; ..."` → 44.8 KB, **25 pages exactes** ✓
+- Endpoint `POST /api/synastrie/preview` → 200 + `application/pdf` + 25 pages ✓
+- Smoke screenshots (page 1, 2, 3, 5) → tous OK avec accents français, italiques, ornements dorés ✓
+
+### Action user requise
+- **Déposer les illustrations** dans `/app/backend/assets/synastrie_pdf/` avec nomenclature `page-XX.{png,jpg,jpeg,webp}` (22 pages à illustrer : 3-23 + 25)
+- Voir le guide complet dans `/app/backend/assets/synastrie_pdf/README.md`
+- Aucun redéploiement nécessaire après ajout d'images — détection automatique à chaque génération
+
+### Backlog futur
+- Variables analytics `REACT_APP_GA4_ID` ou `REACT_APP_PLAUSIBLE_DOMAIN` (code prêt, juste à configurer)
+- Activation PayPal 4x sur tunnel Synastrie 49€ (quand compte PayPal user prêt)
+- Enrichissement future : appel astrology-api.io v3 pour insertions d'aspects précis (positions de Vénus, Lune, etc.) dans chaque page thématique
+
