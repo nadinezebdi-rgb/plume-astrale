@@ -37,8 +37,7 @@ const NotreCadre = () => (
       <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(34px, 6vw, 54px)', color: '#F0E6D3', fontWeight: 300, lineHeight: 1.1, marginBottom: 16 }}>
         Notre cadre
       </h1>
-      <p style={{ fontSize: 16, color: 'rgba(184,176,200,0.85)', maxWidth: 540, margin: '0 auto', lineHeight: 1.65 }}>
-        Ce que nous croyons. Ce que nous ne ferons jamais. Comment nous accompagnons votre regard sur vous-même.
+      <p style={{ fontSize: 16, color: 'rgba(184,176,200,0.85)', maxWidth: 540, margin: '0 auto', lineHeight: 1.65 }}>        Ce que nous croyons. Ce que nous ne ferons jamais. Comment nous accompagnons votre regard sur vous-même.
       </p>
     </div>
 

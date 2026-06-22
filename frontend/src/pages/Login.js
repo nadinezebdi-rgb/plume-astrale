@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import SEO from '../components/SEO';
+import { event as trackEvent } from '@/lib/analytics';
 
 export default function Login() {
   const { login } = useAuth();
@@ -30,9 +31,12 @@ const handleSubmit = async (e) => {
     await login(email, password);
 
     console.log("LOGIN SUCCESS");
+    trackEvent('login_success');
 
-    // redirection après connexion
-    navigate("/tarot");
+    // redirection après connexion : respecte ?redirect=... sinon /mon-compte
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get('redirect');
+    navigate(redirect || "/mon-compte");
 
   } catch (err) {
     console.error("LOGIN ERROR:", err);

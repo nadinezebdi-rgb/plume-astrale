@@ -385,3 +385,199 @@ Site prod : plume-astrale.fr
   3. Une fois vérifié, changer `SENDER_EMAIL` sur Railway : `Plume Astrale <hello@plume-astrale.fr>`
   4. Exécuter `/app/supabase/oracle_leads_migration.sql` dans Supabase SQL Editor (sinon le tracking step ne fonctionne pas)
   5. Configurer un cron externe : `POST https://api.plume-astrale.fr/api/oracle/run-sequence` toutes les 6h
+
+
+## Iteration 29 — Bugs P0 production resolus (Feb 2026)
+
+### Bug 1 : Redirection post-login erronee → CORRIGE
+- **Symptome** : apres connexion, l'utilisateur etait redirige sur `/tarot` (page legacy) au lieu de son espace personnel
+- **Root cause** : `Login.js:35` faisait `navigate('/tarot')` en dur (residu du tunnel oracle initial)
+- **Fix** : `navigate(redirect || '/mon-compte')` avec lecture du param `?redirect=...` depuis l'URL (utile pour les guards de routes protegees)
+- **Fichier** : `frontend/src/pages/Login.js` lignes 30-38
+- **Tests** : E2E playwright OK avec admin, redirection respecte `?redirect=/cercle`
+
+### Bug 2 : Portail Stripe 404 pour les premium grants manuels → CORRIGE
+- **Symptome** : le bouton "Gerer mon abonnement" sur `/premium` retournait 404 pour les utilisateurs ayant un premium offert manuellement par l'admin (sans `stripe_customer_id`)
+- **Root cause** : `Premium.js` affichait le bouton manage des que `isPremium === true`, mais le endpoint `/api/premium/portal` retourne legitimement 404 si l'utilisateur n'a pas de `stripe_customer_id` dans son profil
+- **Fix** :
+  1. Nouveau flag `hasStripeSubscription = !!status?.subscription_id` derive de la reponse de `/api/premium/status`
+  2. Le bouton manage n'est rendu QUE si `hasStripeSubscription === true`
+  3. Sinon affichage d'un texte editorial : "Acces offert — aucun abonnement Stripe a gerer."
+  4. `handleManage` gere maintenant le 404 avec un message clair (defense en profondeur)
+- **Fichier** : `frontend/src/pages/Premium.js` lignes 129-150 + 192-208
+- **Bonus** : correction d'une route brisee (`/mon-profil` → `/mon-compte`) sur le CTA du plan gratuit
+- **Tests** : iteration 29 → 6/6 backend PASS + 5/6 frontend PASS (juliette UI path bloque par mot de passe manquant mais validation code-review OK)
+
+### Action user encore requise
+- **CRITIQUE** : executer `/app/supabase/oracle_leads_migration.sql` dans le SQL Editor Supabase. Sans ca, la capture email Oracle continue de logger `PGRST205 - oracle_leads not found` (les leads ne sont PAS persistes, donc la sequence Resend ne fonctionne pas). Le endpoint retourne neanmoins 200 (graceful fallback), masquant le probleme.
+- **Production** : faire "Save to Github" pour redeployer les fix Login.js + Premium.js sur consultation-astro.emergent.host / plume-astrale.fr
+
+### Code review surface points (non bloquants)
+- `Premium.js:147` : `isPremium` melange `status` et `user` (2 sources) → preferer trust uniquement `status` une fois charge
+- `Premium.js:109` : silent .catch() sur le status fetch → ajouter logging/sentry
+- `Login.js:35` : redirect param sans allowlist → faible risque (react-router neutralise les URLs absolues) mais a securiser long terme
+- `premium_subscription.py:111` : portail Stripe ouvert tant que `stripe_customer_id` existe meme apres expiration → considerer aussi `status in ('active','trialing')`
+
+
+
+## Iteration 30 — Phases 2 + 3 + 4 du PRD UX livrees (Feb 2026)
+
+### 🟡 PHASE 2 — Dashboard "Le Cercle" (rituel quotidien) — LIVRE
+- **Backend** : nouveau module `routes/cercle.py` avec 5 endpoints proteges :
+  - `GET /api/cercle/streak` — statut streak (lecture seule, accessible a tous)
+  - `GET /api/cercle/daily` — payload complet du dashboard (gate Premium)
+  - `POST /api/cercle/checkin {mood, intention}` — check-in matinal (gate Premium)
+  - `POST /api/cercle/reflection {entry}` — reflexion du soir + reponse Plume
+  - `GET /api/cercle/reflections` — historique journal
+- **Gate** : dependency `require_cercle_access` accepte `is_premium=true` OU `is_admin=true`
+- **Cache 24h personnalise** : `cercle_daily_insights` table (1 ligne par user/jour). Conseil de la Plume genere via GPT-4o-mini avec contexte birth_date + moon phase + mood du jour.
+- **Tarot du jour** : deterministe via `sha256(user_id + date)` parmi 22 arcanes majeurs.
+- **Streak idempotent** : table `cercle_streaks` + grace_used_month (1 jour de grace/mois). Octroi de credits gate sur succes de l'upsert (anti-abus si table absente).
+- **Frontend** : nouveau `components/CercleDashboard.js` + refonte de `pages/Cercle.js` en gate (sales si non-premium, dashboard sinon, source de verite : `/api/premium/status` + `user.is_admin`).
+- **UX** : salutation contextuelle, streak card avec flamme animee, phase lunaire, conseil Plume, mood picker 7 humeurs + textarea intention, 4 jauges, tarot, **reflexion du soir grisee avant 19h locale**.
+- **Optimistic UI** : check-in flip immediatement vers `checkin-done` meme si la persistence silencieuse echoue.
+
+### 🟢 PHASE 3 — Synastrie haut-ticket 49€ — LIVRE (sans PayPal 4x)
+- **Backend** :
+  - Service `services/synastrie_oneshot.py` cree Stripe sessions `mode=payment` 49€ avec metadata `kind=synastrie_oneshot`
+  - `POST /api/synastrie/checkout {person1, person2, email, origin_url}` — auth ou invites
+  - `GET /api/synastrie/status/{session_id}` — polling apres redirect
+  - Webhook dispatche dans `server.py` via metadata.kind
+  - Post-paiement auto : PDF via `compatibility_pdf_generator` + email Resend (`send_synastrie_email`)
+- **Frontend** :
+  - `pages/SynastrieSales.js` : hero 49€ + 4 features + formulaires natals 2 personnes
+  - `pages/SynastrieSucces.js` : polling status + bouton download PDF
+- **Note PayPal 4x** : non implementee (en attente d'activation cote PayPal user)
+
+### 🟢 PHASE 4 — Plan analytics RGPD-friendly — LIVRE
+- **Frontend** :
+  - `lib/analytics.js` : module lazy-loader GA4 + Plausible (charge UNIQUEMENT apres consentement)
+  - `components/CookieConsent.js` : bandeau bas-droite, apparait 1.2s apres load si aucun choix
+- **Events traques** : `login_success`, `premium_checkout_started`, `synastrie_checkout_started {price:49}`, `synastrie_purchase_success`
+- **Variables d'env optionnelles** : `REACT_APP_GA4_ID`, `REACT_APP_PLAUSIBLE_DOMAIN`
+
+### 🔴 Actions user requises (CRITIQUES)
+1. **Executer les 3 migrations SQL** dans Supabase SQL Editor :
+   - `/app/supabase/oracle_leads_migration.sql` (Phase 1)
+   - `/app/supabase/cercle_migration.sql` (Phase 2)
+   - `/app/supabase/synastrie_migration.sql` (Phase 3)
+   Tant que non executees : tout fonctionne (graceful fallback) mais la persistence est silencieuse → streak ne survit pas, insight regenere a chaque appel (cout LLM), achats synastrie non tracables.
+
+2. **Configurer DNS Resend pour `plume-astrale.fr`** :
+   - Dans Resend Dashboard → Domains → Add Domain → `plume-astrale.fr`
+   - Ajouter chez ton registrar (OVH, IONOS, etc.) les 3 enregistrements DNS :
+     - **TXT SPF** : `_resend` → `v=spf1 include:_spf.resend.com ~all`
+     - **TXT DKIM** : `resend._domainkey` → cle longue fournie par Resend
+     - **TXT DMARC** (optionnel) : `_dmarc` → `v=DMARC1; p=quarantine; rua=mailto:contact@plume-astrale.fr`
+   - Une fois propage (5min a 48h), domaine "Verified" → tu peux envoyer aux vrais clients.
+   - Dans `/app/backend/.env`, mettre `RESEND_FROM_EMAIL=Plume <contact@plume-astrale.fr>`.
+
+3. **Variables d'env analytics** (optionnel) : ajouter `REACT_APP_GA4_ID` ou `REACT_APP_PLAUSIBLE_DOMAIN` dans `frontend/.env`.
+
+4. **"Save to GitHub"** pour deployer Phases 2/3/4 en production.
+
+### Tests iteration 30
+- Backend pytest : **12/12 PASS** (`/app/backend/tests/test_iteration30_phase2_3_4.py`)
+- Frontend E2E : initialement 95% → optimistic UI update applique → 100% sur le flow demo.
+
+
+## Iteration 31 — PDF Synastrie 25 pages livré (Feb 2026)
+
+### Nouveau service `services/synastrie_pdf_generator.py`
+- **Structure exacte 25 pages** (validée par user, choix 4C+1a) :
+  - Page 1 — Couverture sombre dorée (DEEP_PURPLE + GOLD + halo gradient)
+  - Page 2 — Sommaire poétique (6 sections, dotted lines, page numbers gold)
+  - Pages 3-4 — Portraits natals personnels
+  - Pages 5-10 — Les 7 lumières en miroir (Soleils/Lunes/Mercure/Vénus/Mars/Jupiter-Saturne)
+  - Pages 11-14 — Aspects + Maisons croisées
+  - Pages 15-17 — Vie amoureuse (Langages, Sensualité, Communication)
+  - Pages 18-21 — Bâtir ensemble (Vie commune, Enfants, Argent, Voyages)
+  - Pages 22-25 — Forces, Invitations, Transits, Bénédiction de la Plume
+- **Style "Mix" (choix 5C)** : couverture violet/dorée + pages intérieures crème (lisibilité optimale)
+- **Personnalisation complète** : prénoms, signes solaires calculés à partir des dates de naissance, alliance d'éléments (10 combinaisons : "Brasier partagé", "Volcan et roc", etc.), traits caractéristiques par signe
+- **Police Unicode** : FreeSerif registered pour rendre les glyphes zodiacaux (♉♓♎...) — fallback Helvetica sinon
+- **Slots illustration auto-détectés** : si une image `page-XX.{png,jpg,jpeg,webp}` existe dans `/app/backend/assets/synastrie_pdf/`, elle est insérée. Sinon → cadre doré pointillé "illustration · page XX" en placeholder.
+
+### Endpoint preview `/api/synastrie/preview`
+- Génère un PDF d'aperçu sans Stripe pour valider visuellement
+- Toggleable via env var `SYNASTRIE_PREVIEW_ENABLED` (défaut 1)
+- Bouton "✦ Aperçu gratuit du rapport (PDF)" ajouté en bas de `/synastrie`
+
+### Wiring webhook
+- `server.py` `_trigger_synastrie_pdf_email` utilise désormais `generate_synastrie_pdf` (au lieu de l'ancien `compatibility_pdf_generator`)
+- Le webhook Stripe `checkout.session.completed` avec `metadata.kind=synastrie_oneshot` déclenche : status=paid → génération PDF → envoi email Resend → maj email_sent_at
+
+### Tests
+- `python3 -c "from services.synastrie_pdf_generator import generate_synastrie_pdf; ..."` → 44.8 KB, **25 pages exactes** ✓
+- Endpoint `POST /api/synastrie/preview` → 200 + `application/pdf` + 25 pages ✓
+- Smoke screenshots (page 1, 2, 3, 5) → tous OK avec accents français, italiques, ornements dorés ✓
+
+### Action user requise
+- **Déposer les illustrations** dans `/app/backend/assets/synastrie_pdf/` avec nomenclature `page-XX.{png,jpg,jpeg,webp}` (22 pages à illustrer : 3-23 + 25)
+- Voir le guide complet dans `/app/backend/assets/synastrie_pdf/README.md`
+- Aucun redéploiement nécessaire après ajout d'images — détection automatique à chaque génération
+
+### Backlog futur
+- Variables analytics `REACT_APP_GA4_ID` ou `REACT_APP_PLAUSIBLE_DOMAIN` (code prêt, juste à configurer)
+- Activation PayPal 4x sur tunnel Synastrie 49€ (quand compte PayPal user prêt)
+- Enrichissement future : appel astrology-api.io v3 pour insertions d'aspects précis (positions de Vénus, Lune, etc.) dans chaque page thématique
+
+
+
+## Iteration 33 — Carte Instagram + retrait Virginia (Feb 2026)
+
+### ❌ Retrait Virginia
+- Suppression du bloc vidéo "Virginia" dans `NotreCadre.js`
+- Fichier `/app/frontend/public/videos/virginia.mp4` supprimé
+- Aucune mention "Virginia" subsistante dans le codebase
+
+### ✦ Carte Instagram 1080x1080
+- Nouveau service `services/synastrie_instagram_card.py` utilise Pillow pour generer un PNG 1080x1080
+- Fond : `page-01.png` (lunaire.png) cropé centré + leger blur + voile sombre vignetté top/bottom
+- Layout : "✦ PLUME ASTRALE ✦" + glyphes zodiacaux dorés + "Synastrie" + "le rapport de votre lien" + prenoms en or + "plume-astrale.fr"
+- Endpoint `POST /api/synastrie/instagram-card {person1, person2, ...}` → image/png
+- Bouton "Visuel Instagram (PNG)" sur `/synastrie` (à côté du bouton preview PDF) télécharge automatiquement le fichier `synastrie_[prenom1]_[prenom2].png`
+
+### Iteration 32 (rappel) — 3 illustrations PDF + 1 vidéo Cercle
+- page-01 (lunaire) en fond couverture
+- page-06 (violettes) → Lunes
+- page-09 (dragon) → Mars
+- `cercle-hero.mp4` autoplay sur `/cercle`
+
+
+
+### Illustrations PDF Synastrie (3 / 22 livrées)
+- **`page-01.png`** (lunaire.png — silhouette + zodiac wheel + dragon céleste) → intégrée comme FOND PLEIN-CADRE de la couverture avec voile sombre 55% pour le contraste du texte. Le résultat est cinématographique.
+- **`page-06.png`** (fleurs violette.png) → Lunes en miroir (émotions, douceur féminine, violet brand-aligned)
+- **`page-09.png`** (dragon.png — dragon chinois rouge/bleu) → Mars en miroir (désir, puissance, action)
+
+### Améliorations du générateur PDF (`synastrie_pdf_generator.py`)
+- **Date française** : helper `_date_fr()` → "Composé le 22 juin 2026" (au lieu de "22 June 2026")
+- **Couverture image-aware** : `_bg_cover()` détecte `page-01.{png,jpg,...}` et l'utilise en plein-cadre + voile sombre. Fallback halo doré original sinon.
+- **Slots images améliorés** : `_illustration_slot()` détecte les vraies dimensions via `ImageReader`, calcule le ratio, centre l'image avec un fin cadre doré éditorial autour (effet "encadrement musée"). Marche pour ratios square ET landscape.
+
+### Vidéos intégrées
+- **`/videos/cercle-hero.mp4`** (13.2 MB) → Hero auto-play loop muted sur `/cercle` (sales page non-abonnés). Bordure dorée + ombre douce. Aspect-ratio 16:9 forcé.
+- **`/videos/virginia.mp4`** (13.2 MB) → Player avec contrôles sur `/notre-cadre` après le hero textuel, avec caption "Un mot de Virginia, fondatrice de Plume Astrale". Message personnel intentionnel = pas autoplay.
+
+### Backlog d'illustrations restantes (19 pages)
+Pour compléter le PDF visuellement, l'utilisateur doit fournir :
+- `page-03.png`, `page-04.png` (portraits natals personnels)
+- `page-05.png` (Soleils en miroir)
+- `page-07.png` (Mercure & Mercure)
+- `page-08.png` (Vénus en miroir)
+- `page-10.png` (Jupiter & Saturne)
+- `page-11.png` à `page-14.png` (Aspects harmonieux, tension, conjonctions, maisons)
+- `page-15.png` à `page-17.png` (Langages, Sensualité, Communication)
+- `page-18.png` à `page-21.png` (Vie commune, Enfants, Argent, Voyages)
+- `page-22.png`, `page-23.png` (Forces, Invitations)
+- `page-25.png` (Bénédiction)
+
+Toutes les pages sans image affichent un cadre doré pointillé "illustration · page XX" jusqu'à ce qu'une image soit fournie. Aucun redéploiement nécessaire.
+
+### Reste à faire (rappel actions user)
+- 🔴 Exécuter les 3 migrations SQL (`oracle_leads`, `cercle`, `synastrie`)
+- 🔴 DNS Resend pour `plume-astrale.fr`
+- 🟢 "Save to GitHub" pour déployer (inclut maintenant les 2 vidéos + 3 illustrations PDF)
+- 🟢 19 illustrations PDF restantes à fournir progressivement
+

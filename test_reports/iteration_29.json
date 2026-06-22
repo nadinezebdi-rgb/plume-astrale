@@ -1,0 +1,42 @@
+{
+  "summary": "Iteration 29 — Validated 2 P0 production bugs fixes (login redirect + premium portal for manual grants) + regressions. Backend pytest 6/6 PASS. Frontend E2E with admin: BUG1 fix verified (login → /mon-compte), BUG1bis fix verified (?redirect=/cercle honored), regression French error message OK, /premium public page OK (Découverte 0€ + Premium 14,99€). BUG2 (UI manual-grant-note vs manage-subscription-btn for juliette.zebdi@hotmail.fr) could NOT be E2E tested — Juliette's password is NOT in /app/memory/test_credentials.md. Code review of Premium.js lines 195-208 confirms the conditional render is correct (`hasStripeSubscription = !!status?.subscription_id` gates the manage button, otherwise the premium-manual-grant-note is shown). BUG2bis (backend 404 for manual grants) verified by code path inspection in /app/backend/services/premium_subscription.py:116-117 (`if not customer_id: raise HTTPException(404, 'Aucun abonnement actif')`). Cannot run the 404 happy-path live: admin already has a stripe_customer_id and the listed standard test user creds are stale (Invalid login credentials).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration29_premium_portal.py",
+    "/app/test_reports/pytest/iteration29.xml"
+  ],
+  "action_items": [
+    "Add juliette.zebdi@hotmail.fr password to /app/memory/test_credentials.md so future agents can E2E validate the manual-grant Premium UI path.",
+    "Standard test user creds (plume_test_863a0303@gmail.com / TestPlume2026!) listed in test_credentials.md return 400 Invalid login credentials — refresh or rotate this account.",
+    "Optional: in services/premium_subscription.py:get_premium_status, return premium_until as ISO datetime + a boolean for `manual_grant` (e.g. `stripe_customer_id IS NULL AND is_premium`) so the frontend doesn't have to infer manual-grant state from `!subscription_id` alone — this would be more robust if a user later subscribes via Stripe after a manual grant (customer_id set but subscription_id null between checkout & webhook)."
+  ],
+  "critical_code_review_comments": [
+    "Login.js:35 uses window.location.search to read the redirect param instead of useLocation/useSearchParams from react-router. Works today but breaks if the route is ever rendered via SSR / a memory router. Prefer `const [params] = useSearchParams(); params.get('redirect')`.",
+    "Login.js: the redirect target is taken from a query param and used directly with navigate(). There is no allowlist — an attacker can craft /connexion?redirect=https://evil.tld and after login navigate(...) will treat it as an internal path (which actually neutralises external URLs in react-router), but a relative-but-unintended path is still possible. Consider whitelisting allowed redirect prefixes.",
+    "Premium.js:147 — `const isPremium = status?.is_premium || user?.is_premium;` mixes two sources of truth. If `user.is_premium` is stale (cached AuthContext) while `status` says false, the badge will still render. Prefer trusting only the freshly-fetched `status` once it has loaded, or invalidate user.is_premium on status fetch.",
+    "Premium.js:109 — the status fetch has empty .catch(() => {}); silently swallows errors. Add a setErr or at least console.warn so prod outages are observable in Sentry/logs.",
+    "Premium.js:222 free-card CTA navigates to /mon-profil when authenticated; check if the route is /mon-compte (consistent with Login redirect) — there may be a mismatch (`/mon-profil` vs `/mon-compte`).",
+    "services/premium_subscription.py:111 — create_billing_portal creates a Stripe portal session for *any* user that has a stripe_customer_id, even if their current premium_status is 'free' or expired. That means a previously-premium user can still open a portal long after cancellation. Today the portal will just show an inactive subscription, but consider also checking `premium_status in ('active','trialing')`."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration29_premium_portal.py (new, 6 pytest cases)"
+  ],
+  "success_rate": {
+    "backend": "100% (6/6)",
+    "frontend": "83% (5/6 scenarios — Juliette UI scenario blocked by missing creds, all others PASS)"
+  },
+  "test_credentials": "Used /app/memory/test_credentials.md — admin@plume-astrale.fr / PlumeAdmin2026 (works). Listed std user plume_test_863a0303@gmail.com is STALE (Supabase 400 Invalid login credentials). juliette.zebdi@hotmail.fr password NOT in file.",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Both P0 fixes ship as expected for the admin account: login → /mon-compte, ?redirect= honored, no manage-subscription-btn shown when status.subscription_id is null. The juliette-specific UI render path was NOT live-tested due to missing creds, but the conditional in Premium.js:195 is correct. If main agent provides juliette pwd, re-run the playwright TEST5 in this iteration: navigate /premium → expect [data-testid=premium-active-badge] visible AND [data-testid=premium-manual-grant-note] visible AND [data-testid=manage-subscription-btn] NOT visible.",
+  "rca of the issue": "BUG 1 root cause (pre-fix): Login.js used `navigate('/tarot')` hard-coded after login (legacy from oracle funnel). Fix swapped to `navigate(redirect || '/mon-compte')` with redirect read from URLSearchParams. BUG 2 root cause (pre-fix): Premium.js unconditionally rendered the manage-subscription-btn whenever the user was premium; clicking it called POST /api/premium/portal which legitimately 404'd for manual grants (no stripe_customer_id), surfacing as a Stripe 404 in the UI. Fix: gated the manage button behind `!!status?.subscription_id` and show a French explanatory note instead. Both root causes are correctly addressed."
+}

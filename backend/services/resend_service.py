@@ -321,6 +321,26 @@ async def process_sequence_step(lead: dict) -> int:
     return next_step
 
 
+
+# ═══════════════════════════════════════════════════════════════
+# Email Synastrie 49€ (Phase 3)
+# ═══════════════════════════════════════════════════════════════
+async def send_synastrie_email(to_email: str, prenom1: str, prenom2: str, pdf_path: str) -> Optional[str]:
+    """Envoie le lien de telechargement du rapport Synastrie apres paiement."""
+    base = os.environ.get('PUBLIC_APP_URL', 'https://plume-astrale.fr').rstrip('/')
+    download_url = f"{base}{pdf_path}" if pdf_path.startswith('/') else pdf_path
+    subject = f"Votre Synastrie {prenom1} & {prenom2} est prete"
+    inner = (
+        _h2('Votre rapport est arrive') +
+        _p(f"Cher voyageur, votre rapport de synastrie pour <strong>{prenom1}</strong> et <strong>{prenom2}</strong> a ete soigneusement compose.") +
+        _p("Vous y decouvrirez les aspects planetaires entre vos deux themes, les dynamiques relationnelles a l'oeuvre, les points de croissance et des invitations concretes pour nourrir votre lien.") +
+        _btn('Telecharger mon rapport (PDF)', download_url) +
+        _p("Ce lien restera actif. Sauvegardez le PDF dans un endroit precieux — il vous accompagnera dans votre chemin a deux.") +
+        _p("<em>Avec douceur,<br>Plume</em>")
+    )
+    html = _wrap(inner, preview=f'Synastrie {prenom1} & {prenom2}')
+    text = f"Votre rapport Synastrie {prenom1} & {prenom2} est pret : {download_url}"
+    return await send_email(to_email, subject, html, text)
 def _extract_sign_from_birth_date(value: str) -> str:
     """Convertit YYYY-MM-DD en signe zodiacal occidental (EN)."""
     y, m, d = [int(x) for x in str(value).split('-')]
