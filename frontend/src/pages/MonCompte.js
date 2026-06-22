@@ -817,9 +817,6 @@ const MonCompte = () => {
                     { to: '/quotidien',              label: 'Guidance du jour',      icon: '☀️' },
                     { to: '/tarot-oui-non',          label: 'Tarot Oui / Non',       icon: '🃏' },
                     { to: '/astrologie-vedique',     label: 'Astrologie Védique',    icon: '🕉️' },
-                    { to: '/astrologie-chinoise',    label: 'Astrologie Chinoise',   icon: '🐉' },
-                    { to: '/insights',               label: 'Biorythmes & Insights', icon: '📈' },
-                    { to: '/techniques-traditionnelles', label: 'Traditions',        icon: '🔮' },
                     { to: '/acheter-credits',        label: 'Acheter des crédits',   icon: '✦' },
                   ].map(({ to, label, icon }) => (
                     <Link

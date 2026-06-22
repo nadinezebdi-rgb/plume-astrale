@@ -42,10 +42,6 @@ import MonRituel from "./pages/MonRituel";
 import RevolutionSolaire from "./pages/RevolutionSolaire";
 import LoveLanguages from "./pages/LoveLanguages";
 import AstrologieVedique from "./pages/AstrologieVedique";
-import AstrologieChinoise from "./pages/AstrologieChinoise";
-import TechniquesTraditionnelles from "./pages/TechniquesTraditionnelles";
-import Insights from "./pages/Insights";
-import Horairie from "./pages/Horairie";
 
 import MotDePasseOublie from "./pages/MotDePasseOublie";
 import ReinitialiserMotDePasse from "./pages/ReinitialiserMotDePasse";
@@ -108,10 +104,6 @@ function App() {
                 <Route path="/revolution-solaire" element={<RevolutionSolaire />} />
                 <Route path="/love-languages" element={<LoveLanguages />} />
                 <Route path="/astrologie-vedique" element={<AstrologieVedique />} />
-                <Route path="/astrologie-chinoise" element={<AstrologieChinoise />} />
-                <Route path="/techniques-traditionnelles" element={<TechniquesTraditionnelles />} />
-                <Route path="/insights" element={<Insights />} />
-                <Route path="/horairie" element={<Horairie />} />
                 <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
                 <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
                 <Route path="/notre-cadre" element={<NotreCadre />} />

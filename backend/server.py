@@ -41,7 +41,6 @@ from services import premium_subscription
 from routes.admin import router as admin_router
 from routes.astrology_v3 import router as astrology_v3_router
 from routes.oracle import router as oracle_router
-from routes.astrology_v3_extended import router as astrology_v3_ext_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -70,7 +69,6 @@ api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
 api_router.include_router(astrology_v3_router)
 api_router.include_router(oracle_router)
-api_router.include_router(astrology_v3_ext_router)
 
 
 # ════════════════════════════════════════════
