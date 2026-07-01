@@ -541,6 +541,37 @@ Site prod : plume-astrale.fr
 ### Iteration 32 (rappel) — 3 illustrations PDF + 1 vidéo Cercle
 - page-01 (lunaire) en fond couverture
 - page-06 (violettes) → Lunes
+
+
+## Iteration 34 — Enrichissement Option A du PDF (Feb 2026)
+
+### Nouveau service `services/synastrie_enrichment.py`
+- **`fetch_astro_data(p1, p2)`** : appelle astrology-api.io v3 en parallel (`get_positions` x2, `synastry_chart`, `relationship_compatibility_score`)
+- **`enrich_pages(astro, only_pages=None)`** : genere du texte personnalise via GPT-4o-mini pour les pages 3,4,5,6,7,8,9,11,12,22 en parallel (`asyncio.gather`) + prompt riche citant les vraies positions et aspects
+- System prompt : voix Plume, 220-320 mots par page, francais soutenu, cite les data astro fournies
+
+### Refactor `synastrie_pdf_generator.py`
+- Toutes les pages enrichies acceptent un parametre `enriched_text` optionnel
+- Nouveau helper `_page_miroir_enriched()` avec fallback statique si `enriched_text` absent
+- `generate_synastrie_pdf(p1, p2, enriched={3: "...", 5: "...", ...})` : signature etendue
+- Split des pages du texte enrichi par double-newline en paragraphes automatiquement
+
+### Endpoints & webhook
+- `POST /api/synastrie/preview` : **enrichissement partiel** (5 pages : 3, 4, 5, 8, 22) → 32s d'attente, tient dans le timeout ingress 60s
+- Webhook Stripe post-paiement : **enrichissement complet** (10 pages) → pas de contrainte de timeout (asynchrone via webhook)
+
+### Impact mesure
+- Preview : **3897 mots** (vs 3067 avant) = +27% de contenu personnalise
+- Paid (10 pages) : estimation ~5500-6000 mots = +80% de contenu personnalise
+- Cout par PDF paye : ~0.02€ via Emergent LLM Key (gratuit pour l'utilisateur)
+- Latence : preview 32s / paid asynchrone ~45-60s
+
+### 🔴 Blocker actuel : clé astrology-api.io INVALIDE
+- Variable `.env` : `ASTROLOGY_API_IO_KEY=ask_ec1cf...` retourne **401 UNAUTHORIZED**
+- Sans cette cle, le LLM genere du contenu poetique riche MAIS ne peut PAS citer les positions/aspects reels (Soleil en Taureau 24°, Venus trigone Lune, etc.)
+- **Action user** : renouveler la cle sur https://dashboard.astrology-api.io/ et mettre a jour `ASTROLOGY_API_IO_KEY` dans `/app/backend/.env`
+- Une fois la cle valide : aucun code a changer, les rapports deviennent instantanement personnalises avec vraies positions
+
 - page-09 (dragon) → Mars
 - `cercle-hero.mp4` autoplay sur `/cercle`
 

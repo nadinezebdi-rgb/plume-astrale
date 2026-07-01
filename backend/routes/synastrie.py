@@ -73,13 +73,22 @@ async def synastrie_status_endpoint(session_id: str):
 @router.post('/preview')
 async def synastrie_preview(payload: SynastrieCheckoutRequest):
     """Genere un PDF d'apercu (non-payant). Reserve a l'equipe pour visualiser le rapport
-    sans passer par Stripe. Activable via la variable d'env SYNASTRIE_PREVIEW_ENABLED."""
+    sans passer par Stripe. Activable via la variable d'env SYNASTRIE_PREVIEW_ENABLED.
+    Enrichit 10 pages via GPT-4o-mini + astrology-api.io (Option A user)."""
     import os
     if os.environ.get('SYNASTRIE_PREVIEW_ENABLED', '1') != '1':
         raise HTTPException(status_code=403, detail='Preview disabled')
     from services.synastrie_pdf_generator import generate_synastrie_pdf
+    from services.synastrie_enrichment import fetch_astro_data, enrich_pages
     try:
-        pdf_bytes = generate_synastrie_pdf(payload.person1.model_dump(), payload.person2.model_dump())
+        p1_dict = payload.person1.model_dump()
+        p2_dict = payload.person2.model_dump()
+        # Fetch astro data + generate LLM content en parallel
+        astro = await fetch_astro_data(p1_dict, p2_dict)
+        # Preview : seulement 5 pages enrichies pour tenir dans 60s (ingress timeout).
+        # La version payante (via webhook Stripe) genere les 10 pages completes.
+        enriched = await enrich_pages(astro, only_pages=[3, 4, 5, 8, 22])
+        pdf_bytes = generate_synastrie_pdf(p1_dict, p2_dict, enriched=enriched)
         return Response(
             content=pdf_bytes,
             media_type='application/pdf',
