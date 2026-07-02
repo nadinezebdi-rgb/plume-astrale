@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
 import { Sun, Moon, Star, Heart, Briefcase, Activity, Coins, RefreshCw, Loader2 } from 'lucide-react';
 import SEO from '@/components/SEO';
@@ -173,6 +174,11 @@ const Horoscope = () => {
   if (!userData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+      <PageHero
+        image="/images/astrale/image-astrale-5.jpg"
+        title="Horoscope"
+        subtitle="Guidance personnalisée selon votre thème natal"
+      />
         <div className="w-12 h-12 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin" />
       </div>
     );

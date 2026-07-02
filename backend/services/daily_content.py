@@ -4,7 +4,7 @@ Génère horoscope du jour, conseils et phrases spirituelles
 basé sur le signe zodiacal + positions planétaires + date du jour
 """
 import hashlib
-from datetime import datetime, date
+from datetime import date
 
 # Phrases spirituelles par thème (84 phrases = 12 semaines de contenu unique)
 PHRASES_SPIRITUELLES = [

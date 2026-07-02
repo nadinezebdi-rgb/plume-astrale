@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar";
-import TrialBanner from "./components/TrialBanner";
+import TrialBanner from "./components/TrialBanner";import ErrorBoundary from "./components/ErrorBoundary";
 
 import Index from "./pages/Index";
 import Register from "./pages/Register";
@@ -40,6 +40,8 @@ import Oracle from "./pages/Oracle";
 import MonRituel from "./pages/MonRituel";
 import RevolutionSolaire from "./pages/RevolutionSolaire";
 import LoveLanguages from "./pages/LoveLanguages";
+import AstrologieVedique from "./pages/AstrologieVedique";
+
 import MotDePasseOublie from "./pages/MotDePasseOublie";
 import ReinitialiserMotDePasse from "./pages/ReinitialiserMotDePasse";
 import NotreCadre from "./pages/NotreCadre";
@@ -63,6 +65,7 @@ function App() {
             <>
               <Navbar />
               <TrialBanner />
+            <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/inscription" element={<Register />} />
@@ -102,6 +105,7 @@ function App() {
                 <Route path="/mon-rituel" element={<MonRituel />} />
                 <Route path="/revolution-solaire" element={<RevolutionSolaire />} />
                 <Route path="/love-languages" element={<LoveLanguages />} />
+                <Route path="/astrologie-vedique" element={<AstrologieVedique />} />
                 <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
                 <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
                 <Route path="/notre-cadre" element={<NotreCadre />} />
@@ -111,6 +115,7 @@ function App() {
                 <Route path="/astrosexo" element={<AstroSexo />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
               </Routes>
+              </ErrorBoundary>
               <PremiumStickyCTA />
               <CookieConsent />
             </>

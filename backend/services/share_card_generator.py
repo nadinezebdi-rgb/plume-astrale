@@ -162,7 +162,6 @@ def generate_share_card(user_data, planets_data=None, chemin_vie=1):
     draw.rectangle([30, 30, W-30, H-30], outline=GOLD + (30,), width=1)
 
     # Fonts
-    font_title = _load_serif_font(52, bold=True)
     font_subtitle = _load_serif_font(28, bold=True)
     font_name = _load_serif_font(44, bold=True)
     font_label = _load_font(22, bold=True)
@@ -270,7 +269,7 @@ def generate_share_card(user_data, planets_data=None, chemin_vie=1):
 
         # Two rows of planets
         visible = [p for p in planets_data if p.get('name') in show_planets]
-        cols = min(len(visible), 3)
+        # cols = min(len(visible), 3)  # kept for reference
         if visible:
             row1 = visible[:3]
             row2 = visible[3:]
@@ -352,7 +351,6 @@ def generate_synastry_card(name_1: str, name_2: str, score: int, level: str,
     font_brand = _load_serif_font(28, bold=True)
     font_rel = _load_font(20, bold=True)
     font_name = _load_serif_font(56, bold=True)
-    font_amp = _load_serif_font(40, bold=True)
     font_score = _load_serif_font(160, bold=True)
     font_level = _load_serif_font(40, bold=True)
     font_small = _load_font(20)
