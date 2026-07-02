@@ -874,6 +874,109 @@ class SynastriePDFGenerator:
         buf.seek(0)
         return buf.getvalue()
 
+    # ════════════════════════════════════════
+    #  EXTRAIT GRATUIT 3 pages (lead magnet)
+    # ════════════════════════════════════════
+    def generate_extract(self, p1, p2, enriched: dict = None):
+        """Genere un mini-PDF de 3 pages :
+        1. Couverture identique au rapport complet
+        2. Soleils en miroir (enrichi avec vraies data astro si dispo)
+        3. CTA "Le rapport complet 25 pages a 49€" + teaser de 3 forces
+        """
+        enriched = enriched or {}
+        buf = io.BytesIO()
+        c = canvas.Canvas(buf, pagesize=A4)
+
+        s1 = _sign_from_date(p1.get('birth_date', ''))
+        s2 = _sign_from_date(p2.get('birth_date', ''))
+        n1 = (p1.get('prenom') or 'L\'un').strip().title()
+        n2 = (p2.get('prenom') or 'L\'autre').strip().title()
+
+        # Page 1 - Couverture (avec badge "Extrait gratuit")
+        self._page_01_cover(c, p1, p2, s1, s2)
+        # Badge "Extrait gratuit" superpose en bas
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawCentredString(self.w / 2, 2.5 * cm, "✦  APERCU GRATUIT — 3 PAGES  ✦")
+        c.showPage()
+
+        # Page 2 - Soleils en miroir (enrichi)
+        self._page_05_soleils(c, n1, n2, s1, s2, enriched.get(5))
+        c.showPage()
+
+        # Page 3 - CTA + teaser
+        self._page_extract_cta(c, n1, n2)
+        c.save()
+        buf.seek(0)
+        return buf.getvalue()
+
+    def _page_extract_cta(self, c, n1, n2):
+        """Page finale de l'extrait : CTA vers le rapport complet."""
+        self._bg_cream(c)
+        y = self._interior_header(c, "L'aperçu s'arrête ici", "Le rapport complet",
+                                   "vous attend en 22 pages supplémentaires")
+
+        x_left = self.margin + 0.5 * cm
+        max_w = self.w - 2 * self.margin - 1 * cm
+
+        intro = (
+            f"Ce que vous venez de lire n'est qu'une porte entrouverte sur l'univers "
+            f"astrologique que composent {n1} et {n2}. Le rapport complet vous emmène "
+            f"beaucoup plus loin, dans les zones les plus intimes de votre lien."
+        )
+        y = self._text_block(c, intro, x_left, y, max_w, size=10.5, leading=1.65)
+        y -= 0.5 * cm
+
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(x_left, y, "DANS LE RAPPORT COMPLET, VOUS DÉCOUVRIREZ :")
+        y -= 0.8 * cm
+
+        bullets = [
+            ("Vos 7 lumières en miroir", "Soleils, Lunes, Mercure, Vénus, Mars, Jupiter, Saturne"),
+            ("Vos aspects majeurs", "Trigones, carrés, oppositions — avec orbes précis"),
+            ("Vos maisons croisées", "Où l'autre éclaire votre vie (foyer, travail, spiritualité)"),
+            ("Vos langages d'amour", "Sensualité, communication, sexualité"),
+            ("Bâtir ensemble", "Vie commune, enfants, argent, voyages"),
+            ("Le chemin à deux", "Vos forces, 3 invitations, transits du mois"),
+            ("Bénédiction personnalisée", "Un message final, unique à votre couple"),
+        ]
+        for title, desc in bullets:
+            c.setFillColor(GOLD)
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(x_left, y, f"✦  {title}")
+            y -= 0.45 * cm
+            c.setFillColor(INK_SOFT)
+            c.setFont("Helvetica-Oblique", 9)
+            c.drawString(x_left + 0.5 * cm, y, desc)
+            y -= 0.55 * cm
+
+        # Bandeau prix + CTA
+        y -= 0.5 * cm
+        c.setFillColor(DEEP_PURPLE)
+        c.roundRect(x_left, y - 3 * cm, max_w, 3 * cm, 8, fill=1, stroke=0)
+        # Titre
+        c.setFillColor(GOLD_LIGHT)
+        c.setFont("Helvetica-Bold", 22)
+        c.drawCentredString(self.w / 2, y - 1 * cm, "49€")
+        c.setFillColor(CREAM)
+        c.setFont("Helvetica-Oblique", 10)
+        c.drawCentredString(self.w / 2, y - 1.6 * cm, "paiement unique — 25 pages personnalisées à vos deux thèmes")
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawCentredString(self.w / 2, y - 2.4 * cm, "plume-astrale.fr/synastrie")
+
+        # Footer
+        c.setFillColor(INK_SOFT)
+        c.setFont("Helvetica-Oblique", 8.5)
+        c.drawCentredString(self.w / 2, 1.5 * cm, "Merci d'avoir laissé Plume vous accompagner ce jour.")
+        self._footer(c, 3, total=3)
+
+
+def generate_synastrie_extract(person1: dict, person2: dict, enriched: dict = None) -> bytes:
+    """Point d'entrée pour l'extrait gratuit 3 pages (lead magnet)."""
+    return SynastriePDFGenerator().generate_extract(person1, person2, enriched=enriched)
+
 
 def generate_synastrie_pdf(person1: dict, person2: dict, enriched: dict = None) -> bytes:
     """Point d'entrée pour le webhook synastrie.

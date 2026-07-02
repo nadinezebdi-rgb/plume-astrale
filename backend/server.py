@@ -551,7 +551,7 @@ async def _trigger_synastrie_pdf_email(session_id: Optional[str]) -> None:
         out_path = out_dir / filename
         with open(out_path, 'wb') as f:
             f.write(pdf_bytes)
-        pdf_path = f'/assets/synastrie/{filename}'
+        pdf_path = f'/api/assets/synastrie/{filename}'
         sb.table('synastrie_purchases').update({
             'pdf_path': pdf_path,
             'pdf_generated_at': datetime.now(timezone.utc).isoformat(),

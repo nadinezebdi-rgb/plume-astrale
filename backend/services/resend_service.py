@@ -334,3 +334,34 @@ async def send_synastrie_email(to_email: str, prenom1: str, prenom2: str, pdf_pa
     html = _wrap(inner, preview=f'Synastrie {prenom1} & {prenom2}')
     text = f"Votre rapport Synastrie {prenom1} & {prenom2} est pret : {download_url}"
     return await send_email(to_email, subject, html, text)
+
+
+# ═══════════════════════════════════════════════════════════════
+# Extrait gratuit Synastrie (lead magnet 3 pages)
+# ═══════════════════════════════════════════════════════════════
+async def send_synastrie_extract_email(to_email: str, prenom1: str, prenom2: str, pdf_path: str) -> Optional[str]:
+    """Envoie l'extrait gratuit 3 pages + invitation vers le rapport complet a 49€."""
+    base = os.environ.get('PUBLIC_APP_URL', 'https://plume-astrale.fr').rstrip('/')
+    download_url = f"{base}{pdf_path}" if pdf_path.startswith('/') else pdf_path
+    synastrie_full_url = f"{base}/synastrie"
+    subject = f"Votre aperçu Synastrie {prenom1} & {prenom2} est arrivé ✦"
+    inner = (
+        _h2(f'{prenom1} & {prenom2} — votre aperçu est prêt') +
+        _p("Comme promis, votre extrait de synastrie composé sur vos deux thèmes astrologiques est prêt. "
+           "Il contient une lecture personnalisée de vos <strong>Soleils en miroir</strong>, un aperçu de "
+           "l'alchimie qui traverse votre lien.") +
+        _btn('Télécharger mon extrait (PDF 3 pages)', download_url) +
+        _p("Prenez un moment tranquille pour le lire. L'astrologie ne prédit rien — elle éclaire ce qui est déjà là.") +
+        _h2('Envie d\'aller plus loin ?') +
+        _p("Le rapport complet <strong>25 pages</strong> déploie l'intégralité de votre synastrie : "
+           "les 7 lumières en miroir (Soleils, Lunes, Mercure, Vénus, Mars, Jupiter, Saturne), "
+           "les aspects harmonieux et de tension avec leurs orbes précises, vos maisons croisées, "
+           "les langages d'amour, la vie commune, les enfants, l'argent, les voyages, "
+           "les transits du mois et une bénédiction personnalisée.") +
+        _btn('Composer notre rapport complet — 49€', synastrie_full_url) +
+        _p("<em>Avec douceur,<br>Plume</em>")
+    )
+    html = _wrap(inner, preview=f'Aperçu Synastrie {prenom1} & {prenom2}')
+    text = f"Votre aperçu Synastrie {prenom1} & {prenom2} : {download_url} — Rapport complet 49€ : {synastrie_full_url}"
+    return await send_email(to_email, subject, html, text)
+

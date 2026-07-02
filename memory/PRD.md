@@ -618,3 +618,39 @@ Toutes les pages sans image affichent un cadre doré pointillé "illustration ·
 - 🟢 "Save to GitHub" pour déployer (inclut maintenant les 2 vidéos + 3 illustrations PDF)
 - 🟢 19 illustrations PDF restantes à fournir progressivement
 
+
+
+## Iteration 35 — Lead magnet "Extrait gratuit 3 pages" (Feb 2026)
+
+### Backend
+- **`generate_synastrie_extract(p1, p2, enriched)`** dans `synastrie_pdf_generator.py` :
+  - Page 1 : Couverture identique au rapport complet + badge "APERCU GRATUIT — 3 PAGES"
+  - Page 2 : Soleils en miroir (enrichi via GPT-4o-mini + vraies data astro si dispo)
+  - Page 3 : `_page_extract_cta()` — teaser 7 bullets sur ce qui est dans le rapport complet + prix 49€ + URL
+- **Endpoint** `POST /api/synastrie/free-extract {person1, person2, email, consent_marketing}` :
+  - Enrichit uniquement page 5 (Soleils) via LLM+astro → **10s de génération**
+  - Sauvegarde `/app/backend/assets/synastrie_extracts/extract_{uuid}.pdf`
+  - Ajoute le lead dans `oracle_leads` (upsert email, first_name, birth_date) → alimente séquence Resend E1-E6
+  - Envoie l'email via `send_synastrie_extract_email()` avec lien téléchargement + CTA vers rapport complet 49€
+- **`send_synastrie_extract_email()`** dans `resend_service.py` : template dédié avec 2 CTA (download extrait + composer rapport complet)
+
+### Frontend
+- Section "Recevez un aperçu gratuit de 3 pages" sur `/synastrie` avec :
+  - Icon Gift + description "calculée sur vos deux vraies positions astrologiques"
+  - Champ email + bouton "Recevoir gratuitement"
+  - État succès inline ("Votre extrait vous a été envoyé par email")
+  - Data-testids : `synastrie-extract-section`, `extract-email-input`, `extract-submit-btn`, `extract-success`
+- Positionnement stratégique : ENTRE le formulaire natal et le CTA 49€ (funnel psychologique optimal)
+
+### Fix collatéral
+- Chemins d'assets corrigés `/assets/xxx` → `/api/assets/xxx` (mount FastAPI est sur `/api/assets`)
+
+### Metrics attendues
+- Coût par extrait : ~0.005€ (1 seul GPT call) → ROI énorme si conversion ≥ 1%
+- Chaque lead entre dans la séquence Resend automatique
+- Volume estimé : 3-5% des visiteurs de /synastrie devraient prendre l'extrait
+
+### Tests
+- Endpoint testé : `POST /api/synastrie/free-extract` → 200 OK en 10s, PDF 3 pages 2.7 MB, 499 mots
+- Frontend testé : section visible entre forms et CTA, styling cohérent
+

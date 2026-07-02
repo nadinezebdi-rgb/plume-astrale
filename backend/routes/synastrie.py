@@ -70,6 +70,83 @@ async def synastrie_status_endpoint(session_id: str):
     return safe
 
 
+class ExtractRequest(BaseModel):
+    person1: PersonNatalData
+    person2: PersonNatalData
+    email: str
+    consent_marketing: bool = True
+
+
+@router.post('/free-extract')
+async def synastrie_free_extract(payload: ExtractRequest):
+    """Lead magnet : extrait gratuit 3 pages envoye par email.
+    Enrichit UNIQUEMENT la page Soleils via LLM + astro data (rapide ~10s).
+    Ajoute le lead dans oracle_leads pour alimenter la sequence Resend."""
+    import re
+    import os
+    import uuid
+    from datetime import datetime, timezone  # noqa: F401
+    from services.synastrie_pdf_generator import generate_synastrie_extract
+    from services.synastrie_enrichment import fetch_astro_data, enrich_pages
+
+    email = (payload.email or '').strip().lower()
+    if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
+        raise HTTPException(status_code=400, detail='Email invalide.')
+
+    p1_dict = payload.person1.model_dump()
+    p2_dict = payload.person2.model_dump()
+
+    # Enrichissement minimal : uniquement page 5 (Soleils) pour rester rapide
+    try:
+        astro = await fetch_astro_data(p1_dict, p2_dict)
+        enriched = await enrich_pages(astro, only_pages=[5])
+    except Exception as e:
+        logger.warning(f'[synastrie/extract] enrichment failed: {e}')
+        enriched = None
+
+    pdf_bytes = generate_synastrie_extract(p1_dict, p2_dict, enriched=enriched)
+
+    # Sauvegarde locale
+    assets_root = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'synastrie_extracts')
+    os.makedirs(assets_root, exist_ok=True)
+    extract_id = uuid.uuid4().hex[:12]
+    filename = f'extract_{extract_id}.pdf'
+    out_path = os.path.join(assets_root, filename)
+    with open(out_path, 'wb') as f:
+        f.write(pdf_bytes)
+    pdf_url_path = f'/api/assets/synastrie_extracts/{filename}'
+
+    # Ajoute le lead dans oracle_leads (table existante pour la sequence Resend)
+    try:
+        sb = get_admin_client()
+        # Insert minimaliste : colonnes garanties (email, first_name, birth_date)
+        sb.table('oracle_leads').upsert({
+            'email': email,
+            'first_name': p1_dict.get('prenom'),
+            'birth_date': p1_dict.get('birth_date'),
+        }, on_conflict='email').execute()
+    except Exception as e:
+        logger.warning(f'[synastrie/extract] lead persist: {e}')
+
+    # Envoi email avec lien
+    try:
+        from services.resend_service import send_synastrie_extract_email
+        await send_synastrie_extract_email(
+            email,
+            p1_dict.get('prenom', ''),
+            p2_dict.get('prenom', ''),
+            pdf_url_path,
+        )
+    except Exception as e:
+        logger.warning(f'[synastrie/extract] email send: {e}')
+
+    return {
+        'success': True,
+        'pdf_url': pdf_url_path,
+        'message': 'Votre extrait vous a ete envoye par email. Verifiez votre boite (et vos spams).',
+    }
+
+
 @router.post('/preview')
 async def synastrie_preview(payload: SynastrieCheckoutRequest):
     """Genere un PDF d'apercu (non-payant). Reserve a l'equipe pour visualiser le rapport

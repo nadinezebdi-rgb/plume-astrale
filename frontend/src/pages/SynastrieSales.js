@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Heart, Sparkles, Download, Shield, Mail, Loader2, ArrowRight, Check } from 'lucide-react';
+import { Heart, Sparkles, Download, Shield, Mail, Loader2, ArrowRight, Check, Gift } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import { event as trackEvent } from '@/lib/analytics';
@@ -56,6 +56,9 @@ export default function SynastrieSales() {
   const [email, setEmail] = useState(user?.email || '');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
+  const [extractLoading, setExtractLoading] = useState(false);
+  const [extractSuccess, setExtractSuccess] = useState(null);
+  const [extractEmail, setExtractEmail] = useState(user?.email || '');
 
   const valid =
     person1.prenom && person1.birth_date &&
@@ -131,6 +134,32 @@ export default function SynastrieSales() {
     }
   };
 
+  const handleFreeExtract = async () => {
+    setErr(null);
+    setExtractSuccess(null);
+    if (!person1.prenom || !person1.birth_date || !person2.prenom || !person2.birth_date) {
+      setErr('Renseignez prenom + date pour les 2 personnes.');
+      return;
+    }
+    if (!extractEmail || !extractEmail.includes('@')) {
+      setErr('Email invalide pour recevoir l\'extrait.');
+      return;
+    }
+    setExtractLoading(true);
+    trackEvent('synastrie_extract_requested');
+    try {
+      const r = await axios.post(`${API}/api/synastrie/free-extract`, {
+        person1, person2, email: extractEmail, consent_marketing: true,
+      });
+      setExtractSuccess(r.data.message || 'Extrait envoyé par email !');
+      trackEvent('synastrie_extract_delivered');
+    } catch (e) {
+      setErr(e.response?.data?.detail || 'Impossible d\'envoyer l\'extrait.');
+    } finally {
+      setExtractLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-24 px-4" data-testid="synastrie-sales-page">
       <SEO path="/synastrie" />
@@ -194,6 +223,51 @@ export default function SynastrieSales() {
             </div>
           </div>
         )}
+
+        {/* Extrait gratuit — lead magnet */}
+        <div className="rounded-2xl p-6 mb-8" style={{
+          background: 'linear-gradient(135deg, rgba(212,180,106,0.08), rgba(167,139,250,0.06))',
+          border: '1px solid rgba(212,180,106,0.3)',
+        }} data-testid="synastrie-extract-section">
+          <div className="flex items-start gap-3 mb-4">
+            <Gift className="w-5 h-5 mt-1 flex-shrink-0" strokeWidth={1.5} style={{ color: '#D4B46A' }} />
+            <div>
+              <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 400 }}>Recevez un aperçu gratuit de 3 pages</h3>
+              <p className="text-xs" style={{ color: 'rgba(184,176,200,0.7)', lineHeight: 1.6 }}>
+                Découvrez la lecture personnalisée de vos <em>Soleils en miroir</em>, calculée sur vos deux vraies positions astrologiques. Aucun engagement.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              value={extractEmail}
+              onChange={e => setExtractEmail(e.target.value)}
+              placeholder="votre@email.fr"
+              className="flex-1 bg-transparent rounded-full px-4 py-2.5 text-sm outline-none"
+              style={{ border: '1px solid rgba(212,180,106,0.3)', color: '#F0E6D3' }}
+              data-testid="extract-email-input"
+            />
+            <button
+              onClick={handleFreeExtract}
+              disabled={extractLoading || !!extractSuccess}
+              className="px-5 py-2.5 rounded-full text-xs uppercase tracking-widest transition-all"
+              style={{
+                background: extractSuccess ? 'rgba(124,184,138,0.2)' : 'linear-gradient(135deg, #D4B46A, #C5A059)',
+                color: extractSuccess ? '#A3D6AC' : '#0C0918',
+                letterSpacing: '0.12em', fontWeight: 600,
+                cursor: extractSuccess ? 'default' : 'pointer',
+                minWidth: 160,
+              }}
+              data-testid="extract-submit-btn"
+            >
+              {extractLoading ? '...' : (extractSuccess ? '✓ Envoyé' : 'Recevoir gratuitement')}
+            </button>
+          </div>
+          {extractSuccess && (
+            <p className="mt-3 text-xs" style={{ color: '#A3D6AC' }} data-testid="extract-success">{extractSuccess}</p>
+          )}
+        </div>
 
         {/* CTA Stripe */}
         <div className="text-center mt-8">
