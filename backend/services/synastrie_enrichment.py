@@ -80,28 +80,62 @@ async def fetch_astro_data(p1: Dict[str, Any], p2: Dict[str, Any]) -> Dict[str, 
 # 2. Format helpers (extraire les infos-cles des reponses API)
 # ═══════════════════════════════════════════════════════════
 def _extract_planet(positions: Optional[Dict], planet: str) -> Optional[Dict]:
-    """Extrait une planete depuis un payload get_positions."""
+    """Extrait une planete depuis un payload get_positions.
+    Le format v3 renvoie : {positions: [{name, sign, degree, house, is_retrograde}, ...]}"""
     if not positions:
         return None
-    # Format v3 : positions.subject.planets = { sun: {...}, moon: {...} }
-    planets = None
+
+    # Normalise : accepte soit le wrapper {data: {positions: [...]}} soit direct {positions: [...]}
     if isinstance(positions, dict):
-        subj = positions.get('subject') or positions
-        planets = subj.get('planets') if isinstance(subj, dict) else None
-        if not planets and 'data' in positions:
-            planets = positions['data'].get('planets') if isinstance(positions['data'], dict) else None
-    if not planets or not isinstance(planets, dict):
+        planets_list = positions.get('positions')
+        if planets_list is None and 'data' in positions and isinstance(positions['data'], dict):
+            planets_list = positions['data'].get('positions')
+    else:
+        planets_list = None
+
+    if not planets_list or not isinstance(planets_list, list):
         return None
-    key = planet.lower()
-    return planets.get(key)
+
+    # Cherche par nom (case-insensitive, matches aussi "Sun" pour "sun")
+    target = planet.lower()
+    # Map noms francais/anglais pour la comparaison
+    aliases = {
+        'sun': ['sun', 'soleil'], 'moon': ['moon', 'lune'],
+        'mercury': ['mercury', 'mercure'], 'venus': ['venus', 'vénus'],
+        'mars': ['mars'], 'jupiter': ['jupiter'], 'saturn': ['saturn', 'saturne'],
+        'uranus': ['uranus'], 'neptune': ['neptune'], 'pluto': ['pluto', 'pluton'],
+        'ascendant': ['ascendant', 'asc', 'ac'], 'midheaven': ['midheaven', 'mc'],
+    }
+    valid_names = aliases.get(target, [target])
+    for p in planets_list:
+        if not isinstance(p, dict):
+            continue
+        name = (p.get('name') or '').lower()
+        if name in valid_names:
+            return p
+    return None
+
+
+# Correspondance signe abrege v3 -> nom francais complet
+_SIGN_MAP = {
+    'ari': 'Bélier', 'tau': 'Taureau', 'gem': 'Gémeaux', 'can': 'Cancer',
+    'leo': 'Lion', 'vir': 'Vierge', 'lib': 'Balance', 'sco': 'Scorpion',
+    'sag': 'Sagittaire', 'cap': 'Capricorne', 'aqu': 'Verseau', 'pis': 'Poissons',
+    'aries': 'Bélier', 'taurus': 'Taureau', 'gemini': 'Gémeaux',
+    'cancer': 'Cancer', 'leo': 'Lion', 'virgo': 'Vierge', 'libra': 'Balance',
+    'scorpio': 'Scorpion', 'sagittarius': 'Sagittaire', 'capricorn': 'Capricorne',
+    'aquarius': 'Verseau', 'pisces': 'Poissons',
+}
 
 
 def _planet_summary(pos: Optional[Dict]) -> str:
     if not pos:
         return "position non calculée"
-    sign = pos.get('sign') or pos.get('sign_name') or '?'
+    raw_sign = (pos.get('sign') or pos.get('sign_name') or '').lower()
+    sign = _SIGN_MAP.get(raw_sign, pos.get('sign') or '?')
     house = pos.get('house') or pos.get('house_number')
     deg = pos.get('degree') or pos.get('longitude')
+    retro = pos.get('is_retrograde')
     parts = [str(sign)]
     if deg is not None:
         try:
@@ -110,19 +144,31 @@ def _planet_summary(pos: Optional[Dict]) -> str:
             pass
     if house:
         parts.append(f"maison {house}")
+    if retro:
+        parts.append("rétrograde")
     return " · ".join(parts)
 
 
 def _synastry_aspects(synastry: Optional[Dict]) -> List[Dict]:
-    """Retourne la liste des aspects synastrie (avec type, planetes, orbe)."""
+    """Retourne la liste des aspects synastrie (v3 : chart_data.aspects).
+    Format v3 : [{point1, point2, aspect_type, orb}, ...]"""
     if not synastry:
         return []
     if isinstance(synastry, dict):
+        # v3 real format
+        chart_data = synastry.get('chart_data')
+        if isinstance(chart_data, dict):
+            aspects = chart_data.get('aspects')
+            if isinstance(aspects, list):
+                return aspects[:30]
+        # Fallback : recherche autres emplacements possibles
         aspects = synastry.get('aspects')
-        if not aspects and 'data' in synastry:
-            aspects = synastry['data'].get('aspects') if isinstance(synastry['data'], dict) else None
         if isinstance(aspects, list):
-            return aspects[:20]
+            return aspects[:30]
+        if 'data' in synastry and isinstance(synastry['data'], dict):
+            aspects = synastry['data'].get('aspects')
+            if isinstance(aspects, list):
+                return aspects[:30]
     return []
 
 
@@ -207,18 +253,19 @@ async def enrich_pages(astro: Dict[str, Any], only_pages: Optional[List[int]] = 
 
     def _aspects_str(filter_types: Optional[List[str]] = None, limit: int = 10) -> str:
         out = []
-        for a in aspects[:20]:
-            atype = (a.get('aspect') or a.get('type') or '').lower()
+        for a in aspects[:30]:
+            # v3 format : {point1, point2, aspect_type, orb}
+            atype = (a.get('aspect_type') or a.get('aspect') or a.get('type') or '').lower()
             if filter_types and atype not in filter_types:
                 continue
-            p_a = a.get('planet1') or a.get('body1') or a.get('p1')
-            p_b = a.get('planet2') or a.get('body2') or a.get('p2')
+            p_a = a.get('point1') or a.get('planet1') or a.get('body1') or a.get('p1')
+            p_b = a.get('point2') or a.get('planet2') or a.get('body2') or a.get('p2')
             orb = a.get('orb')
             if p_a and p_b and atype:
                 s = f"{p_a} ({n1}) {atype} {p_b} ({n2})"
                 if orb is not None:
                     try:
-                        s += f" à {float(orb):.1f}° d'orbe"
+                        s += f" à {abs(float(orb)):.1f}° d'orbe"
                     except Exception:
                         pass
                 out.append(s)
@@ -285,13 +332,13 @@ Ecris sur le desir, l'action, la sensualite, la maniere de se battre pour ce qu'
 
         11: f"""Page 11 - Aspects harmonieux entre {n1} et {n2}.
 Aspects reels (harmoniques : trigones, sextiles, conjonctions consonantes) :
-{_aspects_str(filter_types=['trine', 'sextile', 'conjunction', 'trigone', 'sextil', 'conjonction'], limit=10)}
+{_aspects_str(filter_types=['trine', 'sextile', 'conjunction'], limit=10)}
 
 Redige un texte qui deroule les 3 aspects harmonieux les plus significatifs, en les nommant precisement (planete + type + orbe). Pour chaque aspect, explique la benediction concrete qu'il apporte dans le quotidien du couple. Ne survalorise pas : les trigones sont des routes ouvertes qu'il faut savoir emprunter.""",
 
         12: f"""Page 12 - Aspects de tension entre {n1} et {n2}.
 Aspects reels (dissonants : carres, oppositions) :
-{_aspects_str(filter_types=['square', 'opposition', 'carre', 'carré'], limit=10)}
+{_aspects_str(filter_types=['square', 'opposition'], limit=10)}
 
 Redige un texte sur 2 ou 3 aspects de tension majeurs, en citant precisement les planetes et l'orbe. Pour chaque aspect, explique la croissance qu'il propose (jamais comme malediction). Ferme sur l'idee qu'un couple sans tension s'endort.""",
 

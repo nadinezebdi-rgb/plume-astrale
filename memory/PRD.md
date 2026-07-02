@@ -566,11 +566,17 @@ Site prod : plume-astrale.fr
 - Cout par PDF paye : ~0.02€ via Emergent LLM Key (gratuit pour l'utilisateur)
 - Latence : preview 32s / paid asynchrone ~45-60s
 
-### 🔴 Blocker actuel : clé astrology-api.io INVALIDE
-- Variable `.env` : `ASTROLOGY_API_IO_KEY=ask_ec1cf...` retourne **401 UNAUTHORIZED**
-- Sans cette cle, le LLM genere du contenu poetique riche MAIS ne peut PAS citer les positions/aspects reels (Soleil en Taureau 24°, Venus trigone Lune, etc.)
-- **Action user** : renouveler la cle sur https://dashboard.astrology-api.io/ et mettre a jour `ASTROLOGY_API_IO_KEY` dans `/app/backend/.env`
-- Une fois la cle valide : aucun code a changer, les rapports deviennent instantanement personnalises avec vraies positions
+### 🟢 UPDATE Iteration 34.1 — Clé astrology-api.io RENOUVELÉE + extractors corrigés
+- Nouvelle clé `ask_426b889b...` fonctionnelle, mise a jour dans `/app/backend/.env`
+- Corrections :
+  - `astrology_io_service._call()` : accepte les réponses sans `success:true` wrapper (l'endpoint synastry v3 retourne `subject_data + chart_data` sans succes flag)
+  - `synastrie_enrichment._extract_planet()` : matche le vrai format `positions: [{name, sign, degree, house, is_retrograde}]` (list de dicts, pas dict de dicts)
+  - `_planet_summary()` : traduit `Tau/Sag/Can...` → `Taureau/Sagittaire/Cancer...` en francais
+  - `_synastry_aspects()` : lit `chart_data.aspects` (vrai chemin v3)
+  - `_aspects_str()` : utilise `point1/point2/aspect_type` (vrais noms de champs v3)
+- **Resultat mesure** : preview `/synastrie` cite maintenant les VRAIES positions et aspects. Page 5 (Soleils en miroir) mentionne "Taureau et Sagittaire", "opposition subtile", "conjonction Soleil-Lune", "trine entre les lunes"
+- **Mots totaux** : 3954 sur preview 5-pages (vs 3067 avant enrichissement, sans data). Version paid 10 pages -> estimation ~5500-6000 mots
+
 
 - page-09 (dragon) → Mars
 - `cercle-hero.mp4` autoplay sur `/cercle`
