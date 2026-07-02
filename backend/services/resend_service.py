@@ -322,10 +322,10 @@ async def send_synastrie_email(to_email: str, prenom1: str, prenom2: str, pdf_pa
     """Envoie le lien de telechargement du rapport Synastrie apres paiement."""
     base = os.environ.get('PUBLIC_APP_URL', 'https://plume-astrale.fr').rstrip('/')
     download_url = f"{base}{pdf_path}" if pdf_path.startswith('/') else pdf_path
-    subject = f"Votre Synastrie {prenom1} & {prenom2} est prete"
+    subject = f"Votre rapport d'astrologie relationnelle {prenom1} & {prenom2} est pret"
     inner = (
         _h2('Votre rapport est arrive') +
-        _p(f"Cher voyageur, votre rapport de synastrie pour <strong>{prenom1}</strong> et <strong>{prenom2}</strong> a ete soigneusement compose.") +
+        _p(f"Cher voyageur, votre rapport d'astrologie relationnelle pour <strong>{prenom1}</strong> et <strong>{prenom2}</strong> a ete soigneusement compose.") +
         _p("Vous y decouvrirez les aspects planetaires entre vos deux themes, les dynamiques relationnelles a l'oeuvre, les points de croissance et des invitations concretes pour nourrir votre lien.") +
         _btn('Telecharger mon rapport (PDF)', download_url) +
         _p("Ce lien restera actif. Sauvegardez le PDF dans un endroit precieux — il vous accompagnera dans votre chemin a deux.") +
@@ -344,10 +344,10 @@ async def send_synastrie_extract_email(to_email: str, prenom1: str, prenom2: str
     base = os.environ.get('PUBLIC_APP_URL', 'https://plume-astrale.fr').rstrip('/')
     download_url = f"{base}{pdf_path}" if pdf_path.startswith('/') else pdf_path
     synastrie_full_url = f"{base}/synastrie"
-    subject = f"Votre aperçu Synastrie {prenom1} & {prenom2} est arrivé ✦"
+    subject = f"Votre aperçu d'astrologie relationnelle {prenom1} & {prenom2} est arrivé ✦"
     inner = (
         _h2(f'{prenom1} & {prenom2} — votre aperçu est prêt') +
-        _p("Comme promis, votre extrait de synastrie composé sur vos deux thèmes astrologiques est prêt. "
+        _p("Comme promis, votre extrait d'astrologie relationnelle composé sur vos deux thèmes astrologiques est prêt. "
            "Il contient une lecture personnalisée de vos <strong>Soleils en miroir</strong>, un aperçu de "
            "l'alchimie qui traverse votre lien.") +
         _btn('Télécharger mon extrait (PDF 3 pages)', download_url) +
@@ -361,7 +361,7 @@ async def send_synastrie_extract_email(to_email: str, prenom1: str, prenom2: str
         _btn('Composer notre rapport complet — 49€', synastrie_full_url) +
         _p("<em>Avec douceur,<br>Plume</em>")
     )
-    html = _wrap(inner, preview=f'Aperçu Synastrie {prenom1} & {prenom2}')
-    text = f"Votre aperçu Synastrie {prenom1} & {prenom2} : {download_url} — Rapport complet 49€ : {synastrie_full_url}"
+    html = _wrap(inner, preview=f'Aperçu Astrologie relationnelle {prenom1} & {prenom2}')
+    text = f"Votre aperçu Astrologie relationnelle {prenom1} & {prenom2} : {download_url} — Rapport complet 49€ : {synastrie_full_url}"
     return await send_email(to_email, subject, html, text)
 

@@ -396,6 +396,49 @@ const Index = () => {
         </section>
       )}
 
+      {/* ═══════ SECTION — ASTROLOGIE RELATIONNELLE (produit haut-ticket 49€) ═══════ */}
+      <section className="relative py-16 px-4 z-10" data-testid="home-relationship-section">
+        <div className="max-w-4xl mx-auto">
+          <a href="/synastrie" className="block rounded-3xl overflow-hidden transition-transform hover:scale-[1.01]" style={{
+            background: 'linear-gradient(135deg, rgba(212,180,106,0.14) 0%, rgba(167,139,250,0.10) 100%)',
+            border: '1px solid rgba(212,180,106,0.35)',
+            boxShadow: '0 12px 48px rgba(0,0,0,0.4), 0 0 60px rgba(212,180,106,0.08)',
+          }} data-testid="home-relationship-card">
+            <div className="grid md:grid-cols-2 gap-0">
+              <div className="p-8 sm:p-10 flex flex-col justify-center">
+                <p className="text-[10px] uppercase tracking-[0.32em] mb-3" style={{ color: '#D4B46A', fontFamily: 'Cinzel, serif' }}>
+                  Le cœur au centre
+                </p>
+                <h2 className="mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 300, fontSize: '2.2rem', lineHeight: 1.1 }}>
+                  <em style={{ fontStyle: 'italic', color: '#D4B46A' }}>Astrologie<br />relationnelle</em>
+                </h2>
+                <p className="text-sm mb-3" style={{ color: 'rgba(240,230,211,0.85)', lineHeight: 1.65 }}>
+                  Un rapport de 25 pages composé sur vos deux thèmes natals — pour comprendre ce qui se joue, ce qui vous nourrit et ce qui demande attention dans votre lien.
+                </p>
+                <p className="text-xs italic mb-6" style={{ color: 'rgba(212,180,106,0.85)', lineHeight: 1.65 }}>
+                  Plus fine et plus efficace qu&apos;une compatibilité amoureuse schématique — la synastrie révèle les affinités, les points de discordance, et ce que l&apos;autre active chez vous.
+                </p>
+                <div className="flex items-center gap-4">
+                  <span className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F4D98C' }}>49€</span>
+                  <span className="text-[11px] uppercase tracking-widest px-4 py-2 rounded-full" style={{
+                    background: 'linear-gradient(135deg, #D4B46A, #C5A059)', color: '#0C0918', letterSpacing: '0.12em', fontWeight: 600,
+                  }}>
+                    Découvrir →
+                  </span>
+                </div>
+                <p className="text-[10px] mt-3" style={{ color: 'rgba(184,176,200,0.6)' }}>
+                  ✦ Extrait gratuit 3 pages disponible sur la page
+                </p>
+              </div>
+              <div className="hidden md:block relative" style={{ minHeight: 300, background: 'linear-gradient(180deg, rgba(212,180,106,0.05), rgba(167,139,250,0.08))' }}>
+                <img src="/api/assets/synastrie_pdf/page-01.png" alt="Astrologie relationnelle" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.75 }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(12,9,24,0.7) 0%, transparent 50%)' }} />
+              </div>
+            </div>
+          </a>
+        </div>
+      </section>
+
       {/* ═══════ SECTION — ENERGIE ACTUELLE (cœur du produit) ═══════ */}
       <section className="relative py-20 px-6 z-10" data-testid="home-energy-section">
         <div className="max-w-6xl mx-auto">

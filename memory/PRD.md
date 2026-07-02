@@ -654,3 +654,41 @@ Toutes les pages sans image affichent un cadre doré pointillé "illustration ·
 - Endpoint testé : `POST /api/synastrie/free-extract` → 200 OK en 10s, PDF 3 pages 2.7 MB, 499 mots
 - Frontend testé : section visible entre forms et CTA, styling cohérent
 
+
+
+## Iteration 36 — Rebranding "Synastrie" → "Astrologie relationnelle" + mise en avant homepage (Feb 2026)
+
+### Rationale (contexte user)
+L'astrologue Shana Lyès (compte Astrolya) définit la synastrie comme "plus fine et plus efficace qu'une compatibilité amoureuse schématique". Le user a demandé de :
+1. Remplacer "synastrie" par "astrologie relationnelle" dans les textes visibles (pour élargir l'audience et positionner le produit)
+2. Mettre cette section en avant sur la homepage (l'amour au centre)
+
+### Changements UI (public-facing)
+- **Homepage** : nouvelle section prominente `home-relationship-section` avec :
+  - Card grid 2 colonnes avec image `page-01.png` (lunaire) à droite + dégradé
+  - Kicker "LE CŒUR AU CENTRE"
+  - Titre italique doré "Astrologie relationnelle"
+  - Description + teaser "Plus fine et plus efficace qu'une compatibilité amoureuse schématique..."
+  - Prix 49€ + CTA "Découvrir →" + hint "Extrait gratuit 3 pages"
+  - Card entièrement cliquable → `/synastrie`
+- **Navbar** : "Synastrie — 49€" → "Astrologie relationnelle — 49€"
+- **`/synastrie` sales page** : hero "La Synastrie" → "L'Astrologie relationnelle", ajout du teaser positioning
+- **PDF cover** : "Synastrie" → "Astrologie Relationnelle" (2 lignes, font 28)
+- **Instagram card** : idem
+- **Email subjects** :
+  - Paid : "Votre Synastrie..." → "Votre rapport d'astrologie relationnelle..."
+  - Extrait gratuit : "Votre aperçu Synastrie..." → "Votre aperçu d'astrologie relationnelle..."
+- **SEO tags** : nouvelle entrée `/synastrie` avec keywords `astrologie relationnelle, synastrie, compatibilité amoureuse`
+
+### Ce qui NE change PAS (invariants)
+- URLs : `/synastrie` reste stable (SEO, liens existants)
+- Fichiers backend : `synastrie_pdf_generator.py`, `synastrie_oneshot.py`, `routes/synastrie.py` conservent leur nom
+- Table SQL : `synastrie_purchases`
+- Terme "synastrie" conservé comme terme technique dans les explications (page 12 aspects, page 18-21, etc.)
+
+### Positionnement produit
+- Le mot "synastrie" apparaît maintenant comme terme spécialisé au sein du produit "Astrologie relationnelle"
+- Élargit l'audience (les non-astrologues comprennent "astrologie relationnelle" mieux que "synastrie")
+- Préserve la crédibilité technique en gardant le terme précis dans les textes d'expertise
+
+

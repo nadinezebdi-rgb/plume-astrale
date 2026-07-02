@@ -33,7 +33,7 @@ const NAV_ITEMS = [
         children: [
           { to: '/compatibilite', label: 'Compatibilité' },
           { to: '/love-languages', label: "Langages d'amour" },
-          { to: '/synastrie', label: 'Synastrie — 49€', highlight: true },
+          { to: '/synastrie', label: 'Astrologie relationnelle — 49€', highlight: true },
         ],
       },
       {

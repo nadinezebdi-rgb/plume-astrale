@@ -16,7 +16,7 @@ const PERSON_DEFAULT = {
 };
 
 const FEATURES = [
-  { icon: Heart, title: '25 pages de pure synastrie', desc: 'Aspects planetaires, dynamiques relationnelles, langages d\'amour croises.' },
+  { icon: Heart, title: '25 pages d\'astrologie relationnelle', desc: 'Aspects planetaires, dynamiques du couple, langages d\'amour croises.' },
   { icon: Sparkles, title: 'Calcule sur vos vraies ephemerides', desc: 'Swiss Ephemeris. Aucun template generique.' },
   { icon: Download, title: 'PDF a garder pour toujours', desc: 'Recu par email, telechargeable a tout moment.' },
   { icon: Shield, title: 'Vos donnees restent vos donnees', desc: 'Stockage securise, aucun partage tiers.' },
@@ -168,15 +168,19 @@ export default function SynastrieSales() {
         {/* Hero */}
         <div className="text-center mb-12">
           <p className="text-[10px] uppercase tracking-widest mb-3" style={{ color: '#D4B46A', letterSpacing: '0.3em', fontFamily: 'Cinzel, serif' }}>
-            Rapport haut-ticket
+            Le coeur au centre
           </p>
           <h1 className="text-4xl sm:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 300, lineHeight: 1.05 }}>
-            La <em style={{ fontStyle: 'italic', color: '#D4B46A' }}>Synastrie</em><br />
+            L&apos;<em style={{ fontStyle: 'italic', color: '#D4B46A' }}>Astrologie relationnelle</em><br />
             de votre lien
           </h1>
-          <p className="text-base sm:text-lg max-w-xl mx-auto mb-6" style={{ color: 'rgba(184,176,200,0.85)', lineHeight: 1.6 }}>
+          <p className="text-base sm:text-lg max-w-xl mx-auto mb-3" style={{ color: 'rgba(184,176,200,0.85)', lineHeight: 1.6 }}>
             Un rapport de 25 pages, ecrit avec soin a partir de vos deux themes natals.
             Pour comprendre ce qui se joue, ce qui vous nourrit et ce qui demande attention.
+          </p>
+          <p className="text-xs max-w-lg mx-auto mb-6 italic" style={{ color: 'rgba(212,180,106,0.75)', lineHeight: 1.65 }}>
+            Plus fine et plus efficace qu&apos;une compatibilite amoureuse schematique — la synastrie
+            revele les affinites, les points de discordance, et ce que l&apos;autre active chez vous.
           </p>
           <div className="inline-flex items-baseline gap-2 px-6 py-2.5 rounded-full" style={{ background: 'rgba(212,180,106,0.1)', border: '1px solid rgba(212,180,106,0.3)' }}>
             <span className="text-3xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F4D98C', fontWeight: 400 }}>49€</span>

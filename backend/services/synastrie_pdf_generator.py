@@ -340,8 +340,10 @@ class SynastriePDFGenerator:
 
         # Titre principal
         c.setFillColor(CREAM)
-        c.setFont("Helvetica-Bold", 32)
-        c.drawCentredString(self.w / 2, y, "Synastrie")
+        c.setFont("Helvetica-Bold", 28)
+        c.drawCentredString(self.w / 2, y, "Astrologie")
+        y -= 0.95 * cm
+        c.drawCentredString(self.w / 2, y, "Relationnelle")
         y -= 1 * cm
         c.setFillColor(GOLD_LIGHT)
         c.setFont("Helvetica-Oblique", 14)
