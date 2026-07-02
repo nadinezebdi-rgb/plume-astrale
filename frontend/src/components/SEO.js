@@ -49,6 +49,11 @@ const SEO_DATA = {
     description: 'D\u00e9couvrez votre astrologie relationnelle : un rapport personnalis\u00e9 de 25 pages qui r\u00e9v\u00e8le les affinit\u00e9s, discordances et dynamiques karmiques de votre lien. \u00c0 partir de vos deux th\u00e8mes natals.',
     keywords: 'astrologie relationnelle, synastrie, compatibilit\u00e9 amoureuse, rapport couple, th\u00e8me astral couple, synastrie plume astrale',
   },
+  '/astrosexo': {
+    title: 'AstroSexo \u2014 Compatibilit\u00e9 sexuelle astrologique | Plume Astrale',
+    description: 'D\u00e9couvrez votre profil sensuel astrologique et vos 3 partenaires les plus compatibles selon votre signe solaire. Analyse par les 4 \u00e9l\u00e9ments.',
+    keywords: 'astrosexo, compatibilit\u00e9 sexuelle astrologique, profil sexuel astrologie, signe compatible au lit, alchimie astro, compatibilit\u00e9 intime signes',
+  },
   '/horoscope': {
     title: 'Horoscope Hebdomadaire & Mensuel \u2014 Plume Astrale',
     description: 'Consultez votre horoscope hebdomadaire et mensuel pour chaque signe du zodiaque. Pr\u00e9visions astrologiques d\u00e9taill\u00e9es et traduites en fran\u00e7ais.',

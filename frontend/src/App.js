@@ -45,6 +45,7 @@ import ReinitialiserMotDePasse from "./pages/ReinitialiserMotDePasse";
 import NotreCadre from "./pages/NotreCadre";
 import SynastrieSales from "./pages/SynastrieSales";
 import SynastrieSucces from "./pages/SynastrieSucces";
+import AstroSexo from "./pages/AstroSexo";
 import Desabonnement from "./pages/Desabonnement";
 import PremiumStickyCTA from "./components/PremiumStickyCTA";
 import CookieConsent from "./components/CookieConsent";
@@ -107,6 +108,7 @@ function App() {
                 <Route path="/cercle" element={<Cercle />} />
                 <Route path="/synastrie" element={<SynastrieSales />} />
                 <Route path="/synastrie/succes" element={<SynastrieSucces />} />
+                <Route path="/astrosexo" element={<AstroSexo />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
               </Routes>
               <PremiumStickyCTA />

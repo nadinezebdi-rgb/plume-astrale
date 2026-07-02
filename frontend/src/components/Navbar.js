@@ -32,6 +32,7 @@ const NAV_ITEMS = [
         title: 'Relations',
         children: [
           { to: '/compatibilite', label: 'Compatibilité' },
+          { to: '/astrosexo', label: 'AstroSexo' },
           { to: '/love-languages', label: "Langages d'amour" },
           { to: '/synastrie', label: 'Astrologie relationnelle — 49€', highlight: true },
         ],
