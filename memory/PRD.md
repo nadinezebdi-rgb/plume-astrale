@@ -541,6 +541,43 @@ Site prod : plume-astrale.fr
 ### Iteration 32 (rappel) — 3 illustrations PDF + 1 vidéo Cercle
 - page-01 (lunaire) en fond couverture
 - page-06 (violettes) → Lunes
+
+
+## Iteration 34 — Enrichissement Option A du PDF (Feb 2026)
+
+### Nouveau service `services/synastrie_enrichment.py`
+- **`fetch_astro_data(p1, p2)`** : appelle astrology-api.io v3 en parallel (`get_positions` x2, `synastry_chart`, `relationship_compatibility_score`)
+- **`enrich_pages(astro, only_pages=None)`** : genere du texte personnalise via GPT-4o-mini pour les pages 3,4,5,6,7,8,9,11,12,22 en parallel (`asyncio.gather`) + prompt riche citant les vraies positions et aspects
+- System prompt : voix Plume, 220-320 mots par page, francais soutenu, cite les data astro fournies
+
+### Refactor `synastrie_pdf_generator.py`
+- Toutes les pages enrichies acceptent un parametre `enriched_text` optionnel
+- Nouveau helper `_page_miroir_enriched()` avec fallback statique si `enriched_text` absent
+- `generate_synastrie_pdf(p1, p2, enriched={3: "...", 5: "...", ...})` : signature etendue
+- Split des pages du texte enrichi par double-newline en paragraphes automatiquement
+
+### Endpoints & webhook
+- `POST /api/synastrie/preview` : **enrichissement partiel** (5 pages : 3, 4, 5, 8, 22) → 32s d'attente, tient dans le timeout ingress 60s
+- Webhook Stripe post-paiement : **enrichissement complet** (10 pages) → pas de contrainte de timeout (asynchrone via webhook)
+
+### Impact mesure
+- Preview : **3897 mots** (vs 3067 avant) = +27% de contenu personnalise
+- Paid (10 pages) : estimation ~5500-6000 mots = +80% de contenu personnalise
+- Cout par PDF paye : ~0.02€ via Emergent LLM Key (gratuit pour l'utilisateur)
+- Latence : preview 32s / paid asynchrone ~45-60s
+
+### 🟢 UPDATE Iteration 34.1 — Clé astrology-api.io RENOUVELÉE + extractors corrigés
+- Nouvelle clé `ask_426b889b...` fonctionnelle, mise a jour dans `/app/backend/.env`
+- Corrections :
+  - `astrology_io_service._call()` : accepte les réponses sans `success:true` wrapper (l'endpoint synastry v3 retourne `subject_data + chart_data` sans succes flag)
+  - `synastrie_enrichment._extract_planet()` : matche le vrai format `positions: [{name, sign, degree, house, is_retrograde}]` (list de dicts, pas dict de dicts)
+  - `_planet_summary()` : traduit `Tau/Sag/Can...` → `Taureau/Sagittaire/Cancer...` en francais
+  - `_synastry_aspects()` : lit `chart_data.aspects` (vrai chemin v3)
+  - `_aspects_str()` : utilise `point1/point2/aspect_type` (vrais noms de champs v3)
+- **Resultat mesure** : preview `/synastrie` cite maintenant les VRAIES positions et aspects. Page 5 (Soleils en miroir) mentionne "Taureau et Sagittaire", "opposition subtile", "conjonction Soleil-Lune", "trine entre les lunes"
+- **Mots totaux** : 3954 sur preview 5-pages (vs 3067 avant enrichissement, sans data). Version paid 10 pages -> estimation ~5500-6000 mots
+
+
 - page-09 (dragon) → Mars
 - `cercle-hero.mp4` autoplay sur `/cercle`
 
@@ -580,4 +617,78 @@ Toutes les pages sans image affichent un cadre doré pointillé "illustration ·
 - 🔴 DNS Resend pour `plume-astrale.fr`
 - 🟢 "Save to GitHub" pour déployer (inclut maintenant les 2 vidéos + 3 illustrations PDF)
 - 🟢 19 illustrations PDF restantes à fournir progressivement
+
+
+
+## Iteration 35 — Lead magnet "Extrait gratuit 3 pages" (Feb 2026)
+
+### Backend
+- **`generate_synastrie_extract(p1, p2, enriched)`** dans `synastrie_pdf_generator.py` :
+  - Page 1 : Couverture identique au rapport complet + badge "APERCU GRATUIT — 3 PAGES"
+  - Page 2 : Soleils en miroir (enrichi via GPT-4o-mini + vraies data astro si dispo)
+  - Page 3 : `_page_extract_cta()` — teaser 7 bullets sur ce qui est dans le rapport complet + prix 49€ + URL
+- **Endpoint** `POST /api/synastrie/free-extract {person1, person2, email, consent_marketing}` :
+  - Enrichit uniquement page 5 (Soleils) via LLM+astro → **10s de génération**
+  - Sauvegarde `/app/backend/assets/synastrie_extracts/extract_{uuid}.pdf`
+  - Ajoute le lead dans `oracle_leads` (upsert email, first_name, birth_date) → alimente séquence Resend E1-E6
+  - Envoie l'email via `send_synastrie_extract_email()` avec lien téléchargement + CTA vers rapport complet 49€
+- **`send_synastrie_extract_email()`** dans `resend_service.py` : template dédié avec 2 CTA (download extrait + composer rapport complet)
+
+### Frontend
+- Section "Recevez un aperçu gratuit de 3 pages" sur `/synastrie` avec :
+  - Icon Gift + description "calculée sur vos deux vraies positions astrologiques"
+  - Champ email + bouton "Recevoir gratuitement"
+  - État succès inline ("Votre extrait vous a été envoyé par email")
+  - Data-testids : `synastrie-extract-section`, `extract-email-input`, `extract-submit-btn`, `extract-success`
+- Positionnement stratégique : ENTRE le formulaire natal et le CTA 49€ (funnel psychologique optimal)
+
+### Fix collatéral
+- Chemins d'assets corrigés `/assets/xxx` → `/api/assets/xxx` (mount FastAPI est sur `/api/assets`)
+
+### Metrics attendues
+- Coût par extrait : ~0.005€ (1 seul GPT call) → ROI énorme si conversion ≥ 1%
+- Chaque lead entre dans la séquence Resend automatique
+- Volume estimé : 3-5% des visiteurs de /synastrie devraient prendre l'extrait
+
+### Tests
+- Endpoint testé : `POST /api/synastrie/free-extract` → 200 OK en 10s, PDF 3 pages 2.7 MB, 499 mots
+- Frontend testé : section visible entre forms et CTA, styling cohérent
+
+
+
+## Iteration 36 — Rebranding "Synastrie" → "Astrologie relationnelle" + mise en avant homepage (Feb 2026)
+
+### Rationale (contexte user)
+L'astrologue Shana Lyès (compte Astrolya) définit la synastrie comme "plus fine et plus efficace qu'une compatibilité amoureuse schématique". Le user a demandé de :
+1. Remplacer "synastrie" par "astrologie relationnelle" dans les textes visibles (pour élargir l'audience et positionner le produit)
+2. Mettre cette section en avant sur la homepage (l'amour au centre)
+
+### Changements UI (public-facing)
+- **Homepage** : nouvelle section prominente `home-relationship-section` avec :
+  - Card grid 2 colonnes avec image `page-01.png` (lunaire) à droite + dégradé
+  - Kicker "LE CŒUR AU CENTRE"
+  - Titre italique doré "Astrologie relationnelle"
+  - Description + teaser "Plus fine et plus efficace qu'une compatibilité amoureuse schématique..."
+  - Prix 49€ + CTA "Découvrir →" + hint "Extrait gratuit 3 pages"
+  - Card entièrement cliquable → `/synastrie`
+- **Navbar** : "Synastrie — 49€" → "Astrologie relationnelle — 49€"
+- **`/synastrie` sales page** : hero "La Synastrie" → "L'Astrologie relationnelle", ajout du teaser positioning
+- **PDF cover** : "Synastrie" → "Astrologie Relationnelle" (2 lignes, font 28)
+- **Instagram card** : idem
+- **Email subjects** :
+  - Paid : "Votre Synastrie..." → "Votre rapport d'astrologie relationnelle..."
+  - Extrait gratuit : "Votre aperçu Synastrie..." → "Votre aperçu d'astrologie relationnelle..."
+- **SEO tags** : nouvelle entrée `/synastrie` avec keywords `astrologie relationnelle, synastrie, compatibilité amoureuse`
+
+### Ce qui NE change PAS (invariants)
+- URLs : `/synastrie` reste stable (SEO, liens existants)
+- Fichiers backend : `synastrie_pdf_generator.py`, `synastrie_oneshot.py`, `routes/synastrie.py` conservent leur nom
+- Table SQL : `synastrie_purchases`
+- Terme "synastrie" conservé comme terme technique dans les explications (page 12 aspects, page 18-21, etc.)
+
+### Positionnement produit
+- Le mot "synastrie" apparaît maintenant comme terme spécialisé au sein du produit "Astrologie relationnelle"
+- Élargit l'audience (les non-astrologues comprennent "astrologie relationnelle" mieux que "synastrie")
+- Préserve la crédibilité technique en gardant le terme précis dans les textes d'expertise
+
 

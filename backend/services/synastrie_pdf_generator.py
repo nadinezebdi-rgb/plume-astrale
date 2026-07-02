@@ -340,8 +340,10 @@ class SynastriePDFGenerator:
 
         # Titre principal
         c.setFillColor(CREAM)
-        c.setFont("Helvetica-Bold", 32)
-        c.drawCentredString(self.w / 2, y, "Synastrie")
+        c.setFont("Helvetica-Bold", 28)
+        c.drawCentredString(self.w / 2, y, "Astrologie")
+        y -= 0.95 * cm
+        c.drawCentredString(self.w / 2, y, "Relationnelle")
         y -= 1 * cm
         c.setFillColor(GOLD_LIGHT)
         c.setFont("Helvetica-Oblique", 14)
@@ -424,7 +426,7 @@ class SynastriePDFGenerator:
     # ════════════════════════════════════════
     #  PAGE 3-4 — THEMES NATALS INDIVIDUELS
     # ════════════════════════════════════════
-    def _page_personal_theme(self, c, page_num, person, sign):
+    def _page_personal_theme(self, c, page_num, person, sign, enriched_text=None):
         self._bg_cream(c)
         n = (person.get('prenom') or '').strip().title()
         info = SIGNS.get(sign, {})
@@ -439,7 +441,7 @@ class SynastriePDFGenerator:
             c.drawCentredString(self.w / 2, y + 0.2 * cm, glyph)
             y -= 1 * cm
 
-        y = self._illustration_slot(c, page_num, y, h=6 * cm)
+        y = self._illustration_slot(c, page_num, y, h=5 * cm)
 
         x_left = self.margin + 0.5 * cm
         max_w = self.w - 2 * self.margin - 1 * cm
@@ -458,19 +460,27 @@ class SynastriePDFGenerator:
         c.drawString(x_left, y, f"{birth}  ·  {time}  ·  {place}")
         y -= 0.8 * cm
 
-        # Resume
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 9.5)
-        c.drawString(x_left, y, "L'empreinte céleste")
-        y -= 0.5 * cm
-        intro = (
-            f"{n} est né(e) sous le signe du {sign}, gouverné par {info.get('ruler', '')}. "
-            f"C'est un signe de {info.get('el', '')}, de modalité {info.get('mod', '')}. "
-            f"Au cœur de sa personnalité résonnent ces qualités : {info.get('trait', '')}. "
-            "Ces traits ne définissent pas son destin, mais éclairent la couleur de son énergie de base — "
-            "le sol sur lequel sa relation va se déployer."
-        )
-        y = self._text_block(c, intro, x_left, y, max_w, size=10.5, leading=1.6)
+        # Resume (enriched via LLM si dispo)
+        if enriched_text:
+            paragraphs = [p.strip() for p in enriched_text.split('\n\n') if p.strip()]
+            for para in paragraphs:
+                y = self._text_block(c, para, x_left, y, max_w, size=9.5, leading=1.5)
+                y -= 0.15 * cm
+                if y < 2.5 * cm:
+                    break
+        else:
+            c.setFillColor(GOLD)
+            c.setFont("Helvetica-Bold", 9.5)
+            c.drawString(x_left, y, "L'empreinte céleste")
+            y -= 0.5 * cm
+            intro = (
+                f"{n} est né(e) sous le signe du {sign}, gouverné par {info.get('ruler', '')}. "
+                f"C'est un signe de {info.get('el', '')}, de modalité {info.get('mod', '')}. "
+                f"Au cœur de sa personnalité résonnent ces qualités : {info.get('trait', '')}. "
+                "Ces traits ne définissent pas son destin, mais éclairent la couleur de son énergie de base — "
+                "le sol sur lequel sa relation va se déployer."
+            )
+            y = self._text_block(c, intro, x_left, y, max_w, size=10.5, leading=1.6)
 
         self._footer(c, page_num)
 
@@ -499,57 +509,57 @@ class SynastriePDFGenerator:
     # ════════════════════════════════════════
     #  PAGES 5-10 : 7 lumières en miroir
     # ════════════════════════════════════════
-    def _page_05_soleils(self, c, n1, n2, s1, s2):
+    def _page_05_soleils(self, c, n1, n2, s1, s2, enriched_text=None):
         e1, e2, pair = _element_pair(s1, s2)
-        self._page_miroir(c, 5, "V · Les sept lumières", "Soleils en miroir",
+        self._page_miroir_enriched(c, 5, "V · Les sept lumières", "Soleils en miroir",
             "L'identité profonde, le cœur rayonnant",
             "« Le Soleil est ce que nous donnons au monde. »",
-            [
+            fallback_paragraphs=[
                 f"{n1} brille en {s1}, {n2} brille en {s2}. Vos deux identités essentielles se reconnaissent à travers les éléments {e1} et {e2} — une rencontre que les astres nomment « {pair[0]} ».",
                 pair[1],
                 f"Concrètement : ce qui rayonne chez {n1} (l'esprit du {s1}) et ce qui rayonne chez {n2} (l'esprit du {s2}) sont les deux pôles d'une même boussole. Honorer le Soleil de l'autre, c'est laisser l'autre exister pleinement à côté de soi, sans chercher à le redessiner.",
                 "Invitation : prenez chaque semaine un moment pour reconnaître à voix haute ce que vous aimez chez l'autre tel qu'il est, dans ce qu'il a d'irréductible."
-            ])
+            ], enriched_text=enriched_text)
 
-    def _page_06_lunes(self, c, n1, n2):
-        self._page_miroir(c, 6, "V · Les sept lumières", "Lunes en miroir",
+    def _page_06_lunes(self, c, n1, n2, enriched_text=None):
+        self._page_miroir_enriched(c, 6, "V · Les sept lumières", "Lunes en miroir",
             "Les besoins intimes, la mémoire émotionnelle",
             "« La Lune est ce qui nous apaise. »",
-            [
+            fallback_paragraphs=[
                 f"La Lune dit comment {n1} et {n2} se sentent en sécurité dans le lien. Elle évoque l'enfant intérieur, les habitudes émotionnelles, la façon de nourrir et d'être nourri(e).",
                 "Quand deux Lunes s'entendent, le foyer émotionnel devient un refuge naturel : les mots ne sont plus nécessaires pour comprendre. Quand elles divergent, l'apprentissage est de traduire un langage émotionnel dans celui de l'autre, sans interprétation.",
                 f"Demandez-vous : qu'est-ce qui apaise {n1} en fin de journée ? Qu'est-ce qui restaure {n2} après un moment difficile ? Souvent, les réponses sont simples — un mot, un geste, un silence — mais elles changent tout."
-            ])
+            ], enriched_text=enriched_text)
 
-    def _page_07_mercure(self, c, n1, n2):
-        self._page_miroir(c, 7, "V · Les sept lumières", "Mercure & Mercure",
+    def _page_07_mercure(self, c, n1, n2, enriched_text=None):
+        self._page_miroir_enriched(c, 7, "V · Les sept lumières", "Mercure & Mercure",
             "La pensée partagée, le rythme de la parole",
             "« Mercure est ce qui circule entre vous. »",
-            [
+            fallback_paragraphs=[
                 f"Mercure gouverne la conversation, l'humour, la rapidité d'esprit. Entre {n1} et {n2}, la pensée peut danser à la même vitesse — ou différer, l'un préférant la nuance lente, l'autre les éclairs rapides.",
                 "Aucun rythme n'est meilleur que l'autre. Le défi est d'apprendre où vos pensées se rencontrent et où elles divergent — non pour s'aligner, mais pour s'enrichir.",
                 "Pratique : essayez une fois par mois un « tour de table » sans interruption. Chacun parle trois minutes, l'autre écoute sans répondre. Mercure adore la lenteur quand elle est consentie."
-            ])
+            ], enriched_text=enriched_text)
 
-    def _page_08_venus(self, c, n1, n2):
-        self._page_miroir(c, 8, "V · Les sept lumières", "Vénus en miroir",
+    def _page_08_venus(self, c, n1, n2, enriched_text=None):
+        self._page_miroir_enriched(c, 8, "V · Les sept lumières", "Vénus en miroir",
             "Le langage d'amour, ce qui touche le cœur",
             "« Vénus est ce qui vous attire et ce que vous offrez. »",
-            [
+            fallback_paragraphs=[
                 f"Vénus dit comment {n1} aime et comment {n2} aime — souvent dans deux dialectes différents. L'un peut offrir l'amour par les mots, l'autre par les gestes, le troisième par la présence silencieuse.",
                 "L'amour mal reçu n'est pas un amour mal donné — c'est souvent un amour traduit dans le mauvais idiome. La carte de Vénus dans votre thème commun est une grammaire à apprendre ensemble.",
                 "Ce mois-ci, essayez de remarquer : quel geste de l'autre vous touche le plus ? Et inversement, lequel des vôtres semble le plus reçu ? Vous découvrirez vos langues maternelles amoureuses."
-            ])
+            ], enriched_text=enriched_text)
 
-    def _page_09_mars(self, c, n1, n2):
-        self._page_miroir(c, 9, "V · Les sept lumières", "Mars en miroir",
+    def _page_09_mars(self, c, n1, n2, enriched_text=None):
+        self._page_miroir_enriched(c, 9, "V · Les sept lumières", "Mars en miroir",
             "Le désir, l'action, la flamme",
             "« Mars est ce que vous voulez vraiment. »",
-            [
+            fallback_paragraphs=[
                 f"Mars dit l'élan, le désir, la manière de se battre pour ce qu'on aime. Entre {n1} et {n2}, Mars peut s'allier — projet commun, passion partagée — ou se confronter, créant des étincelles à apprivoiser.",
                 "La sexualité, l'ambition, la colère, l'audace : tout cela appartient à Mars. Le couple qui sait nommer ce qu'il désire, sans culpabilité, est un couple où Mars chante au lieu de gronder.",
                 "Invitation : exprimez chacun, en une phrase, ce que vous désirez profondément en ce moment dans la relation. Pas un reproche — un désir. Mars adore les désirs énoncés."
-            ])
+            ], enriched_text=enriched_text)
 
     def _page_10_jup_sat(self, c, n1, n2):
         self._page_miroir(c, 10, "V · Les sept lumières", "Jupiter & Saturne",
@@ -564,25 +574,25 @@ class SynastriePDFGenerator:
     # ════════════════════════════════════════
     #  PAGES 11-14 — Aspects + Maisons
     # ════════════════════════════════════════
-    def _page_11_aspects_harm(self, c, n1, n2):
-        self._page_miroir(c, 11, "VI · Les aspects", "Aspects harmonieux",
+    def _page_11_aspects_harm(self, c, n1, n2, enriched_text=None):
+        self._page_miroir_enriched(c, 11, "VI · Les aspects", "Aspects harmonieux",
             "Trigones, sextiles — ce qui circule sans effort",
             "« Les aspects harmonieux sont les routes ouvertes. »",
-            [
+            fallback_paragraphs=[
                 f"Les trigones (120°) et sextiles (60°) entre vos planètes sont les zones où l'énergie circule librement entre {n1} et {n2}. Là, vous n'avez pas besoin de pousser : les choses s'arrangent presque seules.",
                 "Mais attention : ce qui est facile peut être tenu pour acquis. Les couples qui durent honorent leurs trigones — ils s'arrêtent pour remarquer ce qui fonctionne, au lieu de ne voir que ce qui résiste.",
                 "Cette semaine, listez trois domaines où votre relation est fluide. Nommez-les, célébrez-les, remerciez-les. Les routes ouvertes ne le restent que si on les emprunte avec gratitude."
-            ])
+            ], enriched_text=enriched_text)
 
-    def _page_12_aspects_tension(self, c, n1, n2):
-        self._page_miroir(c, 12, "VI · Les aspects", "Aspects de tension",
+    def _page_12_aspects_tension(self, c, n1, n2, enriched_text=None):
+        self._page_miroir_enriched(c, 12, "VI · Les aspects", "Aspects de tension",
             "Carrés, oppositions — ce qui éveille",
             "« La tension n'est pas l'ennemie. Elle est l'éveilleuse. »",
-            [
+            fallback_paragraphs=[
                 f"Les carrés (90°) et oppositions (180°) entre vos thèmes ne sont pas des malédictions. Ce sont les points où la croissance vous appelle — là où {n1} et {n2} sont invités à dépasser leurs automatismes.",
                 "Sans tension, pas de transformation. Les couples sans aspects difficiles s'endorment. Les couples qui apprennent à danser avec leurs tensions deviennent profonds.",
                 "Quand un sujet revient en boucle entre vous, c'est souvent un aspect de tension qui parle. La question utile n'est pas « comment éviter ce sujet ? » mais « qu'est-ce qu'il essaie de nous enseigner ? »"
-            ])
+            ], enriched_text=enriched_text)
 
     def _page_13_conjonctions(self, c, n1, n2):
         self._page_miroir(c, 13, "VI · Les aspects", "Conjonctions notables",
@@ -683,17 +693,17 @@ class SynastriePDFGenerator:
     # ════════════════════════════════════════
     #  PAGES 22-25 — Le chemin
     # ════════════════════════════════════════
-    def _page_22_forces(self, c, n1, n2, s1, s2):
+    def _page_22_forces(self, c, n1, n2, s1, s2, enriched_text=None):
         e1, e2, pair = _element_pair(s1, s2)
-        self._page_miroir(c, 22, "IX · Le chemin", "Vos forces relationnelles",
+        self._page_miroir_enriched(c, 22, "IX · Le chemin", "Vos forces relationnelles",
             "Les trois atouts qui vous appartiennent",
             "« Connaître ses forces, c'est pouvoir s'y appuyer. »",
-            [
+            fallback_paragraphs=[
                 f"En tenant compte de l'alliance « {pair[0]} » entre vos éléments ({e1} et {e2}), trois forces se dessinent comme vous appartenant en propre.",
                 f"Première force : la complémentarité naturelle entre l'énergie de {n1} et celle de {n2}. Ce qui peut sembler une différence est souvent une coopération en germe — chacun fait ce que l'autre ne ferait pas spontanément.",
                 "Deuxième force : la capacité de votre couple à apprendre de ses tensions. Vos désaccords ne vous séparent pas — ils vous éveillent. Peu de couples savent transformer le conflit en compréhension.",
                 "Troisième force : votre lien possède une fonction propre, qui dépasse le simple cumul de vos personnalités. Vous générez quelque chose qui n'existerait pas sans vous deux. Honorez cette troisième entité."
-            ])
+            ], enriched_text=enriched_text)
 
     def _page_23_invitations(self, c, n1, n2):
         self._page_miroir(c, 23, "IX · Le chemin", "Trois invitations concrètes",
@@ -774,9 +784,41 @@ class SynastriePDFGenerator:
         self._footer(c, 25)
 
     # ════════════════════════════════════════
+    #  Version enrichie generique (utilise enriched_text si dispo)
+    # ════════════════════════════════════════
+    def _page_miroir_enriched(self, c, page_num, kicker, title, subtitle, intro_text,
+                              fallback_paragraphs, enriched_text=None, illu_h=6 * cm):
+        """Comme _page_miroir mais utilise enriched_text quand fourni (Option A user)."""
+        self._bg_cream(c)
+        y = self._interior_header(c, kicker, title, subtitle)
+        y = self._illustration_slot(c, page_num, y, h=illu_h)
+        x_left = self.margin + 0.5 * cm
+        max_w = self.w - 2 * self.margin - 1 * cm
+        # Intro citation
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Oblique", 10)
+        for line in self._wrap(intro_text, "Helvetica-Oblique", 10, max_w - 1 * cm, c):
+            c.drawCentredString(self.w / 2, y, line)
+            y -= 0.5 * cm
+        y -= 0.4 * cm
+        # Body : si texte enrichi dispo, on l'utilise (split par double-newline en paragraphes)
+        if enriched_text:
+            paragraphs = [p.strip() for p in enriched_text.split('\n\n') if p.strip()]
+        else:
+            paragraphs = fallback_paragraphs
+        for para in paragraphs:
+            y = self._text_block(c, para, x_left, y, max_w, size=9.5, leading=1.5)
+            y -= 0.15 * cm
+            if y < 2.5 * cm:
+                break  # protection debordement
+        self._footer(c, page_num)
+
+
+    # ════════════════════════════════════════
     #  Entry point
     # ════════════════════════════════════════
-    def generate(self, p1, p2):
+    def generate(self, p1, p2, enriched: dict = None):
+        enriched = enriched or {}
         buf = io.BytesIO()
         c = canvas.Canvas(buf, pagesize=A4)
 
@@ -793,23 +835,23 @@ class SynastriePDFGenerator:
         self._page_02_toc(c)
         c.showPage()
 
-        # Page 3-4 — Thèmes personnels
-        self._page_personal_theme(c, 3, p1, s1)
+        # Page 3-4 — Thèmes personnels (enrichis si dispo)
+        self._page_personal_theme(c, 3, p1, s1, enriched.get(3))
         c.showPage()
-        self._page_personal_theme(c, 4, p2, s2)
+        self._page_personal_theme(c, 4, p2, s2, enriched.get(4))
         c.showPage()
 
-        # Pages 5-10 — 7 lumières
-        self._page_05_soleils(c, n1, n2, s1, s2); c.showPage()
-        self._page_06_lunes(c, n1, n2); c.showPage()
-        self._page_07_mercure(c, n1, n2); c.showPage()
-        self._page_08_venus(c, n1, n2); c.showPage()
-        self._page_09_mars(c, n1, n2); c.showPage()
+        # Pages 5-10 — 7 lumières (5-9 enrichis)
+        self._page_05_soleils(c, n1, n2, s1, s2, enriched.get(5)); c.showPage()
+        self._page_06_lunes(c, n1, n2, enriched.get(6)); c.showPage()
+        self._page_07_mercure(c, n1, n2, enriched.get(7)); c.showPage()
+        self._page_08_venus(c, n1, n2, enriched.get(8)); c.showPage()
+        self._page_09_mars(c, n1, n2, enriched.get(9)); c.showPage()
         self._page_10_jup_sat(c, n1, n2); c.showPage()
 
-        # Pages 11-14 — Aspects
-        self._page_11_aspects_harm(c, n1, n2); c.showPage()
-        self._page_12_aspects_tension(c, n1, n2); c.showPage()
+        # Pages 11-14 — Aspects (11-12 enrichis)
+        self._page_11_aspects_harm(c, n1, n2, enriched.get(11)); c.showPage()
+        self._page_12_aspects_tension(c, n1, n2, enriched.get(12)); c.showPage()
         self._page_13_conjonctions(c, n1, n2); c.showPage()
         self._page_14_maisons(c, n1, n2); c.showPage()
 
@@ -824,20 +866,123 @@ class SynastriePDFGenerator:
         self._page_20_argent(c, n1, n2); c.showPage()
         self._page_21_voyages(c, n1, n2); c.showPage()
 
-        # Pages 22-25 — Le chemin
-        self._page_22_forces(c, n1, n2, s1, s2); c.showPage()
+        # Pages 22-25 — Le chemin (22 enrichi)
+        self._page_22_forces(c, n1, n2, s1, s2, enriched.get(22)); c.showPage()
         self._page_23_invitations(c, n1, n2); c.showPage()
         self._page_24_transits(c, n1, n2); c.showPage()
         self._page_25_benediction(c, n1, n2)
-        # (pas de showPage final)
 
         c.save()
         buf.seek(0)
         return buf.getvalue()
 
+    # ════════════════════════════════════════
+    #  EXTRAIT GRATUIT 3 pages (lead magnet)
+    # ════════════════════════════════════════
+    def generate_extract(self, p1, p2, enriched: dict = None):
+        """Genere un mini-PDF de 3 pages :
+        1. Couverture identique au rapport complet
+        2. Soleils en miroir (enrichi avec vraies data astro si dispo)
+        3. CTA "Le rapport complet 25 pages a 49€" + teaser de 3 forces
+        """
+        enriched = enriched or {}
+        buf = io.BytesIO()
+        c = canvas.Canvas(buf, pagesize=A4)
 
-def generate_synastrie_pdf(person1: dict, person2: dict) -> bytes:
+        s1 = _sign_from_date(p1.get('birth_date', ''))
+        s2 = _sign_from_date(p2.get('birth_date', ''))
+        n1 = (p1.get('prenom') or 'L\'un').strip().title()
+        n2 = (p2.get('prenom') or 'L\'autre').strip().title()
+
+        # Page 1 - Couverture (avec badge "Extrait gratuit")
+        self._page_01_cover(c, p1, p2, s1, s2)
+        # Badge "Extrait gratuit" superpose en bas
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawCentredString(self.w / 2, 2.5 * cm, "✦  APERCU GRATUIT — 3 PAGES  ✦")
+        c.showPage()
+
+        # Page 2 - Soleils en miroir (enrichi)
+        self._page_05_soleils(c, n1, n2, s1, s2, enriched.get(5))
+        c.showPage()
+
+        # Page 3 - CTA + teaser
+        self._page_extract_cta(c, n1, n2)
+        c.save()
+        buf.seek(0)
+        return buf.getvalue()
+
+    def _page_extract_cta(self, c, n1, n2):
+        """Page finale de l'extrait : CTA vers le rapport complet."""
+        self._bg_cream(c)
+        y = self._interior_header(c, "L'aperçu s'arrête ici", "Le rapport complet",
+                                   "vous attend en 22 pages supplémentaires")
+
+        x_left = self.margin + 0.5 * cm
+        max_w = self.w - 2 * self.margin - 1 * cm
+
+        intro = (
+            f"Ce que vous venez de lire n'est qu'une porte entrouverte sur l'univers "
+            f"astrologique que composent {n1} et {n2}. Le rapport complet vous emmène "
+            f"beaucoup plus loin, dans les zones les plus intimes de votre lien."
+        )
+        y = self._text_block(c, intro, x_left, y, max_w, size=10.5, leading=1.65)
+        y -= 0.5 * cm
+
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(x_left, y, "DANS LE RAPPORT COMPLET, VOUS DÉCOUVRIREZ :")
+        y -= 0.8 * cm
+
+        bullets = [
+            ("Vos 7 lumières en miroir", "Soleils, Lunes, Mercure, Vénus, Mars, Jupiter, Saturne"),
+            ("Vos aspects majeurs", "Trigones, carrés, oppositions — avec orbes précis"),
+            ("Vos maisons croisées", "Où l'autre éclaire votre vie (foyer, travail, spiritualité)"),
+            ("Vos langages d'amour", "Sensualité, communication, sexualité"),
+            ("Bâtir ensemble", "Vie commune, enfants, argent, voyages"),
+            ("Le chemin à deux", "Vos forces, 3 invitations, transits du mois"),
+            ("Bénédiction personnalisée", "Un message final, unique à votre couple"),
+        ]
+        for title, desc in bullets:
+            c.setFillColor(GOLD)
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(x_left, y, f"✦  {title}")
+            y -= 0.45 * cm
+            c.setFillColor(INK_SOFT)
+            c.setFont("Helvetica-Oblique", 9)
+            c.drawString(x_left + 0.5 * cm, y, desc)
+            y -= 0.55 * cm
+
+        # Bandeau prix + CTA
+        y -= 0.5 * cm
+        c.setFillColor(DEEP_PURPLE)
+        c.roundRect(x_left, y - 3 * cm, max_w, 3 * cm, 8, fill=1, stroke=0)
+        # Titre
+        c.setFillColor(GOLD_LIGHT)
+        c.setFont("Helvetica-Bold", 22)
+        c.drawCentredString(self.w / 2, y - 1 * cm, "49€")
+        c.setFillColor(CREAM)
+        c.setFont("Helvetica-Oblique", 10)
+        c.drawCentredString(self.w / 2, y - 1.6 * cm, "paiement unique — 25 pages personnalisées à vos deux thèmes")
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawCentredString(self.w / 2, y - 2.4 * cm, "plume-astrale.fr/synastrie")
+
+        # Footer
+        c.setFillColor(INK_SOFT)
+        c.setFont("Helvetica-Oblique", 8.5)
+        c.drawCentredString(self.w / 2, 1.5 * cm, "Merci d'avoir laissé Plume vous accompagner ce jour.")
+        self._footer(c, 3, total=3)
+
+
+def generate_synastrie_extract(person1: dict, person2: dict, enriched: dict = None) -> bytes:
+    """Point d'entrée pour l'extrait gratuit 3 pages (lead magnet)."""
+    return SynastriePDFGenerator().generate_extract(person1, person2, enriched=enriched)
+
+
+def generate_synastrie_pdf(person1: dict, person2: dict, enriched: dict = None) -> bytes:
     """Point d'entrée pour le webhook synastrie.
     person1/person2 : {prenom, birth_date (YYYY-MM-DD), birth_time, birth_place, latitude, longitude, gender}
+    enriched : optional dict {page_number: text} pour surcharger les paragraphes des pages 3-9, 11-12, 22.
     """
-    return SynastriePDFGenerator().generate(person1, person2)
+    return SynastriePDFGenerator().generate(person1, person2, enriched=enriched)

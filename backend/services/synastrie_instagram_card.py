@@ -102,10 +102,12 @@ def generate_instagram_card(prenom1: str, prenom2: str,
         _center_text(draw, y, glyphs_text, f_zod, GOLD_LIGHT)
         y += 180
 
-    # 5) Titre "Synastrie"
-    f_title = _font(_FONT_SERIF_BOLD, 110)
-    _center_text(draw, y, "Synastrie", f_title, CREAM)
-    y += 130
+    # 5) Titre "Astrologie Relationnelle"
+    f_title = _font(_FONT_SERIF_BOLD, 78)
+    _center_text(draw, y, "Astrologie", f_title, CREAM)
+    y += 90
+    _center_text(draw, y, "Relationnelle", f_title, CREAM)
+    y += 100
 
     # 6) Subtitle
     f_sub = _font(_FONT_SERIF_ITALIC, 40)

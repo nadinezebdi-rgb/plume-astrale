@@ -689,16 +689,24 @@ async def _trigger_synastrie_pdf_email(session_id: Optional[str]) -> None:
     pdf_path = None
     try:
         from services.synastrie_pdf_generator import generate_synastrie_pdf
+        from services.synastrie_enrichment import fetch_astro_data, enrich_pages
         p1 = rec['person1_data']
         p2 = rec['person2_data']
-        pdf_bytes = generate_synastrie_pdf(p1, p2)
+        # Enrichissement Option A : 10 pages personnalisees via GPT-4o-mini + astro-api
+        try:
+            astro = await fetch_astro_data(p1, p2)
+            enriched = await enrich_pages(astro)
+        except Exception as ee:
+            logger.warning(f'[synastrie] enrichment failed, falling back to static: {ee}')
+            enriched = None
+        pdf_bytes = generate_synastrie_pdf(p1, p2, enriched=enriched)
         out_dir = ASSETS_DIR / 'synastrie'
         out_dir.mkdir(parents=True, exist_ok=True)
         filename = f'synastrie_{rec["id"]}.pdf'
         out_path = out_dir / filename
         with open(out_path, 'wb') as f:
             f.write(pdf_bytes)
-        pdf_path = f'/assets/synastrie/{filename}'
+        pdf_path = f'/api/assets/synastrie/{filename}'
         sb.table('synastrie_purchases').update({
             'pdf_path': pdf_path,
             'pdf_generated_at': datetime.now(timezone.utc).isoformat(),

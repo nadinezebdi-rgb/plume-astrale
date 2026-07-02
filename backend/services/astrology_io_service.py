@@ -74,12 +74,17 @@ async def _call(path: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
                 print(f'[astrology_io] {path} -> {r.status_code} : {r.text[:200]}')
                 return None
             data = r.json()
-            if isinstance(data, dict) and data.get('success') is False:
+            if not isinstance(data, dict):
+                return data
+            # Explicit error : success:false + error dict present -> fail
+            if data.get('success') is False and data.get('error'):
                 print(f"[astrology_io] {path} success=false : {data.get('error')}")
                 return None
-            # v3 wraps in {success, data, ...} OR returns flat
-            if isinstance(data, dict) and 'data' in data and data.get('success'):
+            # v3 wraps in {success:true, data: {...}} sometimes
+            if 'data' in data and data.get('success') is True:
                 return data['data']
+            # Sinon on retourne le payload tel quel (certains endpoints comme synastry
+            # renvoient chart_data + subject_data au niveau racine, sans wrapper).
             return data
     except Exception as e:
         print(f'[astrology_io] {path} EXCEPTION : {e}')

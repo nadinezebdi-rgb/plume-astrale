@@ -40,9 +40,19 @@ const SEO_DATA = {
     keywords: 'tarologie, tirage en croix, m\u00e9diumni\u00e9, lecture tarot, arcanes majeurs, tirage complet',
   },
   '/compatibilite-amoureuse': {
-    title: 'Compatibilit\u00e9 Amoureuse Astrologique | Synastrie \u2014 Plume Astrale',
-    description: 'Analysez la compatibilit\u00e9 amoureuse entre deux personnes gr\u00e2ce \u00e0 l\'astrologie. Rapport complet de 24 pages en PDF.',
-    keywords: 'compatibilit\u00e9 amoureuse, synastrie, compatibilit\u00e9 astrologique, compatibilit\u00e9 signes, amour astrologie',
+    title: 'Compatibilit\u00e9 Amoureuse Astrologique | Astrologie relationnelle \u2014 Plume Astrale',
+    description: 'Analysez la compatibilit\u00e9 amoureuse entre deux personnes gr\u00e2ce \u00e0 l\'astrologie relationnelle. Rapport complet de 25 pages en PDF.',
+    keywords: 'compatibilit\u00e9 amoureuse, astrologie relationnelle, synastrie, compatibilit\u00e9 astrologique, compatibilit\u00e9 signes, amour astrologie',
+  },
+  '/synastrie': {
+    title: 'Astrologie relationnelle \u2014 Rapport 25 pages | Plume Astrale',
+    description: 'D\u00e9couvrez votre astrologie relationnelle : un rapport personnalis\u00e9 de 25 pages qui r\u00e9v\u00e8le les affinit\u00e9s, discordances et dynamiques karmiques de votre lien. \u00c0 partir de vos deux th\u00e8mes natals.',
+    keywords: 'astrologie relationnelle, synastrie, compatibilit\u00e9 amoureuse, rapport couple, th\u00e8me astral couple, synastrie plume astrale',
+  },
+  '/astrosexo': {
+    title: 'AstroSexo \u2014 Compatibilit\u00e9 sexuelle astrologique | Plume Astrale',
+    description: 'D\u00e9couvrez votre profil sensuel astrologique et vos 3 partenaires les plus compatibles selon votre signe solaire. Analyse par les 4 \u00e9l\u00e9ments.',
+    keywords: 'astrosexo, compatibilit\u00e9 sexuelle astrologique, profil sexuel astrologie, signe compatible au lit, alchimie astro, compatibilit\u00e9 intime signes',
   },
   '/horoscope': {
     title: 'Horoscope Hebdomadaire & Mensuel \u2014 Plume Astrale',
