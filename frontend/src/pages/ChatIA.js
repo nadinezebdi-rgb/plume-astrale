@@ -12,6 +12,18 @@ const FREE_MESSAGES_ANON = 3;
 const FREE_COUNT_KEY = 'pa_chat_free_count';
 const SESSION_KEY = 'pa_plume_session_id';
 
+// Garde-fou : detecte une fuite d'appel d'outil JSON dans la reponse du modele
+function isToolLeak(text) {
+  if (!text || typeof text !== 'string' || text.length > 3000) return false;
+  const s = text.trim();
+  if (!s.startsWith('{') || !s.endsWith('}')) return false;
+  try {
+    const o = JSON.parse(s);
+    return !!(o && (o.action || o.action_input));
+  } catch { return false; }
+}
+const LEAK_FALLBACK = "Les astres sont un peu bavards ce soir. Peux-tu reformuler ta question ?";
+
 const ChatIA = () => {
   const { isAuthenticated, user, token, creditBalance, refreshBalance } = useAuth();
   const navigate = useNavigate();
@@ -208,7 +220,7 @@ const ChatIA = () => {
         } catch (e) {
           // Si 402 (solde insuffisant), on redirige
           if (e.response?.status === 402) {
-            setSending(false);
+            setLoading(false);
             navigate('/acheter-credits');
             return;
           }
@@ -237,7 +249,8 @@ const ChatIA = () => {
       }
 
       if (json.success && json.answer) {
-        setMessages(prev => [...prev, { role: 'assistant', content: json.answer }]);
+        const safeAnswer = isToolLeak(json.answer) ? LEAK_FALLBACK : json.answer;
+        setMessages(prev => [...prev, { role: 'assistant', content: safeAnswer }]);
         if (!isAuthenticated) incrementFreeUsed();
       } else {
         setMessages(prev => [

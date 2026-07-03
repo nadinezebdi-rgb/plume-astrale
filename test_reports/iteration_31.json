@@ -1,0 +1,42 @@
+{
+  "summary": "Verified the Plume chat tool-call JSON leak fix end-to-end. All 8 pytest cases pass on /api/astrology/v3/chat (admin authenticated) and /api/plume-chat (anonymous fallback). Frontend /consultation (ChatIA page) tested with the admin account for 2 prompts — replies are rich French markdown ending with open questions, no JSON leak. Health barrier is respected on both endpoints.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "ChatIA (/consultation)", "issues": ["React warning in console: shorthand vs non-shorthand style property mix on padding/paddingTop — cosmetic only, no functional impact"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration31_plume_chat_leak.py",
+    "/app/test_reports/pytest/iteration31.xml"
+  ],
+  "action_items": [
+    "Note: The request mentioned route /chat-ia but no such route exists. ChatIA component is mounted at /consultation and /chat-astral. If the customer expects a /chat-ia URL, main agent may want to add an alias Route in App.js.",
+    "Minor: React console warning about mixing padding shorthand and paddingTop — can be cleaned up in ChatIA.js styles (non-blocking)."
+  ],
+  "critical_code_review_comments": [
+    "Backend guard is robust: _is_tool_leak() uses a strict regex + json.loads verification and refuses only true tool-call JSON. Text starting with '{' but not fully parseable as a dict with 'action'/'action_input' will not be flagged as a leak, which is the correct behaviour.",
+    "The v3/chat endpoint pre-embeds the natal chart in the system prompt AND sends disable_tools=True to astro_chat(), which removes 'enabled_tools' from the payload sent to astrology.io — that is the correct fix for the remote server leaking tool calls in message content.",
+    "There is one duplicated PLUME system prompt (PLUME_SYSTEM_PROMPT in routes/astrology_v3.py and SYSTEM_PROMPT_PLUME in services/plume_chat.py). They are almost identical but must be kept in sync manually. Consider extracting to a single constant to avoid drift.",
+    "In services/plume_chat.py the pre-loaded history is replayed by sending each past user message via chat.send_message() *before* the new one. Each of those calls hits the LLM and drops the assistant responses — this doubles latency & cost on multi-turn sessions and can lead to context divergence. Consider passing history to LlmChat directly instead of iterating.",
+    "Session_id derived from user_id[:8] in v3 chat (f'plume-{user_id[:8]}') could collide across users if two IDs share the first 8 chars. Low probability but easy to salt with a random suffix."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration31_plume_chat_leak.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8 pytest cases pass)",
+    "frontend": "100% (2/2 prompts rendered clean French text — no JSON leak, open questions present)"
+  },
+  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 (login OK, birth_data set to 15/05/1990 12:00 Paris via PUT /api/auth/profile)",
+  "seed_data_creation": "Fixture ensure_birth_data (autouse=True) updates admin profile with birth_date=1990-05-15, birth_time=12:00, birth_place=Paris, lat=48.8566, lon=2.3522 to guarantee v3/chat has all data.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Bug fix confirmed working. Backend endpoint /api/astrology/v3/chat correctly pre-embeds natal chart, calls astro_chat with disable_tools=True, and retries once with anti-JSON reminder if a leak still occurs (belt-and-suspenders). /api/plume-chat has the same guard. Frontend ChatIA (/consultation) has isToolLeak() guard + LEAK_FALLBACK string as belt-3rd-suspenders. IMPORTANT: the route /chat-ia mentioned in the review does NOT exist — actual routes are /consultation and /chat-astral. LLM used for /plume-chat is currently gpt-4o-mini (services/plume_chat.py line 176), not GPT-5.4 as the module docstring claims — may want to align comment with reality.",
+  "rca of the issue": "Root cause: astrology.io's /chat/completions endpoint, when called with 'enabled_tools' in the payload, was streaming back the raw tool-call JSON ({\"action\":\"astrology.get_chart\", \"action_input\":{...}}) as the plain message content instead of running the tool loop server-side. That JSON was then stored as the assistant reply and rendered as-is in the UI. Mitigation applied: (1) pre-compute the natal chart via aio.natal_chart() and inject it into the system prompt before the LLM call, (2) call astro_chat(..., disable_tools=True) which omits the 'enabled_tools' key entirely from the request payload, (3) if a leak still slips through, retry once with an explicit anti-JSON reminder, (4) if the retry still leaks, return a friendly French fallback, (5) mirror the guard on the frontend (isToolLeak + LEAK_FALLBACK) so even a bad past response in cache is replaced. All layers verified working via backend pytest + Playwright UI test."
+}

@@ -9,6 +9,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import Response
 from pydantic import BaseModel
 from typing import Optional, List
+import json
+import re
 
 from middleware.auth import get_current_user
 from services import astrology_io_service as aio
@@ -474,10 +476,93 @@ class AstroChatRequest(BaseModel):
     history: Optional[List[dict]] = None  # [{'role':'user'|'assistant', 'content':...}]
 
 
+# ─────────────────────────────────────────────────────────────────
+# System prompt Plume (astrologue holistique — barriere sante stricte)
+# ─────────────────────────────────────────────────────────────────
+PLUME_SYSTEM_PROMPT = """Tu es Plume, astrologue, tarologue et medium de grande renommee, reconnue pour la precision de tes intuitions, ta bienveillance et ta capacite a accompagner les ames sur leur chemin de vie. Ton approche est holistique : tu consideres le consultant dans sa globalite (esprit, emotions, energies), tout en respectant une ethique et une deontologie professionnelles absolues.
+
+Adopte les directives suivantes pour chacune de tes reponses :
+
+1. CADRE ETHIQUE ET SECURITE (Barriere stricte sur la sante) :
+- Tu as l'interdiction absolue de poser des diagnostics medicaux, de commenter des pathologies, de donner des conseils d'ordre medical ou de te prononcer sur l'evolution de la sante physique ou psychologique d'un consultant.
+- Si un consultant pose une question liee a sa sante (maladie, traitement, grossesse a risque, guerison), tu dois poser une barriere immediate, bienveillante mais ferme : rappelle-lui que tu n'es pas medecin et invite-le a consulter un professionnel de sante. Tu peux ensuite reorienter la seance uniquement sur le plan emotionnel ou spirituel.
+
+2. TON ET STYLE : 
+Inspirant, mystique mais ancre, chaleureux et empathique. Tu es une alliee et un miroir. Utilise un vocabulaire riche et vibratoire (alignement, resonance, flux energetique, cycles).
+
+3. METHODOLOGIE ET APPROCHE HOLISTIQUE :
+- Les Etoiles & l'Ame : appuie-toi sur les elements du theme natal fournis (Signe solaire, Lunaire, Ascendant, maisons).
+- Les Messages Subtils : integre le Tarot ou tes ressentis mediumniques pour eclairer la situation presente.
+- Conseils Holistiques (Bien-etre uniquement) : propose des pistes d'exploration sous forme de simples conseils de bien-etre et de confort. Tu peux suggerer des rituels symboliques, de la meditation, du shadow work, ou l'utilisation d'outils comme les pierres (lithotherapie) ou les plantes (tisanes, huiles essentielles), en les presentant TOUJOURS comme des complements de confort pour accompagner les emotions, et jamais comme des remedes.
+
+4. FORMATTING & STRUCTURATION :
+- Utilise des titres clairs et evocateurs (ex: ## L'Echo des Etoiles, ### Conseils et Rituels de Confort).
+- Utilise le gras (**) pour mettre en valeur les mots-cles.
+- Separe tes idees par des lignes horizontales (---) pour rendre la lecture fluide.
+
+5. REGLE D'OR DE L'INTERACTION (Ne jamais clore la discussion) :
+- Ne termine JAMAIS tes reponses par une conclusion fermee ou un resume.
+- Termine TOUJOURS par une relance active, sous la forme d'une question ouverte, curieuse et profondement personnalisee. Cette question doit inviter le consultant a explorer ses emotions, ses ressentis, ou la facon dont son theme natal resonne dans sa vie actuelle.
+
+6. REGLES TECHNIQUES ABSOLUES :
+- Reponds TOUJOURS en francais naturel, jamais en JSON, jamais en code, jamais en anglais.
+- N'emets JAMAIS de blocs JSON, de "action", "action_input" ou d'appels de fonction dans ta reponse.
+- Le theme natal du consultant t'est deja fourni ci-dessous : utilise-le directement, tu n'as aucun outil a appeler.
+"""
+
+
+SIGNS_FR_LOCAL = {
+    "Aries": "Belier", "Taurus": "Taureau", "Gemini": "Gemeaux",
+    "Cancer": "Cancer", "Leo": "Lion", "Virgo": "Vierge",
+    "Libra": "Balance", "Scorpio": "Scorpion", "Sagittarius": "Sagittaire",
+    "Capricorn": "Capricorne", "Aquarius": "Verseau", "Pisces": "Poissons",
+}
+
+
+def _build_natal_context_v3(natal: dict, name: str) -> str:
+    """Convertit un theme natal astrology.io en contexte lisible pour l'IA."""
+    if not natal:
+        return ""
+    parts = [f"\n---\n# CONTEXTE — THEME NATAL DE {name.upper()}"]
+    # Points principaux
+    points = natal.get('points') or natal.get('planets') or []
+    key = ("Sun", "Moon", "Ascendant", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "MC")
+    listed = []
+    for p in points:
+        nm = p.get('name') or p.get('point') or ''
+        if nm not in key:
+            continue
+        sign_en = p.get('sign') or p.get('zodiac_sign') or ''
+        sign_fr = SIGNS_FR_LOCAL.get(sign_en, sign_en)
+        house = p.get('house')
+        listed.append(f"- {nm} en {sign_fr}" + (f", maison {house}" if house else ""))
+    if listed:
+        parts.append("## Points cles")
+        parts.extend(listed)
+    parts.append("\n(Utilise ce contexte avec subtilite. Ne re-cite pas les donnees techniques brutes.)")
+    return "\n".join(parts)
+
+
+# Detection d'une fuite d'appel d'outil (JSON avec action/action_input)
+_TOOL_LEAK_RE = re.compile(r'^\s*\{[\s\S]*"action"[\s\S]*"action_input"[\s\S]*\}\s*$')
+
+
+def _is_tool_leak(text: str) -> bool:
+    if not text or len(text) > 3000:
+        return False
+    if not _TOOL_LEAK_RE.match(text):
+        return False
+    try:
+        obj = json.loads(text.strip())
+        return isinstance(obj, dict) and ('action' in obj or 'action_input' in obj)
+    except Exception:
+        return False
+
+
 @router.post('/chat')
 async def astro_chat_v3(payload: AstroChatRequest, current_user: dict = Depends(get_current_user)):
-    """Chat AI astrologique : l'IA accede directement au theme natal de l'utilisateur
-    pour repondre avec precision (positions, transits, aspects). Plus pertinent que GPT generique.
+    """Chat AI astrologique — Plume, astrologue holistique.
+    Le theme natal est pre-embarque dans le system prompt (pas de tool loop).
     """
     if not payload.message or not payload.message.strip():
         raise HTTPException(status_code=400, detail='Message vide.')
@@ -491,50 +576,77 @@ async def astro_chat_v3(payload: AstroChatRequest, current_user: dict = Depends(
     bd = aio.parse_profile(profile)
     name = profile.get('prenom') or 'Voyageur'
 
-    # Construire l'historique de la conversation
-    messages = [
-        {
-            'role': 'system',
-            'content': (
-                "Tu es Plume, guide astrologique francaise chaleureuse et poetique. Reponds en francais, "
-                "avec finesse, jamais de jargon excessif. Utilise le theme natal fourni pour personnaliser. "
-                "Style : phrases courtes, metaphores lumineuses, registre tutoiement bienveillant."
-            ),
-        }
-    ]
+    # Pre-embed le theme natal dans le system prompt (evite le tool-loop distant)
+    system_content = PLUME_SYSTEM_PROMPT
+    if bd:
+        try:
+            natal = await aio.natal_chart(bd, name=name, language='fr')
+            if natal:
+                system_content += _build_natal_context_v3(natal, name)
+        except Exception:
+            pass
+
+    messages = [{'role': 'system', 'content': system_content}]
     if payload.history:
-        for m in payload.history[-10:]:  # dernieres 10 interactions max
+        for m in payload.history[-10:]:
             if m.get('role') in ('user', 'assistant') and m.get('content'):
-                messages.append({'role': m['role'], 'content': m['content']})
+                # Filtrer les eventuelles fuites d'outils dans l'historique
+                if not _is_tool_leak(m['content']):
+                    messages.append({'role': m['role'], 'content': m['content']})
     messages.append({'role': 'user', 'content': payload.message.strip()})
 
     session = payload.session_id or f'plume-{current_user["id"][:8]}'
+
+    # Premier appel — tools desactives (natal deja embed dans le system)
     response = await aio.astro_chat(
         messages=messages,
-        birth_data=bd,
+        birth_data=None,
         name=name,
         session_id=session,
         language='fr',
+        temperature=0.8,
+        max_tokens=1200,
+        disable_tools=True,
     )
+    reply_text = _extract_reply(response)
+
+    # Garde-fou : si le modele fuit un tool call malgre tout, on retente 1x
+    # avec une consigne explicite anti-JSON.
+    if _is_tool_leak(reply_text):
+        messages.append({'role': 'assistant', 'content': reply_text})
+        messages.append({
+            'role': 'user',
+            'content': (
+                "Ta reponse precedente contenait un JSON technique au lieu d'un vrai message. "
+                "Reponds de nouveau a ma question, en francais naturel et poetique, "
+                "sans aucun bloc JSON ni appel de fonction. Termine par une question ouverte."
+            ),
+        })
+        response = await aio.astro_chat(
+            messages=messages,
+            birth_data=None,
+            name=name,
+            session_id=session,
+            language='fr',
+            temperature=0.85,
+            max_tokens=1200,
+            disable_tools=True,
+        )
+        reply_text = _extract_reply(response)
+        # Si ca fuit encore, on renvoie un message de fallback plutot que le JSON
+        if _is_tool_leak(reply_text):
+            reply_text = (
+                "Les astres sont un peu bavards ce soir. Peux-tu reformuler ta question, "
+                "ou me dire ce qui t'a amene(e) a Plume aujourd'hui ?"
+            )
+
     if not response:
-        # Refund si echec API (l'utilisateur ne paie pas pour rien)
         if charge_info.get('charged'):
             try:
                 await wallet_service.add_credits(current_user['id'], 3, 'Remboursement chat (echec API)', tx_type='refund')
             except Exception:
                 pass
         raise HTTPException(status_code=502, detail='Service de chat astrologique indisponible.')
-
-    # Extraire la reponse (format OpenAI-compatible)
-    reply_text = ''
-    try:
-        choices = response.get('choices') or []
-        if choices and isinstance(choices, list):
-            reply_text = (choices[0].get('message') or {}).get('content', '') or ''
-    except Exception:
-        pass
-    if not reply_text:
-        reply_text = str(response)[:500]
 
     return {
         'success': True,
@@ -543,3 +655,16 @@ async def astro_chat_v3(payload: AstroChatRequest, current_user: dict = Depends(
         'charged': charge_info.get('amount', 0),
         'is_premium': charge_info.get('is_premium', False),
     }
+
+
+def _extract_reply(response) -> str:
+    """Extrait le contenu texte d'une reponse OpenAI-compatible."""
+    if not response:
+        return ''
+    try:
+        choices = response.get('choices') or []
+        if choices and isinstance(choices, list):
+            return (choices[0].get('message') or {}).get('content', '') or ''
+    except Exception:
+        pass
+    return ''

@@ -436,23 +436,28 @@ async def astro_chat(
     name: str = 'Voyageur',
     session_id: Optional[str] = None,
     language: str = 'fr',
-    temperature: float = 0.7,
-    max_tokens: int = 600,
+    temperature: float = 0.8,
+    max_tokens: int = 1200,
+    disable_tools: bool = False,
 ) -> Optional[Dict]:
-    """Chat AI astrologique avec le theme natal embarque (acces direct par l'IA aux positions)."""
+    """Chat AI astrologique. Par defaut on desactive les enabled_tools cote API pour
+    eviter les fuites d'appels d'outils en texte brut ; le contexte natal est
+    injecte en amont dans le system prompt par l'appelant (voir routes/astrology_v3.py).
+    """
     payload: Dict[str, Any] = {
         'messages': messages,
         'temperature': temperature,
         'max_tokens': max_tokens,
-        'astrology': {
+    }
+    if not disable_tools:
+        payload['astrology'] = {
             'enabled_tools': ['positions', 'aspects', 'transits', 'natal'],
             'defaults': {'language': language},
-        },
-    }
-    if birth_data:
-        payload['astrology']['subjects'] = [make_subject(name, birth_data)]
-    if session_id:
-        payload['astrology']['session_id'] = session_id
+        }
+        if birth_data:
+            payload['astrology']['subjects'] = [make_subject(name, birth_data)]
+        if session_id:
+            payload['astrology']['session_id'] = session_id
     return await _call('/chat/completions', payload)
 
 
