@@ -48,6 +48,7 @@ import NotreCadre from "./pages/NotreCadre";
 import SynastrieSales from "./pages/SynastrieSales";
 import SynastrieSucces from "./pages/SynastrieSucces";
 import AstroSexo from "./pages/AstroSexo";
+import Bibliotheque from "./pages/Bibliotheque";
 import Desabonnement from "./pages/Desabonnement";
 import PremiumStickyCTA from "./components/PremiumStickyCTA";
 import CookieConsent from "./components/CookieConsent";
@@ -59,6 +60,7 @@ function App() {
         <Routes>
           {/* Page admin — sans Navbar */}
           <Route path="/admin" element={<Admin />} />
+          <Route path="/bibliotheque" element={<Bibliotheque />} />
 
           {/* Toutes les autres pages — avec Navbar */}
           <Route path="*" element={
