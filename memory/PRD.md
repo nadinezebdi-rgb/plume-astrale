@@ -764,3 +764,30 @@ Prompt template = STYLE_ANCHOR + subject specific + NEGATIVE constraints.
 - DNS `plume-astrale.fr` a corriger (CNAME vers consultation-astro.emergent.host)
 - Domaine Resend a verifier (envoi emails contact@ / noreply@)
 - Executer 3 SQL migrations dans Supabase (oracle_leads, cercle, synastrie)
+
+---
+
+## Bug fix — Fuite d'appel d'outil dans Plume Chat (03/02/2026)
+
+### Symptome
+Le chat AI renvoyait `{"action":"astrology.get_chart","action_input":{"subject_id":"subject_1"}}`
+au lieu d'un vrai message d'astrologue francais.
+
+### Cause racine
+`astrology.io /chat/completions` avec `enabled_tools=[...]` fuitait la tool call en texte brut dans
+`message.content` au lieu d'executer la boucle d'outils cote serveur.
+
+### Fix (5 couches defense-en-profondeur)
+1. **routes/astrology_v3.py** : nouvelle route `/chat` qui pre-embed le theme natal directement
+   dans le system prompt, puis appelle astro_chat avec `disable_tools=True` (retire `enabled_tools`
+   du payload envoye a astrology.io).
+2. **services/astrology_io_service.py** : `astro_chat()` accepte `disable_tools=True` +
+   temperature 0.8 / max_tokens 1200 par defaut.
+3. **Nouveau system prompt Plume** (astrologue holistique, barriere sante stricte, termine
+   toujours par une question ouverte). Copie in routes/astrology_v3.py + services/plume_chat.py.
+4. **Backend guard** : `_is_tool_leak(text)` detecte JSON avec action/action_input + retry 1x +
+   fallback francais poli.
+5. **Frontend guard** : `isToolLeak(text)` + `LEAK_FALLBACK` dans `pages/ChatIA.js`.
+
+### Testing
+- iteration 31 : 8/8 backend + 2/2 frontend OK — plus aucune fuite JSON.
