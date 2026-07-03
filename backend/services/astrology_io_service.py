@@ -117,6 +117,49 @@ async def _get(path: str, params: Optional[Dict[str, Any]] = None) -> Optional[D
         return None
 
 
+
+async def geocode_and_timezone(city: str, country_code: str,
+                               year: int, month: int, day: int,
+                               hour: int = 12, minute: int = 0) -> Optional[Dict[str, Any]]:
+    """Geocode une ville + resout le fuseau via AstroAPI (/timezone).
+
+    Retourne {latitude, longitude, tzone, tz_name, tz_reliable} ou None.
+    Reutilise _call() qui deballe deja le wrapper {success, data}.
+    """
+    data = await _call('/timezone', {
+        'day': day, 'month': month, 'year': year,
+        'hour': hour, 'minute': minute,
+        'city': city, 'country_code': country_code,
+    })
+    if not isinstance(data, dict):
+        return None
+    loc = data.get('resolved_location') or {}
+    if loc.get('latitude') is None:
+        return None
+    return {
+        'latitude': loc.get('latitude'),
+        'longitude': loc.get('longitude'),
+        'tzone': data.get('utc_offset_hours'),
+        'tz_name': data.get('timezone'),
+        'tz_reliable': data.get('is_historical_accurate', True),
+    }
+
+
+async def search_cities(query: str, country_code: Optional[str] = None,
+                        limit: int = 10) -> list:
+    """Autocompletion de villes (formulaire natal) via /glossary/cities.
+
+    Retourne une liste d'items [{name, country_code, latitude, longitude, ...}].
+    """
+    params: Dict[str, Any] = {'search': query, 'limit': limit}
+    if country_code:
+        params['country_code'] = country_code
+    data = await _get('/glossary/cities', params)
+    if not isinstance(data, dict):
+        return []
+    return data.get('items') or []
+
+
 async def _call_first(paths: list[str], payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Try multiple API paths in order and return the first successful response."""
     for p in paths:
