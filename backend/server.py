@@ -86,6 +86,8 @@ class ProfileUpdate(BaseModel):
     birth_country: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    tzone: Optional[float] = None
+    tz_manual_override: Optional[bool] = None
     gender: Optional[str] = None
 
 
@@ -121,12 +123,57 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     }
 
 
+# Correspondance pays (labels du <select> PAYS) -> code ISO 3166-1 alpha-2
+_COUNTRY_TO_ISO = {
+    'France': 'FR',
+    'Belgique': 'BE',
+    'Suisse': 'CH',
+    'Canada': 'CA',
+    'Luxembourg': 'LU',
+    'Monaco': 'MC',
+    'Algérie': 'DZ',
+    'Maroc': 'MA',
+    'Tunisie': 'TN',
+    'Sénégal': 'SN',
+    "Côte d'Ivoire": 'CI',
+    'États-Unis': 'US',
+    'Royaume-Uni': 'GB',
+    'Allemagne': 'DE',
+    'Espagne': 'ES',
+    'Italie': 'IT',
+    'Portugal': 'PT',
+    'Autre': None,
+}
+
+
 @api_router.put('/auth/profile')
 async def update_profile_endpoint(
     payload: ProfileUpdate,
     current_user: dict = Depends(get_current_user),
 ):
-    profile = await wallet_service.update_profile(current_user['id'], payload.model_dump(exclude_unset=True))
+    data = payload.model_dump(exclude_unset=True)
+
+    # Geocodage automatique : ville presente, coordonnees absentes, pays geocodable
+    needs_geo = data.get('birth_place') and data.get('latitude') is None
+    iso = _COUNTRY_TO_ISO.get(data.get('birth_country', ''))
+    if needs_geo and data.get('birth_date') and iso:
+        try:
+            y, mo, d = (int(x) for x in data['birth_date'].split('-'))
+            hh, mi = 12, 0
+            if data.get('birth_time'):
+                hh, mi = (int(x) for x in data['birth_time'].split(':'))
+            geo = await aio.geocode_and_timezone(
+                data['birth_place'], iso, y, mo, d, hh, mi)
+            if geo:
+                data['latitude'] = geo['latitude']
+                data['longitude'] = geo['longitude']
+                # Ne pas ecraser le fuseau si l'utilisateur l'a force manuellement
+                if not data.get('tz_manual_override'):
+                    data['tzone'] = geo['tzone']
+        except Exception as e:
+            print(f'[profile] geocode skip: {e}')
+
+    profile = await wallet_service.update_profile(current_user['id'], data)
     return {'success': True, 'profile': profile}
 
 
