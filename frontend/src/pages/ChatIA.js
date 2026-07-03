@@ -4,10 +4,11 @@ import { Send, Loader2, Sparkles, Trash2, Coins, LogIn, ShoppingBag } from 'luci
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import NatalEssentials from '@/components/NatalEssentials';
+import CreditsPaywallModal from '@/components/CreditsPaywallModal';
 import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
-const COST_PER_MESSAGE = 2;
+const COST_PER_MESSAGE = 10;
 const FREE_MESSAGES_ANON = 3;
 const FREE_COUNT_KEY = 'pa_chat_free_count';
 const SESSION_KEY = 'pa_plume_session_id';
@@ -39,6 +40,7 @@ const ChatIA = () => {
   const [loading, setLoading] = useState(false);
   const [freeUsed, setFreeUsed] = useState(0);
   const [sessionId, setSessionId] = useState(null);
+  const [paywallOpen, setPaywallOpen] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -163,13 +165,7 @@ const ChatIA = () => {
 
     // --- Gating : utilisateurs connectés avec solde insuffisant ---
     if (isAuthenticated && (creditBalance ?? 0) < COST_PER_MESSAGE) {
-      setMessages(prev => [
-        ...prev,
-        {
-          role: 'system',
-          content: 'cta-credits',
-        },
-      ]);
+      setPaywallOpen(true);
       return;
     }
 
@@ -221,7 +217,7 @@ const ChatIA = () => {
           // Si 402 (solde insuffisant), on redirige
           if (e.response?.status === 402) {
             setLoading(false);
-            navigate('/acheter-credits');
+            setPaywallOpen(true);
             return;
           }
           // fallback silencieux vers /api/plume-chat (LLM generique) pour les autres erreurs
@@ -413,6 +409,11 @@ const ChatIA = () => {
 
   return (
     <>
+      <CreditsPaywallModal
+        open={paywallOpen}
+        onClose={() => setPaywallOpen(false)}
+        context="chat_out"
+      />
       <SEO title="Consultation astrale personnalisee — Plume Astrale" description="Pose toutes tes questions a ton theme natal en francais. Une guidance personnalisee, alimentee par ta carte du ciel reelle." />
       <div style={{
         minHeight: '100vh',

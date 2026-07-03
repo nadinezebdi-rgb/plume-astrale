@@ -342,6 +342,8 @@ async def create_checkout(
     if not pack:
         raise HTTPException(status_code=400, detail='Pack inconnu')
 
+    total_credits = int(pack.get('credits', 0)) + int(pack.get('bonus', 0) or 0)
+
     host_url = str(http_request.base_url).rstrip('/')
     webhook_url = f'{host_url}/api/webhook/stripe'
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
@@ -359,7 +361,7 @@ async def create_checkout(
             'user_id': current_user['id'],
             'user_email': current_user.get('email') or '',
             'pack_id': payload.pack_id,
-            'credits': str(pack['credits']),
+            'credits': str(total_credits),
         },
     )
     session = await stripe_checkout.create_checkout_session(req)
@@ -374,11 +376,15 @@ async def create_checkout(
             'pack_id': payload.pack_id,
             'amount': float(pack['amount']),
             'currency': pack['currency'],
-            'credits': int(pack['credits']),
+            'credits': total_credits,
             'status': 'initiated',
             'payment_status': 'unpaid',
             'credits_granted': False,
-            'metadata': {'pack_name': pack['name']},
+            'metadata': {
+                'pack_name': pack['name'],
+                'base_credits': int(pack.get('credits', 0)),
+                'bonus': int(pack.get('bonus', 0) or 0),
+            },
         }).execute()
     except Exception as e:
         logger.warning(f'Could not log payment_transaction: {e}')

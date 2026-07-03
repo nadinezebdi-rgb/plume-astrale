@@ -328,15 +328,20 @@ const Index = () => {
               </p>
 
               {!isAuthenticated && (
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4" style={{
-                  background: 'rgba(212,180,106,0.12)',
-                  border: '1px solid rgba(212,180,106,0.4)',
-                }} data-testid="launch-offer-badge">
+                <Link to="/inscription"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 group hover:scale-[1.02] transition-transform"
+                  style={{
+                    background: 'linear-gradient(90deg, rgba(212,180,106,0.20), rgba(244,217,140,0.28), rgba(212,180,106,0.20))',
+                    border: '1px solid rgba(244,217,140,0.55)',
+                    boxShadow: '0 0 30px rgba(212,180,106,0.20)',
+                  }}
+                  data-testid="launch-offer-badge">
                   <Sparkles style={{ width: 12, height: 12, color: '#F4D98C' }} />
-                  <span style={{ fontSize: 11, letterSpacing: '0.12em', color: '#F4D98C', textTransform: 'uppercase', fontFamily: 'Cinzel, serif' }}>
-                    Offre de lancement — 20 crédits offerts à l&apos;inscription
+                  <span style={{ fontSize: 11, letterSpacing: '0.16em', color: '#F4D98C', textTransform: 'uppercase', fontFamily: 'Cinzel, serif' }}>
+                    Offre de lancement — 20 crédits offerts pour révéler votre avenir amoureux
                   </span>
-                </div>
+                  <span style={{ fontSize: 11, color: '#F4D98C', opacity: 0.85 }} className="group-hover:translate-x-0.5 transition-transform">→</span>
+                </Link>
               )}
             </div>
 

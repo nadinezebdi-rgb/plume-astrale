@@ -567,9 +567,9 @@ async def astro_chat_v3(payload: AstroChatRequest, current_user: dict = Depends(
     if not payload.message or not payload.message.strip():
         raise HTTPException(status_code=400, detail='Message vide.')
 
-    # Paywall : 3cr par question (offert si Premium)
+    # Paywall : 10cr par question (offert si Premium)
     charge_info = await wallet_service.charge_or_premium(
-        current_user['id'], 'chat_astral', 3, 'Chat astrologique - 1 question',
+        current_user['id'], 'chat_astral', 10, 'Chat astrologique - 1 question',
     )
 
     profile = await wallet_service.get_profile(current_user['id'])
@@ -643,7 +643,7 @@ async def astro_chat_v3(payload: AstroChatRequest, current_user: dict = Depends(
     if not response:
         if charge_info.get('charged'):
             try:
-                await wallet_service.add_credits(current_user['id'], 3, 'Remboursement chat (echec API)', tx_type='refund')
+                await wallet_service.add_credits(current_user['id'], 10, 'Remboursement chat (echec API)', tx_type='refund')
             except Exception:
                 pass
         raise HTTPException(status_code=502, detail='Service de chat astrologique indisponible.')
