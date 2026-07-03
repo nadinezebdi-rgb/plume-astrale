@@ -692,3 +692,75 @@ L'astrologue Shana Lyès (compte Astrolya) définit la synastrie comme "plus fin
 - Préserve la crédibilité technique en gardant le terme précis dans les textes d'expertise
 
 
+
+---
+
+## Implemente — Session Fev 2026 (Bibliotheque visuelle IA)
+
+### Feature: Bibliotheque visuelle premium (03/02/2026)
+Le user voulait une bibliotheque d'images pour personnaliser tous les visuels
+(rapports PDF, cartes Instagram, pages web, dashboard). Livre en une iteration :
+
+**56 illustrations IA generees via Gemini Nano Banana (gemini-3.1-flash-image-preview)** :
+- 12 signes du zodiaque (portraits totem style crabe ornemental)
+- 10 planetes (spheres celestes ornees dans une bloom florale)
+- 12 maisons astrologiques (scenes symboliques I → XII)
+- 22 arcanes majeurs du tarot (Le Mat → Le Monde)
+
+**+ 22 glyphes vectoriels SVG** (12 signes + 10 planetes)
+generes via template svg + gradient or/nuit + glow filter.
+
+### Style anchor (coherence visuelle garantie)
+3 images de reference passees a Nano Banana comme "style prompt image" :
+- `CANCER.png` (crabe ornemental) → totem des signes
+- `fleurs violette.png` (fleurs mystiques) → style planetes
+- `roue astro.png` (roue astrologique) → teinte generale
+
+Prompt template = STYLE_ANCHOR + subject specific + NEGATIVE constraints.
+
+### Fichiers cles
+- `backend/services/library_prompts.py` — 56 prompts (signs/planets/houses/tarot)
+- `backend/services/library_generator.py` — pipeline Nano Banana + resize 3 res
+- `backend/services/library_svg_glyphs.py` — generateur SVG glyphes
+- `backend/routes/library.py` — API admin (`/api/library/*`)
+- `backend/assets/library/` — arborescence signs/planets/houses/tarot/glyphs-svg/style-refs
+- `frontend/src/pages/Bibliotheque.js` — studio admin `/bibliotheque`
+
+### 3 resolutions par image PNG
+- `_2048.png` — impression PDF haute qualite
+- `_1080.png` — cartes Instagram
+- `_512.png`  — web/thumbnails
+
+### Endpoints (tous admin only sauf serve file)
+- `POST /api/library/generate` — lance batch en background (option `?category=`, `?force=`)
+- `POST /api/library/generate/{slug}` — regenere un asset force=True
+- `POST /api/library/glyphs-svg` — (re)genere les 22 SVG
+- `GET  /api/library/catalog` — 56 assets prevus
+- `GET  /api/library/status` — manifest + progression + erreurs
+- `GET  /api/library/file/{cat}/{filename}` — serveur statique
+
+### Etat final (03/02/2026)
+- **56 / 56 assets OK** (0 erreur) — verifie visuellement
+- Manifest sauve `/app/backend/assets/library/manifest.json`
+- Batch total : ~10 min (5-15s / image)
+- Lien admin dashboard : bouton "Bibliotheque visuelle" en top-right
+
+### Prochaines integrations a faire
+- [ ] Wire les signes dans `synastrie_pdf_generator.py` (remplacer les glyphes texte)
+- [ ] Wire les cartes tarot dans `Cercle` dashboard (tirage quotidien)
+- [ ] Wire les portraits signes dans `/astrosexo` (page SEO gratuite)
+- [ ] Wire les scenes maisons dans les 25 pages du rapport premium
+
+## Backlog produit (priorites)
+
+### P1 — Iteration N+1
+- AstroSexo Payant (19€) — funnel de vente + PDF dedie compatibilite sexuelle
+- Astrologie relationnelle karmique (79€) — produit premium
+
+### P2 — Phase 4 Analytics
+- Configurer GA4/Plausible (CookieConsent deja pret)
+
+### P3 — Ops
+- DNS `plume-astrale.fr` a corriger (CNAME vers consultation-astro.emergent.host)
+- Domaine Resend a verifier (envoi emails contact@ / noreply@)
+- Executer 3 SQL migrations dans Supabase (oracle_leads, cercle, synastrie)

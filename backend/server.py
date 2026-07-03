@@ -35,6 +35,7 @@ from routes.astrology_v3 import router as astrology_v3_router
 from routes.oracle import router as oracle_router
 from routes.cercle import router as cercle_router
 from routes.synastrie import router as synastrie_router
+from routes.library import router as library_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -54,6 +55,7 @@ api_router.include_router(astrology_v3_router)
 api_router.include_router(oracle_router)
 api_router.include_router(cercle_router)
 api_router.include_router(synastrie_router)
+api_router.include_router(library_router)
 
 
 # ════════════════════════════════════════════

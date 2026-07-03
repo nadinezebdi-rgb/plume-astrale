@@ -184,12 +184,20 @@ export default function Admin() {
               Pilotage Plume Astrale — {user.email}
             </p>
           </div>
-          <button onClick={refresh}
-            className="flex items-center gap-2 px-4 py-2 text-xs uppercase tracking-widest rounded-full"
-            style={{ border: '1px solid rgba(197,160,89,0.4)', color: '#C5A059', letterSpacing: '0.1em' }}
-            data-testid="admin-refresh-btn">
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Actualiser
-          </button>
+          <div className="flex items-center gap-2">
+            <a href="/bibliotheque"
+              className="flex items-center gap-2 px-4 py-2 text-xs uppercase tracking-widest rounded-full"
+              style={{ border: '1px solid rgba(197,160,89,0.4)', color: '#C5A059', letterSpacing: '0.1em' }}
+              data-testid="admin-biblio-link">
+              <Sparkles className="w-3.5 h-3.5" /> Bibliothèque visuelle
+            </a>
+            <button onClick={refresh}
+              className="flex items-center gap-2 px-4 py-2 text-xs uppercase tracking-widest rounded-full"
+              style={{ border: '1px solid rgba(197,160,89,0.4)', color: '#C5A059', letterSpacing: '0.1em' }}
+              data-testid="admin-refresh-btn">
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Actualiser
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2 mb-8">
