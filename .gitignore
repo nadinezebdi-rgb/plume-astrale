@@ -96,4 +96,4 @@ credentials.json
 
 !.env.example
 !backend/.env.example
-!frontend/.env.example
+!frontend/.env.examplefrontend/yarn.lock
