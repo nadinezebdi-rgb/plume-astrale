@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 
 // Routes where banner should NOT appear (premium/payment/auth flows)
 const HIDE_ON_PATHS = ['/premium', '/paiement', '/credits/succes', '/commande/succes', '/inscription', '/connexion'];
@@ -11,9 +11,11 @@ export default function TrialBanner() {
   if (onHiddenRoute) return null;
 
   return (
-    <div
+    <Link
+      to="/inscription"
       data-testid="trial-banner"
       style={{
+        display: 'block',
         position: 'fixed',
         top: 0,
         left: 0,
@@ -22,6 +24,8 @@ export default function TrialBanner() {
         background: 'linear-gradient(90deg, #D4AF37 0%, #F0D060 50%, #AA7C11 100%)',
         padding: '8px 16px',
         textAlign: 'center',
+        textDecoration: 'none',
+        cursor: 'pointer',
       }}
     >
       <p
@@ -37,6 +41,6 @@ export default function TrialBanner() {
       >
         ✨ OFFRE DE LANCEMENT : 20 CRÉDITS OFFERTS À L&apos;INSCRIPTION POUR DÉCOUVRIR VOTRE AVENIR AMOUREUX ✨
       </p>
-    </div>
+    </Link>
   );
 }
