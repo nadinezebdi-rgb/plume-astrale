@@ -30,27 +30,15 @@ function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/bibliotheque" element={<Bibliotheque />} />
 
-          {/* Toutes les autres pages — avec Navbar */}
-          <Route
+          {/* Toutes les autres pages — DEBUG: disabled */}
+          {/* <Route
             path="*"
             element={
               <>
-                {/* Navbar disabled for debug */}
-                {/* <Navbar /> */}
-                {/* <TrialBanner /> */}
-                <ErrorBoundary>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/inscription" element={<Register />} />
-                    <Route path="/connexion" element={<Login />} />
-                    {/* ... (toutes tes autres routes) */}
-                  </Routes>
-                </ErrorBoundary>
-                {/* <PremiumStickyCTA /> */}
-                {/* <CookieConsent /> */}
+                ...
               </>
             }
-          />
+          /> */}
         </Routes>
       </BrowserRouter>
     </AuthProvider>
