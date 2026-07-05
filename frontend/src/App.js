@@ -66,9 +66,7 @@ function App() {
           <Route path="*" element={
             <>
               <ErrorBoundary>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                </Routes>
+                <div>Test without Index</div>
               </ErrorBoundary>
               <PremiumStickyCTA />
               <CookieConsent />
