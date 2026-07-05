@@ -1,8 +1,13 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Moon, Stars } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import SEO from '../components/SEO';
+import React from 'react';
+
+export default function Index() {
+  return (
+    <div style={{ padding: '40px', textAlign: 'center', color: 'white' }}>
+      <h1>Welcome to Plume Astrale</h1>
+      <p>Simple index page for testing</p>
+    </div>
+  );
+}
 
 /* ═══════════════════════════════════════════════════════════
    COSMIC CANVAS — multilayer animated background

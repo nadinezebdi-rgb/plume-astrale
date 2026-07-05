@@ -11,7 +11,7 @@ import PremiumStickyCTA from "./components/PremiumStickyCTA";
 import CookieConsent from "./components/CookieConsent";
 
 // Pages
-import Index from "./pages/Index";
+import Index from './pages/Index.simple';
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Tarot from "./pages/Tarot";
@@ -73,7 +73,7 @@ function App() {
                 <TrialBanner />
                 <ErrorBoundary>
                   <Routes>
-                    <Route path="/" element={<div style={{padding: '20px'}}>Home (Index disabled for testing)</div>} />
+                    <Route path="/" element={<Index />} />
                     <Route path="/inscription" element={<Register />} />
                     <Route path="/connexion" element={<Login />} />
                     <Route path="/formulaire" element={<Formulaire />} />
