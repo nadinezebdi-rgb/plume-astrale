@@ -22,7 +22,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        {/* Bandeau sticky pour l'offre de lancement */}
+        {/* Bandeau sticky pour l'offre de lancement - v2 */}
         <StickyBanner />
 
         <Routes>
