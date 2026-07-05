@@ -62,10 +62,21 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <StickyBanner />
-        <div style={{ padding: '20px', textAlign: 'center', color: 'white' }}>
-          <h1>Plume Astrale - Test StickyBanner</h1>
-          <p>StickyBanner enabled, routes disabled</p>
-        </div>
+        <Routes>
+          <Route path="*" element={
+            <>
+              <Navbar />
+              <TrialBanner />
+              <ErrorBoundary>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                </Routes>
+              </ErrorBoundary>
+              <PremiumStickyCTA />
+              <CookieConsent />
+            </>
+          } />
+        </Routes>
       </BrowserRouter>
     </AuthProvider>
   );
