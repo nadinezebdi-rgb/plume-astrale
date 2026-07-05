@@ -125,14 +125,14 @@ export const AuthProvider = ({ children }) => {
       });
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       loadMe(newSession?.access_token);
     });
 
     return () => {
       mounted = false;
-      sub.subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, [loadMe]);
 
