@@ -125,7 +125,7 @@ export const AuthProvider = ({ children }) => {
       });
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
       if (!mounted) return;
       setSession(newSession);
       loadMe(newSession?.access_token);
@@ -133,7 +133,9 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       mounted = false;
-      subscription?.unsubscribe?.();
+      if (sub?.subscription) {
+        sub.subscription.unsubscribe();
+      }
     };
   }, [loadMe]);
 
