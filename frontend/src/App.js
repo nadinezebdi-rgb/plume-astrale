@@ -65,8 +65,6 @@ function App() {
         <Routes>
           <Route path="*" element={
             <>
-              <Navbar />
-              <TrialBanner />
               <ErrorBoundary>
                 <Routes>
                   <Route path="/" element={<Index />} />
