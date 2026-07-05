@@ -14,6 +14,8 @@ import CookieConsent from "./components/CookieConsent";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import Admin from "./pages/Admin";
+import Bibliotheque from "./pages/Bibliotheque";
 // ... (toutes tes autres imports de pages)
 
 function App() {
