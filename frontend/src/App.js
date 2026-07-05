@@ -37,7 +37,7 @@ function App() {
               <>
                 {/* Navbar disabled for debug */}
                 {/* <Navbar /> */}
-                <TrialBanner />
+                {/* <TrialBanner /> */}
                 <ErrorBoundary>
                   <Routes>
                     <Route path="/" element={<Index />} />
@@ -46,8 +46,8 @@ function App() {
                     {/* ... (toutes tes autres routes) */}
                   </Routes>
                 </ErrorBoundary>
-                <PremiumStickyCTA />
-                <CookieConsent />
+                {/* <PremiumStickyCTA /> */}
+                {/* <CookieConsent /> */}
               </>
             }
           />
