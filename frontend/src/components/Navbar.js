@@ -32,7 +32,7 @@ const DropdownMenu = ({ item, isActive }) => {
 
   const show = () => { clearTimeout(timerRef.current); setOpen(true); };
   const hide = () => { timerRef.current = setTimeout(() => setOpen(false), 120); };
-  useEffect(() => { return () => clearTimeout(timerRef.current); }, []);
+  useEffect(() => function() { clearTimeout(timerRef.current); }, []);
 
   const btnStyle = {
     display: 'flex',
@@ -130,7 +130,7 @@ const MonCompteDropdown = ({ creditBalance, handleLogout, isAdmin }) => {
 
   const show = () => { clearTimeout(timerRef.current); setOpen(true); };
   const hide = () => { timerRef.current = setTimeout(() => setOpen(false), 120); };
-  useEffect(() => { return () => clearTimeout(timerRef.current); }, []);
+  useEffect(() => function() { clearTimeout(timerRef.current); }, []);
 
   const btnStyle = {
     display: 'flex', alignItems: 'center', gap: 6,
@@ -244,9 +244,9 @@ const Navbar = () => {
   const { isAuthenticated, creditBalance, logout, user } = useAuth();
 
   useEffect(() => {
-    const onScroll = function() { setScrolled(window.scrollY > 40); };
+    var onScroll = function() { setScrolled(window.scrollY > 40); };
     window.addEventListener('scroll', onScroll);
-    return () => { window.removeEventListener('scroll', onScroll); };
+    return function() { window.removeEventListener('scroll', onScroll); };
   }, []);
 
   useEffect(() => { setIsOpen(false); setMobileExpanded(null); }, [location]);

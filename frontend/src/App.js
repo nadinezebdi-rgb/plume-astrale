@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar";
+import TrialBanner from "./components/TrialBanner";
 import ErrorBoundary from "./components/ErrorBoundary";
 import PremiumStickyCTA from "./components/PremiumStickyCTA";
 import CookieConsent from "./components/CookieConsent";
@@ -66,6 +67,9 @@ function App() {
       <BrowserRouter>
         <ErrorBoundary>
           <Navbar />
+        </ErrorBoundary>
+        <ErrorBoundary>
+          <TrialBanner />
         </ErrorBoundary>
         <Suspense fallback={RouteFallback}>
           <Routes>
