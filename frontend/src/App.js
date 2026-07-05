@@ -35,7 +35,8 @@ function App() {
             path="*"
             element={
               <>
-                <Navbar />
+                {/* Navbar disabled for debug */}
+                {/* <Navbar /> */}
                 <TrialBanner />
                 <ErrorBoundary>
                   <Routes>
