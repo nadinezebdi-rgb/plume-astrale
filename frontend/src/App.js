@@ -59,12 +59,14 @@ import Desabonnement from "./pages/Desabonnement";
 
 function App() {
   return (
-    <BrowserRouter>
-      <div style={{ padding: '20px', textAlign: 'center', color: 'white' }}>
-        <h1>Plume Astrale - Test Simple</h1>
-        <p>AuthProvider temporarily disabled for testing</p>
-      </div>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <div style={{ padding: '20px', textAlign: 'center', color: 'white' }}>
+          <h1>Plume Astrale - Test AuthProvider</h1>
+          <p>AuthProvider enabled, routes disabled</p>
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
