@@ -61,9 +61,10 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <StickyBanner />
         <div style={{ padding: '20px', textAlign: 'center', color: 'white' }}>
-          <h1>Plume Astrale - Test AuthProvider</h1>
-          <p>AuthProvider enabled, routes disabled</p>
+          <h1>Plume Astrale - Test StickyBanner</h1>
+          <p>StickyBanner enabled, routes disabled</p>
         </div>
       </BrowserRouter>
     </AuthProvider>
