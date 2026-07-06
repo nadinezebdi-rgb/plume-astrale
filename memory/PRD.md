@@ -13,6 +13,21 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+## Session Feb 2026 — 🔮 Rebranchage chat sur astrology-api.io v3 + Prompt Soléna officiel (2026-02)
+Fix du bug production "Clé LLM non configurée" + intégration hosted-mode astrology-api.io.
+- ✅ **Backend rewrite** `/app/backend/services/plume_chat.py` :
+  - Remplace `emergentintegrations`/LLM Emergent par un appel HTTP direct à `https://api.astrology-api.io/api/v3/chat/completions` (Bearer `ASTROLOGY_API_IO_KEY`)
+  - Payload : messages (system + history + user), astrology.subjects[] avec birth_data, astrology.enabled_tools (natal, transits, synastry), astrology.defaults (language: fr, tradition: psychological)
+  - Parsing OpenAI-compatible : `choices[0].message.content`
+  - Multi-turn : historique Supabase rechargé automatiquement
+- ✅ **Nouveau SYSTEM_PROMPT_SOLENA** — prompt officiel fourni par l'utilisateur :
+  - Animation d'ouverture obligatoire : *🪶 Une plume mystique glisse sur l'écran, traçant ces mots à l'encre d'or...*
+  - Barrière médicale stricte
+  - Règle d'or de la relance (question ouverte finale)
+  - Format markdown (## titres sacrés, **gras**, ---)
+  - Encadrement tunnel de vente & crédits (4,99€/12,99€/29,99€)
+- ✅ **Testing agent iteration_34** : 16/16 pytest PASS (100%, 23.7s) — zéro issue
+
 ## Session Feb 2026 — 🌙 Vraie Lune NASA self-hostée (2026-02)
 - ✅ Texture `moon_1024.jpg` (238 KB JPEG 1024×512) téléchargée dans `/app/frontend/public/assets/moon_1024.jpg`
 - ✅ `Moon3D.js` charge maintenant depuis `/assets/moon_1024.jpg` (local, servi par le frontend)
