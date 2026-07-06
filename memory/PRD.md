@@ -13,6 +13,17 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+## Session Feb 2026 — Cleanup UI + Parcours Solena Home (2026-02)
+- ✅ Retiré doublon "PLUME ASTRALE" du `MoonHero.js` (navbar suffit)
+- ✅ Retiré bouton "L'Expérience Premium" du `Navbar.js` (minimalisme)
+- ✅ Enrichi la section Solena sur `Index.js` avec un vrai "parcours" :
+  - Vidéo verticale 9:16 (autoplay muted loop, click-to-unmute) — `SOLENA.videos.primary`
+  - Storytelling avec italiques dorés + citation en évidence
+  - 2 CTAs : "Consulter Solena · Gratuit" (→/rencontres-astrales) + "Découvrir son univers" (→/solena)
+  - 6 spécialités affichées en cartes vitrées
+- Fichiers : `/app/frontend/src/pages/Index.js`, `/app/frontend/src/components/MoonHero.js`, `/app/frontend/src/components/Navbar.js`
+
+
 ## Implemente — Session Mai 2026 (Refonte complete Supabase)
 
 ### Backend (FastAPI + Supabase)

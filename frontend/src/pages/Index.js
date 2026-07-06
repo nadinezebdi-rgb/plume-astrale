@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import MoonHero from '../components/MoonHero';
 import {
   Sparkles, Moon, Heart, Compass, MessageCircle, BookHeart,
-  Flame, Stars, ArrowRight, Quote, Sun, Cloud, Wind
+  Flame, Stars, ArrowRight, Quote, Sun, Cloud, Wind, CheckCircle2, Play
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/SEO';
@@ -10,6 +11,7 @@ import HeroOracle from '../components/HeroOracle';
 import EnergyToday from '../components/EnergyToday';
 import SocialProof from '../components/SocialProof';
 import NatalCompletionPrompt from '../components/NatalCompletionPrompt';
+import { SOLENA } from '../lib/solena';
 
 /* ═══════════════════════════════════════════════════════════
    COSMIC CANVAS — multilayer animated background
@@ -253,6 +255,213 @@ const MoodOrbs = ({ onSelect }) => {
 };
 
 /* ═══════════════════════════════════════════════════════════
+   SOLENA JOURNEY — parcours storytelling de l'ambassadrice
+═══════════════════════════════════════════════════════════ */
+const SolenaJourney = () => {
+  const videoRef = useRef(null);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+
+  const toggleVideo = () => {
+    if (!videoRef.current) return;
+    if (videoPlaying) {
+      videoRef.current.pause();
+      setVideoPlaying(false);
+    } else {
+      videoRef.current.muted = false;
+      videoRef.current.play();
+      setVideoPlaying(true);
+    }
+  };
+
+  return (
+    <section className="relative py-24 md:py-32 px-4 z-10" data-testid="home-solena-section"
+      style={{
+        background: 'linear-gradient(180deg, transparent 0%, rgba(20,15,40,0.4) 30%, rgba(20,15,40,0.4) 70%, transparent 100%)',
+      }}>
+      <div className="max-w-6xl mx-auto">
+
+        {/* Kicker centré */}
+        <div className="text-center mb-14 animate-fade-up">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5"
+            style={{ background: 'rgba(212,180,106,0.08)', border: '1px solid rgba(212,180,106,0.30)' }}>
+            <Sparkles style={{ width: 12, height: 12, color: '#D4B46A' }} strokeWidth={1.5} />
+            <span className="text-[10px] uppercase" style={{ color: '#D4B46A', letterSpacing: '0.3em', fontWeight: 400 }}>
+              Rencontre ta guide
+            </span>
+          </div>
+          <h2 style={{
+            fontFamily: 'Cormorant Garamond, serif',
+            fontWeight: 200,
+            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+            lineHeight: 1.05,
+            color: '#F4E8D2',
+            marginBottom: 16,
+          }}>
+            Je suis <em style={{ color: '#D4B46A', fontStyle: 'italic', fontWeight: 300 }}>Solena</em>,<br />
+            la voix de <em style={{ color: '#D4B46A', fontStyle: 'italic', fontWeight: 300 }}>Plume Astrale</em>.
+          </h2>
+          <p className="max-w-2xl mx-auto text-base md:text-lg" style={{
+            fontFamily: 'Cormorant Garamond, serif',
+            color: 'rgba(244,232,210,0.75)',
+            fontStyle: 'italic',
+            lineHeight: 1.6,
+          }}>
+            Astrologue, tarologue et médium depuis quinze ans — je décode ton ciel de naissance
+            pour révéler les cycles d&apos;amour qui t&apos;attendent.
+          </p>
+        </div>
+
+        {/* Vidéo + Storytelling */}
+        <div className="grid md:grid-cols-5 gap-10 md:gap-14 items-center mb-20">
+
+          {/* Colonne vidéo — 2/5 */}
+          <div className="md:col-span-2 flex justify-center order-1">
+            <div className="relative w-full max-w-sm">
+              {/* Aura dorée */}
+              <div style={{
+                position: 'absolute', inset: '-12%',
+                background: 'radial-gradient(circle, rgba(212,180,106,0.35), transparent 65%)',
+                filter: 'blur(35px)',
+              }} />
+
+              {/* Vidéo en cadre rond */}
+              <div style={{
+                position: 'relative',
+                aspectRatio: '9/16',
+                width: '100%',
+                borderRadius: '32px',
+                overflow: 'hidden',
+                border: '2px solid rgba(212,180,106,0.55)',
+                boxShadow: '0 40px 100px rgba(212,180,106,0.25), 0 0 60px rgba(212,180,106,0.15)',
+              }}>
+                <video
+                  ref={videoRef}
+                  src={SOLENA.videos.primary}
+                  poster={SOLENA.portrait}
+                  muted
+                  loop
+                  playsInline
+                  autoPlay
+                  preload="metadata"
+                  onClick={toggleVideo}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer', display: 'block' }}
+                  data-testid="home-solena-video"
+                />
+                {/* Overlay bas */}
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  padding: '30px 24px 20px',
+                  background: 'linear-gradient(180deg, transparent, rgba(0,0,0,0.75))',
+                  pointerEvents: 'none',
+                }}>
+                  <div style={{ color: '#F4D98C', fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', fontWeight: 400 }}>
+                    ✦ Solena
+                  </div>
+                  <div style={{ color: 'rgba(244,232,210,0.85)', fontSize: 12, marginTop: 4, fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>
+                    {SOLENA.title}
+                  </div>
+                </div>
+                {/* Play / mute badge */}
+                <button
+                  onClick={toggleVideo}
+                  aria-label={videoPlaying ? 'Couper le son' : 'Activer le son'}
+                  style={{
+                    position: 'absolute', top: 14, right: 14,
+                    width: 40, height: 40, borderRadius: '50%',
+                    background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(212,180,106,0.5)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', backdropFilter: 'blur(6px)',
+                  }}
+                  data-testid="home-solena-video-toggle"
+                >
+                  <Play style={{ width: 14, height: 14, color: '#F4D98C', marginLeft: 2 }} strokeWidth={2} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Colonne texte — 3/5 */}
+          <div className="md:col-span-3 order-2">
+            <div className="space-y-5" style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.05rem', lineHeight: 1.7, color: 'rgba(244,232,210,0.88)' }}>
+              <p>
+                <span style={{ color: '#D4B46A', fontStyle: 'italic', fontWeight: 500 }}>Bienvenue.</span>{' '}
+                Je considère chaque personne dans sa totalité — esprit, émotions, énergies.
+                Je n&apos;annonce jamais un futur figé : je révèle des <em style={{ color: '#F4D98C' }}>cycles</em>, des <em style={{ color: '#F4D98C' }}>invitations</em>, des <em style={{ color: '#F4D98C' }}>choix</em>.
+              </p>
+              <p>
+                Chez Plume Astrale, je m&apos;associe à une intelligence divinatoire de nouvelle génération
+                pour t&apos;offrir une guidance personnalisée, précise et vibratoire.
+              </p>
+              <p style={{ color: '#F4D98C', fontStyle: 'italic', fontSize: '1.1rem' }}>
+                « Ni horoscope générique, ni prédiction fataliste — une conversation intime avec ton ciel de naissance. »
+              </p>
+            </div>
+
+            {/* CTA */}
+            <div className="flex flex-wrap gap-3 mt-8">
+              <Link to="/rencontres-astrales"
+                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-xs uppercase transition-all hover:scale-[1.02]"
+                style={{
+                  background: 'linear-gradient(135deg, #D4B46A 0%, #F4D98C 50%, #D4B46A 100%)',
+                  color: '#0C0918',
+                  letterSpacing: '0.2em',
+                  fontWeight: 700,
+                  boxShadow: '0 12px 40px rgba(212,180,106,0.35)',
+                }}
+                data-testid="home-solena-consult-btn">
+                <Heart style={{ width: 14, height: 14 }} strokeWidth={2} />
+                Consulter Solena · Gratuit
+                <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
+              </Link>
+              <Link to="/solena"
+                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-xs uppercase transition-all hover:scale-[1.02]"
+                style={{
+                  border: '1px solid rgba(212,180,106,0.5)',
+                  color: '#D4B46A',
+                  letterSpacing: '0.2em',
+                  fontWeight: 400,
+                  background: 'transparent',
+                }}
+                data-testid="home-solena-discover-btn">
+                Découvrir son univers
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Spécialités — 6 cartes minimalistes */}
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-8">
+            <p className="text-[10px] uppercase" style={{ color: 'rgba(212,180,106,0.7)', letterSpacing: '0.3em' }}>
+              Ses six spécialités
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {SOLENA.specialities.map((s, i) => (
+              <div key={i}
+                className="rounded-2xl p-4 flex items-start gap-3 transition-all hover:scale-[1.02] animate-fade-up"
+                style={{
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(212,180,106,0.18)',
+                  backdropFilter: 'blur(10px)',
+                  animationDelay: `${i * 70}ms`,
+                }}
+                data-testid={`home-solena-speciality-${i}`}>
+                <CheckCircle2 style={{ width: 18, height: 18, color: '#D4B46A', flexShrink: 0, marginTop: 2 }} strokeWidth={1.5} />
+                <span className="text-sm" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'rgba(244,232,210,0.88)', lineHeight: 1.4 }}>
+                  {s}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </section>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════
    PAGE
 ═══════════════════════════════════════════════════════════ */
 const Index = () => {
@@ -285,170 +494,11 @@ const Index = () => {
       <SEO path="/" />
       <CosmicCanvas />
 
-      {/* ═══════ HERO ═══════ */}
-      <section className="relative min-h-screen flex items-center justify-center px-6 pt-32 sm:pt-32 pb-16 z-10">
-        {/* Editorial kicker bar */}
-        <div className="absolute top-20 sm:top-24 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10 animate-fade-up"
-          style={{ animationDelay: '0ms' }}>
-          <span className="h-px w-12" style={{ background: 'linear-gradient(90deg, transparent, rgba(167,139,250,0.5))' }} />
-          <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: 'var(--pa-lavender-bright)' }}>
-            Sanctuaire numerique
-          </p>
-          <span className="h-px w-12" style={{ background: 'linear-gradient(90deg, rgba(167,139,250,0.5), transparent)' }} />
-        </div>
+      <MoonHero />
 
-        <div className="relative z-10 max-w-6xl w-full grid lg:grid-cols-2 gap-12 items-center">
-          {/* LEFT — text */}
-          <div className="text-center lg:text-left">
-            <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
-              <h1 className="font-display mb-6"
-                style={{
-                  fontSize: 'clamp(36px, 6vw, 68px)',
-                  lineHeight: 1.0,
-                  color: 'var(--pa-heading)',
-                  fontWeight: 300,
-                  letterSpacing: '-0.02em',
-                }}>
-                Découvre les <br />
-                <span className="italic font-display pa-shimmer-gold" style={{ fontStyle: 'italic' }}>
-                  cycles astrologiques
-                </span><br />
-                qui influencent ta vie.
-              </h1>
-            </div>
 
-            <div className="animate-fade-up" style={{ animationDelay: '300ms' }}>
-              <p className="text-base sm:text-lg max-w-xl mx-auto lg:mx-0 mb-2 leading-relaxed"
-                style={{ color: 'var(--pa-body)' }}>
-                Analyses personnalisées basées sur <span style={{ color: 'var(--pa-lavender-bright)' }}>ton thème astral</span>,
-                tes relations et les mouvements planétaires actuels.
-              </p>
-              <p className="text-sm max-w-lg mx-auto lg:mx-0 mb-6" style={{ color: 'var(--pa-muted)' }}>
-                Une plateforme premium de guidance émotionnelle, pour traverser tes jours avec sens.
-              </p>
-
-              {!isAuthenticated && (
-                <Link to="/inscription"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 group hover:scale-[1.02] transition-transform"
-                  style={{
-                    background: 'linear-gradient(90deg, rgba(212,180,106,0.20), rgba(244,217,140,0.28), rgba(212,180,106,0.20))',
-                    border: '1px solid rgba(244,217,140,0.55)',
-                    boxShadow: '0 0 30px rgba(212,180,106,0.20)',
-                  }}
-                  data-testid="launch-offer-badge">
-                  <Sparkles style={{ width: 12, height: 12, color: '#F4D98C' }} />
-                  <span style={{ fontSize: 11, letterSpacing: '0.16em', color: '#F4D98C', textTransform: 'uppercase', fontFamily: 'Cinzel, serif' }}>
-                    Offre de lancement — 20 crédits offerts pour révéler votre avenir amoureux
-                  </span>
-                  <span style={{ fontSize: 11, color: '#F4D98C', opacity: 0.85 }} className="group-hover:translate-x-0.5 transition-transform">→</span>
-                </Link>
-              )}
-            </div>
-
-            <div className="animate-fade-up flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
-              style={{ animationDelay: '500ms' }}>
-              <button onClick={() => navigate(isAuthenticated ? '/energie' : '/inscription')} className="pa-btn-primary" data-testid="hero-cta-primary">
-                <Sparkles style={{ width: 16, height: 16 }} strokeWidth={1.5} />
-                {isAuthenticated ? 'Voir mon énergie actuelle' : 'Découvrir mon thème'}
-              </button>
-              <button onClick={() => navigate(isAuthenticated ? '/consultation' : '/connexion')} className="pa-btn-ghost" data-testid="hero-cta-secondary">
-                <MessageCircle style={{ width: 16, height: 16 }} strokeWidth={1.5} />
-                {isAuthenticated ? 'Démarrer ma consultation' : 'Voir mon énergie actuelle'}
-              </button>
-            </div>
-
-            {/* Mood orbs */}
-            <div className="animate-fade-up" style={{ animationDelay: '700ms' }}>
-              <p className="text-[11px] uppercase tracking-[0.25em] mt-12 mb-2 opacity-60" style={{ color: 'var(--pa-faint)' }}>
-                Comment te sens-tu ?
-              </p>
-              <MoodOrbs onSelect={handleMoodSelect} />
-            </div>
-          </div>
-
-          {/* RIGHT — Moon glyph */}
-          <div className="hidden lg:flex justify-center items-center relative animate-fade-up" style={{ animationDelay: '400ms' }}>
-            <div className="pa-halo" style={{
-              width: 400, height: 400, top: -40, left: -40,
-              background: 'radial-gradient(circle, rgba(167,139,250,0.25), transparent 70%)',
-            }} />
-            <MoonGlyph />
-
-            {/* Floating tags */}
-            <div className="absolute top-10 -left-4 px-4 py-2 rounded-full text-[11px] uppercase tracking-widest pa-glass animate-float-soft"
-              style={{ color: 'var(--pa-lavender-bright)', letterSpacing: '0.15em', animationDelay: '1s' }}>
-              <Moon className="inline mr-1.5" style={{ width: 12, height: 12 }} /> {moonPhase}
-            </div>
-            <div className="absolute bottom-12 -right-4 px-4 py-2 rounded-full text-[11px] uppercase tracking-widest pa-glass-gold animate-float-soft"
-              style={{ color: 'var(--pa-accent-bright)', letterSpacing: '0.15em', animationDelay: '2s' }}>
-              <Stars className="inline mr-1.5" style={{ width: 12, height: 12 }} /> {dateFr}
-            </div>
-          </div>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50"
-          style={{ transform: `translateX(-50%) translateY(${Math.min(scrollY / 5, 30)}px)`, opacity: Math.max(0, 0.5 - scrollY / 200) }}>
-          <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: 'var(--pa-faint)' }}>Decouvrir</p>
-          <div className="w-px h-12 animate-pulse" style={{ background: 'linear-gradient(180deg, rgba(167,139,250,0.4), transparent)' }} />
-        </div>
-      </section>
-
-      {/* ═══════ SECTION — RENCONTRE SOLENA (ambassadrice) ═══════ */}
-      <section className="relative py-20 px-4 z-10" data-testid="home-solena-section">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center">
-          <div className="flex justify-center order-2 md:order-1">
-            <div className="relative">
-              <div style={{
-                position: 'absolute', inset: '-15%',
-                background: 'radial-gradient(circle, rgba(212,180,106,0.30), transparent 70%)',
-                filter: 'blur(30px)',
-              }} />
-              <img src="/brand/solena.png" alt="Solena — astrologue Plume Astrale"
-                loading="lazy"
-                style={{
-                  position: 'relative',
-                  width: '100%', maxWidth: 340, aspectRatio: '1/1',
-                  objectFit: 'cover', objectPosition: 'center 22%',
-                  borderRadius: '50%',
-                  border: '2px solid rgba(212,180,106,0.55)',
-                  boxShadow: '0 30px 80px rgba(212,180,106,0.25), 0 0 40px rgba(212,180,106,0.15)',
-                }}
-                data-testid="home-solena-portrait" />
-            </div>
-          </div>
-
-          <div className="order-1 md:order-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4"
-              style={{ background: 'rgba(212,180,106,0.10)', border: '1px solid rgba(212,180,106,0.35)' }}>
-              <span className="text-[10px] uppercase" style={{ color: '#D4B46A', letterSpacing: '0.25em' }}>
-                Rencontre ton guide
-              </span>
-            </div>
-            <h2 className="text-4xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, lineHeight: 1.05 }}>
-              Je suis <em style={{ color: '#D4B46A', fontStyle: 'italic' }}>Solena</em>,<br />
-              la voix de Plume.
-            </h2>
-            <p className="text-base md:text-lg opacity-85 leading-relaxed mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E6E1DA' }}>
-              Depuis quinze ans, je décode les cartes du ciel pour t&apos;aider à comprendre ta trajectoire, tes cycles d&apos;amour, et les invitations que tes étoiles murmurent.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <a href="/solena"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase transition-all hover:scale-[1.02]"
-                style={{ background: '#D4B46A', color: '#0C0918', letterSpacing: '0.2em', fontWeight: 600 }}
-                data-testid="home-solena-discover-btn">
-                Découvrir mon univers
-              </a>
-              <a href="/rencontres-astrales"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase transition-all"
-                style={{ border: '1px solid rgba(212,180,106,0.4)', color: '#D4B46A', letterSpacing: '0.2em' }}
-                data-testid="home-solena-consult-btn">
-                Consulter maintenant
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ═══════ SECTION — PARCOURS SOLENA (ambassadrice) ═══════ */}
+      <SolenaJourney />
 
       {/* ═══════ HERO ORACLE — Tunnel d'acquisition gratuit (NEW Phase 1) ═══════ */}
       {!isAuthenticated && (
@@ -500,119 +550,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ═══════ SECTION — ENERGIE ACTUELLE (cœur du produit) ═══════ */}
-      <section className="relative py-20 px-6 z-10" data-testid="home-energy-section">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 animate-fade-up">
-            <p className="text-[10px] uppercase tracking-[0.4em] mb-4" style={{ color: 'var(--pa-lavender-bright)' }}>
-              Le cœur du produit
-            </p>
-            <h2 className="font-display mb-3" style={{
-              fontSize: 'clamp(28px, 4vw, 44px)', color: 'var(--pa-heading)', fontWeight: 300, lineHeight: 1.15,
-            }}>
-              Ton <span className="italic pa-shimmer-gold">énergie actuelle</span>
-            </h2>
-            <p className="text-base max-w-xl mx-auto" style={{ color: 'var(--pa-muted)' }}>
-              Chaque matin, une lecture personnalisée des cycles planétaires qui te traversent.
-            </p>
-          </div>
-
-          {/* Soft nudge: complete birth_time if missing */}
-          <div className="mb-8">
-            <NatalCompletionPrompt />
-          </div>
-
-          <EnergyToday />
-        </div>
-      </section>
-
-      {/* ═══════ SECTION — L'EXPERIENCE ═══════ */}
-      <section className="relative py-24 px-6 z-10">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16 animate-fade-up">
-            <p className="text-[10px] uppercase tracking-[0.4em] mb-4" style={{ color: 'var(--pa-lavender-bright)' }}>
-              L&#39;experience Plume
-            </p>
-            <h2 className="font-display mb-4" style={{
-              fontSize: 'clamp(32px, 5vw, 54px)',
-              color: 'var(--pa-heading)',
-              fontWeight: 300,
-              lineHeight: 1.05,
-              letterSpacing: '-0.01em',
-            }}>
-              Trois facettes pour <br />
-              <span className="italic pa-shimmer-lavender">te rencontrer</span>.
-            </h2>
-            <p className="text-sm max-w-xl mx-auto" style={{ color: 'var(--pa-muted)' }}>
-              Un rituel apaisant. Un oracle qui te comprend. Un miroir cosmique.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            <PillarCard
-              icon={MessageCircle}
-              kicker="Consultation"
-              title="Consultation astrale personnalisée"
-              desc="Pose tes questions a un astrologue IA. Reponses personnalisees a partir de ton theme natal, en francais, 24/7."
-              to="/consultation"
-              accent="lavender"
-              delay={100}
-            />
-            <PillarCard
-              icon={BookHeart}
-              kicker="Rituel quotidien"
-              title="Ton journal cosmique"
-              desc="Pose ton humeur, ton intention, ton message du jour. Recois en retour un eclairage astrologique apaisant."
-              to="/mon-rituel"
-              accent="gold"
-              delay={200}
-            />
-            <PillarCard
-              icon={Compass}
-              kicker="Miroir cosmique"
-              title="Ton theme natal"
-              desc="Decouvre la cartographie celeste de ta naissance — planetes, maisons, aspects. Le reflet de qui tu es."
-              to="/formulaire"
-              accent="lavender"
-              delay={300}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════ SECTION — POSITIONNEMENT EDITORIAL ═══════ */}
-      <section className="relative py-24 px-6 z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="pa-glass rounded-3xl p-10 sm:p-16 relative overflow-hidden animate-fade-up">
-            {/* Decorative halo */}
-            <div className="absolute -top-20 -left-20 w-60 h-60 rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.18), transparent 70%)', filter: 'blur(40px)' }} />
-            <div className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(212,180,106,0.15), transparent 70%)', filter: 'blur(40px)' }} />
-
-            <Quote style={{ width: 36, height: 36, color: 'var(--pa-lavender)', opacity: 0.5, margin: '0 auto 24px' }} strokeWidth={1.2} />
-
-            <p className="font-display italic mb-6 relative z-10"
-              style={{
-                fontSize: 'clamp(22px, 3.5vw, 36px)',
-                lineHeight: 1.35,
-                color: 'var(--pa-heading)',
-                fontWeight: 300,
-              }}>
-              &laquo; Les astres ne predisent pas ton avenir.<br />
-              <span className="pa-shimmer-gold">Ils t&#39;invitent a le co-creer.</span> &raquo;
-            </p>
-
-            <div className="flex items-center justify-center gap-3">
-              <span className="h-px w-8" style={{ background: 'rgba(212,180,106,0.4)' }} />
-              <p className="text-[11px] uppercase tracking-[0.3em]" style={{ color: 'var(--pa-accent)' }}>
-                Plume Astrale
-              </p>
-              <span className="h-px w-8" style={{ background: 'rgba(212,180,106,0.4)' }} />
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ═══════ SECTION — RITUEL DU JOUR ═══════ */}
       <section className="relative py-24 px-6 z-10">

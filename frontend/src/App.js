@@ -68,7 +68,6 @@ function App() {
           <Route path="*" element={
             <>
               <Navbar />
-              <TrialBanner />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/inscription" element={<Register />} />
