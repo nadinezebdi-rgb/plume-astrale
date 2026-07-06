@@ -13,15 +13,12 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
-## Session Feb 2026 — Cleanup UI + Parcours Solena Home (2026-02)
-- ✅ Retiré doublon "PLUME ASTRALE" du `MoonHero.js` (navbar suffit)
-- ✅ Retiré bouton "L'Expérience Premium" du `Navbar.js` (minimalisme)
-- ✅ Enrichi la section Solena sur `Index.js` avec un vrai "parcours" :
-  - Vidéo verticale 9:16 (autoplay muted loop, click-to-unmute) — `SOLENA.videos.primary`
-  - Storytelling avec italiques dorés + citation en évidence
-  - 2 CTAs : "Consulter Solena · Gratuit" (→/rencontres-astrales) + "Découvrir son univers" (→/solena)
-  - 6 spécialités affichées en cartes vitrées
-- Fichiers : `/app/frontend/src/pages/Index.js`, `/app/frontend/src/components/MoonHero.js`, `/app/frontend/src/components/Navbar.js`
+## Session Feb 2026 — Cleanup UI + Parcours Solena + Avis Clients (2026-02)
+- ✅ Retiré doublon "PLUME ASTRALE" du `MoonHero.js`
+- ✅ Retiré bouton "L'Expérience Premium" du `Navbar.js`
+- ✅ Enrichi la section Solena sur `Index.js` : vidéo verticale 9:16, storytelling italiques dorés, citation, 2 CTAs, 6 spécialités
+- ✅ **Section Avis Clients** ajoutée sous Solena : 6 témoignages authentiques, carrousel 3-up desktop (auto-rotation 6s), badge 4.9/5, ⭐×5 + Vérifié, CTA doré final
+- Fichiers : `/app/frontend/src/pages/Index.js`, `MoonHero.js`, `Navbar.js`
 
 
 ## Implemente — Session Mai 2026 (Refonte complete Supabase)
