@@ -46,6 +46,7 @@ import NotreCadre from "./pages/NotreCadre";
 import SynastrieSales from "./pages/SynastrieSales";
 import SynastrieSucces from "./pages/SynastrieSucces";
 import AstroSexo from "./pages/AstroSexo";
+import RencontresAstrales from "./pages/RencontresAstrales";
 import Bibliotheque from "./pages/Bibliotheque";
 import Desabonnement from "./pages/Desabonnement";
 import PremiumStickyCTA from "./components/PremiumStickyCTA";
@@ -59,6 +60,7 @@ function App() {
           {/* Page admin — sans Navbar */}
           <Route path="/admin" element={<Admin />} />
           <Route path="/bibliotheque" element={<Bibliotheque />} />
+          <Route path="/rencontres-astrales" element={<RencontresAstrales />} />
 
           {/* Toutes les autres pages — avec Navbar */}
           <Route path="*" element={

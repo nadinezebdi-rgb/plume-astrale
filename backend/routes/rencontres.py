@@ -1,0 +1,472 @@
+"""
+Rencontres Astrales — Decodeur du Destin Amoureux.
+
+Free reveal + email capture + one-shot payment (29,99 EUR).
+
+Endpoints :
+  POST /api/rencontres/reveal    → portrait du partenaire ideal (public, no auth)
+  POST /api/rencontres/capture   → email capture + envoi fenetres de rencontre par mail
+  POST /api/rencontres/checkout  → creation session Stripe (produit one-shot 29,99 EUR)
+"""
+from __future__ import annotations
+
+import logging
+import os
+import uuid
+from datetime import datetime, timezone
+from typing import Optional
+
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, EmailStr
+from emergentintegrations.payments.stripe.checkout import (
+    StripeCheckout,
+    CheckoutSessionRequest,
+)
+
+from config import get_settings
+from services import astrology_io_service as aio
+from services.supabase_client import get_admin_client
+
+logger = logging.getLogger(__name__)
+router = APIRouter(prefix="/rencontres", tags=["rencontres"])
+
+# In-memory cache pour lier reveal_id → birth_data (evite de refaire le calcul)
+# Prod : a stocker en Redis / Supabase table si besoin persistant
+_REVEAL_CACHE: dict[str, dict] = {}
+
+
+# ────────────────────────────────────────────────────────────────
+# Modeles Pydantic
+# ────────────────────────────────────────────────────────────────
+class BirthPayload(BaseModel):
+    day: int
+    month: int
+    year: int
+    hour: int = 12
+    minute: int = 0
+    place: str
+    country: Optional[str] = "France"
+    first_name: Optional[str] = None
+
+
+class CapturePayload(BaseModel):
+    reveal_id: str
+    email: EmailStr
+    consent_marketing: bool = True
+
+
+class CheckoutPayload(BaseModel):
+    origin_url: str
+    reveal_id: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+
+# ────────────────────────────────────────────────────────────────
+# Constantes reveal
+# ────────────────────────────────────────────────────────────────
+SIGN_ELEMENT = {
+    "Belier": "Feu", "Taureau": "Terre", "Gemeaux": "Air",
+    "Cancer": "Eau", "Lion": "Feu", "Vierge": "Terre",
+    "Balance": "Air", "Scorpion": "Eau", "Sagittaire": "Feu",
+    "Capricorne": "Terre", "Verseau": "Air", "Poissons": "Eau",
+}
+
+# Portrait du partenaire ideal — texte poetique par element de la Maison VII
+PARTNER_PORTRAIT_TEMPLATES = {
+    "Eau": (
+        "Votre Maison VII en signe d'**{sign}** revele une ame sœur d'une **sensibilite a fleur "
+        "de peau**. Cette personne possede une intuition tres developpee, un besoin de connexion "
+        "fusionnelle et une profondeur emotionnelle rare. Elle vous accueillera dans l'espace "
+        "sacre de ses ressentis les plus intimes. Vous n'etes pas fait(e) pour les amours tiedes : "
+        "il vous faut de l'intensite, du silence partage, de la magie du subtil."
+    ),
+    "Feu": (
+        "Votre Maison VII en signe de **{sign}** vous designe un partenaire **passionne, "
+        "audacieux, magnetique**. Cette personne rayonne d'une chaleur solaire, elle ose, elle "
+        "prend des initiatives, elle vous emporte dans son elan. Vous vibrez au contact d'une "
+        "flamme qui ne se cache pas. La routine amoureuse vous eteint ; il vous faut un feu "
+        "constant, une aventure a co-creer."
+    ),
+    "Air": (
+        "Votre Maison VII en signe d'**{sign}** dessine un partenaire **cerebral, curieux, "
+        "libre**. Cette personne vous stimulera intellectuellement, ouvrira vos horizons, vous "
+        "surprendra par son originalite. La conversation profonde est un aphrodisiaque pour "
+        "vous. Vous cherchez un complice, un miroir vibrant, un compagnon de voyage plutot qu'un "
+        "gardien."
+    ),
+    "Terre": (
+        "Votre Maison VII en signe de **{sign}** vous promet une ame sœur **stable, sensuelle, "
+        "profondement fiable**. Cette personne construit avec vous quelque chose de durable, "
+        "d'incarne, de tangible. Elle n'a pas peur du long terme. Sa presence rassure votre "
+        "systeme nerveux ; sa fidelite est une forme d'amour tres precieuse. Vous meritez cet "
+        "ancrage."
+    ),
+}
+
+
+def _find_point(points: list, name: str) -> Optional[dict]:
+    """Retourne le dict de la planete/maison si trouvee."""
+    for p in points or []:
+        if (p.get("name") or "").lower() == name.lower():
+            return p
+    return None
+
+
+def _house_seven_sign_fr(natal: dict) -> Optional[str]:
+    """Retourne le signe de la Maison VII en francais, ou None."""
+    houses = natal.get("houses") or natal.get("house_cusps") or []
+    for h in houses:
+        num = h.get("house") or h.get("number") or h.get("id")
+        if num == 7 or num == "7":
+            sign_en = h.get("sign") or h.get("zodiac_sign")
+            return aio.sign_to_fr(sign_en) if sign_en else None
+    # Fallback : chercher un point "Descendant"
+    d = _find_point(natal.get("points") or natal.get("planets") or [], "Descendant")
+    if d:
+        return aio.sign_to_fr(d.get("sign", ""))
+    return None
+
+
+def _venus_mars_signs_fr(natal: dict) -> tuple[Optional[str], Optional[str]]:
+    """Retourne (venus_sign_fr, mars_sign_fr)."""
+    pts = natal.get("points") or natal.get("planets") or []
+    venus = _find_point(pts, "Venus")
+    mars = _find_point(pts, "Mars")
+    v = aio.sign_to_fr(venus.get("sign", "")) if venus else None
+    m = aio.sign_to_fr(mars.get("sign", "")) if mars else None
+    return v, m
+
+
+# ────────────────────────────────────────────────────────────────
+# POST /reveal — revelation immediate (public)
+# ────────────────────────────────────────────────────────────────
+@router.post("/reveal")
+async def reveal(payload: BirthPayload):
+    """Genere le portrait du partenaire ideal.
+    Le calendrier des rencontres est email-gated (endpoint /capture)."""
+    try:
+        country_code = (payload.country or "France")[:2].upper() if payload.country else "FR"
+        # Normalisation basique
+        _country_map = {"FR": "FR", "US": "US", "UK": "GB", "GB": "GB", "BE": "BE", "CH": "CH", "CA": "CA", "MA": "MA", "DZ": "DZ", "TN": "TN"}
+        cc = _country_map.get(country_code, "FR")
+        bd = aio.make_birth_data(
+            year=payload.year,
+            month=payload.month,
+            day=payload.day,
+            hour=payload.hour,
+            minute=payload.minute,
+            city=payload.place,
+            country_code=cc,
+        )
+    except Exception as e:
+        raise HTTPException(400, f"Donnees de naissance invalides : {e}")
+
+    name = payload.first_name or "toi"
+    natal = await aio.natal_chart(bd, name=name, language="fr")
+    if not natal:
+        raise HTTPException(502, "Impossible de calculer votre theme natal. Reessayez dans un instant.")
+
+    m7_sign = _house_seven_sign_fr(natal) or "Balance"
+    venus_fr, mars_fr = _venus_mars_signs_fr(natal)
+
+    element = SIGN_ELEMENT.get(m7_sign, "Air")
+    portrait_template = PARTNER_PORTRAIT_TEMPLATES.get(element, PARTNER_PORTRAIT_TEMPLATES["Air"])
+    portrait = portrait_template.format(sign=m7_sign)
+
+    # Petit complement Venus + Mars
+    complement = None
+    if venus_fr and mars_fr:
+        complement = (
+            f"Votre Venus en **{venus_fr}** vous rend sensible a {_venus_flavor(venus_fr)}, "
+            f"tandis que votre Mars en **{mars_fr}** desire {_mars_flavor(mars_fr)}. "
+            "Cette combinaison sculpte votre langage d'amour unique."
+        )
+
+    reveal_id = uuid.uuid4().hex
+    _REVEAL_CACHE[reveal_id] = {
+        "birth_data": bd,
+        "first_name": payload.first_name,
+        "m7_sign": m7_sign,
+        "venus_fr": venus_fr,
+        "mars_fr": mars_fr,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    # Nettoyage cache si trop gros (garde 1000 derniers)
+    if len(_REVEAL_CACHE) > 1000:
+        for k in list(_REVEAL_CACHE.keys())[:200]:
+            _REVEAL_CACHE.pop(k, None)
+
+    return {
+        "reveal_id": reveal_id,
+        "house7_sign": m7_sign,
+        "element": element,
+        "portrait": portrait,
+        "complement": complement,
+        "venus_sign": venus_fr,
+        "mars_sign": mars_fr,
+        # les fenetres de rencontre sont email-gated
+        "next_step": "Debloquez vos 3 fenetres de rencontre precises avec votre email.",
+    }
+
+
+def _venus_flavor(sign: str) -> str:
+    m = {
+        "Belier": "les elans passionnes, aux jeux de conquete rapides",
+        "Taureau": "la douceur sensorielle, aux gestes tendres et durables",
+        "Gemeaux": "la conversation vive, aux echanges spirituels",
+        "Cancer": "la tendresse protectrice, aux liens intimes profonds",
+        "Lion": "la reconnaissance amoureuse, aux gestes theatraux et genereux",
+        "Vierge": "les attentions discretes, au service et au raffinement",
+        "Balance": "l'harmonie relationnelle, aux beautes partagees",
+        "Scorpion": "l'intensite fusionnelle, aux verites qui transforment",
+        "Sagittaire": "la liberte partagee, a l'aventure a deux",
+        "Capricorne": "la loyaute durable, aux constructions serieuses",
+        "Verseau": "la connexion mentale libre, a l'amitie amoureuse",
+        "Poissons": "la fusion romantique, a la magie et au reve",
+    }
+    return m.get(sign, "des vibrations qui vous sont propres")
+
+
+def _mars_flavor(sign: str) -> str:
+    m = {
+        "Belier": "conquerir avec fougue",
+        "Taureau": "posseder avec patience",
+        "Gemeaux": "seduire par la parole",
+        "Cancer": "proteger avec tendresse",
+        "Lion": "aimer avec panache",
+        "Vierge": "servir avec devotion",
+        "Balance": "charmer avec elegance",
+        "Scorpion": "fusionner avec intensite",
+        "Sagittaire": "explorer avec passion",
+        "Capricorne": "batir avec constance",
+        "Verseau": "surprendre avec liberte",
+        "Poissons": "aimer avec compassion",
+    }
+    return m.get(sign, "aimer a votre facon")
+
+
+# ────────────────────────────────────────────────────────────────
+# POST /capture — email capture + envoi des fenetres par mail
+# ────────────────────────────────────────────────────────────────
+@router.post("/capture")
+async def capture(payload: CapturePayload):
+    """Enregistre l'email et renvoie les 3 fenetres de rencontre."""
+    ctx = _REVEAL_CACHE.get(payload.reveal_id)
+    if not ctx:
+        raise HTTPException(410, "Revelation expiree. Reessayez.")
+
+    bd = ctx["birth_data"]
+    name = ctx.get("first_name") or "toi"
+
+    # Compute transits today for context (best effort)
+    transits = None
+    try:
+        transits = await aio.transits_today(bd, name=name, language="fr")
+    except Exception as e:
+        logger.warning(f"[rencontres] transits failed: {e}")
+
+    windows = _synthesize_windows(ctx, transits)
+
+    # Enregistrer le lead
+    try:
+        sb = get_admin_client()
+        sb.table("oracle_leads").upsert({
+            "email": payload.email,
+            "first_name": ctx.get("first_name"),
+            "birth_date": f"{bd['year']:04d}-{bd['month']:02d}-{bd['day']:02d}",
+            "source": "rencontres_astrales",
+            "consent_marketing": payload.consent_marketing,
+        }, on_conflict="email").execute()
+    except Exception as e:
+        logger.warning(f"[rencontres] lead upsert failed (table may not exist yet): {e}")
+
+    # Envoi email best-effort
+    _send_windows_email(payload.email, ctx, windows)
+
+    return {
+        "ok": True,
+        "windows": windows,
+        "email_sent": True,
+        "cta": {
+            "product": "rencontres_ultime",
+            "price": "29,99 €",
+            "title": "Guide de Compatibilite Ultime & Calendrier de Rencontres detaille",
+            "features": [
+                "L'identite astrale complete de ton futur partenaire",
+                "Vos 12 points de compatibilite decodes",
+                "Le calendrier precis des 6 prochains mois",
+                "Les rituels energetiques pour attirer cette relation",
+            ],
+        },
+    }
+
+
+def _synthesize_windows(ctx: dict, transits: Optional[dict]) -> list[dict]:
+    """Retourne 3 fenetres de rencontre plausibles pour les 6 prochains mois."""
+    from datetime import timedelta
+    now = datetime.now(timezone.utc)
+    months_fr = ["janvier", "fevrier", "mars", "avril", "mai", "juin",
+                 "juillet", "aout", "septembre", "octobre", "novembre", "decembre"]
+
+    def m_label(offset_days: int) -> str:
+        d = now + timedelta(days=offset_days)
+        return months_fr[d.month - 1]
+
+    intensity_by_element = {
+        "Eau": "haute intensite emotionnelle",
+        "Feu": "explosion romantique passionnee",
+        "Air": "connexion intellectuelle fulgurante",
+        "Terre": "rencontre stable et incarnee",
+    }
+    element = SIGN_ELEMENT.get(ctx.get("m7_sign", ""), "Air")
+
+    return [
+        {
+            "period": f"entre {m_label(20)} et {m_label(45)}",
+            "kind": "Fenetre d'ouverture",
+            "text": (
+                f"Une premiere zone de {intensity_by_element[element]} s'active. "
+                "Venus caresse ta carte du ciel et cree des occasions inattendues. "
+                "Reste ouvert aux rencontres non planifiees."
+            ),
+        },
+        {
+            "period": f"entre {m_label(70)} et {m_label(100)}",
+            "kind": "Fenetre de synchronicite",
+            "text": (
+                "Un mouvement de Jupiter reveille ta Maison VII : une personne significative "
+                "peut entrer dans ton champ. Coincidences, retrouvailles, connexions karmiques."
+            ),
+        },
+        {
+            "period": f"entre {m_label(130)} et {m_label(160)}",
+            "kind": "Fenetre de destin",
+            "text": (
+                "Un transit majeur active tes points d'amour. C'est LA fenetre a ne pas manquer. "
+                "Prepare ton cœur, rends-toi disponible, et laisse la magie faire le reste."
+            ),
+        },
+    ]
+
+
+def _send_windows_email(email: str, ctx: dict, windows: list[dict]) -> None:
+    """Envoi Resend best-effort."""
+    api_key = os.environ.get("RESEND_API_KEY")
+    if not api_key:
+        logger.warning("[rencontres] RESEND_API_KEY missing, skipping email")
+        return
+    try:
+        import httpx
+        html_windows = "".join([
+            f"<div style='margin:16px 0;padding:16px;border-left:3px solid #C5A059;"
+            f"background:rgba(197,160,89,0.06);'>"
+            f"<div style='font-size:11px;letter-spacing:0.2em;text-transform:uppercase;"
+            f"color:#C5A059;'>{w['kind']}</div>"
+            f"<div style='font-family:Cormorant Garamond,serif;font-size:20px;margin-top:4px;"
+            f"color:#0C0918;'>Fenetre {w['period']}</div>"
+            f"<p style='margin-top:8px;color:#333;font-size:14px;line-height:1.6;'>{w['text']}</p>"
+            f"</div>"
+            for w in windows
+        ])
+        html = f"""
+        <div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#fff;color:#0C0918;">
+          <h1 style="font-family:Cormorant Garamond,serif;font-weight:300;font-size:28px;color:#0C0918;">
+            Tes fenetres de rencontre sont ouvertes.
+          </h1>
+          <p style="color:#555;line-height:1.6;">
+            Plume a decode ton ciel des 6 prochains mois. Voici les 3 zones ou l'univers
+            joue pour toi en matiere d'amour :
+          </p>
+          {html_windows}
+          <div style="margin-top:32px;padding:24px;background:#0C0918;color:#F4E8D2;border-radius:16px;text-align:center;">
+            <div style="font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#C5A059;">
+              Aller plus loin
+            </div>
+            <h2 style="font-family:Cormorant Garamond,serif;font-weight:300;font-size:24px;margin-top:8px;">
+              Guide de Compatibilite Ultime & Calendrier de Rencontres
+            </h2>
+            <div style="font-size:14px;line-height:1.6;color:#F4E8D2;opacity:0.85;margin-top:12px;">
+              15 pages d'analyse holistique · L'identite astrale complete de ton futur partenaire ·
+              Le calendrier precis des 6 prochains mois · Les rituels energetiques a activer.
+            </div>
+            <div style="margin-top:20px;">
+              <a href="https://plume-astrale.fr/rencontres-astrales?buy=1"
+                 style="display:inline-block;padding:14px 28px;background:#C5A059;color:#0C0918;
+                        text-decoration:none;border-radius:999px;font-size:12px;letter-spacing:0.2em;
+                        text-transform:uppercase;font-weight:600;">
+                Reveler mon guide · 29,99 €
+              </a>
+            </div>
+          </div>
+        </div>
+        """
+        with httpx.Client(timeout=15) as client:
+            client.post(
+                "https://api.resend.com/emails",
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json={
+                    "from": "Plume Astrale <contact@plume-astrale.fr>",
+                    "to": [email],
+                    "subject": "Tes 3 fenetres de rencontre sont ouvertes",
+                    "html": html,
+                },
+            )
+    except Exception as e:
+        logger.warning(f"[rencontres] email send failed: {e}")
+
+
+# ────────────────────────────────────────────────────────────────
+# POST /checkout — Stripe one-shot 29,99 EUR
+# ────────────────────────────────────────────────────────────────
+@router.post("/checkout")
+async def rencontres_checkout(payload: CheckoutPayload, request: Request):
+    settings = get_settings()
+    pack = settings.PACKS.get("rencontres_ultime")
+    if not pack:
+        raise HTTPException(500, "Produit indisponible.")
+
+    host_url = str(request.base_url).rstrip("/")
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
+
+    origin = payload.origin_url.rstrip("/")
+    success_url = f"{origin}/rencontres-astrales/succes?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{origin}/rencontres-astrales"
+
+    req = CheckoutSessionRequest(
+        amount=float(pack["amount"]),
+        currency=pack["currency"],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "product": "rencontres_ultime",
+            "kind": "oneshot",
+            "reveal_id": payload.reveal_id or "",
+            "email": payload.email or "",
+        },
+    )
+    session = await stripe_checkout.create_checkout_session(req)
+
+    try:
+        sb = get_admin_client()
+        sb.table("payment_transactions").insert({
+            "session_id": session.session_id,
+            "user_email": payload.email,
+            "pack_id": "rencontres_ultime",
+            "amount": float(pack["amount"]),
+            "currency": pack["currency"],
+            "credits": 0,
+            "status": "initiated",
+            "payment_status": "unpaid",
+            "credits_granted": False,
+            "metadata": {
+                "product": "rencontres_ultime",
+                "kind": "oneshot",
+                "reveal_id": payload.reveal_id,
+            },
+        }).execute()
+    except Exception as e:
+        logger.warning(f"[rencontres] payment_transactions insert failed: {e}")
+
+    return {"url": session.url, "session_id": session.session_id}

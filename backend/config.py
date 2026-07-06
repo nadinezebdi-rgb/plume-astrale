@@ -56,6 +56,19 @@ class Settings:
             'badge': 'Meilleure valeur',
             'tagline': 'Explore ton thème en profondeur, ton karma, tes futures relations.',
         },
+        # ═══════════════════════════════════════════════════════════
+        # Produits one-shot (achats uniques, pas des crédits)
+        # ═══════════════════════════════════════════════════════════
+        'rencontres_ultime': {
+            'name': 'Guide de Compatibilité Ultime & Calendrier de Rencontres',
+            'credits': 0,   # one-shot, pas de crédit
+            'bonus': 0,
+            'amount': 29.99,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'rencontres_ultime',
+            'tagline': 'Ton portrait partenaire ideal + 3 fenetres de rencontre + rituels energetiques.',
+        },
     }
 
     SERVICE_COSTS = {

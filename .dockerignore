@@ -6,3 +6,6 @@ __pycache__
 test_reports
 memory
 .emergent
+backend/assets/library/**/*_1080.png
+backend/assets/library/**/*_2048.png
+backend/assets/library/manifest.json

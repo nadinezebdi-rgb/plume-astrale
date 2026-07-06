@@ -93,3 +93,8 @@ android-sdk/
 credentials.json
 *.key
 .credentials
+
+# Library HQ + mid-res assets (regenerated on demand, kept only in preview for admin use)
+backend/assets/library/**/*_1080.png
+backend/assets/library/**/*_2048.png
+backend/assets/library/manifest.json
