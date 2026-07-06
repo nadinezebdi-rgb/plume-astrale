@@ -298,24 +298,6 @@ const Navbar = () => {
                 );
               })}
               <div style={{ width: 1, height: 16, background: '#D4B46A', opacity: 0.2 }} />
-
-              {/* CTA Premium sticky doré — seul element plein */}
-              <Link
-                to="/premium"
-                data-testid="navbar-premium-cta"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
-                  textDecoration: 'none', padding: '8px 16px', borderRadius: 999,
-                  background: 'linear-gradient(135deg, #D4B46A 0%, #C5A059 100%)',
-                  color: '#0C0918', fontWeight: 700,
-                  boxShadow: '0 4px 18px rgba(212,180,106,0.35)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                ✦ L&apos;Expérience Premium
-              </Link>
-              <div style={{ width: 1, height: 16, background: '#D4B46A', opacity: 0.2 }} />
               {isAuthenticated ? (
                 <MonCompteDropdown creditBalance={creditBalance} handleLogout={handleLogout} isAdmin={user?.is_admin} />
               ) : (

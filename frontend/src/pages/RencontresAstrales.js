@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { Sparkles, Heart, Moon, Star, Loader2, Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import useUtmTracking from '@/hooks/useUtmTracking';
+import { SOLENA } from '@/lib/solena';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -121,11 +122,34 @@ export default function RencontresAstrales() {
       background: 'radial-gradient(ellipse at top, #1a1147 0%, #0C0918 50%, #060314 100%)',
       color: '#F4E8D2',
       overflow: 'hidden',
+      position: 'relative',
     }}>
       <SEO title="Rencontres Astrales — Décode ta prochaine histoire d&apos;amour" description="Découvre l'identité astrale de ton futur partenaire et tes fenêtres de rencontre gravées dans ton ciel." path="/rencontres-astrales" />
 
+      {/* Video Solena en fond du hero (uniquement step form) */}
+      {step === 'form' && (
+        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', zIndex: 0 }} aria-hidden="true">
+          <video
+            src={SOLENA.videos.primary}
+            poster={SOLENA.portrait}
+            autoPlay muted loop playsInline preload="metadata"
+            style={{
+              position: 'absolute', top: '50%', left: '50%',
+              transform: 'translate(-50%, -50%) scale(1.15)',
+              width: '100%', height: '100%', objectFit: 'cover',
+              opacity: 0.32, filter: 'blur(1.5px) saturate(1.1)',
+            }}
+            data-testid="solena-bg-video"
+          />
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'radial-gradient(ellipse at center, rgba(12,9,24,0.55) 0%, rgba(12,9,24,0.90) 65%, #060314 100%)',
+          }} />
+        </div>
+      )}
+
       {/* Starfield decorative dots */}
-      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 1 }}>
         {[...Array(50)].map((_, i) => {
           const s = 1 + Math.random() * 2;
           return (
@@ -148,6 +172,26 @@ export default function RencontresAstrales() {
         {/* STEP 1 — FORMULAIRE */}
         {step === 'form' && (
           <div>
+            {/* Solena — credibility hero */}
+            <div className="flex items-center justify-center gap-3 mb-6 animate-fade-up" data-testid="solena-hero">
+              <img src={SOLENA.portrait} alt="Solena — astrologue Plume Astrale"
+                loading="eager"
+                style={{
+                  width: 60, height: 60, borderRadius: '50%',
+                  objectFit: 'cover', objectPosition: 'center 25%',
+                  border: '2px solid rgba(197,160,89,0.55)',
+                  boxShadow: '0 0 24px rgba(197,160,89,0.30)',
+                }} />
+              <div className="text-left">
+                <div className="text-[10px] uppercase" style={{ color: '#C5A059', letterSpacing: '0.25em' }}>
+                  Guidée par
+                </div>
+                <div className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F4E8D2' }}>
+                  Solena
+                </div>
+              </div>
+            </div>
+
             {/* Hook */}
             <div className="text-center mb-10 animate-fade-up">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6"
@@ -227,6 +271,16 @@ export default function RencontresAstrales() {
               <TrustItem icon={Star} title="12 000+" subtitle="révélations" />
               <TrustItem icon={Heart} title="4.8/5" subtitle="satisfaction" />
               <TrustItem icon={Lock} title="100%" subtitle="confidentiel" />
+            </div>
+
+            {/* Solena — link to bio */}
+            <div className="text-center mt-8">
+              <Link to="/solena"
+                className="inline-flex items-center gap-2 text-xs uppercase opacity-70 hover:opacity-100 transition-all"
+                style={{ color: '#C5A059', letterSpacing: '0.2em' }}
+                data-testid="solena-bio-link">
+                Découvrir Solena <ArrowRight className="w-3 h-3" />
+              </Link>
             </div>
           </div>
         )}

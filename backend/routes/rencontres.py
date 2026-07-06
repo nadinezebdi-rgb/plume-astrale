@@ -466,7 +466,17 @@ def _send_windows_email(email: str, ctx: dict, windows: list[dict]) -> None:
         ])
         html = f"""
         <div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#fff;color:#0C0918;">
-          <h1 style="font-family:Cormorant Garamond,serif;font-weight:300;font-size:28px;color:#0C0918;">
+          <!-- Header Solena -->
+          <div style="text-align:center;margin-bottom:24px;">
+            <img src="https://plume-astrale.fr/brand/solena.png" alt="Solena"
+                 width="72" height="72"
+                 style="border-radius:50%;object-fit:cover;object-position:center 22%;border:2px solid #C5A059;" />
+            <div style="margin-top:8px;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#C5A059;">
+              De Solena · Plume Astrale
+            </div>
+          </div>
+
+          <h1 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:28px;color:#0C0918;">
             Tes fenetres de rencontre sont ouvertes.
           </h1>
           <p style="color:#555;line-height:1.6;">
@@ -478,7 +488,7 @@ def _send_windows_email(email: str, ctx: dict, windows: list[dict]) -> None:
             <div style="font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#C5A059;">
               Aller plus loin
             </div>
-            <h2 style="font-family:Cormorant Garamond,serif;font-weight:300;font-size:24px;margin-top:8px;">
+            <h2 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:24px;margin-top:8px;">
               Guide de Compatibilite Ultime & Calendrier de Rencontres
             </h2>
             <div style="font-size:14px;line-height:1.6;color:#F4E8D2;opacity:0.85;margin-top:12px;">
@@ -494,6 +504,17 @@ def _send_windows_email(email: str, ctx: dict, windows: list[dict]) -> None:
               </a>
             </div>
           </div>
+
+          <!-- Signature -->
+          <div style="margin-top:32px;padding-top:24px;border-top:1px solid #eee;text-align:center;font-size:12px;color:#888;line-height:1.6;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:#0C0918;font-style:italic;">
+              — Solena
+            </div>
+            <div style="margin-top:4px;">Astrologue &amp; guide chez Plume Astrale</div>
+            <div style="margin-top:8px;font-size:10px;letter-spacing:0.1em;color:#aaa;">
+              <a href="https://plume-astrale.fr/solena" style="color:#C5A059;text-decoration:none;">plume-astrale.fr/solena</a>
+            </div>
+          </div>
         </div>
         """
         with httpx.Client(timeout=15) as client:
@@ -501,7 +522,7 @@ def _send_windows_email(email: str, ctx: dict, windows: list[dict]) -> None:
                 "https://api.resend.com/emails",
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                 json={
-                    "from": "Plume Astrale <contact@plume-astrale.fr>",
+                    "from": "Solena · Plume Astrale <contact@plume-astrale.fr>",
                     "to": [email],
                     "subject": "Tes 3 fenetres de rencontre sont ouvertes",
                     "html": html,
