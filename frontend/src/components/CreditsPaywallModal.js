@@ -26,7 +26,7 @@ const PACKS = [
     icon: Zap,
     subtitle: '40 crédits + 10 offerts = 50 crédits',
     caption: '≈ 1 séance complète, avec ta prochaine fenêtre de rencontre décodée',
-    badge: 'Le plus choisi',
+    badge: '⭐ Best-Seller',
     accent: '#E7C97A',
     highlight: true,
   },
@@ -80,8 +80,8 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
 
   const HEADLINES = {
     chat_out: {
-      title: 'Les astres se taisent — pour l\'instant.',
-      body: "Plume a encore beaucoup à te révéler, mais ta réserve de puissance astrale est épuisée. Tu es à un souffle de la révélation. Reprends le fil.",
+      title: "Vous n'avez plus de puissance astrale.",
+      body: "Rechargez vos crédits pour continuer la révélation. Plume a encore beaucoup à te dire — le Pack Initiation à seulement 4,99 € suffit pour poursuivre la conversation.",
     },
     chat_low: {
       title: 'Ta lumière faiblit.',
@@ -178,7 +178,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
                       fontWeight: 600,
                     }}
                   >
-                    ★ {p.badge}
+                    {p.badge}
                   </div>
                 )}
                 <Icon

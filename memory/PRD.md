@@ -13,6 +13,26 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+## Session Feb 2026 — 💰 Grille tarifaire "Spécial Lancement" + paywall frustration-driven (2026-02)
+Implémentation du brief tarifaire complet — la frustration crée la vente.
+- ✅ **Grille tarifaire alignée** (backend `config.py` déjà OK) :
+  - **Pack Initiation** — 4,99€ · 15 crédits · "achat impulsif"
+  - **⭐ Pack Astro-Amour** (Best-Seller) — 12,99€ · 40 + 10 offerts = 50 crédits · "1 séance complète"
+  - **Pack Flammes Jumelles** — 29,99€ · 100 + 30 offerts = 130 crédits · "meilleure valeur"
+- ✅ **Chat = 10 crédits / question** (SERVICE_COSTS.chat_astral déjà OK)
+- ✅ **Bienvenue = 20 crédits offerts** → exactement 2 questions gratuites → paywall
+- ✅ **CreditsPaywallModal** mis à jour avec copy exacte du brief :
+  - Titre : "Vous n'avez plus de puissance astrale."
+  - Body : "Rechargez vos crédits pour continuer la révélation. Plume a encore beaucoup à te dire — le Pack Initiation à seulement 4,99 € suffit pour poursuivre la conversation."
+  - Badge Astro-Amour → "⭐ Best-Seller"
+- ✅ **SolenaChat** intègre credit-gating :
+  - Anon = 2 questions gratuites (compteur localStorage `pa_solena_anon_count`)
+  - Auth = déduction 10 cr via `/api/credits/use` (chat_astral) avant chaque message
+  - 3ème tentative anon → CreditsPaywallModal automatique
+  - Placeholder input dynamique : "(2 gratuites)" / "(1 gratuite)" / "🔒 Rechargez pour continuer…"
+- ✅ Test E2E : Q1 → Solena répond · Q2 → Solena répond · Q3 → **PAYWALL POPUP**
+- Fichiers : `CreditsPaywallModal.js` (headlines updated), `SolenaChat.js` (credit gating + paywall trigger)
+
 ## Session Feb 2026 — 🌙 HERO 3D IMMERSIF WebGL + brief créatif ultra-haut de gamme (2026-02)
 Implémentation du brief créatif complet "Site incroyable" avec vraie 3D interactive.
 - ✅ **Lune 3D photoréaliste** en WebGL pur (Three.js vanilla, pas de R3F pour éviter conflits babel-metadata) :

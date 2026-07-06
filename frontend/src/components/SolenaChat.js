@@ -2,10 +2,15 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, Loader2, Sparkles, X, MessageCircle } from 'lucide-react';
 import axios from 'axios';
 import { SOLENA } from '../lib/solena';
+import CreditsPaywallModal from './CreditsPaywallModal';
+import { useAuth } from '../context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const BIRTH_KEY = 'pa_birth_data';
 const SESSION_KEY = 'pa_solena_session_id';
+const FREE_ANON_QUESTIONS = 2;
+const ANON_COUNT_KEY = 'pa_solena_anon_count';
+const COST_PER_QUESTION = 10;
 
 /**
  * SolenaChat — Fenêtre de chat inline avec Solena.
@@ -13,13 +18,24 @@ const SESSION_KEY = 'pa_solena_session_id';
  * Utilise localStorage 'pa_birth_data' pour personnaliser la réponse via /api/plume-chat.
  */
 export default function SolenaChat() {
+  const { isAuthenticated, creditBalance, refreshBalance, token } = useAuth();
   const [open, setOpen] = useState(false);
   const [birthData, setBirthData] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
+  const [anonCount, setAnonCount] = useState(0);
+  const [paywallOpen, setPaywallOpen] = useState(false);
   const scrollRef = useRef(null);
+
+  // Init anon counter
+  useEffect(() => {
+    try {
+      const stored = parseInt(localStorage.getItem(ANON_COUNT_KEY) || '0', 10);
+      setAnonCount(Number.isFinite(stored) ? stored : 0);
+    } catch (e) { /* ignore */ }
+  }, []);
 
   // Init session
   useEffect(() => {
@@ -108,10 +124,41 @@ export default function SolenaChat() {
   const send = async () => {
     const text = input.trim();
     if (!text || loading) return;
+
+    // Credit gating : anon = 2 questions max, auth = besoin de 10 crédits
+    if (!isAuthenticated) {
+      if (anonCount >= FREE_ANON_QUESTIONS) {
+        setPaywallOpen(true);
+        return;
+      }
+    } else if ((creditBalance ?? 0) < COST_PER_QUESTION) {
+      setPaywallOpen(true);
+      return;
+    }
+
     setInput('');
     setMessages((prev) => [...prev, { role: 'user', content: text }]);
     setLoading(true);
     try {
+      // Déduire les crédits pour les users authentifiés
+      if (isAuthenticated && token) {
+        try {
+          await axios.post(
+            `${API}/api/credits/use`,
+            { service: 'chat_astral' },
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+          if (refreshBalance) refreshBalance();
+        } catch (e) {
+          // Solde insuffisant : ouvre le paywall
+          setLoading(false);
+          setMessages((prev) => prev.slice(0, -1)); // annule le message user
+          setInput(text);
+          setPaywallOpen(true);
+          return;
+        }
+      }
+
       const res = await axios.post(`${API}/api/plume-chat`, {
         message: text,
         session_id: sessionId,
@@ -119,6 +166,11 @@ export default function SolenaChat() {
       }, { timeout: 45000 });
       if (res.data?.success) {
         setMessages((prev) => [...prev, { role: 'assistant', content: res.data.answer }]);
+        if (!isAuthenticated) {
+          const next = anonCount + 1;
+          setAnonCount(next);
+          try { localStorage.setItem(ANON_COUNT_KEY, String(next)); } catch (e) { /* ignore */ }
+        }
       } else {
         setMessages((prev) => [...prev, { role: 'assistant', content: res.data?.message || "Réessaie dans un instant." }]);
       }
@@ -295,7 +347,15 @@ export default function SolenaChat() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-                placeholder="Pose ta question à Solena…"
+                placeholder={
+                  !isAuthenticated
+                    ? (anonCount >= FREE_ANON_QUESTIONS
+                        ? '🔒 Rechargez pour continuer…'
+                        : `Pose ta question à Solena… (${FREE_ANON_QUESTIONS - anonCount} gratuite${FREE_ANON_QUESTIONS - anonCount > 1 ? 's' : ''})`)
+                    : ((creditBalance ?? 0) < COST_PER_QUESTION
+                        ? '🔒 Rechargez tes crédits…'
+                        : `Pose ta question à Solena… (${COST_PER_QUESTION} crédits)`)
+                }
                 disabled={loading}
                 className="flex-1 py-3 px-4 outline-none text-white placeholder-white/30"
                 style={{
@@ -332,6 +392,13 @@ export default function SolenaChat() {
           </div>
         </div>
       )}
+
+      {/* Paywall modal — se déclenche quand les crédits/questions gratuites sont épuisés */}
+      <CreditsPaywallModal
+        open={paywallOpen}
+        onClose={() => setPaywallOpen(false)}
+        context="chat_out"
+      />
     </div>
   );
 }
