@@ -394,6 +394,62 @@ const Index = () => {
         </div>
       </section>
 
+      {/* ═══════ SECTION — RENCONTRE SOLENA (ambassadrice) ═══════ */}
+      <section className="relative py-20 px-4 z-10" data-testid="home-solena-section">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+          <div className="flex justify-center order-2 md:order-1">
+            <div className="relative">
+              <div style={{
+                position: 'absolute', inset: '-15%',
+                background: 'radial-gradient(circle, rgba(212,180,106,0.30), transparent 70%)',
+                filter: 'blur(30px)',
+              }} />
+              <img src="/brand/solena.png" alt="Solena — astrologue Plume Astrale"
+                loading="lazy"
+                style={{
+                  position: 'relative',
+                  width: '100%', maxWidth: 340, aspectRatio: '1/1',
+                  objectFit: 'cover', objectPosition: 'center 22%',
+                  borderRadius: '50%',
+                  border: '2px solid rgba(212,180,106,0.55)',
+                  boxShadow: '0 30px 80px rgba(212,180,106,0.25), 0 0 40px rgba(212,180,106,0.15)',
+                }}
+                data-testid="home-solena-portrait" />
+            </div>
+          </div>
+
+          <div className="order-1 md:order-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4"
+              style={{ background: 'rgba(212,180,106,0.10)', border: '1px solid rgba(212,180,106,0.35)' }}>
+              <span className="text-[10px] uppercase" style={{ color: '#D4B46A', letterSpacing: '0.25em' }}>
+                Rencontre ton guide
+              </span>
+            </div>
+            <h2 className="text-4xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, lineHeight: 1.05 }}>
+              Je suis <em style={{ color: '#D4B46A', fontStyle: 'italic' }}>Solena</em>,<br />
+              la voix de Plume.
+            </h2>
+            <p className="text-base md:text-lg opacity-85 leading-relaxed mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E6E1DA' }}>
+              Depuis quinze ans, je décode les cartes du ciel pour t&apos;aider à comprendre ta trajectoire, tes cycles d&apos;amour, et les invitations que tes étoiles murmurent.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <a href="/solena"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase transition-all hover:scale-[1.02]"
+                style={{ background: '#D4B46A', color: '#0C0918', letterSpacing: '0.2em', fontWeight: 600 }}
+                data-testid="home-solena-discover-btn">
+                Découvrir mon univers
+              </a>
+              <a href="/rencontres-astrales"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase transition-all"
+                style={{ border: '1px solid rgba(212,180,106,0.4)', color: '#D4B46A', letterSpacing: '0.2em' }}
+                data-testid="home-solena-consult-btn">
+                Consulter maintenant
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══════ HERO ORACLE — Tunnel d'acquisition gratuit (NEW Phase 1) ═══════ */}
       {!isAuthenticated && (
         <section className="relative py-16 px-4 z-10" data-testid="home-hero-oracle">

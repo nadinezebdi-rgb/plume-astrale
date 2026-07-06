@@ -844,3 +844,47 @@ au lieu d'un vrai message d'astrologue francais.
 - [ ] Deduplication PACKS (config.py vs frontend copies)
 - [ ] Uploader la bibliotheque visuelle sur Supabase Storage (assets sortis du repo)
 - [ ] Analytics GA4/Plausible (CookieConsent deja pret)
+
+---
+
+## Iteration 35 (07/02/2026) — Solena ambassadrice de Plume Astrale
+
+Le user a fourni le portrait + 2 videos TikTok de Solena, ambassadrice. 4 integrations
+livrees dans la meme iteration :
+
+### A. Section "Rencontre ton guide" (homepage Index.js)
+- Nouvelle section entre Astro relationnelle et HeroOracle
+- Portrait rond 340px avec glow dore, texte poetique
+- 2 CTA : Decouvrir mon univers (/solena) + Consulter maintenant (/rencontres-astrales)
+
+### B. Landing /rencontres-astrales enrichie
+- Video Solena en background (opacite 0.32, blur 1.5px, saturate 1.1) sur le step form
+- Vignette radiale pour lisibilite
+- Portrait Solena en petit (60px) + label "GUIDEE PAR SOLENA" au-dessus du hero
+- Lien "Decouvrir Solena" en bas de la landing
+
+### C. Signature email Solena (routes/rencontres.py)
+- Header email : portrait Solena rond + "De Solena · Plume Astrale"
+- From : "Solena · Plume Astrale <contact@plume-astrale.fr>"
+- Signature bas email : "— Solena / Astrologue & guide chez Plume Astrale / plume-astrale.fr/solena"
+
+### D. Nouvelle page /solena (pages/SolenaPage.js)
+- Hero grid 2 colonnes : bio courte + portrait 420px avec glow
+- Section "Ma mission" avec 4 paragraphes de bio longue
+- Section "Mes specialites" : 6 cartes (theme natal, compatibilite, transits, rituels, tarot, mediumnite)
+- CTA final : "Prete a decouvrir ce que tes etoiles murmurent ?" → /rencontres-astrales
+- Video Solena en background (secondary, opacite 0.22)
+- SEO optimise "astrologue Solena Plume Astrale"
+
+### Fichiers cles
+- `frontend/src/lib/solena.js` — export SOLENA (name, bio, videos, portrait)
+- `frontend/src/pages/SolenaPage.js`  — nouvelle page
+- `frontend/src/pages/RencontresAstrales.js`  — patch integration
+- `frontend/src/pages/Index.js`  — section ajoutee
+- `frontend/public/brand/solena.png` — portrait (1.9 MB)
+- `backend/routes/rencontres.py` — email HTML enrichi
+
+### Choix technique
+Les 2 videos MP4 (18 MB total) sont referencees directement depuis les URLs
+CDN Emergent (customer-assets.emergentagent.com/...) plutot que placees dans
+le repo — pour ne pas alourdir le deploy.
