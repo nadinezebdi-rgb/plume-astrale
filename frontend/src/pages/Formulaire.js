@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 
 const Formulaire = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, updateProfile } = useAuth();
 
   // Si user déjà connecté avec données natales -> rediriger vers son compte (pas de re-onboarding)
   useEffect(() => {
@@ -34,6 +34,58 @@ const Formulaire = () => {
   const [tHour, setTHour] = useState('');
   const [tMin, setTMin] = useState('');
   const [errors, setErrors] = useState({});
+  const [didPrefill, setDidPrefill] = useState(false);
+
+  useEffect(() => {
+    if (didPrefill) return;
+
+    let source = null;
+    if (isAuthenticated && user) {
+      source = {
+        prenom: user.prenom || '',
+        genre: user.gender || '',
+        email: user.email || '',
+        dateNaissance: user.birth_date || '',
+        heureNaissance: user.birth_time || '',
+        ville: user.birth_place || '',
+        pays: user.birth_country || '',
+      };
+    } else {
+      try {
+        const raw = localStorage.getItem('plume_astrale_data');
+        source = raw ? JSON.parse(raw) : null;
+      } catch {
+        source = null;
+      }
+    }
+
+    if (source) {
+      setFormData(prev => ({
+        ...prev,
+        prenom: source.prenom || prev.prenom,
+        genre: source.genre || prev.genre,
+        email: source.email || prev.email,
+        dateNaissance: source.dateNaissance || prev.dateNaissance,
+        heureNaissance: source.heureNaissance || prev.heureNaissance,
+        ville: source.ville || prev.ville,
+        pays: source.pays || prev.pays,
+      }));
+
+      if (source.dateNaissance) {
+        const [y, m, d] = String(source.dateNaissance).split('-');
+        setDYear(y || '');
+        setDMonth(m ? String(parseInt(m, 10)) : '');
+        setDDay(d ? String(parseInt(d, 10)) : '');
+      }
+      if (source.heureNaissance) {
+        const [h, mn] = String(source.heureNaissance).split(':');
+        setTHour(h ? String(parseInt(h, 10)) : '');
+        setTMin(mn ? String(parseInt(mn, 10)) : '');
+      }
+    }
+
+    setDidPrefill(true);
+  }, [didPrefill, isAuthenticated, user]);
 
   const steps = [
     {
@@ -162,11 +214,29 @@ const Formulaire = () => {
       pays: formData.pays
     };
     localStorage.setItem('plume_astrale_data', JSON.stringify(dataToStore));
+
+    if (isAuthenticated) {
+      try {
+        await updateProfile({
+          prenom: formData.prenom || undefined,
+          birth_date: formData.dateNaissance || undefined,
+          birth_time: formData.heureNaissance || undefined,
+          birth_place: formData.ville || undefined,
+          birth_country: formData.pays || undefined,
+          gender: formData.genre || undefined,
+        });
+      } catch {
+        // Keep local fallback to avoid blocking the user flow.
+      }
+    }
+
     setIsSubmitting(false);
     const premiumRedirect = localStorage.getItem('plume_astrale_premium_redirect');
     if (premiumRedirect) {
       localStorage.removeItem('plume_astrale_premium_redirect');
       navigate('/premium/experience');
+    } else if (isAuthenticated) {
+      navigate('/mon-compte');
     } else {
       navigate('/apercu');
     }

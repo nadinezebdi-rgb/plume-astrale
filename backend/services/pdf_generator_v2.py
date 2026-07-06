@@ -4,17 +4,15 @@ Version massivement enrichie avec contenu pedagogique, carte du ciel, aspects,
 equilibre elementaire, retrogrades, Chiron, Lilith, Noeud Nord
 """
 import io
-import os
 import math
 import random
 import httpx
 from datetime import datetime
 from pathlib import Path
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import cm, mm
+from reportlab.lib.units import cm
 from reportlab.lib.colors import HexColor
 from reportlab.pdfgen import canvas
-from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.lib.utils import ImageReader
 import logging
 try:
@@ -30,7 +28,7 @@ from services.astro_content import (
 from services.astro_content_extended import (
     MERCURE_EN_SIGNE, VENUS_EN_SIGNE, MARS_EN_SIGNE,
     JUPITER_EN_SIGNE, SATURNE_EN_SIGNE,
-    ASPECTS_TYPES, ASPECTS_PLANETES, get_aspect_interpretation,
+    ASPECTS_TYPES, get_aspect_interpretation,
     RETROGRADE_DESCRIPTIONS, ELEMENTS_DOMINANTS, MODALITES_DESCRIPTIONS,
     CHIRON_EN_SIGNE, LILITH_EN_SIGNE, NOEUD_NORD_EN_SIGNE,
     SIGNE_ELEMENT, SIGNE_MODALITE

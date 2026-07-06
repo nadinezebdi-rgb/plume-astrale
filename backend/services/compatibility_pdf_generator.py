@@ -4,7 +4,6 @@ Rapport riche et personnalisé pour un couple
 """
 import io
 import os
-import random
 from datetime import datetime
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm

@@ -1,6 +1,6 @@
 """
 Plume IA — Chat astrologique premium en français
-Utilise GPT-5.4 via emergentintegrations + thème natal calculé via AstrologyAPI
+Utilise OpenAI (gpt-4o-mini) + thème natal calculé via AstrologyAPI
 
 Architecture :
 1. Le frontend envoie : { message, session_id, birth_data }
@@ -14,8 +14,7 @@ import json as _json
 import logging
 import httpx
 from typing import Optional, Dict, Any
-from datetime import datetime, timezone
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+from integrations.llm.chat import LlmChat, UserMessage
 
 logger = logging.getLogger(__name__)
 
@@ -158,7 +157,7 @@ async def plume_chat(
     user_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Point d'entree principal — historique stocke dans Supabase."""
-    api_key = os.environ.get("EMERGENT_LLM_KEY")
+    api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         return {"success": False, "message": "Cle LLM non configuree."}
 
