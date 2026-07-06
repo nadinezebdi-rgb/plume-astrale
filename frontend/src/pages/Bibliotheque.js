@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Loader2, RefreshCw, Sparkles, Download, PlayCircle, Image as ImageIcon, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import UtmBuilder from '@/components/UtmBuilder';
+import AttributionDashboard from '@/components/AttributionDashboard';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -296,7 +297,10 @@ export default function Bibliotheque() {
               Tracking des campagnes
             </h2>
           </div>
-          <UtmBuilder />
+          <div className="space-y-6">
+            <AttributionDashboard />
+            <UtmBuilder />
+          </div>
         </div>
       </div>
     </div>
