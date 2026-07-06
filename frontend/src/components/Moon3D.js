@@ -251,11 +251,10 @@ export default function Moon3D({ step = 1 }) {
     auraMesh.position.z = -0.6;
     scene.add(auraMesh);
 
-    // Moon — vraie texture NASA (photo réelle)
+    // Moon — vraie texture NASA (photo réelle) self-hostée
     const textureLoader = new THREE.TextureLoader();
-    textureLoader.setCrossOrigin('anonymous');
     const moonTexture = textureLoader.load(
-      'https://threejs.org/examples/textures/planets/moon_1024.jpg',
+      '/assets/moon_1024.jpg',
       undefined, undefined,
       () => { /* silent fallback */ }
     );
@@ -263,7 +262,7 @@ export default function Moon3D({ step = 1 }) {
     moonTexture.anisotropy = 4;
 
     const moonBumpMap = textureLoader.load(
-      'https://threejs.org/examples/textures/planets/moon_1024.jpg',
+      '/assets/moon_1024.jpg',
       undefined, undefined,
       () => { /* silent */ }
     );

@@ -13,6 +13,12 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+## Session Feb 2026 — 🌙 Vraie Lune NASA self-hostée (2026-02)
+- ✅ Texture `moon_1024.jpg` (238 KB JPEG 1024×512) téléchargée dans `/app/frontend/public/assets/moon_1024.jpg`
+- ✅ `Moon3D.js` charge maintenant depuis `/assets/moon_1024.jpg` (local, servi par le frontend)
+- ✅ Zéro dépendance CDN externe → robustesse production garantie
+- ✅ Testé : HTTP 200, content-type image/jpeg, rendu identique
+
 ## Session Feb 2026 — 🌙 Vraie Lune NASA + fond indigo unifié + Sanctuaire Plume (2026-02)
 - ✅ **Vraie texture NASA** de la Lune (`threejs.org/examples/textures/planets/moon_1024.jpg`) — plus de "boule de glace vanille", vrais cratères et mers lunaires photoréalistes
 - ✅ **MeshStandardMaterial** avec bumpMap, roughness 0.95, emissive violet subtil (#2a1e4a)
