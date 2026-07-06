@@ -37,6 +37,7 @@ from routes.cercle import router as cercle_router
 from routes.synastrie import router as synastrie_router
 from routes.library import router as library_router
 from routes.rencontres import router as rencontres_router
+from routes.analytics import router as analytics_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -58,6 +59,7 @@ api_router.include_router(cercle_router)
 api_router.include_router(synastrie_router)
 api_router.include_router(library_router)
 api_router.include_router(rencontres_router)
+api_router.include_router(analytics_router)
 
 
 # ════════════════════════════════════════════
