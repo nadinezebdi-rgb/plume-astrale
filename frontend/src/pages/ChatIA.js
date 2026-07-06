@@ -653,9 +653,12 @@ const ChatIA = () => {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={e => {
+                e.currentTarget.style.borderColor = 'rgba(212,180,106,0.4)';
+                if (blocked) setPaywallOpen(true);
+              }}
               placeholder={blocked ? (isAuthenticated ? "Solde insuffisant — recharge tes credits" : "Inscris-toi pour continuer") : "Pose ta question aux etoiles..."}
               rows={1}
-              disabled={blocked}
               style={{
                 flex: 1,
                 background: 'rgba(255,255,255,0.04)',
@@ -670,16 +673,16 @@ const ChatIA = () => {
                 lineHeight: 1.5,
                 maxHeight: 120,
                 transition: 'border-color 0.2s',
-                opacity: blocked ? 0.5 : 1,
+                opacity: blocked ? 0.55 : 1,
+                cursor: blocked ? 'pointer' : 'text',
               }}
-              onFocus={e => { e.currentTarget.style.borderColor = 'rgba(212,180,106,0.4)'; }}
               onBlur={e => { e.currentTarget.style.borderColor = 'rgba(212,180,106,0.15)'; }}
               data-testid="chat-input"
             />
 
             <button
-              onClick={sendMessage}
-              disabled={loading || !input.trim() || blocked}
+              onClick={() => { if (blocked) { setPaywallOpen(true); return; } sendMessage(); }}
+              disabled={loading || (!input.trim() && !blocked)}
               style={{
                 background: input.trim() && !loading && !blocked
                   ? 'linear-gradient(135deg, rgba(212,180,106,0.25), rgba(212,180,106,0.12))'
