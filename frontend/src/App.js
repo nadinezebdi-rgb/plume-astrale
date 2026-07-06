@@ -58,7 +58,8 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Page admin — sans Navbar */}
+          {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
+          <Route path="/" element={<Index />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/bibliotheque" element={<Bibliotheque />} />
           <Route path="/rencontres-astrales" element={<RencontresAstrales />} />
@@ -69,7 +70,6 @@ function App() {
             <>
               <Navbar />
               <Routes>
-                <Route path="/" element={<Index />} />
                 <Route path="/inscription" element={<Register />} />
                 <Route path="/connexion" element={<Login />} />
                 <Route path="/formulaire" element={<Formulaire />} />
