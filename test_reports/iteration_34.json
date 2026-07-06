@@ -1,0 +1,41 @@
+{
+  "summary": "Iteration 34 backend testing: POST /api/plume-chat rebuilt on astrology-api.io v3 /chat/completions with Solena system prompt. Ran 16 pytest cases — 100% PASS (23.7s). All required behaviors verified: success schema, opening animation, markdown format (headings/bold/---), astrological configurations mentioned, open question ending, works without birth_data, multi-turn same session_id, empty message rejected. No frontend testing done (per request).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration34_plume_chat_solena.py",
+    "/app/test_reports/pytest/iteration34.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "GOOD: /app/backend/services/plume_chat.py — clean rewrite. httpx.AsyncClient with 60s timeout, proper Bearer auth, OpenAI-compatible response parsing (choices[0].message.content).",
+    "GOOD: Tool-leak guard (is_tool_leak) with regex + JSON validation prevents raw action/action_input from reaching the user; fallback replies with plume opening animation preserved.",
+    "GOOD: SYSTEM_PROMPT_SOLENA enforces all required rules: mandatory opening animation, medical safety barrier, open-question ending (Règle d'or), markdown formatting (##/**/---), French-only, no JSON.",
+    "GOOD: Multi-turn history loaded from Supabase (plume_chat_messages) only when user_id present, filtered against tool-leak. Anonymous sessions work stateless.",
+    "GOOD: _build_subject wraps birth_data safely inside try/except and _map_country_code handles FR/BE/CH/CA/MA/TN/DZ.",
+    "MINOR: server.py:1131 sets result['session_id'] AFTER calling the service, which overwrites the value from the service — harmless because both hold the same sid, but the double-set is redundant.",
+    "MINOR: On astrology-api.io HTTP error (r.status_code != 200) the service returns success=false with a generic French message but does not surface the upstream status code for debugging. Consider logging r.status_code + r.headers for observability (already partially logged at line 186).",
+    "MINOR: No rate-limit / abuse-protection on the public endpoint (auth optional). A single unauthenticated caller can burn ASTROLOGY_API_IO_KEY quota. Consider IP-based throttling for /api/plume-chat.",
+    "MINOR: max_tokens=1400 is generous; if the upstream provider bills by token this may be costly per turn. Consider 900-1100 for shorter replies while still passing all format tests."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration34_plume_chat_solena.py (new — 16 pytest cases, JUnit XML at /app/test_reports/pytest/iteration34.xml)"
+  ],
+  "success_rate": {
+    "backend": "100% (16/16 pytest cases pass, 23.71s)",
+    "frontend": "not tested (per request: backend only)"
+  },
+  "test_credentials": "None required — /api/plume-chat is public (get_optional_user).",
+  "seed_data_creation": "None. Multi-turn test uses ephemeral session_id (test-mt-<uuid>). Anonymous session — nothing persisted to Supabase.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 34: Plume chat successfully rebranded onto astrology-api.io v3 /chat/completions with new SYSTEM_PROMPT_SOLENA. All format rules enforced by the model in real API responses: opening plume animation, markdown headings, bold, --- separators, astrological refs (Vénus/Lune/Mars/etc.), ends with open question. Empty message returns success=false. No-birth-data path works (Solena asks for date). Multi-turn works with same session_id even anonymously. Endpoint is public and unrated — consider adding throttling. All tests reusable as regression suite; run: pytest /app/backend/tests/test_iteration34_plume_chat_solena.py -v",
+  "rca of the issue": "N/A — no defect found. Prior 'Cle LLM non configuree' issue is resolved by the migration off emergentintegrations. The service now reads ASTROLOGY_API_IO_KEY from env (verified present in /app/backend/.env) and calls hosted-mode chat/completions directly."
+}
