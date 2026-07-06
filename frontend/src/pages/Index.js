@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import MoonHero from '../components/MoonHero';
+import Hero3D from '../components/Hero3D';
 import SolenaChat from '../components/SolenaChat';
 import {
   Sparkles, Heart, ArrowRight, Quote, CheckCircle2, Play, Star
@@ -490,7 +490,7 @@ const Index = () => {
     <div className="relative" style={{ overflow: 'hidden' }}>
       <SEO path="/" />
       <CosmicCanvas />
-      <MoonHero />
+      <Hero3D />
       <BrandStory />
       <SolenaJourney />
       <ClientReviews />

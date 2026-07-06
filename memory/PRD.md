@@ -13,6 +13,28 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+## Session Feb 2026 — 🌙 HERO 3D IMMERSIF WebGL + brief créatif ultra-haut de gamme (2026-02)
+Implémentation du brief créatif complet "Site incroyable" avec vraie 3D interactive.
+- ✅ **Lune 3D photoréaliste** en WebGL pur (Three.js vanilla, pas de R3F pour éviter conflits babel-metadata) :
+  - Shader procédural fBm (fractal Brownian motion) — cratères, mers lunaires, highlands
+  - 128×128 subdivisions pour surface lisse
+  - Lighting Lambert directionnel + rim doré + phase de lune animée
+- ✅ **Aura fluide Perlin** dorée + halo indigo derrière la Lune (shader plane avec Additive Blending)
+- ✅ **Interactions 3D** :
+  - Rotation continue lente (t × 0.06)
+  - Parallax souris & gyroscope mobile (deviceorientation event)
+  - À l'étape 2 : rotation ~90° + micro-vibration CSS + phase 0.85
+  - À l'étape 3 : zoom 1.18× avant + phase pleine lune
+- ✅ **Bandeau lumineux sticky top** OFFRE DE LANCEMENT avec glow doré
+- ✅ **Header ultra-épuré** : logo PLUME ASTRALE (Cinzel) à gauche + [👤 Mon Compte] à droite (Navbar masquée sur `/`)
+- ✅ **CTA "Liquid Inversion"** : bouton or lunaire avec `::before` radial gradient expansif au hover
+- ✅ **Form 3-steps fondu** avec backdrop-blur et inputs `inputMode="numeric"` pour clavier mobile natif
+- ✅ **Typographie** : Cinzel/Playfair Display pour H1, Inter pour body + gris perle #CBD5E1
+- ✅ **Vignette radiale** #000 pour focus sur le contenu
+- ✅ Test E2E vérifié : formulaire rempli → auto-scroll Solena → chat live avec vraie lecture astro personnalisée
+- Fichiers : `Moon3D.js` (nouveau, vanilla Three.js), `Hero3D.js` (nouveau), `App.js` (route `/` sortie du groupe Navbar), `Index.js` (utilise Hero3D)
+- Deps ajoutées : `three@0.185.1`, `@react-three/fiber`, `@react-three/drei` (installés mais R3F contourné)
+
 ## Session Feb 2026 — Refonte Home : Chat Solena inline + suppression sections (2026-02)
 - ✅ **Retiré la fausse lune 3D** du Hero — remplacée par un fond vidéo Solena diffus + constellations SVG animées → continuité visuelle Plume → Solena
 - ✅ **Retiré les sections** demandées de la home : HeroOracle "Ta lecture symbolique", Astrologie relationnelle 49€ card, Rituel du jour + scores, CTA final "boussole intérieure"
