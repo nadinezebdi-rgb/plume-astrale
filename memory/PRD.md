@@ -13,6 +13,20 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+## Session Feb 2026 — Refonte Home : Chat Solena inline + suppression sections (2026-02)
+- ✅ **Retiré la fausse lune 3D** du Hero — remplacée par un fond vidéo Solena diffus + constellations SVG animées → continuité visuelle Plume → Solena
+- ✅ **Retiré les sections** demandées de la home : HeroOracle "Ta lecture symbolique", Astrologie relationnelle 49€ card, Rituel du jour + scores, CTA final "boussole intérieure"
+- ✅ **Nouveau Hero** : présentation Plume Astrale (brand kicker, titre "La maison d'astrologie où tes étoiles murmurent") + formulaire 3 étapes intact
+- ✅ **BrandStory** courte section "Une tradition d'astrologie au service de ton chemin"
+- ✅ **Chat Solena inline** (`SolenaChat.js`) — nouveau composant :
+  - S'ouvre automatiquement quand le user soumet le formulaire du Hero (via CustomEvent `pa:open-solena-chat`)
+  - Utilise `/api/plume-chat` avec birth_data pour générer un accueil personnalisé (Ascendant, rituels, questions ouvertes)
+  - Fix stale-closure StrictMode via `openChatRef` useRef pattern
+  - localStorage persistance de `pa_birth_data`
+- ✅ **Avis clients** conservés
+- ✅ **Catégories** : accessibles via mega-menu Navbar "Décoder ma période"
+- Fichiers : `Index.js` (rewrite), `MoonHero.js` (rewrite), `SolenaChat.js` (nouveau)
+
 ## Session Feb 2026 — Cleanup UI + Parcours Solena + Avis Clients (2026-02)
 - ✅ Retiré doublon "PLUME ASTRALE" du `MoonHero.js`
 - ✅ Retiré bouton "L'Expérience Premium" du `Navbar.js`
