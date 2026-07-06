@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft, ArrowRight, Coins, LogIn, Hash, Sparkles, BookOpen, Star, Heart, Shield, Zap, Target } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -164,6 +165,11 @@ const Numerologie = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen relative">
+      <PageHero
+        image="/images/astrale/image-astrale-7.jpg"
+        title="Numérologie"
+        subtitle="Chiffres de vie · Destin · Âme · Personnalité"
+      />
         <SEO path="/numerologie" />
         <div className="relative z-10 px-6 md:px-8 py-20 md:py-28">
           <div className="max-w-xl mx-auto">

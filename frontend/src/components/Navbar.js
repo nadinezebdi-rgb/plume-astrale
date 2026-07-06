@@ -5,50 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 
 const NAV_ITEMS = [
   { label: 'Accueil', to: '/' },
-  {
-    label: 'Décoder ma période',
-    mega: true,
-    columns: [
-      {
-        title: 'Au quotidien',
-        children: [
-          { to: '/energie', label: "Mon énergie du jour" },
-          { to: '/horoscope', label: 'Horoscope' },
-          { to: '/quotidien', label: 'Biorythmes & bien-être' },
-          { to: '/tarot-oui-non', label: 'Tarot Oui / Non' },
-          { to: '/tarologie', label: 'Tarologie' },
-        ],
-      },
-      {
-        title: 'Mon thème',
-        children: [
-          { to: '/formulaire', label: 'Mon thème natal' },
-          { to: '/numerologie', label: 'Numérologie' },
-          { to: '/karma-destin', label: 'Karma & Destin' },
-          { to: '/revolution-solaire', label: 'Révolution solaire' },
-        ],
-      },
-      {
-        title: 'Relations',
-        children: [
-          { to: '/compatibilite', label: 'Compatibilité' },
-          { to: '/astrosexo', label: 'AstroSexo' },
-          { to: '/love-languages', label: "Langages d'amour" },
-          { to: '/synastrie', label: 'Astrologie relationnelle — 49€', highlight: true },
-        ],
-      },
-      {
-        title: 'Explorations',
-        children: [
-          { to: '/consultation', label: 'Chat avec Plume' },
-          { to: '/oracle', label: 'Oracle' },
-          { to: '/mon-rituel', label: 'Mon rituel' },
-        ],
-      },
-    ],
-  },
-  { label: 'Le Cercle', to: '/cercle', subtitle: '14,90€/mois' },
-  { label: 'Notre cadre', to: '/notre-cadre' },
+  { label: 'Mon Compte', to: '/mon-compte' },
 ];
 
 const dropdownStyle = {
@@ -307,7 +264,7 @@ const Navbar = () => {
   };
 
   var navStyle = {
-    position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+    position: 'fixed', top: 36, left: 0, right: 0, zIndex: 50,
     transition: 'all 0.5s',
     background: scrolled || isOpen ? 'rgba(11,11,15,0.97)' : 'rgba(11,11,15,0.70)',
     backdropFilter: 'blur(12px)',
@@ -477,7 +434,7 @@ const Navbar = () => {
           </div>
         )}
       </div>
-      <style>{`.desktop-nav{display:none!important}@media(min-width:1240px){.desktop-nav{display:block!important}.mobile-toggle{display:none!important}}`}</style>
+      <style>{`.desktop-nav{display:none!important}@media(min-width:1024px){.desktop-nav{display:block!important}.mobile-toggle{display:none!important}}`}</style>
     </nav>
   );
 };

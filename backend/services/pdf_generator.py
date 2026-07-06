@@ -1,15 +1,9 @@
 import io
-import os
 from datetime import datetime
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import cm, mm
-from reportlab.lib.colors import HexColor, Color
+from reportlab.lib.units import cm
+from reportlab.lib.colors import HexColor
 from reportlab.pdfgen import canvas
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import Paragraph, Frame, Spacer
-from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 import logging
 
 logger = logging.getLogger(__name__)
