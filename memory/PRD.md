@@ -13,6 +13,27 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+## Session Feb 2026 — 🌙 Vraie Lune NASA self-hostée (2026-02)
+- ✅ Texture `moon_1024.jpg` (238 KB JPEG 1024×512) téléchargée dans `/app/frontend/public/assets/moon_1024.jpg`
+- ✅ `Moon3D.js` charge maintenant depuis `/assets/moon_1024.jpg` (local, servi par le frontend)
+- ✅ Zéro dépendance CDN externe → robustesse production garantie
+- ✅ Testé : HTTP 200, content-type image/jpeg, rendu identique
+
+## Session Feb 2026 — 🌙 Vraie Lune NASA + fond indigo unifié + Sanctuaire Plume (2026-02)
+- ✅ **Vraie texture NASA** de la Lune (`threejs.org/examples/textures/planets/moon_1024.jpg`) — plus de "boule de glace vanille", vrais cratères et mers lunaires photoréalistes
+- ✅ **MeshStandardMaterial** avec bumpMap, roughness 0.95, emissive violet subtil (#2a1e4a)
+- ✅ **Fond Hero unifié** avec la section Solena : `radial-gradient(ellipse at 50% 30%, #1a1147 0%, #0C0918 55%, #050308 100%)` → zéro cassure
+- ✅ **Aura shader repeinte** en palette violet-indigo (au lieu d'ambre/or) qui matche l'atmosphère Solena
+- ✅ **Vignette adoucie** en tons indigo (rgba(12,9,24,x)) au lieu de noir pur
+- ✅ **Espacement réduit** dans le Hero (paddings et gaps -30%)
+- ✅ **Trust line "AUCUNE CARTE BANCAIRE..." supprimée** du Hero
+- ✅ **BrandStory refonte** avec la copie exacte "Le Sanctuaire · Plume Astrale" :
+  - Kicker "✦ LE SANCTUAIRE ✦"
+  - Titre "Le Sanctuaire Plume Astrale"
+  - Baseline "Un coaching céleste de haute précision pour éclairer votre trajectoire."
+  - Corps 2 paragraphes (rigueur scientifique, coach de vie universel, conversation intime sur-mesure)
+  - Signature "✦ RIGUEUR DES CALCULS · CHARTE DE SÉRIEUX · ACCOMPAGNEMENT UNIVERSEL ✦"
+
 ## Session Feb 2026 — 💰 Grille tarifaire "Spécial Lancement" + paywall frustration-driven (2026-02)
 Implémentation du brief tarifaire complet — la frustration crée la vente.
 - ✅ **Grille tarifaire alignée** (backend `config.py` déjà OK) :

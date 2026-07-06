@@ -177,15 +177,18 @@ const auraFragmentShader = `
     float n = fbm2(uv * 2.6 + vec2(uTime * 0.05, uTime * 0.03));
     float glow = smoothstep(0.55, 0.05, d + n * 0.10);
 
-    vec3 gold = vec3(1.0, 0.78, 0.32);
-    vec3 amber = vec3(0.95, 0.55, 0.20);
-    vec3 indigo = vec3(0.38, 0.28, 0.75);
+    // Palette violet-indigo pour matcher la section Solena
+    vec3 gold = vec3(0.95, 0.72, 0.28);
+    vec3 violet = vec3(0.45, 0.32, 0.85);
+    vec3 indigo = vec3(0.18, 0.10, 0.42);
 
-    vec3 col = mix(indigo, gold, smoothstep(0.35, 0.05, d));
-    col = mix(col, amber, n * 0.4 * (1.0 - d));
+    // Coeur : subtile lueur dorée près de la lune ; halo : violet ambiant
+    vec3 col = mix(indigo, violet, smoothstep(0.45, 0.10, d));
+    col = mix(col, gold, smoothstep(0.28, 0.06, d) * 0.55);
+    col += vec3(0.10, 0.06, 0.20) * n * 0.6;
 
-    float intensity = glow * (0.55 + 0.15 * sin(uTime * 0.5));
-    gl_FragColor = vec4(col * intensity, intensity * 0.85);
+    float intensity = glow * (0.45 + 0.12 * sin(uTime * 0.4));
+    gl_FragColor = vec4(col * intensity, intensity * 0.75);
   }
 `;
 
@@ -248,19 +251,42 @@ export default function Moon3D({ step = 1 }) {
     auraMesh.position.z = -0.6;
     scene.add(auraMesh);
 
-    // Moon
-    const moonMat = new THREE.ShaderMaterial({
-      vertexShader: moonVertexShader,
-      fragmentShader: moonFragmentShader,
-      uniforms: {
-        uLightDir: { value: new THREE.Vector3(0.7, 0.5, 0.7).normalize() },
-        uTime: { value: 0 },
-        uPhase: { value: 1.0 },
-      },
+    // Moon — vraie texture NASA (photo réelle) self-hostée
+    const textureLoader = new THREE.TextureLoader();
+    const moonTexture = textureLoader.load(
+      '/assets/moon_1024.jpg',
+      undefined, undefined,
+      () => { /* silent fallback */ }
+    );
+    moonTexture.colorSpace = THREE.SRGBColorSpace;
+    moonTexture.anisotropy = 4;
+
+    const moonBumpMap = textureLoader.load(
+      '/assets/moon_1024.jpg',
+      undefined, undefined,
+      () => { /* silent */ }
+    );
+
+    const moonMat = new THREE.MeshStandardMaterial({
+      map: moonTexture,
+      bumpMap: moonBumpMap,
+      bumpScale: 0.04,
+      roughness: 0.95,
+      metalness: 0.0,
+      emissive: new THREE.Color(0x2a1e4a),  // teinte violette indigo subtile
+      emissiveIntensity: 0.08,
     });
     const moonGeom = new THREE.SphereGeometry(1, 128, 128);
     const moonMesh = new THREE.Mesh(moonGeom, moonMat);
     scene.add(moonMesh);
+
+    // Lumières dédiées à la lune (Solena palette)
+    const keyLight = new THREE.DirectionalLight(0xF4E8D2, 1.6);
+    keyLight.position.set(2.5, 2.0, 3.0);
+    scene.add(keyLight);
+    const rimLight = new THREE.DirectionalLight(0x8B6FE6, 0.35);  // violet
+    rimLight.position.set(-2, -1, -1);
+    scene.add(rimLight);
 
     // Mouse tracking
     const handleMouse = (e) => {
@@ -290,7 +316,6 @@ export default function Moon3D({ step = 1 }) {
 
     // Animation loop
     const clock = new THREE.Clock();
-    let currentRot = 0;
     let currentScale = 1;
     setReady(true);
 
@@ -308,9 +333,10 @@ export default function Moon3D({ step = 1 }) {
       currentScale += (state.targetZoom - currentScale) * 0.05;
       moonMesh.scale.setScalar(currentScale);
 
-      // Uniforms
-      moonMat.uniforms.uTime.value = t;
-      moonMat.uniforms.uPhase.value += (state.targetPhase - moonMat.uniforms.uPhase.value) * 0.04;
+      // Emissive intensity varie subtilement avec la phase
+      moonMat.emissiveIntensity = 0.06 + (1 - state.targetPhase) * 0.15;
+
+      // Aura anime son time uniform
       auraMat.uniforms.uTime.value = t;
       auraMesh.rotation.z = t * 0.02;
 

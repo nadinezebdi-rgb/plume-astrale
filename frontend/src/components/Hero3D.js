@@ -75,7 +75,7 @@ export default function Hero3D() {
     <section
       className="relative w-full overflow-hidden"
       style={{
-        background: '#000000',
+        background: 'radial-gradient(ellipse at 50% 30%, #1a1147 0%, #0C0918 55%, #050308 100%)',
         color: '#FFFFFF',
         minHeight: '100vh',
       }}
@@ -150,7 +150,7 @@ export default function Hero3D() {
         aria-hidden="true"
         style={{
           position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse at 50% 55%, transparent 5%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.85) 80%, #000 100%)',
+          background: 'radial-gradient(ellipse at 50% 50%, transparent 8%, rgba(12,9,24,0.28) 42%, rgba(5,3,8,0.85) 85%, #050308 100%)',
         }}
       />
 
@@ -159,13 +159,13 @@ export default function Hero3D() {
         className="relative z-10 flex flex-col items-center justify-center text-center px-4"
         style={{
           minHeight: '100vh',
-          paddingTop: 'clamp(110px, 15vh, 160px)',
-          paddingBottom: 'clamp(50px, 8vh, 80px)',
+          paddingTop: 'clamp(80px, 11vh, 130px)',
+          paddingBottom: 'clamp(30px, 5vh, 60px)',
         }}
       >
         {/* Titre magnétique */}
         <h1
-          className="mb-4 md:mb-6"
+          className="mb-3 md:mb-4"
           style={{
             fontFamily: 'Cinzel, Playfair Display, Cormorant Garamond, serif',
             fontWeight: 300,
@@ -182,7 +182,7 @@ export default function Hero3D() {
         </h1>
 
         <p
-          className="mb-10 max-w-lg"
+          className="mb-6 max-w-lg"
           style={{
             fontFamily: 'Inter, sans-serif',
             fontSize: 'clamp(0.85rem, 1.2vw, 1rem)',
@@ -197,7 +197,7 @@ export default function Hero3D() {
         </p>
 
         {/* Progress dots */}
-        <div className="flex gap-2 mb-8" data-testid="step-progress">
+        <div className="flex gap-2 mb-5" data-testid="step-progress">
           {[1, 2, 3].map((n) => (
             <div key={n} style={{
               width: 8, height: 8, borderRadius: '50%',
@@ -301,12 +301,6 @@ export default function Hero3D() {
               ← Étape précédente
             </button>
           )}
-        </div>
-
-        {/* Trust line */}
-        <div className="mt-8 md:mt-10 text-[9px] md:text-[10px]"
-             style={{ color: 'rgba(203,213,225,0.45)', letterSpacing: '0.28em', fontFamily: 'Inter, sans-serif' }}>
-          AUCUNE CARTE BANCAIRE&nbsp;&nbsp;·&nbsp;&nbsp;RÉSULTAT INSTANTANÉ&nbsp;&nbsp;·&nbsp;&nbsp;100% CONFIDENTIEL
         </div>
       </div>
 

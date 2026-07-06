@@ -67,40 +67,53 @@ const CosmicCanvas = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════
-   BRAND STORY — courte présentation Plume Astrale
+   BRAND STORY — Le Sanctuaire Plume Astrale
 ═══════════════════════════════════════════════════════════ */
 const BrandStory = () => (
-  <section className="relative py-20 md:py-24 px-4 z-10" data-testid="home-brand-story">
+  <section className="relative py-16 md:py-20 px-4 z-10" data-testid="home-brand-story">
     <div className="max-w-3xl mx-auto text-center">
       <p className="text-[10px] uppercase mb-5" style={{ color: '#D4B46A', letterSpacing: '0.35em', fontWeight: 400 }}>
-        La maison Plume Astrale
+        ✦ Le Sanctuaire ✦
       </p>
       <h2 style={{
         fontFamily: 'Cormorant Garamond, serif',
         fontWeight: 200,
-        fontSize: 'clamp(1.8rem, 4.2vw, 2.8rem)',
-        lineHeight: 1.15,
+        fontSize: 'clamp(1.9rem, 4.5vw, 3rem)',
+        lineHeight: 1.12,
         color: '#F4E8D2',
         marginBottom: 20,
       }}>
-        Une <em style={{ color: '#D4B46A', fontStyle: 'italic', fontWeight: 300 }}>tradition d&apos;astrologie</em><br />
-        au service de ton chemin.
+        Le Sanctuaire <em style={{ color: '#D4B46A', fontStyle: 'italic', fontWeight: 300 }}>Plume Astrale</em>
       </h2>
-      <p className="text-base md:text-lg mx-auto max-w-2xl" style={{
+      <p className="text-base md:text-lg mx-auto max-w-2xl mb-5" style={{
         fontFamily: 'Cormorant Garamond, serif',
-        color: 'rgba(244,232,210,0.75)',
+        color: 'rgba(244,232,210,0.90)',
         lineHeight: 1.7,
+        fontStyle: 'italic',
+        fontSize: '1.15rem',
       }}>
-        Plume Astrale s&apos;appuie sur les calculs précis d&apos;éphémérides et la lecture intuitive
-        pour t&apos;offrir une guidance holistique. Ni horoscope générique, ni prédiction fataliste :
-        une conversation intime avec ton ciel de naissance, incarnée par Solena.
+        Un coaching céleste de haute précision pour éclairer votre trajectoire.
       </p>
-      <div className="flex items-center justify-center gap-6 mt-8 text-[10px] uppercase" style={{ color: 'rgba(212,180,106,0.7)', letterSpacing: '0.25em' }}>
-        <span>✦ Calculs précis</span>
-        <span>·</span>
-        <span>Lecture holistique</span>
-        <span>·</span>
-        <span>+2 000 âmes</span>
+      <p className="text-base mx-auto max-w-2xl mb-5" style={{
+        fontFamily: 'Cormorant Garamond, serif',
+        color: 'rgba(244,232,210,0.78)',
+        lineHeight: 1.75,
+      }}>
+        Plume Astrale s&apos;impose par la <em style={{ color: '#F4D98C', fontStyle: 'italic' }}>rigueur scientifique</em> de ses calculs d&apos;éphémérides et le sérieux de sa charte déontologique.
+        Conçu comme un véritable coach de vie spirituel et émotionnel, notre espace est <em style={{ color: '#F4D98C', fontStyle: 'italic' }}>universel</em> :
+        il accompagne n&apos;importe qui, peu importe votre parcours, là où vous en êtes aujourd&apos;hui.
+      </p>
+      <p className="text-base mx-auto max-w-2xl" style={{
+        fontFamily: 'Cormorant Garamond, serif',
+        color: 'rgba(244,232,210,0.78)',
+        lineHeight: 1.75,
+      }}>
+        Ici, vous ne trouverez ni horoscope générique, ni prédiction fataliste. Vous entamez une
+        <em style={{ color: '#F4D98C', fontStyle: 'italic' }}> conversation intime et sur-mesure </em>
+        avec votre ciel de naissance, guidé par la voix et l&apos;expertise de <em style={{ color: '#D4B46A', fontStyle: 'italic' }}>Solena</em>.
+      </p>
+      <div className="mt-8 text-[10px] md:text-xs uppercase" style={{ color: '#D4B46A', letterSpacing: '0.28em', fontFamily: 'Cinzel, serif' }}>
+        ✦ Rigueur des calculs&nbsp;·&nbsp;Charte de sérieux&nbsp;·&nbsp;Accompagnement universel ✦
       </div>
     </div>
   </section>
