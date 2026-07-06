@@ -9,12 +9,30 @@ Architecture :
 4. Les messages sont stockés dans MongoDB pour persistance multi-tour
 """
 import os
+import re
+import json as _json
 import logging
 import httpx
 from typing import Optional, Dict, Any
 from integrations.llm.chat import LlmChat, UserMessage
 
 logger = logging.getLogger(__name__)
+
+# Detection d'une fuite d'appel d'outil dans la reponse du modele
+_TOOL_LEAK_RE = re.compile(r'^\s*\{[\s\S]*"action"[\s\S]*"action_input"[\s\S]*\}\s*$')
+
+
+def is_tool_leak(text: str) -> bool:
+    """Retourne True si le texte ressemble a un appel d'outil JSON (leak)."""
+    if not text or len(text) > 3000:
+        return False
+    if not _TOOL_LEAK_RE.match(text):
+        return False
+    try:
+        obj = _json.loads(text.strip())
+        return isinstance(obj, dict) and ('action' in obj or 'action_input' in obj)
+    except Exception:
+        return False
 
 # Mapping des signes en français
 SIGNS_FR = {
@@ -31,41 +49,35 @@ PLANETS_FR = {
 }
 
 
-SYSTEM_PROMPT_PLUME = """Tu es Plume, la guide spirituelle de Plume Astrale.
+SYSTEM_PROMPT_PLUME = """Tu es Plume, astrologue, tarologue et medium de grande renommee, reconnue pour la precision de tes intuitions, ta bienveillance et ta capacite a accompagner les ames sur leur chemin de vie. Ton approche est holistique : tu consideres le consultant dans sa globalite (esprit, emotions, energies), tout en respectant une ethique et une deontologie professionnelles absolues.
 
-# TON IDENTITE
-Tu es un compagnon emotionnel quotidien, pas un horoscope. Tu accueilles, tu eclaires, tu accompagnes.
-Tu allies la precision technique de l'astrologie occidentale a la sagesse poetique d'une amie attentive.
+Adopte les directives suivantes pour chacune de tes reponses :
 
-# TA PERSONNALITE
-- Voix : feminine, douce, poetique, sans etre mielleuse. Tu peux etre directe quand il le faut.
-- Posture : tu ne predis JAMAIS l'avenir comme une voyante. Tu invites a la prise de conscience, a l'introspection, a l'action.
-- Ton : chaleureux, intime, comme une confidente. Tu tutoyes par defaut, sauf si l'utilisateur vouvoie.
-- Style : phrases courtes et longues alternees, metaphores cosmiques (etoiles, lunes, marees, racines), images sensibles.
-- Vocabulaire : francais soutenu mais accessible. Eviter le jargon hermetique.
+1. CADRE ETHIQUE ET SECURITE (Barriere stricte sur la sante) :
+- Tu as l'interdiction absolue de poser des diagnostics medicaux, de commenter des pathologies, de donner des conseils d'ordre medical ou de te prononcer sur l'evolution de la sante physique ou psychologique d'un consultant.
+- Si un consultant pose une question liee a sa sante (maladie, traitement, grossesse a risque, guerison), tu dois poser une barriere immediate, bienveillante mais ferme : rappelle-lui que tu n'es pas medecin et invite-le a consulter un professionnel de sante. Tu peux ensuite reorienter la seance uniquement sur le plan emotionnel ou spirituel.
 
-# TES REGLES ABSOLUES
-1. JAMAIS de predictions fatalistes. Tu eclaires des tendances, des energies, des invitations.
-2. JAMAIS de diagnostic medical, psychiatrique ou juridique. Tu orientes vers un professionnel si necessaire.
-3. JAMAIS de jugement. Tu accueilles toutes les emotions, meme la colere, la jalousie, la tristesse.
-4. Toujours ramener vers le pouvoir personnel : l'astrologie eclaire, mais c'est l'humain qui choisit.
-5. Si la question est hors astrologie/spiritualite/emotion, repond brievement avec bienveillance puis ramene en douceur vers ton domaine.
+2. TON ET STYLE : 
+Inspirant, mystique mais ancre, chaleureux et empathique. Tu es une alliee et un miroir. Utilise un vocabulaire riche et vibratoire (alignement, resonance, flux energetique, cycles).
 
-# FORMAT DE TES REPONSES
-- Longueur : 150 a 350 mots. Plus court pour les questions simples, plus long pour les questions profondes.
-- Structure : paragraphes courts, aeres. Pas de listes a puces sauf si demandees.
-- Toujours : ouvrir avec une phrase qui accueille la question/l'emotion. Refermer avec une invitation/une image.
-- Si tu cites un astre ou un signe, mets-le en *italique*.
-- Eviter les emojis (ou maximum 1 par reponse, place avec sens).
-- Reponds TOUJOURS en francais, meme si l'utilisateur ecrit dans une autre langue.
+3. METHODOLOGIE ET APPROCHE HOLISTIQUE :
+- Les Etoiles & l'Ame : appuie-toi sur les elements du theme natal fournis (Signe solaire, Lunaire, Ascendant, maisons).
+- Les Messages Subtils : integre le Tarot ou tes ressentis mediumniques pour eclairer la situation presente.
+- Conseils Holistiques (Bien-etre uniquement) : rituels symboliques, meditation, shadow work, pierres, plantes — TOUJOURS presentes comme complements de confort, jamais comme des remedes.
 
-# UTILISATION DU THEME NATAL
-Le contexte ci-dessous contient le theme natal reel de l'utilisateur (calcule par AstrologyAPI).
-Utilise-le quand c'est pertinent pour personnaliser. N'expose pas brut les donnees techniques (degres, etc.),
-traduis-les en sens incarne. Si l'utilisateur ne pose pas une question astrologique, tu peux ne pas y faire reference.
+4. FORMATTING :
+- Utilise des titres clairs (## L'Echo des Etoiles, ### Conseils et Rituels de Confort).
+- Utilise **le gras** pour les mots-cles.
+- Separe tes idees par --- pour rendre la lecture fluide.
 
-# SIGNATURE
-Ne signe pas tes messages. Tu es deja Plume, l'utilisateur le sait.
+5. REGLE D'OR (Ne jamais clore) :
+- Ne termine JAMAIS par une conclusion fermee.
+- Termine TOUJOURS par une question ouverte, curieuse, personnalisee, qui invite le consultant a explorer ses emotions, ses ressentis, ou la facon dont son theme natal resonne dans sa vie actuelle.
+
+6. REGLES TECHNIQUES ABSOLUES :
+- Reponds TOUJOURS en francais naturel, jamais en JSON, jamais en code, jamais en anglais.
+- N'emets JAMAIS de blocs JSON, "action", "action_input" ou d'appels de fonction.
+- Le theme natal du consultant t'est deja fourni ci-dessous ; utilise-le directement, aucun outil a appeler.
 """
 
 
@@ -161,6 +173,10 @@ async def plume_chat(
             session_id=session_id,
             system_message=system_message,
         ).with_model("openai", "gpt-4o-mini")
+        try:
+            chat = chat.with_params(temperature=0.8, max_tokens=1200)
+        except Exception:
+            pass
 
         # Recharger l'historique pour multi-tour si user connecte
         if user_id:
@@ -169,12 +185,27 @@ async def plume_chat(
                 sb = get_admin_client()
                 res = sb.table('plume_chat_messages').select('role,content').eq('session_id', session_id).order('created_at').limit(40).execute()
                 for h in (res.data or []):
-                    if h.get("role") == "user":
+                    if h.get("role") == "user" and not is_tool_leak(h.get("content", "")):
                         await chat.send_message(UserMessage(text=h["content"]))
             except Exception as e:
                 logger.warning(f"Could not load history: {e}")
 
         response_text = await chat.send_message(UserMessage(text=message))
+
+        # Garde-fou : si la reponse est une fuite d'outil JSON, on retente 1x
+        if is_tool_leak(response_text):
+            logger.warning(f"[plume_chat] tool leak detected, retrying: {response_text[:100]}")
+            retry_msg = (
+                "Ta reponse precedente contenait un JSON technique au lieu d'un vrai message. "
+                "Reponds de nouveau a ma question, en francais naturel et poetique, "
+                "sans aucun bloc JSON ni appel de fonction. Termine par une question ouverte."
+            )
+            response_text = await chat.send_message(UserMessage(text=retry_msg))
+            if is_tool_leak(response_text):
+                response_text = (
+                    "Les astres sont un peu bavards ce soir. Peux-tu reformuler ta question, "
+                    "ou me dire ce qui t'a amene(e) a Plume aujourd'hui ?"
+                )
 
         # Persister dans Supabase si user connecte
         if user_id:

@@ -1,0 +1,52 @@
+{
+  "summary": "Iteration 33 testing: (A) Chat send-button fix VERIFIED — clicking send with balance=0 now correctly opens CreditsPaywallModal (previously disabled attr swallowed clicks). (C) Rencontres Astrales feature: full 3-step flow works end-to-end (form → reveal → email gate → 3 windows → Stripe redirect). Backend: 5/7 pytest cases pass. 2 failures identified on invalid input validation (empty place, invalid date) which return 502 (masked by Cloudflare HTML) instead of the expected 400 with French message.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/rencontres/reveal",
+        "issue": "Invalid input (empty place OR invalid date like day=32/month=13) returns 502 instead of 400. The code raises HTTPException(502, 'Impossible de calculer votre theme natal') when the astrology API returns None — Cloudflare then replaces the JSON body with an HTML 'Bad gateway' page, so users see the generic Cloudflare error instead of a French message. Recommendation: (1) add explicit Pydantic validators for place (min_length=1) and date components (1<=month<=12, 1<=day<=31), and (2) change the natal-failure status code from 502 to 400 or 422 so proxy does not intercept it."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "/rencontres-astrales — reveal portrait grammar",
+        "issues": ["Some portrait templates read awkwardly for certain signs: 'en signe d'**Balance**' (Air template) or 'en signe d'**Belier**' should be 'en signe de Balance' / 'du Belier' — the elision d' before a consonant is ungrammatical. Templates in PARTNER_PORTRAIT_TEMPLATES should adapt article based on sign first letter (vowel vs consonant). Non-blocking cosmetic polish."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration33_rencontres.py",
+    "/app/test_reports/pytest/iteration33.xml"
+  ],
+  "action_items": [
+    "OPTIONAL: Add Pydantic validation to BirthPayload (place min_length=1, day 1-31, month 1-12) and/or change natal-failure HTTPException from 502 → 400/422 in /app/backend/routes/rencontres.py:167. Currently, submitting invalid data via the /rencontres-astrales form returns a 502 that Cloudflare replaces with generic HTML, so the frontend's `err.response?.data?.detail` fallback is triggered ('Impossible de calculer ton theme...'). Not blocking release since happy-path works, but improves UX for edge cases.",
+    "OPTIONAL: Fix French grammar in PARTNER_PORTRAIT_TEMPLATES — 'en signe d'Balance' → 'en signe de Balance' (adapt elision based on sign first letter)."
+  ],
+  "critical_code_review_comments": [
+    "GOOD: ChatIA.js line 684 fix — send button onClick now checks `blocked` first and opens paywall, and `disabled` no longer includes `blocked` (only `loading || (!input.trim() && !blocked)`). This properly restores the paywall UX path from iteration 32.",
+    "GOOD: RencontresAstrales.js is clean, well-structured (~490 lines), all critical elements have data-testid, useState step-machine is readable.",
+    "GOOD: routes/rencontres.py — public endpoints (no auth), proper Pydantic models, in-memory _REVEAL_CACHE with 1000-entry cap and rotation. Best-effort supabase upsert + Resend email correctly caught in try/except so failures don't break the flow.",
+    "MINOR: routes/rencontres.py uses HTTPException(502, ...) for business-logic failure — this makes Cloudflare/ingress intercept and replace the JSON body with an HTML error page. Should be 400/422/503 or a 200 with error field.",
+    "MINOR: PARTNER_PORTRAIT_TEMPLATES elision 'd'{sign}' is naive — 'd'Balance' / 'd'Belier' are ungrammatical.",
+    "MINOR: `oracle_leads` supabase upsert relies on a table that may not exist yet — the code correctly logs a warning and continues. Confirmed via test: capture endpoint still returns 200 even if table missing.",
+    "MINOR: PACKS still duplicated between config.py and CreditsPaywallModal.js / BuyCredits.js (flagged in iteration 32, still present)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration33_rencontres.py (new — 7 pytest cases for reveal/capture/checkout)"
+  ],
+  "success_rate": {
+    "backend": "71% (5/7 pytest cases — happy paths all pass, invalid-input validation returns 502 instead of 400)",
+    "frontend": "100% (full 3-step Rencontres flow + Stripe redirect + Chat paywall click fix all verified end-to-end)"
+  },
+  "test_credentials": "Low-balance user (unchanged from iteration 32): paywall_test_1783103389@plume-test.fr / TestPaywall2026! (balance=0). Admin: admin@plume-astrale.fr / PlumeAdmin2026 (unused this iteration).",
+  "seed_data_creation": "No new seed data. Reused low-balance test user from iteration 32. Stripe test session created via checkout but not paid.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 33 delivered 3 tasks — all core functionality verified: (A) Chat send-button paywall fix WORKS: send button `disabled` attr no longer includes `blocked` and onClick dispatches setPaywallOpen(true). (C) Rencontres Astrales full flow works — form fills, reveal returns portrait+3-window+CTA, Stripe checkout redirects to cs_live_... URL correctly. Only outstanding minor issues are: (1) invalid-input on /api/rencontres/reveal returns 502 (masked by Cloudflare HTML) instead of 400 — needs Pydantic validators or a status code change; (2) portrait template grammar 'd'Balance' should be 'de Balance'. Both are optional polish. To retest full flow, use /rencontres-astrales with day=15/month=5/year=1990/hour=12/minute=00/place=Paris → wait ~5s → email test-astro-1@plume-test.fr → windows appear → 'Reveler mon guide complet' → Stripe.",
+  "rca of the issue": "Backend validation issue: routes/rencontres.py has three levels: (a) `aio.make_birth_data(...)` raises → caught as HTTPException(400) — works. (b) `natal_chart(...)` returns None (astrology API rejects empty city or invalid date) → raises HTTPException(502) — this is intercepted by Cloudflare which replaces JSON with generic HTML. So when a user submits empty place, the code path skips (a) because make_birth_data doesn't validate 'city' length, hits (b), gets 502, which Cloudflare masks. Same for invalid date — the astrology API returns None. Fix: add `@field_validator` on BirthPayload for `place` (min_length=1), `day` (1-31), `month` (1-12), so make_birth_data is never reached with garbage; and/or change the failure branch to raise HTTPException(400) with a French message instead of 502. Frontend already has err.response?.data?.detail fallback so it will surface the message correctly once status changes to 4xx."
+}

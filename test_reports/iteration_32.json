@@ -1,0 +1,56 @@
+{
+  "summary": "Verified pricing overhaul (iteration 32): backend PACKS/service_costs/checkout/refund all correct; frontend BuyCredits shows exactly 3 new packs; homepage launch-offer pill links to /inscription; CreditsPaywallModal renders correctly with the 3 packs and successfully redirects to Stripe. Regression check on /api/astrology/v3/chat: no JSON tool-call leak, exact -10cr per question. 11/11 backend pytest cases pass. Fixed 1 critical frontend bug (wrong checkout URL). Reported 1 UX bug that still blocks the send button.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "ChatIA / consultation page — send button when balance < 10",
+        "issue": "When authenticated user's credit balance is below 10, the textarea and Send button are set to `disabled` via the `blocked` prop. Since React swallows onClick on disabled buttons, clicking Send does NOTHING — the paywall NEVER opens through the button. The paywall CAN be triggered by pressing Enter (keyDown handler runs regardless of textarea disabled attr) or via a 402 error path, but the CTA button that the user is most likely to click is dead. Product-experience regression vs the intended 'sending a message opens the modal' UX. Fix: either (1) do NOT disable the send button when blocked — let sendMessage() intercept and open the paywall, or (2) additionally auto-open the paywall on page mount when balance < 10, or (3) replace the disabled send button with a 'Recharger' button that opens the paywall directly.",
+        "selector": "[data-testid='chat-send-btn'], [data-testid='chat-input']",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "CreditsPaywallModal → checkout (FIXED by testing agent)",
+        "issue": "The modal was POSTing to `${API}/api/checkout` — which returns 404. Correct endpoint is `/api/credits/checkout`. Every 'Recharger · X cr' click in the paywall would have alerted 'Not Found' — 100% of paywall conversions broken. Confirmed via curl (bare `/api/checkout` = 404, `/api/credits/checkout` = 200). Fix applied in /app/frontend/src/components/CreditsPaywallModal.js line 64 by testing agent. Post-fix verification: Playwright test successfully redirected to https://checkout.stripe.com/c/pay/cs_live_... via /api/credits/checkout.",
+        "affected_selectors": ["[data-testid='paywall-buy-astro_amour']", "[data-testid='paywall-buy-initiation']", "[data-testid='paywall-buy-flammes_jumelles']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration32_new_pricing.py",
+    "/app/test_reports/pytest/iteration32.xml"
+  ],
+  "action_items": [
+    "MAIN AGENT: Fix the send-button UX bug on /consultation. When (creditBalance ?? 0) < 10 for an authenticated user, the current code sets textarea+button `disabled` which BLOCKS the paywall from opening on click. Recommended fix in /app/frontend/src/pages/ChatIA.js: remove `disabled={blocked}` from the send button (line 682) so onClick can fire and sendMessage() can intercept + call setPaywallOpen(true). Or better: on page mount, if isAuthenticated && creditBalance < 10, auto-open the paywall (useEffect on creditBalance).",
+    "OPTIONAL: consider auto-opening the paywall on /consultation page load when balance < 10 for stronger conversion (currently only Enter key triggers it).",
+    "NOTE: temp test user paywall_test_1783103389@plume-test.fr / TestPaywall2026! was created with initial 20cr, drained to 0. Feel free to delete."
+  ],
+  "critical_code_review_comments": [
+    "Backend PACKS dict (config.py) is clean and centralised — no more scattered pack definitions. GOOD.",
+    "server.py checkout stores `credits = credits + bonus` and metadata correctly includes base_credits + bonus for future audits.",
+    "astrology_v3.py refund is now 10cr (matches new charge). Regression from previous iteration properly aligned.",
+    "CreditsPaywallModal maintains its own PACKS array (frontend copy of backend config). This is duplicated logic — the modal could instead fetch from /api/packs to stay in sync. Same duplication exists in BuyCredits.js. If backend PACKS changes again, 3 places must be updated (config.py, BuyCredits.js, CreditsPaywallModal.js). Consider single source of truth.",
+    "ChatIA send button disabled when blocked is a UX dead-end — see bug above.",
+    "The 402 error branch in ChatIA (line 218) correctly opens the paywall, so if the button were not disabled, sendMessage would either (a) intercept via balance check and open modal, or (b) fail via /api/credits/use → still fall to the alert branch. Both paths would work — but the disabled attr short-circuits everything."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration32_new_pricing.py (new — 11 pytest cases)",
+    "/app/frontend/src/components/CreditsPaywallModal.js (fixed: `/api/checkout` → `/api/credits/checkout`)"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 pytest cases pass — after fixing checkout URL bug in modal)",
+    "frontend": "80% (paywall visual + Stripe redirect + BuyCredits + homepage pill all OK; send-button click while blocked is dead — Enter key works)"
+  },
+  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 (used for backend tests). Low-balance user: paywall_test_1783103389@plume-test.fr / TestPaywall2026! (created for paywall UI test, drained to 0cr)",
+  "seed_data_creation": "Created 1 temp Supabase user with balance=0 to test paywall trigger (`paywall_test_1783103389@plume-test.fr`). Admin balance dropped from 9456 → 9446 (10cr used for chat regression test).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iteration 32 pricing overhaul: backend fully working, all 11 pytest cases green. FIXED bug: CreditsPaywallModal.js used the wrong /api/checkout URL — corrected to /api/credits/checkout. REMAINING UX bug: ChatIA send-button and textarea are `disabled={blocked}` when balance < 10, so clicking Send does nothing and the paywall never opens via the button. Enter key works because keyDown fires regardless. Main agent must either (a) remove disabled prop on send button, or (b) auto-open paywall on mount when balance < 10. To re-test, use paywall_test_1783103389@plume-test.fr (0cr) — press Enter in the chat input; the modal will appear correctly with Initiation/Astro-Amour/Flammes Jumelles cards, correct prices (4,99€ / 12,99€ / 29,99€), correct totals (15 / 50 / 130 crédits), and the Recharger button now correctly redirects to Stripe via /api/credits/checkout.",
+  "rca of the issue": "Root cause of the paywall checkout 404: /app/frontend/src/components/CreditsPaywallModal.js line 64 used the URL template `${API}/api/checkout` which does not exist on the backend. The correct FastAPI route is `/api/credits/checkout` (defined in server.py @api_router.post('/credits/checkout') with api_router prefix `/api`). BuyCredits.js used the correct URL, but the newly-added paywall modal was missing the `/credits` segment. Fix: single-string replace. Verified post-fix by curl (200 OK + Stripe URL) and by Playwright (successful redirect to Stripe checkout). Root cause of the paywall-not-opening-on-click UX bug: ChatIA.js line 682 sets `disabled={loading || !input.trim() || blocked}` on the send button, where `blocked = isAuthenticated && (creditBalance ?? 0) < 10`. React disabled buttons swallow click events, so sendMessage() never runs to hit its `setPaywallOpen(true)` branch. Mitigation: main agent should remove `blocked` from the disabled condition OR wrap the button so onClick still fires. Test evidence: Playwright Enter key triggers modal correctly; button click while `disabled` is a no-op."
+}

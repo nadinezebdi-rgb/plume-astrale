@@ -4,13 +4,26 @@ import { Send, Loader2, Sparkles, Trash2, Coins, LogIn, ShoppingBag } from 'luci
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import NatalEssentials from '@/components/NatalEssentials';
+import CreditsPaywallModal from '@/components/CreditsPaywallModal';
 import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
-const COST_PER_MESSAGE = 2;
+const COST_PER_MESSAGE = 10;
 const FREE_MESSAGES_ANON = 3;
 const FREE_COUNT_KEY = 'pa_chat_free_count';
 const SESSION_KEY = 'pa_plume_session_id';
+
+// Garde-fou : detecte une fuite d'appel d'outil JSON dans la reponse du modele
+function isToolLeak(text) {
+  if (!text || typeof text !== 'string' || text.length > 3000) return false;
+  const s = text.trim();
+  if (!s.startsWith('{') || !s.endsWith('}')) return false;
+  try {
+    const o = JSON.parse(s);
+    return !!(o && (o.action || o.action_input));
+  } catch { return false; }
+}
+const LEAK_FALLBACK = "Les astres sont un peu bavards ce soir. Peux-tu reformuler ta question ?";
 
 const ChatIA = () => {
   const { isAuthenticated, user, token, creditBalance, refreshBalance } = useAuth();
@@ -27,6 +40,7 @@ const ChatIA = () => {
   const [loading, setLoading] = useState(false);
   const [freeUsed, setFreeUsed] = useState(0);
   const [sessionId, setSessionId] = useState(null);
+  const [paywallOpen, setPaywallOpen] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -151,13 +165,7 @@ const ChatIA = () => {
 
     // --- Gating : utilisateurs connectés avec solde insuffisant ---
     if (isAuthenticated && (creditBalance ?? 0) < COST_PER_MESSAGE) {
-      setMessages(prev => [
-        ...prev,
-        {
-          role: 'system',
-          content: 'cta-credits',
-        },
-      ]);
+      setPaywallOpen(true);
       return;
     }
 
@@ -208,8 +216,8 @@ const ChatIA = () => {
         } catch (e) {
           // Si 402 (solde insuffisant), on redirige
           if (e.response?.status === 402) {
-            setSending(false);
-            navigate('/acheter-credits');
+            setLoading(false);
+            setPaywallOpen(true);
             return;
           }
           // fallback silencieux vers /api/plume-chat (LLM generique) pour les autres erreurs
@@ -237,7 +245,8 @@ const ChatIA = () => {
       }
 
       if (json.success && json.answer) {
-        setMessages(prev => [...prev, { role: 'assistant', content: json.answer }]);
+        const safeAnswer = isToolLeak(json.answer) ? LEAK_FALLBACK : json.answer;
+        setMessages(prev => [...prev, { role: 'assistant', content: safeAnswer }]);
         if (!isAuthenticated) incrementFreeUsed();
       } else {
         setMessages(prev => [
@@ -400,6 +409,11 @@ const ChatIA = () => {
 
   return (
     <>
+      <CreditsPaywallModal
+        open={paywallOpen}
+        onClose={() => setPaywallOpen(false)}
+        context="chat_out"
+      />
       <SEO title="Consultation astrale personnalisee — Plume Astrale" description="Pose toutes tes questions a ton theme natal en francais. Une guidance personnalisee, alimentee par ta carte du ciel reelle." />
       <div style={{
         minHeight: '100vh',
@@ -639,9 +653,12 @@ const ChatIA = () => {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={e => {
+                e.currentTarget.style.borderColor = 'rgba(212,180,106,0.4)';
+                if (blocked) setPaywallOpen(true);
+              }}
               placeholder={blocked ? (isAuthenticated ? "Solde insuffisant — recharge tes credits" : "Inscris-toi pour continuer") : "Pose ta question aux etoiles..."}
               rows={1}
-              disabled={blocked}
               style={{
                 flex: 1,
                 background: 'rgba(255,255,255,0.04)',
@@ -656,16 +673,16 @@ const ChatIA = () => {
                 lineHeight: 1.5,
                 maxHeight: 120,
                 transition: 'border-color 0.2s',
-                opacity: blocked ? 0.5 : 1,
+                opacity: blocked ? 0.55 : 1,
+                cursor: blocked ? 'pointer' : 'text',
               }}
-              onFocus={e => { e.currentTarget.style.borderColor = 'rgba(212,180,106,0.4)'; }}
               onBlur={e => { e.currentTarget.style.borderColor = 'rgba(212,180,106,0.15)'; }}
               data-testid="chat-input"
             />
 
             <button
-              onClick={sendMessage}
-              disabled={loading || !input.trim() || blocked}
+              onClick={() => { if (blocked) { setPaywallOpen(true); return; } sendMessage(); }}
+              disabled={loading || (!input.trim() && !blocked)}
               style={{
                 background: input.trim() && !loading && !blocked
                   ? 'linear-gradient(135deg, rgba(212,180,106,0.25), rgba(212,180,106,0.12))'

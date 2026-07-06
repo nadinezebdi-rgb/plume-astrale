@@ -5,6 +5,8 @@ import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import TrialBanner from "./components/TrialBanner";
 import ErrorBoundary from "./components/ErrorBoundary";
+
+import Index from "./pages/Index";
 import PremiumStickyCTA from "./components/PremiumStickyCTA";
 import CookieConsent from "./components/CookieConsent";
 
@@ -54,6 +56,10 @@ const SynastrieSucces = lazy(() => import("./pages/SynastrieSucces"));
 const AstroSexo = lazy(() => import("./pages/AstroSexo"));
 const Bibliotheque = lazy(() => import("./pages/Bibliotheque"));
 const Desabonnement = lazy(() => import("./pages/Desabonnement"));
+const SynastrieSucces = lazy(() => import("./pages/SynastrieSucces"));
+const AstroSexo = lazy(() => import("./pages/AstroSexo"));
+const Bibliotheque = lazy(() => import("./pages/Bibliotheque"));
+const Desabonnement = lazy(() => import("./pages/Desabonnement"));
 
 const RouteFallback = (
   <div className="min-h-screen flex items-center justify-center" style={{ background: "#0C0918", color: "#B8B0C8" }}>
@@ -73,8 +79,10 @@ function App() {
         </ErrorBoundary>
         <Suspense fallback={RouteFallback}>
           <Routes>
+            {/* Page admin — sans Navbar */}
             <Route path="/admin" element={<Admin />} />
             <Route path="/bibliotheque" element={<Bibliotheque />} />
+            <Route path="/rencontres-astrales" element={<RencontresAstrales />} />
 
             <Route
               path="*"

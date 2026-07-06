@@ -44,6 +44,7 @@ from routes.oracle import router as oracle_router
 from routes.cercle import router as cercle_router
 from routes.synastrie import router as synastrie_router
 from routes.library import router as library_router
+from routes.rencontres import router as rencontres_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -75,6 +76,7 @@ api_router.include_router(oracle_router)
 api_router.include_router(cercle_router)
 api_router.include_router(synastrie_router)
 api_router.include_router(library_router)
+api_router.include_router(rencontres_router)
 
 
 # ════════════════════════════════════════════
@@ -544,6 +546,8 @@ async def create_checkout(
     if not pack:
         raise HTTPException(status_code=400, detail='Pack inconnu')
 
+    total_credits = int(pack.get('credits', 0)) + int(pack.get('bonus', 0) or 0)
+
     host_url = str(http_request.base_url).rstrip('/')
     webhook_url = f'{host_url}/api/webhook/stripe'
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
@@ -561,7 +565,7 @@ async def create_checkout(
             'user_id': current_user['id'],
             'user_email': current_user.get('email') or '',
             'pack_id': payload.pack_id,
-            'credits': str(pack['credits']),
+            'credits': str(total_credits),
         },
     )
     session = await stripe_checkout.create_checkout_session(req)
@@ -576,11 +580,15 @@ async def create_checkout(
             'pack_id': payload.pack_id,
             'amount': float(pack['amount']),
             'currency': pack['currency'],
-            'credits': int(pack['credits']),
+            'credits': total_credits,
             'status': 'initiated',
             'payment_status': 'unpaid',
             'credits_granted': False,
-            'metadata': {'pack_name': pack['name']},
+            'metadata': {
+                'pack_name': pack['name'],
+                'base_credits': int(pack.get('credits', 0)),
+                'bonus': int(pack.get('bonus', 0) or 0),
+            },
         }).execute()
     except Exception as e:
         logger.warning(f'Could not log payment_transaction: {e}')

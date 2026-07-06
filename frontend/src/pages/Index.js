@@ -313,6 +313,44 @@ const Index = () => {
               </p>
             </div>
 
+<<<<<<< HEAD
+              {!isAuthenticated && (
+                <Link to="/inscription"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 group hover:scale-[1.02] transition-transform"
+                  style={{
+                    background: 'linear-gradient(90deg, rgba(212,180,106,0.20), rgba(244,217,140,0.28), rgba(212,180,106,0.20))',
+                    border: '1px solid rgba(244,217,140,0.55)',
+                    boxShadow: '0 0 30px rgba(212,180,106,0.20)',
+                  }}
+                  data-testid="launch-offer-badge">
+                  <Sparkles style={{ width: 12, height: 12, color: '#F4D98C' }} />
+                  <span style={{ fontSize: 11, letterSpacing: '0.16em', color: '#F4D98C', textTransform: 'uppercase', fontFamily: 'Cinzel, serif' }}>
+                    Offre de lancement — 20 crédits offerts pour révéler votre avenir amoureux
+                  </span>
+                  <span style={{ fontSize: 11, color: '#F4D98C', opacity: 0.85 }} className="group-hover:translate-x-0.5 transition-transform">→</span>
+                </Link>
+              )}
+            </div>
+
+            <div className="animate-fade-up flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
+              style={{ animationDelay: '500ms' }}>
+              <button onClick={() => navigate(isAuthenticated ? '/energie' : '/inscription')} className="pa-btn-primary" data-testid="hero-cta-primary">
+                <Sparkles style={{ width: 16, height: 16 }} strokeWidth={1.5} />
+                {isAuthenticated ? 'Voir mon énergie actuelle' : 'Découvrir mon thème'}
+              </button>
+              <button onClick={() => navigate(isAuthenticated ? '/consultation' : '/connexion')} className="pa-btn-ghost" data-testid="hero-cta-secondary">
+                <MessageCircle style={{ width: 16, height: 16 }} strokeWidth={1.5} />
+                {isAuthenticated ? 'Démarrer ma consultation' : 'Voir mon énergie actuelle'}
+              </button>
+            </div>
+
+            {/* Mood orbs */}
+            <div className="animate-fade-up" style={{ animationDelay: '700ms' }}>
+              <p className="text-[11px] uppercase tracking-[0.25em] mt-12 mb-2 opacity-60" style={{ color: 'var(--pa-faint)' }}>
+                Comment te sens-tu ?
+              </p>
+              <MoodOrbs onSelect={handleMoodSelect} />
+=======
             {/* ── Step-by-step birth form ── */}
             <div className="animate-fade-up" style={{ animationDelay: '400ms' }}>
               <div

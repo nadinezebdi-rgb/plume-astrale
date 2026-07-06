@@ -764,3 +764,83 @@ Prompt template = STYLE_ANCHOR + subject specific + NEGATIVE constraints.
 - DNS `plume-astrale.fr` a corriger (CNAME vers consultation-astro.emergent.host)
 - Domaine Resend a verifier (envoi emails contact@ / noreply@)
 - Executer 3 SQL migrations dans Supabase (oracle_leads, cercle, synastrie)
+
+---
+
+## Bug fix — Fuite d'appel d'outil dans Plume Chat (03/02/2026)
+
+### Symptome
+Le chat AI renvoyait `{"action":"astrology.get_chart","action_input":{"subject_id":"subject_1"}}`
+au lieu d'un vrai message d'astrologue francais.
+
+### Cause racine
+`astrology.io /chat/completions` avec `enabled_tools=[...]` fuitait la tool call en texte brut dans
+`message.content` au lieu d'executer la boucle d'outils cote serveur.
+
+### Fix (5 couches defense-en-profondeur)
+1. **routes/astrology_v3.py** : nouvelle route `/chat` qui pre-embed le theme natal directement
+   dans le system prompt, puis appelle astro_chat avec `disable_tools=True` (retire `enabled_tools`
+   du payload envoye a astrology.io).
+2. **services/astrology_io_service.py** : `astro_chat()` accepte `disable_tools=True` +
+   temperature 0.8 / max_tokens 1200 par defaut.
+3. **Nouveau system prompt Plume** (astrologue holistique, barriere sante stricte, termine
+   toujours par une question ouverte). Copie in routes/astrology_v3.py + services/plume_chat.py.
+4. **Backend guard** : `_is_tool_leak(text)` detecte JSON avec action/action_input + retry 1x +
+   fallback francais poli.
+5. **Frontend guard** : `isToolLeak(text)` + `LEAK_FALLBACK` dans `pages/ChatIA.js`.
+
+### Testing
+- iteration 31 : 8/8 backend + 2/2 frontend OK — plus aucune fuite JSON.
+
+---
+
+## Iteration 33 (06/02/2026) — 3 tasks livrees en parallele
+
+### A. Fix UX bouton Send ChatIA (bug iteration 32)
+- ChatIA.js : send button `disabled` ne contient plus `blocked`
+- onClick intercepte : si blocked → setPaywallOpen(true); sinon sendMessage()
+- textarea onFocus ouvre aussi le paywall (double confort)
+- Test agent : verifie 100% ok
+
+### B. Deploy fix (build failure)
+- Cause : `/backend/assets/library/` pesait 268 MB
+- Fix : exclus les _1080 et _2048 via .gitignore + .dockerignore
+- Repo passe de 268 MB → 34 MB
+- Seulement les _512 dans le build (suffisant pour web + frontend cards)
+- HQ/Instagram restent regenerables depuis `/bibliotheque` admin en production
+
+### C. Decodeur du Destin Amoureux (nouveau produit 29,99 EUR)
+- **Landing** `/rencontres-astrales` — 3 etapes :
+  1. Form birth data (jour/mois/annee/heure/lieu/prenom)
+  2. Reveal portrait partenaire ideal (Maison VII + Venus/Mars)
+  3. Email gate → 3 fenetres de rencontre (6 prochains mois) + CTA 29,99€
+- **Backend** `/api/rencontres/*` :
+  - POST `/reveal` (public) → portrait
+  - POST `/capture` (public) → windows + email lead (upsert oracle_leads) + envoi Resend
+  - POST `/checkout` (public) → session Stripe one-shot 29,99€
+- **Pack** `rencontres_ultime` ajoute dans config.py (kind=oneshot)
+- **Style** : hero mystique nuit-profonde / or, form epure inspire de la video TikTok
+- Grammar francaise ajustee : "en signe de la Balance", "du Belier"
+- Validation Pydantic complete (422 + messages FR)
+
+### Etat testing iteration 33
+- Backend : 5/7 pytest OK au premier passage — 2 minor fixes appliques (validation + grammar)
+- Frontend : 100% — flow complet + Stripe redirect OK
+
+## Backlog restant (mise a jour)
+
+### P0 — Blocages ops
+- [ ] Executer 3 SQL migrations dans Supabase (oracle_leads, cercle, synastrie)
+- [ ] Rediriger DNS `plume-astrale.fr` vers `consultation-astro.emergent.host`
+- [ ] Verifier domaine Resend (`plume-astrale.fr`)
+
+### P1 — Prochaines features
+- [ ] Generer le PDF 15 pages "Guide de Compatibilite Ultime" (produit rencontres_ultime)
+- [ ] AstroSexo Payant 19€ (funnel + PDF compatibilite sexuelle)
+- [ ] Astrologie relationnelle karmique 79€
+- [ ] Webhook Stripe pour rencontres_ultime → envoi PDF automatique
+
+### P2 — Optimisations
+- [ ] Deduplication PACKS (config.py vs frontend copies)
+- [ ] Uploader la bibliotheque visuelle sur Supabase Storage (assets sortis du repo)
+- [ ] Analytics GA4/Plausible (CookieConsent deja pret)
