@@ -13,6 +13,13 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+## Session Feb 2026 — 💰 Mode BYOK activé (2 crédits/tour au lieu de 25) (2026-02)
+- ✅ **Clé OpenAI utilisateur ajoutée** dans `/app/backend/.env` (`OPENAI_API_KEY`)
+- ✅ **`plume_chat.py` bascule sur `/api/v3/chat/completions/byok`** avec `byok: {provider: openai, api_key: OPENAI_API_KEY}` + `model: gpt-4o-mini`
+- ✅ **Fallback automatique en hosted mode** si BYOK échoue (mauvaise clé, quota, etc.) → aucune interruption service
+- ✅ **Économie 92%** sur astrology-api.io (2 vs 25 crédits/tour). L'utilisateur paie OpenAI directement.
+- ✅ Testé E2E : réponse Soléna complète avec animation, titres, astro concrète, fenêtre de rencontre datée
+
 ## Session Feb 2026 — 🔮 Rebranchage chat sur astrology-api.io v3 + Prompt Soléna officiel (2026-02)
 Fix du bug production "Clé LLM non configurée" + intégration hosted-mode astrology-api.io.
 - ✅ **Backend rewrite** `/app/backend/services/plume_chat.py` :

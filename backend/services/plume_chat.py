@@ -15,8 +15,12 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════
 # Config
 # ═══════════════════════════════════════════════════════════════════════
-ASTROLOGY_API_IO_URL = "https://api.astrology-api.io/api/v3/chat/completions"
+# BYOK endpoint : 2 crédits/tour au lieu de 25 côté astrology-api.io
+# (l'utilisateur paie l'appel LLM directement chez OpenAI).
+ASTROLOGY_API_IO_URL = "https://api.astrology-api.io/api/v3/chat/completions/byok"
+ASTROLOGY_API_IO_URL_HOSTED = "https://api.astrology-api.io/api/v3/chat/completions"
 DEFAULT_TIMEOUT = 60.0
+BYOK_MODEL = "gpt-4o-mini"
 
 # Détection d'une fuite d'appel d'outil dans la reponse du modele
 _TOOL_LEAK_RE = re.compile(r'^\s*\{[\s\S]*"action"[\s\S]*"action_input"[\s\S]*\}\s*$')
@@ -172,10 +176,22 @@ async def plume_chat(
         "max_tokens": 1400,
     }
 
+    # BYOK mode : passe la clé OpenAI utilisateur → 2 crédits/tour côté astrology-api.io
+    openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if openai_key:
+        payload["model"] = BYOK_MODEL
+        payload["byok"] = {
+            "provider": "openai",
+            "api_key": openai_key,
+        }
+        target_url = ASTROLOGY_API_IO_URL  # /byok endpoint
+    else:
+        target_url = ASTROLOGY_API_IO_URL_HOSTED  # hosted mode (25 crédits/tour)
+
     try:
         async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
             r = await client.post(
-                ASTROLOGY_API_IO_URL,
+                target_url,
                 headers={
                     "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
@@ -184,10 +200,24 @@ async def plume_chat(
             )
             if r.status_code != 200:
                 logger.error(f"astrology-api.io error {r.status_code}: {r.text[:500]}")
-                return {
-                    "success": False,
-                    "message": "Les astres traversent une zone d'ombre. Réessaie dans un instant.",
-                }
+                # Fallback : si BYOK échoue (mauvaise clé, quota OpenAI), on retente en hosted
+                if openai_key and target_url == ASTROLOGY_API_IO_URL:
+                    logger.warning("BYOK failed, retrying in hosted mode")
+                    payload.pop("byok", None)
+                    payload.pop("model", None)
+                    r = await client.post(
+                        ASTROLOGY_API_IO_URL_HOSTED,
+                        headers={
+                            "Authorization": f"Bearer {api_key}",
+                            "Content-Type": "application/json",
+                        },
+                        json=payload,
+                    )
+                    if r.status_code != 200:
+                        logger.error(f"hosted fallback also failed {r.status_code}: {r.text[:500]}")
+                        return {"success": False, "message": "Les astres traversent une zone d'ombre. Réessaie dans un instant."}
+                else:
+                    return {"success": False, "message": "Les astres traversent une zone d'ombre. Réessaie dans un instant."}
             data = r.json()
 
         # Format OpenAI-compatible : choices[0].message.content
