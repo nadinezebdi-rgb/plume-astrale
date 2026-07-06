@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Sparkles, Heart, Moon, Star, Loader2, Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
 import SEO from '@/components/SEO';
+import useUtmTracking from '@/hooks/useUtmTracking';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -14,6 +15,7 @@ const MONTHS_FR = ['Janvier','Fevrier','Mars','Avril','Mai','Juin','Juillet','Ao
  */
 export default function RencontresAstrales() {
   const navigate = useNavigate();
+  const utm = useUtmTracking();
   const [step, setStep] = useState('form'); // form | reveal | windows
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -48,6 +50,7 @@ export default function RencontresAstrales() {
         hour: Number(hour), minute: Number(minute),
         place, country: 'France',
         first_name: firstName || null,
+        utm,
       });
       setReveal(r.data);
       setStep('reveal');
@@ -72,6 +75,7 @@ export default function RencontresAstrales() {
         reveal_id: reveal.reveal_id,
         email,
         consent_marketing: consent,
+        utm,
       });
       setWindows(r.data);
       setStep('windows');
@@ -90,6 +94,7 @@ export default function RencontresAstrales() {
         origin_url: window.location.origin,
         reveal_id: reveal?.reveal_id,
         email,
+        utm,
       });
       if (r.data?.url) window.location.href = r.data.url;
       else { setCtaLoading(false); setError('Paiement indisponible pour l\'instant.'); }

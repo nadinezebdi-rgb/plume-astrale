@@ -50,6 +50,7 @@ class BirthPayload(BaseModel):
     place: constr(strip_whitespace=True, min_length=2, max_length=80)
     country: Optional[str] = "France"
     first_name: Optional[str] = None
+    utm: Optional[dict] = None
 
     @field_validator("day")
     @classmethod
@@ -91,12 +92,14 @@ class CapturePayload(BaseModel):
     reveal_id: str
     email: EmailStr
     consent_marketing: bool = True
+    utm: Optional[dict] = None
 
 
 class CheckoutPayload(BaseModel):
     origin_url: str
     reveal_id: Optional[str] = None
     email: Optional[EmailStr] = None
+    utm: Optional[dict] = None
 
 
 # ────────────────────────────────────────────────────────────────
@@ -108,6 +111,27 @@ SIGN_ELEMENT = {
     "Balance": "Air", "Scorpion": "Eau", "Sagittaire": "Feu",
     "Capricorne": "Terre", "Verseau": "Air", "Poissons": "Eau",
 }
+
+# ── Utilitaires UTM (attribution TikTok/social) ────────────────────
+_UTM_ALLOWED_KEYS = {
+    "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
+    "referrer", "landing_path", "landing_ts",
+}
+
+
+def _sanitize_utm(utm) -> dict:
+    """Retourne un dict UTM safe (cles autorisees + valeurs strings <= 250)."""
+    if not utm or not isinstance(utm, dict):
+        return {}
+    out = {}
+    for k in _UTM_ALLOWED_KEYS:
+        v = utm.get(k)
+        if v is None:
+            continue
+        s = str(v)[:250]
+        if s:
+            out[k] = s
+    return out
 
 # Portrait du partenaire ideal — texte poetique par element de la Maison VII
 PARTNER_PORTRAIT_TEMPLATES = {
@@ -249,6 +273,7 @@ async def reveal(payload: BirthPayload):
         "m7_sign": m7_sign,
         "venus_fr": venus_fr,
         "mars_fr": mars_fr,
+        "utm": _sanitize_utm(payload.utm),
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -329,14 +354,24 @@ async def capture(payload: CapturePayload):
     windows = _synthesize_windows(ctx, transits)
 
     # Enregistrer le lead
+    utm = _sanitize_utm(payload.utm) or ctx.get("utm") or {}
     try:
         sb = get_admin_client()
         sb.table("oracle_leads").upsert({
             "email": payload.email,
             "first_name": ctx.get("first_name"),
             "birth_date": f"{bd['year']:04d}-{bd['month']:02d}-{bd['day']:02d}",
-            "source": "rencontres_astrales",
+            "source": utm.get("utm_source") or "rencontres_astrales",
             "consent_marketing": payload.consent_marketing,
+            "metadata": {
+                "campaign": utm.get("utm_campaign"),
+                "medium": utm.get("utm_medium"),
+                "content": utm.get("utm_content"),
+                "term": utm.get("utm_term"),
+                "referrer": utm.get("referrer"),
+                "landing_path": utm.get("landing_path"),
+                "m7_sign": ctx.get("m7_sign"),
+            },
         }, on_conflict="email").execute()
     except Exception as e:
         logger.warning(f"[rencontres] lead upsert failed (table may not exist yet): {e}")
@@ -494,6 +529,14 @@ async def rencontres_checkout(payload: CheckoutPayload, request: Request):
     success_url = f"{origin}/rencontres-astrales/succes?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{origin}/rencontres-astrales"
 
+    # Merge UTM du payload avec celui capture au reveal (first-touch)
+    utm = _sanitize_utm(payload.utm)
+    if payload.reveal_id:
+        ctx = _REVEAL_CACHE.get(payload.reveal_id)
+        if ctx and ctx.get("utm"):
+            for k, v in ctx["utm"].items():
+                utm.setdefault(k, v)
+
     req = CheckoutSessionRequest(
         amount=float(pack["amount"]),
         currency=pack["currency"],
@@ -504,6 +547,11 @@ async def rencontres_checkout(payload: CheckoutPayload, request: Request):
             "kind": "oneshot",
             "reveal_id": payload.reveal_id or "",
             "email": payload.email or "",
+            # Attribution — Stripe limite chaque valeur a 500 chars
+            "utm_source":   (utm.get("utm_source") or "")[:100],
+            "utm_medium":   (utm.get("utm_medium") or "")[:100],
+            "utm_campaign": (utm.get("utm_campaign") or "")[:100],
+            "utm_content":  (utm.get("utm_content") or "")[:100],
         },
     )
     session = await stripe_checkout.create_checkout_session(req)
@@ -524,6 +572,7 @@ async def rencontres_checkout(payload: CheckoutPayload, request: Request):
                 "product": "rencontres_ultime",
                 "kind": "oneshot",
                 "reveal_id": payload.reveal_id,
+                "utm": utm,
             },
         }).execute()
     except Exception as e:

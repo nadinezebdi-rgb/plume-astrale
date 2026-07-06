@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import { Loader2, RefreshCw, Sparkles, Download, PlayCircle, Image as ImageIcon, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import SEO from '@/components/SEO';
+import UtmBuilder from '@/components/UtmBuilder';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -284,6 +285,19 @@ export default function Bibliotheque() {
             ))}
           </div>
         )}
+
+        {/* ═════════════ MARKETING / UTM BUILDER ═════════════ */}
+        <div className="mt-16 pt-10 border-t" style={{ borderColor: 'rgba(197,160,89,0.20)' }}>
+          <div className="mb-6">
+            <div className="text-xs uppercase" style={{ color: '#C5A059', letterSpacing: '0.25em' }}>
+              Marketing
+            </div>
+            <h2 className="text-3xl mt-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: '#F4E8D2' }}>
+              Tracking des campagnes
+            </h2>
+          </div>
+          <UtmBuilder />
+        </div>
       </div>
     </div>
   );
