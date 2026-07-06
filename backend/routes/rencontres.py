@@ -38,15 +38,53 @@ _REVEAL_CACHE: dict[str, dict] = {}
 # ────────────────────────────────────────────────────────────────
 # Modeles Pydantic
 # ────────────────────────────────────────────────────────────────
+from pydantic import field_validator, constr
+
+
 class BirthPayload(BaseModel):
     day: int
     month: int
     year: int
     hour: int = 12
     minute: int = 0
-    place: str
+    place: constr(strip_whitespace=True, min_length=2, max_length=80)
     country: Optional[str] = "France"
     first_name: Optional[str] = None
+
+    @field_validator("day")
+    @classmethod
+    def _day(cls, v):
+        if v < 1 or v > 31:
+            raise ValueError("Le jour doit etre entre 1 et 31.")
+        return v
+
+    @field_validator("month")
+    @classmethod
+    def _month(cls, v):
+        if v < 1 or v > 12:
+            raise ValueError("Le mois doit etre entre 1 et 12.")
+        return v
+
+    @field_validator("year")
+    @classmethod
+    def _year(cls, v):
+        if v < 1900 or v > 2030:
+            raise ValueError("L'annee doit etre entre 1900 et 2030.")
+        return v
+
+    @field_validator("hour")
+    @classmethod
+    def _hour(cls, v):
+        if v < 0 or v > 23:
+            raise ValueError("L'heure doit etre entre 0 et 23.")
+        return v
+
+    @field_validator("minute")
+    @classmethod
+    def _minute(cls, v):
+        if v < 0 or v > 59:
+            raise ValueError("Les minutes doivent etre entre 0 et 59.")
+        return v
 
 
 class CapturePayload(BaseModel):
@@ -74,34 +112,56 @@ SIGN_ELEMENT = {
 # Portrait du partenaire ideal — texte poetique par element de la Maison VII
 PARTNER_PORTRAIT_TEMPLATES = {
     "Eau": (
-        "Votre Maison VII en signe d'**{sign}** revele une ame sœur d'une **sensibilite a fleur "
+        "Votre Maison VII {article}**{sign}** revele une ame sœur d'une **sensibilite a fleur "
         "de peau**. Cette personne possede une intuition tres developpee, un besoin de connexion "
         "fusionnelle et une profondeur emotionnelle rare. Elle vous accueillera dans l'espace "
         "sacre de ses ressentis les plus intimes. Vous n'etes pas fait(e) pour les amours tiedes : "
         "il vous faut de l'intensite, du silence partage, de la magie du subtil."
     ),
     "Feu": (
-        "Votre Maison VII en signe de **{sign}** vous designe un partenaire **passionne, "
+        "Votre Maison VII {article}**{sign}** vous designe un partenaire **passionne, "
         "audacieux, magnetique**. Cette personne rayonne d'une chaleur solaire, elle ose, elle "
         "prend des initiatives, elle vous emporte dans son elan. Vous vibrez au contact d'une "
         "flamme qui ne se cache pas. La routine amoureuse vous eteint ; il vous faut un feu "
         "constant, une aventure a co-creer."
     ),
     "Air": (
-        "Votre Maison VII en signe d'**{sign}** dessine un partenaire **cerebral, curieux, "
+        "Votre Maison VII {article}**{sign}** dessine un partenaire **cerebral, curieux, "
         "libre**. Cette personne vous stimulera intellectuellement, ouvrira vos horizons, vous "
         "surprendra par son originalite. La conversation profonde est un aphrodisiaque pour "
         "vous. Vous cherchez un complice, un miroir vibrant, un compagnon de voyage plutot qu'un "
         "gardien."
     ),
     "Terre": (
-        "Votre Maison VII en signe de **{sign}** vous promet une ame sœur **stable, sensuelle, "
+        "Votre Maison VII {article}**{sign}** vous promet une ame sœur **stable, sensuelle, "
         "profondement fiable**. Cette personne construit avec vous quelque chose de durable, "
         "d'incarne, de tangible. Elle n'a pas peur du long terme. Sa presence rassure votre "
         "systeme nerveux ; sa fidelite est une forme d'amour tres precieuse. Vous meritez cet "
         "ancrage."
     ),
 }
+
+
+def _sign_article(sign: str) -> str:
+    """Retourne l'article francais approprie devant un signe astro.
+    'en signe du Belier' / 'en signe de la Balance' / 'en signe des Poissons'."""
+    if not sign:
+        return "en signe de "
+    articles = {
+        "Belier": "du ",
+        "Taureau": "du ",
+        "Gemeaux": "des ",
+        "Cancer": "du ",
+        "Lion": "du ",
+        "Vierge": "de la ",
+        "Balance": "de la ",
+        "Scorpion": "du ",
+        "Sagittaire": "du ",
+        "Capricorne": "du ",
+        "Verseau": "du ",
+        "Poissons": "des ",
+    }
+    return "en signe " + articles.get(sign, "de ")
 
 
 def _find_point(points: list, name: str) -> Optional[dict]:
@@ -164,14 +224,14 @@ async def reveal(payload: BirthPayload):
     name = payload.first_name or "toi"
     natal = await aio.natal_chart(bd, name=name, language="fr")
     if not natal:
-        raise HTTPException(502, "Impossible de calculer votre theme natal. Reessayez dans un instant.")
+        raise HTTPException(400, "Impossible de calculer votre theme natal. Verifiez la date et le lieu de naissance.")
 
     m7_sign = _house_seven_sign_fr(natal) or "Balance"
     venus_fr, mars_fr = _venus_mars_signs_fr(natal)
 
     element = SIGN_ELEMENT.get(m7_sign, "Air")
     portrait_template = PARTNER_PORTRAIT_TEMPLATES.get(element, PARTNER_PORTRAIT_TEMPLATES["Air"])
-    portrait = portrait_template.format(sign=m7_sign)
+    portrait = portrait_template.format(sign=m7_sign, article=_sign_article(m7_sign))
 
     # Petit complement Venus + Mars
     complement = None
