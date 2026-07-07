@@ -552,11 +552,26 @@ async def rencontres_checkout(payload: CheckoutPayload, request: Request):
 
     # Merge UTM du payload avec celui capture au reveal (first-touch)
     utm = _sanitize_utm(payload.utm)
+    reveal_ctx = None
     if payload.reveal_id:
-        ctx = _REVEAL_CACHE.get(payload.reveal_id)
-        if ctx and ctx.get("utm"):
-            for k, v in ctx["utm"].items():
+        reveal_ctx = _REVEAL_CACHE.get(payload.reveal_id)
+        if reveal_ctx and reveal_ctx.get("utm"):
+            for k, v in reveal_ctx["utm"].items():
                 utm.setdefault(k, v)
+
+    # Extraire les donnees du reveal pour la generation PDF post-webhook
+    pdf_ctx = {}
+    if reveal_ctx:
+        bd = reveal_ctx.get("birth_data") or {}
+        pdf_ctx = {
+            "first_name": reveal_ctx.get("first_name") or "",
+            "m7_sign": reveal_ctx.get("m7_sign") or "",
+            "venus_sign": reveal_ctx.get("venus_fr") or "",
+            "mars_sign": reveal_ctx.get("mars_fr") or "",
+            # birth date au format ISO pour le PDF
+            "birth_date_iso": f"{bd.get('year','1990')}-{str(bd.get('month','1')).zfill(2)}-{str(bd.get('day','1')).zfill(2)}"
+                              if isinstance(bd, dict) else "",
+        }
 
     req = CheckoutSessionRequest(
         amount=float(pack["amount"]),
@@ -565,7 +580,7 @@ async def rencontres_checkout(payload: CheckoutPayload, request: Request):
         cancel_url=cancel_url,
         metadata={
             "product": "rencontres_ultime",
-            "kind": "oneshot",
+            "kind": "rencontres_ultime",   # discriminator pour le webhook
             "reveal_id": payload.reveal_id or "",
             "email": payload.email or "",
             # Attribution — Stripe limite chaque valeur a 500 chars
@@ -591,9 +606,10 @@ async def rencontres_checkout(payload: CheckoutPayload, request: Request):
             "credits_granted": False,
             "metadata": {
                 "product": "rencontres_ultime",
-                "kind": "oneshot",
+                "kind": "rencontres_ultime",
                 "reveal_id": payload.reveal_id,
                 "utm": utm,
+                "pdf_ctx": pdf_ctx,   # sert au webhook pour generer le PDF
             },
         }).execute()
     except Exception as e:
