@@ -13,6 +13,52 @@ EMAIL="nadine.zebdi@gmail.com"
 APP_DIR="/root/plume-astrale"
 VPS_IP="187.124.9.214"
 
+# ========================================
+# FONCTION: Verifier les variables requises
+# ========================================
+check_required_env_vars() {
+    echo ""
+    echo "[*] Verification des variables d'environnement..."
+    
+    REQUIRED_VARS=(
+        "OPENAI_API_KEY"
+        "ASTROLOGY_API_IO_KEY"
+        "STRIPE_API_KEY"
+        "JWT_SECRET"
+    )
+    
+    MISSING_VARS=()
+    
+    for var in "${REQUIRED_VARS[@]}"; do
+        if [ -z "${!var}" ]; then
+            MISSING_VARS+=("$var")
+        fi
+    done
+    
+    if [ ${#MISSING_VARS[@]} -gt 0 ]; then
+        echo ""
+        echo "❌ ERREUR: Variables d'environnement manquantes:"
+        for var in "${MISSING_VARS[@]}"; do
+            echo "   - $var"
+        done
+        echo ""
+        echo "📖 Pour configurer, consultez: /app/ENV_SETUP.md"
+        echo ""
+        echo "Sur VPS local: Assurez-vous que le fichier .env contient toutes les variables."
+        echo "Sur Emergent: Allez a https://app.emergent.sh -> Deployed Apps -> Settings"
+        echo ""
+        return 1
+    fi
+    
+    echo "✅ Toutes les variables requises sont configurees"
+    echo ""
+}
+
+# Charger les variables du fichier .env s'il existe
+if [ -f "$APP_DIR/.env" ]; then
+    export $(cat "$APP_DIR/.env" | grep -v '^#' | xargs)
+fi
+
 echo "=========================================="
 echo "  PLUME ASTRALE - Deploiement"
 echo "=========================================="
@@ -57,6 +103,10 @@ fi
 
 # 5. Lancer les conteneurs
 echo "[5/6] Lancement de l'application..."
+
+# Verifier les variables d'environnement avant deployment
+check_required_env_vars || exit 1
+
 if [ -f "docker-compose.yml" ]; then
     # Copy production env
     if [ -f ".env.production" ] && [ ! -f ".env" ]; then

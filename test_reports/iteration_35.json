@@ -1,0 +1,46 @@
+{
+  "summary": "Iteration 35 regression backend testing after 2 deployment fixes (supabase.js env-only, CORS_ORIGINS=* added). Ran full plume-chat regression (16/16 pass, 47.5s) + new CORS + endpoints smoke suite (7/7 pass, 8.4s). Total 23/23 backend tests PASS. Chat Solena still returns success=true with plume opening animation, markdown format (## ** ---), astro configs, ends with open question. CORS headers present on POST and OPTIONS preflight for /api/plume-chat with Access-Control-Allow-Origin: *. No regression detected.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/library/list", "issue": "Endpoint does not exist (returns 404). Actual endpoints are /api/library/catalog and /api/library/status. Review request referenced a non-existent path — likely a typo. Not a bug in the app itself."},
+      {"endpoint": "GET /api/", "issue": "Returns 404 — no root route registered. /api/health (200) is the correct health endpoint. Not a regression."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration34_plume_chat_solena.py",
+    "/app/backend/tests/test_iteration35_cors_smoke.py",
+    "/app/test_reports/pytest/iteration35.xml",
+    "/app/test_reports/pytest/iteration35_smoke.xml"
+  ],
+  "action_items": [
+    "Optional: update review-request/documentation — the correct library endpoint is /api/library/catalog, not /api/library/list.",
+    "Optional: register a GET /api/ root route returning a small JSON banner (nice-to-have, not blocking)."
+  ],
+  "critical_code_review_comments": [
+    "GOOD: /app/frontend/src/lib/supabase.js correctly read-only from process.env with a console.error() fail-fast if env vars are missing. Hardcoded fallbacks removed as intended.",
+    "GOOD: /app/backend/.env has CORS_ORIGINS=* on a single line, no comment noise, verified applied — Access-Control-Allow-Origin: * is served on all responses including preflight (OPTIONS returns 204).",
+    "GOOD: /api/plume-chat still functions end-to-end with astrology-api.io v3 chat/completions. Real API returned a 2213-char response for the exact review payload (Paris 1993-06-15 14:30) with animation + ## heading + ** bold + --- separator + open question.",
+    "MINOR (carry-over from iter34): server.py:1131 redundantly re-sets result['session_id'] after service call — harmless but dead code.",
+    "MINOR (carry-over from iter34): No rate limiting on public /api/plume-chat — a bot could burn ASTROLOGY_API_IO_KEY quota. Consider IP throttling.",
+    "MINOR: /api/rencontres/reveal accepts flat body (name/day/month/...) rather than {birth_data:{...}}. Slightly inconsistent with /api/plume-chat which nests birth_data. Not a bug but worth aligning schemas across endpoints."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration35_cors_smoke.py (new — 7 pytest cases covering CORS, health, plume-chat review payload, library/catalog, rencontres/reveal)"
+  ],
+  "success_rate": {
+    "backend": "100% (23/23 across iter34 + iter35 suites)",
+    "frontend": "not tested (per request: backend only)"
+  },
+  "test_credentials": "None required — endpoints tested are public.",
+  "seed_data_creation": "None. Anonymous ephemeral session_ids only.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 35 confirms the 2 deployment fixes (supabase.js env-only + CORS_ORIGINS=*) did NOT introduce any backend regression. Chat plume-chat identical behavior to iter34. CORS is now permissive (Access-Control-Allow-Origin: *) which unblocks browser calls from any origin. If E1 needs to test frontend, all backend endpoints are healthy. Reusable regression: `pytest /app/backend/tests/test_iteration34_plume_chat_solena.py /app/backend/tests/test_iteration35_cors_smoke.py -v` (~56s, 23 tests).",
+  "rca of the issue": "N/A — no defect found. Both fixes verified applied and working: (1) supabase.js correctly reads from process.env only, (2) CORS headers present on all backend responses including OPTIONS preflight."
+}
