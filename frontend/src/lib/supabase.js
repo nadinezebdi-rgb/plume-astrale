@@ -1,12 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Public Supabase URL + anon key (anon key is rate-limited + protected by RLS).
-// Fallbacks are kept ON PURPOSE: if Netlify build env vars are missing, the app
-// still boots instead of crashing with a blank screen.
-const url = process.env.REACT_APP_SUPABASE_URL
-  || 'https://ebwicqvbkwogxneipaxh.supabase.co';
-const anonKey = process.env.REACT_APP_SUPABASE_ANON_KEY
-  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVid2ljcXZia3dvZ3huZWlwYXhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5ODA0MzksImV4cCI6MjA4MzU1NjQzOX0.sW7TivZAacaVEfD4NaU-u75wMtrAZJ4eYRx1duhIAWA';
+// Public Supabase URL + anon key — read from env only (no hardcoded fallbacks).
+// Env vars are injected at build time by CRA / Emergent deployment.
+const url = process.env.REACT_APP_SUPABASE_URL;
+const anonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+if (!url || !anonKey) {
+  // Fail fast in dev/prod if the deployment forgot to inject these.
+   
+  console.error('[Supabase] Missing REACT_APP_SUPABASE_URL or REACT_APP_SUPABASE_ANON_KEY');
+}
 
 export const supabase = createClient(url, anonKey, {
   auth: {
