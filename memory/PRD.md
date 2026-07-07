@@ -13,6 +13,20 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+## Session Feb 2026 — 📡 Page de succès rencontres_ultime avec polling live (2026-02)
+- ✅ **Endpoint `GET /api/rencontres/ultime/status?session_id=...`** — retourne le stade actuel :
+  - `pending` (paiement pas confirmé) · `generating` (PDF en cours) · `emailing` (envoi email) · `delivered` (fini) · `error`
+  - Retourne aussi `pdf_url` et `email` quand disponibles
+- ✅ **Page `/rencontres-astrales/succes?session_id=...`** — polling toutes les 2s :
+  - Titre "Merci — ton Guide t'attend." (Cinzel + italique doré)
+  - Icône stage-aware (Loader animé pendant les stades en cours, ✓ verte pour delivered)
+  - Barre de progression dorée (15% → 45% → 78% → 100%)
+  - Checklist 4 étapes avec état visuel (gris → doré actif → vert cochee)
+  - Bouton "Télécharger mon Guide (PDF)" une fois delivered
+  - Email destinataire visible
+  - Sortie propre en cas d'erreur avec numéro de session à copier
+- ✅ **Testing agent iteration_37 : 15/15 PASS (100%)** — 0 critique
+
 ## Session Feb 2026 — 📄 Guide de Compatibilité Ultime PDF 15 pages (P0 RÉSOLU) (2026-02)
 Pipeline complet post-paiement pour le pack `rencontres_ultime` (29,99€) — auparavant les clients payaient sans rien recevoir.
 - ✅ **`services/rencontres_ultime_pdf.py`** — Générateur ReportLab 15 pages :
