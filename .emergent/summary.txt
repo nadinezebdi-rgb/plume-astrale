@@ -11,15 +11,26 @@ The user wants to fundamentally overhaul the Plume Astrale application by replac
     *   **Credit Wallet:** Each user will have a server-side wallet tracking their .
     *   **Transaction History:** A  table must log all credit movements (purchase, usage, bonus).
 3.  **Stripe Integration for Credit Packs:**
-    *   **Pack Découverte:** 10 credits for 9€
-    *   **Pack Exploration:** 50 credits for 24,99€
-    *   **Pack Premium:** 100 credits for 44,99€
+    *   **Pack Initiation:** 20 crédits for 4,99€ (Idéal pour tester | 2 questions à Soléna)
+    *   **Pack Clarté (Populaire):** 60 crédits for 14,99€ (Le meilleur compromis | 6 questions à Soléna + 1 gratuite, dont 10 offerts)
+    *   **Pack Sérénité (Top Valeur):** 140 crédits for 29,99€ (Excellent rapport qualité-prix | 14 questions à Soléna + 4 gratuites, dont 40 offerts)
 4.  **Service Pricing in Credits:**
-    *   **Tarot Oui / Non:** 1 free draw per user account, then 2 credits.
-    *   **Lecture Tarot approfondie:** 10 credits.
-    *   **Lecture astrologique cycle actuel:** 10 credits.
-    *   **Numérologie – Chemin d’âme:** 10 credits.
-    *   **Cartographie astrologique complète Premium:** 60 credits.
+
+    **🚀 Flash & Réponses Rapides:**
+    *   **Tarot Oui/Non:** 5 credits (Une réponse immédiate à une question fermée)
+    *   **1 Question privée à Soléna:** 10 credits (Amour, Travail, Destinée...)
+
+    **📝 Analyses Approfondies:**
+    *   **Langage de l'Amour:** 30 credits (Décode ton profil affectif)
+    *   **Lecture Tarot approfondie:** 30 credits (Le grand tirage en croix de Soléna)
+    *   **Numérologie complète:** 30 credits (Ton chemin de vie et ton année personnelle)
+    *   **Lecture Astro du cycle actuel:** 40 credits (Comment surmonter les transits du moment)
+    *   **Karma & Destin:** 40 credits (Découvre ta mission d'âme et tes blocages passés)
+
+    **👑 Grands Profils Astrologiques (Premium):**
+    *   **Synastrie Amoureuse:** 50 credits (L'analyse de la connexion entre vos deux thèmes)
+    *   **Thème Natal complet:** 60 credits (La carte d'identité de ton existence)
+    *   **Compatibilité Amoureuse (Rapport PDF 25 pages):** 100 credits (L'étude ultime et détaillée de votre couple livrée par écrit)
 5.  **UI & UX:**
     *   The user's credit balance must be clearly displayed in the UI.
     *   An Acheter des crédits (Buy Credits) button should be prominent.
