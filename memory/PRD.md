@@ -13,6 +13,47 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+## Session Feb 2026 — 📡 Page de succès rencontres_ultime avec polling live (2026-02)
+- ✅ **Endpoint `GET /api/rencontres/ultime/status?session_id=...`** — retourne le stade actuel :
+  - `pending` (paiement pas confirmé) · `generating` (PDF en cours) · `emailing` (envoi email) · `delivered` (fini) · `error`
+  - Retourne aussi `pdf_url` et `email` quand disponibles
+- ✅ **Page `/rencontres-astrales/succes?session_id=...`** — polling toutes les 2s :
+  - Titre "Merci — ton Guide t'attend." (Cinzel + italique doré)
+  - Icône stage-aware (Loader animé pendant les stades en cours, ✓ verte pour delivered)
+  - Barre de progression dorée (15% → 45% → 78% → 100%)
+  - Checklist 4 étapes avec état visuel (gris → doré actif → vert cochee)
+  - Bouton "Télécharger mon Guide (PDF)" une fois delivered
+  - Email destinataire visible
+  - Sortie propre en cas d'erreur avec numéro de session à copier
+- ✅ **Testing agent iteration_37 : 15/15 PASS (100%)** — 0 critique
+
+## Session Feb 2026 — 📄 Guide de Compatibilité Ultime PDF 15 pages (P0 RÉSOLU) (2026-02)
+Pipeline complet post-paiement pour le pack `rencontres_ultime` (29,99€) — auparavant les clients payaient sans rien recevoir.
+- ✅ **`services/rencontres_ultime_pdf.py`** — Générateur ReportLab 15 pages :
+  1. Couverture sombre dorée avec glyphe zodiacal
+  2. Sommaire poétique
+  3. Boussole cosmique amoureuse
+  4. Soleil en amour
+  5. Lune — besoin émotionnel intime
+  6. Vénus — comment tu aimes
+  7. Mars — comment tu séduis
+  8. Maison V — langage du désir
+  9. Maison VII — miroir du partenaire
+  10. Portrait-Robot de l'âme sœur (traits physiques + énergétiques)
+  11-13. 3 fenêtres de rencontre (0-2, 2-4, 4-6 mois) avec Vénus transitante + rituel
+  14. Rituels énergétiques (lithothérapie, bougies, méditation, shadow work)
+  15. Bénédiction de Solena + question ouverte
+- ✅ **`services/rencontres_ultime_service.py`** — Orchestrateur : lit `payment_transactions.metadata.pdf_ctx`, génère PDF, sauvegarde dans `/app/backend/assets/rencontres_ultime/*.pdf`, envoi Resend avec pièce jointe base64
+- ✅ **`routes/rencontres.py` checkout** — persiste `metadata.kind='rencontres_ultime'` + `pdf_ctx` (first_name, birth_date_iso, m7_sign, venus_sign, mars_sign) au moment du checkout (survie post-restart)
+- ✅ **`server.py` webhook Stripe** — nouvelle branche `if md.get('kind') == 'rencontres_ultime'` qui appelle `handle_rencontres_ultime_webhook`
+- ✅ **Idempotence** : 2ème appel = no-op
+- ✅ **Servage HTTP** : PDF accessible via `/api/assets/rencontres_ultime/*.pdf` (200 OK, application/pdf)
+- ✅ **Testing agent iteration_36 : 32/32 PASS** (9 new + 23 regression, 100%)
+- ⚠️ Resend email : sandbox 403 en preview (domaine `plume-astrale.fr` à vérifier en prod)
+
+## Session Feb 2026 — 🔧 Health check deployment + supabase.js env-only + CORS + route /api/ (2026-02)
+Fix des blockers deployment_agent. Ajout d'un banner JSON GET /api/ pour monitoring uptime.
+
 ## Session Feb 2026 — 💰 Mode BYOK activé (2 crédits/tour au lieu de 25) (2026-02)
 - ✅ **Clé OpenAI utilisateur ajoutée** dans `/app/backend/.env` (`OPENAI_API_KEY`)
 - ✅ **`plume_chat.py` bascule sur `/api/v3/chat/completions/byok`** avec `byok: {provider: openai, api_key: OPENAI_API_KEY}` + `model: gpt-4o-mini`

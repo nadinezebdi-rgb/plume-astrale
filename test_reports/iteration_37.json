@@ -1,0 +1,37 @@
+{
+  "summary": "Backend testing of the new GET /api/rencontres/ultime/status endpoint (5 stages: pending / generating / emailing / delivered / error) plus regression on /reveal, /capture, /checkout, /plume-chat. 15/15 tests PASS. All 5 review points validated: seeded 4 Supabase payment_transactions covering every stage, verified pre-seeded demo sessions (cs_test_ultime_cb14f284e18c → delivered, cs_test_pending_b53848d041e1 → pending), confirmed clean error behaviour for unknown / empty / missing / SQL-injection-like session_ids (no 500), and confirmed pdf_url + email are exposed only when applicable.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/rencontres/ultime/status (empty session_id)", "issue": "When session_id='' is passed, endpoint returns 422 (FastAPI empty-string rejection) instead of the internal `if not session_id` branch that returns {stage:'error'}. Not a real bug — 422 is still a clean error, not a 500 — but the `if not session_id` guard at line 636 of routes/rencontres.py is effectively dead code because FastAPI validation short-circuits first. Cosmetic only."},
+      {"endpoint": "GET /api/rencontres/ultime/status (emailing stage)", "issue": "Emailing stage exposes pdf_url but not email. The frontend polling page probably only needs pdf_url at that stage, so this is intentional — noted for transparency."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration37_ultime_status.py",
+    "/app/test_reports/pytest/iteration37.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "GOOD: /app/backend/routes/rencontres.py:625-673 — endpoint is safe against injections because Supabase parametrises .eq() queries. Verified with 5 malicious payloads (SQL, XSS, nulls, 500-char string) — all return {stage:'error'} with 200, no 500.",
+    "GOOD: Correct stage precedence: status/payment_status → pdf_path → email_sent_at. All 4 seeded sessions returned the expected stage.",
+    "GOOD: Exception handler at line 671-673 catches Supabase / network failures and returns a clean {stage:'error'} — no 500 leaked.",
+    "MINOR: `if not session_id:` guard at line 636 is dead code because FastAPI query-param validation catches missing/empty strings first (returns 422). Consider making session_id Optional with default None if you want your custom message to surface — but current 422 behaviour is also acceptable.",
+    "MINOR: `email` field is only exposed in `delivered` stage. If the frontend polling UX ever needs the email during `emailing`, add it to that branch too (line 660-664).",
+    "GOOD: No 500s ever leaked — 4 stages + 6 error scenarios all responded with HTTP 200 (or 422 on missing query) and a well-formed {stage, message} envelope."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration37_ultime_status.py (new — 15 pytest cases across 4 test classes)"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15)",
+    "frontend": "not tested (backend only per request)"
+  },
+  "test_credentials": "None — endpoint is public.",
+  "seed_data_creation": "Inserted 4 test payment_transactions rows in Supabase (session_ids prefixed cs_test_TEST_it37_*) covering pending/generating/emailing/delivered. All cleaned up in the module-scoped teardown. Also seeded (and cleaned) 1 Stripe /checkout tx as part of the regression test. Pre-seeded demo sessions cs_test_ultime_cb14f284e18c and cs_test_pending_b53848d041e1 were tested read-only and left untouched.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 37 validates the polling endpoint /api/rencontres/ultime/status. Reusable regression: `pytest /app/backend/tests/test_iteration37_ultime_status.py -v` (~18s, 15 tests, 100% pass). No blocker. Requires REACT_APP_BACKEND_URL + Supabase service role key + Stripe test keys already in .env. The 5 pipeline stages (pending, generating, emailing, delivered, error) are all exercised. No frontend testing was performed.",
+  "rca of the issue": "N/A — no defect. All 5 stages behave as specified. `pending` when payment not confirmed, `generating` when paid but no pdf_path, `emailing` when pdf_path exists but email_sent_at missing (exposes pdf_url), `delivered` when both set (exposes pdf_url + email), `error` for unknown session_id or Supabase exception. No 500 ever leaked, even with SQL-injection-like or 500-char session_id payloads."
+}

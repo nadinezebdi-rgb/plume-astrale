@@ -1,0 +1,43 @@
+{
+  "summary": "Backend testing of the new `rencontres_ultime` (29,99€) post-payment pipeline: PDF generation (ReportLab 15 pages) + orchestrator + email + serving + idempotence + checkout persistence. Also ran full regression on plume-chat + CORS suites. 9/9 new tests PASS + 23/23 regression tests PASS = 32/32 total. All 8 review points validated.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "services/rencontres_ultime_service.py", "issue": "SENDER_EMAIL in .env is `Plume Astrale <onboarding@resend.dev>` (Resend sandbox), so email to real customer addresses gets 403 — service catches exception and continues (as documented by main agent). Not a bug, but needs domain verification (plume-astrale.fr) before prod."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration36_rencontres_ultime.py",
+    "/app/test_reports/pytest/iteration36.xml",
+    "/app/backend/tests/test_iteration34_plume_chat_solena.py",
+    "/app/backend/tests/test_iteration35_cors_smoke.py"
+  ],
+  "action_items": [
+    "Optional: verify Resend domain plume-astrale.fr in production before launching the pack (SENDER_EMAIL currently uses onboarding@resend.dev sandbox).",
+    "Optional: consider persisting _REVEAL_CACHE (in-memory dict in routes/rencontres.py) in Redis/Supabase — currently a backend restart between /reveal and /checkout wipes pdf_ctx source. Checkout still persists pdf_ctx into payment_transactions.metadata so post-restart pipeline works, but restart between reveal→checkout would lose data."
+  ],
+  "critical_code_review_comments": [
+    "GOOD: /app/backend/services/rencontres_ultime_pdf.py generates a real 15-page PDF (verified via pypdf: len(reader.pages) == 15). Magic bytes %PDF- present, ~35-40KB output. Uses FreeSerif for Unicode zodiac glyphs with Helvetica fallback.",
+    "GOOD: /app/backend/services/rencontres_ultime_service.py implements idempotence correctly by checking `md.get('pdf_path')` before re-generating — verified: 2nd call preserves pdf_generated_at.",
+    "GOOD: Webhook branch in server.py:518-525 correctly routes metadata.kind='rencontres_ultime' to handle_rencontres_ultime_webhook, matching the same pattern as synastrie_oneshot.",
+    "GOOD: /api/rencontres/checkout properly extracts pdf_ctx (first_name, birth_date_iso, m7_sign, venus_sign, mars_sign) from _REVEAL_CACHE and persists into payment_transactions.metadata — verified by inserting and reading back.",
+    "GOOD: PDF served via /api/assets/rencontres_ultime/<filename>.pdf with content-type application/pdf (200 OK). StaticFiles mount at server.py:1287.",
+    "GOOD: Robust fallbacks in generate_rencontres_ultime_pdf — empty strings for all fields still produce a valid PDF (defaults to 'Ami(e)' / 'Balance' / Poissons).",
+    "MINOR: rencontres_ultime_service.py:70 uses `session_id[-16:]` for filename — safe but may collide if 2 different Stripe test session_ids share the last 16 chars (rare in practice).",
+    "MINOR: routes/rencontres.py:583 sets both `product` and `kind` to 'rencontres_ultime' in Stripe metadata — dual key OK but redundant. Webhook only reads `kind`."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration36_rencontres_ultime.py (new — 9 pytest cases)"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 new + 23/23 regression = 32/32)",
+    "frontend": "not tested (backend only per request)"
+  },
+  "test_credentials": "None. Anonymous flow. Seeded a TEST_ prefixed session_id in Supabase payment_transactions, cleaned up after test.",
+  "seed_data_creation": "Inserted 1 test tx (session_id `cs_test_TEST_ultime_<uuid>`) in Supabase payment_transactions with metadata.kind='rencontres_ultime' + pdf_ctx populated. Cleaned up in fixture teardown. Also ran a real /api/rencontres/checkout call which created a Stripe session + payment_transactions row (deleted after assert).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 36 fully validates the rencontres_ultime pipeline (29,99€ pack). Reusable regression: `pytest /app/backend/tests/test_iteration36_rencontres_ultime.py -v` (~13s, 9 tests, requires REACT_APP_BACKEND_URL + Supabase + Stripe test keys already in .env). Combined regression: `pytest /app/backend/tests/test_iteration34_plume_chat_solena.py /app/backend/tests/test_iteration35_cors_smoke.py /app/backend/tests/test_iteration36_rencontres_ultime.py -v` (~52s, 32 tests, 100% pass). No blocker for main agent.",
+  "rca of the issue": "N/A — no defect. All 8 review points validated: (1) handle_rencontres_ultime_webhook generates PDF in /app/backend/assets/rencontres_ultime/, (2) idempotence works (pdf_generated_at preserved on 2nd call), (3) PDF has 15 pages via pypdf, (4) generate_rencontres_ultime_pdf produces %PDF- magic bytes, (5) server.py webhook branch routes correctly on metadata.kind, (6) /api/rencontres/checkout persists metadata.kind + metadata.pdf_ctx, (7) /api/assets/rencontres_ultime/*.pdf serves 200 + application/pdf, (8) /api/plume-chat regression unchanged."
+}

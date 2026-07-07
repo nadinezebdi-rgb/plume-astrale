@@ -82,6 +82,21 @@ api_router.include_router(analytics_router)
 
 
 # ════════════════════════════════════════════
+# ROOT — banner JSON pour monitoring
+# ════════════════════════════════════════════
+@api_router.get('/')
+async def api_root():
+    """Banner JSON minimal — utile pour uptime monitors et health checks externes."""
+    return {
+        'name': 'Plume Astrale API',
+        'status': 'ok',
+        'version': 'v3',
+        'docs': '/docs',
+        'health': '/api/health',
+    }
+
+
+# ════════════════════════════════════════════
 # AUTH (Supabase JWT — frontend signe via supabase-js, backend verifie)
 # ════════════════════════════════════════════
 class ProfileUpdate(BaseModel):
@@ -700,6 +715,16 @@ async def stripe_webhook(request: Request):
         except Exception as e:
             logger.warning(f'[synastrie] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'synastrie_oneshot'}
+
+    # Route vers rencontres_ultime handler si kind=rencontres_ultime (pack 29,99 EUR)
+    if md.get('kind') == 'rencontres_ultime':
+        from services.rencontres_ultime_service import handle_rencontres_ultime_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_rencontres_ultime_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[rencontres_ultime] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'rencontres_ultime'}
 
     # Sinon : flow credits one-shot
     if event_type == 'checkout.session.completed':
