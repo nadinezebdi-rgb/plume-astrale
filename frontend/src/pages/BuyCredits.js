@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Coins, Sparkles, Star, Zap, ArrowRight, Shield, Tag, Loader2, MessageCircle, Moon } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
+import ServicesEquivalence from '@/components/ServicesEquivalence';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -97,14 +98,14 @@ const PACKS = [
   },
   {
     id: 'astro_amour',
-    name: 'Astro-Amour',
-    credits: 40,
+    name: 'Clarté',
+    credits: 50,
     bonus: 10,
-    amount: 12.99,
+    amount: 14.99,
     icon: Sparkles,
-    badge: 'Le plus choisi',
-    tagline: '1 séance complète, ta prochaine fenêtre de rencontre décodée.',
-    projections: ['5 questions à Plume', '1 lecture astrologique approfondie', 'Ta fenêtre de rencontre décodée'],
+    badge: '⭐ Best-Seller',
+    tagline: 'Ton Thème Natal complet accessible en 1 clic.',
+    projections: ['6 questions à Plume', '1 Thème Natal complet (60 cr)', 'Ou 2 tarots approfondis'],
   },
   {
     id: 'flammes_jumelles',
@@ -115,7 +116,7 @@ const PACKS = [
     icon: Zap,
     badge: 'Meilleure valeur',
     tagline: 'Explore ton thème en profondeur, ton karma, tes futures relations.',
-    projections: ['13 questions à Plume', '3 lectures approfondies', 'Karma & synastrie amoureuse'],
+    projections: ['13 questions à Plume', '2 Thèmes Natals complets', 'Karma & synastrie amoureuse'],
   },
 ];
 
@@ -200,6 +201,11 @@ export default function BuyCredits() {
           <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
             10 crédits = 1 question à Plume. Chaque pack contient des crédits offerts.
           </p>
+        </div>
+
+        {/* Grille GaryVee — equivalences services */}
+        <div className="mb-12">
+          <ServicesEquivalence />
         </div>
 
         <div className="grid gap-5 md:grid-cols-3">

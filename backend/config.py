@@ -39,13 +39,13 @@ class Settings:
             'tagline': "L'achat impulsif pour continuer la conversation.",
         },
         'astro_amour': {
-            'name': 'Astro-Amour',
-            'credits': 40,
+            'name': 'Clarté',
+            'credits': 50,
             'bonus': 10,
-            'amount': 12.99,
+            'amount': 14.99,
             'currency': 'eur',
             'badge': 'Le plus choisi',
-            'tagline': '1 séance complète, ta prochaine fenêtre de rencontre décodée.',
+            'tagline': 'Ton Thème Natal complet (60 cr) accessible en 1 clic.',
         },
         'flammes_jumelles': {
             'name': 'Flammes Jumelles',
@@ -71,22 +71,27 @@ class Settings:
         },
     }
 
+    # Grille GaryVee — tous les services sont des multiples/fractions de 10 cr (unité = 1 question)
     SERVICE_COSTS = {
-        'tarot_oui_non': 2,
-        'tarot_marseille': 10,
-        'tarot_celtique': 10,
-        'tarologie': 10,
-        'numerologie': 10,
+        # Produits d'appel — micro-conversion
+        'tarot_oui_non': 5,          # demi-question — flash & indolore
+        # Chat — l'unite de base
+        'chat_astral': 10,           # 1 question = 10 cr
+        'lecture_tarot': 10,
+        'love_languages': 10,
+        # Services approfondis (3-4 questions)
+        'tarot_marseille': 30,       # Lecture Tarot approfondie
+        'tarot_celtique': 30,
+        'tarologie': 30,
+        'numerologie': 30,           # Année perso / Chemin de vie
+        'lecture_astrologique': 40,  # Cycle actuel : transits, Mercure retrograde
+        # Rapports premium (6 questions equivalentes)
+        'theme_natal_pdf': 60,       # Theme Natal complet — le produit "phare"
         'cartographie': 60,
         'cartographie_premium': 60,
-        'chat_astral': 10,       # 10 cr par question — grille "Special Lancement"
-        'karma_destin': 20,
-        'lecture_astrologique': 20,
-        'lecture_tarot': 10,
-        'synastrie': 20,
-        'theme_natal_pdf': 20,
-        'revolution_solaire': 20,
-        'love_languages': 10,
+        'synastrie': 60,
+        'revolution_solaire': 60,
+        'karma_destin': 60,
     }
 
 
