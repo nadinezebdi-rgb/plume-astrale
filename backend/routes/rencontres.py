@@ -616,3 +616,58 @@ async def rencontres_checkout(payload: CheckoutPayload, request: Request):
         logger.warning(f"[rencontres] payment_transactions insert failed: {e}")
 
     return {"url": session.url, "session_id": session.session_id}
+
+
+# ────────────────────────────────────────────────────────────────
+# GET /ultime/status?session_id=… — Polling par la page de succes
+# Retourne le stade de traitement post-paiement (rassure le client).
+# ────────────────────────────────────────────────────────────────
+@router.get("/ultime/status")
+async def rencontres_ultime_status(session_id: str):
+    """Retourne le stade actuel du pipeline post-paiement rencontres_ultime.
+
+    Stades possibles :
+      - 'pending'    : paiement non confirme (webhook Stripe pas encore reçu)
+      - 'generating' : PDF en cours de generation
+      - 'emailing'   : PDF genere, email en cours d'envoi
+      - 'delivered'  : tout ok, PDF + email envoyes
+      - 'error'      : session inconnue
+    """
+    if not session_id:
+        return {"stage": "error", "message": "session_id manquant"}
+
+    try:
+        sb = get_admin_client()
+        r = sb.table("payment_transactions").select(
+            "status,payment_status,metadata,user_email"
+        ).eq("session_id", session_id).maybe_single().execute()
+        if not r or not r.data:
+            return {"stage": "error", "message": "Session introuvable"}
+
+        tx = r.data
+        md = tx.get("metadata") or {}
+
+        # Paiement pas encore confirme
+        if tx.get("status") != "completed" or tx.get("payment_status") != "paid":
+            return {"stage": "pending", "message": "Confirmation du paiement en cours…"}
+
+        pdf_path = md.get("pdf_path")
+        email_sent = md.get("email_sent_at")
+
+        if not pdf_path:
+            return {"stage": "generating", "message": "Ton Guide de Compatibilité Ultime est en train d'être généré…"}
+        if not email_sent:
+            return {
+                "stage": "emailing",
+                "message": "Envoi de l'email en cours…",
+                "pdf_url": pdf_path,
+            }
+        return {
+            "stage": "delivered",
+            "message": "Ton PDF t'a été envoyé — vérifie ta boîte mail !",
+            "pdf_url": pdf_path,
+            "email": tx.get("user_email"),
+        }
+    except Exception as e:
+        logger.warning(f"[rencontres] status polling error: {e}")
+        return {"stage": "error", "message": "Une petite perturbation cosmique — réessaie dans un instant."}
