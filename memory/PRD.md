@@ -13,6 +13,21 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+## Session Feb 2026 — 💎 Grille tarifaire GaryVee (services multiples de 10cr) (2026-02)
+Refonte des coûts services + pack middle (aligné pile sur le prix du Thème Natal).
+- ✅ **Nouveaux SERVICE_COSTS** (`backend/config.py`) — grille GaryVee :
+  - `tarot_oui_non` = 5 cr (½ question) — produit d'appel micro-conversion
+  - `chat_astral`, `lecture_tarot`, `love_languages` = 10 cr (1 question) — unité de base
+  - `tarot_marseille/celtique/tarologie`, `numerologie` = 30 cr (3 questions) — approfondi
+  - `lecture_astrologique` = 40 cr (4 questions) — cycle actuel, transits
+  - `theme_natal_pdf`, `cartographie`, `synastrie`, `revolution_solaire`, `karma_destin` = 60 cr (6 questions) — premium
+- ✅ **Pack middle renommé + prix ajusté** :
+  - Astro-Amour 12,99€ · 50 cr → **Clarté 14,99€ · 60 cr** (50 + 10 offerts)
+  - Le coup de génie GaryVee : pile le prix d'un Thème Natal complet → achat en 1 clic
+- ✅ **Nouveau composant `ServicesEquivalence.js`** — grille visuelle 2×3 avec icônes + "= X questions" par service + tagline GaryVee. Placée sur `/acheter-credits`.
+- ✅ **`CreditsPaywallModal`** mis à jour avec sous-titre "= 1 Thème Natal complet (60 cr) accessible en 1 clic"
+- ✅ **Testing agent iteration_38 : 34/34 PASS (100%)** — 0 issue
+
 ## Session Feb 2026 — 📡 Page de succès rencontres_ultime avec polling live (2026-02)
 - ✅ **Endpoint `GET /api/rencontres/ultime/status?session_id=...`** — retourne le stade actuel :
   - `pending` (paiement pas confirmé) · `generating` (PDF en cours) · `emailing` (envoi email) · `delivered` (fini) · `error`
