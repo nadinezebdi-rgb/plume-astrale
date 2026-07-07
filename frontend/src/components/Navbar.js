@@ -341,6 +341,36 @@ const Navbar = () => {
                 );
               })}
               <div style={{ width: 1, height: 16, background: '#D4B46A', opacity: 0.2 }} />
+
+              {/* Vitrine — Thème Natal dès 14,99€ (1 clic) */}
+              <Link
+                to={isAuthenticated ? "/formulaire" : "/inscription?next=/formulaire"}
+                data-testid="navbar-natal-vitrine"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  fontSize: 11, letterSpacing: '0.10em', textTransform: 'uppercase',
+                  textDecoration: 'none', padding: '7px 14px', borderRadius: 999,
+                  background: 'linear-gradient(135deg, rgba(212,180,106,0.18), rgba(244,217,140,0.10))',
+                  color: '#F4D98C', fontWeight: 500,
+                  border: '1px solid rgba(212,180,106,0.55)',
+                  boxShadow: '0 4px 16px rgba(212,180,106,0.20)',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 22px rgba(212,180,106,0.35)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,180,106,0.20)'; }}
+              >
+                ✦ Mon Thème Natal
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center',
+                  fontSize: 9, padding: '2px 6px', borderRadius: 999,
+                  background: '#0C0918', color: '#F4D98C',
+                  letterSpacing: '0.06em', fontWeight: 600, marginLeft: 2,
+                }}>
+                  DÈS 14,99€
+                </span>
+              </Link>
+
+              <div style={{ width: 1, height: 16, background: '#D4B46A', opacity: 0.2 }} />
               {isAuthenticated ? (
                 <MonCompteDropdown creditBalance={creditBalance} handleLogout={handleLogout} isAdmin={user?.is_admin} />
               ) : (
@@ -433,6 +463,31 @@ const Navbar = () => {
                 );
               })}
               <div style={{ margin: '8px 0', borderTop: '1px solid rgba(212,180,106,0.1)' }} />
+
+              {/* Vitrine — Thème Natal (mobile) */}
+              <Link
+                to={isAuthenticated ? "/formulaire" : "/inscription?next=/formulaire"}
+                data-testid="mobile-navbar-natal-vitrine"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '14px 16px', borderRadius: 12,
+                  background: 'linear-gradient(135deg, rgba(212,180,106,0.20), rgba(244,217,140,0.10))',
+                  border: '1px solid rgba(212,180,106,0.55)',
+                  color: '#F4D98C', textDecoration: 'none',
+                  fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase',
+                  fontWeight: 500, marginBottom: 8,
+                }}
+              >
+                <span>✦ Mon Thème Natal</span>
+                <span style={{
+                  fontSize: 9, padding: '3px 8px', borderRadius: 999,
+                  background: '#0C0918', color: '#F4D98C',
+                  letterSpacing: '0.05em', fontWeight: 600,
+                }}>
+                  DÈS 14,99€
+                </span>
+              </Link>
+
               {isAuthenticated ? (
                 <div>
                   <Link to="/acheter-credits" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', fontSize: 13, color: '#D4B46A', textDecoration: 'none' }}>
