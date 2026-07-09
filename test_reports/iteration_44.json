@@ -1,0 +1,52 @@
+{
+  "summary": "Frontend-only regression targeting 3 UX fixes reported by user: (1) suppression du curseur custom, (2) suppression du fil d'Ariane scroll-thread, (3) ajout section ServicesShowcase pour rendre la home attractive. Les 3 fixes sont VALIDES sur desktop (1440x900) ET mobile (390x844).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Hero3D form", "issues": ["Console hydration errors (préexistantes, non liées aux fixes): <span> child of <select>/<option> à cause de l'instrumentation dev Emergent (x-file-name spans). N'affecte pas le rendu utilisateur mais pollue la console."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "OPTIONNEL: nettoyer imports morts dans /app/frontend/src/App.js — CustomCursor et ScrollThread sont encore importés (lignes 62-63) mais plus jamais montés dans le JSX. Aucun impact fonctionnel, uniquement lint/bundle.",
+    "OPTIONNEL: les 3 sections BrandStory, SolenaJourney, ClientReviews n'ont pas de data-testid sur leur wrapper (elles s'affichent bien à l'écran comme vu dans les screenshots mobile, mais impossibles à cibler directement par testid pour les tests futurs). hero-3d et trust-astrology-api sont OK."
+  ],
+  "critical_code_review_comments": [
+    "App.js: imports morts pour CustomCursor et ScrollThread (lignes 62-63) — à supprimer pour propreté.",
+    "Index.js ServicesShowcase (ligne 496-548): implémentation propre — 4 cards, gap-4 responsive, featured glow sur Kabbale via classe plume-glass-featured, testids conformes aux specs.",
+    "Aucun régression sur Hero3D, BrandStory, SolenaJourney, ClientReviews, trust-astrology-api, MobileTabBar."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped as requested)", "frontend": "100% (13/13 assertions passed)"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "3 UX fixes validés iteration 44 : plume-cursor et plume-scroll-thread ABSENTS du DOM sur desktop + mobile. ServicesShowcase présente avec 4 cards testables. Navigation /archetype et /kabbale OK. MobileTabBar 3 links OK. Backend non testé (déjà validé iter 42+43). Prochaine itération : si user reporte nouveau problème UX, prendre screenshot desktop 1440x900 + mobile 390x844 en premier.",
+  "test_results_detail": {
+    "desktop_1440x900": {
+      "plume-cursor_absent": "PASS (count=0)",
+      "plume-scroll-thread_absent": "PASS (count=0)",
+      "home-services-showcase_present": "PASS (count=1)",
+      "4_cards_present_and_visible": "PASS (archetype, tirage-tarot, kabbale, compatibilite)",
+      "kabbale_featured_class": "PASS (plume-glass-featured présente)",
+      "kabbale_badge_39_pdf": "PASS ('39€ · PDF' visible)",
+      "click_archetype_navigates": "PASS (→ /archetype)",
+      "click_kabbale_navigates": "PASS (→ /kabbale)",
+      "hero-3d_present": "PASS",
+      "trust-astrology-api_present": "PASS"
+    },
+    "mobile_390x844": {
+      "cursor_thread_absent": "PASS",
+      "4_cards_visible_single_column": "PASS (width=358, x=16 pour tous → grid-cols-1 confirmé)",
+      "mobile-tabbar_present": "PASS (3 links: /mon-compte 'Mon Espace', /consultation 'Consulter', /acheter-credits 'Tarifs')",
+      "trust_and_reviews_load": "PASS (screenshot confirme ClientReviews + trust-astrology-api)"
+    }
+  },
+  "verdict_user_bugs": {
+    "bug_1_curseur_dore_supprime": "RESOLU ✓",
+    "bug_2_trait_vertical_supprime": "RESOLU ✓",
+    "bug_3_home_attractive": "RESOLU ✓ — nouvelle section 'Choisis ta première révélation' avec 4 cards glass parfaitement rendues, Kabbale en featured avec glow doré. La home a désormais une vraie proposition de valeur juste sous le hero."
+  }
+}

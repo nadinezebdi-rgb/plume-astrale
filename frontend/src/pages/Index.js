@@ -491,6 +491,63 @@ const ClientReviews = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════
+   VITRINE DES SERVICES — visible juste sous le hero
+═══════════════════════════════════════════════════════════ */
+const ServicesShowcase = () => {
+  const services = [
+    { to: '/archetype', badge: '15 crédits', title: 'Ton Archétype', desc: 'Ton portrait jungien — 3 archétypes dominants + ton ombre.', icon: '✧' },
+    { to: '/tirage-tarot', badge: 'Dès 5 cr', title: 'Tirage de Tarot', desc: 'Oui/Non, croix celtique, tirage médium — 22 arcanes majeurs.', icon: '◆' },
+    { to: '/kabbale', badge: '39€ · PDF', title: 'Ton Arbre de Vie', desc: 'Kabbale personnalisée · 10 Sephiroth + 22 chemins · PDF 15 pages.', icon: '✦', featured: true },
+    { to: '/compatibilite', badge: '10 crédits', title: 'Compatibilité astrale', desc: 'Analyse de synastrie complète pour ton couple actuel ou à venir.', icon: '◈' },
+  ];
+  return (
+    <section className="py-20 px-4 relative z-10" data-testid="home-services-showcase" style={{
+      background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(212,175,55,0.045), transparent 70%)'
+    }}>
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <p className="text-[10px] uppercase mb-3" style={{ color: '#D4AF37', letterSpacing: '0.32em', fontFamily: 'Cinzel, serif' }}>
+            ✦ Ton sanctuaire ✦
+          </p>
+          <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, lineHeight: 1.1, fontSize: 'clamp(30px, 4.5vw, 46px)', color: '#F5EEE0', marginBottom: 12 }}>
+            Choisis ta première <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>révélation</em>
+          </h2>
+          <p className="text-base max-w-xl mx-auto" style={{ color: 'rgba(227,215,255,0.7)', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic', lineHeight: 1.6 }}>
+            Quatre portes d&apos;entrée pour éclairer ce qui t&apos;appelle aujourd&apos;hui.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {services.map((s, i) => (
+            <Link key={i} to={s.to}
+              className={`${s.featured ? 'plume-glass-featured' : 'plume-glass'} p-6 group transition-transform duration-400 ease-plume-silk hover:-translate-y-1 block`}
+              data-testid={`showcase-${s.to.slice(1)}`}>
+              <div className="flex items-start justify-between mb-4">
+                <span style={{ fontSize: 26, color: '#D4AF37', fontFamily: 'Cinzel, serif' }}>{s.icon}</span>
+                <span className="text-[10px] uppercase px-2 py-1 rounded-full" style={{
+                  background: s.featured ? 'rgba(212,175,55,0.15)' : 'rgba(227,215,255,0.06)',
+                  color: s.featured ? '#D4AF37' : 'rgba(227,215,255,0.7)',
+                  border: `1px solid ${s.featured ? 'rgba(212,175,55,0.4)' : 'rgba(227,215,255,0.15)'}`,
+                  letterSpacing: '0.12em',
+                }}>{s.badge}</span>
+              </div>
+              <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>
+                {s.title}
+              </h3>
+              <p className="text-sm mb-4" style={{ color: 'rgba(227,215,255,0.72)', lineHeight: 1.55 }}>
+                {s.desc}
+              </p>
+              <span className="inline-flex items-center gap-1 text-xs uppercase group-hover:gap-2 transition-all" style={{ color: '#D4AF37', letterSpacing: '0.2em', fontFamily: 'Cinzel, serif' }}>
+                Découvrir <ArrowRight className="w-3 h-3" strokeWidth={1.5} />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════
    PAGE
 ═══════════════════════════════════════════════════════════ */
 const Index = () => {
@@ -499,6 +556,7 @@ const Index = () => {
       <SEO path="/" />
       <CosmicCanvas />
       <Hero3D />
+      <ServicesShowcase />
       <BrandStory />
       <SolenaJourney />
       <ClientReviews />

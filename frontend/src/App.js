@@ -71,8 +71,6 @@ function App() {
       <BrowserRouter>
         {/* ─── Overlays globaux Plume Design System v2 ─── */}
         <NoiseOverlay />
-        <ScrollThread />
-        <CustomCursor />
         <MobileTabBar />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
