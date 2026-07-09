@@ -51,14 +51,14 @@ export default function AttributionDashboard() {
 
   return (
     <div className="rounded-2xl p-6"
-      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(197,160,89,0.20)', backdropFilter: 'blur(12px)' }}
+      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,150,31,0.20)', backdropFilter: 'blur(12px)' }}
       data-testid="attribution-dashboard">
 
       {/* Header + range picker */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+            <TrendingUp className="w-4 h-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
             <h2 className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F4E8D2', fontWeight: 400 }}>
               KPI Attribution
             </h2>
@@ -73,9 +73,9 @@ export default function AttributionDashboard() {
               className="text-[10px] uppercase px-3 py-1.5 rounded-full transition-all"
               style={{
                 border: '1px solid',
-                borderColor: days === r.key ? '#C5A059' : 'rgba(197,160,89,0.25)',
-                color: days === r.key ? '#0C0918' : '#C5A059',
-                background: days === r.key ? '#C5A059' : 'transparent',
+                borderColor: days === r.key ? '#B8961F' : 'rgba(184,150,31,0.25)',
+                color: days === r.key ? '#0C0918' : '#B8961F',
+                background: days === r.key ? '#B8961F' : 'transparent',
                 letterSpacing: '0.12em',
               }}
               data-testid={`analytics-range-${r.key}`}>
@@ -84,7 +84,7 @@ export default function AttributionDashboard() {
           ))}
           <button onClick={fetchData} disabled={loading}
             className="text-[10px] uppercase px-3 py-1.5 rounded-full transition-all disabled:opacity-40"
-            style={{ border: '1px solid rgba(197,160,89,0.25)', color: '#C5A059', letterSpacing: '0.12em' }}
+            style={{ border: '1px solid rgba(184,150,31,0.25)', color: '#B8961F', letterSpacing: '0.12em' }}
             data-testid="analytics-refresh-btn">
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -93,7 +93,7 @@ export default function AttributionDashboard() {
 
       {loading && !data && (
         <div className="py-12 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#C5A059' }} />
+          <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#B8961F' }} />
         </div>
       )}
 
@@ -120,7 +120,7 @@ export default function AttributionDashboard() {
               {(data.by_campaign || []).length > 0 && (
                 <table className="w-full text-xs" data-testid="table-campaigns">
                   <thead>
-                    <tr style={{ color: '#C5A059', opacity: 0.7 }}>
+                    <tr style={{ color: '#B8961F', opacity: 0.7 }}>
                       <Th>Source / Campagne</Th>
                       <Th right>Leads</Th>
                       <Th right>Achats</Th>
@@ -130,12 +130,12 @@ export default function AttributionDashboard() {
                   </thead>
                   <tbody>
                     {data.by_campaign.map((c, i) => (
-                      <tr key={i} style={{ borderTop: '1px solid rgba(197,160,89,0.10)' }}
+                      <tr key={i} style={{ borderTop: '1px solid rgba(184,150,31,0.10)' }}
                           data-testid={`row-campaign-${i}`}>
                         <Td>
                           <span style={{ color: '#F4E8D2' }}>{c.source || 'direct'}</span>
                           <span className="opacity-50 mx-1">/</span>
-                          <span style={{ color: '#C5A059' }}>{c.campaign || 'unknown'}</span>
+                          <span style={{ color: '#B8961F' }}>{c.campaign || 'unknown'}</span>
                         </Td>
                         <Td right>{c.leads}</Td>
                         <Td right>{c.purchases}</Td>
@@ -152,7 +152,7 @@ export default function AttributionDashboard() {
               {(data.by_source || []).length > 0 && (
                 <table className="w-full text-xs" data-testid="table-sources">
                   <thead>
-                    <tr style={{ color: '#C5A059', opacity: 0.7 }}>
+                    <tr style={{ color: '#B8961F', opacity: 0.7 }}>
                       <Th>Source</Th>
                       <Th right>Leads</Th>
                       <Th right>Achats</Th>
@@ -161,7 +161,7 @@ export default function AttributionDashboard() {
                   </thead>
                   <tbody>
                     {data.by_source.map((s, i) => (
-                      <tr key={i} style={{ borderTop: '1px solid rgba(197,160,89,0.10)' }}
+                      <tr key={i} style={{ borderTop: '1px solid rgba(184,150,31,0.10)' }}
                           data-testid={`row-source-${i}`}>
                         <Td>
                           <span style={{ color: '#F4E8D2', textTransform: 'capitalize' }}>{s.source}</span>
@@ -183,7 +183,7 @@ export default function AttributionDashboard() {
             {(data.by_content || []).length > 0 && (
               <table className="w-full text-xs" data-testid="table-content">
                 <thead>
-                  <tr style={{ color: '#C5A059', opacity: 0.7 }}>
+                  <tr style={{ color: '#B8961F', opacity: 0.7 }}>
                     <Th>Contenu</Th>
                     <Th>Campagne</Th>
                     <Th right>Achats</Th>
@@ -192,7 +192,7 @@ export default function AttributionDashboard() {
                 </thead>
                 <tbody>
                   {data.by_content.map((c, i) => (
-                    <tr key={i} style={{ borderTop: '1px solid rgba(197,160,89,0.10)' }}
+                    <tr key={i} style={{ borderTop: '1px solid rgba(184,150,31,0.10)' }}
                         data-testid={`row-content-${i}`}>
                       <Td><span style={{ color: '#F4E8D2', fontFamily: 'monospace' }}>{c.content}</span></Td>
                       <Td><span className="opacity-70">{c.source} / {c.campaign}</span></Td>
@@ -211,7 +211,7 @@ export default function AttributionDashboard() {
               {(data.recent_purchases || []).length > 0 && (
                 <table className="w-full text-xs" data-testid="table-recent">
                   <thead>
-                    <tr style={{ color: '#C5A059', opacity: 0.7 }}>
+                    <tr style={{ color: '#B8961F', opacity: 0.7 }}>
                       <Th>Date</Th>
                       <Th>Email</Th>
                       <Th>Produit</Th>
@@ -221,7 +221,7 @@ export default function AttributionDashboard() {
                   </thead>
                   <tbody>
                     {data.recent_purchases.map((r, i) => (
-                      <tr key={i} style={{ borderTop: '1px solid rgba(197,160,89,0.10)' }}
+                      <tr key={i} style={{ borderTop: '1px solid rgba(184,150,31,0.10)' }}
                           data-testid={`row-purchase-${i}`}>
                         <Td><span className="opacity-70">{fmtDate(r.created_at)}</span></Td>
                         <Td><span style={{ color: '#F4E8D2' }}>{r.email || '—'}</span></Td>
@@ -229,7 +229,7 @@ export default function AttributionDashboard() {
                         <Td right accent>{r.amount ? `${r.amount.toFixed(2).replace('.', ',')} €` : '—'}</Td>
                         <Td>
                           {r.utm_source ? (
-                            <span style={{ color: '#C5A059' }}>
+                            <span style={{ color: '#B8961F' }}>
                               {r.utm_source}
                               {r.utm_campaign && <span className="opacity-70"> · {r.utm_campaign}</span>}
                             </span>
@@ -254,13 +254,13 @@ export default function AttributionDashboard() {
 function KpiCard({ icon: Icon, label, value, accent, testid }) {
   return (
     <div className="rounded-xl p-4"
-      style={{ background: accent ? 'rgba(197,160,89,0.10)' : 'rgba(0,0,0,0.20)', border: '1px solid rgba(197,160,89,0.20)' }}
+      style={{ background: accent ? 'rgba(184,150,31,0.10)' : 'rgba(0,0,0,0.20)', border: '1px solid rgba(184,150,31,0.20)' }}
       data-testid={testid}>
       <div className="flex items-center gap-1.5 mb-2 opacity-80">
-        <Icon className="w-3.5 h-3.5" style={{ color: '#C5A059' }} strokeWidth={1.5} />
-        <span className="text-[10px] uppercase" style={{ color: '#C5A059', letterSpacing: '0.2em' }}>{label}</span>
+        <Icon className="w-3.5 h-3.5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+        <span className="text-[10px] uppercase" style={{ color: '#B8961F', letterSpacing: '0.2em' }}>{label}</span>
       </div>
-      <div className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: accent ? '#C5A059' : '#F4E8D2', fontWeight: 400 }}>
+      <div className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: accent ? '#B8961F' : '#F4E8D2', fontWeight: 400 }}>
         {value}
       </div>
     </div>
@@ -271,9 +271,9 @@ function Section({ title, children, empty }) {
   const isEmpty = React.Children.toArray(children).every(c => !c);
   return (
     <div>
-      <div className="text-[10px] uppercase mb-3" style={{ color: '#C5A059', letterSpacing: '0.25em' }}>{title}</div>
+      <div className="text-[10px] uppercase mb-3" style={{ color: '#B8961F', letterSpacing: '0.25em' }}>{title}</div>
       {isEmpty ? (
-        <div className="rounded-lg p-4 text-xs opacity-60 text-center" style={{ background: 'rgba(0,0,0,0.20)', border: '1px dashed rgba(197,160,89,0.20)' }}>
+        <div className="rounded-lg p-4 text-xs opacity-60 text-center" style={{ background: 'rgba(0,0,0,0.20)', border: '1px dashed rgba(184,150,31,0.20)' }}>
           {empty}
         </div>
       ) : children}
@@ -285,5 +285,5 @@ function Th({ children, right }) {
   return <th className={`py-2 text-[10px] uppercase font-normal ${right ? 'text-right' : 'text-left'}`} style={{ letterSpacing: '0.15em' }}>{children}</th>;
 }
 function Td({ children, right, accent }) {
-  return <td className={`py-2 ${right ? 'text-right' : 'text-left'}`} style={{ color: accent ? '#C5A059' : undefined, fontWeight: accent ? 500 : 400 }}>{children}</td>;
+  return <td className={`py-2 ${right ? 'text-right' : 'text-left'}`} style={{ color: accent ? '#B8961F' : undefined, fontWeight: accent ? 500 : 400 }}>{children}</td>;
 }

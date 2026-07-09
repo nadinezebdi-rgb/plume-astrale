@@ -19,7 +19,7 @@ const MOOD_ICONS = {
 const SCORE_LABELS = {
   energy:     { label: 'Energie',    color: '#F47F92', icon: Flame,  desc: 'Ta vitalite du jour' },
   confidence: { label: 'Confiance',  color: '#A78BFA', icon: Stars,  desc: 'Ton ancrage interieur' },
-  discipline: { label: 'Discipline', color: '#E6C480', icon: Target, desc: 'Ta tenue d\'engagement' },
+  discipline: { label: 'Discipline', color: '#E8C766', icon: Target, desc: 'Ta tenue d\'engagement' },
   intuition:  { label: 'Intuition',  color: '#C4B5FD', icon: Sparkles, desc: 'Ta lecture subtile' },
 };
 
@@ -412,7 +412,7 @@ const MonRituel = () => {
           {/* ═══ DAILY INSIGHT ═══ */}
           <section className="pa-glass-gold rounded-3xl p-6 sm:p-8 mb-8 relative overflow-hidden animate-fade-up" style={{ animationDelay: '300ms' }}>
             <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(212,180,106,0.20), transparent 70%)', filter: 'blur(30px)' }} />
+              style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.20), transparent 70%)', filter: 'blur(30px)' }} />
             <div className="relative">
               <p className="text-[10px] uppercase tracking-[0.3em] mb-3 flex items-center gap-2" style={{ color: 'var(--pa-accent-bright)' }}>
                 <Sparkles style={{ width: 12, height: 12 }} /> Ton message du jour
@@ -456,7 +456,7 @@ const MonRituel = () => {
                   style={{
                     border: '1px solid rgba(167,139,250,0.4)',
                     color: intentionSaved ? 'var(--pa-accent-bright)' : 'var(--pa-lavender-bright)',
-                    background: intentionSaved ? 'rgba(212,180,106,0.10)' : 'transparent',
+                    background: intentionSaved ? 'rgba(212,175,55,0.10)' : 'transparent',
                     letterSpacing: '0.1em',
                     opacity: intention.trim() ? 1 : 0.4,
                   }}
@@ -522,8 +522,8 @@ const MonRituel = () => {
             {journalResponse && (
               <div className="mt-6 p-5 rounded-2xl animate-fade-up"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(212,180,106,0.07), rgba(167,139,250,0.05))',
-                  border: '1px solid rgba(212,180,106,0.25)',
+                  background: 'linear-gradient(135deg, rgba(212,175,55,0.07), rgba(167,139,250,0.05))',
+                  border: '1px solid rgba(212,175,55,0.25)',
                 }}
                 data-testid="journal-response">
                 <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: 'var(--pa-accent-bright)', letterSpacing: '0.15em' }}>
@@ -564,7 +564,7 @@ const MonRituel = () => {
                       <p className="text-sm italic mb-3" style={{ color: 'var(--pa-body)' }}>
                         &laquo; {h.entry} &raquo;
                       </p>
-                      <div className="pl-4 border-l-2" style={{ borderColor: 'rgba(212,180,106,0.3)' }}>
+                      <div className="pl-4 border-l-2" style={{ borderColor: 'rgba(212,175,55,0.3)' }}>
                         <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: 'var(--pa-accent-bright)' }}>
                           Plume
                         </p>

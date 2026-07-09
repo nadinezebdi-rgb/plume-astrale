@@ -67,15 +67,15 @@ export default function MoonHero() {
         className="absolute top-0 left-0 right-0 z-30 pointer-events-none"
         style={{
           height: '2px',
-          background: 'linear-gradient(90deg, transparent, #D4B46A, #F4D98C, #D4B46A, transparent)',
-          boxShadow: '0 0 20px rgba(212,180,106,0.6)',
+          background: 'linear-gradient(90deg, transparent, #D4AF37, #E8C766, #D4AF37, transparent)',
+          boxShadow: '0 0 20px rgba(212,175,55,0.6)',
         }}
         aria-hidden="true"
       />
       <div className="absolute top-3 left-0 right-0 z-30 text-center pointer-events-none">
         <span
           className="text-[9px] md:text-[10px] uppercase inline-block px-4"
-          style={{ color: '#D4B46A', letterSpacing: '0.32em', fontWeight: 300 }}
+          style={{ color: '#D4AF37', letterSpacing: '0.32em', fontWeight: 300 }}
           data-testid="launch-banner-text"
         >
           Offre de lancement · 20 crédits offerts à l&apos;inscription
@@ -114,7 +114,7 @@ export default function MoonHero() {
           position: 'absolute', top: '35%', left: '50%',
           transform: 'translate(-50%, -50%)',
           width: 'min(80vw, 700px)', height: 'min(80vw, 700px)',
-          background: 'radial-gradient(circle, rgba(212,180,106,0.15) 0%, transparent 60%)',
+          background: 'radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 60%)',
           filter: 'blur(40px)',
         }} />
       </div>
@@ -126,9 +126,9 @@ export default function MoonHero() {
         {/* Ornement top */}
         <div className="mb-6" aria-hidden="true">
           <div className="flex items-center gap-3 opacity-60">
-            <div style={{ width: 40, height: 1, background: 'linear-gradient(90deg, transparent, #D4B46A)' }} />
-            <Sparkles style={{ width: 14, height: 14, color: '#D4B46A' }} strokeWidth={1.5} />
-            <div style={{ width: 40, height: 1, background: 'linear-gradient(90deg, #D4B46A, transparent)' }} />
+            <div style={{ width: 40, height: 1, background: 'linear-gradient(90deg, transparent, #D4AF37)' }} />
+            <Sparkles style={{ width: 14, height: 14, color: '#D4AF37' }} strokeWidth={1.5} />
+            <div style={{ width: 40, height: 1, background: 'linear-gradient(90deg, #D4AF37, transparent)' }} />
           </div>
         </div>
 
@@ -136,7 +136,7 @@ export default function MoonHero() {
         <div className="mb-4" data-testid="brand-kicker">
           <span
             className="text-[10px] md:text-xs uppercase"
-            style={{ color: '#D4B46A', letterSpacing: '0.45em', fontWeight: 300, fontFamily: 'Cinzel, serif' }}
+            style={{ color: '#D4AF37', letterSpacing: '0.45em', fontWeight: 300, fontFamily: 'Cinzel, serif' }}
           >
             Plume&nbsp;·&nbsp;Astrale
           </span>
@@ -157,7 +157,7 @@ export default function MoonHero() {
           data-testid="moon-hero-title"
         >
           La maison d&apos;astrologie<br />
-          où tes étoiles <em style={{ color: '#D4B46A', fontStyle: 'italic', fontWeight: 200 }}>murmurent</em>.
+          où tes étoiles <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 200 }}>murmurent</em>.
         </h1>
 
         {/* Sous-titre — présentation Plume Astrale */}
@@ -179,15 +179,15 @@ export default function MoonHero() {
 
         {/* Divider mystique */}
         <div className="flex items-center gap-2 mb-8 opacity-50" aria-hidden="true">
-          <div style={{ width: 18, height: 1, background: 'rgba(212,180,106,0.6)' }} />
-          <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#D4B46A' }} />
-          <div style={{ width: 18, height: 1, background: 'rgba(212,180,106,0.6)' }} />
+          <div style={{ width: 18, height: 1, background: 'rgba(212,175,55,0.6)' }} />
+          <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#D4AF37' }} />
+          <div style={{ width: 18, height: 1, background: 'rgba(212,175,55,0.6)' }} />
         </div>
 
         {/* Instruction */}
         <p
           className="text-[10px] md:text-xs uppercase mb-3"
-          style={{ color: 'rgba(212,180,106,0.85)', letterSpacing: '0.3em', fontWeight: 300 }}
+          style={{ color: 'rgba(212,175,55,0.85)', letterSpacing: '0.3em', fontWeight: 300 }}
           data-testid="moon-form-heading"
         >
           Ouvre les portes de ton ciel
@@ -198,8 +198,8 @@ export default function MoonHero() {
           {[1, 2, 3].map((n) => (
             <div key={n} style={{
               width: 8, height: 8, borderRadius: '50%',
-              background: step >= n ? '#D4B46A' : 'rgba(212,180,106,0.25)',
-              boxShadow: step === n ? '0 0 12px rgba(212,180,106,0.7)' : 'none',
+              background: step >= n ? '#D4AF37' : 'rgba(212,175,55,0.25)',
+              boxShadow: step === n ? '0 0 12px rgba(212,175,55,0.7)' : 'none',
               transition: 'all 0.3s',
             }} />
           ))}
@@ -216,7 +216,7 @@ export default function MoonHero() {
                   value={birth.month}
                   onChange={(e) => update('month', e.target.value)}
                   className="w-full py-3 px-3 text-center outline-none text-white"
-                  style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(212,180,106,0.25)', borderRadius: '999px', fontFamily: 'Cormorant Garamond, serif', fontSize: 15 }}
+                  style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(212,175,55,0.25)', borderRadius: '999px', fontFamily: 'Cormorant Garamond, serif', fontSize: 15 }}
                   data-testid="moon-month">
                   <option value="" style={{ background: '#000' }}>Mois</option>
                   {MONTHS.map((m, i) => <option key={i} value={i + 1} style={{ background: '#000' }}>{m}</option>)}
@@ -248,13 +248,13 @@ export default function MoonHero() {
                 disabled={!canSubmit}
                 className="w-full py-4 uppercase transition-all hover:scale-[1.02] disabled:opacity-40 flex items-center justify-center gap-2 relative overflow-hidden group"
                 style={{
-                  background: 'linear-gradient(135deg, #D4B46A 0%, #F4D98C 50%, #D4B46A 100%)',
+                  background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
                   color: '#0C0918',
                   letterSpacing: '0.15em',
                   fontWeight: 700,
                   fontSize: 11,
                   borderRadius: '999px',
-                  boxShadow: '0 0 40px rgba(212,180,106,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
+                  boxShadow: '0 0 40px rgba(212,175,55,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
                 }}
                 data-testid="moon-submit-btn"
               >
@@ -325,7 +325,7 @@ function StarConstellations() {
           />
         ))}
         {/* Trois constellations subtiles */}
-        <g stroke="rgba(212,180,106,0.20)" strokeWidth="0.04" fill="none">
+        <g stroke="rgba(212,175,55,0.20)" strokeWidth="0.04" fill="none">
           <polyline points="12,18 18,22 25,20 32,26 28,33" />
           <polyline points="72,15 78,20 85,18 88,25" />
           <polyline points="20,78 28,82 35,80 42,86 48,82" />
@@ -340,7 +340,7 @@ function MoonLabel({ children }) {
   return (
     <div
       className="text-[10px] md:text-xs uppercase mb-4"
-      style={{ color: 'rgba(212,180,106,0.85)', letterSpacing: '0.3em', fontWeight: 300 }}
+      style={{ color: 'rgba(212,175,55,0.85)', letterSpacing: '0.3em', fontWeight: 300 }}
     >
       {children}
     </div>
@@ -356,7 +356,7 @@ function MoonInput({ value, onChange, placeholder, fullWidth, testid }) {
       className={`${fullWidth ? 'w-full' : ''} py-3 px-4 text-center outline-none text-white placeholder-white/30 transition-all focus:border-white/40`}
       style={{
         background: 'rgba(0,0,0,0.5)',
-        border: '1px solid rgba(212,180,106,0.25)',
+        border: '1px solid rgba(212,175,55,0.25)',
         borderRadius: '999px',
         fontFamily: 'Cormorant Garamond, serif',
         fontSize: 15,
@@ -374,8 +374,8 @@ function MoonNextBtn({ children, onClick, disabled, testid }) {
       className="w-full py-3.5 uppercase transition-all disabled:opacity-30 hover:scale-[1.01] flex items-center justify-center gap-2"
       style={{
         background: 'transparent',
-        border: '1px solid rgba(212,180,106,0.6)',
-        color: '#D4B46A',
+        border: '1px solid rgba(212,175,55,0.6)',
+        color: '#D4AF37',
         letterSpacing: '0.22em',
         fontSize: 11,
         fontWeight: 400,

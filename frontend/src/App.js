@@ -54,10 +54,21 @@ import Desabonnement from "./pages/Desabonnement";
 import PremiumStickyCTA from "./components/PremiumStickyCTA";
 import CookieConsent from "./components/CookieConsent";
 
+// ─── Plume Design System v2 (Feb 2026) ────────────────────────────
+import NoiseOverlay from "./components/design/NoiseOverlay";
+import ScrollThread from "./components/design/ScrollThread";
+import CustomCursor from "./components/design/CustomCursor";
+import MobileTabBar from "./components/design/MobileTabBar";
+
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        {/* ─── Overlays globaux Plume Design System v2 ─── */}
+        <NoiseOverlay />
+        <ScrollThread />
+        <CustomCursor />
+        <MobileTabBar />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />

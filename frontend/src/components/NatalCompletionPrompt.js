@@ -24,8 +24,8 @@ export default function NatalCompletionPrompt({ variant = 'card', className = ''
   if (!hasDate || hasTime) return null;
 
   const wrapperBase = {
-    background: 'linear-gradient(135deg, rgba(167,139,250,0.10) 0%, rgba(212,180,106,0.10) 100%)',
-    border: '1px solid rgba(212,180,106,0.30)',
+    background: 'linear-gradient(135deg, rgba(167,139,250,0.10) 0%, rgba(212,175,55,0.10) 100%)',
+    border: '1px solid rgba(212,175,55,0.30)',
     backdropFilter: 'blur(12px)',
     borderRadius: variant === 'banner' ? 14 : 18,
     padding: variant === 'banner' ? '14px 18px' : '20px 22px',
@@ -49,13 +49,13 @@ export default function NatalCompletionPrompt({ variant = 'card', className = ''
           <div
             style={{
               width: 38, height: 38, borderRadius: '50%',
-              background: 'rgba(212,180,106,0.18)',
-              border: '1px solid rgba(212,180,106,0.45)',
+              background: 'rgba(212,175,55,0.18)',
+              border: '1px solid rgba(212,175,55,0.45)',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
             }}
           >
-            <Clock style={{ width: 18, height: 18, color: '#F4D98C' }} strokeWidth={1.6} />
+            <Clock style={{ width: 18, height: 18, color: '#E8C766' }} strokeWidth={1.6} />
           </div>
 
           <div style={{ flex: '1 1 220px', minWidth: 0 }}>
@@ -63,7 +63,7 @@ export default function NatalCompletionPrompt({ variant = 'card', className = ''
               style={{
                 fontFamily: 'Cinzel, serif',
                 fontSize: 11, letterSpacing: '0.18em',
-                color: '#F4D98C', textTransform: 'uppercase',
+                color: '#E8C766', textTransform: 'uppercase',
                 marginBottom: 4,
               }}
             >
@@ -88,7 +88,7 @@ export default function NatalCompletionPrompt({ variant = 'card', className = ''
             data-testid="natal-completion-cta"
             style={{
               padding: '9px 18px', borderRadius: 999,
-              background: '#D4B46A', color: '#0F1230',
+              background: '#D4AF37', color: '#0F1230',
               fontFamily: 'Cinzel, serif', fontSize: 11, fontWeight: 600,
               letterSpacing: '0.14em', textTransform: 'uppercase',
               border: 'none', cursor: 'pointer',

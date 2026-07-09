@@ -29,15 +29,15 @@ const greeting = () => {
 // ─────────────────────────────────────────────────────────────
 // Gauge component
 // ─────────────────────────────────────────────────────────────
-const Gauge = ({ value, label, desc, color = '#D4B46A' }) => {
+const Gauge = ({ value, label, desc, color = '#D4AF37' }) => {
   const v = Math.max(20, Math.min(98, value || 50));
   return (
-    <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(212,180,106,0.15)' }} data-testid={`gauge-${label.toLowerCase()}`}>
+    <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(212,175,55,0.15)' }} data-testid={`gauge-${label.toLowerCase()}`}>
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] uppercase tracking-widest" style={{ color: 'rgba(212,180,106,0.75)', letterSpacing: '0.12em' }}>{label}</p>
+        <p className="text-[10px] uppercase tracking-widest" style={{ color: 'rgba(212,175,55,0.75)', letterSpacing: '0.12em' }}>{label}</p>
         <p className="text-base" style={{ fontFamily: 'Cormorant Garamond, serif', color }}>{v}</p>
       </div>
-      <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(212,180,106,0.08)' }}>
+      <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(212,175,55,0.08)' }}>
         <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${v}%`, background: `linear-gradient(90deg, ${color}80, ${color})` }} />
       </div>
       <p className="text-[10px] mt-2" style={{ color: 'rgba(184,176,200,0.55)' }}>{desc}</p>
@@ -53,7 +53,7 @@ const MoodPicker = ({ moods, currentMood, onSubmit, loading }) => {
   const [intention, setIntention] = useState('');
 
   return (
-    <div className="rounded-2xl p-6" style={{ background: 'rgba(212,180,106,0.04)', border: '1px solid rgba(212,180,106,0.18)' }} data-testid="mood-picker">
+    <div className="rounded-2xl p-6" style={{ background: 'rgba(212,175,55,0.04)', border: '1px solid rgba(212,175,55,0.18)' }} data-testid="mood-picker">
       <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 400 }}>
         Comment te sens-tu {greeting().toLowerCase()} ?
       </h3>
@@ -71,8 +71,8 @@ const MoodPicker = ({ moods, currentMood, onSubmit, loading }) => {
               onClick={() => setSelected(m.id)}
               className="flex flex-col items-center gap-1 px-2 py-3 rounded-xl transition-all"
               style={{
-                background: isActive ? 'rgba(212,180,106,0.15)' : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${isActive ? m.color : 'rgba(212,180,106,0.08)'}`,
+                background: isActive ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.02)',
+                border: `1px solid ${isActive ? m.color : 'rgba(212,175,55,0.08)'}`,
                 color: isActive ? m.color : 'rgba(184,176,200,0.75)',
               }}
               data-testid={`mood-${m.id}`}
@@ -90,7 +90,7 @@ const MoodPicker = ({ moods, currentMood, onSubmit, loading }) => {
         placeholder="Quelle intention pour aujourd'hui ? (optionnel)"
         rows={2}
         className="w-full bg-transparent rounded-lg p-3 text-sm outline-none transition-all"
-        style={{ border: '1px solid rgba(212,180,106,0.15)', color: 'rgba(240,230,211,0.9)', resize: 'none' }}
+        style={{ border: '1px solid rgba(212,175,55,0.15)', color: 'rgba(240,230,211,0.9)', resize: 'none' }}
         data-testid="intention-input"
       />
 
@@ -99,12 +99,12 @@ const MoodPicker = ({ moods, currentMood, onSubmit, loading }) => {
         disabled={!selected || loading}
         className="mt-4 w-full flex items-center justify-center gap-2 px-5 py-3 rounded-full transition-all text-xs uppercase tracking-widest"
         style={{
-          background: selected ? 'linear-gradient(135deg, #D4B46A, #C5A059)' : 'rgba(255,255,255,0.04)',
+          background: selected ? 'linear-gradient(135deg, #D4AF37, #B8961F)' : 'rgba(255,255,255,0.04)',
           color: selected ? '#0C0918' : 'rgba(184,176,200,0.5)',
           letterSpacing: '0.14em',
           fontWeight: 600,
           cursor: selected ? 'pointer' : 'not-allowed',
-          boxShadow: selected ? '0 4px 16px rgba(212,180,106,0.3)' : 'none',
+          boxShadow: selected ? '0 4px 16px rgba(212,175,55,0.3)' : 'none',
         }}
         data-testid="checkin-submit"
       >
@@ -150,7 +150,7 @@ const EveningReflection = ({ unlocked, alreadyDone, onSubmit, response, loading,
       className="rounded-2xl p-6 transition-opacity"
       style={{
         background: unlocked ? 'rgba(167,139,250,0.06)' : 'rgba(255,255,255,0.02)',
-        border: `1px solid ${unlocked ? 'rgba(167,139,250,0.25)' : 'rgba(212,180,106,0.1)'}`,
+        border: `1px solid ${unlocked ? 'rgba(167,139,250,0.25)' : 'rgba(212,175,55,0.1)'}`,
         opacity: unlocked ? 1 : 0.55,
       }}
       data-testid="evening-reflection"
@@ -290,7 +290,7 @@ export default function CercleDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" data-testid="cercle-loading">
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#D4B46A' }} />
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#D4AF37' }} />
       </div>
     );
   }
@@ -317,11 +317,11 @@ export default function CercleDashboard() {
 
         {/* ─── Header salutation ─── */}
         <div className="mb-10 text-center">
-          <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: '#D4B46A', letterSpacing: '0.3em', fontFamily: 'Cinzel, serif' }}>
+          <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: '#D4AF37', letterSpacing: '0.3em', fontFamily: 'Cinzel, serif' }}>
             Le Cercle
           </p>
           <h1 className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: '#F0E6D3' }} data-testid="cercle-greeting">
-            {greeting()}, <em style={{ color: '#D4B46A', fontStyle: 'italic' }}>{data.profile.prenom}</em>
+            {greeting()}, <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>{data.profile.prenom}</em>
           </h1>
           <p className="text-xs capitalize" style={{ color: 'rgba(184,176,200,0.6)' }}>{dateLabel}</p>
         </div>
@@ -331,7 +331,7 @@ export default function CercleDashboard() {
           {/* Streak */}
           <div className="rounded-2xl p-5 flex items-center gap-4" style={{ background: 'rgba(255,107,53,0.05)', border: '1px solid rgba(255,107,53,0.18)' }} data-testid="cercle-streak">
             <div className="relative flex-shrink-0">
-              <Flame className="w-10 h-10" strokeWidth={1.5} style={{ color: streak.streak_count > 0 ? '#FF6B35' : 'rgba(212,180,106,0.5)', filter: streak.streak_count >= 7 ? 'drop-shadow(0 0 10px rgba(255,107,53,0.4))' : 'none' }} />
+              <Flame className="w-10 h-10" strokeWidth={1.5} style={{ color: streak.streak_count > 0 ? '#FF6B35' : 'rgba(212,175,55,0.5)', filter: streak.streak_count >= 7 ? 'drop-shadow(0 0 10px rgba(255,107,53,0.4))' : 'none' }} />
               {streak.streak_count > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-bold" style={{ background: '#FF6B35', color: '#0C0918' }}>{streak.streak_count}</span>
               )}
@@ -359,10 +359,10 @@ export default function CercleDashboard() {
         </div>
 
         {/* ─── Conseil de la Plume ─── */}
-        <section className="rounded-2xl p-6 mb-8" style={{ background: 'linear-gradient(135deg, rgba(212,180,106,0.08) 0%, rgba(212,180,106,0.02) 100%)', border: '1px solid rgba(212,180,106,0.22)' }} data-testid="cercle-insight">
+        <section className="rounded-2xl p-6 mb-8" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(212,175,55,0.02) 100%)', border: '1px solid rgba(212,175,55,0.22)' }} data-testid="cercle-insight">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-4 h-4" strokeWidth={1.5} style={{ color: '#D4B46A' }} />
-            <p className="text-[10px] uppercase tracking-widest" style={{ color: '#D4B46A', letterSpacing: '0.14em', fontFamily: 'Cinzel, serif' }}>Le Conseil de la Plume</p>
+            <Sparkles className="w-4 h-4" strokeWidth={1.5} style={{ color: '#D4AF37' }} />
+            <p className="text-[10px] uppercase tracking-widest" style={{ color: '#D4AF37', letterSpacing: '0.14em', fontFamily: 'Cinzel, serif' }}>Le Conseil de la Plume</p>
           </div>
           <p className="text-base leading-relaxed" style={{ color: 'rgba(240,230,211,0.92)', fontFamily: 'Cormorant Garamond, serif', lineHeight: 1.7, fontStyle: 'italic' }}>
             {data.insight}
@@ -390,7 +390,7 @@ export default function CercleDashboard() {
 
         {/* ─── 4 jauges cosmiques ─── */}
         <section className="mb-8">
-          <p className="text-[10px] uppercase tracking-widest mb-3" style={{ color: 'rgba(212,180,106,0.65)', letterSpacing: '0.18em', fontFamily: 'Cinzel, serif' }}>
+          <p className="text-[10px] uppercase tracking-widest mb-3" style={{ color: 'rgba(212,175,55,0.65)', letterSpacing: '0.18em', fontFamily: 'Cinzel, serif' }}>
             Tes énergies du jour
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -402,8 +402,8 @@ export default function CercleDashboard() {
 
         {/* ─── Tarot du jour ─── */}
         <section className="rounded-2xl p-6 mb-8 flex items-start gap-5" style={{ background: 'rgba(201,120,120,0.05)', border: '1px solid rgba(201,120,120,0.2)' }} data-testid="cercle-tarot">
-          <div className="flex-shrink-0 w-14 h-20 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(201,120,120,0.15), rgba(212,180,106,0.1))', border: '1px solid rgba(212,180,106,0.25)' }}>
-            <Star className="w-7 h-7" strokeWidth={1.2} style={{ color: '#D4B46A' }} />
+          <div className="flex-shrink-0 w-14 h-20 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(201,120,120,0.15), rgba(212,175,55,0.1))', border: '1px solid rgba(212,175,55,0.25)' }}>
+            <Star className="w-7 h-7" strokeWidth={1.2} style={{ color: '#D4AF37' }} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: '#C97878', letterSpacing: '0.14em', fontFamily: 'Cinzel, serif' }}>Carte du jour</p>

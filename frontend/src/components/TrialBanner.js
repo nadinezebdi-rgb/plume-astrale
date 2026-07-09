@@ -69,8 +69,8 @@ export default function TrialBanner() {
         left: 0,
         right: 0,
         zIndex: 40,
-        background: 'linear-gradient(90deg, rgba(212,180,106,0.18) 0%, rgba(244,217,140,0.28) 50%, rgba(212,180,106,0.18) 100%)',
-        borderBottom: '1px solid rgba(212,180,106,0.35)',
+        background: 'linear-gradient(90deg, rgba(212,175,55,0.18) 0%, rgba(232,199,102,0.28) 50%, rgba(212,175,55,0.18) 100%)',
+        borderBottom: '1px solid rgba(212,175,55,0.35)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         animation: 'trialBannerSlide 0.6s ease-out',
@@ -82,16 +82,16 @@ export default function TrialBanner() {
           to   { transform: translateY(0); opacity: 1; }
         }
         @keyframes trialBannerShine {
-          0%, 100% { box-shadow: 0 0 0 rgba(244,217,140,0); }
-          50%      { box-shadow: 0 0 16px rgba(244,217,140,0.35); }
+          0%, 100% { box-shadow: 0 0 0 rgba(232,199,102,0); }
+          50%      { box-shadow: 0 0 16px rgba(232,199,102,0.35); }
         }
         .trial-pulse { animation: trialBannerShine 2.4s ease-in-out infinite; }
         .trial-banner-cta {
           padding: 6px 16px;
           border-radius: 999px;
           background: #0F1230;
-          color: #F4D98C;
-          border: 1px solid rgba(244,217,140,0.55);
+          color: #E8C766;
+          border: 1px solid rgba(232,199,102,0.55);
           font-family: 'Cinzel, serif';
           font-size: 11px;
           letter-spacing: 0.14em;
@@ -102,7 +102,7 @@ export default function TrialBanner() {
           transition: all 0.25s ease;
         }
         .trial-banner-cta:hover {
-          background: #F4D98C;
+          background: #E8C766;
           color: #0F1230;
           transform: translateY(-1px);
         }
@@ -137,11 +137,11 @@ export default function TrialBanner() {
             height: 28,
             borderRadius: '50%',
             background: 'rgba(15,18,48,0.7)',
-            border: '1px solid rgba(244,217,140,0.5)',
+            border: '1px solid rgba(232,199,102,0.5)',
             flexShrink: 0,
           }}
         >
-          <Gift style={{ width: 14, height: 14, color: '#F4D98C' }} strokeWidth={1.8} />
+          <Gift style={{ width: 14, height: 14, color: '#E8C766' }} strokeWidth={1.8} />
         </div>
 
         <div
@@ -157,7 +157,7 @@ export default function TrialBanner() {
             minWidth: 0,
           }}
         >
-          <strong style={{ fontFamily: 'Cinzel, serif', letterSpacing: '0.06em', color: '#F4D98C', whiteSpace: 'nowrap' }}>
+          <strong style={{ fontFamily: 'Cinzel, serif', letterSpacing: '0.06em', color: '#E8C766', whiteSpace: 'nowrap' }}>
             {showCountdown ? `${remainingDays}j` : '7 jours'}
           </strong>
           <span className="trial-text-long" style={{ color: 'rgba(244,228,188,0.85)' }}>
@@ -194,7 +194,7 @@ export default function TrialBanner() {
             justifyContent: 'center',
             flexShrink: 0,
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = '#F4D98C'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#E8C766'; }}
           onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(244,228,188,0.6)'; }}
         >
           <X style={{ width: 14, height: 14 }} strokeWidth={1.5} />

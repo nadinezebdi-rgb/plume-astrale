@@ -44,7 +44,7 @@ export default function CreditSuccess() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 pt-20" data-testid="credit-success-polling">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin" style={{ color: '#C5A059' }} />
+          <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin" style={{ color: '#B8961F' }} />
           <p className="text-base" style={{ color: 'var(--pa-body)' }}>Vérification du paiement en cours...</p>
         </div>
       </div>
@@ -64,15 +64,15 @@ export default function CreditSuccess() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 pt-20" data-testid="credit-success-page">
-      <div className="text-center max-w-md rounded-2xl p-8 md:p-10" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(197,160,89,0.15)', backdropFilter: 'blur(16px)' }}>
-        <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+      <div className="text-center max-w-md rounded-2xl p-8 md:p-10" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,150,31,0.15)', backdropFilter: 'blur(16px)' }}>
+        <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
         <h1 className="text-2xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
           Paiement confirmé
         </h1>
         <p className="text-base mb-2" style={{ color: 'var(--pa-body)' }}>
           Vos crédits ont été ajoutés à votre compte.
         </p>
-        <p className="text-lg mb-6" style={{ color: '#C5A059' }} data-testid="new-balance">
+        <p className="text-lg mb-6" style={{ color: '#B8961F' }} data-testid="new-balance">
           Solde actuel : {creditBalance} crédits
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

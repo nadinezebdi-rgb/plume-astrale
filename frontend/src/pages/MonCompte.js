@@ -67,8 +67,8 @@ const FideliteCard = ({ fidelite, onCheckin, checkinLoading }) => {
     <div
       className="rounded-2xl p-6 md:p-8"
       style={{
-        background: 'linear-gradient(135deg, rgba(197,160,89,0.07) 0%, rgba(255,107,53,0.03) 100%)',
-        border: '1px solid rgba(197,160,89,0.2)',
+        background: 'linear-gradient(135deg, rgba(184,150,31,0.07) 0%, rgba(255,107,53,0.03) 100%)',
+        border: '1px solid rgba(184,150,31,0.2)',
       }}
       data-testid="fidelite-card"
     >
@@ -110,9 +110,9 @@ const FideliteCard = ({ fidelite, onCheckin, checkinLoading }) => {
           disabled={deja || checkinLoading}
           className="flex items-center gap-2 text-xs uppercase tracking-widest px-4 py-2 rounded-full transition-all duration-300 whitespace-nowrap"
           style={{
-            border: deja ? '1px solid rgba(197,160,89,0.2)' : '1px solid rgba(197,160,89,0.5)',
+            border: deja ? '1px solid rgba(184,150,31,0.2)' : '1px solid rgba(184,150,31,0.5)',
             color: deja ? 'var(--pa-muted)' : 'var(--pa-accent)',
-            background: deja ? 'transparent' : 'rgba(197,160,89,0.08)',
+            background: deja ? 'transparent' : 'rgba(184,150,31,0.08)',
             cursor: deja ? 'default' : 'pointer',
             letterSpacing: '0.08em',
           }}
@@ -138,7 +138,7 @@ const FideliteCard = ({ fidelite, onCheckin, checkinLoading }) => {
           <div
             key={label}
             className="rounded-xl p-3 text-center"
-            style={{ background: 'rgba(197,160,89,0.05)', border: '1px solid rgba(197,160,89,0.12)' }}
+            style={{ background: 'rgba(184,150,31,0.05)', border: '1px solid rgba(184,150,31,0.12)' }}
           >
             <div className="text-lg mb-0.5">{icon}</div>
             <div className="text-xl font-light mb-0.5" style={{ color: 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif' }}>
@@ -160,7 +160,7 @@ const FideliteCard = ({ fidelite, onCheckin, checkinLoading }) => {
               + {prochainPalier.bonus} crédits offerts
             </span>
           </div>
-          <div className="h-px w-full relative" style={{ background: 'rgba(197,160,89,0.15)' }}>
+          <div className="h-px w-full relative" style={{ background: 'rgba(184,150,31,0.15)' }}>
             <div
               className="h-px absolute left-0 top-0 transition-all duration-1000"
               style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--pa-accent), #FF6B35)' }}
@@ -197,7 +197,7 @@ const AbonnementCard = ({ subscription, onSouscrire, loading }) => {
       <div
         className="rounded-2xl p-6 md:p-8"
         style={{
-          background: 'linear-gradient(135deg, rgba(167,139,250,0.08) 0%, rgba(197,160,89,0.04) 100%)',
+          background: 'linear-gradient(135deg, rgba(167,139,250,0.08) 0%, rgba(184,150,31,0.04) 100%)',
           border: '1px solid rgba(167,139,250,0.3)',
         }}
         data-testid="abonnement-actif"
@@ -255,8 +255,8 @@ const AbonnementCard = ({ subscription, onSouscrire, loading }) => {
     <div
       className="rounded-2xl p-6 md:p-8"
       style={{
-        background: 'linear-gradient(135deg, rgba(197,160,89,0.05) 0%, rgba(167,139,250,0.03) 100%)',
-        border: '1px solid rgba(197,160,89,0.18)',
+        background: 'linear-gradient(135deg, rgba(184,150,31,0.05) 0%, rgba(167,139,250,0.03) 100%)',
+        border: '1px solid rgba(184,150,31,0.18)',
       }}
       data-testid="abonnement-inactif"
     >
@@ -276,7 +276,7 @@ const AbonnementCard = ({ subscription, onSouscrire, loading }) => {
         {/* Journal Quotidien */}
         <div
           className="rounded-xl p-5 flex flex-col gap-3"
-          style={{ background: 'rgba(197,160,89,0.06)', border: '1px solid rgba(197,160,89,0.2)' }}
+          style={{ background: 'rgba(184,150,31,0.06)', border: '1px solid rgba(184,150,31,0.2)' }}
         >
           <div>
             <p className="text-xs tracking-widest uppercase mb-1" style={{ color: 'var(--pa-accent)', letterSpacing: '0.1em' }}>
@@ -299,8 +299,8 @@ const AbonnementCard = ({ subscription, onSouscrire, loading }) => {
             disabled={loading}
             className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-4 py-2.5 rounded-full w-full transition-all duration-300"
             style={{
-              background: 'rgba(197,160,89,0.15)',
-              border: '1px solid rgba(197,160,89,0.5)',
+              background: 'rgba(184,150,31,0.15)',
+              border: '1px solid rgba(184,150,31,0.5)',
               color: 'var(--pa-accent)',
               letterSpacing: '0.08em',
             }}
@@ -517,7 +517,7 @@ const MonCompte = () => {
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse 60% 40% at 20% 20%, rgba(120,80,200,0.07) 0%, transparent 70%), radial-gradient(ellipse 50% 50% at 80% 80%, rgba(197,160,89,0.05) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse 60% 40% at 20% 20%, rgba(120,80,200,0.07) 0%, transparent 70%), radial-gradient(ellipse 50% 50% at 80% 80%, rgba(184,150,31,0.05) 0%, transparent 70%)',
           zIndex: 0,
         }}
       />
@@ -536,8 +536,8 @@ const MonCompte = () => {
             <div
               className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 text-xl"
               style={{
-                background: 'linear-gradient(135deg, rgba(197,160,89,0.2) 0%, rgba(167,139,250,0.15) 100%)',
-                border: '1px solid rgba(197,160,89,0.35)',
+                background: 'linear-gradient(135deg, rgba(184,150,31,0.2) 0%, rgba(167,139,250,0.15) 100%)',
+                border: '1px solid rgba(184,150,31,0.35)',
                 fontFamily: 'Cormorant Garamond, serif',
                 color: 'var(--pa-accent)',
                 fontWeight: 300,
@@ -570,7 +570,7 @@ const MonCompte = () => {
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 text-xs uppercase tracking-widest px-3 py-1.5 rounded-full transition-all duration-300 hover:bg-red-500/10 flex-shrink-0"
-              style={{ border: '1px solid rgba(197,160,89,0.2)', color: 'var(--pa-muted)', letterSpacing: '0.08em' }}
+              style={{ border: '1px solid rgba(184,150,31,0.2)', color: 'var(--pa-muted)', letterSpacing: '0.08em' }}
               data-testid="logout-btn"
             >
               <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} /> Déconnexion
@@ -586,8 +586,8 @@ const MonCompte = () => {
                   ? 'rgba(74,222,128,0.1)'
                   : checkinMsg.type === 'error'
                   ? 'rgba(248,113,113,0.1)'
-                  : 'rgba(197,160,89,0.08)',
-                border: `1px solid ${checkinMsg.type === 'success' ? 'rgba(74,222,128,0.3)' : checkinMsg.type === 'error' ? 'rgba(248,113,113,0.3)' : 'rgba(197,160,89,0.2)'}`,
+                  : 'rgba(184,150,31,0.08)',
+                border: `1px solid ${checkinMsg.type === 'success' ? 'rgba(74,222,128,0.3)' : checkinMsg.type === 'error' ? 'rgba(248,113,113,0.3)' : 'rgba(184,150,31,0.2)'}`,
                 color: checkinMsg.type === 'success' ? '#4ADE80' : checkinMsg.type === 'error' ? '#F87171' : 'var(--pa-accent)',
               }}
               data-testid="flash-msg"
@@ -608,10 +608,10 @@ const MonCompte = () => {
           {/* ── Bandeau solde crédits ── */}
           <Link
             to="/acheter-credits"
-            className="flex items-center justify-between gap-4 rounded-2xl px-6 py-4 mb-8 group transition-all duration-300 hover:border-[rgba(197,160,89,0.45)]"
+            className="flex items-center justify-between gap-4 rounded-2xl px-6 py-4 mb-8 group transition-all duration-300 hover:border-[rgba(184,150,31,0.45)]"
             style={{
-              background: 'linear-gradient(135deg, rgba(197,160,89,0.1) 0%, rgba(197,160,89,0.04) 100%)',
-              border: '1px solid rgba(197,160,89,0.25)',
+              background: 'linear-gradient(135deg, rgba(184,150,31,0.1) 0%, rgba(184,150,31,0.04) 100%)',
+              border: '1px solid rgba(184,150,31,0.25)',
             }}
             data-testid="credit-banner"
           >
@@ -627,15 +627,15 @@ const MonCompte = () => {
               </div>
             </div>
             <div
-              className="flex items-center gap-1.5 text-xs uppercase tracking-widest px-4 py-2 rounded-full transition-all duration-300 group-hover:bg-[rgba(197,160,89,0.15)]"
-              style={{ border: '1px solid rgba(197,160,89,0.35)', color: 'var(--pa-accent)', letterSpacing: '0.08em' }}
+              className="flex items-center gap-1.5 text-xs uppercase tracking-widest px-4 py-2 rounded-full transition-all duration-300 group-hover:bg-[rgba(184,150,31,0.15)]"
+              style={{ border: '1px solid rgba(184,150,31,0.35)', color: 'var(--pa-accent)', letterSpacing: '0.08em' }}
             >
               <Gift className="w-3.5 h-3.5" strokeWidth={1.5} /> Recharger
             </div>
           </Link>
 
           {/* ── Navigation par onglets ── */}
-          <div className="flex items-center gap-1 mb-8 overflow-x-auto pb-1" style={{ borderBottom: '1px solid rgba(197,160,89,0.1)' }}>
+          <div className="flex items-center gap-1 mb-8 overflow-x-auto pb-1" style={{ borderBottom: '1px solid rgba(184,150,31,0.1)' }}>
             {tabs.map(tab => (
               <button
                 key={tab.id}
@@ -645,7 +645,7 @@ const MonCompte = () => {
                   letterSpacing: '0.1em',
                   color: activeTab === tab.id ? 'var(--pa-accent)' : 'var(--pa-muted)',
                   borderBottom: activeTab === tab.id ? '1px solid var(--pa-accent)' : '1px solid transparent',
-                  background: activeTab === tab.id ? 'rgba(197,160,89,0.06)' : 'transparent',
+                  background: activeTab === tab.id ? 'rgba(184,150,31,0.06)' : 'transparent',
                   marginBottom: '-1px',
                 }}
                 data-testid={`tab-${tab.id}`}
@@ -680,7 +680,7 @@ const MonCompte = () => {
                     style={{
                       fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
                       padding: '6px 12px', borderRadius: 999,
-                      border: '1px solid rgba(212,180,106,0.4)',
+                      border: '1px solid rgba(212,175,55,0.4)',
                       color: 'var(--pa-accent)', background: 'transparent',
                       cursor: 'pointer', fontFamily: 'Cinzel, serif', fontWeight: 500,
                     }}
@@ -766,8 +766,8 @@ const MonCompte = () => {
                     <Link
                       key={to}
                       to={to}
-                      className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 hover:border-[rgba(197,160,89,0.3)]"
-                      style={{ background: 'rgba(197,160,89,0.04)', border: '1px solid rgba(197,160,89,0.12)' }}
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 hover:border-[rgba(184,150,31,0.3)]"
+                      style={{ background: 'rgba(184,150,31,0.04)', border: '1px solid rgba(184,150,31,0.12)' }}
                     >
                       <span className="text-base">{icon}</span>
                       <span className="text-xs" style={{ color: 'var(--pa-body)' }}>{label}</span>
@@ -800,7 +800,7 @@ const MonCompte = () => {
               </div>
 
               {[
-                { to: '/karma-destin', title: 'Karma & Destin', subtitle: 'Lecture karmique avec Noeud Nord et mission de vie', price: 20, icon: '☉', accent: '#C5A059' },
+                { to: '/karma-destin', title: 'Karma & Destin', subtitle: 'Lecture karmique avec Noeud Nord et mission de vie', price: 20, icon: '☉', accent: '#B8961F' },
                 { to: '/compatibilite', title: 'Compatibilite (4 liens)', subtitle: 'Amour · Amitie · Famille · Travail', price: 20, icon: '♡', accent: '#F472B6' },
                 { to: '/revolution-solaire', title: 'Revolution Solaire', subtitle: "Themes de votre prochaine annee, votre rituel d'anniversaire", price: 20, icon: '✦', accent: '#FDE68A' },
                 { to: '/love-languages', title: "Langages d'Amour", subtitle: 'Votre signature affective selon Venus, Mars et Lune', price: 10, icon: '♥', accent: '#FB7185' },
@@ -866,8 +866,8 @@ const MonCompte = () => {
                   className="block rounded-2xl p-5 md:p-6 text-center transition-all duration-300 hover:-translate-y-0.5"
                   data-testid="rapports-premium-cta"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(197,160,89,0.1) 0%, rgba(167,139,250,0.08) 100%)',
-                    border: '1px solid rgba(197,160,89,0.35)',
+                    background: 'linear-gradient(135deg, rgba(184,150,31,0.1) 0%, rgba(167,139,250,0.08) 100%)',
+                    border: '1px solid rgba(184,150,31,0.35)',
                   }}
                 >
                   <Crown className="w-6 h-6 mx-auto mb-2" strokeWidth={1.3} style={{ color: 'var(--pa-accent)' }} />
@@ -916,8 +916,8 @@ const MonCompte = () => {
                   to="/acheter-credits"
                   className="flex items-center gap-2 text-xs uppercase tracking-widest px-5 py-2.5 rounded-full transition-all duration-300"
                   style={{
-                    background: 'rgba(197,160,89,0.12)',
-                    border: '1px solid rgba(197,160,89,0.4)',
+                    background: 'rgba(184,150,31,0.12)',
+                    border: '1px solid rgba(184,150,31,0.4)',
                     color: 'var(--pa-accent)',
                     letterSpacing: '0.08em',
                   }}
@@ -950,7 +950,7 @@ const MonCompte = () => {
                       <div
                         key={tx.id || i}
                         className="flex items-center justify-between px-4 py-3 rounded-xl"
-                        style={{ background: 'rgba(197,160,89,0.03)', border: '1px solid rgba(197,160,89,0.08)' }}
+                        style={{ background: 'rgba(184,150,31,0.03)', border: '1px solid rgba(184,150,31,0.08)' }}
                       >
                         <div>
                           <p className="text-xs" style={{ color: 'var(--pa-body)' }}>
@@ -975,7 +975,7 @@ const MonCompte = () => {
               {/* Info sécurité paiement */}
               <div
                 className="rounded-xl px-5 py-4 flex items-center gap-3"
-                style={{ background: 'rgba(197,160,89,0.04)', border: '1px solid rgba(197,160,89,0.12)' }}
+                style={{ background: 'rgba(184,150,31,0.04)', border: '1px solid rgba(184,150,31,0.12)' }}
               >
                 <Shield className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} style={{ color: 'var(--pa-muted)' }} />
                 <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
@@ -1021,14 +1021,14 @@ const MonCompte = () => {
                         key={jours}
                         className="flex items-center gap-4 rounded-xl px-4 py-3"
                         style={{
-                          background: atteint ? 'rgba(74,222,128,0.06)' : 'rgba(197,160,89,0.03)',
-                          border: `1px solid ${atteint ? 'rgba(74,222,128,0.2)' : 'rgba(197,160,89,0.1)'}`,
+                          background: atteint ? 'rgba(74,222,128,0.06)' : 'rgba(184,150,31,0.03)',
+                          border: `1px solid ${atteint ? 'rgba(74,222,128,0.2)' : 'rgba(184,150,31,0.1)'}`,
                         }}
                       >
                         <div
                           className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs"
                           style={{
-                            background: atteint ? 'rgba(74,222,128,0.15)' : 'rgba(197,160,89,0.08)',
+                            background: atteint ? 'rgba(74,222,128,0.15)' : 'rgba(184,150,31,0.08)',
                             color: atteint ? '#4ADE80' : 'var(--pa-accent)',
                           }}
                         >
@@ -1056,7 +1056,7 @@ const MonCompte = () => {
           )}
 
           {/* Séparateur bas de page */}
-          <div className="mt-16 mb-6" style={{ borderTop: '1px solid rgba(197,160,89,0.1)' }} />
+          <div className="mt-16 mb-6" style={{ borderTop: '1px solid rgba(184,150,31,0.1)' }} />
           <p className="text-center text-xs" style={{ color: 'var(--pa-muted)' }}>
             Plume Astrale · <Link to="/charte-de-confiance" className="hover:opacity-80 transition-opacity" style={{ color: 'var(--pa-muted)' }}>Charte de confiance</Link>
           </p>

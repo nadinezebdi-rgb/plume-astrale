@@ -1,0 +1,66 @@
+{
+  "summary": "Tests Phase 1/2 design system Plume v2 (overlays, TabBar mobile, navbar glassy, palette Nuit Douce) + regressions Supabase assets. Backend endpoints (GET /api/, /api/astrology/karma-destiny, /api/tarot/oui-non) OK et retournent des URL Supabase valides. Les 4 overlays desktop (data-testid: plume-noise-overlay, plume-scroll-thread, plume-cursor, mobile-tabbar) sont bien montes. Navbar glassy (fond rgba(17,22,37,0.9), logo Cinzel dore). Hero H1 correct avec 'dans vos etoiles' en italique dore. Sections Solena & Reviews presentes et fonctionnelles. TabBar mobile visible (3 icones Mon Espace/Consulter/Tarifs) mais 2 des 3 destinations pointent vers des routes inexistantes. Video /cercle chargee depuis Supabase (200 OK). Flow tarot-oui-non fonctionne apres login admin. Assets Supabase de compatibilite accessibles au chemin correct (images/compatibilite/*.png).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "MobileTabBar",
+        "issue": "Le lien 'Mon Espace' pointe vers /dashboard qui n'existe pas dans App.js (route reelle = /mon-compte). Resultat: page vide (body length=262, aucun h1) apres clic.",
+        "selector": "[data-testid=\"tabbar-espace\"] href=/dashboard",
+        "priority": "HIGH"
+      },
+      {
+        "component": "MobileTabBar",
+        "issue": "Le lien 'Tarifs' pointe vers /tarifs qui n'existe pas dans App.js (route existante = /acheter-credits ou /premium). Resultat: page vide apres clic.",
+        "selector": "[data-testid=\"tabbar-tarifs\"] href=/tarifs",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Home hero -- select mois/annee",
+        "issue": "Hydration errors console: '<span> cannot be a child of <option>' et '<span> cannot be a child of <select>'. L'outil dev inject des <span data-ve-dynamic='true'> a l'interieur des <select> et <option> de Hero3D. Non bloquant en production mais pollue la console React.",
+        "affected_selectors": ["[data-testid=\"moon-month\"]", "select[data-testid=\"moon-month\"]"]
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "Navbar (desktop)",
+        "issues": [
+          "background-color computed = rgba(17, 22, 37, 0.9) alors que la spec demande rgba(17,22,37,0.70). Difference d'opacite legere.",
+          "Couleur logo computed = rgb(226,191,101) au lieu de #D4AF37 = rgb(212,175,55). Le token 'plume-gold' semble mapper sur une nuance plus claire. A verifier dans tailwind.config.js / index.css."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration41_astrology_purge.py"
+  ],
+  "action_items": [
+    "CRITIQUE UX: MobileTabBar navigue vers /dashboard et /tarifs mais ces routes n'existent PAS dans App.js. Deux options: (1) creer les routes /dashboard et /tarifs (redirections vers /mon-compte et /premium ou /acheter-credits), OU (2) mettre a jour /app/frontend/src/components/design/MobileTabBar.js items[] pour pointer vers les routes existantes (/mon-compte, /consultation, /premium ou /acheter-credits).",
+    "Ajuster la couleur du token 'plume-gold' pour matcher exactement #D4AF37 (rgb 212,175,55) au lieu de rgb(226,191,101) actuellement calcule -- verifier index.css --plume-gold et tailwind.config.js plume.gold.",
+    "Baisser l'opacite du fond navbar de 0.9 a 0.70 pour matcher la spec glassmorphism plus subtile.",
+    "Nettoyer les <span data-ve-dynamic='true'> injectes autour des <option> dans Hero3D.js pour supprimer les hydration errors -- probablement retirer un wrapper de dev-tool sur les .map() dans le composant."
+  ],
+  "critical_code_review_comments": [
+    "MobileTabBar.js: les URLs 'to' sont hardcodees vers des routes qui n'existent pas. Un test unitaire route-existence eviterait ce genre de bug de linkage.",
+    "App.js est propre mais Index.js et Cercle importes sur la meme ligne 25 (import mixte) -- cosmetique, mais reduit la lisibilite.",
+    "NoiseOverlay/ScrollThread/CustomCursor bien structures avec prefers-reduced-motion respecte + coarse pointer detection.",
+    "CustomCursor: si coarse ou reduce, setEnabled reste false donc return null -- OK. Mais le composant est neanmoins toujours monte dans le DOM React tree; le return null est correct.",
+    "Aucune data-testid sur le formulaire d'inscription mensuelle du hero (moon-form/moon-month deja OK)."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "80% (design system OK, mais 2 routes TabBar mobile cassees)"
+  },
+  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 -- login OK, redirection vers /mon-compte apres soumission du formulaire.",
+  "seed_data_creation": "Aucune donnee semee",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Phase 2 design system partielle: overlays desktop + TabBar mobile montes globalement dans App.js. 4 data-testid a verifier: plume-noise-overlay, plume-scroll-thread, plume-cursor (desktop only), mobile-tabbar (mobile <768px). Bug bloquant: MobileTabBar (/app/frontend/src/components/design/MobileTabBar.js line 10-14) reference /dashboard et /tarifs qui n'existent pas dans App.js. Main agent doit choisir strategie: creer les routes OU rediriger vers /mon-compte + /premium|/acheter-credits. Backend inchange depuis iteration 41 (100% OK). Assets Supabase: compatibilite images sont dans le sous-dossier /images/compatibilite/ (pas /images/) -- le path dans la review request etait errone. Tous les 4 fichiers renvoient 200 OK au bon chemin.",
+  "rca_of_the_issue": "Bug MobileTabBar routes -- Reproduction: viewport 390x844, home page, cliquer sur icone 'Mon Espace' (data-testid=tabbar-espace) ou 'Tarifs' (data-testid=tabbar-tarifs). URL passe a /dashboard ou /tarifs. La page affichee est vide (body innerText length=262, uniquement le contenu Navbar + CookieConsent + PremiumStickyCTA). Cause racine: App.js n'a pas de <Route path='/dashboard'> ni <Route path='/tarifs'>, donc les Routes internes tombent sans match et le wildcard parent est deja consomme. Mitigation courte: dans MobileTabBar.js remplacer /dashboard par /mon-compte et /tarifs par /premium (ou /acheter-credits selon intention produit). Mitigation longue: ajouter <Route path='/dashboard' element={<Navigate to='/mon-compte' replace/>}/> et <Route path='/tarifs' element={<Navigate to='/premium' replace/>}/> pour supporter les deux formes."
+}

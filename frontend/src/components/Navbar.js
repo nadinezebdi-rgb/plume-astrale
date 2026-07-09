@@ -52,14 +52,15 @@ const NAV_ITEMS = [
 ];
 
 const dropdownStyle = {
-  background: 'rgba(11,11,15,0.97)',
-  border: '1px solid rgba(212,180,106,0.18)',
-  backdropFilter: 'blur(16px)',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+  background: 'rgba(17,22,37,0.95)',
+  border: '1px solid rgba(212,175,55,0.20)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,175,55,0.05)',
 };
 
 const childLinkStyle = {
-  color: 'rgba(212,180,106,0.75)',
+  color: 'rgba(212,175,55,0.75)',
   display: 'block',
   padding: '10px 16px',
   fontSize: '12px',
@@ -87,7 +88,7 @@ const DropdownMenu = ({ item, isActive }) => {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
-    color: isActive ? '#D4B46A' : 'rgba(212,180,106,0.6)',
+    color: isActive ? '#D4AF37' : 'rgba(212,175,55,0.6)',
     fontWeight: isActive ? 500 : 400,
     whiteSpace: 'nowrap',
     padding: 0,
@@ -114,8 +115,8 @@ const DropdownMenu = ({ item, isActive }) => {
                 key={child.to}
                 to={child.to}
                 style={childLinkStyle}
-                onMouseEnter={function(e) { e.currentTarget.style.color = '#F4D98C'; e.currentTarget.style.background = 'rgba(212,180,106,0.06)'; }}
-                onMouseLeave={function(e) { e.currentTarget.style.color = 'rgba(212,180,106,0.75)'; e.currentTarget.style.background = 'transparent'; }}
+                onMouseEnter={function(e) { e.currentTarget.style.color = '#E8C766'; e.currentTarget.style.background = 'rgba(212,175,55,0.06)'; }}
+                onMouseLeave={function(e) { e.currentTarget.style.color = 'rgba(212,175,55,0.75)'; e.currentTarget.style.background = 'transparent'; }}
               >
                 {child.label}
               </Link>
@@ -134,7 +135,7 @@ const DropdownMenu = ({ item, isActive }) => {
           {item.columns.map(function(col) {
             return (
               <div key={col.title}>
-                <p style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(212,180,106,0.55)', fontFamily: 'Cinzel, serif', marginBottom: 12, fontWeight: 500, borderBottom: '1px solid rgba(212,180,106,0.15)', paddingBottom: 8 }}>
+                <p style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(212,175,55,0.55)', fontFamily: 'Cinzel, serif', marginBottom: 12, fontWeight: 500, borderBottom: '1px solid rgba(212,175,55,0.15)', paddingBottom: 8 }}>
                   {col.title}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -142,17 +143,17 @@ const DropdownMenu = ({ item, isActive }) => {
                     return (
                       <Link key={c.to} to={c.to}
                         style={{
-                          fontSize: 12, color: c.highlight ? '#F4D98C' : 'rgba(212,180,106,0.75)',
+                          fontSize: 12, color: c.highlight ? '#E8C766' : 'rgba(212,175,55,0.75)',
                           textDecoration: 'none', padding: '6px 0',
                           fontWeight: c.highlight ? 500 : 400,
                           display: 'flex', alignItems: 'center', gap: 6,
                           transition: 'color 0.2s',
                         }}
-                        onMouseEnter={function(e) { e.currentTarget.style.color = '#F4D98C'; }}
-                        onMouseLeave={function(e) { e.currentTarget.style.color = c.highlight ? '#F4D98C' : 'rgba(212,180,106,0.75)'; }}
+                        onMouseEnter={function(e) { e.currentTarget.style.color = '#E8C766'; }}
+                        onMouseLeave={function(e) { e.currentTarget.style.color = c.highlight ? '#E8C766' : 'rgba(212,175,55,0.75)'; }}
                         data-testid={'mega-link-' + c.to.replace(/[^a-z0-9]/gi, '-')}
                       >
-                        {c.highlight && <span style={{ color: '#F4D98C' }}>✦</span>}
+                        {c.highlight && <span style={{ color: '#E8C766' }}>✦</span>}
                         {c.label}
                       </Link>
                     );
@@ -179,15 +180,15 @@ const MonCompteDropdown = ({ creditBalance, handleLogout, isAdmin }) => {
     display: 'flex', alignItems: 'center', gap: 6,
     fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
     padding: '6px 12px', borderRadius: 999,
-    border: '1px solid rgba(212,180,106,0.4)',
-    color: '#D4B46A', background: 'transparent',
+    border: '1px solid rgba(212,175,55,0.4)',
+    color: '#D4AF37', background: 'transparent',
     cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap',
   };
 
   const itemStyle = {
     display: 'flex', alignItems: 'center', gap: 8,
     padding: '10px 16px', fontSize: 12,
-    color: 'rgba(212,180,106,0.75)',
+    color: 'rgba(212,175,55,0.75)',
     background: 'transparent', border: 'none',
     width: '100%', textAlign: 'left',
     cursor: 'pointer', transition: 'all 0.2s', textDecoration: 'none',
@@ -212,7 +213,7 @@ const MonCompteDropdown = ({ creditBalance, handleLogout, isAdmin }) => {
           <Link
             to="/acheter-credits"
             style={Object.assign({}, itemStyle, { justifyContent: 'space-between' })}
-            onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,180,106,0.06)'; }}
+            onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,175,55,0.06)'; }}
             onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; }}
             data-testid="dropdown-credits"
           >
@@ -220,35 +221,35 @@ const MonCompteDropdown = ({ creditBalance, handleLogout, isAdmin }) => {
               <Coins style={{ width: 14, height: 14 }} strokeWidth={1.5} />
               Mes credits
             </span>
-            <span style={{ color: '#D4B46A', fontWeight: 600 }}>{creditBalance}</span>
+            <span style={{ color: '#D4AF37', fontWeight: 600 }}>{creditBalance}</span>
           </Link>
 
           <Link to="/quotidien" style={itemStyle}
-            onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,180,106,0.06)'; e.currentTarget.style.color = '#F4D98C'; }}
-            onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(212,180,106,0.75)'; }}
+            onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,175,55,0.06)'; e.currentTarget.style.color = '#E8C766'; }}
+            onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(212,175,55,0.75)'; }}
             data-testid="dropdown-journal">
             Mon Journal
           </Link>
 
           <Link to="/mon-compte" style={itemStyle}
-            onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,180,106,0.06)'; e.currentTarget.style.color = '#F4D98C'; }}
-            onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(212,180,106,0.75)'; }}
+            onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,175,55,0.06)'; e.currentTarget.style.color = '#E8C766'; }}
+            onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(212,175,55,0.75)'; }}
             data-testid="dropdown-recompenses">
             Mes Recompenses
           </Link>
 
           <Link to="/mon-compte" style={itemStyle}
-            onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,180,106,0.06)'; e.currentTarget.style.color = '#F4D98C'; }}
-            onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(212,180,106,0.75)'; }}
+            onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,175,55,0.06)'; e.currentTarget.style.color = '#E8C766'; }}
+            onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(212,175,55,0.75)'; }}
             data-testid="dropdown-profil">
             <User style={{ width: 12, height: 12 }} strokeWidth={1.5} />
             Mon Profil
           </Link>
 
-          <div style={{ margin: '4px 16px', borderTop: '1px solid rgba(212,180,106,0.1)' }} />
+          <div style={{ margin: '4px 16px', borderTop: '1px solid rgba(212,175,55,0.1)' }} />
 
-          <Link to="/premium" style={Object.assign({}, itemStyle, { color: '#F4D98C' })}
-            onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,180,106,0.06)'; }}
+          <Link to="/premium" style={Object.assign({}, itemStyle, { color: '#E8C766' })}
+            onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,175,55,0.06)'; }}
             onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; }}
             data-testid="dropdown-premium">
             <Sparkles style={{ width: 12, height: 12 }} strokeWidth={1.5} />
@@ -256,8 +257,8 @@ const MonCompteDropdown = ({ creditBalance, handleLogout, isAdmin }) => {
           </Link>
 
           {isAdmin && (
-            <Link to="/admin" style={Object.assign({}, itemStyle, { color: '#C5A059', fontWeight: 600 })}
-              onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,180,106,0.06)'; }}
+            <Link to="/admin" style={Object.assign({}, itemStyle, { color: '#B8961F', fontWeight: 600 })}
+              onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,175,55,0.06)'; }}
               onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; }}
               data-testid="dropdown-admin">
               <Sparkles style={{ width: 12, height: 12 }} strokeWidth={1.5} />
@@ -308,10 +309,11 @@ const Navbar = () => {
 
   var navStyle = {
     position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-    transition: 'all 0.5s',
-    background: scrolled || isOpen ? 'rgba(11,11,15,0.97)' : 'rgba(11,11,15,0.70)',
-    backdropFilter: 'blur(12px)',
-    borderBottom: scrolled ? '1px solid rgba(197,160,89,0.10)' : '1px solid transparent',
+    transition: 'background 400ms cubic-bezier(0.22, 1, 0.36, 1), border-color 400ms cubic-bezier(0.22, 1, 0.36, 1)',
+    background: scrolled || isOpen ? 'rgba(17,22,37,0.90)' : 'rgba(17,22,37,0.70)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    borderBottom: scrolled ? '1px solid rgba(212,175,55,0.15)' : '1px solid rgba(212,175,55,0.06)',
   };
 
   return (
@@ -320,7 +322,7 @@ const Navbar = () => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
 
           <Link to="/"
-            style={{ fontFamily: 'Cinzel, serif', color: '#D4B46A', fontWeight: 500, fontSize: 16, letterSpacing: '0.14em', textShadow: '0 0 14px rgba(212,180,106,0.3)', textDecoration: 'none', flexShrink: 0 }}
+            style={{ fontFamily: 'Cinzel, serif', color: '#D4AF37', fontWeight: 500, fontSize: 16, letterSpacing: '0.14em', textShadow: '0 0 16px rgba(212,175,55,0.35)', textDecoration: 'none', flexShrink: 0 }}
             data-testid="navbar-logo">
             Plume Astrale
           </Link>
@@ -332,15 +334,15 @@ const Navbar = () => {
                   <DropdownMenu key={item.label} item={item} isActive={isParentActive(item)} />
                 ) : (
                   <Link key={item.to} to={item.to}
-                    style={{ fontSize: 12, letterSpacing: '0.07em', textTransform: 'uppercase', textDecoration: 'none', whiteSpace: 'nowrap', fontWeight: location.pathname === item.to ? 500 : 400, color: location.pathname === item.to ? '#D4B46A' : 'rgba(212,180,106,0.6)' }}
-                    onMouseEnter={function(e) { if (location.pathname !== item.to) e.currentTarget.style.color = '#F4D98C'; }}
-                    onMouseLeave={function(e) { if (location.pathname !== item.to) e.currentTarget.style.color = 'rgba(212,180,106,0.6)'; }}
+                    style={{ fontSize: 12, letterSpacing: '0.07em', textTransform: 'uppercase', textDecoration: 'none', whiteSpace: 'nowrap', fontWeight: location.pathname === item.to ? 500 : 400, color: location.pathname === item.to ? '#D4AF37' : 'rgba(212,175,55,0.6)' }}
+                    onMouseEnter={function(e) { if (location.pathname !== item.to) e.currentTarget.style.color = '#E8C766'; }}
+                    onMouseLeave={function(e) { if (location.pathname !== item.to) e.currentTarget.style.color = 'rgba(212,175,55,0.6)'; }}
                     data-testid={'nav-' + item.label.toLowerCase().replace(/\s+/g, '-')}>
                     {item.label}
                   </Link>
                 );
               })}
-              <div style={{ width: 1, height: 16, background: '#D4B46A', opacity: 0.2 }} />
+              <div style={{ width: 1, height: 16, background: '#D4AF37', opacity: 0.2 }} />
 
               {/* Vitrine — Thème Natal dès 14,99€ (1 clic) */}
               <Link
@@ -350,39 +352,39 @@ const Navbar = () => {
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   fontSize: 11, letterSpacing: '0.10em', textTransform: 'uppercase',
                   textDecoration: 'none', padding: '7px 14px', borderRadius: 999,
-                  background: 'linear-gradient(135deg, rgba(212,180,106,0.18), rgba(244,217,140,0.10))',
-                  color: '#F4D98C', fontWeight: 500,
-                  border: '1px solid rgba(212,180,106,0.55)',
-                  boxShadow: '0 4px 16px rgba(212,180,106,0.20)',
+                  background: 'linear-gradient(135deg, rgba(212,175,55,0.18), rgba(232,199,102,0.10))',
+                  color: '#E8C766', fontWeight: 500,
+                  border: '1px solid rgba(212,175,55,0.55)',
+                  boxShadow: '0 4px 16px rgba(212,175,55,0.20)',
                   whiteSpace: 'nowrap',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 22px rgba(212,180,106,0.35)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,180,106,0.20)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 22px rgba(212,175,55,0.35)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(212,175,55,0.20)'; }}
               >
                 ✦ Mon Thème Natal
                 <span style={{
                   display: 'inline-flex', alignItems: 'center',
                   fontSize: 9, padding: '2px 6px', borderRadius: 999,
-                  background: '#0C0918', color: '#F4D98C',
+                  background: '#0C0918', color: '#E8C766',
                   letterSpacing: '0.06em', fontWeight: 600, marginLeft: 2,
                 }}>
                   DÈS 14,99€
                 </span>
               </Link>
 
-              <div style={{ width: 1, height: 16, background: '#D4B46A', opacity: 0.2 }} />
+              <div style={{ width: 1, height: 16, background: '#D4AF37', opacity: 0.2 }} />
               {isAuthenticated ? (
                 <MonCompteDropdown creditBalance={creditBalance} handleLogout={handleLogout} isAdmin={user?.is_admin} />
               ) : (
                 <div style={{ display: 'flex', gap: 6 }}>
                   <Link to="/connexion"
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(212,180,106,0.45)', color: '#D4B46A', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '6px 10px', borderRadius: 999, border: '1px solid rgba(212,175,55,0.45)', color: '#D4AF37', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}
                     data-testid="navbar-login-btn">
                     <LogIn style={{ width: 13, height: 13 }} strokeWidth={1.5} />
                     Connexion
                   </Link>
                   <Link to="/inscription"
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 999, border: '1px solid rgba(212,180,106,0.6)', color: '#D4B46A', background: 'rgba(212,180,106,0.12)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 999, border: '1px solid rgba(212,175,55,0.6)', color: '#D4AF37', background: 'rgba(212,175,55,0.12)', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}
                     data-testid="navbar-register-btn">
                     Creer un compte
                   </Link>
@@ -409,7 +411,7 @@ const Navbar = () => {
                       <div>
                         <button
                           onClick={function() { setMobileExpanded(mobileExpanded === item.label ? null : item.label); }}
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(212,180,106,0.6)' }}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(212,175,55,0.6)' }}
                           data-testid={'mobile-nav-' + item.label.toLowerCase().replace(/\s+/g, '-')}>
                           {item.label}
                           <ChevronDown style={{ width: 16, height: 16, transform: mobileExpanded === item.label ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} strokeWidth={1.5} />
@@ -420,13 +422,13 @@ const Navbar = () => {
                               item.columns.map(function(col) {
                                 return (
                                   <div key={col.title} style={{ marginBottom: 10 }}>
-                                    <p style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(212,180,106,0.45)', fontFamily: 'Cinzel, serif', margin: '8px 0 4px', fontWeight: 500 }}>
+                                    <p style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(212,175,55,0.45)', fontFamily: 'Cinzel, serif', margin: '8px 0 4px', fontWeight: 500 }}>
                                       {col.title}
                                     </p>
                                     {col.children.map(function(c) {
                                       return (
                                         <Link key={c.to} to={c.to}
-                                          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, letterSpacing: '0.06em', padding: '7px 0', color: c.highlight ? '#F4D98C' : 'rgba(212,180,106,0.6)', textDecoration: 'none', fontWeight: c.highlight ? 500 : 400 }}>
+                                          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, letterSpacing: '0.06em', padding: '7px 0', color: c.highlight ? '#E8C766' : 'rgba(212,175,55,0.6)', textDecoration: 'none', fontWeight: c.highlight ? 500 : 400 }}>
                                           {c.highlight && <span>✦</span>}
                                           {c.label}
                                         </Link>
@@ -439,7 +441,7 @@ const Navbar = () => {
                               item.children.map(function(child) {
                                 return (
                                   <Link key={child.to} to={child.to}
-                                    style={{ display: 'block', fontSize: 12, letterSpacing: '0.06em', padding: '8px 0', color: 'rgba(212,180,106,0.5)', textDecoration: 'none' }}>
+                                    style={{ display: 'block', fontSize: 12, letterSpacing: '0.06em', padding: '8px 0', color: 'rgba(212,175,55,0.5)', textDecoration: 'none' }}>
                                     {child.label}
                                   </Link>
                                 );
@@ -450,10 +452,10 @@ const Navbar = () => {
                       </div>
                     ) : (
                       <Link to={item.to}
-                        style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '12px 0', color: location.pathname === item.to ? '#D4B46A' : 'rgba(212,180,106,0.5)', textDecoration: 'none', fontWeight: location.pathname === item.to ? 500 : 400 }}>
+                        style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '12px 0', color: location.pathname === item.to ? '#D4AF37' : 'rgba(212,175,55,0.5)', textDecoration: 'none', fontWeight: location.pathname === item.to ? 500 : 400 }}>
                         {item.label}
                         {item.subtitle && (
-                          <span style={{ fontSize: 10, color: 'rgba(212,180,106,0.45)', letterSpacing: '0.05em', textTransform: 'none' }}>
+                          <span style={{ fontSize: 10, color: 'rgba(212,175,55,0.45)', letterSpacing: '0.05em', textTransform: 'none' }}>
                             — {item.subtitle}
                           </span>
                         )}
@@ -462,7 +464,7 @@ const Navbar = () => {
                   </div>
                 );
               })}
-              <div style={{ margin: '8px 0', borderTop: '1px solid rgba(212,180,106,0.1)' }} />
+              <div style={{ margin: '8px 0', borderTop: '1px solid rgba(212,175,55,0.1)' }} />
 
               {/* Vitrine — Thème Natal (mobile) */}
               <Link
@@ -471,9 +473,9 @@ const Navbar = () => {
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '14px 16px', borderRadius: 12,
-                  background: 'linear-gradient(135deg, rgba(212,180,106,0.20), rgba(244,217,140,0.10))',
-                  border: '1px solid rgba(212,180,106,0.55)',
-                  color: '#F4D98C', textDecoration: 'none',
+                  background: 'linear-gradient(135deg, rgba(212,175,55,0.20), rgba(232,199,102,0.10))',
+                  border: '1px solid rgba(212,175,55,0.55)',
+                  color: '#E8C766', textDecoration: 'none',
                   fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase',
                   fontWeight: 500, marginBottom: 8,
                 }}
@@ -481,7 +483,7 @@ const Navbar = () => {
                 <span>✦ Mon Thème Natal</span>
                 <span style={{
                   fontSize: 9, padding: '3px 8px', borderRadius: 999,
-                  background: '#0C0918', color: '#F4D98C',
+                  background: '#0C0918', color: '#E8C766',
                   letterSpacing: '0.05em', fontWeight: 600,
                 }}>
                   DÈS 14,99€
@@ -490,22 +492,22 @@ const Navbar = () => {
 
               {isAuthenticated ? (
                 <div>
-                  <Link to="/acheter-credits" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', fontSize: 13, color: '#D4B46A', textDecoration: 'none' }}>
+                  <Link to="/acheter-credits" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', fontSize: 13, color: '#D4AF37', textDecoration: 'none' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Coins style={{ width: 16, height: 16 }} strokeWidth={1.5} />Mes credits</span>
                     <span style={{ fontWeight: 600 }}>{creditBalance}</span>
                   </Link>
-                  <Link to="/quotidien" style={{ display: 'block', padding: '12px 0', fontSize: 13, color: 'rgba(212,180,106,0.7)', textDecoration: 'none' }}>Mon Journal</Link>
-                  <Link to="/mon-compte" style={{ display: 'block', padding: '12px 0', fontSize: 13, color: 'rgba(212,180,106,0.7)', textDecoration: 'none' }}>Mes Recompenses</Link>
+                  <Link to="/quotidien" style={{ display: 'block', padding: '12px 0', fontSize: 13, color: 'rgba(212,175,55,0.7)', textDecoration: 'none' }}>Mon Journal</Link>
+                  <Link to="/mon-compte" style={{ display: 'block', padding: '12px 0', fontSize: 13, color: 'rgba(212,175,55,0.7)', textDecoration: 'none' }}>Mes Recompenses</Link>
                   <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0', fontSize: 13, color: 'rgba(255,100,100,0.8)', background: 'none', border: 'none', cursor: 'pointer' }}>
                     <LogOut style={{ width: 16, height: 16 }} strokeWidth={1.5} />Deconnexion
                   </button>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-                  <Link to="/connexion" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '10px 24px', borderRadius: 999, border: '1px solid rgba(212,180,106,0.45)', color: '#D4B46A', textDecoration: 'none' }} data-testid="mobile-login-btn">
+                  <Link to="/connexion" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '10px 24px', borderRadius: 999, border: '1px solid rgba(212,175,55,0.45)', color: '#D4AF37', textDecoration: 'none' }} data-testid="mobile-login-btn">
                     <LogIn style={{ width: 16, height: 16 }} strokeWidth={1.5} />Connexion
                   </Link>
-                  <Link to="/inscription" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '10px 24px', borderRadius: 999, border: '1px solid rgba(212,180,106,0.6)', color: '#D4B46A', background: 'rgba(212,180,106,0.12)', textDecoration: 'none' }} data-testid="mobile-register-btn">
+                  <Link to="/inscription" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '10px 24px', borderRadius: 999, border: '1px solid rgba(212,175,55,0.6)', color: '#D4AF37', background: 'rgba(212,175,55,0.12)', textDecoration: 'none' }} data-testid="mobile-register-btn">
                     Creer un compte
                   </Link>
                 </div>

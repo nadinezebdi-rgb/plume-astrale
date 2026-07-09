@@ -7,9 +7,9 @@ import { useAuth } from '@/context/AuthContext';
 const API = process.env.REACT_APP_BACKEND_URL;
 
 const SECTION_META = {
-  dominante:  { icon: Zap,         color: '#D4B46A', titre: 'Énergie dominante' },
+  dominante:  { icon: Zap,         color: '#D4AF37', titre: 'Énergie dominante' },
   relationnel:{ icon: Heart,       color: '#E0A6C8', titre: 'Relationnel' },
-  attention:  { icon: ShieldAlert, color: '#F4D98C', titre: 'Attention' },
+  attention:  { icon: ShieldAlert, color: '#E8C766', titre: 'Attention' },
   opportunite:{ icon: Lightbulb,   color: '#A6D6E0', titre: 'Opportunité' },
 };
 
@@ -58,11 +58,11 @@ function GuestCTA() {
         maxWidth: 540, margin: '0 auto', padding: '32px 26px', textAlign: 'center',
         borderRadius: 18,
         background: 'linear-gradient(180deg, rgba(6,8,26,0.85) 0%, rgba(11,14,40,0.7) 100%)',
-        border: '1px solid rgba(212,180,106,0.3)',
+        border: '1px solid rgba(212,175,55,0.3)',
       }}
       data-testid="energy-guest-cta"
     >
-      <Sparkles style={{ width: 24, height: 24, color: '#D4B46A', margin: '0 auto 12px', display: 'block' }} strokeWidth={1.5} />
+      <Sparkles style={{ width: 24, height: 24, color: '#D4AF37', margin: '0 auto 12px', display: 'block' }} strokeWidth={1.5} />
       <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, color: '#F4E4BC', marginBottom: 10, fontWeight: 400 }}>
         Découvre ton énergie du jour
       </h2>
@@ -71,7 +71,7 @@ function GuestCTA() {
       </p>
       <button onClick={() => navigate('/inscription')} style={{
         padding: '12px 28px', borderRadius: 999, border: 'none',
-        background: '#D4B46A', color: '#0F1230',
+        background: '#D4AF37', color: '#0F1230',
         fontFamily: 'Cinzel, serif', fontSize: 11, fontWeight: 600,
         letterSpacing: '0.18em', textTransform: 'uppercase', cursor: 'pointer',
       }} data-testid="energy-register-btn">
@@ -103,7 +103,7 @@ export default function EnergyToday({ compact = false }) {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 40 }} data-testid="energy-loading">
-        <RefreshCcw className="animate-spin" style={{ width: 22, height: 22, color: '#D4B46A', margin: '0 auto 12px', display: 'block' }} />
+        <RefreshCcw className="animate-spin" style={{ width: 22, height: 22, color: '#D4AF37', margin: '0 auto 12px', display: 'block' }} />
         <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>Plume consulte les astres de ta journée...</p>
       </div>
     );
@@ -114,7 +114,7 @@ export default function EnergyToday({ compact = false }) {
       <div style={{ textAlign: 'center', padding: 30, color: 'rgba(255,255,255,0.7)', fontSize: 14 }} data-testid="energy-error">
         {err || data?.message || 'Energie du jour indisponible. Reviens demain.'}
         {!data?.has_data && (
-          <p style={{ fontSize: 12, marginTop: 8, color: 'rgba(212,180,106,0.7)' }}>
+          <p style={{ fontSize: 12, marginTop: 8, color: 'rgba(212,175,55,0.7)' }}>
             Complète ta date, heure et lieu de naissance pour activer cette lecture.
           </p>
         )}
@@ -130,7 +130,7 @@ export default function EnergyToday({ compact = false }) {
       <div style={{ textAlign: 'center', marginBottom: 20 }}>
         <div style={{
           fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase',
-          color: 'rgba(212,180,106,0.75)', fontFamily: 'Cinzel, serif', marginBottom: 6,
+          color: 'rgba(212,175,55,0.75)', fontFamily: 'Cinzel, serif', marginBottom: 6,
         }}>
           {today}
         </div>

@@ -24,10 +24,10 @@ export default function SocialProof() {
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 8,
         padding: '6px 14px', borderRadius: 999,
-        background: 'rgba(212,180,106,0.1)',
-        border: '1px solid rgba(212,180,106,0.3)',
+        background: 'rgba(212,175,55,0.1)',
+        border: '1px solid rgba(212,175,55,0.3)',
         fontSize: 11, letterSpacing: '0.06em',
-        color: 'rgba(212,180,106,0.95)',
+        color: 'rgba(212,175,55,0.95)',
         fontFamily: 'Cinzel, serif',
       }}>
       <Users style={{ width: 11, height: 11 }} strokeWidth={1.5} />

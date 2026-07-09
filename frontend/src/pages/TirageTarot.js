@@ -36,7 +36,7 @@ const TirageTarot = () => {
     argent: { nom: "Finances & Abondance", icone: Coins, couleur: "text-yellow-400" },
     sante: { nom: "Santé & Bien-être", icone: Leaf, couleur: "text-green-400" },
     spirituel: { nom: "Spiritualité & Développement", icone: Sun, couleur: "text-purple-400" },
-    general: { nom: "Question Générale", icone: CircleDot, couleur: "text-[#C5A059]" }
+    general: { nom: "Question Générale", icone: CircleDot, couleur: "text-[#B8961F]" }
   };
 
   // Positions pour le tirage celtique
@@ -182,26 +182,26 @@ const TirageTarot = () => {
             isRevealed ? 'opacity-0 absolute inset-0 pointer-events-none' : 'opacity-100'
           }`}>
             <div className="py-8 text-center">
-              <div className="w-28 h-44 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#1C1735] to-[#0C0918] border-2 border-[#C5A059]/50 flex flex-col items-center justify-center shadow-xl shadow-[#C5A059]/20 relative overflow-hidden group hover:border-[#C5A059] hover:shadow-[#C5A059]/40 transition-all">
+              <div className="w-28 h-44 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#1C1735] to-[#0C0918] border-2 border-[#B8961F]/50 flex flex-col items-center justify-center shadow-xl shadow-[#B8961F]/20 relative overflow-hidden group hover:border-[#B8961F] hover:shadow-[#B8961F]/40 transition-all">
                 {/* Motif décoratif élaboré */}
                 <div className="absolute inset-0 opacity-30">
-                  <div className="absolute top-2 left-2 w-6 h-6 border-2 border-[#C5A059] rounded-full"></div>
-                  <div className="absolute top-2 right-2 w-6 h-6 border-2 border-[#C5A059] rounded-full"></div>
-                  <div className="absolute bottom-2 left-2 w-6 h-6 border-2 border-[#C5A059] rounded-full"></div>
-                  <div className="absolute bottom-2 right-2 w-6 h-6 border-2 border-[#C5A059] rounded-full"></div>
+                  <div className="absolute top-2 left-2 w-6 h-6 border-2 border-[#B8961F] rounded-full"></div>
+                  <div className="absolute top-2 right-2 w-6 h-6 border-2 border-[#B8961F] rounded-full"></div>
+                  <div className="absolute bottom-2 left-2 w-6 h-6 border-2 border-[#B8961F] rounded-full"></div>
+                  <div className="absolute bottom-2 right-2 w-6 h-6 border-2 border-[#B8961F] rounded-full"></div>
                   {/* Croix centrale */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-px h-full bg-gradient-to-b from-transparent via-[#C5A059]/50 to-transparent"></div>
-                    <div className="absolute w-full h-px bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent"></div>
+                    <div className="w-px h-full bg-gradient-to-b from-transparent via-[#B8961F]/50 to-transparent"></div>
+                    <div className="absolute w-full h-px bg-gradient-to-r from-transparent via-[#B8961F]/50 to-transparent"></div>
                   </div>
                 </div>
                 {/* Étoile centrale */}
                 <div className="relative z-10">
-                  <Star className="w-12 h-12 text-[#C5A059]/70 group-hover:text-[#C5A059] transition-colors" strokeWidth={1} />
-                  <Moon className="w-6 h-6 text-[#C5A059]/50 absolute -top-1 -right-1" strokeWidth={1} />
+                  <Star className="w-12 h-12 text-[#B8961F]/70 group-hover:text-[#B8961F] transition-colors" strokeWidth={1} />
+                  <Moon className="w-6 h-6 text-[#B8961F]/50 absolute -top-1 -right-1" strokeWidth={1} />
                 </div>
                 {/* Reflet */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#C5A059]/5 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#B8961F]/5 to-transparent"></div>
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </div>
               <p className="text-[#B8B0C8]/60 text-sm mt-4 font-light">
@@ -211,7 +211,7 @@ const TirageTarot = () => {
                 }
               </p>
               {!isRevealing && (
-                <p className="text-[#C5A059]/60 text-xs mt-2 animate-pulse">Cliquez pour révéler</p>
+                <p className="text-[#B8961F]/60 text-xs mt-2 animate-pulse">Cliquez pour révéler</p>
               )}
             </div>
           </div>
@@ -219,10 +219,10 @@ const TirageTarot = () => {
           {/* Face révélée - Carte avec image */}
           <div className={`card-mystical transition-all duration-500 ${
             isRevealed ? 'opacity-100' : 'opacity-0 absolute inset-0 pointer-events-none'
-          } ${carte.orientation === 'renverse' ? 'border-purple-500/50' : 'border-[#C5A059]/40'}`}>
+          } ${carte.orientation === 'renverse' ? 'border-purple-500/50' : 'border-[#B8961F]/40'}`}>
             <div className="py-4 text-center">
               {/* Position */}
-              <p className="text-[#C5A059] uppercase tracking-[0.2em] text-xs mb-3 font-light">
+              <p className="text-[#B8961F] uppercase tracking-[0.2em] text-xs mb-3 font-light">
                 {typeTirage === 'marseille' 
                   ? ['Passé', 'Présent', 'Futur'][index]
                   : positionsCeltique[index]
@@ -232,7 +232,7 @@ const TirageTarot = () => {
               {/* Image de la carte */}
               <div className={`relative w-24 h-40 mx-auto mb-3 rounded-lg overflow-hidden border-2 ${
                 carte.orientation === 'droit' 
-                  ? 'border-[#C5A059]/60' 
+                  ? 'border-[#B8961F]/60' 
                   : 'border-purple-500/60 rotate-180'
               } shadow-lg`}>
                 <div className="absolute inset-0 bg-gradient-to-b from-[#2D1F4B] to-[#1C1735]">
@@ -240,9 +240,9 @@ const TirageTarot = () => {
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
                       <Sparkles className={`w-10 h-10 mx-auto mb-1 ${
-                        carte.orientation === 'droit' ? 'text-[#C5A059]' : 'text-purple-400'
+                        carte.orientation === 'droit' ? 'text-[#B8961F]' : 'text-purple-400'
                       }`} strokeWidth={1} />
-                      <span className="text-[#C5A059] text-2xl font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                      <span className="text-[#B8961F] text-2xl font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                         {carte.numero}
                       </span>
                     </div>
@@ -258,7 +258,7 @@ const TirageTarot = () => {
               {/* Orientation avec badge stylisé */}
               <span className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full ${
                 carte.orientation === 'droit' 
-                  ? 'bg-[#C5A059]/20 text-[#C5A059] border border-[#C5A059]/30' 
+                  ? 'bg-[#B8961F]/20 text-[#B8961F] border border-[#B8961F]/30' 
                   : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
               }`}>
                 {carte.orientation === 'droit' ? (
@@ -271,7 +271,7 @@ const TirageTarot = () => {
               {/* Mots-clés */}
               <div className="flex flex-wrap justify-center gap-1 mt-3 mb-3">
                 {carte.mots_cles?.slice(0, 3).map((mot, i) => (
-                  <span key={i} className="text-xs text-[#B8B0C8]/70 bg-[#1C1735]/80 px-2 py-0.5 rounded-full border border-[#C5A059]/10">
+                  <span key={i} className="text-xs text-[#B8B0C8]/70 bg-[#1C1735]/80 px-2 py-0.5 rounded-full border border-[#B8961F]/10">
                     {mot}
                   </span>
                 ))}
@@ -289,8 +289,8 @@ const TirageTarot = () => {
               </p>
               
               {/* Conseil */}
-              <div className="bg-gradient-to-r from-[#C5A059]/10 via-[#C5A059]/20 to-[#C5A059]/10 rounded-lg p-3 border border-[#C5A059]/20 mx-2">
-                <p className="text-[#C5A059] text-xs italic leading-relaxed">
+              <div className="bg-gradient-to-r from-[#B8961F]/10 via-[#B8961F]/20 to-[#B8961F]/10 rounded-lg p-3 border border-[#B8961F]/20 mx-2">
+                <p className="text-[#B8961F] text-xs italic leading-relaxed">
                   "{carte.conseil}"
                 </p>
               </div>
@@ -321,7 +321,7 @@ const TirageTarot = () => {
           {step === 0 && (
             <div className="max-w-2xl mx-auto">
               <div className="text-center mb-10">
-                <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-4 font-light">
+                <p className="text-[#B8961F] uppercase tracking-[0.3em] text-sm mb-4 font-light">
                   Tirage de Tarot
                 </p>
                 <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -334,39 +334,39 @@ const TirageTarot = () => {
 
               {!isAuthenticated ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-login">
-                  <LogIn className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+                  <LogIn className="w-8 h-8 mb-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
                   <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
                     Connexion requise
                   </h2>
                   <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
                     Connectez-vous pour accéder au tirage de Tarot.
-                    <br /><span style={{ color: '#C5A059' }}>10 crédits &middot; 20 crédits offerts à l'inscription</span>
+                    <br /><span style={{ color: '#B8961F' }}>10 crédits &middot; 20 crédits offerts à l'inscription</span>
                   </p>
                   <div className="flex gap-3">
-                    <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
-                    <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', background: 'rgba(197,160,89,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Créer un compte</button>
+                    <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
+                    <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', background: 'rgba(184,150,31,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Créer un compte</button>
                   </div>
                 </div>
               ) : creditBalance < 10 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-insufficient">
-                  <Coins className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+                  <Coins className="w-8 h-8 mb-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
                   <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Crédits insuffisants</h2>
                   <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>
-                    Le tirage coûte <span style={{ color: '#C5A059', fontWeight: 600 }}>10 crédits</span>.
+                    Le tirage coûte <span style={{ color: '#B8961F', fontWeight: 600 }}>10 crédits</span>.
                   </p>
-                  <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span></p>
-                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
+                  <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#B8961F' }}>{creditBalance} crédits</span></p>
+                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #B8961F', color: '#0C0918', background: '#B8961F', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
                     Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-unlock">
-                  <Coins className="w-7 h-7 mb-3" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+                  <Coins className="w-7 h-7 mb-3" style={{ color: '#B8961F' }} strokeWidth={1.5} />
                   <p className="text-sm mb-1" style={{ color: 'var(--pa-body)' }}>Lecture Tarot approfondie</p>
                   <p className="text-xs mb-5" style={{ color: 'var(--pa-muted)' }}>
-                    Coût : <span style={{ color: '#C5A059' }}>10 crédits</span> &middot; Solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span>
+                    Coût : <span style={{ color: '#B8961F' }}>10 crédits</span> &middot; Solde : <span style={{ color: '#B8961F' }}>{creditBalance} crédits</span>
                   </p>
-                  <button onClick={handleCreditUnlock} className="text-xs uppercase tracking-widest px-8 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-unlock-btn">
+                  <button onClick={handleCreditUnlock} className="text-xs uppercase tracking-widest px-8 py-2.5 rounded-full" style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', letterSpacing: '0.1em' }} data-testid="gate-unlock-btn">
                     Utiliser 10 crédits
                   </button>
                 </div>
@@ -379,7 +379,7 @@ const TirageTarot = () => {
             <div className="max-w-2xl mx-auto">
               {/* Header */}
               <div className="text-center mb-10">
-                <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-4 font-light">
+                <p className="text-[#B8961F] uppercase tracking-[0.3em] text-sm mb-4 font-light">
                   Tirage de Tarot
                 </p>
                 <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -394,7 +394,7 @@ const TirageTarot = () => {
               <div className="grid md:grid-cols-2 gap-4 mb-8">
                 <div 
                   className={`card-mystical cursor-pointer transition-all ${
-                    typeTirage === 'marseille' ? 'border-[#C5A059] bg-[#C5A059]/10' : 'hover:border-[#C5A059]/50'
+                    typeTirage === 'marseille' ? 'border-[#B8961F] bg-[#B8961F]/10' : 'hover:border-[#B8961F]/50'
                   }`}
                   onClick={() => setTypeTirage('marseille')}
                   data-testid="select-marseille"
@@ -402,20 +402,20 @@ const TirageTarot = () => {
                   <div className="text-center py-4">
                     <div className="flex justify-center gap-2 mb-3">
                       {[1,2,3].map(i => (
-                        <div key={i} className="w-8 h-12 rounded bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border border-[#C5A059]/30"></div>
+                        <div key={i} className="w-8 h-12 rounded bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border border-[#B8961F]/30"></div>
                       ))}
                     </div>
                     <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                       Tirage Marseille
                     </h3>
                     <p className="text-[#B8B0C8]/60 text-sm">3 cartes • Passé, Présent, Futur</p>
-                    <p className="text-[#C5A059] text-lg font-semibold mt-2">10 crédits</p>
+                    <p className="text-[#B8961F] text-lg font-semibold mt-2">10 crédits</p>
                   </div>
                 </div>
 
                 <div 
                   className={`card-mystical cursor-pointer transition-all ${
-                    typeTirage === 'celtique' ? 'border-[#C5A059] bg-[#C5A059]/10' : 'hover:border-[#C5A059]/50'
+                    typeTirage === 'celtique' ? 'border-[#B8961F] bg-[#B8961F]/10' : 'hover:border-[#B8961F]/50'
                   }`}
                   onClick={() => setTypeTirage('celtique')}
                   data-testid="select-celtique"
@@ -423,14 +423,14 @@ const TirageTarot = () => {
                   <div className="text-center py-4">
                     <div className="flex justify-center gap-1 mb-3 flex-wrap" style={{ maxWidth: '120px', margin: '0 auto' }}>
                       {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                        <div key={i} className="w-4 h-6 rounded bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border border-[#C5A059]/30"></div>
+                        <div key={i} className="w-4 h-6 rounded bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border border-[#B8961F]/30"></div>
                       ))}
                     </div>
                     <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                       Croix Celtique
                     </h3>
                     <p className="text-[#B8B0C8]/60 text-sm">10 cartes • Analyse complète</p>
-                    <p className="text-[#C5A059] text-lg font-semibold mt-2">10 crédits</p>
+                    <p className="text-[#B8961F] text-lg font-semibold mt-2">10 crédits</p>
                   </div>
                 </div>
               </div>
@@ -452,17 +452,17 @@ const TirageTarot = () => {
                       })}
                       <span className="text-[#F0E6D3]">{domaines[domaine].nom}</span>
                     </div>
-                    <ChevronDown className={`w-5 h-5 text-[#C5A059] transition-transform ${showDomaines ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 text-[#B8961F] transition-transform ${showDomaines ? 'rotate-180' : ''}`} />
                   </div>
                 </div>
                 
                 {showDomaines && (
-                  <div className="mt-2 card-mystical divide-y divide-[#C5A059]/10">
+                  <div className="mt-2 card-mystical divide-y divide-[#B8961F]/10">
                     {Object.entries(domaines).map(([key, value]) => (
                       <div 
                         key={key}
-                        className={`flex items-center gap-3 py-3 px-4 cursor-pointer hover:bg-[#C5A059]/10 transition-colors ${
-                          domaine === key ? 'bg-[#C5A059]/10' : ''
+                        className={`flex items-center gap-3 py-3 px-4 cursor-pointer hover:bg-[#B8961F]/10 transition-colors ${
+                          domaine === key ? 'bg-[#B8961F]/10' : ''
                         }`}
                         onClick={() => { setDomaine(key); setShowDomaines(false); }}
                       >
@@ -483,12 +483,12 @@ const TirageTarot = () => {
                   Votre question
                 </label>
                 <div className="relative">
-                  <HelpCircle className="absolute left-4 top-4 w-5 h-5 text-[#C5A059]/50" strokeWidth={1.5} />
+                  <HelpCircle className="absolute left-4 top-4 w-5 h-5 text-[#B8961F]/50" strokeWidth={1.5} />
                   <textarea
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     placeholder="Formulez votre question avec clarté et sincérité..."
-                    className="w-full bg-[#1C1735] border border-[#C5A059]/30 rounded-xl py-4 pl-12 pr-4 text-[#F0E6D3] placeholder-[#B8B0C8]/40 focus:outline-none focus:border-[#C5A059] transition-colors resize-none"
+                    className="w-full bg-[#1C1735] border border-[#B8961F]/30 rounded-xl py-4 pl-12 pr-4 text-[#F0E6D3] placeholder-[#B8B0C8]/40 focus:outline-none focus:border-[#B8961F] transition-colors resize-none"
                     rows={4}
                     data-testid="input-question"
                   />
@@ -528,7 +528,7 @@ const TirageTarot = () => {
             <div>
               {/* Header */}
               <div className="text-center mb-10">
-                <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-4 font-light">
+                <p className="text-[#B8961F] uppercase tracking-[0.3em] text-sm mb-4 font-light">
                   {typeTirage === 'marseille' ? 'Tirage Marseille' : 'Croix Celtique'}
                 </p>
                 <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -560,9 +560,9 @@ const TirageTarot = () => {
               {/* Animation en cours */}
               {isRevealing && (
                 <div className="text-center mb-8">
-                  <div className="inline-flex items-center gap-3 bg-[#C5A059]/20 px-6 py-3 rounded-full">
-                    <div className="w-4 h-4 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-[#C5A059]">
+                  <div className="inline-flex items-center gap-3 bg-[#B8961F]/20 px-6 py-3 rounded-full">
+                    <div className="w-4 h-4 border-2 border-[#B8961F] border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-[#B8961F]">
                       Révélation en cours... Carte {revealedCards.length + 1} sur {typeTirage === 'marseille' ? 3 : 10}
                     </span>
                   </div>
@@ -601,7 +601,7 @@ const TirageTarot = () => {
             <div className="max-w-4xl mx-auto">
               {/* Header */}
               <div className="text-center mb-10">
-                <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-4 font-light">
+                <p className="text-[#B8961F] uppercase tracking-[0.3em] text-sm mb-4 font-light">
                   Synthèse de votre tirage
                 </p>
                 <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -610,7 +610,7 @@ const TirageTarot = () => {
               </div>
 
               {/* Question rappel */}
-              <div className="card-mystical bg-[#C5A059]/10 mb-8">
+              <div className="card-mystical bg-[#B8961F]/10 mb-8">
                 <p className="text-center">
                   <span className="text-[#B8B0C8]/60 text-sm">Votre question : </span>
                   <span className="text-[#F0E6D3] italic">"{question}"</span>
@@ -621,14 +621,14 @@ const TirageTarot = () => {
               {!syntheseUnlocked ? (
                 <div className="text-center py-8" data-testid="synthese-paywall">
                   <div className="card-mystical glow-gold max-w-md mx-auto py-8">
-                    <Sparkles className="w-10 h-10 text-[#C5A059] mx-auto mb-4" strokeWidth={1} />
+                    <Sparkles className="w-10 h-10 text-[#B8961F] mx-auto mb-4" strokeWidth={1} />
                     <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                       Synth&egrave;se Compl&egrave;te
                     </h3>
                     <p className="text-[#B8B0C8]/60 text-sm mb-6 px-4">
                       D&eacute;couvrez l'analyse d&eacute;taill&eacute;e de votre tirage : tendance g&eacute;n&eacute;rale, messages pass&eacute;/pr&eacute;sent/futur et conseil des Arcanes
                     </p>
-                    <p className="text-3xl font-bold mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#C5A059' }}>
+                    <p className="text-3xl font-bold mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#B8961F' }}>
                       4,99 &euro;
                     </p>
                     <button
@@ -647,7 +647,7 @@ const TirageTarot = () => {
                 <div className="space-y-6">
                   {/* Tendance générale */}
                   <div className="card-mystical">
-                    <h3 className="text-xl mb-4 text-[#C5A059]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                    <h3 className="text-xl mb-4 text-[#B8961F]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                       Tendance Générale : {tirageData.synthese.tendance_generale}
                     </h3>
                     <p className="text-[#B8B0C8]/70">{tirageData.synthese.fil_conducteur}</p>
@@ -656,25 +656,25 @@ const TirageTarot = () => {
                   {/* Messages par position */}
                   <div className="grid md:grid-cols-3 gap-4">
                     <div className="card-mystical">
-                      <h4 className="text-[#C5A059] mb-2">Passé</h4>
+                      <h4 className="text-[#B8961F] mb-2">Passé</h4>
                       <p className="text-[#B8B0C8]/70 text-sm">{tirageData.synthese.message_passe}</p>
                     </div>
                     <div className="card-mystical">
-                      <h4 className="text-[#C5A059] mb-2">Présent</h4>
+                      <h4 className="text-[#B8961F] mb-2">Présent</h4>
                       <p className="text-[#B8B0C8]/70 text-sm">{tirageData.synthese.message_present}</p>
                     </div>
                     <div className="card-mystical">
-                      <h4 className="text-[#C5A059] mb-2">Futur</h4>
+                      <h4 className="text-[#B8961F] mb-2">Futur</h4>
                       <p className="text-[#B8B0C8]/70 text-sm">{tirageData.synthese.message_futur}</p>
                     </div>
                   </div>
 
                   {/* Conseil final */}
-                  <div className="card-mystical bg-[#C5A059]/10 border-[#C5A059]/40">
+                  <div className="card-mystical bg-[#B8961F]/10 border-[#B8961F]/40">
                     <div className="flex items-start gap-4">
-                      <Sparkles className="w-8 h-8 text-[#C5A059] flex-shrink-0 mt-1" strokeWidth={1} />
+                      <Sparkles className="w-8 h-8 text-[#B8961F] flex-shrink-0 mt-1" strokeWidth={1} />
                       <div>
-                        <h4 className="text-[#C5A059] text-lg mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                        <h4 className="text-[#B8961F] text-lg mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                           Conseil des Arcanes
                         </h4>
                         <p className="text-[#F0E6D3] italic">{tirageData.conseil_final}</p>
@@ -689,36 +689,36 @@ const TirageTarot = () => {
                 <div className="space-y-6">
                   {/* Énergie globale */}
                   <div className="card-mystical">
-                    <h3 className="text-xl mb-4 text-[#C5A059]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                    <h3 className="text-xl mb-4 text-[#B8961F]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                       Énergie Globale
                     </h3>
                     <p className="text-[#F0E6D3] mb-4">{tirageData.analyse.energie_globale}</p>
                     <div className="flex gap-4 text-sm">
                       <span className="text-green-400">✓ {tirageData.analyse.cartes_droites} cartes droites</span>
                       <span className="text-red-400">↻ {tirageData.analyse.cartes_renversees} cartes renversées</span>
-                      <span className="text-[#C5A059]">◆ Élément dominant : {tirageData.analyse.element_dominant}</span>
+                      <span className="text-[#B8961F]">◆ Élément dominant : {tirageData.analyse.element_dominant}</span>
                     </div>
                   </div>
 
                   {/* Points clés */}
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="card-mystical">
-                      <h4 className="text-[#C5A059] mb-2">Situation Actuelle</h4>
+                      <h4 className="text-[#B8961F] mb-2">Situation Actuelle</h4>
                       <p className="text-[#F0E6D3] font-semibold mb-1">{tirageData.analyse.situation_actuelle?.carte}</p>
                       <p className="text-[#B8B0C8]/70 text-sm">{tirageData.analyse.situation_actuelle?.message}</p>
                     </div>
                     <div className="card-mystical">
-                      <h4 className="text-[#C5A059] mb-2">Obstacle Principal</h4>
+                      <h4 className="text-[#B8961F] mb-2">Obstacle Principal</h4>
                       <p className="text-[#F0E6D3] font-semibold mb-1">{tirageData.analyse.obstacle_principal?.carte}</p>
                       <p className="text-[#B8B0C8]/70 text-sm">{tirageData.analyse.obstacle_principal?.message}</p>
                     </div>
                     <div className="card-mystical">
-                      <h4 className="text-[#C5A059] mb-2">Fondement</h4>
+                      <h4 className="text-[#B8961F] mb-2">Fondement</h4>
                       <p className="text-[#F0E6D3] font-semibold mb-1">{tirageData.analyse.fondement?.carte}</p>
                       <p className="text-[#B8B0C8]/70 text-sm">{tirageData.analyse.fondement?.message}</p>
                     </div>
                     <div className="card-mystical">
-                      <h4 className="text-[#C5A059] mb-2">Résultat Probable</h4>
+                      <h4 className="text-[#B8961F] mb-2">Résultat Probable</h4>
                       <p className="text-[#F0E6D3] font-semibold mb-1">{tirageData.analyse.resultat_probable?.carte}</p>
                       <p className="text-[#B8B0C8]/70 text-sm">{tirageData.analyse.resultat_probable?.message}</p>
                     </div>
@@ -726,18 +726,18 @@ const TirageTarot = () => {
 
                   {/* Synthèse finale */}
                   <div className="card-mystical">
-                    <h4 className="text-[#C5A059] text-lg mb-3" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                    <h4 className="text-[#B8961F] text-lg mb-3" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                       Synthèse Finale
                     </h4>
                     <p className="text-[#B8B0C8]/80 whitespace-pre-line">{tirageData.analyse.synthese_finale}</p>
                   </div>
 
                   {/* Conseil d'action */}
-                  <div className="card-mystical bg-[#C5A059]/10 border-[#C5A059]/40">
+                  <div className="card-mystical bg-[#B8961F]/10 border-[#B8961F]/40">
                     <div className="flex items-start gap-4">
-                      <Sparkles className="w-8 h-8 text-[#C5A059] flex-shrink-0 mt-1" strokeWidth={1} />
+                      <Sparkles className="w-8 h-8 text-[#B8961F] flex-shrink-0 mt-1" strokeWidth={1} />
                       <div>
-                        <h4 className="text-[#C5A059] text-lg mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                        <h4 className="text-[#B8961F] text-lg mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                           Conseil d'Action
                         </h4>
                         <p className="text-[#F0E6D3] whitespace-pre-line">{tirageData.analyse.conseil_action}</p>

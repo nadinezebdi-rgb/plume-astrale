@@ -74,7 +74,7 @@ export default function NatalDataModal({ open, onClose, onSuccess }) {
         onClick={(e) => e.stopPropagation()}
         style={{
           background: 'linear-gradient(180deg, rgba(20,24,60,0.97) 0%, rgba(11,14,40,0.97) 100%)',
-          border: '1px solid rgba(212,180,106,0.3)',
+          border: '1px solid rgba(212,175,55,0.3)',
           borderRadius: 18, padding: '28px 24px',
           maxWidth: 480, width: '100%', maxHeight: '90vh', overflowY: 'auto',
           boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
@@ -116,8 +116,8 @@ export default function NatalDataModal({ open, onClose, onSuccess }) {
                   data-testid={`natal-gender-${opt.v}`}
                   style={{
                     flex: 1, padding: '9px 8px', borderRadius: 10,
-                    border: form.gender === opt.v ? '1px solid #D4B46A' : '1px solid rgba(212,180,106,0.25)',
-                    background: form.gender === opt.v ? 'rgba(212,180,106,0.15)' : 'rgba(255,255,255,0.03)',
+                    border: form.gender === opt.v ? '1px solid #D4AF37' : '1px solid rgba(212,175,55,0.25)',
+                    background: form.gender === opt.v ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.03)',
                     color: form.gender === opt.v ? '#F4E4BC' : 'rgba(255,255,255,0.7)',
                     fontSize: 12, cursor: 'pointer', transition: 'all 0.2s',
                     fontFamily: 'Cinzel, serif', letterSpacing: '0.06em',
@@ -172,7 +172,7 @@ export default function NatalDataModal({ open, onClose, onSuccess }) {
           <button type="submit" disabled={saving} data-testid="natal-modal-save"
             style={{
               marginTop: 6, padding: '13px 24px', borderRadius: 999, border: 'none',
-              background: '#D4B46A', color: '#0F1230', cursor: saving ? 'wait' : 'pointer',
+              background: '#D4AF37', color: '#0F1230', cursor: saving ? 'wait' : 'pointer',
               fontFamily: 'Cinzel, serif', fontSize: 12, fontWeight: 600,
               letterSpacing: '0.16em', textTransform: 'uppercase',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -190,7 +190,7 @@ const inputStyle = {
   width: '100%',
   padding: '11px 14px',
   borderRadius: 10,
-  border: '1px solid rgba(212,180,106,0.25)',
+  border: '1px solid rgba(212,175,55,0.25)',
   background: 'rgba(255,255,255,0.03)',
   color: '#F4E4BC',
   fontSize: 14,
@@ -204,7 +204,7 @@ function Field({ label, children }) {
       <span style={{
         display: 'block', marginBottom: 6,
         fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
-        color: 'rgba(212,180,106,0.85)', fontFamily: 'Cinzel, serif',
+        color: 'rgba(212,175,55,0.85)', fontFamily: 'Cinzel, serif',
       }}>{label}</span>
       {children}
     </label>

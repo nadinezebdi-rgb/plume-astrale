@@ -68,7 +68,7 @@ const Tarot = () => {
     <div className="min-h-screen px-6 md:px-8 py-20 md:py-28" data-testid="tarot-page">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-3 font-light">
+          <p className="text-[#B8961F] uppercase tracking-[0.3em] text-sm mb-3 font-light">
             Tirage à 3 cartes
           </p>
           <h1 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -90,20 +90,20 @@ const Tarot = () => {
                 onClick={() => reveal(i)}
                 data-testid={`tarot-card-${i}`}
                 className={`card-mystical text-center transition-all min-h-[280px] flex flex-col ${
-                  canReveal ? 'cursor-pointer hover:border-[#C5A059] hover:scale-[1.02]' : ''
-                } ${isRevealed ? 'border-[#C5A059] glow-gold' : ''}`}
+                  canReveal ? 'cursor-pointer hover:border-[#B8961F] hover:scale-[1.02]' : ''
+                } ${isRevealed ? 'border-[#B8961F] glow-gold' : ''}`}
               >
-                <p className="text-[#C5A059] uppercase tracking-[0.25em] text-xs mb-3">
+                <p className="text-[#B8961F] uppercase tracking-[0.25em] text-xs mb-3">
                   {POSITIONS[i]}
                 </p>
 
                 {isRevealed ? (
                   <div className="flex-1 flex flex-col">
-                    <Star className="w-8 h-8 mx-auto text-[#C5A059] mb-3" strokeWidth={1.2} />
+                    <Star className="w-8 h-8 mx-auto text-[#B8961F] mb-3" strokeWidth={1.2} />
                     <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                       {card.name}
                     </h3>
-                    <p className={`text-xs uppercase tracking-widest mb-3 ${ELEMENT_COLOR[card.element] || 'text-[#C5A059]'}`}>
+                    <p className={`text-xs uppercase tracking-widest mb-3 ${ELEMENT_COLOR[card.element] || 'text-[#B8961F]'}`}>
                       Élément {card.element}
                     </p>
                     <p className="text-[#F0E6D3]/90 text-sm mb-3 font-light">
@@ -117,14 +117,14 @@ const Tarot = () => {
                   <div className="flex-1 flex flex-col items-center justify-center">
                     {isPremium ? (
                       <>
-                        <div className="w-20 h-28 mx-auto mb-4 rounded-md border-2 border-[#C5A059]/40 bg-gradient-to-b from-[#1a1432] to-[#0C0918] flex items-center justify-center">
-                          <Sparkles className="w-7 h-7 text-[#C5A059]/60" strokeWidth={1} />
+                        <div className="w-20 h-28 mx-auto mb-4 rounded-md border-2 border-[#B8961F]/40 bg-gradient-to-b from-[#1a1432] to-[#0C0918] flex items-center justify-center">
+                          <Sparkles className="w-7 h-7 text-[#B8961F]/60" strokeWidth={1} />
                         </div>
                         <p className="text-[#B8B0C8]/60 text-sm">Cliquez pour révéler</p>
                       </>
                     ) : (
                       <>
-                        <Lock className="w-7 h-7 mx-auto text-[#C5A059]/60 mb-3" strokeWidth={1.4} />
+                        <Lock className="w-7 h-7 mx-auto text-[#B8961F]/60 mb-3" strokeWidth={1.4} />
                         <p className="text-[#B8B0C8]/60 text-sm">Premium requis</p>
                       </>
                     )}
@@ -155,7 +155,7 @@ const Tarot = () => {
           </div>
         ) : (
           <div className="card-mystical max-w-md mx-auto text-center" data-testid="tarot-premium-gate">
-            <Lock className="w-8 h-8 mx-auto text-[#C5A059] mb-3" strokeWidth={1.3} />
+            <Lock className="w-8 h-8 mx-auto text-[#B8961F] mb-3" strokeWidth={1.3} />
             <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
               Réservé aux membres Premium
             </h3>

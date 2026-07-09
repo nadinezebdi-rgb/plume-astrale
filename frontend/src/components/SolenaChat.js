@@ -193,10 +193,10 @@ export default function SolenaChat() {
           onClick={() => openChat(birthData)}
           className="w-full rounded-3xl p-6 md:p-8 text-left transition-all hover:scale-[1.01] group"
           style={{
-            background: 'linear-gradient(135deg, rgba(212,180,106,0.14) 0%, rgba(20,15,40,0.6) 100%)',
-            border: '1px solid rgba(212,180,106,0.45)',
+            background: 'linear-gradient(135deg, rgba(212,175,55,0.14) 0%, rgba(20,15,40,0.6) 100%)',
+            border: '1px solid rgba(212,175,55,0.45)',
             backdropFilter: 'blur(14px)',
-            boxShadow: '0 20px 60px rgba(212,180,106,0.15), 0 0 40px rgba(212,180,106,0.10)',
+            boxShadow: '0 20px 60px rgba(212,175,55,0.15), 0 0 40px rgba(212,175,55,0.10)',
             cursor: 'pointer',
           }}
           data-testid="open-solena-chat-btn"
@@ -205,14 +205,14 @@ export default function SolenaChat() {
             <div style={{
               flexShrink: 0,
               width: 60, height: 60, borderRadius: '50%', overflow: 'hidden',
-              border: '2px solid rgba(212,180,106,0.55)',
-              boxShadow: '0 0 24px rgba(212,180,106,0.35)',
+              border: '2px solid rgba(212,175,55,0.55)',
+              boxShadow: '0 0 24px rgba(212,175,55,0.35)',
             }}>
               <img src={SOLENA.portrait} alt="Solena" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] uppercase" style={{ color: '#D4B46A', letterSpacing: '0.25em', fontWeight: 500 }}>
+                <span className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.25em', fontWeight: 500 }}>
                   Solena · en ligne
                 </span>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }} />
@@ -230,7 +230,7 @@ export default function SolenaChat() {
               </div>
               <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full text-[11px] uppercase"
                 style={{
-                  background: 'linear-gradient(135deg, #D4B46A, #F4D98C)',
+                  background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
                   color: '#0C0918', letterSpacing: '0.2em', fontWeight: 700,
                 }}>
                 <MessageCircle style={{ width: 12, height: 12 }} strokeWidth={2} />
@@ -247,19 +247,19 @@ export default function SolenaChat() {
           className="rounded-3xl overflow-hidden flex flex-col"
           style={{
             background: 'linear-gradient(180deg, rgba(20,15,40,0.95), rgba(6,8,26,0.98))',
-            border: '1px solid rgba(212,180,106,0.45)',
+            border: '1px solid rgba(212,175,55,0.45)',
             backdropFilter: 'blur(20px)',
-            boxShadow: '0 30px 90px rgba(212,180,106,0.20), 0 0 60px rgba(212,180,106,0.10)',
+            boxShadow: '0 30px 90px rgba(212,175,55,0.20), 0 0 60px rgba(212,175,55,0.10)',
             height: 560,
           }}
           data-testid="solena-chat-window"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'rgba(212,180,106,0.18)' }}>
+          <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'rgba(212,175,55,0.18)' }}>
             <div className="flex items-center gap-3">
               <div style={{
                 width: 42, height: 42, borderRadius: '50%', overflow: 'hidden',
-                border: '2px solid rgba(212,180,106,0.55)',
+                border: '2px solid rgba(212,175,55,0.55)',
               }}>
                 <img src={SOLENA.portrait} alt="Solena" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
               </div>
@@ -267,7 +267,7 @@ export default function SolenaChat() {
                 <div className="text-sm" style={{ color: '#F4E8D2', fontFamily: 'Cormorant Garamond, serif', fontWeight: 500, letterSpacing: '0.05em' }}>
                   Solena
                 </div>
-                <div className="flex items-center gap-1.5 text-[10px] uppercase" style={{ color: 'rgba(212,180,106,0.7)', letterSpacing: '0.2em' }}>
+                <div className="flex items-center gap-1.5 text-[10px] uppercase" style={{ color: 'rgba(212,175,55,0.7)', letterSpacing: '0.2em' }}>
                   <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#4ADE80', boxShadow: '0 0 6px #4ADE80' }} />
                   Astrologue · en ligne
                 </div>
@@ -276,7 +276,7 @@ export default function SolenaChat() {
             <button
               onClick={() => setOpen(false)}
               className="text-[10px] uppercase opacity-60 hover:opacity-100"
-              style={{ color: '#D4B46A', letterSpacing: '0.2em', background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}
+              style={{ color: '#D4AF37', letterSpacing: '0.2em', background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}
               data-testid="close-solena-chat-btn"
               aria-label="Fermer"
             >
@@ -288,7 +288,7 @@ export default function SolenaChat() {
           <div
             ref={scrollRef}
             className="flex-1 overflow-y-auto px-5 py-6 space-y-4"
-            style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(212,180,106,0.3) transparent' }}
+            style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(212,175,55,0.3) transparent' }}
             data-testid="solena-chat-messages"
           >
             {visibleMessages.length === 0 && !loading && (
@@ -304,10 +304,10 @@ export default function SolenaChat() {
                     padding: '12px 16px',
                     borderRadius: m.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                     background: m.role === 'user'
-                      ? 'linear-gradient(135deg, rgba(212,180,106,0.20), rgba(212,180,106,0.10))'
+                      ? 'linear-gradient(135deg, rgba(212,175,55,0.20), rgba(212,175,55,0.10))'
                       : 'rgba(255,255,255,0.04)',
                     border: m.role === 'user'
-                      ? '1px solid rgba(212,180,106,0.35)'
+                      ? '1px solid rgba(212,175,55,0.35)'
                       : '1px solid rgba(255,255,255,0.06)',
                     color: '#F4E8D2',
                     fontSize: '0.95rem',
@@ -332,7 +332,7 @@ export default function SolenaChat() {
                   display: 'flex', alignItems: 'center', gap: 8,
                   fontStyle: 'italic',
                 }}>
-                  <Loader2 className="animate-spin" style={{ width: 14, height: 14, color: '#D4B46A' }} strokeWidth={2} />
+                  <Loader2 className="animate-spin" style={{ width: 14, height: 14, color: '#D4AF37' }} strokeWidth={2} />
                   Solena consulte les étoiles…
                 </div>
               </div>
@@ -340,7 +340,7 @@ export default function SolenaChat() {
           </div>
 
           {/* Input */}
-          <div className="border-t p-4" style={{ borderColor: 'rgba(212,180,106,0.18)' }}>
+          <div className="border-t p-4" style={{ borderColor: 'rgba(212,175,55,0.18)' }}>
             <div className="flex items-center gap-2">
               <input
                 type="text"
@@ -360,7 +360,7 @@ export default function SolenaChat() {
                 className="flex-1 py-3 px-4 outline-none text-white placeholder-white/30"
                 style={{
                   background: 'rgba(0,0,0,0.4)',
-                  border: '1px solid rgba(212,180,106,0.25)',
+                  border: '1px solid rgba(212,175,55,0.25)',
                   borderRadius: 999,
                   fontSize: 14,
                   fontFamily: 'Cormorant Garamond, serif',
@@ -373,11 +373,11 @@ export default function SolenaChat() {
                 className="rounded-full flex items-center justify-center transition-all hover:scale-105 disabled:opacity-40"
                 style={{
                   width: 44, height: 44,
-                  background: 'linear-gradient(135deg, #D4B46A, #F4D98C)',
+                  background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
                   color: '#0C0918',
                   border: 'none',
                   cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
-                  boxShadow: '0 6px 20px rgba(212,180,106,0.35)',
+                  boxShadow: '0 6px 20px rgba(212,175,55,0.35)',
                 }}
                 data-testid="solena-chat-send-btn"
                 aria-label="Envoyer"
@@ -385,7 +385,7 @@ export default function SolenaChat() {
                 {loading ? <Loader2 className="animate-spin" style={{ width: 16, height: 16 }} strokeWidth={2} /> : <Send style={{ width: 16, height: 16 }} strokeWidth={2} />}
               </button>
             </div>
-            <div className="text-[9px] uppercase mt-3 text-center opacity-50" style={{ color: '#D4B46A', letterSpacing: '0.2em' }}>
+            <div className="text-[9px] uppercase mt-3 text-center opacity-50" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
               <Sparkles style={{ width: 9, height: 9, display: 'inline', marginRight: 4 }} strokeWidth={1.5} />
               Solena · propulsée par une IA divinatoire
             </div>

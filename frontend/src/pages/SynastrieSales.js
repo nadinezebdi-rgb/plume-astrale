@@ -23,26 +23,26 @@ const FEATURES = [
 ];
 
 const PersonForm = ({ label, value, onChange, testid }) => (
-  <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(212,180,106,0.18)' }} data-testid={testid}>
-    <p className="text-[10px] uppercase tracking-widest mb-3" style={{ color: '#D4B46A', letterSpacing: '0.16em', fontFamily: 'Cinzel, serif' }}>{label}</p>
+  <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(212,175,55,0.18)' }} data-testid={testid}>
+    <p className="text-[10px] uppercase tracking-widest mb-3" style={{ color: '#D4AF37', letterSpacing: '0.16em', fontFamily: 'Cinzel, serif' }}>{label}</p>
     <div className="space-y-3">
       <div>
         <label className="text-[10px] uppercase block mb-1" style={{ color: 'rgba(184,176,200,0.65)', letterSpacing: '0.1em' }}>Prenom</label>
-        <input value={value.prenom} onChange={e => onChange({ ...value, prenom: e.target.value })} required className="w-full bg-transparent border-b py-1.5 text-sm outline-none" style={{ borderColor: 'rgba(212,180,106,0.25)', color: '#F0E6D3' }} data-testid={`${testid}-prenom`} />
+        <input value={value.prenom} onChange={e => onChange({ ...value, prenom: e.target.value })} required className="w-full bg-transparent border-b py-1.5 text-sm outline-none" style={{ borderColor: 'rgba(212,175,55,0.25)', color: '#F0E6D3' }} data-testid={`${testid}-prenom`} />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-[10px] uppercase block mb-1" style={{ color: 'rgba(184,176,200,0.65)', letterSpacing: '0.1em' }}>Naissance</label>
-          <input type="date" value={value.birth_date} onChange={e => onChange({ ...value, birth_date: e.target.value })} required className="w-full bg-transparent border-b py-1.5 text-sm outline-none" style={{ borderColor: 'rgba(212,180,106,0.25)', color: '#F0E6D3' }} data-testid={`${testid}-date`} />
+          <input type="date" value={value.birth_date} onChange={e => onChange({ ...value, birth_date: e.target.value })} required className="w-full bg-transparent border-b py-1.5 text-sm outline-none" style={{ borderColor: 'rgba(212,175,55,0.25)', color: '#F0E6D3' }} data-testid={`${testid}-date`} />
         </div>
         <div>
           <label className="text-[10px] uppercase block mb-1" style={{ color: 'rgba(184,176,200,0.65)', letterSpacing: '0.1em' }}>Heure</label>
-          <input type="time" value={value.birth_time} onChange={e => onChange({ ...value, birth_time: e.target.value })} className="w-full bg-transparent border-b py-1.5 text-sm outline-none" style={{ borderColor: 'rgba(212,180,106,0.25)', color: '#F0E6D3' }} data-testid={`${testid}-time`} />
+          <input type="time" value={value.birth_time} onChange={e => onChange({ ...value, birth_time: e.target.value })} className="w-full bg-transparent border-b py-1.5 text-sm outline-none" style={{ borderColor: 'rgba(212,175,55,0.25)', color: '#F0E6D3' }} data-testid={`${testid}-time`} />
         </div>
       </div>
       <div>
         <label className="text-[10px] uppercase block mb-1" style={{ color: 'rgba(184,176,200,0.65)', letterSpacing: '0.1em' }}>Ville de naissance</label>
-        <input value={value.birth_place} onChange={e => onChange({ ...value, birth_place: e.target.value })} placeholder="ex. Paris" className="w-full bg-transparent border-b py-1.5 text-sm outline-none" style={{ borderColor: 'rgba(212,180,106,0.25)', color: '#F0E6D3' }} data-testid={`${testid}-place`} />
+        <input value={value.birth_place} onChange={e => onChange({ ...value, birth_place: e.target.value })} placeholder="ex. Paris" className="w-full bg-transparent border-b py-1.5 text-sm outline-none" style={{ borderColor: 'rgba(212,175,55,0.25)', color: '#F0E6D3' }} data-testid={`${testid}-place`} />
       </div>
     </div>
   </div>
@@ -167,23 +167,23 @@ export default function SynastrieSales() {
 
         {/* Hero */}
         <div className="text-center mb-12">
-          <p className="text-[10px] uppercase tracking-widest mb-3" style={{ color: '#D4B46A', letterSpacing: '0.3em', fontFamily: 'Cinzel, serif' }}>
+          <p className="text-[10px] uppercase tracking-widest mb-3" style={{ color: '#D4AF37', letterSpacing: '0.3em', fontFamily: 'Cinzel, serif' }}>
             Le coeur au centre
           </p>
           <h1 className="text-4xl sm:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 300, lineHeight: 1.05 }}>
-            L&apos;<em style={{ fontStyle: 'italic', color: '#D4B46A' }}>Astrologie relationnelle</em><br />
+            L&apos;<em style={{ fontStyle: 'italic', color: '#D4AF37' }}>Astrologie relationnelle</em><br />
             de votre lien
           </h1>
           <p className="text-base sm:text-lg max-w-xl mx-auto mb-3" style={{ color: 'rgba(184,176,200,0.85)', lineHeight: 1.6 }}>
             Un rapport de 25 pages, ecrit avec soin a partir de vos deux themes natals.
             Pour comprendre ce qui se joue, ce qui vous nourrit et ce qui demande attention.
           </p>
-          <p className="text-xs max-w-lg mx-auto mb-6 italic" style={{ color: 'rgba(212,180,106,0.75)', lineHeight: 1.65 }}>
+          <p className="text-xs max-w-lg mx-auto mb-6 italic" style={{ color: 'rgba(212,175,55,0.75)', lineHeight: 1.65 }}>
             Plus fine et plus efficace qu&apos;une compatibilite amoureuse schematique — la synastrie
             revele les affinites, les points de discordance, et ce que l&apos;autre active chez vous.
           </p>
-          <div className="inline-flex items-baseline gap-2 px-6 py-2.5 rounded-full" style={{ background: 'rgba(212,180,106,0.1)', border: '1px solid rgba(212,180,106,0.3)' }}>
-            <span className="text-3xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F4D98C', fontWeight: 400 }}>49€</span>
+          <div className="inline-flex items-baseline gap-2 px-6 py-2.5 rounded-full" style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.3)' }}>
+            <span className="text-3xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8C766', fontWeight: 400 }}>49€</span>
             <span className="text-xs" style={{ color: 'rgba(184,176,200,0.65)' }}>paiement unique</span>
           </div>
         </div>
@@ -193,9 +193,9 @@ export default function SynastrieSales() {
           {FEATURES.map((f, i) => {
             const Icon = f.icon;
             return (
-              <div key={i} className="rounded-2xl p-5 flex items-start gap-4" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(212,180,106,0.15)' }} data-testid={`synastrie-feature-${i}`}>
-                <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(212,180,106,0.12)', border: '1px solid rgba(212,180,106,0.3)' }}>
-                  <Icon className="w-4 h-4" strokeWidth={1.5} style={{ color: '#D4B46A' }} />
+              <div key={i} className="rounded-2xl p-5 flex items-start gap-4" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(212,175,55,0.15)' }} data-testid={`synastrie-feature-${i}`}>
+                <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.3)' }}>
+                  <Icon className="w-4 h-4" strokeWidth={1.5} style={{ color: '#D4AF37' }} />
                 </div>
                 <div>
                   <h3 className="text-base mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>{f.title}</h3>
@@ -230,11 +230,11 @@ export default function SynastrieSales() {
 
         {/* Extrait gratuit — lead magnet */}
         <div className="rounded-2xl p-6 mb-8" style={{
-          background: 'linear-gradient(135deg, rgba(212,180,106,0.08), rgba(167,139,250,0.06))',
-          border: '1px solid rgba(212,180,106,0.3)',
+          background: 'linear-gradient(135deg, rgba(212,175,55,0.08), rgba(167,139,250,0.06))',
+          border: '1px solid rgba(212,175,55,0.3)',
         }} data-testid="synastrie-extract-section">
           <div className="flex items-start gap-3 mb-4">
-            <Gift className="w-5 h-5 mt-1 flex-shrink-0" strokeWidth={1.5} style={{ color: '#D4B46A' }} />
+            <Gift className="w-5 h-5 mt-1 flex-shrink-0" strokeWidth={1.5} style={{ color: '#D4AF37' }} />
             <div>
               <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 400 }}>Recevez un aperçu gratuit de 3 pages</h3>
               <p className="text-xs" style={{ color: 'rgba(184,176,200,0.7)', lineHeight: 1.6 }}>
@@ -249,7 +249,7 @@ export default function SynastrieSales() {
               onChange={e => setExtractEmail(e.target.value)}
               placeholder="votre@email.fr"
               className="flex-1 bg-transparent rounded-full px-4 py-2.5 text-sm outline-none"
-              style={{ border: '1px solid rgba(212,180,106,0.3)', color: '#F0E6D3' }}
+              style={{ border: '1px solid rgba(212,175,55,0.3)', color: '#F0E6D3' }}
               data-testid="extract-email-input"
             />
             <button
@@ -257,7 +257,7 @@ export default function SynastrieSales() {
               disabled={extractLoading || !!extractSuccess}
               className="px-5 py-2.5 rounded-full text-xs uppercase tracking-widest transition-all"
               style={{
-                background: extractSuccess ? 'rgba(124,184,138,0.2)' : 'linear-gradient(135deg, #D4B46A, #C5A059)',
+                background: extractSuccess ? 'rgba(124,184,138,0.2)' : 'linear-gradient(135deg, #D4AF37, #B8961F)',
                 color: extractSuccess ? '#A3D6AC' : '#0C0918',
                 letterSpacing: '0.12em', fontWeight: 600,
                 cursor: extractSuccess ? 'default' : 'pointer',
@@ -280,11 +280,11 @@ export default function SynastrieSales() {
             disabled={!valid || loading}
             className="inline-flex items-center justify-center gap-3 px-10 py-4 rounded-full transition-all"
             style={{
-              background: valid && !loading ? 'linear-gradient(135deg, #D4B46A, #C5A059)' : 'rgba(255,255,255,0.05)',
+              background: valid && !loading ? 'linear-gradient(135deg, #D4AF37, #B8961F)' : 'rgba(255,255,255,0.05)',
               color: valid && !loading ? '#0C0918' : 'rgba(184,176,200,0.5)',
               fontFamily: 'Cinzel, serif', fontSize: 13, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600,
               cursor: valid && !loading ? 'pointer' : 'not-allowed',
-              boxShadow: valid && !loading ? '0 6px 24px rgba(212,180,106,0.35)' : 'none',
+              boxShadow: valid && !loading ? '0 6px 24px rgba(212,175,55,0.35)' : 'none',
               minWidth: 280,
             }}
             data-testid="synastrie-checkout-btn"
@@ -302,7 +302,7 @@ export default function SynastrieSales() {
           <button
             onClick={handlePreview}
             className="mt-4 text-[11px] underline"
-            style={{ color: 'rgba(212,180,106,0.65)', letterSpacing: '0.05em' }}
+            style={{ color: 'rgba(212,175,55,0.65)', letterSpacing: '0.05em' }}
             data-testid="synastrie-preview-btn"
           >
             ✦ Apercu gratuit du rapport (PDF)

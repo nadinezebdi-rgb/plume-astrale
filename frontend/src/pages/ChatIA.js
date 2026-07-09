@@ -308,7 +308,7 @@ const ChatIA = () => {
             maxWidth: 560, width: '100%', padding: '36px 28px',
             borderRadius: 20,
             background: 'linear-gradient(180deg, rgba(6,8,26,0.85) 0%, rgba(11,14,40,0.75) 100%)',
-            border: '1px solid rgba(212,180,106,0.30)',
+            border: '1px solid rgba(212,175,55,0.30)',
             boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
             backdropFilter: 'blur(20px)',
             textAlign: 'center',
@@ -318,10 +318,10 @@ const ChatIA = () => {
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '5px 14px', marginBottom: 18,
               borderRadius: 999,
-              background: 'rgba(212,180,106,0.15)',
-              border: '1px solid rgba(212,180,106,0.4)',
+              background: 'rgba(212,175,55,0.15)',
+              border: '1px solid rgba(212,175,55,0.4)',
               fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase',
-              color: '#F4D98C', fontFamily: 'Cinzel, serif',
+              color: '#E8C766', fontFamily: 'Cinzel, serif',
             }}>
               <Sparkles style={{ width: 11, height: 11 }} />
               Offre de lancement
@@ -333,14 +333,14 @@ const ChatIA = () => {
               lineHeight: 1.2, marginBottom: 14, fontWeight: 400,
             }}>
               Inscris-toi et reçois<br />
-              <span style={{ color: '#D4B46A' }}>20 crédits gratuits</span>
+              <span style={{ color: '#D4AF37' }}>20 crédits gratuits</span>
             </h1>
 
             <p style={{
               color: 'rgba(255,255,255,0.7)', fontSize: 15, lineHeight: 1.6,
               marginBottom: 24, maxWidth: 440, margin: '0 auto 24px',
             }}>
-              Ta consultation est <strong style={{ color: '#F4D98C' }}>nourrie par ton thème natal réel</strong> —
+              Ta consultation est <strong style={{ color: '#E8C766' }}>nourrie par ton thème natal réel</strong> —
               calcul précis de ton Soleil, ta Lune, ton Ascendant et tes planètes.
               Pour démarrer, j&apos;ai besoin de ta date, heure et lieu de naissance.
             </p>
@@ -360,7 +360,7 @@ const ChatIA = () => {
                   display: 'flex', alignItems: 'center', gap: 10,
                   fontSize: 13, color: 'rgba(255,255,255,0.8)',
                 }}>
-                  <span style={{ color: '#D4B46A', fontSize: 14 }}>✦</span>
+                  <span style={{ color: '#D4AF37', fontSize: 14 }}>✦</span>
                   {t}
                 </div>
               ))}
@@ -372,10 +372,10 @@ const ChatIA = () => {
                 data-testid="gate-register-btn"
                 style={{
                   padding: '14px 28px', borderRadius: 999,
-                  background: '#D4B46A', border: 'none', color: '#0F1230',
+                  background: '#D4AF37', border: 'none', color: '#0F1230',
                   fontFamily: 'Cinzel, serif', fontSize: 12, fontWeight: 600,
                   letterSpacing: '0.18em', textTransform: 'uppercase', cursor: 'pointer',
-                  boxShadow: '0 4px 20px rgba(212,180,106,0.3)',
+                  boxShadow: '0 4px 20px rgba(212,175,55,0.3)',
                 }}>
                 Recevoir mes 20 crédits
               </button>
@@ -383,8 +383,8 @@ const ChatIA = () => {
                 data-testid="gate-login-btn"
                 style={{
                   padding: '10px 24px', borderRadius: 999,
-                  background: 'transparent', border: '1px solid rgba(212,180,106,0.3)',
-                  color: 'rgba(212,180,106,0.85)',
+                  background: 'transparent', border: '1px solid rgba(212,175,55,0.3)',
+                  color: 'rgba(212,175,55,0.85)',
                   fontFamily: 'Cinzel, serif', fontSize: 11,
                   letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer',
                 }}>
@@ -395,10 +395,10 @@ const ChatIA = () => {
             {/* Trust badge */}
             <div style={{
               marginTop: 28, paddingTop: 20,
-              borderTop: '1px solid rgba(212,180,106,0.1)',
+              borderTop: '1px solid rgba(212,175,55,0.1)',
               fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5,
             }}>
-              Calculs astrologiques propulsés par <strong style={{ color: 'rgba(212,180,106,0.85)' }}>AstrologyAPI</strong> —
+              Calculs astrologiques propulsés par <strong style={{ color: 'rgba(212,175,55,0.85)' }}>AstrologyAPI</strong> —
               utilisée par des plateformes spécialisées dans le monde entier.
             </div>
           </div>
@@ -425,18 +425,18 @@ const ChatIA = () => {
         {/* Header */}
         <div style={{ textAlign: 'center', padding: '24px 16px 12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 8 }}>
-            <Sparkles style={{ width: 22, height: 22, color: '#D4B46A' }} />
+            <Sparkles style={{ width: 22, height: 22, color: '#D4AF37' }} />
             <h1 style={{
               fontFamily: 'Cinzel, serif',
               fontSize: 'clamp(20px, 4vw, 28px)',
-              color: '#D4B46A',
+              color: '#D4AF37',
               letterSpacing: '0.12em',
               margin: 0,
             }}>
               Consultation astrale personnalisée
             </h1>
           </div>
-          <p style={{ color: 'rgba(212,180,106,0.5)', fontSize: 13, letterSpacing: '0.06em', margin: 0 }}>
+          <p style={{ color: 'rgba(212,175,55,0.5)', fontSize: 13, letterSpacing: '0.06em', margin: 0 }}>
             Une lecture moderne et personnalisée de votre ciel astral
           </p>
 
@@ -448,10 +448,10 @@ const ChatIA = () => {
             marginTop: 12,
             padding: '6px 14px',
             borderRadius: 999,
-            background: 'rgba(212,180,106,0.08)',
-            border: '1px solid rgba(212,180,106,0.2)',
+            background: 'rgba(212,175,55,0.08)',
+            border: '1px solid rgba(212,175,55,0.2)',
             fontSize: 12,
-            color: '#D4B46A',
+            color: '#D4AF37',
             letterSpacing: '0.04em',
           }} data-testid="chat-quota-badge">
             <Coins style={{ width: 13, height: 13 }} />
@@ -489,17 +489,17 @@ const ChatIA = () => {
                   <div key={i} style={{
                     padding: '18px 20px',
                     borderRadius: 18,
-                    background: 'linear-gradient(135deg, rgba(212,180,106,0.12), rgba(212,180,106,0.04))',
-                    border: '1px solid rgba(212,180,106,0.3)',
+                    background: 'linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04))',
+                    border: '1px solid rgba(212,175,55,0.3)',
                     textAlign: 'center',
                   }} data-testid="cta-signup">
-                    <p style={{ color: '#D4B46A', fontSize: 14, margin: '0 0 12px', lineHeight: 1.6 }}>
+                    <p style={{ color: '#D4AF37', fontSize: 14, margin: '0 0 12px', lineHeight: 1.6 }}>
                       Tu as utilise tes {FREE_MESSAGES_ANON} messages gratuits.<br />
                       <span style={{ color: 'rgba(230,225,218,0.85)' }}>Cree ton compte pour continuer la conversation avec les astres.</span>
                     </p>
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                       <Link to="/inscription" style={{
-                        background: '#D4B46A',
+                        background: '#D4AF37',
                         color: '#0C0918',
                         padding: '10px 20px',
                         borderRadius: 999,
@@ -515,12 +515,12 @@ const ChatIA = () => {
                       </Link>
                       <Link to="/connexion" style={{
                         background: 'transparent',
-                        color: '#D4B46A',
+                        color: '#D4AF37',
                         padding: '10px 20px',
                         borderRadius: 999,
                         fontSize: 13,
                         textDecoration: 'none',
-                        border: '1px solid rgba(212,180,106,0.4)',
+                        border: '1px solid rgba(212,175,55,0.4)',
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: 6,
@@ -536,16 +536,16 @@ const ChatIA = () => {
                   <div key={i} style={{
                     padding: '18px 20px',
                     borderRadius: 18,
-                    background: 'linear-gradient(135deg, rgba(212,180,106,0.12), rgba(212,180,106,0.04))',
-                    border: '1px solid rgba(212,180,106,0.3)',
+                    background: 'linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04))',
+                    border: '1px solid rgba(212,175,55,0.3)',
                     textAlign: 'center',
                   }} data-testid="cta-credits">
-                    <p style={{ color: '#D4B46A', fontSize: 14, margin: '0 0 12px', lineHeight: 1.6 }}>
+                    <p style={{ color: '#D4AF37', fontSize: 14, margin: '0 0 12px', lineHeight: 1.6 }}>
                       Solde insuffisant — il te faut {COST_PER_MESSAGE} credits par message.<br />
                       <span style={{ color: 'rgba(230,225,218,0.85)' }}>Recharge ton solde pour continuer.</span>
                     </p>
                     <Link to="/acheter-credits" style={{
-                      background: '#D4B46A',
+                      background: '#D4AF37',
                       color: '#0C0918',
                       padding: '10px 20px',
                       borderRadius: 999,
@@ -576,12 +576,12 @@ const ChatIA = () => {
                     padding: '14px 18px',
                     borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                     background: msg.role === 'user'
-                      ? 'linear-gradient(135deg, rgba(212,180,106,0.18), rgba(212,180,106,0.08))'
+                      ? 'linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.08))'
                       : 'rgba(255,255,255,0.04)',
                     border: msg.role === 'user'
-                      ? '1px solid rgba(212,180,106,0.25)'
+                      ? '1px solid rgba(212,175,55,0.25)'
                       : '1px solid rgba(255,255,255,0.06)',
-                    color: msg.role === 'user' ? '#F4D98C' : 'rgba(230,225,218,0.85)',
+                    color: msg.role === 'user' ? '#E8C766' : 'rgba(230,225,218,0.85)',
                     fontSize: 14,
                     lineHeight: 1.7,
                     letterSpacing: '0.02em',
@@ -589,7 +589,7 @@ const ChatIA = () => {
                     wordBreak: 'break-word',
                   }}>
                     {msg.role === 'assistant' && (
-                      <span style={{ color: '#D4B46A', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
+                      <span style={{ color: '#D4AF37', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
                         Plume Astrale
                       </span>
                     )}
@@ -609,7 +609,7 @@ const ChatIA = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
-                  color: 'rgba(212,180,106,0.6)',
+                  color: 'rgba(212,175,55,0.6)',
                   fontSize: 13,
                 }}>
                   <Loader2 style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} />
@@ -626,7 +626,7 @@ const ChatIA = () => {
             gap: 8,
             alignItems: 'flex-end',
             padding: '12px 0',
-            borderTop: '1px solid rgba(212,180,106,0.08)',
+            borderTop: '1px solid rgba(212,175,55,0.08)',
           }}>
             <button
               onClick={clearChat}
@@ -637,12 +637,12 @@ const ChatIA = () => {
                 borderRadius: 12,
                 padding: 10,
                 cursor: 'pointer',
-                color: 'rgba(212,180,106,0.4)',
+                color: 'rgba(212,175,55,0.4)',
                 flexShrink: 0,
                 transition: 'all 0.2s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#D4B46A'; e.currentTarget.style.borderColor = 'rgba(212,180,106,0.25)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(212,180,106,0.4)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#D4AF37'; e.currentTarget.style.borderColor = 'rgba(212,175,55,0.25)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(212,175,55,0.4)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
               data-testid="chat-clear-btn"
             >
               <Trash2 style={{ width: 18, height: 18 }} />
@@ -654,7 +654,7 @@ const ChatIA = () => {
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={e => {
-                e.currentTarget.style.borderColor = 'rgba(212,180,106,0.4)';
+                e.currentTarget.style.borderColor = 'rgba(212,175,55,0.4)';
                 if (blocked) setPaywallOpen(true);
               }}
               placeholder={blocked ? (isAuthenticated ? "Solde insuffisant — recharge tes credits" : "Inscris-toi pour continuer") : "Pose ta question aux etoiles..."}
@@ -662,7 +662,7 @@ const ChatIA = () => {
               style={{
                 flex: 1,
                 background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(212,180,106,0.15)',
+                border: '1px solid rgba(212,175,55,0.15)',
                 borderRadius: 14,
                 padding: '12px 16px',
                 color: '#E6E1DA',
@@ -676,7 +676,7 @@ const ChatIA = () => {
                 opacity: blocked ? 0.55 : 1,
                 cursor: blocked ? 'pointer' : 'text',
               }}
-              onBlur={e => { e.currentTarget.style.borderColor = 'rgba(212,180,106,0.15)'; }}
+              onBlur={e => { e.currentTarget.style.borderColor = 'rgba(212,175,55,0.15)'; }}
               data-testid="chat-input"
             />
 
@@ -685,14 +685,14 @@ const ChatIA = () => {
               disabled={loading || (!input.trim() && !blocked)}
               style={{
                 background: input.trim() && !loading && !blocked
-                  ? 'linear-gradient(135deg, rgba(212,180,106,0.25), rgba(212,180,106,0.12))'
+                  ? 'linear-gradient(135deg, rgba(212,175,55,0.25), rgba(212,175,55,0.12))'
                   : 'rgba(255,255,255,0.04)',
                 border: '1px solid',
-                borderColor: input.trim() && !loading && !blocked ? 'rgba(212,180,106,0.4)' : 'rgba(255,255,255,0.08)',
+                borderColor: input.trim() && !loading && !blocked ? 'rgba(212,175,55,0.4)' : 'rgba(255,255,255,0.08)',
                 borderRadius: 12,
                 padding: 10,
                 cursor: input.trim() && !loading && !blocked ? 'pointer' : 'not-allowed',
-                color: input.trim() && !loading && !blocked ? '#D4B46A' : 'rgba(212,180,106,0.25)',
+                color: input.trim() && !loading && !blocked ? '#D4AF37' : 'rgba(212,175,55,0.25)',
                 flexShrink: 0,
                 transition: 'all 0.2s',
               }}
@@ -703,7 +703,7 @@ const ChatIA = () => {
           </div>
 
           {/* Cost reminder */}
-          <p style={{ textAlign: 'center', color: 'rgba(212,180,106,0.35)', fontSize: 11, margin: '8px 0 0', letterSpacing: '0.05em' }}>
+          <p style={{ textAlign: 'center', color: 'rgba(212,175,55,0.35)', fontSize: 11, margin: '8px 0 0', letterSpacing: '0.05em' }}>
             {isAuthenticated
               ? `Chaque message consomme ${COST_PER_MESSAGE} credits`
               : `${FREE_MESSAGES_ANON} messages gratuits, puis inscription requise`}
@@ -712,9 +712,9 @@ const ChatIA = () => {
 
         <style>{`
           @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-          textarea::placeholder { color: rgba(212,180,106,0.3); }
+          textarea::placeholder { color: rgba(212,175,55,0.3); }
           textarea::-webkit-scrollbar { width: 4px; }
-          textarea::-webkit-scrollbar-thumb { background: rgba(212,180,106,0.2); border-radius: 4px; }
+          textarea::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.2); border-radius: 4px; }
         `}</style>
       </div>
     </>

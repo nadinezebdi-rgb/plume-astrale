@@ -135,7 +135,7 @@ export default function RencontresUltimeSucces() {
         <div
           className="rounded-3xl p-8 md:p-10"
           style={{
-            background: 'linear-gradient(160deg, rgba(212,180,106,0.06) 0%, rgba(20,15,40,0.6) 100%)',
+            background: 'linear-gradient(160deg, rgba(212,175,55,0.06) 0%, rgba(20,15,40,0.6) 100%)',
             border: '1px solid rgba(226,191,101,0.30)',
             backdropFilter: 'blur(14px)',
             boxShadow: '0 30px 80px rgba(226,191,101,0.10)',
@@ -187,7 +187,7 @@ export default function RencontresUltimeSucces() {
             <div style={{
               position: 'absolute', top: 0, left: 0, bottom: 0,
               width: `${currentStage.pct}%`,
-              background: `linear-gradient(90deg, #E2BF65, #F4D98C, #E2BF65)`,
+              background: `linear-gradient(90deg, #E2BF65, #E8C766, #E2BF65)`,
               boxShadow: '0 0 16px rgba(226,191,101,0.6)',
               transition: 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
               borderRadius: 999,
@@ -246,7 +246,7 @@ export default function RencontresUltimeSucces() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-xs uppercase transition-all hover:scale-[1.02]"
                     style={{
-                      background: 'linear-gradient(135deg, #E2BF65 0%, #F4D98C 50%, #E2BF65 100%)',
+                      background: 'linear-gradient(135deg, #E2BF65 0%, #E8C766 50%, #E2BF65 100%)',
                       color: '#0A0603',
                       letterSpacing: '0.18em',
                       fontWeight: 700,
@@ -287,7 +287,7 @@ export default function RencontresUltimeSucces() {
           {status.stage === 'error' && (
             <div className="mt-8 pt-6" style={{ borderTop: '1px solid rgba(248,113,113,0.20)' }}>
               <p className="text-sm text-center" style={{ color: 'rgba(248,113,113,0.85)' }}>
-                Si le problème persiste, contacte <a href="mailto:contact@plume-astrale.fr" style={{ color: '#E2BF65' }}>contact@plume-astrale.fr</a> avec ce numéro de session : <code style={{ fontSize: 11, color: '#F4D98C' }}>{sessionId}</code>
+                Si le problème persiste, contacte <a href="mailto:contact@plume-astrale.fr" style={{ color: '#E2BF65' }}>contact@plume-astrale.fr</a> avec ce numéro de session : <code style={{ fontSize: 11, color: '#E8C766' }}>{sessionId}</code>
               </p>
             </div>
           )}

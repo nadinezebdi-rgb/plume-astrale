@@ -15,8 +15,8 @@ const cardFlipStyle = `
     100% { opacity: 1; transform: rotateY(0deg) scale(1); }
   }
   @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 30px rgba(197,160,89,0.15), 0 0 60px rgba(120,80,200,0.08); }
-    50%       { box-shadow: 0 0 50px rgba(197,160,89,0.35), 0 0 100px rgba(120,80,200,0.18); }
+    0%, 100% { box-shadow: 0 0 30px rgba(184,150,31,0.15), 0 0 60px rgba(120,80,200,0.08); }
+    50%       { box-shadow: 0 0 50px rgba(184,150,31,0.35), 0 0 100px rgba(120,80,200,0.18); }
   }
   @keyframes fadeSlideUp {
     from { opacity: 0; transform: translateY(16px); }
@@ -95,9 +95,9 @@ const TarotOuiNon = () => {
       icon: '✧', glow: 'rgba(201,120,120,0.2)'
     };
     return {
-      color: '#C5A059', bg: 'rgba(197,160,89,0.08)',
-      border: 'rgba(197,160,89,0.3)', label: 'NEUTRE',
-      icon: '◈', glow: 'rgba(197,160,89,0.2)'
+      color: '#B8961F', bg: 'rgba(184,150,31,0.08)',
+      border: 'rgba(184,150,31,0.3)', label: 'NEUTRE',
+      icon: '◈', glow: 'rgba(184,150,31,0.2)'
     };
   };
 
@@ -122,17 +122,17 @@ const TarotOuiNon = () => {
               </p>
             </div>
             <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--pa-surface)', border: '1px solid var(--pa-divider)' }}>
-              <LogIn className="w-9 h-9 mx-auto mb-5" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+              <LogIn className="w-9 h-9 mx-auto mb-5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
               <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
                 Connexion requise
               </h2>
               <p className="text-sm mb-1" style={{ color: 'var(--pa-muted)' }}>Connectez-vous pour accéder au Tarot Oui&nbsp;/&nbsp;Non.</p>
-              <p className="text-sm mb-7" style={{ color: '#C5A059' }}>1er tirage gratuit · puis 2 crédits · 20 crédits offerts à l'inscription</p>
+              <p className="text-sm mb-7" style={{ color: '#B8961F' }}>1er tirage gratuit · puis 2 crédits · 20 crédits offerts à l'inscription</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full transition-all duration-300 hover:bg-[rgba(197,160,89,0.08)]" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }}>
+                <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full transition-all duration-300 hover:bg-[rgba(184,150,31,0.08)]" style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', letterSpacing: '0.1em' }}>
                   Se connecter
                 </button>
-                <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full transition-all duration-300" style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }}>
+                <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full transition-all duration-300" style={{ border: '1px solid #B8961F', color: '#0C0918', background: '#B8961F', letterSpacing: '0.1em', fontWeight: 600 }}>
                   Créer un compte
                 </button>
               </div>
@@ -155,11 +155,11 @@ const TarotOuiNon = () => {
               <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Retour
             </button>
             <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--pa-surface)', border: '1px solid var(--pa-divider)' }}>
-              <Coins className="w-9 h-9 mx-auto mb-5" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+              <Coins className="w-9 h-9 mx-auto mb-5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
               <h2 className="text-xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Crédits insuffisants</h2>
-              <p className="text-sm mb-1" style={{ color: 'var(--pa-muted)' }}>Ce tirage coûte <span style={{ color: '#C5A059', fontWeight: 600 }}>2 crédits</span>.</p>
-              <p className="text-sm mb-7" style={{ color: 'var(--pa-muted)' }}>Votre solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span></p>
-              <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 mx-auto text-xs uppercase tracking-widest px-7 py-3 rounded-full transition-all duration-300" style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }}>
+              <p className="text-sm mb-1" style={{ color: 'var(--pa-muted)' }}>Ce tirage coûte <span style={{ color: '#B8961F', fontWeight: 600 }}>2 crédits</span>.</p>
+              <p className="text-sm mb-7" style={{ color: 'var(--pa-muted)' }}>Votre solde : <span style={{ color: '#B8961F' }}>{creditBalance} crédits</span></p>
+              <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 mx-auto text-xs uppercase tracking-widest px-7 py-3 rounded-full transition-all duration-300" style={{ border: '1px solid #B8961F', color: '#0C0918', background: '#B8961F', letterSpacing: '0.1em', fontWeight: 600 }}>
                 Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -195,7 +195,7 @@ const TarotOuiNon = () => {
 
           {/* Info crédits */}
           <div className="mb-8 flex items-center gap-2">
-            <Coins className="w-4 h-4 flex-shrink-0" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+            <Coins className="w-4 h-4 flex-shrink-0" style={{ color: '#B8961F' }} strokeWidth={1.5} />
             <span className="text-xs" style={{ color: 'var(--pa-accent)', letterSpacing: '0.08em' }}>
               {freeUsed === false ? '✦ 1er tirage offert' : `2 crédits par tirage · Solde : ${creditBalance} crédits`}
             </span>
@@ -218,7 +218,7 @@ const TarotOuiNon = () => {
                 color: 'var(--pa-body)',
                 lineHeight: '1.7',
               }}
-              onFocus={e => e.target.style.borderColor = 'rgba(197,160,89,0.5)'}
+              onFocus={e => e.target.style.borderColor = 'rgba(184,150,31,0.5)'}
               onBlur={e => e.target.style.borderColor = 'var(--pa-divider)'}
             />
             {creditError && creditError !== 'insufficient' && (
@@ -229,10 +229,10 @@ const TarotOuiNon = () => {
               disabled={loading || !question.trim()}
               className="mt-5 w-full flex items-center justify-center gap-3 py-3.5 rounded-xl text-sm tracking-widest uppercase transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
               style={{
-                background: loading || !question.trim() ? 'var(--pa-surface-hover)' : '#C5A059',
+                background: loading || !question.trim() ? 'var(--pa-surface-hover)' : '#B8961F',
                 color: loading || !question.trim() ? 'var(--pa-muted)' : '#0C0918',
                 fontWeight: 600, letterSpacing: '0.12em',
-                border: '1px solid rgba(197,160,89,0.4)',
+                border: '1px solid rgba(184,150,31,0.4)',
               }}
             >
               {loading ? (
@@ -320,7 +320,7 @@ const TarotOuiNon = () => {
 
                 {/* Énergie de la carte */}
                 <div className="fade-slide-up fade-delay-3 rounded-2xl p-5 mb-8"
-                     style={{ background: 'rgba(197,160,89,0.04)', border: '1px solid rgba(197,160,89,0.12)' }}>
+                     style={{ background: 'rgba(184,150,31,0.04)', border: '1px solid rgba(184,150,31,0.12)' }}>
                   <p className="text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>
                     Énergie de la carte
                   </p>
@@ -333,15 +333,15 @@ const TarotOuiNon = () => {
                 <div className="fade-slide-up fade-delay-3 flex flex-col sm:flex-row gap-3 mb-10">
                   <button
                     onClick={() => { setResult(null); setIsRevealed(false); setQuestion(''); setImgError(false); }}
-                    className="flex-1 py-3 rounded-xl text-xs uppercase tracking-widest transition-all duration-300 hover:bg-[rgba(197,160,89,0.08)]"
-                    style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', letterSpacing: '0.12em' }}
+                    className="flex-1 py-3 rounded-xl text-xs uppercase tracking-widest transition-all duration-300 hover:bg-[rgba(184,150,31,0.08)]"
+                    style={{ border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', letterSpacing: '0.12em' }}
                   >
                     Nouveau tirage
                   </button>
                   <button
                     onClick={() => navigate('/tirage-tarot')}
                     className="flex-1 py-3 rounded-xl text-xs uppercase tracking-widest transition-all duration-300"
-                    style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#0C0918', background: '#C5A059', letterSpacing: '0.12em', fontWeight: 600 }}
+                    style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#0C0918', background: '#B8961F', letterSpacing: '0.12em', fontWeight: 600 }}
                   >
                     Tirage approfondi
                   </button>
@@ -352,13 +352,13 @@ const TarotOuiNon = () => {
                   <p className="text-xs tracking-widest uppercase mb-5" style={{ color: 'var(--pa-muted)', letterSpacing: '0.12em' }}>Pour aller plus loin</p>
                   <div className="space-y-4">
                     <button onClick={() => navigate('/tarologie')} className="block w-full text-left group rounded-xl p-4 transition-all duration-300 hover:bg-[var(--pa-surface)]">
-                      <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
+                      <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#B8961F]" style={{ color: 'var(--pa-heading)' }}>
                         Tarologie & Médiumnité — 35 €
                       </p>
                       <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Tirage complet 7 cartes + lecture médiumnique en PDF</p>
                     </button>
                     <button onClick={() => navigate('/formulaire')} className="block w-full text-left group rounded-xl p-4 transition-all duration-300 hover:bg-[var(--pa-surface)]">
-                      <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
+                      <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#B8961F]" style={{ color: 'var(--pa-heading)' }}>
                         Votre Thème Astral Complet
                       </p>
                       <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Carte du ciel, aspects planétaires et prévisions 2026</p>

@@ -11,30 +11,30 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
 const PersonForm = ({ person, onChange, label, num }) => (
   <div className="space-y-4">
     <h3 className="text-lg flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-      <Heart className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} /> {label}
+      <Heart className="w-5 h-5 text-[#B8961F]" strokeWidth={1.5} /> {label}
     </h3>
 
     <div className="grid grid-cols-2 gap-3">
       <div>
-        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Pr&eacute;nom</label>
+        <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Pr&eacute;nom</label>
         <input type="text" value={person.first_name} onChange={(e) => onChange('first_name', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#B8961F] text-sm"
           placeholder="Pr&#233;nom" data-testid={`person${num}-first-name`} />
       </div>
       <div>
-        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Nom</label>
+        <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Nom</label>
         <input type="text" value={person.last_name} onChange={(e) => onChange('last_name', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#B8961F] text-sm"
           placeholder="Nom" data-testid={`person${num}-last-name`} />
       </div>
     </div>
 
     <div>
-      <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Genre</label>
+      <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Genre</label>
       <div className="flex gap-3">
         {[{ val: 'male', label: 'Homme' }, { val: 'female', label: 'Femme' }].map(g => (
           <button key={g.val} type="button" onClick={() => onChange('gender', g.val)}
-            className={`flex-1 py-2 rounded-lg border text-sm transition-all ${person.gender === g.val ? 'border-[#C5A059] bg-[#C5A059]/20 text-[#F0E6D3]' : 'border-[#C5A059]/20 text-[#B8B0C8]/60 hover:border-[#C5A059]/40'}`}
+            className={`flex-1 py-2 rounded-lg border text-sm transition-all ${person.gender === g.val ? 'border-[#B8961F] bg-[#B8961F]/20 text-[#F0E6D3]' : 'border-[#B8961F]/20 text-[#B8B0C8]/60 hover:border-[#B8961F]/40'}`}
             data-testid={`person${num}-gender-${g.val}`}>
             {g.label}
           </button>
@@ -44,44 +44,44 @@ const PersonForm = ({ person, onChange, label, num }) => (
 
     <div className="grid grid-cols-3 gap-3">
       <div>
-        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Jour</label>
+        <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Jour</label>
         <input type="number" min="1" max="31" value={person.day} onChange={(e) => onChange('day', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#B8961F] text-sm"
           placeholder="JJ" data-testid={`person${num}-day`} />
       </div>
       <div>
-        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Mois</label>
+        <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Mois</label>
         <input type="number" min="1" max="12" value={person.month} onChange={(e) => onChange('month', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#B8961F] text-sm"
           placeholder="MM" data-testid={`person${num}-month`} />
       </div>
       <div>
-        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Ann&eacute;e</label>
+        <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Ann&eacute;e</label>
         <input type="number" min="1920" max="2025" value={person.year} onChange={(e) => onChange('year', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#B8961F] text-sm"
           placeholder="AAAA" data-testid={`person${num}-year`} />
       </div>
     </div>
 
     <div className="grid grid-cols-2 gap-3">
       <div>
-        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Heure</label>
+        <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Heure</label>
         <input type="number" min="0" max="23" value={person.hour} onChange={(e) => onChange('hour', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#B8961F] text-sm"
           data-testid={`person${num}-hour`} />
       </div>
       <div>
-        <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Minute</label>
+        <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Minute</label>
         <input type="number" min="0" max="59" value={person.minute} onChange={(e) => onChange('minute', e.target.value)}
-          className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#C5A059] text-sm"
+          className="w-full px-3 py-2 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#B8961F] text-sm"
           data-testid={`person${num}-minute`} />
       </div>
     </div>
 
     <div>
-      <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Lieu de naissance</label>
+      <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Lieu de naissance</label>
       <input type="text" value={person.place} onChange={(e) => onChange('place', e.target.value)}
-        className="w-full px-3 py-2 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+        className="w-full px-3 py-2 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#B8961F] text-sm"
         placeholder="Ville, Pays" data-testid={`person${num}-place`} />
     </div>
   </div>
@@ -232,7 +232,7 @@ const Compatibilite2 = () => {
       <div className="px-6 md:px-8 py-20 md:py-28">
         <div className="max-w-3xl mx-auto">
 
-          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-[#C5A059]/60 hover:text-[#C5A059] mb-8 transition-colors" data-testid="back-btn">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-[#B8961F]/60 hover:text-[#B8961F] mb-8 transition-colors" data-testid="back-btn">
             <ArrowLeft className="w-4 h-4" /> Retour
           </button>
 
@@ -246,7 +246,7 @@ const Compatibilite2 = () => {
                 <div className="absolute inset-0 rounded-full" style={{ background: 'radial-gradient(circle, transparent 60%, #0C0918 100%)' }} />
               </div>
             </div>
-            <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-3 font-light">
+            <p className="text-[#B8961F] uppercase tracking-[0.3em] text-sm mb-3 font-light">
               Connexion C&eacute;leste
             </p>
             <h1 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -262,10 +262,10 @@ const Compatibilite2 = () => {
           <div className="flex items-center justify-center gap-2 mb-8">
             {[1, 2, 3, 4].map(s => (
               <div key={s} className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step >= s ? 'bg-[#C5A059] text-[#0C0918]' : 'border border-[#C5A059]/30 text-[#C5A059]/40'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step >= s ? 'bg-[#B8961F] text-[#0C0918]' : 'border border-[#B8961F]/30 text-[#B8961F]/40'}`}>
                   {s}
                 </div>
-                {s < 4 && <div className={`w-8 h-0.5 ${step > s ? 'bg-[#C5A059]' : 'bg-[#C5A059]/20'}`} />}
+                {s < 4 && <div className={`w-8 h-0.5 ${step > s ? 'bg-[#B8961F]' : 'bg-[#B8961F]/20'}`} />}
               </div>
             ))}
           </div>
@@ -276,35 +276,35 @@ const Compatibilite2 = () => {
             <div className="animate-fade-in">
               {!isAuthenticated ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-login">
-                  <LogIn className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+                  <LogIn className="w-8 h-8 mb-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
                   <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Connexion requise</h2>
                   <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
                     Connectez-vous pour accéder à la Compatibilité Astrale.
-                    <br /><span style={{ color: '#C5A059' }}>10 crédits &middot; 20 crédits offerts à l'inscription</span>
+                    <br /><span style={{ color: '#B8961F' }}>10 crédits &middot; 20 crédits offerts à l'inscription</span>
                   </p>
                   <div className="flex gap-3">
-                    <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
-                    <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', background: 'rgba(197,160,89,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Créer un compte</button>
+                    <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
+                    <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', background: 'rgba(184,150,31,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Créer un compte</button>
                   </div>
                 </div>
               ) : creditBalance < 10 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-insufficient">
-                  <Coins className="w-8 h-8 mb-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+                  <Coins className="w-8 h-8 mb-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
                   <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Crédits insuffisants</h2>
-                  <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>Ce rapport coûte <span style={{ color: '#C5A059', fontWeight: 600 }}>10 crédits</span>.</p>
-                  <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span></p>
-                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
+                  <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>Ce rapport coûte <span style={{ color: '#B8961F', fontWeight: 600 }}>10 crédits</span>.</p>
+                  <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#B8961F' }}>{creditBalance} crédits</span></p>
+                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #B8961F', color: '#0C0918', background: '#B8961F', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
                     Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-8 text-center" data-testid="credit-gate-unlock">
-                  <Coins className="w-7 h-7 mb-3" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+                  <Coins className="w-7 h-7 mb-3" style={{ color: '#B8961F' }} strokeWidth={1.5} />
                   <p className="text-sm mb-1" style={{ color: 'var(--pa-body)' }}>Rapport de Compatibilité Astrale</p>
                   <p className="text-xs mb-5" style={{ color: 'var(--pa-muted)' }}>
-                    Coût : <span style={{ color: '#C5A059' }}>10 crédits</span> &middot; Solde : <span style={{ color: '#C5A059' }}>{creditBalance} crédits</span>
+                    Coût : <span style={{ color: '#B8961F' }}>10 crédits</span> &middot; Solde : <span style={{ color: '#B8961F' }}>{creditBalance} crédits</span>
                   </p>
-                  <button onClick={() => setStep(1)} className="text-xs uppercase tracking-widest px-8 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }} data-testid="gate-start-btn">
+                  <button onClick={() => setStep(1)} className="text-xs uppercase tracking-widest px-8 py-2.5 rounded-full" style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', letterSpacing: '0.1em' }} data-testid="gate-start-btn">
                     Commencer l'analyse
                   </button>
                 </div>
@@ -350,7 +350,7 @@ const Compatibilite2 = () => {
                   className="w-40 h-40 object-contain rounded-xl opacity-80" data-testid="question-image" />
               </div>
               <h3 className="text-lg flex items-center gap-2 mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-                <MessageCircle className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} /> Votre Question
+                <MessageCircle className="w-5 h-5 text-[#B8961F]" strokeWidth={1.5} /> Votre Question
               </h3>
               <p className="text-[#B8B0C8]/60 text-sm mb-4">
                 Posez une question sp&eacute;cifique sur votre relation. Notre analyse astrologique y r&eacute;pondra dans votre rapport.
@@ -360,7 +360,7 @@ const Compatibilite2 = () => {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-3 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm resize-none"
+                className="w-full px-4 py-3 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#B8961F] text-sm resize-none"
                 placeholder="Ex : Avons-nous une r&#233;elle compatibilit&#233; sur le long terme ?"
                 data-testid="question-input"
               />
@@ -369,7 +369,7 @@ const Compatibilite2 = () => {
               <div className="mt-3 flex flex-wrap gap-2">
                 {questionExamples.map((q, i) => (
                   <button key={i} onClick={() => setQuestion(q)}
-                    className="text-xs px-3 py-1.5 rounded-full border border-[#C5A059]/20 text-[#C5A059]/70 hover:border-[#C5A059]/50 hover:text-[#C5A059] transition-all"
+                    className="text-xs px-3 py-1.5 rounded-full border border-[#B8961F]/20 text-[#B8961F]/70 hover:border-[#B8961F]/50 hover:text-[#B8961F] transition-all"
                     data-testid={`question-example-${i}`}>
                     {q}
                   </button>
@@ -396,17 +396,17 @@ const Compatibilite2 = () => {
               {/* Promo Code */}
               <div className="mt-4 text-center">
                 {!showPromo ? (
-                  <button onClick={() => setShowPromo(true)} className="text-[#C5A059]/60 hover:text-[#C5A059] text-sm underline transition-colors" data-testid="show-promo-btn">
+                  <button onClick={() => setShowPromo(true)} className="text-[#B8961F]/60 hover:text-[#B8961F] text-sm underline transition-colors" data-testid="show-promo-btn">
                     <Tag className="w-3 h-3 inline mr-1" /> J'ai un code de r&eacute;duction
                   </button>
                 ) : (
                   <div className="max-w-sm mx-auto space-y-2">
                     <div className="flex gap-2">
                       <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                        placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#C5A059]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+                        placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#B8961F]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#B8961F] text-sm"
                         data-testid="promo-input" />
                       <button onClick={handleApplyPromo} disabled={promoLoading}
-                        className="px-5 py-2 bg-[#C5A059]/20 border border-[#C5A059]/50 rounded-full text-[#C5A059] hover:bg-[#C5A059]/30 text-sm disabled:opacity-50"
+                        className="px-5 py-2 bg-[#B8961F]/20 border border-[#B8961F]/50 rounded-full text-[#B8961F] hover:bg-[#B8961F]/30 text-sm disabled:opacity-50"
                         data-testid="apply-promo-btn">
                         {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
                       </button>
@@ -436,7 +436,7 @@ const Compatibilite2 = () => {
                 <p className="text-[#B8B0C8]/60 mb-2">
                   Analyse de compatibilit&eacute; entre <span className="text-[#F0E6D3] font-medium">{person1.first_name}</span> et <span className="text-[#F0E6D3] font-medium">{person2.first_name}</span>
                 </p>
-                <p className="text-[#C5A059]/60 text-sm mb-6">Rapport d&eacute;taill&eacute; avec profils individuels, analyse des &eacute;l&eacute;ments, r&eacute;solution de conflits et cl&eacute;s de r&eacute;ussite</p>
+                <p className="text-[#B8961F]/60 text-sm mb-6">Rapport d&eacute;taill&eacute; avec profils individuels, analyse des &eacute;l&eacute;ments, r&eacute;solution de conflits et cl&eacute;s de r&eacute;ussite</p>
 
                 <a href={pdfUrl} download={`compatibilite_${person1.first_name}_${person2.first_name}.pdf`}
                   className="btn-mystical-filled rounded-full inline-flex items-center gap-2 px-8 py-3"
@@ -447,30 +447,30 @@ const Compatibilite2 = () => {
 
               {/* Upsells */}
               <div className="grid md:grid-cols-2 gap-4">
-                <button onClick={() => navigate('/formulaire')} className="card-mystical hover:border-[#C5A059]/50 transition-all group text-left" data-testid="upsell-manuscrit">
+                <button onClick={() => navigate('/formulaire')} className="card-mystical hover:border-[#B8961F]/50 transition-all group text-left" data-testid="upsell-manuscrit">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-[#F0E6D3] font-medium mb-1">Th&egrave;me Astral Pro</h3>
                       <p className="text-[#B8B0C8]/50 text-sm">68 pages d'analyse personnelle</p>
-                      <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">10 cr&eacute;dits</span>
+                      <span className="text-[#B8961F] font-bold text-sm mt-1 inline-block">10 cr&eacute;dits</span>
                     </div>
-                    <Star className="w-5 h-5 text-[#C5A059] group-hover:scale-110 transition-transform" />
+                    <Star className="w-5 h-5 text-[#B8961F] group-hover:scale-110 transition-transform" />
                   </div>
                 </button>
-                <button onClick={() => navigate('/tarologie')} className="card-mystical hover:border-[#C5A059]/50 transition-all group text-left" data-testid="upsell-tarologie">
+                <button onClick={() => navigate('/tarologie')} className="card-mystical hover:border-[#B8961F]/50 transition-all group text-left" data-testid="upsell-tarologie">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-[#F0E6D3] font-medium mb-1">Tarologie & M&eacute;diumni&eacute;</h3>
                       <p className="text-[#B8B0C8]/50 text-sm">Tirage 7 cartes + lecture m&eacute;diumnique</p>
-                      <span className="text-[#C5A059] font-bold text-sm mt-1 inline-block">10 cr&eacute;dits</span>
+                      <span className="text-[#B8961F] font-bold text-sm mt-1 inline-block">10 cr&eacute;dits</span>
                     </div>
-                    <Sparkles className="w-5 h-5 text-[#C5A059] group-hover:scale-110 transition-transform" />
+                    <Sparkles className="w-5 h-5 text-[#B8961F] group-hover:scale-110 transition-transform" />
                   </div>
                 </button>
               </div>
 
               <button onClick={() => { goToStep(1); setPdfUrl(null); setQuestion(''); }}
-                className="text-[#C5A059]/50 hover:text-[#C5A059] text-sm mx-auto block transition-colors" data-testid="new-test-btn">
+                className="text-[#B8961F]/50 hover:text-[#B8961F] text-sm mx-auto block transition-colors" data-testid="new-test-btn">
                 Tester une autre compatibilit&eacute;
               </button>
             </div>

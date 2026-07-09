@@ -44,7 +44,7 @@ const TransitsToday = () => {
   return (
     <section className="card-mystical mb-8" data-testid="transits-today">
       <div className="flex items-center gap-2 mb-4">
-        <Compass className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} />
+        <Compass className="w-5 h-5 text-[#B8961F]" strokeWidth={1.5} />
         <h2 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
           Transits du jour sur votre thème
         </h2>
@@ -54,7 +54,7 @@ const TransitsToday = () => {
       </p>
 
       {loading && (
-        <div className="flex items-center gap-2 text-[#C5A059]/70 text-sm" data-testid="transits-loading">
+        <div className="flex items-center gap-2 text-[#B8961F]/70 text-sm" data-testid="transits-loading">
           <Loader2 className="w-4 h-4 animate-spin" /> Calcul des transits...
         </div>
       )}
@@ -66,7 +66,7 @@ const TransitsToday = () => {
             <ul className="space-y-3 mb-5" data-testid="transits-aspects">
               {aspects.map((a, i) => (
                 <li key={i} className="flex items-start gap-3 text-sm">
-                  <Sparkles className="w-4 h-4 text-[#C5A059] mt-0.5" strokeWidth={1.5} />
+                  <Sparkles className="w-4 h-4 text-[#B8961F] mt-0.5" strokeWidth={1.5} />
                   <div>
                     <span className="text-[#F0E6D3]">
                       {(a.point_1 || a.planet_1 || a.first_planet || '')} {(a.aspect_name || a.aspect || a.type || '')} {(a.point_2 || a.planet_2 || a.second_planet || '')}
@@ -138,7 +138,7 @@ const RevolutionSolaire = () => {
         </button>
 
         <div className="mb-10">
-          <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-3 font-light">
+          <p className="text-[#B8961F] uppercase tracking-[0.3em] text-sm mb-3 font-light">
             Rituel Annuel · Swiss Ephemeris
           </p>
           <h1 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -151,7 +151,7 @@ const RevolutionSolaire = () => {
 
         {!result && (
           <div className="card-mystical text-center py-10" data-testid="revolution-gate">
-            <Sun className="w-10 h-10 text-[#C5A059] mx-auto mb-4" strokeWidth={1.3} />
+            <Sun className="w-10 h-10 text-[#B8961F] mx-auto mb-4" strokeWidth={1.3} />
             <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
               Découvrez votre prochaine année
             </h2>
@@ -174,7 +174,7 @@ const RevolutionSolaire = () => {
           <div className="space-y-6" data-testid="revolution-result">
             <div className="card-mystical">
               <div className="flex items-center gap-3 mb-3">
-                <Sun className="w-6 h-6 text-[#C5A059]" strokeWidth={1.4} />
+                <Sun className="w-6 h-6 text-[#B8961F]" strokeWidth={1.4} />
                 <h2 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                   Année {result.return_year} · {result.name}
                 </h2>
@@ -189,12 +189,12 @@ const RevolutionSolaire = () => {
             {Array.isArray(themes) && themes.length > 0 && (
               <div className="card-mystical" data-testid="revolution-themes">
                 <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-                  <Star className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} /> Thèmes majeurs
+                  <Star className="w-5 h-5 text-[#B8961F]" strokeWidth={1.5} /> Thèmes majeurs
                 </h3>
                 <ul className="space-y-2">
                   {themes.slice(0, 6).map((t, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
-                      <span className="text-[#C5A059] mt-1">·</span>
+                      <span className="text-[#B8961F] mt-1">·</span>
                       <span className="text-[#B8B0C8]">{typeof t === 'string' ? t : (t.title || t.name || JSON.stringify(t))}</span>
                     </li>
                   ))}
@@ -208,7 +208,7 @@ const RevolutionSolaire = () => {
                   if (typeof val !== 'string' && !val?.text && !val?.description) return null;
                   return (
                     <div key={key} className="card-mystical">
-                      <p className="text-[#C5A059] uppercase tracking-widest text-xs mb-2">{key.replace(/_/g, ' ')}</p>
+                      <p className="text-[#B8961F] uppercase tracking-widest text-xs mb-2">{key.replace(/_/g, ' ')}</p>
                       <p className="text-sm text-[#F0E6D3]/85 leading-relaxed">
                         {typeof val === 'string' ? val : (val.text || val.description)}
                       </p>

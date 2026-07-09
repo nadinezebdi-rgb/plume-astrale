@@ -12,14 +12,14 @@ const StarField = ({ count = 320 }) => {
       const size = isBright ? 3.8 : isMedium ? 2.6 : 1.6;
 
       let color;
-      if (isGold)        color = 'rgba(212,180,106,0.95)';
+      if (isGold)        color = 'rgba(212,175,55,0.95)';
       else if (isViolet) color = `rgba(${180 + Math.floor(Math.random()*40)},${120 + Math.floor(Math.random()*40)},255,0.9)`;
       else if (isBright) color = 'rgba(255,255,255,0.98)';
       else               color = `rgba(220,215,255,${0.55 + Math.random()*0.3})`;
 
       let boxShadow;
       if (isGold) {
-        boxShadow = `0 0 ${size * 5}px ${size * 2}px rgba(212,180,106,0.55), 0 0 ${size * 10}px ${size * 4}px rgba(212,180,106,0.2)`;
+        boxShadow = `0 0 ${size * 5}px ${size * 2}px rgba(212,175,55,0.55), 0 0 ${size * 10}px ${size * 4}px rgba(212,175,55,0.2)`;
       } else if (isViolet) {
         boxShadow = `0 0 ${size * 5}px ${size * 2}px rgba(160,100,255,0.6), 0 0 ${size * 10}px ${size * 4}px rgba(130,60,255,0.25)`;
       } else if (isBright) {

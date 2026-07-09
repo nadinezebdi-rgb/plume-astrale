@@ -38,7 +38,7 @@ const PremiumStickyCTA = () => {
         padding: '10px 16px calc(10px + env(safe-area-inset-bottom, 0px))',
         background: 'linear-gradient(180deg, rgba(11,9,24,0.55) 0%, rgba(11,9,24,0.95) 60%)',
         backdropFilter: 'blur(14px)',
-        borderTop: '1px solid rgba(212,180,106,0.18)',
+        borderTop: '1px solid rgba(212,175,55,0.18)',
         pointerEvents: 'none',
       }}
     >
@@ -47,11 +47,11 @@ const PremiumStickyCTA = () => {
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           padding: '16px 20px', borderRadius: 999,
-          background: 'linear-gradient(135deg, #D4B46A 0%, #C5A059 100%)',
+          background: 'linear-gradient(135deg, #D4AF37 0%, #B8961F 100%)',
           color: '#0C0918', fontWeight: 700,
           fontSize: 13, letterSpacing: '0.14em', textTransform: 'uppercase',
           textDecoration: 'none', minHeight: 56,
-          boxShadow: '0 6px 24px rgba(212,180,106,0.45)',
+          boxShadow: '0 6px 24px rgba(212,175,55,0.45)',
           pointerEvents: 'auto',
         }}
         data-testid="premium-sticky-cta-link"

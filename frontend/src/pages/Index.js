@@ -72,7 +72,7 @@ const CosmicCanvas = () => {
 const BrandStory = () => (
   <section className="relative py-16 md:py-20 px-4 z-10" data-testid="home-brand-story">
     <div className="max-w-3xl mx-auto text-center">
-      <p className="text-[10px] uppercase mb-5" style={{ color: '#D4B46A', letterSpacing: '0.35em', fontWeight: 400 }}>
+      <p className="text-[10px] uppercase mb-5" style={{ color: '#D4AF37', letterSpacing: '0.35em', fontWeight: 400 }}>
         ✦ Le Sanctuaire ✦
       </p>
       <h2 style={{
@@ -83,7 +83,7 @@ const BrandStory = () => (
         color: '#F4E8D2',
         marginBottom: 20,
       }}>
-        Le Sanctuaire <em style={{ color: '#D4B46A', fontStyle: 'italic', fontWeight: 300 }}>Plume Astrale</em>
+        Le Sanctuaire <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>Plume Astrale</em>
       </h2>
       <p className="text-base md:text-lg mx-auto max-w-2xl mb-5" style={{
         fontFamily: 'Cormorant Garamond, serif',
@@ -99,8 +99,8 @@ const BrandStory = () => (
         color: 'rgba(244,232,210,0.78)',
         lineHeight: 1.75,
       }}>
-        Plume Astrale s&apos;impose par la <em style={{ color: '#F4D98C', fontStyle: 'italic' }}>rigueur scientifique</em> de ses calculs d&apos;éphémérides et le sérieux de sa charte déontologique.
-        Conçu comme un véritable coach de vie spirituel et émotionnel, notre espace est <em style={{ color: '#F4D98C', fontStyle: 'italic' }}>universel</em> :
+        Plume Astrale s&apos;impose par la <em style={{ color: '#E8C766', fontStyle: 'italic' }}>rigueur scientifique</em> de ses calculs d&apos;éphémérides et le sérieux de sa charte déontologique.
+        Conçu comme un véritable coach de vie spirituel et émotionnel, notre espace est <em style={{ color: '#E8C766', fontStyle: 'italic' }}>universel</em> :
         il accompagne n&apos;importe qui, peu importe votre parcours, là où vous en êtes aujourd&apos;hui.
       </p>
       <p className="text-base mx-auto max-w-2xl" style={{
@@ -109,10 +109,10 @@ const BrandStory = () => (
         lineHeight: 1.75,
       }}>
         Ici, vous ne trouverez ni horoscope générique, ni prédiction fataliste. Vous entamez une
-        <em style={{ color: '#F4D98C', fontStyle: 'italic' }}> conversation intime et sur-mesure </em>
-        avec votre ciel de naissance, guidé par la voix et l&apos;expertise de <em style={{ color: '#D4B46A', fontStyle: 'italic' }}>Solena</em>.
+        <em style={{ color: '#E8C766', fontStyle: 'italic' }}> conversation intime et sur-mesure </em>
+        avec votre ciel de naissance, guidé par la voix et l&apos;expertise de <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>Solena</em>.
       </p>
-      <div className="mt-8 text-[10px] md:text-xs uppercase" style={{ color: '#D4B46A', letterSpacing: '0.28em', fontFamily: 'Cinzel, serif' }}>
+      <div className="mt-8 text-[10px] md:text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.28em', fontFamily: 'Cinzel, serif' }}>
         ✦ Rigueur des calculs&nbsp;·&nbsp;Charte de sérieux&nbsp;·&nbsp;Accompagnement universel ✦
       </div>
     </div>
@@ -147,9 +147,9 @@ const SolenaJourney = () => {
 
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5"
-            style={{ background: 'rgba(212,180,106,0.08)', border: '1px solid rgba(212,180,106,0.30)' }}>
-            <Sparkles style={{ width: 12, height: 12, color: '#D4B46A' }} strokeWidth={1.5} />
-            <span className="text-[10px] uppercase" style={{ color: '#D4B46A', letterSpacing: '0.3em', fontWeight: 400 }}>
+            style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.30)' }}>
+            <Sparkles style={{ width: 12, height: 12, color: '#D4AF37' }} strokeWidth={1.5} />
+            <span className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.3em', fontWeight: 400 }}>
               Rencontre ta guide
             </span>
           </div>
@@ -161,8 +161,8 @@ const SolenaJourney = () => {
             color: '#F4E8D2',
             marginBottom: 16,
           }}>
-            Je suis <em style={{ color: '#D4B46A', fontStyle: 'italic', fontWeight: 300 }}>Solena</em>,<br />
-            la voix de <em style={{ color: '#D4B46A', fontStyle: 'italic', fontWeight: 300 }}>Plume Astrale</em>.
+            Je suis <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>Solena</em>,<br />
+            la voix de <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>Plume Astrale</em>.
           </h2>
           <p className="max-w-2xl mx-auto text-base md:text-lg" style={{
             fontFamily: 'Cormorant Garamond, serif',
@@ -183,7 +183,7 @@ const SolenaJourney = () => {
             <div className="relative w-full max-w-sm">
               <div style={{
                 position: 'absolute', inset: '-12%',
-                background: 'radial-gradient(circle, rgba(212,180,106,0.35), transparent 65%)',
+                background: 'radial-gradient(circle, rgba(212,175,55,0.35), transparent 65%)',
                 filter: 'blur(35px)',
               }} />
               <div style={{
@@ -192,8 +192,8 @@ const SolenaJourney = () => {
                 width: '100%',
                 borderRadius: '32px',
                 overflow: 'hidden',
-                border: '2px solid rgba(212,180,106,0.55)',
-                boxShadow: '0 40px 100px rgba(212,180,106,0.25), 0 0 60px rgba(212,180,106,0.15)',
+                border: '2px solid rgba(212,175,55,0.55)',
+                boxShadow: '0 40px 100px rgba(212,175,55,0.25), 0 0 60px rgba(212,175,55,0.15)',
               }}>
                 <video
                   ref={videoRef}
@@ -210,7 +210,7 @@ const SolenaJourney = () => {
                   background: 'linear-gradient(180deg, transparent, rgba(0,0,0,0.75))',
                   pointerEvents: 'none',
                 }}>
-                  <div style={{ color: '#F4D98C', fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', fontWeight: 400 }}>
+                  <div style={{ color: '#E8C766', fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', fontWeight: 400 }}>
                     ✦ Solena
                   </div>
                   <div style={{ color: 'rgba(244,232,210,0.85)', fontSize: 12, marginTop: 4, fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>
@@ -223,13 +223,13 @@ const SolenaJourney = () => {
                   style={{
                     position: 'absolute', top: 14, right: 14,
                     width: 40, height: 40, borderRadius: '50%',
-                    background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(212,180,106,0.5)',
+                    background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(212,175,55,0.5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer', backdropFilter: 'blur(6px)',
                   }}
                   data-testid="home-solena-video-toggle"
                 >
-                  <Play style={{ width: 14, height: 14, color: '#F4D98C', marginLeft: 2 }} strokeWidth={2} />
+                  <Play style={{ width: 14, height: 14, color: '#E8C766', marginLeft: 2 }} strokeWidth={2} />
                 </button>
               </div>
             </div>
@@ -247,7 +247,7 @@ const SolenaJourney = () => {
         {/* Spécialités */}
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
-            <p className="text-[10px] uppercase" style={{ color: 'rgba(212,180,106,0.7)', letterSpacing: '0.3em' }}>
+            <p className="text-[10px] uppercase" style={{ color: 'rgba(212,175,55,0.7)', letterSpacing: '0.3em' }}>
               Ses six spécialités
             </p>
           </div>
@@ -257,11 +257,11 @@ const SolenaJourney = () => {
                 className="rounded-2xl p-4 flex items-start gap-3 transition-all hover:scale-[1.02]"
                 style={{
                   background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(212,180,106,0.18)',
+                  border: '1px solid rgba(212,175,55,0.18)',
                   backdropFilter: 'blur(10px)',
                 }}
                 data-testid={`home-solena-speciality-${i}`}>
-                <CheckCircle2 style={{ width: 18, height: 18, color: '#D4B46A', flexShrink: 0, marginTop: 2 }} strokeWidth={1.5} />
+                <CheckCircle2 style={{ width: 18, height: 18, color: '#D4AF37', flexShrink: 0, marginTop: 2 }} strokeWidth={1.5} />
                 <span className="text-sm" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'rgba(244,232,210,0.88)', lineHeight: 1.4 }}>
                   {s}
                 </span>
@@ -272,8 +272,8 @@ const SolenaJourney = () => {
             <Link to="/solena"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase transition-all hover:scale-[1.02]"
               style={{
-                border: '1px solid rgba(212,180,106,0.5)',
-                color: '#D4B46A',
+                border: '1px solid rgba(212,175,55,0.5)',
+                color: '#D4AF37',
                 letterSpacing: '0.2em',
                 fontWeight: 400,
                 background: 'transparent',
@@ -312,7 +312,7 @@ const REVIEWS = [
 const StarRow = ({ n = 5 }) => (
   <div className="flex gap-0.5">
     {Array.from({ length: n }).map((_, i) => (
-      <Star key={i} style={{ width: 12, height: 12, color: '#F4D98C', fill: '#F4D98C' }} strokeWidth={0} />
+      <Star key={i} style={{ width: 12, height: 12, color: '#E8C766', fill: '#E8C766' }} strokeWidth={0} />
     ))}
   </div>
 );
@@ -322,12 +322,12 @@ const ReviewCard = ({ review, active }) => (
     className="rounded-3xl p-6 md:p-8 h-full flex flex-col transition-all duration-500"
     style={{
       background: active
-        ? 'linear-gradient(160deg, rgba(212,180,106,0.08) 0%, rgba(20,15,40,0.85) 100%)'
+        ? 'linear-gradient(160deg, rgba(212,175,55,0.08) 0%, rgba(20,15,40,0.85) 100%)'
         : 'linear-gradient(160deg, rgba(255,255,255,0.02) 0%, rgba(20,15,40,0.5) 100%)',
-      border: active ? '1px solid rgba(212,180,106,0.55)' : '1px solid rgba(212,180,106,0.15)',
+      border: active ? '1px solid rgba(212,175,55,0.55)' : '1px solid rgba(212,175,55,0.15)',
       backdropFilter: 'blur(14px)',
       boxShadow: active
-        ? '0 20px 60px rgba(212,180,106,0.15), 0 0 40px rgba(212,180,106,0.10)'
+        ? '0 20px 60px rgba(212,175,55,0.15), 0 0 40px rgba(212,175,55,0.10)'
         : '0 10px 30px rgba(6,8,26,0.4)',
       opacity: active ? 1 : 0.65,
       transform: active ? 'scale(1)' : 'scale(0.94)',
@@ -337,11 +337,11 @@ const ReviewCard = ({ review, active }) => (
   >
     <div className="flex items-center justify-between mb-4">
       <StarRow n={review.stars} />
-      <span className="text-[9px] uppercase" style={{ color: 'rgba(212,180,106,0.5)', letterSpacing: '0.25em' }}>
+      <span className="text-[9px] uppercase" style={{ color: 'rgba(212,175,55,0.5)', letterSpacing: '0.25em' }}>
         Vérifié
       </span>
     </div>
-    <Quote style={{ width: 18, height: 18, color: '#D4B46A', opacity: 0.4, marginBottom: 8 }} strokeWidth={1.5} />
+    <Quote style={{ width: 18, height: 18, color: '#D4AF37', opacity: 0.4, marginBottom: 8 }} strokeWidth={1.5} />
     <p className="text-base md:text-lg flex-1 mb-6" style={{
       fontFamily: 'Cormorant Garamond, serif',
       color: 'rgba(244,232,210,0.90)',
@@ -350,17 +350,17 @@ const ReviewCard = ({ review, active }) => (
     }}>
       « {review.text} »
     </p>
-    <div className="pt-4" style={{ borderTop: '1px solid rgba(212,180,106,0.15)' }}>
+    <div className="pt-4" style={{ borderTop: '1px solid rgba(212,175,55,0.15)' }}>
       <div className="flex items-center justify-between">
         <div>
           <div className="text-sm" style={{ color: '#F4E8D2', fontFamily: 'Cormorant Garamond, serif', fontWeight: 500, letterSpacing: '0.05em' }}>
             {review.name}
           </div>
-          <div className="text-[10px] mt-0.5" style={{ color: 'rgba(212,180,106,0.65)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+          <div className="text-[10px] mt-0.5" style={{ color: 'rgba(212,175,55,0.65)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
             {review.sign} · {review.location}
           </div>
         </div>
-        <div className="text-[10px]" style={{ color: 'rgba(212,180,106,0.45)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+        <div className="text-[10px]" style={{ color: 'rgba(212,175,55,0.45)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
           {review.date}
         </div>
       </div>
@@ -386,9 +386,9 @@ const ClientReviews = () => {
 
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5"
-            style={{ background: 'rgba(212,180,106,0.08)', border: '1px solid rgba(212,180,106,0.30)' }}>
-            <Star style={{ width: 12, height: 12, color: '#F4D98C', fill: '#F4D98C' }} strokeWidth={0} />
-            <span className="text-[10px] uppercase" style={{ color: '#D4B46A', letterSpacing: '0.3em', fontWeight: 400 }}>
+            style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.30)' }}>
+            <Star style={{ width: 12, height: 12, color: '#E8C766', fill: '#E8C766' }} strokeWidth={0} />
+            <span className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.3em', fontWeight: 400 }}>
               4.9 / 5 · +2 000 âmes accompagnées
             </span>
           </div>
@@ -401,7 +401,7 @@ const ClientReviews = () => {
             marginBottom: 12,
           }}>
             Elles ont laissé leurs étoiles<br />
-            <em style={{ color: '#D4B46A', fontStyle: 'italic', fontWeight: 300 }}>parler.</em>
+            <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>parler.</em>
           </h2>
           <p className="max-w-xl mx-auto text-sm md:text-base" style={{
             fontFamily: 'Cormorant Garamond, serif',
@@ -427,7 +427,7 @@ const ClientReviews = () => {
           <button
             onClick={() => go(-1)}
             className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
-            style={{ border: '1px solid rgba(212,180,106,0.35)', color: '#D4B46A', background: 'transparent' }}
+            style={{ border: '1px solid rgba(212,175,55,0.35)', color: '#D4AF37', background: 'transparent' }}
             aria-label="Avis précédent"
             data-testid="reviews-prev-btn"
           >
@@ -443,8 +443,8 @@ const ClientReviews = () => {
                   width: i === index ? 24 : 8,
                   height: 8,
                   borderRadius: 999,
-                  background: i === index ? '#D4B46A' : 'rgba(212,180,106,0.25)',
-                  boxShadow: i === index ? '0 0 12px rgba(212,180,106,0.6)' : 'none',
+                  background: i === index ? '#D4AF37' : 'rgba(212,175,55,0.25)',
+                  boxShadow: i === index ? '0 0 12px rgba(212,175,55,0.6)' : 'none',
                   transition: 'all 0.3s',
                   border: 'none',
                   cursor: 'pointer',
@@ -458,7 +458,7 @@ const ClientReviews = () => {
           <button
             onClick={() => go(1)}
             className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
-            style={{ border: '1px solid rgba(212,180,106,0.35)', color: '#D4B46A', background: 'transparent' }}
+            style={{ border: '1px solid rgba(212,175,55,0.35)', color: '#D4AF37', background: 'transparent' }}
             aria-label="Avis suivant"
             data-testid="reviews-next-btn"
           >
@@ -475,9 +475,9 @@ const ClientReviews = () => {
             }}
             className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-xs uppercase transition-all hover:scale-[1.02]"
             style={{
-              background: 'linear-gradient(135deg, #D4B46A 0%, #F4D98C 50%, #D4B46A 100%)',
+              background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
               color: '#0C0918', letterSpacing: '0.2em', fontWeight: 700,
-              boxShadow: '0 12px 40px rgba(212,180,106,0.30)',
+              boxShadow: '0 12px 40px rgba(212,175,55,0.30)',
               border: 'none', cursor: 'pointer',
             }}
             data-testid="reviews-cta-btn">
@@ -509,13 +509,13 @@ const Index = () => {
       <ClientReviews />
 
       {/* Trust badge — technologie */}
-      <section className="py-12 px-4 relative z-10" style={{ borderTop: '1px solid rgba(212,180,106,0.08)' }} data-testid="trust-astrology-api">
+      <section className="py-12 px-4 relative z-10" style={{ borderTop: '1px solid rgba(212,175,55,0.08)' }} data-testid="trust-astrology-api">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-[10px] uppercase mb-4" style={{ color: 'rgba(244,232,210,0.5)', letterSpacing: '0.25em' }}>
             Technologie de confiance
           </p>
           <p className="text-base mb-3" style={{ color: 'rgba(244,232,210,0.85)', fontFamily: 'Cormorant Garamond, serif', fontSize: 22, lineHeight: 1.4 }}>
-            Calculs astrologiques propulsés par <span style={{ color: '#D4B46A', fontWeight: 500 }}>AstrologyAPI</span>
+            Calculs astrologiques propulsés par <span style={{ color: '#D4AF37', fontWeight: 500 }}>AstrologyAPI</span>
           </p>
           <p className="text-sm max-w-xl mx-auto" style={{ color: 'rgba(244,232,210,0.55)', lineHeight: 1.6 }}>
             Éphémérides précises, fuseaux horaires, maisons astrologiques et aspects planétaires —

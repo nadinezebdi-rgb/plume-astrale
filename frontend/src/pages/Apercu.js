@@ -325,7 +325,7 @@ const Apercu = () => {
           <div className="mt-6">
             {!showDiscountInput ? (
               <button onClick={() => setShowDiscountInput(true)}
-                className="text-xs transition-colors duration-300 hover:text-[#C5A059]" style={{ color: 'var(--pa-muted)' }}
+                className="text-xs transition-colors duration-300 hover:text-[#B8961F]" style={{ color: 'var(--pa-muted)' }}
                 data-testid="btn-show-discount">
                 <Tag className="w-3 h-3 inline mr-1" strokeWidth={1} /> J'ai un code de reduction
               </button>
