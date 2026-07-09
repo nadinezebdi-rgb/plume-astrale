@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
+import { asset } from '../lib/assets';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -159,7 +160,7 @@ const TirageTarot = () => {
   const renderCard = (carte, index, isRevealed) => {
     // URLs des images de tarot
     const tarotImages = {
-      default: "/images/tarot/tarot_cards_2.png"
+      default: asset('images/tarot/tarot_cards_2.png')
     };
     
     return (
@@ -306,7 +307,7 @@ const TirageTarot = () => {
       <div 
         className="fixed inset-0 opacity-5 pointer-events-none"
         style={{
-          backgroundImage: `url('/images/tarot/tarot_cards_2.png')`,
+          backgroundImage: `url('${asset('images/tarot/tarot_cards_2.png')}')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'

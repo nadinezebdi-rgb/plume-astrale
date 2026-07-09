@@ -14,6 +14,25 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — 🚀 Migration assets → Supabase Storage (déploiement stable) (2026-02)
+- ✅ **223 fichiers migrés** vers 2 buckets Supabase publics : `library` (193 fichiers) + `public-assets` (30 fichiers).
+- ✅ **~407 MB libérés** du repo :
+  - `/app/backend/assets/` : 383 MB → 8.4 MB (-98%)
+  - `/app/frontend/public/` : 34 MB → 1.2 MB (-97%)
+- ✅ Scripts de migration idempotents : `/app/backend/scripts/upload_assets_to_supabase.py` (library), `upload_public_assets.py` (public).
+- ✅ **Backend** :
+  - `/api/library/file/{cat}/{filename}` → **302 redirect** vers Supabase (fallback local pour compat).
+  - `tarot_service.py` → URLs Supabase directes (`_tarot_img_url()`).
+  - `TAROT_IMAGE_MAP` mis à jour vers `.png` (les `.jpg` thumbnails supprimés).
+- ✅ **Frontend** :
+  - Helper `src/lib/assets.js` — `asset(path)` construit l'URL Supabase depuis `REACT_APP_SUPABASE_URL`.
+  - Migrés : `CercleSales.js` (vidéo hero 14MB), `Compatibilite2.js` (4 images 5MB), `TirageTarot.js` (fond 11MB), `solena.js` (portrait 1.9MB).
+- ✅ Manifests locaux (small) conservés pour lookup O(1) : `manifest_supabase.json` (library), `public_supabase_manifest.json`.
+- ✅ Tests smoke : homepage 3D OK, cercle vidéo Supabase OK, tarot avec image Supabase OK, karma-destiny OK.
+- 🎯 **Déploiement Emergent maintenant safe** — build context Docker < 15 MB au lieu de 420 MB.
+
+
+
 ## Session Feb 2026 — 🧹 Purge complete de l'ancienne API Astrology (astrologyapi.com) (2026-02)
 - ✅ Suppression des 3 variables d'env legacy : `ASTROLOGY_API_KEY`, `ASTROLOGY_API_USER_ID`, `ASTROLOGY_API_ACCESS_TOKEN` de `/app/backend/.env` ET `/app/backend/config.py`.
 - ✅ Suppression des 3 fichiers services legacy : `services/astrology_api.py`, `services/astrology_api_premium.py`, `services/astrology_pdf_api.py`.

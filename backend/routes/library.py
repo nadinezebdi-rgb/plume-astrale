@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Header
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
 from services.library_generator import (
     LIBRARY_ROOT,
@@ -31,6 +31,32 @@ from services.supabase_client import get_admin_client
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/library", tags=["library"])
+
+
+# ─────────────────────────────────────────────────────────────
+# Manifest Supabase — genere par scripts/upload_assets_to_supabase.py
+# On charge une fois au boot pour redirect O(1)
+# ─────────────────────────────────────────────────────────────
+_SUPABASE_MANIFEST_PATH = LIBRARY_ROOT / "manifest_supabase.json"
+_SUPABASE_URLS: dict[str, str] = {}
+
+
+def _load_supabase_urls() -> dict[str, str]:
+    global _SUPABASE_URLS
+    if _SUPABASE_URLS:
+        return _SUPABASE_URLS
+    try:
+        import json as _json
+        if _SUPABASE_MANIFEST_PATH.exists():
+            data = _json.loads(_SUPABASE_MANIFEST_PATH.read_text(encoding="utf-8"))
+            _SUPABASE_URLS = data.get("files", {}) or {}
+            logger.info(f"[library] loaded {len(_SUPABASE_URLS)} Supabase URLs")
+    except Exception as e:
+        logger.warning(f"[library] failed to load Supabase manifest: {e}")
+    return _SUPABASE_URLS
+
+
+_load_supabase_urls()
 
 
 # ─────────────────────────────────────────────────────────────
@@ -142,13 +168,24 @@ async def regen_glyphs():
 
 @router.get("/file/{category}/{filename}")
 async def serve_file(category: str, filename: str):
-    """Serveur statique des assets (PNG + SVG). Public en lecture."""
+    """Sert les assets (PNG + SVG). 302-redirect vers Supabase Storage si dispo,
+    sinon fallback fichier local (pour compat legacy)."""
     if category not in {"signs", "planets", "houses", "tarot", "glyphs-svg", "style-refs"}:
         raise HTTPException(404, "Unknown category")
     # empeche path traversal
     fname = Path(filename).name
+    rel = f"{category}/{fname}"
+
+    # 1) Preferer Supabase Storage (CDN mondial, pas de charge sur le backend)
+    urls = _load_supabase_urls()
+    supabase_url = urls.get(rel)
+    if supabase_url:
+        return RedirectResponse(url=supabase_url, status_code=302)
+
+    # 2) Fallback local (fichier non encore migre)
     p = LIBRARY_ROOT / category / fname
-    if not p.exists() or not p.is_file():
-        raise HTTPException(404, "File not found")
-    media_type = "image/svg+xml" if fname.endswith(".svg") else "image/png"
-    return FileResponse(p, media_type=media_type)
+    if p.exists() and p.is_file():
+        media_type = "image/svg+xml" if fname.endswith(".svg") else "image/png"
+        return FileResponse(p, media_type=media_type)
+
+    raise HTTPException(404, "File not found")

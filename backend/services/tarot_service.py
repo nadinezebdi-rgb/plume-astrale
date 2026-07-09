@@ -2,8 +2,20 @@
 Service Tarot - Oui/Non et Tarologie Médiumnité
 """
 import hashlib
+import os
 import random
 from datetime import datetime, date
+
+_SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+_TAROT_CDN_BASE = f"{_SUPABASE_URL}/storage/v1/object/public/public-assets/tarot" if _SUPABASE_URL else "/api/assets/tarot"
+
+
+def _tarot_img_url(filename: str) -> str:
+    """URL publique CDN Supabase pour une carte de tarot."""
+    if not filename:
+        return ''
+    return f"{_TAROT_CDN_BASE}/{filename}"
+
 
 # 22 Arcanes Majeurs avec interprétations Oui/Non
 ARCANES_TAROT = [
@@ -198,14 +210,14 @@ THEMES_MEDIUMNITE = {
 
 # Mapping card number to image file
 TAROT_IMAGE_MAP = {
-    0: "00_mat.jpg", 1: "01_bateleur.jpg", 2: "02_papesse.jpg",
-    3: "03_imperatrice.jpg", 4: "04_empereur.jpg", 5: "05_pape.jpg",
-    6: "06_amoureux.jpg", 7: "07_chariot.jpg", 8: "08_justice.jpg",
-    9: "09_hermite.jpg", 10: "10_roue_fortune.jpg", 11: "11_force.jpg",
-    12: "12_pendu.jpg", 13: "13_arcane_sans_nom.jpg", 14: "14_temperance.jpg",
-    15: "15_diable.jpg", 16: "16_maison_dieu.jpg", 17: "17_etoile.jpg",
-    18: "18_lune.jpg", 19: "19_soleil.jpg", 20: "20_jugement.jpg",
-    21: "21_monde.jpg",
+    0: "00_mat.png", 1: "01_bateleur.png", 2: "02_papesse.png",
+    3: "03_imperatrice.png", 4: "04_empereur.png", 5: "05_pape.png",
+    6: "06_amoureux.png", 7: "07_chariot.png", 8: "08_justice.png",
+    9: "09_hermite.png", 10: "10_roue_fortune.png", 11: "11_force.png",
+    12: "12_pendu.png", 13: "13_arcane_sans_nom.png", 14: "14_temperance.png",
+    15: "15_diable.png", 16: "16_maison_dieu.png", 17: "17_etoile.png",
+    18: "18_lune.png", 19: "19_soleil.png", 20: "20_jugement.png",
+    21: "21_monde.png",
 }
 
 
@@ -232,7 +244,7 @@ def tirage_oui_non(question: str) -> dict:
             "numero": carte["numero"],
             "nom": carte["nom"],
             "energie": carte["energie"],
-            "image": f"/api/assets/tarot/{TAROT_IMAGE_MAP.get(carte['numero'], '')}",
+            "image": _tarot_img_url(TAROT_IMAGE_MAP.get(carte['numero'], '')),
         },
         "orientation": orientation,
         "reponse": reponse,
@@ -269,7 +281,7 @@ def tirage_mediumnite_complet(prenom: str, date_naissance: str) -> dict:
                 "numero": carte["numero"],
                 "nom": carte["nom"],
                 "energie": carte["energie"],
-                "image": f"/api/assets/tarot/{TAROT_IMAGE_MAP.get(carte['numero'], '')}",
+                "image": _tarot_img_url(TAROT_IMAGE_MAP.get(carte['numero'], '')),
             },
             "message": carte[orient],
         })
@@ -325,7 +337,7 @@ def tirage_en_croix(prenom: str, date_naissance: str) -> dict:
                 "numero": numero,
                 "nom": carte["nom"],
                 "energie": carte["energie"],
-                "image": f"/api/assets/tarot/{TAROT_IMAGE_MAP.get(numero, '')}",
+                "image": _tarot_img_url(TAROT_IMAGE_MAP.get(numero, '')),
                 "mots_cles": interp.get("mots_cles", carte["energie"]),
                 "description_arcane": interp.get("description", ""),
             },

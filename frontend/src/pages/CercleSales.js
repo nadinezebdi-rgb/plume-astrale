@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, Moon, Heart, Calendar, BookOpen, Shield, ArrowRight } from 'lucide-react';
+import { asset } from '../lib/assets';
 
 const CercleSales = () => (
   <div style={{ minHeight: '100vh', padding: '120px 20px 140px', maxWidth: 760, margin: '0 auto' }} data-testid="cercle-sales-page">
@@ -29,7 +30,7 @@ const CercleSales = () => (
       boxShadow: '0 14px 48px rgba(0,0,0,0.5), 0 0 60px rgba(212,180,106,0.08)',
     }} data-testid="cercle-hero-video">
       <video
-        src="/videos/cercle-hero.mp4"
+        src={asset('videos/cercle-hero.mp4')}
         autoPlay loop muted playsInline
         style={{ width: '100%', display: 'block', aspectRatio: '16/9', objectFit: 'cover', background: '#0C0918' }}
       />

@@ -4,6 +4,7 @@ import { Heart, Loader2, ArrowLeft, Sparkles, Download, Star, Users, Tag, Messag
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import axios from 'axios';
+import { asset } from '../lib/assets';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -240,7 +241,7 @@ const Compatibilite2 = () => {
             {/* Hero image */}
             <div className="flex justify-center mb-6">
               <div className="relative w-48 h-48 md:w-64 md:h-64">
-                <img src="/images/compatibilite/mains-constellations.png" alt="Connexion c&eacute;leste"
+                <img src={asset('images/compatibilite/mains-constellations.png')} alt="Connexion c&eacute;leste"
                   className="w-full h-full object-contain rounded-full opacity-90" data-testid="hero-image" />
                 <div className="absolute inset-0 rounded-full" style={{ background: 'radial-gradient(circle, transparent 60%, #0C0918 100%)' }} />
               </div>
@@ -345,7 +346,7 @@ const Compatibilite2 = () => {
             <div className="card-mystical animate-fade-in" data-testid="step-3-question">
               {/* Visual: couple passion */}
               <div className="flex justify-center mb-6">
-                <img src="/images/compatibilite/couple-passion.png" alt="Union des &acirc;mes"
+                <img src={asset('images/compatibilite/couple-passion.png')} alt="Union des &acirc;mes"
                   className="w-40 h-40 object-contain rounded-xl opacity-80" data-testid="question-image" />
               </div>
               <h3 className="text-lg flex items-center gap-2 mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -424,9 +425,9 @@ const Compatibilite2 = () => {
               <div className="card-mystical text-center p-10 glow-gold">
                 {/* Visual grid */}
                 <div className="flex justify-center gap-4 mb-6">
-                  <img src="/images/compatibilite/visage-dualite.png" alt="Dualit&eacute; cosmique"
+                  <img src={asset('images/compatibilite/visage-dualite.png')} alt="Dualit&eacute; cosmique"
                     className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-xl opacity-80" />
-                  <img src="/images/compatibilite/coeur-mosaique.png" alt="Union sacr&eacute;e"
+                  <img src={asset('images/compatibilite/coeur-mosaique.png')} alt="Union sacr&eacute;e"
                     className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-xl opacity-80" />
                 </div>
                 <h2 className="text-2xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
