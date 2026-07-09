@@ -23,6 +23,7 @@ const KabbaleSales = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [promoCode, setPromoCode] = useState('');
 
   const upd = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -36,6 +37,7 @@ const KabbaleSales = () => {
       const r = await axios.post(`${API}/api/kabbale/checkout`, {
         ...form,
         origin_url: window.location.origin,
+        promo_code: promoCode.trim() || undefined,
       });
       if (r.data?.url) window.location.href = r.data.url;
       else setError('Une erreur est survenue');
@@ -140,10 +142,25 @@ const KabbaleSales = () => {
                        data-testid="kabbale-city"
                        className="w-full mt-2 px-4 py-3 rounded-xl bg-plume-night-soft/60 border border-plume-gold/20 text-plume-lavender focus:outline-none focus:border-plume-gold/60" />
               </div>
+              <div>
+                <label className="text-xs uppercase" style={{ color: 'rgba(212,175,55,0.65)', letterSpacing: '0.2em' }}>
+                  Code promo (optionnel)
+                </label>
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={e => setPromoCode(e.target.value.toUpperCase())}
+                  placeholder="Ex: ADMIN26"
+                  data-testid="kabbale-promo"
+                  className="w-full mt-2 px-4 py-3 rounded-xl bg-plume-night-soft/40 border border-plume-gold/15 text-plume-lavender focus:outline-none focus:border-plume-gold/50"
+                  style={{ letterSpacing: '0.2em', fontFamily: 'Cinzel, serif', fontSize: 13 }}
+                />
+              </div>
               {error && <p className="text-sm text-center" style={{ color: '#F87171' }} data-testid="kabbale-error">{error}</p>}
               <button onClick={handleCheckout} disabled={loading} className="plume-btn-primary w-full justify-center" data-testid="kabbale-checkout-btn">
-                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirection vers Stripe...</> :
-                          <>Payer 39€ et recevoir mon Arbre <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></>}
+                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirection...</> :
+                          promoCode.trim() ? <>Déverrouiller mon Arbre <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></>
+                                           : <>Payer 39€ et recevoir mon Arbre <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></>}
               </button>
               <p className="text-[10px] text-center mt-3" style={{ color: 'rgba(227,215,255,0.4)', letterSpacing: '0.2em' }}>
                 🔒 PAIEMENT SÉCURISÉ STRIPE · TVA INCLUSE

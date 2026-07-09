@@ -98,8 +98,9 @@ export default function Hero3D() {
     <section
       className="relative w-full overflow-hidden"
       style={{
-        background: 'radial-gradient(ellipse at 50% 30%, #1a1147 0%, #0C0918 55%, #050308 100%)',
-        color: '#FFFFFF',
+        /* Nuit Douce — harmonisé avec le reste du site (fin de la cassure) */
+        background: 'radial-gradient(ellipse at 50% 25%, #1A2035 0%, #141A2C 45%, #111625 100%)',
+        color: '#F5EEE0',
         minHeight: '100vh',
       }}
       data-testid="hero-3d"

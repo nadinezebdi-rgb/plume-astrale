@@ -100,6 +100,7 @@ class CheckoutPayload(BaseModel):
     reveal_id: Optional[str] = None
     email: Optional[EmailStr] = None
     utm: Optional[dict] = None
+    promo_code: Optional[str] = None
 
 
 # ────────────────────────────────────────────────────────────────
@@ -572,6 +573,43 @@ async def rencontres_checkout(payload: CheckoutPayload, request: Request):
             "birth_date_iso": f"{bd.get('year','1990')}-{str(bd.get('month','1')).zfill(2)}-{str(bd.get('day','1')).zfill(2)}"
                               if isinstance(bd, dict) else "",
         }
+
+    # ─────────────────────────────────────────────────────────────
+    # BYPASS PROMO — si code valide (ex: ADMIN26), on saute Stripe
+    # ─────────────────────────────────────────────────────────────
+    from services.promo_bypass import try_consume_promo
+    from services.rencontres_ultime_service import handle_rencontres_ultime_webhook
+    import asyncio as _asyncio
+    if payload.promo_code and try_consume_promo(payload.promo_code):
+        fake_session_id = f"admin-rencontres-{uuid.uuid4().hex[:16]}"
+        try:
+            sb = get_admin_client()
+            sb.table("payment_transactions").insert({
+                "session_id": fake_session_id,
+                "user_email": payload.email or "",
+                "pack_id": "rencontres_ultime",
+                "amount": 0.0,
+                "currency": pack["currency"],
+                "credits": 0,
+                "status": "completed",
+                "payment_status": "paid",
+                "credits_granted": True,
+                "metadata": {
+                    "product": "rencontres_ultime",
+                    "kind": "rencontres_ultime",
+                    "reveal_id": payload.reveal_id,
+                    "pdf_ctx": pdf_ctx,
+                    "utm": utm,
+                    "admin_bypass": True,
+                    "promo_code": payload.promo_code.strip().upper(),
+                },
+            }).execute()
+        except Exception as e:
+            logger.warning(f"[rencontres] admin bypass tx insert failed: {e}")
+
+        _asyncio.create_task(handle_rencontres_ultime_webhook(fake_session_id))
+        success_bypass_url = f"{origin}/rencontres-astrales/succes?session_id={fake_session_id}"
+        return {"url": success_bypass_url, "session_id": fake_session_id, "admin_bypass": True}
 
     req = CheckoutSessionRequest(
         amount=float(pack["amount"]),
