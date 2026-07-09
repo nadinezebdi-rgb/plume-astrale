@@ -73,6 +73,7 @@ class Settings:
     SERVICE_COSTS = {
         # Produits d'appel — micro-conversion
         'tarot_oui_non': 5,          # demi-question — flash & indolore
+        'archetype': 15,             # Ton Archetype — micro-produit viral 4,99€ equivalent
         # Chat — l'unite de base
         'chat_astral': 10,           # 1 question = 10 cr
         'lecture_tarot': 10,

@@ -14,6 +14,27 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — ⚡ Solena GaryVee + 🎁 Ton Archetype 4,99€ (2026-02)
+
+### Solena — Calibration methode GaryVee (JAB / COACHING / HOOK)
+- ✅ **`/app/backend/services/plume_chat.py`** : nouveau `SYSTEM_PROMPT_SOLENA` remplace le prompt "mystique gothique" par un style "coach de vie moderne, mentore de l'ame".
+- ✅ 3 missions strictes a chaque reponse : le JAB (valeur brute concrete), le COACHING (action a poser aujourd'hui), le HOOK (question ouverte de retention).
+- ✅ Formatage : paragraphes courts 2-3 phrases, puces, un seul emoji subtil optionnel en ouverture, plus de titres "## L'ÉCHO DE VOS ÉTOILES" ni de "🪶 Une plume mystique...".
+- ✅ Barrieres ethiques renforcees (sante, decisions vitales).
+- ✅ Fallback tool-leak nettoye (message court + question).
+- ✅ Verifie live : reponse admin (Belier asc Lion) → structure JAB/COACHING/HOOK respectee, 1668 chars, se termine bien par une question percutante.
+
+### Nouveau produit : Ton Archetype 4,99€ (15 credits)
+- ✅ **Endpoint API** : `POST /api/archetype/generate` (via `services/astrology_io_service.py::archetypes()` sur `/analysis/archetypes`).
+- ✅ **Route** : `/app/backend/routes/archetype.py` (factory pattern pour imports circulaires).
+- ✅ **Tarif** : 15 credits (equivalent 4,99€ pack Initiation) — ajoute a `config.py SERVICE_COSTS`.
+- ✅ **Mapping FR** : dictionnaire `_ARCHETYPE_FR` traduit les 13 archetypes universels (Sage, Souverain, Artiste, Amoureux, Heros, Magicien, Farceur, Gardien, Ame Pure, Voyageur, Rebelle, Ame Solidaire, Orphelin).
+- ✅ **Front page** : `/app/frontend/src/pages/Archetype.js` — sous `/archetype` — affiche profile_name en gros italic dore, 3 archetypes dominants en glass cards avec scores, shadow en card lavande, CTAs "Parler a Solena" (primary) + "Regenerer 15cr" (secondary).
+- ✅ **Historique** : `GET /api/archetype/history` — sauvegarde les 5 dernieres lectures (best effort, table archetype_readings a creer manuellement en Supabase Studio).
+- ✅ **Testes live** : admin (Taureau) → Souverain-Guerrier · Polymathic · Le Souverain (13.6), Le Heros (12.7), Le Gardien (9.1) · Shadow L'Artiste · 15 credits deduits proprement.
+
+
+
 ## Session Feb 2026 — 🎨 Design System v2 Phase 2 complete + Phase 3 + Aura Connectee (2026-02)
 
 ### Phase 2 - Index.js uniformise

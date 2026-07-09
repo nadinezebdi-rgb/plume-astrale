@@ -38,6 +38,7 @@ from routes.synastrie import router as synastrie_router
 from routes.library import router as library_router
 from routes.rencontres import router as rencontres_router
 from routes.analytics import router as analytics_router
+from routes.archetype import make_router as make_archetype_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -60,6 +61,18 @@ api_router.include_router(synastrie_router)
 api_router.include_router(library_router)
 api_router.include_router(rencontres_router)
 api_router.include_router(analytics_router)
+
+
+# Helper interne pour deduire credits d'un service donne (utilise par les routes)
+async def _use_service_credits(user_id: str, service_id: str) -> dict:
+    cost = settings.SERVICE_COSTS.get(service_id)
+    if not cost:
+        raise HTTPException(status_code=400, detail=f'Service inconnu: {service_id}')
+    new_balance = await wallet_service.deduct_credits(user_id, cost, f'Utilisation : {service_id}')
+    return {'success': True, 'credit_balance': new_balance, 'cost': cost}
+
+
+api_router.include_router(make_archetype_router(get_current_user, _use_service_credits))
 
 
 # ════════════════════════════════════════════

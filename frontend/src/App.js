@@ -18,6 +18,7 @@ import TirageTarot from "./pages/TirageTarot";
 import TarotOuiNon from "./pages/TarotOuiNon";
 import Tarologie from "./pages/Tarologie";
 import Numerologie from "./pages/Numerologie";
+import Archetype from "./pages/Archetype";
 import KarmaDestin from "./pages/KarmaDestin";
 import Horoscope from "./pages/Horoscope";
 import Compatibilite from "./pages/Compatibilite";
@@ -94,6 +95,7 @@ function App() {
                 <Route path="/paiement/succes" element={<PaiementSucces />} />
                 <Route path="/resultats" element={<Resultats />} />
                 <Route path="/numerologie" element={<Numerologie />} />
+                <Route path="/archetype" element={<Archetype />} />
                 <Route path="/karma-destin" element={<KarmaDestin />} />
                 <Route path="/tarot" element={<Tarot />} />
                 <Route path="/tirage-tarot" element={<TirageTarot />} />

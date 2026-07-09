@@ -492,6 +492,51 @@ async def love_languages(birth_data: Dict[str, Any], name: str = 'Voyageur', lan
     })
 
 
+# ════════ ARCHETYPES JUNGIENS ════════
+
+async def archetypes(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Profil archetypal (dominant + shadow + spectrum) base sur le theme natal.
+    Renvoie profile_name, balance_type, dominant_archetypes[], shadow_archetype, spectrum{}."""
+    return await _call('/analysis/archetypes', {
+        'subject': make_subject(name, birth_data),
+        'language': language,
+    })
+
+
+# ════════ KABBALE — Arbre de Vie ════════
+
+async def tree_of_life_chart(
+    birth_data: Dict[str, Any],
+    system: str = 'modern_halevi',
+    tradition: str = 'universal',
+    language: str = 'fr',
+) -> Optional[Dict]:
+    """Mapping du theme natal sur les 10 Sephiroth (+ Da'at) et les 22 chemins.
+    Retourne : sephiroth (10 dict), paths (22 dict), pillar_balance, dominant_sephirah,
+    spiritual_focus, synthesis. Systemes disponibles : modern_halevi | classical |
+    golden_dawn | golden_dawn_extended. Tradition : universal | psychological | classical."""
+    return await _call('/kabbalah/tree-of-life-chart', {
+        'birth_data': birth_data,
+        'system': system,
+        'tradition': tradition,
+        'include_daat': True,
+        'include_paths': True,
+        'include_interpretations': True,
+        'language': language,
+    })
+
+
+# ════════ KARMA — analyse karmique complete ════════
+
+async def karmic_analysis(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Analyse karmique complete (80+ sections FR natif) : Noeuds Lunaires, Saturne,
+    Chiron, Pluto, planetes retrogrades, karma des generations."""
+    return await _call('/analysis/karmic', {
+        'subject': make_subject(name, birth_data),
+        'language': language,
+    })
+
+
 # ════════ AI CHAT ASTROLOGIQUE (avec contexte natal embedded) ════════
 
 async def astro_chat(
