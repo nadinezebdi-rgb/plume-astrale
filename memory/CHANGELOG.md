@@ -2,6 +2,27 @@
 
 ## 2026-02-09
 
+### Session 4 — Audit Supabase + Codes Promo/Réduction
+
+**Audit schéma DB**
+- ✅ Toutes les colonnes attendues par le code sont couvertes par les migrations existantes (profiles, wallets, credit_transactions, payment_transactions, promo_codes, promo_code_redemptions, subscriptions, energy_cache, oracle_leads, cercle_*, synastrie_purchases, plume_chat_messages, journal_entries, streaks, is_admin).
+- 🚨 **Table manquante détectée** : `archetype_readings` (utilisée par `/api/archetype/*`). Migration créée : `/app/supabase/archetype_readings_migration.sql`.
+
+**Système de codes de réduction (déjà partiellement en place)**
+- ✅ `POST /api/discount/validate` — validation publique (retourne 100% pour tout code valide)
+- ✅ `POST /api/access/free` — grant free access (crédits + premium via `redeem_promo`)
+- ✅ Support natif sur : `/paiement`, `/livre`, `/apercu`, `/premium`, `/compatibilite`, `/compatibilite2`
+- 🆕 **Ajout support sur `/kabbale` et `/rencontres-astrales`** :
+  - Backend : nouveau helper `services/promo_bypass.py::try_consume_promo()` — valide + incrémente `used_count`.
+  - `kabbale.py::checkout` et `rencontres.py::checkout` acceptent désormais un champ `promo_code`. Si valide, saute Stripe entièrement, crée une tx `completed`, et déclenche directement `handle_*_webhook()` (PDF + email).
+  - Frontend : input `Code promo (optionnel)` ajouté sur `KabbaleSales.js` et `RencontresAstrales.js`.
+
+**Codes créés dans la migration `/app/supabase/discount_codes_migration.sql`**
+- `ADMIN26` — 999999 crédits + 3650 jours Premium, `max_uses=1` (pour toi uniquement)
+- `BIENVENUE10` / `LUNE20` / `SOLENA30` — codes crédits pour clientes
+- `DECOUVERTE7` / `CADEAU30` / `FIDELITE90` — codes Premium 7j / 30j / 90j
+- `KABBALE100` / `RENCONTRES100` / `ARCHETYPE100` — bonus produits high-ticket
+
 ### Session 3 — Refonte Homepage P1 complète ("app-native" vision)
 - **Portrait Solena unique** : remplacement de toutes les vidéos par le portrait mystique CDN (`n7vv5dtw_IMG01_portrait_femme_mystique_corrigee_2.png`). Homepage, `/solena`, `/rencontres-astrales`. Aucune balise `<video>` restante sur ces pages.
 - **`solena.js`** : suppression des URLs vidéos actives, `portrait` pointe vers le CDN Emergent.

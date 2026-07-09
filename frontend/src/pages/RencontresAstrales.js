@@ -36,6 +36,7 @@ export default function RencontresAstrales() {
   const [consent, setConsent] = useState(true);
   const [windows, setWindows] = useState(null);
   const [ctaLoading, setCtaLoading] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
 
   const submitForm = async (e) => {
     e.preventDefault();
@@ -96,6 +97,7 @@ export default function RencontresAstrales() {
         reveal_id: reveal?.reveal_id,
         email,
         utm,
+        promo_code: promoCode.trim() || undefined,
       });
       if (r.data?.url) window.location.href = r.data.url;
       else { setCtaLoading(false); setError('Paiement indisponible pour l\'instant.'); }
@@ -464,6 +466,25 @@ export default function RencontresAstrales() {
                   </div>
                 )}
 
+                <div className="mb-4 max-w-sm mx-auto">
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={e => setPromoCode(e.target.value.toUpperCase())}
+                    placeholder="Code promo (optionnel)"
+                    data-testid="rencontres-promo"
+                    className="w-full px-4 py-3 rounded-full text-center text-sm"
+                    style={{
+                      background: 'rgba(17,22,37,0.60)',
+                      border: '1px solid rgba(212,175,55,0.20)',
+                      color: '#F5EEE0',
+                      letterSpacing: '0.2em',
+                      fontFamily: 'Cinzel, serif',
+                      textTransform: 'uppercase',
+                    }}
+                  />
+                </div>
+
                 <button onClick={buyPremium} disabled={ctaLoading}
                   className="w-full md:w-auto md:min-w-[320px] py-4 px-8 rounded-full text-sm uppercase transition-all hover:scale-[1.02] disabled:opacity-50 flex items-center justify-center gap-2 mx-auto"
                   style={{
@@ -474,7 +495,7 @@ export default function RencontresAstrales() {
                     boxShadow: '0 20px 60px rgba(184,150,31,0.35)',
                   }} data-testid="buy-premium-btn">
                   {ctaLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>
-                    <Heart className="w-4 h-4" /> Révéler mon guide complet
+                    <Heart className="w-4 h-4" /> {promoCode.trim() ? 'Déverrouiller mon guide' : 'Révéler mon guide complet'}
                   </>}
                 </button>
 

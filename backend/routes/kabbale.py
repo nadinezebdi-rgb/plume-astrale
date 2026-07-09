@@ -2,17 +2,21 @@
 Route /api/kabbale : landing produit Kabbale 39€ (one-shot Stripe).
 
 Endpoints :
-  POST /api/kabbale/checkout   → cree une session Stripe (39 EUR)
+  POST /api/kabbale/checkout   → cree une session Stripe (39 EUR) ou bypass via promo_code
   GET  /api/kabbale/status     → polling live pour la page succes (PDF pret ?)
 """
 from __future__ import annotations
+import asyncio
 import logging
+import uuid
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from config import get_settings
 from services.supabase_client import get_admin_client
+from services.promo_bypass import try_consume_promo
+from services.kabbale_service import handle_kabbale_webhook
 from emergentintegrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
@@ -31,6 +35,7 @@ class KabbaleCheckoutPayload(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     origin_url: str
+    promo_code: Optional[str] = None
 
 
 @router.post('/checkout')
@@ -78,6 +83,40 @@ async def kabbale_checkout(payload: KabbaleCheckoutPayload, request: Request):
         'birth_date_iso': payload.birth_date,
         'birth_data': birth_data,
     }
+
+    # ─────────────────────────────────────────────────────────────
+    # BYPASS PROMO — si code valide (ex: ADMIN26), on saute Stripe
+    # ─────────────────────────────────────────────────────────────
+    if payload.promo_code and try_consume_promo(payload.promo_code):
+        fake_session_id = f'admin-kabbale-{uuid.uuid4().hex[:16]}'
+        try:
+            sb = get_admin_client()
+            sb.table('payment_transactions').insert({
+                'session_id': fake_session_id,
+                'user_email': payload.email,
+                'pack_id': 'kabbale_arbre_de_vie',
+                'amount': 0.0,
+                'currency': pack['currency'],
+                'credits': 0,
+                'status': 'completed',
+                'payment_status': 'paid',
+                'credits_granted': True,
+                'metadata': {
+                    'product': 'kabbale_arbre_de_vie',
+                    'kind': 'kabbale_arbre_de_vie',
+                    'pdf_ctx': pdf_ctx,
+                    'admin_bypass': True,
+                    'promo_code': payload.promo_code.strip().upper(),
+                },
+            }).execute()
+        except Exception as e:
+            logger.warning(f'[kabbale] admin bypass tx insert failed: {e}')
+
+        # Lancer la génération PDF + email en tâche de fond
+        asyncio.create_task(handle_kabbale_webhook(fake_session_id))
+
+        success_url = f'{origin}/kabbale/succes?session_id={fake_session_id}'
+        return {'url': success_url, 'session_id': fake_session_id, 'admin_bypass': True}
 
     req = CheckoutSessionRequest(
         amount=float(pack['amount']),
