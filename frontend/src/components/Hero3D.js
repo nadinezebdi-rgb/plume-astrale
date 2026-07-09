@@ -86,15 +86,15 @@ export default function Hero3D() {
         className="absolute top-0 left-0 right-0 z-40 flex items-center justify-center px-4"
         style={{
           height: 40,
-          background: 'linear-gradient(90deg, transparent 0%, rgba(212,180,106,0.15) 20%, rgba(244,217,140,0.22) 50%, rgba(212,180,106,0.15) 80%, transparent 100%)',
-          borderBottom: '1px solid rgba(212,180,106,0.35)',
-          boxShadow: '0 0 24px rgba(212,180,106,0.3)',
+          background: 'linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.15) 20%, rgba(232,199,102,0.22) 50%, rgba(212,175,55,0.15) 80%, transparent 100%)',
+          borderBottom: '1px solid rgba(212,175,55,0.35)',
+          boxShadow: '0 0 24px rgba(212,175,55,0.3)',
         }}
         data-testid="launch-banner"
       >
         <span
           className="text-[10px] md:text-[11px] uppercase text-center"
-          style={{ color: '#F4D98C', letterSpacing: '0.28em', fontWeight: 300, fontFamily: 'Cinzel, Playfair Display, serif' }}
+          style={{ color: '#E8C766', letterSpacing: '0.28em', fontWeight: 300, fontFamily: 'Cinzel, Playfair Display, serif' }}
         >
           OFFRE DE LANCEMENT&nbsp;·&nbsp;20 CRÉDITS OFFERTS À L&apos;INSCRIPTION POUR DÉCOUVRIR VOTRE AVENIR AMOUREUX
         </span>
@@ -316,7 +316,7 @@ export default function Hero3D() {
         .moon3d-vibrate { animation: pa-moon-vibrate 0.45s ease-in-out; }
 
         .liquid-cta {
-          background: linear-gradient(135deg, #E2BF65 0%, #F4D98C 50%, #B8860B 100%);
+          background: linear-gradient(135deg, #E2BF65 0%, #E8C766 50%, #B8860B 100%);
           box-shadow: 0 0 30px rgba(226,191,101,0.4), inset 0 1px 0 rgba(255,255,255,0.35);
           transition: transform 0.3s ease;
         }
@@ -326,7 +326,7 @@ export default function Hero3D() {
           top: 50%; left: 50%;
           width: 0; height: 0;
           border-radius: 50%;
-          background: radial-gradient(circle, #FFF3D6 0%, #F4D98C 40%, transparent 100%);
+          background: radial-gradient(circle, #FFF3D6 0%, #E8C766 40%, transparent 100%);
           transform: translate(-50%, -50%);
           transition: width 0.6s cubic-bezier(0.16,1,0.3,1), height 0.6s cubic-bezier(0.16,1,0.3,1);
           z-index: 1;

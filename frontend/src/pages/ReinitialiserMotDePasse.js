@@ -55,10 +55,10 @@ export default function ReinitialiserMotDePasse() {
     <div className="min-h-screen flex items-center justify-center px-4 pt-20 pb-12" data-testid="reset-password-page">
       <SEO path="/reinitialiser-mot-de-passe" />
       <div className="w-full max-w-md">
-        <div className="rounded-2xl p-8 md:p-10" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(197,160,89,0.15)', backdropFilter: 'blur(16px)' }}>
+        <div className="rounded-2xl p-8 md:p-10" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,150,31,0.15)', backdropFilter: 'blur(16px)' }}>
 
           <div className="flex items-center justify-center gap-3 mb-3">
-            <Lock className="w-5 h-5" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+            <Lock className="w-5 h-5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
             <h1 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
               Nouveau mot de passe
             </h1>
@@ -81,14 +81,14 @@ export default function ReinitialiserMotDePasse() {
             </div>
           ) : !sessionReady ? (
             <div className="text-center py-6" data-testid="reset-no-session">
-              <Loader2 className="w-5 h-5 mx-auto animate-spin mb-3" style={{ color: '#C5A059' }} />
+              <Loader2 className="w-5 h-5 mx-auto animate-spin mb-3" style={{ color: '#B8961F' }} />
               <p className="text-sm mb-4" style={{ color: 'var(--pa-muted)' }}>
                 Vérification du lien...
               </p>
               <p className="text-xs mb-4" style={{ color: 'var(--pa-muted)' }}>
                 Si vous arrivez ici sans avoir cliqué sur le lien de l'e-mail, demandez un nouveau lien.
               </p>
-              <Link to="/mot-de-passe-oublie" className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059' }}>
+              <Link to="/mot-de-passe-oublie" className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F' }}>
                 Demander un nouveau lien
               </Link>
             </div>
@@ -109,9 +109,9 @@ export default function ReinitialiserMotDePasse() {
                   minLength={8}
                   autoFocus
                   className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors pr-10"
-                  style={{ borderColor: 'rgba(197,160,89,0.3)', color: 'var(--pa-body)' }}
-                  onFocus={e => e.target.style.borderColor = '#C5A059'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(197,160,89,0.3)'}
+                  style={{ borderColor: 'rgba(184,150,31,0.3)', color: 'var(--pa-body)' }}
+                  onFocus={e => e.target.style.borderColor = '#B8961F'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(184,150,31,0.3)'}
                   data-testid="reset-password-input"
                 />
                 <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-0 bottom-2" style={{ color: 'var(--pa-muted)' }}>
@@ -127,9 +127,9 @@ export default function ReinitialiserMotDePasse() {
                   required
                   minLength={8}
                   className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
-                  style={{ borderColor: 'rgba(197,160,89,0.3)', color: 'var(--pa-body)' }}
-                  onFocus={e => e.target.style.borderColor = '#C5A059'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(197,160,89,0.3)'}
+                  style={{ borderColor: 'rgba(184,150,31,0.3)', color: 'var(--pa-body)' }}
+                  onFocus={e => e.target.style.borderColor = '#B8961F'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(184,150,31,0.3)'}
                   data-testid="reset-confirm-input"
                 />
               </div>
@@ -140,7 +140,7 @@ export default function ReinitialiserMotDePasse() {
                 type="submit"
                 disabled={loading}
                 className="w-full py-3 mt-2 text-xs uppercase tracking-widest rounded-full transition-all duration-500 flex items-center justify-center gap-2 disabled:opacity-60"
-                style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', background: 'transparent', letterSpacing: '0.12em' }}
+                style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', background: 'transparent', letterSpacing: '0.12em' }}
                 data-testid="reset-submit-button"
               >
                 {loading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Mise à jour...</> : 'Mettre à jour'}

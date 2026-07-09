@@ -11,7 +11,7 @@ const COUNTRIES = [
 ];
 
 const inputStyle = {
-  borderColor: 'rgba(197,160,89,0.3)',
+  borderColor: 'rgba(184,150,31,0.3)',
   color: 'var(--pa-body)',
 };
 
@@ -92,13 +92,13 @@ export default function Register() {
           className="rounded-2xl p-8 md:p-10"
           style={{
             background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(197,160,89,0.15)',
+            border: '1px solid rgba(184,150,31,0.15)',
             backdropFilter: 'blur(16px)',
           }}
         >
           {/* Header */}
           <div className="flex items-center justify-center gap-3 mb-8">
-            <UserPlus className="w-5 h-5" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+            <UserPlus className="w-5 h-5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
             <h1
               className="text-2xl"
               style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}
@@ -114,9 +114,9 @@ export default function Register() {
                 <div
                   className="w-6 h-6 rounded-full flex items-center justify-center text-xs transition-all duration-300"
                   style={{
-                    background: step >= s ? '#C5A059' : 'rgba(197,160,89,0.1)',
+                    background: step >= s ? '#B8961F' : 'rgba(184,150,31,0.1)',
                     color: step >= s ? '#0C0918' : 'var(--pa-muted)',
-                    border: '1px solid rgba(197,160,89,0.3)',
+                    border: '1px solid rgba(184,150,31,0.3)',
                     fontWeight: 600,
                   }}
                 >
@@ -125,7 +125,7 @@ export default function Register() {
                 {s < 2 && (
                   <div
                     className="w-8 h-px"
-                    style={{ background: step > s ? '#C5A059' : 'rgba(197,160,89,0.2)' }}
+                    style={{ background: step > s ? '#B8961F' : 'rgba(184,150,31,0.2)' }}
                   />
                 )}
               </div>
@@ -164,8 +164,8 @@ export default function Register() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
                   style={inputStyle}
-                  onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
-                  onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}
+                  onFocus={(e) => (e.target.style.borderColor = '#B8961F')}
+                  onBlur={(e) => (e.target.style.borderColor = 'rgba(184,150,31,0.3)')}
                   data-testid="register-email-input"
                 />
               </div>
@@ -184,8 +184,8 @@ export default function Register() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors pr-10"
                   style={inputStyle}
-                  onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
-                  onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}
+                  onFocus={(e) => (e.target.style.borderColor = '#B8961F')}
+                  onBlur={(e) => (e.target.style.borderColor = 'rgba(184,150,31,0.3)')}
                   data-testid="register-password-input"
                 />
                 <button
@@ -202,8 +202,8 @@ export default function Register() {
                 onClick={goStep2}
                 className="w-full py-3 mt-2 text-xs uppercase tracking-widest rounded-full transition-all duration-500"
                 style={{
-                  border: '1px solid rgba(197,160,89,0.5)',
-                  color: '#C5A059',
+                  border: '1px solid rgba(184,150,31,0.5)',
+                  color: '#B8961F',
                   background: 'transparent',
                   letterSpacing: '0.12em',
                 }}
@@ -227,23 +227,23 @@ export default function Register() {
                 <div className="grid grid-cols-3 gap-2">
                   <select value={birthDay} onChange={(e) => setBirthDay(e.target.value)}
                     className="bg-transparent border-b py-2 text-base outline-none" style={inputStyle}
-                    onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
-                    onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}>
+                    onFocus={(e) => (e.target.style.borderColor = '#B8961F')}
+                    onBlur={(e) => (e.target.style.borderColor = 'rgba(184,150,31,0.3)')}>
                     <option value="">Jour</option>
                     {Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={String(d)} style={{background:'#0C0918'}}>{d}</option>)}
                   </select>
                   <select value={birthMonth} onChange={(e) => setBirthMonth(e.target.value)}
                     className="bg-transparent border-b py-2 text-base outline-none" style={inputStyle}
-                    onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
-                    onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}>
+                    onFocus={(e) => (e.target.style.borderColor = '#B8961F')}
+                    onBlur={(e) => (e.target.style.borderColor = 'rgba(184,150,31,0.3)')}>
                     <option value="">Mois</option>
                     {['Janv','Févr','Mars','Avr','Mai','Juin','Juil','Août','Sept','Oct','Nov','Déc'].map((m,i)=>
                       <option key={i+1} value={String(i+1)} style={{background:'#0C0918'}}>{m}</option>)}
                   </select>
                   <select value={birthYear} onChange={(e) => setBirthYear(e.target.value)}
                     className="bg-transparent border-b py-2 text-base outline-none" style={inputStyle}
-                    onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
-                    onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}>
+                    onFocus={(e) => (e.target.style.borderColor = '#B8961F')}
+                    onBlur={(e) => (e.target.style.borderColor = 'rgba(184,150,31,0.3)')}>
                     <option value="">Année</option>
                     {Array.from({length:100},(_,i)=>new Date().getFullYear()-i).map(y=>
                       <option key={y} value={String(y)} style={{background:'#0C0918'}}>{y}</option>)}
@@ -268,8 +268,8 @@ export default function Register() {
                     onChange={(e) => setBirthHour(e.target.value)}
                     className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
                     style={inputStyle}
-                    onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
-                    onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}
+                    onFocus={(e) => (e.target.style.borderColor = '#B8961F')}
+                    onBlur={(e) => (e.target.style.borderColor = 'rgba(184,150,31,0.3)')}
                     data-testid="register-hour-input"
                   />
                 </div>
@@ -289,8 +289,8 @@ export default function Register() {
                     onChange={(e) => setBirthMinute(e.target.value)}
                     className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
                     style={inputStyle}
-                    onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
-                    onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}
+                    onFocus={(e) => (e.target.style.borderColor = '#B8961F')}
+                    onBlur={(e) => (e.target.style.borderColor = 'rgba(184,150,31,0.3)')}
                     data-testid="register-minute-input"
                   />
                 </div>
@@ -310,8 +310,8 @@ export default function Register() {
                   onChange={(e) => setBirthPlace(e.target.value)}
                   className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
                   style={inputStyle}
-                  onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
-                  onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}
+                  onFocus={(e) => (e.target.style.borderColor = '#B8961F')}
+                  onBlur={(e) => (e.target.style.borderColor = 'rgba(184,150,31,0.3)')}
                   data-testid="register-birthplace-input"
                 />
               </div>
@@ -328,8 +328,8 @@ export default function Register() {
                   onChange={(e) => setBirthCountry(e.target.value)}
                   className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
                   style={{ ...inputStyle, background: 'transparent' }}
-                  onFocus={(e) => (e.target.style.borderColor = '#C5A059')}
-                  onBlur={(e) => (e.target.style.borderColor = 'rgba(197,160,89,0.3)')}
+                  onFocus={(e) => (e.target.style.borderColor = '#B8961F')}
+                  onBlur={(e) => (e.target.style.borderColor = 'rgba(184,150,31,0.3)')}
                   data-testid="register-country-select"
                 >
                   {COUNTRIES.map((c) => (
@@ -346,7 +346,7 @@ export default function Register() {
                   onClick={() => setStep(1)}
                   className="flex items-center gap-1 py-3 px-5 text-xs uppercase tracking-widest rounded-full transition-all duration-300"
                   style={{
-                    border: '1px solid rgba(197,160,89,0.2)',
+                    border: '1px solid rgba(184,150,31,0.2)',
                     color: 'var(--pa-muted)',
                     background: 'transparent',
                   }}
@@ -360,8 +360,8 @@ export default function Register() {
                   disabled={loading}
                   className="flex-1 flex items-center justify-center gap-2 py-3 text-xs uppercase tracking-widest rounded-full transition-all duration-500"
                   style={{
-                    border: '1px solid rgba(197,160,89,0.5)',
-                    color: loading ? 'var(--pa-muted)' : '#C5A059',
+                    border: '1px solid rgba(184,150,31,0.5)',
+                    color: loading ? 'var(--pa-muted)' : '#B8961F',
                     background: 'transparent',
                     letterSpacing: '0.12em',
                   }}
@@ -384,7 +384,7 @@ export default function Register() {
             <Link
               to="/connexion"
               className="transition-colors hover:opacity-80"
-              style={{ color: '#C5A059' }}
+              style={{ color: '#B8961F' }}
               data-testid="register-login-link"
             >
               Se connecter

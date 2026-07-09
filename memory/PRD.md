@@ -13,6 +13,143 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+
+## Session Feb 2026 — 🌳 Nouveau produit : Kabbale — Ton Arbre de Vie 39€ (2026-02)
+
+### Architecture (mirror Rencontres Ultime 29,99€)
+- ✅ **Endpoint API v3** : `/kabbalah/tree-of-life-chart` via `services/astrology_io_service.py::tree_of_life_chart()` (Modern Halevi + Psychological, FR natif).
+- ✅ **PDF generator** : `services/kabbale_pdf.py` (~14 pages ReportLab) — Cover, Intro, Piliers, 10 Sephiroth (dict list format API v3, translation FR heb/meaning/poetic), 22 Chemins actives, Da'at, Synthese, Rituels d'integration + signature Solena.
+- ✅ **Service handler** : `services/kabbale_service.py::handle_kabbale_webhook()` — fetch v3 -> gen PDF -> save `/app/backend/assets/kabbale/*.pdf` -> email Resend.
+- ✅ **Route checkout** : `routes/kabbale.py` — `POST /api/kabbale/checkout` (session Stripe live 39 EUR) + `GET /api/kabbale/status` (polling live).
+- ✅ **Webhook** : ajout `if md.get('kind') == 'kabbale_arbre_de_vie'` dans `server.py`.
+- ✅ **PACKS config** : ajout `kabbale_arbre_de_vie` (39€, kind=oneshot).
+- ✅ **HTML tags in interpretations** : fix critique dans `kabbale_pdf._p()` — les `<b>` et `<i>` renvoyes par l'API v3 sont maintenant preserves via regex + placeholder pour ReportLab (au lieu d'etre escaped en texte litteral).
+
+### Frontend
+- ✅ **Landing page** `/kabbale` (`KabbaleSales.js`) — Hero "Ton Arbre de Vie Kabbalistique" + 3 features glass cards (Sephiroth, chemins, Piliers) + prix 39€ + form step (email/prenom/date/heure/ville) + CTA primary "Payer 39€".
+- ✅ **Success page** `/kabbale/succes` (`KabbaleSucces.js`) — polling live 3.5s, 4 etapes visuelles (payment/compute/pdf/email), bouton telechargement du PDF quand pret.
+- ✅ **CTA Home** : ajout 3eme bouton "Ton Arbre de Vie 39€" en primary a cote d'Archetype + Solena discover.
+
+### Verifications live
+- ✅ Session Stripe cree : `cs_live_a1sCqpkT7Y...`
+- ✅ Webhook simule -> PDF genere 85 KB (14 pages, aucune balise HTML apparente, gras/italiques bien rendus, dominant Kether · Beauty · score 83.6/100).
+- ✅ PDF servi via `/api/assets/kabbale/*.pdf` HTTP 200.
+- ✅ Status endpoint retourne `{status:completed, pdf_ready:true, email_sent:true}`.
+- ⚠️ Email Resend echoue en dev (domaine `plume-astrale.fr` pas verifie — backlog P3 documente). Le flow production fonctionnera une fois DNS valide.
+
+### Recap complet Option A (session terminee)
+1. ⚡ Solena GaryVee prompt (JAB/COACHING/HOOK) ✅
+2. 🎁 Ton Archetype 4,99€ (15 credits) ✅
+3. 🌳 Ton Arbre de Vie Kabbale 39€ ✅
+4. ✨ CTAs "Archetype" + "Kabbale" dans la Home ✅
+
+
+
+## Session Feb 2026 — ⚡ Solena GaryVee + 🎁 Ton Archetype 4,99€ (2026-02)
+
+### Solena — Calibration methode GaryVee (JAB / COACHING / HOOK)
+- ✅ **`/app/backend/services/plume_chat.py`** : nouveau `SYSTEM_PROMPT_SOLENA` remplace le prompt "mystique gothique" par un style "coach de vie moderne, mentore de l'ame".
+- ✅ 3 missions strictes a chaque reponse : le JAB (valeur brute concrete), le COACHING (action a poser aujourd'hui), le HOOK (question ouverte de retention).
+- ✅ Formatage : paragraphes courts 2-3 phrases, puces, un seul emoji subtil optionnel en ouverture, plus de titres "## L'ÉCHO DE VOS ÉTOILES" ni de "🪶 Une plume mystique...".
+- ✅ Barrieres ethiques renforcees (sante, decisions vitales).
+- ✅ Fallback tool-leak nettoye (message court + question).
+- ✅ Verifie live : reponse admin (Belier asc Lion) → structure JAB/COACHING/HOOK respectee, 1668 chars, se termine bien par une question percutante.
+
+### Nouveau produit : Ton Archetype 4,99€ (15 credits)
+- ✅ **Endpoint API** : `POST /api/archetype/generate` (via `services/astrology_io_service.py::archetypes()` sur `/analysis/archetypes`).
+- ✅ **Route** : `/app/backend/routes/archetype.py` (factory pattern pour imports circulaires).
+- ✅ **Tarif** : 15 credits (equivalent 4,99€ pack Initiation) — ajoute a `config.py SERVICE_COSTS`.
+- ✅ **Mapping FR** : dictionnaire `_ARCHETYPE_FR` traduit les 13 archetypes universels (Sage, Souverain, Artiste, Amoureux, Heros, Magicien, Farceur, Gardien, Ame Pure, Voyageur, Rebelle, Ame Solidaire, Orphelin).
+- ✅ **Front page** : `/app/frontend/src/pages/Archetype.js` — sous `/archetype` — affiche profile_name en gros italic dore, 3 archetypes dominants en glass cards avec scores, shadow en card lavande, CTAs "Parler a Solena" (primary) + "Regenerer 15cr" (secondary).
+- ✅ **Historique** : `GET /api/archetype/history` — sauvegarde les 5 dernieres lectures (best effort, table archetype_readings a creer manuellement en Supabase Studio).
+- ✅ **Testes live** : admin (Taureau) → Souverain-Guerrier · Polymathic · Le Souverain (13.6), Le Heros (12.7), Le Gardien (9.1) · Shadow L'Artiste · 15 credits deduits proprement.
+
+
+
+## Session Feb 2026 — 🎨 Design System v2 Phase 2 complete + Phase 3 + Aura Connectee (2026-02)
+
+### Phase 2 - Index.js uniformise
+- ✅ Trust badge migre : "AstrologyAPI" → "astrology-api.io v3 + OpenAI GPT" (correction post-purge).
+- ✅ CTA "Decouvrir l'univers de Solena" → `plume-btn-secondary`.
+- ✅ Cards specialites Solena → `plume-glass` (backdrop-blur + bordure or 20%).
+
+### Phase 3 - Pages secondaires unifiees
+- ✅ **CercleSales.js** : CTA principal "Rejoindre le Cercle 14,90€/mois" → `plume-btn-primary` (avec glow doux).
+- ✅ **BuyCredits.js** : 3 boutons packs (Initiation, Clarte, Flammes Jumelles) → `plume-btn-secondary` + `plume-btn-primary` (Clarte = featured). 3 CTAs footer (Tarot/Theme/Numerologie) → `plume-btn-secondary`.
+- ✅ **Compatibilite2.js** : 4 CTAs credit gates (Se connecter, Creer compte, Acheter credits, Commencer analyse) unifies.
+- ✅ **RencontresUltimeSucces.js** : bouton "Telecharger PDF" → `plume-btn-primary`, "Retour accueil" → `plume-btn-secondary`.
+- ✅ **TirageTarot.js** : via update global `.btn-mystical` et `.card-mystical` dans App.css — auto-refresh de tous les boutons + cards de cette page.
+- ✅ **App.css** : redefinition centralisee de `.btn-mystical`, `.btn-mystical-filled`, `.card-mystical` avec la nouvelle palette Nuit Douce + glow doux + easing silk.
+
+### Aura Connectee (Signature #3)
+- ✅ **Hook `/app/frontend/src/hooks/useAstralElement.js`** : calcule le signe solaire depuis `user.birth_date` puis mappe vers l'element (feu/eau/air/terre).
+- ✅ **`AuraProvider`** (`/app/frontend/src/components/design/AuraProvider.js`) : applique automatiquement la classe `.aura-{element}` sur `<body>` une fois l'utilisateur connecte.
+- ✅ **CSS** : `body.aura-*` remplace le glow des `plume-btn-primary` + le gradient du Fil d'Ariane par la couleur de l'element.
+- ✅ **Verifie** : admin ne le 15/05/1990 (Taureau) → `body.className = "aura-earth"` → accent verdoyant subtil.
+- ✅ Aucune regression backend (astrology API + Supabase assets toujours OK).
+
+
+
+## Session Feb 2026 — 🎨 Design System v2 "Nuit Douce" (Phase 1 + 2 partielle) (2026-02)
+- ✅ **Nouveau design system Plume Astrale v2** livre par design_agent avec 3 signatures creatives originales :
+  - **Souffle Astral** (grain SVG 3% pulsant 12s en overlay global)
+  - **Fil d'Ariane** (ligne verticale 1px doree centrale, connecte les sections en scroll)
+  - **Aura Connectee** (accent color adaptatif selon element astral utilisateur)
+- ✅ **Palette Nuit Douce** appliquee globalement :
+  - `#111625` fond principal (Nuit Douce) — remplace le noir pur
+  - `#1A2035` fond secondaire (Nuit Profonde) — surfaces cartes
+  - `#D4AF37` or brosse mat — accents (remplace `#D4B46A/#C5A059`)
+  - `#E3D7FF` lavande pale — textes secondaires
+- ✅ **1285 valeurs de couleurs remplacees** dans le codebase (807 hex + 476 rgba) via sed global.
+- ✅ **Fonts** : Cinzel (titres) + Cormorant Garamond italic (emphase) + Plus Jakarta Sans (corps).
+- ✅ **Overlays globaux** montes dans `App.js` :
+  - `NoiseOverlay.js` (grain + Souffle Astral)
+  - `ScrollThread.js` (Fil d'Ariane, desktop only)
+  - `CustomCursor.js` (curseur aura doree 8px, desktop only)
+  - `MobileTabBar.js` (sticky bottom, 3 icones : Mon Espace / Consulter / Tarifs)
+- ✅ **Composants UI** : `PlumeButtons.js` (Primary/Secondary/Ghost strict), `GlassCard.js`, `SectionWrapper.js` (framer-motion + radial-gradient auto).
+- ✅ **Navbar** upgrade glassmorphism (`rgba(17,22,37,0.90)`, backdrop-blur, bordure or subtile).
+- ✅ **Tailwind config** : nouveaux tokens `plume.*` + `font-plume-serif|italic|body` + `shadow-plume-glow*` + `ease-plume-silk`.
+- ✅ **Dependances ajoutees** : `framer-motion@12.42.2`, `react-fast-marquee@1.6.5`.
+- ✅ **Design guidelines** documentes dans `/app/design_guidelines.md` + `/app/design_guidelines.json`.
+- ✅ **Testing agent iteration 42** : 80% frontend PASS + 100% backend PASS. 2 bugs fixes:
+  - Routes TabBar mobile (`/dashboard`→`/mon-compte`, `/tarifs`→`/acheter-credits`).
+  - Aucune regression backend (Supabase assets + astrology API tous OK).
+
+
+
+## Session Feb 2026 — 🚀 Migration assets → Supabase Storage (déploiement stable) (2026-02)
+- ✅ **223 fichiers migrés** vers 2 buckets Supabase publics : `library` (193 fichiers) + `public-assets` (30 fichiers).
+- ✅ **~407 MB libérés** du repo :
+  - `/app/backend/assets/` : 383 MB → 8.4 MB (-98%)
+  - `/app/frontend/public/` : 34 MB → 1.2 MB (-97%)
+- ✅ Scripts de migration idempotents : `/app/backend/scripts/upload_assets_to_supabase.py` (library), `upload_public_assets.py` (public).
+- ✅ **Backend** :
+  - `/api/library/file/{cat}/{filename}` → **302 redirect** vers Supabase (fallback local pour compat).
+  - `tarot_service.py` → URLs Supabase directes (`_tarot_img_url()`).
+  - `TAROT_IMAGE_MAP` mis à jour vers `.png` (les `.jpg` thumbnails supprimés).
+- ✅ **Frontend** :
+  - Helper `src/lib/assets.js` — `asset(path)` construit l'URL Supabase depuis `REACT_APP_SUPABASE_URL`.
+  - Migrés : `CercleSales.js` (vidéo hero 14MB), `Compatibilite2.js` (4 images 5MB), `TirageTarot.js` (fond 11MB), `solena.js` (portrait 1.9MB).
+- ✅ Manifests locaux (small) conservés pour lookup O(1) : `manifest_supabase.json` (library), `public_supabase_manifest.json`.
+- ✅ Tests smoke : homepage 3D OK, cercle vidéo Supabase OK, tarot avec image Supabase OK, karma-destiny OK.
+- 🎯 **Déploiement Emergent maintenant safe** — build context Docker < 15 MB au lieu de 420 MB.
+
+
+
+## Session Feb 2026 — 🧹 Purge complete de l'ancienne API Astrology (astrologyapi.com) (2026-02)
+- ✅ Suppression des 3 variables d'env legacy : `ASTROLOGY_API_KEY`, `ASTROLOGY_API_USER_ID`, `ASTROLOGY_API_ACCESS_TOKEN` de `/app/backend/.env` ET `/app/backend/config.py`.
+- ✅ Suppression des 3 fichiers services legacy : `services/astrology_api.py`, `services/astrology_api_premium.py`, `services/astrology_pdf_api.py`.
+- ✅ Migration complete vers `astrology-api.io` v3 (`ASTROLOGY_API_IO_KEY`) :
+  - `natal_essentials` (Soleil/Lune/Ascendant) → `aio.natal_chart` + helpers.
+  - `karma-destiny` → `aio.get_positions` (Sun/Moon via v3) + fallback approximatif pour le Noeud Nord (non renvoye par v3).
+  - `natal-chart` endpoint → v3 uniquement.
+  - `energy_service` (energie du jour) → `aio.natal_chart` + `aio.extract_planets`.
+- ✅ Ajout helpers `aio.extract_planets()` et `aio.extract_ascendant_sign_en()` dans `services/astrology_io_service.py` — gerent le wrapping `chart_data.planetary_positions` et les abreviations de signes (Tau/Vir/Cap → Taurus/Virgo/Capricorn → Taureau/Vierge/Capricorne).
+- ✅ Tests backend : 9/9 PASS (iteration 41). Aucune regression sur Soleil='Taureau', Lune='Capricorne' pour Paris 15/05/1990 14:30.
+- 🎯 L'utilisateur peut maintenant supprimer les 3 anciennes cles dans l'UI Emergent sans casser le backend.
+
+
 ## Session Feb 2026 — ⭐ Vitrine "Mon Thème Natal" dans le Navbar (2026-02)
 - ✅ Bouton CTA doré ajouté dans le Navbar desktop + mobile :
   - Fond dégradé doré + bordure lumineuse

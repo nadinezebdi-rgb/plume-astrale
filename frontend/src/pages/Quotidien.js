@@ -114,7 +114,7 @@ const Quotidien = () => {
 
         {/* Header */}
         <div className="mb-12 flex items-start gap-6">
-          <img src="https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/vg88c54m_IMG4.png" alt="" className="w-20 md:w-28 flex-shrink-0 rounded-full opacity-80" style={{ filter: 'drop-shadow(0 0 20px rgba(197,160,89,0.15))' }} />
+          <img src="https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/vg88c54m_IMG4.png" alt="" className="w-20 md:w-28 flex-shrink-0 rounded-full opacity-80" style={{ filter: 'drop-shadow(0 0 20px rgba(184,150,31,0.15))' }} />
           <div>
           <p className="section-label">Guidance quotidienne</p>
           <h1
@@ -295,7 +295,7 @@ const Quotidien = () => {
               <div className="space-y-8">
                 {[
                   { key: 'amour', label: 'Amour', color: '#C97878' },
-                  { key: 'carriere', label: 'Carriere', color: '#C5A059' },
+                  { key: 'carriere', label: 'Carriere', color: '#B8961F' },
                   { key: 'sante', label: 'Sante', color: '#7CB88A' },
                   { key: 'spirituel', label: 'Spirituel', color: '#A78BFA' },
                 ].map(({ key, label, color }) => (
@@ -318,7 +318,7 @@ const Quotidien = () => {
                 <button onClick={() => navigate('/tarot-oui-non')} className="block w-full text-left group" data-testid="cta-tarot-oui-non">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm mb-0.5 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
+                      <p className="text-sm mb-0.5 transition-colors duration-300 group-hover:text-[#B8961F]" style={{ color: 'var(--pa-heading)' }}>
                         Tarot Oui/Non
                       </p>
                       <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Posez votre question aux arcanes</p>
@@ -329,7 +329,7 @@ const Quotidien = () => {
                 <button onClick={() => navigate('/tarologie')} className="block w-full text-left group" data-testid="cta-tarologie">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm mb-0.5 transition-colors duration-300 group-hover:text-[#C5A059]" style={{ color: 'var(--pa-heading)' }}>
+                      <p className="text-sm mb-0.5 transition-colors duration-300 group-hover:text-[#B8961F]" style={{ color: 'var(--pa-heading)' }}>
                         Tarologie & M&eacute;diumni&eacute; — 35 EUR
                       </p>
                       <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Lecture compl&egrave;te et PDF personnalis&eacute;</p>

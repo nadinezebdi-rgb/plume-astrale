@@ -20,7 +20,7 @@ const PlanetCard = ({ id, data }) => {
         padding: '18px 16px',
         borderRadius: 14,
         background: 'linear-gradient(180deg, rgba(8,10,28,0.85) 0%, rgba(20,17,48,0.75) 100%)',
-        border: '1px solid rgba(212,180,106,0.40)',
+        border: '1px solid rgba(212,175,55,0.40)',
         backdropFilter: 'blur(10px)',
         position: 'relative',
         overflow: 'hidden',
@@ -30,16 +30,16 @@ const PlanetCard = ({ id, data }) => {
       {/* Glyphe en grand en arrière-plan */}
       <div style={{
         position: 'absolute', right: -8, bottom: -22,
-        fontSize: 92, color: 'rgba(212,180,106,0.07)', lineHeight: 1, fontFamily: 'serif', pointerEvents: 'none',
+        fontSize: 92, color: 'rgba(212,175,55,0.07)', lineHeight: 1, fontFamily: 'serif', pointerEvents: 'none',
       }}>
         {data.symbol}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, position: 'relative' }}>
-        {Icon && <Icon style={{ width: 14, height: 14, color: '#D4B46A' }} strokeWidth={1.5} />}
+        {Icon && <Icon style={{ width: 14, height: 14, color: '#D4AF37' }} strokeWidth={1.5} />}
         <span style={{
           fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase',
-          color: 'rgba(212,180,106,0.7)', fontFamily: 'Cinzel, serif',
+          color: 'rgba(212,175,55,0.7)', fontFamily: 'Cinzel, serif',
         }}>
           {data.label}
         </span>
@@ -60,7 +60,7 @@ const PlanetCard = ({ id, data }) => {
       </div>
 
       <div style={{
-        fontSize: 10.5, color: 'rgba(212,180,106,0.85)', position: 'relative',
+        fontSize: 10.5, color: 'rgba(212,175,55,0.85)', position: 'relative',
         letterSpacing: '0.04em',
       }}>
         {data.theme}
@@ -103,7 +103,7 @@ export default function NatalEssentials({ token, prenom: prenomProp }) {
           padding: '18px 20px 20px',
           borderRadius: 16,
           background: 'linear-gradient(180deg, rgba(6,8,26,0.85) 0%, rgba(11,14,40,0.75) 100%)',
-          border: '1px solid rgba(212,180,106,0.35)',
+          border: '1px solid rgba(212,175,55,0.35)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
           backdropFilter: 'blur(20px)',
         }}
@@ -113,11 +113,11 @@ export default function NatalEssentials({ token, prenom: prenomProp }) {
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: collapsed ? 0 : 14, gap: 12, flexWrap: 'wrap' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-            <Sparkles style={{ width: 14, height: 14, color: '#D4B46A', flexShrink: 0 }} strokeWidth={1.5} />
+            <Sparkles style={{ width: 14, height: 14, color: '#D4AF37', flexShrink: 0 }} strokeWidth={1.5} />
             <div style={{ minWidth: 0 }}>
               <div style={{
                 fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase',
-                color: 'rgba(212,180,106,0.7)', fontFamily: 'Cinzel, serif', marginBottom: 2,
+                color: 'rgba(212,175,55,0.7)', fontFamily: 'Cinzel, serif', marginBottom: 2,
               }}>
                 Comment Plume t'écoute
               </div>
@@ -131,8 +131,8 @@ export default function NatalEssentials({ token, prenom: prenomProp }) {
           <button
             onClick={() => setCollapsed(!collapsed)}
             style={{
-              background: 'transparent', border: '1px solid rgba(212,180,106,0.3)',
-              color: 'rgba(212,180,106,0.8)', fontSize: 10, letterSpacing: '0.1em',
+              background: 'transparent', border: '1px solid rgba(212,175,55,0.3)',
+              color: 'rgba(212,175,55,0.8)', fontSize: 10, letterSpacing: '0.1em',
               padding: '6px 14px', borderRadius: 999, cursor: 'pointer',
               textTransform: 'uppercase', fontFamily: 'Cinzel, serif',
             }}
@@ -155,10 +155,10 @@ export default function NatalEssentials({ token, prenom: prenomProp }) {
             <div style={{
               fontSize: 11, color: 'rgba(255,255,255,0.45)', lineHeight: 1.5,
               fontStyle: 'italic', textAlign: 'center', paddingTop: 6,
-              borderTop: '1px solid rgba(212,180,106,0.08)',
+              borderTop: '1px solid rgba(212,175,55,0.08)',
             }}>
               Chaque réponse de Plume est calibrée sur ces 3 axes — pas un assistant générique, mais une voix qui connaît
-              déjà <span style={{ color: '#D4B46A' }}>ton ciel de naissance</span>.
+              déjà <span style={{ color: '#D4AF37' }}>ton ciel de naissance</span>.
             </div>
           </>
         )}

@@ -37,6 +37,70 @@ _SIGN_EN_TO_FR = {
     'Sagittarius': 'Sagittaire', 'Capricorn': 'Capricorne', 'Aquarius': 'Verseau', 'Pisces': 'Poissons',
 }
 
+# v3 renvoie les signes en abrege : "Tau", "Vir", "Cap", etc.
+_SIGN_ABBR_TO_EN = {
+    'Ari': 'Aries', 'Tau': 'Taurus', 'Gem': 'Gemini', 'Can': 'Cancer',
+    'Leo': 'Leo', 'Vir': 'Virgo', 'Lib': 'Libra', 'Sco': 'Scorpio',
+    'Sag': 'Sagittarius', 'Cap': 'Capricorn', 'Aqu': 'Aquarius', 'Pis': 'Pisces',
+}
+
+
+def expand_sign(sign: str) -> str:
+    """v3 renvoie 'Tau'/'Vir' -> renvoie 'Taurus'/'Virgo' (nom EN complet)."""
+    if not sign:
+        return ''
+    s = str(sign).strip().title()
+    return _SIGN_ABBR_TO_EN.get(s, s)
+
+
+def extract_planets(data: Optional[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    """A partir d'une reponse v3 (/charts/natal, /data/positions, etc.), extrait un dict
+    normalise {name.lower(): {name, sign (EN complet), house, degree}}.
+
+    Gere les 2 formats :
+    - /data/positions -> {"positions": [...]}
+    - /charts/natal   -> {"chart_data": {"planetary_positions": [...], "house_cusps": [...]}}
+    """
+    if not data or not isinstance(data, dict):
+        return {}
+    pts: List[Dict[str, Any]] = []
+    chart = data.get('chart_data') or {}
+    if isinstance(chart, dict):
+        pts = chart.get('planetary_positions') or chart.get('positions') or chart.get('points') or []
+    if not pts:
+        pts = data.get('positions') or data.get('planetary_positions') or data.get('points') or data.get('planets') or []
+    if not isinstance(pts, list):
+        return {}
+    out: Dict[str, Dict[str, Any]] = {}
+    for p in pts:
+        if not isinstance(p, dict):
+            continue
+        nm = (p.get('name') or p.get('point') or '').strip()
+        if not nm:
+            continue
+        sign = expand_sign(p.get('sign') or (p.get('position') or {}).get('sign') or '')
+        house = p.get('house') if p.get('house') is not None else (p.get('position') or {}).get('house')
+        out[nm.lower()] = {'name': nm, 'sign': sign, 'house': house, 'degree': p.get('degree')}
+    return out
+
+
+def extract_ascendant_sign_en(data: Optional[Dict[str, Any]]) -> Optional[str]:
+    """Renvoie le signe de l'ascendant (EN complet, ex: 'Virgo') depuis une reponse v3.
+    Cherche dans planetary_positions.Ascendant puis dans house_cusps[house=1]."""
+    if not data or not isinstance(data, dict):
+        return None
+    planets = extract_planets(data)
+    asc = planets.get('ascendant') or planets.get('asc')
+    if asc and asc.get('sign'):
+        return asc['sign']
+    chart = data.get('chart_data') or data
+    houses = chart.get('house_cusps') or chart.get('houses') or []
+    if isinstance(houses, list):
+        for h in houses:
+            if isinstance(h, dict) and (h.get('house') == 1 or h.get('index') == 1):
+                return expand_sign(h.get('sign'))
+    return None
+
 
 def normalize_sign(sign: str) -> str:
     if not sign:
@@ -513,6 +577,51 @@ async def love_languages(birth_data: Dict[str, Any], name: str = 'Voyageur', lan
     return await _call('/insights/relationship/love-languages', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language, 'house_system': 'P'},
+    })
+
+
+# ════════ ARCHETYPES JUNGIENS ════════
+
+async def archetypes(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Profil archetypal (dominant + shadow + spectrum) base sur le theme natal.
+    Renvoie profile_name, balance_type, dominant_archetypes[], shadow_archetype, spectrum{}."""
+    return await _call('/analysis/archetypes', {
+        'subject': make_subject(name, birth_data),
+        'language': language,
+    })
+
+
+# ════════ KABBALE — Arbre de Vie ════════
+
+async def tree_of_life_chart(
+    birth_data: Dict[str, Any],
+    system: str = 'modern_halevi',
+    tradition: str = 'universal',
+    language: str = 'fr',
+) -> Optional[Dict]:
+    """Mapping du theme natal sur les 10 Sephiroth (+ Da'at) et les 22 chemins.
+    Retourne : sephiroth (10 dict), paths (22 dict), pillar_balance, dominant_sephirah,
+    spiritual_focus, synthesis. Systemes disponibles : modern_halevi | classical |
+    golden_dawn | golden_dawn_extended. Tradition : universal | psychological | classical."""
+    return await _call('/kabbalah/tree-of-life-chart', {
+        'birth_data': birth_data,
+        'system': system,
+        'tradition': tradition,
+        'include_daat': True,
+        'include_paths': True,
+        'include_interpretations': True,
+        'language': language,
+    })
+
+
+# ════════ KARMA — analyse karmique complete ════════
+
+async def karmic_analysis(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Analyse karmique complete (80+ sections FR natif) : Noeuds Lunaires, Saturne,
+    Chiron, Pluto, planetes retrogrades, karma des generations."""
+    return await _call('/analysis/karmic', {
+        'subject': make_subject(name, birth_data),
+        'language': language,
     })
 
 

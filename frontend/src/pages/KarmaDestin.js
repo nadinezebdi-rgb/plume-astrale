@@ -162,13 +162,13 @@ const KarmaDestin = () => {
               </p>
             </div>
             <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--pa-surface)', border: '1px solid var(--pa-divider)' }}>
-              <LogIn className="w-9 h-9 mx-auto mb-5" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+              <LogIn className="w-9 h-9 mx-auto mb-5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
               <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Connexion requise</h2>
               <p className="text-sm mb-1" style={{ color: 'var(--pa-muted)' }}>Connectez-vous pour accéder à votre lecture Karma & Destin.</p>
-              <p className="text-sm mb-7" style={{ color: '#C5A059' }}>15 crédits · 20 crédits offerts à l'inscription</p>
+              <p className="text-sm mb-7" style={{ color: '#B8961F' }}>15 crédits · 20 crédits offerts à l'inscription</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full hover:bg-[rgba(197,160,89,0.08)] transition-all" style={{ border: '1px solid rgba(197,160,89,0.5)', color: '#C5A059', letterSpacing: '0.1em' }}>Se connecter</button>
-                <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full transition-all" style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', letterSpacing: '0.1em', fontWeight: 600 }}>Créer un compte</button>
+                <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full hover:bg-[rgba(184,150,31,0.08)] transition-all" style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', letterSpacing: '0.1em' }}>Se connecter</button>
+                <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full transition-all" style={{ border: '1px solid #B8961F', color: '#0C0918', background: '#B8961F', letterSpacing: '0.1em', fontWeight: 600 }}>Créer un compte</button>
               </div>
             </div>
           </div>
@@ -213,7 +213,7 @@ const KarmaDestin = () => {
               <div className="space-y-3">
                 {[
                   { icon: '☿', title: 'Votre Karma Principal', desc: 'Le thème karmique central de cette incarnation — ce que votre âme est venue guérir, transformer ou apprendre.', color: '#A78BFA' },
-                  { icon: '✦', title: 'Mission de Vie', desc: 'Votre raison d\'être profonde dans cette vie. Ce que l\'univers attend de vous spécifiquement.', color: '#C5A059' },
+                  { icon: '✦', title: 'Mission de Vie', desc: 'Votre raison d\'être profonde dans cette vie. Ce que l\'univers attend de vous spécifiquement.', color: '#B8961F' },
                   { icon: '☽', title: 'Nœuds Lunaires', desc: 'Le Nœud Nord indique votre direction évolutive ; le Nœud Sud révèle vos acquis des vies passées à dépasser.', color: '#6BB5E8' },
                   { icon: '∞', title: 'Don Caché', desc: 'Le talent naturel que vous portez depuis des vies et qui, une fois conscientisé, devient votre plus grande force.', color: '#7CB88A' },
                 ].map((item, i) => (
@@ -224,13 +224,13 @@ const KarmaDestin = () => {
               {/* CTA */}
               <div className="text-center pt-4">
                 <p className="text-sm mb-5" style={{ color: 'var(--pa-muted)' }}>
-                  <Coins className="w-4 h-4 inline mr-1" style={{ color: '#C5A059' }} strokeWidth={1.5} />
-                  <span style={{ color: '#C5A059' }}>15 crédits</span> · Solde actuel : {creditBalance} crédits
+                  <Coins className="w-4 h-4 inline mr-1" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+                  <span style={{ color: '#B8961F' }}>15 crédits</span> · Solde actuel : {creditBalance} crédits
                 </p>
                 <button
                   onClick={() => setShowForm(true)}
                   className="inline-flex items-center gap-3 px-8 py-4 rounded-xl text-sm tracking-widest uppercase transition-all duration-300"
-                  style={{ background: '#C5A059', color: '#0C0918', fontWeight: 600, letterSpacing: '0.12em' }}
+                  style={{ background: '#B8961F', color: '#0C0918', fontWeight: 600, letterSpacing: '0.12em' }}
                 >
                   <Sparkles className="w-4 h-4" />
                   Révéler mon Karma & Destin
@@ -277,7 +277,7 @@ const KarmaDestin = () => {
                 {error && <p className="text-xs" style={{ color: '#fca5a5' }}>{error}</p>}
                 <button type="submit" disabled={loading || !formData.prenom || !formData.dateNaissance}
                   className="w-full flex items-center justify-center gap-3 py-4 rounded-xl text-sm tracking-widest uppercase transition-all duration-300 disabled:opacity-30"
-                  style={{ background: '#C5A059', color: '#0C0918', fontWeight: 600, letterSpacing: '0.12em' }}>
+                  style={{ background: '#B8961F', color: '#0C0918', fontWeight: 600, letterSpacing: '0.12em' }}>
                   {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Consultation des archives akashiques...</> : <><Sparkles className="w-4 h-4" /> Révéler mon Karma & Destin (15 crédits)</>}
                 </button>
               </form>
@@ -318,8 +318,8 @@ const KarmaDestin = () => {
 
               {/* Mission de vie */}
               {result.data?.mission_de_vie && (
-                <div className="rounded-2xl p-6 md:p-8" style={{ background: 'var(--pa-surface)', border: '1px solid rgba(197,160,89,0.25)' }}>
-                  <p className="text-xs tracking-widest uppercase mb-2" style={{ color: '#C5A059', letterSpacing: '0.12em' }}>✦ Mission de Vie</p>
+                <div className="rounded-2xl p-6 md:p-8" style={{ background: 'var(--pa-surface)', border: '1px solid rgba(184,150,31,0.25)' }}>
+                  <p className="text-xs tracking-widest uppercase mb-2" style={{ color: '#B8961F', letterSpacing: '0.12em' }}>✦ Mission de Vie</p>
                   <h2 className="text-xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
                     {result.data.mission_de_vie.mission}
                   </h2>
@@ -336,7 +336,7 @@ const KarmaDestin = () => {
                     <Moon className="w-5 h-5" style={{ color: '#6BB5E8' }} strokeWidth={1.5} />
                     <p className="text-xs tracking-widest uppercase" style={{ color: '#6BB5E8', letterSpacing: '0.12em' }}>Nœuds Lunaires</p>
                   </div>
-                  <p className="text-sm mb-1" style={{ color: '#C5A059', fontWeight: 500 }}>
+                  <p className="text-sm mb-1" style={{ color: '#B8961F', fontWeight: 500 }}>
                     Nœud Nord en {result.data.noeuds_lunaires.noeud_nord}
                   </p>
                   <p className="text-base" style={{ color: 'var(--pa-body)', lineHeight: '1.9', fontFamily: 'Cormorant Garamond, serif', fontSize: '16px' }}>
@@ -347,13 +347,13 @@ const KarmaDestin = () => {
 
               {/* Nombre karmique + message akashique */}
               {result.data?.message_akashique && (
-                <div className="rounded-2xl p-6 md:p-8" style={{ background: 'rgba(197,160,89,0.04)', border: '1px solid rgba(197,160,89,0.15)' }}>
+                <div className="rounded-2xl p-6 md:p-8" style={{ background: 'rgba(184,150,31,0.04)', border: '1px solid rgba(184,150,31,0.15)' }}>
                   <div className="flex items-center gap-3 mb-4">
                     <span className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-light flex-shrink-0"
-                      style={{ background: 'rgba(197,160,89,0.12)', border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', fontFamily: 'Cormorant Garamond, serif' }}>
+                      style={{ background: 'rgba(184,150,31,0.12)', border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', fontFamily: 'Cormorant Garamond, serif' }}>
                       {result.data.nombre_karmique}
                     </span>
-                    <p className="text-xs tracking-widest uppercase" style={{ color: '#C5A059', letterSpacing: '0.12em' }}>Message des Archives Akashiques</p>
+                    <p className="text-xs tracking-widest uppercase" style={{ color: '#B8961F', letterSpacing: '0.12em' }}>Message des Archives Akashiques</p>
                   </div>
                   <p className="text-base" style={{ color: 'var(--pa-body)', lineHeight: '1.9', fontFamily: 'Cormorant Garamond, serif', fontSize: '16px', fontStyle: 'italic' }}>
                     « {result.data.message_akashique} »
@@ -366,14 +366,14 @@ const KarmaDestin = () => {
 
               {/* Natal Chart from Astrology API */}
               {result.natal_chart && (
-                <div className="rounded-2xl p-6 md:p-8 w-full" style={{ background: 'var(--pa-surface)', border: '1px solid rgba(197,160,89,0.2)' }}>
-                  <p className="text-xs tracking-widest uppercase mb-4" style={{ color: '#C5A059', letterSpacing: '0.12em' }}>
+                <div className="rounded-2xl p-6 md:p-8 w-full" style={{ background: 'var(--pa-surface)', border: '1px solid rgba(184,150,31,0.2)' }}>
+                  <p className="text-xs tracking-widest uppercase mb-4" style={{ color: '#B8961F', letterSpacing: '0.12em' }}>
                     ☿ Carte Natale — Astrology API
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     {result.natal_chart.soleil && (
-                      <div className="p-3 rounded-xl" style={{ background: 'rgba(197,160,89,0.06)', border: '1px solid rgba(197,160,89,0.15)' }}>
-                        <p className="text-xs uppercase tracking-widest mb-1" style={{ color: '#C5A059' }}>☉ Soleil</p>
+                      <div className="p-3 rounded-xl" style={{ background: 'rgba(184,150,31,0.06)', border: '1px solid rgba(184,150,31,0.15)' }}>
+                        <p className="text-xs uppercase tracking-widest mb-1" style={{ color: '#B8961F' }}>☉ Soleil</p>
                         <p className="text-sm" style={{ color: 'var(--pa-heading)' }}>{result.natal_chart.soleil.signe}</p>
                       </div>
                     )}
@@ -394,7 +394,7 @@ const KarmaDestin = () => {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {result.natal_chart.planetes.slice(0, 9).map((p, i) => (
                         <div key={i} className="flex items-center gap-2 text-xs" style={{ color: 'var(--pa-body)' }}>
-                          <span style={{ color: '#C5A059' }}>{p.nom}</span>
+                          <span style={{ color: '#B8961F' }}>{p.nom}</span>
                           <span style={{ color: 'var(--pa-muted)' }}>→</span>
                           <span>{p.signe}</span>
                           {p.retrograde && <span className="text-red-400">℞</span>}
@@ -408,13 +408,13 @@ const KarmaDestin = () => {
               </div>
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <button onClick={() => { setResult(null); setShowForm(true); setUnlocked(false); }}
-                  className="flex-1 py-3 rounded-xl text-xs uppercase tracking-widest transition-all hover:bg-[rgba(197,160,89,0.08)]"
-                  style={{ border: '1px solid rgba(197,160,89,0.3)', color: '#C5A059', letterSpacing: '0.12em' }}>
+                  className="flex-1 py-3 rounded-xl text-xs uppercase tracking-widest transition-all hover:bg-[rgba(184,150,31,0.08)]"
+                  style={{ border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', letterSpacing: '0.12em' }}>
                   Nouvelle consultation
                 </button>
                 <button onClick={() => navigate('/numerologie')}
                   className="flex-1 py-3 rounded-xl text-xs uppercase tracking-widest transition-all"
-                  style={{ border: '1px solid #C5A059', color: '#0C0918', background: '#C5A059', fontWeight: 600, letterSpacing: '0.12em' }}>
+                  style={{ border: '1px solid #B8961F', color: '#0C0918', background: '#B8961F', fontWeight: 600, letterSpacing: '0.12em' }}>
                   Numérologie approfondie
                 </button>
               </div>

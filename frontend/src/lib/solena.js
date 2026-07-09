@@ -1,5 +1,7 @@
 // Assets de Solena — ambassadrice de Plume Astrale.
-// Portraits locaux + videos servies depuis le CDN Emergent (URLs stables).
+// Portrait + videos servis via CDN (Supabase Storage / Emergent).
+
+import { asset } from './assets';
 
 export const SOLENA = {
   name: 'Solena',
@@ -21,7 +23,7 @@ export const SOLENA = {
     "Tarot évolutif (Marseille, Rider-Waite)",
     "Guidance médiumnique éthique",
   ],
-  portrait: '/brand/solena.png',
+  portrait: asset('brand/solena.png'),
   // Videos servies depuis le CDN Emergent (URLs publiques stables)
   videos: {
     primary:   'https://customer-assets.emergentagent.com/job_consultation-astro/artifacts/eyeajiiv_1ERE%20VIDEO.mp4',

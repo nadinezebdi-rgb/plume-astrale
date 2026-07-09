@@ -15,7 +15,7 @@ const PACKS = [
     bonus: 0,
     icon: Sparkles,
     subtitle: '15 crédits · idéal pour continuer maintenant',
-    accent: '#C5A059',
+    accent: '#B8961F',
   },
   {
     id: 'astro_amour',
@@ -40,7 +40,7 @@ const PACKS = [
     subtitle: '100 crédits + 30 offerts = 130 crédits',
     caption: 'Explore ton thème en profondeur, ton karma, tes futures relations',
     badge: 'Meilleure valeur',
-    accent: '#C5A059',
+    accent: '#B8961F',
   },
 ];
 
@@ -105,8 +105,8 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
         className="relative max-w-4xl w-full rounded-3xl overflow-hidden max-h-[92vh] overflow-y-auto"
         style={{
           background: 'linear-gradient(180deg,#12082A,#0C0918)',
-          border: '1px solid rgba(197,160,89,0.35)',
-          boxShadow: '0 40px 120px rgba(0,0,0,0.6), 0 0 60px rgba(197,160,89,0.10)',
+          border: '1px solid rgba(184,150,31,0.35)',
+          boxShadow: '0 40px 120px rgba(0,0,0,0.6), 0 0 60px rgba(184,150,31,0.10)',
         }}
         onClick={(e) => e.stopPropagation()}
         data-testid="credits-paywall-modal"
@@ -118,7 +118,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full transition-all hover:scale-110"
-          style={{ color: '#C5A059', background: 'rgba(197,160,89,0.08)' }}
+          style={{ color: '#B8961F', background: 'rgba(184,150,31,0.08)' }}
           aria-label="Fermer"
           data-testid="credits-paywall-close"
         >
@@ -128,14 +128,14 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
         {/* Header */}
         <div className="px-6 md:px-12 pt-10 pb-6 text-center">
           <div className="inline-flex items-center gap-2 mb-4">
-            <Sparkles className="w-4 h-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+            <Sparkles className="w-4 h-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
             <span
               className="text-xs uppercase"
-              style={{ color: '#C5A059', letterSpacing: '0.3em' }}
+              style={{ color: '#B8961F', letterSpacing: '0.3em' }}
             >
               Offre de recharge
             </span>
-            <Sparkles className="w-4 h-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+            <Sparkles className="w-4 h-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
           </div>
           <h2
             id="paywall-title"
@@ -160,11 +160,11 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
                 className="relative rounded-2xl p-6 flex flex-col"
                 style={{
                   background: p.highlight
-                    ? 'linear-gradient(160deg,rgba(197,160,89,0.15),rgba(197,160,89,0.03))'
+                    ? 'linear-gradient(160deg,rgba(184,150,31,0.15),rgba(184,150,31,0.03))'
                     : 'rgba(255,255,255,0.03)',
                   border: p.highlight
-                    ? '1.5px solid #C5A059'
-                    : '1px solid rgba(197,160,89,0.22)',
+                    ? '1.5px solid #B8961F'
+                    : '1px solid rgba(184,150,31,0.22)',
                 }}
                 data-testid={`paywall-pack-${p.id}`}
               >
@@ -172,7 +172,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
                   <div
                     className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] uppercase whitespace-nowrap"
                     style={{
-                      background: '#C5A059',
+                      background: '#B8961F',
                       color: '#0C0918',
                       letterSpacing: '0.15em',
                       fontWeight: 600,
@@ -222,9 +222,9 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
                   disabled={loadingPack !== null}
                   className="w-full py-3 rounded-full text-xs uppercase transition-all disabled:opacity-50 mt-3"
                   style={{
-                    background: p.highlight ? '#C5A059' : 'transparent',
-                    color: p.highlight ? '#0C0918' : '#C5A059',
-                    border: p.highlight ? 'none' : '1px solid #C5A059',
+                    background: p.highlight ? '#B8961F' : 'transparent',
+                    color: p.highlight ? '#0C0918' : '#B8961F',
+                    border: p.highlight ? 'none' : '1px solid #B8961F',
                     letterSpacing: '0.2em',
                     fontWeight: 500,
                   }}

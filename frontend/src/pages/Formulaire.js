@@ -277,7 +277,7 @@ const Formulaire = () => {
 
         {/* Question */}
         <div className="text-center mb-12">
-          <img src="https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/xb75bltg_img3.png" alt="" className="w-16 md:w-20 mx-auto mb-6 opacity-70" style={{ filter: 'drop-shadow(0 0 15px rgba(197,160,89,0.12))' }} />
+          <img src="https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/xb75bltg_img3.png" alt="" className="w-16 md:w-20 mx-auto mb-6 opacity-70" style={{ filter: 'drop-shadow(0 0 15px rgba(184,150,31,0.12))' }} />
           <h1
             className="text-2xl md:text-4xl mb-4"
             style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
@@ -299,8 +299,8 @@ const Formulaire = () => {
                   onClick={() => setFormData({...formData, genre: g.val})}
                   className={`px-10 py-4 text-sm tracking-widest uppercase transition-all duration-300 ${
                     formData.genre === g.val
-                      ? 'border-[#C5A059] bg-[#C5A059]/10 text-[#F0E6D3]'
-                      : 'border-[#C5A059]/15 text-[#B8B0C8] hover:border-[#C5A059]/30'
+                      ? 'border-[#B8961F] bg-[#B8961F]/10 text-[#F0E6D3]'
+                      : 'border-[#B8961F]/15 text-[#B8B0C8] hover:border-[#B8961F]/30'
                   }`}
                   style={{ border: `1px solid`, borderColor: formData.genre === g.val ? 'var(--pa-accent)' : 'var(--pa-divider)', letterSpacing: '0.12em' }}
                   data-testid={`genre-${g.val}`}

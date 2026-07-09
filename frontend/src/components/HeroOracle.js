@@ -89,7 +89,7 @@ const HeroOracle = () => {
     return (
       <section className="hero-oracle" data-testid="hero-oracle" style={{ maxWidth: 560, margin: '0 auto', padding: '0 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <p style={{ fontSize: 11, letterSpacing: '0.3em', color: '#D4B46A', textTransform: 'uppercase', fontFamily: 'Cinzel, serif', marginBottom: 14 }}>
+          <p style={{ fontSize: 11, letterSpacing: '0.3em', color: '#D4AF37', textTransform: 'uppercase', fontFamily: 'Cinzel, serif', marginBottom: 14 }}>
             Ta lecture symbolique
           </p>
           <h1 style={{
@@ -97,7 +97,7 @@ const HeroOracle = () => {
             fontSize: 'clamp(32px, 6vw, 56px)', lineHeight: 1.05,
             color: '#F0E6D3', marginBottom: 18,
           }}>
-            Découvre <em style={{ fontStyle: 'italic', color: '#D4B46A' }}>ton énergie</em> du moment
+            Découvre <em style={{ fontStyle: 'italic', color: '#D4AF37' }}>ton énergie</em> du moment
           </h1>
           <p style={{ fontSize: 15, color: 'rgba(184,176,200,0.85)', maxWidth: 440, margin: '0 auto', lineHeight: 1.55 }}>
             En moins de 10 secondes, une lecture personnalisée — gratuite, sans carte, sans inscription.
@@ -106,7 +106,7 @@ const HeroOracle = () => {
 
         <div style={{
           background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(212,180,106,0.18)',
+          border: '1px solid rgba(212,175,55,0.18)',
           borderRadius: 20, padding: 28, backdropFilter: 'blur(12px)',
         }}>
           <div style={{ marginBottom: 18 }}>
@@ -128,7 +128,7 @@ const HeroOracle = () => {
             <Sparkles style={{ width: 16, height: 16 }} strokeWidth={1.8} />
             ✦ Révéler mon énergie
           </button>
-          <p style={{ textAlign: 'center', fontSize: 11, color: 'rgba(212,180,106,0.55)', marginTop: 14, letterSpacing: '0.06em' }}>
+          <p style={{ textAlign: 'center', fontSize: 11, color: 'rgba(212,175,55,0.55)', marginTop: 14, letterSpacing: '0.06em' }}>
             Gratuit · sans carte
           </p>
         </div>
@@ -143,7 +143,7 @@ const HeroOracle = () => {
         <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, color: '#F0E6D3', marginTop: 28, fontWeight: 300 }}>
           {form.firstName}, la Plume écoute ton ciel...
         </h2>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 16, color: '#D4B46A' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 16, color: '#D4AF37' }}>
           <Loader2 style={{ width: 18, height: 18 }} className="animate-spin" />
           <span style={{ fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Calcul des positions</span>
         </div>
@@ -156,7 +156,7 @@ const HeroOracle = () => {
     return (
       <section data-testid="hero-teaser" style={{ maxWidth: 640, margin: '0 auto', padding: '0 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <p style={{ fontSize: 11, letterSpacing: '0.3em', color: '#D4B46A', textTransform: 'uppercase', fontFamily: 'Cinzel, serif', marginBottom: 12 }}>
+          <p style={{ fontSize: 11, letterSpacing: '0.3em', color: '#D4AF37', textTransform: 'uppercase', fontFamily: 'Cinzel, serif', marginBottom: 12 }}>
             Ta lecture est prête, {form.firstName}
           </p>
         </div>
@@ -179,7 +179,7 @@ const HeroOracle = () => {
         <div style={{
           marginTop: 28, position: 'relative', borderRadius: 18,
           background: 'rgba(255,255,255,0.025)',
-          border: '1px solid rgba(212,180,106,0.2)',
+          border: '1px solid rgba(212,175,55,0.2)',
           padding: 24, overflow: 'hidden',
         }} data-testid="hero-paywall">
           <div style={{ filter: 'blur(7px)', userSelect: 'none', pointerEvents: 'none' }}>
@@ -192,7 +192,7 @@ const HeroOracle = () => {
             alignItems: 'center', justifyContent: 'center', padding: 20,
             background: 'linear-gradient(180deg, rgba(11,9,24,0.4) 0%, rgba(11,9,24,0.9) 70%)',
           }}>
-            <Lock style={{ width: 20, height: 20, color: '#D4B46A', marginBottom: 8 }} strokeWidth={1.4} />
+            <Lock style={{ width: 20, height: 20, color: '#D4AF37', marginBottom: 8 }} strokeWidth={1.4} />
             <p style={{ color: '#F0E6D3', fontSize: 14, textAlign: 'center', marginBottom: 14 }}>
               Reçois ta lecture complète par email
             </p>
@@ -231,7 +231,7 @@ const HeroOracle = () => {
 
         <div style={{
           background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(212,180,106,0.18)',
+          border: '1px solid rgba(212,175,55,0.18)',
           borderRadius: 20, padding: 28, marginBottom: 24, textAlign: 'left',
         }}>
           <div style={{ marginBottom: 18 }}>
@@ -263,7 +263,7 @@ const HeroOracle = () => {
   // REFINED
   return (
     <section data-testid="hero-refined" style={{ maxWidth: 560, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
-      <Sparkles style={{ width: 28, height: 28, color: '#D4B46A', margin: '0 auto 16px' }} strokeWidth={1.3} />
+      <Sparkles style={{ width: 28, height: 28, color: '#D4AF37', margin: '0 auto 16px' }} strokeWidth={1.3} />
       <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 30, color: '#F0E6D3', fontWeight: 300, marginBottom: 10 }}>
         Ta lecture affinée arrive...
       </h2>
@@ -280,17 +280,17 @@ const HeroOracle = () => {
 const Wheel = ({ url, blurred }) => {
   const inner = url ? (
     <img src={url} alt="Ta carte natale"
-      style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 0 24px rgba(212,180,106,0.25))' }}
+      style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 0 24px rgba(212,175,55,0.25))' }}
     />
   ) : (
     <div style={{
       width: '100%', height: '100%', borderRadius: '50%',
-      border: '1.5px solid rgba(212,180,106,0.45)',
+      border: '1.5px solid rgba(212,175,55,0.45)',
       background: 'radial-gradient(circle, rgba(167,139,250,0.18) 0%, transparent 70%)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       position: 'relative',
     }}>
-      <Sparkles style={{ width: 40, height: 40, color: '#D4B46A', opacity: 0.6 }} strokeWidth={1.2} />
+      <Sparkles style={{ width: 40, height: 40, color: '#D4AF37', opacity: 0.6 }} strokeWidth={1.2} />
     </div>
   );
   return (
@@ -305,12 +305,12 @@ const Wheel = ({ url, blurred }) => {
 
 const labelStyle = {
   display: 'block', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
-  color: 'rgba(212,180,106,0.75)', marginBottom: 8, fontFamily: 'Cinzel, serif',
+  color: 'rgba(212,175,55,0.75)', marginBottom: 8, fontFamily: 'Cinzel, serif',
 };
 
 const inputStyle = {
   width: '100%', background: 'rgba(0,0,0,0.25)',
-  border: '1px solid rgba(212,180,106,0.25)', borderRadius: 12,
+  border: '1px solid rgba(212,175,55,0.25)', borderRadius: 12,
   padding: '12px 14px', color: '#F0E6D3', fontSize: 15,
   outline: 'none', minHeight: 48,
 };
@@ -318,11 +318,11 @@ const inputStyle = {
 const primaryCta = {
   width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
   padding: '14px 24px', borderRadius: 999,
-  background: 'linear-gradient(135deg, #D4B46A 0%, #C5A059 100%)',
+  background: 'linear-gradient(135deg, #D4AF37 0%, #B8961F 100%)',
   color: '#0C0918', fontWeight: 700,
   fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase',
   border: 'none', cursor: 'pointer', minHeight: 56,
-  boxShadow: '0 6px 24px rgba(212,180,106,0.35)',
+  boxShadow: '0 6px 24px rgba(212,175,55,0.35)',
 };
 
 const errorStyle = {
@@ -334,10 +334,10 @@ const errorStyle = {
 const Card = ({ title, value, sub, testid }) => (
   <div style={{
     background: 'rgba(255,255,255,0.025)',
-    border: '1px solid rgba(212,180,106,0.18)',
+    border: '1px solid rgba(212,175,55,0.18)',
     borderRadius: 14, padding: '14px 18px',
   }} data-testid={testid}>
-    <p style={{ fontSize: 10, letterSpacing: '0.18em', color: 'rgba(212,180,106,0.6)', textTransform: 'uppercase', fontFamily: 'Cinzel, serif', marginBottom: 4 }}>
+    <p style={{ fontSize: 10, letterSpacing: '0.18em', color: 'rgba(212,175,55,0.6)', textTransform: 'uppercase', fontFamily: 'Cinzel, serif', marginBottom: 4 }}>
       {title}
     </p>
     <p style={{ fontSize: 17, color: '#F0E6D3', fontFamily: 'Cormorant Garamond, serif', marginBottom: sub ? 4 : 0 }}>
@@ -349,11 +349,11 @@ const Card = ({ title, value, sub, testid }) => (
 
 const PremiumBridge = ({ onCTA }) => (
   <div style={{
-    background: 'linear-gradient(135deg, rgba(212,180,106,0.1) 0%, rgba(167,139,250,0.08) 100%)',
-    border: '1px solid rgba(212,180,106,0.35)',
+    background: 'linear-gradient(135deg, rgba(212,175,55,0.1) 0%, rgba(167,139,250,0.08) 100%)',
+    border: '1px solid rgba(212,175,55,0.35)',
     borderRadius: 18, padding: 24, textAlign: 'center',
   }} data-testid="premium-bridge">
-    <p style={{ fontSize: 10, letterSpacing: '0.2em', color: '#D4B46A', textTransform: 'uppercase', marginBottom: 12, fontFamily: 'Cinzel, serif' }}>
+    <p style={{ fontSize: 10, letterSpacing: '0.2em', color: '#D4AF37', textTransform: 'uppercase', marginBottom: 12, fontFamily: 'Cinzel, serif' }}>
       Va plus loin
     </p>
     <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#F0E6D3', fontWeight: 300, marginBottom: 8 }}>

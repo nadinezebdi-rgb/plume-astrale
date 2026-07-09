@@ -43,7 +43,7 @@ export default function Cercle() {
   if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" data-testid="cercle-gate-loading">
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#D4B46A' }} />
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#D4AF37' }} />
       </div>
     );
   }

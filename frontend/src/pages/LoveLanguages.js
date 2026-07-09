@@ -41,7 +41,7 @@ const LoveLanguages = () => {
     return (
       <div className="min-h-screen px-6 py-20 flex items-center justify-center" data-testid="ll-auth-gate">
         <div className="card-mystical text-center max-w-md">
-          <Heart className="w-10 h-10 text-[#C5A059] mx-auto mb-4" strokeWidth={1.3} />
+          <Heart className="w-10 h-10 text-[#B8961F] mx-auto mb-4" strokeWidth={1.3} />
           <h1 className="text-2xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
             Vos Langages d'Amour
           </h1>
@@ -82,7 +82,7 @@ const LoveLanguages = () => {
         </button>
 
         <div className="mb-10 text-center">
-          <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-3 font-light">
+          <p className="text-[#B8961F] uppercase tracking-[0.3em] text-sm mb-3 font-light">
             Signature Affective · Vénus · Mars · Lune
           </p>
           <h1 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -95,7 +95,7 @@ const LoveLanguages = () => {
 
         {loading && (
           <div className="text-center py-10" data-testid="ll-loading">
-            <Loader2 className="w-7 h-7 text-[#C5A059] mx-auto animate-spin" />
+            <Loader2 className="w-7 h-7 text-[#B8961F] mx-auto animate-spin" />
           </div>
         )}
         {error && <p className="text-amber-300 text-center mb-4" data-testid="ll-error">{error}</p>}
@@ -104,7 +104,7 @@ const LoveLanguages = () => {
           <div className="space-y-6 animate-fade-in" data-testid="ll-result">
             <div className="card-mystical text-center glow-gold">
               <Heart className="w-9 h-9 text-pink-400 mx-auto mb-3 animate-pulse" strokeWidth={1.4} />
-              <p className="text-[#C5A059] uppercase tracking-widest text-xs mb-2">Langage Principal</p>
+              <p className="text-[#B8961F] uppercase tracking-widest text-xs mb-2">Langage Principal</p>
               <h2 className="text-3xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }} data-testid="ll-primary-name">
                 {primary.name || primary.label || primary.title || 'Tendresse'}
               </h2>
@@ -122,8 +122,8 @@ const LoveLanguages = () => {
                 </h3>
                 <ul className="grid sm:grid-cols-2 gap-3">
                   {secondary.slice(0, 4).map((s, i) => (
-                    <li key={i} className="bg-[#15112A]/40 rounded-lg p-3 border border-[#C5A059]/15" data-testid={`ll-secondary-${i}`}>
-                      <p className="text-[#C5A059] text-sm mb-1">{s.name || s.label || s.title}</p>
+                    <li key={i} className="bg-[#15112A]/40 rounded-lg p-3 border border-[#B8961F]/15" data-testid={`ll-secondary-${i}`}>
+                      <p className="text-[#B8961F] text-sm mb-1">{s.name || s.label || s.title}</p>
                       {(s.description || s.text) && (
                         <p className="text-[#B8B0C8]/75 text-xs leading-relaxed">{s.description || s.text}</p>
                       )}
@@ -144,12 +144,12 @@ const LoveLanguages = () => {
             {Array.isArray(advice) && advice.length > 0 && (
               <div className="card-mystical" data-testid="ll-advice">
                 <h3 className="text-lg mb-3 flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-                  <Sparkles className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} /> Pistes pour vous
+                  <Sparkles className="w-5 h-5 text-[#B8961F]" strokeWidth={1.5} /> Pistes pour vous
                 </h3>
                 <ul className="space-y-2">
                   {advice.slice(0, 5).map((a, i) => (
                     <li key={i} className="flex gap-2 text-sm text-[#B8B0C8] leading-relaxed">
-                      <span className="text-[#C5A059] mt-1">·</span>
+                      <span className="text-[#B8961F] mt-1">·</span>
                       <span>{typeof a === 'string' ? a : (a.text || a.description || JSON.stringify(a))}</span>
                     </li>
                   ))}

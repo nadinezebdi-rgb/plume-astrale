@@ -17,7 +17,7 @@ const CharteConfiance = () => {
             <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Retour
           </button>
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ border: '1px solid var(--pa-divider)', background: 'rgba(197,160,89,0.05)' }}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ border: '1px solid var(--pa-divider)', background: 'rgba(184,150,31,0.05)' }}>
               <Shield className="w-5 h-5" style={{ color: 'var(--pa-accent)' }} strokeWidth={1.5} />
             </div>
             <p className="text-xs tracking-widest uppercase" style={{ color: 'var(--pa-accent)', letterSpacing: '0.2em' }}>
@@ -141,7 +141,7 @@ const CharteConfiance = () => {
       <section className="px-6 md:px-8 pb-14" data-testid="section-posture">
         <div className="max-w-2xl mx-auto">
           <div className="w-10 h-px mb-10" style={{ background: 'var(--pa-accent)', opacity: 0.3 }} />
-          <div className="card-editorial p-8 text-center" style={{ background: 'rgba(197,160,89,0.04)', borderColor: 'rgba(197,160,89,0.15)' }}>
+          <div className="card-editorial p-8 text-center" style={{ background: 'rgba(184,150,31,0.04)', borderColor: 'rgba(184,150,31,0.15)' }}>
             <Shield className="w-6 h-6 mx-auto mb-4" style={{ color: 'var(--pa-accent)' }} strokeWidth={1.5} />
             <h3 className="text-xl md:text-2xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
               Une guidance symbolique, pas une verite absolue.

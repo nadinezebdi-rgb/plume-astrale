@@ -60,11 +60,11 @@ export default function UtmBuilder() {
 
   return (
     <div className="rounded-2xl p-6"
-      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(197,160,89,0.20)', backdropFilter: 'blur(12px)' }}
+      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,150,31,0.20)', backdropFilter: 'blur(12px)' }}
       data-testid="utm-builder">
 
       <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-4 h-4" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+        <Sparkles className="w-4 h-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
         <h2 className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F4E8D2', fontWeight: 400 }}>
           Générateur de liens de campagne
         </h2>
@@ -81,9 +81,9 @@ export default function UtmBuilder() {
             className="text-[10px] uppercase px-3 py-1.5 rounded-full transition-all"
             style={{
               border: '1px solid',
-              borderColor: presetKey === p.key ? '#C5A059' : 'rgba(197,160,89,0.25)',
-              color: presetKey === p.key ? '#0C0918' : '#C5A059',
-              background: presetKey === p.key ? '#C5A059' : 'transparent',
+              borderColor: presetKey === p.key ? '#B8961F' : 'rgba(184,150,31,0.25)',
+              color: presetKey === p.key ? '#0C0918' : '#B8961F',
+              background: presetKey === p.key ? '#B8961F' : 'transparent',
               letterSpacing: '0.1em',
             }}
             data-testid={`utm-preset-${p.key}`}>
@@ -103,8 +103,8 @@ export default function UtmBuilder() {
       </div>
 
       {/* Result */}
-      <div className="rounded-xl p-4 mb-3" style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(197,160,89,0.25)' }}>
-        <div className="text-[10px] uppercase mb-2 opacity-60" style={{ color: '#C5A059', letterSpacing: '0.2em' }}>
+      <div className="rounded-xl p-4 mb-3" style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(184,150,31,0.25)' }}>
+        <div className="text-[10px] uppercase mb-2 opacity-60" style={{ color: '#B8961F', letterSpacing: '0.2em' }}>
           URL trackée
         </div>
         <div className="text-xs break-all font-mono" style={{ color: '#F4E8D2' }} data-testid="utm-url">
@@ -116,7 +116,7 @@ export default function UtmBuilder() {
         <button onClick={copyUrl}
           className="flex-1 px-4 py-2.5 rounded-full text-xs uppercase transition-all flex items-center justify-center gap-2"
           style={{
-            background: copied ? '#8FEBB4' : '#C5A059',
+            background: copied ? '#8FEBB4' : '#B8961F',
             color: '#0C0918',
             letterSpacing: '0.15em', fontWeight: 600,
           }}
@@ -125,7 +125,7 @@ export default function UtmBuilder() {
         </button>
         <a href={url} target="_blank" rel="noreferrer"
           className="px-4 py-2.5 rounded-full text-xs uppercase transition-all flex items-center gap-2"
-          style={{ border: '1px solid #C5A059', color: '#C5A059', letterSpacing: '0.15em' }}
+          style={{ border: '1px solid #B8961F', color: '#B8961F', letterSpacing: '0.15em' }}
           data-testid="utm-preview-btn">
           <ExternalLink className="w-4 h-4" /> Prévisualiser
         </a>
@@ -142,12 +142,12 @@ export default function UtmBuilder() {
 function Field({ label, value, onChange, placeholder, fullWidth, testid }) {
   return (
     <div className={fullWidth ? 'md:col-span-2' : ''}>
-      <label className="text-[10px] uppercase mb-1.5 block" style={{ color: '#C5A059', letterSpacing: '0.2em' }}>
+      <label className="text-[10px] uppercase mb-1.5 block" style={{ color: '#B8961F', letterSpacing: '0.2em' }}>
         {label}
       </label>
       <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         className="w-full py-2 px-3 rounded-lg text-sm outline-none"
-        style={{ background: 'rgba(255,255,255,0.05)', color: '#F4E8D2', border: '1px solid rgba(197,160,89,0.20)' }}
+        style={{ background: 'rgba(255,255,255,0.05)', color: '#F4E8D2', border: '1px solid rgba(184,150,31,0.20)' }}
         data-testid={testid} />
     </div>
   );

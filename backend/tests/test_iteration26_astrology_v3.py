@@ -236,7 +236,7 @@ class TestLegacyAstrology:
             pytest.fail(f'Unhandled 500: {r.text[:300]}')
 
     def test_natal_chart_legacy(self, auth_headers):
-        """Legacy /api/astrology/natal-chart - astrologyapi.com (different key)."""
+        """Legacy /api/astrology/natal-chart - now uses astrology-api.io v3."""
         payload = {
             'day': 15, 'month': 5, 'year': 1990,
             'hour': 12, 'min': 0,

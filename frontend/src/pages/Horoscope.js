@@ -151,7 +151,7 @@ const Horoscope = () => {
         {[1, 2, 3, 4, 5].map((i) => (
           <Star
             key={i}
-            className={`w-4 h-4 ${i <= score ? 'text-[#C5A059] fill-[#C5A059]' : 'text-[#B8B0C8]/20'}`}
+            className={`w-4 h-4 ${i <= score ? 'text-[#B8961F] fill-[#B8961F]' : 'text-[#B8B0C8]/20'}`}
             strokeWidth={1}
           />
         ))}
@@ -161,25 +161,20 @@ const Horoscope = () => {
 
   // ── Mapping life_areas API v3 -> icones + couleurs FR
   const AREA_META = {
-    identity:   { label: 'Identité',    color: 'rgba(212,180,106,0.2)', text: '#D4B46A' },
+    identity:   { label: 'Identité',    color: 'rgba(212,175,55,0.2)', text: '#D4AF37' },
     health:     { label: 'Santé',       color: 'rgba(167,238,167,0.18)', text: '#7CB88A' },
-    finance:    { label: 'Finances',    color: 'rgba(212,180,106,0.2)', text: '#D4B46A' },
+    finance:    { label: 'Finances',    color: 'rgba(212,175,55,0.2)', text: '#D4AF37' },
     career:     { label: 'Carrière',    color: 'rgba(167,200,255,0.18)', text: '#6BB5E8' },
     love:       { label: 'Amour',       color: 'rgba(255,167,200,0.18)', text: '#F49AAE' },
-    relationships:{ label: 'Relations', color: 'rgba(244,217,140,0.18)', text: '#F4D98C' },
+    relationships:{ label: 'Relations', color: 'rgba(232,199,102,0.18)', text: '#E8C766' },
     creativity: { label: 'Créativité',  color: 'rgba(196,167,238,0.18)', text: '#A78BFA' },
-    spirituality:{label: 'Spiritualité',color: 'rgba(212,180,106,0.18)', text: '#F4E4BC' },
+    spirituality:{label: 'Spiritualité',color: 'rgba(212,175,55,0.18)', text: '#F4E4BC' },
   };
 
   if (!userData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-      <PageHero
-        image="/images/astrale/image-astrale-5.jpg"
-        title="Horoscope"
-        subtitle="Guidance personnalisée selon votre thème natal"
-      />
-        <div className="w-12 h-12 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-2 border-[#B8961F] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -197,7 +192,7 @@ const Horoscope = () => {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-4 font-light">
+            <p className="text-[#B8961F] uppercase tracking-[0.3em] text-sm mb-4 font-light">
               Votre Horoscope
             </p>
 
@@ -213,7 +208,7 @@ const Horoscope = () => {
             {natalData && (
               <div className="mt-4 flex flex-wrap justify-center gap-3">
                 {natalData.soleil && (
-                  <span className="text-xs px-3 py-1 rounded-full bg-[#C5A059]/10 text-[#C5A059] border border-[#C5A059]/20">
+                  <span className="text-xs px-3 py-1 rounded-full bg-[#B8961F]/10 text-[#B8961F] border border-[#B8961F]/20">
                     ☉ Soleil en {natalData.soleil.signe}
                   </span>
                 )}
@@ -253,8 +248,8 @@ const Horoscope = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm transition-all ${
                   activeTab === tab.id
-                    ? 'bg-[#C5A059] text-[#0C0918]'
-                    : 'bg-[#15112A]/50 text-[#B8B0C8]/70 hover:bg-[#15112A] border border-[#C5A059]/20'
+                    ? 'bg-[#B8961F] text-[#0C0918]'
+                    : 'bg-[#15112A]/50 text-[#B8B0C8]/70 hover:bg-[#15112A] border border-[#B8961F]/20'
                 }`}
                 data-testid={`tab-${tab.id}`}
               >
@@ -267,7 +262,7 @@ const Horoscope = () => {
           {/* Loading State */}
           {loading && (
             <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-[#C5A059]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#B8961F]" />
             </div>
           )}
 
@@ -276,14 +271,14 @@ const Horoscope = () => {
             <div className="space-y-6 animate-fade-in">
               {/* OVERALL THEME (Astrology API v3) */}
               {apiData?.overall_theme && (
-                <div className="card-mystical border border-[#C5A059]/20">
+                <div className="card-mystical border border-[#B8961F]/20">
                   <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                     <h2 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                       {titleMap[activeTab]}
                     </h2>
                     <div className="flex items-center gap-3">
                       {typeof apiData.overall_rating === 'number' && renderStars(apiData.overall_rating)}
-                      <span className="text-[#C5A059] text-sm">{apiData.date || ''}</span>
+                      <span className="text-[#B8961F] text-sm">{apiData.date || ''}</span>
                     </div>
                   </div>
                   <p className="text-[#F0E6D3]/85 leading-relaxed text-base" style={{ fontFamily: 'Cormorant Garamond, serif', lineHeight: '1.85' }}>
@@ -292,7 +287,7 @@ const Horoscope = () => {
                   {apiData.keywords && Array.isArray(apiData.keywords) && apiData.keywords.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
                       {apiData.keywords.slice(0, 6).map((k, i) => (
-                        <span key={i} className="text-xs px-3 py-1 rounded-full bg-[#C5A059]/10 text-[#C5A059] border border-[#C5A059]/20">
+                        <span key={i} className="text-xs px-3 py-1 rounded-full bg-[#B8961F]/10 text-[#B8961F] border border-[#B8961F]/20">
                           {k}
                         </span>
                       ))}
@@ -305,7 +300,7 @@ const Horoscope = () => {
               {apiData?.life_areas && Array.isArray(apiData.life_areas) && apiData.life_areas.length > 0 ? (
                 <div className="grid md:grid-cols-2 gap-6">
                   {apiData.life_areas.map((area, idx) => {
-                    const meta = AREA_META[area.area] || { label: area.title || area.area, color: 'rgba(212,180,106,0.15)', text: '#D4B46A' };
+                    const meta = AREA_META[area.area] || { label: area.title || area.area, color: 'rgba(212,175,55,0.15)', text: '#D4AF37' };
                     return (
                       <div key={idx} className="card-mystical">
                         <div className="flex items-center gap-3 mb-3">
@@ -321,7 +316,7 @@ const Horoscope = () => {
                           {area.prediction || area.text || ''}
                         </p>
                         {area.advice && (
-                          <p className="mt-3 text-xs italic text-[#C5A059]/85">
+                          <p className="mt-3 text-xs italic text-[#B8961F]/85">
                             <span style={{ letterSpacing: '0.1em' }}>CONSEIL —</span> {area.advice}
                           </p>
                         )}
@@ -355,7 +350,7 @@ const Horoscope = () => {
                   </div>
                   <div className="card-mystical">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="p-2 rounded-full bg-[#C5A059]/20 text-[#C5A059]"><Coins className="w-5 h-5" strokeWidth={1} /></div>
+                      <div className="p-2 rounded-full bg-[#B8961F]/20 text-[#B8961F]"><Coins className="w-5 h-5" strokeWidth={1} /></div>
                       <div className="flex-1"><h3 className="text-[#F0E6D3]">Finances</h3>{renderStars(currentHoroscope.finance.score)}</div>
                     </div>
                     <p className="text-[#B8B0C8]/70 text-sm font-light">{currentHoroscope.finance.text}</p>
@@ -366,13 +361,13 @@ const Horoscope = () => {
               {/* PLANETARY INFLUENCES (v3) */}
               {apiData?.planetary_influences && Array.isArray(apiData.planetary_influences) && apiData.planetary_influences.length > 0 && (
                 <div className="card-mystical">
-                  <h3 className="text-sm tracking-widest uppercase mb-4 text-[#C5A059]" style={{ letterSpacing: '0.12em' }}>
+                  <h3 className="text-sm tracking-widest uppercase mb-4 text-[#B8961F]" style={{ letterSpacing: '0.12em' }}>
                     Influences planétaires
                   </h3>
                   <div className="space-y-3">
                     {apiData.planetary_influences.map((pi, i) => (
                       <div key={i} className="text-sm">
-                        <span className="text-[#C5A059] font-medium">{pi.planet || pi.name}</span>
+                        <span className="text-[#B8961F] font-medium">{pi.planet || pi.name}</span>
                         {pi.aspect && <span className="text-[#B8B0C8]/50"> — {pi.aspect}</span>}
                         {pi.description && <p className="text-[#B8B0C8]/70 mt-1">{pi.description}</p>}
                       </div>
@@ -390,7 +385,7 @@ const Horoscope = () => {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {natalData.planetes.slice(0, 9).map((p, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
-                        <span className="text-[#C5A059]">{p.nom}</span>
+                        <span className="text-[#B8961F]">{p.nom}</span>
                         <span className="text-[#B8B0C8]/50">→</span>
                         <span className="text-[#B8B0C8]/80">{p.signe}</span>
                         {p.retrograde && <span className="text-xs text-red-400">℞</span>}
@@ -409,25 +404,25 @@ const Horoscope = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     {apiData.lucky_elements.numbers && (
                       <div>
-                        <p className="text-[#C5A059]/70 text-xs uppercase tracking-widest mb-2">Nombres</p>
+                        <p className="text-[#B8961F]/70 text-xs uppercase tracking-widest mb-2">Nombres</p>
                         <p className="text-[#F0E6D3]">{(apiData.lucky_elements.numbers || []).join(' · ')}</p>
                       </div>
                     )}
                     {apiData.lucky_elements.colors && (
                       <div>
-                        <p className="text-[#C5A059]/70 text-xs uppercase tracking-widest mb-2">Couleurs</p>
+                        <p className="text-[#B8961F]/70 text-xs uppercase tracking-widest mb-2">Couleurs</p>
                         <p className="text-[#F0E6D3]">{(apiData.lucky_elements.colors || []).join(' · ')}</p>
                       </div>
                     )}
                     {apiData.lucky_elements.days && (
                       <div>
-                        <p className="text-[#C5A059]/70 text-xs uppercase tracking-widest mb-2">Jours</p>
+                        <p className="text-[#B8961F]/70 text-xs uppercase tracking-widest mb-2">Jours</p>
                         <p className="text-[#F0E6D3]">{(apiData.lucky_elements.days || []).join(' · ')}</p>
                       </div>
                     )}
                     {apiData.lucky_elements.gemstones && (
                       <div>
-                        <p className="text-[#C5A059]/70 text-xs uppercase tracking-widest mb-2">Pierres</p>
+                        <p className="text-[#B8961F]/70 text-xs uppercase tracking-widest mb-2">Pierres</p>
                         <p className="text-[#F0E6D3]">{(apiData.lucky_elements.gemstones || []).join(' · ')}</p>
                       </div>
                     )}

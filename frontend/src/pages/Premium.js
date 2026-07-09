@@ -32,20 +32,20 @@ function PricingCard({ title, price, period, features, cta, highlighted, onCta, 
       padding: '32px 28px',
       borderRadius: 20,
       background: highlighted
-        ? 'linear-gradient(180deg, rgba(212,180,106,0.15) 0%, rgba(11,14,40,0.85) 100%)'
+        ? 'linear-gradient(180deg, rgba(212,175,55,0.15) 0%, rgba(11,14,40,0.85) 100%)'
         : 'linear-gradient(180deg, rgba(6,8,26,0.6) 0%, rgba(11,14,40,0.5) 100%)',
       border: highlighted
-        ? '1.5px solid rgba(212,180,106,0.55)'
-        : '1px solid rgba(212,180,106,0.18)',
+        ? '1.5px solid rgba(212,175,55,0.55)'
+        : '1px solid rgba(212,175,55,0.18)',
       backdropFilter: 'blur(16px)',
       position: 'relative',
-      boxShadow: highlighted ? '0 12px 40px rgba(212,180,106,0.15)' : '0 4px 20px rgba(0,0,0,0.3)',
+      boxShadow: highlighted ? '0 12px 40px rgba(212,175,55,0.15)' : '0 4px 20px rgba(0,0,0,0.3)',
     }}>
       {badge && (
         <div style={{
           position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
           padding: '4px 14px', borderRadius: 999,
-          background: '#D4B46A', color: '#0F1230',
+          background: '#D4AF37', color: '#0F1230',
           fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase',
           fontFamily: 'Cinzel, serif', fontWeight: 600,
         }}>
@@ -55,7 +55,7 @@ function PricingCard({ title, price, period, features, cta, highlighted, onCta, 
 
       <div style={{
         fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase',
-        color: highlighted ? '#F4D98C' : 'rgba(212,180,106,0.7)',
+        color: highlighted ? '#E8C766' : 'rgba(212,175,55,0.7)',
         fontFamily: 'Cinzel, serif', marginBottom: 8,
       }}>
         {title}
@@ -73,7 +73,7 @@ function PricingCard({ title, price, period, features, cta, highlighted, onCta, 
         {features.map((f, i) => (
           <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13.5, color: 'rgba(255,255,255,0.78)', lineHeight: 1.5 }}>
             <Check style={{
-              width: 15, height: 15, color: highlighted ? '#D4B46A' : 'rgba(212,180,106,0.6)',
+              width: 15, height: 15, color: highlighted ? '#D4AF37' : 'rgba(212,175,55,0.6)',
               flexShrink: 0, marginTop: 2,
             }} strokeWidth={2} />
             <span>{f}</span>
@@ -83,9 +83,9 @@ function PricingCard({ title, price, period, features, cta, highlighted, onCta, 
 
       <button onClick={onCta} disabled={loading} style={{
         width: '100%', padding: '14px 24px', borderRadius: 999,
-        background: highlighted ? '#D4B46A' : 'transparent',
-        color: highlighted ? '#0F1230' : '#D4B46A',
-        border: highlighted ? 'none' : '1px solid rgba(212,180,106,0.4)',
+        background: highlighted ? '#D4AF37' : 'transparent',
+        color: highlighted ? '#0F1230' : '#D4AF37',
+        border: highlighted ? 'none' : '1px solid rgba(212,175,55,0.4)',
         fontFamily: 'Cinzel, serif', fontSize: 11, fontWeight: 600,
         letterSpacing: '0.18em', textTransform: 'uppercase',
         cursor: loading ? 'wait' : 'pointer',
@@ -165,10 +165,10 @@ export default function Premium() {
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '6px 16px', borderRadius: 999, marginBottom: 16,
-              background: 'rgba(212,180,106,0.12)', border: '1px solid rgba(212,180,106,0.3)',
+              background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.3)',
             }}>
-              <Crown style={{ width: 13, height: 13, color: '#F4D98C' }} strokeWidth={1.5} />
-              <span style={{ fontSize: 10, letterSpacing: '0.2em', color: '#F4D98C', textTransform: 'uppercase', fontFamily: 'Cinzel, serif' }}>
+              <Crown style={{ width: 13, height: 13, color: '#E8C766' }} strokeWidth={1.5} />
+              <span style={{ fontSize: 10, letterSpacing: '0.2em', color: '#E8C766', textTransform: 'uppercase', fontFamily: 'Cinzel, serif' }}>
                 Plume Astrale Premium
               </span>
             </div>
@@ -177,7 +177,7 @@ export default function Premium() {
               fontSize: 'clamp(34px, 5vw, 50px)', color: '#F4E4BC', marginBottom: 12, fontWeight: 300, lineHeight: 1.15,
             }}>
               Une guidance vivante,<br />
-              <span style={{ color: '#D4B46A', fontStyle: 'italic' }}>chaque jour</span>
+              <span style={{ color: '#D4AF37', fontStyle: 'italic' }}>chaque jour</span>
             </h1>
             <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.7)', maxWidth: 580, margin: '0 auto', lineHeight: 1.6 }}>
               L&apos;abonnement Premium ouvre l&apos;accès complet aux cycles, compatibilités,
@@ -240,7 +240,7 @@ export default function Premium() {
 
           <p style={{
             textAlign: 'center', marginTop: 28, fontSize: 12,
-            color: 'rgba(212,180,106,0.75)', lineHeight: 1.6, maxWidth: 600, margin: '28px auto 0',
+            color: 'rgba(212,175,55,0.75)', lineHeight: 1.6, maxWidth: 600, margin: '28px auto 0',
             fontStyle: 'italic',
           }}>
             ✦ Carte requise pour activer l&apos;essai — aucun debit pendant 7 jours, annulable a tout moment ✦
@@ -250,18 +250,18 @@ export default function Premium() {
             textAlign: 'center', marginTop: 40, fontSize: 12,
             color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, maxWidth: 600, margin: '40px auto 0',
           }}>
-            <Sparkles style={{ width: 12, height: 12, display: 'inline', marginRight: 4, color: 'rgba(212,180,106,0.5)' }} />
+            <Sparkles style={{ width: 12, height: 12, display: 'inline', marginRight: 4, color: 'rgba(212,175,55,0.5)' }} />
             Sans engagement — annulable a tout moment depuis ton espace.
             Les consultations Plume restent en crédits (2cr/message) pour garantir une experience qualitative.
           </p>
 
           <div style={{
             marginTop: 60, paddingTop: 30, textAlign: 'center',
-            borderTop: '1px solid rgba(212,180,106,0.1)',
+            borderTop: '1px solid rgba(212,175,55,0.1)',
           }}>
             <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>
-              Calculs astrologiques propulsés par <strong style={{ color: 'rgba(212,180,106,0.75)' }}>AstrologyAPI</strong> ·
-              Paiement sécurisé par <strong style={{ color: 'rgba(212,180,106,0.75)' }}>Stripe</strong>
+              Calculs astrologiques propulsés par <strong style={{ color: 'rgba(212,175,55,0.75)' }}>AstrologyAPI</strong> ·
+              Paiement sécurisé par <strong style={{ color: 'rgba(212,175,55,0.75)' }}>Stripe</strong>
             </p>
           </div>
         </div>

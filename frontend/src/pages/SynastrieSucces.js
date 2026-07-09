@@ -43,10 +43,10 @@ export default function SynastrieSucces() {
     <div className="min-h-screen pt-24 pb-20 px-4 flex items-start justify-center" data-testid="synastrie-success-page">
       <SEO path="/synastrie/succes" />
       <div className="max-w-xl w-full">
-        <div className="rounded-2xl p-8 sm:p-10 text-center" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(212,180,106,0.2)' }}>
+        <div className="rounded-2xl p-8 sm:p-10 text-center" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(212,175,55,0.2)' }}>
           {!status && !err && (
             <>
-              <Loader2 className="w-10 h-10 mx-auto mb-4 animate-spin" style={{ color: '#D4B46A' }} />
+              <Loader2 className="w-10 h-10 mx-auto mb-4 animate-spin" style={{ color: '#D4AF37' }} />
               <p className="text-sm" style={{ color: 'rgba(184,176,200,0.75)' }}>Verification de votre paiement...</p>
             </>
           )}
@@ -71,7 +71,7 @@ export default function SynastrieSucces() {
                   href={status.pdf_path}
                   download
                   className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full"
-                  style={{ background: 'linear-gradient(135deg, #D4B46A, #C5A059)', color: '#0C0918', fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
+                  style={{ background: 'linear-gradient(135deg, #D4AF37, #B8961F)', color: '#0C0918', fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
                   data-testid="synastrie-download-btn"
                 >
                   <Download className="w-4 h-4" /> Telecharger mon rapport
@@ -83,7 +83,7 @@ export default function SynastrieSucces() {
                 </div>
               )}
 
-              <div className="mt-8 pt-6 flex items-center justify-center gap-2 text-xs" style={{ borderTop: '1px solid rgba(212,180,106,0.1)', color: 'rgba(184,176,200,0.6)' }}>
+              <div className="mt-8 pt-6 flex items-center justify-center gap-2 text-xs" style={{ borderTop: '1px solid rgba(212,175,55,0.1)', color: 'rgba(184,176,200,0.6)' }}>
                 <Mail className="w-3.5 h-3.5" />
                 {status?.email_sent ? 'Email envoye' : 'Email en cours d\'envoi'}
               </div>
@@ -92,7 +92,7 @@ export default function SynastrieSucces() {
 
           {status && status.status === 'pending' && !err && (
             <>
-              <Loader2 className="w-10 h-10 mx-auto mb-4 animate-spin" style={{ color: '#D4B46A' }} />
+              <Loader2 className="w-10 h-10 mx-auto mb-4 animate-spin" style={{ color: '#D4AF37' }} />
               <p className="text-sm" style={{ color: 'rgba(184,176,200,0.75)' }}>Confirmation du paiement en cours...</p>
             </>
           )}

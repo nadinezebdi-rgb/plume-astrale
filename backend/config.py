@@ -16,10 +16,8 @@ class Settings:
     SUPABASE_JWT_SECRET = os.environ['SUPABASE_JWT_SECRET']
     SUPABASE_JWT_ALGORITHM = 'HS256'
 
-    # Astrology API
-    ASTROLOGY_API_USER_ID = os.environ.get('ASTROLOGY_API_USER_ID', '')
-    ASTROLOGY_API_KEY = os.environ.get('ASTROLOGY_API_KEY', '')
-    ASTROLOGY_API_ACCESS_TOKEN = os.environ.get('ASTROLOGY_API_ACCESS_TOKEN', '')
+    # Astrology API (astrology-api.io v3)
+    ASTROLOGY_API_IO_KEY = os.environ.get('ASTROLOGY_API_IO_KEY', '')
 
     # Stripe (sk_test_emergent en dev, sk_live_... en prod sur Railway)
     STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
@@ -69,12 +67,23 @@ class Settings:
             'product': 'rencontres_ultime',
             'tagline': 'Ton portrait partenaire ideal + 3 fenetres de rencontre + rituels energetiques.',
         },
+        'kabbale_arbre_de_vie': {
+            'name': 'Ton Arbre de Vie Kabbalistique',
+            'credits': 0,   # one-shot
+            'bonus': 0,
+            'amount': 39.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'kabbale_arbre_de_vie',
+            'tagline': "Les 10 Sephiroth + 22 chemins de ton theme natal — PDF 15 pages unique en francais.",
+        },
     }
 
     # Grille GaryVee — tous les services sont des multiples/fractions de 10 cr (unité = 1 question)
     SERVICE_COSTS = {
         # Produits d'appel — micro-conversion
         'tarot_oui_non': 5,          # demi-question — flash & indolore
+        'archetype': 15,             # Ton Archetype — micro-produit viral 4,99€ equivalent
         # Chat — l'unite de base
         'chat_astral': 10,           # 1 question = 10 cr
         'lecture_tarot': 10,

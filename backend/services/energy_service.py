@@ -8,7 +8,7 @@ from integrations.llm.chat import LlmChat, UserMessage
 import os
 
 from services.supabase_client import get_admin_client
-from services.astrology_api import AstrologyAPIService
+from services import astrology_io_service as aio
 
 logger = logging.getLogger(__name__)
 
@@ -63,16 +63,18 @@ async def get_energy_today(user_id: str, birth_data: Dict[str, Any]) -> Dict[str
     except Exception:
         pass  # table peut-etre absente
 
-    # Recuperer le contexte natal succint
+    # Recuperer le contexte natal succint via astrology-api.io v3
     try:
-        svc = AstrologyAPIService()
-        natal = await svc.get_western_horoscope(
-            str(birth_data.get('birth_date')),
-            (str(birth_data.get('birth_time'))[:5]),
-            float(birth_data.get('latitude')),
-            float(birth_data.get('longitude')),
-            1.0,
+        bd = str(birth_data.get('birth_date'))[:10]
+        bt = str(birth_data.get('birth_time') or '12:00')[:5]
+        y, m, d = bd.split('-')
+        h, mn = bt.split(':')
+        bd_v3 = aio.make_birth_data(
+            int(y), int(m), int(d), int(h), int(mn),
+            latitude=float(birth_data.get('latitude')) if birth_data.get('latitude') is not None else None,
+            longitude=float(birth_data.get('longitude')) if birth_data.get('longitude') is not None else None,
         )
+        natal = await aio.natal_chart(bd_v3, name=birth_data.get('prenom') or 'Voyageur', language='fr')
         natal_summary = _summarize_natal(natal)
     except Exception as e:
         logger.warning(f'Cannot get natal: {e}')
@@ -124,23 +126,24 @@ Genere maintenant l'energie du jour en JSON strict (4 sections : dominante, rela
 
 
 def _summarize_natal(natal: Optional[Dict[str, Any]]) -> str:
-    """Resume textuel du theme natal pour le prompt."""
+    """Resume textuel du theme natal pour le prompt (format v3 astrology-api.io)."""
     if not natal:
         return 'Theme natal indisponible.'
     parts = []
-    planets = {p['name'].lower(): p for p in (natal.get('planets') or [])}
-    for k in ('sun', 'moon'):
+    planets = aio.extract_planets(natal)
+
+    for k, label in (('sun', 'Sun'), ('moon', 'Moon')):
         p = planets.get(k)
-        if p:
-            parts.append(f'{k.title()} en {p.get("sign", "?")} maison {p.get("house", "?")}')
-    # Ascendant
-    for h in (natal.get('houses') or []):
-        if h.get('house') == 1:
-            parts.append(f'Ascendant {h.get("sign", "?")}')
-            break
-    # Autres planetes interieures
-    for k in ('mercury', 'venus', 'mars'):
+        if p and p.get('sign'):
+            parts.append(f'{label} en {p.get("sign")} maison {p.get("house") or "?"}')
+
+    asc_sign = aio.extract_ascendant_sign_en(natal)
+    if asc_sign:
+        parts.append(f'Ascendant {asc_sign}')
+
+    for k, label in (('mercury', 'Mercury'), ('venus', 'Venus'), ('mars', 'Mars')):
         p = planets.get(k)
-        if p:
-            parts.append(f'{k.title()} en {p.get("sign", "?")}')
+        if p and p.get('sign'):
+            parts.append(f'{label} en {p.get("sign")}')
+
     return ' · '.join(parts) if parts else 'Theme natal partiel.'

@@ -1,118 +1,133 @@
 {
-  "identity": {
-    "name": "Astral Soul Path",
-    "tone": "Esoteric, Mystical, Profound, High-Impact",
-    "core_concept": "The Modern Oracle",
-    "keywords": ["Cosmic", "Deep", "Gold", "Constellation", "Soul", "Ritual"]
+  "project_name": "Plume Astrale",
+  "vision": "Une SaaS premium d'astrologie française. Design type magazine de luxe, fluide, sans friction, rassurant. Rejet total de l'imagerie 'cheap' (boules de cristal, gothique). Utilisation de géométrie sacrée, de line-art doré et de transitions brumeuses.",
+  "design_philosophy": {
+    "core_concept": "L'Élégance Éditoriale & Le Voyage Intérieur",
+    "anti_patterns": [
+      "Gradients violets/blancs",
+      "Boules de cristal pixellisées",
+      "Polices gothiques/grimoire",
+      "Boîtes coupées au couteau (hard edges)",
+      "Noir pur (#000000) ou Blanc chirurgical (#FFFFFF)"
+    ],
+    "vibe": "Application de bien-être premium (Calm/Headspace) croisée avec un magazine de luxe."
   },
-  "palette": {
-    "theme": "dark",
+  "colors": {
     "primary": {
-      "void_dark": "#0F0518",
-      "deep_purple": "#1A0B2E",
-      "nebula_indigo": "#2D1B4E"
+      "hex": "#111625",
+      "name": "Nuit Douce",
+      "usage": "Fond principal"
+    },
+    "secondary": {
+      "hex": "#1A2035",
+      "name": "Nuit Profonde",
+      "usage": "Fonds de cartes, blocs de contenu"
     },
     "accent": {
-      "stardust_gold": "#C5A059",
-      "bright_gold": "#FFD700",
-      "mystic_teal": "#1B93A4" 
+      "primary": {
+        "hex": "#D4AF37",
+        "name": "Or Brossé",
+        "usage": "Boutons, icônes, line-art, bordures (opacité 20%)"
+      },
+      "secondary": {
+        "hex": "#E3D7FF",
+        "name": "Lavande Pâle",
+        "usage": "Textes secondaires, fantômes, captions"
+      }
     },
-    "text": {
-      "heading": "#F3E5AB",
-      "body": "#E0D9F6",
-      "muted": "#9CA3AF"
-    },
-    "gradients": {
-      "cosmic_void": "linear-gradient(180deg, #0F0518 0%, #1A0B2E 100%)",
-      "gold_glow": "linear-gradient(45deg, #C5A059, #FFD700)",
-      "glass_surface": "linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)"
+    "elements": {
+      "feu": "#E8A855",
+      "eau": "#7BA5D9",
+      "air": "#C4B0E0",
+      "terre": "#9DAA82",
+      "logic": "Une fois connecté, le #D4AF37 global est remplacé subtilement par la couleur de l'élément de l'utilisateur."
     }
   },
   "typography": {
     "headings": {
-      "font_family": "Cinzel, serif",
-      "weights": ["400", "700"],
-      "usage": "All section titles, hero text, card headers"
+      "font": "Cinzel",
+      "emphasis": "Cormorant Garamond (Italic)",
+      "css_classes": "font-serif tracking-tight text-white"
     },
     "body": {
-      "font_family": "Quicksand, sans-serif",
-      "weights": ["300", "400", "600"],
-      "usage": "Paragraphs, inputs, buttons, labels"
+      "font": "Plus Jakarta Sans",
+      "css_classes": "font-sans leading-relaxed text-slate-300"
+    },
+    "scale": {
+      "h1": "text-4xl md:text-5xl lg:text-6xl tracking-tighter leading-none",
+      "h2": "text-3xl md:text-4xl tracking-tight",
+      "h3": "text-2xl md:text-3xl",
+      "body": "text-base md:text-lg",
+      "caption": "text-xs md:text-sm uppercase tracking-[0.2em]"
     }
   },
   "visual_enhancers": {
-    "border_radius": "rounded-xl",
-    "glassmorphism": "backdrop-blur-xl bg-white/5 border border-white/10",
-    "shadows": {
-      "glow": "0 0 20px rgba(197, 160, 89, 0.2)",
-      "deep": "0 10px 40px rgba(0, 0, 0, 0.5)"
-    },
-    "textures": "Use noise overlay opacity-5 mix-blend-overlay on solid backgrounds"
+    "noise": "Grain SVG 3% d'opacité en overlay fixe (pointer-events-none) sur tout le site pour un effet ciel étoilé/texture.",
+    "cursor": "Cercle doré 8px, délai 40ms, s'agrandit sur :hover.",
+    "section_transitions": "radial-gradient(ellipse at top, rgba(212,175,55,0.06), transparent 70%) entre les sections au lieu de couper avec des fonds solides.",
+    "sound": "Micro-son opt-in (ding au clic + drone spatial 15dB). Toggle 🔇/🔊 dans la Tab Bar. Par défaut: MUTE."
   },
-  "layout_strategies": {
-    "landing_page": "Parallax scrolling with star fields. Hero section must be immersive.",
-    "bento_grid": "Use for 'Full Results' dashboard. Uneven grid cells for different soul aspects.",
-    "form_ritual": "Single input focus or step-by-step 'ritual' progression rather than a boring form list."
+  "motion": {
+    "durations": {
+      "fast": "200ms",
+      "medium": "400ms",
+      "slow": "800ms"
+    },
+    "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+    "stagger": "80ms",
+    "rules": "Fade-in-up 0.3s au scroll. Respecter obligatoirement `prefers-reduced-motion`."
   },
   "components": {
     "buttons": {
-      "primary": "bg-transparent border border-[#C5A059] text-[#C5A059] hover:bg-[#C5A059] hover:text-[#0F0518] transition-all duration-500 uppercase tracking-widest shadow-[0_0_15px_rgba(197,160,89,0.3)]",
-      "cta_pulse": "animate-pulse shadow-[0_0_20px_#FFD700]"
+      "primary": "Fond #D4AF37, texte #111625, box-shadow: 0 0 24px rgba(212,175,55,0.35), transition-all 400ms",
+      "secondary": "Fond transparent, bordure 1px rgba(212,175,55,0.4), texte #D4AF37, hover:bg-[#D4AF37]/10",
+      "ghost": "Texte #E3D7FF, hover:underline, hover:text-white"
     },
     "cards": {
-      "style": "Glassmorphism with 1px gold border (opacity 20%). Hover state increases border opacity and adds inner glow.",
-      "content_padding": "p-8 md:p-12"
+      "base": "Glassmorphism: bg-[#1A2035]/40 backdrop-blur-xl border border-[#D4AF37]/20 rounded-2xl p-6",
+      "featured_pricing": "Même base + box-shadow: 0 0 40px rgba(212,175,55,0.15) (pour le pack Clarté), légère surélévation."
     },
-    "inputs": {
-      "style": "bg-transparent border-b border-[#C5A059]/30 focus:border-[#C5A059] text-xl text-center text-[#E0D9F6] outline-none placeholder:text-[#E0D9F6]/30 transition-all font-light"
+    "navigation": {
+      "desktop": "Navbar sticky en haut. Fond glassmorphism bg-[#111625]/80 backdrop-blur-md border-b border-[#D4AF37]/10. Pas de fond 100% transparent.",
+      "mobile": "Tab Bar sticky en bas. 3 icônes (Mon Espace, Tarifs, Consulter). Fond bg-[#111625]/90 backdrop-blur-lg border-t border-[#D4AF37]/20. Style app native type Calm."
+    },
+    "section_wrapper": "div avec un padding vertical généreux (py-24 ou py-32) et le background contenant le radial-gradient doux pour fondre la limite avec la section précédente.",
+    "carousels": {
+      "testimonials": "Défilement horizontal infini auto-scroll (react-fast-marquee). Cartes avec fond glassmorphism, texte #E3D7FF, étoiles/notes en or #D4AF37. Format vertical type 'Instagram Story'."
+    },
+    "modals_drawers": {
+      "style": "Fond de l'overlay: bg-[#111625]/80 backdrop-blur-sm. Contenu: fond #1A2035 avec bordure 1px #D4AF37/20. Coins très arrondis (rounded-3xl)."
     }
   },
-  "images": {
-    "hero_bg": "https://images.unsplash.com/photo-1630873273144-cfa9079fdd72?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxkYXJrJTIwcHVycGxlJTIwbmVidWxhJTIwc3RhcnMlMjBjb25zdGVsbGF0aW9uJTIwYmFja2dyb3VuZCUyMHRleHR1cmV8ZW58MHx8fHwxNzcxMTY5NzQ2fDA&ixlib=rb-4.1.0&q=85",
-    "section_bg_clouds": "https://images.unsplash.com/photo-1763929919160-90aace0eca42?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwzfHxkYXJrJTIwcHVycGxlJTIwbmVidWxhJTIwc3RhcnMlMjBjb25zdGVsbGF0aW9uJTIwYmFja2dyb3VuZCUyMHRleHR1cmV8ZW58MHx8fHwxNzcxMTY5NzQ2fDA&ixlib=rb-4.1.0&q=85",
-    "mystical_atmosphere": "https://images.unsplash.com/photo-1760462830575-4fbeb89bcef1?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwxfHxteXN0aWNhbCUyMHdvbWFuJTIwc2lsaG91ZXR0ZSUyMGNyeXN0YWxzJTIwc3Bpcml0dWFsJTIwYXRtb3NwaGVyZXxlbnwwfHx8fDE3NzExNjk3NDd8MA&ixlib=rb-4.1.0&q=85",
-    "ritual_candle": "https://images.unsplash.com/photo-1603669435608-eb647988e585?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwzfHxteXN0aWNhbCUyMHdvbWFuJTIwc2lsaG91ZXR0ZSUyMGNyeXN0YWxzJTIwc3Bpcml0dWFsJTIwYXRtb3NwaGVyZXxlbnwwfHx8fDE3NzExNjk3NDd8MA&ixlib=rb-4.1.0&q=85"
+  "grids_and_layouts": {
+    "desktop": "12 colonnes, asymétrique, spacing 80px entre sections.",
+    "mobile": "1 colonne fluide (style app mobile), padding-x 16px, spacing 48px entre sections.",
+    "hero_split": "Gauche: Texte H1 + CTA. Droite: Photo Solena + Moon 3D (effet de double exposition avec dégradé transparent vers la gauche pour fondre la photo dans le fond #111625)."
   },
-  "assets_instructions": {
-    "icons": "Use lucide-react with thin stroke-width (1px) for a delicate, refined look. Use Star, Moon, Sun, Sparkles icons.",
-    "particles": "Install 'tsparticles' and 'react-tsparticles'. Create a 'StarField' component that renders subtle moving white dots behind the content."
+  "accessibility": {
+    "contrast": "Garantir lisibilité. Les textes sur fond #111625 doivent être au moins #94a3b8 ou #E3D7FF.",
+    "test_ids": "Tous les éléments interactifs doivent avoir un attribut `data-testid` (ex: `data-testid='btn-consultation'`).",
+    "motion": "Désactiver les animations complexes si prefers-reduced-motion est actif."
   },
-  "page_structure": {
-    "landing": {
-      "sections": ["Hero (Cosmic Promise)", "Testimonials (Social Proof)", "Features (What you get)", "CTA (Begin Journey)"],
-      "vibe": "Immersive, heavy use of scroll animations."
-    },
-    "form": {
-      "concept": "The Ritual",
-      "steps": ["Name", "Time", "Place"],
-      "ui": "Center screen, one question at a time (Typeform style but mystical)."
-    },
-    "free_preview": {
-      "concept": "The Glimpse",
-      "content": ["Life Path Number (Chemin de vie)", "Personal Year (Année personnelle)"],
-      "goal": "Show high value, blur the rest. Make the user feel 'seen' instantly.",
-      "paywall": "Blur the 'Deep Soul Analysis' sections with a glass overlay and a lock icon."
-    },
-    "full_results": {
-      "sections": ["Celestial Identity", "Life Mission", "Heart & Relations", "Challenges & Talents", "Council of the Quill"],
-      "layout": "Tabbed interface or long scroll with sticky nav."
-    }
-  },
-  "instructions_to_main_agent": [
-    "Install 'framer-motion' for scroll reveals and entry animations.",
-    "Install 'react-tsparticles' and 'tsparticles-slim' for the background.",
-    "Refactor 'App.js' to use 'react-router-dom'. Create routes: '/', '/ritual', '/revelation' (preview), '/payment', '/soul-path' (full).",
-    "Ensure the Free Preview page is accessible BEFORE payment.",
-    "Use the provided image URLs as background images with low opacity overlays.",
-    "Do NOT use gradients for text unless it is a very large headline.",
-    "Avoid the infinity symbol as requested. Use constellations, stars, or simple geometric lines.",
-    "Ensure all text contrast meets WCAG AA standards, especially gold on dark purple."
+  "creative_signatures": [
+    "Le Souffle Astral : L'opacité du grain de fond pulse très subtilement (2% à 4%) toutes les 12 secondes pour donner un effet 'vivant'.",
+    "Fil d'Ariane : Une très fine ligne verticale (1px, rgba(212,175,55,0.15)) descend au centre de la page en scrollant, connectant spirituellement les sections.",
+    "Aura Connectée : L'icône active de la Tab Bar mobile luit de la couleur de l'élément astral de l'utilisateur (Feu, Eau, Air, Terre) plutôt que l'or standard une fois connecté."
   ],
-  "universal_guidelines": {
-    "spacing": "Use p-12 or p-24 for section spacing. Do not cram content.",
-    "typography": "Don't use Inter. Use Quicksand for body.",
-    "buttons": "No solid block buttons. Use ghost buttons with borders or glowing effects.",
-    "interactions": "All interactive elements must have a hover state that changes color or glow.",
-    "mobile": "Ensure font sizes scale down on mobile. p-4 padding on mobile containers."
-  }
+  "instructions_to_main_agent": [
+    "1. Crée et mets à jour les composants dans des fichiers `.js` (pas de `.tsx`).",
+    "2. Utilise `framer-motion` pour les animations en respectant l'easing (cubic-bezier(0.22, 1, 0.36, 1)).",
+    "3. Ne propose pas d'assets/images à générer. Utilise l'architecture et les placeholders respectueux, l'utilisateur connectera ses vraies images (Solena, vidéos).",
+    "4. Applique scrupuleusement les tokens de couleurs et les typographies (Cinzel/Cormorant/Plus Jakarta).",
+    "5. Intègre la Tab Bar mobile 'App-like' en bas de l'écran avec le toggle audio discret."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Ne pas générer de design 'AI slop'. Les designs doivent avoir du caractère et une tension visuelle (asymétrie, typographie forte).",
+    "Toujours utiliser des composants UI avec des padding/marges généreux (2-3x plus que la moyenne).",
+    "Les headers et menus fixes NE DOIVENT PAS avoir un fond 100% transparent. Utiliser toujours un backdrop-blur ou une opacité élevée.",
+    "Utiliser les balises `data-testid` pour TOUTES les interactions pour les tests automatisés.",
+    "Ne jamais utiliser `transition: all`, cibler spécifiquement `transition-colors`, `transition-opacity`, `transition-transform`.",
+    "Les icônes doivent utiliser 'lucide-react' avec une approche fine (stroke-width: 1.5 ou 1).",
+    "Toutes les sections sont séparées par des radial-gradients subtils au lieu de bordures dures ou de simples changements de background flat."
+  ]
 }

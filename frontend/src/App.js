@@ -18,6 +18,9 @@ import TirageTarot from "./pages/TirageTarot";
 import TarotOuiNon from "./pages/TarotOuiNon";
 import Tarologie from "./pages/Tarologie";
 import Numerologie from "./pages/Numerologie";
+import Archetype from "./pages/Archetype";
+import KabbaleSales from "./pages/KabbaleSales";
+import KabbaleSucces from "./pages/KabbaleSucces";
 import KarmaDestin from "./pages/KarmaDestin";
 import Horoscope from "./pages/Horoscope";
 import Compatibilite from "./pages/Compatibilite";
@@ -54,10 +57,23 @@ import Desabonnement from "./pages/Desabonnement";
 import PremiumStickyCTA from "./components/PremiumStickyCTA";
 import CookieConsent from "./components/CookieConsent";
 
+// ─── Plume Design System v2 (Feb 2026) ────────────────────────────
+import NoiseOverlay from "./components/design/NoiseOverlay";
+import ScrollThread from "./components/design/ScrollThread";
+import CustomCursor from "./components/design/CustomCursor";
+import MobileTabBar from "./components/design/MobileTabBar";
+import AuraProvider from "./components/design/AuraProvider";
+
 function App() {
   return (
     <AuthProvider>
+      <AuraProvider>
       <BrowserRouter>
+        {/* ─── Overlays globaux Plume Design System v2 ─── */}
+        <NoiseOverlay />
+        <ScrollThread />
+        <CustomCursor />
+        <MobileTabBar />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />
@@ -81,6 +97,9 @@ function App() {
                 <Route path="/paiement/succes" element={<PaiementSucces />} />
                 <Route path="/resultats" element={<Resultats />} />
                 <Route path="/numerologie" element={<Numerologie />} />
+                <Route path="/archetype" element={<Archetype />} />
+                <Route path="/kabbale" element={<KabbaleSales />} />
+                <Route path="/kabbale/succes" element={<KabbaleSucces />} />
                 <Route path="/karma-destin" element={<KarmaDestin />} />
                 <Route path="/tarot" element={<Tarot />} />
                 <Route path="/tirage-tarot" element={<TirageTarot />} />
@@ -124,6 +143,7 @@ function App() {
           } />
         </Routes>
       </BrowserRouter>
+      </AuraProvider>
     </AuthProvider>
   );
 }

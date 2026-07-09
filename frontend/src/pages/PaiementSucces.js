@@ -73,7 +73,7 @@ const PaiementSucces = () => {
           
           {status === 'checking' && (
             <>
-              <Loader2 className="w-16 h-16 text-[#C5A059] mx-auto mb-8 animate-spin" />
+              <Loader2 className="w-16 h-16 text-[#B8961F] mx-auto mb-8 animate-spin" />
               <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                 Vérification en cours...
               </h1>
@@ -87,14 +87,14 @@ const PaiementSucces = () => {
             <>
               <div className="relative mb-8">
                 <CheckCircle className="w-20 h-20 text-emerald-500 mx-auto" strokeWidth={1.5} />
-                <Sparkles className="w-8 h-8 text-[#C5A059] absolute top-0 right-1/3 animate-pulse" />
+                <Sparkles className="w-8 h-8 text-[#B8961F] absolute top-0 right-1/3 animate-pulse" />
               </div>
               
               <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
                 Félicitations !
               </h1>
               
-              <p className="text-[#C5A059] text-xl mb-6">
+              <p className="text-[#B8961F] text-xl mb-6">
                 Votre Manuscrit de la Plume est prêt
               </p>
               

@@ -1,0 +1,114 @@
+import React, { useEffect, useState, useCallback } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { CheckCircle2, Download, ArrowRight, Loader2, Mail } from 'lucide-react';
+import axios from 'axios';
+import SEO from '@/components/SEO';
+
+const API = process.env.REACT_APP_BACKEND_URL;
+
+const STEPS = [
+  { key: 'payment', label: 'Paiement confirmé' },
+  { key: 'compute', label: 'Cartographie kabbalistique en cours' },
+  { key: 'pdf', label: 'Génération de ton PDF (15 pages)' },
+  { key: 'email', label: 'Envoi par email' },
+];
+
+const KabbaleSucces = () => {
+  const [params] = useSearchParams();
+  const sessionId = params.get('session_id');
+  const [status, setStatus] = useState({});
+  const [polling, setPolling] = useState(true);
+
+  const poll = useCallback(async () => {
+    if (!sessionId) return;
+    try {
+      const r = await axios.get(`${API}/api/kabbale/status?session_id=${sessionId}`);
+      setStatus(r.data || {});
+      if (r.data?.pdf_ready) setPolling(false);
+    } catch (e) { /* silent */ }
+  }, [sessionId]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    poll();
+    if (!polling) return;
+    const id = setInterval(poll, 3500);
+    return () => clearInterval(id);
+  }, [sessionId, polling, poll]);
+
+  const stepState = (key) => {
+    const paid = status.payment_status === 'paid' || status.status === 'completed';
+    if (key === 'payment') return paid ? 'done' : 'pending';
+    if (key === 'compute') return status.pdf_ready ? 'done' : (paid ? 'active' : 'pending');
+    if (key === 'pdf') return status.pdf_ready ? 'done' : (paid ? 'active' : 'pending');
+    if (key === 'email') return status.email_sent ? 'done' : (status.pdf_ready ? 'active' : 'pending');
+    return 'pending';
+  };
+
+  return (
+    <div className="min-h-screen relative" style={{ padding: '110px 20px 140px' }} data-testid="kabbale-success-page">
+      <SEO path="/kabbale/succes" title="Ton Arbre de Vie est en cours · Plume Astrale" description="Ton PDF Kabbale est en génération." />
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-6" style={{ background: 'rgba(212,175,55,0.15)', border: '1px solid rgba(212,175,55,0.4)' }}>
+            <CheckCircle2 className="w-8 h-8" style={{ color: '#D4AF37' }} strokeWidth={1.4} />
+          </div>
+          <p className="text-[10px] uppercase mb-4" style={{ color: '#D4AF37', letterSpacing: '0.32em', fontFamily: 'Cinzel, serif' }}>
+            ✦ Paiement confirmé ✦
+          </p>
+          <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, lineHeight: 1.1, fontSize: 'clamp(32px, 5vw, 52px)', color: '#F5EEE0', marginBottom: 16 }}>
+            Ton <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>Arbre de Vie</em><br />se dessine
+          </h1>
+          <p className="text-base max-w-lg mx-auto" style={{ color: 'rgba(227,215,255,0.75)', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic', lineHeight: 1.6 }}>
+            Ton PDF sera envoyé par email dans les prochaines minutes.
+          </p>
+        </div>
+
+        <div className="plume-glass p-8 mb-8">
+          <ul className="space-y-4">
+            {STEPS.map((s, i) => {
+              const st = stepState(s.key);
+              return (
+                <li key={s.key} className="flex items-center gap-3" data-testid={`kabbale-step-${s.key}-${st}`}>
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center" style={{
+                    background: st === 'done' ? 'rgba(212,175,55,0.2)' : 'rgba(26,32,53,0.6)',
+                    border: `1px solid ${st === 'done' ? '#D4AF37' : 'rgba(212,175,55,0.25)'}`,
+                  }}>
+                    {st === 'done' ? <CheckCircle2 className="w-4 h-4" style={{ color: '#D4AF37' }} strokeWidth={2} />
+                     : st === 'active' ? <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#D4AF37' }} strokeWidth={2} />
+                     : <span className="w-2 h-2 rounded-full" style={{ background: 'rgba(212,175,55,0.35)' }} />}
+                  </div>
+                  <span className="text-sm" style={{ color: st === 'pending' ? 'rgba(227,215,255,0.5)' : '#F5EEE0', fontFamily: 'Cormorant Garamond, serif', fontSize: 17 }}>
+                    {s.label}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <div className="text-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            {status.pdf_url && (
+              <a href={`${API}${status.pdf_url}`} target="_blank" rel="noopener noreferrer" className="plume-btn-primary" data-testid="kabbale-download-btn">
+                <Download className="w-4 h-4" strokeWidth={1.5} />
+                Télécharger mon PDF
+              </a>
+            )}
+            <Link to="/" className="plume-btn-secondary" data-testid="kabbale-home-btn">
+              Retour à l'accueil
+              <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
+            </Link>
+          </div>
+          {status.email_sent && (
+            <p className="text-xs mt-6 inline-flex items-center gap-2" style={{ color: 'rgba(227,215,255,0.55)' }}>
+              <Mail className="w-3.5 h-3.5" /> Email envoyé à ton adresse.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default KabbaleSucces;

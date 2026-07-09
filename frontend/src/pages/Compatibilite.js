@@ -176,7 +176,7 @@ const Compatibilite = () => {
 
         {/* Header */}
         <div className="text-center mb-12">
-          <p className="text-[#C5A059] uppercase tracking-[0.3em] text-sm mb-3 font-light">
+          <p className="text-[#B8961F] uppercase tracking-[0.3em] text-sm mb-3 font-light">
             Synastrie Cosmique · Swiss Ephemeris
           </p>
           <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
@@ -199,8 +199,8 @@ const Compatibilite = () => {
                 data-testid={`relation-tab-${r.id}`}
                 className={`flex flex-col items-center gap-2 py-4 px-3 rounded-lg border transition-all ${
                   active
-                    ? 'border-[#C5A059] bg-[#C5A059]/15 text-[#F0E6D3]'
-                    : 'border-[#C5A059]/20 text-[#B8B0C8]/60 hover:border-[#C5A059]/40 hover:text-[#B8B0C8]'
+                    ? 'border-[#B8961F] bg-[#B8961F]/15 text-[#F0E6D3]'
+                    : 'border-[#B8961F]/20 text-[#B8B0C8]/60 hover:border-[#B8961F]/40 hover:text-[#B8B0C8]'
                 }`}
               >
                 <Icon className="w-5 h-5" strokeWidth={1.4} />
@@ -213,7 +213,7 @@ const Compatibilite = () => {
         {/* Auth gate */}
         {!authLoading && !isAuthenticated && (
           <div className="card-mystical text-center py-10 mb-6" data-testid="auth-gate">
-            <LogIn className="w-7 h-7 mb-3 mx-auto" style={{ color: '#C5A059' }} strokeWidth={1.5} />
+            <LogIn className="w-7 h-7 mb-3 mx-auto" style={{ color: '#B8961F' }} strokeWidth={1.5} />
             <p className="text-[#F0E6D3] mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.25rem' }}>
               Connectez-vous pour analyser vos liens
             </p>
@@ -222,12 +222,12 @@ const Compatibilite = () => {
             </p>
             <div className="flex gap-3 justify-center">
               <button onClick={() => navigate('/connexion?next=/compatibilite')}
-                className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full border border-[#C5A059]/50 text-[#C5A059]"
+                className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full border border-[#B8961F]/50 text-[#B8961F]"
                 data-testid="gate-login">
                 Se connecter
               </button>
               <button onClick={() => navigate('/inscription')}
-                className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059]"
+                className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full bg-[#B8961F]/10 border border-[#B8961F]/30 text-[#B8961F]"
                 data-testid="gate-register">
                 Créer un compte
               </button>
@@ -239,7 +239,7 @@ const Compatibilite = () => {
         {isAuthenticated && !result && (
           <div className="card-mystical" data-testid="partner-form">
             <h3 className="text-lg mb-5 flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-              <currentRel.icon className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} />
+              <currentRel.icon className="w-5 h-5 text-[#B8961F]" strokeWidth={1.5} />
               Données de l'autre personne — {currentRel.label.toLowerCase()}
             </h3>
 
@@ -251,51 +251,51 @@ const Compatibilite = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Prénom (ou alias)</label>
+                <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Prénom (ou alias)</label>
                 <input type="text" value={partner.name}
                   onChange={(e) => handleField('name', e.target.value)}
-                  className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#C5A059] text-sm"
+                  className="w-full px-3 py-2.5 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#F0E6D3] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#B8961F] text-sm"
                   placeholder="Prénom du partenaire"
                   data-testid="partner-name" />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Jour</label>
+                  <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Jour</label>
                   <input type="number" min="1" max="31" value={partner.day} onChange={(e) => handleField('day', e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#C5A059] text-sm"
+                    className="w-full px-3 py-2.5 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#B8961F] text-sm"
                     placeholder="JJ" data-testid="partner-day" />
                 </div>
                 <div>
-                  <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Mois</label>
+                  <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Mois</label>
                   <input type="number" min="1" max="12" value={partner.month} onChange={(e) => handleField('month', e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#C5A059] text-sm"
+                    className="w-full px-3 py-2.5 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#B8961F] text-sm"
                     placeholder="MM" data-testid="partner-month" />
                 </div>
                 <div>
-                  <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Année</label>
+                  <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Année</label>
                   <input type="number" min="1920" max="2025" value={partner.year} onChange={(e) => handleField('year', e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#C5A059] text-sm"
+                    className="w-full px-3 py-2.5 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#B8961F] text-sm"
                     placeholder="AAAA" data-testid="partner-year" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Heure (si connue)</label>
+                  <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Heure (si connue)</label>
                   <div className="grid grid-cols-2 gap-2">
                     <input type="number" min="0" max="23" value={partner.hour} onChange={(e) => handleField('hour', e.target.value)}
-                      className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#C5A059] text-sm"
+                      className="w-full px-3 py-2.5 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#B8961F] text-sm"
                       placeholder="HH" data-testid="partner-hour" />
                     <input type="number" min="0" max="59" value={partner.minute} onChange={(e) => handleField('minute', e.target.value)}
-                      className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#C5A059] text-sm"
+                      className="w-full px-3 py-2.5 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#B8961F] text-sm"
                       placeholder="MM" data-testid="partner-minute" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[#C5A059] text-xs uppercase tracking-widest mb-1">Ville de naissance</label>
+                  <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-1">Ville de naissance</label>
                   <input type="text" value={partner.city} onChange={(e) => handleField('city', e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#15112A] border border-[#C5A059]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#C5A059] text-sm"
+                    className="w-full px-3 py-2.5 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#F0E6D3] focus:outline-none focus:border-[#B8961F] text-sm"
                     placeholder="Paris" data-testid="partner-city" />
                 </div>
               </div>
@@ -330,17 +330,17 @@ const Compatibilite = () => {
             <div className="card-mystical text-center glow-gold">
               <div className="flex justify-center items-center gap-5 mb-6">
                 <div className="text-center">
-                  <Star className="w-7 h-7 text-[#C5A059] mx-auto mb-1" strokeWidth={1} />
+                  <Star className="w-7 h-7 text-[#B8961F] mx-auto mb-1" strokeWidth={1} />
                   <p className="text-[#F0E6D3] text-sm">{result.name_1}</p>
                 </div>
                 <currentRel.icon className="w-9 h-9 text-pink-400 animate-pulse" />
                 <div className="text-center">
-                  <Star className="w-7 h-7 text-[#C5A059] mx-auto mb-1" strokeWidth={1} />
+                  <Star className="w-7 h-7 text-[#B8961F] mx-auto mb-1" strokeWidth={1} />
                   <p className="text-[#F0E6D3] text-sm">{result.name_2}</p>
                 </div>
               </div>
 
-              <p className="text-[#C5A059] uppercase tracking-[0.3em] text-xs mb-1" data-testid="result-rel-type">
+              <p className="text-[#B8961F] uppercase tracking-[0.3em] text-xs mb-1" data-testid="result-rel-type">
                 Compatibilité {result.relationship_label}
               </p>
               <div className="text-7xl font-bold text-gold-gradient mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }} data-testid="result-score">
@@ -352,7 +352,7 @@ const Compatibilite = () => {
 
               <div className="w-full h-3 bg-[#15112A] rounded-full my-6 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-[#C5A059] to-[#D4B46A] transition-all duration-1000"
+                  className="h-full bg-gradient-to-r from-[#B8961F] to-[#D4AF37] transition-all duration-1000"
                   style={{ width: `${result.score}%` }}
                 />
               </div>
@@ -366,13 +366,13 @@ const Compatibilite = () => {
             {result.aspects && result.aspects.length > 0 && (
               <div className="card-mystical" data-testid="result-aspects">
                 <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-                  <Sparkles className="w-5 h-5 text-[#C5A059]" strokeWidth={1.5} />
+                  <Sparkles className="w-5 h-5 text-[#B8961F]" strokeWidth={1.5} />
                   Aspects astrologiques clés
                 </h3>
                 <ul className="space-y-3">
                   {result.aspects.map((a, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm" data-testid={`aspect-${i}`}>
-                      <span className="text-[#C5A059] mt-1">·</span>
+                      <span className="text-[#B8961F] mt-1">·</span>
                       <div>
                         <span className="text-[#F0E6D3]">{a.planet_1} {a.aspect} {a.planet_2}</span>
                         {a.orb !== null && <span className="text-[#B8B0C8]/50 ml-2">(orbe {a.orb}°)</span>}

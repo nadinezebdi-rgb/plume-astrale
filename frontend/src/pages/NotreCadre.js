@@ -7,12 +7,12 @@ const Section = ({ icon: Icon, title, children, testid }) => (
     data-testid={testid}
     style={{
       background: 'rgba(255,255,255,0.025)',
-      border: '1px solid rgba(212,180,106,0.18)',
+      border: '1px solid rgba(212,175,55,0.18)',
       borderRadius: 18, padding: '28px 26px', marginBottom: 18,
     }}
   >
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-      <Icon style={{ width: 22, height: 22, color: '#D4B46A' }} strokeWidth={1.4} />
+      <Icon style={{ width: 22, height: 22, color: '#D4AF37' }} strokeWidth={1.4} />
       <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#F0E6D3', fontWeight: 400, margin: 0 }}>
         {title}
       </h2>
@@ -31,7 +31,7 @@ const NotreCadre = () => (
     </Link>
 
     <div style={{ textAlign: 'center', marginBottom: 40 }}>
-      <p style={{ fontSize: 11, letterSpacing: '0.3em', color: '#D4B46A', textTransform: 'uppercase', fontFamily: 'Cinzel, serif', marginBottom: 14 }}>
+      <p style={{ fontSize: 11, letterSpacing: '0.3em', color: '#D4AF37', textTransform: 'uppercase', fontFamily: 'Cinzel, serif', marginBottom: 14 }}>
         Notre engagement
       </p>
       <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(34px, 6vw, 54px)', color: '#F0E6D3', fontWeight: 300, lineHeight: 1.1, marginBottom: 16 }}>
@@ -47,7 +47,7 @@ const NotreCadre = () => (
         ne déterminera ce qui doit se produire dans votre vie.
       </p>
       <p style={{ marginBottom: 12 }}>
-        Ce que nous proposons est un <strong style={{ color: '#D4B46A' }}>langage symbolique</strong>
+        Ce que nous proposons est un <strong style={{ color: '#D4AF37' }}>langage symbolique</strong>
         — celui des étoiles et des cycles — pour vous inviter à mieux écouter ce qui vibre déjà en vous.
         Pour clarifier, ralentir, déposer.
       </p>
@@ -68,7 +68,7 @@ const NotreCadre = () => (
           "Partager ou vendre vos données. Jamais.",
         ].map((it, i) => (
           <li key={i} style={{ position: 'relative', paddingLeft: 22, marginBottom: 10 }}>
-            <span style={{ position: 'absolute', left: 0, color: '#D4B46A' }}>·</span>
+            <span style={{ position: 'absolute', left: 0, color: '#D4AF37' }}>·</span>
             {it}
           </li>
         ))}
@@ -85,7 +85,7 @@ const NotreCadre = () => (
         de vies que n&apos;importe quelle « grande révélation ».
       </p>
       <p style={{ marginBottom: 12 }}>
-        Que la <strong style={{ color: '#D4B46A' }}>tension n&apos;est pas un signe d&apos;incompatibilité</strong> dans
+        Que la <strong style={{ color: '#D4AF37' }}>tension n&apos;est pas un signe d&apos;incompatibilité</strong> dans
         un thème ou dans une relation : c&apos;est un chemin de croissance. Nous nommerons toujours
         les difficultés en termes de potentiel à explorer, jamais comme un mauvais présage.
       </p>
@@ -98,7 +98,7 @@ const NotreCadre = () => (
     <Section icon={BookOpen} title="Vos données, votre journal" testid="cadre-privacy">
       <p style={{ marginBottom: 12 }}>
         Tout ce que vous écrivez dans votre <em>Réflexion du soir</em> ou dans vos journaux privés
-        reste <strong style={{ color: '#D4B46A' }}>strictement entre vous et vous</strong>. Aucune équipe
+        reste <strong style={{ color: '#D4AF37' }}>strictement entre vous et vous</strong>. Aucune équipe
         humaine n&apos;y a accès. Aucun algorithme n&apos;analyse vos confidences.
       </p>
       <p style={{ marginBottom: 12 }}>
@@ -112,11 +112,11 @@ const NotreCadre = () => (
     </Section>
 
     <div style={{
-      background: 'linear-gradient(135deg, rgba(212,180,106,0.08) 0%, rgba(167,139,250,0.06) 100%)',
-      border: '1px solid rgba(212,180,106,0.3)',
+      background: 'linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(167,139,250,0.06) 100%)',
+      border: '1px solid rgba(212,175,55,0.3)',
       borderRadius: 18, padding: 30, textAlign: 'center', marginTop: 24,
     }}>
-      <p style={{ fontSize: 11, letterSpacing: '0.2em', color: '#D4B46A', textTransform: 'uppercase', marginBottom: 12, fontFamily: 'Cinzel, serif' }}>
+      <p style={{ fontSize: 11, letterSpacing: '0.2em', color: '#D4AF37', textTransform: 'uppercase', marginBottom: 12, fontFamily: 'Cinzel, serif' }}>
         Notre promesse
       </p>
       <p style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#F0E6D3', fontStyle: 'italic', lineHeight: 1.45, fontWeight: 300, margin: 0 }}>
