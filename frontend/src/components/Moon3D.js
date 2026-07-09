@@ -314,15 +314,15 @@ export default function Moon3D({ step = 1 }) {
     };
     window.addEventListener('resize', handleResize);
 
-    // Animation loop
-    const clock = new THREE.Clock();
+    // Animation loop (performance.now() replaces deprecated THREE.Clock)
+    const startTime = performance.now();
     let currentScale = 1;
     setReady(true);
 
     let animId;
     const animate = () => {
       if (state.disposed) return;
-      const t = clock.getElapsedTime();
+      const t = (performance.now() - startTime) / 1000;
 
       // Rotation & zoom lerp
       const targetY = state.targetRot + state.mouseX * 0.35 + t * 0.06;
