@@ -59,8 +59,6 @@ import CookieConsent from "./components/CookieConsent";
 
 // ─── Plume Design System v2 (Feb 2026) ────────────────────────────
 import NoiseOverlay from "./components/design/NoiseOverlay";
-import ScrollThread from "./components/design/ScrollThread";
-import CustomCursor from "./components/design/CustomCursor";
 import MobileTabBar from "./components/design/MobileTabBar";
 import AuraProvider from "./components/design/AuraProvider";
 
