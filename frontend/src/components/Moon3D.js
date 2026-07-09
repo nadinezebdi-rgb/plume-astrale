@@ -177,18 +177,18 @@ const auraFragmentShader = `
     float n = fbm2(uv * 2.6 + vec2(uTime * 0.05, uTime * 0.03));
     float glow = smoothstep(0.55, 0.05, d + n * 0.10);
 
-    // Palette violet-indigo pour matcher la section Solena
-    vec3 gold = vec3(0.95, 0.72, 0.28);
-    vec3 violet = vec3(0.45, 0.32, 0.85);
-    vec3 indigo = vec3(0.18, 0.10, 0.42);
+    // Palette Nuit Douce harmonisée — or brossé + bleu profond (fini les violets vifs)
+    vec3 gold = vec3(0.83, 0.68, 0.22);
+    vec3 midnight = vec3(0.10, 0.13, 0.24);
+    vec3 deepBlue = vec3(0.07, 0.09, 0.16);
 
-    // Coeur : subtile lueur dorée près de la lune ; halo : violet ambiant
-    vec3 col = mix(indigo, violet, smoothstep(0.45, 0.10, d));
-    col = mix(col, gold, smoothstep(0.28, 0.06, d) * 0.55);
-    col += vec3(0.10, 0.06, 0.20) * n * 0.6;
+    // Coeur : lueur dorée douce ; halo : bleu nuit qui se fond dans la page
+    vec3 col = mix(deepBlue, midnight, smoothstep(0.45, 0.10, d));
+    col = mix(col, gold, smoothstep(0.28, 0.06, d) * 0.45);
+    col += vec3(0.08, 0.07, 0.11) * n * 0.5;
 
-    float intensity = glow * (0.45 + 0.12 * sin(uTime * 0.4));
-    gl_FragColor = vec4(col * intensity, intensity * 0.75);
+    float intensity = glow * (0.42 + 0.10 * sin(uTime * 0.4));
+    gl_FragColor = vec4(col * intensity, intensity * 0.70);
   }
 `;
 
@@ -273,8 +273,8 @@ export default function Moon3D({ step = 1 }) {
       bumpScale: 0.04,
       roughness: 0.95,
       metalness: 0.0,
-      emissive: new THREE.Color(0x2a1e4a),  // teinte violette indigo subtile
-      emissiveIntensity: 0.08,
+      emissive: new THREE.Color(0x1A2035),  // teinte Nuit Douce harmonisée (fin des violets)
+      emissiveIntensity: 0.06,
     });
     const moonGeom = new THREE.SphereGeometry(1, 128, 128);
     const moonMesh = new THREE.Mesh(moonGeom, moonMat);

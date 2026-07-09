@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Hero3D from '../components/Hero3D';
 import SolenaChat from '../components/SolenaChat';
+import TestimonialsMarquee from '../components/design/TestimonialsMarquee';
 import {
   Sparkles, Heart, ArrowRight, Quote, CheckCircle2, Play, Star
 } from 'lucide-react';
@@ -552,10 +553,11 @@ const ServicesShowcase = () => {
 ═══════════════════════════════════════════════════════════ */
 const Index = () => {
   return (
-    <div className="relative" style={{ overflow: 'hidden' }}>
+    <div className="relative" style={{ overflow: 'hidden', background: '#111625' }}>
       <SEO path="/" />
       <CosmicCanvas />
       <Hero3D />
+      <TestimonialsMarquee />
       <ServicesShowcase />
       <BrandStory />
       <SolenaJourney />
