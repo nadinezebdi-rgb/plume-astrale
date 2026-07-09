@@ -16,10 +16,8 @@ class Settings:
     SUPABASE_JWT_SECRET = os.environ['SUPABASE_JWT_SECRET']
     SUPABASE_JWT_ALGORITHM = 'HS256'
 
-    # Astrology API
-    ASTROLOGY_API_USER_ID = os.environ.get('ASTROLOGY_API_USER_ID', '')
-    ASTROLOGY_API_KEY = os.environ.get('ASTROLOGY_API_KEY', '')
-    ASTROLOGY_API_ACCESS_TOKEN = os.environ.get('ASTROLOGY_API_ACCESS_TOKEN', '')
+    # Astrology API (astrology-api.io v3)
+    ASTROLOGY_API_IO_KEY = os.environ.get('ASTROLOGY_API_IO_KEY', '')
 
     # Stripe (sk_test_emergent en dev, sk_live_... en prod sur Railway)
     STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')

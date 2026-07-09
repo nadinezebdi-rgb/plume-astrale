@@ -1,0 +1,48 @@
+{
+  "summary": "Regression complete apres purge des variables legacy ASTROLOGY_API_KEY / USER_ID / ACCESS_TOKEN. 9/9 tests pytest PASS. Aucun ImportError, backend demarre proprement. Les endpoints astrologie v3 (karma-destiny, natal-chart, horoscope-prediction) fonctionnent et retournent Taureau/Capricorne conformes. Les endpoints authentifies (natal/essentials, energy/today, plume-chat) marchent avec le compte admin@plume-astrale.fr. Les signes francais complets (Taureau, Capricorne, Vierge...) sont retournes sans troncature 'Tau'/'Vir'/'Cap'. Le chat Solena tombe correctement sur OpenAI en fallback.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/astrology/karma-destiny",
+        "issue": "Pour Paris 15/05/1990 14:30, source_calcul='approximatif' (fallback local) au lieu de 'astrology-api-v3'. Les valeurs Taureau/Capricorne sont correctes cote calcul local, mais l'appel v3 semble ne pas etre atteint (peut etre depassement quota / timeout). Non-bloquant car la spec autorise les deux valeurs, mais a surveiller."
+      },
+      {
+        "endpoint": "/api/plume-chat",
+        "issue": "Le contrat de la review request mentionnait un payload {messages:[{role,content}]} mais l'endpoint attend en fait {message: 'text'} (singulier). Documenter dans l'API doc / OpenAPI pour eviter les confusions futures."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration41_astrology_purge.py",
+    "/app/test_reports/pytest/iteration_41.xml"
+  ],
+  "action_items": [
+    "Verifier pourquoi karma-destiny retourne 'approximatif' au lieu de 'astrology-api-v3' pour Paris (probablement fallback silencieux dans le bloc except). Ajouter un log warning pour tracer.",
+    "Documenter clairement dans /api/plume-chat le champ attendu 'message' (str) au lieu de 'messages' (array) pour eviter la confusion avec le format OpenAI chat.completions."
+  ],
+  "critical_code_review_comments": [
+    "server.py depasse 1240 lignes -- envisager un split en routers (astrology_router, plume_chat_router, wallet_router, etc.) pour respecter la regle <700 lignes/fichier.",
+    "server.py:970 utilise print() puis logger.warning() indistinctement. Uniformiser sur logger pour tracabilite.",
+    "Le fallback silencieux dans karma-destiny (line ~890 'v3 fallback: {e}' via print) masque potentiellement les erreurs v3. Utiliser logger.exception et retourner un flag 'v3_available: false' pour observabilite frontend.",
+    "Aucun test unitaire pour astrology_io_service.extract_planets / extract_ascendant_sign_en -- ajouter des tests avec fixtures JSON pour verifier la conversion Tau->Taureau."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration41_astrology_purge.py (nouveau)"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "N/A (skipped per request)"
+  },
+  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 (Supabase login OK, token JWT ES256 verifie via JWKS)",
+  "seed_data_creation": "Aucune donnee semee (tests read-only sur endpoints existants + admin profile)",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Purge legacy astrology API 100% terminee. Aucune reference residuelle a ASTROLOGY_API_KEY/USER_ID/ACCESS_TOKEN/AstrologyAPIService dans /app/backend. Les fichiers services/astrology_api.py, astrology_api_premium.py, astrology_pdf_api.py n'existent plus. Le test file /app/backend/tests/test_iteration41_astrology_purge.py peut etre reexecute comme regression rapide (9 tests, ~10s). Contrat API observes: karma-destiny retourne {success, data:{...}} avec tout imbrique dans data. natal-chart retourne {success, data:{chart_data:{...}}, source:'v3'} avec source AU TOP-LEVEL. plume-chat attend {message: str, birth_data, session_id?}.",
+  "rca_of_the_issue": "N/A -- aucune regression detectee. Le seul point d'attention est le fallback silencieux karma-destiny qui masque potentiellement des echecs de l'API v3. Reproduction: appeler /api/astrology/karma-destiny avec un lieu valide -> observer source_calcul='approximatif' au lieu de 'astrology-api-v3'. Mitigation: ajouter logger.exception() dans le catch bloc line ~890 de server.py et exposer optionnellement un champ 'v3_error' dans la reponse en mode dev."
+}

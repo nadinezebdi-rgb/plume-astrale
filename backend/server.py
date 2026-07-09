@@ -27,7 +27,7 @@ from services.daily_ritual import (
 )
 from services import wallet_service
 from services.supabase_client import get_admin_client
-from services.astrology_api import AstrologyAPIService
+from services import astrology_io_service as aio
 from services.energy_service import get_energy_today
 from services import premium_subscription
 from routes.admin import router as admin_router
@@ -190,20 +190,22 @@ async def natal_essentials(current_user: dict = Depends(get_current_user)):
 
     try:
         time_str = bt[:5] if len(str(bt)) >= 5 else str(bt)
-        svc = AstrologyAPIService()
-        data = await svc.get_western_horoscope(str(bd), time_str, float(lat), float(lon), 1.0)
-        if not data or 'planets' not in data:
+        y, m, d = str(bd)[:10].split('-')
+        h, mn = time_str.split(':')
+        bd_v3 = aio.make_birth_data(
+            int(y), int(m), int(d), int(h), int(mn),
+            latitude=float(lat), longitude=float(lon),
+        )
+        data = await aio.natal_chart(bd_v3, name=profile.get('prenom') or 'Voyageur', language='fr')
+        if not data:
             return {'success': False, 'message': 'API astrologique indisponible', 'has_data': False}
 
-        planets = {p['name'].lower(): p for p in data['planets']}
-        # Ascendant = signe de la maison 1
-        asc_sign_en = None
-        for h in (data.get('houses') or []):
-            if h.get('house') == 1:
-                asc_sign_en = h.get('sign')
-                break
-        if asc_sign_en:
-            planets['ascendant'] = {'name': 'Ascendant', 'sign': asc_sign_en, 'house': 1, 'normDegree': 0}
+        planets = aio.extract_planets(data)
+        # Ascendant : renseigne via extract_ascendant_sign_en si absent des planets
+        if 'ascendant' not in planets:
+            asc_en = aio.extract_ascendant_sign_en(data)
+            if asc_en:
+                planets['ascendant'] = {'name': 'Ascendant', 'sign': asc_en, 'house': 1}
 
         result = {}
         for key in ['sun', 'moon', 'ascendant']:
@@ -865,59 +867,29 @@ async def astrology_karma_destiny(request: Request):
     lune_signe = None
     source = 'approximatif'
     try:
-        from services import astrology_io_service as aio
         bd_v3 = aio.make_birth_data(
             d.year, d.month, d.day, hh, mm,
             city=ville, country_code='FR' if pays.lower() == 'france' else None,
         )
         positions = await aio.get_positions(bd_v3, name=prenom or 'Voyageur', language='fr')
-        if positions and isinstance(positions, dict):
-            pts = positions.get('points') or positions.get('positions') or positions.get('planets') or []
-            for p in (pts if isinstance(pts, list) else []):
-                name = (p.get('name') or p.get('point') or '').lower()
-                sign_raw = p.get('sign') or (p.get('position') or {}).get('sign') or ''
-                sign_fr = signes_fr.get(str(sign_raw).title(), str(sign_raw))
-                if 'node' in name and ('north' in name or 'mean' in name or 'true' in name) and not noeud_nord:
-                    if 'south' not in name:
-                        noeud_nord = sign_fr
-                elif name == 'sun' or name == 'soleil':
-                    soleil_signe = sign_fr
-                elif name == 'moon' or name == 'lune':
-                    lune_signe = sign_fr
-            if noeud_nord:
-                source = 'astrology-api-v3'
+        planets = aio.extract_planets(positions)
+        if planets:
+            # Signes en EN complet ('Taurus' etc.) -> FR
+            if planets.get('sun'):
+                soleil_signe = signes_fr.get(planets['sun'].get('sign'))
+            if planets.get('moon'):
+                lune_signe = signes_fr.get(planets['moon'].get('sign'))
+            # Noeud Nord : cherche 'true_node', 'mean_node', 'north_node', 'node'
+            for key in ('true_node', 'mean_node', 'north_node', 'node'):
+                p = planets.get(key)
+                if p and p.get('sign'):
+                    noeud_nord = signes_fr.get(p.get('sign'))
+                    source = 'astrology-api-v3'
+                    break
     except Exception as e:
         print(f'[karma-destiny] v3 fallback: {e}')
 
-    # ── 2) Tentative AstrologyAPI legacy ─────────────────────────────
-    if not noeud_nord:
-        try:
-            from services.astrology_api import get_astrology_service
-            svc = get_astrology_service()
-            lat, lon, tz = 48.8566, 2.3522, 1.0
-            try:
-                geo = await svc.get_geo_details(f"{ville}, {pays}" if pays else ville)
-                if geo and isinstance(geo, list) and len(geo) > 0:
-                    g = geo[0]
-                    lat = float(g.get('latitude', lat))
-                    lon = float(g.get('longitude', lon))
-                    tz = float(g.get('timezone_offset', tz)) if g.get('timezone_offset') else tz
-            except Exception:
-                pass
-            wh = await svc.get_western_horoscope(date_naissance, heure, lat, lon, tz)
-            if wh and isinstance(wh, dict):
-                for p in wh.get('planets', []):
-                    if p.get('name') == 'Node':
-                        noeud_nord = signes_fr.get(p.get('sign'))
-                        source = 'astrologyapi'
-                    elif p.get('name') == 'Sun' and not soleil_signe:
-                        soleil_signe = signes_fr.get(p.get('sign'))
-                    elif p.get('name') == 'Moon' and not lune_signe:
-                        lune_signe = signes_fr.get(p.get('sign'))
-        except Exception as e:
-            print(f'[karma-destiny] legacy fallback: {e}')
-
-    # ── 3) Fallback approximatif si tout echoue ──────────────────────
+    # ── 2) Fallback approximatif si v3 echoue ──────────────────────
     if not noeud_nord:
         ref = _dt(2000, 1, 1)
         years_diff = (d - ref).days / 365.25
@@ -982,28 +954,10 @@ async def astrology_karma_destiny(request: Request):
 
 @api_router.post('/astrology/natal-chart')
 async def astrology_natal_chart(request: Request):
-    """Wrapper vers AstrologyAPI pour le theme natal complet (legacy + fallback v3).
+    """Theme natal complet via astrology-api.io v3.
     Le frontend Karma & Destin l'appelle pour enrichir le rapport."""
     body = await request.json()
     try:
-        from services.astrology_api import get_astrology_service
-        svc = get_astrology_service()
-        day = int(body.get('day', 1)); month = int(body.get('month', 1)); year = int(body.get('year', 2000))
-        hour = int(body.get('hour', 12)); minute = int(body.get('min', 0))
-        date_str = f"{year:04d}-{month:02d}-{day:02d}"
-        time_str = f"{hour:02d}:{minute:02d}"
-        data = await svc.get_western_horoscope(
-            date_str, time_str,
-            body.get('lat', 48.8566), body.get('lon', 2.3522), body.get('tzone', 1),
-        )
-        if data:
-            return {'success': True, 'data': data, 'source': 'astrologyapi'}
-    except Exception as e:
-        logger.warning(f'natal-chart legacy failed, trying v3: {e}')
-
-    # Fallback v3
-    try:
-        from services import astrology_io_service as aio
         bd = aio.make_birth_data(
             int(body.get('year', 2000)), int(body.get('month', 1)), int(body.get('day', 1)),
             int(body.get('hour', 12)), int(body.get('min', 0)),
@@ -1013,6 +967,7 @@ async def astrology_natal_chart(request: Request):
         if chart:
             return {'success': True, 'data': chart, 'source': 'v3'}
     except Exception as e:
+        logger.warning(f'natal-chart v3 failed: {e}')
         return {'success': False, 'message': str(e)[:120]}
     return {'success': False, 'message': 'Astrology API indisponible'}
 
@@ -1038,7 +993,6 @@ async def horoscope_prediction(payload: HoroscopeRequest):
     """Horoscope personnalise via astrology-api.io v3.
     Si birth data complete -> appel /horoscope/personal/{period} (richement personnalise).
     Sinon -> fallback /horoscope/sign/{period} avec le signe."""
-    from services import astrology_io_service as aio
 
     period = payload.period if payload.period in {'daily', 'weekly', 'monthly', 'yearly'} else 'daily'
 
