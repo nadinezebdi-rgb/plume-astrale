@@ -13,6 +13,16 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+## Session Feb 2026 — ⭐ Vitrine "Mon Thème Natal" dans le Navbar (2026-02)
+- ✅ Bouton CTA doré ajouté dans le Navbar desktop + mobile :
+  - Fond dégradé doré + bordure lumineuse
+  - Texte "✦ Mon Thème Natal"
+  - Badge noir intégré "DÈS 14,99€"
+  - Effet hover : translateY(-1px) + shadow renforcée
+- ✅ **Link auth-aware** : `/formulaire` si connecté, `/inscription?next=/formulaire` sinon (récupère 20 cr offerts + démarre le tunnel Thème Natal)
+- ✅ **Placement stratégique** desktop : au centre du menu, avant les CTA Connexion/Inscription
+- ✅ **Testid** : `navbar-natal-vitrine` (desktop) + `mobile-navbar-natal-vitrine` (mobile)
+
 ## Session Feb 2026 — 💎 Grille tarifaire GaryVee (services multiples de 10cr) (2026-02)
 Refonte des coûts services + pack middle (aligné pile sur le prix du Thème Natal).
 - ✅ **Nouveaux SERVICE_COSTS** (`backend/config.py`) — grille GaryVee :
