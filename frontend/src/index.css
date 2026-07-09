@@ -508,10 +508,23 @@ select.input-editorial option {
 }
 
 /* ── Signature #3 — Aura Connectée (via classes .aura-{element}) ── */
+:root { --plume-aura: var(--plume-gold); }
 .aura-fire  { --plume-aura: var(--plume-element-fire); }
 .aura-water { --plume-aura: var(--plume-element-water); }
 .aura-air   { --plume-aura: var(--plume-element-air); }
 .aura-earth { --plume-aura: var(--plume-element-earth); }
+
+/* Boutons primary : leur outer-glow s'adapte a l'aura */
+body.aura-fire  .plume-btn-primary { box-shadow: 0 0 24px rgba(232,168,85,0.40), inset 0 1px 0 rgba(255,255,255,0.2); }
+body.aura-water .plume-btn-primary { box-shadow: 0 0 24px rgba(123,165,217,0.40), inset 0 1px 0 rgba(255,255,255,0.2); }
+body.aura-air   .plume-btn-primary { box-shadow: 0 0 24px rgba(196,176,224,0.40), inset 0 1px 0 rgba(255,255,255,0.2); }
+body.aura-earth .plume-btn-primary { box-shadow: 0 0 24px rgba(157,170,130,0.40), inset 0 1px 0 rgba(255,255,255,0.2); }
+
+/* Le glow du Fil d'Ariane s'adapte aussi (tres subtil) */
+body.aura-fire  .plume-scroll-thread { background: linear-gradient(180deg, transparent 0%, rgba(232,168,85,0.15) 15%, rgba(232,168,85,0.15) 85%, transparent 100%); }
+body.aura-water .plume-scroll-thread { background: linear-gradient(180deg, transparent 0%, rgba(123,165,217,0.15) 15%, rgba(123,165,217,0.15) 85%, transparent 100%); }
+body.aura-air   .plume-scroll-thread { background: linear-gradient(180deg, transparent 0%, rgba(196,176,224,0.15) 15%, rgba(196,176,224,0.15) 85%, transparent 100%); }
+body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, transparent 0%, rgba(157,170,130,0.15) 15%, rgba(157,170,130,0.15) 85%, transparent 100%); }
 
 /* ── Curseur custom (desktop uniquement) ── */
 .plume-cursor {

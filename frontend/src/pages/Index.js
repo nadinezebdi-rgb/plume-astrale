@@ -254,12 +254,7 @@ const SolenaJourney = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {SOLENA.specialities.map((s, i) => (
               <div key={i}
-                className="rounded-2xl p-4 flex items-start gap-3 transition-all hover:scale-[1.02]"
-                style={{
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(212,175,55,0.18)',
-                  backdropFilter: 'blur(10px)',
-                }}
+                className="plume-glass !rounded-2xl !p-4 flex items-start gap-3 transition-transform duration-400 ease-plume-silk hover:scale-[1.02]"
                 data-testid={`home-solena-speciality-${i}`}>
                 <CheckCircle2 style={{ width: 18, height: 18, color: '#D4AF37', flexShrink: 0, marginTop: 2 }} strokeWidth={1.5} />
                 <span className="text-sm" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'rgba(244,232,210,0.88)', lineHeight: 1.4 }}>
@@ -269,17 +264,7 @@ const SolenaJourney = () => {
             ))}
           </div>
           <div className="text-center mt-8">
-            <Link to="/solena"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase transition-all hover:scale-[1.02]"
-              style={{
-                border: '1px solid rgba(212,175,55,0.5)',
-                color: '#D4AF37',
-                letterSpacing: '0.2em',
-                fontWeight: 400,
-                background: 'transparent',
-                textDecoration: 'none',
-              }}
-              data-testid="home-solena-discover-btn">
+            <Link to="/solena" className="plume-btn-secondary" data-testid="home-solena-discover-btn">
               Découvrir l&apos;univers de Solena
               <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
             </Link>
@@ -515,7 +500,7 @@ const Index = () => {
             Technologie de confiance
           </p>
           <p className="text-base mb-3" style={{ color: 'rgba(244,232,210,0.85)', fontFamily: 'Cormorant Garamond, serif', fontSize: 22, lineHeight: 1.4 }}>
-            Calculs astrologiques propulsés par <span style={{ color: '#D4AF37', fontWeight: 500 }}>AstrologyAPI</span>
+            Calculs astrologiques propulsés par <span style={{ color: '#D4AF37', fontWeight: 500, fontStyle: 'italic' }}>astrology-api.io v3</span> · Textes générés par <span style={{ color: '#D4AF37', fontWeight: 500, fontStyle: 'italic' }}>OpenAI GPT</span>
           </p>
           <p className="text-sm max-w-xl mx-auto" style={{ color: 'rgba(244,232,210,0.55)', lineHeight: 1.6 }}>
             Éphémérides précises, fuseaux horaires, maisons astrologiques et aspects planétaires —

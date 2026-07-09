@@ -244,32 +244,14 @@ export default function RencontresUltimeSucces() {
                     href={`${API}${status.pdf_url}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-xs uppercase transition-all hover:scale-[1.02]"
-                    style={{
-                      background: 'linear-gradient(135deg, #E2BF65 0%, #E8C766 50%, #E2BF65 100%)',
-                      color: '#0A0603',
-                      letterSpacing: '0.18em',
-                      fontWeight: 700,
-                      textDecoration: 'none',
-                      boxShadow: '0 10px 30px rgba(226,191,101,0.35)',
-                    }}
+                    className="plume-btn-primary"
                     data-testid="succes-download-btn"
                   >
                     <Download style={{ width: 14, height: 14 }} strokeWidth={2} />
                     Télécharger mon Guide (PDF)
                   </a>
                 )}
-                <Link
-                  to="/"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full text-xs uppercase transition-all"
-                  style={{
-                    border: '1px solid rgba(226,191,101,0.4)',
-                    color: '#E2BF65',
-                    letterSpacing: '0.18em',
-                    textDecoration: 'none',
-                  }}
-                  data-testid="succes-home-btn"
-                >
+                <Link to="/" className="plume-btn-secondary" data-testid="succes-home-btn">
                   Retour à l&apos;accueil
                   <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
                 </Link>

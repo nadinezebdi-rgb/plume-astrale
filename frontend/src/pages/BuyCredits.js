@@ -267,14 +267,7 @@ export default function BuyCredits() {
                   <button
                     onClick={() => handleBuy(pack.id)}
                     disabled={loadingPack === pack.id}
-                    className="w-full py-2.5 text-xs uppercase tracking-widest rounded-full transition-all duration-500"
-                    style={{
-                      border: `1px solid ${isPopular ? '#B8961F' : 'rgba(184,150,31,0.4)'}`,
-                      color: loadingPack === pack.id ? 'var(--pa-muted)' : isPopular ? '#0C0918' : '#B8961F',
-                      background: isPopular ? '#B8961F' : 'transparent',
-                      letterSpacing: '0.1em',
-                      fontWeight: isPopular ? 600 : 400,
-                    }}
+                    className={isPopular ? 'plume-btn-primary w-full justify-center' : 'plume-btn-secondary w-full justify-center'}
                     data-testid={`buy-pack-${pack.id}`}
                   >
                     {loadingPack === pack.id ? 'Redirection...' : 'Acheter'}
@@ -313,22 +306,13 @@ export default function BuyCredits() {
             Continuer l&#39;exploration
           </h3>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/tarot-oui-non"
-              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-[#B8961F]/10"
-              style={{ border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', letterSpacing: '0.08em' }}
-              data-testid="cta-tarot">
+            <Link to="/tarot-oui-non" className="plume-btn-secondary" data-testid="cta-tarot">
               Tirage tarot <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-            <Link to="/formulaire"
-              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-[#B8961F]/10"
-              style={{ border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', letterSpacing: '0.08em' }}
-              data-testid="cta-theme">
+            <Link to="/formulaire" className="plume-btn-secondary" data-testid="cta-theme">
               Theme astral <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-            <Link to="/numerologie"
-              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-[#B8961F]/10"
-              style={{ border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', letterSpacing: '0.08em' }}
-              data-testid="cta-numerologie">
+            <Link to="/numerologie" className="plume-btn-secondary" data-testid="cta-numerologie">
               Numerologie <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>

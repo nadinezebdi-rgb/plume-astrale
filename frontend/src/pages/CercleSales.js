@@ -69,16 +69,8 @@ const CercleSales = () => (
     <div style={{ textAlign: 'center', marginBottom: 40 }}>
       <Link
         to="/premium"
+        className="plume-btn-primary"
         data-testid="cercle-cta-main"
-        style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          padding: '16px 36px', borderRadius: 999,
-          background: 'linear-gradient(135deg, #D4AF37 0%, #B8961F 100%)',
-          color: '#0C0918', fontWeight: 700,
-          fontSize: 13, letterSpacing: '0.14em', textTransform: 'uppercase',
-          textDecoration: 'none', minHeight: 56,
-          boxShadow: '0 6px 28px rgba(212,175,55,0.4)',
-        }}
       >
         ✦ Rejoindre le Cercle — 14,90€/mois
         <ArrowRight style={{ width: 16, height: 16 }} strokeWidth={2} />

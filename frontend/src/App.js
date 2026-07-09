@@ -59,10 +59,12 @@ import NoiseOverlay from "./components/design/NoiseOverlay";
 import ScrollThread from "./components/design/ScrollThread";
 import CustomCursor from "./components/design/CustomCursor";
 import MobileTabBar from "./components/design/MobileTabBar";
+import AuraProvider from "./components/design/AuraProvider";
 
 function App() {
   return (
     <AuthProvider>
+      <AuraProvider>
       <BrowserRouter>
         {/* ─── Overlays globaux Plume Design System v2 ─── */}
         <NoiseOverlay />
@@ -135,6 +137,7 @@ function App() {
           } />
         </Routes>
       </BrowserRouter>
+      </AuraProvider>
     </AuthProvider>
   );
 }

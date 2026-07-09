@@ -122,23 +122,76 @@
 }
 
 @keyframes cardGlow {
-  0%, 100% { box-shadow: 0 0 20px rgba(197, 160, 89, 0.2); }
-  50%       { box-shadow: 0 0 40px rgba(197, 160, 89, 0.4); }
+  0%, 100% { box-shadow: 0 0 20px rgba(212,175,55, 0.2); }
+  50%       { box-shadow: 0 0 40px rgba(212,175,55, 0.4); }
 }
 
+/* ── Card mystical (Plume DS v2 — glassmorphism) ── */
+.card-mystical {
+  background: rgba(26,32,53,0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212,175,55,0.20);
+  border-radius: 20px;
+  padding: 24px;
+  transition: border-color 400ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
 .card-mystical:hover {
+  border-color: rgba(212,175,55,0.4);
   animation: cardGlow 2s ease-in-out infinite;
 }
 
 @keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(197, 160, 89, 0.4); }
-  50%       { box-shadow: 0 0 0 15px rgba(197, 160, 89, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55, 0.4); }
+  50%       { box-shadow: 0 0 0 15px rgba(212,175,55, 0); }
 }
 
+/* ── Bouton mystical (bordure or) — Plume DS v2 ── */
+.btn-mystical {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #D4AF37;
+  background: transparent;
+  border: 1px solid rgba(212,175,55,0.4);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 400ms cubic-bezier(0.22, 1, 0.36, 1), border-color 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.btn-mystical:hover:not(:disabled) {
+  background: rgba(212,175,55,0.08);
+  border-color: rgba(212,175,55,0.7);
+}
+.btn-mystical:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── Bouton mystical rempli (gold solide + glow) — Plume DS v2 ── */
 .btn-mystical-filled {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 28px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #111625;
+  background: #D4AF37;
+  border: 1px solid rgba(232,199,102,0.4);
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 0 24px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
   animation: pulse-gold 2s ease-in-out infinite;
+  transition: box-shadow 400ms cubic-bezier(0.22, 1, 0.36, 1), transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-
-.btn-mystical-filled:hover {
+.btn-mystical-filled:hover:not(:disabled) {
+  box-shadow: 0 0 40px rgba(212,175,55,0.55), inset 0 1px 0 rgba(255,255,255,0.3);
+  transform: translateY(-2px);
   animation: none;
 }
+.btn-mystical-filled:disabled { opacity: 0.45; cursor: not-allowed; animation: none; }

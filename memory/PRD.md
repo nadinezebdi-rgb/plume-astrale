@@ -14,6 +14,30 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — 🎨 Design System v2 Phase 2 complete + Phase 3 + Aura Connectee (2026-02)
+
+### Phase 2 - Index.js uniformise
+- ✅ Trust badge migre : "AstrologyAPI" → "astrology-api.io v3 + OpenAI GPT" (correction post-purge).
+- ✅ CTA "Decouvrir l'univers de Solena" → `plume-btn-secondary`.
+- ✅ Cards specialites Solena → `plume-glass` (backdrop-blur + bordure or 20%).
+
+### Phase 3 - Pages secondaires unifiees
+- ✅ **CercleSales.js** : CTA principal "Rejoindre le Cercle 14,90€/mois" → `plume-btn-primary` (avec glow doux).
+- ✅ **BuyCredits.js** : 3 boutons packs (Initiation, Clarte, Flammes Jumelles) → `plume-btn-secondary` + `plume-btn-primary` (Clarte = featured). 3 CTAs footer (Tarot/Theme/Numerologie) → `plume-btn-secondary`.
+- ✅ **Compatibilite2.js** : 4 CTAs credit gates (Se connecter, Creer compte, Acheter credits, Commencer analyse) unifies.
+- ✅ **RencontresUltimeSucces.js** : bouton "Telecharger PDF" → `plume-btn-primary`, "Retour accueil" → `plume-btn-secondary`.
+- ✅ **TirageTarot.js** : via update global `.btn-mystical` et `.card-mystical` dans App.css — auto-refresh de tous les boutons + cards de cette page.
+- ✅ **App.css** : redefinition centralisee de `.btn-mystical`, `.btn-mystical-filled`, `.card-mystical` avec la nouvelle palette Nuit Douce + glow doux + easing silk.
+
+### Aura Connectee (Signature #3)
+- ✅ **Hook `/app/frontend/src/hooks/useAstralElement.js`** : calcule le signe solaire depuis `user.birth_date` puis mappe vers l'element (feu/eau/air/terre).
+- ✅ **`AuraProvider`** (`/app/frontend/src/components/design/AuraProvider.js`) : applique automatiquement la classe `.aura-{element}` sur `<body>` une fois l'utilisateur connecte.
+- ✅ **CSS** : `body.aura-*` remplace le glow des `plume-btn-primary` + le gradient du Fil d'Ariane par la couleur de l'element.
+- ✅ **Verifie** : admin ne le 15/05/1990 (Taureau) → `body.className = "aura-earth"` → accent verdoyant subtil.
+- ✅ Aucune regression backend (astrology API + Supabase assets toujours OK).
+
+
+
 ## Session Feb 2026 — 🎨 Design System v2 "Nuit Douce" (Phase 1 + 2 partielle) (2026-02)
 - ✅ **Nouveau design system Plume Astrale v2** livre par design_agent avec 3 signatures creatives originales :
   - **Souffle Astral** (grain SVG 3% pulsant 12s en overlay global)

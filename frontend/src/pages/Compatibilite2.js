@@ -283,8 +283,8 @@ const Compatibilite2 = () => {
                     <br /><span style={{ color: '#B8961F' }}>10 crédits &middot; 20 crédits offerts à l'inscription</span>
                   </p>
                   <div className="flex gap-3">
-                    <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
-                    <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', background: 'rgba(184,150,31,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Créer un compte</button>
+                    <button onClick={() => navigate('/connexion')} className="plume-btn-secondary" data-testid="gate-login-btn">Se connecter</button>
+                    <button onClick={() => navigate('/inscription')} className="plume-btn-primary" data-testid="gate-register-btn">Créer un compte</button>
                   </div>
                 </div>
               ) : creditBalance < 10 ? (
@@ -293,7 +293,7 @@ const Compatibilite2 = () => {
                   <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Crédits insuffisants</h2>
                   <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>Ce rapport coûte <span style={{ color: '#B8961F', fontWeight: 600 }}>10 crédits</span>.</p>
                   <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#B8961F' }}>{creditBalance} crédits</span></p>
-                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #B8961F', color: '#0C0918', background: '#B8961F', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
+                  <button onClick={() => navigate('/acheter-credits')} className="plume-btn-primary" data-testid="gate-buy-credits-btn">
                     Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -304,7 +304,7 @@ const Compatibilite2 = () => {
                   <p className="text-xs mb-5" style={{ color: 'var(--pa-muted)' }}>
                     Coût : <span style={{ color: '#B8961F' }}>10 crédits</span> &middot; Solde : <span style={{ color: '#B8961F' }}>{creditBalance} crédits</span>
                   </p>
-                  <button onClick={() => setStep(1)} className="text-xs uppercase tracking-widest px-8 py-2.5 rounded-full" style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', letterSpacing: '0.1em' }} data-testid="gate-start-btn">
+                  <button onClick={() => setStep(1)} className="plume-btn-secondary" data-testid="gate-start-btn">
                     Commencer l'analyse
                   </button>
                 </div>
