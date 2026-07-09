@@ -39,6 +39,7 @@ from routes.library import router as library_router
 from routes.rencontres import router as rencontres_router
 from routes.analytics import router as analytics_router
 from routes.archetype import make_router as make_archetype_router
+from routes.kabbale import router as kabbale_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -73,6 +74,7 @@ async def _use_service_credits(user_id: str, service_id: str) -> dict:
 
 
 api_router.include_router(make_archetype_router(get_current_user, _use_service_credits))
+api_router.include_router(kabbale_router)
 
 
 # ════════════════════════════════════════════
@@ -538,6 +540,16 @@ async def stripe_webhook(request: Request):
         except Exception as e:
             logger.warning(f'[rencontres_ultime] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'rencontres_ultime'}
+
+    # Route vers Kabbale handler si kind=kabbale_arbre_de_vie (pack 39 EUR)
+    if md.get('kind') == 'kabbale_arbre_de_vie':
+        from services.kabbale_service import handle_kabbale_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_kabbale_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[kabbale] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'kabbale_arbre_de_vie'}
 
     # Sinon : flow credits one-shot
     if event_type == 'checkout.session.completed':

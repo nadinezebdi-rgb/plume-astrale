@@ -14,6 +14,37 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — 🌳 Nouveau produit : Kabbale — Ton Arbre de Vie 39€ (2026-02)
+
+### Architecture (mirror Rencontres Ultime 29,99€)
+- ✅ **Endpoint API v3** : `/kabbalah/tree-of-life-chart` via `services/astrology_io_service.py::tree_of_life_chart()` (Modern Halevi + Psychological, FR natif).
+- ✅ **PDF generator** : `services/kabbale_pdf.py` (~14 pages ReportLab) — Cover, Intro, Piliers, 10 Sephiroth (dict list format API v3, translation FR heb/meaning/poetic), 22 Chemins actives, Da'at, Synthese, Rituels d'integration + signature Solena.
+- ✅ **Service handler** : `services/kabbale_service.py::handle_kabbale_webhook()` — fetch v3 -> gen PDF -> save `/app/backend/assets/kabbale/*.pdf` -> email Resend.
+- ✅ **Route checkout** : `routes/kabbale.py` — `POST /api/kabbale/checkout` (session Stripe live 39 EUR) + `GET /api/kabbale/status` (polling live).
+- ✅ **Webhook** : ajout `if md.get('kind') == 'kabbale_arbre_de_vie'` dans `server.py`.
+- ✅ **PACKS config** : ajout `kabbale_arbre_de_vie` (39€, kind=oneshot).
+- ✅ **HTML tags in interpretations** : fix critique dans `kabbale_pdf._p()` — les `<b>` et `<i>` renvoyes par l'API v3 sont maintenant preserves via regex + placeholder pour ReportLab (au lieu d'etre escaped en texte litteral).
+
+### Frontend
+- ✅ **Landing page** `/kabbale` (`KabbaleSales.js`) — Hero "Ton Arbre de Vie Kabbalistique" + 3 features glass cards (Sephiroth, chemins, Piliers) + prix 39€ + form step (email/prenom/date/heure/ville) + CTA primary "Payer 39€".
+- ✅ **Success page** `/kabbale/succes` (`KabbaleSucces.js`) — polling live 3.5s, 4 etapes visuelles (payment/compute/pdf/email), bouton telechargement du PDF quand pret.
+- ✅ **CTA Home** : ajout 3eme bouton "Ton Arbre de Vie 39€" en primary a cote d'Archetype + Solena discover.
+
+### Verifications live
+- ✅ Session Stripe cree : `cs_live_a1sCqpkT7Y...`
+- ✅ Webhook simule -> PDF genere 85 KB (14 pages, aucune balise HTML apparente, gras/italiques bien rendus, dominant Kether · Beauty · score 83.6/100).
+- ✅ PDF servi via `/api/assets/kabbale/*.pdf` HTTP 200.
+- ✅ Status endpoint retourne `{status:completed, pdf_ready:true, email_sent:true}`.
+- ⚠️ Email Resend echoue en dev (domaine `plume-astrale.fr` pas verifie — backlog P3 documente). Le flow production fonctionnera une fois DNS valide.
+
+### Recap complet Option A (session terminee)
+1. ⚡ Solena GaryVee prompt (JAB/COACHING/HOOK) ✅
+2. 🎁 Ton Archetype 4,99€ (15 credits) ✅
+3. 🌳 Ton Arbre de Vie Kabbale 39€ ✅
+4. ✨ CTAs "Archetype" + "Kabbale" dans la Home ✅
+
+
+
 ## Session Feb 2026 — ⚡ Solena GaryVee + 🎁 Ton Archetype 4,99€ (2026-02)
 
 ### Solena — Calibration methode GaryVee (JAB / COACHING / HOOK)

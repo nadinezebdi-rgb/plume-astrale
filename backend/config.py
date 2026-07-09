@@ -67,6 +67,16 @@ class Settings:
             'product': 'rencontres_ultime',
             'tagline': 'Ton portrait partenaire ideal + 3 fenetres de rencontre + rituels energetiques.',
         },
+        'kabbale_arbre_de_vie': {
+            'name': 'Ton Arbre de Vie Kabbalistique',
+            'credits': 0,   # one-shot
+            'bonus': 0,
+            'amount': 39.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'kabbale_arbre_de_vie',
+            'tagline': "Les 10 Sephiroth + 22 chemins de ton theme natal — PDF 15 pages unique en francais.",
+        },
     }
 
     # Grille GaryVee — tous les services sont des multiples/fractions de 10 cr (unité = 1 question)
