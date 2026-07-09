@@ -23,21 +23,20 @@ export default function SolenaPage() {
         path="/solena"
       />
 
-      {/* Video Solena en background subtil */}
+      {/* Portrait Solena en background subtil (fini les vidéos) */}
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', zIndex: 0 }} aria-hidden="true">
-        <video
-          src={SOLENA.videos.secondary}
-          poster={SOLENA.portrait}
-          autoPlay muted loop playsInline preload="metadata"
+        <img
+          src={SOLENA.portrait}
+          alt=""
           style={{
             position: 'absolute', top: 0, left: 0,
             width: '100%', height: '100%', objectFit: 'cover',
-            opacity: 0.22, filter: 'blur(2px) saturate(1.1)',
+            opacity: 0.18, filter: 'blur(3px) saturate(1.1)',
           }}
         />
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(180deg, rgba(12,9,24,0.75) 0%, rgba(12,9,24,0.92) 60%, #060314 100%)',
+          background: 'linear-gradient(180deg, rgba(17,22,37,0.80) 0%, rgba(17,22,37,0.95) 60%, #111625 100%)',
         }} />
       </div>
 

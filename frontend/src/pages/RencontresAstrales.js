@@ -119,31 +119,30 @@ export default function RencontresAstrales() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'radial-gradient(ellipse at top, #1a1147 0%, #0C0918 50%, #060314 100%)',
+      background: 'radial-gradient(ellipse at top, #1A2035 0%, #141A2C 50%, #111625 100%)',
       color: '#F4E8D2',
       overflow: 'hidden',
       position: 'relative',
     }}>
       <SEO title="Rencontres Astrales — Décode ta prochaine histoire d&apos;amour" description="Découvre l'identité astrale de ton futur partenaire et tes fenêtres de rencontre gravées dans ton ciel." path="/rencontres-astrales" />
 
-      {/* Video Solena en fond du hero (uniquement step form) */}
+      {/* Portrait Solena en fond du hero (uniquement step form) — plus de vidéo */}
       {step === 'form' && (
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', zIndex: 0 }} aria-hidden="true">
-          <video
-            src={SOLENA.videos.primary}
-            poster={SOLENA.portrait}
-            autoPlay muted loop playsInline preload="metadata"
+          <img
+            src={SOLENA.portrait}
+            alt=""
             style={{
               position: 'absolute', top: '50%', left: '50%',
               transform: 'translate(-50%, -50%) scale(1.15)',
               width: '100%', height: '100%', objectFit: 'cover',
-              opacity: 0.32, filter: 'blur(1.5px) saturate(1.1)',
+              opacity: 0.24, filter: 'blur(2px) saturate(1.1)',
             }}
-            data-testid="solena-bg-video"
+            data-testid="solena-bg-portrait"
           />
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'radial-gradient(ellipse at center, rgba(12,9,24,0.55) 0%, rgba(12,9,24,0.90) 65%, #060314 100%)',
+            background: 'radial-gradient(ellipse at center, rgba(17,22,37,0.55) 0%, rgba(17,22,37,0.90) 65%, #111625 100%)',
           }} />
         </div>
       )}
