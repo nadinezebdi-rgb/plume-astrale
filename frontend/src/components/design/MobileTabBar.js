@@ -8,9 +8,9 @@ import { UserRound, Sparkles, Gem } from 'lucide-react';
  * Auto-hide sur >= 768px.
  */
 const items = [
-  { to: '/dashboard', label: 'Mon Espace', Icon: UserRound, testid: 'tabbar-espace' },
+  { to: '/mon-compte', label: 'Mon Espace', Icon: UserRound, testid: 'tabbar-espace' },
   { to: '/consultation', label: 'Consulter', Icon: Sparkles, testid: 'tabbar-consulter', primary: true },
-  { to: '/tarifs', label: 'Tarifs', Icon: Gem, testid: 'tabbar-tarifs' },
+  { to: '/acheter-credits', label: 'Tarifs', Icon: Gem, testid: 'tabbar-tarifs' },
 ];
 
 const MobileTabBar = () => {

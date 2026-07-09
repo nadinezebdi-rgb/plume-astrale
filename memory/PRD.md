@@ -14,6 +14,34 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — 🎨 Design System v2 "Nuit Douce" (Phase 1 + 2 partielle) (2026-02)
+- ✅ **Nouveau design system Plume Astrale v2** livre par design_agent avec 3 signatures creatives originales :
+  - **Souffle Astral** (grain SVG 3% pulsant 12s en overlay global)
+  - **Fil d'Ariane** (ligne verticale 1px doree centrale, connecte les sections en scroll)
+  - **Aura Connectee** (accent color adaptatif selon element astral utilisateur)
+- ✅ **Palette Nuit Douce** appliquee globalement :
+  - `#111625` fond principal (Nuit Douce) — remplace le noir pur
+  - `#1A2035` fond secondaire (Nuit Profonde) — surfaces cartes
+  - `#D4AF37` or brosse mat — accents (remplace `#D4B46A/#C5A059`)
+  - `#E3D7FF` lavande pale — textes secondaires
+- ✅ **1285 valeurs de couleurs remplacees** dans le codebase (807 hex + 476 rgba) via sed global.
+- ✅ **Fonts** : Cinzel (titres) + Cormorant Garamond italic (emphase) + Plus Jakarta Sans (corps).
+- ✅ **Overlays globaux** montes dans `App.js` :
+  - `NoiseOverlay.js` (grain + Souffle Astral)
+  - `ScrollThread.js` (Fil d'Ariane, desktop only)
+  - `CustomCursor.js` (curseur aura doree 8px, desktop only)
+  - `MobileTabBar.js` (sticky bottom, 3 icones : Mon Espace / Consulter / Tarifs)
+- ✅ **Composants UI** : `PlumeButtons.js` (Primary/Secondary/Ghost strict), `GlassCard.js`, `SectionWrapper.js` (framer-motion + radial-gradient auto).
+- ✅ **Navbar** upgrade glassmorphism (`rgba(17,22,37,0.90)`, backdrop-blur, bordure or subtile).
+- ✅ **Tailwind config** : nouveaux tokens `plume.*` + `font-plume-serif|italic|body` + `shadow-plume-glow*` + `ease-plume-silk`.
+- ✅ **Dependances ajoutees** : `framer-motion@12.42.2`, `react-fast-marquee@1.6.5`.
+- ✅ **Design guidelines** documentes dans `/app/design_guidelines.md` + `/app/design_guidelines.json`.
+- ✅ **Testing agent iteration 42** : 80% frontend PASS + 100% backend PASS. 2 bugs fixes:
+  - Routes TabBar mobile (`/dashboard`→`/mon-compte`, `/tarifs`→`/acheter-credits`).
+  - Aucune regression backend (Supabase assets + astrology API tous OK).
+
+
+
 ## Session Feb 2026 — 🚀 Migration assets → Supabase Storage (déploiement stable) (2026-02)
 - ✅ **223 fichiers migrés** vers 2 buckets Supabase publics : `library` (193 fichiers) + `public-assets` (30 fichiers).
 - ✅ **~407 MB libérés** du repo :
