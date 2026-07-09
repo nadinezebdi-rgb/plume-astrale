@@ -1,0 +1,38 @@
+{
+  "summary": "Iteration 40 — Final backend validation post .dockerignore rewrite. NO backend code changed; only Docker build context filter was modified. Re-ran the full iter39 regression suite (16 pytest cases) → 16/16 PASS in 12.36s. All requested checks confirmed: (1) backend boots cleanly under supervisor (uptime 47min, no import errors); (2) GET /api/health returns 200 {status:healthy}; (3) GET /api/ banner returns valid JSON (name/status/version/docs/health); (4) POST /api/plume-chat with birth_data still responds (Solena reply + 🪶 + markdown); (5) GET /api/rencontres/ultime/status handles all 5 stages (missing/empty/unknown/delivered/pending); (6) PACKS (Initiation 4.99€/15cr, Clarté 14.99€/50+10, Flammes Jumelles 29.99€/100+30) + SERVICE_COSTS GaryVee grid intact (tarot_oui_non=5, chat_astral=10, tarot_marseille=30, lecture_astrologique=40, theme_natal_pdf=60, + full coverage).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "internal astrology-api.io byok.model", "issue": "Non-blocking upstream 400 seen in backend.err.log during plume-chat calls. Fallback path is used and test still passes. Not a regression — behavior was identical in iter39."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration39_health_check.py",
+    "/app/test_reports/pytest/iteration40.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "GOOD: .dockerignore rewrite is well-scoped — only excludes dev/test/cache artefacts and generated PDFs. Runtime backend/frontend code is preserved intact.",
+    "GOOD: `**/.env` exclusion is correct (envs come via K8s secrets in Emergent deploy, not baked into image).",
+    "GOOD: `backend/tests/` exclusion is safe — pytest suite lives outside the runtime image, reducing build context.",
+    "GOOD: `*.md` exclusion at root plus `docs/` — good for image size, no runtime dependency on markdown files.",
+    "MINOR (heritage from iter38/39): test_iteration32_new_pricing.py remains outdated (asserts astro_amour=40cr/12.99€, no longer in pricing config). Would break a full regression run. Suggest main agent delete or rewrite the file.",
+    "NOTE: The `wakeup_environment: context deadline exceeded` was an Emergent infra timeout — .dockerignore is the correct mitigation lever (shrinks context sent to builder). No app-side change was necessary and none was made."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (16/16)",
+    "frontend": "not tested (backend only per request)"
+  },
+  "test_credentials": "N/A — all tested endpoints are public/anonymous.",
+  "seed_data_creation": "None new. Reused iter39 seeded ultime sessions (cs_test_ultime_cb14f284e18c delivered, cs_test_pending_b53848d041e1 pending).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 40 = GO for production deploy. .dockerignore change is transparent to the running app. Regression suite: `pytest /app/backend/tests/test_iteration39_health_check.py -v` (~12s, 16/16). No new bugs, no regressions detected. Astrology-api 400 in logs is a known non-blocking upstream and not caused by .dockerignore.",
+  "rca of the issue": "N/A — no defect. The original deployment failure (`wakeup_environment: context deadline exceeded`) was Emergent orchestration-side. Adding `.dockerignore` reduces the Docker build context transmitted to the builder (excludes .git/, node_modules/, __pycache__/, generated PDFs, high-res library PNGs, test suites, dev plugins, memory/, test_reports/) which is the recommended fix for build-context timeouts. Backend runtime behaviour is unchanged."
+}

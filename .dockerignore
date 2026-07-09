@@ -1,11 +1,70 @@
-node_modules
-.git
-*.pyc
-__pycache__
-.env
-test_reports
-memory
-.emergent
+# .dockerignore — reduce container build context + image size for Emergent deployment.
+# All these paths are NOT needed at runtime and would just slow down build/deploy.
+
+# ─── Version control & IDE ─────────────────────────────
+.git/
+.gitignore
+.gitattributes
+.github/
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# ─── Emergent internal folders (dev-only, not for the container image) ─
+.emergent/
+.emergent-context/
+memory/
+test_reports/
+test_result.md
+
+# ─── Python cache & venvs ──────────────────────────────
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/venv/
+**/env/
+**/.venv/
+
+# ─── Node.js caches (rebuilt in container) ─────────────
+**/node_modules/
+**/.yarn/cache/
+**/.next/
+**/.turbo/
+**/coverage/
+**/.eslintcache
+
+# ─── Backend heavy assets (either gitignored or generated at runtime) ──
+backend/assets/library/_source/
 backend/assets/library/**/*_1080.png
 backend/assets/library/**/*_2048.png
-backend/assets/library/manifest.json
+backend/assets/library/**/*_512.png
+backend/assets/library/style-refs/
+
+# One-off generated PDFs (regen at runtime as needed via /rencontres/ultime/status)
+backend/assets/synastrie_pdf/
+backend/assets/synastrie_extracts/
+backend/assets/rencontres_ultime/
+
+# Test suites & dev plugins
+backend/tests/
+frontend/plugins/visual-edits/
+
+# ─── Docs & notes ─────────────────────────────────────
+*.md
+docs/
+
+# ─── Env files (ships via K8s secrets, not the container image) ────────
+**/.env
+**/.env.local
+**/.env.development
+**/.env.production
+
+# ─── Local dev artifacts ──────────────────────────────
+*.log
+tmp/
+.tmp/
