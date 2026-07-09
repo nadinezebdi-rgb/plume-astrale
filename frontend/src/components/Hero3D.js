@@ -1,6 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, User } from 'lucide-react';
+import { Sparkles, ArrowRight, User, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Moon3D = lazy(() => import('./Moon3D'));
@@ -33,12 +33,26 @@ export default function Hero3D() {
     return { day: '', month: '', year: '', hour: '12', minute: '00', place: '' };
   });
   const [vibrate, setVibrate] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const update = (k, v) => setBirth((p) => ({ ...p, [k]: v }));
+  const updateWithValidation = (k, v) => {
+    update(k, v);
+    if (errors[k]) setErrors((prev) => ({ ...prev, [k]: '' }));
+  };
 
-  const canProceedStep1 = birth.day && birth.month && birth.year;
-  const canProceedStep2 = birth.hour !== '' && birth.minute !== '';
-  const canSubmit = canProceedStep1 && canProceedStep2 && birth.place.trim().length >= 2;
+  // ═══════════ VALIDATIONS ═══════════
+  const isValidDay = (d) => d && /^\d{1,2}$/.test(d) && parseInt(d, 10) >= 1 && parseInt(d, 10) <= 31;
+  const isValidMonth = (m) => m && m >= 1 && m <= 12;
+  const isValidYear = (y) => y && /^\d{4}$/.test(y) && parseInt(y, 10) >= 1900 && parseInt(y, 10) <= new Date().getFullYear();
+  const isValidHour = (h) => h !== '' && /^\d{1,2}$/.test(h) && parseInt(h, 10) >= 0 && parseInt(h, 10) <= 23;
+  const isValidMinute = (m) => m !== '' && /^\d{1,2}$/.test(m) && parseInt(m, 10) >= 0 && parseInt(m, 10) <= 59;
+  const isValidPlace = (p) => p.trim().length >= 2 && /^[a-zA-ZÀ-ÿ\s,'-]+$/.test(p.trim());
+
+  const canProceedStep1 = isValidDay(birth.day) && isValidMonth(birth.month) && isValidYear(birth.year);
+  const canProceedStep2 = isValidHour(birth.hour) && isValidMinute(birth.minute);
+  const canSubmit = canProceedStep1 && canProceedStep2 && isValidPlace(birth.place);
 
   const triggerVibration = () => {
     setVibrate(true);
@@ -55,20 +69,29 @@ export default function Hero3D() {
     }
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (!canSubmit) return;
-    const data = {
-      day: parseInt(birth.day, 10),
-      month: parseInt(birth.month, 10),
-      year: parseInt(birth.year, 10),
-      hour: parseInt(birth.hour, 10),
-      min: parseInt(birth.minute, 10),
-      place: birth.place.trim(),
-    };
-    try { localStorage.setItem(BIRTH_KEY, JSON.stringify(data)); } catch (e) { /* ignore */ }
-    window.dispatchEvent(new CustomEvent('pa:open-solena-chat', { detail: data }));
-    const el = document.querySelector('[data-testid="home-solena-section"]');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setIsLoading(true);
+    setErrors({});
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const data = {
+        day: parseInt(birth.day, 10),
+        month: parseInt(birth.month, 10),
+        year: parseInt(birth.year, 10),
+        hour: parseInt(birth.hour, 10),
+        min: parseInt(birth.minute, 10),
+        place: birth.place.trim(),
+      };
+      try { localStorage.setItem(BIRTH_KEY, JSON.stringify(data)); } catch (e) { }
+      window.dispatchEvent(new CustomEvent('pa:open-solena-chat', { detail: data }));
+      const el = document.querySelector('[data-testid="home-solena-section"]');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) {
+      setErrors({ submit: 'Une erreur est survenue. Veuillez réessayer.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -118,14 +141,14 @@ export default function Hero3D() {
           to={isAuthenticated ? '/mon-compte' : '/connexion'}
           className="flex items-center gap-2 group transition-all"
           style={{
-            color: 'rgba(226,191,101,0.75)',
+            color: 'rgba(226,191,101,0.85)',
             textDecoration: 'none',
             fontSize: 11,
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
             padding: '8px 14px',
             borderRadius: 999,
-            border: '1px solid rgba(226,191,101,0.30)',
+            border: '1px solid rgba(226,191,101,0.50)',
             fontFamily: 'Inter, sans-serif',
           }}
           data-testid="hero-account-btn"
@@ -219,56 +242,122 @@ export default function Hero3D() {
           {step === 1 && (
             <div className="space-y-4">
               <StepLabel step="1" icon="📅">Indiquez votre jour de naissance</StepLabel>
-              <div className="grid grid-cols-3 gap-3">
-                <FluidInput placeholder="Jour" value={birth.day} onChange={(v) => update('day', v)}
-                  testid="moon-day" inputMode="numeric" pattern="[0-9]*" maxLength={2} />
-                <select
-                  value={birth.month}
-                  onChange={(e) => update('month', e.target.value)}
-                  className="w-full py-3 px-3 text-center outline-none text-white transition-all"
-                  style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(226,191,101,0.25)',
-                    borderRadius: 12,
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 14,
-                  }}
-                  data-testid="moon-month">
-                  <option value="" style={{ background: '#000' }}>Mois</option>
-                  {MONTHS.map((m, i) => <option key={i} value={i + 1} style={{ background: '#000' }}>{m}</option>)}
-                </select>
-                <FluidInput placeholder="Année" value={birth.year} onChange={(v) => update('year', v)}
-                  testid="moon-year" inputMode="numeric" pattern="[0-9]*" maxLength={4} />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <FluidInput placeholder="Jour" value={birth.day} onChange={(v) => updateWithValidation('day', v)}
+                    testid="moon-day" inputMode="numeric" pattern="[0-9]*" maxLength={2}
+                    ariaLabel="Jour de naissance"
+                    ariaInvalid={birth.day && !isValidDay(birth.day)}
+                    ariaDescribedby="day-error" />
+                  {birth.day && !isValidDay(birth.day) && (
+                    <div id="day-error" className="flex items-center gap-1 mt-1.5 text-[10px]" style={{ color: '#FF6B6B' }}>
+                      <AlertCircle style={{ width: 12, height: 12 }} />
+                      <span>Jour invalide (1-31)</span>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <select
+                    value={birth.month}
+                    onChange={(e) => updateWithValidation('month', e.target.value)}
+                    className="w-full py-3 px-3 text-center outline-none text-white transition-all focus:ring-2 focus:ring-offset-2 focus:ring-[#D4AF37]"
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: birth.month && !isValidMonth(birth.month) ? '1px solid #FF6B6B' : '1px solid rgba(226,191,101,0.25)',
+                      borderRadius: 12,
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 14,
+                      focusRingOffset: '2px',
+                    }}
+                    data-testid="moon-month"
+                    aria-label="Mois de naissance"
+                    aria-invalid={birth.month && !isValidMonth(birth.month)}>
+                    <option value="" style={{ background: '#000' }}>Mois</option>
+                    {MONTHS.map((m, i) => <option key={i} value={i + 1} style={{ background: '#000' }}>{m}</option>)}
+                  </select>
+                  {birth.month && !isValidMonth(birth.month) && (
+                    <div className="flex items-center gap-1 mt-1.5 text-[10px]" style={{ color: '#FF6B6B' }}>
+                      <AlertCircle style={{ width: 12, height: 12 }} />
+                      <span>Mois invalide</span>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <FluidInput placeholder="Année" value={birth.year} onChange={(v) => updateWithValidation('year', v)}
+                    testid="moon-year" inputMode="numeric" pattern="[0-9]*" maxLength={4}
+                    ariaLabel="Année de naissance"
+                    ariaInvalid={birth.year && !isValidYear(birth.year)}
+                    ariaDescribedby="year-error" />
+                  {birth.year && !isValidYear(birth.year) && (
+                    <div id="year-error" className="flex items-center gap-1 mt-1.5 text-[10px]" style={{ color: '#FF6B6B' }}>
+                      <AlertCircle style={{ width: 12, height: 12 }} />
+                      <span>Année invalide (1900-{new Date().getFullYear()})</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <NextBtn onClick={goNext} disabled={!canProceedStep1} testid="moon-next-1">Continuer</NextBtn>
+              <NextBtn onClick={goNext} disabled={!canProceedStep1 || isLoading} testid="moon-next-1">Continuer</NextBtn>
             </div>
           )}
 
           {step === 2 && (
             <div className="space-y-4">
               <StepLabel step="2" icon="🕒">L&apos;heure exacte</StepLabel>
-              <div className="grid grid-cols-2 gap-3">
-                <FluidInput placeholder="Heure (12)" value={birth.hour} onChange={(v) => update('hour', v)}
-                  testid="moon-hour" inputMode="numeric" pattern="[0-9]*" maxLength={2} />
-                <FluidInput placeholder="Minutes (00)" value={birth.minute} onChange={(v) => update('minute', v)}
-                  testid="moon-minute" inputMode="numeric" pattern="[0-9]*" maxLength={2} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <FluidInput placeholder="Heure (12)" value={birth.hour} onChange={(v) => updateWithValidation('hour', v)}
+                    testid="moon-hour" inputMode="numeric" pattern="[0-9]*" maxLength={2}
+                    ariaLabel="Heure de naissance"
+                    ariaInvalid={birth.hour && !isValidHour(birth.hour)}
+                    ariaDescribedby="hour-error" />
+                  {birth.hour && !isValidHour(birth.hour) && (
+                    <div id="hour-error" className="flex items-center gap-1 mt-1.5 text-[10px]" style={{ color: '#FF6B6B' }}>
+                      <AlertCircle style={{ width: 12, height: 12 }} />
+                      <span>Heure invalide (0-23)</span>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <FluidInput placeholder="Minutes (00)" value={birth.minute} onChange={(v) => updateWithValidation('minute', v)}
+                    testid="moon-minute" inputMode="numeric" pattern="[0-9]*" maxLength={2}
+                    ariaLabel="Minutes de naissance"
+                    ariaInvalid={birth.minute && !isValidMinute(birth.minute)}
+                    ariaDescribedby="minute-error" />
+                  {birth.minute && !isValidMinute(birth.minute) && (
+                    <div id="minute-error" className="flex items-center gap-1 mt-1.5 text-[10px]" style={{ color: '#FF6B6B' }}>
+                      <AlertCircle style={{ width: 12, height: 12 }} />
+                      <span>Minutes invalides (0-59)</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="text-[10px]" style={{ color: 'rgba(203,213,225,0.5)', letterSpacing: '0.15em', fontFamily: 'Inter, sans-serif' }}>
-                Approximative si inconnue
+              <div className="text-[10px]" style={{ color: 'rgba(203,213,225,0.65)', letterSpacing: '0.15em', fontFamily: 'Inter, sans-serif' }}>
+                ✓ Approximative si inconnue
               </div>
-              <NextBtn onClick={goNext} disabled={!canProceedStep2} testid="moon-next-2">Continuer</NextBtn>
+              <NextBtn onClick={goNext} disabled={!canProceedStep2 || isLoading} testid="moon-next-2">Continuer</NextBtn>
             </div>
           )}
 
           {step === 3 && (
             <div className="space-y-4">
               <StepLabel step="3" icon="📍">Votre lieu de naissance</StepLabel>
-              <FluidInput placeholder="Paris, France" value={birth.place} onChange={(v) => update('place', v)}
-                testid="moon-place" fullWidth />
+              <div>
+                <FluidInput placeholder="Paris, France" value={birth.place} onChange={(v) => updateWithValidation('place', v)}
+                  testid="moon-place" fullWidth
+                  ariaLabel="Lieu de naissance"
+                  ariaInvalid={birth.place && !isValidPlace(birth.place)}
+                  ariaDescribedby="place-error" />
+                {birth.place && !isValidPlace(birth.place) && (
+                  <div id="place-error" className="flex items-center gap-1 mt-1.5 text-[10px]" style={{ color: '#FF6B6B' }}>
+                    <AlertCircle style={{ width: 12, height: 12 }} />
+                    <span>Lieu invalide (min 2 caractères, lettres uniquement)</span>
+                  </div>
+                )}
+              </div>
               <button
                 onClick={submit}
-                disabled={!canSubmit}
-                className="w-full py-4 uppercase disabled:opacity-40 flex items-center justify-center gap-2 relative overflow-hidden group liquid-cta"
+                disabled={!canSubmit || isLoading}
+                className="w-full py-4 uppercase disabled:opacity-40 flex items-center justify-center gap-2 relative overflow-hidden group liquid-cta transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D4AF37]"
                 style={{
                   color: '#0A0603',
                   letterSpacing: '0.14em',
@@ -276,17 +365,34 @@ export default function Hero3D() {
                   fontSize: 11,
                   borderRadius: 999,
                   border: 'none',
-                  cursor: canSubmit ? 'pointer' : 'not-allowed',
+                  cursor: !canSubmit || isLoading ? 'not-allowed' : 'pointer',
                   fontFamily: 'Inter, sans-serif',
+                  opacity: isLoading ? 0.8 : 1,
                 }}
                 data-testid="moon-submit-btn"
-              >
+                aria-label={isLoading ? 'Révélation en cours...' : 'Révéler mes prochaines rencontres'}
+                aria-disabled={!canSubmit || isLoading}>
                 <span style={{ position: 'relative', zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
-                  <span>🔮 Révéler mes prochaines rencontres (20 crédits offerts)</span>
-                  <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>✨ Révélation en cours...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
+                      <span>🔮 Révéler mes prochaines rencontres (20 crédits offerts)</span>
+                      <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
+                    </>
+                  )}
                 </span>
               </button>
+              {errors.submit && (
+                <div className="flex items-center gap-2 p-3 rounded-lg text-[10px]" style={{ background: 'rgba(255, 107, 107, 0.1)', border: '1px solid #FF6B6B', color: '#FF6B6B' }}>
+                  <AlertCircle style={{ width: 14, height: 14, flexShrink: 0 }} />
+                  <span>{errors.submit}</span>
+                </div>
+              )}
             </div>
           )}
 
@@ -358,7 +464,7 @@ function StepLabel({ step, icon, children }) {
   );
 }
 
-function FluidInput({ value, onChange, placeholder, fullWidth, testid, inputMode, pattern, maxLength }) {
+function FluidInput({ value, onChange, placeholder, fullWidth, testid, inputMode, pattern, maxLength, ariaLabel, ariaInvalid, ariaDescribedby }) {
   return (
     <input
       value={value}
@@ -367,16 +473,20 @@ function FluidInput({ value, onChange, placeholder, fullWidth, testid, inputMode
       inputMode={inputMode}
       pattern={pattern}
       maxLength={maxLength}
-      className={`${fullWidth ? 'w-full' : ''} py-3 px-4 text-center outline-none text-white placeholder-white/30 transition-all focus:border-[#E2BF65]`}
+      className={`${fullWidth ? 'w-full' : ''} py-3 px-4 text-center outline-none text-white placeholder-white/30 transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D4AF37]`}
       style={{
         background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(226,191,101,0.25)',
+        border: ariaInvalid ? '1px solid #FF6B6B' : '1px solid rgba(226,191,101,0.25)',
         borderRadius: 12,
         fontFamily: 'Inter, sans-serif',
         fontSize: 14,
         fontWeight: 300,
+        focusRingOffset: '2px',
       }}
       data-testid={testid}
+      aria-label={ariaLabel}
+      aria-invalid={ariaInvalid}
+      aria-describedby={ariaDescribedby}
     />
   );
 }
@@ -386,7 +496,7 @@ function NextBtn({ children, onClick, disabled, testid }) {
     <button
       onClick={onClick}
       disabled={disabled}
-      className="w-full py-3.5 uppercase transition-all disabled:opacity-30 hover:scale-[1.01] flex items-center justify-center gap-2"
+      className="w-full py-3.5 uppercase transition-all disabled:opacity-30 hover:scale-[1.01] flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D4AF37]"
       style={{
         background: 'transparent',
         border: '1px solid rgba(226,191,101,0.55)',
@@ -397,9 +507,10 @@ function NextBtn({ children, onClick, disabled, testid }) {
         borderRadius: 999,
         cursor: disabled ? 'not-allowed' : 'pointer',
         fontFamily: 'Inter, sans-serif',
+        focusRingOffset: '2px',
       }}
       data-testid={testid}
-    >
+      aria-disabled={disabled}>
       {children} <ArrowRight className="w-3 h-3" />
     </button>
   );

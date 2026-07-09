@@ -66,58 +66,7 @@ const CosmicCanvas = () => {
   );
 };
 
-/* ═══════════════════════════════════════════════════════════
-   BRAND STORY — Le Sanctuaire Plume Astrale
-═══════════════════════════════════════════════════════════ */
-const BrandStory = () => (
-  <section className="relative py-16 md:py-20 px-4 z-10" data-testid="home-brand-story">
-    <div className="max-w-3xl mx-auto text-center">
-      <p className="text-[10px] uppercase mb-5" style={{ color: '#D4AF37', letterSpacing: '0.35em', fontWeight: 400 }}>
-        ✦ Le Sanctuaire ✦
-      </p>
-      <h2 style={{
-        fontFamily: 'Cormorant Garamond, serif',
-        fontWeight: 200,
-        fontSize: 'clamp(1.9rem, 4.5vw, 3rem)',
-        lineHeight: 1.12,
-        color: '#F4E8D2',
-        marginBottom: 20,
-      }}>
-        Le Sanctuaire <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>Plume Astrale</em>
-      </h2>
-      <p className="text-base md:text-lg mx-auto max-w-2xl mb-5" style={{
-        fontFamily: 'Cormorant Garamond, serif',
-        color: 'rgba(244,232,210,0.90)',
-        lineHeight: 1.7,
-        fontStyle: 'italic',
-        fontSize: '1.15rem',
-      }}>
-        Un coaching céleste de haute précision pour éclairer votre trajectoire.
-      </p>
-      <p className="text-base mx-auto max-w-2xl mb-5" style={{
-        fontFamily: 'Cormorant Garamond, serif',
-        color: 'rgba(244,232,210,0.78)',
-        lineHeight: 1.75,
-      }}>
-        Plume Astrale s&apos;impose par la <em style={{ color: '#E8C766', fontStyle: 'italic' }}>rigueur scientifique</em> de ses calculs d&apos;éphémérides et le sérieux de sa charte déontologique.
-        Conçu comme un véritable coach de vie spirituel et émotionnel, notre espace est <em style={{ color: '#E8C766', fontStyle: 'italic' }}>universel</em> :
-        il accompagne n&apos;importe qui, peu importe votre parcours, là où vous en êtes aujourd&apos;hui.
-      </p>
-      <p className="text-base mx-auto max-w-2xl" style={{
-        fontFamily: 'Cormorant Garamond, serif',
-        color: 'rgba(244,232,210,0.78)',
-        lineHeight: 1.75,
-      }}>
-        Ici, vous ne trouverez ni horoscope générique, ni prédiction fataliste. Vous entamez une
-        <em style={{ color: '#E8C766', fontStyle: 'italic' }}> conversation intime et sur-mesure </em>
-        avec votre ciel de naissance, guidé par la voix et l&apos;expertise de <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>Solena</em>.
-      </p>
-      <div className="mt-8 text-[10px] md:text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.28em', fontFamily: 'Cinzel, serif' }}>
-        ✦ Rigueur des calculs&nbsp;·&nbsp;Charte de sérieux&nbsp;·&nbsp;Accompagnement universel ✦
-      </div>
-    </div>
-  </section>
-);
+/* BrandStory removed — content consolidated into Hero3D and SolenaJourney */
 
 /* ═══════════════════════════════════════════════════════════
    SOLENA JOURNEY — parcours storytelling + chat inline
@@ -264,20 +213,20 @@ const SolenaJourney = () => {
             ))}
           </div>
           <div className="text-center mt-8 flex flex-col sm:flex-row gap-3 justify-center items-center flex-wrap">
-            <Link to="/solena" className="plume-btn-secondary" data-testid="home-solena-discover-btn">
+            <Link to="/solena" className="plume-btn-primary" data-testid="home-solena-discover-btn">
               Découvrir l&apos;univers de Solena
               <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
             </Link>
-            <Link to="/archetype" className="plume-btn-primary" data-testid="home-archetype-cta">
-              Découvre ton archétype
-              <span style={{ fontSize: 10, marginLeft: 4, opacity: 0.75 }}>15 cr</span>
-              <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
-            </Link>
-            <Link to="/kabbale" className="plume-btn-primary" data-testid="home-kabbale-cta">
-              Ton Arbre de Vie
-              <span style={{ fontSize: 10, marginLeft: 4, opacity: 0.75 }}>39€</span>
-              <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
-            </Link>
+            <div className="text-[10px] text-center" style={{ color: 'rgba(244,232,210,0.4)', letterSpacing: '0.2em', maxWidth: 300 }}>
+              Autres expériences:&nbsp;
+              <Link to="/archetype" style={{ color: '#D4AF37', textDecoration: 'underline', fontSize: 10 }} data-testid="home-archetype-cta">
+                Archétype&nbsp;(15 cr)
+              </Link>
+              &nbsp;·&nbsp;
+              <Link to="/kabbale" style={{ color: '#D4AF37', textDecoration: 'underline', fontSize: 10 }} data-testid="home-kabbale-cta">
+                Arbre de Vie&nbsp;(39€)
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -499,7 +448,6 @@ const Index = () => {
       <SEO path="/" />
       <CosmicCanvas />
       <Hero3D />
-      <BrandStory />
       <SolenaJourney />
       <ClientReviews />
 
