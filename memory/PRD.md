@@ -13,6 +13,20 @@ Site prod : plume-astrale.fr
 - **APIs externes** : AstrologyAPI (Plan Growth, actif jusqu'au 25/06/2026)
 - **Deploy** : Backend Railway / Frontend Netlify
 
+
+## Session Feb 2026 — 🧹 Purge complete de l'ancienne API Astrology (astrologyapi.com) (2026-02)
+- ✅ Suppression des 3 variables d'env legacy : `ASTROLOGY_API_KEY`, `ASTROLOGY_API_USER_ID`, `ASTROLOGY_API_ACCESS_TOKEN` de `/app/backend/.env` ET `/app/backend/config.py`.
+- ✅ Suppression des 3 fichiers services legacy : `services/astrology_api.py`, `services/astrology_api_premium.py`, `services/astrology_pdf_api.py`.
+- ✅ Migration complete vers `astrology-api.io` v3 (`ASTROLOGY_API_IO_KEY`) :
+  - `natal_essentials` (Soleil/Lune/Ascendant) → `aio.natal_chart` + helpers.
+  - `karma-destiny` → `aio.get_positions` (Sun/Moon via v3) + fallback approximatif pour le Noeud Nord (non renvoye par v3).
+  - `natal-chart` endpoint → v3 uniquement.
+  - `energy_service` (energie du jour) → `aio.natal_chart` + `aio.extract_planets`.
+- ✅ Ajout helpers `aio.extract_planets()` et `aio.extract_ascendant_sign_en()` dans `services/astrology_io_service.py` — gerent le wrapping `chart_data.planetary_positions` et les abreviations de signes (Tau/Vir/Cap → Taurus/Virgo/Capricorn → Taureau/Vierge/Capricorne).
+- ✅ Tests backend : 9/9 PASS (iteration 41). Aucune regression sur Soleil='Taureau', Lune='Capricorne' pour Paris 15/05/1990 14:30.
+- 🎯 L'utilisateur peut maintenant supprimer les 3 anciennes cles dans l'UI Emergent sans casser le backend.
+
+
 ## Session Feb 2026 — ⭐ Vitrine "Mon Thème Natal" dans le Navbar (2026-02)
 - ✅ Bouton CTA doré ajouté dans le Navbar desktop + mobile :
   - Fond dégradé doré + bordure lumineuse
