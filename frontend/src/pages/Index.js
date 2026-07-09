@@ -263,9 +263,14 @@ const SolenaJourney = () => {
               </div>
             ))}
           </div>
-          <div className="text-center mt-8">
+          <div className="text-center mt-8 flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Link to="/solena" className="plume-btn-secondary" data-testid="home-solena-discover-btn">
               Découvrir l&apos;univers de Solena
+              <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
+            </Link>
+            <Link to="/archetype" className="plume-btn-primary" data-testid="home-archetype-cta">
+              Découvre ton archétype
+              <span style={{ fontSize: 10, marginLeft: 4, opacity: 0.75 }}>15 cr</span>
               <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
             </Link>
           </div>
