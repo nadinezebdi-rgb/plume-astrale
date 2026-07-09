@@ -36,6 +36,7 @@ export default function RencontresAstrales() {
   const [consent, setConsent] = useState(true);
   const [windows, setWindows] = useState(null);
   const [ctaLoading, setCtaLoading] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
 
   const submitForm = async (e) => {
     e.preventDefault();
@@ -96,6 +97,7 @@ export default function RencontresAstrales() {
         reveal_id: reveal?.reveal_id,
         email,
         utm,
+        promo_code: promoCode.trim() || undefined,
       });
       if (r.data?.url) window.location.href = r.data.url;
       else { setCtaLoading(false); setError('Paiement indisponible pour l\'instant.'); }
@@ -119,31 +121,30 @@ export default function RencontresAstrales() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'radial-gradient(ellipse at top, #1a1147 0%, #0C0918 50%, #060314 100%)',
+      background: 'radial-gradient(ellipse at top, #1A2035 0%, #141A2C 50%, #111625 100%)',
       color: '#F4E8D2',
       overflow: 'hidden',
       position: 'relative',
     }}>
       <SEO title="Rencontres Astrales — Décode ta prochaine histoire d&apos;amour" description="Découvre l'identité astrale de ton futur partenaire et tes fenêtres de rencontre gravées dans ton ciel." path="/rencontres-astrales" />
 
-      {/* Video Solena en fond du hero (uniquement step form) */}
+      {/* Portrait Solena en fond du hero (uniquement step form) — plus de vidéo */}
       {step === 'form' && (
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', zIndex: 0 }} aria-hidden="true">
-          <video
-            src={SOLENA.videos.primary}
-            poster={SOLENA.portrait}
-            autoPlay muted loop playsInline preload="metadata"
+          <img
+            src={SOLENA.portrait}
+            alt=""
             style={{
               position: 'absolute', top: '50%', left: '50%',
               transform: 'translate(-50%, -50%) scale(1.15)',
               width: '100%', height: '100%', objectFit: 'cover',
-              opacity: 0.32, filter: 'blur(1.5px) saturate(1.1)',
+              opacity: 0.24, filter: 'blur(2px) saturate(1.1)',
             }}
-            data-testid="solena-bg-video"
+            data-testid="solena-bg-portrait"
           />
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'radial-gradient(ellipse at center, rgba(12,9,24,0.55) 0%, rgba(12,9,24,0.90) 65%, #060314 100%)',
+            background: 'radial-gradient(ellipse at center, rgba(17,22,37,0.55) 0%, rgba(17,22,37,0.90) 65%, #111625 100%)',
           }} />
         </div>
       )}
@@ -465,6 +466,25 @@ export default function RencontresAstrales() {
                   </div>
                 )}
 
+                <div className="mb-4 max-w-sm mx-auto">
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={e => setPromoCode(e.target.value.toUpperCase())}
+                    placeholder="Code promo (optionnel)"
+                    data-testid="rencontres-promo"
+                    className="w-full px-4 py-3 rounded-full text-center text-sm"
+                    style={{
+                      background: 'rgba(17,22,37,0.60)',
+                      border: '1px solid rgba(212,175,55,0.20)',
+                      color: '#F5EEE0',
+                      letterSpacing: '0.2em',
+                      fontFamily: 'Cinzel, serif',
+                      textTransform: 'uppercase',
+                    }}
+                  />
+                </div>
+
                 <button onClick={buyPremium} disabled={ctaLoading}
                   className="w-full md:w-auto md:min-w-[320px] py-4 px-8 rounded-full text-sm uppercase transition-all hover:scale-[1.02] disabled:opacity-50 flex items-center justify-center gap-2 mx-auto"
                   style={{
@@ -475,7 +495,7 @@ export default function RencontresAstrales() {
                     boxShadow: '0 20px 60px rgba(184,150,31,0.35)',
                   }} data-testid="buy-premium-btn">
                   {ctaLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>
-                    <Heart className="w-4 h-4" /> Révéler mon guide complet
+                    <Heart className="w-4 h-4" /> {promoCode.trim() ? 'Déverrouiller mon guide' : 'Révéler mon guide complet'}
                   </>}
                 </button>
 
