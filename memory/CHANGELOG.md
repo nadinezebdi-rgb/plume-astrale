@@ -2,6 +2,25 @@
 
 ## 2026-02-09
 
+### Session 6 — SafeEmptyState : fallback anti-page-blanche
+- **Nouveau composant** `/app/frontend/src/components/design/SafeEmptyState.js` : filet de sécurité UI qui s'affiche si l'API répond 200 mais qu'aucun contenu attendu n'est présent (schéma cassé, drift API, contenu vide). Affiche un message poétique "Le ciel est momentanément silencieux" + CTA "Parler à Solena" (bouton or) + lien mail support + bouton "Réessayer" si `onRetry` fourni. Design Nuit Douce cohérent.
+- **Intégré sur 4 pages produit** :
+  - `RevolutionSolaire.js` — détection via `interpretations.length || lifeAreas.length || srAspects.length || overview`
+  - `Archetype.js` — détection via `profile_name || core_message || dominant.length || shadow || balance_type`
+  - `Compatibilite.js` — détection via `score !== undefined || name_1 || report || dominant_element`
+  - `KarmaDestin.js` — détection via `data.karma_principal || data.mission_de_vie || data.noeuds_lunaires`
+- **Résultat** : plus JAMAIS de page blanche visible pour l'utilisatrice, même si le fournisseur d'API change son schéma. La conversion émotionnelle est sauvegardée via la redirection vers Solena.
+- Corrections lint annexes : 2 apostrophes non échappées dans `Archetype.js` (pré-existantes).
+- **Note** : `Horoscope.js` a déjà un fallback interne `fallbackHoroscopes`, pas besoin d'ajouter SafeEmptyState.
+
+### Session 5 — Audit produits + Fix Révolution Solaire
+- **Testing agent iteration_46** : Backend 100% OK en preview (15/15 endpoints, `/api/astrology/v3/solar-return` en 2.4s, très en-dessous du timeout Cloudflare 100s). Cloudflare 520 en prod NON-reproductible en preview — probablement env var ou rate-limit prod.
+- **🚨 Bug critique frontend détecté** : `RevolutionSolaire.js` lisait `report.overview/summary/themes/major_themes` qui n'existent PAS dans la réponse API v3. Le vrai schéma est `report.interpretations` (list de {title,text}), `report.life_areas` (LIST de {area_key, theme, prediction}), `report.sr_to_natal_aspects`. Résultat: API répondait 200 mais la page restait vide (l'utilisatrice pensait que le produit était cassé).
+- **Fix appliqué** : refactor complet des sections rendues dans `RevolutionSolaire.js` (interpretations en cascade + life_areas grid 2 colonnes + sr_to_natal_aspects). `TransitsToday` fixé aussi (lecture de `report.events` array au lieu de `report.summary/text`).
+- **Vérification E2E** : login admin + click "Générer" → API répond en 2.4s → **rapport complet affiché** avec 5 interprétations planétaires + 8 domaines de vie.
+- ⚠️ **Note produit** : l'API v3 renvoie le contenu en **anglais** malgré `language: fr`. Amélioration future = post-processing OpenAI (traduction FR).
+- ⚠️ Warning hydration `<span> in <option>` sur `/rencontres-astrales` — non-bloquant, pré-existant.
+
 ### Session 4 — Audit Supabase + Codes Promo/Réduction
 
 **Audit schéma DB**

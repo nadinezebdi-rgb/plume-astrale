@@ -1,0 +1,79 @@
+{
+  "summary": "Testing exhaustif des produits Plume Astrale (P1-P6 du review request). Backend: 15/15 endpoints répondent 200 en preview (dont /api/astrology/v3/solar-return en 2.4s, très loin des 100s de Cloudflare). Le Cloudflare 520 en prod n'est PAS reproductible en preview. Cependant, DÉCOUVERTE MAJEURE côté frontend: la page /revolution-solaire est fonctionnelle (CTA cliquable, API répond 200) MAIS n'affiche AUCUN contenu du rapport parce que le frontend lit des champs qui n'existent pas dans la réponse API (mismatch de contrat).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/astrology/v3/composite", "issue": "Endpoint mentionné dans le review request MAIS n'existe pas dans le backend (404). Soit c'est une feature manquante à implémenter, soit le review request est incorrect."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "RevolutionSolaire.js",
+        "issue": "MISMATCH API/UI CRITIQUE — la page rend une carte vide après clic sur 'Générer mon rapport'. L'API renvoie report={interpretations, life_areas, sr_to_natal_aspects, chart_data, subject_data} mais le frontend lit report.overview, report.summary, report.themes, report.major_themes (aucun de ces champs n'existe). De plus life_areas est un ARRAY [{area_key, rating, theme, prediction}] mais le code fait Object.entries(lifeAreas) et filtre sur val.text || val.description → tout est filtré. Résultat visible : uniquement 'Année 2027 · Admin' + boutons Recommencer/Mon horoscope. AUCUN texte de rapport. C'est probablement CE que l'utilisatrice appelle 'plein de produits ne fonctionnent pas'.",
+        "selector": "[data-testid='revolution-result']",
+        "priority": "CRITICAL"
+      },
+      {
+        "component": "RevolutionSolaire.js (TransitsToday)",
+        "issue": "Le composant TransitsToday lit report.summary || report.text mais l'API renvoie report={events: [...]}. Le texte du rapport transits ne s'affichera jamais. Seuls les aspects (via chart.chart_data.aspects) peuvent apparaître.",
+        "selector": "[data-testid='transits-today']",
+        "priority": "HIGH"
+      },
+      {
+        "component": "RencontresAstrales page",
+        "issue": "Hydration warning React : '<span> cannot be a child of <span>' pour éléments option/select. Cosmétique mais pollue la console.",
+        "selector": "/rencontres-astrales",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "product_status_table": {
+    "solar_return": {"endpoint": "/api/astrology/v3/solar-return", "http": 200, "time_s": 2.4, "verdict": "API OK, UI vide (bug de mapping report.*)"},
+    "natal": {"endpoint": "/api/astrology/v3/natal", "http": 200, "time_s": 0.8, "verdict": "API OK"},
+    "transits_today": {"endpoint": "/api/astrology/v3/transits/today", "http": 200, "time_s": 2.4, "verdict": "API OK, texte report manquant côté UI (report.events vs report.summary attendu)"},
+    "synastry": {"endpoint": "/api/astrology/v3/synastry", "http": 200, "time_s": 2.1, "verdict": "API OK"},
+    "natal_pdf": {"endpoint": "/api/astrology/v3/natal/pdf", "http": 200, "time_s": 7.4, "verdict": "API OK, PDF binaire renvoyé"},
+    "composite": {"endpoint": "/api/astrology/v3/composite", "http": 404, "time_s": 0.1, "verdict": "N'EXISTE PAS (mentionné dans review request)"},
+    "archetype": {"endpoint": "/api/archetype/generate", "http": 200, "time_s": 2.5, "verdict": "API OK, réponse riche"},
+    "kabbale_checkout": {"endpoint": "/api/kabbale/checkout", "http": 200, "time_s": 0.7, "verdict": "API OK, Stripe URL retournée"},
+    "rencontres_reveal": {"endpoint": "/api/rencontres/reveal", "http": 200, "time_s": 0.7, "verdict": "API OK"},
+    "rencontres_checkout": {"endpoint": "/api/rencontres/checkout", "http": 200, "time_s": 0.7, "verdict": "API OK"},
+    "synastrie_free_extract": {"endpoint": "/api/synastrie/free-extract", "http": 200, "time_s": 8.0, "verdict": "API OK, PDF path + email confirmés"},
+    "premium_status": {"endpoint": "/api/premium/status", "http": 200, "time_s": 0.7, "verdict": "API OK"},
+    "plume_chat": {"endpoint": "/api/plume-chat", "http": 200, "time_s": 2.6, "verdict": "API OK, réponse Soléna cohérente"},
+    "discount_bienvenue": {"endpoint": "/api/discount/validate (BIENVENUE)", "http": 200, "time_s": 0.5, "verdict": "API OK, valid=true"}
+  },
+  "cloudflare_520_investigation": {
+    "reproducible_in_preview": false,
+    "solar_return_time_preview": "2.4s",
+    "conclusion": "Le Cloudflare 520 en PROD sur /revolution-solaire n'est PAS reproductible en preview. L'endpoint solar-return répond en 2.4s. Les causes probables du 520 en prod : (a) throttling astrology-api.io sur la prod (clé API différente ?), (b) egress réseau Emergent prod, (c) route DB Supabase plus lente en prod. Le bug utilisateur 'plein de produits ne fonctionnent pas' est PLUS PROBABLEMENT lié au bug UI RevolutionSolaire.js (page qui affiche du vide même quand l'API répond 200) — voir ui_bugs ci-dessus."
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration46_products_regression.py",
+    "/app/test_reports/pytest/iter46.xml"
+  ],
+  "action_items": [
+    "P0 : Corriger RevolutionSolaire.js pour matcher le vrai schéma API : afficher report.interpretations (list de {title, text}), report.life_areas as ARRAY (avec .area_key/.theme/.prediction), report.sr_to_natal_aspects. Retirer les fallbacks obsolètes report.overview/summary/themes/major_themes.",
+    "P1 : Corriger TransitsToday dans RevolutionSolaire.js : lire report.events (array d'events) au lieu de report.summary/text.",
+    "P2 : Implémenter POST /api/astrology/v3/composite OU retirer la mention dans le review context (probable : feature jamais buildée).",
+    "P3 : Corriger le warning React hydration sur /rencontres-astrales (<span> imbriqué dans <span> pour select/option).",
+    "P4 : Investiguer le Cloudflare 520 PROD spécifiquement — probablement clé astrology-api.io différente en prod OU rate limit. Ajouter retry + timeout progressif dans astrology_io_service.py."
+  ],
+  "critical_code_review_comments": [
+    "RevolutionSolaire.js ligne 128-131 : le mapping report.overview/summary/themes/major_themes ne matche AUCUN champ retourné par le backend. C'est un bug silencieux (pas d'erreur JS, juste page vide).",
+    "astrology_v3.py solar_return_v3 (ligne 396-397) : deux appels séquentiels (chart + report). Si l'un timeout à 30s, le total peut atteindre 60s. En prod avec Cloudflare 100s, c'est serré. Envisager Promise.all/asyncio.gather.",
+    "Aucun linter/type check ne détecte le mismatch API/UI. Envisager de générer types TS depuis Pydantic OU d'ajouter tests E2E vérifiant que les data-testid de contenu (revolution-overview, revolution-themes, revolution-life-areas) sont réellement rendus après un appel API réussi.",
+    "Le report Solar Return API contient interpretations riches (Sun 11th House…) — beau produit gâché par un bug d'affichage 5 lignes."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration46_products_regression.py"],
+  "success_rate": {"backend": "100% (15/15 endpoints OK)", "frontend": "70% (7/10 pages OK, 1 page affiche du vide malgré API 200, 1 warning hydration, 1 page CTA end-to-end broken visuel)"},
+  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 (fonctionnel, 9206 crédits restants après tests). test_credentials.md est complet.",
+  "seed_data_creation": "Aucune. Tests réutilisent le profil natal existant de l'admin.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iteration 46 : le bug 'plein de produits ne fonctionnent pas' vient PRINCIPALEMENT du frontend RevolutionSolaire.js qui affiche une page vide malgré API OK. Tous les endpoints backend fonctionnent (15/15). Après correction du mapping report.* → interpretations/life_areas (list)/sr_to_natal_aspects dans RevolutionSolaire.js, re-tester : (1) login admin, (2) /revolution-solaire, (3) clic 'Générer mon rapport', (4) vérifier data-testid='revolution-overview' OU l'équivalent contient du texte + revolution-themes contient >=1 item + revolution-life-areas contient >=1 zone. Aussi corriger TransitsToday.report → report.events. Vérifier /composite (probablement pas nécessaire). Le Cloudflare 520 en prod est un problème séparé, non reproductible en preview.",
+  "rca_of_the_issue": "USER COMPLAINT : 'plein de produits ne fonctionnent pas' + Cloudflare 520 sur /revolution-solaire.\n\nRCA :\n1. Cloudflare 520 en PROD : non reproductible en preview (2.4s). Probable cause = env var astrology-api.io key différente en prod OU rate limit prod OU cold start Emergent prod. À investiguer côté infra prod.\n\n2. UI blanche RevolutionSolaire : bug de contrat entre backend et frontend. L'API v3 solar-return renvoie report={interpretations, life_areas (LIST), sr_to_natal_aspects} mais le composant React lit report.overview/summary/themes/major_themes (aucun de ces champs n'existe) et traite life_areas comme un objet Object.entries. Résultat : les 3 sections .card-mystical qui doivent afficher le rapport sont toutes filtrées par leurs conditions, on ne voit que le header et les 2 CTA du bas.\n\nReproduction :\n- Login admin\n- Go /revolution-solaire\n- Clic 'Générer mon rapport'\n- Résultat : API répond 200 en 2.4s, la page passe en état result mais aucun texte de rapport n'est visible.\n\nMitigation : réécrire les lignes 128-232 de RevolutionSolaire.js pour matcher le vrai schéma. Similaire pour TransitsToday (lignes 41-42) → lire report.events."
+}
