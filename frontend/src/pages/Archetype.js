@@ -4,6 +4,7 @@ import { Crown, Sparkles, Shield, ArrowRight, Loader2, RefreshCw } from 'lucide-
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
+import SafeEmptyState from '@/components/design/SafeEmptyState';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const COST = 15;
@@ -14,6 +15,17 @@ const Archetype = () => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Détection safe : le résultat a-t-il au moins un champ affichable ?
+  const hasAnyArchetypeContent = Boolean(
+    result && (
+      result.profile_name ||
+      result.core_message ||
+      (Array.isArray(result.dominant) && result.dominant.length) ||
+      result.shadow ||
+      result.balance_type
+    )
+  );
 
   // Charger l'historique au montage (dernier résultat)
   useEffect(() => {
@@ -77,7 +89,7 @@ const Archetype = () => {
               Prête à te découvrir vraiment ?
             </h2>
             <p className="text-sm mb-8 max-w-lg mx-auto" style={{ color: 'rgba(227,215,255,0.7)', lineHeight: 1.7 }}>
-              L'analyse combine ton thème natal complet, la position des planètes personnelles, et les 12 archétypes universels
+              L&apos;analyse combine ton thème natal complet, la position des planètes personnelles, et les 12 archétypes universels
               de Jung — pour te livrer un miroir précis de ta psyché.
             </p>
             <p className="text-xs mb-6" style={{ color: 'rgba(227,215,255,0.5)', letterSpacing: '0.1em' }}>
@@ -95,7 +107,7 @@ const Archetype = () => {
             </button>
             {error && <p className="mt-4 text-sm" style={{ color: '#F87171' }} data-testid="archetype-error">{error}</p>}
           </div>
-        ) : (
+        ) : hasAnyArchetypeContent ? (
           <div data-testid="archetype-result">
             {/* Profile name */}
             <div className="plume-glass p-8 md:p-12 text-center mb-8">
@@ -170,7 +182,7 @@ const Archetype = () => {
             {/* CTA follow-up */}
             <div className="text-center mt-10">
               <p className="text-sm mb-5" style={{ color: 'rgba(227,215,255,0.7)' }}>
-                Envie d'aller plus loin dans ton exploration ?
+                Envie d&apos;aller plus loin dans ton exploration ?
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link to="/consultation" className="plume-btn-primary" data-testid="archetype-cta-chat">
@@ -185,6 +197,11 @@ const Archetype = () => {
               </p>
             </div>
           </div>
+        ) : (
+          <SafeEmptyState
+            productName="votre Archétype"
+            onRetry={handleGenerate}
+          />
         )}
       </div>
     </div>

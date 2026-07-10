@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowLeft, Loader2, Sun, Moon, Star, Flame, Heart, Compass, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowLeft, Loader2, Sun, Star, Compass, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
+import SafeEmptyState from '../components/design/SafeEmptyState';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -164,6 +165,12 @@ const RevolutionSolaire = () => {
   const srAspects = Array.isArray(report.sr_to_natal_aspects) ? report.sr_to_natal_aspects : [];
   const overview = report.overview || report.summary || '';
 
+  // Détection safe : si l'API a répondu 200 mais qu'aucune section n'a de contenu
+  // affichable, on montre le SafeEmptyState au lieu d'une page vide.
+  const hasAnyContent = Boolean(
+    overview || interpretations.length || lifeAreas.length || srAspects.length
+  );
+
   return (
     <div className="min-h-screen px-6 md:px-8 py-20 md:py-28" data-testid="revolution-page">
       <div className="max-w-3xl mx-auto">
@@ -204,7 +211,15 @@ const RevolutionSolaire = () => {
           </div>
         )}
 
-        {result && (
+        {result && !hasAnyContent && (
+          <SafeEmptyState
+            productName="votre Révolution Solaire"
+            onRetry={handleGenerate}
+            extraContext={`Année visée : ${result.return_year || '—'}`}
+          />
+        )}
+
+        {result && hasAnyContent && (
           <div className="space-y-6" data-testid="revolution-result">
             <div className="card-mystical">
               <div className="flex items-center gap-3 mb-3">

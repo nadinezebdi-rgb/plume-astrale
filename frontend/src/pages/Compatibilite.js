@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Heart, Sparkles, Star, Users, Briefcase, Home, Loader2, LogIn, ArrowRight, Tag, Share2, Download, Copy, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import SafeEmptyState from '@/components/design/SafeEmptyState';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -319,7 +320,14 @@ const Compatibilite = () => {
         )}
 
         {/* Result */}
-        {result && (
+        {result && !(result.score !== undefined || result.name_1 || result.report || result.dominant_element) && (
+          <SafeEmptyState
+            productName="votre compatibilité"
+            onRetry={() => { setResult(null); }}
+          />
+        )}
+
+        {result && (result.score !== undefined || result.name_1 || result.report || result.dominant_element) && (
           <div className="space-y-6 animate-fade-in" data-testid="result-card">
             <div className="card-mystical text-center glow-gold">
               <div className="flex justify-center items-center gap-5 mb-6">
