@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, User, Calendar, Clock, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/SEO';
+import QuickOracle from '../components/QuickOracle';
 
 const EnhancedMoon3D = lazy(() => import('../components/EnhancedMoon3D'));
 
@@ -21,6 +22,7 @@ const BIRTH_KEY = 'pa_birth_data_v2';
 export default function NewHome() {
   const { isAuthenticated } = useAuth();
   const [step, setStep] = useState(1);
+  const [showQuickOracle, setShowQuickOracle] = useState(false);
   const [birth, setBirth] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(BIRTH_KEY) || 'null');
@@ -291,6 +293,28 @@ export default function NewHome() {
           et vos prochaines fenêtres cosmiques de rencontre.
         </p>
 
+        {/* CTA Quick Oracle - Friction elimination */}
+        {!showQuickOracle && (
+          <button
+            onClick={() => setShowQuickOracle(true)}
+            className="w-full max-w-md mb-8 py-4 rounded-2xl text-center transition-all hover:scale-105"
+            style={{
+              background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
+              color: '#0C0918',
+              fontFamily: 'Cormorant Garamond, serif',
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 10px 30px rgba(212,175,55,0.3)',
+            }}
+            data-testid="quick-oracle-cta"
+          >
+            ✨ Découvrez votre oracle du jour GRATUITEMENT
+          </button>
+        )}
+
         {/* Indicateur d'étape */}
         <div className="flex gap-2 mb-6" data-testid="step-progress">
           {[1, 2, 3].map((n) => (
@@ -307,7 +331,25 @@ export default function NewHome() {
           ))}
         </div>
 
+        {/* Quick Oracle Component */}
+        {showQuickOracle && (
+          <QuickOracle 
+            onClose={() => setShowQuickOracle(false)}
+            onSelectPack={(packId) => {
+              // Rediriger vers checkout
+              const packMap = {
+                initiation: 'essentiel',
+                clarte: 'premium',
+                flammes: 'premium'
+              };
+              localStorage.setItem('plume_astrale_plan', packMap[packId]);
+              window.location.href = '/paiement';
+            }}
+          />
+        )}
+
         {/* Formulaire 3 étapes */}
+        {!showQuickOracle && (
         <div 
           ref={formRef}
           className="w-full max-w-md"
@@ -465,8 +507,10 @@ export default function NewHome() {
             </button>
           )}
         </div>
+        )}
 
         {/* CTA secondaire pour découvrir Solena */}
+        {!showQuickOracle && (
         <div className="mt-10">
           <Link
             to="/solena"
@@ -487,6 +531,7 @@ export default function NewHome() {
             <ArrowRight style={{ width: 12, height: 12 }} strokeWidth={1.5} />
           </Link>
         </div>
+        )}
       </div>
 
       {/* ==================== STYLES LOCAUX ==================== */}
