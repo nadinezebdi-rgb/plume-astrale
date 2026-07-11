@@ -135,6 +135,87 @@ export default function Hero3D() {
         </Link>
       </header>
 
+      {/* ═══ Constellation Background Overlay ═══ */}
+      <svg
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+          opacity: 0.4,
+        }}
+        viewBox="0 0 1200 800"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <defs>
+          <style>{`
+            @keyframes twinkle {
+              0%, 100% { opacity: 0.3; }
+              50% { opacity: 1; }
+            }
+            .star { animation: twinkle 3s ease-in-out infinite; }
+            .star-1 { animation-delay: 0s; }
+            .star-2 { animation-delay: 0.5s; }
+            .star-3 { animation-delay: 1s; }
+            .star-4 { animation-delay: 1.5s; }
+            .star-5 { animation-delay: 2s; }
+            .star-6 { animation-delay: 2.5s; }
+            .constellation-line { 
+              stroke: rgba(232, 199, 102, 0.2);
+              stroke-width: 0.5;
+              animation: twinkle 4s ease-in-out infinite;
+            }
+          `}</style>
+        </defs>
+        
+        {/* Constellation Lines */}
+        <g className="constellation-line">
+          <line x1="100" y1="150" x2="200" y2="200" />
+          <line x1="200" y1="200" x2="250" y2="100" />
+          <line x1="250" y1="100" x2="180" y2="50" />
+          <line x1="180" y1="50" x2="100" y2="150" />
+        </g>
+        
+        <g className="constellation-line" style={{ animationDelay: '1s' }}>
+          <line x1="900" y1="300" x2="950" y2="250" />
+          <line x1="950" y1="250" x2="1050" y2="280" />
+          <line x1="1050" y1="280" x2="1000" y2="350" />
+          <line x1="1000" y1="350" x2="900" y2="300" />
+        </g>
+
+        <g className="constellation-line" style={{ animationDelay: '2s' }}>
+          <line x1="150" y1="600" x2="220" y2="550" />
+          <line x1="220" y1="550" x2="280" y2="620" />
+          <line x1="280" y1="620" x2="150" y2="600" />
+        </g>
+
+        {/* Stars - Left constellation */}
+        <circle cx="100" cy="150" r="1.5" className="star star-1" fill="rgba(232, 199, 102, 0.8)" />
+        <circle cx="200" cy="200" r="1.2" className="star star-2" fill="rgba(232, 199, 102, 0.7)" />
+        <circle cx="250" cy="100" r="1.5" className="star star-3" fill="rgba(232, 199, 102, 0.8)" />
+        <circle cx="180" cy="50" r="1.3" className="star star-4" fill="rgba(232, 199, 102, 0.7)" />
+
+        {/* Stars - Right constellation */}
+        <circle cx="900" cy="300" r="1.5" className="star star-5" fill="rgba(167, 139, 250, 0.8)" />
+        <circle cx="950" cy="250" r="1.2" className="star star-1" fill="rgba(167, 139, 250, 0.7)" />
+        <circle cx="1050" cy="280" r="1.4" className="star star-2" fill="rgba(167, 139, 250, 0.8)" />
+        <circle cx="1000" cy="350" r="1.3" className="star star-3" fill="rgba(167, 139, 250, 0.7)" />
+
+        {/* Stars - Bottom constellation */}
+        <circle cx="150" cy="600" r="1.4" className="star star-4" fill="rgba(232, 199, 102, 0.7)" />
+        <circle cx="220" cy="550" r="1.5" className="star star-5" fill="rgba(232, 199, 102, 0.8)" />
+        <circle cx="280" cy="620" r="1.3" className="star star-6" fill="rgba(232, 199, 102, 0.7)" />
+
+        {/* Scattered background stars */}
+        <circle cx="50" cy="80" r="0.8" className="star star-1" fill="rgba(227, 215, 255, 0.5)" />
+        <circle cx="320" cy="120" r="0.9" className="star star-2" fill="rgba(227, 215, 255, 0.5)" />
+        <circle cx="1100" cy="450" r="0.8" className="star star-3" fill="rgba(227, 215, 255, 0.5)" />
+        <circle cx="800" cy="650" r="0.9" className="star star-4" fill="rgba(227, 215, 255, 0.5)" />
+        <circle cx="400" cy="700" r="0.8" className="star star-5" fill="rgba(227, 215, 255, 0.5)" />
+        <circle cx="1150" cy="150" r="0.9" className="star star-6" fill="rgba(227, 215, 255, 0.5)" />
+      </svg>
+
       {/* ═══ 3D Lune avec Halo ═══ */}
       <div
         style={{
