@@ -75,7 +75,7 @@ export default function Hero3D() {
     <section
       className="relative w-full overflow-hidden"
       style={{
-        background: '#000000',
+        background: '#111625',
         color: '#F5EEE0',
         minHeight: '100vh',
       }}
