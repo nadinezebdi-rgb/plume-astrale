@@ -143,7 +143,7 @@ export default function Hero3D() {
           inset: 0,
           zIndex: 0,
           pointerEvents: 'none',
-          opacity: 0.4,
+          opacity: 0.85,
         }}
         viewBox="0 0 1200 800"
         preserveAspectRatio="xMidYMid slice"
@@ -151,7 +151,7 @@ export default function Hero3D() {
         <defs>
           <style>{`
             @keyframes twinkle {
-              0%, 100% { opacity: 0.3; }
+              0%, 100% { opacity: 0.5; }
               50% { opacity: 1; }
             }
             .star { animation: twinkle 3s ease-in-out infinite; }
@@ -162,8 +162,8 @@ export default function Hero3D() {
             .star-5 { animation-delay: 2s; }
             .star-6 { animation-delay: 2.5s; }
             .constellation-line { 
-              stroke: rgba(232, 199, 102, 0.2);
-              stroke-width: 0.5;
+              stroke: rgba(232, 199, 102, 0.55);
+              stroke-width: 1.2;
               animation: twinkle 4s ease-in-out infinite;
             }
           `}</style>
@@ -191,29 +191,29 @@ export default function Hero3D() {
         </g>
 
         {/* Stars - Left constellation */}
-        <circle cx="100" cy="150" r="1.5" className="star star-1" fill="rgba(232, 199, 102, 0.8)" />
-        <circle cx="200" cy="200" r="1.2" className="star star-2" fill="rgba(232, 199, 102, 0.7)" />
-        <circle cx="250" cy="100" r="1.5" className="star star-3" fill="rgba(232, 199, 102, 0.8)" />
-        <circle cx="180" cy="50" r="1.3" className="star star-4" fill="rgba(232, 199, 102, 0.7)" />
+        <circle cx="100" cy="150" r="2.5" className="star star-1" fill="rgba(232, 199, 102, 1)" />
+        <circle cx="200" cy="200" r="2.2" className="star star-2" fill="rgba(232, 199, 102, 0.95)" />
+        <circle cx="250" cy="100" r="2.5" className="star star-3" fill="rgba(232, 199, 102, 1)" />
+        <circle cx="180" cy="50" r="2.3" className="star star-4" fill="rgba(232, 199, 102, 0.95)" />
 
         {/* Stars - Right constellation */}
-        <circle cx="900" cy="300" r="1.5" className="star star-5" fill="rgba(167, 139, 250, 0.8)" />
-        <circle cx="950" cy="250" r="1.2" className="star star-1" fill="rgba(167, 139, 250, 0.7)" />
-        <circle cx="1050" cy="280" r="1.4" className="star star-2" fill="rgba(167, 139, 250, 0.8)" />
-        <circle cx="1000" cy="350" r="1.3" className="star star-3" fill="rgba(167, 139, 250, 0.7)" />
+        <circle cx="900" cy="300" r="2.5" className="star star-5" fill="rgba(167, 139, 250, 1)" />
+        <circle cx="950" cy="250" r="2.2" className="star star-1" fill="rgba(167, 139, 250, 0.95)" />
+        <circle cx="1050" cy="280" r="2.4" className="star star-2" fill="rgba(167, 139, 250, 1)" />
+        <circle cx="1000" cy="350" r="2.3" className="star star-3" fill="rgba(167, 139, 250, 0.95)" />
 
         {/* Stars - Bottom constellation */}
-        <circle cx="150" cy="600" r="1.4" className="star star-4" fill="rgba(232, 199, 102, 0.7)" />
-        <circle cx="220" cy="550" r="1.5" className="star star-5" fill="rgba(232, 199, 102, 0.8)" />
-        <circle cx="280" cy="620" r="1.3" className="star star-6" fill="rgba(232, 199, 102, 0.7)" />
+        <circle cx="150" cy="600" r="2.4" className="star star-4" fill="rgba(232, 199, 102, 0.95)" />
+        <circle cx="220" cy="550" r="2.5" className="star star-5" fill="rgba(232, 199, 102, 1)" />
+        <circle cx="280" cy="620" r="2.3" className="star star-6" fill="rgba(232, 199, 102, 0.95)" />
 
         {/* Scattered background stars */}
-        <circle cx="50" cy="80" r="0.8" className="star star-1" fill="rgba(227, 215, 255, 0.5)" />
-        <circle cx="320" cy="120" r="0.9" className="star star-2" fill="rgba(227, 215, 255, 0.5)" />
-        <circle cx="1100" cy="450" r="0.8" className="star star-3" fill="rgba(227, 215, 255, 0.5)" />
-        <circle cx="800" cy="650" r="0.9" className="star star-4" fill="rgba(227, 215, 255, 0.5)" />
-        <circle cx="400" cy="700" r="0.8" className="star star-5" fill="rgba(227, 215, 255, 0.5)" />
-        <circle cx="1150" cy="150" r="0.9" className="star star-6" fill="rgba(227, 215, 255, 0.5)" />
+        <circle cx="50" cy="80" r="1.8" className="star star-1" fill="rgba(227, 215, 255, 0.9)" />
+        <circle cx="320" cy="120" r="1.9" className="star star-2" fill="rgba(227, 215, 255, 0.9)" />
+        <circle cx="1100" cy="450" r="1.8" className="star star-3" fill="rgba(227, 215, 255, 0.9)" />
+        <circle cx="800" cy="650" r="1.9" className="star star-4" fill="rgba(227, 215, 255, 0.9)" />
+        <circle cx="400" cy="700" r="1.8" className="star star-5" fill="rgba(227, 215, 255, 0.9)" />
+        <circle cx="1150" cy="150" r="1.9" className="star star-6" fill="rgba(227, 215, 255, 0.9)" />
       </svg>
 
       {/* ═══ 3D Lune avec Halo ═══ */}
