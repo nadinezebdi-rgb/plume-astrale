@@ -135,7 +135,7 @@ export default function Hero3D() {
         </Link>
       </header>
 
-      {/* ═══ Constellation Background Overlay ═══ */}
+      {/* ═══ Clouds & Stars Background Overlay ═══ */}
       <svg
         aria-hidden="true"
         style={{
@@ -143,7 +143,7 @@ export default function Hero3D() {
           inset: 0,
           zIndex: 0,
           pointerEvents: 'none',
-          opacity: 0.85,
+          opacity: 0.6,
         }}
         viewBox="0 0 1200 800"
         preserveAspectRatio="xMidYMid slice"
@@ -151,7 +151,7 @@ export default function Hero3D() {
         <defs>
           <style>{`
             @keyframes twinkle {
-              0%, 100% { opacity: 0.5; }
+              0%, 100% { opacity: 0.3; }
               50% { opacity: 1; }
             }
             .star { animation: twinkle 3s ease-in-out infinite; }
@@ -161,59 +161,56 @@ export default function Hero3D() {
             .star-4 { animation-delay: 1.5s; }
             .star-5 { animation-delay: 2s; }
             .star-6 { animation-delay: 2.5s; }
-            .constellation-line { 
-              stroke: rgba(232, 199, 102, 0.55);
-              stroke-width: 1.2;
-              animation: twinkle 4s ease-in-out infinite;
+            @keyframes floatCloud {
+              0%, 100% { opacity: 0.15; }
+              50% { opacity: 0.3; }
             }
+            .cloud { animation: floatCloud 8s ease-in-out infinite; }
+            .cloud-1 { animation-delay: 0s; }
+            .cloud-2 { animation-delay: 2s; }
+            .cloud-3 { animation-delay: 4s; }
           `}</style>
+          <filter id="cloudBlur">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+          </filter>
         </defs>
         
-        {/* Constellation Lines */}
-        <g className="constellation-line">
-          <line x1="100" y1="150" x2="200" y2="200" />
-          <line x1="200" y1="200" x2="250" y2="100" />
-          <line x1="250" y1="100" x2="180" y2="50" />
-          <line x1="180" y1="50" x2="100" y2="150" />
-        </g>
-        
-        <g className="constellation-line" style={{ animationDelay: '1s' }}>
-          <line x1="900" y1="300" x2="950" y2="250" />
-          <line x1="950" y1="250" x2="1050" y2="280" />
-          <line x1="1050" y1="280" x2="1000" y2="350" />
-          <line x1="1000" y1="350" x2="900" y2="300" />
+        {/* Clouds */}
+        <g className="cloud cloud-1" filter="url(#cloudBlur)">
+          <ellipse cx="150" cy="100" rx="80" ry="40" fill="rgba(232, 199, 102, 0.3)" />
+          <ellipse cx="200" cy="110" rx="100" ry="50" fill="rgba(232, 199, 102, 0.25)" />
+          <ellipse cx="100" cy="120" rx="70" ry="35" fill="rgba(232, 199, 102, 0.2)" />
         </g>
 
-        <g className="constellation-line" style={{ animationDelay: '2s' }}>
-          <line x1="150" y1="600" x2="220" y2="550" />
-          <line x1="220" y1="550" x2="280" y2="620" />
-          <line x1="280" y1="620" x2="150" y2="600" />
+        <g className="cloud cloud-2" filter="url(#cloudBlur)">
+          <ellipse cx="900" cy="150" rx="90" ry="45" fill="rgba(167, 139, 250, 0.25)" />
+          <ellipse cx="950" cy="140" rx="110" ry="55" fill="rgba(167, 139, 250, 0.2)" />
+          <ellipse cx="850" cy="160" rx="75" ry="40" fill="rgba(167, 139, 250, 0.15)" />
         </g>
 
-        {/* Stars - Left constellation */}
-        <circle cx="100" cy="150" r="2.5" className="star star-1" fill="rgba(232, 199, 102, 1)" />
-        <circle cx="200" cy="200" r="2.2" className="star star-2" fill="rgba(232, 199, 102, 0.95)" />
-        <circle cx="250" cy="100" r="2.5" className="star star-3" fill="rgba(232, 199, 102, 1)" />
-        <circle cx="180" cy="50" r="2.3" className="star star-4" fill="rgba(232, 199, 102, 0.95)" />
+        <g className="cloud cloud-3" filter="url(#cloudBlur)">
+          <ellipse cx="400" cy="650" rx="85" ry="42" fill="rgba(232, 199, 102, 0.2)" />
+          <ellipse cx="450" cy="660" rx="105" ry="52" fill="rgba(232, 199, 102, 0.15)" />
+          <ellipse cx="350" cy="670" rx="70" ry="35" fill="rgba(232, 199, 102, 0.1)" />
+        </g>
 
-        {/* Stars - Right constellation */}
-        <circle cx="900" cy="300" r="2.5" className="star star-5" fill="rgba(167, 139, 250, 1)" />
-        <circle cx="950" cy="250" r="2.2" className="star star-1" fill="rgba(167, 139, 250, 0.95)" />
-        <circle cx="1050" cy="280" r="2.4" className="star star-2" fill="rgba(167, 139, 250, 1)" />
-        <circle cx="1000" cy="350" r="2.3" className="star star-3" fill="rgba(167, 139, 250, 0.95)" />
+        <g className="cloud cloud-1" filter="url(#cloudBlur)" style={{ animationDelay: '1s' }}>
+          <ellipse cx="750" cy="500" rx="80" ry="40" fill="rgba(167, 139, 250, 0.2)" />
+          <ellipse cx="800" cy="510" rx="100" ry="50" fill="rgba(167, 139, 250, 0.15)" />
+          <ellipse cx="700" cy="520" rx="70" ry="35" fill="rgba(167, 139, 250, 0.1)" />
+        </g>
 
-        {/* Stars - Bottom constellation */}
-        <circle cx="150" cy="600" r="2.4" className="star star-4" fill="rgba(232, 199, 102, 0.95)" />
-        <circle cx="220" cy="550" r="2.5" className="star star-5" fill="rgba(232, 199, 102, 1)" />
-        <circle cx="280" cy="620" r="2.3" className="star star-6" fill="rgba(232, 199, 102, 0.95)" />
-
-        {/* Scattered background stars */}
-        <circle cx="50" cy="80" r="1.8" className="star star-1" fill="rgba(227, 215, 255, 0.9)" />
-        <circle cx="320" cy="120" r="1.9" className="star star-2" fill="rgba(227, 215, 255, 0.9)" />
-        <circle cx="1100" cy="450" r="1.8" className="star star-3" fill="rgba(227, 215, 255, 0.9)" />
-        <circle cx="800" cy="650" r="1.9" className="star star-4" fill="rgba(227, 215, 255, 0.9)" />
-        <circle cx="400" cy="700" r="1.8" className="star star-5" fill="rgba(227, 215, 255, 0.9)" />
-        <circle cx="1150" cy="150" r="1.9" className="star star-6" fill="rgba(227, 215, 255, 0.9)" />
+        {/* Scattered stars */}
+        <circle cx="50" cy="80" r="1.2" className="star star-1" fill="rgba(227, 215, 255, 0.8)" />
+        <circle cx="320" cy="120" r="1.0" className="star star-2" fill="rgba(227, 215, 255, 0.7)" />
+        <circle cx="1100" cy="200" r="1.1" className="star star-3" fill="rgba(227, 215, 255, 0.8)" />
+        <circle cx="200" cy="250" r="0.9" className="star star-4" fill="rgba(227, 215, 255, 0.6)" />
+        <circle cx="1050" cy="450" r="1.0" className="star star-5" fill="rgba(227, 215, 255, 0.7)" />
+        <circle cx="150" cy="600" r="1.1" className="star star-6" fill="rgba(227, 215, 255, 0.8)" />
+        <circle cx="900" cy="300" r="0.9" className="star star-1" fill="rgba(227, 215, 255, 0.6)" />
+        <circle cx="500" cy="450" r="1.0" className="star star-2" fill="rgba(227, 215, 255, 0.7)" />
+        <circle cx="1150" cy="650" r="0.95" className="star star-3" fill="rgba(227, 215, 255, 0.7)" />
+        <circle cx="80" cy="500" r="1.1" className="star star-4" fill="rgba(227, 215, 255, 0.8)" />
       </svg>
 
       {/* ═══ 3D Lune avec Halo ═══ */}
