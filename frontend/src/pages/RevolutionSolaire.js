@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowLeft, Loader2, Sun, Moon, Star, Flame, Heart, Compass, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowLeft, Loader2, Sun, Star, Compass, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
+import SafeEmptyState from '../components/design/SafeEmptyState';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -40,7 +41,9 @@ const TransitsToday = () => {
   })();
 
   const report = data?.report || {};
-  const reportText = report.summary || report.text || (report.life_areas || {}).summary || '';
+  // Vrai schéma astrology-api.io v3 : report.events est une liste d'événements interprétés
+  const events = Array.isArray(report.events) ? report.events : [];
+  const reportText = report.summary || report.text || '';
 
   return (
     <section className="card-mystical mb-8" data-testid="transits-today">
@@ -78,6 +81,32 @@ const TransitsToday = () => {
                       </span>
                     )}
                     {a.description && <p className="text-[#B8B0C8]/70 mt-0.5 text-xs">{a.description}</p>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          {events.length > 0 && (
+            <ul className="space-y-3 mb-5" data-testid="transits-events">
+              {events.slice(0, 6).map((ev, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <Sparkles className="w-4 h-4 text-[#B8961F] mt-1 flex-shrink-0" strokeWidth={1.5} />
+                  <div>
+                    {ev.title && (
+                      <p className="text-[#F0E6D3] text-sm mb-1" style={{ fontFamily: 'Cinzel, serif', letterSpacing: '0.05em' }}>
+                        {ev.title}
+                      </p>
+                    )}
+                    {ev.interpretation && (
+                      <p className="text-[#B8B0C8]/80 text-sm leading-relaxed" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                        {ev.interpretation}
+                      </p>
+                    )}
+                    {ev.date && (
+                      <p className="text-[#B8961F]/60 text-xs mt-1" style={{ letterSpacing: '0.15em' }}>
+                        {ev.date}
+                      </p>
+                    )}
                   </div>
                 </li>
               ))}
@@ -127,9 +156,21 @@ const RevolutionSolaire = () => {
   };
 
   const report = result?.report || {};
-  const chart = result?.chart || {};
-  const lifeAreas = report.life_areas || {};
-  const themes = report.themes || report.major_themes || [];
+  // Vrai schéma astrology-api.io v3 :
+  //  - report.interpretations  → list de {title, text}
+  //  - report.life_areas       → list de {area_key, theme, prediction}
+  //  - report.sr_to_natal_aspects → list d'aspects entre Solar Return et natal
+  //  - report.overview / report.summary → optionnel, résumé narratif
+  const interpretations = Array.isArray(report.interpretations) ? report.interpretations : [];
+  const lifeAreas = Array.isArray(report.life_areas) ? report.life_areas : [];
+  const srAspects = Array.isArray(report.sr_to_natal_aspects) ? report.sr_to_natal_aspects : [];
+  const overview = report.overview || report.summary || '';
+
+  // Détection safe : si l'API a répondu 200 mais qu'aucune section n'a de contenu
+  // affichable, on montre le SafeEmptyState au lieu d'une page vide.
+  const hasAnyContent = Boolean(
+    overview || interpretations.length || lifeAreas.length || srAspects.length
+  );
 
   return (
     <div className="min-h-screen px-6 md:px-8 py-20 md:py-28" data-testid="revolution-page">
@@ -176,7 +217,15 @@ const RevolutionSolaire = () => {
           </div>
         )}
 
-        {result && (
+        {result && !hasAnyContent && (
+          <SafeEmptyState
+            productName="votre Révolution Solaire"
+            onRetry={handleGenerate}
+            extraContext={`Année visée : ${result.return_year || '—'}`}
+          />
+        )}
+
+        {result && hasAnyContent && (
           <div className="space-y-6" data-testid="revolution-result">
             <div className="card-mystical">
               <div className="flex items-center gap-3 mb-3">
@@ -185,42 +234,69 @@ const RevolutionSolaire = () => {
                   Année {result.return_year} · {result.name}
                 </h2>
               </div>
-              {(report.overview || report.summary) && (
+              {overview && (
                 <p className="text-[#F0E6D3]/90 leading-relaxed" style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '16px', lineHeight: '1.9' }} data-testid="revolution-overview">
-                  {report.overview || report.summary}
+                  {overview}
                 </p>
               )}
             </div>
 
-            {Array.isArray(themes) && themes.length > 0 && (
-              <div className="card-mystical" data-testid="revolution-themes">
+            {interpretations.length > 0 && (
+              <div className="card-mystical" data-testid="revolution-interpretations">
                 <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
-                  <Star className="w-5 h-5 text-[#B8961F]" strokeWidth={1.5} /> Thèmes majeurs
+                  <Star className="w-5 h-5 text-[#B8961F]" strokeWidth={1.5} /> Thèmes majeurs de l&apos;année
                 </h3>
-                <ul className="space-y-2">
-                  {themes.slice(0, 6).map((t, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <span className="text-[#B8961F] mt-1">·</span>
-                      <span className="text-[#B8B0C8]">{typeof t === 'string' ? t : (t.title || t.name || JSON.stringify(t))}</span>
-                    </li>
+                <div className="space-y-5">
+                  {interpretations.slice(0, 6).map((it, i) => (
+                    <div key={i} className="pb-4" style={{ borderBottom: i < 5 ? '1px solid rgba(184,150,31,0.15)' : 'none' }}>
+                      {it.title && (
+                        <p className="text-[#B8961F] uppercase tracking-widest text-xs mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
+                          {it.title}
+                        </p>
+                      )}
+                      <p className="text-sm md:text-base text-[#F0E6D3]/90 leading-relaxed" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                        {it.text || it.interpretation || it.description}
+                      </p>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
 
-            {Object.keys(lifeAreas).length > 0 && (
+            {lifeAreas.length > 0 && (
               <div className="grid md:grid-cols-2 gap-4" data-testid="revolution-life-areas">
-                {Object.entries(lifeAreas).slice(0, 8).map(([key, val]) => {
-                  if (typeof val !== 'string' && !val?.text && !val?.description) return null;
-                  return (
-                    <div key={key} className="card-mystical">
-                      <p className="text-[#B8961F] uppercase tracking-widest text-xs mb-2">{key.replace(/_/g, ' ')}</p>
-                      <p className="text-sm text-[#F0E6D3]/85 leading-relaxed">
-                        {typeof val === 'string' ? val : (val.text || val.description)}
-                      </p>
-                    </div>
-                  );
-                })}
+                {lifeAreas.slice(0, 12).map((la, i) => (
+                  <div key={i} className="card-mystical">
+                    <p className="text-[#B8961F] uppercase tracking-widest text-xs mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
+                      {la.theme || (la.area_key || '').replace(/_/g, ' ')}
+                    </p>
+                    <p className="text-sm text-[#F0E6D3]/85 leading-relaxed" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                      {la.prediction || la.text || la.description || ''}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {srAspects.length > 0 && (
+              <div className="card-mystical" data-testid="revolution-sr-aspects">
+                <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                  <Compass className="w-5 h-5 text-[#B8961F]" strokeWidth={1.5} /> Résonances avec votre thème natal
+                </h3>
+                <ul className="space-y-3">
+                  {srAspects.slice(0, 6).map((a, i) => (
+                    <li key={i} className="text-sm">
+                      <span className="text-[#F0E6D3]">
+                        {(a.point_1 || a.planet_1 || '')} {(a.aspect_name || a.aspect || '')} {(a.point_2 || a.planet_2 || '')}
+                      </span>
+                      {a.interpretation && (
+                        <p className="text-[#B8B0C8]/75 mt-1 text-xs md:text-sm leading-relaxed" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                          {a.interpretation}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 

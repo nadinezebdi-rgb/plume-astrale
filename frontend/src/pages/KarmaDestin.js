@@ -5,6 +5,7 @@ import { Loader2, ArrowLeft, Sparkles, Moon, Sun, Star, Infinity, ArrowRight, Co
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import axios from 'axios';
+import SafeEmptyState from '@/components/design/SafeEmptyState';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -285,7 +286,13 @@ const KarmaDestin = () => {
           )}
 
           {/* ── RÉSULTATS ── */}
-          {result && (
+          {result && !(result.data?.karma_principal || result.data?.mission_de_vie || result.data?.noeuds_lunaires) && (
+            <SafeEmptyState
+              productName="votre lecture Karma & Destin"
+              onRetry={() => { setResult(null); setShowForm(true); }}
+            />
+          )}
+          {result && (result.data?.karma_principal || result.data?.mission_de_vie || result.data?.noeuds_lunaires) && (
             <div className="space-y-6 animate-fade-in">
 
               {/* Karma Principal */}
