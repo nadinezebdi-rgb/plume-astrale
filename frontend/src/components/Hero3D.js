@@ -75,7 +75,7 @@ export default function Hero3D() {
     <section
       className="relative w-full overflow-hidden"
       style={{
-        background: '#111625',
+        background: '#000000',
         color: '#F5EEE0',
         minHeight: '100vh',
       }}
@@ -135,21 +135,45 @@ export default function Hero3D() {
         </Link>
       </header>
 
-      {/* ═══ 3D Lune ═══ */}
+      {/* ═══ 3D Lune avec Halo ═══ */}
       <div
-        style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 1,
+          pointerEvents: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
       >
-        <Suspense fallback={null}>
-          <Moon3D />
-        </Suspense>
+        {/* Halo Glow autour de la lune */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            width: '600px',
+            height: '600px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(232, 199, 102, 0.15) 0%, rgba(167, 139, 250, 0.08) 40%, transparent 70%)',
+            filter: 'blur(60px)',
+            zIndex: 0,
+          }}
+        />
+        {/* Moon3D rendu par-dessus le halo */}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+          <Suspense fallback={null}>
+            <Moon3D />
+          </Suspense>
+        </div>
       </div>
 
-      {/* ═══ Vignette pour focus sur le contenu ═══ */}
+      {/* ═══ Vignette subtle harmony ═══ */}
       <div
         aria-hidden="true"
         style={{
           position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse at 50% 50%, transparent 8%, rgba(12,9,24,0.28) 42%, rgba(5,3,8,0.85) 85%, #050308 100%)',
+          background: 'radial-gradient(ellipse at 50% 50%, transparent 0%, rgba(17, 22, 37, 0.0) 100%)',
         }}
       />
 
