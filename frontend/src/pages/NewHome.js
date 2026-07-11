@@ -311,7 +311,7 @@ export default function NewHome() {
             }}
             data-testid="quick-oracle-cta"
           >
-            ✨ Découvrez votre oracle du jour GRATUITEMENT
+            Découvrez votre oracle du jour GRATUITEMENT
           </button>
         )}
 

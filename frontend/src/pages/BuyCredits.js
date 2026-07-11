@@ -103,7 +103,7 @@ const PACKS = [
     bonus: 10,
     amount: 14.99,
     icon: Sparkles,
-    badge: '⭐ Best-Seller',
+    badge: 'Best-Seller',
     tagline: 'Ton Thème Natal complet accessible en 1 clic.',
     projections: ['6 questions à Plume', '1 Thème Natal complet (60 cr)', 'Ou 2 tarots approfondis'],
   },

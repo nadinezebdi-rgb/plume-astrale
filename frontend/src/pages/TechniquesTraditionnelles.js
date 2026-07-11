@@ -79,13 +79,13 @@ export default function TechniquesTraditionnelles() {
   }, [activeTab]);
 
   const tabs = [
-    { id: 'arabicparts', label: '🌙 Parts Arabes' },
-    { id: 'fixedstars', label: '⭐ Étoiles Fixes' },
-    { id: 'dignities', label: '👑 Dignités' },
-    { id: 'sabian', label: '🔮 Sabians' },
-    { id: 'planetaryhours', label: '🕐 Heures Planétaires' },
-    { id: 'eclipses', label: '🌑 Éclipses' },
-    { id: 'draconic', label: '🐉 Draconique' },
+    { id: 'arabicparts', label: 'Parts Arabes' },
+    { id: 'fixedstars', label: 'Étoiles Fixes' },
+    { id: 'dignities', label: 'Dignités' },
+    { id: 'sabian', label: 'Sabians' },
+    { id: 'planetaryhours', label: 'Heures Planétaires' },
+    { id: 'eclipses', label: 'Éclipses' },
+    { id: 'draconic', label: 'Draconique' },
   ];
 
   const LoadingState = ({ text }) => (

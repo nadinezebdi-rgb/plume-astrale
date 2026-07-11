@@ -386,7 +386,7 @@ const Livre = () => {
         <div className="flex flex-wrap justify-center gap-6 mt-12 text-[#B8B0C8]/50 text-sm">
           <span>🔒 Paiement sécurisé</span>
           <span>📦 Livraison suivie</span>
-          <span>✨ Qualité premium</span>
+          <span>Qualité premium</span>
           <span>💝 Idéal cadeau</span>
         </div>
       </div>

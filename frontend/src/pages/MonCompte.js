@@ -132,9 +132,9 @@ const FideliteCard = ({ fidelite, onCheckin, checkinLoading }) => {
       {/* Statistiques */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         {[
-          { label: 'Jours consécutifs', value: count, icon: '🔥' },
-          { label: 'Record personnel', value: record, icon: '⭐' },
-          { label: 'Total de présences', value: total, icon: '✦' },
+          { label: 'Jours consécutifs', value: count, icon: null },
+          { label: 'Record personnel', value: record, icon: null },
+          { label: 'Total de présences', value: total, icon: null },
         ].map(({ label, value, icon }) => (
           <div
             key={label}

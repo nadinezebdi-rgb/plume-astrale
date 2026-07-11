@@ -15,7 +15,7 @@ const StickyBanner = () => {
         boxShadow: "0 2px 12px rgba(212, 175, 55, 0.3)",
       }}
     >
-      ✨ OFFRE DE LANCEMENT : 20 CRÉDITS OFFERTS À L'INSCRIPTION POUR DÉCOUVRIR VOTRE AVENIR AMOUREUX ✨
+      OFFRE DE LANCEMENT : 20 CRÉDITS OFFERTS À L'INSCRIPTION POUR DÉCOUVRIR VOTRE AVENIR AMOUREUX
     </div>
   );
 };

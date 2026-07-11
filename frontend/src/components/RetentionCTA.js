@@ -20,7 +20,7 @@ export default function RetentionCTA({ type, onNext, onDismiss, creditsNeeded = 
   const SCENARIOS = {
     // Après Oracle gratuit → Upsell thème complet
     oracle_completed: {
-      emoji: '✨',
+      emoji: null,
       title: 'C\'était juste l\'aperçu...',
       message: 'Votre lecture complète vous attend. Découvrez votre thème natal en détail avec rapport PDF 40 pages.',
       cta: 'Voir mon thème complet',
@@ -30,7 +30,7 @@ export default function RetentionCTA({ type, onNext, onDismiss, creditsNeeded = 
 
     // Après chat session → Upsell synastrie
     chat_completed: {
-      emoji: '💕',
+      emoji: null,
       title: 'Prête pour la prochaine révélation?',
       message: 'Découvrez votre synastrie de couple — comment les astres vous unissent avec votre partenaire.',
       cta: 'Analyser ma synastrie',
@@ -40,7 +40,7 @@ export default function RetentionCTA({ type, onNext, onDismiss, creditsNeeded = 
 
     // Après thème natal → Upsell coaching
     natal_completed: {
-      emoji: '🔮',
+      emoji: null,
       title: 'Allez plus loin avec Solena',
       message: 'Obtenez une session de coaching astrologique personnalisé pour interpréter vos cycles amoureux à venir.',
       cta: 'Débloquer session coaching',

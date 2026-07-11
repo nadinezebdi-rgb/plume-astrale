@@ -176,7 +176,7 @@ const TirageDuJour = () => {
                 {/* Message énergie */}
                 <div className="bg-[#B8961F]/10 rounded-lg p-4 border border-[#B8961F]/20 mb-4">
                   <p className="text-[#B8961F] text-sm italic">
-                    ✨ {tirage.message_energie}
+                    {tirage.message_energie}
                   </p>
                 </div>
               </div>

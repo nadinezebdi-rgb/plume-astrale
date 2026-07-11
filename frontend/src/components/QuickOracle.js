@@ -123,7 +123,7 @@ export default function QuickOracle({ onClose, onSelectPack }) {
               color: '#F4E8D2',
               fontWeight: 300,
             }}>
-              ✨ Votre oracle du jour
+              Votre oracle du jour
             </h2>
             <p className="text-sm mb-8" style={{ color: 'rgba(244,232,210,0.7)' }}>
               Sélectionnez votre signe pour une guidance gratuite personnalisée.
@@ -276,7 +276,7 @@ function CreditsUpsellPanel({ onSelectPack, onBack }) {
     {
       id: 'initiation',
       name: 'Initiation',
-      emoji: '🌙',
+      emoji: null,
       price: '4,99 €',
       credits: 15,
       bonus: 0,
@@ -291,19 +291,19 @@ function CreditsUpsellPanel({ onSelectPack, onBack }) {
     {
       id: 'clarte',
       name: 'Clarté',
-      emoji: '✨',
+      emoji: null,
       price: '14,99 €',
       credits: 60,
       bonus: 10,
       originalPrice: '19,99 €',
       features: [
-        '50 crédits + 10 BONUS 🎁',
+        '50 crédits + 10 BONUS',
         'Thème natal complet (PDF 40p)',
         'Synastrie de base',
         'Chat Solena illimité 30j',
       ],
       badge: {
-        text: '⭐ Bestseller',
+        text: 'Bestseller',
         subtext: '78% des utilisateurs',
       },
       highlight: true,
@@ -312,18 +312,18 @@ function CreditsUpsellPanel({ onSelectPack, onBack }) {
     {
       id: 'flammes',
       name: 'Flammes Jumelles',
-      emoji: '🔥',
+      emoji: null,
       price: '29,99 €',
       credits: 130,
       bonus: 30,
       features: [
-        '100 crédits + 30 BONUS 🎁',
+        '100 crédits + 30 BONUS',
         'Accès illimité 30 jours',
         'Synastrie complète',
         'Session coaching (valeur 50€)',
       ],
       badge: {
-        text: '🔥 Meilleure valeur',
+        text: 'Meilleure valeur',
         subtext: '10 places/jour',
       },
       cta: 'Accéder Flammes Jumelles',

@@ -8,11 +8,11 @@ import axios from 'axios';
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const TYPE_INFO = {
-  Generator: { emoji: '⚡', color: '#4ade80', desc: 'Vous avez une énergie durable et magnétique. Attendez de répondre avant d\'agir.' },
-  'Manifesting Generator': { emoji: '🌪️', color: '#f59e0b', desc: 'Multi-passionné et rapide. Répondez puis informez les autres.' },
-  Projector: { emoji: '🔭', color: '#a78bfa', desc: 'Sage-guide naturel. Attendez l\'invitation pour partager votre sagesse.' },
-  Manifestor: { emoji: '🔥', color: '#f87171', desc: 'Initiateur de changements. Informez les autres avant d\'agir.' },
-  Reflector: { emoji: '🌙', color: '#60a5fa', desc: 'Miroir de la communauté. Attendez un cycle lunaire complet pour décider.' },
+  Generator: { emoji: null, color: '#4ade80', desc: 'Vous avez une énergie durable et magnétique. Attendez de répondre avant d\'agir.' },
+  'Manifesting Generator': { emoji: null, color: '#f59e0b', desc: 'Multi-passionné et rapide. Répondez puis informez les autres.' },
+  Projector: { emoji: null, color: '#a78bfa', desc: 'Sage-guide naturel. Attendez l\'invitation pour partager votre sagesse.' },
+  Manifestor: { emoji: null, color: '#f87171', desc: 'Initiateur de changements. Informez les autres avant d\'agir.' },
+  Reflector: { emoji: null, color: '#60a5fa', desc: 'Miroir de la communauté. Attendez un cycle lunaire complet pour décider.' },
 };
 
 const CENTER_NAMES_FR = {

@@ -14,10 +14,10 @@ const STEPS_PREVIEW = [
 ];
 
 const FEATURES = [
-  { emoji: '🌟', text: 'Horoscope quotidien personnalisé' },
-  { emoji: '🃏', text: 'Tarot quotidien — 1 carte / jour' },
-  { emoji: '🌟', text: 'Consultation astrale personnalisée — Une guidance vivante de ton thème natal' },
-  { emoji: '💑', text: 'Compatibilité amoureuse illimitée' },
+  { emoji: null, text: 'Horoscope quotidien personnalisé' },
+  { emoji: null, text: 'Tarot quotidien — 1 carte / jour' },
+  { emoji: null, text: 'Consultation astrale personnalisée — Une guidance vivante de ton thème natal' },
+  { emoji: null, text: 'Compatibilité amoureuse illimitée' },
 ];
 
 const PremiumLanding = () => {

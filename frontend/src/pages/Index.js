@@ -465,28 +465,32 @@ const Index = () => {
         />
       ) : (
         <>
-          <div style={{ position: 'absolute', top: '60vh', left: '50%', transform: 'translateX(-50%)', zIndex: 20 }}>
-            <button
-              onClick={() => setShowQuickOracle(true)}
-              className="px-8 py-3 rounded-2xl text-center transition-all hover:scale-105"
-              style={{
-                background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
-                color: '#0C0918',
-                fontFamily: 'Cormorant Garamond, serif',
-                fontSize: '1rem',
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 10px 30px rgba(212,175,55,0.3)',
-                minWidth: '280px',
-              }}
-              data-testid="quick-oracle-cta-hero"
-            >
-              ✨ Découvrez votre oracle du jour GRATUITEMENT
-            </button>
-          </div>
           <Hero3D />
+          <section className="relative py-12 px-4 z-10 text-center" style={{ background: 'transparent' }} data-testid="oracle-cta-section">
+            <div className="max-w-md mx-auto">
+              <button
+                onClick={() => setShowQuickOracle(true)}
+                className="w-full px-8 py-4 rounded-2xl text-center transition-all hover:scale-105 active:scale-95"
+                style={{
+                  background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
+                  color: '#0C0918',
+                  fontFamily: 'Cormorant Garamond, serif',
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.08em',
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 10px 30px rgba(212,175,55,0.3)',
+                }}
+                data-testid="quick-oracle-cta-hero"
+              >
+                Découvrez votre oracle du jour GRATUITEMENT
+              </button>
+              <p style={{ color: 'rgba(244,232,210,0.5)', fontSize: '0.85rem', marginTop: '1rem', letterSpacing: '0.05em' }}>
+                Aucune inscription requise
+              </p>
+            </div>
+          </section>
         </>
       )}
       <SolenaJourney />
