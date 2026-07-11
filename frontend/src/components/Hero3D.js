@@ -1,104 +1,80 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, User, Loader2, AlertCircle } from 'lucide-react';
+import { User, AlertCircle, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Moon3D = lazy(() => import('./Moon3D'));
 
-const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-const BIRTH_KEY = 'pa_birth_data';
-
 /**
- * Hero3D — expérience 3D immersive above-the-fold :
- *  - Vraie Lune 3D en WebGL avec shader procédural (fBm)
- *  - Aura fluide Perlin dorée + halo indigo
- *  - Form 3-steps fondu dans l'interface, la Lune réagit à chaque étape
- *  - Bandeau or offre de lancement + logo + Mon Compte uniquement
+ * Hero3D — Funnel de Conversion Psychologique
+ * ÉTAPE 1: CTA sur la lune (Hameçon)
+ * ÉTAPE 2: Modal glassmorphism pour 2 prénoms (Micro-friction)
+ * ÉTAPE 3: Animation mystique 3-4 secondes (Création de valeur)
+ * ÉTAPE 4: Résultat + Upsell (Right Hook)
  */
 export default function Hero3D() {
   const { isAuthenticated } = useAuth();
-  const [step, setStep] = useState(1);
-  const [birth, setBirth] = useState(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(BIRTH_KEY) || 'null');
-      if (saved) return {
-        day: String(saved.day || ''),
-        month: String(saved.month || ''),
-        year: String(saved.year || ''),
-        hour: String(saved.hour ?? '12'),
-        minute: String(saved.min ?? saved.minute ?? '00'),
-        place: saved.place || '',
-      };
-    } catch (e) { /* ignore */ }
-    return { day: '', month: '', year: '', hour: '12', minute: '00', place: '' };
-  });
-  const [vibrate, setVibrate] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  
+  // ═════ États du Funnel ═════
+  const [showModal, setShowModal] = useState(false);
+  const [nameOne, setNameOne] = useState('');
+  const [nameTwo, setNameTwo] = useState('');
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisStep, setAnalysisStep] = useState(0);
+  const [showResult, setShowResult] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const update = (k, v) => setBirth((p) => ({ ...p, [k]: v }));
-  const updateWithValidation = (k, v) => {
-    update(k, v);
-    if (errors[k]) setErrors((prev) => ({ ...prev, [k]: '' }));
-  };
+  // Messages d'analyse mystiques (3-4 secondes)
+  const analysisMessages = [
+    'Calcul de la synastrie des prénoms...',
+    'Analyse des transits de Vénus et de la Lune...',
+    'Soléna prépare votre clé de lecture...',
+  ];
 
-  // ═══════════ VALIDATIONS ═══════════
-  const isValidDay = (d) => d && /^\d{1,2}$/.test(d) && parseInt(d, 10) >= 1 && parseInt(d, 10) <= 31;
-  const isValidMonth = (m) => m && m >= 1 && m <= 12;
-  const isValidYear = (y) => y && /^\d{4}$/.test(y) && parseInt(y, 10) >= 1900 && parseInt(y, 10) <= new Date().getFullYear();
-  const isValidHour = (h) => h !== '' && /^\d{1,2}$/.test(h) && parseInt(h, 10) >= 0 && parseInt(h, 10) <= 23;
-  const isValidMinute = (m) => m !== '' && /^\d{1,2}$/.test(m) && parseInt(m, 10) >= 0 && parseInt(m, 10) <= 59;
-  const isValidPlace = (p) => p.trim().length >= 2 && /^[a-zA-ZÀ-ÿ\s,'-]+$/.test(p.trim());
-
-  const canProceedStep1 = isValidDay(birth.day) && isValidMonth(birth.month) && isValidYear(birth.year);
-  const canProceedStep2 = isValidHour(birth.hour) && isValidMinute(birth.minute);
-  const canSubmit = canProceedStep1 && canProceedStep2 && isValidPlace(birth.place);
-
-  const triggerVibration = () => {
-    setVibrate(true);
-    setTimeout(() => setVibrate(false), 500);
-  };
-
-  const goNext = () => {
-    if (step === 1 && canProceedStep1) {
-      setStep(2);
-      triggerVibration();
-    } else if (step === 2 && canProceedStep2) {
-      setStep(3);
-      triggerVibration();
+  const startAnalysis = () => {
+    // Validation
+    if (!nameOne.trim() || !nameTwo.trim()) {
+      setErrors({
+        nameOne: !nameOne.trim() ? 'Prénom requis' : '',
+        nameTwo: !nameTwo.trim() ? 'Prénom requis' : '',
+      });
+      return;
     }
-  };
-
-  const submit = async () => {
-    if (!canSubmit) return;
-    setIsLoading(true);
     setErrors({});
-    try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const data = {
-        day: parseInt(birth.day, 10),
-        month: parseInt(birth.month, 10),
-        year: parseInt(birth.year, 10),
-        hour: parseInt(birth.hour, 10),
-        min: parseInt(birth.minute, 10),
-        place: birth.place.trim(),
-      };
-      try { localStorage.setItem(BIRTH_KEY, JSON.stringify(data)); } catch (e) { }
-      window.dispatchEvent(new CustomEvent('pa:open-solena-chat', { detail: data }));
-      const el = document.querySelector('[data-testid="home-solena-section"]');
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } catch (err) {
-      setErrors({ submit: 'Une erreur est survenue. Veuillez réessayer.' });
-    } finally {
-      setIsLoading(false);
-    }
+    setAnalyzing(true);
+    setAnalysisStep(0);
+
+    // Animation de 3.3 secondes (1.1 sec par message)
+    const duration = 3300;
+    const messages = analysisMessages.length;
+    const intervalDuration = duration / messages;
+
+    let step = 0;
+    const interval = setInterval(() => {
+      step++;
+      setAnalysisStep(step);
+      if (step >= messages) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setAnalyzing(false);
+          setShowResult(true);
+        }, 300);
+      }
+    }, intervalDuration);
+  };
+
+  const handleCloseResult = () => {
+    setShowModal(false);
+    setShowResult(false);
+    setNameOne('');
+    setNameTwo('');
+    setAnalysisStep(0);
   };
 
   return (
     <section
       className="relative w-full overflow-hidden"
       style={{
-        /* Nuit Noire — fond noir pur sans formulaire */
         background: '#000000',
         color: '#F5EEE0',
         minHeight: '100vh',
@@ -161,11 +137,10 @@ export default function Hero3D() {
 
       {/* ═══ 3D Lune ═══ */}
       <div
-        className={vibrate ? 'moon3d-vibrate' : ''}
         style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }}
       >
         <Suspense fallback={null}>
-          <Moon3D step={step} />
+          <Moon3D />
         </Suspense>
       </div>
 
@@ -178,7 +153,7 @@ export default function Hero3D() {
         }}
       />
 
-      {/* ═══ Contenu texte + form ═══ */}
+      {/* ═══ ÉTAPE 1: L'Hameçon - CTA sur la lune ═══ */}
       <div
         className="relative z-10 flex flex-col items-center justify-center text-center px-4"
         style={{
@@ -187,142 +162,419 @@ export default function Hero3D() {
           paddingBottom: 'clamp(30px, 5vh, 60px)',
         }}
       >
-        {/* Titre magnétique */}
-        <h1
-          className="mb-3 md:mb-4"
+        {/* Titre Principal */}
+        <h2
           style={{
             fontFamily: 'Cinzel, Playfair Display, Cormorant Garamond, serif',
             fontWeight: 300,
-            fontSize: 'clamp(1.9rem, 5.5vw, 3.6rem)',
-            lineHeight: 1.08,
-            letterSpacing: '0.01em',
+            fontSize: 'clamp(1.7rem, 4.8vw, 3.2rem)',
+            lineHeight: 1.15,
+            letterSpacing: '0.02em',
             color: '#FFFFFF',
             textShadow: '0 4px 60px rgba(0,0,0,1), 0 0 30px rgba(226,191,101,0.15)',
-            maxWidth: 720,
+            maxWidth: 680,
+            marginBottom: 16,
           }}
-          data-testid="hero-title"
+          data-testid="hero-headline"
         >
-          Qui est écrit <em style={{ color: '#E2BF65', fontStyle: 'italic', fontWeight: 300 }}>dans vos étoiles ?</em>
-        </h1>
+          Cessez de deviner ses sentiments.
+          <br />
+          Obtenez des réponses claires.
+        </h2>
 
+        {/* Sous-texte */}
         <p
-          className="mb-6 max-w-lg"
           style={{
             fontFamily: 'Inter, sans-serif',
-            fontSize: 'clamp(0.85rem, 1.2vw, 1rem)',
+            fontSize: 'clamp(0.95rem, 1.3vw, 1.1rem)',
             fontWeight: 300,
-            lineHeight: 1.6,
+            lineHeight: 1.7,
             color: '#CBD5E1',
             textShadow: '0 2px 20px rgba(0,0,0,0.9)',
+            maxWidth: 580,
+            marginBottom: 32,
+            fontStyle: 'italic',
           }}
-          data-testid="hero-subtitle"
+          data-testid="hero-subheadline"
         >
-          Trois pas suffisent pour révéler le portrait de votre âme sœur et vos prochaines fenêtres cosmiques de rencontre.
+          Soléna décode les énergies de votre relation pour vous dire exactement où vous allez.
         </p>
+
+        {/* CTA Principal */}
+        <button
+          onClick={() => setShowModal(true)}
+          className="group relative px-8 py-4 overflow-hidden rounded-full transition-all duration-300 hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D4AF37]"
+          style={{
+            background: 'linear-gradient(135deg, #E2BF65 0%, #E8C766 50%, #B8860B 100%)',
+            color: '#0A0603',
+            fontFamily: 'Cinzel, sans-serif',
+            fontWeight: 700,
+            fontSize: 'clamp(0.95rem, 1.1vw, 1.1rem)',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 0 40px rgba(226,191,101,0.5), inset 0 1px 0 rgba(255,255,255,0.35)',
+          }}
+          data-testid="hero-cta-button"
+        >
+          <span style={{ position: 'relative', zIndex: 2 }}>
+            Lever le voile sur mon couple
+          </span>
+          <div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            style={{
+              background: 'radial-gradient(circle at 50% 50%, #FFF3D6 0%, #E8C766 40%, transparent 100%)',
+              animation: 'pulse 2s ease-in-out infinite',
+            }}
+          />
+        </button>
       </div>
+
+      {/* ═══ ÉTAPE 2 + 3 + 4: Modal Glassmorphism ═══ */}
+      {showModal && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-50 transition-opacity duration-300"
+            style={{
+              background: 'rgba(0, 0, 0, 0.6)',
+              backdropFilter: 'blur(4px)',
+            }}
+            onClick={() => {
+              if (!analyzing && !showResult) setShowModal(false);
+            }}
+            data-testid="modal-backdrop"
+          />
+
+          {/* Modal Container */}
+          <div
+            className="fixed top-1/2 left-1/2 z-50 w-full max-w-md transform -translate-x-1/2 -translate-y-1/2 p-6 rounded-2xl transition-all duration-300"
+            style={{
+              background: 'rgba(255, 243, 214, 0.08)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(226, 191, 101, 0.25)',
+              boxShadow: '0 20px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
+            }}
+            data-testid="modal-container"
+          >
+            {/* ÉTAPE 2: Formulaire Input */}
+            {!analyzing && !showResult && (
+              <>
+                {/* Close Button */}
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="absolute top-4 right-4 p-2 text-[#CBD5E1] hover:text-[#E2BF65] transition-colors"
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+                >
+                  <X size={20} strokeWidth={1.5} />
+                </button>
+
+                {/* Header */}
+                <div className="mb-6 text-center">
+                  <h3
+                    style={{
+                      fontFamily: 'Cinzel, Playfair Display, serif',
+                      fontSize: '1.3rem',
+                      fontWeight: 400,
+                      color: '#FFFFFF',
+                      marginBottom: 8,
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    Votre Guidance Amoureuse
+                  </h3>
+                  <p
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '0.9rem',
+                      color: '#CBD5E1',
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    Pour aligner les astres, Soléna a besoin de vos vibrations
+                  </p>
+                </div>
+
+                {/* Form Fields */}
+                <div className="space-y-4 mb-6">
+                  {/* Prénom 1 */}
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Votre prénom"
+                      value={nameOne}
+                      onChange={(e) => {
+                        setNameOne(e.target.value);
+                        if (errors.nameOne) setErrors((p) => ({ ...p, nameOne: '' }));
+                      }}
+                      className="w-full py-3 px-4 rounded-lg outline-none transition-all focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 focus:ring-offset-[rgba(255,243,214,0.08)]"
+                      style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: errors.nameOne ? '1px solid #FF6B6B' : '1px solid rgba(226,191,101,0.25)',
+                        color: '#FFFFFF',
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '0.95rem',
+                      }}
+                      data-testid="modal-name-one"
+                    />
+                    {errors.nameOne && (
+                      <div
+                        className="flex items-center gap-1 mt-1.5 text-[12px]"
+                        style={{ color: '#FF6B6B' }}
+                      >
+                        <AlertCircle size={12} />
+                        <span>{errors.nameOne}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Prénom 2 */}
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Son prénom"
+                      value={nameTwo}
+                      onChange={(e) => {
+                        setNameTwo(e.target.value);
+                        if (errors.nameTwo) setErrors((p) => ({ ...p, nameTwo: '' }));
+                      }}
+                      className="w-full py-3 px-4 rounded-lg outline-none transition-all focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 focus:ring-offset-[rgba(255,243,214,0.08)]"
+                      style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: errors.nameTwo ? '1px solid #FF6B6B' : '1px solid rgba(226,191,101,0.25)',
+                        color: '#FFFFFF',
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '0.95rem',
+                      }}
+                      data-testid="modal-name-two"
+                    />
+                    {errors.nameTwo && (
+                      <div
+                        className="flex items-center gap-1 mt-1.5 text-[12px]"
+                        style={{ color: '#FF6B6B' }}
+                      >
+                        <AlertCircle size={12} />
+                        <span>{errors.nameTwo}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <button
+                  onClick={startAnalysis}
+                  className="w-full py-3 px-4 rounded-lg font-semibold uppercase transition-all duration-300 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+                  style={{
+                    background: 'linear-gradient(135deg, #E2BF65 0%, #E8C766 50%, #B8860B 100%)',
+                    color: '#0A0603',
+                    fontFamily: 'Cinzel, sans-serif',
+                    fontSize: '0.9rem',
+                    letterSpacing: '0.1em',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 0 30px rgba(226,191,101,0.4), inset 0 1px 0 rgba(255,255,255,0.35)',
+                  }}
+                  data-testid="modal-submit-button"
+                >
+                  Lancer l'analyse vibratoire
+                </button>
+              </>
+            )}
+
+            {/* ÉTAPE 3: Animation Mystique */}
+            {analyzing && (
+              <div className="flex flex-col items-center justify-center py-12 gap-6">
+                {/* Animated Constellation */}
+                <div
+                  style={{
+                    width: 60,
+                    height: 60,
+                    position: 'relative',
+                    animation: 'spin 4s linear infinite',
+                  }}
+                >
+                  <svg
+                    viewBox="0 0 100 100"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      fill: 'none',
+                      stroke: '#E2BF65',
+                      strokeWidth: 1,
+                      opacity: 0.6,
+                    }}
+                  >
+                    {/* Simple constellation pattern */}
+                    <circle cx="50" cy="20" r="3" />
+                    <circle cx="80" cy="50" r="3" />
+                    <circle cx="50" cy="80" r="3" />
+                    <circle cx="20" cy="50" r="3" />
+                    <line x1="50" y1="20" x2="80" y2="50" />
+                    <line x1="80" y1="50" x2="50" y2="80" />
+                    <line x1="50" y1="80" x2="20" y2="50" />
+                    <line x1="20" y1="50" x2="50" y2="20" />
+                  </svg>
+                </div>
+
+                {/* Analysis Message */}
+                <div className="text-center">
+                  <p
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '0.95rem',
+                      color: '#E2BF65',
+                      letterSpacing: '0.08em',
+                      height: 24,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: 280,
+                    }}
+                  >
+                    {analysisStep > 0 && analysisMessages[analysisStep - 1]}
+                  </p>
+                </div>
+
+                {/* Progress Dots */}
+                <div className="flex gap-2">
+                  {analysisMessages.map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: i < analysisStep ? '#E2BF65' : 'rgba(226,191,101,0.2)',
+                        transition: 'all 0.3s ease',
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ÉTAPE 4: Résultat + Upsell */}
+            {showResult && !analyzing && (
+              <>
+                {/* Close Button */}
+                <button
+                  onClick={handleCloseResult}
+                  className="absolute top-4 right-4 p-2 text-[#CBD5E1] hover:text-[#E2BF65] transition-colors"
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+                >
+                  <X size={20} strokeWidth={1.5} />
+                </button>
+
+                <div className="text-center">
+                  {/* Result Header */}
+                  <h4
+                    style={{
+                      fontFamily: 'Cinzel, Playfair Display, serif',
+                      fontSize: '1.1rem',
+                      fontWeight: 400,
+                      color: '#E2BF65',
+                      marginBottom: 16,
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    Analyse Terminée
+                    <br />
+                    pour {nameTwo} & {nameOne}
+                  </h4>
+
+                  {/* Insight */}
+                  <p
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '0.95rem',
+                      color: '#FFFFFF',
+                      lineHeight: 1.6,
+                      marginBottom: 20,
+                      fontWeight: 500,
+                    }}
+                  >
+                    Soléna a détecté
+                    <br />
+                    <span style={{ color: '#E2BF65', fontWeight: 700 }}>
+                      2 points d'alignement majeurs
+                    </span>
+                    <br />
+                    et
+                    <br />
+                    <span style={{ color: '#FF6B6B', fontWeight: 700 }}>
+                      1 blocage karmique
+                    </span>
+                    <br />
+                    cette semaine dans votre relation.
+                  </p>
+
+                  {/* CTA Text */}
+                  <p
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '0.9rem',
+                      color: '#CBD5E1',
+                      lineHeight: 1.6,
+                      marginBottom: 24,
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    Ne restez pas dans le flou. Découvrez immédiatement ce que les astres révèlent pour l'avenir de votre couple.
+                  </p>
+
+                  {/* Primary Upsell */}
+                  <button
+                    className="w-full py-3 px-4 rounded-lg font-semibold uppercase transition-all duration-300 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-[#D4AF37] mb-3"
+                    style={{
+                      background: 'linear-gradient(135deg, #E2BF65 0%, #E8C766 50%, #B8860B 100%)',
+                      color: '#0A0603',
+                      fontFamily: 'Cinzel, sans-serif',
+                      fontSize: '0.9rem',
+                      letterSpacing: '0.1em',
+                      border: 'none',
+                      cursor: 'pointer',
+                      boxShadow: '0 0 30px rgba(226,191,101,0.4), inset 0 1px 0 rgba(255,255,255,0.35)',
+                    }}
+                    data-testid="upsell-primary-button"
+                  >
+                    Accéder à ma guidance complète (10 crédits)
+                  </button>
+
+                  {/* Secondary Upsell */}
+                  <button
+                    className="w-full py-2 px-4 rounded-lg font-semibold uppercase transition-all duration-300 hover:bg-opacity-80"
+                    style={{
+                      background: 'rgba(226, 191, 101, 0.1)',
+                      color: '#E2BF65',
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '0.8rem',
+                      letterSpacing: '0.08em',
+                      border: '1px solid rgba(226, 191, 101, 0.3)',
+                      cursor: 'pointer',
+                    }}
+                    data-testid="upsell-secondary-button"
+                  >
+                    Vous n'avez pas de crédits ? À partir de 4,99 €
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Styles locaux */}
       <style>{`
-        @keyframes pa-moon-vibrate {
-          0%, 100% { transform: translate(0, 0); }
-          20% { transform: translate(-2px, 1px); }
-          40% { transform: translate(2px, -1px); }
-          60% { transform: translate(-1px, 2px); }
-          80% { transform: translate(1px, -2px); }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
-        .moon3d-vibrate { animation: pa-moon-vibrate 0.45s ease-in-out; }
-
-        .liquid-cta {
-          background: linear-gradient(135deg, #E2BF65 0%, #E8C766 50%, #B8860B 100%);
-          box-shadow: 0 0 30px rgba(226,191,101,0.4), inset 0 1px 0 rgba(255,255,255,0.35);
-          transition: transform 0.3s ease;
-        }
-        .liquid-cta::before {
-          content: '';
-          position: absolute;
-          top: 50%; left: 50%;
-          width: 0; height: 0;
-          border-radius: 50%;
-          background: radial-gradient(circle, #FFF3D6 0%, #E8C766 40%, transparent 100%);
-          transform: translate(-50%, -50%);
-          transition: width 0.6s cubic-bezier(0.16,1,0.3,1), height 0.6s cubic-bezier(0.16,1,0.3,1);
-          z-index: 1;
-        }
-        .liquid-cta:hover::before {
-          width: 220%; height: 220%;
-        }
-        .liquid-cta:hover {
-          transform: scale(1.02);
-          box-shadow: 0 0 50px rgba(226,191,101,0.7), inset 0 1px 0 rgba(255,255,255,0.5);
+        @keyframes pulse {
+          0%, 100% { opacity: 0; }
+          50% { opacity: 1; }
         }
       `}</style>
     </section>
-  );
-}
-
-// ═══════════ Sub-components ═══════════
-function StepLabel({ step, icon, children }) {
-  return (
-    <div className="flex items-center justify-center gap-2 mb-3">
-      <span style={{ fontSize: 14 }}>{icon}</span>
-      <div
-        className="text-[10px] md:text-xs uppercase"
-        style={{ color: '#E2BF65', letterSpacing: '0.28em', fontWeight: 400, fontFamily: 'Cinzel, Playfair Display, serif' }}
-      >
-        Étape {step} · {children}
-      </div>
-    </div>
-  );
-}
-
-function FluidInput({ value, onChange, placeholder, fullWidth, testid, inputMode, pattern, maxLength, ariaLabel, ariaInvalid, ariaDescribedby }) {
-  return (
-    <input
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      inputMode={inputMode}
-      pattern={pattern}
-      maxLength={maxLength}
-      className={`${fullWidth ? 'w-full' : ''} py-3 px-4 text-center outline-none text-white placeholder-white/30 transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D4AF37]`}
-      style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: ariaInvalid ? '1px solid #FF6B6B' : '1px solid rgba(226,191,101,0.25)',
-        borderRadius: 12,
-        fontFamily: 'Inter, sans-serif',
-        fontSize: 14,
-        fontWeight: 300,
-        focusRingOffset: '2px',
-      }}
-      data-testid={testid}
-      aria-label={ariaLabel}
-      aria-invalid={ariaInvalid}
-      aria-describedby={ariaDescribedby}
-    />
-  );
-}
-
-function NextBtn({ children, onClick, disabled, testid }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="w-full py-3.5 uppercase transition-all disabled:opacity-30 hover:scale-[1.01] flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D4AF37]"
-      style={{
-        background: 'transparent',
-        border: '1px solid rgba(226,191,101,0.55)',
-        color: '#E2BF65',
-        letterSpacing: '0.22em',
-        fontSize: 11,
-        fontWeight: 400,
-        borderRadius: 999,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        fontFamily: 'Inter, sans-serif',
-        focusRingOffset: '2px',
-      }}
-      data-testid={testid}
-      aria-disabled={disabled}>
-      {children} <ArrowRight className="w-3 h-3" />
-    </button>
   );
 }
