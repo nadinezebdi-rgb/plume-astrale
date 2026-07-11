@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Hero3D from '../components/Hero3D';
 import SolenaChat from '../components/SolenaChat';
+import QuickOracle from '../components/QuickOracle';
 import {
   Sparkles, Heart, ArrowRight, Quote, CheckCircle2, Play, Star
 } from 'lucide-react';
@@ -443,11 +444,51 @@ const ClientReviews = () => {
    PAGE
 ═══════════════════════════════════════════════════════════ */
 const Index = () => {
+  const [showQuickOracle, setShowQuickOracle] = useState(false);
+
   return (
     <div className="relative" style={{ overflow: 'hidden' }}>
       <SEO path="/" />
       <CosmicCanvas />
-      <Hero3D />
+      {showQuickOracle ? (
+        <QuickOracle 
+          onClose={() => setShowQuickOracle(false)}
+          onSelectPack={(packId) => {
+            const packMap = {
+              initiation: 'essentiel',
+              clarte: 'premium',
+              flammes: 'premium'
+            };
+            localStorage.setItem('plume_astrale_plan', packMap[packId]);
+            window.location.href = '/paiement';
+          }}
+        />
+      ) : (
+        <>
+          <div style={{ position: 'absolute', top: '60vh', left: '50%', transform: 'translateX(-50%)', zIndex: 20 }}>
+            <button
+              onClick={() => setShowQuickOracle(true)}
+              className="px-8 py-3 rounded-2xl text-center transition-all hover:scale-105"
+              style={{
+                background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
+                color: '#0C0918',
+                fontFamily: 'Cormorant Garamond, serif',
+                fontSize: '1rem',
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 10px 30px rgba(212,175,55,0.3)',
+                minWidth: '280px',
+              }}
+              data-testid="quick-oracle-cta-hero"
+            >
+              ✨ Découvrez votre oracle du jour GRATUITEMENT
+            </button>
+          </div>
+          <Hero3D />
+        </>
+      )}
       <SolenaJourney />
       <ClientReviews />
 

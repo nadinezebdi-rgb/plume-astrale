@@ -76,8 +76,8 @@ const [showQuickOracle, setShowQuickOracle] = useState(false);
 **Result:** Les utilisateurs voient immédiatement une option "gratuit" avant de remplir formulaire → FRICTION MASSIVELY REDUCED
 
 ---
-
-## 🎯 PRIORITÉ #3: Tester le Funnel (30 min)
+PRIORITÉ
+## 🎯  #3: Tester le Funnel (30 min)
 
 **Flow à tester:**
 
