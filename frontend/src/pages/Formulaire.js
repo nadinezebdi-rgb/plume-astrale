@@ -236,7 +236,8 @@ const Formulaire = () => {
       localStorage.removeItem('plume_astrale_premium_redirect');
       navigate('/premium/experience');
     } else if (isAuthenticated) {
-      navigate('/mon-compte');
+      // Pour les utilisateurs authentifiés, afficher les options au lieu de rediriger directement
+      setStep('success');
     } else {
       navigate('/apercu');
     }
@@ -245,6 +246,155 @@ const Formulaire = () => {
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') handleNext();
   };
+
+  // Écran de succès pour les utilisateurs authentifiés
+  if (step === 'success' && isAuthenticated) {
+    return (
+      <div className="min-h-screen relative" style={{ background: 'linear-gradient(180deg, #131840 0%, #1B2150 50%, #131840 100%)' }}>
+        <SEO path="/formulaire" />
+        <div className="relative z-10 flex flex-col justify-center px-6 md:px-8 py-12" style={{ minHeight: '100vh' }}>
+          <div className="max-w-lg mx-auto w-full text-center">
+            
+            {/* Icône de succès */}
+            <div className="mb-8">
+              <div style={{
+                width: 60,
+                height: 60,
+                background: 'linear-gradient(135deg, rgba(184,150,31,0.2) 0%, rgba(232,199,102,0.1) 100%)',
+                border: '1px solid rgba(184,150,31,0.4)',
+                borderRadius: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto',
+              }}>
+                <span style={{ fontSize: '1.8rem' }}>✓</span>
+              </div>
+            </div>
+
+            {/* Message */}
+            <h1 style={{
+              fontSize: '1.8rem',
+              fontFamily: 'Cormorant Garamond, serif',
+              color: '#F0E6D3',
+              marginBottom: 12,
+              fontWeight: 300,
+            }}>
+              Profil complété !
+            </h1>
+            <p style={{
+              fontSize: '0.9rem',
+              color: 'rgba(240,230,211,0.7)',
+              marginBottom: 32,
+            }}>
+              Vos données natales ont été enregistrées. Que souhaitez-vous faire ?
+            </p>
+
+            {/* Options */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr',
+              gap: 12,
+            }}>
+              {/* Option 1: Consulter les outils */}
+              <button
+                onClick={() => navigate('/mon-accueil')}
+                style={{
+                  padding: '14px 24px',
+                  borderRadius: 8,
+                  background: 'linear-gradient(135deg, rgba(184,150,31,0.2) 0%, rgba(232,199,102,0.08) 100%)',
+                  border: '1px solid rgba(184,150,31,0.3)',
+                  color: '#E8C766',
+                  fontSize: '0.85rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(184,150,31,0.3) 0%, rgba(232,199,102,0.15) 100%)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(184,150,31,0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(184,150,31,0.2) 0%, rgba(232,199,102,0.08) 100%)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <span>Accéder à mes outils</span>
+                <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
+              </button>
+
+              {/* Option 2: Aller à mon compte */}
+              <button
+                onClick={() => navigate('/mon-compte')}
+                style={{
+                  padding: '14px 24px',
+                  borderRadius: 8,
+                  background: 'rgba(196,181,253,0.1)',
+                  border: '1px solid rgba(196,181,253,0.2)',
+                  color: '#E3D7FF',
+                  fontSize: '0.85rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(196,181,253,0.15)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(196,181,253,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(196,181,253,0.1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <span>Aller à mon compte</span>
+                <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
+              </button>
+
+              {/* Option 3: Retour à l'accueil */}
+              <button
+                onClick={() => navigate('/')}
+                style={{
+                  padding: '14px 24px',
+                  borderRadius: 8,
+                  background: 'transparent',
+                  border: '1px solid rgba(240,230,211,0.2)',
+                  color: 'rgba(240,230,211,0.7)',
+                  fontSize: '0.85rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(240,230,211,0.05)';
+                  e.currentTarget.style.borderColor = 'rgba(240,230,211,0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.borderColor = 'rgba(240,230,211,0.2)';
+                }}
+              >
+                Retour à l'accueil
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative">
