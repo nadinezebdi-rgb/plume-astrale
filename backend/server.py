@@ -48,6 +48,7 @@ from routes.rencontres import router as rencontres_router
 from routes.analytics import router as analytics_router
 from routes.archetype import make_router as make_archetype_router
 from routes.kabbale import router as kabbale_router
+from routes.compatible import router as compatible_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -81,6 +82,7 @@ api_router.include_router(synastrie_router)
 api_router.include_router(library_router)
 api_router.include_router(rencontres_router)
 api_router.include_router(analytics_router)
+api_router.include_router(compatible_router)
 
 
 # Helper interne pour deduire credits d'un service donne (utilise par les routes)
