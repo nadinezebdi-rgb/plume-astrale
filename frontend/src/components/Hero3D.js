@@ -23,6 +23,8 @@ export default function Hero3D() {
   const [analysisStep, setAnalysisStep] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [errors, setErrors] = useState({});
+  const [mysteryText, setMysteryText] = useState('');
+  const [mysteryLink, setMysteryLink] = useState('');
 
   // Messages d'analyse mystiques (3-4 secondes)
   const analysisMessages = [
@@ -31,7 +33,7 @@ export default function Hero3D() {
     'Soléna prépare votre clé de lecture...',
   ];
 
-  const startAnalysis = () => {
+  const startAnalysis = async () => {
     // Validation
     if (!nameOne.trim() || !nameTwo.trim()) {
       setErrors({
@@ -61,6 +63,36 @@ export default function Hero3D() {
         }, 300);
       }
     }, intervalDuration);
+
+    // Appeler l'API pour générer le texte OpenAI
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const response = await fetch(`${backendUrl}/api/couple/mystery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prenom1: nameOne.trim(),
+          prenom2: nameTwo.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('[Hero3D] Mystery text received:', data);
+        setMysteryText(data.text || '');
+        setMysteryLink(data.cta_link || '');
+      } else {
+        console.error('[Hero3D] API error:', response.status);
+        // Fallback text en cas d'erreur
+        setMysteryText('Votre relation recèle des secrets que seuls les astres peuvent révéler...');
+        setMysteryLink(`/outils/compatibilite?p1=${nameOne}&p2=${nameTwo}`);
+      }
+    } catch (error) {
+      console.error('[Hero3D] Fetch error:', error);
+      // Fallback text
+      setMysteryText('Votre relation recèle des secrets que seuls les astres peuvent révéler...');
+      setMysteryLink(`/outils/compatibilite?p1=${nameOne}&p2=${nameTwo}`);
+    }
   };
 
   const handleCloseResult = () => {
@@ -69,6 +101,8 @@ export default function Hero3D() {
     setNameOne('');
     setNameTwo('');
     setAnalysisStep(0);
+    setMysteryText('');
+    setMysteryLink('');
   };
 
   return (
@@ -621,7 +655,7 @@ export default function Hero3D() {
                     pour {nameTwo} & {nameOne}
                   </h4>
 
-                  {/* Insight */}
+                  {/* Insight - OpenAI Generated */}
                   <p
                     style={{
                       fontFamily: 'Inter, sans-serif',
@@ -632,19 +666,7 @@ export default function Hero3D() {
                       fontWeight: 500,
                     }}
                   >
-                    Soléna a détecté
-                    <br />
-                    <span style={{ color: '#E2BF65', fontWeight: 700 }}>
-                      2 points d'alignement majeurs
-                    </span>
-                    <br />
-                    et
-                    <br />
-                    <span style={{ color: '#FF6B6B', fontWeight: 700 }}>
-                      1 blocage karmique
-                    </span>
-                    <br />
-                    cette semaine dans votre relation.
+                    {mysteryText || 'Votre relation recèle des secrets que seuls les astres peuvent révéler...'}
                   </p>
 
                   {/* CTA Text */}
@@ -661,9 +683,10 @@ export default function Hero3D() {
                     Ne restez pas dans le flou. Découvrez immédiatement ce que les astres révèlent pour l'avenir de votre couple.
                   </p>
 
-                  {/* Primary Upsell */}
-                  <button
-                    className="w-full py-3 px-4 rounded-lg font-semibold uppercase transition-all duration-300 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-[#D4AF37] mb-3"
+                  {/* Primary Upsell - Étude de Synastrie */}
+                  <Link
+                    to={mysteryLink || `/outils/compatibilite?p1=${nameOne}&p2=${nameTwo}`}
+                    className="w-full py-3 px-4 rounded-lg font-semibold uppercase transition-all duration-300 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-[#D4AF37] mb-3 inline-block"
                     style={{
                       background: 'linear-gradient(135deg, #E2BF65 0%, #E8C766 50%, #B8860B 100%)',
                       color: '#0A0603',
@@ -673,11 +696,13 @@ export default function Hero3D() {
                       border: 'none',
                       cursor: 'pointer',
                       boxShadow: '0 0 30px rgba(226,191,101,0.4), inset 0 1px 0 rgba(255,255,255,0.35)',
+                      textDecoration: 'none',
+                      display: 'block',
                     }}
-                    data-testid="upsell-primary-button"
+                    data-testid="upsell-synastrie-button"
                   >
-                    Accéder à ma guidance complète (10 crédits)
-                  </button>
+                    📊 Étude de Synastrie Complète
+                  </Link>
 
                   {/* Secondary Upsell */}
                   <button
