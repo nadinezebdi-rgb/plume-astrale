@@ -578,3 +578,78 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
   }
   .plume-noise-overlay { animation: none; opacity: 0.03; }
 }
+
+/* --- Markdown Content Styling --- */
+.markdown-content {
+  font-size: 0.9rem;
+}
+
+.markdown-content strong, 
+.markdown-content b {
+  color: #E2BF65;
+  font-weight: 700;
+}
+
+.markdown-content em, 
+.markdown-content i {
+  color: #E8C766;
+  font-style: italic;
+}
+
+.markdown-content h1 {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: #E2BF65 !important;
+  margin-top: 16px !important;
+  margin-bottom: 12px !important;
+  letter-spacing: 0.05em !important;
+}
+
+.markdown-content h2 {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: #E8C766 !important;
+  margin-top: 14px !important;
+  margin-bottom: 10px !important;
+  letter-spacing: 0.03em !important;
+}
+
+.markdown-content h3 {
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  color: #E2BF65 !important;
+  margin-top: 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.markdown-content p {
+  margin-bottom: 10px;
+  color: #FFFFFF;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin-left: 16px;
+  margin-bottom: 10px;
+}
+
+.markdown-content li {
+  margin-bottom: 6px;
+  color: #FFFFFF;
+  list-style-position: inside;
+}
+
+.markdown-content blockquote {
+  border-left: 3px solid rgba(226,191,101,0.5);
+  padding-left: 12px;
+  margin-left: 0;
+  margin-bottom: 12px;
+  margin-top: 12px;
+  color: #E2BF65;
+  font-style: italic;
+}
+
+.markdown-content hr,
+.markdown-content div {
+  margin-bottom: 10px;
+}

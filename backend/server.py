@@ -1837,6 +1837,8 @@ app.include_router(api_router)
 # Build CORS origins list: env var + production domains always whitelisted
 _cors_from_env = [o.strip() for o in os.environ.get('CORS_ORIGINS', '').split(',') if o.strip()]
 _default_origins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
     'https://plume-astrale.fr',
     'https://www.plume-astrale.fr',
     'https://consultation-astro.preview.emergentagent.com',

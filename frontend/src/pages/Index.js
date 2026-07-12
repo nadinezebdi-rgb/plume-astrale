@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Hero3D from '../components/Hero3D';
 import SolenaChat from '../components/SolenaChat';
 import QuickOracle from '../components/QuickOracle';
+import StarsAndClouds from '../components/StarsAndClouds';
 import {
   Sparkles, Heart, ArrowRight, Quote, CheckCircle2, Play, Star
 } from 'lucide-react';
@@ -91,8 +92,9 @@ const SolenaJourney = () => {
   return (
     <section className="relative py-24 md:py-32 px-4 z-10" data-testid="home-solena-section"
       style={{
-        background: 'linear-gradient(180deg, transparent 0%, rgba(20,15,40,0.4) 30%, rgba(20,15,40,0.4) 70%, transparent 100%)',
+        background: '#0C1120',
       }}>
+      <StarsAndClouds />
       <div className="max-w-6xl mx-auto">
 
         <div className="text-center mb-14">

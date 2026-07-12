@@ -2,6 +2,7 @@ import React, { useState, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { User, AlertCircle, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import StarsAndClouds from './StarsAndClouds';
 
 const Moon3D = lazy(() => import('./Moon3D'));
 
@@ -25,6 +26,7 @@ export default function Hero3D() {
   const [errors, setErrors] = useState({});
   const [mysteryText, setMysteryText] = useState('');
   const [mysteryLink, setMysteryLink] = useState('');
+  const [numerologyData, setNumerologyData] = useState({});
 
   // Messages d'analyse mystiques (3-4 secondes)
   const analysisMessages = [
@@ -64,7 +66,7 @@ export default function Hero3D() {
       }
     }, intervalDuration);
 
-    // Appeler l'API pour générer le texte OpenAI
+    // Appeler l'API pour générer le texte OpenAI + analyse numérique
     try {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
       const response = await fetch(`${backendUrl}/api/couple/mystery`, {
@@ -78,20 +80,34 @@ export default function Hero3D() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('[Hero3D] Mystery text received:', data);
+        console.log('[Hero3D] Mystery analysis received:', data);
         setMysteryText(data.text || '');
         setMysteryLink(data.cta_link || '');
+        setNumerologyData({
+          letters_prenom1: data.letters_prenom1 || 0,
+          letters_prenom2: data.letters_prenom2 || 0,
+          total_letters: data.total_letters || 0,
+          universal_year: data.universal_year || 0,
+          compatibility_number: data.compatibility_number || 0,
+          year: data.year || new Date().getFullYear(),
+          numerology_1: data.numerology_1 || {},
+          numerology_2: data.numerology_2 || {},
+          compatibility: data.compatibility || {},
+          personal_year: data.personal_year,
+        });
       } else {
         console.error('[Hero3D] API error:', response.status);
         // Fallback text en cas d'erreur
         setMysteryText('Votre relation recèle des secrets que seuls les astres peuvent révéler...');
         setMysteryLink(`/outils/compatibilite?p1=${nameOne}&p2=${nameTwo}`);
+        setNumerologyData({});
       }
     } catch (error) {
       console.error('[Hero3D] Fetch error:', error);
       // Fallback text
       setMysteryText('Votre relation recèle des secrets que seuls les astres peuvent révéler...');
       setMysteryLink(`/outils/compatibilite?p1=${nameOne}&p2=${nameTwo}`);
+      setNumerologyData({});
     }
   };
 
@@ -103,13 +119,36 @@ export default function Hero3D() {
     setAnalysisStep(0);
     setMysteryText('');
     setMysteryLink('');
+    setNumerologyData({});
+  };
+
+  // Formate l'analyse numérologique avec les données disponibles
+  const formatNumerologyAnalysis = () => {
+    if (!numerologyData || Object.keys(numerologyData).length === 0) {
+      return null;
+    }
+
+    const {
+      letters_prenom1 = 0,
+      letters_prenom2 = 0,
+      total_letters = 0,
+      universal_year = 0,
+      compatibility_number = 0,
+      year = new Date().getFullYear(),
+    } = numerologyData;
+
+    return `Analyse numérologique du couple ${nameOne} et ${nameTwo}
+
+Année ${year} · Chiffre vibratoire ${compatibility_number}
+
+Cette vibration du chiffre ${compatibility_number} guide votre relation et révèle la nature profonde de votre connexion. Le calcul des lettres, l'année universelle, et l'harmonie de vos prénoms créent une géométrie énergétique unique.`;
   };
 
   return (
     <section
       className="relative w-full overflow-hidden"
       style={{
-        background: '#111625',
+        background: '#0C1120',
         color: '#F5EEE0',
         minHeight: '100vh',
       }}
@@ -170,118 +209,7 @@ export default function Hero3D() {
       </header>
 
       {/* ═══ Clouds & Stars Background Overlay ═══ */}
-      <svg
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 0,
-          pointerEvents: 'none',
-          opacity: 0.75,
-        }}
-        viewBox="0 0 1200 800"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <defs>
-          <style>{`
-            @keyframes twinkle {
-              0%, 100% { opacity: 0.4; }
-              50% { opacity: 1; }
-            }
-            .star { animation: twinkle 3s ease-in-out infinite; }
-            .star-1 { animation-delay: 0s; }
-            .star-2 { animation-delay: 0.5s; }
-            .star-3 { animation-delay: 1s; }
-            .star-4 { animation-delay: 1.5s; }
-            .star-5 { animation-delay: 2s; }
-            .star-6 { animation-delay: 2.5s; }
-            @keyframes cloudDrift {
-              0% { transform: translateX(0px); opacity: 0.25; }
-              50% { opacity: 0.5; }
-              100% { transform: translateX(150px); opacity: 0.25; }
-            }
-            .cloud { animation: cloudDrift 12s ease-in-out infinite; }
-            .cloud-1 { animation-delay: 0s; }
-            .cloud-2 { animation-delay: 3s; }
-            .cloud-3 { animation-delay: 6s; }
-            .cloud-4 { animation-delay: 9s; }
-          `}</style>
-          <filter id="cloudBlur">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="5" />
-          </filter>
-          <pattern id="cottonTexture" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-            <circle cx="5" cy="5" r="2.5" fill="rgba(255,255,255,0.3)" />
-            <circle cx="15" cy="10" r="2" fill="rgba(255,255,255,0.25)" />
-            <circle cx="8" cy="15" r="2.2" fill="rgba(255,255,255,0.28)" />
-          </pattern>
-        </defs>
-        
-        {/* Cloud 1 - Top left white cotton cloud */}
-        <g className="cloud cloud-1" filter="url(#cloudBlur)">
-          <ellipse cx="80" cy="80" rx="120" ry="35" fill="rgba(245, 245, 250, 0.45)" />
-          <ellipse cx="150" cy="75" rx="100" ry="30" fill="rgba(245, 245, 250, 0.4)" />
-          <ellipse cx="210" cy="85" rx="90" ry="32" fill="rgba(245, 245, 250, 0.35)" />
-          <ellipse cx="40" cy="90" rx="80" ry="28" fill="rgba(245, 245, 250, 0.3)" />
-          <rect x="40" y="55" width="180" height="70" fill="url(#cottonTexture)" opacity="0.4" />
-        </g>
-
-        {/* Cloud 2 - Top right white cotton cloud */}
-        <g className="cloud cloud-2" filter="url(#cloudBlur)">
-          <ellipse cx="950" cy="120" rx="130" ry="38" fill="rgba(240, 248, 255, 0.4)" />
-          <ellipse cx="1020" cy="115" rx="110" ry="32" fill="rgba(240, 248, 255, 0.35)" />
-          <ellipse cx="1080" cy="125" rx="100" ry="35" fill="rgba(240, 248, 255, 0.3)" />
-          <ellipse cx="900" cy="135" rx="95" ry="30" fill="rgba(240, 248, 255, 0.25)" />
-          <rect x="900" y="85" width="190" height="75" fill="url(#cottonTexture)" opacity="0.35" />
-        </g>
-
-        {/* Cloud 3 - Bottom white cotton cloud */}
-        <g className="cloud cloud-3" filter="url(#cloudBlur)">
-          <ellipse cx="350" cy="680" rx="125" ry="36" fill="rgba(245, 245, 250, 0.4)" />
-          <ellipse cx="420" cy="675" rx="105" ry="31" fill="rgba(245, 245, 250, 0.35)" />
-          <ellipse cx="480" cy="685" rx="95" ry="33" fill="rgba(245, 245, 250, 0.3)" />
-          <ellipse cx="300" cy="695" rx="85" ry="28" fill="rgba(245, 245, 250, 0.25)" />
-          <rect x="300" y="650" width="190" height="70" fill="url(#cottonTexture)" opacity="0.4" />
-        </g>
-
-        {/* Cloud 4 - Middle white cotton cloud */}
-        <g className="cloud cloud-4" filter="url(#cloudBlur)">
-          <ellipse cx="700" cy="480" rx="128" ry="37" fill="rgba(240, 248, 255, 0.38)" />
-          <ellipse cx="770" cy="475" rx="108" ry="31" fill="rgba(240, 248, 255, 0.33)" />
-          <ellipse cx="830" cy="485" rx="98" ry="34" fill="rgba(240, 248, 255, 0.28)" />
-          <ellipse cx="650" cy="495" rx="90" ry="29" fill="rgba(240, 248, 255, 0.23)" />
-          <rect x="650" y="450" width="190" height="70" fill="url(#cottonTexture)" opacity="0.35" />
-        </g>
-
-        {/* Scattered stars - MANY MORE */}
-        <circle cx="50" cy="80" r="1.2" className="star star-1" fill="rgba(255, 255, 255, 0.95)" />
-        <circle cx="120" cy="60" r="0.9" className="star star-3" fill="rgba(255, 255, 255, 0.8)" />
-        <circle cx="280" cy="90" r="1.0" className="star star-5" fill="rgba(255, 255, 255, 0.85)" />
-        <circle cx="320" cy="120" r="1.0" className="star star-2" fill="rgba(255, 255, 255, 0.9)" />
-        <circle cx="450" cy="70" r="0.8" className="star star-4" fill="rgba(255, 255, 255, 0.75)" />
-        <circle cx="600" cy="110" r="0.95" className="star star-6" fill="rgba(255, 255, 255, 0.85)" />
-        <circle cx="750" cy="50" r="1.1" className="star star-1" fill="rgba(255, 255, 255, 0.9)" />
-        <circle cx="900" cy="80" r="0.9" className="star star-2" fill="rgba(255, 255, 255, 0.8)" />
-        <circle cx="1050" cy="100" r="1.0" className="star star-3" fill="rgba(255, 255, 255, 0.85)" />
-        <circle cx="1100" cy="200" r="1.1" className="star star-4" fill="rgba(255, 255, 255, 0.9)" />
-        
-        <circle cx="200" cy="250" r="0.9" className="star star-5" fill="rgba(255, 255, 255, 0.8)" />
-        <circle cx="380" cy="300" r="1.0" className="star star-6" fill="rgba(255, 255, 255, 0.85)" />
-        <circle cx="550" cy="280" r="0.8" className="star star-1" fill="rgba(255, 255, 255, 0.75)" />
-        <circle cx="720" cy="320" r="0.95" className="star star-2" fill="rgba(255, 255, 255, 0.85)" />
-        <circle cx="900" cy="300" r="0.9" className="star star-3" fill="rgba(255, 255, 255, 0.8)" />
-        <circle cx="1050" cy="350" r="1.0" className="star star-4" fill="rgba(255, 255, 255, 0.85)" />
-        
-        <circle cx="100" cy="500" r="1.1" className="star star-5" fill="rgba(255, 255, 255, 0.9)" />
-        <circle cx="280" cy="550" r="0.9" className="star star-6" fill="rgba(255, 255, 255, 0.8)" />
-        <circle cx="450" cy="520" r="1.0" className="star star-1" fill="rgba(255, 255, 255, 0.85)" />
-        <circle cx="650" cy="580" r="0.8" className="star star-2" fill="rgba(255, 255, 255, 0.75)" />
-        <circle cx="800" cy="550" r="0.95" className="star star-3" fill="rgba(255, 255, 255, 0.85)" />
-        <circle cx="1000" cy="600" r="1.0" className="star star-4" fill="rgba(255, 255, 255, 0.85)" />
-        <circle cx="150" cy="600" r="1.1" className="star star-5" fill="rgba(255, 255, 255, 0.9)" />
-        <circle cx="500" cy="450" r="1.0" className="star star-6" fill="rgba(255, 255, 255, 0.85)" />
-        <circle cx="1150" cy="650" r="0.95" className="star star-1" fill="rgba(255, 255, 255, 0.85)" />
-        <circle cx="80" cy="700" r="1.1" className="star star-2" fill="rgba(255, 255, 255, 0.9)" />
-      </svg>
+      <StarsAndClouds />
 
       {/* ═══ 3D Lune avec Halo ═══ */}
       <div
@@ -377,7 +305,7 @@ export default function Hero3D() {
           onClick={() => setShowModal(true)}
           className="group relative px-8 py-4 overflow-hidden rounded-full transition-all duration-300 hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D4AF37]"
           style={{
-            background: 'linear-gradient(135deg, #E2BF65 0%, #E8C766 50%, #B8860B 100%)',
+            background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
             color: '#0A0603',
             fontFamily: 'Cinzel, sans-serif',
             fontWeight: 700,
@@ -386,7 +314,7 @@ export default function Hero3D() {
             textTransform: 'uppercase',
             border: 'none',
             cursor: 'pointer',
-            boxShadow: '0 0 40px rgba(226,191,101,0.5), inset 0 1px 0 rgba(255,255,255,0.35)',
+            boxShadow: '0 0 40px rgba(212,175,55,0.5)',
           }}
           data-testid="hero-cta-button"
         >
@@ -638,36 +566,74 @@ export default function Hero3D() {
                   <X size={20} strokeWidth={1.5} />
                 </button>
 
-                <div className="text-center">
+                <div className="text-center max-h-[70vh] overflow-y-auto pr-4">
                   {/* Result Header */}
                   <h4
                     style={{
                       fontFamily: 'Cinzel, Playfair Display, serif',
-                      fontSize: '1.1rem',
+                      fontSize: '1.25rem',
                       fontWeight: 400,
                       color: '#E2BF65',
-                      marginBottom: 16,
+                      marginBottom: 12,
                       letterSpacing: '0.05em',
                     }}
                   >
-                    Analyse Terminée
-                    <br />
-                    pour {nameTwo} & {nameOne}
+                    ✨ Analyse Numérologique
                   </h4>
-
-                  {/* Insight - OpenAI Generated */}
                   <p
                     style={{
                       fontFamily: 'Inter, sans-serif',
-                      fontSize: '0.95rem',
-                      color: '#FFFFFF',
-                      lineHeight: 1.6,
+                      fontSize: '0.85rem',
+                      color: '#CBD5E1',
                       marginBottom: 20,
-                      fontWeight: 500,
                     }}
                   >
-                    {mysteryText || 'Votre relation recèle des secrets que seuls les astres peuvent révéler...'}
+                    Calcul pour <strong style={{ color: '#E2BF65' }}>{nameOne} & {nameTwo}</strong> en {numerologyData?.year || new Date().getFullYear()}
                   </p>
+
+                  {/* Numerology Analysis - Displayed Immediately */}
+                  <div
+                    style={{
+                      textAlign: 'left',
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '0.85rem',
+                      color: '#CBD5E1',
+                      lineHeight: 1.7,
+                      marginBottom: 24,
+                      whiteSpace: 'pre-wrap',
+                      wordWrap: 'break-word',
+                      background: 'rgba(226, 191, 101, 0.05)',
+                      border: '1px solid rgba(226, 191, 101, 0.15)',
+                      borderRadius: 8,
+                      padding: 12,
+                    }}
+                    className="markdown-content"
+                  >
+                    {formatNumerologyAnalysis() || 'Calcul en cours...'}
+                  </div>
+
+                  {/* OpenAI Generated Text - Added Below */}
+                  {mysteryText && (
+                    <div
+                      style={{
+                        textAlign: 'left',
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '0.9rem',
+                        color: '#FFFFFF',
+                        lineHeight: 1.8,
+                        marginBottom: 24,
+                        whiteSpace: 'pre-wrap',
+                        wordWrap: 'break-word',
+                        background: 'rgba(232, 199, 102, 0.03)',
+                        border: '1px solid rgba(232, 199, 102, 0.1)',
+                        borderRadius: 8,
+                        padding: 12,
+                      }}
+                      className="markdown-content"
+                    >
+                      {mysteryText}
+                    </div>
+                  )}
 
                   {/* CTA Text */}
                   <p
@@ -680,7 +646,7 @@ export default function Hero3D() {
                       fontStyle: 'italic',
                     }}
                   >
-                    Ne restez pas dans le flou. Découvrez immédiatement ce que les astres révèlent pour l'avenir de votre couple.
+                    Pour débloquer votre Étude de Synastrie Complète et explorer les aspects détaillés de votre compatibilité, créez un compte ou connectez-vous.
                   </p>
 
                   {/* Primary Upsell - Étude de Synastrie */}
@@ -701,25 +667,64 @@ export default function Hero3D() {
                     }}
                     data-testid="upsell-synastrie-button"
                   >
-                    📊 Étude de Synastrie Complète
+                    Étude de Synastrie Complète
                   </Link>
 
-                  {/* Secondary Upsell */}
-                  <button
-                    className="w-full py-2 px-4 rounded-lg font-semibold uppercase transition-all duration-300 hover:bg-opacity-80"
-                    style={{
-                      background: 'rgba(226, 191, 101, 0.1)',
-                      color: '#E2BF65',
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: '0.8rem',
-                      letterSpacing: '0.08em',
-                      border: '1px solid rgba(226, 191, 101, 0.3)',
-                      cursor: 'pointer',
-                    }}
-                    data-testid="upsell-secondary-button"
-                  >
-                    Vous n'avez pas de crédits ? À partir de 4,99 €
-                  </button>
+                  {/* Auth Buttons Container */}
+                  <div className="space-y-2 mt-4">
+                    <p
+                      style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '0.85rem',
+                        color: '#E2BF65',
+                        marginBottom: 12,
+                        fontWeight: 600,
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      Vous n'avez pas encore de compte ?
+                    </p>
+
+                    {/* Sign Up Button */}
+                    <Link
+                      to="/inscription"
+                      className="w-full py-2.5 px-4 rounded-lg font-semibold uppercase transition-all duration-300"
+                      style={{
+                        background: 'rgba(226, 191, 101, 0.2)',
+                        color: '#E8C766',
+                        fontFamily: 'Cinzel, sans-serif',
+                        fontSize: '0.85rem',
+                        letterSpacing: '0.08em',
+                        border: '1px solid rgba(226, 191, 101, 0.4)',
+                        cursor: 'pointer',
+                        textDecoration: 'none',
+                        display: 'block',
+                      }}
+                      data-testid="signup-button"
+                    >
+                      Créer un Compte Gratuitement
+                    </Link>
+
+                    {/* Sign In Button */}
+                    <Link
+                      to="/connexion"
+                      className="w-full py-2.5 px-4 rounded-lg font-semibold uppercase transition-all duration-300"
+                      style={{
+                        background: 'rgba(226, 191, 101, 0.1)',
+                        color: '#CBD5E1',
+                        fontFamily: 'Cinzel, sans-serif',
+                        fontSize: '0.85rem',
+                        letterSpacing: '0.08em',
+                        border: '1px solid rgba(226, 191, 101, 0.2)',
+                        cursor: 'pointer',
+                        textDecoration: 'none',
+                        display: 'block',
+                      }}
+                      data-testid="signin-button"
+                    >
+                      Se Connecter
+                    </Link>
+                  </div>
                 </div>
               </>
             )}

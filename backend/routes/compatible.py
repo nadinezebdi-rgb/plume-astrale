@@ -9,7 +9,11 @@ from typing import Optional
 import logging
 
 from middleware.auth import get_optional_user
-from services.couple_mystery_service import generate_couple_mystery_text, get_fallback_text
+from services.couple_mystery_service import (
+    generate_couple_mystery_text,
+    generate_couple_detailed_analysis,
+    get_fallback_text
+)
 from services import wallet_service
 from services.compatibility_pdf_generator import generate_compatibility_pdf
 from services.astrology_io_service import (
@@ -47,8 +51,9 @@ class CompatibilityRequest(BaseModel):
 @router.post("/mystery")
 async def get_couple_mystery(request: MysteryRequest):
     """
-    Génère un texte mystérieux et attractif basé sur les prénoms.
-    GRATUIT - utilise OpenAI en backend.
+    Génère une analyse détaillée et pédagogique basée sur les prénoms.
+    GRATUIT - utilise OpenAI + calcul numérologique + astrology-api.io en backend.
+    Retourne une analyse markdown formatée prête pour affichage.
     """
     try:
         prenom1 = request.prenom1.strip()
@@ -60,18 +65,36 @@ async def get_couple_mystery(request: MysteryRequest):
         if len(prenom1) > 50 or len(prenom2) > 50:
             raise HTTPException(status_code=400, detail="Prénoms trop longs")
         
-        # Génère via OpenAI
-        text = await generate_couple_mystery_text(prenom1, prenom2)
+        # Génère analyse détaillée (numérologie + OpenAI)
+        analysis = await generate_couple_detailed_analysis(prenom1, prenom2)
+        logger.info(f"[couple/mystery] Analysis result: {analysis}")
         
-        # Fallback si OpenAI ne répond pas
-        if not text:
-            text = get_fallback_text(prenom1, prenom2)
+        # Fallback si tout échoue
+        if not analysis or not analysis.get("mystery_text"):
+            logger.warning(f"[couple/mystery] Analysis was empty or missing mystery_text, using fallback")
+            mystery_text = get_fallback_text(prenom1, prenom2)
+            analysis = {
+                "prenom1": prenom1,
+                "prenom2": prenom2,
+                "mystery_text": mystery_text,
+            }
         
         return {
-            "prenom1": prenom1,
-            "prenom2": prenom2,
-            "text": text,
-            "cta_label": "Découvrir l'étude complète",
+            "prenom1": analysis.get("prenom1"),
+            "prenom2": analysis.get("prenom2"),
+            "text": analysis.get("mystery_text"),
+            "compatibility_number": analysis.get("compatibility_number"),
+            "universal_year": analysis.get("universal_year"),
+            "letters_prenom1": analysis.get("letters_prenom1"),
+            "letters_prenom2": analysis.get("letters_prenom2"),
+            "total_letters": analysis.get("total_letters"),
+            "year": analysis.get("year"),
+            "interpretation": analysis.get("interpretation", {}),
+            "numerology_1": analysis.get("numerology_1", {}),
+            "numerology_2": analysis.get("numerology_2", {}),
+            "compatibility": analysis.get("compatibility", {}),
+            "personal_year": analysis.get("personal_year"),
+            "cta_label": "Découvrir la Synastrie Complète",
             "cta_link": f"/outils/compatibilite?p1={prenom1}&p2={prenom2}"
         }
         
