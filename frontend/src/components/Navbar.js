@@ -5,7 +5,47 @@ import { useAuth } from '@/context/AuthContext';
 
 const NAV_ITEMS = [
   { label: 'Accueil', to: '/' },
-  { label: 'Mon Compte', to: '/mon-compte' },
+  {
+    label: 'Outils',
+    mega: true,
+    columns: [
+      {
+        title: '🔮 Cartomancie',
+        children: [
+          { label: 'Tarot', to: '/outils/tarot', highlight: true },
+          { label: 'Tirage Oui/Non', to: '/outils/tarot/oui-non' },
+          { label: 'Oracle des Anges', to: '/outils/oracle' },
+        ],
+      },
+      {
+        title: '⭐ Astrologie',
+        children: [
+          { label: 'Thème Natal', to: '/outils/theme-natal', highlight: true },
+          { label: 'Horoscope', to: '/outils/horoscope' },
+          { label: 'Compatibilité', to: '/outils/compatibilite' },
+          { label: 'Révolution Solaire', to: '/outils/revolution-solaire' },
+        ],
+      },
+      {
+        title: '🔢 Numérologie',
+        children: [
+          { label: 'Numérologie', to: '/outils/numerologie' },
+          { label: 'Archétype Numérologique', to: '/outils/archetype' },
+          { label: 'Love Languages', to: '/outils/love-languages' },
+        ],
+      },
+      {
+        title: '✨ Bien-être',
+        children: [
+          { label: 'Énergie du Jour', to: '/outils/energie' },
+          { label: 'Rituels Personnels', to: '/outils/rituel' },
+          { label: 'Chat Astral (IA)', to: '/outils/consultation' },
+          { label: 'Énergies Amoureuses', to: '/outils/astrosexo' },
+        ],
+      },
+    ],
+  },
+  { label: 'Communauté', to: '/communaute' },
 ];
 
 const dropdownStyle = {
