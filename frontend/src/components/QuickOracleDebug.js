@@ -34,6 +34,7 @@ export default function QuickOracleDebug({ onClose, onSelectPack }) {
 
   useEffect(() => {
     log('Component mounted', { onClose: !!onClose, onSelectPack: !!onSelectPack });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSelectSign = async (sign) => {
