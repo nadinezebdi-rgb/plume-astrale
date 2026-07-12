@@ -28,7 +28,7 @@ export default function CTATestPage() {
 
   const handleSelectPack = (packId) => {
     console.log(`[CTATest] onSelectPack called with packId:`, packId);
-    alert(`Pack sélectionné: ${packId}\n\nVérifiez la console (F12) pour les logs complets.`);
+    alert(`Pack sélectionné: ${packId}\n\nVérifiez la console (F12) pour les logs complets.\n\n✅ REDIRECTION EN COURS...`);
     
     // Redirect to payment (same as production)
     const packMap = {
@@ -38,7 +38,11 @@ export default function CTATestPage() {
     };
     localStorage.setItem('plume_astrale_plan', packMap[packId]);
     console.log(`[CTATest] Plan stocké: ${packMap[packId]}`);
-    // In real app: window.location.href = '/paiement';
+    
+    // Simulate production redirect
+    setTimeout(() => {
+      window.location.href = '/paiement';
+    }, 300);
   };
 
   return (
