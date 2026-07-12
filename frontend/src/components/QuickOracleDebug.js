@@ -1,6 +1,9 @@
+/**
+ * QuickOracleDebug - Version avec logging exhaustif pour déboguer le CTA
+ * Trace chaque étape du flux utilisateur
+ */
 import React, { useState, useEffect } from 'react';
 import { Sparkles, ArrowRight, X } from 'lucide-react';
-import axios from 'axios';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -10,88 +13,81 @@ const ZODIACS = [
   'Sagittaire', 'Capricorne', 'Verseau', 'Poisson'
 ];
 
-const ORACLE_TEMPLATES = {
-  'Bélier': {
-    icon: '♈',
-    daily: "Mercure te pousse à l'action — tes paroles sont ta force aujourd'hui. Une rencontre fortuite pourrait changer tes plans amoureux.",
-  },
-  'Taureau': {
-    icon: '♉',
-    daily: "Vénus sourit à tes amours. C'est le moment pour clarifier tes sentiments. Stabilité et confiance prévalent.",
-  },
-  'Gémeaux': {
-    icon: '♊',
-    daily: "Communication magnifique! Exprime ce que tu retenus. Les connexions intellectuelles deviennent électriques.",
-  },
-  'Cancer': {
-    icon: '♋',
-    daily: "Émotions en surface. Protège ton cœur, mais reste ouvert. Une personne du passé pourrait réapparaître.",
-  },
-  'Lion': {
-    icon: '♌',
-    daily: "Ton charisme est irrésistible. C'est ta journée — prends les devants en amour. Confiance débordante.",
-  },
-  'Vierge': {
-    icon: '♍',
-    daily: "Réflexion et analyse. Avant d'avancer, comprends ce que tu veux vraiment. Clarté émerge lentement.",
-  },
-  'Balance': {
-    icon: '♎',
-    daily: "Harmonie en vue. Les relations retrouvent l'équilibre. Une belle réconciliation est possible.",
-  },
-  'Scorpion': {
-    icon: '♏',
-    daily: "Intensité magnétique. Tu attires exactement ce que tu projettes. Profondeur et transformation.",
-  },
-  'Sagittaire': {
-    icon: '♐',
-    daily: "Optimisme débordant. Une opportunité d'amour lointain se présente. Sois courageux.",
-  },
-  'Capricorne': {
-    icon: '♑',
-    daily: "Responsabilité appelle. Tes fondations émotionnelles se renforcent. Sérieux dans l'amour.",
-  },
-  'Verseau': {
-    icon: '♒',
-    daily: "Liberté d'expression magnifique. Tes idées futuristes fascinent. Connections authentiques.",
-  },
-  'Poisson': {
-    icon: '♓',
-    daily: "Intuition surpuissante. Écoute ton ressenti — c'est ta meilleure boussole aujourd'hui. Connexion soulaire.",
-  },
+const log = (message, data = null) => {
+  const timestamp = new Date().toLocaleTimeString();
+  const logMsg = `[${timestamp}] [QuickOracle] ${message}`;
+  console.log(logMsg, data || '');
+  // Aussi logger dans localStorage pour persistance
+  try {
+    const logs = JSON.parse(localStorage.getItem('qo_logs') || '[]');
+    logs.push({ msg: message, data, time: timestamp });
+    localStorage.setItem('qo_logs', JSON.stringify(logs.slice(-50))); // Keep last 50
+  } catch (e) { /* ignore */ }
 };
 
-/**
- * QuickOracle — Landing page "JAB" pour capture gratuite immédiate
- * Design ultra-simple, 1-click, micro-valeur = trust + lead
- */
-export default function QuickOracle({ onClose, onSelectPack }) {
-  const [step, setStep] = useState(1); // 1 = select sign, 2 = show oracle, 3 = show packs
+export default function QuickOracleDebug({ onClose, onSelectPack }) {
+  const [step, setStep] = useState(1);
   const [selectedSign, setSelectedSign] = useState(null);
   const [oracleData, setOracleData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({});
+
+  useEffect(() => {
+    log('Component mounted', { onClose: !!onClose, onSelectPack: !!onSelectPack });
+  }, []);
 
   const handleSelectSign = async (sign) => {
-    console.log(`[QuickOracle] Signe sélectionné: ${sign}`);
+    log(`Step 1: Sign selected`, { sign });
     setSelectedSign(sign);
     setLoading(true);
-    
-    // Simulate API call (or replace with real backend call)
+    setDebugInfo(prev => ({ ...prev, selectedSign: sign, step1Time: new Date() }));
+
     setTimeout(() => {
+      const oracleText = `Oracle pour ${sign}: Moment de révélation astrologique...`;
+      log(`Step 2: Oracle generated`, { sign, textLength: oracleText.length });
+      
       setOracleData({
         sign,
-        daily: ORACLE_TEMPLATES[sign].daily,
+        daily: oracleText,
         generatedAt: new Date().toLocaleString('fr-FR'),
       });
       setStep(2);
       setLoading(false);
-      console.log(`[QuickOracle] Oracle générée pour ${sign}`);
-    }, 1200);
+      setDebugInfo(prev => ({ ...prev, step2Time: new Date(), oracleGenerated: true }));
+    }, 1000);
   };
 
   const proceedToUpsell = () => {
-    console.log('[QuickOracle] Procédant à l\'upsell...');
+    log(`Step 3: Proceeding to upsell`, { currentStep: step });
     setStep(3);
+    setDebugInfo(prev => ({ ...prev, step3Time: new Date(), proceedToUpsellCalled: true }));
+  };
+
+  const handlePackSelect = (packId) => {
+    log(`Step 4: Pack selected`, { packId });
+    setDebugInfo(prev => ({ ...prev, selectedPackId: packId, step4Time: new Date() }));
+    
+    if (typeof onSelectPack !== 'function') {
+      log(`ERROR: onSelectPack is not a function`, { type: typeof onSelectPack });
+      return;
+    }
+    
+    log(`Step 5: Calling onSelectPack callback`, { packId });
+    try {
+      onSelectPack(packId);
+      log(`Step 5: onSelectPack called successfully`);
+    } catch (error) {
+      log(`ERROR in onSelectPack:`, { error: error.message });
+    }
+  };
+
+  const handleClose = () => {
+    log(`Close button clicked`);
+    if (typeof onClose !== 'function') {
+      log(`ERROR: onClose is not a function`, { type: typeof onClose });
+      return;
+    }
+    onClose();
   };
 
   return (
@@ -103,9 +99,10 @@ export default function QuickOracle({ onClose, onSelectPack }) {
       <div className="w-full max-w-2xl relative">
         {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute -top-8 right-0 text-white opacity-60 hover:opacity-100 transition"
           style={{ zIndex: 10001 }}
+          data-testid="qo-close-btn"
         >
           <X size={24} strokeWidth={1.5} />
         </button>
@@ -137,7 +134,10 @@ export default function QuickOracle({ onClose, onSelectPack }) {
               {ZODIACS.map((sign) => (
                 <button
                   key={sign}
-                  onClick={() => handleSelectSign(sign)}
+                  onClick={() => {
+                    log(`Zodiac button clicked`, { sign });
+                    handleSelectSign(sign);
+                  }}
                   disabled={loading}
                   className="p-4 rounded-lg transition transform hover:scale-110 active:scale-95"
                   style={{
@@ -149,7 +149,9 @@ export default function QuickOracle({ onClose, onSelectPack }) {
                     fontWeight: 300,
                     cursor: loading ? 'not-allowed' : 'pointer',
                     opacity: loading ? 0.5 : 1,
-                  }}>
+                  }}
+                  data-testid={`zodiac-${sign}`}
+                >
                   {sign}
                 </button>
               ))}
@@ -162,6 +164,20 @@ export default function QuickOracle({ onClose, onSelectPack }) {
             }}>
               Aucune inscription nécessaire
             </p>
+
+            {/* Debug info */}
+            <div className="mt-6 p-3 rounded" style={{
+              background: 'rgba(0,0,0,0.3)',
+              border: '1px solid rgba(212,175,55,0.15)',
+              fontSize: '10px',
+              color: 'rgba(244,232,210,0.5)',
+              fontFamily: 'monospace',
+              textAlign: 'left',
+            }}>
+              <div>Step: 1</div>
+              <div>Loading: {loading ? 'true' : 'false'}</div>
+              <div>selectedSign: {selectedSign || 'null'}</div>
+            </div>
           </div>
         )}
 
@@ -172,29 +188,14 @@ export default function QuickOracle({ onClose, onSelectPack }) {
               background: 'linear-gradient(135deg, rgba(212,175,55,0.12), rgba(167,139,250,0.08))',
               border: '1px solid rgba(212,175,55,0.35)',
               backdropFilter: 'blur(12px)',
-              animation: 'fadeInUp 0.6s ease-out',
             }}>
-            <div className="mb-6">
-              <div className="text-5xl mb-3">{ORACLE_TEMPLATES[selectedSign].icon}</div>
-              <h3 className="text-2xl mb-2" style={{
-                fontFamily: 'Cormorant Garamond, serif',
-                color: '#D4AF37',
-                fontWeight: 300,
-              }}>
-                {selectedSign}
-              </h3>
-              <p className="text-[10px] uppercase" style={{
-                color: 'rgba(212,175,55,0.5)',
-                letterSpacing: '0.15em',
-              }}>
-                {new Date().toLocaleDateString('fr-FR', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            </div>
+            <h3 className="text-2xl mb-2" style={{
+              fontFamily: 'Cormorant Garamond, serif',
+              color: '#D4AF37',
+              fontWeight: 300,
+            }}>
+              {selectedSign}
+            </h3>
 
             {/* Oracle text */}
             <div className="mb-10 p-6 rounded-lg"
@@ -213,7 +214,10 @@ export default function QuickOracle({ onClose, onSelectPack }) {
             {/* CTA buttons */}
             <div className="space-y-3">
               <button
-                onClick={proceedToUpsell}
+                onClick={() => {
+                  log(`CTA "Voir la lecture COMPLÈTE" clicked`);
+                  proceedToUpsell();
+                }}
                 className="w-full py-3 rounded-lg font-medium text-sm uppercase transition"
                 style={{
                   background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
@@ -221,13 +225,18 @@ export default function QuickOracle({ onClose, onSelectPack }) {
                   letterSpacing: '0.2em',
                   fontWeight: 700,
                   cursor: 'pointer',
-                }}>
+                }}
+                data-testid="qo-upsell-cta"
+              >
                 Voir la lecture COMPLÈTE
                 <ArrowRight size={14} className="inline ml-2" strokeWidth={2} />
               </button>
 
               <button
-                onClick={onClose}
+                onClick={() => {
+                  log(`"Peut-être plus tard" clicked`);
+                  handleClose();
+                }}
                 className="w-full py-3 rounded-lg text-sm uppercase transition"
                 style={{
                   background: 'transparent',
@@ -235,107 +244,81 @@ export default function QuickOracle({ onClose, onSelectPack }) {
                   border: '1px solid rgba(212,175,55,0.3)',
                   letterSpacing: '0.2em',
                   cursor: 'pointer',
-                }}>
+                }}
+              >
                 Peut-être plus tard
               </button>
             </div>
 
-            <p className="text-[10px] uppercase mt-6" style={{
-              color: 'rgba(212,175,55,0.4)',
-              letterSpacing: '0.15em',
+            {/* Debug info */}
+            <div className="mt-6 p-3 rounded" style={{
+              background: 'rgba(0,0,0,0.3)',
+              border: '1px solid rgba(212,175,55,0.15)',
+              fontSize: '10px',
+              color: 'rgba(244,232,210,0.5)',
+              fontFamily: 'monospace',
+              textAlign: 'left',
             }}>
-              ✧ Lecture personnalisée basée sur votre date exacte
-            </p>
+              <div>Step: 2</div>
+              <div>oracleData: {oracleData ? 'yes' : 'no'}</div>
+              <div>selectedSign: {selectedSign}</div>
+            </div>
           </div>
         )}
 
         {/* STEP 3: SHOW UPSELL PACKS */}
         {step === 3 && (
-          <CreditsUpsellPanel onSelectPack={onSelectPack} onBack={() => setStep(2)} />
+          <CreditsUpsellPanelDebug onSelectPack={handlePackSelect} onBack={() => setStep(2)} />
         )}
       </div>
 
       <style>{`
         @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>
   );
 }
 
-/**
- * CreditsUpsellPanel — Affiche les 3 packs avec ancrage psychologique
- */
-function CreditsUpsellPanel({ onSelectPack, onBack }) {
+function CreditsUpsellPanelDebug({ onSelectPack, onBack }) {
   const PACKS = [
     {
       id: 'initiation',
       name: 'Initiation',
-      emoji: null,
       price: '4,99 €',
       credits: 15,
-      bonus: 0,
-      features: [
-        'Oracle du jour complété',
-        '1 thème natal rapide',
-        'Accès 7 jours',
-      ],
-      badge: null,
+      features: ['Oracle du jour', '1 thème rapide'],
       cta: 'Essayer',
     },
     {
       id: 'clarte',
       name: 'Clarté',
-      emoji: null,
       price: '14,99 €',
       credits: 60,
-      bonus: 10,
-      originalPrice: '19,99 €',
-      features: [
-        '50 crédits + 10 BONUS',
-        'Thème natal complet (PDF 40p)',
-        'Synastrie de base',
-        'Chat Solena illimité 30j',
-      ],
-      badge: {
-        text: 'Bestseller',
-        subtext: '78% des utilisateurs',
-      },
+      features: ['50 + 10 crédits', 'Thème complet'],
+      badge: 'Bestseller',
       highlight: true,
-      cta: 'Débloquer Clarté',
+      cta: 'Débloquer',
     },
     {
       id: 'flammes',
-      name: 'Flammes Jumelles',
-      emoji: null,
+      name: 'Flammes',
       price: '29,99 €',
       credits: 130,
-      bonus: 30,
-      features: [
-        '100 crédits + 30 BONUS',
-        'Accès illimité 30 jours',
-        'Synastrie complète',
-        'Session coaching (valeur 50€)',
-      ],
-      badge: {
-        text: 'Meilleure valeur',
-        subtext: '10 places/jour',
-      },
-      cta: 'Accéder Flammes Jumelles',
+      features: ['100 + 30 crédits', 'Accès illimité'],
+      cta: 'Accéder',
     },
   ];
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
+    <div className="space-y-4 rounded-2xl p-8 md:p-12"
+      style={{
+        background: 'linear-gradient(135deg, rgba(212,175,55,0.08), rgba(20,15,40,0.6))',
+        border: '1px solid rgba(212,175,55,0.25)',
+        backdropFilter: 'blur(12px)',
+      }}>
       <div className="text-center mb-8">
         <h3 className="text-xl md:text-2xl mb-2" style={{
           fontFamily: 'Cormorant Garamond, serif',
@@ -344,9 +327,6 @@ function CreditsUpsellPanel({ onSelectPack, onBack }) {
         }}>
           Accédez à votre profondeur cosmique
         </h3>
-        <p className="text-sm" style={{ color: 'rgba(244,232,210,0.7)' }}>
-          Chaque plan vous amène plus loin dans votre voyage astrologique.
-        </p>
       </div>
 
       {/* Packs */}
@@ -356,63 +336,33 @@ function CreditsUpsellPanel({ onSelectPack, onBack }) {
             key={pack.id}
             className="rounded-xl p-6 transition transform hover:scale-105"
             style={{
-              background: pack.highlight
-                ? 'linear-gradient(135deg, rgba(232,199,102,0.15), rgba(212,175,55,0.08))'
-                : 'rgba(212,175,55,0.08)',
-              border: pack.highlight
-                ? '2px solid rgba(232,199,102,0.4)'
-                : '1px solid rgba(212,175,55,0.2)',
-              position: 'relative',
+              background: pack.highlight ? 'linear-gradient(135deg, rgba(232,199,102,0.15), rgba(212,175,55,0.08))' : 'rgba(212,175,55,0.08)',
+              border: pack.highlight ? '2px solid rgba(232,199,102,0.4)' : '1px solid rgba(212,175,55,0.2)',
             }}>
-            {/* Badge */}
             {pack.badge && (
-              <div className="absolute -top-3 left-4 text-[10px] uppercase px-3 py-1"
-                style={{
-                  background: '#D4AF37',
-                  color: '#0C0918',
-                  fontWeight: 700,
-                  borderRadius: '4px',
-                  letterSpacing: '0.1em',
-                }}>
-                {pack.badge.text}
-                <div style={{ fontSize: '8px', fontWeight: 400 }}>
-                  {pack.badge.subtext}
-                </div>
+              <div style={{
+                background: '#D4AF37',
+                color: '#0C0918',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                fontSize: '8px',
+                fontWeight: 700,
+                marginBottom: '8px',
+              }}>
+                {pack.badge}
               </div>
             )}
 
-            {/* Icon & Name */}
-            <div className="text-3xl mb-2">{pack.emoji}</div>
-            <h4 className="text-lg font-semibold mb-1" style={{ color: '#D4AF37' }}>
+            <h4 className="text-lg font-semibold mb-2" style={{ color: '#D4AF37' }}>
               {pack.name}
             </h4>
-
-            {/* Price */}
-            <div className="flex items-baseline gap-2 mb-4">
-              <span className="text-2xl font-bold" style={{ color: '#F4E8D2' }}>
-                {pack.price}
-              </span>
-              {pack.originalPrice && (
-                <span className="text-xs line-through" style={{ color: 'rgba(244,232,210,0.4)' }}>
-                  {pack.originalPrice}
-                </span>
-              )}
+            <div className="text-2xl font-bold mb-4" style={{ color: '#F4E8D2' }}>
+              {pack.price}
             </div>
 
-            {/* Features */}
-            <ul className="space-y-2 mb-6 text-sm">
-              {pack.features.map((feature, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span style={{ color: '#D4AF37', marginTop: '2px' }}>✓</span>
-                  <span style={{ color: 'rgba(244,232,210,0.8)' }}>{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            {/* CTA */}
             <button
               onClick={() => {
-                console.log(`[PackCTA] Pack cliqué: ${pack.id}`);
+                log(`Pack CTA clicked`, { packId: pack.id });
                 onSelectPack(pack.id);
               }}
               className="w-full py-2 rounded-lg text-sm font-bold uppercase transition"
@@ -422,16 +372,20 @@ function CreditsUpsellPanel({ onSelectPack, onBack }) {
                 border: pack.highlight ? 'none' : '1px solid rgba(212,175,55,0.3)',
                 cursor: 'pointer',
                 letterSpacing: '0.1em',
-              }}>
+              }}
+              data-testid={`pack-cta-${pack.id}`}
+            >
               {pack.cta}
             </button>
           </div>
         ))}
       </div>
 
-      {/* Back button */}
       <button
-        onClick={onBack}
+        onClick={() => {
+          log(`Back button clicked`);
+          onBack();
+        }}
         className="w-full py-2 text-sm uppercase"
         style={{
           background: 'transparent',
@@ -443,6 +397,20 @@ function CreditsUpsellPanel({ onSelectPack, onBack }) {
         }}>
         ← Retour
       </button>
+
+      {/* Debug info */}
+      <div className="mt-6 p-3 rounded" style={{
+        background: 'rgba(0,0,0,0.3)',
+        border: '1px solid rgba(212,175,55,0.15)',
+        fontSize: '10px',
+        color: 'rgba(244,232,210,0.5)',
+        fontFamily: 'monospace',
+        textAlign: 'left',
+      }}>
+        <div>Step: 3 (Upsell)</div>
+        <div>Packs count: {PACKS.length}</div>
+        <div>onSelectPack type: {typeof onSelectPack}</div>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, User, Calendar, Clock, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/SEO';
@@ -21,6 +21,7 @@ const BIRTH_KEY = 'pa_birth_data_v2';
  */
 export default function NewHome() {
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [showQuickOracle, setShowQuickOracle] = useState(false);
   const [birth, setBirth] = useState(() => {
@@ -296,7 +297,10 @@ export default function NewHome() {
         {/* CTA Quick Oracle - Friction elimination */}
         {!showQuickOracle && (
           <button
-            onClick={() => setShowQuickOracle(true)}
+            onClick={() => {
+              console.log('[CTA] "Découvrez votre oracle" cliqué');
+              setShowQuickOracle(true);
+            }}
             className="w-full max-w-md mb-8 py-4 rounded-2xl text-center transition-all hover:scale-105"
             style={{
               background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
@@ -311,7 +315,7 @@ export default function NewHome() {
             }}
             data-testid="quick-oracle-cta"
           >
-            Découvrez votre oracle du jour GRATUITEMENT
+            ✨ Découvrez votre oracle du jour GRATUITEMENT
           </button>
         )}
 
@@ -336,14 +340,20 @@ export default function NewHome() {
           <QuickOracle 
             onClose={() => setShowQuickOracle(false)}
             onSelectPack={(packId) => {
-              // Rediriger vers checkout
+              // Navigation via React Router
               const packMap = {
                 initiation: 'essentiel',
                 clarte: 'premium',
                 flammes: 'premium'
               };
-              localStorage.setItem('plume_astrale_plan', packMap[packId]);
-              window.location.href = '/paiement';
+              const planId = packMap[packId];
+              localStorage.setItem('plume_astrale_plan', planId);
+              console.log(`[QuickOracle] Pack sélectionné: ${packId} → Plan: ${planId}`);
+              
+              // Utiliser navigate au lieu de window.location.href
+              setTimeout(() => {
+                navigate('/paiement', { replace: false });
+              }, 300);
             }}
           />
         )}
