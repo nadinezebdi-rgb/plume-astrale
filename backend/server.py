@@ -49,6 +49,9 @@ from routes.analytics import router as analytics_router
 from routes.archetype import make_router as make_archetype_router
 from routes.kabbale import router as kabbale_router
 from routes.compatible import router as compatible_router
+from routes.numerologie import router as numerologie_router
+from routes.karma_destin import router as karma_destin_router
+from routes.fenetre_rencontre import router as fenetre_rencontre_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -96,6 +99,9 @@ async def _use_service_credits(user_id: str, service_id: str) -> dict:
 
 api_router.include_router(make_archetype_router(get_current_user, _use_service_credits))
 api_router.include_router(kabbale_router)
+api_router.include_router(numerologie_router)
+api_router.include_router(karma_destin_router)
+api_router.include_router(fenetre_rencontre_router)
 
 
 # ════════════════════════════════════════════
