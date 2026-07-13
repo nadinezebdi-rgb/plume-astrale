@@ -97,140 +97,183 @@ const SolenaJourney = () => {
       <StarsAndClouds />
       <div className="max-w-6xl mx-auto">
 
-        <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5"
-            style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.30)' }}>
-            <Sparkles style={{ width: 12, height: 12, color: '#D4AF37' }} strokeWidth={1.5} />
-            <span className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.3em', fontWeight: 400 }}>
-              Rencontre ta guide
-            </span>
+        {/* === SOLENA SECTION — La voix de Plume Astrale === */}
+        <div className="max-w-5xl mx-auto">
+          
+          {/* Tagline + Header + Intro */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+              style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.30)' }}>
+              <Sparkles style={{ width: 12, height: 12, color: '#D4AF37' }} strokeWidth={1.5} />
+              <span className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.3em', fontWeight: 400 }}>
+                {SOLENA.tagline}
+              </span>
+            </div>
+
+            <h2 style={{
+              fontFamily: 'Cormorant Garamond, serif',
+              fontWeight: 200,
+              fontSize: 'clamp(2.5rem, 6vw, 4rem)',
+              lineHeight: 1.1,
+              color: '#F4E8D2',
+              marginBottom: 20,
+            }}>
+              Je suis <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>Solena</em>.
+            </h2>
+
+            <p style={{
+              fontFamily: 'Cormorant Garamond, serif',
+              fontSize: 'clamp(1rem, 2vw, 1.25rem)',
+              color: 'rgba(244,232,210,0.85)',
+              lineHeight: 1.7,
+              maxWidth: '800px',
+              margin: '0 auto 28px',
+            }}>
+              Je suis Solena, ta guide chez Plume Astrale. Depuis plus de quinze ans, je décode les cartes du ciel pour aider les âmes à comprendre leur trajectoire et leurs cycles d&apos;amour.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap gap-4 justify-center mb-12">
+              <Link to="/rencontres-astrales"
+                className="px-8 py-3 rounded-full text-sm uppercase flex items-center gap-2 transition-all hover:scale-[1.02]"
+                style={{
+                  background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
+                  color: '#0C0918',
+                  letterSpacing: '0.2em', fontWeight: 600,
+                  boxShadow: '0 20px 60px rgba(212,175,55,0.25)',
+                }}
+                data-testid="home-solena-cta-consult">
+                <Heart className="w-4 h-4" /> Consulter Solena
+              </Link>
+              <Link to="/consultation"
+                className="px-8 py-3 rounded-full text-sm uppercase flex items-center gap-2 transition-all"
+                style={{ 
+                  border: '1px solid rgba(212,175,55,0.4)',
+                  color: '#D4AF37',
+                  letterSpacing: '0.2em',
+                  fontWeight: 600,
+                  background: 'rgba(212,175,55,0.05)',
+                }}
+                data-testid="home-solena-cta-chat">
+                Chatter avec Plume
+              </Link>
+            </div>
+
+            {/* Portrait */}
+            <div className="mb-16 flex justify-center">
+              <img src={SOLENA.portrait} alt="Portrait de Solena — astrologue"
+                loading="lazy"
+                style={{
+                  maxWidth: '100%',
+                  width: '100%',
+                  maxHeight: '420px',
+                  objectFit: 'cover',
+                  borderRadius: '16px',
+                  border: '2px solid rgba(212,175,55,0.35)',
+                  boxShadow: '0 40px 100px rgba(212,175,55,0.15)',
+                }} />
+            </div>
           </div>
-          <h2 style={{
-            fontFamily: 'Cormorant Garamond, serif',
-            fontWeight: 200,
-            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-            lineHeight: 1.05,
-            color: '#F4E8D2',
-            marginBottom: 16,
-          }}>
-            Je suis <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>Solena</em>,<br />
-            la voix de <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>Plume Astrale</em>.
-          </h2>
-          <p className="max-w-2xl mx-auto text-base md:text-lg" style={{
-            fontFamily: 'Cormorant Garamond, serif',
-            color: 'rgba(244,232,210,0.75)',
-            fontStyle: 'italic',
-            lineHeight: 1.6,
-          }}>
-            Astrologue, tarologue et médium depuis quinze ans — je décode ton ciel de naissance
-            pour révéler tes cycles d&apos;amour et t&apos;éclairer, en direct.
-          </p>
-        </div>
 
-        {/* Vidéo + Chat panel */}
-        <div className="grid md:grid-cols-5 gap-8 md:gap-10 items-stretch mb-16">
-
-          {/* Colonne vidéo — 2/5 */}
-          <div className="md:col-span-2 flex justify-center">
-            <div className="relative w-full max-w-sm">
-              <div style={{
-                position: 'absolute', inset: '-12%',
-                background: 'radial-gradient(circle, rgba(212,175,55,0.35), transparent 65%)',
-                filter: 'blur(35px)',
-              }} />
-              <div style={{
-                position: 'relative',
-                aspectRatio: '9/16',
-                width: '100%',
-                borderRadius: '32px',
-                overflow: 'hidden',
-                border: '2px solid rgba(212,175,55,0.55)',
-                boxShadow: '0 40px 100px rgba(212,175,55,0.25), 0 0 60px rgba(212,175,55,0.15)',
+          {/* === MA MISSION === */}
+          <div className="mb-24">
+            <div className="text-center mb-12">
+              <p className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.3em', marginBottom: 12, fontWeight: 400 }}>
+                Ma mission
+              </p>
+              <h3 style={{
+                fontFamily: 'Cormorant Garamond, serif',
+                fontWeight: 200,
+                fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
+                color: '#F4E8D2',
+                lineHeight: 1.2,
               }}>
-                <video
-                  ref={videoRef}
-                  src={SOLENA.videos.primary}
-                  poster={SOLENA.portrait}
-                  muted loop playsInline autoPlay preload="metadata"
-                  onClick={toggleVideo}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer', display: 'block' }}
-                  data-testid="home-solena-video"
-                />
-                <div style={{
-                  position: 'absolute', bottom: 0, left: 0, right: 0,
-                  padding: '30px 24px 20px',
-                  background: 'linear-gradient(180deg, transparent, rgba(0,0,0,0.75))',
-                  pointerEvents: 'none',
-                }}>
-                  <div style={{ color: '#E8C766', fontSize: 11, letterSpacing: '0.25em', textTransform: 'uppercase', fontWeight: 400 }}>
-                    ✦ Solena
-                  </div>
-                  <div style={{ color: 'rgba(244,232,210,0.85)', fontSize: 12, marginTop: 4, fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>
-                    {SOLENA.title}
+                Une <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>conversation intime</em><br />
+                avec ton ciel de naissance.
+              </h3>
+            </div>
+
+            <div className="space-y-6 text-base md:text-lg leading-relaxed" style={{ color: 'rgba(244,232,210,0.85)', maxWidth: '900px', margin: '0 auto' }}>
+              {SOLENA.bio_long.map((p, i) => (
+                <p key={i} style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 400, lineHeight: 1.8 }}>
+                  {p}
+                </p>
+              ))}
+            </div>
+          </div>
+
+          {/* === MES SPÉCIALITÉS === */}
+          <div className="mb-24">
+            <div className="text-center mb-12">
+              <p className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.3em', marginBottom: 12, fontWeight: 400 }}>
+                Mes spécialités
+              </p>
+              <h3 style={{
+                fontFamily: 'Cormorant Garamond, serif',
+                fontWeight: 200,
+                fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
+                color: '#F4E8D2',
+                lineHeight: 1.2,
+              }}>
+                Six voies pour <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>t&apos;éclairer</em>
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+              {SOLENA.specialities.map((s, i) => (
+                <div key={i}
+                  className="rounded-2xl p-6 transition-all hover:scale-[1.02]"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(212,175,55,0.25)',
+                    backdropFilter: 'blur(12px)',
+                  }}>
+                  <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1rem', color: 'rgba(244,232,210,0.9)', lineHeight: 1.6 }}>
+                    {s}
                   </div>
                 </div>
-                <button
-                  onClick={toggleVideo}
-                  aria-label={videoPlaying ? 'Couper le son' : 'Activer le son'}
-                  style={{
-                    position: 'absolute', top: 14, right: 14,
-                    width: 40, height: 40, borderRadius: '50%',
-                    background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(212,175,55,0.5)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', backdropFilter: 'blur(6px)',
-                  }}
-                  data-testid="home-solena-video-toggle"
-                >
-                  <Play style={{ width: 14, height: 14, color: '#E8C766', marginLeft: 2 }} strokeWidth={2} />
-                </button>
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Colonne chat — 3/5 */}
-          <div className="md:col-span-3 flex flex-col justify-center">
-            <SolenaChat />
-            <div className="mt-4 text-center text-[10px] uppercase" style={{ color: 'rgba(244,232,210,0.4)', letterSpacing: '0.2em' }}>
-              Ta conversation reste privée · pas de carte bancaire
-            </div>
-          </div>
-        </div>
-
-        {/* Spécialités */}
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-8">
-            <p className="text-[10px] uppercase" style={{ color: 'rgba(212,175,55,0.7)', letterSpacing: '0.3em' }}>
-              Ses six spécialités
+          {/* === FINAL CTA === */}
+          <div className="text-center py-14 px-8 rounded-3xl" style={{
+            background: 'linear-gradient(160deg, rgba(212,175,55,0.08) 0%, rgba(212,175,55,0.04) 100%)',
+            border: '1px solid rgba(212,175,55,0.2)',
+            backdropFilter: 'blur(12px)',
+          }}>
+            <h3 style={{
+              fontFamily: 'Cormorant Garamond, serif',
+              fontWeight: 200,
+              fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)',
+              color: '#F4E8D2',
+              marginBottom: 16,
+              lineHeight: 1.3,
+            }}>
+              Prête à découvrir ce que <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>tes étoiles</em> murmurent ?
+            </h3>
+            <p style={{
+              fontFamily: 'Cormorant Garamond, serif',
+              fontSize: 'clamp(1rem, 1.5vw, 1.2rem)',
+              color: 'rgba(244,232,210,0.8)',
+              marginBottom: 24,
+              lineHeight: 1.6,
+            }}>
+              Une révélation gratuite t&apos;attend : le portrait de ton âme sœur et tes prochaines fenêtres de rencontre.
             </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {SOLENA.specialities.map((s, i) => (
-              <div key={i}
-                className="plume-glass !rounded-2xl !p-4 flex items-start gap-3 transition-transform duration-400 ease-plume-silk hover:scale-[1.02]"
-                data-testid={`home-solena-speciality-${i}`}>
-                <CheckCircle2 style={{ width: 18, height: 18, color: '#D4AF37', flexShrink: 0, marginTop: 2 }} strokeWidth={1.5} />
-                <span className="text-sm" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'rgba(244,232,210,0.88)', lineHeight: 1.4 }}>
-                  {s}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-8 flex flex-col sm:flex-row gap-3 justify-center items-center flex-wrap">
-            <Link to="/solena" className="plume-btn-primary" data-testid="home-solena-discover-btn">
-              Découvrir l&apos;univers de Solena
-              <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
+            <Link to="/rencontres-astrales"
+              className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm uppercase transition-all hover:scale-[1.05]"
+              style={{
+                background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
+                color: '#0C0918',
+                letterSpacing: '0.2em', fontWeight: 600,
+                boxShadow: '0 20px 60px rgba(212,175,55,0.25)',
+              }}
+              data-testid="home-solena-cta-final">
+              <Heart className="w-4 h-4" /> Découvrir Solena
             </Link>
-            <div className="text-[10px] text-center" style={{ color: 'rgba(244,232,210,0.4)', letterSpacing: '0.2em', maxWidth: 300 }}>
-              Autres expériences:&nbsp;
-              <Link to="/archetype" style={{ color: '#D4AF37', textDecoration: 'underline', fontSize: 10 }} data-testid="home-archetype-cta">
-                Archétype&nbsp;(15 cr)
-              </Link>
-              &nbsp;·&nbsp;
-              <Link to="/kabbale" style={{ color: '#D4AF37', textDecoration: 'underline', fontSize: 10 }} data-testid="home-kabbale-cta">
-                Arbre de Vie&nbsp;(39€)
-              </Link>
-            </div>
           </div>
+
         </div>
 
       </div>
