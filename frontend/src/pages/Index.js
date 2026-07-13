@@ -161,17 +161,21 @@ const SolenaJourney = () => {
 
             {/* Portrait */}
             <div className="mb-16 flex justify-center">
-              <img src={SOLENA.portrait} alt="Portrait de Solena — astrologue"
-                loading="lazy"
-                style={{
-                  maxWidth: '100%',
-                  width: '100%',
-                  maxHeight: '420px',
-                  objectFit: 'cover',
-                  borderRadius: '16px',
-                  border: '2px solid rgba(212,175,55,0.35)',
-                  boxShadow: '0 40px 100px rgba(212,175,55,0.15)',
-                }} />
+              <div style={{ maxWidth: '380px', width: '100%' }}>
+                <img src={SOLENA.portrait} alt="Portrait de Solena — astrologue"
+                  loading="lazy"
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    aspectRatio: '9/16',
+                    objectFit: 'cover',
+                    objectPosition: 'center 20%',
+                    borderRadius: '16px',
+                    border: '2px solid rgba(212,175,55,0.35)',
+                    boxShadow: '0 40px 100px rgba(212,175,55,0.15)',
+                    display: 'block',
+                  }} />
+              </div>
             </div>
           </div>
 
