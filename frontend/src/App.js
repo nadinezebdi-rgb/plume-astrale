@@ -58,6 +58,14 @@ import CTATestPage from "./pages/CTATestPage";
 import PremiumStickyCTA from "./components/PremiumStickyCTA";
 import CookieConsent from "./components/CookieConsent";
 
+// ─── Advanced PDF Products ────────────────────────────
+import NumerologiePDF from "./pages/NumerologiePDF";
+import NumerologieWaiting from "./pages/NumerologieWaiting";
+import KarmaDestinPDF from "./pages/KarmaDestinPDF";
+import KarmaDestinWaiting from "./pages/KarmaDestinWaiting";
+import FenetreRencontrePDF from "./pages/FenetreRencontrePDF";
+import FenetreRencontreWaiting from "./pages/FenetreRencontreWaiting";
+
 // ─── Plume Design System v2 (Feb 2026) ────────────────────────────
 import NoiseOverlay from "./components/design/NoiseOverlay";
 import MobileTabBar from "./components/design/MobileTabBar";
@@ -79,6 +87,12 @@ function App() {
           <Route path="/rencontres-astrales" element={<RencontresAstrales />} />
           <Route path="/rencontres-astrales/succes" element={<RencontresUltimeSucces />} />
           <Route path="/test/cta" element={<CTATestPage />} />
+          <Route path="/numerologie-pdf" element={<NumerologiePDF />} />
+          <Route path="/numerologie-pdf/attente" element={<NumerologieWaiting />} />
+          <Route path="/karma-destin-pdf" element={<KarmaDestinPDF />} />
+          <Route path="/karma-destin/attente" element={<KarmaDestinWaiting />} />
+          <Route path="/fenetre-rencontre-pdf" element={<FenetreRencontrePDF />} />
+          <Route path="/fenetre-rencontre/attente" element={<FenetreRencontreWaiting />} />
 
           {/* Toutes les autres pages — avec Navbar */}
           <Route path="*" element={
