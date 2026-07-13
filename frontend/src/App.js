@@ -51,7 +51,6 @@ import SynastrieSucces from "./pages/SynastrieSucces";
 import AstroSexo from "./pages/AstroSexo";
 import RencontresAstrales from "./pages/RencontresAstrales";
 import RencontresUltimeSucces from "./pages/RencontresUltimeSucces";
-import SolenaPage from "./pages/SolenaPage";
 import Bibliotheque from "./pages/Bibliotheque";
 import Desabonnement from "./pages/Desabonnement";
 import AuthenticatedHome from "./pages/AuthenticatedHome";
@@ -79,7 +78,6 @@ function App() {
           <Route path="/bibliotheque" element={<Bibliotheque />} />
           <Route path="/rencontres-astrales" element={<RencontresAstrales />} />
           <Route path="/rencontres-astrales/succes" element={<RencontresUltimeSucces />} />
-          <Route path="/solena" element={<SolenaPage />} />
           <Route path="/test/cta" element={<CTATestPage />} />
 
           {/* Toutes les autres pages — avec Navbar */}

@@ -94,7 +94,6 @@ const SolenaJourney = () => {
       style={{
         background: '#0C1120',
       }}>
-      <StarsAndClouds />
       <div className="max-w-6xl mx-auto">
 
         {/* === SOLENA SECTION — La voix de Plume Astrale === */}
