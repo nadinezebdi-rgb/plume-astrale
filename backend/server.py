@@ -789,7 +789,7 @@ async def stripe_webhook(request: Request):
             await handle_fenetre_rencontre_webhook(session_id)
         except Exception as e:
             logger.warning(f'[fenetre_rencontre] post-webhook fail: {e}')
-       return {'received': True, 'type': event_type, 'kind': 'fenetre_rencontre_avancee'}
+        return {'received': True, 'type': event_type, 'kind': 'fenetre_rencontre_avancee'}
 
     # Sinon : flow credits one-shot
     if event_type == 'checkout.session.completed':
@@ -848,7 +848,6 @@ async def stripe_webhook(request: Request):
         }).eq('session_id', session_id).execute()
         return {'received': True, 'granted': True}
 
-        return {'received': True, 'type': event_type}
 
 async def _trigger_synastrie_pdf_email(session_id: Optional[str]) -> None:
     """Apres paiement synastrie : genere le PDF et envoie l'email via Resend."""
