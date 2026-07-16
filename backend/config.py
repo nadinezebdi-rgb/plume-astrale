@@ -24,7 +24,7 @@ class Settings:
 
     # LLM
     EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
-# Resend (envoi d'emails transactionnels)
+    # Resend (envoi d'emails transactionnels)
     RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
     # Credit packs (montants serveur — JAMAIS depuis le frontend)
     # Grille "Special Lancement" — 10 cr par question de chat, avec bonus offerts.
