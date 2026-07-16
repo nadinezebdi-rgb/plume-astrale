@@ -91,8 +91,8 @@ async def fenetre_checkout(payload: FenetreCheckoutPayload, request: Request):
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
     
     origin = payload.origin_url.rstrip('/')
-    success_url = f'{origin}/fenetre-rencontre/succes?session_id={{CHECKOUT_SESSION_ID}}'
-    cancel_url = f'{origin}/fenetre-rencontre'
+    success_url = f'{origin}/fenetre-rencontre/attente?session_id={{CHECKOUT_SESSION_ID}}'
+    cancel_url = f'{origin}/fenetre-rencontre-pdf'
     
     # Préparer birth_data
     try:
@@ -155,6 +155,7 @@ async def fenetre_checkout(payload: FenetreCheckoutPayload, request: Request):
             success_url=success_url,
             cancel_url=cancel_url,
             metadata={
+                'kind': 'fenetre_rencontre_avancee',
                 'product': 'fenetre_rencontre_avancee',
                 'email': payload.email,
                 'pack_name': pack['name'],

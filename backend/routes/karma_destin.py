@@ -56,8 +56,8 @@ async def karma_destin_checkout(payload: KarmaDestinCheckoutPayload, request: Re
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
     
     origin = payload.origin_url.rstrip('/')
-    success_url = f'{origin}/karma-destin/succes?session_id={{CHECKOUT_SESSION_ID}}'
-    cancel_url = f'{origin}/karma-destin'
+    success_url = f'{origin}/karma-destin-pdf/attente?session_id={{CHECKOUT_SESSION_ID}}'
+    cancel_url = f'{origin}/karma-destin-pdf'
     
     # Préparer birth_data
     try:
@@ -119,6 +119,7 @@ async def karma_destin_checkout(payload: KarmaDestinCheckoutPayload, request: Re
             success_url=success_url,
             cancel_url=cancel_url,
             metadata={
+                'kind': 'karma_destin_analysis',
                 'product': 'karma_destin_analysis',
                 'email': payload.email,
                 'pack_name': pack['name'],

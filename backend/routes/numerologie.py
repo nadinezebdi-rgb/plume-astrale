@@ -56,8 +56,8 @@ async def numerologie_checkout(payload: NumerologieCheckoutPayload, request: Req
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
     
     origin = payload.origin_url.rstrip('/')
-    success_url = f'{origin}/numerologie/succes?session_id={{CHECKOUT_SESSION_ID}}'
-    cancel_url = f'{origin}/numerologie'
+    success_url = f'{origin}/numerologie-pdf/attente?session_id={{CHECKOUT_SESSION_ID}}'
+    cancel_url = f'{origin}/numerologie-pdf'
     
     # Préparer birth_data
     try:
@@ -119,6 +119,7 @@ async def numerologie_checkout(payload: NumerologieCheckoutPayload, request: Req
             success_url=success_url,
             cancel_url=cancel_url,
             metadata={
+                'kind': 'numerologie_code',
                 'product': 'numerologie_code',
                 'email': payload.email,
                 'pack_name': pack['name'],
