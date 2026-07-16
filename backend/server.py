@@ -791,15 +791,7 @@ async def stripe_webhook(request: Request):
             logger.warning(f'[fenetre_rencontre] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'fenetre_rencontre_avancee'}
 
-    # Sinon : flow credits one-shot
-    if event_type == 'checkout.session.completed':
-        session_data = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
-        if session_data.get('payment_status') != 'paid':
-            return {'received': True}# Sinon : flow credits one-shot
-    if event_type == 'checkout.session.completed':
-        session_data = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
-        if session_data.get('payment_status') != 'paid':
-            return {'received': True}
+    
 
         # ── Reçu email pour les produits legacy (PRODUCT_CATALOG) ──
         meta = session_data.get('metadata') or {}
