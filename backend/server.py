@@ -1845,6 +1845,7 @@ _cors_from_env = [o.strip() for o in os.environ.get('CORS_ORIGINS', '').split(',
 _default_origins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'https://plume-astrale.vercel.app',
     'https://plume-astrale.fr',
     'https://www.plume-astrale.fr',
     'https://consultation-astro.preview.emergentagent.com',
