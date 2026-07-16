@@ -114,23 +114,18 @@ async def karma_destin_checkout(payload: KarmaDestinCheckoutPayload, request: Re
     # CHECKOUT STRIPE
     try:
         checkout_request = CheckoutSessionRequest(
+            amount=float(pack['amount']),
+            currency=pack['currency'],
             success_url=success_url,
             cancel_url=cancel_url,
-            customer_email=payload.email,
-            line_items=[{
-                'price_data': {
-                    'currency': pack['currency'].lower(),
-                    'product_data': {
-                        'name': pack['name'],
-                        'description': 'Analyse Karmique & Destinée — 15 pages',
-                    },
-                    'unit_amount': int(pack['amount'] * 100),
-                },
-                'quantity': 1,
-            }],
+            metadata={
+                'product': 'karma_destin_analysis',
+                'email': payload.email,
+                'pack_name': pack['name'],
+            },
         )
         session = await stripe_checkout.create_checkout_session(checkout_request)
-        session_id = session.get('id')
+        session_id = session.session_id
         
         sb = get_admin_client()
         sb.table('payment_transactions').insert({
@@ -147,7 +142,7 @@ async def karma_destin_checkout(payload: KarmaDestinCheckoutPayload, request: Re
         
         return {
             'session_id': session_id,
-            'url': session.get('url'),
+            'url': session.url,
             'status': 'pending',
         }
     except Exception as e:
