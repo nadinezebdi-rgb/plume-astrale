@@ -795,7 +795,65 @@ async def stripe_webhook(request: Request):
     if event_type == 'checkout.session.completed':
         session_data = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
         if session_data.get('payment_status') != 'paid':
+            return {'received': True}# Sinon : flow credits one-shot
+    if event_type == 'checkout.session.completed':
+        session_data = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
+        if session_data.get('payment_status') != 'paid':
             return {'received': True}
+
+        # ── Reçu email pour les produits legacy (PRODUCT_CATALOG) ──
+        meta = session_data.get('metadata') or {}
+        if meta.get('flow') == 'legacy_checkout':
+            try:
+                product_id = meta.get('product_id', '')
+                product = PRODUCT_CATALOG.get(product_id, {})
+                product_name = product.get('name', 'votre commande')
+                # email : metadata en priorite, sinon customer_details Stripe
+                email = meta.get('user_email') or (
+                    (session_data.get('customer_details') or {}).get('email')
+                )
+                montant = (session_data.get('amount_total') or 0) / 100
+                if email:
+                    from services.resend_service import send_email
+                    subject = f'Reçu de votre commande — {product_name}'
+                    html = (
+                        f'<p>Merci pour votre achat 🌙</p>'
+                        f'<p>Nous confirmons votre paiement de '
+                        f'<strong>{montant:.2f} €</strong> pour '
+                        f'<strong>{product_name}</strong>.</p>'
+                        f'<p>Retrouvez votre document dans votre espace : '
+                        f'<a href="https://plume-astrale.fr/mon-compte">Accéder à mon compte</a></p>'
+                        f'<p>— Plume Astrale</p>'
+                    )
+                    await send_email(email, subject, html)
+                else:
+                    logger.warning('[legacy receipt] pas d\'email disponible, envoi ignoré')
+            except Exception as e:
+                logger.warning(f'[legacy receipt] email fail: {e}')
+            # pas de credits a accorder pour un produit legacy
+            return {'received': True, 'kind': 'legacy_checkout'}
+
+        sb = get_admin_client()
+        session_id = session_data.get('id')
+        tx_res = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
+        if not tx_res or not tx_res.data:
+            return {'received': True}
+        tx = tx_res.data
+        if tx['credits_granted']:
+            return {'received': True, 'already_granted': True}
+        user_id = tx['user_id'] or (session_data.get('metadata') or {}).get('user_id')
+        if not user_id:
+            return {'received': True}
+        credits = int(tx['credits'])
+        await wallet_service.add_credits(user_id, credits, f"Achat pack {tx['pack_id']} — {credits} credits", tx_type='purchase')
+        sb.table('payment_transactions').update({
+            'credits_granted': True,
+            'status': 'completed',
+            'payment_status': 'paid',
+        }).eq('session_id', session_id).execute()
+        return {'received': True, 'granted': True}
+
+    return {'received': True, 'type': event_type}
         sb = get_admin_client()
         session_id = session_data.get('id')
         tx_res = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
