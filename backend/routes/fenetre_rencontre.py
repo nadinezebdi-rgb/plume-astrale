@@ -165,7 +165,7 @@ async def fenetre_checkout(payload: FenetreCheckoutPayload, request: Request):
                 'quantity': 1,
             }],
         )
-        session = stripe_checkout.create_checkout_session(checkout_request)
+        session = await stripe_checkout.create_checkout_session(checkout_request)
         session_id = session.get('id')
         
         sb = get_admin_client()
