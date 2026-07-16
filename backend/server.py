@@ -789,10 +789,13 @@ async def stripe_webhook(request: Request):
             await handle_fenetre_rencontre_webhook(session_id)
         except Exception as e:
             logger.warning(f'[fenetre_rencontre] post-webhook fail: {e}')
-        return {'received': True, 'type': event_type, 'kind': 'fenetre_rencontre_avancee'}
+       return {'received': True, 'type': event_type, 'kind': 'fenetre_rencontre_avancee'}
 
-    
-
+    # Sinon : flow credits one-shot
+    if event_type == 'checkout.session.completed':
+        session_data = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
+        if session_data.get('payment_status') != 'paid':
+            return {'received': True}
         # ── Reçu email pour les produits legacy (PRODUCT_CATALOG) ──
         meta = session_data.get('metadata') or {}
         if meta.get('flow') == 'legacy_checkout':
@@ -845,29 +848,7 @@ async def stripe_webhook(request: Request):
         }).eq('session_id', session_id).execute()
         return {'received': True, 'granted': True}
 
-    return {'received': True, 'type': event_type}
-        sb = get_admin_client()
-        session_id = session_data.get('id')
-        tx_res = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
-        if not tx_res or not tx_res.data:
-            return {'received': True}
-        tx = tx_res.data
-        if tx['credits_granted']:
-            return {'received': True, 'already_granted': True}
-        user_id = tx['user_id'] or (session_data.get('metadata') or {}).get('user_id')
-        if not user_id:
-            return {'received': True}
-        credits = int(tx['credits'])
-        await wallet_service.add_credits(user_id, credits, f"Achat pack {tx['pack_id']} — {credits} credits", tx_type='purchase')
-        sb.table('payment_transactions').update({
-            'credits_granted': True,
-            'status': 'completed',
-            'payment_status': 'paid',
-        }).eq('session_id', session_id).execute()
-        return {'received': True, 'granted': True}
-
-    return {'received': True, 'type': event_type}
-
+        return {'received': True, 'type': event_type}
 
 async def _trigger_synastrie_pdf_email(session_id: Optional[str]) -> None:
     """Apres paiement synastrie : genere le PDF et envoie l'email via Resend."""
