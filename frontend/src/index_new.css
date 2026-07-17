@@ -1,0 +1,454 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ===================================================================
+     PLUME ASTRALE - NOUVELLE CHARTE GRAPHIQUE UNIFIÉE
+     Theme: Luxe Nocturne & Mystique
+     =================================================================== */
+  
+  /* Fond */
+  --pa-bg: #000000;
+  --pa-bg-deep: #000000;
+  --pa-bg-light: #050308;
+
+  /* Couleurs principales */
+  --pa-gold-primary: #E2BF65;
+  --pa-gold-light: #F4D98C;
+  --pa-gold-dark: #B8860B;
+  --pa-gold-glow: rgba(226, 191, 101, 0.3);
+  
+  /* Aura & Accents */
+  --pa-violet: #8B6FE6;
+  --pa-violet-light: #A78BFA;
+  --pa-violet-dark: #7C6BF0;
+  --pa-indigo: #181042;
+  --pa-indigo-light: #2A1E4A;
+  
+  /* Textes */
+  --pa-text-primary: #FFFFFF;
+  --pa-text-secondary: #CBD5E1;
+  --pa-text-muted: rgba(203, 213, 225, 0.6);
+  --pa-text-faint: rgba(203, 213, 225, 0.3);
+
+  /* Surfaces */
+  --pa-surface: rgba(0, 0, 0, 0.45);
+  --pa-surface-light: rgba(0, 0, 0, 0.35);
+  --pa-glass: rgba(255, 255, 255, 0.02);
+  
+  /* Bordures */
+  --pa-border-gold: rgba(226, 191, 101, 0.18);
+  --pa-border-gold-strong: rgba(226, 191, 101, 0.35);
+  --pa-border-violet: rgba(167, 139, 250, 0.25);
+
+  /* Ombres */
+  --pa-shadow-gold: 0 0 30px rgba(226, 191, 101, 0.25);
+  --pa-shadow-gold-strong: 0 0 50px rgba(226, 191, 101, 0.4);
+  --pa-shadow-violet: 0 0 30px rgba(167, 139, 250, 0.2);
+
+  /* ===================================================================
+     TYPOGRAPHIE
+     =================================================================== */
+  --pa-font-serif: 'Cinzel', 'Playfair Display', 'Cormorant Garamond', serif;
+  --pa-font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --pa-font-mystic: 'Cinzel', serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--pa-bg);
+  color: var(--pa-text-primary);
+  font-family: var(--pa-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  position: relative;
+  overflow-x: hidden;
+  font-feature-settings: 'ss01', 'ss02', 'cv11';
+}
+
+/* ===================================================================
+   AURORA & STARFIELD BACKGROUND
+   =================================================================== */
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(226, 191, 101, 0.08) 0%, transparent 40%),
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(167, 139, 250, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, rgba(5, 3, 8, 0.95) 0%, var(--pa-bg) 100%);
+  pointer-events: none;
+  animation: aurora-drift 25s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); opacity: 0.95; }
+  50%  { transform: translate3d(-1%, 1%, 0) scale(1.02); opacity: 1; }
+  100% { transform: translate3d(1%, -1%, 0) scale(1); opacity: 0.95; }
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image:
+    /* Étoiles blanches */
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.85) 0%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 22% 38%, rgba(255,255,255,0.75) 0%, transparent 100%),
+    radial-gradient(1px 1px at 35% 8%, rgba(255,255,255,0.90) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 48% 55%, rgba(255,255,255,0.65) 0%, transparent 100%),
+    radial-gradient(1.3px 1.3px at 62% 20%, rgba(255,255,255,0.80) 0%, transparent 100%),
+    radial-gradient(1px 1px at 75% 70%, rgba(255,255,255,0.70) 0%, transparent 100%),
+    radial-gradient(1.4px 1.4px at 88% 35%, rgba(255,255,255,0.95) 0%, transparent 100%),
+    radial-gradient(1px 1px at 5% 80%, rgba(255,255,255,0.60) 0%, transparent 100%),
+    radial-gradient(1px 1px at 17% 92%, rgba(255,255,255,0.75) 0%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 30% 65%, rgba(255,255,255,0.55) 0%, transparent 100%),
+    radial-gradient(1px 1px at 53% 88%, rgba(255,255,255,0.80) 0%, transparent 100%),
+    radial-gradient(1.3px 1.3px at 67% 48%, rgba(255,255,255,0.65) 0%, transparent 100%),
+    radial-gradient(1px 1px at 82% 12%, rgba(255,255,255,0.85) 0%, transparent 100%),
+    radial-gradient(1px 1px at 92% 60%, rgba(255,255,255,0.70) 0%, transparent 100%),
+    radial-gradient(1px 1px at 44% 30%, rgba(255,255,255,0.60) 0%, transparent 100%),
+    /* Étoiles violettes */
+    radial-gradient(1px 1px at 15% 50%, rgba(196,181,253,0.75) 0%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 40% 75%, rgba(180,140,255,0.65) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 25%, rgba(210,170,255,0.75) 0%, transparent 100%),
+    radial-gradient(1.3px 1.3px at 90% 90%, rgba(190,150,255,0.60) 0%, transparent 100%),
+    radial-gradient(1px 1px at 58% 42%, rgba(220,180,255,0.55) 0%, transparent 100%),
+    /* Poussière d'or */
+    radial-gradient(1px 1px at 25% 25%, rgba(244,217,140,0.55) 0%, transparent 100%),
+    radial-gradient(1px 1px at 65% 75%, rgba(212,180,106,0.45) 0%, transparent 100%),
+    radial-gradient(0.8px 0.8px at 80% 50%, rgba(230,196,128,0.40) 0%, transparent 100%);
+  background-size: 100% 100%;
+  pointer-events: none;
+  animation: stars-twinkle 8s ease-in-out infinite alternate;
+  opacity: 0.85;
+}
+
+@keyframes stars-twinkle {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* ===================================================================
+   UTILITAIRES DE TYPOGRAPHIE
+   =================================================================== */
+
+.font-serif-pa {
+  font-family: var(--pa-font-serif);
+}
+
+.font-body-pa {
+  font-family: var(--pa-font-body);
+}
+
+.font-mystic {
+  font-family: var(--pa-font-mystic);
+  letter-spacing: 0.12em;
+}
+
+p {
+  line-height: 1.75;
+}
+
+/* ===================================================================
+   ANIMATIONS RÉUTILISABLES
+   =================================================================== */
+
+@keyframes glow-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 24px rgba(226, 191, 101, 0.18), 0 0 0 1px rgba(226, 191, 101, 0.10); 
+  }
+  50% { 
+    box-shadow: 0 0 56px rgba(226, 191, 101, 0.38), 0 0 0 1px rgba(226, 191, 101, 0.20); 
+  }
+}
+
+@keyframes shimmer-text {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes fade-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes liquid-morph {
+  0%, 100% { 
+    border-radius: 24px;
+    transform: scale(1);
+  }
+  50% { 
+    border-radius: 32px;
+    transform: scale(1.02);
+  }
+}
+
+.animate-glow-pulse { animation: glow-pulse 3.5s ease-in-out infinite; }
+.animate-fade-up { animation: fade-up 0.8s ease-out both; }
+.animate-float-soft { animation: float-soft 5s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 80s linear infinite; }
+.animate-liquid-morph { animation: liquid-morph 4s ease-in-out infinite; }
+
+/* Text shimmer effects */
+.pa-shimmer-gold {
+  background: linear-gradient(90deg, #E2BF65 0%, #F4D98C 25%, #B8860B 50%, #F4D98C 75%, #E2BF65 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-text 5s linear infinite;
+}
+
+.pa-shimmer-violet {
+  background: linear-gradient(90deg, #A78BFA 0%, #C4B5FD 25%, #8B6FE6 50%, #C4B5FD 75%, #A78BFA 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-text 5s linear infinite;
+}
+
+/* ===================================================================
+   COMPOSANTS
+   =================================================================== */
+
+/* Cartes avec effet glass */
+.pa-card {
+  background: var(--pa-surface);
+  border: 1px solid var(--pa-border-gold);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.pa-glass {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(167, 139, 250, 0.15);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.pa-glass-gold {
+  background: linear-gradient(135deg, rgba(226, 191, 101, 0.07), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(226, 191, 101, 0.22);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Inputs éditoriaux */
+.input-editorial {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(226, 191, 101, 0.4);
+  color: #F4E4BC;
+  padding: 12px 6px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  outline: none;
+  transition: border-color 0.3s ease;
+  caret-color: #E2BF65;
+}
+
+.input-editorial:focus {
+  border-bottom-color: #E2BF65;
+}
+
+.input-editorial::placeholder {
+  color: rgba(226, 191, 101, 0.45);
+  font-style: italic;
+}
+
+/* Hide native date/time picker icons */
+.input-editorial::-webkit-calendar-picker-indicator,
+.input-editorial::-webkit-clear-button {
+  filter: invert(0.8) brightness(1.2);
+  opacity: 0.7;
+}
+
+/* Selects */
+select.input-editorial {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: 
+    linear-gradient(45deg, transparent 50%, rgba(226, 191, 101, 0.7) 50%),
+    linear-gradient(135deg, rgba(226, 191, 101, 0.7) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 30px;
+}
+
+select.input-editorial option {
+  background: #0F1230;
+  color: #F4E4BC;
+}
+
+/* Boutons */
+.pa-btn-primary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #0A0E27;
+  background: linear-gradient(135deg, #E2BF65 0%, #F4D98C 50%, #B8860B 100%);
+  border: 1px solid rgba(244, 217, 140, 0.4);
+  box-shadow: 0 8px 32px rgba(226, 191, 101, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.pa-btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, #FFF3D6 0%, #F4D98C 40%, transparent 100%);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1), height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+
+.pa-btn-primary:hover::before {
+  width: 220%;
+  height: 220%;
+}
+
+.pa-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(226, 191, 101, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.pa-btn-ghost {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 26px;
+  border-radius: 999px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pa-violet-light);
+  background: rgba(167, 139, 250, 0.06);
+  border: 1px solid rgba(167, 139, 250, 0.30);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.pa-btn-ghost:hover {
+  background: rgba(167, 139, 250, 0.14);
+  border-color: rgba(167, 139, 250, 0.55);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+/* Halo autour de l'élément héro */
+.pa-halo {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===================================================================
+   SCROLLBAR
+   =================================================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--pa-bg-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(226, 191, 101, 0.3), rgba(167, 139, 250, 0.3));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(226, 191, 101, 0.5), rgba(167, 139, 250, 0.5));
+}
+
+/* Sélection */
+::selection {
+  background: rgba(226, 191, 101, 0.35);
+  color: #F5EEE0;
+}
+
+/* Focus visible pour accessibilité */
+:focus-visible {
+  outline: 2px solid rgba(226, 191, 101, 0.5);
+  outline-offset: 2px;
+}
+
+/* ===================================================================
+   RESPONSIVE ADJUSTMENTS
+   =================================================================== */
+
+@media (max-width: 768px) {
+  :root {
+    --pa-font-size-base: 14px;
+  }
+  
+  body {
+    font-size: var(--pa-font-size-base);
+  }
+  
+  /* Optimisation mobile */
+  body::before {
+    animation-duration: 30s;
+  }
+  
+  body::after {
+    animation-duration: 10s;
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

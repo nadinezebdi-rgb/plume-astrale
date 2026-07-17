@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowLeft, Loader2, Sun, Star, Compass, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -173,6 +174,11 @@ const RevolutionSolaire = () => {
 
   return (
     <div className="min-h-screen px-6 md:px-8 py-20 md:py-28" data-testid="revolution-page">
+      <PageHero
+        image="/images/astrale/image-astrale2.jpg"
+        title="Révolution Solaire"
+        subtitle="Votre thème de l'année à venir — rituel d'anniversaire astral"
+      />
       <div className="max-w-3xl mx-auto">
         <button onClick={() => navigate(-1)} className="link-editorial text-xs mb-10 flex items-center gap-2">
           <ArrowLeft className="w-3.5 h-3.5" /> Retour

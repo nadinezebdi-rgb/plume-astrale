@@ -24,8 +24,8 @@ class Settings:
 
     # LLM
     EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
+    # Resend (envoi d'emails transactionnels)
     RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
-
     # Credit packs (montants serveur — JAMAIS depuis le frontend)
     # Grille "Special Lancement" — 10 cr par question de chat, avec bonus offerts.
     PACKS = {
@@ -107,16 +107,6 @@ class Settings:
             'kind': 'oneshot',
             'product': 'fenetre_rencontre_avancee',
             'tagline': '3 fenêtres de rencontre calculées + synastrie optionnelle — PDF 10 pages.',
-        },
-        'pack_karmique_kabbale': {
-            'name': 'Pack Karmique + Kabbale',
-            'credits': 0,   # one-shot
-            'bonus': 0,
-            'amount': 89.00,
-            'currency': 'eur',
-            'kind': 'oneshot',
-            'product': 'pack_karmique_kabbale',
-            'tagline': "Analyse karmique complete + Arbre de Vie + synthese croisee IA — PDF ~40 pages.",
         },
     }
 

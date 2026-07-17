@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowRight, ArrowLeft, Sparkles, Heart } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
 
+const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+
 const Formulaire = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, updateProfile } = useAuth();
 
   // Si user déjà connecté avec données natales -> rediriger vers son compte (pas de re-onboarding)
   useEffect(() => {
@@ -26,6 +28,11 @@ const Formulaire = () => {
     ville: '',
     pays: ''
   });
+  
+  // Nouveau: Support pour le couple mystérieux
+  const [prenomPartner, setPrenomPartner] = useState('');
+  const [mysteryText, setMysteryText] = useState('');
+  const [isLoadingMystery, setIsLoadingMystery] = useState(false);
   // Etats locaux pour les selects Date / Heure — necessaire pour pouvoir cliquer
   // dans n'importe quel ordre sans que le state global ne reinitialise les parts
   const [dDay, setDDay] = useState('');
@@ -34,6 +41,58 @@ const Formulaire = () => {
   const [tHour, setTHour] = useState('');
   const [tMin, setTMin] = useState('');
   const [errors, setErrors] = useState({});
+  const [didPrefill, setDidPrefill] = useState(false);
+
+  useEffect(() => {
+    if (didPrefill) return;
+
+    let source = null;
+    if (isAuthenticated && user) {
+      source = {
+        prenom: user.prenom || '',
+        genre: user.gender || '',
+        email: user.email || '',
+        dateNaissance: user.birth_date || '',
+        heureNaissance: user.birth_time || '',
+        ville: user.birth_place || '',
+        pays: user.birth_country || '',
+      };
+    } else {
+      try {
+        const raw = localStorage.getItem('plume_astrale_data');
+        source = raw ? JSON.parse(raw) : null;
+      } catch {
+        source = null;
+      }
+    }
+
+    if (source) {
+      setFormData(prev => ({
+        ...prev,
+        prenom: source.prenom || prev.prenom,
+        genre: source.genre || prev.genre,
+        email: source.email || prev.email,
+        dateNaissance: source.dateNaissance || prev.dateNaissance,
+        heureNaissance: source.heureNaissance || prev.heureNaissance,
+        ville: source.ville || prev.ville,
+        pays: source.pays || prev.pays,
+      }));
+
+      if (source.dateNaissance) {
+        const [y, m, d] = String(source.dateNaissance).split('-');
+        setDYear(y || '');
+        setDMonth(m ? String(parseInt(m, 10)) : '');
+        setDDay(d ? String(parseInt(d, 10)) : '');
+      }
+      if (source.heureNaissance) {
+        const [h, mn] = String(source.heureNaissance).split(':');
+        setTHour(h ? String(parseInt(h, 10)) : '');
+        setTMin(mn ? String(parseInt(mn, 10)) : '');
+      }
+    }
+
+    setDidPrefill(true);
+  }, [didPrefill, isAuthenticated, user]);
 
   const steps = [
     {
@@ -91,6 +150,15 @@ const Formulaire = () => {
         placeholder: 'Pays',
         required: true
       }
+    },
+    {
+      id: 'avec_qui',
+      title: 'Avec qui vivez-vous cette vie ?',
+      subtitle: 'Le prenom de votre partenaire (optionnel)',
+      field: 'prenomPartner',
+      type: 'text',
+      placeholder: 'Prenom du/de la partenaire',
+      required: false
     }
   ];
 
@@ -135,13 +203,52 @@ const Formulaire = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (validateStep()) {
+      // Cas spécial: si on est à l'étape "avec_qui" et l'utilisateur a saisi un prénom
+      if (step === steps.length - 1 && currentStep.id === 'avec_qui' && prenomPartner.trim()) {
+        // Générer le texte mystérieux
+        await generateCoupleMystery();
+        return;
+      }
+      
       if (step < steps.length - 1) {
         setStep(step + 1);
       } else {
         handleSubmit();
       }
+    }
+  };
+
+  const generateCoupleMystery = async () => {
+    setIsLoadingMystery(true);
+    try {
+      const response = await fetch(`${API_URL}/api/couple/mystery`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prenom1: formData.prenom || 'Voyageur',
+          prenom2: prenomPartner
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMysteryText(data.text);
+        setStep('mystery');
+      } else {
+        console.error('Erreur API:', response.status);
+        // Fallback: aller au succès sans texte
+        await handleSubmit();
+      }
+    } catch (error) {
+      console.error('Erreur réseau:', error);
+      // Fallback: continuer sans texte
+      await handleSubmit();
+    } finally {
+      setIsLoadingMystery(false);
     }
   };
 
@@ -162,11 +269,30 @@ const Formulaire = () => {
       pays: formData.pays
     };
     localStorage.setItem('plume_astrale_data', JSON.stringify(dataToStore));
+
+    if (isAuthenticated) {
+      try {
+        await updateProfile({
+          prenom: formData.prenom || undefined,
+          birth_date: formData.dateNaissance || undefined,
+          birth_time: formData.heureNaissance || undefined,
+          birth_place: formData.ville || undefined,
+          birth_country: formData.pays || undefined,
+          gender: formData.genre || undefined,
+        });
+      } catch {
+        // Keep local fallback to avoid blocking the user flow.
+      }
+    }
+
     setIsSubmitting(false);
     const premiumRedirect = localStorage.getItem('plume_astrale_premium_redirect');
     if (premiumRedirect) {
       localStorage.removeItem('plume_astrale_premium_redirect');
       navigate('/premium/experience');
+    } else if (isAuthenticated) {
+      // Pour les utilisateurs authentifiés, afficher les options au lieu de rediriger directement
+      setStep('success');
     } else {
       navigate('/apercu');
     }
@@ -175,6 +301,302 @@ const Formulaire = () => {
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') handleNext();
   };
+
+  // Écran texte mystérieux
+  if (step === 'mystery') {
+    return (
+      <div className="min-h-screen relative" style={{ background: 'linear-gradient(180deg, #131840 0%, #1B2150 50%, #131840 100%)' }}>
+        <SEO path="/formulaire" />
+        <div className="relative z-10 flex flex-col justify-center px-6 md:px-8 py-12" style={{ minHeight: '100vh' }}>
+          <div className="max-w-lg mx-auto w-full text-center">
+            
+            {/* Icône */}
+            <div className="mb-8">
+              <div style={{
+                width: 60,
+                height: 60,
+                background: 'linear-gradient(135deg, rgba(184,150,31,0.2) 0%, rgba(232,199,102,0.1) 100%)',
+                border: '1px solid rgba(184,150,31,0.4)',
+                borderRadius: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto',
+              }}>
+                <Heart style={{ width: 24, height: 24, color: '#E8C766', fill: '#E8C766' }} />
+              </div>
+            </div>
+
+            {/* Titre */}
+            <h1 style={{
+              fontSize: '1.8rem',
+              fontFamily: 'Cormorant Garamond, serif',
+              color: '#F0E6D3',
+              marginBottom: 12,
+              fontWeight: 300,
+            }}>
+              Le mystère de {formData.prenom} et {prenomPartner}
+            </h1>
+            <p style={{
+              fontSize: '0.75rem',
+              color: 'rgba(240,230,211,0.5)',
+              marginBottom: 32,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+            }}>
+              Révélé par les astres
+            </p>
+
+            {/* Texte mystérieux */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(184,150,31,0.05) 0%, rgba(232,199,102,0.02) 100%)',
+              border: '1px solid rgba(184,150,31,0.15)',
+              borderRadius: 12,
+              padding: '24px',
+              marginBottom: 32,
+              minHeight: '120px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              {isLoadingMystery ? (
+                <p style={{ color: 'rgba(240,230,211,0.5)', fontSize: '0.9rem' }}>
+                  <Sparkles className="w-4 h-4 inline mr-2 animate-spin" />
+                  Révélation en cours...
+                </p>
+              ) : (
+                <p style={{
+                  color: '#E8C766',
+                  fontSize: '0.95rem',
+                  lineHeight: '1.6',
+                  fontStyle: 'italic',
+                  margin: 0,
+                }}>
+                  {mysteryText}
+                </p>
+              )}
+            </div>
+
+            {/* CTA Compatibilité */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr',
+              gap: 12,
+            }}>
+              <button
+                onClick={() => navigate(`/outils/compatibilite?p1=${formData.prenom}&p2=${prenomPartner}`)}
+                style={{
+                  padding: '14px 24px',
+                  borderRadius: 8,
+                  background: 'linear-gradient(135deg, rgba(184,150,31,0.3) 0%, rgba(232,199,102,0.15) 100%)',
+                  border: '1px solid rgba(184,150,31,0.4)',
+                  color: '#E8C766',
+                  fontSize: '0.85rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(184,150,31,0.4) 0%, rgba(232,199,102,0.2) 100%)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(184,150,31,0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(184,150,31,0.3) 0%, rgba(232,199,102,0.15) 100%)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <span>Découvrir l'étude complète</span>
+                <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
+              </button>
+
+              {/* Option: Continuer sans étude */}
+              <button
+                onClick={() => handleSubmit()}
+                style={{
+                  padding: '14px 24px',
+                  borderRadius: 8,
+                  background: 'transparent',
+                  border: '1px solid rgba(240,230,211,0.2)',
+                  color: 'rgba(240,230,211,0.7)',
+                  fontSize: '0.85rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(240,230,211,0.05)';
+                  e.currentTarget.style.borderColor = 'rgba(240,230,211,0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.borderColor = 'rgba(240,230,211,0.2)';
+                }}
+              >
+                Continuer sans étude
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Écran de succès pour les utilisateurs authentifiés
+  if (step === 'success' && isAuthenticated) {
+    return (
+      <div className="min-h-screen relative" style={{ background: 'linear-gradient(180deg, #131840 0%, #1B2150 50%, #131840 100%)' }}>
+        <SEO path="/formulaire" />
+        <div className="relative z-10 flex flex-col justify-center px-6 md:px-8 py-12" style={{ minHeight: '100vh' }}>
+          <div className="max-w-lg mx-auto w-full text-center">
+            
+            {/* Icône de succès */}
+            <div className="mb-8">
+              <div style={{
+                width: 60,
+                height: 60,
+                background: 'linear-gradient(135deg, rgba(184,150,31,0.2) 0%, rgba(232,199,102,0.1) 100%)',
+                border: '1px solid rgba(184,150,31,0.4)',
+                borderRadius: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto',
+              }}>
+                <span style={{ fontSize: '1.8rem' }}>✓</span>
+              </div>
+            </div>
+
+            {/* Message */}
+            <h1 style={{
+              fontSize: '1.8rem',
+              fontFamily: 'Cormorant Garamond, serif',
+              color: '#F0E6D3',
+              marginBottom: 12,
+              fontWeight: 300,
+            }}>
+              Profil complété !
+            </h1>
+            <p style={{
+              fontSize: '0.9rem',
+              color: 'rgba(240,230,211,0.7)',
+              marginBottom: 32,
+            }}>
+              Vos données natales ont été enregistrées. Que souhaitez-vous faire ?
+            </p>
+
+            {/* Options */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr',
+              gap: 12,
+            }}>
+              {/* Option 1: Consulter les outils */}
+              <button
+                onClick={() => navigate('/mon-accueil')}
+                style={{
+                  padding: '14px 24px',
+                  borderRadius: 8,
+                  background: 'linear-gradient(135deg, rgba(184,150,31,0.2) 0%, rgba(232,199,102,0.08) 100%)',
+                  border: '1px solid rgba(184,150,31,0.3)',
+                  color: '#E8C766',
+                  fontSize: '0.85rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(184,150,31,0.3) 0%, rgba(232,199,102,0.15) 100%)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(184,150,31,0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(184,150,31,0.2) 0%, rgba(232,199,102,0.08) 100%)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <span>Accéder à mes outils</span>
+                <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
+              </button>
+
+              {/* Option 2: Aller à mon compte */}
+              <button
+                onClick={() => navigate('/mon-compte')}
+                style={{
+                  padding: '14px 24px',
+                  borderRadius: 8,
+                  background: 'rgba(196,181,253,0.1)',
+                  border: '1px solid rgba(196,181,253,0.2)',
+                  color: '#E3D7FF',
+                  fontSize: '0.85rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(196,181,253,0.15)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(196,181,253,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(196,181,253,0.1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <span>Aller à mon compte</span>
+                <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
+              </button>
+
+              {/* Option 3: Retour à l'accueil */}
+              <button
+                onClick={() => navigate('/')}
+                style={{
+                  padding: '14px 24px',
+                  borderRadius: 8,
+                  background: 'transparent',
+                  border: '1px solid rgba(240,230,211,0.2)',
+                  color: 'rgba(240,230,211,0.7)',
+                  fontSize: '0.85rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(240,230,211,0.05)';
+                  e.currentTarget.style.borderColor = 'rgba(240,230,211,0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.borderColor = 'rgba(240,230,211,0.2)';
+                }}
+              >
+                Retour à l'accueil
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative">
@@ -303,8 +725,14 @@ const Formulaire = () => {
           ) : (
             <input
               type={currentStep.type}
-              value={formData[currentStep.field]}
-              onChange={(e) => setFormData({...formData, [currentStep.field]: e.target.value})}
+              value={currentStep.field === 'prenomPartner' ? prenomPartner : formData[currentStep.field]}
+              onChange={(e) => {
+                if (currentStep.field === 'prenomPartner') {
+                  setPrenomPartner(e.target.value);
+                } else {
+                  setFormData({...formData, [currentStep.field]: e.target.value});
+                }
+              }}
               onKeyPress={handleKeyPress}
               placeholder={currentStep.placeholder}
               className="input-editorial text-center text-lg w-full"

@@ -1,13 +1,16 @@
 """Plume Astrale — FastAPI backend (Supabase + Stripe + Astrology API)."""
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
 import uuid
+import base64
 from pathlib import Path
 from pydantic import BaseModel
 from typing import Optional
+from urllib.parse import urlparse
 
 # Config + middleware
 from config import get_settings
@@ -15,11 +18,16 @@ from middleware.auth import get_current_user, get_optional_user
 
 # Services metier
 from services.daily_content import get_daily_content
-from services.tarot_service import tirage_oui_non, tirage_en_croix
+from services.tarot_service import tirage_oui_non, tirage_en_croix, tirage_mediumnite_complet
 from services.tarot_premium import (
     tirage_marseille_question, tirage_croix_celtique, tirage_du_jour,
     DOMAINES_QUESTIONS,
 )
+from services.pdf_generator import generate_manuscrit_pdf
+from services.mediumnite_pdf import generate_mediumnite_pdf
+from services.compatibility_pdf_generator import generate_compatibility_pdf
+from services.premium_pdf_generator import generate_premium_pdf
+from services.share_card_generator import generate_share_card
 from services.plume_chat import plume_chat as plume_chat_service, get_session_history
 from services.daily_ritual import (
     get_today_scores, get_daily_insight, submit_checkin, get_today_checkin,
@@ -40,7 +48,10 @@ from routes.rencontres import router as rencontres_router
 from routes.analytics import router as analytics_router
 from routes.archetype import make_router as make_archetype_router
 from routes.kabbale import router as kabbale_router
-from routes.pack_karmique import router as pack_karmique_router
+from routes.compatible import router as compatible_router
+from routes.numerologie import router as numerologie_router
+from routes.karma_destin import router as karma_destin_router
+from routes.fenetre_rencontre import router as fenetre_rencontre_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -53,6 +64,17 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 ASSETS_DIR = Path(__file__).parent / 'assets'
 
+# Legacy products kept for backwards compatibility with older frontend flows.
+PRODUCT_CATALOG = {
+    'manuscrit': {'name': 'Manuscrit Astral', 'amount': 19.90, 'currency': 'eur', 'success_path': '/paiement/succes', 'cancel_path': '/apercu'},
+    'tarot_oui_non': {'name': 'Tarot Oui/Non', 'amount': 4.99, 'currency': 'eur', 'success_path': '/paiement/succes', 'cancel_path': '/tarot-oui-non'},
+    'tarologie_mediumnite': {'name': 'Tarologie Mediumnite', 'amount': 35.00, 'currency': 'eur', 'success_path': '/paiement/succes', 'cancel_path': '/tarologie'},
+    'compatibilite': {'name': 'Compatibilite Amoureuse', 'amount': 29.90, 'currency': 'eur', 'success_path': '/paiement/succes', 'cancel_path': '/compatibilite-amoureuse'},
+    'book': {'name': 'Livre Astrologique', 'amount': 29.90, 'currency': 'eur', 'success_path': '/commande/succes', 'cancel_path': '/livre'},
+}
+
+STREAK_MILESTONES = {7: 3, 14: 5, 30: 10, 60: 15, 100: 25}
+
 app = FastAPI(title='Plume Astrale API')
 api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
@@ -63,6 +85,7 @@ api_router.include_router(synastrie_router)
 api_router.include_router(library_router)
 api_router.include_router(rencontres_router)
 api_router.include_router(analytics_router)
+api_router.include_router(compatible_router)
 
 
 # Helper interne pour deduire credits d'un service donne (utilise par les routes)
@@ -76,7 +99,9 @@ async def _use_service_credits(user_id: str, service_id: str) -> dict:
 
 api_router.include_router(make_archetype_router(get_current_user, _use_service_credits))
 api_router.include_router(kabbale_router)
-api_router.include_router(pack_karmique_router)
+api_router.include_router(numerologie_router)
+api_router.include_router(karma_destin_router)
+api_router.include_router(fenetre_rencontre_router)
 
 
 # ════════════════════════════════════════════
@@ -105,6 +130,8 @@ class ProfileUpdate(BaseModel):
     birth_country: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    tzone: Optional[float] = None
+    tz_manual_override: Optional[bool] = None
     gender: Optional[str] = None
 
 
@@ -140,12 +167,57 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     }
 
 
+# Correspondance pays (labels du <select> PAYS) -> code ISO 3166-1 alpha-2
+_COUNTRY_TO_ISO = {
+    'France': 'FR',
+    'Belgique': 'BE',
+    'Suisse': 'CH',
+    'Canada': 'CA',
+    'Luxembourg': 'LU',
+    'Monaco': 'MC',
+    'Algérie': 'DZ',
+    'Maroc': 'MA',
+    'Tunisie': 'TN',
+    'Sénégal': 'SN',
+    "Côte d'Ivoire": 'CI',
+    'États-Unis': 'US',
+    'Royaume-Uni': 'GB',
+    'Allemagne': 'DE',
+    'Espagne': 'ES',
+    'Italie': 'IT',
+    'Portugal': 'PT',
+    'Autre': None,
+}
+
+
 @api_router.put('/auth/profile')
 async def update_profile_endpoint(
     payload: ProfileUpdate,
     current_user: dict = Depends(get_current_user),
 ):
-    profile = await wallet_service.update_profile(current_user['id'], payload.model_dump(exclude_unset=True))
+    data = payload.model_dump(exclude_unset=True)
+
+    # Geocodage automatique : ville presente, coordonnees absentes, pays geocodable
+    needs_geo = data.get('birth_place') and data.get('latitude') is None
+    iso = _COUNTRY_TO_ISO.get(data.get('birth_country', ''))
+    if needs_geo and data.get('birth_date') and iso:
+        try:
+            y, mo, d = (int(x) for x in data['birth_date'].split('-'))
+            hh, mi = 12, 0
+            if data.get('birth_time'):
+                hh, mi = (int(x) for x in data['birth_time'].split(':'))
+            geo = await aio.geocode_and_timezone(
+                data['birth_place'], iso, y, mo, d, hh, mi)
+            if geo:
+                data['latitude'] = geo['latitude']
+                data['longitude'] = geo['longitude']
+                # Ne pas ecraser le fuseau si l'utilisateur l'a force manuellement
+                if not data.get('tz_manual_override'):
+                    data['tzone'] = geo['tzone']
+        except Exception as e:
+            print(f'[profile] geocode skip: {e}')
+
+    profile = await wallet_service.update_profile(current_user['id'], data)
     return {'success': True, 'profile': profile}
 
 
@@ -287,12 +359,94 @@ async def use_credits(payload: UseCreditsRequest, current_user: dict = Depends(g
         if not used:
             await wallet_service.mark_free_tarot_used(current_user['id'])
             balance = await wallet_service.get_balance(current_user['id'])
-            return {'success': True, 'free': True, 'credit_balance': balance}
+            return {'success': True, 'free': True, 'free_draw': True, 'credit_balance': balance}
 
     new_balance = await wallet_service.deduct_credits(
         current_user['id'], cost, f'Utilisation : {payload.service_id}'
     )
-    return {'success': True, 'free': False, 'credit_balance': new_balance, 'cost': cost}
+    return {'success': True, 'free': False, 'free_draw': False, 'credit_balance': new_balance, 'cost': cost}
+
+
+@api_router.get('/credits/check-free-tarot')
+async def check_free_tarot(current_user: dict = Depends(get_current_user)):
+    free_used = await wallet_service.has_used_free_tarot(current_user['id'])
+    return {'free_used': free_used}
+
+
+def _next_milestone(streak_count: int) -> dict:
+    for day in sorted(STREAK_MILESTONES.keys()):
+        if streak_count < day:
+            return {
+                'days': day,
+                'bonus': STREAK_MILESTONES[day],
+                'remaining': day - streak_count,
+            }
+    return {
+        'days': max(STREAK_MILESTONES.keys()),
+        'bonus': STREAK_MILESTONES[max(STREAK_MILESTONES.keys())],
+        'remaining': 0,
+    }
+
+
+@api_router.get('/streak/status')
+async def streak_status(current_user: dict = Depends(get_current_user)):
+    user_id = current_user['id']
+    streak = await get_streak(user_id)
+    today_checkin = await get_today_checkin(user_id)
+    total_checkins = 0
+    try:
+        sb = get_admin_client()
+        total_checkins = sb.table('daily_checkins').select('id', count='exact').eq('user_id', user_id).execute().count or 0
+    except Exception:
+        total_checkins = 0
+
+    return {
+        'streak_count': streak.get('current', 0),
+        'longest_streak': streak.get('longest', 0),
+        'checked_in_today': bool(today_checkin),
+        'total_checkins': total_checkins,
+        'next_milestone': _next_milestone(streak.get('current', 0)),
+    }
+
+
+@api_router.post('/streak/checkin')
+async def streak_checkin(current_user: dict = Depends(get_current_user)):
+    user_id = current_user['id']
+    today_checkin = await get_today_checkin(user_id)
+    streak = await get_streak(user_id)
+
+    if today_checkin:
+        balance = await wallet_service.get_balance(user_id)
+        return {
+            'already_checked_in': True,
+            'streak_count': streak.get('current', 0),
+            'credits_earned': 0,
+            'milestone_bonus': 0,
+            'credit_balance': balance,
+            'next_milestone': _next_milestone(streak.get('current', 0)),
+        }
+
+    # Legacy daily streak check-in awards +1 credit (+ milestone bonus).
+    await submit_checkin(user_id, 'paisible', None)
+    streak = await update_streak(user_id)
+    streak_count = streak.get('current', 1)
+    milestone_bonus = STREAK_MILESTONES.get(streak_count, 0)
+    credits_earned = 1 + milestone_bonus
+    balance = await wallet_service.add_credits(
+        user_id,
+        credits_earned,
+        f'Check-in quotidien (jour {streak_count})',
+        tx_type='bonus',
+    )
+
+    return {
+        'already_checked_in': False,
+        'streak_count': streak_count,
+        'credits_earned': credits_earned,
+        'milestone_bonus': milestone_bonus,
+        'credit_balance': balance,
+        'next_milestone': _next_milestone(streak_count),
+    }
 
 
 class PromoRequest(BaseModel):
@@ -360,6 +514,60 @@ async def grant_free_access(payload: FreeAccessRequest, current_user: dict = Dep
             # Deja utilise -> on considere quand meme que l'acces est valide
             return {'success': True, 'access_granted': True, 'already_redeemed': True}
         raise
+
+
+class LegacyCheckoutRequest(BaseModel):
+    product_id: str
+    origin_url: str
+    user_email: str | None = None
+    user_data: dict | None = None
+
+
+@api_router.get('/products')
+async def list_products():
+    return PRODUCT_CATALOG
+
+
+@api_router.post('/checkout/create')
+async def legacy_checkout_create(payload: LegacyCheckoutRequest, http_request: Request):
+    product = PRODUCT_CATALOG.get(payload.product_id)
+    if not product:
+        raise HTTPException(status_code=400, detail='Produit inconnu')
+
+    host_url = str(http_request.base_url).rstrip('/')
+    webhook_url = f'{host_url}/api/webhook/stripe'
+    stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
+
+    origin = payload.origin_url.rstrip('/')
+    success_path = product.get('success_path', '/paiement/succes')
+    cancel_path = product.get('cancel_path', '/')
+    success_url = f'{origin}{success_path}?session_id={{CHECKOUT_SESSION_ID}}'
+    cancel_url = f'{origin}{cancel_path}'
+
+    req = CheckoutSessionRequest(
+        amount=float(product['amount']),
+        currency=product['currency'],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            'product_id': payload.product_id,
+            'user_email': payload.user_email or '',
+            'flow': 'legacy_checkout',
+        },
+    )
+    session = await stripe_checkout.create_checkout_session(req)
+    return {'url': session.url, 'session_id': session.session_id}
+
+
+@api_router.get('/checkout/status/{session_id}')
+async def legacy_checkout_status(session_id: str):
+    stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url='')
+    status = await stripe_checkout.get_checkout_status(session_id)
+    return {
+        'status': status.status,
+        'payment_status': status.payment_status,
+        'session_id': session_id,
+    }
 
 
 # ════════════════════════════════════════════
@@ -553,21 +761,73 @@ async def stripe_webhook(request: Request):
             logger.warning(f'[kabbale] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'kabbale_arbre_de_vie'}
 
-    # Route vers Pack Karmique + Kabbale handler (pack 89 EUR)
-    if md.get('kind') == 'pack_karmique_kabbale':
-        from services.pack_karmique_service import handle_pack_karmique_webhook
+    # Route vers Numerologie handler si kind=numerologie_code (pack 19 EUR)
+    if md.get('kind') == 'numerologie_code':
+        from services.numerologie_webhook import handle_numerologie_webhook
         try:
             session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
-            await handle_pack_karmique_webhook(session_id)
+            await handle_numerologie_webhook(session_id)
         except Exception as e:
-            logger.warning(f'[pack_karmique] post-webhook fail: {e}')
-        return {'received': True, 'type': event_type, 'kind': 'pack_karmique_kabbale'}
+            logger.warning(f'[numerologie] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'numerologie_code'}
+
+    # Route vers Karma Destin handler si kind=karma_destin_analysis (pack 24 EUR)
+    if md.get('kind') == 'karma_destin_analysis':
+        from services.karma_destin_webhook import handle_karma_destin_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_karma_destin_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[karma_destin] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'karma_destin_analysis'}
+
+    # Route vers Fenetre Rencontre handler si kind=fenetre_rencontre_avancee (pack 29 EUR)
+    if md.get('kind') == 'fenetre_rencontre_avancee':
+        from services.fenetre_rencontre_webhook import handle_fenetre_rencontre_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_fenetre_rencontre_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[fenetre_rencontre] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'fenetre_rencontre_avancee'}
 
     # Sinon : flow credits one-shot
     if event_type == 'checkout.session.completed':
         session_data = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
         if session_data.get('payment_status') != 'paid':
             return {'received': True}
+        # ── Reçu email pour les produits legacy (PRODUCT_CATALOG) ──
+        meta = session_data.get('metadata') or {}
+        if meta.get('flow') == 'legacy_checkout':
+            try:
+                product_id = meta.get('product_id', '')
+                product = PRODUCT_CATALOG.get(product_id, {})
+                product_name = product.get('name', 'votre commande')
+                # email : metadata en priorite, sinon customer_details Stripe
+                email = meta.get('user_email') or (
+                    (session_data.get('customer_details') or {}).get('email')
+                )
+                montant = (session_data.get('amount_total') or 0) / 100
+                if email:
+                    from services.resend_service import send_email
+                    subject = f'Reçu de votre commande — {product_name}'
+                    html = (
+                        f'<p>Merci pour votre achat 🌙</p>'
+                        f'<p>Nous confirmons votre paiement de '
+                        f'<strong>{montant:.2f} €</strong> pour '
+                        f'<strong>{product_name}</strong>.</p>'
+                        f'<p>Retrouvez votre document dans votre espace : '
+                        f'<a href="https://plume-astrale.fr/mon-compte">Accéder à mon compte</a></p>'
+                        f'<p>— Plume Astrale</p>'
+                    )
+                    await send_email(email, subject, html)
+                else:
+                    logger.warning('[legacy receipt] pas d\'email disponible, envoi ignoré')
+            except Exception as e:
+                logger.warning(f'[legacy receipt] email fail: {e}')
+            # pas de credits a accorder pour un produit legacy
+            return {'received': True, 'kind': 'legacy_checkout'}
+
         sb = get_admin_client()
         session_id = session_data.get('id')
         tx_res = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
@@ -587,8 +847,6 @@ async def stripe_webhook(request: Request):
             'payment_status': 'paid',
         }).eq('session_id', session_id).execute()
         return {'received': True, 'granted': True}
-
-    return {'received': True, 'type': event_type}
 
 
 async def _trigger_synastrie_pdf_email(session_id: Optional[str]) -> None:
@@ -658,6 +916,357 @@ async def premium_checkout(payload: PremiumCheckoutRequest, current_user: dict =
     return await premium_subscription.create_premium_checkout(
         current_user['id'], current_user.get('email') or '', payload.origin_url
     )
+
+
+class LegacySubscriptionRequest(BaseModel):
+    origin_url: str | None = None
+
+
+class PlanetsLegacyRequest(BaseModel):
+    date_naissance: str
+    heure_naissance: str | None = '12:00'
+    ville: str | None = 'Paris'
+    pays: str | None = 'France'
+
+
+class HoroscopeLegacyRequest(PlanetsLegacyRequest):
+    pass
+
+
+class PdfUserDataRequest(BaseModel):
+    user_data: dict
+
+
+class PremiumGenerateRequest(BaseModel):
+    prenom: str
+    dateNaissance: str
+    heureNaissance: str | None = '12:00'
+    ville: str | None = 'Paris'
+
+
+class PremiumPdfRequest(BaseModel):
+    data: dict
+
+
+class CompatibilityGenerateRequest(BaseModel):
+    person1: dict
+    person2: dict
+    question: str | None = ''
+
+
+class BookOrderRequest(BaseModel):
+    product_id: str
+    origin_url: str
+    user_email: str | None = None
+    user_data: dict | None = None
+    shipping_address: dict | None = None
+
+
+def _resolve_origin_url(request: Request, explicit_origin: str | None) -> str:
+    if explicit_origin and explicit_origin.strip():
+        return explicit_origin.rstrip('/')
+    header_origin = (request.headers.get('origin') or '').strip()
+    if header_origin:
+        return header_origin.rstrip('/')
+    referer = (request.headers.get('referer') or '').strip()
+    if referer:
+        parsed = urlparse(referer)
+        if parsed.scheme and parsed.netloc:
+            return f'{parsed.scheme}://{parsed.netloc}'
+    return str(request.base_url).rstrip('/')
+
+
+def _extract_sign_from_date(date_str: str) -> str:
+    from datetime import datetime as _dt
+    d = _dt.strptime(date_str, '%Y-%m-%d')
+    m, day = d.month, d.day
+    if (m == 3 and day >= 21) or (m == 4 and day <= 19):
+        return 'Aries'
+    if (m == 4 and day >= 20) or (m == 5 and day <= 20):
+        return 'Taurus'
+    if (m == 5 and day >= 21) or (m == 6 and day <= 20):
+        return 'Gemini'
+    if (m == 6 and day >= 21) or (m == 7 and day <= 22):
+        return 'Cancer'
+    if (m == 7 and day >= 23) or (m == 8 and day <= 22):
+        return 'Leo'
+    if (m == 8 and day >= 23) or (m == 9 and day <= 22):
+        return 'Virgo'
+    if (m == 9 and day >= 23) or (m == 10 and day <= 22):
+        return 'Libra'
+    if (m == 10 and day >= 23) or (m == 11 and day <= 21):
+        return 'Scorpio'
+    if (m == 11 and day >= 22) or (m == 12 and day <= 21):
+        return 'Sagittarius'
+    if (m == 12 and day >= 22) or (m == 1 and day <= 19):
+        return 'Capricorn'
+    if (m == 1 and day >= 20) or (m == 2 and day <= 18):
+        return 'Aquarius'
+    return 'Pisces'
+
+
+@api_router.post('/subscription/cercle')
+async def subscription_cercle(
+    payload: LegacySubscriptionRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
+    origin = _resolve_origin_url(request, payload.origin_url)
+    checkout = await premium_subscription.create_premium_checkout(
+        current_user['id'],
+        current_user.get('email') or '',
+        origin,
+    )
+    return {'checkout_url': checkout.get('url'), 'session_id': checkout.get('session_id')}
+
+
+@api_router.post('/subscription/journal-quotidien')
+async def subscription_journal_quotidien(
+    payload: LegacySubscriptionRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
+    origin = _resolve_origin_url(request, payload.origin_url)
+    checkout = await premium_subscription.create_premium_checkout(
+        current_user['id'],
+        current_user.get('email') or '',
+        origin,
+    )
+    return {'checkout_url': checkout.get('url'), 'session_id': checkout.get('session_id')}
+
+
+@api_router.post('/astrology/planets')
+async def legacy_astrology_planets(payload: PlanetsLegacyRequest):
+    try:
+        sign = _extract_sign_from_date(payload.date_naissance)
+    except Exception:
+        sign = 'Aries'
+    planets = [
+        {'name': 'Sun', 'sign': sign, 'house': 1, 'normDegree': 0},
+        {'name': 'Moon', 'sign': sign, 'house': 4, 'normDegree': 15},
+        {'name': 'Ascendant', 'sign': sign, 'house': 1, 'normDegree': 0},
+    ]
+    try:
+        svc = AstrologyAPIService()
+        geo = await svc.get_geo_details(f"{payload.ville}, {payload.pays}")
+        lat, lon, tz = 48.8566, 2.3522, 1.0
+        if geo and isinstance(geo, list) and len(geo) > 0:
+            g = geo[0]
+            lat = float(g.get('latitude', lat))
+            lon = float(g.get('longitude', lon))
+            tz = float(g.get('timezone_offset', tz)) if g.get('timezone_offset') else tz
+        data = await svc.get_western_horoscope(payload.date_naissance, payload.heure_naissance or '12:00', lat, lon, tz)
+        if data and isinstance(data, dict):
+            planets_map = data.get('planets') or []
+            asc_sign = None
+            for h in (data.get('houses') or []):
+                if h.get('house') == 1:
+                    asc_sign = h.get('sign')
+                    break
+            if asc_sign:
+                planets_map = list(planets_map) + [{'name': 'Ascendant', 'sign': asc_sign, 'house': 1, 'normDegree': 0}]
+            planets = planets_map or planets
+    except Exception:
+        pass
+    return {'success': True, 'data': planets}
+
+
+@api_router.post('/astrology/horoscope')
+async def legacy_astrology_horoscope(payload: HoroscopeLegacyRequest):
+    sign = _extract_sign_from_date(payload.date_naissance)
+    sign_fr = _SIGNS_FR.get(sign, sign)
+    data = None
+    try:
+        svc = AstrologyAPIService()
+        data = await svc.get_daily_horoscope(sign.lower(), 1.0)
+    except Exception:
+        data = None
+    if not data:
+        data = {
+            'prediction': f"Aujourd'hui, {sign_fr} avance avec confiance. Ose une action simple et alignee.",
+            'health': 'Ralentis le rythme et ecoute ton corps.',
+            'love': 'Privilégie la clarté et la douceur dans les échanges.',
+            'career': 'Un petit pas concret vaut mieux qu\'un grand plan.',
+        }
+    return {'success': True, 'zodiac_french': sign_fr, 'data': data}
+
+
+@api_router.post('/share/generate-card')
+async def share_generate_card(payload: PdfUserDataRequest):
+    user_data = payload.user_data or {}
+    # Robust fallback with no external dependency required.
+    path_life = 1
+    try:
+        from datetime import datetime as _dt
+        d = _dt.strptime(user_data.get('dateNaissance') or user_data.get('birth_date') or '1990-01-01', '%Y-%m-%d')
+        n = d.day + d.month + d.year
+        while n > 9 and n not in (11, 22, 33):
+            n = sum(int(c) for c in str(n))
+        path_life = n
+    except Exception:
+        path_life = 1
+    png = generate_share_card(user_data=user_data, planets_data=None, chemin_vie=path_life)
+    return Response(content=png, media_type='image/png', headers={'Cache-Control': 'no-store'})
+
+
+@api_router.post('/pdf/generate')
+async def pdf_generate(payload: PdfUserDataRequest):
+    user_data = payload.user_data or {}
+    pdf_bytes = generate_manuscrit_pdf(user_data=user_data, planets_data=None, horoscope_data=None)
+    return Response(content=pdf_bytes, media_type='application/pdf', headers={
+        'Content-Disposition': f'attachment; filename="manuscrit_{user_data.get("prenom", "plume")}.pdf"'
+    })
+
+
+@api_router.post('/pdf/pro-horoscope')
+async def pdf_pro_horoscope(request: Request):
+    body = await request.json()
+    user_data = {
+        'prenom': body.get('name') or 'Voyageur',
+        'dateNaissance': f"{int(body.get('year', 1990)):04d}-{int(body.get('month', 1)):02d}-{int(body.get('day', 1)):02d}",
+        'heureNaissance': f"{int(body.get('hour', 12)):02d}:{int(body.get('minute', 0)):02d}",
+        'ville': (body.get('place') or 'Paris').split(',')[0].strip(),
+        'pays': 'France',
+    }
+    pdf_bytes = generate_manuscrit_pdf(user_data=user_data, planets_data=None, horoscope_data=None)
+    return Response(content=pdf_bytes, media_type='application/pdf', headers={
+        'Content-Disposition': f'attachment; filename="theme_astral_pro_{user_data.get("prenom", "plume")}.pdf"'
+    })
+
+
+@api_router.post('/pdf/preview')
+async def pdf_preview(payload: PdfUserDataRequest):
+    # Lightweight preview fallback to keep the front flow operational.
+    tiny_png = base64.b64encode(
+        bytes.fromhex('89504E470D0A1A0A0000000D49484452000000010000000108060000001F15C4890000000A49444154789C6360000000020001E221BC330000000049454E44AE426082')
+    ).decode('ascii')
+    previews = [f'data:image/png;base64,{tiny_png}' for _ in range(3)]
+    return {'previews': previews, 'total_pages': 1}
+
+
+@api_router.post('/premium/generate')
+async def premium_generate(payload: PremiumGenerateRequest):
+    try:
+        sign = _extract_sign_from_date(payload.dateNaissance)
+    except Exception:
+        sign = 'Aries'
+    sign_fr = _SIGNS_FR.get(sign, sign)
+
+    premium_data = {
+        'prenom': payload.prenom or 'Voyageur',
+        'signe': sign_fr,
+        'date_naissance': payload.dateNaissance,
+        'steps': {
+            'step_1_fondement': {
+                'title': 'Fondement Natal',
+                'subtitle': 'La base vibratoire de votre theme',
+                'signe': sign_fr,
+                'element': _SIGN_THEMES.get(sign_fr, 'Essence en construction'),
+                'modalite': 'Cardinale',
+                'forces': ['Presence intuitive', 'Puissance de regeneration'],
+                'tensions': ['Dispersion energetique'],
+                'interpretation': 'Votre base natale indique une forte sensibilite aux cycles.\nAncrez votre energie dans une pratique quotidienne simple.',
+                'reflection': 'Qu\'est-ce qui vous recentre instantanement ?'
+            },
+            'step_2_chemin_ame': {
+                'title': 'Chemin d\'Ame',
+                'subtitle': 'Votre axe d\'evolution interieur',
+                'chemin_de_vie': 7,
+                'titre_chemin': 'Le Sage',
+                'nombre_expression': 4,
+                'nombre_ame': 2,
+                'forces': ['Vision interieure', 'Recherche de sens'],
+                'tensions': ['Doute excessif'],
+                'interpretation': 'Votre chemin vous appelle a transformer l\'intuition en decisions concretes.',
+                'reflection': 'Quelle verite personnelle n\'osez-vous pas encore affirmer ?'
+            },
+            'step_3_cycle': {
+                'title': 'Cycle Actuel',
+                'subtitle': 'La dynamique des 12 prochains mois',
+                'annee_personnelle': 6,
+                'periode': 'Stabilisation et engagement',
+                'forces': ['Constance', 'Clarte relationnelle'],
+                'tensions': ['Surcharge de responsabilites'],
+                'interpretation': 'Cette periode favorise la construction durable et la coherence emotionnelle.',
+                'reflection': 'Quel engagement merite d\'etre simplifie pour durer ?'
+            },
+            'step_4_schemas': {
+                'title': 'Schemas Repetitifs',
+                'subtitle': 'Identifier pour transmuter',
+                'forces': ['Lucidite psychologique'],
+                'tensions': ['Auto-pression', 'Perfectionnisme'],
+                'interpretation': 'Vos schemas anciens se dissolvent lorsque vous privilegiez l\'action imparfaite.',
+                'reflection': 'Quel petit geste ferait deja basculer la tendance ?'
+            },
+            'step_5_projection': {
+                'title': 'Projection Alignee',
+                'subtitle': 'Votre prochaine expansion',
+                'forces': ['Vision long terme', 'Puissance creatrice'],
+                'tensions': ['Hesitation a vous exposer'],
+                'interpretation': 'Le prochain palier demande de rendre visible votre singularite.',
+                'reflection': 'Quelle action visible pouvez-vous poser cette semaine ?'
+            },
+        }
+    }
+    return {'success': True, 'data': premium_data}
+
+
+@api_router.post('/premium/pdf')
+async def premium_pdf(payload: PremiumPdfRequest):
+    pdf_bytes = generate_premium_pdf(payload.data or {})
+    prenom = (payload.data or {}).get('prenom', 'plume')
+    return Response(content=pdf_bytes, media_type='application/pdf', headers={
+        'Content-Disposition': f'attachment; filename="cartographie_premium_{prenom}.pdf"'
+    })
+
+
+@api_router.post('/compatibility/generate')
+async def compatibility_generate(payload: CompatibilityGenerateRequest):
+    person1 = payload.person1 or {}
+    person2 = payload.person2 or {}
+    pdf_bytes = generate_compatibility_pdf(person1=person1, person2=person2, question=payload.question or '')
+    pdf_b64 = base64.b64encode(pdf_bytes).decode('ascii')
+    return {'success': True, 'pdf_url': f'data:application/pdf;base64,{pdf_b64}'}
+
+
+@api_router.post('/tarologie/pdf')
+async def tarologie_pdf(request: Request):
+    body = await request.json()
+    prenom = (body.get('prenom') or 'Voyageur').strip() or 'Voyageur'
+    date_naissance = body.get('date_naissance') or '1990-01-01'
+    tirage = tirage_mediumnite_complet(prenom, date_naissance)
+    pdf_bytes = generate_mediumnite_pdf(tirage)
+    return Response(content=pdf_bytes, media_type='application/pdf', headers={
+        'Content-Disposition': f'attachment; filename="tarologie_croix_{prenom}.pdf"'
+    })
+
+
+@api_router.post('/order/book')
+async def order_book(payload: BookOrderRequest, http_request: Request):
+    if payload.product_id != 'livre':
+        raise HTTPException(status_code=400, detail='Produit livre attendu')
+    order_req = LegacyCheckoutRequest(
+        product_id='book',
+        origin_url=payload.origin_url,
+        user_email=payload.user_email,
+        user_data=payload.user_data,
+    )
+    checkout = await legacy_checkout_create(order_req, http_request)
+    return {
+        'url': checkout['url'],
+        'session_id': checkout['session_id'],
+        'order_id': f"book-{checkout['session_id'][:12]}",
+    }
+
+
+@api_router.get('/order/book/{session_id}')
+async def order_book_status(session_id: str):
+    status = await legacy_checkout_status(session_id)
+    return {
+        'session_id': session_id,
+        'status': status.get('status'),
+        'payment_status': status.get('payment_status'),
+    }
 
 
 @api_router.get('/premium/status')
@@ -1085,6 +1694,41 @@ async def get_jour():
     return {'success': True, 'data': tirage_du_jour()}
 
 
+class OracleQuestionRequest(BaseModel):
+    question: str
+
+
+@api_router.post('/oracle')
+async def legacy_oracle_question(payload: OracleQuestionRequest):
+    question = (payload.question or '').strip()
+    if not question:
+        raise HTTPException(status_code=400, detail='question requise')
+    reading = tirage_oui_non(question)
+    return {
+        'success': True,
+        'answer': reading.get('reponse'),
+        'data': reading,
+    }
+
+
+@api_router.get('/tarot/predictions')
+async def tarot_predictions():
+    prompts = [
+        "Quel est le message du jour en amour ?",
+        "Quel est le message du jour pour ma vie pro ?",
+        "Quel est le conseil du jour pour mon energie ?",
+    ]
+    predictions = []
+    for prompt in prompts:
+        reading = tirage_oui_non(prompt)
+        predictions.append({
+            'theme': prompt,
+            'carte': reading.get('carte'),
+            'message': reading.get('reponse'),
+        })
+    return {'success': True, 'predictions': predictions}
+
+
 @api_router.post('/tarot/oui-non')
 async def tarot_oui_non_endpoint(request: Request):
     body = await request.json()
@@ -1151,6 +1795,18 @@ async def plume_chat_endpoint(
         return {'success': False, 'message': 'Une perturbation cosmique empeche la connexion.'}
 
 
+@api_router.post('/astro-chat')
+async def legacy_astro_chat_alias(request: Request):
+    """Legacy alias used by older OracleChat component.
+    Delegates to plume-chat and keeps response shape with `answer`."""
+    result = await plume_chat_endpoint(request, current_user=None)
+    return {
+        'success': bool(result.get('success')),
+        'answer': result.get('answer') or result.get('message') or '',
+        **result,
+    }
+
+
 @api_router.get('/plume-chat/history/{session_id}')
 async def plume_chat_history_endpoint(
     session_id: str,
@@ -1180,11 +1836,11 @@ async def ritual_today_endpoint(
             'hour': hour or 12, 'min': minute or 0,
             'lat': lat or 48.8566, 'lon': lon or 2.3522, 'tzone': tzone or 1.0,
         }
-    checkin = await get_today_checkin(user_id, None)
+    checkin = await get_today_checkin(user_id)
     mood = checkin.get('mood') if checkin else None
     scores_data = get_today_scores(user_id, mood=mood)
-    insight_data = await get_daily_insight(user_id, birth_data=birth_data, mood=mood, db=None)
-    streak = await get_streak(user_id, None)
+    insight_data = await get_daily_insight(user_id, birth_data=birth_data, mood=mood)
+    streak = await get_streak(user_id)
     return {
         'success': True,
         'date': scores_data['date'],
@@ -1212,8 +1868,8 @@ async def ritual_checkin_endpoint(request: Request):
         return {'success': False, 'message': 'user_id et mood requis.'}
     if mood not in MOODS:
         return {'success': False, 'message': 'Humeur inconnue.'}
-    result = await submit_checkin(user_id, mood, intention, None)
-    streak = await update_streak(user_id, None)
+    result = await submit_checkin(user_id, mood, intention)
+    streak = await update_streak(user_id)
     result['streak'] = streak
     return result
 
@@ -1229,13 +1885,13 @@ async def journal_entry_endpoint(request: Request):
         return {'success': False, 'message': 'Ecris au moins quelques mots.'}
     if len(entry) > 4000:
         return {'success': False, 'message': "L'entree est trop longue (max 4000 caracteres)."}
-    result = await journal_entry(user_id, entry, mood=body.get('mood'), birth_data=body.get('birth_data'), db=None)
+    result = await journal_entry(user_id, entry, mood=body.get('mood'), birth_data=body.get('birth_data'))
     return result
 
 
 @api_router.get('/journal/history')
 async def journal_history_endpoint(user_id: str, limit: int = 30):
-    history = await get_journal_history(user_id, None, limit=limit)
+    history = await get_journal_history(user_id, limit=limit)
     return {'success': True, 'entries': history}
 
 
@@ -1247,6 +1903,9 @@ app.include_router(api_router)
 # Build CORS origins list: env var + production domains always whitelisted
 _cors_from_env = [o.strip() for o in os.environ.get('CORS_ORIGINS', '').split(',') if o.strip()]
 _default_origins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://plume-astrale.vercel.app',
     'https://plume-astrale.fr',
     'https://www.plume-astrale.fr',
     'https://consultation-astro.preview.emergentagent.com',

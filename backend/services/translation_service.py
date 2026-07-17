@@ -11,7 +11,7 @@ from integrations.llm.chat import LlmChat, UserMessage
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
+OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
 
 # Simple in-memory cache to avoid re-translating identical content
 _translation_cache = {}
@@ -33,8 +33,8 @@ async def translate_to_french(text: str) -> str:
     """Translate English astrological text to French using LLM"""
     if not text or not text.strip():
         return text
-    if not EMERGENT_KEY:
-        logger.warning("No EMERGENT_LLM_KEY, returning original text")
+    if not OPENAI_KEY:
+        logger.warning("No OPENAI_API_KEY, returning original text")
         return text
 
     # Check cache
@@ -44,7 +44,7 @@ async def translate_to_french(text: str) -> str:
 
     try:
         chat = LlmChat(
-            api_key=EMERGENT_KEY,
+            api_key=OPENAI_KEY,
             session_id=f"translate_{cache_key[:8]}",
             system_message=SYSTEM_PROMPT
         )
