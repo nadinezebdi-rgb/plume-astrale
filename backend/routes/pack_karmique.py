@@ -48,6 +48,8 @@ async def pack_karmique_checkout(payload: PackKarmiqueCheckoutPayload, request: 
 
     if not payload.email or '@' not in payload.email:
         raise HTTPException(400, 'Email invalide.')
+    if not (payload.first_name or '').strip():
+        raise HTTPException(400, 'Prénom requis.')
     if not payload.birth_date or not payload.birth_time:
         raise HTTPException(400, 'Date et heure de naissance requises.')
 

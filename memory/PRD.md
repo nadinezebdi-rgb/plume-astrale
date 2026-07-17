@@ -1198,3 +1198,17 @@ livrees dans la meme iteration :
 Les 2 videos MP4 (18 MB total) sont referencees directement depuis les URLs
 CDN Emergent (customer-assets.emergentagent.com/...) plutot que placees dans
 le repo — pour ne pas alourdir le deploy.
+
+## Session Juil 2026 — 4 features majeures (2026-07-17)
+- ✅ **Pack Karmique + Kabbale 89€** : produit one-shot le plus haut de gamme. `/pack-karmique` (PackKarmique.js) + succès polling. Backend : routes/pack_karmique.py, services/pack_karmique_service.py (karmic + tree + 3 synthèses GPT), services/pack_karmique_pdf.py (44 pages). Webhook kind='pack_karmique_kabbale'.
+- ✅ **Compat Ultime 29,99€ enrichie synastrie** : partenaire OBLIGATOIRE au checkout → chapitre 12 domaines de vie FR (GPT francise le synastry-report EN) → PDF 20 pages.
+- ✅ **Alerte email 401** : astrology_io_service._alert_invalid_key → ADMIN_ALERT_EMAIL (contact@plume-astrale.fr), throttle 6h.
+- ✅ **Patch #5 couleurs + Starfield** : tous hex legacy remplacés par la palette Nuit Douce, composant Starfield global (étoiles dorées scintillantes).
+- ✅ Fix précédent même jour : clé ASTROLOGY_API_IO_KEY renouvelée (ask_89e5...), route /v3/chat blindée (CORS + refund + cache natal 24h + timeout 60s), console.log email supprimés de Login.js.
+- Tests : iteration_47.json 100% PASS. Promo test preview : TESTPLUME.
+
+## Backlog restant (P2/P3)
+- P2 : Abo Rituel Lunaire 4,99€/mois (lunar-return-report + Stripe recurring)
+- P3 : Astrocartographie 49€ (relocation-report)
+- P4 : Plan Analytics (GA4/Plausible)
+- Cosmétique : warning hydration <span> dans <select> sur Hero3D (artefact visual editor, non bloquant)
