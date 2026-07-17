@@ -187,7 +187,7 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
         }} data-testid="hero-brand-logo">
           PLUME ASTRALE
         </Link>
-        <Link
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Link
           to={isAuthenticated ? '/mon-compte' : '/connexion'}
           className="flex items-center gap-2 group transition-all"
           style={{
@@ -205,7 +205,7 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
         >
           <User style={{ width: 12, height: 12 }} strokeWidth={1.5} />
           Mon Compte
-        </Link>
+        </Link><Link to="/connexion" className="flex items-center gap-2 group transition-all" style={{ color: '#0A0603', textDecoration: 'none', fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', padding: '8px 14px', borderRadius: 999, background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)', fontFamily: 'Inter, sans-serif', fontWeight: 600 }} data-testid="hero-login-btn"><User style={{ width: 12, height: 12 }} strokeWidth={1.5} />Se connecter</Link></div>
       </header>
 
       {/* ═══ Clouds & Stars Background Overlay ═══ */}
@@ -328,7 +328,7 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
               animation: 'pulse 2s ease-in-out infinite',
             }}
           />
-        </button>
+        </button><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(0.85rem, 1.1vw, 0.98rem)', fontWeight: 300, lineHeight: 1.7, color: '#CBD5E1', textShadow: '0 2px 20px rgba(0,0,0,0.9)', maxWidth: 620, marginTop: 24 }} data-testid="hero-positioning-text">Plume Astrale vous accompagne au fil des jours pour vous aider à mieux comprendre les cycles de votre vie, vos aspirations et les périodes qui vous sont favorables.</p>
       </div>
 
       {/* ═══ ÉTAPE 2 + 3 + 4: Modal Glassmorphism ═══ */}
