@@ -105,8 +105,8 @@ const CommandeSucces = () => {
           
           {status === 'checking' && (
             <>
-              <Loader2 className="w-16 h-16 text-[#B8961F] mx-auto mb-8 animate-spin" />
-              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+              <Loader2 className="w-16 h-16 text-[#D4AF37] mx-auto mb-8 animate-spin" />
+              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                 Vérification de votre commande...
               </h1>
               <p className="text-[#B8B0C8]/70 font-light">
@@ -119,32 +119,32 @@ const CommandeSucces = () => {
             <>
               <div className="relative mb-8">
                 <CheckCircle className="w-20 h-20 text-emerald-500 mx-auto" strokeWidth={1.5} />
-                <Sparkles className="w-8 h-8 text-[#B8961F] absolute top-0 right-1/3 animate-pulse" />
+                <Sparkles className="w-8 h-8 text-[#D4AF37] absolute top-0 right-1/3 animate-pulse" />
               </div>
               
-              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                 Commande Confirmée !
               </h1>
               
-              <p className="text-[#B8961F] text-xl mb-6">
+              <p className="text-[#D4AF37] text-xl mb-6">
                 Votre Livre de la Plume est en préparation
               </p>
               
               {/* Order details */}
               <div className="bg-[#15112A]/50 rounded-sm p-6 mb-8 text-left">
-                <h3 className="text-[#F0E6D3] mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                <h3 className="text-[#F5EEE0] mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                   Détails de la commande
                 </h3>
                 
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center gap-3 text-[#B8B0C8]/70">
-                    <Package className="w-4 h-4 text-[#B8961F]" />
+                    <Package className="w-4 h-4 text-[#D4AF37]" />
                     <span>Le Livre de la Plume - Édition reliée</span>
                   </div>
                   
                   {order?.shipping_address && (
                     <div className="flex items-start gap-3 text-[#B8B0C8]/70">
-                      <Truck className="w-4 h-4 text-[#B8961F] mt-1" />
+                      <Truck className="w-4 h-4 text-[#D4AF37] mt-1" />
                       <div>
                         <p>{order.shipping_address.name}</p>
                         <p>{order.shipping_address.street}</p>
@@ -156,7 +156,7 @@ const CommandeSucces = () => {
                   )}
                   
                   <div className="flex items-center gap-3 text-[#B8B0C8]/70">
-                    <Calendar className="w-4 h-4 text-[#B8961F]" />
+                    <Calendar className="w-4 h-4 text-[#D4AF37]" />
                     <span>Livraison estimée : {getDeliveryDate()}</span>
                   </div>
                 </div>
@@ -193,7 +193,7 @@ const CommandeSucces = () => {
                 <span className="text-4xl text-red-400">!</span>
               </div>
               
-              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+              <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                 Une erreur est survenue
               </h1>
               

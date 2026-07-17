@@ -10,10 +10,10 @@ import SEO from '@/components/SEO';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-const Card = ({ icon: Icon, label, value, sub, accent = '#B8961F' }) => (
+const Card = ({ icon: Icon, label, value, sub, accent = '#D4AF37' }) => (
   <div className="rounded-2xl p-5" style={{
     background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(184,150,31,0.18)',
+    border: '1px solid rgba(212,175,55,0.18)',
     backdropFilter: 'blur(12px)',
   }} data-testid={`kpi-card-${String(label).replace(/\s+/g, '-')}`}>
     <div className="flex items-center gap-2 mb-3">
@@ -30,9 +30,9 @@ const Tab = ({ label, active, onClick, count }) => (
     className="px-4 py-2 text-xs uppercase tracking-widest rounded-full transition-all"
     style={{
       border: '1px solid',
-      borderColor: active ? '#B8961F' : 'rgba(184,150,31,0.25)',
-      color: active ? '#0C0918' : '#B8961F',
-      background: active ? '#B8961F' : 'transparent',
+      borderColor: active ? '#D4AF37' : 'rgba(212,175,55,0.25)',
+      color: active ? '#111625' : '#D4AF37',
+      background: active ? '#D4AF37' : 'transparent',
       letterSpacing: '0.1em',
     }}
     data-testid={`admin-tab-${label.toLowerCase().replace(/\s+/g, '-')}`}>
@@ -41,10 +41,10 @@ const Tab = ({ label, active, onClick, count }) => (
 );
 
 const Table = ({ columns, rows, emptyMessage }) => (
-  <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(184,150,31,0.15)' }}>
+  <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(212,175,55,0.15)' }}>
     <div className="overflow-x-auto">
       <table className="w-full text-sm" style={{ color: 'var(--pa-body)' }}>
-        <thead style={{ background: 'rgba(184,150,31,0.06)' }}>
+        <thead style={{ background: 'rgba(212,175,55,0.06)' }}>
           <tr>
             {columns.map(c => (
               <th key={c.key} className="text-left px-4 py-3 text-[10px] uppercase tracking-widest"
@@ -58,7 +58,7 @@ const Table = ({ columns, rows, emptyMessage }) => (
               {emptyMessage || 'Aucune donnee'}
             </td></tr>
           ) : rows.map((r, i) => (
-            <tr key={i} style={{ borderTop: '1px solid rgba(184,150,31,0.06)' }}>
+            <tr key={i} style={{ borderTop: '1px solid rgba(212,175,55,0.06)' }}>
               {columns.map(c => (
                 <td key={c.key} className="px-4 py-3 text-xs" style={{ color: 'var(--pa-body)' }}>
                   {c.render ? c.render(r) : (r[c.key] ?? '—')}
@@ -157,11 +157,11 @@ export default function Admin() {
     else loadPromo();
   };
 
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin" style={{ color: '#B8961F' }} /></div>;
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin" style={{ color: '#D4AF37' }} /></div>;
   if (!user) return <Navigate to="/connexion" replace />;
   if (!user.is_admin) return (
     <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="text-center max-w-md p-8 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,150,31,0.15)' }} data-testid="admin-access-denied">
+      <div className="text-center max-w-md p-8 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,175,55,0.15)' }} data-testid="admin-access-denied">
         <h1 className="text-2xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)' }}>Acces refuse</h1>
         <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>Cette page est reservee aux administrateurs.</p>
       </div>
@@ -175,7 +175,7 @@ export default function Admin() {
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <Sparkles className="w-5 h-5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+              <Sparkles className="w-5 h-5" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
               <h1 className="text-3xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
                 Tableau de bord
               </h1>
@@ -187,13 +187,13 @@ export default function Admin() {
           <div className="flex items-center gap-2">
             <a href="/bibliotheque"
               className="flex items-center gap-2 px-4 py-2 text-xs uppercase tracking-widest rounded-full"
-              style={{ border: '1px solid rgba(184,150,31,0.4)', color: '#B8961F', letterSpacing: '0.1em' }}
+              style={{ border: '1px solid rgba(212,175,55,0.4)', color: '#D4AF37', letterSpacing: '0.1em' }}
               data-testid="admin-biblio-link">
               <Sparkles className="w-3.5 h-3.5" /> Bibliothèque visuelle
             </a>
             <button onClick={refresh}
               className="flex items-center gap-2 px-4 py-2 text-xs uppercase tracking-widest rounded-full"
-              style={{ border: '1px solid rgba(184,150,31,0.4)', color: '#B8961F', letterSpacing: '0.1em' }}
+              style={{ border: '1px solid rgba(212,175,55,0.4)', color: '#D4AF37', letterSpacing: '0.1em' }}
               data-testid="admin-refresh-btn">
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Actualiser
             </button>
@@ -244,12 +244,12 @@ export default function Admin() {
                   onKeyDown={e => e.key === 'Enter' && loadUsers(search)}
                   placeholder="Rechercher par email..."
                   className="w-full pl-10 pr-4 py-2 bg-transparent rounded-full text-sm outline-none"
-                  style={{ border: '1px solid rgba(184,150,31,0.25)', color: 'var(--pa-body)' }}
+                  style={{ border: '1px solid rgba(212,175,55,0.25)', color: 'var(--pa-body)' }}
                   data-testid="admin-user-search" />
               </div>
               <button onClick={() => loadUsers(search)}
                 className="px-4 py-2 text-xs uppercase tracking-widest rounded-full"
-                style={{ border: '1px solid #B8961F', color: '#0C0918', background: '#B8961F', letterSpacing: '0.1em', fontWeight: 600 }}>
+                style={{ border: '1px solid #D4AF37', color: '#111625', background: '#D4AF37', letterSpacing: '0.1em', fontWeight: 600 }}>
                 Chercher
               </button>
             </div>
@@ -259,7 +259,7 @@ export default function Admin() {
                 { key: 'email', label: 'Email' },
                 { key: 'prenom', label: 'Prenom' },
                 { key: 'created_at', label: 'Inscrit le', render: r => fmtDate(r.created_at) },
-                { key: 'credit_balance', label: 'Solde', render: r => <span style={{ color: '#B8961F', fontWeight: 600 }}>{r.credit_balance} cr</span> },
+                { key: 'credit_balance', label: 'Solde', render: r => <span style={{ color: '#D4AF37', fontWeight: 600 }}>{r.credit_balance} cr</span> },
                 { key: 'premium_status', label: 'Premium', render: r => (
                   r.premium_status === 'active'
                     ? <span style={{ color: '#FDE68A', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -386,7 +386,7 @@ function PromoSection({ token, promoCodes, reload }) {
         </p>
         <button onClick={() => setShowForm(!showForm)} data-testid="admin-create-promo-btn"
           className="flex items-center gap-2 px-4 py-2 rounded-full text-xs uppercase tracking-widest"
-          style={{ background: '#B8961F', color: '#0C0918', fontFamily: 'Cinzel, serif', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+          style={{ background: '#D4AF37', color: '#111625', fontFamily: 'Cinzel, serif', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
           <Plus className="w-3.5 h-3.5" strokeWidth={2} />
           {showForm ? 'Annuler' : 'Nouveau code'}
         </button>
@@ -404,7 +404,7 @@ function PromoSection({ token, promoCodes, reload }) {
       {/* Create form */}
       {showForm && (
         <form onSubmit={submit} className="mb-8 p-5 rounded-2xl space-y-4"
-          style={{ background: 'rgba(184,150,31,0.06)', border: '1px solid rgba(184,150,31,0.25)' }}
+          style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.25)' }}
           data-testid="admin-promo-form">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Code (ex: FAMILLE2026)">
@@ -440,12 +440,12 @@ function PromoSection({ token, promoCodes, reload }) {
           <div className="flex justify-end gap-3">
             <button type="button" onClick={() => setShowForm(false)}
               className="px-5 py-2 text-xs uppercase tracking-widest rounded-full"
-              style={{ background: 'transparent', color: '#B8961F', border: '1px solid rgba(184,150,31,0.3)' }}>
+              style={{ background: 'transparent', color: '#D4AF37', border: '1px solid rgba(212,175,55,0.3)' }}>
               Annuler
             </button>
             <button type="submit" disabled={saving} data-testid="promo-form-submit"
               className="px-6 py-2 text-xs uppercase tracking-widest rounded-full"
-              style={{ background: '#B8961F', color: '#0C0918', border: 'none', fontFamily: 'Cinzel, serif', fontWeight: 600 }}>
+              style={{ background: '#D4AF37', color: '#111625', border: 'none', fontFamily: 'Cinzel, serif', fontWeight: 600 }}>
               {saving ? 'Creation...' : 'Creer le code'}
             </button>
           </div>
@@ -455,7 +455,7 @@ function PromoSection({ token, promoCodes, reload }) {
       {/* Codes table */}
       <Table
         columns={[
-          { key: 'code', label: 'Code', render: r => <span style={{ fontFamily: 'monospace', color: '#B8961F', fontWeight: 600 }}>{r.code}</span> },
+          { key: 'code', label: 'Code', render: r => <span style={{ fontFamily: 'monospace', color: '#D4AF37', fontWeight: 600 }}>{r.code}</span> },
           { key: 'type', label: 'Type', render: r => r.premium_days ? <span style={{ color: '#E8C766', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Crown className="w-3 h-3" />Premium</span> : <span>Credits</span> },
           { key: 'reward', label: 'Recompense', render: r => r.premium_days ? `${r.premium_days} jours Premium` : `+${r.credits} cr` },
           { key: 'description', label: 'Description' },
@@ -469,7 +469,7 @@ function PromoSection({ token, promoCodes, reload }) {
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => toggle(r.code, r.active)} title={r.active ? 'Desactiver' : 'Activer'}
                 data-testid={`promo-toggle-${r.code}`}
-                style={{ background: 'transparent', border: '1px solid rgba(184,150,31,0.3)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: r.active ? '#7CB88A' : '#999' }}>
+                style={{ background: 'transparent', border: '1px solid rgba(212,175,55,0.3)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: r.active ? '#7CB88A' : '#999' }}>
                 <Power className="w-3 h-3" />
               </button>
               <button onClick={() => remove(r.code)} title="Supprimer"
@@ -488,14 +488,14 @@ function PromoSection({ token, promoCodes, reload }) {
 
 const fieldStyle = {
   width: '100%', padding: '10px 12px', borderRadius: 8,
-  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(184,150,31,0.25)',
+  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(212,175,55,0.25)',
   color: '#F4E4BC', fontSize: 13, outline: 'none',
 };
 
 function Field({ label, children, full }) {
   return (
     <label style={{ display: 'block', gridColumn: full ? '1 / -1' : undefined }}>
-      <span style={{ display: 'block', marginBottom: 6, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(184,150,31,0.85)', fontFamily: 'Cinzel, serif' }}>{label}</span>
+      <span style={{ display: 'block', marginBottom: 6, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(212,175,55,0.85)', fontFamily: 'Cinzel, serif' }}>{label}</span>
       {children}
     </label>
   );
@@ -577,9 +577,9 @@ function UserActions({ user, token, onChange }) {
         onClick={() => setOpen(true)}
         data-testid={`admin-actions-btn-${user.id}`}
         style={{
-          background: 'rgba(184,150,31,0.1)', border: '1px solid rgba(184,150,31,0.35)',
+          background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.35)',
           borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
-          color: '#B8961F', fontSize: 11, letterSpacing: '0.08em',
+          color: '#D4AF37', fontSize: 11, letterSpacing: '0.08em',
           textTransform: 'uppercase', fontWeight: 600,
         }}
         title="Gerer cet utilisateur"
@@ -600,7 +600,7 @@ function UserActions({ user, token, onChange }) {
             onClick={(e) => e.stopPropagation()}
             data-testid={`admin-actions-modal-${user.id}`}
             style={{
-              background: '#0F0C1F', border: '1px solid rgba(184,150,31,0.3)',
+              background: '#0F0C1F', border: '1px solid rgba(212,175,55,0.3)',
               borderRadius: 16, padding: 24, maxWidth: 460, width: '100%',
               maxHeight: '90vh', overflowY: 'auto',
             }}
@@ -614,7 +614,7 @@ function UserActions({ user, token, onChange }) {
                   {user.email}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--pa-muted)', marginTop: 4 }}>
-                  Solde actuel : <span style={{ color: '#B8961F', fontWeight: 600 }}>{user.credit_balance} cr</span>
+                  Solde actuel : <span style={{ color: '#D4AF37', fontWeight: 600 }}>{user.credit_balance} cr</span>
                   {' · '}
                   Premium : <span style={{ color: user.premium_status === 'active' ? '#FDE68A' : 'var(--pa-muted)' }}>
                     {user.premium_status === 'active' ? (user.premium_until ? `actif jusqu'au ${new Date(user.premium_until).toLocaleDateString('fr-FR')}` : 'actif') : 'inactif'}
@@ -635,8 +635,8 @@ function UserActions({ user, token, onChange }) {
             )}
 
             {/* Section credits */}
-            <div style={{ marginBottom: 20, padding: 16, background: 'rgba(184,150,31,0.05)', border: '1px solid rgba(184,150,31,0.15)', borderRadius: 12 }}>
-              <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#B8961F', marginBottom: 10, fontWeight: 600 }}>
+            <div style={{ marginBottom: 20, padding: 16, background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.15)', borderRadius: 12 }}>
+              <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#D4AF37', marginBottom: 10, fontWeight: 600 }}>
                 💰 Credits
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -647,7 +647,7 @@ function UserActions({ user, token, onChange }) {
                   placeholder="ex: 5000 ou -100"
                   data-testid="admin-credits-input"
                   style={{
-                    flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(184,150,31,0.25)',
+                    flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(212,175,55,0.25)',
                     borderRadius: 8, padding: '8px 12px', color: 'var(--pa-body)', fontSize: 13, outline: 'none',
                   }}
                 />
@@ -656,7 +656,7 @@ function UserActions({ user, token, onChange }) {
                   disabled={busy || !creditsAmount}
                   data-testid="admin-add-credits-btn"
                   style={{
-                    background: '#B8961F', color: '#0C0918', border: 'none',
+                    background: '#D4AF37', color: '#111625', border: 'none',
                     borderRadius: 8, padding: '8px 16px', cursor: busy ? 'wait' : 'pointer',
                     fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
                     fontWeight: 700, opacity: busy ? 0.6 : 1,
@@ -671,8 +671,8 @@ function UserActions({ user, token, onChange }) {
                     key={n}
                     onClick={() => setCreditsAmount(String(n))}
                     style={{
-                      background: 'transparent', border: '1px solid rgba(184,150,31,0.3)',
-                      borderRadius: 12, padding: '3px 10px', color: '#B8961F', fontSize: 10,
+                      background: 'transparent', border: '1px solid rgba(212,175,55,0.3)',
+                      borderRadius: 12, padding: '3px 10px', color: '#D4AF37', fontSize: 10,
                       cursor: 'pointer', letterSpacing: '0.05em',
                     }}
                   >
@@ -733,8 +733,8 @@ function UserActions({ user, token, onChange }) {
                   disabled={busy}
                   data-testid="admin-premium-lifetime-btn"
                   style={{
-                    flex: 1, background: 'linear-gradient(135deg, #FDE68A, #B8961F)',
-                    color: '#0C0918', border: 'none', borderRadius: 8, padding: '10px',
+                    flex: 1, background: 'linear-gradient(135deg, #FDE68A, #D4AF37)',
+                    color: '#111625', border: 'none', borderRadius: 8, padding: '10px',
                     cursor: 'pointer', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
                   }}
                 >

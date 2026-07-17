@@ -151,7 +151,7 @@ export default function Hero3D() {
         aria-hidden="true"
         style={{
           position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse at 50% 50%, transparent 8%, rgba(12,9,24,0.28) 42%, rgba(5,3,8,0.85) 85%, #050308 100%)',
+          background: 'radial-gradient(ellipse at 50% 50%, transparent 8%, rgba(17,22,37,0.28) 42%, rgba(5,3,8,0.85) 85%, #050308 100%)',
         }}
       />
 

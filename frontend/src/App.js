@@ -21,6 +21,8 @@ import Numerologie from "./pages/Numerologie";
 import Archetype from "./pages/Archetype";
 import KabbaleSales from "./pages/KabbaleSales";
 import KabbaleSucces from "./pages/KabbaleSucces";
+import PackKarmique from "./pages/PackKarmique";
+import PackKarmiqueSucces from "./pages/PackKarmiqueSucces";
 import KarmaDestin from "./pages/KarmaDestin";
 import Horoscope from "./pages/Horoscope";
 import Compatibilite from "./pages/Compatibilite";
@@ -59,6 +61,7 @@ import CookieConsent from "./components/CookieConsent";
 
 // ─── Plume Design System v2 (Feb 2026) ────────────────────────────
 import NoiseOverlay from "./components/design/NoiseOverlay";
+import Starfield from "./components/design/Starfield";
 import MobileTabBar from "./components/design/MobileTabBar";
 import AuraProvider from "./components/design/AuraProvider";
 
@@ -68,6 +71,7 @@ function App() {
       <AuraProvider>
       <BrowserRouter>
         {/* ─── Overlays globaux Plume Design System v2 ─── */}
+        <Starfield />
         <NoiseOverlay />
         <MobileTabBar />
         <Routes>
@@ -96,6 +100,8 @@ function App() {
                 <Route path="/archetype" element={<Archetype />} />
                 <Route path="/kabbale" element={<KabbaleSales />} />
                 <Route path="/kabbale/succes" element={<KabbaleSucces />} />
+                <Route path="/pack-karmique" element={<PackKarmique />} />
+                <Route path="/pack-karmique/succes" element={<PackKarmiqueSucces />} />
                 <Route path="/karma-destin" element={<KarmaDestin />} />
                 <Route path="/tarot" element={<Tarot />} />
                 <Route path="/tirage-tarot" element={<TirageTarot />} />

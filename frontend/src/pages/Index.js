@@ -84,7 +84,7 @@ const BrandStory = () => (
         fontWeight: 200,
         fontSize: 'clamp(1.9rem, 4.5vw, 3rem)',
         lineHeight: 1.12,
-        color: '#F4E8D2',
+        color: '#F5EEE0',
         marginBottom: 20,
       }}>
         Le Sanctuaire <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>Plume Astrale</em>
@@ -147,7 +147,7 @@ const SolenaJourney = () => {
             fontWeight: 200,
             fontSize: 'clamp(2rem, 5vw, 3.5rem)',
             lineHeight: 1.05,
-            color: '#F4E8D2',
+            color: '#F5EEE0',
             marginBottom: 16,
           }}>
             Je suis <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>Solena</em>,<br />

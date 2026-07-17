@@ -31,7 +31,7 @@ export default function AstroSexo() {
           <p className="text-[10px] uppercase tracking-[0.3em] mb-3" style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif' }}>
             L&apos;alchimie des signes
           </p>
-          <h1 className="text-4xl sm:text-5xl mb-5" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 300, lineHeight: 1.05 }}>
+          <h1 className="text-4xl sm:text-5xl mb-5" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 300, lineHeight: 1.05 }}>
             <em style={{ fontStyle: 'italic', color: '#D4AF37' }}>AstroSexo</em>
           </h1>
           <p className="text-base max-w-xl mx-auto mb-3" style={{ color: 'rgba(184,176,200,0.85)', lineHeight: 1.65 }}>
@@ -55,7 +55,7 @@ export default function AstroSexo() {
                 style={{
                   background: isActive ? 'rgba(212,175,55,0.14)' : 'rgba(255,255,255,0.025)',
                   border: `1px solid ${isActive ? '#D4AF37' : 'rgba(212,175,55,0.15)'}`,
-                  color: isActive ? '#F0E6D3' : 'rgba(240,230,211,0.75)',
+                  color: isActive ? '#F5EEE0' : 'rgba(240,230,211,0.75)',
                   transform: isActive ? 'scale(1.05)' : 'scale(1)',
                 }}
                 data-testid={`sign-${s.id}`}
@@ -76,7 +76,7 @@ export default function AstroSexo() {
             <div className="flex items-baseline justify-between mb-4 pb-4" style={{ borderBottom: '1px solid rgba(212,175,55,0.2)' }}>
               <div>
                 <p className="text-[10px] uppercase tracking-widest" style={{ color: '#D4AF37', letterSpacing: '0.14em', fontFamily: 'Cinzel, serif' }}>Le profil sensuel du</p>
-                <h2 className="text-3xl mt-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 300 }}>
+                <h2 className="text-3xl mt-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 300 }}>
                   <em style={{ color: '#D4AF37' }}>{selected.sign}</em>
                 </h2>
               </div>
@@ -110,11 +110,11 @@ export default function AstroSexo() {
 
         {/* CTA vers Astrologie relationnelle */}
         <section className="rounded-2xl p-8 sm:p-10 text-center" style={{
-          background: 'linear-gradient(135deg, rgba(12,9,24,0.9), rgba(30,26,51,0.85))',
+          background: 'linear-gradient(135deg, rgba(17,22,37,0.9), rgba(30,26,51,0.85))',
           border: '1px solid rgba(212,175,55,0.35)',
         }} data-testid="astrosexo-cta">
           <Sparkles className="w-8 h-8 mx-auto mb-4" strokeWidth={1.3} style={{ color: '#D4AF37' }} />
-          <h2 className="text-2xl sm:text-3xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 300 }}>
+          <h2 className="text-2xl sm:text-3xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 300 }}>
             Envie d&apos;aller au-delà du signe solaire ?
           </h2>
           <p className="text-sm max-w-xl mx-auto mb-6" style={{ color: 'rgba(184,176,200,0.85)', lineHeight: 1.65 }}>
@@ -125,8 +125,8 @@ export default function AstroSexo() {
             onClick={() => trackEvent('astrosexo_cta_click')}
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full transition-all"
             style={{
-              background: 'linear-gradient(135deg, #D4AF37, #B8961F)',
-              color: '#0C0918',
+              background: 'linear-gradient(135deg, #D4AF37, #D4AF37)',
+              color: '#111625',
               fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600,
               boxShadow: '0 6px 24px rgba(212,175,55,0.3)',
             }}

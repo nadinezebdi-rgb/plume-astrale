@@ -87,7 +87,7 @@ export default function ServicesEquivalence() {
           fontWeight: 300,
           fontSize: 'clamp(1.4rem, 3vw, 2rem)',
           lineHeight: 1.15,
-          color: '#F4E8D2',
+          color: '#F5EEE0',
           marginBottom: 8,
         }}>
           1 question = <em style={{ color: '#E2BF65', fontStyle: 'italic' }}>10 credits</em>
@@ -147,7 +147,7 @@ export default function ServicesEquivalence() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span style={{
-                    color: '#F4E8D2',
+                    color: '#F5EEE0',
                     fontFamily: 'Cormorant Garamond, serif',
                     fontSize: 15,
                     fontWeight: 500,

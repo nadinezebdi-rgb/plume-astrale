@@ -77,6 +77,16 @@ class Settings:
             'product': 'kabbale_arbre_de_vie',
             'tagline': "Les 10 Sephiroth + 22 chemins de ton theme natal — PDF 15 pages unique en francais.",
         },
+        'pack_karmique_kabbale': {
+            'name': 'Pack Karmique + Kabbale',
+            'credits': 0,   # one-shot
+            'bonus': 0,
+            'amount': 89.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'pack_karmique_kabbale',
+            'tagline': "Analyse karmique complete + Arbre de Vie + synthese croisee IA — PDF ~40 pages.",
+        },
     }
 
     # Grille GaryVee — tous les services sont des multiples/fractions de 10 cr (unité = 1 question)

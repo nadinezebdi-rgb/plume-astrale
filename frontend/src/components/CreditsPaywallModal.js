@@ -15,7 +15,7 @@ const PACKS = [
     bonus: 0,
     icon: Sparkles,
     subtitle: '15 crédits · idéal pour continuer maintenant',
-    accent: '#B8961F',
+    accent: '#D4AF37',
   },
   {
     id: 'astro_amour',
@@ -40,7 +40,7 @@ const PACKS = [
     subtitle: '100 crédits + 30 offerts = 130 crédits',
     caption: 'Explore ton thème en profondeur, ton karma, tes futures relations',
     badge: 'Meilleure valeur',
-    accent: '#B8961F',
+    accent: '#D4AF37',
   },
 ];
 
@@ -104,9 +104,9 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
       <div
         className="relative max-w-4xl w-full rounded-3xl overflow-hidden max-h-[92vh] overflow-y-auto"
         style={{
-          background: 'linear-gradient(180deg,#12082A,#0C0918)',
-          border: '1px solid rgba(184,150,31,0.35)',
-          boxShadow: '0 40px 120px rgba(0,0,0,0.6), 0 0 60px rgba(184,150,31,0.10)',
+          background: 'linear-gradient(180deg,#12082A,#111625)',
+          border: '1px solid rgba(212,175,55,0.35)',
+          boxShadow: '0 40px 120px rgba(0,0,0,0.6), 0 0 60px rgba(212,175,55,0.10)',
         }}
         onClick={(e) => e.stopPropagation()}
         data-testid="credits-paywall-modal"
@@ -118,7 +118,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full transition-all hover:scale-110"
-          style={{ color: '#B8961F', background: 'rgba(184,150,31,0.08)' }}
+          style={{ color: '#D4AF37', background: 'rgba(212,175,55,0.08)' }}
           aria-label="Fermer"
           data-testid="credits-paywall-close"
         >
@@ -128,23 +128,23 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
         {/* Header */}
         <div className="px-6 md:px-12 pt-10 pb-6 text-center">
           <div className="inline-flex items-center gap-2 mb-4">
-            <Sparkles className="w-4 h-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+            <Sparkles className="w-4 h-4" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
             <span
               className="text-xs uppercase"
-              style={{ color: '#B8961F', letterSpacing: '0.3em' }}
+              style={{ color: '#D4AF37', letterSpacing: '0.3em' }}
             >
               Offre de recharge
             </span>
-            <Sparkles className="w-4 h-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+            <Sparkles className="w-4 h-4" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
           </div>
           <h2
             id="paywall-title"
             className="text-3xl md:text-4xl mb-3"
-            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: '#F4E8D2' }}
+            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: '#F5EEE0' }}
           >
             {h.title}
           </h2>
-          <p className="text-sm md:text-base opacity-75 max-w-lg mx-auto" style={{ color: '#F4E8D2' }}>
+          <p className="text-sm md:text-base opacity-75 max-w-lg mx-auto" style={{ color: '#F5EEE0' }}>
             {h.body}
           </p>
         </div>
@@ -160,11 +160,11 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
                 className="relative rounded-2xl p-6 flex flex-col"
                 style={{
                   background: p.highlight
-                    ? 'linear-gradient(160deg,rgba(184,150,31,0.15),rgba(184,150,31,0.03))'
+                    ? 'linear-gradient(160deg,rgba(212,175,55,0.15),rgba(212,175,55,0.03))'
                     : 'rgba(255,255,255,0.03)',
                   border: p.highlight
-                    ? '1.5px solid #B8961F'
-                    : '1px solid rgba(184,150,31,0.22)',
+                    ? '1.5px solid #D4AF37'
+                    : '1px solid rgba(212,175,55,0.22)',
                 }}
                 data-testid={`paywall-pack-${p.id}`}
               >
@@ -172,8 +172,8 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
                   <div
                     className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] uppercase whitespace-nowrap"
                     style={{
-                      background: '#B8961F',
-                      color: '#0C0918',
+                      background: '#D4AF37',
+                      color: '#111625',
                       letterSpacing: '0.15em',
                       fontWeight: 600,
                     }}
@@ -188,7 +188,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
                 />
                 <div
                   className="text-2xl text-center mb-1"
-                  style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F4E8D2' }}
+                  style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}
                 >
                   {p.name}
                 </div>
@@ -200,7 +200,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
                     {p.price}
                   </span>
                 </div>
-                <div className="text-xs text-center mb-1" style={{ color: '#F4E8D2', opacity: 0.9 }}>
+                <div className="text-xs text-center mb-1" style={{ color: '#F5EEE0', opacity: 0.9 }}>
                   {p.subtitle}
                 </div>
                 {p.bonus > 0 && (
@@ -212,7 +212,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
                   </div>
                 )}
                 {p.caption && (
-                  <div className="text-[11px] text-center italic mt-2 mb-3 opacity-70" style={{ color: '#F4E8D2' }}>
+                  <div className="text-[11px] text-center italic mt-2 mb-3 opacity-70" style={{ color: '#F5EEE0' }}>
                     {p.caption}
                   </div>
                 )}
@@ -222,9 +222,9 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
                   disabled={loadingPack !== null}
                   className="w-full py-3 rounded-full text-xs uppercase transition-all disabled:opacity-50 mt-3"
                   style={{
-                    background: p.highlight ? '#B8961F' : 'transparent',
-                    color: p.highlight ? '#0C0918' : '#B8961F',
-                    border: p.highlight ? 'none' : '1px solid #B8961F',
+                    background: p.highlight ? '#D4AF37' : 'transparent',
+                    color: p.highlight ? '#111625' : '#D4AF37',
+                    border: p.highlight ? 'none' : '1px solid #D4AF37',
                     letterSpacing: '0.2em',
                     fontWeight: 500,
                   }}
@@ -246,12 +246,12 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
           <button
             onClick={onClose}
             className="text-xs uppercase opacity-60 hover:opacity-100 transition-all"
-            style={{ color: '#F4E8D2', letterSpacing: '0.15em' }}
+            style={{ color: '#F5EEE0', letterSpacing: '0.15em' }}
             data-testid="paywall-later"
           >
             Peut-être plus tard
           </button>
-          <div className="mt-4 text-[10px] opacity-40" style={{ color: '#F4E8D2' }}>
+          <div className="mt-4 text-[10px] opacity-40" style={{ color: '#F5EEE0' }}>
             Paiement sécurisé · Stripe · Aucun engagement
           </div>
         </div>

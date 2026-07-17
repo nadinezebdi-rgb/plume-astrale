@@ -722,6 +722,82 @@ def _p_benediction(c, page_num, first_name):
     c.drawCentredString(W / 2, y - 16, "Guide astrologue chez Plume Astrale")
 
 
+# ═══════════════════════════════ Synastrie 12 domaines ═══════════════════════════════
+
+def _p_synastry_intro(c, page_num, first_name, partner_name, synastry):
+    """Page d'ouverture du chapitre synastrie : score global + dynamique du lien."""
+    _p_interior_bg(c, page_num)
+    n1 = (first_name or 'Toi').strip().title()
+    n2 = (partner_name or 'Ton partenaire').strip().title()
+    y = _p_title(c, "Votre synastrie", f"Vous deux — {n1} & {n2}")
+
+    score = synastry.get('overall_score') or 0
+    c.setFillColor(GOLD)
+    c.setFont("Helvetica-Bold", 42)
+    c.drawCentredString(W / 2, y - 30, f"{score} / 100")
+    c.setFillColor(INK_SOFT)
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(W / 2, y - 46, "SCORE DE COMPATIBILITE GLOBAL")
+    y -= 80
+
+    dyn = synastry.get('dynamic_type') or ''
+    if dyn:
+        c.setFillColor(INK)
+        c.setFont("Helvetica-Oblique", 12)
+        c.drawCentredString(W / 2, y, f"Dynamique du lien : {dyn}")
+        y -= 22
+
+    harmony = synastry.get('harmony')
+    tension = synastry.get('tension')
+    if harmony is not None:
+        bar_w = W - 2 * MARGIN
+        c.setFillColor(HexColor('#e7ddc9'))
+        c.roundRect(MARGIN, y - 10, bar_w, 10, 5, fill=1, stroke=0)
+        c.setFillColor(GOLD)
+        c.roundRect(MARGIN, y - 10, bar_w * max(0.02, min(1.0, harmony / 100.0)), 10, 5, fill=1, stroke=0)
+        c.setFillColor(INK_SOFT)
+        c.setFont("Helvetica", 8)
+        c.drawString(MARGIN, y - 24, f"Harmonie {harmony}%")
+        c.drawRightString(W - MARGIN, y - 24, f"Tension {tension}%")
+        y -= 48
+
+    summary = synastry.get('summary_fr') or ''
+    if summary:
+        y = _wrap_text(c, summary, MARGIN, y, W - 2 * MARGIN, "Helvetica", 10.5, 15)
+        y -= 16
+
+    c.setFillColor(GOLD)
+    c.setFont("Helvetica-Oblique", 11)
+    c.drawCentredString(W / 2, max(y, 3 * cm), "Les 12 domaines de votre vie a deux, decodes dans les pages suivantes.")
+
+
+def _p_synastry_areas(c, page_num, areas_chunk):
+    """Rend jusqu'a 3 domaines de vie par page (titre + barre de score + texte FR)."""
+    _p_interior_bg(c, page_num)
+    y = _p_title(c, "Votre synastrie", "Les 12 domaines de vie")
+    for a in areas_chunk:
+        name = a.get('name_fr') or ''
+        score = a.get('score') or 0
+        text = a.get('text_fr') or ''
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Bold", 13)
+        c.drawString(MARGIN, y, name)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawRightString(W - MARGIN, y, f"{score}/100")
+        y -= 10
+        bar_w = W - 2 * MARGIN
+        c.setFillColor(HexColor('#e7ddc9'))
+        c.roundRect(MARGIN, y - 5, bar_w, 5, 2.5, fill=1, stroke=0)
+        c.setFillColor(GOLD)
+        c.roundRect(MARGIN, y - 5, bar_w * max(0.02, min(1.0, score / 100.0)), 5, 2.5, fill=1, stroke=0)
+        y -= 18
+        if text:
+            y = _wrap_text(c, text, MARGIN, y, W - 2 * MARGIN, "Helvetica", 9.5, 13.5)
+        y -= 20
+        if y < 4 * cm:
+            break
+
+
 # ═══════════════════════════════ Fenetres calendrier ═══════════════════════════════
 FR_MONTHS = ['janvier','fevrier','mars','avril','mai','juin',
              'juillet','aout','septembre','octobre','novembre','decembre']
@@ -759,7 +835,8 @@ def _compute_windows(now=None):
 
 class RencontresUltimePDFGenerator:
     def generate(self, birth_date_iso: str, first_name: str, m7_sign: str,
-                 venus_sign: str, mars_sign: str) -> bytes:
+                 venus_sign: str, mars_sign: str,
+                 partner_name: str = '', synastry: dict | None = None) -> bytes:
         buf = io.BytesIO()
         c = canvas.Canvas(buf, pagesize=A4)
         c.setTitle("Guide de Compatibilite Ultime — Plume Astrale")
@@ -787,22 +864,32 @@ class RencontresUltimePDFGenerator:
         _p_maison_vii(c, 9, m7_sign or sun_sign); c.showPage()
         # 10. Portrait-Robot
         _p_portrait_robot(c, 10, m7_sign or sun_sign, first_name); c.showPage()
-        # 11-13. 3 fenetres
+
+        page = 11
+        # 11+. Chapitre Synastrie — 12 domaines de vie (si partenaire fourni)
+        if synastry and synastry.get('areas'):
+            _p_synastry_intro(c, page, first_name, partner_name, synastry); c.showPage(); page += 1
+            areas = synastry['areas']
+            for i in range(0, len(areas), 3):
+                _p_synastry_areas(c, page, areas[i:i + 3]); c.showPage(); page += 1
+
+        # Fenetres de rencontre
         windows = _compute_windows()
         for i, w in enumerate(windows):
-            _p_fenetre(c, 11 + i, i + 1, w['start'], w['end'], w['venus_sign'], w['ritual'])
-            c.showPage()
-        # 14. Rituels
-        _p_rituels(c, 14); c.showPage()
-        # 15. Benediction
-        _p_benediction(c, 15, first_name); c.showPage()
+            _p_fenetre(c, page, i + 1, w['start'], w['end'], w['venus_sign'], w['ritual'])
+            c.showPage(); page += 1
+        # Rituels
+        _p_rituels(c, page); c.showPage(); page += 1
+        # Benediction
+        _p_benediction(c, page, first_name); c.showPage()
 
         c.save()
         return buf.getvalue()
 
 
 def generate_rencontres_ultime_pdf(birth_date_iso: str, first_name: str, m7_sign: str,
-                                    venus_sign: str, mars_sign: str) -> bytes:
+                                    venus_sign: str, mars_sign: str,
+                                    partner_name: str = '', synastry: dict | None = None) -> bytes:
     """Point d'entree public."""
     return RencontresUltimePDFGenerator().generate(
         birth_date_iso=birth_date_iso,
@@ -810,4 +897,6 @@ def generate_rencontres_ultime_pdf(birth_date_iso: str, first_name: str, m7_sign
         m7_sign=m7_sign or 'Balance',
         venus_sign=venus_sign or _sign_from_iso_date(birth_date_iso),
         mars_sign=mars_sign or _sign_from_iso_date(birth_date_iso),
+        partner_name=partner_name or '',
+        synastry=synastry,
     )

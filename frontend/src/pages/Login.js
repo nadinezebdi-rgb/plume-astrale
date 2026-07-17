@@ -47,9 +47,9 @@ const handleSubmit = async (e) => {
     <div className="min-h-screen flex items-center justify-center px-4 pt-20 pb-12" data-testid="login-page">
       <SEO path="/connexion" />
       <div className="w-full max-w-md">
-        <div className="rounded-2xl p-8 md:p-10" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,150,31,0.15)', backdropFilter: 'blur(16px)' }}>
+        <div className="rounded-2xl p-8 md:p-10" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,175,55,0.15)', backdropFilter: 'blur(16px)' }}>
           <div className="flex items-center justify-center gap-3 mb-8">
-            <LogIn className="w-5 h-5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+            <LogIn className="w-5 h-5" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
             <h1 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
               Connexion
             </h1>
@@ -70,9 +70,9 @@ const handleSubmit = async (e) => {
                 onChange={e => setEmail(e.target.value)}
                 required
                 className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
-                style={{ borderColor: 'rgba(184,150,31,0.3)', color: 'var(--pa-body)' }}
-                onFocus={e => e.target.style.borderColor = '#B8961F'}
-                onBlur={e => e.target.style.borderColor = 'rgba(184,150,31,0.3)'}
+                style={{ borderColor: 'rgba(212,175,55,0.3)', color: 'var(--pa-body)' }}
+                onFocus={e => e.target.style.borderColor = '#D4AF37'}
+                onBlur={e => e.target.style.borderColor = 'rgba(212,175,55,0.3)'}
                 data-testid="login-email-input"
               />
             </div>
@@ -84,9 +84,9 @@ const handleSubmit = async (e) => {
                 onChange={e => setPassword(e.target.value)}
                 required
                 className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors pr-10"
-                style={{ borderColor: 'rgba(184,150,31,0.3)', color: 'var(--pa-body)' }}
-                onFocus={e => e.target.style.borderColor = '#B8961F'}
-                onBlur={e => e.target.style.borderColor = 'rgba(184,150,31,0.3)'}
+                style={{ borderColor: 'rgba(212,175,55,0.3)', color: 'var(--pa-body)' }}
+                onFocus={e => e.target.style.borderColor = '#D4AF37'}
+                onBlur={e => e.target.style.borderColor = 'rgba(212,175,55,0.3)'}
                 data-testid="login-password-input"
               />
               <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-0 bottom-2" style={{ color: 'var(--pa-muted)' }}>
@@ -105,8 +105,8 @@ const handleSubmit = async (e) => {
               disabled={loading}
               className="w-full py-3 mt-4 text-xs uppercase tracking-widest rounded-full transition-all duration-500"
               style={{
-                border: '1px solid rgba(184,150,31,0.5)',
-                color: loading ? 'var(--pa-muted)' : '#B8961F',
+                border: '1px solid rgba(212,175,55,0.5)',
+                color: loading ? 'var(--pa-muted)' : '#D4AF37',
                 background: 'transparent',
                 letterSpacing: '0.12em',
               }}
@@ -118,7 +118,7 @@ const handleSubmit = async (e) => {
 
           <p className="text-center mt-6 text-sm" style={{ color: 'var(--pa-muted)' }}>
             Pas encore de compte ?{' '}
-            <Link to="/inscription" className="transition-colors hover:opacity-80" style={{ color: '#B8961F' }} data-testid="login-register-link">
+            <Link to="/inscription" className="transition-colors hover:opacity-80" style={{ color: '#D4AF37' }} data-testid="login-register-link">
               Créer un compte
             </Link>
           </p>

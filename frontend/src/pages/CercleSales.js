@@ -11,7 +11,7 @@ const CercleSales = () => (
       <p style={{ fontSize: 11, letterSpacing: '0.3em', color: '#D4AF37', textTransform: 'uppercase', fontFamily: 'Cinzel, serif', marginBottom: 14 }}>
         L&apos;abonnement Plume Astrale
       </p>
-      <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(34px, 6vw, 56px)', color: '#F0E6D3', fontWeight: 300, lineHeight: 1.05, marginBottom: 18 }}>
+      <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(34px, 6vw, 56px)', color: '#F5EEE0', fontWeight: 300, lineHeight: 1.05, marginBottom: 18 }}>
         Le <em style={{ fontStyle: 'italic', color: '#D4AF37' }}>Cercle</em>
       </h1>
       <p style={{ fontSize: 17, color: 'rgba(184,176,200,0.85)', maxWidth: 540, margin: '0 auto', lineHeight: 1.6 }}>
@@ -32,7 +32,7 @@ const CercleSales = () => (
       <video
         src={asset('videos/cercle-hero.mp4')}
         autoPlay loop muted playsInline
-        style={{ width: '100%', display: 'block', aspectRatio: '16/9', objectFit: 'cover', background: '#0C0918' }}
+        style={{ width: '100%', display: 'block', aspectRatio: '16/9', objectFit: 'cover', background: '#111625' }}
       />
     </div>
 
@@ -42,7 +42,7 @@ const CercleSales = () => (
       border: '1px solid rgba(212,175,55,0.18)',
       borderRadius: 20, padding: '30px 26px', marginBottom: 24,
     }} data-testid="cercle-value">
-      <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 24, color: '#F0E6D3', fontWeight: 400, marginBottom: 22, textAlign: 'center' }}>
+      <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 24, color: '#F5EEE0', fontWeight: 400, marginBottom: 22, textAlign: 'center' }}>
         Ce que tu reçois chaque jour
       </h2>
       {[
@@ -58,7 +58,7 @@ const CercleSales = () => (
             <v.icon style={{ width: 17, height: 17, color: '#D4AF37' }} strokeWidth={1.4} />
           </div>
           <div>
-            <p style={{ fontSize: 16, fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', marginBottom: 4 }}>{v.title}</p>
+            <p style={{ fontSize: 16, fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', marginBottom: 4 }}>{v.title}</p>
             <p style={{ fontSize: 13, color: 'rgba(184,176,200,0.8)', lineHeight: 1.5, margin: 0 }}>{v.desc}</p>
           </div>
         </div>
@@ -82,7 +82,7 @@ const CercleSales = () => (
 
     {/* FAQ */}
     <section data-testid="cercle-faq">
-      <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 24, color: '#F0E6D3', fontWeight: 400, marginBottom: 18, textAlign: 'center' }}>
+      <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 24, color: '#F5EEE0', fontWeight: 400, marginBottom: 18, textAlign: 'center' }}>
         Questions fréquentes
       </h2>
       {[
@@ -97,7 +97,7 @@ const CercleSales = () => (
           border: '1px solid rgba(212,175,55,0.15)',
           borderRadius: 14, padding: '16px 20px', marginBottom: 10,
         }} data-testid={`cercle-faq-${i}`}>
-          <summary style={{ cursor: 'pointer', fontSize: 15, color: '#F0E6D3', fontFamily: 'Cormorant Garamond, serif', listStyle: 'none' }}>
+          <summary style={{ cursor: 'pointer', fontSize: 15, color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif', listStyle: 'none' }}>
             {f.q}
           </summary>
           <p style={{ marginTop: 12, fontSize: 14, color: 'rgba(184,176,200,0.85)', lineHeight: 1.6, fontFamily: 'Cormorant Garamond, serif' }}>

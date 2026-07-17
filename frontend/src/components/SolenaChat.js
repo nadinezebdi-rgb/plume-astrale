@@ -220,7 +220,7 @@ export default function SolenaChat() {
               <div style={{
                 fontFamily: 'Cormorant Garamond, serif',
                 fontSize: '1.15rem',
-                color: '#F4E8D2',
+                color: '#F5EEE0',
                 lineHeight: 1.4,
                 fontStyle: 'italic',
               }}>
@@ -231,7 +231,7 @@ export default function SolenaChat() {
               <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full text-[11px] uppercase"
                 style={{
                   background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
-                  color: '#0C0918', letterSpacing: '0.2em', fontWeight: 700,
+                  color: '#111625', letterSpacing: '0.2em', fontWeight: 700,
                 }}>
                 <MessageCircle style={{ width: 12, height: 12 }} strokeWidth={2} />
                 Ouvrir la conversation
@@ -264,7 +264,7 @@ export default function SolenaChat() {
                 <img src={SOLENA.portrait} alt="Solena" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
               </div>
               <div>
-                <div className="text-sm" style={{ color: '#F4E8D2', fontFamily: 'Cormorant Garamond, serif', fontWeight: 500, letterSpacing: '0.05em' }}>
+                <div className="text-sm" style={{ color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif', fontWeight: 500, letterSpacing: '0.05em' }}>
                   Solena
                 </div>
                 <div className="flex items-center gap-1.5 text-[10px] uppercase" style={{ color: 'rgba(212,175,55,0.7)', letterSpacing: '0.2em' }}>
@@ -309,7 +309,7 @@ export default function SolenaChat() {
                     border: m.role === 'user'
                       ? '1px solid rgba(212,175,55,0.35)'
                       : '1px solid rgba(255,255,255,0.06)',
-                    color: '#F4E8D2',
+                    color: '#F5EEE0',
                     fontSize: '0.95rem',
                     lineHeight: 1.55,
                     fontFamily: m.role === 'assistant' ? 'Cormorant Garamond, serif' : 'inherit',
@@ -374,7 +374,7 @@ export default function SolenaChat() {
                 style={{
                   width: 44, height: 44,
                   background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
-                  color: '#0C0918',
+                  color: '#111625',
                   border: 'none',
                   cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
                   boxShadow: '0 6px 20px rgba(212,175,55,0.35)',

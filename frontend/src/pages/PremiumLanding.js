@@ -125,13 +125,13 @@ const PremiumLanding = () => {
               onClick={handleStart}
               className="flex items-center justify-center gap-2 text-[13px] uppercase tracking-widest px-8 py-3.5 rounded-full transition-all duration-300"
               style={{
-                background: 'linear-gradient(135deg, #B8961F, #D4AF37)',
+                background: 'linear-gradient(135deg, #D4AF37, #D4AF37)',
                 color: '#0B0B0F',
                 fontWeight: 600,
                 letterSpacing: '0.1em',
                 border: 'none',
               }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 24px rgba(184,150,31,0.5)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 24px rgba(212,175,55,0.5)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
               data-testid="premium-start-btn"
             >
@@ -140,9 +140,9 @@ const PremiumLanding = () => {
             <button
               onClick={handlePayment}
               className="flex items-center justify-center gap-2 text-[13px] uppercase tracking-widest px-8 py-3.5 rounded-full transition-all duration-300"
-              style={{ border: '1px solid rgba(184,150,31,0.4)', color: '#B8961F', letterSpacing: '0.1em' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = '#B8961F'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(184,150,31,0.4)'}
+              style={{ border: '1px solid rgba(212,175,55,0.4)', color: '#D4AF37', letterSpacing: '0.1em' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#D4AF37'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(212,175,55,0.4)'}
               data-testid="premium-pay-btn"
             >
               9,99 € / mois — Accès immédiat
@@ -164,7 +164,7 @@ const PremiumLanding = () => {
               return (
                 <div key={i} className="flex items-start gap-5 card-editorial p-6" data-testid={`premium-step-preview-${i}`}>
                   <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ border: '1px solid var(--pa-divider)', background: 'rgba(184,150,31,0.05)' }}>
+                    style={{ border: '1px solid var(--pa-divider)', background: 'rgba(212,175,55,0.05)' }}>
                     <Icon className="w-5 h-5" style={{ color: 'var(--pa-accent)' }} strokeWidth={1.5} />
                   </div>
                   <div className="flex-1">
@@ -217,7 +217,7 @@ const PremiumLanding = () => {
           <div className="card-editorial p-8 md:p-10">
 
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 text-[11px] uppercase tracking-widest"
-              style={{ background: 'rgba(184,150,31,0.12)', border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', letterSpacing: '0.12em' }}>
+              style={{ background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.3)', color: '#D4AF37', letterSpacing: '0.12em' }}>
               ✨ Abonnement mensuel
             </div>
 
@@ -242,7 +242,7 @@ const PremiumLanding = () => {
             {/* Prix */}
             <div className="mb-6">
               <span className="text-5xl" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>9</span>
-              <span className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: '#B8961F' }}>,99</span>
+              <span className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: '#D4AF37' }}>,99</span>
               <span className="text-lg ml-1" style={{ color: 'var(--pa-muted)' }}>€ / mois</span>
             </div>
 
@@ -251,7 +251,7 @@ const PremiumLanding = () => {
               className="w-full flex items-center justify-center gap-2 mb-4"
               data-testid="premium-cta-btn"
               style={{
-                background: 'linear-gradient(135deg, #B8961F, #D4AF37)',
+                background: 'linear-gradient(135deg, #D4AF37, #D4AF37)',
                 color: '#0B0B0F',
                 padding: '14px 28px',
                 borderRadius: '999px',
@@ -263,7 +263,7 @@ const PremiumLanding = () => {
                 border: 'none',
                 cursor: 'pointer',
               }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 24px rgba(184,150,31,0.5)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 24px rgba(212,175,55,0.5)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
               ✨ Devenir Premium
@@ -278,7 +278,7 @@ const PremiumLanding = () => {
             {/* Promo code */}
             <div className="mt-6 pt-6" style={{ borderTop: '1px solid var(--pa-divider)' }}>
               {!showPromo ? (
-                <button onClick={() => setShowPromo(true)} className="text-xs transition-colors duration-300 hover:text-[#B8961F]"
+                <button onClick={() => setShowPromo(true)} className="text-xs transition-colors duration-300 hover:text-[#D4AF37]"
                   style={{ color: 'var(--pa-muted)' }} data-testid="premium-show-promo">
                   <Tag className="w-3 h-3 inline mr-1" strokeWidth={1} /> J'ai un code de réduction
                 </button>

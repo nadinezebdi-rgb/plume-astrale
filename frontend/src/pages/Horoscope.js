@@ -150,7 +150,7 @@ const Horoscope = () => {
         {[1, 2, 3, 4, 5].map((i) => (
           <Star
             key={i}
-            className={`w-4 h-4 ${i <= score ? 'text-[#B8961F] fill-[#B8961F]' : 'text-[#B8B0C8]/20'}`}
+            className={`w-4 h-4 ${i <= score ? 'text-[#D4AF37] fill-[#D4AF37]' : 'text-[#B8B0C8]/20'}`}
             strokeWidth={1}
           />
         ))}
@@ -173,7 +173,7 @@ const Horoscope = () => {
   if (!userData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-12 h-12 border-2 border-[#B8961F] border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -191,11 +191,11 @@ const Horoscope = () => {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <p className="text-[#B8961F] uppercase tracking-[0.3em] text-sm mb-4 font-light">
+            <p className="text-[#D4AF37] uppercase tracking-[0.3em] text-sm mb-4 font-light">
               Votre Horoscope
             </p>
 
-            <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+            <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
               {userSign}
             </h1>
 
@@ -207,7 +207,7 @@ const Horoscope = () => {
             {natalData && (
               <div className="mt-4 flex flex-wrap justify-center gap-3">
                 {natalData.soleil && (
-                  <span className="text-xs px-3 py-1 rounded-full bg-[#B8961F]/10 text-[#B8961F] border border-[#B8961F]/20">
+                  <span className="text-xs px-3 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">
                     ☉ Soleil en {natalData.soleil.signe}
                   </span>
                 )}
@@ -247,8 +247,8 @@ const Horoscope = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm transition-all ${
                   activeTab === tab.id
-                    ? 'bg-[#B8961F] text-[#0C0918]'
-                    : 'bg-[#15112A]/50 text-[#B8B0C8]/70 hover:bg-[#15112A] border border-[#B8961F]/20'
+                    ? 'bg-[#D4AF37] text-[#111625]'
+                    : 'bg-[#15112A]/50 text-[#B8B0C8]/70 hover:bg-[#15112A] border border-[#D4AF37]/20'
                 }`}
                 data-testid={`tab-${tab.id}`}
               >
@@ -261,7 +261,7 @@ const Horoscope = () => {
           {/* Loading State */}
           {loading && (
             <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-[#B8961F]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#D4AF37]" />
             </div>
           )}
 
@@ -270,23 +270,23 @@ const Horoscope = () => {
             <div className="space-y-6 animate-fade-in">
               {/* OVERALL THEME (Astrology API v3) */}
               {apiData?.overall_theme && (
-                <div className="card-mystical border border-[#B8961F]/20">
+                <div className="card-mystical border border-[#D4AF37]/20">
                   <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                    <h2 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                    <h2 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                       {titleMap[activeTab]}
                     </h2>
                     <div className="flex items-center gap-3">
                       {typeof apiData.overall_rating === 'number' && renderStars(apiData.overall_rating)}
-                      <span className="text-[#B8961F] text-sm">{apiData.date || ''}</span>
+                      <span className="text-[#D4AF37] text-sm">{apiData.date || ''}</span>
                     </div>
                   </div>
-                  <p className="text-[#F0E6D3]/85 leading-relaxed text-base" style={{ fontFamily: 'Cormorant Garamond, serif', lineHeight: '1.85' }}>
+                  <p className="text-[#F5EEE0]/85 leading-relaxed text-base" style={{ fontFamily: 'Cormorant Garamond, serif', lineHeight: '1.85' }}>
                     {apiData.overall_theme}
                   </p>
                   {apiData.keywords && Array.isArray(apiData.keywords) && apiData.keywords.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
                       {apiData.keywords.slice(0, 6).map((k, i) => (
-                        <span key={i} className="text-xs px-3 py-1 rounded-full bg-[#B8961F]/10 text-[#B8961F] border border-[#B8961F]/20">
+                        <span key={i} className="text-xs px-3 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">
                           {k}
                         </span>
                       ))}
@@ -307,7 +307,7 @@ const Horoscope = () => {
                             <Star className="w-5 h-5" strokeWidth={1.2} fill="currentColor" />
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-[#F0E6D3]">{area.title || meta.label}</h3>
+                            <h3 className="text-[#F5EEE0]">{area.title || meta.label}</h3>
                             {typeof area.rating === 'number' && renderStars(area.rating)}
                           </div>
                         </div>
@@ -315,7 +315,7 @@ const Horoscope = () => {
                           {area.prediction || area.text || ''}
                         </p>
                         {area.advice && (
-                          <p className="mt-3 text-xs italic text-[#B8961F]/85">
+                          <p className="mt-3 text-xs italic text-[#D4AF37]/85">
                             <span style={{ letterSpacing: '0.1em' }}>CONSEIL —</span> {area.advice}
                           </p>
                         )}
@@ -329,28 +329,28 @@ const Horoscope = () => {
                   <div className="card-mystical">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 rounded-full bg-pink-500/20 text-pink-400"><Heart className="w-5 h-5" strokeWidth={1} /></div>
-                      <div className="flex-1"><h3 className="text-[#F0E6D3]">Amour</h3>{renderStars(currentHoroscope.amour.score)}</div>
+                      <div className="flex-1"><h3 className="text-[#F5EEE0]">Amour</h3>{renderStars(currentHoroscope.amour.score)}</div>
                     </div>
                     <p className="text-[#B8B0C8]/70 text-sm font-light">{currentHoroscope.amour.text}</p>
                   </div>
                   <div className="card-mystical">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 rounded-full bg-blue-500/20 text-blue-400"><Briefcase className="w-5 h-5" strokeWidth={1} /></div>
-                      <div className="flex-1"><h3 className="text-[#F0E6D3]">Travail</h3>{renderStars(currentHoroscope.travail.score)}</div>
+                      <div className="flex-1"><h3 className="text-[#F5EEE0]">Travail</h3>{renderStars(currentHoroscope.travail.score)}</div>
                     </div>
                     <p className="text-[#B8B0C8]/70 text-sm font-light">{currentHoroscope.travail.text}</p>
                   </div>
                   <div className="card-mystical">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 rounded-full bg-emerald-500/20 text-emerald-400"><Activity className="w-5 h-5" strokeWidth={1} /></div>
-                      <div className="flex-1"><h3 className="text-[#F0E6D3]">Santé</h3>{renderStars(currentHoroscope.sante.score)}</div>
+                      <div className="flex-1"><h3 className="text-[#F5EEE0]">Santé</h3>{renderStars(currentHoroscope.sante.score)}</div>
                     </div>
                     <p className="text-[#B8B0C8]/70 text-sm font-light">{currentHoroscope.sante.text}</p>
                   </div>
                   <div className="card-mystical">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="p-2 rounded-full bg-[#B8961F]/20 text-[#B8961F]"><Coins className="w-5 h-5" strokeWidth={1} /></div>
-                      <div className="flex-1"><h3 className="text-[#F0E6D3]">Finances</h3>{renderStars(currentHoroscope.finance.score)}</div>
+                      <div className="p-2 rounded-full bg-[#D4AF37]/20 text-[#D4AF37]"><Coins className="w-5 h-5" strokeWidth={1} /></div>
+                      <div className="flex-1"><h3 className="text-[#F5EEE0]">Finances</h3>{renderStars(currentHoroscope.finance.score)}</div>
                     </div>
                     <p className="text-[#B8B0C8]/70 text-sm font-light">{currentHoroscope.finance.text}</p>
                   </div>
@@ -360,13 +360,13 @@ const Horoscope = () => {
               {/* PLANETARY INFLUENCES (v3) */}
               {apiData?.planetary_influences && Array.isArray(apiData.planetary_influences) && apiData.planetary_influences.length > 0 && (
                 <div className="card-mystical">
-                  <h3 className="text-sm tracking-widest uppercase mb-4 text-[#B8961F]" style={{ letterSpacing: '0.12em' }}>
+                  <h3 className="text-sm tracking-widest uppercase mb-4 text-[#D4AF37]" style={{ letterSpacing: '0.12em' }}>
                     Influences planétaires
                   </h3>
                   <div className="space-y-3">
                     {apiData.planetary_influences.map((pi, i) => (
                       <div key={i} className="text-sm">
-                        <span className="text-[#B8961F] font-medium">{pi.planet || pi.name}</span>
+                        <span className="text-[#D4AF37] font-medium">{pi.planet || pi.name}</span>
                         {pi.aspect && <span className="text-[#B8B0C8]/50"> — {pi.aspect}</span>}
                         {pi.description && <p className="text-[#B8B0C8]/70 mt-1">{pi.description}</p>}
                       </div>
@@ -378,13 +378,13 @@ const Horoscope = () => {
               {/* Planetary Details (natal chart sidebar) */}
               {natalData?.planetes && (
                 <div className="card-mystical">
-                  <h3 className="text-lg mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                  <h3 className="text-lg mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                     Positions Planétaires Natales
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {natalData.planetes.slice(0, 9).map((p, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
-                        <span className="text-[#B8961F]">{p.nom}</span>
+                        <span className="text-[#D4AF37]">{p.nom}</span>
                         <span className="text-[#B8B0C8]/50">→</span>
                         <span className="text-[#B8B0C8]/80">{p.signe}</span>
                         {p.retrograde && <span className="text-xs text-red-400">℞</span>}
@@ -397,32 +397,32 @@ const Horoscope = () => {
               {/* LUCKY ELEMENTS (v3) */}
               {apiData?.lucky_elements && (
                 <div className="card-mystical text-center">
-                  <h3 className="text-lg mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                  <h3 className="text-lg mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                     Éléments chanceux
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     {apiData.lucky_elements.numbers && (
                       <div>
-                        <p className="text-[#B8961F]/70 text-xs uppercase tracking-widest mb-2">Nombres</p>
-                        <p className="text-[#F0E6D3]">{(apiData.lucky_elements.numbers || []).join(' · ')}</p>
+                        <p className="text-[#D4AF37]/70 text-xs uppercase tracking-widest mb-2">Nombres</p>
+                        <p className="text-[#F5EEE0]">{(apiData.lucky_elements.numbers || []).join(' · ')}</p>
                       </div>
                     )}
                     {apiData.lucky_elements.colors && (
                       <div>
-                        <p className="text-[#B8961F]/70 text-xs uppercase tracking-widest mb-2">Couleurs</p>
-                        <p className="text-[#F0E6D3]">{(apiData.lucky_elements.colors || []).join(' · ')}</p>
+                        <p className="text-[#D4AF37]/70 text-xs uppercase tracking-widest mb-2">Couleurs</p>
+                        <p className="text-[#F5EEE0]">{(apiData.lucky_elements.colors || []).join(' · ')}</p>
                       </div>
                     )}
                     {apiData.lucky_elements.days && (
                       <div>
-                        <p className="text-[#B8961F]/70 text-xs uppercase tracking-widest mb-2">Jours</p>
-                        <p className="text-[#F0E6D3]">{(apiData.lucky_elements.days || []).join(' · ')}</p>
+                        <p className="text-[#D4AF37]/70 text-xs uppercase tracking-widest mb-2">Jours</p>
+                        <p className="text-[#F5EEE0]">{(apiData.lucky_elements.days || []).join(' · ')}</p>
                       </div>
                     )}
                     {apiData.lucky_elements.gemstones && (
                       <div>
-                        <p className="text-[#B8961F]/70 text-xs uppercase tracking-widest mb-2">Pierres</p>
-                        <p className="text-[#F0E6D3]">{(apiData.lucky_elements.gemstones || []).join(' · ')}</p>
+                        <p className="text-[#D4AF37]/70 text-xs uppercase tracking-widest mb-2">Pierres</p>
+                        <p className="text-[#F5EEE0]">{(apiData.lucky_elements.gemstones || []).join(' · ')}</p>
                       </div>
                     )}
                   </div>

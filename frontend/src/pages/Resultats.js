@@ -374,7 +374,7 @@ const Resultats = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-2 border-[#B8961F] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-[#B8B0C8]/70">Calcul de votre thème astral...</p>
         </div>
       </div>
@@ -409,12 +409,12 @@ const Resultats = () => {
               <span>Étude Complète Débloquée</span>
             </div>
             
-            <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+            <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
               Votre Manuscrit Céleste
             </h1>
             
             {userData.prenom && (
-              <p className="text-xl text-[#B8961F] mb-4">
+              <p className="text-xl text-[#D4AF37] mb-4">
                 {userData.prenom}, découvrez qui vous êtes vraiment
               </p>
             )}
@@ -441,7 +441,7 @@ const Resultats = () => {
               <button 
                 onClick={downloadCheminAme}
                 disabled={isDownloadingChemin}
-                className="btn-mystical rounded-full flex items-center gap-2 text-sm disabled:opacity-50 border-[#B8961F]" 
+                className="btn-mystical rounded-full flex items-center gap-2 text-sm disabled:opacity-50 border-[#D4AF37]" 
                 data-testid="btn-download-chemin"
               >
                 {isDownloadingChemin ? (
@@ -456,17 +456,17 @@ const Resultats = () => {
             {/* Promo Code */}
             <div className="mt-4">
               {!showPromo ? (
-                <button onClick={() => setShowPromo(true)} className="text-[#B8961F]/60 hover:text-[#B8961F] text-sm underline transition-colors" data-testid="show-promo-btn">
+                <button onClick={() => setShowPromo(true)} className="text-[#D4AF37]/60 hover:text-[#D4AF37] text-sm underline transition-colors" data-testid="show-promo-btn">
                   <Tag className="w-3 h-3 inline mr-1" /> J'ai un code de reduction
                 </button>
               ) : (
                 <div className="max-w-sm mx-auto space-y-2">
                   <div className="flex gap-2">
                     <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#B8961F]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#B8961F] text-sm"
+                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#111625] border border-[#D4AF37]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#D4AF37] text-sm"
                       data-testid="promo-input" />
                     <button onClick={handleApplyPromo} disabled={promoLoading}
-                      className="px-5 py-2 bg-[#B8961F]/20 border border-[#B8961F]/50 rounded-full text-[#B8961F] hover:bg-[#B8961F]/30 text-sm disabled:opacity-50"
+                      className="px-5 py-2 bg-[#D4AF37]/20 border border-[#D4AF37]/50 rounded-full text-[#D4AF37] hover:bg-[#D4AF37]/30 text-sm disabled:opacity-50"
                       data-testid="apply-promo-btn">
                       {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
                     </button>
@@ -478,9 +478,9 @@ const Resultats = () => {
             </div>
 
             {/* Share Section */}
-            <div className="mt-6 p-5 rounded-sm bg-gradient-to-r from-[#1C1735]/60 to-[#15112A]/60 border border-[#B8961F]/20">
+            <div className="mt-6 p-5 rounded-sm bg-gradient-to-r from-[#1C1735]/60 to-[#15112A]/60 border border-[#D4AF37]/20">
               <div className="text-center">
-                <p className="text-[#F0E6D3] font-medium mb-1" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                <p className="text-[#F5EEE0] font-medium mb-1" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                   Partagez votre profil astral
                 </p>
                 <p className="text-[#B8B0C8]/50 text-sm mb-4">
@@ -510,7 +510,7 @@ const Resultats = () => {
                   </button>
                   <button
                     onClick={copyShareLink}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#B8961F]/10 border border-[#B8961F]/30 text-[#B8961F] hover:bg-[#B8961F]/20 transition-all text-sm"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/20 transition-all text-sm"
                     data-testid="share-copy-btn"
                   >
                     {linkCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -521,12 +521,12 @@ const Resultats = () => {
             </div>
             
             {/* Book promotion */}
-            <div className="mt-8 p-4 rounded-sm bg-gradient-to-r from-[#B8961F]/10 to-transparent border border-[#B8961F]/30">
+            <div className="mt-8 p-4 rounded-sm bg-gradient-to-r from-[#D4AF37]/10 to-transparent border border-[#D4AF37]/30">
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <div className="flex items-center gap-3">
-                  <Gift className="w-8 h-8 text-[#B8961F]" />
+                  <Gift className="w-8 h-8 text-[#D4AF37]" />
                   <div className="text-left">
-                    <p className="text-[#F0E6D3] font-medium">Envie d'un livre à offrir ?</p>
+                    <p className="text-[#F5EEE0] font-medium">Envie d'un livre à offrir ?</p>
                     <p className="text-[#B8B0C8]/60 text-sm">Recevez votre manuscrit imprimé en édition reliée</p>
                   </div>
                 </div>
@@ -550,8 +550,8 @@ const Resultats = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm transition-all duration-300 ${
                   activeTab === tab.id 
-                    ? 'bg-[#B8961F] text-[#0C0918]' 
-                    : 'bg-[#15112A]/50 text-[#B8B0C8]/70 hover:bg-[#15112A] border border-[#B8961F]/20'
+                    ? 'bg-[#D4AF37] text-[#111625]' 
+                    : 'bg-[#15112A]/50 text-[#B8B0C8]/70 hover:bg-[#15112A] border border-[#D4AF37]/20'
                 }`}
                 data-testid={`tab-${tab.id}`}
               >
@@ -570,14 +570,14 @@ const Resultats = () => {
                 <div className="card-mystical">
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-4">
-                      <div className="p-4 rounded-full bg-[#B8961F]/10 text-[#B8961F]">
+                      <div className="p-4 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
                         <Sun className="w-8 h-8" strokeWidth={1} />
                       </div>
                       <div>
-                        <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                        <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                           Votre Soleil
                         </h2>
-                        <p className="text-[#B8961F]">
+                        <p className="text-[#D4AF37]">
                           {sunPlanet ? `${getSigneFrancais(sunPlanet.sign)} • Maison ${sunPlanet.house}` : `Chemin de Vie ${cheminVie}`}
                         </p>
                       </div>
@@ -585,15 +585,15 @@ const Resultats = () => {
                     {sunPlanet && (
                       <div className="text-right">
                         <span className="text-[#B8B0C8]/50 text-sm">Position</span>
-                        <p className="text-[#B8961F]">{sunPlanet.normDegree?.toFixed(1)}°</p>
+                        <p className="text-[#D4AF37]">{sunPlanet.normDegree?.toFixed(1)}°</p>
                       </div>
                     )}
                   </div>
                   <p className="text-[#B8B0C8]/80 leading-relaxed font-light mb-6">
                     {sunPlanet ? (
                       <>
-                        Votre Soleil en <span className="text-[#B8961F]">{getSigneFrancais(sunPlanet.sign)}</span> révèle 
-                        votre essence profonde et votre identité fondamentale. Situé dans la <span className="text-[#B8961F]">Maison {sunPlanet.house}</span>, 
+                        Votre Soleil en <span className="text-[#D4AF37]">{getSigneFrancais(sunPlanet.sign)}</span> révèle 
+                        votre essence profonde et votre identité fondamentale. Situé dans la <span className="text-[#D4AF37]">Maison {sunPlanet.house}</span>, 
                         il éclaire particulièrement le domaine de votre vie lié à cette maison. 
                         Combiné à votre chemin de vie {cheminVie} ({cheminVieInfo.titre}), vous rayonnez d'une énergie unique.
                       </>
@@ -606,8 +606,8 @@ const Resultats = () => {
                     )}
                   </p>
                   {sunPlanet && (
-                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#B8961F]/10">
-                      <p className="text-[#B8961F] text-sm mb-2">Caractéristiques du Soleil en {getSigneFrancais(sunPlanet.sign)}</p>
+                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#D4AF37]/10">
+                      <p className="text-[#D4AF37] text-sm mb-2">Caractéristiques du Soleil en {getSigneFrancais(sunPlanet.sign)}</p>
                       <p className="text-[#B8B0C8]/60 font-light text-sm">
                         Élément {getElementFromSign(getSigneFrancais(sunPlanet.sign))} • 
                         {sunPlanet.isRetro === 'true' ? ' Rétrograde' : ' Direct'} • 
@@ -621,14 +621,14 @@ const Resultats = () => {
                 <div className="card-mystical">
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-4">
-                      <div className="p-4 rounded-full bg-[#B8961F]/10 text-[#B8961F]">
+                      <div className="p-4 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
                         <Moon className="w-8 h-8" strokeWidth={1} />
                       </div>
                       <div>
-                        <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                        <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                           Votre Lune
                         </h2>
-                        <p className="text-[#B8961F]">
+                        <p className="text-[#D4AF37]">
                           {moonPlanet ? `${getSigneFrancais(moonPlanet.sign)} • Maison ${moonPlanet.house}` : 'Votre monde émotionnel'}
                         </p>
                       </div>
@@ -636,14 +636,14 @@ const Resultats = () => {
                     {moonPlanet && (
                       <div className="text-right">
                         <span className="text-[#B8B0C8]/50 text-sm">Position</span>
-                        <p className="text-[#B8961F]">{moonPlanet.normDegree?.toFixed(1)}°</p>
+                        <p className="text-[#D4AF37]">{moonPlanet.normDegree?.toFixed(1)}°</p>
                       </div>
                     )}
                   </div>
                   <p className="text-[#B8B0C8]/80 leading-relaxed font-light">
                     {moonPlanet ? (
                       <>
-                        Votre Lune en <span className="text-[#B8961F]">{getSigneFrancais(moonPlanet.sign)}</span> représente 
+                        Votre Lune en <span className="text-[#D4AF37]">{getSigneFrancais(moonPlanet.sign)}</span> représente 
                         votre moi caché, votre monde émotionnel et votre sensibilité intérieure. 
                         Influencée par l'élément {getElementFromSign(getSigneFrancais(moonPlanet.sign))}, vous possédez 
                         une intelligence émotionnelle remarquable. La Maison {moonPlanet.house} colore la façon dont vous 
@@ -664,14 +664,14 @@ const Resultats = () => {
                 <div className="card-mystical">
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-4">
-                      <div className="p-4 rounded-full bg-[#B8961F]/10 text-[#B8961F]">
+                      <div className="p-4 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
                         <Star className="w-8 h-8" strokeWidth={1} />
                       </div>
                       <div>
-                        <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                        <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                           Ascendant {ascendantPlanet ? getSigneFrancais(ascendantPlanet.sign) : ascendant}
                         </h2>
-                        <p className="text-[#B8961F]">
+                        <p className="text-[#D4AF37]">
                           Élément {ascendantPlanet ? getElementFromSign(getSigneFrancais(ascendantPlanet.sign)) : ascendantInfo.element} • Votre masque social
                         </p>
                       </div>
@@ -679,14 +679,14 @@ const Resultats = () => {
                     {ascendantPlanet && (
                       <div className="text-right">
                         <span className="text-[#B8B0C8]/50 text-sm">Position</span>
-                        <p className="text-[#B8961F]">{ascendantPlanet.normDegree?.toFixed(1)}°</p>
+                        <p className="text-[#D4AF37]">{ascendantPlanet.normDegree?.toFixed(1)}°</p>
                       </div>
                     )}
                   </div>
                   <p className="text-[#B8B0C8]/80 leading-relaxed font-light mb-4">
                     {ascendantPlanet ? (
                       <>
-                        Votre Ascendant en <span className="text-[#B8961F]">{getSigneFrancais(ascendantPlanet.sign)}</span> est 
+                        Votre Ascendant en <span className="text-[#D4AF37]">{getSigneFrancais(ascendantPlanet.sign)}</span> est 
                         votre masque social, la première impression que vous donnez aux autres. Il influence votre apparence 
                         physique et votre façon d'aborder le monde.
                       </>
@@ -694,8 +694,8 @@ const Resultats = () => {
                       ascendantInfo.description
                     )}
                   </p>
-                  <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#B8961F]/10">
-                    <p className="text-[#B8961F] text-sm mb-2">Traits dominants</p>
+                  <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#D4AF37]/10">
+                    <p className="text-[#D4AF37] text-sm mb-2">Traits dominants</p>
                     <p className="text-[#B8B0C8]/60 font-light">{ascendantInfo.traits}</p>
                   </div>
                 </div>
@@ -703,16 +703,16 @@ const Resultats = () => {
                 {/* Planètes supplémentaires */}
                 {planetsData && (
                   <div className="card-mystical">
-                    <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                    <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                       Positions Planétaires Complètes
                     </h3>
                     <div className="grid md:grid-cols-2 gap-4">
                       {planetsData.filter(p => !['Sun', 'Moon', 'Ascendant'].includes(p.name)).slice(0, 6).map((planet, index) => (
-                        <div key={index} className="bg-[#15112A]/50 rounded-sm p-4 border border-[#B8961F]/10">
+                        <div key={index} className="bg-[#15112A]/50 rounded-sm p-4 border border-[#D4AF37]/10">
                           <div className="flex justify-between items-start">
                             <div>
-                              <p className="text-[#F0E6D3]">{planet.name}</p>
-                              <p className="text-[#B8961F] text-sm">{getSigneFrancais(planet.sign)}</p>
+                              <p className="text-[#F5EEE0]">{planet.name}</p>
+                              <p className="text-[#D4AF37] text-sm">{getSigneFrancais(planet.sign)}</p>
                             </div>
                             <div className="text-right">
                               <p className="text-[#B8B0C8]/60 text-sm">Maison {planet.house}</p>
@@ -732,11 +732,11 @@ const Resultats = () => {
               <div className="space-y-8 animate-fade-in">
                 <div className="card-mystical">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#B8961F]/10 text-[#B8961F]">
+                    <div className="p-4 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
                       <Star className="w-8 h-8" strokeWidth={1} />
                     </div>
                     <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                         Chemin de Vie {cheminVie} : {cheminVieInfo.titre}
                       </h2>
                     </div>
@@ -744,28 +744,28 @@ const Resultats = () => {
                   
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-[#B8961F] mb-3 flex items-center gap-2">
+                      <h3 className="text-[#D4AF37] mb-3 flex items-center gap-2">
                         <Sparkles className="w-4 h-4" /> Vos Dons Naturels
                       </h3>
                       <p className="text-[#B8B0C8]/80 font-light leading-relaxed">{cheminVieInfo.dons}</p>
                     </div>
                     
-                    <div className="border-t border-[#B8961F]/10 pt-6">
-                      <h3 className="text-[#B8961F] mb-3 flex items-center gap-2">
+                    <div className="border-t border-[#D4AF37]/10 pt-6">
+                      <h3 className="text-[#D4AF37] mb-3 flex items-center gap-2">
                         <Zap className="w-4 h-4" /> Vos Défis Principaux
                       </h3>
                       <p className="text-[#B8B0C8]/80 font-light leading-relaxed">{cheminVieInfo.defis}</p>
                     </div>
                     
-                    <div className="border-t border-[#B8961F]/10 pt-6">
-                      <h3 className="text-[#B8961F] mb-3 flex items-center gap-2">
+                    <div className="border-t border-[#D4AF37]/10 pt-6">
+                      <h3 className="text-[#D4AF37] mb-3 flex items-center gap-2">
                         <Star className="w-4 h-4" /> Votre Mission
                       </h3>
                       <p className="text-[#B8B0C8]/80 font-light leading-relaxed">{cheminVieInfo.mission}</p>
                     </div>
                     
-                    <div className="bg-[#B8961F]/10 rounded-sm p-6 border border-[#B8961F]/20">
-                      <h3 className="text-[#F0E6D3] mb-3">Conseils d'Évolution</h3>
+                    <div className="bg-[#D4AF37]/10 rounded-sm p-6 border border-[#D4AF37]/20">
+                      <h3 className="text-[#F5EEE0] mb-3">Conseils d'Évolution</h3>
                       <p className="text-[#B8B0C8]/80 font-light leading-relaxed">{cheminVieInfo.conseils}</p>
                     </div>
                   </div>
@@ -774,11 +774,11 @@ const Resultats = () => {
                 {/* Année Personnelle */}
                 <div className="card-mystical">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#B8961F]/10 text-[#B8961F]">
+                    <div className="p-4 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
                       <Moon className="w-8 h-8" strokeWidth={1} />
                     </div>
                     <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                         Année Personnelle 2026 : {anneePersonnelle}
                       </h2>
                     </div>
@@ -790,12 +790,12 @@ const Resultats = () => {
                   </p>
                   
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#B8961F]/10">
-                      <p className="text-[#B8961F] text-sm mb-2">Périodes favorables</p>
+                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#D4AF37]/10">
+                      <p className="text-[#D4AF37] text-sm mb-2">Périodes favorables</p>
                       <p className="text-[#B8B0C8]/60 font-light text-sm">Mars-Mai et Septembre-Novembre</p>
                     </div>
-                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#B8961F]/10">
-                      <p className="text-[#B8961F] text-sm mb-2">Points d'attention</p>
+                    <div className="bg-[#15112A]/50 rounded-sm p-4 border border-[#D4AF37]/10">
+                      <p className="text-[#D4AF37] text-sm mb-2">Points d'attention</p>
                       <p className="text-[#B8B0C8]/60 font-light text-sm">Évitez les décisions impulsives en juin-juillet</p>
                     </div>
                   </div>
@@ -808,11 +808,11 @@ const Resultats = () => {
               <div className="space-y-8 animate-fade-in">
                 <div className="card-mystical">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#B8961F]/10 text-[#B8961F]">
+                    <div className="p-4 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
                       <Heart className="w-8 h-8" strokeWidth={1} />
                     </div>
                     <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                         Vénus - Votre Langage Amoureux
                       </h2>
                     </div>
@@ -826,11 +826,11 @@ const Resultats = () => {
 
                 <div className="card-mystical">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#B8961F]/10 text-[#B8961F]">
+                    <div className="p-4 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
                       <Zap className="w-8 h-8" strokeWidth={1} />
                     </div>
                     <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                         Mars - Votre Force d'Action
                       </h2>
                     </div>
@@ -841,8 +841,8 @@ const Resultats = () => {
                   </p>
                 </div>
 
-                <div className="card-mystical bg-[#B8961F]/5">
-                  <h3 className="text-xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                <div className="card-mystical bg-[#D4AF37]/5">
+                  <h3 className="text-xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                     Synthèse Affective
                   </h3>
                   <p className="text-[#B8B0C8]/80 font-light leading-relaxed">
@@ -858,7 +858,7 @@ const Resultats = () => {
             {activeTab === 'defis' && (
               <div className="animate-fade-in">
                 <div className="card-mystical mb-8">
-                  <h2 className="text-2xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                  <h2 className="text-2xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                     Aspects Planétaires de Votre Thème
                   </h2>
                   <p className="text-[#B8B0C8]/70 font-light mb-8">
@@ -868,7 +868,7 @@ const Resultats = () => {
                   
                   <div className="space-y-6">
                     {aspectsPlanetaires.map((aspect, index) => (
-                      <div key={index} className="bg-[#15112A]/50 rounded-sm p-6 border border-[#B8961F]/10">
+                      <div key={index} className="bg-[#15112A]/50 rounded-sm p-6 border border-[#D4AF37]/10">
                         <div className="flex items-center gap-3 mb-3">
                           <span className={`px-3 py-1 rounded-full text-xs ${
                             aspect.aspect === 'Trigone' ? 'bg-emerald-500/20 text-emerald-400' :
@@ -877,7 +877,7 @@ const Resultats = () => {
                           }`}>
                             {aspect.aspect}
                           </span>
-                          <span className="text-[#F0E6D3]">{aspect.planetes}</span>
+                          <span className="text-[#F5EEE0]">{aspect.planetes}</span>
                         </div>
                         <p className="text-[#B8B0C8]/70 font-light text-sm">{aspect.description}</p>
                       </div>
@@ -892,11 +892,11 @@ const Resultats = () => {
               <div className="space-y-8 animate-fade-in">
                 <div className="card-mystical">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="p-4 rounded-full bg-[#B8961F]/10 text-[#B8961F]">
+                    <div className="p-4 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">
                       <Sparkles className="w-8 h-8" strokeWidth={1} />
                     </div>
                     <div>
-                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                      <h2 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                         Message de la Plume Astrale
                       </h2>
                     </div>
@@ -908,36 +908,36 @@ const Resultats = () => {
                     et créative destinée à construire et à inspirer.
                   </p>
                   
-                  <div className="bg-[#B8961F]/10 rounded-sm p-6 border border-[#B8961F]/20 mb-8">
-                    <p className="text-[#F0E6D3] text-center italic" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                  <div className="bg-[#D4AF37]/10 rounded-sm p-6 border border-[#D4AF37]/20 mb-8">
+                    <p className="text-[#F5EEE0] text-center italic" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                       "Que les étoiles vous guident, que la Plume vous éclaire, 
                       et que votre destinée se révèle dans toute sa splendeur."
                     </p>
                   </div>
                   
-                  <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                  <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                     Trois Clés Essentielles pour 2026
                   </h3>
                   
                   <div className="space-y-4">
                     <div className="flex gap-4">
-                      <div className="w-8 h-8 rounded-full bg-[#B8961F]/20 flex items-center justify-center text-[#B8961F] flex-shrink-0">1</div>
+                      <div className="w-8 h-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] flex-shrink-0">1</div>
                       <div>
-                        <p className="text-[#F0E6D3] mb-1">Honorez votre essence d'Artiste</p>
+                        <p className="text-[#F5EEE0] mb-1">Honorez votre essence d'Artiste</p>
                         <p className="text-[#B8B0C8]/60 font-light text-sm">Inspirez, communiquez la joie, élevez les vibrations.</p>
                       </div>
                     </div>
                     <div className="flex gap-4">
-                      <div className="w-8 h-8 rounded-full bg-[#B8961F]/20 flex items-center justify-center text-[#B8961F] flex-shrink-0">2</div>
+                      <div className="w-8 h-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] flex-shrink-0">2</div>
                       <div>
-                        <p className="text-[#F0E6D3] mb-1">Cultivez la force de votre élément Terre</p>
+                        <p className="text-[#F5EEE0] mb-1">Cultivez la force de votre élément Terre</p>
                         <p className="text-[#B8B0C8]/60 font-light text-sm">Maîtrisez et utilisez consciemment vos outils de navigation.</p>
                       </div>
                     </div>
                     <div className="flex gap-4">
-                      <div className="w-8 h-8 rounded-full bg-[#B8961F]/20 flex items-center justify-center text-[#B8961F] flex-shrink-0">3</div>
+                      <div className="w-8 h-8 rounded-full bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] flex-shrink-0">3</div>
                       <div>
-                        <p className="text-[#F0E6D3] mb-1">Transformez les défis en sagesse</p>
+                        <p className="text-[#F5EEE0] mb-1">Transformez les défis en sagesse</p>
                         <p className="text-[#B8B0C8]/60 font-light text-sm">Les aspects difficiles sont des invitations à grandir.</p>
                       </div>
                     </div>
@@ -948,7 +948,7 @@ const Resultats = () => {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {conseilsAlignement.map((conseil, index) => (
                     <div key={index} className="card-mystical">
-                      <h4 className="text-[#B8961F] mb-3">{conseil.domaine}</h4>
+                      <h4 className="text-[#D4AF37] mb-3">{conseil.domaine}</h4>
                       <p className="text-[#B8B0C8]/70 font-light text-sm">{conseil.conseil}</p>
                     </div>
                   ))}
@@ -960,7 +960,7 @@ const Resultats = () => {
           {/* Footer */}
           <div className="mt-16 text-center">
             <div className="card-mystical p-8 glow-gold">
-              <h2 className="text-2xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+              <h2 className="text-2xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                 Votre Voyage ne Fait que Commencer
               </h2>
               <p className="text-[#B8B0C8]/60 mb-6 font-light">

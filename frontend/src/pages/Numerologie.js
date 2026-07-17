@@ -127,8 +127,8 @@ const Numerologie = () => {
 
   // ── Couleurs par nombre ──────────────────────────────────────────────────────
   const numColor = (n) => {
-    const colors = { 1:'#F87171',2:'#60A5FA',3:'#FBBF24',4:'#34D399',5:'#A78BFA',6:'#F472B6',7:'#38BDF8',8:'#FB923C',9:'#A3E635',11:'#E879F9',22:'#B8961F',33:'#FDE68A' };
-    return colors[n] || '#B8961F';
+    const colors = { 1:'#F87171',2:'#60A5FA',3:'#FBBF24',4:'#34D399',5:'#A78BFA',6:'#F472B6',7:'#38BDF8',8:'#FB923C',9:'#A3E635',11:'#E879F9',22:'#D4AF37',33:'#FDE68A' };
+    return colors[n] || '#D4AF37';
   };
 
   // ── Helper: obtenir description FR pour un nombre ──────────────────────────
@@ -180,13 +180,13 @@ const Numerologie = () => {
               </p>
             </div>
             <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--pa-surface)', border: '1px solid var(--pa-divider)' }}>
-              <LogIn className="w-9 h-9 mx-auto mb-5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+              <LogIn className="w-9 h-9 mx-auto mb-5" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
               <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Connexion requise</h2>
               <p className="text-sm mb-1" style={{ color: 'var(--pa-muted)' }}>Connectez-vous pour accéder à votre profil numérologique.</p>
-              <p className="text-sm mb-7" style={{ color: '#B8961F' }}>10 crédits · 20 crédits offerts à l'inscription</p>
+              <p className="text-sm mb-7" style={{ color: '#D4AF37' }}>10 crédits · 20 crédits offerts à l'inscription</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full hover:bg-[rgba(184,150,31,0.08)] transition-all" style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', letterSpacing: '0.1em' }}>Se connecter</button>
-                <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full transition-all" style={{ border: '1px solid #B8961F', color: '#0C0918', background: '#B8961F', letterSpacing: '0.1em', fontWeight: 600 }}>Créer un compte</button>
+                <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full hover:bg-[rgba(212,175,55,0.08)] transition-all" style={{ border: '1px solid rgba(212,175,55,0.5)', color: '#D4AF37', letterSpacing: '0.1em' }}>Se connecter</button>
+                <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full transition-all" style={{ border: '1px solid #D4AF37', color: '#111625', background: '#D4AF37', letterSpacing: '0.1em', fontWeight: 600 }}>Créer un compte</button>
               </div>
             </div>
           </div>
@@ -218,7 +218,7 @@ const Numerologie = () => {
 
           {/* Info crédits */}
           <div className="mb-8 flex items-center gap-2">
-            <Coins className="w-4 h-4 flex-shrink-0" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+            <Coins className="w-4 h-4 flex-shrink-0" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
             <span className="text-xs" style={{ color: 'var(--pa-accent)', letterSpacing: '0.08em' }}>
               10 crédits · Solde : {creditBalance} crédits
             </span>
@@ -235,7 +235,7 @@ const Numerologie = () => {
                     { icon: <Heart className="w-4 h-4" strokeWidth={1.5} />, title: "Nombre de l'Âme", desc: 'Dérivé des voyelles de votre prénom, il exprime vos désirs les plus profonds et ce que votre âme cherche véritablement.', color: '#C97878' },
                     { icon: <BookOpen className="w-4 h-4" strokeWidth={1.5} />, title: "Nombre d'Expression", desc: 'Calculé à partir de toutes les lettres de votre prénom, il décrit vos talents naturels et l\'image que vous projetez dans le monde.', color: '#7CB88A' },
                     { icon: <Shield className="w-4 h-4" strokeWidth={1.5} />, title: 'Nombres Défis', desc: 'Les obstacles spécifiques que vous êtes venu(e) surmonter. Connaître ses défis, c\'est avoir la moitié de la solution.', color: '#6BB5E8' },
-                    { icon: <Sparkles className="w-4 h-4" strokeWidth={1.5} />, title: 'Année Personnelle 2026', desc: "Ce cycle annuel révèle l'énergie dominante de votre année en cours et les thèmes à travailler.", color: '#B8961F' },
+                    { icon: <Sparkles className="w-4 h-4" strokeWidth={1.5} />, title: 'Année Personnelle 2026', desc: "Ce cycle annuel révèle l'énergie dominante de votre année en cours et les thèmes à travailler.", color: '#D4AF37' },
                     { icon: <Zap className="w-4 h-4" strokeWidth={1.5} />, title: 'Nombre de Personnalité', desc: 'La première impression que vous laissez aux autres — votre façade naturelle et votre magnétisme social.', color: '#FB923C' },
                   ].map((item, i) => (
                     <div key={i} className="flex gap-4 items-start p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${item.color}15` }}>
@@ -253,7 +253,7 @@ const Numerologie = () => {
               <div className="text-center pt-4">
                 <button onClick={() => setShowForm(true)}
                   className="inline-flex items-center gap-3 px-8 py-4 rounded-xl text-sm tracking-widest uppercase transition-all duration-300"
-                  style={{ background: '#B8961F', color: '#0C0918', fontWeight: 600, letterSpacing: '0.12em' }}>
+                  style={{ background: '#D4AF37', color: '#111625', fontWeight: 600, letterSpacing: '0.12em' }}>
                   <Hash className="w-4 h-4" />
                   Découvrir mon profil numérologique
                 </button>
@@ -296,7 +296,7 @@ const Numerologie = () => {
                 </div>
                 <button type="submit" disabled={loading || !formData.prenom || !formData.dateNaissance}
                   className="w-full flex items-center justify-center gap-3 py-4 rounded-xl text-sm tracking-widest uppercase transition-all disabled:opacity-30"
-                  style={{ background: '#B8961F', color: '#0C0918', fontWeight: 600, letterSpacing: '0.12em' }}>
+                  style={{ background: '#D4AF37', color: '#111625', fontWeight: 600, letterSpacing: '0.12em' }}>
                   {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Calcul des nombres sacrés...</> : <><Hash className="w-4 h-4" /> Calculer mon profil (10 crédits)</>}
                 </button>
               </form>
@@ -316,8 +316,8 @@ const Numerologie = () => {
                   <button key={tab.key} onClick={() => { setActiveTab(tab.key); if (tab.key === 'deep' && !deepResult) handleDeepProfile(); }}
                     className="flex-1 py-3 rounded-lg text-xs uppercase tracking-widest transition-all duration-300"
                     style={{
-                      background: activeTab === tab.key ? '#B8961F' : 'transparent',
-                      color: activeTab === tab.key ? '#0C0918' : 'var(--pa-muted)',
+                      background: activeTab === tab.key ? '#D4AF37' : 'transparent',
+                      color: activeTab === tab.key ? '#111625' : 'var(--pa-muted)',
                       fontWeight: activeTab === tab.key ? 600 : 400,
                       letterSpacing: '0.1em',
                     }}>
@@ -362,12 +362,12 @@ const Numerologie = () => {
                   </div>
                   {/* Année personnelle 2026 */}
                   {result.annee_personnelle_2026 && (
-                    <div className="rounded-2xl p-5" style={{ background: 'rgba(184,150,31,0.05)', border: '1px solid rgba(184,150,31,0.18)' }}>
+                    <div className="rounded-2xl p-5" style={{ background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.18)' }}>
                       <div className="flex items-center gap-3 mb-3">
-                        <span className="text-2xl font-light" style={{ color: '#B8961F', fontFamily: 'Cormorant Garamond, serif' }}>
+                        <span className="text-2xl font-light" style={{ color: '#D4AF37', fontFamily: 'Cormorant Garamond, serif' }}>
                           {result.annee_personnelle_2026.nombre || result.annee_personnelle_2026}
                         </span>
-                        <p className="text-xs tracking-widest uppercase" style={{ color: '#B8961F', letterSpacing: '0.12em' }}>Année Personnelle 2026</p>
+                        <p className="text-xs tracking-widest uppercase" style={{ color: '#D4AF37', letterSpacing: '0.12em' }}>Année Personnelle 2026</p>
                       </div>
                       <p className="text-sm" style={{ color: 'var(--pa-body)', lineHeight: '1.85' }}>
                         {result.annee_personnelle_2026.theme || result.annee_personnelle_2026.description}
@@ -382,7 +382,7 @@ const Numerologie = () => {
                 <div className="space-y-5">
                   {loadingDeep && (
                     <div className="flex items-center justify-center py-16 gap-3">
-                      <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#B8961F' }} />
+                      <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#D4AF37' }} />
                       <span className="text-sm" style={{ color: 'var(--pa-muted)' }}>Consultation des archives numériques...</span>
                     </div>
                   )}
@@ -417,10 +417,10 @@ const Numerologie = () => {
                         </div>
                       )}
                       {deepResult.annee_personnelle_2026 && (
-                        <div className="rounded-2xl p-5" style={{ background: 'rgba(184,150,31,0.05)', border: '1px solid rgba(184,150,31,0.18)' }}>
+                        <div className="rounded-2xl p-5" style={{ background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.18)' }}>
                           <div className="flex items-center gap-3 mb-3">
-                            <span className="text-2xl font-light" style={{ color: '#B8961F', fontFamily: 'Cormorant Garamond, serif' }}>{deepResult.annee_personnelle_2026.nombre}</span>
-                            <p className="text-xs tracking-widest uppercase" style={{ color: '#B8961F', letterSpacing: '0.12em' }}>Année Personnelle 2026</p>
+                            <span className="text-2xl font-light" style={{ color: '#D4AF37', fontFamily: 'Cormorant Garamond, serif' }}>{deepResult.annee_personnelle_2026.nombre}</span>
+                            <p className="text-xs tracking-widest uppercase" style={{ color: '#D4AF37', letterSpacing: '0.12em' }}>Année Personnelle 2026</p>
                           </div>
                           <p className="text-sm" style={{ color: 'var(--pa-body)', lineHeight: '1.85' }}>{deepResult.annee_personnelle_2026.theme}</p>
                         </div>
@@ -433,13 +433,13 @@ const Numerologie = () => {
               {/* Actions */}
               <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-6" style={{ borderTop: '1px solid var(--pa-divider)' }}>
                 <button onClick={() => { setResult(null); setDeepResult(null); setShowForm(true); setUnlocked(false); setActiveTab('base'); }}
-                  className="flex-1 py-3 rounded-xl text-xs uppercase tracking-widest hover:bg-[rgba(184,150,31,0.08)] transition-all"
-                  style={{ border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', letterSpacing: '0.12em' }}>
+                  className="flex-1 py-3 rounded-xl text-xs uppercase tracking-widest hover:bg-[rgba(212,175,55,0.08)] transition-all"
+                  style={{ border: '1px solid rgba(212,175,55,0.3)', color: '#D4AF37', letterSpacing: '0.12em' }}>
                   Nouvelle analyse
                 </button>
                 <button onClick={() => navigate('/karma-destin')}
                   className="flex-1 py-3 rounded-xl text-xs uppercase tracking-widest transition-all"
-                  style={{ border: '1px solid #B8961F', color: '#0C0918', background: '#B8961F', fontWeight: 600, letterSpacing: '0.12em' }}>
+                  style={{ border: '1px solid #D4AF37', color: '#111625', background: '#D4AF37', fontWeight: 600, letterSpacing: '0.12em' }}>
                   Karma &amp; Destin →
                 </button>
               </div>

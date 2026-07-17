@@ -130,7 +130,7 @@ const Livre = () => {
         {/* Back button */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-[#B8961F] hover:text-[#F0E6D3] mb-8 transition-colors"
+          className="flex items-center gap-2 text-[#D4AF37] hover:text-[#F5EEE0] mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Retour
@@ -138,12 +138,12 @@ const Livre = () => {
         
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#B8961F]/10 border border-[#B8961F]/30 mb-6">
-            <Gift className="w-4 h-4 text-[#B8961F]" />
-            <span className="text-[#B8961F] text-sm">Édition limitée</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 mb-6">
+            <Gift className="w-4 h-4 text-[#D4AF37]" />
+            <span className="text-[#D4AF37] text-sm">Édition limitée</span>
           </div>
           
-          <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+          <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
             Le Livre de la Plume
           </h1>
           <p className="text-[#B8B0C8]/70 text-lg font-light">
@@ -156,13 +156,13 @@ const Livre = () => {
           <div className="flex flex-col md:flex-row gap-8 items-center">
             {/* Book visual */}
             <div className="w-full md:w-1/3">
-              <div className="aspect-[3/4] rounded-lg bg-gradient-to-br from-[#15112A] to-[#0C0918] border-2 border-[#B8961F]/30 flex items-center justify-center shadow-2xl">
+              <div className="aspect-[3/4] rounded-lg bg-gradient-to-br from-[#15112A] to-[#111625] border-2 border-[#D4AF37]/30 flex items-center justify-center shadow-2xl">
                 <div className="text-center p-6">
-                  <Book className="w-16 h-16 text-[#B8961F] mx-auto mb-4" strokeWidth={1} />
-                  <p className="text-[#F0E6D3] text-sm" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                  <Book className="w-16 h-16 text-[#D4AF37] mx-auto mb-4" strokeWidth={1} />
+                  <p className="text-[#F5EEE0] text-sm" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                     Le Manuscrit<br />de la Plume
                   </p>
-                  <p className="text-[#B8961F]/60 text-xs mt-2">
+                  <p className="text-[#D4AF37]/60 text-xs mt-2">
                     {userData?.prenom || 'Votre nom'}
                   </p>
                 </div>
@@ -171,7 +171,7 @@ const Livre = () => {
             
             {/* Details */}
             <div className="flex-1">
-              <h2 className="text-2xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+              <h2 className="text-2xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                 Un Trésor à Offrir ou à S'Offrir
               </h2>
               
@@ -183,36 +183,36 @@ const Livre = () => {
               
               <div className="space-y-3 mb-8">
                 <div className="flex items-center gap-3 text-[#B8B0C8]/80">
-                  <CheckCircle className="w-5 h-5 text-[#B8961F]" />
+                  <CheckCircle className="w-5 h-5 text-[#D4AF37]" />
                   <span>Impression haute qualité sur papier premium</span>
                 </div>
                 <div className="flex items-center gap-3 text-[#B8B0C8]/80">
-                  <CheckCircle className="w-5 h-5 text-[#B8961F]" />
+                  <CheckCircle className="w-5 h-5 text-[#D4AF37]" />
                   <span>Couverture rigide avec finition mate</span>
                 </div>
                 <div className="flex items-center gap-3 text-[#B8B0C8]/80">
-                  <CheckCircle className="w-5 h-5 text-[#B8961F]" />
+                  <CheckCircle className="w-5 h-5 text-[#D4AF37]" />
                   <span>Illustrations exclusives pour chaque signe</span>
                 </div>
                 <div className="flex items-center gap-3 text-[#B8B0C8]/80">
-                  <CheckCircle className="w-5 h-5 text-[#B8961F]" />
+                  <CheckCircle className="w-5 h-5 text-[#D4AF37]" />
                   <span>Format élégant 15x21cm</span>
                 </div>
               </div>
               
               <div className="flex items-center gap-4 mb-6">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-[#B8961F]/10 border border-[#B8961F]/30">
-                  <Truck className="w-4 h-4 text-[#B8961F]" />
-                  <span className="text-[#B8961F] text-sm">Livraison incluse</span>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30">
+                  <Truck className="w-4 h-4 text-[#D4AF37]" />
+                  <span className="text-[#D4AF37] text-sm">Livraison incluse</span>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-[#B8961F]/10 border border-[#B8961F]/30">
-                  <Clock className="w-4 h-4 text-[#B8961F]" />
-                  <span className="text-[#B8961F] text-sm">Expédié sous 5 jours</span>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30">
+                  <Clock className="w-4 h-4 text-[#D4AF37]" />
+                  <span className="text-[#D4AF37] text-sm">Expédié sous 5 jours</span>
                 </div>
               </div>
               
               {/* Price */}
-              <div className="border-t border-[#B8961F]/20 pt-6">
+              <div className="border-t border-[#D4AF37]/20 pt-6">
                 <div className="flex items-end gap-3 mb-4">
                   <span className="text-4xl font-bold text-gold-gradient" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                     49,90€
@@ -244,17 +244,17 @@ const Livre = () => {
             {/* Promo Code */}
             <div className="mt-4">
               {!showPromo ? (
-                <button onClick={() => setShowPromo(true)} className="text-[#B8961F]/60 hover:text-[#B8961F] text-sm underline transition-colors" data-testid="show-promo-btn">
+                <button onClick={() => setShowPromo(true)} className="text-[#D4AF37]/60 hover:text-[#D4AF37] text-sm underline transition-colors" data-testid="show-promo-btn">
                   <Tag className="w-3 h-3 inline mr-1" /> J'ai un code de reduction
                 </button>
               ) : (
                 <div className="max-w-sm mx-auto space-y-2">
                   <div className="flex gap-2">
                     <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#B8961F]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#B8961F] text-sm"
+                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#111625] border border-[#D4AF37]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#D4AF37] text-sm"
                       data-testid="promo-input" />
                     <button onClick={handleApplyPromo} disabled={promoLoading}
-                      className="px-5 py-2 bg-[#B8961F]/20 border border-[#B8961F]/50 rounded-full text-[#B8961F] hover:bg-[#B8961F]/30 text-sm disabled:opacity-50"
+                      className="px-5 py-2 bg-[#D4AF37]/20 border border-[#D4AF37]/50 rounded-full text-[#D4AF37] hover:bg-[#D4AF37]/30 text-sm disabled:opacity-50"
                       data-testid="apply-promo-btn">
                       {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
                     </button>
@@ -267,7 +267,7 @@ const Livre = () => {
           </div>
         ) : (
           <div className="card-mystical p-8">
-            <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+            <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
               Adresse de Livraison
             </h3>
             
@@ -278,7 +278,7 @@ const Livre = () => {
                   type="text"
                   value={address.name}
                   onChange={(e) => setAddress({ ...address, name: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#B8961F]"
+                  className="w-full px-4 py-3 bg-[#15112A] border border-[#D4AF37]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#D4AF37]"
                   placeholder="Marie Dupont"
                   data-testid="input-name"
                 />
@@ -291,7 +291,7 @@ const Livre = () => {
                   type="text"
                   value={address.street}
                   onChange={(e) => setAddress({ ...address, street: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#B8961F]"
+                  className="w-full px-4 py-3 bg-[#15112A] border border-[#D4AF37]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#D4AF37]"
                   placeholder="12 rue des Étoiles"
                   data-testid="input-street"
                 />
@@ -304,7 +304,7 @@ const Livre = () => {
                   type="text"
                   value={address.street2}
                   onChange={(e) => setAddress({ ...address, street2: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#B8961F]"
+                  className="w-full px-4 py-3 bg-[#15112A] border border-[#D4AF37]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#D4AF37]"
                   placeholder="Appartement 3B"
                 />
               </div>
@@ -316,7 +316,7 @@ const Livre = () => {
                     type="text"
                     value={address.postal_code}
                     onChange={(e) => setAddress({ ...address, postal_code: e.target.value })}
-                    className="w-full px-4 py-3 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#B8961F]"
+                    className="w-full px-4 py-3 bg-[#15112A] border border-[#D4AF37]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#D4AF37]"
                     placeholder="75001"
                     data-testid="input-postal"
                   />
@@ -328,7 +328,7 @@ const Livre = () => {
                     type="text"
                     value={address.city}
                     onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                    className="w-full px-4 py-3 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#B8961F]"
+                    className="w-full px-4 py-3 bg-[#15112A] border border-[#D4AF37]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#D4AF37]"
                     placeholder="Paris"
                     data-testid="input-city"
                   />
@@ -341,7 +341,7 @@ const Livre = () => {
                 <select
                   value={address.country}
                   onChange={(e) => setAddress({ ...address, country: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#15112A] border border-[#B8961F]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#B8961F]"
+                  className="w-full px-4 py-3 bg-[#15112A] border border-[#D4AF37]/30 rounded-lg text-[#B8B0C8] focus:outline-none focus:border-[#D4AF37]"
                   data-testid="input-country"
                 >
                   <option value="France">France</option>

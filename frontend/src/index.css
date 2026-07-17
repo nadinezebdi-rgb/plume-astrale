@@ -200,7 +200,7 @@ p {
 .animate-spin-moon   { animation: spin-slow 50s linear infinite; }
 
 .pa-shimmer-gold {
-  background: linear-gradient(90deg, #C5A059 0%, #F4D98C 25%, #E6C480 50%, #F4D98C 75%, #C5A059 100%);
+  background: linear-gradient(90deg, #D4AF37 0%, #F4D98C 25%, #E6C480 50%, #F4D98C 75%, #D4AF37 100%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -293,7 +293,7 @@ select.input-editorial option {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #0A0E27;
-  background: linear-gradient(135deg, #E6C480 0%, #C5A059 50%, #A6864A 100%);
+  background: linear-gradient(135deg, #E6C480 0%, #D4AF37 50%, #A6864A 100%);
   border: 1px solid rgba(244,217,140,0.4);
   box-shadow: 0 8px 32px rgba(197,160,89,0.30), inset 0 1px 0 rgba(255,255,255,0.25);
   cursor: pointer;
@@ -475,6 +475,26 @@ select.input-editorial option {
   0%, 100% { opacity: 0.02; }
   50%      { opacity: 0.045; }
 }
+/* ── Ciel étoilé global (Starfield.js) ── */
+.plume-starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.plume-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #F4D98C;
+  opacity: var(--star-opacity, 0.4);
+  animation: plume-twinkle 6s ease-in-out infinite;
+}
+@keyframes plume-twinkle {
+  0%, 100% { opacity: calc(var(--star-opacity, 0.4) * 0.25); transform: scale(0.8); }
+  50%      { opacity: var(--star-opacity, 0.4); transform: scale(1); }
+}
+
 .plume-noise-overlay {
   position: fixed;
   inset: 0;
@@ -577,4 +597,5 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
     scroll-behavior: auto !important;
   }
   .plume-noise-overlay { animation: none; opacity: 0.03; }
+  .plume-star { animation: none; }
 }

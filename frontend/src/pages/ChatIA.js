@@ -500,7 +500,7 @@ const ChatIA = () => {
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                       <Link to="/inscription" style={{
                         background: '#D4AF37',
-                        color: '#0C0918',
+                        color: '#111625',
                         padding: '10px 20px',
                         borderRadius: 999,
                         fontSize: 13,
@@ -546,7 +546,7 @@ const ChatIA = () => {
                     </p>
                     <Link to="/acheter-credits" style={{
                       background: '#D4AF37',
-                      color: '#0C0918',
+                      color: '#111625',
                       padding: '10px 20px',
                       borderRadius: 999,
                       fontSize: 13,

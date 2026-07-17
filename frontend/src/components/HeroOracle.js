@@ -95,7 +95,7 @@ const HeroOracle = () => {
           <h1 style={{
             fontFamily: 'Cormorant Garamond, serif', fontWeight: 300,
             fontSize: 'clamp(32px, 6vw, 56px)', lineHeight: 1.05,
-            color: '#F0E6D3', marginBottom: 18,
+            color: '#F5EEE0', marginBottom: 18,
           }}>
             Découvre <em style={{ fontStyle: 'italic', color: '#D4AF37' }}>ton énergie</em> du moment
           </h1>
@@ -140,7 +140,7 @@ const HeroOracle = () => {
     return (
       <section data-testid="hero-computing" style={{ maxWidth: 560, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
         <Wheel url={null} blurred={false} />
-        <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, color: '#F0E6D3', marginTop: 28, fontWeight: 300 }}>
+        <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, color: '#F5EEE0', marginTop: 28, fontWeight: 300 }}>
           {form.firstName}, la Plume écoute ton ciel...
         </h2>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 16, color: '#D4AF37' }}>
@@ -183,7 +183,7 @@ const HeroOracle = () => {
           padding: 24, overflow: 'hidden',
         }} data-testid="hero-paywall">
           <div style={{ filter: 'blur(7px)', userSelect: 'none', pointerEvents: 'none' }}>
-            <p style={{ color: '#F0E6D3', fontFamily: 'Cormorant Garamond, serif', fontSize: 18, lineHeight: 1.5 }}>
+            <p style={{ color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif', fontSize: 18, lineHeight: 1.5 }}>
               {r.locked_preview || 'Ton interpretation complete, les conseils du jour, le rituel a poser ce matin, le mantra a porter...'}
             </p>
           </div>
@@ -193,7 +193,7 @@ const HeroOracle = () => {
             background: 'linear-gradient(180deg, rgba(11,9,24,0.4) 0%, rgba(11,9,24,0.9) 70%)',
           }}>
             <Lock style={{ width: 20, height: 20, color: '#D4AF37', marginBottom: 8 }} strokeWidth={1.4} />
-            <p style={{ color: '#F0E6D3', fontSize: 14, textAlign: 'center', marginBottom: 14 }}>
+            <p style={{ color: '#F5EEE0', fontSize: 14, textAlign: 'center', marginBottom: 14 }}>
               Reçois ta lecture complète par email
             </p>
             <div style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 360 }}>
@@ -222,7 +222,7 @@ const HeroOracle = () => {
         <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.35)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
           <Check style={{ width: 28, height: 28, color: '#4ADE80' }} strokeWidth={2} />
         </div>
-        <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 32, color: '#F0E6D3', fontWeight: 300, marginBottom: 10 }}>
+        <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 32, color: '#F5EEE0', fontWeight: 300, marginBottom: 10 }}>
           Email envoyé à {form.email}
         </h2>
         <p style={{ color: 'rgba(184,176,200,0.85)', fontSize: 15, marginBottom: 32 }}>
@@ -264,7 +264,7 @@ const HeroOracle = () => {
   return (
     <section data-testid="hero-refined" style={{ maxWidth: 560, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
       <Sparkles style={{ width: 28, height: 28, color: '#D4AF37', margin: '0 auto 16px' }} strokeWidth={1.3} />
-      <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 30, color: '#F0E6D3', fontWeight: 300, marginBottom: 10 }}>
+      <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 30, color: '#F5EEE0', fontWeight: 300, marginBottom: 10 }}>
         Ta lecture affinée arrive...
       </h2>
       <p style={{ color: 'rgba(184,176,200,0.85)', fontSize: 14, marginBottom: 28 }}>
@@ -311,15 +311,15 @@ const labelStyle = {
 const inputStyle = {
   width: '100%', background: 'rgba(0,0,0,0.25)',
   border: '1px solid rgba(212,175,55,0.25)', borderRadius: 12,
-  padding: '12px 14px', color: '#F0E6D3', fontSize: 15,
+  padding: '12px 14px', color: '#F5EEE0', fontSize: 15,
   outline: 'none', minHeight: 48,
 };
 
 const primaryCta = {
   width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
   padding: '14px 24px', borderRadius: 999,
-  background: 'linear-gradient(135deg, #D4AF37 0%, #B8961F 100%)',
-  color: '#0C0918', fontWeight: 700,
+  background: 'linear-gradient(135deg, #D4AF37 0%, #D4AF37 100%)',
+  color: '#111625', fontWeight: 700,
   fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase',
   border: 'none', cursor: 'pointer', minHeight: 56,
   boxShadow: '0 6px 24px rgba(212,175,55,0.35)',
@@ -340,7 +340,7 @@ const Card = ({ title, value, sub, testid }) => (
     <p style={{ fontSize: 10, letterSpacing: '0.18em', color: 'rgba(212,175,55,0.6)', textTransform: 'uppercase', fontFamily: 'Cinzel, serif', marginBottom: 4 }}>
       {title}
     </p>
-    <p style={{ fontSize: 17, color: '#F0E6D3', fontFamily: 'Cormorant Garamond, serif', marginBottom: sub ? 4 : 0 }}>
+    <p style={{ fontSize: 17, color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif', marginBottom: sub ? 4 : 0 }}>
       {value}
     </p>
     {sub && <p style={{ fontSize: 13, color: 'rgba(184,176,200,0.7)', lineHeight: 1.4 }}>{sub}</p>}
@@ -356,7 +356,7 @@ const PremiumBridge = ({ onCTA }) => (
     <p style={{ fontSize: 10, letterSpacing: '0.2em', color: '#D4AF37', textTransform: 'uppercase', marginBottom: 12, fontFamily: 'Cinzel, serif' }}>
       Va plus loin
     </p>
-    <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#F0E6D3', fontWeight: 300, marginBottom: 8 }}>
+    <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#F5EEE0', fontWeight: 300, marginBottom: 8 }}>
       Découvre l&apos;Expérience Premium
     </h3>
     <p style={{ fontSize: 13, color: 'rgba(184,176,200,0.8)', marginBottom: 18, lineHeight: 1.55 }}>

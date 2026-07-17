@@ -18,7 +18,7 @@ const POSITION_LABELS = {
 const PREDICTION_CATS = [
   { key: 'love', label: 'Amour', icon: Heart, color: '#C97878' },
   { key: 'career', label: 'Carriere', icon: Briefcase, color: '#7CB88A' },
-  { key: 'finance', label: 'Finances', icon: Coins, color: '#B8961F' },
+  { key: 'finance', label: 'Finances', icon: Coins, color: '#D4AF37' },
 ];
 
 const CrossCard = ({ item, index, isLocked, onPurchase }) => {
@@ -28,34 +28,34 @@ const CrossCard = ({ item, index, isLocked, onPurchase }) => {
   return (
     <div className={`relative group ${isLocked ? 'overflow-hidden' : ''}`} data-testid={`carte-croix-${item.position_id}`}>
       {isLocked && (
-        <div className="absolute inset-0 bg-[#0C0918]/85 backdrop-blur-sm z-10 flex items-center justify-center rounded-sm">
+        <div className="absolute inset-0 bg-[#111625]/85 backdrop-blur-sm z-10 flex items-center justify-center rounded-sm">
           <div className="text-center">
-            <Lock className="w-6 h-6 text-[#B8961F]/50 mx-auto mb-1" />
-            <p className="text-[#B8961F]/70 text-xs">Verrouille</p>
+            <Lock className="w-6 h-6 text-[#D4AF37]/50 mx-auto mb-1" />
+            <p className="text-[#D4AF37]/70 text-xs">Verrouille</p>
           </div>
         </div>
       )}
-      <div className="bg-[#15112A]/80 border border-[#B8961F]/20 rounded-sm p-3 hover:border-[#B8961F]/50 transition-all duration-300">
+      <div className="bg-[#15112A]/80 border border-[#D4AF37]/20 rounded-sm p-3 hover:border-[#D4AF37]/50 transition-all duration-300">
         {/* Position number badge */}
         <div className="flex items-center gap-2 mb-2">
-          <span className="w-6 h-6 rounded-full bg-[#B8961F]/20 border border-[#B8961F]/40 flex items-center justify-center text-[#B8961F] text-xs font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+          <span className="w-6 h-6 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37] text-xs font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
             {posInfo.icon}
           </span>
-          <span className="text-[#B8961F] text-xs uppercase tracking-widest font-medium">{posInfo.label}</span>
+          <span className="text-[#D4AF37] text-xs uppercase tracking-widest font-medium">{posInfo.label}</span>
         </div>
         {/* Card image */}
-        <div className="w-full aspect-[2/3] rounded-lg overflow-hidden mb-3 border border-[#B8961F]/30">
+        <div className="w-full aspect-[2/3] rounded-lg overflow-hidden mb-3 border border-[#D4AF37]/30">
           {item.carte.image ? (
             <img src={`${API_URL}${item.carte.image}`} alt={item.carte.nom} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-[#15112A] to-[#1C1735]">
-              <span className="text-[#B8961F] text-2xl font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{item.carte.numero}</span>
+              <span className="text-[#D4AF37] text-2xl font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{item.carte.numero}</span>
             </div>
           )}
         </div>
         {/* Card name */}
-        <h4 className="text-[#F0E6D3] text-sm font-semibold text-center mb-1" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{item.carte.nom}</h4>
-        <p className="text-[#B8961F]/60 text-xs text-center">{item.carte.mots_cles || item.carte.energie}</p>
+        <h4 className="text-[#F5EEE0] text-sm font-semibold text-center mb-1" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{item.carte.nom}</h4>
+        <p className="text-[#D4AF37]/60 text-xs text-center">{item.carte.mots_cles || item.carte.energie}</p>
       </div>
     </div>
   );
@@ -247,11 +247,11 @@ const Tarologie = () => {
                 </h2>
                 <div className="space-y-3 text-sm leading-relaxed" style={{ color: 'var(--pa-body)', lineHeight: '1.9' }}>
                   <p>
-                    La tarologie est l'art d'interpr&eacute;ter les <span style={{ color: '#B8961F' }}>Arcanes Majeurs du Tarot</span> pour
+                    La tarologie est l'art d'interpr&eacute;ter les <span style={{ color: '#D4AF37' }}>Arcanes Majeurs du Tarot</span> pour
                     &eacute;clairer une situation, comprendre des dynamiques invisibles et ouvrir des perspectives.
                   </p>
                   <p>
-                    Ce n'est pas de la divination. C'est un <span style={{ color: '#B8961F' }}>miroir symbolique</span> : chaque carte
+                    Ce n'est pas de la divination. C'est un <span style={{ color: '#D4AF37' }}>miroir symbolique</span> : chaque carte
                     refl&egrave;te un aspect de votre v&eacute;cu, de vos blocages ou de vos ressources cach&eacute;es.
                   </p>
                 </div>
@@ -267,7 +267,7 @@ const Tarologie = () => {
                     { icon: <Eye className="w-4 h-4" style={{ color: '#A78BFA' }} strokeWidth={1.5} />, title: 'Clarifier une situation confuse', desc: 'Quand vous tournez en rond dans une d\u00e9cision, les cartes mettent en lumi\u00e8re ce que votre mental ne voit plus.', color: '#A78BFA' },
                     { icon: <Heart className="w-4 h-4" style={{ color: '#C97878' }} strokeWidth={1.5} />, title: 'Comprendre une relation', desc: 'Le tarot r\u00e9v\u00e8le les dynamiques \u00e9motionnelles en jeu \u2014 ce qui nourrit ou bloque une relation.', color: '#C97878' },
                     { icon: <BookOpen className="w-4 h-4" style={{ color: '#7CB88A' }} strokeWidth={1.5} />, title: 'Identifier vos blocages', desc: 'Certaines cartes pointent vers des peurs, des sch\u00e9mas r\u00e9p\u00e9titifs ou des croyances limitantes \u00e0 d\u00e9passer.', color: '#7CB88A' },
-                    { icon: <Sparkles className="w-4 h-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />, title: 'Ouvrir de nouvelles voies', desc: 'Le tirage ne donne pas d\u2019ordres. Il ouvre un espace de r\u00e9flexion pour avancer avec plus de conscience.', color: '#B8961F' },
+                    { icon: <Sparkles className="w-4 h-4" style={{ color: '#D4AF37' }} strokeWidth={1.5} />, title: 'Ouvrir de nouvelles voies', desc: 'Le tirage ne donne pas d\u2019ordres. Il ouvre un espace de r\u00e9flexion pour avancer avec plus de conscience.', color: '#D4AF37' },
                   ].map((item, i) => (
                     <div key={i} className="flex gap-4 items-start p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${item.color}15` }}>
                       <div className="mt-0.5">{item.icon}</div>
@@ -281,8 +281,8 @@ const Tarologie = () => {
               </div>
 
               {/* Le tirage en croix */}
-              <div className="p-5 rounded-xl" style={{ background: 'rgba(184,150,31,0.05)', border: '1px solid rgba(184,150,31,0.12)' }}>
-                <h3 className="text-base mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#B8961F', fontWeight: 400 }}>
+              <div className="p-5 rounded-xl" style={{ background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.12)' }}>
+                <h3 className="text-base mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#D4AF37', fontWeight: 400 }}>
                   Le tirage en Croix &mdash; 5 positions
                 </h3>
                 <div className="space-y-2">
@@ -294,7 +294,7 @@ const Tarologie = () => {
                     { n: '5', label: 'La Synth\u00e8se', desc: 'Le message global du tirage' },
                   ].map(p => (
                     <div key={p.n} className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs" style={{ background: 'rgba(184,150,31,0.15)', color: '#B8961F', border: '1px solid rgba(184,150,31,0.3)' }}>{p.n}</span>
+                      <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs" style={{ background: 'rgba(212,175,55,0.15)', color: '#D4AF37', border: '1px solid rgba(212,175,55,0.3)' }}>{p.n}</span>
                       <span className="text-sm" style={{ color: 'var(--pa-heading)' }}>{p.label}</span>
                       <span className="text-xs" style={{ color: 'var(--pa-muted)' }}>&mdash; {p.desc}</span>
                     </div>
@@ -307,18 +307,18 @@ const Tarologie = () => {
                 {!isAuthenticated ? (
                   <div className="space-y-3" data-testid="credit-gate-login">
                     <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
-                      <span style={{ color: '#B8961F' }}>10 cr&eacute;dits</span> &middot; 20 cr&eacute;dits offerts &agrave; l'inscription
+                      <span style={{ color: '#D4AF37' }}>10 cr&eacute;dits</span> &middot; 20 cr&eacute;dits offerts &agrave; l'inscription
                     </p>
                     <div className="flex gap-3 justify-center">
-                      <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
-                      <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', background: 'rgba(184,150,31,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Cr&eacute;er un compte</button>
+                      <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(212,175,55,0.5)', color: '#D4AF37', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
+                      <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(212,175,55,0.3)', color: '#D4AF37', background: 'rgba(212,175,55,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Cr&eacute;er un compte</button>
                     </div>
                   </div>
                 ) : (
                   <button
                     onClick={() => setShowContent(true)}
                     className="text-xs uppercase tracking-widest px-8 py-3 rounded-full transition-all duration-500"
-                    style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', letterSpacing: '0.1em' }}
+                    style={{ border: '1px solid rgba(212,175,55,0.5)', color: '#D4AF37', letterSpacing: '0.1em' }}
                     data-testid="start-tirage-btn"
                   >
                     Commencer mon tirage &mdash; 10 cr&eacute;dits
@@ -360,8 +360,8 @@ const Tarologie = () => {
 
           {/* What's included */}
           {showContent && (
-          <div className="bg-[rgba(255,255,255,0.02)] border border-[#B8961F]/20 rounded-sm p-6 mb-8" data-testid="offer-details">
-            <h3 className="text-[#B8961F] text-sm uppercase tracking-widest mb-4">Ce qui est inclus</h3>
+          <div className="bg-[rgba(255,255,255,0.02)] border border-[#D4AF37]/20 rounded-sm p-6 mb-8" data-testid="offer-details">
+            <h3 className="text-[#D4AF37] text-sm uppercase tracking-widest mb-4">Ce qui est inclus</h3>
             <div className="grid md:grid-cols-2 gap-3">
               {[
                 'Tirage en Croix — 5 Arcanes Majeurs',
@@ -372,12 +372,12 @@ const Tarologie = () => {
                 'PDF complet a telecharger',
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2 text-[#B8B0C8]/70 text-sm">
-                  <Star className="w-4 h-4 text-[#B8961F] flex-shrink-0" strokeWidth={1.5} />
+                  <Star className="w-4 h-4 text-[#D4AF37] flex-shrink-0" strokeWidth={1.5} />
                   {item}
                 </div>
               ))}
             </div>
-            <div className="mt-6 pt-4 border-t border-[#B8961F]/20 text-center">
+            <div className="mt-6 pt-4 border-t border-[#D4AF37]/20 text-center">
               <span className="text-3xl font-bold text-gold-gradient" style={{ fontFamily: 'Cormorant Garamond, serif' }}>10 cr&eacute;dits</span>
               <p className="text-[#B8B0C8]/50 text-sm mt-1">Acc&egrave;s imm&eacute;diat + PDF &agrave; t&eacute;l&eacute;charger</p>
             </div>
@@ -386,27 +386,27 @@ const Tarologie = () => {
 
           {/* Form */}
           {showContent && (
-          <div className="bg-[rgba(255,255,255,0.02)] border border-[#B8961F]/20 rounded-sm p-6 mb-8" data-testid="tarologie-form">
-            <h3 className="text-[#F0E6D3] mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Vos Informations</h3>
+          <div className="bg-[rgba(255,255,255,0.02)] border border-[#D4AF37]/20 rounded-sm p-6 mb-8" data-testid="tarologie-form">
+            <h3 className="text-[#F5EEE0] mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Vos Informations</h3>
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-2">Prenom</label>
+                <label className="block text-[#D4AF37] text-xs uppercase tracking-widest mb-2">Prenom</label>
                 <input
                   type="text"
                   value={prenom}
                   onChange={(e) => setPrenom(e.target.value)}
                   placeholder="Votre prenom"
-                  className="w-full px-4 py-3 bg-[#0C0918] border border-[#B8961F]/30 rounded-sm text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#B8961F] transition-colors"
+                  className="w-full px-4 py-3 bg-[#111625] border border-[#D4AF37]/30 rounded-sm text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#D4AF37] transition-colors"
                   data-testid="prenom-input"
                 />
               </div>
               <div>
-                <label className="block text-[#B8961F] text-xs uppercase tracking-widest mb-2">Date de naissance</label>
+                <label className="block text-[#D4AF37] text-xs uppercase tracking-widest mb-2">Date de naissance</label>
                 <input
                   type="date"
                   value={dateNaissance}
                   onChange={(e) => setDateNaissance(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#0C0918] border border-[#B8961F]/30 rounded-sm text-[#B8B0C8] focus:outline-none focus:border-[#B8961F] transition-colors"
+                  className="w-full px-4 py-3 bg-[#111625] border border-[#D4AF37]/30 rounded-sm text-[#B8B0C8] focus:outline-none focus:border-[#D4AF37] transition-colors"
                   data-testid="date-input"
                 />
               </div>
@@ -435,17 +435,17 @@ const Tarologie = () => {
             {/* Promo Code */}
             <div className="mt-4 text-center">
               {!showPromo ? (
-                <button onClick={() => setShowPromo(true)} className="text-[#B8961F]/60 hover:text-[#B8961F] text-sm underline transition-colors" data-testid="show-promo-btn">
+                <button onClick={() => setShowPromo(true)} className="text-[#D4AF37]/60 hover:text-[#D4AF37] text-sm underline transition-colors" data-testid="show-promo-btn">
                   <Tag className="w-3 h-3 inline mr-1" /> J'ai un code de reduction
                 </button>
               ) : (
                 <div className="max-w-sm mx-auto space-y-2">
                   <div className="flex gap-2">
                     <input type="text" value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); }}
-                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#0C0918] border border-[#B8961F]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#B8961F] text-sm"
+                      placeholder="Code promo" className="flex-1 px-4 py-2 bg-[#111625] border border-[#D4AF37]/30 rounded-full text-[#B8B0C8] text-center placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#D4AF37] text-sm"
                       data-testid="promo-input" />
                     <button onClick={handleApplyPromo} disabled={promoLoading}
-                      className="px-5 py-2 bg-[#B8961F]/20 border border-[#B8961F]/50 rounded-full text-[#B8961F] hover:bg-[#B8961F]/30 text-sm disabled:opacity-50"
+                      className="px-5 py-2 bg-[#D4AF37]/20 border border-[#D4AF37]/50 rounded-full text-[#D4AF37] hover:bg-[#D4AF37]/30 text-sm disabled:opacity-50"
                       data-testid="apply-promo-btn">
                       {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
                     </button>
@@ -462,7 +462,7 @@ const Tarologie = () => {
           {tirage && (
             <div className="space-y-8 animate-fade-in" data-testid="tirage-en-croix">
               <div className="text-center mb-6">
-                <h3 className="text-xl md:text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                <h3 className="text-xl md:text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                   Votre Tirage en Croix
                 </h3>
                 <p className="text-[#B8B0C8]/40 text-sm mt-2">Cliquez sur une carte pour lire son interpretation</p>
@@ -499,35 +499,35 @@ const Tarologie = () => {
 
                 {/* Connecting lines (decorative) */}
                 <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-20" style={{ top: 0, left: 0 }}>
-                  <line x1="50%" y1="28%" x2="50%" y2="38%" stroke="#B8961F" strokeWidth="1" strokeDasharray="4,4" />
-                  <line x1="50%" y1="62%" x2="50%" y2="72%" stroke="#B8961F" strokeWidth="1" strokeDasharray="4,4" />
-                  <line x1="30%" y1="50%" x2="37%" y2="50%" stroke="#B8961F" strokeWidth="1" strokeDasharray="4,4" />
-                  <line x1="63%" y1="50%" x2="70%" y2="50%" stroke="#B8961F" strokeWidth="1" strokeDasharray="4,4" />
+                  <line x1="50%" y1="28%" x2="50%" y2="38%" stroke="#D4AF37" strokeWidth="1" strokeDasharray="4,4" />
+                  <line x1="50%" y1="62%" x2="50%" y2="72%" stroke="#D4AF37" strokeWidth="1" strokeDasharray="4,4" />
+                  <line x1="30%" y1="50%" x2="37%" y2="50%" stroke="#D4AF37" strokeWidth="1" strokeDasharray="4,4" />
+                  <line x1="63%" y1="50%" x2="70%" y2="50%" stroke="#D4AF37" strokeWidth="1" strokeDasharray="4,4" />
                 </svg>
               </div>
 
               {/* Interpretation for Centre (always visible) */}
               {getCard('centre') && (
-                <div className="bg-[#15112A]/80 border border-[#B8961F]/30 rounded-sm p-6" data-testid="interpretation-centre">
+                <div className="bg-[#15112A]/80 border border-[#D4AF37]/30 rounded-sm p-6" data-testid="interpretation-centre">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="w-8 h-8 rounded-full bg-[#B8961F]/20 border border-[#B8961F] flex items-center justify-center text-[#B8961F] font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>1</span>
+                    <span className="w-8 h-8 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37] flex items-center justify-center text-[#D4AF37] font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>1</span>
                     <div>
-                      <h4 className="text-[#F0E6D3] font-medium" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{getCard('centre').carte.nom}</h4>
-                      <p className="text-[#B8961F]/60 text-xs">Position Centre — La Situation Presente</p>
+                      <h4 className="text-[#F5EEE0] font-medium" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{getCard('centre').carte.nom}</h4>
+                      <p className="text-[#D4AF37]/60 text-xs">Position Centre — La Situation Presente</p>
                     </div>
                   </div>
-                  <p className="text-[#B8961F]/70 text-xs italic mb-3">{getCard('centre').carte.description_arcane}</p>
+                  <p className="text-[#D4AF37]/70 text-xs italic mb-3">{getCard('centre').carte.description_arcane}</p>
                   <p className="text-[#B8B0C8]/80 text-sm leading-relaxed">{getCard('centre').interpretation}</p>
                 </div>
               )}
 
               {/* Interpretations for other cards (locked unless paid) */}
               {!hasPaid && (
-                <div className="bg-[#15112A]/80 border border-[#B8961F]/20 rounded-sm p-6 relative overflow-hidden" data-testid="interpretations-locked">
-                  <div className="absolute inset-0 bg-[#0C0918]/80 backdrop-blur-sm z-10 flex items-center justify-center">
+                <div className="bg-[#15112A]/80 border border-[#D4AF37]/20 rounded-sm p-6 relative overflow-hidden" data-testid="interpretations-locked">
+                  <div className="absolute inset-0 bg-[#111625]/80 backdrop-blur-sm z-10 flex items-center justify-center">
                     <div className="text-center px-6">
-                      <Lock className="w-10 h-10 text-[#B8961F] mx-auto mb-3" />
-                      <h3 className="text-[#F0E6D3] text-lg mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                      <Lock className="w-10 h-10 text-[#D4AF37] mx-auto mb-3" />
+                      <h3 className="text-[#F5EEE0] text-lg mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                         4 Interpretations + Lecture Mediumnique
                       </h3>
                       <p className="text-[#B8B0C8]/60 text-sm mb-4">
@@ -547,8 +547,8 @@ const Tarologie = () => {
                       const card = getCard(posId);
                       if (!card) return null;
                       return (
-                        <div key={posId} className="border-b border-[#B8961F]/10 pb-3">
-                          <h4 className="text-[#B8961F]">{card.position_nom}</h4>
+                        <div key={posId} className="border-b border-[#D4AF37]/10 pb-3">
+                          <h4 className="text-[#D4AF37]">{card.position_nom}</h4>
                           <p className="text-[#B8B0C8]/50 text-sm">Lorem ipsum dolor sit amet consectetur adipiscing elit...</p>
                         </div>
                       );
@@ -565,15 +565,15 @@ const Tarologie = () => {
                     if (!card) return null;
                     const posInfo = POSITION_LABELS[posId];
                     return (
-                      <div key={posId} className="bg-[#15112A]/80 border border-[#B8961F]/20 rounded-sm p-6" data-testid={`interpretation-${posId}`}>
+                      <div key={posId} className="bg-[#15112A]/80 border border-[#D4AF37]/20 rounded-sm p-6" data-testid={`interpretation-${posId}`}>
                         <div className="flex items-center gap-3 mb-4">
-                          <span className="w-8 h-8 rounded-full bg-[#B8961F]/20 border border-[#B8961F] flex items-center justify-center text-[#B8961F] font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{posInfo.icon}</span>
+                          <span className="w-8 h-8 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37] flex items-center justify-center text-[#D4AF37] font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{posInfo.icon}</span>
                           <div>
-                            <h4 className="text-[#F0E6D3] font-medium" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{card.carte.nom}</h4>
-                            <p className="text-[#B8961F]/60 text-xs">Position {posInfo.icon} — {posInfo.label}</p>
+                            <h4 className="text-[#F5EEE0] font-medium" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{card.carte.nom}</h4>
+                            <p className="text-[#D4AF37]/60 text-xs">Position {posInfo.icon} — {posInfo.label}</p>
                           </div>
                         </div>
-                        <p className="text-[#B8961F]/70 text-xs italic mb-3">{card.carte.description_arcane}</p>
+                        <p className="text-[#D4AF37]/70 text-xs italic mb-3">{card.carte.description_arcane}</p>
                         <p className="text-[#B8B0C8]/80 text-sm leading-relaxed">{card.interpretation}</p>
                       </div>
                     );
@@ -583,18 +583,18 @@ const Tarologie = () => {
 
               {/* Lecture mediumnique - locked */}
               {!hasPaid && tirage.lecture_mediumnique && (
-                <div className="bg-[#15112A]/80 border border-[#B8961F]/20 rounded-sm p-6 relative overflow-hidden" data-testid="lecture-locked">
-                  <div className="absolute inset-0 bg-[#0C0918]/80 backdrop-blur-sm z-10 flex items-center justify-center">
+                <div className="bg-[#15112A]/80 border border-[#D4AF37]/20 rounded-sm p-6 relative overflow-hidden" data-testid="lecture-locked">
+                  <div className="absolute inset-0 bg-[#111625]/80 backdrop-blur-sm z-10 flex items-center justify-center">
                     <div className="text-center px-6">
-                      <Lock className="w-8 h-8 text-[#B8961F]/50 mx-auto mb-2" />
-                      <p className="text-[#B8961F]/70 text-sm">Lecture m&eacute;diumnique incluse</p>
+                      <Lock className="w-8 h-8 text-[#D4AF37]/50 mx-auto mb-2" />
+                      <p className="text-[#D4AF37]/70 text-sm">Lecture m&eacute;diumnique incluse</p>
                     </div>
                   </div>
                   <div className="opacity-20 p-4">
-                    <h3 className="text-xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>Lecture Mediumnique</h3>
+                    <h3 className="text-xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>Lecture Mediumnique</h3>
                     <div className="space-y-3">
-                      <div><h4 className="text-[#B8961F]">Empreinte du Passe</h4><p className="text-[#B8B0C8]/50">Lorem ipsum dolor sit amet...</p></div>
-                      <div><h4 className="text-[#B8961F]">Energies du Present</h4><p className="text-[#B8B0C8]/50">Lorem ipsum dolor sit amet...</p></div>
+                      <div><h4 className="text-[#D4AF37]">Empreinte du Passe</h4><p className="text-[#B8B0C8]/50">Lorem ipsum dolor sit amet...</p></div>
+                      <div><h4 className="text-[#D4AF37]">Energies du Present</h4><p className="text-[#B8B0C8]/50">Lorem ipsum dolor sit amet...</p></div>
                     </div>
                   </div>
                 </div>
@@ -602,8 +602,8 @@ const Tarologie = () => {
 
               {/* Full lecture if paid */}
               {hasPaid && tirage.lecture_mediumnique && (
-                <div className="bg-[#15112A]/80 border border-[#B8961F]/20 rounded-sm p-6" data-testid="lecture-full">
-                  <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                <div className="bg-[#15112A]/80 border border-[#D4AF37]/20 rounded-sm p-6" data-testid="lecture-full">
+                  <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                     Lecture Mediumnique
                   </h3>
                   {[
@@ -612,8 +612,8 @@ const Tarologie = () => {
                     { key: 'futur', label: 'Visions du Futur' },
                     { key: 'conseil_ame', label: 'Message de Votre Ame' },
                   ].map(({ key, label }) => (
-                    <div key={key} className="mb-4 pb-4 border-b border-[#B8961F]/10 last:border-0">
-                      <h4 className="text-[#B8961F] font-medium mb-2">{label}</h4>
+                    <div key={key} className="mb-4 pb-4 border-b border-[#D4AF37]/10 last:border-0">
+                      <h4 className="text-[#D4AF37] font-medium mb-2">{label}</h4>
                       <p className="text-[#B8B0C8]/70 font-light leading-relaxed">
                         {tirage.lecture_mediumnique[key]}
                       </p>

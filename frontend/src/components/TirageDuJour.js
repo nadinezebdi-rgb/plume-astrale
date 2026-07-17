@@ -40,14 +40,14 @@ const TirageDuJour = () => {
       case 'Eau': return <Droplets className="w-4 h-4 text-blue-400" />;
       case 'Air': return <Wind className="w-4 h-4 text-cyan-400" />;
       case 'Terre': return <Mountain className="w-4 h-4 text-green-400" />;
-      default: return <Star className="w-4 h-4 text-[#B8961F]" />;
+      default: return <Star className="w-4 h-4 text-[#D4AF37]" />;
     }
   };
 
   if (isLoading) {
     return (
       <div className="card-mystical p-8 text-center">
-        <div className="w-8 h-8 border-2 border-[#B8961F] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <div className="w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         <p className="text-[#B8B0C8]/60">Consultation des arcanes...</p>
       </div>
     );
@@ -62,20 +62,20 @@ const TirageDuJour = () => {
   return (
     <div className="card-mystical overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#B8961F]/20 via-[#B8961F]/10 to-[#B8961F]/20 px-6 py-4 border-b border-[#B8961F]/20">
+      <div className="bg-gradient-to-r from-[#D4AF37]/20 via-[#D4AF37]/10 to-[#D4AF37]/20 px-6 py-4 border-b border-[#D4AF37]/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#B8961F]/20 flex items-center justify-center">
-              <Sun className="w-5 h-5 text-[#B8961F]" strokeWidth={1.5} />
+            <div className="w-10 h-10 rounded-full bg-[#D4AF37]/20 flex items-center justify-center">
+              <Sun className="w-5 h-5 text-[#D4AF37]" strokeWidth={1.5} />
             </div>
             <div>
-              <h3 className="text-lg text-[#F0E6D3]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+              <h3 className="text-lg text-[#F5EEE0]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                 Carte du Jour
               </h3>
               <p className="text-xs text-[#B8B0C8]/60">{tirage.date_fr}</p>
             </div>
           </div>
-          <span className="text-xs bg-[#B8961F]/20 text-[#B8961F] px-3 py-1 rounded-full border border-[#B8961F]/30">
+          <span className="text-xs bg-[#D4AF37]/20 text-[#D4AF37] px-3 py-1 rounded-full border border-[#D4AF37]/30">
             GRATUIT
           </span>
         </div>
@@ -91,15 +91,15 @@ const TirageDuJour = () => {
             
             {/* Carte face cachée */}
             <div 
-              className="w-32 h-48 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#1C1735] to-[#0C0918] border-2 border-[#B8961F]/50 flex flex-col items-center justify-center shadow-xl shadow-[#B8961F]/20 cursor-pointer hover:border-[#B8961F] hover:shadow-[#B8961F]/40 transition-all group mb-6"
+              className="w-32 h-48 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#1C1735] to-[#111625] border-2 border-[#D4AF37]/50 flex flex-col items-center justify-center shadow-xl shadow-[#D4AF37]/20 cursor-pointer hover:border-[#D4AF37] hover:shadow-[#D4AF37]/40 transition-all group mb-6"
               onClick={() => setIsRevealed(true)}
             >
               {/* Motif décoratif */}
               <div className="absolute inset-0 opacity-30 pointer-events-none">
-                <div className="absolute inset-4 border border-[#B8961F]/50 rounded-lg"></div>
+                <div className="absolute inset-4 border border-[#D4AF37]/50 rounded-lg"></div>
               </div>
-              <Star className="w-14 h-14 text-[#B8961F]/60 group-hover:text-[#B8961F] transition-colors" strokeWidth={1} />
-              <Moon className="w-6 h-6 text-[#B8961F]/40 mt-2" strokeWidth={1} />
+              <Star className="w-14 h-14 text-[#D4AF37]/60 group-hover:text-[#D4AF37] transition-colors" strokeWidth={1} />
+              <Moon className="w-6 h-6 text-[#D4AF37]/40 mt-2" strokeWidth={1} />
             </div>
 
             <button
@@ -120,15 +120,15 @@ const TirageDuJour = () => {
             <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
               {/* Carte visuelle */}
               <div className={`w-32 h-48 flex-shrink-0 rounded-xl bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border-2 ${
-                carte.orientation === 'droit' ? 'border-[#B8961F]/60' : 'border-purple-500/60'
+                carte.orientation === 'droit' ? 'border-[#D4AF37]/60' : 'border-[#B8A9E8]/60'
               } flex flex-col items-center justify-center shadow-xl relative overflow-hidden ${
                 carte.orientation === 'renverse' ? 'rotate-180' : ''
               }`}>
                 <div className="text-center">
                   <Sparkles className={`w-10 h-10 mx-auto mb-2 ${
-                    carte.orientation === 'droit' ? 'text-[#B8961F]' : 'text-purple-400'
+                    carte.orientation === 'droit' ? 'text-[#D4AF37]' : 'text-[#B8A9E8]'
                   }`} strokeWidth={1} />
-                  <span className="text-[#B8961F] text-3xl font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                  <span className="text-[#D4AF37] text-3xl font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                     {carte.numero}
                   </span>
                 </div>
@@ -136,7 +136,7 @@ const TirageDuJour = () => {
 
               {/* Infos de la carte */}
               <div className="flex-1 text-center md:text-left">
-                <h4 className="text-2xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+                <h4 className="text-2xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                   {carte.nom}
                 </h4>
                 
@@ -144,17 +144,17 @@ const TirageDuJour = () => {
                 <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
                   <span className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full ${
                     carte.orientation === 'droit' 
-                      ? 'bg-[#B8961F]/20 text-[#B8961F] border border-[#B8961F]/30' 
-                      : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                      ? 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30' 
+                      : 'bg-[#B8A9E8]/20 text-[#E3D7FF] border border-[#B8A9E8]/30'
                   }`}>
                     {carte.orientation === 'droit' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
                     {carte.orientation_fr}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-[#1C1735] text-[#B8B0C8]/70 border border-[#B8961F]/20">
+                  <span className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-[#1C1735] text-[#B8B0C8]/70 border border-[#D4AF37]/20">
                     {getElementIcon(carte.element)}
                     {carte.element}
                   </span>
-                  <span className="text-xs px-3 py-1 rounded-full bg-[#1C1735] text-[#B8B0C8]/70 border border-[#B8961F]/20">
+                  <span className="text-xs px-3 py-1 rounded-full bg-[#1C1735] text-[#B8B0C8]/70 border border-[#D4AF37]/20">
                     ☆ {carte.planete}
                   </span>
                 </div>
@@ -162,7 +162,7 @@ const TirageDuJour = () => {
                 {/* Mots-clés */}
                 <div className="flex flex-wrap gap-1 justify-center md:justify-start mb-4">
                   {carte.mots_cles?.map((mot, i) => (
-                    <span key={i} className="text-xs text-[#B8961F] bg-[#B8961F]/10 px-2 py-0.5 rounded-full">
+                    <span key={i} className="text-xs text-[#D4AF37] bg-[#D4AF37]/10 px-2 py-0.5 rounded-full">
                       {mot}
                     </span>
                   ))}
@@ -174,8 +174,8 @@ const TirageDuJour = () => {
                 </p>
 
                 {/* Message énergie */}
-                <div className="bg-[#B8961F]/10 rounded-lg p-4 border border-[#B8961F]/20 mb-4">
-                  <p className="text-[#B8961F] text-sm italic">
+                <div className="bg-[#D4AF37]/10 rounded-lg p-4 border border-[#D4AF37]/20 mb-4">
+                  <p className="text-[#D4AF37] text-sm italic">
                     ✨ {tirage.message_energie}
                   </p>
                 </div>
@@ -183,10 +183,10 @@ const TirageDuJour = () => {
             </div>
 
             {/* Section dépliable - Détails */}
-            <div className="mt-6 border-t border-[#B8961F]/20 pt-4">
+            <div className="mt-6 border-t border-[#D4AF37]/20 pt-4">
               <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="w-full flex items-center justify-between text-[#B8961F] hover:text-[#D4AF37] transition-colors"
+                className="w-full flex items-center justify-between text-[#D4AF37] hover:text-[#D4AF37] transition-colors"
               >
                 <span className="text-sm font-light">Voir plus de détails</span>
                 <ChevronDown className={`w-5 h-5 transition-transform ${showDetails ? 'rotate-180' : ''}`} />
@@ -195,11 +195,11 @@ const TirageDuJour = () => {
               {showDetails && (
                 <div className="mt-4 space-y-4 animate-fadeIn">
                   {/* Affirmation du jour */}
-                  <div className="bg-gradient-to-r from-[#2D1F4B] to-[#1C1735] rounded-lg p-4 border border-[#B8961F]/20">
-                    <h5 className="text-[#B8961F] text-sm mb-2 flex items-center gap-2">
+                  <div className="bg-gradient-to-r from-[#2D1F4B] to-[#1C1735] rounded-lg p-4 border border-[#D4AF37]/20">
+                    <h5 className="text-[#D4AF37] text-sm mb-2 flex items-center gap-2">
                       <Sparkles className="w-4 h-4" /> Affirmation du Jour
                     </h5>
-                    <p className="text-[#F0E6D3] italic font-light">
+                    <p className="text-[#F5EEE0] italic font-light">
                       "{tirage.affirmation_du_jour}"
                     </p>
                   </div>
@@ -225,8 +225,8 @@ const TirageDuJour = () => {
                   </div>
 
                   {/* Rituel suggéré */}
-                  <div className="bg-[#B8961F]/5 rounded-lg p-4 border border-[#B8961F]/20">
-                    <h5 className="text-[#B8961F] text-sm mb-2 flex items-center gap-2">
+                  <div className="bg-[#D4AF37]/5 rounded-lg p-4 border border-[#D4AF37]/20">
+                    <h5 className="text-[#D4AF37] text-sm mb-2 flex items-center gap-2">
                       {getElementIcon(carte.element)} Rituel Suggéré ({carte.element})
                     </h5>
                     <p className="text-[#B8B0C8]/80 text-sm font-light">
@@ -235,8 +235,8 @@ const TirageDuJour = () => {
                   </div>
 
                   {/* Conseil */}
-                  <div className="text-center bg-gradient-to-r from-[#B8961F]/10 via-[#B8961F]/20 to-[#B8961F]/10 rounded-lg p-4 border border-[#B8961F]/30">
-                    <p className="text-[#B8961F] italic">
+                  <div className="text-center bg-gradient-to-r from-[#D4AF37]/10 via-[#D4AF37]/20 to-[#D4AF37]/10 rounded-lg p-4 border border-[#D4AF37]/30">
+                    <p className="text-[#D4AF37] italic">
                       💫 {carte.conseil}
                     </p>
                   </div>
@@ -245,7 +245,7 @@ const TirageDuJour = () => {
             </div>
 
             {/* CTA vers tirage complet */}
-            <div className="mt-6 pt-4 border-t border-[#B8961F]/20 text-center">
+            <div className="mt-6 pt-4 border-t border-[#D4AF37]/20 text-center">
               <p className="text-[#B8B0C8]/60 text-sm mb-4">
                 Envie d'aller plus loin ?
               </p>

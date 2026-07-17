@@ -30,7 +30,7 @@ export default function CreditGate({ serviceId, cost, label, onUnlock, children,
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-6 text-center" data-testid="credit-gate-login">
-        <LogIn className="w-8 h-8 mb-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+        <LogIn className="w-8 h-8 mb-4" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
         <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
           Connexion requise
         </h2>
@@ -42,7 +42,7 @@ export default function CreditGate({ serviceId, cost, label, onUnlock, children,
           <button
             onClick={() => navigate('/connexion')}
             className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300"
-            style={{ border: '1px solid rgba(184,150,31,0.5)', color: '#B8961F', letterSpacing: '0.1em' }}
+            style={{ border: '1px solid rgba(212,175,55,0.5)', color: '#D4AF37', letterSpacing: '0.1em' }}
             data-testid="gate-login-btn"
           >
             Se connecter
@@ -50,7 +50,7 @@ export default function CreditGate({ serviceId, cost, label, onUnlock, children,
           <button
             onClick={() => navigate('/inscription')}
             className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300"
-            style={{ border: '1px solid rgba(184,150,31,0.3)', color: '#B8961F', background: 'rgba(184,150,31,0.08)', letterSpacing: '0.1em' }}
+            style={{ border: '1px solid rgba(212,175,55,0.3)', color: '#D4AF37', background: 'rgba(212,175,55,0.08)', letterSpacing: '0.1em' }}
             data-testid="gate-register-btn"
           >
             Cr&eacute;er un compte
@@ -83,20 +83,20 @@ export default function CreditGate({ serviceId, cost, label, onUnlock, children,
   if (error === 'insufficient' || (cost > 0 && creditBalance < cost)) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-6 text-center" data-testid="credit-gate-insufficient">
-        <Coins className="w-8 h-8 mb-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+        <Coins className="w-8 h-8 mb-4" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
         <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
           Cr&eacute;dits insuffisants
         </h2>
         <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>
-          {label} co&ucirc;te <span style={{ color: '#B8961F', fontWeight: 600 }}>{cost} cr&eacute;dits</span>.
+          {label} co&ucirc;te <span style={{ color: '#D4AF37', fontWeight: 600 }}>{cost} cr&eacute;dits</span>.
         </p>
         <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
-          Votre solde : <span style={{ color: '#B8961F' }}>{creditBalance} cr&eacute;dits</span>
+          Votre solde : <span style={{ color: '#D4AF37' }}>{creditBalance} cr&eacute;dits</span>
         </p>
         <button
           onClick={() => navigate('/acheter-credits')}
           className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-500"
-          style={{ border: '1px solid #B8961F', color: '#0C0918', background: '#B8961F', letterSpacing: '0.1em', fontWeight: 600 }}
+          style={{ border: '1px solid #D4AF37', color: '#111625', background: '#D4AF37', letterSpacing: '0.1em', fontWeight: 600 }}
           data-testid="gate-buy-credits-btn"
         >
           Acheter des cr&eacute;dits <ArrowRight className="w-3.5 h-3.5" />
@@ -108,13 +108,13 @@ export default function CreditGate({ serviceId, cost, label, onUnlock, children,
   // Has enough credits — show unlock button
   return (
     <div className="flex flex-col items-center justify-center py-12 px-6 text-center" data-testid="credit-gate-unlock">
-      <Coins className="w-7 h-7 mb-3" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+      <Coins className="w-7 h-7 mb-3" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
       <p className="text-sm mb-1" style={{ color: 'var(--pa-body)' }}>
         {label}
       </p>
       <p className="text-xs mb-5" style={{ color: 'var(--pa-muted)' }}>
-        Co&ucirc;t : <span style={{ color: '#B8961F' }}>{cost > 0 ? `${cost} cr\u00e9dits` : 'Gratuit'}</span>
-        {' '}&middot;{' '}Solde : <span style={{ color: '#B8961F' }}>{creditBalance} cr&eacute;dits</span>
+        Co&ucirc;t : <span style={{ color: '#D4AF37' }}>{cost > 0 ? `${cost} cr\u00e9dits` : 'Gratuit'}</span>
+        {' '}&middot;{' '}Solde : <span style={{ color: '#D4AF37' }}>{creditBalance} cr&eacute;dits</span>
       </p>
       {error && error !== 'insufficient' && (
         <p className="text-xs mb-3" style={{ color: '#fca5a5' }}>{error}</p>
@@ -124,8 +124,8 @@ export default function CreditGate({ serviceId, cost, label, onUnlock, children,
         disabled={loading}
         className="text-xs uppercase tracking-widest px-8 py-2.5 rounded-full transition-all duration-500"
         style={{
-          border: '1px solid rgba(184,150,31,0.5)',
-          color: loading ? 'var(--pa-muted)' : '#B8961F',
+          border: '1px solid rgba(212,175,55,0.5)',
+          color: loading ? 'var(--pa-muted)' : '#D4AF37',
           letterSpacing: '0.1em',
         }}
         data-testid="gate-unlock-btn"
