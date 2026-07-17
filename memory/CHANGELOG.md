@@ -60,3 +60,10 @@
 
 ### Session 1 — Fix Three.js Deprecation
 - Remplacement de `THREE.Clock` par `performance.now()` dans `Moon3D.js`. Warning console éliminé.
+
+## 2026-07-17 — Fix panne chat astral production (503/CORS) + fuite console.log
+- CAUSE RACINE : clé `ASTROLOGY_API_IO_KEY` expirée/révoquée (401 sur tous les endpoints astrology-api.io). Nouvelle clé fournie par l'utilisateur, testée et configurée dans backend/.env. ⚠️ À METTRE À JOUR AUSSI SUR RAILWAY.
+- CORS : déjà correct dans le code (commit 3ad043a du 27 mai). Le "préflight 405" observé par l'utilisateur = test OPTIONS sans en-têtes Origin/Access-Control-Request-Method (faux négatif). Si prod KO → Railway sur un commit trop ancien, redéployer.
+- Durcissement route /api/astrology/v3/chat (routes/astrology_v3.py) : try/except global → toute erreur renvoie un 502 propre AVEC en-têtes CORS + remboursement 10 crédits ; cache in-memory 24h du contexte natal (_natal_ctx_cache) ; timeout chat 30s → 60s (astrology_io_service.py `_call(timeout=)`).
+- Privacy : suppression des console.log("LOGIN ATTEMPT", email) et console.log("LOGIN SUCCESS") dans frontend/src/pages/Login.js.
+- Tests : chat e2e OK (1er msg 5.8s natal frais, 2e msg 3.8s natal caché, crédits débités, réponses FR).
