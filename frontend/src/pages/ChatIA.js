@@ -107,7 +107,14 @@ const ChatIA = () => {
       }
       if (user.birth_place) place = user.birth_place;
       if (user.birth_country) country = user.birth_country;
-      if (user.gender) gender = user.gender;
+    if (user.gender) gender = user.gender;
+    if (user.birth_time) {
+      const [h, m] = String(user.birth_time).split(':');
+      if (h !== undefined) hour = parseInt(h, 10);
+      if (m !== undefined) minute = parseInt(m, 10);
+    }
+    if (user.latitude != null) lat = String(user.latitude);
+    if (user.longitude != null) lon = String(user.longitude);
     }
 
     // 2) Fallback : formulaire stocké en localStorage (pour heure + coordonnées)
