@@ -131,33 +131,6 @@ const SolenaJourney = () => {
               Je suis Solena, ta guide chez Plume Astrale. Depuis plus de quinze ans, je décode les cartes du ciel pour aider les âmes à comprendre leur trajectoire et leurs cycles d&apos;amour.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 justify-center mb-12">
-              <Link to="/rencontres-astrales"
-                className="px-8 py-3 rounded-full text-sm uppercase flex items-center gap-2 transition-all hover:scale-[1.02]"
-                style={{
-                  background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
-                  color: '#0C0918',
-                  letterSpacing: '0.2em', fontWeight: 600,
-                  boxShadow: '0 20px 60px rgba(212,175,55,0.25)',
-                }}
-                data-testid="home-solena-cta-consult">
-                <Heart className="w-4 h-4" /> Consulter Solena
-              </Link>
-              <Link to="/consultation"
-                className="px-8 py-3 rounded-full text-sm uppercase flex items-center gap-2 transition-all"
-                style={{ 
-                  border: '1px solid rgba(212,175,55,0.4)',
-                  color: '#D4AF37',
-                  letterSpacing: '0.2em',
-                  fontWeight: 600,
-                  background: 'rgba(212,175,55,0.05)',
-                }}
-                data-testid="home-solena-cta-chat">
-                Chatter avec Plume
-              </Link>
-            </div>
-
             {/* Portrait */}
             <div className="mb-16 flex justify-center">
               <div style={{ maxWidth: '380px', width: '100%' }}>
@@ -237,44 +210,6 @@ const SolenaJourney = () => {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* === FINAL CTA === */}
-          <div className="text-center py-14 px-8 rounded-3xl" style={{
-            background: 'linear-gradient(160deg, rgba(212,175,55,0.08) 0%, rgba(212,175,55,0.04) 100%)',
-            border: '1px solid rgba(212,175,55,0.2)',
-            backdropFilter: 'blur(12px)',
-          }}>
-            <h3 style={{
-              fontFamily: 'Cormorant Garamond, serif',
-              fontWeight: 200,
-              fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)',
-              color: '#F4E8D2',
-              marginBottom: 16,
-              lineHeight: 1.3,
-            }}>
-              Prête à découvrir ce que <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>tes étoiles</em> murmurent ?
-            </h3>
-            <p style={{
-              fontFamily: 'Cormorant Garamond, serif',
-              fontSize: 'clamp(1rem, 1.5vw, 1.2rem)',
-              color: 'rgba(244,232,210,0.8)',
-              marginBottom: 24,
-              lineHeight: 1.6,
-            }}>
-              Une révélation gratuite t&apos;attend : le portrait de ton âme sœur et tes prochaines fenêtres de rencontre.
-            </p>
-            <Link to="/rencontres-astrales"
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm uppercase transition-all hover:scale-[1.05]"
-              style={{
-                background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
-                color: '#0C0918',
-                letterSpacing: '0.2em', fontWeight: 600,
-                boxShadow: '0 20px 60px rgba(212,175,55,0.25)',
-              }}
-              data-testid="home-solena-cta-final">
-              <Heart className="w-4 h-4" /> Découvrir Solena
-            </Link>
           </div>
 
         </div>
@@ -475,12 +410,9 @@ const ClientReviews = () => {
             }}
             data-testid="reviews-cta-btn">
             <Heart style={{ width: 14, height: 14 }} strokeWidth={2} />
-            Discuter avec Solena — Gratuit
+            Discuter avec Soléna
             <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
           </button>
-          <p className="text-[10px] mt-4" style={{ color: 'rgba(244,232,210,0.4)', letterSpacing: '0.2em' }}>
-            AUCUNE CARTE BANCAIRE · RÉSULTAT INSTANTANÉ
-          </p>
         </div>
 
       </div>
@@ -526,7 +458,7 @@ const Index = () => {
             Technologie de confiance
           </p>
           <p className="text-base mb-3" style={{ color: 'rgba(244,232,210,0.85)', fontFamily: 'Cormorant Garamond, serif', fontSize: 22, lineHeight: 1.4 }}>
-            Calculs astrologiques propulsés par <span style={{ color: '#D4AF37', fontWeight: 500, fontStyle: 'italic' }}>astrology-api.io v3</span> · Textes générés par <span style={{ color: '#D4AF37', fontWeight: 500, fontStyle: 'italic' }}>OpenAI GPT</span>
+            Calculs astrologiques de précision professionnelle : éphémérides, transits et aspects planétaires calculés à partir de vos coordonnées de naissance réelles.
           </p>
           <p className="text-sm max-w-xl mx-auto" style={{ color: 'rgba(244,232,210,0.55)', lineHeight: 1.6 }}>
             Éphémérides précises, fuseaux horaires, maisons astrologiques et aspects planétaires —
