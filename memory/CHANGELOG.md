@@ -75,3 +75,8 @@
 - **Refonte couleurs + étoiles (Patch #5)** : sed global frontend — #B8961F→#D4AF37, #0C0918→#111625, #F4E8D2/#F0E6D3→#F5EEE0, #C5A059→#D4AF37, #1a1147→#1A2035, rgba(184,150,31)→rgba(212,175,55), classes purple-*→lavande #B8A9E8/#E3D7FF (TirageTarot, TirageDuJour). Nouveau composant global Starfield.js (90 étoiles dorées scintillantes, .plume-starfield z-index 1) monté dans App.js.
 - Tests : iteration_47.json — 100% PASS (9/9 backend + tous flux frontend). Code promo de test en preview : TESTPLUME (ADMIN26 absent de la DB preview).
 - À FAIRE côté user pour la prod : redéployer Railway + Vercel, ajouter ADMIN_ALERT_EMAIL=contact@plume-astrale.fr sur Railway, vérifier que le code ADMIN26 existe dans la table promo_codes de la DB prod si besoin.
+
+## 2026-07-17 (suite) — Nouveaux packs de crédits "Cosmiques"
+- Remplacement des 3 anciens packs (Initiation 15/4,99 · Clarté 60/14,99 · Flammes Jumelles 130/29,99) par 4 packs sans bonus ni émojis : Comète 30cr/7,99€ · Nébuleuse 80cr/17,99€ (Le plus choisi) · Constellation 180cr/34,99€ (Meilleure valeur) · Voie Lactée 350cr/59,99€.
+- Fichiers : backend/config.py (PACKS, ids: comete/nebuleuse/constellation/voie_lactee), BuyCredits.js (grille passée en xl:grid-cols-4, mention "crédits offerts" retirée), CreditsPaywallModal.js (grid 2 col), ServicesEquivalence.js + Navbar.js ("DÈS 14,99€" → "DÈS 17,99€").
+- Testé : GET /api/packs OK, POST /api/credits/checkout pack_id=nebuleuse → URL Stripe OK, rendu visuel 4 cartes vérifié.

@@ -8,38 +8,49 @@ const API = process.env.REACT_APP_BACKEND_URL;
 // Packs synchronises avec /app/backend/config.py PACKS
 const PACKS = [
   {
-    id: 'initiation',
-    name: 'Initiation',
-    price: '4,99 €',
-    credits: 15,
+    id: 'comete',
+    name: 'Comète',
+    price: '7,99 €',
+    credits: 30,
     bonus: 0,
     icon: Sparkles,
-    subtitle: '15 crédits · idéal pour continuer maintenant',
+    subtitle: '30 crédits · idéal pour continuer maintenant',
     accent: '#D4AF37',
   },
   {
-    id: 'astro_amour',
-    name: 'Clarté',
-    price: '14,99 €',
-    credits: 50,
-    bonus: 10,
+    id: 'nebuleuse',
+    name: 'Nébuleuse',
+    price: '17,99 €',
+    credits: 80,
+    bonus: 0,
     icon: Zap,
-    subtitle: '50 crédits + 10 offerts = 60 crédits',
-    caption: '≈ 1 Thème Natal complet (60 cr) accessible en 1 clic',
-    badge: '⭐ Best-Seller',
+    subtitle: '80 crédits',
+    caption: '≈ 1 Thème Natal complet (60 cr) + 2 questions à Plume',
+    badge: 'Le plus choisi',
     accent: '#E7C97A',
     highlight: true,
   },
   {
-    id: 'flammes_jumelles',
-    name: 'Flammes Jumelles',
-    price: '29,99 €',
-    credits: 100,
-    bonus: 30,
+    id: 'constellation',
+    name: 'Constellation',
+    price: '34,99 €',
+    credits: 180,
+    bonus: 0,
     icon: Flame,
-    subtitle: '100 crédits + 30 offerts = 130 crédits',
-    caption: 'Explore ton thème en profondeur, ton karma, tes futures relations',
+    subtitle: '180 crédits',
+    caption: 'Explore ton thème en profondeur, ton karma, tes relations',
     badge: 'Meilleure valeur',
+    accent: '#D4AF37',
+  },
+  {
+    id: 'voie_lactee',
+    name: 'Voie Lactée',
+    price: '59,99 €',
+    credits: 350,
+    bonus: 0,
+    icon: Flame,
+    subtitle: '350 crédits',
+    caption: "L'expérience complète, sans jamais compter",
     accent: '#D4AF37',
   },
 ];
@@ -150,7 +161,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
         </div>
 
         {/* Packs */}
-        <div className="px-6 md:px-8 pb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="px-6 md:px-8 pb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
           {PACKS.map((p) => {
             const Icon = p.icon;
             const totalCr = p.credits + p.bonus;
