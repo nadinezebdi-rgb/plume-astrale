@@ -122,10 +122,10 @@ def _api_key() -> str:
     return k
 
 
-async def _call(path: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+async def _call(path: str, payload: Dict[str, Any], timeout: float = 30.0) -> Optional[Dict[str, Any]]:
     """POST helper. Retourne data ou None si echec. Logs minimal."""
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=timeout) as client:
             r = await client.post(
                 f'{BASE_URL}{path}',
                 headers={
@@ -567,7 +567,7 @@ async def astro_chat(
             payload['astrology']['subjects'] = [make_subject(name, birth_data)]
         if session_id:
             payload['astrology']['session_id'] = session_id
-    return await _call('/chat/completions', payload)
+    return await _call('/chat/completions', payload, timeout=60.0)
 
 
 # ════════ Cache helper (24h) using Supabase energy_cache table ════════

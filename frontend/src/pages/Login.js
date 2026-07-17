@@ -26,11 +26,8 @@ const handleSubmit = async (e) => {
   setLoading(true);
 
   try {
-    console.log("LOGIN ATTEMPT:", email);
-
     await login(email, password);
 
-    console.log("LOGIN SUCCESS");
     trackEvent('login_success');
 
     // redirection après connexion : respecte ?redirect=... sinon /mon-compte

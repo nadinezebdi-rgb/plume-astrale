@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 import json
 import re
+import time
 
 from middleware.auth import get_current_user
 from services import astrology_io_service as aio
@@ -559,6 +560,11 @@ def _is_tool_leak(text: str) -> bool:
         return False
 
 
+# Cache in-memory du contexte natal (24h) : evite un appel API de 10-30s a chaque message
+_natal_ctx_cache: dict = {}
+_NATAL_CTX_TTL = 86400
+
+
 @router.post('/chat')
 async def astro_chat_v3(payload: AstroChatRequest, current_user: dict = Depends(get_current_user)):
     """Chat AI astrologique — Plume, astrologue holistique.
@@ -572,6 +578,21 @@ async def astro_chat_v3(payload: AstroChatRequest, current_user: dict = Depends(
         current_user['id'], 'chat_astral', 10, 'Chat astrologique - 1 question',
     )
 
+    try:
+        return await _run_astro_chat(payload, current_user, charge_info)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f'[astro_chat_v3] EXCEPTION inattendue : {e}')
+        if charge_info.get('charged'):
+            try:
+                await wallet_service.add_credits(current_user['id'], 10, 'Remboursement chat (echec API)', tx_type='refund')
+            except Exception:
+                pass
+        raise HTTPException(status_code=502, detail='Service de chat astrologique indisponible.')
+
+
+async def _run_astro_chat(payload: AstroChatRequest, current_user: dict, charge_info: dict) -> dict:
     profile = await wallet_service.get_profile(current_user['id'])
     bd = aio.parse_profile(profile)
     name = profile.get('prenom') or 'Voyageur'
@@ -579,12 +600,18 @@ async def astro_chat_v3(payload: AstroChatRequest, current_user: dict = Depends(
     # Pre-embed le theme natal dans le system prompt (evite le tool-loop distant)
     system_content = PLUME_SYSTEM_PROMPT
     if bd:
-        try:
-            natal = await aio.natal_chart(bd, name=name, language='fr')
-            if natal:
-                system_content += _build_natal_context_v3(natal, name)
-        except Exception:
-            pass
+        cached = _natal_ctx_cache.get(current_user['id'])
+        if cached and (time.time() - cached[0] < _NATAL_CTX_TTL):
+            system_content += cached[1]
+        else:
+            try:
+                natal = await aio.natal_chart(bd, name=name, language='fr')
+                if natal:
+                    ctx = _build_natal_context_v3(natal, name)
+                    _natal_ctx_cache[current_user['id']] = (time.time(), ctx)
+                    system_content += ctx
+            except Exception:
+                pass
 
     messages = [{'role': 'system', 'content': system_content}]
     if payload.history:
