@@ -79,8 +79,8 @@ export default function RencontresUltimeSucces() {
     <div
       style={{
         minHeight: '100vh',
-        background: 'radial-gradient(ellipse at 50% 20%, #1a1147 0%, #0C0918 55%, #050308 100%)',
-        color: '#F4E8D2',
+        background: 'radial-gradient(ellipse at 50% 20%, #1A2035 0%, #111625 55%, #050308 100%)',
+        color: '#F5EEE0',
         padding: '60px 20px 80px',
         fontFamily: 'Inter, sans-serif',
       }}
@@ -114,7 +114,7 @@ export default function RencontresUltimeSucces() {
             fontWeight: 300,
             fontSize: 'clamp(1.9rem, 4.5vw, 3rem)',
             lineHeight: 1.1,
-            color: '#F4E8D2',
+            color: '#F5EEE0',
           }}
           data-testid="succes-title"
         >
@@ -164,7 +164,7 @@ export default function RencontresUltimeSucces() {
               </div>
               <div className="mt-1 text-base md:text-lg" style={{
                 fontFamily: 'Cormorant Garamond, serif',
-                color: '#F4E8D2',
+                color: '#F5EEE0',
                 lineHeight: 1.4,
               }} data-testid="succes-message">
                 {status.message}
@@ -340,7 +340,7 @@ function StarField() {
           cx={s.x}
           cy={s.y}
           r={s.r * 0.08}
-          fill="#F4E8D2"
+          fill="#F5EEE0"
           style={{ animationDelay: `${s.delay}s`, opacity: s.op }}
         />
       ))}

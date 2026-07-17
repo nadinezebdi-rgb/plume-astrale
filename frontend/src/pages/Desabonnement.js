@@ -44,7 +44,7 @@ const Desabonnement = () => {
             <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.35)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
               <Check style={{ width: 24, height: 24, color: '#4ADE80' }} strokeWidth={2} />
             </div>
-            <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 26, color: '#F0E6D3', fontWeight: 300, marginBottom: 12 }}>
+            <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 26, color: '#F5EEE0', fontWeight: 300, marginBottom: 12 }}>
               C&apos;est fait.
             </h1>
             <p style={{ color: 'rgba(184,176,200,0.85)', fontSize: 15, lineHeight: 1.6, marginBottom: 24 }}>{msg}</p>
@@ -52,7 +52,7 @@ const Desabonnement = () => {
         )}
         {status === 'error' && (
           <>
-            <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 24, color: '#F0E6D3', fontWeight: 300, marginBottom: 12 }}>
+            <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 24, color: '#F5EEE0', fontWeight: 300, marginBottom: 12 }}>
               Désolée
             </h1>
             <p style={{ color: 'rgba(252,165,165,0.9)', fontSize: 14, marginBottom: 20 }}>{msg}</p>

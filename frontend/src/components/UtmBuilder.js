@@ -60,16 +60,16 @@ export default function UtmBuilder() {
 
   return (
     <div className="rounded-2xl p-6"
-      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,150,31,0.20)', backdropFilter: 'blur(12px)' }}
+      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,175,55,0.20)', backdropFilter: 'blur(12px)' }}
       data-testid="utm-builder">
 
       <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-4 h-4" style={{ color: '#B8961F' }} strokeWidth={1.5} />
-        <h2 className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F4E8D2', fontWeight: 400 }}>
+        <Sparkles className="w-4 h-4" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
+        <h2 className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>
           Générateur de liens de campagne
         </h2>
       </div>
-      <p className="text-xs opacity-70 mb-5" style={{ color: '#F4E8D2' }}>
+      <p className="text-xs opacity-70 mb-5" style={{ color: '#F5EEE0' }}>
         Choisis un preset, ajuste au besoin, copie le lien et colle-le dans ta bio TikTok / Instagram.
         Chaque acheteur sera automatiquement attribué à sa campagne.
       </p>
@@ -81,9 +81,9 @@ export default function UtmBuilder() {
             className="text-[10px] uppercase px-3 py-1.5 rounded-full transition-all"
             style={{
               border: '1px solid',
-              borderColor: presetKey === p.key ? '#B8961F' : 'rgba(184,150,31,0.25)',
-              color: presetKey === p.key ? '#0C0918' : '#B8961F',
-              background: presetKey === p.key ? '#B8961F' : 'transparent',
+              borderColor: presetKey === p.key ? '#D4AF37' : 'rgba(212,175,55,0.25)',
+              color: presetKey === p.key ? '#111625' : '#D4AF37',
+              background: presetKey === p.key ? '#D4AF37' : 'transparent',
               letterSpacing: '0.1em',
             }}
             data-testid={`utm-preset-${p.key}`}>
@@ -103,11 +103,11 @@ export default function UtmBuilder() {
       </div>
 
       {/* Result */}
-      <div className="rounded-xl p-4 mb-3" style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(184,150,31,0.25)' }}>
-        <div className="text-[10px] uppercase mb-2 opacity-60" style={{ color: '#B8961F', letterSpacing: '0.2em' }}>
+      <div className="rounded-xl p-4 mb-3" style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(212,175,55,0.25)' }}>
+        <div className="text-[10px] uppercase mb-2 opacity-60" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
           URL trackée
         </div>
-        <div className="text-xs break-all font-mono" style={{ color: '#F4E8D2' }} data-testid="utm-url">
+        <div className="text-xs break-all font-mono" style={{ color: '#F5EEE0' }} data-testid="utm-url">
           {url}
         </div>
       </div>
@@ -116,8 +116,8 @@ export default function UtmBuilder() {
         <button onClick={copyUrl}
           className="flex-1 px-4 py-2.5 rounded-full text-xs uppercase transition-all flex items-center justify-center gap-2"
           style={{
-            background: copied ? '#8FEBB4' : '#B8961F',
-            color: '#0C0918',
+            background: copied ? '#8FEBB4' : '#D4AF37',
+            color: '#111625',
             letterSpacing: '0.15em', fontWeight: 600,
           }}
           data-testid="utm-copy-btn">
@@ -125,13 +125,13 @@ export default function UtmBuilder() {
         </button>
         <a href={url} target="_blank" rel="noreferrer"
           className="px-4 py-2.5 rounded-full text-xs uppercase transition-all flex items-center gap-2"
-          style={{ border: '1px solid #B8961F', color: '#B8961F', letterSpacing: '0.15em' }}
+          style={{ border: '1px solid #D4AF37', color: '#D4AF37', letterSpacing: '0.15em' }}
           data-testid="utm-preview-btn">
           <ExternalLink className="w-4 h-4" /> Prévisualiser
         </a>
       </div>
 
-      <p className="text-[10px] opacity-50 mt-4" style={{ color: '#F4E8D2' }}>
+      <p className="text-[10px] opacity-50 mt-4" style={{ color: '#F5EEE0' }}>
         💡 Astuce : varie `utm_content` (ex: <code>video_01</code>, <code>video_02</code>) pour comparer plusieurs
         versions de la même campagne (A/B testing).
       </p>
@@ -142,12 +142,12 @@ export default function UtmBuilder() {
 function Field({ label, value, onChange, placeholder, fullWidth, testid }) {
   return (
     <div className={fullWidth ? 'md:col-span-2' : ''}>
-      <label className="text-[10px] uppercase mb-1.5 block" style={{ color: '#B8961F', letterSpacing: '0.2em' }}>
+      <label className="text-[10px] uppercase mb-1.5 block" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
         {label}
       </label>
       <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         className="w-full py-2 px-3 rounded-lg text-sm outline-none"
-        style={{ background: 'rgba(255,255,255,0.05)', color: '#F4E8D2', border: '1px solid rgba(184,150,31,0.20)' }}
+        style={{ background: 'rgba(255,255,255,0.05)', color: '#F5EEE0', border: '1px solid rgba(212,175,55,0.20)' }}
         data-testid={testid} />
     </div>
   );

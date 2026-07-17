@@ -47,8 +47,8 @@ const PremiumStickyCTA = () => {
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           padding: '16px 20px', borderRadius: 999,
-          background: 'linear-gradient(135deg, #D4AF37 0%, #B8961F 100%)',
-          color: '#0C0918', fontWeight: 700,
+          background: 'linear-gradient(135deg, #D4AF37 0%, #D4AF37 100%)',
+          color: '#111625', fontWeight: 700,
           fontSize: 13, letterSpacing: '0.14em', textTransform: 'uppercase',
           textDecoration: 'none', minHeight: 56,
           boxShadow: '0 6px 24px rgba(212,175,55,0.45)',

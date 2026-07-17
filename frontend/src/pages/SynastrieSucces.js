@@ -58,7 +58,7 @@ export default function SynastrieSucces() {
           {isPaid && (
             <>
               <CheckCircle2 className="w-12 h-12 mx-auto mb-4" strokeWidth={1.5} style={{ color: '#7CB88A' }} />
-              <h1 className="text-3xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 300 }}>
+              <h1 className="text-3xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 300 }}>
                 Paiement confirme
               </h1>
               <p className="text-sm mb-6" style={{ color: 'rgba(184,176,200,0.85)', lineHeight: 1.7 }}>
@@ -71,7 +71,7 @@ export default function SynastrieSucces() {
                   href={status.pdf_path}
                   download
                   className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full"
-                  style={{ background: 'linear-gradient(135deg, #D4AF37, #B8961F)', color: '#0C0918', fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
+                  style={{ background: 'linear-gradient(135deg, #D4AF37, #D4AF37)', color: '#111625', fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
                   data-testid="synastrie-download-btn"
                 >
                   <Download className="w-4 h-4" /> Telecharger mon rapport

@@ -54,7 +54,7 @@ const MoodPicker = ({ moods, currentMood, onSubmit, loading }) => {
 
   return (
     <div className="rounded-2xl p-6" style={{ background: 'rgba(212,175,55,0.04)', border: '1px solid rgba(212,175,55,0.18)' }} data-testid="mood-picker">
-      <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 400 }}>
+      <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>
         Comment te sens-tu {greeting().toLowerCase()} ?
       </h3>
       <p className="text-xs mb-5" style={{ color: 'rgba(184,176,200,0.65)' }}>
@@ -99,8 +99,8 @@ const MoodPicker = ({ moods, currentMood, onSubmit, loading }) => {
         disabled={!selected || loading}
         className="mt-4 w-full flex items-center justify-center gap-2 px-5 py-3 rounded-full transition-all text-xs uppercase tracking-widest"
         style={{
-          background: selected ? 'linear-gradient(135deg, #D4AF37, #B8961F)' : 'rgba(255,255,255,0.04)',
-          color: selected ? '#0C0918' : 'rgba(184,176,200,0.5)',
+          background: selected ? 'linear-gradient(135deg, #D4AF37, #D4AF37)' : 'rgba(255,255,255,0.04)',
+          color: selected ? '#111625' : 'rgba(184,176,200,0.5)',
           letterSpacing: '0.14em',
           fontWeight: 600,
           cursor: selected ? 'pointer' : 'not-allowed',
@@ -126,7 +126,7 @@ const EveningReflection = ({ unlocked, alreadyDone, onSubmit, response, loading,
         <div className="flex items-start gap-3 mb-3">
           <BookOpen className="w-5 h-5 mt-1" style={{ color: '#A78BFA' }} strokeWidth={1.5} />
           <div>
-            <h3 className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 400 }}>Ta réflexion du soir</h3>
+            <h3 className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>Ta réflexion du soir</h3>
             <p className="text-xs" style={{ color: 'rgba(184,176,200,0.6)' }}>Déjà partagée aujourd&apos;hui</p>
           </div>
         </div>
@@ -162,7 +162,7 @@ const EveningReflection = ({ unlocked, alreadyDone, onSubmit, response, loading,
           <Lock className="w-5 h-5 mt-1" style={{ color: 'rgba(184,176,200,0.5)' }} strokeWidth={1.5} />
         )}
         <div>
-          <h3 className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 400 }}>La réflexion du soir</h3>
+          <h3 className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>La réflexion du soir</h3>
           <p className="text-xs" style={{ color: 'rgba(184,176,200,0.6)' }}>
             {unlocked
               ? 'Pose ici ce qui te traverse. Plume te répondra avec attention.'
@@ -192,7 +192,7 @@ const EveningReflection = ({ unlocked, alreadyDone, onSubmit, response, loading,
                 className="flex items-center gap-2 px-5 py-2.5 rounded-full text-xs uppercase tracking-widest transition-all"
                 style={{
                   background: entry.length >= 5 ? 'linear-gradient(135deg, #A78BFA, #8B6FE0)' : 'rgba(255,255,255,0.04)',
-                  color: entry.length >= 5 ? '#0C0918' : 'rgba(184,176,200,0.5)',
+                  color: entry.length >= 5 ? '#111625' : 'rgba(184,176,200,0.5)',
                   letterSpacing: '0.12em',
                   fontWeight: 600,
                   cursor: entry.length >= 5 ? 'pointer' : 'not-allowed',
@@ -320,7 +320,7 @@ export default function CercleDashboard() {
           <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: '#D4AF37', letterSpacing: '0.3em', fontFamily: 'Cinzel, serif' }}>
             Le Cercle
           </p>
-          <h1 className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: '#F0E6D3' }} data-testid="cercle-greeting">
+          <h1 className="text-3xl sm:text-4xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: '#F5EEE0' }} data-testid="cercle-greeting">
             {greeting()}, <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>{data.profile.prenom}</em>
           </h1>
           <p className="text-xs capitalize" style={{ color: 'rgba(184,176,200,0.6)' }}>{dateLabel}</p>
@@ -333,12 +333,12 @@ export default function CercleDashboard() {
             <div className="relative flex-shrink-0">
               <Flame className="w-10 h-10" strokeWidth={1.5} style={{ color: streak.streak_count > 0 ? '#FF6B35' : 'rgba(212,175,55,0.5)', filter: streak.streak_count >= 7 ? 'drop-shadow(0 0 10px rgba(255,107,53,0.4))' : 'none' }} />
               {streak.streak_count > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-bold" style={{ background: '#FF6B35', color: '#0C0918' }}>{streak.streak_count}</span>
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-bold" style={{ background: '#FF6B35', color: '#111625' }}>{streak.streak_count}</span>
               )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: 'rgba(184,176,200,0.65)', letterSpacing: '0.12em' }}>Assiduité</p>
-              <p className="text-base" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>
+              <p className="text-base" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                 {streak.streak_count === 0 ? 'Commence ta présence' : `${streak.streak_count} jour${streak.streak_count > 1 ? 's' : ''}`}
               </p>
               <p className="text-[10px] mt-1" style={{ color: 'rgba(184,176,200,0.55)' }}>
@@ -352,7 +352,7 @@ export default function CercleDashboard() {
             <Moon className="w-9 h-9 flex-shrink-0" strokeWidth={1.5} style={{ color: '#A78BFA' }} />
             <div className="flex-1 min-w-0">
               <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: 'rgba(184,176,200,0.65)', letterSpacing: '0.12em' }}>Phase lunaire</p>
-              <p className="text-base" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3' }}>{data.moon.phase}</p>
+              <p className="text-base" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>{data.moon.phase}</p>
               <p className="text-[10px] mt-1 italic" style={{ color: 'rgba(184,176,200,0.65)' }}>{data.moon.theme}</p>
             </div>
           </div>
@@ -374,7 +374,7 @@ export default function CercleDashboard() {
           <div className="rounded-2xl p-5 mb-8 flex items-start gap-4" style={{ background: 'rgba(124,184,138,0.06)', border: '1px solid rgba(124,184,138,0.2)' }} data-testid="checkin-done">
             <Check className="w-5 h-5 mt-0.5 flex-shrink-0" strokeWidth={2} style={{ color: '#7CB88A' }} />
             <div>
-              <p className="text-sm mb-1" style={{ color: '#F0E6D3' }}>
+              <p className="text-sm mb-1" style={{ color: '#F5EEE0' }}>
                 Intention posée : <span style={{ fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic', color: '#A3D6AC' }}>« {data.checkin.intention || 'Présence et douceur'} »</span>
               </p>
               <p className="text-xs" style={{ color: 'rgba(184,176,200,0.65)' }}>
@@ -407,7 +407,7 @@ export default function CercleDashboard() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: '#C97878', letterSpacing: '0.14em', fontFamily: 'Cinzel, serif' }}>Carte du jour</p>
-            <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F0E6D3', fontWeight: 400 }}>{data.tarot?.name}</h3>
+            <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>{data.tarot?.name}</h3>
             <p className="text-sm leading-relaxed" style={{ color: 'rgba(184,176,200,0.85)', lineHeight: 1.7 }}>{data.tarot?.message}</p>
           </div>
         </section>

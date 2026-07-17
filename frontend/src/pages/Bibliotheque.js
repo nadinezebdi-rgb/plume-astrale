@@ -38,7 +38,7 @@ const StatusBadge = ({ status }) => {
   }
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] uppercase tracking-widest rounded-full"
-      style={{ background: 'rgba(184,150,31,0.10)', color: '#B8961F', border: '1px solid rgba(184,150,31,0.25)' }}
+      style={{ background: 'rgba(212,175,55,0.10)', color: '#D4AF37', border: '1px solid rgba(212,175,55,0.25)' }}
       data-testid="asset-status-pending">
       En attente
     </span>
@@ -53,7 +53,7 @@ const AssetCard = ({ item, entry, onRegen, busy, token }) => {
   return (
     <div className="rounded-2xl overflow-hidden" style={{
       background: 'rgba(255,255,255,0.03)',
-      border: '1px solid rgba(184,150,31,0.18)',
+      border: '1px solid rgba(212,175,55,0.18)',
       backdropFilter: 'blur(12px)',
     }} data-testid={`asset-card-${item.slug}`}>
       <div className="aspect-square relative" style={{ background: 'linear-gradient(135deg,#0a0d2b,#050716)' }}>
@@ -62,27 +62,27 @@ const AssetCard = ({ item, entry, onRegen, busy, token }) => {
                data-testid={`asset-img-${item.slug}`} />
         ) : (
           <div className="w-full h-full flex items-center justify-center opacity-60">
-            <ImageIcon className="w-10 h-10" style={{ color: '#B8961F' }} strokeWidth={1} />
+            <ImageIcon className="w-10 h-10" style={{ color: '#D4AF37' }} strokeWidth={1} />
           </div>
         )}
         <div className="absolute top-2 left-2"><StatusBadge status={status} /></div>
       </div>
       <div className="p-3">
-        <div className="text-sm mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F4E8D2' }}>{item.title}</div>
-        <div className="text-[10px] opacity-60 mb-3" style={{ color: '#B8961F', letterSpacing: '0.08em' }}>{item.slug}</div>
+        <div className="text-sm mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>{item.title}</div>
+        <div className="text-[10px] opacity-60 mb-3" style={{ color: '#D4AF37', letterSpacing: '0.08em' }}>{item.slug}</div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => onRegen(item.slug)}
             disabled={busy}
             className="text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-full transition-all disabled:opacity-40"
-            style={{ border: '1px solid rgba(184,150,31,0.4)', color: '#B8961F' }}
+            style={{ border: '1px solid rgba(212,175,55,0.4)', color: '#D4AF37' }}
             data-testid={`asset-regen-${item.slug}`}>
             {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Regénérer'}
           </button>
           {hqUrl && (
             <a href={hqUrl} target="_blank" rel="noreferrer"
                className="text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-full flex items-center gap-1"
-               style={{ border: '1px solid rgba(184,150,31,0.25)', color: '#B8961F' }}
+               style={{ border: '1px solid rgba(212,175,55,0.25)', color: '#D4AF37' }}
                data-testid={`asset-download-${item.slug}`}>
               <Download className="w-3 h-3" /> HQ
             </a>
@@ -178,7 +178,7 @@ export default function Bibliotheque() {
   const progressPct = Math.round((done / total) * 100);
 
   return (
-    <div style={{ background: 'linear-gradient(180deg,#0C0918,#12082A)', color: '#F4E8D2', minHeight: '100vh' }}>
+    <div style={{ background: 'linear-gradient(180deg,#111625,#12082A)', color: '#F5EEE0', minHeight: '100vh' }}>
       <SEO title="Bibliothèque visuelle — Plume Astrale" description="Studio de génération d'assets astrologiques" />
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-10">
@@ -186,8 +186,8 @@ export default function Bibliotheque() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <Sparkles className="w-5 h-5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
-            <span className="text-xs uppercase tracking-widest" style={{ color: '#B8961F', letterSpacing: '0.2em' }}>Studio Admin</span>
+            <Sparkles className="w-5 h-5" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
+            <span className="text-xs uppercase tracking-widest" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>Studio Admin</span>
           </div>
           <h1 className="text-4xl md:text-5xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}>
             Bibliothèque visuelle
@@ -200,18 +200,18 @@ export default function Bibliotheque() {
 
         {/* KPI + Global actions */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,150,31,0.18)' }} data-testid="kpi-done">
-            <div className="text-xs uppercase tracking-widest opacity-60" style={{ color: '#B8961F' }}>Générés</div>
-            <div className="text-3xl mt-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#B8961F' }}>{done} / {total}</div>
+          <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,175,55,0.18)' }} data-testid="kpi-done">
+            <div className="text-xs uppercase tracking-widest opacity-60" style={{ color: '#D4AF37' }}>Générés</div>
+            <div className="text-3xl mt-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#D4AF37' }}>{done} / {total}</div>
           </div>
-          <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,150,31,0.18)' }} data-testid="kpi-errors">
-            <div className="text-xs uppercase tracking-widest opacity-60" style={{ color: '#B8961F' }}>Erreurs</div>
-            <div className="text-3xl mt-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: errors > 0 ? '#ff9d9d' : '#B8961F' }}>{errors}</div>
+          <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,175,55,0.18)' }} data-testid="kpi-errors">
+            <div className="text-xs uppercase tracking-widest opacity-60" style={{ color: '#D4AF37' }}>Erreurs</div>
+            <div className="text-3xl mt-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: errors > 0 ? '#ff9d9d' : '#D4AF37' }}>{errors}</div>
           </div>
-          <div className="rounded-2xl p-5 md:col-span-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,150,31,0.18)' }} data-testid="kpi-progress">
-            <div className="text-xs uppercase tracking-widest opacity-60 mb-2" style={{ color: '#B8961F' }}>Progression</div>
-            <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'rgba(184,150,31,0.12)' }}>
-              <div className="h-full transition-all" style={{ width: `${progressPct}%`, background: 'linear-gradient(90deg,#B8961F,#F4E8D2)' }} />
+          <div className="rounded-2xl p-5 md:col-span-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,175,55,0.18)' }} data-testid="kpi-progress">
+            <div className="text-xs uppercase tracking-widest opacity-60 mb-2" style={{ color: '#D4AF37' }}>Progression</div>
+            <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'rgba(212,175,55,0.12)' }}>
+              <div className="h-full transition-all" style={{ width: `${progressPct}%`, background: 'linear-gradient(90deg,#D4AF37,#F5EEE0)' }} />
             </div>
             <div className="mt-2 text-xs opacity-60">{progressPct}% · {status?.pending || 0} en attente</div>
           </div>
@@ -221,20 +221,20 @@ export default function Bibliotheque() {
         <div className="flex flex-wrap gap-3 mb-8">
           <button onClick={() => startBatch()} disabled={batchRunning}
             className="px-5 py-2.5 rounded-full text-xs uppercase tracking-widest flex items-center gap-2 disabled:opacity-50"
-            style={{ background: '#B8961F', color: '#0C0918', fontWeight: 500 }}
+            style={{ background: '#D4AF37', color: '#111625', fontWeight: 500 }}
             data-testid="btn-generate-all">
             {batchRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
             Générer tout ce qui manque
           </button>
           <button onClick={fetchAll}
             className="px-5 py-2.5 rounded-full text-xs uppercase tracking-widest flex items-center gap-2"
-            style={{ border: '1px solid rgba(184,150,31,0.4)', color: '#B8961F' }}
+            style={{ border: '1px solid rgba(212,175,55,0.4)', color: '#D4AF37' }}
             data-testid="btn-refresh">
             <RefreshCw className="w-4 h-4" /> Rafraîchir
           </button>
           <button onClick={regenGlyphs}
             className="px-5 py-2.5 rounded-full text-xs uppercase tracking-widest flex items-center gap-2"
-            style={{ border: '1px solid rgba(184,150,31,0.4)', color: '#B8961F' }}
+            style={{ border: '1px solid rgba(212,175,55,0.4)', color: '#D4AF37' }}
             data-testid="btn-regen-glyphs">
             Regénérer les 22 glyphes SVG
           </button>
@@ -247,9 +247,9 @@ export default function Bibliotheque() {
               className="px-4 py-2 text-xs uppercase tracking-widest rounded-full transition-all"
               style={{
                 border: '1px solid',
-                borderColor: activeTab === c.key ? '#B8961F' : 'rgba(184,150,31,0.25)',
-                color: activeTab === c.key ? '#0C0918' : '#B8961F',
-                background: activeTab === c.key ? '#B8961F' : 'transparent',
+                borderColor: activeTab === c.key ? '#D4AF37' : 'rgba(212,175,55,0.25)',
+                color: activeTab === c.key ? '#111625' : '#D4AF37',
+                background: activeTab === c.key ? '#D4AF37' : 'transparent',
                 letterSpacing: '0.1em',
               }}
               data-testid={`biblio-tab-${c.key}`}>
@@ -259,7 +259,7 @@ export default function Bibliotheque() {
           {activeTab !== 'glyphs' && (
             <button onClick={() => startBatch(activeTab)} disabled={batchRunning}
               className="ml-auto px-4 py-2 text-[10px] uppercase tracking-widest rounded-full disabled:opacity-40"
-              style={{ border: '1px solid rgba(184,150,31,0.25)', color: '#B8961F' }}
+              style={{ border: '1px solid rgba(212,175,55,0.25)', color: '#D4AF37' }}
               data-testid={`btn-generate-cat-${activeTab}`}>
               Générer seulement {CATEGORIES.find(c => c.key === activeTab)?.label}
             </button>
@@ -288,12 +288,12 @@ export default function Bibliotheque() {
         )}
 
         {/* ═════════════ MARKETING / UTM BUILDER ═════════════ */}
-        <div className="mt-16 pt-10 border-t" style={{ borderColor: 'rgba(184,150,31,0.20)' }}>
+        <div className="mt-16 pt-10 border-t" style={{ borderColor: 'rgba(212,175,55,0.20)' }}>
           <div className="mb-6">
-            <div className="text-xs uppercase" style={{ color: '#B8961F', letterSpacing: '0.25em' }}>
+            <div className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.25em' }}>
               Marketing
             </div>
-            <h2 className="text-3xl mt-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: '#F4E8D2' }}>
+            <h2 className="text-3xl mt-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: '#F5EEE0' }}>
               Tracking des campagnes
             </h2>
           </div>
@@ -325,17 +325,17 @@ function GlyphsGrid() {
     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
       {GLYPH_SLUGS.map(slug => (
         <div key={slug} className="rounded-2xl overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,150,31,0.18)' }}
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,175,55,0.18)' }}
           data-testid={`glyph-card-${slug}`}>
           <div className="aspect-square" style={{ background: '#0a0d2b' }}>
             <img src={`${API}/api/library/file/glyphs-svg/${slug}.svg`} alt={GLYPH_LABELS[slug]}
                  loading="lazy" className="w-full h-full object-contain" />
           </div>
           <div className="p-2 text-center">
-            <div className="text-xs" style={{ color: '#F4E8D2', fontFamily: 'Cormorant Garamond, serif' }}>{GLYPH_LABELS[slug]}</div>
+            <div className="text-xs" style={{ color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif' }}>{GLYPH_LABELS[slug]}</div>
             <a href={`${API}/api/library/file/glyphs-svg/${slug}.svg`} download
                className="text-[10px] uppercase tracking-widest mt-1 inline-flex items-center gap-1"
-               style={{ color: '#B8961F' }}
+               style={{ color: '#D4AF37' }}
                data-testid={`glyph-download-${slug}`}>
               <Download className="w-3 h-3" /> SVG
             </a>

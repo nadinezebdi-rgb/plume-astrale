@@ -38,6 +38,11 @@ export default function RencontresAstrales() {
   const [ctaLoading, setCtaLoading] = useState(false);
   const [promoCode, setPromoCode] = useState('');
 
+  // Personne qui t'intéresse — requise pour la synastrie 12 domaines
+  const [partnerFirstName, setPartnerFirstName] = useState('');
+  const [partnerBirthDate, setPartnerBirthDate] = useState('');
+  const [partnerBirthTime, setPartnerBirthTime] = useState('');
+
   const submitForm = async (e) => {
     e.preventDefault();
     setError('');
@@ -90,6 +95,11 @@ export default function RencontresAstrales() {
   };
 
   const buyPremium = async () => {
+    setError('');
+    if (!partnerFirstName.trim() || !partnerBirthDate) {
+      setError('Renseigne le prénom et la date de naissance de la personne qui t\'intéresse — ton guide inclut votre synastrie complète.');
+      return;
+    }
     setCtaLoading(true);
     try {
       const r = await axios.post(`${API}/api/rencontres/checkout`, {
@@ -98,6 +108,9 @@ export default function RencontresAstrales() {
         email,
         utm,
         promo_code: promoCode.trim() || undefined,
+        partner_first_name: partnerFirstName.trim(),
+        partner_birth_date: partnerBirthDate,
+        partner_birth_time: partnerBirthTime || undefined,
       });
       if (r.data?.url) window.location.href = r.data.url;
       else { setCtaLoading(false); setError('Paiement indisponible pour l\'instant.'); }
@@ -113,7 +126,7 @@ export default function RencontresAstrales() {
     const parts = portrait.split(/(\*\*[^*]+\*\*)/g);
     return parts.map((p, i) =>
       p.startsWith('**') && p.endsWith('**')
-        ? <strong key={i} style={{ color: '#B8961F', fontWeight: 600 }}>{p.slice(2, -2)}</strong>
+        ? <strong key={i} style={{ color: '#D4AF37', fontWeight: 600 }}>{p.slice(2, -2)}</strong>
         : <span key={i}>{p}</span>
     );
   };
@@ -122,7 +135,7 @@ export default function RencontresAstrales() {
     <div style={{
       minHeight: '100vh',
       background: 'radial-gradient(ellipse at top, #1A2035 0%, #141A2C 50%, #111625 100%)',
-      color: '#F4E8D2',
+      color: '#F5EEE0',
       overflow: 'hidden',
       position: 'relative',
     }}>
@@ -159,7 +172,7 @@ export default function RencontresAstrales() {
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
               width: s, height: s,
-              background: '#F4E8D2',
+              background: '#F5EEE0',
               borderRadius: '50%',
               opacity: 0.15 + Math.random() * 0.5,
               boxShadow: '0 0 6px rgba(244,232,210,0.6)',
@@ -180,14 +193,14 @@ export default function RencontresAstrales() {
                 style={{
                   width: 60, height: 60, borderRadius: '50%',
                   objectFit: 'cover', objectPosition: 'center 25%',
-                  border: '2px solid rgba(184,150,31,0.55)',
-                  boxShadow: '0 0 24px rgba(184,150,31,0.30)',
+                  border: '2px solid rgba(212,175,55,0.55)',
+                  boxShadow: '0 0 24px rgba(212,175,55,0.30)',
                 }} />
               <div className="text-left">
-                <div className="text-[10px] uppercase" style={{ color: '#B8961F', letterSpacing: '0.25em' }}>
+                <div className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.25em' }}>
                   Guidée par
                 </div>
-                <div className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F4E8D2' }}>
+                <div className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                   Solena
                 </div>
               </div>
@@ -196,16 +209,16 @@ export default function RencontresAstrales() {
             {/* Hook */}
             <div className="text-center mb-10 animate-fade-up">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6"
-                style={{ background: 'rgba(184,150,31,0.10)', border: '1px solid rgba(184,150,31,0.35)' }}>
-                <Sparkles className="w-3.5 h-3.5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
-                <span className="text-[10px] uppercase" style={{ color: '#B8961F', letterSpacing: '0.25em' }}>
+                style={{ background: 'rgba(212,175,55,0.10)', border: '1px solid rgba(212,175,55,0.35)' }}>
+                <Sparkles className="w-3.5 h-3.5" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
+                <span className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.25em' }}>
                   Décodeur du Destin Amoureux
                 </span>
               </div>
 
               <h1 className="text-4xl md:text-6xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, lineHeight: 1.1 }}>
                 Qui est écrit<br />
-                <em style={{ color: '#B8961F', fontStyle: 'italic' }}>dans vos étoiles ?</em>
+                <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>dans vos étoiles ?</em>
               </h1>
 
               <p className="text-base md:text-lg opacity-80 max-w-xl mx-auto leading-relaxed">
@@ -218,7 +231,7 @@ export default function RencontresAstrales() {
             <form onSubmit={submitForm} className="rounded-3xl p-6 md:p-10"
               style={{
                 background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(184,150,31,0.25)',
+                border: '1px solid rgba(212,175,55,0.25)',
                 backdropFilter: 'blur(16px)',
               }} data-testid="rencontres-form">
 
@@ -251,11 +264,11 @@ export default function RencontresAstrales() {
               <button type="submit" disabled={loading}
                 className="w-full py-4 rounded-full text-sm uppercase transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-2"
                 style={{
-                  background: 'linear-gradient(135deg, #B8961F, #E8C766)',
-                  color: '#0C0918',
+                  background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
+                  color: '#111625',
                   letterSpacing: '0.22em',
                   fontWeight: 600,
-                  boxShadow: '0 20px 60px rgba(184,150,31,0.25)',
+                  boxShadow: '0 20px 60px rgba(212,175,55,0.25)',
                 }} data-testid="submit-reveal-btn">
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>
                   <Heart className="w-4 h-4" strokeWidth={2} /> Révéler mes prochaines rencontres
@@ -278,7 +291,7 @@ export default function RencontresAstrales() {
             <div className="text-center mt-8">
               <Link to="/solena"
                 className="inline-flex items-center gap-2 text-xs uppercase opacity-70 hover:opacity-100 transition-all"
-                style={{ color: '#B8961F', letterSpacing: '0.2em' }}
+                style={{ color: '#D4AF37', letterSpacing: '0.2em' }}
                 data-testid="solena-bio-link">
                 Découvrir Solena <ArrowRight className="w-3 h-3" />
               </Link>
@@ -291,14 +304,14 @@ export default function RencontresAstrales() {
           <div className="animate-fade-up">
             <div className="text-center mb-8">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-4"
-                style={{ background: 'rgba(184,150,31,0.10)', border: '1px solid rgba(184,150,31,0.35)' }}>
-                <Sparkles className="w-3.5 h-3.5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
-                <span className="text-[10px] uppercase" style={{ color: '#B8961F', letterSpacing: '0.25em' }}>
+                style={{ background: 'rgba(212,175,55,0.10)', border: '1px solid rgba(212,175,55,0.35)' }}>
+                <Sparkles className="w-3.5 h-3.5" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
+                <span className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.25em' }}>
                   Ta révélation
                 </span>
               </div>
               <h2 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}>
-                Le portrait de ton <em style={{ color: '#B8961F', fontStyle: 'italic' }}>âme sœur</em>
+                Le portrait de ton <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>âme sœur</em>
               </h2>
               <p className="text-sm opacity-70">Basé sur ta Maison VII — la maison des unions</p>
             </div>
@@ -306,8 +319,8 @@ export default function RencontresAstrales() {
             {/* Portrait */}
             <div className="rounded-3xl p-6 md:p-10 mb-8"
               style={{
-                background: 'linear-gradient(160deg, rgba(184,150,31,0.10), rgba(255,255,255,0.02))',
-                border: '1px solid rgba(184,150,31,0.35)',
+                background: 'linear-gradient(160deg, rgba(212,175,55,0.10), rgba(255,255,255,0.02))',
+                border: '1px solid rgba(212,175,55,0.35)',
                 backdropFilter: 'blur(16px)',
               }} data-testid="reveal-portrait">
               <p className="text-lg md:text-xl leading-relaxed" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 400 }}>
@@ -324,14 +337,14 @@ export default function RencontresAstrales() {
             <div className="rounded-3xl p-6 md:p-10 relative"
               style={{
                 background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(184,150,31,0.35)',
+                border: '1px solid rgba(212,175,55,0.35)',
                 backdropFilter: 'blur(16px)',
               }} data-testid="email-gate">
 
               <div className="text-center mb-6">
-                <Moon className="w-8 h-8 mx-auto mb-3" style={{ color: '#B8961F' }} strokeWidth={1.2} />
+                <Moon className="w-8 h-8 mx-auto mb-3" style={{ color: '#D4AF37' }} strokeWidth={1.2} />
                 <h3 className="text-2xl md:text-3xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}>
-                  Débloque tes <em style={{ color: '#B8961F', fontStyle: 'italic' }}>3 fenêtres</em> de rencontre
+                  Débloque tes <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>3 fenêtres</em> de rencontre
                 </h3>
                 <p className="text-sm opacity-70 max-w-md mx-auto">
                   Les 3 périodes précises des 6 prochains mois où l&apos;univers joue pour toi.
@@ -341,11 +354,11 @@ export default function RencontresAstrales() {
 
               <form onSubmit={submitEmail} className="space-y-4">
                 <div className="relative">
-                  <Mail className="w-4 h-4 absolute top-1/2 -translate-y-1/2 left-4 opacity-40" style={{ color: '#B8961F' }} />
+                  <Mail className="w-4 h-4 absolute top-1/2 -translate-y-1/2 left-4 opacity-40" style={{ color: '#D4AF37' }} />
                   <input type="email" required placeholder="ton.email@exemple.fr"
                     value={email} onChange={e => setEmail(e.target.value)}
                     className="w-full py-4 px-4 pl-12 rounded-full text-sm outline-none transition-all"
-                    style={{ background: 'rgba(255,255,255,0.05)', color: '#F4E8D2', border: '1px solid rgba(184,150,31,0.25)' }}
+                    style={{ background: 'rgba(255,255,255,0.05)', color: '#F5EEE0', border: '1px solid rgba(212,175,55,0.25)' }}
                     data-testid="input-email" />
                 </div>
 
@@ -366,7 +379,7 @@ export default function RencontresAstrales() {
 
                 <button type="submit" disabled={loading}
                   className="w-full py-4 rounded-full text-sm uppercase transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-2"
-                  style={{ background: 'linear-gradient(135deg, #B8961F, #E8C766)', color: '#0C0918', letterSpacing: '0.2em', fontWeight: 600 }}
+                  style={{ background: 'linear-gradient(135deg, #D4AF37, #E8C766)', color: '#111625', letterSpacing: '0.2em', fontWeight: 600 }}
                   data-testid="submit-email-btn">
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>
                     <ArrowRight className="w-4 h-4" strokeWidth={2} /> Voir mes fenêtres de rencontre
@@ -389,7 +402,7 @@ export default function RencontresAstrales() {
                 </span>
               </div>
               <h2 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}>
-                Tes 3 fenêtres sont <em style={{ color: '#B8961F', fontStyle: 'italic' }}>ouvertes</em>
+                Tes 3 fenêtres sont <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>ouvertes</em>
               </h2>
               <p className="text-sm opacity-70">Les zones cosmiques où l&apos;univers joue pour toi</p>
             </div>
@@ -399,15 +412,15 @@ export default function RencontresAstrales() {
               {windows.windows.map((w, i) => (
                 <div key={i} className="rounded-2xl p-6"
                   style={{
-                    background: 'rgba(184,150,31,0.06)',
-                    borderLeft: '3px solid #B8961F',
-                    border: '1px solid rgba(184,150,31,0.20)',
+                    background: 'rgba(212,175,55,0.06)',
+                    borderLeft: '3px solid #D4AF37',
+                    border: '1px solid rgba(212,175,55,0.20)',
                   }} data-testid={`window-${i}`}>
-                  <div className="text-[10px] uppercase mb-1" style={{ color: '#B8961F', letterSpacing: '0.25em' }}>
+                  <div className="text-[10px] uppercase mb-1" style={{ color: '#D4AF37', letterSpacing: '0.25em' }}>
                     {w.kind}
                   </div>
                   <div className="text-2xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 400 }}>
-                    Fenêtre <em style={{ color: '#B8961F', fontStyle: 'italic' }}>{w.period}</em>
+                    Fenêtre <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>{w.period}</em>
                   </div>
                   <p className="text-sm opacity-80 leading-relaxed">{w.text}</p>
                 </div>
@@ -417,24 +430,24 @@ export default function RencontresAstrales() {
             {/* CTA 29€ */}
             <div className="rounded-3xl p-6 md:p-10 relative overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, #0C0918, #1a1147)',
-                border: '2px solid #B8961F',
-                boxShadow: '0 40px 100px rgba(184,150,31,0.25)',
+                background: 'linear-gradient(135deg, #111625, #1A2035)',
+                border: '2px solid #D4AF37',
+                boxShadow: '0 40px 100px rgba(212,175,55,0.25)',
               }} data-testid="cta-premium">
               <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-20"
-                style={{ background: 'radial-gradient(circle, #B8961F, transparent)' }} />
+                style={{ background: 'radial-gradient(circle, #D4AF37, transparent)' }} />
 
               <div className="relative z-10 text-center">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5"
-                  style={{ background: 'rgba(184,150,31,0.15)', border: '1px solid rgba(184,150,31,0.4)' }}>
-                  <Star className="w-3.5 h-3.5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
-                  <span className="text-[10px] uppercase" style={{ color: '#B8961F', letterSpacing: '0.25em' }}>
+                  style={{ background: 'rgba(212,175,55,0.15)', border: '1px solid rgba(212,175,55,0.4)' }}>
+                  <Star className="w-3.5 h-3.5" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
+                  <span className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.25em' }}>
                     Aller plus loin
                   </span>
                 </div>
 
                 <h3 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}>
-                  Ton Guide de Compatibilité <em style={{ color: '#B8961F', fontStyle: 'italic' }}>Ultime</em>
+                  Ton Guide de Compatibilité <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>Ultime</em>
                 </h3>
 
                 <p className="text-sm md:text-base opacity-80 max-w-lg mx-auto mb-6 leading-relaxed">
@@ -446,14 +459,14 @@ export default function RencontresAstrales() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-lg mx-auto mb-8 text-left">
                   {windows.cta?.features?.map((f, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs">
-                      <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
                       <span className="opacity-90">{f}</span>
                     </div>
                   ))}
                 </div>
 
                 <div className="mb-4">
-                  <span className="text-4xl md:text-5xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#B8961F', fontWeight: 400 }}>
+                  <span className="text-4xl md:text-5xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#D4AF37', fontWeight: 400 }}>
                     29,99 €
                   </span>
                   <span className="ml-2 text-xs opacity-60 line-through">49,99 €</span>
@@ -465,6 +478,53 @@ export default function RencontresAstrales() {
                     {error}
                   </div>
                 )}
+
+                {/* ── La personne qui t'intéresse (synastrie 12 domaines) ── */}
+                <div className="mb-6 max-w-md mx-auto text-left p-5 rounded-2xl"
+                  style={{ background: 'rgba(17,22,37,0.55)', border: '1px solid rgba(212,175,55,0.25)' }}
+                  data-testid="partner-fields">
+                  <p className="text-[10px] uppercase mb-1 text-center" style={{ color: '#D4AF37', letterSpacing: '0.25em' }}>
+                    La personne qui t&apos;intéresse
+                  </p>
+                  <p className="text-xs opacity-70 mb-4 text-center leading-relaxed">
+                    Ton guide inclut votre <strong>synastrie complète sur 12 domaines de vie</strong> — il nous faut sa date de naissance.
+                  </p>
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={partnerFirstName}
+                      onChange={e => setPartnerFirstName(e.target.value)}
+                      placeholder="Son prénom *"
+                      data-testid="partner-firstname"
+                      className="w-full px-4 py-3 rounded-xl text-sm"
+                      style={{ background: 'rgba(17,22,37,0.7)', border: '1px solid rgba(212,175,55,0.2)', color: '#F5EEE0' }}
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[9px] uppercase block mb-1" style={{ color: 'rgba(212,175,55,0.7)', letterSpacing: '0.15em' }}>Sa date de naissance *</label>
+                        <input
+                          type="date"
+                          value={partnerBirthDate}
+                          onChange={e => setPartnerBirthDate(e.target.value)}
+                          data-testid="partner-birthdate"
+                          className="w-full px-3 py-3 rounded-xl text-sm"
+                          style={{ background: 'rgba(17,22,37,0.7)', border: '1px solid rgba(212,175,55,0.2)', color: '#F5EEE0' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] uppercase block mb-1" style={{ color: 'rgba(212,175,55,0.7)', letterSpacing: '0.15em' }}>Son heure (si connue)</label>
+                        <input
+                          type="time"
+                          value={partnerBirthTime}
+                          onChange={e => setPartnerBirthTime(e.target.value)}
+                          data-testid="partner-birthtime"
+                          className="w-full px-3 py-3 rounded-xl text-sm"
+                          style={{ background: 'rgba(17,22,37,0.7)', border: '1px solid rgba(212,175,55,0.2)', color: '#F5EEE0' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="mb-4 max-w-sm mx-auto">
                   <input
@@ -488,11 +548,11 @@ export default function RencontresAstrales() {
                 <button onClick={buyPremium} disabled={ctaLoading}
                   className="w-full md:w-auto md:min-w-[320px] py-4 px-8 rounded-full text-sm uppercase transition-all hover:scale-[1.02] disabled:opacity-50 flex items-center justify-center gap-2 mx-auto"
                   style={{
-                    background: 'linear-gradient(135deg, #B8961F, #E8C766)',
-                    color: '#0C0918',
+                    background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
+                    color: '#111625',
                     letterSpacing: '0.22em',
                     fontWeight: 700,
-                    boxShadow: '0 20px 60px rgba(184,150,31,0.35)',
+                    boxShadow: '0 20px 60px rgba(212,175,55,0.35)',
                   }} data-testid="buy-premium-btn">
                   {ctaLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>
                     <Heart className="w-4 h-4" /> {promoCode.trim() ? 'Déverrouiller mon guide' : 'Révéler mon guide complet'}
@@ -526,13 +586,13 @@ export default function RencontresAstrales() {
 function FieldInput({ label, value, onChange, placeholder, maxLength, hint, fullWidth, testid }) {
   return (
     <div className={fullWidth ? '' : ''}>
-      <label className="text-[10px] uppercase mb-2 block" style={{ color: '#B8961F', letterSpacing: '0.2em' }}>
+      <label className="text-[10px] uppercase mb-2 block" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
         {label}
       </label>
       <input type="text" value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder} maxLength={maxLength}
         className="w-full py-3 px-4 rounded-xl text-sm outline-none transition-all focus:border-opacity-60"
-        style={{ background: 'rgba(255,255,255,0.05)', color: '#F4E8D2', border: '1px solid rgba(184,150,31,0.20)' }}
+        style={{ background: 'rgba(255,255,255,0.05)', color: '#F5EEE0', border: '1px solid rgba(212,175,55,0.20)' }}
         data-testid={testid} />
       {hint && <p className="text-[10px] opacity-50 mt-1">{hint}</p>}
     </div>
@@ -542,16 +602,16 @@ function FieldInput({ label, value, onChange, placeholder, maxLength, hint, full
 function FieldSelect({ label, value, onChange, options, testid }) {
   return (
     <div>
-      <label className="text-[10px] uppercase mb-2 block" style={{ color: '#B8961F', letterSpacing: '0.2em' }}>
+      <label className="text-[10px] uppercase mb-2 block" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
         {label}
       </label>
       <select value={value} onChange={e => onChange(e.target.value)}
         className="w-full py-3 px-4 rounded-xl text-sm outline-none"
-        style={{ background: 'rgba(255,255,255,0.05)', color: '#F4E8D2', border: '1px solid rgba(184,150,31,0.20)' }}
+        style={{ background: 'rgba(255,255,255,0.05)', color: '#F5EEE0', border: '1px solid rgba(212,175,55,0.20)' }}
         data-testid={testid}>
-        <option value="" style={{ background: '#0C0918' }}>—</option>
+        <option value="" style={{ background: '#111625' }}>—</option>
         {options.map(([v, l]) => (
-          <option key={v} value={v} style={{ background: '#0C0918' }}>{l}</option>
+          <option key={v} value={v} style={{ background: '#111625' }}>{l}</option>
         ))}
       </select>
     </div>
@@ -561,8 +621,8 @@ function FieldSelect({ label, value, onChange, options, testid }) {
 function TrustItem({ icon: Icon, title, subtitle }) {
   return (
     <div>
-      <Icon className="w-6 h-6 mx-auto mb-1" style={{ color: '#B8961F' }} strokeWidth={1.5} />
-      <div className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F4E8D2' }}>{title}</div>
+      <Icon className="w-6 h-6 mx-auto mb-1" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
+      <div className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>{title}</div>
       <div className="text-[10px] uppercase opacity-60" style={{ letterSpacing: '0.2em' }}>{subtitle}</div>
     </div>
   );

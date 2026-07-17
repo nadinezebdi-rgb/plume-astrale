@@ -18,6 +18,108 @@ logger = logging.getLogger(__name__)
 # ASSETS_DIR est aussi utilise dans server.py — on garde la meme convention.
 ASSETS_DIR = Path(__file__).resolve().parent.parent / 'assets'
 
+# ── Synastrie 12 domaines de vie (traduction + redaction FR via GPT) ──
+_AREA_FR = {
+    'Communication & Understanding': 'Communication & Compréhension',
+    'Love & Romance': 'Amour & Romance',
+    'Passion & Sexuality': 'Passion & Sexualité',
+    'Emotional Security': 'Sécurité émotionnelle',
+    'Shared Values & Goals': 'Valeurs & Objectifs partagés',
+    'Adventure & Growth': 'Aventure & Croissance',
+    'Stability & Commitment': 'Stabilité & Engagement',
+    'Creativity & Fun': 'Créativité & Légèreté',
+    'Home & Family': 'Foyer & Famille',
+    'Independence & Freedom': 'Indépendance & Liberté',
+    'Spiritual Connection': 'Connexion spirituelle',
+    'Transformation & Healing': 'Transformation & Guérison',
+}
+
+_SYN_SYSTEM = (
+    "Tu es Solena, astrologue francaise chez Plume Astrale. Tu rediges les passages d'un rapport de "
+    "compatibilite premium. Francais poetique mais precis, tutoiement, jamais fataliste. "
+    "Aucune salutation, aucun emoji, aucune liste. Un seul paragraphe fluide."
+)
+
+
+async def _gpt_syn(prompt: str, session_id: str) -> str:
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    if not api_key:
+        return ''
+    try:
+        chat = LlmChat(api_key=api_key, session_id=session_id, system_message=_SYN_SYSTEM).with_model('openai', 'gpt-4o-mini')
+        r = await chat.send_message(UserMessage(text=prompt))
+        return (r or '').strip()
+    except Exception as e:
+        logger.warning(f'[rencontres_ultime] gpt syn failed: {e}')
+        return ''
+
+
+async def build_synastry_chapter(user_bd: dict, partner_bd: dict, n1: str, n2: str, session_id: str) -> Optional[dict]:
+    """Fetch /analysis/synastry-report + francise les 12 domaines de vie via GPT.
+    Retourne {'overall_score', 'dynamic_type', 'harmony', 'tension', 'summary_fr', 'areas': [...]}."""
+    import asyncio
+    from services import astrology_io_service as aio
+
+    report = await aio.synastry_report(user_bd, partner_bd, name_1=n1, name_2=n2, language='fr')
+    if not report:
+        return None
+
+    areas = report.get('life_area_compatibility') or []
+    dynamics = report.get('dynamics') or {}
+    overall = report.get('overall_compatibility_score')
+
+    def _pct(v) -> int:
+        try:
+            f = float(v)
+            return int(round(f * 100)) if f <= 1.0 else int(round(f))
+        except Exception:
+            return 0
+
+    area_prompts = []
+    for a in areas[:12]:
+        name_en = a.get('area') or ''
+        name_fr = _AREA_FR.get(name_en, name_en)
+        score = _pct(a.get('compatibility_score'))
+        prompt = (
+            f"Domaine de vie : {name_fr}. Couple : {n1} et {n2}. Score de compatibilite : {score}/100. "
+            f"Facteurs astrologiques cles : {', '.join(a.get('key_factors') or [])}. "
+            f"Analyse originale (en anglais, a franciser et enrichir) : {a.get('description') or ''}. "
+            "Redige 80 a 110 mots en francais sur ce domaine pour ce couple : ce qui coule de source, "
+            "ce qui demande de l'attention, et une invitation concrete."
+        )
+        area_prompts.append((name_fr, score, prompt))
+
+    dyn_prompt = (
+        f"Couple : {n1} et {n2}. Score global : {_pct(overall)}/100. "
+        f"Harmonie : {dynamics.get('harmony_percentage', '?')}% · Tension : {dynamics.get('tension_percentage', '?')}%. "
+        f"Type de dynamique : {dynamics.get('dynamic_type') or ''}. "
+        f"Forces (EN) : {'; '.join(dynamics.get('key_strengths') or [])}. "
+        f"Axes de croissance (EN) : {'; '.join(dynamics.get('growth_areas') or [])}. "
+        f"Resume (EN) : {dynamics.get('summary') or ''}. "
+        "Redige 120 a 160 mots en francais : le portrait vibratoire de ce lien, ses forces principales "
+        "et ses axes de croissance, sans jargon anglais."
+    )
+
+    tasks = [_gpt_syn(p, f'ult-{session_id}-a{i}') for i, (_, _, p) in enumerate(area_prompts)]
+    tasks.append(_gpt_syn(dyn_prompt, f'ult-{session_id}-dyn'))
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    out_areas = []
+    for (name_fr, score, _), r in zip(area_prompts, results[:-1]):
+        text = r if isinstance(r, str) and r else ''
+        out_areas.append({'name_fr': name_fr, 'score': score, 'text_fr': text})
+
+    summary_fr = results[-1] if isinstance(results[-1], str) else ''
+    return {
+        'overall_score': _pct(overall),
+        'dynamic_type': dynamics.get('dynamic_type') or '',
+        'harmony': int(round(float(dynamics.get('harmony_percentage') or 0))),
+        'tension': int(round(float(dynamics.get('tension_percentage') or 0))),
+        'summary_fr': summary_fr,
+        'areas': out_areas,
+    }
+
 
 async def handle_rencontres_ultime_webhook(session_id: str) -> None:
     """Genere le PDF Ultime et envoie l'email au client. Best-effort (idempotent)."""
@@ -55,6 +157,22 @@ async def handle_rencontres_ultime_webhook(session_id: str) -> None:
     venus_sign = pdf_ctx.get('venus_sign') or ''
     mars_sign = pdf_ctx.get('mars_sign') or ''
 
+    # ── Synastrie 12 domaines (si donnees partenaire + user disponibles) ──
+    partner = pdf_ctx.get('partner') or {}
+    partner_name = partner.get('first_name') or ''
+    user_bd = pdf_ctx.get('user_birth_data') or {}
+    synastry = None
+    if partner.get('birth_data') and user_bd:
+        try:
+            synastry = await build_synastry_chapter(
+                user_bd, partner['birth_data'],
+                first_name or 'Toi', partner_name or 'Ton partenaire',
+                session_id[-12:],
+            )
+            logger.info(f"[rencontres_ultime] synastry chapter ready ({len((synastry or {}).get('areas', []))} domaines)")
+        except Exception as e:
+            logger.warning(f'[rencontres_ultime] synastry chapter failed: {e}')
+
     # Generation PDF best-effort
     pdf_path = None
     try:
@@ -64,6 +182,8 @@ async def handle_rencontres_ultime_webhook(session_id: str) -> None:
             m7_sign=m7_sign,
             venus_sign=venus_sign,
             mars_sign=mars_sign,
+            partner_name=partner_name,
+            synastry=synastry,
         )
         out_dir = ASSETS_DIR / 'rencontres_ultime'
         out_dir.mkdir(parents=True, exist_ok=True)

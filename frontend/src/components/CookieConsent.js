@@ -54,7 +54,7 @@ export default function CookieConsent() {
         <button
           onClick={() => decide('accepted')}
           className="flex-1 text-xs uppercase tracking-widest px-4 py-2 rounded-full"
-          style={{ background: 'linear-gradient(135deg, #D4AF37, #B8961F)', color: '#0C0918', letterSpacing: '0.1em', fontWeight: 600 }}
+          style={{ background: 'linear-gradient(135deg, #D4AF37, #D4AF37)', color: '#111625', letterSpacing: '0.1em', fontWeight: 600 }}
           data-testid="cookie-accept"
         >
           Accepter

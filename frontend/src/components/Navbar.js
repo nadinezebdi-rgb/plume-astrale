@@ -254,7 +254,7 @@ const MonCompteDropdown = ({ creditBalance, handleLogout, isAdmin }) => {
           </Link>
 
           {isAdmin && (
-            <Link to="/admin" style={Object.assign({}, itemStyle, { color: '#B8961F', fontWeight: 600 })}
+            <Link to="/admin" style={Object.assign({}, itemStyle, { color: '#D4AF37', fontWeight: 600 })}
               onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,175,55,0.06)'; }}
               onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; }}
               data-testid="dropdown-admin">
@@ -362,7 +362,7 @@ const Navbar = () => {
                 <span style={{
                   display: 'inline-flex', alignItems: 'center',
                   fontSize: 9, padding: '2px 6px', borderRadius: 999,
-                  background: '#0C0918', color: '#E8C766',
+                  background: '#111625', color: '#E8C766',
                   letterSpacing: '0.06em', fontWeight: 600, marginLeft: 2,
                 }}>
                   DÈS 14,99€
@@ -480,7 +480,7 @@ const Navbar = () => {
                 <span>✦ Mon Thème Natal</span>
                 <span style={{
                   fontSize: 9, padding: '3px 8px', borderRadius: 999,
-                  background: '#0C0918', color: '#E8C766',
+                  background: '#111625', color: '#E8C766',
                   letterSpacing: '0.05em', fontWeight: 600,
                 }}>
                   DÈS 14,99€

@@ -101,6 +101,11 @@ class CheckoutPayload(BaseModel):
     email: Optional[EmailStr] = None
     utm: Optional[dict] = None
     promo_code: Optional[str] = None
+    # Personne qui t'interesse — REQUIS pour la synastrie 12 domaines
+    partner_first_name: Optional[str] = None
+    partner_birth_date: Optional[str] = None   # 'YYYY-MM-DD'
+    partner_birth_time: Optional[str] = None   # 'HH:MM'
+    partner_place: Optional[str] = None
 
 
 # ────────────────────────────────────────────────────────────────
@@ -543,6 +548,25 @@ async def rencontres_checkout(payload: CheckoutPayload, request: Request):
     if not pack:
         raise HTTPException(500, "Produit indisponible.")
 
+    # ── Donnees du partenaire REQUISES (synastrie 12 domaines de vie) ──
+    if not (payload.partner_first_name or "").strip():
+        raise HTTPException(400, "Le prenom de la personne qui t'interesse est requis.")
+    if not payload.partner_birth_date:
+        raise HTTPException(400, "La date de naissance de l'autre personne est requise.")
+    try:
+        py, pm, pd = payload.partner_birth_date[:10].split("-")
+        ph, pmi = (payload.partner_birth_time or "12:00")[:5].split(":")
+        partner_birth_data = aio.make_birth_data(
+            year=int(py), month=int(pm), day=int(pd),
+            hour=int(ph), minute=int(pmi),
+            city=(payload.partner_place or "Paris").split(",")[0].strip(),
+            country_code="FR",
+        )
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(400, "Date de naissance du partenaire invalide (format AAAA-MM-JJ).")
+
     host_url = str(request.base_url).rstrip("/")
     webhook_url = f"{host_url}/api/webhook/stripe"
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
@@ -569,10 +593,16 @@ async def rencontres_checkout(payload: CheckoutPayload, request: Request):
             "m7_sign": reveal_ctx.get("m7_sign") or "",
             "venus_sign": reveal_ctx.get("venus_fr") or "",
             "mars_sign": reveal_ctx.get("mars_fr") or "",
+            "user_birth_data": bd if isinstance(bd, dict) else {},
             # birth date au format ISO pour le PDF
             "birth_date_iso": f"{bd.get('year','1990')}-{str(bd.get('month','1')).zfill(2)}-{str(bd.get('day','1')).zfill(2)}"
                               if isinstance(bd, dict) else "",
         }
+    pdf_ctx["partner"] = {
+        "first_name": payload.partner_first_name.strip(),
+        "birth_data": partner_birth_data,
+        "birth_date_iso": payload.partner_birth_date[:10],
+    }
 
     # ─────────────────────────────────────────────────────────────
     # BYPASS PROMO — si code valide (ex: ADMIN26), on saute Stripe

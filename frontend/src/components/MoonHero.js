@@ -55,7 +55,7 @@ export default function MoonHero() {
       className="relative w-full overflow-hidden"
       style={{
         background: '#050308',
-        color: '#F4E8D2',
+        color: '#F5EEE0',
         minHeight: '100vh',
         paddingTop: 'clamp(80px, 12vh, 140px)',
         paddingBottom: 'clamp(60px, 10vh, 100px)',
@@ -151,7 +151,7 @@ export default function MoonHero() {
             fontSize: 'clamp(2rem, 5.5vw, 3.8rem)',
             lineHeight: 1.05,
             letterSpacing: '0.01em',
-            color: '#F4E8D2',
+            color: '#F5EEE0',
             textShadow: '0 4px 40px rgba(0,0,0,0.9)',
           }}
           data-testid="moon-hero-title"
@@ -249,7 +249,7 @@ export default function MoonHero() {
                 className="w-full py-4 uppercase transition-all hover:scale-[1.02] disabled:opacity-40 flex items-center justify-center gap-2 relative overflow-hidden group"
                 style={{
                   background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
-                  color: '#0C0918',
+                  color: '#111625',
                   letterSpacing: '0.15em',
                   fontWeight: 700,
                   fontSize: 11,
@@ -270,7 +270,7 @@ export default function MoonHero() {
             <button
               onClick={() => setStep(step - 1)}
               className="mt-4 text-[10px] uppercase opacity-40 hover:opacity-80 transition-all"
-              style={{ letterSpacing: '0.2em', color: '#F4E8D2' }}
+              style={{ letterSpacing: '0.2em', color: '#F5EEE0' }}
               data-testid="moon-back-btn"
             >
               ← Étape précédente
@@ -320,7 +320,7 @@ function StarConstellations() {
             cx={s.x}
             cy={s.y}
             r={s.r * 0.08}
-            fill="#F4E8D2"
+            fill="#F5EEE0"
             style={{ animationDelay: `${s.delay}s`, opacity: s.op }}
           />
         ))}

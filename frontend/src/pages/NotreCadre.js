@@ -13,7 +13,7 @@ const Section = ({ icon: Icon, title, children, testid }) => (
   >
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
       <Icon style={{ width: 22, height: 22, color: '#D4AF37' }} strokeWidth={1.4} />
-      <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#F0E6D3', fontWeight: 400, margin: 0 }}>
+      <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#F5EEE0', fontWeight: 400, margin: 0 }}>
         {title}
       </h2>
     </div>
@@ -34,7 +34,7 @@ const NotreCadre = () => (
       <p style={{ fontSize: 11, letterSpacing: '0.3em', color: '#D4AF37', textTransform: 'uppercase', fontFamily: 'Cinzel, serif', marginBottom: 14 }}>
         Notre engagement
       </p>
-      <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(34px, 6vw, 54px)', color: '#F0E6D3', fontWeight: 300, lineHeight: 1.1, marginBottom: 16 }}>
+      <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(34px, 6vw, 54px)', color: '#F5EEE0', fontWeight: 300, lineHeight: 1.1, marginBottom: 16 }}>
         Notre cadre
       </h1>
       <p style={{ fontSize: 16, color: 'rgba(184,176,200,0.85)', maxWidth: 540, margin: '0 auto', lineHeight: 1.65 }}>        Ce que nous croyons. Ce que nous ne ferons jamais. Comment nous accompagnons votre regard sur vous-même.
@@ -119,7 +119,7 @@ const NotreCadre = () => (
       <p style={{ fontSize: 11, letterSpacing: '0.2em', color: '#D4AF37', textTransform: 'uppercase', marginBottom: 12, fontFamily: 'Cinzel, serif' }}>
         Notre promesse
       </p>
-      <p style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#F0E6D3', fontStyle: 'italic', lineHeight: 1.45, fontWeight: 300, margin: 0 }}>
+      <p style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#F5EEE0', fontStyle: 'italic', lineHeight: 1.45, fontWeight: 300, margin: 0 }}>
         « Nous ne prédisons pas votre avenir. Nous vous invitons à le co-créer,
         un matin, un souffle, une intention à la fois. »
       </p>

@@ -46,7 +46,7 @@ const PromoCodeSection = ({ token, onSuccess }) => {
       {!open ? (
         <button
           onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-1.5 text-xs transition-colors hover:text-[#B8961F]"
+          className="inline-flex items-center gap-1.5 text-xs transition-colors hover:text-[#D4AF37]"
           style={{ color: 'var(--pa-muted)' }}
           data-testid="show-promo-btn"
         >
@@ -61,16 +61,16 @@ const PromoCodeSection = ({ token, onSuccess }) => {
               onChange={e => { setCode(e.target.value.toUpperCase()); setError(''); }}
               placeholder="Code promo"
               className="flex-1 px-4 py-2 bg-transparent border rounded-full text-center text-sm outline-none transition-colors"
-              style={{ borderColor: 'rgba(184,150,31,0.3)', color: 'var(--pa-body)' }}
-              onFocus={e => e.target.style.borderColor = '#B8961F'}
-              onBlur={e => e.target.style.borderColor = 'rgba(184,150,31,0.3)'}
+              style={{ borderColor: 'rgba(212,175,55,0.3)', color: 'var(--pa-body)' }}
+              onFocus={e => e.target.style.borderColor = '#D4AF37'}
+              onBlur={e => e.target.style.borderColor = 'rgba(212,175,55,0.3)'}
               data-testid="promo-code-input"
             />
             <button
               onClick={handleApply}
               disabled={loading || !code.trim()}
               className="px-5 py-2 rounded-full text-xs uppercase tracking-widest transition-all disabled:opacity-50"
-              style={{ border: '1px solid rgba(184,150,31,0.4)', color: '#B8961F', letterSpacing: '0.08em' }}
+              style={{ border: '1px solid rgba(212,175,55,0.4)', color: '#D4AF37', letterSpacing: '0.08em' }}
               data-testid="apply-promo-btn"
             >
               {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Appliquer'}
@@ -162,10 +162,10 @@ export default function BuyCredits() {
         {creditBalance <= 20 && (
           <div
             className="mb-8 p-4 rounded-xl text-center"
-            style={{ background: 'rgba(184,150,31,0.08)', border: '1px solid rgba(184,150,31,0.2)' }}
+            style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.2)' }}
             data-testid="bonus-banner"
           >
-            <p className="text-sm" style={{ color: '#B8961F' }}>
+            <p className="text-sm" style={{ color: '#D4AF37' }}>
               20 credits offerts a l&#39;inscription pour commencer votre exploration
             </p>
           </div>
@@ -173,7 +173,7 @@ export default function BuyCredits() {
 
         <div className="text-center mb-4">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <Coins className="w-6 h-6" style={{ color: '#B8961F' }} strokeWidth={1.5} />
+            <Coins className="w-6 h-6" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
             <h1
               className="text-3xl sm:text-4xl"
               style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}
@@ -183,7 +183,7 @@ export default function BuyCredits() {
           </div>
           <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>
             Votre solde actuel :
-            <span style={{ color: '#B8961F', fontWeight: 600 }} data-testid="current-balance">
+            <span style={{ color: '#D4AF37', fontWeight: 600 }} data-testid="current-balance">
               {' '}{creditBalance} credits
             </span>
           </p>
@@ -218,8 +218,8 @@ export default function BuyCredits() {
                 key={pack.id}
                 className={`rounded-2xl p-6 relative transition-all duration-300 hover:scale-[1.02] ${isPopular ? 'md:-translate-y-2' : ''}`}
                 style={{
-                  background: isPopular ? 'rgba(184,150,31,0.07)' : 'rgba(255,255,255,0.03)',
-                  border: isPopular ? '1px solid rgba(184,150,31,0.4)' : '1px solid rgba(184,150,31,0.15)',
+                  background: isPopular ? 'rgba(212,175,55,0.07)' : 'rgba(255,255,255,0.03)',
+                  border: isPopular ? '1px solid rgba(212,175,55,0.4)' : '1px solid rgba(212,175,55,0.15)',
                   backdropFilter: 'blur(12px)',
                 }}
                 data-testid={`pack-card-${pack.id}`}
@@ -227,26 +227,26 @@ export default function BuyCredits() {
                 {pack.badge && (
                   <div
                     className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] uppercase tracking-widest whitespace-nowrap"
-                    style={{ background: '#B8961F', color: '#0C0918', letterSpacing: '0.08em', fontWeight: 600 }}
+                    style={{ background: '#D4AF37', color: '#111625', letterSpacing: '0.08em', fontWeight: 600 }}
                     data-testid="popular-badge"
                   >
                     {pack.badge}
                   </div>
                 )}
                 <div className="flex flex-col items-center text-center pt-2">
-                  <div className="mb-3" style={{ color: '#B8961F' }}>
+                  <div className="mb-3" style={{ color: '#D4AF37' }}>
                     <Icon className="w-7 h-7" strokeWidth={1.5} />
                   </div>
                   <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
                     {pack.name}
                   </h3>
-                  <div className="text-3xl mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#B8961F', fontWeight: 400 }}>
+                  <div className="text-3xl mb-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#D4AF37', fontWeight: 400 }}>
                     {pack.amount % 1 === 0 ? pack.amount : pack.amount.toFixed(2).replace('.', ',')} &euro;
                   </div>
                   <p className="text-sm mb-0" style={{ color: 'var(--pa-body)' }}>
-                    {pack.credits} crédits{pack.bonus > 0 && <span style={{ color: '#B8961F', fontWeight: 500 }}> + {pack.bonus} offerts</span>}
+                    {pack.credits} crédits{pack.bonus > 0 && <span style={{ color: '#D4AF37', fontWeight: 500 }}> + {pack.bonus} offerts</span>}
                   </p>
-                  <p className="text-xs mb-2" style={{ color: '#B8961F', letterSpacing: '0.08em' }}>
+                  <p className="text-xs mb-2" style={{ color: '#D4AF37', letterSpacing: '0.08em' }}>
                     = {total} crédits · {Math.floor(total / 10)} questions à Plume
                   </p>
                   {pack.tagline && (
@@ -254,7 +254,7 @@ export default function BuyCredits() {
                       {pack.tagline}
                     </p>
                   )}
-                  <div className="w-full mb-4 py-3 px-3 rounded-lg text-left" style={{ background: 'rgba(184,150,31,0.05)', border: '1px solid rgba(184,150,31,0.08)' }}>
+                  <div className="w-full mb-4 py-3 px-3 rounded-lg text-left" style={{ background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.08)' }}>
                     <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: 'var(--pa-muted)', letterSpacing: '0.08em' }}>
                       Exemple :
                     </p>
@@ -287,15 +287,15 @@ export default function BuyCredits() {
 
         <PromoCodeSection token={token} onSuccess={() => window.location.reload()} />
 
-        <div className="rounded-2xl p-6 md:p-8" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(184,150,31,0.1)' }}>
+        <div className="rounded-2xl p-6 md:p-8" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(212,175,55,0.1)' }}>
           <h2 className="text-xl mb-5 text-center" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
             Que faire avec vos credits ?
           </h2>
           <div className="space-y-3">
             {SERVICE_COSTS.map(s => (
-              <div key={s.name} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(184,150,31,0.08)' }}>
+              <div key={s.name} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(212,175,55,0.08)' }}>
                 <span className="text-sm" style={{ color: 'var(--pa-body)' }}>{s.name}</span>
-                <span className="text-sm font-medium" style={{ color: '#B8961F' }}>{s.cost}</span>
+                <span className="text-sm font-medium" style={{ color: '#D4AF37' }}>{s.cost}</span>
               </div>
             ))}
           </div>

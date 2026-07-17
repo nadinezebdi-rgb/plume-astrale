@@ -60,3 +60,18 @@
 
 ### Session 1 — Fix Three.js Deprecation
 - Remplacement de `THREE.Clock` par `performance.now()` dans `Moon3D.js`. Warning console éliminé.
+
+## 2026-07-17 — Fix panne chat astral production (503/CORS) + fuite console.log
+- CAUSE RACINE : clé `ASTROLOGY_API_IO_KEY` expirée/révoquée (401 sur tous les endpoints astrology-api.io). Nouvelle clé fournie par l'utilisateur, testée et configurée dans backend/.env. ⚠️ À METTRE À JOUR AUSSI SUR RAILWAY.
+- CORS : déjà correct dans le code (commit 3ad043a du 27 mai). Le "préflight 405" observé par l'utilisateur = test OPTIONS sans en-têtes Origin/Access-Control-Request-Method (faux négatif). Si prod KO → Railway sur un commit trop ancien, redéployer.
+- Durcissement route /api/astrology/v3/chat (routes/astrology_v3.py) : try/except global → toute erreur renvoie un 502 propre AVEC en-têtes CORS + remboursement 10 crédits ; cache in-memory 24h du contexte natal (_natal_ctx_cache) ; timeout chat 30s → 60s (astrology_io_service.py `_call(timeout=)`).
+- Privacy : suppression des console.log("LOGIN ATTEMPT", email) et console.log("LOGIN SUCCESS") dans frontend/src/pages/Login.js.
+- Tests : chat e2e OK (1er msg 5.8s natal frais, 2e msg 3.8s natal caché, crédits débités, réponses FR).
+
+## 2026-07-17 — 4 features : Pack Karmique 89€, Compat Ultime synastrie, Alerte 401, Refonte couleurs + étoiles
+- **Pack Karmique + Kabbale 89€** (one-shot) : routes/pack_karmique.py (checkout+status, bypass promo), services/pack_karmique_service.py (webhook : karmic + tree-of-life parallèle + 3 synthèses GPT-4o-mini + email Resend), services/pack_karmique_pdf.py (PDF 44 pages, réutilise kabbale_pdf). Frontend : PackKarmique.js (/pack-karmique) + PackKarmiqueSucces.js (polling). Dispatch webhook kind='pack_karmique_kabbale' dans server.py. Pack ajouté à config.PACKS.
+- **Compat Ultime 29,99€ enrichie** : données partenaire OBLIGATOIRES au checkout (partner_first_name/partner_birth_date, 400 sinon). build_synastry_chapter() dans rencontres_ultime_service.py : /analysis/synastry-report + 13 appels GPT parallèles pour franciser les 12 domaines de vie + dynamics → nouveau chapitre PDF (_p_synastry_intro + _p_synastry_areas, PDF passe de 15 à 20 pages). Champs partenaire dans RencontresAstrales.js (data-testid partner-*).
+- **Alerte clé API** : _alert_invalid_key() dans astrology_io_service.py — email Resend à ADMIN_ALERT_EMAIL (=contact@plume-astrale.fr dans .env) dès qu'un 401 est reçu, throttle 6h. Testé (livré à nadine.zebdi@gmail.com, seule adresse autorisée par la clé Resend test du preview ; en prod le domaine est vérifié).
+- **Refonte couleurs + étoiles (Patch #5)** : sed global frontend — #B8961F→#D4AF37, #0C0918→#111625, #F4E8D2/#F0E6D3→#F5EEE0, #C5A059→#D4AF37, #1a1147→#1A2035, rgba(184,150,31)→rgba(212,175,55), classes purple-*→lavande #B8A9E8/#E3D7FF (TirageTarot, TirageDuJour). Nouveau composant global Starfield.js (90 étoiles dorées scintillantes, .plume-starfield z-index 1) monté dans App.js.
+- Tests : iteration_47.json — 100% PASS (9/9 backend + tous flux frontend). Code promo de test en preview : TESTPLUME (ADMIN26 absent de la DB preview).
+- À FAIRE côté user pour la prod : redéployer Railway + Vercel, ajouter ADMIN_ALERT_EMAIL=contact@plume-astrale.fr sur Railway, vérifier que le code ADMIN26 existe dans la table promo_codes de la DB prod si besoin.

@@ -173,7 +173,7 @@ const Paiement = () => {
         <div className="text-center mb-10">
           {!showPromo ? (
             <button onClick={() => setShowPromo(true)}
-              className="text-xs transition-colors duration-300 hover:text-[#B8961F]" style={{ color: 'var(--pa-muted)' }}
+              className="text-xs transition-colors duration-300 hover:text-[#D4AF37]" style={{ color: 'var(--pa-muted)' }}
               data-testid="show-promo-btn">
               <Tag className="w-3 h-3 inline mr-1" strokeWidth={1} /> J'ai un code de reduction
             </button>

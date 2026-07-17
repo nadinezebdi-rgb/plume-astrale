@@ -1,0 +1,59 @@
+{
+  "summary": "Iteration 47 — Full e2e validation of the 4 new features requested. Backend: 9/9 pytest cases green (Pack Karmique 89€ checkout + polling to pdf_ready with 88KB+ 44-page PDF downloadable, Rencontres Ultime partner_first_name / partner_birth_date validation returns 400 with French message, full reveal→checkout→delivered flow with promo TESTPLUME, Kabbale 39€ + astrology/v3/chat regression). Frontend: Pack Karmique page → form → promo TESTPLUME → /pack-karmique/succes → 4 steps rendered → download button appears in ~18s (0 console errors). Rencontres Astrales natal form → reveal → email gate → windows screen with partner-firstname/partner-birthdate/partner-birthtime + rencontres-promo → click buy-premium-btn without partner shows French error 'Renseigne le prénom et la date de naissance de la personne qui t'intéresse' → filled + TESTPLUME redirects to /rencontres-astrales/succes. Starfield data-testid='plume-starfield' present on all 5 pages checked (/, /kabbale, /acheter-credits, /connexion, /mon-compte) with no legacy #B8961F/#0C0918/#F4E8D2/#F0E6D3/#C5A059 hex leaks and no purple-*/violet-* Tailwind classes visible.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Homepage / (Hero3D moon-month select)",
+        "issues": [
+          "React hydration warning: '<span> cannot be a child of <select>' — caused by Emergent visual-editor wrappers (<span data-ve-dynamic>) injected inside the MONTHS.map <option>. Cosmetic, pollutes the browser console on / (2 warnings). Same underlying pattern flagged in iteration_46 for /rencontres-astrales. Not blocking any flow."
+        ]
+      }
+    ]
+  },
+  "flow_verdict": {
+    "pack_karmique_backend_no_promo": "PASS — 200 + Stripe URL checkout.stripe.com",
+    "pack_karmique_backend_bypass_polling": "PASS — admin-packkarma-* session_id, pdf_ready=true in ~30-45s, PDF ~1.2MB, application/pdf, downloadable",
+    "pack_karmique_frontend": "PASS — /pack-karmique CTA → form → TESTPLUME → /pack-karmique/succes with 4 pack-karmique-step-* nodes + pack-karmique-download-btn in 18s",
+    "rencontres_missing_partner_firstname_400": "PASS — HTTP 400 + French detail 'Le prénom de la personne qui t'intéresse est requis.'",
+    "rencontres_missing_partner_birthdate_400": "PASS — HTTP 400 + French detail 'La date de naissance de l'autre personne est requise.'",
+    "rencontres_full_reveal_checkout_delivered": "PASS — reveal_id → checkout admin_bypass=True → /ultime/status stage='delivered' with pdf_url in <60s → PDF downloadable",
+    "rencontres_frontend": "PASS — form → reveal → email-gate → windows + partner-fields; buy-premium-btn without partner shows French error; with TESTPLUME redirects to /rencontres-astrales/succes",
+    "kabbale_regression": "PASS — /api/kabbale/checkout with TESTPLUME returns admin_bypass",
+    "astrology_v3_chat_regression": "PASS — Bearer Supabase token → success:true",
+    "starfield_global": "PASS — data-testid='plume-starfield' rendered on /, /kabbale, /acheter-credits, /connexion, /mon-compte",
+    "palette_no_legacy_hex": "PASS — 0 inline occurrences of #B8961F/#0C0918/#F4E8D2/#F0E6D3/#C5A059 and 0 purple-*/violet-* classes on any tested page"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration47_pack_karmique_rencontres.py",
+    "/app/test_reports/pytest/iteration47.xml"
+  ],
+  "action_items": [
+    "OPTIONAL — Suppress the '<span> cannot be a child of <select>' hydration warning on Hero3D (homepage): the Emergent visual-editor auto-wrapping of <option> elements inside <select> is not compatible with React 18 hydration. Could be filtered via a small ve-editor guard, or by refactoring the month picker to a custom (non-native) dropdown. Not a bug — cosmetic console noise.",
+    "OPTIONAL — Consider increasing the GET /api/pack-karmique/status and GET /api/rencontres/ultime/status HTTP response speed: some polls take 15-30s to respond during heavy background PDF generation (I had to bump my test client timeout from 15s to 45s to avoid ReadTimeout). Could hint at Supabase table select or event loop contention while pack_karmique / rencontres_ultime pipelines are running. Not blocking end-users (page polls every 3.5s in the UI)."
+  ],
+  "critical_code_review_comments": [
+    "pack_karmique.py checkout enforces email + birth_date + birth_time but not first_name — the frontend enforces first_name client-side. If someone hits the API directly with an empty first_name, the PDF will still be generated with an empty/placeholder name. Not a bug per se but worth mirroring the client validation server-side for consistency.",
+    "rencontres.py checkout raises HTTPException(400, 'Le prénom de la personne qui t'intéresse est requis.') — correctly French and specific. Nice.",
+    "The Starfield component (39 lines) is well isolated and mounted once in App.js at line 74 — the useMemo prevents re-computation. LGTM.",
+    "Homepage still exhibits hydration warnings inherited from iteration_46 (Emergent visual editor <span> injection inside <select>). Non-critical but should be addressed one day."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration47_pack_karmique_rencontres.py"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 tests passed in 81.79s)",
+    "frontend": "100% (all critical flows PASS, 0 console errors on the tested new pages, 1 cosmetic hydration warning on homepage inherited from previous iterations)"
+  },
+  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 (validated). Promo TESTPLUME confirmed working (bypass triggers admin_bypass=true) both on /api/pack-karmique/checkout, /api/rencontres/checkout and /api/kabbale/checkout.",
+  "seed_data_creation": "3 payment_transactions rows inserted in Supabase (TEST_ prefixed emails: TEST_pack@, TEST_ultime@, TEST_kab@plume-astrale.fr). Two Stripe-URL-only transactions may remain 'initiated' in the DB. No user data touched.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iter 47 fully validated the Pack Karmique 89€ + Rencontres Ultime partner-fields + Starfield/palette refonte. Test suite is at /app/backend/tests/test_iteration47_pack_karmique_rencontres.py (9 tests, ~82s, uses Supabase login + TESTPLUME promo). Two long-running polling tests (test_checkout_promo_bypass_and_polling and test_full_flow_reveal_checkout_bypass_polling) both PDF-generate in ~30-60s in the preview env. The homepage hydration warning about <span> inside <select> is a visual-editor artefact and can be safely ignored. Admin credentials fresh & working.",
+  "rca_of_the_issue": "No critical bug found. The only observation worth logging: /api/pack-karmique/status and /api/rencontres/ultime/status may occasionally exceed 15s response time while a heavy PDF generation is running in-process — the FastAPI event loop is briefly starved by the sync Supabase client / PDF rendering. In practice the frontend polls every 3.5s with default axios timeout and it works, but under load it could be worth (a) moving the Supabase status query behind a thread executor, or (b) capping PDF generation concurrency. Not a bug fix required now."
+}
