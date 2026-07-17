@@ -189,18 +189,27 @@ def _build_subject(birth_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         place = str(birth_data.get("place", "Paris, France"))
         # Extract just the city name (before the comma)
         city = place.split(",")[0].strip() if "," in place else place.strip()
+        subject_bd = {
+            "year": int(birth_data.get("year", 1990)),
+            "month": int(birth_data.get("month", 1)),
+            "day": int(birth_data.get("day", 1)),
+            "hour": int(birth_data.get("hour", 12)),
+            "minute": int(birth_data.get("min", birth_data.get("minute", 0))),
+            "city": city,
+            "country_code": _map_country_code(place),
+        }
+        lat = birth_data.get("lat")
+        lon = birth_data.get("lon")
+        if lat not in (None, "") and lon not in (None, ""):
+            try:
+                subject_bd["latitude"] = float(lat)
+                subject_bd["longitude"] = float(lon)
+            except (ValueError, TypeError):
+                pass
         return {
             "id": "me",
             "name": birth_data.get("name", "Consultant"),
-            "birth_data": {
-                "year": int(birth_data.get("year", 1990)),
-                "month": int(birth_data.get("month", 1)),
-                "day": int(birth_data.get("day", 1)),
-                "hour": int(birth_data.get("hour", 12)),
-                "minute": int(birth_data.get("min", birth_data.get("minute", 0))),
-                "city": city,
-                "country_code": _map_country_code(place),
-            },
+            "birth_data": subject_bd,
         }
     except Exception as e:
         logger.warning(f"Could not build subject: {e}")
