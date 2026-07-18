@@ -210,7 +210,7 @@ export default function BuyCredits() {
             Rechargez votre puissance astrale
           </h2>
           <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
-            10 crédits = 1 question à Plume. Choisis le pack qui correspond à ton voyage.
+            10 crédits = 1 question à Plume. Chaque pack contient des crédits offerts.
           </p>
         </div>
 
