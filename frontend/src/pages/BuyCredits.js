@@ -86,37 +86,48 @@ const PromoCodeSection = ({ token, onSuccess }) => {
 
 const PACKS = [
   {
-    id: 'initiation',
-    name: 'Initiation',
-    credits: 15,
+    id: 'comete',
+    name: 'Comète',
+    credits: 30,
     bonus: 0,
-    amount: 4.99,
+    amount: 7.99,
     icon: Star,
     badge: null,
-    tagline: "L'achat impulsif pour continuer la conversation.",
-    projections: ['1 à 2 questions à Plume', 'Reprends le fil sans attendre'],
+    tagline: "L'étincelle rapide pour poser tes premières questions.",
+    projections: ['3 questions à Plume', 'Reprends le fil sans attendre'],
   },
   {
-    id: 'astro_amour',
-    name: 'Clarté',
-    credits: 50,
-    bonus: 10,
-    amount: 14.99,
+    id: 'nebuleuse',
+    name: 'Nébuleuse',
+    credits: 80,
+    bonus: 0,
+    amount: 17.99,
     icon: Sparkles,
-    badge: 'Best-Seller',
+    badge: 'Le plus choisi',
     tagline: 'Ton Thème Natal complet accessible en 1 clic.',
-    projections: ['6 questions à Plume', '1 Thème Natal complet (60 cr)', 'Ou 2 tarots approfondis'],
+    projections: ['8 questions à Plume', '1 Thème Natal complet (60 cr) + 2 questions', 'Ou 2 tarots approfondis'],
   },
   {
-    id: 'flammes_jumelles',
-    name: 'Flammes Jumelles',
-    credits: 100,
-    bonus: 30,
-    amount: 29.99,
+    id: 'constellation',
+    name: 'Constellation',
+    credits: 180,
+    bonus: 0,
+    amount: 34.99,
     icon: Zap,
     badge: 'Meilleure valeur',
-    tagline: 'Explore ton thème en profondeur, ton karma, tes futures relations.',
-    projections: ['13 questions à Plume', '2 Thèmes Natals complets', 'Karma & synastrie amoureuse'],
+    tagline: 'Explore ton thème en profondeur, ton karma, tes relations.',
+    projections: ['18 questions à Plume', '3 Thèmes Natals complets', 'Karma & synastrie amoureuse'],
+  },
+  {
+    id: 'voie_lactee',
+    name: 'Voie Lactée',
+    credits: 350,
+    bonus: 0,
+    amount: 59.99,
+    icon: Zap,
+    badge: null,
+    tagline: "L'expérience complète, sans jamais compter.",
+    projections: ['35 questions à Plume', 'Tous les rapports premium', 'Le grand voyage intérieur'],
   },
 ];
 
@@ -208,9 +219,9 @@ export default function BuyCredits() {
           <ServicesEquivalence />
         </div>
 
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {PACKS.map((pack) => {
-            const isPopular = pack.id === 'astro_amour';
+            const isPopular = pack.id === 'nebuleuse';
             const Icon = pack.icon;
             const total = pack.credits + (pack.bonus || 0);
             return (

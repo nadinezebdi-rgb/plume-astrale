@@ -341,7 +341,7 @@ const Navbar = () => {
               })}
               <div style={{ width: 1, height: 16, background: '#D4AF37', opacity: 0.2 }} />
 
-              {/* Vitrine — Thème Natal dès 14,99€ (1 clic) */}
+              {/* Vitrine — Thème Natal dès 17,99€ (1 clic) */}
               <Link
                 to={isAuthenticated ? "/formulaire" : "/inscription?next=/formulaire"}
                 data-testid="navbar-natal-vitrine"
@@ -365,7 +365,7 @@ const Navbar = () => {
                   background: '#111625', color: '#E8C766',
                   letterSpacing: '0.06em', fontWeight: 600, marginLeft: 2,
                 }}>
-                  DÈS 14,99€
+                  DÈS 17,99€
                 </span>
               </Link>
 
@@ -483,7 +483,7 @@ const Navbar = () => {
                   background: '#111625', color: '#E8C766',
                   letterSpacing: '0.05em', fontWeight: 600,
                 }}>
-                  DÈS 14,99€
+                  DÈS 17,99€
                 </span>
               </Link>
 

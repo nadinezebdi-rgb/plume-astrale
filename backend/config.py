@@ -29,34 +29,52 @@ class Settings:
     # Credit packs (montants serveur — JAMAIS depuis le frontend)
     # Grille "Special Lancement" — 10 cr par question de chat, avec bonus offerts.
     PACKS = {
-        'initiation': {
-            'name': 'Initiation',
-            'credits': 15,
+        'comete': {
+            'name': 'Comète',
+            'credits': 30,
             'bonus': 0,
-            'amount': 4.99,
+            'amount': 7.99,
             'currency': 'eur',
-            'tagline': "L'achat impulsif pour continuer la conversation.",
+            'tagline': "L'étincelle rapide pour poser tes premières questions.",
         },
-        'astro_amour': {
-            'name': 'Clarté',
-            'credits': 50,
-            'bonus': 10,
-            'amount': 14.99,
+        'nebuleuse': {
+            'name': 'Nébuleuse',
+            'credits': 80,
+            'bonus': 0,
+            'amount': 17.99,
             'currency': 'eur',
             'badge': 'Le plus choisi',
-            'tagline': 'Ton Thème Natal complet (60 cr) accessible en 1 clic.',
+            'tagline': 'Ton Thème Natal complet (60 cr) + 2 questions à Plume.',
         },
-        'flammes_jumelles': {
-            'name': 'Flammes Jumelles',
-            'credits': 100,
-            'bonus': 30,
-            'amount': 29.99,
+        'constellation': {
+            'name': 'Constellation',
+            'credits': 180,
+            'bonus': 0,
+            'amount': 34.99,
             'currency': 'eur',
             'badge': 'Meilleure valeur',
-            'tagline': 'Explore ton thème en profondeur, ton karma, tes futures relations.',
+            'tagline': 'Explore ton thème en profondeur, ton karma, tes relations.',
+        },
+        'voie_lactee': {
+            'name': 'Voie Lactée',
+            'credits': 350,
+            'bonus': 0,
+            'amount': 59.99,
+            'currency': 'eur',
+            'tagline': "L'expérience complète, sans jamais compter.",
         },
         # ═══════════════════════════════════════════════════════════
         # Produits one-shot (achats uniques, pas des crédits)
+        'pack_karmique_kabbale': {
+            'name': 'Pack Karmique + Kabbale',
+            'credits': 0,   # one-shot
+            'bonus': 0,
+            'amount': 89.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'pack_karmique_kabbale',
+            'tagline': "Analyse karmique complete + Arbre de Vie + synthese croisee IA — PDF ~40 pages.",
+        },
         # ═══════════════════════════════════════════════════════════
         'rencontres_ultime': {
             'name': 'Guide de Compatibilité Ultime & Calendrier de Rencontres',

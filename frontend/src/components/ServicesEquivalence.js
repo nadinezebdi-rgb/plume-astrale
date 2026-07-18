@@ -191,7 +191,7 @@ export default function ServicesEquivalence() {
           fontSize: 13,
           lineHeight: 1.6,
         }}>
-          Astuce&nbsp;: le pack <strong style={{ color: '#E2BF65' }}>Clarté à 14,99&nbsp;€</strong> donne <strong style={{ color: '#E2BF65' }}>60 crédits</strong> — pile de quoi t&apos;offrir un <strong style={{ color: '#E2BF65' }}>Thème Natal complet</strong>.
+          Astuce&nbsp;: le pack <strong style={{ color: '#E2BF65' }}>Nébuleuse à 17,99&nbsp;€</strong> donne <strong style={{ color: '#E2BF65' }}>80 crédits</strong> — de quoi t&apos;offrir un <strong style={{ color: '#E2BF65' }}>Thème Natal complet</strong> et 2 questions à Plume.
         </p>
       </div>
     </section>

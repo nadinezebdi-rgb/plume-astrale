@@ -10,74 +10,89 @@ const API = process.env.REACT_APP_BACKEND_URL;
  * Strategy: Pack 2 (Clarté) doit être IRRÉSISTIBLE
  *  - Meilleur ratio prix/valeur APPARENT
  *  - Bonus DRAMATIQUE (10 offerts)
- *  - Stats sociales (78% choisissent ce pack)
+ *  - Mise en avant du pack le plus choisi
  */
 const PACKS = [
   {
-    id: 'initiation',
-    name: 'Initiation',
+    id: 'comete',
+    name: 'Comète',
     emoji: null,
-    price: '4,99 €',
-    credits: 15,
+    price: '7,99 €',
+    credits: 30,
     bonus: 0,
-    totalCredits: 15,
-    subtitle: 'Pour essayer maintenant',
+    totalCredits: 30,
+    subtitle: 'Pour poser tes premières questions',
     features: [
-      'Chat Solena x 1',
+      '3 questions à Plume',
       'Oracle personnalisé',
-      'Accès 7 jours',
+      'Reprends le fil sans attendre',
     ],
-    pricePerCredit: '0,33€',
+    pricePerCredit: '0,27€',
     badge: null,
     accent: '#A89B7E',
     highlight: false,
   },
   {
-    id: 'clarte',
-    name: 'Clarté',
+    id: 'nebuleuse',
+    name: 'Nébuleuse',
     emoji: null,
-    price: '14,99 €',
-    credits: 50,
-    bonus: 10,
-    totalCredits: 60,
-    originalPrice: '19,99 €',
-    savings: 'Économise 5€',
-    subtitle: 'Thème natal complet accessible',
+    price: '17,99 €',
+    credits: 80,
+    bonus: 0,
+    totalCredits: 80,
+    subtitle: 'Ton Thème Natal complet accessible',
     features: [
-      '50 crédits + 10 BONUS',
-      'Thème natal PDF 40 pages',
-      'Chat Solena illimité 30j',
-      'Synastrie de base',
+      '8 questions à Plume',
+      '1 Thème Natal complet (60 cr)',
+      '+ 2 questions à Plume',
     ],
-    pricePerCredit: '0,25€',
+    pricePerCredit: '0,22€',
     badge: {
-      text: 'BESTSELLER',
-      stat: '78% des utilisateurs',
+      text: 'LE PLUS CHOISI',
+      stat: 'Meilleur rapport',
     },
     accent: '#D4AF37',
     highlight: true,
   },
   {
-    id: 'flammes_jumelles',
-    name: 'Flammes Jumelles',
+    id: 'constellation',
+    name: 'Constellation',
     emoji: null,
-    price: '29,99 €',
-    credits: 100,
-    bonus: 30,
-    totalCredits: 130,
-    subtitle: 'Accès illimité 30 jours',
+    price: '34,99 €',
+    credits: 180,
+    bonus: 0,
+    totalCredits: 180,
+    subtitle: 'Explore ton thème en profondeur',
     features: [
-      '100 crédits + 30 BONUS',
-      'Synastrie complète',
-      'Session coaching (valeur 50€)',
-      'Accès prioritaire features',
+      '18 questions à Plume',
+      '3 Thèmes Natals complets',
+      'Karma & synastrie amoureuse',
     ],
-    pricePerCredit: '0,23€',
+    pricePerCredit: '0,19€',
     badge: {
       text: 'MEILLEURE VALEUR',
-      stat: '10 places/jour',
+      stat: 'Le plus complet',
     },
     accent: '#E8944A',
+    highlight: false,
+  },
+  {
+    id: 'voie_lactee',
+    name: 'Voie Lactée',
+    emoji: null,
+    price: '59,99 €',
+    credits: 350,
+    bonus: 0,
+    totalCredits: 350,
+    subtitle: 'Sans jamais compter',
+    features: [
+      '35 questions à Plume',
+      'Tous les rapports premium',
+      'Le grand voyage intérieur',
+    ],
+    pricePerCredit: '0,17€',
+    badge: null,
+    accent: '#D4AF37',
     highlight: false,
   },
 ];
@@ -121,7 +136,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
     chat_out: {
       title: '✨ Ta puissance astrale t\'appelle',
       emoji: '🌙',
-      body: 'Solena a encore tellement à révéler sur ton destin amoureux. Quelques euros pour débloquer une guidance sans limite.',
+      body: 'Plume a encore tellement à révéler sur ton destin amoureux. Quelques euros pour débloquer une guidance sans limite.',
     },
     chat_low: {
       title: '⚡ Ta lumière faiblit',
@@ -190,7 +205,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
 
         {/* PACKS GRID — Ancrage psychologique appliqué */}
         <div className="px-6 md:px-8 pb-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {PACKS.map((p) => (
               <PackCard
                 key={p.id}
