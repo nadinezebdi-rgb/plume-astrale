@@ -15,8 +15,9 @@ from pydantic import BaseModel
 from config import get_settings
 from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
-from services.astrology_io_service import numerology_name, numerology_personal_year, numerology_forecast
+from services.astrology_io_service import numerology_core_numbers
 from services.numerologie_pdf import generate_numerologie_pdf
+from services.pdf_delivery import update_tx_pdf_metadata, send_pdf_email
 from emergentintegrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
@@ -99,9 +100,9 @@ async def numerologie_checkout(payload: NumerologieCheckoutPayload, request: Req
                 'status': 'completed',
                 'payment_status': 'paid',
                 'metadata': {'pdf_ctx': pdf_ctx, 'promo_bypass': True},
-            })
+            }).execute()
             # Generer PDF en arrière-plan
-            asyncio.create_task(_generate_and_email_pdf(payload.email, pdf_ctx))
+            asyncio.create_task(_generate_and_email_pdf(payload.email, pdf_ctx, fake_session_id))
         except Exception as e:
             logger.exception(f'Erreur promo bypass numerologie : {e}')
         
@@ -139,7 +140,7 @@ async def numerologie_checkout(payload: NumerologieCheckoutPayload, request: Req
             'status': 'pending',
             'payment_status': 'pending',
             'metadata': {'pdf_ctx': pdf_ctx},
-        })
+        }).execute()
         
         return {
             'session_id': session_id,
@@ -156,7 +157,7 @@ async def numerologie_status(session_id: str):
     """Polling pour vérifier si PDF est prêt."""
     try:
         sb = get_admin_client()
-        tx = sb.table('payment_transactions').select('*').eq('session_id', session_id).single().execute()
+        tx = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
         if not tx or not tx.data:
             raise HTTPException(404, 'Session non trouvée.')
         
@@ -172,19 +173,46 @@ async def numerologie_status(session_id: str):
         raise HTTPException(500, str(e))
 
 
-async def _generate_and_email_pdf(email: str, pdf_ctx: dict):
+async def _generate_and_email_pdf(email: str, pdf_ctx: dict, session_id: str = ''):
     """Génère le PDF et l'envoie par email."""
     try:
-        # Récupérer données API
         first_name = pdf_ctx.get('first_name', 'Ami(e)')
         birth_data = pdf_ctx.get('birth_data')
         birth_date_iso = pdf_ctx.get('birth_date_iso')
-        
-        # Appels API (avec language='fr' partout!)
-        numerology_data = await numerology_name(first_name, language='fr') or {}
-        personal_year_data = await numerology_personal_year(birth_data, first_name, language='fr') or {}
-        forecast_data = await numerology_forecast(birth_data, first_name, language='fr') or {}
-        
+
+        # v3 : /numerology/core-numbers est le seul endpoint existant (name/personal-year/forecast → 404)
+        core = await numerology_core_numbers(birth_data, first_name, language='fr') or {}
+        py = core.get('pythagorean') or {}
+
+        def _num(key):
+            return (py.get(key) or {}).get('number', 1)
+
+        def _interp(key):
+            return (py.get(key) or {}).get('interpretation') or ''
+
+        numerology_data = {
+            'destiny_number': _num('life_path'),
+            'expression_number': _num('destiny'),
+            'heart_number': _num('soul_urge'),
+        }
+        personal_year_data = {
+            'personal_year': _num('personal_year'),
+            'year_description': _interp('personal_year') or 'Année de transformation.',
+        }
+        forecast_items = [
+            ('Ton Chemin de Vie', _interp('life_path')),
+            ("Ton Nombre d'Expression", _interp('destiny')),
+            ('Ton Élan du Cœur', _interp('soul_urge')),
+            ('Ta Personnalité extérieure', _interp('personality')),
+            ('Ta Maturité', _interp('maturity_number')),
+        ]
+        forecast_data = {
+            'forecast': [
+                {'period': period, 'insight': insight}
+                for period, insight in forecast_items if insight
+            ],
+        }
+
         # Générer PDF
         pdf_bytes = generate_numerologie_pdf(
             first_name=first_name,
@@ -206,27 +234,21 @@ async def _generate_and_email_pdf(email: str, pdf_ctx: dict):
         )
         
         pdf_url = sb.storage.from_('reports').get_public_url(f'numerologie/{file_name}')
-        
-        # Mettre à jour DB + envoyer email
-        sb.table('payment_transactions').update({
-            'metadata': {'pdf_path': pdf_url, 'email_sent_at': 'now()'},
-        }).eq('user_email', email).execute()
-        
-        # Email avec Resend
-        from resend import Resend
-        resend = Resend(api_key=get_settings().RESEND_API_KEY)
-        resend.emails.send({
-            'from': 'no-reply@plumeastrale.fr',
-            'to': email,
-            'subject': f'{first_name}, ton Code Numérologique t\'attend',
-            'html': f'''
+
+        # Mettre à jour DB (merge metadata, ciblé par session_id) + envoyer email
+        update_tx_pdf_metadata(session_id, email, pdf_url, 'numerologie')
+        await send_pdf_email(
+            email,
+            f'{first_name}, ton Code Numérologique t\'attend',
+            f'''
             <h2>✦ Ton Code Numérologique ✦</h2>
             <p>Chère {first_name},</p>
             <p>Ton rapport numérologique est prêt ! <a href="{pdf_url}">Télécharge-le ici</a></p>
             <p>Découvre tes nombres de destin, d'expression et de cœur.</p>
             <p>Par Solena — La voix de Plume Astrale</p>
             ''',
-        })
+            'numerologie',
+        )
         
         logger.info(f'PDF numérologie envoyé à {email}')
     except Exception as e:

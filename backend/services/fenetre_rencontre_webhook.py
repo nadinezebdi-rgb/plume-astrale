@@ -35,7 +35,7 @@ async def handle_fenetre_rencontre_webhook(session_id: str):
         logger.info(f'[fenetre_rencontre] Payment completed for {user_email}, generating PDF in background...')
         
         # Marca como processado e inicia PDF generation assincronamente
-        asyncio.create_task(_generate_and_email_pdf(user_email, pdf_ctx))
+        asyncio.create_task(_generate_and_email_pdf(user_email, pdf_ctx, session_id))
         
     except Exception as e:
         logger.exception(f'[fenetre_rencontre] Webhook error: {e}')

@@ -21,6 +21,7 @@ from services.astrology_io_service import (
     get_cached_or_fetch, transits_today, relationship_compatibility,
 )
 from services.fenetre_rencontre_pdf import generate_fenetre_rencontre_pdf
+from services.pdf_delivery import update_tx_pdf_metadata, send_pdf_email
 from emergentintegrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
@@ -136,8 +137,8 @@ async def fenetre_checkout(payload: FenetreCheckoutPayload, request: Request):
                 'status': 'completed',
                 'payment_status': 'paid',
                 'metadata': {'pdf_ctx': pdf_ctx, 'promo_bypass': True},
-            })
-            asyncio.create_task(_generate_and_email_pdf(payload.email, pdf_ctx))
+            }).execute()
+            asyncio.create_task(_generate_and_email_pdf(payload.email, pdf_ctx, fake_session_id))
         except Exception as e:
             logger.exception(f'Erreur promo bypass fenetre : {e}')
         
@@ -175,7 +176,7 @@ async def fenetre_checkout(payload: FenetreCheckoutPayload, request: Request):
             'status': 'pending',
             'payment_status': 'pending',
             'metadata': {'pdf_ctx': pdf_ctx},
-        })
+        }).execute()
         
         return {
             'session_id': session_id,
@@ -192,7 +193,7 @@ async def fenetre_status(session_id: str):
     """Polling pour vérifier si PDF est prêt."""
     try:
         sb = get_admin_client()
-        tx = sb.table('payment_transactions').select('*').eq('session_id', session_id).single().execute()
+        tx = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
         if not tx or not tx.data:
             raise HTTPException(404, 'Session non trouvée.')
         
@@ -261,7 +262,7 @@ def _calculate_advanced_windows(birth_data: Dict[str, Any], transits: Dict[str, 
     return windows
 
 
-async def _generate_and_email_pdf(email: str, pdf_ctx: dict):
+async def _generate_and_email_pdf(email: str, pdf_ctx: dict, session_id: str = ''):
     """Génère le PDF fenêtres et l'envoie par email."""
     try:
         first_name = pdf_ctx.get('first_name', 'Ami(e)')
@@ -307,27 +308,21 @@ async def _generate_and_email_pdf(email: str, pdf_ctx: dict):
         )
         
         pdf_url = sb.storage.from_('reports').get_public_url(f'fenetre/{file_name}')
-        
-        # Mettre à jour DB
-        sb.table('payment_transactions').update({
-            'metadata': {'pdf_path': pdf_url, 'email_sent_at': 'now()'},
-        }).eq('user_email', email).execute()
-        
-        # Email
-        from resend import Resend
-        resend = Resend(api_key=get_settings().RESEND_API_KEY)
-        resend.emails.send({
-            'from': 'no-reply@plumeastrale.fr',
-            'to': email,
-            'subject': f'{first_name}, tes Fenêtres de Rencontre t\'attendent',
-            'html': f'''
+
+        # Mettre à jour DB (merge metadata, ciblé par session_id) + email
+        update_tx_pdf_metadata(session_id, email, pdf_url, 'fenetre_rencontre')
+        await send_pdf_email(
+            email,
+            f'{first_name}, tes Fenêtres de Rencontre t\'attendent',
+            f'''
             <h2>✦ Tes Fenêtres de Rencontre Avancées ✦</h2>
             <p>Chère {first_name},</p>
             <p>Tes fenêtres de rencontre sont calculées ! <a href="{pdf_url}">Télécharge ton rapport ici</a></p>
             <p>Découvre les périodes cosmiques favorables à ta rencontre destinée.</p>
             <p>Par Solena — La voix de Plume Astrale</p>
             ''',
-        })
+            'fenetre_rencontre',
+        )
         
         logger.info(f'PDF fenêtres envoyé à {email}')
     except Exception as e:

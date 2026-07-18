@@ -31,7 +31,7 @@ async def handle_karma_destin_webhook(session_id: str):
         logger.info(f'[karma_destin] Payment completed for {user_email}, generating PDF in background...')
         
         # Inicia PDF generation assincronamente
-        asyncio.create_task(_generate_and_email_pdf(user_email, pdf_ctx))
+        asyncio.create_task(_generate_and_email_pdf(user_email, pdf_ctx, session_id))
         
     except Exception as e:
         logger.exception(f'[karma_destin] Webhook error: {e}')

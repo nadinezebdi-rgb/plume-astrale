@@ -122,7 +122,57 @@ def _api_key() -> str:
     return k
 
 
-async def _call(path: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+# ── Alerte email admin si la cle API est rejetee (401) — max 1 / 6h ──
+_last_key_alert_ts = 0.0
+
+
+async def _alert_invalid_key(path: str, detail: str) -> None:
+    global _last_key_alert_ts
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).timestamp()
+    if now - _last_key_alert_ts < 6 * 3600:
+        return
+    _last_key_alert_ts = now
+    resend_key = os.environ.get('RESEND_API_KEY', '').strip()
+    to = os.environ.get('ADMIN_ALERT_EMAIL', '').strip()
+    if not resend_key or not to:
+        print('[astrology_io] 401 detecte mais RESEND_API_KEY/ADMIN_ALERT_EMAIL manquant — alerte non envoyee')
+        return
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.post(
+                'https://api.resend.com/emails',
+                headers={'Authorization': f'Bearer {resend_key}', 'Content-Type': 'application/json'},
+                json={
+                    'from': os.environ.get('SENDER_EMAIL', 'Plume Astrale <contact@plume-astrale.fr>'),
+                    'to': [to],
+                    'subject': '🚨 ALERTE Plume Astrale — Clé astrology-api.io invalide (401)',
+                    'html': (
+                        "<div style='font-family:sans-serif;max-width:560px;margin:0 auto;'>"
+                        "<h2 style='color:#B91C1C;'>🚨 La clé astrology-api.io est rejetée</h2>"
+                        "<p>Le backend reçoit <b>401 Invalid credentials</b> : la clé est expirée, révoquée "
+                        "ou le quota est dépassé. Les produits astrologiques (chat, PDF, rapports) sont "
+                        "actuellement <b>en panne</b> pour les clients.</p>"
+                        f"<p><b>Endpoint touché :</b> <code>{path}</code><br>"
+                        f"<b>Réponse API :</b> <code>{detail}</code></p>"
+                        "<p><b>Action :</b> vérifie ton compte sur "
+                        "<a href='https://dashboard.astrology-api.io'>dashboard.astrology-api.io</a>, "
+                        "génère une nouvelle clé si besoin, puis mets à jour la variable "
+                        "<code>ASTROLOGY_API_IO_KEY</code> sur Railway et redéploie.</p>"
+                        "<p style='color:#888;font-size:12px;'>Anti-spam : maximum 1 alerte toutes les 6 heures.</p>"
+                        "</div>"
+                    ),
+                },
+            )
+            if r.status_code < 400:
+                print(f'[astrology_io] ALERTE 401 envoyee a {to}')
+            else:
+                print(f'[astrology_io] alert email error {r.status_code}: {r.text[:200]}')
+    except Exception as e:
+        print(f'[astrology_io] alert email failed: {e}')
+
+
+async def _call(path: str, payload: Dict[str, Any], timeout: float = 30.0) -> Optional[Dict[str, Any]]:
     """POST helper. Retourne data ou None si echec. Logs minimal."""
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -136,6 +186,12 @@ async def _call(path: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             )
             if r.status_code != 200:
                 print(f'[astrology_io] {path} -> {r.status_code} : {r.text[:200]}')
+                if r.status_code == 401:
+                    import asyncio
+                    try:
+                        asyncio.create_task(_alert_invalid_key(path, r.text[:200]))
+                    except Exception:
+                        pass
                 return None
             data = r.json()
             if not isinstance(data, dict):
@@ -652,10 +708,10 @@ async def astro_chat(
             'defaults': {'language': language},
         }
     if birth_data:
-        payload['astrology']['subjects'] = [make_subject(name, birth_data)]
+        payload.setdefault('astrology', {})['subjects'] = [make_subject(name, birth_data)]
     if session_id:
-        payload['astrology']['session_id'] = session_id
-    return await _call('/chat/completions', payload)
+        payload.setdefault('astrology', {})['session_id'] = session_id
+    return await _call('/chat/completions', payload, timeout=60.0)
 
 
 # ════════ Cache helper (24h) using Supabase energy_cache table ════════
@@ -1008,6 +1064,14 @@ async def tarot_quintessence(language: str = 'fr') -> Optional[Dict]:
 async def numerology_name(name: str, language: str = 'fr') -> Optional[Dict]:
     """Analyse numérologique du prénom/nom (expression, âme, personnalité)."""
     return await _call('/numerology/name', {'name': name, 'options': {'language': language}})
+
+async def numerology_core_numbers(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Nombres fondamentaux (v3 /numerology/core-numbers) : life_path, destiny,
+    soul_urge, personality, birthday, personal_year, maturity... avec interpretations FR."""
+    return await _call('/numerology/core-numbers', {
+        'subject': make_subject(name, birth_data),
+        'options': {'language': language},
+    })
 
 async def numerology_compatibility(
     birth_data_1: Dict[str, Any], birth_data_2: Dict[str, Any],
