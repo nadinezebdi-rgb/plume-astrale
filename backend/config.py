@@ -24,9 +24,10 @@ class Settings:
 
     # LLM
     EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
-
+    # Resend (envoi d'emails transactionnels)
+    RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
     # Credit packs (montants serveur — JAMAIS depuis le frontend)
-    # Grille "Cosmique" (Juil 2026) — 10 cr par question de chat.
+    # Grille "Special Lancement" — 10 cr par question de chat, avec bonus offerts.
     PACKS = {
         'comete': {
             'name': 'Comète',
@@ -64,6 +65,16 @@ class Settings:
         },
         # ═══════════════════════════════════════════════════════════
         # Produits one-shot (achats uniques, pas des crédits)
+        'pack_karmique_kabbale': {
+            'name': 'Pack Karmique + Kabbale',
+            'credits': 0,   # one-shot
+            'bonus': 0,
+            'amount': 89.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'pack_karmique_kabbale',
+            'tagline': "Analyse karmique complete + Arbre de Vie + synthese croisee IA — PDF ~40 pages.",
+        },
         # ═══════════════════════════════════════════════════════════
         'rencontres_ultime': {
             'name': 'Guide de Compatibilité Ultime & Calendrier de Rencontres',
@@ -85,15 +96,35 @@ class Settings:
             'product': 'kabbale_arbre_de_vie',
             'tagline': "Les 10 Sephiroth + 22 chemins de ton theme natal — PDF 15 pages unique en francais.",
         },
-        'pack_karmique_kabbale': {
-            'name': 'Pack Karmique + Kabbale',
+        'numerologie_code': {
+            'name': 'Ton Code Numérologique',
             'credits': 0,   # one-shot
             'bonus': 0,
-            'amount': 89.00,
+            'amount': 19.00,
             'currency': 'eur',
             'kind': 'oneshot',
-            'product': 'pack_karmique_kabbale',
-            'tagline': "Analyse karmique complete + Arbre de Vie + synthese croisee IA — PDF ~40 pages.",
+            'product': 'numerologie_code',
+            'tagline': 'Nombre de Destin + Expression + Année Personnelle — PDF 12 pages complet.',
+        },
+        'karma_destin_analysis': {
+            'name': 'Analyse Karmique & Destinée',
+            'credits': 0,   # one-shot
+            'bonus': 0,
+            'amount': 24.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'karma_destin_analysis',
+            'tagline': 'Nœuds lunaires + Saturne + Chiron + Pluton — PDF 15 pages guide spirituel.',
+        },
+        'fenetre_rencontre_avancee': {
+            'name': 'Fenêtres de Rencontre Avancées',
+            'credits': 0,   # one-shot
+            'bonus': 0,
+            'amount': 29.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'fenetre_rencontre_avancee',
+            'tagline': '3 fenêtres de rencontre calculées + synastrie optionnelle — PDF 10 pages.',
         },
     }
 
