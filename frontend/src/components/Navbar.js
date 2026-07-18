@@ -43,6 +43,14 @@ const NAV_ITEMS = [
           { label: 'Énergies Amoureuses', to: '/outils/astrosexo' },
         ],
       },
+      {
+        title: '💎 Rapports Prestige',
+        children: [
+          { label: 'Pack Karmique + Kabbale · 89€', to: '/pack-karmique', highlight: true },
+          { label: 'Arbre de Vie Kabbale · 39€', to: '/kabbale' },
+          { label: 'Compatibilité Ultime · 29,99€', to: '/rencontres-astrales' },
+        ],
+      },
     ],
   },
   { label: 'Communauté', to: '/communaute' },

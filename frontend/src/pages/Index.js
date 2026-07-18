@@ -451,6 +451,78 @@ const Index = () => {
       <SolenaJourney />
       <ClientReviews />
 
+      {/* ═══ Vitrine Rapports Prestige ═══ */}
+      <section className="py-16 px-4 relative z-10" style={{ borderTop: '1px solid rgba(212,175,55,0.08)' }} data-testid="prestige-showcase">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-[10px] uppercase mb-3 text-center" style={{ color: '#D4AF37', letterSpacing: '0.3em', fontFamily: 'Cinzel, serif' }}>
+            ✦ Éditions Prestige ✦
+          </p>
+          <h2 className="text-center mb-10" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, fontSize: 'clamp(26px, 4vw, 40px)', color: '#F5EEE0' }}>
+            Des documents <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>à garder toute une vie</em>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[
+              {
+                to: '/pack-karmique',
+                badge: 'LE PLUS COMPLET',
+                title: 'Pack Karmique + Kabbale',
+                price: '89€',
+                desc: 'Ta mémoire karmique (80 sections) + ton Arbre de Vie + une synthèse croisée rédigée pour toi. PDF ~40 pages.',
+                featured: true,
+                testid: 'showcase-pack-karmique',
+              },
+              {
+                to: '/kabbale',
+                badge: null,
+                title: 'Ton Arbre de Vie Kabbalistique',
+                price: '39€',
+                desc: 'Les 10 Sephiroth et 22 chemins de ton thème natal, décodés en français. PDF 15 pages.',
+                featured: false,
+                testid: 'showcase-kabbale',
+              },
+              {
+                to: '/rencontres-astrales',
+                badge: null,
+                title: 'Compatibilité Ultime',
+                price: '29,99€',
+                desc: 'Votre synastrie sur 12 domaines de vie + tes fenêtres de rencontre. PDF 20 pages.',
+                featured: false,
+                testid: 'showcase-compat-ultime',
+              },
+            ].map((card) => (
+              <Link
+                key={card.to}
+                to={card.to}
+                data-testid={card.testid}
+                className="block p-6 rounded-2xl transition-transform duration-300 hover:-translate-y-1"
+                style={{
+                  background: card.featured ? 'rgba(212,175,55,0.10)' : 'rgba(26,32,53,0.55)',
+                  border: card.featured ? '1px solid rgba(212,175,55,0.45)' : '1px solid rgba(212,175,55,0.15)',
+                  textDecoration: 'none',
+                  boxShadow: card.featured ? '0 0 32px rgba(212,175,55,0.15)' : 'none',
+                }}
+              >
+                {card.badge && (
+                  <span className="inline-block text-[9px] uppercase mb-3 px-2 py-1 rounded-full" style={{ background: '#D4AF37', color: '#111625', letterSpacing: '0.2em', fontWeight: 700 }}>
+                    {card.badge}
+                  </span>
+                )}
+                <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#F5EEE0', fontWeight: 400, marginBottom: 6 }}>
+                  {card.title}
+                </h3>
+                <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 30, color: '#D4AF37', fontWeight: 300, marginBottom: 10 }}>
+                  {card.price}
+                </div>
+                <p className="text-sm" style={{ color: 'rgba(244,232,210,0.7)', lineHeight: 1.6 }}>{card.desc}</p>
+                <span className="inline-block mt-4 text-[11px] uppercase" style={{ color: '#E8C766', letterSpacing: '0.2em' }}>
+                  Découvrir →
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Trust badge — technologie */}
       <section className="py-12 px-4 relative z-10" style={{ borderTop: '1px solid rgba(212,175,55,0.08)' }} data-testid="trust-astrology-api">
         <div className="max-w-3xl mx-auto text-center">

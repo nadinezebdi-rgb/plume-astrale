@@ -95,3 +95,10 @@ Le repo GitHub (prod) avait divergé : features développées hors Emergent (meg
 ### Alerte 401 + timeout 60s regreffés sur la base GitHub (astrology_io_service).
 ### Deps : yarn --ignore-engines (camera-controls exige Node 22), email-validator pip. pip freeze fait.
 ### Tests : iteration_48.json 100% PASS (12/12 backend, 12 routes frontend) + retests manuels des 3 produits réparés (pdf_url Supabase Storage OK pour les 3).
+
+## 2026-07-18 (suite) — Bandeau 48h cliquable + Vitrine Prestige + Nettoyage + Script rattrapage
+- **LaunchBanner.js** (nouveau) : bandeau cliquable → /inscription, texte défilant en marquee (pause au survol), « VALABLE SUR TOUT LE SITE » en gras, compte à rebours live 48H (localStorage evergreen). Remplace le bandeau statique dans Hero3D.js. CSS .plume-banner-track dans index.css.
+- **Vitrine Prestige** : colonne « 💎 Rapports Prestige » dans le mega menu Navbar (Pack Karmique 89€ highlight, Kabbale 39€, Compat Ultime 29,99€) + section « Éditions Prestige » sur la homepage (Index.js, data-testid prestige-showcase) entre ClientReviews et le trust badge.
+- **Nettoyage** : suppression find_nadine_tx.py, logs.txt, App_new.js, index_new.css.
+- **scripts/retrofit_lost_pdfs.py** (nouveau) : scanne les sessions Stripe payées (kinds numerologie/karma/fenetre) absentes de la DB → dry-run liste les clients jamais livrés ; --send insère les tx + envoie un email d'excuse demandant les données de naissance. ⚠️ NE PEUT PAS tourner en preview (clé Stripe = sk_test placeholder Emergent) → à lancer en PROD (Railway) : `python scripts/retrofit_lost_pdfs.py` puis `--send`.
+- Vérifié par screenshots : bandeau défilant + compte à rebours OK, vitrine 3 cartes OK, mega menu OK.
