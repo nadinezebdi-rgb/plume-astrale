@@ -21,13 +21,14 @@ from typing import Any, Dict, List
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
-from reportlab.platypus import SimpleDocTemplate, Spacer, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Spacer, PageBreak, Image
 
 from services.kabbale_pdf import (
     _p, _make_styles, _bg_canvas, _intro as _kabbale_intro,
     _pillars, _sephiroth_pages, _paths_page, _daat_page,
-    _SEPHIROT_FR,
+    _lib_image, _SEPHIROT_FR,
 )
+from services import library_images as libimg
 
 _KARMIC_POINTS = ('Nœud Nord', 'Nœud Sud', 'Noeud Nord', 'Noeud Sud', 'Lilith', 'Chiron', 'Vertex', 'Juno')
 
@@ -67,18 +68,21 @@ def _fmt_date_fr(birth_date_iso: str) -> str:
         return birth_date_iso
 
 
-def _cover(story, styles, first_name: str, birth_fr: str):
-    story.append(Spacer(1, 4 * cm))
+def _cover(story, styles, first_name: str, birth_fr: str, birth_iso: str = ''):
+    story.append(Spacer(1, 2.5 * cm))
     story.append(_p('PLUME ASTRALE · EDITION PRESTIGE', styles['caption']))
-    story.append(Spacer(1, 1.5 * cm))
+    story.append(Spacer(1, 0.6 * cm))
+    # Signe solaire depuis la date de naissance
+    _lib_image(story, libimg.sign_from_date(birth_iso), width_cm=6.5)
+    story.append(Spacer(1, 0.6 * cm))
     story.append(_p('PACK KARMIQUE', styles['title']))
     story.append(Spacer(1, 0.2 * cm))
     story.append(_p('<i>+ KABBALE</i>', styles['subtitle']))
-    story.append(Spacer(1, 2 * cm))
+    story.append(Spacer(1, 1.4 * cm))
     story.append(_p(f'Etabli pour <b>{first_name}</b>', styles['italic']))
     if birth_fr:
         story.append(_p(f'Ne(e) le {birth_fr}', styles['meta']))
-    story.append(Spacer(1, 2 * cm))
+    story.append(Spacer(1, 1.2 * cm))
     story.append(_p(
         '« Ton ame n\'est pas arrivee ici par hasard. Elle porte une memoire, '
         'une dette, une promesse. Ce document est sa carte. »',
@@ -121,10 +125,13 @@ def _part_divider(story, styles, kicker: str, title: str, subtitle: str):
     story.append(PageBreak())
 
 
-def _karmic_chapter(story, styles, kicker: str, title: str, lead: str, items: List[dict], per_page: int = 3):
+def _karmic_chapter(story, styles, kicker: str, title: str, lead: str, items: List[dict], per_page: int = 3, opener_image: str = None):
     story.append(Spacer(1, 1.0 * cm))
     story.append(_p(kicker, styles['caption']))
     story.append(_p(f'<i>{title}</i>', styles['h2']))
+    if opener_image:
+        story.append(Spacer(1, 0.3 * cm))
+        _lib_image(story, opener_image, width_cm=4.5)
     story.append(_p(lead, styles['italic']))
     story.append(Spacer(1, 0.3 * cm))
     count = 0
@@ -294,35 +301,55 @@ def generate_pack_karmique_pdf(
     story: list = []
 
     fn = first_name or 'Voyageur'
-    _cover(story, styles, fn, _fmt_date_fr(birth_date_iso))
+    _cover(story, styles, fn, _fmt_date_fr(birth_date_iso), birth_iso=birth_date_iso or '')
     _intro(story, styles)
 
     # ── PARTIE I : Empreinte Karmique ──
     _part_divider(story, styles, 'Partie I', 'TON EMPREINTE KARMIQUE',
                   "La memoire de ton ame, decodee par les Noeuds Lunaires, Saturne, Chiron et Pluton.")
     if chapters['points']:
+        # Point karmique principal = Lune noire / Lilith → image lune
         _karmic_chapter(story, styles, 'Chapitre 1', 'Les points karmiques',
                         "Noeuds Lunaires, Lilith, Chiron — les cicatrices et promesses de tes vies anterieures.",
-                        chapters['points'], per_page=3)
+                        chapters['points'], per_page=3, opener_image=libimg.planet('lune'))
     if chapters['signs']:
+        # Ouverture avec le signe solaire du natif
         _karmic_chapter(story, styles, 'Chapitre 2', 'Tes planetes dans les signes',
                         "L'energie brute que chaque planete a choisie pour cette incarnation.",
-                        chapters['signs'], per_page=3)
+                        chapters['signs'], per_page=3, opener_image=libimg.sign_from_date(birth_date_iso or ''))
     if chapters['houses']:
+        # Ouverture avec la maison 1 (image de vie)
         _karmic_chapter(story, styles, 'Chapitre 3', 'Tes maisons de vie',
                         "Les domaines terrestres ou ton karma se joue concretement.",
-                        chapters['houses'], per_page=3)
+                        chapters['houses'], per_page=3, opener_image=libimg.house(1))
     if chapters['aspects']:
+        # Aspects = dialogues → image Vénus (relations planétaires)
         _karmic_chapter(story, styles, 'Chapitre 4', 'Les dialogues de ton ciel',
                         "Chaque aspect est une conversation entre deux forces de ton ame.",
-                        chapters['aspects'], per_page=4)
+                        chapters['aspects'], per_page=4, opener_image=libimg.planet('venus'))
 
     # ── PARTIE II : Arbre de Vie ──
     _part_divider(story, styles, 'Partie II', 'TON ARBRE DE VIE',
                   'Ton theme natal cartographie sur les 10 Sephiroth et les 22 chemins de la Kabbale.')
     _kabbale_intro(story, styles)
     _pillars(story, styles, pillar_balance)
-    _sephiroth_pages(story, styles, sephiroth)
+    # Extraire la planète dominante depuis les Sephiroth pour l'image d'ouverture Sephiroth
+    dominant_planet = ''
+    try:
+        if isinstance(sephiroth, list):
+            for sf in sephiroth:
+                if not isinstance(sf, dict):
+                    continue
+                if str(sf.get('english') or '').strip().lower() == str(dominant_sephirah).strip().lower():
+                    pr = sf.get('planet')
+                    if isinstance(pr, dict):
+                        dominant_planet = pr.get('modern_halevi') or pr.get('classical') or ''
+                    else:
+                        dominant_planet = pr or ''
+                    break
+    except Exception:
+        dominant_planet = ''
+    _sephiroth_pages(story, styles, sephiroth, dominant_planet=str(dominant_planet or ''))
     _paths_page(story, styles, paths)
     _daat_page(story, styles, daat)
     if dominant_display or tree_synthesis:

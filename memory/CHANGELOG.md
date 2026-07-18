@@ -112,3 +112,29 @@ Le repo GitHub (prod) avait divergé : features développées hors Emergent (meg
 - **Admin Leads** : GET /api/admin/leads (routes/admin.py, filtre source + pagination) ; onglet « Leads » dans Admin.js (colonnes : capturé le, email, prénom, source colorée, statut séquence, dernier email). Testé (5 leads affichés).
 - **Séquence email** : services/lead_nurture.py — boucle 6h (startup server.py) : leads source='extrait_karmique', non désinscrits → J+2 (step 0→1, rappel « la suite de ton extrait ») et J+5 (step 1→2, « avant que je referme ton dossier »), CTA pack 89€, lien désinscription /api/oracle/unsubscribe (PUBLIC_BACKEND_URL env, fallback Railway). Skip auto si le lead a déjà acheté le pack (marqué step 2). Utilise les colonnes existantes email_sequence_step / last_email_sent_at de oracle_leads.
 - Testé : lead vieilli à J+3 → email J+2 tenté (403 Resend = limite preview), step 0→1, last_email_sent_at horodaté ; lead récent correctement ignoré.
+
+## 2026-02-01 — Fix email Kabbale (P0) + Webhook Resend + Images bibliothèque dans 4 rapports
+
+### Bug P0 : Emails Kabbale/Numérologie/Karma/Fenêtre/Pack/Cart Recovery/Lead Nurture jamais livrés
+- **Cause racine** : `SENDER_EMAIL=Plume Astrale <onboarding@resend.dev>` (sandbox Resend). Le domaine `plume-astrale.fr` est vérifié chez Resend mais tous les envois passaient par le sender sandbox → Resend rejette avec 403 « You can only send testing emails to your own email address (nadine.zebdi@gmail.com) ».
+- **Fix** : `SENDER_EMAIL=Soléna · Plume Astrale <contact@plume-astrale.fr>` dans /app/backend/.env. Un seul changement débloque **7 services** d'un coup (kabbale, pack_karmique, numerologie, karma_destin, fenetre_rencontre, cart_recovery, lead_nurture).
+- **Vérifié** : 3 emails de test envoyés vers nadine.zebdi@gmail.com, ID Resend retourné, logs `Email sent to nadine.zebdi@gmail.com` sans erreur.
+
+### Webhook Resend + Journal d'envois
+- **/api/webhook/resend** (routes/resend_webhook.py) : reçoit les events Resend (email.sent, delivered, bounced, complained, delivery_delayed, opened, clicked). Signature Svix vérifiée si `RESEND_WEBHOOK_SECRET` défini (whsec_...), sinon accepté sans vérif (warning).
+- **/api/webhook/resend/health** : diag public.
+- **services/email_journal.py** : `log_send_attempt` (avant chaque appel Resend) + `log_send_response` (après). Détecte les emails jamais demandés (aucune ligne app) et ceux rejetés par Resend (send_failed).
+- **Table email_events** (SQL à exécuter dans Supabase) : source (app|resend), event_type, resend_id, provider_event_id (dédup Svix), to_email, from_email, subject, product, session_id, http_status, error_message, raw. Migration : `/app/supabase/email_events_migration.sql`.
+- **Intégré dans kabbale_service.py** ; à généraliser aux autres services (TODO).
+
+### Images bibliothèque dans les 4 rapports payants
+- **services/library_images.py** (nouveau) : helper central qui télécharge à la demande depuis Supabase Storage bucket `library` (12 signes, 10 planètes, 12 maisons, 22 tarots + style-refs) et cache local dans `/app/backend/assets/library/{cat}/`. API : `sign(name)`, `planet(name)`, `house(n)`, `tarot(name)`, `sign_from_date(iso)`, `sun_slug_from_date(iso)`. Alias FR/EN + accents.
+- **Kabbale PDF** : couverture (signe solaire calculé depuis birth_date_iso), Chapitre I Sephiroth (planète dominante), Chapitre II Chemins (premier arcane tarot activé).
+- **Pack Karmique PDF** : couverture (signe solaire) + 4 chapitres karmiques avec ouvertures thématiques (Lune, Signe, Maison 1, Vénus) + planète Sephirah dominante.
+- **Manuscrit / Thème Natal PDF** : couverture (signe solaire, calcul depuis date si planets_data absent) + 5 pages sections avec hero image (Soleil, Lune, Ascendant, Vénus, Jupiter).
+- **Compatibilité Ultime PDF** : les 4 anciennes images locales cassées (`mains-constellations.jpg`, `couple-passion.jpg`, `coeur-mosaique.jpg`, `visage-dualite.jpg` — fichiers manquants !) remplacées par bibliothèque : couverture = 2 signes côte-à-côte (partenaires), Passion = Vénus, Cœur = tarot Étoile, Dualité = tarot Amoureux.
+- **Testé** : 4 PDFs générés, tailles Kabbale 7.5MB / Manuscrit 22MB / Pack 18MB / Compat 18MB (vs KBs avant sans images), screenshots page 1 des 4 confirment le rendu (Gémeaux + Scorpion sur Compat, Gémeaux seul sur les autres avec date 15 juin 1985).
+
+### TODO côté utilisateur
+1. Coller `/app/supabase/email_events_migration.sql` dans Supabase SQL Editor
+2. Configurer le webhook dans Resend (URL: /api/webhook/resend, events: sent/delivered/bounced/complained/delivery_delayed) et ajouter `RESEND_WEBHOOK_SECRET=whsec_...` dans /app/backend/.env

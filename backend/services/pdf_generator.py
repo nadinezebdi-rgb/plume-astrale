@@ -6,6 +6,8 @@ from reportlab.lib.colors import HexColor
 from reportlab.pdfgen import canvas
 import logging
 
+from services import library_images as libimg
+
 logger = logging.getLogger(__name__)
 
 # Colors
@@ -69,6 +71,16 @@ class ManuscritPDFGenerator:
         c.drawCentredString(self.width / 2, 1.2*cm, f"— {page_num} —")
         c.setFillAlpha(1.0)
     
+    def _draw_lib_image(self, c, path, cx, cy, size_cm=5.0):
+        """Dessine une image de la bibliothèque centrée sur (cx, cy). Silencieux si path=None."""
+        if not path:
+            return
+        try:
+            w = h = size_cm * cm
+            c.drawImage(path, cx - w/2, cy - h/2, w, h, mask='auto', preserveAspectRatio=True)
+        except Exception as e:
+            logger.debug(f'[pdf_generator] drawImage failed: {e}')
+
     def _draw_title_page(self, c, user_data, zodiac_french):
         """Draw the title page"""
         self._draw_starfield_background(c, 0)
@@ -84,42 +96,46 @@ class ManuscritPDFGenerator:
         c.setFillColor(GOLD)
         c.setFont("Helvetica", 12)
         c.drawCentredString(self.width / 2, self.height - 7*cm, "✦  VOTRE MANUSCRIT CÉLESTE PERSONNEL  ✦")
-        
-        # Main title
+
+        # Image signe solaire (centrée entre subtitle et titre)
+        self._draw_lib_image(c, libimg.sign(zodiac_french, size=1080),
+                             self.width/2, self.height - 10*cm, size_cm=6.0)
+
+        # Main title (descendu sous l'image)
         c.setFillColor(CREAM)
-        c.setFont("Helvetica-Bold", 36)
-        c.drawCentredString(self.width / 2, self.height - 10*cm, "Le Manuscrit")
-        c.drawCentredString(self.width / 2, self.height - 11.5*cm, "de la Plume")
+        c.setFont("Helvetica-Bold", 32)
+        c.drawCentredString(self.width / 2, self.height - 14*cm, "Le Manuscrit")
+        c.drawCentredString(self.width / 2, self.height - 15.2*cm, "de la Plume")
         
         # User name
         if user_data.get('prenom'):
             c.setFillColor(GOLD)
-            c.setFont("Helvetica-Oblique", 18)
-            c.drawCentredString(self.width / 2, self.height - 14*cm, f"Créé pour {user_data['prenom']}")
+            c.setFont("Helvetica-Oblique", 16)
+            c.drawCentredString(self.width / 2, self.height - 17*cm, f"Créé pour {user_data['prenom']}")
         
         # Zodiac sign
         c.setFillColor(LIGHT_TEXT)
-        c.setFont("Helvetica", 14)
-        c.drawCentredString(self.width / 2, self.height - 16*cm, f"Signe Solaire : {zodiac_french}")
+        c.setFont("Helvetica", 13)
+        c.drawCentredString(self.width / 2, self.height - 18.3*cm, f"Signe Solaire : {zodiac_french}")
         
         # Birth data
-        c.setFont("Helvetica", 11)
+        c.setFont("Helvetica", 10)
         c.setFillAlpha(0.7)
         birth_text = f"Né(e) le {user_data.get('dateNaissance', '')} à {user_data.get('heureNaissance', '')}"
-        c.drawCentredString(self.width / 2, self.height - 17*cm, birth_text)
-        c.drawCentredString(self.width / 2, self.height - 17.6*cm, f"{user_data.get('ville', '')}, {user_data.get('pays', '')}")
+        c.drawCentredString(self.width / 2, self.height - 19.2*cm, birth_text)
+        c.drawCentredString(self.width / 2, self.height - 19.8*cm, f"{user_data.get('ville', '')}, {user_data.get('pays', '')}")
         c.setFillAlpha(1.0)
         
         # Decorative element
         c.setStrokeColor(GOLD)
         c.setLineWidth(0.5)
-        c.line(6*cm, self.height - 19*cm, self.width - 6*cm, self.height - 19*cm)
+        c.line(6*cm, self.height - 20.8*cm, self.width - 6*cm, self.height - 20.8*cm)
         
         # Quote
         c.setFillColor(CREAM)
-        c.setFont("Helvetica-Oblique", 11)
+        c.setFont("Helvetica-Oblique", 10)
         c.setFillAlpha(0.8)
-        c.drawCentredString(self.width / 2, self.height - 21*cm, "« Les étoiles inclinent, mais ne déterminent pas. »")
+        c.drawCentredString(self.width / 2, self.height - 22*cm, "« Les étoiles inclinent, mais ne déterminent pas. »")
         c.setFillAlpha(1.0)
         
         # Bottom decorative lines
@@ -136,8 +152,8 @@ class ManuscritPDFGenerator:
         c.drawCentredString(self.width / 2, 2*cm, "Plume Astrale © 2026")
         c.setFillAlpha(1.0)
     
-    def _draw_section_page(self, c, title, subtitle, content_blocks, page_num, planet_data=None):
-        """Draw a content section page"""
+    def _draw_section_page(self, c, title, subtitle, content_blocks, page_num, planet_data=None, hero_image=None):
+        """Draw a content section page. hero_image = chemin local (via library_images)."""
         self._draw_starfield_background(c, page_num)
         self._draw_decorative_border(c)
         
@@ -161,7 +177,17 @@ class ManuscritPDFGenerator:
         c.setLineWidth(0.5)
         c.line(4*cm, y, self.width - 4*cm, y)
         c.setStrokeAlpha(1.0)
-        y -= 1.5*cm
+        y -= 0.8*cm
+
+        # Hero image (planète/signe/maison) centrée juste sous le titre
+        if hero_image:
+            img_size = 4.5*cm
+            try:
+                c.drawImage(hero_image, self.width/2 - img_size/2, y - img_size,
+                            img_size, img_size, mask='auto', preserveAspectRatio=True)
+            except Exception as e:
+                logger.debug(f'[pdf_generator] hero_image failed: {e}')
+            y -= img_size + 0.4*cm
         
         # Planet data box if provided
         if planet_data:
@@ -381,6 +407,18 @@ class ManuscritPDFGenerator:
             sun = next((p for p in planets_data if p.get('name') == 'Sun'), None)
             if sun:
                 zodiac_french = self._get_french_sign(sun.get('sign', 'Taurus'))
+        else:
+            # Fallback : calcul depuis la date de naissance
+            birth_iso = user_data.get('dateNaissance') or user_data.get('birth_date') or ''
+            slug = libimg.sun_slug_from_date(birth_iso)
+            if slug:
+                _EN_TO_FR = {
+                    'aries': 'Bélier', 'taurus': 'Taureau', 'gemini': 'Gémeaux',
+                    'cancer': 'Cancer', 'leo': 'Lion', 'virgo': 'Vierge',
+                    'libra': 'Balance', 'scorpio': 'Scorpion', 'sagittarius': 'Sagittaire',
+                    'capricorn': 'Capricorne', 'aquarius': 'Verseau', 'pisces': 'Poissons',
+                }
+                zodiac_french = _EN_TO_FR.get(slug, zodiac_french)
         
         # Page 1: Title
         self._draw_title_page(c, user_data, zodiac_french)
@@ -403,7 +441,8 @@ class ManuscritPDFGenerator:
             {'type': 'heading', 'text': 'Signification de la Maison'},
             {'type': 'paragraph', 'text': "La maison dans laquelle se trouve votre Soleil indique le domaine de vie où votre essence s'exprime le plus naturellement. C'est là que vous brillez de mille feux et où vous trouvez votre véritable accomplissement."},
         ]
-        self._draw_section_page(c, "Votre Soleil", "L'essence de qui vous êtes", content, 2, sun_data)
+        self._draw_section_page(c, "Votre Soleil", "L'essence de qui vous êtes", content, 2, sun_data,
+                                hero_image=libimg.planet('sun'))
         c.showPage()
         
         # Page 3: Lune
@@ -423,7 +462,8 @@ class ManuscritPDFGenerator:
             {'type': 'heading', 'text': 'Besoins Émotionnels'},
             {'type': 'paragraph', 'text': "La position de votre Lune indique ce dont vous avez besoin pour vous sentir en sécurité et épanoui(e). Comprendre votre Lune, c'est comprendre ce qui nourrit véritablement votre âme."},
         ]
-        self._draw_section_page(c, "Votre Lune", "Votre monde intérieur", content, 3, moon_data)
+        self._draw_section_page(c, "Votre Lune", "Votre monde intérieur", content, 3, moon_data,
+                                hero_image=libimg.planet('moon'))
         c.showPage()
         
         # Page 4: Ascendant
@@ -443,7 +483,14 @@ class ManuscritPDFGenerator:
             {'type': 'heading', 'text': 'Apparence et Style'},
             {'type': 'paragraph', 'text': "Votre Ascendant influence votre apparence physique et votre style personnel. C'est le filtre à travers lequel vous percevez le monde et interagissez avec lui."},
         ]
-        self._draw_section_page(c, "Votre Ascendant", "Votre masque social", content, 4, asc_data)
+        # Ascendant hero = signe de l'ASC si dispo, sinon Maison 1
+        asc_hero = None
+        if asc_data and asc_data.get('sign'):
+            asc_hero = libimg.sign(asc_data['sign'])
+        if not asc_hero:
+            asc_hero = libimg.house(1)
+        self._draw_section_page(c, "Votre Ascendant", "Votre masque social", content, 4, asc_data,
+                                hero_image=asc_hero)
         c.showPage()
         
         # Page 5: Planets overview
@@ -457,7 +504,8 @@ class ManuscritPDFGenerator:
             {'type': 'heading', 'text': 'Mars - L\'Action et la Passion'},
             {'type': 'paragraph', 'text': "Mars représente votre énergie vitale, votre façon d'agir et de vous affirmer. Il indique comment vous poursuivez vos désirs et gérez les conflits. C'est votre moteur d'action."},
         ]
-        self._draw_section_page(c, "Cœur & Relations", "Vénus et Mars dans votre thème", content, 6)
+        self._draw_section_page(c, "Cœur & Relations", "Vénus et Mars dans votre thème", content, 6,
+                                hero_image=libimg.planet('venus'))
         c.showPage()
         
         # Page 7: Conseils
@@ -470,7 +518,8 @@ class ManuscritPDFGenerator:
             {'type': 'paragraph', 'text': "Les périodes de Mars-Mai et Septembre-Novembre seront particulièrement favorables pour les nouveaux projets. Évitez les décisions impulsives en juin-juillet."},
             {'type': 'quote', 'text': "Votre thème est une carte, pas une prison. Utilisez-le comme guide."},
         ]
-        self._draw_section_page(c, "Conseils de la Plume", "Guidance pour votre chemin", content, 7)
+        self._draw_section_page(c, "Conseils de la Plume", "Guidance pour votre chemin", content, 7,
+                                hero_image=libimg.planet('jupiter'))
         c.showPage()
         
         # Page 8: Final blessing
