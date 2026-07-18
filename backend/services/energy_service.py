@@ -4,7 +4,7 @@ Cache par user/jour pour eviter de spammer le LLM."""
 import logging
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+from integrations.llm.chat import LlmChat, UserMessage
 import os
 
 from services.supabase_client import get_admin_client
@@ -92,7 +92,7 @@ CONTEXTE DU JOUR :
 
 Genere maintenant l'energie du jour en JSON strict (4 sections : dominante, relationnel, attention, opportunite)."""
 
-    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    api_key = os.environ.get('OPENAI_API_KEY')
     if not api_key:
         return {'success': False, 'message': 'Service indisponible'}
 

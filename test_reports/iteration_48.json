@@ -1,0 +1,60 @@
+{
+  "summary": "Iteration 48 — Post GitHub-resync full backend + frontend regression. Backend: 12/12 pytest cases green in 73s covering (1) GET /api/packs returning all 10 products (4 credit packs + pack_karmique_kabbale 89€ + 5 oneshots numerologie/karma/fenetre/kabbale_arbre_de_vie/rencontres_ultime with correct 19€/24€/29€/89€ prices), (2) Pack Karmique 89€ TESTPLUME checkout → pdf_ready=true dans <90s, (3) Rencontres partner validation 400 FR + full reveal→checkout→delivered avec pdf_url, (4) Kabbale + Numerologie + Karma-Destin + Fenetre-Rencontre-Avancée checkouts (smoke sans promo + full bypass avec TESTPLUME retournant session_id admin-numerologie-* / admin-karma-* / admin-fenetre-*), (5) POST /api/astrology/v3/chat avec Bearer Supabase → success:true, (6) POST /api/credits/checkout pack_id=nebuleuse → URL Stripe. Frontend: 12 routes chargent sans crash (/, /connexion, /mon-compte, /acheter-credits avec 4/4 packs Comète/Nébuleuse/Constellation/Voie Lactée visibles, /pack-karmique, /outils/theme-natal, /outils/tarot, /outils/numerologie, /karma-destin, /kabbale, /rencontres-astrales). Flux Pack Karmique frontend testé bout en bout : CTA → form → TESTPLUME → /pack-karmique/succes avec 4 pack-karmique-step-* rendus. Flux Rencontres frontend testé bout en bout : natal form → email-gate → windows + partner-fields ; click buy-premium-btn sans partenaire montre bien un message FR ; puis remplissage partenaire + TESTPLUME → redirect /rencontres-astrales/succes.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "backend background _generate_and_email_pdf (numerologie/karma_destin/fenetre_rencontre)", "issue": "`from resend import Resend` échoue avec ImportError car le package resend n'exporte pas `Resend` — utiliser `import resend; resend.api_key=…; resend.Emails.send(…)`. N'impacte pas le checkout (retourne 200) mais bloque l'envoi email + probable update DB partiel. Preview keys de toute façon limitée à nadine.zebdi@gmail.com donc l'email lui-même serait 403 en preview. À corriger avant prod."},
+      {"endpoint": "backend astrology_io_service", "issue": "/numerology/name, /numerology/personal-year, /numerology/forecast répondent 404 sur astrology-api.io (les endpoints n'existent pas côté fournisseur). Impact potentiel sur la génération PDF numérologie (le PDF reçoit des dicts vides). À investiguer côté service astrology-api.io ou remplacer par une lib locale numerology."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Homepage /", "issues": ["Warning WebGL 'GL Driver Message... GPU stall due to ReadPixels' — cosmetic, WebGL driver noise sur le rendu 3D lune. Non bloquant."]}
+    ]
+  },
+  "flow_verdict": {
+    "backend_packs_catalog": "PASS — 10 packs présents avec bons prix (19/24/29/89€)",
+    "pack_karmique_backend_bypass_polling": "PASS — TESTPLUME → admin-packkarma-* → pdf_ready true en <90s",
+    "rencontres_missing_partner_firstname_400": "PASS — 400 FR 'prénom'",
+    "rencontres_missing_partner_birthdate_400": "PASS — 400 FR 'naissance'",
+    "rencontres_full_flow_delivered": "PASS — delivered avec pdf_url en <120s",
+    "kabbale_checkout_bypass": "PASS",
+    "github_oneshots_no_500": "PASS — numerologie/karma-destin/fenetre-rencontre-avancee répondent 200 (Stripe URL) sans promo",
+    "github_oneshots_promo_bypass": "PASS — les 3 oneshots retournent status=completed avec session_id admin-* correct",
+    "astrology_v3_chat": "PASS après fix KeyError 'astrology' — retourne success:true",
+    "credits_checkout_nebuleuse": "PASS — URL checkout.stripe.com retournée",
+    "frontend_all_12_routes_load": "PASS — 0 crash, tous les data-testid présents",
+    "frontend_acheter_credits_4_packs": "PASS — Comète/Nébuleuse/Constellation/Voie Lactée visibles",
+    "frontend_pack_karmique_e2e": "PASS — form → TESTPLUME → /pack-karmique/succes avec 4 étapes",
+    "frontend_rencontres_e2e_with_partner": "PASS — natal → email → windows + partenaire + TESTPLUME → /rencontres-astrales/succes"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration48_github_resync.py",
+    "/app/test_reports/pytest/iteration48.xml"
+  ],
+  "action_items": [
+    "MEDIUM — Corriger les 3 fichiers routes/numerologie.py, routes/karma_destin.py, routes/fenetre_rencontre.py : remplacer `from resend import Resend` + `Resend(api_key=...)` par `import resend; resend.api_key = get_settings().RESEND_API_KEY; resend.Emails.send({...})`. Le package `resend` (v2+) n'exporte pas de classe `Resend`. Le PDF est uploadé sur Supabase Storage AVANT l'appel resend, donc pdf_url est probablement présent, mais toute la mise à jour DB / email fail silencieusement.",
+    "LOW — Les endpoints astrology-api.io /numerology/name, /numerology/personal-year, /numerology/forecast retournent 404. Soit ils n'ont jamais existé côté fournisseur, soit le path a changé. Le PDF numérologie fonctionnera avec des sections vides. Envisager d'utiliser services/numerology_service.py (déjà présent en local) au lieu de l'API externe.",
+    "OPTIONAL — Suppression du warning WebGL 'GPU stall due to ReadPixels' sur le Hero 3D lune : ajouter `preserveDrawingBuffer:false` ou downgrade to lower resolution moon texture sur mobile."
+  ],
+  "critical_code_review_comments": [
+    "services/astrology_io_service.py astro_chat() ligne 700 avait un KeyError 'astrology' quand disable_tools=True + session_id fourni : `payload['astrology']['session_id'] = session_id` alors que `payload['astrology']` n'a été créé que si `not disable_tools`. Cassait 100% des appels /api/astrology/v3/chat. Corrigé via setdefault (fix appliqué et testé).",
+    "3 fichiers routes/*.py (numerologie, karma_destin, fenetre_rencontre) utilisent `from resend import Resend` — n'existe pas dans resend v2+. Bug d'intégration ; à corriger avant prod.",
+    "Le router pack_karmique est bien enregistré (server.py:51+103, webhook dispatch kind='pack_karmique_kabbale' server.py:767-774) — confirmé fonctionnel via smoke test (200 sur /api/pack-karmique/checkout).",
+    "Le contract Rencontres frontend/backend est propre : le frontend envoie day/month/year/hour/minute/place — parfaitement aligné avec BirthPayload pydantic (routes/rencontres.py:44-88).",
+    "Les data-testid Pack Karmique côté frontend divergent légèrement de ce qu'anticipait le review request : `pack-karmique-city` (pas birthcity) et `pack-karmique-checkout-btn` (pas submit). C'est fonctionnel mais mérite d'aligner la nomenclature."
+  ],
+  "updated_files": [
+    "/app/backend/services/astrology_io_service.py",
+    "/app/backend/tests/test_iteration48_github_resync.py"
+  ],
+  "success_rate": {"backend": "100% (12/12 pytest en 73s)", "frontend": "100% (12 routes + 2 e2e critiques PASS)"},
+  "test_credentials": "Admin admin@plume-astrale.fr / PlumeAdmin2026 (validé). Promo TESTPLUME opérationnelle sur /api/pack-karmique, /api/rencontres, /api/kabbale, /api/numerologie, /api/karma-destin, /api/fenetre-rencontre-avancee.",
+  "seed_data_creation": "~15 lignes payment_transactions insérées en Supabase (préfixe TEST_ dans les emails, sessions admin-* + quelques Stripe pending). Aucun profile touché.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 48 fully validated the GitHub resync : 3 audit fixes confirmés (pack_karmique router enregistré + webhook dispatch, astrology_io_service alertes email 401 + timeout 60s, guidance.py mort supprimé). 1 fix additionnel appliqué : KeyError 'astrology' dans astro_chat() qui cassait /api/astrology/v3/chat. Bugs mineurs identifiés (voir action_items) : `from resend import Resend` faux dans 3 routes, endpoints /numerology/* astrology-api.io retournent 404. Test suite au /app/backend/tests/test_iteration48_github_resync.py (12 tests, ~73s). Preview reste stable sur les 12 routes GitHub-resync + les 2 flux Pack Karmique / Rencontres complets.",
+  "rca_of_the_issue": "Bug 1 (bloquant) — /api/astrology/v3/chat retournait 502 systématiquement. RCA : services/astrology_io_service.py astro_chat() lignes 700-713 créait `payload['astrology']` uniquement si `not disable_tools`, mais ensuite écrivait `payload['astrology']['session_id']` sans garde. Route astro_chat_v3 appelle avec disable_tools=True + session_id → KeyError. Fix : remplacer les 2 lignes par payload.setdefault('astrology', {})[key] = ... . Vérifié : chat retourne success:true après fix. Bug 2 (mineur, prod-only) — from resend import Resend n'existe pas dans resend v2+. Affecte l'envoi email des 3 GitHub oneshots (numerologie/karma_destin/fenetre_rencontre) mais pas le checkout ni le PDF upload (qui se fait avant). En preview les emails 403 de toute façon (test key limitée à nadine.zebdi@gmail.com)."
+}

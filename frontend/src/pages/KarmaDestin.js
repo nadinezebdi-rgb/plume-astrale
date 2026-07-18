@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft, Sparkles, Moon, Sun, Star, Infinity, ArrowRight, Coins, LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -141,6 +142,11 @@ const KarmaDestin = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen relative">
+      <PageHero
+        image="/images/astrale/image-astrale-4.jpg"
+        title="Karma & Destin"
+        subtitle="Nœud Nord · Mission karmique · Chemin de vie"
+      />
         <SEO path="/karma-destin" />
         <div className="relative z-10 px-6 md:px-8 py-20 md:py-28">
           <div className="max-w-xl mx-auto">
