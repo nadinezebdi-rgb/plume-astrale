@@ -53,6 +53,7 @@ from routes.compatible import router as compatible_router
 from routes.numerologie import router as numerologie_router
 from routes.karma_destin import router as karma_destin_router
 from routes.fenetre_rencontre import router as fenetre_rencontre_router
+from routes.resend_webhook import router as resend_webhook_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -104,6 +105,7 @@ api_router.include_router(pack_karmique_router)
 api_router.include_router(numerologie_router)
 api_router.include_router(karma_destin_router)
 api_router.include_router(fenetre_rencontre_router)
+api_router.include_router(resend_webhook_router)
 
 
 # ════════════════════════════════════════════
