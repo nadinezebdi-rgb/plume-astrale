@@ -7,7 +7,8 @@ from services.daily_content import get_daily_content
 from services.supabase_client import get_admin_client
 
 RESEND_API_KEY = os.getenv('RESEND_API_KEY')
-SENDER_EMAIL = os.getenv('RESEND_SENDER_EMAIL', 'contact.plume@gmail.com')
+# Utilise la même variable centrale que tous les autres services (contact@plume-astrale.fr, domaine vérifié)
+SENDER_EMAIL = os.getenv('SENDER_EMAIL', 'Soléna · Plume Astrale <contact@plume-astrale.fr>')
 
 resend = Resend(api_key=RESEND_API_KEY) if RESEND_API_KEY else None
 
