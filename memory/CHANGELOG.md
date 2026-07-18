@@ -80,3 +80,18 @@
 - Remplacement des 3 anciens packs (Initiation 15/4,99 · Clarté 60/14,99 · Flammes Jumelles 130/29,99) par 4 packs sans bonus ni émojis : Comète 30cr/7,99€ · Nébuleuse 80cr/17,99€ (Le plus choisi) · Constellation 180cr/34,99€ (Meilleure valeur) · Voie Lactée 350cr/59,99€.
 - Fichiers : backend/config.py (PACKS, ids: comete/nebuleuse/constellation/voie_lactee), BuyCredits.js (grille passée en xl:grid-cols-4, mention "crédits offerts" retirée), CreditsPaywallModal.js (grid 2 col), ServicesEquivalence.js + Navbar.js ("DÈS 14,99€" → "DÈS 17,99€").
 - Testé : GET /api/packs OK, POST /api/credits/checkout pack_id=nebuleuse → URL Stripe OK, rendu visuel 4 cartes vérifié.
+
+## 2026-07-18 — AUDIT COMPLET REPO GITHUB + resynchronisation + 6 bugs corrigés
+### Contexte
+Le repo GitHub (prod) avait divergé : features développées hors Emergent (mega menu /outils/*, produits PDF numerologie 19€ / karma-destin 24€ / fenetre-rencontre 29€, couple_mystery, nouvelles pages). /app resynchronisé ENTIÈREMENT sur GitHub main, puis correctifs appliqués par-dessus.
+### Bugs trouvés & corrigés (tous testés)
+1. **pack_karmique jamais enregistré dans server.py** (produit 89€ en 404 en prod) → import + include_router + webhook dispatch ajoutés.
+2. **`from resend import Resend`** (inexistant en resend v2+) dans les 3 routes numerologie/karma_destin/fenetre_rencontre → remplacé par services/pdf_delivery.py (httpx + SENDER_EMAIL). Le domaine expéditeur était aussi FAUX (plumeastrale.fr sans tiret).
+3. **`.insert({...})` sans `.execute()`** (6 occurrences, 3 fichiers) → les transactions Stripe de ces 3 produits n'étaient JAMAIS enregistrées → les clients payants ne recevaient jamais leur PDF. Corrigé + `.single()`→`.maybe_single()`.
+4. **Endpoints numérologie 404 chez astrology-api.io** (/numerology/name, /personal-year, /forecast n'existent pas) → nouveau `numerology_core_numbers()` (/numerology/core-numbers, seul endpoint v3 réel) + mapping vers le PDF. PDF numérologie avait des sections vides, maintenant contenu FR complet (6 pages).
+5. **Update DB par user_email écrasant les metadata de TOUTES les tx du client** → update_tx_pdf_metadata (merge + ciblage session_id).
+6. **backend/guidance.py : IndentationError irrécupérable** (fichier mort, importé nulle part) → supprimé.
+7. (Par testing agent iter 48) astro_chat KeyError 'astrology' quand disable_tools+session_id → setdefault.
+### Alerte 401 + timeout 60s regreffés sur la base GitHub (astrology_io_service).
+### Deps : yarn --ignore-engines (camera-controls exige Node 22), email-validator pip. pip freeze fait.
+### Tests : iteration_48.json 100% PASS (12/12 backend, 12 routes frontend) + retests manuels des 3 produits réparés (pdf_url Supabase Storage OK pour les 3).

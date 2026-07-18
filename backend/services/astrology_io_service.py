@@ -1065,6 +1065,14 @@ async def numerology_name(name: str, language: str = 'fr') -> Optional[Dict]:
     """Analyse numérologique du prénom/nom (expression, âme, personnalité)."""
     return await _call('/numerology/name', {'name': name, 'options': {'language': language}})
 
+async def numerology_core_numbers(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Nombres fondamentaux (v3 /numerology/core-numbers) : life_path, destiny,
+    soul_urge, personality, birthday, personal_year, maturity... avec interpretations FR."""
+    return await _call('/numerology/core-numbers', {
+        'subject': make_subject(name, birth_data),
+        'options': {'language': language},
+    })
+
 async def numerology_compatibility(
     birth_data_1: Dict[str, Any], birth_data_2: Dict[str, Any],
     name_1: str = 'Personne 1', name_2: str = 'Personne 2',

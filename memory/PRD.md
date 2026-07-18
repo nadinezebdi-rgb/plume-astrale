@@ -1212,3 +1212,10 @@ le repo — pour ne pas alourdir le deploy.
 - P3 : Astrocartographie 49€ (relocation-report)
 - P4 : Plan Analytics (GA4/Plausible)
 - Cosmétique : warning hydration <span> dans <select> sur Hero3D (artefact visual editor, non bloquant)
+
+## Session 18 Juil 2026 — Audit GitHub + resync + réparation de 3 produits payants
+- /app resynchronisé sur GitHub main (source de vérité prod : mega menu /outils/*, produits numerologie/karma-destin/fenetre-rencontre, couple_mystery, nouvelles pages).
+- 7 bugs corrigés (voir CHANGELOG 2026-07-18) dont 3 CRITIQUES en prod : pack_karmique 404, inserts DB sans .execute() (clients payants sans PDF), import resend cassé.
+- Nouveau helper : services/pdf_delivery.py. Nouveau service : numerology_core_numbers().
+- Tests iteration_48 : 100% PASS.
+- ⚠️ USER DOIT : Save to GitHub + redéployer Railway/Vercel pour pousser ces fixes en prod.
