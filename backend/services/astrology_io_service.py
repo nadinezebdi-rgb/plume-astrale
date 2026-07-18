@@ -175,7 +175,7 @@ async def _alert_invalid_key(path: str, detail: str) -> None:
 async def _call(path: str, payload: Dict[str, Any], timeout: float = 30.0) -> Optional[Dict[str, Any]]:
     """POST helper. Retourne data ou None si echec. Logs minimal."""
     try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             r = await client.post(
                 f'{BASE_URL}{path}',
                 headers={
