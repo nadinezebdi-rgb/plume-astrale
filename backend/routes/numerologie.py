@@ -162,6 +162,10 @@ async def numerologie_status(session_id: str):
             raise HTTPException(404, 'Session non trouvée.')
         
         md = tx.data.get('metadata') or {}
+        import asyncio as _aio
+        from services.self_heal import self_heal_if_paid
+        from services.numerologie_webhook import handle_numerologie_webhook
+        _aio.create_task(self_heal_if_paid(session_id, bool(md.get('pdf_path')), handle_numerologie_webhook))
         return {
             'status': tx.data.get('status'),
             'payment_status': tx.data.get('payment_status'),

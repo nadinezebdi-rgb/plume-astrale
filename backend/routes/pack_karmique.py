@@ -292,6 +292,8 @@ async def pack_karmique_status(session_id: str):
         raise HTTPException(404, 'Session introuvable.')
     tx = tx_res.data
     md = tx.get('metadata') or {}
+    from services.self_heal import self_heal_if_paid
+    asyncio.create_task(self_heal_if_paid(session_id, bool(md.get('pdf_path')), handle_pack_karmique_webhook))
     return {
         'status': tx.get('status'),
         'payment_status': tx.get('payment_status'),
