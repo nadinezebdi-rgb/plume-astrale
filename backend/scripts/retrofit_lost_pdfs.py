@@ -1,18 +1,33 @@
 """
-RATTRAPAGE — Achats numerologie/karma-destin/fenetre-rencontre jamais livres.
+RATTRAPAGE v2 — Renvoi automatique des PDFs / emails d'excuse pour tous les
+clients bloqués par le bug SENDER_EMAIL=onboarding@resend.dev (avant le 01/02/2026).
 
-Contexte : jusqu'au fix du 18/07/2026, les routes de ces 3 produits creaient la session
-Stripe mais n'inseraient JAMAIS la transaction en DB (.insert() sans .execute()).
-Resultat : le webhook ne retrouvait pas la transaction -> aucun PDF genere ni email envoye.
-Les donnees de naissance n'etaient stockees QUE dans la ligne DB manquante -> impossible
-de regenerer automatiquement. On envoie donc un email d'excuse demandant les infos.
+Deux cas de figure gérés :
+
+CAS A : produits Kabbale / Pack Karmique
+────────────────────────────────────────
+La transaction EST en DB avec les birth_data → on peut regénérer le PDF et
+renvoyer l'email automatiquement. Idempotent : on saute si pdf_path ET email_sent_at
+sont déjà positionnés.
+
+CAS B : produits Numérologie / Karma / Fenêtre
+──────────────────────────────────────────────
+La transaction N'EST PAS en DB (bug .insert sans .execute) → on n'a pas les
+données de naissance. On insère la tx manquante + on envoie un email d'excuse
+demandant les infos au client.
 
 Usage (depuis /app/backend) :
     python scripts/retrofit_lost_pdfs.py            # dry-run : liste les clients touches
-    python scripts/retrofit_lost_pdfs.py --send     # insere les tx manquantes + envoie les emails
+    python scripts/retrofit_lost_pdfs.py --send     # execute (regenerations + emails)
+    python scripts/retrofit_lost_pdfs.py --send --only kabbale,pack_karmique  # filtrer
+
+⚠️ À lancer en PROD (Railway) : la clé Stripe locale est un placeholder Emergent.
 """
+import asyncio
 import os
 import sys
+from datetime import datetime, timezone
+
 import httpx
 import stripe
 
@@ -22,10 +37,17 @@ load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 
 from services.supabase_client import get_admin_client  # noqa: E402
 
+# Produits gérés par le rattrapage
+# kind → (label FR, prix affichable, stratégie)
+#   strategy = 'regenerate' : PDF/email regénérés depuis les données en DB
+#   strategy = 'apology'    : email d'excuse demandant les infos manquantes
 KINDS = {
-    'numerologie_code': ('Code Numérologique', '19€'),
-    'karma_destin_analysis': ('Analyse Karmique & Destinée', '24€'),
-    'fenetre_rencontre_avancee': ('Fenêtres de Rencontre Avancées', '29€'),
+    'kabbale_arbre_de_vie':    ('Ton Arbre de Vie Kabbalistique', '39€', 'regenerate'),
+    'pack_karmique_kabbale':   ('Pack Karmique + Kabbale',        '89€', 'regenerate'),
+    'compatibilite_ultime':    ('Compatibilité Ultime',           '29,99€', 'regenerate'),
+    'numerologie_code':         ('Code Numérologique',             '19€', 'apology'),
+    'karma_destin_analysis':    ('Analyse Karmique & Destinée',    '24€', 'apology'),
+    'fenetre_rencontre_avancee':('Fenêtres de Rencontre Avancées', '29€', 'apology'),
 }
 
 APOLOGY_HTML = """
@@ -47,11 +69,72 @@ APOLOGY_HTML = """
 """
 
 
-def main(send: bool = False):
+def _has_been_delivered(md: dict) -> bool:
+    """Un client est considéré livré si pdf_path ET email_sent_at sont positionnés."""
+    return bool(md.get('pdf_path')) and bool(md.get('email_sent_at'))
+
+
+async def _regenerate(session_id: str, kind: str) -> str:
+    """Cas A : déclenche le handler produit → PDF + email (idempotent).
+    Reset pdf_path/email_sent_at avant l'appel pour forcer le re-traitement
+    (les handlers skip early quand pdf_path est déjà positionné)."""
+    try:
+        sb = get_admin_client()
+        tx_res = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+        if tx_res and tx_res.data:
+            md = (tx_res.data or {}).get('metadata') or {}
+            md.pop('pdf_path', None)
+            md.pop('email_sent_at', None)
+            sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+
+        if kind == 'kabbale_arbre_de_vie':
+            from services.kabbale_service import handle_kabbale_webhook
+            await handle_kabbale_webhook(session_id)
+            return 'regenerated (kabbale)'
+        elif kind == 'pack_karmique_kabbale':
+            from services.pack_karmique_service import handle_pack_karmique_webhook
+            await handle_pack_karmique_webhook(session_id)
+            return 'regenerated (pack_karmique)'
+        elif kind == 'compatibilite_ultime':
+            # Pas de handler webhook async standalone — l'email/PDF est généré à la volée
+            # à la fin du checkout. Pour ce cas, on tombe en apology.
+            return 'skipped (no async handler — use apology mode)'
+        return f'unknown kind {kind}'
+    except Exception as e:
+        return f'ERROR {type(e).__name__}: {e}'
+
+
+def _send_apology(email: str, kind: str, resend_key: str, sender: str) -> str:
+    if not email:
+        return 'no-email'
+    product, price, _ = KINDS[kind]
+    html = APOLOGY_HTML.format(name_part='', product=product, price=price)
+    try:
+        r = httpx.post(
+            'https://api.resend.com/emails',
+            headers={'Authorization': f'Bearer {resend_key}', 'Content-Type': 'application/json'},
+            json={'from': sender, 'to': [email],
+                  'subject': f"Ton document « {product} » — on te doit des excuses ✦",
+                  'html': html},
+            timeout=30,
+        )
+        if r.status_code < 300:
+            body = r.json() if r.text else {}
+            return f'apology sent ({body.get("id", r.status_code)})'
+        return f'apology FAILED {r.status_code}: {r.text[:200]}'
+    except Exception as e:
+        return f'apology ERROR {type(e).__name__}: {e}'
+
+
+async def main(send: bool = False, only_kinds: set | None = None):
     stripe.api_key = os.environ['STRIPE_API_KEY']
     sb = get_admin_client()
     resend_key = os.environ.get('RESEND_API_KEY', '').strip()
     sender = os.environ.get('SENDER_EMAIL', 'Soléna · Plume Astrale <contact@plume-astrale.fr>')
+
+    print(f'Sender configuré : {sender}')
+    print(f'Kinds ciblés     : {", ".join(sorted(only_kinds)) if only_kinds else "tous"}')
+    print()
 
     affected = []
     starting_after = None
@@ -66,16 +149,24 @@ def main(send: bool = False):
         for s in page.data:
             scanned += 1
             md = s.get('metadata') or {}
-            kind = md.get('kind')
+            kind = md.get('kind') or md.get('product')
             if kind not in KINDS:
+                continue
+            if only_kinds and kind not in only_kinds:
                 continue
             if s.get('payment_status') != 'paid':
                 continue
-            r = sb.table('payment_transactions').select('session_id, metadata').eq('session_id', s['id']).maybe_single().execute()
+            r = sb.table('payment_transactions').select('session_id, metadata, user_email').eq('session_id', s['id']).maybe_single().execute()
             row = r.data if r else None
-            if row and (row.get('metadata') or {}).get('pdf_path'):
-                continue  # deja livre
-            email = md.get('email') or (s.get('customer_details') or {}).get('email') or ''
+            row_md = (row or {}).get('metadata') or {}
+            if row and _has_been_delivered(row_md):
+                continue  # déjà livré (PDF + email)
+            email = (
+                (row or {}).get('user_email')
+                or md.get('email')
+                or (s.get('customer_details') or {}).get('email')
+                or ''
+            )
             affected.append({
                 'session_id': s['id'],
                 'email': email,
@@ -83,25 +174,34 @@ def main(send: bool = False):
                 'amount': (s.get('amount_total') or 0) / 100,
                 'created': s.get('created'),
                 'tx_in_db': bool(row),
+                'pdf_path': row_md.get('pdf_path'),
+                'email_sent_at': row_md.get('email_sent_at'),
+                'strategy': KINDS[kind][2],
             })
         if not page.has_more:
             break
         starting_after = page.data[-1]['id']
-        if scanned >= 1000:
+        if scanned >= 2000:
+            print('⚠️  Limite de 2000 sessions atteinte — augmente si nécessaire.')
             break
 
     print(f'Sessions Stripe scannées : {scanned}')
-    print(f'Achats payés NON livrés : {len(affected)}')
+    print(f'Achats payés NON livrés  : {len(affected)}')
+    print()
     for a in affected:
-        from datetime import datetime, timezone
         d = datetime.fromtimestamp(a['created'], tz=timezone.utc).strftime('%d/%m/%Y')
-        print(f"  - {d} | {a['email'] or '(email inconnu)'} | {KINDS[a['kind']][0]} | {a['amount']:.2f}€ | tx_db={a['tx_in_db']}")
+        state = '📄+📧' if (a['pdf_path'] and a['email_sent_at']) else ('📄  ' if a['pdf_path'] else '   ')
+        strategy = a['strategy']
+        print(f"  {d} | {a['email'] or '(email inconnu)':40s} | {KINDS[a['kind']][0]:35s} | {a['amount']:.2f}€ | tx_db={'✓' if a['tx_in_db'] else '✗'} | {state} | → {strategy}")
 
     if not send:
-        print('\nDry-run terminé. Relance avec --send pour insérer les tx + envoyer les emails.')
+        print('\nDry-run terminé. Relance avec --send pour executer la relivraison.')
         return
 
+    print('\n🔄  Exécution du rattrapage…\n')
     for a in affected:
+        strategy = a['strategy']
+        # 1) S'assurer que la tx est en DB (cas apology + certains cas anciens)
         if not a['tx_in_db']:
             try:
                 sb.table('payment_transactions').insert({
@@ -117,20 +217,25 @@ def main(send: bool = False):
                 }).execute()
                 print(f"  tx insérée pour {a['session_id']}")
             except Exception as e:
-                print(f"  ERREUR insert {a['session_id']}: {e}")
-        if a['email'] and resend_key:
-            product, price = KINDS[a['kind']]
-            html = APOLOGY_HTML.format(name_part='', product=product, price=price)
-            r = httpx.post(
-                'https://api.resend.com/emails',
-                headers={'Authorization': f'Bearer {resend_key}', 'Content-Type': 'application/json'},
-                json={'from': sender, 'to': [a['email']],
-                      'subject': f"Ton document « {product} » — on te doit des excuses ✦",
-                      'html': html},
-                timeout=30,
-            )
-            print(f"  email {a['email']} -> {r.status_code}")
+                print(f"  ⚠️  insert failed {a['session_id']}: {e}")
+
+        # 2) Livraison
+        if strategy == 'regenerate' and a['tx_in_db']:
+            status = await _regenerate(a['session_id'], a['kind'])
+        elif strategy == 'apology' or strategy == 'regenerate':
+            # regenerate sans tx_in_db (pas de birth_data) → fallback apology
+            status = _send_apology(a['email'], a['kind'], resend_key, sender)
+        else:
+            status = 'no strategy'
+        print(f"  {a['email'] or a['session_id']:40s} → {status}")
 
 
 if __name__ == '__main__':
-    main(send='--send' in sys.argv)
+    args = sys.argv[1:]
+    send = '--send' in args
+    only_kinds = None
+    if '--only' in args:
+        i = args.index('--only')
+        if i + 1 < len(args):
+            only_kinds = set(k.strip() for k in args[i + 1].split(',') if k.strip())
+    asyncio.run(main(send=send, only_kinds=only_kinds))
