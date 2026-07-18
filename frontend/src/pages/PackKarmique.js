@@ -25,6 +25,27 @@ const PackKarmique = () => {
   const [error, setError] = useState(null);
   const [promoCode, setPromoCode] = useState('');
 
+  // Extrait gratuit (lead magnet)
+  const [exForm, setExForm] = useState({ email: '', first_name: '', birth_date: '', birth_time: '12:00' });
+  const [extraitLoading, setExtraitLoading] = useState(false);
+  const [extraitError, setExtraitError] = useState(null);
+  const [extraitDone, setExtraitDone] = useState(false);
+  const [extraitUrl, setExtraitUrl] = useState('');
+
+  const handleExtrait = async () => {
+    setExtraitError(null);
+    if (!exForm.email.includes('@')) { setExtraitError('Email invalide'); return; }
+    if (!exForm.birth_date) { setExtraitError('Date de naissance requise'); return; }
+    setExtraitLoading(true);
+    try {
+      const r = await axios.post(`${API}/api/pack-karmique/extrait`, exForm, { timeout: 90000 });
+      setExtraitUrl(r.data.pdf_url);
+      setExtraitDone(true);
+    } catch (e) {
+      setExtraitError(e.response?.data?.detail || 'Les astres sont silencieux — réessaie dans un instant.');
+    } finally { setExtraitLoading(false); }
+  };
+
   const upd = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleCheckout = async () => {
@@ -100,6 +121,52 @@ const PackKarmique = () => {
           <p className="text-sm" style={{ color: 'var(--pa-body)', lineHeight: 1.7 }}>
             <span style={{ color: 'var(--pa-accent)' }}>Analyse karmique complète</span> + <span style={{ color: 'var(--pa-accent)' }}>Arbre de Vie 39€</span> + <span style={{ color: 'var(--pa-accent)' }}>synthèse exclusive</span> — réunis dans un seul document relié.
           </p>
+        </div>
+
+        {/* ── Extrait gratuit 3 pages (lead magnet) ── */}
+        <div className="plume-glass p-6 md:p-8 mb-12 max-w-xl mx-auto" data-testid="extrait-gratuit-block" style={{ border: '1px dashed rgba(212,175,55,0.4)' }}>
+          <p className="text-[10px] uppercase text-center mb-2" style={{ color: 'var(--pa-accent)', letterSpacing: '0.3em', fontFamily: 'Cinzel, serif' }}>
+            ✦ Pas encore sûr(e) ? ✦
+          </p>
+          <h3 className="text-xl text-center mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+            Reçois <em style={{ color: 'var(--pa-accent)' }}>3 pages offertes</em> de ton analyse karmique
+          </h3>
+          <p className="text-sm text-center mb-5" style={{ color: 'var(--pa-muted)' }}>
+            Tes Nœuds Lunaires réels, extraits du document complet — gratuits, contre ton email.
+          </p>
+          {extraitDone ? (
+            <div className="text-center" data-testid="extrait-success">
+              <p className="text-sm mb-4" style={{ color: 'var(--pa-body)' }}>
+                ✨ Ton extrait est prêt ! Il arrive aussi dans ta boîte mail.
+              </p>
+              <a href={`${API}${extraitUrl}`} target="_blank" rel="noopener noreferrer" className="plume-btn-primary" data-testid="extrait-download-btn">
+                Télécharger mon extrait
+              </a>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <input type="text" placeholder="Prénom" value={exForm.first_name}
+                       onChange={e => setExForm(f => ({ ...f, first_name: e.target.value }))}
+                       data-testid="extrait-firstname" className={inputCls} style={{ marginTop: 0 }} />
+                <input type="email" placeholder="Email" value={exForm.email}
+                       onChange={e => setExForm(f => ({ ...f, email: e.target.value }))}
+                       data-testid="extrait-email" className={inputCls} style={{ marginTop: 0 }} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <input type="date" value={exForm.birth_date}
+                       onChange={e => setExForm(f => ({ ...f, birth_date: e.target.value }))}
+                       data-testid="extrait-birthdate" className={inputCls} style={{ marginTop: 0 }} />
+                <input type="time" value={exForm.birth_time}
+                       onChange={e => setExForm(f => ({ ...f, birth_time: e.target.value }))}
+                       data-testid="extrait-birthtime" className={inputCls} style={{ marginTop: 0 }} />
+              </div>
+              {extraitError && <p className="text-sm text-center" style={{ color: '#F87171' }} data-testid="extrait-error">{extraitError}</p>}
+              <button onClick={handleExtrait} disabled={extraitLoading} className="plume-btn-secondary w-full justify-center" data-testid="extrait-submit-btn">
+                {extraitLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Soléna trace ton extrait…</> : 'Recevoir mon extrait gratuit'}
+              </button>
+            </div>
+          )}
         </div>
 
         {step === 0 ? (

@@ -10,12 +10,7 @@ from reportlab.lib.units import cm
 from reportlab.lib.colors import HexColor
 from reportlab.pdfgen import canvas
 
-# ═══════════════════ IMAGES ═══════════════════
-ASSETS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'images', 'compatibilite')
-IMG_COVER = os.path.join(ASSETS_DIR, 'mains-constellations.jpg')
-IMG_PASSION = os.path.join(ASSETS_DIR, 'couple-passion.jpg')
-IMG_HEART = os.path.join(ASSETS_DIR, 'coeur-mosaique.jpg')
-IMG_DUALITY = os.path.join(ASSETS_DIR, 'visage-dualite.jpg')
+from services import library_images as libimg
 
 # ═══════════════════ COULEURS ═══════════════════
 DEEP_PURPLE = HexColor('#0C0918')
@@ -386,20 +381,39 @@ class CompatibilityPDFGenerator:
 
     def _draw_image_centered(self, c, img_path, y, img_w, img_h):
         """Dessine une image centrée si le fichier existe."""
-        if os.path.exists(img_path):
+        if img_path and os.path.exists(img_path):
             x = (self.width - img_w) / 2
             c.drawImage(img_path, x, y - img_h, img_w, img_h, preserveAspectRatio=True, mask='auto')
             return y - img_h - 0.5 * cm
         return y
+
+    def _draw_duo_signs(self, c, s1: str, s2: str, y: float, size_cm: float = 5.0, gap_cm: float = 1.0) -> float:
+        """Dessine 2 signes côte-à-côte (bibliothèque) et retourne le nouveau y."""
+        p1 = libimg.sign(s1)
+        p2 = libimg.sign(s2)
+        if not p1 and not p2:
+            return y
+        w = size_cm * cm
+        gap = gap_cm * cm
+        total_w = 2 * w + gap
+        x0 = (self.width - total_w) / 2
+        try:
+            if p1:
+                c.drawImage(p1, x0, y - w, w, w, mask='auto', preserveAspectRatio=True)
+            if p2:
+                c.drawImage(p2, x0 + w + gap, y - w, w, w, mask='auto', preserveAspectRatio=True)
+        except Exception:
+            pass
+        return y - w - 0.5 * cm
 
     # ═══════════════════ PAGES ═══════════════════
 
     def _page_cover(self, c, p1, p2, s1, s2):
         self._draw_bg(c)
 
-        # Cover image at the top
-        y = self.height - 2 * cm
-        y = self._draw_image_centered(c, IMG_COVER, y, 10 * cm, 10 * cm)
+        # Cover : 2 signes côte-à-côte (bibliothèque)
+        y = self.height - 2.5 * cm
+        y = self._draw_duo_signs(c, s1, s2, y, size_cm=5.5, gap_cm=1.2)
 
         c.setFillColor(GOLD)
         c.setFont("Helvetica", 11)
@@ -598,7 +612,7 @@ class CompatibilityPDFGenerator:
         y = self._chapter_header(c, "L'Attraction et la Passion", "Ce qui vous attire l'un vers l'autre")
 
         # Image couple-passion
-        y = self._draw_image_centered(c, IMG_PASSION, y, 7 * cm, 7 * cm)
+        y = self._draw_image_centered(c, libimg.planet('venus'), y, 7 * cm, 7 * cm)
 
         n1 = p1['first_name']
         n2 = p2['first_name']
@@ -676,7 +690,7 @@ class CompatibilityPDFGenerator:
         y = self._chapter_header(c, "Défis et Résolution de Conflits", "Transformer les tensions en croissance")
 
         # Image coeur-mosaique
-        y = self._draw_image_centered(c, IMG_HEART, y, 5 * cm, 5 * cm)
+        y = self._draw_image_centered(c, libimg.tarot('etoile'), y, 5 * cm, 5 * cm)
 
         n1 = p1['first_name']
         n2 = p2['first_name']
@@ -729,7 +743,7 @@ class CompatibilityPDFGenerator:
         y = self._chapter_header(c, "Votre Compatibilité Réelle", "Au-delà des clichés astrologiques")
 
         # Image visage-dualite
-        y = self._draw_image_centered(c, IMG_DUALITY, y, 6 * cm, 6 * cm)
+        y = self._draw_image_centered(c, libimg.tarot('amoureux'), y, 6 * cm, 6 * cm)
 
         n1 = p1['first_name']
         n2 = p2['first_name']

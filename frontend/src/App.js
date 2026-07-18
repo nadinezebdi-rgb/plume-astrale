@@ -12,8 +12,7 @@ import Tarot from "./pages/Tarot";
 import Formulaire from "./pages/Formulaire";
 import Apercu from "./pages/Apercu";
 import Paiement from "./pages/Paiement";
-import PaiementSucces from "./pages/PaiementSucces";
-import Resultats from "./pages/Resultats";
+import PaiementSucces from "./pages/PaiementSucces";import Resultats from "./pages/Resultats";
 import TirageTarot from "./pages/TirageTarot";
 import TarotOuiNon from "./pages/TarotOuiNon";
 import Tarologie from "./pages/Tarologie";
@@ -33,13 +32,10 @@ import CreditSuccess from "./pages/CreditSuccess";
 import Choix from "./pages/Choix";
 import Livre from "./pages/Livre";
 import CommandeSucces from "./pages/CommandeSucces";
-import PremiumLanding from "./pages/PremiumLanding";
-import PremiumExperience from "./pages/PremiumExperience";
 import CharteConfiance from "./pages/CharteConfiance";
 import MonCompte from "./pages/MonCompte";
 import Admin from "./pages/Admin";
 import Energie from "./pages/Energie";
-import Premium from "./pages/Premium";
 import ChatIA from "./pages/ChatIA";
 import Oracle from "./pages/Oracle";
 import MonRituel from "./pages/MonRituel";
@@ -57,7 +53,6 @@ import Bibliotheque from "./pages/Bibliotheque";
 import Desabonnement from "./pages/Desabonnement";
 import AuthenticatedHome from "./pages/AuthenticatedHome";
 import CTATestPage from "./pages/CTATestPage";
-import PremiumStickyCTA from "./components/PremiumStickyCTA";
 import CookieConsent from "./components/CookieConsent";
 
 // ─── Advanced PDF Products ────────────────────────────
@@ -148,9 +143,9 @@ function App() {
                 <Route path="/karma-destin" element={<KarmaDestin />} />
                 <Route path="/tarologie" element={<Tarologie />} />
                 <Route path="/quotidien" element={<Quotidien />} />
-                <Route path="/premium" element={<Premium />} />
-                <Route path="/premium/decouvrir" element={<PremiumLanding />} />
-                <Route path="/premium/experience" element={<PremiumExperience />} />
+                <Route path="/premium" element={<Navigate to="/acheter-credits" replace />} />
+                <Route path="/premium/decouvrir" element={<Navigate to="/acheter-credits" replace />} />
+                <Route path="/premium/experience" element={<Navigate to="/acheter-credits" replace />} />
                 <Route path="/acheter-credits" element={<BuyCredits />} />
                 <Route path="/credits/succes" element={<CreditSuccess />} />
                 <Route path="/livre" element={<Livre />} />
@@ -159,7 +154,7 @@ function App() {
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
                 <Route path="/consultation" element={<Navigate to="/outils/consultation" replace />} />
                 <Route path="/energie" element={<Navigate to="/outils/energie" replace />} />
-                <Route path="/premium/succes" element={<Premium />} />
+                <Route path="/premium/succes" element={<Navigate to="/acheter-credits" replace />} />
                 <Route path="/chat-astral" element={<Navigate to="/outils/consultation" replace />} />
                 <Route path="/oracle" element={<Navigate to="/outils/oracle" replace />} />
                 <Route path="/mon-rituel" element={<Navigate to="/outils/rituel" replace />} />
@@ -174,7 +169,6 @@ function App() {
                 <Route path="/astrosexo" element={<Navigate to="/outils/astrosexo" replace />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
               </Routes>
-              <PremiumStickyCTA />
               <CookieConsent />
             </>
           } />

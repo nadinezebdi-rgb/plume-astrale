@@ -715,6 +715,11 @@ async def rencontres_ultime_status(session_id: str):
         tx = r.data
         md = tx.get("metadata") or {}
 
+        import asyncio as _aio
+        from services.self_heal import self_heal_if_paid
+        from services.rencontres_ultime_service import handle_rencontres_ultime_webhook
+        _aio.create_task(self_heal_if_paid(session_id, bool(md.get("pdf_path")), handle_rencontres_ultime_webhook))
+
         # Paiement pas encore confirme
         if tx.get("status") != "completed" or tx.get("payment_status") != "paid":
             return {"stage": "pending", "message": "Confirmation du paiement en cours…"}

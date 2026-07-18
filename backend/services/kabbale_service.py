@@ -98,20 +98,31 @@ async def handle_kabbale_webhook(session_id: str) -> None:
     # 3) Envoi email best-effort
     if email and pdf_bytes:
         try:
-            await _send_kabbale_email(email, first_name, pdf_bytes, filename)
+            await _send_kabbale_email(email, first_name, pdf_bytes, filename, session_id=session_id)
             md['email_sent_at'] = datetime.now(timezone.utc).isoformat()
             sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
         except Exception as e:
             logger.warning(f"[kabbale] email failed for {session_id}: {e}")
 
 
-async def _send_kabbale_email(email: str, first_name: str, pdf_bytes: bytes, filename: str) -> None:
+async def _send_kabbale_email(email: str, first_name: str, pdf_bytes: bytes, filename: str, session_id: str | None = None) -> None:
     """Envoi email Resend avec PDF en piece jointe."""
+    from services.email_journal import log_send_attempt, log_send_response
+
     api_key = os.environ.get('RESEND_API_KEY', '').strip()
     sender = os.environ.get('SENDER_EMAIL', 'Solena · Plume Astrale <contact@plume-astrale.fr>')
+    subject = "Ton Arbre de Vie Kabbalistique est prêt ✦"
     if not api_key:
         logger.warning("[kabbale] RESEND_API_KEY missing")
+        log_send_response(None, http_status=0, body='RESEND_API_KEY missing',
+                          to_email=email, subject=subject, product='kabbale', session_id=session_id)
         return
+
+    # Log tentative AVANT l'appel Resend
+    row_id = log_send_attempt(
+        to_email=email, subject=subject, product='kabbale',
+        from_email=sender, session_id=session_id,
+    )
 
     pdf_b64 = base64.b64encode(pdf_bytes).decode('ascii')
     fn = (first_name or 'ami(e)').strip()
@@ -171,10 +182,20 @@ async def _send_kabbale_email(email: str, first_name: str, pdf_bytes: bytes, fil
             json={
                 'from': sender,
                 'to': [email],
-                'subject': "Ton Arbre de Vie Kabbalistique est prêt ✦",
+                'subject': subject,
                 'html': html,
                 'attachments': [{'filename': filename, 'content': pdf_b64}],
             },
+        )
+        resend_id = None
+        try:
+            resend_id = r.json().get('id') if r.status_code < 300 else None
+        except Exception:
+            pass
+        log_send_response(
+            row_id, http_status=r.status_code, resend_id=resend_id,
+            body=None if r.status_code < 300 else r.text,
+            to_email=email, subject=subject, product='kabbale', session_id=session_id,
         )
         if r.status_code >= 400:
             logger.warning(f"[kabbale] Resend error {r.status_code}: {r.text[:300]}")

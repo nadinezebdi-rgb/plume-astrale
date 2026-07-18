@@ -22,9 +22,11 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, PageBreak, Frame, PageTemplate,
+    SimpleDocTemplate, Paragraph, Spacer, PageBreak, Frame, PageTemplate, Image,
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+
+from services import library_images as libimg
 
 # Palette Plume Astrale
 NIGHT       = colors.HexColor('#111625')
@@ -134,18 +136,33 @@ def _make_styles():
     }
 
 
-def _cover(story, styles, first_name: str, birth_date: str, dominant_seph: str, spiritual_focus: str):
-    story.append(Spacer(1, 4*cm))
+def _lib_image(story: list, path: Optional[str], width_cm: float = 6.0, hAlign: str = 'CENTER') -> None:
+    """Ajoute une image de la bibliothèque au flowable story (silencieux si path=None)."""
+    if not path:
+        return
+    try:
+        img = Image(path, width=width_cm*cm, height=width_cm*cm)
+        img.hAlign = hAlign
+        story.append(img)
+    except Exception:
+        pass
+
+
+def _cover(story, styles, first_name: str, birth_date: str, dominant_seph: str, spiritual_focus: str, birth_iso: str = ''):
+    story.append(Spacer(1, 2.5*cm))
     story.append(_p("PLUME ASTRALE · KABBALE", styles['caption']))
-    story.append(Spacer(1, 1.5*cm))
+    story.append(Spacer(1, 0.6*cm))
+    # Image du signe solaire (calculée depuis la date de naissance)
+    _lib_image(story, libimg.sign_from_date(birth_iso), width_cm=6.5)
+    story.append(Spacer(1, 0.6*cm))
     story.append(_p("TON ARBRE DE VIE", styles['title']))
     story.append(Spacer(1, 0.3*cm))
     story.append(_p("<i>KABBALISTIQUE</i>", styles['subtitle']))
-    story.append(Spacer(1, 2.5*cm))
+    story.append(Spacer(1, 1.5*cm))
     story.append(_p(f"Etabli pour <b>{first_name}</b>", styles['italic']))
     if birth_date:
         story.append(_p(f"Ne(e) le {birth_date}", styles['meta']))
-    story.append(Spacer(1, 2*cm))
+    story.append(Spacer(1, 1.2*cm))
     if dominant_seph:
         story.append(_p("Ta Sephirah dominante", styles['caption']))
         story.append(Spacer(1, 0.2*cm))
@@ -211,13 +228,17 @@ def _pillars(story, styles, pillar_balance: dict):
     story.append(PageBreak())
 
 
-def _sephiroth_pages(story, styles, sephiroth):
+def _sephiroth_pages(story, styles, sephiroth, dominant_planet: str = ''):
     """Rend chaque Sephirah avec ses attributs personnalises. sephiroth = list of dicts."""
     if not sephiroth or not isinstance(sephiroth, list):
         return
     story.append(Spacer(1, 1.0*cm))
     story.append(_p("Chapitre I", styles['caption']))
     story.append(_p("<i>Les 10 Sephiroth</i>", styles['h2']))
+    story.append(Spacer(1, 0.4*cm))
+    # Image d'ouverture : planète dominante (via Sephirah dominante) sinon Soleil
+    _lib_image(story, libimg.planet(dominant_planet or 'sun'), width_cm=5.0)
+    story.append(Spacer(1, 0.3*cm))
     story.append(_p(
         "Chaque Sephirah est une sphere de conscience. Voici comment ton theme natal les active.",
         styles['italic']))
@@ -287,13 +308,21 @@ def _paths_page(story, styles, paths: list):
     story.append(Spacer(1, 1.0*cm))
     story.append(_p("Chapitre II", styles['caption']))
     story.append(_p("<i>Tes chemins actives</i>", styles['h2']))
+    story.append(Spacer(1, 0.3*cm))
+    # Image d'ouverture : premier tarot activé
+    active_paths_all = [p for p in (paths or []) if p.get('is_activated')]
+    first_tarot = None
+    if active_paths_all:
+        first_tarot = (active_paths_all[0].get('tarot_card') or '').strip()
+    _lib_image(story, libimg.tarot(first_tarot) if first_tarot else None, width_cm=5.0)
+    story.append(Spacer(1, 0.3*cm))
     story.append(_p(
         "Chaque chemin est une force zodiacale qui relie deux Sephiroth. "
         "Ceux qui suivent sont ouverts par tes placements planetaires.",
         styles['italic']))
     story.append(Spacer(1, 0.3*cm))
 
-    active = [p for p in (paths or []) if p.get('is_activated')]
+    active = active_paths_all
     if not active:
         story.append(_p("Aucun chemin fortement active pour l'instant — ta lumiere circule surtout dans les Sephiroth.", styles['body']))
         story.append(PageBreak())
@@ -442,10 +471,27 @@ def generate_kabbale_pdf(
     styles = _make_styles()
 
     story: list = []
-    _cover(story, styles, first_name or "Voyageur", birth_fr, dominant_display, spiritual_focus)
+    # Extraire la planète dominante depuis les Sephiroth
+    dominant_planet = ''
+    try:
+        if isinstance(sephiroth, list):
+            for sf in sephiroth:
+                if not isinstance(sf, dict):
+                    continue
+                if str(sf.get('english') or '').strip().lower() == str(dominant_sephirah).strip().lower():
+                    pr = sf.get('planet')
+                    if isinstance(pr, dict):
+                        dominant_planet = pr.get('modern_halevi') or pr.get('classical') or ''
+                    else:
+                        dominant_planet = pr or ''
+                    break
+    except Exception:
+        dominant_planet = ''
+
+    _cover(story, styles, first_name or "Voyageur", birth_fr, dominant_display, spiritual_focus, birth_iso=birth_date_iso or '')
     _intro(story, styles)
     _pillars(story, styles, pillar_balance)
-    _sephiroth_pages(story, styles, sephiroth)
+    _sephiroth_pages(story, styles, sephiroth, dominant_planet=str(dominant_planet or ''))
     _paths_page(story, styles, paths)
     _daat_page(story, styles, daat)
     _synthesis(story, styles, dominant_display, spiritual_focus, synthesis)

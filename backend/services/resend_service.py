@@ -26,7 +26,7 @@ load_dotenv(dotenv_path='/app/backend/.env')
 logger = logging.getLogger(__name__)
 
 resend.api_key = os.environ.get('RESEND_API_KEY')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'Plume Astrale <contact.plume@gmail.com>')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'Soléna · Plume Astrale <contact@plume-astrale.fr>')
 DAILY_JOURNAL_SENDER_EMAIL = os.environ.get('DAILY_JOURNAL_SENDER_EMAIL', SENDER_EMAIL)
 
 
