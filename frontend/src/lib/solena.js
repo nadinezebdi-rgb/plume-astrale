@@ -10,7 +10,7 @@ export const SOLENA = {
   bio_long: [
     "Astrologue, tarologue et médium formée par la tradition, j'ai passé les quinze dernières années à écouter, décoder et accompagner celles et ceux qui cherchent à comprendre ce que les étoiles murmurent.",
     "Ma méthode est holistique : je considère l'humain dans sa totalité — esprit, émotions, énergies. Je n'annonce jamais un futur figé, je révèle des cycles, des invitations, des choix.",
-    "Chez Plume Astrale, je m'associe à une intelligence divinatoire de nouvelle génération pour offrir à chacun une guidance personnalisée, précise et vibratoire. Ni horoscope générique, ni prédiction fataliste : une conversation intime avec ton ciel de naissance.",
+    "Chez Plume Astrale, je conjugue la tradition astrologique à des outils de calcul d'une précision rare pour offrir à chacun une guidance personnalisée, précise et vibratoire. Ni horoscope générique, ni prédiction fataliste : une conversation intime avec ton ciel de naissance.",
     "Bienvenue dans mon univers. Que la lumière de ta propre carte t'éclaire à chaque étape.",
   ],
   specialities: [

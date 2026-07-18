@@ -45,7 +45,7 @@ export default function Oracle() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
 
-      <h1 className="text-3xl mb-6">🔮 Ton Oracle personnel</h1>
+      <h1 className="text-3xl mb-6">Ton Oracle personnel</h1>
 
       <input
         value={question}

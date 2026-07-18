@@ -1,71 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Gift, X, Sparkles } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import React from 'react';
+import { useLocation } from 'react-router-dom';
 
-const STORAGE_KEY = 'plume_trial_banner_dismissed_v1';
-const DISMISS_HOURS = 24;
-// Routes where banner should NOT appear (already on premium/payment flows)
+// Routes where banner should NOT appear (premium/payment/auth flows)
 const HIDE_ON_PATHS = ['/premium', '/paiement', '/credits/succes', '/commande/succes', '/inscription', '/connexion'];
 
-function getRemainingDays(createdAt) {
-  if (!createdAt) return null;
-  try {
-    const created = new Date(createdAt).getTime();
-    const elapsed = Date.now() - created;
-    const trialMs = 7 * 24 * 60 * 60 * 1000;
-    const remaining = Math.max(0, Math.ceil((trialMs - elapsed) / (24 * 60 * 60 * 1000)));
-    return remaining;
-  } catch {
-    return null;
-  }
-}
-
 export default function TrialBanner() {
-  const { user, isAuthenticated } = useAuth();
   const location = useLocation();
-  const [visible, setVisible] = useState(false);
 
-  // Hide on premium / payment / auth pages
   const onHiddenRoute = HIDE_ON_PATHS.some((p) => location.pathname.startsWith(p));
-
-  useEffect(() => {
-    if (onHiddenRoute) { setVisible(false); return; }
-    // Hide for Premium members
-    if (user?.is_premium || user?.premium_status === 'active') {
-      setVisible(false);
-      return;
-    }
-    // Check dismissal expiry (24h)
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const dismissedAt = parseInt(raw, 10);
-        if (Date.now() - dismissedAt < DISMISS_HOURS * 60 * 60 * 1000) {
-          setVisible(false);
-          return;
-        }
-      }
-    } catch {}
-    setVisible(true);
-  }, [user, onHiddenRoute]);
-
-  const handleDismiss = () => {
-    try { localStorage.setItem(STORAGE_KEY, String(Date.now())); } catch {}
-    setVisible(false);
-  };
-
-  if (!visible) return null;
-
-  const remainingDays = isAuthenticated ? getRemainingDays(user?.created_at) : null;
-  const showCountdown = remainingDays !== null && remainingDays > 0 && remainingDays <= 7;
+  if (onHiddenRoute) return null;
 
   return (
     <div
       data-testid="trial-banner"
       style={{
         position: 'fixed',
-        top: 64,
+        top: 0,
         left: 0,
         right: 0,
         zIndex: 40,
@@ -117,14 +67,13 @@ export default function TrialBanner() {
 
       <div
         style={{
-          maxWidth: 1280,
-          margin: '0 auto',
-          padding: '8px 16px 8px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 14,
-          flexWrap: 'nowrap',
+          margin: 0,
+          fontFamily: '"Inter", system-ui, sans-serif',
+          fontSize: 12,
+          fontWeight: 400,
+          color: '#000000',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
         }}
       >
         <div

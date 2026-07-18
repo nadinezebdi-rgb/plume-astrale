@@ -42,3 +42,17 @@ docker compose up --build
 Voir `.env.example` pour la liste complète des variables nécessaires.
 
 > ⚠️ Ne jamais committer de clés API dans le dépôt.
+
+## Smoke Test (Compat API)
+
+Pour vérifier rapidement les routes critiques frontend/backend après un changement:
+
+```bash
+python tests/smoke_api_compat.py
+```
+
+Le script teste notamment:
+- la redirection Premium vers `/mon-compte`
+- la génération de rapport de compatibilité
+- les endpoints Résultats (carte partageable + PDF)
+- les endpoints Premium PDF, Tarologie PDF et commande Livre

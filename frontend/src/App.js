@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar";
@@ -53,11 +53,20 @@ import SynastrieSucces from "./pages/SynastrieSucces";
 import AstroSexo from "./pages/AstroSexo";
 import RencontresAstrales from "./pages/RencontresAstrales";
 import RencontresUltimeSucces from "./pages/RencontresUltimeSucces";
-import SolenaPage from "./pages/SolenaPage";
 import Bibliotheque from "./pages/Bibliotheque";
 import Desabonnement from "./pages/Desabonnement";
+import AuthenticatedHome from "./pages/AuthenticatedHome";
+import CTATestPage from "./pages/CTATestPage";
 import PremiumStickyCTA from "./components/PremiumStickyCTA";
 import CookieConsent from "./components/CookieConsent";
+
+// ─── Advanced PDF Products ────────────────────────────
+import NumerologiePDF from "./pages/NumerologiePDF";
+import NumerologieWaiting from "./pages/NumerologieWaiting";
+import KarmaDestinPDF from "./pages/KarmaDestinPDF";
+import KarmaDestinWaiting from "./pages/KarmaDestinWaiting";
+import FenetreRencontrePDF from "./pages/FenetreRencontrePDF";
+import FenetreRencontreWaiting from "./pages/FenetreRencontreWaiting";
 
 // ─── Plume Design System v2 (Feb 2026) ────────────────────────────
 import NoiseOverlay from "./components/design/NoiseOverlay";
@@ -81,7 +90,13 @@ function App() {
           <Route path="/bibliotheque" element={<Bibliotheque />} />
           <Route path="/rencontres-astrales" element={<RencontresAstrales />} />
           <Route path="/rencontres-astrales/succes" element={<RencontresUltimeSucces />} />
-          <Route path="/solena" element={<SolenaPage />} />
+          <Route path="/test/cta" element={<CTATestPage />} />
+          <Route path="/numerologie-pdf" element={<NumerologiePDF />} />
+          <Route path="/numerologie-pdf/attente" element={<NumerologieWaiting />} />
+          <Route path="/karma-destin-pdf" element={<KarmaDestinPDF />} />
+          <Route path="/karma-destin/attente" element={<KarmaDestinWaiting />} />
+          <Route path="/fenetre-rencontre-pdf" element={<FenetreRencontrePDF />} />
+          <Route path="/fenetre-rencontre/attente" element={<FenetreRencontreWaiting />} />
 
           {/* Toutes les autres pages — avec Navbar */}
           <Route path="*" element={
@@ -90,29 +105,49 @@ function App() {
               <Routes>
                 <Route path="/inscription" element={<Register />} />
                 <Route path="/connexion" element={<Login />} />
+                <Route path="/mon-accueil" element={<AuthenticatedHome />} />
                 <Route path="/formulaire" element={<Formulaire />} />
                 <Route path="/apercu" element={<Apercu />} />
                 <Route path="/choix" element={<Choix />} />
+                
+                {/* ─── Routes canoniques /outils/* ─── */}
+                <Route path="/outils/theme-natal" element={<Formulaire />} />
+                <Route path="/outils/tarot" element={<TirageTarot />} />
+                <Route path="/outils/tarot/oui-non" element={<TarotOuiNon />} />
+                <Route path="/outils/horoscope" element={<Horoscope />} />
+                <Route path="/outils/numerologie" element={<Numerologie />} />
+                <Route path="/outils/archetype" element={<Archetype />} />
+                <Route path="/outils/compatibilite" element={<Compatibilite2 />} />
+                <Route path="/outils/revolution-solaire" element={<RevolutionSolaire />} />
+                <Route path="/outils/oracle" element={<Oracle />} />
+                <Route path="/outils/energie" element={<Energie />} />
+                <Route path="/outils/rituel" element={<MonRituel />} />
+                <Route path="/outils/consultation" element={<ChatIA />} />
+                <Route path="/outils/astrosexo" element={<AstroSexo />} />
+                <Route path="/outils/love-languages" element={<LoveLanguages />} />
+                <Route path="/communaute" element={<Cercle />} />
+
+                {/* ─── Backward compatibility redirects ─── */}
+                <Route path="/tirage-tarot" element={<Navigate to="/outils/tarot" replace />} />
+                <Route path="/tarot-oui-non" element={<Navigate to="/outils/tarot/oui-non" replace />} />
+                <Route path="/tarot" element={<Navigate to="/outils/tarot" replace />} />
+                <Route path="/compatibilite-amoureuse" element={<Navigate to="/outils/compatibilite" replace />} />
+                <Route path="/mon-rituel" element={<Navigate to="/outils/rituel" replace />} />
+                <Route path="/chat-astral" element={<Navigate to="/outils/consultation" replace />} />
+                <Route path="/cercle-quotidien" element={<Navigate to="/communaute" replace />} />
+                <Route path="/cercle-dashboard" element={<Navigate to="/communaute" replace />} />
+                <Route path="/cercle" element={<Navigate to="/communaute" replace />} />
+                
                 <Route path="/paiement" element={<Paiement />} />
                 <Route path="/paiement/succes" element={<PaiementSucces />} />
                 <Route path="/resultats" element={<Resultats />} />
-                <Route path="/numerologie" element={<Numerologie />} />
-                <Route path="/archetype" element={<Archetype />} />
                 <Route path="/kabbale" element={<KabbaleSales />} />
                 <Route path="/kabbale/succes" element={<KabbaleSucces />} />
                 <Route path="/pack-karmique" element={<PackKarmique />} />
                 <Route path="/pack-karmique/succes" element={<PackKarmiqueSucces />} />
                 <Route path="/karma-destin" element={<KarmaDestin />} />
-                <Route path="/tarot" element={<Tarot />} />
-                <Route path="/tirage-tarot" element={<TirageTarot />} />
-                <Route path="/tarot-oui-non" element={<TarotOuiNon />} />
                 <Route path="/tarologie" element={<Tarologie />} />
-                <Route path="/horoscope" element={<Horoscope />} />
-                <Route path="/compatibilite" element={<Compatibilite />} />
-                <Route path="/compatibilite-amoureuse" element={<Compatibilite2 />} />
                 <Route path="/quotidien" element={<Quotidien />} />
-                <Route path="/cercle-quotidien" element={<Cercle />} />
-                <Route path="/cercle-dashboard" element={<Cercle />} />
                 <Route path="/premium" element={<Premium />} />
                 <Route path="/premium/decouvrir" element={<PremiumLanding />} />
                 <Route path="/premium/experience" element={<PremiumExperience />} />
@@ -122,21 +157,21 @@ function App() {
                 <Route path="/commande/succes" element={<CommandeSucces />} />
                 <Route path="/mon-compte" element={<MonCompte />} />
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
-                <Route path="/consultation" element={<ChatIA />} />
-                <Route path="/energie" element={<Energie />} />
+                <Route path="/consultation" element={<Navigate to="/outils/consultation" replace />} />
+                <Route path="/energie" element={<Navigate to="/outils/energie" replace />} />
                 <Route path="/premium/succes" element={<Premium />} />
-                <Route path="/chat-astral" element={<ChatIA />} />
-                <Route path="/oracle" element={<Oracle />} />
-                <Route path="/mon-rituel" element={<MonRituel />} />
-                <Route path="/revolution-solaire" element={<RevolutionSolaire />} />
-                <Route path="/love-languages" element={<LoveLanguages />} />
+                <Route path="/chat-astral" element={<Navigate to="/outils/consultation" replace />} />
+                <Route path="/oracle" element={<Navigate to="/outils/oracle" replace />} />
+                <Route path="/mon-rituel" element={<Navigate to="/outils/rituel" replace />} />
+                <Route path="/revolution-solaire" element={<Navigate to="/outils/revolution-solaire" replace />} />
+                <Route path="/love-languages" element={<Navigate to="/outils/love-languages" replace />} />
                 <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
                 <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
                 <Route path="/notre-cadre" element={<NotreCadre />} />
-                <Route path="/cercle" element={<Cercle />} />
+                <Route path="/cercle" element={<Navigate to="/communaute" replace />} />
                 <Route path="/synastrie" element={<SynastrieSales />} />
                 <Route path="/synastrie/succes" element={<SynastrieSucces />} />
-                <Route path="/astrosexo" element={<AstroSexo />} />
+                <Route path="/astrosexo" element={<Navigate to="/outils/astrosexo" replace />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
               </Routes>
               <PremiumStickyCTA />

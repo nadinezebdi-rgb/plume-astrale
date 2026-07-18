@@ -4,7 +4,7 @@ Service Tarot - Oui/Non et Tarologie Médiumnité
 import hashlib
 import os
 import random
-from datetime import datetime, date
+from datetime import datetime
 
 _SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
 _TAROT_CDN_BASE = f"{_SUPABASE_URL}/storage/v1/object/public/public-assets/tarot" if _SUPABASE_URL else "/api/assets/tarot"
