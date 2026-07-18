@@ -90,6 +90,8 @@ export default function Admin() {
   const [payments, setPayments] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [promoCodes, setPromoCodes] = useState([]);
+  const [leads, setLeads] = useState([]);
+  const [leadsTotal, setLeadsTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -139,12 +141,23 @@ export default function Admin() {
     finally { setLoading(false); }
   }, [token]);
 
+  const loadLeads = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await axios.get(`${API}/api/admin/leads?page=1&page_size=200`, { headers: { Authorization: `Bearer ${token}` } });
+      setLeads(r.data.leads || []);
+      setLeadsTotal(r.data.total || 0);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  }, [token]);
+
   useEffect(() => {
     if (!token || !user?.is_admin) return;
     if (tab === 'overview') loadStats();
     else if (tab === 'users') loadUsers(search);
     else if (tab === 'payments') loadPayments();
     else if (tab === 'transactions') loadTransactions();
+    else if (tab === 'leads') loadLeads();
     else if (tab === 'promo') loadPromo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, token, user?.is_admin]);
@@ -154,6 +167,7 @@ export default function Admin() {
     else if (tab === 'users') loadUsers(search);
     else if (tab === 'payments') loadPayments();
     else if (tab === 'transactions') loadTransactions();
+    else if (tab === 'leads') loadLeads();
     else loadPromo();
   };
 
@@ -205,6 +219,7 @@ export default function Admin() {
           <Tab label="Utilisateurs" active={tab === 'users'} onClick={() => setTab('users')} count={stats?.users?.total} />
           <Tab label="Paiements" active={tab === 'payments'} onClick={() => setTab('payments')} count={stats?.revenue?.total_paid_count} />
           <Tab label="Transactions" active={tab === 'transactions'} onClick={() => setTab('transactions')} />
+          <Tab label="Leads" active={tab === 'leads'} onClick={() => setTab('leads')} count={tab === 'leads' ? leadsTotal : undefined} />
           <Tab label="Codes promo" active={tab === 'promo'} onClick={() => setTab('promo')} />
         </div>
 
@@ -318,6 +333,31 @@ export default function Admin() {
               { key: 'description', label: 'Description' },
             ]}
             rows={transactions}
+          />
+        )}
+
+        {tab === 'leads' && (
+          <Table
+            columns={[
+              { key: 'created_at', label: 'Capturé le', render: r => fmtDate(r.created_at) },
+              { key: 'email', label: 'Email' },
+              { key: 'first_name', label: 'Prénom', render: r => r.first_name || '—' },
+              { key: 'source', label: 'Source', render: r => (
+                <span className="px-2 py-1 rounded-full text-[10px] uppercase" style={{
+                  background: r.source === 'extrait_karmique' ? 'rgba(212,175,55,0.15)' : 'rgba(144,137,181,0.15)',
+                  color: r.source === 'extrait_karmique' ? '#D4AF37' : '#9089B5',
+                  letterSpacing: '0.08em',
+                }}>{r.source || 'oracle'}</span>
+              ) },
+              { key: 'email_sequence_step', label: 'Séquence', render: r => (
+                r.unsubscribed_at ? <span style={{ color: '#fca5a5' }}>Désinscrit</span>
+                : r.source !== 'extrait_karmique' ? <span style={{ color: '#9089B5' }}>—</span>
+                : <span style={{ color: '#7CB88A' }}>{['En attente J+2', 'J+2 envoyé', 'Séquence terminée'][r.email_sequence_step || 0] || '—'}</span>
+              ) },
+              { key: 'last_email_sent_at', label: 'Dernier email', render: r => r.last_email_sent_at ? fmtDate(r.last_email_sent_at) : '—' },
+            ]}
+            rows={leads}
+            emptyMessage="Aucun lead capturé pour le moment."
           />
         )}
 

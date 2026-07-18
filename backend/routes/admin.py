@@ -306,6 +306,23 @@ async def admin_chat_sessions(
     return {'sessions': list(sessions.values())[:page_size]}
 
 
+@router.get('/leads')
+async def admin_leads(
+    source: str = '',
+    page: int = 1,
+    page_size: int = 100,
+    _admin: dict = Depends(require_admin),
+):
+    """Leads capturés (extrait gratuit karmique, oracle, etc.) — table oracle_leads."""
+    sb = get_admin_client()
+    q = sb.table('oracle_leads').select('*', count='exact')
+    if source:
+        q = q.eq('source', source)
+    start = (max(page, 1) - 1) * page_size
+    res = q.order('created_at', desc=True).range(start, start + page_size - 1).execute()
+    return {'leads': res.data or [], 'total': res.count or 0}
+
+
 @router.get('/promo-codes')
 async def admin_promo_codes(_admin: dict = Depends(require_admin)):
     """Liste des codes promo + nombre d'utilisations."""

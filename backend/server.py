@@ -1953,4 +1953,6 @@ if ASSETS_DIR.exists():
 async def _start_cart_recovery():
     import asyncio as _asyncio
     from services.cart_recovery import cart_recovery_loop
+    from services.lead_nurture import lead_nurture_loop
     _asyncio.create_task(cart_recovery_loop())
+    _asyncio.create_task(lead_nurture_loop())
