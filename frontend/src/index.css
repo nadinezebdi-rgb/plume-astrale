@@ -475,6 +475,21 @@ select.input-editorial option {
   0%, 100% { opacity: 0.02; }
   50%      { opacity: 0.045; }
 }
+/* ── Bandeau offre défilant (LaunchBanner.js) ── */
+.plume-banner-track {
+  width: max-content;
+  animation: plume-banner-scroll 28s linear infinite;
+  will-change: transform;
+}
+.plume-banner-track:hover { animation-play-state: paused; }
+@keyframes plume-banner-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-33.333%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plume-banner-track { animation: none; }
+}
+
 /* ── Ciel étoilé global (Starfield.js) ── */
 .plume-starfield {
   position: fixed;

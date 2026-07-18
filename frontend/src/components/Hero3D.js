@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { User, AlertCircle, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import StarsAndClouds from './StarsAndClouds';
+import LaunchBanner from './LaunchBanner';
 
 const Moon3D = lazy(() => import('./Moon3D'));
 
@@ -154,24 +155,8 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
       }}
       data-testid="hero-3d"
     >
-      {/* ═══ Bandeau d'urgence sticky top ═══ */}
-      <div
-        className="absolute top-0 left-0 right-0 z-40 flex items-center justify-center px-4"
-        style={{
-          height: 40,
-          background: 'linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.15) 20%, rgba(232,199,102,0.22) 50%, rgba(212,175,55,0.15) 80%, transparent 100%)',
-          borderBottom: '1px solid rgba(212,175,55,0.35)',
-          boxShadow: '0 0 24px rgba(212,175,55,0.3)',
-        }}
-        data-testid="launch-banner"
-      >
-        <span
-          className="text-[10px] md:text-[11px] uppercase text-center"
-          style={{ color: '#E8C766', letterSpacing: '0.28em', fontWeight: 300, fontFamily: 'Cinzel, Playfair Display, serif' }}
-        >
-          OFFRE DE LANCEMENT&nbsp;·&nbsp;20 CRÉDITS OFFERTS À L&apos;INSCRIPTION POUR DÉCOUVRIR VOTRE AVENIR AMOUREUX
-        </span>
-      </div>
+      {/* ═══ Bandeau d'urgence sticky top — cliquable + défilant + compte à rebours 48h ═══ */}
+      <LaunchBanner />
 
       {/* ═══ Header ultra-épuré ═══ */}
       <header className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-6 md:px-10"
