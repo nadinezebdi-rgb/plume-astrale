@@ -191,6 +191,70 @@ def _closing(story, styles, first_name: str):
     story.append(_p('Guide chez Plume Astrale · plume-astrale.fr', styles['small']))
 
 
+def generate_extrait_pdf(first_name: str, items: List[dict]) -> bytes:
+    """Extrait gratuit 3 pages : couverture + 2-3 sections karmiques + page CTA 89 EUR."""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=A4,
+        leftMargin=2.2 * cm, rightMargin=2.2 * cm,
+        topMargin=2 * cm, bottomMargin=2 * cm,
+        title='Extrait offert — Pack Karmique + Kabbale', author='Solena · Plume Astrale',
+    )
+    styles = _make_styles()
+    story: list = []
+    fn = first_name or 'Voyageur'
+
+    # Page 1 — couverture extrait
+    story.append(Spacer(1, 4.5 * cm))
+    story.append(_p('PLUME ASTRALE · EXTRAIT OFFERT', styles['caption']))
+    story.append(Spacer(1, 1.2 * cm))
+    story.append(_p('PACK KARMIQUE', styles['title']))
+    story.append(_p('<i>+ KABBALE</i>', styles['subtitle']))
+    story.append(Spacer(1, 1.5 * cm))
+    story.append(_p(f'Les premieres pages de la memoire d\'ame de <b>{fn}</b>', styles['italic']))
+    story.append(Spacer(1, 1.5 * cm))
+    story.append(_p(
+        '« Voici un fragment de ce que ton ciel murmure. '
+        'Le document complet en revele quarante pages. »',
+        styles['quote']))
+    story.append(PageBreak())
+
+    # Page 2 — sections karmiques reelles
+    story.append(Spacer(1, 1.0 * cm))
+    story.append(_p('Extrait de la Partie I', styles['caption']))
+    story.append(_p('<i>Tes points karmiques</i>', styles['h2']))
+    story.append(Spacer(1, 0.3 * cm))
+    for it in items[:3]:
+        story.append(_p(it.get('title') or '', styles['h3']))
+        story.append(_p(it.get('text') or '', styles['body']))
+        story.append(Spacer(1, 0.25 * cm))
+    story.append(PageBreak())
+
+    # Page 3 — CTA
+    story.append(Spacer(1, 1.2 * cm))
+    story.append(_p('La suite t\'attend', styles['caption']))
+    story.append(_p('<i>Ce que contient le document complet</i>', styles['h2']))
+    story.append(Spacer(1, 0.4 * cm))
+    for line in [
+        '<b>80 sections</b> d\'analyse karmique : Noeuds Lunaires, Lilith, Chiron, planetes, maisons, aspects',
+        '<b>Ton Arbre de Vie kabbalistique</b> : les 10 Sephiroth et 22 chemins de ton theme natal',
+        '<b>Une synthese croisee unique</b>, redigee pour toi seul(e) : essence, mission d\'ame, pratiques',
+        '<b>Environ 40 pages</b> a garder toute une vie, livrees par email en quelques minutes',
+    ]:
+        story.append(_p(f'✦&nbsp;&nbsp;{line}', styles['body']))
+        story.append(Spacer(1, 0.15 * cm))
+    story.append(Spacer(1, 0.8 * cm))
+    story.append(_p('<b>Pack Karmique + Kabbale — 89€</b>', styles['h2']))
+    story.append(_p('Rendez-vous sur <b>plume-astrale.fr/pack-karmique</b>', styles['accent']))
+    story.append(Spacer(1, 1.0 * cm))
+    story.append(_p('Avec toute ma tendresse,', styles['italic']))
+    story.append(_p('<i>— Solena</i>', styles['h3']))
+
+    doc.build(story, onFirstPage=_bg_canvas, onLaterPages=_bg_canvas)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
 def generate_pack_karmique_pdf(
     first_name: str,
     birth_date_iso: str,

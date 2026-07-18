@@ -1947,3 +1947,10 @@ async def api_health_check():
 
 if ASSETS_DIR.exists():
     app.mount('/api/assets', StaticFiles(directory=str(ASSETS_DIR)), name='assets')
+
+
+@app.on_event('startup')
+async def _start_cart_recovery():
+    import asyncio as _asyncio
+    from services.cart_recovery import cart_recovery_loop
+    _asyncio.create_task(cart_recovery_loop())
