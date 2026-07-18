@@ -6,49 +6,46 @@ import { useAuth } from '@/context/AuthContext';
 const NAV_ITEMS = [
   { label: 'Accueil', to: '/' },
   {
-    label: 'Décoder ma période',
+    label: 'Outils',
     mega: true,
     columns: [
       {
-        title: 'Au quotidien',
+        title: '🔮 Cartomancie',
         children: [
-          { to: '/energie', label: "Mon énergie du jour" },
-          { to: '/horoscope', label: 'Horoscope' },
-          { to: '/quotidien', label: 'Biorythmes & bien-être' },
-          { to: '/tarot-oui-non', label: 'Tarot Oui / Non' },
-          { to: '/tarologie', label: 'Tarologie' },
+          { label: 'Tarot', to: '/outils/tarot', highlight: true },
+          { label: 'Tirage Oui/Non', to: '/outils/tarot/oui-non' },
+          { label: 'Oracle des Anges', to: '/outils/oracle' },
         ],
       },
       {
-        title: 'Mon thème',
+        title: '⭐ Astrologie',
         children: [
-          { to: '/formulaire', label: 'Mon thème natal' },
-          { to: '/numerologie', label: 'Numérologie' },
-          { to: '/karma-destin', label: 'Karma & Destin' },
-          { to: '/revolution-solaire', label: 'Révolution solaire' },
+          { label: 'Thème Natal', to: '/outils/theme-natal', highlight: true },
+          { label: 'Horoscope', to: '/outils/horoscope' },
+          { label: 'Compatibilité', to: '/outils/compatibilite' },
+          { label: 'Révolution Solaire', to: '/outils/revolution-solaire' },
         ],
       },
       {
-        title: 'Relations',
+        title: '🔢 Numérologie',
         children: [
-          { to: '/compatibilite', label: 'Compatibilité' },
-          { to: '/astrosexo', label: 'AstroSexo' },
-          { to: '/love-languages', label: "Langages d'amour" },
-          { to: '/synastrie', label: 'Astrologie relationnelle — 49€', highlight: true },
+          { label: 'Numérologie', to: '/outils/numerologie' },
+          { label: 'Archétype Numérologique', to: '/outils/archetype' },
+          { label: 'Love Languages', to: '/outils/love-languages' },
         ],
       },
       {
-        title: 'Explorations',
+        title: '✨ Bien-être',
         children: [
-          { to: '/consultation', label: 'Chat avec Plume' },
-          { to: '/oracle', label: 'Oracle' },
-          { to: '/mon-rituel', label: 'Mon rituel' },
+          { label: 'Énergie du Jour', to: '/outils/energie' },
+          { label: 'Rituels Personnels', to: '/outils/rituel' },
+          { label: 'Chat Astral (IA)', to: '/outils/consultation' },
+          { label: 'Énergies Amoureuses', to: '/outils/astrosexo' },
         ],
       },
     ],
   },
-  { label: 'Le Cercle', to: '/cercle', subtitle: '14,90€/mois' },
-  { label: 'Notre cadre', to: '/notre-cadre' },
+  { label: 'Communauté', to: '/communaute' },
 ];
 
 const dropdownStyle = {
@@ -516,7 +513,7 @@ const Navbar = () => {
           </div>
         )}
       </div>
-      <style>{`.desktop-nav{display:none!important}@media(min-width:1240px){.desktop-nav{display:block!important}.mobile-toggle{display:none!important}}`}</style>
+      <style>{`.desktop-nav{display:none!important}@media(min-width:1024px){.desktop-nav{display:block!important}.mobile-toggle{display:none!important}}`}</style>
     </nav>
   );
 };
