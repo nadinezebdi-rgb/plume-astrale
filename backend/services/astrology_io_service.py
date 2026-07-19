@@ -53,6 +53,27 @@ def expand_sign(sign: str) -> str:
     return _SIGN_ABBR_TO_EN.get(s, s)
 
 
+def fr_polish(context: str):
+    """Décorateur qui applique le post-processing FR (french_polish.polish_dict)
+    sur le résultat d'une fonction async. Transparent si le contenu est déjà FR
+    (grâce à la détection heuristique)."""
+    import functools
+
+    def _decorator(fn):
+        @functools.wraps(fn)
+        async def _wrapped(*args, **kwargs):
+            result = await fn(*args, **kwargs)
+            if not isinstance(result, dict):
+                return result
+            try:
+                from services.french_polish import polish_dict
+                return await polish_dict(result, context=context)
+            except Exception:
+                return result
+        return _wrapped
+    return _decorator
+
+
 def extract_planets(data: Optional[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
     """A partir d'une reponse v3 (/charts/natal, /data/positions, etc.), extrait un dict
     normalise {name.lower(): {name, sign (EN complet), house, degree}}.
@@ -379,6 +400,7 @@ async def horoscope_sign(sign: str, period: str = 'daily', language: str = 'fr')
         f'/horoscope/sign/{period}',
         {'sign': normalize_sign(sign), 'language': language},
     )
+horoscope_sign = fr_polish('horoscope_sign')(horoscope_sign)
 
 
 # ════════ HOROSCOPE PERSONNALISE ════════
@@ -398,6 +420,7 @@ async def horoscope_personal(
         'language': language,
     }
     return await _call(f'/horoscope/personal/{period}', payload)
+horoscope_personal = fr_polish('horoscope_personal')(horoscope_personal)
 
 
 # ════════ DATA : POSITIONS / CUSPIDES / ASPECTS / LUNAIRE ════════
@@ -634,6 +657,7 @@ async def love_languages(birth_data: Dict[str, Any], name: str = 'Voyageur', lan
         'subject': make_subject(name, birth_data),
         'options': {'language': language, 'house_system': 'P'},
     })
+love_languages = fr_polish('love_languages')(love_languages)
 
 
 # ════════ ARCHETYPES JUNGIENS ════════
@@ -645,6 +669,7 @@ async def archetypes(birth_data: Dict[str, Any], name: str = 'Voyageur', languag
         'subject': make_subject(name, birth_data),
         'language': language,
     })
+archetypes = fr_polish('archetypes')(archetypes)
 
 
 # ════════ KABBALE — Arbre de Vie ════════
@@ -679,6 +704,7 @@ async def karmic_analysis(birth_data: Dict[str, Any], name: str = 'Voyageur', la
         'subject': make_subject(name, birth_data),
         'language': language,
     })
+karmic_analysis = fr_polish('karmic_analysis')(karmic_analysis)
 
 
 # ════════ AI CHAT ASTROLOGIQUE (avec contexte natal embedded) ════════
@@ -804,6 +830,7 @@ async def chinese_zodiac(birth_data: Dict[str, Any], name: str = 'Voyageur', lan
         'year': int(year),
         'language': language,
     })
+chinese_zodiac = fr_polish('chinese_zodiac')(chinese_zodiac)
 
 async def chinese_horoscope(birth_data: Dict[str, Any], name: str = 'Voyageur', period: str = 'daily', language: str = 'fr') -> Optional[Dict]:
     """Horoscope chinois IA (daily/weekly/monthly/yearly)."""
@@ -1072,6 +1099,7 @@ async def numerology_core_numbers(birth_data: Dict[str, Any], name: str = 'Voyag
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
+numerology_core_numbers = fr_polish('numerology_core_numbers')(numerology_core_numbers)
 
 async def numerology_compatibility(
     birth_data_1: Dict[str, Any], birth_data_2: Dict[str, Any],
@@ -1163,6 +1191,7 @@ async def personality_analysis(birth_data: Dict[str, Any], name: str = 'Voyageur
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
+personality_analysis = fr_polish('personality_analysis')(personality_analysis)
 
 async def energy_cycles(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Cycles d'énergie personnelle — optimisation workout/méditation/productivité."""

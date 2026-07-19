@@ -25,6 +25,38 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/astrocartographie', tags=['astrocartographie'])
 
 
+@router.get('/cities/search')
+async def search_cities(q: str, limit: int = 8):
+    """Autocomplete ville pour le picker astrocartographie.
+    Retourne [{city, country, country_code, latitude, longitude}] via API v3."""
+    from services import astrology_io_service as aio
+    q = (q or '').strip()
+    if len(q) < 2:
+        return {'items': []}
+    try:
+        items = await aio.search_cities(q, limit=max(1, min(limit, 15)))
+    except Exception as e:
+        logger.warning(f'[astrocarto] cities search failed for {q!r}: {e}')
+        return {'items': []}
+    # Normaliser
+    out = []
+    for it in (items or []):
+        if not isinstance(it, dict):
+            continue
+        lat = it.get('latitude')
+        lon = it.get('longitude')
+        if lat is None or lon is None:
+            continue
+        out.append({
+            'city': it.get('name') or it.get('city') or '',
+            'country': it.get('country_name') or it.get('country') or '',
+            'country_code': (it.get('country_code') or '').upper(),
+            'latitude': float(lat),
+            'longitude': float(lon),
+        })
+    return {'items': out}
+
+
 class ChosenCity(BaseModel):
     city: str
     country: str = ''

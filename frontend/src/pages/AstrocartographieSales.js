@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, ShieldCheck, Globe, Loader2, MapPin, X } from 'lucide-react';
+import { Sparkles, ArrowRight, ShieldCheck, Globe, Loader2, MapPin, X, Search } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
@@ -42,11 +42,37 @@ const AstrocartographieSales = () => {
   const [error, setError] = useState(null);
   const [promoCode, setPromoCode] = useState('');
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const searchTimer = useRef(null);
+
+  useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    if (!searchQuery || searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setSearching(true);
+    searchTimer.current = setTimeout(async () => {
+      try {
+        const r = await axios.get(`${API}/api/astrocartographie/cities/search`, {
+          params: { q: searchQuery.trim(), limit: 8 },
+        });
+        setSearchResults(r.data?.items || []);
+      } catch { setSearchResults([]); }
+      finally { setSearching(false); }
+    }, 350);
+    return () => searchTimer.current && clearTimeout(searchTimer.current);
+  }, [searchQuery]);
+
   const upd = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const toggleCity = (c) => {
     setError(null);
-    const already = chosen.findIndex(x => x.city === c.city);
+    const key = (x) => `${x.city}|${x.latitude?.toFixed(3)}`;
+    const already = chosen.findIndex((x) => key(x) === key(c));
     if (already >= 0) {
       setChosen(chosen.filter((_, i) => i !== already));
     } else if (chosen.length < 3) {
@@ -191,7 +217,7 @@ const AstrocartographieSales = () => {
               {chosen.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-5 justify-center" data-testid="astrocarto-chosen-list">
                   {chosen.map((c) => (
-                    <button key={c.city} onClick={() => toggleCity(c)}
+                    <button key={`${c.city}-${c.latitude}`} onClick={() => toggleCity(c)}
                       className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm"
                       style={{
                         background: 'rgba(212,175,55,0.15)',
@@ -205,9 +231,72 @@ const AstrocartographieSales = () => {
                 </div>
               )}
 
+              {/* Free search input */}
+              <div className="mb-4 relative" data-testid="astrocarto-search-wrap">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(212,175,55,0.6)' }} />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Cherche une autre ville (ex: Tokyo, Lima, Reykjavik...)"
+                    data-testid="astrocarto-search-input"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-plume-night-soft/40 border border-plume-gold/20 text-plume-lavender focus:outline-none focus:border-plume-gold/60"
+                    style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 15 }}
+                  />
+                  {searching && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin" style={{ color: '#D4AF37' }} />
+                  )}
+                </div>
+                {searchResults.length > 0 && (
+                  <div
+                    className="absolute z-20 left-0 right-0 mt-1 rounded-xl overflow-hidden"
+                    style={{
+                      background: 'rgba(17,22,37,0.98)',
+                      border: '1px solid rgba(212,175,55,0.3)',
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                      maxHeight: 280, overflowY: 'auto',
+                    }}
+                    data-testid="astrocarto-search-results"
+                  >
+                    {searchResults.map((r, i) => (
+                      <button
+                        key={`${r.city}-${r.latitude}-${i}`}
+                        onClick={() => {
+                          toggleCity(r);
+                          setSearchQuery('');
+                          setSearchResults([]);
+                        }}
+                        style={{
+                          display: 'block', width: '100%', textAlign: 'left',
+                          padding: '10px 14px',
+                          background: 'transparent',
+                          border: 'none',
+                          borderBottom: '1px solid rgba(212,175,55,0.1)',
+                          color: '#F5EEE0',
+                          fontFamily: 'Cormorant Garamond, serif',
+                          fontSize: 14,
+                          cursor: 'pointer',
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(212,175,55,0.08)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        data-testid={`astrocarto-search-result-${i}`}
+                      >
+                        <span>{r.city}</span>
+                        {r.country_code && (
+                          <span style={{ marginLeft: 8, fontSize: 11, opacity: 0.6 }}>· {r.country_code}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <p className="text-center text-xs mb-3" style={{ color: 'rgba(227,215,255,0.5)' }}>ou choisis parmi ces suggestions</p>
+
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {CITY_SUGGESTIONS.map((c) => {
-                  const isChosen = chosen.some(x => x.city === c.city);
+                  const isChosen = chosen.some((x) => x.city === c.city && Math.abs(x.latitude - c.latitude) < 0.01);
                   return (
                     <button
                       key={c.city}
@@ -232,7 +321,7 @@ const AstrocartographieSales = () => {
                 })}
               </div>
               <p className="text-[10px] text-center mt-4" style={{ color: 'rgba(227,215,255,0.45)', letterSpacing: '0.15em' }}>
-                D&apos;autres villes seront ajoutables dans une prochaine version
+                Tu peux aussi taper une ville dans le champ de recherche ci-dessus
               </p>
             </div>
 

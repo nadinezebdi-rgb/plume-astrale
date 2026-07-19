@@ -1,6 +1,39 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-12
+
+### Session 9 — 🔍 Audit FR + Champ ville libre + Cache traductions
+
+**Task 1 — Audit FR des endpoints (post-processing OpenAI systématique)**
+- ✅ Nouveau service `services/french_polish.py` : détecte les strings anglaises dans une réponse API (heuristique mots EN + densité accents) et les traduit en FR poétique via GPT-5.4 en **UN SEUL appel batché** (indices numérotés, réponse JSON).
+- ✅ Triple cache : mémoire (LRU 500 items) + Supabase (`translation_cache`) + skip transparent si contenu déjà FR.
+- ✅ Décorateur `fr_polish(context)` ajouté dans `services/astrology_io_service.py` (module-level) : applique le post-processing automatique après chaque appel API v3.
+- ✅ Appliqué à 7 fonctions clés :
+  - `love_languages` (4 EN → 0 EN) ✅
+  - `archetypes` (4 EN → 0 EN) ✅
+  - `karmic_analysis` (1 EN → 0 EN) ✅
+  - `numerology_core_numbers` (3 EN → 0 EN) ✅
+  - `personality_analysis` (81 EN → 0 EN) ⭐ gros gain
+  - `chinese_zodiac` (1 EN → 0 EN) ✅
+  - `horoscope_sign` / `horoscope_personal` (5 EN → 2 faux positifs)
+- ✅ Fix accents manuels dans `numerology_service.py` : "Defi" → "Défi" (×3).
+- ⏱️ Perf : batching réduit latence de 5.1s → 2.8s (première fois), quasi-0s au 2e appel grâce au cache mémoire.
+- ⚠️ Table `translation_cache` à créer manuellement en Supabase (migration `translation_cache_migration.sql` à appliquer). Sans la table, le cache mémoire fonctionne quand même.
+
+**Task 2 — Champ ville libre sur Astrocartographie**
+- ✅ Nouveau endpoint `GET /api/astrocartographie/cities/search?q=xxx&limit=8` — proxy vers API v3 `/glossary/cities` (autocomplete mondial).
+- ✅ Frontend : champ input avec loupe + spinner + dropdown de résultats à côté des 12 suggestions. Debounce 350ms + normalisation lat/lng pour dedup avec le picker.
+- ✅ Testé : recherche "reykja" → "Reykjavík · IS", "tok" → "Tokyo · JP", etc. — instantané (<400ms).
+
+**Task 3 — Migration email_events**
+- ⚠️ Impossible d'appliquer le DDL via service_role (PostgREST bloque CREATE TABLE).
+- ✅ Le code `email_journal.py` échoue déjà silencieusement (log level `debug`, pas de warning intrusif).
+- 📋 SQL à copier-coller dans le SQL Editor Supabase (URL fournie à l'utilisateur) :
+  - `/app/supabase/email_events_migration.sql` (35 lignes)
+  - `/app/supabase/translation_cache_migration.sql` (12 lignes)
+
+
 ## 2026-02-11
 
 ### Session 8 — 🗺️ Nouveau produit : Astrocartographie 49€ (Où vivre ta meilleure vie)
