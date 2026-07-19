@@ -368,16 +368,21 @@ const ClientReviews = () => {
         <div className="text-center mt-10">
           <Link
             to="/buy-credits"
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-xs uppercase transition-all hover:scale-[1.02]"
+            className="inline-flex items-center gap-2 px-6 sm:px-7 py-3 rounded-full transition-all hover:scale-[1.02] whitespace-nowrap"
             style={{
               background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
-              color: '#0C0918', letterSpacing: '0.2em', fontWeight: 700,
+              color: '#0C0918',
+              fontSize: 'clamp(0.68rem, 0.85vw, 0.75rem)',
+              letterSpacing: '0.18em',
+              fontWeight: 700,
+              textTransform: 'uppercase',
               boxShadow: '0 12px 40px rgba(212,175,55,0.30)',
               border: 'none', cursor: 'pointer', textDecoration: 'none',
             }}
             data-testid="reviews-cta-btn">
             <Sparkles style={{ width: 14, height: 14 }} strokeWidth={2} />
-            Commencer à partir de 7,99 €
+            <span className="sm:hidden">Commencer à 7,99 €</span>
+            <span className="hidden sm:inline">Commencer à partir de 7,99 €</span>
             <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
           </Link>
         </div>
@@ -394,7 +399,7 @@ const Index = () => {
   const [showQuickOracle, setShowQuickOracle] = useState(false);
 
   return (
-    <div className="relative" style={{ overflow: 'hidden' }}>
+    <div className="relative" style={{ overflow: 'hidden', background: '#0C1120' }}>
       <SEO path="/" />
       <CosmicCanvas />
       {showQuickOracle ? (
@@ -429,7 +434,7 @@ const Index = () => {
       <section
         className="py-20 md:py-24 px-6 relative z-10"
         style={{
-          background: 'radial-gradient(ellipse at center top, rgba(212,175,55,0.08) 0%, transparent 60%), linear-gradient(180deg, #0C0918 0%, #100926 100%)',
+          background: 'radial-gradient(ellipse at center top, rgba(212,175,55,0.06) 0%, transparent 60%), #0C1120',
           borderTop: '1px solid rgba(212,175,55,0.15)',
         }}
         data-testid="final-cta-block"
@@ -463,14 +468,14 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 flex-wrap">
             <Link
               to="/inscription"
-              className="group relative px-8 py-4 overflow-hidden rounded-full transition-all duration-300 hover:scale-105"
+              className="group relative px-6 sm:px-8 py-4 overflow-hidden rounded-full transition-all duration-300 hover:scale-105 max-w-[90vw]"
               style={{
                 background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
                 color: '#0A0603',
                 fontFamily: 'Cinzel, sans-serif',
                 fontWeight: 700,
-                fontSize: 'clamp(0.85rem, 1vw, 0.95rem)',
-                letterSpacing: '0.12em',
+                fontSize: 'clamp(0.72rem, 0.95vw, 0.95rem)',
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 border: 'none',
                 cursor: 'pointer',
@@ -481,26 +486,27 @@ const Index = () => {
               }}
               data-testid="final-cta-primary"
             >
-              Créer mon compte · 20 crédits offerts
+              <span className="sm:hidden">Mon compte · 20 crédits</span>
+              <span className="hidden sm:inline">Créer mon compte · 20 crédits offerts</span>
             </Link>
             <Link
               to="/buy-credits"
-              className="inline-flex items-center gap-2 transition-all hover:opacity-100"
+              className="inline-flex items-center gap-2 transition-all hover:opacity-100 whitespace-nowrap"
               style={{
                 color: '#E8C766',
                 fontFamily: 'Cinzel, sans-serif',
-                fontSize: 12,
-                letterSpacing: '0.18em',
+                fontSize: 'clamp(0.68rem, 0.75vw, 0.75rem)',
+                letterSpacing: '0.15em',
                 textTransform: 'uppercase',
                 textDecoration: 'none',
                 opacity: 0.75,
                 borderBottom: '1px solid rgba(232,199,102,0.3)',
                 paddingBottom: 4,
-                whiteSpace: 'nowrap',
               }}
               data-testid="final-cta-secondary"
             >
-              Ou recharger dès 7,99 € →
+              <span className="sm:hidden">Recharger dès 7,99 € →</span>
+              <span className="hidden sm:inline">Ou recharger dès 7,99 € →</span>
             </Link>
           </div>
 
