@@ -37,6 +37,20 @@ const CosmicCanvas = () => {
         ? `rgba(196,181,253,${0.5 + Math.random() * 0.4})`
         : `rgba(255,255,255,${0.4 + Math.random() * 0.4})`,
     }));
+    // Etoiles filantes (shooting stars)
+    let shootingStars = [];
+    const spawnShootingStar = () => {
+      const startX = Math.random() * canvas.width;
+      const startY = Math.random() * canvas.height * 0.5;
+      shootingStars.push({
+        x: startX, y: startY,
+        len: 80 + Math.random() * 120,
+        speed: 6 + Math.random() * 6,
+        angle: Math.PI / 4,
+        alpha: 1,
+      });
+    };
+    let lastSpawn = 0;
 
     let raf;
     const draw = () => {
@@ -48,6 +62,29 @@ const CosmicCanvas = () => {
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fillStyle = s.hue.replace(/[\d.]+\)$/, `${alpha.toFixed(2)})`);
         ctx.fill();
+      });
+      // Dessin des etoiles filantes
+      const now = performance.now();
+      if (now - lastSpawn > 2200 + Math.random() * 2600) {
+        spawnShootingStar();
+        lastSpawn = now;
+      }
+      shootingStars = shootingStars.filter((m) => m.alpha > 0);
+      shootingStars.forEach((m) => {
+        const dx = Math.cos(m.angle) * m.len;
+        const dy = Math.sin(m.angle) * m.len;
+        const grad = ctx.createLinearGradient(m.x, m.y, m.x - dx, m.y - dy);
+        grad.addColorStop(0, `rgba(255,255,255,${m.alpha})`);
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(m.x, m.y);
+        ctx.lineTo(m.x - dx, m.y - dy);
+        ctx.stroke();
+        m.x += Math.cos(m.angle) * m.speed;
+        m.y += Math.sin(m.angle) * m.speed;
+        m.alpha -= 0.012;
       });
       raf = requestAnimationFrame(draw);
     };
@@ -92,7 +129,7 @@ const SolenaJourney = () => {
   return (
     <section className="relative py-12 md:py-16 px-4 z-10" data-testid="home-solena-section"
       style={{
-        background: '#0C1120',
+        background: 'rgba(12, 17, 32, 0.55)',
       }}>
       <div className="max-w-6xl mx-auto">
 
