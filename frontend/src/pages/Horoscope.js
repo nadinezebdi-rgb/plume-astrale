@@ -205,11 +205,12 @@ const Horoscope = () => {
               {userData.prenom ? `${userData.prenom}, ` : ''}découvrez ce que les astres vous réservent
             </p>
 
-              <p className="text-lg text-[#B8B0C8]/70 font-light">
-              {userData.prenom ? `${userData.prenom}, ` : ''}découvrez ce que les astres...
-            </p>
-
-            {/* Planetary positions from Astrology API */}
+{/* Scene 3D cosmique */}
+            <div style={{ position: 'relative', width: '100%', height: '460px', margin: '2rem auto' }}>
+              <Suspense fallback={null}>
+                              <HoroscopeCosmos3D signe={userSign} />
+              </Suspense>
+              </div>
             {/* Planetary positions from Astrology API */}
             {natalData && (
               <div className="mt-4 flex flex-wrap justify-center gap-3">
