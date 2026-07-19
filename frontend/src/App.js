@@ -68,7 +68,15 @@ import NoiseOverlay from "./components/design/NoiseOverlay";
 import Starfield from "./components/design/Starfield";
 import MobileTabBar from "./components/design/MobileTabBar";
 import AuraProvider from "./components/design/AuraProvider";
+import Starfield from "./components/design/Starfield";
+import ShootingStars from "./components/design/ShootingStars";   //
 
+{/* ─── Overlays globaux Plume Design System v2 ─── */}
+<Starfield />
+<ShootingStars />        
+<NoiseOverlay />
+<MobileTabBar />
+  
 function App() {
   return (
     <AuthProvider>
