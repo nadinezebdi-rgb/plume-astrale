@@ -1,5 +1,15 @@
 # CHANGELOG - Plume Astrale
 
+
+## 2026-02-10
+
+### Session 7 — Image Kabbale + Cleanup Premium résiduels
+- **🌳 Image sacrée insérée sur `/kabbale`** : ajout d'une section visuelle "Arbre de Vie" entre le hero et les features. Image WebP 1.2MB de l'artifact utilisateur (arbre kabbalistique avec 10 Sephiroth et lettres hébraïques). Cadre à bordure dorée, glow radial en arrière-plan, vignette overlay, caption Cinzel doré "✦ Les 10 Sephiroth · Les 22 Chemins ✦". Fichier : `frontend/src/pages/KabbaleSales.js` (data-testid `kabbale-tree-image`).
+- **🧹 Cleanup Premium/Abonnement résiduels** :
+  - `Tarot.js` : suppression de `isPremium`/`is_premium`, remplacé par gate d'authentification simple. CTA "Découvrir Premium" remplacé par "Créer un compte gratuit" avec message "20 crédits offerts à l'inscription". (Note : ce fichier est du code mort — /tarot redirige vers /outils/tarot/TirageTarot).
+  - `CercleSales.js` : CTA "Rejoindre le Cercle — 14,90€/mois" → "Rejoindre le Cercle avec un pack de crédits" pointant vers `/acheter-credits`. FAQ mise à jour ("Comment fonctionnent les crédits ?").
+- **✅ Lint** : 0 erreur sur les 3 fichiers modifiés.
+
 ## 2026-02-09
 
 ### Session 6 — SafeEmptyState : fallback anti-page-blanche

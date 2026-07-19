@@ -19,7 +19,7 @@ const CercleSales = () => (
         plus de douceur, plus de toi.
       </p>
       <p style={{ fontSize: 13, color: '#D4AF37', marginTop: 16, letterSpacing: '0.1em' }}>
-        14,90€ / mois · sans engagement · annulable en 1 clic
+        Inclus dans tous les packs de crédits · sans engagement
       </p>
     </div>
 
@@ -68,15 +68,15 @@ const CercleSales = () => (
     {/* CTA principal */}
     <div style={{ textAlign: 'center', marginBottom: 40 }}>
       <Link
-        to="/premium"
+        to="/acheter-credits"
         className="plume-btn-primary"
         data-testid="cercle-cta-main"
       >
-        ✦ Rejoindre le Cercle — 14,90€/mois
+        ✦ Rejoindre le Cercle avec un pack de crédits
         <ArrowRight style={{ width: 16, height: 16 }} strokeWidth={2} />
       </Link>
       <p style={{ fontSize: 11, color: 'rgba(184,176,200,0.55)', marginTop: 12 }}>
-        7 jours offerts · paiement sécurisé Stripe
+        Accès rituels quotidiens · paiement sécurisé Stripe
       </p>
     </div>
 
@@ -86,7 +86,7 @@ const CercleSales = () => (
         Questions fréquentes
       </h2>
       {[
-        { q: "Comment annuler mon abonnement ?", a: "En 1 clic depuis Mon Compte → Abonnement. Aucun engagement, vous arrêtez quand vous voulez." },
+        { q: "Comment fonctionnent les crédits ?", a: "Chaque pack acheté vous donne accès au Cercle et à ses rituels. Les crédits vous servent pour vos analyses (thèmes, compatibilités, tarot approfondi). Aucun engagement." },
         { q: "L'astrologie prédit-elle vraiment l'avenir ?", a: "Non — et nous le disons clairement dans Notre cadre. Plume vous offre un langage symbolique pour mieux vous écouter, pas un manuel d'exécution." },
         { q: "Que se passe-t-il si j'oublie une journée ?", a: "Rien de grave. Un jour d'oubli par mois est offert automatiquement. Aucune notification culpabilisante." },
         { q: "Mon journal du soir est-il privé ?", a: "Strictement. Personne d'autre que vous n'y a accès. Aucun humain, aucun algorithme ne les lit." },

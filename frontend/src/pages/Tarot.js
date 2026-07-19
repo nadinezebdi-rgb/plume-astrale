@@ -45,10 +45,10 @@ const drawThree = () => {
 
 const Tarot = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [cards, setCards] = useState([]);
   const [revealed, setRevealed] = useState([]);
-  const isPremium = user?.is_premium;
+  const canReveal = isAuthenticated;
 
   useEffect(() => {
     setCards(drawThree());
@@ -56,7 +56,7 @@ const Tarot = () => {
   }, []);
 
   const reveal = (i) => {
-    if (!isPremium) return;
+    if (!canReveal) return;
     setRevealed(prev => prev.includes(i) ? prev : [...prev, i]);
   };
 
@@ -84,14 +84,14 @@ const Tarot = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
           {cards.map((card, i) => {
             const isRevealed = revealed.includes(i);
-            const canReveal = isPremium && !isRevealed;
+            const clickable = canReveal && !isRevealed;
             return (
               <div
                 key={i}
                 onClick={() => reveal(i)}
                 data-testid={`tarot-card-${i}`}
                 className={`card-mystical text-center transition-all min-h-[280px] flex flex-col ${
-                  canReveal ? 'cursor-pointer hover:border-[#D4AF37] hover:scale-[1.02]' : ''
+                  clickable ? 'cursor-pointer hover:border-[#D4AF37] hover:scale-[1.02]' : ''
                 } ${isRevealed ? 'border-[#D4AF37] glow-gold' : ''}`}
               >
                 <p className="text-[#D4AF37] uppercase tracking-[0.25em] text-xs mb-3">
@@ -131,7 +131,7 @@ const Tarot = () => {
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center">
-                    {isPremium ? (
+                    {canReveal ? (
                       <>
                         <div className="w-20 h-28 mx-auto mb-4 rounded-md border-2 border-[#D4AF37]/40 bg-gradient-to-b from-[#1a1432] to-[#111625] flex items-center justify-center">
                           <Sparkles className="w-7 h-7 text-[#D4AF37]/60" strokeWidth={1} />
@@ -141,7 +141,7 @@ const Tarot = () => {
                     ) : (
                       <>
                         <Lock className="w-7 h-7 mx-auto text-[#D4AF37]/60 mb-3" strokeWidth={1.4} />
-                        <p className="text-[#B8B0C8]/60 text-sm">Premium requis</p>
+                        <p className="text-[#B8B0C8]/60 text-sm">Connectez-vous pour révéler</p>
                       </>
                     )}
                   </div>
@@ -152,7 +152,7 @@ const Tarot = () => {
         </div>
 
         {/* Actions */}
-        {isPremium ? (
+        {canReveal ? (
           <div className="flex flex-col sm:flex-row justify-center gap-3" data-testid="tarot-actions">
             <button
               onClick={reshuffle}
@@ -170,27 +170,19 @@ const Tarot = () => {
             </button>
           </div>
         ) : (
-          <div className="card-mystical max-w-md mx-auto text-center" data-testid="tarot-premium-gate">
+          <div className="card-mystical max-w-md mx-auto text-center" data-testid="tarot-signup-gate">
             <Lock className="w-8 h-8 mx-auto text-[#D4AF37] mb-3" strokeWidth={1.3} />
             <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
-              Réservé aux membres Premium
+              Créez votre compte pour révéler
             </h3>
             <p className="text-[#B8B0C8]/60 text-sm mb-5 font-light">
-              7 jours d'essai gratuit — annulable à tout moment.
+              20 crédits offerts à l&apos;inscription pour explorer votre thème natal.
             </p>
-            {isAuthenticated ? (
-              <button onClick={() => navigate('/premium')}
-                className="btn-mystical-filled rounded-full px-6 py-2.5 inline-flex items-center gap-2"
-                data-testid="btn-premium">
-                <Sparkles className="w-4 h-4" /> Découvrir Premium
-              </button>
-            ) : (
-              <button onClick={() => navigate('/inscription?next=/tarot')}
-                className="btn-mystical-filled rounded-full px-6 py-2.5 inline-flex items-center gap-2"
-                data-testid="btn-signup">
-                Créer un compte <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
+            <button onClick={() => navigate('/inscription?next=/tarot')}
+              className="btn-mystical-filled rounded-full px-6 py-2.5 inline-flex items-center gap-2"
+              data-testid="btn-signup">
+              Créer un compte gratuit <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         )}
       </div>
