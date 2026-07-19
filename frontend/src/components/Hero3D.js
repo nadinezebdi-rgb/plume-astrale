@@ -264,7 +264,7 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
         >
           En 3 minutes,
           <br />
-          ton portrait karmique amoureux <em style={{ fontStyle: 'italic', color: '#E8C766' }}>— gratuit</em>.
+          comprends ce qui se joue dans ta <em style={{ fontStyle: 'italic', color: '#E8C766' }}>vie amoureuse</em>.
         </h2>
 
         {/* Sous-texte */}
@@ -282,29 +282,32 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
           }}
           data-testid="hero-subheadline"
         >
-          Découvre en 3 minutes pourquoi tu attires les mêmes partenaires — et comment couper le schéma.
+          20 crédits offerts à l&apos;inscription — pose tes premières questions à Soléna, tire tes cartes, découvre tes cycles d&apos;amour.
         </p>
 
-        {/* CTA Principal */}
-        <button
-          onClick={() => setShowModal(true)}
+        {/* CTA Principal — dirige vers /inscription (20 crédits offerts) */}
+        <Link
+          to="/inscription"
           className="group relative px-8 py-4 overflow-hidden rounded-full transition-all duration-300 hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D4AF37]"
           style={{
             background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
             color: '#0A0603',
             fontFamily: 'Cinzel, sans-serif',
             fontWeight: 700,
-            fontSize: 'clamp(0.95rem, 1.1vw, 1.1rem)',
-            letterSpacing: '0.12em',
+            fontSize: 'clamp(0.85rem, 1.05vw, 1.05rem)',
+            letterSpacing: '0.1em',
             textTransform: 'uppercase',
             border: 'none',
             cursor: 'pointer',
             boxShadow: '0 0 40px rgba(212,175,55,0.5)',
+            textDecoration: 'none',
+            display: 'inline-block',
+            whiteSpace: 'nowrap',
           }}
           data-testid="hero-cta-button"
         >
           <span style={{ position: 'relative', zIndex: 2 }}>
-            Recevoir mon portrait gratuit
+            Créer mon compte · 20 crédits offerts
           </span>
           <div
             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -313,7 +316,7 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
               animation: 'pulse 2s ease-in-out infinite',
             }}
           />
-        </button>
+        </Link>
 
         {/* Trust strip — étoiles + preuve sociale */}
         <div

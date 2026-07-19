@@ -456,37 +456,33 @@ const Index = () => {
             margin: '0 auto 36px',
             lineHeight: 1.7,
           }}>
-            Ton portrait karmique amoureux gratuit t&apos;attend. Trois minutes, une lecture précise, aucun engagement.
+            20 crédits offerts à l&apos;inscription — de quoi tester Soléna, tirer tes cartes et voir tes cycles d&apos;amour, sans rien payer.
           </p>
 
-          {/* Duo CTA — primaire (lead magnet) + secondaire (crédits) */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-            <button
-              onClick={() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                // Attendre le scroll puis ouvrir la modale Hero3D
-                setTimeout(() => {
-                  const btn = document.querySelector('[data-testid="hero-cta-button"]');
-                  if (btn) btn.click();
-                }, 700);
-              }}
+          {/* Duo CTA — primaire (inscription 20 crédits) + secondaire (crédits payants) */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 flex-wrap">
+            <Link
+              to="/inscription"
               className="group relative px-8 py-4 overflow-hidden rounded-full transition-all duration-300 hover:scale-105"
               style={{
                 background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
                 color: '#0A0603',
                 fontFamily: 'Cinzel, sans-serif',
                 fontWeight: 700,
-                fontSize: 'clamp(0.9rem, 1.1vw, 1rem)',
-                letterSpacing: '0.15em',
+                fontSize: 'clamp(0.85rem, 1vw, 0.95rem)',
+                letterSpacing: '0.12em',
                 textTransform: 'uppercase',
                 border: 'none',
                 cursor: 'pointer',
                 boxShadow: '0 8px 40px rgba(212,175,55,0.4)',
+                textDecoration: 'none',
+                display: 'inline-block',
+                whiteSpace: 'nowrap',
               }}
               data-testid="final-cta-primary"
             >
-              Recevoir mon portrait gratuit →
-            </button>
+              Créer mon compte · 20 crédits offerts
+            </Link>
             <Link
               to="/buy-credits"
               className="inline-flex items-center gap-2 transition-all hover:opacity-100"
@@ -500,10 +496,11 @@ const Index = () => {
                 opacity: 0.75,
                 borderBottom: '1px solid rgba(232,199,102,0.3)',
                 paddingBottom: 4,
+                whiteSpace: 'nowrap',
               }}
               data-testid="final-cta-secondary"
             >
-              Ou commencer à 7,99 € →
+              Ou recharger dès 7,99 € →
             </Link>
           </div>
 
