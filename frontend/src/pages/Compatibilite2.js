@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Loader2, ArrowLeft, Sparkles, Download, Star, Users, Tag, MessageCircle, Coins, LogIn, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -89,7 +89,7 @@ const PersonForm = ({ person, onChange, label, num }) => (
 
 const Compatibilite2 = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, token, creditBalance, refreshBalance } = useAuth();
+  const { isAuthenticated, user, token, creditBalance, refreshBalance } = useAuth();
   const [step, setStep] = useState(0); // 0: auth gate, 1-4: existing steps
   const [loading, setLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
@@ -108,6 +108,26 @@ const Compatibilite2 = () => {
     hour: '12', minute: '0',
     place: 'Paris, France', lat: 48.8566, lon: 2.3522, timezone: 1.0,
   });
+
+    // Pré-remplir le Partenaire 1 avec le profil de l'utilisateur connecté
+    useEffect(() => {
+          if (!isAuthenticated || !user || !user.birth_date) return;
+          const [year, month, day] = (user.birth_date || '').split('-');
+          const [hour, minute] = (user.birth_time || '12:00').split(':');
+          setPerson1((prev) => ({
+                  ...prev,
+                  first_name: user.prenom || prev.first_name,
+                  gender: user.gender || prev.gender,
+                  day: day || prev.day,
+                  month: month ? String(parseInt(month, 10)) : prev.month,
+                  year: year || prev.year,
+                  hour: hour ? String(parseInt(hour, 10)) : prev.hour,
+                  minute: minute ? String(parseInt(minute, 10)) : prev.minute,
+                  place: user.birth_place
+                            ? `${user.birth_place}${user.birth_country ? ', ' + user.birth_country : ''}`
+                            : prev.place,
+          }));
+    }, [isAuthenticated, user]);
 
   const [person2, setPerson2] = useState({
     first_name: '', last_name: '', gender: 'female',
