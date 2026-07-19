@@ -222,9 +222,9 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
           }}
         />
         {/* Moon3D rendu par-dessus le halo */}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-          <Suspense fallback={null}>
-            <Moon3D />
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, filter: 'drop-shadow(0 30px 45px rgba(0,0,0,0.65)) drop-shadow(0 8px 18px rgba(0,0,0,0.45))' }}>          <Suspense fallback={null}>
+                    <Suspense fallback={null}>
+        <Moon3D />
           </Suspense>
         </div>
       </div>
@@ -243,8 +243,7 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
         className="relative z-10 flex flex-col items-center justify-center text-center px-4"
         style={{
           minHeight: '100vh',
-          paddingTop: 'clamp(80px, 11vh, 130px)',
-          paddingBottom: 'clamp(16px, 2.5vh, 32px)',
+        paddingTop: 'clamp(200px, 30vh, 340px)',          paddingBottom: 'clamp(16px, 2.5vh, 32px)',
         }}
       >
         {/* Titre Principal */}
@@ -262,28 +261,8 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
           }}
           data-testid="hero-headline"
         >
-          Cessez de deviner ses sentiments.
-          <br />
           Obtenez des réponses claires.
         </h2>
-
-        {/* Sous-texte */}
-        <p
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: 'clamp(0.95rem, 1.3vw, 1.1rem)',
-            fontWeight: 300,
-            lineHeight: 1.7,
-            color: '#CBD5E1',
-            textShadow: '0 2px 20px rgba(0,0,0,0.9)',
-            maxWidth: 580,
-            marginBottom: 32,
-            fontStyle: 'italic',
-          }}
-          data-testid="hero-subheadline"
-        >
-          Soléna décode les énergies de votre relation pour vous dire exactement où vous allez.
-        </p>
 
         {/* CTA Principal */}
         <button
