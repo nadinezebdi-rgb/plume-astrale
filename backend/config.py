@@ -96,6 +96,16 @@ class Settings:
             'product': 'kabbale_arbre_de_vie',
             'tagline': "Les 10 Sephiroth + 22 chemins de ton theme natal — PDF 15 pages unique en francais.",
         },
+        'astrocartographie': {
+            'name': 'Astrocartographie — Où vivre ta meilleure vie',
+            'credits': 0,
+            'bonus': 0,
+            'amount': 49.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'astrocartographie',
+            'tagline': "Carte du monde de tes lignes planétaires + analyse de 3 villes que tu choisis + 2 destinations bonus recommandées par Soléna — PDF ~18 pages.",
+        },
         'numerologie_code': {
             'name': 'Ton Code Numérologique',
             'credits': 0,   # one-shot

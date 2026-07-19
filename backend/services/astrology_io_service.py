@@ -1175,14 +1175,45 @@ async def energy_cycles(birth_data: Dict[str, Any], name: str = 'Voyageur', lang
 # ════════ ASTROCARTOGRAPHIE (Ultra+ requis) ════════
 
 async def astrocartography(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
-    """Astrocartographie — zones de puissance planétaire dans le monde."""
+    """Astrocartographie — SVG monde + toutes les lignes planétaires (MC/IC/AC/DC)."""
     return await _call('/astrocartography/map', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
     })
 
+async def astrocartography_lines(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Astrocartographie — lignes planétaires brutes (data seule, sans SVG)."""
+    return await _call('/astrocartography/lines', {
+        'subject': make_subject(name, birth_data),
+        'options': {'language': language},
+    })
+
+async def astrocartography_location_analysis(birth_data: Dict[str, Any], location: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Analyse détaillée d'une ville : nearby_lines, life_area_ratings, planetary_influences."""
+    return await _call('/astrocartography/location-analysis', {
+        'subject': make_subject(name, birth_data),
+        'location': location,
+        'options': {'language': language},
+    })
+
+async def astrocartography_compare_locations(birth_data: Dict[str, Any], locations: list, name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Comparaison côte-à-côte de plusieurs villes (scores par domaine de vie)."""
+    return await _call('/astrocartography/compare-locations', {
+        'subject': make_subject(name, birth_data),
+        'locations': locations,
+        'options': {'language': language},
+    })
+
+async def astrocartography_relocation_chart(birth_data: Dict[str, Any], location: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
+    """Thème natal recalculé pour une ville de relocation (nouveaux ASC/MC/maisons)."""
+    return await _call('/astrocartography/relocation-chart', {
+        'subject': make_subject(name, birth_data),
+        'location': location,
+        'options': {'language': language},
+    })
+
 async def astrocartography_city(birth_data: Dict[str, Any], city: str, country_code: str = 'FR', name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
-    """Analyse astrocartographique pour une ville spécifique."""
+    """[DEPRECATED — utiliser astrocartography_location_analysis] Analyse pour une ville spécifique."""
     return await _call('/astrocartography/city', {
         'subject': make_subject(name, birth_data),
         'city': city,
@@ -1191,7 +1222,7 @@ async def astrocartography_city(birth_data: Dict[str, Any], city: str, country_c
     })
 
 async def relocation_scores(birth_data: Dict[str, Any], cities: list, name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
-    """Scores de relocation (carrière, amour, lifestyle) pour plusieurs villes."""
+    """[DEPRECATED — utiliser astrocartography_compare_locations] Scores multi-villes."""
     return await _call('/astrocartography/relocation-scores', {
         'subject': make_subject(name, birth_data),
         'cities': cities,

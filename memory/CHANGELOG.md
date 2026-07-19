@@ -1,6 +1,50 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-11
+
+### Session 8 — 🗺️ Nouveau produit : Astrocartographie 49€ (Où vivre ta meilleure vie)
+
+**Architecture (mirror Kabbale 39€) — pipeline validé E2E**
+- ✅ **Endpoints API v3** : ajout de 5 helpers dans `services/astrology_io_service.py` :
+  - `astrocartography(bd)` → SVG monde 1200×600 + lignes MC/IC/AC/DC des 10 planètes
+  - `astrocartography_lines(bd)` → data JSON brute
+  - `astrocartography_location_analysis(bd, location)` → analyse détaillée par ville (life_area_ratings, nearby_lines, planetary_influences)
+  - `astrocartography_compare_locations(bd, locations)` → scores comparés multi-villes
+  - `astrocartography_relocation_chart(bd, location)` → nouveaux ASC/MC/maisons relocalisés
+- ✅ **IA Soléna (OpenAI GPT-5.4 via EMERGENT_LLM_KEY)** : `services/astrocartographie_ai.py` — 3 fonctions :
+  - `enrich_city_analysis()` : traduit l'anglais brut de l'API en 7 sections FR poétiques (headline, ambiance, career, love, spirituality, body, advice)
+  - `generate_bonus_destinations()` : Soléna choisit 2 villes surprises adaptées au thème natal (avec coords lat/lng)
+  - `write_synthesis()` : rédaction de la synthèse finale (300-400 mots)
+- ✅ **PDF ReportLab** : `services/astrocartographie_pdf.py` — 18 pages :
+  - Couverture + Introduction (astrocartographie expliquée)
+  - Carte du monde (SVG API v3 converti en PNG via `cairosvg` 1600px)
+  - 3 villes choisies × 3 pages (titre+headline+ambiance / domaines de vie / conseil+lignes actives)
+  - 2 villes bonus × 2 pages (titre+ambiance / domaines de vie)
+  - Synthèse + Rituel d'ancrage + signature Soléna
+  - Balises `<b>`/`<i>` préservées via regex placeholder (comme kabbale_pdf)
+- ✅ **Orchestrateur** : `services/astrocartographie_service.py::handle_astrocartographie_webhook()` — fetch API v3 + enrich IA + PDF + email Resend + idempotence via `pdf_path` metadata.
+- ✅ **Route Stripe** : `routes/astrocartographie.py` — `POST /api/astrocartographie/checkout` (session live 49€ avec bypass promo ADMIN26) + `GET /api/astrocartographie/status` (polling).
+- ✅ **Config PACKS** : ajout `astrocartographie` (49€, kind=oneshot) dans `backend/config.py`.
+- ✅ **Webhook Stripe** : wire dans `server.py` (branche `if md.get('kind') == 'astrocartographie'`).
+
+**Frontend**
+- ✅ **Landing** `/astrocartographie` (`AstrocartographieSales.js`) : Hero "Où vivre ta meilleure vie ?" + 3 features + form 2 étapes (birth data + city picker 12 suggestions).
+- ✅ **Success page** `/astrocartographie/succes` (`AstrocartographieSucces.js`) : polling 3.5s, 5 étapes visuelles, bouton téléchargement PDF quand prêt.
+- ✅ **Navbar** : entrée "Astrocartographie · 49€" ajoutée dans le dropdown "💎 Rapports Prestige" (entre Pack Karmique 89€ et Kabbale 39€).
+
+**Dépendances installées**
+- `cairosvg` 2.9.0 (via `pycairo` + `libcairo2-dev`) — conversion SVG→PNG pour la carte du monde
+- `svglib` 2.0.2 — fallback
+
+**Validation E2E**
+- ✅ Génération PDF testée : `astrocarto_rto-37c2a3eae8f2.pdf` — 18 pages, 676KB, contenu FR poétique enrichi par GPT-5.4 (Bali, Marrakech, Lisbonne + Kyoto et Lisbonne bonus).
+- ✅ Checkout Stripe testé : `POST /api/astrocartographie/checkout` retourne `cs_live_...` valide.
+- ✅ Download PDF via `/api/assets/astrocartographie/` : HTTP 200, magic bytes `%PDF-1.4` OK.
+- ✅ Frontend : landing + form 2 étapes + city picker fonctionnels (Playwright screenshot confirmé).
+- ⚠️ Table `email_events` manquante en Supabase — non-bloquant (l'email part quand même via Resend), mais logging DB silencieux. Migration `email_events_migration.sql` à ré-appliquer côté Supabase.
+
+
 ## 2026-02-10
 
 ### Session 7 — Image Kabbale + Cleanup Premium résiduels

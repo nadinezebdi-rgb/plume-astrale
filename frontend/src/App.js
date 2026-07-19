@@ -20,6 +20,8 @@ import Numerologie from "./pages/Numerologie";
 import Archetype from "./pages/Archetype";
 import KabbaleSales from "./pages/KabbaleSales";
 import KabbaleSucces from "./pages/KabbaleSucces";
+import AstrocartographieSales from "./pages/AstrocartographieSales";
+import AstrocartographieSucces from "./pages/AstrocartographieSucces";
 import PackKarmique from "./pages/PackKarmique";
 import PackKarmiqueSucces from "./pages/PackKarmiqueSucces";
 import KarmaDestin from "./pages/KarmaDestin";
@@ -138,6 +140,8 @@ function App() {
                 <Route path="/resultats" element={<Resultats />} />
                 <Route path="/kabbale" element={<KabbaleSales />} />
                 <Route path="/kabbale/succes" element={<KabbaleSucces />} />
+                <Route path="/astrocartographie" element={<AstrocartographieSales />} />
+                <Route path="/astrocartographie/succes" element={<AstrocartographieSucces />} />
                 <Route path="/pack-karmique" element={<PackKarmique />} />
                 <Route path="/pack-karmique/succes" element={<PackKarmiqueSucces />} />
                 <Route path="/karma-destin" element={<KarmaDestin />} />
