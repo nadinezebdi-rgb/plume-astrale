@@ -38,6 +38,20 @@ const CosmicCanvas = () => {
         ? `rgba(196,181,253,${0.5 + Math.random() * 0.4})`
         : `rgba(255,255,255,${0.4 + Math.random() * 0.4})`,
     }));
+    // Etoiles filantes (shooting stars)
+    let shootingStars = [];
+    const spawnShootingStar = () => {
+      const startX = Math.random() * canvas.width;
+      const startY = Math.random() * canvas.height * 0.5;
+      shootingStars.push({
+        x: startX, y: startY,
+        len: 80 + Math.random() * 120,
+        speed: 6 + Math.random() * 6,
+        angle: Math.PI / 4,
+        alpha: 1,
+      });
+    };
+    let lastSpawn = 0;
 
     let raf;
     const draw = () => {
@@ -49,6 +63,29 @@ const CosmicCanvas = () => {
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fillStyle = s.hue.replace(/[\d.]+\)$/, `${alpha.toFixed(2)})`);
         ctx.fill();
+      });
+      // Dessin des etoiles filantes
+      const now = performance.now();
+      if (now - lastSpawn > 2200 + Math.random() * 2600) {
+        spawnShootingStar();
+        lastSpawn = now;
+      }
+      shootingStars = shootingStars.filter((m) => m.alpha > 0);
+      shootingStars.forEach((m) => {
+        const dx = Math.cos(m.angle) * m.len;
+        const dy = Math.sin(m.angle) * m.len;
+        const grad = ctx.createLinearGradient(m.x, m.y, m.x - dx, m.y - dy);
+        grad.addColorStop(0, `rgba(255,255,255,${m.alpha})`);
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(m.x, m.y);
+        ctx.lineTo(m.x - dx, m.y - dy);
+        ctx.stroke();
+        m.x += Math.cos(m.angle) * m.speed;
+        m.y += Math.sin(m.angle) * m.speed;
+        m.alpha -= 0.012;
       });
       raf = requestAnimationFrame(draw);
     };
@@ -91,14 +128,16 @@ const SolenaJourney = () => {
   };
 
   return (
-    <section className="relative py-24 md:py-32 px-4 z-10" data-testid="home-solena-section"
+    <section className="relative py-12 md:py-16 px-4 z-10" data-testid="home-solena-section"
       style={{
-        background: '#0C1120',
+        background: 'rgba(12, 17, 32, 0.55)',
       }}>
       <div className="max-w-6xl mx-auto">
 
         {/* === SOLENA SECTION — La voix de Plume Astrale === */}
         <div className="max-w-5xl mx-auto">
+          {/* Bloc "Votre vie change" deplace depuis le hero */}
+          <div style={{ maxWidth: 720, marginLeft: 'auto', marginRight: 'auto', marginBottom: 40, textAlign: 'center' }} data-testid="hero-positioning-text"><h2 style={{ fontFamily: 'Cinzel, Playfair Display, Cormorant Garamond, serif', fontWeight: 400, fontSize: 'clamp(1.2rem, 2.6vw, 1.85rem)', lineHeight: 1.25, letterSpacing: '0.02em', color: '#E8C766', textShadow: '0 2px 30px rgba(0,0,0,0.95)', marginBottom: 12 }}>Votre vie change. Comprenez pourquoi.</h2><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(0.9rem, 1.2vw, 1.05rem)', fontWeight: 300, lineHeight: 1.7, color: '#CBD5E1', textShadow: '0 2px 20px rgba(0,0,0,0.9)', margin: 0 }}>Découvrez les périodes qui favorisent l'amour, les opportunités et les grands tournants de votre parcours.</p></div>
           
           {/* Tagline + Header + Intro */}
           <div className="text-center mb-16">

