@@ -6,8 +6,7 @@ import Navbar from "./components/Navbar";
 import TrialBanner from "./components/TrialBanner";
 
 import Index from "./pages/Index";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
+import AuthPage from "./pages/AuthPage";
 import Tarot from "./pages/Tarot";
 import Formulaire from "./pages/Formulaire";
 import Apercu from "./pages/Apercu";
@@ -102,8 +101,8 @@ function App() {
             <>
               <Navbar />
               <Routes>
-                <Route path="/inscription" element={<Register />} />
-                <Route path="/connexion" element={<Login />} />
+                <Route path="/inscription" element={<AuthPage />} />
+                <Route path="/connexion" element={<AuthPage />} />
                 <Route path="/mon-accueil" element={<AuthenticatedHome />} />
                 <Route path="/formulaire" element={<Formulaire />} />
                 <Route path="/apercu" element={<Apercu />} />

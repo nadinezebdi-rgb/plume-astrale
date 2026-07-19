@@ -730,3 +730,17 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
 @media (prefers-reduced-motion: reduce) {
   .plume-shooting-star { animation: none; display: none; }
 }
+
+
+/* ── Formulaire auth unifié (connexion / inscription) ── */
+/* Transition douce entre les vues connexion / inscription / étapes */
+.auth-fade {
+  animation: authFade 0.45s ease both;
+}
+@keyframes authFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-fade { animation: none; }
+}
