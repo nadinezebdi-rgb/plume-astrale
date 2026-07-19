@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Sparkles, Heart } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
+import LibraryImage, { signFromDate } from '@/components/LibraryImage';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
@@ -457,21 +458,38 @@ const Formulaire = () => {
         <div className="relative z-10 flex flex-col justify-center px-6 md:px-8 py-12" style={{ minHeight: '100vh' }}>
           <div className="max-w-lg mx-auto w-full text-center">
             
-            {/* Icône de succès */}
+            {/* Glyphe zodiacal si date de naissance fournie, sinon icône de succès */}
             <div className="mb-8">
-              <div style={{
-                width: 60,
-                height: 60,
-                background: 'linear-gradient(135deg, rgba(184,150,31,0.2) 0%, rgba(232,199,102,0.1) 100%)',
-                border: '1px solid rgba(184,150,31,0.4)',
-                borderRadius: 12,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto',
-              }}>
-                <span style={{ fontSize: '1.8rem' }}>✓</span>
-              </div>
+              {(() => {
+                const s = signFromDate(formData.dateNaissance);
+                if (s) {
+                  return (
+                    <div style={{
+                      width: 96, height: 96,
+                      background: 'radial-gradient(circle, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.02) 100%)',
+                      border: '1px solid rgba(184,150,31,0.4)',
+                      borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      margin: '0 auto',
+                      boxShadow: '0 8px 40px rgba(212,175,55,0.2)',
+                    }}>
+                      <LibraryImage type="sign" name={s} size={64} alt={`Signe ${s}`} />
+                    </div>
+                  );
+                }
+                return (
+                  <div style={{
+                    width: 60, height: 60,
+                    background: 'linear-gradient(135deg, rgba(184,150,31,0.2) 0%, rgba(232,199,102,0.1) 100%)',
+                    border: '1px solid rgba(184,150,31,0.4)',
+                    borderRadius: 12,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto',
+                  }}>
+                    <span style={{ fontSize: '1.8rem' }}>✓</span>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Message */}

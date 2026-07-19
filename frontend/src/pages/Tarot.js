@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Star, RefreshCw, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import LibraryImage from '@/components/LibraryImage';
 
 const TAROT_DECK = [
   { name: 'Le Bateleur', meaning: 'Nouveau départ, potentiel à révéler.', advice: 'Passez à l\'action avec confiance.', element: 'Feu' },
@@ -99,7 +100,22 @@ const Tarot = () => {
 
                 {isRevealed ? (
                   <div className="flex-1 flex flex-col">
-                    <Star className="w-8 h-8 mx-auto text-[#D4AF37] mb-3" strokeWidth={1.2} />
+                    {/* Image de la carte (bibliothèque Supabase, srcSet responsive) */}
+                    <div className="mx-auto mb-3" style={{
+                      width: 140, height: 200,
+                      borderRadius: 8,
+                      overflow: 'hidden',
+                      border: '2px solid rgba(212,175,55,0.55)',
+                      boxShadow: '0 8px 32px rgba(212,175,55,0.25)',
+                    }}>
+                      <LibraryImage
+                        type="tarot"
+                        name={card.name}
+                        size={200}
+                        alt={card.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </div>
                     <h3 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
                       {card.name}
                     </h3>

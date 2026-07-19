@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Coins, Sparkles, Star, Zap, ArrowRight, Shield, Tag, Loader2, MessageCircle, Moon } from 'lucide-react';
 import axios from 'axios';
+import LibraryImage, { signFromDate } from '@/components/LibraryImage';
 import SEO from '@/components/SEO';
 import ServicesEquivalence from '@/components/ServicesEquivalence';
 
@@ -141,7 +142,8 @@ const SERVICE_COSTS = [
 ];
 
 export default function BuyCredits() {
-  const { isAuthenticated, token, creditBalance, loading: authLoading } = useAuth();
+  const { isAuthenticated, token, creditBalance, loading: authLoading, user } = useAuth();
+  const userSign = signFromDate(user?.birth_date);
   const navigate = useNavigate();
   const [loadingPack, setLoadingPack] = useState(null);
 
@@ -184,7 +186,11 @@ export default function BuyCredits() {
 
         <div className="text-center mb-4">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <Coins className="w-6 h-6" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
+            {userSign ? (
+              <LibraryImage type="sign" name={userSign} size={40} alt={`Signe ${userSign}`} />
+            ) : (
+              <Coins className="w-6 h-6" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
+            )}
             <h1
               className="text-3xl sm:text-4xl"
               style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}
@@ -193,7 +199,7 @@ export default function BuyCredits() {
             </h1>
           </div>
           <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>
-            Votre solde actuel :
+            {userSign && <>Bonjour <span style={{ color: '#D4AF37' }}>{userSign}</span> · </>}Votre solde actuel :
             <span style={{ color: '#D4AF37', fontWeight: 600 }} data-testid="current-balance">
               {' '}{creditBalance} credits
             </span>

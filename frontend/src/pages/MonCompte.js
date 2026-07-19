@@ -10,6 +10,7 @@ import axios from 'axios';
 import SEO from '@/components/SEO';
 import PageHero from '@/components/PageHero';
 import NatalDataModal from '@/components/NatalDataModal';
+import LibraryImage from '@/components/LibraryImage';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -595,18 +596,24 @@ const MonCompte = () => {
 
           {/* ── En-tête profil ── */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-10">
-            {/* Avatar initiales */}
+            {/* Avatar : glyphe zodiacal si date de naissance connue, sinon initiales */}
             <div
-              className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 text-xl"
+              className="w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 text-xl"
               style={{
                 background: 'linear-gradient(135deg, rgba(212,175,55,0.2) 0%, rgba(167,139,250,0.15) 100%)',
                 border: '1px solid rgba(212,175,55,0.35)',
                 fontFamily: 'Cormorant Garamond, serif',
                 color: 'var(--pa-accent)',
                 fontWeight: 300,
+                boxShadow: '0 4px 20px rgba(212,175,55,0.15)',
               }}
+              data-testid="account-avatar"
             >
-              {profil?.email ? profil.email[0].toUpperCase() : <User className="w-6 h-6" strokeWidth={1} />}
+              {zodiac?.signe ? (
+                <LibraryImage type="sign" name={zodiac.signe} size={56} alt={`Signe ${zodiac.signe}`} />
+              ) : (
+                profil?.email ? profil.email[0].toUpperCase() : <User className="w-6 h-6" strokeWidth={1} />
+              )}
             </div>
 
             <div className="flex-1">
