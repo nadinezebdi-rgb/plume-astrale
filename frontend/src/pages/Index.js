@@ -4,6 +4,7 @@ import Hero3D from '../components/Hero3D';
 import SolenaChat from '../components/SolenaChat';
 import QuickOracle from '../components/QuickOracle';
 import HomeCreditPacks from '../components/HomeCreditPacks';
+import SolenaVideoHero from '../components/SolenaVideoHero';
 import StarsAndClouds from '../components/StarsAndClouds';
 import {
   Sparkles, Heart, ArrowRight, Quote, CheckCircle2, Play, Star
@@ -171,22 +172,13 @@ const SolenaJourney = () => {
               {SOLENA.bio_short}
             </p>
 
-            {/* Portrait */}
+            {/* Vidéo de bienvenue de Soléna — autoplay muted + overlay unmute (pattern Instagram) */}
             <div className="mb-16 flex justify-center">
               <div style={{ maxWidth: '380px', width: '100%' }}>
-                <img src={SOLENA.portrait} alt="Portrait de Solena — astrologue"
-                  loading="lazy"
-                  style={{
-                    width: '100%',
-                    height: 'auto',
-                    aspectRatio: '9/16',
-                    objectFit: 'cover',
-                    objectPosition: 'center 20%',
-                    borderRadius: '16px',
-                    border: '2px solid rgba(212,175,55,0.35)',
-                    boxShadow: '0 40px 100px rgba(212,175,55,0.15)',
-                    display: 'block',
-                  }} />
+                <SolenaVideoHero
+                  src="https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/7y6nc0gl_Bienvenue%20sur%20Plume%20Astrale_1080p.mp4"
+                  poster={SOLENA.portrait}
+                />
               </div>
             </div>
           </div>
