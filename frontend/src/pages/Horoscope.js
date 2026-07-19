@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
 import { Sun, Moon, Star, Heart, Briefcase, Activity, Coins, RefreshCw, Loader2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import NatalCompletionPrompt from '@/components/NatalCompletionPrompt';
 import { TransitsToday } from '@/pages/RevolutionSolaire';
+const HoroscopeCosmos3D = lazy(() => import('@/components/HoroscopeCosmos3D'));
 
 const periodMap = { jour: 'daily', semaine: 'weekly', mois: 'monthly' };
 
@@ -204,6 +205,11 @@ const Horoscope = () => {
               {userData.prenom ? `${userData.prenom}, ` : ''}découvrez ce que les astres vous réservent
             </p>
 
+              <p className="text-lg text-[#B8B0C8]/70 font-light">
+              {userData.prenom ? `${userData.prenom}, ` : ''}découvrez ce que les astres...
+            </p>
+
+            {/* Planetary positions from Astrology API */}
             {/* Planetary positions from Astrology API */}
             {natalData && (
               <div className="mt-4 flex flex-wrap justify-center gap-3">
