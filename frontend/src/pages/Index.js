@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Hero3D from '../components/Hero3D';
 import SolenaChat from '../components/SolenaChat';
 import QuickOracle from '../components/QuickOracle';
+import HomeCreditPacks from '../components/HomeCreditPacks';
 import StarsAndClouds from '../components/StarsAndClouds';
 import {
   Sparkles, Heart, ArrowRight, Quote, CheckCircle2, Play, Star
@@ -167,7 +168,7 @@ const SolenaJourney = () => {
               maxWidth: '800px',
               margin: '0 auto 28px',
             }}>
-              Je suis Solena, ta guide chez Plume Astrale. Depuis plus de quinze ans, je décode les cartes du ciel pour aider les âmes à comprendre leur trajectoire et leurs cycles d&apos;amour.
+              {SOLENA.bio_short}
             </p>
 
             {/* Portrait */}
@@ -217,39 +218,9 @@ const SolenaJourney = () => {
             </div>
           </div>
 
-          {/* === MES SPÉCIALITÉS === */}
-          <div className="mb-24">
-            <div className="text-center mb-12">
-              <p className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.3em', marginBottom: 12, fontWeight: 400 }}>
-                Mes spécialités
-              </p>
-              <h3 style={{
-                fontFamily: 'Cormorant Garamond, serif',
-                fontWeight: 200,
-                fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
-                color: '#F4E8D2',
-                lineHeight: 1.2,
-              }}>
-                Six voies pour <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>t&apos;éclairer</em>
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
-              {SOLENA.specialities.map((s, i) => (
-                <div key={i}
-                  className="rounded-2xl p-6 transition-all hover:scale-[1.02]"
-                  style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(212,175,55,0.25)',
-                    backdropFilter: 'blur(12px)',
-                  }}>
-                  <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1rem', color: 'rgba(244,232,210,0.9)', lineHeight: 1.6 }}>
-                    {s}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* === MES SPÉCIALITÉS === (retiré — dilution du positionnement.
+                Les 6 services restent accessibles via le menu.
+                Remplacé par la section HomeCreditPacks juste après cette section.) */}
 
         </div>
 
@@ -487,6 +458,7 @@ const Index = () => {
           <Hero3D />
         </>
       )}
+      <HomeCreditPacks />
       <SolenaJourney />
       <ClientReviews />
 

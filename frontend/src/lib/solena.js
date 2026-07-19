@@ -6,12 +6,12 @@ export const SOLENA = {
   title: 'Astrologue & guide spirituelle',
   tagline: 'La voix de Plume Astrale',
   bio_short:
-    "Je suis Solena, ta guide chez Plume Astrale. Depuis plus de quinze ans, je décode les cartes du ciel pour aider les âmes à comprendre leur trajectoire et leurs cycles d'amour.",
+    "Tu revis les mêmes schémas amoureux ? Tu attires des relations qui te blessent ? Il y a quinze ans, j'ai passé six mois à décoder mon propre ciel pour comprendre pourquoi. Aujourd'hui, j'ai fait le même travail pour plus de 2 000 personnes. La prochaine ? Toi.",
   bio_long: [
-    "Astrologue, tarologue et médium formée par la tradition, j'ai passé les quinze dernières années à écouter, décoder et accompagner celles et ceux qui cherchent à comprendre ce que les étoiles murmurent.",
-    "Ma méthode est holistique : je considère l'humain dans sa totalité — esprit, émotions, énergies. Je n'annonce jamais un futur figé, je révèle des cycles, des invitations, des choix.",
-    "Chez Plume Astrale, je conjugue la tradition astrologique à des outils de calcul d'une précision rare pour offrir à chacun une guidance personnalisée, précise et vibratoire. Ni horoscope générique, ni prédiction fataliste : une conversation intime avec ton ciel de naissance.",
-    "Bienvenue dans mon univers. Que la lumière de ta propre carte t'éclaire à chaque étape.",
+    "Tu as cette impression tenace que la vie tourne en boucle. Les mêmes partenaires. Les mêmes disputes. Les mêmes fins d'histoire. C'est exactement ce que je pensais aussi, il y a quinze ans.",
+    "Ce que j'ai découvert en décodant mon thème natal m'a bouleversée : ces schémas ne sont pas des fatalités. Ce sont des cycles. Et un cycle, ça se lit, ça se comprend, ça se transforme.",
+    "Depuis, j'ai accompagné plus de 2 000 âmes avec la même méthode : astrologie précise (éphémérides professionnelles, pas d'horoscope générique), tarot évolutif, lecture karmique. Pas de futur figé — des choix, des invitations, des tournants.",
+    "Tu es prête à comprendre ce qui se joue vraiment dans ta vie amoureuse ? On commence maintenant.",
   ],
   specialities: [
     "Thème natal et carte du ciel personnalisée",
