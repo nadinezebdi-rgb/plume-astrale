@@ -158,7 +158,7 @@ const SolenaJourney = () => {
               color: '#F4E8D2',
               marginBottom: 20,
             }}>
-              Je suis <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>Solena</em>.
+              Écoute-moi <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>90 secondes</em>.
             </h2>
 
             <p style={{
@@ -173,7 +173,7 @@ const SolenaJourney = () => {
             </p>
 
             {/* Vidéo de bienvenue de Soléna — autoplay muted + overlay unmute (pattern Instagram) */}
-            <div className="mb-16 flex justify-center">
+            <div className="mb-8 flex justify-center">
               <div style={{ maxWidth: '380px', width: '100%' }}>
                 <SolenaVideoHero
                   src="https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/7y6nc0gl_Bienvenue%20sur%20Plume%20Astrale_1080p.mp4"
@@ -181,38 +181,10 @@ const SolenaJourney = () => {
                 />
               </div>
             </div>
-          </div>
 
-          {/* === MA MISSION === */}
-          <div className="mb-24">
-            <div className="text-center mb-12">
-              <p className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.3em', marginBottom: 12, fontWeight: 400 }}>
-                Ma mission
-              </p>
-              <h3 style={{
-                fontFamily: 'Cormorant Garamond, serif',
-                fontWeight: 200,
-                fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
-                color: '#F4E8D2',
-                lineHeight: 1.2,
-              }}>
-                Une <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>conversation intime</em><br />
-                avec ton ciel de naissance.
-              </h3>
-            </div>
-
-            <div className="space-y-6 text-base md:text-lg leading-relaxed" style={{ color: 'rgba(244,232,210,0.85)', maxWidth: '900px', margin: '0 auto' }}>
-              {SOLENA.bio_long.map((p, i) => (
-                <p key={i} style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 400, lineHeight: 1.8 }}>
-                  {p}
-                </p>
-              ))}
-            </div>
-
-            {/* CTA personnel — moment d'empathie transformé en action.
-                Le CTA pointe vers /inscription pour créer un compte gratuit avec 20 crédits :
-                l'utilisateur peut alors discuter réellement avec Soléna (10 crédits = 1 question). */}
-            <div className="text-center mt-12">
+            {/* CTA IMMÉDIATEMENT sous la vidéo — capture le pic émotionnel post-visionnage.
+                Pointe vers /inscription : les 20 crédits offerts permettent la 1ère discussion réelle. */}
+            <div className="text-center mb-16">
               <Link
                 to="/inscription"
                 className="group inline-flex items-center gap-3 px-6 sm:px-8 py-4 rounded-full transition-all hover:scale-[1.03] whitespace-nowrap max-w-[92vw]"
@@ -243,6 +215,33 @@ const SolenaJourney = () => {
               }}>
                 Sans engagement · Réponse personnalisée en 15 secondes
               </p>
+            </div>
+          </div>
+
+          {/* === MA MISSION === (bio longue développée, sans CTA à la fin — le CTA est désormais sous la vidéo, au pic émotionnel) */}
+          <div className="mb-24">
+            <div className="text-center mb-12">
+              <p className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.3em', marginBottom: 12, fontWeight: 400 }}>
+                Ma mission
+              </p>
+              <h3 style={{
+                fontFamily: 'Cormorant Garamond, serif',
+                fontWeight: 200,
+                fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
+                color: '#F4E8D2',
+                lineHeight: 1.2,
+              }}>
+                Une <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>conversation intime</em><br />
+                avec ton ciel de naissance.
+              </h3>
+            </div>
+
+            <div className="space-y-6 text-base md:text-lg leading-relaxed" style={{ color: 'rgba(244,232,210,0.85)', maxWidth: '900px', margin: '0 auto' }}>
+              {SOLENA.bio_long.map((p, i) => (
+                <p key={i} style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 400, lineHeight: 1.8 }}>
+                  {p}
+                </p>
+              ))}
             </div>
           </div>
 
@@ -337,13 +336,28 @@ const ReviewCard = ({ review, active }) => (
 const ClientReviews = () => {
   const [index, setIndex] = useState(0);
   const total = REVIEWS.length;
+  const timerRef = useRef(null);
 
+  // Auto-rotate toutes les 5s. Reset du timer à chaque interaction utilisateur
+  // pour respecter son intention (il vient de choisir un avis, ne pas le zapper immédiatement).
   useEffect(() => {
-    const timer = setInterval(() => setIndex((i) => (i + 1) % total), 6000);
-    return () => clearInterval(timer);
+    timerRef.current = setInterval(() => setIndex((i) => (i + 1) % total), 5000);
+    return () => clearInterval(timerRef.current);
   }, [total]);
 
-  const go = (delta) => setIndex((i) => (i + delta + total) % total);
+  const resetTimer = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => setIndex((i) => (i + 1) % total), 5000);
+  };
+
+  const go = (delta) => {
+    setIndex((i) => (i + delta + total) % total);
+    resetTimer();
+  };
+  const setActive = (i) => {
+    setIndex(i);
+    resetTimer();
+  };
   const visible = [0, 1, 2].map((offset) => REVIEWS[(index + offset) % total]);
 
   return (
@@ -404,7 +418,7 @@ const ClientReviews = () => {
             {REVIEWS.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setIndex(i)}
+                onClick={() => setActive(i)}
                 style={{
                   width: i === index ? 24 : 8,
                   height: 8,

@@ -214,32 +214,14 @@ export default function Hero3D() {
           />
         </Link>
 
-        {/* Trust strip — étoiles + preuve sociale */}
-        <div
-          style={{
-            marginTop: 20,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 10,
-            fontFamily: 'Inter, sans-serif',
-            fontSize: 'clamp(0.78rem, 0.95vw, 0.9rem)',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: '#E8C766',
-            textShadow: '0 2px 12px rgba(0,0,0,0.8)',
-          }}
-          data-testid="hero-trust-strip"
-        >
-          <span style={{ letterSpacing: '0.15em', color: '#F4D98C' }}>★★★★★</span>
-          <span style={{ opacity: 0.9 }}>4,9/5 · 2 000+ portraits livrés</span>
-        </div>
+        {/* Trust strip retiré : le badge "4.9/5 · +2 000 âmes accompagnées" apparaît
+            désormais uniquement une fois, juste avant la section reviews (pas de doublon). */}
 
         {/* Mini-bar de trust : données · calculs · paiement */}
         <div
           className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
           style={{
-            marginTop: 14,
+            marginTop: 20,
             fontFamily: 'Inter, sans-serif',
             fontSize: 'clamp(0.65rem, 0.75vw, 0.72rem)',
             letterSpacing: '0.22em',
