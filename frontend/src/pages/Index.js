@@ -132,11 +132,16 @@ const SolenaJourney = () => {
               {SOLENA.bio_short}
             </p>
 
-            {/* Portrait */}
+            {/* Vidéo de bienvenue de Soléna (remplace le portrait statique) */}
             <div className="mb-16 flex justify-center">
               <div style={{ maxWidth: '380px', width: '100%' }}>
-                <img src={SOLENA.portrait} alt="Portrait de Solena — astrologue"
-                  loading="lazy"
+                <video
+                  src="https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/7y6nc0gl_Bienvenue%20sur%20Plume%20Astrale_1080p.mp4"
+                  poster={SOLENA.portrait}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  data-testid="solena-welcome-video"
                   style={{
                     width: '100%',
                     height: 'auto',
@@ -147,7 +152,16 @@ const SolenaJourney = () => {
                     border: '2px solid rgba(212,175,55,0.35)',
                     boxShadow: '0 40px 100px rgba(212,175,55,0.15)',
                     display: 'block',
-                  }} />
+                    background: '#0C1120',
+                  }}
+                  aria-label="Message de bienvenue de Soléna, Plume Astrale"
+                >
+                  Ta navigateur ne supporte pas la vidéo. Rends-toi sur{' '}
+                  <a href="https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/7y6nc0gl_Bienvenue%20sur%20Plume%20Astrale_1080p.mp4">
+                    ce lien
+                  </a>{' '}
+                  pour la visionner.
+                </video>
               </div>
             </div>
           </div>
