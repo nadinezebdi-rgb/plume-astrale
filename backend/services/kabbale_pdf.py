@@ -153,7 +153,7 @@ def _cover(story, styles, first_name: str, birth_date: str, dominant_seph: str, 
     story.append(_p("PLUME ASTRALE · KABBALE", styles['caption']))
     story.append(Spacer(1, 0.6*cm))
     # Image du signe solaire (calculée depuis la date de naissance)
-    _lib_image(story, libimg.sign_from_date(birth_iso), width_cm=6.5)
+    _lib_image(story, libimg.sign_from_date(birth_iso, size=2048), width_cm=6.5)
     story.append(Spacer(1, 0.6*cm))
     story.append(_p("TON ARBRE DE VIE", styles['title']))
     story.append(Spacer(1, 0.3*cm))

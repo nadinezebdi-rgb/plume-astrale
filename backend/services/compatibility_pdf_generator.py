@@ -388,9 +388,9 @@ class CompatibilityPDFGenerator:
         return y
 
     def _draw_duo_signs(self, c, s1: str, s2: str, y: float, size_cm: float = 5.0, gap_cm: float = 1.0) -> float:
-        """Dessine 2 signes côte-à-côte (bibliothèque) et retourne le nouveau y."""
-        p1 = libimg.sign(s1)
-        p2 = libimg.sign(s2)
+        """Dessine 2 signes côte-à-côte (bibliothèque, 2048px pour impression HD)."""
+        p1 = libimg.sign(s1, size=2048)
+        p2 = libimg.sign(s2, size=2048)
         if not p1 and not p2:
             return y
         w = size_cm * cm
