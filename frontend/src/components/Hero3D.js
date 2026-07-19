@@ -242,8 +242,10 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
       <div
         className="relative z-10 flex flex-col items-center justify-center text-center px-4"
         style={{
-          minHeight: '100vh',
-        paddingTop: 'clamp(200px, 30vh, 340px)',          paddingBottom: 'clamp(16px, 2.5vh, 32px)',
+          minHeight: '88vh',
+          justifyContent: 'flex-end',
+          paddingTop: '0px',
+          paddingBottom: 'clamp(4px, 1vh, 12px)',
         }}
       >
         {/* Titre Principal */}
@@ -261,7 +263,7 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
           }}
           data-testid="hero-headline"
         >
-          Obtenez des réponses claires.
+          Obtenez des réponses claires...
         </h2>
 
         {/* CTA Principal */}
@@ -292,7 +294,7 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
               animation: 'pulse 2s ease-in-out infinite',
             }}
           />
-        </button><div style={{ marginTop: 44, maxWidth: 660, textAlign: 'center' }} data-testid="hero-positioning-text"><h2 style={{ fontFamily: 'Cinzel, Playfair Display, Cormorant Garamond, serif', fontWeight: 400, fontSize: 'clamp(1.2rem, 2.6vw, 1.85rem)', lineHeight: 1.25, letterSpacing: '0.02em', color: '#E8C766', textShadow: '0 2px 30px rgba(0,0,0,0.95)', marginBottom: 12 }}>Votre vie change. Comprenez pourquoi.</h2><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(0.9rem, 1.2vw, 1.05rem)', fontWeight: 300, lineHeight: 1.7, color: '#CBD5E1', textShadow: '0 2px 20px rgba(0,0,0,0.9)', margin: 0 }}>Découvrez les périodes qui favorisent l'amour, les opportunités et les grands tournants de votre parcours.</p></div>
+        </button>
       </div>
 
       {/* ═══ ÉTAPE 2 + 3 + 4: Modal Glassmorphism ═══ */}
