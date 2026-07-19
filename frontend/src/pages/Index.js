@@ -177,6 +177,42 @@ const SolenaJourney = () => {
                 </p>
               ))}
             </div>
+
+            {/* CTA personnel — moment d'empathie transformé en action.
+                Le CTA pointe vers /inscription pour créer un compte gratuit avec 20 crédits :
+                l'utilisateur peut alors discuter réellement avec Soléna (10 crédits = 1 question). */}
+            <div className="text-center mt-12">
+              <Link
+                to="/inscription"
+                className="group inline-flex items-center gap-3 px-6 sm:px-8 py-4 rounded-full transition-all hover:scale-[1.03] whitespace-nowrap max-w-[92vw]"
+                style={{
+                  background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
+                  color: '#0A0603',
+                  fontFamily: 'Cinzel, sans-serif',
+                  fontWeight: 700,
+                  fontSize: 'clamp(0.72rem, 0.95vw, 0.95rem)',
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  boxShadow: '0 12px 40px rgba(212,175,55,0.35)',
+                  textDecoration: 'none',
+                }}
+                data-testid="solena-chat-cta"
+              >
+                <Heart style={{ width: 14, height: 14 }} strokeWidth={2} fill="currentColor" />
+                <span className="sm:hidden">Discuter avec Soléna</span>
+                <span className="hidden sm:inline">Discuter avec Soléna · 20 crédits offerts</span>
+                <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
+              </Link>
+              <p style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11,
+                color: 'rgba(244,232,210,0.5)',
+                marginTop: 12,
+                letterSpacing: '0.05em',
+              }}>
+                Sans engagement · Réponse personnalisée en 15 secondes
+              </p>
+            </div>
           </div>
 
           {/* === MES SPÉCIALITÉS === (retiré — dilution du positionnement.
@@ -365,28 +401,9 @@ const ClientReviews = () => {
           </button>
         </div>
 
-        <div className="text-center mt-10">
-          <Link
-            to="/buy-credits"
-            className="inline-flex items-center gap-2 px-6 sm:px-7 py-3 rounded-full transition-all hover:scale-[1.02] whitespace-nowrap"
-            style={{
-              background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
-              color: '#0C0918',
-              fontSize: 'clamp(0.68rem, 0.85vw, 0.75rem)',
-              letterSpacing: '0.18em',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              boxShadow: '0 12px 40px rgba(212,175,55,0.30)',
-              border: 'none', cursor: 'pointer', textDecoration: 'none',
-            }}
-            data-testid="reviews-cta-btn">
-            <Sparkles style={{ width: 14, height: 14 }} strokeWidth={2} />
-            <span className="sm:hidden">Commencer à 7,99 €</span>
-            <span className="hidden sm:inline">Commencer à partir de 7,99 €</span>
-            <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
-          </Link>
-        </div>
-
+        {/* CTA sous les reviews retiré — hard-sell après un moment de trust émotionnel.
+            Le CTA de conversion est désormais sous la section Solena (empathie → action)
+            et dans le bloc final (dernière chance de conversion). */}
       </div>
     </section>
   );
