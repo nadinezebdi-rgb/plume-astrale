@@ -151,7 +151,7 @@ def _daily_seed(sign: str, today: date = None) -> int:
     if today is None:
         today = date.today()
     key = f"{sign}-{today.isoformat()}"
-    return int(hashlib.md5(key.encode()).hexdigest(), 16)
+    return int(hashlib.md5(key.encode(), usedforsecurity=False).hexdigest(), 16)
 
 
 def _pick(items: list, seed: int, offset: int = 0) -> str:

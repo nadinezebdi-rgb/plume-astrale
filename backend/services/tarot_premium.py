@@ -587,7 +587,7 @@ def tirage_marseille_question(question: str, domaine: str = "general", seed: Opt
     3 cartes: Passé - Présent - Futur
     """
     if seed:
-        random.seed(int(hashlib.md5(seed.encode()).hexdigest(), 16) % (2**32))
+        random.seed(int(hashlib.md5(seed.encode(), usedforsecurity=False).hexdigest(), 16) % (2**32))
     else:
         random.seed()
     
@@ -644,7 +644,7 @@ def tirage_croix_celtique(question: str, domaine: str = "general", seed: Optiona
     Le tirage le plus complet du tarot
     """
     if seed:
-        random.seed(int(hashlib.md5(seed.encode()).hexdigest(), 16) % (2**32))
+        random.seed(int(hashlib.md5(seed.encode(), usedforsecurity=False).hexdigest(), 16) % (2**32))
     else:
         random.seed()
     
@@ -833,7 +833,7 @@ def tirage_du_jour() -> Dict:
     """
     # Utiliser la date du jour comme seed pour avoir la même carte pour tous
     today = datetime.now().strftime("%Y-%m-%d")
-    seed_value = int(hashlib.md5(today.encode()).hexdigest(), 16) % (2**32)
+    seed_value = int(hashlib.md5(today.encode(), usedforsecurity=False).hexdigest(), 16) % (2**32)
     random.seed(seed_value)
     
     # Tirer une carte

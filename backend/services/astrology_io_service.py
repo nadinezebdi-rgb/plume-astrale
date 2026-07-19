@@ -9,7 +9,7 @@ Tous les appels prennent en compte un cache 24h dans Supabase (table energy_cach
 import os
 import httpx
 import hashlib
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 
 
@@ -718,7 +718,7 @@ async def astro_chat(
 
 def _cache_key(*parts) -> str:
     raw = '|'.join(str(p) for p in parts)
-    return hashlib.md5(raw.encode()).hexdigest()
+    return hashlib.md5(raw.encode(), usedforsecurity=False).hexdigest()
 
 
 async def get_cached_or_fetch(key: str, fetch_fn, ttl_hours: int = 24) -> Optional[Dict]:

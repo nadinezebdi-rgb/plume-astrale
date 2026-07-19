@@ -223,7 +223,7 @@ TAROT_IMAGE_MAP = {
 
 def tirage_oui_non(question: str) -> dict:
     """Tirage de tarot Oui/Non - tire une carte des arcanes majeurs"""
-    seed = int(hashlib.md5(f"{question}-{datetime.now().isoformat()}".encode()).hexdigest(), 16)
+    seed = int(hashlib.md5(f"{question}-{datetime.now().isoformat()}".encode(), usedforsecurity=False).hexdigest(), 16)
     carte = ARCANES_TAROT[seed % len(ARCANES_TAROT)]
 
     # Determine answer type based on seed
@@ -254,7 +254,7 @@ def tirage_oui_non(question: str) -> dict:
 
 def tirage_mediumnite_complet(prenom: str, date_naissance: str) -> dict:
     """Tirage de tarologie médiumnité complet - 7 cartes + lecture médiumnique"""
-    seed = int(hashlib.md5(f"{prenom}-{date_naissance}-{datetime.now().date().isoformat()}".encode()).hexdigest(), 16)
+    seed = int(hashlib.md5(f"{prenom}-{date_naissance}-{datetime.now().date().isoformat()}".encode(), usedforsecurity=False).hexdigest(), 16)
     rng = random.Random(seed)
 
     # Tirer 7 cartes uniques
@@ -307,7 +307,7 @@ def tirage_en_croix(prenom: str, date_naissance: str) -> dict:
     """Tirage en croix - 5 cartes avec interprétations selon la position"""
     from services.tarot_interpretations import INTERPRETATIONS_CROIX
 
-    seed = int(hashlib.md5(f"{prenom}-{date_naissance}-croix-{datetime.now().date().isoformat()}".encode()).hexdigest(), 16)
+    seed = int(hashlib.md5(f"{prenom}-{date_naissance}-croix-{datetime.now().date().isoformat()}".encode(), usedforsecurity=False).hexdigest(), 16)
     rng = random.Random(seed)
 
     # Tirer 5 cartes uniques
