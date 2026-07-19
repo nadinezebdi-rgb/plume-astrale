@@ -257,14 +257,14 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
             letterSpacing: '0.02em',
             color: '#FFFFFF',
             textShadow: '0 4px 60px rgba(0,0,0,1), 0 0 30px rgba(226,191,101,0.15)',
-            maxWidth: 680,
+            maxWidth: 780,
             marginBottom: 16,
           }}
           data-testid="hero-headline"
         >
-          Cessez de deviner ses sentiments.
+          En 3 minutes,
           <br />
-          Obtenez des réponses claires.
+          ton portrait karmique amoureux <em style={{ fontStyle: 'italic', color: '#E8C766' }}>— gratuit</em>.
         </h2>
 
         {/* Sous-texte */}
@@ -282,7 +282,7 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
           }}
           data-testid="hero-subheadline"
         >
-          Soléna décode les énergies de votre relation pour vous dire exactement où vous allez.
+          Découvre en 3 minutes pourquoi tu attires les mêmes partenaires — et comment couper le schéma.
         </p>
 
         {/* CTA Principal */}
@@ -304,7 +304,7 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
           data-testid="hero-cta-button"
         >
           <span style={{ position: 'relative', zIndex: 2 }}>
-            Lever le voile sur mon couple
+            Recevoir mon portrait gratuit
           </span>
           <div
             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -313,7 +313,28 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
               animation: 'pulse 2s ease-in-out infinite',
             }}
           />
-        </button><div style={{ marginTop: 44, maxWidth: 660, textAlign: 'center' }} data-testid="hero-positioning-text"><h2 style={{ fontFamily: 'Cinzel, Playfair Display, Cormorant Garamond, serif', fontWeight: 400, fontSize: 'clamp(1.2rem, 2.6vw, 1.85rem)', lineHeight: 1.25, letterSpacing: '0.02em', color: '#E8C766', textShadow: '0 2px 30px rgba(0,0,0,0.95)', marginBottom: 12 }}>Votre vie change. Comprenez pourquoi.</h2><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(0.9rem, 1.2vw, 1.05rem)', fontWeight: 300, lineHeight: 1.7, color: '#CBD5E1', textShadow: '0 2px 20px rgba(0,0,0,0.9)', margin: 0 }}>Découvrez les périodes qui favorisent l'amour, les opportunités et les grands tournants de votre parcours.</p></div>
+        </button>
+
+        {/* Trust strip — étoiles + preuve sociale */}
+        <div
+          style={{
+            marginTop: 20,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            fontFamily: 'Inter, sans-serif',
+            fontSize: 'clamp(0.78rem, 0.95vw, 0.9rem)',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: '#E8C766',
+            textShadow: '0 2px 12px rgba(0,0,0,0.8)',
+          }}
+          data-testid="hero-trust-strip"
+        >
+          <span style={{ letterSpacing: '0.15em', color: '#F4D98C' }}>★★★★★</span>
+          <span style={{ opacity: 0.9 }}>4,9/5 · 2 000+ portraits livrés</span>
+        </div><div style={{ marginTop: 44, maxWidth: 660, textAlign: 'center' }} data-testid="hero-positioning-text"><h2 style={{ fontFamily: 'Cinzel, Playfair Display, Cormorant Garamond, serif', fontWeight: 400, fontSize: 'clamp(1.2rem, 2.6vw, 1.85rem)', lineHeight: 1.25, letterSpacing: '0.02em', color: '#E8C766', textShadow: '0 2px 30px rgba(0,0,0,0.95)', marginBottom: 12 }}>Votre vie change. Comprenez pourquoi.</h2><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(0.9rem, 1.2vw, 1.05rem)', fontWeight: 300, lineHeight: 1.7, color: '#CBD5E1', textShadow: '0 2px 20px rgba(0,0,0,0.9)', margin: 0 }}>Découvrez les périodes qui favorisent l'amour, les opportunités et les grands tournants de votre parcours.</p></div>
       </div>
 
       {/* ═══ ÉTAPE 2 + 3 + 4: Modal Glassmorphism ═══ */}
