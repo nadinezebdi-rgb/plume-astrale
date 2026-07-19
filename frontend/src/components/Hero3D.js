@@ -223,7 +223,7 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rÃ©vÃ
         />
         {/* Moon3D rendu par-dessus le halo */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 1, filter: 'drop-shadow(0 30px 45px rgba(0,0,0,0.65)) drop-shadow(0 8px 18px rgba(0,0,0,0.45))' }}>          <Suspense fallback={null}>
-                    <Suspense fallback={null}>
+                    
         <Moon3D />
           </Suspense>
         </div>
