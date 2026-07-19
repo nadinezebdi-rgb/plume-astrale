@@ -405,24 +405,20 @@ const ClientReviews = () => {
         </div>
 
         <div className="text-center mt-10">
-          <button
-            onClick={() => {
-              const el = document.querySelector('[data-testid="home-solena-section"]');
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              window.dispatchEvent(new CustomEvent('pa:open-solena-chat'));
-            }}
+          <Link
+            to="/buy-credits"
             className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-xs uppercase transition-all hover:scale-[1.02]"
             style={{
               background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
               color: '#0C0918', letterSpacing: '0.2em', fontWeight: 700,
               boxShadow: '0 12px 40px rgba(212,175,55,0.30)',
-              border: 'none', cursor: 'pointer',
+              border: 'none', cursor: 'pointer', textDecoration: 'none',
             }}
             data-testid="reviews-cta-btn">
-            <Heart style={{ width: 14, height: 14 }} strokeWidth={2} />
-            Discuter avec Soléna
+            <Sparkles style={{ width: 14, height: 14 }} strokeWidth={2} />
+            Commencer à partir de 7,99 €
             <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
-          </button>
+          </Link>
         </div>
 
       </div>
@@ -462,97 +458,102 @@ const Index = () => {
       <SolenaJourney />
       <ClientReviews />
 
-      {/* ═══ Vitrine Rapports Prestige ═══ */}
-      <section className="py-16 px-4 relative z-10" style={{ borderTop: '1px solid rgba(212,175,55,0.08)' }} data-testid="prestige-showcase">
-        <div className="max-w-5xl mx-auto">
-          <p className="text-[10px] uppercase mb-3 text-center" style={{ color: '#D4AF37', letterSpacing: '0.3em', fontFamily: 'Cinzel, serif' }}>
-            ✦ Éditions Prestige ✦
-          </p>
-          <h2 className="text-center mb-10" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, fontSize: 'clamp(26px, 4vw, 40px)', color: '#F5EEE0' }}>
-            Des documents <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>à garder toute une vie</em>
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[
-              {
-                to: '/pack-karmique',
-                badge: 'LE PLUS COMPLET',
-                title: 'Pack Karmique + Kabbale',
-                price: '89€',
-                desc: 'Ta mémoire karmique (80 sections) + ton Arbre de Vie + une synthèse croisée rédigée pour toi. PDF ~40 pages.',
-                featured: true,
-                testid: 'showcase-pack-karmique',
-              },
-              {
-                to: '/kabbale',
-                badge: null,
-                title: 'Ton Arbre de Vie Kabbalistique',
-                price: '39€',
-                desc: 'Les 10 Sephiroth et 22 chemins de ton thème natal, décodés en français. PDF 15 pages.',
-                featured: false,
-                testid: 'showcase-kabbale',
-              },
-              {
-                to: '/rencontres-astrales',
-                badge: null,
-                title: 'Compatibilité Ultime',
-                price: '29,99€',
-                desc: 'Votre synastrie sur 12 domaines de vie + tes fenêtres de rencontre. PDF 20 pages.',
-                featured: false,
-                testid: 'showcase-compat-ultime',
-              },
-            ].map((card) => (
-              <Link
-                key={card.to}
-                to={card.to}
-                data-testid={card.testid}
-                className="block p-6 rounded-2xl transition-transform duration-300 hover:-translate-y-1"
-                style={{
-                  background: card.featured ? 'rgba(212,175,55,0.10)' : 'rgba(26,32,53,0.55)',
-                  border: card.featured ? '1px solid rgba(212,175,55,0.45)' : '1px solid rgba(212,175,55,0.15)',
-                  textDecoration: 'none',
-                  boxShadow: card.featured ? '0 0 32px rgba(212,175,55,0.15)' : 'none',
-                }}
-              >
-                {card.badge && (
-                  <span className="inline-block text-[9px] uppercase mb-3 px-2 py-1 rounded-full" style={{ background: '#D4AF37', color: '#111625', letterSpacing: '0.2em', fontWeight: 700 }}>
-                    {card.badge}
-                  </span>
-                )}
-                <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#F5EEE0', fontWeight: 400, marginBottom: 6 }}>
-                  {card.title}
-                </h3>
-                <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 30, color: '#D4AF37', fontWeight: 300, marginBottom: 10 }}>
-                  {card.price}
-                </div>
-                <p className="text-sm" style={{ color: 'rgba(244,232,210,0.7)', lineHeight: 1.6 }}>{card.desc}</p>
-                <span className="inline-block mt-4 text-[11px] uppercase" style={{ color: '#E8C766', letterSpacing: '0.2em' }}>
-                  Découvrir →
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Trust badge — technologie */}
-      <section className="py-12 px-4 relative z-10" style={{ borderTop: '1px solid rgba(212,175,55,0.08)' }} data-testid="trust-astrology-api">
+      {/* ═══ FINAL CTA — Bloc « Prête à comprendre ? » ═══
+           Dernière chance de conversion avant footer. Loop sur les 2 actions clés :
+           - Lead magnet gratuit (capture email) — CTA primaire
+           - Entry point 7,99€ (packs crédits) — CTA secondaire discret
+           Sections « Éditions Prestige » et « Technologie de confiance » retirées
+           (dilution du funnel · trop de prix affichés · CTAs non alignés avec les reviews).
+           Les PDFs restent accessibles via le menu de navigation. */}
+      <section
+        className="py-20 md:py-24 px-6 relative z-10"
+        style={{
+          background: 'radial-gradient(ellipse at center top, rgba(212,175,55,0.08) 0%, transparent 60%), linear-gradient(180deg, #0C0918 0%, #100926 100%)',
+          borderTop: '1px solid rgba(212,175,55,0.15)',
+        }}
+        data-testid="final-cta-block"
+      >
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-[10px] uppercase mb-4" style={{ color: 'rgba(244,232,210,0.5)', letterSpacing: '0.25em' }}>
-            Technologie de confiance
+          <p className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.32em', marginBottom: 16, fontFamily: 'Cinzel, serif' }}>
+            ✦ Un dernier mot ✦
           </p>
-          <p className="text-base mb-3" style={{ color: 'rgba(244,232,210,0.85)', fontFamily: 'Cormorant Garamond, serif', fontSize: 22, lineHeight: 1.4 }}>
-            Calculs astrologiques de précision professionnelle : éphémérides, transits et aspects planétaires calculés à partir de vos coordonnées de naissance réelles.
+          <h2 style={{
+            fontFamily: 'Cormorant Garamond, serif',
+            fontWeight: 200,
+            fontSize: 'clamp(1.9rem, 4.5vw, 3rem)',
+            color: '#F4E8D2',
+            lineHeight: 1.2,
+            marginBottom: 20,
+          }}>
+            Prête à comprendre <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 300 }}>ce qui se joue</em> vraiment&nbsp;?
+          </h2>
+          <p style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: 'clamp(0.95rem, 1.2vw, 1.05rem)',
+            color: 'rgba(244,232,210,0.75)',
+            maxWidth: 520,
+            margin: '0 auto 36px',
+            lineHeight: 1.7,
+          }}>
+            20 crédits offerts à l&apos;inscription — de quoi tester Soléna, tirer tes cartes et voir tes cycles d&apos;amour, sans rien payer.
           </p>
-          <p className="text-sm max-w-xl mx-auto" style={{ color: 'rgba(244,232,210,0.55)', lineHeight: 1.6 }}>
-            Éphémérides précises, fuseaux horaires, maisons astrologiques et aspects planétaires —
-            la même plateforme utilisée par les applications spécialisées.
-          </p>
-          <div className="flex items-center justify-center gap-6 mt-6 text-[10px] uppercase" style={{ color: 'rgba(244,232,210,0.4)', letterSpacing: '0.25em' }}>
-            <span>Données réelles</span>
-            <span>·</span>
-            <span>Calculs précis</span>
-            <span>·</span>
-            <span>Paiement sécurisé Stripe</span>
+
+          {/* Duo CTA — primaire (inscription 20 crédits) + secondaire (crédits payants) */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 flex-wrap">
+            <Link
+              to="/inscription"
+              className="group relative px-8 py-4 overflow-hidden rounded-full transition-all duration-300 hover:scale-105"
+              style={{
+                background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
+                color: '#0A0603',
+                fontFamily: 'Cinzel, sans-serif',
+                fontWeight: 700,
+                fontSize: 'clamp(0.85rem, 1vw, 0.95rem)',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 8px 40px rgba(212,175,55,0.4)',
+                textDecoration: 'none',
+                display: 'inline-block',
+                whiteSpace: 'nowrap',
+              }}
+              data-testid="final-cta-primary"
+            >
+              Créer mon compte · 20 crédits offerts
+            </Link>
+            <Link
+              to="/buy-credits"
+              className="inline-flex items-center gap-2 transition-all hover:opacity-100"
+              style={{
+                color: '#E8C766',
+                fontFamily: 'Cinzel, sans-serif',
+                fontSize: 12,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                textDecoration: 'none',
+                opacity: 0.75,
+                borderBottom: '1px solid rgba(232,199,102,0.3)',
+                paddingBottom: 4,
+                whiteSpace: 'nowrap',
+              }}
+              data-testid="final-cta-secondary"
+            >
+              Ou recharger dès 7,99 € →
+            </Link>
+          </div>
+
+          {/* Réassurance */}
+          <div
+            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[10px] uppercase"
+            style={{ color: 'rgba(244,232,210,0.55)', letterSpacing: '0.2em', fontFamily: 'Inter, sans-serif' }}
+            data-testid="final-cta-reassurance"
+          >
+            <span>✓ Sans engagement</span>
+            <span style={{ opacity: 0.3 }}>·</span>
+            <span>✓ Livraison sous 2h</span>
+            <span style={{ opacity: 0.3 }}>·</span>
+            <span>✓ Garantie 14 jours</span>
           </div>
         </div>
       </section>
