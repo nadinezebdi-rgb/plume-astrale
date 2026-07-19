@@ -54,7 +54,7 @@ const HomeCreditPacks = () => {
   return (
     <section
       className="py-20 md:py-28 px-6"
-      style={{ background: 'linear-gradient(180deg, #0C0918 0%, #100926 100%)' }}
+      style={{ background: '#0C1120' }}
       data-testid="home-credit-packs"
     >
       <div className="max-w-6xl mx-auto">

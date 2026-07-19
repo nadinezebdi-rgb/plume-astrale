@@ -42,25 +42,49 @@ export default function Hero3D() {
         }} data-testid="hero-brand-logo">
           PLUME ASTRALE
         </Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Link
-          to={isAuthenticated ? '/mon-compte' : '/connexion'}
-          className="flex items-center gap-2 group transition-all"
-          style={{
-            color: 'rgba(226,191,101,0.85)',
-            textDecoration: 'none',
-            fontSize: 11,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            padding: '8px 14px',
-            borderRadius: 999,
-            border: '1px solid rgba(226,191,101,0.50)',
-            fontFamily: 'Inter, sans-serif',
-          }}
-          data-testid="hero-account-btn"
-        >
-          <User style={{ width: 12, height: 12 }} strokeWidth={1.5} />
-          Mon Compte
-        </Link><Link to="/connexion" className="flex items-center gap-2 group transition-all" style={{ color: '#0A0603', textDecoration: 'none', fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', padding: '8px 14px', borderRadius: 999, background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)', fontFamily: 'Inter, sans-serif', fontWeight: 600 }} data-testid="hero-login-btn"><User style={{ width: 12, height: 12 }} strokeWidth={1.5} />Se connecter</Link></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Link
+            to={isAuthenticated ? '/mon-compte' : '/connexion'}
+            className="flex items-center gap-2 group transition-all whitespace-nowrap"
+            style={{
+              color: 'rgba(226,191,101,0.85)',
+              textDecoration: 'none',
+              fontSize: 11,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              padding: '8px 12px',
+              borderRadius: 999,
+              border: '1px solid rgba(226,191,101,0.50)',
+              fontFamily: 'Inter, sans-serif',
+            }}
+            data-testid="hero-account-btn"
+            aria-label="Mon Compte"
+          >
+            <User style={{ width: 12, height: 12 }} strokeWidth={1.5} />
+            <span className="hidden sm:inline">Mon Compte</span>
+          </Link>
+          <Link
+            to="/connexion"
+            className="flex items-center gap-2 group transition-all whitespace-nowrap"
+            style={{
+              color: '#0A0603',
+              textDecoration: 'none',
+              fontSize: 11,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              padding: '8px 12px',
+              borderRadius: 999,
+              background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 600,
+            }}
+            data-testid="hero-login-btn"
+            aria-label="Se connecter"
+          >
+            <User style={{ width: 12, height: 12 }} strokeWidth={1.5} />
+            <span className="hidden sm:inline">Se connecter</span>
+          </Link>
+        </div>
       </header>
 
       {/* ═══ Clouds & Stars Background Overlay ═══ */}
@@ -159,14 +183,14 @@ export default function Hero3D() {
         {/* CTA Principal — dirige vers /inscription (20 crédits offerts) */}
         <Link
           to="/inscription"
-          className="group relative px-8 py-4 overflow-hidden rounded-full transition-all duration-300 hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D4AF37]"
+          className="group relative px-6 sm:px-8 py-4 overflow-hidden rounded-full transition-all duration-300 hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D4AF37] max-w-[90vw]"
           style={{
             background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
             color: '#0A0603',
             fontFamily: 'Cinzel, sans-serif',
             fontWeight: 700,
-            fontSize: 'clamp(0.85rem, 1.05vw, 1.05rem)',
-            letterSpacing: '0.1em',
+            fontSize: 'clamp(0.72rem, 1vw, 1.05rem)',
+            letterSpacing: '0.08em',
             textTransform: 'uppercase',
             border: 'none',
             cursor: 'pointer',
@@ -178,7 +202,8 @@ export default function Hero3D() {
           data-testid="hero-cta-button"
         >
           <span style={{ position: 'relative', zIndex: 2 }}>
-            Créer mon compte · 20 crédits offerts
+            <span className="sm:hidden">Créer mon compte · 20 crédits</span>
+            <span className="hidden sm:inline">Créer mon compte · 20 crédits offerts</span>
           </span>
           <div
             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
