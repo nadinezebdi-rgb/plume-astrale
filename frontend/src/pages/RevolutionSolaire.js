@@ -1,3 +1,4 @@
+import use3DTilt from '@/hooks/use3DTilt';
 import React, { useState, useEffect } from 'react';
 import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
@@ -55,6 +56,22 @@ const TransitsToday = () => {
       </div>
       <p className="text-[#B8B0C8]/70 text-sm mb-5 font-light">
         Comment les planètes actuelles activent votre carte natale, en temps réel.
+  const tilt = use3DTilt({ max: 9, scale: 1.03 });
+
+// ...dans le JSX de la carte "Découvrez votre prochaine année" :
+<section
+  ref={tilt.ref}
+  onMouseMove={tilt.onMouseMove}
+  onMouseLeave={tilt.onMouseLeave}
+  className="card-mystical rs-3d-tilt text-center py-10"
+>
+  {/* ... contenu ... */}
+  {/* Sur le bouton "Générer mon rapport", ajoutez la classe rs-3d-lift
+      pour qu'il flotte au-dessus de la carte : */}
+  <button className="btn-mystical-filled rounded-full ... rs-3d-lift" ...>
+    Générer mon rapport
+  </button>
+</section>
       </p>
 
       {loading && (
