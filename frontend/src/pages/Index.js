@@ -238,7 +238,7 @@ const SolenaJourney = () => {
 
             <div className="space-y-6 text-base md:text-lg leading-relaxed" style={{ color: 'rgba(244,232,210,0.85)', maxWidth: '900px', margin: '0 auto' }}>
               {SOLENA.bio_long.map((p, i) => (
-                <p key={i} style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 400, lineHeight: 1.8 }}>
+                <p key={`bio-p-${i}-${(p || '').slice(0, 20)}`} style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 400, lineHeight: 1.8 }}>
                   {p}
                 </p>
               ))}

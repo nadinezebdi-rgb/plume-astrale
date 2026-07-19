@@ -5,6 +5,15 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+// Mute console.log/debug/info en production (garde console.error/warn pour les vrais problèmes).
+// Réduit le bruit dans la console des visiteurs + évite d'exposer des infos internes.
+if (process.env.NODE_ENV === 'production') {
+  const noop = () => {};
+  console.log = noop;
+  console.debug = noop;
+  console.info = noop;
+}
+
 class RootErrorBoundary extends React.Component {
   constructor(props) {
     super(props);

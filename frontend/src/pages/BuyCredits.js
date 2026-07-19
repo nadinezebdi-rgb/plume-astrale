@@ -270,7 +270,7 @@ export default function BuyCredits() {
                       Exemple :
                     </p>
                     {pack.projections.map((p, i) => (
-                      <p key={i} className="text-xs py-0.5" style={{ color: 'var(--pa-body)' }}>
+                      <p key={`${pack.id || pack.name}-proj-${i}`} className="text-xs py-0.5" style={{ color: 'var(--pa-body)' }}>
                         &bull; {p}
                       </p>
                     ))}

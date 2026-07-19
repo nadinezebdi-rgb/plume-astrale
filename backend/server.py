@@ -1080,28 +1080,8 @@ async def legacy_astrology_planets(payload: PlanetsLegacyRequest):
         {'name': 'Moon', 'sign': sign, 'house': 4, 'normDegree': 15},
         {'name': 'Ascendant', 'sign': sign, 'house': 1, 'normDegree': 0},
     ]
-    try:
-        svc = AstrologyAPIService()
-        geo = await svc.get_geo_details(f"{payload.ville}, {payload.pays}")
-        lat, lon, tz = 48.8566, 2.3522, 1.0
-        if geo and isinstance(geo, list) and len(geo) > 0:
-            g = geo[0]
-            lat = float(g.get('latitude', lat))
-            lon = float(g.get('longitude', lon))
-            tz = float(g.get('timezone_offset', tz)) if g.get('timezone_offset') else tz
-        data = await svc.get_western_horoscope(payload.date_naissance, payload.heure_naissance or '12:00', lat, lon, tz)
-        if data and isinstance(data, dict):
-            planets_map = data.get('planets') or []
-            asc_sign = None
-            for h in (data.get('houses') or []):
-                if h.get('house') == 1:
-                    asc_sign = h.get('sign')
-                    break
-            if asc_sign:
-                planets_map = list(planets_map) + [{'name': 'Ascendant', 'sign': asc_sign, 'house': 1, 'normDegree': 0}]
-            planets = planets_map or planets
-    except Exception:
-        pass
+    # Legacy endpoint : le service AstrologyAPIService a été retiré. On garde la
+    # signature stable et on retourne le fallback minimaliste ci-dessus.
     return {'success': True, 'data': planets}
 
 
@@ -1109,12 +1089,9 @@ async def legacy_astrology_planets(payload: PlanetsLegacyRequest):
 async def legacy_astrology_horoscope(payload: HoroscopeLegacyRequest):
     sign = _extract_sign_from_date(payload.date_naissance)
     sign_fr = _SIGNS_FR.get(sign, sign)
+    # Legacy endpoint : AstrologyAPIService retiré, on utilise directement le
+    # fallback texte (les vrais horoscopes passent par /api/astrology/v3/*).
     data = None
-    try:
-        svc = AstrologyAPIService()
-        data = await svc.get_daily_horoscope(sign.lower(), 1.0)
-    except Exception:
-        data = None
     if not data:
         data = {
             'prediction': f"Aujourd'hui, {sign_fr} avance avec confiance. Ose une action simple et alignee.",

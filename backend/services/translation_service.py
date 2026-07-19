@@ -38,7 +38,7 @@ async def translate_to_french(text: str) -> str:
         return text
 
     # Check cache
-    cache_key = hashlib.md5(text.encode()).hexdigest()
+    cache_key = hashlib.md5(text.encode(), usedforsecurity=False).hexdigest()
     if cache_key in _translation_cache:
         return _translation_cache[cache_key]
 
