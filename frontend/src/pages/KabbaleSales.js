@@ -79,6 +79,42 @@ const KabbaleSales = () => {
           </p>
         </div>
 
+        {/* Arbre de Vie — image sacrée */}
+        <div className="relative mx-auto mb-16" style={{ maxWidth: 720 }} data-testid="kabbale-tree-image">
+          <div
+            className="absolute inset-0 rounded-full blur-3xl opacity-40"
+            style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.35) 0%, transparent 70%)' }}
+            aria-hidden="true"
+          />
+          <div
+            className="relative rounded-2xl overflow-hidden"
+            style={{
+              border: '1px solid rgba(212,175,55,0.35)',
+              boxShadow: '0 30px 80px -20px rgba(212,175,55,0.25), inset 0 0 40px rgba(12,17,32,0.4)',
+              background: 'linear-gradient(180deg, rgba(212,175,55,0.06) 0%, rgba(12,17,32,0.4) 100%)',
+            }}
+          >
+            <img
+              src="https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/88y9zws0_Virginia_httpss.mj.run5r2USyGa9Qc_cre_des_arbres_hbraiques_de_a798dba8-6cc5-4940-9944-0c2e4c50fd54_1.webp"
+              alt="Arbre de Vie kabbalistique — les 10 Sephiroth et les 22 chemins"
+              loading="lazy"
+              className="w-full h-auto block"
+              style={{ display: 'block' }}
+            />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: 'radial-gradient(ellipse at center, transparent 55%, rgba(12,17,32,0.65) 100%)' }}
+              aria-hidden="true"
+            />
+          </div>
+          <p
+            className="text-center mt-5 text-xs uppercase"
+            style={{ color: 'rgba(212,175,55,0.75)', letterSpacing: '0.35em', fontFamily: 'Cinzel, serif' }}
+          >
+            ✦ Les 10 Sephiroth · Les 22 Chemins ✦
+          </p>
+        </div>
+
         {/* Ce que tu vas recevoir */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           {[

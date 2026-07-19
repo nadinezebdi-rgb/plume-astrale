@@ -97,8 +97,8 @@ class ManuscritPDFGenerator:
         c.setFont("Helvetica", 12)
         c.drawCentredString(self.width / 2, self.height - 7*cm, "✦  VOTRE MANUSCRIT CÉLESTE PERSONNEL  ✦")
 
-        # Image signe solaire (centrée entre subtitle et titre)
-        self._draw_lib_image(c, libimg.sign(zodiac_french, size=1080),
+        # Image signe solaire (centrée entre subtitle et titre) — 2048px pour impression HD
+        self._draw_lib_image(c, libimg.sign(zodiac_french, size=2048),
                              self.width/2, self.height - 10*cm, size_cm=6.0)
 
         # Main title (descendu sous l'image)

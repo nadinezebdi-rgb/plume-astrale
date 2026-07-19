@@ -180,9 +180,9 @@ def compute_deep(payload: dict) -> dict:
     nombre_jour = _reduce(d.day)
 
     data['defis'] = {
-        'mineur_1': {'nombre': defi1, 'description': f"Defi {defi1} à apprivoiser durant la première moitié de vie."},
-        'mineur_2': {'nombre': defi2, 'description': f"Defi {defi2} pendant la seconde moitié de vie."},
-        'principal': {'nombre': defi_principal, 'description': f"Defi central à transformer en force {defi_principal}."},
+        'mineur_1': {'nombre': defi1, 'description': f"Défi {defi1} à apprivoiser durant la première moitié de vie."},
+        'mineur_2': {'nombre': defi2, 'description': f"Défi {defi2} pendant la seconde moitié de vie."},
+        'principal': {'nombre': defi_principal, 'description': f"Défi central à transformer en force {defi_principal}."},
     }
     data['nombre_jour'] = {
         'nombre': nombre_jour,

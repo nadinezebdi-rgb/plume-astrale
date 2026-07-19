@@ -47,6 +47,7 @@ const NAV_ITEMS = [
         title: '💎 Rapports Prestige',
         children: [
           { label: 'Pack Karmique + Kabbale · 89€', to: '/pack-karmique', highlight: true },
+          { label: 'Astrocartographie · 49€', to: '/astrocartographie' },
           { label: 'Arbre de Vie Kabbale · 39€', to: '/kabbale' },
           { label: 'Compatibilité Ultime · 29,99€', to: '/rencontres-astrales' },
         ],

@@ -73,7 +73,7 @@ def _cover(story, styles, first_name: str, birth_fr: str, birth_iso: str = ''):
     story.append(_p('PLUME ASTRALE · EDITION PRESTIGE', styles['caption']))
     story.append(Spacer(1, 0.6 * cm))
     # Signe solaire depuis la date de naissance
-    _lib_image(story, libimg.sign_from_date(birth_iso), width_cm=6.5)
+    _lib_image(story, libimg.sign_from_date(birth_iso, size=2048), width_cm=6.5)
     story.append(Spacer(1, 0.6 * cm))
     story.append(_p('PACK KARMIQUE', styles['title']))
     story.append(Spacer(1, 0.2 * cm))

@@ -54,6 +54,7 @@ from routes.numerologie import router as numerologie_router
 from routes.karma_destin import router as karma_destin_router
 from routes.fenetre_rencontre import router as fenetre_rencontre_router
 from routes.resend_webhook import router as resend_webhook_router
+from routes.astrocartographie import router as astrocartographie_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -106,6 +107,7 @@ api_router.include_router(numerologie_router)
 api_router.include_router(karma_destin_router)
 api_router.include_router(fenetre_rencontre_router)
 api_router.include_router(resend_webhook_router)
+api_router.include_router(astrocartographie_router)
 
 
 # ════════════════════════════════════════════
@@ -824,6 +826,16 @@ async def stripe_webhook(request: Request):
         except Exception as e:
             logger.warning(f'[fenetre_rencontre] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'fenetre_rencontre_avancee'}
+
+    # Route vers Astrocartographie handler si kind=astrocartographie (pack 49 EUR)
+    if md.get('kind') == 'astrocartographie':
+        from services.astrocartographie_service import handle_astrocartographie_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_astrocartographie_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[astrocartographie] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'astrocartographie'}
 
     # Sinon : flow credits one-shot
     if event_type == 'checkout.session.completed':

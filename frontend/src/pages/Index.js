@@ -5,6 +5,7 @@ import SolenaChat from '../components/SolenaChat';
 import QuickOracle from '../components/QuickOracle';
 import HomeCreditPacks from '../components/HomeCreditPacks';
 import SolenaVideoHero from '../components/SolenaVideoHero';
+import LibraryImage from '../components/LibraryImage';
 import StarsAndClouds from '../components/StarsAndClouds';
 import {
   Sparkles, Heart, ArrowRight, Quote, CheckCircle2, Play, Star
@@ -316,16 +317,30 @@ const ReviewCard = ({ review, active }) => (
       « {review.text} »
     </p>
     <div className="pt-4" style={{ borderTop: '1px solid rgba(212,175,55,0.15)' }}>
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-sm" style={{ color: '#F4E8D2', fontFamily: 'Cormorant Garamond, serif', fontWeight: 500, letterSpacing: '0.05em' }}>
-            {review.name}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Glyphe du signe zodiacal (bibliothèque Supabase) */}
+          <div
+            style={{
+              width: 44, height: 44, borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(212,175,55,0.15) 0%, rgba(212,175,55,0.02) 100%)',
+              border: '1px solid rgba(212,175,55,0.30)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <LibraryImage type="sign" name={review.sign} size={32} alt={`Signe ${review.sign}`} />
           </div>
-          <div className="text-[10px] mt-0.5" style={{ color: 'rgba(212,175,55,0.65)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-            {review.sign} · {review.location}
+          <div className="min-w-0">
+            <div className="text-sm truncate" style={{ color: '#F4E8D2', fontFamily: 'Cormorant Garamond, serif', fontWeight: 500, letterSpacing: '0.05em' }}>
+              {review.name}
+            </div>
+            <div className="text-[10px] mt-0.5 truncate" style={{ color: 'rgba(212,175,55,0.65)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+              {review.sign} · {review.location}
+            </div>
           </div>
         </div>
-        <div className="text-[10px]" style={{ color: 'rgba(212,175,55,0.45)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+        <div className="text-[10px] whitespace-nowrap" style={{ color: 'rgba(212,175,55,0.45)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
           {review.date}
         </div>
       </div>

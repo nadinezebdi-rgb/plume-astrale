@@ -1,5 +1,92 @@
 # CHANGELOG - Plume Astrale
 
+
+## 2026-02-12
+
+### Session 9 — 🔍 Audit FR + Champ ville libre + Cache traductions
+
+**Task 1 — Audit FR des endpoints (post-processing OpenAI systématique)**
+- ✅ Nouveau service `services/french_polish.py` : détecte les strings anglaises dans une réponse API (heuristique mots EN + densité accents) et les traduit en FR poétique via GPT-5.4 en **UN SEUL appel batché** (indices numérotés, réponse JSON).
+- ✅ Triple cache : mémoire (LRU 500 items) + Supabase (`translation_cache`) + skip transparent si contenu déjà FR.
+- ✅ Décorateur `fr_polish(context)` ajouté dans `services/astrology_io_service.py` (module-level) : applique le post-processing automatique après chaque appel API v3.
+- ✅ Appliqué à 7 fonctions clés :
+  - `love_languages` (4 EN → 0 EN) ✅
+  - `archetypes` (4 EN → 0 EN) ✅
+  - `karmic_analysis` (1 EN → 0 EN) ✅
+  - `numerology_core_numbers` (3 EN → 0 EN) ✅
+  - `personality_analysis` (81 EN → 0 EN) ⭐ gros gain
+  - `chinese_zodiac` (1 EN → 0 EN) ✅
+  - `horoscope_sign` / `horoscope_personal` (5 EN → 2 faux positifs)
+- ✅ Fix accents manuels dans `numerology_service.py` : "Defi" → "Défi" (×3).
+- ⏱️ Perf : batching réduit latence de 5.1s → 2.8s (première fois), quasi-0s au 2e appel grâce au cache mémoire.
+- ⚠️ Table `translation_cache` à créer manuellement en Supabase (migration `translation_cache_migration.sql` à appliquer). Sans la table, le cache mémoire fonctionne quand même.
+
+**Task 2 — Champ ville libre sur Astrocartographie**
+- ✅ Nouveau endpoint `GET /api/astrocartographie/cities/search?q=xxx&limit=8` — proxy vers API v3 `/glossary/cities` (autocomplete mondial).
+- ✅ Frontend : champ input avec loupe + spinner + dropdown de résultats à côté des 12 suggestions. Debounce 350ms + normalisation lat/lng pour dedup avec le picker.
+- ✅ Testé : recherche "reykja" → "Reykjavík · IS", "tok" → "Tokyo · JP", etc. — instantané (<400ms).
+
+**Task 3 — Migration email_events**
+- ⚠️ Impossible d'appliquer le DDL via service_role (PostgREST bloque CREATE TABLE).
+- ✅ Le code `email_journal.py` échoue déjà silencieusement (log level `debug`, pas de warning intrusif).
+- 📋 SQL à copier-coller dans le SQL Editor Supabase (URL fournie à l'utilisateur) :
+  - `/app/supabase/email_events_migration.sql` (35 lignes)
+  - `/app/supabase/translation_cache_migration.sql` (12 lignes)
+
+
+## 2026-02-11
+
+### Session 8 — 🗺️ Nouveau produit : Astrocartographie 49€ (Où vivre ta meilleure vie)
+
+**Architecture (mirror Kabbale 39€) — pipeline validé E2E**
+- ✅ **Endpoints API v3** : ajout de 5 helpers dans `services/astrology_io_service.py` :
+  - `astrocartography(bd)` → SVG monde 1200×600 + lignes MC/IC/AC/DC des 10 planètes
+  - `astrocartography_lines(bd)` → data JSON brute
+  - `astrocartography_location_analysis(bd, location)` → analyse détaillée par ville (life_area_ratings, nearby_lines, planetary_influences)
+  - `astrocartography_compare_locations(bd, locations)` → scores comparés multi-villes
+  - `astrocartography_relocation_chart(bd, location)` → nouveaux ASC/MC/maisons relocalisés
+- ✅ **IA Soléna (OpenAI GPT-5.4 via EMERGENT_LLM_KEY)** : `services/astrocartographie_ai.py` — 3 fonctions :
+  - `enrich_city_analysis()` : traduit l'anglais brut de l'API en 7 sections FR poétiques (headline, ambiance, career, love, spirituality, body, advice)
+  - `generate_bonus_destinations()` : Soléna choisit 2 villes surprises adaptées au thème natal (avec coords lat/lng)
+  - `write_synthesis()` : rédaction de la synthèse finale (300-400 mots)
+- ✅ **PDF ReportLab** : `services/astrocartographie_pdf.py` — 18 pages :
+  - Couverture + Introduction (astrocartographie expliquée)
+  - Carte du monde (SVG API v3 converti en PNG via `cairosvg` 1600px)
+  - 3 villes choisies × 3 pages (titre+headline+ambiance / domaines de vie / conseil+lignes actives)
+  - 2 villes bonus × 2 pages (titre+ambiance / domaines de vie)
+  - Synthèse + Rituel d'ancrage + signature Soléna
+  - Balises `<b>`/`<i>` préservées via regex placeholder (comme kabbale_pdf)
+- ✅ **Orchestrateur** : `services/astrocartographie_service.py::handle_astrocartographie_webhook()` — fetch API v3 + enrich IA + PDF + email Resend + idempotence via `pdf_path` metadata.
+- ✅ **Route Stripe** : `routes/astrocartographie.py` — `POST /api/astrocartographie/checkout` (session live 49€ avec bypass promo ADMIN26) + `GET /api/astrocartographie/status` (polling).
+- ✅ **Config PACKS** : ajout `astrocartographie` (49€, kind=oneshot) dans `backend/config.py`.
+- ✅ **Webhook Stripe** : wire dans `server.py` (branche `if md.get('kind') == 'astrocartographie'`).
+
+**Frontend**
+- ✅ **Landing** `/astrocartographie` (`AstrocartographieSales.js`) : Hero "Où vivre ta meilleure vie ?" + 3 features + form 2 étapes (birth data + city picker 12 suggestions).
+- ✅ **Success page** `/astrocartographie/succes` (`AstrocartographieSucces.js`) : polling 3.5s, 5 étapes visuelles, bouton téléchargement PDF quand prêt.
+- ✅ **Navbar** : entrée "Astrocartographie · 49€" ajoutée dans le dropdown "💎 Rapports Prestige" (entre Pack Karmique 89€ et Kabbale 39€).
+
+**Dépendances installées**
+- `cairosvg` 2.9.0 (via `pycairo` + `libcairo2-dev`) — conversion SVG→PNG pour la carte du monde
+- `svglib` 2.0.2 — fallback
+
+**Validation E2E**
+- ✅ Génération PDF testée : `astrocarto_rto-37c2a3eae8f2.pdf` — 18 pages, 676KB, contenu FR poétique enrichi par GPT-5.4 (Bali, Marrakech, Lisbonne + Kyoto et Lisbonne bonus).
+- ✅ Checkout Stripe testé : `POST /api/astrocartographie/checkout` retourne `cs_live_...` valide.
+- ✅ Download PDF via `/api/assets/astrocartographie/` : HTTP 200, magic bytes `%PDF-1.4` OK.
+- ✅ Frontend : landing + form 2 étapes + city picker fonctionnels (Playwright screenshot confirmé).
+- ⚠️ Table `email_events` manquante en Supabase — non-bloquant (l'email part quand même via Resend), mais logging DB silencieux. Migration `email_events_migration.sql` à ré-appliquer côté Supabase.
+
+
+## 2026-02-10
+
+### Session 7 — Image Kabbale + Cleanup Premium résiduels
+- **🌳 Image sacrée insérée sur `/kabbale`** : ajout d'une section visuelle "Arbre de Vie" entre le hero et les features. Image WebP 1.2MB de l'artifact utilisateur (arbre kabbalistique avec 10 Sephiroth et lettres hébraïques). Cadre à bordure dorée, glow radial en arrière-plan, vignette overlay, caption Cinzel doré "✦ Les 10 Sephiroth · Les 22 Chemins ✦". Fichier : `frontend/src/pages/KabbaleSales.js` (data-testid `kabbale-tree-image`).
+- **🧹 Cleanup Premium/Abonnement résiduels** :
+  - `Tarot.js` : suppression de `isPremium`/`is_premium`, remplacé par gate d'authentification simple. CTA "Découvrir Premium" remplacé par "Créer un compte gratuit" avec message "20 crédits offerts à l'inscription". (Note : ce fichier est du code mort — /tarot redirige vers /outils/tarot/TirageTarot).
+  - `CercleSales.js` : CTA "Rejoindre le Cercle — 14,90€/mois" → "Rejoindre le Cercle avec un pack de crédits" pointant vers `/acheter-credits`. FAQ mise à jour ("Comment fonctionnent les crédits ?").
+- **✅ Lint** : 0 erreur sur les 3 fichiers modifiés.
+
 ## 2026-02-09
 
 ### Session 6 — SafeEmptyState : fallback anti-page-blanche
