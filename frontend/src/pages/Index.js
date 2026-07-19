@@ -90,7 +90,7 @@ const SolenaJourney = () => {
   };
 
   return (
-    <section className="relative py-24 md:py-32 px-4 z-10" data-testid="home-solena-section"
+    <section className="relative py-12 md:py-16 px-4 z-10" data-testid="home-solena-section"
       style={{
         background: '#0C1120',
       }}>
@@ -98,6 +98,8 @@ const SolenaJourney = () => {
 
         {/* === SOLENA SECTION — La voix de Plume Astrale === */}
         <div className="max-w-5xl mx-auto">
+          {/* Bloc "Votre vie change" deplace depuis le hero */}
+          <div style={{ maxWidth: 720, marginLeft: 'auto', marginRight: 'auto', marginBottom: 40, textAlign: 'center' }} data-testid="hero-positioning-text"><h2 style={{ fontFamily: 'Cinzel, Playfair Display, Cormorant Garamond, serif', fontWeight: 400, fontSize: 'clamp(1.2rem, 2.6vw, 1.85rem)', lineHeight: 1.25, letterSpacing: '0.02em', color: '#E8C766', textShadow: '0 2px 30px rgba(0,0,0,0.95)', marginBottom: 12 }}>Votre vie change. Comprenez pourquoi.</h2><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(0.9rem, 1.2vw, 1.05rem)', fontWeight: 300, lineHeight: 1.7, color: '#CBD5E1', textShadow: '0 2px 20px rgba(0,0,0,0.9)', margin: 0 }}>Découvrez les périodes qui favorisent l'amour, les opportunités et les grands tournants de votre parcours.</p></div>
           
           {/* Tagline + Header + Intro */}
           <div className="text-center mb-16">
