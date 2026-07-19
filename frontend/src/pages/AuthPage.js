@@ -26,7 +26,6 @@ export default function AuthPage() {
   // mode: 'login' | 'register' — pilote l'animation de transition entre les deux vues
   const [mode, setMode] = useState('login');
   const [step, setStep] = useState(1); // étape inscription (1 = identifiants, 2 = naissance)
-  const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -202,13 +201,7 @@ export default function AuthPage() {
               /* ---------- VUE CONNEXION ---------- */
               <form onSubmit={handleLogin} className="space-y-5">
                 <Field label="Email" type="email" value={email} onChange={setEmail} required />
-                <PasswordField
-                  label="Mot de passe"
-                  value={password}
-                  onChange={setPassword}
-                  show={showPw}
-                  toggle={() => setShowPw(!showPw)}
-                />
+                <PasswordField label="Mot de passe" value={password} onChange={setPassword} />
                 <div className="flex justify-end">
                   <a
                     href="/mot-de-passe-oublie"
@@ -225,20 +218,8 @@ export default function AuthPage() {
               /* ---------- VUE INSCRIPTION — ÉTAPE 1 ---------- */
               <div className="space-y-5">
                 <Field label="Email" type="email" value={email} onChange={setEmail} required />
-                <PasswordField
-                  label="Mot de passe"
-                  value={password}
-                  onChange={setPassword}
-                  show={showPw}
-                  toggle={() => setShowPw(!showPw)}
-                />
-                <PasswordField
-                  label="Confirmer le mot de passe"
-                  value={confirmPassword}
-                  onChange={setConfirmPassword}
-                  show={showPw}
-                  toggle={() => setShowPw(!showPw)}
-                />
+                <PasswordField label="Mot de passe" value={password} onChange={setPassword} />
+                <PasswordField label="Confirmer le mot de passe" value={confirmPassword} onChange={setConfirmPassword} />
                 <button
                   type="button"
                   onClick={goStep2}
@@ -322,7 +303,9 @@ function Field({ label, type = 'text', value, onChange, required, placeholder })
   );
 }
 
-function PasswordField({ label, value, onChange, show, toggle }) {
+// Chaque champ mot de passe gère son propre œil (afficher / masquer) de façon indépendante.
+function PasswordField({ label, value, onChange }) {
+  const [show, setShow] = useState(false);
   return (
     <div className="relative">
       <label className="block text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--pa-muted)', letterSpacing: '0.1em' }}>
@@ -333,13 +316,21 @@ function PasswordField({ label, value, onChange, show, toggle }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required
-        className={fieldClass + ' pr-10'}
+        className={fieldClass + ' pr-12'}
         style={fieldStyle}
         onFocus={focusGold}
         onBlur={blurGold}
       />
-      <button type="button" onClick={toggle} className="absolute right-0 bottom-2" style={{ color: 'var(--pa-muted)' }}>
-        {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+      <button
+        type="button"
+        onClick={() => setShow((s) => !s)}
+        aria-label={show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+        aria-pressed={show}
+        title={show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+        className="absolute right-0 bottom-0 flex items-center justify-center h-9 w-9 rounded-full transition-colors hover:opacity-100"
+        style={{ color: show ? '#D4AF37' : 'var(--pa-muted)', background: 'transparent' }}
+      >
+        {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
       </button>
     </div>
   );
