@@ -219,7 +219,20 @@ export default function AuthPage() {
               <div className="space-y-5">
                 <Field label="Email" type="email" value={email} onChange={setEmail} required />
                 <PasswordField label="Mot de passe" value={password} onChange={setPassword} />
-                <PasswordField label="Confirmer le mot de passe" value={confirmPassword} onChange={setConfirmPassword} />
+                <div>
+                  <PasswordField label="Confirmer le mot de passe" value={confirmPassword} onChange={setConfirmPassword} />
+                  {confirmPassword && (
+                    <p
+                      className="mt-2 text-xs"
+                      aria-live="polite"
+                      style={{ color: password === confirmPassword ? '#7bd88f' : '#fca5a5', letterSpacing: '0.03em' }}
+                    >
+                      {password === confirmPassword
+                        ? '✓ Les mots de passe correspondent'
+                        : '✕ Les mots de passe ne correspondent pas'}
+                    </p>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={goStep2}
