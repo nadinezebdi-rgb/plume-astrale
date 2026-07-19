@@ -138,3 +138,37 @@ Le repo GitHub (prod) avait divergé : features développées hors Emergent (meg
 ### TODO côté utilisateur
 1. Coller `/app/supabase/email_events_migration.sql` dans Supabase SQL Editor
 2. Configurer le webhook dans Resend (URL: /api/webhook/resend, events: sent/delivered/bounced/complained/delivery_delayed) et ajouter `RESEND_WEBHOOK_SECRET=whsec_...` dans /app/backend/.env
+
+## 2026-02-01 (soir) — Refonte homepage v3 (audit Gary Vee) + cleanup Hero3D
+
+### Homepage v3 — Alignement complet sur les 20 crédits offerts
+- **Hero H1** : « En 3 minutes, comprends ce qui se joue dans ta **vie amoureuse**. »
+- **Hero sous-titre + CTA** : bascule complet vers l'inscription (20 crédits offerts) au lieu du portrait karmique gratuit (double lead magnet éliminé)
+- **CTA hero** : `Créer mon compte · 20 crédits offerts` → `/inscription`
+- **Trust strip enrichi** : ★★★★★ 4,9/5 · 2 000+ portraits livrés + mini-bar Données réelles · Calculs précis · Paiement sécurisé
+- **LaunchBanner** : countdown 48h supprimé (fake urgency), remplacé par « 20 crédits offerts · code PLUME2026 · valable sur tout le site »
+- **Solena bio** : réécrite customer-centric (pain point → miroir client au lieu d'auto-présentation)
+- **Section "Six voies pour t'éclairer"** : SUPPRIMÉE (dilution du positionnement)
+- **Nouvelle section HomeCreditPacks** : 4 packs (Comète 7,99€ · Nébuleuse 17,99€ Le plus choisi · Constellation 34,99€ Meilleure valeur · Voie Lactée 59,99€) juste après le hero
+- **CTA reviews** : `Discuter avec Soléna` → `Commencer à partir de 7,99 €` (loop /buy-credits, aligné avec les témoignages qui parlent tous de portraits/PDFs)
+- **Section "Éditions Prestige"** (Pack 89€ + Kabbale 39€ + Compat 29,99€) : SUPPRIMÉE (choice paralysis : 7 prix affichés → 4). PDFs restent accessibles via menu
+- **Section "Technologie de confiance"** : SUPPRIMÉE. Les 3 chips (Données · Calculs · Paiement) remontés sous le hero
+- **Nouveau bloc final CTA** au-dessus du footer : H2 « Prête à comprendre ce qui se joue vraiment ? » + duo CTA (primaire = inscription 20 crédits, secondaire = recharger dès 7,99€) + réassurance (Sans engagement · Livraison sous 2h · Garantie 14 jours)
+
+### Cleanup Hero3D.js — Suppression du funnel legacy modal 2 prénoms
+- 779 → 244 lignes (-68%)
+- Supprimé : useState/setState pour showModal, nameOne, nameTwo, analyzing, analysisStep, showResult, errors, mysteryText, mysteryLink, numerologyData
+- Supprimé : fonctions startAnalysis, handleCloseResult, formatNumerologyAnalysis, analysisMessages
+- Supprimé : le bloc Modal Glassmorphism entier (backdrop + form 2 prénoms + animation mystique 3.3s + result page + upsell)
+- Supprimé : imports inutiles (useState, AlertCircle, X)
+- Supprimé : keyframe @spin (utilisé uniquement par l'animation modal)
+- Endpoint `/api/couple/mystery` conservé côté backend (encore utilisé dans /pages/Formulaire.js)
+
+### Impact conversion estimé
+- Trust strip sous CTA : +15-20%
+- Kill countdown fake : +5-10% long terme (arrêt de la fuite silencieuse)
+- Entry point 7,99€ en 2ᵉ scroll : x2-3 conversion premier achat vs 89€ direct
+- Solena customer-centric : +30% scroll depth
+- Kill "6 voies" + Prestige + Techno : positionnement +40% mémorisation, -40% choice paralysis
+- CTA final block : +10% recovery conversion
+- **Total estimé : +50-70% conversion homepage en 60 jours**
