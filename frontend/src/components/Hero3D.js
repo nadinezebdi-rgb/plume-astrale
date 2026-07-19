@@ -334,6 +334,27 @@ Cette vibration du chiffre ${compatibility_number} guide votre relation et rév�
         >
           <span style={{ letterSpacing: '0.15em', color: '#F4D98C' }}>★★★★★</span>
           <span style={{ opacity: 0.9 }}>4,9/5 · 2 000+ portraits livrés</span>
+        </div>
+
+        {/* Mini-bar de trust : données · calculs · paiement */}
+        <div
+          className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
+          style={{
+            marginTop: 14,
+            fontFamily: 'Inter, sans-serif',
+            fontSize: 'clamp(0.65rem, 0.75vw, 0.72rem)',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: 'rgba(203,213,225,0.55)',
+            textShadow: '0 2px 8px rgba(0,0,0,0.7)',
+          }}
+          data-testid="hero-trust-chips"
+        >
+          <span>✓ Données réelles</span>
+          <span style={{ opacity: 0.35 }}>·</span>
+          <span>✓ Calculs précis</span>
+          <span style={{ opacity: 0.35 }}>·</span>
+          <span>✓ Paiement sécurisé Stripe</span>
         </div><div style={{ marginTop: 44, maxWidth: 660, textAlign: 'center' }} data-testid="hero-positioning-text"><h2 style={{ fontFamily: 'Cinzel, Playfair Display, Cormorant Garamond, serif', fontWeight: 400, fontSize: 'clamp(1.2rem, 2.6vw, 1.85rem)', lineHeight: 1.25, letterSpacing: '0.02em', color: '#E8C766', textShadow: '0 2px 30px rgba(0,0,0,0.95)', marginBottom: 12 }}>Votre vie change. Comprenez pourquoi.</h2><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(0.9rem, 1.2vw, 1.05rem)', fontWeight: 300, lineHeight: 1.7, color: '#CBD5E1', textShadow: '0 2px 20px rgba(0,0,0,0.9)', margin: 0 }}>Découvrez les périodes qui favorisent l'amour, les opportunités et les grands tournants de votre parcours.</p></div>
       </div>
 
