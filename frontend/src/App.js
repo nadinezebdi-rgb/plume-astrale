@@ -70,12 +70,6 @@ import MobileTabBar from "./components/design/MobileTabBar";
 import AuraProvider from "./components/design/AuraProvider";
 import ShootingStars from "./components/design/ShootingStars";   //
 
-{/* ─── Overlays globaux Plume Design System v2 ─── */}
-<Starfield />
-<ShootingStars />        
-<NoiseOverlay />
-<MobileTabBar />
-  
 function App() {
   return (
     <AuthProvider>
@@ -83,6 +77,7 @@ function App() {
       <BrowserRouter>
         {/* ─── Overlays globaux Plume Design System v2 ─── */}
         <Starfield />
+    <ShootingStars />
         <NoiseOverlay />
         <MobileTabBar />
         <Routes>
