@@ -3,6 +3,7 @@ import { Sparkles, ArrowRight, ShieldCheck, Star, Loader2, Flame, BookOpen } fro
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
+import TestimonialsWidget, { TESTIMONIALS_KARMA } from '@/components/TestimonialsWidget';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -170,15 +171,23 @@ const PackKarmique = () => {
         </div>
 
         {step === 0 ? (
-          <div className="text-center">
-            <button onClick={() => setStep(1)} className="plume-btn-primary" data-testid="pack-karmique-cta-start">
-              Recevoir mon Pack Karmique — 89€
-              <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
-            </button>
-            <p className="text-xs mt-4" style={{ color: 'var(--pa-faint)', letterSpacing: '0.1em' }}>
-              Paiement sécurisé Stripe · Sans engagement
-            </p>
-          </div>
+          <>
+            <TestimonialsWidget
+              testimonials={TESTIMONIALS_KARMA}
+              title="Elles ont retrouvé leur mission"
+              subtitle="Trois femmes qui ont reçu leur Pack Karmique complet"
+              testIdPrefix="karmique-testimonial"
+            />
+            <div className="text-center">
+              <button onClick={() => setStep(1)} className="plume-btn-primary" data-testid="pack-karmique-cta-start">
+                Recevoir mon Pack Karmique — 89€
+                <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
+              </button>
+              <p className="text-xs mt-4" style={{ color: 'var(--pa-faint)', letterSpacing: '0.1em' }}>
+                Paiement sécurisé Stripe · Sans engagement
+              </p>
+            </div>
+          </>
         ) : (
           <div className="plume-glass p-8 md:p-10 max-w-xl mx-auto" data-testid="pack-karmique-form">
             <h2 className="text-2xl mb-6 text-center" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>

@@ -4,6 +4,7 @@ import { Sparkles, ArrowRight, ShieldCheck, Star, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
+import TestimonialsWidget, { TESTIMONIALS_KABBALE } from '@/components/TestimonialsWidget';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -131,15 +132,23 @@ const KabbaleSales = () => {
         </div>
 
         {step === 0 ? (
-          <div className="text-center">
-            <button onClick={() => setStep(1)} className="plume-btn-primary" data-testid="kabbale-cta-start">
-              Recevoir mon Arbre de Vie — 39€
-              <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
-            </button>
-            <p className="text-xs mt-4" style={{ color: 'rgba(227,215,255,0.5)', letterSpacing: '0.1em' }}>
-              Paiement sécurisé Stripe · Sans engagement
-            </p>
-          </div>
+          <>
+            <TestimonialsWidget
+              testimonials={TESTIMONIALS_KABBALE}
+              title="Ce que leur Arbre a révélé"
+              subtitle="Trois femmes qui ont reçu leur analyse kabbalistique personnalisée"
+              testIdPrefix="kabbale-testimonial"
+            />
+            <div className="text-center">
+              <button onClick={() => setStep(1)} className="plume-btn-primary" data-testid="kabbale-cta-start">
+                Recevoir mon Arbre de Vie — 39€
+                <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
+              </button>
+              <p className="text-xs mt-4" style={{ color: 'rgba(227,215,255,0.5)', letterSpacing: '0.1em' }}>
+                Paiement sécurisé Stripe · Sans engagement
+              </p>
+            </div>
+          </>
         ) : (
           <div className="plume-glass p-8 md:p-10 max-w-xl mx-auto" data-testid="kabbale-form">
             <h2 className="text-2xl mb-6 text-center" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>
