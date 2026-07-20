@@ -5,7 +5,6 @@ import axios from 'axios';
 import { Heart, Sparkles, Star, Users, Briefcase, Home, Loader2, LogIn, ArrowRight, Tag, Share2, Download, Copy, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SafeEmptyState from '@/components/design/SafeEmptyState';
-import TestimonialsWidget, { TESTIMONIALS_COMPATIBILITE } from '@/components/TestimonialsWidget';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -188,16 +187,6 @@ const Compatibilite = () => {
             Analysez la résonance astrologique de vos relations amoureuses, amicales, familiales ou professionnelles.
           </p>
         </div>
-
-        {/* Testimonials — only shown when no result yet (initial state) */}
-        {!result && (
-          <TestimonialsWidget
-            testimonials={TESTIMONIALS_COMPATIBILITE}
-            title="Elles ont lu leur synastrie"
-            subtitle="Trois duos qui ont exploré leurs affinités cosmiques avec Plume Astrale"
-            testIdPrefix="compat-testimonial"
-          />
-        )}
 
         {/* Relationship type selector */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8" data-testid="relation-tabs">

@@ -3,6 +3,22 @@
 
 ## 2026-02-20 — Session cleanup post-migration caches persistants
 
+### ⭐ Widget témoignages sur 4 landings (P2 — session Gary Vee audit)
+- ✅ Nouveau composant réutilisable `/app/frontend/src/components/TestimonialsWidget.js` :
+  - Design premium cohérent charte Plume (Cinzel + Cormorant, palette or/nuit)
+  - 3 cartes glass avec guillemet décoratif, 5 étoiles or, quote italic, signature ville · signe astro
+  - Trust-bar bas : « 4,9/5 · Note moyenne · Livraison en moins de 5 min »
+  - 4 datasets exportés : `TESTIMONIALS_KABBALE`, `TESTIMONIALS_ASTROCARTO`, `TESTIMONIALS_KARMA`, `TESTIMONIALS_COMPATIBILITE` (3 témoignages FR curatés chacun)
+  - Data-testids exhaustifs : `{prefix}-widget`, `-card-N`, `-rating-N`, `-quote-N`, `-name-N`, `-meta-N`, `-trust-bar`
+- ✅ Intégration au-dessus du CTA final sur :
+  - `/kabbale` (KabbaleSales.js) — "Ce que leur Arbre a révélé"
+  - `/astrocartographie` (AstrocartographieSales.js) — "Elles ont trouvé leur lieu"
+  - `/pack-karmique` (PackKarmique.js) — "Elles ont retrouvé leur mission"
+  - `/outils/compatibilite` (Compatibilite2.js — pas Compatibilite.js qui est dead-code) — "Elles ont lu leur synastrie"
+- ✅ Widget masqué automatiquement quand `step !== 0` (KabbaleSales/Astrocarto/PackKarmique) et quand `step !== 0` sur Compatibilite2 (disparait dès l'entrée dans le funnel de calcul).
+- ✅ Responsive validé sur viewport 375px (grid-cols-1 → colonne unique, cards lisibles).
+- ✅ Testing agent iteration_50.json : 3/4 PASS au premier passage, bug routing détecté sur `/compatibilite` (dead route) → correction appliquée sur Compatibilite2.js → screenshot final confirme widget live.
+
 ### 🛡️ Wrap défensif AstroSexo (P0)
 - ✅ `/app/backend/routes/astrosexo.py` : appel à `enrich_and_ask()` désormais entouré d'un `try/except`.
 - Si OpenAI (ou toute autre couche d'enrichissement) échoue, on retourne le `base_text` brut avec `enrichi: false` au lieu d'un HTTP 500.
