@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import axios from 'axios';
 import { asset } from '../lib/assets';
+import TestimonialsWidget, { TESTIMONIALS_COMPATIBILITE } from '@/components/TestimonialsWidget';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -276,6 +277,16 @@ const Compatibilite2 = () => {
               D&eacute;couvrez les secrets cosmiques de votre relation amoureuse. Un rapport complet r&eacute;v&egrave;le les forces, d&eacute;fis et cl&eacute;s de votre union.
             </p>
           </div>
+
+          {/* Testimonials — visible only on initial state (step 0, no result) */}
+          {step === 0 && (
+            <TestimonialsWidget
+              testimonials={TESTIMONIALS_COMPATIBILITE}
+              title="Elles ont lu leur synastrie"
+              subtitle="Trois duos qui ont exploré leurs affinités cosmiques avec Plume Astrale"
+              testIdPrefix="compat-testimonial"
+            />
+          )}
 
           {/* Progress steps */}
           {step >= 1 && (

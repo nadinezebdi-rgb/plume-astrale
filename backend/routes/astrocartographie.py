@@ -129,15 +129,20 @@ async def astrocartographie_checkout(payload: AstrocartographieCheckoutPayload, 
         'chosen_locations': chosen_locations,
     }
 
-    # Bypass promo (admin) OU réduction 15% cross-sell (PLUME15)
+    # Bypass promo (admin) OU réduction 15% cross-sell (PLUME15) OU -20€ post-Kabbale (KABBALE20)
     promo = (payload.promo_code or '').strip().upper()
 
     # Code PLUME15 : 15% de réduction (cross-sell J+7 après Kabbale/Karma)
+    # Code KABBALE20 : -20€ absolu (upsell immédiat post-achat Kabbale)
     discount_applied = None
     final_amount = float(pack['amount'])
     if promo == 'PLUME15':
         discount_applied = 0.15
         final_amount = round(float(pack['amount']) * (1 - discount_applied), 2)
+    elif promo == 'KABBALE20':
+        # Réduction absolue de 20€ (garanti ≥ 5€ pour éviter les cas limites Stripe)
+        final_amount = max(5.0, round(float(pack['amount']) - 20.0, 2))
+        discount_applied = round(1 - (final_amount / float(pack['amount'])), 4)
 
     # Bypass 100% (codes ADMIN26 etc via table promo_codes)
     if promo and try_consume_promo(promo):

@@ -46,7 +46,11 @@ const CrossCard = ({ item, index, isLocked, onPurchase }) => {
         {/* Card image */}
         <div className="w-full aspect-[2/3] rounded-lg overflow-hidden mb-3 border border-[#D4AF37]/30">
           {item.carte.image ? (
-            <img src={`${API_URL}${item.carte.image}`} alt={item.carte.nom} className="w-full h-full object-cover" />
+            <img
+              src={item.carte.image.startsWith('http') ? item.carte.image : `${API_URL}${item.carte.image}`}
+              alt={item.carte.nom}
+              className="w-full h-full object-cover"
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-[#15112A] to-[#1C1735]">
               <span className="text-[#D4AF37] text-2xl font-bold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{item.carte.numero}</span>

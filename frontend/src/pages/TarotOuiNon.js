@@ -248,7 +248,11 @@ const TarotOuiNon = () => {
           {/* ── RÉSULTAT ── */}
           {result && isRevealed && (() => {
             const oc = getOrientationConfig(result.orientation);
-            const imageUrl = result.carte?.image ? `${API_URL}${result.carte.image}` : null;
+            const raw = result.carte?.image;
+            // Supporte : URL absolue Supabase CDN (https://…) OU chemin relatif (/api/…)
+            const imageUrl = raw
+              ? (raw.startsWith('http') ? raw : `${API_URL}${raw}`)
+              : null;
             return (
               <div className="mt-4">
                 {/* Carte révélée */}

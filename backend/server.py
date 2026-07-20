@@ -43,6 +43,7 @@ from routes.astrology_v3 import router as astrology_v3_router
 from routes.oracle import router as oracle_router
 from routes.cercle import router as cercle_router
 from routes.synastrie import router as synastrie_router
+from routes.subscriptions import router as subscriptions_router
 from routes.library import router as library_router
 from routes.rencontres import router as rencontres_router
 from routes.analytics import router as analytics_router
@@ -110,6 +111,7 @@ api_router.include_router(fenetre_rencontre_router)
 api_router.include_router(resend_webhook_router)
 api_router.include_router(astrocartographie_router)
 api_router.include_router(astrosexo_router)
+api_router.include_router(subscriptions_router)
 
 
 # ════════════════════════════════════════════
@@ -729,6 +731,25 @@ async def stripe_webhook(request: Request):
 
     event_type = event.get('type') if isinstance(event, dict) else event.type
     data_obj = (event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object)
+
+    # ─── Route Cercle Soléna (abonnement 19€/mois) EN PREMIER ───────────────
+    # Consume : customer.subscription.* + invoice.payment_succeeded (mensuel)
+    if event_type in (
+        'customer.subscription.created',
+        'customer.subscription.updated',
+        'customer.subscription.deleted',
+        'invoice.payment_succeeded',
+    ):
+        try:
+            from routes.subscriptions import handle_subscription_event
+            evt_dict = event if isinstance(event, dict) else _json.loads(stripe.util.json_dumps(event))
+            handled = await handle_subscription_event(evt_dict)
+            if handled:
+                logger.info(handled)
+                return {'received': True, 'type': event_type, 'kind': 'cercle_solena'}
+        except Exception as e:
+            logger.warning(f'[cercle_solena] webhook fail: {e}')
+        # Sinon on continue vers les autres handlers (legacy premium, etc.)
 
     # Route vers subscription handler si subscription
     if event_type and ('subscription' in event_type or (event_type == 'checkout.session.completed' and (data_obj.get('mode') if isinstance(data_obj, dict) else getattr(data_obj, 'mode', None)) == 'subscription')):

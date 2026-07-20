@@ -7,11 +7,14 @@ import random
 from datetime import datetime
 
 _SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
-_TAROT_CDN_BASE = f"{_SUPABASE_URL}/storage/v1/object/public/public-assets/tarot" if _SUPABASE_URL else "/api/assets/tarot"
+# Bucket 'library' — 22 arcanes majeurs HD créés par Plume Astrale (2026-02).
+# Format des fichiers : {slug}_{width}.png (widths disponibles : 512, 1080, 2048).
+# On utilise la variante 1080 (parfaite pour affichage web mobile+desktop).
+_TAROT_CDN_BASE = f"{_SUPABASE_URL}/storage/v1/object/public/library/tarot" if _SUPABASE_URL else "/api/assets/tarot"
 
 
 def _tarot_img_url(filename: str) -> str:
-    """URL publique CDN Supabase pour une carte de tarot."""
+    """URL publique CDN Supabase pour une carte de tarot (variante 1080px)."""
     if not filename:
         return ''
     return f"{_TAROT_CDN_BASE}/{filename}"
@@ -208,16 +211,31 @@ THEMES_MEDIUMNITE = {
 }
 
 
-# Mapping card number to image file
+# Mapping numéro d'arcane → nom de fichier CDN Supabase (bucket library/tarot).
+# Variante 1080 = parfait équilibre poids/qualité pour affichage web.
 TAROT_IMAGE_MAP = {
-    0: "00_mat.png", 1: "01_bateleur.png", 2: "02_papesse.png",
-    3: "03_imperatrice.png", 4: "04_empereur.png", 5: "05_pape.png",
-    6: "06_amoureux.png", 7: "07_chariot.png", 8: "08_justice.png",
-    9: "09_hermite.png", 10: "10_roue_fortune.png", 11: "11_force.png",
-    12: "12_pendu.png", 13: "13_arcane_sans_nom.png", 14: "14_temperance.png",
-    15: "15_diable.png", 16: "16_maison_dieu.png", 17: "17_etoile.png",
-    18: "18_lune.png", 19: "19_soleil.png", 20: "20_jugement.png",
-    21: "21_monde.png",
+    0:  "00_le_mat_1080.png",
+    1:  "01_le_bateleur_1080.png",
+    2:  "02_la_papesse_1080.png",
+    3:  "03_l_imperatrice_1080.png",
+    4:  "04_l_empereur_1080.png",
+    5:  "05_le_pape_1080.png",
+    6:  "06_les_amoureux_1080.png",
+    7:  "07_le_chariot_1080.png",
+    8:  "08_la_justice_1080.png",
+    9:  "09_l_hermite_1080.png",
+    10: "10_la_roue_de_fortune_1080.png",
+    11: "11_la_force_1080.png",
+    12: "12_le_pendu_1080.png",
+    13: "13_l_arcane_sans_nom_1080.png",
+    14: "14_la_temperance_1080.png",
+    15: "15_le_diable_1080.png",
+    16: "16_la_maison_dieu_1080.png",
+    17: "17_l_etoile_1080.png",
+    18: "18_la_lune_1080.png",
+    19: "19_le_soleil_1080.png",
+    20: "20_le_jugement_1080.png",
+    21: "21_le_monde_1080.png",
 }
 
 

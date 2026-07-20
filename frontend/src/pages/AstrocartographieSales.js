@@ -4,6 +4,9 @@ import { Sparkles, ArrowRight, ShieldCheck, Globe, Loader2, MapPin, X, Search } 
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
+import TestimonialsWidget, { TESTIMONIALS_ASTROCARTO } from '@/components/TestimonialsWidget';
+import PdfMockup3D from '@/components/PdfMockup3D';
+import { event as track, EVENTS } from '@/lib/analytics';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -99,6 +102,7 @@ const AstrocartographieSales = () => {
     if (!form.first_name.trim()) { setError('Prénom requis'); return; }
     if (!form.birth_date || !form.birth_time) { setError('Date et heure de naissance requises'); return; }
     if (chosen.length !== 3) { setError('Merci de choisir exactement 3 villes'); return; }
+    track(EVENTS.ASTROCARTO_CHECKOUT, { promo_code: promoCode || null });
     setLoading(true);
     try {
       const r = await axios.post(`${API}/api/astrocartographie/checkout`, {
@@ -164,15 +168,24 @@ const AstrocartographieSales = () => {
         </div>
 
         {step === 0 ? (
-          <div className="text-center">
-            <button onClick={() => setStep(1)} className="plume-btn-primary" data-testid="astrocarto-cta-start">
-              Composer mon rapport — 49€
-              <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
-            </button>
-            <p className="text-xs mt-4" style={{ color: 'rgba(227,215,255,0.5)', letterSpacing: '0.1em' }}>
-              Paiement sécurisé Stripe · Livraison immédiate par email
-            </p>
-          </div>
+          <>
+            <PdfMockup3D testId="astrocarto-pdf-mockup" />
+            <TestimonialsWidget
+              testimonials={TESTIMONIALS_ASTROCARTO}
+              title="Elles ont trouvé leur lieu"
+              subtitle="Trois femmes qui ont composé leur rapport d'astrocartographie"
+              testIdPrefix="astrocarto-testimonial"
+            />
+            <div className="text-center">
+              <button onClick={() => setStep(1)} className="plume-btn-primary" data-testid="astrocarto-cta-start">
+                Composer mon rapport — 49€
+                <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
+              </button>
+              <p className="text-xs mt-4" style={{ color: 'rgba(227,215,255,0.5)', letterSpacing: '0.1em' }}>
+                Paiement sécurisé Stripe · Livraison immédiate par email
+              </p>
+            </div>
+          </>
         ) : (
           <>
             {/* Étape 1 : Données de naissance */}
@@ -353,6 +366,21 @@ const AstrocartographieSales = () => {
                   </div>
                 </div>
               )}
+              {promoCode === 'KABBALE20' && (
+                <div className="mb-4 p-3 rounded-xl text-center" style={{
+                  background: 'rgba(212,175,55,0.12)',
+                  border: '1px solid rgba(212,175,55,0.4)',
+                }} data-testid="astrocarto-kabbale20-banner">
+                  <div className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.28em' }}>
+                    ✦ Duo Soléna · Post-Kabbale ✦
+                  </div>
+                  <div className="mt-1" style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 18, color: '#F5EEE0' }}>
+                    <span style={{ textDecoration: 'line-through', color: 'rgba(227,215,255,0.4)', marginRight: 8 }}>49€</span>
+                    <span style={{ color: '#D4AF37' }}>29€</span>
+                    <span style={{ fontSize: 12, marginLeft: 8, color: 'rgba(227,215,255,0.65)' }}>· 20€ de réduction</span>
+                  </div>
+                </div>
+              )}
               <div className="space-y-4">
                 <div>
                   <label className="text-xs uppercase" style={{ color: 'rgba(212,175,55,0.65)', letterSpacing: '0.2em' }}>
@@ -372,6 +400,7 @@ const AstrocartographieSales = () => {
                 <button onClick={handleCheckout} disabled={loading} className="plume-btn-primary w-full justify-center" data-testid="astrocarto-checkout-btn">
                   {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirection...</> :
                     promoCode === 'PLUME15' ? <>Payer 41,65€ (offre Plume) <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></> :
+                    promoCode === 'KABBALE20' ? <>Payer 29€ (Duo Soléna) <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></> :
                     promoCode.trim() ? <>Déverrouiller mon rapport <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></>
                                      : <>Payer 49€ et recevoir mon rapport <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></>}
                 </button>

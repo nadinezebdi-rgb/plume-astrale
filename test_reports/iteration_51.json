@@ -1,0 +1,52 @@
+{
+  "summary": "Iteration 51 — audit Gary Vee 4 fixes (rotation hero, countdown 48h, upsell KABBALE20 backend+frontend, BundleCard). Backend: 4/4 pytest PASS pour /api/astrocartographie/checkout avec promo_code=KABBALE20 (retour url+session_id 200, PLUME15 200, no-promo 200, 400 si <3 villes). Frontend: 3/4 UI features PASS 100%. LaunchBanner countdown OK (format HHh MMm SSs, décrémente chaque seconde). Hero rotation OK (les 3 promesses 'vie amoureuse' / 'mission d'âme' / 'meilleure destination' cyclent toutes les 4s avec fondu). Astrocarto /astrocartographie?discount=KABBALE20 : banner data-testid='astrocarto-kabbale20-banner' visible avec '20€ de réduction' + prix barré 49€/29€, CTA 'Payer 29€ (Duo Soléna)' OK. 🚨 BUNDLECARD SUR /mon-accueil INACCESSIBLE via URL directe : /mon-accueil redirige vers / à cause d'une race condition dans AuthenticatedHome.js.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/astrocartographie/status", "issue": "Ne retourne pas 'amount' ni 'promo_code' — la vérification post-checkout que le montant KABBALE20 = 29€ ne peut être faite qu'indirectement (via table Supabase payment_transactions). Le test pytest valide uniquement url+session_id 200, pas le montant réel envoyé à Stripe. Recommandation : exposer 'amount' dans le payload GET /status pour permettre l'assertion e2e."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "AuthenticatedHome / BundleCard",
+        "issue": "Race condition auth : le useEffect ligne 13-17 de /app/frontend/src/pages/AuthenticatedHome.js redirige vers '/' dès qu'isAuthenticated=false. Or au premier mount, AuthContext.loading=true et user=null (Supabase.getSession() est async), donc isAuthenticated=false → redirect immédiat vers home. Résultat : la route /mon-accueil est inaccessible via URL directe, même connecté. Aucun lien in-app ne pointe vers /mon-accueil (0 <a href='/mon-accueil'> dans le DOM de /mon-compte). Le composant BundleCard est donc invisible pour tous les utilisateurs en production. Il faut soit (a) ajouter un check `if (loading) return null;` avant la redirection, soit (b) attendre !loading dans la dépendance de l'useEffect, soit (c) créer un lien vers /mon-accueil dans /mon-compte ou dans le menu Mon Compte.",
+        "selector": "[data-testid='authenticated-home-bundle']",
+        "priority": "CRITICAL"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_astrocarto_kabbale20.py",
+    "/app/test_reports/pytest/iteration51.xml"
+  ],
+  "action_items": [
+    "CRITIQUE — Fix la race condition dans /app/frontend/src/pages/AuthenticatedHome.js : importer `loading` depuis useAuth() et ne rediriger que si `!loading && !isAuthenticated`. Sinon /mon-accueil est un mur mort et BundleCard n'est jamais rendu. Exemple : `const { isAuthenticated, loading, user, creditBalance, logout } = useAuth();` puis `useEffect(() => { if (!loading && !isAuthenticated) navigate('/', { replace: true }); }, [isAuthenticated, loading, navigate]);`",
+    "Ajouter un lien in-app vers /mon-accueil depuis /mon-compte (ou depuis le menu Mon Compte de Hero3D header) pour que l'utilisateur puisse effectivement atterrir sur cette page post-inscription.",
+    "Optionnel — Exposer `amount` dans GET /api/astrocartographie/status pour permettre une vérif e2e du prix réel appliqué (29 vs 49 vs 41.65). Aujourd'hui il faut requêter Supabase directement.",
+    "Vérifier que le flow post-inscription (/inscription → succès) redirige bien l'utilisateur vers /mon-accueil (là où le BundleCard doit être vu). Sans lien in-app, la CVR du bundle Découverte sera zéro."
+  ],
+  "critical_code_review_comments": [
+    "AuthenticatedHome.js — race condition useEffect qui rend la page inaccessible directement (voir action_items). C'est le bug bloquant de cette itération.",
+    "LaunchBanner.js — parfait : localStorage cookie-less, evergreen reset, format zero-padded HHh MMm SSs, aria-label + tabIndex + Enter handler = accessible.",
+    "Hero3D.js — rotation propre avec key={promiseIdx} pour re-trigger l'animation CSS 'plumeHeroFade'. useEffect cleanup OK. Les 3 promesses définies dans HERO_PROMISES sont bien exposées avec data-testid='hero-promise-N' incrémentant.",
+    "BundleCard.js — composant réutilisable propre, testId prop = bon pattern pour réutilisation. Les data-testid dérivés (`${testId}-badge`, `-title`, `-pricing`, `-cta`) facilitent le test.",
+    "astrocartographie.py — la logique KABBALE20 (final_amount = max(5.0, 49-20) = 29€) est correcte et symétrique à PLUME15 (15%). Bon fallback ≥ 5€ pour Stripe. Métadonnées Stripe (`promo_code`, `discount_percent`) bien propagées.",
+    "AstrocartographieSales.js — auto-skip step 0 quand ?discount=… en URL (bon UX post-Kabbale), banner data-testid='astrocarto-kabbale20-banner' bien conditionnel, CTA texte adaptatif selon le promo."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_astrocarto_kabbale20.py (nouveau)"
+  ],
+  "success_rate": {
+    "backend": "100% (4/4 pytest)",
+    "frontend": "75% (3/4 : countdown OK, hero rotation OK, KABBALE20 banner OK, BundleCard bloqué par race condition)"
+  },
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 — login réussit (redirect vers /mon-compte OK), mais /mon-accueil reste inaccessible.",
+  "seed_data_creation": "Aucune",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Une fois le fix appliqué à AuthenticatedHome.js (guard sur `loading`), retester UNIQUEMENT le point BundleCard : login admin → visite directe /mon-accueil → vérifier data-testid='authenticated-home-bundle' visible, badge='Duo Soléna', title contient 'Arbre de Vie + meilleure destination', pricing '68€' + '<s>88€</s>' + '20€ économie', CTA text='Commencer le duo — Kabbale 39€', href='/kabbale?from=bundle'. Les 3 autres fixes (countdown / hero rotation / KABBALE20 banner+backend) sont déjà 100% validés — inutile de les retester sauf refactor.",
+  "rca of the issue": "RCA BundleCard inaccessible : /app/frontend/src/pages/AuthenticatedHome.js lignes 13-17 = `useEffect(() => { if (!isAuthenticated) navigate('/', { replace: true }); }, [isAuthenticated, navigate]);`. Ce useEffect court dès le mount du composant. Le hook useAuth() vient de AuthContext qui initialise `user=null` + `loading=true` en attendant que `supabase.auth.getSession()` (async) résolve la session persistée. `isAuthenticated = !!user`, donc pendant la latence de getSession(), isAuthenticated=false et le navigate('/') se déclenche. L'utilisateur est éjecté vers home AVANT que l'auth n'ait eu le temps d'hydrater. Reproduction : (1) login admin via /connexion, atterrissage OK sur /mon-compte, (2) taper directement l'URL /mon-accueil dans la barre → redirect immédiat vers /. Aucun lien in-app ne pointe vers /mon-accueil non plus, donc la page est un cul-de-sac total. Mitigation : consommer `loading` depuis useAuth() et gate la redirection : `if (!loading && !isAuthenticated) navigate('/', ...)`. Cf. action_items pour le patch."
+}

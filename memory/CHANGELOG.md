@@ -3,6 +3,145 @@
 
 ## 2026-02-20 — Session cleanup post-migration caches persistants
 
+### 🎴 Intégration 22 arcanes majeurs Plume Astrale (P0 — assets)
+- ✅ Nathalie a créé et livré ses **22 arcanes majeurs HD** (ZIP 138 MB, 1600×2848px chacune)
+- ✅ Script d'upload `/app/backend/scripts/upload_tarot_arcanes.py` — resize Pillow en 3 tailles (512, 1080, 2048) + upload Supabase Storage bucket `library/tarot/` avec `upsert=true` et `cache-control: public, max-age=31536000`
+- ✅ **66 fichiers** uploadés (22 cartes × 3 tailles) — tous vérifiés HTTP 200
+- ✅ Fix numérotation **Tarot de Marseille** (correspond à la tradition FR) :
+  - Justice = **08** (au lieu de 11 dans Waite/Rider)
+  - Force = **11** (au lieu de 8 dans Waite/Rider)
+  - Arcane Sans Nom = **13** (nom respectueux de la superstition originelle, alias de "La Mort")
+- ✅ `TAROT_ALIASES` dans `LibraryImage.js` mis à jour → tous les composants qui utilisaient `<LibraryImage type="tarot" name="Justice">` sortent maintenant la carte de Nathalie
+- ✅ Backend `tarot_service.py` → nouveau `_TAROT_CDN_BASE` pointe vers `library/tarot/`, `TAROT_IMAGE_MAP` avec les nouveaux slugs 1080px
+- ✅ Bug frontend corrigé : `TarotOuiNon.js` et `Tarologie.js` prépendaient `${API_URL}` sur une URL Supabase absolue → détection `startsWith('http')` ajoutée
+- ✅ Test live confirmé : question "Est-ce que je vais réussir ?" tire **L'Étoile (XVII)** avec la carte HD de Nathalie affichée parfaitement (cadre doré, 180×300px, halo lumineux)
+
+### 🎁 Bandeau post-achat + 📊 Cockpit Analytics (P1 — LTV & pilotage)
+
+**5. Bandeau post-achat CercleSolenaInvite** (P1 — max conversion post-purchase) :
+- Nouveau composant `/app/frontend/src/components/CercleSolenaInvite.js` — badge "1 mois offert" or gradient, titre "Merci d'avoir choisi Plume Astrale — Continue le voyage, offert", pricing 0€/30j puis 19€/mois, CTA "Activer mon mois offert" + bouton dismiss
+- Inséré sur les 4 pages Succès PDF : **KabbaleSucces, AstrocartographieSucces, PackKarmiqueSucces, SynastrieSucces** — s'affiche uniquement quand `pdf_ready === true` (moment de peak émotion post-livraison)
+- Backend `/app/backend/routes/subscriptions.py` étendu :
+  - `CheckoutPayload.with_trial: bool = False`
+  - Si `with_trial=True` ET user n'a pas déjà utilisé son trial (idempotence via `credit_grants.reason='cercle_solena_trial_used'`) → `subscription_data.trial_period_days=30`
+  - Metadata Stripe propage `trial='true'` pour audit webhook
+- Analytics : chaque clic envoie `CERCLE_SOLENA_CHECKOUT` avec `props.source='post_purchase_{product}'` + `props.trial=true` pour identifier les conversions issues du bandeau
+
+**6. Cockpit Analytics `/admin/analytics`** (P1 — pilotage revenue) :
+- Nouvelle page `/app/frontend/src/pages/AnalyticsAdmin.js` protégée par admin-gate (`is_admin || email==='admin@plume-astrale.fr'`)
+- Badge en tête ✦ COCKPIT ANALYTICS ✦ + titre "Tes chiffres, sans te noyer"
+- **6 KPIs cliquables** vers Plausible avec filtres pré-appliqués :
+  - Visiteurs uniques (cible +20% mois/mois)
+  - signup_completed (cible ≥ 3% des visiteurs)
+  - *_checkout globaux (cible ≥ 25% des signups)
+  - Revenue PDF (période mois)
+  - cercle_solena_checkout (cible ≥ 5% des acheteurs PDF)
+  - bundle_click (cible ≥ 10% des connectés)
+- Chaque carte : icône colorée, label, goal, cible en badge, texte de lecture métier ("Si tu vois < 2%, c'est ton hero qui coince")
+- **Tunnel 5 étapes** : Visiteurs → Signup → Checkouts → Paiements → Cercle Soléna
+- **Quick-links** : Aujourd'hui / 7d / 30d / Mois
+- Alerte "Configuration incomplète" si `REACT_APP_PLAUSIBLE_DOMAIN` absent
+- Route ajoutée dans App.js : `/admin/analytics`
+
+### 📋 Doc synthèse : `/app/memory/plausible_dashboard_guide.md`
+- Tableau des 6 KPIs + cibles
+- Setup Plausible en 4 étapes (créer compte, ajouter site, configurer 8 Goals, activer .env)
+- Alertes email recommandées (weekly ON, spike ON)
+- Ce que Plausible ne dit pas (à croiser avec Stripe pour revenue réel)
+- Rappel RGPD (Plausible sans cookies, mais code respecte consent explicite)
+
+### ✅ Testing
+- iteration_53 : backend 6/6 PASS + skip attendu, frontend 95% initial → 100% après fix du badge (déplacé de PageHero prop vers div direct dans AnalyticsAdmin.js)
+
+### 🎯 4 features finales Gary Vee — conversion + LTV (session audit)
+
+**1. PDF Mockup 3D (P1 — conversion Astrocarto)** :
+- Nouveau composant `/app/frontend/src/components/PdfMockup3D.js` — 3 pages "leaked" en isométrie CSS pure (couverture / carte planétaire / ligne Vénus)
+- Watermark "APERÇU" en Cinzel, animation float+bob, responsive mobile single-column
+- Inséré sur `/astrocartographie` au step 0, au-dessus des témoignages
+- Aucune dépendance image externe — 100% CSS/HTML rendu
+
+**2. Reels Soléna 30 jours (P2 — content marketing)** :
+- Livrable documentaire : `/app/memory/reels_solena_30_jours.md`
+- 30 scripts courts (15-30 sec) répartis en 4 formats : Astuce du jour, Face aux signes, Rituel express, Question de Soléna
+- Notes de production complètes : voix ElevenLabs, B-roll, fonts overlay, hashtags, KPI cibles
+
+**3. Cercle Soléna — Abonnement 19€/mois (P1 — LTV × 12)** :
+- **Backend** `/app/backend/routes/subscriptions.py` :
+  - `POST /api/subscriptions/cercle-solena/checkout` (mode='subscription' Stripe, idempotence via `stripe_customer_id` persisté)
+  - `GET  /api/subscriptions/cercle-solena/status`
+  - `POST /api/subscriptions/portal` (Stripe Billing Portal — résiliation en 1 clic)
+  - Webhook handler `handle_subscription_event` : credite +3 crédits mensuels via `invoice.payment_succeeded`, avec idempotence sur `credit_grants.external_id`
+- **DB** `/app/supabase/cercle_solena_migration.sql` :
+  - Nouvelles tables `subscriptions` + `credit_grants` (RLS activé)
+  - Colonnes `profiles.stripe_customer_id` + `profiles.is_cercle_member`
+- **Frontend** `/app/frontend/src/pages/CercleSolena.js` :
+  - Landing complète avec pricing hero, 4 bénéfices, FAQ, CTA adaptatif (non-auth → redirect /connexion, auth → checkout)
+  - Auto-redirect vers Stripe Checkout
+  - Handle 503 clean ("L'abonnement n'est pas encore configuré")
+- **Router** : nouvelles routes `/cercle-solena` et `/cercle-solena/succes` (App.js)
+- **Teaser** sur `/mon-compte` sous le BundleCard (data-testid : `mon-compte-cercle-solena-teaser`)
+- **Note** : Nécessite `STRIPE_CERCLE_SOLENA_PRICE_ID` dans `.env` (Nathalie doit créer le Price côté Dashboard Stripe — cf `/app/memory/setup_cercle_solena_analytics.md`)
+
+**4. Analytics Plausible + GA4 (P2 — conversion tracking)** :
+- `/app/frontend/src/lib/analytics.js` existant enrichi : ajout constantes `EVENTS` (source of truth) + helper `revenue()` (montant EUR, dual-track Plausible+GA4)
+- Instrumentation :
+  - `Register.js` → `signup_completed` on success
+  - `BundleCard.js` → `bundle_click` on CTA
+  - `KabbaleSales.js` → `kabbale_checkout` on submit
+  - `AstrocartographieSales.js` → `astrocarto_checkout` on submit
+  - `CercleSolena.js` → `cercle_solena_checkout` on CTA
+- RGPD-compliant : no-op tant que `getConsent() !== 'accepted'` (bandeau cookies existant)
+- Config : `REACT_APP_PLAUSIBLE_DOMAIN` et/ou `REACT_APP_GA4_ID` dans `.env`
+
+### 📋 Doc setup pour Nathalie
+- `/app/memory/setup_cercle_solena_analytics.md` — checklist ~10 min :
+  1. Créer Price Stripe recurring
+  2. Appliquer migration SQL Supabase
+  3. Activer 4 webhook events Stripe
+  4. Setup Plausible (facultatif : + GA4)
+
+### ✅ Testing
+- iteration_52 : backend 4/4 PASS (auth 401 + checkout 503 attendu) + frontend 100% (PDF mockup step 0 visible / step 1 hidden, CercleSolena landing complète, teaser mon-compte, redirect non-auth, 503 UI, analytics no-crash)
+- Pytest : `/app/backend/tests/test_cercle_solena_subscriptions.py`
+
+### 🚀 4 fixes Gary Vee — conversion boost (P1)
+
+**1. Rotation Hero (Hero3D.js)** — les 3 promesses cyclent toutes les 4 secondes avec fondu enchaîné : « vie amoureuse », « mission d'âme », « meilleure destination ». Fini le filtrage des 60% de l'audience qui ne cherche pas l'amour. Data-testid : `hero-promise-{idx}`.
+
+**2. Countdown 48h dynamique (LaunchBanner.js)** — le bandeau top affiche désormais un countdown live `EXPIRE DANS HHh MMm SSs` par visiteur (localStorage `plume_offer_deadline_v1`, evergreen reset auto). Format zero-padded, `font-variant-numeric: tabular-nums` pour un rendu stable. Data-testid : `launch-banner-countdown`.
+
+**3. Upsell Astrocarto post-Kabbale (KABBALE20)** :
+- Backend : `/app/backend/routes/astrocartographie.py` — nouveau code promo `KABBALE20` = -20€ absolu (`max(5.0, 49-20) = 29.0`), symétrique à PLUME15.
+- Frontend : `/app/frontend/src/pages/KabbaleSucces.js` — nouveau bloc premium visible dès `pdf_ready`, badge "-20€ · Duo Soléna", titre "Maintenant que tu connais ton âme, où va-t-elle s'épanouir ?", CTA `/astrocartographie?discount=KABBALE20` (déjà auto-fill via query param existant).
+- AstrocartographieSales.js : nouveau banner conditionnel `astrocarto-kabbale20-banner` (49€ → 29€) et bouton adaptatif "Payer 29€ (Duo Soléna)".
+- Test pytest backend : 4/4 PASS (`/app/backend/tests/test_astrocarto_kabbale20.py`).
+
+**4. BundleCard Découverte Soléna** — nouveau composant `/app/frontend/src/components/BundleCard.js` :
+- Design premium (badge or "Duo Soléna", 2 cards produits, prix 68€ vs 88€ barré, économie 20€)
+- Intégré sur `/mon-compte` (post-connexion, dense=true) et `/mon-accueil` (AuthenticatedHome)
+- CTA vers `/kabbale?from=bundle` → mécanique de chaînage vers l'upsell KABBALE20
+
+**Fix bloquant race condition (AuthenticatedHome.js)** — le useEffect redirigeait vers `/` avant que Supabase.getSession() n'hydrate la session. Guard sur `loading` ajouté : `if (!loading && !isAuthenticated) navigate('/')`.
+
+**Testing** : iteration_51.json — backend 4/4 pytest PASS, frontend 3/4 initial (BundleCard bloqué par race → corrigé), re-vérification manuelle 100% après fix.
+
+### ⭐ Widget témoignages sur 4 landings (P2 — session Gary Vee audit)
+- ✅ Nouveau composant réutilisable `/app/frontend/src/components/TestimonialsWidget.js` :
+  - Design premium cohérent charte Plume (Cinzel + Cormorant, palette or/nuit)
+  - 3 cartes glass avec guillemet décoratif, 5 étoiles or, quote italic, signature ville · signe astro
+  - Trust-bar bas : « 4,9/5 · Note moyenne · Livraison en moins de 5 min »
+  - 4 datasets exportés : `TESTIMONIALS_KABBALE`, `TESTIMONIALS_ASTROCARTO`, `TESTIMONIALS_KARMA`, `TESTIMONIALS_COMPATIBILITE` (3 témoignages FR curatés chacun)
+  - Data-testids exhaustifs : `{prefix}-widget`, `-card-N`, `-rating-N`, `-quote-N`, `-name-N`, `-meta-N`, `-trust-bar`
+- ✅ Intégration au-dessus du CTA final sur :
+  - `/kabbale` (KabbaleSales.js) — "Ce que leur Arbre a révélé"
+  - `/astrocartographie` (AstrocartographieSales.js) — "Elles ont trouvé leur lieu"
+  - `/pack-karmique` (PackKarmique.js) — "Elles ont retrouvé leur mission"
+  - `/outils/compatibilite` (Compatibilite2.js — pas Compatibilite.js qui est dead-code) — "Elles ont lu leur synastrie"
+- ✅ Widget masqué automatiquement quand `step !== 0` (KabbaleSales/Astrocarto/PackKarmique) et quand `step !== 0` sur Compatibilite2 (disparait dès l'entrée dans le funnel de calcul).
+- ✅ Responsive validé sur viewport 375px (grid-cols-1 → colonne unique, cards lisibles).
+- ✅ Testing agent iteration_50.json : 3/4 PASS au premier passage, bug routing détecté sur `/compatibilite` (dead route) → correction appliquée sur Compatibilite2.js → screenshot final confirme widget live.
+
 ### 🛡️ Wrap défensif AstroSexo (P0)
 - ✅ `/app/backend/routes/astrosexo.py` : appel à `enrich_and_ask()` désormais entouré d'un `try/except`.
 - Si OpenAI (ou toute autre couche d'enrichissement) échoue, on retourne le `base_text` brut avec `enrichi: false` au lieu d'un HTTP 500.

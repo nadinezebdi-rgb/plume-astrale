@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { UserPlus, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { event as track, EVENTS } from '@/lib/analytics';
 
 const COUNTRIES = [
   'France', 'Belgique', 'Suisse', 'Canada', 'Luxembourg', 'Monaco',
@@ -74,6 +75,7 @@ export default function Register() {
         birth_country: birthCountry,
       });
 
+      track(EVENTS.SIGNUP_COMPLETED, { has_birth_data: true });
       navigate('/');
     } catch (err) {
       console.error('Register error:', err);

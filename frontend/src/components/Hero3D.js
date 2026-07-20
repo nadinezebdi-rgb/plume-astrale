@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,17 @@ import LaunchBanner from './LaunchBanner';
 const Moon3D = lazy(() => import('./Moon3D'));
 
 /**
+ * Rotation des 3 promesses fondamentales du produit — pour ne plus filtrer
+ * les 60% de l'audience qui ne cherche pas l'amour (audit Gary Vee 2026-02).
+ * Chaque promesse s'affiche 4 secondes puis fondu enchaîné vers la suivante.
+ */
+const HERO_PROMISES = [
+  { label: 'vie amoureuse', href: '/inscription' },
+  { label: 'mission d\u2019\u00e2me', href: '/inscription' },
+  { label: 'meilleure destination', href: '/inscription' },
+];
+
+/**
  * Hero3D — Section hero d'accueil.
  * CTA principal : Créer un compte (20 crédits offerts).
  * Le funnel legacy "modal 2 prénoms → portrait karmique gratuit" a été retiré
@@ -15,6 +26,17 @@ const Moon3D = lazy(() => import('./Moon3D'));
  */
 export default function Hero3D() {
   const { isAuthenticated } = useAuth();
+
+  // Rotation des 3 promesses toutes les 4 secondes
+  const [promiseIdx, setPromiseIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setPromiseIdx((i) => (i + 1) % HERO_PROMISES.length);
+    }, 4000);
+    return () => clearInterval(id);
+  }, []);
+  const currentPromise = HERO_PROMISES[promiseIdx];
+
   return (
     <section
       className="relative w-full overflow-hidden"
@@ -159,7 +181,21 @@ export default function Hero3D() {
         >
           En 3 minutes,
           <br />
-          comprends ce qui se joue dans ta <em style={{ fontStyle: 'italic', color: '#E8C766' }}>vie amoureuse</em>.
+          comprends ce qui se joue dans ta{' '}
+          <em
+            key={promiseIdx}
+            className="plume-hero-promise"
+            style={{
+              fontStyle: 'italic',
+              color: '#E8C766',
+              display: 'inline-block',
+              minWidth: '5ch',
+            }}
+            data-testid={`hero-promise-${promiseIdx}`}
+          >
+            {currentPromise.label}
+          </em>
+          .
         </h2>
 
         {/* Sous-texte */}
@@ -245,6 +281,15 @@ export default function Hero3D() {
         @keyframes pulse {
           0%, 100% { opacity: 0; }
           50% { opacity: 1; }
+        }
+        @keyframes plumeHeroFade {
+          0%   { opacity: 0; transform: translateY(6px); }
+          15%  { opacity: 1; transform: translateY(0); }
+          85%  { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-6px); }
+        }
+        .plume-hero-promise {
+          animation: plumeHeroFade 4s ease-in-out;
         }
       `}</style>
     </section>
