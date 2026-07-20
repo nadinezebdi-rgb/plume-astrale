@@ -1,6 +1,23 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — Cover Synastrie luxe = image `couple` bibliothèque interne
+
+### Contexte
+La cover de la synastrie luxe pointait initialement sur un slug `astral_couple` inexistant → fallback sur `astral_mandala`. L'utilisatrice a rappelé que la bibliothèque interne contient déjà des images de couple prêtes à l'emploi.
+
+### Fix
+- **Fichier** : `backend/services/pdf_luxury_wrap.py:22-28`
+- `SYNASTRY_SLUGS.cover` → `'couple'` (image "front contre front" déjà uploadée dans `library/pdf/couple_800.png` sur Supabase — HTTP 200 confirmé)
+- Fallback `'amoureux'` (arcane 06 Les Amoureux, également disponible)
+- Vérification `curl` : les deux slugs existent bien sur Supabase Storage
+
+### Validation
+- Test in-process : PDF externe factice de 2 pages wrap → **6 pages luxe (cover + inner + ending)**, 100 KB ✓
+- Cover télécharge bien l'image `couple_800.png` depuis Supabase
+
+
+
 ## 2026-02-20 — 🔍 Audit PDFs externes + Ciblage LiveSales
 
 ### Audit PDFs — 1 seul autre leak trouvé et corrigé

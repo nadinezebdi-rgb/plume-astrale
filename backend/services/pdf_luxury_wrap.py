@@ -104,12 +104,12 @@ def _append_luxury_ending(pdf_bytes: bytes, prenom: str, ending_slug: str) -> by
 
 
 SYNASTRY_SLUGS = {
-    'cover': 'astral_couple',
+    'cover': 'couple',           # Image "front contre front" — bibliothèque interne
     'ending': 'astral_silhouette',
 }
 
-# Fallback si l'illustration astral_couple n'est pas encore présente sur Supabase
-_SYNASTRY_FALLBACK_SLUG = 'astral_mandala'
+# Fallback si le slug demandé n'est pas encore présent sur Supabase
+_SYNASTRY_FALLBACK_SLUG = 'amoureux'
 
 
 def apply_luxury_wrap(pdf_bytes: bytes, prenom: str, subtitle: str, product: str = 'kabbale') -> bytes:
