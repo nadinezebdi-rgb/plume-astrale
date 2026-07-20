@@ -110,4 +110,5 @@ async def astrosexo_personal(payload: AstroSexoRequest):
         'mars_sign': mars_sign,
         'moon_sign': moon_sign,
         'analysis': enriched,
+        'enrichi': True,
     }

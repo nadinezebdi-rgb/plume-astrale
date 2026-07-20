@@ -1803,6 +1803,7 @@ async def legacy_oracle_question(payload: OracleQuestionRequest):
         'success': True,
         'answer': reading.get('reponse'),
         'data': reading,
+        'enrichi': bool(reading.get('reponse_enrichie')),
     }
 
 

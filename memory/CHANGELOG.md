@@ -1,6 +1,51 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-16
+
+### Session 13 — 🎨 Charte PDF unifiée + AstroSexo UI perso + Badge "Enrichi par Soléna"
+
+**Task 1 — UI AstroSexo perso**
+- ✅ `frontend/src/pages/AstroSexo.js` : nouveau bloc "Envie d'une analyse vraiment personnalisée ?" affiché après sélection d'un signe.
+- ✅ Logique conditionnelle :
+  - Authentifiée **+** natal complet → bouton "✨ Générer mon analyse perso" appelle `POST /api/astrosexo/personal`
+  - Non authentifiée → CTA "Créer mon compte gratuit" vers `/inscription?next=/outils/astrosexo`
+  - Authentifiée sans natal → "Compléter mon thème natal" vers `/mon-compte`
+- ✅ Analytics : `astrosexo_personal_generated` event tracké avec venus/mars signs.
+- ✅ Auto-scroll vers le résultat après génération.
+- ✅ Résultat affiché avec badge "✨ Enrichi par Soléna" + labels Vénus/Mars/Lune.
+
+**Task 2 — Charte PDF unifiée (`services/pdf_theme.py`)**
+- ✅ Nouveau module partagé exposant :
+  - `PALETTE` dict (NIGHT `#111625`, GOLD `#D4AF37`, CREAM `#F5EEE0`, LAVENDER `#E3D7FF`, MUTED `#9089B5`, GOLD_LIGHT, NIGHT_SOFT, ROSE)
+  - Alias flat : `NIGHT`, `GOLD`, `CREAM`, `LAVENDER`, `MUTED`, etc.
+  - `register_fonts()` : Cinzel + Cormorant Garamond depuis `/app/backend/assets/fonts/` (idempotent, fallback Helvetica)
+  - `font(name, fallback)` : helper pour utiliser une police si dispo
+  - `make_styles()` : dict de 12 `ParagraphStyle` unifiés (title, subtitle, h2, h3, body, italic, quote, small…)
+  - `starfield_bg(canv, doc)` : fond commun Platypus (nuit + halo doré + 30 étoiles + footer pagination)
+  - `paint_page_bg(canv, w, h)` : version raw canvas pour `pdf_generator.py` et `compatibility_pdf_generator.py`
+- ✅ **`services/pdf_generator.py`** (Karma standalone) — palette réharmonisée :
+  - `#0F0518` → `#111625` (NIGHT unifié)
+  - `#1A0B2E` → `#1A2035` (NIGHT_SOFT)
+  - `#C5A059` → `#D4AF37` (GOLD unifié)
+  - `#F3E5AB` → `#F5EEE0` (CREAM)
+  - `#E0D9F6` → `#E3D7FF` (LAVENDER)
+- ✅ **`services/compatibility_pdf_generator.py`** — palette réharmonisée sur la même base (5 couleurs alignées).
+- ✅ Testé E2E : `POST /api/compatibility/generate` renvoie un PDF 17MB valide avec la nouvelle palette Kabbale.
+
+**Task 3 — Badge "✨ Enrichi par Soléna"**
+- ✅ Nouveau composant `frontend/src/components/EnrichedBadge.js` avec 3 variants (`default`, `compact`, `inline`) + alignement gauche/centre/droite.
+- ✅ Backend renvoie `enrichi: true` sur les endpoints `/api/oracle` et `/api/astrosexo/personal`.
+- ✅ Backend renvoie `reponse_enrichie: true` sur les 3 endpoints Tarot (déjà en place).
+- ✅ Intégré sur 3 pages :
+  - `TarotOuiNon.js` — badge compact à côté de "✦ Message des Arcanes"
+  - `Oracle.js` — badge compact centré au-dessus de la réponse
+  - `AstroSexo.js` — badge default en tête du bloc résultat perso
+
+**Fix bonus**
+- ✅ Cohérence coût Tarot Oui/Non : frontend affichait "2 crédits" alors que le backend charge 5 (SERVICE_COSTS['tarot_oui_non']=5) → mis à jour partout (`sed -i 's/2 crédits/5 crédits/g'` sur `TarotOuiNon.js`).
+
+
 ## 2026-02-15
 
 ### Session 12 — 🔗 Tous les outils sur API v3 + Couche d'enrichissement narrative universelle

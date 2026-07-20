@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { EnrichedBadge } from "../components/EnrichedBadge";
 
 export default function Oracle() {
   const { creditBalance } = useAuth();
 
   const [question, setQuestion] = useState("");
   const [response, setResponse] = useState("");
+  const [enriched, setEnriched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -34,6 +36,7 @@ export default function Oracle() {
       const data = await res.json();
 
       setResponse(data.answer || "Réponse indisponible");
+      setEnriched(!!data.enrichi);
 
     } catch (err) {
       setError("Erreur Oracle");
@@ -63,7 +66,8 @@ export default function Oracle() {
 
       {response && (
         <div className="mt-6 max-w-md">
-          <p>{response}</p>
+          <EnrichedBadge variant="compact" visible={enriched} align="center" />
+          <p style={{ whiteSpace: 'pre-wrap' }}>{response}</p>
 
           <button
             className="mt-4 text-yellow-500"
