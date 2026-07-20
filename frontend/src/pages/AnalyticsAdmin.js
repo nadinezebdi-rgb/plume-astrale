@@ -107,8 +107,20 @@ const AnalyticsAdmin = () => {
   return (
     <>
       <SEO title="Analytics — Plume Astrale" description="Tableau de bord analytics interne" noindex />
+      <div style={{ textAlign: 'center', paddingTop: 120, paddingBottom: 8 }} data-testid="analytics-badge">
+        <span
+          style={{
+            fontSize: 11,
+            color: '#D4AF37',
+            letterSpacing: '0.35em',
+            fontFamily: 'Cinzel, serif',
+            textTransform: 'uppercase',
+          }}
+        >
+          ✦ Cockpit Analytics ✦
+        </span>
+      </div>
       <PageHero
-        badge="✦ Cockpit Analytics ✦"
         title="Tes chiffres, sans te noyer"
         subtitle="6 KPIs qui décident. Un clic pour aller lire le détail sur Plausible."
       />

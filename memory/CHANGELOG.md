@@ -3,6 +3,43 @@
 
 ## 2026-02-20 — Session cleanup post-migration caches persistants
 
+### 🎁 Bandeau post-achat + 📊 Cockpit Analytics (P1 — LTV & pilotage)
+
+**5. Bandeau post-achat CercleSolenaInvite** (P1 — max conversion post-purchase) :
+- Nouveau composant `/app/frontend/src/components/CercleSolenaInvite.js` — badge "1 mois offert" or gradient, titre "Merci d'avoir choisi Plume Astrale — Continue le voyage, offert", pricing 0€/30j puis 19€/mois, CTA "Activer mon mois offert" + bouton dismiss
+- Inséré sur les 4 pages Succès PDF : **KabbaleSucces, AstrocartographieSucces, PackKarmiqueSucces, SynastrieSucces** — s'affiche uniquement quand `pdf_ready === true` (moment de peak émotion post-livraison)
+- Backend `/app/backend/routes/subscriptions.py` étendu :
+  - `CheckoutPayload.with_trial: bool = False`
+  - Si `with_trial=True` ET user n'a pas déjà utilisé son trial (idempotence via `credit_grants.reason='cercle_solena_trial_used'`) → `subscription_data.trial_period_days=30`
+  - Metadata Stripe propage `trial='true'` pour audit webhook
+- Analytics : chaque clic envoie `CERCLE_SOLENA_CHECKOUT` avec `props.source='post_purchase_{product}'` + `props.trial=true` pour identifier les conversions issues du bandeau
+
+**6. Cockpit Analytics `/admin/analytics`** (P1 — pilotage revenue) :
+- Nouvelle page `/app/frontend/src/pages/AnalyticsAdmin.js` protégée par admin-gate (`is_admin || email==='admin@plume-astrale.fr'`)
+- Badge en tête ✦ COCKPIT ANALYTICS ✦ + titre "Tes chiffres, sans te noyer"
+- **6 KPIs cliquables** vers Plausible avec filtres pré-appliqués :
+  - Visiteurs uniques (cible +20% mois/mois)
+  - signup_completed (cible ≥ 3% des visiteurs)
+  - *_checkout globaux (cible ≥ 25% des signups)
+  - Revenue PDF (période mois)
+  - cercle_solena_checkout (cible ≥ 5% des acheteurs PDF)
+  - bundle_click (cible ≥ 10% des connectés)
+- Chaque carte : icône colorée, label, goal, cible en badge, texte de lecture métier ("Si tu vois < 2%, c'est ton hero qui coince")
+- **Tunnel 5 étapes** : Visiteurs → Signup → Checkouts → Paiements → Cercle Soléna
+- **Quick-links** : Aujourd'hui / 7d / 30d / Mois
+- Alerte "Configuration incomplète" si `REACT_APP_PLAUSIBLE_DOMAIN` absent
+- Route ajoutée dans App.js : `/admin/analytics`
+
+### 📋 Doc synthèse : `/app/memory/plausible_dashboard_guide.md`
+- Tableau des 6 KPIs + cibles
+- Setup Plausible en 4 étapes (créer compte, ajouter site, configurer 8 Goals, activer .env)
+- Alertes email recommandées (weekly ON, spike ON)
+- Ce que Plausible ne dit pas (à croiser avec Stripe pour revenue réel)
+- Rappel RGPD (Plausible sans cookies, mais code respecte consent explicite)
+
+### ✅ Testing
+- iteration_53 : backend 6/6 PASS + skip attendu, frontend 95% initial → 100% après fix du badge (déplacé de PageHero prop vers div direct dans AnalyticsAdmin.js)
+
 ### 🎯 4 features finales Gary Vee — conversion + LTV (session audit)
 
 **1. PDF Mockup 3D (P1 — conversion Astrocarto)** :
