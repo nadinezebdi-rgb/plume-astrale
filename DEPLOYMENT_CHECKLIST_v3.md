@@ -19,10 +19,10 @@ Variables à vérifier:
   ✅ SUPABASE_URL = https://ebwicqvbkwogxneipaxh.supabase.co
   ✅ SUPABASE_SERVICE_ROLE_KEY = (non vide, commence par eyJ)
   ✅ SUPABASE_ANON_KEY = (non vide)
-  ✅ SUPABASE_JWT_SECRET = bf640975-ab0e-43a0-9b90-d22de3800041
-  ✅ ASTROLOGY_API_USER_ID = 649448
-  ✅ ASTROLOGY_API_KEY = fdc70a8227029d5e3f11ba9e495bb56995bb343a
-  ✅ ASTROLOGY_API_ACCESS_TOKEN = c520138ec226c81240e263e1034fdd53dfa71d23
+  ✅ SUPABASE_JWT_SECRET = <REDACTED - a regenerer>
+  ✅ ASTROLOGY_API_USER_ID = <REDACTED>
+  ✅ ASTROLOGY_API_KEY = <REDACTED - a regenerer>
+  ✅ ASTROLOGY_API_ACCESS_TOKEN = <REDACTED - a regenerer>
   ✅ OPENAI_API_KEY = sk_... (non vide)
   ✅ CORS_ORIGINS = https://plume-astrale.fr,https://app.emergent.sh
   ✅ EMERGENT_LLM_KEY = (ta clé Emergent)
