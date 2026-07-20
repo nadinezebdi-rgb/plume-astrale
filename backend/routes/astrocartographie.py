@@ -10,13 +10,14 @@ import asyncio
 import logging
 import uuid
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 
 from config import get_settings
 from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
 from services.astrocartographie_service import handle_astrocartographie_webhook
+from middleware.auth import get_optional_user
 from emergentintegrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
@@ -80,7 +81,11 @@ class AstrocartographieCheckoutPayload(BaseModel):
 
 
 @router.post('/checkout')
-async def astrocartographie_checkout(payload: AstrocartographieCheckoutPayload, request: Request):
+async def astrocartographie_checkout(
+    payload: AstrocartographieCheckoutPayload,
+    request: Request,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
     settings = get_settings()
     pack = settings.PACKS.get('astrocartographie')
     if not pack:
@@ -144,8 +149,8 @@ async def astrocartographie_checkout(payload: AstrocartographieCheckoutPayload, 
         final_amount = max(5.0, round(float(pack['amount']) - 20.0, 2))
         discount_applied = round(1 - (final_amount / float(pack['amount'])), 4)
 
-    # Bypass 100% (codes ADMIN26 etc via table promo_codes)
-    if promo and try_consume_promo(promo):
+    # Bypass 100% — SEC-004 : réservé aux admins authentifiés
+    if promo and try_consume_promo(promo, admin_user=current_user, product='astrocartographie'):
         fake_session_id = f'admin-astrocarto-{uuid.uuid4().hex[:16]}'
         try:
             sb = get_admin_client()

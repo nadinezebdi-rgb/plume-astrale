@@ -715,19 +715,17 @@ async def stripe_webhook(request: Request):
     stripe.api_key = settings.STRIPE_API_KEY
     webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 
-    # Si webhook secret configure, verifier la signature
-    if webhook_secret:
-        try:
-            event = stripe.Webhook.construct_event(body, sig, webhook_secret)
-        except Exception as e:
-            logger.error(f'Webhook signature failed: {e}')
-            raise HTTPException(status_code=400, detail='Invalid signature')
-    else:
-        # Mode permissif (dev / pas de secret)
-        try:
-            event = _json.loads(body)
-        except Exception:
-            raise HTTPException(status_code=400, detail='Invalid body')
+    # SÉCURITÉ (SEC-001) : la signature Stripe est OBLIGATOIRE. Aucun fallback permissif :
+    # sans secret, un attaquant peut forger un event et déclencher la livraison de PDFs
+    # premium + crédits gratuits. On rejette explicitement dans ce cas.
+    if not webhook_secret:
+        logger.error('[stripe_webhook] STRIPE_WEBHOOK_SECRET manquant — refus de traiter le webhook.')
+        raise HTTPException(status_code=503, detail='Webhook secret not configured')
+    try:
+        event = stripe.Webhook.construct_event(body, sig, webhook_secret)
+    except Exception as e:
+        logger.warning(f'[stripe_webhook] signature invalide: {e}')
+        raise HTTPException(status_code=400, detail='Invalid signature')
 
     event_type = event.get('type') if isinstance(event, dict) else event.type
     data_obj = (event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object)
@@ -2132,12 +2130,14 @@ async def plume_chat_history_endpoint(
 # ════════════════════════════════════════════
 @api_router.get('/ritual/today')
 async def ritual_today_endpoint(
-    user_id: str,
+    current_user: dict = Depends(get_current_user),
     name: Optional[str] = None,
     day: Optional[int] = None, month: Optional[int] = None, year: Optional[int] = None,
     hour: Optional[int] = None, minute: Optional[int] = None,
     lat: Optional[float] = None, lon: Optional[float] = None, tzone: Optional[float] = None,
 ):
+    # SEC-002 : le user_id vient du token JWT vérifié — plus jamais du client.
+    user_id = current_user['id']
     birth_data = None
     if day and month and year:
         birth_data = {
@@ -2169,13 +2169,17 @@ async def ritual_moods_endpoint():
 
 
 @api_router.post('/ritual/checkin')
-async def ritual_checkin_endpoint(request: Request):
+async def ritual_checkin_endpoint(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
     body = await request.json()
-    user_id = body.get('user_id')
+    # SEC-002 : ignore body.user_id, on prend celui du token
+    user_id = current_user['id']
     mood = body.get('mood')
     intention = body.get('intention')
-    if not user_id or not mood:
-        return {'success': False, 'message': 'user_id et mood requis.'}
+    if not mood:
+        return {'success': False, 'message': 'mood requis.'}
     if mood not in MOODS:
         return {'success': False, 'message': 'Humeur inconnue.'}
     result = await submit_checkin(user_id, mood, intention)
@@ -2185,12 +2189,16 @@ async def ritual_checkin_endpoint(request: Request):
 
 
 @api_router.post('/journal/entry')
-async def journal_entry_endpoint(request: Request):
+async def journal_entry_endpoint(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
     body = await request.json()
-    user_id = body.get('user_id')
+    # SEC-002 : user_id depuis token uniquement
+    user_id = current_user['id']
     entry = (body.get('entry') or '').strip()
-    if not user_id or not entry:
-        return {'success': False, 'message': 'user_id et entry requis.'}
+    if not entry:
+        return {'success': False, 'message': 'entry requis.'}
     if len(entry) < 5:
         return {'success': False, 'message': 'Ecris au moins quelques mots.'}
     if len(entry) > 4000:
@@ -2200,7 +2208,12 @@ async def journal_entry_endpoint(request: Request):
 
 
 @api_router.get('/journal/history')
-async def journal_history_endpoint(user_id: str, limit: int = 30):
+async def journal_history_endpoint(
+    current_user: dict = Depends(get_current_user),
+    limit: int = 30,
+):
+    # SEC-002 : historique lié au user du token, pas un param client
+    user_id = current_user['id']
     history = await get_journal_history(user_id, limit=limit)
     return {'success': True, 'entries': history}
 
@@ -2244,7 +2257,22 @@ async def api_health_check():
 
 
 if ASSETS_DIR.exists():
-    app.mount('/api/assets', StaticFiles(directory=str(ASSETS_DIR)), name='assets')
+    # SEC-003 : on ne monte PLUS `assets/` en totalité. Seuls les sous-dossiers
+    # de ressources partagées sont exposés. Les PDFs personnels (kabbale,
+    # astrocartographie, pack_karmique, rencontres_ultime) passent par
+    # /api/pdf/download avec un token opaque.
+    # `synastrie_extracts` reste public (lead magnet, UUID de 48 bits agit comme token).
+    for _pub in ('library', 'fonts', 'synastrie_pdf', 'synastrie_extracts'):
+        _p = ASSETS_DIR / _pub
+        if _p.exists():
+            app.mount(f'/api/assets/{_pub}', StaticFiles(directory=str(_p)), name=f'assets_{_pub}')
+
+
+@app.get('/api/pdf/download')
+async def pdf_download_endpoint(session_id: str, token: str):
+    """SEC-003 : téléchargement authentifié par token opaque des PDFs personnels."""
+    from services.pdf_download import download_pdf
+    return await download_pdf(session_id, token)
 
 
 @app.on_event('startup')

@@ -1,6 +1,192 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — Cover Synastrie luxe = image `couple` bibliothèque interne
+
+### Contexte
+La cover de la synastrie luxe pointait initialement sur un slug `astral_couple` inexistant → fallback sur `astral_mandala`. L'utilisatrice a rappelé que la bibliothèque interne contient déjà des images de couple prêtes à l'emploi.
+
+### Fix
+- **Fichier** : `backend/services/pdf_luxury_wrap.py:22-28`
+- `SYNASTRY_SLUGS.cover` → `'couple'` (image "front contre front" déjà uploadée dans `library/pdf/couple_800.png` sur Supabase — HTTP 200 confirmé)
+- Fallback `'amoureux'` (arcane 06 Les Amoureux, également disponible)
+- Vérification `curl` : les deux slugs existent bien sur Supabase Storage
+
+### Validation
+- Test in-process : PDF externe factice de 2 pages wrap → **6 pages luxe (cover + inner + ending)**, 100 KB ✓
+- Cover télécharge bien l'image `couple_800.png` depuis Supabase
+
+
+
+## 2026-02-20 — 🔍 Audit PDFs externes + Ciblage LiveSales
+
+### Audit PDFs — 1 seul autre leak trouvé et corrigé
+- **Endpoint fautif** : `POST /api/astrology/v3/pdf/synastry` (Ultra+) appelait `aio.pdf_synastry()` qui délègue à `astrology-api.io/pdf/synastry-report` → PDF externe non wrappé
+- **Fix** : `routes/astrology_v3_extended.py:740-782` — wrapping avec `apply_luxury_wrap(product='synastry')` (cover astral_couple avec fallback astral_mandala + fin Soléna). Try/except protège la livraison si le wrap échoue.
+- **Nouveau `SYNASTRY_SLUGS`** dans `pdf_luxury_wrap.py` + fallback slug garanti
+- **Endpoints vérifiés OK** (rendu ReportLab natif, pas de PDF externe) :
+  - `/api/pdf/generate`, `/api/pdf/pro-horoscope` → `natal_pdf_v2` luxe
+  - `/api/premium/pdf` → `generate_premium_pdf` (Cartographie Premium)
+  - `/api/synastrie/pdf` → générateur synastrie natif
+  - `/api/tarologie/pdf` → `generate_mediumnite_pdf`
+  - `/api/tarot/croix-celtique/pdf` → `build_croix_celtique_pdf`
+  - Solar-return, transit, horaire, rectification → pas de PDF externe branché
+
+### LiveSalesCounter — ciblage par chemin
+- **Fichier** : `frontend/src/components/LiveSalesCounter.js`
+- Utilise `useLocation()` pour masquer le widget sur :
+  - Préfixes bloqués : `/admin`, `/paiement`, `/quotidien`, `/mon-compte`, `/tirage`, `/tarot`
+  - Segments bloqués n'importe où : `/succes`, `/attente`, `/checkout`
+- Cache immédiatement à la navigation, arrête les intervals pour économiser CPU
+- Validé screenshot sur `/paiement/succes` → widget bien absent ✓
+
+
+
+## 2026-02-20 — 🚨 Bug fix : Thème Natal PDF respecte enfin le wrapper luxe
+
+### Contexte
+Nadine a généré son Thème Natal depuis `/mon-compte` et a reçu un PDF **de 36 pages en fond blanc avec footer "Généré par Astrology API"** — la version legacy non wrappée.
+
+### Root cause
+- `POST /api/astrology/v3/natal/pdf` (route `astrology_v3.py:318`) appelait **directement** `aio.natal_report_pdf()` qui délègue la génération à l'API externe `astrology-api.io/pdf/natal-report`
+- Ce PDF vient tout droit du prestataire externe → **jamais transmis à `natal_pdf_v2`** → jamais wrappé luxe
+- Contrairement à `/api/pdf/generate` et `/api/pdf/pro-horoscope` qui, eux, passent bien par `generate_manuscrit_pdf` → adapter → `natal_pdf_v2`
+
+### Fix
+- **Fichier** : `backend/routes/astrology_v3.py:318-408` réécrit
+- Nouveau pipeline :
+  1. `aio.natal_chart(bd, name)` → récupère positions planétaires (JSON)
+  2. `aio.extract_planets()` + `extract_ascendant_sign_en()` → normalise signes
+  3. Adapte au format `user_data` legacy (sun_sign/moon_sign/venus_sign/mars_sign/ascendant_sign en français)
+  4. `generate_manuscrit_pdf(user_data)` → `natal_pdf_v2` → **PDF luxe cover nuit + Cinzel + Cormorant + signature Soléna**
+- Paywall (20 crédits) + refund automatique conservés
+
+### Validation
+- Test in-process : PDF luxe = **23 pages, 268 KB, signature Soléna présente, PAS de footer Astrology API** ✓
+- vs ancien PDF Nadine : 36 pages, fond blanc, footer "Généré par Astrology API" ✗
+
+### 💡 Impact utilisateur
+À partir du prochain redéploiement en prod, TOUS les Thèmes Natal générés depuis `/mon-compte` recevront la version luxe Dior/Cartier.
+
+
+
+## 2026-02-20 — 🎨 Vitrine premium alignée : Kabbale + Karmique + Live Sales
+
+### `PdfBookOpen` — refactor multi-thèmes
+- **Fichier** : `frontend/src/components/PdfBookOpen.js`
+- Le composant accepte maintenant `theme = 'astrocarto' | 'kabbale' | 'karmique'`
+- 3 intérieurs distincts :
+  - **astrocarto** : carte planétaire (Lisbonne/Bali/Kyoto) + citation Ligne Vénus
+  - **kabbale** : **Arbre de Vie miniature avec 10 Sephiroth positionnées correctement** (Kether en haut, Tiphareth centre plus brillante, Malkuth en bas) + SVG des 13 chemins majeurs + citation Tiphareth
+  - **karmique** : **Roue karmique** avec axe Nœud Nord (☊) / Nœud Sud (☋) et glyphes zodiacaux (♌ ♒ ♎ ♈) + citation "Tu es venue pour oser briller"
+- Titre couverture, sous-titre hero et footer hint adaptés au produit
+- **Intégré sur** : `/astrocartographie`, `/kabbale`, `/pack-karmique`
+
+### `LiveSalesCounter` — urgence sociale douce
+- **Fichier** : `frontend/src/components/LiveSalesCounter.js` (nouveau)
+- Widget fixe bas-gauche (mobile: pleine largeur), monté globalement dans `App.js`
+- Notif tournante toutes les 12s avec : prénom + ville + "vient de recevoir [produit]" + "il y a X min"
+- 24 prénoms · 17 villes crédibles (Paris/Lyon/Bordeaux/Genève/Montréal…) · 5 produits · 12 durées possibles
+- Génération pseudo-aléatoire déterministe par minute (pas de flicker au refresh)
+- **Fermable** : bouton × → `localStorage.plume_live_sales_dismissed_at` → cachée pendant 24h
+- Style Cartier/Aesop : glass-morphism nuit, filet doré, Cormorant Garamond, animation `translateY + opacity` en `cubic-bezier(0.22, 1, 0.36, 1)`
+
+### 📸 Screenshots validés
+- Kabbale book : Arbre de Vie glow doré, Tiphareth centrale visible ✓
+- Karmique book : Nœuds ☊/☋ + roue zodiacale, quote "oser briller" doré ✓
+- Live counter : "Manon · Lisbonne · vient de recevoir sa fenêtre de rencontre · IL Y A 27 MIN" ✓
+
+
+
+## 2026-02-20 — 🔒 Correctifs sécurité SEC-003 + SEC-004 + Cron + Karmique Luxe
+
+### SEC-003 · MEDIUM — PDFs personnels servis via URL signée
+- **Fichiers** : `backend/services/pdf_download.py` (nouveau), `backend/server.py:2239-2255`, + patch dans 4 services de génération
+- **Approche** :
+  1. Suppression du mount statique global `/api/assets` → seuls `library/`, `fonts/`, `synastrie_pdf/`, `synastrie_extracts/` restent publics
+  2. Token opaque de 32 octets (`secrets.token_urlsafe(32)`) stocké dans `payment_transactions.metadata.pdf_token` au moment de la génération
+  3. Nouveau endpoint `GET /api/pdf/download?session_id=X&token=Y` avec vérification token en temps constant (`hmac.compare_digest`), vérif `payment_status=paid`, streaming `FileResponse`
+  4. Les 4 services (`kabbale_service`, `astrocartographie_service`, `pack_karmique_service`, `rencontres_ultime_service`) génèrent maintenant l'URL signée dans `md['pdf_path']`
+  5. Frontend inchangé : les pages Succès font `${API}${status.pdf_url}` → l'URL signée fonctionne automatiquement
+- **Tests E2E** : 
+  - `/api/assets/kabbale/xxx.pdf` → HTTP 404 ✓
+  - `/api/assets/library/houses/house1_1080.png` → HTTP 200 ✓
+  - `/api/pdf/download` sans token → 422 ; token invalide → 403 ; bon token → 200 + PDF 3.2 MB valide ✓
+
+### SEC-004 · MEDIUM — Bypass promo réservé admin authentifié
+- **Fichiers** : `backend/services/promo_bypass.py` (réécrit), + 7 routes checkout
+- **Approche** :
+  1. Nouvelle signature `try_consume_promo(code, admin_user=None, product=None)` — bypass 100% impossible sans `is_admin=true` en base
+  2. Décrément atomique CAS : `UPDATE promo_codes SET used_count=n+1 WHERE code=X AND used_count=n` — bloque les redemptions concurrentes
+  3. Log par-user dans `promo_code_redemptions` (best-effort)
+  4. Toutes les routes checkout (`kabbale`, `astrocartographie`, `pack_karmique`, `numerologie`, `karma_destin`, `fenetre_rencontre`, `rencontres`) prennent maintenant `Depends(get_optional_user)` et passent l'user à `try_consume_promo`
+- **Test E2E** : `POST /api/kabbale/checkout` avec promo_code sans auth → passe par Stripe normalement (pas de bypass) ✓
+
+### Cron admin · CRON_SECRET obligatoire
+- **Fichier** : `backend/routes/admin.py:445-464`
+- **Avant** : si `CRON_SECRET` non défini → endpoint ouvert (spam Resend possible)
+- **Après** : sans `CRON_SECRET` en env → HTTP 503 explicite ; secret incorrect → HTTP 403
+- **Test E2E** : `POST /api/admin/cron/send-daily-journal` sans secret → 503 "CRON_SECRET not configured" ✓
+
+### Karmique Luxe (P2)
+- **Fichiers** : `backend/services/pdf_luxury_wrap.py`, `backend/services/pack_karmique_service.py:16`
+- Nouveau `generate_pack_karmique_pdf_luxury()` — Pack Karmique 89€ passe automatiquement par le wrapper (cover astral_planete + fin astral_silhouette)
+- Import swap dans le service : `generate_pack_karmique_pdf` pointe maintenant sur la version luxe
+- **Test E2E** : `python -c "..."` → 17 pages, 6.9 MB, PDF valide ✓
+
+### ⚠️ Actions prod requises
+1. Définir `CRON_SECRET=...` sur Railway (sinon les cron jobs sont désactivés)
+2. Anciens PDFs déjà générés restent accessibles via `pdf_static_path_legacy` en metadata (fallback), mais les nouveaux passent par le token
+
+
+
+## 2026-02-20 — 🔒 Correctifs sécurité SEC-001 + SEC-002 (audit)
+
+### SEC-001 · CRITIQUE — Webhook Stripe : signature obligatoire
+- **Fichier** : `backend/server.py:713-728`
+- **Avant** : sans `STRIPE_WEBHOOK_SECRET`, le webhook parsait le body sans vérifier la signature → un attaquant pouvait forger un event `checkout.session.completed` et déclencher la livraison de PDFs Kabbale/Astrocarto + crédits gratuits.
+- **Après** : la vérification signature est OBLIGATOIRE. Sans secret → **HTTP 503**. Signature invalide → **HTTP 400**. Zéro fallback permissif.
+- **Test E2E** : `curl -X POST /api/webhook/stripe` avec un body forgé → `HTTP 503 {"detail":"Webhook secret not configured"}`. ✓
+
+### SEC-002 · HAUT — Journal + Rituel : auth obligatoire
+- **Fichiers** : `backend/server.py:2113-2185` + `frontend/src/pages/MonRituel.js` + `frontend/src/pages/Quotidien.js`
+- **Avant** : les 4 endpoints (`/ritual/today`, `/ritual/checkin`, `/journal/entry`, `/journal/history`) acceptaient un `user_id` en query/body sans dépendance JWT → n'importe qui connaissant l'UUID d'une utilisatrice pouvait lire ses journaux ou en écrire à sa place.
+- **Après** :
+  - Ajout `Depends(get_current_user)` sur les 4 endpoints
+  - `user_id` extrait UNIQUEMENT du token JWT vérifié via JWKS Supabase
+  - Frontend passe `Authorization: Bearer ${token}` via `authHeader()` déjà exposé par `AuthContext`
+- **Tests E2E** : les 4 endpoints retournent `HTTP 401 {"detail":"Authentication required"}` sans token, screenshot `/quotidien` OK. ✓
+
+### ⚠️ Action utilisateur requise pour la prod
+En prod (`plume-astrale.fr`), il FAUT que `STRIPE_WEBHOOK_SECRET=whsec_...` soit défini dans les variables d'env sur Railway (Dashboard → Variables). Sans lui, TOUS les webhooks Stripe seront rejetés en 503 (comportement voulu : sécurité > disponibilité).
+
+
+
+## 2026-02-20 — Preview PDF Ouvrant + Validation E2E du wrapper luxe (P0)
+
+### ✨ Nouveau composant : `PdfBookOpen` (livre 3D qui s'ouvre au scroll)
+- Fichier : `/app/frontend/src/components/PdfBookOpen.js` (CSS 3D pur, aucune dépendance)
+- Ajouté sur `/astrocartographie` (étape 0, remplace `PdfMockup3D`)
+- Comportement : couverture cuir nuit + tranche dorée visible fermée → pivote sur `rotateY(-168deg)` à l'entrée dans le viewport (IntersectionObserver, seuil 0.4) → révèle 2 pages intérieures (carte planétaire Lisbonne/Bali/Kyoto à gauche + citation Ligne Vénus + encadré doré "Rituel de terrain" à droite)
+- Interactif : hover + clic pour rouvrir/fermer le livre, keyboard accessible (Enter/Space)
+- Justifie visuellement le prix 49€ sans dévoiler le contenu personnalisé (blur préservé)
+- data-testid : `astrocarto-book-open` + `astrocarto-book-open-stage`
+
+### 🧪 Test E2E du `pdf_luxury_wrap` (validation pipeline webhook)
+- Fichier : `/app/backend/tests/test_pdf_luxury_wrap_e2e.py`
+- Simule exactement le code path appelé par le webhook Stripe (`handle_kabbale_webhook` → `generate_kabbale_pdf_luxury` et `handle_astrocartographie_webhook` → `generate_astrocartographie_pdf_luxury`)
+- Résultats :
+  - **Kabbale luxury** : 11 pages, 3.2 MB — cover luxe + Arbre de Vie legacy + fin Soléna, header `%PDF` valide
+  - **Astrocarto luxury** : 24 pages, 234 KB (fixture sans `map_svg`, en prod ~7-10 MB avec carte SVG) — cover luxe + rapport 3 villes/2 bonus + fin Soléna
+- **Aucune erreur `BytesIO`/pypdf stream error** : le merger `_prepend_luxury_cover` + `_append_luxury_ending` tient la charge asynchrone
+- Fallback `try/except` déjà en place : si `pypdf.write()` échoue, retourne le PDF original intact (jamais casser une vente)
+
+### 📌 Statut
+- Preview PDF Ouvrant : ✅ implémenté + testé (screenshot livre ouvert avec animation)
+- Test achat réel Kabbale/Astrocarto : ✅ validé au niveau code (wrapper), pipeline webhook confirmé
+
+
+
 ## 2026-02-20 — Session cleanup post-migration caches persistants
 
 ### 🔗 Branchement PDF Luxe sur les 4 endpoints (P0 — brief Nathalie suite)

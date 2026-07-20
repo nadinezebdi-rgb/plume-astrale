@@ -33,7 +33,7 @@ const ScoreBar = ({ score, max = 10, label, color = 'var(--pa-accent)' }) => (
 
 const Quotidien = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, authHeader } = useAuth();
   const [ritual, setRitual] = useState(null);
   const [selectedSign, setSelectedSign] = useState(null);
   const [content, setContent] = useState(null);
@@ -59,11 +59,11 @@ const Quotidien = () => {
   // Le Cercle — rituel quotidien (4 jauges + Conseil de la Plume)
   useEffect(() => {
     if (!user?.id) { setRitual(null); return; }
-    fetch(`${API_URL}/api/ritual/today?user_id=${encodeURIComponent(user.id)}`)
+    fetch(`${API_URL}/api/ritual/today`, { headers: authHeader() })
       .then((r) => r.json())
       .then((data) => { if (data && data.success) setRitual(data); })
       .catch((e) => console.error('Error fetching ritual:', e));
-  }, [user]);
+  }, [user, authHeader]);
 
   const getZodiacSign = (date) => {
     const month = date.getMonth() + 1;

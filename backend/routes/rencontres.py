@@ -16,8 +16,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel, EmailStr
+from middleware.auth import get_optional_user
 from emergentintegrations.payments.stripe.checkout import (
     StripeCheckout,
     CheckoutSessionRequest,
@@ -542,7 +543,11 @@ def _send_windows_email(email: str, ctx: dict, windows: list[dict]) -> None:
 # POST /checkout — Stripe one-shot 29,99 EUR
 # ────────────────────────────────────────────────────────────────
 @router.post("/checkout")
-async def rencontres_checkout(payload: CheckoutPayload, request: Request):
+async def rencontres_checkout(
+    payload: CheckoutPayload,
+    request: Request,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
     settings = get_settings()
     pack = settings.PACKS.get("rencontres_ultime")
     if not pack:
@@ -610,7 +615,7 @@ async def rencontres_checkout(payload: CheckoutPayload, request: Request):
     from services.promo_bypass import try_consume_promo
     from services.rencontres_ultime_service import handle_rencontres_ultime_webhook
     import asyncio as _asyncio
-    if payload.promo_code and try_consume_promo(payload.promo_code):
+    if payload.promo_code and try_consume_promo(payload.promo_code, admin_user=current_user, product='rencontres_ultime'):
         fake_session_id = f"admin-rencontres-{uuid.uuid4().hex[:16]}"
         try:
             sb = get_admin_client()

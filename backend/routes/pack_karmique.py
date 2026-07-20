@@ -10,12 +10,13 @@ import asyncio
 import logging
 import uuid
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 
 from config import get_settings
 from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
+from middleware.auth import get_optional_user
 from services.pack_karmique_service import handle_pack_karmique_webhook
 from emergentintegrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
@@ -39,7 +40,11 @@ class PackKarmiqueCheckoutPayload(BaseModel):
 
 
 @router.post('/checkout')
-async def pack_karmique_checkout(payload: PackKarmiqueCheckoutPayload, request: Request):
+async def pack_karmique_checkout(
+    payload: PackKarmiqueCheckoutPayload,
+    request: Request,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
     """Cree une session Stripe pour le Pack Karmique + Kabbale 89 EUR."""
     settings = get_settings()
     pack = settings.PACKS.get('pack_karmique_kabbale')
@@ -86,7 +91,7 @@ async def pack_karmique_checkout(payload: PackKarmiqueCheckoutPayload, request: 
     }
 
     # BYPASS PROMO — si code valide (ex: ADMIN26), on saute Stripe
-    if payload.promo_code and try_consume_promo(payload.promo_code):
+    if payload.promo_code and try_consume_promo(payload.promo_code, admin_user=current_user, product='pack_karmique_kabbale'):
         fake_session_id = f'admin-packkarma-{uuid.uuid4().hex[:16]}'
         try:
             sb = get_admin_client()

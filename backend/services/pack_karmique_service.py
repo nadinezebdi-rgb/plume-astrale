@@ -14,7 +14,8 @@ import httpx
 
 from services.supabase_client import get_admin_client
 from services import astrology_io_service as aio
-from services.pack_karmique_pdf import generate_pack_karmique_pdf
+from services.pack_karmique_pdf import generate_pack_karmique_pdf as _legacy_pack_karmique_pdf
+from services.pdf_luxury_wrap import generate_pack_karmique_pdf_luxury as generate_pack_karmique_pdf  # noqa: F401 SEC-luxe
 
 logger = logging.getLogger(__name__)
 
@@ -172,10 +173,15 @@ async def handle_pack_karmique_webhook(session_id: str) -> None:
         with open(out_dir / filename, 'wb') as f:
             f.write(pdf_bytes)
         pdf_path = f'/api/assets/pack_karmique/{filename}'
-        md['pdf_path'] = pdf_path
+        # SEC-003 : token opaque + URL signée
+        from services.pdf_download import new_pdf_token, build_signed_pdf_url
+        pdf_token = new_pdf_token()
+        md['pdf_token'] = pdf_token
+        md['pdf_path'] = build_signed_pdf_url(session_id, pdf_token)
+        md['pdf_static_path_legacy'] = pdf_path
         md['pdf_generated_at'] = datetime.now(timezone.utc).isoformat()
         sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
-        logger.info(f'[pack_karmique] PDF generated: {pdf_path}')
+        logger.info(f'[pack_karmique] PDF generated (signed): {md["pdf_path"]}')
     except Exception as e:
         logger.error(f'[pack_karmique] PDF gen failed for {session_id}: {e}', exc_info=True)
         return

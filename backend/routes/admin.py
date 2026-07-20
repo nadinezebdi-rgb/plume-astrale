@@ -1,4 +1,5 @@
 """Admin endpoints — dashboard stats + listings (protected by is_admin flag)."""
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -6,6 +7,7 @@ from typing import Optional
 from middleware.auth import get_current_user
 from services.supabase_client import get_admin_client
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/admin', tags=['admin'])
 
 
@@ -445,15 +447,19 @@ async def admin_delete_user(user_id: str, current_admin: dict = Depends(require_
 @router.post('/cron/send-daily-journal')
 async def cron_send_daily_journal(cron_secret: Optional[str] = Query(None)):
     """Envoyer le journal quotidien à tous les utilisateurs (cron task).
-    
-    Validation optionnelle par secret. 
+
+    SEC-hardening : CRON_SECRET est OBLIGATOIRE. Sans lui, refus explicite
+    pour empêcher un attaquant de déclencher un spam Resend en masse.
     Appelé par une tâche cron externe (EasyCron, Railway Cron, etc).
     """
     import os
     env_secret = os.getenv('CRON_SECRET')
-    if env_secret and (not cron_secret or cron_secret != env_secret):
+    if not env_secret:
+        logger.error('[cron] CRON_SECRET manquant en env — refus.')
+        raise HTTPException(status_code=503, detail='CRON_SECRET not configured on server')
+    if not cron_secret or cron_secret != env_secret:
         raise HTTPException(status_code=403, detail='Invalid cron secret')
-    
+
     from services.journal_email_service import send_daily_journal_batch
     result = await send_daily_journal_batch()
     return result

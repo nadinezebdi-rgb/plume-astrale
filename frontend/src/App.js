@@ -73,7 +73,8 @@ import NoiseOverlay from "./components/design/NoiseOverlay";
 import Starfield from "./components/design/Starfield";
 import MobileTabBar from "./components/design/MobileTabBar";
 import AuraProvider from "./components/design/AuraProvider";
-import ShootingStars from "./components/design/ShootingStars";   //
+import LiveSalesCounter from "./components/LiveSalesCounter";
+import ShootingStars from "./components/design/ShootingStars";
 
 function App() {
   return (
@@ -85,6 +86,7 @@ function App() {
     <ShootingStars />
         <NoiseOverlay />
         <MobileTabBar />
+        <LiveSalesCounter />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />

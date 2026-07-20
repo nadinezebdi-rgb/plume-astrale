@@ -739,7 +739,12 @@ async def astrocartography_city(payload: AstrocartoCityRequest, current_user: di
 
 @router.post('/pdf/synastry')
 async def pdf_synastry(payload: DuoRequest, current_user: dict = Depends(get_current_user)):
-    """Génère un PDF de compatibilité synastronie (Ultra+ requis)."""
+    """Génère un PDF de compatibilité synastronie style livre de luxe (Ultra+ requis).
+
+    Pipeline :
+      1. `aio.pdf_synastry` — récupère le PDF technique depuis astrology-api.io
+      2. `apply_luxury_wrap` — enveloppe avec couverture Plume Astrale + fin Soléna
+    """
     bd1 = await _resolve_person(current_user['id'], payload.person1)
     bd2 = payload.person2.to_birth_data()
     if not bd1 or not bd2:
@@ -749,6 +754,20 @@ async def pdf_synastry(payload: DuoRequest, current_user: dict = Depends(get_cur
     pdf_bytes = await aio.pdf_synastry(bd1, bd2, n1, n2)
     if not pdf_bytes:
         raise HTTPException(502, "Erreur génération PDF synastrie")
+
+    # Wrapper luxe (cover + fin Soléna) — jamais casser une livraison si le wrap échoue
+    try:
+        from services.pdf_luxury_wrap import apply_luxury_wrap
+        pdf_bytes = apply_luxury_wrap(
+            pdf_bytes,
+            prenom=f'{n1} & {n2}',
+            subtitle='Votre synastrie · liens d\'âme',
+            product='synastry',
+        )
+    except Exception:
+        # On garde le PDF externe original si le wrapper crashe
+        pass
+
     return Response(
         content=pdf_bytes,
         media_type='application/pdf',

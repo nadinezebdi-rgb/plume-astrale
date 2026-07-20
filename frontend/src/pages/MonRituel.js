@@ -140,7 +140,7 @@ const StreakFlame = ({ current, longest }) => (
    PAGE
 ═══════════════════════════════════════════════════════════ */
 const MonRituel = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, authHeader } = useAuth();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -201,8 +201,12 @@ const MonRituel = () => {
   const loadToday = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { user_id: userId, ...getBirthParams() };
-      const res = await axios.get(`${API}/api/ritual/today`, { params, timeout: 30000 });
+      const params = { ...getBirthParams() };
+      const res = await axios.get(`${API}/api/ritual/today`, {
+        params,
+        headers: authHeader(),
+        timeout: 30000,
+      });
       setData(res.data);
       if (res.data.checkin) {
         setSelectedMood(res.data.checkin.mood);
@@ -215,7 +219,7 @@ const MonRituel = () => {
       console.error('Failed to load ritual', e);
     }
     setLoading(false);
-  }, [userId, getBirthParams]);
+  }, [userId, getBirthParams, authHeader]);
 
   // Load moods + ritual on mount
   useEffect(() => {
@@ -237,8 +241,8 @@ const MonRituel = () => {
     setSelectedMood(moodId);
     try {
       const res = await axios.post(`${API}/api/ritual/checkin`, {
-        user_id: userId, mood: moodId, intention: intention,
-      });
+        mood: moodId, intention: intention,
+      }, { headers: authHeader() });
       if (res.data.success) {
         // Reload data to get updated scores modulated by mood
         await loadToday();
@@ -254,8 +258,8 @@ const MonRituel = () => {
     if (!selectedMood || !intention.trim()) return;
     try {
       await axios.post(`${API}/api/ritual/checkin`, {
-        user_id: userId, mood: selectedMood, intention: intention.trim(),
-      });
+        mood: selectedMood, intention: intention.trim(),
+      }, { headers: authHeader() });
       setIntentionSaved(true);
       setTimeout(() => setIntentionSaved(false), 2500);
     } catch (e) { /* ignore */ }
@@ -272,11 +276,10 @@ const MonRituel = () => {
         day: birthParams.day, month: birthParams.month, year: birthParams.year,
       } : null;
       const res = await axios.post(`${API}/api/journal/entry`, {
-        user_id: userId,
         entry: journalText.trim(),
         mood: selectedMood,
         birth_data,
-      }, { timeout: 60000 });
+      }, { headers: authHeader(), timeout: 60000 });
       if (res.data.success) {
         setJournalResponse(res.data.response);
         setJournalText('');
@@ -295,7 +298,8 @@ const MonRituel = () => {
   const loadHistory = async () => {
     try {
       const res = await axios.get(`${API}/api/journal/history`, {
-        params: { user_id: userId, limit: 10 },
+        params: { limit: 10 },
+        headers: authHeader(),
       });
       setHistory(res.data.entries || []);
     } catch (e) { /* ignore */ }

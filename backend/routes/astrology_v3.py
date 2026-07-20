@@ -317,18 +317,31 @@ async def synastry_share_card(payload: SynastryCardRequest):
 
 @router.post('/natal/pdf')
 async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_current_user)):
-    """Genere un PDF complet du theme natal (chart wheel + interpretations en francais).
-    Tarif : 20 credits (offert si Premium actif). Si person n'est pas fourni, utilise le profil.
+    """Génère le PDF Thème Natal Plume Astrale (livre de luxe, style Cartier/Dior).
+
+    Tarif : 20 crédits (offert si Premium actif). Si `person` n'est pas fourni,
+    utilise le profil de l'utilisatrice.
+
+    Pipeline :
+      1. `/charts/natal` (astrology-api.io v3) — récupère positions planétaires
+      2. `natal_pdf_v2` (Plume Astrale) — génère le PDF luxe (couverture nuit,
+         médaillon doré, dorures Cinzel, signature Soléna en fin de rapport)
     """
     bd = None
     name = 'Voyageur'
+    birth_date_iso = ''
     if payload.person:
         bd = payload.person.to_birth_data()
         name = payload.person.name or name
+        try:
+            birth_date_iso = f'{payload.person.year:04d}-{payload.person.month:02d}-{payload.person.day:02d}'
+        except Exception:
+            birth_date_iso = ''
     else:
         profile = await wallet_service.get_profile(current_user['id'])
         bd = aio.parse_profile(profile)
         name = profile.get('prenom') or name
+        birth_date_iso = profile.get('birth_date') or profile.get('dateNaissance') or ''
     if not bd:
         raise HTTPException(status_code=400, detail='Donnees natales incompletes (date, heure et lieu requis).')
 
@@ -337,14 +350,46 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
         current_user['id'], 'theme_natal_pdf', 20, 'Theme Natal PDF',
     )
 
-    pdf = await aio.natal_report_pdf(bd, name=name, language='fr', chart_theme='dark')
-    if not pdf:
-        # Refund si echec API
+    try:
+        # 1) Positions planétaires via l'API v3
+        chart = await aio.natal_chart(bd, name=name, language='fr')
+        planets_dict = aio.extract_planets(chart)
+        asc_sign_en = aio.extract_ascendant_sign_en(chart)
+
+        # 2) Adapte au format attendu par le générateur luxe
+        def _sign_fr(planet_key: str) -> str:
+            p = planets_dict.get(planet_key)
+            if not p:
+                return ''
+            return aio.sign_to_fr(p.get('sign') or '') or ''
+
+        user_data = {
+            'prenom': name,
+            'birth_date': birth_date_iso,
+            'sun_sign': _sign_fr('sun'),
+            'moon_sign': _sign_fr('moon'),
+            'venus_sign': _sign_fr('venus'),
+            'mars_sign': _sign_fr('mars'),
+            'ascendant_sign': aio.sign_to_fr(asc_sign_en) if asc_sign_en else '',
+        }
+        # 3) Génération PDF luxe (via l'adaptateur qui appelle natal_pdf_v2)
+        from services.natal_pdf_adapter import generate_manuscrit_pdf
+        pdf = generate_manuscrit_pdf(user_data=user_data)
+    except Exception as e:
+        # Refund si échec
         try:
-            await wallet_service.add_credits(current_user['id'], 20, 'Remboursement Theme Natal PDF (echec API)', tx_type='refund')
+            await wallet_service.add_credits(current_user['id'], 20, 'Remboursement Theme Natal PDF (echec)', tx_type='refund')
         except Exception:
             pass
-        raise HTTPException(status_code=502, detail='Service astrologique indisponible (PDF).')
+        raise HTTPException(status_code=502, detail=f'Service astrologique indisponible (PDF): {e}')
+
+    if not pdf:
+        try:
+            await wallet_service.add_credits(current_user['id'], 20, 'Remboursement Theme Natal PDF (echec)', tx_type='refund')
+        except Exception:
+            pass
+        raise HTTPException(status_code=502, detail='Génération PDF échouée.')
+
     return Response(
         content=pdf,
         media_type='application/pdf',

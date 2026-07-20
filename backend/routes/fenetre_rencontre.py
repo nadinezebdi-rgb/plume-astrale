@@ -10,13 +10,14 @@ import asyncio
 import logging
 import uuid
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 
 from config import get_settings
 from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
+from middleware.auth import get_optional_user
 from services.astrology_io_service import (
     get_cached_or_fetch, transits_today, relationship_compatibility,
 )
@@ -75,7 +76,11 @@ async def calculate_windows(payload: FenetreCheckoutPayload):
 
 
 @router.post('/checkout')
-async def fenetre_checkout(payload: FenetreCheckoutPayload, request: Request):
+async def fenetre_checkout(
+    payload: FenetreCheckoutPayload,
+    request: Request,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
     """Session Stripe pour fenêtres avancées (29€)."""
     settings = get_settings()
     pack = settings.PACKS.get('fenetre_rencontre_avancee')
@@ -123,7 +128,7 @@ async def fenetre_checkout(payload: FenetreCheckoutPayload, request: Request):
     }
     
     # BYPASS PROMO
-    if payload.promo_code and try_consume_promo(payload.promo_code):
+    if payload.promo_code and try_consume_promo(payload.promo_code, admin_user=current_user, product='fenetre_rencontre_avancee'):
         fake_session_id = f'admin-fenetre-{uuid.uuid4().hex[:16]}'
         try:
             sb = get_admin_client()

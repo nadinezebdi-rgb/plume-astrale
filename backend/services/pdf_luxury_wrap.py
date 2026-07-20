@@ -25,6 +25,10 @@ ASTROCARTO_SLUGS = {
     'cover': 'ciel_zodiaque',
     'ending': 'astral_silhouette',
 }
+KARMIQUE_SLUGS = {
+    'cover': 'astral_planete',
+    'ending': 'astral_silhouette',
+}
 
 
 def _prepend_luxury_cover(pdf_bytes: bytes, prenom: str, subtitle: str, cover_slug: str) -> bytes:
@@ -99,10 +103,30 @@ def _append_luxury_ending(pdf_bytes: bytes, prenom: str, ending_slug: str) -> by
         return pdf_bytes
 
 
+SYNASTRY_SLUGS = {
+    'cover': 'couple',           # Image "front contre front" — bibliothèque interne
+    'ending': 'astral_silhouette',
+}
+
+# Fallback si le slug demandé n'est pas encore présent sur Supabase
+_SYNASTRY_FALLBACK_SLUG = 'amoureux'
+
+
 def apply_luxury_wrap(pdf_bytes: bytes, prenom: str, subtitle: str, product: str = 'kabbale') -> bytes:
     """Enveloppe complète : cover + ouverture + [contenu existant] + waouh + fin Soléna."""
-    slugs = ASTROCARTO_SLUGS if product == 'astrocarto' else KABBALE_SLUGS
-    wrapped = _prepend_luxury_cover(pdf_bytes, prenom=prenom, subtitle=subtitle, cover_slug=slugs['cover'])
+    if product == 'astrocarto':
+        slugs = ASTROCARTO_SLUGS
+    elif product == 'karmique':
+        slugs = KARMIQUE_SLUGS
+    elif product == 'synastry':
+        slugs = SYNASTRY_SLUGS
+    else:
+        slugs = KABBALE_SLUGS
+    try:
+        wrapped = _prepend_luxury_cover(pdf_bytes, prenom=prenom, subtitle=subtitle, cover_slug=slugs['cover'])
+    except Exception:
+        # Fallback vers un slug garanti présent
+        wrapped = _prepend_luxury_cover(pdf_bytes, prenom=prenom, subtitle=subtitle, cover_slug=_SYNASTRY_FALLBACK_SLUG)
     wrapped = _append_luxury_ending(wrapped, prenom=prenom, ending_slug=slugs['ending'])
     return wrapped
 
@@ -134,4 +158,28 @@ def generate_astrocartographie_pdf_luxury(*args, **kwargs) -> bytes:
         prenom=str(prenom),
         subtitle='Où vivre ta meilleure vie ?',
         product='astrocarto',
+    )
+
+
+def generate_pack_karmique_pdf_luxury(
+    first_name: str,
+    birth_date_iso: str,
+    karmic: dict,
+    tree_of_life: dict,
+    synthesis: dict,
+) -> bytes:
+    """Pack Karmique luxe (89€) = ancien PDF ~40 pages + cover luxe + fin Soléna."""
+    from services.pack_karmique_pdf import generate_pack_karmique_pdf as _legacy
+    inner = _legacy(
+        first_name=first_name,
+        birth_date_iso=birth_date_iso,
+        karmic=karmic,
+        tree_of_life=tree_of_life,
+        synthesis=synthesis,
+    )
+    return apply_luxury_wrap(
+        inner,
+        prenom=first_name or 'Voyageuse',
+        subtitle='Ton empreinte karmique · Ton Arbre de Vie',
+        product='karmique',
     )
