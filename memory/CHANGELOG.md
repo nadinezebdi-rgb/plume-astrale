@@ -1,6 +1,30 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — 🔍 Audit PDFs externes + Ciblage LiveSales
+
+### Audit PDFs — 1 seul autre leak trouvé et corrigé
+- **Endpoint fautif** : `POST /api/astrology/v3/pdf/synastry` (Ultra+) appelait `aio.pdf_synastry()` qui délègue à `astrology-api.io/pdf/synastry-report` → PDF externe non wrappé
+- **Fix** : `routes/astrology_v3_extended.py:740-782` — wrapping avec `apply_luxury_wrap(product='synastry')` (cover astral_couple avec fallback astral_mandala + fin Soléna). Try/except protège la livraison si le wrap échoue.
+- **Nouveau `SYNASTRY_SLUGS`** dans `pdf_luxury_wrap.py` + fallback slug garanti
+- **Endpoints vérifiés OK** (rendu ReportLab natif, pas de PDF externe) :
+  - `/api/pdf/generate`, `/api/pdf/pro-horoscope` → `natal_pdf_v2` luxe
+  - `/api/premium/pdf` → `generate_premium_pdf` (Cartographie Premium)
+  - `/api/synastrie/pdf` → générateur synastrie natif
+  - `/api/tarologie/pdf` → `generate_mediumnite_pdf`
+  - `/api/tarot/croix-celtique/pdf` → `build_croix_celtique_pdf`
+  - Solar-return, transit, horaire, rectification → pas de PDF externe branché
+
+### LiveSalesCounter — ciblage par chemin
+- **Fichier** : `frontend/src/components/LiveSalesCounter.js`
+- Utilise `useLocation()` pour masquer le widget sur :
+  - Préfixes bloqués : `/admin`, `/paiement`, `/quotidien`, `/mon-compte`, `/tirage`, `/tarot`
+  - Segments bloqués n'importe où : `/succes`, `/attente`, `/checkout`
+- Cache immédiatement à la navigation, arrête les intervals pour économiser CPU
+- Validé screenshot sur `/paiement/succes` → widget bien absent ✓
+
+
+
 ## 2026-02-20 — 🚨 Bug fix : Thème Natal PDF respecte enfin le wrapper luxe
 
 ### Contexte

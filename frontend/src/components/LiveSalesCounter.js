@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Sparkles, X } from 'lucide-react';
 
 /**
@@ -54,7 +55,34 @@ function makeNotif(seed) {
 const DISMISS_KEY = 'plume_live_sales_dismissed_at';
 const DISMISS_HOURS = 24;
 
+// Chemins où le compteur ne doit JAMAIS s'afficher (distraction pendant checkout/admin)
+// Match préfixe : '/admin' bloque aussi '/admin/xxx'
+const HIDDEN_PATH_PREFIXES = [
+  '/admin',
+  '/paiement',            // page checkout Stripe
+  '/quotidien',           // page personnelle rituel — bruit visuel
+  '/mon-compte',
+  '/tirage',              // pendant un tirage tarot
+  '/tarot',               // pendant un tirage tarot
+];
+
+// Chemins qui contiennent ces segments (checkout/succes/attente) → masqué
+const HIDDEN_PATH_INCLUDES = [
+  '/succes',
+  '/attente',
+  '/checkout',
+];
+
+function isHiddenPath(pathname) {
+  const p = (pathname || '').toLowerCase();
+  if (HIDDEN_PATH_PREFIXES.some((prefix) => p === prefix || p.startsWith(prefix + '/'))) return true;
+  if (HIDDEN_PATH_INCLUDES.some((seg) => p.includes(seg))) return true;
+  return false;
+}
+
 const LiveSalesCounter = ({ delay = 8000, interval = 12000 }) => {
+  const location = useLocation();
+  const hideOnThisPage = isHiddenPath(location.pathname);
   const [visible, setVisible] = useState(false);
   const [notif, setNotif] = useState(null);
   const [dismissed, setDismissed] = useState(false);
@@ -76,16 +104,21 @@ const LiveSalesCounter = ({ delay = 8000, interval = 12000 }) => {
 
   // Prépare la première notif après le délai
   useEffect(() => {
-    if (dismissed) return;
+    if (dismissed || hideOnThisPage) return;
     const seed = Math.floor(Date.now() / 60000); // change toutes les minutes
     setNotif(makeNotif(seed + tick));
     const showT = setTimeout(() => setVisible(true), delay);
     return () => clearTimeout(showT);
-  }, [dismissed, delay, tick]);
+  }, [dismissed, delay, tick, hideOnThisPage]);
+
+  // Cache immédiatement si on navigue vers une page interdite
+  useEffect(() => {
+    if (hideOnThisPage) setVisible(false);
+  }, [hideOnThisPage]);
 
   // Rotation des notifs
   useEffect(() => {
-    if (dismissed) return;
+    if (dismissed || hideOnThisPage) return;
     const rot = setInterval(() => {
       setVisible(false);
       setTimeout(() => {
@@ -94,7 +127,7 @@ const LiveSalesCounter = ({ delay = 8000, interval = 12000 }) => {
       }, 400);
     }, interval);
     return () => clearInterval(rot);
-  }, [dismissed, interval]);
+  }, [dismissed, interval, hideOnThisPage]);
 
   const handleDismiss = () => {
     setVisible(false);
@@ -104,7 +137,7 @@ const LiveSalesCounter = ({ delay = 8000, interval = 12000 }) => {
     } catch (_) { /* ignore */ }
   };
 
-  if (dismissed || !notif) return null;
+  if (dismissed || hideOnThisPage || !notif) return null;
 
   return (
     <>

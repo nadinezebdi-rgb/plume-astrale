@@ -103,15 +103,30 @@ def _append_luxury_ending(pdf_bytes: bytes, prenom: str, ending_slug: str) -> by
         return pdf_bytes
 
 
+SYNASTRY_SLUGS = {
+    'cover': 'astral_couple',
+    'ending': 'astral_silhouette',
+}
+
+# Fallback si l'illustration astral_couple n'est pas encore présente sur Supabase
+_SYNASTRY_FALLBACK_SLUG = 'astral_mandala'
+
+
 def apply_luxury_wrap(pdf_bytes: bytes, prenom: str, subtitle: str, product: str = 'kabbale') -> bytes:
     """Enveloppe complète : cover + ouverture + [contenu existant] + waouh + fin Soléna."""
     if product == 'astrocarto':
         slugs = ASTROCARTO_SLUGS
     elif product == 'karmique':
         slugs = KARMIQUE_SLUGS
+    elif product == 'synastry':
+        slugs = SYNASTRY_SLUGS
     else:
         slugs = KABBALE_SLUGS
-    wrapped = _prepend_luxury_cover(pdf_bytes, prenom=prenom, subtitle=subtitle, cover_slug=slugs['cover'])
+    try:
+        wrapped = _prepend_luxury_cover(pdf_bytes, prenom=prenom, subtitle=subtitle, cover_slug=slugs['cover'])
+    except Exception:
+        # Fallback vers un slug garanti présent
+        wrapped = _prepend_luxury_cover(pdf_bytes, prenom=prenom, subtitle=subtitle, cover_slug=_SYNASTRY_FALLBACK_SLUG)
     wrapped = _append_luxury_ending(wrapped, prenom=prenom, ending_slug=slugs['ending'])
     return wrapped
 
