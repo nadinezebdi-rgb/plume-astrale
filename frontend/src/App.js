@@ -16,6 +16,7 @@ import PaiementSucces from "./pages/PaiementSucces";import Resultats from "./pag
 import TirageTarot from "./pages/TirageTarot";
 import TarotOuiNon from "./pages/TarotOuiNon";
 import TarotCroixCeltique from "./pages/TarotCroixCeltique";
+import TarotAmour from "./pages/TarotAmour";
 import Tarologie from "./pages/Tarologie";
 import Numerologie from "./pages/Numerologie";
 import Archetype from "./pages/Archetype";
@@ -115,6 +116,7 @@ function App() {
                 <Route path="/outils/tarot" element={<TirageTarot />} />
                 <Route path="/outils/tarot/oui-non" element={<TarotOuiNon />} />
                 <Route path="/outils/tarot/croix-celtique" element={<TarotCroixCeltique />} />
+                <Route path="/outils/tarot/amour" element={<TarotAmour />} />
                 <Route path="/outils/horoscope" element={<Horoscope />} />
                 <Route path="/outils/numerologie" element={<Numerologie />} />
                 <Route path="/outils/archetype" element={<Archetype />} />

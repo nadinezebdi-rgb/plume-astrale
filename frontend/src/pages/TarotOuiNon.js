@@ -6,6 +6,7 @@ import SEO from '@/components/SEO';
 import { EnrichedBadge } from '@/components/EnrichedBadge';
 import { FadeInEnrichedText } from '@/components/FadeInEnrichedText';
 import axios from 'axios';
+import useCardFlipSound from '@/hooks/useCardFlipSound';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -42,6 +43,7 @@ const TarotOuiNon = () => {
   const [freeUsed, setFreeUsed] = useState(null);
   const [creditError, setCreditError] = useState('');
   const [imgError, setImgError] = useState(false);
+  const playFlip = useCardFlipSound(0.4);
 
   useEffect(() => {
     if (!isAuthenticated || !token) { setFreeUsed(false); return; }
@@ -78,7 +80,7 @@ const TarotOuiNon = () => {
       const data = await res.json();
       setResult(data);
       await refreshBalance();
-      setTimeout(() => setIsRevealed(true), 800);
+      setTimeout(() => { setIsRevealed(true); playFlip(); }, 800);
     } catch (e) {
       console.error('Tarot error:', e);
     }

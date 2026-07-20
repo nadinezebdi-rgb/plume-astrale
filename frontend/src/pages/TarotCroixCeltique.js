@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Sparkles, Loader2, ArrowLeft, ArrowRight, Coins } from 'lucide-react';
+import { Sparkles, Loader2, ArrowLeft, ArrowRight, Coins, Download } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import FadeInEnrichedText from '@/components/FadeInEnrichedText';
 import { event as track, EVENTS } from '@/lib/analytics';
+import useCardFlipSound from '@/hooks/useCardFlipSound';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const CREDIT_COST = 9;
@@ -18,6 +19,8 @@ const TarotCroixCeltique = () => {
   const [revealedIdx, setRevealedIdx] = useState(-1); // Révèle progressivement les 10 cartes
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const playFlip = useCardFlipSound(0.4);
 
   const handleTirage = async () => {
     if (!question.trim() || question.trim().length < 3) {
@@ -40,9 +43,12 @@ const TarotCroixCeltique = () => {
         { headers: { Authorization: `Bearer ${session.access_token}` } },
       );
       setReading(r.data);
-      // Révélation progressive : 1 carte toutes les 900 ms
+      // Révélation progressive : 1 carte toutes les 900 ms + son de flip à chaque révélation
       r.data.tirage.forEach((_, i) => {
-        setTimeout(() => setRevealedIdx((cur) => Math.max(cur, i)), 900 * (i + 1));
+        setTimeout(() => {
+          setRevealedIdx((cur) => Math.max(cur, i));
+          playFlip();
+        }, 900 * (i + 1));
       });
     } catch (e) {
       setError(e.response?.data?.detail || 'Impossible de réaliser le tirage.');
@@ -56,6 +62,40 @@ const TarotCroixCeltique = () => {
     setRevealedIdx(-1);
     setQuestion('');
     setError('');
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!reading || !session?.access_token) return;
+    setPdfLoading(true);
+    try {
+      const r = await axios.post(
+        `${API}/api/tarot/croix-celtique/pdf`,
+        {
+          question: reading.question,
+          prenom: reading.prenom,
+          tirage: reading.tirage,
+          synthese: reading.synthese,
+        },
+        {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          responseType: 'blob',
+        },
+      );
+      // Déclenche le téléchargement client-side
+      const blob = new Blob([r.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'croix-celtique-plume-astrale.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      setError('Impossible de générer le PDF. Réessaie dans un instant.');
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   return (
@@ -220,7 +260,12 @@ const TarotCroixCeltique = () => {
                   <FadeInEnrichedText text={reading.synthese} testId="croix-synthese-text" />
                 </div>
 
-                <div className="text-center">
+                <div className="text-center flex flex-col sm:flex-row gap-3 justify-center items-center">
+                  <button onClick={handleDownloadPdf} disabled={pdfLoading} className="plume-btn-primary" data-testid="croix-celtique-pdf-download">
+                    {pdfLoading
+                      ? <><Loader2 className="w-4 h-4 animate-spin" /> Génération...</>
+                      : <><Download className="w-4 h-4" strokeWidth={1.5} /> Télécharger le PDF</>}
+                  </button>
                   <button onClick={reset} className="plume-btn-ghost" data-testid="croix-celtique-reset">
                     Poser une autre question
                   </button>

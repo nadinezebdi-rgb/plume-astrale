@@ -3,6 +3,28 @@
 
 ## 2026-02-20 — Session cleanup post-migration caches persistants
 
+### 💕 Tarot 3.0 — Amoureux + PDF + Son (P1)
+
+**Tirage Amoureux 3 cartes (3 crédits)** :
+- Backend `services/tarot_service.py` : `tirage_amour()` avec 3 positions (Toi/L'Autre/Le Lien) + dict `AMOUR_KEYWORDS` (22 mots-clés relationnels, 1 par arcane)
+- Endpoint `POST /api/tarot/amour` (auth, débit 3 crédits, enrichissement Soléna medium)
+- Frontend `/app/frontend/src/pages/TarotAmour.js` : landing avec 3 cartes côte à côte, flip 3D + son cascadé, interprétations détaillées avec ❤️
+- Route `/outils/tarot/amour` ajoutée
+
+**PDF Croix Celtique téléchargeable** :
+- Nouveau service `services/tarot_pdf.py` : `build_croix_celtique_pdf()` — 13 pages avec ReportLab
+- Structure : Couverture (question + prénom + date) → Sommaire des 10 positions → 1 page par carte (position + nom + mot-clé + interprétation) → Synthèse Soléna
+- Réutilise `pdf_theme.py` (Cinzel-Bold + Cormorant + Cormorant-Italic, palette nuit/or, starfield_bg)
+- Endpoint `POST /api/tarot/croix-celtique/pdf` (auth, pas de nouveau débit — déjà payé aux 9 crédits initiaux)
+- Frontend : bouton "Télécharger le PDF" sur la page résultat, download via blob + `URL.createObjectURL`
+- Testé : 101 KB, 13 pages, rendu premium confirmé par analyze_file_tool (Gemini 2.5)
+
+**Son du Flip (Web Audio API)** :
+- Nouveau hook `/app/frontend/src/hooks/useCardFlipSound.js` — aucun asset externe requis
+- Génère un son en 3 couches : (1) bruit blanc décroissant pass-band 3.5→1.8kHz (whoosh de papier), (2) envelope attack 20ms + release 350ms, (3) clic sec square 120→30Hz au début pour la texture "carte qui claque"
+- Idempotent (réutilise AudioContext), silent fail (jamais casser l'UX)
+- Câblé sur TarotOuiNon (single card), TarotCroixCeltique (cascade 10 flips), TarotAmour (cascade 3 flips)
+
 ### 🃏 Tarot 2.0 — Cartes retournées + Croix Celtique + Flip 3D (P1)
 
 **Cartes retournées (backend + UI)** :

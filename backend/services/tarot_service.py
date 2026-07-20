@@ -489,3 +489,95 @@ def tirage_croix_celtique(question: str, prenom: str = "") -> dict:
         "synthese": synthese,
         "date": datetime.now().isoformat(),
     }
+
+
+
+# ─── Tirage Amoureux 3 cartes — spécial couple / compatibilité ─────────────
+
+TIRAGE_AMOUR_POSITIONS = [
+    {"id": 1, "nom": "Toi",       "description": "Ton énergie, ce que tu apportes dans cette relation."},
+    {"id": 2, "nom": "L'Autre",   "description": "L'énergie de l'autre personne, ce qu'elle vit intérieurement."},
+    {"id": 3, "nom": "Le Lien",   "description": "La qualité du lien entre vous — force, obstacle, potentiel."},
+]
+
+AMOUR_KEYWORDS = {
+    0:  "liberté & aventure — attention à la peur de l'engagement",
+    1:  "commencement fertile — un début à saisir consciemment",
+    2:  "intimité silencieuse — écoute-toi avant de parler",
+    3:  "abondance émotionnelle — l'amour comme jardin cultivé",
+    4:  "structure & sécurité — attention à la rigidité",
+    5:  "valeurs partagées — les principes tissent le lien",
+    6:  "choix du cœur — l'amour comme carrefour",
+    7:  "élan conquérant — une direction claire est à trouver",
+    8:  "équité — l'équilibre donner/recevoir décide de tout",
+    9:  "sagesse intérieure — la solitude renforce le duo",
+    10: "cycle qui tourne — le lien évolue, ne le fige pas",
+    11: "force tranquille — la douceur triomphe de tout",
+    12: "sacrifice bénéfique — lâcher un contrôle pour gagner un lien",
+    13: "transformation — laisse mourir ce qui doit changer",
+    14: "harmonie & fusion — les contraires se réconcilient",
+    15: "attraction charnelle — attention aux liens toxiques",
+    16: "révélation brutale — la vérité qui libère",
+    17: "espoir & tendresse — un lien lumineux se dessine",
+    18: "illusion & rêve — sépare le fantasme du réel",
+    19: "joie partagée — un amour solaire, généreux",
+    20: "renouveau du lien — appel à s'engager pleinement",
+    21: "accomplissement — le lien atteint sa forme la plus haute",
+}
+
+
+def tirage_amour(question: str, prenom: str = "") -> dict:
+    """Tirage 3 cartes spécial couple : Toi / L'Autre / Le Lien.
+
+    35% de chance de retournement par carte. Coût : 3 crédits.
+    """
+    seed_str = f"{prenom or 'anon'}-{question}-amour-{datetime.now().date().isoformat()}"
+    seed = int(hashlib.md5(seed_str.encode(), usedforsecurity=False).hexdigest(), 16)
+    rng = random.Random(seed)
+
+    indices = rng.sample(range(len(ARCANES_TAROT)), 3)
+    cartes = [ARCANES_TAROT[i] for i in indices]
+
+    tirage = []
+    for position, carte in zip(TIRAGE_AMOUR_POSITIONS, cartes):
+        numero = carte["numero"]
+        is_reversed = rng.random() < 0.35
+
+        base = carte.get("neutre", carte.get("oui", ""))
+        keyword = AMOUR_KEYWORDS.get(numero, carte["energie"])
+
+        if is_reversed:
+            base = _reversed_wrap(base, "neutre")
+
+        tirage.append({
+            "position_id": position["id"],
+            "position_nom": position["nom"],
+            "position_description": position["description"],
+            "carte": {
+                "numero": numero,
+                "nom": carte["nom"],
+                "energie": carte["energie"],
+                "image": _tarot_img_url(TAROT_IMAGE_MAP.get(numero, '')),
+                "mots_cles_amour": keyword,
+                "is_reversed": is_reversed,
+            },
+            "interpretation": base,
+        })
+
+    toi_nom = tirage[0]["carte"]["nom"]
+    autre_nom = tirage[1]["carte"]["nom"]
+    lien_nom = tirage[2]["carte"]["nom"]
+    synthese = (
+        f"Dans ta relation, tu portes l'énergie de {toi_nom}, l'autre porte celle de {autre_nom}, "
+        f"et le lien qui vous unit prend la forme de {lien_nom}. "
+        f"Chaque carte retournée est un signal doux — un blocage à conscientiser, pas une malédiction."
+    )
+
+    return {
+        "question": question,
+        "prenom": prenom,
+        "type": "tirage_amour",
+        "tirage": tirage,
+        "synthese": synthese,
+        "date": datetime.now().isoformat(),
+    }
