@@ -55,6 +55,7 @@ from routes.karma_destin import router as karma_destin_router
 from routes.fenetre_rencontre import router as fenetre_rencontre_router
 from routes.resend_webhook import router as resend_webhook_router
 from routes.astrocartographie import router as astrocartographie_router
+from routes.astrosexo import router as astrosexo_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -108,6 +109,7 @@ api_router.include_router(karma_destin_router)
 api_router.include_router(fenetre_rencontre_router)
 api_router.include_router(resend_webhook_router)
 api_router.include_router(astrocartographie_router)
+api_router.include_router(astrosexo_router)
 
 
 # ════════════════════════════════════════════
@@ -1227,7 +1229,45 @@ async def premium_pdf(payload: PremiumPdfRequest):
 async def compatibility_generate(payload: CompatibilityGenerateRequest):
     person1 = payload.person1 or {}
     person2 = payload.person2 or {}
-    pdf_bytes = generate_compatibility_pdf(person1=person1, person2=person2, question=payload.question or '')
+
+    def _fill_dmy(p):
+        """Assure la présence de day/month/year + first_name pour le générateur PDF."""
+        if not p.get('first_name'):
+            p['first_name'] = p.get('prenom') or p.get('name') or 'Voyageur'
+        if p.get('day') and p.get('month') and p.get('year'):
+            return p
+        bd = str(p.get('date_naissance') or p.get('birth_date') or '')[:10]
+        if bd and '-' in bd:
+            try:
+                y, m, d = bd.split('-')
+                p['year'] = int(y); p['month'] = int(m); p['day'] = int(d)
+            except Exception:
+                pass
+        return p
+
+    person1 = _fill_dmy(person1)
+    person2 = _fill_dmy(person2)
+
+    # Enrichir avec synastrie report API v3 quand on a les coords des deux
+    api_data = None
+    try:
+        bd1 = aio.parse_profile(person1, default_name=person1.get('prenom') or 'Personne 1')
+        bd2 = aio.parse_profile(person2, default_name=person2.get('prenom') or 'Personne 2')
+        if bd1 and bd2:
+            api_data = await aio.synastry_report(
+                bd1, bd2,
+                name_1=person1.get('prenom') or 'Personne 1',
+                name_2=person2.get('prenom') or 'Personne 2',
+                language='fr',
+            )
+    except Exception as e:
+        logger.warning(f"[compatibility/generate] synastrie v3 échouée : {e}")
+
+    pdf_bytes = generate_compatibility_pdf(
+        person1=person1, person2=person2,
+        question=payload.question or '',
+        api_data=api_data,
+    )
     pdf_b64 = base64.b64encode(pdf_bytes).decode('ascii')
     return {'success': True, 'pdf_url': f'data:application/pdf;base64,{pdf_b64}'}
 
@@ -1347,18 +1387,53 @@ from services import numerology_service
 async def numerology_complete(request: Request):
     body = await request.json()
     try:
-        return numerology_service.compute_complete(body)
+        result = numerology_service.compute_complete(body)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    # Enrichir les descriptions avec API v3 + narrative layer
+    try:
+        first_name = (body.get('prenom') or body.get('first_name') or 'toi').strip()
+        # Optionnel : compléter avec numerology_core_numbers (API v3) si birth_date présente
+        bd_iso = body.get('birth_date') or body.get('date_naissance')
+        if bd_iso and isinstance(result, dict):
+            try:
+                y, m, d = str(bd_iso)[:10].split('-')
+                bd_v3 = {'year': int(y), 'month': int(m), 'day': int(d), 'hour': 12, 'minute': 0}
+                api_data = await aio.numerology_core_numbers(bd_v3, name=first_name, language='fr')
+                if api_data and isinstance(api_data, dict):
+                    result['api_v3_enrichment'] = api_data
+            except Exception as e:
+                logger.warning(f'[numerology/complete] v3 fetch failed: {e}')
+        # Enrichir les 'description' du dict
+        from services.enrich_narrative import enrich_dict_fields
+        result = await enrich_dict_fields(
+            result,
+            fields=['description', 'signification', 'text', 'meaning'],
+            context='numerology_complete', first_name=first_name, target_length='medium',
+        )
+    except Exception as e:
+        logger.warning(f'[numerology/complete] enrich failed: {e}')
+    return result
 
 
 @api_router.post('/numerology/deep-profile')
 async def numerology_deep(request: Request):
     body = await request.json()
     try:
-        return numerology_service.compute_deep(body)
+        result = numerology_service.compute_deep(body)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    try:
+        first_name = (body.get('prenom') or body.get('first_name') or 'toi').strip()
+        from services.enrich_narrative import enrich_dict_fields
+        result = await enrich_dict_fields(
+            result,
+            fields=['description', 'signification', 'text', 'meaning', 'guidance'],
+            context='numerology_deep', first_name=first_name, target_length='long',
+        )
+    except Exception as e:
+        logger.warning(f'[numerology/deep-profile] enrich failed: {e}')
+    return result
 
 
 # ════════════════════════════════════════════
@@ -1699,6 +1774,7 @@ async def get_jour():
 
 class OracleQuestionRequest(BaseModel):
     question: str
+    first_name: Optional[str] = ''
 
 
 @api_router.post('/oracle')
@@ -1707,6 +1783,22 @@ async def legacy_oracle_question(payload: OracleQuestionRequest):
     if not question:
         raise HTTPException(status_code=400, detail='question requise')
     reading = tirage_oui_non(question)
+    first_name = (payload.first_name or 'toi').strip() or 'toi'
+    # Enrichir la réponse angélique avec la couche narrative
+    try:
+        from services.enrich_narrative import enrich_and_ask
+        base = reading.get('reponse') or reading.get('message') or ''
+        if base:
+            enriched = await enrich_and_ask(
+                base,
+                context=f"oracle_anges/{reading.get('carte', '')}",
+                first_name=first_name,
+                target_length='long',
+            )
+            reading['reponse'] = enriched
+            reading['reponse_enrichie'] = True
+    except Exception as e:
+        logger.warning(f'[oracle] enrich failed: {e}')
     return {
         'success': True,
         'answer': reading.get('reponse'),
@@ -1735,20 +1827,84 @@ async def tarot_predictions():
 @api_router.post('/tarot/oui-non')
 async def tarot_oui_non_endpoint(request: Request):
     body = await request.json()
-    return tirage_oui_non(body.get('question', ''))
+    question = (body.get('question') or '').strip()
+    first_name = (body.get('first_name') or body.get('prenom') or 'toi').strip()
+    reading = tirage_oui_non(question)
+    # Enrichir la réponse (texte plus long + question finale)
+    try:
+        from services.enrich_narrative import enrich_and_ask
+        base_text = reading.get('reponse') or reading.get('message') or ''
+        if base_text:
+            enriched = await enrich_and_ask(
+                base_text,
+                context=f"tarot_oui_non/{reading.get('carte', '')}",
+                first_name=first_name,
+                target_length='medium',
+            )
+            reading['reponse'] = enriched
+            reading['reponse_enrichie'] = True
+    except Exception as e:
+        logger.warning(f'[tarot/oui-non] enrich failed: {e}')
+    return reading
 
 
 @api_router.post('/tarot/marseille')
 async def tarot_marseille_endpoint(request: Request):
     body = await request.json()
+    first_name = (body.get('first_name') or body.get('prenom') or 'toi').strip()
     result = tirage_marseille_question(body.get('question', ''), body.get('domaine', 'general'))
+    # Enrichir les interprétations de chaque carte + la synthèse
+    try:
+        from services.enrich_narrative import enrich_and_ask
+        for k in ('interpretation', 'synthese', 'conseil', 'message'):
+            if isinstance(result.get(k), str) and len(result[k]) > 30:
+                result[k] = await enrich_and_ask(
+                    result[k],
+                    context=f"tarot_marseille.{k}",
+                    first_name=first_name,
+                    target_length='long',
+                )
+        # Enrichir aussi les cartes individuelles
+        if isinstance(result.get('cartes'), list):
+            for carte in result['cartes']:
+                if isinstance(carte, dict) and isinstance(carte.get('interpretation'), str):
+                    carte['interpretation'] = await enrich_and_ask(
+                        carte['interpretation'],
+                        context=f"tarot_marseille.carte.{carte.get('nom', '')}",
+                        first_name=first_name,
+                        target_length='medium',
+                    )
+    except Exception as e:
+        logger.warning(f'[tarot/marseille] enrich failed: {e}')
     return {'success': True, 'data': result}
 
 
 @api_router.post('/tarot/celtique')
 async def tarot_celtique_endpoint(request: Request):
     body = await request.json()
+    first_name = (body.get('first_name') or body.get('prenom') or 'toi').strip()
     result = tirage_croix_celtique(body.get('question', ''), body.get('domaine', 'general'))
+    try:
+        from services.enrich_narrative import enrich_and_ask
+        for k in ('interpretation', 'synthese', 'conseil', 'message'):
+            if isinstance(result.get(k), str) and len(result[k]) > 30:
+                result[k] = await enrich_and_ask(
+                    result[k],
+                    context=f"tarot_celtique.{k}",
+                    first_name=first_name,
+                    target_length='long',
+                )
+        if isinstance(result.get('cartes'), list):
+            for carte in result['cartes']:
+                if isinstance(carte, dict) and isinstance(carte.get('interpretation'), str):
+                    carte['interpretation'] = await enrich_and_ask(
+                        carte['interpretation'],
+                        context=f"tarot_celtique.carte.{carte.get('position', '')}",
+                        first_name=first_name,
+                        target_length='medium',
+                    )
+    except Exception as e:
+        logger.warning(f'[tarot/celtique] enrich failed: {e}')
     return {'success': True, 'data': result}
 
 

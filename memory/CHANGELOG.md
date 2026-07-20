@@ -1,6 +1,37 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-15
+
+### Session 12 — 🔗 Tous les outils sur API v3 + Couche d'enrichissement narrative universelle
+
+**Nouvelle couche transverse — `services/enrich_narrative.py`**
+- ✅ Fonction `enrich_and_ask(text, context, first_name, target_length)` — passe un texte brut dans GPT-5.4 pour :
+  1. Le rallonger à `short|medium|long` (150-550 mots selon la cible)
+  2. Terminer **toujours** par une question introspective personnalisée
+- ✅ Triple cache : mémoire LRU (400 items) + Supabase `narrative_cache` + skip auto si texte trop court.
+- ✅ Fonction `enrich_dict_fields(obj, fields, ...)` — enrichit récursivement uniquement les champs listés (ex: `['description', 'signification']`).
+- ✅ Sécurité : si l'IA oublie la question finale, ajout automatique de "Et toi, qu'est-ce que ça éveille en toi ?"
+- 📋 Migration SQL `/app/supabase/narrative_cache_migration.sql` à appliquer côté Supabase.
+
+**Outils reconnectés à l'API v3 + enrichissement narratif (7/7)**
+
+1. 💘 **Compatibilité crédits** (P1) — `/api/compatibility/generate` appelle maintenant `aio.synastry_report(bd1, bd2)` (avec `@fr_polish`), le passe au générateur PDF via `api_data`. Fix bonus : normalisation `person1/2['day'/'month'/'year'/'first_name']` depuis `date_naissance`. ✅ Testé : PDF 17MB avec vraie synastrie personnalisée.
+2. 🃏 **Tarot Marseille/Celtique/Oui-Non** (P1) — chaque endpoint appelle `enrich_and_ask` sur les champs `reponse/interpretation/synthese/conseil/message` + interprétations cartes individuelles. ✅ Testé : Oui/Non passe de ~150 chars à **1854 chars** finissant par "Quel geste concret voudrais-tu poser aujourd'hui ?". Coût crédit inchangé (1 gratuite puis 5cr/question).
+3. ✨ **Énergie du Jour** (P2) — Prompt système `ENERGY_SYSTEM_PROMPT` mis à jour : demande **4-6 phrases/section (100-150 mots) + question finale obligatoire** dans chaque section (dominante, relationnel, attention, opportunité). Modèle upgradé `gpt-4o-mini` → **gpt-5.4** via `EMERGENT_LLM_KEY`.
+4. 🕯️ **Rituel du jour** (P2) — Prompt réécrit : 250-350 mots + question finale obligatoire, structure implicite en 4 étapes, tutoiement systématique. Modèle `gpt-4o-mini` → **gpt-5.4**.
+5. 🔢 **Numérologie** (P2) — `/api/numerology/complete` et `/deep-profile` :
+   - Optionnellement enrichis avec `aio.numerology_core_numbers(bd_v3)` si `birth_date` fournie
+   - `enrich_dict_fields(fields=['description','signification','text','meaning'])` appliqué récursivement
+6. 🔥 **AstroSexo perso** (P3) — nouveau `POST /api/astrosexo/personal` (`routes/astrosexo.py`) : accepte les coords natales, fetch `aio.love_languages` + `aio.personality_analysis` + `aio.natal_chart` (pour extraire Vénus/Mars/Lune), compose un texte de base, l'enrichit via `enrich_and_ask(target_length='long')`. ✅ Testé : analyse de 3400+ chars sur Marie/Vénus Bélier/Mars Poissons/Lune Capricorne, termine par question personnelle.
+7. 👼 **Oracle des Anges** (P3) — `POST /api/oracle` accepte `first_name`, enrichit `reponse` via `enrich_and_ask(target_length='long')`. ✅ Testé : passe de ~150 à **2526 chars** finissant par question.
+
+**Notes**
+- Verification Tarot Oui/Non : logique 1 carte gratuite (`has_used_free_tarot`) puis 5cr/question (`SERVICE_COSTS['tarot_oui_non']=5`) déjà en place, inchangée.
+- Cache DB `narrative_cache` : sans la table, chaque premier appel coûte 1-3s GPT ; avec la table, cache persistant entre redémarrages.
+- Frontend AstroSexo : peut désormais appeler `/api/astrosexo/personal` si utilisatrice authentifiée avec natal (à câbler côté UI dans une prochaine étape).
+
+
 ## 2026-02-14 (suite)
 
 ### Fix — Révolution Solaire en anglais

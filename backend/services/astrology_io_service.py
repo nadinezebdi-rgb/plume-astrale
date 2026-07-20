@@ -588,6 +588,7 @@ async def synastry_report(
         'subject2': make_subject(name_2, birth_data_2),
         'options': {'language': language, 'house_system': 'P'},
     })
+synastry_report = fr_polish('synastry_report')(synastry_report)
 
 
 # ════════ SOLAR RETURN (rapport annuel d'anniversaire) ════════
