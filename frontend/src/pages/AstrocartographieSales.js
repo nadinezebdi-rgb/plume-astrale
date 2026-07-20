@@ -5,7 +5,7 @@ import axios from 'axios';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
 import TestimonialsWidget, { TESTIMONIALS_ASTROCARTO } from '@/components/TestimonialsWidget';
-import PdfMockup3D from '@/components/PdfMockup3D';
+import PdfBookOpen from '@/components/PdfBookOpen';
 import { event as track, EVENTS } from '@/lib/analytics';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -169,7 +169,7 @@ const AstrocartographieSales = () => {
 
         {step === 0 ? (
           <>
-            <PdfMockup3D testId="astrocarto-pdf-mockup" />
+            <PdfBookOpen testId="astrocarto-book-open" />
             <TestimonialsWidget
               testimonials={TESTIMONIALS_ASTROCARTO}
               title="Elles ont trouvé leur lieu"

@@ -1,6 +1,31 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — Preview PDF Ouvrant + Validation E2E du wrapper luxe (P0)
+
+### ✨ Nouveau composant : `PdfBookOpen` (livre 3D qui s'ouvre au scroll)
+- Fichier : `/app/frontend/src/components/PdfBookOpen.js` (CSS 3D pur, aucune dépendance)
+- Ajouté sur `/astrocartographie` (étape 0, remplace `PdfMockup3D`)
+- Comportement : couverture cuir nuit + tranche dorée visible fermée → pivote sur `rotateY(-168deg)` à l'entrée dans le viewport (IntersectionObserver, seuil 0.4) → révèle 2 pages intérieures (carte planétaire Lisbonne/Bali/Kyoto à gauche + citation Ligne Vénus + encadré doré "Rituel de terrain" à droite)
+- Interactif : hover + clic pour rouvrir/fermer le livre, keyboard accessible (Enter/Space)
+- Justifie visuellement le prix 49€ sans dévoiler le contenu personnalisé (blur préservé)
+- data-testid : `astrocarto-book-open` + `astrocarto-book-open-stage`
+
+### 🧪 Test E2E du `pdf_luxury_wrap` (validation pipeline webhook)
+- Fichier : `/app/backend/tests/test_pdf_luxury_wrap_e2e.py`
+- Simule exactement le code path appelé par le webhook Stripe (`handle_kabbale_webhook` → `generate_kabbale_pdf_luxury` et `handle_astrocartographie_webhook` → `generate_astrocartographie_pdf_luxury`)
+- Résultats :
+  - **Kabbale luxury** : 11 pages, 3.2 MB — cover luxe + Arbre de Vie legacy + fin Soléna, header `%PDF` valide
+  - **Astrocarto luxury** : 24 pages, 234 KB (fixture sans `map_svg`, en prod ~7-10 MB avec carte SVG) — cover luxe + rapport 3 villes/2 bonus + fin Soléna
+- **Aucune erreur `BytesIO`/pypdf stream error** : le merger `_prepend_luxury_cover` + `_append_luxury_ending` tient la charge asynchrone
+- Fallback `try/except` déjà en place : si `pypdf.write()` échoue, retourne le PDF original intact (jamais casser une vente)
+
+### 📌 Statut
+- Preview PDF Ouvrant : ✅ implémenté + testé (screenshot livre ouvert avec animation)
+- Test achat réel Kabbale/Astrocarto : ✅ validé au niveau code (wrapper), pipeline webhook confirmé
+
+
+
 ## 2026-02-20 — Session cleanup post-migration caches persistants
 
 ### 🔗 Branchement PDF Luxe sur les 4 endpoints (P0 — brief Nathalie suite)
