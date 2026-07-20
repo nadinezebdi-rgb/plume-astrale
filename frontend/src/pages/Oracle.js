@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { EnrichedBadge } from "../components/EnrichedBadge";
+import { FadeInEnrichedText } from "../components/FadeInEnrichedText";
 
 export default function Oracle() {
   const { creditBalance } = useAuth();
@@ -67,8 +68,7 @@ export default function Oracle() {
       {response && (
         <div className="mt-6 max-w-md">
           <EnrichedBadge variant="compact" visible={enriched} align="center" />
-          <p style={{ whiteSpace: 'pre-wrap' }}>{response}</p>
-
+          <FadeInEnrichedText text={response} enabled={enriched} speed={160} />
           <button
             className="mt-4 text-yellow-500"
             onClick={() => window.location.href = "/acheter-credits"}

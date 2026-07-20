@@ -90,33 +90,9 @@ def _bg_canvas(canv, doc):
 
 
 def _make_styles():
-    return {
-        'title': ParagraphStyle('title', fontName='Helvetica', fontSize=30, textColor=GOLD,
-                                alignment=TA_CENTER, leading=36, spaceAfter=10),
-        'subtitle': ParagraphStyle('subtitle', fontName='Helvetica-Oblique', fontSize=17,
-                                   textColor=CREAM, alignment=TA_CENTER, leading=22, spaceAfter=8),
-        'caption': ParagraphStyle('caption', fontName='Helvetica', fontSize=8, textColor=GOLD,
-                                  alignment=TA_CENTER, leading=10),
-        'h2': ParagraphStyle('h2', fontName='Helvetica-Bold', fontSize=22, textColor=GOLD_LIGHT,
-                             spaceBefore=6, spaceAfter=10, leading=26),
-        'h3': ParagraphStyle('h3', fontName='Helvetica-Bold', fontSize=15, textColor=GOLD,
-                             spaceBefore=8, spaceAfter=6, leading=18),
-        'h3c': ParagraphStyle('h3c', fontName='Helvetica-Bold', fontSize=15, textColor=GOLD,
-                              alignment=TA_CENTER, spaceBefore=8, spaceAfter=6, leading=18),
-        'meta': ParagraphStyle('meta', fontName='Helvetica', fontSize=9, textColor=MUTED, leading=12),
-        'body': ParagraphStyle('body', fontName='Helvetica', fontSize=10.5, textColor=CREAM,
-                               alignment=TA_JUSTIFY, leading=15, spaceAfter=8),
-        'italic': ParagraphStyle('italic', fontName='Helvetica-Oblique', fontSize=11, textColor=LAVENDER,
-                                 alignment=TA_CENTER, leading=15, spaceAfter=10),
-        'accent': ParagraphStyle('accent', fontName='Helvetica-Bold', fontSize=11, textColor=GOLD,
-                                 spaceAfter=4),
-        'quote': ParagraphStyle('quote', fontName='Helvetica-Oblique', fontSize=12.5, textColor=LAVENDER,
-                                alignment=TA_CENTER, leading=17, spaceAfter=14),
-        'small': ParagraphStyle('small', fontName='Helvetica', fontSize=8.5, textColor=MUTED,
-                                leading=11.5, alignment=TA_CENTER),
-        'label': ParagraphStyle('label', fontName='Helvetica-Bold', fontSize=9, textColor=GOLD,
-                                spaceBefore=6, spaceAfter=2, leading=11),
-    }
+    """Utilise la charte unifiée (Cinzel + Cormorant Garamond via pdf_theme)."""
+    from services.pdf_theme import make_styles as _shared_styles
+    return _shared_styles()
 
 
 def _svg_to_png_bytes(svg_str: str) -> Optional[bytes]:

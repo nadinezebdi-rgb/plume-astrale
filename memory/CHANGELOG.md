@@ -1,6 +1,37 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-16 (suite)
+
+### Session 14 — 🎨 Polices Cinzel/Cormorant + effet Fade-In enrichissement
+
+**Task 1 — Polices Cinzel + Cormorant Garamond**
+- ✅ Téléchargées depuis Google Fonts (repo GitHub officiel `google/fonts`) en variable fonts :
+  - `Cinzel[wght].ttf` (123 KB) → `Cinzel-Regular.ttf` + `Cinzel-Bold.ttf`
+  - `CormorantGaramond[wght].ttf` (1.2 MB) → `CormorantGaramond-Regular.ttf` + `CormorantGaramond-Bold.ttf`
+  - `CormorantGaramond-Italic[wght].ttf` (699 KB) → `CormorantGaramond-Italic.ttf`
+- ✅ Déposées dans `/app/backend/assets/fonts/`.
+- ✅ `services/pdf_theme.py::register_fonts()` teste automatiquement leur présence et fallback Helvetica sinon.
+- ✅ **Refactor `astrocartographie_pdf.py`** : `_make_styles()` délègue maintenant à `pdf_theme.make_styles()` (12 styles unifiés avec les vraies polices).
+- ✅ **Test E2E** : PDF Astrocartographie régénéré 676 KB → **740 KB** (fonts embarquées ~64 KB), avec Cinzel dans les captions/H2 et Cormorant Garamond dans le corps texte.
+
+**Task 2 — Effet Fade-In progressif enrichi**
+- ✅ Nouveau composant `frontend/src/components/FadeInEnrichedText.js` :
+  - Split intelligent du texte par phrases (regex `(?<=[.!?…])\s+`)
+  - Fade-in phrase-par-phrase avec `opacity + translateY(6px→0)` sur 600ms
+  - Stagger paramétrable (default 180ms, 140-160ms utilisés en pratique)
+  - **La question finale se colore en or `#D4AF37` + italique** pour se démarquer
+  - Props `enabled` : si `false`, affiche tout d'un coup (fallback)
+- ✅ Intégré dans 3 pages où l'enrichissement est actif :
+  - `AstroSexo.js` — résultat perso (speed 140ms)
+  - `TarotOuiNon.js` — message des Arcanes (speed 160ms)
+  - `Oracle.js` — réponse Oracle (speed 160ms)
+- ✅ L'effet s'active uniquement si le backend a bien enrichi (`enrichi === true` / `reponse_enrichie === true`), garantissant zéro régression sur les tirages statiques.
+
+**Fix bonus**
+- ✅ Frontend Tarot Oui/Non "puis 2 crédits" → **"puis 5 crédits"** (aligne l'affichage sur le vrai coût backend `SERVICE_COSTS['tarot_oui_non']=5`). Vérifié visuellement.
+
+
 ## 2026-02-16
 
 ### Session 13 — 🎨 Charte PDF unifiée + AstroSexo UI perso + Badge "Enrichi par Soléna"

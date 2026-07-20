@@ -7,6 +7,7 @@ import { SIGN_LIST } from '../lib/astrosexo-data';
 import { event as trackEvent } from '../lib/analytics';
 import { useAuth } from '../context/AuthContext';
 import { EnrichedBadge } from '../components/EnrichedBadge';
+import { FadeInEnrichedText } from '../components/FadeInEnrichedText';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const ELEMENT_ICONS = { Feu: Flame, Terre: Mountain, Air: Wind, Eau: Waves };
@@ -224,12 +225,16 @@ export default function AstroSexo() {
                 {personal.moon_sign && ` · LUNE ${personal.moon_sign.toUpperCase()}`}
               </span>
             </div>
-            <div style={{
-              color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif',
-              fontSize: 16, lineHeight: 1.75, whiteSpace: 'pre-wrap',
-            }}>
-              {personal.analysis}
-            </div>
+            <FadeInEnrichedText
+              text={personal.analysis}
+              enabled={!!personal.enrichi}
+              speed={140}
+              style={{
+                color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif',
+                fontSize: 16, lineHeight: 1.75,
+              }}
+              dataTestid="astrosexo-personal-text"
+            />
           </section>
         )}
 

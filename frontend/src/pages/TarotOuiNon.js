@@ -4,6 +4,7 @@ import { Loader2, ArrowLeft, ArrowRight, Coins, LogIn, Sparkles, Star } from 'lu
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import { EnrichedBadge } from '@/components/EnrichedBadge';
+import { FadeInEnrichedText } from '@/components/FadeInEnrichedText';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -317,9 +318,13 @@ const TarotOuiNon = () => {
                     </p>
                     <EnrichedBadge variant="compact" visible={!!result.reponse_enrichie} />
                   </div>
-                  <p className="text-base leading-loose" style={{ color: 'var(--pa-body)', lineHeight: '1.95', fontFamily: 'Cormorant Garamond, serif', fontSize: '17px', whiteSpace: 'pre-wrap' }}>
-                    {result.reponse}
-                  </p>
+                  <FadeInEnrichedText
+                    text={result.reponse}
+                    enabled={!!result.reponse_enrichie}
+                    speed={160}
+                    style={{ color: 'var(--pa-body)', lineHeight: '1.95', fontFamily: 'Cormorant Garamond, serif', fontSize: '17px' }}
+                    dataTestid="tarot-response-text"
+                  />
                 </div>
 
                 {/* Énergie de la carte */}
