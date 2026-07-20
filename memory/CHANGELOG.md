@@ -3,6 +3,58 @@
 
 ## 2026-02-20 — Session cleanup post-migration caches persistants
 
+### 🎯 4 features finales Gary Vee — conversion + LTV (session audit)
+
+**1. PDF Mockup 3D (P1 — conversion Astrocarto)** :
+- Nouveau composant `/app/frontend/src/components/PdfMockup3D.js` — 3 pages "leaked" en isométrie CSS pure (couverture / carte planétaire / ligne Vénus)
+- Watermark "APERÇU" en Cinzel, animation float+bob, responsive mobile single-column
+- Inséré sur `/astrocartographie` au step 0, au-dessus des témoignages
+- Aucune dépendance image externe — 100% CSS/HTML rendu
+
+**2. Reels Soléna 30 jours (P2 — content marketing)** :
+- Livrable documentaire : `/app/memory/reels_solena_30_jours.md`
+- 30 scripts courts (15-30 sec) répartis en 4 formats : Astuce du jour, Face aux signes, Rituel express, Question de Soléna
+- Notes de production complètes : voix ElevenLabs, B-roll, fonts overlay, hashtags, KPI cibles
+
+**3. Cercle Soléna — Abonnement 19€/mois (P1 — LTV × 12)** :
+- **Backend** `/app/backend/routes/subscriptions.py` :
+  - `POST /api/subscriptions/cercle-solena/checkout` (mode='subscription' Stripe, idempotence via `stripe_customer_id` persisté)
+  - `GET  /api/subscriptions/cercle-solena/status`
+  - `POST /api/subscriptions/portal` (Stripe Billing Portal — résiliation en 1 clic)
+  - Webhook handler `handle_subscription_event` : credite +3 crédits mensuels via `invoice.payment_succeeded`, avec idempotence sur `credit_grants.external_id`
+- **DB** `/app/supabase/cercle_solena_migration.sql` :
+  - Nouvelles tables `subscriptions` + `credit_grants` (RLS activé)
+  - Colonnes `profiles.stripe_customer_id` + `profiles.is_cercle_member`
+- **Frontend** `/app/frontend/src/pages/CercleSolena.js` :
+  - Landing complète avec pricing hero, 4 bénéfices, FAQ, CTA adaptatif (non-auth → redirect /connexion, auth → checkout)
+  - Auto-redirect vers Stripe Checkout
+  - Handle 503 clean ("L'abonnement n'est pas encore configuré")
+- **Router** : nouvelles routes `/cercle-solena` et `/cercle-solena/succes` (App.js)
+- **Teaser** sur `/mon-compte` sous le BundleCard (data-testid : `mon-compte-cercle-solena-teaser`)
+- **Note** : Nécessite `STRIPE_CERCLE_SOLENA_PRICE_ID` dans `.env` (Nathalie doit créer le Price côté Dashboard Stripe — cf `/app/memory/setup_cercle_solena_analytics.md`)
+
+**4. Analytics Plausible + GA4 (P2 — conversion tracking)** :
+- `/app/frontend/src/lib/analytics.js` existant enrichi : ajout constantes `EVENTS` (source of truth) + helper `revenue()` (montant EUR, dual-track Plausible+GA4)
+- Instrumentation :
+  - `Register.js` → `signup_completed` on success
+  - `BundleCard.js` → `bundle_click` on CTA
+  - `KabbaleSales.js` → `kabbale_checkout` on submit
+  - `AstrocartographieSales.js` → `astrocarto_checkout` on submit
+  - `CercleSolena.js` → `cercle_solena_checkout` on CTA
+- RGPD-compliant : no-op tant que `getConsent() !== 'accepted'` (bandeau cookies existant)
+- Config : `REACT_APP_PLAUSIBLE_DOMAIN` et/ou `REACT_APP_GA4_ID` dans `.env`
+
+### 📋 Doc setup pour Nathalie
+- `/app/memory/setup_cercle_solena_analytics.md` — checklist ~10 min :
+  1. Créer Price Stripe recurring
+  2. Appliquer migration SQL Supabase
+  3. Activer 4 webhook events Stripe
+  4. Setup Plausible (facultatif : + GA4)
+
+### ✅ Testing
+- iteration_52 : backend 4/4 PASS (auth 401 + checkout 503 attendu) + frontend 100% (PDF mockup step 0 visible / step 1 hidden, CercleSolena landing complète, teaser mon-compte, redirect non-auth, 503 UI, analytics no-crash)
+- Pytest : `/app/backend/tests/test_cercle_solena_subscriptions.py`
+
 ### 🚀 4 fixes Gary Vee — conversion boost (P1)
 
 **1. Rotation Hero (Hero3D.js)** — les 3 promesses cyclent toutes les 4 secondes avec fondu enchaîné : « vie amoureuse », « mission d'âme », « meilleure destination ». Fini le filtrage des 60% de l'audience qui ne cherche pas l'amour. Data-testid : `hero-promise-{idx}`.
