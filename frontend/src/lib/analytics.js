@@ -92,3 +92,39 @@ export function pageView(path) {
     // plausible auto-track les pageviews
   } catch (_e) { /* analytics call failed silently */ }
 }
+
+/**
+ * Constantes d'événements — source of truth (évite les typos, facilite
+ * les Goals côté dashboard Plausible / GA4).
+ */
+export const EVENTS = {
+  SIGNUP_STARTED:              'signup_started',
+  SIGNUP_COMPLETED:            'signup_completed',
+  LOGIN:                       'login',
+  SOLENA_CLICK:                'solena_click',
+  SOLENA_QUESTION:             'solena_question',
+  BUNDLE_CLICK:                'bundle_click',
+  KABBALE_CHECKOUT:            'kabbale_checkout',
+  ASTROCARTO_CHECKOUT:         'astrocarto_checkout',
+  PACK_KARMIQUE_CHECKOUT:      'pack_karmique_checkout',
+  CERCLE_SOLENA_CHECKOUT:      'cercle_solena_checkout',
+  CERCLE_SOLENA_ACTIVE:        'cercle_solena_active',
+  CREDIT_PURCHASE:             'credit_purchase',
+  PDF_DOWNLOAD:                'pdf_download',
+};
+
+/**
+ * Track une conversion avec un montant (EUR). GA4 event 'purchase' + Plausible
+ * revenue tracking automatique via props.revenue.
+ */
+export function revenue(name, amountEur, extraProps = {}) {
+  if (getConsent() !== 'accepted') return;
+  try {
+    if (window.gtag) {
+      window.gtag('event', name, { value: amountEur, currency: 'EUR', ...extraProps });
+    }
+    if (window.plausible) {
+      window.plausible(name, { props: extraProps, revenue: { amount: amountEur, currency: 'EUR' } });
+    }
+  } catch (_e) { /* silent */ }
+}

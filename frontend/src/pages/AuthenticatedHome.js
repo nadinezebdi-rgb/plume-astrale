@@ -7,14 +7,16 @@ import BundleCard from '@/components/BundleCard';
 
 const AuthenticatedHome = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user, creditBalance, logout } = useAuth();
+  const { isAuthenticated, loading, user, creditBalance, logout } = useAuth();
 
-  // Si pas authentifié -> rediriger vers home
+  // Si pas authentifié -> rediriger vers home (mais on attend que l'auth
+  // Supabase soit hydratée pour éviter la race condition qui éjecte
+  // instantanément les utilisateurs légitimes).
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!loading && !isAuthenticated) {
       navigate('/', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, loading, navigate]);
 
   const handleLogout = () => {
     logout();

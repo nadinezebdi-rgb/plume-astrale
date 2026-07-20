@@ -3,6 +3,27 @@
 
 ## 2026-02-20 — Session cleanup post-migration caches persistants
 
+### 🚀 4 fixes Gary Vee — conversion boost (P1)
+
+**1. Rotation Hero (Hero3D.js)** — les 3 promesses cyclent toutes les 4 secondes avec fondu enchaîné : « vie amoureuse », « mission d'âme », « meilleure destination ». Fini le filtrage des 60% de l'audience qui ne cherche pas l'amour. Data-testid : `hero-promise-{idx}`.
+
+**2. Countdown 48h dynamique (LaunchBanner.js)** — le bandeau top affiche désormais un countdown live `EXPIRE DANS HHh MMm SSs` par visiteur (localStorage `plume_offer_deadline_v1`, evergreen reset auto). Format zero-padded, `font-variant-numeric: tabular-nums` pour un rendu stable. Data-testid : `launch-banner-countdown`.
+
+**3. Upsell Astrocarto post-Kabbale (KABBALE20)** :
+- Backend : `/app/backend/routes/astrocartographie.py` — nouveau code promo `KABBALE20` = -20€ absolu (`max(5.0, 49-20) = 29.0`), symétrique à PLUME15.
+- Frontend : `/app/frontend/src/pages/KabbaleSucces.js` — nouveau bloc premium visible dès `pdf_ready`, badge "-20€ · Duo Soléna", titre "Maintenant que tu connais ton âme, où va-t-elle s'épanouir ?", CTA `/astrocartographie?discount=KABBALE20` (déjà auto-fill via query param existant).
+- AstrocartographieSales.js : nouveau banner conditionnel `astrocarto-kabbale20-banner` (49€ → 29€) et bouton adaptatif "Payer 29€ (Duo Soléna)".
+- Test pytest backend : 4/4 PASS (`/app/backend/tests/test_astrocarto_kabbale20.py`).
+
+**4. BundleCard Découverte Soléna** — nouveau composant `/app/frontend/src/components/BundleCard.js` :
+- Design premium (badge or "Duo Soléna", 2 cards produits, prix 68€ vs 88€ barré, économie 20€)
+- Intégré sur `/mon-compte` (post-connexion, dense=true) et `/mon-accueil` (AuthenticatedHome)
+- CTA vers `/kabbale?from=bundle` → mécanique de chaînage vers l'upsell KABBALE20
+
+**Fix bloquant race condition (AuthenticatedHome.js)** — le useEffect redirigeait vers `/` avant que Supabase.getSession() n'hydrate la session. Guard sur `loading` ajouté : `if (!loading && !isAuthenticated) navigate('/')`.
+
+**Testing** : iteration_51.json — backend 4/4 pytest PASS, frontend 3/4 initial (BundleCard bloqué par race → corrigé), re-vérification manuelle 100% après fix.
+
 ### ⭐ Widget témoignages sur 4 landings (P2 — session Gary Vee audit)
 - ✅ Nouveau composant réutilisable `/app/frontend/src/components/TestimonialsWidget.js` :
   - Design premium cohérent charte Plume (Cinzel + Cormorant, palette or/nuit)

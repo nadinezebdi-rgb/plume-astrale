@@ -5,6 +5,8 @@ import axios from 'axios';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
 import TestimonialsWidget, { TESTIMONIALS_ASTROCARTO } from '@/components/TestimonialsWidget';
+import PdfMockup3D from '@/components/PdfMockup3D';
+import { event as track, EVENTS } from '@/lib/analytics';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -100,6 +102,7 @@ const AstrocartographieSales = () => {
     if (!form.first_name.trim()) { setError('Prénom requis'); return; }
     if (!form.birth_date || !form.birth_time) { setError('Date et heure de naissance requises'); return; }
     if (chosen.length !== 3) { setError('Merci de choisir exactement 3 villes'); return; }
+    track(EVENTS.ASTROCARTO_CHECKOUT, { promo_code: promoCode || null });
     setLoading(true);
     try {
       const r = await axios.post(`${API}/api/astrocartographie/checkout`, {
@@ -166,6 +169,7 @@ const AstrocartographieSales = () => {
 
         {step === 0 ? (
           <>
+            <PdfMockup3D testId="astrocarto-pdf-mockup" />
             <TestimonialsWidget
               testimonials={TESTIMONIALS_ASTROCARTO}
               title="Elles ont trouvé leur lieu"

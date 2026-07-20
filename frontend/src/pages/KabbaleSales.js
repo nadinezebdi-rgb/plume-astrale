@@ -5,6 +5,7 @@ import axios from 'axios';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
 import TestimonialsWidget, { TESTIMONIALS_KABBALE } from '@/components/TestimonialsWidget';
+import { event as track, EVENTS } from '@/lib/analytics';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -33,6 +34,7 @@ const KabbaleSales = () => {
     if (!form.email || !form.email.includes('@')) { setError('Email invalide'); return; }
     if (!form.first_name.trim()) { setError('Prénom requis'); return; }
     if (!form.birth_date || !form.birth_time) { setError('Date et heure de naissance requises'); return; }
+    track(EVENTS.KABBALE_CHECKOUT, { first_name: form.first_name });
     setLoading(true);
     try {
       const r = await axios.post(`${API}/api/kabbale/checkout`, {

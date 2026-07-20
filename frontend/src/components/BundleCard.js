@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, TreePine, Globe2 } from 'lucide-react';
+import { event as track, EVENTS } from '@/lib/analytics';
 
 /**
  * Carte "Bundle Découverte Soléna" — Kabbale + Astrocarto ensemble.
@@ -121,6 +122,7 @@ const BundleCard = ({ dense = false, testId = 'bundle-card' }) => (
       className="plume-btn-primary w-full justify-center"
       data-testid={`${testId}-cta`}
       style={{ display: 'inline-flex' }}
+      onClick={() => track(EVENTS.BUNDLE_CLICK, { source: testId })}
     >
       Commencer le duo — Kabbale 39€
       <ArrowRight className="w-4 h-4" strokeWidth={1.5} />

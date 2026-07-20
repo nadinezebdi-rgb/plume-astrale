@@ -1,0 +1,48 @@
+{
+  "summary": "Iteration 52 — audit Gary Vee session finale Nathalie : PDF Mockup 3D + Cercle Soléna landing/checkout + MonCompte teaser + Analytics. Backend 4/4 PASS (auth 401 + checkout 503 attendu car STRIPE_CERCLE_SOLENA_PRICE_ID absent — comportement voulu). Frontend 100% PASS sur tous les points testables (PDF mockup avec 3 pages floutées avant testimonials/CTA au step 0 et invisible au step 1, Cercle Soléna landing pricing 19€/mois + 4 benefits + FAQ + CTA adaptatif non-auth/auth, redirect /connexion?redirect=/cercle-solena, 503 UI visible avec bon message, teaser /mon-compte visible et bien routé). Analytics: imports track/EVENTS présents dans BundleCard, CercleSolena, KabbaleSales, AstrocartographieSales, Register. Aucun crash console track() sans consent.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/subscriptions/cercle-solena/status",
+        "issue": "Retourne 500 si la table Supabase 'subscriptions' n'existe pas encore (migration SQL non appliquée). Attendu selon la note du review (Nathalie appliquera la migration après). Impact UX négligeable : le CercleSolena.js catch silencieusement l'erreur (.catch(() => {})), donc l'utilisateur voit toujours le CTA de souscription. Une fois la migration appliquée, retester : doit renvoyer {active: false, subscription: null}."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_cercle_solena_subscriptions.py",
+    "/app/test_reports/pytest/iteration52.xml"
+  ],
+  "action_items": [
+    "PRE-PROD : Nathalie doit (1) créer le Price Stripe Cercle Soléna 19€/mois recurring, (2) ajouter STRIPE_CERCLE_SOLENA_PRICE_ID=price_... dans /app/backend/.env + supervisorctl restart backend, (3) appliquer la migration /app/supabase/cercle_solena_migration.sql dans le SQL Editor Supabase (créer tables subscriptions + credit_grants + colonnes profiles.stripe_customer_id + is_cercle_member), (4) activer les 4 webhook events Stripe (customer.subscription.created/updated/deleted + invoice.payment_succeeded). Cf /app/memory/setup_cercle_solena_analytics.md — instructions complètes.",
+    "RETEST après migration SQL : lancer pytest sur /app/backend/tests/test_cercle_solena_subscriptions.py — le test test_status_valid_token doit passer (au lieu de skip).",
+    "RETEST après Price ID configuré : cliquer 'Rejoindre le Cercle' authentifié doit rediriger vers Stripe Checkout (mode subscription) au lieu d'afficher 503.",
+    "Optionnel : configurer REACT_APP_PLAUSIBLE_DOMAIN et/ou REACT_APP_GA4_ID dans /app/frontend/.env pour activer réellement les events de tracking (aujourd'hui : no-op car pas de tracker + no-op si pas de consent)."
+  ],
+  "critical_code_review_comments": [
+    "PdfMockup3D.js — composant CSS pur propre, isométrie via transform rotateY, watermark 'APERÇU', 3 variantes (couverture / carte / ligne Vénus). Responsive @media 640px correct (single-column). Aucune dépendance externe. Bien découpé.",
+    "CercleSolena.js — gestion propre auth loading + isAlreadyMember. Le /status catch silencieux (.catch(() => {})) permet à la page de fonctionner même si la table subscriptions n'existe pas. CTA adaptatif non-auth/auth correct. data-testid bien fourni sur toutes les cibles critiques (pricing, cta, error, benefit-{0..3}, faq, already-member).",
+    "subscriptions.py — endpoint /checkout gère bien le cas price_id manquant via HTTPException 503 (message explicite). Création customer Stripe idempotente (persiste stripe_customer_id sur profiles). handle_subscription_event bien découpé (subscription events vs invoice.payment_succeeded) avec idempotence via credit_grants.external_id. subscription_data.metadata propage supabase_user_id — bon pattern pour retrouver le user au webhook.",
+    "server.py L744-746 — le hook handle_subscription_event est appelé en priorité sur le webhook Stripe, puis fallback vers premium_subscription.handle_subscription_webhook. Ordre correct.",
+    "analytics.js — RGPD-compliant (event() no-op si consent != 'accepted'), lazy-load des scripts Plausible/GA4, EVENTS constants source of truth. revenue() helper pour tracking valeur EUR. Bon pattern.",
+    "MonCompte.js L599-623 — BundleCard + teaser Cercle Soléna placés en tête de page (au-dessus du profil). Bon pour la CVR : c'est la première chose que voit un utilisateur post-login."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_cercle_solena_subscriptions.py (nouveau)"
+  ],
+  "success_rate": {
+    "backend": "100% (4/4 tests PASS + 1 skip attendu — migration DB pending)",
+    "frontend": "100% (mockup step 0 + step 1 hidden + landing pricing/benefits/faq + redirect non-auth + CTA auth + 503 UI + teaser mon-compte)"
+  },
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 — login OK, redirect ?redirect=/cercle-solena fonctionne.",
+  "seed_data_creation": "Aucune",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 52 = TOUT GREEN sauf 1 skip attendu (table subscriptions absente). Une fois que Nathalie applique la migration SQL Supabase + configure STRIPE_CERCLE_SOLENA_PRICE_ID, relancer /app/backend/tests/test_cercle_solena_subscriptions.py — le test test_status_valid_token doit passer (retour {active: false, subscription: null}) et le test test_checkout_valid_token_returns_503_price_not_configured devra être adapté pour attendre un 200 avec url Stripe. Pour le webhook end-to-end, il faudra soit simuler un customer.subscription.created (payload signé) soit passer par le CLI Stripe (stripe trigger customer.subscription.created).",
+  "rca of the issue": "Aucun bug — comportement 503 sur checkout et 500 sur status sont ATTENDUS (Price ID non configuré + migration SQL non appliquée). Nathalie fera le setup manuellement côté Dashboard Stripe et Supabase. Le code frontend gère gracieusement les deux cas (503 → affiché dans cercle-solena-error, 500 sur status → catch silencieux, CTA reste actif)."
+}

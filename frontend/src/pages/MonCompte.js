@@ -11,6 +11,7 @@ import SEO from '@/components/SEO';
 import PageHero from '@/components/PageHero';
 import NatalDataModal from '@/components/NatalDataModal';
 import LibraryImage from '@/components/LibraryImage';
+import BundleCard from '@/components/BundleCard';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -593,6 +594,33 @@ const MonCompte = () => {
           <button onClick={() => navigate('/')} className="link-editorial text-xs mb-12 flex items-center gap-2">
             <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Accueil
           </button>
+
+          {/* Bundle Découverte Soléna — offre irrésistible post-inscription/connexion */}
+          <div className="mb-6">
+            <BundleCard testId="mon-compte-bundle" dense />
+          </div>
+
+          {/* Teaser Cercle Soléna — LTV mensuelle */}
+          <Link
+            to="/cercle-solena"
+            className="block plume-glass p-4 mb-10 hover:opacity-90 transition-opacity"
+            data-testid="mon-compte-cercle-solena-teaser"
+            style={{ border: '1px solid rgba(212,175,55,0.25)' }}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div style={{ fontFamily: 'Cinzel, serif', fontSize: 11, color: '#D4AF37', letterSpacing: '0.24em', marginBottom: 4 }}>
+                  ✦ Cercle Soléna · 19€/mois ✦
+                </div>
+                <div className="text-sm" style={{ color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>
+                  3 crédits/mois · Communauté privée · -10% sur les PDF
+                </div>
+              </div>
+              <div className="text-xs shrink-0" style={{ color: '#D4AF37', letterSpacing: '0.15em' }}>
+                DÉCOUVRIR →
+              </div>
+            </div>
+          </Link>
 
           {/* ── En-tête profil ── */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-10">
