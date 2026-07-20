@@ -1965,5 +1965,9 @@ async def _start_cart_recovery():
     import asyncio as _asyncio
     from services.cart_recovery import cart_recovery_loop
     from services.lead_nurture import lead_nurture_loop
+    from services.astrocarto_followup import astrocarto_followup_loop
+    from services.crosssell_astrocarto import crosssell_astrocarto_loop
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
+    _asyncio.create_task(astrocarto_followup_loop())
+    _asyncio.create_task(crosssell_astrocarto_loop())

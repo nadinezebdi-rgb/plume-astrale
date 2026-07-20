@@ -295,6 +295,53 @@ def _city_pages(story, styles, city_data: Dict[str, Any], enriched: Dict[str, st
         story.append(PageBreak())
 
 
+def _planetary_lines_pages(story, styles, lines_data: list):
+    """Ajoute une section détaillée avec chaque ligne planétaire de l'utilisateur.
+
+    lines_data : liste de dicts {'planet': str, 'line_type': str} déjà dédupliquée.
+    """
+    from services.astrocartographie_lines_data import get_line_interpretation
+
+    if not lines_data:
+        return
+
+    # Page d'intro à la section
+    story.append(Spacer(1, 1.2 * cm))
+    story.append(_p("Tes lignes planétaires en détail", styles['caption']))
+    story.append(_p("<i>Ce que chaque ligne active en toi</i>", styles['h2']))
+    story.append(Spacer(1, 0.4 * cm))
+    story.append(_p(
+        "Chaque planète de ton thème natal projette 4 lignes sur la Terre : "
+        "<b>Ascendant</b> (ton identité), <b>Descendant</b> (tes relations), "
+        "<b>Milieu du Ciel</b> (ta vocation), <b>Fond du Ciel</b> (tes racines). "
+        "Vivre à moins de 800 km d'une de ces lignes active profondément l'énergie de la planète concernée. "
+        "Voici l'interprétation de chacune de tes lignes principales.",
+        styles['body']))
+    story.append(PageBreak())
+
+    # Regrouper 2 interprétations par page (pour ne pas exploser la longueur)
+    entries = []
+    for line in lines_data:
+        interp = get_line_interpretation(line.get('planet', ''), line.get('line_type', ''))
+        if interp:
+            entries.append(interp)
+
+    # Pages : 2 lignes par page
+    for i in range(0, len(entries), 2):
+        chunk = entries[i:i + 2]
+        story.append(Spacer(1, 1.2 * cm))
+        story.append(_p("Tes lignes planétaires", styles['caption']))
+        story.append(Spacer(1, 0.3 * cm))
+        for j, entry in enumerate(chunk):
+            title = f"{entry['planet_fr']} · {entry['line_fr']}"
+            story.append(_p(title, styles['h3']))
+            story.append(_p(f"<i>{entry['headline']}</i>", styles['italic']))
+            story.append(_p(entry['body'], styles['body']))
+            if j == 0 and len(chunk) > 1:
+                story.append(Spacer(1, 0.3 * cm))
+        story.append(PageBreak())
+
+
 def _planet_fr(planet: str) -> str:
     return {
         'Sun': 'Soleil', 'Moon': 'Lune', 'Mercury': 'Mercure', 'Venus': 'Vénus', 'Mars': 'Mars',
@@ -356,6 +403,7 @@ def generate_astrocartographie_pdf(
     chosen_cities: List[Dict[str, Any]],      # 3 villes analysées avec 'enriched' + 'raw'
     bonus_cities: List[Dict[str, Any]],        # 2 villes bonus avec 'enriched'
     synthesis_text: str,
+    lines_data: Optional[List[Dict[str, Any]]] = None,   # lignes brutes (planet+line_type)
 ) -> bytes:
     """Génère le PDF complet.
 
@@ -396,6 +444,11 @@ def generate_astrocartographie_pdf(
     _cover(story, styles, first_name or "Voyageur", birth_fr)
     _intro(story, styles)
     _world_map(story, styles, map_svg)
+
+    # Section détaillée : chaque ligne planétaire avec interprétation approfondie
+    if lines_data:
+        from services.astrocartographie_lines_data import dedupe_lines
+        _planetary_lines_pages(story, styles, dedupe_lines(lines_data))
 
     for c in chosen_cities:
         _city_pages(story, styles, c, c.get('enriched') or {}, is_bonus=False)
