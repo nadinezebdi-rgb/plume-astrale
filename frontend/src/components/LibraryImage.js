@@ -51,7 +51,7 @@ const PLANET_ALIASES = {
   pluton: 'pluto', pluto: 'pluto',
 };
 
-// Slug directs supportés + quelques alias FR
+// Slug directs supportés + quelques alias FR — Tarot de Marseille (justice=8, force=11)
 const TAROT_ALIASES = {
   mat: '00_le_mat', fou: '00_le_mat',
   bateleur: '01_le_bateleur', magicien: '01_le_bateleur',
@@ -61,12 +61,12 @@ const TAROT_ALIASES = {
   pape: '05_le_pape',
   amoureux: '06_les_amoureux',
   chariot: '07_le_chariot',
-  force: '08_la_force',
+  justice: '08_la_justice',
   hermite: '09_l_hermite', ermite: '09_l_hermite',
   roue: '10_la_roue_de_fortune', roue_fortune: '10_la_roue_de_fortune', roue_de_fortune: '10_la_roue_de_fortune',
-  justice: '11_la_justice',
+  force: '11_la_force',
   pendu: '12_le_pendu',
-  mort: '13_la_mort', sans_nom: '13_la_mort', arcane_sans_nom: '13_la_mort',
+  arcane_sans_nom: '13_l_arcane_sans_nom', sans_nom: '13_l_arcane_sans_nom', mort: '13_l_arcane_sans_nom',
   temperance: '14_la_temperance', tempérance: '14_la_temperance',
   diable: '15_le_diable',
   maison_dieu: '16_la_maison_dieu', tour: '16_la_maison_dieu',

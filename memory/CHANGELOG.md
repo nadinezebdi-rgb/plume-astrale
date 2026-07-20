@@ -3,6 +3,19 @@
 
 ## 2026-02-20 — Session cleanup post-migration caches persistants
 
+### 🎴 Intégration 22 arcanes majeurs Plume Astrale (P0 — assets)
+- ✅ Nathalie a créé et livré ses **22 arcanes majeurs HD** (ZIP 138 MB, 1600×2848px chacune)
+- ✅ Script d'upload `/app/backend/scripts/upload_tarot_arcanes.py` — resize Pillow en 3 tailles (512, 1080, 2048) + upload Supabase Storage bucket `library/tarot/` avec `upsert=true` et `cache-control: public, max-age=31536000`
+- ✅ **66 fichiers** uploadés (22 cartes × 3 tailles) — tous vérifiés HTTP 200
+- ✅ Fix numérotation **Tarot de Marseille** (correspond à la tradition FR) :
+  - Justice = **08** (au lieu de 11 dans Waite/Rider)
+  - Force = **11** (au lieu de 8 dans Waite/Rider)
+  - Arcane Sans Nom = **13** (nom respectueux de la superstition originelle, alias de "La Mort")
+- ✅ `TAROT_ALIASES` dans `LibraryImage.js` mis à jour → tous les composants qui utilisaient `<LibraryImage type="tarot" name="Justice">` sortent maintenant la carte de Nathalie
+- ✅ Backend `tarot_service.py` → nouveau `_TAROT_CDN_BASE` pointe vers `library/tarot/`, `TAROT_IMAGE_MAP` avec les nouveaux slugs 1080px
+- ✅ Bug frontend corrigé : `TarotOuiNon.js` et `Tarologie.js` prépendaient `${API_URL}` sur une URL Supabase absolue → détection `startsWith('http')` ajoutée
+- ✅ Test live confirmé : question "Est-ce que je vais réussir ?" tire **L'Étoile (XVII)** avec la carte HD de Nathalie affichée parfaitement (cadre doré, 180×300px, halo lumineux)
+
 ### 🎁 Bandeau post-achat + 📊 Cockpit Analytics (P1 — LTV & pilotage)
 
 **5. Bandeau post-achat CercleSolenaInvite** (P1 — max conversion post-purchase) :
