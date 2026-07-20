@@ -1,6 +1,14 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-14 (suite)
+
+### Fix — Révolution Solaire en anglais
+- ✅ Appliqué le décorateur `@fr_polish` sur les 2 fonctions `solar_return` et `solar_return_report` dans `services/astrology_io_service.py`.
+- ✅ L'API astrology-api.io v3 ne respectait pas `language: fr` sur ces endpoints malgré le paramètre côté settings dashboard.
+- ✅ Testé : 0 string anglaise restante (mise à part 1 faux positif sur texte FR).
+
+
 ## 2026-02-14
 
 ### Session 11 — 🗺️ Lignes détaillées PDF + 💌 Cross-sell J+7 (PLUME15)
