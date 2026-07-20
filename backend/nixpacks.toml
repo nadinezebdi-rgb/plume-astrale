@@ -1,0 +1,7 @@
+# Railway/Nixpacks build config for the backend service.
+# pycairo (required by cairosvg for SVG->PNG chart/map conversion)
+# needs the native cairo library + headers and pkg-config to compile.
+# The default Nixpacks setup did not include them, which broke every
+# deployment since the dependency was added.
+[phases.setup]
+aptPkgs = ["libcairo2-dev", "pkg-config"]
