@@ -1,6 +1,28 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — 🔒 Correctifs sécurité SEC-001 + SEC-002 (audit)
+
+### SEC-001 · CRITIQUE — Webhook Stripe : signature obligatoire
+- **Fichier** : `backend/server.py:713-728`
+- **Avant** : sans `STRIPE_WEBHOOK_SECRET`, le webhook parsait le body sans vérifier la signature → un attaquant pouvait forger un event `checkout.session.completed` et déclencher la livraison de PDFs Kabbale/Astrocarto + crédits gratuits.
+- **Après** : la vérification signature est OBLIGATOIRE. Sans secret → **HTTP 503**. Signature invalide → **HTTP 400**. Zéro fallback permissif.
+- **Test E2E** : `curl -X POST /api/webhook/stripe` avec un body forgé → `HTTP 503 {"detail":"Webhook secret not configured"}`. ✓
+
+### SEC-002 · HAUT — Journal + Rituel : auth obligatoire
+- **Fichiers** : `backend/server.py:2113-2185` + `frontend/src/pages/MonRituel.js` + `frontend/src/pages/Quotidien.js`
+- **Avant** : les 4 endpoints (`/ritual/today`, `/ritual/checkin`, `/journal/entry`, `/journal/history`) acceptaient un `user_id` en query/body sans dépendance JWT → n'importe qui connaissant l'UUID d'une utilisatrice pouvait lire ses journaux ou en écrire à sa place.
+- **Après** :
+  - Ajout `Depends(get_current_user)` sur les 4 endpoints
+  - `user_id` extrait UNIQUEMENT du token JWT vérifié via JWKS Supabase
+  - Frontend passe `Authorization: Bearer ${token}` via `authHeader()` déjà exposé par `AuthContext`
+- **Tests E2E** : les 4 endpoints retournent `HTTP 401 {"detail":"Authentication required"}` sans token, screenshot `/quotidien` OK. ✓
+
+### ⚠️ Action utilisateur requise pour la prod
+En prod (`plume-astrale.fr`), il FAUT que `STRIPE_WEBHOOK_SECRET=whsec_...` soit défini dans les variables d'env sur Railway (Dashboard → Variables). Sans lui, TOUS les webhooks Stripe seront rejetés en 503 (comportement voulu : sécurité > disponibilité).
+
+
+
 ## 2026-02-20 — Preview PDF Ouvrant + Validation E2E du wrapper luxe (P0)
 
 ### ✨ Nouveau composant : `PdfBookOpen` (livre 3D qui s'ouvre au scroll)
