@@ -6,6 +6,7 @@ import SEO from '@/components/SEO';
 import { EnrichedBadge } from '@/components/EnrichedBadge';
 import { FadeInEnrichedText } from '@/components/FadeInEnrichedText';
 import axios from 'axios';
+import useCardFlipSound from '@/hooks/useCardFlipSound';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -42,6 +43,7 @@ const TarotOuiNon = () => {
   const [freeUsed, setFreeUsed] = useState(null);
   const [creditError, setCreditError] = useState('');
   const [imgError, setImgError] = useState(false);
+  const playFlip = useCardFlipSound(0.4);
 
   useEffect(() => {
     if (!isAuthenticated || !token) { setFreeUsed(false); return; }
@@ -78,7 +80,7 @@ const TarotOuiNon = () => {
       const data = await res.json();
       setResult(data);
       await refreshBalance();
-      setTimeout(() => setIsRevealed(true), 800);
+      setTimeout(() => { setIsRevealed(true); playFlip(); }, 800);
     } catch (e) {
       console.error('Tarot error:', e);
     }
@@ -261,36 +263,72 @@ const TarotOuiNon = () => {
                     ✦ Arcane tiré ✦
                   </p>
 
-                  {/* Image de la carte — grande et belle */}
+                  {/* Image de la carte — grande et belle, flip 3D magique */}
                   <div
-                    className="card-flip-reveal card-glow mb-7 overflow-hidden rounded-2xl"
+                    className="tarot-flip-scene mb-7"
                     style={{
-                      width: '180px', height: '300px',
-                      border: `2px solid ${oc.border}`,
-                      boxShadow: `0 0 40px ${oc.glow}, 0 20px 60px rgba(0,0,0,0.5)`,
+                      width: '200px', height: '340px',
                     }}
                   >
-                    {imageUrl && !imgError ? (
-                      <img
-                        src={imageUrl}
-                        alt={result.carte.nom}
-                        className="w-full h-full object-cover"
-                        onError={() => setImgError(true)}
-                      />
-                    ) : (
-                      /* Fallback élégant si pas d'image */
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-3"
-                           style={{ background: 'linear-gradient(160deg, var(--pa-surface) 0%, var(--pa-bg-deep) 100%)' }}>
-                        <span className="text-5xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-accent)', fontWeight: 300 }}>
-                          {result.carte?.numero === 0 ? '0' : (result.carte?.numero || 'I')}
-                        </span>
-                        <Star className="w-5 h-5" style={{ color: oc.color, opacity: 0.6 }} strokeWidth={1} />
-                        <span className="text-xs text-center px-4" style={{ color: 'var(--pa-muted)', fontFamily: 'Cormorant Garamond, serif', fontSize: '11px', lineHeight: 1.5 }}>
-                          {result.carte?.nom}
-                        </span>
+                    <div
+                      className={`tarot-flip-inner ${isRevealed ? 'is-flipped' : ''}`}
+                      data-testid="tarot-flip-card"
+                    >
+                      {/* Dos de carte (visible initialement) */}
+                      <div className="tarot-flip-back">
+                        <div className="tarot-back-pattern">
+                          <div className="tarot-back-star">✦</div>
+                          <div className="tarot-back-title">PLUME ASTRALE</div>
+                          <div className="tarot-back-star">✦</div>
+                        </div>
                       </div>
-                    )}
+                      {/* Face de carte (révélée après le flip) */}
+                      <div
+                        className={`tarot-flip-front ${result.carte?.is_reversed ? 'is-reversed' : ''}`}
+                        style={{
+                          border: `2px solid ${oc.border}`,
+                          boxShadow: `0 0 40px ${oc.glow}, 0 20px 60px rgba(0,0,0,0.5)`,
+                        }}
+                      >
+                        {imageUrl && !imgError ? (
+                          <img
+                            src={imageUrl}
+                            alt={result.carte.nom}
+                            className="w-full h-full object-cover"
+                            onError={() => setImgError(true)}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-3"
+                               style={{ background: 'linear-gradient(160deg, var(--pa-surface) 0%, var(--pa-bg-deep) 100%)' }}>
+                            <span className="text-5xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-accent)', fontWeight: 300 }}>
+                              {result.carte?.numero === 0 ? '0' : (result.carte?.numero || 'I')}
+                            </span>
+                            <Star className="w-5 h-5" style={{ color: oc.color, opacity: 0.6 }} strokeWidth={1} />
+                            <span className="text-xs text-center px-4" style={{ color: 'var(--pa-muted)', fontFamily: 'Cormorant Garamond, serif', fontSize: '11px', lineHeight: 1.5 }}>
+                              {result.carte?.nom}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Badge "Carte retournée" */}
+                  {result.carte?.is_reversed && (
+                    <div
+                      className="mb-4 px-3 py-1 rounded-full text-[10px] uppercase inline-flex items-center gap-1.5"
+                      data-testid="tarot-reversed-badge"
+                      style={{
+                        background: 'rgba(212,175,55,0.12)',
+                        border: '1px solid rgba(212,175,55,0.4)',
+                        color: '#D4AF37',
+                        letterSpacing: '0.22em',
+                        fontFamily: 'Cinzel, serif',
+                      }}
+                    >
+                      🔄 Carte retournée
+                    </div>
+                  )}
 
                   {/* Nom + énergie */}
                   <div className="fade-slide-up fade-delay-1 text-center">

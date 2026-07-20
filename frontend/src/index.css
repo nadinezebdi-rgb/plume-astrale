@@ -690,6 +690,139 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
   margin-bottom: 10px;
 }
 
+/* ────────────────────────────────────────────────────────────────────────
+   Tarot flip 3D — animation cinématographique de révélation
+   ──────────────────────────────────────────────────────────────────────── */
+
+.tarot-flip-scene {
+  perspective: 1400px;
+  perspective-origin: center;
+  margin: 0 auto;
+}
+
+.tarot-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: rotateY(0deg);
+}
+
+.tarot-flip-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.tarot-flip-front,
+.tarot-flip-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Dos de carte — pattern doré Plume Astrale */
+.tarot-flip-back {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(212,175,55,0.25) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(212,175,55,0.2) 0%, transparent 55%),
+    linear-gradient(160deg, #1a1230 0%, #0e0a1e 60%, #150e28 100%);
+  border: 2px solid rgba(212,175,55,0.45);
+  box-shadow:
+    inset 0 0 40px rgba(212,175,55,0.15),
+    0 20px 60px rgba(0,0,0,0.5),
+    0 0 30px rgba(212,175,55,0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30px 20px;
+}
+
+.tarot-back-pattern {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(212,175,55,0.35);
+  border-radius: 10px;
+  padding: 20px 12px;
+  position: relative;
+}
+
+.tarot-back-pattern::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(212,175,55,0.15);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.tarot-back-star {
+  font-size: 34px;
+  color: #E8C766;
+  text-shadow: 0 0 12px rgba(212,175,55,0.6);
+  animation: tarotBackPulse 3s ease-in-out infinite;
+}
+
+.tarot-back-star:nth-child(3) { animation-delay: 1.5s; }
+
+@keyframes tarotBackPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.08); }
+}
+
+.tarot-back-title {
+  font-family: 'Cinzel', serif;
+  color: #D4AF37;
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  text-align: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  padding: 8px 0;
+}
+
+/* Face de carte — rotation initiale pour être visible après le flip */
+.tarot-flip-front {
+  transform: rotateY(180deg);
+  background: #0e0a1e;
+}
+
+/* Carte retournée — l'image elle-même est pivotée à 180° */
+.tarot-flip-front.is-reversed img {
+  transform: rotate(180deg);
+  transition: transform 0.6s ease-out 0.5s;
+}
+
+/* Halo scintillant au moment du flip */
+.tarot-flip-inner.is-flipped::after {
+  content: "";
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle, rgba(212,175,55,0.35), transparent 60%);
+  animation: tarotHalo 1.2s ease-out;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes tarotHalo {
+  0%   { opacity: 0; transform: scale(0.6); }
+  50%  { opacity: 1; transform: scale(1);   }
+  100% { opacity: 0; transform: scale(1.4); }
+}
+
+/* Réduction mobile */
+@media (max-width: 640px) {
+  .tarot-flip-scene { width: 160px !important; height: 270px !important; }
+  .tarot-back-title { font-size: 9px; }
+}
+
 
 /* Etoiles filantes globales */
 .plume-shooting-layer {

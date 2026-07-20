@@ -1890,6 +1890,115 @@ async def tarot_oui_non_endpoint(request: Request):
     return reading
 
 
+@api_router.post('/tarot/croix-celtique')
+async def tarot_croix_celtique_endpoint(
+    request: Request,
+    user: dict = Depends(get_current_user),
+):
+    """Tirage Croix Celtique complet — 10 cartes, 9 crédits déduits."""
+    body = await request.json()
+    question = (body.get('question') or '').strip()
+    if not question or len(question) < 3:
+        raise HTTPException(status_code=400, detail='Merci de formuler une question de 3 caractères minimum.')
+
+    first_name = (body.get('first_name') or body.get('prenom') or user.get('email', 'toi').split('@')[0]).strip()
+    from services.tarot_service import tirage_croix_celtique
+
+    # Débit crédits (9 crédits pour le tirage Croix Celtique)
+    from services.wallet_service import deduct_credits
+    try:
+        await deduct_credits(user_id=user['id'], amount=9, description='Tarot Croix Celtique — 10 cartes')
+    except ValueError as e:
+        raise HTTPException(status_code=402, detail=str(e))
+
+    reading = tirage_croix_celtique(question=question, prenom=first_name)
+
+    # Enrichir la synthèse via Soléna
+    try:
+        from services.enrich_narrative import enrich_and_ask
+        enriched = await enrich_and_ask(
+            reading['synthese'],
+            context=f'tarot_croix_celtique/{question[:40]}',
+            first_name=first_name,
+            target_length='long',
+        )
+        reading['synthese'] = enriched
+        reading['synthese_enrichie'] = True
+    except Exception as e:
+        logger.warning(f'[tarot/croix-celtique] enrich failed: {e}')
+
+    return reading
+
+
+@api_router.post('/tarot/amour')
+async def tarot_amour_endpoint(
+    request: Request,
+    user: dict = Depends(get_current_user),
+):
+    """Tirage Amoureux 3 cartes — 3 crédits déduits."""
+    body = await request.json()
+    question = (body.get('question') or '').strip()
+    if not question or len(question) < 3:
+        raise HTTPException(status_code=400, detail='Merci de formuler une question de 3 caractères minimum.')
+
+    first_name = (body.get('first_name') or body.get('prenom') or user.get('email', 'toi').split('@')[0]).strip()
+    from services.tarot_service import tirage_amour
+    from services.wallet_service import deduct_credits
+    try:
+        await deduct_credits(user_id=user['id'], amount=3, description='Tarot Amoureux — 3 cartes')
+    except ValueError as e:
+        raise HTTPException(status_code=402, detail=str(e))
+
+    reading = tirage_amour(question=question, prenom=first_name)
+
+    # Enrichir la synthèse via Soléna
+    try:
+        from services.enrich_narrative import enrich_and_ask
+        enriched = await enrich_and_ask(
+            reading['synthese'],
+            context=f'tarot_amour/{question[:40]}',
+            first_name=first_name,
+            target_length='medium',
+        )
+        reading['synthese'] = enriched
+        reading['synthese_enrichie'] = True
+    except Exception as e:
+        logger.warning(f'[tarot/amour] enrich failed: {e}')
+
+    return reading
+
+
+@api_router.post('/tarot/croix-celtique/pdf')
+async def tarot_croix_celtique_pdf_endpoint(
+    request: Request,
+    user: dict = Depends(get_current_user),
+):
+    """Génère un PDF téléchargeable à partir d'un tirage déjà effectué.
+
+    Le client envoie le résultat brut (10 cartes + synthèse) — c'est OK
+    car il vient de payer ses 9 crédits pour l'obtenir, on ne facture pas le PDF.
+    """
+    from services.tarot_pdf import build_croix_celtique_pdf
+    body = await request.json()
+    tirage = body.get('tirage')
+    if not tirage or not isinstance(tirage, list) or len(tirage) != 10:
+        raise HTTPException(status_code=400, detail='Tirage invalide (10 cartes attendues).')
+
+    pdf_bytes = build_croix_celtique_pdf(
+        question=body.get('question', ''),
+        prenom=body.get('prenom') or user.get('email', 'Vous').split('@')[0],
+        tirage=tirage,
+        synthese=body.get('synthese', ''),
+    )
+
+    from fastapi.responses import Response as FastAPIResponse
+    return FastAPIResponse(
+        content=pdf_bytes,
+        media_type='application/pdf',
+        headers={'Content-Disposition': 'attachment; filename="croix-celtique-plume-astrale.pdf"'},
+    )
+
+
 @api_router.post('/tarot/marseille')
 async def tarot_marseille_endpoint(request: Request):
     body = await request.json()

@@ -256,6 +256,13 @@ def tirage_oui_non(question: str) -> dict:
         reponse = carte["neutre"]
         orientation = "neutre"
 
+    # Cartes retournées — 35% de chance (le seed le décide)
+    # Une carte retournée inverse partiellement le message : le "oui" clair
+    # devient "oui mais avec réserve", le "non" devient "non pour l'instant".
+    is_reversed = (seed // 7) % 100 < 35
+    if is_reversed:
+        reponse = _reversed_wrap(reponse, orientation)
+
     return {
         "question": question,
         "carte": {
@@ -263,11 +270,28 @@ def tirage_oui_non(question: str) -> dict:
             "nom": carte["nom"],
             "energie": carte["energie"],
             "image": _tarot_img_url(TAROT_IMAGE_MAP.get(carte['numero'], '')),
+            "is_reversed": is_reversed,
         },
         "orientation": orientation,
         "reponse": reponse,
         "date": datetime.now().isoformat(),
     }
+
+
+def _reversed_wrap(base_message: str, orientation: str) -> str:
+    """Ajoute une nuance de "carte retournée" au message initial.
+
+    En cartomancie, une carte retournée n'inverse pas le sens (ce serait
+    trop binaire) mais indique un blocage, une incarnation partielle,
+    ou une leçon en cours d'intégration.
+    """
+    if orientation == "oui":
+        prefix = "🔄 La carte apparaît retournée — un oui qui demande d'abord de lever un blocage intérieur. "
+    elif orientation == "non":
+        prefix = "🔄 La carte apparaît retournée — un non doux, plutôt qu'un refus catégorique. "
+    else:
+        prefix = "🔄 La carte apparaît retournée — l'énergie est présente mais latente, en attente d'être pleinement incarnée. "
+    return prefix + base_message
 
 
 def tirage_mediumnite_complet(prenom: str, date_naissance: str) -> dict:
@@ -376,5 +400,184 @@ def tirage_en_croix(prenom: str, date_naissance: str) -> dict:
         "type": "croix",
         "tirage": tirage,
         "lecture_mediumnique": lecture,
+        "date": datetime.now().isoformat(),
+    }
+
+
+# ─── Croix Celtique 10 cartes — tirage complet ─────────────────────────────
+
+# Les 10 positions traditionnelles de la Croix Celtique (Waite/Marseille)
+CROIX_CELTIQUE_POSITIONS = [
+    {"id": 1,  "nom": "Le Coeur",            "description": "Ta situation présente, ce qui te définit à cet instant."},
+    {"id": 2,  "nom": "Le Défi",             "description": "L'obstacle qui traverse ton chemin (lu horizontalement, croise le coeur)."},
+    {"id": 3,  "nom": "La Racine",           "description": "Le fondement inconscient qui nourrit cette situation."},
+    {"id": 4,  "nom": "Le Passé Récent",     "description": "Ce qui vient de s'achever ou s'apprête à passer."},
+    {"id": 5,  "nom": "Le Sommet",           "description": "Ton potentiel conscient — ce que tu peux atteindre."},
+    {"id": 6,  "nom": "Le Futur Proche",     "description": "Ce qui approche dans les 3 prochains mois."},
+    {"id": 7,  "nom": "Toi-Même",            "description": "Ta position intérieure vis-à-vis de la situation."},
+    {"id": 8,  "nom": "L'Entourage",         "description": "L'influence des autres autour de toi."},
+    {"id": 9,  "nom": "Espoirs & Craintes",  "description": "Ce que tu désires en secret ou ce que tu redoutes."},
+    {"id": 10, "nom": "L'Issue Finale",      "description": "L'aboutissement probable si tu maintiens le cap."},
+]
+
+
+def tirage_croix_celtique(question: str, prenom: str = "") -> dict:
+    """Tirage Croix Celtique complet — 10 cartes, chacune avec sa position.
+
+    35% de chance qu'une carte donnée soit retournée (indépendamment).
+    Le seed dépend de la question pour un résultat reproductible dans la journée.
+    """
+    from services.tarot_interpretations import INTERPRETATIONS_CROIX
+
+    seed_str = f"{prenom or 'anon'}-{question}-celtique-{datetime.now().date().isoformat()}"
+    seed = int(hashlib.md5(seed_str.encode(), usedforsecurity=False).hexdigest(), 16)
+    rng = random.Random(seed)
+
+    # 10 cartes uniques
+    indices = rng.sample(range(len(ARCANES_TAROT)), 10)
+    cartes = [ARCANES_TAROT[i] for i in indices]
+
+    tirage = []
+    for position, carte in zip(CROIX_CELTIQUE_POSITIONS, cartes):
+        numero = carte["numero"]
+        interp = INTERPRETATIONS_CROIX.get(numero, {})
+        # 35% de chance carte retournée
+        is_reversed = rng.random() < 0.35
+
+        # Choisir un message : oui/neutre/non tourne selon position (positions 5,6,10 → futur/potentiel → plutôt oui)
+        if position["id"] in (5, 6, 10):
+            base_msg = carte["oui"] if not is_reversed else carte["neutre"]
+        elif position["id"] in (2, 9):
+            base_msg = carte["non"] if not is_reversed else carte["neutre"]
+        else:
+            base_msg = carte["neutre"]
+
+        if is_reversed:
+            orient = "neutre" if position["id"] not in (2, 9) else "non"
+            base_msg = _reversed_wrap(base_msg, orient)
+
+        tirage.append({
+            "position_id": position["id"],
+            "position_nom": position["nom"],
+            "position_description": position["description"],
+            "carte": {
+                "numero": numero,
+                "nom": carte["nom"],
+                "energie": carte["energie"],
+                "image": _tarot_img_url(TAROT_IMAGE_MAP.get(numero, '')),
+                "mots_cles": interp.get("mots_cles", carte["energie"]),
+                "is_reversed": is_reversed,
+            },
+            "interpretation": base_msg,
+        })
+
+    # Synthèse globale (les 3 cartes clés : coeur, sommet, issue)
+    coeur = tirage[0]["carte"]["nom"]
+    sommet = tirage[4]["carte"]["nom"]
+    issue = tirage[9]["carte"]["nom"]
+    synthese = (
+        f"Ton tirage s'articule autour de {coeur}, éclairé par {sommet} et pointant vers {issue}. "
+        f"Chaque carte retournée signale un blocage à lever, pas un mauvais présage — "
+        f"la Croix Celtique montre le chemin, pas la destination."
+    )
+
+    return {
+        "question": question,
+        "prenom": prenom,
+        "type": "croix_celtique",
+        "tirage": tirage,
+        "synthese": synthese,
+        "date": datetime.now().isoformat(),
+    }
+
+
+
+# ─── Tirage Amoureux 3 cartes — spécial couple / compatibilité ─────────────
+
+TIRAGE_AMOUR_POSITIONS = [
+    {"id": 1, "nom": "Toi",       "description": "Ton énergie, ce que tu apportes dans cette relation."},
+    {"id": 2, "nom": "L'Autre",   "description": "L'énergie de l'autre personne, ce qu'elle vit intérieurement."},
+    {"id": 3, "nom": "Le Lien",   "description": "La qualité du lien entre vous — force, obstacle, potentiel."},
+]
+
+AMOUR_KEYWORDS = {
+    0:  "liberté & aventure — attention à la peur de l'engagement",
+    1:  "commencement fertile — un début à saisir consciemment",
+    2:  "intimité silencieuse — écoute-toi avant de parler",
+    3:  "abondance émotionnelle — l'amour comme jardin cultivé",
+    4:  "structure & sécurité — attention à la rigidité",
+    5:  "valeurs partagées — les principes tissent le lien",
+    6:  "choix du cœur — l'amour comme carrefour",
+    7:  "élan conquérant — une direction claire est à trouver",
+    8:  "équité — l'équilibre donner/recevoir décide de tout",
+    9:  "sagesse intérieure — la solitude renforce le duo",
+    10: "cycle qui tourne — le lien évolue, ne le fige pas",
+    11: "force tranquille — la douceur triomphe de tout",
+    12: "sacrifice bénéfique — lâcher un contrôle pour gagner un lien",
+    13: "transformation — laisse mourir ce qui doit changer",
+    14: "harmonie & fusion — les contraires se réconcilient",
+    15: "attraction charnelle — attention aux liens toxiques",
+    16: "révélation brutale — la vérité qui libère",
+    17: "espoir & tendresse — un lien lumineux se dessine",
+    18: "illusion & rêve — sépare le fantasme du réel",
+    19: "joie partagée — un amour solaire, généreux",
+    20: "renouveau du lien — appel à s'engager pleinement",
+    21: "accomplissement — le lien atteint sa forme la plus haute",
+}
+
+
+def tirage_amour(question: str, prenom: str = "") -> dict:
+    """Tirage 3 cartes spécial couple : Toi / L'Autre / Le Lien.
+
+    35% de chance de retournement par carte. Coût : 3 crédits.
+    """
+    seed_str = f"{prenom or 'anon'}-{question}-amour-{datetime.now().date().isoformat()}"
+    seed = int(hashlib.md5(seed_str.encode(), usedforsecurity=False).hexdigest(), 16)
+    rng = random.Random(seed)
+
+    indices = rng.sample(range(len(ARCANES_TAROT)), 3)
+    cartes = [ARCANES_TAROT[i] for i in indices]
+
+    tirage = []
+    for position, carte in zip(TIRAGE_AMOUR_POSITIONS, cartes):
+        numero = carte["numero"]
+        is_reversed = rng.random() < 0.35
+
+        base = carte.get("neutre", carte.get("oui", ""))
+        keyword = AMOUR_KEYWORDS.get(numero, carte["energie"])
+
+        if is_reversed:
+            base = _reversed_wrap(base, "neutre")
+
+        tirage.append({
+            "position_id": position["id"],
+            "position_nom": position["nom"],
+            "position_description": position["description"],
+            "carte": {
+                "numero": numero,
+                "nom": carte["nom"],
+                "energie": carte["energie"],
+                "image": _tarot_img_url(TAROT_IMAGE_MAP.get(numero, '')),
+                "mots_cles_amour": keyword,
+                "is_reversed": is_reversed,
+            },
+            "interpretation": base,
+        })
+
+    toi_nom = tirage[0]["carte"]["nom"]
+    autre_nom = tirage[1]["carte"]["nom"]
+    lien_nom = tirage[2]["carte"]["nom"]
+    synthese = (
+        f"Dans ta relation, tu portes l'énergie de {toi_nom}, l'autre porte celle de {autre_nom}, "
+        f"et le lien qui vous unit prend la forme de {lien_nom}. "
+        f"Chaque carte retournée est un signal doux — un blocage à conscientiser, pas une malédiction."
+    )
+
+    return {
+        "question": question,
+        "prenom": prenom,
+        "type": "tirage_amour",
+        "tirage": tirage,
+        "synthese": synthese,
         "date": datetime.now().isoformat(),
     }
