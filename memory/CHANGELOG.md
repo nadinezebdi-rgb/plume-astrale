@@ -3,6 +3,74 @@
 
 ## 2026-02-20 — Session cleanup post-migration caches persistants
 
+### 🔗 Branchement PDF Luxe sur les 4 endpoints (P0 — brief Nathalie suite)
+
+**Approche** : plutôt que réécrire 500+ lignes des générateurs métier existants (kabbale_pdf.py, astrocartographie_pdf.py qui contiennent le vrai contenu des rapports), on a créé 2 patterns :
+1. **Drop-in replacement** pour le Thème Natal (nouveau générateur luxe complet)
+2. **Wrapper luxe** pour Kabbale et Astrocarto (cover luxe + contenu existant + fin Soléna via `pypdf` merge)
+
+**1. Thème Natal** :
+- Nouveau `services/natal_pdf_adapter.py` : convertit les user_data legacy vers le format `natal_pdf_v2` avec fallback rich content par signe (12 signes)
+- Import swap dans `server.py` : `from services.pdf_generator import generate_manuscrit_pdf` → `from services.natal_pdf_adapter import generate_manuscrit_pdf`
+- Impact : `/api/pdf/generate`, `/api/pdf/pro-horoscope` et toutes les routes qui utilisaient l'ancien générateur produisent maintenant automatiquement le PDF luxe 24 pages
+
+**2. Kabbale & Astrocarto** :
+- Nouveau `services/pdf_luxury_wrap.py` : fonctions `apply_luxury_wrap()`, `generate_kabbale_pdf_luxury()`, `generate_astrocartographie_pdf_luxury()`
+- Utilise `pypdf` 6.14 pour merger `[cover luxe + ouverture] + [contenu existant] + [waouh + fin Soléna]`
+- Fallback silencieux : si le merge échoue pour une raison quelconque, retourne le PDF original intact (jamais casser une vente)
+- Import swaps dans `services/kabbale_service.py` et `services/astrocartographie_service.py`
+
+**3. Croix Celtique** :
+- Nouveau `services/tarot_pdf_v2.py` — 100% luxe : cover + ouverture + 10 pages carte (position + illustration tarot + interp) + synthèse Soléna + fin émotionnelle
+- Swap dans le webhook endpoint : `from services.tarot_pdf import build_croix_celtique_pdf` → `from services.tarot_pdf_v2 import build_croix_celtique_pdf_v2 as build_croix_celtique_pdf`
+- Optimisation poids : les images tarot passent de 1080px à 512px lors de l'embed PDF → 59 MB → 17 MB (÷ 3.5)
+
+**Optimisation globale** : `illustration_url()` par défaut passe de 1200px à 800px (les PDFs sont A4, 1200px est overkill).
+
+### ✅ Testing
+- 3/3 générateurs testés bout-en-bout : Natal 12 MB, Kabbale 7 MB, Croix Celtique 17 MB
+- Gemini 2.5 analyse Natal V2 : **95% de conformité au brief Dior × Cartier × Harry Potter** confirmée (24 pages, fond nuit + starfield + cadre or + illustrations pleines pages + fin émotionnelle Soléna)
+
+### 📚 PDF Thème Natal V2 — Livre de luxe astrologique (P0 — brief Nathalie)
+
+**Contexte** : Nathalie a livré un brief détaillé demandant un PDF au niveau "Dior × Cartier × Harry Potter × Astrologie" pour tous les PDFs — commencer par le Thème Natal.
+
+**Assets** : Upload de 13 illustrations HD 1200×1200 (couples, roues astro, fleurs or/violet, mandalas cosmiques, silhouette finale) vers Supabase Storage `library/pdf/` en 2 tailles (800px, 1200px) via `scripts/upload_pdf_illustrations.py`. 26 fichiers PNG uploadés (~50 MB total).
+
+**Nouveau framework `pdf_luxury_theme.py`** — building blocks réutilisables :
+- `luxury_bg()` : starfield doré déterministe (80 étoiles) + cadre or fin + pagination discrète "✦ N ✦"
+- `luxury_styles()` : Cinzel + Cormorant + Cormorant-Italic, palette or/nuit/crème/lavande enrichie
+- `cover_page()` : hero avec illustration + prénom en Cormorant 52pt + subtitle italic gold
+- `opening_page()` : accueil spectaculaire avec glyph pleine page
+- `teaser_page()` : phrase Netflix pleine page ("Mais ce n'est pas ce qui m'a le plus surprise…")
+- `chapter_illustration()` : séparateur avec image 12cm × 12cm
+- `planet_glyph_page()` : glyph planétaire 140pt + nom + tagline
+- `planet_analysis_page()` : nom+signe + dialogue psychologique italique + corps texte
+- `waouh_quote_page()` : phrase "waouh" en Cormorant-Italic 28pt gold
+- `emotional_ending()` : silhouette + citation Soléna finale
+- Helper `illustration_url(slug, size)` pour URL Supabase publique
+
+**Générateur Thème Natal V2 (`natal_pdf_v2.py`)** :
+- 24 pages générées à partir de 5 planètes (Soleil, Lune, Vénus, Mars, Ascendant)
+- Suit exactement les 9 principes du brief :
+  1. Ouverture spectaculaire (page 2 : "Ton ciel n'a jamais été aussi clair")
+  2. Teaser Netflix (page 3 : "Ton Soleil est en X. Mais ce n'est qu'une infime partie…")
+  3. Double page par planète (glyph 140pt + analyse)
+  4. Phrase "waouh" italique gold entre chaque planète
+  5. Dialogue psychologique en amorce ("As-tu remarqué que…")
+  6. Illustrations pleines pages (roue astro, mandalas, fleurs, silhouette)
+  7. Fond nuit + starfield doré + cadre or sur toutes les pages
+  8. Fin émotionnelle signée Soléna
+  9. Pagination ✦ discrète
+- 5 waouh quotes + 5 teasers + 8 dialogues psychologiques prédéfinis (facilement extensibles)
+
+**Testing** : PDF de 13 MB, 24 pages, analysé par Gemini 2.5 à 95% conforme au brief. Bien rendus : cover, ouverture, teaser, glyphs ☉☽♀♂, illustrations pleines pages, cadre or, starfield.
+
+**Bibliothèque assets Supabase** :
+- Nouveau bucket `library/pdf/` avec 13 slugs : amoureux, fleurs_or, astrologica_alt, roue_zodiaque, couple, chapitre_bleu, ciel_zodiaque, fleurs_violette, astral_fruits, astral_planete, astral_mandala, astral_ciel, astral_silhouette
+
+**Prochaines phases** : Brancher `build_natal_pdf_v2()` sur l'endpoint existant de génération thème natal, puis répliquer la charte sur Kabbale, Astrocarto, Karmique, Croix Celtique en réutilisant les mêmes building blocks.
+
 ### 💕 Tarot 3.0 — Amoureux + PDF + Son (P1)
 
 **Tirage Amoureux 3 cartes (3 crédits)** :

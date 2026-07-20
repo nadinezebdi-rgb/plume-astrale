@@ -13,7 +13,7 @@ import httpx
 
 from services.supabase_client import get_admin_client
 from services import astrology_io_service as aio
-from services.kabbale_pdf import generate_kabbale_pdf
+from services.pdf_luxury_wrap import generate_kabbale_pdf_luxury as generate_kabbale_pdf
 
 logger = logging.getLogger(__name__)
 

@@ -23,7 +23,7 @@ from services.tarot_premium import (
     tirage_marseille_question, tirage_croix_celtique, tirage_du_jour,
     DOMAINES_QUESTIONS,
 )
-from services.pdf_generator import generate_manuscrit_pdf
+from services.natal_pdf_adapter import generate_manuscrit_pdf
 from services.mediumnite_pdf import generate_mediumnite_pdf
 from services.compatibility_pdf_generator import generate_compatibility_pdf
 from services.premium_pdf_generator import generate_premium_pdf
@@ -1978,7 +1978,7 @@ async def tarot_croix_celtique_pdf_endpoint(
     Le client envoie le résultat brut (10 cartes + synthèse) — c'est OK
     car il vient de payer ses 9 crédits pour l'obtenir, on ne facture pas le PDF.
     """
-    from services.tarot_pdf import build_croix_celtique_pdf
+    from services.tarot_pdf_v2 import build_croix_celtique_pdf_v2 as build_croix_celtique_pdf
     body = await request.json()
     tirage = body.get('tirage')
     if not tirage or not isinstance(tirage, list) or len(tirage) != 10:
