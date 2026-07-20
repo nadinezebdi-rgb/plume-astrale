@@ -3,6 +3,35 @@
 
 ## 2026-02-20 — Session cleanup post-migration caches persistants
 
+### 🃏 Tarot 2.0 — Cartes retournées + Croix Celtique + Flip 3D (P1)
+
+**Cartes retournées (backend + UI)** :
+- `services/tarot_service.py` : nouveau helper `_reversed_wrap()` qui ajoute une nuance "🔄 blocage à lever" au message initial sans inverser le sens (35% de proba via seed déterministe)
+- Tirage Oui/Non enrichi : field `carte.is_reversed` renvoyé, message pré-fixé
+- Tirage Croix Celtique : chaque carte a sa propre proba 35% indépendante
+- Frontend TarotOuiNon : badge "🔄 Carte retournée" affiché, image pivotée à 180° via classe CSS `.is-reversed`
+
+**Croix Celtique 10 cartes (nouveau tirage payant)** :
+- Backend `POST /api/tarot/croix-celtique` — auth requise, débit 9 crédits (via `wallet_service.deduct_credits`), enrichissement Soléna de la synthèse
+- Nouvelle fonction `tirage_croix_celtique()` avec 10 positions traditionnelles (Coeur / Défi / Racine / Passé / Sommet / Futur / Toi-Même / Entourage / Espoirs&Craintes / Issue)
+- Frontend `/outils/tarot/croix-celtique` (`TarotCroixCeltique.js`) :
+  - Form question minimaliste
+  - Layout CSS grid en forme de croix celtique traditionnelle (Défi rotation 90° sur le Coeur, colonne staff à droite)
+  - Révélation progressive 1 carte/900ms (dramatique)
+  - Interprétation détaillée par position + Synthèse Soléna en fondu
+  - Responsive mobile : grille 2 colonnes
+- Route ajoutée dans App.js
+
+**Flip 3D magique (cinématographique)** :
+- Nouveau système CSS dans `index.css` (140 lignes) : `.tarot-flip-scene` (perspective 1400px) + `.tarot-flip-inner` (preserve-3d, transition 1.1s cubic-bezier) + `.tarot-flip-back` (dos doré animé avec pattern ✦ PLUME ASTRALE ✦ pulsant) + `.tarot-flip-front` (face 180° rotation initiale, mirrored quand retournée)
+- Halo scintillant `tarotHalo` déclenché sur le flip (radial gradient qui pulse en 1.2s)
+- Utilisé sur TarotOuiNon (single card) et Croix Celtique (10 cards en cascade)
+- Backface-visibility: hidden pour éviter les artefacts
+
+### ✅ Testing
+- Test live : question "Le succès m'attend-il en 2027 ?" → **L'Empereur (IV)** flippé et révélé parfaitement avec halo doré, image HD de Nathalie visible
+- Croix Celtique : 10 cartes révélées séquentiellement, 3 retournées visibles (🔄 badges), layout croix celtique traditionnel préservé
+
 ### 🎴 Intégration 22 arcanes majeurs Plume Astrale (P0 — assets)
 - ✅ Nathalie a créé et livré ses **22 arcanes majeurs HD** (ZIP 138 MB, 1600×2848px chacune)
 - ✅ Script d'upload `/app/backend/scripts/upload_tarot_arcanes.py` — resize Pillow en 3 tailles (512, 1080, 2048) + upload Supabase Storage bucket `library/tarot/` avec `upsert=true` et `cache-control: public, max-age=31536000`

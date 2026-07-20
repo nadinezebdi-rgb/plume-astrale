@@ -1870,6 +1870,49 @@ async def tarot_oui_non_endpoint(request: Request):
     return reading
 
 
+@api_router.post('/tarot/croix-celtique')
+async def tarot_croix_celtique_endpoint(
+    request: Request,
+    user: dict = Depends(get_current_user),
+):
+    """Tirage Croix Celtique complet — 10 cartes, 9 crédits déduits.
+
+    Un tirage par jour est retenu (idempotence via seed = question+date).
+    """
+    body = await request.json()
+    question = (body.get('question') or '').strip()
+    if not question or len(question) < 3:
+        raise HTTPException(status_code=400, detail='Merci de formuler une question de 3 caractères minimum.')
+
+    first_name = (body.get('first_name') or body.get('prenom') or user.get('email', 'toi').split('@')[0]).strip()
+    from services.tarot_service import tirage_croix_celtique
+
+    # Débit crédits (9 crédits pour le tirage Croix Celtique)
+    from services.wallet_service import deduct_credits
+    try:
+        await deduct_credits(user_id=user['id'], amount=9, description='Tarot Croix Celtique — 10 cartes')
+    except ValueError as e:
+        raise HTTPException(status_code=402, detail=str(e))
+
+    reading = tirage_croix_celtique(question=question, prenom=first_name)
+
+    # Enrichir la synthèse via Soléna (les 10 interpretations restent brutes pour rester lisibles)
+    try:
+        from services.enrich_narrative import enrich_and_ask
+        enriched = await enrich_and_ask(
+            reading['synthese'],
+            context=f'tarot_croix_celtique/{question[:40]}',
+            first_name=first_name,
+            target_length='long',
+        )
+        reading['synthese'] = enriched
+        reading['synthese_enrichie'] = True
+    except Exception as e:
+        logger.warning(f'[tarot/croix-celtique] enrich failed: {e}')
+
+    return reading
+
+
 @api_router.post('/tarot/marseille')
 async def tarot_marseille_endpoint(request: Request):
     body = await request.json()
