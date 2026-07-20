@@ -606,6 +606,7 @@ async def solar_return_report(birth_data: Dict[str, Any], return_year: int, name
         'subject': make_subject(name, birth_data),
         'return_year': int(return_year),
         'options': {'language': language, 'house_system': 'P'},
+        'report_options': {'language': language},
         'include_life_areas': True,
     })
 
