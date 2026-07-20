@@ -47,7 +47,7 @@ SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
 _ILLUS_BASE = f'{SUPABASE_URL}/storage/v1/object/public/library/pdf' if SUPABASE_URL else ''
 
 
-def illustration_url(slug: str, size: int = 1200) -> str:
+def illustration_url(slug: str, size: int = 800) -> str:
     """Retourne l'URL publique d'une illustration Plume Astrale (bucket library/pdf).
 
     Slugs disponibles :
@@ -161,7 +161,7 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
     story.append(Spacer(1, 2 * cm))
     story.append(Paragraph('✦ PLUME ASTRALE ✦', styles['section_tag']))
     story.append(Spacer(1, 0.6 * cm))
-    img_bytes = _dl_image(illustration_url(illustration_slug, 1200))
+    img_bytes = _dl_image(illustration_url(illustration_slug, 800))
     if img_bytes:
         img = RLImage(img_bytes, width=10 * cm, height=10 * cm, mask='auto')
         story.append(img)
@@ -213,7 +213,7 @@ def chapter_illustration(story: list, styles: dict, chapter_tag: str, title: str
     story.append(Paragraph(chapter_tag.upper(), styles['section_tag']))
     story.append(Paragraph(title, styles['cover_title']))
     story.append(Spacer(1, 1 * cm))
-    img_bytes = _dl_image(illustration_url(illustration_slug, 1200))
+    img_bytes = _dl_image(illustration_url(illustration_slug, 800))
     if img_bytes:
         story.append(RLImage(img_bytes, width=12 * cm, height=12 * cm, mask='auto'))
     story.append(PageBreak())
@@ -251,7 +251,7 @@ def planet_analysis_page(story: list, styles: dict, planet_name: str, sign: str,
 def emotional_ending(story: list, styles: dict, prenom: str):
     """Fin très émotionnelle — signée Soléna."""
     story.append(Spacer(1, 4 * cm))
-    img_bytes = _dl_image(illustration_url('astral_silhouette', 800))
+    img_bytes = _dl_image(illustration_url("astral_silhouette", 800))
     if img_bytes:
         story.append(RLImage(img_bytes, width=8 * cm, height=8 * cm, mask='auto'))
         story.append(Spacer(1, 1.5 * cm))

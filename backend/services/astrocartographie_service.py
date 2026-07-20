@@ -15,7 +15,7 @@ import httpx
 from services.supabase_client import get_admin_client
 from services import astrology_io_service as aio
 from services import astrocartographie_ai as aiai
-from services.astrocartographie_pdf import generate_astrocartographie_pdf
+from services.pdf_luxury_wrap import generate_astrocartographie_pdf_luxury as generate_astrocartographie_pdf
 
 logger = logging.getLogger(__name__)
 ASSETS_DIR = Path(__file__).resolve().parent.parent / 'assets'

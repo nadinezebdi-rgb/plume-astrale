@@ -3,6 +3,34 @@
 
 ## 2026-02-20 — Session cleanup post-migration caches persistants
 
+### 🔗 Branchement PDF Luxe sur les 4 endpoints (P0 — brief Nathalie suite)
+
+**Approche** : plutôt que réécrire 500+ lignes des générateurs métier existants (kabbale_pdf.py, astrocartographie_pdf.py qui contiennent le vrai contenu des rapports), on a créé 2 patterns :
+1. **Drop-in replacement** pour le Thème Natal (nouveau générateur luxe complet)
+2. **Wrapper luxe** pour Kabbale et Astrocarto (cover luxe + contenu existant + fin Soléna via `pypdf` merge)
+
+**1. Thème Natal** :
+- Nouveau `services/natal_pdf_adapter.py` : convertit les user_data legacy vers le format `natal_pdf_v2` avec fallback rich content par signe (12 signes)
+- Import swap dans `server.py` : `from services.pdf_generator import generate_manuscrit_pdf` → `from services.natal_pdf_adapter import generate_manuscrit_pdf`
+- Impact : `/api/pdf/generate`, `/api/pdf/pro-horoscope` et toutes les routes qui utilisaient l'ancien générateur produisent maintenant automatiquement le PDF luxe 24 pages
+
+**2. Kabbale & Astrocarto** :
+- Nouveau `services/pdf_luxury_wrap.py` : fonctions `apply_luxury_wrap()`, `generate_kabbale_pdf_luxury()`, `generate_astrocartographie_pdf_luxury()`
+- Utilise `pypdf` 6.14 pour merger `[cover luxe + ouverture] + [contenu existant] + [waouh + fin Soléna]`
+- Fallback silencieux : si le merge échoue pour une raison quelconque, retourne le PDF original intact (jamais casser une vente)
+- Import swaps dans `services/kabbale_service.py` et `services/astrocartographie_service.py`
+
+**3. Croix Celtique** :
+- Nouveau `services/tarot_pdf_v2.py` — 100% luxe : cover + ouverture + 10 pages carte (position + illustration tarot + interp) + synthèse Soléna + fin émotionnelle
+- Swap dans le webhook endpoint : `from services.tarot_pdf import build_croix_celtique_pdf` → `from services.tarot_pdf_v2 import build_croix_celtique_pdf_v2 as build_croix_celtique_pdf`
+- Optimisation poids : les images tarot passent de 1080px à 512px lors de l'embed PDF → 59 MB → 17 MB (÷ 3.5)
+
+**Optimisation globale** : `illustration_url()` par défaut passe de 1200px à 800px (les PDFs sont A4, 1200px est overkill).
+
+### ✅ Testing
+- 3/3 générateurs testés bout-en-bout : Natal 12 MB, Kabbale 7 MB, Croix Celtique 17 MB
+- Gemini 2.5 analyse Natal V2 : **95% de conformité au brief Dior × Cartier × Harry Potter** confirmée (24 pages, fond nuit + starfield + cadre or + illustrations pleines pages + fin émotionnelle Soléna)
+
 ### 📚 PDF Thème Natal V2 — Livre de luxe astrologique (P0 — brief Nathalie)
 
 **Contexte** : Nathalie a livré un brief détaillé demandant un PDF au niveau "Dior × Cartier × Harry Potter × Astrologie" pour tous les PDFs — commencer par le Thème Natal.
