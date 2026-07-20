@@ -1,6 +1,26 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-13
+
+### Session 10 — 🔥 Warm-up cache + Email J+3 post-achat
+
+**Task 1 — Warm-up cache traduction FR**
+- ✅ Nouveau script `backend/scripts/warmup_translation_cache.py` — appelle chaque endpoint `@fr_polish` (love_languages, archetypes, karmic_analysis, numerology_core, personality_analysis, chinese_zodiac, horoscope_personal) avec **6 profils natals variés** (Marie 1990, Sophie 1985, Camille 1995, Sarah 1978, Léa 2000, Nathalie 1970).
+- ✅ Couvre aussi **12 signes × 3 périodes** (daily/weekly/monthly) pour `horoscope_sign` → 36 appels supplémentaires.
+- ✅ Total : ~78 appels API + ~78 traductions batchées GPT-5.4.
+- ⏱️ Durée : ~10-15 min au premier run (jusqu'à 86s pour `personality_analysis` avec ses 81 strings à traduire en batch). Les runs suivants sont quasi-gratuits grâce au cache mémoire dans le process.
+- 📋 **Persistance** : nécessite la table Supabase `translation_cache` (SQL fourni précédemment). Sans elle, le warmup travaille pour rien entre deux redémarrages backend.
+
+**Task 2 — Email J+3 post-achat astrocartographie**
+- ✅ Nouveau service `services/astrocarto_followup.py` — boucle background démarrée au startup FastAPI (toutes les 6h).
+- ✅ Query paginée : `payment_transactions` avec `pack_id='astrocartographie'`, `payment_status='paid'`, achats entre J-14 et J-3 (fenêtre 11 jours).
+- ✅ Idempotence forte : marque `metadata.followup_j3_sent_at` + `followup_j3_ok` (bool) → jamais renvoyé deux fois, même en cas de retry loop.
+- ✅ Email HTML tendre et personnel (aucun CTA de vente, juste "quel ressenti ?" + invitation à répondre par email ou laisser un témoignage).
+- ✅ Testé E2E : session backdatée à J-4 → email envoyé (`http_status=200`, `resend_id` capturé), 2ème run → 0 envoyé (idempotence OK).
+- ✅ Wire dans `server.py` startup event à côté de `cart_recovery_loop` et `lead_nurture_loop`.
+
+
 ## 2026-02-12
 
 ### Session 9 — 🔍 Audit FR + Champ ville libre + Cache traductions
