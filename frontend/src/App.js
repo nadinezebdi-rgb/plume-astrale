@@ -139,6 +139,7 @@ function App() {
                 <Route path="/tarot-oui-non" element={<Navigate to="/outils/tarot/oui-non" replace />} />
                 <Route path="/tarot" element={<Navigate to="/outils/tarot" replace />} />
                 <Route path="/compatibilite-amoureuse" element={<Navigate to="/outils/compatibilite" replace />} />
+                <Route path="/compatibilite" element={<Navigate to="/outils/compatibilite" replace />} />
                 <Route path="/mon-rituel" element={<Navigate to="/outils/rituel" replace />} />
                 <Route path="/chat-astral" element={<Navigate to="/outils/consultation" replace />} />
                 <Route path="/cercle-quotidien" element={<Navigate to="/communaute" replace />} />
@@ -183,6 +184,8 @@ function App() {
                 <Route path="/synastrie/succes" element={<SynastrieSucces />} />
                 <Route path="/astrosexo" element={<Navigate to="/outils/astrosexo" replace />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
+                {/* Catch-all : aucune route interne ne correspond -> retour accueil */}
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
               <CookieConsent />
             </>
