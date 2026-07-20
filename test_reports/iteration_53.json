@@ -1,0 +1,54 @@
+{
+  "summary": "Iteration 53 — Test complet des 2 dernières features Nathalie : (A) Bandeau post-achat CercleSolenaInvite sur les 4 pages Succès PDF (kabbale, astrocarto, karmique, synastrie) + backend with_trial=true, (B) Cockpit /admin/analytics avec 6 KPIs + funnel 5 étapes + quick-links + admin-gate. Backend 6/6 tests PASS (1 skip attendu — table subscriptions non migrée). Frontend 100% PASS sur toutes les cibles data-testid attendues sauf UN détail : la prop 'badge' passée à PageHero est SILENCIEUSEMENT IGNORÉE (PageHero.js ne supporte pas la prop). Résultat : le texte '✦ Cockpit Analytics ✦' n'est PAS affiché — seuls le titre 'Tes chiffres, sans te noyer' et le sous-titre le sont. C'est un bug UI mineur mais explicitement demandé dans la review.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/subscriptions/cercle-solena/status",
+        "issue": "Toujours 500 → skip du test (attendu — migration SQL Supabase pas encore appliquée par Nathalie, cf. iteration_52). Résolu une fois la migration en place."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "PageHero (utilisé dans AnalyticsAdmin.js)",
+        "issue": "La prop 'badge=\"✦ Cockpit Analytics ✦\"' passée depuis AnalyticsAdmin est silencieusement ignorée car PageHero.js n'implémente PAS de rendu pour cette prop (composant supporte uniquement image/title/subtitle/height/align). Résultat : le badge editorial demandé par la review n'apparaît nulle part dans le DOM (0 occurrence de 'Cockpit Analytics' dans document.body.innerText). Fix : ajouter le rendu du badge dans PageHero.js OU remplacer par une div badge inline directement dans AnalyticsAdmin.js.",
+        "selector": "PageHero badge prop",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_cercle_solena_subscriptions.py",
+    "/app/test_reports/pytest/iteration53.xml"
+  ],
+  "action_items": [
+    "FIX MINEUR : Rendre le badge '✦ Cockpit Analytics ✦' dans PageHero (ajouter la prop badge et son rendu au-dessus du <h1>) OU l'insérer directement en tête de AnalyticsAdmin.js avant <PageHero />. Le review du problème mentionne explicitement ce badge — sans lui, l'identité visuelle 'Cockpit' est absente.",
+    "OK pour production sinon : toutes les autres cibles data-testid (analytics-kpi-{0..5}, analytics-funnel + steps 0..4, analytics-quick-links avec 4 liens, analytics-not-configured, admin-gate refusal, hrefs Plausible avec bons filtres, target=_blank rel=noopener noreferrer) sont fonctionnelles.",
+    "OK backend : with_trial=true est bien accepté par Pydantic (pas de 422), retourne 503 tant que STRIPE_CERCLE_SOLENA_PRICE_ID est absent. Idempotence via credit_grants.reason='cercle_solena_trial_used' présente dans le code (impossible à tester end-to-end sans Price ID configuré).",
+    "Une fois STRIPE_CERCLE_SOLENA_PRICE_ID configuré : refaire un test avec un vrai checkout et vérifier subscription.trial_end != null côté Stripe Dashboard."
+  ],
+  "critical_code_review_comments": [
+    "AnalyticsAdmin.js — 6 KPIs bien configurés avec queries Plausible pré-filtrées (event,goal,is,...) + revenue calculation via period=month. Funnel 5 étapes cohérent (visiteur → signup_completed → *_checkout → purchase → cercle_solena_checkout). Admin gate correct (is_admin || role==='admin' || email==='admin@plume-astrale.fr'). Configured flag basé sur REACT_APP_PLAUSIBLE_DOMAIN — bon usage useMemo. Aucun fetch serveur (design volontaire : cockpit = liens vers Plausible).",
+    "CercleSolenaInvite.js — Bandeau propre : badge '1 mois offert', pricing 0€/30j puis 19€/mois, CTA 'Activer mon mois offert', bouton dismiss, gestion loading + error + navigation vers /cercle-solena si non authentifié. Envoie with_trial:true au backend. Événement analytics track(CERCLE_SOLENA_CHECKOUT, {source:'post_purchase_X', trial:true}) — bon signal marketing.",
+    "subscriptions.py — Nouveau champ CheckoutPayload.with_trial: bool = False (default False, non-breaking). Idempotence via credit_grants.select().eq('user_id').eq('reason','cercle_solena_trial_used') AVANT insert — pattern correct. subscription_data['trial_period_days']=30 uniquement si with_trial=True ET pas déjà utilisé. Metadata Stripe propage 'trial':'true' pour audit webhook.",
+    "PageHero.js — MANQUE support de la prop 'badge'. Signature actuelle : image/title/subtitle/height/align uniquement. La ligne 111 de AnalyticsAdmin.js (badge='✦ Cockpit Analytics ✦') est ignorée sans warning. À corriger.",
+    "Import CercleSolenaInvite présent dans les 4 pages Succès (KabbaleSucces:6+198, AstrocartographieSucces:6+116, PackKarmiqueSucces:6+113, SynastrieSucces:7+104) avec sourceProduct + testId différents pour chaque produit — cohérent."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_cercle_solena_subscriptions.py (ajout 2 tests: test_checkout_with_trial_payload_accepted + test_checkout_with_trial_false_still_works)"
+  ],
+  "success_rate": {
+    "backend": "100% (6/6 PASS, 1 skip attendu)",
+    "frontend": "95% (toutes les data-testid présentes + hrefs Plausible corrects + admin-gate OK ; SEUL le badge '✦ Cockpit Analytics ✦' du PageHero manque car prop non supportée)"
+  },
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 (via /app/memory/test_credentials.md) — login OK, redirect /mon-compte, accès /admin/analytics validé.",
+  "seed_data_creation": "Aucune",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iteration 53 = quasi-tout GREEN. Reste 1 fix UI trivial : ajouter le rendu du badge dans /app/frontend/src/components/PageHero.js OU l'insérer directement dans AnalyticsAdmin.js. Toutes les autres cibles (KPI hrefs, funnel, quick-links, admin-gate, backend with_trial payload) sont validées. Les 4 pages Succès PDF importent bien CercleSolenaInvite — rendu final (nécessite session_id Stripe valide) non testable en preview mais code inspecté et conforme.",
+  "rca of the issue": "Bug PageHero badge : AnalyticsAdmin.js ligne 110-114 passe badge='✦ Cockpit Analytics ✦' à <PageHero>, mais PageHero.js (lignes 12-79) déstructure uniquement {image, title, subtitle, height, align}. La prop 'badge' est donc consommée par React mais jamais rendue. Fix simple (2 lignes) : ajouter 'badge' à la déstructuration + un <div>{badge}</div> stylisé avant le <h1> dans PageHero. Alternative : insérer un <div className='analytics-badge'>✦ Cockpit Analytics ✦</div> directement dans AnalyticsAdmin.js juste avant <PageHero>."
+}

@@ -49,6 +49,7 @@ CERCLE_PRODUCT_KEY = 'cercle_solena'
 
 class CheckoutPayload(BaseModel):
     origin_url: str  # ex: 'https://plume-astrale.fr'
+    with_trial: bool = False  # True → premier mois offert (trial_period_days=30)
 
 
 def _get_price_id() -> str:
@@ -90,6 +91,30 @@ async def cercle_solena_checkout(
         supabase.table('profiles').update({'stripe_customer_id': customer_id}).eq('id', user['id']).execute()
 
     try:
+        subscription_data = {
+            'metadata': {
+                'product': CERCLE_PRODUCT_KEY,
+                'supabase_user_id': user['id'],
+            },
+        }
+        # Trial 30 jours (offert après un achat PDF — 1 seul par utilisateur)
+        if payload.with_trial:
+            # Vérifie idempotence : le user ne doit pas avoir déjà bénéficié d'un trial
+            grant_check = supabase.table('credit_grants').select('id').eq(
+                'user_id', user['id']
+            ).eq('reason', 'cercle_solena_trial_used').limit(1).execute()
+            if not grant_check.data:
+                subscription_data['trial_period_days'] = 30
+                # On marque immédiatement le trial comme "utilisé" (idempotence côté UI
+                # — le vrai crédit sera géré par le webhook customer.subscription.created)
+                supabase.table('credit_grants').insert({
+                    'user_id': user['id'],
+                    'amount': 0,
+                    'reason': 'cercle_solena_trial_used',
+                    'external_id': f'trial_grant_{user["id"]}',
+                    'granted_at': datetime.now(timezone.utc).isoformat(),
+                }).execute()
+
         session = stripe.checkout.Session.create(
             mode='subscription',
             customer=customer_id,
@@ -99,13 +124,9 @@ async def cercle_solena_checkout(
             metadata={
                 'product': CERCLE_PRODUCT_KEY,
                 'supabase_user_id': user['id'],
+                'trial': 'true' if payload.with_trial else 'false',
             },
-            subscription_data={
-                'metadata': {
-                    'product': CERCLE_PRODUCT_KEY,
-                    'supabase_user_id': user['id'],
-                },
-            },
+            subscription_data=subscription_data,
             locale='fr',
             allow_promotion_codes=True,
         )

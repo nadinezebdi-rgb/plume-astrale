@@ -30,6 +30,7 @@ import Compatibilite from "./pages/Compatibilite";
 import Compatibilite2 from "./pages/Compatibilite2";
 import Cercle from "./pages/Cercle";import Quotidien from "./pages/Quotidien";
 import CercleSolena from "./pages/CercleSolena";
+import AnalyticsAdmin from "./pages/AnalyticsAdmin";
 import BuyCredits from "./pages/BuyCredits";
 import CreditSuccess from "./pages/CreditSuccess";
 import Choix from "./pages/Choix";
@@ -126,6 +127,7 @@ function App() {
                 <Route path="/communaute" element={<Cercle />} />
                 <Route path="/cercle-solena" element={<CercleSolena />} />
                 <Route path="/cercle-solena/succes" element={<CercleSolena />} />
+                <Route path="/admin/analytics" element={<AnalyticsAdmin />} />
 
                 {/* ─── Backward compatibility redirects ─── */}
                 <Route path="/tirage-tarot" element={<Navigate to="/outils/tarot" replace />} />

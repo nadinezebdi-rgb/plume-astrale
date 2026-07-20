@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Download, ArrowRight, Loader2, Mail } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
+import CercleSolenaInvite from '@/components/CercleSolenaInvite';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -106,6 +107,11 @@ const PackKarmiqueSucces = () => {
             </p>
           )}
         </div>
+
+        {/* Invitation Cercle Soléna — 1 mois offert (post-purchase) */}
+        {status.pdf_ready && (
+          <CercleSolenaInvite sourceProduct="pack_karmique" testId="karmique-post-purchase-cercle" />
+        )}
       </div>
     </div>
   );

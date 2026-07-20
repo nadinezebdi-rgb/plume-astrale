@@ -89,6 +89,38 @@ class TestSubscriptionCheckoutBehavior:
             f"Detail message doesn't mention config: {data['detail']}"
         )
 
+    def test_checkout_with_trial_payload_accepted(self, admin_token):
+        """POST /checkout avec with_trial=true doit être accepté par Pydantic (pas 422).
+
+        Comme STRIPE_CERCLE_SOLENA_PRICE_ID n'est pas configuré, on attend toujours 503.
+        L'important : pas de 422 (validation Pydantic OK sur le nouveau champ with_trial).
+        """
+        r = requests.post(
+            f'{BASE_URL}/api/subscriptions/cercle-solena/checkout',
+            headers={'Authorization': f'Bearer {admin_token}'},
+            json={'origin_url': BASE_URL, 'with_trial': True},
+            timeout=15,
+        )
+        # Pas de 422 (validation OK sur with_trial=True)
+        assert r.status_code != 422, (
+            f'CheckoutPayload should accept with_trial=true, got 422: {r.text[:300]}'
+        )
+        # Comportement attendu : 503 (price_id manquant)
+        assert r.status_code == 503, (
+            f'Expected 503 with with_trial=true, got {r.status_code}: {r.text[:300]}'
+        )
+
+    def test_checkout_with_trial_false_still_works(self, admin_token):
+        """with_trial=false doit fonctionner comme un checkout normal (503 attendu)."""
+        r = requests.post(
+            f'{BASE_URL}/api/subscriptions/cercle-solena/checkout',
+            headers={'Authorization': f'Bearer {admin_token}'},
+            json={'origin_url': BASE_URL, 'with_trial': False},
+            timeout=15,
+        )
+        assert r.status_code != 422, f'422 unexpected: {r.text[:300]}'
+        assert r.status_code == 503, f'Expected 503, got {r.status_code}: {r.text[:300]}'
+
     def test_status_valid_token(self, admin_token):
         """/status doit retourner {active: false, subscription: null} si aucun abo actif.
         Note : peut retourner 500 si la table 'subscriptions' n'existe pas encore côté DB.

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Download, ArrowRight, Loader2, Mail, Globe2, Sparkles } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
+import CercleSolenaInvite from '@/components/CercleSolenaInvite';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -190,6 +191,11 @@ const KabbaleSucces = () => {
               <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
             </Link>
           </div>
+        )}
+
+        {/* Invitation Cercle Soléna — 1 mois offert (post-purchase) */}
+        {status.pdf_ready && (
+          <CercleSolenaInvite sourceProduct="kabbale" testId="kabbale-post-purchase-cercle" />
         )}
       </div>
     </div>

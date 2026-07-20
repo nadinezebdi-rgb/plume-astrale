@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Download, Loader2, Mail, CheckCircle2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { event as trackEvent } from '@/lib/analytics';
+import CercleSolenaInvite from '@/components/CercleSolenaInvite';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -97,6 +98,11 @@ export default function SynastrieSucces() {
             </>
           )}
         </div>
+
+        {/* Invitation Cercle Soléna — 1 mois offert (post-purchase) */}
+        {pdfReady && (
+          <CercleSolenaInvite sourceProduct="synastrie" testId="synastrie-post-purchase-cercle" />
+        )}
 
         <Link to="/" className="block text-center mt-6 text-xs" style={{ color: 'rgba(184,176,200,0.55)' }}>← Retour a l&apos;accueil</Link>
       </div>
