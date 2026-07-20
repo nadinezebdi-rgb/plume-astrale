@@ -1,6 +1,34 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-14
+
+### Session 11 — 🗺️ Lignes détaillées PDF + 💌 Cross-sell J+7 (PLUME15)
+
+**Task 1 — Interprétations détaillées des lignes planétaires dans le PDF**
+- ✅ Nouveau module `services/astrocartographie_lines_data.py` — **40 interprétations FR statiques** (10 planètes × 4 lignes AC/DC/MC/IC), rédigées en style Soléna (headline + 2-3 phrases poétiques). Chaque entrée = ~150 mots.
+- ✅ `astrocartographie_pdf.py` : nouvelle fonction `_planetary_lines_pages()` — page d'intro + pages "2 lignes par page" (dedupe + tri planète/ligne).
+- ✅ `astrocartographie_service.py` : fetch supplémentaire `astrocartography_lines()` (fallback si `/map` ne renvoie pas les lignes) → passe `lines_data` au générateur PDF.
+- ✅ Résultat : PDF passe de **18 → 30 pages** (Marie a 28 lignes, 12 pages ajoutées).
+- ✅ Regénération testée sur `test-astrocarto-37c2a3eae8f2.pdf` → contenu FR conforme.
+
+**Task 2 — Cross-sell J+7 après Kabbale/Karma (offre PLUME15)**
+- ✅ Nouveau service `services/crosssell_astrocarto.py` — boucle 6h démarrée au startup.
+- ✅ Query paginée : `payment_transactions` avec `pack_id IN (kabbale_arbre_de_vie, pack_karmique_kabbale, karma_destin)`, `payment_status='paid'`, fenêtre J-45 à J-7.
+- ✅ Skip si l'utilisateur a déjà acheté l'astrocartographie (via `_has_bought_astrocarto()`).
+- ✅ Skip si `metadata.crosssell_astrocarto_sent_at` déjà marqué (idempotence).
+- ✅ Dédup par email (1 seul mail par utilisateur même s'il a plusieurs achats éligibles).
+- ✅ Email HTML tendre avec offre visuelle : "49€ ~~biffé~~ 41,65€" + code PLUME15 en gros + CTA lien vers `/astrocartographie?discount=PLUME15`.
+- ✅ **Code PLUME15 implémenté dans `routes/astrocartographie.py`** : hardcoded (pas de migration DB) → applique 15% de réduction sur le montant Stripe (49€ → 41,65€). Stocké dans metadata (`original_amount`, `discount_percent`, `promo_code`).
+- ✅ Frontend : détection `?discount=` dans l'URL → pré-remplit le champ promo + skip step 0 → affiche une bannière or "OFFRE CLIENTES PLUME · 41,65€ · 15% de réduction" + adapte le CTA "PAYER 41,65€ (OFFRE PLUME)".
+- ✅ Testé E2E : session Kabbale backdatée J-8 → 1 email envoyé, 2ème run → 0 (idempotence OK). Checkout `POST /api/astrocartographie/checkout` avec `promo_code:'PLUME15'` → Stripe session à 41,65€, DB metadata correctement rempli.
+
+**Warm-up cache terminé**
+- ✅ Script `warmup_translation_cache.py` a fini en **9m 39s** (579s).
+- ✅ **500 entrées** en cache mémoire.
+- ⚠️ Sans la table `translation_cache` en Supabase, ce cache est perdu au prochain redémarrage backend. À relancer une fois la migration appliquée.
+
+
 ## 2026-02-13
 
 ### Session 10 — 🔥 Warm-up cache + Email J+3 post-achat

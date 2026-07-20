@@ -61,14 +61,24 @@ async def handle_astrocartographie_webhook(session_id: str) -> None:
         logger.error(f"[astrocarto] missing birth_data or locations for {session_id}")
         return
 
-    # 1) Fetch carte SVG mondiale
+    # 1) Fetch carte SVG mondiale + données lignes brutes
     map_svg = None
+    lines_data = []
     try:
         r = await aio.astrocartography(birth_data, name=first_name, language='fr')
         if r:
             map_svg = r.get('svg_content') or r.get('svg') or ''
+            # v3 renvoie parfois les lignes directement dans /map (sinon on refetch)
+            lines_data = r.get('lines') or []
     except Exception as e:
         logger.warning(f"[astrocarto] map fetch failed: {e}")
+    if not lines_data:
+        try:
+            r2 = await aio.astrocartography_lines(birth_data, name=first_name, language='fr')
+            if r2:
+                lines_data = r2.get('lines') or []
+        except Exception as e:
+            logger.warning(f"[astrocarto] lines fetch failed: {e}")
 
     # 2) Fetch analysis pour chaque ville choisie + enrichissement IA
     chosen_analyses: List[Dict[str, Any]] = []
@@ -161,6 +171,7 @@ async def handle_astrocartographie_webhook(session_id: str) -> None:
             chosen_cities=chosen_analyses,
             bonus_cities=bonus_analyses,
             synthesis_text=synth,
+            lines_data=lines_data,
         )
         out_dir = ASSETS_DIR / 'astrocartographie'
         out_dir.mkdir(parents=True, exist_ok=True)

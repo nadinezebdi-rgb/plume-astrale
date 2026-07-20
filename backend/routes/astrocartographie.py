@@ -129,8 +129,18 @@ async def astrocartographie_checkout(payload: AstrocartographieCheckoutPayload, 
         'chosen_locations': chosen_locations,
     }
 
-    # Bypass promo (admin)
-    if payload.promo_code and try_consume_promo(payload.promo_code):
+    # Bypass promo (admin) OU réduction 15% cross-sell (PLUME15)
+    promo = (payload.promo_code or '').strip().upper()
+
+    # Code PLUME15 : 15% de réduction (cross-sell J+7 après Kabbale/Karma)
+    discount_applied = None
+    final_amount = float(pack['amount'])
+    if promo == 'PLUME15':
+        discount_applied = 0.15
+        final_amount = round(float(pack['amount']) * (1 - discount_applied), 2)
+
+    # Bypass 100% (codes ADMIN26 etc via table promo_codes)
+    if promo and try_consume_promo(promo):
         fake_session_id = f'admin-astrocarto-{uuid.uuid4().hex[:16]}'
         try:
             sb = get_admin_client()
@@ -157,7 +167,7 @@ async def astrocartographie_checkout(payload: AstrocartographieCheckoutPayload, 
         return {'url': success_url, 'session_id': fake_session_id, 'admin_bypass': True}
 
     req = CheckoutSessionRequest(
-        amount=float(pack['amount']),
+        amount=final_amount,
         currency=pack['currency'],
         success_url=success_url,
         cancel_url=cancel_url,
@@ -165,6 +175,8 @@ async def astrocartographie_checkout(payload: AstrocartographieCheckoutPayload, 
             'product': 'astrocartographie',
             'kind': 'astrocartographie',
             'email': payload.email,
+            'discount_percent': str(int((discount_applied or 0) * 100)),
+            'promo_code': promo if discount_applied else '',
         },
     )
     session = await stripe_checkout.create_checkout_session(req)
@@ -175,13 +187,16 @@ async def astrocartographie_checkout(payload: AstrocartographieCheckoutPayload, 
             'session_id': session.session_id,
             'user_email': payload.email,
             'pack_id': 'astrocartographie',
-            'amount': float(pack['amount']), 'currency': pack['currency'],
+            'amount': final_amount, 'currency': pack['currency'],
             'credits': 0, 'status': 'initiated', 'payment_status': 'unpaid',
             'credits_granted': False,
             'metadata': {
                 'product': 'astrocartographie',
                 'kind': 'astrocartographie',
                 'pdf_ctx': pdf_ctx,
+                'original_amount': float(pack['amount']),
+                'discount_percent': int((discount_applied or 0) * 100),
+                'promo_code': promo if discount_applied else '',
             },
         }).execute()
     except Exception as e:
