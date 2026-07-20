@@ -5,6 +5,7 @@ import axios from 'axios';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
 import TestimonialsWidget, { TESTIMONIALS_KABBALE } from '@/components/TestimonialsWidget';
+import PdfBookOpen from '@/components/PdfBookOpen';
 import { event as track, EVENTS } from '@/lib/analytics';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -117,6 +118,9 @@ const KabbaleSales = () => {
             ✦ Les 10 Sephiroth · Les 22 Chemins ✦
           </p>
         </div>
+
+        {/* Preview PDF Ouvrant — livre 3D animé */}
+        <PdfBookOpen testId="kabbale-book-open" theme="kabbale" />
 
         {/* Ce que tu vas recevoir */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">

@@ -1,6 +1,34 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — 🎨 Vitrine premium alignée : Kabbale + Karmique + Live Sales
+
+### `PdfBookOpen` — refactor multi-thèmes
+- **Fichier** : `frontend/src/components/PdfBookOpen.js`
+- Le composant accepte maintenant `theme = 'astrocarto' | 'kabbale' | 'karmique'`
+- 3 intérieurs distincts :
+  - **astrocarto** : carte planétaire (Lisbonne/Bali/Kyoto) + citation Ligne Vénus
+  - **kabbale** : **Arbre de Vie miniature avec 10 Sephiroth positionnées correctement** (Kether en haut, Tiphareth centre plus brillante, Malkuth en bas) + SVG des 13 chemins majeurs + citation Tiphareth
+  - **karmique** : **Roue karmique** avec axe Nœud Nord (☊) / Nœud Sud (☋) et glyphes zodiacaux (♌ ♒ ♎ ♈) + citation "Tu es venue pour oser briller"
+- Titre couverture, sous-titre hero et footer hint adaptés au produit
+- **Intégré sur** : `/astrocartographie`, `/kabbale`, `/pack-karmique`
+
+### `LiveSalesCounter` — urgence sociale douce
+- **Fichier** : `frontend/src/components/LiveSalesCounter.js` (nouveau)
+- Widget fixe bas-gauche (mobile: pleine largeur), monté globalement dans `App.js`
+- Notif tournante toutes les 12s avec : prénom + ville + "vient de recevoir [produit]" + "il y a X min"
+- 24 prénoms · 17 villes crédibles (Paris/Lyon/Bordeaux/Genève/Montréal…) · 5 produits · 12 durées possibles
+- Génération pseudo-aléatoire déterministe par minute (pas de flicker au refresh)
+- **Fermable** : bouton × → `localStorage.plume_live_sales_dismissed_at` → cachée pendant 24h
+- Style Cartier/Aesop : glass-morphism nuit, filet doré, Cormorant Garamond, animation `translateY + opacity` en `cubic-bezier(0.22, 1, 0.36, 1)`
+
+### 📸 Screenshots validés
+- Kabbale book : Arbre de Vie glow doré, Tiphareth centrale visible ✓
+- Karmique book : Nœuds ☊/☋ + roue zodiacale, quote "oser briller" doré ✓
+- Live counter : "Manon · Lisbonne · vient de recevoir sa fenêtre de rencontre · IL Y A 27 MIN" ✓
+
+
+
 ## 2026-02-20 — 🔒 Correctifs sécurité SEC-003 + SEC-004 + Cron + Karmique Luxe
 
 ### SEC-003 · MEDIUM — PDFs personnels servis via URL signée

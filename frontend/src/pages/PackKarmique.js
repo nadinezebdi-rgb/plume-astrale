@@ -4,6 +4,7 @@ import axios from 'axios';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
 import TestimonialsWidget, { TESTIMONIALS_KARMA } from '@/components/TestimonialsWidget';
+import PdfBookOpen from '@/components/PdfBookOpen';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -123,6 +124,9 @@ const PackKarmique = () => {
             <span style={{ color: 'var(--pa-accent)' }}>Analyse karmique complète</span> + <span style={{ color: 'var(--pa-accent)' }}>Arbre de Vie 39€</span> + <span style={{ color: 'var(--pa-accent)' }}>synthèse exclusive</span> — réunis dans un seul document relié.
           </p>
         </div>
+
+        {/* Preview PDF Ouvrant — livre 3D animé */}
+        <PdfBookOpen testId="karmique-book-open" theme="karmique" />
 
         {/* ── Extrait gratuit 3 pages (lead magnet) ── */}
         <div className="plume-glass p-6 md:p-8 mb-12 max-w-xl mx-auto" data-testid="extrait-gratuit-block" style={{ border: '1px dashed rgba(212,175,55,0.4)' }}>

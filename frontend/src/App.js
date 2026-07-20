@@ -74,6 +74,7 @@ import NoiseOverlay from "./components/design/NoiseOverlay";
 import Starfield from "./components/design/Starfield";
 import MobileTabBar from "./components/design/MobileTabBar";
 import AuraProvider from "./components/design/AuraProvider";
+import LiveSalesCounter from "./components/LiveSalesCounter";
 
 function App() {
   return (
@@ -84,6 +85,7 @@ function App() {
         <Starfield />
         <NoiseOverlay />
         <MobileTabBar />
+        <LiveSalesCounter />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />

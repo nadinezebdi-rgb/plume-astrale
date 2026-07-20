@@ -15,9 +15,38 @@ import { Sparkles } from 'lucide-react';
  *  CSS 3D pur (aucune dépendance). Réagit au hover pour rouvrir/fermer.
  */
 
-const BookInterior = () => (
+// ─────────────────────────────────────────────────────────────
+// THÈMES : chaque produit a sa propre double-page intérieure + copie
+// ─────────────────────────────────────────────────────────────
+const THEMES = {
+  astrocarto: {
+    label: 'Astrocartographie',
+    coverTitle: 'Ton\nAstrocartographie',
+    coverSignature: 'Prénom · Naissance · 18 pages sur mesure',
+    heroSub: 'Reliure cuir nuit, dorures Cinzel, 18 pages sur ta géographie astrale. Ce que tu vois est ce que tu reçois par email.',
+    footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 18 pages',
+  },
+  kabbale: {
+    label: 'Arbre de Vie',
+    coverTitle: 'Ton\nArbre de Vie',
+    coverSignature: 'Prénom · Naissance · 15 pages kabbalistiques',
+    heroSub: 'Reliure cuir nuit, lettres hébraïques dorées, 15 pages qui cartographient ton âme sur les 10 Sephiroth et 22 chemins.',
+    footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 15 pages',
+  },
+  karmique: {
+    label: 'Pack Karmique',
+    coverTitle: 'Ton\nPack Karmique',
+    coverSignature: 'Prénom · Naissance · 40 pages sur mesure',
+    heroSub: 'L\'écrin le plus profond de Plume Astrale. 40 pages qui unissent ton empreinte karmique, ton Arbre de Vie et ta synthèse d\'âme.',
+    footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 40 pages',
+  },
+};
+
+// ─────────────────────────────────────────────────────────────
+// Intérieurs (double-page) par thème
+// ─────────────────────────────────────────────────────────────
+const InteriorAstrocarto = () => (
   <div className="pbo-spread" aria-hidden="true">
-    {/* PAGE GAUCHE : Carte planétaire */}
     <div className="pbo-page pbo-page-left">
       <div className="pbo-header">✦ CARTE DU MONDE ✦</div>
       <div className="pbo-map">
@@ -36,8 +65,6 @@ const BookInterior = () => (
       <div className="pbo-para" style={{ width: '85%' }} />
       <div className="pbo-folio">— 8 —</div>
     </div>
-
-    {/* PAGE DROITE : Ligne Vénus */}
     <div className="pbo-page pbo-page-right">
       <div className="pbo-header">♀ &nbsp;LIGNE VÉNUS</div>
       <div className="pbo-quote">
@@ -50,7 +77,6 @@ const BookInterior = () => (
       <div className="pbo-para" style={{ width: '82%' }} />
       <div className="pbo-para" style={{ width: '92%' }} />
       <div className="pbo-para" style={{ width: '70%' }} />
-
       <div className="pbo-boxed">
         <div className="pbo-boxed-label">✦ Rituel de terrain</div>
         <div className="pbo-para" style={{ width: '90%', background: 'rgba(212,175,55,0.55)' }} />
@@ -61,31 +87,138 @@ const BookInterior = () => (
   </div>
 );
 
-const BookCover = () => (
-  <div className="pbo-cover-face" aria-hidden="true">
-    {/* filet doré extérieur */}
-    <div className="pbo-cover-frame" />
-    {/* ornement haut */}
-    <div className="pbo-cover-flourish">✦</div>
-    {/* titre */}
-    <div className="pbo-cover-title">Ton<br/>Astrocartographie</div>
-    <div className="pbo-cover-sub">✦ Édition Plume Astrale ✦</div>
-    {/* médaillon central */}
-    <div className="pbo-cover-medallion">
-      <div className="pbo-cover-medallion-inner" />
-      <div className="pbo-cover-cross-h" />
-      <div className="pbo-cover-cross-v" />
+const InteriorKabbale = () => (
+  <div className="pbo-spread" aria-hidden="true">
+    {/* PAGE GAUCHE : Arbre de Vie miniature */}
+    <div className="pbo-page pbo-page-left">
+      <div className="pbo-header">✦ TON ARBRE DE VIE ✦</div>
+      <div className="pbo-tree">
+        {/* 10 Sephiroth positionnées */}
+        <div className="pbo-seph pbo-seph-1" title="Kether" />
+        <div className="pbo-seph pbo-seph-2" title="Chokmah" />
+        <div className="pbo-seph pbo-seph-3" title="Binah" />
+        <div className="pbo-seph pbo-seph-4" title="Chesed" />
+        <div className="pbo-seph pbo-seph-5" title="Geburah" />
+        <div className="pbo-seph pbo-seph-6" title="Tiphareth" />
+        <div className="pbo-seph pbo-seph-7" title="Netzach" />
+        <div className="pbo-seph pbo-seph-8" title="Hod" />
+        <div className="pbo-seph pbo-seph-9" title="Yesod" />
+        <div className="pbo-seph pbo-seph-10" title="Malkuth" />
+        {/* Quelques chemins */}
+        <svg className="pbo-tree-paths" viewBox="0 0 100 130" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="50" y1="12" x2="20" y2="30" /><line x1="50" y1="12" x2="80" y2="30" />
+          <line x1="20" y1="30" x2="80" y2="30" /><line x1="20" y1="30" x2="20" y2="55" />
+          <line x1="80" y1="30" x2="80" y2="55" /><line x1="20" y1="55" x2="50" y2="70" />
+          <line x1="80" y1="55" x2="50" y2="70" /><line x1="50" y1="70" x2="20" y2="90" />
+          <line x1="50" y1="70" x2="80" y2="90" /><line x1="20" y1="90" x2="80" y2="90" />
+          <line x1="20" y1="90" x2="50" y2="110" /><line x1="80" y1="90" x2="50" y2="110" />
+          <line x1="50" y1="110" x2="50" y2="125" />
+        </svg>
+      </div>
+      <div className="pbo-caption">Tes 10 Sephiroth · Tes 22 chemins</div>
+      <div className="pbo-para" style={{ width: '92%' }} />
+      <div className="pbo-para" style={{ width: '80%' }} />
+      <div className="pbo-folio">— 6 —</div>
     </div>
-    <div className="pbo-cover-signature">
-      Prénom · Naissance · 18 pages sur mesure
+    {/* PAGE DROITE : Sephira dominante */}
+    <div className="pbo-page pbo-page-right">
+      <div className="pbo-header">✡  TIPHARETH · BEAUTÉ</div>
+      <div className="pbo-quote">
+        « Ta Sephira dominante est&nbsp;
+        <span style={{ color: '#D4AF37', fontWeight: 500 }}>Tiphareth</span>
+        &nbsp;— le cœur du Christ intérieur, la lumière qui rayonne sans forcer. »
+      </div>
+      <div className="pbo-para" style={{ width: '96%' }} />
+      <div className="pbo-para" style={{ width: '88%' }} />
+      <div className="pbo-para" style={{ width: '82%' }} />
+      <div className="pbo-para" style={{ width: '92%' }} />
+      <div className="pbo-boxed">
+        <div className="pbo-boxed-label">✦ Ton axe d&apos;âme</div>
+        <div className="pbo-para" style={{ width: '90%', background: 'rgba(212,175,55,0.55)' }} />
+        <div className="pbo-para" style={{ width: '76%', background: 'rgba(212,175,55,0.45)' }} />
+      </div>
+      <div className="pbo-folio">— 7 —</div>
     </div>
-    <div className="pbo-cover-flourish pbo-cover-flourish-bot">✦</div>
   </div>
 );
 
-const PdfBookOpen = ({ testId = 'pdf-book-open' }) => {
+const InteriorKarmique = () => (
+  <div className="pbo-spread" aria-hidden="true">
+    {/* PAGE GAUCHE : Nœuds Lunaires axis */}
+    <div className="pbo-page pbo-page-left">
+      <div className="pbo-header">☊ &nbsp;NŒUDS LUNAIRES</div>
+      <div className="pbo-karma">
+        {/* Roue zodiacale simplifiée */}
+        <div className="pbo-karma-wheel">
+          <div className="pbo-karma-axis" />
+          <div className="pbo-karma-node pbo-karma-node-n">☊</div>
+          <div className="pbo-karma-node pbo-karma-node-s">☋</div>
+          <div className="pbo-karma-glyph pbo-karma-glyph-1">♌</div>
+          <div className="pbo-karma-glyph pbo-karma-glyph-2">♒</div>
+          <div className="pbo-karma-glyph pbo-karma-glyph-3">♎</div>
+          <div className="pbo-karma-glyph pbo-karma-glyph-4">♈</div>
+        </div>
+      </div>
+      <div className="pbo-caption">Nœud Nord Lion · Nœud Sud Verseau</div>
+      <div className="pbo-para" style={{ width: '92%' }} />
+      <div className="pbo-para" style={{ width: '78%' }} />
+      <div className="pbo-para" style={{ width: '85%' }} />
+      <div className="pbo-folio">— 14 —</div>
+    </div>
+    {/* PAGE DROITE : Mission d'âme */}
+    <div className="pbo-page pbo-page-right">
+      <div className="pbo-header">✦ TA MISSION D&apos;ÂME ✦</div>
+      <div className="pbo-quote">
+        « Tu es venue pour&nbsp;
+        <span style={{ color: '#D4AF37', fontWeight: 500 }}>oser briller</span>
+        &nbsp;— quitter la fuite collective pour incarner ton feu solaire personnel. »
+      </div>
+      <div className="pbo-para" style={{ width: '96%' }} />
+      <div className="pbo-para" style={{ width: '90%' }} />
+      <div className="pbo-para" style={{ width: '84%' }} />
+      <div className="pbo-para" style={{ width: '92%' }} />
+      <div className="pbo-para" style={{ width: '78%' }} />
+      <div className="pbo-boxed">
+        <div className="pbo-boxed-label">✦ Pratique d&apos;intégration</div>
+        <div className="pbo-para" style={{ width: '90%', background: 'rgba(212,175,55,0.55)' }} />
+        <div className="pbo-para" style={{ width: '78%', background: 'rgba(212,175,55,0.45)' }} />
+      </div>
+      <div className="pbo-folio">— 15 —</div>
+    </div>
+  </div>
+);
+
+const INTERIORS = {
+  astrocarto: InteriorAstrocarto,
+  kabbale: InteriorKabbale,
+  karmique: InteriorKarmique,
+};
+
+const BookCover = ({ theme }) => {
+  const t = THEMES[theme] || THEMES.astrocarto;
+  const [line1, line2] = t.coverTitle.split('\n');
+  return (
+    <div className="pbo-cover-face" aria-hidden="true">
+      <div className="pbo-cover-frame" />
+      <div className="pbo-cover-flourish">✦</div>
+      <div className="pbo-cover-title">{line1}<br/>{line2}</div>
+      <div className="pbo-cover-sub">✦ Édition Plume Astrale ✦</div>
+      <div className="pbo-cover-medallion">
+        <div className="pbo-cover-medallion-inner" />
+        <div className="pbo-cover-cross-h" />
+        <div className="pbo-cover-cross-v" />
+      </div>
+      <div className="pbo-cover-signature">{t.coverSignature}</div>
+      <div className="pbo-cover-flourish pbo-cover-flourish-bot">✦</div>
+    </div>
+  );
+};
+
+const PdfBookOpen = ({ testId = 'pdf-book-open', theme = 'astrocarto' }) => {
   const stageRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const t = THEMES[theme] || THEMES.astrocarto;
+  const Interior = INTERIORS[theme] || INTERIORS.astrocarto;
 
   // Ouvre le livre quand il apparaît dans le viewport
   useEffect(() => {
@@ -94,7 +227,6 @@ const PdfBookOpen = ({ testId = 'pdf-book-open' }) => {
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            // délai pour que l'utilisateur voie d'abord la couverture fermée
             setTimeout(() => setOpen(true), 550);
             io.disconnect();
           }
@@ -142,8 +274,7 @@ const PdfBookOpen = ({ testId = 'pdf-book-open' }) => {
             fontStyle: 'italic',
           }}
         >
-          Reliure cuir nuit, dorures Cinzel, 18 pages sur ta géographie astrale.
-          Ce que tu vois est ce que tu reçois par email.
+          {t.heroSub}
         </p>
       </div>
 
@@ -166,18 +297,16 @@ const PdfBookOpen = ({ testId = 'pdf-book-open' }) => {
 
         <div className="pbo-book">
           {/* Pages intérieures visibles quand ouvert */}
-          <BookInterior />
+          <Interior />
 
           {/* Couverture (pivote) */}
           <div className="pbo-cover">
-            <BookCover />
-            {/* dos de la couverture (visible pendant le flip) */}
+            <BookCover theme={theme} />
             <div className="pbo-cover-back" aria-hidden="true">
               <div className="pbo-cover-back-inner" />
             </div>
           </div>
 
-          {/* Tranche dorée (spine) */}
           <div className="pbo-spine" aria-hidden="true" />
         </div>
       </div>
@@ -191,7 +320,7 @@ const PdfBookOpen = ({ testId = 'pdf-book-open' }) => {
         }}
       >
         <Sparkles className="w-3 h-3 inline mr-1.5" />
-        Passe la souris pour rouvrir · Livraison PDF instantanée · 18 pages
+        {t.footerHint}
       </div>
 
       <style>{`
@@ -331,6 +460,89 @@ const PdfBookOpen = ({ testId = 'pdf-book-open' }) => {
           letter-spacing: 0.15em;
           color: rgba(245,238,224,0.75);
         }
+
+        /* ─ Arbre de Vie (thème kabbale) ─ */
+        .pbo-tree {
+          position: relative;
+          height: 145px;
+          margin-bottom: 10px;
+          border: 1px solid rgba(212,175,55,0.22);
+          border-radius: 3px;
+          background:
+            radial-gradient(ellipse at 50% 50%, rgba(212,175,55,0.10), transparent 60%);
+        }
+        .pbo-tree-paths {
+          position: absolute; inset: 0; width: 100%; height: 100%;
+          stroke: rgba(212,175,55,0.55); stroke-width: 0.4; fill: none;
+        }
+        .pbo-seph {
+          position: absolute; width: 12px; height: 12px; border-radius: 50%;
+          background: radial-gradient(circle at 30% 30%, #F5E19A, #D4AF37 60%, #8a6d1a 100%);
+          box-shadow: 0 0 8px rgba(212,175,55,0.7);
+          transform: translate(-50%, -50%);
+        }
+        .pbo-seph-1 { top: 9%; left: 50%; }   /* Kether */
+        .pbo-seph-2 { top: 23%; left: 80%; }  /* Chokmah */
+        .pbo-seph-3 { top: 23%; left: 20%; }  /* Binah */
+        .pbo-seph-4 { top: 42%; left: 80%; }  /* Chesed */
+        .pbo-seph-5 { top: 42%; left: 20%; }  /* Geburah */
+        .pbo-seph-6 { top: 54%; left: 50%;    /* Tiphareth — plus brillant */
+          width: 15px; height: 15px;
+          box-shadow: 0 0 14px rgba(212,175,55,1); }
+        .pbo-seph-7 { top: 70%; left: 80%; }  /* Netzach */
+        .pbo-seph-8 { top: 70%; left: 20%; }  /* Hod */
+        .pbo-seph-9 { top: 82%; left: 50%; }  /* Yesod */
+        .pbo-seph-10 { top: 95%; left: 50%; } /* Malkuth */
+
+        /* ─ Roue karmique (thème karmique) ─ */
+        .pbo-karma {
+          position: relative;
+          height: 140px;
+          margin-bottom: 10px;
+          border: 1px solid rgba(212,175,55,0.22);
+          border-radius: 3px;
+          background: radial-gradient(ellipse at 50% 50%, rgba(212,175,55,0.08), transparent 70%);
+        }
+        .pbo-karma-wheel {
+          position: absolute; inset: 8px;
+          border: 1px solid rgba(212,175,55,0.5);
+          border-radius: 50%;
+        }
+        .pbo-karma-wheel::before {
+          content: '';
+          position: absolute; inset: 8px;
+          border: 1px solid rgba(212,175,55,0.25);
+          border-radius: 50%;
+        }
+        .pbo-karma-axis {
+          position: absolute; top: 8%; bottom: 8%; left: 50%;
+          width: 1px;
+          background: linear-gradient(180deg,
+            rgba(212,175,55,0.05), #D4AF37 20%, #D4AF37 80%, rgba(212,175,55,0.05));
+          transform: translateX(-50%) rotate(28deg);
+          transform-origin: center;
+          filter: drop-shadow(0 0 3px rgba(212,175,55,0.7));
+        }
+        .pbo-karma-node {
+          position: absolute;
+          font-family: 'Cinzel', serif;
+          font-size: 14px;
+          color: #D4AF37;
+          text-shadow: 0 0 6px rgba(212,175,55,0.8);
+        }
+        .pbo-karma-node-n { top: 8%; left: 68%; }
+        .pbo-karma-node-s { bottom: 8%; left: 22%; }
+        .pbo-karma-glyph {
+          position: absolute;
+          font-family: 'Cinzel', serif;
+          font-size: 11px;
+          color: rgba(245,238,224,0.6);
+        }
+        .pbo-karma-glyph-1 { top: 50%; right: -2px; transform: translateY(-50%); }
+        .pbo-karma-glyph-2 { top: 50%; left: -2px; transform: translateY(-50%); }
+        .pbo-karma-glyph-3 { top: -2px; left: 50%; transform: translateX(-50%); }
+        .pbo-karma-glyph-4 { bottom: -2px; left: 50%; transform: translateX(-50%); }
+
         .pbo-caption {
           font-style: italic;
           font-size: 11px;
