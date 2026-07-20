@@ -2237,7 +2237,22 @@ async def api_health_check():
 
 
 if ASSETS_DIR.exists():
-    app.mount('/api/assets', StaticFiles(directory=str(ASSETS_DIR)), name='assets')
+    # SEC-003 : on ne monte PLUS `assets/` en totalité. Seuls les sous-dossiers
+    # de ressources partagées sont exposés. Les PDFs personnels (kabbale,
+    # astrocartographie, pack_karmique, rencontres_ultime) passent par
+    # /api/pdf/download avec un token opaque.
+    # `synastrie_extracts` reste public (lead magnet, UUID de 48 bits agit comme token).
+    for _pub in ('library', 'fonts', 'synastrie_pdf', 'synastrie_extracts'):
+        _p = ASSETS_DIR / _pub
+        if _p.exists():
+            app.mount(f'/api/assets/{_pub}', StaticFiles(directory=str(_p)), name=f'assets_{_pub}')
+
+
+@app.get('/api/pdf/download')
+async def pdf_download_endpoint(session_id: str, token: str):
+    """SEC-003 : téléchargement authentifié par token opaque des PDFs personnels."""
+    from services.pdf_download import download_pdf
+    return await download_pdf(session_id, token)
 
 
 @app.on_event('startup')

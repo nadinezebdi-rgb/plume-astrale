@@ -10,13 +10,14 @@ import asyncio
 import logging
 import uuid
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 
 from config import get_settings
 from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
 from services.kabbale_service import handle_kabbale_webhook
+from middleware.auth import get_optional_user
 from emergentintegrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
@@ -39,7 +40,11 @@ class KabbaleCheckoutPayload(BaseModel):
 
 
 @router.post('/checkout')
-async def kabbale_checkout(payload: KabbaleCheckoutPayload, request: Request):
+async def kabbale_checkout(
+    payload: KabbaleCheckoutPayload,
+    request: Request,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
     """Cree une session Stripe pour le pack Kabbale 39 EUR."""
     settings = get_settings()
     pack = settings.PACKS.get('kabbale_arbre_de_vie')
@@ -85,9 +90,11 @@ async def kabbale_checkout(payload: KabbaleCheckoutPayload, request: Request):
     }
 
     # ─────────────────────────────────────────────────────────────
-    # BYPASS PROMO — si code valide (ex: ADMIN26), on saute Stripe
+    # BYPASS PROMO — SEC-004 : réservé aux admins authentifiés
     # ─────────────────────────────────────────────────────────────
-    if payload.promo_code and try_consume_promo(payload.promo_code):
+    if payload.promo_code and try_consume_promo(
+        payload.promo_code, admin_user=current_user, product='kabbale_arbre_de_vie'
+    ):
         fake_session_id = f'admin-kabbale-{uuid.uuid4().hex[:16]}'
         try:
             sb = get_admin_client()

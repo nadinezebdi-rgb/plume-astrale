@@ -179,10 +179,15 @@ async def handle_astrocartographie_webhook(session_id: str) -> None:
         with open(out_path, 'wb') as f:
             f.write(pdf_bytes)
         pdf_path = f'/api/assets/astrocartographie/{filename}'
-        md['pdf_path'] = pdf_path
+        # SEC-003 : token opaque + URL signée pour le download
+        from services.pdf_download import new_pdf_token, build_signed_pdf_url
+        pdf_token = new_pdf_token()
+        md['pdf_token'] = pdf_token
+        md['pdf_path'] = build_signed_pdf_url(session_id, pdf_token)
+        md['pdf_static_path_legacy'] = pdf_path
         md['pdf_generated_at'] = datetime.now(timezone.utc).isoformat()
         sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
-        logger.info(f"[astrocarto] PDF generated: {pdf_path}")
+        logger.info(f"[astrocarto] PDF generated (signed): {md['pdf_path']}")
     except Exception as e:
         logger.error(f"[astrocarto] PDF gen failed for {session_id}: {e}", exc_info=True)
         return

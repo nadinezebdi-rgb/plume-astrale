@@ -9,12 +9,13 @@ import asyncio
 import logging
 import uuid
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 
 from config import get_settings
 from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
+from middleware.auth import get_optional_user
 from services.astrology_io_service import karmic_analysis
 from services.karma_destin_pdf import generate_karma_destin_pdf
 from services.pdf_delivery import update_tx_pdf_metadata, send_pdf_email
@@ -40,7 +41,11 @@ class KarmaDestinCheckoutPayload(BaseModel):
 
 
 @router.post('/checkout')
-async def karma_destin_checkout(payload: KarmaDestinCheckoutPayload, request: Request):
+async def karma_destin_checkout(
+    payload: KarmaDestinCheckoutPayload,
+    request: Request,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
     """Crée session Stripe pour analyse karmique 24 EUR."""
     settings = get_settings()
     pack = settings.PACKS.get('karma_destin_analysis')
@@ -86,7 +91,7 @@ async def karma_destin_checkout(payload: KarmaDestinCheckoutPayload, request: Re
     }
     
     # BYPASS PROMO
-    if payload.promo_code and try_consume_promo(payload.promo_code):
+    if payload.promo_code and try_consume_promo(payload.promo_code, admin_user=current_user, product='karma_destin_analysis'):
         fake_session_id = f'admin-karma-{uuid.uuid4().hex[:16]}'
         try:
             sb = get_admin_client()

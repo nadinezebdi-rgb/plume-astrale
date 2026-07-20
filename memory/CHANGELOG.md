@@ -1,6 +1,48 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — 🔒 Correctifs sécurité SEC-003 + SEC-004 + Cron + Karmique Luxe
+
+### SEC-003 · MEDIUM — PDFs personnels servis via URL signée
+- **Fichiers** : `backend/services/pdf_download.py` (nouveau), `backend/server.py:2239-2255`, + patch dans 4 services de génération
+- **Approche** :
+  1. Suppression du mount statique global `/api/assets` → seuls `library/`, `fonts/`, `synastrie_pdf/`, `synastrie_extracts/` restent publics
+  2. Token opaque de 32 octets (`secrets.token_urlsafe(32)`) stocké dans `payment_transactions.metadata.pdf_token` au moment de la génération
+  3. Nouveau endpoint `GET /api/pdf/download?session_id=X&token=Y` avec vérification token en temps constant (`hmac.compare_digest`), vérif `payment_status=paid`, streaming `FileResponse`
+  4. Les 4 services (`kabbale_service`, `astrocartographie_service`, `pack_karmique_service`, `rencontres_ultime_service`) génèrent maintenant l'URL signée dans `md['pdf_path']`
+  5. Frontend inchangé : les pages Succès font `${API}${status.pdf_url}` → l'URL signée fonctionne automatiquement
+- **Tests E2E** : 
+  - `/api/assets/kabbale/xxx.pdf` → HTTP 404 ✓
+  - `/api/assets/library/houses/house1_1080.png` → HTTP 200 ✓
+  - `/api/pdf/download` sans token → 422 ; token invalide → 403 ; bon token → 200 + PDF 3.2 MB valide ✓
+
+### SEC-004 · MEDIUM — Bypass promo réservé admin authentifié
+- **Fichiers** : `backend/services/promo_bypass.py` (réécrit), + 7 routes checkout
+- **Approche** :
+  1. Nouvelle signature `try_consume_promo(code, admin_user=None, product=None)` — bypass 100% impossible sans `is_admin=true` en base
+  2. Décrément atomique CAS : `UPDATE promo_codes SET used_count=n+1 WHERE code=X AND used_count=n` — bloque les redemptions concurrentes
+  3. Log par-user dans `promo_code_redemptions` (best-effort)
+  4. Toutes les routes checkout (`kabbale`, `astrocartographie`, `pack_karmique`, `numerologie`, `karma_destin`, `fenetre_rencontre`, `rencontres`) prennent maintenant `Depends(get_optional_user)` et passent l'user à `try_consume_promo`
+- **Test E2E** : `POST /api/kabbale/checkout` avec promo_code sans auth → passe par Stripe normalement (pas de bypass) ✓
+
+### Cron admin · CRON_SECRET obligatoire
+- **Fichier** : `backend/routes/admin.py:445-464`
+- **Avant** : si `CRON_SECRET` non défini → endpoint ouvert (spam Resend possible)
+- **Après** : sans `CRON_SECRET` en env → HTTP 503 explicite ; secret incorrect → HTTP 403
+- **Test E2E** : `POST /api/admin/cron/send-daily-journal` sans secret → 503 "CRON_SECRET not configured" ✓
+
+### Karmique Luxe (P2)
+- **Fichiers** : `backend/services/pdf_luxury_wrap.py`, `backend/services/pack_karmique_service.py:16`
+- Nouveau `generate_pack_karmique_pdf_luxury()` — Pack Karmique 89€ passe automatiquement par le wrapper (cover astral_planete + fin astral_silhouette)
+- Import swap dans le service : `generate_pack_karmique_pdf` pointe maintenant sur la version luxe
+- **Test E2E** : `python -c "..."` → 17 pages, 6.9 MB, PDF valide ✓
+
+### ⚠️ Actions prod requises
+1. Définir `CRON_SECRET=...` sur Railway (sinon les cron jobs sont désactivés)
+2. Anciens PDFs déjà générés restent accessibles via `pdf_static_path_legacy` en metadata (fallback), mais les nouveaux passent par le token
+
+
+
 ## 2026-02-20 — 🔒 Correctifs sécurité SEC-001 + SEC-002 (audit)
 
 ### SEC-001 · CRITIQUE — Webhook Stripe : signature obligatoire
