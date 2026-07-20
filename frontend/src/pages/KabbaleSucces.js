@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Download, ArrowRight, Loader2, Mail } from 'lucide-react';
+import { CheckCircle2, Download, ArrowRight, Loader2, Mail, Globe2, Sparkles } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 
@@ -106,6 +106,91 @@ const KabbaleSucces = () => {
             </p>
           )}
         </div>
+
+        {/* Upsell Astrocartographie — la CB est encore chaude */}
+        {status.pdf_ready && (
+          <div
+            className="plume-glass p-6 md:p-8 mt-14 relative overflow-hidden"
+            data-testid="kabbale-upsell-astrocarto"
+            style={{
+              border: '1px solid rgba(212,175,55,0.4)',
+              boxShadow: '0 30px 80px -30px rgba(212,175,55,0.25)',
+            }}
+          >
+            <div
+              className="absolute top-3 right-3 px-3 py-1 rounded-full text-[10px] uppercase"
+              style={{
+                background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
+                color: '#0A0603',
+                fontFamily: 'Cinzel, serif',
+                letterSpacing: '0.18em',
+                fontWeight: 700,
+              }}
+              data-testid="kabbale-upsell-badge"
+            >
+              -20€ · Duo Soléna
+            </div>
+
+            <p className="text-[10px] uppercase mb-3" style={{ color: '#D4AF37', letterSpacing: '0.32em', fontFamily: 'Cinzel, serif' }}>
+              ✦ Ton chemin continue ✦
+            </p>
+
+            <h3
+              style={{
+                fontFamily: 'Cormorant Garamond, serif',
+                fontWeight: 300,
+                fontSize: 'clamp(24px, 3vw, 32px)',
+                color: '#F5EEE0',
+                lineHeight: 1.15,
+                marginBottom: 10,
+              }}
+              data-testid="kabbale-upsell-title"
+            >
+              Maintenant que tu connais ton âme,{' '}
+              <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>où va-t-elle s&apos;épanouir</em> ?
+            </h3>
+
+            <p
+              className="text-sm md:text-base mb-5"
+              style={{
+                color: 'rgba(227,215,255,0.8)',
+                fontFamily: 'Cormorant Garamond, serif',
+                fontStyle: 'italic',
+                lineHeight: 1.55,
+              }}
+            >
+              Compose ton Astrocartographie personnalisée — 18 pages avec toutes tes lignes
+              planétaires, 3 villes de ton choix et 2 destinations bonus par Soléna.
+            </p>
+
+            <div className="flex items-baseline gap-3 mb-5" data-testid="kabbale-upsell-pricing">
+              <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 40, color: '#D4AF37', fontWeight: 300 }}>
+                29€
+              </span>
+              <span style={{ textDecoration: 'line-through', color: 'rgba(227,215,255,0.4)', fontSize: 20 }}>49€</span>
+              <span className="text-xs" style={{ color: 'rgba(212,175,55,0.85)', letterSpacing: '0.15em' }}>
+                · CODE APPLIQUÉ AUTO
+              </span>
+            </div>
+
+            <p className="text-[11px] mb-5" style={{ color: 'rgba(227,215,255,0.55)', lineHeight: 1.55 }}>
+              <Sparkles className="w-3 h-3 inline mr-1" style={{ color: '#D4AF37' }} />
+              Offre exclusive réservée aux âmes qui viennent de recevoir leur Arbre de Vie.
+              Le code KABBALE20 est appliqué automatiquement au checkout.
+            </p>
+
+            <Link
+              to="/astrocartographie?discount=KABBALE20"
+              className="plume-btn-primary w-full justify-center"
+              data-testid="kabbale-upsell-cta"
+              style={{ display: 'inline-flex' }}
+            >
+              <Globe2 className="w-4 h-4" strokeWidth={1.5} />
+              Composer mon rapport — 29€
+              <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

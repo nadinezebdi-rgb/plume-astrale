@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Coins, Sparkles, Edit3, ArrowRight, LogOut } from 'lucide-react';
 import SEO from '@/components/SEO';
+import BundleCard from '@/components/BundleCard';
 
 const AuthenticatedHome = () => {
   const navigate = useNavigate();
@@ -49,6 +50,11 @@ const AuthenticatedHome = () => {
             }}>
               Votre espace de navigation
             </p>
+          </div>
+
+          {/* Bundle Découverte Soléna — offre irrésistible post-inscription */}
+          <div style={{ marginBottom: 40 }}>
+            <BundleCard testId="authenticated-home-bundle" />
           </div>
 
           {/* Crédit et profil */}

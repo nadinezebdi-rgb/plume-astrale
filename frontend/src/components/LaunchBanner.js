@@ -1,13 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// Durée totale de l'offre = 48h à partir du 1er affichage (par visiteur, cookie-less
+// via localStorage). Reset automatique quand la fenêtre expire → nouveau cycle 48h.
+const OFFER_HOURS = 48;
+const STORAGE_KEY = 'plume_offer_deadline_v1';
+
+function getDeadline() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const d = parseInt(raw, 10);
+      if (!Number.isNaN(d) && d > Date.now()) return d;
+    }
+  } catch { /* localStorage disabled */ }
+  const d = Date.now() + OFFER_HOURS * 3600 * 1000;
+  try { localStorage.setItem(STORAGE_KEY, String(d)); } catch { /* noop */ }
+  return d;
+}
+
+function fmt(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+}
+
 /**
- * Bandeau offre de lancement — cliquable (→ /inscription), texte défilant.
- * Countdown 48h retiré (fake urgency = red flag conversion). Remplacé par
- * code promo activable sans pression temporelle.
+ * Bandeau offre de lancement — cliquable (→ /inscription), texte défilant,
+ * countdown 48h dynamique par visiteur (localStorage, cycle auto-reset).
  */
 const LaunchBanner = () => {
   const navigate = useNavigate();
+  const [deadline] = useState(() => (typeof window !== 'undefined' ? getDeadline() : Date.now() + OFFER_HOURS * 3600 * 1000));
+  const [remaining, setRemaining] = useState(() => deadline - Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const r = deadline - Date.now();
+      if (r <= 0) {
+        // Cycle terminé → on relance immédiatement 48h (soft evergreen)
+        try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
+        setRemaining(OFFER_HOURS * 3600 * 1000);
+      } else {
+        setRemaining(r);
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [deadline]);
 
   const segment = (
     <span
@@ -21,10 +63,13 @@ const LaunchBanner = () => {
         paddingRight: 64,
       }}
     >
-      ✦&nbsp;&nbsp;20 CRÉDITS OFFERTS À L&apos;INSCRIPTION&nbsp;·&nbsp;CODE&nbsp;
+      ✦&nbsp;&nbsp;20 CRÉDITS OFFERTS · CODE&nbsp;
       <strong style={{ fontWeight: 800, color: '#F4D98C', letterSpacing: '0.18em' }}>PLUME2026</strong>
       &nbsp;·&nbsp;
-      <strong style={{ fontWeight: 800, color: '#F4D98C' }}>VALABLE SUR TOUT LE SITE</strong>
+      <span style={{ color: '#FFD87A' }}>EXPIRE DANS</span>&nbsp;
+      <strong data-testid="launch-banner-countdown" style={{ fontWeight: 800, color: '#F4D98C', letterSpacing: '0.12em', fontVariantNumeric: 'tabular-nums' }}>
+        {fmt(remaining)}
+      </strong>
       &nbsp;&nbsp;✦
     </span>
   );

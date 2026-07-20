@@ -362,6 +362,21 @@ const AstrocartographieSales = () => {
                   </div>
                 </div>
               )}
+              {promoCode === 'KABBALE20' && (
+                <div className="mb-4 p-3 rounded-xl text-center" style={{
+                  background: 'rgba(212,175,55,0.12)',
+                  border: '1px solid rgba(212,175,55,0.4)',
+                }} data-testid="astrocarto-kabbale20-banner">
+                  <div className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.28em' }}>
+                    ✦ Duo Soléna · Post-Kabbale ✦
+                  </div>
+                  <div className="mt-1" style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 18, color: '#F5EEE0' }}>
+                    <span style={{ textDecoration: 'line-through', color: 'rgba(227,215,255,0.4)', marginRight: 8 }}>49€</span>
+                    <span style={{ color: '#D4AF37' }}>29€</span>
+                    <span style={{ fontSize: 12, marginLeft: 8, color: 'rgba(227,215,255,0.65)' }}>· 20€ de réduction</span>
+                  </div>
+                </div>
+              )}
               <div className="space-y-4">
                 <div>
                   <label className="text-xs uppercase" style={{ color: 'rgba(212,175,55,0.65)', letterSpacing: '0.2em' }}>
@@ -381,6 +396,7 @@ const AstrocartographieSales = () => {
                 <button onClick={handleCheckout} disabled={loading} className="plume-btn-primary w-full justify-center" data-testid="astrocarto-checkout-btn">
                   {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirection...</> :
                     promoCode === 'PLUME15' ? <>Payer 41,65€ (offre Plume) <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></> :
+                    promoCode === 'KABBALE20' ? <>Payer 29€ (Duo Soléna) <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></> :
                     promoCode.trim() ? <>Déverrouiller mon rapport <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></>
                                      : <>Payer 49€ et recevoir mon rapport <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></>}
                 </button>
