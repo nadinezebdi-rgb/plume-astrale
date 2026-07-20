@@ -1,0 +1,61 @@
+{
+  "summary": "Iteration 49 — Non-regression sweep after the user emptied a Supabase Studio SQL snippet 'Row-Level Security for Sales Access'. GREP confirmed 0 references to the 'sales' table anywhere in /app/backend or /app/frontend, so nothing app-side depends on it. Ran a targeted regression test suite covering every critical Plume Astrale flow: 10/10 backend pytest cases PASS (health, astrocarto cities/search, astrocarto checkout Stripe LIVE, astrocarto checkout PLUME15 (-15%), astrocarto status 404 on unknown, astrocarto checkout 400 on wrong-cities-count, tarot/oui-non enrichi, oracle enrichi, astrosexo/personal enrichi with Vénus/Mars/Lune, compatibility/generate PDF base64 magic %PDF-1). One flaky 502 (Cloudflare) on the first astrosexo run — retested in isolation and PASS in 2.15s. Frontend Playwright smoke: homepage / renders with 'Soléna' hero text, /astrocartographie exposes data-testid='astrocartographie-page', /outils/astrosexo exposes data-testid='astrosexo-page' AND after clicking the first sign the block data-testid='astrosexo-perso-block' becomes visible. Zero console errors on the tested pages. CONCLUSION: no regression whatsoever from the SQL Studio snippet incident.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/astrosexo/personal", "issue": "One transient Cloudflare 502 during a heavy back-to-back test batch. Direct curl afterwards responds 200 in 3.8s. Root cause is upstream infrastructure (edge cluster preview-11), not the app. Retest in isolation PASSES."},
+      {"endpoint": "self_heal (background task)", "issue": "Log warning: 'Unexpected error retrieving session status: 1 validation error for CheckoutStatusResponse - dict_type' — the CheckoutStatusResponse pydantic model in emergentintegrations expects a dict for one field but receives another type when Stripe API returns for a real cs_live session. Non-blocking (task runs in background) but pollutes logs. Should be surfaced to emergentintegrations maintainers or wrapped in try/except at the caller."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "flow_verdict": {
+    "health": "PASS",
+    "astrocarto_cities_search_tokyo": "PASS — 3 items returned with lat/lon",
+    "astrocarto_checkout_stripe_live_no_promo": "PASS — cs_live_* session_id + checkout.stripe.com URL",
+    "astrocarto_checkout_PLUME15_discount": "PASS — session created, status endpoint returns row (discount_percent=15 in metadata)",
+    "astrocarto_status_unknown_session_404": "PASS",
+    "astrocarto_checkout_wrong_cities_count_400": "PASS",
+    "tarot_oui_non_enrichi": "PASS — reponse_enrichie:true, text >500 chars, ends with '?'",
+    "oracle_enrichi": "PASS — enrichi:true, answer >500 chars, ends with '?'",
+    "astrosexo_personal_enrichi": "PASS — enrichi:true + venus_sign/mars_sign/moon_sign + analysis >2000 chars (Vénus Bélier, Mars Poissons, Lune Capricorne)",
+    "compatibility_generate_pdf_base64": "PASS — data:application/pdf;base64,%PDF-1.4 magic verified",
+    "frontend_home_solena_hero": "PASS",
+    "frontend_astrocartographie_page_testid": "PASS",
+    "frontend_astrosexo_page_testid": "PASS",
+    "frontend_astrosexo_perso_block_after_sign_click": "PASS — 12 signs found, clicking sign-0 (Bélier) makes astrosexo-perso-block visible with CTA 'CRÉER MON COMPTE GRATUIT'"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration49_non_regression_post_sql_snippet.py",
+    "/app/test_reports/pytest/iteration49.xml",
+    "/app/test_reports/pytest/iteration49_astrosexo_retry.xml"
+  ],
+  "action_items": [
+    "None required — the SQL snippet incident had ZERO impact on the app. The 'sales' table isn't referenced anywhere in the Plume Astrale codebase (grep confirmed).",
+    "OPTIONAL — Wrap services/self_heal.py CheckoutStatusResponse parsing in a try/except to silence the recurring 'dict_type' pydantic warning when Stripe returns unusual payload shapes for cs_live_* sessions.",
+    "OPTIONAL — Add retries with backoff around the /api/astrosexo/personal call chain (natal_chart + love_languages + personality_analysis + enrich_and_ask make 3-4 external API calls sequentially — a Cloudflare 502 can hit at any point). Not urgent since single-call latency is fine (~3.8s)."
+  ],
+  "critical_code_review_comments": [
+    "Confirmed: 0 references to 'sales' in /app/backend/**/*.py and /app/frontend/**/*.js — the user's fear was unfounded, only a saved SQL editor snippet was emptied, no DROP/DELETE was executed against the database.",
+    "routes/astrocartographie.py:143 uses try_consume_promo(promo) inside the same block that also handles PLUME15 — the code correctly separates PLUME15 (partial discount 15%) from admin-bypass promos (full free via promo_codes table). Clean design.",
+    "server.py:1780 /api/oracle and server.py:1828 /api/tarot/oui-non both wrap enrich_and_ask in try/except so a GPT call failure gracefully degrades to the base reading. Good defensive coding.",
+    "routes/astrosexo.py:99 calls enrich_and_ask WITHOUT a try/except — if GPT is down the endpoint bubbles a 500. Consider wrapping it in try/except like the other enriched endpoints. Not blocking today.",
+    "server.py:1272 /api/compatibility/generate correctly returns a data:application/pdf;base64,... URL — no MongoDB _id leakage, no session-side effects, response fully synchronous. LGTM."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration49_non_regression_post_sql_snippet.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 pytest — 9/10 on the first pass with 1 transient 502 on astrosexo, then 10/10 after retry)",
+    "frontend": "100% (4/4 smoke checks — homepage Soléna hero, /astrocartographie testid, /outils/astrosexo testid, perso-block visible after sign click)"
+  },
+  "test_credentials": "Admin admin@plume-astrale.fr / PlumeAdmin2026 available but not needed for this regression pass (all tested endpoints are public — Stripe checkout, tarot, oracle, astrosexo/personal, compatibility/generate, astrocarto).",
+  "seed_data_creation": "3 TEST_-prefixed payment_transactions rows inserted in Supabase (TEST_iter49_*, TEST_plume15_*, TEST_bad_* @plume-astrale.fr) — all in status='initiated' since no real Stripe payment was completed. Safe to prune anytime.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iter 49 is a global non-regression check post SQL-snippet incident. All critical flows are green. The 'sales' table story is a false alarm — 0 code references. Test suite at /app/backend/tests/test_iteration49_non_regression_post_sql_snippet.py (10 tests, ~130s incl. one AI-slow call) — reuse for future regression sweeps by simply re-running pytest. Frontend smoke covers the 2 requested pages (astrocarto + astrosexo) with the sign-click reveal flow validated.",
+  "rca_of_the_issue": "N/A — no bug to fix. The user emptied a saved SQL snippet in Supabase Studio's SQL Editor sidebar; snippets are UI-only saved queries and have zero effect on the underlying database schema. The 'sales' table + its RLS policy 'sales_select_own' still exist in the DB (unchanged) and are not touched by any Plume Astrale code path (grep = 0). Full-regression run confirms 100% of critical flows still work."
+}

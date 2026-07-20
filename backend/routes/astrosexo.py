@@ -96,12 +96,22 @@ async def astrosexo_personal(payload: AstroSexoRequest):
     base_text = ' '.join(base_parts)
 
     # Enrichir avec la couche narrative (long + question finale)
-    enriched = await enrich_and_ask(
-        base_text,
-        context=f'astrosexo_personal_{venus_sign}_{mars_sign}',
-        first_name=first_name,
-        target_length='long',
-    )
+    # Fallback défensif : si OpenAI/Supabase tombe, on renvoie le texte brut
+    # afin de ne jamais casser l'endpoint avec un 500.
+    enriched = base_text
+    enrichi_flag = False
+    try:
+        enriched = await enrich_and_ask(
+            base_text,
+            context=f'astrosexo_personal_{venus_sign}_{mars_sign}',
+            first_name=first_name,
+            target_length='long',
+        )
+        enrichi_flag = bool(enriched) and enriched != base_text
+    except Exception as e:
+        logger.error(f'[astrosexo] enrich_and_ask failed, fallback to raw base_text: {e}')
+        enriched = base_text
+        enrichi_flag = False
 
     return {
         'success': True,
@@ -110,5 +120,5 @@ async def astrosexo_personal(payload: AstroSexoRequest):
         'mars_sign': mars_sign,
         'moon_sign': moon_sign,
         'analysis': enriched,
-        'enrichi': True,
+        'enrichi': enrichi_flag,
     }

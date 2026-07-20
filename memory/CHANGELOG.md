@@ -1,6 +1,24 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — Session cleanup post-migration caches persistants
+
+### 🛡️ Wrap défensif AstroSexo (P0)
+- ✅ `/app/backend/routes/astrosexo.py` : appel à `enrich_and_ask()` désormais entouré d'un `try/except`.
+- Si OpenAI (ou toute autre couche d'enrichissement) échoue, on retourne le `base_text` brut avec `enrichi: false` au lieu d'un HTTP 500.
+- Test curl sur `POST /api/astrosexo/personal` (Paris, 1990-06-15 14:30) → 200 OK, Vénus=Taurus, Mars=Aries, Lune=Pisces, texte enrichi 3099 chars.
+
+### 🔥 Warmup translation_cache post-migration (P1)
+- ✅ Relance de `python3 /app/backend/scripts/warmup_translation_cache.py` en arrière-plan (PID 8398, logs `/tmp/warmup.log`).
+- Pré-remplit la table Supabase persistante `translation_cache` avec ~500 traductions FR des réponses API v3 (archetypes, karmic_analysis, numerology_core, etc.).
+- Chaque entrée ~2-3s via GPT-5.4 → temps total estimé ~25 min.
+
+### 🗑️ Suppression table `sales` inutilisée (P1)
+- ⚠️ DDL non exécutable via l'API Supabase REST : instruction fournie à l'utilisateur d'exécuter manuellement `DROP TABLE IF EXISTS sales;` dans le SQL Editor de Supabase Studio.
+- Table vide (0 lignes) et zéro référence dans le code — aucun impact fonctionnel.
+
+
+
 ## 2026-02-16 (suite)
 
 ### Session 14 — 🎨 Polices Cinzel/Cormorant + effet Fade-In enrichissement
