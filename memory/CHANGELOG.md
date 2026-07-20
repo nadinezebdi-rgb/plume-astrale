@@ -1,6 +1,34 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — 🚨 Bug fix : Thème Natal PDF respecte enfin le wrapper luxe
+
+### Contexte
+Nadine a généré son Thème Natal depuis `/mon-compte` et a reçu un PDF **de 36 pages en fond blanc avec footer "Généré par Astrology API"** — la version legacy non wrappée.
+
+### Root cause
+- `POST /api/astrology/v3/natal/pdf` (route `astrology_v3.py:318`) appelait **directement** `aio.natal_report_pdf()` qui délègue la génération à l'API externe `astrology-api.io/pdf/natal-report`
+- Ce PDF vient tout droit du prestataire externe → **jamais transmis à `natal_pdf_v2`** → jamais wrappé luxe
+- Contrairement à `/api/pdf/generate` et `/api/pdf/pro-horoscope` qui, eux, passent bien par `generate_manuscrit_pdf` → adapter → `natal_pdf_v2`
+
+### Fix
+- **Fichier** : `backend/routes/astrology_v3.py:318-408` réécrit
+- Nouveau pipeline :
+  1. `aio.natal_chart(bd, name)` → récupère positions planétaires (JSON)
+  2. `aio.extract_planets()` + `extract_ascendant_sign_en()` → normalise signes
+  3. Adapte au format `user_data` legacy (sun_sign/moon_sign/venus_sign/mars_sign/ascendant_sign en français)
+  4. `generate_manuscrit_pdf(user_data)` → `natal_pdf_v2` → **PDF luxe cover nuit + Cinzel + Cormorant + signature Soléna**
+- Paywall (20 crédits) + refund automatique conservés
+
+### Validation
+- Test in-process : PDF luxe = **23 pages, 268 KB, signature Soléna présente, PAS de footer Astrology API** ✓
+- vs ancien PDF Nadine : 36 pages, fond blanc, footer "Généré par Astrology API" ✗
+
+### 💡 Impact utilisateur
+À partir du prochain redéploiement en prod, TOUS les Thèmes Natal générés depuis `/mon-compte` recevront la version luxe Dior/Cartier.
+
+
+
 ## 2026-02-20 — 🎨 Vitrine premium alignée : Kabbale + Karmique + Live Sales
 
 ### `PdfBookOpen` — refactor multi-thèmes
