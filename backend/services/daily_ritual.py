@@ -128,7 +128,7 @@ async def get_daily_insight(
         logger.warning(f"Cache read failed: {e}")
 
     # Generer via Plume IA (OpenAI natif)
-    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ.get("EMERGENT_LLM_KEY") or os.environ.get("OPENAI_API_KEY")
     if not api_key:
         return {"insight": "Les astres te chuchotent : sois present a ce qui est, ce jour t'appartient.", "cached": False}
 
@@ -153,25 +153,25 @@ async def get_daily_insight(
                 sun_sign_hint = sg
                 break
 
-    prompt = f"""Genere un message du jour pour {name} (Soleil en {sun_sign_hint}, humeur du matin: {mood_label or 'inconnue'}).
+    prompt = f"""Génère un rituel du jour personnalisé pour {name} (Soleil en {sun_sign_hint}, humeur du matin : {mood_label or 'inconnue'}).
 Date : {date.today().strftime('%d %B %Y')}.
 Phase lunaire actuelle : {moon_phase} — {moon_theme}
 
 Contraintes :
-- Une seule reponse, 60 a 100 mots maximum.
-- Voix Plume : poetique, francaise, douce mais precise, jamais fataliste.
-- Donne une invitation concrete pour la journee (1 action, 1 attention).
+- **250 à 350 mots** (une lecture complète, pas courte).
+- Voix Soléna : poétique, française, sensuelle, ancrée dans le réel — jamais fataliste, jamais new age.
+- Structure implicite : (1) ce que ta journée révèle, (2) une invitation concrète (1 action, 1 attention), (3) une image évocatrice, (4) une question finale engageante.
+- Tutoiement systématique.
 - Pas de salutation type "Bonjour {name}" — commence directement par l'insight.
-- Termine par une image evocatrice.
-- Pas d'emoji.
-- Pas de liste a puces."""
+- Pas d'emoji, pas de liste à puces, pas de markdown.
+- **TERMINE OBLIGATOIREMENT PAR UNE QUESTION** qui invite à l'introspection (ex : « Qu'est-ce qui, aujourd'hui, mérite ta pleine attention ? »)."""
 
     try:
         chat = LlmChat(
             api_key=api_key,
             session_id=f"daily-{user_id}-{today}",
-            system_message="Tu es Plume, oracle astrologique francais. Tu generes des messages du jour courts, poetiques, ancres dans le reel.",
-        ).with_model("openai", "gpt-4o-mini")
+            system_message="Tu es Soléna, guide astrologique française chez Plume Astrale. Tu écris uniquement en FRANÇAIS impeccable avec tous les accents. Ton ton est poétique, sensuel, ancré. Tu tutoies systématiquement.",
+        ).with_model("openai", "gpt-5.4")
 
         response = await chat.send_message(UserMessage(text=prompt))
         insight = response.strip()
@@ -315,7 +315,7 @@ async def journal_entry(
     mood: Optional[str] = None,
     birth_data: Optional[Dict] = None,
 ) -> Dict[str, Any]:
-    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ.get("EMERGENT_LLM_KEY") or os.environ.get("OPENAI_API_KEY")
     if not api_key:
         return {"success": False, "message": "Service IA indisponible."}
 

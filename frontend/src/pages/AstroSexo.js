@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Flame, Waves, Wind, Mountain, ArrowRight, Sparkles } from 'lucide-react';
+import { Heart, Flame, Waves, Wind, Mountain, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
+import axios from 'axios';
 import SEO from '../components/SEO';
 import { SIGN_LIST } from '../lib/astrosexo-data';
 import { event as trackEvent } from '../lib/analytics';
+import { useAuth } from '../context/AuthContext';
+import { EnrichedBadge } from '../components/EnrichedBadge';
+import { FadeInEnrichedText } from '../components/FadeInEnrichedText';
 
+const API = process.env.REACT_APP_BACKEND_URL;
 const ELEMENT_ICONS = { Feu: Flame, Terre: Mountain, Air: Wind, Eau: Waves };
 const ELEMENT_COLORS = {
   Feu: '#E67E5C', Terre: '#A38B5F', Air: '#8DB4C9', Eau: '#7C93C8',
@@ -12,6 +17,12 @@ const ELEMENT_COLORS = {
 
 export default function AstroSexo() {
   const [selected, setSelected] = useState(null);
+  const [personal, setPersonal] = useState(null);
+  const [loadingPerso, setLoadingPerso] = useState(false);
+  const [errorPerso, setErrorPerso] = useState(null);
+  const { user, isAuthenticated } = useAuth();
+
+  const hasNatal = !!(user && user.birth_date && user.birth_time && user.latitude && user.longitude);
 
   const handleSelect = (sign) => {
     setSelected(sign);
@@ -19,6 +30,31 @@ export default function AstroSexo() {
     setTimeout(() => {
       document.getElementById('astrosexo-reveal')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
+  };
+
+  const handlePerso = async () => {
+    setErrorPerso(null);
+    setLoadingPerso(true);
+    try {
+      const r = await axios.post(`${API}/api/astrosexo/personal`, {
+        first_name: user.prenom || user.first_name || '',
+        birth_date: user.birth_date,
+        birth_time: user.birth_time,
+        latitude: user.latitude,
+        longitude: user.longitude,
+        city: user.birth_city || '',
+        country_code: user.birth_country || 'FR',
+      });
+      setPersonal(r.data);
+      trackEvent('astrosexo_personal_generated', { venus: r.data?.venus_sign, mars: r.data?.mars_sign });
+      setTimeout(() => {
+        document.getElementById('astrosexo-personal')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 200);
+    } catch (e) {
+      setErrorPerso(e.response?.data?.detail || 'Impossible de générer ton analyse pour le moment.');
+    } finally {
+      setLoadingPerso(false);
+    }
   };
 
   return (
@@ -105,6 +141,100 @@ export default function AstroSexo() {
             <p className="text-[11px] italic mt-2" style={{ color: 'rgba(184,176,200,0.6)' }}>
               ✦ L&apos;analyse par signe solaire est une porte d&apos;entrée. Pour une lecture véritablement précise, votre thème natal complet et celui de votre partenaire révèlent bien plus.
             </p>
+          </section>
+        )}
+
+        {/* Analyse personnalisée (Vénus × Mars × Lune du natal) */}
+        {selected && (
+          <section className="rounded-2xl p-6 sm:p-8 mb-10 text-center" style={{
+            background: 'linear-gradient(135deg, rgba(212,175,55,0.06), rgba(17,22,37,0.6))',
+            border: '1px solid rgba(212,175,55,0.25)',
+          }} data-testid="astrosexo-perso-block">
+            <Sparkles className="w-6 h-6 mx-auto mb-3" strokeWidth={1.4} style={{ color: '#D4AF37' }} />
+            <h3 className="text-2xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 300 }}>
+              Envie d&apos;une analyse <em style={{ color: '#D4AF37' }}>vraiment personnalisée</em> ?
+            </h3>
+            <p className="text-sm mb-6 max-w-xl mx-auto" style={{ color: 'rgba(184,176,200,0.85)', lineHeight: 1.65 }}>
+              Ton signe solaire est une porte ; ta Vénus, ton Mars et ta Lune racontent l&apos;intime dans le détail.
+              Génère ton analyse sensuelle basée sur ton thème natal complet.
+            </p>
+            {isAuthenticated && hasNatal ? (
+              <button
+                onClick={handlePerso}
+                disabled={loadingPerso}
+                className="inline-flex items-center gap-2 px-7 py-3 rounded-full transition-all"
+                style={{
+                  background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
+                  color: '#111625',
+                  fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.14em',
+                  textTransform: 'uppercase', fontWeight: 600,
+                }}
+                data-testid="astrosexo-perso-btn"
+              >
+                {loadingPerso ? <><Loader2 className="w-4 h-4 animate-spin" /> Génération...</> :
+                                 <>✨ Générer mon analyse perso</>}
+              </button>
+            ) : !isAuthenticated ? (
+              <Link
+                to="/inscription?next=/outils/astrosexo"
+                className="inline-flex items-center gap-2 px-7 py-3 rounded-full"
+                style={{
+                  background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
+                  color: '#111625',
+                  fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.14em',
+                  textTransform: 'uppercase', fontWeight: 600,
+                }}
+                data-testid="astrosexo-perso-signup"
+              >
+                Créer mon compte gratuit <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <Link
+                to="/mon-compte"
+                className="inline-flex items-center gap-2 px-7 py-3 rounded-full"
+                style={{
+                  background: 'transparent',
+                  color: '#D4AF37',
+                  border: '1px solid rgba(212,175,55,0.55)',
+                  fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.14em',
+                  textTransform: 'uppercase', fontWeight: 600,
+                }}
+                data-testid="astrosexo-perso-natal"
+              >
+                Compléter mon thème natal <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
+            {errorPerso && (
+              <p className="mt-4 text-xs" style={{ color: '#F87171' }} data-testid="astrosexo-perso-error">{errorPerso}</p>
+            )}
+          </section>
+        )}
+
+        {/* Résultat analyse personnalisée */}
+        {personal && personal.analysis && (
+          <section id="astrosexo-personal" className="rounded-2xl p-6 sm:p-10 mb-10" style={{
+            background: 'rgba(26,32,53,0.65)',
+            border: '1px solid rgba(212,175,55,0.4)',
+            boxShadow: '0 12px 40px rgba(212,175,55,0.15)',
+          }} data-testid="astrosexo-personal-result">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <EnrichedBadge variant="default" />
+              <span className="text-[10px]" style={{ color: 'rgba(184,176,200,0.55)', letterSpacing: '0.14em', fontFamily: 'Cinzel, serif' }}>
+                {personal.venus_sign && `VÉNUS ${personal.venus_sign.toUpperCase()}`}
+                {personal.mars_sign && ` · MARS ${personal.mars_sign.toUpperCase()}`}
+                {personal.moon_sign && ` · LUNE ${personal.moon_sign.toUpperCase()}`}
+              </span>
+            </div>
+            <FadeInEnrichedText
+              text={personal.analysis}
+              enabled={!!personal.enrichi}
+              speed={140}
+              style={{
+                color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif',
+                fontSize: 16, lineHeight: 1.75,
+              }}
+              dataTestid="astrosexo-personal-text"
+            />
           </section>
         )}
 

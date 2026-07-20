@@ -590,6 +590,7 @@ async def synastry_report(
         'options': {'language': language, 'house_system': 'P'},
         'report_options': {'language': language},
     })
+synastry_report = fr_polish('synastry_report')(synastry_report)
 
 
 # ════════ SOLAR RETURN (rapport annuel d'anniversaire) ════════
@@ -600,6 +601,7 @@ async def solar_return(birth_data: Dict[str, Any], return_year: int, name: str =
         'return_year': int(return_year),
         'options': {'language': language, 'house_system': 'P'},
     })
+solar_return = fr_polish('solar_return')(solar_return)
 
 
 async def solar_return_report(birth_data: Dict[str, Any], return_year: int, name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
@@ -611,6 +613,7 @@ async def solar_return_report(birth_data: Dict[str, Any], return_year: int, name
         'report_options': {'language': language},
         'include_life_areas': True,
     })
+solar_return_report = fr_polish('solar_return_report')(solar_return_report)
 
 
 # ════════ TRANSITS DU JOUR ════════

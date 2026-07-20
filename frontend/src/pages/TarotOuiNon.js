@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft, ArrowRight, Coins, LogIn, Sparkles, Star } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
+import { EnrichedBadge } from '@/components/EnrichedBadge';
+import { FadeInEnrichedText } from '@/components/FadeInEnrichedText';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -127,7 +129,7 @@ const TarotOuiNon = () => {
                 Connexion requise
               </h2>
               <p className="text-sm mb-1" style={{ color: 'var(--pa-muted)' }}>Connectez-vous pour accéder au Tarot Oui&nbsp;/&nbsp;Non.</p>
-              <p className="text-sm mb-7" style={{ color: '#D4AF37' }}>1er tirage gratuit · puis 2 crédits · 20 crédits offerts à l'inscription</p>
+              <p className="text-sm mb-7" style={{ color: '#D4AF37' }}>1er tirage gratuit · puis 5 crédits · 20 crédits offerts à l&apos;inscription</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-7 py-3 rounded-full transition-all duration-300 hover:bg-[rgba(212,175,55,0.08)]" style={{ border: '1px solid rgba(212,175,55,0.5)', color: '#D4AF37', letterSpacing: '0.1em' }}>
                   Se connecter
@@ -157,7 +159,7 @@ const TarotOuiNon = () => {
             <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--pa-surface)', border: '1px solid var(--pa-divider)' }}>
               <Coins className="w-9 h-9 mx-auto mb-5" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
               <h2 className="text-xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Crédits insuffisants</h2>
-              <p className="text-sm mb-1" style={{ color: 'var(--pa-muted)' }}>Ce tirage coûte <span style={{ color: '#D4AF37', fontWeight: 600 }}>2 crédits</span>.</p>
+              <p className="text-sm mb-1" style={{ color: 'var(--pa-muted)' }}>Ce tirage coûte <span style={{ color: '#D4AF37', fontWeight: 600 }}>5 crédits</span>.</p>
               <p className="text-sm mb-7" style={{ color: 'var(--pa-muted)' }}>Votre solde : <span style={{ color: '#D4AF37' }}>{creditBalance} crédits</span></p>
               <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 mx-auto text-xs uppercase tracking-widest px-7 py-3 rounded-full transition-all duration-300" style={{ border: '1px solid #D4AF37', color: '#111625', background: '#D4AF37', letterSpacing: '0.1em', fontWeight: 600 }}>
                 Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
@@ -197,7 +199,7 @@ const TarotOuiNon = () => {
           <div className="mb-8 flex items-center gap-2">
             <Coins className="w-4 h-4 flex-shrink-0" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
             <span className="text-xs" style={{ color: 'var(--pa-accent)', letterSpacing: '0.08em' }}>
-              {freeUsed === false ? '✦ 1er tirage offert' : `2 crédits par tirage · Solde : ${creditBalance} crédits`}
+              {freeUsed === false ? '✦ 1er tirage offert' : `5 crédits par tirage · Solde : ${creditBalance} crédits`}
             </span>
           </div>
 
@@ -238,7 +240,7 @@ const TarotOuiNon = () => {
               {loading ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Consultation des Arcanes...</>
               ) : (
-                <><Sparkles className="w-4 h-4" /> {freeUsed === false ? 'Tirer une carte (gratuit)' : 'Tirer une carte (2 crédits)'}</>
+                <><Sparkles className="w-4 h-4" /> {freeUsed === false ? 'Tirer une carte (gratuit)' : 'Tirer une carte (5 crédits)'}</>
               )}
             </button>
           </div>
@@ -310,12 +312,19 @@ const TarotOuiNon = () => {
                 {/* Message des Arcanes */}
                 <div className="fade-slide-up fade-delay-2 rounded-2xl p-6 md:p-8 mb-8"
                      style={{ background: 'var(--pa-surface)', border: `1px solid ${oc.border}` }}>
-                  <p className="text-xs tracking-widest uppercase mb-4" style={{ color: oc.color, letterSpacing: '0.14em' }}>
-                    ✦ Message des Arcanes
-                  </p>
-                  <p className="text-base leading-loose" style={{ color: 'var(--pa-body)', lineHeight: '1.95', fontFamily: 'Cormorant Garamond, serif', fontSize: '17px' }}>
-                    {result.reponse}
-                  </p>
+                  <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+                    <p className="text-xs tracking-widest uppercase" style={{ color: oc.color, letterSpacing: '0.14em' }}>
+                      ✦ Message des Arcanes
+                    </p>
+                    <EnrichedBadge variant="compact" visible={!!result.reponse_enrichie} />
+                  </div>
+                  <FadeInEnrichedText
+                    text={result.reponse}
+                    enabled={!!result.reponse_enrichie}
+                    speed={160}
+                    style={{ color: 'var(--pa-body)', lineHeight: '1.95', fontFamily: 'Cormorant Garamond, serif', fontSize: '17px' }}
+                    dataTestid="tarot-response-text"
+                  />
                 </div>
 
                 {/* Énergie de la carte */}

@@ -10,12 +10,15 @@ from services import library_images as libimg
 
 logger = logging.getLogger(__name__)
 
-# Colors
-GOLD = HexColor('#C5A059')
-DARK_PURPLE = HexColor('#0F0518')
-LIGHT_PURPLE = HexColor('#1A0B2E')
-CREAM = HexColor('#F3E5AB')
-LIGHT_TEXT = HexColor('#E0D9F6')
+# Colors — alignés sur la charte Plume Astrale unifiée (services/pdf_theme.py)
+from services.pdf_theme import (
+    NIGHT as DARK_PURPLE,        # #111625 (remplace #0F0518)
+    NIGHT_SOFT as LIGHT_PURPLE,   # #1A2035 (remplace #1A0B2E)
+    GOLD,                          # #D4AF37 (remplace #C5A059)
+    CREAM,                         # #F5EEE0 (remplace #F3E5AB)
+    LAVENDER as LIGHT_TEXT,        # #E3D7FF (remplace #E0D9F6)
+    register_fonts, font as _theme_font,
+)
 
 class ManuscritPDFGenerator:
     """Generate beautiful PDF manuscripts"""

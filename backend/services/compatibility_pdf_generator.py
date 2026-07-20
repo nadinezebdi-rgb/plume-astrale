@@ -12,13 +12,16 @@ from reportlab.pdfgen import canvas
 
 from services import library_images as libimg
 
-# ═══════════════════ COULEURS ═══════════════════
-DEEP_PURPLE = HexColor('#0C0918')
-MEDIUM_PURPLE = HexColor('#1E1A33')
-GOLD = HexColor('#C5A059')
-CREAM = HexColor('#F0E6D3')
-LIGHT_TEXT = HexColor('#B8B0C8')
-ROSE = HexColor('#E8A0BF')
+# ═══════════════════ COULEURS — Charte Plume Astrale unifiée (pdf_theme.py) ═══
+from services.pdf_theme import (
+    NIGHT as DEEP_PURPLE,       # #111625 (remplace #0C0918)
+    NIGHT_SOFT as MEDIUM_PURPLE, # #1A2035 (remplace #1E1A33)
+    GOLD,                         # #D4AF37 (remplace #C5A059)
+    CREAM,                        # #F5EEE0 (remplace #F0E6D3)
+    LAVENDER as LIGHT_TEXT,       # #E3D7FF (remplace #B8B0C8)
+    PALETTE,
+)
+ROSE = PALETTE['ROSE']
 SOFT_RED = HexColor('#FF9999')
 
 # ═══════════════════ DONNÉES ASTROLOGIQUES ═══════════════════

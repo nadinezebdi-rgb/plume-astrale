@@ -1,6 +1,121 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-16 (suite)
+
+### Session 14 — 🎨 Polices Cinzel/Cormorant + effet Fade-In enrichissement
+
+**Task 1 — Polices Cinzel + Cormorant Garamond**
+- ✅ Téléchargées depuis Google Fonts (repo GitHub officiel `google/fonts`) en variable fonts :
+  - `Cinzel[wght].ttf` (123 KB) → `Cinzel-Regular.ttf` + `Cinzel-Bold.ttf`
+  - `CormorantGaramond[wght].ttf` (1.2 MB) → `CormorantGaramond-Regular.ttf` + `CormorantGaramond-Bold.ttf`
+  - `CormorantGaramond-Italic[wght].ttf` (699 KB) → `CormorantGaramond-Italic.ttf`
+- ✅ Déposées dans `/app/backend/assets/fonts/`.
+- ✅ `services/pdf_theme.py::register_fonts()` teste automatiquement leur présence et fallback Helvetica sinon.
+- ✅ **Refactor `astrocartographie_pdf.py`** : `_make_styles()` délègue maintenant à `pdf_theme.make_styles()` (12 styles unifiés avec les vraies polices).
+- ✅ **Test E2E** : PDF Astrocartographie régénéré 676 KB → **740 KB** (fonts embarquées ~64 KB), avec Cinzel dans les captions/H2 et Cormorant Garamond dans le corps texte.
+
+**Task 2 — Effet Fade-In progressif enrichi**
+- ✅ Nouveau composant `frontend/src/components/FadeInEnrichedText.js` :
+  - Split intelligent du texte par phrases (regex `(?<=[.!?…])\s+`)
+  - Fade-in phrase-par-phrase avec `opacity + translateY(6px→0)` sur 600ms
+  - Stagger paramétrable (default 180ms, 140-160ms utilisés en pratique)
+  - **La question finale se colore en or `#D4AF37` + italique** pour se démarquer
+  - Props `enabled` : si `false`, affiche tout d'un coup (fallback)
+- ✅ Intégré dans 3 pages où l'enrichissement est actif :
+  - `AstroSexo.js` — résultat perso (speed 140ms)
+  - `TarotOuiNon.js` — message des Arcanes (speed 160ms)
+  - `Oracle.js` — réponse Oracle (speed 160ms)
+- ✅ L'effet s'active uniquement si le backend a bien enrichi (`enrichi === true` / `reponse_enrichie === true`), garantissant zéro régression sur les tirages statiques.
+
+**Fix bonus**
+- ✅ Frontend Tarot Oui/Non "puis 2 crédits" → **"puis 5 crédits"** (aligne l'affichage sur le vrai coût backend `SERVICE_COSTS['tarot_oui_non']=5`). Vérifié visuellement.
+
+
+## 2026-02-16
+
+### Session 13 — 🎨 Charte PDF unifiée + AstroSexo UI perso + Badge "Enrichi par Soléna"
+
+**Task 1 — UI AstroSexo perso**
+- ✅ `frontend/src/pages/AstroSexo.js` : nouveau bloc "Envie d'une analyse vraiment personnalisée ?" affiché après sélection d'un signe.
+- ✅ Logique conditionnelle :
+  - Authentifiée **+** natal complet → bouton "✨ Générer mon analyse perso" appelle `POST /api/astrosexo/personal`
+  - Non authentifiée → CTA "Créer mon compte gratuit" vers `/inscription?next=/outils/astrosexo`
+  - Authentifiée sans natal → "Compléter mon thème natal" vers `/mon-compte`
+- ✅ Analytics : `astrosexo_personal_generated` event tracké avec venus/mars signs.
+- ✅ Auto-scroll vers le résultat après génération.
+- ✅ Résultat affiché avec badge "✨ Enrichi par Soléna" + labels Vénus/Mars/Lune.
+
+**Task 2 — Charte PDF unifiée (`services/pdf_theme.py`)**
+- ✅ Nouveau module partagé exposant :
+  - `PALETTE` dict (NIGHT `#111625`, GOLD `#D4AF37`, CREAM `#F5EEE0`, LAVENDER `#E3D7FF`, MUTED `#9089B5`, GOLD_LIGHT, NIGHT_SOFT, ROSE)
+  - Alias flat : `NIGHT`, `GOLD`, `CREAM`, `LAVENDER`, `MUTED`, etc.
+  - `register_fonts()` : Cinzel + Cormorant Garamond depuis `/app/backend/assets/fonts/` (idempotent, fallback Helvetica)
+  - `font(name, fallback)` : helper pour utiliser une police si dispo
+  - `make_styles()` : dict de 12 `ParagraphStyle` unifiés (title, subtitle, h2, h3, body, italic, quote, small…)
+  - `starfield_bg(canv, doc)` : fond commun Platypus (nuit + halo doré + 30 étoiles + footer pagination)
+  - `paint_page_bg(canv, w, h)` : version raw canvas pour `pdf_generator.py` et `compatibility_pdf_generator.py`
+- ✅ **`services/pdf_generator.py`** (Karma standalone) — palette réharmonisée :
+  - `#0F0518` → `#111625` (NIGHT unifié)
+  - `#1A0B2E` → `#1A2035` (NIGHT_SOFT)
+  - `#C5A059` → `#D4AF37` (GOLD unifié)
+  - `#F3E5AB` → `#F5EEE0` (CREAM)
+  - `#E0D9F6` → `#E3D7FF` (LAVENDER)
+- ✅ **`services/compatibility_pdf_generator.py`** — palette réharmonisée sur la même base (5 couleurs alignées).
+- ✅ Testé E2E : `POST /api/compatibility/generate` renvoie un PDF 17MB valide avec la nouvelle palette Kabbale.
+
+**Task 3 — Badge "✨ Enrichi par Soléna"**
+- ✅ Nouveau composant `frontend/src/components/EnrichedBadge.js` avec 3 variants (`default`, `compact`, `inline`) + alignement gauche/centre/droite.
+- ✅ Backend renvoie `enrichi: true` sur les endpoints `/api/oracle` et `/api/astrosexo/personal`.
+- ✅ Backend renvoie `reponse_enrichie: true` sur les 3 endpoints Tarot (déjà en place).
+- ✅ Intégré sur 3 pages :
+  - `TarotOuiNon.js` — badge compact à côté de "✦ Message des Arcanes"
+  - `Oracle.js` — badge compact centré au-dessus de la réponse
+  - `AstroSexo.js` — badge default en tête du bloc résultat perso
+
+**Fix bonus**
+- ✅ Cohérence coût Tarot Oui/Non : frontend affichait "2 crédits" alors que le backend charge 5 (SERVICE_COSTS['tarot_oui_non']=5) → mis à jour partout (`sed -i 's/2 crédits/5 crédits/g'` sur `TarotOuiNon.js`).
+
+
+## 2026-02-15
+
+### Session 12 — 🔗 Tous les outils sur API v3 + Couche d'enrichissement narrative universelle
+
+**Nouvelle couche transverse — `services/enrich_narrative.py`**
+- ✅ Fonction `enrich_and_ask(text, context, first_name, target_length)` — passe un texte brut dans GPT-5.4 pour :
+  1. Le rallonger à `short|medium|long` (150-550 mots selon la cible)
+  2. Terminer **toujours** par une question introspective personnalisée
+- ✅ Triple cache : mémoire LRU (400 items) + Supabase `narrative_cache` + skip auto si texte trop court.
+- ✅ Fonction `enrich_dict_fields(obj, fields, ...)` — enrichit récursivement uniquement les champs listés (ex: `['description', 'signification']`).
+- ✅ Sécurité : si l'IA oublie la question finale, ajout automatique de "Et toi, qu'est-ce que ça éveille en toi ?"
+- 📋 Migration SQL `/app/supabase/narrative_cache_migration.sql` à appliquer côté Supabase.
+
+**Outils reconnectés à l'API v3 + enrichissement narratif (7/7)**
+
+1. 💘 **Compatibilité crédits** (P1) — `/api/compatibility/generate` appelle maintenant `aio.synastry_report(bd1, bd2)` (avec `@fr_polish`), le passe au générateur PDF via `api_data`. Fix bonus : normalisation `person1/2['day'/'month'/'year'/'first_name']` depuis `date_naissance`. ✅ Testé : PDF 17MB avec vraie synastrie personnalisée.
+2. 🃏 **Tarot Marseille/Celtique/Oui-Non** (P1) — chaque endpoint appelle `enrich_and_ask` sur les champs `reponse/interpretation/synthese/conseil/message` + interprétations cartes individuelles. ✅ Testé : Oui/Non passe de ~150 chars à **1854 chars** finissant par "Quel geste concret voudrais-tu poser aujourd'hui ?". Coût crédit inchangé (1 gratuite puis 5cr/question).
+3. ✨ **Énergie du Jour** (P2) — Prompt système `ENERGY_SYSTEM_PROMPT` mis à jour : demande **4-6 phrases/section (100-150 mots) + question finale obligatoire** dans chaque section (dominante, relationnel, attention, opportunité). Modèle upgradé `gpt-4o-mini` → **gpt-5.4** via `EMERGENT_LLM_KEY`.
+4. 🕯️ **Rituel du jour** (P2) — Prompt réécrit : 250-350 mots + question finale obligatoire, structure implicite en 4 étapes, tutoiement systématique. Modèle `gpt-4o-mini` → **gpt-5.4**.
+5. 🔢 **Numérologie** (P2) — `/api/numerology/complete` et `/deep-profile` :
+   - Optionnellement enrichis avec `aio.numerology_core_numbers(bd_v3)` si `birth_date` fournie
+   - `enrich_dict_fields(fields=['description','signification','text','meaning'])` appliqué récursivement
+6. 🔥 **AstroSexo perso** (P3) — nouveau `POST /api/astrosexo/personal` (`routes/astrosexo.py`) : accepte les coords natales, fetch `aio.love_languages` + `aio.personality_analysis` + `aio.natal_chart` (pour extraire Vénus/Mars/Lune), compose un texte de base, l'enrichit via `enrich_and_ask(target_length='long')`. ✅ Testé : analyse de 3400+ chars sur Marie/Vénus Bélier/Mars Poissons/Lune Capricorne, termine par question personnelle.
+7. 👼 **Oracle des Anges** (P3) — `POST /api/oracle` accepte `first_name`, enrichit `reponse` via `enrich_and_ask(target_length='long')`. ✅ Testé : passe de ~150 à **2526 chars** finissant par question.
+
+**Notes**
+- Verification Tarot Oui/Non : logique 1 carte gratuite (`has_used_free_tarot`) puis 5cr/question (`SERVICE_COSTS['tarot_oui_non']=5`) déjà en place, inchangée.
+- Cache DB `narrative_cache` : sans la table, chaque premier appel coûte 1-3s GPT ; avec la table, cache persistant entre redémarrages.
+- Frontend AstroSexo : peut désormais appeler `/api/astrosexo/personal` si utilisatrice authentifiée avec natal (à câbler côté UI dans une prochaine étape).
+
+
+## 2026-02-14 (suite)
+
+### Fix — Révolution Solaire en anglais
+- ✅ Appliqué le décorateur `@fr_polish` sur les 2 fonctions `solar_return` et `solar_return_report` dans `services/astrology_io_service.py`.
+- ✅ L'API astrology-api.io v3 ne respectait pas `language: fr` sur ces endpoints malgré le paramètre côté settings dashboard.
+- ✅ Testé : 0 string anglaise restante (mise à part 1 faux positif sur texte FR).
+
+
 ## 2026-02-14
 
 ### Session 11 — 🗺️ Lignes détaillées PDF + 💌 Cross-sell J+7 (PLUME15)
