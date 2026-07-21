@@ -3,6 +3,7 @@ import { Send, Loader2, Sparkles, X, MessageCircle } from 'lucide-react';
 import axios from 'axios';
 import { SOLENA } from '../lib/solena';
 import CreditsPaywallModal from './CreditsPaywallModal';
+import SolenaThinkingBubble from './SolenaThinkingBubble';
 import { useAuth } from '../context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -105,7 +106,7 @@ export default function SolenaChat() {
         message: seedMsg,
         session_id: sessionId,
         birth_data: bd,
-      }, { timeout: 45000 });
+      }, { timeout: 95000 });
       if (res.data?.success) {
         setMessages([
           { role: 'user', content: seedMsg, hidden: true }, // hidden from UI, but sent for context
@@ -163,7 +164,7 @@ export default function SolenaChat() {
         message: text,
         session_id: sessionId,
         birth_data: birthData,
-      }, { timeout: 45000 });
+      }, { timeout: 95000 });
       if (res.data?.success) {
         setMessages((prev) => [...prev, { role: 'assistant', content: res.data.answer }]);
         if (!isAuthenticated) {
@@ -320,23 +321,7 @@ export default function SolenaChat() {
                 </div>
               </div>
             ))}
-            {loading && (
-              <div className="flex justify-start">
-                <div style={{
-                  padding: '12px 16px',
-                  borderRadius: '18px 18px 18px 4px',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  color: 'rgba(244,232,210,0.6)',
-                  fontSize: '0.9rem',
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  fontStyle: 'italic',
-                }}>
-                  <Loader2 className="animate-spin" style={{ width: 14, height: 14, color: '#D4AF37' }} strokeWidth={2} />
-                  Solena consulte les étoiles…
-                </div>
-              </div>
-            )}
+            {loading && <SolenaThinkingBubble testId="solena-inline-thinking" />}
           </div>
 
           {/* Input */}

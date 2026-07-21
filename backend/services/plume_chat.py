@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # (l'utilisateur paie l'appel LLM directement chez OpenAI).
 ASTROLOGY_API_IO_URL = "https://api.astrology-api.io/api/v3/chat/completions/byok"
 ASTROLOGY_API_IO_URL_HOSTED = "https://api.astrology-api.io/api/v3/chat/completions"
-DEFAULT_TIMEOUT = 60.0
+DEFAULT_TIMEOUT = 85.0
 BYOK_MODEL = "gpt-4o-mini"
 
 # Détection d'une fuite d'appel d'outil dans la reponse du modele
@@ -227,21 +227,20 @@ async def plume_chat(
     if not api_key:
         return {"success": False, "message": "Clé astrology-api.io non configurée."}
 
-    # Recharger l'historique multi-tour depuis Supabase (si user connecté)
+    # Recharger l'historique multi-tour depuis Supabase (par session_id — connecté OU anonyme)
     history_msgs = []
-    if user_id:
-        try:
-            from services.supabase_client import get_admin_client
-            sb = get_admin_client()
-            res = sb.table('plume_chat_messages').select('role,content').eq(
-                'session_id', session_id).order('created_at').limit(30).execute()
-            for h in (res.data or []):
-                role = h.get("role")
-                content = h.get("content", "")
-                if role in ("user", "assistant") and content and not is_tool_leak(content):
-                    history_msgs.append({"role": role, "content": content})
-        except Exception as e:
-            logger.warning(f"Could not load history: {e}")
+    try:
+        from services.supabase_client import get_admin_client
+        sb = get_admin_client()
+        res = sb.table('plume_chat_messages').select('role,content').eq(
+            'session_id', session_id).order('created_at').limit(30).execute()
+        for h in (res.data or []):
+            role = h.get("role")
+            content = h.get("content", "")
+            if role in ("user", "assistant") and content and not is_tool_leak(content):
+                history_msgs.append({"role": role, "content": content})
+    except Exception as e:
+        logger.warning(f"Could not load history: {e}")
 
     # Construire le payload
     messages = [{"role": "system", "content": SYSTEM_PROMPT_SOLENA}]
@@ -327,17 +326,18 @@ async def plume_chat(
                 "en une phrase ce qui t'a amené(e) à Plume aujourd'hui ?"
             )
 
-        # Persister dans Supabase (user connecté seulement)
-        if user_id:
-            try:
-                from services.supabase_client import get_admin_client
-                sb = get_admin_client()
-                sb.table('plume_chat_messages').insert([
-                    {"session_id": session_id, "user_id": user_id, "role": "user", "content": message},
-                    {"session_id": session_id, "user_id": user_id, "role": "assistant", "content": response_text},
-                ]).execute()
-            except Exception as e:
-                logger.warning(f"Could not persist messages: {e}")
+        # Persister dans Supabase — user connecté (user_id renseigné) OU anonyme (user_id=NULL)
+        # → Soléna se souvient du contexte multi-tour dans TOUS les cas, y compris pour
+        # les 3 messages gratuits du funnel de conversion visiteur → inscrit.
+        try:
+            from services.supabase_client import get_admin_client
+            sb = get_admin_client()
+            sb.table('plume_chat_messages').insert([
+                {"session_id": session_id, "user_id": user_id, "role": "user", "content": message},
+                {"session_id": session_id, "user_id": user_id, "role": "assistant", "content": response_text},
+            ]).execute()
+        except Exception as e:
+            logger.warning(f"Could not persist messages: {e}")
 
         return {"success": True, "answer": response_text, "session_id": session_id}
 
@@ -350,14 +350,22 @@ async def plume_chat(
 
 
 async def get_session_history(session_id: str, user_id: Optional[str] = None) -> list:
-    """Récupère l'historique d'une session pour le frontend."""
-    if not user_id:
+    """Récupère l'historique d'une session pour le frontend.
+
+    Fonctionne pour les utilisateurs connectés ET les visiteurs anonymes :
+    la clé d'accès est le `session_id` (généré aléatoirement et stocké côté client).
+    Si `user_id` est fourni, on filtre en plus pour sécurité (impossible pour un user
+    connecté d'accéder à la session d'un autre).
+    """
+    if not session_id:
         return []
     try:
         from services.supabase_client import get_admin_client
         sb = get_admin_client()
-        res = sb.table('plume_chat_messages').select('role,content').eq(
-            'session_id', session_id).eq('user_id', user_id).order('created_at').limit(100).execute()
+        q = sb.table('plume_chat_messages').select('role,content').eq('session_id', session_id)
+        if user_id:
+            q = q.eq('user_id', user_id)
+        res = q.order('created_at').limit(100).execute()
         return [{"role": m["role"], "content": m["content"]} for m in (res.data or [])]
     except Exception as e:
         logger.warning(f"Could not load session history: {e}")

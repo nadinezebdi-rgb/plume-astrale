@@ -5,6 +5,7 @@ import axios from 'axios';
 import SEO from '@/components/SEO';
 import NatalEssentials from '@/components/NatalEssentials';
 import CreditsPaywallModal from '@/components/CreditsPaywallModal';
+import SolenaThinkingBubble from '@/components/SolenaThinkingBubble';
 import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -210,7 +211,7 @@ const ChatIA = () => {
           const r3 = await axios.post(
             `${API}/api/astrology/v3/chat`,
             { message: text, session_id: sessionId, history },
-            { headers: { Authorization: `Bearer ${token}` }, timeout: 60000 }
+            { headers: { Authorization: `Bearer ${token}` }, timeout: 95000 }
           );
           if (r3.data?.success && r3.data?.reply) {
             usedV3 = true;
@@ -242,7 +243,7 @@ const ChatIA = () => {
             session_id: sessionId,
             birth_data: birthData,
           },
-          { timeout: 60000 }
+          { timeout: 95000 }
         );
         json = res.data;
         if (json.session_id && json.session_id !== sessionId) {
@@ -606,24 +607,7 @@ const ChatIA = () => {
               );
             })}
 
-            {loading && (
-              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <div style={{
-                  padding: '14px 18px',
-                  borderRadius: '18px 18px 18px 4px',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  color: 'rgba(212,175,55,0.6)',
-                  fontSize: 13,
-                }}>
-                  <Loader2 style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} />
-                  Les astres reflechissent...
-                </div>
-              </div>
-            )}
+            {loading && <SolenaThinkingBubble testId="chat-loading-bubble" />}
             <div ref={messagesEndRef} />
           </div>
 

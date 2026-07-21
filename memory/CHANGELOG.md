@@ -1,6 +1,31 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-22 — 💬 Chat Soléna : mémoire anonyme + animation 90s
+
+### Task 1 — Mémoire multi-tour pour visiteurs anonymes (backend)
+- **`services/plume_chat.py`** — Suppression de la garde `if user_id:` pour l'écriture ET la lecture d'historique. L'historique est désormais persisté et rechargé sur la seule base de `session_id` (généré aléatoirement, stocké côté client dans `localStorage` sous `pa_plume_session_id`).
+- La table Supabase `plume_chat_messages` accepte déjà `user_id = NULL` (vérifié en insert live).
+- `get_session_history` supporte désormais les sessions anonymes (retourne l'historique par `session_id` seul, filtre supplémentaire par `user_id` si fourni pour la sécurité des users connectés).
+- **Validation live** : session `test-memory-anon-XXXX` — Tour 1 « Je m'appelle Emma, 32 ans » → Tour 2 « Rappelle mon prénom » → réponse « Tu t'appelles Emma et tu as 32 ans » ✅
+- Impact business : Soléna se souvient maintenant du contexte des 3 messages gratuits d'un visiteur → le funnel conversion visiteur → inscrit est nettement plus fluide.
+
+### Task 2 — Bulle "Soléna réfléchit" animée 90s (frontend)
+- **Nouveau composant** `components/SolenaThinkingBubble.js` — Bulle inline (côté assistant) avec :
+  - 3 points dorés en séquence blink (animation `stb-blink`)
+  - Label Cinzel uppercase « SOLÉNA RÉFLÉCHIT »
+  - **12 messages poétiques rotatifs** couvrant 0s → 90s (« Elle reçoit ta question », « Elle consulte ton Soleil », « Elle décrypte les aspects », « Elle affine la formulation »…)
+  - Barre de souffle fine dorée (progresse à 92% puis oscille en fin de cycle)
+  - Fondu-in de chaque message avec `stb-fade-in`
+- **`pages/ChatIA.js`** — Remplace l'ancien loader `<Loader2 /> Les astres reflechissent...` par `<SolenaThinkingBubble />`.
+- **`components/SolenaChat.js`** — Même remplacement pour le widget chat inline.
+- **Timeouts alignés à 90s** :
+  - Backend `plume_chat.py` : `DEFAULT_TIMEOUT` 60s → **85s**
+  - Frontend axios (ChatIA + SolenaChat) : 45–60s → **95s**
+- **Validation live** : bulle apparaît en <1s, affiche « Soléna reçoit ta question… » puis rotation prévue toutes ~4-10s si la réponse tarde.
+
+
+
 ## 2026-02-21 (nuit) — 📢 Bandeau global + Aperçus sur 5 pages produit
 
 ### Bandeau promo global
