@@ -1,6 +1,23 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-21 — 🎨 Regression UI Fixes (Hero + Header + Banner) & Cache Purge PDF
+
+### Fixes appliqués sur retour utilisateur
+- **`LaunchBanner.js`** — Bandeau simplifié au texte STRICT demandé : `"Crée ton compte et reçoit 20 crédits!"`.
+  Retrait du countdown 48h, du code `PLUME2026`, des ornements `✦`. Le message défile 3× en boucle.
+- **`Hero3D.js`** — Titre rendu stable : plus d'animation de mots rotatifs `vie amoureuse` / `mission d'âme` / `meilleure destination`.
+  Retour à `vie amoureuse` en italique doré, sans transformation ni fondu.
+- **`Hero3D.js`** — Bloc dupliqué `hero-positioning-text` ("Votre vie change. Comprenez pourquoi.") supprimé (allongeait le hero et le rendait chargé).
+- **`Hero3D.js`** — Header revenu à un unique bouton `Mon Compte` (retrait du doublon `Se connecter` doré ajouté récemment).
+- **Cache Natal AI purgé** : `/app/backend/cache/natal_ai/*.json` supprimé pour forcer une régénération fraîche GPT-5.4 au prochain achat.
+
+### Validation
+- Screenshot preview : bandeau, titre stable et header simple confirmés.
+- Pipeline PDF Natal Ultra E2E testé : `_source='gpt'`, 12/12 sections remplies (10 planètes + Ascendant + synthèse aspects), PDF final = **49 pages**, 16.9 MB.
+
+
+
 ## 2026-02-20 — 📖 Landing Nos Livres + Refonte Synastrie luxe
 
 ### Nouvelle landing `/nos-livres`

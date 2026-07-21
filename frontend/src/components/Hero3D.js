@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useState } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -8,34 +8,12 @@ import LaunchBanner from './LaunchBanner';
 const Moon3D = lazy(() => import('./Moon3D'));
 
 /**
- * Rotation des 3 promesses fondamentales du produit — pour ne plus filtrer
- * les 60% de l'audience qui ne cherche pas l'amour (audit Gary Vee 2026-02).
- * Chaque promesse s'affiche 4 secondes puis fondu enchaîné vers la suivante.
- */
-const HERO_PROMISES = [
-  { label: 'vie amoureuse', href: '/inscription' },
-  { label: 'mission d\u2019\u00e2me', href: '/inscription' },
-  { label: 'meilleure destination', href: '/inscription' },
-];
-
-/**
  * Hero3D — Section hero d'accueil.
  * CTA principal : Créer un compte (20 crédits offerts).
- * Le funnel legacy "modal 2 prénoms → portrait karmique gratuit" a été retiré
- * (double lead magnet en conflit avec l'offre 20 crédits à l'inscription).
+ * Titre stable (pas d'animation de mots rotatifs — cf. retour utilisateur 2026-07).
  */
 export default function Hero3D() {
   const { isAuthenticated } = useAuth();
-
-  // Rotation des 3 promesses toutes les 4 secondes
-  const [promiseIdx, setPromiseIdx] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => {
-      setPromiseIdx((i) => (i + 1) % HERO_PROMISES.length);
-    }, 4000);
-    return () => clearInterval(id);
-  }, []);
-  const currentPromise = HERO_PROMISES[promiseIdx];
 
   return (
     <section
@@ -64,49 +42,25 @@ export default function Hero3D() {
         }} data-testid="hero-brand-logo">
           PLUME ASTRALE
         </Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Link
-            to={isAuthenticated ? '/mon-compte' : '/connexion'}
-            className="flex items-center gap-2 group transition-all whitespace-nowrap"
-            style={{
-              color: 'rgba(226,191,101,0.85)',
-              textDecoration: 'none',
-              fontSize: 11,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              padding: '8px 12px',
-              borderRadius: 999,
-              border: '1px solid rgba(226,191,101,0.50)',
-              fontFamily: 'Inter, sans-serif',
-            }}
-            data-testid="hero-account-btn"
-            aria-label="Mon Compte"
-          >
-            <User style={{ width: 12, height: 12 }} strokeWidth={1.5} />
-            <span className="hidden sm:inline">Mon Compte</span>
-          </Link>
-          <Link
-            to="/connexion"
-            className="flex items-center gap-2 group transition-all whitespace-nowrap"
-            style={{
-              color: '#0A0603',
-              textDecoration: 'none',
-              fontSize: 11,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              padding: '8px 12px',
-              borderRadius: 999,
-              background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 600,
-            }}
-            data-testid="hero-login-btn"
-            aria-label="Se connecter"
-          >
-            <User style={{ width: 12, height: 12 }} strokeWidth={1.5} />
-            <span className="hidden sm:inline">Se connecter</span>
-          </Link>
-        </div>
+        <Link
+          to={isAuthenticated ? '/mon-compte' : '/connexion'}
+          className="flex items-center gap-2 group transition-all"
+          style={{
+            color: 'rgba(226,191,101,0.75)',
+            textDecoration: 'none',
+            fontSize: 11,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            padding: '8px 14px',
+            borderRadius: 999,
+            border: '1px solid rgba(226,191,101,0.30)',
+            fontFamily: 'Inter, sans-serif',
+          }}
+          data-testid="hero-account-btn"
+        >
+          <User style={{ width: 12, height: 12 }} strokeWidth={1.5} />
+          Mon Compte
+        </Link>
       </header>
 
       {/* ═══ Clouds & Stars Background Overlay ═══ */}
@@ -182,17 +136,12 @@ export default function Hero3D() {
           <br />
           comprends ce qui se joue dans ta{' '}
           <em
-            key={promiseIdx}
-            className="plume-hero-promise"
             style={{
               fontStyle: 'italic',
               color: '#E8C766',
-              display: 'inline-block',
-              minWidth: '5ch',
             }}
-            data-testid={`hero-promise-${promiseIdx}`}
           >
-            {currentPromise.label}
+            vie amoureuse
           </em>
           .
         </h2>
@@ -271,7 +220,7 @@ export default function Hero3D() {
           <span>✓ Calculs précis</span>
           <span style={{ opacity: 0.35 }}>·</span>
           <span>✓ Paiement sécurisé Stripe</span>
-        </div><div style={{ marginTop: 44, maxWidth: 660, textAlign: 'center' }} data-testid="hero-positioning-text"><h2 style={{ fontFamily: 'Cinzel, Playfair Display, Cormorant Garamond, serif', fontWeight: 400, fontSize: 'clamp(1.2rem, 2.6vw, 1.85rem)', lineHeight: 1.25, letterSpacing: '0.02em', color: '#E8C766', textShadow: '0 2px 30px rgba(0,0,0,0.95)', marginBottom: 12 }}>Votre vie change. Comprenez pourquoi.</h2><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 'clamp(0.9rem, 1.2vw, 1.05rem)', fontWeight: 300, lineHeight: 1.7, color: '#CBD5E1', textShadow: '0 2px 20px rgba(0,0,0,0.9)', margin: 0 }}>Découvrez les périodes qui favorisent l&apos;amour, les opportunités et les grands tournants de votre parcours.</p></div>
+        </div>
       </div>
 
 
@@ -280,15 +229,6 @@ export default function Hero3D() {
         @keyframes pulse {
           0%, 100% { opacity: 0; }
           50% { opacity: 1; }
-        }
-        @keyframes plumeHeroFade {
-          0%   { opacity: 0; transform: translateY(6px); }
-          15%  { opacity: 1; transform: translateY(0); }
-          85%  { opacity: 1; transform: translateY(0); }
-          100% { opacity: 0; transform: translateY(-6px); }
-        }
-        .plume-hero-promise {
-          animation: plumeHeroFade 4s ease-in-out;
         }
       `}</style>
     </section>
