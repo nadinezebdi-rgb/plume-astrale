@@ -5,6 +5,8 @@ import { Heart, Sparkles, Download, Shield, Mail, Loader2, ArrowRight, Check, Gi
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import { event as trackEvent } from '@/lib/analytics';
+import PdfBookOpen from '@/components/PdfBookOpen';
+import TestimonialsWidget, { TESTIMONIALS_KABBALE } from '@/components/TestimonialsWidget';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -16,10 +18,10 @@ const PERSON_DEFAULT = {
 };
 
 const FEATURES = [
-  { icon: Heart, title: '25 pages d\'astrologie relationnelle', desc: 'Aspects planetaires, dynamiques du couple, langages d\'amour croises.' },
-  { icon: Sparkles, title: 'Calcule sur vos vraies ephemerides', desc: 'Swiss Ephemeris. Aucun template generique.' },
-  { icon: Download, title: 'PDF a garder pour toujours', desc: 'Recu par email, telechargeable a tout moment.' },
-  { icon: Shield, title: 'Vos donnees restent vos donnees', desc: 'Stockage securise, aucun partage tiers.' },
+  { icon: Heart, title: '25 pages d\'astrologie relationnelle', desc: 'Aspects planétaires, dynamiques du couple, langages d\'amour croisés.' },
+  { icon: Sparkles, title: 'Calculé sur vos vraies éphémérides', desc: 'Swiss Ephemeris. Aucun modèle générique.' },
+  { icon: Download, title: 'PDF à garder pour toujours', desc: 'Reçu par e-mail, téléchargeable à tout moment.' },
+  { icon: Shield, title: 'Vos données restent vos données', desc: 'Stockage sécurisé, aucun partage tiers.' },
 ];
 
 const PersonForm = ({ label, value, onChange, testid }) => (
@@ -179,8 +181,8 @@ export default function SynastrieSales() {
             Pour comprendre ce qui se joue, ce qui vous nourrit et ce qui demande attention.
           </p>
           <p className="text-xs max-w-lg mx-auto mb-6 italic" style={{ color: 'rgba(212,175,55,0.75)', lineHeight: 1.65 }}>
-            Plus fine et plus efficace qu&apos;une compatibilite amoureuse schematique — la synastrie
-            revele les affinites, les points de discordance, et ce que l&apos;autre active chez vous.
+            Plus fine et plus efficace qu&apos;une compatibilité amoureuse schématique — l&apos;astrologie relationnelle
+            révèle les affinités, les points de discordance, et ce que l&apos;autre active chez vous.
           </p>
           <div className="inline-flex items-baseline gap-2 px-6 py-2.5 rounded-full" style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.3)' }}>
             <span className="text-3xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#E8C766', fontWeight: 400 }}>49€</span>
@@ -206,10 +208,13 @@ export default function SynastrieSales() {
           })}
         </div>
 
+        {/* Prévisualisation 3D du livre — vitrine luxe */}
+        <PdfBookOpen testId="synastrie-book-open" theme="synastry" />
+
         {/* Formulaire des 2 personnes */}
         <div className="mb-6">
           <h2 className="text-2xl text-center mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 300 }}>
-            Vos donnees natales
+            Vos données natales
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <PersonForm label="Personne 1" value={person1} onChange={setPerson1} testid="person1" />
@@ -316,6 +321,11 @@ export default function SynastrieSales() {
           >
             Visuel Instagram (PNG)
           </button>
+        </div>
+
+        {/* Témoignages */}
+        <div className="mt-12">
+          <TestimonialsWidget testimonials={TESTIMONIALS_KABBALE} testId="synastrie-testimonials" />
         </div>
 
         <button onClick={() => navigate('/')} className="block mx-auto mt-10 text-xs" style={{ color: 'rgba(184,176,200,0.5)' }}>← Retour</button>

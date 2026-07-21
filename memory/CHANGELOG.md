@@ -1,6 +1,37 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — 📖 Landing Nos Livres + Refonte Synastrie luxe
+
+### Nouvelle landing `/nos-livres`
+- **Fichier** : `frontend/src/pages/NosLivres.js`
+- Vitrine comparative des **5 livres luxes** de Plume Astrale
+- 5 onglets élégants (Thème Natal · Astrologie relationnelle · Arbre de Vie · Astrocartographie · Pack Karmique)
+- Clic sur onglet → change le thème du `PdfBookOpen` avec animation `fadeInUp 0.6s`
+- Card résumé sous le livre : accent + pages + description Cormorant + prix + CTA doré vers la landing dédiée
+- Route : `/nos-livres`
+
+### PdfBookOpen : 5e thème `synastry`
+- **Fichier** : `frontend/src/components/PdfBookOpen.js`
+- Nouveau thème `synastry` : intérieur avec **2 cercles zodiacaux entrelacés** (♀ ♂ + heart doré central) et citation type "Sa Vénus enveloppe votre Lune"
+- Cover : "Votre Astrologie relationnelle" + "Deux prénoms · Deux ciels · 25 pages croisées"
+- CSS `.pbo-syn-*` ajouté
+
+### Refonte SynastrieSales : traitement premium
+- **Fichier** : `frontend/src/pages/SynastrieSales.js`
+- `PdfBookOpen theme="synastry"` inséré avant le formulaire → vitrine luxe
+- `TestimonialsWidget` (Kabbale set) inséré en bas de page
+- Copywriting français corrigé partout :
+  - `"la synastrie"` → `"l'astrologie relationnelle"` (line 182)
+  - Accents restaurés dans FEATURES : "planetaires" → "planétaires", "ephemerides" → "éphémérides", "Recu" → "Reçu", "email" → "e-mail", "Aucun template generique" → "Aucun modèle générique", "donnees" → "données", "stockage securise" → "stockage sécurisé"
+  - Titre `<h2>Vos données natales</h2>` (accent)
+
+### Screenshots validés
+- `/nos-livres` onglet Natal actif → roue natale + citation Soleil Gémeaux ✓
+- `/nos-livres` onglet Astrologie relationnelle → 2 cercles + glyphes ♀ ♂ + citation Vénus/Lune ✓
+
+
+
 ## 2026-02-20 — 💰 Thème Natal Ultra à 80 crédits + Audit français global
 
 ### Prix Thème Natal Ultra : 20 → **80 crédits**
