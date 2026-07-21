@@ -41,7 +41,7 @@ export default function Hero3D() {
     <section
       className="relative w-full overflow-hidden"
       style={{
-        background: '#0C1120',
+        background: 'rgba(12, 17, 32, 0.55)',
         color: '#F5EEE0',
         minHeight: '100vh',
       }}
@@ -138,9 +138,9 @@ export default function Hero3D() {
           }}
         />
         {/* Moon3D rendu par-dessus le halo */}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-          <Suspense fallback={null}>
-            <Moon3D />
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, filter: 'drop-shadow(0 30px 45px rgba(0,0,0,0.65)) drop-shadow(0 8px 18px rgba(0,0,0,0.45))' }}>          <Suspense fallback={null}>
+                    
+        <Moon3D />
           </Suspense>
         </div>
       </div>
@@ -158,9 +158,10 @@ export default function Hero3D() {
       <div
         className="relative z-10 flex flex-col items-center justify-center text-center px-4"
         style={{
-          minHeight: '100vh',
-          paddingTop: 'clamp(80px, 11vh, 130px)',
-          paddingBottom: 'clamp(16px, 2.5vh, 32px)',
+          minHeight: 'calc(88vh + 38px)',
+          justifyContent: 'flex-end',
+          paddingTop: '0px',
+          paddingBottom: 'clamp(4px, 1vh, 12px)',
         }}
       >
         {/* Titre Principal */}
