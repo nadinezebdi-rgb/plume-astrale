@@ -184,7 +184,7 @@ export default function Horairie() {
                 <div className="mt-4 rounded-lg p-3" style={{ background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)' }}>
                   <div className="flex items-center gap-2 mb-1">
                     <Clock className="w-4 h-4 text-[#60a5fa]" strokeWidth={1.5} />
-                    <span className="text-xs text-[#60a5fa]">Timing</span>
+                    <span className="text-xs text-[#60a5fa]">Moment opportun</span>
                   </div>
                   <p className="text-sm text-[#F0E6D3]">{result.timing}</p>
                 </div>

@@ -1,6 +1,36 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — 💰 Thème Natal Ultra à 80 crédits + Audit français global
+
+### Prix Thème Natal Ultra : 20 → **80 crédits**
+Justification : le PDF est passé de 24 pages génériques à 49 pages Ultra (11 planètes + synthèse aspects + voix Soléna GPT-5.4). Ce prix garde une hiérarchie de gamme lisible :
+- Thème Natal Ultra : **80 cr** (~18€)
+- Kabbale : 39€
+- Astrocarto : 49€
+- Pack Karmique : 89€
+
+**Fichiers modifiés** :
+- `backend/routes/astrology_v3.py:349-361` — charge_or_premium 20→80cr, refund 20→80cr (2 occurrences)
+- `frontend/src/pages/BuyCredits.js:109` — tagline Nébuleuse "1 Thème Natal Ultra (80 cr)"
+- `frontend/src/pages/BuyCredits.js:135-145` — SERVICE_COSTS enrichi (9 outils vs 6 avant, avec Synastrie/Révolution Solaire/Archétype)
+- `frontend/src/pages/ThemeNatalLuxe.js:230-236` — copy adaptée : "80 crédits requis → pack Nébuleuse 17,99€ = 80 crédits"
+
+### Audit français — mots anglais / accents manquants
+Corrections dans 12 fichiers :
+- `BundleCard.js:45` — "✦ Bundle Découverte ✦" → "✦ Duo Découverte ✦"
+- `Horairie.js:187` — "Timing" → "Moment opportun"
+- `Login.js:66` — label "Email" → "Adresse e-mail"
+- 6 pages PDF — "Email pour la livraison" → "E-mail pour la livraison" (Kabbale, Astrocarto, PackKarmique, Karma, Numérologie, Fenêtre)
+- Placeholders "toi@example.com" → "toi@exemple.com" (KarmaDestinPDF, NumerologiePDF, FenetreRencontrePDF)
+- Accents manquants dans PremiumExperience : "Element" → "Élément", "Modalite" → "Modalité", "Ame" → "Âme", "Periode" → "Période"
+- Accents manquants dans Quotidien : "Numeros" → "Numéros", "Element" → "Élément"
+- MonRituel.js : "Bel apres-midi", "fermer la journee", "reflexion...debloquera apres" corrigés
+- MonCompte.js : "Reservez...credits...debloquez l'acces illimite" → "Réservez...crédits...débloquez l'accès illimité"
+- NatalDataModal + Tarologie : placeholders "prenom" → "prénom"
+
+
+
 ## 2026-02-20 — 🚀 Thème Natal ULTRA (API v3 + GPT-5.4 voix Soléna)
 
 ### Contexte

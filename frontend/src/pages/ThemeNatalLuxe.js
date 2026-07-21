@@ -224,13 +224,12 @@ const ThemeNatalLuxe = () => {
               fontStyle: 'italic',
               color: 'rgba(245,238,224,0.85)',
               lineHeight: 1.5,
-              maxWidth: 420,
+              maxWidth: 440,
               margin: '0 auto 32px',
             }}
           >
-            Offerts <span style={{ color: '#D4AF37', fontWeight: 500, fontStyle: 'normal' }}>automatiquement</span> à la création de ton compte —
-            de quoi débloquer ton <span style={{ color: '#F5EEE0' }}>Thème Natal complet</span>
-            {' '}et {' '}<span style={{ color: '#F5EEE0' }}>ta première synastrie amoureuse</span>. Aucun code à saisir.
+            Offerts <span style={{ color: '#D4AF37', fontWeight: 500, fontStyle: 'normal' }}>automatiquement</span> à la création de ton compte.
+            Ton Thème Natal Ultra coûte <span style={{ color: '#F5EEE0' }}>80 crédits</span> — accessible dès le premier pack <span style={{ color: '#F5EEE0' }}>Nébuleuse à 17,99€</span> qui t&apos;en donne <span style={{ color: '#F5EEE0' }}>80</span>. Aucun code à saisir.
           </p>
 
           <button

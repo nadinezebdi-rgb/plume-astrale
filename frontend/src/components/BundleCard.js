@@ -42,7 +42,7 @@ const BundleCard = ({ dense = false, testId = 'bundle-card' }) => (
       className="text-[10px] uppercase mb-3"
       style={{ color: '#D4AF37', letterSpacing: '0.32em', fontFamily: 'Cinzel, serif' }}
     >
-      ✦ Bundle Découverte ✦
+      ✦ Duo Découverte ✦
     </p>
 
     <h3

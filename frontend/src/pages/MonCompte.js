@@ -935,7 +935,7 @@ const MonCompte = () => {
                   Chaque rapport est calcule avec les ephemerides Swiss Ephemeris.
                   {profil?.premium_status === 'active'
                     ? ' Tous les rapports sont offerts avec votre abonnement Premium.'
-                    : " Reservez vos lectures avec vos credits, ou debloquez l'acces illimite via l'abonnement Premium."}
+                    : " Réservez vos lectures avec vos crédits, ou débloquez l'accès illimité via l'abonnement Premium."}
                 </p>
                 {!profil?.birth_date && (
                   <p className="text-xs mt-2" style={{ color: '#94A3B8' }}>

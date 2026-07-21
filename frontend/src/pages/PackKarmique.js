@@ -199,7 +199,7 @@ const PackKarmique = () => {
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="text-xs uppercase" style={{ color: 'var(--pa-accent)', letterSpacing: '0.2em' }}>Email pour la livraison</label>
+                <label className="text-xs uppercase" style={{ color: 'var(--pa-accent)', letterSpacing: '0.2em' }}>E-mail pour la livraison</label>
                 <input type="email" value={form.email} onChange={e => upd('email', e.target.value)}
                        data-testid="pack-karmique-email" className={inputCls} />
               </div>

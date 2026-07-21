@@ -345,9 +345,9 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
     if not bd:
         raise HTTPException(status_code=400, detail='Donnees natales incompletes (date, heure et lieu requis).')
 
-    # Paywall
+    # Paywall : Thème Natal Ultra = 80 crédits (49 pages · GPT-5.4 voix Soléna · offert si Premium)
     await wallet_service.charge_or_premium(
-        current_user['id'], 'theme_natal_pdf', 20, 'Theme Natal PDF',
+        current_user['id'], 'theme_natal_pdf', 80, 'Thème Natal Ultra PDF',
     )
 
     try:
@@ -409,14 +409,14 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
     except Exception as e:
         # Refund si échec
         try:
-            await wallet_service.add_credits(current_user['id'], 20, 'Remboursement Theme Natal PDF (echec)', tx_type='refund')
+            await wallet_service.add_credits(current_user['id'], 80, 'Remboursement Theme Natal PDF (echec)', tx_type='refund')
         except Exception:
             pass
         raise HTTPException(status_code=502, detail=f'Service astrologique indisponible (PDF): {e}')
 
     if not pdf:
         try:
-            await wallet_service.add_credits(current_user['id'], 20, 'Remboursement Theme Natal PDF (echec)', tx_type='refund')
+            await wallet_service.add_credits(current_user['id'], 80, 'Remboursement Theme Natal PDF (echec)', tx_type='refund')
         except Exception:
             pass
         raise HTTPException(status_code=502, detail='Génération PDF échouée.')

@@ -106,7 +106,7 @@ const PACKS = [
     icon: Sparkles,
     badge: 'Le plus choisi',
     tagline: 'Ton Thème Natal complet accessible en 1 clic.',
-    projections: ['8 questions à Plume', '1 Thème Natal complet (60 cr) + 2 questions', 'Ou 2 tarots approfondis'],
+    projections: ['8 questions à Plume', '1 Thème Natal Ultra (80 cr)', 'Ou 3 tarots approfondis'],
   },
   {
     id: 'constellation',
@@ -136,9 +136,12 @@ const SERVICE_COSTS = [
   { name: 'Consultation astrale personnalisée', cost: '10 crédits / question' },
   { name: 'Tarot Oui / Non', cost: '1er tirage gratuit, puis 2 crédits' },
   { name: 'Lecture Tarot approfondie', cost: '10 crédits' },
-  { name: 'Lecture astrologique', cost: '20 crédits' },
+  { name: 'Thème Natal Ultra (49 pages)', cost: '80 crédits' },
+  { name: 'Synastrie amoureuse', cost: '20 crédits' },
+  { name: 'Révolution Solaire', cost: '20 crédits' },
   { name: 'Numérologie', cost: '10 crédits' },
-  { name: 'Cartographie Premium', cost: '60 crédits' },
+  { name: 'Archétype Numérologique', cost: '15 crédits' },
+  { name: 'Cartographie Premium (allégée)', cost: '60 crédits' },
 ];
 
 export default function BuyCredits() {

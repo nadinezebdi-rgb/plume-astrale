@@ -162,7 +162,7 @@ const NumerologiePDF = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[#E3D7FF] mb-2 font-semibold">Email *</label>
+                  <label className="block text-[#E3D7FF] mb-2 font-semibold">Adresse e-mail *</label>
                   <input
                     type="email"
                     name="email"
@@ -170,7 +170,7 @@ const NumerologiePDF = () => {
                     onChange={handleChange}
                     required
                     className="w-full bg-[#0C0918] border border-[#D4AF37]/30 rounded px-4 py-3 text-[#F4E8D2] placeholder-[#9089B5] focus:border-[#D4AF37] focus:outline-none transition"
-                    placeholder="toi@example.com"
+                    placeholder="toi@exemple.com"
                   />
                 </div>
               </div>

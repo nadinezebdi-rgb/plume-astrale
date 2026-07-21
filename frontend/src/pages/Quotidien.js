@@ -260,7 +260,7 @@ const Quotidien = () => {
                 </p>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span style={{ color: 'var(--pa-muted)' }}>Numeros</span>
+                    <span style={{ color: 'var(--pa-muted)' }}>Numéros</span>
                     <span style={{ color: 'var(--pa-heading)' }}>{content.numeros_chance.join(' - ')}</span>
                   </div>
                   <div className="flex justify-between">
@@ -268,7 +268,7 @@ const Quotidien = () => {
                     <span style={{ color: 'var(--pa-heading)' }}>{content.couleur_du_jour}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span style={{ color: 'var(--pa-muted)' }}>Element</span>
+                    <span style={{ color: 'var(--pa-muted)' }}>Élément</span>
                     <span style={{ color: 'var(--pa-heading)' }}>{content.element}</span>
                   </div>
                 </div>
