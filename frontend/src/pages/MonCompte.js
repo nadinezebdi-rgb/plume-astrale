@@ -573,7 +573,6 @@ const MonCompte = () => {
   const tabs = [
     { id: 'apercu',       label: 'Aperçu'       },
     { id: 'rapports',     label: 'Mes Rapports' },
-    { id: 'abonnement',   label: 'Abonnement'   },
     { id: 'credits',      label: 'Crédits'       },
     { id: 'fidelite',     label: 'Assiduité'    },
   ];
@@ -933,9 +932,7 @@ const MonCompte = () => {
                 </div>
                 <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
                   Chaque rapport est calcule avec les ephemerides Swiss Ephemeris.
-                  {profil?.premium_status === 'active'
-                    ? ' Tous les rapports sont offerts avec votre abonnement Premium.'
-                    : " Réservez vos lectures avec vos crédits, ou débloquez l'accès illimité via l'abonnement Premium."}
+                  Débloquez vos lectures avec vos crédits
                 </p>
                 {!profil?.birth_date && (
                   <p className="text-xs mt-2" style={{ color: '#94A3B8' }}>
@@ -987,11 +984,7 @@ const MonCompte = () => {
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      {profil?.premium_status === 'active' ? (
-                        <span className="text-[10px] tracking-widest uppercase px-2 py-0.5 rounded-full" style={{ background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ADE80', letterSpacing: '0.1em' }}>
-                          Offert
-                        </span>
-                      ) : (
+                      {profil?.premium_status !== 'active' && (
                         <span className="text-base" style={{ color: 'var(--pa-accent)', fontFamily: 'Cormorant Garamond, serif' }}>
                           {price} cr
                         </span>
