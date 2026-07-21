@@ -40,6 +40,13 @@ const THEMES = {
     heroSub: 'L\'écrin le plus profond de Plume Astrale. 40 pages qui unissent ton empreinte karmique, ton Arbre de Vie et ta synthèse d\'âme.',
     footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 40 pages',
   },
+  natal: {
+    label: 'Thème Natal',
+    coverTitle: 'Ton\nThème Natal',
+    coverSignature: 'Prénom · Naissance · 49 pages sur mesure',
+    heroSub: 'Reliure cuir nuit, dorures Cinzel, 49 pages où 11 planètes racontent qui tu es vraiment — écrit par Soléna à partir de 73 dimensions astrologiques.',
+    footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 49 pages',
+  },
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -188,10 +195,67 @@ const InteriorKarmique = () => (
   </div>
 );
 
+const InteriorNatal = () => (
+  <div className="pbo-spread" aria-hidden="true">
+    {/* PAGE GAUCHE : Roue astro miniature avec 11 planètes */}
+    <div className="pbo-page pbo-page-left">
+      <div className="pbo-header">✦ TA ROUE NATALE ✦</div>
+      <div className="pbo-natal-wheel">
+        <div className="pbo-natal-ring" />
+        <div className="pbo-natal-cross-h" />
+        <div className="pbo-natal-cross-v" />
+        {/* 12 signes autour de la roue */}
+        {['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'].map((s, i) => {
+          const angle = (i * 30) - 90;
+          const rad = (angle * Math.PI) / 180;
+          const r = 46;
+          const cx = 50 + r * Math.cos(rad);
+          const cy = 50 + r * Math.sin(rad);
+          return (
+            <div key={i} className="pbo-natal-sign" style={{ left: `${cx}%`, top: `${cy}%` }}>{s}</div>
+          );
+        })}
+        {/* Planètes disposées dans la roue */}
+        <div className="pbo-natal-planet" style={{ top: '32%', left: '68%' }}>☉</div>
+        <div className="pbo-natal-planet" style={{ top: '62%', left: '30%' }}>☽</div>
+        <div className="pbo-natal-planet" style={{ top: '48%', left: '78%' }}>☿</div>
+        <div className="pbo-natal-planet" style={{ top: '25%', left: '50%' }}>♀</div>
+        <div className="pbo-natal-planet" style={{ top: '75%', left: '55%' }}>♂</div>
+        <div className="pbo-natal-planet" style={{ top: '40%', left: '25%' }}>♃</div>
+        <div className="pbo-natal-planet" style={{ top: '58%', left: '70%' }}>♄</div>
+      </div>
+      <div className="pbo-caption">11 planètes lues, 73 interprétations synthétisées</div>
+      <div className="pbo-para" style={{ width: '92%' }} />
+      <div className="pbo-para" style={{ width: '80%' }} />
+      <div className="pbo-folio">— 12 —</div>
+    </div>
+    {/* PAGE DROITE : Extrait Soleil */}
+    <div className="pbo-page pbo-page-right">
+      <div className="pbo-header">☉ &nbsp;TON SOLEIL EN GÉMEAUX</div>
+      <div className="pbo-quote">
+        « Chez toi, l&apos;identité se fabrique en marchant, en parlant jusqu&apos;à faire tomber les&nbsp;
+        <span style={{ color: '#D4AF37', fontWeight: 500 }}>masques d&apos;une idée</span>. »
+      </div>
+      <div className="pbo-para" style={{ width: '96%' }} />
+      <div className="pbo-para" style={{ width: '90%' }} />
+      <div className="pbo-para" style={{ width: '84%' }} />
+      <div className="pbo-para" style={{ width: '92%' }} />
+      <div className="pbo-para" style={{ width: '76%' }} />
+      <div className="pbo-boxed">
+        <div className="pbo-boxed-label">✦ Dialogue de Soléna</div>
+        <div className="pbo-para" style={{ width: '90%', background: 'rgba(212,175,55,0.55)' }} />
+        <div className="pbo-para" style={{ width: '78%', background: 'rgba(212,175,55,0.45)' }} />
+      </div>
+      <div className="pbo-folio">— 13 —</div>
+    </div>
+  </div>
+);
+
 const INTERIORS = {
   astrocarto: InteriorAstrocarto,
   kabbale: InteriorKabbale,
   karmique: InteriorKarmique,
+  natal: InteriorNatal,
 };
 
 const BookCover = ({ theme }) => {
@@ -542,6 +606,49 @@ const PdfBookOpen = ({ testId = 'pdf-book-open', theme = 'astrocarto' }) => {
         .pbo-karma-glyph-2 { top: 50%; left: -2px; transform: translateY(-50%); }
         .pbo-karma-glyph-3 { top: -2px; left: 50%; transform: translateX(-50%); }
         .pbo-karma-glyph-4 { bottom: -2px; left: 50%; transform: translateX(-50%); }
+
+        /* ─ Roue natale (thème natal) ─ */
+        .pbo-natal-wheel {
+          position: relative;
+          height: 155px;
+          margin-bottom: 10px;
+          border: 1px solid rgba(212,175,55,0.22);
+          border-radius: 3px;
+          background: radial-gradient(ellipse at 50% 50%, rgba(212,175,55,0.09), transparent 65%);
+        }
+        .pbo-natal-ring {
+          position: absolute; inset: 6px;
+          border: 1px solid rgba(212,175,55,0.5);
+          border-radius: 50%;
+        }
+        .pbo-natal-ring::before {
+          content: '';
+          position: absolute; inset: 10px;
+          border: 1px solid rgba(212,175,55,0.22);
+          border-radius: 50%;
+        }
+        .pbo-natal-cross-h,
+        .pbo-natal-cross-v {
+          position: absolute;
+          background: rgba(212,175,55,0.28);
+        }
+        .pbo-natal-cross-h { top: 50%; left: 15%; right: 15%; height: 1px; }
+        .pbo-natal-cross-v { left: 50%; top: 15%; bottom: 15%; width: 1px; }
+        .pbo-natal-sign {
+          position: absolute;
+          transform: translate(-50%, -50%);
+          font-family: 'Cinzel', serif;
+          font-size: 9px;
+          color: rgba(245,238,224,0.55);
+        }
+        .pbo-natal-planet {
+          position: absolute;
+          transform: translate(-50%, -50%);
+          font-size: 12px;
+          color: #D4AF37;
+          text-shadow: 0 0 8px rgba(212,175,55,0.9);
+          font-family: 'Cinzel', serif;
+        }
 
         .pbo-caption {
           font-style: italic;
