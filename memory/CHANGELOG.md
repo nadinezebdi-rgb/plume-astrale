@@ -1,6 +1,22 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-21 (soir) — 📖 Aperçu 3-pages téléchargeable + Test PDF Ultra E2E
+
+### Nouvelle feature : Aperçu PDF public par livre
+- **`backend/services/apercu_pdf.py`** — Générateur d'aperçus 3 pages (Couverture + Ouverture + Extrait poétique) pour les 5 livres de la Bibliothèque, avec cache mémoire par `book_key`.
+- **`backend/routes/apercu.py`** — Endpoint public `GET /api/apercus/{book_key}.pdf` (natal, synastry, kabbale, astrocarto, karmique). Cache-Control: 1h. 404 si book_key inconnu.
+- **`frontend/src/pages/NosLivres.js`** — Bouton "Feuilleter l'aperçu — 3 pages" (icône `BookOpen` lucide) ajouté sous chaque CTA principal. URL dynamique via `REACT_APP_BACKEND_URL`.
+- Chaque aperçu contient un teaser textuel de fin (`[Cet aperçu s'arrête ici — ton livre complet…]`) pour driver vers l'achat.
+- **Validation** : 5 PDFs générés, exactement 3 pages chacun, tailles 1.3–2.0 MB. HTTP endpoint testé (200 OK) et 404 pour clé inconnue.
+
+### Validation PDF Thème Natal Ultra (cache vide)
+- E2E réel avec les données admin (Paris, 15/05/1990, 12h00) : **49 pages**, 12/12 sections GPT-5.4 remplies, PDF de 16.9 MB.
+- Extrait Soleil (voix Soléna confirmée) : *« Il y a chez toi quelque chose d'un chêne planté au milieu de la place… »*
+- Cache purgé + relire les 24 h pour économiser les crédits LLM sur régénérations identiques.
+
+
+
 ## 2026-02-21 — 🎨 Regression UI Fixes (Hero + Header + Banner) & Cache Purge PDF
 
 ### Fixes appliqués sur retour utilisateur
