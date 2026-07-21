@@ -5,6 +5,7 @@ import axios from 'axios';
 import SEO from '@/components/SEO';
 import NatalEssentials from '@/components/NatalEssentials';
 import CreditsPaywallModal from '@/components/CreditsPaywallModal';
+import SolenaThinkingBubble from '@/components/SolenaThinkingBubble';
 import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -25,6 +26,60 @@ function isToolLeak(text) {
 }
 const LEAK_FALLBACK = "Les astres sont un peu bavards ce soir. Peux-tu reformuler ta question ?";
 
+/**
+ * streamPlumeChat — helper SSE : POST /api/plume-chat/stream avec parsing progressif.
+ * Le body renvoie un flux `text/event-stream` où chaque événement est de la forme :
+ *   data: {"delta":"..."}     → un morceau de texte à concaténer
+ *   data: {"session_id":"..."} → envoyé en tête pour synchro
+ *   data: {"error":"..."}     → arrêt du stream, message d'erreur à afficher
+ *   data: [DONE]              → fin propre du stream
+ *
+ * @returns Promise<{ success: bool, fullText: string, error?: string }>
+ */
+async function streamPlumeChat({ apiUrl, message, sessionId, birthData, token, onDelta, onSessionId }) {
+  const headers = { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const resp = await fetch(`${apiUrl}/api/plume-chat/stream`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ message, session_id: sessionId, birth_data: birthData }),
+  });
+  if (!resp.ok || !resp.body) {
+    return { success: false, fullText: '', error: 'Les astres traversent une zone d\'ombre. Réessaie dans un instant.' };
+  }
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let fullText = '';
+  let error = null;
+  // Loop de lecture jusqu'à [DONE] ou erreur
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    // Chaque événement SSE est terminé par \n\n
+    const parts = buffer.split('\n\n');
+    buffer = parts.pop() || '';
+    for (const evt of parts) {
+      const line = evt.trim();
+      if (!line.startsWith('data:')) continue;
+      const payload = line.slice(5).trim();
+      if (!payload) continue;
+      if (payload === '[DONE]') { return { success: !error, fullText, error }; }
+      try {
+        const obj = JSON.parse(payload);
+        if (obj.session_id) { onSessionId?.(obj.session_id); }
+        if (obj.delta) {
+          fullText += obj.delta;
+          onDelta?.(obj.delta);
+        }
+        if (obj.error) { error = obj.error; }
+      } catch { /* payload non-JSON, ignoré */ }
+    }
+  }
+  return { success: !error, fullText, error };
+}
+
 const ChatIA = () => {
   const { isAuthenticated, user, token, creditBalance, refreshBalance } = useAuth();
   const navigate = useNavigate();
@@ -33,7 +88,7 @@ const ChatIA = () => {
     {
       role: 'assistant',
       content:
-        "Bienvenue dans ton sanctuaire. Je suis Plume — pose-moi une question sur ton chemin, tes emotions, ton theme natal, tes liens. Les astres ecoutent.",
+        "Bienvenue dans ton sanctuaire. Je suis Soléna — pose-moi une question sur ton chemin, tes émotions, ton thème natal, tes liens. Les astres écoutent.",
     },
   ]);
   const [input, setInput] = useState('');
@@ -44,17 +99,36 @@ const ChatIA = () => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Init or restore session ID (pour conversation multi-tour persistante)
+  // Init or restore session ID (pour conversation multi-tour persistante).
+  // Puis, si session existante, recharge l'historique depuis Supabase — fonctionne aussi
+  // pour les visiteurs anonymes (l'endpoint filtre par session_id seul).
   useEffect(() => {
     let sid = null;
     try {
       sid = localStorage.getItem(SESSION_KEY);
     } catch (e) { /* ignore */ }
+    const isNew = !sid;
     if (!sid) {
       sid = `plume-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       try { localStorage.setItem(SESSION_KEY, sid); } catch (e) { /* ignore */ }
     }
     setSessionId(sid);
+
+    // Restauration de la conversation : uniquement si une session existait déjà
+    if (!isNew) {
+      (async () => {
+        try {
+          const headers = {};
+          if (token) headers['Authorization'] = `Bearer ${token}`;
+          const r = await axios.get(`${API}/api/plume-chat/history/${sid}`, { headers, timeout: 10000 });
+          const hist = r?.data?.messages || [];
+          if (hist.length > 0) {
+            // Remplace le message de bienvenue par l'historique complet
+            setMessages(hist.map(m => ({ role: m.role, content: m.content })));
+          }
+        } catch (e) { /* silence : session neuve OK */ }
+      })();
+    }
   }, []);
 
   // Load anonymous free counter
@@ -210,7 +284,7 @@ const ChatIA = () => {
           const r3 = await axios.post(
             `${API}/api/astrology/v3/chat`,
             { message: text, session_id: sessionId, history },
-            { headers: { Authorization: `Bearer ${token}` }, timeout: 60000 }
+            { headers: { Authorization: `Bearer ${token}` }, timeout: 95000 }
           );
           if (r3.data?.success && r3.data?.reply) {
             usedV3 = true;
@@ -235,31 +309,63 @@ const ChatIA = () => {
       if (usedV3) {
         json = { success: true, answer: v3Answer };
       } else {
-        const res = await axios.post(
-          `${API}/api/plume-chat`,
-          {
-            message: text,
-            session_id: sessionId,
-            birth_data: birthData,
+        // ── Streaming SSE : POST /api/plume-chat/stream avec parsing progressif ──
+        // Chaque delta reçu est ajouté au dernier message assistant en temps réel.
+        json = await streamPlumeChat({
+          apiUrl: API,
+          message: text,
+          sessionId,
+          birthData,
+          token,
+          onSessionId: (sid) => {
+            if (sid && sid !== sessionId) {
+              setSessionId(sid);
+              try { localStorage.setItem(SESSION_KEY, sid); } catch (e) { /* ignore */ }
+            }
           },
-          { timeout: 60000 }
-        );
-        json = res.data;
-        if (json.session_id && json.session_id !== sessionId) {
-          setSessionId(json.session_id);
-          try { localStorage.setItem(SESSION_KEY, json.session_id); } catch (e) { /* ignore */ }
-        }
+          onDelta: (delta) => {
+            // Ajoute le delta au dernier message assistant (créé au premier chunk)
+            setMessages(prev => {
+              const last = prev[prev.length - 1];
+              if (last && last.role === 'assistant' && last.__streaming) {
+                return [
+                  ...prev.slice(0, -1),
+                  { ...last, content: last.content + delta },
+                ];
+              }
+              // Premier delta → on crée la bulle assistant
+              return [
+                ...prev,
+                { role: 'assistant', content: delta, __streaming: true },
+              ];
+            });
+          },
+        });
       }
 
-      if (json.success && json.answer) {
-        const safeAnswer = isToolLeak(json.answer) ? LEAK_FALLBACK : json.answer;
-        setMessages(prev => [...prev, { role: 'assistant', content: safeAnswer }]);
-        if (!isAuthenticated) incrementFreeUsed();
+      if (usedV3) {
+        // Cas v3 : réponse déjà complète, on l'ajoute d'un bloc
+        if (json.success && json.answer) {
+          const safeAnswer = isToolLeak(json.answer) ? LEAK_FALLBACK : json.answer;
+          setMessages(prev => [...prev, { role: 'assistant', content: safeAnswer }]);
+          if (!isAuthenticated) incrementFreeUsed();
+        } else {
+          setMessages(prev => [
+            ...prev,
+            { role: 'assistant', content: json.message || "Les astres sont momentanement voiles. Reessaie dans un instant." },
+          ]);
+        }
       } else {
-        setMessages(prev => [
-          ...prev,
-          { role: 'assistant', content: json.message || "Les astres sont momentanement voiles. Reessaie dans un instant." },
-        ]);
+        // Cas streaming : la bulle assistant existe déjà, on nettoie juste le flag
+        setMessages(prev => prev.map(m => (m.__streaming ? { role: 'assistant', content: m.content } : m)));
+        if (json.success && json.fullText) {
+          if (!isAuthenticated) incrementFreeUsed();
+        } else if (json.error) {
+          setMessages(prev => [
+            ...prev.filter(m => !(m.role === 'assistant' && m.__streaming && !m.content)),
+            { role: 'assistant', content: json.error || "Les astres sont momentanement voiles. Reessaie dans un instant." },
+          ]);
+        }
       }
     } catch (e) {
       setMessages(prev => [
@@ -303,7 +409,7 @@ const ChatIA = () => {
   if (!isAuthenticated) {
     return (
       <>
-        <SEO title="Consultation astrale personnalisée — Plume Astrale" description="Inscris-toi et reçois 20 crédits offerts pour démarrer ta consultation personnalisée." />
+        <SEO title="Discussion avec Soléna — Plume Astrale" description="Inscris-toi et reçois 20 crédits offerts pour démarrer ta conversation personnalisée avec Soléna." />
         <div style={{
           minHeight: '100vh',
           background: 'linear-gradient(180deg, #131840 0%, #1B2150 50%, #131840 100%)',
@@ -421,7 +527,7 @@ const ChatIA = () => {
         onClose={() => setPaywallOpen(false)}
         context="chat_out"
       />
-      <SEO title="Consultation astrale personnalisee — Plume Astrale" description="Pose toutes tes questions a ton theme natal en francais. Une guidance personnalisee, alimentee par ta carte du ciel reelle." />
+      <SEO title="Discussion avec Soléna — Plume Astrale" description="Pose toutes tes questions à Soléna en français. Une guidance personnalisée, alimentée par ta carte du ciel réelle." />
       <div style={{
         minHeight: '100vh',
         background: 'linear-gradient(180deg, #131840 0%, #1B2150 50%, #131840 100%)',
@@ -440,7 +546,7 @@ const ChatIA = () => {
               letterSpacing: '0.12em',
               margin: 0,
             }}>
-              Consultation astrale personnalisée
+              Consultation astrale personnalisée avec Soléna
             </h1>
           </div>
           <p style={{ color: 'rgba(212,175,55,0.5)', fontSize: 13, letterSpacing: '0.06em', margin: 0 }}>
@@ -466,7 +572,7 @@ const ChatIA = () => {
           </div>
         </div>
 
-        {/* Bloc Comment Plume t'écoute — affiché uniquement si user connecté avec données natales */}
+        {/* Bloc Comment Soléna t'écoute — affiché uniquement si user connecté avec données natales */}
         {isAuthenticated && token && <NatalEssentials token={token} prenom={user?.prenom} />}
 
         {/* Chat container */}
@@ -597,7 +703,7 @@ const ChatIA = () => {
                   }}>
                     {msg.role === 'assistant' && (
                       <span style={{ color: '#D4AF37', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
-                        Plume Astrale
+                        Soléna
                       </span>
                     )}
                     {msg.content}
@@ -606,24 +712,7 @@ const ChatIA = () => {
               );
             })}
 
-            {loading && (
-              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <div style={{
-                  padding: '14px 18px',
-                  borderRadius: '18px 18px 18px 4px',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  color: 'rgba(212,175,55,0.6)',
-                  fontSize: 13,
-                }}>
-                  <Loader2 style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} />
-                  Les astres reflechissent...
-                </div>
-              </div>
-            )}
+            {loading && <SolenaThinkingBubble testId="chat-loading-bubble" />}
             <div ref={messagesEndRef} />
           </div>
 

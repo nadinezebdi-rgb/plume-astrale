@@ -1,6 +1,93 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-22 (fin de journée) — ⚡ Streaming SSE + Restauration session + Nouvelle cover Synastrie
+
+### 1) Streaming SSE (`/api/plume-chat/stream`)
+- **Backend `services/plume_chat.py`** : nouvelle fonction `plume_chat_stream()` — async generator qui appelle `astrology-api.io v3` avec `stream: True`, parse les événements `data: {choices[0].delta.content}`, yield chaque delta textuel au fur et à mesure. À la fin du stream, persiste question + réponse complète dans `plume_chat_messages` (multi-tour anon compatible).
+- **Backend `server.py`** : nouvel endpoint `POST /api/plume-chat/stream` retournant `StreamingResponse(text/event-stream)`. Format événements : `data: {"session_id":"..."}` en tête, `data: {"delta":"..."}` par chunk, `data: {"error":"..."}` sur échec, `data: [DONE]` en fin. Headers `X-Accel-Buffering: no` pour désactiver le buffering ingress.
+- **Frontend `pages/ChatIA.js`** : nouveau helper `streamPlumeChat()` (fetch + `ReadableStream` + parser SSE). La branche fallback `/api/plume-chat` (utilisée pour tous les cas sauf v3 chat authentifié avec natal data) écrit désormais chaque delta dans la dernière bulle assistant en temps réel — UX ChatGPT-like.
+- **Validation live** : `curl -N /api/plume-chat/stream` retourne `text/event-stream` avec deltas mot-par-mot. Screenshot preview : "Soléna réfléchit" apparaît, puis message assistant se remplit progressivement.
+
+### 2) Restauration session anonyme au mount
+- **`pages/ChatIA.js`** : dans le `useEffect` d'init de session, si un `sessionId` existe déjà en localStorage, appel `GET /api/plume-chat/history/{session_id}` pour rehydrater les messages. Fonctionne pour les visiteurs anonymes (l'endpoint filtre par `session_id` seul).
+- **Validation live** : envoi d'un message, reload de la page → conversation restaurée à l'identique (question + réponse Soléna visibles).
+
+### 3) Nouvelle cover PDF Synastrie via Nano Banana
+- Génération via `emergentintegrations` + modèle `gemini-3.1-flash-image-preview` (Nano Banana).
+- Image `01_image_couple_entrelace_1080x1800.png` (800×1328 réels, ratio 3:5) sauvegardée en 2 emplacements :
+  - `/app/backend/assets/synastrie_pdf/page-01.png` (utilisée automatiquement en cover PDF)
+  - `/app/backend/assets/library/synastry/01_image_couple_entrelace_1080x1800.png` (référence)
+- Style : silhouettes entrelacées face-à-face, cheveux qui coulent en poussière d'étoiles, ciel indigo profond, cadre or Alphonse Mucha, arabesques florales en bas, palette midnight blue + gold + violet.
+- **Validation** : PDF Synastrie régénéré → 25 pages, 7.9 MB, cover intégrée.
+
+### 4) Fin du rebrand persona Plume → Soléna (cleanup)
+- `components/NatalEssentials.js` : « Comment Plume t'écoute » → « Comment Soléna t'écoute ». « Chaque réponse de Plume » → « Chaque réponse de Soléna ».
+- `components/HeroOracle.js` : « la Plume écoute ton ciel » → « Soléna écoute ton ciel ».
+- `components/CercleDashboard.js` : « Plume te répond » → « Soléna te répond » (2× labels + 1 placeholder + 1 message d'erreur). Les brandings « Le Conseil de la Plume » (rubrique) et « Manuscrit/Livre de la Plume » (produits) conservés.
+- `pages/MonRituel.js` : « Plume est silencieuse » → « Soléna est silencieuse ».
+- `pages/Index.js` : témoignage « chat avec Plume » → « chat avec Soléna ».
+
+
+
+## 2026-02-22 (soir) — 🎭 Unification "Discussion avec Soléna" (fin des doubles points de chat)
+
+### Contexte
+L'utilisateur voyait DEUX points de consultation coexistant : "Chat Astral (IA)" (page dédiée `/outils/consultation` avec persona "Plume") et un widget `SolenaChat` sidebar. Décision : garder UNIQUEMENT la page dédiée, la rebrander "Soléna", et supprimer le widget.
+
+### Rebrand copy — `pages/ChatIA.js`
+- Message d'accueil : « Je suis Plume » → « Je suis Soléna »
+- Label bulle assistant : « Plume Astrale » → « Soléna »
+- H1 : « Consultation astrale personnalisée » → « Consultation astrale personnalisée avec Soléna »
+- SEO title (états logged in & anonyme) : « Discussion avec Soléna — Plume Astrale »
+- Commentaire code : « Bloc Comment Plume t'écoute » → « Comment Soléna t'écoute »
+- La MARQUE « Plume Astrale » (nom de la maison, footer, SEO suffix) est conservée — seul le PERSONA change.
+
+### Libellés menu unifiés
+- `components/Navbar.js` : dropdown Bien-être « Chat Astral (IA) » → « Discussion avec Soléna ».
+- `pages/AuthenticatedHome.js` : tuile dashboard « Chat Astral (IA) » → « Discussion avec Soléna ».
+
+### Suppression du widget SolenaChat + tous ses dispatchers
+- **`components/SolenaChat.js`** : fichier supprimé (405 lignes, plus utilisé nulle part).
+- **`pages/Index.js`** : import `SolenaChat` retiré (importé mais jamais monté).
+- Tous les `window.dispatchEvent('pa:open-solena-chat')` remplacés par `navigate('/outils/consultation')` :
+  - `components/MoonHero.js`
+  - `pages/NewHome.js`
+  - `components/design/SafeEmptyState.js`
+  - `components/design/JabInteractif.js`
+- Vérifié : `grep 'pa:open-solena-chat|SolenaChat'` → 0 occurrence restante dans tout le codebase frontend.
+
+### Validation live
+- Navbar `/nos-livres` : dropdown Outils → Bien-être affiche « Discussion avec Soléna » ✅. Absence confirmée de « Chat Astral (IA) ».
+- Page `/outils/consultation` : SEO title mis à jour, prompt d'accueil aligné Soléna, header carte assistant renommé.
+
+
+
+## 2026-02-22 — 💬 Chat Soléna : mémoire anonyme + animation 90s
+
+### Task 1 — Mémoire multi-tour pour visiteurs anonymes (backend)
+- **`services/plume_chat.py`** — Suppression de la garde `if user_id:` pour l'écriture ET la lecture d'historique. L'historique est désormais persisté et rechargé sur la seule base de `session_id` (généré aléatoirement, stocké côté client dans `localStorage` sous `pa_plume_session_id`).
+- La table Supabase `plume_chat_messages` accepte déjà `user_id = NULL` (vérifié en insert live).
+- `get_session_history` supporte désormais les sessions anonymes (retourne l'historique par `session_id` seul, filtre supplémentaire par `user_id` si fourni pour la sécurité des users connectés).
+- **Validation live** : session `test-memory-anon-XXXX` — Tour 1 « Je m'appelle Emma, 32 ans » → Tour 2 « Rappelle mon prénom » → réponse « Tu t'appelles Emma et tu as 32 ans » ✅
+- Impact business : Soléna se souvient maintenant du contexte des 3 messages gratuits d'un visiteur → le funnel conversion visiteur → inscrit est nettement plus fluide.
+
+### Task 2 — Bulle "Soléna réfléchit" animée 90s (frontend)
+- **Nouveau composant** `components/SolenaThinkingBubble.js` — Bulle inline (côté assistant) avec :
+  - 3 points dorés en séquence blink (animation `stb-blink`)
+  - Label Cinzel uppercase « SOLÉNA RÉFLÉCHIT »
+  - **12 messages poétiques rotatifs** couvrant 0s → 90s (« Elle reçoit ta question », « Elle consulte ton Soleil », « Elle décrypte les aspects », « Elle affine la formulation »…)
+  - Barre de souffle fine dorée (progresse à 92% puis oscille en fin de cycle)
+  - Fondu-in de chaque message avec `stb-fade-in`
+- **`pages/ChatIA.js`** — Remplace l'ancien loader `<Loader2 /> Les astres reflechissent...` par `<SolenaThinkingBubble />`.
+- **`components/SolenaChat.js`** — Même remplacement pour le widget chat inline.
+- **Timeouts alignés à 90s** :
+  - Backend `plume_chat.py` : `DEFAULT_TIMEOUT` 60s → **85s**
+  - Frontend axios (ChatIA + SolenaChat) : 45–60s → **95s**
+- **Validation live** : bulle apparaît en <1s, affiche « Soléna reçoit ta question… » puis rotation prévue toutes ~4-10s si la réponse tarde.
+
+
+
 ## 2026-02-21 (nuit) — 📢 Bandeau global + Aperçus sur 5 pages produit
 
 ### Bandeau promo global

@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Hero3D from '../components/Hero3D';
-import SolenaChat from '../components/SolenaChat';
 import QuickOracle from '../components/QuickOracle';
 import HomeCreditPacks from '../components/HomeCreditPacks';
 import SolenaVideoHero from '../components/SolenaVideoHero';
@@ -272,7 +271,7 @@ const REVIEWS = [
   { name: 'Julie P.', location: 'Nantes', sign: 'Sagittaire', stars: 5, date: 'Décembre 2025',
     text: "Après un divorce difficile, j'avais besoin de sens. Solena m'a offert exactement ça : de la clarté, sans jugement, avec une bienveillance rare. Le tarot évolutif du jour est devenu mon rituel." },
   { name: 'Emma L.', location: 'Toulouse', sign: 'Vierge', stars: 5, date: 'Janvier 2026',
-    text: "Le chat avec Plume est incroyable. Je pose une question à 23h après une dispute, je reçois une lecture astro précise en 15 secondes. C'est comme avoir Solena dans ma poche." },
+    text: "Le chat avec Soléna est incroyable. Je pose une question à 23h après une dispute, je reçois une lecture astro précise en 15 secondes. C'est comme avoir Soléna dans ma poche." },
 ];
 
 const StarRow = ({ n = 5 }) => (

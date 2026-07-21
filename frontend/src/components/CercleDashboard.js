@@ -138,7 +138,7 @@ const EveningReflection = ({ unlocked, alreadyDone, onSubmit, response, loading,
         )}
         {existingEntry?.plume_response && (
           <div className="text-sm leading-relaxed" style={{ color: 'rgba(184,176,200,0.85)', lineHeight: 1.7 }}>
-            <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: '#A78BFA', letterSpacing: '0.12em' }}>Plume te répond</p>
+            <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: '#A78BFA', letterSpacing: '0.12em' }}>Soléna te répond</p>
             {existingEntry.plume_response.split('\n').filter(Boolean).map((para, i) => <p key={i} className="mb-2">{para}</p>)}
           </div>
         )}
@@ -166,7 +166,7 @@ const EveningReflection = ({ unlocked, alreadyDone, onSubmit, response, loading,
           <h3 className="text-lg" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>La réflexion du soir</h3>
           <p className="text-xs" style={{ color: 'rgba(184,176,200,0.6)' }}>
             {unlocked
-              ? 'Pose ici ce qui te traverse. Plume te répondra avec attention.'
+              ? 'Pose ici ce qui te traverse. Soléna te répondra avec attention.'
               : 'Déverrouillée chaque soir à partir de 19h pour une introspection paisible.'}
           </p>
         </div>
@@ -207,7 +207,7 @@ const EveningReflection = ({ unlocked, alreadyDone, onSubmit, response, loading,
 
           {response && (
             <div className="mt-5 pt-5" style={{ borderTop: '1px solid rgba(167,139,250,0.15)' }} data-testid="reflection-response">
-              <p className="text-[10px] uppercase tracking-widest mb-3" style={{ color: '#A78BFA', letterSpacing: '0.12em' }}>Plume te répond</p>
+              <p className="text-[10px] uppercase tracking-widest mb-3" style={{ color: '#A78BFA', letterSpacing: '0.12em' }}>Soléna te répond</p>
               <div className="text-sm leading-relaxed" style={{ color: 'rgba(184,176,200,0.9)', lineHeight: 1.75 }}>
                 {response.split('\n').filter(Boolean).map((para, i) => <p key={i} className="mb-3">{para}</p>)}
               </div>
@@ -282,7 +282,7 @@ export default function CercleDashboard() {
       });
       setReflectionResponse(r.data.response);
     } catch (e) {
-      setErr(e.response?.data?.detail || 'Plume est momentanément silencieuse.');
+      setErr(e.response?.data?.detail || 'Soléna est momentanément silencieuse.');
     } finally {
       setReflectionLoading(false);
     }

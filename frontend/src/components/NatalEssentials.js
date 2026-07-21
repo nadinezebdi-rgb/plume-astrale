@@ -119,7 +119,7 @@ export default function NatalEssentials({ token, prenom: prenomProp }) {
                 fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase',
                 color: 'rgba(212,175,55,0.7)', fontFamily: 'Cinzel, serif', marginBottom: 2,
               }}>
-                Comment Plume t'écoute
+                Comment Soléna t'écoute
               </div>
               <div style={{
                 fontFamily: 'Cormorant Garamond, serif', fontSize: 17, color: '#F4E4BC', lineHeight: 1.3,
@@ -157,7 +157,7 @@ export default function NatalEssentials({ token, prenom: prenomProp }) {
               fontStyle: 'italic', textAlign: 'center', paddingTop: 6,
               borderTop: '1px solid rgba(212,175,55,0.08)',
             }}>
-              Chaque réponse de Plume est calibrée sur ces 3 axes — pas un assistant générique, mais une voix qui connaît
+              Chaque réponse de Soléna est calibrée sur ces 3 axes — pas un assistant générique, mais une voix qui connaît
               déjà <span style={{ color: '#D4AF37' }}>ton ciel de naissance</span>.
             </div>
           </>

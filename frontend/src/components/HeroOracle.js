@@ -141,7 +141,7 @@ const HeroOracle = () => {
       <section data-testid="hero-computing" style={{ maxWidth: 560, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
         <Wheel url={null} blurred={false} />
         <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, color: '#F5EEE0', marginTop: 28, fontWeight: 300 }}>
-          {form.firstName}, la Plume écoute ton ciel...
+          {form.firstName}, Soléna écoute ton ciel...
         </h2>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 16, color: '#D4AF37' }}>
           <Loader2 style={{ width: 18, height: 18 }} className="animate-spin" />
