@@ -1,6 +1,36 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-23 — 🔒 API v3 = source unique + wrap luxe garanti sur tous les fallbacks
+
+### 1) API v3 comme source de vérité (fin du "contenu IA générique")
+Refactor `services/natal_ai_enrichment.py` + `services/natal_pdf_adapter.py` :
+
+**Avant** : Si GPT (reformulation Soléna) échouait, l'adaptateur tombait sur `_sign_analysis()` — un texte statique **générique par signe**, non lié aux données API v3 réelles du user.
+
+**Après** : Chaîne de fallback en 3 niveaux, dans cet ordre STRICT :
+1. **GPT reformule** l'API v3 en voix Soléna → utilisé si `ai['soleil']` etc. remplis
+2. **Texte BRUT de l'API v3** (`_raw_v3_by_planet[planet_en]`) — le contenu vient LITTÉRALEMENT de l'API astrology-api.io v3, planète par planète
+3. Statique (extrême dernier recours, **atteint uniquement si l'API v3 elle-même est down**)
+
+**Implémentation** :
+- `enrich_natal_ultra()` retourne désormais TOUJOURS `_signs_by_planet` + `_raw_v3_by_planet` même quand GPT échoue totalement (`_source = 'api_v3_only'` ou `'gpt_partial'`).
+- `generate_manuscrit_pdf()` boucle sur les 11 planètes en priorisant GPT → v3 brut → statique.
+- Résultat : le contenu affiché dans le PDF vient **littéralement** de l'API v3 (soit reformulé Soléna, soit tel quel).
+
+### 2) Wrap luxe garanti sur le fallback legacy
+`natal_pdf_adapter.py` : si `build_natal_pdf_v2` lève une exception (structure `natal_data` corrompue), on tombait auparavant sur `pdf_generator.generate_manuscrit_pdf` **sans wrap luxe** → PDF nu servi au client.
+
+Fix : le fallback legacy est désormais enveloppé via `pdf_luxury_wrap.apply_luxury_wrap(prenom, product='synastry')`. **Jamais aucun PDF nu ne peut être servi au client**, quelle que soit la voie d'échec.
+
+### Validation E2E (cache purgé + backend redémarré)
+- `_source: gpt` ✅
+- `_signs_by_planet: 11 entries` ✅ (Soleil…Ascendant tous mappés)
+- `_raw_v3_by_planet: 11 entries` ✅ (11 textes API v3 disponibles)
+- **PDF : 20 pages, 46 MB, structure luxe complète** ✅
+
+
+
 ## 2026-02-22 (fin) — 🎨 Refactor wrapper luxe (4 produits) + Test SSE mobile
 
 ### 1) Cache aperçus purgé

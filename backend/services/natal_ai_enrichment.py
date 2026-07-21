@@ -328,15 +328,29 @@ async def enrich_natal_ultra(
         logger.warning(f'[natal_ai] Aucune planète extraite pour {prenom}')
         return {}
 
+    # Métadonnées v3 exposées MÊME si GPT échoue : le PDF pourra toujours afficher
+    # les vrais signes + les textes bruts API v3, garantissant "API v3 = source unique".
+    v3_signs = {
+        planet_en: data.get('sign_en', '')
+        for planet_en, data in ai_input.get('planets', {}).items()
+        if data.get('sign_en')
+    }
+    v3_raw_texts = {
+        planet_en: data.get('text_en', '')
+        for planet_en, data in ai_input.get('planets', {}).items()
+        if data.get('text_en')
+    }
+
     user_prompt = _build_user_prompt(prenom, ai_input)
     resp = await _call_gpt(SYSTEM_PROMPT, user_prompt, session_id=f'natal-ultra-{key}')
     if not resp:
-        return {}
+        # GPT KO → on renvoie tout de même les données v3 pour que le PDF fonctionne
+        return {'_source': 'api_v3_only', '_signs_by_planet': v3_signs, '_raw_v3_by_planet': v3_raw_texts}
 
     parsed = _parse_json_response(resp)
     if not parsed:
         logger.warning(f'[natal_ai] JSON parse failed for {prenom}. Raw: {resp[:200]}')
-        return {}
+        return {'_source': 'api_v3_only', '_signs_by_planet': v3_signs, '_raw_v3_by_planet': v3_raw_texts}
 
     # Normalise : accepte clés fr/en, filtre les valeurs non-string
     out: Dict[str, Any] = {}
@@ -358,12 +372,12 @@ async def enrich_natal_ultra(
     if len(out) >= 5:  # au moins la moitié pour cacher
         out['_source'] = 'gpt'
         out['_aspects_summary'] = [{'title': a['title'], 'orb': a['orb']} for a in ai_input.get('aspects', [])]
-        # Expose la table planète→signe (EN) pour que le PDF adapter puisse récupérer
-        # Uranus/Neptune/Pluton même si /charts/natal ne les retourne pas.
-        out['_signs_by_planet'] = {
-            planet_en: data.get('sign_en', '')
-            for planet_en, data in ai_input.get('planets', {}).items()
-            if data.get('sign_en')
-        }
+        out['_signs_by_planet'] = v3_signs
+        out['_raw_v3_by_planet'] = v3_raw_texts
         _cache_write(key, out)
+        return out
+    # GPT partiel → renvoie ce qu'il a rendu + les données v3 pour compléter les trous
+    out['_source'] = 'gpt_partial'
+    out['_signs_by_planet'] = v3_signs
+    out['_raw_v3_by_planet'] = v3_raw_texts
     return out

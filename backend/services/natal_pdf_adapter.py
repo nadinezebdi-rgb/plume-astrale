@@ -151,10 +151,27 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
         return ''
 
     planets = []
+    ai_raw_v3 = ai.get('_raw_v3_by_planet') or {}
+    _PLANET_FR_TO_EN_KEY = {  # pour matcher les clés v3
+        'Soleil': 'Sun', 'Lune': 'Moon', 'Mercure': 'Mercury',
+        'Vénus': 'Venus', 'Mars': 'Mars', 'Jupiter': 'Jupiter',
+        'Saturne': 'Saturn', 'Uranus': 'Uranus',
+        'Neptune': 'Neptune', 'Pluton': 'Pluto', 'Ascendant': 'Ascendant',
+    }
     for planet in planet_list:
         sign = _find_sign(planet) or 'Inconnu'
         ai_text = (ai.get(_AI_KEY[planet], '') or '').strip()
-        analysis = ai_text if ai_text else _sign_analysis(planet, sign)
+        if ai_text:
+            analysis = ai_text
+        else:
+            # Fallback #1 : texte BRUT de l'API v3 (source de vérité, jamais IA générique)
+            v3_key = _PLANET_FR_TO_EN_KEY.get(planet)
+            v3_text = (ai_raw_v3.get(v3_key, '') or '').strip() if v3_key else ''
+            if v3_text:
+                analysis = v3_text
+            else:
+                # Fallback #2 (extrême — jamais atteint si l'API v3 répond) : texte statique
+                analysis = _sign_analysis(planet, sign)
         planets.append({
             'name': planet,
             'sign': sign,
@@ -177,4 +194,16 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
     except Exception as e:
         logger.exception(f'[natal_pdf_v2] fallback to legacy: {e}')
         from services.pdf_generator import generate_manuscrit_pdf as legacy
-        return legacy(user_data=user_data, planets_data=planets_data, horoscope_data=horoscope_data)
+        legacy_bytes = legacy(user_data=user_data, planets_data=planets_data, horoscope_data=horoscope_data)
+        # Wrap luxe même sur le fallback legacy — jamais servir un PDF nu
+        try:
+            from services.pdf_luxury_wrap import apply_luxury_wrap
+            return apply_luxury_wrap(
+                legacy_bytes,
+                prenom=prenom,
+                subtitle='Ton ciel de naissance, dévoilé.',
+                product='synastry',  # utilise slugs génériques valides
+            )
+        except Exception as we:
+            logger.warning(f'[natal_pdf_adapter] luxe wrap on legacy failed: {we}')
+            return legacy_bytes
