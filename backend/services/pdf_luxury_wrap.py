@@ -31,18 +31,18 @@ KARMIQUE_SLUGS = {
 }
 
 
-def _prepend_luxury_cover(pdf_bytes: bytes, prenom: str, subtitle: str, cover_slug: str) -> bytes:
-    """Ajoute 3 pages luxe (cover + ouverture + teaser) devant un PDF existant.
+def _prepend_luxury_cover(pdf_bytes: bytes, prenom: str, subtitle: str, cover_slug: str,
+                          grid_cells: list = None, grid_title: str = None, grid_tag: str = None) -> bytes:
+    """Ajoute 2–3 pages luxe (cover + ouverture + grille 2×2 optionnelle) devant un PDF existant.
 
-    Utilise PyPDF2 pour merger. Robuste : si merge fail, retourne le PDF original
+    Utilise pypdf pour merger. Robuste : si merge fail, retourne le PDF original
     intact (jamais casser une vente).
     """
     try:
         from services.pdf_luxury_theme import (
             build_luxury_doc, luxury_styles, luxury_bg,
-            cover_page, opening_page, teaser_page,
+            cover_page, opening_page, photos_grid_2x2,
         )
-        from reportlab.platypus import PageBreak
 
         # 1. Générer les pages luxe en PDF
         buf = io.BytesIO()
@@ -51,6 +51,11 @@ def _prepend_luxury_cover(pdf_bytes: bytes, prenom: str, subtitle: str, cover_sl
         story = []
         cover_page(story, styles, prenom=prenom, subtitle=subtitle, illustration_slug=cover_slug)
         opening_page(story, styles, prenom=prenom, first_line="Voici ce que tu as attiré à toi.")
+        if grid_cells and grid_title:
+            photos_grid_2x2(story, styles,
+                            chapter_tag=grid_tag or '✦ Ton empreinte ✦',
+                            title=grid_title,
+                            cells=grid_cells)
         doc.build(story, onFirstPage=luxury_bg, onLaterPages=luxury_bg)
         cover_bytes = buf.getvalue()
 
@@ -70,21 +75,21 @@ def _prepend_luxury_cover(pdf_bytes: bytes, prenom: str, subtitle: str, cover_sl
 
 
 def _append_luxury_ending(pdf_bytes: bytes, prenom: str, ending_slug: str) -> bytes:
-    """Ajoute la fin émotionnelle Soléna (2 pages) à la fin d'un PDF existant."""
+    """Ajoute la fin émotionnelle Soléna (1 page dense) à la fin d'un PDF existant.
+
+    Refactor 2026-02-22 : suppression de la page `waouh_quote_page` qui n'avait
+    qu'une phrase (« Ton plus grand défi… »). Le contenu poétique est déjà porté
+    par `emotional_ending`.
+    """
     try:
         from services.pdf_luxury_theme import (
-            build_luxury_doc, luxury_styles, luxury_bg,
-            waouh_quote_page, emotional_ending,
+            build_luxury_doc, luxury_styles, luxury_bg, emotional_ending,
         )
 
         buf = io.BytesIO()
         doc = build_luxury_doc(buf, title=f'Plume Astrale — {prenom} — Épilogue')
         styles = luxury_styles()
         story = []
-        # Page charnière — phrase waouh avant l'épilogue
-        waouh_quote_page(story, styles,
-                          quote='Ton plus grand défi deviendra ton plus grand pouvoir.',
-                          illustration_slug=ending_slug)
         emotional_ending(story, styles, prenom=prenom)
         doc.build(story, onFirstPage=luxury_bg, onLaterPages=luxury_bg)
         ending_bytes = buf.getvalue()
@@ -113,20 +118,59 @@ _SYNASTRY_FALLBACK_SLUG = 'amoureux'
 
 
 def apply_luxury_wrap(pdf_bytes: bytes, prenom: str, subtitle: str, product: str = 'kabbale') -> bytes:
-    """Enveloppe complète : cover + ouverture + [contenu existant] + waouh + fin Soléna."""
+    """Enveloppe complète : cover + ouverture + grille 2×2 thématique + [contenu existant] + fin Soléna."""
+    from services import library_images as libimg
+
     if product == 'astrocarto':
         slugs = ASTROCARTO_SLUGS
+        grid_tag = '✦ Tes lignes-monde ✦'
+        grid_title = 'Les 4 planètes qui tracent ta géographie sacrée'
+        grid_cells = [
+            {'image': libimg.planet('Soleil'), 'label': 'Soleil', 'sublabel': 'Ta vitalité'},
+            {'image': libimg.planet('Vénus'), 'label': 'Vénus', 'sublabel': 'Ton amour'},
+            {'image': libimg.planet('Mars'), 'label': 'Mars', 'sublabel': 'Ta puissance'},
+            {'image': libimg.planet('Jupiter'), 'label': 'Jupiter', 'sublabel': 'Ta chance'},
+        ]
     elif product == 'karmique':
         slugs = KARMIQUE_SLUGS
+        grid_tag = '✦ Ton empreinte d\'âme ✦'
+        grid_title = 'Les 4 piliers de ton chemin karmique'
+        grid_cells = [
+            {'image': libimg.planet('Saturne'), 'label': 'Saturne', 'sublabel': 'Tes leçons'},
+            {'image': libimg.planet('Pluton'), 'label': 'Pluton', 'sublabel': 'Tes mues'},
+            {'image': libimg.planet('Neptune'), 'label': 'Neptune', 'sublabel': 'Tes visions'},
+            {'image': libimg.planet('Lune'), 'label': 'Lune', 'sublabel': 'Ta mémoire'},
+        ]
     elif product == 'synastry':
         slugs = SYNASTRY_SLUGS
-    else:
+        grid_tag = '✦ Vos 4 langages ✦'
+        grid_title = 'Les planètes qui gouvernent votre lien'
+        grid_cells = [
+            {'image': libimg.planet('Soleil'), 'label': 'Soleil', 'sublabel': 'Votre identité'},
+            {'image': libimg.planet('Lune'), 'label': 'Lune', 'sublabel': 'Votre émotion'},
+            {'image': libimg.planet('Vénus'), 'label': 'Vénus', 'sublabel': 'Votre amour'},
+            {'image': libimg.planet('Mars'), 'label': 'Mars', 'sublabel': 'Votre désir'},
+        ]
+    else:  # kabbale
         slugs = KABBALE_SLUGS
+        grid_tag = '✦ Les 4 mondes ✦'
+        grid_title = 'Les Sephiroth qui te structurent'
+        grid_cells = [
+            {'image': libimg.planet('Soleil'), 'label': 'Tiphereth', 'sublabel': 'La Beauté'},
+            {'image': libimg.planet('Lune'), 'label': 'Yesod', 'sublabel': 'Le Fondement'},
+            {'image': libimg.planet('Vénus'), 'label': 'Netzach', 'sublabel': 'La Victoire'},
+            {'image': libimg.planet('Mercure'), 'label': 'Hod', 'sublabel': 'La Splendeur'},
+        ]
+
     try:
-        wrapped = _prepend_luxury_cover(pdf_bytes, prenom=prenom, subtitle=subtitle, cover_slug=slugs['cover'])
+        wrapped = _prepend_luxury_cover(
+            pdf_bytes, prenom=prenom, subtitle=subtitle, cover_slug=slugs['cover'],
+            grid_cells=grid_cells, grid_title=grid_title, grid_tag=grid_tag,
+        )
     except Exception:
-        # Fallback vers un slug garanti présent
-        wrapped = _prepend_luxury_cover(pdf_bytes, prenom=prenom, subtitle=subtitle, cover_slug=_SYNASTRY_FALLBACK_SLUG)
+        # Fallback vers un slug garanti présent, sans grille
+        wrapped = _prepend_luxury_cover(pdf_bytes, prenom=prenom, subtitle=subtitle,
+                                        cover_slug=_SYNASTRY_FALLBACK_SLUG)
     wrapped = _append_luxury_ending(wrapped, prenom=prenom, ending_slug=slugs['ending'])
     return wrapped
 

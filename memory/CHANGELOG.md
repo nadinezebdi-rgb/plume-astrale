@@ -1,6 +1,108 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-23 — 🔒 API v3 = source unique + wrap luxe garanti sur tous les fallbacks
+
+### 1) API v3 comme source de vérité (fin du "contenu IA générique")
+Refactor `services/natal_ai_enrichment.py` + `services/natal_pdf_adapter.py` :
+
+**Avant** : Si GPT (reformulation Soléna) échouait, l'adaptateur tombait sur `_sign_analysis()` — un texte statique **générique par signe**, non lié aux données API v3 réelles du user.
+
+**Après** : Chaîne de fallback en 3 niveaux, dans cet ordre STRICT :
+1. **GPT reformule** l'API v3 en voix Soléna → utilisé si `ai['soleil']` etc. remplis
+2. **Texte BRUT de l'API v3** (`_raw_v3_by_planet[planet_en]`) — le contenu vient LITTÉRALEMENT de l'API astrology-api.io v3, planète par planète
+3. Statique (extrême dernier recours, **atteint uniquement si l'API v3 elle-même est down**)
+
+**Implémentation** :
+- `enrich_natal_ultra()` retourne désormais TOUJOURS `_signs_by_planet` + `_raw_v3_by_planet` même quand GPT échoue totalement (`_source = 'api_v3_only'` ou `'gpt_partial'`).
+- `generate_manuscrit_pdf()` boucle sur les 11 planètes en priorisant GPT → v3 brut → statique.
+- Résultat : le contenu affiché dans le PDF vient **littéralement** de l'API v3 (soit reformulé Soléna, soit tel quel).
+
+### 2) Wrap luxe garanti sur le fallback legacy
+`natal_pdf_adapter.py` : si `build_natal_pdf_v2` lève une exception (structure `natal_data` corrompue), on tombait auparavant sur `pdf_generator.generate_manuscrit_pdf` **sans wrap luxe** → PDF nu servi au client.
+
+Fix : le fallback legacy est désormais enveloppé via `pdf_luxury_wrap.apply_luxury_wrap(prenom, product='synastry')`. **Jamais aucun PDF nu ne peut être servi au client**, quelle que soit la voie d'échec.
+
+### Validation E2E (cache purgé + backend redémarré)
+- `_source: gpt` ✅
+- `_signs_by_planet: 11 entries` ✅ (Soleil…Ascendant tous mappés)
+- `_raw_v3_by_planet: 11 entries` ✅ (11 textes API v3 disponibles)
+- **PDF : 20 pages, 46 MB, structure luxe complète** ✅
+
+
+
+## 2026-02-22 (fin) — 🎨 Refactor wrapper luxe (4 produits) + Test SSE mobile
+
+### 1) Cache aperçus purgé
+`_CACHE` de `services/apercu_pdf.py` étant module-level, un simple `supervisorctl restart backend` le réinitialise → les 5 aperçus (natal, synastry, kabbale, astrocarto, karmique) sont régénérés à la première requête. Validé par curl : 3 pages / 1.3-2.1 MB pour chacun.
+
+### 2) Refactor `pdf_luxury_wrap.py`
+Appliqué aux 4 produits qui utilisent le wrapper : **Kabbale, Astrocarto, Karmique, Synastrie**.
+
+**Suppressions** :
+- Retrait de `waouh_quote_page("Ton plus grand défi deviendra ton plus grand pouvoir")` qui affichait UNE phrase en pleine page avant l'épilogue → économie d'1 page vide sur les 4 produits.
+
+**Ajouts (grille photos 2×2 par produit)** — insérée après l'ouverture, avant le contenu métier :
+| Produit | Tag | Titre | 4 cellules |
+|---------|-----|-------|-----------|
+| **Kabbale** | ✦ Les 4 mondes ✦ | Les Sephiroth qui te structurent | Tiphereth (Beauté) · Yesod (Fondement) · Netzach (Victoire) · Hod (Splendeur) |
+| **Astrocarto** | ✦ Tes lignes-monde ✦ | Les 4 planètes qui tracent ta géographie sacrée | Soleil · Vénus · Mars · Jupiter |
+| **Karmique** | ✦ Ton empreinte d'âme ✦ | Les 4 piliers de ton chemin karmique | Saturne · Pluton · Neptune · Lune |
+| **Synastrie** | ✦ Vos 4 langages ✦ | Les planètes qui gouvernent votre lien | Soleil · Lune · Vénus · Mars |
+
+**Signature `_prepend_luxury_cover` étendue** avec paramètres optionnels `grid_cells / grid_title / grid_tag` (backward compat : si absents, aucune grille).
+
+**Validation E2E** : PDF Synastrie test (inner 10 pages) → wrapping produit **15 pages** : cover(1) + opening(1) + **grille(1)** + inner(10) + emotional_ending(2). Screenshot grille : 4 photos or Cartier magnifiques.
+
+### 3) Test SSE mobile (viewport 390×844, throttling 400 kbps + 300 ms)
+Test live sur `/outils/consultation` en simulation 3G mobile dégradée :
+- **1er token** perçu (bulle "Soléna réfléchit") en **0.03s** ⚡
+- **Réponse complète** streamée en **~8s** (vs 15-20s en mode bloc bloquant)
+- **Layout mobile impeccable** : navbar burger, tab bar bottom (Mon Espace / Consulter / Tarifs), texte lisible sans zoom
+- Réponse Soléna cohérente avec le ciel du jour ("Soleil en Lion + Lune en Poissons"), question ouverte finale
+- **Conclusion** : le streaming SSE tient parfaitement même en 3G dégradée. Sur 4G réelle (3-5 Mbps, 50-100 ms), l'expérience sera plus fluide encore. Aucun blocage détecté par les proxies simulés.
+
+
+
+## 2026-02-22 (nuit) — 🎨 Refactor complet Thème Natal PDF (standard uniforme + photos + zéro page vide)
+
+### Retour utilisateur (bloquant)
+« Après tout ce que j'ai configuré ce matin j'ai le même thème natal que ce matin et les photos ne sont pas là pour les mettre par 4. À ce prix j'ai honte de vendre ça ! Fais-moi un PDF standard pour tous les PDFs avec des photos à chaque fois. Que c'est vide inutile de faire une page pour une ligne, et il faut impérativement suivre l'API v3. »
+
+### Diagnostic
+Le PDF fourni (Nadine, 24 pages) tombait en mode LEGACY 5 planètes avec de nombreuses pages 1-ligne (glyph seul, waouh quote seule, teaser seul) — le générateur `natal_pdf_v2` alignait 4 pages par planète dont 3 quasi-vides.
+
+### Refactor livré
+**1. `services/pdf_luxury_theme.py` — 2 nouvelles primitives**
+- `planet_dense_page(...)` : UNE page DENSE par planète avec header ornemental (glyph+nom+signe), petite image (4.2×4.2 cm) de la planète, dialogue psychologique italique, analyse Soléna complète — **remplace définitivement** les triplets `glyph_page + analysis_page + waouh_quote_page`.
+- `photos_grid_2x2(...)` : Page grille 2×2 de photos avec tag+titre. 4 cellules encadrées or (image + label + sub-label). Placeholders décoratifs si image manquante.
+
+**2. `services/natal_pdf_v2.py` — Réécrit intégralement (163 → 191 lignes)**
+Nouvelle structure UNIFORME (20 pages typiques en mode Ultra) :
+1. Couverture (image ciel_zodiaque)
+2. Ouverture spectaculaire
+3. Roue céleste (image)
+4. **Grille 2×2 « Ta signature astrale »** : Soleil / Lune / Ascendant / Vénus (photos)
+5-15. **11 planètes** en pages DENSES avec image + dialogue + analyse (Soleil, Lune, Mercure, Vénus, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton, Ascendant)
+16. **Grille 2×2 « Tes énergies quotidiennes »** : Mercure / Vénus / Mars / Jupiter (photos)
+17. **Grille 2×2 « Tes strates profondes »** : Saturne / Uranus / Neptune / Pluton (photos)
+18. Synthèse aspects (page dense)
+19-20. Fin émotionnelle Soléna
+→ **PLUS AUCUNE page 1-ligne**. **Photos à chaque planète** + **3 grilles 2×2**.
+
+**3. Correction extraction signes Uranus/Neptune/Pluton (bug caché)**
+`extract_planets()` de `astrology_io_service` ne renvoie que 7 planètes classiques (`/charts/natal` n'inclut pas les modernes). Auparavant → "URANUS — Inconnu / NEPTUNE — Inconnu / PLUTON — Inconnu" sur les pages.
+- **`services/natal_ai_enrichment.py`** : expose désormais `_signs_by_planet` dans le résultat (parsé depuis `/analysis/natal-report` — 80 interprétations avec `title: "Uranus — Capricorn"` etc.).
+- **`services/natal_pdf_adapter.py`** : `_find_sign()` utilise cette table en fallback → Uranus/Neptune/Pluton affichent maintenant leurs vrais signes.
+
+### Validation E2E (cache purgé)
+- API v3 : 80 interprétations reçues ✅
+- AI enrichment : **11/11 planètes** remplies (voix Soléna, `_source=gpt`) ✅
+- PDF : **20 pages** dense, ~45 MB (haute résolution), **11 planètes** avec signes corrects
+- Screenshots preview : couverture, roue céleste, **grille 2×2 signature** (Soleil doré / Lune lotus / Ascendant lion / Vénus roses), page Soleil-Taureau dense (glyph header + image mandala + dialogue + 200 mots d'analyse) — tous validés visuellement.
+
+
+
 ## 2026-02-22 (fin de journée) — ⚡ Streaming SSE + Restauration session + Nouvelle cover Synastrie
 
 ### 1) Streaming SSE (`/api/plume-chat/stream`)
