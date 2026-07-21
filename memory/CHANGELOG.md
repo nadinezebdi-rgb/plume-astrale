@@ -1,6 +1,35 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — 🚀 Thème Natal ULTRA (API v3 + GPT-5.4 voix Soléna)
+
+### Contexte
+L'ancien PDF Nadine utilisait `FALLBACK_SIGN` : 12 phrases hardcodées, aucune vraie personnalisation. L'API v3 renvoie 73 interprétations riches MAIS en anglais uniquement (bug prestataire — le param `language:fr` est ignoré, confirmé via 7 variantes de tests).
+
+### Solution hybride
+- **API v3** (`/analysis/natal-report`) → 73 interprétations riches (planètes en signes, planètes en maisons, aspects avec dignités et orbes)
+- **GPT-5.4** → traduit en français + reformule en voix Soléna (poétique, intime, images concrètes)
+- **Cache filesystem** hash-keyé sha256(prenom+bd+tier) → une seule facturation GPT par personne
+
+### Fichiers modifiés
+- `backend/services/natal_ai_enrichment.py` — refonte complète : extraction filtrée depuis 73 interps, prompt système Soléna spécialisé traduction/reformulation, output JSON 12 clés (11 planètes + synthese_aspects)
+- `backend/services/natal_pdf_adapter.py` — mode dual : Ultra (11 planètes) si AI a répondu ≥ 7 planètes, sinon Legacy (5 planètes)
+- `backend/services/natal_pdf_v2.py` — 3 nouvelles PLANET_PERSONA (Uranus, Neptune, Pluton), 10 CHAPTER_TEASERS + 10 WAOUH_QUOTES, page synthèse d'aspects "La danse des planètes"
+- `backend/routes/astrology_v3.py:318-425` — endpoint refondu : fetch natal_report → enrich_natal_ultra → adapter
+
+### Résultat sur Nadine (Gémeaux · Lune Cancer · Asc Balance)
+- **49 pages, 16.5 MB** (vs 24 pages 268 KB avant)
+- **Tier ULTRA** confirmé
+- Texte réellement personnalisé, voix Soléna authentique, images concrètes (marée, tiroirs, cartes chaudes)
+- Aspects majeurs synthétisés : Venus-Pluton, Jupiter-Saturne, Mercure-Jupiter
+- Temps de génération : 60s première fois, instantané après (cache filesystem)
+- Coût GPT : ~0,03€ / PDF
+
+### Positionnement produit
+Le Thème Natal peut désormais être vendu **25 à 35€** avec justification totale. Bookmarker les décisions pricing pour Nathalie.
+
+
+
 ## 2026-02-20 — Cover Synastrie luxe = image `couple` bibliothèque interne
 
 ### Contexte

@@ -1,17 +1,23 @@
 """
-natal_ai_enrichment — Enrichissement AI (GPT-5.4) pour le Thème Natal.
+natal_ai_enrichment — Enrichissement AI Thème Natal Ultra.
 
-Prend les données API v3 (positions + maisons + aspects) et génère des
-interprétations personnalisées voix Soléna, poétiques et profondes.
-
-Cache filesystem : hash(prenom + birth_data) → JSON stocké dans
-`/app/backend/cache/natal_ai/`. Évite de repayer GPT sur regénération.
+Pipeline :
+  1. API astrology-api.io v3 → 73 interprétations riches (anglais)
+     • 10 planètes en signes (Sun/Moon/Mercury/Venus/Mars/Jupiter/Saturn/
+       Uranus/Neptune/Pluto)
+     • Ascendant
+     • Aspects majeurs (conjonction, opposition, trigone, carré, sextile)
+     • Maisons + dignités
+  2. On sélectionne le contenu impactant (planètes + top aspects par orbe serré)
+  3. GPT-5.4 traduit en français ET reformule en voix Soléna
+  4. Cache filesystem (24 chars sha256) — évite de repayer 2× la même personne
 """
 from __future__ import annotations
 import hashlib
 import json
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -20,16 +26,44 @@ logger = logging.getLogger(__name__)
 CACHE_DIR = Path(__file__).resolve().parent.parent / 'cache' / 'natal_ai'
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
+# Planètes à extraire dans l'ordre du PDF (Ultra = 10 planètes + Ascendant)
+PLANET_ORDER = [
+    'Sun', 'Moon', 'Mercury', 'Venus', 'Mars',
+    'Jupiter', 'Saturn',
+    'Uranus', 'Neptune', 'Pluto',
+    'Ascendant',
+]
+
+# Mapping planet EN → clé JSON française
+PLANET_KEY_FR = {
+    'Sun': 'soleil', 'Moon': 'lune', 'Mercury': 'mercure',
+    'Venus': 'venus', 'Mars': 'mars', 'Jupiter': 'jupiter',
+    'Saturn': 'saturne', 'Uranus': 'uranus',
+    'Neptune': 'neptune', 'Pluto': 'pluton',
+    'Ascendant': 'ascendant',
+}
+
+# Mapping planet EN → nom français pour le PDF
+PLANET_NAME_FR = {
+    'Sun': 'Soleil', 'Moon': 'Lune', 'Mercury': 'Mercure',
+    'Venus': 'Vénus', 'Mars': 'Mars', 'Jupiter': 'Jupiter',
+    'Saturn': 'Saturne', 'Uranus': 'Uranus',
+    'Neptune': 'Neptune', 'Pluto': 'Pluton',
+    'Ascendant': 'Ascendant',
+}
+
 
 # ─────────────────────────────────────────────────────────────
 # CACHE
 # ─────────────────────────────────────────────────────────────
-def _cache_key(prenom: str, birth_data: Dict[str, Any]) -> str:
+def _cache_key(prenom: str, birth_data: Dict[str, Any], tier: str = 'ultra') -> str:
     bd_str = json.dumps({
-        'p': prenom.lower().strip(),
+        't': tier,
+        'p': (prenom or '').lower().strip(),
         'd': birth_data.get('day'), 'm': birth_data.get('month'), 'y': birth_data.get('year'),
-        'h': birth_data.get('hour'), 'mn': birth_data.get('min'),
-        'lat': round(birth_data.get('lat', 0), 3), 'lon': round(birth_data.get('lon', 0), 3),
+        'h': birth_data.get('hour'), 'mn': birth_data.get('minute') or birth_data.get('min'),
+        'lat': round(birth_data.get('latitude', 0) or 0, 3),
+        'lon': round(birth_data.get('longitude', 0) or 0, 3),
     }, sort_keys=True)
     return hashlib.sha256(bd_str.encode()).hexdigest()[:24]
 
@@ -46,76 +80,173 @@ def _cache_read(key: str) -> Optional[Dict]:
 
 def _cache_write(key: str, data: Dict) -> None:
     try:
-        (CACHE_DIR / f'{key}.json').write_text(json.dumps(data, ensure_ascii=False), encoding='utf-8')
+        (CACHE_DIR / f'{key}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
     except Exception as e:
         logger.warning(f'[natal_ai] cache write failed: {e}')
 
 
 # ─────────────────────────────────────────────────────────────
-# PROMPT SOLÉNA
+# EXTRACTION depuis la réponse API v3 (73 interprétations)
+# ─────────────────────────────────────────────────────────────
+def _find_planet_interp(interps: List[Dict], planet_en: str) -> Optional[Dict]:
+    """Trouve l'interprétation planète-en-signe (ex: 'Sun — Gemini')."""
+    for it in interps or []:
+        title = (it.get('title') or '').strip()
+        # Format API : "Sun — Gemini" ou "Ascendant — Libra"
+        if title.startswith(f'{planet_en} —') or title.startswith(f'{planet_en}—'):
+            # On préfère les interps planète-signe, pas planète-maison
+            comps = it.get('components', {})
+            secondary = comps.get('secondary', {}) if isinstance(comps, dict) else {}
+            if secondary.get('type') == 'sign':
+                return it
+    return None
+
+
+def _find_house_placement(interps: List[Dict], planet_en: str) -> Optional[Dict]:
+    """Trouve l'interprétation planète-en-maison (ex: 'Sun in House 10')."""
+    for it in interps or []:
+        title = (it.get('title') or '').lower()
+        if planet_en.lower() in title and ('house' in title or 'maison' in title):
+            comps = it.get('components', {})
+            secondary = comps.get('secondary', {}) if isinstance(comps, dict) else {}
+            if secondary.get('type') == 'house':
+                return it
+    return None
+
+
+def _extract_top_aspects(interps: List[Dict], limit: int = 8) -> List[Dict]:
+    """Extrait les aspects majeurs (orbe le plus serré en priorité)."""
+    aspects = []
+    for it in interps or []:
+        title = (it.get('title') or '')
+        comps = it.get('components', {})
+        if not isinstance(comps, dict):
+            continue
+        # Un aspect a primary=planet et secondary=planet + un opérateur (aspect)
+        prim = comps.get('primary', {})
+        sec = comps.get('secondary', {})
+        if prim.get('type') == 'planet' and sec.get('type') == 'planet':
+            astro = it.get('astrological_data') or {}
+            orb = astro.get('orb')
+            # ne garder que les orbes serrés
+            if orb is not None and orb <= 6.0:
+                aspects.append({
+                    'title': title,
+                    'text': it.get('text', ''),
+                    'orb': orb,
+                })
+    # Trier par orbe croissant (aspects les plus exacts en premier)
+    aspects.sort(key=lambda a: a['orb'])
+    return aspects[:limit]
+
+
+def build_ai_input(interps: List[Dict]) -> Dict[str, Any]:
+    """Structure les inputs pour GPT à partir des 73 interprétations."""
+    payload = {'planets': {}, 'houses': {}, 'aspects': []}
+
+    for planet_en in PLANET_ORDER:
+        p_it = _find_planet_interp(interps, planet_en)
+        if not p_it:
+            continue
+        comps = p_it.get('components', {})
+        astro = p_it.get('astrological_data') or {}
+        sign = (comps.get('secondary', {}) if isinstance(comps, dict) else {}).get('translated_name', '')
+        payload['planets'][planet_en] = {
+            'sign_en': sign,
+            'text_en': p_it.get('text', ''),
+            'house': astro.get('house'),
+            'degree': astro.get('degree'),
+            'dignity': astro.get('dignity'),
+            'is_retrograde': astro.get('is_retrograde'),
+        }
+        # Maison associée (contexte pour GPT)
+        h_it = _find_house_placement(interps, planet_en)
+        if h_it:
+            payload['houses'][planet_en] = h_it.get('text', '')
+
+    payload['aspects'] = _extract_top_aspects(interps, limit=8)
+    return payload
+
+
+# ─────────────────────────────────────────────────────────────
+# PROMPT SOLÉNA — Traduction + reformulation
 # ─────────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """Tu es Soléna, la voix astrologique de Plume Astrale.
 
 Style : poétique, intime, direct, jamais banal. Tu tutoies. Tu écris comme
-Amanda Bourdain aurait écrit sur l'âme : élégant, sans jargon technique, sans
-paillette. Tu parles au corps ET à l'inconscient de la femme qui te lit.
+si tu parlais à ton amie la plus proche — l'élégance en plus, le jargon en moins.
 
-Chaque paragraphe doit :
-- Commencer sans "Tu es un peu" ou "Vous êtes..." — trop banal
-- Éviter les clichés type "sensible", "créative", "unique" employés seuls
-- Utiliser des images concrètes (le corps, la maison, un geste, une saison)
-- Faire au moins UNE référence directe à un aspect du chart (aspect, maison, degré) sans jargon
-- Terminer par une phrase qui ouvre une réflexion, pas une conclusion
-- Longueur : 120 à 180 mots STRICTEMENT
+Ta mission :
+1. TRADUIRE en français des interprétations astrologiques données en anglais
+2. LES REFORMULER dans ta voix : plus incarnée, plus poétique, plus directe
+3. INTÉGRER discrètement la maison et l'aspect si mentionnés (sans jargon technique)
+4. Chaque paragraphe = 130 à 200 mots STRICTEMENT
 
-Format de sortie : JSON strict, RIEN d'autre.
+Règles de style :
+- Bannir : "Vous êtes...", "Tu es un peu", "avec Xxx en Yyy"
+- Utiliser images concrètes : le corps, la maison, un geste, une saison, une matière
+- Une phrase qui ouvre (pas une conclusion moralisante) en fin de paragraphe
+- Aucun "voici", "en résumé", "en conclusion", "au fond"
+
+Format : JSON strict. RIEN d'autre.
 {
-  "soleil": "paragraphe sur le Soleil...",
-  "lune": "paragraphe sur la Lune...",
-  "venus": "paragraphe sur Vénus...",
-  "mars": "paragraphe sur Mars...",
-  "ascendant": "paragraphe sur l'Ascendant..."
+  "soleil": "...",
+  "lune": "...",
+  "mercure": "...",
+  "venus": "...",
+  "mars": "...",
+  "jupiter": "...",
+  "saturne": "...",
+  "uranus": "...",
+  "neptune": "...",
+  "pluton": "...",
+  "ascendant": "...",
+  "synthese_aspects": "paragraphe (200-250 mots) qui synthétise les tensions et harmonies majeures du chart, en voix Soléna"
 }"""
 
 
-def _build_user_prompt(prenom: str, planets: Dict[str, Dict], houses: List[Dict], aspects: List[Dict]) -> str:
-    p = planets
-    def _pd(k):
-        d = p.get(k, {})
-        sign = d.get('sign') or ''
-        house = d.get('house') or ''
-        deg = d.get('degree', '')
-        return f"{sign} (maison {house}, {deg}°)" if house else sign
+def _format_planet_input(planet_en: str, data: Dict, house_text: str = '') -> str:
+    sign = data.get('sign_en', '')
+    text = data.get('text_en', '').strip()
+    house = data.get('house')
+    dignity = data.get('dignity')
+    retro = data.get('is_retrograde')
 
-    # Aspects majeurs seulement (orbe < 6°)
-    major = [a for a in (aspects or []) if _is_major_aspect(a)][:10]
-    aspects_str = '\n'.join(
-        f"- {a.get('planet1', '?')} {a.get('aspect', '?')} {a.get('planet2', '?')} "
-        f"(orbe {a.get('orb', '?')}°)"
-        for a in major
-    ) or 'Aucun aspect majeur communiqué.'
+    ctx = [f'{planet_en} en {sign}']
+    if house:
+        ctx.append(f'maison {house}')
+    if dignity:
+        ctx.append(f'dignité: {dignity}')
+    if retro:
+        ctx.append('rétrograde')
+    context = ' · '.join(ctx)
 
-    return f"""Écris les interprétations pour {prenom} — 5 paragraphes séparés (JSON strict).
-
-DONNÉES DU CIEL DE NAISSANCE :
-- Soleil en {_pd('sun')}
-- Lune en {_pd('moon')}
-- Vénus en {_pd('venus')}
-- Mars en {_pd('mars')}
-- Ascendant en {_pd('ascendant')}
-
-ASPECTS MAJEURS (orbe serré) :
-{aspects_str}
-
-Rappelle-toi : voix Soléna, 120-180 mots par paragraphe, JSON strict,
-inclure un détail précis du chart (aspect, maison ou degré) dans chaque
-paragraphe. Aucune formule creuse — chaque phrase doit apporter."""
+    block = f'== {planet_en} ({context}) ==\nInterprétation anglaise:\n"{text}"'
+    if house_text:
+        block += f'\nContexte maison:\n"{house_text.strip()}"'
+    return block
 
 
-def _is_major_aspect(a: Dict) -> bool:
-    t = (a.get('aspect') or '').lower()
-    return any(m in t for m in ('conjunction', 'opposition', 'trine', 'square', 'sextile',
-                                 'conjonction', 'trigone', 'carré', 'carre'))
+def _build_user_prompt(prenom: str, ai_input: Dict[str, Any]) -> str:
+    parts = [f'Interprétations pour {prenom} — traduis en français ET reformule en voix Soléna.\n']
+
+    for planet_en in PLANET_ORDER:
+        p = ai_input['planets'].get(planet_en)
+        if not p:
+            continue
+        house_text = ai_input['houses'].get(planet_en, '')
+        parts.append(_format_planet_input(planet_en, p, house_text))
+        parts.append('')
+
+    # Aspects
+    aspects = ai_input.get('aspects', [])
+    if aspects:
+        parts.append('\n== ASPECTS MAJEURS (à synthétiser dans "synthese_aspects") ==')
+        for a in aspects:
+            parts.append(f"- {a['title']} (orbe {a['orb']:.1f}°): \"{a['text'][:250]}\"")
+
+    parts.append("\nRappel : JSON strict, 130-200 mots par planète (200-250 pour synthese_aspects), voix Soléna, images concrètes, aucun jargon technique brut.")
+    return '\n'.join(parts)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -133,29 +264,27 @@ async def _call_gpt(system_msg: str, user_msg: str, session_id: str) -> Optional
             session_id=session_id,
             system_message=system_msg,
         ).with_model('openai', 'gpt-5.4')
-        resp = await chat.send_message(UserMessage(text=user_msg))
-        return resp
+        return await chat.send_message(UserMessage(text=user_msg))
     except Exception as e:
         logger.exception(f'[natal_ai] LLM call failed: {e}')
         return None
 
 
 def _parse_json_response(text: str) -> Optional[Dict[str, str]]:
-    """Extrait le JSON de la réponse GPT (peut inclure markdown fences)."""
     if not text:
         return None
     t = text.strip()
     # retire les fences ```json ... ```
     if t.startswith('```'):
-        lines = t.split('\n')
-        t = '\n'.join(lines[1:-1]) if len(lines) > 2 else t
+        t = re.sub(r'^```(?:json)?\s*', '', t)
+        t = re.sub(r'```\s*$', '', t)
     try:
         d = json.loads(t)
         if isinstance(d, dict):
             return d
     except Exception:
         pass
-    # dernier recours : trouver { ... } dans le texte
+    # dernier recours : chercher un { ... } dans le texte
     try:
         s = t.find('{'); e = t.rfind('}')
         if s >= 0 and e > s:
@@ -168,48 +297,66 @@ def _parse_json_response(text: str) -> Optional[Dict[str, str]]:
 # ─────────────────────────────────────────────────────────────
 # API PUBLIQUE
 # ─────────────────────────────────────────────────────────────
-async def enrich_natal_interpretations(
+async def enrich_natal_ultra(
     prenom: str,
     birth_data: Dict[str, Any],
-    planets: Dict[str, Dict[str, Any]],
-    houses: List[Dict] = None,
-    aspects: List[Dict] = None,
-) -> Dict[str, str]:
-    """Retourne un dict {soleil, lune, venus, mars, ascendant} avec paragraphes riches.
+    api_interpretations: List[Dict],
+    tier: str = 'ultra',
+) -> Dict[str, Any]:
+    """Retourne un dict enrichi Soléna à partir des 73 interprétations API.
 
-    Cache filesystem par hash. Si GPT échoue, retourne {} et l'appelant
-    utilisera les fallbacks statiques.
+    Structure :
+      {
+        'soleil', 'lune', 'mercure', 'venus', 'mars',
+        'jupiter', 'saturne', 'uranus', 'neptune', 'pluton',
+        'ascendant', 'synthese_aspects',
+        '_source': 'gpt' | 'cache' | 'fallback',
+        '_aspects_summary': [{'title', 'orb'}],  # métadonnée
+      }
+
+    Retourne un dict vide si GPT et cache indisponibles → appelant utilise fallback.
     """
-    key = _cache_key(prenom, birth_data)
+    key = _cache_key(prenom, birth_data, tier=tier)
     cached = _cache_read(key)
     if cached:
-        logger.info(f'[natal_ai] cache hit for {prenom} (key {key})')
+        logger.info(f'[natal_ai] cache hit for {prenom} (key {key}, {len(cached)} keys)')
+        cached['_source'] = 'cache'
         return cached
 
-    user_prompt = _build_user_prompt(prenom, planets, houses or [], aspects or [])
-    resp = await _call_gpt(SYSTEM_PROMPT, user_prompt, session_id=f'natal-{key}')
+    ai_input = build_ai_input(api_interpretations)
+    if not ai_input['planets']:
+        logger.warning(f'[natal_ai] Aucune planète extraite pour {prenom}')
+        return {}
+
+    user_prompt = _build_user_prompt(prenom, ai_input)
+    resp = await _call_gpt(SYSTEM_PROMPT, user_prompt, session_id=f'natal-ultra-{key}')
     if not resp:
         return {}
 
     parsed = _parse_json_response(resp)
     if not parsed:
-        logger.warning(f'[natal_ai] Failed to parse JSON for {prenom}. Raw: {resp[:200]}')
+        logger.warning(f'[natal_ai] JSON parse failed for {prenom}. Raw: {resp[:200]}')
         return {}
 
-    # Normalise clés (accepte fr/en)
-    normalized = {}
-    for out_k, aliases in [
-        ('soleil', ['soleil', 'sun']),
-        ('lune', ['lune', 'moon']),
-        ('venus', ['venus', 'vénus']),
-        ('mars', ['mars']),
-        ('ascendant', ['ascendant', 'asc', 'rising']),
-    ]:
-        for a in aliases:
-            if a in parsed and isinstance(parsed[a], str) and parsed[a].strip():
-                normalized[out_k] = parsed[a].strip()
+    # Normalise : accepte clés fr/en, filtre les valeurs non-string
+    out: Dict[str, Any] = {}
+    aliases = {
+        'soleil': ['soleil', 'sun'], 'lune': ['lune', 'moon'],
+        'mercure': ['mercure', 'mercury'], 'venus': ['venus', 'vénus'],
+        'mars': ['mars'], 'jupiter': ['jupiter'],
+        'saturne': ['saturne', 'saturn'], 'uranus': ['uranus'],
+        'neptune': ['neptune'], 'pluton': ['pluton', 'pluto'],
+        'ascendant': ['ascendant', 'asc', 'rising'],
+        'synthese_aspects': ['synthese_aspects', 'synthesis_aspects', 'aspects', 'synthese'],
+    }
+    for out_k, keys in aliases.items():
+        for k in keys:
+            if k in parsed and isinstance(parsed[k], str) and parsed[k].strip():
+                out[out_k] = parsed[k].strip()
                 break
 
-    if len(normalized) >= 3:
-        _cache_write(key, normalized)
-    return normalized
+    if len(out) >= 5:  # au moins la moitié pour cacher
+        out['_source'] = 'gpt'
+        out['_aspects_summary'] = [{'title': a['title'], 'orb': a['orb']} for a in ai_input.get('aspects', [])]
+        _cache_write(key, out)
+    return out

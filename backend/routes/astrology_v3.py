@@ -351,41 +351,47 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
     )
 
     try:
-        # 1) Positions planétaires + maisons + aspects via l'API v3
+        # 1) Positions planétaires + rapport natal complet + aspects (API v3)
         chart = await aio.natal_chart(bd, name=name, language='fr')
         planets_dict = aio.extract_planets(chart)
         asc_sign_en = aio.extract_ascendant_sign_en(chart)
-        # Aspects majeurs pour enrichir l'analyse GPT
-        aspects_data = await aio.get_aspects(bd, name=name, language='fr')
-        aspects_list = []
-        if aspects_data:
-            aspects_list = aspects_data.get('aspects') or aspects_data.get('data', {}).get('aspects') or []
+        # Rapport complet : 73 interprétations (planètes en signes, planètes en maisons, aspects)
+        # Note : l'API renvoie tout en anglais malgré language='fr' (limitation prestataire) —
+        # GPT-5.4 se charge de la traduction + reformulation en voix Soléna.
+        natal_report_data = await aio.natal_report(bd, name=name, language='fr')
+        interpretations = []
+        if isinstance(natal_report_data, dict):
+            interpretations = (
+                natal_report_data.get('interpretations')
+                or natal_report_data.get('data', {}).get('interpretations')
+                or []
+            )
 
-        # 2) Assemble un dict de positions unifié pour le prompt AI
-        planets_for_ai = {
-            'sun': planets_dict.get('sun', {}),
-            'moon': planets_dict.get('moon', {}),
-            'venus': planets_dict.get('venus', {}),
-            'mars': planets_dict.get('mars', {}),
-            'ascendant': {'sign': asc_sign_en or ''},
-        }
+        # 2) Enrichissement GPT-5.4 ULTRA (voix Soléna, 11 paragraphes + synthèse aspects)
+        ai_result: dict = {}
+        if interpretations:
+            from services.natal_ai_enrichment import enrich_natal_ultra
+            ai_result = await enrich_natal_ultra(
+                prenom=name,
+                birth_data=bd,
+                api_interpretations=interpretations,
+                tier='ultra',
+            )
+            if ai_result.get('_source'):
+                import logging as _lg
+                _lg.getLogger(__name__).info(
+                    f'[natal_pdf] enrichissement AI = {ai_result.get("_source")} pour {name}'
+                )
 
-        # 3) Enrichissement GPT-5.4 (voix Soléna) — avec cache filesystem
-        from services.natal_ai_enrichment import enrich_natal_interpretations
-        ai_interpretations = await enrich_natal_interpretations(
-            prenom=name,
-            birth_data=bd,
-            planets=planets_for_ai,
-            aspects=aspects_list,
-        )
-
-        # 4) Adapte au format attendu par le générateur luxe (signes en français)
+        # 3) Adapte au format attendu par le générateur luxe
         def _sign_fr(planet_key: str) -> str:
             p = planets_dict.get(planet_key)
             if not p:
                 return ''
             return aio.sign_to_fr(p.get('sign') or '') or ''
 
+        # Passe l'AI complet (11 planètes + synthèse) via user_data.ai_interpretations
+        # L'adaptateur pick ce qui est présent, fallback statique pour le reste
         user_data = {
             'prenom': name,
             'birth_date': birth_date_iso,
@@ -394,12 +400,12 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
             'venus_sign': _sign_fr('venus'),
             'mars_sign': _sign_fr('mars'),
             'ascendant_sign': aio.sign_to_fr(asc_sign_en) if asc_sign_en else '',
-            'ai_interpretations': ai_interpretations,  # peut être vide → fallbacks statiques
+            'ai_interpretations': ai_result,
         }
 
-        # 5) Génération PDF luxe (via l'adaptateur qui appelle natal_pdf_v2)
+        # 4) Génération PDF luxe (Ultra : 11 planètes si AI a répondu, sinon 5 legacy)
         from services.natal_pdf_adapter import generate_manuscrit_pdf
-        pdf = generate_manuscrit_pdf(user_data=user_data)
+        pdf = generate_manuscrit_pdf(user_data=user_data, planets_data=list(planets_dict.values()))
     except Exception as e:
         # Refund si échec
         try:
