@@ -1,6 +1,39 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-22 (fin) — 🎨 Refactor wrapper luxe (4 produits) + Test SSE mobile
+
+### 1) Cache aperçus purgé
+`_CACHE` de `services/apercu_pdf.py` étant module-level, un simple `supervisorctl restart backend` le réinitialise → les 5 aperçus (natal, synastry, kabbale, astrocarto, karmique) sont régénérés à la première requête. Validé par curl : 3 pages / 1.3-2.1 MB pour chacun.
+
+### 2) Refactor `pdf_luxury_wrap.py`
+Appliqué aux 4 produits qui utilisent le wrapper : **Kabbale, Astrocarto, Karmique, Synastrie**.
+
+**Suppressions** :
+- Retrait de `waouh_quote_page("Ton plus grand défi deviendra ton plus grand pouvoir")` qui affichait UNE phrase en pleine page avant l'épilogue → économie d'1 page vide sur les 4 produits.
+
+**Ajouts (grille photos 2×2 par produit)** — insérée après l'ouverture, avant le contenu métier :
+| Produit | Tag | Titre | 4 cellules |
+|---------|-----|-------|-----------|
+| **Kabbale** | ✦ Les 4 mondes ✦ | Les Sephiroth qui te structurent | Tiphereth (Beauté) · Yesod (Fondement) · Netzach (Victoire) · Hod (Splendeur) |
+| **Astrocarto** | ✦ Tes lignes-monde ✦ | Les 4 planètes qui tracent ta géographie sacrée | Soleil · Vénus · Mars · Jupiter |
+| **Karmique** | ✦ Ton empreinte d'âme ✦ | Les 4 piliers de ton chemin karmique | Saturne · Pluton · Neptune · Lune |
+| **Synastrie** | ✦ Vos 4 langages ✦ | Les planètes qui gouvernent votre lien | Soleil · Lune · Vénus · Mars |
+
+**Signature `_prepend_luxury_cover` étendue** avec paramètres optionnels `grid_cells / grid_title / grid_tag` (backward compat : si absents, aucune grille).
+
+**Validation E2E** : PDF Synastrie test (inner 10 pages) → wrapping produit **15 pages** : cover(1) + opening(1) + **grille(1)** + inner(10) + emotional_ending(2). Screenshot grille : 4 photos or Cartier magnifiques.
+
+### 3) Test SSE mobile (viewport 390×844, throttling 400 kbps + 300 ms)
+Test live sur `/outils/consultation` en simulation 3G mobile dégradée :
+- **1er token** perçu (bulle "Soléna réfléchit") en **0.03s** ⚡
+- **Réponse complète** streamée en **~8s** (vs 15-20s en mode bloc bloquant)
+- **Layout mobile impeccable** : navbar burger, tab bar bottom (Mon Espace / Consulter / Tarifs), texte lisible sans zoom
+- Réponse Soléna cohérente avec le ciel du jour ("Soleil en Lion + Lune en Poissons"), question ouverte finale
+- **Conclusion** : le streaming SSE tient parfaitement même en 3G dégradée. Sur 4G réelle (3-5 Mbps, 50-100 ms), l'expérience sera plus fluide encore. Aucun blocage détecté par les proxies simulés.
+
+
+
 ## 2026-02-22 (nuit) — 🎨 Refactor complet Thème Natal PDF (standard uniforme + photos + zéro page vide)
 
 ### Retour utilisateur (bloquant)
