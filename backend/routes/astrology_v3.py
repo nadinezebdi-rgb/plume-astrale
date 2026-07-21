@@ -345,24 +345,53 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
     if not bd:
         raise HTTPException(status_code=400, detail='Donnees natales incompletes (date, heure et lieu requis).')
 
-    # Paywall
+    # Paywall : Thème Natal Ultra = 80 crédits (49 pages · GPT-5.4 voix Soléna · offert si Premium)
     await wallet_service.charge_or_premium(
-        current_user['id'], 'theme_natal_pdf', 20, 'Theme Natal PDF',
+        current_user['id'], 'theme_natal_pdf', 80, 'Thème Natal Ultra PDF',
     )
 
     try:
-        # 1) Positions planétaires via l'API v3
+        # 1) Positions planétaires + rapport natal complet + aspects (API v3)
         chart = await aio.natal_chart(bd, name=name, language='fr')
         planets_dict = aio.extract_planets(chart)
         asc_sign_en = aio.extract_ascendant_sign_en(chart)
+        # Rapport complet : 73 interprétations (planètes en signes, planètes en maisons, aspects)
+        # Note : l'API renvoie tout en anglais malgré language='fr' (limitation prestataire) —
+        # GPT-5.4 se charge de la traduction + reformulation en voix Soléna.
+        natal_report_data = await aio.natal_report(bd, name=name, language='fr')
+        interpretations = []
+        if isinstance(natal_report_data, dict):
+            interpretations = (
+                natal_report_data.get('interpretations')
+                or natal_report_data.get('data', {}).get('interpretations')
+                or []
+            )
 
-        # 2) Adapte au format attendu par le générateur luxe
+        # 2) Enrichissement GPT-5.4 ULTRA (voix Soléna, 11 paragraphes + synthèse aspects)
+        ai_result: dict = {}
+        if interpretations:
+            from services.natal_ai_enrichment import enrich_natal_ultra
+            ai_result = await enrich_natal_ultra(
+                prenom=name,
+                birth_data=bd,
+                api_interpretations=interpretations,
+                tier='ultra',
+            )
+            if ai_result.get('_source'):
+                import logging as _lg
+                _lg.getLogger(__name__).info(
+                    f'[natal_pdf] enrichissement AI = {ai_result.get("_source")} pour {name}'
+                )
+
+        # 3) Adapte au format attendu par le générateur luxe
         def _sign_fr(planet_key: str) -> str:
             p = planets_dict.get(planet_key)
             if not p:
                 return ''
             return aio.sign_to_fr(p.get('sign') or '') or ''
 
+        # Passe l'AI complet (11 planètes + synthèse) via user_data.ai_interpretations
+        # L'adaptateur pick ce qui est présent, fallback statique pour le reste
         user_data = {
             'prenom': name,
             'birth_date': birth_date_iso,
@@ -371,21 +400,23 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
             'venus_sign': _sign_fr('venus'),
             'mars_sign': _sign_fr('mars'),
             'ascendant_sign': aio.sign_to_fr(asc_sign_en) if asc_sign_en else '',
+            'ai_interpretations': ai_result,
         }
-        # 3) Génération PDF luxe (via l'adaptateur qui appelle natal_pdf_v2)
+
+        # 4) Génération PDF luxe (Ultra : 11 planètes si AI a répondu, sinon 5 legacy)
         from services.natal_pdf_adapter import generate_manuscrit_pdf
-        pdf = generate_manuscrit_pdf(user_data=user_data)
+        pdf = generate_manuscrit_pdf(user_data=user_data, planets_data=list(planets_dict.values()))
     except Exception as e:
         # Refund si échec
         try:
-            await wallet_service.add_credits(current_user['id'], 20, 'Remboursement Theme Natal PDF (echec)', tx_type='refund')
+            await wallet_service.add_credits(current_user['id'], 80, 'Remboursement Theme Natal PDF (echec)', tx_type='refund')
         except Exception:
             pass
         raise HTTPException(status_code=502, detail=f'Service astrologique indisponible (PDF): {e}')
 
     if not pdf:
         try:
-            await wallet_service.add_credits(current_user['id'], 20, 'Remboursement Theme Natal PDF (echec)', tx_type='refund')
+            await wallet_service.add_credits(current_user['id'], 80, 'Remboursement Theme Natal PDF (echec)', tx_type='refund')
         except Exception:
             pass
         raise HTTPException(status_code=502, detail='Génération PDF échouée.')

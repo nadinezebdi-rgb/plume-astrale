@@ -328,13 +328,13 @@ const PremiumExperience = () => {
               )}
               {stepData.element && (
                 <div className="card-editorial p-4 text-center">
-                  <p className="text-xs mb-1" style={{ color: 'var(--pa-muted)' }}>Element</p>
+                  <p className="text-xs mb-1" style={{ color: 'var(--pa-muted)' }}>Élément</p>
                   <p className="text-base" style={{ color: 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif' }}>{stepData.element}</p>
                 </div>
               )}
               {stepData.modalite && (
                 <div className="card-editorial p-4 text-center">
-                  <p className="text-xs mb-1" style={{ color: 'var(--pa-muted)' }}>Modalite</p>
+                  <p className="text-xs mb-1" style={{ color: 'var(--pa-muted)' }}>Modalité</p>
                   <p className="text-base" style={{ color: 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif' }}>{stepData.modalite}</p>
                 </div>
               )}
@@ -353,7 +353,7 @@ const PremiumExperience = () => {
               )}
               {stepData.nombre_ame && (
                 <div className="card-editorial p-4 text-center">
-                  <p className="text-xs mb-1" style={{ color: 'var(--pa-muted)' }}>Ame</p>
+                  <p className="text-xs mb-1" style={{ color: 'var(--pa-muted)' }}>Âme</p>
                   <p className="text-2xl" style={{ color: 'var(--pa-accent)', fontFamily: 'Cormorant Garamond, serif' }}>{stepData.nombre_ame}</p>
                 </div>
               )}
@@ -365,7 +365,7 @@ const PremiumExperience = () => {
               )}
               {stepData.periode && (
                 <div className="card-editorial p-4 text-center">
-                  <p className="text-xs mb-1" style={{ color: 'var(--pa-muted)' }}>Periode</p>
+                  <p className="text-xs mb-1" style={{ color: 'var(--pa-muted)' }}>Période</p>
                   <p className="text-base" style={{ color: 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif' }}>{stepData.periode}</p>
                 </div>
               )}

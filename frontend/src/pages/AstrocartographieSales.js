@@ -195,7 +195,7 @@ const AstrocartographieSales = () => {
               </h2>
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>Email pour la livraison</label>
+                  <label className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>E-mail pour la livraison</label>
                   <input type="email" value={form.email} onChange={e => upd('email', e.target.value)}
                          data-testid="astrocarto-email"
                          className="w-full mt-2 px-4 py-3 rounded-xl bg-plume-night-soft/60 border border-plume-gold/20 text-plume-lavender focus:outline-none focus:border-plume-gold/60" />

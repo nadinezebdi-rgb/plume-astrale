@@ -605,7 +605,7 @@ const MonRituel = () => {
             <section className="pa-glass rounded-3xl p-5 mb-8 flex items-center gap-3 opacity-60">
               <Lock style={{ width: 16, height: 16, color: 'var(--pa-muted)' }} />
               <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
-                La reflexion du soir se debloquera apres 18h.
+                La réflexion du soir se débloquera après 18h.
               </p>
             </section>
           )}

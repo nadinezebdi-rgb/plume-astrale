@@ -104,7 +104,7 @@ export default function NatalDataModal({ open, onClose, onSuccess }) {
           {/* Prenom */}
           <Field label="Prénom (facultatif)">
             <input type="text" value={form.prenom} onChange={(e) => handleChange('prenom', e.target.value)}
-              data-testid="natal-prenom" style={inputStyle} placeholder="Votre prenom" />
+              data-testid="natal-prenom" style={inputStyle} placeholder="Votre prénom" />
           </Field>
 
           {/* Genre */}

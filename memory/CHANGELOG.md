@@ -1,6 +1,96 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-20 — 📖 Landing Nos Livres + Refonte Synastrie luxe
+
+### Nouvelle landing `/nos-livres`
+- **Fichier** : `frontend/src/pages/NosLivres.js`
+- Vitrine comparative des **5 livres luxes** de Plume Astrale
+- 5 onglets élégants (Thème Natal · Astrologie relationnelle · Arbre de Vie · Astrocartographie · Pack Karmique)
+- Clic sur onglet → change le thème du `PdfBookOpen` avec animation `fadeInUp 0.6s`
+- Card résumé sous le livre : accent + pages + description Cormorant + prix + CTA doré vers la landing dédiée
+- Route : `/nos-livres`
+
+### PdfBookOpen : 5e thème `synastry`
+- **Fichier** : `frontend/src/components/PdfBookOpen.js`
+- Nouveau thème `synastry` : intérieur avec **2 cercles zodiacaux entrelacés** (♀ ♂ + heart doré central) et citation type "Sa Vénus enveloppe votre Lune"
+- Cover : "Votre Astrologie relationnelle" + "Deux prénoms · Deux ciels · 25 pages croisées"
+- CSS `.pbo-syn-*` ajouté
+
+### Refonte SynastrieSales : traitement premium
+- **Fichier** : `frontend/src/pages/SynastrieSales.js`
+- `PdfBookOpen theme="synastry"` inséré avant le formulaire → vitrine luxe
+- `TestimonialsWidget` (Kabbale set) inséré en bas de page
+- Copywriting français corrigé partout :
+  - `"la synastrie"` → `"l'astrologie relationnelle"` (line 182)
+  - Accents restaurés dans FEATURES : "planetaires" → "planétaires", "ephemerides" → "éphémérides", "Recu" → "Reçu", "email" → "e-mail", "Aucun template generique" → "Aucun modèle générique", "donnees" → "données", "stockage securise" → "stockage sécurisé"
+  - Titre `<h2>Vos données natales</h2>` (accent)
+
+### Screenshots validés
+- `/nos-livres` onglet Natal actif → roue natale + citation Soleil Gémeaux ✓
+- `/nos-livres` onglet Astrologie relationnelle → 2 cercles + glyphes ♀ ♂ + citation Vénus/Lune ✓
+
+
+
+## 2026-02-20 — 💰 Thème Natal Ultra à 80 crédits + Audit français global
+
+### Prix Thème Natal Ultra : 20 → **80 crédits**
+Justification : le PDF est passé de 24 pages génériques à 49 pages Ultra (11 planètes + synthèse aspects + voix Soléna GPT-5.4). Ce prix garde une hiérarchie de gamme lisible :
+- Thème Natal Ultra : **80 cr** (~18€)
+- Kabbale : 39€
+- Astrocarto : 49€
+- Pack Karmique : 89€
+
+**Fichiers modifiés** :
+- `backend/routes/astrology_v3.py:349-361` — charge_or_premium 20→80cr, refund 20→80cr (2 occurrences)
+- `frontend/src/pages/BuyCredits.js:109` — tagline Nébuleuse "1 Thème Natal Ultra (80 cr)"
+- `frontend/src/pages/BuyCredits.js:135-145` — SERVICE_COSTS enrichi (9 outils vs 6 avant, avec Synastrie/Révolution Solaire/Archétype)
+- `frontend/src/pages/ThemeNatalLuxe.js:230-236` — copy adaptée : "80 crédits requis → pack Nébuleuse 17,99€ = 80 crédits"
+
+### Audit français — mots anglais / accents manquants
+Corrections dans 12 fichiers :
+- `BundleCard.js:45` — "✦ Bundle Découverte ✦" → "✦ Duo Découverte ✦"
+- `Horairie.js:187` — "Timing" → "Moment opportun"
+- `Login.js:66` — label "Email" → "Adresse e-mail"
+- 6 pages PDF — "Email pour la livraison" → "E-mail pour la livraison" (Kabbale, Astrocarto, PackKarmique, Karma, Numérologie, Fenêtre)
+- Placeholders "toi@example.com" → "toi@exemple.com" (KarmaDestinPDF, NumerologiePDF, FenetreRencontrePDF)
+- Accents manquants dans PremiumExperience : "Element" → "Élément", "Modalite" → "Modalité", "Ame" → "Âme", "Periode" → "Période"
+- Accents manquants dans Quotidien : "Numeros" → "Numéros", "Element" → "Élément"
+- MonRituel.js : "Bel apres-midi", "fermer la journee", "reflexion...debloquera apres" corrigés
+- MonCompte.js : "Reservez...credits...debloquez l'acces illimite" → "Réservez...crédits...débloquez l'accès illimité"
+- NatalDataModal + Tarologie : placeholders "prenom" → "prénom"
+
+
+
+## 2026-02-20 — 🚀 Thème Natal ULTRA (API v3 + GPT-5.4 voix Soléna)
+
+### Contexte
+L'ancien PDF Nadine utilisait `FALLBACK_SIGN` : 12 phrases hardcodées, aucune vraie personnalisation. L'API v3 renvoie 73 interprétations riches MAIS en anglais uniquement (bug prestataire — le param `language:fr` est ignoré, confirmé via 7 variantes de tests).
+
+### Solution hybride
+- **API v3** (`/analysis/natal-report`) → 73 interprétations riches (planètes en signes, planètes en maisons, aspects avec dignités et orbes)
+- **GPT-5.4** → traduit en français + reformule en voix Soléna (poétique, intime, images concrètes)
+- **Cache filesystem** hash-keyé sha256(prenom+bd+tier) → une seule facturation GPT par personne
+
+### Fichiers modifiés
+- `backend/services/natal_ai_enrichment.py` — refonte complète : extraction filtrée depuis 73 interps, prompt système Soléna spécialisé traduction/reformulation, output JSON 12 clés (11 planètes + synthese_aspects)
+- `backend/services/natal_pdf_adapter.py` — mode dual : Ultra (11 planètes) si AI a répondu ≥ 7 planètes, sinon Legacy (5 planètes)
+- `backend/services/natal_pdf_v2.py` — 3 nouvelles PLANET_PERSONA (Uranus, Neptune, Pluton), 10 CHAPTER_TEASERS + 10 WAOUH_QUOTES, page synthèse d'aspects "La danse des planètes"
+- `backend/routes/astrology_v3.py:318-425` — endpoint refondu : fetch natal_report → enrich_natal_ultra → adapter
+
+### Résultat sur Nadine (Gémeaux · Lune Cancer · Asc Balance)
+- **49 pages, 16.5 MB** (vs 24 pages 268 KB avant)
+- **Tier ULTRA** confirmé
+- Texte réellement personnalisé, voix Soléna authentique, images concrètes (marée, tiroirs, cartes chaudes)
+- Aspects majeurs synthétisés : Venus-Pluton, Jupiter-Saturne, Mercure-Jupiter
+- Temps de génération : 60s première fois, instantané après (cache filesystem)
+- Coût GPT : ~0,03€ / PDF
+
+### Positionnement produit
+Le Thème Natal peut désormais être vendu **25 à 35€** avec justification totale. Bookmarker les décisions pricing pour Nathalie.
+
+
+
 ## 2026-02-20 — Cover Synastrie luxe = image `couple` bibliothèque interne
 
 ### Contexte

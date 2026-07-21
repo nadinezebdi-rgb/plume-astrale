@@ -20,6 +20,8 @@ import Tarologie from "./pages/Tarologie";
 import Numerologie from "./pages/Numerologie";
 import Archetype from "./pages/Archetype";
 import KabbaleSales from "./pages/KabbaleSales";
+import ThemeNatalLuxe from "./pages/ThemeNatalLuxe";
+import NosLivres from "./pages/NosLivres";
 import KabbaleSucces from "./pages/KabbaleSucces";
 import AstrocartographieSales from "./pages/AstrocartographieSales";
 import AstrocartographieSucces from "./pages/AstrocartographieSucces";
@@ -152,6 +154,8 @@ function App() {
                 <Route path="/paiement/succes" element={<PaiementSucces />} />
                 <Route path="/resultats" element={<Resultats />} />
                 <Route path="/kabbale" element={<KabbaleSales />} />
+                <Route path="/theme-natal-luxe" element={<ThemeNatalLuxe />} />
+                <Route path="/nos-livres" element={<NosLivres />} />
                 <Route path="/kabbale/succes" element={<KabbaleSucces />} />
                 <Route path="/astrocartographie" element={<AstrocartographieSales />} />
                 <Route path="/astrocartographie/succes" element={<AstrocartographieSucces />} />

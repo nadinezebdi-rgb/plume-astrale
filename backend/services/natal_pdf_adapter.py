@@ -1,18 +1,16 @@
-"""
-Adaptateur : convertit les user_data legacy vers le format natal_pdf_v2.
+"""Adaptateur legacy → natal_pdf_v2.
 
-Permet à toutes les routes existantes (/api/pdf/generate, /api/pdf/pro-horoscope,
-/api/natal/essentials, etc.) d'utiliser automatiquement le PDF Thème Natal
-"livre de luxe" sans changer leur interface d'entrée.
+Mode ULTRA (Option B) : si `user_data.ai_interpretations` contient
+les 10 planètes + Ascendant + synthese_aspects (dict rempli par
+`natal_ai_enrichment.enrich_natal_ultra`), le PDF affiche les 11 blocs
+planétaires + une page synthèse d'aspects. Sinon fallback 5 planètes classiques.
 """
-from __future__ import annotations
 import logging
 from services.natal_pdf_v2 import build_natal_pdf_v2
 
 logger = logging.getLogger(__name__)
 
-# Fallback rich content par signe — utilisé quand l'API v3 n'a pas fourni
-# d'analyse détaillée. Court et évocateur (max 3 phrases).
+# Fallback rich content par signe — utilisé quand l'AI n'a rien remonté.
 FALLBACK_SIGN = {
     'Bélier':     'un feu qui prend vite, tu déclenches, tu inities. Ton défi : la constance.',
     'Taureau':    'une nature stable et sensuelle. Tu ancres ce que les autres ne font qu\'imaginer.',
@@ -30,7 +28,7 @@ FALLBACK_SIGN = {
 
 
 def _sign_analysis(planet_name: str, sign: str) -> str:
-    """Fabrique une analyse par défaut si l'API v3 n'a rien remonté."""
+    """Fallback statique par planète-signe si l'AI n'a pas fourni le texte."""
     intro = FALLBACK_SIGN.get(sign, f'une énergie unique en {sign}.')
     if planet_name == 'Soleil':
         return f'Ton Soleil en {sign} raconte {intro}\n\nC\'est le cœur de ton identité — ce que tu es en train de devenir, pas seulement ce que tu es.'
@@ -42,26 +40,83 @@ def _sign_analysis(planet_name: str, sign: str) -> str:
         return f'Mars en {sign} donne à ton action {intro}\n\nC\'est le carburant sacré de tes désirs et de tes combats.'
     if planet_name == 'Ascendant':
         return f'Ton Ascendant en {sign} est le masque que ton âme a choisi : {intro}\n\nLes autres te perçoivent souvent ainsi — mais l\'intérieur est parfois tout autre.'
+    if planet_name == 'Mercure':
+        return f'Mercure en {sign} façonne ta pensée : {intro}\n\nC\'est ton style de parole, d\'écriture, de connexion.'
+    if planet_name == 'Jupiter':
+        return f'Jupiter en {sign} indique ta zone d\'expansion : {intro}\n\nOù tu grandis, où tu prends confiance, où la chance te trouve.'
+    if planet_name == 'Saturne':
+        return f'Saturne en {sign} te met face à {intro}\n\nC\'est la leçon que tu dois intégrer pour bâtir ta souveraineté.'
+    if planet_name == 'Uranus':
+        return f'Uranus en {sign} allume {intro}\n\nC\'est ta zone de rupture, de libération, d\'innovation.'
+    if planet_name == 'Neptune':
+        return f'Neptune en {sign} dissout {intro}\n\nOù tu rêves, où tu t\'inspires, où tu perds les repères.'
+    if planet_name == 'Pluton':
+        return f'Pluton en {sign} transforme {intro}\n\nC\'est l\'endroit de ta mutation profonde et non négociable.'
     return f'{planet_name} en {sign} : {intro}'
 
 
-def generate_manuscrit_pdf(user_data: dict, planets_data: list = None, horoscope_data: dict = None) -> bytes:
+_ULTRA_PLANETS = [
+    'Soleil', 'Lune', 'Mercure', 'Vénus', 'Mars',
+    'Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton',
+    'Ascendant',
+]
+_LEGACY_PLANETS = ['Soleil', 'Lune', 'Vénus', 'Mars', 'Ascendant']
+
+_AI_KEY = {
+    'Soleil': 'soleil', 'Lune': 'lune', 'Mercure': 'mercure',
+    'Vénus': 'venus', 'Mars': 'mars', 'Jupiter': 'jupiter',
+    'Saturne': 'saturne', 'Uranus': 'uranus',
+    'Neptune': 'neptune', 'Pluton': 'pluton', 'Ascendant': 'ascendant',
+}
+
+_SIGN_EN_TO_FR = {
+    'aries': 'Bélier', 'taurus': 'Taureau', 'gemini': 'Gémeaux',
+    'cancer': 'Cancer', 'leo': 'Lion', 'virgo': 'Vierge',
+    'libra': 'Balance', 'scorpio': 'Scorpion', 'sagittarius': 'Sagittaire',
+    'capricorn': 'Capricorne', 'aquarius': 'Verseau', 'pisces': 'Poissons',
+}
+
+_EN_TO_KEY = {
+    'Soleil': 'sun', 'Lune': 'moon', 'Mercure': 'mercury',
+    'Vénus': 'venus', 'Mars': 'mars', 'Jupiter': 'jupiter',
+    'Saturne': 'saturn', 'Uranus': 'uranus',
+    'Neptune': 'neptune', 'Pluton': 'pluto',
+    'Ascendant': 'ascendant',
+}
+
+
+def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: dict = None) -> bytes:
     """DROP-IN REPLACEMENT du générateur legacy `generate_manuscrit_pdf`.
 
-    Convertit les données legacy vers le format natal_pdf_v2 et retourne
-    les bytes du PDF style livre de luxe.
+    Mode ULTRA activé si `user_data['ai_interpretations']` contient au moins
+    7 planètes remplies (Soléna a répondu). Sinon fallback 5 planètes classiques.
     """
     prenom = user_data.get('prenom') or user_data.get('first_name') or user_data.get('name') or 'Voyageuse'
     birth_date = user_data.get('dateNaissance') or user_data.get('birth_date') or ''
+    ai = user_data.get('ai_interpretations') or {}
 
-    # Récupérer les signes depuis user_data ou planets_data
-    def _find_sign(planet_name: str) -> str:
-        # Chercher dans planets_data (liste de dicts)
+    ai_planet_count = sum(1 for k in _AI_KEY.values() if ai.get(k))
+    is_ultra = ai_planet_count >= 7
+    planet_list = _ULTRA_PLANETS if is_ultra else _LEGACY_PLANETS
+
+    def _find_sign(planet_name_fr: str) -> str:
         if planets_data:
-            for p in planets_data:
-                if p.get('name', '').lower() == planet_name.lower() or p.get('planete', '').lower() == planet_name.lower():
-                    return p.get('sign') or p.get('signe') or ''
-        # Chercher dans user_data pré-calculé
+            if isinstance(planets_data, dict):
+                key = _EN_TO_KEY.get(planet_name_fr)
+                if key and key in planets_data:
+                    sign_en = (planets_data[key].get('sign') or '').lower()
+                    if sign_en in _SIGN_EN_TO_FR:
+                        return _SIGN_EN_TO_FR[sign_en]
+                    return sign_en.title() if sign_en else ''
+            elif isinstance(planets_data, list):
+                target_key = (_EN_TO_KEY.get(planet_name_fr) or '').lower()
+                for p in planets_data:
+                    p_name = (p.get('name', '') or p.get('planete', '')).lower()
+                    if p_name == planet_name_fr.lower() or p_name == target_key:
+                        sign_en = (p.get('sign') or p.get('signe') or '').lower()
+                        if sign_en in _SIGN_EN_TO_FR:
+                            return _SIGN_EN_TO_FR[sign_en]
+                        return sign_en.title() if sign_en else ''
         key_map = {
             'Soleil': ['sun_sign', 'signe', 'signe_solaire'],
             'Lune': ['moon_sign', 'signe_lune'],
@@ -69,31 +124,36 @@ def generate_manuscrit_pdf(user_data: dict, planets_data: list = None, horoscope
             'Mars': ['mars_sign', 'signe_mars'],
             'Ascendant': ['ascendant_sign', 'ascendant'],
         }
-        for k in key_map.get(planet_name, []):
+        for k in key_map.get(planet_name_fr, []):
             if user_data.get(k):
                 return user_data[k]
         return ''
 
     planets = []
-    for planet in ['Soleil', 'Lune', 'Vénus', 'Mars', 'Ascendant']:
+    for planet in planet_list:
         sign = _find_sign(planet) or 'Inconnu'
+        ai_text = (ai.get(_AI_KEY[planet], '') or '').strip()
+        analysis = ai_text if ai_text else _sign_analysis(planet, sign)
         planets.append({
             'name': planet,
             'sign': sign,
-            'analysis': _sign_analysis(planet, sign),
+            'analysis': analysis,
         })
+
+    synthese = (ai.get('synthese_aspects') or '').strip() if is_ultra else ''
 
     natal_data = {
         'sun_sign': _find_sign('Soleil') or 'Cancer',
         'moon_sign': _find_sign('Lune') or 'Poissons',
         'ascendant_sign': _find_sign('Ascendant') or 'Vierge',
         'planets': planets,
+        'synthese_aspects': synthese,
+        'tier': 'ultra' if is_ultra else 'legacy',
     }
 
     try:
         return build_natal_pdf_v2(prenom=prenom, birth_date=birth_date, natal_data=natal_data)
     except Exception as e:
         logger.exception(f'[natal_pdf_v2] fallback to legacy: {e}')
-        # Fallback vers l'ancien générateur en cas d'erreur imprévue
         from services.pdf_generator import generate_manuscrit_pdf as legacy
         return legacy(user_data=user_data, planets_data=planets_data, horoscope_data=horoscope_data)

@@ -399,7 +399,7 @@ const Tarologie = () => {
                   type="text"
                   value={prenom}
                   onChange={(e) => setPrenom(e.target.value)}
-                  placeholder="Votre prenom"
+                  placeholder="Votre prénom"
                   className="w-full px-4 py-3 bg-[#111625] border border-[#D4AF37]/30 rounded-sm text-[#B8B0C8] placeholder:text-[#B8B0C8]/30 focus:outline-none focus:border-[#D4AF37] transition-colors"
                   data-testid="prenom-input"
                 />

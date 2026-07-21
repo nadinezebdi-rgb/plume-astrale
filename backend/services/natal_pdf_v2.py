@@ -26,6 +26,9 @@ PLANET_PERSONA = {
     'Mars':     {'glyph': '♂', 'tagline': 'Ton feu, ta manière d\'agir.',   'illus': 'chapitre_bleu'},
     'Jupiter':  {'glyph': '♃', 'tagline': 'Ta chance, ton expansion.',      'illus': 'astral_fruits'},
     'Saturne':  {'glyph': '♄', 'tagline': 'Ton architecte intérieur.',      'illus': 'astral_mandala'},
+    'Uranus':   {'glyph': '♅', 'tagline': 'La rupture qui te libère.',      'illus': 'astral_ciel'},
+    'Neptune':  {'glyph': '♆', 'tagline': 'Le monde derrière le voile.',    'illus': 'astral_silhouette'},
+    'Pluton':   {'glyph': '♇', 'tagline': 'La transformation qui te sauve.', 'illus': 'astral_planete'},
     'Ascendant':{'glyph': 'Asc', 'tagline': 'Le masque que ton âme a choisi.', 'illus': 'ciel_zodiaque'},
 }
 
@@ -37,6 +40,9 @@ PLANET_DIALOGUE = {
     'Mars':    'Il y a une colère ancienne en toi. Elle n\'est pas ta faiblesse — c\'est ton carburant sacré.',
     'Jupiter': 'Tu doutes de ta chance. Et pourtant, chaque fois que tu t\'ouvres à l\'inconnu, le ciel s\'aligne.',
     'Saturne': 'Ce que tu prends pour un plafond, c\'est en réalité une fondation.',
+    'Uranus':  'Ce que tu appelles instabilité, tes ancêtres l\'appelaient génie. C\'est ta manière de mettre le monde à jour.',
+    'Neptune': 'Tu as ce don rare : sentir avant de voir. Ce n\'est pas de la fuite — c\'est de la clairvoyance qui n\'a pas trouvé ses mots.',
+    'Pluton':  'Ce que tu as traversé de plus dur t\'a préparée à voir ce que personne ne veut regarder. C\'est ta force silencieuse.',
     'Ascendant': 'Les autres te trouvent parfois plus forte que tu ne te sens. Et cette impression n\'est pas fausse.',
 }
 
@@ -46,6 +52,11 @@ CHAPTER_TEASERS = [
     "Mais ce n'est pas ce qui m'a le plus surprise…",
     "La planète qui influence le plus tes relations est celle que personne ne regarde.",
     "Il reste une clé — celle qui structure tout le reste.",
+    "Il y a encore une strate — plus profonde — que tu vas découvrir.",
+    "Écoute : ce qui suit change la lecture de tout le reste.",
+    "Certaines planètes ne parlent qu'aux âmes prêtes à entendre.",
+    "Tu approches du cœur du chapitre invisible de ton thème.",
+    "Il ne reste qu'une pièce à poser — la plus révélatrice.",
 ]
 
 WAOUH_QUOTES = [
@@ -54,6 +65,11 @@ WAOUH_QUOTES = [
     "Ton plus grand défi deviendra ton plus grand pouvoir.",
     "Ta lumière ne dérange que ceux qui n'ont pas encore trouvé la leur.",
     "Il y a quelque chose en toi que le monde attend.",
+    "Ce que tu crois être un frein est ta plus belle discipline.",
+    "Certaines âmes brisent le silence — la tienne le rend habitable.",
+    "Ta chance n'a jamais été un hasard.",
+    "Tu portes déjà en toi la réponse à ce que tu cherches encore.",
+    "Ce que tu appelles intuition, ton ciel appelle ça une évidence.",
 ]
 
 
@@ -123,7 +139,22 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict) -> bytes:
                 if '{sun_sign}' not in teaser_text:
                     teaser_page(story, styles, teaser_text)
 
-    # ─── 6. Fin émotionnelle Soléna ──────────────────────────────────
+    # ─── 6. Synthèse des aspects (Ultra only) ───────────────────────
+    synthese = (natal_data.get('synthese_aspects') or '').strip()
+    if synthese:
+        chapter_illustration(story, styles,
+                              chapter_tag='✦ La danse des planètes ✦',
+                              title='Ce que tes planètes se disent entre elles',
+                              illustration_slug='astral_mandala')
+        planet_analysis_page(
+            story, styles,
+            planet_name='Aspects',
+            sign='Ton ciel intérieur',
+            body_html=synthese,
+            dialogue_question="Tes planètes se parlent. Certaines s'aiment, d'autres se cherchent — écoute leur conversation.",
+        )
+
+    # ─── 7. Fin émotionnelle Soléna ──────────────────────────────────
     emotional_ending(story, styles, prenom=prenom)
 
     doc.build(story, onFirstPage=luxury_bg, onLaterPages=luxury_bg)

@@ -12,6 +12,7 @@ import PageHero from '@/components/PageHero';
 import NatalDataModal from '@/components/NatalDataModal';
 import LibraryImage from '@/components/LibraryImage';
 import BundleCard from '@/components/BundleCard';
+import SolenaWritingLoader from '@/components/SolenaWritingLoader';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -381,13 +382,22 @@ const MonCompte = () => {
     if (!authLoading && !token) navigate('/connexion');
   }, [token, authLoading, navigate]);
 
-  // Succès abonnement depuis Stripe
+  // Succès abonnement depuis Stripe + Trigger PDF Natal depuis landing luxe
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('subscription') === 'success') {
       setCheckinMsg({ type: 'success', text: '🎉 Votre abonnement est maintenant actif !' });
       window.history.replaceState({}, '', '/mon-compte');
     }
+    // Auto-trigger PDF natal si arrivée depuis /theme-natal-luxe
+    if (params.get('generate') === 'natal') {
+      window.history.replaceState({}, '', '/mon-compte');
+      // Petit délai pour laisser le profil se charger
+      setTimeout(() => {
+        try { handlePdfDownload(); } catch (_) { /* silent */ }
+      }, 1500);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const chargerProfil = useCallback(async () => {
@@ -569,6 +579,9 @@ const MonCompte = () => {
 
   return (
     <div className="min-h-screen relative" style={{ background: 'var(--pa-bg)' }}>
+      {/* Overlay animé pendant la génération du PDF Thème Natal (~60s) */}
+      {pdfLoading && <SolenaWritingLoader estimatedSeconds={55} />}
+
       <SEO path="/mon-compte" />
       <PageHero
         image="/images/astrale/image-astrale-8.jpg"
@@ -919,9 +932,7 @@ const MonCompte = () => {
                 </div>
                 <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
                   Chaque rapport est calcule avec les ephemerides Swiss Ephemeris.
-                  {profil?.premium_status === 'active'
-                    ? ''
-                    : " Reservez vos lectures avec vos credits, ou debloquez l'acces illimite via l'abonnement Premium."}
+                  Débloquez vos lectures avec vos crédits
                 </p>
                 {!profil?.birth_date && (
                   <p className="text-xs mt-2" style={{ color: '#94A3B8' }}>
