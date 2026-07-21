@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
+import LibraryImage from '@/components/LibraryImage';
 import {
   Flame, Moon, Sparkles, Heart, Sun, Cloud, Wind, CloudRain,
   Check, BookOpen, Loader2, ChevronRight, Star, Lock,
@@ -402,8 +403,20 @@ export default function CercleDashboard() {
 
         {/* ─── Tarot du jour ─── */}
         <section className="rounded-2xl p-6 mb-8 flex items-start gap-5" style={{ background: 'rgba(201,120,120,0.05)', border: '1px solid rgba(201,120,120,0.2)' }} data-testid="cercle-tarot">
-          <div className="flex-shrink-0 w-14 h-20 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(201,120,120,0.15), rgba(212,175,55,0.1))', border: '1px solid rgba(212,175,55,0.25)' }}>
-            <Star className="w-7 h-7" strokeWidth={1.2} style={{ color: '#D4AF37' }} />
+          <div className="flex-shrink-0 w-14 h-20 rounded-lg flex items-center justify-center overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(201,120,120,0.15), rgba(212,175,55,0.1))', border: '1px solid rgba(212,175,55,0.25)' }}>
+            {data.tarot?.name ? (
+              <LibraryImage
+                type="tarot"
+                name={data.tarot.name}
+                size={56}
+                rounded
+                alt={data.tarot.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                data-testid="cercle-tarot-image"
+              />
+            ) : (
+              <Star className="w-7 h-7" strokeWidth={1.2} style={{ color: '#D4AF37' }} />
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: '#C97878', letterSpacing: '0.14em', fontFamily: 'Cinzel, serif' }}>Carte du jour</p>
