@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Sparkles, MessageCircle, RefreshCw, Mail } from 'lucide-react';
 
 /**
@@ -28,12 +29,10 @@ const SafeEmptyState = ({
   supportEmail = 'contact@plume-astrale.fr',
   extraContext = null,
 }) => {
+  const navigate = useNavigate();
   const openSolena = () => {
-    // Événement global : le chat Solena écoute et s'ouvre.
-    window.dispatchEvent(new CustomEvent('pa:open-solena-chat'));
-    // Scroll vers le chat s'il est présent dans la page
-    const chatSection = document.querySelector('[data-testid="home-solena-section"]');
-    if (chatSection) chatSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Redirection vers la page de discussion avec Soléna
+    navigate('/outils/consultation');
   };
 
   return (

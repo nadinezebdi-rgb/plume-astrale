@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { SOLENA } from '../lib/solena';
 
@@ -12,6 +13,7 @@ const BIRTH_KEY = 'pa_birth_data';
  * pour ouvrir la fenêtre de chat.
  */
 export default function MoonHero() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [birth, setBirth] = useState(() => {
     try {
@@ -43,11 +45,8 @@ export default function MoonHero() {
       place: birth.place.trim(),
     };
     try { localStorage.setItem(BIRTH_KEY, JSON.stringify(data)); } catch (e) { /* ignore */ }
-    // Émettre un event pour ouvrir la fenêtre de chat Solena
-    window.dispatchEvent(new CustomEvent('pa:open-solena-chat', { detail: data }));
-    // Scroll doux vers la section Solena
-    const el = document.querySelector('[data-testid="home-solena-section"]');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Redirection vers la page de discussion avec Soléna (le formulaire est prérempli via BIRTH_KEY)
+    navigate('/outils/consultation');
   };
 
   return (

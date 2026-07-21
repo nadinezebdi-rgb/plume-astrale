@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Hero3D from '../components/Hero3D';
-import SolenaChat from '../components/SolenaChat';
 import QuickOracle from '../components/QuickOracle';
 import HomeCreditPacks from '../components/HomeCreditPacks';
 import SolenaVideoHero from '../components/SolenaVideoHero';

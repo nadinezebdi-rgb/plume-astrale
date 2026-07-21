@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { SOLENA } from '../../lib/solena';
 
@@ -166,12 +167,12 @@ const CardFace = ({ card, revealed, onClick }) => (
 );
 
 const JabInteractif = () => {
+  const navigate = useNavigate();
   const [pickedId, setPickedId] = useState(null);
 
   const openSolena = () => {
-    window.dispatchEvent(new CustomEvent('pa:open-solena-chat'));
-    const el = document.querySelector('[data-testid="home-solena-section"]');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Redirection vers la page de discussion avec Soléna
+    navigate('/outils/consultation');
   };
 
   return (

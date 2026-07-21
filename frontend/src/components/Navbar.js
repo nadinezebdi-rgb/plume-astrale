@@ -39,7 +39,7 @@ const NAV_ITEMS = [
         children: [
           { label: 'Énergie du Jour', to: '/outils/energie' },
           { label: 'Rituels Personnels', to: '/outils/rituel' },
-          { label: 'Chat Astral (IA)', to: '/outils/consultation' },
+          { label: 'Discussion avec Soléna', to: '/outils/consultation' },
           { label: 'Énergies Amoureuses', to: '/outils/astrosexo' },
         ],
       },

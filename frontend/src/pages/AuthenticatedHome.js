@@ -221,7 +221,7 @@ const AuthenticatedHome = () => {
                 { icon: '⭐', label: 'Horoscope', to: '/outils/horoscope' },
                 { icon: '🔢', label: 'Numérologie', to: '/outils/numerologie' },
                 { icon: '💕', label: 'Compatibilité', to: '/outils/compatibilite' },
-                { icon: '💬', label: 'Chat Astral (IA)', to: '/outils/consultation' },
+                { icon: '💬', label: 'Discussion avec Soléna', to: '/outils/consultation' },
                 { icon: '✨', label: 'Énergie du jour', to: '/outils/energie' },
               ].map((service) => (
                 <Link

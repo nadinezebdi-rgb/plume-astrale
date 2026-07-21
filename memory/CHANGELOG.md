@@ -1,6 +1,39 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-22 (soir) — 🎭 Unification "Discussion avec Soléna" (fin des doubles points de chat)
+
+### Contexte
+L'utilisateur voyait DEUX points de consultation coexistant : "Chat Astral (IA)" (page dédiée `/outils/consultation` avec persona "Plume") et un widget `SolenaChat` sidebar. Décision : garder UNIQUEMENT la page dédiée, la rebrander "Soléna", et supprimer le widget.
+
+### Rebrand copy — `pages/ChatIA.js`
+- Message d'accueil : « Je suis Plume » → « Je suis Soléna »
+- Label bulle assistant : « Plume Astrale » → « Soléna »
+- H1 : « Consultation astrale personnalisée » → « Consultation astrale personnalisée avec Soléna »
+- SEO title (états logged in & anonyme) : « Discussion avec Soléna — Plume Astrale »
+- Commentaire code : « Bloc Comment Plume t'écoute » → « Comment Soléna t'écoute »
+- La MARQUE « Plume Astrale » (nom de la maison, footer, SEO suffix) est conservée — seul le PERSONA change.
+
+### Libellés menu unifiés
+- `components/Navbar.js` : dropdown Bien-être « Chat Astral (IA) » → « Discussion avec Soléna ».
+- `pages/AuthenticatedHome.js` : tuile dashboard « Chat Astral (IA) » → « Discussion avec Soléna ».
+
+### Suppression du widget SolenaChat + tous ses dispatchers
+- **`components/SolenaChat.js`** : fichier supprimé (405 lignes, plus utilisé nulle part).
+- **`pages/Index.js`** : import `SolenaChat` retiré (importé mais jamais monté).
+- Tous les `window.dispatchEvent('pa:open-solena-chat')` remplacés par `navigate('/outils/consultation')` :
+  - `components/MoonHero.js`
+  - `pages/NewHome.js`
+  - `components/design/SafeEmptyState.js`
+  - `components/design/JabInteractif.js`
+- Vérifié : `grep 'pa:open-solena-chat|SolenaChat'` → 0 occurrence restante dans tout le codebase frontend.
+
+### Validation live
+- Navbar `/nos-livres` : dropdown Outils → Bien-être affiche « Discussion avec Soléna » ✅. Absence confirmée de « Chat Astral (IA) ».
+- Page `/outils/consultation` : SEO title mis à jour, prompt d'accueil aligné Soléna, header carte assistant renommé.
+
+
+
 ## 2026-02-22 — 💬 Chat Soléna : mémoire anonyme + animation 90s
 
 ### Task 1 — Mémoire multi-tour pour visiteurs anonymes (backend)

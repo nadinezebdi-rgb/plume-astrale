@@ -34,7 +34,7 @@ const ChatIA = () => {
     {
       role: 'assistant',
       content:
-        "Bienvenue dans ton sanctuaire. Je suis Plume — pose-moi une question sur ton chemin, tes emotions, ton theme natal, tes liens. Les astres ecoutent.",
+        "Bienvenue dans ton sanctuaire. Je suis Soléna — pose-moi une question sur ton chemin, tes émotions, ton thème natal, tes liens. Les astres écoutent.",
     },
   ]);
   const [input, setInput] = useState('');
@@ -304,7 +304,7 @@ const ChatIA = () => {
   if (!isAuthenticated) {
     return (
       <>
-        <SEO title="Consultation astrale personnalisée — Plume Astrale" description="Inscris-toi et reçois 20 crédits offerts pour démarrer ta consultation personnalisée." />
+        <SEO title="Discussion avec Soléna — Plume Astrale" description="Inscris-toi et reçois 20 crédits offerts pour démarrer ta conversation personnalisée avec Soléna." />
         <div style={{
           minHeight: '100vh',
           background: 'linear-gradient(180deg, #131840 0%, #1B2150 50%, #131840 100%)',
@@ -422,7 +422,7 @@ const ChatIA = () => {
         onClose={() => setPaywallOpen(false)}
         context="chat_out"
       />
-      <SEO title="Consultation astrale personnalisee — Plume Astrale" description="Pose toutes tes questions a ton theme natal en francais. Une guidance personnalisee, alimentee par ta carte du ciel reelle." />
+      <SEO title="Discussion avec Soléna — Plume Astrale" description="Pose toutes tes questions à Soléna en français. Une guidance personnalisée, alimentée par ta carte du ciel réelle." />
       <div style={{
         minHeight: '100vh',
         background: 'linear-gradient(180deg, #131840 0%, #1B2150 50%, #131840 100%)',
@@ -441,7 +441,7 @@ const ChatIA = () => {
               letterSpacing: '0.12em',
               margin: 0,
             }}>
-              Consultation astrale personnalisée
+              Consultation astrale personnalisée avec Soléna
             </h1>
           </div>
           <p style={{ color: 'rgba(212,175,55,0.5)', fontSize: 13, letterSpacing: '0.06em', margin: 0 }}>
@@ -467,7 +467,7 @@ const ChatIA = () => {
           </div>
         </div>
 
-        {/* Bloc Comment Plume t'écoute — affiché uniquement si user connecté avec données natales */}
+        {/* Bloc Comment Soléna t'écoute — affiché uniquement si user connecté avec données natales */}
         {isAuthenticated && token && <NatalEssentials token={token} prenom={user?.prenom} />}
 
         {/* Chat container */}
@@ -598,7 +598,7 @@ const ChatIA = () => {
                   }}>
                     {msg.role === 'assistant' && (
                       <span style={{ color: '#D4AF37', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
-                        Plume Astrale
+                        Soléna
                       </span>
                     )}
                     {msg.content}
