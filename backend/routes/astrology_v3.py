@@ -351,12 +351,35 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
     )
 
     try:
-        # 1) Positions planétaires via l'API v3
+        # 1) Positions planétaires + maisons + aspects via l'API v3
         chart = await aio.natal_chart(bd, name=name, language='fr')
         planets_dict = aio.extract_planets(chart)
         asc_sign_en = aio.extract_ascendant_sign_en(chart)
+        # Aspects majeurs pour enrichir l'analyse GPT
+        aspects_data = await aio.get_aspects(bd, name=name, language='fr')
+        aspects_list = []
+        if aspects_data:
+            aspects_list = aspects_data.get('aspects') or aspects_data.get('data', {}).get('aspects') or []
 
-        # 2) Adapte au format attendu par le générateur luxe
+        # 2) Assemble un dict de positions unifié pour le prompt AI
+        planets_for_ai = {
+            'sun': planets_dict.get('sun', {}),
+            'moon': planets_dict.get('moon', {}),
+            'venus': planets_dict.get('venus', {}),
+            'mars': planets_dict.get('mars', {}),
+            'ascendant': {'sign': asc_sign_en or ''},
+        }
+
+        # 3) Enrichissement GPT-5.4 (voix Soléna) — avec cache filesystem
+        from services.natal_ai_enrichment import enrich_natal_interpretations
+        ai_interpretations = await enrich_natal_interpretations(
+            prenom=name,
+            birth_data=bd,
+            planets=planets_for_ai,
+            aspects=aspects_list,
+        )
+
+        # 4) Adapte au format attendu par le générateur luxe (signes en français)
         def _sign_fr(planet_key: str) -> str:
             p = planets_dict.get(planet_key)
             if not p:
@@ -371,8 +394,10 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
             'venus_sign': _sign_fr('venus'),
             'mars_sign': _sign_fr('mars'),
             'ascendant_sign': aio.sign_to_fr(asc_sign_en) if asc_sign_en else '',
+            'ai_interpretations': ai_interpretations,  # peut être vide → fallbacks statiques
         }
-        # 3) Génération PDF luxe (via l'adaptateur qui appelle natal_pdf_v2)
+
+        # 5) Génération PDF luxe (via l'adaptateur qui appelle natal_pdf_v2)
         from services.natal_pdf_adapter import generate_manuscrit_pdf
         pdf = generate_manuscrit_pdf(user_data=user_data)
     except Exception as e:

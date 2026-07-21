@@ -50,9 +50,20 @@ def generate_manuscrit_pdf(user_data: dict, planets_data: list = None, horoscope
 
     Convertit les données legacy vers le format natal_pdf_v2 et retourne
     les bytes du PDF style livre de luxe.
+
+    Si `user_data['ai_interpretations']` est fourni (dict avec clés
+    soleil/lune/venus/mars/ascendant), utilise ce texte GPT-enrichi
+    en priorité. Sinon → fallbacks statiques par signe.
     """
     prenom = user_data.get('prenom') or user_data.get('first_name') or user_data.get('name') or 'Voyageuse'
     birth_date = user_data.get('dateNaissance') or user_data.get('birth_date') or ''
+    ai = user_data.get('ai_interpretations') or {}
+
+    # Mapping planet_name → clé attendue dans ai_interpretations
+    _AI_KEY = {
+        'Soleil': 'soleil', 'Lune': 'lune', 'Vénus': 'venus',
+        'Mars': 'mars', 'Ascendant': 'ascendant',
+    }
 
     # Récupérer les signes depuis user_data ou planets_data
     def _find_sign(planet_name: str) -> str:
@@ -77,10 +88,13 @@ def generate_manuscrit_pdf(user_data: dict, planets_data: list = None, horoscope
     planets = []
     for planet in ['Soleil', 'Lune', 'Vénus', 'Mars', 'Ascendant']:
         sign = _find_sign(planet) or 'Inconnu'
+        # AI text prioritaire, sinon fallback statique
+        ai_text = ai.get(_AI_KEY[planet], '').strip()
+        analysis = ai_text if ai_text else _sign_analysis(planet, sign)
         planets.append({
             'name': planet,
             'sign': sign,
-            'analysis': _sign_analysis(planet, sign),
+            'analysis': analysis,
         })
 
     natal_data = {
