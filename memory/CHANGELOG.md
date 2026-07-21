@@ -1,6 +1,29 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-21 (nuit) — 📢 Bandeau global + Aperçus sur 5 pages produit
+
+### Bandeau promo global
+- **`components/LaunchBanner.js`** — Passe en `position: fixed` (top:0, z:60) : le bandeau "Crée ton compte et reçoit 20 crédits!" s'affiche désormais sur **toutes les pages** (Home, Navbar pages, produits, etc.).
+- **`App.js`** — `<LaunchBanner />` monté globalement au-dessus des `<Routes>` (retiré de Hero3D).
+- **`components/Navbar.js`** — Décalée à `top: 40px` (z:50) pour laisser la place au bandeau au-dessus.
+- **`index.css`** — `body { padding-top: 40px }` pour tous les éléments statiques → aucune régression de layout sur les pages existantes.
+
+### Aperçu 3 pages sur les 5 landing produits
+- **Nouveau composant** `components/ApercuButton.js` — Bouton réutilisable (variants `default` / `ghost`, icône `BookOpen` lucide) pointant vers `/api/apercus/{book_key}.pdf`.
+- **`pages/NosLivres.js`** — Refactor pour utiliser `ApercuButton` (variant default).
+- **`pages/ThemeNatalLuxe.js`** — Bouton (variant ghost) sous le CTA "Recevoir mes 20 crédits".
+- **`pages/SynastrieSales.js`** — Bouton (variant ghost) sous le CTA "Composer mon rapport — 49€".
+- **`pages/KabbaleSales.js`** — Bouton (variant ghost) sous le CTA "Recevoir mon Arbre de Vie — 39€".
+- **`pages/AstrocartographieSales.js`** — Bouton (variant ghost) sous le CTA "Composer mon rapport — 49€".
+- **`pages/PackKarmique.js`** — Bouton (variant ghost) sous le CTA "Recevoir mon Pack Karmique — 89€".
+
+### Validation
+- Screenshots preview : bandeau visible sur `/`, `/nos-livres`, `/theme-natal-luxe`, `/kabbale`. Navbar bien positionnée à `top:40`. Contenu des pages non impacté (le padding-top global compense parfaitement).
+- Chaque bouton "Feuilleter l'aperçu — 3 pages" pointe vers l'URL correcte (`natal.pdf`, `synastry.pdf`, `kabbale.pdf`, `astrocarto.pdf`, `karmique.pdf`).
+
+
+
 ## 2026-02-21 (soir) — 📖 Aperçu 3-pages téléchargeable + Test PDF Ultra E2E
 
 ### Nouvelle feature : Aperçu PDF public par livre

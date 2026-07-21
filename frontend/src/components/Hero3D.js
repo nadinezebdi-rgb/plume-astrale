@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import StarsAndClouds from './StarsAndClouds';
-import LaunchBanner from './LaunchBanner';
 
 const Moon3D = lazy(() => import('./Moon3D'));
 
@@ -25,9 +24,6 @@ export default function Hero3D() {
       }}
       data-testid="hero-3d"
     >
-      {/* ═══ Bandeau d'urgence sticky top — cliquable + défilant + compte à rebours 48h ═══ */}
-      <LaunchBanner />
-
       {/* ═══ Header ultra-épuré ═══ */}
       <header className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-6 md:px-10"
         style={{ paddingTop: 52, paddingBottom: 12 }}>

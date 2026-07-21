@@ -31,7 +31,7 @@ const LaunchBanner = () => {
       tabIndex={0}
       onClick={() => navigate('/inscription')}
       onKeyDown={(e) => { if (e.key === 'Enter') navigate('/inscription'); }}
-      className="absolute top-0 left-0 right-0 z-40 overflow-hidden cursor-pointer"
+      className="fixed top-0 left-0 right-0 z-[60] overflow-hidden cursor-pointer"
       style={{
         height: 40,
         background: 'linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.15) 20%, rgba(232,199,102,0.22) 50%, rgba(212,175,55,0.15) 80%, transparent 100%)',

@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import { event as trackEvent } from '@/lib/analytics';
 import PdfBookOpen from '@/components/PdfBookOpen';
+import ApercuButton from '@/components/ApercuButton';
 import TestimonialsWidget, { TESTIMONIALS_KABBALE } from '@/components/TestimonialsWidget';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -299,6 +300,11 @@ export default function SynastrieSales() {
           {err && (
             <p className="mt-4 text-sm" style={{ color: '#FCA5A5' }} data-testid="synastrie-error">{err}</p>
           )}
+
+          <div className="mt-4">
+            <ApercuButton bookKey="synastry" variant="ghost" />
+          </div>
+
           <p className="text-xs mt-5" style={{ color: 'rgba(184,176,200,0.55)' }}>
             <Check className="inline w-3 h-3 mr-1" strokeWidth={2} /> Paiement securise Stripe ·
             <Check className="inline w-3 h-3 mx-1" strokeWidth={2} /> PDF envoye par email immediatement apres paiement

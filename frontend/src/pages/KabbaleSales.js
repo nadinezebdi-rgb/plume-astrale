@@ -6,6 +6,7 @@ import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
 import TestimonialsWidget, { TESTIMONIALS_KABBALE } from '@/components/TestimonialsWidget';
 import PdfBookOpen from '@/components/PdfBookOpen';
+import ApercuButton from '@/components/ApercuButton';
 import { event as track, EVENTS } from '@/lib/analytics';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -150,6 +151,9 @@ const KabbaleSales = () => {
                 Recevoir mon Arbre de Vie — 39€
                 <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
               </button>
+              <div className="mt-4">
+                <ApercuButton bookKey="kabbale" variant="ghost" />
+              </div>
               <p className="text-xs mt-4" style={{ color: 'rgba(227,215,255,0.5)', letterSpacing: '0.1em' }}>
                 Paiement sécurisé Stripe · Sans engagement
               </p>

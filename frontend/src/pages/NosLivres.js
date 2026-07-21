@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, BookOpen } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import SEO from '@/components/SEO';
 import PdfBookOpen from '@/components/PdfBookOpen';
+import ApercuButton from '@/components/ApercuButton';
 
 /**
  * NosLivres — Vitrine comparative des 5 livres luxes de Plume Astrale.
@@ -224,27 +225,7 @@ const NosLivres = () => {
 
             {/* Aperçu 3 pages téléchargeable — rassure avant achat */}
             <div className="mt-5">
-              <a
-                href={`${process.env.REACT_APP_BACKEND_URL}/api/apercus/${book.key}.pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-testid={`apercu-${book.key}`}
-                className="inline-flex items-center gap-2 text-[11px] transition-all hover:opacity-100"
-                style={{
-                  color: 'rgba(212,175,55,0.75)',
-                  fontFamily: 'Cinzel, serif',
-                  letterSpacing: '0.24em',
-                  textTransform: 'uppercase',
-                  textDecoration: 'none',
-                  padding: '10px 20px',
-                  border: '1px solid rgba(212,175,55,0.3)',
-                  borderRadius: 999,
-                  opacity: 0.9,
-                }}
-              >
-                <BookOpen className="w-3.5 h-3.5" strokeWidth={1.5} />
-                Feuilleter l&apos;aperçu — 3 pages
-              </a>
+              <ApercuButton bookKey={book.key} />
             </div>
           </div>
         </div>

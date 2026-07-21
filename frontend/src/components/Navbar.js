@@ -314,7 +314,7 @@ const Navbar = () => {
   };
 
   var navStyle = {
-    position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+    position: 'fixed', top: 40, left: 0, right: 0, zIndex: 50,
     transition: 'background 400ms cubic-bezier(0.22, 1, 0.36, 1), border-color 400ms cubic-bezier(0.22, 1, 0.36, 1)',
     background: scrolled || isOpen ? 'rgba(17,22,37,0.90)' : 'rgba(17,22,37,0.70)',
     backdropFilter: 'blur(16px)',
