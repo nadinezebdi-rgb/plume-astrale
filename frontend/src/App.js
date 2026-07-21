@@ -184,7 +184,7 @@ function App() {
                 <Route path="/mon-rituel" element={<Navigate to="/outils/rituel" replace />} />
                 <Route path="/revolution-solaire" element={<Navigate to="/outils/revolution-solaire" replace />} />
                 <Route path="/horoscope" element={<Navigate to="/outils/horoscope" replace />} />
-                <Route path="/love-languages" element={<Navigate to="/outils/love-languages" replace />} />
+                <Route path="/numerologie" element={<Navigate to="/outils/numerologie" replace />} />
                 <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
                 <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
                 <Route path="/notre-cadre" element={<NotreCadre />} />
