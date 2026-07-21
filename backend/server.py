@@ -57,6 +57,7 @@ from routes.fenetre_rencontre import router as fenetre_rencontre_router
 from routes.resend_webhook import router as resend_webhook_router
 from routes.astrocartographie import router as astrocartographie_router
 from routes.astrosexo import router as astrosexo_router
+from routes.apercu import router as apercu_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -112,6 +113,7 @@ api_router.include_router(resend_webhook_router)
 api_router.include_router(astrocartographie_router)
 api_router.include_router(astrosexo_router)
 api_router.include_router(subscriptions_router)
+api_router.include_router(apercu_router)
 
 
 # ════════════════════════════════════════════

@@ -4,6 +4,7 @@ import { Sparkles, ArrowRight, ShieldCheck, Star } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
 import PdfBookOpen from '@/components/PdfBookOpen';
+import ApercuButton from '@/components/ApercuButton';
 import TestimonialsWidget, { TESTIMONIALS_KABBALE } from '@/components/TestimonialsWidget';
 
 /**
@@ -261,6 +262,10 @@ const ThemeNatalLuxe = () => {
             {isAuthenticated ? 'Créer mon livre astral' : 'Recevoir mes 20 crédits'}
             <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
           </button>
+
+          <div className="mt-4">
+            <ApercuButton bookKey="natal" variant="ghost" />
+          </div>
 
           <div
             className="flex items-center justify-center gap-2 mt-6 text-[11px]"

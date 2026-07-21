@@ -1,6 +1,62 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-21 (nuit) — 📢 Bandeau global + Aperçus sur 5 pages produit
+
+### Bandeau promo global
+- **`components/LaunchBanner.js`** — Passe en `position: fixed` (top:0, z:60) : le bandeau "Crée ton compte et reçoit 20 crédits!" s'affiche désormais sur **toutes les pages** (Home, Navbar pages, produits, etc.).
+- **`App.js`** — `<LaunchBanner />` monté globalement au-dessus des `<Routes>` (retiré de Hero3D).
+- **`components/Navbar.js`** — Décalée à `top: 40px` (z:50) pour laisser la place au bandeau au-dessus.
+- **`index.css`** — `body { padding-top: 40px }` pour tous les éléments statiques → aucune régression de layout sur les pages existantes.
+
+### Aperçu 3 pages sur les 5 landing produits
+- **Nouveau composant** `components/ApercuButton.js` — Bouton réutilisable (variants `default` / `ghost`, icône `BookOpen` lucide) pointant vers `/api/apercus/{book_key}.pdf`.
+- **`pages/NosLivres.js`** — Refactor pour utiliser `ApercuButton` (variant default).
+- **`pages/ThemeNatalLuxe.js`** — Bouton (variant ghost) sous le CTA "Recevoir mes 20 crédits".
+- **`pages/SynastrieSales.js`** — Bouton (variant ghost) sous le CTA "Composer mon rapport — 49€".
+- **`pages/KabbaleSales.js`** — Bouton (variant ghost) sous le CTA "Recevoir mon Arbre de Vie — 39€".
+- **`pages/AstrocartographieSales.js`** — Bouton (variant ghost) sous le CTA "Composer mon rapport — 49€".
+- **`pages/PackKarmique.js`** — Bouton (variant ghost) sous le CTA "Recevoir mon Pack Karmique — 89€".
+
+### Validation
+- Screenshots preview : bandeau visible sur `/`, `/nos-livres`, `/theme-natal-luxe`, `/kabbale`. Navbar bien positionnée à `top:40`. Contenu des pages non impacté (le padding-top global compense parfaitement).
+- Chaque bouton "Feuilleter l'aperçu — 3 pages" pointe vers l'URL correcte (`natal.pdf`, `synastry.pdf`, `kabbale.pdf`, `astrocarto.pdf`, `karmique.pdf`).
+
+
+
+## 2026-02-21 (soir) — 📖 Aperçu 3-pages téléchargeable + Test PDF Ultra E2E
+
+### Nouvelle feature : Aperçu PDF public par livre
+- **`backend/services/apercu_pdf.py`** — Générateur d'aperçus 3 pages (Couverture + Ouverture + Extrait poétique) pour les 5 livres de la Bibliothèque, avec cache mémoire par `book_key`.
+- **`backend/routes/apercu.py`** — Endpoint public `GET /api/apercus/{book_key}.pdf` (natal, synastry, kabbale, astrocarto, karmique). Cache-Control: 1h. 404 si book_key inconnu.
+- **`frontend/src/pages/NosLivres.js`** — Bouton "Feuilleter l'aperçu — 3 pages" (icône `BookOpen` lucide) ajouté sous chaque CTA principal. URL dynamique via `REACT_APP_BACKEND_URL`.
+- Chaque aperçu contient un teaser textuel de fin (`[Cet aperçu s'arrête ici — ton livre complet…]`) pour driver vers l'achat.
+- **Validation** : 5 PDFs générés, exactement 3 pages chacun, tailles 1.3–2.0 MB. HTTP endpoint testé (200 OK) et 404 pour clé inconnue.
+
+### Validation PDF Thème Natal Ultra (cache vide)
+- E2E réel avec les données admin (Paris, 15/05/1990, 12h00) : **49 pages**, 12/12 sections GPT-5.4 remplies, PDF de 16.9 MB.
+- Extrait Soleil (voix Soléna confirmée) : *« Il y a chez toi quelque chose d'un chêne planté au milieu de la place… »*
+- Cache purgé + relire les 24 h pour économiser les crédits LLM sur régénérations identiques.
+
+
+
+## 2026-02-21 — 🎨 Regression UI Fixes (Hero + Header + Banner) & Cache Purge PDF
+
+### Fixes appliqués sur retour utilisateur
+- **`LaunchBanner.js`** — Bandeau simplifié au texte STRICT demandé : `"Crée ton compte et reçoit 20 crédits!"`.
+  Retrait du countdown 48h, du code `PLUME2026`, des ornements `✦`. Le message défile 3× en boucle.
+- **`Hero3D.js`** — Titre rendu stable : plus d'animation de mots rotatifs `vie amoureuse` / `mission d'âme` / `meilleure destination`.
+  Retour à `vie amoureuse` en italique doré, sans transformation ni fondu.
+- **`Hero3D.js`** — Bloc dupliqué `hero-positioning-text` ("Votre vie change. Comprenez pourquoi.") supprimé (allongeait le hero et le rendait chargé).
+- **`Hero3D.js`** — Header revenu à un unique bouton `Mon Compte` (retrait du doublon `Se connecter` doré ajouté récemment).
+- **Cache Natal AI purgé** : `/app/backend/cache/natal_ai/*.json` supprimé pour forcer une régénération fraîche GPT-5.4 au prochain achat.
+
+### Validation
+- Screenshot preview : bandeau, titre stable et header simple confirmés.
+- Pipeline PDF Natal Ultra E2E testé : `_source='gpt'`, 12/12 sections remplies (10 planètes + Ascendant + synthèse aspects), PDF final = **49 pages**, 16.9 MB.
+
+
+
 ## 2026-02-20 — 📖 Landing Nos Livres + Refonte Synastrie luxe
 
 ### Nouvelle landing `/nos-livres`

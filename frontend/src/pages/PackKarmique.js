@@ -5,6 +5,7 @@ import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
 import TestimonialsWidget, { TESTIMONIALS_KARMA } from '@/components/TestimonialsWidget';
 import PdfBookOpen from '@/components/PdfBookOpen';
+import ApercuButton from '@/components/ApercuButton';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -187,6 +188,9 @@ const PackKarmique = () => {
                 Recevoir mon Pack Karmique — 89€
                 <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
               </button>
+              <div className="mt-4">
+                <ApercuButton bookKey="karmique" variant="ghost" />
+              </div>
               <p className="text-xs mt-4" style={{ color: 'var(--pa-faint)', letterSpacing: '0.1em' }}>
                 Paiement sécurisé Stripe · Sans engagement
               </p>

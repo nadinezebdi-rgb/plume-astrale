@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import SEO from '@/components/SEO';
 import PdfBookOpen from '@/components/PdfBookOpen';
+import ApercuButton from '@/components/ApercuButton';
 
 /**
  * NosLivres — Vitrine comparative des 5 livres luxes de Plume Astrale.
@@ -221,6 +222,11 @@ const NosLivres = () => {
               {book.cta}
               <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
             </Link>
+
+            {/* Aperçu 3 pages téléchargeable — rassure avant achat */}
+            <div className="mt-5">
+              <ApercuButton bookKey={book.key} />
+            </div>
           </div>
         </div>
 

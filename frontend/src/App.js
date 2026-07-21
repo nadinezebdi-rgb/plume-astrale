@@ -76,6 +76,7 @@ import Starfield from "./components/design/Starfield";
 import MobileTabBar from "./components/design/MobileTabBar";
 import AuraProvider from "./components/design/AuraProvider";
 import LiveSalesCounter from "./components/LiveSalesCounter";
+import LaunchBanner from "./components/LaunchBanner";
 import ShootingStars from "./components/design/ShootingStars";
 
 function App() {
@@ -89,6 +90,8 @@ function App() {
         <NoiseOverlay />
         <MobileTabBar />
         <LiveSalesCounter />
+        {/* Bandeau promo fixé en haut de TOUTES les pages */}
+        <LaunchBanner />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />
