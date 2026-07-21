@@ -1,6 +1,45 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-22 (nuit) — 🎨 Refactor complet Thème Natal PDF (standard uniforme + photos + zéro page vide)
+
+### Retour utilisateur (bloquant)
+« Après tout ce que j'ai configuré ce matin j'ai le même thème natal que ce matin et les photos ne sont pas là pour les mettre par 4. À ce prix j'ai honte de vendre ça ! Fais-moi un PDF standard pour tous les PDFs avec des photos à chaque fois. Que c'est vide inutile de faire une page pour une ligne, et il faut impérativement suivre l'API v3. »
+
+### Diagnostic
+Le PDF fourni (Nadine, 24 pages) tombait en mode LEGACY 5 planètes avec de nombreuses pages 1-ligne (glyph seul, waouh quote seule, teaser seul) — le générateur `natal_pdf_v2` alignait 4 pages par planète dont 3 quasi-vides.
+
+### Refactor livré
+**1. `services/pdf_luxury_theme.py` — 2 nouvelles primitives**
+- `planet_dense_page(...)` : UNE page DENSE par planète avec header ornemental (glyph+nom+signe), petite image (4.2×4.2 cm) de la planète, dialogue psychologique italique, analyse Soléna complète — **remplace définitivement** les triplets `glyph_page + analysis_page + waouh_quote_page`.
+- `photos_grid_2x2(...)` : Page grille 2×2 de photos avec tag+titre. 4 cellules encadrées or (image + label + sub-label). Placeholders décoratifs si image manquante.
+
+**2. `services/natal_pdf_v2.py` — Réécrit intégralement (163 → 191 lignes)**
+Nouvelle structure UNIFORME (20 pages typiques en mode Ultra) :
+1. Couverture (image ciel_zodiaque)
+2. Ouverture spectaculaire
+3. Roue céleste (image)
+4. **Grille 2×2 « Ta signature astrale »** : Soleil / Lune / Ascendant / Vénus (photos)
+5-15. **11 planètes** en pages DENSES avec image + dialogue + analyse (Soleil, Lune, Mercure, Vénus, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton, Ascendant)
+16. **Grille 2×2 « Tes énergies quotidiennes »** : Mercure / Vénus / Mars / Jupiter (photos)
+17. **Grille 2×2 « Tes strates profondes »** : Saturne / Uranus / Neptune / Pluton (photos)
+18. Synthèse aspects (page dense)
+19-20. Fin émotionnelle Soléna
+→ **PLUS AUCUNE page 1-ligne**. **Photos à chaque planète** + **3 grilles 2×2**.
+
+**3. Correction extraction signes Uranus/Neptune/Pluton (bug caché)**
+`extract_planets()` de `astrology_io_service` ne renvoie que 7 planètes classiques (`/charts/natal` n'inclut pas les modernes). Auparavant → "URANUS — Inconnu / NEPTUNE — Inconnu / PLUTON — Inconnu" sur les pages.
+- **`services/natal_ai_enrichment.py`** : expose désormais `_signs_by_planet` dans le résultat (parsé depuis `/analysis/natal-report` — 80 interprétations avec `title: "Uranus — Capricorn"` etc.).
+- **`services/natal_pdf_adapter.py`** : `_find_sign()` utilise cette table en fallback → Uranus/Neptune/Pluton affichent maintenant leurs vrais signes.
+
+### Validation E2E (cache purgé)
+- API v3 : 80 interprétations reçues ✅
+- AI enrichment : **11/11 planètes** remplies (voix Soléna, `_source=gpt`) ✅
+- PDF : **20 pages** dense, ~45 MB (haute résolution), **11 planètes** avec signes corrects
+- Screenshots preview : couverture, roue céleste, **grille 2×2 signature** (Soleil doré / Lune lotus / Ascendant lion / Vénus roses), page Soleil-Taureau dense (glyph header + image mandala + dialogue + 200 mots d'analyse) — tous validés visuellement.
+
+
+
 ## 2026-02-22 (fin de journée) — ⚡ Streaming SSE + Restauration session + Nouvelle cover Synastrie
 
 ### 1) Streaming SSE (`/api/plume-chat/stream`)

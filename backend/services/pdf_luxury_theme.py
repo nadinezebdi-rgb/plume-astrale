@@ -270,6 +270,140 @@ def emotional_ending(story: list, styles: dict, prenom: str):
     story.append(Paragraph('— Soléna', styles['signature']))
 
 
+# ═══════════════════════════════════════════════════════════
+#   PRIMITIVES v2 — pages DENSES avec image intégrée
+#   (refactor 2026-02-22 : suppression des pages 1-ligne)
+# ═══════════════════════════════════════════════════════════
+
+def planet_dense_page(
+    story: list, styles: dict,
+    planet_name: str, sign: str,
+    body_html: str,
+    image_local_path: Optional[str] = None,
+    dialogue_question: Optional[str] = None,
+    glyph: Optional[str] = None,
+):
+    """Page dense pour une planète : header ornemental + petite image + analyse + dialogue.
+
+    Layout :
+      - Ligne 1 : "☉ SOLEIL — CANCER" (Cinzel doré, centré)
+      - Ligne 2 : image de la planète 4×4 cm centrée (si fournie)
+      - Ligne 3 : dialogue psychologique (italique doré, centré)
+      - Bloc corps : 2–4 paragraphes d'analyse (Cormorant)
+      - PageBreak à la fin
+
+    Une SEULE page par planète — plus de glyph_page ni de waouh séparée.
+    Le glyphe est intégré dans le header pour préserver la signature visuelle.
+    """
+    from reportlab.platypus import Image as RLImage
+    story.append(Spacer(1, 0.8 * cm))
+    header_str = (f'{glyph}  ' if glyph else '') + f'{planet_name.upper()} — <font color="{GOLD_HEX}">{sign}</font>'
+    story.append(Paragraph(
+        header_str,
+        ParagraphStyle('planet_dense_h', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=16, textColor=CREAM,
+                       alignment=TA_CENTER, spaceAfter=14),
+    ))
+    # Image planète — taille modérée pour laisser la place au texte
+    if image_local_path and os.path.exists(image_local_path):
+        try:
+            story.append(RLImage(image_local_path, width=4.2 * cm, height=4.2 * cm, mask='auto'))
+            story.append(Spacer(1, 0.5 * cm))
+        except Exception:
+            pass
+    if dialogue_question:
+        story.append(Paragraph(
+            f'<i>{dialogue_question}</i>',
+            ParagraphStyle('dialogue_dense', fontName=font('Cormorant-Italic', 'Helvetica-Oblique'),
+                           fontSize=13, leading=20, textColor=GOLD_LIGHT,
+                           alignment=TA_CENTER, leftIndent=1 * cm, rightIndent=1 * cm,
+                           spaceAfter=16),
+        ))
+    # Corps : split \n\n pour paragraphes
+    for para in (body_html or '').split('\n\n'):
+        para = para.strip()
+        if para:
+            story.append(Paragraph(para, styles['body_luxe']))
+    story.append(PageBreak())
+
+
+def photos_grid_2x2(
+    story: list, styles: dict,
+    chapter_tag: str, title: str,
+    cells: list,
+):
+    """Page grille 2×2 photos : tag + titre + 4 images avec caption courte.
+
+    cells : liste de 4 dicts { 'image': str_path, 'label': 'Soleil', 'sublabel': 'Cancer' }.
+    Les cellules manquantes affichent une puce or décorative comme placeholder.
+    """
+    from reportlab.platypus import Image as RLImage, Table, TableStyle
+    story.append(Spacer(1, 1.2 * cm))
+    story.append(Paragraph(chapter_tag.upper(), styles['section_tag']))
+    story.append(Paragraph(
+        title,
+        ParagraphStyle('grid_title', fontName=font('Cormorant', 'Helvetica'),
+                       fontSize=24, leading=30, textColor=CREAM,
+                       alignment=TA_CENTER, spaceAfter=24),
+    ))
+
+    def _cell(c):
+        img_flow = None
+        if c and c.get('image') and os.path.exists(c['image']):
+            try:
+                img_flow = RLImage(c['image'], width=5 * cm, height=5 * cm, mask='auto')
+            except Exception:
+                img_flow = None
+        if img_flow is None:
+            img_flow = Paragraph(f'<font color="{GOLD_HEX}" size="42">✦</font>',
+                                 ParagraphStyle('grid_placeholder', fontName='Helvetica',
+                                                fontSize=42, textColor=GOLD,
+                                                alignment=TA_CENTER, leading=44))
+        label = (c or {}).get('label', '')
+        sub = (c or {}).get('sublabel', '')
+        label_p = Paragraph(
+            label.upper(),
+            ParagraphStyle('grid_lbl', fontName=font('Cinzel', 'Helvetica'),
+                           fontSize=10, textColor=CREAM,
+                           alignment=TA_CENTER, spaceBefore=6, spaceAfter=2),
+        )
+        sub_p = Paragraph(
+            f'<font color="{GOLD_HEX}">{sub}</font>',
+            ParagraphStyle('grid_sub', fontName=font('Cormorant-Italic', 'Helvetica-Oblique'),
+                           fontSize=11, textColor=GOLD,
+                           alignment=TA_CENTER, spaceAfter=2),
+        )
+        return [[img_flow], [label_p], [sub_p]]
+
+    cells = (cells or []) + [None] * (4 - len(cells or []))
+    tl = _cell(cells[0])
+    tr = _cell(cells[1])
+    bl = _cell(cells[2])
+    br = _cell(cells[3])
+
+    inner_tl = Table(tl, colWidths=[6.5 * cm], hAlign='CENTER')
+    inner_tr = Table(tr, colWidths=[6.5 * cm], hAlign='CENTER')
+    inner_bl = Table(bl, colWidths=[6.5 * cm], hAlign='CENTER')
+    inner_br = Table(br, colWidths=[6.5 * cm], hAlign='CENTER')
+
+    grid = Table(
+        [[inner_tl, inner_tr], [inner_bl, inner_br]],
+        colWidths=[7 * cm, 7 * cm],
+        rowHeights=[8 * cm, 8 * cm],
+        hAlign='CENTER',
+    )
+    grid.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOX', (0, 0), (-1, -1), 0.4, GOLD),
+        ('INNERGRID', (0, 0), (-1, -1), 0.3, HexColor('#3a2f14')),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(grid)
+    story.append(PageBreak())
+
+
 def build_luxury_doc(buf: io.BytesIO, title: str, author: str = 'Plume Astrale') -> SimpleDocTemplate:
     """Fabrique un SimpleDocTemplate configuré pour le rendu luxe."""
     return SimpleDocTemplate(

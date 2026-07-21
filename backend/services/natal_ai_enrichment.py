@@ -358,5 +358,12 @@ async def enrich_natal_ultra(
     if len(out) >= 5:  # au moins la moitié pour cacher
         out['_source'] = 'gpt'
         out['_aspects_summary'] = [{'title': a['title'], 'orb': a['orb']} for a in ai_input.get('aspects', [])]
+        # Expose la table planète→signe (EN) pour que le PDF adapter puisse récupérer
+        # Uranus/Neptune/Pluton même si /charts/natal ne les retourne pas.
+        out['_signs_by_planet'] = {
+            planet_en: data.get('sign_en', '')
+            for planet_en, data in ai_input.get('planets', {}).items()
+            if data.get('sign_en')
+        }
         _cache_write(key, out)
     return out
