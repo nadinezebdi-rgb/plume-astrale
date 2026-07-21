@@ -1,12 +1,13 @@
 """Plume Astrale — FastAPI backend (Supabase + Stripe + Astrology API)."""
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
 import uuid
 import base64
+import json
 from pathlib import Path
 from pydantic import BaseModel
 from typing import Optional
@@ -28,7 +29,7 @@ from services.mediumnite_pdf import generate_mediumnite_pdf
 from services.compatibility_pdf_generator import generate_compatibility_pdf
 from services.premium_pdf_generator import generate_premium_pdf
 from services.share_card_generator import generate_share_card
-from services.plume_chat import plume_chat as plume_chat_service, get_session_history
+from services.plume_chat import plume_chat as plume_chat_service, plume_chat_stream, get_session_history
 from services.daily_ritual import (
     get_today_scores, get_daily_insight, submit_checkin, get_today_checkin,
     update_streak, get_streak, journal_entry, get_journal_history, MOODS,
@@ -2083,6 +2084,66 @@ async def plume_chat_endpoint(
     except Exception as e:
         logger.error(f'Plume chat endpoint error: {e}', exc_info=True)
         return {'success': False, 'message': 'Une perturbation cosmique empeche la connexion.'}
+
+
+@api_router.post('/plume-chat/stream')
+async def plume_chat_stream_endpoint(
+    request: Request,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """SSE endpoint : yield chaque delta textuel de Soléna au fur et à mesure.
+
+    Body identique à `/plume-chat` : { message, session_id, birth_data }.
+    Réponse : `text/event-stream` — chaque événement est de la forme :
+        data: {"delta": "..."}\n\n
+    Événements de contrôle :
+        data: {"session_id": "..."}   (envoyé en tête, permet au client de le stocker)
+        data: {"error": "..."}         (en cas d'échec)
+        data: [DONE]                   (fin du stream)
+    """
+    body = await request.json()
+    message = (body.get('message') or '').strip()
+    if not message:
+        async def _empty():
+            yield 'data: {"error":"Message vide."}\n\n'
+            yield 'data: [DONE]\n\n'
+        return StreamingResponse(_empty(), media_type='text/event-stream')
+
+    session_id = body.get('session_id') or f'plume-{uuid.uuid4().hex[:12]}'
+    birth_data = body.get('birth_data') or body.get('user_data')
+    user_id = current_user['id'] if current_user else None
+
+    async def _sse():
+        # 1) Envoi immédiat du session_id (utile pour un client qui vient d'en créer un)
+        yield f'data: {json.dumps({"session_id": session_id})}\n\n'
+        try:
+            async for delta in plume_chat_stream(
+                message=message,
+                session_id=session_id,
+                birth_data=birth_data,
+                user_id=user_id,
+            ):
+                if delta.startswith('[[PA-STREAM-ERROR]]'):
+                    err_msg = delta.replace('[[PA-STREAM-ERROR]]', '', 1)
+                    yield f'data: {json.dumps({"error": err_msg})}\n\n'
+                    break
+                # Envoi delta encodé JSON pour préserver les caractères spéciaux
+                yield f'data: {json.dumps({"delta": delta})}\n\n'
+        except Exception as e:
+            logger.error(f'Plume chat stream endpoint error: {e}', exc_info=True)
+            yield f'data: {json.dumps({"error": "Une perturbation cosmique empêche la connexion."})}\n\n'
+        finally:
+            yield 'data: [DONE]\n\n'
+
+    return StreamingResponse(
+        _sse(),
+        media_type='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',  # désactive le buffering nginx
+            'Connection': 'keep-alive',
+        },
+    )
 
 
 @api_router.post('/astro-chat')

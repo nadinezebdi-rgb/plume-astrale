@@ -1,6 +1,35 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-22 (fin de journée) — ⚡ Streaming SSE + Restauration session + Nouvelle cover Synastrie
+
+### 1) Streaming SSE (`/api/plume-chat/stream`)
+- **Backend `services/plume_chat.py`** : nouvelle fonction `plume_chat_stream()` — async generator qui appelle `astrology-api.io v3` avec `stream: True`, parse les événements `data: {choices[0].delta.content}`, yield chaque delta textuel au fur et à mesure. À la fin du stream, persiste question + réponse complète dans `plume_chat_messages` (multi-tour anon compatible).
+- **Backend `server.py`** : nouvel endpoint `POST /api/plume-chat/stream` retournant `StreamingResponse(text/event-stream)`. Format événements : `data: {"session_id":"..."}` en tête, `data: {"delta":"..."}` par chunk, `data: {"error":"..."}` sur échec, `data: [DONE]` en fin. Headers `X-Accel-Buffering: no` pour désactiver le buffering ingress.
+- **Frontend `pages/ChatIA.js`** : nouveau helper `streamPlumeChat()` (fetch + `ReadableStream` + parser SSE). La branche fallback `/api/plume-chat` (utilisée pour tous les cas sauf v3 chat authentifié avec natal data) écrit désormais chaque delta dans la dernière bulle assistant en temps réel — UX ChatGPT-like.
+- **Validation live** : `curl -N /api/plume-chat/stream` retourne `text/event-stream` avec deltas mot-par-mot. Screenshot preview : "Soléna réfléchit" apparaît, puis message assistant se remplit progressivement.
+
+### 2) Restauration session anonyme au mount
+- **`pages/ChatIA.js`** : dans le `useEffect` d'init de session, si un `sessionId` existe déjà en localStorage, appel `GET /api/plume-chat/history/{session_id}` pour rehydrater les messages. Fonctionne pour les visiteurs anonymes (l'endpoint filtre par `session_id` seul).
+- **Validation live** : envoi d'un message, reload de la page → conversation restaurée à l'identique (question + réponse Soléna visibles).
+
+### 3) Nouvelle cover PDF Synastrie via Nano Banana
+- Génération via `emergentintegrations` + modèle `gemini-3.1-flash-image-preview` (Nano Banana).
+- Image `01_image_couple_entrelace_1080x1800.png` (800×1328 réels, ratio 3:5) sauvegardée en 2 emplacements :
+  - `/app/backend/assets/synastrie_pdf/page-01.png` (utilisée automatiquement en cover PDF)
+  - `/app/backend/assets/library/synastry/01_image_couple_entrelace_1080x1800.png` (référence)
+- Style : silhouettes entrelacées face-à-face, cheveux qui coulent en poussière d'étoiles, ciel indigo profond, cadre or Alphonse Mucha, arabesques florales en bas, palette midnight blue + gold + violet.
+- **Validation** : PDF Synastrie régénéré → 25 pages, 7.9 MB, cover intégrée.
+
+### 4) Fin du rebrand persona Plume → Soléna (cleanup)
+- `components/NatalEssentials.js` : « Comment Plume t'écoute » → « Comment Soléna t'écoute ». « Chaque réponse de Plume » → « Chaque réponse de Soléna ».
+- `components/HeroOracle.js` : « la Plume écoute ton ciel » → « Soléna écoute ton ciel ».
+- `components/CercleDashboard.js` : « Plume te répond » → « Soléna te répond » (2× labels + 1 placeholder + 1 message d'erreur). Les brandings « Le Conseil de la Plume » (rubrique) et « Manuscrit/Livre de la Plume » (produits) conservés.
+- `pages/MonRituel.js` : « Plume est silencieuse » → « Soléna est silencieuse ».
+- `pages/Index.js` : témoignage « chat avec Plume » → « chat avec Soléna ».
+
+
+
 ## 2026-02-22 (soir) — 🎭 Unification "Discussion avec Soléna" (fin des doubles points de chat)
 
 ### Contexte

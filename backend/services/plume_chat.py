@@ -6,6 +6,7 @@ nativement l'intégration LLM + outils astrologiques (natal, synastrie, transits
 import os
 import re
 import json as _json
+import json
 import logging
 import httpx
 from typing import Optional, Dict, Any
@@ -370,3 +371,143 @@ async def get_session_history(session_id: str, user_id: Optional[str] = None) ->
     except Exception as e:
         logger.warning(f"Could not load session history: {e}")
         return []
+
+
+# ═══════════════════════════════════════════════════════════
+#   STREAMING SSE — même contrat que plume_chat, mais yield
+#   des deltas de texte au fur et à mesure (UX ChatGPT-like).
+# ═══════════════════════════════════════════════════════════
+async def plume_chat_stream(
+    message: str,
+    session_id: str,
+    birth_data: Optional[Dict[str, Any]] = None,
+    user_id: Optional[str] = None,
+):
+    """Générateur asynchrone : yield chaque delta de texte reçu de astrology-api.io v3.
+
+    Utilisé par l'endpoint `POST /api/plume-chat/stream` qui expose du `text/event-stream`.
+    À la fin du stream, le texte complet est persisté dans Supabase (comme `plume_chat`).
+
+    Yield :
+        - Chaîne str non-vide → un chunk textuel à afficher au fur et à mesure côté front.
+    Contrat d'erreur :
+        - Yield une seule chaîne préfixée par `[[PA-STREAM-ERROR]]` en cas d'échec.
+    """
+    api_key = os.environ.get("ASTROLOGY_API_IO_KEY", "").strip()
+    if not api_key:
+        yield "[[PA-STREAM-ERROR]]Clé astrology-api.io non configurée."
+        return
+
+    # Historique multi-tour (connecté OU anonyme) — même règle que plume_chat
+    history_msgs = []
+    try:
+        from services.supabase_client import get_admin_client
+        sb = get_admin_client()
+        res = sb.table('plume_chat_messages').select('role,content').eq(
+            'session_id', session_id).order('created_at').limit(30).execute()
+        for h in (res.data or []):
+            role = h.get("role")
+            content = h.get("content", "")
+            if role in ("user", "assistant") and content and not is_tool_leak(content):
+                history_msgs.append({"role": role, "content": content})
+    except Exception as e:
+        logger.warning(f"[stream] Could not load history: {e}")
+
+    messages = [{"role": "system", "content": SYSTEM_PROMPT_SOLENA}]
+    messages.extend(history_msgs)
+    messages.append({"role": "user", "content": message})
+
+    astrology_block: Dict[str, Any] = {
+        "defaults": {"language": "fr", "tradition": "psychological"},
+        "enabled_tools": [
+            "analysis_natal_report",
+            "analysis_transits_report",
+            "analysis_synastry_report",
+        ],
+    }
+    subject = _build_subject(birth_data)
+    if subject:
+        astrology_block["subjects"] = [subject]
+
+    payload = {
+        "messages": messages,
+        "astrology": astrology_block,
+        "temperature": 0.85,
+        "max_tokens": 1400,
+        "stream": True,
+    }
+
+    openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if openai_key:
+        payload["model"] = BYOK_MODEL
+        payload["byok"] = {
+            "provider": "openai",
+            "api_key": openai_key,
+            "model": BYOK_MODEL,
+        }
+        target_url = ASTROLOGY_API_IO_URL  # /byok
+    else:
+        target_url = ASTROLOGY_API_IO_URL_HOSTED
+
+    full_text_parts: list = []
+
+    try:
+        async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
+            async with client.stream(
+                "POST", target_url,
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                    "Accept": "text/event-stream",
+                },
+                json=payload,
+            ) as r:
+                if r.status_code != 200:
+                    body = await r.aread()
+                    logger.error(f"[stream] astrology-api.io {r.status_code}: {body[:400]!r}")
+                    yield "[[PA-STREAM-ERROR]]Les astres traversent une zone d'ombre. Réessaie dans un instant."
+                    return
+
+                async for raw_line in r.aiter_lines():
+                    if not raw_line or not raw_line.startswith("data:"):
+                        continue
+                    payload_str = raw_line[5:].strip()
+                    if not payload_str or payload_str == "[DONE]":
+                        continue
+                    try:
+                        chunk = json.loads(payload_str)
+                    except json.JSONDecodeError:
+                        continue
+                    try:
+                        delta = chunk["choices"][0].get("delta", {}).get("content", "")
+                    except (KeyError, IndexError, TypeError):
+                        delta = ""
+                    if delta:
+                        full_text_parts.append(delta)
+                        yield delta
+
+        response_text = "".join(full_text_parts).strip()
+        if not response_text:
+            yield "[[PA-STREAM-ERROR]]Soléna a perdu le fil des étoiles. Réessaie."
+            return
+        if is_tool_leak(response_text):
+            logger.warning(f"[stream] tool leak detected, discarding: {response_text[:100]}")
+            # On ne peut pas "reprendre" ce qui a déjà été streamé côté client. On log seulement.
+
+        # Persist message + réponse complète (multi-tour anon compatible)
+        try:
+            from services.supabase_client import get_admin_client
+            sb = get_admin_client()
+            sb.table('plume_chat_messages').insert([
+                {"session_id": session_id, "user_id": user_id, "role": "user", "content": message},
+                {"session_id": session_id, "user_id": user_id, "role": "assistant", "content": response_text},
+            ]).execute()
+        except Exception as e:
+            logger.warning(f"[stream] Could not persist messages: {e}")
+
+    except httpx.TimeoutException:
+        logger.error("[stream] astrology-api.io timeout")
+        yield "[[PA-STREAM-ERROR]]Les astres prennent du temps à répondre. Réessaie dans un instant."
+    except Exception as e:
+        logger.error(f"[stream] Plume chat error: {e}", exc_info=True)
+        yield "[[PA-STREAM-ERROR]]Une perturbation cosmique empêche la connexion."
