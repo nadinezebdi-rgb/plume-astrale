@@ -1177,11 +1177,11 @@ const MonCompte = () => {
                 </h2>
                 <div className="space-y-3">
                   {[
-                    { jours: 7,   bonus: 3,  label: 'Une semaine de constance' },
-                    { jours: 14,  bonus: 5,  label: 'Deux semaines d\'alignement' },
-                    { jours: 30,  bonus: 10, label: 'Un mois d\'assiduité' },
-                    { jours: 60,  bonus: 15, label: 'Deux mois de fidélité' },
-                    { jours: 100, bonus: 25, label: 'Cent jours de présence céleste' },
+                    { jours: 7,   bonus: 10,  label: 'Une semaine de constance' },
+                    { jours: 14,  bonus: 20,  label: 'Deux semaines d\'alignement' },
+                    { jours: 30,  bonus: 30, label: 'Un mois d\'assiduité' },
+                    { jours: 60,  bonus: 45, label: 'Deux mois de fidélité' },
+                    { jours: 100, bonus: 125, label: 'Cent jours de présence céleste' },
                   ].map(({ jours, bonus, label }) => {
                     const atteint = (fidelite?.streak_count ?? 0) >= jours;
                     return (
@@ -1240,10 +1240,10 @@ const MonCompte = () => {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <div style={{ fontFamily: 'Cinzel, serif', fontSize: 11, color: '#D4AF37', letterSpacing: '0.24em', marginBottom: 4 }}>
-                  ✦ Cercle Soléna · 19€/mois ✦
+                  ✦ Cercle Soléna · 14,90 €/mois ✦
                 </div>
                 <div className="text-sm" style={{ color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>
-                  3 crédits/mois · Communauté privée · -10% sur les PDF
+                  30 crédits/mois · Communauté privée · -10% sur les PDF
                 </div>
               </div>
               <div className="text-xs shrink-0" style={{ color: '#D4AF37', letterSpacing: '0.15em' }}>
