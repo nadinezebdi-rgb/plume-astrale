@@ -1,6 +1,31 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-23 (soir) — 🧹 Fixes retour Nadine v18 : grille sans cadres + fin avec image
+
+### Retour utilisateur
+« Tu vois les petits carrés à côté des photos, enlève-les tous. Et la dernière page il n'y a qu'une ligne, alors mets une image pour finir. »
+
+### 1) Grilles 2×2 débarrassées des "petits carrés"
+`services/pdf_luxury_theme.py` → `photos_grid_2x2()` : suppression du `('BOX', GOLD)` + `('INNERGRID', HexColor('#3a2f14'))` sur la table 2×2. Les 4 photos flottent désormais sans cadre or global ni ligne séparatrice — beaucoup plus aéré, l'ornement est porté uniquement par le cadre intrinsèque de chaque image.
+
+### 2) Fin émotionnelle qui tient sur UNE seule page
+`emotional_ending()` : refactor complet des espacements + ajout `KeepTogether` sur le bloc final (citation + signature + ornement).
+- Spacer initial : 4 cm → **1.8 cm**
+- Image "astral_silhouette" : 8×8 cm → **6.5×6.5 cm**
+- Espacements intermédiaires resserrés (0.5→0.35, 1.5→0.9)
+- Nouveau **ornement final** « ✦ ⁘ ✦ » en or sous la signature — clôt visuellement le livre
+- Bloc `KeepTogether([citation, signature, ornement])` : ces 3 éléments sont désormais **garantis sur la même page** — plus jamais de ligne orpheline « que tu es libre d'emprunter. — Soléna » sur une page vide.
+
+### Validation
+Test regénération Nadine (mêmes données que v18) → **19 pages** (mode Ultra, cache purgé, `_source=gpt`).
+Screenshots vérifiés :
+- **P4 (grille signature)** : Soleil / Lune / Ascendant / Vénus, aucun cadre or, photos aérées ✅
+- **P18 (synthèse aspects)** : dense, texte complet
+- **P19 (fin)** : image astral_silhouette + « Ferme les yeux » + « Repense... » + « Il y a une raison... » + citation complète + « — Soléna » + ornement ✦ ⁘ ✦, tout sur UNE page ✅
+
+
+
 ## 2026-02-23 — 🔒 API v3 = source unique + wrap luxe garanti sur tous les fallbacks
 
 ### 1) API v3 comme source de vérité (fin du "contenu IA générique")
