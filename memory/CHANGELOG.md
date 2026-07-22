@@ -1,6 +1,31 @@
 # CHANGELOG - Plume Astrale
 
 
+## 2026-02-23 (nuit) — 📊 Métriques pipeline + Régénération 4 PDFs + Tarot hub validé
+
+### 1) Tracker `natal_pdf_generated` (santé pipeline)
+- **Nouveau module `services/pipeline_metrics.py`** — écriture append-only JSONL thread-safe dans `/app/backend/logs/pipeline_events.jsonl`. API : `track_pipeline_event(name, **labels)`, `read_recent_events()`, `aggregate_by_label()`. Ne raise jamais (silencieux si écriture impossible).
+- **`services/natal_pdf_adapter.py`** instrumenté : chaque PDF natal généré émet `natal_pdf_generated` avec `source` (`gpt` / `gpt_partial` / `api_v3_only` / `legacy_wrapped` / `legacy_nu`), `tier` (`ultra` / `legacy`), `bytes`, `ai_planet_count`, `error` (si fallback).
+- **Nouveau endpoint admin `GET /api/admin/analytics/pipeline`** — retourne l'agrégation `{ gpt: 87, api_v3_only: 4, gpt_partial: 8, legacy_wrapped: 1 }` + les 15 derniers events avec timestamps. Utilisable pour un dashboard santé.
+- **Validation live** : première entrée JSONL confirmée après génération E2E : `{"event":"natal_pdf_generated","source":"gpt","tier":"ultra","bytes":45944251,"ai_planet_count":11}` ✅
+
+### 2) Régénération 4 PDFs wrapper luxe — vérification visuelle
+Test batch (inner 8 pages fake × 4 produits) via `apply_luxury_wrap` :
+- **Synastrie** — 12 pages, 18.2 MB ✅ grille « Vos 4 langages » (Soleil/Lune/Vénus/Mars) sans cadres or, photos aérées
+- **Kabbale** — 12 pages, 19.2 MB ✅ grille « Les 4 mondes » (Tiphereth/Yesod/Netzach/Hod) aérée + fin illustrée sur 1 page
+- **Astrocarto** — 12 pages, 18.8 MB ✅ grille « Tes lignes-monde » aérée
+- **Karmique** — 12 pages, 18.5 MB ✅ grille « Ton empreinte d'âme » (Saturne/Pluton/Neptune/Lune) aérée
+
+Screenshots preview validés : les 2 fixes (photos_grid_2x2 sans cadres + emotional_ending image finale sur 1 page) s'appliquent bien à tous les produits luxe wrappés.
+
+### 3) Screenshots tarot hub `/outils/tarot` validés
+- **3 dos de carte teaser** en éventail (rotation ±6° + translate) visibles au-dessus du gate de connexion ✅
+- **Galerie des 22 arcanes majeurs** (Le Mat → Le Monde) chargée depuis Supabase Storage `library/tarot/*.png` ✅
+- Console log : `Dos de cartes teaser: 3`, `Vignettes galerie: 22`, URLs Supabase HTTP 200
+- **Compatibilité iOS Safari** : `@keyframes stb-breath` utilise uniquement `box-shadow` transitions (supporté Safari 12+). Étoiles décoratives en SVG statique — aucun WebGL. Aucun risque.
+
+
+
 ## 2026-02-23 (soir) — 🧹 Fixes retour Nadine v18 : grille sans cadres + fin avec image
 
 ### Retour utilisateur

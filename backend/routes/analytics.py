@@ -229,3 +229,22 @@ async def attribution(days: int = Query(30, ge=1, le=365)):
         "by_content": by_content[:10],
         "recent_purchases": recent,
     }
+
+
+
+@router.get("/pipeline")
+async def pipeline_health(_: None = Depends(require_admin)):
+    """Santé du pipeline PDF/chat : distribution des `_source` pour les 5000 derniers events.
+
+    Retourne :
+        {
+          natal_pdf_generated: { gpt: 87, api_v3_only: 4, gpt_partial: 8, legacy_wrapped: 1 },
+          recent: [ ...5 derniers events avec ts + labels ]
+        }
+    """
+    from services.pipeline_metrics import aggregate_by_label, read_recent_events
+    return {
+        "natal_pdf_generated": aggregate_by_label("natal_pdf_generated", "source", limit=5000),
+        "natal_pdf_by_tier": aggregate_by_label("natal_pdf_generated", "tier", limit=5000),
+        "recent": read_recent_events(event_name="natal_pdf_generated", limit=15),
+    }
