@@ -15,6 +15,7 @@ from fastapi.responses import FileResponse
 from services.video_generator import (
     OUTPUT_DIR,
     generate_tiktok_video,
+    generate_tirage_video,
 )
 
 router = APIRouter()
@@ -79,3 +80,46 @@ async def get_tiktok_info():
             "codec": "H.264 / AAC",
         },
     }
+
+
+@router.get("/marketing/tirage")
+async def get_tirage_video(
+    regenerate: bool = Query(False, description="Force regeneration"),
+    mute: bool = Query(True, description="Silent MP4 (no music)"),
+    preview: bool = Query(False, description="Faster 540x960 render"),
+):
+    """
+    Return the "Tirage Gratuit" 30s vertical video (1080x1920).
+
+    Storyboard: 3 card backs → spread Passé/Présent/Futur →
+    flip reveal (Le Soleil, La Roue, L'Étoile) → CTA plume-astrale.fr.
+
+    - mute=true (default) → silent — ready to add TikTok music on top.
+    - Pass ?regenerate=true to rebuild.
+    - Pass ?preview=true for a lower-resolution fast render.
+    """
+    suffix = "_muted" if mute else ""
+    suffix += "_preview" if preview else ""
+    filename = f"plume_tiktok_tirage_gratuit{suffix}.mp4"
+    output_path: Path = OUTPUT_DIR / filename
+
+    if regenerate or not output_path.exists() or output_path.stat().st_size < 100_000:
+        try:
+            output_path = generate_tirage_video(
+                output_filename=filename,
+                mute=mute,
+                preview=preview,
+            )
+        except Exception as e:
+            logger.exception("[marketing] tirage video generation failed")
+            raise HTTPException(500, f"Video generation failed: {e}")
+
+    return FileResponse(
+        path=str(output_path),
+        media_type="video/mp4",
+        filename=filename,
+        headers={
+            "Cache-Control": "public, max-age=3600",
+            "Content-Disposition": f'inline; filename="{filename}"',
+        },
+    )

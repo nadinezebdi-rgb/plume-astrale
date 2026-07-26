@@ -620,3 +620,350 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     out = generate_tiktok_video()
     print(f"Generated: {out}")
+
+
+# ---------------------------------------------------------------------------
+# Scenario 2: "Tirage Gratuit" (3-card past/present/future)
+# ---------------------------------------------------------------------------
+
+def _draw_card_back(width: int = 520, height: int = 780) -> Image.Image:
+    """Draw a luxury tarot card back (deep navy + gold filigree ornaments)."""
+    img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+
+    # Card face — deep midnight
+    face = (18, 12, 40)
+    edge = 8
+    d.rounded_rectangle((edge, edge, width - edge, height - edge),
+                        radius=18, fill=face)
+    # Double gold border
+    d.rounded_rectangle((edge, edge, width - edge, height - edge),
+                        radius=18, outline=(GOLD[0], GOLD[1], GOLD[2], 255), width=3)
+    inner = 22
+    d.rounded_rectangle((inner, inner, width - inner, height - inner),
+                        radius=12, outline=(GOLD_LIGHT[0], GOLD_LIGHT[1], GOLD_LIGHT[2], 200), width=1)
+
+    # Central compass / rosette
+    cx, cy = width // 2, height // 2
+    R = min(width, height) // 5
+    # Outer ring
+    d.ellipse((cx - R, cy - R, cx + R, cy + R),
+              outline=(GOLD[0], GOLD[1], GOLD[2], 255), width=2)
+    d.ellipse((cx - R + 8, cy - R + 8, cx + R - 8, cy + R - 8),
+              outline=(GOLD_LIGHT[0], GOLD_LIGHT[1], GOLD_LIGHT[2], 200), width=1)
+
+    # 8-point star inside the ring
+    for i in range(8):
+        angle = i * math.pi / 4
+        x2 = cx + int(R * 0.75 * math.cos(angle))
+        y2 = cy + int(R * 0.75 * math.sin(angle))
+        d.line((cx, cy, x2, y2),
+               fill=(GOLD_LIGHT[0], GOLD_LIGHT[1], GOLD_LIGHT[2], 220), width=2)
+    # Inner filled star
+    star = _draw_star_ornament(int(R * 0.55), color=GOLD_LIGHT)
+    img.paste(star, (cx - star.width // 2, cy - star.height // 2), star)
+
+    # 4 corner flourishes (small stars)
+    corner_star = _draw_star_ornament(14, color=GOLD_LIGHT)
+    for (px, py) in [(48, 48), (width - 48, 48),
+                     (48, height - 48), (width - 48, height - 48)]:
+        img.paste(corner_star,
+                  (px - corner_star.width // 2, py - corner_star.height // 2),
+                  corner_star)
+
+    # "Plume Astrale" text at bottom
+    try:
+        font_small = ImageFont.truetype(FONT_TITLE, 20)
+        text = "PLUME  ASTRALE"
+        tw = font_small.getlength(text)
+        d.text((cx - tw / 2, height - 60), text,
+               font=font_small, fill=(GOLD_LIGHT[0], GOLD_LIGHT[1], GOLD_LIGHT[2], 220))
+    except Exception:
+        pass
+
+    # Subtle vignette / grain — softness at corners
+    return img
+
+
+def _scene_tirage_hook(duration: float, bg_arr: np.ndarray) -> VideoClip:
+    """Scene 1 (Tirage): 3 card backs stacked + hook."""
+    back = _draw_card_back(440, 660)
+    # Rotate 3 cards, stacked with slight offsets
+    backs = [
+        back.rotate(a, resample=Image.BICUBIC, expand=True)
+        for a in (-8, 0, 8)
+    ]
+
+    def make_frame(t: float) -> np.ndarray:
+        base = Image.fromarray(bg_arr).convert("RGBA")
+        # Cards float up slightly
+        p = t / duration
+        cy = int(H * 0.48 + math.sin(p * math.pi * 2) * 6)
+        for i, b in enumerate(backs):
+            offset_x = (i - 1) * 40
+            base.paste(b, (W // 2 - b.width // 2 + offset_x,
+                           cy - b.height // 2), b)
+        return np.array(base.convert("RGB"))
+
+    base = VideoClip(make_frame, duration=duration).set_fps(FPS)
+
+    hook = _render_text("Tire ta carte du jour", FONT_TITLE, size=76,
+                        color=GOLD_LIGHT, glow=True, letter_spacing=3, max_w=1000)
+    sub = _render_text("Passé  •  Présent  •  Futur", FONT_SUB, size=48,
+                       color=IVORY, glow=True)
+    hook_c = (
+        _pil_to_clip(hook, duration - 0.3)
+        .set_position(("center", int(H * 0.12)))
+        .set_start(0.3).crossfadein(0.6)
+    )
+    sub_c = (
+        _pil_to_clip(sub, duration - 0.7)
+        .set_position(("center", int(H * 0.83)))
+        .set_start(0.7).crossfadein(0.5)
+    )
+    return CompositeVideoClip([base, hook_c, sub_c], size=(W, H))
+
+
+def _scene_tirage_spread(duration: float, bg_arr: np.ndarray) -> VideoClip:
+    """Scene 2: 3 card backs slide apart into position (Passé / Présent / Futur)."""
+    back = _draw_card_back(300, 450)
+    slot_xs = [int(W * 0.22), int(W * 0.50), int(W * 0.78)]
+    slot_y = int(H * 0.48)
+    labels_text = ["PASSÉ", "PRÉSENT", "FUTUR"]
+
+    def make_frame(t: float) -> np.ndarray:
+        base = Image.fromarray(bg_arr).convert("RGBA")
+        p = min(1.0, t / (duration * 0.7))  # spread completes at 70% of scene
+        # Ease-out cubic
+        eased = 1 - (1 - p) ** 3
+        for i in range(3):
+            start_x = W // 2
+            end_x = slot_xs[i]
+            cur_x = int(start_x + (end_x - start_x) * eased)
+            # Slight rotation as cards land
+            angle = (i - 1) * (1 - eased) * 20
+            b = back.rotate(angle, resample=Image.BICUBIC, expand=True)
+            base.paste(b, (cur_x - b.width // 2, slot_y - b.height // 2), b)
+        return np.array(base.convert("RGB"))
+
+    base = VideoClip(make_frame, duration=duration).set_fps(FPS)
+
+    title = _render_text("Les cartes se dévoilent", FONT_TITLE, size=60,
+                         color=GOLD_LIGHT, glow=True, letter_spacing=3, max_w=1000)
+    t_clip = (
+        _pil_to_clip(title, duration - 0.3)
+        .set_position(("center", int(H * 0.12)))
+        .set_start(0.3).crossfadein(0.5)
+    )
+
+    # Labels appear once cards are in place (after 70% of scene)
+    label_clips = []
+    for i, txt in enumerate(labels_text):
+        lbl = _render_text(txt, FONT_TITLE, size=32,
+                           color=GOLD_LIGHT, glow=True, letter_spacing=4, max_w=400)
+        lc = (
+            _pil_to_clip(lbl, duration - duration * 0.7)
+            .set_position((slot_xs[i] - 100, int(H * 0.72)))
+            .set_start(duration * 0.7).crossfadein(0.4)
+        )
+        label_clips.append(lc)
+
+    return CompositeVideoClip([base, t_clip] + label_clips, size=(W, H))
+
+
+def _scene_tirage_reveal(duration: float, bg_arr: np.ndarray) -> VideoClip:
+    """Scene 3: 3 cards flip one by one revealing Soleil, Roue de Fortune, Étoile."""
+    picks = [
+        ("19_le_soleil_1080.png",       "Le Soleil"),
+        ("10_la_roue_de_fortune_1080.png", "La Roue"),
+        ("17_l_etoile_1080.png",        "L'Étoile"),
+    ]
+    card_imgs: list[tuple[Image.Image, str]] = []
+    for fname, name in picks:
+        p = _download_tarot(fname)
+        if p and p.exists():
+            card_imgs.append((_load_local_image(p, (420, 630)), name))
+    while len(card_imgs) < 3:
+        card_imgs.append((_draw_card_back(420, 630), "?"))
+
+    back = _draw_card_back(420, 630)
+    slot_xs = [int(W * 0.22), int(W * 0.50), int(W * 0.78)]
+    slot_y = int(H * 0.48)
+    reveal_at = [0.5, 4.0, 7.5]
+    reveal_dur = 1.2
+
+    def make_frame(t: float) -> np.ndarray:
+        base = Image.fromarray(bg_arr).convert("RGBA")
+        for i, (img, name) in enumerate(card_imgs):
+            start = reveal_at[i]
+            if t < start:
+                # Show back
+                base.paste(back,
+                           (slot_xs[i] - back.width // 2,
+                            slot_y - back.height // 2), back)
+                continue
+            p = min(1.0, (t - start) / reveal_dur)
+            # Flip: 0..0.5 shrink back to 0.05, 0.5..1.0 grow front to 1.0
+            if p < 0.5:
+                # shrinking back
+                sx = 1.0 - (p / 0.5) * 0.95
+                iw = max(1, int(back.width * sx))
+                ih = back.height
+                rez = back.resize((iw, ih), Image.LANCZOS)
+                base.paste(rez,
+                           (slot_xs[i] - rez.width // 2,
+                            slot_y - rez.height // 2), rez)
+            else:
+                # growing front
+                sx = 0.05 + ((p - 0.5) / 0.5) * 0.95
+                iw = max(1, int(img.width * sx))
+                ih = img.height
+                rez = img.resize((iw, ih), Image.LANCZOS)
+                # subtle floating after full reveal
+                hover = int(6 * math.sin((t - start - reveal_dur) * 2.0 + i)) if p >= 1.0 else 0
+                base.paste(rez,
+                           (slot_xs[i] - rez.width // 2,
+                            slot_y - rez.height // 2 + hover), rez)
+        return np.array(base.convert("RGB"))
+
+    base = VideoClip(make_frame, duration=duration).set_fps(FPS)
+
+    title = _render_text("Ton tirage", FONT_TITLE, size=70,
+                         color=GOLD_LIGHT, glow=True, letter_spacing=4, max_w=1000)
+    t_clip = (
+        _pil_to_clip(title, duration - 0.2)
+        .set_position(("center", int(H * 0.11)))
+        .set_start(0.2).crossfadein(0.4)
+    )
+
+    # Card name labels appear after each reveal
+    labels_text = ["Le Soleil", "La Roue", "L'Étoile"]
+    label_clips = []
+    for i, txt in enumerate(labels_text):
+        lbl = _render_text(txt, FONT_SUB, size=38,
+                           color=IVORY, glow=True, max_w=400)
+        appear = reveal_at[i] + reveal_dur
+        lc = (
+            _pil_to_clip(lbl, duration - appear)
+            .set_position((slot_xs[i] - 120, int(H * 0.78)))
+            .set_start(appear).crossfadein(0.4)
+        )
+        label_clips.append(lc)
+
+    return CompositeVideoClip([base, t_clip] + label_clips, size=(W, H))
+
+
+def _scene_tirage_cta(duration: float, bg_arr: np.ndarray) -> VideoClip:
+    """Scene 4 (Tirage): CTA vers tirage complet."""
+    halo = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    hd = ImageDraw.Draw(halo)
+    cx, cy = W // 2, int(H * 0.45)
+    for r in range(700, 0, -20):
+        hd.ellipse((cx - r, cy - r, cx + r, cy + r),
+                   fill=(GOLD[0], GOLD[1], GOLD[2], max(0, 40 - r // 30)))
+    halo = halo.filter(ImageFilter.GaussianBlur(60))
+    bg_pil = Image.fromarray(bg_arr).convert("RGBA")
+    bg_pil = Image.alpha_composite(bg_pil, halo)
+    bg_final = np.array(bg_pil.convert("RGB"))
+
+    def make_frame(t: float) -> np.ndarray:
+        return bg_final
+
+    base = VideoClip(make_frame, duration=duration).set_fps(FPS)
+
+    star = _draw_star_ornament(60, color=GOLD_LIGHT)
+    line1 = _render_text("Ton tirage complet t'attend", FONT_TITLE, size=72,
+                         color=GOLD_LIGHT, glow=True, letter_spacing=2, max_w=1000)
+    line2 = _render_text("20 crédits offerts", FONT_SUB, size=56,
+                         color=IVORY, glow=True)
+    url = _render_text("plume-astrale.fr", FONT_TITLE, size=54,
+                       color=IVORY, glow=True, letter_spacing=4)
+
+    star_c = _pil_to_clip(star, duration).set_position(("center", int(H * 0.22))).crossfadein(0.4)
+    l1_c = _pil_to_clip(line1, duration).set_position(("center", int(H * 0.38))).crossfadein(0.6)
+    l2_c = (
+        _pil_to_clip(line2, duration - 0.3)
+        .set_position(("center", int(H * 0.52)))
+        .set_start(0.3).crossfadein(0.6)
+    )
+    url_c = (
+        _pil_to_clip(url, duration - 0.8)
+        .set_position(("center", int(H * 0.74)))
+        .set_start(0.8).crossfadein(0.6)
+    )
+    return CompositeVideoClip([base, star_c, l1_c, l2_c, url_c], size=(W, H))
+
+
+def generate_tirage_video(
+    output_filename: str = "plume_tiktok_tirage_gratuit.mp4",
+    mute: bool = True,
+    preview: bool = False,
+) -> Path:
+    """
+    Generate the "Tirage Gratuit" 30s vertical video.
+
+    Scene 1 (5.5s): Hook — 3 stacked card backs + "Tire ta carte du jour"
+    Scene 2 (7.0s): Spread — cards slide to Passé/Présent/Futur positions
+    Scene 3 (12.0s): Reveal — cards flip revealing Le Soleil / La Roue / L'Étoile
+    Scene 4 (5.5s): CTA — "Ton tirage complet t'attend / plume-astrale.fr"
+
+    mute=True → silent MP4 (perfect to add TikTok music on top).
+    """
+    output_path = OUTPUT_DIR / output_filename
+
+    logger.info("[video/tirage] building background...")
+    bg = _cosmic_background(seed=13)
+    sparkles = _sparkle_layer(seed=17)
+    bg_with_sparkles = Image.alpha_composite(bg.convert("RGBA"), sparkles)
+    bg_arr = np.array(bg_with_sparkles.convert("RGB"))
+
+    logger.info("[video/tirage] scene 1: hook + card backs...")
+    s1 = _scene_tirage_hook(6.0, bg_arr)
+    logger.info("[video/tirage] scene 2: spread...")
+    s2 = _scene_tirage_spread(7.5, bg_arr)
+    logger.info("[video/tirage] scene 3: reveal...")
+    s3 = _scene_tirage_reveal(12.5, bg_arr)
+    logger.info("[video/tirage] scene 4: cta...")
+    s4 = _scene_tirage_cta(6.0, bg_arr)
+
+    s2 = s2.crossfadein(0.5)
+    s3 = s3.crossfadein(0.5)
+    s4 = s4.crossfadein(0.5)
+
+    video = concatenate_videoclips([s1, s2, s3, s4], method="compose", padding=-0.5)
+    video = video.set_duration(min(video.duration, float(DURATION)))
+
+    if not mute:
+        logger.info("[video/tirage] generating ambient audio...")
+        try:
+            audio_path = OUTPUT_DIR / "_ambient_pad_tirage.aac"
+            _generate_ambient_track(audio_path, duration=video.duration)
+            audio = (
+                AudioFileClip(str(audio_path))
+                .subclip(0, video.duration)
+                .volumex(0.55)
+                .audio_fadein(1.0)
+                .audio_fadeout(1.5)
+            )
+            video = video.set_audio(audio)
+        except Exception as e:
+            logger.warning(f"[video/tirage] audio failed: {e}")
+
+    logger.info(f"[video/tirage] rendering to {output_path}...")
+    if preview:
+        video = video.resize((540, 960))
+    video.write_videofile(
+        str(output_path),
+        fps=FPS,
+        codec="libx264",
+        audio_codec="aac" if not mute else None,
+        preset="medium",
+        bitrate="6000k",
+        threads=4,
+        logger=None,
+        temp_audiofile=str(OUTPUT_DIR / "_temp_audio_tirage.m4a") if not mute else None,
+        remove_temp=True,
+    )
+    logger.info(f"[video/tirage] done: {output_path} "
+                f"({output_path.stat().st_size // 1024} KB)")
+    return output_path
