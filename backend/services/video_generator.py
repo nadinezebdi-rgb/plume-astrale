@@ -984,24 +984,46 @@ def _render_bold_caption(
     color: tuple[int, int, int] = (255, 255, 255),
     stroke_color: tuple[int, int, int] = (0, 0, 0),
     stroke_w: int = 6,
+    bg_box: bool = False,
+    bg_alpha: int = 200,
 ) -> Image.Image:
     """
     Render a bold TikTok-style caption: white text with heavy black stroke.
     Uses Cinzel-Bold since it's the only bold font shipped locally, but with
     strong outline for maximum readability at any background.
+
+    If bg_box=True, adds a black rounded-rectangle background per line
+    (classic TikTok caption look).
     """
     font = ImageFont.truetype(FONT_TITLE, size)
     lines = _wrap_text(text.upper(), font, max_w)
     ascent, descent = font.getmetrics()
     line_h = int((ascent + descent) * 1.05)
     total_h = line_h * len(lines) + 60
-    canvas_w = min(W, max_w + 80)
+    canvas_w = min(W, max_w + 120)
     img = Image.new("RGBA", (canvas_w, total_h), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     y = 30
     for line in lines:
         tw = font.getlength(line)
         x = (canvas_w - tw) / 2
+
+        # Optional TikTok-style black pill background per line
+        if bg_box:
+            pad_x = 28
+            pad_y = 12
+            box = (
+                int(x - pad_x),
+                int(y - pad_y),
+                int(x + tw + pad_x),
+                int(y + line_h - int(descent * 0.4) + pad_y),
+            )
+            try:
+                draw.rounded_rectangle(box, radius=14, fill=(0, 0, 0, bg_alpha))
+            except AttributeError:
+                # Older Pillow — fallback to plain rectangle
+                draw.rectangle(box, fill=(0, 0, 0, bg_alpha))
+
         # Thick outline via stroke
         draw.text((x, y), line, font=font, fill=color,
                   stroke_width=stroke_w, stroke_fill=stroke_color)
@@ -1010,8 +1032,9 @@ def _render_bold_caption(
 
 
 def _render_body_line(text: str, size: int = 62, max_w: int = 960) -> Image.Image:
-    """Body caption — slightly smaller, softer stroke."""
-    return _render_bold_caption(text, size=size, max_w=max_w, stroke_w=4)
+    """Body caption — TikTok pill style with black background."""
+    return _render_bold_caption(text, size=size, max_w=max_w,
+                                stroke_w=5, bg_box=True, bg_alpha=210)
 
 
 def _hook_background_frames(duration: float, bg_type: str = "moon") -> VideoClip:
@@ -1344,7 +1367,8 @@ def _prepare_pexels_bg(
 
 def _scene_cinematic_intro(duration: float, hook: str, bg_clip) -> VideoClip:
     """Scene A: giant hook on video bg."""
-    text = _render_bold_caption(hook, size=104, max_w=980, stroke_w=8)
+    text = _render_bold_caption(hook, size=110, max_w=980, stroke_w=9,
+                                bg_box=True, bg_alpha=200)
     text_c = (
         _pil_to_clip(text, duration)
         .set_position(("center", int(H * 0.30)))
@@ -1361,18 +1385,19 @@ def _scene_cinematic_body(duration: float, lines: list[str], hook_ghost: str,
     overlays = [bg_clip]
 
     if hook_ghost:
-        ghost = _render_bold_caption(hook_ghost, size=52, max_w=980, stroke_w=4)
+        ghost = _render_bold_caption(hook_ghost, size=52, max_w=980, stroke_w=4,
+                                     bg_box=True, bg_alpha=180)
         overlays.append(
             _pil_to_clip(ghost, duration)
-            .set_position(("center", int(H * 0.08)))
+            .set_position(("center", int(H * 0.06)))
             .crossfadein(0.4)
         )
 
     for i, ln in enumerate(lines):
-        img = _render_body_line(ln, size=74, max_w=960)
+        img = _render_body_line(ln, size=88, max_w=960)
         c = (
             _pil_to_clip(img, slot)
-            .set_position(("center", int(H * 0.75)))
+            .set_position(("center", int(H * 0.72)))
             .set_start(i * slot)
             .crossfadein(0.35)
             .crossfadeout(0.25)
@@ -1385,21 +1410,21 @@ def _scene_cinematic_body(duration: float, lines: list[str], hook_ghost: str,
 def _scene_cinematic_cta(duration: float, cta: str, bg_clip) -> VideoClip:
     """Scene C: CTA overlay on continuing video bg."""
     star = _draw_star_ornament(60, color=GOLD_LIGHT)
-    star_c = _pil_to_clip(star, duration).set_position(("center", int(H * 0.30))).crossfadein(0.4)
+    star_c = _pil_to_clip(star, duration).set_position(("center", int(H * 0.28))).crossfadein(0.4)
 
-    text = _render_bold_caption(cta, size=84, max_w=980, stroke_w=7,
-                                color=GOLD_LIGHT)
+    text = _render_bold_caption(cta, size=88, max_w=980, stroke_w=8,
+                                color=GOLD_LIGHT, bg_box=True, bg_alpha=210)
     text_c = (
         _pil_to_clip(text, duration)
         .set_position(("center", int(H * 0.46)))
         .crossfadein(0.5)
     )
 
-    url = _render_bold_caption("plume-astrale.fr", size=54, max_w=800, stroke_w=5,
-                               color=(255, 255, 255))
+    url = _render_bold_caption("plume-astrale.fr", size=56, max_w=800, stroke_w=6,
+                               color=(255, 255, 255), bg_box=True, bg_alpha=200)
     url_c = (
         _pil_to_clip(url, duration - 0.6)
-        .set_position(("center", int(H * 0.72)))
+        .set_position(("center", int(H * 0.74)))
         .set_start(0.6).crossfadein(0.5)
     )
     return CompositeVideoClip([bg_clip, star_c, text_c, url_c], size=(W, H))
@@ -1410,34 +1435,39 @@ def generate_cinematic_video(
     body: list[str],
     cta: str = "20 CRÉDITS OFFERTS",
     pexels_query: str = "lion walking cinematic",
+    pexels_video_id: int | None = None,
     duration: float = 30.0,
     mute: bool = True,
     output_filename: str | None = None,
 ) -> Path:
     """
     Generate a cinematic TikTok video using real Pexels footage as the
-    background and text overlays on top. Video is fetched (or loaded from
-    cache), looped to fit duration, then composited with hook/body/cta.
+    background and text overlays on top.
 
     Args:
-      hook: giant accroche (3-8 words)
-      body: 2-5 short lines cycling at bottom
-      cta: final line before URL
-      pexels_query: what to search on Pexels (e.g., "lion walking mist")
+      hook, body, cta: text overlays
+      pexels_query: search term (used if `pexels_video_id` not provided)
+      pexels_video_id: force a specific Pexels video ID (bypasses search)
       duration: 15-60s (30 default)
       mute: True → silent MP4 (recommended for TikTok music)
     """
-    from services.pexels_service import get_and_download
+    from services.pexels_service import get_and_download, get_and_download_by_id
 
     if not hook or not body:
         raise ValueError("hook and body required")
     duration = max(10.0, min(60.0, float(duration)))
 
     # Fetch stock video
-    logger.info(f"[cinematic] fetching Pexels footage for '{pexels_query}'...")
-    stock_path = get_and_download(pexels_query, min_duration=4.0)
+    if pexels_video_id:
+        logger.info(f"[cinematic] fetching Pexels video id={pexels_video_id}...")
+        stock_path = get_and_download_by_id(pexels_video_id)
+    else:
+        logger.info(f"[cinematic] fetching Pexels footage for '{pexels_query}'...")
+        stock_path = get_and_download(pexels_query, min_duration=4.0)
     if not stock_path or not stock_path.exists():
-        raise RuntimeError(f"No Pexels footage found for query: {pexels_query}")
+        raise RuntimeError(
+            f"No Pexels footage found (query={pexels_query} id={pexels_video_id})"
+        )
 
     fn = output_filename or f"plume_cinematic_{_slugify(hook)}.mp4"
     output_path = OUTPUT_DIR / fn

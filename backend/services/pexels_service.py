@@ -119,6 +119,28 @@ def download_video(video: dict, max_height: int = 1920) -> Optional[Path]:
         return None
 
 
+def get_video_by_id(video_id: int) -> Optional[dict]:
+    """Fetch a specific Pexels video by ID."""
+    url = f"{_BASE}/videos/videos/{video_id}"
+    try:
+        r = requests.get(url, headers=_headers(), timeout=15)
+        if r.status_code != 200:
+            logger.warning(f"[pexels] get_video_by_id {video_id} → {r.status_code}")
+            return None
+        return r.json()
+    except Exception as e:
+        logger.warning(f"[pexels] get_video_by_id error: {e}")
+        return None
+
+
+def get_and_download_by_id(video_id: int) -> Optional[Path]:
+    """Fetch specific Pexels video by ID and download it (cached)."""
+    v = get_video_by_id(video_id)
+    if not v:
+        return None
+    return download_video(v)
+
+
 def get_first_video(query: str, min_duration: float = 4.0) -> Optional[dict]:
     """
     Convenience: return the first portrait video for `query` with duration
