@@ -1219,3 +1219,17 @@ le repo — pour ne pas alourdir le deploy.
 - Nouveau helper : services/pdf_delivery.py. Nouveau service : numerology_core_numbers().
 - Tests iteration_48 : 100% PASS.
 - ⚠️ USER DOIT : Save to GitHub + redéployer Railway/Vercel pour pousser ces fixes en prod.
+
+## Session 22 Juil 2026 — 🎬 Video TikTok Marketing (2026-07-22)
+- ✅ **Nouveau service** : `services/video_generator.py` — génère une vidéo verticale 1080x1920 / 30s / 30fps avec MoviePy + FFmpeg.
+- ✅ **Storyboard 4 scènes** :
+  - Scene 1 (6.5s) — Hook mystique : moon+lotus, tagline "Découvre les périodes qui vont réellement compter pour toi", brand "PLUME • ASTRALE" avec ornements 4-branch.
+  - Scene 2 (9.5s) — Aperçu Thème Natal : carrousel 5 signes zodiacaux (Bélier→Verseau) avec transitions cross-fade, titre "Ton Thème Natal Ultra / 40+ pages personnalisées".
+  - Scene 3 (9.5s) — Tirage Tarot : 3 arcanes majeurs (Le Soleil, L'Étoile, Le Monde) avec effet flip + hover, téléchargement depuis Supabase Storage.
+  - Scene 4 (6.5s) — CTA : halo doré, "20 crédits offerts / À ton inscription / plume-astrale.fr", étoile 4-branche ornementale.
+- ✅ **Audio ambient procédural** : accord A mineur (4 sinusoïdes 110/165/220/330 Hz) + tremolo + aecho + fade in/out — libre de droits, généré par FFmpeg.
+- ✅ **Endpoint API** : `GET /api/marketing/tiktok` (téléchargement MP4, cache 1h) + `GET /api/marketing/tiktok/info` (metadata) + `?regenerate=true` + `?preview=true` (540x960 fast).
+- ✅ **Ornements PIL** : étoile 4-branche dessinée programmatiquement (fallback vs unicode ✦ non supporté par Cinzel).
+- Fichier de sortie : `/app/backend/cache/marketing_videos/plume_tiktok_decouverte.mp4` (~16 Mo, H.264+AAC).
+- Rendu ~75s sur le container.
+- URL publique de téléchargement pour la user : `${REACT_APP_BACKEND_URL}/api/marketing/tiktok`

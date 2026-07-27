@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sparkles, Star, RefreshCw, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import LibraryImage from '@/components/LibraryImage';
+import TarotCardBack from '@/components/TarotCardBack';
 
 const TAROT_DECK = [
   { name: 'Le Bateleur', meaning: 'Nouveau départ, potentiel à révéler.', advice: 'Passez à l\'action avec confiance.', element: 'Feu' },
@@ -133,15 +134,16 @@ const Tarot = () => {
                   <div className="flex-1 flex flex-col items-center justify-center">
                     {canReveal ? (
                       <>
-                        <div className="w-20 h-28 mx-auto mb-4 rounded-md border-2 border-[#D4AF37]/40 bg-gradient-to-b from-[#1a1432] to-[#111625] flex items-center justify-center">
-                          <Sparkles className="w-7 h-7 text-[#D4AF37]/60" strokeWidth={1} />
-                        </div>
-                        <p className="text-[#B8B0C8]/60 text-sm">Cliquez pour révéler</p>
+                        <TarotCardBack size={{ width: 130, height: 190 }} testId={`tarot-back-${i}`} />
+                        <p className="text-[#B8B0C8]/70 text-sm mt-4">Cliquez pour révéler</p>
                       </>
                     ) : (
                       <>
-                        <Lock className="w-7 h-7 mx-auto text-[#D4AF37]/60 mb-3" strokeWidth={1.4} />
-                        <p className="text-[#B8B0C8]/60 text-sm">Connectez-vous pour révéler</p>
+                        <TarotCardBack size={{ width: 130, height: 190 }} testId={`tarot-back-locked-${i}`} />
+                        <div className="flex items-center gap-2 mt-4">
+                          <Lock className="w-4 h-4 text-[#D4AF37]/70" strokeWidth={1.5} />
+                          <p className="text-[#B8B0C8]/70 text-sm">Connectez-vous</p>
+                        </div>
                       </>
                     )}
                   </div>
@@ -185,6 +187,56 @@ const Tarot = () => {
             </button>
           </div>
         )}
+
+        {/* Vitrine des 22 arcanes majeurs — atteste de la vraie bibliothèque interne */}
+        <div className="mt-20 text-center" data-testid="tarot-deck-preview">
+          <p
+            className="text-[#D4AF37] uppercase tracking-[0.28em] text-[11px] mb-4"
+            style={{ fontFamily: 'Cinzel, serif' }}
+          >
+            ✦ Les 22 arcanes peints à la main ✦
+          </p>
+          <h3
+            className="mb-2"
+            style={{
+              fontFamily: 'Cormorant Garamond, serif',
+              fontSize: 'clamp(1.4rem, 3vw, 2rem)',
+              color: '#F5EEE0',
+              lineHeight: 1.15,
+            }}
+          >
+            Un jeu unique, dessiné pour Plume Astrale
+          </h3>
+          <p className="text-[#B8B0C8]/70 text-sm max-w-xl mx-auto mb-8 font-light">
+            Chaque carte de notre bibliothèque interne a été composée à la main dans l&apos;esprit
+            du Tarot de Marseille — palette or nuit profonde, aucun visuel standard IA.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+            {TAROT_DECK.map((c, idx) => (
+              <div
+                key={c.name}
+                title={c.name}
+                data-testid={`deck-preview-${idx}`}
+                style={{
+                  width: 60, height: 90,
+                  borderRadius: 5,
+                  overflow: 'hidden',
+                  border: '1px solid rgba(212,175,55,0.35)',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.4)',
+                  background: '#0e0a24',
+                }}
+              >
+                <LibraryImage
+                  type="tarot"
+                  name={c.name}
+                  size={90}
+                  alt={c.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

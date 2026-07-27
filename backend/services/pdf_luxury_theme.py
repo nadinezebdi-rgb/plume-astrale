@@ -249,25 +249,42 @@ def planet_analysis_page(story: list, styles: dict, planet_name: str, sign: str,
 
 
 def emotional_ending(story: list, styles: dict, prenom: str):
-    """Fin très émotionnelle — signée Soléna."""
-    story.append(Spacer(1, 4 * cm))
+    """Fin très émotionnelle — signée Soléna.
+
+    Refactor 2026-02-23 : tout tient sur UNE seule page (spacers ajustés) +
+    ajout d'une petite illustration finale décorative sous la signature pour
+    éviter la citation orpheline sur une page vide.
+    """
+    story.append(Spacer(1, 1.8 * cm))
     img_bytes = _dl_image(illustration_url("astral_silhouette", 800))
     if img_bytes:
-        story.append(RLImage(img_bytes, width=8 * cm, height=8 * cm, mask='auto'))
-        story.append(Spacer(1, 1.5 * cm))
+        story.append(RLImage(img_bytes, width=6.5 * cm, height=6.5 * cm, mask='auto'))
+        story.append(Spacer(1, 0.9 * cm))
     story.append(Paragraph('Ferme les yeux.', styles['waouh']))
     story.append(Paragraph(f'Repense à tout ce que tu viens de lire, {prenom}.', styles['dialogue']))
-    story.append(Spacer(1, 0.5 * cm))
+    story.append(Spacer(1, 0.35 * cm))
     story.append(Paragraph(
         'Il y a une raison pour laquelle tu es arrivée jusqu\'ici.',
         styles['dialogue']))
-    story.append(Spacer(1, 0.8 * cm))
-    story.append(Paragraph(
-        'Les étoiles n\'écrivent pas ton destin.<br/>'
-        'Elles éclairent simplement le chemin<br/>que tu es libre d\'emprunter.',
-        styles['waouh']))
-    story.append(Spacer(1, 1.5 * cm))
-    story.append(Paragraph('— Soléna', styles['signature']))
+    story.append(Spacer(1, 0.5 * cm))
+    # Bloc citation + signature + petit ornement final — gardés ensemble pour éviter
+    # que la dernière ligne finisse seule sur une page suivante.
+    final_block = [
+        Paragraph(
+            'Les étoiles n\'écrivent pas ton destin.<br/>'
+            'Elles éclairent simplement le chemin<br/>que tu es libre d\'emprunter.',
+            styles['waouh']),
+        Spacer(1, 0.9 * cm),
+        Paragraph('— Soléna', styles['signature']),
+        Spacer(1, 0.7 * cm),
+        Paragraph(
+            f'<font color="{GOLD_HEX}">✦ ⁘ ✦</font>',
+            ParagraphStyle('final_ornament', fontName=font('Cinzel', 'Helvetica'),
+                           fontSize=18, textColor=GOLD, alignment=TA_CENTER,
+                           leading=22, spaceBefore=6),
+        ),
+    ]
+    story.append(KeepTogether(final_block))
 
 
 # ═══════════════════════════════════════════════════════════
@@ -337,7 +354,7 @@ def photos_grid_2x2(
     cells : liste de 4 dicts { 'image': str_path, 'label': 'Soleil', 'sublabel': 'Cancer' }.
     Les cellules manquantes affichent une puce or décorative comme placeholder.
     """
-    from reportlab.platypus import Image as RLImage, Table, TableStyle
+    from reportlab.platypus import Image as RLImage
     story.append(Spacer(1, 1.2 * cm))
     story.append(Paragraph(chapter_tag.upper(), styles['section_tag']))
     story.append(Paragraph(
@@ -395,8 +412,8 @@ def photos_grid_2x2(
     grid.setStyle(TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BOX', (0, 0), (-1, -1), 0.4, GOLD),
-        ('INNERGRID', (0, 0), (-1, -1), 0.3, HexColor('#3a2f14')),
+        # Cadres retirés (2026-02-23) : plus de BOX ni d'INNERGRID or
+        # → les photos respirent, plus de "petits carrés" superflus.
         ('TOPPADDING', (0, 0), (-1, -1), 8),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
     ]))

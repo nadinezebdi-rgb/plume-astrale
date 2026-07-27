@@ -8,6 +8,8 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { asset } from '../lib/assets';
+import LibraryImage from '@/components/LibraryImage';
+import TarotCardBack from '@/components/TarotCardBack';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -319,7 +321,7 @@ const TirageTarot = () => {
           
           {/* ÉTAPE 0: Credit Gate */}
           {step === 0 && (
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-4xl mx-auto">
               <div className="text-center mb-10">
                 <p className="text-[#D4AF37] uppercase tracking-[0.3em] text-sm mb-4 font-light">
                   Tirage de Tarot
@@ -330,6 +332,19 @@ const TirageTarot = () => {
                 <p className="text-lg text-[#B8B0C8]/70 font-light">
                   Lecture Tarot approfondie
                 </p>
+              </div>
+
+              {/* 3 dos de carte décoratifs — teasing du jeu */}
+              <div className="flex justify-center gap-4 mb-10" data-testid="tarot-teaser-backs">
+                <div style={{ transform: 'rotate(-6deg)' }}>
+                  <TarotCardBack size={{ width: 110, height: 160 }} />
+                </div>
+                <div style={{ transform: 'translateY(-8px)' }}>
+                  <TarotCardBack size={{ width: 120, height: 175 }} />
+                </div>
+                <div style={{ transform: 'rotate(6deg)' }}>
+                  <TarotCardBack size={{ width: 110, height: 160 }} />
+                </div>
               </div>
 
               {!isAuthenticated ? (
@@ -371,6 +386,62 @@ const TirageTarot = () => {
                   </button>
                 </div>
               )}
+
+              {/* Vitrine des 22 arcanes majeurs peints à la main pour Plume Astrale */}
+              <div className="mt-16 text-center" data-testid="tarot-deck-preview">
+                <p
+                  className="text-[#D4AF37] uppercase tracking-[0.28em] text-[11px] mb-3"
+                  style={{ fontFamily: 'Cinzel, serif' }}
+                >
+                  ✦ Les 22 arcanes peints à la main ✦
+                </p>
+                <h3
+                  className="mb-2"
+                  style={{
+                    fontFamily: 'Cormorant Garamond, serif',
+                    fontSize: 'clamp(1.3rem, 2.6vw, 1.8rem)',
+                    color: '#F5EEE0',
+                    lineHeight: 1.15,
+                  }}
+                >
+                  Un jeu unique, dessiné pour Plume Astrale
+                </h3>
+                <p className="text-[#B8B0C8]/70 text-sm max-w-xl mx-auto mb-7 font-light">
+                  Chaque arcane a été composé à la main dans l&apos;esprit du Tarot de Marseille — or profond
+                  sur nuit d&apos;encre, aucun visuel standard IA.
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {[
+                    'Le Mat', 'Le Bateleur', 'La Papesse', "L'Impératrice", "L'Empereur",
+                    'Le Pape', 'Les Amoureux', 'Le Chariot', 'La Justice', "L'Hermite",
+                    'La Roue de Fortune', 'La Force', 'Le Pendu', "L'Arcane sans Nom",
+                    'La Tempérance', 'Le Diable', 'La Maison Dieu', "L'Étoile", 'La Lune',
+                    'Le Soleil', 'Le Jugement', 'Le Monde',
+                  ].map((cardName, idx) => (
+                    <div
+                      key={cardName}
+                      title={cardName}
+                      data-testid={`deck-preview-${idx}`}
+                      style={{
+                        width: 58, height: 87,
+                        borderRadius: 4,
+                        overflow: 'hidden',
+                        border: '1px solid rgba(212,175,55,0.35)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.45)',
+                        background: '#0e0a24',
+                      }}
+                    >
+                      <LibraryImage
+                        type="tarot"
+                        name={cardName}
+                        size={87}
+                        alt={cardName}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
