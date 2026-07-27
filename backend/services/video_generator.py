@@ -36,6 +36,10 @@ from moviepy.editor import (
 )
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+# Compat shim: MoviePy 1.0.3 uses PIL.Image.ANTIALIAS (removed in Pillow 10)
+if not hasattr(Image, "ANTIALIAS"):
+    Image.ANTIALIAS = Image.LANCZOS  # type: ignore[attr-defined]
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -1274,3 +1278,227 @@ def generate_hook_template_video(
     logger.info(f"[video/hook] done: {output_path} "
                 f"({output_path.stat().st_size // 1024} KB)")
     return output_path
+
+
+# ---------------------------------------------------------------------------
+# Scenario 4: "Cinematic Stock" — Pexels footage + text overlays
+# ---------------------------------------------------------------------------
+
+def _prepare_pexels_bg(
+    video_path: Path, duration: float
+) -> "VideoClip":
+    """
+    Load a Pexels MP4 as background, loop/trim to target duration, crop to
+    1080x1920, apply a static dark vignette overlay for text legibility.
+    """
+    from moviepy.editor import VideoFileClip, vfx  # local import
+
+    clip = VideoFileClip(str(video_path)).without_audio()
+    # Loop to reach duration
+    if clip.duration < duration:
+        clip = clip.fx(vfx.loop, duration=duration)
+    else:
+        clip = clip.subclip(0, duration)
+
+    # Fit to 1080x1920 (center-crop or scale)
+    cw, ch = clip.size
+    target_ratio = W / H  # 9/16 = 0.5625
+    src_ratio = cw / ch
+    if abs(src_ratio - target_ratio) > 0.02:
+        if src_ratio > target_ratio:
+            # too wide → crop width
+            new_w = int(ch * target_ratio)
+            x1 = (cw - new_w) // 2
+            clip = clip.crop(x1=x1, y1=0, x2=x1 + new_w, y2=ch)
+        else:
+            # too tall → crop height
+            new_h = int(cw / target_ratio)
+            y1 = (ch - new_h) // 2
+            clip = clip.crop(x1=0, y1=y1, x2=cw, y2=y1 + new_h)
+
+    clip = clip.resize((W, H))
+
+    # Build vignette overlay (static PIL image → ImageClip)
+    vignette = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    vd = ImageDraw.Draw(vignette)
+    # top gradient
+    for i in range(280):
+        vd.rectangle((0, i, W, i + 1),
+                     fill=(0, 0, 0, int(180 * (1 - i / 280))))
+    # bottom gradient
+    for i in range(380):
+        vd.rectangle((0, H - i, W, H - i + 1),
+                     fill=(0, 0, 0, int(200 * (1 - i / 380))))
+    # side vignette
+    edge = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ed = ImageDraw.Draw(edge)
+    for i in range(120):
+        a = int(60 * (1 - i / 120))
+        ed.rectangle((i, 0, i + 1, H), fill=(0, 0, 0, a))
+        ed.rectangle((W - i, 0, W - i + 1, H), fill=(0, 0, 0, a))
+    vignette = Image.alpha_composite(vignette, edge)
+
+    vignette_clip = _pil_to_clip(vignette, duration).set_position(("center", "center"))
+    return CompositeVideoClip([clip, vignette_clip], size=(W, H)).set_duration(duration)
+
+
+def _scene_cinematic_intro(duration: float, hook: str, bg_clip) -> VideoClip:
+    """Scene A: giant hook on video bg."""
+    text = _render_bold_caption(hook, size=104, max_w=980, stroke_w=8)
+    text_c = (
+        _pil_to_clip(text, duration)
+        .set_position(("center", int(H * 0.30)))
+        .crossfadein(0.3)
+    )
+    return CompositeVideoClip([bg_clip, text_c], size=(W, H))
+
+
+def _scene_cinematic_body(duration: float, lines: list[str], hook_ghost: str,
+                          bg_clip) -> VideoClip:
+    """Scene B: body lines cycle at bottom, small hook stays on top."""
+    n = max(1, len(lines))
+    slot = duration / n
+    overlays = [bg_clip]
+
+    if hook_ghost:
+        ghost = _render_bold_caption(hook_ghost, size=52, max_w=980, stroke_w=4)
+        overlays.append(
+            _pil_to_clip(ghost, duration)
+            .set_position(("center", int(H * 0.08)))
+            .crossfadein(0.4)
+        )
+
+    for i, ln in enumerate(lines):
+        img = _render_body_line(ln, size=74, max_w=960)
+        c = (
+            _pil_to_clip(img, slot)
+            .set_position(("center", int(H * 0.75)))
+            .set_start(i * slot)
+            .crossfadein(0.35)
+            .crossfadeout(0.25)
+        )
+        overlays.append(c)
+
+    return CompositeVideoClip(overlays, size=(W, H))
+
+
+def _scene_cinematic_cta(duration: float, cta: str, bg_clip) -> VideoClip:
+    """Scene C: CTA overlay on continuing video bg."""
+    star = _draw_star_ornament(60, color=GOLD_LIGHT)
+    star_c = _pil_to_clip(star, duration).set_position(("center", int(H * 0.30))).crossfadein(0.4)
+
+    text = _render_bold_caption(cta, size=84, max_w=980, stroke_w=7,
+                                color=GOLD_LIGHT)
+    text_c = (
+        _pil_to_clip(text, duration)
+        .set_position(("center", int(H * 0.46)))
+        .crossfadein(0.5)
+    )
+
+    url = _render_bold_caption("plume-astrale.fr", size=54, max_w=800, stroke_w=5,
+                               color=(255, 255, 255))
+    url_c = (
+        _pil_to_clip(url, duration - 0.6)
+        .set_position(("center", int(H * 0.72)))
+        .set_start(0.6).crossfadein(0.5)
+    )
+    return CompositeVideoClip([bg_clip, star_c, text_c, url_c], size=(W, H))
+
+
+def generate_cinematic_video(
+    hook: str,
+    body: list[str],
+    cta: str = "20 CRÉDITS OFFERTS",
+    pexels_query: str = "lion walking cinematic",
+    duration: float = 30.0,
+    mute: bool = True,
+    output_filename: str | None = None,
+) -> Path:
+    """
+    Generate a cinematic TikTok video using real Pexels footage as the
+    background and text overlays on top. Video is fetched (or loaded from
+    cache), looped to fit duration, then composited with hook/body/cta.
+
+    Args:
+      hook: giant accroche (3-8 words)
+      body: 2-5 short lines cycling at bottom
+      cta: final line before URL
+      pexels_query: what to search on Pexels (e.g., "lion walking mist")
+      duration: 15-60s (30 default)
+      mute: True → silent MP4 (recommended for TikTok music)
+    """
+    from services.pexels_service import get_and_download
+
+    if not hook or not body:
+        raise ValueError("hook and body required")
+    duration = max(10.0, min(60.0, float(duration)))
+
+    # Fetch stock video
+    logger.info(f"[cinematic] fetching Pexels footage for '{pexels_query}'...")
+    stock_path = get_and_download(pexels_query, min_duration=4.0)
+    if not stock_path or not stock_path.exists():
+        raise RuntimeError(f"No Pexels footage found for query: {pexels_query}")
+
+    fn = output_filename or f"plume_cinematic_{_slugify(hook)}.mp4"
+    output_path = OUTPUT_DIR / fn
+
+    # Build shared background clip once — reused across scenes via subclip
+    logger.info(f"[cinematic] preparing background ({duration}s)...")
+    bg_full = _prepare_pexels_bg(stock_path, duration + 1.5)  # slight buffer
+
+    # Split background into 3 sub-clips matching scene durations
+    hook_dur = 3.5
+    cta_dur = 5.0
+    body_dur = max(6.0, duration - hook_dur - cta_dur)
+
+    from moviepy.editor import concatenate_videoclips as _concat
+
+    bg_A = bg_full.subclip(0, hook_dur)
+    bg_B = bg_full.subclip(hook_dur, hook_dur + body_dur)
+    bg_C = bg_full.subclip(hook_dur + body_dur, hook_dur + body_dur + cta_dur)
+
+    logger.info("[cinematic] compositing scene A hook...")
+    sA = _scene_cinematic_intro(hook_dur, hook, bg_A)
+    logger.info("[cinematic] compositing scene B body...")
+    sB = _scene_cinematic_body(body_dur, body, hook, bg_B)
+    logger.info("[cinematic] compositing scene C cta...")
+    sC = _scene_cinematic_cta(cta_dur, cta, bg_C)
+
+    sB = sB.crossfadein(0.5)
+    sC = sC.crossfadein(0.5)
+
+    video = _concat([sA, sB, sC], method="compose", padding=-0.4)
+    video = video.set_duration(min(video.duration, duration))
+
+    if not mute:
+        try:
+            audio_path = OUTPUT_DIR / "_ambient_cinematic.aac"
+            _generate_ambient_track(audio_path, duration=video.duration)
+            audio = (
+                AudioFileClip(str(audio_path))
+                .subclip(0, video.duration)
+                .volumex(0.5)
+                .audio_fadein(0.8)
+                .audio_fadeout(1.5)
+            )
+            video = video.set_audio(audio)
+        except Exception as e:
+            logger.warning(f"[cinematic] audio failed: {e}")
+
+    logger.info(f"[cinematic] rendering to {output_path}...")
+    video.write_videofile(
+        str(output_path),
+        fps=FPS,
+        codec="libx264",
+        audio_codec="aac" if not mute else None,
+        preset="medium",
+        bitrate="6500k",
+        threads=4,
+        logger=None,
+        temp_audiofile=str(OUTPUT_DIR / "_temp_cinematic.m4a") if not mute else None,
+        remove_temp=True,
+    )
+    logger.info(f"[cinematic] done: {output_path} "
+                f"({output_path.stat().st_size // 1024} KB)")
+    return output_path
+
