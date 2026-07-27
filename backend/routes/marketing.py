@@ -6,14 +6,18 @@ existing luxury visuals (moon, zodiac, tarot, brand palette).
 """
 from __future__ import annotations
 
+import hashlib
 import logging
 from pathlib import Path
+from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Body, HTTPException, Query
 from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
 
 from services.video_generator import (
     OUTPUT_DIR,
+    generate_hook_template_video,
     generate_tiktok_video,
     generate_tirage_video,
 )
@@ -123,3 +127,76 @@ async def get_tirage_video(
             "Content-Disposition": f'inline; filename="{filename}"',
         },
     )
+
+
+
+# ---------------------------------------------------------------------------
+# Hook Template — custom text video (kinetic typography)
+# ---------------------------------------------------------------------------
+
+class HookRequest(BaseModel):
+    hook: str = Field(..., description="Big accroche (3-8 mots)")
+    body: list[str] = Field(..., description="2-5 phrases courtes qui apportent la valeur")
+    cta: str = Field("20 CRÉDITS OFFERTS", description="Phrase finale")
+    bg: str = Field("moon", description="moon | starfield | zodiac-<sign> | tarot-<slug>")
+    duration: float = Field(30.0, ge=10, le=60)
+    mute: bool = Field(True, description="Silent — add TikTok music on top")
+
+
+def _hook_cache_key(payload: dict) -> str:
+    import json
+    canon = json.dumps(payload, sort_keys=True, ensure_ascii=False)
+    return hashlib.sha1(canon.encode("utf-8")).hexdigest()[:12]
+
+
+@router.post("/marketing/hook")
+async def create_hook_video(payload: HookRequest = Body(...)):
+    """Generate a custom kinetic-typography TikTok video."""
+    key = _hook_cache_key(payload.model_dump())
+    filename = f"plume_hook_{key}.mp4"
+    output_path: Path = OUTPUT_DIR / filename
+
+    if not output_path.exists() or output_path.stat().st_size < 100_000:
+        try:
+            output_path = generate_hook_template_video(
+                hook=payload.hook,
+                body=payload.body,
+                cta=payload.cta,
+                bg_type=payload.bg,
+                duration=payload.duration,
+                mute=payload.mute,
+                output_filename=filename,
+            )
+        except Exception as e:
+            logger.exception("[marketing] hook generation failed")
+            raise HTTPException(500, f"Video generation failed: {e}")
+
+    return FileResponse(
+        path=str(output_path),
+        media_type="video/mp4",
+        filename=filename,
+        headers={
+            "Cache-Control": "public, max-age=3600",
+            "Content-Disposition": f'inline; filename="{filename}"',
+        },
+    )
+
+
+@router.get("/marketing/hook")
+async def get_hook_video(
+    hook: str = Query(..., min_length=3),
+    body: str = Query(..., description="Body lines separated by | (pipe)"),
+    cta: str = Query("20 CRÉDITS OFFERTS"),
+    bg: str = Query("moon"),
+    duration: float = Query(30.0, ge=10, le=60),
+    mute: bool = Query(True),
+):
+    """Quick GET variant — body lines separated by `|`."""
+    lines = [ln.strip() for ln in body.split("|") if ln.strip()]
+    if not lines:
+        raise HTTPException(400, "body must contain at least one non-empty line separated by |")
+    payload = HookRequest(
+        hook=hook, body=lines, cta=cta, bg=bg,
+        duration=duration, mute=mute,
+    )
+    return await create_hook_video(payload)

@@ -967,3 +967,305 @@ def generate_tirage_video(
     logger.info(f"[video/tirage] done: {output_path} "
                 f"({output_path.stat().st_size // 1024} KB)")
     return output_path
+
+
+# ---------------------------------------------------------------------------
+# Scenario 3: "Hook Template TikTok-native" (kinetic typography)
+# ---------------------------------------------------------------------------
+
+def _render_bold_caption(
+    text: str,
+    size: int = 92,
+    max_w: int = 980,
+    color: tuple[int, int, int] = (255, 255, 255),
+    stroke_color: tuple[int, int, int] = (0, 0, 0),
+    stroke_w: int = 6,
+) -> Image.Image:
+    """
+    Render a bold TikTok-style caption: white text with heavy black stroke.
+    Uses Cinzel-Bold since it's the only bold font shipped locally, but with
+    strong outline for maximum readability at any background.
+    """
+    font = ImageFont.truetype(FONT_TITLE, size)
+    lines = _wrap_text(text.upper(), font, max_w)
+    ascent, descent = font.getmetrics()
+    line_h = int((ascent + descent) * 1.05)
+    total_h = line_h * len(lines) + 60
+    canvas_w = min(W, max_w + 80)
+    img = Image.new("RGBA", (canvas_w, total_h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    y = 30
+    for line in lines:
+        tw = font.getlength(line)
+        x = (canvas_w - tw) / 2
+        # Thick outline via stroke
+        draw.text((x, y), line, font=font, fill=color,
+                  stroke_width=stroke_w, stroke_fill=stroke_color)
+        y += line_h
+    return img
+
+
+def _render_body_line(text: str, size: int = 62, max_w: int = 960) -> Image.Image:
+    """Body caption — slightly smaller, softer stroke."""
+    return _render_bold_caption(text, size=size, max_w=max_w, stroke_w=4)
+
+
+def _hook_background_frames(duration: float, bg_type: str = "moon") -> VideoClip:
+    """
+    Slow Ken-Burns zoom on a cosmic background image.
+    bg_type ∈ {moon, starfield, zodiac-<sign>, tarot-<slug>}.
+    """
+    bg_type = (bg_type or "moon").lower().strip()
+    # Resolve source image
+    src: Path | None = None
+    if bg_type == "starfield":
+        src = None  # pure procedural
+    elif bg_type == "moon":
+        src = LIB_DIR / "planets" / "moon_1080.png"
+    elif bg_type.startswith("zodiac-"):
+        slug = bg_type.split("-", 1)[1]
+        cand = LIB_DIR / "signs" / f"{slug}_2048.png"
+        if not cand.exists():
+            cand = LIB_DIR / "signs" / f"{slug}_1080.png"
+        src = cand if cand.exists() else None
+    elif bg_type.startswith("tarot-"):
+        slug = bg_type.split("-", 1)[1]
+        p = _download_tarot(f"{slug}_1080.png")
+        src = p if p and p.exists() else None
+    else:
+        src = LIB_DIR / "planets" / "moon_1080.png"
+
+    star_bg = _cosmic_background(seed=23)
+    star_bg = Image.alpha_composite(
+        star_bg.convert("RGBA"), _sparkle_layer(seed=31, count=90)
+    )
+
+    if src and src.exists():
+        # Fill 1080x1920 with the image (contain + center + dark vignette)
+        overlay = Image.open(src).convert("RGBA")
+        # Scale to fit width ~= 90% and cap height at 60% of screen
+        scale = min(W * 0.95 / overlay.width, H * 0.60 / overlay.height)
+        nw, nh = int(overlay.width * scale), int(overlay.height * scale)
+        overlay_small = overlay.resize((nw, nh), Image.LANCZOS)
+    else:
+        overlay_small = None
+
+    def make_frame(t: float) -> np.ndarray:
+        p = t / max(duration, 0.001)
+        # Slow Ken-Burns zoom 1.0 → 1.08 with slight drift
+        scale = 1.0 + 0.08 * p
+        base = star_bg.copy()
+        if overlay_small is not None:
+            sw, sh = overlay_small.size
+            zw, zh = int(sw * scale), int(sh * scale)
+            zoomed = overlay_small.resize((zw, zh), Image.LANCZOS)
+            drift_x = int(math.sin(p * math.pi) * 20)
+            drift_y = int(math.cos(p * math.pi) * 15)
+            base.paste(
+                zoomed,
+                (W // 2 - zw // 2 + drift_x, int(H * 0.42) - zh // 2 + drift_y),
+                zoomed,
+            )
+        # Dark vignette for text readability
+        vignette = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        vd = ImageDraw.Draw(vignette)
+        # Top gradient
+        for i in range(180):
+            vd.rectangle((0, i, W, i + 1),
+                         fill=(0, 0, 0, int(160 * (1 - i / 180))))
+        # Bottom gradient
+        for i in range(280):
+            vd.rectangle((0, H - i, W, H - i + 1),
+                         fill=(0, 0, 0, int(180 * (1 - i / 280))))
+        base = Image.alpha_composite(base, vignette)
+        return np.array(base.convert("RGB"))
+
+    return VideoClip(make_frame, duration=duration).set_fps(FPS)
+
+
+def _pop_in_clip(img: Image.Image, start: float, duration: float,
+                 position: tuple, hold: float = 0.0) -> ImageClip:
+    """
+    ImageClip that pops in with scale + crossfade, optionally holds
+    for `hold` seconds after start.
+    """
+    total = duration + hold
+    clip = _pil_to_clip(img, total).set_position(position).set_start(start)
+    return clip.crossfadein(0.25)
+
+
+def _scene_hook_intro(duration: float, hook: str, bg_type: str) -> VideoClip:
+    """Scene A: Hook only, giant text center."""
+    bg = _hook_background_frames(duration, bg_type)
+    text = _render_bold_caption(hook, size=104, max_w=980, stroke_w=7)
+    text_c = (
+        _pil_to_clip(text, duration)
+        .set_position(("center", int(H * 0.30)))
+        .crossfadein(0.3)
+    )
+    return CompositeVideoClip([bg, text_c], size=(W, H))
+
+
+def _scene_body_lines(duration: float, lines: list[str],
+                      bg_type: str, hook_ghost: str | None = None) -> VideoClip:
+    """
+    Scene B: Show N body lines one at a time (equal share of duration).
+    Optional small hook shown at top throughout (ghost).
+    """
+    bg = _hook_background_frames(duration, bg_type)
+    n = max(1, len(lines))
+    slot = duration / n
+    overlays = [bg]
+
+    if hook_ghost:
+        ghost = _render_bold_caption(hook_ghost, size=52, max_w=980, stroke_w=4)
+        overlays.append(
+            _pil_to_clip(ghost, duration)
+            .set_position(("center", int(H * 0.08)))
+            .crossfadein(0.4)
+        )
+
+    for i, ln in enumerate(lines):
+        img = _render_body_line(ln, size=74, max_w=960)
+        c = (
+            _pil_to_clip(img, slot)
+            .set_position(("center", int(H * 0.62)))
+            .set_start(i * slot)
+            .crossfadein(0.35)
+            .crossfadeout(0.25)
+        )
+        overlays.append(c)
+
+    return CompositeVideoClip(overlays, size=(W, H))
+
+
+def _scene_hook_cta(duration: float, cta: str, bg_type: str = "moon") -> VideoClip:
+    """Scene C: CTA final."""
+    bg = _hook_background_frames(duration, bg_type)
+    # Gold halo behind text
+    halo = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    hd = ImageDraw.Draw(halo)
+    cx, cy = W // 2, int(H * 0.45)
+    for r in range(700, 0, -20):
+        hd.ellipse((cx - r, cy - r, cx + r, cy + r),
+                   fill=(GOLD[0], GOLD[1], GOLD[2], max(0, 30 - r // 40)))
+    halo = halo.filter(ImageFilter.GaussianBlur(60))
+
+    def make_frame_with_halo(t: float) -> np.ndarray:
+        base_frame = bg.get_frame(t)
+        base = Image.fromarray(base_frame).convert("RGBA")
+        base = Image.alpha_composite(base, halo)
+        return np.array(base.convert("RGB"))
+
+    bg2 = VideoClip(make_frame_with_halo, duration=duration).set_fps(FPS)
+
+    star = _draw_star_ornament(60, color=GOLD_LIGHT)
+    star_c = _pil_to_clip(star, duration).set_position(("center", int(H * 0.28))).crossfadein(0.4)
+
+    text = _render_bold_caption(cta, size=88, max_w=980, stroke_w=6,
+                                color=GOLD_LIGHT)
+    text_c = (
+        _pil_to_clip(text, duration)
+        .set_position(("center", int(H * 0.44)))
+        .crossfadein(0.5)
+    )
+
+    url = _render_bold_caption("plume-astrale.fr", size=54, max_w=800, stroke_w=4,
+                               color=(255, 255, 255))
+    url_c = (
+        _pil_to_clip(url, duration - 0.6)
+        .set_position(("center", int(H * 0.72)))
+        .set_start(0.6).crossfadein(0.5)
+    )
+    return CompositeVideoClip([bg2, star_c, text_c, url_c], size=(W, H))
+
+
+def _slugify(text: str, max_len: int = 40) -> str:
+    import re
+    s = re.sub(r"[^a-zA-Z0-9]+", "-", text.lower()).strip("-")
+    return (s or "hook")[:max_len]
+
+
+def generate_hook_template_video(
+    hook: str,
+    body: list[str],
+    cta: str = "20 CRÉDITS OFFERTS",
+    bg_type: str = "moon",
+    duration: float = 30.0,
+    mute: bool = True,
+    preview: bool = False,
+    output_filename: str | None = None,
+) -> Path:
+    """
+    Kinetic-typography TikTok template — user provides raw text, we render.
+
+    Layout:
+      • Scene A (~3.5s) — Giant hook, centered
+      • Scene B (~ mid) — Body lines cycle one at a time (auto-share)
+      • Scene C (~5s)   — CTA + plume-astrale.fr
+
+    Args:
+      hook: 3-8 mots — l'accroche qui stoppe le scroll
+      body: 2-5 phrases courtes — la valeur (chacune s'affiche à son tour)
+      cta:  la phrase finale (ex: "20 crédits offerts")
+      bg_type: moon | starfield | zodiac-<sign> | tarot-<slug>
+      duration: 15-60 seconds (30 recommended)
+      mute: True → export silencieux (à combiner avec son TikTok)
+    """
+    if not hook or not body:
+        raise ValueError("hook and body are required")
+    duration = max(10.0, min(60.0, float(duration)))
+    hook_dur = 3.5
+    cta_dur = 5.0
+    body_dur = max(6.0, duration - hook_dur - cta_dur)
+
+    fn = output_filename or f"plume_hook_{_slugify(hook)}.mp4"
+    output_path = OUTPUT_DIR / fn
+
+    logger.info(f"[video/hook] scene A hook ({hook_dur}s)...")
+    sA = _scene_hook_intro(hook_dur, hook, bg_type)
+    logger.info(f"[video/hook] scene B body {len(body)} lines ({body_dur}s)...")
+    sB = _scene_body_lines(body_dur, body, bg_type, hook_ghost=hook)
+    logger.info(f"[video/hook] scene C cta ({cta_dur}s)...")
+    sC = _scene_hook_cta(cta_dur, cta, bg_type)
+
+    sB = sB.crossfadein(0.4)
+    sC = sC.crossfadein(0.5)
+
+    video = concatenate_videoclips([sA, sB, sC], method="compose", padding=-0.4)
+    video = video.set_duration(min(video.duration, duration))
+
+    if not mute:
+        try:
+            audio_path = OUTPUT_DIR / f"_ambient_hook.aac"
+            _generate_ambient_track(audio_path, duration=video.duration)
+            audio = (
+                AudioFileClip(str(audio_path))
+                .subclip(0, video.duration)
+                .volumex(0.5)
+                .audio_fadein(0.8)
+                .audio_fadeout(1.5)
+            )
+            video = video.set_audio(audio)
+        except Exception as e:
+            logger.warning(f"[video/hook] audio failed: {e}")
+
+    if preview:
+        video = video.resize((540, 960))
+
+    logger.info(f"[video/hook] rendering to {output_path}...")
+    video.write_videofile(
+        str(output_path),
+        fps=FPS,
+        codec="libx264",
+        audio_codec="aac" if not mute else None,
+        preset="medium",
+        bitrate="6000k",
+        threads=4,
+        logger=None,
+        temp_audiofile=str(OUTPUT_DIR / f"_temp_hook.m4a") if not mute else None,
+        remove_temp=True,
+    )
+    logger.info(f"[video/hook] done: {output_path} "
+                f"({output_path.stat().st_size // 1024} KB)")
+    return output_path
