@@ -1032,6 +1032,11 @@ def _hook_background_frames(duration: float, bg_type: str = "moon") -> VideoClip
         slug = bg_type.split("-", 1)[1]
         p = _download_tarot(f"{slug}_1080.png")
         src = p if p and p.exists() else None
+    elif bg_type.startswith("custom-"):
+        # /app/backend/assets/custom/<name>.png (transparent PNG recommended)
+        slug = bg_type.split("-", 1)[1]
+        cand = ASSETS_DIR / "custom" / f"{slug}.png"
+        src = cand if cand.exists() else None
     else:
         src = LIB_DIR / "planets" / "moon_1080.png"
 
