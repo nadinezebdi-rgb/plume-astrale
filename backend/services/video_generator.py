@@ -82,6 +82,9 @@ def _tarot_cdn() -> str | None:
 FONT_TITLE = str(FONTS_DIR / "Cinzel-Bold.ttf")
 FONT_SUB = str(FONTS_DIR / "CormorantGaramond-Italic.ttf")
 FONT_BODY = str(FONTS_DIR / "CormorantGaramond-Regular.ttf")
+# TikTok-native bold sans-serif (Anton + Bebas Neue — OFL, commercial OK)
+FONT_TIKTOK = str(FONTS_DIR / "tiktok" / "Anton-Regular.ttf")
+FONT_TIKTOK_ALT = str(FONTS_DIR / "tiktok" / "BebasNeue-Regular.ttf")
 
 
 # ---------------------------------------------------------------------------
@@ -1529,6 +1532,326 @@ def generate_cinematic_video(
         remove_temp=True,
     )
     logger.info(f"[cinematic] done: {output_path} "
+                f"({output_path.stat().st_size // 1024} KB)")
+    return output_path
+
+
+
+# ---------------------------------------------------------------------------
+# Scenario 5: "TikTok Native" — Anton/Bebas font + fast captions + Pexels bg
+# ---------------------------------------------------------------------------
+
+def _render_tiktok_caption(
+    text: str,
+    size: int = 96,
+    max_w: int = 960,
+    color: tuple[int, int, int] = (255, 255, 255),
+    stroke_w: int = 8,
+    bg_box: bool = True,
+    bg_alpha: int = 220,
+    font_path: str = FONT_TIKTOK,
+    yellow_word: str | None = None,
+) -> Image.Image:
+    """
+    TikTok-native caption using Anton/Bebas Neue (bold condensed sans-serif).
+    Optional `yellow_word` renders one word in gold for emphasis
+    (à la TikTok viral caption style).
+    """
+    font = ImageFont.truetype(font_path, size)
+    upper = text.upper()
+    lines = _wrap_text(upper, font, max_w)
+    ascent, descent = font.getmetrics()
+    line_h = int((ascent + descent) * 0.98)
+    total_h = line_h * len(lines) + 60
+    canvas_w = min(W, max_w + 120)
+    img = Image.new("RGBA", (canvas_w, total_h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    y = 30
+    yellow_up = yellow_word.upper() if yellow_word else None
+
+    for line in lines:
+        tw = font.getlength(line)
+        x = (canvas_w - tw) / 2
+
+        if bg_box:
+            pad_x = 26
+            pad_y = 8
+            box = (
+                int(x - pad_x),
+                int(y - pad_y),
+                int(x + tw + pad_x),
+                int(y + line_h - int(descent * 0.35) + pad_y),
+            )
+            try:
+                draw.rounded_rectangle(box, radius=12, fill=(0, 0, 0, bg_alpha))
+            except AttributeError:
+                draw.rectangle(box, fill=(0, 0, 0, bg_alpha))
+
+        # Draw text — word by word if yellow_word specified
+        if yellow_up and yellow_up in line:
+            # Render tokens
+            words = line.split(" ")
+            cx = x
+            for i, w in enumerate(words):
+                w_col = GOLD_LIGHT if w.strip(",.!?:;\"'") == yellow_up else color
+                draw.text((cx, y), w, font=font, fill=w_col,
+                          stroke_width=stroke_w, stroke_fill=(0, 0, 0))
+                cx += font.getlength(w + (" " if i < len(words) - 1 else ""))
+        else:
+            draw.text((x, y), line, font=font, fill=color,
+                      stroke_width=stroke_w, stroke_fill=(0, 0, 0))
+        y += line_h
+    return img
+
+
+def _scene_tiktok_hook(duration: float, hook: str, bg_clip,
+                       accent_word: str | None = None) -> VideoClip:
+    """Massive Anton hook — pattern interrupt."""
+    text = _render_tiktok_caption(hook, size=140, max_w=1000, stroke_w=12,
+                                  bg_box=True, bg_alpha=230,
+                                  yellow_word=accent_word)
+    text_c = (
+        _pil_to_clip(text, duration)
+        .set_position(("center", int(H * 0.28)))
+        .crossfadein(0.15)
+    )
+    return CompositeVideoClip([bg_clip, text_c], size=(W, H))
+
+
+def _scene_tiktok_body_fast(duration: float, fragments: list[str],
+                            hook_ghost: str, bg_clip) -> VideoClip:
+    """Body with fast caption pacing — one fragment every ~1.5s."""
+    n = max(1, len(fragments))
+    slot = duration / n
+    overlays = [bg_clip]
+
+    # Small hook stays at top the whole time
+    if hook_ghost:
+        ghost = _render_tiktok_caption(hook_ghost, size=60, max_w=980, stroke_w=6,
+                                       bg_box=True, bg_alpha=200)
+        overlays.append(
+            _pil_to_clip(ghost, duration)
+            .set_position(("center", int(H * 0.06)))
+            .crossfadein(0.3)
+        )
+
+    for i, frag in enumerate(fragments):
+        img = _render_tiktok_caption(frag, size=110, max_w=960, stroke_w=10,
+                                     bg_box=True, bg_alpha=220)
+        c = (
+            _pil_to_clip(img, slot)
+            .set_position(("center", int(H * 0.72)))
+            .set_start(i * slot)
+            .crossfadein(0.12)
+            .crossfadeout(0.10)
+        )
+        overlays.append(c)
+
+    return CompositeVideoClip(overlays, size=(W, H))
+
+
+def _scene_tiktok_cta(duration: float, cta: str, comment_hook: str,
+                      bg_clip) -> VideoClip:
+    """CTA scene — combo big CTA + comment hook (algo booster)."""
+    star = _draw_star_ornament(60, color=GOLD_LIGHT)
+    star_c = _pil_to_clip(star, duration).set_position(("center", int(H * 0.24))).crossfadein(0.3)
+
+    text = _render_tiktok_caption(cta, size=115, max_w=980, stroke_w=11,
+                                  color=GOLD_LIGHT, bg_box=True, bg_alpha=230)
+    text_c = (
+        _pil_to_clip(text, duration)
+        .set_position(("center", int(H * 0.38)))
+        .crossfadein(0.3)
+    )
+
+    # Comment-bait CTA: e.g. "COMMENTE LION POUR TON TIRAGE"
+    comment = _render_tiktok_caption(comment_hook, size=68, max_w=960, stroke_w=7,
+                                     bg_box=True, bg_alpha=220,
+                                     font_path=FONT_TIKTOK_ALT)
+    comment_c = (
+        _pil_to_clip(comment, duration - 0.5)
+        .set_position(("center", int(H * 0.68)))
+        .set_start(0.5).crossfadein(0.4)
+    )
+
+    url = _render_tiktok_caption("plume-astrale.fr", size=52, max_w=800, stroke_w=6,
+                                 bg_box=True, bg_alpha=200,
+                                 font_path=FONT_TIKTOK_ALT)
+    url_c = (
+        _pil_to_clip(url, duration - 1.0)
+        .set_position(("center", int(H * 0.82)))
+        .set_start(1.0).crossfadein(0.4)
+    )
+    return CompositeVideoClip([bg_clip, star_c, text_c, comment_c, url_c],
+                              size=(W, H))
+
+
+def _scene_tiktok_outro(duration: float, lines: list[str], bg_clip,
+                        url: str = "plume-astrale.fr") -> VideoClip:
+    """
+    Outro TikTok — series of CTA lines shown one after another to boost
+    self-identification + series cliffhanger + follow + share.
+    """
+    n = max(1, len(lines))
+    slot = duration / n
+    overlays = [bg_clip]
+
+    for i, ln in enumerate(lines):
+        # First line larger (self-identification hook)
+        # Follow line highlighted with gold
+        is_follow = ln.strip().startswith("Suis ") or ln.strip().startswith("@")
+        size = 92 if i == 0 else 78
+        color = GOLD_LIGHT if is_follow else (255, 255, 255)
+        img = _render_tiktok_caption(
+            ln, size=size, max_w=980, stroke_w=8,
+            color=color, bg_box=True, bg_alpha=225,
+            font_path=FONT_TIKTOK,
+        )
+        # Alternate vertical positions slightly for pacing feel
+        y_pos = int(H * (0.42 + (i - 1.5) * 0.02))
+        c = (
+            _pil_to_clip(img, slot + 0.2)  # slight overlap
+            .set_position(("center", y_pos))
+            .set_start(i * slot)
+            .crossfadein(0.25)
+            .crossfadeout(0.20)
+        )
+        overlays.append(c)
+
+    # URL fixed at bottom during last 30%
+    url_start = duration * 0.65
+    url_img = _render_tiktok_caption(url, size=48, max_w=800, stroke_w=5,
+                                     bg_box=True, bg_alpha=200,
+                                     font_path=FONT_TIKTOK_ALT)
+    url_c = (
+        _pil_to_clip(url_img, duration - url_start)
+        .set_position(("center", int(H * 0.86)))
+        .set_start(url_start).crossfadein(0.3)
+    )
+    overlays.append(url_c)
+
+    return CompositeVideoClip(overlays, size=(W, H))
+
+
+def generate_tiktok_native_video(
+    hook: str,
+    fragments: list[str],
+    cta: str = "TON TIRAGE T'ATTEND",
+    comment_hook: str = "COMMENTE TON SIGNE ↓",
+    pexels_query: str = "male lion roaring",
+    pexels_video_id: int | None = None,
+    accent_word: str | None = None,
+    outro_lines: list[str] | None = None,
+    duration: float = 30.0,
+    mute: bool = True,
+    output_filename: str | None = None,
+) -> Path:
+    """
+    Full TikTok-native generator :
+      - Anton/Bebas Neue bold condensed sans-serif (native TikTok caption look)
+      - Fast caption pacing (~1.5s per fragment)
+      - Aggressive hook + comment-bait CTA
+      - Real Pexels footage (moving lion / roaring / etc.)
+
+    Args:
+      hook: pattern-interrupt phrase (3-6 words)
+      fragments: 6-10 SHORT punchy sentences (each shown ~1.5s)
+      cta: big final line
+      comment_hook: comment-bait, e.g. "COMMENTE LION POUR TON TIRAGE"
+      pexels_query / pexels_video_id: source footage
+      accent_word: 1 word from hook rendered in gold
+    """
+    from services.pexels_service import get_and_download, get_and_download_by_id
+
+    if not hook or not fragments:
+        raise ValueError("hook + fragments required")
+    duration = max(10.0, min(60.0, float(duration)))
+
+    if pexels_video_id:
+        logger.info(f"[tiktok-native] fetching Pexels id={pexels_video_id}...")
+        stock_path = get_and_download_by_id(pexels_video_id)
+    else:
+        logger.info(f"[tiktok-native] fetching Pexels '{pexels_query}'...")
+        stock_path = get_and_download(pexels_query, min_duration=4.0)
+    if not stock_path or not stock_path.exists():
+        raise RuntimeError(f"No Pexels footage (query={pexels_query} id={pexels_video_id})")
+
+    fn = output_filename or f"plume_tiktok_native_{_slugify(hook)}.mp4"
+    output_path = OUTPUT_DIR / fn
+
+    logger.info(f"[tiktok-native] preparing bg ({duration}s)...")
+    bg_full = _prepare_pexels_bg(stock_path, duration + 1.5)
+
+    hook_dur = 2.5      # short, aggressive
+    if outro_lines:
+        # Outro replaces CTA scene — larger dedicated block
+        outro_dur = max(10.0, duration - hook_dur - 12.0)
+        body_dur = max(4.0, duration - hook_dur - outro_dur)
+        cta_dur = 0.0
+    else:
+        outro_dur = 0.0
+        cta_dur = 5.0
+        body_dur = max(4.0, duration - hook_dur - cta_dur)
+
+    from moviepy.editor import concatenate_videoclips as _concat
+
+    bg_A = bg_full.subclip(0, hook_dur)
+    bg_B = bg_full.subclip(hook_dur, hook_dur + body_dur)
+    scenes: list = []
+
+    logger.info("[tiktok-native] scene A hook...")
+    sA = _scene_tiktok_hook(hook_dur, hook, bg_A, accent_word=accent_word)
+    scenes.append(sA)
+
+    logger.info(f"[tiktok-native] scene B body ({len(fragments)} fragments in {body_dur}s)...")
+    sB = _scene_tiktok_body_fast(body_dur, fragments, hook, bg_B).crossfadein(0.3)
+    scenes.append(sB)
+
+    if outro_lines:
+        bg_D = bg_full.subclip(hook_dur + body_dur,
+                                hook_dur + body_dur + outro_dur)
+        logger.info(f"[tiktok-native] scene D outro ({len(outro_lines)} lines in {outro_dur}s)...")
+        sD = _scene_tiktok_outro(outro_dur, outro_lines, bg_D).crossfadein(0.4)
+        scenes.append(sD)
+    else:
+        bg_C = bg_full.subclip(hook_dur + body_dur,
+                                hook_dur + body_dur + cta_dur)
+        logger.info("[tiktok-native] scene C cta...")
+        sC = _scene_tiktok_cta(cta_dur, cta, comment_hook, bg_C).crossfadein(0.4)
+        scenes.append(sC)
+
+    video = _concat(scenes, method="compose", padding=-0.3)
+    video = video.set_duration(min(video.duration, duration))
+
+    if not mute:
+        try:
+            audio_path = OUTPUT_DIR / "_ambient_tiktok.aac"
+            _generate_ambient_track(audio_path, duration=video.duration)
+            audio = (
+                AudioFileClip(str(audio_path))
+                .subclip(0, video.duration)
+                .volumex(0.45)
+                .audio_fadein(0.6)
+                .audio_fadeout(1.2)
+            )
+            video = video.set_audio(audio)
+        except Exception as e:
+            logger.warning(f"[tiktok-native] audio failed: {e}")
+
+    logger.info(f"[tiktok-native] rendering to {output_path}...")
+    video.write_videofile(
+        str(output_path),
+        fps=FPS,
+        codec="libx264",
+        audio_codec="aac" if not mute else None,
+        preset="medium",
+        bitrate="6500k",
+        threads=4,
+        logger=None,
+        temp_audiofile=str(OUTPUT_DIR / "_temp_tiktok.m4a") if not mute else None,
+        remove_temp=True,
+    )
+    logger.info(f"[tiktok-native] done: {output_path} "
                 f"({output_path.stat().st_size // 1024} KB)")
     return output_path
 
