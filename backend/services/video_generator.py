@@ -26,6 +26,16 @@ from typing import Iterable
 import numpy as np
 import requests
 from dotenv import load_dotenv
+
+# Force MoviePy to use system ffmpeg (bundled 7.0.2 static build fails on
+# some H.264 files produced by Sora / re-encoded via system ffmpeg)
+os.environ["IMAGEIO_FFMPEG_EXE"] = "/usr/bin/ffmpeg"
+os.environ["FFMPEG_BINARY"] = "/usr/bin/ffmpeg"
+
+# moviepy reads FFMPEG_BINARY at config import time — set explicitly
+import moviepy.config as _mp_cfg  # noqa: E402
+_mp_cfg.FFMPEG_BINARY = "/usr/bin/ffmpeg"
+
 from moviepy.editor import (
     AudioFileClip,
     ColorClip,
@@ -1852,6 +1862,150 @@ def generate_tiktok_native_video(
         remove_temp=True,
     )
     logger.info(f"[tiktok-native] done: {output_path} "
+                f"({output_path.stat().st_size // 1024} KB)")
+    return output_path
+
+
+
+# ---------------------------------------------------------------------------
+# Custom-BG variant of tiktok-native — uses any local MP4 as background
+# (e.g. a Sora 2 generation, user-uploaded clip, etc.)
+# ---------------------------------------------------------------------------
+
+def _prepare_custom_bg(video_path: Path, duration: float,
+                       use_boomerang: bool = True) -> "VideoClip":
+    """
+    Load any local MP4, loop (optionally with boomerang forward+reverse
+    to mask repetition) until it reaches `duration`, crop/scale to 1080x1920,
+    apply dark vignette for text legibility.
+    """
+    from moviepy.editor import VideoFileClip, vfx  # local import
+
+    src = VideoFileClip(str(video_path)).without_audio()
+
+    # If source shorter than target, loop plainly. (Boomerang via
+    # vfx.time_mirror produces boundary errors on some encodings; loop is
+    # reliable and the visual repetition is acceptable at 12s+ cycles.)
+    if src.duration < duration:
+        clip = src.fx(vfx.loop, duration=duration)
+    else:
+        clip = src.subclip(0, duration)
+
+    # Fit to 1080x1920
+    cw, ch = clip.size
+    target_ratio = W / H
+    src_ratio = cw / ch
+    if abs(src_ratio - target_ratio) > 0.02:
+        if src_ratio > target_ratio:
+            new_w = int(ch * target_ratio)
+            x1 = (cw - new_w) // 2
+            clip = clip.crop(x1=x1, y1=0, x2=x1 + new_w, y2=ch)
+        else:
+            new_h = int(cw / target_ratio)
+            y1 = (ch - new_h) // 2
+            clip = clip.crop(x1=0, y1=y1, x2=cw, y2=y1 + new_h)
+    clip = clip.resize((W, H))
+
+    # Vignette overlay
+    vignette = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    vd = ImageDraw.Draw(vignette)
+    for i in range(240):
+        vd.rectangle((0, i, W, i + 1),
+                     fill=(0, 0, 0, int(150 * (1 - i / 240))))
+    for i in range(340):
+        vd.rectangle((0, H - i, W, H - i + 1),
+                     fill=(0, 0, 0, int(170 * (1 - i / 340))))
+    edge = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ed = ImageDraw.Draw(edge)
+    for i in range(100):
+        a = int(50 * (1 - i / 100))
+        ed.rectangle((i, 0, i + 1, H), fill=(0, 0, 0, a))
+        ed.rectangle((W - i, 0, W - i + 1, H), fill=(0, 0, 0, a))
+    vignette = Image.alpha_composite(vignette, edge)
+
+    v_clip = _pil_to_clip(vignette, duration).set_position(("center", "center"))
+    return CompositeVideoClip([clip, v_clip], size=(W, H)).set_duration(duration)
+
+
+def generate_tiktok_with_custom_bg(
+    hook: str,
+    fragments: list[str],
+    bg_video_path: Path | str,
+    cta: str = "TON TIRAGE T'ATTEND",
+    comment_hook: str = "COMMENTE TON SIGNE ↓",
+    accent_word: str | None = None,
+    outro_lines: list[str] | None = None,
+    duration: float = 28.0,
+    output_filename: str | None = None,
+) -> Path:
+    """
+    Same as generate_tiktok_native_video but uses a LOCAL video file
+    as background instead of Pexels. Silent MP4 (no audio overlay here —
+    caller can merge audio afterwards via ffmpeg).
+    """
+    if not hook or not fragments:
+        raise ValueError("hook + fragments required")
+    duration = max(6.0, min(90.0, float(duration)))
+    bg_video_path = Path(bg_video_path)
+    if not bg_video_path.exists():
+        raise FileNotFoundError(f"bg_video_path not found: {bg_video_path}")
+
+    fn = output_filename or f"plume_tiktok_custom_{_slugify(hook)}.mp4"
+    output_path = OUTPUT_DIR / fn
+
+    logger.info(f"[custom-bg] preparing bg from {bg_video_path.name} ({duration}s)...")
+    bg_full = _prepare_custom_bg(bg_video_path, duration + 1.0)
+
+    hook_dur = 2.5
+    if outro_lines:
+        outro_dur = max(9.0, duration - hook_dur - 12.0)
+        body_dur = max(4.0, duration - hook_dur - outro_dur)
+        cta_dur = 0.0
+    else:
+        outro_dur = 0.0
+        cta_dur = 5.0
+        body_dur = max(4.0, duration - hook_dur - cta_dur)
+
+    from moviepy.editor import concatenate_videoclips as _concat
+
+    bg_A = bg_full.subclip(0, hook_dur)
+    bg_B = bg_full.subclip(hook_dur, hook_dur + body_dur)
+    scenes: list = []
+
+    logger.info("[custom-bg] scene A hook...")
+    sA = _scene_tiktok_hook(hook_dur, hook, bg_A, accent_word=accent_word)
+    scenes.append(sA)
+
+    logger.info(f"[custom-bg] scene B body ({len(fragments)} fragments in {body_dur}s)...")
+    sB = _scene_tiktok_body_fast(body_dur, fragments, hook, bg_B).crossfadein(0.3)
+    scenes.append(sB)
+
+    if outro_lines:
+        bg_D = bg_full.subclip(hook_dur + body_dur, hook_dur + body_dur + outro_dur)
+        logger.info(f"[custom-bg] scene D outro ({len(outro_lines)} lines in {outro_dur}s)...")
+        sD = _scene_tiktok_outro(outro_dur, outro_lines, bg_D).crossfadein(0.4)
+        scenes.append(sD)
+    else:
+        bg_C = bg_full.subclip(hook_dur + body_dur, hook_dur + body_dur + cta_dur)
+        logger.info("[custom-bg] scene C cta...")
+        sC = _scene_tiktok_cta(cta_dur, cta, comment_hook, bg_C).crossfadein(0.4)
+        scenes.append(sC)
+
+    video = _concat(scenes, method="compose", padding=-0.3)
+    video = video.set_duration(min(video.duration, duration))
+
+    logger.info(f"[custom-bg] rendering (silent) to {output_path}...")
+    video.write_videofile(
+        str(output_path),
+        fps=FPS,
+        codec="libx264",
+        audio=False,
+        preset="medium",
+        bitrate="6500k",
+        threads=4,
+        logger=None,
+    )
+    logger.info(f"[custom-bg] done: {output_path} "
                 f"({output_path.stat().st_size // 1024} KB)")
     return output_path
 
