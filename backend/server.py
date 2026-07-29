@@ -2313,6 +2313,13 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+# ═══════════════════════════════════════════════════════════════════
+# Stripe safety net — bloque les checkouts en mode test depuis plume-astrale.fr
+# ═══════════════════════════════════════════════════════════════════
+from services.stripe_guard import stripe_live_guard_middleware, log_startup_stripe_status
+app.middleware('http')(stripe_live_guard_middleware)
+log_startup_stripe_status()
+
 
 @app.get('/health')
 async def health_check():

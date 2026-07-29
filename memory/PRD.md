@@ -14,6 +14,36 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — 🛡️ Stripe Guard anti-mode-test (incident cliente prod)
+
+### Contexte
+Une cliente a rapporté avoir été redirigée sur plume-astrale.fr vers un checkout Stripe en mode TEST (URL `cs_test_...`). Sans le fix, elle aurait pu saisir sa carte sur une page non fonctionnelle.
+
+### Diagnostic
+- Preview utilise `sk_test_emergent_*` (proxy Emergent → URLs `cs_live_...` → paiements réels via Emergent)
+- La clé du `.env` local `sk_live_51...` est **ignorée** car les variables env sont injectées au niveau pod K8s (override load_dotenv)
+- Production a probablement `sk_test_...` (vraie clé test Stripe, sans le suffixe `emergent`) → URLs `cs_test_...` → paiements réels impossibles
+
+### Fix implémenté (`services/stripe_guard.py`)
+- ✅ Détection des 3 modes : `LIVE` (sk_live_), `LIVE_VIA_EMERGENT_PROXY` (sk_test_emergent_*), `TEST` (sk_test_ standard)
+- ✅ Log clair au démarrage backend indiquant le mode actif
+- ✅ Middleware FastAPI qui bloque les endpoints `.../checkout` avec HTTP 503 si :
+  - Host = `plume-astrale.fr` (ou www.)
+  - ET mode ≠ LIVE/LIVE_VIA_EMERGENT_PROXY
+  - ET `STRIPE_ALLOW_TEST_MODE` ≠ true (escape hatch dev/staging)
+- ✅ Message client convivial en cas de blocage : "Paiement temporairement indisponible… contacte contact@plume-astrale.fr"
+
+### Wire-up (`server.py`)
+- Middleware ajouté juste après CORS
+- `log_startup_stripe_status()` appelé au boot → visible dans les logs supervisor
+
+### Action user requise pour dé-bloquer la prod
+1. Emergent Dashboard → onglet Deploy → **Environment Variables**
+2. Édite `STRIPE_API_KEY` → colle une clé `sk_live_...` récupérée depuis dashboard.stripe.com/apikeys (Live mode)
+3. Redéploie
+
+
+
 ## Session Feb 2026 — 💰 Cross-sell "Duo Complémentaire" post-Thème Natal
 
 ### Contexte
