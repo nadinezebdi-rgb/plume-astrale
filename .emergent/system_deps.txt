@@ -1,5 +1,1 @@
 cron=3.0pl1-162
-ffmpeg=7:5.1.9-0+deb12u1
-fonts-dejavu-core=2.37-6
-fonts-symbola=2.60-1.1
-poppler-utils=22.12.0-2+deb12u2
