@@ -271,19 +271,19 @@ def build_horoscope_journalier_pdf() -> Path:
     story.append(PageBreak())
 
     # Page 2 — Sections détaillées
-    story.append(Spacer(1, 0.6 * cm))
+    story.append(Spacer(1, 0.4 * cm))
     story.append(Paragraph('L\'ÉNERGIE DU JOUR', styles['section_tag']))
-    story.append(Spacer(1, 0.3 * cm))
+    story.append(Spacer(1, 0.2 * cm))
 
     body = ParagraphStyle(
         'body_hor', fontName=font('Cormorant', 'Helvetica'),
-        fontSize=12.5, leading=21, textColor=CREAM,
-        alignment=TA_LEFT, spaceAfter=14,
+        fontSize=11.5, leading=18, textColor=CREAM,
+        alignment=TA_LEFT, spaceAfter=8,
     )
     section_h = ParagraphStyle(
         'section_hor', fontName=font('Cinzel', 'Helvetica'),
-        fontSize=12, leading=20, textColor=GOLD_LIGHT,
-        alignment=TA_LEFT, spaceAfter=6, spaceBefore=8,
+        fontSize=11, leading=16, textColor=GOLD_LIGHT,
+        alignment=TA_LEFT, spaceAfter=4, spaceBefore=6,
     )
 
     story.append(Paragraph(
@@ -292,13 +292,6 @@ def build_horoscope_journalier_pdf() -> Path:
         "mais cette certitude tranquille de mériter ta place.",
         body,
     ))
-
-    # Two-column layout for detail sections
-    def _sec(title: str, text: str):
-        return [
-            [Paragraph(title, section_h)],
-            [Paragraph(text, body)],
-        ]
 
     story.append(Paragraph(f'{_sym("♥")}  AMOUR', section_h))
     story.append(Paragraph(
@@ -310,30 +303,42 @@ def build_horoscope_journalier_pdf() -> Path:
     story.append(Paragraph(f'{_sym("◆")}  CARRIÈRE', section_h))
     story.append(Paragraph(
         "Un projet longtemps mis de côté demande à ressurgir. "
-        "Ne le juge pas sur son ancienne forme — il revient transformé, "
-        "parce que toi aussi tu as changé.",
+        "Ne le juge pas sur son ancienne forme — il revient transformé.",
         body,
     ))
 
     story.append(Paragraph(f'{_sym("☾")}  BIEN-ÊTRE', section_h))
     story.append(Paragraph(
         "Ton corps a besoin de mouvement solaire : marche à l'extérieur, "
-        "danse, chaleur. Évite les écrans après 21h pour préserver un sommeil réparateur.",
+        "danse, chaleur. Évite les écrans après 21h.",
         body,
     ))
 
-    story.append(Paragraph(f'{_sym("✧")}  CONSEIL DE SOLÉNA', section_h))
+    # ── SECTION HÉRO — LA GUIDANCE DU JOUR ─────────────
+    story.append(Spacer(1, 0.4 * cm))
     story.append(Paragraph(
-        "Ne cherche pas à convaincre. Sois. "
-        "Ceux qui doivent te suivre le feront sans qu'il faille les tirer.",
-        ParagraphStyle('advice', fontName=font('Cormorant-Italic', 'Helvetica-Oblique'),
-                       fontSize=13, leading=22, textColor=LAVENDER,
-                       alignment=TA_LEFT, spaceAfter=14,
-                       leftIndent=0.3 * cm, rightIndent=0.3 * cm),
+        f'{_sym("✦")}  LA GUIDANCE DU JOUR  {_sym("✦")}',
+        ParagraphStyle('guidance_tag', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=11, textColor=GOLD, alignment=TA_CENTER,
+                       spaceAfter=8),
+    ))
+    story.append(Paragraph(
+        "«&nbsp;Ne cherche pas à convaincre. Sois.<br/>"
+        "Ceux qui doivent te suivre le feront<br/>"
+        "sans qu'il faille les tirer.&nbsp;»",
+        ParagraphStyle('guidance_body', fontName=font('Cormorant-Italic', 'Helvetica-Oblique'),
+                       fontSize=15, leading=24, textColor=GOLD_LIGHT,
+                       alignment=TA_CENTER, leftIndent=0.5 * cm, rightIndent=0.5 * cm,
+                       spaceAfter=8),
+    ))
+    story.append(Paragraph(
+        "— Soléna",
+        ParagraphStyle('guidance_sig', fontName=font('Cormorant-Italic', 'Helvetica-Oblique'),
+                       fontSize=11, textColor=MUTED,
+                       alignment=TA_CENTER, spaceAfter=14),
     ))
 
     # Practical infos as pill boxes
-    story.append(Spacer(1, 0.4 * cm))
     tips_data = [
         [Paragraph(_sym('◈') + '  Pierre du jour', body), Paragraph('Citrine', body)],
         [Paragraph(_sym('❦') + '  Couleur', body), Paragraph('Doré antique', body)],
@@ -348,31 +353,32 @@ def build_horoscope_journalier_pdf() -> Path:
         ('LINEBELOW', (0, 0), (-1, -2), 0.3, HexColor('#3a2f5a')),
         ('LEFTPADDING', (0, 0), (-1, -1), 8),
         ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
     ])
     tips_table = Table(tips_data, colWidths=[7 * cm, 8.5 * cm], style=tips_style)
     story.append(tips_table)
 
-    story.append(Spacer(1, 0.8 * cm))
+    story.append(Spacer(1, 0.35 * cm))
     story.append(Paragraph(
-        "«&nbsp;Question de réflexion :&nbsp;»",
+        f"{_sym('✦')}  question de réflexion  {_sym('✦')}",
         ParagraphStyle('q_intro', fontName=font('Cinzel', 'Helvetica'),
-                       fontSize=10, textColor=GOLD,
+                       fontSize=9, textColor=GOLD,
                        alignment=TA_CENTER, spaceAfter=4),
     ))
     story.append(Paragraph(
-        "«&nbsp;Que rayonnerais-tu aujourd'hui<br/>si tu n'attendais l'approbation de personne&nbsp;?&nbsp;»",
+        "«&nbsp;Que rayonnerais-tu aujourd'hui<br/>"
+        "si tu n'attendais l'approbation de personne&nbsp;?&nbsp;»",
         ParagraphStyle('q_body', fontName=font('Cormorant-Italic', 'Helvetica-Oblique'),
-                       fontSize=15, leading=24, textColor=GOLD_LIGHT,
-                       alignment=TA_CENTER, leftIndent=0.8 * cm, rightIndent=0.8 * cm),
+                       fontSize=13, leading=20, textColor=CREAM,
+                       alignment=TA_CENTER, leftIndent=0.8 * cm, rightIndent=0.8 * cm,
+                       spaceAfter=10),
     ))
 
-    story.append(Spacer(1, 1 * cm))
     story.append(Paragraph(
         "plume-astrale.fr",
         ParagraphStyle('url', fontName=font('Cinzel', 'Helvetica'),
-                       fontSize=9, textColor=MUTED,
+                       fontSize=8, textColor=MUTED,
                        alignment=TA_CENTER),
     ))
 
