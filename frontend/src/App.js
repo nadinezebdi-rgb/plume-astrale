@@ -68,8 +68,9 @@ import NumerologiePDF from "./pages/NumerologiePDF";
 import NumerologieWaiting from "./pages/NumerologieWaiting";
 import KarmaDestinPDF from "./pages/KarmaDestinPDF";
 import KarmaDestinWaiting from "./pages/KarmaDestinWaiting";
-import FenetreRencontrePDF from "./pages/FenetreRencontrePDF";
-import FenetreRencontreWaiting from "./pages/FenetreRencontreWaiting";
+// ThemeNatal one-shot 29€ (Gary Vee refonte Feb 2026)
+import ThemeNatalOneshot from "./pages/ThemeNatalOneshot";
+import ThemeNatalOneshotSucces from "./pages/ThemeNatalOneshotSucces";
 
 // ─── Plume Design System v2 (Feb 2026) ────────────────────────────
 import NoiseOverlay from "./components/design/NoiseOverlay";
@@ -103,8 +104,12 @@ function App() {
           <Route path="/numerologie-pdf/attente" element={<NumerologieWaiting />} />
           <Route path="/karma-destin-pdf" element={<KarmaDestinPDF />} />
           <Route path="/karma-destin/attente" element={<KarmaDestinWaiting />} />
-          <Route path="/fenetre-rencontre-pdf" element={<FenetreRencontrePDF />} />
-          <Route path="/fenetre-rencontre/attente" element={<FenetreRencontreWaiting />} />
+          {/* Thème Natal one-shot 29€ (Gary Vee refonte Feb 2026) */}
+          <Route path="/theme-natal" element={<ThemeNatalOneshot />} />
+          <Route path="/theme-natal/succes" element={<ThemeNatalOneshotSucces />} />
+          {/* Anciennes routes Fenêtres de Rencontre — consolidées dans Rencontres Ultime */}
+          <Route path="/fenetre-rencontre-pdf" element={<Navigate to="/rencontres-astrales" replace />} />
+          <Route path="/fenetre-rencontre/attente" element={<Navigate to="/rencontres-astrales" replace />} />
 
           {/* Toutes les autres pages — avec Navbar */}
           <Route path="*" element={

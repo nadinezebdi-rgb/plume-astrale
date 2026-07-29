@@ -54,7 +54,7 @@ from routes.pack_karmique import router as pack_karmique_router
 from routes.compatible import router as compatible_router
 from routes.numerologie import router as numerologie_router
 from routes.karma_destin import router as karma_destin_router
-from routes.fenetre_rencontre import router as fenetre_rencontre_router
+from routes.theme_natal_oneshot import router as theme_natal_oneshot_router
 from routes.resend_webhook import router as resend_webhook_router
 from routes.astrocartographie import router as astrocartographie_router
 from routes.astrosexo import router as astrosexo_router
@@ -110,7 +110,7 @@ api_router.include_router(kabbale_router)
 api_router.include_router(pack_karmique_router)
 api_router.include_router(numerologie_router)
 api_router.include_router(karma_destin_router)
-api_router.include_router(fenetre_rencontre_router)
+api_router.include_router(theme_natal_oneshot_router)
 api_router.include_router(resend_webhook_router)
 api_router.include_router(astrocartographie_router)
 api_router.include_router(astrosexo_router)
@@ -823,15 +823,15 @@ async def stripe_webhook(request: Request):
             logger.warning(f'[karma_destin] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'karma_destin_analysis'}
 
-    # Route vers Fenetre Rencontre handler si kind=fenetre_rencontre_avancee (pack 29 EUR)
-    if md.get('kind') == 'fenetre_rencontre_avancee':
-        from services.fenetre_rencontre_webhook import handle_fenetre_rencontre_webhook
+    # Route vers Thème Natal one-shot handler si kind=theme_natal_pdf_oneshot (pack 29 EUR, Gary Vee refonte 2026-02)
+    if md.get('kind') == 'theme_natal_pdf_oneshot':
+        from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
         try:
             session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
-            await handle_fenetre_rencontre_webhook(session_id)
+            await handle_theme_natal_oneshot_webhook(session_id)
         except Exception as e:
-            logger.warning(f'[fenetre_rencontre] post-webhook fail: {e}')
-        return {'received': True, 'type': event_type, 'kind': 'fenetre_rencontre_avancee'}
+            logger.warning(f'[theme_natal_oneshot] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'theme_natal_pdf_oneshot'}
 
     # Route vers Astrocartographie handler si kind=astrocartographie (pack 49 EUR)
     if md.get('kind') == 'astrocartographie':
