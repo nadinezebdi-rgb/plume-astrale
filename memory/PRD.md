@@ -1233,3 +1233,50 @@ le repo — pour ne pas alourdir le deploy.
 - Fichier de sortie : `/app/backend/cache/marketing_videos/plume_tiktok_decouverte.mp4` (~16 Mo, H.264+AAC).
 - Rendu ~75s sur le container.
 - URL publique de téléchargement pour la user : `${REACT_APP_BACKEND_URL}/api/marketing/tiktok`
+
+## Session 29 juil 2026 — Audit qualité PDF Natal + Chat (2026-07-29)
+
+### ✅ P0 — Purge des astérisques dans Chat Soléna
+- Nouveau `SYSTEM_PROMPT_SOLENA` sans markdown, avec instruction explicite « aucun astérisque, aucun # de titre, aucun backtick, aucune balise HTML ». Style éditorial haut de gamme, MAJUSCULES ou guillemets français « ... » pour l'emphase.
+- Nouveau `_strip_markdown()` filet de sécurité côté serveur — appliqué sur la réponse sync ET sur le texte agrégé du stream SSE avant persistance DB.
+- Stream : strip inline des `*` et `\`` par chunk pour que le rendu progressif ne montre plus d'astérisque.
+- Test validé : réponse `« ÉLAN »` en majuscules, zéro astérisque.
+
+### ✅ P0 — Carte du ciel personnalisée dans PDF natal
+- Endpoint découvert : `POST /api/v3/render/natal` (Kerykeion SVG, ≈ 160 KB).
+- Nouveau module `services/svg_utils.py` : `resolve_svg_css_vars()` — résout inline toutes les `var(--kerykeion-color-*)` (CairoSVG ne les support pas).
+- `chart_svg_render()` du service `astrology_io_service` réécrit pour appeler le bon endpoint et retourner le SVG brut.
+- Nouvelle fonction `chart_wheel_page()` dans `pdf_luxury_theme.py` : page dédiée avec titre + roue rasterisée + trio Soleil/Lune/Asc.
+- Chaînage propagé : `POST /api/astrology/v3/natal/pdf` → route fetch SVG → CairoSVG → `generate_manuscrit_pdf(chart_png_bytes=...)` → `build_natal_pdf_v2()`.
+- Fallback élégant : illustration générique si le fetch échoue.
+- Résultat visuel validé : roue Placidus complète + 12 planètes + aspects + grille + phase lunaire.
+
+### ⚠️ Reste à investiguer — mode Legacy vs Ultra
+- Le test PDF end-to-end (Nadine, 15/07/1990, Paris) a produit 10 pages en mode LEGACY (5 planètes) au lieu de ULTRA (11 planètes attendues).
+- Cause probable : `natal_ai_enrichment.enrich_natal_ultra()` a échoué (timeout / rate limit / prompt trop long) et le fallback legacy s'est activé.
+- Instrumentation existante : `pipeline_events.jsonl` log l'événement `natal_pdf_generated` avec source (`ultra_ai_v3` / `legacy` / `partial_ai`). À consulter pour audit prod.
+- Impact utilisateur : PDF fonctionnel mais moins riche que promis (5 planètes vs 11).
+- Action recommandée : diminuer le timeout LLM ou paralléliser les 11 prompts + fallback partiel plutôt que legacy total.
+
+### 🎬 Vidéos TikTok / Marketing générées cette session
+- Storyboard TikTok « Découverte » 30 s (moon + zodiac + tarot + CTA).
+- « Tirage Gratuit » 30 s (3 cartes back → spread → flip Soleil / Roue / Étoile → CTA).
+- Générateur `hook template` (Anton bold + Bebas Neue + rythme rapide).
+- Intégration Pexels stock (`services/pexels_service.py`) — clé API user en `.env`.
+- Intégration Sora 2 (`services/sora_service.py`) — lion en constellation 12 s (~ 3,60 $).
+- Custom-BG generator (`generate_tiktok_with_custom_bg`) — supporte n'importe quelle vidéo en fond.
+- Docs TikTok B-roll : PDF « Modèle de Guidance Soléna » (3 pages) + PDF « Horoscope Journalier Lion » (2 pages avec section héros « ✦ LA GUIDANCE DU JOUR ✦ »).
+- Vidéos scroll auto générées à partir des PDFs pour montage TikTok.
+
+### 📁 Fichiers touchés cette session
+- `backend/services/plume_chat.py` — nouveau prompt sans markdown + `_strip_markdown()`
+- `backend/services/astrology_io_service.py` — `chart_svg_render()` refait pour endpoint `/render/{chart_type}`
+- `backend/services/svg_utils.py` — nouveau (CSS var resolver)
+- `backend/services/pdf_luxury_theme.py` — `chart_wheel_page()` compact 14×14 cm
+- `backend/services/natal_pdf_v2.py` — accepte `chart_png_bytes`
+- `backend/services/natal_pdf_adapter.py` — propagate `chart_png_bytes`
+- `backend/routes/astrology_v3.py` — fetch SVG async + CairoSVG rasterization
+- `backend/services/video_generator.py` — import moviepy défensif + Anton/Bebas + custom-bg
+- `backend/services/pexels_service.py`, `backend/services/sora_service.py` — nouveaux
+- `backend/routes/marketing.py` — endpoints TikTok/hook/tirage
+- `backend/scripts/build_tiktok_docs.py`, `backend/scripts/pdf_to_scroll_video.py` — nouveaux

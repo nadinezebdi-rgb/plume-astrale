@@ -231,29 +231,28 @@ def chart_wheel_page(
     """
     from io import BytesIO
 
-    # Chapter tag + titre
-    story.append(Spacer(1, 1.2 * cm))
+    # Chapter tag + titre — compact pour que tout tienne sur UNE page
+    story.append(Spacer(1, 0.5 * cm))
     story.append(Paragraph('✦ TA CARTE DU CIEL ✦', styles['section_tag']))
     story.append(Paragraph(f'La signature astrale de {prenom}', styles['cover_title']))
     story.append(Paragraph(
         f'Née le {birth_date_fr}',
         ParagraphStyle('birth_line', fontName=font('Cormorant-Italic', 'Helvetica-Oblique'),
-                       fontSize=13, textColor=CREAM, alignment=TA_CENTER, spaceAfter=18),
+                       fontSize=12, textColor=CREAM, alignment=TA_CENTER, spaceAfter=10),
     ))
 
-    # Wheel image plein cadre (16 cm large maximum)
+    # Wheel image (14 cm max pour laisser place au trio en pied)
     try:
-        img = RLImage(BytesIO(wheel_png_bytes), width=16 * cm, height=16 * cm, mask='auto')
+        img = RLImage(BytesIO(wheel_png_bytes), width=14 * cm, height=14 * cm, mask='auto')
         story.append(img)
     except Exception:
-        # fallback illustration si le PNG est corrompu
         img_bytes = _dl_image(illustration_url('roue_zodiaque', 800))
         if img_bytes:
-            story.append(RLImage(img_bytes, width=12 * cm, height=12 * cm, mask='auto'))
+            story.append(RLImage(img_bytes, width=11 * cm, height=11 * cm, mask='auto'))
 
-    story.append(Spacer(1, 0.6 * cm))
+    story.append(Spacer(1, 0.3 * cm))
 
-    # Trio identitaire en pied de page
+    # Trio identitaire en pied de page (rendu compact)
     trio = (
         f'Soleil <font color="{GOLD_HEX}">{sun_sign}</font>  ·  '
         f'Lune <font color="{GOLD_HEX}">{moon_sign}</font>  ·  '
@@ -261,7 +260,7 @@ def chart_wheel_page(
     )
     story.append(Paragraph(trio, ParagraphStyle(
         'trio', fontName=font('Cinzel', 'Helvetica'),
-        fontSize=10, textColor=CREAM,
+        fontSize=11, textColor=CREAM,
         alignment=TA_CENTER, spaceAfter=6,
     )))
 
