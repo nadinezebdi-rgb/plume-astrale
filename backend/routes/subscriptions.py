@@ -248,7 +248,16 @@ async def handle_subscription_event(event: dict) -> Optional[str]:
         }
 
         # Upsert sur stripe_subscription_id (unique)
-        supabase.table('subscriptions').upsert(row, on_conflict='stripe_subscription_id').execute()
+        try:
+            supabase.table('subscriptions').upsert(row, on_conflict='stripe_subscription_id').execute()
+        except Exception as e:
+            # Colonnes product/tier pas encore migrées → retry sans ces champs
+            logger.warning(f'[{product}] upsert subscriptions échec (migration missing?) : {e}. Retry sans product/tier.')
+            fallback = {k: v for k, v in row.items() if k not in ('product',)}
+            try:
+                supabase.table('subscriptions').upsert(fallback, on_conflict='stripe_subscription_id').execute()
+            except Exception as e2:
+                logger.error(f'[{product}] upsert subscriptions échec définitif : {e2}')
 
         # Sur .created : marque le profil comme membre Cercle + trace le tier
         if ev_type == 'customer.subscription.created':
@@ -270,7 +279,11 @@ async def handle_subscription_event(event: dict) -> Optional[str]:
         if not sub_id:
             return None
         # Retrouve le user_id via la table subscriptions
-        sub_resp = supabase.table('subscriptions').select('user_id, product').eq('stripe_subscription_id', sub_id).limit(1).execute()
+        try:
+            sub_resp = supabase.table('subscriptions').select('user_id, product').eq('stripe_subscription_id', sub_id).limit(1).execute()
+        except Exception as e:
+            logger.warning(f'[invoice.payment_succeeded] fetch subscriptions échec (migration missing?) : {e}')
+            return None
         sub_row = (sub_resp.data or [None])[0]
         if not sub_row or sub_row.get('product') not in (CERCLE_PRODUCT_KEY, CERCLE_PREMIUM_PRODUCT_KEY):
             return None

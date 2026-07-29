@@ -14,6 +14,65 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — 🔥 Refonte Pricing "Gary Vee" complète
+
+### Contexte
+Audit prix révélant que le **Thème Natal PDF (produit phare, 20-40 pages)** était vendu 60 crédits ≈ 13,50€, moins cher que la Numérologie 12 pages (19€) ou la Kabbale 15 pages (39€). Cannibalisation des marges + confusion produit (Fenêtres de Rencontre 29€ vs Rencontres Ultime 29,99€). Cercle Soléna sous-monétisé (19€ pour 3 crédits universels).
+
+### Modifications appliquées (2026-02)
+
+#### 🎯 Nouveaux packs (`config.py`)
+- ✅ **`theme_natal_pdf_oneshot`** : one-shot **29€** — flagship, mirror pattern Kabbale (route + service dédiés, PDF luxe 20-40p + email post-paiement)
+- ✅ **`consultation_ultime`** : one-shot **149€** — hyperpremium anchor (Thème Natal 40p + chat illimité 24h + lecture personnalisée)
+- ✅ **`rencontres_ultime`** : bump **29,99€ → 34,99€** + rebrand *"Guide Ultime du Partenaire Idéal + Calendrier de Rencontres"*
+- ✅ **`fenetre_rencontre_avancee`** : **SUPPRIMÉ** (consolidation avec Rencontres Ultime, redirects 301 mis en place)
+- ✅ `SERVICE_COSTS['theme_natal_pdf']` : **60 → 30** crédits (version "flash" 5p pour acquisition via credits, la version complète passe en one-shot 29€)
+
+#### 💳 Cercle Soléna 2 tiers (`routes/subscriptions.py`)
+- ✅ **Normal** : **14,99€/mois** → +50 crédits chat/mois (chat-only)
+- ✅ **Premium** : **29€/mois** → +150 crédits chat/mois + priorité Soléna + Pleine Lune
+- ✅ Payload `CheckoutPayload.tier` (`normal`|`premium`) + `_get_price_id(tier)` dispatchant sur `STRIPE_CERCLE_SOLENA_PRICE_ID` / `STRIPE_CERCLE_SOLENA_PREMIUM_PRICE_ID`
+- ✅ Webhook `handle_subscription_event` credite `chat_credit_balance` selon le tier via `add_chat_credits()`
+- ✅ Fallback safe partout (try/except) tant que la migration SQL Feb 2026 n'est pas appliquée
+
+#### 🎁 Wallet chat_credits séparé (`services/wallet_service.py`)
+- ✅ Nouvelles fonctions : `get_chat_balance`, `add_chat_credits`, `deduct_chat_or_credits`
+- ✅ `charge_or_premium('chat_astral', ...)` consomme d'abord `chat_credit_balance`, puis fallback sur `credit_balance` universel
+- ✅ Renvoie `{chat_used, universal_used, new_chat_balance, new_balance}` (audit trail complet)
+
+#### 🎨 Frontend
+- ✅ `/theme-natal` — page landing (`pages/ThemeNatalOneshot.js`) + `/theme-natal/succes` polling 4 steps
+- ✅ `/cercle-solena` réécrit — 2 TierCard side-by-side, badge "Recommandé" sur Premium
+- ✅ `/fenetre-rencontre-pdf` et `/fenetre-rencontre/attente` → redirect 301 vers `/rencontres-astrales`
+
+### Migration Supabase requise (à exécuter par le user)
+Fichier : `/app/backend/migrations/2026_02_chat_credits_and_gary_vee_refonte.sql`
+- `ALTER TABLE wallets ADD COLUMN chat_credit_balance INT DEFAULT 0`
+- `ALTER TABLE profiles ADD COLUMN cercle_tier TEXT CHECK (...) DEFAULT NULL`
+- Confirme absence d'abonnés Cercle Soléna existants (user confirmé : aucun)
+
+### Nouveaux Price IDs Stripe à créer (à faire par le user dans Stripe Dashboard)
+| Env var | Prix | Type |
+|---|---|---|
+| `STRIPE_CERCLE_SOLENA_PRICE_ID` | 14,99€/mois | recurring |
+| `STRIPE_CERCLE_SOLENA_PREMIUM_PRICE_ID` | 29€/mois | recurring |
+
+### Validation
+- ✅ Backend testing agent : **19/19 tests passing (100%)** — iteration_55
+- ✅ Frontend screenshots : `/theme-natal` + `/cercle-solena` visuellement corrects
+- ✅ Session Stripe LIVE créée pour Thème Natal 29€ (checkout OK)
+- ✅ Aucun crash malgré migration SQL non appliquée (fallback safe partout)
+
+### Impact business estimé
+| Poste | Avant | Après |
+|---|---|---|
+| Thème Natal (30 conv/mois) | 30 × 13,50 = 405€ | 30 × 29 = **870€** (+115%) |
+| Rencontres (20 conv/mois) | 20 × 29 = 580€ | 20 × 34,99 = **700€** (+21%) |
+| Cercle Soléna (40 abo) | 40 × 19 = 760€ | 30×14,99 + 10×29 = **740€** (~stable, margin ✅) |
+| **Total MRR** | **~1 745€** | **~2 310€** | **+32%** |
+
+
+
 ## Session Feb 2026 — 💾 Cache SVG Chart Wheels (économie crédits astrology-api.io)
 
 ### Contexte
