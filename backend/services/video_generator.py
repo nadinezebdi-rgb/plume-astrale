@@ -32,9 +32,19 @@ from dotenv import load_dotenv
 os.environ["IMAGEIO_FFMPEG_EXE"] = "/usr/bin/ffmpeg"
 os.environ["FFMPEG_BINARY"] = "/usr/bin/ffmpeg"
 
-# moviepy reads FFMPEG_BINARY at config import time — set explicitly
-import moviepy.config as _mp_cfg  # noqa: E402
-_mp_cfg.FFMPEG_BINARY = "/usr/bin/ffmpeg"
+# moviepy reads FFMPEG_BINARY at config import time — set explicitly.
+# Guard against missing ffmpeg (e.g. ephemeral container losing the pkg) so
+# that importing the backend doesn't crash the whole app.
+try:
+    import moviepy.config as _mp_cfg  # noqa: E402
+    _mp_cfg.FFMPEG_BINARY = "/usr/bin/ffmpeg"
+except OSError as _e:
+    logger = logging.getLogger(__name__)
+    logger.warning(
+        f"[video_generator] moviepy config import failed ({_e}). "
+        "Video generation features will be disabled until ffmpeg is installed."
+    )
+    _mp_cfg = None
 
 from moviepy.editor import (
     AudioFileClip,

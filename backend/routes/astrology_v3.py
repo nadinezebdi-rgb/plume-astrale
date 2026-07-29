@@ -404,8 +404,28 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
         }
 
         # 4) Génération PDF luxe (Ultra : 11 planètes si AI a répondu, sinon 5 legacy)
+        # 4a) Carte du ciel réelle — SVG astrology-api.io v3 → PNG (best-effort, ne bloque pas)
+        chart_png_bytes: bytes | None = None
+        try:
+            svg_str = await aio.chart_svg_render(bd, name=name, theme='dark', language='fr')
+            if svg_str:
+                # Kerykeion utilise des CSS variables, CairoSVG ne les résout pas.
+                from services.svg_utils import resolve_svg_css_vars
+                import cairosvg
+                svg_resolved = resolve_svg_css_vars(svg_str)
+                chart_png_bytes = cairosvg.svg2png(
+                    bytestring=svg_resolved.encode('utf-8'),
+                    output_width=1600,
+                )
+        except Exception as _wheel_e:
+            import logging as _lg
+            _lg.getLogger(__name__).warning(f'[natal_pdf] chart wheel indisponible: {_wheel_e}')
+
         from services.natal_pdf_adapter import generate_manuscrit_pdf
-        pdf = generate_manuscrit_pdf(user_data=user_data, planets_data=list(planets_dict.values()))
+        pdf = generate_manuscrit_pdf(
+            user_data=user_data, planets_data=list(planets_dict.values()),
+            chart_png_bytes=chart_png_bytes,
+        )
     except Exception as e:
         # Refund si échec
         try:

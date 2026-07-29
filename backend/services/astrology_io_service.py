@@ -1417,13 +1417,24 @@ async def chart_svg_render(
     language: str = 'fr',
 ) -> Optional[str]:
     """Génère un chart SVG (natal, synastry, transit, composite).
-    Retourne le SVG sous forme de string.
-    chart_type: natal | synastry | transit | composite
-    theme: dark | light | cosmic | astrocom
+
+    Endpoint réel : POST /api/v3/render/{chart_type}
+    Renvoie directement du contenu SVG (text/xml) — pas de wrapping JSON.
+    Retour : chaîne SVG ou None.
+    chart_type : natal | synastry | transit | composite
+    theme      : dark | light | cosmic | astrocom
     """
-    result = await _call('/render/chart-svg', {
+    import httpx
+    import os
+
+    api_key = os.environ.get('ASTROLOGY_API_IO_KEY')
+    if not api_key:
+        print('[astrology_io] /render/chart-svg EXCEPTION : ASTROLOGY_API_IO_KEY env var manquante')
+        return None
+
+    endpoint = f'/render/{chart_type}'
+    payload = {
         'subject': make_subject(name, birth_data),
-        'chart_type': chart_type,
         'options': {
             'language': language,
             'theme': theme,
@@ -1431,11 +1442,37 @@ async def chart_svg_render(
             'show_aspects': True,
             'show_arabic_parts': True,
         },
-    })
-    if not result:
+    }
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.post(
+                f'{BASE_URL}{endpoint}',
+                json=payload,
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/xml, image/svg+xml, */*',
+                },
+            )
+            if r.status_code != 200:
+                print(f'[astrology_io] {endpoint} -> {r.status_code} : {r.text[:180]}')
+                return None
+            body = r.text
+            # Cas 1 : SVG brut
+            if body.lstrip().startswith('<?xml') or '<svg' in body[:200]:
+                return body
+            # Cas 2 : JSON wrapping (compat future)
+            try:
+                data = r.json()
+                if isinstance(data, dict):
+                    return (data.get('svg') or data.get('chart_svg')
+                            or data.get('data') or data.get('content'))
+            except Exception:
+                pass
+            return None
+    except Exception as e:
+        print(f'[astrology_io] {endpoint} EXCEPTION : {e}')
         return None
-    # Retourner le SVG string
-    return result.get('svg') or result.get('chart_svg') or result.get('data')
 
 
 async def chart_svg_synastry(
