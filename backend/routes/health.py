@@ -36,6 +36,36 @@ async def health_stripe():
     return JSONResponse(status_code=200 if ok else 503, content=body)
 
 
+@router.get('/horoscopes')
+async def health_horoscopes():
+    """Statut de la génération quotidienne des horoscopes des 12 signes."""
+    from pathlib import Path
+    from datetime import datetime, timezone
+    from services.horoscope_scheduler import LAST_RUN_FILE
+
+    hor_dir = Path('/app/frontend/public/marketing/horoscopes')
+    pdfs = sorted(hor_dir.glob('horoscope_journalier_*.pdf'))
+    last_run = None
+    if LAST_RUN_FILE.exists():
+        try:
+            last_run = LAST_RUN_FILE.read_text().strip()
+        except Exception:
+            pass
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    is_today = last_run == today
+    return JSONResponse(
+        status_code=200 if is_today and len(pdfs) >= 12 else 503,
+        content={
+            'ok': is_today and len(pdfs) >= 12,
+            'last_regeneration_utc': last_run,
+            'today_utc': today,
+            'is_up_to_date': is_today,
+            'pdfs_count': len(pdfs),
+            'pdfs_expected': 12,
+        },
+    )
+
+
 @router.get('')
 async def health_root():
     """Health check global — pour ping de base UptimeRobot."""

@@ -2360,7 +2360,9 @@ async def _start_cart_recovery():
     from services.lead_nurture import lead_nurture_loop
     from services.astrocarto_followup import astrocarto_followup_loop
     from services.crosssell_astrocarto import crosssell_astrocarto_loop
+    from services.horoscope_scheduler import daily_horoscope_scheduler_loop
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
     _asyncio.create_task(astrocarto_followup_loop())
     _asyncio.create_task(crosssell_astrocarto_loop())
+    _asyncio.create_task(daily_horoscope_scheduler_loop())

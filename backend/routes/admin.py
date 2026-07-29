@@ -463,3 +463,22 @@ async def cron_send_daily_journal(cron_secret: Optional[str] = Query(None)):
     from services.journal_email_service import send_daily_journal_batch
     result = await send_daily_journal_batch()
     return result
+
+
+
+@router.post('/regenerate-horoscopes')
+async def regenerate_horoscopes(_admin: dict = Depends(require_admin)):
+    """
+    Force la régénération manuelle des 12 PDFs d'horoscope journalier.
+    Utile pour tester ou forcer un rafraîchissement hors de la fenêtre quotidienne 6h UTC.
+
+    Le processus prend ~2 min (12 appels API + 12 appels GPT-5.2).
+    Renvoie immédiatement (background task).
+    """
+    import asyncio
+    from services.horoscope_scheduler import _regenerate_all
+    asyncio.create_task(_regenerate_all())
+    return {
+        'ok': True,
+        'message': "Régénération lancée en background — ~2 min. Vérifie /api/health/horoscopes ou les logs backend.",
+    }

@@ -14,6 +14,44 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — 🌙 Horoscopes journaliers dynamiques (12 signes)
+
+### Contexte
+Les 12 PDFs d'horoscope étaient **statiques** (contenu poétique hardcodé) — pas de vrais transits. L'utilisateur voulait du contenu vraiment dynamique basé sur les transits du jour.
+
+### Implémentation (2026-02)
+
+#### Pipeline `scripts/build_daily_horoscope.py`
+- ✅ Fetch `/horoscope/sign/daily` sur **astrology-api.io v3** (retourne overall_theme + 4 life_areas: identity/love/career/health avec transits réels type "Uranus en conjonction au FC")
+- ✅ Enrichissement **GPT-5.2** via Emergent LLM Key — reformule les prédictions brutes en ton Soléna (tutoyé, poétique, sans astérisque, mentionne les vrais transits)
+- ✅ Injection dans le template PDF existant (`build_pdf_for_signe`)
+- ✅ Commandes CLI :
+  - `python3 backend/scripts/build_daily_horoscope.py sagittaire` (10s)
+  - `python3 backend/scripts/build_daily_horoscope.py --all` (2 min pour les 12)
+
+#### Scheduler `services/horoscope_scheduler.py`
+- ✅ Boucle async wired dans `server.py::@app.on_event('startup')`
+- ✅ Cible **6h UTC** quotidien (7h Paris hiver / 8h Paris été)
+- ✅ Lock file `/tmp/plume_horoscopes_last_run.txt` (idempotence — pas de double régen)
+- ✅ **Recovery** au démarrage : si backend redémarre après 6h et pas encore tourné → régénère immédiatement
+- ✅ Testé en preview : 12/12 PDFs régénérés en 2 min (14 148 KB total), prochain run planifié
+
+#### Endpoints
+- ✅ `GET /api/health/horoscopes` — statut public (HTTP 200 si à jour + 12 PDFs, 503 sinon) → monitorable via UptimeRobot
+- ✅ `POST /api/admin/regenerate-horoscopes` — trigger manuel (admin only) pour forcer une régénération hors fenêtre
+
+### Coût opérationnel
+- 12 signes × (1 appel astrology-api.io + 1 appel GPT-5.2) par jour
+- ~ 10 crédits astrology-api.io/jour + ~0,20€ GPT-5.2/jour ≈ **6€/mois**
+- Cache SVG (session précédente) ne s'applique PAS ici — les daily horoscopes utilisent `/horoscope/sign/daily` (endpoint distinct)
+
+### Sample content (Sagittaire 2026-07-29)
+> *"Sous la pleine lumière lunaire, tes émotions gagnent en relief... **Uranus en conjonction au Fond du Ciel** remue tes racines... et toi, Sagittaire guidé par **Jupiter**, tu retrouves le sens du chemin dès que tu choisis une direction qui t'agrandit."*
+
+Zéro astérisque, ton Soléna préservé, transits réels du jour cités par nom.
+
+
+
 ## Session Feb 2026 — 🛡️ Stripe Guard anti-mode-test (incident cliente prod)
 
 ### Contexte
