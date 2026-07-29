@@ -71,6 +71,9 @@ import KarmaDestinWaiting from "./pages/KarmaDestinWaiting";
 // ThemeNatal one-shot 29€ (Gary Vee refonte Feb 2026)
 import ThemeNatalOneshot from "./pages/ThemeNatalOneshot";
 import ThemeNatalOneshotSucces from "./pages/ThemeNatalOneshotSucces";
+// Trio Découverte 79€ (Gary Vee refonte Feb 2026)
+import TrioDecouverte from "./pages/TrioDecouverte";
+import TrioDecouverteSucces from "./pages/TrioDecouverteSucces";
 
 // ─── Plume Design System v2 (Feb 2026) ────────────────────────────
 import NoiseOverlay from "./components/design/NoiseOverlay";
@@ -107,6 +110,9 @@ function App() {
           {/* Thème Natal one-shot 29€ (Gary Vee refonte Feb 2026) */}
           <Route path="/theme-natal" element={<ThemeNatalOneshot />} />
           <Route path="/theme-natal/succes" element={<ThemeNatalOneshotSucces />} />
+          {/* Trio Découverte 79€ (Gary Vee refonte Feb 2026) */}
+          <Route path="/trio-decouverte" element={<TrioDecouverte />} />
+          <Route path="/trio-decouverte/succes" element={<TrioDecouverteSucces />} />
           {/* Anciennes routes Fenêtres de Rencontre — consolidées dans Rencontres Ultime */}
           <Route path="/fenetre-rencontre-pdf" element={<Navigate to="/rencontres-astrales" replace />} />
           <Route path="/fenetre-rencontre/attente" element={<Navigate to="/rencontres-astrales" replace />} />

@@ -55,6 +55,7 @@ from routes.compatible import router as compatible_router
 from routes.numerologie import router as numerologie_router
 from routes.karma_destin import router as karma_destin_router
 from routes.theme_natal_oneshot import router as theme_natal_oneshot_router
+from routes.trio_decouverte import router as trio_decouverte_router
 from routes.resend_webhook import router as resend_webhook_router
 from routes.astrocartographie import router as astrocartographie_router
 from routes.astrosexo import router as astrosexo_router
@@ -111,6 +112,7 @@ api_router.include_router(pack_karmique_router)
 api_router.include_router(numerologie_router)
 api_router.include_router(karma_destin_router)
 api_router.include_router(theme_natal_oneshot_router)
+api_router.include_router(trio_decouverte_router)
 api_router.include_router(resend_webhook_router)
 api_router.include_router(astrocartographie_router)
 api_router.include_router(astrosexo_router)
@@ -822,6 +824,16 @@ async def stripe_webhook(request: Request):
         except Exception as e:
             logger.warning(f'[karma_destin] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'karma_destin_analysis'}
+
+    # Route vers Trio Découverte handler si kind=trio_decouverte (pack 79 EUR — bundle Gary Vee 2026-02)
+    if md.get('kind') == 'trio_decouverte':
+        from services.trio_decouverte_service import handle_trio_decouverte_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_trio_decouverte_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[trio_decouverte] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'trio_decouverte'}
 
     # Route vers Thème Natal one-shot handler si kind=theme_natal_pdf_oneshot (pack 29 EUR, Gary Vee refonte 2026-02)
     if md.get('kind') == 'theme_natal_pdf_oneshot':

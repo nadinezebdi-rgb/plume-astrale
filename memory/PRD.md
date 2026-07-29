@@ -14,6 +14,37 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — 🎯 Trio Découverte 79€ + Navbar refonte
+
+### Ajouts complémentaires (post-Gary Vee refonte)
+
+#### 🎁 Trio Découverte 79€ (bundle 3 PDFs)
+- ✅ Nouveau pack `trio_decouverte` @ 79€ (config.py) — bundle **Thème Natal + Numérologie + Kabbale** (économie 8€ vs 87€ séparés)
+- ✅ Service `services/trio_decouverte_service.py` — orchestrateur qui crée 3 payment_transactions enfants et délègue aux handlers existants (theme_natal_oneshot, numerologie_webhook, kabbale_service). Idempotence + audit trail complets.
+- ✅ Route `routes/trio_decouverte.py` — POST /checkout (Stripe 79€ live testé) + GET /status (polling consolidé 3 PDFs)
+- ✅ Frontend `/trio-decouverte` — landing avec breakdown 3 PDFs, prix barré 87€→79€, badge vert "ÉCONOMISE 8€"
+- ✅ Frontend `/trio-decouverte/succes` — polling 3 steps (Thème Natal + Numérologie + Kabbale) avec boutons de téléchargement individuels
+- ✅ Webhook Stripe wire dans `server.py::stripe_webhook` (kind='trio_decouverte' → dispatch handler)
+
+#### 🧭 Navbar refonte (Gary Vee alignment)
+- ✅ Sub-menu "💎 Rapports Prestige" enrichi et ré-ordonné :
+  - Trio Découverte 79€ · -8€ (highlighted, top)
+  - Pack Karmique + Kabbale 89€
+  - Consultation Ultime 149€
+  - Thème Natal Complet 29€
+  - Astrocartographie 49€
+  - Arbre de Vie Kabbale 39€
+  - Guide Ultime des Rencontres 34,99€
+- ✅ CTA "✦ Mon Thème Natal" (desktop + mobile) désormais pointé vers `/theme-natal` (route one-shot 29€) au lieu de `/formulaire` (ancien workflow crédits). Badge prix corrigé "DÈS 17,99€" → **29€**.
+
+### Validation
+- ✅ POST /api/trio-decouverte/checkout → session Stripe LIVE créée (79€)
+- ✅ GET /api/trio-decouverte/status → 404 pour session inconnue (attendu)
+- ✅ GET /api/packs contient bien trio_decouverte @ 79€, theme_natal_pdf_oneshot @ 29€, consultation_ultime @ 149€, rencontres_ultime @ 34,99€
+- ✅ Frontend screenshots confirmés (Trio, Cercle 2 tiers, Navbar submenu)
+
+
+
 ## Session Feb 2026 — 🔥 Refonte Pricing "Gary Vee" complète
 
 ### Contexte
