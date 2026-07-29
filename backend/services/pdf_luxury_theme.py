@@ -219,6 +219,55 @@ def chapter_illustration(story: list, styles: dict, chapter_tag: str, title: str
     story.append(PageBreak())
 
 
+def chart_wheel_page(
+    story: list, styles: dict, wheel_png_bytes: bytes,
+    prenom: str, birth_date_fr: str, sun_sign: str, moon_sign: str, asc_sign: str,
+):
+    """
+    Page dédiée à la carte du ciel personnalisée (Ultra premium).
+
+    wheel_png_bytes : le SVG astrology-api.io v3 déjà converti en PNG
+    (usage : `cairosvg.svg2png(bytestring=svg_str.encode(), output_width=1200)`).
+    """
+    from io import BytesIO
+
+    # Chapter tag + titre — compact pour que tout tienne sur UNE page
+    story.append(Spacer(1, 0.5 * cm))
+    story.append(Paragraph('✦ TA CARTE DU CIEL ✦', styles['section_tag']))
+    story.append(Paragraph(f'La signature astrale de {prenom}', styles['cover_title']))
+    story.append(Paragraph(
+        f'Née le {birth_date_fr}',
+        ParagraphStyle('birth_line', fontName=font('Cormorant-Italic', 'Helvetica-Oblique'),
+                       fontSize=12, textColor=CREAM, alignment=TA_CENTER, spaceAfter=10),
+    ))
+
+    # Wheel image (14 cm max pour laisser place au trio en pied)
+    try:
+        img = RLImage(BytesIO(wheel_png_bytes), width=14 * cm, height=14 * cm, mask='auto')
+        story.append(img)
+    except Exception:
+        img_bytes = _dl_image(illustration_url('roue_zodiaque', 800))
+        if img_bytes:
+            story.append(RLImage(img_bytes, width=11 * cm, height=11 * cm, mask='auto'))
+
+    story.append(Spacer(1, 0.3 * cm))
+
+    # Trio identitaire en pied de page (rendu compact)
+    trio = (
+        f'Soleil <font color="{GOLD_HEX}">{sun_sign}</font>  ·  '
+        f'Lune <font color="{GOLD_HEX}">{moon_sign}</font>  ·  '
+        f'Ascendant <font color="{GOLD_HEX}">{asc_sign}</font>'
+    )
+    story.append(Paragraph(trio, ParagraphStyle(
+        'trio', fontName=font('Cinzel', 'Helvetica'),
+        fontSize=11, textColor=CREAM,
+        alignment=TA_CENTER, spaceAfter=6,
+    )))
+
+    story.append(PageBreak())
+
+
+
 def planet_glyph_page(story: list, styles: dict, glyph: str, planet_name: str, tagline: str):
     """Page personnage planète : glyph géant + nom + tagline poétique."""
     story.append(Spacer(1, 5 * cm))

@@ -1,0 +1,39 @@
+{
+  "summary": "Backend testing of Feb 2026 Gary Vee pricing refonte. 17/19 tests passing (89%). Critical issue: GET /api/subscriptions/cercle-solena/status returns 500 because the migration `2026_02_chat_credits_and_gary_vee_refonte.sql` (which adds `subscriptions.product` and `wallets.chat_credit_balance` columns) has NOT been applied to Supabase. The endpoint has NO try/except fallback (unlike wallet_service which handles missing chat_credit_balance gracefully). All other Gary Vee refonte points validated: PACKS (theme_natal_pdf_oneshot 29€, consultation_ultime 149€, rencontres_ultime 34.99€, fenetre_rencontre_avancee absent), SERVICE_COSTS (theme_natal_pdf=30, chat_astral=10), theme-natal-oneshot checkout + status (Stripe LIVE session created OK), cercle-solena checkout returns 503 for both tiers (missing PRICE_ID), old fenetre route removed (404), chat v3 works, no existing subscribers, wallet chat_credits fallback safe returns 0 without crash.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "GET /api/subscriptions/cercle-solena/status",
+        "issue": "Renvoie 500 pour l'admin (et tout user). Postgres error: `column subscriptions.product does not exist` (code 42703). La migration Feb 2026 n'a pas été appliquée en base. Le code dans /app/backend/routes/subscriptions.py cercle_solena_status() utilise .in_('product', [...]) SANS try/except, contrairement au wallet_service qui protège l'accès à chat_credit_balance. L'utilisateur a promis un contrat API {active: false, subscription: null, tier: null} — actuellement impossible à honorer.",
+        "priority": "CRITICAL"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration54_garyvee_refonte.py",
+    "/app/test_reports/pytest/iter54.xml"
+  ],
+  "action_items": [
+    "Option A (recommandée) : exécuter la migration /app/backend/migrations/2026_02_chat_credits_and_gary_vee_refonte.sql sur Supabase (ajoute colonnes `subscriptions.product`, `subscriptions.tier`, `wallets.chat_credit_balance`, `profiles.cercle_tier`).",
+    "Option B (defensive) : envelopper la query dans cercle_solena_status() (routes/subscriptions.py L162-170) avec try/except → retourner {active: false, subscription: null, tier: null} si la colonne n'existe pas (parallèle au fallback safe du wallet_service.get_chat_balance).",
+    "Créer les 2 price_id Stripe recurring (STRIPE_CERCLE_SOLENA_PRICE_ID 14.99€/mo, STRIPE_CERCLE_SOLENA_PREMIUM_PRICE_ID 29€/mo) quand prêt à lancer Cercle Soléna."
+  ],
+  "critical_code_review_comments": [
+    "routes/subscriptions.py L162-170 : aucune protection contre la colonne manquante. Le wallet_service protège correctement chat_credit_balance via try/except, il faut le même pattern ici.",
+    "routes/subscriptions.py L246-253 : le try/except sur `cercle_tier` update est bon, mais le cas où `subscriptions.product` n'existe pas dans upsert L243 causera un crash silencieux (webhook Stripe → aucun log utilisateur).",
+    "routes/theme_natal_oneshot.py L172-173 : le raise HTTPException(500) sur fetch failed peut masquer un vrai 404 si Supabase renvoie une erreur transiente. OK pour l'instant.",
+    "wallet_service.deduct_chat_or_credits L74-82 : le fallback qui bascule tout sur wallet universel en cas d'échec update de chat_credit_balance ne rejoue PAS le crédit_transactions correspondant à cette valeur corrigée — la trace log affiche `chat:X + univ:Y` calculés AVANT le fallback, donc audit trail incohérent en cas de rollback. Cosmétique."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration54_garyvee_refonte.py (new)"
+  ],
+  "success_rate": {"backend": "89% (17/19)", "frontend": "not tested (backend only)"},
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026",
+  "seed_data_creation": "TEST_iter54@example.com — 1 payment_transactions row initiated/unpaid (session_id Stripe LIVE créée mais non payée, expire dans 24h)",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Après fix du cercle-solena/status : re-run pytest /app/backend/tests/test_iteration54_garyvee_refonte.py. Migration SQL /app/backend/migrations/2026_02_chat_credits_and_gary_vee_refonte.sql à appliquer via Supabase Dashboard SQL Editor (l'agent E1 ne peut pas exécuter directement contre Supabase). Une fois migrée, le test TestWalletChatCreditsFallback devra être adapté (add_chat_credits renverra 10, plus 0).",
+  "rca of the issue": "GET /api/subscriptions/cercle-solena/status crash cause : requête PostgREST `.in_('product', ['cercle_solena', 'cercle_solena_premium'])` sur une table `subscriptions` où la colonne `product` n'a pas été créée. Reproduit systématiquement avec un token admin valide. Mitigation immédiate : soit appliquer la migration Feb 2026 (SQL prêt), soit ajouter try/except retournant le contrat {active:false, subscription:null, tier:null} par défaut. Le pattern existe déjà dans wallet_service.get_chat_balance L28-31 — dupliquer ici."
+}

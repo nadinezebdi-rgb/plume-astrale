@@ -46,10 +46,13 @@ const NAV_ITEMS = [
       {
         title: '💎 Rapports Prestige',
         children: [
-          { label: 'Pack Karmique + Kabbale · 89€', to: '/pack-karmique', highlight: true },
+          { label: 'Trio Découverte · 79€ · -8€', to: '/trio-decouverte', highlight: true },
+          { label: 'Pack Karmique + Kabbale · 89€', to: '/pack-karmique' },
+          { label: 'Consultation Ultime · 149€', to: '/consultation-ultime' },
+          { label: 'Thème Natal Complet · 29€', to: '/theme-natal' },
           { label: 'Astrocartographie · 49€', to: '/astrocartographie' },
           { label: 'Arbre de Vie Kabbale · 39€', to: '/kabbale' },
-          { label: 'Compatibilité Ultime · 29,99€', to: '/rencontres-astrales' },
+          { label: 'Guide Ultime des Rencontres · 34,99€', to: '/rencontres-astrales' },
         ],
       },
     ],
@@ -241,7 +244,7 @@ const MonCompteDropdown = ({ creditBalance, handleLogout, isAdmin }) => {
             onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,175,55,0.06)'; e.currentTarget.style.color = '#E8C766'; }}
             onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(212,175,55,0.75)'; }}
             data-testid="dropdown-recompenses">
-            Mes Recompenses
+            Mon Espace Personnel
           </Link>
 
           <Link to="/mon-compte" style={itemStyle}
@@ -350,9 +353,9 @@ const Navbar = () => {
               })}
               <div style={{ width: 1, height: 16, background: '#D4AF37', opacity: 0.2 }} />
 
-              {/* Vitrine — Thème Natal dès 17,99€ (1 clic) */}
+              {/* Vitrine — Thème Natal Complet 29€ one-shot (Gary Vee refonte 2026-02) */}
               <Link
-                to={isAuthenticated ? "/formulaire" : "/inscription?next=/formulaire"}
+                to="/theme-natal"
                 data-testid="navbar-natal-vitrine"
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -374,7 +377,7 @@ const Navbar = () => {
                   background: '#111625', color: '#E8C766',
                   letterSpacing: '0.06em', fontWeight: 600, marginLeft: 2,
                 }}>
-                  DÈS 17,99€
+                  29€
                 </span>
               </Link>
 
@@ -472,9 +475,9 @@ const Navbar = () => {
               })}
               <div style={{ margin: '8px 0', borderTop: '1px solid rgba(212,175,55,0.1)' }} />
 
-              {/* Vitrine — Thème Natal (mobile) */}
+              {/* Vitrine — Thème Natal Complet 29€ (mobile) */}
               <Link
-                to={isAuthenticated ? "/formulaire" : "/inscription?next=/formulaire"}
+                to="/theme-natal"
                 data-testid="mobile-navbar-natal-vitrine"
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -492,7 +495,7 @@ const Navbar = () => {
                   background: '#111625', color: '#E8C766',
                   letterSpacing: '0.05em', fontWeight: 600,
                 }}>
-                  DÈS 17,99€
+                  29€
                 </span>
               </Link>
 
@@ -503,7 +506,7 @@ const Navbar = () => {
                     <span style={{ fontWeight: 600 }}>{creditBalance}</span>
                   </Link>
                   <Link to="/quotidien" style={{ display: 'block', padding: '12px 0', fontSize: 13, color: 'rgba(212,175,55,0.7)', textDecoration: 'none' }}>Mon Journal</Link>
-                  <Link to="/mon-compte" style={{ display: 'block', padding: '12px 0', fontSize: 13, color: 'rgba(212,175,55,0.7)', textDecoration: 'none' }}>Mes Recompenses</Link>
+                  <Link to="/mon-compte" style={{ display: 'block', padding: '12px 0', fontSize: 13, color: 'rgba(212,175,55,0.7)', textDecoration: 'none' }}>Mon Espace Personnel</Link>
                   <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0', fontSize: 13, color: 'rgba(255,100,100,0.8)', background: 'none', border: 'none', cursor: 'pointer' }}>
                     <LogOut style={{ width: 16, height: 16 }} strokeWidth={1.5} />Deconnexion
                   </button>

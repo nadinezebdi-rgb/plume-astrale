@@ -40,6 +40,7 @@ from services import astrology_io_service as aio
 from services.energy_service import get_energy_today
 from services import premium_subscription
 from routes.admin import router as admin_router
+from routes.health import router as health_router
 from routes.astrology_v3 import router as astrology_v3_router
 from routes.oracle import router as oracle_router
 from routes.cercle import router as cercle_router
@@ -54,7 +55,9 @@ from routes.pack_karmique import router as pack_karmique_router
 from routes.compatible import router as compatible_router
 from routes.numerologie import router as numerologie_router
 from routes.karma_destin import router as karma_destin_router
-from routes.fenetre_rencontre import router as fenetre_rencontre_router
+from routes.theme_natal_oneshot import router as theme_natal_oneshot_router
+from routes.trio_decouverte import router as trio_decouverte_router
+from routes.duo_completion import router as duo_completion_router
 from routes.resend_webhook import router as resend_webhook_router
 from routes.astrocartographie import router as astrocartographie_router
 from routes.astrosexo import router as astrosexo_router
@@ -86,6 +89,7 @@ STREAK_MILESTONES = {7: 3, 14: 5, 30: 10, 60: 15, 100: 25}
 app = FastAPI(title='Plume Astrale API')
 api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
+api_router.include_router(health_router)
 api_router.include_router(astrology_v3_router)
 api_router.include_router(oracle_router)
 api_router.include_router(cercle_router)
@@ -110,7 +114,9 @@ api_router.include_router(kabbale_router)
 api_router.include_router(pack_karmique_router)
 api_router.include_router(numerologie_router)
 api_router.include_router(karma_destin_router)
-api_router.include_router(fenetre_rencontre_router)
+api_router.include_router(theme_natal_oneshot_router)
+api_router.include_router(trio_decouverte_router)
+api_router.include_router(duo_completion_router)
 api_router.include_router(resend_webhook_router)
 api_router.include_router(astrocartographie_router)
 api_router.include_router(astrosexo_router)
@@ -843,15 +849,35 @@ async def stripe_webhook(request: Request):
             logger.warning(f'[karma_destin] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'karma_destin_analysis'}
 
-    # Route vers Fenetre Rencontre handler si kind=fenetre_rencontre_avancee (pack 29 EUR)
-    if md.get('kind') == 'fenetre_rencontre_avancee':
-        from services.fenetre_rencontre_webhook import handle_fenetre_rencontre_webhook
+    # Route vers Duo Complémentaire handler si kind=duo_completion (cross-sell 50 EUR post-Thème Natal)
+    if md.get('kind') == 'duo_completion':
+        from services.duo_completion_service import handle_duo_completion_webhook
         try:
             session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
-            await handle_fenetre_rencontre_webhook(session_id)
+            await handle_duo_completion_webhook(session_id)
         except Exception as e:
-            logger.warning(f'[fenetre_rencontre] post-webhook fail: {e}')
-        return {'received': True, 'type': event_type, 'kind': 'fenetre_rencontre_avancee'}
+            logger.warning(f'[duo_completion] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'duo_completion'}
+
+    # Route vers Trio Découverte handler si kind=trio_decouverte (pack 79 EUR — bundle Gary Vee 2026-02)
+    if md.get('kind') == 'trio_decouverte':
+        from services.trio_decouverte_service import handle_trio_decouverte_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_trio_decouverte_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[trio_decouverte] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'trio_decouverte'}
+
+    # Route vers Thème Natal one-shot handler si kind=theme_natal_pdf_oneshot (pack 29 EUR, Gary Vee refonte 2026-02)
+    if md.get('kind') == 'theme_natal_pdf_oneshot':
+        from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_theme_natal_oneshot_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[theme_natal_oneshot] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'theme_natal_pdf_oneshot'}
 
     # Route vers Astrocartographie handler si kind=astrocartographie (pack 49 EUR)
     if md.get('kind') == 'astrocartographie':
@@ -2308,6 +2334,13 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+
+# ═══════════════════════════════════════════════════════════════════
+# Stripe safety net — bloque les checkouts en mode test depuis plume-astrale.fr
+# ═══════════════════════════════════════════════════════════════════
+from services.stripe_guard import stripe_live_guard_middleware, log_startup_stripe_status
+app.middleware('http')(stripe_live_guard_middleware)
+log_startup_stripe_status()
 
 
 @app.get('/health')

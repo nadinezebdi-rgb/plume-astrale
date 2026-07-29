@@ -54,11 +54,6 @@ const AuthenticatedHome = () => {
             </p>
           </div>
 
-          {/* Bundle Découverte Soléna — offre irrésistible post-inscription */}
-          <div style={{ marginBottom: 40 }}>
-            <BundleCard testId="authenticated-home-bundle" />
-          </div>
-
           {/* Crédit et profil */}
           <div style={{
             display: 'grid',
@@ -256,6 +251,11 @@ const AuthenticatedHome = () => {
                 </Link>
               ))}
             </div>
+          </div>
+
+          {/* Bundle Découverte Soléna — placé en fin de page (offre secondaire) */}
+          <div style={{ marginBottom: 40 }}>
+            <BundleCard testId="authenticated-home-bundle" />
           </div>
 
           {/* Actions */}

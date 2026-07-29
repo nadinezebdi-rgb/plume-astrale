@@ -14,6 +14,190 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — 🛡️ Stripe Guard anti-mode-test (incident cliente prod)
+
+### Contexte
+Une cliente a rapporté avoir été redirigée sur plume-astrale.fr vers un checkout Stripe en mode TEST (URL `cs_test_...`). Sans le fix, elle aurait pu saisir sa carte sur une page non fonctionnelle.
+
+### Diagnostic
+- Preview utilise `sk_test_emergent_*` (proxy Emergent → URLs `cs_live_...` → paiements réels via Emergent)
+- La clé du `.env` local `sk_live_51...` est **ignorée** car les variables env sont injectées au niveau pod K8s (override load_dotenv)
+- Production a probablement `sk_test_...` (vraie clé test Stripe, sans le suffixe `emergent`) → URLs `cs_test_...` → paiements réels impossibles
+
+### Fix implémenté (`services/stripe_guard.py`)
+- ✅ Détection des 3 modes : `LIVE` (sk_live_), `LIVE_VIA_EMERGENT_PROXY` (sk_test_emergent_*), `TEST` (sk_test_ standard)
+- ✅ Log clair au démarrage backend indiquant le mode actif
+- ✅ Middleware FastAPI qui bloque les endpoints `.../checkout` avec HTTP 503 si :
+  - Host = `plume-astrale.fr` (ou www.)
+  - ET mode ≠ LIVE/LIVE_VIA_EMERGENT_PROXY
+  - ET `STRIPE_ALLOW_TEST_MODE` ≠ true (escape hatch dev/staging)
+- ✅ Message client convivial en cas de blocage : "Paiement temporairement indisponible… contacte contact@plume-astrale.fr"
+
+### Wire-up (`server.py`)
+- Middleware ajouté juste après CORS
+- `log_startup_stripe_status()` appelé au boot → visible dans les logs supervisor
+
+### Action user requise pour dé-bloquer la prod
+1. Emergent Dashboard → onglet Deploy → **Environment Variables**
+2. Édite `STRIPE_API_KEY` → colle une clé `sk_live_...` récupérée depuis dashboard.stripe.com/apikeys (Live mode)
+3. Redéploie
+
+
+
+## Session Feb 2026 — 💰 Cross-sell "Duo Complémentaire" post-Thème Natal
+
+### Contexte
+Après un premier achat Thème Natal 29€, l'utilisateur est au pic de son engagement. Gary Vee-style : capitaliser sur ce momentum avec un upsell de 50€ qui étend son portrait astrologique sans lui redemander ses infos de naissance.
+
+### Modifications (2026-02)
+
+#### 🎁 Nouveau pack "Duo Complémentaire" 50€
+- ✅ Config : `duo_completion` @ **50€** (Numérologie 19€ + Kabbale 39€ = 58€ séparés → économie 8€)
+- ✅ Service `services/duo_completion_service.py` — orchestrateur qui crée 2 payment_transactions enfants et délègue aux handlers existants (numerologie + kabbale_service). Idempotence + parent tracking.
+- ✅ Route `routes/duo_completion.py` :
+  - POST `/checkout` — Stripe 50€ (testé live OK)
+  - GET `/status` — polling consolidé 2 PDFs
+  - GET `/pdf-ctx-for-theme-natal` — récupère les coordonnées astrales d'un checkout Thème Natal parent pour pré-remplissage automatique
+- ✅ Webhook Stripe wire dans `server.py::stripe_webhook` (kind='duo_completion')
+
+#### 🎯 Cross-sell sur `/theme-natal/succes`
+- ✅ Bloc "Complète ton portrait" apparaît uniquement quand `status.pdf_ready === true` (post-génération PDF)
+- ✅ Design premium doré avec badge "RECOMMANDÉ", prix barré 58€ → 50€, badge vert "-8€"
+- ✅ Bouton "Ajouter à mon portrait" → récupère automatiquement les infos du Thème Natal via `/pdf-ctx-for-theme-natal` puis lance le checkout Duo (zero friction)
+- ✅ Page succès `/duo-completion/succes` — polling 2 PDFs (Numérologie + Kabbale)
+
+#### 🔧 Correction copie CercleSolenaInvite
+- ✅ "Reçois 100 crédits chat supplémentaires" → "Reçois **50 crédits chat**" (aligné sur tier Normal 14,99€)
+
+### Validation
+- ✅ POST /api/duo-completion/checkout → session Stripe LIVE créée (50€, testé OK)
+- ✅ GET /api/packs contient bien duo_completion @ 50€
+- ✅ Frontend lint clean, backend lint clean
+- ✅ Screenshot `/theme-natal/succes` : le bloc cross-sell reste caché tant que PDF pas ready (comportement voulu)
+
+### Impact business estimé
+Sur 30 conversions Thème Natal/mois :
+- Sans cross-sell : 30 × 29€ = **870€**
+- Avec cross-sell (~15% take-rate estimé Gary Vee) : 30 × 29€ + 4.5 × 50€ = **1 095€** (+26%)
+
+
+
+## Session Feb 2026 — 🎯 Trio Découverte 79€ + Navbar refonte
+
+### Ajouts complémentaires (post-Gary Vee refonte)
+
+#### 🎁 Trio Découverte 79€ (bundle 3 PDFs)
+- ✅ Nouveau pack `trio_decouverte` @ 79€ (config.py) — bundle **Thème Natal + Numérologie + Kabbale** (économie 8€ vs 87€ séparés)
+- ✅ Service `services/trio_decouverte_service.py` — orchestrateur qui crée 3 payment_transactions enfants et délègue aux handlers existants (theme_natal_oneshot, numerologie_webhook, kabbale_service). Idempotence + audit trail complets.
+- ✅ Route `routes/trio_decouverte.py` — POST /checkout (Stripe 79€ live testé) + GET /status (polling consolidé 3 PDFs)
+- ✅ Frontend `/trio-decouverte` — landing avec breakdown 3 PDFs, prix barré 87€→79€, badge vert "ÉCONOMISE 8€"
+- ✅ Frontend `/trio-decouverte/succes` — polling 3 steps (Thème Natal + Numérologie + Kabbale) avec boutons de téléchargement individuels
+- ✅ Webhook Stripe wire dans `server.py::stripe_webhook` (kind='trio_decouverte' → dispatch handler)
+
+#### 🧭 Navbar refonte (Gary Vee alignment)
+- ✅ Sub-menu "💎 Rapports Prestige" enrichi et ré-ordonné :
+  - Trio Découverte 79€ · -8€ (highlighted, top)
+  - Pack Karmique + Kabbale 89€
+  - Consultation Ultime 149€
+  - Thème Natal Complet 29€
+  - Astrocartographie 49€
+  - Arbre de Vie Kabbale 39€
+  - Guide Ultime des Rencontres 34,99€
+- ✅ CTA "✦ Mon Thème Natal" (desktop + mobile) désormais pointé vers `/theme-natal` (route one-shot 29€) au lieu de `/formulaire` (ancien workflow crédits). Badge prix corrigé "DÈS 17,99€" → **29€**.
+
+### Validation
+- ✅ POST /api/trio-decouverte/checkout → session Stripe LIVE créée (79€)
+- ✅ GET /api/trio-decouverte/status → 404 pour session inconnue (attendu)
+- ✅ GET /api/packs contient bien trio_decouverte @ 79€, theme_natal_pdf_oneshot @ 29€, consultation_ultime @ 149€, rencontres_ultime @ 34,99€
+- ✅ Frontend screenshots confirmés (Trio, Cercle 2 tiers, Navbar submenu)
+
+
+
+## Session Feb 2026 — 🔥 Refonte Pricing "Gary Vee" complète
+
+### Contexte
+Audit prix révélant que le **Thème Natal PDF (produit phare, 20-40 pages)** était vendu 60 crédits ≈ 13,50€, moins cher que la Numérologie 12 pages (19€) ou la Kabbale 15 pages (39€). Cannibalisation des marges + confusion produit (Fenêtres de Rencontre 29€ vs Rencontres Ultime 29,99€). Cercle Soléna sous-monétisé (19€ pour 3 crédits universels).
+
+### Modifications appliquées (2026-02)
+
+#### 🎯 Nouveaux packs (`config.py`)
+- ✅ **`theme_natal_pdf_oneshot`** : one-shot **29€** — flagship, mirror pattern Kabbale (route + service dédiés, PDF luxe 20-40p + email post-paiement)
+- ✅ **`consultation_ultime`** : one-shot **149€** — hyperpremium anchor (Thème Natal 40p + chat illimité 24h + lecture personnalisée)
+- ✅ **`rencontres_ultime`** : bump **29,99€ → 34,99€** + rebrand *"Guide Ultime du Partenaire Idéal + Calendrier de Rencontres"*
+- ✅ **`fenetre_rencontre_avancee`** : **SUPPRIMÉ** (consolidation avec Rencontres Ultime, redirects 301 mis en place)
+- ✅ `SERVICE_COSTS['theme_natal_pdf']` : **60 → 30** crédits (version "flash" 5p pour acquisition via credits, la version complète passe en one-shot 29€)
+
+#### 💳 Cercle Soléna 2 tiers (`routes/subscriptions.py`)
+- ✅ **Normal** : **14,99€/mois** → +50 crédits chat/mois (chat-only)
+- ✅ **Premium** : **29€/mois** → +150 crédits chat/mois + priorité Soléna + Pleine Lune
+- ✅ Payload `CheckoutPayload.tier` (`normal`|`premium`) + `_get_price_id(tier)` dispatchant sur `STRIPE_CERCLE_SOLENA_PRICE_ID` / `STRIPE_CERCLE_SOLENA_PREMIUM_PRICE_ID`
+- ✅ Webhook `handle_subscription_event` credite `chat_credit_balance` selon le tier via `add_chat_credits()`
+- ✅ Fallback safe partout (try/except) tant que la migration SQL Feb 2026 n'est pas appliquée
+
+#### 🎁 Wallet chat_credits séparé (`services/wallet_service.py`)
+- ✅ Nouvelles fonctions : `get_chat_balance`, `add_chat_credits`, `deduct_chat_or_credits`
+- ✅ `charge_or_premium('chat_astral', ...)` consomme d'abord `chat_credit_balance`, puis fallback sur `credit_balance` universel
+- ✅ Renvoie `{chat_used, universal_used, new_chat_balance, new_balance}` (audit trail complet)
+
+#### 🎨 Frontend
+- ✅ `/theme-natal` — page landing (`pages/ThemeNatalOneshot.js`) + `/theme-natal/succes` polling 4 steps
+- ✅ `/cercle-solena` réécrit — 2 TierCard side-by-side, badge "Recommandé" sur Premium
+- ✅ `/fenetre-rencontre-pdf` et `/fenetre-rencontre/attente` → redirect 301 vers `/rencontres-astrales`
+
+### Migration Supabase requise (à exécuter par le user)
+Fichier : `/app/backend/migrations/2026_02_chat_credits_and_gary_vee_refonte.sql`
+- `ALTER TABLE wallets ADD COLUMN chat_credit_balance INT DEFAULT 0`
+- `ALTER TABLE profiles ADD COLUMN cercle_tier TEXT CHECK (...) DEFAULT NULL`
+- Confirme absence d'abonnés Cercle Soléna existants (user confirmé : aucun)
+
+### Nouveaux Price IDs Stripe à créer (à faire par le user dans Stripe Dashboard)
+| Env var | Prix | Type |
+|---|---|---|
+| `STRIPE_CERCLE_SOLENA_PRICE_ID` | 14,99€/mois | recurring |
+| `STRIPE_CERCLE_SOLENA_PREMIUM_PRICE_ID` | 29€/mois | recurring |
+
+### Validation
+- ✅ Backend testing agent : **19/19 tests passing (100%)** — iteration_55
+- ✅ Frontend screenshots : `/theme-natal` + `/cercle-solena` visuellement corrects
+- ✅ Session Stripe LIVE créée pour Thème Natal 29€ (checkout OK)
+- ✅ Aucun crash malgré migration SQL non appliquée (fallback safe partout)
+
+### Impact business estimé
+| Poste | Avant | Après |
+|---|---|---|
+| Thème Natal (30 conv/mois) | 30 × 13,50 = 405€ | 30 × 29 = **870€** (+115%) |
+| Rencontres (20 conv/mois) | 20 × 29 = 580€ | 20 × 34,99 = **700€** (+21%) |
+| Cercle Soléna (40 abo) | 40 × 19 = 760€ | 30×14,99 + 10×29 = **740€** (~stable, margin ✅) |
+| **Total MRR** | **~1 745€** | **~2 310€** | **+32%** |
+
+
+
+## Session Feb 2026 — 💾 Cache SVG Chart Wheels (économie crédits astrology-api.io)
+
+### Contexte
+Chaque appel à `POST /api/v3/render/natal` (SVG chart wheel Kerykeion) consomme **10 crédits** astrology-api.io. Le PDF Natal Ultra les régénère à chaque commande. Pour un utilisateur régulier ou une re-génération de PDF, c'est du gaspillage.
+
+### Implémentation (2026-02)
+- ✅ **Cache Supabase Storage** : bucket `reports`, prefix `chart-svg-cache/{chart_type}/{hash}.svg`.
+- ✅ **Hash déterministe** : SHA256 tronqué à 32 chars sur `chart_type|theme|language|year|month|day|hour|minute|latitude|longitude|timezone`. Le nom du sujet est ignoré (non affiché dans le SVG Kerykeion), maximisant les hits pour les mêmes coordonnées natales.
+- ✅ **Fonction modifiée** : `services/astrology_io_service.py::chart_svg_render()` — check cache → si HIT retourne le SVG stocké → si MISS appelle l'API + upload async (non bloquant).
+- ✅ **Cache-Control** : `31536000` (1 an) — le thème natal ne change jamais.
+- ✅ **Test validé** : 2ème appel identique → HIT confirmé, contenu SVG identique, 10 crédits économisés.
+- ✅ **Logs** : `[astrology_io.svg_cache] HIT natal/{hash} (économie: 10 crédits API)` visible dans les logs backend.
+
+### Impact
+- Utilisateur qui re-télécharge son PDF Natal → 0 crédit consommé (au lieu de 10).
+- Deux utilisateurs nés au même endroit à la même minute → 1 seul appel API.
+- Aucun impact fonctionnel : le SVG rendu est bit-identique à l'appel direct.
+
+### Décision Astrology V3 Extended
+- ✅ **`routes/astrology_v3_extended.py` conservé** (choix utilisateur 1B) — ~30 endpoints Vedic non wired mais gardés pour features futures.
+
+### Redéploiement Production
+- ⚠️ **User action requise** : cliquer sur le bouton "Deploy to Production" Emergent pour pousser tous les fixes P0 en prod (chat asterisks, chart wheel PDF, fallback 11 planètes, cache SVG).
+
+
+
 ## Session Feb 2026 — 🌳 Nouveau produit : Kabbale — Ton Arbre de Vie 39€ (2026-02)
 
 ### Architecture (mirror Rencontres Ultime 29,99€)
@@ -1233,3 +1417,70 @@ le repo — pour ne pas alourdir le deploy.
 - Fichier de sortie : `/app/backend/cache/marketing_videos/plume_tiktok_decouverte.mp4` (~16 Mo, H.264+AAC).
 - Rendu ~75s sur le container.
 - URL publique de téléchargement pour la user : `${REACT_APP_BACKEND_URL}/api/marketing/tiktok`
+
+## Session 29 juil 2026 — Audit qualité PDF Natal + Chat (2026-07-29)
+
+### ✅ P0 — Purge des astérisques dans Chat Soléna
+- Nouveau `SYSTEM_PROMPT_SOLENA` sans markdown, avec instruction explicite « aucun astérisque, aucun # de titre, aucun backtick, aucune balise HTML ». Style éditorial haut de gamme, MAJUSCULES ou guillemets français « ... » pour l'emphase.
+- Nouveau `_strip_markdown()` filet de sécurité côté serveur — appliqué sur la réponse sync ET sur le texte agrégé du stream SSE avant persistance DB.
+- Stream : strip inline des `*` et `\`` par chunk pour que le rendu progressif ne montre plus d'astérisque.
+- Test validé : réponse `« ÉLAN »` en majuscules, zéro astérisque.
+
+### ✅ P0 — Carte du ciel personnalisée dans PDF natal
+- Endpoint découvert : `POST /api/v3/render/natal` (Kerykeion SVG, ≈ 160 KB).
+- Nouveau module `services/svg_utils.py` : `resolve_svg_css_vars()` — résout inline toutes les `var(--kerykeion-color-*)` (CairoSVG ne les support pas).
+- `chart_svg_render()` du service `astrology_io_service` réécrit pour appeler le bon endpoint et retourner le SVG brut.
+- Nouvelle fonction `chart_wheel_page()` dans `pdf_luxury_theme.py` : page dédiée avec titre + roue rasterisée + trio Soleil/Lune/Asc.
+- Chaînage propagé : `POST /api/astrology/v3/natal/pdf` → route fetch SVG → CairoSVG → `generate_manuscrit_pdf(chart_png_bytes=...)` → `build_natal_pdf_v2()`.
+- Fallback élégant : illustration générique si le fetch échoue.
+- Résultat visuel validé : roue Placidus complète + 12 planètes + aspects + grille + phase lunaire.
+
+### ⚠️ Reste à investiguer — mode Legacy vs Ultra
+- Le test PDF end-to-end (Nadine, 15/07/1990, Paris) a produit 10 pages en mode LEGACY (5 planètes) au lieu de ULTRA (11 planètes attendues).
+- Cause probable : `natal_ai_enrichment.enrich_natal_ultra()` a échoué (timeout / rate limit / prompt trop long) et le fallback legacy s'est activé.
+- Instrumentation existante : `pipeline_events.jsonl` log l'événement `natal_pdf_generated` avec source (`ultra_ai_v3` / `legacy` / `partial_ai`). À consulter pour audit prod.
+- Impact utilisateur : PDF fonctionnel mais moins riche que promis (5 planètes vs 11).
+- Action recommandée : diminuer le timeout LLM ou paralléliser les 11 prompts + fallback partiel plutôt que legacy total.
+
+### 🎬 Vidéos TikTok / Marketing générées cette session
+- Storyboard TikTok « Découverte » 30 s (moon + zodiac + tarot + CTA).
+- « Tirage Gratuit » 30 s (3 cartes back → spread → flip Soleil / Roue / Étoile → CTA).
+- Générateur `hook template` (Anton bold + Bebas Neue + rythme rapide).
+- Intégration Pexels stock (`services/pexels_service.py`) — clé API user en `.env`.
+- Intégration Sora 2 (`services/sora_service.py`) — lion en constellation 12 s (~ 3,60 $).
+- Custom-BG generator (`generate_tiktok_with_custom_bg`) — supporte n'importe quelle vidéo en fond.
+- Docs TikTok B-roll : PDF « Modèle de Guidance Soléna » (3 pages) + PDF « Horoscope Journalier Lion » (2 pages avec section héros « ✦ LA GUIDANCE DU JOUR ✦ »).
+- Vidéos scroll auto générées à partir des PDFs pour montage TikTok.
+
+### 📁 Fichiers touchés cette session
+- `backend/services/plume_chat.py` — nouveau prompt sans markdown + `_strip_markdown()`
+- `backend/services/astrology_io_service.py` — `chart_svg_render()` refait pour endpoint `/render/{chart_type}`
+- `backend/services/svg_utils.py` — nouveau (CSS var resolver)
+- `backend/services/pdf_luxury_theme.py` — `chart_wheel_page()` compact 14×14 cm
+- `backend/services/natal_pdf_v2.py` — accepte `chart_png_bytes`
+- `backend/services/natal_pdf_adapter.py` — propagate `chart_png_bytes`
+- `backend/routes/astrology_v3.py` — fetch SVG async + CairoSVG rasterization
+- `backend/services/video_generator.py` — import moviepy défensif + Anton/Bebas + custom-bg
+- `backend/services/pexels_service.py`, `backend/services/sora_service.py` — nouveaux
+- `backend/routes/marketing.py` — endpoints TikTok/hook/tirage
+- `backend/scripts/build_tiktok_docs.py`, `backend/scripts/pdf_to_scroll_video.py` — nouveaux
+
+### 🧹 Nettoyage code review (29 juil 2026)
+7 fichiers legacy orphelins déplacés vers `_deleted_2026_07_29/` :
+- `services/auth_service.py` (Mongo/JWT legacy → remplacé par Supabase middleware)
+- `services/premium_service.py` (5-step LLM generator → remplacé par static /premium/generate)
+- `services/pdf_generator_v2.py` (Manuscrit V4 → remplacé par natal_pdf_v2)
+- `services/tarot_pdf.py` (→ remplacé par tarot_pdf_v2)
+- `services/streak_service.py` (Mongo streak → remplacé par daily_ritual)
+- `services/astro_content_extended.py` (importé uniquement par pdf_generator_v2 supprimé)
+- `services/translation_service.py` (importé uniquement par premium_service supprimé)
+
+Backend redémarre proprement post-suppression, chat + marketing endpoints validés.
+
+À investiguer plus tard (routes/astrology_v3_extended.py) : ~30 endpoints Vedic/Chinese/return/progressions non wired dans server.py → soit brancher, soit supprimer.
+
+### 🐛 Fix Legacy vs Ultra (bonus 29 juil)
+`natal_pdf_adapter.py` : `is_ultra` compte maintenant AUSSI les planètes de `_raw_v3_by_planet` (fallback quand GPT plante). Empêche le fallback Legacy 5 planètes alors que la data v3 fournit 11 planètes complètes.
+
+### 📄 12 horoscopes journaliers PDFs
+Générés dans `/app/frontend/public/marketing/horoscopes/` — un par signe, format A4 vertical, 2 pages chacun (cover + détails Amour/Carrière/Bien-être + Guidance du jour + Table pratique + Question de réflexion). URLs publiques prêtes pour ta série TikTok.

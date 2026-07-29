@@ -16,7 +16,7 @@ import io
 from typing import Optional
 from services.pdf_luxury_theme import (
     build_luxury_doc, luxury_styles, luxury_bg,
-    cover_page, opening_page, chapter_illustration,
+    cover_page, opening_page, chapter_illustration, chart_wheel_page,
     planet_dense_page, photos_grid_2x2, emotional_ending,
 )
 from services import library_images as libimg
@@ -67,7 +67,8 @@ def _grid_cells_from_planets(planets: list, indices: list) -> list:
     return cells
 
 
-def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict) -> bytes:
+def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
+                        chart_png_bytes: bytes | None = None) -> bytes:
     """Génère le Thème Natal Plume Astrale — rendu standard uniforme.
 
     natal_data attend :
@@ -80,6 +81,9 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict) -> bytes:
           'synthese_aspects': '<optionnel, texte AI sur les aspects>',
           'tier': 'ultra' | 'legacy',
         }
+    chart_png_bytes : PNG binaire de la carte du ciel (SVG astrology-api.io v3
+    déjà rasterisé via cairosvg). Si présent, insère une page dédiée après
+    l'ouverture. Si None, fallback sur l'illustration générique.
     """
     buf = io.BytesIO()
     doc = build_luxury_doc(buf, title=f'Thème Natal — {prenom}')
@@ -100,11 +104,26 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict) -> bytes:
     opening_page(story, styles, prenom=prenom,
                  first_line="Ton ciel n'a jamais été aussi clair.")
 
-    # ── 3. INTRO ROUE CÉLESTE (image + titre) ──────────────────────
-    chapter_illustration(story, styles,
-                          chapter_tag='✦ La roue de ton ciel ✦',
-                          title='Ton empreinte céleste',
-                          illustration_slug='roue_zodiaque')
+    # ── 3. CARTE DU CIEL RÉELLE (SVG astrology-api.io v3 → PNG) ────
+    #     Si chart_png_bytes est fourni : page dédiée avec la vraie roue
+    #     personnalisée. Sinon : fallback illustration générique.
+    if chart_png_bytes:
+        # Format FR de la date
+        try:
+            _MOIS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                        'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+            _y, _m, _d = birth_date.split('-')
+            date_fr = f"{int(_d)} {_MOIS_FR[int(_m) - 1]} {_y}"
+        except Exception:
+            date_fr = birth_date
+        chart_wheel_page(story, styles, chart_png_bytes,
+                          prenom=prenom, birth_date_fr=date_fr,
+                          sun_sign=sun_sign, moon_sign=moon_sign, asc_sign=asc_sign)
+    else:
+        chapter_illustration(story, styles,
+                              chapter_tag='✦ La roue de ton ciel ✦',
+                              title='Ton empreinte céleste',
+                              illustration_slug='roue_zodiaque')
 
     # ── 4. GRILLE 2×2 : Trio identitaire + Aspect dominant ──────────
     #  Soleil + Lune + Ascendant + 1er signe présent (généralement Vénus)

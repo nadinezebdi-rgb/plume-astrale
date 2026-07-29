@@ -13,6 +13,84 @@ async def get_balance(user_id: str) -> int:
     return int(res.data['credit_balance'])
 
 
+# ─── Chat credits (Cercle Soléna) — wallet séparé ────────────────────────
+# Ajouté 2026-02 : les crédits chat_credits sont réservés au chat Plume/Solena.
+# La logique `charge_or_premium(service_id='chat_astral')` consomme d'abord
+# `chat_credit_balance`, puis fallback sur `credit_balance` (universel).
+
+async def get_chat_balance(user_id: str) -> int:
+    """Renvoie le solde de chat_credits (0 si la colonne n'existe pas encore)."""
+    sb = get_admin_client()
+    try:
+        res = sb.table('wallets').select('chat_credit_balance').eq('user_id', user_id).maybe_single().execute()
+        if not res or not res.data:
+            return 0
+        return int(res.data.get('chat_credit_balance') or 0)
+    except Exception:
+        # Colonne pas encore migrée en base → considère 0 (fallback safe)
+        return 0
+
+
+async def add_chat_credits(user_id: str, amount: int, description: str, tx_type: str = 'grant') -> int:
+    """Crédite `amount` chat_credits. Renvoie le nouveau solde chat."""
+    if amount <= 0:
+        return await get_chat_balance(user_id)
+    sb = get_admin_client()
+    current = await get_chat_balance(user_id)
+    new_balance = current + amount
+    try:
+        sb.table('wallets').update({'chat_credit_balance': new_balance}).eq('user_id', user_id).execute()
+    except Exception as e:
+        # Migration non appliquée : log + return current (best-effort)
+        import logging
+        logging.getLogger(__name__).warning(f'[wallet.add_chat_credits] echec update (colonne manquante?) : {e}')
+        return current
+    try:
+        sb.table('credit_transactions').insert({
+            'user_id': user_id,
+            'tx_type': tx_type,
+            'amount': amount,
+            'description': f'[chat] {description}',
+        }).execute()
+    except Exception:
+        pass
+    return new_balance
+
+
+async def deduct_chat_or_credits(user_id: str, amount: int, description: str) -> dict:
+    """Deduit d'abord depuis chat_credit_balance, puis fallback sur credit_balance (universel).
+    Renvoie {'chat_used': int, 'universal_used': int, 'chat_balance': int, 'balance': int}."""
+    if amount <= 0:
+        return {'chat_used': 0, 'universal_used': 0, 'chat_balance': await get_chat_balance(user_id), 'balance': await get_balance(user_id)}
+    sb = get_admin_client()
+    chat_bal = await get_chat_balance(user_id)
+    univ_bal = await get_balance(user_id)
+    if chat_bal + univ_bal < amount:
+        raise HTTPException(status_code=402, detail='Solde insuffisant')
+    chat_used = min(chat_bal, amount)
+    univ_used = amount - chat_used
+    new_chat = chat_bal - chat_used
+    new_univ = univ_bal - univ_used
+    try:
+        if chat_used > 0:
+            sb.table('wallets').update({'chat_credit_balance': new_chat}).eq('user_id', user_id).execute()
+    except Exception:
+        # Migration pas appliquée : bascule tout sur wallet universel
+        chat_used = 0
+        univ_used = amount
+        new_chat = chat_bal
+        new_univ = univ_bal - amount
+    if univ_used > 0:
+        sb.table('wallets').update({'credit_balance': new_univ}).eq('user_id', user_id).execute()
+    sb.table('credit_transactions').insert({
+        'user_id': user_id,
+        'tx_type': 'deduction',
+        'amount': -amount,
+        'description': f'{description} (chat:{chat_used} + univ:{univ_used})',
+    }).execute()
+    return {'chat_used': chat_used, 'universal_used': univ_used, 'chat_balance': new_chat, 'balance': new_univ}
+
+
 async def has_used_free_tarot(user_id: str) -> bool:
     sb = get_admin_client()
     res = sb.table('wallets').select('free_tarot_used').eq('user_id', user_id).maybe_single().execute()
@@ -63,12 +141,28 @@ async def deduct_credits(user_id: str, amount: int, description: str) -> int:
 
 async def charge_or_premium(user_id: str, service_id: str, amount: int, description: str) -> dict:
     """Premium = pas de deduction. Sinon deduit amount credits.
-    Renvoie {'charged': bool, 'amount': int, 'is_premium': bool, 'new_balance': int|None}."""
+    Pour le chat (service_id='chat_astral'), consomme d'abord chat_credit_balance,
+    puis fallback sur credit_balance universel.
+    Renvoie {'charged': bool, 'amount': int, 'is_premium': bool, 'new_balance': int|None,
+             'chat_used': int, 'universal_used': int, 'new_chat_balance': int}."""
     premium = await is_premium_active(user_id)
     if premium:
-        return {'charged': False, 'amount': 0, 'is_premium': True, 'new_balance': None}
+        return {'charged': False, 'amount': 0, 'is_premium': True, 'new_balance': None,
+                'chat_used': 0, 'universal_used': 0, 'new_chat_balance': None}
+    # Chat astral : consomme d'abord le wallet chat, puis fallback universel
+    if service_id == 'chat_astral':
+        result = await deduct_chat_or_credits(user_id, amount, description)
+        return {
+            'charged': True, 'amount': amount, 'is_premium': False,
+            'new_balance': result['balance'],
+            'chat_used': result['chat_used'],
+            'universal_used': result['universal_used'],
+            'new_chat_balance': result['chat_balance'],
+        }
+    # Autres services : deduction universelle classique
     new_balance = await deduct_credits(user_id, amount, description)
-    return {'charged': True, 'amount': amount, 'is_premium': False, 'new_balance': new_balance}
+    return {'charged': True, 'amount': amount, 'is_premium': False, 'new_balance': new_balance,
+            'chat_used': 0, 'universal_used': amount, 'new_chat_balance': None}
 
 
 async def add_credits(user_id: str, amount: int, description: str, tx_type: str = 'purchase') -> int:

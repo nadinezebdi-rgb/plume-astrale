@@ -1,0 +1,28 @@
+{
+  "summary": "Retest ciblé du fix P0 sur GET /api/subscriptions/cercle-solena/status. Le try/except autour de la query PostgREST .in_('product', [...]) fonctionne correctement : au lieu du crash 500 (column subscriptions.product does not exist), l'endpoint renvoie maintenant 200 avec le contrat safe {active: false, subscription: null, tier: null}. Toute la suite pytest test_iteration54_garyvee_refonte.py passe : 19/19 tests OK (100%). La migration SQL Feb 2026 n'a toujours pas été appliquée en base — c'est ce qui valide que le fallback safe est bien exercé.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration54_garyvee_refonte.py",
+    "/app/test_reports/pytest/iter55.xml"
+  ],
+  "action_items": [
+    "Toujours appliquer la migration SQL /app/backend/migrations/2026_02_chat_credits_and_gary_vee_refonte.sql via Supabase Dashboard quand ready (le fallback safe est en place mais la table subscriptions n'a toujours pas les colonnes product/tier, ni wallets.chat_credit_balance — donc pas d'abonnements Cercle Soléna réels possibles tant que la migration n'est pas exécutée).",
+    "Créer les 2 STRIPE_CERCLE_SOLENA_PRICE_ID (14.99€) et STRIPE_CERCLE_SOLENA_PREMIUM_PRICE_ID (29€) recurring dans Stripe Dashboard avant le go-live Cercle Soléna."
+  ],
+  "critical_code_review_comments": [
+    "routes/subscriptions.py L164-177 : le fix P0 est propre — try/except large + log warning + retour du contrat par défaut. Pattern identique au wallet_service.get_chat_balance. ✅",
+    "Reste à noter : le webhook handle_subscription_event (L219-265) inserta/upserta sur subscriptions.product même en l'absence de la colonne — ça crashera silencieusement à la 1re invoice Stripe si la migration n'est pas appliquée. Non testable ici (pas de vrai abonné) mais à protéger avant le launch."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (19/19)", "frontend": "not tested (backend only)"},
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026",
+  "seed_data_creation": "1 nouvelle session Stripe LIVE créée pour TEST_iter54@example.com (checkout theme-natal-oneshot), non payée, expire 24h — comme itération précédente.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Fix cercle-solena/status validé. Migration SQL Feb 2026 toujours pas appliquée en base (attendu). Après application de la migration, le test TestWalletChatCreditsFallback (attend new_bal == 0) devra être adapté à new_bal == 10, et TestCercleSolenaStatus continuera de passer (aucun abonné actif → active:false).",
+  "rca of the issue": "Fix P0 confirmé : le crash 500 sur GET /api/subscriptions/cercle-solena/status (colonne product manquante) est bien contenu par le try/except en L164-177. Réponse 200 + contrat safe {active:false, subscription:null, tier:null} vérifié avec un token admin valide."
+}

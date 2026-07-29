@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Check, Sparkles, Users, Gift, Calendar, ArrowRight, Loader2 } from 'lucide-react';
+import { Check, Sparkles, Users, Gift, Calendar, ArrowRight, Loader2, Crown } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import PageHero from '@/components/PageHero';
@@ -9,172 +9,304 @@ import { event as track, EVENTS } from '@/lib/analytics';
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
 
-const BENEFITS = [
-  { icon: Gift,     title: '3 crédits offerts chaque mois', desc: 'Rechargés automatiquement à ta date d\u2019anniversaire d\u2019abonnement.' },
-  { icon: Users,    title: 'Accès au Cercle Soléna',       desc: 'Communauté privée d\u2019initiées — échanges, méditations, réponses de Soléna en direct.' },
-  { icon: Calendar, title: 'Lecture Nouvelle Lune',        desc: 'Une lecture symbolique mensuelle offerte à chaque cycle lunaire.' },
-  { icon: Sparkles, title: 'Réductions sur les PDF',      desc: '-10% sur Kabbale, Astrocarto, Pack Karmique pendant toute la durée de ton abonnement.' },
-];
+// Tier configuration (backend-mirror : voir routes/subscriptions.py)
+const TIERS = {
+  normal: {
+    key: 'normal',
+    name: 'Cercle Soléna',
+    price: 14.99,
+    chat_credits: 50,
+    benefits: [
+      { icon: Gift, title: '50 crédits chat par mois', desc: 'Utilisables uniquement sur le chat avec Soléna. Rechargés chaque mois.' },
+      { icon: Users, title: 'Accès au Cercle', desc: 'Communauté privée d\u2019initiées, échanges, méditations.' },
+      { icon: Calendar, title: 'Lecture Nouvelle Lune', desc: 'Une lecture symbolique mensuelle offerte à chaque cycle.' },
+      { icon: Sparkles, title: '-10% sur les PDF', desc: 'Sur Kabbale, Astrocarto, Pack Karmique.' },
+    ],
+  },
+  premium: {
+    key: 'premium',
+    name: 'Cercle Soléna Premium',
+    price: 29.0,
+    chat_credits: 150,
+    benefits: [
+      { icon: Gift, title: '150 crédits chat par mois', desc: '3× plus de conversations, la même intimité. Rechargés chaque mois.' },
+      { icon: Crown, title: 'Priorité Soléna', desc: 'Réponses en priorité + accès aux lectures collectives premium.' },
+      { icon: Users, title: 'Accès au Cercle', desc: 'Communauté privée + salons Premium réservés.' },
+      { icon: Calendar, title: 'Lecture Nouvelle & Pleine Lune', desc: 'Deux lectures mensuelles offertes (au lieu d\u2019une).' },
+      { icon: Sparkles, title: '-15% sur les PDF', desc: 'Réduction majorée sur tout le catalogue.' },
+    ],
+  },
+};
+
+const TierCard = ({ tier, onSubscribe, loading, error, alreadyMember, isCurrentTier, highlighted }) => (
+  <div
+    className="plume-glass p-6 md:p-8 relative overflow-hidden"
+    data-testid={`cercle-tier-${tier.key}`}
+    style={{
+      border: highlighted ? '1px solid rgba(212,175,55,0.5)' : '1px solid rgba(212,175,55,0.2)',
+      boxShadow: highlighted ? '0 30px 80px -30px rgba(212,175,55,0.4)' : 'none',
+      opacity: alreadyMember && !isCurrentTier ? 0.55 : 1,
+    }}
+  >
+    {highlighted && (
+      <div
+        className="absolute top-3 right-3 px-3 py-1 rounded-full text-[10px] uppercase"
+        style={{
+          background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
+          color: '#0A0603',
+          fontFamily: 'Cinzel, serif',
+          letterSpacing: '0.18em',
+          fontWeight: 700,
+        }}
+        data-testid={`cercle-tier-${tier.key}-badge`}
+      >
+        Recommandé
+      </div>
+    )}
+
+    <p
+      className="text-[10px] uppercase mb-3"
+      style={{ color: '#D4AF37', letterSpacing: '0.32em', fontFamily: 'Cinzel, serif' }}
+    >
+      ✦ {tier.name} ✦
+    </p>
+
+    <div className="flex items-baseline gap-2 mb-4" data-testid={`cercle-tier-${tier.key}-price`}>
+      <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 56, fontWeight: 300, color: '#D4AF37', lineHeight: 1 }}>
+        {tier.price.toFixed(2).replace('.', ',')}€
+      </span>
+      <span style={{ color: 'rgba(227,215,255,0.65)', fontSize: 15, fontStyle: 'italic', fontFamily: 'Cormorant Garamond, serif' }}>
+        /mois
+      </span>
+    </div>
+
+    <p className="text-xs mb-5" style={{ color: 'rgba(227,215,255,0.55)', letterSpacing: '0.1em' }}>
+      Sans engagement · Résiliation en 1 clic
+    </p>
+
+    <div className="space-y-3 mb-6">
+      {tier.benefits.map((b, i) => {
+        const Icon = b.icon;
+        return (
+          <div key={i} className="flex items-start gap-3" data-testid={`cercle-tier-${tier.key}-benefit-${i}`}>
+            <div
+              className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.35)' }}
+            >
+              <Icon className="w-4 h-4" strokeWidth={1.4} style={{ color: '#D4AF37' }} />
+            </div>
+            <div>
+              <div
+                style={{
+                  fontFamily: 'Cinzel, serif',
+                  fontSize: 12,
+                  color: '#F5EEE0',
+                  letterSpacing: '0.1em',
+                  marginBottom: 2,
+                }}
+              >
+                {b.title}
+              </div>
+              <div
+                className="text-xs"
+                style={{
+                  color: 'rgba(227,215,255,0.7)',
+                  fontFamily: 'Cormorant Garamond, serif',
+                  fontStyle: 'italic',
+                  lineHeight: 1.5,
+                }}
+              >
+                {b.desc}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+
+    {alreadyMember && isCurrentTier ? (
+      <div
+        className="inline-flex items-center gap-2 px-5 py-3 rounded-full w-full justify-center"
+        data-testid={`cercle-tier-${tier.key}-already`}
+        style={{
+          background: 'rgba(212,175,55,0.15)',
+          border: '1px solid rgba(212,175,55,0.4)',
+          color: '#D4AF37',
+          fontFamily: 'Cinzel, serif',
+          fontSize: 12,
+          letterSpacing: '0.2em',
+        }}
+      >
+        <Check className="w-4 h-4" strokeWidth={1.8} />
+        TU ES MEMBRE
+      </div>
+    ) : (
+      <button
+        onClick={() => onSubscribe(tier.key)}
+        disabled={loading || (alreadyMember && !isCurrentTier)}
+        className="plume-btn-primary w-full justify-center"
+        data-testid={`cercle-tier-${tier.key}-cta`}
+        style={{ display: 'inline-flex' }}
+      >
+        {loading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" /> Redirection...
+          </>
+        ) : (
+          <>
+            Rejoindre <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
+          </>
+        )}
+      </button>
+    )}
+
+    {error && (
+      <p className="mt-3 text-xs text-center" style={{ color: '#f87171' }} data-testid={`cercle-tier-${tier.key}-error`}>
+        {error}
+      </p>
+    )}
+  </div>
+);
 
 const CercleSolena = () => {
   const navigate = useNavigate();
   const { isAuthenticated, session, loading: authLoading } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(null); // 'normal' | 'premium' | null
   const [error, setError] = useState('');
   const [status, setStatus] = useState(null);
 
-  // Vérifie si l'utilisateur est déjà abonné
   useEffect(() => {
     if (!isAuthenticated || !session?.access_token) return;
-    axios.get(`${API}/subscriptions/cercle-solena/status`, {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    }).then((r) => setStatus(r.data)).catch(() => {});
+    axios
+      .get(`${API}/subscriptions/cercle-solena/status`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      .then((r) => setStatus(r.data))
+      .catch(() => {});
   }, [isAuthenticated, session]);
 
-  const handleCheckout = async () => {
-    track(EVENTS.CERCLE_SOLENA_CHECKOUT, { authenticated: isAuthenticated });
+  const handleCheckout = async (tier) => {
+    track(EVENTS.CERCLE_SOLENA_CHECKOUT, { authenticated: isAuthenticated, tier });
     if (!isAuthenticated) {
-      navigate('/connexion?redirect=/cercle-solena');
+      navigate(`/connexion?redirect=/cercle-solena`);
       return;
     }
-    setLoading(true);
+    setLoading(tier);
     setError('');
     try {
       const r = await axios.post(
         `${API}/subscriptions/cercle-solena/checkout`,
-        { origin_url: window.location.origin },
+        { origin_url: window.location.origin, tier },
         { headers: { Authorization: `Bearer ${session.access_token}` } },
       );
       window.location.href = r.data.url;
     } catch (e) {
       setError(e.response?.data?.detail || 'Impossible de créer la session. Réessaie dans un instant.');
-      setLoading(false);
+      setLoading(null);
     }
   };
 
   const isAlreadyMember = status?.active;
+  const currentTier = status?.tier;
 
   return (
     <>
       <SEO
         title="Cercle Soléna — Abonnement mensuel Plume Astrale"
-        description="Rejoins le Cercle Soléna. 3 crédits/mois, accès communauté, réductions permanentes. 19€/mois, résiliable à tout moment."
+        description="Rejoins le Cercle Soléna. Deux tiers : 50 crédits chat/mois à 14,99€ ou 150 chat + priorité à 29€. Résiliable à tout moment."
       />
       <PageHero
         badge="✦ Cercle Soléna ✦"
         title="Un rendez-vous mensuel avec ton étoile"
-        subtitle="19€ par mois pour continuer à te lire, mois après mois — accès communauté, crédits, réductions."
+        subtitle="Deux formules pour continuer à te lire, mois après mois. Résilie en 1 clic."
       />
 
-      <div className="max-w-4xl mx-auto px-6 pb-24 pt-4">
-        {/* Pricing card centrale */}
-        <div
-          className="plume-glass p-6 md:p-10 mb-10 text-center relative overflow-hidden"
-          data-testid="cercle-solena-pricing"
-          style={{
-            border: '1px solid rgba(212,175,55,0.4)',
-            boxShadow: '0 30px 80px -30px rgba(212,175,55,0.3)',
-          }}
-        >
-          <p className="text-[10px] uppercase mb-4" style={{ color: '#D4AF37', letterSpacing: '0.35em', fontFamily: 'Cinzel, serif' }}>
-            ✦ Abonnement mensuel ✦
-          </p>
-
-          <div className="flex items-baseline justify-center gap-2 mb-2">
-            <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 72, color: '#D4AF37', fontWeight: 300, lineHeight: 1 }}>19€</span>
-            <span style={{ color: 'rgba(227,215,255,0.65)', fontSize: 18, fontStyle: 'italic', fontFamily: 'Cormorant Garamond, serif' }}>/mois</span>
-          </div>
-          <p className="text-xs mb-6" style={{ color: 'rgba(227,215,255,0.55)', letterSpacing: '0.15em' }}>
-            Sans engagement · Résiliation en 1 clic
-          </p>
-
-          {isAlreadyMember ? (
-            <div
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-full"
-              data-testid="cercle-already-member"
-              style={{ background: 'rgba(212,175,55,0.15)', border: '1px solid rgba(212,175,55,0.4)', color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 13, letterSpacing: '0.2em' }}
-            >
-              <Check className="w-4 h-4" strokeWidth={1.8} />
-              TU ES MEMBRE DU CERCLE
-            </div>
-          ) : (
-            <>
-              <button
-                onClick={handleCheckout}
-                disabled={loading || authLoading}
-                className="plume-btn-primary"
-                data-testid="cercle-solena-cta"
-                style={{ display: 'inline-flex', minWidth: 260, justifyContent: 'center' }}
-              >
-                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirection...</> :
-                  isAuthenticated ? <>Rejoindre le Cercle <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></>
-                                  : <>Créer mon compte pour rejoindre <ArrowRight className="w-4 h-4" strokeWidth={1.5} /></>}
-              </button>
-              {error && (
-                <p className="mt-3 text-xs" style={{ color: '#f87171' }} data-testid="cercle-solena-error">{error}</p>
-              )}
-              <p className="text-[11px] mt-4" style={{ color: 'rgba(227,215,255,0.5)', letterSpacing: '0.1em' }}>
-                Paiement sécurisé Stripe · Facture PDF envoyée par email
-              </p>
-            </>
-          )}
+      <div className="max-w-5xl mx-auto px-6 pb-24 pt-4">
+        {/* 2 tiers side-by-side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-14" data-testid="cercle-tiers-grid">
+          <TierCard
+            tier={TIERS.normal}
+            onSubscribe={handleCheckout}
+            loading={loading === 'normal'}
+            error={loading === 'normal' ? error : ''}
+            alreadyMember={isAlreadyMember}
+            isCurrentTier={currentTier === 'normal'}
+            highlighted={false}
+          />
+          <TierCard
+            tier={TIERS.premium}
+            onSubscribe={handleCheckout}
+            loading={loading === 'premium'}
+            error={loading === 'premium' ? error : ''}
+            alreadyMember={isAlreadyMember}
+            isCurrentTier={currentTier === 'premium'}
+            highlighted
+          />
         </div>
 
-        {/* Avantages */}
-        <h2
-          className="text-center mb-8"
-          style={{
-            fontFamily: 'Cormorant Garamond, serif',
-            fontWeight: 300,
-            fontSize: 'clamp(24px, 3vw, 34px)',
-            color: '#F5EEE0',
-            fontStyle: 'italic',
-          }}
-        >
-          Ce que tu reçois chaque mois
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-          {BENEFITS.map((b, i) => {
-            const Icon = b.icon;
-            return (
-              <div key={i} className="plume-glass p-5 flex items-start gap-4" data-testid={`cercle-benefit-${i}`}>
-                <div
-                  className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center"
-                  style={{ background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.35)' }}
-                >
-                  <Icon className="w-5 h-5" strokeWidth={1.4} style={{ color: '#D4AF37' }} />
-                </div>
-                <div>
-                  <div style={{ fontFamily: 'Cinzel, serif', fontSize: 13, color: '#F5EEE0', letterSpacing: '0.12em', marginBottom: 4 }}>
-                    {b.title}
-                  </div>
-                  <div className="text-sm" style={{ color: 'rgba(227,215,255,0.7)', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic', lineHeight: 1.5 }}>
-                    {b.desc}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* FAQ minimaliste */}
+        {/* FAQ */}
         <div className="plume-glass p-6 md:p-8" data-testid="cercle-faq">
-          <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#F5EEE0', marginBottom: 14, fontStyle: 'italic' }}>
+          <h3
+            style={{
+              fontFamily: 'Cormorant Garamond, serif',
+              fontSize: 22,
+              color: '#F5EEE0',
+              marginBottom: 14,
+              fontStyle: 'italic',
+            }}
+          >
             Questions fréquentes
           </h3>
           <div className="space-y-4 text-sm" style={{ color: 'rgba(227,215,255,0.75)', fontFamily: 'Cormorant Garamond, serif' }}>
             <div>
-              <div style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.12em', marginBottom: 4 }}>PUIS-JE RÉSILIER À TOUT MOMENT ?</div>
-              <p>Oui. Depuis ta page « Mon Compte », un clic ouvre le Portail Stripe où tu résilies en 3 secondes. L&apos;accès reste actif jusqu&apos;à la fin du mois en cours.</p>
+              <div
+                style={{
+                  color: '#D4AF37',
+                  fontFamily: 'Cinzel, serif',
+                  fontSize: 12,
+                  letterSpacing: '0.12em',
+                  marginBottom: 4,
+                }}
+              >
+                PUIS-JE RÉSILIER À TOUT MOMENT ?
+              </div>
+              <p>
+                Oui. Depuis ta page « Mon Compte », un clic ouvre le Portail Stripe où tu résilies en 3 secondes. L&apos;accès
+                reste actif jusqu&apos;à la fin du mois en cours.
+              </p>
             </div>
             <div>
-              <div style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.12em', marginBottom: 4 }}>QUAND SONT CRÉDITÉS LES 3 CRÉDITS ?</div>
-              <p>Immédiatement au 1er paiement, puis chaque renouvellement mensuel. Les crédits ne se cumulent pas indéfiniment — utilise-les dans le mois pour en profiter.</p>
+              <div
+                style={{
+                  color: '#D4AF37',
+                  fontFamily: 'Cinzel, serif',
+                  fontSize: 12,
+                  letterSpacing: '0.12em',
+                  marginBottom: 4,
+                }}
+              >
+                COMMENT MARCHENT LES CRÉDITS CHAT ?
+              </div>
+              <p>
+                Ils sont réservés au chat avec Soléna (10 crédits par question). Ils sont crédités automatiquement au 1er paiement
+                puis à chaque renouvellement mensuel. Ils ne se cumulent pas indéfiniment — utilise-les dans le mois.
+              </p>
             </div>
             <div>
-              <div style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.12em', marginBottom: 4 }}>C&apos;EST QUOI, LA COMMUNAUTÉ ?</div>
-              <p>Un espace privé où Soléna partage des lectures collectives, tu poses des questions et rencontres d&apos;autres âmes en cheminement. Discord dédié.</p>
+              <div
+                style={{
+                  color: '#D4AF37',
+                  fontFamily: 'Cinzel, serif',
+                  fontSize: 12,
+                  letterSpacing: '0.12em',
+                  marginBottom: 4,
+                }}
+              >
+                PUIS-JE PASSER DU TIER NORMAL AU PREMIUM ?
+              </div>
+              <p>
+                Oui, à tout moment depuis le Portail Stripe. La différence est facturée au prorata.
+              </p>
             </div>
           </div>
         </div>

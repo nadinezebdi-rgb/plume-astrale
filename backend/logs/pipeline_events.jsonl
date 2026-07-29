@@ -1,1 +1,3 @@
 {"ts": "2026-07-22T08:20:10.451547+00:00", "event": "natal_pdf_generated", "source": "gpt", "tier": "ultra", "bytes": 45944251, "ai_planet_count": 11}
+{"ts": "2026-07-29T08:26:24.884489+00:00", "event": "natal_pdf_generated", "source": "none", "tier": "legacy", "bytes": 22762650, "ai_planet_count": 0}
+{"ts": "2026-07-29T08:28:50.239807+00:00", "event": "natal_pdf_generated", "source": "none", "tier": "legacy", "bytes": 22752591, "ai_planet_count": 0}

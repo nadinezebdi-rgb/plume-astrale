@@ -1415,6 +1415,59 @@ async def electional_search(
 
 # ════════ RENDU CHART SVG (Ultra — 10 crédits) ════════
 
+def _svg_cache_key(chart_type: str, theme: str, language: str, birth_data: Dict[str, Any]) -> str:
+    """Hash stable pour cache SVG. Le nom est ignoré (le SVG ne l'affiche pas)."""
+    bd = birth_data or {}
+    parts = [
+        chart_type, theme, language,
+        bd.get('year'), bd.get('month'), bd.get('day'),
+        bd.get('hour'), bd.get('minute'),
+        round(float(bd.get('latitude') or 0), 4),
+        round(float(bd.get('longitude') or 0), 4),
+        bd.get('timezone') or '',
+    ]
+    raw = '|'.join(str(p) for p in parts)
+    return hashlib.sha256(raw.encode()).hexdigest()[:32]
+
+
+async def _svg_cache_get(cache_key: str, chart_type: str) -> Optional[str]:
+    """Lit un SVG dans Supabase Storage bucket 'reports' sous chart-svg-cache/{type}/{hash}.svg."""
+    import asyncio
+    path = f'chart-svg-cache/{chart_type}/{cache_key}.svg'
+    try:
+        def _read():
+            from services.supabase_client import get_admin_client
+            sb = get_admin_client()
+            return sb.storage.from_('reports').download(path)
+        blob = await asyncio.to_thread(_read)
+        if blob:
+            return blob.decode('utf-8')
+    except Exception as e:
+        # Object not found = cache miss (normal)
+        msg = str(e).lower()
+        if 'not_found' not in msg and 'not found' not in msg and '404' not in msg:
+            print(f'[astrology_io.svg_cache] read miss {path}: {e}')
+    return None
+
+
+async def _svg_cache_put(cache_key: str, chart_type: str, svg: str) -> None:
+    """Upload le SVG dans le cache (non bloquant si erreur)."""
+    import asyncio
+    path = f'chart-svg-cache/{chart_type}/{cache_key}.svg'
+    try:
+        def _write():
+            from services.supabase_client import get_admin_client
+            sb = get_admin_client()
+            sb.storage.from_('reports').upload(
+                path, svg.encode('utf-8'),
+                {'content-type': 'image/svg+xml', 'cache-control': '31536000'},
+            )
+        await asyncio.to_thread(_write)
+        print(f'[astrology_io.svg_cache] STORED {path} ({len(svg)} bytes)')
+    except Exception as e:
+        print(f'[astrology_io.svg_cache] write failed {path}: {e}')
+
+
 async def chart_svg_render(
     birth_data: Dict[str, Any],
     name: str = 'Voyageur',
@@ -1423,13 +1476,32 @@ async def chart_svg_render(
     language: str = 'fr',
 ) -> Optional[str]:
     """Génère un chart SVG (natal, synastry, transit, composite).
-    Retourne le SVG sous forme de string.
-    chart_type: natal | synastry | transit | composite
-    theme: dark | light | cosmic | astrocom
+
+    Endpoint réel : POST /api/v3/render/{chart_type} (10 crédits astrology-api.io).
+    Cache SVG persistant dans Supabase Storage (bucket 'reports', prefix chart-svg-cache/).
+    Le hash inclut chart_type, theme, language et toutes les coords natales.
+    Renvoie directement du contenu SVG (text/xml) — pas de wrapping JSON.
+    chart_type : natal | synastry | transit | composite
+    theme      : dark | light | cosmic | astrocom
     """
-    result = await _call('/render/chart-svg', {
+    import httpx
+    import os
+
+    # ── 1) Cache lookup (économise 10 crédits astrology-api.io par hit)
+    cache_key = _svg_cache_key(chart_type, theme, language, birth_data)
+    cached = await _svg_cache_get(cache_key, chart_type)
+    if cached:
+        print(f'[astrology_io.svg_cache] HIT {chart_type}/{cache_key} (économie: 10 crédits API)')
+        return cached
+
+    api_key = os.environ.get('ASTROLOGY_API_IO_KEY')
+    if not api_key:
+        print('[astrology_io] /render/chart-svg EXCEPTION : ASTROLOGY_API_IO_KEY env var manquante')
+        return None
+
+    endpoint = f'/render/{chart_type}'
+    payload = {
         'subject': make_subject(name, birth_data),
-        'chart_type': chart_type,
         'options': {
             'language': language,
             'theme': theme,
@@ -1437,11 +1509,46 @@ async def chart_svg_render(
             'show_aspects': True,
             'show_arabic_parts': True,
         },
-    })
-    if not result:
+    }
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.post(
+                f'{BASE_URL}{endpoint}',
+                json=payload,
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/xml, image/svg+xml, */*',
+                },
+            )
+            if r.status_code != 200:
+                print(f'[astrology_io] {endpoint} -> {r.status_code} : {r.text[:180]}')
+                return None
+            body = r.text
+            svg_out: Optional[str] = None
+            # Cas 1 : SVG brut
+            if body.lstrip().startswith('<?xml') or '<svg' in body[:200]:
+                svg_out = body
+            else:
+                # Cas 2 : JSON wrapping (compat future)
+                try:
+                    data = r.json()
+                    if isinstance(data, dict):
+                        svg_out = (data.get('svg') or data.get('chart_svg')
+                                   or data.get('data') or data.get('content'))
+                except Exception:
+                    pass
+            # ── 2) Store in cache (best-effort, non bloquant)
+            if svg_out and '<svg' in svg_out[:400]:
+                import asyncio
+                try:
+                    asyncio.create_task(_svg_cache_put(cache_key, chart_type, svg_out))
+                except Exception:
+                    pass
+            return svg_out
+    except Exception as e:
+        print(f'[astrology_io] {endpoint} EXCEPTION : {e}')
         return None
-    # Retourner le SVG string
-    return result.get('svg') or result.get('chart_svg') or result.get('data')
 
 
 async def chart_svg_synastry(

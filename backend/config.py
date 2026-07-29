@@ -76,15 +76,60 @@ class Settings:
             'tagline': "Analyse karmique complete + Arbre de Vie + synthese croisee IA — PDF ~40 pages.",
         },
         # ═══════════════════════════════════════════════════════════
+        # Thème Natal one-shot 29€ — flagship (2026-02 Gary Vee refonte)
+        'theme_natal_pdf_oneshot': {
+            'name': 'Thème Natal Complet',
+            'credits': 0,   # one-shot
+            'bonus': 0,
+            'amount': 29.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'theme_natal_pdf_oneshot',
+            'tagline': 'Ton portrait astrologique complet — 11 planètes, ascendant, maisons, aspects — PDF luxe 20 à 40 pages, voix Soléna.',
+        },
+        # Trio Découverte 79€ — bundle Thème Natal + Numérologie + Kabbale (économie 8€)
+        'trio_decouverte': {
+            'name': 'Trio Découverte',
+            'credits': 0,
+            'bonus': 0,
+            'amount': 79.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'trio_decouverte',
+            'tagline': "Ton Thème Natal + ta Numérologie + ton Arbre de Vie Kabbale — 3 PDFs livrés en 5 minutes. Économise 12€.",
+        },
+        # Duo Complémentaire 50€ — cross-sell post-Thème Natal (Numérologie + Kabbale, économie 8€)
+        'duo_completion': {
+            'name': 'Duo Complémentaire',
+            'credits': 0,
+            'bonus': 0,
+            'amount': 50.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'duo_completion',
+            'tagline': "Complète ton Thème Natal — Numérologie sacrée + Arbre de Vie Kabbale. Économise 8€ (vs 58€ séparés).",
+        },
+        # Hyperpremium anchor 149€ — n'est presque jamais vendu, sert d'ancrage
+        'consultation_ultime': {
+            'name': 'Consultation Ultime — Soléna à tes côtés',
+            'credits': 0,
+            'bonus': 0,
+            'amount': 149.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'consultation_ultime',
+            'tagline': "Thème Natal 40 pages + chat illimité 24h + lecture personnalisée enregistrée par Soléna — expérience complète sans limite.",
+        },
+        # ═══════════════════════════════════════════════════════════
         'rencontres_ultime': {
-            'name': 'Guide de Compatibilité Ultime & Calendrier de Rencontres',
+            'name': 'Guide Ultime du Partenaire Idéal + Calendrier de Rencontres',
             'credits': 0,   # one-shot, pas de crédit
             'bonus': 0,
-            'amount': 29.99,
+            'amount': 34.99,
             'currency': 'eur',
             'kind': 'oneshot',
             'product': 'rencontres_ultime',
-            'tagline': 'Ton portrait partenaire ideal + 3 fenetres de rencontre + rituels energetiques.',
+            'tagline': 'Portrait de ton partenaire idéal (traits physiques, psychologiques, valeurs) + 3 fenêtres de rencontre calculées + rituels énergétiques — PDF 25 pages.',
         },
         'kabbale_arbre_de_vie': {
             'name': 'Ton Arbre de Vie Kabbalistique',
@@ -126,16 +171,6 @@ class Settings:
             'product': 'karma_destin_analysis',
             'tagline': 'Nœuds lunaires + Saturne + Chiron + Pluton — PDF 15 pages guide spirituel.',
         },
-        'fenetre_rencontre_avancee': {
-            'name': 'Fenêtres de Rencontre Avancées',
-            'credits': 0,   # one-shot
-            'bonus': 0,
-            'amount': 29.00,
-            'currency': 'eur',
-            'kind': 'oneshot',
-            'product': 'fenetre_rencontre_avancee',
-            'tagline': '3 fenêtres de rencontre calculées + synastrie optionnelle — PDF 10 pages.',
-        },
     }
 
     # Grille GaryVee — tous les services sont des multiples/fractions de 10 cr (unité = 1 question)
@@ -154,7 +189,9 @@ class Settings:
         'numerologie': 30,           # Année perso / Chemin de vie
         'lecture_astrologique': 40,  # Cycle actuel : transits, Mercure retrograde
         # Rapports premium (6 questions equivalentes)
-        'theme_natal_pdf': 60,       # Theme Natal complet — le produit "phare"
+        # Thème Natal Flash (5 pages, IA légère) — loss leader d'acquisition
+        # La version Complète 20-40 pages est vendue en one-shot 29€ (voir PACKS)
+        'theme_natal_pdf': 30,       # 5 pages flash — descendu de 80 (2026-02 refonte)
         'cartographie': 60,
         'cartographie_premium': 60,
         'synastrie': 60,
