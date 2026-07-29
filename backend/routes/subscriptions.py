@@ -157,17 +157,25 @@ async def cercle_solena_checkout(
 
 @router.get('/cercle-solena/status')
 async def cercle_solena_status(user: dict = Depends(get_current_user)):
-    """Retourne le statut de l'abonnement Cercle Soléna (tous tiers) de l'utilisateur."""
+    """Retourne le statut de l'abonnement Cercle Soléna (tous tiers) de l'utilisateur.
+    Fallback safe si la migration Feb 2026 (subscriptions.product, subscriptions.tier) n'est pas appliquée.
+    """
     supabase = get_admin_client()
-    resp = (
-        supabase.table('subscriptions')
-        .select('id, stripe_subscription_id, status, current_period_end, cancel_at_period_end, created_at, product')
-        .eq('user_id', user['id'])
-        .in_('product', [CERCLE_PRODUCT_KEY, CERCLE_PREMIUM_PRODUCT_KEY])
-        .order('created_at', desc=True)
-        .limit(1)
-        .execute()
-    )
+    try:
+        resp = (
+            supabase.table('subscriptions')
+            .select('id, stripe_subscription_id, status, current_period_end, cancel_at_period_end, created_at, product')
+            .eq('user_id', user['id'])
+            .in_('product', [CERCLE_PRODUCT_KEY, CERCLE_PREMIUM_PRODUCT_KEY])
+            .order('created_at', desc=True)
+            .limit(1)
+            .execute()
+        )
+    except Exception as e:
+        # Colonne 'product' pas encore migrée en base : contrat safe
+        logger.warning(f"[cercle_solena/status] fallback (migration missing?): {e}")
+        return {'active': False, 'subscription': None, 'tier': None}
+
     sub = (resp.data or [None])[0]
     if not sub:
         return {'active': False, 'subscription': None, 'tier': None}
