@@ -1280,3 +1280,23 @@ le repo — pour ne pas alourdir le deploy.
 - `backend/services/pexels_service.py`, `backend/services/sora_service.py` — nouveaux
 - `backend/routes/marketing.py` — endpoints TikTok/hook/tirage
 - `backend/scripts/build_tiktok_docs.py`, `backend/scripts/pdf_to_scroll_video.py` — nouveaux
+
+### 🧹 Nettoyage code review (29 juil 2026)
+7 fichiers legacy orphelins déplacés vers `_deleted_2026_07_29/` :
+- `services/auth_service.py` (Mongo/JWT legacy → remplacé par Supabase middleware)
+- `services/premium_service.py` (5-step LLM generator → remplacé par static /premium/generate)
+- `services/pdf_generator_v2.py` (Manuscrit V4 → remplacé par natal_pdf_v2)
+- `services/tarot_pdf.py` (→ remplacé par tarot_pdf_v2)
+- `services/streak_service.py` (Mongo streak → remplacé par daily_ritual)
+- `services/astro_content_extended.py` (importé uniquement par pdf_generator_v2 supprimé)
+- `services/translation_service.py` (importé uniquement par premium_service supprimé)
+
+Backend redémarre proprement post-suppression, chat + marketing endpoints validés.
+
+À investiguer plus tard (routes/astrology_v3_extended.py) : ~30 endpoints Vedic/Chinese/return/progressions non wired dans server.py → soit brancher, soit supprimer.
+
+### 🐛 Fix Legacy vs Ultra (bonus 29 juil)
+`natal_pdf_adapter.py` : `is_ultra` compte maintenant AUSSI les planètes de `_raw_v3_by_planet` (fallback quand GPT plante). Empêche le fallback Legacy 5 planètes alors que la data v3 fournit 11 planètes complètes.
+
+### 📄 12 horoscopes journaliers PDFs
+Générés dans `/app/frontend/public/marketing/horoscopes/` — un par signe, format A4 vertical, 2 pages chacun (cover + détails Amour/Carrière/Bien-être + Guidance du jour + Table pratique + Question de réflexion). URLs publiques prêtes pour ta série TikTok.
