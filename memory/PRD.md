@@ -14,6 +14,32 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — 💾 Cache SVG Chart Wheels (économie crédits astrology-api.io)
+
+### Contexte
+Chaque appel à `POST /api/v3/render/natal` (SVG chart wheel Kerykeion) consomme **10 crédits** astrology-api.io. Le PDF Natal Ultra les régénère à chaque commande. Pour un utilisateur régulier ou une re-génération de PDF, c'est du gaspillage.
+
+### Implémentation (2026-02)
+- ✅ **Cache Supabase Storage** : bucket `reports`, prefix `chart-svg-cache/{chart_type}/{hash}.svg`.
+- ✅ **Hash déterministe** : SHA256 tronqué à 32 chars sur `chart_type|theme|language|year|month|day|hour|minute|latitude|longitude|timezone`. Le nom du sujet est ignoré (non affiché dans le SVG Kerykeion), maximisant les hits pour les mêmes coordonnées natales.
+- ✅ **Fonction modifiée** : `services/astrology_io_service.py::chart_svg_render()` — check cache → si HIT retourne le SVG stocké → si MISS appelle l'API + upload async (non bloquant).
+- ✅ **Cache-Control** : `31536000` (1 an) — le thème natal ne change jamais.
+- ✅ **Test validé** : 2ème appel identique → HIT confirmé, contenu SVG identique, 10 crédits économisés.
+- ✅ **Logs** : `[astrology_io.svg_cache] HIT natal/{hash} (économie: 10 crédits API)` visible dans les logs backend.
+
+### Impact
+- Utilisateur qui re-télécharge son PDF Natal → 0 crédit consommé (au lieu de 10).
+- Deux utilisateurs nés au même endroit à la même minute → 1 seul appel API.
+- Aucun impact fonctionnel : le SVG rendu est bit-identique à l'appel direct.
+
+### Décision Astrology V3 Extended
+- ✅ **`routes/astrology_v3_extended.py` conservé** (choix utilisateur 1B) — ~30 endpoints Vedic non wired mais gardés pour features futures.
+
+### Redéploiement Production
+- ⚠️ **User action requise** : cliquer sur le bouton "Deploy to Production" Emergent pour pousser tous les fixes P0 en prod (chat asterisks, chart wheel PDF, fallback 11 planètes, cache SVG).
+
+
+
 ## Session Feb 2026 — 🌳 Nouveau produit : Kabbale — Ton Arbre de Vie 39€ (2026-02)
 
 ### Architecture (mirror Rencontres Ultime 29,99€)
