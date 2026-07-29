@@ -107,7 +107,11 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
     }
 
     ai_planet_count = sum(1 for k in _AI_KEY.values() if ai.get(k))
-    is_ultra = ai_planet_count >= 7
+    # Le fallback `api_v3_only` (quand GPT échoue) fournit les textes bruts
+    # de l'API v3. Il faut aussi les considérer pour activer Ultra 11 planètes
+    # (sinon on tombait en Legacy 5 planètes alors que la data v3 est complète).
+    v3_raw_count = len(ai.get('_raw_v3_by_planet') or {})
+    is_ultra = ai_planet_count >= 7 or v3_raw_count >= 7
     planet_list = _ULTRA_PLANETS if is_ultra else _LEGACY_PLANETS
 
     def _find_sign(planet_name_fr: str) -> str:
