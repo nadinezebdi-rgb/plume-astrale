@@ -241,7 +241,7 @@ const MonCompteDropdown = ({ creditBalance, handleLogout, isAdmin }) => {
             onMouseEnter={function(e) { e.currentTarget.style.background = 'rgba(212,175,55,0.06)'; e.currentTarget.style.color = '#E8C766'; }}
             onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(212,175,55,0.75)'; }}
             data-testid="dropdown-recompenses">
-            Mes Recompenses
+            Mon Espace Personnel
           </Link>
 
           <Link to="/mon-compte" style={itemStyle}
@@ -503,7 +503,7 @@ const Navbar = () => {
                     <span style={{ fontWeight: 600 }}>{creditBalance}</span>
                   </Link>
                   <Link to="/quotidien" style={{ display: 'block', padding: '12px 0', fontSize: 13, color: 'rgba(212,175,55,0.7)', textDecoration: 'none' }}>Mon Journal</Link>
-                  <Link to="/mon-compte" style={{ display: 'block', padding: '12px 0', fontSize: 13, color: 'rgba(212,175,55,0.7)', textDecoration: 'none' }}>Mes Recompenses</Link>
+                  <Link to="/mon-compte" style={{ display: 'block', padding: '12px 0', fontSize: 13, color: 'rgba(212,175,55,0.7)', textDecoration: 'none' }}>Mon Espace Personnel</Link>
                   <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0', fontSize: 13, color: 'rgba(255,100,100,0.8)', background: 'none', border: 'none', cursor: 'pointer' }}>
                     <LogOut style={{ width: 16, height: 16 }} strokeWidth={1.5} />Deconnexion
                   </button>

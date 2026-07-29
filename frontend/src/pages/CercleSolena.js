@@ -10,7 +10,7 @@ import { event as track, EVENTS } from '@/lib/analytics';
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
 
 const BENEFITS = [
-  { icon: Gift,     title: '3 crédits offerts chaque mois', desc: 'Rechargés automatiquement à ta date d\u2019anniversaire d\u2019abonnement.' },
+  { icon: Gift,     title: '100 crédits par mois', desc: 'Utilisables uniquement sur le chat avec Soléna. Rechargés automatiquement à ta date d\u2019anniversaire d\u2019abonnement.' },
   { icon: Users,    title: 'Accès au Cercle Soléna',       desc: 'Communauté privée d\u2019initiées — échanges, méditations, réponses de Soléna en direct.' },
   { icon: Calendar, title: 'Lecture Nouvelle Lune',        desc: 'Une lecture symbolique mensuelle offerte à chaque cycle lunaire.' },
   { icon: Sparkles, title: 'Réductions sur les PDF',      desc: '-10% sur Kabbale, Astrocarto, Pack Karmique pendant toute la durée de ton abonnement.' },
@@ -58,7 +58,7 @@ const CercleSolena = () => {
     <>
       <SEO
         title="Cercle Soléna — Abonnement mensuel Plume Astrale"
-        description="Rejoins le Cercle Soléna. 3 crédits/mois, accès communauté, réductions permanentes. 19€/mois, résiliable à tout moment."
+        description="Rejoins le Cercle Soléna. 100 crédits chat/mois, accès communauté, réductions permanentes. 19€/mois, résiliable à tout moment."
       />
       <PageHero
         badge="✦ Cercle Soléna ✦"
@@ -169,8 +169,8 @@ const CercleSolena = () => {
               <p>Oui. Depuis ta page « Mon Compte », un clic ouvre le Portail Stripe où tu résilies en 3 secondes. L&apos;accès reste actif jusqu&apos;à la fin du mois en cours.</p>
             </div>
             <div>
-              <div style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.12em', marginBottom: 4 }}>QUAND SONT CRÉDITÉS LES 3 CRÉDITS ?</div>
-              <p>Immédiatement au 1er paiement, puis chaque renouvellement mensuel. Les crédits ne se cumulent pas indéfiniment — utilise-les dans le mois pour en profiter.</p>
+              <div style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.12em', marginBottom: 4 }}>QUAND SONT CRÉDITÉS LES 100 CRÉDITS CHAT ?</div>
+              <p>Immédiatement au 1er paiement, puis chaque renouvellement mensuel. Ces crédits sont réservés au chat avec Soléna — ils ne se cumulent pas indéfiniment, utilise-les dans le mois pour en profiter.</p>
             </div>
             <div>
               <div style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 12, letterSpacing: '0.12em', marginBottom: 4 }}>C&apos;EST QUOI, LA COMMUNAUTÉ ?</div>

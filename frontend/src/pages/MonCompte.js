@@ -626,7 +626,7 @@ const MonCompte = () => {
                   ✦ Cercle Soléna · 19€/mois ✦
                 </div>
                 <div className="text-sm" style={{ color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>
-                  3 crédits/mois · Communauté privée · -10% sur les PDF
+                  100 crédits chat/mois · Communauté privée · -10% sur les PDF
                 </div>
               </div>
               <div className="text-xs shrink-0" style={{ color: '#D4AF37', letterSpacing: '0.15em' }}>
