@@ -14,6 +14,44 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — 💰 Cross-sell "Duo Complémentaire" post-Thème Natal
+
+### Contexte
+Après un premier achat Thème Natal 29€, l'utilisateur est au pic de son engagement. Gary Vee-style : capitaliser sur ce momentum avec un upsell de 50€ qui étend son portrait astrologique sans lui redemander ses infos de naissance.
+
+### Modifications (2026-02)
+
+#### 🎁 Nouveau pack "Duo Complémentaire" 50€
+- ✅ Config : `duo_completion` @ **50€** (Numérologie 19€ + Kabbale 39€ = 58€ séparés → économie 8€)
+- ✅ Service `services/duo_completion_service.py` — orchestrateur qui crée 2 payment_transactions enfants et délègue aux handlers existants (numerologie + kabbale_service). Idempotence + parent tracking.
+- ✅ Route `routes/duo_completion.py` :
+  - POST `/checkout` — Stripe 50€ (testé live OK)
+  - GET `/status` — polling consolidé 2 PDFs
+  - GET `/pdf-ctx-for-theme-natal` — récupère les coordonnées astrales d'un checkout Thème Natal parent pour pré-remplissage automatique
+- ✅ Webhook Stripe wire dans `server.py::stripe_webhook` (kind='duo_completion')
+
+#### 🎯 Cross-sell sur `/theme-natal/succes`
+- ✅ Bloc "Complète ton portrait" apparaît uniquement quand `status.pdf_ready === true` (post-génération PDF)
+- ✅ Design premium doré avec badge "RECOMMANDÉ", prix barré 58€ → 50€, badge vert "-8€"
+- ✅ Bouton "Ajouter à mon portrait" → récupère automatiquement les infos du Thème Natal via `/pdf-ctx-for-theme-natal` puis lance le checkout Duo (zero friction)
+- ✅ Page succès `/duo-completion/succes` — polling 2 PDFs (Numérologie + Kabbale)
+
+#### 🔧 Correction copie CercleSolenaInvite
+- ✅ "Reçois 100 crédits chat supplémentaires" → "Reçois **50 crédits chat**" (aligné sur tier Normal 14,99€)
+
+### Validation
+- ✅ POST /api/duo-completion/checkout → session Stripe LIVE créée (50€, testé OK)
+- ✅ GET /api/packs contient bien duo_completion @ 50€
+- ✅ Frontend lint clean, backend lint clean
+- ✅ Screenshot `/theme-natal/succes` : le bloc cross-sell reste caché tant que PDF pas ready (comportement voulu)
+
+### Impact business estimé
+Sur 30 conversions Thème Natal/mois :
+- Sans cross-sell : 30 × 29€ = **870€**
+- Avec cross-sell (~15% take-rate estimé Gary Vee) : 30 × 29€ + 4.5 × 50€ = **1 095€** (+26%)
+
+
+
 ## Session Feb 2026 — 🎯 Trio Découverte 79€ + Navbar refonte
 
 ### Ajouts complémentaires (post-Gary Vee refonte)

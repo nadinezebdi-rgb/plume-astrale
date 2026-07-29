@@ -74,6 +74,8 @@ import ThemeNatalOneshotSucces from "./pages/ThemeNatalOneshotSucces";
 // Trio Découverte 79€ (Gary Vee refonte Feb 2026)
 import TrioDecouverte from "./pages/TrioDecouverte";
 import TrioDecouverteSucces from "./pages/TrioDecouverteSucces";
+// Duo Complémentaire 50€ (cross-sell post-Thème Natal, Gary Vee Feb 2026)
+import DuoCompletionSucces from "./pages/DuoCompletionSucces";
 
 // ─── Plume Design System v2 (Feb 2026) ────────────────────────────
 import NoiseOverlay from "./components/design/NoiseOverlay";
@@ -113,6 +115,8 @@ function App() {
           {/* Trio Découverte 79€ (Gary Vee refonte Feb 2026) */}
           <Route path="/trio-decouverte" element={<TrioDecouverte />} />
           <Route path="/trio-decouverte/succes" element={<TrioDecouverteSucces />} />
+          {/* Duo Complémentaire 50€ — page succès (checkout déclenché depuis /theme-natal/succes) */}
+          <Route path="/duo-completion/succes" element={<DuoCompletionSucces />} />
           {/* Anciennes routes Fenêtres de Rencontre — consolidées dans Rencontres Ultime */}
           <Route path="/fenetre-rencontre-pdf" element={<Navigate to="/rencontres-astrales" replace />} />
           <Route path="/fenetre-rencontre/attente" element={<Navigate to="/rencontres-astrales" replace />} />

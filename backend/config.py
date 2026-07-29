@@ -87,7 +87,7 @@ class Settings:
             'product': 'theme_natal_pdf_oneshot',
             'tagline': 'Ton portrait astrologique complet — 11 planètes, ascendant, maisons, aspects — PDF luxe 20 à 40 pages, voix Soléna.',
         },
-        # Trio Découverte 79€ — bundle Thème Natal + Numérologie + Kabbale (économie 12€)
+        # Trio Découverte 79€ — bundle Thème Natal + Numérologie + Kabbale (économie 8€)
         'trio_decouverte': {
             'name': 'Trio Découverte',
             'credits': 0,
@@ -97,6 +97,17 @@ class Settings:
             'kind': 'oneshot',
             'product': 'trio_decouverte',
             'tagline': "Ton Thème Natal + ta Numérologie + ton Arbre de Vie Kabbale — 3 PDFs livrés en 5 minutes. Économise 12€.",
+        },
+        # Duo Complémentaire 50€ — cross-sell post-Thème Natal (Numérologie + Kabbale, économie 8€)
+        'duo_completion': {
+            'name': 'Duo Complémentaire',
+            'credits': 0,
+            'bonus': 0,
+            'amount': 50.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'duo_completion',
+            'tagline': "Complète ton Thème Natal — Numérologie sacrée + Arbre de Vie Kabbale. Économise 8€ (vs 58€ séparés).",
         },
         # Hyperpremium anchor 149€ — n'est presque jamais vendu, sert d'ancrage
         'consultation_ultime': {

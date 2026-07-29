@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Download, ArrowRight, Loader2, Mail } from 'lucide-react';
+import { CheckCircle2, Download, ArrowRight, Loader2, Mail, Star, Moon, Sparkles, Zap } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import CercleSolenaInvite from '@/components/CercleSolenaInvite';
@@ -19,6 +19,8 @@ const ThemeNatalOneshotSucces = () => {
   const sessionId = params.get('session_id');
   const [status, setStatus] = useState({});
   const [polling, setPolling] = useState(true);
+  const [duoLoading, setDuoLoading] = useState(false);
+  const [duoError, setDuoError] = useState(null);
 
   const poll = useCallback(async () => {
     if (!sessionId) return;
@@ -38,6 +40,37 @@ const ThemeNatalOneshotSucces = () => {
     const id = setInterval(poll, 3500);
     return () => clearInterval(id);
   }, [sessionId, polling, poll]);
+
+  // Cross-sell : passe au checkout Duo Complémentaire en réutilisant les infos du Thème Natal
+  const launchDuoUpsell = async () => {
+    setDuoError(null);
+    setDuoLoading(true);
+    try {
+      // 1) Récupère le pdf_ctx depuis le Thème Natal parent
+      const ctxRes = await axios.get(`${API}/api/duo-completion/pdf-ctx-for-theme-natal?session_id=${sessionId}`);
+      const ctx = ctxRes.data || {};
+      if (!ctx.has_context) throw new Error('Contexte astral introuvable');
+      // 2) Lance le checkout Duo avec les infos pré-remplies
+      const r = await axios.post(`${API}/api/duo-completion/checkout`, {
+        email: ctx.email,
+        first_name: ctx.first_name,
+        birth_date: ctx.birth_date,
+        birth_time: typeof ctx.birth_time === 'number' ? String(ctx.birth_time).padStart(2, '0') + ':00' : (ctx.birth_time || '12:00'),
+        birth_city: ctx.birth_city || 'Paris',
+        birth_country: 'FR',
+        latitude: ctx.latitude,
+        longitude: ctx.longitude,
+        origin_url: window.location.origin,
+        parent_theme_natal_session_id: sessionId,
+      });
+      if (r.data?.url) window.location.href = r.data.url;
+      else setDuoError('Une erreur est survenue');
+    } catch (e) {
+      setDuoError(e.response?.data?.detail || e.message || 'Impossible de créer la session Duo');
+    } finally {
+      setDuoLoading(false);
+    }
+  };
 
   const stepState = (key) => {
     const paid = status.payment_status === 'paid' || status.status === 'completed';
@@ -138,6 +171,199 @@ const ThemeNatalOneshotSucces = () => {
             <Mail className="w-3 h-3 inline mr-1" strokeWidth={1.5} />
             Ton PDF arrivera aussi par email dans les 3 minutes.
           </p>
+        )}
+
+        {/* ═══ CROSS-SELL DUO COMPLÉMENTAIRE (Gary Vee post-purchase upsell) ═══ */}
+        {status.pdf_ready && (
+          <div
+            className="mt-12 mb-4 p-6 md:p-8 rounded-2xl relative overflow-hidden text-left"
+            data-testid="theme-natal-cross-sell-duo"
+            style={{
+              background: 'linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(232,199,102,0.04) 100%)',
+              border: '1px solid rgba(212,175,55,0.35)',
+              boxShadow: '0 20px 60px -25px rgba(212,175,55,0.35)',
+            }}
+          >
+            <div
+              className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[9px] uppercase"
+              style={{
+                background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
+                color: '#0A0603',
+                fontFamily: 'Cinzel, serif',
+                letterSpacing: '0.18em',
+                fontWeight: 700,
+              }}
+            >
+              Recommandé
+            </div>
+
+            <p
+              className="text-[10px] uppercase mb-3"
+              style={{ color: '#D4AF37', letterSpacing: '0.35em', fontFamily: 'Cinzel, serif' }}
+            >
+              ✦ Complète Ton Portrait ✦
+            </p>
+
+            <h2
+              style={{
+                fontFamily: 'Cormorant Garamond, serif',
+                fontWeight: 300,
+                fontSize: 'clamp(24px, 3.5vw, 34px)',
+                color: '#F5EEE0',
+                lineHeight: 1.2,
+                marginBottom: 12,
+              }}
+            >
+              Tu viens de recevoir ton Thème Natal.
+              <br />
+              <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>
+                Deux miroirs manquent encore à ton reflet.
+              </em>
+            </h2>
+
+            <p
+              className="mb-5"
+              style={{
+                color: 'rgba(227,215,255,0.8)',
+                fontFamily: 'Cormorant Garamond, serif',
+                fontSize: 16,
+                lineHeight: 1.6,
+                fontStyle: 'italic',
+              }}
+            >
+              Ta <strong style={{ color: '#F5EEE0', fontStyle: 'normal' }}>Numérologie sacrée</strong> et
+              ton <strong style={{ color: '#F5EEE0', fontStyle: 'normal' }}>Arbre de Vie Kabbale</strong> lisent
+              ton âme sous deux angles complémentaires. Ils raisonnent avec ton ciel — tu comprendras pourquoi ton
+              Soleil chante ces notes précises.
+            </p>
+
+            {/* What's included mini */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+              {[
+                { icon: Star, name: 'Numérologie Sacrée', page: '12', desc: 'Chemin de vie, année perso, année maîtresse' },
+                { icon: Moon, name: 'Arbre de Vie Kabbale', page: '15', desc: 'Les 10 sephiroth · tes correspondances' },
+              ].map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 p-3 rounded-xl"
+                    data-testid={`cross-sell-item-${i}`}
+                    style={{ background: 'rgba(17,22,37,0.4)', border: '1px solid rgba(212,175,55,0.15)' }}
+                  >
+                    <div
+                      className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+                      style={{ background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.35)' }}
+                    >
+                      <Icon className="w-4 h-4" style={{ color: '#D4AF37' }} strokeWidth={1.4} />
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontFamily: 'Cormorant Garamond, serif',
+                          fontSize: 15,
+                          color: '#F5EEE0',
+                          fontWeight: 500,
+                          marginBottom: 2,
+                        }}
+                      >
+                        {item.name}
+                      </div>
+                      <div
+                        className="text-xs"
+                        style={{ color: 'rgba(227,215,255,0.7)', lineHeight: 1.4 }}
+                      >
+                        PDF {item.page} pages · {item.desc}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Prix + économie + CTA */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-baseline gap-3">
+                <span
+                  style={{
+                    color: 'rgba(227,215,255,0.55)',
+                    textDecoration: 'line-through',
+                    fontSize: 18,
+                    fontFamily: 'Cormorant Garamond, serif',
+                  }}
+                >
+                  58€
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'Cormorant Garamond, serif',
+                    fontSize: 42,
+                    fontWeight: 300,
+                    color: '#D4AF37',
+                    lineHeight: 1,
+                  }}
+                  data-testid="cross-sell-duo-price"
+                >
+                  50€
+                </span>
+                <div
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(74,222,128,0.15), rgba(74,222,128,0.05))',
+                    border: '1px solid rgba(74,222,128,0.3)',
+                  }}
+                >
+                  <Zap className="w-3 h-3" style={{ color: '#4ADE80' }} strokeWidth={2} />
+                  <span
+                    style={{
+                      color: '#4ADE80',
+                      fontSize: 10,
+                      fontFamily: 'Cinzel, serif',
+                      letterSpacing: '0.15em',
+                    }}
+                  >
+                    -8€
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={launchDuoUpsell}
+                disabled={duoLoading}
+                className="plume-btn-primary"
+                data-testid="cross-sell-duo-cta"
+                style={{ display: 'inline-flex', whiteSpace: 'nowrap' }}
+              >
+                {duoLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Redirection...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" strokeWidth={1.5} />
+                    Ajouter à mon portrait
+                  </>
+                )}
+              </button>
+            </div>
+
+            {duoError && (
+              <p
+                className="text-xs mt-3"
+                style={{ color: '#F87171' }}
+                data-testid="cross-sell-duo-error"
+              >
+                {duoError}
+              </p>
+            )}
+
+            <p
+              className="text-[10px] mt-4"
+              style={{ color: 'rgba(227,215,255,0.45)', letterSpacing: '0.15em' }}
+            >
+              Aucune info à re-saisir — tes coordonnées astrales sont déjà connues.
+            </p>
+          </div>
         )}
 
         <div className="mt-14">

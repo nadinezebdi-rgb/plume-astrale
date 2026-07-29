@@ -109,7 +109,7 @@ const CercleSolenaInvite = ({ sourceProduct = 'pdf', testId = 'post-purchase-cer
         }}
       >
         Ton premier mois au Cercle Soléna est <strong style={{ color: '#D4AF37' }}>offert</strong>.
-        Reçois 100 crédits chat supplémentaires, rejoins la communauté privée et bénéficie de -10%
+        Reçois 50 crédits chat supplémentaires, rejoins la communauté privée et bénéficie de -10%
         sur toutes tes futures lectures. Résilie en 1 clic à tout moment.
       </p>
 
