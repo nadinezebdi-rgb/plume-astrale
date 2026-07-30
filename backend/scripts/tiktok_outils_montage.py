@@ -81,7 +81,7 @@ def build_video():
     concat = ''.join(f'[v{i}]' for i in range(len(frames_sorted))) + f'concat=n={len(frames_sorted)}:v=1:a=0[out]'
     filter_complex = ';'.join(filters) + ';' + concat
 
-    output = OUTPUT_DIR / 'tiktok_outils_montage.mp4'
+    output = OUTPUT_DIR / 'tiktok_outils_chemin_de_vie.mp4'
     cmd = ['ffmpeg', '-y', *inputs,
            '-filter_complex', filter_complex, '-map', '[out]',
            '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-r', str(fps),
@@ -93,7 +93,7 @@ def build_video():
         sys.exit(1)
     size_mb = output.stat().st_size / 1024 / 1024
     print(f'✓ MP4 généré : {output} ({size_mb:.2f} MB)')
-    print(f'  URL preview : {BASE}/marketing/tiktok_outils_montage.mp4')
+    print(f'  URL preview : {BASE}/marketing/tiktok_outils_chemin_de_vie.mp4')
 
 if __name__ == '__main__':
     print('=== Étape 1 : capture des 10 screenshots ===')

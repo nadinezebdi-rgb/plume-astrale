@@ -98,7 +98,7 @@ for slug, title in TITLES.items():
     print(f'  ✓ {slug} → « {title} »')
 
 print('\n=== Reconstruction MP4 40 sec ===')
-out_mp4 = Path('/app/frontend/public/marketing/tiktok_outils_montage.mp4')
+out_mp4 = Path('/app/frontend/public/marketing/tiktok_outils_chemin_de_vie.mp4')
 if out_mp4.exists():
     out_mp4.unlink()
 
