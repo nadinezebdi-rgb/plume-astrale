@@ -65,6 +65,7 @@ from routes.astrocartographie import router as astrocartographie_router
 from routes.astrosexo import router as astrosexo_router
 from routes.apercu import router as apercu_router
 from routes.marketing import router as marketing_router
+from routes.referral import router as referral_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -127,6 +128,7 @@ api_router.include_router(astrosexo_router)
 api_router.include_router(subscriptions_router)
 api_router.include_router(apercu_router)
 api_router.include_router(marketing_router)
+api_router.include_router(referral_router)
 
 
 # ════════════════════════════════════════════
@@ -744,6 +746,24 @@ async def stripe_webhook(request: Request):
 
     event_type = event.get('type') if isinstance(event, dict) else event.type
     data_obj = (event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object)
+
+    # ─── Programme de parrainage : première conversion payante d'un filleul ─────
+    # Non bloquant : capture les erreurs, ne modifie aucun autre flow métier.
+    if event_type == 'checkout.session.completed':
+        try:
+            _sd = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
+            if _sd.get('payment_status') == 'paid':
+                _md = _sd.get('metadata') or {}
+                _uid = _md.get('user_id')
+                if _uid:
+                    from services.referral_service import maybe_reward_on_purchase
+                    await maybe_reward_on_purchase(
+                        _uid,
+                        _sd.get('id'),
+                        _sd.get('amount_total'),
+                    )
+        except Exception as e:
+            logger.warning(f'[referral] webhook hook fail: {e}')
 
     # ─── Route Cercle Soléna (abonnement 19€/mois) EN PREMIER ───────────────
     # Consume : customer.subscription.* + invoice.payment_succeeded (mensuel)

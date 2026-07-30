@@ -13,6 +13,7 @@ import NatalDataModal from '@/components/NatalDataModal';
 import LibraryImage from '@/components/LibraryImage';
 import BundleCard from '@/components/BundleCard';
 import SolenaWritingLoader from '@/components/SolenaWritingLoader';
+import ReferralPanel from '@/components/ReferralPanel';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -575,6 +576,7 @@ const MonCompte = () => {
     { id: 'rapports',     label: 'Mes Rapports' },
     { id: 'abonnement',   label: 'Abonnement'   },
     { id: 'credits',      label: 'Crédits'       },
+    { id: 'parrainage',   label: 'Parrainage'   },
     { id: 'fidelite',     label: 'Assiduité'    },
   ];
 
@@ -1184,6 +1186,15 @@ const MonCompte = () => {
                   Paiements sécurisés par <strong style={{ color: 'var(--pa-body)' }}>Stripe</strong>. Vos données bancaires ne sont jamais stockées sur nos serveurs.
                 </p>
               </div>
+            </div>
+          )}
+
+          {/* ══════════════════════════════════════════════════
+              ONGLET PARRAINAGE
+          ══════════════════════════════════════════════════ */}
+          {activeTab === 'parrainage' && (
+            <div data-testid="tab-parrainage">
+              <ReferralPanel token={token} />
             </div>
           )}
 

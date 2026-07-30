@@ -1547,3 +1547,34 @@ Générés dans `/app/frontend/public/marketing/horoscopes/` — un par signe, f
 - **P2** : Cache SVG pour `chart_svg_synastry()`
 - **P2** : Drop table `sales` inutilisée dans Supabase
 - **P2** : Dashboard admin `/api/admin/cache/svg/stats`
+
+---
+
+## Session Feb 2026 (30/07 — suite) — Cache SVG synastrie + Programme de parrainage
+
+### 🔁 Cache SVG synastrie
+- Refonte `astrology_io_service.chart_svg_synastry` : appelle désormais `/render/synastry` avec le même pattern que `chart_svg_render` (cache Supabase Storage → API → store).
+- Nouvelle fonction `_svg_cache_key_synastry(theme, language, bd1, bd2)` avec **hash symétrique** (A+B et B+A partagent la même entrée cache).
+- Économie : 10 crédits astrology-api.io par couple déjà rendu.
+
+### 🎁 Programme de parrainage
+- **Migration SQL** : `/app/supabase/referrals_migration.sql` — à exécuter dans Supabase SQL Editor.
+  - Ajoute `profiles.referral_code` (unique) + `profiles.referred_by` (FK)
+  - Nouvelle table `referrals` (referrer_id, referred_user_id, first_purchase_at, reward_sent_at, reward_horoscope_sign, reward_email_id)
+- **Backend** :
+  - `services/referral_service.py` : `ensure_referral_code`, `get_stats`, `attach_referrer`, `maybe_reward_on_purchase`, `_send_reward_email`. Résilient si migration non appliquée (fallback code dérivé de user_id, `reason: migration_pending`).
+  - `routes/referral.py` :
+    - `GET /api/referral/me` → { code, link, invited_count, purchased_count, rewards_earned, referrals[], share_text }
+    - `POST /api/referral/attach` { code } → rattache le user au parrain (refuse si déjà rattaché, code perso, code invalide, migration_pending)
+  - **Hook webhook Stripe** (`server.py` juste après signature verify) : sur toute `checkout.session.completed` payée, appelle `maybe_reward_on_purchase(user_id, session_id, amount)`. Non bloquant.
+  - Récompense : email Resend au parrain avec bouton "Télécharger mon horoscope" vers `plume-astrale.fr/marketing/horoscopes/horoscope_journalier_{signe}.pdf` (signe calculé depuis birth_date du parrain).
+- **Frontend** :
+  - `lib/referral.js` : `captureReferralFromURL`, `readReferralCode`, `clearReferralCode` (regex `/^[A-Z0-9]{4,16}$/`, LS key `plume_ref_code`).
+  - `App.js` : capture `?ref=CODE` au tout premier render.
+  - `AuthContext.js` : après register/login, appelle `POST /api/referral/attach` en silent-fail (clear LS si ok).
+  - `components/ReferralPanel.js` : lien + copier, boutons WhatsApp/Email/X, stats (invités/achats/récompenses), historique des derniers parrainages.
+  - `pages/MonCompte.js` : nouvel onglet **Parrainage** entre Crédits et Assiduité.
+- **Testé** : login admin, `/mon-compte?ref=WELCOME1` → LS capturé, tab Parrainage rendu, lien `https://plume-astrale.fr/?ref=B658EFB3` visible, boutons Copier/WhatsApp/Email/X en place. Idempotence code confirmée (deux appels → même code).
+
+### ⚠️ Action utilisateur requise
+Exécuter `/app/supabase/referrals_migration.sql` dans le SQL Editor Supabase pour activer complètement le rattachement + l'attribution des récompenses. Sans migration, le lien est affiché mais aucun filleul ne peut être rattaché (fallback graceful).

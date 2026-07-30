@@ -1,10 +1,27 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { supabase } from '@/lib/supabase';
+import { readReferralCode, clearReferralCode } from '@/lib/referral';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const NATAL_LS_KEY = 'plume_astrale_data';
 const AuthContext = createContext(null);
+
+// Rattache le user courant à son parrain si un code ?ref=X a été capturé.
+// Silent fail : n'interrompt jamais le flow login/register.
+async function _maybeAttachReferrer(accessToken) {
+  const code = readReferralCode();
+  if (!code || !accessToken) return;
+  try {
+    const r = await axios.post(
+      `${API}/api/referral/attach`,
+      { code },
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    if (r.data?.ok) clearReferralCode();
+    // Sinon : on garde le code, l'utilisateur peut retenter plus tard depuis /mon-compte
+  } catch { /* silent */ }
+}
 
 // Sync profile data -> localStorage so legacy pages (Horoscope/Tarot/etc.) read the right data.
 // Always overwrite when a user is logged in to prevent leftover data from another session (e.g. "Saida").
@@ -169,6 +186,7 @@ export const AuthProvider = ({ children }) => {
       } catch (e) { /* ignore */ }
       setSession(newSession);
       await loadMe(newSession.access_token);
+      _maybeAttachReferrer(newSession.access_token);
     }
     return signUpData;
   };
@@ -178,6 +196,7 @@ export const AuthProvider = ({ children }) => {
     if (error) throw new Error(error.message);
     setSession(data.session);
     await loadMe(data.session?.access_token);
+    _maybeAttachReferrer(data.session?.access_token);
     return data;
   };
 
