@@ -44,6 +44,56 @@ def build_signed_pdf_url(session_id: str, token: str) -> str:
     return f'/api/pdf/download?session_id={session_id}&token={token}'
 
 
+def upload_pdf_to_reports_bucket(
+    pdf_bytes: bytes,
+    session_id: str,
+    product_kind: str,
+    filename: Optional[str] = None,
+) -> Optional[str]:
+    """Upload le PDF sur Supabase Storage bucket 'reports/{product_kind}/{session_id}.pdf'.
+    Retourne l'URL publique du PDF, ou None si l'upload échoue.
+
+    Cette URL reste valide après redeploy (contrairement aux fichiers locaux
+    stockés dans /app/backend/assets/ qui sont perdus au restart du pod).
+    Créé 2026-02 pour l'onglet admin "PDFs envoyés".
+    """
+    try:
+        from services.supabase_client import get_admin_client
+        sb = get_admin_client()
+        # Path stable et unique dans le bucket
+        clean_kind = (product_kind or 'other').replace('/', '_').strip('_') or 'other'
+        clean_sid = (session_id or '').replace('/', '_')[-40:]
+        path = f'pdfs/{clean_kind}/{clean_sid}.pdf'
+
+        # Upsert : override si déjà présent (régénération admin, etc.)
+        try:
+            sb.storage.from_('reports').upload(
+                path, pdf_bytes,
+                {'content-type': 'application/pdf', 'cache-control': '31536000', 'upsert': 'true'},
+            )
+        except Exception:
+            # Fallback : delete + upload si upsert non supporté par la SDK
+            try:
+                sb.storage.from_('reports').remove([path])
+            except Exception:
+                pass
+            sb.storage.from_('reports').upload(
+                path, pdf_bytes,
+                {'content-type': 'application/pdf', 'cache-control': '31536000'},
+            )
+
+        # Génère l'URL publique (bucket doit être public sur Supabase)
+        public_url = sb.storage.from_('reports').get_public_url(path)
+        # supabase-py retourne parfois avec un trailing '?', normalise
+        if isinstance(public_url, str):
+            public_url = public_url.rstrip('?')
+        logger.info(f'[pdf_upload] {clean_kind}/{clean_sid} → {public_url}')
+        return public_url
+    except Exception as e:
+        logger.warning(f'[pdf_upload] échec upload Supabase pour {product_kind}/{session_id}: {e}')
+        return None
+
+
 def _resolve_pdf_file(product_kind: str, session_id: str) -> Optional[Path]:
     """Retrouve le fichier PDF sur disque à partir de la clé produit + session."""
     subdir = _PROTECTED_PRODUCTS.get(product_kind)

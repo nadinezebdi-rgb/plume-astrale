@@ -482,3 +482,49 @@ async def regenerate_horoscopes(_admin: dict = Depends(require_admin)):
         'ok': True,
         'message': "Régénération lancée en background — ~2 min. Vérifie /api/health/horoscopes ou les logs backend.",
     }
+
+
+
+@router.get('/pdfs-sent')
+async def admin_pdfs_sent(
+    _admin: dict = Depends(require_admin),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(100, ge=1, le=500),
+    product: str = '',
+):
+    """
+    Liste des PDFs envoyés aux clients — filtrés sur metadata.pdf_supabase_url
+    (uniquement les rapports stockés dans le bucket Supabase 'reports',
+    dont l'URL survit aux redeploys).
+
+    Renvoie : email du client, type de rapport, date d'envoi, URL de téléchargement.
+    """
+    sb = get_admin_client()
+    query = sb.table('payment_transactions').select(
+        'session_id, user_email, pack_id, amount, currency, status, created_at, metadata',
+        count='exact',
+    ).eq('status', 'completed').order('created_at', desc=True)
+    if product:
+        query = query.eq('pack_id', product)
+    offset = (page - 1) * page_size
+    query = query.range(offset, offset + page_size - 1)
+    res = query.execute()
+
+    items = []
+    for tx in (res.data or []):
+        md = tx.get('metadata') or {}
+        supabase_url = md.get('pdf_supabase_url')
+        if not supabase_url:
+            continue  # Filtre : uniquement les PDFs présents sur Supabase Storage
+        items.append({
+            'session_id': tx['session_id'],
+            'user_email': tx.get('user_email') or '',
+            'product': tx.get('pack_id') or md.get('product') or 'unknown',
+            'amount': tx.get('amount') or 0,
+            'currency': tx.get('currency') or 'eur',
+            'sent_at': md.get('email_sent_at') or md.get('pdf_generated_at') or tx.get('created_at'),
+            'pdf_url': supabase_url,
+            'pdf_generated_at': md.get('pdf_generated_at'),
+            'email_sent': bool(md.get('email_sent_at')),
+        })
+    return {'items': items, 'total_with_supabase_url': len(items), 'total_completed': res.count or 0, 'page': page, 'page_size': page_size}
