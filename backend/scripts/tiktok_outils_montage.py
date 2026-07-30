@@ -14,18 +14,28 @@ FRAMES_DIR.mkdir(exist_ok=True)
 
 BASE = 'https://consultation-astro.preview.emergentagent.com'
 
-# 10 outils clés (exclu Trio 79€ + tools prestige, exclu ceux qui demandent auth)
+# 20 pages clés (14 outils + 6 rapports prestige, exclu Trio 79€)
 PAGES = [
     ('01_tarot', f'{BASE}/outils/tarot', 'TAROT'),
-    ('02_ouinon', f'{BASE}/outils/tarot/oui-non', 'TAROT OUI / NON'),
+    ('02_ouinon', f'{BASE}/outils/tarot/oui-non', 'TAROT OUI/NON'),
     ('03_oracle', f'{BASE}/outils/oracle', 'ORACLE DES ANGES'),
     ('04_theme_natal', f'{BASE}/outils/theme-natal', 'THÈME NATAL'),
     ('05_horoscope', f'{BASE}/outils/horoscope', 'HOROSCOPE'),
     ('06_compatibilite', f'{BASE}/outils/compatibilite', 'COMPATIBILITÉ'),
-    ('07_numerologie', f'{BASE}/outils/numerologie', 'NUMÉROLOGIE'),
-    ('08_archetype', f'{BASE}/outils/archetype', 'ARCHÉTYPE'),
-    ('09_energie', f'{BASE}/outils/energie', 'ÉNERGIE DU JOUR'),
-    ('10_consultation', f'{BASE}/outils/consultation', 'DISCUSSION SOLÉNA'),
+    ('07_revolution', f'{BASE}/outils/revolution-solaire', 'RÉVOLUTION SOLAIRE'),
+    ('08_numerologie', f'{BASE}/outils/numerologie', 'NUMÉROLOGIE'),
+    ('09_archetype', f'{BASE}/outils/archetype', 'ARCHÉTYPE'),
+    ('10_love_languages', f'{BASE}/outils/love-languages', 'LOVE LANGUAGES'),
+    ('11_energie', f'{BASE}/outils/energie', 'ÉNERGIE DU JOUR'),
+    ('12_rituel', f'{BASE}/outils/rituel', 'RITUELS PERSONNELS'),
+    ('13_consultation', f'{BASE}/outils/consultation', 'DISCUSSION SOLÉNA'),
+    ('14_astrosexo', f'{BASE}/outils/astrosexo', 'ÉNERGIES AMOUREUSES'),
+    ('15_kabbale', f'{BASE}/kabbale', 'ARBRE DE VIE KABBALE'),
+    ('16_astrocarto', f'{BASE}/astrocartographie', 'ASTROCARTOGRAPHIE'),
+    ('17_natal_29', f'{BASE}/theme-natal', 'THÈME NATAL COMPLET'),
+    ('18_rencontres', f'{BASE}/rencontres-astrales', 'GUIDE DES RENCONTRES'),
+    ('19_pack_karmique', f'{BASE}/pack-karmique', 'PACK KARMIQUE'),
+    ('20_cercle', f'{BASE}/cercle-solena', 'CERCLE SOLÉNA'),
 ]
 
 async def capture():
