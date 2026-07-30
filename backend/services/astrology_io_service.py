@@ -196,7 +196,7 @@ async def _alert_invalid_key(path: str, detail: str) -> None:
 async def _call(path: str, payload: Dict[str, Any], timeout: float = 30.0) -> Optional[Dict[str, Any]]:
     """POST helper. Retourne data ou None si echec. Logs minimal."""
     try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             r = await client.post(
                 f'{BASE_URL}{path}',
                 headers={
@@ -529,6 +529,7 @@ async def natal_report(birth_data: Dict[str, Any], name: str = 'Voyageur', langu
     return await _call('/analysis/natal-report', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language, 'house_system': 'P'},
+        'report_options': {'language': language},
     })
 
 
@@ -587,6 +588,7 @@ async def synastry_report(
         'subject1': make_subject(name_1, birth_data_1),
         'subject2': make_subject(name_2, birth_data_2),
         'options': {'language': language, 'house_system': 'P'},
+        'report_options': {'language': language},
     })
 synastry_report = fr_polish('synastry_report')(synastry_report)
 
@@ -608,6 +610,7 @@ async def solar_return_report(birth_data: Dict[str, Any], return_year: int, name
         'subject': make_subject(name, birth_data),
         'return_year': int(return_year),
         'options': {'language': language, 'house_system': 'P'},
+        'report_options': {'language': language},
         'include_life_areas': True,
     })
 solar_return_report = fr_polish('solar_return_report')(solar_return_report)
@@ -671,6 +674,7 @@ async def archetypes(birth_data: Dict[str, Any], name: str = 'Voyageur', languag
     return await _call('/analysis/archetypes', {
         'subject': make_subject(name, birth_data),
         'language': language,
+        'report_options': {'language': language},
     })
 archetypes = fr_polish('archetypes')(archetypes)
 
@@ -706,6 +710,7 @@ async def karmic_analysis(birth_data: Dict[str, Any], name: str = 'Voyageur', la
     return await _call('/analysis/karmic', {
         'subject': make_subject(name, birth_data),
         'language': language,
+        'report_options': {'language': language},
     })
 karmic_analysis = fr_polish('karmic_analysis')(karmic_analysis)
 
@@ -1193,6 +1198,7 @@ async def personality_analysis(birth_data: Dict[str, Any], name: str = 'Voyageur
     return await _call('/analysis/psychological', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language},
+        'report_options': {'language': language},
     })
 personality_analysis = fr_polish('personality_analysis')(personality_analysis)
 
