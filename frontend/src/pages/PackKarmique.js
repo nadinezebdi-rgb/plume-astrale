@@ -12,7 +12,7 @@ const API = process.env.REACT_APP_BACKEND_URL;
 const inputCls = 'w-full mt-2 px-4 py-3 rounded-xl bg-plume-night-soft/60 border border-plume-gold/20 text-plume-lavender focus:outline-none focus:border-plume-gold/60';
 
 const PackKarmique = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     email: user?.email || '',
@@ -58,11 +58,15 @@ const PackKarmique = () => {
     if (!form.birth_date || !form.birth_time) { setError('Date et heure de naissance requises'); return; }
     setLoading(true);
     try {
-      const r = await axios.post(`${API}/api/pack-karmique/checkout`, {
-        ...form,
-        origin_url: window.location.origin,
-        promo_code: promoCode.trim() || undefined,
-      });
+      const r = await axios.post(
+        `${API}/api/pack-karmique/checkout`,
+        {
+          ...form,
+          origin_url: window.location.origin,
+          promo_code: promoCode.trim() || undefined,
+        },
+        token ? { headers: { Authorization: `Bearer ${token}` } } : {},
+      );
       if (r.data?.url) window.location.href = r.data.url;
       else setError('Une erreur est survenue');
     } catch (e) {

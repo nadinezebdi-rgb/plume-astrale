@@ -1551,18 +1551,92 @@ async def chart_svg_render(
         return None
 
 
+def _svg_cache_key_synastry(theme: str, language: str, bd1: Dict[str, Any], bd2: Dict[str, Any]) -> str:
+    """Hash stable pour cache SVG synastronie. Ordre-indépendant (A+B == B+A)."""
+    def _core(bd: Dict[str, Any]) -> str:
+        bd = bd or {}
+        parts = [
+            bd.get('year'), bd.get('month'), bd.get('day'),
+            bd.get('hour'), bd.get('minute'),
+            round(float(bd.get('latitude') or 0), 4),
+            round(float(bd.get('longitude') or 0), 4),
+            bd.get('timezone') or '',
+        ]
+        return '|'.join(str(p) for p in parts)
+    # Tri des deux signatures pour rendre la clé symétrique
+    sig1, sig2 = sorted([_core(bd1), _core(bd2)])
+    raw = f'synastry|{theme}|{language}|{sig1}||{sig2}'
+    return hashlib.sha256(raw.encode()).hexdigest()[:32]
+
+
 async def chart_svg_synastry(
     birth_data_1: Dict[str, Any], birth_data_2: Dict[str, Any],
     name_1: str = 'Personne 1', name_2: str = 'Personne 2',
     theme: str = 'dark', language: str = 'fr',
 ) -> Optional[str]:
-    """Génère un SVG synastronie biwheel."""
-    result = await _call('/render/chart-svg', {
+    """Génère un SVG synastronie biwheel (10 crédits astrology-api.io).
+
+    Cache SVG persistant dans Supabase Storage (bucket 'reports', prefix chart-svg-cache/synastry/).
+    Le hash est symétrique : A+B et B+A partagent la même entrée cache.
+    """
+    import httpx
+    import os
+
+    # ── 1) Cache lookup (économise 10 crédits par hit)
+    cache_key = _svg_cache_key_synastry(theme, language, birth_data_1, birth_data_2)
+    cached = await _svg_cache_get(cache_key, 'synastry')
+    if cached:
+        print(f'[astrology_io.svg_cache] HIT synastry/{cache_key} (économie: 10 crédits API)')
+        return cached
+
+    api_key = os.environ.get('ASTROLOGY_API_IO_KEY')
+    if not api_key:
+        print('[astrology_io] /render/synastry EXCEPTION : ASTROLOGY_API_IO_KEY env var manquante')
+        return None
+
+    payload = {
         'subject1': make_subject(name_1, birth_data_1),
         'subject2': make_subject(name_2, birth_data_2),
-        'chart_type': 'synastry',
-        'options': {'language': language, 'theme': theme, 'house_system': 'P'},
-    })
-    if not result:
+        'options': {
+            'language': language,
+            'theme': theme,
+            'house_system': 'P',
+            'show_aspects': True,
+        },
+    }
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.post(
+                f'{BASE_URL}/render/synastry',
+                json=payload,
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/xml, image/svg+xml, */*',
+                },
+            )
+            if r.status_code != 200:
+                print(f'[astrology_io] /render/synastry -> {r.status_code} : {r.text[:180]}')
+                return None
+            body = r.text
+            svg_out: Optional[str] = None
+            if body.lstrip().startswith('<?xml') or '<svg' in body[:200]:
+                svg_out = body
+            else:
+                try:
+                    data = r.json()
+                    if isinstance(data, dict):
+                        svg_out = (data.get('svg') or data.get('chart_svg')
+                                   or data.get('data') or data.get('content'))
+                except Exception:
+                    pass
+            if svg_out and '<svg' in svg_out[:400]:
+                import asyncio
+                try:
+                    asyncio.create_task(_svg_cache_put(cache_key, 'synastry', svg_out))
+                except Exception:
+                    pass
+            return svg_out
+    except Exception as e:
+        print(f'[astrology_io] /render/synastry EXCEPTION : {e}')
         return None
-    return result.get('svg') or result.get('chart_svg') or result.get('data')

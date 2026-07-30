@@ -4,6 +4,7 @@ import { CheckCircle2, Download, ArrowRight, Loader2, Mail, Star, Moon, Sparkles
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import CercleSolenaInvite from '@/components/CercleSolenaInvite';
+import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -15,6 +16,7 @@ const STEPS = [
 ];
 
 const ThemeNatalOneshotSucces = () => {
+  const { token } = useAuth();
   const [params] = useSearchParams();
   const sessionId = params.get('session_id');
   const [status, setStatus] = useState({});
@@ -51,18 +53,22 @@ const ThemeNatalOneshotSucces = () => {
       const ctx = ctxRes.data || {};
       if (!ctx.has_context) throw new Error('Contexte astral introuvable');
       // 2) Lance le checkout Duo avec les infos pré-remplies
-      const r = await axios.post(`${API}/api/duo-completion/checkout`, {
-        email: ctx.email,
-        first_name: ctx.first_name,
-        birth_date: ctx.birth_date,
-        birth_time: typeof ctx.birth_time === 'number' ? String(ctx.birth_time).padStart(2, '0') + ':00' : (ctx.birth_time || '12:00'),
-        birth_city: ctx.birth_city || 'Paris',
-        birth_country: 'FR',
-        latitude: ctx.latitude,
-        longitude: ctx.longitude,
-        origin_url: window.location.origin,
-        parent_theme_natal_session_id: sessionId,
-      });
+      const r = await axios.post(
+        `${API}/api/duo-completion/checkout`,
+        {
+          email: ctx.email,
+          first_name: ctx.first_name,
+          birth_date: ctx.birth_date,
+          birth_time: typeof ctx.birth_time === 'number' ? String(ctx.birth_time).padStart(2, '0') + ':00' : (ctx.birth_time || '12:00'),
+          birth_city: ctx.birth_city || 'Paris',
+          birth_country: 'FR',
+          latitude: ctx.latitude,
+          longitude: ctx.longitude,
+          origin_url: window.location.origin,
+          parent_theme_natal_session_id: sessionId,
+        },
+        token ? { headers: { Authorization: `Bearer ${token}` } } : {},
+      );
       if (r.data?.url) window.location.href = r.data.url;
       else setDuoError('Une erreur est survenue');
     } catch (e) {

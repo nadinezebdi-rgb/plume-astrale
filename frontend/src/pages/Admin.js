@@ -92,6 +92,7 @@ export default function Admin() {
   const [promoCodes, setPromoCodes] = useState([]);
   const [leads, setLeads] = useState([]);
   const [leadsTotal, setLeadsTotal] = useState(0);
+  const [pdfsSent, setPdfsSent] = useState(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -151,6 +152,15 @@ export default function Admin() {
     finally { setLoading(false); }
   }, [token]);
 
+  const loadPdfsSent = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await axios.get(`${API}/api/admin/pdfs-sent?page=1&page_size=200`, { headers: { Authorization: `Bearer ${token}` } });
+      setPdfsSent(r.data);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  }, [token]);
+
   useEffect(() => {
     if (!token || !user?.is_admin) return;
     if (tab === 'overview') loadStats();
@@ -159,6 +169,7 @@ export default function Admin() {
     else if (tab === 'transactions') loadTransactions();
     else if (tab === 'leads') loadLeads();
     else if (tab === 'promo') loadPromo();
+    else if (tab === 'pdfs-sent') loadPdfsSent();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, token, user?.is_admin]);
 
@@ -168,6 +179,7 @@ export default function Admin() {
     else if (tab === 'payments') loadPayments();
     else if (tab === 'transactions') loadTransactions();
     else if (tab === 'leads') loadLeads();
+    else if (tab === 'pdfs-sent') loadPdfsSent();
     else loadPromo();
   };
 
@@ -221,6 +233,7 @@ export default function Admin() {
           <Tab label="Transactions" active={tab === 'transactions'} onClick={() => setTab('transactions')} />
           <Tab label="Leads" active={tab === 'leads'} onClick={() => setTab('leads')} count={tab === 'leads' ? leadsTotal : undefined} />
           <Tab label="Codes promo" active={tab === 'promo'} onClick={() => setTab('promo')} />
+          <Tab label="PDFs envoyés" active={tab === 'pdfs-sent'} onClick={() => setTab('pdfs-sent')} count={pdfsSent?.total_with_supabase_url} />
         </div>
 
         {tab === 'overview' && stats && (
@@ -365,7 +378,170 @@ export default function Admin() {
           <PromoSection token={token} promoCodes={promoCodes} reload={loadPromo} />
         )}
 
+        {tab === 'pdfs-sent' && (
+          <PdfsSentSection data={pdfsSent} loading={loading} reload={loadPdfsSent} />
+        )}
+
       </div>
+    </div>
+  );
+}
+
+// ═══════ PDFs Sent Section (Supabase Storage only) ═══════
+function PdfsSentSection({ data, loading, reload }) {
+  const items = data?.items || [];
+  const total = data?.total_with_supabase_url || 0;
+  const totalCompleted = data?.total_completed || 0;
+  const [productFilter, setProductFilter] = React.useState('');
+
+  const filteredItems = productFilter
+    ? items.filter((i) => i.product === productFilter)
+    : items;
+
+  const uniqueProducts = [...new Set(items.map((i) => i.product))].sort();
+
+  const fmtDate = (iso) => {
+    if (!iso) return '—';
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) +
+        ' · ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    } catch { return iso; }
+  };
+
+  const productLabel = (p) => ({
+    'kabbale_arbre_de_vie': 'Kabbale',
+    'kabbale': 'Kabbale',
+    'pack_karmique_kabbale': 'Pack Karmique',
+    'pack_karmique': 'Pack Karmique',
+    'theme_natal_pdf_oneshot': 'Thème Natal 29€',
+    'theme_natal_pdf': 'Thème Natal (crédits)',
+    'astrocartographie': 'Astrocartographie',
+    'rencontres_ultime': 'Rencontres Ultime',
+    'numerologie': 'Numérologie',
+    'karma_destin_analysis': 'Karma & Destin',
+    'karma_destin': 'Karma & Destin',
+    'trio_decouverte': 'Trio Découverte',
+    'duo_completion': 'Duo Complémentaire',
+    'consultation_ultime': 'Consultation Ultime',
+  }[p] || p);
+
+  return (
+    <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,175,55,0.15)' }} data-testid="admin-pdfs-sent-section">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <div>
+          <h2 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)' }}>
+            PDFs envoyés · <span style={{ color: '#D4AF37' }}>{total}</span>
+            <span style={{ color: 'var(--pa-muted)', fontSize: 13, fontStyle: 'italic', marginLeft: 8 }}>
+              (sur {totalCompleted} paiements complétés)
+            </span>
+          </h2>
+          <p className="text-xs mt-1" style={{ color: 'var(--pa-muted)' }}>
+            Filtré sur les rapports stockés dans le bucket Supabase <code>reports</code> — URLs pérennes.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <select
+            value={productFilter}
+            onChange={(e) => setProductFilter(e.target.value)}
+            data-testid="admin-pdfs-product-filter"
+            style={{
+              background: 'rgba(17,22,37,0.6)', color: '#F5EEE0',
+              border: '1px solid rgba(212,175,55,0.25)', borderRadius: 6,
+              padding: '6px 12px', fontSize: 12, letterSpacing: '0.05em',
+            }}
+          >
+            <option value="">Tous les produits</option>
+            {uniqueProducts.map((p) => (
+              <option key={p} value={p}>{productLabel(p)}</option>
+            ))}
+          </select>
+          <button
+            onClick={reload}
+            disabled={loading}
+            data-testid="admin-pdfs-refresh"
+            style={{
+              background: 'rgba(212,175,55,0.10)', color: '#D4AF37',
+              border: '1px solid rgba(212,175,55,0.35)', borderRadius: 999,
+              padding: '6px 14px', fontSize: 11, letterSpacing: '0.15em',
+              textTransform: 'uppercase', cursor: 'pointer',
+            }}
+          >
+            {loading ? '...' : 'Rafraîchir'}
+          </button>
+        </div>
+      </div>
+
+      {filteredItems.length === 0 ? (
+        <div className="text-center py-12" style={{ color: 'var(--pa-muted)', fontStyle: 'italic', fontFamily: 'Cormorant Garamond, serif' }} data-testid="admin-pdfs-empty">
+          {loading ? 'Chargement...' : total === 0
+            ? 'Aucun PDF n\u2019a encore été uploadé sur Supabase Storage. Les nouveaux rapports générés y seront automatiquement stockés.'
+            : 'Aucun résultat pour ce filtre.'}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm" data-testid="admin-pdfs-table">
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(212,175,55,0.2)' }}>
+                <th className="text-left py-3 px-2" style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.15em' }}>DATE</th>
+                <th className="text-left py-3 px-2" style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.15em' }}>CLIENT</th>
+                <th className="text-left py-3 px-2" style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.15em' }}>PRODUIT</th>
+                <th className="text-right py-3 px-2" style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.15em' }}>MONTANT</th>
+                <th className="text-center py-3 px-2" style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.15em' }}>EMAIL</th>
+                <th className="text-right py-3 px-2" style={{ color: '#D4AF37', fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.15em' }}>PDF</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredItems.map((item) => (
+                <tr key={item.session_id} style={{ borderBottom: '1px solid rgba(212,175,55,0.08)' }} data-testid={`admin-pdf-row-${item.session_id}`}>
+                  <td className="py-3 px-2" style={{ color: 'var(--pa-muted)', fontSize: 12 }}>
+                    {fmtDate(item.sent_at)}
+                  </td>
+                  <td className="py-3 px-2" style={{ color: '#F5EEE0' }}>
+                    {item.user_email}
+                  </td>
+                  <td className="py-3 px-2">
+                    <span style={{
+                      background: 'rgba(212,175,55,0.12)', color: '#E8C766',
+                      padding: '3px 8px', borderRadius: 999, fontSize: 11,
+                      letterSpacing: '0.05em',
+                    }}>
+                      {productLabel(item.product)}
+                    </span>
+                  </td>
+                  <td className="py-3 px-2 text-right" style={{ color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif' }}>
+                    {item.amount > 0 ? `${item.amount.toFixed(2)}€` : '—'}
+                  </td>
+                  <td className="py-3 px-2 text-center">
+                    {item.email_sent ? (
+                      <span style={{ color: '#4ADE80', fontSize: 11 }} title="Email envoyé au client">✓</span>
+                    ) : (
+                      <span style={{ color: 'rgba(227,215,255,0.35)', fontSize: 11 }} title="Email non envoyé">—</span>
+                    )}
+                  </td>
+                  <td className="py-3 px-2 text-right">
+                    <a
+                      href={item.pdf_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-testid={`admin-pdf-download-${item.session_id}`}
+                      style={{
+                        color: '#D4AF37', textDecoration: 'none',
+                        border: '1px solid rgba(212,175,55,0.35)',
+                        borderRadius: 999, padding: '4px 12px',
+                        fontSize: 11, letterSpacing: '0.1em',
+                        textTransform: 'uppercase', fontFamily: 'Cinzel, serif',
+                      }}
+                    >
+                      Télécharger ↗
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

@@ -135,11 +135,14 @@ async def handle_theme_natal_oneshot_webhook(session_id: str) -> None:
         with open(out_path, 'wb') as f:
             f.write(pdf_bytes)
         # URL signée (SEC-003)
-        from services.pdf_download import new_pdf_token, build_signed_pdf_url
+        from services.pdf_download import new_pdf_token, build_signed_pdf_url, upload_pdf_to_reports_bucket
         pdf_token = new_pdf_token()
         md['pdf_token'] = pdf_token
         md['pdf_path'] = build_signed_pdf_url(session_id, pdf_token)
         md['pdf_static_path_legacy'] = f'/api/assets/theme_natal/{filename}'
+        supabase_url = upload_pdf_to_reports_bucket(pdf_bytes, session_id, 'theme_natal', filename)
+        if supabase_url:
+            md['pdf_supabase_url'] = supabase_url
         md['pdf_generated_at'] = datetime.now(timezone.utc).isoformat()
         sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
         logger.info(f"[theme_natal_oneshot] PDF generated (signed): {md['pdf_path']}")

@@ -83,9 +83,12 @@ import MobileTabBar from "./components/design/MobileTabBar";
 import AuraProvider from "./components/design/AuraProvider";
 import LiveSalesCounter from "./components/LiveSalesCounter";
 import LaunchBanner from "./components/LaunchBanner";
+import { captureReferralFromURL } from "./lib/referral";
 import ShootingStars from "./components/design/ShootingStars";
 
 function App() {
+  // Capture ?ref=CODE au tout premier render de l'app (avant même le login)
+  React.useEffect(() => { captureReferralFromURL(); }, []);
   return (
     <AuthProvider>
       <AuraProvider>

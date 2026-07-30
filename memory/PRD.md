@@ -14,6 +14,44 @@ Site prod : plume-astrale.fr
 - **Deploy** : Backend Railway / Frontend Netlify
 
 
+## Session Feb 2026 — 🌙 Horoscopes journaliers dynamiques (12 signes)
+
+### Contexte
+Les 12 PDFs d'horoscope étaient **statiques** (contenu poétique hardcodé) — pas de vrais transits. L'utilisateur voulait du contenu vraiment dynamique basé sur les transits du jour.
+
+### Implémentation (2026-02)
+
+#### Pipeline `scripts/build_daily_horoscope.py`
+- ✅ Fetch `/horoscope/sign/daily` sur **astrology-api.io v3** (retourne overall_theme + 4 life_areas: identity/love/career/health avec transits réels type "Uranus en conjonction au FC")
+- ✅ Enrichissement **GPT-5.2** via Emergent LLM Key — reformule les prédictions brutes en ton Soléna (tutoyé, poétique, sans astérisque, mentionne les vrais transits)
+- ✅ Injection dans le template PDF existant (`build_pdf_for_signe`)
+- ✅ Commandes CLI :
+  - `python3 backend/scripts/build_daily_horoscope.py sagittaire` (10s)
+  - `python3 backend/scripts/build_daily_horoscope.py --all` (2 min pour les 12)
+
+#### Scheduler `services/horoscope_scheduler.py`
+- ✅ Boucle async wired dans `server.py::@app.on_event('startup')`
+- ✅ Cible **6h UTC** quotidien (7h Paris hiver / 8h Paris été)
+- ✅ Lock file `/tmp/plume_horoscopes_last_run.txt` (idempotence — pas de double régen)
+- ✅ **Recovery** au démarrage : si backend redémarre après 6h et pas encore tourné → régénère immédiatement
+- ✅ Testé en preview : 12/12 PDFs régénérés en 2 min (14 148 KB total), prochain run planifié
+
+#### Endpoints
+- ✅ `GET /api/health/horoscopes` — statut public (HTTP 200 si à jour + 12 PDFs, 503 sinon) → monitorable via UptimeRobot
+- ✅ `POST /api/admin/regenerate-horoscopes` — trigger manuel (admin only) pour forcer une régénération hors fenêtre
+
+### Coût opérationnel
+- 12 signes × (1 appel astrology-api.io + 1 appel GPT-5.2) par jour
+- ~ 10 crédits astrology-api.io/jour + ~0,20€ GPT-5.2/jour ≈ **6€/mois**
+- Cache SVG (session précédente) ne s'applique PAS ici — les daily horoscopes utilisent `/horoscope/sign/daily` (endpoint distinct)
+
+### Sample content (Sagittaire 2026-07-29)
+> *"Sous la pleine lumière lunaire, tes émotions gagnent en relief... **Uranus en conjonction au Fond du Ciel** remue tes racines... et toi, Sagittaire guidé par **Jupiter**, tu retrouves le sens du chemin dès que tu choisis une direction qui t'agrandit."*
+
+Zéro astérisque, ton Soléna préservé, transits réels du jour cités par nom.
+
+
+
 ## Session Feb 2026 — 🛡️ Stripe Guard anti-mode-test (incident cliente prod)
 
 ### Contexte
@@ -1484,3 +1522,59 @@ Backend redémarre proprement post-suppression, chat + marketing endpoints valid
 
 ### 📄 12 horoscopes journaliers PDFs
 Générés dans `/app/frontend/public/marketing/horoscopes/` — un par signe, format A4 vertical, 2 pages chacun (cover + détails Amour/Carrière/Bien-être + Guidance du jour + Table pratique + Question de réflexion). URLs publiques prêtes pour ta série TikTok.
+
+
+---
+
+## Session Feb 2026 (30/07) — /theme-natal UX + nettoyage dead code
+
+### ✅ Refonte `/theme-natal` (validée UI)
+- **Auto-fill** utilisateur connecté depuis `/api/auth/me` (email, prénom, date, heure, ville, coordonnées)
+- **Bouton "Appliquer le code"** → validation serveur via `POST /api/promo/validate` (cherche `promo_codes` local puis Stripe Promotion Codes)
+- **Prix barré + prix final** affichés avant paiement, badge admin_only si applicable
+- **Format FR** : masque date `JJ/MM/AAAA` + masque heure `HH:MM` 24h (helpers `applyDateMask`, `applyTimeMask`, `toISO`, `fromISO`)
+- **Fix 404 `/api/pdf/download`** : fallback `RedirectResponse` vers `pdf_supabase_url` si le fichier local a disparu
+- Fichiers : `frontend/src/pages/ThemeNatalOneshot.js`, `backend/routes/promo.py`, `backend/services/pdf_download.py`
+- Testé via `mcp_screenshot_tool` : hero → formulaire → masques date/heure OK → promo TESTFAKE renvoie KO propre
+
+### 🗑️ Suppression `routes/astrology_v3_extended.py`
+- ~30 endpoints Vedic/Chinese/return/progressions **non wired** dans `server.py`, aucune référence backend ni frontend
+- Fichier supprimé, backend redémarre proprement, `/api/health/stripe` + `/api/promo/validate` OK
+
+### 📋 Backlog restant
+- **P1** : Bannière "Trio Découverte" sur homepage (actuellement Lune 3D seule)
+- **P1** : Intégration PayPal (demandée #279, différée)
+- **P2** : Cache SVG pour `chart_svg_synastry()`
+- **P2** : Drop table `sales` inutilisée dans Supabase
+- **P2** : Dashboard admin `/api/admin/cache/svg/stats`
+
+---
+
+## Session Feb 2026 (30/07 — suite) — Cache SVG synastrie + Programme de parrainage
+
+### 🔁 Cache SVG synastrie
+- Refonte `astrology_io_service.chart_svg_synastry` : appelle désormais `/render/synastry` avec le même pattern que `chart_svg_render` (cache Supabase Storage → API → store).
+- Nouvelle fonction `_svg_cache_key_synastry(theme, language, bd1, bd2)` avec **hash symétrique** (A+B et B+A partagent la même entrée cache).
+- Économie : 10 crédits astrology-api.io par couple déjà rendu.
+
+### 🎁 Programme de parrainage
+- **Migration SQL** : `/app/supabase/referrals_migration.sql` — à exécuter dans Supabase SQL Editor.
+  - Ajoute `profiles.referral_code` (unique) + `profiles.referred_by` (FK)
+  - Nouvelle table `referrals` (referrer_id, referred_user_id, first_purchase_at, reward_sent_at, reward_horoscope_sign, reward_email_id)
+- **Backend** :
+  - `services/referral_service.py` : `ensure_referral_code`, `get_stats`, `attach_referrer`, `maybe_reward_on_purchase`, `_send_reward_email`. Résilient si migration non appliquée (fallback code dérivé de user_id, `reason: migration_pending`).
+  - `routes/referral.py` :
+    - `GET /api/referral/me` → { code, link, invited_count, purchased_count, rewards_earned, referrals[], share_text }
+    - `POST /api/referral/attach` { code } → rattache le user au parrain (refuse si déjà rattaché, code perso, code invalide, migration_pending)
+  - **Hook webhook Stripe** (`server.py` juste après signature verify) : sur toute `checkout.session.completed` payée, appelle `maybe_reward_on_purchase(user_id, session_id, amount)`. Non bloquant.
+  - Récompense : email Resend au parrain avec bouton "Télécharger mon horoscope" vers `plume-astrale.fr/marketing/horoscopes/horoscope_journalier_{signe}.pdf` (signe calculé depuis birth_date du parrain).
+- **Frontend** :
+  - `lib/referral.js` : `captureReferralFromURL`, `readReferralCode`, `clearReferralCode` (regex `/^[A-Z0-9]{4,16}$/`, LS key `plume_ref_code`).
+  - `App.js` : capture `?ref=CODE` au tout premier render.
+  - `AuthContext.js` : après register/login, appelle `POST /api/referral/attach` en silent-fail (clear LS si ok).
+  - `components/ReferralPanel.js` : lien + copier, boutons WhatsApp/Email/X, stats (invités/achats/récompenses), historique des derniers parrainages.
+  - `pages/MonCompte.js` : nouvel onglet **Parrainage** entre Crédits et Assiduité.
+- **Testé** : login admin, `/mon-compte?ref=WELCOME1` → LS capturé, tab Parrainage rendu, lien `https://plume-astrale.fr/?ref=B658EFB3` visible, boutons Copier/WhatsApp/Email/X en place. Idempotence code confirmée (deux appels → même code).
+
+### ⚠️ Action utilisateur requise
+Exécuter `/app/supabase/referrals_migration.sql` dans le SQL Editor Supabase pour activer complètement le rattachement + l'attribution des récompenses. Sans migration, le lien est affiché mais aucun filleul ne peut être rattaché (fallback graceful).

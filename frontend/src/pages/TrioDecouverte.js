@@ -17,7 +17,7 @@ const TRIO_PRICE = 79;
 const SAVE = TOTAL_INDIV - TRIO_PRICE; // 12
 
 const TrioDecouverte = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     email: user?.email || '',
@@ -42,11 +42,15 @@ const TrioDecouverte = () => {
     if (!form.birth_date || !form.birth_time) return setError('Date et heure de naissance requises');
     setLoading(true);
     try {
-      const r = await axios.post(`${API}/api/trio-decouverte/checkout`, {
-        ...form,
-        origin_url: window.location.origin,
-        promo_code: promoCode.trim() || undefined,
-      });
+      const r = await axios.post(
+        `${API}/api/trio-decouverte/checkout`,
+        {
+          ...form,
+          origin_url: window.location.origin,
+          promo_code: promoCode.trim() || undefined,
+        },
+        token ? { headers: { Authorization: `Bearer ${token}` } } : {},
+      );
       if (r.data?.url) window.location.href = r.data.url;
       else setError('Une erreur est survenue');
     } catch (e) {

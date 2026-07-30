@@ -41,6 +41,7 @@ from services.energy_service import get_energy_today
 from services import premium_subscription
 from routes.admin import router as admin_router
 from routes.health import router as health_router
+from routes.promo import router as promo_router
 from routes.astrology_v3 import router as astrology_v3_router
 from routes.oracle import router as oracle_router
 from routes.cercle import router as cercle_router
@@ -58,11 +59,13 @@ from routes.karma_destin import router as karma_destin_router
 from routes.theme_natal_oneshot import router as theme_natal_oneshot_router
 from routes.trio_decouverte import router as trio_decouverte_router
 from routes.duo_completion import router as duo_completion_router
+from routes.consultation_ultime import router as consultation_ultime_router
 from routes.resend_webhook import router as resend_webhook_router
 from routes.astrocartographie import router as astrocartographie_router
 from routes.astrosexo import router as astrosexo_router
 from routes.apercu import router as apercu_router
 from routes.marketing import router as marketing_router
+from routes.referral import router as referral_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -90,6 +93,7 @@ app = FastAPI(title='Plume Astrale API')
 api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
 api_router.include_router(health_router)
+api_router.include_router(promo_router)
 api_router.include_router(astrology_v3_router)
 api_router.include_router(oracle_router)
 api_router.include_router(cercle_router)
@@ -117,12 +121,14 @@ api_router.include_router(karma_destin_router)
 api_router.include_router(theme_natal_oneshot_router)
 api_router.include_router(trio_decouverte_router)
 api_router.include_router(duo_completion_router)
+api_router.include_router(consultation_ultime_router)
 api_router.include_router(resend_webhook_router)
 api_router.include_router(astrocartographie_router)
 api_router.include_router(astrosexo_router)
 api_router.include_router(subscriptions_router)
 api_router.include_router(apercu_router)
 api_router.include_router(marketing_router)
+api_router.include_router(referral_router)
 
 
 # ════════════════════════════════════════════
@@ -741,6 +747,24 @@ async def stripe_webhook(request: Request):
     event_type = event.get('type') if isinstance(event, dict) else event.type
     data_obj = (event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object)
 
+    # ─── Programme de parrainage : première conversion payante d'un filleul ─────
+    # Non bloquant : capture les erreurs, ne modifie aucun autre flow métier.
+    if event_type == 'checkout.session.completed':
+        try:
+            _sd = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
+            if _sd.get('payment_status') == 'paid':
+                _md = _sd.get('metadata') or {}
+                _uid = _md.get('user_id')
+                if _uid:
+                    from services.referral_service import maybe_reward_on_purchase
+                    await maybe_reward_on_purchase(
+                        _uid,
+                        _sd.get('id'),
+                        _sd.get('amount_total'),
+                    )
+        except Exception as e:
+            logger.warning(f'[referral] webhook hook fail: {e}')
+
     # ─── Route Cercle Soléna (abonnement 19€/mois) EN PREMIER ───────────────
     # Consume : customer.subscription.* + invoice.payment_succeeded (mensuel)
     if event_type in (
@@ -848,6 +872,16 @@ async def stripe_webhook(request: Request):
         except Exception as e:
             logger.warning(f'[karma_destin] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'karma_destin_analysis'}
+
+    # Route vers Consultation Ultime handler si kind=consultation_ultime (149 EUR hyperpremium)
+    if md.get('kind') == 'consultation_ultime':
+        from routes.consultation_ultime import handle_consultation_ultime_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_consultation_ultime_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[consultation_ultime] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'consultation_ultime'}
 
     # Route vers Duo Complémentaire handler si kind=duo_completion (cross-sell 50 EUR post-Thème Natal)
     if md.get('kind') == 'duo_completion':
@@ -2380,7 +2414,9 @@ async def _start_cart_recovery():
     from services.lead_nurture import lead_nurture_loop
     from services.astrocarto_followup import astrocarto_followup_loop
     from services.crosssell_astrocarto import crosssell_astrocarto_loop
+    from services.horoscope_scheduler import daily_horoscope_scheduler_loop
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
     _asyncio.create_task(astrocarto_followup_loop())
     _asyncio.create_task(crosssell_astrocarto_loop())
+    _asyncio.create_task(daily_horoscope_scheduler_loop())

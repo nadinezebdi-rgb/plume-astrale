@@ -44,6 +44,56 @@ def build_signed_pdf_url(session_id: str, token: str) -> str:
     return f'/api/pdf/download?session_id={session_id}&token={token}'
 
 
+def upload_pdf_to_reports_bucket(
+    pdf_bytes: bytes,
+    session_id: str,
+    product_kind: str,
+    filename: Optional[str] = None,
+) -> Optional[str]:
+    """Upload le PDF sur Supabase Storage bucket 'reports/{product_kind}/{session_id}.pdf'.
+    Retourne l'URL publique du PDF, ou None si l'upload échoue.
+
+    Cette URL reste valide après redeploy (contrairement aux fichiers locaux
+    stockés dans /app/backend/assets/ qui sont perdus au restart du pod).
+    Créé 2026-02 pour l'onglet admin "PDFs envoyés".
+    """
+    try:
+        from services.supabase_client import get_admin_client
+        sb = get_admin_client()
+        # Path stable et unique dans le bucket
+        clean_kind = (product_kind or 'other').replace('/', '_').strip('_') or 'other'
+        clean_sid = (session_id or '').replace('/', '_')[-40:]
+        path = f'pdfs/{clean_kind}/{clean_sid}.pdf'
+
+        # Upsert : override si déjà présent (régénération admin, etc.)
+        try:
+            sb.storage.from_('reports').upload(
+                path, pdf_bytes,
+                {'content-type': 'application/pdf', 'cache-control': '31536000', 'upsert': 'true'},
+            )
+        except Exception:
+            # Fallback : delete + upload si upsert non supporté par la SDK
+            try:
+                sb.storage.from_('reports').remove([path])
+            except Exception:
+                pass
+            sb.storage.from_('reports').upload(
+                path, pdf_bytes,
+                {'content-type': 'application/pdf', 'cache-control': '31536000'},
+            )
+
+        # Génère l'URL publique (bucket doit être public sur Supabase)
+        public_url = sb.storage.from_('reports').get_public_url(path)
+        # supabase-py retourne parfois avec un trailing '?', normalise
+        if isinstance(public_url, str):
+            public_url = public_url.rstrip('?')
+        logger.info(f'[pdf_upload] {clean_kind}/{clean_sid} → {public_url}')
+        return public_url
+    except Exception as e:
+        logger.warning(f'[pdf_upload] échec upload Supabase pour {product_kind}/{session_id}: {e}')
+        return None
+
+
 def _resolve_pdf_file(product_kind: str, session_id: str) -> Optional[Path]:
     """Retrouve le fichier PDF sur disque à partir de la clé produit + session."""
     subdir = _PROTECTED_PRODUCTS.get(product_kind)
@@ -95,8 +145,23 @@ async def download_pdf(session_id: str, token: str):
     product_kind = tx.get('pack_id') or md.get('kind') or ''
     pdf_file = _resolve_pdf_file(product_kind, session_id)
     if not pdf_file or not pdf_file.exists():
+        # Fallback : si le PDF est stocké sur Supabase Storage (survit aux redeploys),
+        # redirige vers l'URL publique persistante au lieu de renvoyer une 404 brute.
+        supabase_url = md.get('pdf_supabase_url')
+        if supabase_url:
+            from fastapi.responses import RedirectResponse
+            logger.info(f'[pdf_download] {session_id} local manquant → redirect Supabase')
+            return RedirectResponse(url=supabase_url, status_code=302)
+        # Aucun fallback disponible : message clair au lieu d'un JSON brut
         logger.warning(f'[pdf_download] file missing for {session_id} ({product_kind})')
-        raise HTTPException(status_code=404, detail='Fichier introuvable')
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Ton PDF n'est plus disponible via ce lien direct (fichier temporaire expiré). "
+                "Rendez-vous dans « Mon Compte → Mes Rapports » pour le retrouver, ou contacte "
+                "contact@plume-astrale.fr avec ton numéro de commande."
+            ),
+        )
 
     return FileResponse(
         path=str(pdf_file),
