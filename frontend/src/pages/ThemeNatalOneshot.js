@@ -1,45 +1,132 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Loader2, Star, Moon, Sun } from 'lucide-react';
+import { Sparkles, ArrowRight, Loader2, Star, Moon, Sun, Check, X } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
+const PACK_PRICE = 29;
+
+// Helpers date FR : dd/MM/yyyy <-> yyyy-MM-dd (format API)
+const fromISO = (iso) => {
+  if (!iso || iso.length < 10) return '';
+  const [y, m, d] = iso.slice(0, 10).split('-');
+  return `${d}/${m}/${y}`;
+};
+const toISO = (fr) => {
+  if (!fr) return '';
+  const m = fr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return '';
+  return `${m[3]}-${m[2]}-${m[1]}`;
+};
+const applyDateMask = (v) => {
+  const digits = v.replace(/\D/g, '').slice(0, 8);
+  let out = digits;
+  if (digits.length > 4) out = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+  else if (digits.length > 2) out = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return out;
+};
+const applyTimeMask = (v) => {
+  const digits = v.replace(/\D/g, '').slice(0, 4);
+  if (digits.length > 2) return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+  return digits;
+};
 
 const ThemeNatalOneshot = () => {
-  const { user, token } = useAuth();
+  const { user, token, isAuthenticated } = useAuth();
   const nav = useNavigate();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
-    email: user?.email || '',
-    first_name: user?.prenom || user?.first_name || '',
-    birth_date: '',
-    birth_time: '',
-    birth_city: 'Paris',
-    birth_country: 'FR',
-    latitude: 48.8566,
-    longitude: 2.3522,
+    email: '', first_name: '', birth_date: '', birth_date_fr: '',
+    birth_time: '', birth_city: '', birth_country: 'FR',
+    latitude: null, longitude: null,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [promoCode, setPromoCode] = useState('');
+  const [promoState, setPromoState] = useState({ status: 'idle', message: '', discount_percent: 0, discount_amount: 0, final_amount: PACK_PRICE });
+  const [validatingPromo, setValidatingPromo] = useState(false);
+
+  // Pré-remplissage depuis /api/auth/me au chargement si authentifié
+  useEffect(() => {
+    if (!isAuthenticated || !token) return;
+    (async () => {
+      try {
+        const r = await axios.get(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+        const u = r.data?.user || {};
+        setForm((f) => ({
+          ...f,
+          email: u.email || f.email || '',
+          first_name: u.prenom || f.first_name || '',
+          birth_date: u.birth_date || f.birth_date || '',
+          birth_date_fr: u.birth_date ? fromISO(u.birth_date) : f.birth_date_fr || '',
+          birth_time: (u.birth_time || f.birth_time || '').slice(0, 5),
+          birth_city: u.birth_place || f.birth_city || '',
+          birth_country: u.birth_country || f.birth_country || 'FR',
+          latitude: u.latitude ?? f.latitude,
+          longitude: u.longitude ?? f.longitude,
+        }));
+      } catch (e) {
+        // profil non chargeable — laisse champs vides pour saisie manuelle
+      }
+    })();
+  }, [isAuthenticated, token]);
 
   const upd = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const applyPromo = async () => {
+    const code = promoCode.trim();
+    if (!code) return;
+    setValidatingPromo(true);
+    setPromoState({ status: 'idle', message: '', discount_percent: 0, discount_amount: 0, final_amount: PACK_PRICE });
+    try {
+      const r = await axios.post(`${API}/api/promo/validate`, { code, product: 'theme_natal_pdf_oneshot', amount: PACK_PRICE });
+      const d = r.data || {};
+      if (d.valid) {
+        setPromoState({
+          status: 'ok',
+          message: d.message || 'Code appliqué.',
+          discount_percent: d.discount_percent || 0,
+          discount_amount: d.discount_amount || 0,
+          final_amount: typeof d.final_amount === 'number' ? d.final_amount : PACK_PRICE,
+          admin_only: d.admin_only,
+          stripe_promo_id: d.stripe_promo_id,
+          source: d.source,
+        });
+      } else {
+        setPromoState({ status: 'ko', message: d.message || 'Code invalide ou expiré.', final_amount: PACK_PRICE });
+      }
+    } catch (e) {
+      setPromoState({ status: 'ko', message: e.response?.data?.detail || 'Code invalide ou expiré.', final_amount: PACK_PRICE });
+    } finally {
+      setValidatingPromo(false);
+    }
+  };
 
   const handleCheckout = async () => {
     setError(null);
     if (!form.email || !form.email.includes('@')) return setError('Email invalide');
     if (!form.first_name.trim()) return setError('Prénom requis');
-    if (!form.birth_date || !form.birth_time) return setError('Date et heure de naissance requises');
+    // birth_date_fr est prioritaire (masque local), sinon utilise birth_date ISO existant
+    const isoDate = form.birth_date || toISO(form.birth_date_fr);
+    if (!isoDate || !form.birth_time) return setError('Date et heure de naissance requises (JJ/MM/AAAA et HH:MM)');
+    if (!form.birth_city.trim()) return setError('Ville de naissance requise');
     setLoading(true);
     try {
       const r = await axios.post(
         `${API}/api/theme-natal-oneshot/checkout`,
         {
-          ...form,
+          email: form.email,
+          first_name: form.first_name,
+          birth_date: isoDate,
+          birth_time: form.birth_time,
+          birth_city: form.birth_city,
+          birth_country: form.birth_country,
+          latitude: form.latitude,
+          longitude: form.longitude,
           origin_url: window.location.origin,
-          promo_code: promoCode.trim() || undefined,
+          promo_code: promoState.status === 'ok' && promoCode.trim() ? promoCode.trim() : undefined,
         },
         token ? { headers: { Authorization: `Bearer ${token}` } } : {},
       );
@@ -183,24 +270,34 @@ const ThemeNatalOneshot = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
-                    Date naiss.
+                    Date naiss. (JJ/MM/AAAA)
                   </label>
                   <input
-                    type="date"
-                    value={form.birth_date}
-                    onChange={(e) => upd('birth_date', e.target.value)}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="JJ/MM/AAAA"
+                    maxLength={10}
+                    value={form.birth_date_fr}
+                    onChange={(e) => {
+                      const masked = applyDateMask(e.target.value);
+                      upd('birth_date_fr', masked);
+                      upd('birth_date', toISO(masked));
+                    }}
                     data-testid="theme-natal-oneshot-birthdate"
                     className="w-full mt-2 px-4 py-3 rounded-xl bg-plume-night-soft/60 border border-plume-gold/20 text-plume-lavender focus:outline-none focus:border-plume-gold/60"
                   />
                 </div>
                 <div>
                   <label className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
-                    Heure naiss.
+                    Heure naiss. (HH:MM, 24h)
                   </label>
                   <input
-                    type="time"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="HH:MM"
+                    maxLength={5}
                     value={form.birth_time}
-                    onChange={(e) => upd('birth_time', e.target.value)}
+                    onChange={(e) => upd('birth_time', applyTimeMask(e.target.value))}
                     data-testid="theme-natal-oneshot-birthtime"
                     className="w-full mt-2 px-4 py-3 rounded-xl bg-plume-night-soft/60 border border-plume-gold/20 text-plume-lavender focus:outline-none focus:border-plume-gold/60"
                   />
@@ -221,19 +318,91 @@ const ThemeNatalOneshot = () => {
               <div>
                 <label
                   className="text-xs uppercase"
-                  style={{ color: 'rgba(212,175,55,0.65)', letterSpacing: '0.2em' }}
+                  style={{ color: 'rgba(212,175,55,0.75)', letterSpacing: '0.2em' }}
                 >
                   Code promo (optionnel)
                 </label>
-                <input
-                  type="text"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                  placeholder="Ex: ADMIN26"
-                  data-testid="theme-natal-oneshot-promo"
-                  className="w-full mt-2 px-4 py-3 rounded-xl bg-plume-night-soft/40 border border-plume-gold/15 text-plume-lavender focus:outline-none focus:border-plume-gold/50"
-                  style={{ letterSpacing: '0.2em', fontFamily: 'Cinzel, serif', fontSize: 13 }}
-                />
+                <div className="flex gap-2 mt-2">
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => {
+                      setPromoCode(e.target.value.toUpperCase());
+                      // reset state si l'utilisateur re-saisit
+                      if (promoState.status !== 'idle') setPromoState({ status: 'idle', message: '', discount_percent: 0, discount_amount: 0, final_amount: PACK_PRICE });
+                    }}
+                    placeholder="Ex: TOUT2026"
+                    data-testid="theme-natal-oneshot-promo"
+                    className="flex-1 px-4 py-3 rounded-xl bg-plume-night-soft/40 border border-plume-gold/15 text-plume-lavender focus:outline-none focus:border-plume-gold/50"
+                    style={{ letterSpacing: '0.2em', fontFamily: 'Cinzel, serif', fontSize: 13 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={applyPromo}
+                    disabled={!promoCode.trim() || validatingPromo}
+                    data-testid="theme-natal-oneshot-promo-apply"
+                    style={{
+                      padding: '0 20px',
+                      borderRadius: 12,
+                      background: 'rgba(212,175,55,0.12)',
+                      color: '#D4AF37',
+                      border: '1px solid rgba(212,175,55,0.4)',
+                      fontSize: 11,
+                      letterSpacing: '0.15em',
+                      textTransform: 'uppercase',
+                      fontFamily: 'Cinzel, serif',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {validatingPromo ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer le code'}
+                  </button>
+                </div>
+                {promoState.status === 'ok' && (
+                  <div
+                    className="mt-3 p-3 rounded-lg flex items-start gap-2"
+                    data-testid="theme-natal-oneshot-promo-ok"
+                    style={{
+                      background: 'rgba(74,222,128,0.10)',
+                      border: '1px solid rgba(74,222,128,0.35)',
+                    }}
+                  >
+                    <Check className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#4ADE80' }} strokeWidth={2} />
+                    <div className="text-xs flex-1">
+                      <div style={{ color: '#4ADE80', fontFamily: 'Cinzel, serif', letterSpacing: '0.1em', marginBottom: 4 }}>
+                        CODE APPLIQUÉ
+                      </div>
+                      <div style={{ color: 'rgba(227,215,255,0.85)', lineHeight: 1.5, fontFamily: 'Cormorant Garamond, serif' }}>
+                        {promoState.message}
+                      </div>
+                      <div className="mt-2 flex items-baseline gap-2">
+                        <span style={{ color: 'rgba(227,215,255,0.5)', textDecoration: 'line-through', fontSize: 14 }}>
+                          {PACK_PRICE.toFixed(2)}€
+                        </span>
+                        <span style={{ color: '#D4AF37', fontSize: 22, fontFamily: 'Cormorant Garamond, serif', fontWeight: 400 }}>
+                          {promoState.final_amount === 0 ? 'Gratuit' : `${promoState.final_amount.toFixed(2)}€`}
+                        </span>
+                      </div>
+                      {promoState.admin_only && (
+                        <div style={{ color: 'rgba(232,199,102,0.75)', fontSize: 11, fontStyle: 'italic', marginTop: 4 }}>
+                          Ce code nécessite un compte administrateur pour être appliqué.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {promoState.status === 'ko' && (
+                  <div
+                    className="mt-3 p-3 rounded-lg flex items-start gap-2"
+                    data-testid="theme-natal-oneshot-promo-ko"
+                    style={{ background: 'rgba(248,113,113,0.10)', border: '1px solid rgba(248,113,113,0.35)' }}
+                  >
+                    <X className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#F87171' }} strokeWidth={2} />
+                    <div className="text-xs" style={{ color: '#F87171', fontFamily: 'Cormorant Garamond, serif' }}>
+                      {promoState.message}
+                    </div>
+                  </div>
+                )}
               </div>
               {error && (
                 <p
@@ -254,13 +423,17 @@ const ThemeNatalOneshot = () => {
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" /> Redirection...
                   </>
-                ) : promoCode.trim() ? (
+                ) : promoState.status === 'ok' && promoState.final_amount === 0 ? (
                   <>
                     Déverrouiller mon Thème <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
                   </>
+                ) : promoState.status === 'ok' ? (
+                  <>
+                    Payer {promoState.final_amount.toFixed(2)}€ et recevoir mon Thème <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
+                  </>
                 ) : (
                   <>
-                    Payer 29€ et recevoir mon Thème <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
+                    Payer {PACK_PRICE}€ et recevoir mon Thème <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
                   </>
                 )}
               </button>

@@ -145,8 +145,23 @@ async def download_pdf(session_id: str, token: str):
     product_kind = tx.get('pack_id') or md.get('kind') or ''
     pdf_file = _resolve_pdf_file(product_kind, session_id)
     if not pdf_file or not pdf_file.exists():
+        # Fallback : si le PDF est stocké sur Supabase Storage (survit aux redeploys),
+        # redirige vers l'URL publique persistante au lieu de renvoyer une 404 brute.
+        supabase_url = md.get('pdf_supabase_url')
+        if supabase_url:
+            from fastapi.responses import RedirectResponse
+            logger.info(f'[pdf_download] {session_id} local manquant → redirect Supabase')
+            return RedirectResponse(url=supabase_url, status_code=302)
+        # Aucun fallback disponible : message clair au lieu d'un JSON brut
         logger.warning(f'[pdf_download] file missing for {session_id} ({product_kind})')
-        raise HTTPException(status_code=404, detail='Fichier introuvable')
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Ton PDF n'est plus disponible via ce lien direct (fichier temporaire expiré). "
+                "Rendez-vous dans « Mon Compte → Mes Rapports » pour le retrouver, ou contacte "
+                "contact@plume-astrale.fr avec ton numéro de commande."
+            ),
+        )
 
     return FileResponse(
         path=str(pdf_file),

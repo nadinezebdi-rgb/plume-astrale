@@ -1522,3 +1522,28 @@ Backend redémarre proprement post-suppression, chat + marketing endpoints valid
 
 ### 📄 12 horoscopes journaliers PDFs
 Générés dans `/app/frontend/public/marketing/horoscopes/` — un par signe, format A4 vertical, 2 pages chacun (cover + détails Amour/Carrière/Bien-être + Guidance du jour + Table pratique + Question de réflexion). URLs publiques prêtes pour ta série TikTok.
+
+
+---
+
+## Session Feb 2026 (30/07) — /theme-natal UX + nettoyage dead code
+
+### ✅ Refonte `/theme-natal` (validée UI)
+- **Auto-fill** utilisateur connecté depuis `/api/auth/me` (email, prénom, date, heure, ville, coordonnées)
+- **Bouton "Appliquer le code"** → validation serveur via `POST /api/promo/validate` (cherche `promo_codes` local puis Stripe Promotion Codes)
+- **Prix barré + prix final** affichés avant paiement, badge admin_only si applicable
+- **Format FR** : masque date `JJ/MM/AAAA` + masque heure `HH:MM` 24h (helpers `applyDateMask`, `applyTimeMask`, `toISO`, `fromISO`)
+- **Fix 404 `/api/pdf/download`** : fallback `RedirectResponse` vers `pdf_supabase_url` si le fichier local a disparu
+- Fichiers : `frontend/src/pages/ThemeNatalOneshot.js`, `backend/routes/promo.py`, `backend/services/pdf_download.py`
+- Testé via `mcp_screenshot_tool` : hero → formulaire → masques date/heure OK → promo TESTFAKE renvoie KO propre
+
+### 🗑️ Suppression `routes/astrology_v3_extended.py`
+- ~30 endpoints Vedic/Chinese/return/progressions **non wired** dans `server.py`, aucune référence backend ni frontend
+- Fichier supprimé, backend redémarre proprement, `/api/health/stripe` + `/api/promo/validate` OK
+
+### 📋 Backlog restant
+- **P1** : Bannière "Trio Découverte" sur homepage (actuellement Lune 3D seule)
+- **P1** : Intégration PayPal (demandée #279, différée)
+- **P2** : Cache SVG pour `chart_svg_synastry()`
+- **P2** : Drop table `sales` inutilisée dans Supabase
+- **P2** : Dashboard admin `/api/admin/cache/svg/stats`
