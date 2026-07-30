@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 const API = process.env.REACT_APP_BACKEND_URL;
 
 const ThemeNatalOneshot = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const nav = useNavigate();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
@@ -34,11 +34,15 @@ const ThemeNatalOneshot = () => {
     if (!form.birth_date || !form.birth_time) return setError('Date et heure de naissance requises');
     setLoading(true);
     try {
-      const r = await axios.post(`${API}/api/theme-natal-oneshot/checkout`, {
-        ...form,
-        origin_url: window.location.origin,
-        promo_code: promoCode.trim() || undefined,
-      });
+      const r = await axios.post(
+        `${API}/api/theme-natal-oneshot/checkout`,
+        {
+          ...form,
+          origin_url: window.location.origin,
+          promo_code: promoCode.trim() || undefined,
+        },
+        token ? { headers: { Authorization: `Bearer ${token}` } } : {},
+      );
       if (r.data?.url) window.location.href = r.data.url;
       else setError('Une erreur est survenue');
     } catch (e) {

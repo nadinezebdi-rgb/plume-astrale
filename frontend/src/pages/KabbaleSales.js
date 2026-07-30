@@ -12,7 +12,7 @@ import { event as track, EVENTS } from '@/lib/analytics';
 const API = process.env.REACT_APP_BACKEND_URL;
 
 const KabbaleSales = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const nav = useNavigate();
   const [step, setStep] = useState(0); // 0: intro, 1: form
   const [form, setForm] = useState({
@@ -39,11 +39,15 @@ const KabbaleSales = () => {
     track(EVENTS.KABBALE_CHECKOUT, { first_name: form.first_name });
     setLoading(true);
     try {
-      const r = await axios.post(`${API}/api/kabbale/checkout`, {
-        ...form,
-        origin_url: window.location.origin,
-        promo_code: promoCode.trim() || undefined,
-      });
+      const r = await axios.post(
+        `${API}/api/kabbale/checkout`,
+        {
+          ...form,
+          origin_url: window.location.origin,
+          promo_code: promoCode.trim() || undefined,
+        },
+        token ? { headers: { Authorization: `Bearer ${token}` } } : {},
+      );
       if (r.data?.url) window.location.href = r.data.url;
       else setError('Une erreur est survenue');
     } catch (e) {

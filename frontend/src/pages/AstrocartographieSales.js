@@ -28,7 +28,7 @@ const CITY_SUGGESTIONS = [
 ];
 
 const AstrocartographieSales = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const nav = useNavigate();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
@@ -106,12 +106,16 @@ const AstrocartographieSales = () => {
     track(EVENTS.ASTROCARTO_CHECKOUT, { promo_code: promoCode || null });
     setLoading(true);
     try {
-      const r = await axios.post(`${API}/api/astrocartographie/checkout`, {
-        ...form,
-        chosen_cities: chosen,
-        origin_url: window.location.origin,
-        promo_code: promoCode.trim() || undefined,
-      });
+      const r = await axios.post(
+        `${API}/api/astrocartographie/checkout`,
+        {
+          ...form,
+          chosen_cities: chosen,
+          origin_url: window.location.origin,
+          promo_code: promoCode.trim() || undefined,
+        },
+        token ? { headers: { Authorization: `Bearer ${token}` } } : {},
+      );
       if (r.data?.url) window.location.href = r.data.url;
       else setError('Une erreur est survenue');
     } catch (e) {

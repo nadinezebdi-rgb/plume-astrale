@@ -5,6 +5,7 @@ import { Sparkles, Heart, Moon, Star, Loader2, Mail, Lock, ArrowRight, CheckCirc
 import SEO from '@/components/SEO';
 import useUtmTracking from '@/hooks/useUtmTracking';
 import { SOLENA } from '@/lib/solena';
+import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -17,6 +18,7 @@ const MONTHS_FR = ['Janvier','Fevrier','Mars','Avril','Mai','Juin','Juillet','Ao
 export default function RencontresAstrales() {
   const navigate = useNavigate();
   const utm = useUtmTracking();
+  const { token } = useAuth();
   const [step, setStep] = useState('form'); // form | reveal | windows
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -102,16 +104,20 @@ export default function RencontresAstrales() {
     }
     setCtaLoading(true);
     try {
-      const r = await axios.post(`${API}/api/rencontres/checkout`, {
-        origin_url: window.location.origin,
-        reveal_id: reveal?.reveal_id,
-        email,
-        utm,
-        promo_code: promoCode.trim() || undefined,
+      const r = await axios.post(
+        `${API}/api/rencontres/checkout`,
+        {
+          origin_url: window.location.origin,
+          reveal_id: reveal?.reveal_id,
+          email,
+          utm,
+          promo_code: promoCode.trim() || undefined,
         partner_first_name: partnerFirstName.trim(),
         partner_birth_date: partnerBirthDate,
         partner_birth_time: partnerBirthTime || undefined,
-      });
+        },
+        token ? { headers: { Authorization: `Bearer ${token}` } } : {},
+      );
       if (r.data?.url) window.location.href = r.data.url;
       else { setCtaLoading(false); setError('Paiement indisponible pour l\'instant.'); }
     } catch (err) {
