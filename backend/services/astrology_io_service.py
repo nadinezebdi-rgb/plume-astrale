@@ -9,11 +9,65 @@ Tous les appels prennent en compte un cache 24h dans Supabase (table energy_cach
 import os
 import httpx
 import hashlib
+import json
+import logging
+import time
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 
+logger = logging.getLogger(__name__)
+
 
 BASE_URL = 'https://api.astrology-api.io/api/v3'
+
+
+def _classify_httpx_error(exc: Exception) -> tuple[str, str]:
+    """Map une exception httpx vers (code_court, description_lisible) pour logs actionnables."""
+    # Timeouts (les plus fréquents en prod)
+    if isinstance(exc, httpx.ConnectTimeout):
+        return ('CONNECT_TIMEOUT', 'Connexion TCP à api.astrology-api.io a dépassé le délai (DNS/firewall/API down)')
+    if isinstance(exc, httpx.ReadTimeout):
+        return ('READ_TIMEOUT', 'API a accepté la requête mais n\'a pas répondu à temps (surcharge, pipeline lourd)')
+    if isinstance(exc, httpx.WriteTimeout):
+        return ('WRITE_TIMEOUT', 'Écriture de la requête vers l\'API a dépassé le délai (upload lent)')
+    if isinstance(exc, httpx.PoolTimeout):
+        return ('POOL_TIMEOUT', 'Pool de connexions httpx saturé (trop de requêtes concurrentes)')
+    if isinstance(exc, httpx.TimeoutException):
+        return ('TIMEOUT', f'Timeout httpx générique : {type(exc).__name__}')
+    # Erreurs réseau (avant que l'API ne réponde)
+    if isinstance(exc, httpx.ConnectError):
+        return ('CONNECT_ERROR', 'Impossible d\'ouvrir la connexion (DNS, TLS, réseau) — vérifier BASE_URL et connectivité sortante')
+    if isinstance(exc, httpx.ProxyError):
+        return ('PROXY_ERROR', 'Erreur au niveau du proxy HTTP')
+    if isinstance(exc, httpx.ReadError):
+        return ('READ_ERROR', 'Connexion interrompue pendant la lecture de la réponse')
+    if isinstance(exc, httpx.WriteError):
+        return ('WRITE_ERROR', 'Connexion interrompue pendant l\'envoi de la requête')
+    if isinstance(exc, httpx.RemoteProtocolError):
+        return ('REMOTE_PROTOCOL_ERROR', 'L\'API a renvoyé une réponse HTTP malformée')
+    if isinstance(exc, httpx.LocalProtocolError):
+        return ('LOCAL_PROTOCOL_ERROR', 'Erreur de protocole côté client (requête invalide)')
+    if isinstance(exc, httpx.NetworkError):
+        return ('NETWORK_ERROR', f'Erreur réseau générique : {type(exc).__name__}')
+    if isinstance(exc, httpx.TransportError):
+        return ('TRANSPORT_ERROR', f'Erreur transport httpx : {type(exc).__name__}')
+    # Autres
+    if isinstance(exc, httpx.HTTPError):
+        return ('HTTP_ERROR', f'Erreur httpx générique : {type(exc).__name__}')
+    return ('UNKNOWN', f'Exception non catégorisée : {type(exc).__name__}')
+
+
+def _describe_http_status(code: int) -> str:
+    """Description actionnable pour les codes HTTP les plus fréquents d'astrology-api.io."""
+    if code == 400: return 'Payload invalide (vérifier birth_data : lat/lon/timezone/date)'
+    if code == 401: return 'Clé API rejetée (ASTROLOGY_API_IO_KEY manquante ou invalide)'
+    if code == 402: return 'Crédits épuisés (recharger sur astrology-api.io)'
+    if code == 403: return 'Accès refusé (plan insuffisant pour cet endpoint)'
+    if code == 404: return 'Endpoint introuvable (path erroné ou déprécié)'
+    if code == 422: return 'Données rejetées par la validation API (birth_data incomplet ?)'
+    if code == 429: return 'Rate limit atteint — trop de requêtes par minute/seconde'
+    if code >= 500 and code < 600: return f'Erreur serveur upstream ({code}) — l\'API astrology-api.io est down/instable'
+    return f'HTTP {code} inattendu'
 
 
 _SIGN_FR_TO_EN = {
@@ -194,19 +248,34 @@ async def _alert_invalid_key(path: str, detail: str) -> None:
 
 
 async def _call(path: str, payload: Dict[str, Any], timeout: float = 30.0) -> Optional[Dict[str, Any]]:
-    """POST helper. Retourne data ou None si echec. Logs minimal."""
+    """POST helper. Retourne data ou None si echec.
+
+    Logs verbeux et catégorisés :
+    - Sur timeout / erreur réseau : log le TYPE d'erreur httpx + description actionnable + durée écoulée
+    - Sur HTTP non-200 : log le status + body tronqué + description du code (401 clé invalide, 429 rate limit…)
+    - Sur success:false : log le contenu du champ 'error' complet
+    - Sur exception non-httpx : log le type d'exception + repr complet
+    """
+    t0 = time.perf_counter()
+    url = f'{BASE_URL}{path}'
+    payload_size = len(json.dumps(payload, default=str)) if payload else 0
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             r = await client.post(
-                f'{BASE_URL}{path}',
+                url,
                 headers={
                     'Authorization': f'Bearer {_api_key()}',
                     'Content-Type': 'application/json',
                 },
                 json=payload,
             )
+            elapsed = (time.perf_counter() - t0) * 1000
             if r.status_code != 200:
-                print(f'[astrology_io] {path} -> {r.status_code} : {r.text[:200]}')
+                desc = _describe_http_status(r.status_code)
+                logger.error(
+                    f'[astrology_io] POST {path} → HTTP {r.status_code} ({desc}) | '
+                    f'elapsed={elapsed:.0f}ms | payload={payload_size}B | body={r.text[:400]!r}'
+                )
                 if r.status_code == 401:
                     import asyncio
                     try:
@@ -214,47 +283,87 @@ async def _call(path: str, payload: Dict[str, Any], timeout: float = 30.0) -> Op
                     except Exception:
                         pass
                 return None
-            data = r.json()
+            try:
+                data = r.json()
+            except Exception as je:
+                logger.error(
+                    f'[astrology_io] POST {path} → 200 mais JSON invalide : {je} | '
+                    f'elapsed={elapsed:.0f}ms | body={r.text[:400]!r}'
+                )
+                return None
             if not isinstance(data, dict):
+                logger.info(f'[astrology_io] POST {path} → 200 (non-dict) | elapsed={elapsed:.0f}ms')
                 return data
             # Explicit error : success:false + error dict present -> fail
             if data.get('success') is False and data.get('error'):
-                print(f"[astrology_io] {path} success=false : {data.get('error')}")
+                err = data.get('error')
+                err_str = json.dumps(err, ensure_ascii=False)[:400] if isinstance(err, dict) else str(err)[:400]
+                logger.error(
+                    f'[astrology_io] POST {path} → success=false | elapsed={elapsed:.0f}ms | error={err_str}'
+                )
                 return None
             # v3 wraps in {success:true, data: {...}} sometimes
             if 'data' in data and data.get('success') is True:
+                logger.info(f'[astrology_io] POST {path} → OK (wrapped) | elapsed={elapsed:.0f}ms')
                 return data['data']
             # Sinon on retourne le payload tel quel (certains endpoints comme synastry
             # renvoient chart_data + subject_data au niveau racine, sans wrapper).
+            logger.info(f'[astrology_io] POST {path} → OK (raw) | elapsed={elapsed:.0f}ms')
             return data
     except Exception as e:
-        print(f'[astrology_io] {path} EXCEPTION : {e}')
+        elapsed = (time.perf_counter() - t0) * 1000
+        code, desc = _classify_httpx_error(e)
+        logger.error(
+            f'[astrology_io] POST {path} → {code} ({desc}) | elapsed={elapsed:.0f}ms | '
+            f'timeout_set={timeout}s | exc={type(e).__name__}: {e!r}'
+        )
         return None
 
 
 async def _get(path: str, params: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
-    """GET helper. Retourne data ou None si echec."""
+    """GET helper. Retourne data ou None si echec. Logs verbeux comme _call."""
+    t0 = time.perf_counter()
+    url = f'{BASE_URL}{path}'
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             r = await client.get(
-                f'{BASE_URL}{path}',
+                url,
                 headers={
                     'Authorization': f'Bearer {_api_key()}',
                     'Accept': 'application/json',
                 },
                 params=params or {},
             )
+            elapsed = (time.perf_counter() - t0) * 1000
             if r.status_code != 200:
-                print(f'[astrology_io] GET {path} -> {r.status_code} : {r.text[:200]}')
+                desc = _describe_http_status(r.status_code)
+                logger.error(
+                    f'[astrology_io] GET {path} → HTTP {r.status_code} ({desc}) | '
+                    f'elapsed={elapsed:.0f}ms | params={params} | body={r.text[:400]!r}'
+                )
                 return None
-            data = r.json()
+            try:
+                data = r.json()
+            except Exception as je:
+                logger.error(f'[astrology_io] GET {path} → JSON invalide : {je} | body={r.text[:400]!r}')
+                return None
             if isinstance(data, dict) and data.get('success') is False:
+                err = data.get('error')
+                err_str = json.dumps(err, ensure_ascii=False)[:400] if isinstance(err, dict) else str(err)[:400]
+                logger.error(f'[astrology_io] GET {path} → success=false | error={err_str}')
                 return None
             if isinstance(data, dict) and 'data' in data and data.get('success'):
+                logger.info(f'[astrology_io] GET {path} → OK (wrapped) | elapsed={elapsed:.0f}ms')
                 return data['data']
+            logger.info(f'[astrology_io] GET {path} → OK | elapsed={elapsed:.0f}ms')
             return data
     except Exception as e:
-        print(f'[astrology_io] GET {path} EXCEPTION : {e}')
+        elapsed = (time.perf_counter() - t0) * 1000
+        code, desc = _classify_httpx_error(e)
+        logger.error(
+            f'[astrology_io] GET {path} → {code} ({desc}) | elapsed={elapsed:.0f}ms | '
+            f'exc={type(e).__name__}: {e!r}'
+        )
         return None
 
 
