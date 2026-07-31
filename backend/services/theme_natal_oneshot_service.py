@@ -20,8 +20,12 @@ logger = logging.getLogger(__name__)
 ASSETS_DIR = Path(__file__).resolve().parent.parent / 'assets'
 
 
-async def handle_theme_natal_oneshot_webhook(session_id: str) -> None:
-    """Génère le PDF Thème Natal complet + envoie l'email au client (idempotent)."""
+async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = False) -> None:
+    """Génère le PDF Thème Natal complet + envoie l'email au client (idempotent).
+
+    Si force=True, régénère même si un PDF a déjà été produit (utile après
+    refonte du template pour rafraîchir une session existante).
+    """
     if not session_id:
         return
     sb = get_admin_client()
@@ -45,10 +49,12 @@ async def handle_theme_natal_oneshot_webhook(session_id: str) -> None:
             'credits_granted': True,
         }).eq('session_id', session_id).execute()
 
-    # Idempotence
-    if md.get('pdf_path'):
+    # Idempotence — sautée si force=True (régénération explicite admin)
+    if md.get('pdf_path') and not force:
         logger.info(f"[theme_natal_oneshot] PDF already generated for {session_id}")
         return
+    if force:
+        logger.info(f"[theme_natal_oneshot] FORCE regeneration for {session_id}")
 
     email = tx.get('user_email')
     pdf_ctx = md.get('pdf_ctx') or {}
@@ -142,7 +148,10 @@ async def handle_theme_natal_oneshot_webhook(session_id: str) -> None:
         md['pdf_static_path_legacy'] = f'/api/assets/theme_natal/{filename}'
         supabase_url = upload_pdf_to_reports_bucket(pdf_bytes, session_id, 'theme_natal', filename)
         if supabase_url:
-            md['pdf_supabase_url'] = supabase_url
+            # Cache-buster : invalide tout cache navigateur/CDN sur régénération
+            ts = int(datetime.now(timezone.utc).timestamp())
+            sep = '&' if '?' in supabase_url else '?'
+            md['pdf_supabase_url'] = f'{supabase_url}{sep}v={ts}'
         md['pdf_generated_at'] = datetime.now(timezone.utc).isoformat()
         sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
         logger.info(f"[theme_natal_oneshot] PDF generated (signed): {md['pdf_path']}")

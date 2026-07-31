@@ -528,3 +528,38 @@ async def admin_pdfs_sent(
             'email_sent': bool(md.get('email_sent_at')),
         })
     return {'items': items, 'total_with_supabase_url': len(items), 'total_completed': res.count or 0, 'page': page, 'page_size': page_size}
+
+
+
+@router.post('/theme-natal/regenerate/{session_id}')
+async def admin_regenerate_theme_natal(session_id: str, _admin: dict = Depends(require_admin)):
+    """Force la régénération complète d'un PDF Thème Natal one-shot pour une session donnée.
+
+    Utile après refonte du template : les anciennes sessions ont l'ancien PDF
+    en cache (idempotence). Cet endpoint bypass l'idempotence et upload un
+    nouveau PDF avec cache-buster sur l'URL Supabase.
+    """
+    from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
+    sb = get_admin_client()
+    # Vérification que la session existe et est bien un theme_natal one-shot
+    r = sb.table('payment_transactions').select('metadata, status').eq('session_id', session_id).maybe_single().execute()
+    if not r or not r.data:
+        raise HTTPException(status_code=404, detail='Session introuvable')
+    md = r.data.get('metadata') or {}
+    if md.get('kind') != 'theme_natal_pdf_oneshot':
+        raise HTTPException(status_code=400, detail='La session n\'est pas un Thème Natal one-shot')
+    try:
+        await handle_theme_natal_oneshot_webhook(session_id, force=True)
+    except Exception as e:
+        logger.exception(f'[admin] regenerate theme_natal fail {session_id}')
+        raise HTTPException(status_code=500, detail=f'Regénération échouée : {e}')
+    # Retourne la nouvelle URL fraîche
+    r2 = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+    md2 = (r2.data or {}).get('metadata') or {}
+    return {
+        'ok': True,
+        'session_id': session_id,
+        'pdf_path': md2.get('pdf_path'),
+        'pdf_supabase_url': md2.get('pdf_supabase_url'),
+        'pdf_generated_at': md2.get('pdf_generated_at'),
+    }
