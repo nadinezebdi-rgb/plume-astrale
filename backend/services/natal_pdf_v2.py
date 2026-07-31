@@ -224,6 +224,78 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                                   body_html=book_data.get('trio_synthesis') or '')
 
     # ══════════════════════════════════════════════════════════════
+    # ACTE III PILOTE — Ton âme (5 chapitres éditoriaux : cœur / esprit
+    # / blessures / désirs / talents). Ne s'active QUE si book_data
+    # contient acte3_chapters. Utilise EXCLUSIVEMENT les 9 templates
+    # éditoriaux de pdf_editorial_templates.py.
+    # ══════════════════════════════════════════════════════════════
+    acte3 = (book_data or {}).get('acte3_chapters') if bd else None
+    if acte3 and isinstance(acte3, dict):
+        from services.pdf_editorial_templates import (
+            t_chapter_opening, t_quote, t_portrait, t_analysis, t_callout,
+            t_ritual, t_journal, t_synthesis, t_double_illustration,
+        )
+        # Ouverture d'Acte III — double page monumentale
+        t_chapter_opening(story, roman='III', title='Ton âme',
+                          kicker='Cinq chapitres pour te rencontrer plus profondément.',
+                          illustration_path=libimg.tarot('etoile', size=512))
+        _CHAPTER_META = [
+            ('coeur',     'Ton cœur',      libimg.planet('Vénus', size=512),   libimg.tarot('amoureux', size=512)),
+            ('esprit',    'Ton esprit',    libimg.planet('Mercure', size=512), libimg.tarot('bateleur', size=512)),
+            ('blessures', 'Tes blessures', libimg.planet('Saturne', size=512), libimg.tarot('pendu',    size=512)),
+            ('desirs',    'Tes désirs',    libimg.planet('Mars', size=512),    libimg.tarot('chariot',  size=512)),
+            ('talents',   'Tes talents',   libimg.planet('Soleil', size=512),  libimg.tarot('etoile',   size=512)),
+        ]
+        for key, chapter_title, planet_img, tarot_img in _CHAPTER_META:
+            c = acte3.get(key) or {}
+            if not c:
+                continue
+            # Structure récurrente stricte pour chaque chapitre d'âme :
+            #  1. double illustration (rythme aéré avant le dense)
+            #  2. quote (citation d'ouverture)
+            #  3. portrait (question + analyse + image)
+            #  4. analysis (colonnes texte + illustration + citation encadrée)
+            #  5. callout (3 conseils + phrase mémorable)
+            #  6. ritual (rituel + pierre + couleur + respiration)
+            #  7. journal (question + espace d'écriture)
+            #  8. synthesis (forces / défis / mission)
+            if planet_img:
+                t_double_illustration(story, planet_img, caption=chapter_title)
+            t_quote(story, c.get('citation_ouverture', ''), attribution='Soléna')
+            t_portrait(story,
+                       chapter_tag=chapter_title,
+                       title=chapter_title,
+                       question=c.get('question_emotionnelle', ''),
+                       body_html=c.get('analyse_html', ''),
+                       illustration_path=planet_img)
+            t_analysis(story,
+                       title=f'Approfondir : {chapter_title.lower()}',
+                       body_html=c.get('analyse_html', ''),
+                       illustration_path=tarot_img,
+                       inset_quote=c.get('phrase_memorable', ''))
+            t_callout(story,
+                      title=f'{chapter_title} — À retenir',
+                      tips=c.get('conseils') or [],
+                      memorable_line=c.get('phrase_memorable', ''))
+            t_ritual(story,
+                     title=c.get('rituel_titre') or f'Rituel — {chapter_title}',
+                     steps=c.get('rituel_etapes') or [],
+                     duration=c.get('rituel_duree', '10 min'),
+                     stone=c.get('rituel_pierre', '—'),
+                     color=c.get('rituel_couleur', '—'),
+                     breathing=c.get('rituel_respiration', '—'),
+                     illustration_path=tarot_img)
+            t_journal(story,
+                      question=c.get('question_journal', ''),
+                      context_line=f'Un instant pour écouter {chapter_title.lower()}.')
+            t_synthesis(story,
+                        title=f'{chapter_title} — Synthèse',
+                        forces=c.get('forces') or [],
+                        defis=c.get('defis') or [],
+                        mission=c.get('mission', ''),
+                        closing_quote=c.get('phrase_memorable'))
+
+    # ══════════════════════════════════════════════════════════════
     # PARTIE II — PLANÈTES (denses, 1 page par planète)
     # ══════════════════════════════════════════════════════════════
     for planet in planets:
