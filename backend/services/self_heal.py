@@ -3,22 +3,83 @@ Auto-réparation des produits one-shot : si le webhook Stripe n'atteint pas le
 backend (non configuré côté Stripe, ou down au moment du paiement), les pages
 succès pollent /status — on en profite pour vérifier le paiement DIRECTEMENT
 auprès de Stripe et déclencher la génération/livraison manquante.
+
+Étend aussi aux sessions `admin-natal-*` (bypass promo admin) : elles ne
+transitent pas par Stripe mais peuvent hériter d'un statut `pending` bloqué
+si le pod backend redémarre pendant la génération PDF (crash, deploy, OOM).
+Le poll de /status détectera alors ce pending stale et relancera le handler.
 """
 from __future__ import annotations
 import logging
 import os
+from datetime import datetime, timezone, timedelta
 
 logger = logging.getLogger(__name__)
 
 _inflight: set = set()
 
+# Après combien de temps un `pdf_status: pending` est considéré comme "stale"
+# (server crashé/redémarré au milieu de la génération) et doit être relancé.
+_STALE_PENDING_S = 240  # 4 minutes — au-delà, la génération n'a pas pu aboutir
+
 
 async def self_heal_if_paid(session_id: str, already_delivered: bool, handler) -> None:
-    """Si la session Stripe est payée mais rien n'a été livré, lance le handler produit.
-    Idempotent (garde in-flight + les handlers vérifient pdf_path)."""
-    if already_delivered or not session_id or not session_id.startswith('cs_'):
+    """Si le paiement est confirmé mais rien n'a été livré, lance le handler produit.
+
+    - Sessions Stripe (`cs_...`) : on interroge Stripe pour valider le payment_status
+      avant de déclencher (couvre le cas où le webhook Stripe ne nous atteint pas).
+    - Sessions admin bypass (`admin-natal-*`) : pas de Stripe, on relance directement
+      si le PDF n'existe pas encore et que la génération semble stale (pending trop
+      ancien ou statut absent).
+    """
+    if already_delivered or not session_id:
         return
     if session_id in _inflight:
+        return
+
+    # ─── Cas 1 : admin bypass — pas de Stripe, self-heal direct
+    if session_id.startswith('admin-natal-') or session_id.startswith('admin-'):
+        _inflight.add(session_id)
+        try:
+            from services.supabase_client import get_admin_client
+            sb = get_admin_client()
+            r = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+            if not r or not r.data:
+                return
+            md = r.data.get('metadata') or {}
+            # Déjà livré ? ne fait rien
+            if md.get('pdf_path'):
+                return
+            # Génération en échec explicite : ne relance PAS (l'admin doit fixer via /admin)
+            if md.get('pdf_status') == 'failed':
+                return
+            # Statut pending stale (crash server au milieu) ou absent → relance
+            started_at = md.get('regenerate_started_at') or md.get('pending_started_at')
+            stale = True
+            if started_at:
+                try:
+                    dt = datetime.fromisoformat(started_at.replace('Z', '+00:00'))
+                    stale = (datetime.now(timezone.utc) - dt) > timedelta(seconds=_STALE_PENDING_S)
+                except Exception:
+                    stale = True
+            if stale:
+                # Marque pending pour éviter les doubles-relances concurrentes via polls croisés
+                try:
+                    md['pdf_status'] = 'pending'
+                    md['pending_started_at'] = datetime.now(timezone.utc).isoformat()
+                    sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+                except Exception:
+                    pass
+                logger.info(f'[self_heal] admin bypass {session_id} stale/absent → relance handler')
+                await handler(session_id)
+        except Exception as e:
+            logger.warning(f'[self_heal] admin {session_id}: {e}')
+        finally:
+            _inflight.discard(session_id)
+        return
+
+    # ─── Cas 2 : Stripe (`cs_...`) — vérifie paiement puis déclenche
+    if not session_id.startswith('cs_'):
         return
     _inflight.add(session_id)
     try:

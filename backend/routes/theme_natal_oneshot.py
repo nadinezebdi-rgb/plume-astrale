@@ -93,6 +93,7 @@ async def theme_natal_oneshot_checkout(
     ):
         fake_session_id = f'admin-natal-{uuid.uuid4().hex[:16]}'
         try:
+            from datetime import datetime, timezone
             sb = get_admin_client()
             sb.table('payment_transactions').insert({
                 'session_id': fake_session_id,
@@ -110,6 +111,11 @@ async def theme_natal_oneshot_checkout(
                     'pdf_ctx': pdf_ctx,
                     'admin_bypass': True,
                     'promo_code': payload.promo_code.strip().upper(),
+                    # Statut initial 'pending' : si le pod backend crashe/redémarre
+                    # avant d'atteindre pdf_status: success ou failed, le poll /status
+                    # détectera ce pending stale et relancera la génération via self_heal.
+                    'pdf_status': 'pending',
+                    'pending_started_at': datetime.now(timezone.utc).isoformat(),
                 },
             }).execute()
         except Exception as e:

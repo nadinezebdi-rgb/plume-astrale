@@ -319,7 +319,11 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     # 6) Email best-effort
     if email and pdf_bytes:
         try:
-            await _send_theme_natal_email(email, name, pdf_bytes, filename, session_id=session_id)
+            # On envoie un LIEN Supabase (persisté, versionné) au lieu d'une pièce jointe.
+            # Le PDF fait ~27 Mo — Resend limite à 40 Mo, Gmail à 25 Mo côté destinataire.
+            # Le lien évite tout risque de rebond email.
+            pdf_link = md.get('pdf_supabase_url') or md.get('pdf_path')
+            await _send_theme_natal_email(email, name, pdf_link=pdf_link, session_id=session_id)
             md['email_sent_at'] = datetime.now(timezone.utc).isoformat()
             sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
         except Exception as e:
@@ -327,7 +331,12 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     return diag
 
 
-async def _send_theme_natal_email(email: str, first_name: str, pdf_bytes: bytes, filename: str, session_id: str | None = None) -> None:
+async def _send_theme_natal_email(email: str, first_name: str, pdf_link: str, session_id: str | None = None) -> None:
+    """Envoie l'email de livraison avec un lien de téléchargement (pas de pièce jointe).
+
+    Le PDF est stocké de manière persistante sur Supabase Storage (bucket `reports`),
+    avec un chemin versionné par timestamp. Le lien reste valide indéfiniment.
+    """
     from services.email_journal import log_send_attempt, log_send_response
     api_key = os.environ.get('RESEND_API_KEY', '').strip()
     sender = os.environ.get('SENDER_EMAIL', 'Solena · Plume Astrale <contact@plume-astrale.fr>')
@@ -335,12 +344,14 @@ async def _send_theme_natal_email(email: str, first_name: str, pdf_bytes: bytes,
     if not api_key:
         logger.warning("[theme_natal_oneshot] RESEND_API_KEY missing")
         return
+    if not pdf_link:
+        logger.warning("[theme_natal_oneshot] pdf_link missing, email skipped")
+        return
 
     row_id = log_send_attempt(
         to_email=email, subject=subject, product='theme_natal_oneshot',
         from_email=sender, session_id=session_id,
     )
-    pdf_b64 = base64.b64encode(pdf_bytes).decode('ascii')
     fn = (first_name or 'ami(e)').strip().title()
 
     html = f"""
@@ -355,14 +366,22 @@ async def _send_theme_natal_email(email: str, first_name: str, pdf_bytes: bytes,
           {fn},<br><em style="color:#D4AF37;font-style:italic;">ton portrait céleste</em><br>t'attend.
         </h1>
         <p style="color:#E3D7FF;line-height:1.65;font-size:15px;">
-          Un document intime de 20 à 40 pages, tracé pour toi seul(e). Il révèle tes 11 planètes,
+          Un document intime de 40 à 50 pages, tracé pour toi seul(e). Il révèle tes 11 planètes,
           ton ascendant, tes maisons, tes aspects — et surtout la façon dont ils composent
           ta signature unique dans le ciel.
         </p>
-        <div style="margin-top:24px;padding:20px;background:#1A2035;border:1px solid rgba(212,175,55,0.15);border-radius:12px;text-align:center;">
-          <div style="font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#D4AF37;margin-bottom:8px;">
-            ✦ Ton document est en pièce jointe ✦
+        <div style="text-align:center;margin:36px 0 10px;">
+          <a href="{pdf_link}"
+             style="display:inline-block;padding:16px 36px;background:linear-gradient(135deg,#D4AF37 0%,#E8C766 100%);color:#111625;text-decoration:none;border-radius:999px;font-family:'Cinzel',serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;font-weight:500;">
+            Télécharger mon Thème Natal
+          </a>
+        </div>
+        <div style="text-align:center;margin-top:8px;">
+          <div style="font-size:11px;color:rgba(227,215,255,0.55);font-style:italic;">
+            Ton document reste accessible à ce lien à tout moment.
           </div>
+        </div>
+        <div style="margin-top:36px;padding:20px;background:#1A2035;border:1px solid rgba(212,175,55,0.15);border-radius:12px;text-align:center;">
           <div style="font-family:'Cormorant Garamond',serif;font-style:italic;color:#E3D7FF;">
             Prends le temps. Une lecture par jour, sur une semaine.<br>
             Ce que tu es ne se lit pas — se contemple.
@@ -381,7 +400,6 @@ async def _send_theme_natal_email(email: str, first_name: str, pdf_bytes: bytes,
             headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
             json={
                 'from': sender, 'to': [email], 'subject': subject, 'html': html,
-                'attachments': [{'filename': filename, 'content': pdf_b64}],
             },
         )
         resend_id = None
