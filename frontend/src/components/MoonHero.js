@@ -155,8 +155,9 @@ export default function MoonHero() {
           }}
           data-testid="moon-hero-title"
         >
-          La maison d&apos;astrologie<br />
-          où tes étoiles <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 200 }}>murmurent</em>.
+          Il y a une <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 200 }}>logique</em><br />
+          derrière tes histoires.<br />
+          Viens la <em style={{ color: '#D4AF37', fontStyle: 'italic', fontWeight: 200 }}>lire</em>.
         </h1>
 
         {/* Sous-titre — présentation Plume Astrale */}
