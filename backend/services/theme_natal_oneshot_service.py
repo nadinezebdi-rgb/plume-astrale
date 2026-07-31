@@ -137,25 +137,32 @@ async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = Fals
     }
 
     # 4) Chart wheel SVG → PNG (utilise le cache — 0 crédit API si déjà présent)
+    #    cairosvg est CPU-bound (blocke le event loop) → on l'exécute dans un thread.
     chart_png_bytes: bytes | None = None
     try:
         svg_str = await aio.chart_svg_render(bd, name=name, theme='dark', language='fr')
         if svg_str:
             from services.svg_utils import resolve_svg_css_vars
-            import cairosvg
+            import cairosvg, asyncio as _asyncio
             svg_resolved = resolve_svg_css_vars(svg_str)
-            chart_png_bytes = cairosvg.svg2png(
-                bytestring=svg_resolved.encode('utf-8'), output_width=1600,
+            chart_png_bytes = await _asyncio.to_thread(
+                cairosvg.svg2png,
+                bytestring=svg_resolved.encode('utf-8'),
+                output_width=1600,
             )
     except Exception as e:
         logger.warning(f"[theme_natal_oneshot] chart wheel unavailable: {e}")
 
-    # 5) Génération PDF luxe
+    # 5) Génération PDF luxe — reportlab + kerykeion sont CPU-bound (30-60s).
+    #    On délègue à un thread pour ne pas bloquer le event loop (sinon /auth/me
+    #    et le polling /inspect timeout → Cloudflare 524).
     pdf_bytes = None
     filename = f'theme_natal_{session_id[-16:]}.pdf'
     try:
         from services.natal_pdf_adapter import generate_manuscrit_pdf
-        pdf_bytes = generate_manuscrit_pdf(
+        import asyncio as _asyncio
+        pdf_bytes = await _asyncio.to_thread(
+            generate_manuscrit_pdf,
             user_data=user_data,
             planets_data=list(planets_dict.values()),
             chart_png_bytes=chart_png_bytes,
@@ -171,7 +178,13 @@ async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = Fals
         md['pdf_token'] = pdf_token
         md['pdf_path'] = build_signed_pdf_url(session_id, pdf_token)
         md['pdf_static_path_legacy'] = f'/api/assets/theme_natal/{filename}'
-        supabase_url = upload_pdf_to_reports_bucket(pdf_bytes, session_id, 'theme_natal', filename, version=str(int(datetime.now(timezone.utc).timestamp())))
+        # Upload Supabase = HTTP sync bloquant → thread pour ne pas geler l'event loop
+        import asyncio as _asyncio
+        supabase_url = await _asyncio.to_thread(
+            upload_pdf_to_reports_bucket,
+            pdf_bytes, session_id, 'theme_natal', filename,
+            str(int(datetime.now(timezone.utc).timestamp())),
+        )
         if supabase_url:
             md['pdf_supabase_url'] = supabase_url
         md['pdf_generated_at'] = datetime.now(timezone.utc).isoformat()
