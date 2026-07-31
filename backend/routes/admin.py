@@ -642,3 +642,105 @@ async def admin_inspect_theme_natal(session_id: str, _admin: dict = Depends(requ
         'regenerate_diag': md.get('regenerate_diag'),
         'regenerate_in_progress': bool(md.get('regenerate_started_at')) and not (md.get('regenerate_finished_at') or md.get('regenerate_error')),
     }
+
+
+
+class _BirthDataPatch:
+    """Body model pour PATCH birth-data (défini local pour éviter imports circulaires)."""
+    pass
+
+
+from pydantic import BaseModel as _PMB
+
+
+class BirthDataPatch(_PMB):
+    city: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    timezone: str | None = None
+
+
+@router.patch('/theme-natal/{session_id}/birth-data')
+async def admin_patch_birth_data(session_id: str, payload: BirthDataPatch, _admin: dict = Depends(require_admin)):
+    """Met à jour les données de naissance stockées dans metadata.pdf_ctx.birth_data.
+
+    Deux usages :
+    1) On passe uniquement `city` → l'endpoint géocode via OpenStreetMap et
+       remplit lat/lon/timezone automatiquement. Timezone dérivée de tz par lat/lon.
+    2) On passe latitude/longitude/timezone directement → override manuel.
+
+    Après update, l'admin doit appeler /regenerate/{session_id} pour produire un
+    nouveau PDF avec les bonnes coordonnées.
+    """
+    import httpx
+    sb = get_admin_client()
+    r = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+    if not r or not r.data:
+        raise HTTPException(status_code=404, detail='Session introuvable')
+    md = r.data.get('metadata') or {}
+    if md.get('kind') != 'theme_natal_pdf_oneshot':
+        raise HTTPException(status_code=400, detail='La session n\'est pas un Thème Natal one-shot')
+
+    pdf_ctx = md.get('pdf_ctx') or {}
+    bd = dict(pdf_ctx.get('birth_data') or {})
+
+    resolved = {'source': 'manual'}
+    # Cas 1 : géocodage automatique par nom de ville
+    if payload.city and not (payload.latitude and payload.longitude):
+        query = payload.city.strip()
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                # Nominatim (OpenStreetMap) — gratuit, requiert un User-Agent
+                r_geo = await client.get(
+                    'https://nominatim.openstreetmap.org/search',
+                    params={'q': query, 'format': 'json', 'limit': 1, 'addressdetails': 1},
+                    headers={'User-Agent': 'PlumeAstrale-Admin/1.0 (contact@plume-astrale.fr)'},
+                )
+                geo_results = r_geo.json() if r_geo.status_code == 200 else []
+                if not geo_results:
+                    raise HTTPException(status_code=422, detail=f'Ville "{query}" introuvable — précise "Ville, Pays"')
+                g = geo_results[0]
+                lat = float(g['lat'])
+                lon = float(g['lon'])
+                display_name = g.get('display_name', query)
+                # Timezone via API TimezoneDB alternative gratuite : timeapi.io
+                try:
+                    r_tz = await client.get(
+                        'https://timeapi.io/api/TimeZone/coordinate',
+                        params={'latitude': lat, 'longitude': lon},
+                    )
+                    tz = r_tz.json().get('timeZone') if r_tz.status_code == 200 else None
+                except Exception:
+                    tz = None
+                if not tz:
+                    # Fallback simple : Europe/Paris pour la France, sinon UTC
+                    country = (g.get('address', {}).get('country_code') or '').lower()
+                    tz = 'Europe/Paris' if country == 'fr' else 'UTC'
+                bd['city'] = display_name
+                bd['location'] = display_name
+                bd['latitude'] = lat
+                bd['longitude'] = lon
+                bd['timezone'] = tz
+                resolved = {'source': 'geocode', 'display_name': display_name, 'lat': lat, 'lon': lon, 'tz': tz}
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f'Géocodage échoué : {e}')
+    # Cas 2 : override manuel des coords + tz
+    else:
+        if payload.city is not None:
+            bd['city'] = payload.city
+            bd['location'] = payload.city
+        if payload.latitude is not None:
+            bd['latitude'] = float(payload.latitude)
+        if payload.longitude is not None:
+            bd['longitude'] = float(payload.longitude)
+        if payload.timezone is not None:
+            bd['timezone'] = payload.timezone
+
+    pdf_ctx['birth_data'] = bd
+    md['pdf_ctx'] = pdf_ctx
+    # Efface le pdf_path pour permettre la régénération SANS force
+    md.pop('pdf_path', None)
+    sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+    return {'ok': True, 'birth_data': bd, 'resolved': resolved}
