@@ -563,3 +563,50 @@ async def admin_regenerate_theme_natal(session_id: str, _admin: dict = Depends(r
         'pdf_supabase_url': md2.get('pdf_supabase_url'),
         'pdf_generated_at': md2.get('pdf_generated_at'),
     }
+
+
+
+@router.get('/theme-natal/inspect/{session_id}')
+async def admin_inspect_theme_natal(session_id: str, _admin: dict = Depends(require_admin)):
+    """Renvoie l'état complet en base pour une session Thème Natal, incluant :
+    - status / payment_status
+    - metadata.pdf_ctx (les données de naissance saisies au checkout — SOURCE de vérité)
+    - metadata.pdf_generated_at (dernière régénération)
+    - metadata.pdf_supabase_url (URL servie, avec cache-buster si récent)
+    - kind / user_email
+    Permet de vérifier que force=True a bien mis à jour la row et que les
+    birth_data utilisées ne sont pas des valeurs de test.
+    """
+    sb = get_admin_client()
+    r = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
+    if not r or not r.data:
+        raise HTTPException(status_code=404, detail='Session introuvable')
+    tx = r.data
+    md = tx.get('metadata') or {}
+    pdf_ctx = md.get('pdf_ctx') or {}
+    bd = pdf_ctx.get('birth_data') or {}
+    return {
+        'session_id': session_id,
+        'kind': md.get('kind'),
+        'user_email': tx.get('user_email'),
+        'status': tx.get('status'),
+        'payment_status': tx.get('payment_status'),
+        'created_at': tx.get('created_at'),
+        'birth_data_source': {
+            'first_name': pdf_ctx.get('first_name'),
+            'birth_date_iso': pdf_ctx.get('birth_date_iso'),
+            'year': bd.get('year'),
+            'month': bd.get('month'),
+            'day': bd.get('day'),
+            'hour': bd.get('hour'),
+            'minute': bd.get('minute'),
+            'city': bd.get('city') or bd.get('location'),
+            'latitude': bd.get('latitude'),
+            'longitude': bd.get('longitude'),
+            'timezone': bd.get('timezone'),
+        },
+        'pdf_path': md.get('pdf_path'),
+        'pdf_supabase_url': md.get('pdf_supabase_url'),
+        'pdf_generated_at': md.get('pdf_generated_at'),
+        'email_sent_at': md.get('email_sent_at'),
+    }
