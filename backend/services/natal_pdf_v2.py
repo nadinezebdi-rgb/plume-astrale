@@ -19,6 +19,12 @@ from services.pdf_luxury_theme import (
     cover_page, opening_page, chapter_illustration, chart_wheel_page,
     planet_dense_page, photos_grid_2x2, emotional_ending,
 )
+from services.pdf_book_pages import (
+    half_title_page, copyright_page, dedication_page, table_of_contents_page,
+    part_divider_page, element_dominant_page, modality_dominant_page,
+    trio_cross_analysis_page, aspects_group_page, house_detail_page,
+    year_ahead_page, colophon_page,
+)
 from services import library_images as libimg
 
 # Métadonnées visuelles par planète : glyphe + dialogue psychologique + slug image
@@ -68,8 +74,11 @@ def _grid_cells_from_planets(planets: list, indices: list) -> list:
 
 
 def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
-                        chart_png_bytes: bytes | None = None) -> bytes:
-    """Génère le Thème Natal Plume Astrale — rendu standard uniforme.
+                        chart_png_bytes: bytes | None = None,
+                        book_data: Optional[dict] = None,
+                        referral_code: Optional[str] = None,
+                        referral_link: Optional[str] = None) -> bytes:
+    """Génère le Thème Natal Plume Astrale — VERSION LIVRE (38-46 pages).
 
     natal_data attend :
         {
@@ -81,10 +90,10 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
           'synthese_aspects': '<optionnel, texte AI sur les aspects>',
           'tier': 'ultra' | 'legacy',
         }
-    chart_png_bytes : PNG binaire de la carte du ciel (SVG astrology-api.io v3
-    déjà rasterisé via cairosvg). Si présent, insère une page dédiée après
-    l'ouverture. Si None, fallback sur l'illustration générique.
-    """
+    chart_png_bytes : PNG binaire de la carte du ciel.
+    book_data : dict retourné par natal_book_enrichment.enrich_book_chapters
+                — si présent, ajoute front matter + parties + maisons + épilogue.
+    referral_code / referral_link : injectés dans le colophon final."""
     buf = io.BytesIO()
     doc = build_luxury_doc(buf, title=f'Thème Natal — {prenom}')
     styles = luxury_styles()
@@ -95,27 +104,75 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
     moon_sign = natal_data.get('moon_sign', '')
     asc_sign = natal_data.get('ascendant_sign', '')
 
-    # ── 1. COUVERTURE (image cover + prénom) ────────────────────────
+    # Format FR de la date (utilisé plusieurs fois)
+    _MOIS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+    try:
+        _y, _m, _d = birth_date.split('-')
+        date_fr = f"{int(_d)} {_MOIS_FR[int(_m) - 1]} {_y}"
+    except Exception:
+        date_fr = birth_date
+
+    bd = bool(book_data and book_data.get('_source') in ('gpt', 'cache'))
+
+    # ══════════════════════════════════════════════════════════════
+    # FRONT MATTER (uniquement si book_data disponible)
+    # ══════════════════════════════════════════════════════════════
+    # ── 1. COUVERTURE ──────────────────────────────────────────────
     cover_page(story, styles, prenom=prenom,
                subtitle='Ton ciel de naissance, dévoilé.',
                illustration_slug='ciel_zodiaque')
 
-    # ── 2. OUVERTURE (accueil dense — plus 1-liner) ────────────────
+    if bd:
+        # ── 2. Faux-titre ──
+        half_title_page(story, styles, 'Thème Natal')
+        # ── 3. Copyright + éphéméride ──
+        copyright_page(story, styles, prenom, date_fr)
+        # ── 4. Dédicace personnalisée (GPT) ──
+        dedication_page(story, styles, prenom, book_data.get('dedication'))
+        # ── 5. Table des matières ──
+        toc_entries = [
+            {'type': 'part', 'label': 'Partie I — Fondations'},
+            {'type': 'chapter', 'label': 'Ouverture'},
+            {'type': 'chapter', 'label': 'Ton empreinte céleste'},
+            {'type': 'chapter', 'label': 'Les 4 clés de qui tu es'},
+            {'type': 'chapter', 'label': f"Ton élément dominant : {book_data['_em']['dominant_element']}"},
+            {'type': 'chapter', 'label': f"Ta modalité dominante : {book_data['_em']['dominant_modality']}"},
+            {'type': 'part', 'label': 'Partie II — Planètes intimes'},
+            {'type': 'chapter', 'label': 'Ton triangle intime — Soleil × Lune × Ascendant'},
+            {'type': 'chapter', 'label': 'Soleil, Lune, Mercure, Vénus, Mars, Ascendant'},
+            {'type': 'chapter', 'label': 'Grille : tes énergies quotidiennes'},
+            {'type': 'part', 'label': 'Partie III — Planètes générationnelles'},
+            {'type': 'chapter', 'label': 'Jupiter, Saturne, Uranus, Neptune, Pluton'},
+            {'type': 'chapter', 'label': 'Grille : tes strates profondes'},
+            {'type': 'part', 'label': 'Partie IV — La danse des aspects'},
+            {'type': 'chapter', 'label': 'Tes aspects harmonieux'},
+            {'type': 'chapter', 'label': 'Tes aspects de tension'},
+            {'type': 'chapter', 'label': 'Ton aspect signature'},
+            {'type': 'chapter', 'label': 'Synthèse psychologique globale'},
+            {'type': 'part', 'label': 'Partie V — Les douze maisons'},
+            {'type': 'chapter', 'label': 'Introduction aux maisons'},
+            {'type': 'chapter', 'label': 'Maisons I à XII (une par une)'},
+            {'type': 'part', 'label': 'Épilogue'},
+            {'type': 'chapter', 'label': 'Ton année à venir'},
+            {'type': 'chapter', 'label': 'Fin émotionnelle'},
+            {'type': 'chapter', 'label': 'Colophon'},
+        ]
+        table_of_contents_page(story, styles, toc_entries)
+        # ── DIVISEUR PARTIE I ──
+        part_divider_page(story, styles, 'I', 'Fondations',
+                          subtitle='Ton empreinte céleste, ton élément, ta cadence.',
+                          illustration_local_path=libimg.style_ref('wheel_ref'))
+
+    # ══════════════════════════════════════════════════════════════
+    # PARTIE I — FONDATIONS
+    # ══════════════════════════════════════════════════════════════
+    # Ouverture
     opening_page(story, styles, prenom=prenom,
                  first_line="Ton ciel n'a jamais été aussi clair.")
 
-    # ── 3. CARTE DU CIEL RÉELLE (SVG astrology-api.io v3 → PNG) ────
-    #     Si chart_png_bytes est fourni : page dédiée avec la vraie roue
-    #     personnalisée. Sinon : fallback illustration générique.
+    # Roue céleste
     if chart_png_bytes:
-        # Format FR de la date
-        try:
-            _MOIS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-                        'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
-            _y, _m, _d = birth_date.split('-')
-            date_fr = f"{int(_d)} {_MOIS_FR[int(_m) - 1]} {_y}"
-        except Exception:
-            date_fr = birth_date
         chart_wheel_page(story, styles, chart_png_bytes,
                           prenom=prenom, birth_date_fr=date_fr,
                           sun_sign=sun_sign, moon_sign=moon_sign, asc_sign=asc_sign)
@@ -125,14 +182,12 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                               title='Ton empreinte céleste',
                               illustration_slug='roue_zodiaque')
 
-    # ── 4. GRILLE 2×2 : Trio identitaire + Aspect dominant ──────────
-    #  Soleil + Lune + Ascendant + 1er signe présent (généralement Vénus)
+    # Grille identité 2×2
     id_cells = [
         {'image': _planet_image_path('Soleil'), 'label': 'Soleil', 'sublabel': sun_sign},
         {'image': _planet_image_path('Lune'), 'label': 'Lune', 'sublabel': moon_sign},
         {'image': _sign_image_path(asc_sign) if asc_sign else None, 'label': 'Ascendant', 'sublabel': asc_sign},
     ]
-    # 4e cellule : Vénus si présente, sinon la 4e planète du thème
     fourth = next((p for p in planets if p.get('name') == 'Vénus'),
                   planets[3] if len(planets) > 3 else None)
     if fourth:
@@ -146,7 +201,31 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                     title='Les 4 clés de qui tu es',
                     cells=id_cells)
 
-    # ── 5. PLANÈTES — 1 page DENSE par planète (jamais de page 1-ligne) ─
+    # Élément + modalité (livre uniquement)
+    if bd:
+        em = book_data['_em']
+        element_dominant_page(story, styles,
+                              dominant_element=em['dominant_element'],
+                              planet_count=em['dominant_element_count'],
+                              body_html=book_data.get('element_analysis') or '')
+        modality_dominant_page(story, styles,
+                                dominant_modality=em['dominant_modality'],
+                                planet_count=em['dominant_modality_count'],
+                                body_html=book_data.get('modality_analysis') or '')
+
+        # ── DIVISEUR PARTIE II ──
+        part_divider_page(story, styles, 'II', 'Planètes intimes',
+                          subtitle='Ce qui t\'anime jour et nuit.',
+                          illustration_local_path=libimg.planet('Vénus', size=1080))
+
+        # Trio synthèse Soleil × Lune × Ascendant
+        trio_cross_analysis_page(story, styles,
+                                  sun_sign=sun_sign, moon_sign=moon_sign, asc_sign=asc_sign,
+                                  body_html=book_data.get('trio_synthesis') or '')
+
+    # ══════════════════════════════════════════════════════════════
+    # PARTIE II — PLANÈTES (denses, 1 page par planète)
+    # ══════════════════════════════════════════════════════════════
     for planet in planets:
         name = planet.get('name', '')
         sign = planet.get('sign', '')
@@ -164,45 +243,65 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
             glyph=meta.get('glyph'),
         )
 
-    # ── 6. GRILLE 2×2 : Planètes sociales (seulement si Ultra ≥ 7 pl.) ──
+    # Grille 2×2 planètes sociales (mode Ultra ≥ 7 planètes)
     if len(planets) >= 7:
         social_names = ('Mercure', 'Vénus', 'Mars', 'Jupiter')
         social_planets = [p for p in planets if p.get('name') in social_names]
         if len(social_planets) >= 3:
-            photos_grid_2x2(
-                story, styles,
-                chapter_tag='✦ Tes énergies quotidiennes ✦',
-                title='Comment tu penses, aimes, agis, grandis',
-                cells=[
-                    {
-                        'image': _planet_image_path(p.get('name', '')),
-                        'label': p.get('name', ''),
-                        'sublabel': p.get('sign', ''),
-                    }
-                    for p in social_planets[:4]
-                ],
-            )
+            photos_grid_2x2(story, styles,
+                            chapter_tag='✦ Tes énergies quotidiennes ✦',
+                            title='Comment tu penses, aimes, agis, grandis',
+                            cells=[{
+                                'image': _planet_image_path(p.get('name', '')),
+                                'label': p.get('name', ''),
+                                'sublabel': p.get('sign', ''),
+                            } for p in social_planets[:4]])
 
-    # ── 7. GRILLE 2×2 : Planètes générationnelles (Ultra ≥ 10 pl.) ──
+    # ── DIVISEUR PARTIE III ──
+    if bd:
+        part_divider_page(story, styles, 'III', 'Planètes générationnelles',
+                          subtitle='Ce qui te structure au long cours.',
+                          illustration_local_path=libimg.planet('Saturne', size=1080))
+
+    # Grille 2×2 planètes générationnelles (mode Ultra ≥ 10 planètes)
     if len(planets) >= 10:
         gen_names = ('Saturne', 'Uranus', 'Neptune', 'Pluton')
         gen_planets = [p for p in planets if p.get('name') in gen_names]
         if len(gen_planets) >= 3:
-            photos_grid_2x2(
-                story, styles,
-                chapter_tag='✦ Tes strates profondes ✦',
-                title='Ce qui te structure au long cours',
-                cells=[
-                    {
-                        'image': _planet_image_path(p.get('name', '')),
-                        'label': p.get('name', ''),
-                        'sublabel': p.get('sign', ''),
-                    }
-                    for p in gen_planets[:4]
-                ],
-            )
+            photos_grid_2x2(story, styles,
+                            chapter_tag='✦ Tes strates profondes ✦',
+                            title='Ce qui te structure au long cours',
+                            cells=[{
+                                'image': _planet_image_path(p.get('name', '')),
+                                'label': p.get('name', ''),
+                                'sublabel': p.get('sign', ''),
+                            } for p in gen_planets[:4]])
 
-    # ── 8. SYNTHÈSE ASPECTS (Ultra only, page dense unique) ──────────
+    # ══════════════════════════════════════════════════════════════
+    # PARTIE IV — ASPECTS
+    # ══════════════════════════════════════════════════════════════
+    if bd:
+        part_divider_page(story, styles, 'IV', 'La danse des aspects',
+                          subtitle='Comment tes planètes s\'appellent, se cherchent, s\'écoutent.',
+                          illustration_local_path=libimg.tarot('amoureux', size=1080))
+
+        aspects_group_page(story, styles,
+                            category='Aspects harmonieux',
+                            headline=book_data.get('aspects_harmonieux_headline') or 'La grâce en toi',
+                            body_html=book_data.get('aspects_harmonieux_body') or '',
+                            tarot_slug='soleil')
+        aspects_group_page(story, styles,
+                            category='Aspects de tension',
+                            headline=book_data.get('aspects_tensions_headline') or 'Le nœud qui te forge',
+                            body_html=book_data.get('aspects_tensions_body') or '',
+                            tarot_slug='force')
+        aspects_group_page(story, styles,
+                            category='Aspect signature',
+                            headline=book_data.get('rare_aspect_headline') or 'Ta note rare',
+                            body_html=book_data.get('rare_aspect_body') or '',
+                            tarot_slug='etoile')
+
+    # Synthèse aspects (existante)
     synthese = (natal_data.get('synthese_aspects') or '').strip()
     if synthese:
         planet_dense_page(
@@ -212,11 +311,52 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
             body_html=synthese,
             image_local_path=None,
             dialogue_question="Tes planètes se parlent — certaines s'aiment, d'autres se cherchent. Écoute leur conversation.",
-            glyph='✦',
+            glyph=None,
         )
 
-    # ── 9. FIN ÉMOTIONNELLE SOLÉNA ──────────────────────────────────
+    # ══════════════════════════════════════════════════════════════
+    # PARTIE V — MAISONS (livre uniquement)
+    # ══════════════════════════════════════════════════════════════
+    if bd:
+        part_divider_page(story, styles, 'V', 'Les douze maisons',
+                          subtitle='Les pièces intérieures de ta demeure.',
+                          illustration_local_path=libimg.house(1, size=1080))
+        # Introduction maisons
+        planet_dense_page(story, styles,
+                           planet_name='Les maisons',
+                           sign='Ta demeure intérieure',
+                           body_html=book_data.get('houses_intro') or '',
+                           image_local_path=libimg.style_ref('wheel_ref'),
+                           dialogue_question=None,
+                           glyph=None)
+        # 12 pages — une par maison
+        # NB : on n'a pas toujours les données cuspide/planètes, on affiche quand même l'analyse
+        houses_data = natal_data.get('houses') or []
+        houses_by_num = {h.get('num'): h for h in houses_data if h.get('num')}
+        for n in range(1, 13):
+            h = houses_by_num.get(n, {})
+            house_detail_page(story, styles,
+                               house_num=n,
+                               sign=h.get('sign', ''),
+                               planets_in_house=h.get('planets_in_house') or [],
+                               body_html=book_data.get(f'house_{n}') or '')
+
+    # ══════════════════════════════════════════════════════════════
+    # ÉPILOGUE
+    # ══════════════════════════════════════════════════════════════
+    if bd:
+        part_divider_page(story, styles, 'VI', 'Épilogue',
+                          subtitle='Ce que le ciel murmure pour la suite.',
+                          illustration_local_path=libimg.tarot('etoile', size=1080))
+        year_ahead_page(story, styles, prenom,
+                        body_html=book_data.get('year_ahead') or '')
+
+    # Fin émotionnelle Soléna (existante)
     emotional_ending(story, styles, prenom=prenom)
+
+    # Colophon final avec code parrainage
+    if bd:
+        colophon_page(story, styles, prenom, referral_code, referral_link)
 
     doc.build(story, onFirstPage=luxury_bg, onLaterPages=luxury_bg)
     return buf.getvalue()

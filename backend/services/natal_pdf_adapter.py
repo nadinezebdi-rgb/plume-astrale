@@ -86,7 +86,10 @@ _EN_TO_KEY = {
 
 
 def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: dict = None,
-                            chart_png_bytes: bytes | None = None) -> bytes:
+                            chart_png_bytes: bytes | None = None,
+                            book_data: dict = None,
+                            referral_code: str = None,
+                            referral_link: str = None) -> bytes:
     """DROP-IN REPLACEMENT du générateur legacy `generate_manuscrit_pdf`.
 
     Mode ULTRA activé si `user_data['ai_interpretations']` contient au moins
@@ -196,7 +199,10 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
 
     try:
         pdf_bytes = build_natal_pdf_v2(prenom=prenom, birth_date=birth_date, natal_data=natal_data,
-                                       chart_png_bytes=chart_png_bytes)
+                                       chart_png_bytes=chart_png_bytes,
+                                       book_data=book_data,
+                                       referral_code=referral_code,
+                                       referral_link=referral_link)
         # Track pipeline health : source (gpt/gpt_partial/api_v3_only/none) + tier + taille
         try:
             from services.pipeline_metrics import track_pipeline_event
