@@ -21,6 +21,30 @@ ASSETS_DIR = Path(__file__).resolve().parent.parent / 'assets'
 
 
 async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = False) -> dict:
+    """Wrapper qui garantit que TOUTE exception non prévue marque
+    `metadata.pdf_status = 'failed'` (sinon l'UI reste en spinner infini).
+    Le vrai travail est dans `_impl_handle_theme_natal_oneshot`.
+    """
+    try:
+        return await _impl_handle_theme_natal_oneshot(session_id, force)
+    except Exception as e:
+        logger.exception(f'[theme_natal_oneshot] UNCAUGHT exception for {session_id}: {e}')
+        # Best-effort : marque le failure côté base pour que le front sorte du spinner
+        try:
+            sb = get_admin_client()
+            r = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+            if r and r.data:
+                md = r.data.get('metadata') or {}
+                md['pdf_status'] = 'failed'
+                md['pdf_error'] = f'uncaught: {type(e).__name__}: {str(e)[:300]}'
+                md['pdf_failed_at'] = datetime.now(timezone.utc).isoformat()
+                sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+        except Exception:
+            pass
+        return {'session_id': session_id, 'force': force, 'error': f'uncaught: {e}'}
+
+
+async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False) -> dict:
     """Génère le PDF Thème Natal complet + envoie l'email au client (idempotent).
 
     Si force=True, régénère même si un PDF a déjà été produit (utile après
