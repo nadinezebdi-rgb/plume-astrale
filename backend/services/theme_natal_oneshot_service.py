@@ -177,64 +177,70 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     except Exception as e:
         logger.warning(f"[theme_natal_oneshot] chart wheel unavailable: {e}")
 
-    # 4.5) Enrichissement narratif LIVRE — front matter, éléments, aspects,
-    #      maisons, épilogue. 1 seul appel GPT-5.4 (cache filesystem).
-    #      Best-effort : si échec, le PDF sort en version "standard" (20 pages).
+    # 4.5) Enrichissement narratif LIVRE — désactivé volontairement.
+    # Le mode "livre" (front matter + Actes + maisons + épilogue) produit un
+    # PDF de 30-100 Mo trop lourd à ouvrir sur mobile et téléchargement lent.
+    # Le code reste en place (services/natal_book_enrichment.py, pdf_book_pages.py,
+    # pdf_editorial_templates.py) pour réactivation ultérieure via BOOK_MODE_ENABLED.
+    #
+    # Pour réactiver plus tard : mettre BOOK_MODE_ENABLED='true' dans backend/.env
+    # OU changer la valeur par défaut ci-dessous à True.
     book_data = None
-    try:
-        from services.natal_book_enrichment import enrich_book_chapters
-        # Prépare la data astro pour le prompt (aspects + maisons si dispo dans natal_report_data)
-        aspects_for_book = []
-        houses_for_book = []
+    if os.environ.get('BOOK_MODE_ENABLED', 'false').lower() == 'true':
         try:
-            if isinstance(natal_report_data, dict):
-                aspects_raw = (natal_report_data.get('aspects')
-                               or natal_report_data.get('data', {}).get('aspects') or [])
-                for a in aspects_raw[:20]:
-                    aspects_for_book.append({
-                        'planet1': a.get('planet1') or a.get('p1') or a.get('body1'),
-                        'planet2': a.get('planet2') or a.get('p2') or a.get('body2'),
-                        'type': a.get('type') or a.get('aspect') or a.get('name'),
-                        'orb': a.get('orb') or a.get('orb_deg') or a.get('degree'),
-                    })
-                houses_raw = (natal_report_data.get('houses')
-                              or natal_report_data.get('data', {}).get('houses') or [])
-                for i, h in enumerate(houses_raw[:12]):
-                    houses_for_book.append({
-                        'num': h.get('number') or h.get('num') or (i + 1),
-                        'sign': aio.sign_to_fr(h.get('sign', '')) if h.get('sign') else '',
-                        'planets_in_house': h.get('planets') or h.get('planets_in_house') or [],
-                    })
-        except Exception:
-            pass
-        # planets pour analyse éléments/modalités (nécessite noms FR + signes FR)
-        planets_book = []
-        for _pfr, _en in (('Soleil', 'sun'), ('Lune', 'moon'), ('Mercure', 'mercury'),
-                           ('Vénus', 'venus'), ('Mars', 'mars'), ('Jupiter', 'jupiter'),
-                           ('Saturne', 'saturn'), ('Uranus', 'uranus'),
-                           ('Neptune', 'neptune'), ('Pluton', 'pluto')):
-            p = planets_dict.get(_en) or {}
-            _sign = aio.sign_to_fr(p.get('sign', '')) if p.get('sign') else ''
-            if _sign:
-                planets_book.append({'name': _pfr, 'sign': _sign})
-        natal_data_for_book = {
-            'prenom': name,
-            'sun_sign': aio.sign_to_fr((planets_dict.get('sun') or {}).get('sign', '')),
-            'moon_sign': aio.sign_to_fr((planets_dict.get('moon') or {}).get('sign', '')),
-            'asc_sign': aio.sign_to_fr(asc_sign_en) if asc_sign_en else '',
-            'planets': planets_book,
-            'aspects': aspects_for_book,
-            'houses': houses_for_book,
-        }
-        book_data = await enrich_book_chapters(
-            prenom=name, birth_data=bd, natal_data=natal_data_for_book,
-        )
-        diag['book_source'] = book_data.get('_source')
-        diag['book_element'] = book_data.get('_em', {}).get('dominant_element')
-        diag['book_modality'] = book_data.get('_em', {}).get('dominant_modality')
-    except Exception as e:
-        logger.warning(f"[theme_natal_oneshot] book enrichment failed: {e}")
-        diag['book_error'] = str(e)[:200]
+            from services.natal_book_enrichment import enrich_book_chapters
+            aspects_for_book = []
+            houses_for_book = []
+            try:
+                if isinstance(natal_report_data, dict):
+                    aspects_raw = (natal_report_data.get('aspects')
+                                   or natal_report_data.get('data', {}).get('aspects') or [])
+                    for a in aspects_raw[:20]:
+                        aspects_for_book.append({
+                            'planet1': a.get('planet1') or a.get('p1') or a.get('body1'),
+                            'planet2': a.get('planet2') or a.get('p2') or a.get('body2'),
+                            'type': a.get('type') or a.get('aspect') or a.get('name'),
+                            'orb': a.get('orb') or a.get('orb_deg') or a.get('degree'),
+                        })
+                    houses_raw = (natal_report_data.get('houses')
+                                  or natal_report_data.get('data', {}).get('houses') or [])
+                    for i, h in enumerate(houses_raw[:12]):
+                        houses_for_book.append({
+                            'num': h.get('number') or h.get('num') or (i + 1),
+                            'sign': aio.sign_to_fr(h.get('sign', '')) if h.get('sign') else '',
+                            'planets_in_house': h.get('planets') or h.get('planets_in_house') or [],
+                        })
+            except Exception:
+                pass
+            planets_book = []
+            for _pfr, _en in (('Soleil', 'sun'), ('Lune', 'moon'), ('Mercure', 'mercury'),
+                               ('Vénus', 'venus'), ('Mars', 'mars'), ('Jupiter', 'jupiter'),
+                               ('Saturne', 'saturn'), ('Uranus', 'uranus'),
+                               ('Neptune', 'neptune'), ('Pluton', 'pluto')):
+                p = planets_dict.get(_en) or {}
+                _sign = aio.sign_to_fr(p.get('sign', '')) if p.get('sign') else ''
+                if _sign:
+                    planets_book.append({'name': _pfr, 'sign': _sign})
+            natal_data_for_book = {
+                'prenom': name,
+                'sun_sign': aio.sign_to_fr((planets_dict.get('sun') or {}).get('sign', '')),
+                'moon_sign': aio.sign_to_fr((planets_dict.get('moon') or {}).get('sign', '')),
+                'asc_sign': aio.sign_to_fr(asc_sign_en) if asc_sign_en else '',
+                'planets': planets_book,
+                'aspects': aspects_for_book,
+                'houses': houses_for_book,
+            }
+            book_data = await enrich_book_chapters(
+                prenom=name, birth_data=bd, natal_data=natal_data_for_book,
+            )
+            diag['book_source'] = book_data.get('_source')
+            diag['book_element'] = book_data.get('_em', {}).get('dominant_element')
+            diag['book_modality'] = book_data.get('_em', {}).get('dominant_modality')
+        except Exception as e:
+            logger.warning(f"[theme_natal_oneshot] book enrichment failed: {e}")
+            diag['book_error'] = str(e)[:200]
+    else:
+        diag['book_source'] = 'disabled'
 
     # 4.6) Récupère le code parrainage de l'utilisateur pour le colophon final
     referral_code_book = None
@@ -243,7 +249,6 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         user_id = md.get('user_id') or tx.get('user_id')
         if user_id:
             from services.referral_service import ensure_referral_code
-            import os
             referral_code_book = await ensure_referral_code(user_id)
             _base = os.environ.get('PUBLIC_APP_URL', 'https://plume-astrale.fr').rstrip('/')
             referral_link_book = f'{_base}/?ref={referral_code_book}'
