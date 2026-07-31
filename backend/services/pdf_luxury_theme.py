@@ -352,18 +352,20 @@ def planet_dense_page(
     """Page dense pour une planète : header ornemental + petite image + analyse + dialogue.
 
     Layout :
-      - Ligne 1 : "☉ SOLEIL — CANCER" (Cinzel doré, centré)
+      - Ligne 1 : "SOLEIL — CANCER" (Cinzel doré, centré)
       - Ligne 2 : image de la planète 4×4 cm centrée (si fournie)
       - Ligne 3 : dialogue psychologique (italique doré, centré)
       - Bloc corps : 2–4 paragraphes d'analyse (Cormorant)
       - PageBreak à la fin
 
     Une SEULE page par planète — plus de glyph_page ni de waouh séparée.
-    Le glyphe est intégré dans le header pour préserver la signature visuelle.
+    Le glyphe Unicode astro (♆ ☉…) est INTENTIONNELLEMENT omis du header :
+    la police Cinzel ne le supporte pas et produit un rectangle vide (tofu).
+    L'image de la planète en dessous fournit déjà l'identité visuelle.
     """
     from reportlab.platypus import Image as RLImage
     story.append(Spacer(1, 0.8 * cm))
-    header_str = (f'{glyph}  ' if glyph else '') + f'{planet_name.upper()} — <font color="{GOLD_HEX}">{sign}</font>'
+    header_str = f'{planet_name.upper()} — <font color="{GOLD_HEX}">{sign}</font>'
     story.append(Paragraph(
         header_str,
         ParagraphStyle('planet_dense_h', fontName=font('Cinzel', 'Helvetica'),
