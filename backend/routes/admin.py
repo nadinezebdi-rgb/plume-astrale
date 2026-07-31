@@ -536,9 +536,14 @@ async def admin_regenerate_theme_natal(session_id: str, _admin: dict = Depends(r
     """Force la régénération complète d'un PDF Thème Natal one-shot pour une session donnée.
 
     Utile après refonte du template : les anciennes sessions ont l'ancien PDF
-    en cache (idempotence). Cet endpoint bypass l'idempotence et upload un
-    nouveau PDF avec cache-buster sur l'URL Supabase.
+    en cache (idempotence). Cet endpoint bypass l'idempotence, lance le job en
+    ARRIÈRE-PLAN (évite les timeouts Cloudflare 520) et retourne immédiatement.
+
+    Le suivi se fait via GET /admin/theme-natal/inspect/{session_id} :
+    - Tant que 'diagnostic' n'est pas mis à jour dans metadata → job en cours
+    - Quand 'pdf_generated_at' change → job terminé, diag stocké dans metadata.regenerate_diag
     """
+    import asyncio
     from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
     sb = get_admin_client()
     # Vérification que la session existe et est bien un theme_natal one-shot
@@ -548,21 +553,41 @@ async def admin_regenerate_theme_natal(session_id: str, _admin: dict = Depends(r
     md = r.data.get('metadata') or {}
     if md.get('kind') != 'theme_natal_pdf_oneshot':
         raise HTTPException(status_code=400, detail='La session n\'est pas un Thème Natal one-shot')
-    try:
-        diag = await handle_theme_natal_oneshot_webhook(session_id, force=True)
-    except Exception as e:
-        logger.exception(f'[admin] regenerate theme_natal fail {session_id}')
-        raise HTTPException(status_code=500, detail=f'Regénération échouée : {e}')
-    # Retourne la nouvelle URL fraîche + le diagnostic complet
-    r2 = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
-    md2 = (r2.data or {}).get('metadata') or {}
+
+    # Marque le début du job pour que le polling puisse détecter "in progress"
+    from datetime import datetime, timezone
+    md['regenerate_started_at'] = datetime.now(timezone.utc).isoformat()
+    md.pop('regenerate_diag', None)
+    md.pop('regenerate_error', None)
+    sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+
+    async def _run_and_store():
+        try:
+            diag = await handle_theme_natal_oneshot_webhook(session_id, force=True)
+            r2 = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+            md2 = (r2.data or {}).get('metadata') or {}
+            md2['regenerate_diag'] = diag
+            md2['regenerate_finished_at'] = datetime.now(timezone.utc).isoformat()
+            sb.table('payment_transactions').update({'metadata': md2}).eq('session_id', session_id).execute()
+            logger.info(f'[admin] regenerate DONE {session_id} diag={diag}')
+        except Exception as e:
+            logger.exception(f'[admin] regenerate theme_natal fail {session_id}')
+            try:
+                r2 = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+                md2 = (r2.data or {}).get('metadata') or {}
+                md2['regenerate_error'] = str(e)[:500]
+                md2['regenerate_finished_at'] = datetime.now(timezone.utc).isoformat()
+                sb.table('payment_transactions').update({'metadata': md2}).eq('session_id', session_id).execute()
+            except Exception:
+                pass
+
+    asyncio.create_task(_run_and_store())
     return {
         'ok': True,
+        'status': 'accepted',
         'session_id': session_id,
-        'pdf_path': md2.get('pdf_path'),
-        'pdf_supabase_url': md2.get('pdf_supabase_url'),
-        'pdf_generated_at': md2.get('pdf_generated_at'),
-        'diagnostic': diag,
+        'poll_url': f'/api/admin/theme-natal/inspect/{session_id}',
+        'message': "Régénération lancée en arrière-plan. Poll l'URL /inspect toutes les 5s, le champ 'regenerate_diag' apparaîtra quand ce sera fini (30-90s attendu).",
     }
 
 
@@ -610,4 +635,10 @@ async def admin_inspect_theme_natal(session_id: str, _admin: dict = Depends(requ
         'pdf_supabase_url': md.get('pdf_supabase_url'),
         'pdf_generated_at': md.get('pdf_generated_at'),
         'email_sent_at': md.get('email_sent_at'),
+        # Suivi du job de régénération asynchrone (si lancé via /regenerate)
+        'regenerate_started_at': md.get('regenerate_started_at'),
+        'regenerate_finished_at': md.get('regenerate_finished_at'),
+        'regenerate_error': md.get('regenerate_error'),
+        'regenerate_diag': md.get('regenerate_diag'),
+        'regenerate_in_progress': bool(md.get('regenerate_started_at')) and not (md.get('regenerate_finished_at') or md.get('regenerate_error')),
     }
