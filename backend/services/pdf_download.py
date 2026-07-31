@@ -49,6 +49,7 @@ def upload_pdf_to_reports_bucket(
     session_id: str,
     product_kind: str,
     filename: Optional[str] = None,
+    version: Optional[str] = None,
 ) -> Optional[str]:
     """Upload le PDF sur Supabase Storage bucket 'reports/{product_kind}/{session_id}.pdf'.
     Retourne l'URL publique du PDF, ou None si l'upload échoue.
@@ -56,6 +57,9 @@ def upload_pdf_to_reports_bucket(
     Cette URL reste valide après redeploy (contrairement aux fichiers locaux
     stockés dans /app/backend/assets/ qui sont perdus au restart du pod).
     Créé 2026-02 pour l'onglet admin "PDFs envoyés".
+
+    Si version est fourni (ex: timestamp de régénération), le path est suffixé
+    par -v{version} → nouvelle URL unique, immune à tout cache CDN sur l'ancienne.
     """
     try:
         from services.supabase_client import get_admin_client
@@ -63,13 +67,18 @@ def upload_pdf_to_reports_bucket(
         # Path stable et unique dans le bucket
         clean_kind = (product_kind or 'other').replace('/', '_').strip('_') or 'other'
         clean_sid = (session_id or '').replace('/', '_')[-40:]
-        path = f'pdfs/{clean_kind}/{clean_sid}.pdf'
+        # Suffixe de version pour forcer une URL fraîche (bypass CDN cache Supabase)
+        suffix = f'-v{version}' if version else ''
+        path = f'pdfs/{clean_kind}/{clean_sid}{suffix}.pdf'
 
+        # Cache-control court (60s) pour que les futurs replaces se propagent vite
+        # via le CDN Supabase si jamais on réutilise le même path.
+        cache_ctrl = '60'
         # Upsert : override si déjà présent (régénération admin, etc.)
         try:
             sb.storage.from_('reports').upload(
                 path, pdf_bytes,
-                {'content-type': 'application/pdf', 'cache-control': '31536000', 'upsert': 'true'},
+                {'content-type': 'application/pdf', 'cache-control': cache_ctrl, 'upsert': 'true'},
             )
         except Exception:
             # Fallback : delete + upload si upsert non supporté par la SDK
@@ -79,7 +88,7 @@ def upload_pdf_to_reports_bucket(
                 pass
             sb.storage.from_('reports').upload(
                 path, pdf_bytes,
-                {'content-type': 'application/pdf', 'cache-control': '31536000'},
+                {'content-type': 'application/pdf', 'cache-control': cache_ctrl},
             )
 
         # Génère l'URL publique (bucket doit être public sur Supabase)
@@ -87,7 +96,7 @@ def upload_pdf_to_reports_bucket(
         # supabase-py retourne parfois avec un trailing '?', normalise
         if isinstance(public_url, str):
             public_url = public_url.rstrip('?')
-        logger.info(f'[pdf_upload] {clean_kind}/{clean_sid} → {public_url}')
+        logger.info(f'[pdf_upload] {clean_kind}/{clean_sid}{suffix} → {public_url}')
         return public_url
     except Exception as e:
         logger.warning(f'[pdf_upload] échec upload Supabase pour {product_kind}/{session_id}: {e}')
@@ -151,7 +160,11 @@ async def download_pdf(session_id: str, token: str):
         if supabase_url:
             from fastapi.responses import RedirectResponse
             logger.info(f'[pdf_download] {session_id} local manquant → redirect Supabase')
-            return RedirectResponse(url=supabase_url, status_code=302)
+            resp = RedirectResponse(url=supabase_url, status_code=302)
+            # Empêche le navigateur de cacher le redirect (l'URL cible peut changer sur régénération)
+            resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            resp.headers['Pragma'] = 'no-cache'
+            return resp
         # Aucun fallback disponible : message clair au lieu d'un JSON brut
         logger.warning(f'[pdf_download] file missing for {session_id} ({product_kind})')
         raise HTTPException(
