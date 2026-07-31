@@ -533,35 +533,45 @@ async def admin_pdfs_sent(
 
 @router.post('/theme-natal/regenerate/{session_id}')
 async def admin_regenerate_theme_natal(session_id: str, _admin: dict = Depends(require_admin)):
-    """Force la régénération complète d'un PDF Thème Natal one-shot pour une session donnée.
+    """Force la régénération du PDF Thème Natal pour une session. Réponse IMMÉDIATE.
 
-    Utile après refonte du template : les anciennes sessions ont l'ancien PDF
-    en cache (idempotence). Cet endpoint bypass l'idempotence, lance le job en
-    ARRIÈRE-PLAN (évite les timeouts Cloudflare 520) et retourne immédiatement.
+    Tout le travail (fetch tx, validation kind, marquage started_at, appel webhook,
+    stockage diag) est effectué dans un background task. La réponse HTTP retourne
+    en <50ms → aucune chance de timeout Cloudflare 520.
 
-    Le suivi se fait via GET /admin/theme-natal/inspect/{session_id} :
-    - Tant que 'diagnostic' n'est pas mis à jour dans metadata → job en cours
-    - Quand 'pdf_generated_at' change → job terminé, diag stocké dans metadata.regenerate_diag
+    Le suivi se fait via GET /admin/theme-natal/inspect/{session_id} qui expose :
+    - regenerate_in_progress (bool)
+    - regenerate_diag (dict) quand terminé
+    - regenerate_error (str) si plantage
     """
     import asyncio
-    from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
-    sb = get_admin_client()
-    # Vérification que la session existe et est bien un theme_natal one-shot
-    r = sb.table('payment_transactions').select('metadata, status').eq('session_id', session_id).maybe_single().execute()
-    if not r or not r.data:
-        raise HTTPException(status_code=404, detail='Session introuvable')
-    md = r.data.get('metadata') or {}
-    if md.get('kind') != 'theme_natal_pdf_oneshot':
-        raise HTTPException(status_code=400, detail='La session n\'est pas un Thème Natal one-shot')
-
-    # Marque le début du job pour que le polling puisse détecter "in progress"
     from datetime import datetime, timezone
-    md['regenerate_started_at'] = datetime.now(timezone.utc).isoformat()
-    md.pop('regenerate_diag', None)
-    md.pop('regenerate_error', None)
-    sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+    from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
 
-    async def _run_and_store():
+    async def _worker():
+        sb = get_admin_client()
+        # 1) Fetch + validation
+        try:
+            r = sb.table('payment_transactions').select('metadata, status').eq('session_id', session_id).maybe_single().execute()
+            if not r or not r.data:
+                logger.error(f'[admin] regenerate: session {session_id} introuvable')
+                return
+            md = r.data.get('metadata') or {}
+            if md.get('kind') != 'theme_natal_pdf_oneshot':
+                logger.error(f'[admin] regenerate: {session_id} n\'est pas un theme_natal one-shot (kind={md.get("kind")})')
+                return
+        except Exception as e:
+            logger.exception(f'[admin] regenerate: fetch tx fail {session_id}')
+            return
+        # 2) Marque started + clear diag précédent
+        try:
+            md['regenerate_started_at'] = datetime.now(timezone.utc).isoformat()
+            md.pop('regenerate_diag', None)
+            md.pop('regenerate_error', None)
+            sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+        except Exception as e:
+            logger.warning(f'[admin] regenerate: mark started fail {session_id}: {e}')
+        # 3) Pipeline complet (30-90s attendu)
         try:
             diag = await handle_theme_natal_oneshot_webhook(session_id, force=True)
             r2 = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
@@ -581,13 +591,14 @@ async def admin_regenerate_theme_natal(session_id: str, _admin: dict = Depends(r
             except Exception:
                 pass
 
-    asyncio.create_task(_run_and_store())
+    # Lance le worker et retourne IMMÉDIATEMENT
+    asyncio.create_task(_worker())
     return {
         'ok': True,
         'status': 'accepted',
         'session_id': session_id,
         'poll_url': f'/api/admin/theme-natal/inspect/{session_id}',
-        'message': "Régénération lancée en arrière-plan. Poll l'URL /inspect toutes les 5s, le champ 'regenerate_diag' apparaîtra quand ce sera fini (30-90s attendu).",
+        'message': "Régénération lancée. Poll /inspect toutes les 3-5s (regenerate_diag apparaît quand terminé, 30-90s).",
     }
 
 
