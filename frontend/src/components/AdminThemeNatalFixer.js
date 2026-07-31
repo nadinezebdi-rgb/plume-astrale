@@ -88,12 +88,15 @@ const AdminThemeNatalFixer = ({ token }) => {
     setErr(null); setMsg(null); setDiag(null); setRegenPolling(true);
     try {
       await axios.post(`${API}/api/admin/theme-natal/regenerate/${sessionId}`, {}, { headers });
-      setMsg('⏳ Régénération lancée en arrière-plan. Attends 30-90 secondes…');
-      // Poll toutes les 3s pendant 3 minutes max
+      setMsg('⏳ Régénération lancée en arrière-plan. Tu peux même fermer cette page — le job continue côté serveur. Le résultat s\'affichera ici quand ce sera prêt (30-120s).');
+      // Poll toutes les 5s pendant 5 minutes max, tolère les erreurs transitoires
       const t0 = Date.now();
+      let consecutiveErrors = 0;
       const poll = async () => {
         try {
-          const r = await axios.get(`${API}/api/admin/theme-natal/inspect/${sessionId}`, { headers });
+          const r = await axios.get(`${API}/api/admin/theme-natal/inspect/${sessionId}`, { headers, timeout: 20000 });
+          consecutiveErrors = 0;   // reset sur succès
+          setErr(null);            // nettoie une éventuelle bannière d'erreur transitoire
           setInfo(r.data);
           if (r.data.regenerate_diag) {
             setDiag(r.data.regenerate_diag);
@@ -102,22 +105,30 @@ const AdminThemeNatalFixer = ({ token }) => {
             return;
           }
           if (r.data.regenerate_error) {
-            setErr(`Régénération échouée : ${r.data.regenerate_error}`);
+            setErr(`Régénération échouée côté backend : ${r.data.regenerate_error}`);
             setRegenPolling(false);
             return;
           }
-          if (Date.now() - t0 > 180000) {
-            setErr('Timeout après 3 minutes — regarde les logs backend');
+          if (Date.now() - t0 > 300000) {
+            setErr('Timeout après 5 minutes — clique "Inspecter" plus tard pour voir si le PDF a fini');
             setRegenPolling(false);
             return;
           }
-          setTimeout(poll, 3000);
+          setTimeout(poll, 5000);
         } catch (e) {
-          setErr(e.response?.data?.detail || e.message);
-          setRegenPolling(false);
+          // Erreurs transitoires (524 Cloudflare, réseau, backend saturé) → on retente
+          consecutiveErrors++;
+          if (consecutiveErrors >= 12) {
+            // 12 erreurs consécutives = 60s ininterrompus → on abandonne
+            setErr('Impossible de joindre le backend après 12 essais — clique "Inspecter" plus tard, le job continue peut-être côté serveur');
+            setRegenPolling(false);
+            return;
+          }
+          // On ne montre PAS l'erreur si c'est transitoire — juste on repolle
+          setTimeout(poll, 5000);
         }
       };
-      setTimeout(poll, 3000);
+      setTimeout(poll, 5000);
     } catch (e) {
       setErr(e.response?.data?.detail || e.message);
       setRegenPolling(false);
@@ -246,15 +257,32 @@ const AdminThemeNatalFixer = ({ token }) => {
           <div className="rounded-2xl p-5 text-center" style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.35)' }}>
             <h3 className="text-base mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>Étape finale — Régénérer le PDF</h3>
             <p className="text-xs opacity-70 mb-4" style={{ color: 'var(--pa-body)' }}>Lance le pipeline complet : API v3 + GPT-5.4 + génération PDF + upload Supabase. Le job tourne en arrière-plan, l&apos;écran se met à jour tout seul.</p>
-            <button
-              data-testid="fixer-regenerate-btn"
-              onClick={regenerate}
-              disabled={loading || regenPolling}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase tracking-widest"
-              style={{ background: '#D4AF37', color: '#111625', letterSpacing: '0.15em', fontWeight: 500 }}
-            >
-              {regenPolling ? <><Loader2 className="w-4 h-4 animate-spin" /> Génération en cours…</> : <><RefreshCw className="w-4 h-4" /> Régénérer le PDF</>}
-            </button>
+            <div className="flex flex-wrap gap-3 justify-center">
+              <button
+                data-testid="fixer-regenerate-btn"
+                onClick={regenerate}
+                disabled={loading || regenPolling}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase tracking-widest"
+                style={{ background: '#D4AF37', color: '#111625', letterSpacing: '0.15em', fontWeight: 500 }}
+              >
+                {regenPolling ? <><Loader2 className="w-4 h-4 animate-spin" /> Génération en cours…</> : <><RefreshCw className="w-4 h-4" /> Régénérer le PDF</>}
+              </button>
+              <button
+                data-testid="fixer-refresh-btn"
+                onClick={inspect}
+                disabled={loading}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs uppercase tracking-widest"
+                style={{ background: 'transparent', color: '#D4AF37', border: '1px solid rgba(212,175,55,0.5)', letterSpacing: '0.15em', fontWeight: 500 }}
+                title="Réinterroge le backend sans relancer la génération"
+              >
+                <RefreshCw className="w-4 h-4" /> Actualiser le diagnostic
+              </button>
+            </div>
+            {regenPolling && (
+              <p className="text-[11px] mt-4 opacity-60" style={{ color: 'var(--pa-body)' }}>
+                💡 Tu peux fermer cette page — la génération continue côté serveur. Reviens dans 2-3 minutes et clique &quot;Actualiser le diagnostic&quot;.
+              </p>
+            )}
           </div>
 
           {diag && (
