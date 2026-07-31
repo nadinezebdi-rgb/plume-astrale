@@ -181,4 +181,6 @@ async def theme_natal_oneshot_status(session_id: str):
         'pdf_url': md.get('pdf_path'),
         'email_sent': bool(md.get('email_sent_at')),
         'pdf_ready': bool(md.get('pdf_path')),
+        'pdf_status': md.get('pdf_status'),  # 'success' | 'failed' | undefined (en cours)
+        'pdf_error': md.get('pdf_error'),
     }

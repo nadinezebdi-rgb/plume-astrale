@@ -264,6 +264,9 @@ async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = Fals
         if supabase_url:
             md['pdf_supabase_url'] = supabase_url
         md['pdf_generated_at'] = datetime.now(timezone.utc).isoformat()
+        md['pdf_status'] = 'success'
+        md.pop('pdf_error', None)
+        md.pop('pdf_failed_at', None)
         sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
         logger.info(f"[theme_natal_oneshot] PDF generated (signed): {md['pdf_path']}")
         # Diagnostic : mesure la taille + tente de compter les pages pour le retour
@@ -277,6 +280,16 @@ async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = Fals
     except Exception as e:
         logger.error(f"[theme_natal_oneshot] PDF gen failed: {e}", exc_info=True)
         diag['error'] = f'PDF gen failed: {e}'
+        # Marque explicitement l'échec côté base pour que l'UI arrête de spinner à l'infini.
+        # `status` reste 'completed' (le paiement est bien confirmé), mais `pdf_status: failed`
+        # signale au front qu'il faut afficher une erreur et proposer de régénérer.
+        try:
+            md['pdf_status'] = 'failed'
+            md['pdf_error'] = str(e)[:400]
+            md['pdf_failed_at'] = datetime.now(timezone.utc).isoformat()
+            sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+        except Exception:
+            pass
         return diag
 
     # 6) Email best-effort

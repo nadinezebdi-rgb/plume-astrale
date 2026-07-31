@@ -50,12 +50,12 @@ def _planet_image_path(planet_fr: str) -> Optional[str]:
     """
     if planet_fr == 'Ascendant':
         return None  # traité côté grille (avec le signe)
-    return libimg.planet(planet_fr, size=1080)
+    return libimg.planet(planet_fr, size=512)
 
 
 def _sign_image_path(sign_fr: str) -> Optional[str]:
     """Retourne le chemin local de l'image du signe zodiacal."""
-    return libimg.sign(sign_fr, size=1080)
+    return libimg.sign(sign_fr, size=512)
 
 
 def _grid_cells_from_planets(planets: list, indices: list) -> list:
@@ -216,7 +216,7 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
         # ── DIVISEUR PARTIE II ──
         part_divider_page(story, styles, 'II', 'Planètes intimes',
                           subtitle='Ce qui t\'anime jour et nuit.',
-                          illustration_local_path=libimg.planet('Vénus', size=1080))
+                          illustration_local_path=libimg.planet('Vénus', size=512))
 
         # Trio synthèse Soleil × Lune × Ascendant
         trio_cross_analysis_page(story, styles,
@@ -261,7 +261,7 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
     if bd:
         part_divider_page(story, styles, 'III', 'Planètes générationnelles',
                           subtitle='Ce qui te structure au long cours.',
-                          illustration_local_path=libimg.planet('Saturne', size=1080))
+                          illustration_local_path=libimg.planet('Saturne', size=512))
 
     # Grille 2×2 planètes générationnelles (mode Ultra ≥ 10 planètes)
     if len(planets) >= 10:
@@ -283,7 +283,7 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
     if bd:
         part_divider_page(story, styles, 'IV', 'La danse des aspects',
                           subtitle='Comment tes planètes s\'appellent, se cherchent, s\'écoutent.',
-                          illustration_local_path=libimg.tarot('amoureux', size=1080))
+                          illustration_local_path=libimg.tarot('amoureux', size=512))
 
         aspects_group_page(story, styles,
                             category='Aspects harmonieux',
@@ -320,7 +320,7 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
     if bd:
         part_divider_page(story, styles, 'V', 'Les douze maisons',
                           subtitle='Les pièces intérieures de ta demeure.',
-                          illustration_local_path=libimg.house(1, size=1080))
+                          illustration_local_path=libimg.house(1, size=512))
         # Introduction maisons
         planet_dense_page(story, styles,
                            planet_name='Les maisons',
@@ -347,7 +347,7 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
     if bd:
         part_divider_page(story, styles, 'VI', 'Épilogue',
                           subtitle='Ce que le ciel murmure pour la suite.',
-                          illustration_local_path=libimg.tarot('etoile', size=1080))
+                          illustration_local_path=libimg.tarot('etoile', size=512))
         year_ahead_page(story, styles, prenom,
                         body_html=book_data.get('year_ahead') or '')
 

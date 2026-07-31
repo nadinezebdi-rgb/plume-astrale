@@ -29,7 +29,9 @@ const ThemeNatalOneshotSucces = () => {
     try {
       const r = await axios.get(`${API}/api/theme-natal-oneshot/status?session_id=${sessionId}`);
       setStatus(r.data || {});
+      // Arrête le polling dès qu'on atteint un état terminal (succès OU échec)
       if (r.data?.pdf_ready) setPolling(false);
+      else if (r.data?.pdf_status === 'failed') setPolling(false);
     } catch (e) {
       /* silent */
     }
@@ -172,6 +174,28 @@ const ThemeNatalOneshotSucces = () => {
             Télécharger mon Thème Natal
             <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
           </a>
+        ) : status.pdf_status === 'failed' ? (
+          <div
+            className="max-w-lg mx-auto p-5 rounded-xl text-left"
+            data-testid="theme-natal-oneshot-error"
+            style={{
+              background: 'rgba(248,113,113,0.08)',
+              border: '1px solid rgba(248,113,113,0.35)',
+              color: '#FCA5A5',
+            }}
+          >
+            <p className="text-sm mb-2" style={{ color: '#FCA5A5' }}>
+              La génération de ton PDF a rencontré un problème.
+            </p>
+            <p className="text-xs" style={{ color: 'rgba(227,215,255,0.65)' }}>
+              Pas d&apos;inquiétude : ton paiement est bien confirmé. Écris à{' '}
+              <a href="mailto:contact@plume-astrale.fr?subject=Regeneration%20Theme%20Natal"
+                 style={{ color: '#D4AF37', textDecoration: 'underline' }}>
+                contact@plume-astrale.fr
+              </a>{' '}
+              avec le code <b>{sessionId}</b> et Soléna te régénère ton thème sous 24 h.
+            </p>
+          </div>
         ) : (
           <p className="text-xs" style={{ color: 'rgba(227,215,255,0.55)', letterSpacing: '0.15em' }}>
             <Mail className="w-3 h-3 inline mr-1" strokeWidth={1.5} />

@@ -223,7 +223,7 @@ def element_dominant_page(story, styles, dominant_element: str, planet_count: in
         ParagraphStyle('el_s', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
                        fontSize=12, textColor=LAVENDER, alignment=TA_CENTER, spaceAfter=20),
     ))
-    img = libimg.tarot(meta['tarot'], size=1080)
+    img = libimg.tarot(meta['tarot'], size=512)
     if img and os.path.exists(img):
         try:
             story.append(RLImage(img, width=4.5 * cm, height=4.5 * cm, mask='auto'))
@@ -260,7 +260,7 @@ def modality_dominant_page(story, styles, dominant_modality: str, planet_count: 
         ParagraphStyle('md_s', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
                        fontSize=13, textColor=LAVENDER, alignment=TA_CENTER, spaceAfter=20),
     ))
-    img = libimg.tarot(meta['tarot'], size=1080)
+    img = libimg.tarot(meta['tarot'], size=512)
     if img and os.path.exists(img):
         try:
             story.append(RLImage(img, width=4.5 * cm, height=4.5 * cm, mask='auto'))
@@ -296,9 +296,9 @@ def trio_cross_analysis_page(story, styles, sun_sign: str, moon_sign: str,
                        fontSize=22, textColor=CREAM, alignment=TA_CENTER, spaceAfter=20),
     ))
     # Grille de 3 mini-images en ligne
-    sun_img = libimg.planet('Soleil', size=1080)
-    moon_img = libimg.planet('Lune', size=1080)
-    asc_img = libimg.sign(asc_sign, size=1080) if asc_sign else None
+    sun_img = libimg.planet('Soleil', size=512)
+    moon_img = libimg.planet('Lune', size=512)
+    asc_img = libimg.sign(asc_sign, size=512) if asc_sign else None
     cells = []
     for img, label, subl in [
         (sun_img, 'Soleil', sun_sign),
@@ -357,7 +357,7 @@ def aspects_group_page(story, styles, category: str, headline: str,
                        fontSize=24, textColor=CREAM, alignment=TA_CENTER,
                        leading=30, spaceAfter=18),
     ))
-    img = libimg.tarot(tarot_slug, size=1080)
+    img = libimg.tarot(tarot_slug, size=512)
     if img and os.path.exists(img):
         try:
             story.append(RLImage(img, width=4 * cm, height=4 * cm, mask='auto'))
@@ -419,7 +419,7 @@ def house_detail_page(story, styles, house_num: int, sign: str,
             ParagraphStyle('h_cusp', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
                            fontSize=11, textColor=LAVENDER, alignment=TA_CENTER, spaceAfter=14),
         ))
-    img = libimg.house(house_num, size=1080)
+    img = libimg.house(house_num, size=512)
     if img and os.path.exists(img):
         try:
             story.append(RLImage(img, width=4.2 * cm, height=4.2 * cm, mask='auto'))
@@ -453,7 +453,7 @@ def year_ahead_page(story, styles, prenom: str, body_html: str) -> None:
                        fontSize=26, textColor=CREAM, alignment=TA_CENTER,
                        leading=32, spaceAfter=20),
     ))
-    img = libimg.tarot('etoile', size=1080)
+    img = libimg.tarot('etoile', size=512)
     if img and os.path.exists(img):
         try:
             story.append(RLImage(img, width=4.5 * cm, height=4.5 * cm, mask='auto'))
