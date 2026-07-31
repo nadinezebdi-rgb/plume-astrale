@@ -755,6 +755,22 @@ async def stripe_webhook(request: Request):
             if _sd.get('payment_status') == 'paid':
                 _md = _sd.get('metadata') or {}
                 _uid = _md.get('user_id')
+                # Fallback : les checkouts Thème Natal / Duo ne mettent pas user_id
+                # dans les metadata Stripe → on résout via l'email de la session.
+                if not _uid:
+                    _email = (
+                        _md.get('user_email')
+                        or _sd.get('customer_email')
+                        or (_sd.get('customer_details') or {}).get('email')
+                    )
+                    if _email:
+                        try:
+                            from services.supabase_client import get_admin_client as _gac
+                            _r = _gac().table('profiles').select('id').eq('email', _email).maybe_single().execute()
+                            if _r and _r.data:
+                                _uid = _r.data.get('id')
+                        except Exception as _e:
+                            logger.info(f'[referral] user_id lookup by email fail: {_e}')
                 if _uid:
                     from services.referral_service import maybe_reward_on_purchase
                     await maybe_reward_on_purchase(

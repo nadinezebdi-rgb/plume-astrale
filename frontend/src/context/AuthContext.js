@@ -9,6 +9,15 @@ const AuthContext = createContext(null);
 
 // Rattache le user courant à son parrain si un code ?ref=X a été capturé.
 // Silent fail : n'interrompt jamais le flow login/register.
+// Clear le LS dans TOUS les cas définitifs (ok=true, ou refus non-transitoire)
+// pour éviter de rappeler /attach à chaque login futur pour rien.
+const _DEFINITIVE_REFUSAL_REASONS = new Set([
+  'déjà rattaché',        // le user a déjà un parrain, ça ne changera pas
+  'code perso interdit',  // impossible de se parrainer soi-même
+  'code invalide',        // le code n'existe pas, ne réapparaîtra pas
+  'profil introuvable',   // édge case
+  'code vide',            // le code stocké est corrompu
+]);
 async function _maybeAttachReferrer(accessToken) {
   const code = readReferralCode();
   if (!code || !accessToken) return;
@@ -18,8 +27,13 @@ async function _maybeAttachReferrer(accessToken) {
       { code },
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
-    if (r.data?.ok) clearReferralCode();
-    // Sinon : on garde le code, l'utilisateur peut retenter plus tard depuis /mon-compte
+    if (r.data?.ok) {
+      clearReferralCode();
+    } else if (_DEFINITIVE_REFUSAL_REASONS.has(r.data?.reason)) {
+      // Refus définitif : on ne réessayera jamais, on nettoie le LS
+      clearReferralCode();
+    }
+    // Sinon (ex: migration_pending, réseau flaky) : on garde le code pour retry
   } catch { /* silent */ }
 }
 

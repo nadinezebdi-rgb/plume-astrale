@@ -20,7 +20,16 @@ _inflight: set = set()
 
 # Après combien de temps un `pdf_status: pending` est considéré comme "stale"
 # (server crashé/redémarré au milieu de la génération) et doit être relancé.
-_STALE_PENDING_S = 240  # 4 minutes — au-delà, la génération n'a pas pu aboutir
+# Budget réaliste du pipeline complet :
+#   • enrich_natal_ultra (GPT) ≤ 90s
+#   • enrich_book_chapters (GPT) ≤ 90s
+#   • astrology API v3 ≤ 30s
+#   • cairosvg + reportlab (thread) ≤ 60s
+#   • Upload Supabase 27 Mo ≤ 30s
+#   • Email Resend ≤ 10s
+# Worst case = ~310s. On prend 420s (7 min) de marge pour être sûr qu'un
+# pending "stale" est vraiment orphelin et pas juste une génération lente.
+_STALE_PENDING_S = 420
 
 
 async def self_heal_if_paid(session_id: str, already_delivered: bool, handler) -> None:
@@ -63,13 +72,25 @@ async def self_heal_if_paid(session_id: str, already_delivered: bool, handler) -
                 except Exception:
                     stale = True
             if stale:
-                # Marque pending pour éviter les doubles-relances concurrentes via polls croisés
+                # Compare-and-swap : ne relance que si `pending_started_at` n'a pas
+                # changé depuis la lecture (évite les doubles-relances via polls
+                # concurrents entre plusieurs pods ou plusieurs onglets clients).
+                new_pending = datetime.now(timezone.utc).isoformat()
                 try:
-                    md['pdf_status'] = 'pending'
-                    md['pending_started_at'] = datetime.now(timezone.utc).isoformat()
-                    sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
-                except Exception:
-                    pass
+                    q = sb.table('payment_transactions').update({'metadata': {**md, 'pdf_status': 'pending', 'pending_started_at': new_pending}}).eq('session_id', session_id)
+                    if started_at:
+                        # Ne mets à jour que si le pending_started_at en base est
+                        # toujours celui qu'on a lu (protection concurrence).
+                        q = q.eq('metadata->>pending_started_at', started_at)
+                    result = q.execute()
+                    updated = bool(result and result.data)
+                except Exception as _e:
+                    logger.info(f'[self_heal] CAS conditional update failed, falling back: {_e}')
+                    updated = False
+                if not updated:
+                    # Un autre pod a déjà attrapé le lock, on abandonne
+                    logger.info(f'[self_heal] admin bypass {session_id} pending claimed by another worker, skip')
+                    return
                 logger.info(f'[self_heal] admin bypass {session_id} stale/absent → relance handler')
                 await handler(session_id)
         except Exception as e:

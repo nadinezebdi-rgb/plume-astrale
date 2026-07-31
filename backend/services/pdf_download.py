@@ -31,6 +31,11 @@ _PROTECTED_PRODUCTS = {
     'pack_karmique_kabbale': 'pack_karmique',
     'synastrie_oneshot': 'synastrie_pdf',
     'rencontres_ultime': 'rencontres_ultime',
+    # Fallback local si l'upload Supabase échoue — le PDF reste téléchargeable
+    # depuis le disque du pod pendant sa durée de vie. Supabase reste la source
+    # canonique pour la persistence après redeploy.
+    'theme_natal_pdf_oneshot': 'theme_natal',
+    'theme_natal_pdf': 'theme_natal',
 }
 
 

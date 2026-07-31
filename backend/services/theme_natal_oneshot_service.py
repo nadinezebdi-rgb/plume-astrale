@@ -287,6 +287,12 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         )
         if supabase_url:
             md['pdf_supabase_url'] = supabase_url
+        else:
+            # Upload Supabase raté : on garde le fichier local (voir _PROTECTED_PRODUCTS)
+            # mais on trace le warning pour surveillance. `pdf_status: success` reste OK
+            # car le fichier local sert de fallback via `/api/pdf/download`.
+            logger.warning(f'[theme_natal_oneshot] Supabase upload FAILED for {session_id} — serving local only')
+            md['pdf_upload_warning'] = 'supabase_upload_failed_using_local_fallback'
         md['pdf_generated_at'] = datetime.now(timezone.utc).isoformat()
         md['pdf_status'] = 'success'
         md.pop('pdf_error', None)

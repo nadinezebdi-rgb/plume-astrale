@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Loader2, MapPin, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -6,12 +6,6 @@ const API = process.env.REACT_APP_BACKEND_URL;
 
 /**
  * Panneau admin "Correction Thème Natal" — sans commande curl à taper.
- *
- * Flow :
- * 1) Saisie session_id → clic "Inspecter" → affiche les données actuelles
- * 2) Correction de la ville : soit géocodage auto, soit lat/lon/tz manuels
- * 3) Bouton "Régénérer PDF" → lance en arrière-plan et poll toutes les 3s
- * 4) Affiche le diagnostic final (is_ultra, pdf_pages, ai_source…)
  */
 const AdminThemeNatalFixer = ({ token }) => {
   const [sessionId, setSessionId] = useState('admin-natal-6684bc835ba7448c');
@@ -27,6 +21,17 @@ const AdminThemeNatalFixer = ({ token }) => {
 
   const [regenPolling, setRegenPolling] = useState(false);
   const [diag, setDiag] = useState(null);
+
+  // Guard anti setState après unmount + clear le timeout du polling
+  const mountedRef = useRef(true);
+  const pollTimeoutRef = useRef(null);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+    };
+  }, []);
 
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -93,10 +98,12 @@ const AdminThemeNatalFixer = ({ token }) => {
       const t0 = Date.now();
       let consecutiveErrors = 0;
       const poll = async () => {
+        if (!mountedRef.current) return;
         try {
           const r = await axios.get(`${API}/api/admin/theme-natal/inspect/${sessionId}`, { headers, timeout: 20000 });
-          consecutiveErrors = 0;   // reset sur succès
-          setErr(null);            // nettoie une éventuelle bannière d'erreur transitoire
+          if (!mountedRef.current) return;
+          consecutiveErrors = 0;
+          setErr(null);
           setInfo(r.data);
           if (r.data.regenerate_diag) {
             setDiag(r.data.regenerate_diag);
@@ -114,21 +121,19 @@ const AdminThemeNatalFixer = ({ token }) => {
             setRegenPolling(false);
             return;
           }
-          setTimeout(poll, 5000);
+          pollTimeoutRef.current = setTimeout(poll, 5000);
         } catch (e) {
-          // Erreurs transitoires (524 Cloudflare, réseau, backend saturé) → on retente
+          if (!mountedRef.current) return;
           consecutiveErrors++;
           if (consecutiveErrors >= 12) {
-            // 12 erreurs consécutives = 60s ininterrompus → on abandonne
             setErr('Impossible de joindre le backend après 12 essais — clique "Inspecter" plus tard, le job continue peut-être côté serveur');
             setRegenPolling(false);
             return;
           }
-          // On ne montre PAS l'erreur si c'est transitoire — juste on repolle
-          setTimeout(poll, 5000);
+          pollTimeoutRef.current = setTimeout(poll, 5000);
         }
       };
-      setTimeout(poll, 5000);
+      pollTimeoutRef.current = setTimeout(poll, 5000);
     } catch (e) {
       setErr(e.response?.data?.detail || e.message);
       setRegenPolling(false);
