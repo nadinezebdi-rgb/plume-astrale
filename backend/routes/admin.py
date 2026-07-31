@@ -549,11 +549,11 @@ async def admin_regenerate_theme_natal(session_id: str, _admin: dict = Depends(r
     if md.get('kind') != 'theme_natal_pdf_oneshot':
         raise HTTPException(status_code=400, detail='La session n\'est pas un Thème Natal one-shot')
     try:
-        await handle_theme_natal_oneshot_webhook(session_id, force=True)
+        diag = await handle_theme_natal_oneshot_webhook(session_id, force=True)
     except Exception as e:
         logger.exception(f'[admin] regenerate theme_natal fail {session_id}')
         raise HTTPException(status_code=500, detail=f'Regénération échouée : {e}')
-    # Retourne la nouvelle URL fraîche
+    # Retourne la nouvelle URL fraîche + le diagnostic complet
     r2 = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
     md2 = (r2.data or {}).get('metadata') or {}
     return {
@@ -562,6 +562,7 @@ async def admin_regenerate_theme_natal(session_id: str, _admin: dict = Depends(r
         'pdf_path': md2.get('pdf_path'),
         'pdf_supabase_url': md2.get('pdf_supabase_url'),
         'pdf_generated_at': md2.get('pdf_generated_at'),
+        'diagnostic': diag,
     }
 
 

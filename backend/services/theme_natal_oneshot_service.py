@@ -20,27 +20,35 @@ logger = logging.getLogger(__name__)
 ASSETS_DIR = Path(__file__).resolve().parent.parent / 'assets'
 
 
-async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = False) -> None:
+async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = False) -> dict:
     """Génère le PDF Thème Natal complet + envoie l'email au client (idempotent).
 
     Si force=True, régénère même si un PDF a déjà été produit (utile après
     refonte du template pour rafraîchir une session existante).
+
+    Retourne un dict diagnostic (nb pages, mode ultra/legacy, source AI, taille…)
+    afin que l'admin regenerate expose les métriques réelles pour debug.
     """
+    diag: dict = {'session_id': session_id, 'force': force, 'skipped': False}
     if not session_id:
-        return
+        diag['error'] = 'session_id vide'
+        return diag
     sb = get_admin_client()
     try:
         tx_res = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
     except Exception as e:
         logger.warning(f"[theme_natal_oneshot] tx fetch failed: {e}")
-        return
+        diag['error'] = f'tx fetch failed: {e}'
+        return diag
     if not tx_res or not tx_res.data:
         logger.warning(f"[theme_natal_oneshot] tx not found for {session_id}")
-        return
+        diag['error'] = 'tx not found'
+        return diag
     tx = tx_res.data
     md = tx.get('metadata') or {}
     if md.get('kind') != 'theme_natal_pdf_oneshot':
-        return
+        diag['error'] = 'kind mismatch'
+        return diag
 
     if tx.get('status') != 'completed':
         sb.table('payment_transactions').update({
@@ -52,7 +60,9 @@ async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = Fals
     # Idempotence — sautée si force=True (régénération explicite admin)
     if md.get('pdf_path') and not force:
         logger.info(f"[theme_natal_oneshot] PDF already generated for {session_id}")
-        return
+        diag['skipped'] = True
+        diag['reason'] = 'pdf_path exists (use force=True)'
+        return diag
     if force:
         logger.info(f"[theme_natal_oneshot] FORCE regeneration for {session_id}")
 
@@ -64,7 +74,14 @@ async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = Fals
 
     if not bd:
         logger.error(f"[theme_natal_oneshot] no birth_data for {session_id}")
-        return
+        diag['error'] = 'no birth_data in metadata.pdf_ctx'
+        return diag
+    diag['birth_data'] = {
+        'first_name': name, 'birth_date_iso': birth_date_iso,
+        'city': bd.get('city') or bd.get('location'),
+        'lat': bd.get('latitude'), 'lon': bd.get('longitude'),
+        'tz': bd.get('timezone'),
+    }
 
     # 1) Fetch natal_chart + natal_report (astrology-api.io v3)
     try:
@@ -81,7 +98,10 @@ async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = Fals
             )
     except Exception as e:
         logger.error(f"[theme_natal_oneshot] astrology fetch failed: {e}", exc_info=True)
-        return
+        diag['error'] = f'astrology-api fetch failed: {e}'
+        return diag
+    diag['planets_from_chart'] = len(planets_dict or {})
+    diag['interpretations_count'] = len(interpretations or [])
 
     # 2) Enrichissement GPT-5.4 Ultra (11 planètes + synthèse aspects)
     ai_result: dict = {}
@@ -94,6 +114,11 @@ async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = Fals
             )
         except Exception as e:
             logger.warning(f"[theme_natal_oneshot] AI enrichment failed: {e}")
+            diag['ai_error'] = str(e)[:200]
+    diag['ai_source'] = (ai_result or {}).get('_source', 'none')
+    diag['ai_planet_count'] = sum(1 for k in ('soleil','lune','mercure','venus','mars','jupiter','saturne','uranus','neptune','pluton','ascendant') if (ai_result or {}).get(k))
+    diag['v3_raw_count'] = len((ai_result or {}).get('_raw_v3_by_planet') or {})
+    diag['is_ultra'] = diag['ai_planet_count'] >= 7 or diag['v3_raw_count'] >= 7
 
     # 3) Adapter au format du générateur luxe
     def _sign_fr(planet_key: str) -> str:
@@ -152,9 +177,18 @@ async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = Fals
         md['pdf_generated_at'] = datetime.now(timezone.utc).isoformat()
         sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
         logger.info(f"[theme_natal_oneshot] PDF generated (signed): {md['pdf_path']}")
+        # Diagnostic : mesure la taille + tente de compter les pages pour le retour
+        diag['pdf_bytes'] = len(pdf_bytes)
+        diag['pdf_supabase_url'] = md.get('pdf_supabase_url')
+        try:
+            # Compte des pages via pattern PDF (fiable pour ReportLab)
+            diag['pdf_pages'] = pdf_bytes.count(b'/Type /Page') or pdf_bytes.count(b'/Type/Page')
+        except Exception:
+            diag['pdf_pages'] = None
     except Exception as e:
         logger.error(f"[theme_natal_oneshot] PDF gen failed: {e}", exc_info=True)
-        return
+        diag['error'] = f'PDF gen failed: {e}'
+        return diag
 
     # 6) Email best-effort
     if email and pdf_bytes:
@@ -164,6 +198,7 @@ async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = Fals
             sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
         except Exception as e:
             logger.warning(f"[theme_natal_oneshot] email failed: {e}")
+    return diag
 
 
 async def _send_theme_natal_email(email: str, first_name: str, pdf_bytes: bytes, filename: str, session_id: str | None = None) -> None:
