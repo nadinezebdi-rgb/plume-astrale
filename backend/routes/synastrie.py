@@ -8,8 +8,10 @@ from pydantic import BaseModel, Field
 from middleware.auth import get_optional_user
 from services.synastrie_oneshot import (
     create_synastrie_checkout, get_synastrie_status,
+    admin_bypass_synastrie,
 )
 from services.supabase_client import get_admin_client
+from services.promo_bypass import try_consume_promo
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +34,7 @@ class SynastrieCheckoutRequest(BaseModel):
     person2: PersonNatalData
     origin_url: str
     email: Optional[str] = None  # pour les invites (achat sans compte)
+    promo_code: Optional[str] = None
 
 
 @router.post('/checkout')
@@ -39,12 +42,27 @@ async def synastrie_checkout(
     payload: SynastrieCheckoutRequest,
     current_user: Optional[dict] = Depends(get_optional_user),
 ):
-    """Cree une session Stripe one-shot 49€."""
+    """Cree une session Stripe one-shot 49€. Support bypass admin via code promo."""
     user_id = current_user.get('id') if current_user else None
     user_email = (current_user or {}).get('email') or payload.email
 
     if not user_email:
         raise HTTPException(status_code=400, detail='Un email est requis pour recevoir votre rapport.')
+
+    # BYPASS PROMO (admin uniquement)
+    if payload.promo_code and try_consume_promo(payload.promo_code, admin_user=current_user, product='synastrie_oneshot'):
+        try:
+            result = await admin_bypass_synastrie(
+                user_id=user_id,
+                user_email=user_email,
+                person1_data=payload.person1.model_dump(),
+                person2_data=payload.person2.model_dump(),
+                origin_url=payload.origin_url,
+            )
+            return result
+        except Exception as e:
+            logger.exception(f'[synastrie] promo bypass failed: {e}')
+            # fallback : on continue vers le checkout normal
 
     return await create_synastrie_checkout(
         user_id=user_id,

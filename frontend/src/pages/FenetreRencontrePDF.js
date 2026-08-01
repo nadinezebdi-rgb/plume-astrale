@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Heart, Calendar, Sparkles, Shield, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SEO from '@/components/SEO';
+import PromoCodeField from '@/components/PromoCodeField';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 
@@ -20,6 +21,7 @@ const FenetreRencontrePDF = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [promoState, setPromoState] = useState({ status: 'idle', final_amount: 29, code: '' });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -44,6 +46,7 @@ const FenetreRencontrePDF = () => {
           partner_birth_date: tab === 'duo' ? formData.partnerBirthDate : null,
           partner_birth_time: tab === 'duo' ? formData.partnerBirthTime : null,
           origin_url: window.location.origin,
+          promo_code: promoState.status === 'ok' && promoState.code ? promoState.code : undefined,
         }),
       });
 
@@ -315,22 +318,33 @@ const FenetreRencontrePDF = () => {
                 </div>
               )}
 
+              <div className="pt-2">
+                <PromoCodeField
+                  price={29}
+                  product="fenetre_rencontre_avancee"
+                  testIdBase="fenetre-rencontre"
+                  onStateChange={setPromoState}
+                />
+              </div>
+
               <div className="flex gap-4">
                 <button
                   type="submit"
                   disabled={loading}
                   className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#E8C766] hover:from-[#E8C766] hover:to-[#F5D97D] text-[#0C0918] font-bold py-4 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 transition transform hover:scale-105"
+                  data-testid="fenetre-rencontre-checkout-btn"
                 >
                   {loading ? (
                     <>
                       <div className="animate-spin">⟳</div>
                       Traitement...
                     </>
+                  ) : promoState.status === 'ok' && promoState.final_amount === 0 ? (
+                    <>Déverrouiller mon rapport<ArrowRight className="w-5 h-5" /></>
+                  ) : promoState.status === 'ok' ? (
+                    <>Payer {promoState.final_amount.toFixed(2)}€<ArrowRight className="w-5 h-5" /></>
                   ) : (
-                    <>
-                      Accéder à Mon Rapport
-                      <ArrowRight className="w-5 h-5" />
-                    </>
+                    <>Accéder à Mon Rapport<ArrowRight className="w-5 h-5" /></>
                   )}
                 </button>
               </div>
