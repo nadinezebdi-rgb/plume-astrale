@@ -171,6 +171,16 @@ class Settings:
             'product': 'karma_destin_analysis',
             'tagline': 'Nœuds lunaires + Saturne + Chiron + Pluton — PDF 15 pages guide spirituel.',
         },
+        'fenetre_rencontre_avancee': {
+            'name': 'Fenêtres de Rencontre Avancées',
+            'credits': 0,   # one-shot
+            'bonus': 0,
+            'amount': 29.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'fenetre_rencontre_avancee',
+            'tagline': 'Transits amoureux + phases lunaires + synastrie optionnelle — PDF 10 pages.',
+        },
     }
 
     # Grille GaryVee — tous les services sont des multiples/fractions de 10 cr (unité = 1 question)

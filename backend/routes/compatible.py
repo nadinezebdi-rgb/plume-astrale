@@ -155,6 +155,9 @@ async def get_compatibility_preview(request: CompatibilityRequest, current_user 
             "pdf_ready": True
         }
         
+    except HTTPException:
+        # Re-raise HTTPException sans wrapper (preserve 401/402/etc.)
+        raise
     except Exception as e:
         logger.error(f"[couple/compatibility] error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
