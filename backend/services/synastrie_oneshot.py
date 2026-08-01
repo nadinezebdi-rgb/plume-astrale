@@ -148,3 +148,63 @@ def get_synastrie_status(session_id: str) -> Dict[str, Any]:
     except Exception as e:
         logger.warning(f'[synastrie] get status: {e}')
     return {'status': 'unknown'}
+
+
+async def admin_bypass_synastrie(
+    user_id: Optional[str],
+    user_email: Optional[str],
+    person1_data: Dict[str, Any],
+    person2_data: Dict[str, Any],
+    origin_url: str,
+) -> Dict[str, Any]:
+    """Bypass admin : cree un purchase 'paid', declenche PDF+email, renvoie l'URL de succes.
+
+    ATTENTION : cette fonction ne fait AUCUNE verif d'admin. Elle est appelee UNIQUEMENT
+    apres validation reussie via `try_consume_promo` (qui verifie is_admin en DB).
+    """
+    import asyncio
+    import uuid
+
+    # Validation minimale
+    for label, p in [('person1', person1_data), ('person2', person2_data)]:
+        if not p or not p.get('prenom') or not p.get('birth_date'):
+            raise HTTPException(status_code=400, detail=f'Donnees natales incompletes pour {label}.')
+
+    sb = get_admin_client()
+    origin = (origin_url or '').rstrip('/') or 'https://plume-astrale.fr'
+    fake_session_id = f'admin-synastrie-{uuid.uuid4().hex[:16]}'
+
+    insert_payload = {
+        'user_id': user_id,
+        'email': user_email,
+        'amount_cents': 0,
+        'currency': 'eur',
+        'status': 'paid',
+        'stripe_session_id': fake_session_id,
+        'person1_data': person1_data,
+        'person2_data': person2_data,
+    }
+    purchase_id: Optional[str] = None
+    try:
+        ins = sb.table('synastrie_purchases').insert(insert_payload).execute()
+        purchase_id = (ins.data or [{}])[0].get('id')
+    except Exception as e:
+        logger.warning(f'[synastrie] bypass insert failed: {e}')
+
+    # Declenche la generation PDF + email en arriere-plan
+    async def _trigger():
+        try:
+            # Import tardif pour eviter le cycle server<->synastrie_oneshot
+            from server import _trigger_synastrie_pdf_email  # type: ignore
+            await _trigger_synastrie_pdf_email(fake_session_id)
+        except Exception as e:
+            logger.error(f'[synastrie] bypass PDF trigger failed: {e}')
+
+    asyncio.create_task(_trigger())
+
+    return {
+        'session_id': fake_session_id,
+        'checkout_url': f'{origin}/synastrie/succes?session_id={fake_session_id}',
+        'purchase_id': purchase_id,
+        'admin_bypass': True,
+    }

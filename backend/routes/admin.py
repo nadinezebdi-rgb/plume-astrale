@@ -528,3 +528,230 @@ async def admin_pdfs_sent(
             'email_sent': bool(md.get('email_sent_at')),
         })
     return {'items': items, 'total_with_supabase_url': len(items), 'total_completed': res.count or 0, 'page': page, 'page_size': page_size}
+
+
+
+@router.post('/theme-natal/regenerate/{session_id}')
+async def admin_regenerate_theme_natal(session_id: str, _admin: dict = Depends(require_admin)):
+    """Force la régénération du PDF Thème Natal pour une session. Réponse IMMÉDIATE.
+
+    Tout le travail (fetch tx, validation kind, marquage started_at, appel webhook,
+    stockage diag) est effectué dans un background task. La réponse HTTP retourne
+    en <50ms → aucune chance de timeout Cloudflare 520.
+
+    Le suivi se fait via GET /admin/theme-natal/inspect/{session_id} qui expose :
+    - regenerate_in_progress (bool)
+    - regenerate_diag (dict) quand terminé
+    - regenerate_error (str) si plantage
+    """
+    import asyncio
+    from datetime import datetime, timezone
+    from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
+
+    async def _worker():
+        sb = get_admin_client()
+        # 1) Fetch + validation
+        try:
+            r = sb.table('payment_transactions').select('metadata, status').eq('session_id', session_id).maybe_single().execute()
+            if not r or not r.data:
+                logger.error(f'[admin] regenerate: session {session_id} introuvable')
+                return
+            md = r.data.get('metadata') or {}
+            if md.get('kind') != 'theme_natal_pdf_oneshot':
+                logger.error(f'[admin] regenerate: {session_id} n\'est pas un theme_natal one-shot (kind={md.get("kind")})')
+                return
+        except Exception as e:
+            logger.exception(f'[admin] regenerate: fetch tx fail {session_id}')
+            return
+        # 2) Marque started + clear diag précédent
+        try:
+            md['regenerate_started_at'] = datetime.now(timezone.utc).isoformat()
+            md.pop('regenerate_diag', None)
+            md.pop('regenerate_error', None)
+            sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+        except Exception as e:
+            logger.warning(f'[admin] regenerate: mark started fail {session_id}: {e}')
+        # 3) Pipeline complet (30-90s attendu)
+        try:
+            diag = await handle_theme_natal_oneshot_webhook(session_id, force=True)
+            r2 = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+            md2 = (r2.data or {}).get('metadata') or {}
+            md2['regenerate_diag'] = diag
+            md2['regenerate_finished_at'] = datetime.now(timezone.utc).isoformat()
+            sb.table('payment_transactions').update({'metadata': md2}).eq('session_id', session_id).execute()
+            logger.info(f'[admin] regenerate DONE {session_id} diag={diag}')
+        except Exception as e:
+            logger.exception(f'[admin] regenerate theme_natal fail {session_id}')
+            try:
+                r2 = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+                md2 = (r2.data or {}).get('metadata') or {}
+                md2['regenerate_error'] = str(e)[:500]
+                md2['regenerate_finished_at'] = datetime.now(timezone.utc).isoformat()
+                sb.table('payment_transactions').update({'metadata': md2}).eq('session_id', session_id).execute()
+            except Exception:
+                pass
+
+    # Lance le worker et retourne IMMÉDIATEMENT
+    asyncio.create_task(_worker())
+    return {
+        'ok': True,
+        'status': 'accepted',
+        'session_id': session_id,
+        'poll_url': f'/api/admin/theme-natal/inspect/{session_id}',
+        'message': "Régénération lancée. Poll /inspect toutes les 3-5s (regenerate_diag apparaît quand terminé, 30-90s).",
+    }
+
+
+
+@router.get('/theme-natal/inspect/{session_id}')
+async def admin_inspect_theme_natal(session_id: str, _admin: dict = Depends(require_admin)):
+    """Renvoie l'état complet en base pour une session Thème Natal, incluant :
+    - status / payment_status
+    - metadata.pdf_ctx (les données de naissance saisies au checkout — SOURCE de vérité)
+    - metadata.pdf_generated_at (dernière régénération)
+    - metadata.pdf_supabase_url (URL servie, avec cache-buster si récent)
+    - kind / user_email
+    Permet de vérifier que force=True a bien mis à jour la row et que les
+    birth_data utilisées ne sont pas des valeurs de test.
+    """
+    sb = get_admin_client()
+    r = sb.table('payment_transactions').select('*').eq('session_id', session_id).maybe_single().execute()
+    if not r or not r.data:
+        raise HTTPException(status_code=404, detail='Session introuvable')
+    tx = r.data
+    md = tx.get('metadata') or {}
+    pdf_ctx = md.get('pdf_ctx') or {}
+    bd = pdf_ctx.get('birth_data') or {}
+    return {
+        'session_id': session_id,
+        'kind': md.get('kind'),
+        'user_email': tx.get('user_email'),
+        'status': tx.get('status'),
+        'payment_status': tx.get('payment_status'),
+        'created_at': tx.get('created_at'),
+        'birth_data_source': {
+            'first_name': pdf_ctx.get('first_name'),
+            'birth_date_iso': pdf_ctx.get('birth_date_iso'),
+            'year': bd.get('year'),
+            'month': bd.get('month'),
+            'day': bd.get('day'),
+            'hour': bd.get('hour'),
+            'minute': bd.get('minute'),
+            'city': bd.get('city') or bd.get('location'),
+            'latitude': bd.get('latitude'),
+            'longitude': bd.get('longitude'),
+            'timezone': bd.get('timezone'),
+        },
+        'pdf_path': md.get('pdf_path'),
+        'pdf_supabase_url': md.get('pdf_supabase_url'),
+        'pdf_generated_at': md.get('pdf_generated_at'),
+        'email_sent_at': md.get('email_sent_at'),
+        # Suivi du job de régénération asynchrone (si lancé via /regenerate)
+        'regenerate_started_at': md.get('regenerate_started_at'),
+        'regenerate_finished_at': md.get('regenerate_finished_at'),
+        'regenerate_error': md.get('regenerate_error'),
+        'regenerate_diag': md.get('regenerate_diag'),
+        'regenerate_in_progress': bool(md.get('regenerate_started_at')) and not (md.get('regenerate_finished_at') or md.get('regenerate_error')),
+    }
+
+
+
+class _BirthDataPatch:
+    """Body model pour PATCH birth-data (défini local pour éviter imports circulaires)."""
+    pass
+
+
+from pydantic import BaseModel as _PMB
+
+
+class BirthDataPatch(_PMB):
+    city: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    timezone: str | None = None
+
+
+@router.patch('/theme-natal/{session_id}/birth-data')
+async def admin_patch_birth_data(session_id: str, payload: BirthDataPatch, _admin: dict = Depends(require_admin)):
+    """Met à jour les données de naissance stockées dans metadata.pdf_ctx.birth_data.
+
+    Deux usages :
+    1) On passe uniquement `city` → l'endpoint géocode via OpenStreetMap et
+       remplit lat/lon/timezone automatiquement. Timezone dérivée de tz par lat/lon.
+    2) On passe latitude/longitude/timezone directement → override manuel.
+
+    Après update, l'admin doit appeler /regenerate/{session_id} pour produire un
+    nouveau PDF avec les bonnes coordonnées.
+    """
+    import httpx
+    sb = get_admin_client()
+    r = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+    if not r or not r.data:
+        raise HTTPException(status_code=404, detail='Session introuvable')
+    md = r.data.get('metadata') or {}
+    if md.get('kind') != 'theme_natal_pdf_oneshot':
+        raise HTTPException(status_code=400, detail='La session n\'est pas un Thème Natal one-shot')
+
+    pdf_ctx = md.get('pdf_ctx') or {}
+    bd = dict(pdf_ctx.get('birth_data') or {})
+
+    resolved = {'source': 'manual'}
+    # Cas 1 : géocodage automatique par nom de ville
+    if payload.city and not (payload.latitude and payload.longitude):
+        query = payload.city.strip()
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                # Nominatim (OpenStreetMap) — gratuit, requiert un User-Agent
+                r_geo = await client.get(
+                    'https://nominatim.openstreetmap.org/search',
+                    params={'q': query, 'format': 'json', 'limit': 1, 'addressdetails': 1},
+                    headers={'User-Agent': 'PlumeAstrale-Admin/1.0 (contact@plume-astrale.fr)'},
+                )
+                geo_results = r_geo.json() if r_geo.status_code == 200 else []
+                if not geo_results:
+                    raise HTTPException(status_code=422, detail=f'Ville "{query}" introuvable — précise "Ville, Pays"')
+                g = geo_results[0]
+                lat = float(g['lat'])
+                lon = float(g['lon'])
+                display_name = g.get('display_name', query)
+                # Timezone via API TimezoneDB alternative gratuite : timeapi.io
+                try:
+                    r_tz = await client.get(
+                        'https://timeapi.io/api/TimeZone/coordinate',
+                        params={'latitude': lat, 'longitude': lon},
+                    )
+                    tz = r_tz.json().get('timeZone') if r_tz.status_code == 200 else None
+                except Exception:
+                    tz = None
+                if not tz:
+                    # Fallback simple : Europe/Paris pour la France, sinon UTC
+                    country = (g.get('address', {}).get('country_code') or '').lower()
+                    tz = 'Europe/Paris' if country == 'fr' else 'UTC'
+                bd['city'] = display_name
+                bd['location'] = display_name
+                bd['latitude'] = lat
+                bd['longitude'] = lon
+                bd['timezone'] = tz
+                resolved = {'source': 'geocode', 'display_name': display_name, 'lat': lat, 'lon': lon, 'tz': tz}
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f'Géocodage échoué : {e}')
+    # Cas 2 : override manuel des coords + tz
+    else:
+        if payload.city is not None:
+            bd['city'] = payload.city
+            bd['location'] = payload.city
+        if payload.latitude is not None:
+            bd['latitude'] = float(payload.latitude)
+        if payload.longitude is not None:
+            bd['longitude'] = float(payload.longitude)
+        if payload.timezone is not None:
+            bd['timezone'] = payload.timezone
+
+    pdf_ctx['birth_data'] = bd
+    md['pdf_ctx'] = pdf_ctx
+    # Efface le pdf_path pour permettre la régénération SANS force
+    md.pop('pdf_path', None)
+    sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+    return {'ok': True, 'birth_data': bd, 'resolved': resolved}

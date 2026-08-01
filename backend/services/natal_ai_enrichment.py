@@ -252,11 +252,19 @@ def _build_user_prompt(prenom: str, ai_input: Dict[str, Any]) -> str:
 # ─────────────────────────────────────────────────────────────
 # LLM CALL
 # ─────────────────────────────────────────────────────────────
-async def _call_gpt(system_msg: str, user_msg: str, session_id: str) -> Optional[str]:
+async def _call_gpt(system_msg: str, user_msg: str, session_id: str,
+                     timeout_s: float = 90.0) -> Optional[str]:
+    """Appelle GPT via emergentintegrations avec timeout dur.
+
+    Si GPT dépasse `timeout_s` secondes, on retourne None au lieu de bloquer
+    le pipeline indéfiniment (ex : webhook Thème Natal qui reste en spinner
+    infini côté UI).
+    """
     api_key = os.environ.get('EMERGENT_LLM_KEY', '').strip()
     if not api_key:
         logger.warning('[natal_ai] EMERGENT_LLM_KEY manquante')
         return None
+    import asyncio as _asyncio
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
         chat = LlmChat(
@@ -264,7 +272,13 @@ async def _call_gpt(system_msg: str, user_msg: str, session_id: str) -> Optional
             session_id=session_id,
             system_message=system_msg,
         ).with_model('openai', 'gpt-5.4')
-        return await chat.send_message(UserMessage(text=user_msg))
+        return await _asyncio.wait_for(
+            chat.send_message(UserMessage(text=user_msg)),
+            timeout=timeout_s,
+        )
+    except _asyncio.TimeoutError:
+        logger.error(f'[natal_ai] LLM TIMEOUT après {timeout_s}s (session={session_id})')
+        return None
     except Exception as e:
         logger.exception(f'[natal_ai] LLM call failed: {e}')
         return None

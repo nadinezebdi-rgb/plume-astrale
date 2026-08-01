@@ -7,6 +7,7 @@ import SEO from '@/components/SEO';
 import { event as trackEvent } from '@/lib/analytics';
 import PdfBookOpen from '@/components/PdfBookOpen';
 import ApercuButton from '@/components/ApercuButton';
+import PromoCodeField from '@/components/PromoCodeField';
 import TestimonialsWidget, { TESTIMONIALS_KABBALE } from '@/components/TestimonialsWidget';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -62,6 +63,7 @@ export default function SynastrieSales() {
   const [extractLoading, setExtractLoading] = useState(false);
   const [extractSuccess, setExtractSuccess] = useState(null);
   const [extractEmail, setExtractEmail] = useState(user?.email || '');
+  const [promoState, setPromoState] = useState({ status: 'idle', final_amount: 49, code: '' });
 
   const valid =
     person1.prenom && person1.birth_date &&
@@ -81,7 +83,13 @@ export default function SynastrieSales() {
         person1, person2,
         email: token ? undefined : email,
         origin_url: window.location.origin,
+        promo_code: promoState.status === 'ok' && promoState.code ? promoState.code : undefined,
       }, token ? { headers: { Authorization: `Bearer ${token}` } } : {});
+      if (r.data?.admin_bypass) {
+        // PDF en cours de generation cote admin bypass — redirige directement vers la page succes
+        window.location.href = `/synastrie/succes?session_id=${r.data.session_id}`;
+        return;
+      }
       if (r.data?.checkout_url) {
         window.location.href = r.data.checkout_url;
       } else {
@@ -279,6 +287,11 @@ export default function SynastrieSales() {
           )}
         </div>
 
+        {/* Code promo */}
+        <div className="mb-6 rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(212,175,55,0.15)' }}>
+          <PromoCodeField price={49} product="synastrie_oneshot" testIdBase="synastrie" onStateChange={setPromoState} />
+        </div>
+
         {/* CTA Stripe */}
         <div className="text-center mt-8">
           <button
@@ -295,7 +308,15 @@ export default function SynastrieSales() {
             }}
             data-testid="synastrie-checkout-btn"
           >
-            {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirection</> : <>✦ Composer mon rapport — 49€ <ArrowRight className="w-4 h-4" /></>}
+            {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirection</> : (
+              promoState.status === 'ok' && promoState.final_amount === 0 ? (
+                <>✦ Déverrouiller mon rapport <ArrowRight className="w-4 h-4" /></>
+              ) : promoState.status === 'ok' ? (
+                <>✦ Payer {promoState.final_amount.toFixed(2)}€ — Rapport <ArrowRight className="w-4 h-4" /></>
+              ) : (
+                <>✦ Composer mon rapport — 49€ <ArrowRight className="w-4 h-4" /></>
+              )
+            )}
           </button>
           {err && (
             <p className="mt-4 text-sm" style={{ color: '#FCA5A5' }} data-testid="synastrie-error">{err}</p>

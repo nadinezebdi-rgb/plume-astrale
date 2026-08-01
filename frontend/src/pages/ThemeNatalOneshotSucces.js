@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Download, ArrowRight, Loader2, Mail, Star, Moon, Sparkles, Zap } from 'lucide-react';
+import { CheckCircle2, Download, ArrowRight, Loader2, Mail, Star, Moon, Sparkles, Zap, Hourglass } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import CercleSolenaInvite from '@/components/CercleSolenaInvite';
@@ -11,9 +11,13 @@ const API = process.env.REACT_APP_BACKEND_URL;
 const STEPS = [
   { key: 'payment', label: 'Paiement confirmé' },
   { key: 'compute', label: 'Calcul de tes 11 planètes & aspects' },
-  { key: 'pdf', label: 'Génération de ton PDF luxe (20-40 pages)' },
+  { key: 'pdf', label: 'Génération de ton PDF luxe (40-50 pages)' },
   { key: 'email', label: 'Envoi par email' },
 ];
+
+// Durée moyenne observée du pipeline complet (paiement → PDF prêt).
+// Sert à alimenter la barre de progression estimative pendant l'attente.
+const AVERAGE_GENERATION_S = 150;
 
 const ThemeNatalOneshotSucces = () => {
   const { token } = useAuth();
@@ -23,13 +27,17 @@ const ThemeNatalOneshotSucces = () => {
   const [polling, setPolling] = useState(true);
   const [duoLoading, setDuoLoading] = useState(false);
   const [duoError, setDuoError] = useState(null);
+  const [startedAt] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
 
   const poll = useCallback(async () => {
     if (!sessionId) return;
     try {
       const r = await axios.get(`${API}/api/theme-natal-oneshot/status?session_id=${sessionId}`);
       setStatus(r.data || {});
+      // Arrête le polling dès qu'on atteint un état terminal (succès OU échec)
       if (r.data?.pdf_ready) setPolling(false);
+      else if (r.data?.pdf_status === 'failed') setPolling(false);
     } catch (e) {
       /* silent */
     }
@@ -42,6 +50,27 @@ const ThemeNatalOneshotSucces = () => {
     const id = setInterval(poll, 3500);
     return () => clearInterval(id);
   }, [sessionId, polling, poll]);
+
+  // Compteur temps écoulé — mis à jour toutes les secondes pendant l'attente
+  useEffect(() => {
+    if (!polling) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [polling]);
+
+  const elapsedS = Math.floor((now - startedAt) / 1000);
+  const progressPct = useMemo(() => {
+    if (status.pdf_ready) return 100;
+    if (status.pdf_status === 'failed') return 100;
+    // Progression asymptotique : atteint 90% autour de la durée moyenne,
+    // ralentit ensuite pour ne jamais coller à 100 tant que pdf_ready est false.
+    const p = 100 * (1 - Math.exp(-elapsedS / (AVERAGE_GENERATION_S / 2.3)));
+    return Math.min(96, Math.max(6, Math.round(p)));
+  }, [elapsedS, status.pdf_ready, status.pdf_status]);
+  const remainingS = Math.max(0, AVERAGE_GENERATION_S - elapsedS);
+  const remainingLabel = remainingS > 60
+    ? `≈ ${Math.ceil(remainingS / 60)} min`
+    : remainingS > 10 ? `≈ ${remainingS}s` : 'presque terminé';
 
   // Cross-sell : passe au checkout Duo Complémentaire en réutilisant les infos du Thème Natal
   const launchDuoUpsell = async () => {
@@ -117,9 +146,66 @@ const ThemeNatalOneshotSucces = () => {
             Ton <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>Thème Natal</em> se compose
           </h1>
           <p className="mt-4" style={{ color: 'rgba(227,215,255,0.75)', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>
-            Soléna trace les 20 à 40 pages de ton portrait céleste. Livraison par email dans quelques minutes.
+            Soléna trace les 40 à 50 pages de ton portrait céleste. Livraison par email dans quelques minutes.
           </p>
         </div>
+
+        {/* Sablier + barre de progression — visible tant que le PDF n'est pas prêt ni en échec */}
+        {!status.pdf_ready && status.pdf_status !== 'failed' && (
+          <div
+            className="plume-glass p-6 md:p-8 mb-6"
+            data-testid="theme-natal-oneshot-progress"
+            style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.25)' }}
+          >
+            {/* Sablier animé */}
+            <div className="flex justify-center mb-5">
+              <div
+                className="relative w-16 h-16 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'radial-gradient(circle, rgba(212,175,55,0.25) 0%, rgba(212,175,55,0.05) 70%)',
+                  border: '1px solid rgba(212,175,55,0.4)',
+                  animation: 'plume-pulse 2.4s ease-in-out infinite',
+                }}
+              >
+                <Hourglass
+                  className="w-7 h-7"
+                  style={{ color: '#D4AF37', animation: 'plume-hourglass 3.2s linear infinite' }}
+                  strokeWidth={1.4}
+                />
+              </div>
+            </div>
+
+            <p className="text-center text-sm mb-4" style={{ color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif' }}>
+              <em style={{ color: '#D4AF37' }}>Soléna écrit ton grimoire</em> — reste sur cette page, il apparaîtra dès qu&apos;il sera prêt.
+            </p>
+
+            {/* Barre de progression */}
+            <div className="max-w-md mx-auto">
+              <div
+                className="h-2 rounded-full overflow-hidden mb-3"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(212,175,55,0.18)' }}
+                data-testid="theme-natal-oneshot-progress-bar"
+              >
+                <div
+                  className="h-full transition-all duration-1000 ease-out"
+                  style={{
+                    width: `${progressPct}%`,
+                    background: 'linear-gradient(90deg, rgba(212,175,55,0.6) 0%, #D4AF37 55%, rgba(232,199,102,0.9) 100%)',
+                    boxShadow: '0 0 10px rgba(212,175,55,0.55)',
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-[11px]" style={{ color: 'rgba(227,215,255,0.6)', fontFamily: 'Cinzel, serif', letterSpacing: '0.15em' }}>
+                <span data-testid="theme-natal-oneshot-progress-pct">{progressPct}%</span>
+                <span data-testid="theme-natal-oneshot-progress-remaining">Temps restant : {remainingLabel}</span>
+              </div>
+            </div>
+
+            <p className="text-center text-[11px] mt-5" style={{ color: 'rgba(227,215,255,0.5)', letterSpacing: '0.1em' }}>
+              💫 Tu peux fermer cet onglet — le PDF t&apos;arrivera aussi par email dans les minutes qui suivent.
+            </p>
+          </div>
+        )}
 
         {/* Steps */}
         <div className="plume-glass p-6 md:p-8 mb-8" data-testid="theme-natal-oneshot-steps">
@@ -172,6 +258,28 @@ const ThemeNatalOneshotSucces = () => {
             Télécharger mon Thème Natal
             <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
           </a>
+        ) : status.pdf_status === 'failed' ? (
+          <div
+            className="max-w-lg mx-auto p-5 rounded-xl text-left"
+            data-testid="theme-natal-oneshot-error"
+            style={{
+              background: 'rgba(248,113,113,0.08)',
+              border: '1px solid rgba(248,113,113,0.35)',
+              color: '#FCA5A5',
+            }}
+          >
+            <p className="text-sm mb-2" style={{ color: '#FCA5A5' }}>
+              La génération de ton PDF a rencontré un problème.
+            </p>
+            <p className="text-xs" style={{ color: 'rgba(227,215,255,0.65)' }}>
+              Pas d&apos;inquiétude : ton paiement est bien confirmé. Écris à{' '}
+              <a href="mailto:contact@plume-astrale.fr?subject=Regeneration%20Theme%20Natal"
+                 style={{ color: '#D4AF37', textDecoration: 'underline' }}>
+                contact@plume-astrale.fr
+              </a>{' '}
+              avec le code <b>{sessionId}</b> et Soléna te régénère ton thème sous 24 h.
+            </p>
+          </div>
         ) : (
           <p className="text-xs" style={{ color: 'rgba(227,215,255,0.55)', letterSpacing: '0.15em' }}>
             <Mail className="w-3 h-3 inline mr-1" strokeWidth={1.5} />

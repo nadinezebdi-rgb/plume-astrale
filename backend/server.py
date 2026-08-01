@@ -62,6 +62,7 @@ from routes.duo_completion import router as duo_completion_router
 from routes.consultation_ultime import router as consultation_ultime_router
 from routes.resend_webhook import router as resend_webhook_router
 from routes.astrocartographie import router as astrocartographie_router
+from routes.fenetre_rencontre import router as fenetre_rencontre_router
 from routes.astrosexo import router as astrosexo_router
 from routes.apercu import router as apercu_router
 from routes.marketing import router as marketing_router
@@ -124,6 +125,7 @@ api_router.include_router(duo_completion_router)
 api_router.include_router(consultation_ultime_router)
 api_router.include_router(resend_webhook_router)
 api_router.include_router(astrocartographie_router)
+api_router.include_router(fenetre_rencontre_router)
 api_router.include_router(astrosexo_router)
 api_router.include_router(subscriptions_router)
 api_router.include_router(apercu_router)
@@ -755,6 +757,22 @@ async def stripe_webhook(request: Request):
             if _sd.get('payment_status') == 'paid':
                 _md = _sd.get('metadata') or {}
                 _uid = _md.get('user_id')
+                # Fallback : les checkouts Thème Natal / Duo ne mettent pas user_id
+                # dans les metadata Stripe → on résout via l'email de la session.
+                if not _uid:
+                    _email = (
+                        _md.get('user_email')
+                        or _sd.get('customer_email')
+                        or (_sd.get('customer_details') or {}).get('email')
+                    )
+                    if _email:
+                        try:
+                            from services.supabase_client import get_admin_client as _gac
+                            _r = _gac().table('profiles').select('id').eq('email', _email).maybe_single().execute()
+                            if _r and _r.data:
+                                _uid = _r.data.get('id')
+                        except Exception as _e:
+                            logger.info(f'[referral] user_id lookup by email fail: {_e}')
                 if _uid:
                     from services.referral_service import maybe_reward_on_purchase
                     await maybe_reward_on_purchase(

@@ -219,7 +219,7 @@ const MonRituel = () => {
       console.error('Failed to load ritual', e);
     }
     setLoading(false);
-}, [getBirthParams, authHeader]);
+  }, [getBirthParams, authHeader]);
 
   // Load moods + ritual on mount
   useEffect(() => {

@@ -129,16 +129,24 @@ export default function Hero3D() {
           }}
           data-testid="hero-headline"
         >
-          En 3 minutes,
-          <br />
-          comprends ce qui se joue dans ta{' '}
-          <em
+          Il y a une <em
             style={{
               fontStyle: 'italic',
               color: '#E8C766',
             }}
           >
-            vie amoureuse
+            logique
+          </em>
+          <br />
+          derrière tes histoires.
+          <br />
+          Viens la <em
+            style={{
+              fontStyle: 'italic',
+              color: '#E8C766',
+            }}
+          >
+            lire
           </em>
           .
         </h2>

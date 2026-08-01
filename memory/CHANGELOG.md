@@ -1269,3 +1269,29 @@ Le repo GitHub (prod) avait divergé : features développées hors Emergent (meg
 - Kill "6 voies" + Prestige + Techno : positionnement +40% mémorisation, -40% choice paralysis
 - CTA final block : +10% recovery conversion
 - **Total estimé : +50-70% conversion homepage en 60 jours**
+
+## 2026-08-01 — Code promo universel + Fenêtre Rencontre backend
+
+### Ajouts
+- **Composant réutilisable** `/app/frontend/src/components/PromoCodeField.js` : input + bouton Appliquer + affichage OK/KO/admin_only, réutilisé sur toutes les pages de paiement PDF.
+- **Champ Code promo ajouté** sur les 4 pages qui l'avaient perdu :
+  - `/synastrie` (49€) — via `SynastrieSales.js`
+  - `/numerologie-pdf` (19€) — via `NumerologiePDF.js`
+  - `/karma-destin-pdf` (24€) — via `KarmaDestinPDF.js`
+  - `/fenetre-rencontre-pdf` (29€) — via `FenetreRencontrePDF.js` (route redirigée vers /rencontres-astrales pour l'instant)
+
+### Backend Synastrie
+- Ajout de `promo_code` dans `SynastrieCheckoutRequest`
+- Nouvelle fonction `admin_bypass_synastrie()` dans `services/synastrie_oneshot.py` — crée un purchase `paid`, déclenche PDF+email, renvoie `admin_bypass:true` + `checkout_url` pointant sur /synastrie/succes.
+- Bypass sécurisé via `try_consume_promo` (SEC-004 : seuls les comptes `is_admin=true` peuvent bypass).
+
+### Fixes découverts par testing agent (iteration_56)
+- **server.py** : le routeur `fenetre_rencontre_router` n'était PAS enregistré (import + include_router manquants). Corrigé par le testing agent.
+- **config.py PACKS** : ajout de l'entrée `fenetre_rencontre_avancee` (29€) manquante — causait un 500 "Produit indisponible".
+- **routes/compatible.py** : `except Exception` wrappait toutes les `HTTPException` (dont 401) en 500. Ajout d'un `except HTTPException: raise` avant le catch-all.
+
+### Tests
+- Testing agent iteration 56 : backend 26/28 (93%), frontend 3/3 pages accessibles ✅ (la 4ème est une redirection intentionnelle).
+- 11 endpoints checkout testés, tous retournent 422 sans payload (donc existent et acceptent le body).
+- `/api/promo/validate` : TOUT2026 → valid:true admin_only:true ✅ ; code inconnu → valid:false ✅
+- Endpoints publics de contenu tous vérifiés 200 : tarot/jour, tarot/oui-non, oracle/teaser, daily/aries, plume-chat, astrology/natal-chart, couple/mystery.

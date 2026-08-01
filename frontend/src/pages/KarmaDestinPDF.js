@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Sparkles, Moon, Zap, Shield, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SEO from '@/components/SEO';
+import PromoCodeField from '@/components/PromoCodeField';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 
@@ -17,6 +18,7 @@ const KarmaDestinPDF = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [promoState, setPromoState] = useState({ status: 'idle', final_amount: 24, code: '' });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -39,6 +41,7 @@ const KarmaDestinPDF = () => {
           birth_city: formData.birthCity,
           birth_country: formData.birthCountry,
           origin_url: window.location.origin,
+          promo_code: promoState.status === 'ok' && promoState.code ? promoState.code : undefined,
         }),
       });
 
@@ -234,21 +237,32 @@ const KarmaDestinPDF = () => {
                 </div>
               )}
 
+              <div className="pt-2">
+                <PromoCodeField
+                  price={24}
+                  product="karma_destin_analysis"
+                  testIdBase="karma-destin"
+                  onStateChange={setPromoState}
+                />
+              </div>
+
               <button
                 type="submit"
                 disabled={loading}
                 className="w-full bg-gradient-to-r from-[#D4AF37] to-[#E8C766] hover:from-[#E8C766] hover:to-[#F5D97D] text-[#0C0918] font-bold py-4 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 transition transform hover:scale-105"
+                data-testid="karma-destin-checkout-btn"
               >
                 {loading ? (
                   <>
                     <div className="animate-spin">⟳</div>
                     Traitement...
                   </>
+                ) : promoState.status === 'ok' && promoState.final_amount === 0 ? (
+                  <>Déverrouiller mon analyse<ArrowRight className="w-5 h-5" /></>
+                ) : promoState.status === 'ok' ? (
+                  <>Payer {promoState.final_amount.toFixed(2)}€<ArrowRight className="w-5 h-5" /></>
                 ) : (
-                  <>
-                    Commencer Mon Analyse Karmique
-                    <ArrowRight className="w-5 h-5" />
-                  </>
+                  <>Commencer Mon Analyse Karmique<ArrowRight className="w-5 h-5" /></>
                 )}
               </button>
 
