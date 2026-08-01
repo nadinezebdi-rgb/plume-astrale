@@ -574,7 +574,6 @@ const MonCompte = () => {
   const tabs = [
     { id: 'apercu',       label: 'Aperçu'       },
     { id: 'rapports',     label: 'Mes Rapports' },
-    { id: 'abonnement',   label: 'Abonnement'   },
     { id: 'credits',      label: 'Crédits'       },
     { id: 'parrainage',   label: 'Parrainage'   },
     { id: 'fidelite',     label: 'Assiduité'    },
@@ -935,9 +934,7 @@ const MonCompte = () => {
                 </div>
                 <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
                   Chaque rapport est calcule avec les ephemerides Swiss Ephemeris.
-                  {profil?.premium_status === 'active'
-                    ? ' Tous les rapports sont offerts avec votre abonnement Premium.'
-                    : " Réservez vos lectures avec vos crédits, ou débloquez l'accès illimité via l'abonnement Premium."}
+                  Débloquez vos lectures avec vos crédits
                 </p>
                 {!profil?.birth_date && (
                   <p className="text-xs mt-2" style={{ color: '#94A3B8' }}>
@@ -989,11 +986,7 @@ const MonCompte = () => {
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      {profil?.premium_status === 'active' ? (
-                        <span className="text-[10px] tracking-widest uppercase px-2 py-0.5 rounded-full" style={{ background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ADE80', letterSpacing: '0.1em' }}>
-                          Offert
-                        </span>
-                      ) : (
+                      {profil?.premium_status !== 'active' && (
                         <span className="text-base" style={{ color: 'var(--pa-accent)', fontFamily: 'Cormorant Garamond, serif' }}>
                           {price} cr
                         </span>
@@ -1222,11 +1215,11 @@ const MonCompte = () => {
                 </h2>
                 <div className="space-y-3">
                   {[
-                    { jours: 7,   bonus: 3,  label: 'Une semaine de constance' },
-                    { jours: 14,  bonus: 5,  label: 'Deux semaines d\'alignement' },
-                    { jours: 30,  bonus: 10, label: 'Un mois d\'assiduité' },
-                    { jours: 60,  bonus: 15, label: 'Deux mois de fidélité' },
-                    { jours: 100, bonus: 25, label: 'Cent jours de présence céleste' },
+                    { jours: 7,   bonus: 10,  label: 'Une semaine de constance' },
+                    { jours: 14,  bonus: 20,  label: 'Deux semaines d\'alignement' },
+                    { jours: 30,  bonus: 30, label: 'Un mois d\'assiduité' },
+                    { jours: 60,  bonus: 45, label: 'Deux mois de fidélité' },
+                    { jours: 100, bonus: 125, label: 'Cent jours de présence céleste' },
                   ].map(({ jours, bonus, label }) => {
                     const atteint = (fidelite?.streak_count ?? 0) >= jours;
                     return (
@@ -1267,6 +1260,35 @@ const MonCompte = () => {
               </div>
             </div>
           )}
+
+
+          {/* ── Nos offres ── (déplacé en bas de page) */}
+          {/* Bundle Découverte Soléna — offre irrésistible post-inscription/connexion */}
+          <div className="mb-6">
+            <BundleCard testId="mon-compte-bundle" dense />
+          </div>
+
+          {/* Teaser Cercle Soléna — LTV mensuelle */}
+          <Link
+            to="/cercle-solena"
+            className="block plume-glass p-4 mb-10 hover:opacity-90 transition-opacity"
+            data-testid="mon-compte-cercle-solena-teaser"
+            style={{ border: '1px solid rgba(212,175,55,0.25)' }}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div style={{ fontFamily: 'Cinzel, serif', fontSize: 11, color: '#D4AF37', letterSpacing: '0.24em', marginBottom: 4 }}>
+                  ✦ Cercle Soléna · 14,90 €/mois ✦
+                </div>
+                <div className="text-sm" style={{ color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>
+                  30 crédits/mois · Communauté privée · -10% sur les PDF
+                </div>
+              </div>
+              <div className="text-xs shrink-0" style={{ color: '#D4AF37', letterSpacing: '0.15em' }}>
+                DÉCOUVRIR →
+              </div>
+            </div>
+          </Link>
 
           {/* Séparateur bas de page */}
           <div className="mt-16 mb-6" style={{ borderTop: '1px solid rgba(212,175,55,0.1)' }} />
