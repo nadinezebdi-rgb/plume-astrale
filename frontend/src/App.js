@@ -86,6 +86,22 @@ import AuraProvider from "./components/design/AuraProvider";
 import LiveSalesCounter from "./components/LiveSalesCounter";
 import LaunchBanner from "./components/LaunchBanner";
 import { captureReferralFromURL } from "./lib/referral";
+import { useLocation } from "react-router-dom";
+
+function GlobalOverlays() {
+  const location = useLocation();
+  // Landing v3 a sa propre topbar + pas d'artefacts de fausse urgence
+  const isLanding = location.pathname === '/';
+  return (
+    <>
+      <Starfield />
+      <NoiseOverlay />
+      <MobileTabBar />
+      {!isLanding && <LiveSalesCounter />}
+      {!isLanding && <LaunchBanner />}
+    </>
+  );
+}
 
 function App() {
   // Capture ?ref=CODE au tout premier render de l'app (avant même le login)
@@ -95,12 +111,7 @@ function App() {
       <AuraProvider>
       <BrowserRouter>
         {/* ─── Overlays globaux Plume Design System v2 ─── */}
-        <Starfield />
-        <NoiseOverlay />
-        <MobileTabBar />
-        <LiveSalesCounter />
-        {/* Bandeau promo fixé en haut de TOUTES les pages */}
-        <LaunchBanner />
+        <GlobalOverlays />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />
