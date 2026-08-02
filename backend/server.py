@@ -923,6 +923,26 @@ async def stripe_webhook(request: Request):
             logger.warning(f'[astrocartographie] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'astrocartographie'}
 
+    # Route vers Lecture Complete bundle handler si kind=lecture_complete (bundle 97 EUR)
+    if md.get('kind') == 'lecture_complete':
+        from services.lecture_complete_bundle import handle_lecture_complete_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            # Marque la transaction comme payee avant de dispatcher les enfants
+            try:
+                sb2 = get_admin_client()
+                sb2.table('payment_transactions').update({
+                    'status': 'completed',
+                    'payment_status': 'paid',
+                    'credits_granted': True,
+                }).eq('session_id', session_id).execute()
+            except Exception as e:
+                logger.warning(f'[lecture_complete] tx paid update fail: {e}')
+            await handle_lecture_complete_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[lecture_complete] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'lecture_complete'}
+
     # Sinon : flow credits one-shot
     if event_type == 'checkout.session.completed':
         session_data = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()

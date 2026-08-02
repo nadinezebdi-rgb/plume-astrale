@@ -159,6 +159,16 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [scarcity, setScarcity] = useState(null);
+
+  React.useEffect(() => {
+    let cancel = false;
+    fetch(`${API}/api/lecture-complete/scarcity`)
+      .then((r) => r.json())
+      .then((d) => { if (!cancel) setScarcity(d); })
+      .catch(() => {});
+    return () => { cancel = true; };
+  }, []);
 
   const startCheckout = async (form) => {
     setError(null);
@@ -207,7 +217,19 @@ export default function Index() {
       <div className="pa-page" data-testid="landing-v2">
         {/* ═══ BANDEAU HAUT ═══ */}
         <div className="pa-band" data-testid="landing-band">
-          ✦ Soléna a lu plus de 2&nbsp;000 ciels · Il reste 12 lectures complètes pour ce cycle lunaire ✦
+          {scarcity && scarcity.sold_out ? (
+            <>
+              ✦ Complet pour ce cycle · Solena a lu plus de 2&nbsp;000 ciels · Prochaine ouverture le prochain cycle lunaire ✦
+            </>
+          ) : (
+            <>
+              ✦ Solena a lu plus de 2&nbsp;000 ciels · Il reste{' '}
+              <strong data-testid="scarcity-remaining">
+                {scarcity ? scarcity.remaining : 12}
+              </strong>
+              {' '}lectures complètes pour ce cycle lunaire ✦
+            </>
+          )}
         </div>
 
         {/* ═══ HERO ═══ */}

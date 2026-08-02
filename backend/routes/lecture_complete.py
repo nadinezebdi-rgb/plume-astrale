@@ -98,6 +98,11 @@ async def lecture_complete_checkout(
         except Exception as e:
             logger.warning(f'[lecture_complete] admin bypass tx insert failed: {e}')
 
+        # Declenche l'orchestration bundle en arriere-plan
+        import asyncio
+        from services.lecture_complete_bundle import handle_lecture_complete_webhook
+        asyncio.create_task(handle_lecture_complete_webhook(fake_session_id))
+
         return {
             'url': f'{origin}/lecture-complete/succes?session_id={fake_session_id}',
             'session_id': fake_session_id,
@@ -161,4 +166,16 @@ async def lecture_complete_status(session_id: str):
         'payment_status': tx.get('payment_status'),
         'email': tx.get('user_email'),
         'admin_bypass': bool(md.get('admin_bypass')),
+        'bundle_dispatched': bool(md.get('bundle_dispatched')),
+        'bundle_children': md.get('bundle_children') or {},
     }
+
+
+@router.get('/scarcity')
+async def lecture_complete_scarcity():
+    """Compteur honnete des lectures restantes ce cycle (mois calendaire).
+
+    Utilise par le bandeau homepage : 'Il reste X lectures completes pour ce cycle lunaire'.
+    """
+    from services.lecture_complete_bundle import get_scarcity_status
+    return get_scarcity_status()

@@ -1,0 +1,33 @@
+{
+  "summary": "Tested lecture_complete bundle feature (scarcity endpoint + bundle orchestration code structure + landing band UI). 8/8 backend tests pass. Frontend band renders '12' dynamically via data-testid=scarcity-remaining. No blocking issues.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_lecture_complete_scarcity.py",
+    "/app/test_reports/pytest/lecture_complete_scarcity.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py is very large (~2443 lines). Consider extracting webhook handlers into services/ modules. Non-blocking but affects maintainability.",
+    "lecture_complete_bundle.py fires 5 asyncio.create_task without gathering results / retry logic — a failure in one child PDF is only logged, not surfaced in parent metadata. Consider recording per-child success/failure into md.bundle_children_status for admin visibility.",
+    "_current_lunar_cycle_bounds uses calendar month as proxy for lunar cycle (documented). If real lunar cycle alignment is ever required, this needs revision.",
+    "The scarcity endpoint runs on every homepage load without caching; if traffic grows, add a small TTL (e.g. 60s in-memory) to avoid a Supabase query per pageview."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_lecture_complete_scarcity.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "None. Sold_out=true state was not simulated (would require inserting 12 lecture_complete paid tx rows in the current month; user explicitly said manual verification is acceptable). Conditional-branch code path was verified via source code inspection: Index.js line 220 `scarcity && scarcity.sold_out ? (...) : (...)` correctly renders the alternate 'Complet pour ce cycle · Prochaine ouverture le prochain cycle lunaire' string and omits data-testid=scarcity-remaining in that branch.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend GET /api/lecture-complete/scarcity returns {remaining:12, sold:0, quota:12, cycle_end:'2026-09-01T00:00:00+00:00', sold_out:false} (server clock is Aug 2026). Frontend landing band on / displays '12' via data-testid=scarcity-remaining. React.StrictMode is enabled → useEffect double-fires in dev, resulting in 2 GET calls per mount (network trace) — this is expected StrictMode behavior in dev, production build will fire once. Not a polling loop.",
+  "test_credentials": "Not required (guest flow tested).",
+  "rca of the issue": "N/A — no issues found."
+}
