@@ -1578,3 +1578,37 @@ Générés dans `/app/frontend/public/marketing/horoscopes/` — un par signe, f
 
 ### ⚠️ Action utilisateur requise
 Exécuter `/app/supabase/referrals_migration.sql` dans le SQL Editor Supabase pour activer complètement le rattachement + l'attribution des récompenses. Sans migration, le lien est affiché mais aucun filleul ne peut être rattaché (fallback graceful).
+
+
+## 📅 2026-08-02 — Admin bundle 97€ : Slack test, A/B override, historique alertes, refund reason preset
+
+### Contexte
+Finalisation du cockpit admin `/admin/lecture-complete` : donner à l'admin un contrôle UI complet sur le webhook Slack, la variante A/B J+30 gagnante et une timeline unifiée des alertes envoyées. + P1 : dropdown de raisons de refund pré-configurées.
+
+### Backend
+- **Nouveau `services/app_settings.py`** — persistance JSON sur disque (`/app/backend/.state/app_settings.json`), threadsafe, cap 30 alertes.
+  - `get_setting/set_setting(key, value)` — settings globaux (forced_j30_variant, etc.)
+  - `log_alert(kind, title, details, channels)` / `get_alerts_history()` — historique unifié Slack/Email/A/B override.
+- **Endpoints** dans `/app/backend/routes/lecture_complete.py` :
+  - `GET /admin/settings` → `{forced_j30_variant, alerts_history}`
+  - `POST /admin/set-forced-variant {variant: "question"|"invitation"|null}` — 400 sur variant invalide, log audit dans alerts_history.
+  - `POST /admin/test-slack {webhook_url?}` — ping Slack avec URL custom ou fallback env, log dans historique.
+- **Override A/B** wiré dans `services/lecture_complete_sequence.py` (ligne 197+) : si `forced_j30_variant` est set, ignore le hash session_id.
+- **Refund alert loop** (`services/refund_alert.py`) appelle désormais `log_alert()` après envoi Slack+Email pour tracer.
+
+### Frontend `/app/frontend/src/components/AdminLectureComplete.js`
+- Nouveau champ input `admin-lc-slack-webhook-input` (URL Slack custom) + bouton `Tester Slack`.
+- Panel A/B avec boutons `admin-lc-ab-force-question` / `admin-lc-ab-force-invitation` + badge actif `admin-lc-ab-force-active` + `Reset A/B 50/50`.
+- Section `admin-lc-alerts-history-panel` (toggle collapsible, 30 entrées max, colorées par kind : refund_alert=rouge, slack_test=vert, ab_override=violet).
+- Refund modal : nouveau dropdown `refund-modal-reason-preset` avec 6 raisons standardisées (PDF défectueux, doublon, insatisfait, chargeback, achat par erreur, non livrée) — append au textarea existant.
+
+### Tests
+- **iteration_62.json** : 13/13 backend pytest PASS, 12/12 frontend UI checks PASS.
+- 401 / 403 / 400 / 200 sur les 3 nouveaux endpoints.
+- Slack test ping FAIL 404 correctement loggé dans historique.
+- A/B force question → badge visible + reset OK.
+
+### Backlog restant
+- P2 : drop table `sales` inutilisée dans Supabase
+- P2 : dashboard admin `/api/admin/cache/svg/stats`
+- P2 : reset password standard user `plume_test_863a0303@gmail.com` (test_credentials.md incorrect)

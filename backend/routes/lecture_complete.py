@@ -723,6 +723,17 @@ async def lecture_complete_admin_set_forced_variant(
         raise HTTPException(status_code=400, detail='variant doit etre null, "question" ou "invitation".')
     from services.app_settings import set_setting
     set_setting('forced_j30_variant', variant)
+    # Trace audit
+    try:
+        from services.app_settings import log_alert
+        log_alert(
+            kind='ab_override',
+            title=f'A/B J+30 forcé sur {variant}' if variant else 'A/B J+30 réinitialisé (50/50)',
+            details=f'Par {current_user.get("email","admin")}',
+            channels=[],
+        )
+    except Exception:
+        pass
     return {'forced_j30_variant': variant}
 
 

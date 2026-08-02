@@ -28,6 +28,20 @@
       "details": "Lance par admin@plume-astrale.fr · URL custom",
       "channels": [],
       "at": "2026-08-02T12:13:56.199886+00:00"
+    },
+    {
+      "kind": "ab_override",
+      "title": "A/B J+30 forcé sur invitation",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T12:18:00.606972+00:00"
+    },
+    {
+      "kind": "ab_override",
+      "title": "A/B J+30 réinitialisé (50/50)",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T12:18:00.888385+00:00"
     }
   ]
 }
