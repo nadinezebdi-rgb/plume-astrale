@@ -1319,3 +1319,25 @@ Bonus (Rituel du Soir, Carte des Liens, Calendrier 12 fenêtres, Question à Sol
 
 ### Tests
 Testing agent iteration_57 : **backend 6/6 ✅, frontend 10/10 data-testid ✅**. Redirect Stripe confirmé, polling fonctionne, SEC-004 respecté.
+
+## 2026-08-02 (soir) — Auto-livraison bundle + Scarcity honnête
+
+### Auto-livraison des 5 PDFs bundle 97€
+- **Nouveau service** `/app/backend/services/lecture_complete_bundle.py` :
+  - `handle_lecture_complete_webhook(session_id)` crée 5 sous-transactions payment_transactions et dispatche EN PARALLÈLE la génération de : Thème Natal + Karma & Destinée + Arbre de Vie Kabbale + Fenêtres Rencontre + Rencontres Ultime.
+  - Chaque enfant utilise le même `pdf_ctx` (birth_data) reconstruit depuis order_ctx.
+  - Idempotent via `md.bundle_dispatched`.
+  - Email de bienvenue immédiat + 5 emails par PDF (chaque service envoie le sien).
+- **Hook Stripe webhook** dans `server.py` : à réception de `metadata.kind=lecture_complete`, marque parent paid + trigger `handle_lecture_complete_webhook`.
+- **Bypass admin** : `POST /api/lecture-complete/checkout` avec `promo_code=TOUT2026` (admin) lance également le dispatch immédiat via `asyncio.create_task`.
+- **Test manuel bout-en-bout** : 5 PDFs générés + 5 emails envoyés en ~90s (natal en 1 min avec `pdf_status=success`, les 4 autres avec `pdf_path` + `email_sent_at` remplis).
+
+### Scarcity honnête
+- **`GET /api/lecture-complete/scarcity`** retourne `{remaining, sold, quota, cycle_end, sold_out}`.
+- Compte les ventes du cycle courant (mois calendaire comme proxy du cycle lunaire).
+- Exclut les bypass admin du décompte.
+- Bandeau homepage (`data-testid=landing-band`) branche dynamique : `<strong data-testid=scarcity-remaining>{N}</strong>` ou message "Complet pour ce cycle" si `sold_out`.
+
+### Tests
+- Testing agent iteration_58 : **backend 8/8 ✅, frontend 100% ✅**.
+- Aucun bug bloquant. Note StrictMode : double fetch en dev, une seule en prod.
