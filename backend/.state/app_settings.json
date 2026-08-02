@@ -293,6 +293,16 @@
       "helpful": true,
       "created_at": "2026-08-02T16:21:21.534761+00:00",
       "feedback_at": "2026-08-02T16:21:22.493090+00:00"
+    },
+    {
+      "uid": "0bea29e58d44",
+      "session_id": "sup-1f46a2c5316a48ca",
+      "user_message": "Comment se déroule la livraison de mon PDF ?",
+      "assistant_reply": "Après ton paiement, tes PDFs sont envoyés par email dans les 2 heures — et souvent en quelques minutes. Le paiement est sécurisé via Stripe (3-D Secure), sans engagement. Si tu ne vois rien, pense à vérifier tes spams ou l’onglet promotions.",
+      "escalate": false,
+      "helpful": true,
+      "created_at": "2026-08-02T16:24:42.219541+00:00",
+      "feedback_at": "2026-08-02T16:24:52.626507+00:00"
     }
   ]
 }

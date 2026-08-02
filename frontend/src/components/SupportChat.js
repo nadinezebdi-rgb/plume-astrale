@@ -123,7 +123,7 @@ export default function SupportChat() {
         content: r.data?.reply || 'Erreur inattendue.',
         escalate: !!r.data?.escalate,
         support_email: r.data?.support_email,
-        exchange_idx: r.data?.exchange_idx,
+        exchange_uid: r.data?.exchange_uid,
         session_id: r.data?.session_id,
         helpful: null,
       }]);
@@ -148,12 +148,12 @@ export default function SupportChat() {
 
   const sendFeedback = async (msgIdx, helpful) => {
     const msg = messages[msgIdx];
-    if (!msg || msg.exchange_idx == null || !msg.session_id) return;
+    if (!msg || !msg.exchange_uid || !msg.session_id) return;
     if (msg.helpful !== null && msg.helpful !== undefined) return; // Déjà voté
     try {
       await axios.post(`${API}/api/chat/feedback`, {
         session_id: msg.session_id,
-        exchange_idx: msg.exchange_idx,
+        exchange_uid: msg.exchange_uid,
         helpful,
       });
       setMessages((cur) => cur.map((m, i) => i === msgIdx ? { ...m, helpful } : m));
@@ -211,7 +211,7 @@ export default function SupportChat() {
                   )}
                 </div>
                 {/* FAQ Bridge : thumbs sur les réponses IA (skip la 1ere = welcome) */}
-                {m.role === 'assistant' && m.exchange_idx != null && (
+                {m.role === 'assistant' && m.exchange_uid && (
                   <div className="pac-thumbs" data-testid={`support-chat-thumbs-${i}`}>
                     {m.helpful === true ? (
                       <span className="pac-thumb-done">✓ Merci pour ton retour</span>

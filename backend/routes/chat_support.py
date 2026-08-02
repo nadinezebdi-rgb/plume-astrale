@@ -98,7 +98,7 @@ class ChatResponse(BaseModel):
     escalate: bool
     session_id: str
     support_email: str
-    exchange_idx: Optional[int] = None
+    exchange_uid: Optional[str] = None
 
 
 @router.post('/support', response_model=ChatResponse)
@@ -146,8 +146,8 @@ async def chat_support(payload: ChatRequest):
         escalate = True
         reply = reply[len('[ESCALATE]'):].strip()
 
-    # Chat analytics : log chaque échange (idx dans la session) pour observabilité
-    exchange_idx = _log_chat_exchange(
+    # Chat analytics : log chaque échange, retour d'un UID stable (safe après troncature)
+    exchange_uid = _log_chat_exchange(
         session_id=session_id,
         user_message=payload.message[:1000],
         assistant_reply=reply[:1500],
@@ -159,7 +159,7 @@ async def chat_support(payload: ChatRequest):
         escalate=escalate,
         session_id=session_id,
         support_email=SUPPORT_EMAIL,
-        exchange_idx=exchange_idx,
+        exchange_uid=exchange_uid,
     )
 
 
@@ -171,12 +171,13 @@ MAX_LOG_ENTRIES = 500
 
 
 def _log_chat_exchange(session_id: str, user_message: str, assistant_reply: str,
-                       escalate: bool) -> int:
-    """Log un échange dans app_settings.chat_analytics (deque bornée). Retourne l'index unique."""
+                       escalate: bool) -> str:
+    """Log un échange dans app_settings.chat_analytics (deque bornée).
+    Retourne l'exchange_uid stable (persiste malgré la troncature)."""
     entries = get_setting('chat_analytics') or []
-    idx = len(entries)
+    uid = uuid.uuid4().hex[:12]
     entries.append({
-        'idx': idx,
+        'uid': uid,
         'session_id': session_id,
         'user_message': user_message,
         'assistant_reply': assistant_reply,
@@ -184,20 +185,16 @@ def _log_chat_exchange(session_id: str, user_message: str, assistant_reply: str,
         'helpful': None,  # sera set via /feedback
         'created_at': datetime.now(timezone.utc).isoformat(),
     })
-    # Cap : garde les 500 dernières entrées
+    # Cap : garde les 500 dernières entrées (uid reste stable)
     if len(entries) > MAX_LOG_ENTRIES:
         entries = entries[-MAX_LOG_ENTRIES:]
-        # Reindex pour cohérence (idx = position dans la liste tronquée)
-        for i, e in enumerate(entries):
-            e['idx'] = i
-        idx = len(entries) - 1
     set_setting('chat_analytics', entries)
-    return idx
+    return uid
 
 
 class ChatFeedback(BaseModel):
     session_id: str
-    exchange_idx: int
+    exchange_uid: str
     helpful: bool
 
 
@@ -207,7 +204,7 @@ async def chat_feedback(payload: ChatFeedback):
     entries = get_setting('chat_analytics') or []
     updated = False
     for e in entries:
-        if e.get('session_id') == payload.session_id and e.get('idx') == payload.exchange_idx:
+        if e.get('session_id') == payload.session_id and e.get('uid') == payload.exchange_uid:
             e['helpful'] = bool(payload.helpful)
             e['feedback_at'] = datetime.now(timezone.utc).isoformat()
             updated = True
