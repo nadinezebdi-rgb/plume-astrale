@@ -43,6 +43,7 @@ import Livre from "./pages/Livre";
 import CommandeSucces from "./pages/CommandeSucces";
 import CharteConfiance from "./pages/CharteConfiance";
 import MonCompte from "./pages/MonCompte";
+import Temoignage from "./pages/Temoignage";
 import Admin from "./pages/Admin";
 import Energie from "./pages/Energie";
 import ChatIA from "./pages/ChatIA";
@@ -204,6 +205,7 @@ function App() {
                 <Route path="/livre" element={<Livre />} />
                 <Route path="/commande/succes" element={<CommandeSucces />} />
                 <Route path="/mon-compte" element={<MonCompte />} />
+                <Route path="/temoignage" element={<Temoignage />} />
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
                 <Route path="/consultation" element={<Navigate to="/outils/consultation" replace />} />
                 <Route path="/energie" element={<Navigate to="/outils/energie" replace />} />

@@ -238,6 +238,10 @@ const styles = `
   .pa-bonus-old{display:inline-block;text-decoration:line-through;color:#8a86a0;
     font-size:.82rem;margin-top:8px;}
 
+  .pa-share-link{color:#7a5f2a;text-decoration:none;font-weight:600;
+    border-bottom:1px dashed rgba(122,95,42,.4);transition:opacity .18s ease;}
+  .pa-share-link:hover{opacity:.75;}
+
   /* Manifeste vidéo */
   .pa-video-wrap{position:relative;border-radius:18px;overflow:hidden;
     border:1px solid rgba(201,162,75,.25);
@@ -487,14 +491,30 @@ export default function Index() {
   const [showForm, setShowForm] = useState(false);
   const [heroVariant, setHeroVariant] = useState('A');
   const [testimonials, setTestimonials] = useState(null);
+  const [trustStats, setTrustStats] = useState(null);
   const [showStickyCTA, setShowStickyCTA] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
+  const videoRef = React.useRef(null);
 
-  // A/B pick + impression tracking (une seule fois par mount)
+  // A/B pick + impression tracking. Interroge d'abord le backend pour honorer un lock manuel/auto.
   React.useEffect(() => {
-    const v = pickHeroVariant();
-    setHeroVariant(v);
-    trackAB(v, 'impression');
+    let cancel = false;
+    (async () => {
+      let v = null;
+      try {
+        const r = await fetch(`${API}/api/landing/ab/serve-variant`);
+        const d = await r.json();
+        if (d && (d.variant === 'A' || d.variant === 'B')) {
+          v = d.variant;
+          try { localStorage.setItem(AB_KEY, v); } catch (_e) { /* ok */ }
+        }
+      } catch (_e) { /* fallback silencieux */ }
+      if (cancel) return;
+      if (!v) v = pickHeroVariant();
+      setHeroVariant(v);
+      trackAB(v, 'impression');
+    })();
+    return () => { cancel = true; };
   }, []);
 
   // Live testimonials fetch (fallback silencieux)
@@ -503,6 +523,16 @@ export default function Index() {
     fetch(`${API}/api/landing/testimonials`)
       .then((r) => r.json())
       .then((d) => { if (!cancel && d?.testimonials?.length) setTestimonials(d.testimonials); })
+      .catch(() => {});
+    return () => { cancel = true; };
+  }, []);
+
+  // Trust stats live (badge hero + trust bar)
+  React.useEffect(() => {
+    let cancel = false;
+    fetch(`${API}/api/landing/trust-stats`)
+      .then((r) => r.json())
+      .then((d) => { if (!cancel && d) setTrustStats(d); })
       .catch(() => {});
     return () => { cancel = true; };
   }, []);
@@ -516,6 +546,26 @@ export default function Index() {
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Manifesto autoplay muted quand la vidéo entre dans le viewport (desktop uniquement)
+  React.useEffect(() => {
+    const isDesktop = typeof window !== 'undefined' && window.matchMedia
+      && window.matchMedia('(min-width: 900px)').matches;
+    if (!isDesktop || !videoRef.current) return;
+    const el = videoRef.current;
+    let autoplayed = false;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting && e.intersectionRatio >= 0.5 && !autoplayed) {
+          autoplayed = true;
+          el.muted = true;
+          el.play().then(() => setVideoPlaying(true)).catch(() => { /* iOS/blocked = no-op */ });
+        }
+      });
+    }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+    io.observe(el);
+    return () => io.disconnect();
   }, []);
 
   const startCheckout = async (form) => {
@@ -597,7 +647,9 @@ export default function Index() {
                   loading="eager" />
                 <div className="pa-hero-badge">
                   <span>Soléna, guide astrologique</span>
-                  <strong>4,9/5 ★</strong>
+                  <strong data-testid="hero-badge-rating">
+                    {trustStats?.average_rating ? `${trustStats.average_rating}/5` : '4,9/5'} ★
+                  </strong>
                 </div>
               </div>
             </div>
@@ -617,11 +669,13 @@ export default function Index() {
             <div className={`pa-video-wrap ${videoPlaying ? 'pa-video-playing' : ''}`}
               data-testid="landing-manifesto-video">
               <video
+                ref={videoRef}
                 src={MANIFESTO_VIDEO}
                 poster={SOLENA_MYSTIQUE}
                 preload="metadata"
                 playsInline
                 controls
+                muted
                 onPlay={() => setVideoPlaying(true)}
                 onPause={() => setVideoPlaying(false)}
                 data-testid="landing-manifesto-player"
@@ -643,7 +697,14 @@ export default function Index() {
               <TrustItem icon="✦"><strong>Données astro réelles</strong><br />éphémérides pro</TrustItem>
               <TrustItem icon="◆"><strong>Calcul à la minute</strong><br />ton vrai thème natal</TrustItem>
               <TrustItem icon="⌂"><strong>Paiement sécurisé</strong><br />Stripe · 3-D Secure</TrustItem>
-              <TrustItem icon="★"><strong>4,9/5</strong><br />+2 000 lectures livrées</TrustItem>
+              <TrustItem icon="★">
+                <strong data-testid="trust-avg-rating">
+                  {trustStats?.average_rating ? `${trustStats.average_rating}/5` : '4,9/5'}
+                </strong><br />
+                <span data-testid="trust-count">
+                  {trustStats?.display_count || '+2 000'} lectures livrées
+                </span>
+              </TrustItem>
             </div>
           </div>
         </section>
@@ -849,6 +910,13 @@ export default function Index() {
                 data-testid="landing-testi-cta">
                 Recevoir ma lecture · 97€
               </button>
+              <p className="pa-mini" style={{ marginTop: 18 }}>
+                Déjà accompagnée par Soléna ?{' '}
+                <Link to="/temoignage" className="pa-share-link"
+                  data-testid="landing-testi-share">
+                  Partage ton témoignage →
+                </Link>
+              </p>
             </div>
           </div>
         </section>

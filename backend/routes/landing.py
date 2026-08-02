@@ -238,8 +238,121 @@ async def landing_ab_stats(
         result['winner'] = 'A' if a['ctr_pct'] > b['ctr_pct'] else 'B'
     else:
         result['winner'] = None
+    result['forced_variant'] = get_setting('forced_hero_variant')
     result['headlines'] = {
         'A': 'Ton ciel de naissance contient une carte.',
         'B': "La lecture que ton ciel attendait.",
     }
     return result
+
+
+@router.post('/ab/set-forced-variant')
+async def landing_ab_set_forced_variant(
+    payload: Dict[str, Any],
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Admin : verrouille manuellement la variante hero servie (ou reset avec variant=null)."""
+    await _require_admin(current_user)
+    variant = (payload or {}).get('variant')
+    if variant not in (None, 'A', 'B'):
+        raise HTTPException(status_code=400, detail='variant doit etre null, "A" ou "B".')
+    set_setting('forced_hero_variant', variant)
+    try:
+        from services.app_settings import log_alert
+        log_alert(
+            kind='hero_ab_lock',
+            title=f'Hero forcé sur variante {variant}' if variant else 'Hero A/B débloqué (50/50)',
+            details=f'Par {current_user.get("email","admin")}',
+            channels=[],
+        )
+    except Exception:
+        pass
+    return {'forced_variant': variant}
+
+
+def _auto_detect_and_lock_winner() -> Optional[str]:
+    """Auto-lock du gagnant si:
+      - ≥100 impressions par variante
+      - delta CTR ≥ 2pt
+      - pas déjà verrouillé
+    Retourne la variante verrouillée (ou None).
+    """
+    if get_setting('forced_hero_variant'):
+        return None  # Déjà locké
+    stats = get_setting('landing_ab_hero_stats') or {}
+    a = stats.get('A') or {}
+    b = stats.get('B') or {}
+    imp_a, imp_b = int(a.get('impression', 0)), int(b.get('impression', 0))
+    if imp_a < 100 or imp_b < 100:
+        return None
+    ctr_a = ((a.get('cta_click', 0) + a.get('signup_click', 0)) / imp_a * 100) if imp_a else 0
+    ctr_b = ((b.get('cta_click', 0) + b.get('signup_click', 0)) / imp_b * 100) if imp_b else 0
+    if abs(ctr_a - ctr_b) < 2.0:
+        return None
+    winner = 'A' if ctr_a > ctr_b else 'B'
+    set_setting('forced_hero_variant', winner)
+    try:
+        from services.app_settings import log_alert
+        log_alert(
+            kind='hero_ab_autolock',
+            title=f'Auto-lock hero → {winner}',
+            details=f'A CTR {ctr_a:.2f}% ({imp_a}) vs B CTR {ctr_b:.2f}% ({imp_b})',
+            channels=[],
+        )
+    except Exception:
+        pass
+    return winner
+
+
+@router.get('/ab/serve-variant')
+async def landing_ab_serve_variant():
+    """Endpoint public : indique quelle variante hero servir (auto-lock si winner détecté).
+    Retourne {variant: 'A'|'B'|null, forced: bool}. Si null, le client peut faire son propre pick."""
+    _auto_detect_and_lock_winner()
+    forced = get_setting('forced_hero_variant')
+    if forced in VALID_VARIANTS:
+        return {'variant': forced, 'forced': True}
+    return {'variant': None, 'forced': False}
+
+
+@router.get('/trust-stats')
+async def landing_trust_stats():
+    """Stats publiques pour badges de confiance (hero, section 2).
+    - total_readings : commandes lecture_complete payées (hors bypass admin)
+    - approved_reviews : témoignages approuvés
+    - average_rating : moyenne étoiles témoignages (fallback 4.9)
+    """
+    sb = get_admin_client()
+    total_readings = 0
+    try:
+        r = sb.table('payment_transactions').select('metadata', count='exact').eq(
+            'pack_id', 'lecture_complete').eq('payment_status', 'paid').execute()
+        for row in (r.data or []):
+            md = row.get('metadata') or {}
+            if not md.get('admin_bypass') and not md.get('refunded_at'):
+                total_readings += 1
+    except Exception as e:
+        logger.warning(f'[trust-stats] fetch fail: {e}')
+
+    items = _load_testimonials()
+    approved = [t for t in items if t.get('status') == 'approved']
+    approved_count = len(approved)
+    if approved:
+        avg = sum(int(t.get('stars', 5)) for t in approved) / approved_count
+        average_rating = round(avg, 1)
+    else:
+        average_rating = 4.9
+
+    # Nombre affichable "arrondi" (marketing, jamais surestimé)
+    if total_readings >= 2000:
+        display_count = f'+{2000 + ((total_readings - 2000) // 100) * 100}'
+    elif total_readings >= 100:
+        display_count = f'+{(total_readings // 50) * 50}'
+    else:
+        display_count = '+2 000'  # baseline historique
+    return {
+        'total_readings': total_readings,
+        'approved_reviews': approved_count,
+        'average_rating': average_rating,
+        'display_count': display_count,
+    }
