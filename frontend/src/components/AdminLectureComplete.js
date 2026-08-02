@@ -88,6 +88,10 @@ export default function AdminLectureComplete({ token }) {
   // A/B hero panel
   const [heroAbStats, setHeroAbStats] = useState(null);
   const [heroAbBusy, setHeroAbBusy] = useState(false);
+  // Chat escalations reply
+  const [chatEscalations, setChatEscalations] = useState(null);
+  const [chatEscalationsBusy, setChatEscalationsBusy] = useState(false);
+  const [replyDrafts, setReplyDrafts] = useState({});
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -413,13 +417,45 @@ export default function AdminLectureComplete({ token }) {
     } catch (e) { alert(e.response?.data?.detail || 'Erreur'); }
   };
 
+  const loadChatEscalations = useCallback(async () => {
+    if (!token) return;
+    setChatEscalationsBusy(true);
+    try {
+      const r = await axios.get(
+        `${API}/api/chat/analytics`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setChatEscalations(r.data?.escalations || []);
+    } catch (_e) {
+      setChatEscalations([]);
+    } finally {
+      setChatEscalationsBusy(false);
+    }
+  }, [token]);
+
+  const sendAdminReply = async (sessionId) => {
+    const msg = (replyDrafts[sessionId] || '').trim();
+    if (msg.length < 2) { alert('Message trop court.'); return; }
+    try {
+      await axios.post(
+        `${API}/api/chat/admin-reply`,
+        { session_id: sessionId, message: msg },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setReplyDrafts((d) => ({ ...d, [sessionId]: '' }));
+      loadChatEscalations();
+      alert('Réponse envoyée à l\'utilisatrice — elle la verra dans son chat.');
+    } catch (e) { alert(e.response?.data?.detail || 'Erreur envoi.'); }
+  };
+
   // Auto-load admin panels sur mount une fois le token dispo
   React.useEffect(() => {
     if (token) {
       loadTestimonialsAdmin();
       loadHeroAbStats();
+      loadChatEscalations();
     }
-  }, [token, loadTestimonialsAdmin, loadHeroAbStats]);
+  }, [token, loadTestimonialsAdmin, loadHeroAbStats, loadChatEscalations]);
 
   return (
     <div data-testid="admin-lecture-complete-panel">
@@ -834,6 +870,113 @@ export default function AdminLectureComplete({ token }) {
                   {t.author_email}
                 </span>
               )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ═══ Chat Escalations Reply Widget ═══ */}
+      <div
+        data-testid="admin-lc-chat-escalations-panel"
+        style={{
+          marginBottom: 16, padding: 14, borderRadius: 10,
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid rgba(248,113,113,0.18)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <span style={{ color: '#f87171', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 600 }}>
+            🚨 Escalades chat IA
+          </span>
+          {chatEscalations && (
+            <span style={{ color: '#b8b4c9', fontSize: 10 }}>
+              · {chatEscalations.length} session{chatEscalations.length > 1 ? 's' : ''} à traiter
+            </span>
+          )}
+          <button
+            onClick={loadChatEscalations}
+            disabled={chatEscalationsBusy}
+            data-testid="admin-lc-chat-escalations-refresh"
+            style={{
+              marginLeft: 'auto', padding: '4px 10px', fontSize: 10,
+              background: 'transparent', color: '#A78BFA',
+              border: '1px solid rgba(167,139,250,0.35)', borderRadius: 10, cursor: 'pointer',
+            }}
+          >
+            {chatEscalationsBusy ? '…' : '↻ refresh'}
+          </button>
+        </div>
+        {chatEscalations && chatEscalations.length === 0 && (
+          <div style={{ fontSize: 12, color: 'rgba(184,180,201,0.55)', fontStyle: 'italic' }}>
+            Aucune escalade en attente. Tout va bien 🌙
+          </div>
+        )}
+        {chatEscalations && chatEscalations.map((esc) => (
+          <div
+            key={esc.session_id}
+            data-testid={`admin-lc-escalation-${esc.session_id}`}
+            style={{
+              marginBottom: 10, padding: 10, borderRadius: 8,
+              background: 'rgba(11,16,32,0.4)',
+              borderLeft: `3px solid ${esc.admin_replies_count > 0 ? '#4ADE80' : '#f87171'}`,
+            }}
+          >
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+              <span style={{ padding: '1px 6px', borderRadius: 8, fontSize: 9,
+                background: esc.admin_replies_count > 0 ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.15)',
+                color: esc.admin_replies_count > 0 ? '#4ADE80' : '#f87171',
+                letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 600,
+              }}>
+                {esc.admin_replies_count > 0 ? `${esc.admin_replies_count} réponse${esc.admin_replies_count > 1 ? 's' : ''}` : 'À traiter'}
+              </span>
+              <code style={{ fontSize: 9, color: '#8a86a0' }}>{esc.session_id}</code>
+              <span style={{ marginLeft: 'auto', fontSize: 9, color: 'rgba(184,180,201,0.4)' }}>
+                {esc.created_at ? new Date(esc.created_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+              </span>
+            </div>
+            <div style={{ marginBottom: 6, fontSize: 11 }}>
+              <div style={{ color: '#8a86a0', fontSize: 9, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 2 }}>Message utilisatrice</div>
+              <div style={{ color: '#e8e6f0', fontStyle: 'italic', paddingLeft: 8, borderLeft: '2px solid rgba(248,113,113,0.4)' }}>
+                « {esc.last_user_message} »
+              </div>
+            </div>
+            <div style={{ marginBottom: 8, fontSize: 10, color: 'rgba(184,180,201,0.65)' }}>
+              <strong style={{ color: '#8a86a0' }}>Réponse IA :</strong> {esc.last_ai_reply}
+            </div>
+            {esc.last_admin_reply_at && (
+              <div style={{ marginBottom: 6, fontSize: 10, color: '#4ADE80' }}>
+                ✓ Dernière réponse humaine envoyée le {new Date(esc.last_admin_reply_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', marginTop: 8 }}>
+              <textarea
+                value={replyDrafts[esc.session_id] || ''}
+                onChange={(e) => setReplyDrafts((d) => ({ ...d, [esc.session_id]: e.target.value }))}
+                placeholder="Ta réponse à l'utilisatrice… (apparait dans son chat en direct)"
+                rows={2}
+                data-testid={`admin-lc-escalation-reply-input-${esc.session_id}`}
+                style={{
+                  flex: 1,
+                  background: 'rgba(11,16,32,0.6)', color: '#e8e6f0',
+                  border: '1px solid rgba(201,162,75,0.25)', borderRadius: 8,
+                  padding: '6px 10px', fontSize: 11, fontFamily: 'Georgia, serif',
+                  resize: 'vertical', minHeight: 40,
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => sendAdminReply(esc.session_id)}
+                data-testid={`admin-lc-escalation-reply-send-${esc.session_id}`}
+                style={{
+                  fontSize: 10, padding: '8px 14px', borderRadius: 12,
+                  background: 'linear-gradient(135deg,#c9a24b,#e2c07c)', color: '#1a1030',
+                  border: 'none', cursor: 'pointer', fontWeight: 600,
+                  textTransform: 'uppercase', letterSpacing: '.08em',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Envoyer
+              </button>
             </div>
           </div>
         ))}

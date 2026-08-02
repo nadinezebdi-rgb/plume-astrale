@@ -48,6 +48,19 @@ const styles = `
   .pac-msg-bot{align-self:flex-start;background:rgba(20,26,51,.7);
     border:1px solid rgba(255,255,255,.06);color:#e8e6f0;}
   .pac-msg-escalate{border-color:rgba(217,178,106,.4);background:rgba(217,178,106,.08);}
+  .pac-msg-human{align-self:flex-start;background:linear-gradient(135deg,rgba(201,162,75,.18),rgba(226,192,124,.1));
+    border:1px solid rgba(201,162,75,.45);color:#f5efdf;max-width:88%;padding:12px 14px;
+    border-radius:14px;font-size:13px;line-height:1.5;
+    box-shadow:0 4px 20px rgba(201,162,75,.15);
+    animation:pac-human-in .4s ease-out;}
+  @keyframes pac-human-in{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+  .pac-msg-human-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;
+    padding-bottom:6px;border-bottom:1px dashed rgba(201,162,75,.3);}
+  .pac-msg-human-avatar{width:22px;height:22px;border-radius:50%;
+    background:linear-gradient(135deg,#c9a24b,#e2c07c);color:#1a1030;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;}
+  .pac-msg-human-label{font-size:10px;color:#c9a24b;letter-spacing:.08em;
+    text-transform:uppercase;font-weight:600;}
   .pac-typing{align-self:flex-start;color:#8a86a0;font-size:12px;font-style:italic;
     padding:8px 14px;}
   .pac-support{margin-top:6px;padding-top:8px;border-top:1px dashed rgba(217,178,106,.25);
@@ -92,6 +105,7 @@ export default function SupportChat() {
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [sessionId, setSessionId] = useState(null);
+  const [lastAdminReplyAt, setLastAdminReplyAt] = useState(null);
   const bodyRef = useRef(null);
 
   useEffect(() => {
@@ -99,6 +113,36 @@ export default function SupportChat() {
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
   }, [messages, busy]);
+
+  // Poll pour recuperer les reponses humaines de Soléna
+  useEffect(() => {
+    if (!sessionId || !open) return;
+    let cancel = false;
+    const tick = async () => {
+      try {
+        const url = new URL(`${API}/api/chat/session-updates`);
+        url.searchParams.set('session_id', sessionId);
+        if (lastAdminReplyAt) url.searchParams.set('since', lastAdminReplyAt);
+        const r = await fetch(url.toString());
+        const d = await r.json();
+        if (cancel) return;
+        const fresh = d?.messages || [];
+        if (fresh.length > 0) {
+          setMessages((cur) => [...cur, ...fresh.map((m) => ({
+            role: 'human',
+            content: m.message,
+            author: m.author,
+            at: m.at,
+          }))]);
+          setLastAdminReplyAt(fresh[fresh.length - 1].at);
+        }
+      } catch (_e) { /* silent */ }
+    };
+    // Immediate + interval 20s
+    tick();
+    const id = setInterval(tick, 20000);
+    return () => { cancel = true; clearInterval(id); };
+  }, [sessionId, open, lastAdminReplyAt]);
 
   const send = async () => {
     const text = input.trim();
@@ -195,21 +239,36 @@ export default function SupportChat() {
           <div className="pac-body" ref={bodyRef} data-testid="support-chat-body">
             {messages.map((m, i) => (
               <div key={i}>
-                <div
-                  className={`pac-msg ${m.role === 'user' ? 'pac-msg-user' : 'pac-msg-bot'} ${m.escalate ? 'pac-msg-escalate' : ''}`}
-                  data-testid={`support-chat-msg-${m.role}`}
-                >
-                  {m.content}
-                  {m.escalate && m.support_email && (
-                    <div className="pac-support">
-                      Contact humain :{' '}
-                      <a href={`mailto:${m.support_email}?subject=Plume Astrale - Support`}
-                        data-testid="support-chat-escalate-mail">
-                        {m.support_email}
-                      </a>
+                {m.role === 'human' ? (
+                  <div
+                    className="pac-msg pac-msg-human"
+                    data-testid="support-chat-msg-human"
+                  >
+                    <div className="pac-msg-human-head">
+                      <span className="pac-msg-human-avatar">S</span>
+                      <span className="pac-msg-human-label">
+                        {m.author || 'Soléna'} · réponse humaine
+                      </span>
                     </div>
-                  )}
-                </div>
+                    <div>{m.content}</div>
+                  </div>
+                ) : (
+                  <div
+                    className={`pac-msg ${m.role === 'user' ? 'pac-msg-user' : 'pac-msg-bot'} ${m.escalate ? 'pac-msg-escalate' : ''}`}
+                    data-testid={`support-chat-msg-${m.role}`}
+                  >
+                    {m.content}
+                    {m.escalate && m.support_email && (
+                      <div className="pac-support">
+                        Contact humain :{' '}
+                        <a href={`mailto:${m.support_email}?subject=Plume Astrale - Support`}
+                          data-testid="support-chat-escalate-mail">
+                          {m.support_email}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
                 {/* FAQ Bridge : thumbs sur les réponses IA (skip la 1ere = welcome) */}
                 {m.role === 'assistant' && m.exchange_uid && (
                   <div className="pac-thumbs" data-testid={`support-chat-thumbs-${i}`}>

@@ -302,6 +302,29 @@ async def chat_analytics(current_user: Optional[dict] = Depends(get_optional_use
             if len(gaps) >= 10:
                 break
 
+    # Sessions escaladees non encore repondues par Soléna (pour admin reply widget)
+    admin_replies = get_setting('chat_admin_replies') or {}
+    escalated_sessions: Dict[str, Dict[str, Any]] = {}
+    for e in entries:
+        if not e.get('escalate'):
+            continue
+        sid = e.get('session_id')
+        if not sid:
+            continue
+        # On garde le message le plus recent par session
+        existing = escalated_sessions.get(sid)
+        if not existing or (e.get('created_at') or '') > (existing.get('created_at') or ''):
+            escalated_sessions[sid] = {
+                'session_id': sid,
+                'last_user_message': (e.get('user_message') or '')[:400],
+                'last_ai_reply': (e.get('assistant_reply') or '')[:300],
+                'created_at': e.get('created_at'),
+                'admin_replies_count': len(admin_replies.get(sid) or []),
+                'last_admin_reply_at': (admin_replies.get(sid) or [{}])[-1].get('at') if admin_replies.get(sid) else None,
+            }
+    escalations = sorted(escalated_sessions.values(),
+                         key=lambda x: x.get('created_at') or '', reverse=True)[:20]
+
     return {
         'total_exchanges': total,
         'unique_sessions': unique_sessions,
@@ -311,4 +334,80 @@ async def chat_analytics(current_user: Optional[dict] = Depends(get_optional_use
         'negative_feedback': negative,
         'faq_gaps': gaps,
         'recent': list(reversed(entries[-50:])),
+        'escalations': escalations,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════
+# Escalation Reply Widget — Soléna repond depuis l'admin
+# ═══════════════════════════════════════════════════════════════
+
+class AdminReplyPayload(BaseModel):
+    session_id: str
+    message: str = Field(..., min_length=2, max_length=1500)
+
+
+@router.post('/admin-reply')
+async def chat_admin_reply(
+    payload: AdminReplyPayload,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Admin poste une reponse humaine dans une session de chat escaladee.
+    Le user verra le message apparaitre par polling GET /session-updates."""
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin,email').eq(
+        'id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+
+    replies = get_setting('chat_admin_replies') or {}
+    entry = {
+        'message': payload.message.strip(),
+        'author_email': prof.data.get('email'),
+        'at': datetime.now(timezone.utc).isoformat(),
+    }
+    replies.setdefault(payload.session_id, []).append(entry)
+    # Cap : garde 20 replies par session, et 200 sessions max
+    if len(replies[payload.session_id]) > 20:
+        replies[payload.session_id] = replies[payload.session_id][-20:]
+    if len(replies) > 200:
+        # Drop les sessions les plus anciennes (celles avec last_at le plus ancien)
+        sorted_keys = sorted(replies.keys(),
+            key=lambda k: (replies[k][-1].get('at') if replies[k] else ''))
+        for k in sorted_keys[:len(replies) - 200]:
+            replies.pop(k, None)
+    set_setting('chat_admin_replies', replies)
+    try:
+        from services.app_settings import log_alert
+        log_alert(
+            kind='chat_admin_reply',
+            title=f'Reponse humaine envoyee (session {payload.session_id[:12]})',
+            details=payload.message.strip()[:180],
+            channels=[],
+        )
+    except Exception:
+        pass
+    return {'ok': True, 'at': entry['at']}
+
+
+@router.get('/session-updates')
+async def chat_session_updates(session_id: str, since: Optional[str] = None):
+    """Public : polling pour recuperer les nouvelles reponses admin dans une session.
+    Filtre par 'since' (ISO timestamp) pour ne renvoyer que ce qui est plus recent."""
+    replies = get_setting('chat_admin_replies') or {}
+    all_msgs = replies.get(session_id) or []
+    if since:
+        filtered = [m for m in all_msgs if (m.get('at') or '') > since]
+    else:
+        filtered = list(all_msgs)
+    # Format sortie public (masque email admin)
+    return {
+        'session_id': session_id,
+        'messages': [{
+            'message': m.get('message'),
+            'at': m.get('at'),
+            'author': 'Soléna',  # Toujours "Soléna" côté public
+        } for m in filtered],
     }

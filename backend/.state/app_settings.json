@@ -139,6 +139,20 @@
       "details": "Bonjour, mon PDF n arrive pas après 24h de paiement, aidez-moi urgent",
       "channels": [],
       "at": "2026-08-02T16:53:22.072471+00:00"
+    },
+    {
+      "kind": "chat_escalation",
+      "title": "Escalade IA — session sup-8d3e9fb4",
+      "details": "Bonjour, mon paiement ne passe plus depuis ce matin, help !",
+      "channels": [],
+      "at": "2026-08-02T16:58:39.157148+00:00"
+    },
+    {
+      "kind": "chat_admin_reply",
+      "title": "Reponse humaine envoyee (session sup-8d3e9fb4)",
+      "details": "Coucou, je vois ton message, je verifie ton paiement immediatement. Un instant.",
+      "channels": [],
+      "at": "2026-08-02T16:58:40.154575+00:00"
     }
   ],
   "slack_test_cooldown": {
@@ -319,6 +333,24 @@
       "escalate": true,
       "helpful": null,
       "created_at": "2026-08-02T16:53:22.071847+00:00"
+    },
+    {
+      "uid": "017b5d363346",
+      "session_id": "sup-8d3e9fb4ac11427f",
+      "user_message": "Bonjour, mon paiement ne passe plus depuis ce matin, help !",
+      "assistant_reply": "Je suis désolée pour ce blocage — un humain est mieux placé pour vérifier ce souci de paiement. Écris à contact@plume-astrale.fr avec l’adresse email utilisée pour la commande et, si tu peux, une capture du message d’erreur.",
+      "escalate": true,
+      "helpful": null,
+      "created_at": "2026-08-02T16:58:39.156532+00:00"
     }
-  ]
+  ],
+  "chat_admin_replies": {
+    "sup-8d3e9fb4ac11427f": [
+      {
+        "message": "Coucou, je vois ton message, je verifie ton paiement immediatement. Un instant.",
+        "author_email": "admin@plume-astrale.fr",
+        "at": "2026-08-02T16:58:40.154008+00:00"
+      }
+    ]
+  }
 }
