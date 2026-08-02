@@ -45,10 +45,12 @@ const StatusPill = ({ status, ready, error }) => {
 export default function AdminLectureComplete({ token }) {
   const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState(null);
+  const [abStats, setAbStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [redispatching, setRedispatching] = useState(null);
   const [refunding, setRefunding] = useState(null);
+  const [expandedTimeline, setExpandedTimeline] = useState(null);
 
   // Modal refund state
   const [refundModalOpen, setRefundModalOpen] = useState(false);
@@ -63,11 +65,17 @@ export default function AdminLectureComplete({ token }) {
     setLoading(true);
     setError(null);
     try {
-      const r = await axios.get(`${API}/api/lecture-complete/admin/orders`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setOrders(r.data?.orders || []);
-      setStats(r.data?.stats || null);
+      const [ordersRes, abRes] = await Promise.all([
+        axios.get(`${API}/api/lecture-complete/admin/orders`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${API}/api/lecture-complete/admin/ab-stats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => ({ data: null })),
+      ]);
+      setOrders(ordersRes.data?.orders || []);
+      setStats(ordersRes.data?.stats || null);
+      setAbStats(abRes.data || null);
     } catch (e) {
       setError(e.response?.data?.detail || 'Chargement impossible.');
     } finally {
@@ -180,6 +188,69 @@ export default function AdminLectureComplete({ token }) {
           <span style={{ fontSize: 12, color: 'rgba(184,180,201,0.75)' }}>
             Taux de refund : <strong data-testid="admin-lc-stats-refund-rate" style={{ color: stats.refund_rate_pct > 5 ? '#f87171' : '#4ADE80' }}>{stats.refund_rate_pct}%</strong>
           </span>
+        </div>
+      )}
+
+      {abStats && (
+        <div
+          data-testid="admin-lc-ab-panel"
+          style={{
+            marginBottom: 16, padding: 12,
+            background: 'linear-gradient(135deg, rgba(167,139,250,0.08), rgba(217,178,106,0.05))',
+            border: '1px solid rgba(167,139,250,0.25)', borderRadius: 10,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: '#A78BFA' }}>
+              A/B Test J+30 Upsell
+            </span>
+            <span style={{ fontSize: 11, color: 'rgba(184,180,201,0.65)' }}>
+              · {abStats.total} envois {abStats.total >= 50 ? '· prêt à décider' : `· ${50 - abStats.total} à attendre`}
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {['question', 'invitation'].map((v) => {
+              const n = abStats[v] || 0;
+              const pct = abStats.total ? Math.round((n / abStats.total) * 100) : 0;
+              const isLeader = abStats.total >= 20 && n > (abStats[v === 'question' ? 'invitation' : 'question'] || 0);
+              return (
+                <div
+                  key={v}
+                  data-testid={`admin-lc-ab-${v}`}
+                  style={{
+                    padding: 10, borderRadius: 8,
+                    background: 'rgba(11,16,32,0.5)',
+                    border: `1px solid ${isLeader ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.06)'}`,
+                  }}
+                >
+                  <div style={{ fontSize: 12, color: '#e8e6f0', marginBottom: 4, display: 'flex', justifyContent: 'space-between' }}>
+                    <span>
+                      {v === 'question' ? '❓ Question ouverte' : '✉️ Invitation directe'}
+                      {isLeader && <span style={{ color: '#4ADE80', marginLeft: 6, fontSize: 10 }}>· leader</span>}
+                    </span>
+                    <span style={{ color: '#d9b26a', fontWeight: 600 }}>{n}</span>
+                  </div>
+                  <div style={{ height: 6, background: 'rgba(255,255,255,0.05)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        height: '100%', width: `${pct}%`,
+                        background: v === 'question' ? '#A78BFA' : '#d9b26a',
+                        transition: 'width .3s ease',
+                      }}
+                    />
+                  </div>
+                  <div style={{ fontSize: 10, color: 'rgba(184,180,201,0.55)', marginTop: 4 }}>
+                    {pct}% du volume
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {abStats.total < 50 && (
+            <div style={{ fontSize: 10, color: 'rgba(184,180,201,0.5)', marginTop: 8, fontStyle: 'italic' }}>
+              Décision statistiquement fiable à partir de 50 envois. Vérifier le CTR dans Resend via les email_ids stockés.
+            </div>
+          )}
         </div>
       )}
 
@@ -298,6 +369,54 @@ export default function AdminLectureComplete({ token }) {
                 </div>
               ))}
             </div>
+
+            {/* Timeline actions admin */}
+            {(o.admin_actions && o.admin_actions.length > 0) && (
+              <div style={{ marginTop: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => setExpandedTimeline(expandedTimeline === o.session_id ? null : o.session_id)}
+                  data-testid={`admin-lc-timeline-toggle-${o.session_id}`}
+                  style={{
+                    fontSize: 11, background: 'transparent', border: 'none',
+                    color: '#A78BFA', cursor: 'pointer', padding: 0,
+                    letterSpacing: '.08em', textTransform: 'uppercase',
+                  }}
+                >
+                  {expandedTimeline === o.session_id ? '▼' : '▶'} Timeline actions ({o.admin_actions.length})
+                </button>
+                {expandedTimeline === o.session_id && (
+                  <div
+                    data-testid={`admin-lc-timeline-${o.session_id}`}
+                    style={{
+                      marginTop: 8, paddingLeft: 12,
+                      borderLeft: '2px solid rgba(167,139,250,0.3)',
+                    }}
+                  >
+                    {o.admin_actions.slice().reverse().map((a, i) => (
+                      <div key={i} style={{ marginBottom: 6, fontSize: 11, color: 'rgba(184,180,201,0.85)' }}>
+                        <span style={{
+                          color: a.action.includes('refund') ? '#f87171' :
+                                 a.action === 'redispatch' ? '#d9b26a' : '#A78BFA',
+                          fontWeight: 600, marginRight: 6,
+                        }}>{a.action}</span>
+                        <span style={{ color: 'rgba(184,180,201,0.6)' }}>
+                          {new Date(a.at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <span style={{ color: 'rgba(184,180,201,0.6)', marginLeft: 6 }}>
+                          par <em>{a.admin_email || (a.auto ? 'auto' : 'admin')}</em>
+                        </span>
+                        {a.details && (
+                          <div style={{ marginTop: 2, fontSize: 10, color: 'rgba(184,180,201,0.55)', paddingLeft: 8 }}>
+                            {a.details}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>

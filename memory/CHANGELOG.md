@@ -1438,3 +1438,35 @@ Testing agent iteration_57 : **backend 6/6 ✅, frontend 10/10 data-testid ✅**
 ### Tests
 - Smoke UI : modal shadcn s'affiche correctement, champ raison éditable, bouton adaptatif "MARQUER REMBOURSÉ" vs "REMBOURSER VIA STRIPE".
 - Smoke backend : refund bypass → stripe_skipped=true ✅, refund duplicate → 409 ✅, /admin/ab-stats retourne structure attendue ✅.
+
+## 2026-08-02 (dernière touche) — Dashboard A/B + Timeline + Webhook refund sync
+
+### 1. Migration SQL — status
+Rappel : le fichier `/app/backend/migrations/2026_08_journal_tracking_and_email_verified.sql` doit être appliqué manuellement via Supabase Dashboard → SQL Editor. Non-bloquant.
+
+### 2. Dashboard A/B J+30
+- Nouveau mini-panneau dans `/admin > Lecture Complète` (data-testid=admin-lc-ab-panel).
+- 2 barres colorées (violet = question, or = invitation) + pourcentage volume.
+- Badge "leader" si >20 envois + variant dominant.
+- Message "Décision statistiquement fiable à partir de 50 envois" si < 50.
+- Fetch via `GET /api/lecture-complete/admin/ab-stats`.
+
+### 3. Timeline actions admin
+- Nouveau helper `append_admin_action(sid, action, admin_id, admin_email, details, auto)` dans `lecture_complete_bundle.py`.
+- Stocke dans `metadata.admin_actions[]` (cap 50 entrées).
+- Appelé automatiquement dans `/admin/refund/{sid}` et `/admin/redispatch/{sid}`.
+- Endpoint `/admin/orders` retourne maintenant `admin_actions` par commande.
+- UI : bouton `▶ Timeline actions (N)` (admin-lc-timeline-toggle-{sid}) déploie une frise chronologique avec action + admin_email + date + détails.
+
+### 4. Webhook Stripe refund auto-sync
+- Nouveau handler dans `server.py` : listen `charge.refunded` / `refund.created` / `refund.updated`.
+- `sync_stripe_refund_webhook()` retrouve la session via `stripe.checkout.Session.list(payment_intent=...)`, met `metadata.refunded_at`, marque `refund_via_stripe_webhook=true`, gère les refunds partiels (`refund_partial`).
+- Idempotent (skip si déjà refunded).
+- Trace automatique dans admin_actions avec `auto=true` et admin_email='stripe-webhook'.
+- **⚠️ ACTION USER** : dans le dashboard Stripe → Developers → Webhooks, ajouter les 3 événements `charge.refunded`, `refund.created`, `refund.updated` à l'endpoint existant `/api/webhook/stripe`.
+
+### Tests
+- Refund + redispatch UI → 2 actions dans admin_actions ✅
+- Timeline UI expansible/collapsable ✅
+- AB panel affiché avec message "0 envois · 50 à attendre" ✅
+- sync_stripe_refund_webhook exporté + linké dans server.py ✅

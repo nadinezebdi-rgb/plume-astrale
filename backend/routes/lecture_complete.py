@@ -317,6 +317,7 @@ async def lecture_complete_admin_orders(current_user: Optional[dict] = Depends(g
             'refunded_at': refunded_at,
             'refund_reason': md.get('refund_reason'),
             'sequence': seq_status,
+            'admin_actions': md.get('admin_actions') or [],
             'children': children_summary,
         })
 
@@ -415,6 +416,19 @@ async def lecture_complete_admin_refund(
         if skip:
             md['refund_stripe_skipped'] = True
         sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+
+        # Trace timeline admin
+        try:
+            from services.lecture_complete_bundle import append_admin_action
+            append_admin_action(
+                session_id,
+                'refund_stripe' if stripe_refund_id else 'refund',
+                admin_id=current_user.get('id'),
+                admin_email=current_user.get('email'),
+                details=(payload.reason or '')[:200] + (f' · stripe={stripe_refund_id}' if stripe_refund_id else ''),
+            )
+        except Exception as _e:
+            logger.warning(f'[lecture_complete/refund] admin_action log failed: {_e}')
     except HTTPException:
         raise
     except Exception as e:
@@ -456,7 +470,16 @@ async def lecture_complete_admin_redispatch(
         raise HTTPException(status_code=500, detail=str(e))
 
     import asyncio
-    from services.lecture_complete_bundle import handle_lecture_complete_webhook
+    from services.lecture_complete_bundle import handle_lecture_complete_webhook, append_admin_action
+    try:
+        append_admin_action(
+            session_id, 'redispatch',
+            admin_id=current_user.get('id'),
+            admin_email=current_user.get('email'),
+            details='Re-generation des 5 PDFs bundles',
+        )
+    except Exception as _e:
+        logger.warning(f'[lecture_complete/redispatch] admin_action log failed: {_e}')
     asyncio.create_task(handle_lecture_complete_webhook(session_id))
     return {'redispatched': True, 'session_id': session_id}
 

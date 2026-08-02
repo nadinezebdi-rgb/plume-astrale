@@ -751,6 +751,17 @@ async def stripe_webhook(request: Request):
     event_type = event.get('type') if isinstance(event, dict) else event.type
     data_obj = (event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object)
 
+    # ─── Sync automatique des refunds Stripe (dashboard Stripe ou chargeback) ───
+    # Ecoute charge.refunded pour mettre a jour metadata.refunded_at si un admin
+    # a rembourse via le dashboard Stripe OU si un client a fait un chargeback.
+    if event_type in ('charge.refunded', 'refund.created', 'refund.updated'):
+        try:
+            from services.lecture_complete_bundle import sync_stripe_refund_webhook
+            await sync_stripe_refund_webhook(event_type, data_obj if isinstance(data_obj, dict) else data_obj.to_dict())
+        except Exception as e:
+            logger.warning(f'[stripe/refund] sync fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'refund_sync'}
+
     # ─── Programme de parrainage : première conversion payante d'un filleul ─────
     # Non bloquant : capture les erreurs, ne modifie aucun autre flow métier.
     if event_type == 'checkout.session.completed':

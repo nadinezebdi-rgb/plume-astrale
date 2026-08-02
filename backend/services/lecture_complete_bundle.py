@@ -272,6 +272,113 @@ def _current_lunar_cycle_bounds() -> tuple[datetime, datetime]:
     return start, end
 
 
+# ═══════════════════════════════════════════════════════════════
+# Timeline d'actions admin (refund, redispatch, etc.)
+# ═══════════════════════════════════════════════════════════════
+
+def append_admin_action(session_id: str, action: str, admin_id: Optional[str] = None,
+                        admin_email: Optional[str] = None, details: Optional[str] = None,
+                        auto: bool = False) -> None:
+    """Append une entree dans metadata.admin_actions[] pour tracer qui a fait quoi.
+
+    action : 'refund' | 'refund_stripe' | 'refund_stripe_webhook' | 'redispatch' | 'chargeback'
+    auto : True si l'action est declenchee par un webhook Stripe (pas un humain).
+    """
+    if not session_id:
+        return
+    sb = get_admin_client()
+    try:
+        r = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+        if not r or not r.data:
+            return
+        md = r.data.get('metadata') or {}
+        actions = md.get('admin_actions') or []
+        actions.append({
+            'action': action,
+            'admin_id': admin_id if not auto else None,
+            'admin_email': admin_email if not auto else 'stripe-webhook',
+            'auto': auto,
+            'details': (details or '')[:500],
+            'at': datetime.now(timezone.utc).isoformat(),
+        })
+        # Cap a 50 entrees pour eviter le bloat
+        md['admin_actions'] = actions[-50:]
+        sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+    except Exception as e:
+        logger.warning(f'[admin_action] append fail {session_id}/{action}: {e}')
+
+
+async def sync_stripe_refund_webhook(event_type: str, obj: Dict[str, Any]) -> None:
+    """Traite un event Stripe charge.refunded / refund.created / refund.updated.
+
+    Marque la payment_transactions correspondante comme refunded si ce n'est deja fait.
+    Utile lorsque : (a) l'admin rembourse via le dashboard Stripe, (b) le client fait
+    un chargeback, (c) un remboursement partiel arrive.
+    """
+    if not obj:
+        return
+    sb = get_admin_client()
+    payment_intent_id: Optional[str] = None
+    is_partial = False
+    refund_id: Optional[str] = None
+
+    if event_type == 'charge.refunded':
+        payment_intent_id = obj.get('payment_intent')
+        refunds = (obj.get('refunds') or {}).get('data') or []
+        if refunds:
+            refund_id = refunds[-1].get('id')
+        amount_refunded = obj.get('amount_refunded') or 0
+        amount = obj.get('amount') or 0
+        is_partial = amount_refunded > 0 and amount_refunded < amount
+    else:
+        # refund.created / refund.updated : obj = refund
+        payment_intent_id = obj.get('payment_intent')
+        refund_id = obj.get('id')
+
+    if not payment_intent_id:
+        logger.info(f'[stripe/refund_sync] no payment_intent in {event_type}')
+        return
+
+    # Retrouve la session Stripe pour recuperer le session_id (cs_live_...)
+    try:
+        import stripe as _stripe
+        from config import get_settings
+        _stripe.api_key = get_settings().STRIPE_API_KEY
+        sessions = _stripe.checkout.Session.list(payment_intent=payment_intent_id, limit=1)
+        sess_data = sessions.get('data') or []
+        if not sess_data:
+            logger.info(f'[stripe/refund_sync] no session for pi={payment_intent_id}')
+            return
+        session_id = sess_data[0].get('id')
+    except Exception as e:
+        logger.warning(f'[stripe/refund_sync] session lookup fail: {e}')
+        return
+
+    try:
+        r = sb.table('payment_transactions').select('metadata, pack_id').eq('session_id', session_id).maybe_single().execute()
+        if not r or not r.data:
+            logger.info(f'[stripe/refund_sync] tx not found for session {session_id}')
+            return
+        md = r.data.get('metadata') or {}
+        if md.get('refunded_at'):
+            logger.info(f'[stripe/refund_sync] already refunded {session_id}')
+            return  # idempotent
+        md['refunded_at'] = datetime.now(timezone.utc).isoformat()
+        md['refund_reason'] = 'Stripe webhook (dashboard ou chargeback)'
+        md['stripe_refund_id'] = refund_id
+        md['refund_via_stripe_webhook'] = True
+        md['refund_partial'] = is_partial
+        sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+        append_admin_action(
+            session_id, 'refund_stripe_webhook',
+            details=f'Refund Stripe {refund_id} (partial={is_partial})',
+            auto=True,
+        )
+        logger.info(f'[stripe/refund_sync] tx {session_id} marked refunded via webhook')
+    except Exception as e:
+        logger.warning(f'[stripe/refund_sync] tx update fail: {e}')
+
+
 def get_scarcity_status() -> Dict[str, Any]:
     """Retourne {remaining, sold, quota, cycle_end_iso} pour le bandeau homepage.
 
