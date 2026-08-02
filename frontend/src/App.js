@@ -42,6 +42,9 @@ import Livre from "./pages/Livre";
 import CommandeSucces from "./pages/CommandeSucces";
 import CharteConfiance from "./pages/CharteConfiance";
 import MonCompte from "./pages/MonCompte";
+import Temoignage from "./pages/Temoignage";
+import TemoignagesPublic from "./pages/TemoignagesPublic";
+import SupportChat from "./components/SupportChat";
 import Admin from "./pages/Admin";
 import Energie from "./pages/Energie";
 import ChatIA from "./pages/ChatIA";
@@ -86,6 +89,24 @@ import LiveSalesCounter from "./components/LiveSalesCounter";
 import LaunchBanner from "./components/LaunchBanner";
 import { captureReferralFromURL } from "./lib/referral";
 import ShootingStars from "./components/design/ShootingStars";
+import { useLocation } from "react-router-dom";
+
+function GlobalOverlays() {
+  const location = useLocation();
+  // Landing v3 a sa propre topbar + pas d'artefacts de fausse urgence
+  const isLanding = location.pathname === '/';
+  return (
+    <>
+      <Starfield />
+      <ShootingStars />
+      <NoiseOverlay />
+      <MobileTabBar />
+      {!isLanding && <LiveSalesCounter />}
+      {!isLanding && <LaunchBanner />}
+      <SupportChat />
+    </>
+  );
+}
 
 function App() {
   // Capture ?ref=CODE au tout premier render de l'app (avant même le login)
@@ -95,13 +116,7 @@ function App() {
       <AuraProvider>
       <BrowserRouter>
         {/* ─── Overlays globaux Plume Design System v2 ─── */}
-        <Starfield />
-    <ShootingStars />
-        <NoiseOverlay />
-        <MobileTabBar />
-        <LiveSalesCounter />
-        {/* Bandeau promo fixé en haut de TOUTES les pages */}
-        <LaunchBanner />
+        <GlobalOverlays />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />
@@ -195,6 +210,8 @@ function App() {
                 <Route path="/livre" element={<Livre />} />
                 <Route path="/commande/succes" element={<CommandeSucces />} />
                 <Route path="/mon-compte" element={<MonCompte />} />
+                <Route path="/temoignage" element={<Temoignage />} />
+                <Route path="/temoignages" element={<TemoignagesPublic />} />
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
                 <Route path="/consultation" element={<Navigate to="/outils/consultation" replace />} />
                 <Route path="/energie" element={<Navigate to="/outils/energie" replace />} />

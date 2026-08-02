@@ -186,10 +186,28 @@ async def send_refund_alert(stats: Dict[str, Any]) -> int:
             logger.warning(f'[refund_alert] send fail to {admin_email}: {e}')
 
     # Slack notification en parallele (opt-in via SLACK_WEBHOOK_URL)
+    slack_sent = False
     try:
-        await send_slack_refund_alert(stats)
+        slack_sent = await send_slack_refund_alert(stats)
     except Exception as e:
         logger.warning(f'[refund_alert] slack fail: {e}')
+
+    # Historique alertes (visible dans /admin)
+    try:
+        from services.app_settings import log_alert
+        channels = []
+        if sent:
+            channels.append(f'email x{sent}')
+        if slack_sent:
+            channels.append('slack')
+        log_alert(
+            kind='refund_alert',
+            title=f'Taux de refund {stats.get("rate_pct")}% (7j)',
+            details=f'{stats.get("refunded")}/{stats.get("paid")} remboursements sur 7 jours.',
+            channels=channels,
+        )
+    except Exception as e:
+        logger.warning(f'[refund_alert] log_alert fail: {e}')
 
     return sent
 

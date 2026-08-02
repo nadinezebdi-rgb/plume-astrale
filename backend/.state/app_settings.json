@@ -1,0 +1,356 @@
+{
+  "forced_j30_variant": null,
+  "alerts_history": [
+    {
+      "kind": "slack_test",
+      "title": "Ping Slack test (FAIL 404)",
+      "details": "Lance par admin@plume-astrale.fr · URL custom",
+      "channels": [],
+      "at": "2026-08-02T12:08:57.088451+00:00"
+    },
+    {
+      "kind": "slack_test",
+      "title": "Ping Slack test (FAIL 404)",
+      "details": "Lance par admin@plume-astrale.fr · URL custom",
+      "channels": [],
+      "at": "2026-08-02T12:11:17.403942+00:00"
+    },
+    {
+      "kind": "slack_test",
+      "title": "Ping Slack test (FAIL 404)",
+      "details": "Lance par admin@plume-astrale.fr · URL custom",
+      "channels": [],
+      "at": "2026-08-02T12:11:36.794105+00:00"
+    },
+    {
+      "kind": "slack_test",
+      "title": "Ping Slack test (FAIL 404)",
+      "details": "Lance par admin@plume-astrale.fr · URL custom",
+      "channels": [],
+      "at": "2026-08-02T12:13:56.199886+00:00"
+    },
+    {
+      "kind": "ab_override",
+      "title": "A/B J+30 forcé sur invitation",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T12:18:00.606972+00:00"
+    },
+    {
+      "kind": "ab_override",
+      "title": "A/B J+30 réinitialisé (50/50)",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T12:18:00.888385+00:00"
+    },
+    {
+      "kind": "weekly_recap",
+      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
+      "details": "Top: aucun refund",
+      "channels": [
+        "email x2"
+      ],
+      "at": "2026-08-02T12:25:33.102145+00:00"
+    },
+    {
+      "kind": "slack_test",
+      "title": "Ping Slack test (FAIL 404)",
+      "details": "Lance par admin@plume-astrale.fr · URL custom",
+      "channels": [],
+      "at": "2026-08-02T12:25:33.963726+00:00"
+    },
+    {
+      "kind": "weekly_recap",
+      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
+      "details": "Top: aucun refund",
+      "channels": [
+        "email x2"
+      ],
+      "at": "2026-08-02T12:28:21.444617+00:00"
+    },
+    {
+      "kind": "weekly_recap",
+      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
+      "details": "Top: aucun refund",
+      "channels": [
+        "email x2"
+      ],
+      "at": "2026-08-02T12:29:48.272408+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero forcé sur variante B",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T15:25:15.782244+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero A/B débloqué (50/50)",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T15:25:16.207161+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero A/B débloqué (50/50)",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T15:26:09.102760+00:00"
+    },
+    {
+      "kind": "new_testimonial",
+      "title": "Nouveau témoignage : TEST_Iter66_3a4eb6 (pending)",
+      "details": "Retour de test iter66 pour valider le log_alert Slack (TEST_Iter66_3a4eb6).",
+      "channels": [],
+      "at": "2026-08-02T16:19:42.804357+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero A/B débloqué (50/50)",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T16:19:45.370851+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero forcé sur variante A",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T16:19:45.736436+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero forcé sur variante B",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T16:19:46.087255+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero A/B débloqué (50/50)",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T16:19:47.002118+00:00"
+    },
+    {
+      "kind": "chat_escalation",
+      "title": "Escalade IA — session sup-90a94ac2",
+      "details": "Bonjour, mon PDF n arrive pas après 24h de paiement, aidez-moi urgent",
+      "channels": [],
+      "at": "2026-08-02T16:53:22.072471+00:00"
+    },
+    {
+      "kind": "chat_escalation",
+      "title": "Escalade IA — session sup-8d3e9fb4",
+      "details": "Bonjour, mon paiement ne passe plus depuis ce matin, help !",
+      "channels": [],
+      "at": "2026-08-02T16:58:39.157148+00:00"
+    },
+    {
+      "kind": "chat_admin_reply",
+      "title": "Reponse humaine envoyee (session sup-8d3e9fb4)",
+      "details": "Coucou, je vois ton message, je verifie ton paiement immediatement. Un instant.",
+      "channels": [],
+      "at": "2026-08-02T16:58:40.154575+00:00"
+    }
+  ],
+  "slack_test_cooldown": {
+    "b658efb3-bcf5-45ea-a406-34e0576a91d1": 1785673703.089119
+  },
+  "landing_testimonials": [
+    {
+      "id": "seed-lea-m",
+      "initial": "L",
+      "name": "Léa M.",
+      "sign": "Poissons",
+      "city": "Lyon",
+      "quote": "Rien de générique, rien de flou. Soléna m'a expliqué pourquoi je revivais toujours le même schéma — et comment le comprendre.",
+      "transform_before": "Je tournais en rond avec la même relation depuis 3 ans.",
+      "transform_after": "J'ai enfin compris le nœud, et posé un vrai choix.",
+      "status": "approved",
+      "stars": 5,
+      "created_at": "2026-07-15T10:00:00+00:00"
+    },
+    {
+      "id": "seed-sarah-t",
+      "initial": "S",
+      "name": "Sarah T.",
+      "sign": "Cancer",
+      "city": "Bordeaux",
+      "quote": "J'étais sceptique. La finesse de la lecture m'a scotchée. Ça m'a aidée à faire la paix avec une histoire de famille.",
+      "transform_before": "Un secret familial que je portais depuis toujours.",
+      "transform_after": "Une paix nouvelle avec mes racines.",
+      "status": "approved",
+      "stars": 5,
+      "created_at": "2026-07-18T14:30:00+00:00"
+    },
+    {
+      "id": "seed-manon-d",
+      "initial": "M",
+      "name": "Manon D.",
+      "sign": "Lion",
+      "city": "Marseille",
+      "quote": "Je relis ma lecture chaque semaine. Plus apaisant que trois ans à ressasser toute seule.",
+      "transform_before": "Nuits blanches à retourner les mêmes questions.",
+      "transform_after": "Un cap clair pour l'année, et le sommeil revenu.",
+      "status": "approved",
+      "stars": 5,
+      "created_at": "2026-07-22T09:15:00+00:00"
+    },
+    {
+      "id": "usr-56bdd432d06c",
+      "initial": "T",
+      "name": "TEST_Iter64",
+      "sign": "Verseau",
+      "city": "Paris",
+      "quote": "Ce témoignage de test iter64 est assez long pour passer la validation min_length.",
+      "transform_before": null,
+      "transform_after": null,
+      "status": "pending",
+      "stars": 5,
+      "author_id": "6ffa92d2-8fd9-4ead-8aec-7645561864de",
+      "author_email": "test@plume-astrale.fr",
+      "created_at": "2026-08-02T15:16:26.181042+00:00"
+    },
+    {
+      "id": "usr-1db71dd0cc95",
+      "initial": "E",
+      "name": "Elodie",
+      "sign": "Verseau",
+      "city": "Nantes",
+      "quote": "Trois soirs de suite je suis revenue sur ma lecture. Ça m a débloqué quelque chose.",
+      "transform_before": null,
+      "transform_after": null,
+      "status": "approved",
+      "stars": 5,
+      "author_id": "6ffa92d2-8fd9-4ead-8aec-7645561864de",
+      "author_email": "test@plume-astrale.fr",
+      "created_at": "2026-08-02T15:25:16.746101+00:00"
+    },
+    {
+      "id": "usr-63cd7a4293d5",
+      "initial": "T",
+      "name": "TEST_Iter66_3a4eb6",
+      "sign": "Balance",
+      "city": "Lyon",
+      "quote": "Retour de test iter66 pour valider le log_alert Slack (TEST_Iter66_3a4eb6).",
+      "transform_before": null,
+      "transform_after": null,
+      "status": "pending",
+      "stars": 5,
+      "author_id": "6ffa92d2-8fd9-4ead-8aec-7645561864de",
+      "author_email": "test@plume-astrale.fr",
+      "created_at": "2026-08-02T16:19:42.803823+00:00"
+    }
+  ],
+  "landing_ab_hero_stats": {
+    "A": {
+      "impression": 17,
+      "cta_click": 1,
+      "signup_click": 1
+    },
+    "B": {
+      "impression": 13,
+      "cta_click": 1,
+      "signup_click": 0
+    }
+  },
+  "forced_hero_variant": null,
+  "chat_analytics": [
+    {
+      "idx": 0,
+      "session_id": "sup-ed787c41928e4e80",
+      "user_message": "C est quoi la garantie de la lecture complète ?",
+      "assistant_reply": "La garantie « Clarté ou remboursée » dure 14 jours après la livraison de ta lecture. Si tu sens qu’elle ne t’apporte pas de vraie clarté, tu peux demander un remboursement intégral, sans avoir à te justifier.",
+      "escalate": false,
+      "helpful": true,
+      "created_at": "2026-08-02T16:15:19.913758+00:00",
+      "feedback_at": "2026-08-02T16:15:21.712221+00:00"
+    },
+    {
+      "idx": 1,
+      "session_id": "sup-9c32eb9b5de348c1",
+      "user_message": "J ai payé hier et je n ai rien reçu, où est ma commande ?",
+      "assistant_reply": "Je suis désolée pour ce contretemps — un humain est mieux placé pour vérifier ta commande. Écris à contact@plume-astrale.fr avec l’adresse email utilisée pour la commande, et si possible ton reçu Stripe, pour qu’on retrouve ta lecture rapidement.",
+      "escalate": true,
+      "helpful": null,
+      "created_at": "2026-08-02T16:15:21.568460+00:00"
+    },
+    {
+      "idx": 2,
+      "session_id": "sup-98fe6847e6184b58",
+      "user_message": "C'est quoi la garantie ?",
+      "assistant_reply": "La garantie « Clarté ou remboursée » dure 14 jours après la livraison de ta lecture. Si tu n’y trouves pas au moins une vraie clarté, tu peux demander le remboursement intégral, sans avoir à te justifier.",
+      "escalate": false,
+      "helpful": true,
+      "created_at": "2026-08-02T16:19:49.633674+00:00",
+      "feedback_at": "2026-08-02T16:19:51.167229+00:00"
+    },
+    {
+      "idx": 3,
+      "session_id": "sup-3de0b8437e824e9d",
+      "user_message": "J'ai payé hier et je n'ai rien reçu, aucun PDF.",
+      "assistant_reply": "Je suis désolée pour ce contretemps — un humain est mieux placé pour vérifier ta commande. Envoie un mail à contact@plume-astrale.fr avec l’adresse utilisée lors du paiement, et l’équipe pourra retrouver ta commande et t’aider rapidement.",
+      "escalate": true,
+      "helpful": null,
+      "created_at": "2026-08-02T16:19:51.066423+00:00"
+    },
+    {
+      "idx": 4,
+      "session_id": "sup-1a38fa86ddc546e9",
+      "user_message": "C'est quoi la garantie ?",
+      "assistant_reply": "La garantie « Clarté ou remboursée » est valable 14 jours après la livraison de ta lecture. Si tu n’y trouves pas au moins une vraie clarté pour avancer, tu peux demander le remboursement intégral, sans avoir à te justifier.",
+      "escalate": false,
+      "helpful": null,
+      "created_at": "2026-08-02T16:20:27.753469+00:00"
+    },
+    {
+      "idx": 5,
+      "session_id": "sup-58d6e124fee54303",
+      "user_message": "C'est quoi la garantie ?",
+      "assistant_reply": "La garantie « Clarté ou remboursée » dure 14 jours après la livraison de ta lecture. Si tu n’y trouves pas au moins une vraie clarté utile pour toi, tu peux demander le remboursement intégral, sans avoir à te justifier.",
+      "escalate": false,
+      "helpful": true,
+      "created_at": "2026-08-02T16:21:21.534761+00:00",
+      "feedback_at": "2026-08-02T16:21:22.493090+00:00"
+    },
+    {
+      "uid": "0bea29e58d44",
+      "session_id": "sup-1f46a2c5316a48ca",
+      "user_message": "Comment se déroule la livraison de mon PDF ?",
+      "assistant_reply": "Après ton paiement, tes PDFs sont envoyés par email dans les 2 heures — et souvent en quelques minutes. Le paiement est sécurisé via Stripe (3-D Secure), sans engagement. Si tu ne vois rien, pense à vérifier tes spams ou l’onglet promotions.",
+      "escalate": false,
+      "helpful": true,
+      "created_at": "2026-08-02T16:24:42.219541+00:00",
+      "feedback_at": "2026-08-02T16:24:52.626507+00:00"
+    },
+    {
+      "uid": "6ada18c1ce97",
+      "session_id": "sup-90a94ac2f27f4935",
+      "user_message": "Bonjour, mon PDF n arrive pas après 24h de paiement, aidez-moi urgent",
+      "assistant_reply": "Je suis désolée pour ce contretemps — un humain est mieux placé pour vérifier ta commande. Écris vite à contact@plume-astrale.fr avec l’adresse email utilisée pour la commande et, si tu l’as, la confirmation de paiement.",
+      "escalate": true,
+      "helpful": null,
+      "created_at": "2026-08-02T16:53:22.071847+00:00"
+    },
+    {
+      "uid": "017b5d363346",
+      "session_id": "sup-8d3e9fb4ac11427f",
+      "user_message": "Bonjour, mon paiement ne passe plus depuis ce matin, help !",
+      "assistant_reply": "Je suis désolée pour ce blocage — un humain est mieux placé pour vérifier ce souci de paiement. Écris à contact@plume-astrale.fr avec l’adresse email utilisée pour la commande et, si tu peux, une capture du message d’erreur.",
+      "escalate": true,
+      "helpful": null,
+      "created_at": "2026-08-02T16:58:39.156532+00:00"
+    }
+  ],
+  "chat_admin_replies": {
+    "sup-8d3e9fb4ac11427f": [
+      {
+        "message": "Coucou, je vois ton message, je verifie ton paiement immediatement. Un instant.",
+        "author_email": "admin@plume-astrale.fr",
+        "at": "2026-08-02T16:58:40.154008+00:00"
+      }
+    ]
+  }
+}

@@ -18,9 +18,12 @@ Dashboard admin disponible via :
 ## Compte utilisateur standard (test)
 
 ```
-EMAIL    : plume_test_863a0303@gmail.com
+EMAIL    : test@plume-astrale.fr
 PASSWORD : TestPlume2026!
 ```
+
+- Créé le 2026-08-02 (l'ancien `plume_test_863a0303@gmail.com` n'existait plus)
+- is_admin = false — utilisable pour tester les 403 non-admin sur `/api/lecture-complete/admin/*`
 
 ## Codes promo actifs
 

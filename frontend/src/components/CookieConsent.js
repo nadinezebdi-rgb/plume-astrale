@@ -27,12 +27,13 @@ export default function CookieConsent() {
 
   return (
     <div
-      className="fixed bottom-3 left-3 right-3 sm:left-auto sm:right-6 sm:bottom-6 sm:max-w-md rounded-2xl px-5 py-4 z-50"
+      className="fixed bottom-3 left-3 right-3 sm:right-auto sm:left-6 sm:bottom-6 sm:max-w-md rounded-2xl px-5 py-4 z-50"
       style={{
         background: 'rgba(11,11,15,0.97)',
         border: '1px solid rgba(212,175,55,0.25)',
         backdropFilter: 'blur(14px)',
         boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+        marginRight: '84px', /* évite le chat bubble sur mobile (60px + 24 gap) */
       }}
       role="dialog"
       aria-label="Consentement cookies"

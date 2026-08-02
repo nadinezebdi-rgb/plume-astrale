@@ -68,6 +68,8 @@ from routes.apercu import router as apercu_router
 from routes.marketing import router as marketing_router
 from routes.referral import router as referral_router
 from routes.lecture_complete import router as lecture_complete_router
+from routes.landing import router as landing_router
+from routes.chat_support import router as chat_support_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -133,6 +135,8 @@ api_router.include_router(apercu_router)
 api_router.include_router(marketing_router)
 api_router.include_router(referral_router)
 api_router.include_router(lecture_complete_router)
+api_router.include_router(landing_router)
+api_router.include_router(chat_support_router)
 
 
 # ════════════════════════════════════════════
@@ -2470,6 +2474,7 @@ async def _start_cart_recovery():
     from services.journal_email_service import daily_journal_scheduler_loop
     from services.refund_alert import refund_alert_loop
     from services.resend_stats import ab_ctr_refresh_loop
+    from services.weekly_insights import weekly_insights_loop
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
     _asyncio.create_task(astrocarto_followup_loop())
@@ -2479,3 +2484,4 @@ async def _start_cart_recovery():
     _asyncio.create_task(daily_journal_scheduler_loop())
     _asyncio.create_task(refund_alert_loop())
     _asyncio.create_task(ab_ctr_refresh_loop())
+    _asyncio.create_task(weekly_insights_loop())

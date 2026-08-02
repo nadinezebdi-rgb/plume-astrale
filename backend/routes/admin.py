@@ -755,3 +755,53 @@ async def admin_patch_birth_data(session_id: str, payload: BirthDataPatch, _admi
     md.pop('pdf_path', None)
     sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
     return {'ok': True, 'birth_data': bd, 'resolved': resolved}
+
+
+
+@router.get('/cache/svg/stats')
+async def admin_svg_cache_stats(_admin: dict = Depends(require_admin)):
+    """Stats du cache SVG (Supabase Storage bucket 'reports' / prefix chart-svg-cache/).
+
+    Retourne :
+      { total_files, total_size_bytes, total_size_human, by_chart_type: {natal, transit, synastry, ...} }
+    """
+    sb = get_admin_client()
+    chart_types = ['natal', 'transit', 'progression', 'synastry', 'composite', 'solar_return', 'lunar_return']
+    by_type: dict = {}
+    total_files = 0
+    total_size = 0
+    for ct in chart_types:
+        prefix = f'chart-svg-cache/{ct}'
+        try:
+            listing = sb.storage.from_('reports').list(prefix, {'limit': 1000, 'offset': 0})
+            files = [f for f in (listing or []) if f.get('name') and not f.get('name').endswith('/')]
+        except Exception as e:
+            logger.warning(f'[admin/svg_cache_stats] list {prefix} fail: {e}')
+            files = []
+        n = len(files)
+        # Supabase renvoie metadata.size ou parfois pas — on additionne au best-effort
+        size = 0
+        for f in files:
+            meta = f.get('metadata') or {}
+            s = meta.get('size') or meta.get('contentLength') or 0
+            try:
+                size += int(s)
+            except Exception:
+                pass
+        by_type[ct] = {'files': n, 'size_bytes': size}
+        total_files += n
+        total_size += size
+
+    def _human(b: int) -> str:
+        for unit in ('B', 'KB', 'MB', 'GB'):
+            if b < 1024 or unit == 'GB':
+                return f'{b:.1f} {unit}' if unit != 'B' else f'{b} B'
+            b = b / 1024
+        return f'{b:.1f} GB'
+
+    return {
+        'total_files': total_files,
+        'total_size_bytes': total_size,
+        'total_size_human': _human(total_size),
+        'by_chart_type': by_type,
+    }

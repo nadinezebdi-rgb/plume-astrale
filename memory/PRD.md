@@ -1578,3 +1578,84 @@ Générés dans `/app/frontend/public/marketing/horoscopes/` — un par signe, f
 
 ### ⚠️ Action utilisateur requise
 Exécuter `/app/supabase/referrals_migration.sql` dans le SQL Editor Supabase pour activer complètement le rattachement + l'attribution des récompenses. Sans migration, le lien est affiché mais aucun filleul ne peut être rattaché (fallback graceful).
+
+
+## 📅 2026-08-02 — Admin bundle 97€ : Slack test, A/B override, historique alertes, refund reason preset
+
+### Contexte
+Finalisation du cockpit admin `/admin/lecture-complete` : donner à l'admin un contrôle UI complet sur le webhook Slack, la variante A/B J+30 gagnante et une timeline unifiée des alertes envoyées. + P1 : dropdown de raisons de refund pré-configurées.
+
+### Backend
+- **Nouveau `services/app_settings.py`** — persistance JSON sur disque (`/app/backend/.state/app_settings.json`), threadsafe, cap 30 alertes.
+  - `get_setting/set_setting(key, value)` — settings globaux (forced_j30_variant, etc.)
+  - `log_alert(kind, title, details, channels)` / `get_alerts_history()` — historique unifié Slack/Email/A/B override.
+- **Endpoints** dans `/app/backend/routes/lecture_complete.py` :
+  - `GET /admin/settings` → `{forced_j30_variant, alerts_history}`
+  - `POST /admin/set-forced-variant {variant: "question"|"invitation"|null}` — 400 sur variant invalide, log audit dans alerts_history.
+  - `POST /admin/test-slack {webhook_url?}` — ping Slack avec URL custom ou fallback env, log dans historique.
+- **Override A/B** wiré dans `services/lecture_complete_sequence.py` (ligne 197+) : si `forced_j30_variant` est set, ignore le hash session_id.
+- **Refund alert loop** (`services/refund_alert.py`) appelle désormais `log_alert()` après envoi Slack+Email pour tracer.
+
+### Frontend `/app/frontend/src/components/AdminLectureComplete.js`
+- Nouveau champ input `admin-lc-slack-webhook-input` (URL Slack custom) + bouton `Tester Slack`.
+- Panel A/B avec boutons `admin-lc-ab-force-question` / `admin-lc-ab-force-invitation` + badge actif `admin-lc-ab-force-active` + `Reset A/B 50/50`.
+- Section `admin-lc-alerts-history-panel` (toggle collapsible, 30 entrées max, colorées par kind : refund_alert=rouge, slack_test=vert, ab_override=violet).
+- Refund modal : nouveau dropdown `refund-modal-reason-preset` avec 6 raisons standardisées (PDF défectueux, doublon, insatisfait, chargeback, achat par erreur, non livrée) — append au textarea existant.
+
+### Tests
+- **iteration_62.json** : 13/13 backend pytest PASS, 12/12 frontend UI checks PASS.
+- 401 / 403 / 400 / 200 sur les 3 nouveaux endpoints.
+- Slack test ping FAIL 404 correctement loggé dans historique.
+- A/B force question → badge visible + reset OK.
+
+### Backlog restant
+- P2 : drop table `sales` inutilisée dans Supabase
+- P2 : dashboard admin `/api/admin/cache/svg/stats`
+- P2 : reset password standard user `plume_test_863a0303@gmail.com` (test_credentials.md incorrect)
+
+## 📅 2026-08-02 (soir) — Landing v3 : refonte scroll-story alternée sombre ↔ claire
+
+### Brief user (verbatim)
+Refonte de `Index.js` en 11 sections inspirées des codes Juice Plus+ :
+scroll-story mobile-first alternant sections « mystiques » (violet nuit) et « rassurantes » (crème/blanc cassé), CTA doré unique répété stratégiquement.
+
+### Structure implémentée
+| Section | Fond | Bloc |
+|---|---|---|
+| 0 | Barre supérieure fine | Logo + "Sans carte bancaire · Garantie 14 jours" |
+| 1 | Sombre étoilé | Hero portrait Soléna bougie + CTA doré `Recevoir ma lecture · 20 crédits offerts` |
+| 2 | Crème | 4 pictos trust (données réelles / calcul minute / Stripe / 4,9/5) |
+| 3 | Sombre-2 | Histoire Soléna avec **photo lifestyle canapé** (nouveau visuel) |
+| 4 | Crème | 5 cartes "Ce que Soléna éclaire" + CTA outline gratuit |
+| 5 | Sombre profond | Value stack 214€ barré → 97€ or, CTA principal |
+| 6 | Crème | 4 bonus cadeaux (badge "CADEAU" doré) |
+| 7 | Sombre-2 | **Photo Soléna souriante avec PDF Verseau** + sceau garantie 14 jours |
+| 8 | Crème | 3 témoignages avatars + transformation avant/après + CTA |
+| 9 | Sombre-2 | FAQ accordéon (4 questions) + CTA outline |
+| 10 | Sombre étoilé | Clôture double CTA + **photo Soléna galaxie mystique** |
+| 11 | Sombre foncé | Footer légal + liens |
+
+### Suppressions demandées & effectuées
+- Bandeau défilant `LaunchBanner` "Crée ton compte et reçoit 20 crédits" (retiré uniquement sur `/`)
+- Popup `LiveSalesCounter` "Amélie · Paris" (retiré uniquement sur `/`)
+- Barre de rareté "il reste 12 lectures pour ce cycle lunaire" (supprimée du hero)
+- Message "ces présents repartent avec le cycle lunaire" (fausse urgence retirée)
+
+### Assets utilisés (fournis par l'utilisateur)
+- Hero + section 3 (2 usages) : `72jssj5l_IMG01_portrait_femme_mystique_corrigee_2.png`
+- Section 3 lifestyle : `l6a6ew17_photos%20Sol%C3%A9na.webp`
+- Section 7 avec PDF : `ib324e70_PHOTOS%20SOLENA%203.webp`
+- Section 10 galaxie : `htvnb1ej_PHOTOS%20SOLENA%202.webp`
+
+### Design system
+- Couleurs : `--pa-night-1:#0b0f24`, `--pa-cream-1:#f6efdf`, `--pa-gold:#c9a24b` (or unique action)
+- Hiérarchie CTA stricte : doré rempli = principale (payante 97€) · doré outline = secondaire (inscription gratuite)
+- Alternance mystique / respiration à chaque section → 3 moments d'action (héros, offre, clôture)
+- Cartes uniformes (grid auto-fit minmax) — plus de chevauchement au scroll
+- Micro-animation `pa-twinkle` sur fonds étoilés
+- Responsive : ≤900px collapse grids en colonne unique, ≤520px paddings réduits
+
+### Test
+- 18/18 data-testid présents (backend regression checkout Stripe OK, session_id retourné)
+- Full-page 7069px sans erreur console
+

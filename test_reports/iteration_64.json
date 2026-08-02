@@ -1,0 +1,31 @@
+{
+  "summary": "Iter64 Landing v3 Plume Astrale — batch de 4 features finales (Live Testimonials, Mobile Sticky CTA, Story Video Manifeste, A/B Hero Split-test). Backend: 28/28 pytest PASS (11 endpoints couverts + régression health/scarcity/dashboard-stats). Frontend: 7/7 Playwright checks PASS sur desktop 1920x1080 + mobile 390x844 (localStorage plume_hero_variant='A', hero-headline-A texte exact, manifesto+video+player présents, testimonials Léa/Sarah/Manon rendus depuis GET /api/landing/testimonials, 2× POST /api/landing/ab/track auto-envoyés au mount, sticky CTA display:flex + visible + cliquable sur mobile après scroll >620px, absente du DOM sur desktop).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Landing / Manifesto video", "issues": ["Le player HTML5 utilise les contrôles natifs du navigateur — style incohérent avec le design nocturne premium. Envisager un player custom minimal (play/pause + progress). Non bloquant."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration64_landing_v3_batch.py",
+    "/app/test_reports/pytest/iter64.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes/landing.py : la fonction _require_admin duplique la logique de vérification is_admin déjà présente dans routes/lecture_complete.py et routes/admin.py. Envisager une dépendance FastAPI partagée 'require_admin' réutilisable pour DRY.",
+    "routes/landing.py L228: total_clicks combine cta_click + signup_click sans distinction — OK pour CTR global, mais si un jour on veut comparer conversion signup vs CTA seul, il faudra ajouter ctr_signup_pct séparé.",
+    "Frontend: 2 POST /api/landing/ab/track (event=impression) sont envoyés au chargement de la page (probablement React StrictMode ou double-mount d'un useEffect). À dedupliquer via un ref ou guard sessionStorage pour éviter d'inflater les stats d'impressions (~2x). Impact: fausse le calcul CTR et le seuil winner (>=50 imp).",
+    "Le seuil winner (delta CTR >=1pt + >=50 imp par variant) est hardcodé — envisager de le rendre configurable via app_settings pour ajuster sans redeploy."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration64_landing_v3_batch.py"],
+  "success_rate": { "backend": "100% (28/28)", "frontend": "100% (7/7)" },
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 ; test@plume-astrale.fr / TestPlume2026!",
+  "seed_data_creation": "3 seeds automatiques via GET /api/landing/testimonials au premier appel (Léa M / Sarah T / Manon D). Tests créent aussi des témoignages TEST_Iter64 / TEST_Lifecycle (le second est supprimé en fin de test lifecycle). Les TEST_Iter64 (status pending) restent dans app_settings — non visibles sur le public mais listés dans /admin.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iter64 backend tests dans /app/backend/tests/test_iteration64_landing_v3_batch.py (28 cases, 100% PASS). Endpoints couverts: GET/POST /api/landing/testimonials, GET /api/landing/testimonials/admin, POST /api/landing/testimonials/{id}/approve, DELETE /api/landing/testimonials/{id}, POST /api/landing/ab/track, GET /api/landing/ab/stats. Frontend testids validés: hero-headline-A|B, landing-manifesto, landing-manifesto-video, landing-manifesto-player, landing-testimonials, landing-sticky-cta, landing-sticky-cta-btn. IMPORTANT: /api/landing/ab/track est POSTé 2× au mount — probablement React StrictMode. Si tests futurs comptent les impressions strictement, filtrer par sessionStorage. Le sticky CTA respecte @media max-width:768px (display:flex sur mobile après scroll, none sur desktop où l'élément n'est même pas rendu dans le DOM).",
+  "rca of the issue": "N/A — aucune anomalie fonctionnelle détectée. Seule remarque non bloquante : double POST impression au mount (React StrictMode)."
+}

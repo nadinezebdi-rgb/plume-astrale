@@ -648,13 +648,32 @@ async def lecture_complete_admin_test_slack(
     current_user: Optional[dict] = Depends(get_optional_user),
 ):
     """Envoie un ping de test vers Slack. Utilise `webhook_url` du body si fourni,
-    sinon fallback sur SLACK_WEBHOOK_URL env."""
+    sinon fallback sur SLACK_WEBHOOK_URL env.
+
+    Rate limit : 30s par admin (in-memory) pour eviter le spam accidentel.
+    """
     if not current_user or not current_user.get('id'):
         raise HTTPException(status_code=401, detail='Authentification requise.')
     sb = get_admin_client()
     prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
     if not prof or not prof.data or not prof.data.get('is_admin'):
         raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+
+    # Rate limit per admin (30s cooldown)
+    from services.app_settings import get_setting, set_setting
+    from datetime import datetime as _dt, timezone as _tz
+    admin_id = str(current_user.get('id'))
+    cooldown_map = get_setting('slack_test_cooldown', {}) or {}
+    now_ts = _dt.now(_tz.utc).timestamp()
+    last_ts = float(cooldown_map.get(admin_id) or 0)
+    remaining = int(30 - (now_ts - last_ts))
+    if remaining > 0:
+        raise HTTPException(
+            status_code=429,
+            detail=f'Cooldown : merci de patienter {remaining}s avant un nouveau ping Slack.',
+        )
+    cooldown_map[admin_id] = now_ts
+    set_setting('slack_test_cooldown', cooldown_map)
 
     import os as _os
     custom_url = ((payload or {}).get('webhook_url') or '').strip() if isinstance(payload, dict) else ''
@@ -669,7 +688,19 @@ async def lecture_complete_admin_test_slack(
                 'text': f':white_check_mark: *Plume Astrale — Ping de test*\n'
                         f'Webhook OK. Test lance par {current_user.get("email","admin")}.',
             })
-            if r.status_code in (200, 204):
+            success = r.status_code in (200, 204)
+            try:
+                from services.app_settings import log_alert
+                log_alert(
+                    kind='slack_test',
+                    title='Ping Slack test' + (' (OK)' if success else f' (FAIL {r.status_code})'),
+                    details=f'Lance par {current_user.get("email","admin")} · '
+                            + ('URL custom' if custom_url else 'SLACK_WEBHOOK_URL env'),
+                    channels=['slack'] if success else [],
+                )
+            except Exception:
+                pass
+            if success:
                 return {'success': True, 'reason': 'Ping envoye (' + ('custom URL' if custom_url else '.env') + ')'}
             return {'success': False, 'reason': f'Slack a renvoye {r.status_code}: {r.text[:200]}'}
     except Exception as e:
@@ -694,6 +725,21 @@ async def lecture_complete_admin_settings_get(
     }
 
 
+@router.post('/admin/weekly-recap-now')
+async def lecture_complete_admin_weekly_recap_now(
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Force l'envoi immediat du recap hebdo aux admins (utile pour tester ou renvoyer)."""
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+    from services.weekly_insights import send_weekly_recap_now
+    return await send_weekly_recap_now()
+
+
 @router.post('/admin/set-forced-variant')
 async def lecture_complete_admin_set_forced_variant(
     payload: Dict[str, Any],
@@ -711,6 +757,17 @@ async def lecture_complete_admin_set_forced_variant(
         raise HTTPException(status_code=400, detail='variant doit etre null, "question" ou "invitation".')
     from services.app_settings import set_setting
     set_setting('forced_j30_variant', variant)
+    # Trace audit
+    try:
+        from services.app_settings import log_alert
+        log_alert(
+            kind='ab_override',
+            title=f'A/B J+30 forcé sur {variant}' if variant else 'A/B J+30 réinitialisé (50/50)',
+            details=f'Par {current_user.get("email","admin")}',
+            channels=[],
+        )
+    except Exception:
+        pass
     return {'forced_j30_variant': variant}
 
 
