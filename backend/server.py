@@ -67,6 +67,7 @@ from routes.astrosexo import router as astrosexo_router
 from routes.apercu import router as apercu_router
 from routes.marketing import router as marketing_router
 from routes.referral import router as referral_router
+from routes.lecture_complete import router as lecture_complete_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -131,6 +132,7 @@ api_router.include_router(subscriptions_router)
 api_router.include_router(apercu_router)
 api_router.include_router(marketing_router)
 api_router.include_router(referral_router)
+api_router.include_router(lecture_complete_router)
 
 
 # ════════════════════════════════════════════

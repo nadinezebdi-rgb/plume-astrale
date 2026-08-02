@@ -1,0 +1,21 @@
+{
+  "summary": "Iteration 57 — Landing v2 (Lecture Complète 97€) full stack testing. Backend: 6/6 pytest passed (checkout valid/no-body/invalid-email, SEC-004 guest-no-bypass, status 404/200 with polling shape). Frontend: Landing v2 renders on /, all 10 critical data-testid present (landing-v2, landing-band, landing-hero-signup, landing-open-form-btn, landing-final-cta, landing-final-signup, faq-sceptique/avenir/tech/retour). Hero signup CTA correctly redirects guest to /inscription. Checkout form reveals on button click with all 6 fields (first-name/email/birth-date/birth-time/birth-city/checkout-btn). Form submission triggers POST /api/lecture-complete/checkout (200) and window.location redirects to checkout.stripe.com (confirmed via blocked route). Success page /lecture-complete/succes renders 'Ta lecture est en route', shows 'Aucune session détectée' without session_id, and actively polls /api/lecture-complete/status every ~2s (3 polls captured in 4s) returning correct JSON {status,payment_status,email,admin_bypass}. All 5 main sections visible with pricing table (214€ → 97€ crossout) and 14-day guarantee.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration57_lecture_complete.py",
+    "/app/test_reports/pytest/iteration_57.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "lecture_complete.py logs .warning() on payment_transactions insert failure but still returns success — non-blocking, but could leave orphan Stripe session with no DB row. Consider raising 500 or a retry.",
+    "Status endpoint does not filter by pack_id='lecture_complete' — a session_id from any product would return data. Low risk but consider scoping."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "See /app/memory/test_credentials.md (not required for this iteration — all tests run as guest).",
+  "seed_data_creation": "Two test payment_transactions rows inserted (email test@t.fr and poll2@t.fr) — cs_live_* Stripe sessions, unpaid status. Safe to leave.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Landing v2 route / and success page /lecture-complete/succes fully validated. Backend router /api/lecture-complete/{checkout,status} verified. Stripe redirect intentionally not followed (external). Admin bypass path (SEC-004) NOT tested with an authenticated admin because the app uses Supabase JWT and testing agent chose guest scope per request instructions — the negative case (guest with TOUT2026 must NOT bypass) IS verified and passes. If main agent wants to test positive admin bypass, use admin@plume-astrale.fr via Supabase login then POST checkout with promo_code=TOUT2026 and Authorization: Bearer <access_token> — expect admin_bypass:true + url pointing to /lecture-complete/succes?session_id=admin-lecture-xxx."
+}
