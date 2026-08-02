@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import TrialBanner from "./components/TrialBanner";
 
 import Index from "./pages/Index";
+import LectureCompleteSucces from "./pages/LectureCompleteSucces";
 import AuthPage from "./pages/AuthPage";
 import Tarot from "./pages/Tarot";
 import Formulaire from "./pages/Formulaire";
@@ -104,6 +105,7 @@ function App() {
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />
+          <Route path="/lecture-complete/succes" element={<LectureCompleteSucces />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/bibliotheque" element={<Bibliotheque />} />
           <Route path="/rencontres-astrales" element={<RencontresAstrales />} />

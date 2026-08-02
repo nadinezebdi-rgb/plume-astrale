@@ -1,0 +1,42 @@
+{
+  "summary": "Iteration 61 — bundle Lecture Complete 4 features complementaires : validation complete backend + frontend. 15/15 backend tests PASS, 10/10 UI checks PASS. Nettoyage metadata e2e-admin-lecture-001 effectue en fin de test (refunded_at, refund_reason, refunded_by remis a null). GET /admin/orders retourne bien stats:{total_paid, total_refunded, refund_rate_pct:float}; POST /admin/refund fait correctement 401/401/404/200 avec persistance metadata.refunded_at ISO; GET /cercle-status apres refund retourne {active:false, refunded:true, refunded_at:...}; batch fetch utilise .in_('metadata->>parent_bundle', parent_sids) sur le path principal avec fallback N+1 dans except; _email_j30 existe avec '19€/mois pendant 6 mois' + stage j30 dans _process_transaction + fetch 32j; get_bundle_guests_for_daily_journal + daily_journal_scheduler_loop exportes + lances au startup; logs backend confirmes 'scheduler demarre' + 'batch quotidien: {...}'. Frontend AdminLectureComplete : bandeau stats (data-testid=admin-lc-stats) + refund-rate + boutons Rembourser + badge REMBOURSÉ + bouton Relancer disabled apres refund + 4 pastilles J+1/J+7/J+13/J+30.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "journal_email_service.get_users_for_daily_journal", "issue": "Erreur DB recurrente dans les logs: 'column profiles.email_verified does not exist' (PGRST 42703) puis plus recemment 'Could not find the table public.journal_email_logs'. Le batch fonctionne quand meme (retourne {sent:0, users:0, guests:0}) mais aucun email 'user' ne partira tant que la colonne/table manquantes ne sont pas creees. Impact: guests fonctionnent, users profiles NON."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration61_bundle_complementaires.py",
+    "/app/test_reports/pytest/iter61.xml"
+  ],
+  "action_items": [
+    "MINEUR (non bloquant iter61): creer la migration Supabase pour ajouter profiles.email_verified (bool default false) ET la table journal_email_logs(email text, user_id uuid, sent_date date, created_at timestamptz). Sinon le batch daily-journal continuera de logger des erreurs et n'enverra jamais d'email aux users profiles. Les guests bundle 90j fonctionneront quand meme car ils utilisent une autre fixture."
+  ],
+  "critical_code_review_comments": [
+    "routes/lecture_complete.py admin_orders() : le fallback N+1 utilise .like('session_id', f'{sid}--%') mais cela ne matche que les enfants dont la naming convention est parent--child. Si l'orchestration cree des enfants avec un session_id different (uuid nouveau), le fallback ratera. Non bloquant car le path .in_('metadata->>parent_bundle', ...) marche.",
+    "AdminLectureComplete.js: refund() enchaine window.prompt puis window.confirm — c'est OK mais fragile (2 dialogs successifs). Considerer un modal shadcn unifie a l'avenir.",
+    "services/journal_email_service.py : les 2 erreurs Supabase ('email_verified' manquante puis 'journal_email_logs' manquante) sont catch/print dans get_users_for_daily_journal mais ne sont pas remontees dans le retour du batch — l'admin ne saura pas que le path 'users' est casse. Ajouter un champ 'errors:[]' dans send_daily_journal_batch retour."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration61_bundle_complementaires.py"],
+  "success_rate": {"backend": "100% (15/15 pytest)", "frontend": "100% (10/10 UI checks)"},
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 (deja dans /app/memory/test_credentials.md)",
+  "seed_data_creation": "Aucune (utilise e2e-admin-lecture-001 pre-existant). Nettoyage metadata refunded_at applique en fin de test — verifie via script direct Supabase (refunded_at=None, refund_reason=None, refunded_by=None).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Selecteurs valides iter61: admin-lc-stats, admin-lc-refund-rate, admin-lc-refund-{sid}, admin-lc-refunded-{sid}. Le refund cote UI declenche 2 dialogs (prompt puis confirm) — utiliser page.on('dialog', lambda d: d.accept('reason')) pour les 2. IMPORTANT: si tu declenches le refund sur e2e-admin-lecture-001, remets metadata.refunded_at=None + refund_reason=None + refunded_by=None a la fin (script inline utilise dans iter61). La commande test doit rester non-refunded pour le prochain agent.",
+  "checks_executed": [
+    "Backend pytest 15/15 PASS (7.72s)",
+    "UI: login admin PASS",
+    "UI: /admin > tab Lecture Complete PASS",
+    "UI: admin-lc-stats visible (Payés=0, Remboursés=0, Taux=0%) PASS",
+    "UI: admin-lc-refund-rate = 0% PASS",
+    "UI: 7 orders listes PASS",
+    "UI: refund button present pour e2e-admin-lecture-001 PASS",
+    "UI: 4 pastilles J+1 J+7 J+13 J+30 visibles PASS",
+    "UI: click Rembourser → badge REMBOURSÉ apparait PASS",
+    "UI: Relancer disabled apres refund PASS",
+    "Cleanup metadata restauree PASS"
+  ]
+}

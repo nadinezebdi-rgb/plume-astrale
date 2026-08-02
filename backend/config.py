@@ -181,6 +181,16 @@ class Settings:
             'product': 'fenetre_rencontre_avancee',
             'tagline': 'Transits amoureux + phases lunaires + synastrie optionnelle — PDF 10 pages.',
         },
+        'lecture_complete': {
+            'name': 'Lecture Complète de ton Ciel — Bundle 97€',
+            'credits': 0,   # one-shot
+            'bonus': 0,
+            'amount': 97.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'lecture_complete',
+            'tagline': 'Thème Natal + Fenêtres 2026 + Lecture Karmique + Analyse des liens + Cercle Soléna 90j.',
+        },
     }
 
     # Grille GaryVee — tous les services sont des multiples/fractions de 10 cr (unité = 1 question)

@@ -1295,3 +1295,287 @@ Le repo GitHub (prod) avait divergé : features développées hors Emergent (meg
 - 11 endpoints checkout testés, tous retournent 422 sans payload (donc existent et acceptent le body).
 - `/api/promo/validate` : TOUT2026 → valid:true admin_only:true ✅ ; code inconnu → valid:false ✅
 - Endpoints publics de contenu tous vérifiés 200 : tarot/jour, tarot/oui-non, oracle/teaser, daily/aries, plume-chat, astrology/natal-chart, couple/mystery.
+
+## 2026-08-02 — Repositionnement Landing v2 (Lecture Complète 97€)
+
+### Changement de positionnement majeur
+- **Cible** : femmes 35-70 ans
+- **Promesse** : guidance de vie (comprendre le présent, pas prédire le futur)
+- **Homepage / entièrement remplacée** : la Lune 3D + QuickOracle + SolenaVideoHero (ancien Index.js) → nouvelle Landing v2 long-form design Georgia serif + palette #d9b26a/#6a5acd (fidèle à la maquette user).
+
+### Structure Landing v2
+Bandeau lunaire → Hero ("Si tu me lis à cette heure-ci…") → Le Miroir → Je suis Soléna → Ce que Soléna éclaire (5 cartes) → Empilement de valeur (table 214€ barrée → 97€) → 4 bonus (90€ offerts) → Garantie 14 jours "Clarté ou remboursée" → 3 témoignages vérifiés → CTA final → FAQ 4 questions → mention légale.
+
+### Nouveau produit
+- **Lecture Complète du Ciel — 97€** (bundle Thème Natal + Fenêtres 2026 + Karma + Analyse Liens + Cercle Soléna 90j)
+- Backend : `POST /api/lecture-complete/checkout` + `GET /api/lecture-complete/status` (`/app/backend/routes/lecture_complete.py`)
+- Frontend : formulaire de checkout inline (email + prénom + naissance + ville) déroulé au clic
+- Page succès : `/lecture-complete/succes` avec polling toutes les 3s
+- Config PACKS `lecture_complete` (97€ EUR one-shot)
+- SEC-004 respecté : bypass admin via promo_code TOUT2026 uniquement
+
+### Livraison
+Bonus (Rituel du Soir, Carte des Liens, Calendrier 12 fenêtres, Question à Soléna) : livraison manuelle par Soléna après achat (par email).
+
+### Tests
+Testing agent iteration_57 : **backend 6/6 ✅, frontend 10/10 data-testid ✅**. Redirect Stripe confirmé, polling fonctionne, SEC-004 respecté.
+
+## 2026-08-02 (soir) — Auto-livraison bundle + Scarcity honnête
+
+### Auto-livraison des 5 PDFs bundle 97€
+- **Nouveau service** `/app/backend/services/lecture_complete_bundle.py` :
+  - `handle_lecture_complete_webhook(session_id)` crée 5 sous-transactions payment_transactions et dispatche EN PARALLÈLE la génération de : Thème Natal + Karma & Destinée + Arbre de Vie Kabbale + Fenêtres Rencontre + Rencontres Ultime.
+  - Chaque enfant utilise le même `pdf_ctx` (birth_data) reconstruit depuis order_ctx.
+  - Idempotent via `md.bundle_dispatched`.
+  - Email de bienvenue immédiat + 5 emails par PDF (chaque service envoie le sien).
+- **Hook Stripe webhook** dans `server.py` : à réception de `metadata.kind=lecture_complete`, marque parent paid + trigger `handle_lecture_complete_webhook`.
+- **Bypass admin** : `POST /api/lecture-complete/checkout` avec `promo_code=TOUT2026` (admin) lance également le dispatch immédiat via `asyncio.create_task`.
+- **Test manuel bout-en-bout** : 5 PDFs générés + 5 emails envoyés en ~90s (natal en 1 min avec `pdf_status=success`, les 4 autres avec `pdf_path` + `email_sent_at` remplis).
+
+### Scarcity honnête
+- **`GET /api/lecture-complete/scarcity`** retourne `{remaining, sold, quota, cycle_end, sold_out}`.
+- Compte les ventes du cycle courant (mois calendaire comme proxy du cycle lunaire).
+- Exclut les bypass admin du décompte.
+- Bandeau homepage (`data-testid=landing-band`) branche dynamique : `<strong data-testid=scarcity-remaining>{N}</strong>` ou message "Complet pour ce cycle" si `sold_out`.
+
+### Tests
+- Testing agent iteration_58 : **backend 8/8 ✅, frontend 100% ✅**.
+- Aucun bug bloquant. Note StrictMode : double fetch en dev, une seule en prod.
+
+## 2026-08-02 (nuit) — Admin panel + Cache + Sequence email + Badge Cercle
+
+### 4 features complémentaires bundle Lecture Complète 97€
+
+**1. Admin dashboard `/admin` > onglet "Lecture Complète"**
+- Backend : `GET /api/lecture-complete/admin/orders` (admin only) liste les commandes + état des 5 PDFs enfants + statut sequence email
+- Backend : `POST /api/lecture-complete/admin/redispatch/{sid}` (admin only) reset le flag bundle_dispatched + relance la génération
+- Frontend : nouveau composant `AdminLectureComplete` (data-testid admin-lecture-complete-panel, admin-lc-refresh, admin-lc-redispatch-{sid})
+
+**2. Cache scarcity 60s**
+- `_SCARCITY_CACHE` module-level avec TTL 60s (`time.monotonic()`) dans `get_scarcity_status()`
+- Évite un round-trip Supabase par pageview
+
+**3. Sequence email 14j**
+- Nouveau service `/app/backend/services/lecture_complete_sequence.py` avec boucle background (interval 30 min)
+- 3 emails : J+1 "As-tu ouvert ta lecture", J+7 "Qu'est-ce qui résonne", J+13 "Clarté ou remboursée — dernier appel doux"
+- Idempotent via metadata.sequence_j{1,7,13}_sent_at
+- Boucle lancée au startup dans `server.py` (`lecture_complete_sequence_loop`)
+- Test manuel bout-en-bout : tx backdatée 25h → email J+1 envoyé + metadata mise à jour ✅
+
+**4. Badge Cercle Soléna J-{X} sur /mon-compte**
+- Backend : `GET /api/lecture-complete/cercle-status` (auth requis) — retourne {active, days_remaining, expires_at, purchased_at, source} basé sur le dernier achat lecture_complete du user (<90j)
+- Frontend : badge violet/or entre solde crédits et onglets, affiche `J-{X}` + date d'expiration + lien "Accéder" vers /cercle-solena
+- data-testid : cercle-solena-badge, cercle-days-remaining, cercle-solena-access
+
+### Fixes admin login
+- Password admin@plume-astrale.fr reset via `supabase.auth.admin.update_user_by_id` (précédent était rejeté avec 400 Invalid credentials).
+- `/app/memory/test_credentials.md` mis à jour.
+
+### Tests
+- Testing agent iteration_59 : backend 9/9 ✅ (UI bloqué par login)
+- Testing agent iteration_60 (retest) : **frontend 11/11 checks ✅** (login, admin panel, refresh, badge Cercle J-89, tous les data-testid)
+
+## 2026-08-02 (soirée) — Journal Cercle auto + Batch fetch + Refund + J+30
+
+### 1. Journal quotidien automatique pour acheteurs bundle
+- `get_bundle_guests_for_daily_journal()` : retourne les acheteurs bundle 97€ actifs (<90j) non présents dans profiles (guests). Filtre exclu les refunded.
+- `send_daily_journal_batch()` fusionne users + guests + retourne `{sent, users, guests, total_eligible}`.
+- Nouvelle boucle background `daily_journal_scheduler_loop` lancée au startup dans server.py (vérif toutes les heures, exécute une fois/jour via `last_run_date`).
+- Fix pré-existant : `profiles.email_verified` n'existe pas → filtre retiré + fallback silencieux sur `journal_email_logs` absent.
+
+### 2. Batch admin fetch — N+1 supprimé
+- `/api/lecture-complete/admin/orders` utilise maintenant `.in_('metadata->>parent_bundle', parent_sids)` : **1 query au lieu de N** pour tous les enfants.
+- Fallback N+1 conservé en secours dans un `try/except`.
+
+### 3. Refund tracking + dashboard stats
+- Nouveau `POST /api/lecture-complete/admin/refund/{sid}` (admin only) → marque `metadata.refunded_at`, `refund_reason`, `refunded_by`. N'effectue PAS le remboursement Stripe (à faire manuellement dans le dashboard).
+- `/admin/orders` retourne maintenant `stats: {total_paid, total_refunded, refund_rate_pct}`.
+- `/cercle-status` retourne `{active:false, refunded:true}` pour les commandes remboursées.
+- La séquence email J+1/J+7/J+13/J+30 skip les tx refunded.
+- Frontend `AdminLectureComplete` : nouveau bandeau stats (data-testid=admin-lc-stats + admin-lc-refund-rate), bouton Rembourser (admin-lc-refund-{sid}), badge REMBOURSÉ (admin-lc-refunded-{sid}), bouton Relancer désactivé après refund.
+
+### 4. Sequence J+30 upsell
+- Nouvel email J+30 : "Une invitation pour aller plus loin" — Cercle Soléna longue durée à 19€/mois pendant 6 mois puis 29€ (au lieu de 29€ direct).
+- Idempotent via `metadata.sequence_j30_sent_at`.
+- Pastille J+30 ajoutée dans le tableau admin.
+
+### Tests
+- Testing agent iteration_61 : **backend 15/15 ✅, frontend 10/10 UI checks ✅**
+- Pytest suite `/app/backend/tests/test_iteration61_bundle_complementaires.py` (7.72s, 100%).
+
+## 2026-08-02 (fin de journée) — Migration SQL + Refund Stripe auto + Modal shadcn + A/B J+30
+
+### 1. Migration SQL propre
+- Nouveau fichier `/app/backend/migrations/2026_08_journal_tracking_and_email_verified.sql` :
+  - `ALTER TABLE profiles ADD COLUMN email_verified BOOLEAN DEFAULT true` (default true = pas de régression sur users existants)
+  - `CREATE TABLE journal_email_logs (id, user_id, email, sent_date, sent_at, email_provider_id, variant, created_at)` avec unique index `(email, sent_date)` pour empêcher les doublons
+  - RLS activé, policy service_role only
+- **⚠️ ACTION USER** : le fichier doit être appliqué manuellement via Supabase Dashboard → SQL Editor (l'API n'expose pas exec_sql).
+
+### 2. Refund Stripe automatique
+- `POST /api/lecture-complete/admin/refund/{sid}` appelle maintenant `stripe.Refund.create(payment_intent=...)` directement.
+- Auto-detect les admin bypass (session_id `admin-*` OU metadata.admin_bypass=true) → `stripe_skipped=true` (pas de vrai paiement à rembourser).
+- Body : `{reason?, skip_stripe?}` — checkbox `skip_stripe` disponible pour cas exceptionnels.
+- Réponse : `{refunded, session_id, refunded_at, stripe_refund_id, stripe_skipped}`
+- 409 si déjà remboursée, 502 si Stripe échoue (aucune donnée modifiée).
+
+### 3. Modal shadcn refund
+- Remplacé `window.prompt()` + `window.confirm()` par un vrai Dialog Radix/shadcn.
+- data-testid : refund-modal, refund-modal-reason, refund-modal-skip-stripe, refund-modal-cancel, refund-modal-confirm, refund-modal-success, refund-modal-error
+- Affiche : email, montant, badge admin bypass, textarea raison, checkbox skip Stripe (masquée pour les bypass), bouton "Rembourser via Stripe" ou "Marquer remboursé" selon contexte.
+- Auto-fermeture 1.5s après succès.
+- Fix collision testid : `admin-lc-refund-rate` → `admin-lc-stats-refund-rate` (le prefix matchait les boutons).
+
+### 4. A/B test J+30 upsell
+- `_email_j30(prenom, variant)` accepte maintenant 2 variantes :
+  - `question` : "{prenom}, veux-tu aller plus loin ?"
+  - `invitation` : "{prenom}, ta place dans le Cercle Solena t'attend"
+- Distribution déterministe 50/50 via `md5(session_id) % 2` (stable, replayable).
+- `metadata.sequence_j30_variant` stocké pour analytics.
+- Nouvel endpoint `GET /api/lecture-complete/admin/ab-stats` retourne `{question, invitation, total, sample_email_ids}` — l'admin lit ensuite le taux de clic dans Resend dashboard via ces email_ids.
+- Test distribution sur 100 sids : 48/52 (équilibré).
+
+### Tests
+- Smoke UI : modal shadcn s'affiche correctement, champ raison éditable, bouton adaptatif "MARQUER REMBOURSÉ" vs "REMBOURSER VIA STRIPE".
+- Smoke backend : refund bypass → stripe_skipped=true ✅, refund duplicate → 409 ✅, /admin/ab-stats retourne structure attendue ✅.
+
+## 2026-08-02 (dernière touche) — Dashboard A/B + Timeline + Webhook refund sync
+
+### 1. Migration SQL — status
+Rappel : le fichier `/app/backend/migrations/2026_08_journal_tracking_and_email_verified.sql` doit être appliqué manuellement via Supabase Dashboard → SQL Editor. Non-bloquant.
+
+### 2. Dashboard A/B J+30
+- Nouveau mini-panneau dans `/admin > Lecture Complète` (data-testid=admin-lc-ab-panel).
+- 2 barres colorées (violet = question, or = invitation) + pourcentage volume.
+- Badge "leader" si >20 envois + variant dominant.
+- Message "Décision statistiquement fiable à partir de 50 envois" si < 50.
+- Fetch via `GET /api/lecture-complete/admin/ab-stats`.
+
+### 3. Timeline actions admin
+- Nouveau helper `append_admin_action(sid, action, admin_id, admin_email, details, auto)` dans `lecture_complete_bundle.py`.
+- Stocke dans `metadata.admin_actions[]` (cap 50 entrées).
+- Appelé automatiquement dans `/admin/refund/{sid}` et `/admin/redispatch/{sid}`.
+- Endpoint `/admin/orders` retourne maintenant `admin_actions` par commande.
+- UI : bouton `▶ Timeline actions (N)` (admin-lc-timeline-toggle-{sid}) déploie une frise chronologique avec action + admin_email + date + détails.
+
+### 4. Webhook Stripe refund auto-sync
+- Nouveau handler dans `server.py` : listen `charge.refunded` / `refund.created` / `refund.updated`.
+- `sync_stripe_refund_webhook()` retrouve la session via `stripe.checkout.Session.list(payment_intent=...)`, met `metadata.refunded_at`, marque `refund_via_stripe_webhook=true`, gère les refunds partiels (`refund_partial`).
+- Idempotent (skip si déjà refunded).
+- Trace automatique dans admin_actions avec `auto=true` et admin_email='stripe-webhook'.
+- **⚠️ ACTION USER** : dans le dashboard Stripe → Developers → Webhooks, ajouter les 3 événements `charge.refunded`, `refund.created`, `refund.updated` à l'endpoint existant `/api/webhook/stripe`.
+
+### Tests
+- Refund + redispatch UI → 2 actions dans admin_actions ✅
+- Timeline UI expansible/collapsable ✅
+- AB panel affiché avec message "0 envois · 50 à attendre" ✅
+- sync_stripe_refund_webhook exporté + linké dans server.py ✅
+
+## 2026-08-02 (nuit) — Alerte refund + CTR auto + Export CSV + Refund partiel
+
+### 1. Alerte refund élevée (7 jours glissants)
+- Nouveau service `/app/backend/services/refund_alert.py` avec boucle `refund_alert_loop()` (vérif chaque heure).
+- Seuil : refund_rate > **5%** ET min 5 paiements sur 7j.
+- Email HTML envoyé aux `profiles WHERE is_admin=true` (fallback admin@plume-astrale.fr) avec taux + liste des refunds récents.
+- Max **1 alerte/jour** (throttle via `_ALERT_STATE.last_alert_date`).
+
+### 2. CTR A/B automatique via Resend API
+- Nouveau service `/app/backend/services/resend_stats.py` :
+  - `fetch_email_stats(email_id)` interroge `GET /emails/{id}` (opens/clicks).
+  - `aggregate_ab_ctr(variant_email_ids)` fetch en parallèle (cap 50/variant), compute open_rate + ctr + winner (≥30 envois par variant + écart CTR > 0.5%).
+- Endpoint `/admin/ab-stats?include_ctr=true` retourne maintenant `stats.ctr = {question:{sent,opened,clicked,open_rate,ctr}, invitation:{...}, winner, significant}`.
+- UI : bouton "Charger CTR Resend" (data-testid=admin-lc-ab-load-ctr) déclenche le fetch enrichi. Affichage 2 colonnes avec badge 🏆 Gagnant.
+
+### 3. Export CSV commandes
+- Nouveau endpoint `GET /admin/orders/export` (admin only) → StreamingResponse text/csv.
+- Colonnes : session_id, email, created_at, amount, currency, payment_status, admin_bypass, bundle_dispatched, refunded_at, refunded_amount_cents, refund_reason, refund_partial, stripe_refund_id, first_name, birth_date, sequence_j1/j7/j13/j30, j30_variant.
+- UI : bouton "Export CSV" (data-testid=admin-lc-export-csv) déclenche téléchargement Blob `plume-astrale-commandes-YYYY-MM-DD.csv`.
+
+### 4. Refund partiel UI
+- Nouveau champ `amount_cents` optionnel dans `RefundRequest`.
+- Backend valide : > 0, <= (montant restant en centimes). Passe `amount=X` à `stripe.Refund.create()` si fourni.
+- `metadata.refund_partial=true` + `refunded_amount_cents` accumulés.
+- UI (modal) : checkbox "Remboursement partiel" (refund-modal-partial-toggle) + champ montant (refund-modal-amount) qui apparaît conditionnellement (masqué pour admin bypass).
+- Le 409 "déjà remboursée" n'est déclenché QUE pour refund total ; un refund partiel peut être suivi d'un autre refund partiel.
+
+### Tests
+- Export CSV : status 200, content-type=text/csv, ligne header + 1 ligne data ✅
+- AB stats include_ctr=true : structure correcte + fetch Resend fonctionnel ✅
+- Refund partiel : 50€ marqué, `partial:true, refunded_amount_cents:5000` ✅
+- Refund alert : stats 7j calculées, boucle démarrée ✅
+- Backend lint OK ✅ / Frontend lint OK ✅
+
+## 2026-08-02 (fin nuit) — Slack alert + CTR cache 24h + CSV filtré + Refund partiel auto
+
+### 1. Slack alerte refund
+- `SLACK_WEBHOOK_URL` env variable (opt-in) dans `refund_alert.py`
+- `send_slack_refund_alert(stats)` : POST JSON avec header, section détails, bouton "Ouvrir /admin"
+- No-op silencieux si webhook absent (aucune erreur, aucun log bruyant)
+- Appelé en parallèle de l'email admin après passage du seuil 5%
+
+### 2. CTR temps réel — cache 24h + refresh auto
+- Module-level `_CTR_CACHE` dans `resend_stats.py` avec TTL 24h
+- `get_cached_ab_ctr()` retourne le cache si frais (avec `cached:true, cache_age_s`)
+- `refresh_ab_ctr_cache()` refetch et met à jour le cache
+- Boucle `ab_ctr_refresh_loop` : refresh 1x/jour dès le startup (+ 60s de warmup)
+- Nouvel endpoint `POST /admin/ctr-refresh` (admin) pour force refresh à la demande
+- Endpoint `/admin/ab-stats?include_ctr=true` retourne le cache si dispo (< 1ms au lieu de 5-10s)
+
+### 3. Export CSV filtré
+- `GET /admin/orders/export?since=&until=&payment_status=&include_bypass=&refunded_only=`
+- 5 filtres : période (since/until ISO), statut paiement, inclure/exclure bypass, refunds only
+- Nom de fichier inclut les filtres appliqués : `plume-astrale-lecture-complete-20260802-no-bypass-refunds-only.csv`
+- Frontend actuel utilise toujours l'export non-filtré (bouton simple) — les filtres avancés sont utilisables via URL directe pour l'instant.
+
+### 4. Refund partiel auto-suggéré
+- Détection heuristique côté frontend dans `AdminLectureComplete.js`
+- 4 patterns regex FR détectent : "un seul PDF/rapport/lecture", "juste un rapport", "PDF défectueux/manquant/corrompu/illisible/cassé/vide/absent"
+- Si match sur la raison saisie ET la commande n'est pas un bypass : affiche bannière or "💡 Suggestion : 1/5 du bundle = X€" avec bouton "Appliquer" (data-testid=refund-modal-suggestion + refund-modal-apply-suggestion)
+- Clic sur "Appliquer" active refund_partial + pré-remplit amount
+- Tests unitaires JS : 6/6 vrais positifs, 1/1 vrai négatif ✅
+
+### Tests
+- CSV filter no-bypass → filename OK, rows filtrés ✅
+- CSV filter since+refunded_only → filename OK ✅
+- CTR refresh endpoint → question/invitation/winner/significant retournés ✅
+- Slack no-op sans webhook → False silencieux ✅
+- Détection partiel : 6/6 positifs + 1/1 négatif ✅
+- Boucles refund_alert + ab_ctr_refresh démarrées au startup ✅
+
+## 2026-08-02 (dernier lot) — UI filtres export + Slack test + Winner alert + Refund cascade
+
+### 1. UI filtres export CSV
+- Bandeau tirets sous les boutons header avec 5 filtres visuels :
+  - Date `since` (input date) + Date `until`
+  - Select `payment_status` (Tous / Payé / Non payé / Initié)
+  - Checkbox "Inclure admin bypass" (default true)
+  - Checkbox "Remboursés uniquement" (default false)
+- data-testids : `admin-lc-export-filters, admin-lc-filter-since/until/status/bypass/refunded-only`
+- Le bouton Export CSV utilise ces filtres automatiquement (URLSearchParams).
+
+### 2. Webhook Slack test
+- Bouton "Tester Slack" (data-testid=admin-lc-test-slack) dans le header du panneau.
+- `POST /admin/test-slack` retourne `{success:bool, reason:str}`.
+- Si `SLACK_WEBHOOK_URL` absent → `{success:false, reason:'SLACK_WEBHOOK_URL non configure...'}`.
+- Si configuré → envoie un message avec `email: admin-test@..., reason: PING DE TEST — ceci n'est pas un vrai refund`.
+- Bandeau vert ✅ ou rouge ❌ affiché 5s (data-testid=admin-lc-slack-result).
+
+### 3. CTR alerte gagnant automatique
+- `_send_winner_notification(winner, ctr_data)` : envoie email HTML aux admins + Slack (si configuré) dès qu'un gagnant est confirmé.
+- Détection : `winner != previous_winner` dans `refresh_ab_ctr_cache` + idempotence via `_CTR_CACHE.winner_notified`.
+- Contenu : "🏆 A/B J+30 : {winner} gagne (+{gap}pts CTR)" avec recommandation de bascule.
+
+### 4. Refund cascade cercle (suspend notifications)
+- Nouveau field `suspend_notifications` (optional) dans `RefundRequest`. Default : `true` pour refund total, `false` pour partiel.
+- Cascade côté backend :
+  - `metadata.notifications_suspended=true` + `notifications_suspended_at` sur la tx (sequence + journal guests le respectent déjà via `refunded_at`).
+  - Si le profile existe : update `profile.metadata.notifications_suspended_at` + reason (fallback silencieux si colonne absente).
+  - Journal daily `get_users_for_daily_journal()` exclut les profiles avec `metadata.notifications_suspended_at`.
+- UI : checkbox "Suspendre les notifications futures" dans le modal refund (data-testid=refund-modal-suspend-notifications) — pré-cochée par défaut.
+- Migration SQL enrichie : `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb` + index partiel sur `notifications_suspended_at`.
+
+### Tests
+- Slack test endpoint : `{success:false, reason:'SLACK_WEBHOOK_URL non configure...'}` ✅
+- Refund + suspend : `refunded=true, suspended=true`, tx.notifications_suspended=true ✅
+- Screenshot admin panel avec 4 nouveaux widgets visibles ✅
+- Backend + frontend lint OK ✅

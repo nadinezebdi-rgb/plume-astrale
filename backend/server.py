@@ -67,6 +67,7 @@ from routes.astrosexo import router as astrosexo_router
 from routes.apercu import router as apercu_router
 from routes.marketing import router as marketing_router
 from routes.referral import router as referral_router
+from routes.lecture_complete import router as lecture_complete_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -131,6 +132,7 @@ api_router.include_router(subscriptions_router)
 api_router.include_router(apercu_router)
 api_router.include_router(marketing_router)
 api_router.include_router(referral_router)
+api_router.include_router(lecture_complete_router)
 
 
 # ════════════════════════════════════════════
@@ -749,6 +751,17 @@ async def stripe_webhook(request: Request):
     event_type = event.get('type') if isinstance(event, dict) else event.type
     data_obj = (event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object)
 
+    # ─── Sync automatique des refunds Stripe (dashboard Stripe ou chargeback) ───
+    # Ecoute charge.refunded pour mettre a jour metadata.refunded_at si un admin
+    # a rembourse via le dashboard Stripe OU si un client a fait un chargeback.
+    if event_type in ('charge.refunded', 'refund.created', 'refund.updated'):
+        try:
+            from services.lecture_complete_bundle import sync_stripe_refund_webhook
+            await sync_stripe_refund_webhook(event_type, data_obj if isinstance(data_obj, dict) else data_obj.to_dict())
+        except Exception as e:
+            logger.warning(f'[stripe/refund] sync fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'refund_sync'}
+
     # ─── Programme de parrainage : première conversion payante d'un filleul ─────
     # Non bloquant : capture les erreurs, ne modifie aucun autre flow métier.
     if event_type == 'checkout.session.completed':
@@ -940,6 +953,26 @@ async def stripe_webhook(request: Request):
         except Exception as e:
             logger.warning(f'[astrocartographie] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'astrocartographie'}
+
+    # Route vers Lecture Complete bundle handler si kind=lecture_complete (bundle 97 EUR)
+    if md.get('kind') == 'lecture_complete':
+        from services.lecture_complete_bundle import handle_lecture_complete_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            # Marque la transaction comme payee avant de dispatcher les enfants
+            try:
+                sb2 = get_admin_client()
+                sb2.table('payment_transactions').update({
+                    'status': 'completed',
+                    'payment_status': 'paid',
+                    'credits_granted': True,
+                }).eq('session_id', session_id).execute()
+            except Exception as e:
+                logger.warning(f'[lecture_complete] tx paid update fail: {e}')
+            await handle_lecture_complete_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[lecture_complete] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'lecture_complete'}
 
     # Sinon : flow credits one-shot
     if event_type == 'checkout.session.completed':
@@ -2433,8 +2466,16 @@ async def _start_cart_recovery():
     from services.astrocarto_followup import astrocarto_followup_loop
     from services.crosssell_astrocarto import crosssell_astrocarto_loop
     from services.horoscope_scheduler import daily_horoscope_scheduler_loop
+    from services.lecture_complete_sequence import lecture_complete_sequence_loop
+    from services.journal_email_service import daily_journal_scheduler_loop
+    from services.refund_alert import refund_alert_loop
+    from services.resend_stats import ab_ctr_refresh_loop
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
     _asyncio.create_task(astrocarto_followup_loop())
     _asyncio.create_task(crosssell_astrocarto_loop())
     _asyncio.create_task(daily_horoscope_scheduler_loop())
+    _asyncio.create_task(lecture_complete_sequence_loop())
+    _asyncio.create_task(daily_journal_scheduler_loop())
+    _asyncio.create_task(refund_alert_loop())
+    _asyncio.create_task(ab_ctr_refresh_loop())
