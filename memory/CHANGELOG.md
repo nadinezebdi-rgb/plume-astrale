@@ -1504,3 +1504,40 @@ Rappel : le fichier `/app/backend/migrations/2026_08_journal_tracking_and_email_
 - Refund partiel : 50€ marqué, `partial:true, refunded_amount_cents:5000` ✅
 - Refund alert : stats 7j calculées, boucle démarrée ✅
 - Backend lint OK ✅ / Frontend lint OK ✅
+
+## 2026-08-02 (fin nuit) — Slack alert + CTR cache 24h + CSV filtré + Refund partiel auto
+
+### 1. Slack alerte refund
+- `SLACK_WEBHOOK_URL` env variable (opt-in) dans `refund_alert.py`
+- `send_slack_refund_alert(stats)` : POST JSON avec header, section détails, bouton "Ouvrir /admin"
+- No-op silencieux si webhook absent (aucune erreur, aucun log bruyant)
+- Appelé en parallèle de l'email admin après passage du seuil 5%
+
+### 2. CTR temps réel — cache 24h + refresh auto
+- Module-level `_CTR_CACHE` dans `resend_stats.py` avec TTL 24h
+- `get_cached_ab_ctr()` retourne le cache si frais (avec `cached:true, cache_age_s`)
+- `refresh_ab_ctr_cache()` refetch et met à jour le cache
+- Boucle `ab_ctr_refresh_loop` : refresh 1x/jour dès le startup (+ 60s de warmup)
+- Nouvel endpoint `POST /admin/ctr-refresh` (admin) pour force refresh à la demande
+- Endpoint `/admin/ab-stats?include_ctr=true` retourne le cache si dispo (< 1ms au lieu de 5-10s)
+
+### 3. Export CSV filtré
+- `GET /admin/orders/export?since=&until=&payment_status=&include_bypass=&refunded_only=`
+- 5 filtres : période (since/until ISO), statut paiement, inclure/exclure bypass, refunds only
+- Nom de fichier inclut les filtres appliqués : `plume-astrale-lecture-complete-20260802-no-bypass-refunds-only.csv`
+- Frontend actuel utilise toujours l'export non-filtré (bouton simple) — les filtres avancés sont utilisables via URL directe pour l'instant.
+
+### 4. Refund partiel auto-suggéré
+- Détection heuristique côté frontend dans `AdminLectureComplete.js`
+- 4 patterns regex FR détectent : "un seul PDF/rapport/lecture", "juste un rapport", "PDF défectueux/manquant/corrompu/illisible/cassé/vide/absent"
+- Si match sur la raison saisie ET la commande n'est pas un bypass : affiche bannière or "💡 Suggestion : 1/5 du bundle = X€" avec bouton "Appliquer" (data-testid=refund-modal-suggestion + refund-modal-apply-suggestion)
+- Clic sur "Appliquer" active refund_partial + pré-remplit amount
+- Tests unitaires JS : 6/6 vrais positifs, 1/1 vrai négatif ✅
+
+### Tests
+- CSV filter no-bypass → filename OK, rows filtrés ✅
+- CSV filter since+refunded_only → filename OK ✅
+- CTR refresh endpoint → question/invitation/winner/significant retournés ✅
+- Slack no-op sans webhook → False silencieux ✅
+- Détection partiel : 6/6 positifs + 1/1 négatif ✅
+- Boucles refund_alert + ab_ctr_refresh démarrées au startup ✅

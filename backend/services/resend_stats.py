@@ -91,3 +91,73 @@ async def aggregate_ab_ctr(variant_email_ids: Dict[str, List[str]]) -> Dict[str,
     result['winner'] = winner
     result['significant'] = winner is not None
     return result
+
+
+# ═══════════════════════════════════════════════════════════════
+# Cache 24h + boucle de refresh
+# ═══════════════════════════════════════════════════════════════
+
+import time as _time
+_CTR_CACHE: Dict[str, Any] = {'ts': 0.0, 'data': None}
+_CTR_CACHE_TTL_S = 24 * 3600  # 24h
+
+
+def get_cached_ab_ctr() -> Optional[Dict[str, Any]]:
+    """Retourne le CTR cache si < 24h, sinon None (cote appelant : afficher stale + trigger refresh)."""
+    cached = _CTR_CACHE.get('data')
+    if cached and (_time.monotonic() - _CTR_CACHE['ts']) < _CTR_CACHE_TTL_S:
+        return {**cached, 'cached': True, 'cache_age_s': int(_time.monotonic() - _CTR_CACHE['ts'])}
+    return None
+
+
+async def refresh_ab_ctr_cache() -> Optional[Dict[str, Any]]:
+    """Fetch toutes les tx J+30 -> aggrege CTR -> stocke dans cache."""
+    from services.supabase_client import get_admin_client
+    sb = get_admin_client()
+    try:
+        r = sb.table('payment_transactions').select('metadata').eq('pack_id', 'lecture_complete').execute()
+    except Exception as e:
+        logger.warning(f'[ctr_cache] fetch fail: {e}')
+        return None
+    rows = (r.data or []) if r else []
+    variant_ids: Dict[str, List[str]] = {'question': [], 'invitation': []}
+    total_sent = 0
+    for row in rows:
+        md = row.get('metadata') or {}
+        if not md.get('sequence_j30_sent_at'):
+            continue
+        variant = md.get('sequence_j30_variant') or 'question'
+        eid = md.get('sequence_j30_email_id')
+        if eid:
+            variant_ids[variant].append(eid)
+        total_sent += 1
+    if total_sent == 0:
+        # Rien a agreger — reset cache avec structure vide
+        empty = {
+            'question': {'sent': 0, 'opened': 0, 'clicked': 0, 'open_rate': 0.0, 'ctr': 0.0},
+            'invitation': {'sent': 0, 'opened': 0, 'clicked': 0, 'open_rate': 0.0, 'ctr': 0.0},
+            'winner': None, 'significant': False,
+        }
+        _CTR_CACHE['data'] = empty
+        _CTR_CACHE['ts'] = _time.monotonic()
+        return empty
+
+    result = await aggregate_ab_ctr(variant_ids)
+    _CTR_CACHE['data'] = result
+    _CTR_CACHE['ts'] = _time.monotonic()
+    logger.info(f'[ctr_cache] refreshed: q_ctr={result.get("question",{}).get("ctr")}%, inv_ctr={result.get("invitation",{}).get("ctr")}%, winner={result.get("winner")}')
+    return result
+
+
+async def ab_ctr_refresh_loop() -> None:
+    """Boucle background : refresh le CTR cache 1x/jour (au demarrage puis toutes les 24h)."""
+    import asyncio as _asyncio
+    logger.info('[ctr_cache] boucle demarree (refresh 1x/jour)')
+    # Premier refresh 60s apres startup pour laisser les autres services demarrer
+    await _asyncio.sleep(60)
+    while True:
+        try:
+            await refresh_ab_ctr_cache()
+        except Exception as e:
+            logger.warning(f'[ctr_cache] refresh error: {e}')
+        await _asyncio.sleep(_CTR_CACHE_TTL_S)

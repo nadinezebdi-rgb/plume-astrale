@@ -62,6 +62,7 @@ export default function AdminLectureComplete({ token }) {
   const [refundError, setRefundError] = useState(null);
   const [refundSuccess, setRefundSuccess] = useState(null);
   const [ctrLoading, setCtrLoading] = useState(false);
+  const [suggestedPartial, setSuggestedPartial] = useState(null);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -116,8 +117,42 @@ export default function AdminLectureComplete({ token }) {
     setRefundAmount('');
     setRefundError(null);
     setRefundSuccess(null);
+    setSuggestedPartial(null);
     setRefundModalOpen(true);
   };
+
+  // Detection heuristique : si la raison mentionne un seul PDF defectueux,
+  // suggerer un refund partiel de 1/5 (le bundle contient 5 PDFs).
+  const detectPartialSuggestion = (reason, order) => {
+    if (!reason || !order || order.admin_bypass) return null;
+    const txt = reason.toLowerCase();
+    // Patterns : "un pdf", "1 pdf", "un seul", "seul rapport", "seule lecture", "juste un", "1 rapport"
+    const singlePdfPatterns = [
+      /\b(un|1|une)\s+seul(e)?\s+(pdf|rapport|lecture)/,
+      /\b(un|1|une)\s+(pdf|rapport|lecture)\s+(défectueux|manquant|cassé|casse|vide|corrompu|illisible|erreur|absent|marche pas|fonctionne pas)/,
+      /\bjuste\s+(un|1|une)\s+(pdf|rapport|lecture)/,
+      /\b(pdf|rapport|lecture)\s+(défectueux|manquant|cassé|casse|vide|corrompu|illisible)/,
+    ];
+    const matched = singlePdfPatterns.some((rx) => rx.test(txt));
+    if (matched) {
+      const suggested = +(order.amount / 5).toFixed(2);
+      return {
+        amount: suggested,
+        note: `Un seul PDF concerné détecté — 1/5 du bundle = ${suggested}€ suggéré.`,
+      };
+    }
+    return null;
+  };
+
+  // Watcher : recompute la suggestion des que la raison change
+  React.useEffect(() => {
+    if (refundModalOpen && refundTarget && !refundPartial) {
+      const sugg = detectPartialSuggestion(refundReason, refundTarget);
+      setSuggestedPartial(sugg);
+    } else if (!refundReason) {
+      setSuggestedPartial(null);
+    }
+  }, [refundReason, refundModalOpen, refundTarget, refundPartial]);
 
   const confirmRefund = async () => {
     if (!refundTarget) return;
@@ -600,6 +635,38 @@ export default function AdminLectureComplete({ token }) {
                     }}
                   />
                 </div>
+
+                {suggestedPartial && !refundPartial && (
+                  <div
+                    data-testid="refund-modal-suggestion"
+                    className="rounded-lg p-3 flex items-start justify-between gap-2"
+                    style={{
+                      background: 'rgba(217,178,106,0.08)',
+                      border: '1px solid rgba(217,178,106,0.3)',
+                    }}
+                  >
+                    <div className="text-xs" style={{ color: '#d9b26a', flex: 1 }}>
+                      <div style={{ fontWeight: 600, marginBottom: 4 }}>💡 Suggestion</div>
+                      <div style={{ color: 'rgba(232,230,240,0.85)' }}>{suggestedPartial.note}</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRefundPartial(true);
+                        setRefundAmount(String(suggestedPartial.amount));
+                      }}
+                      data-testid="refund-modal-apply-suggestion"
+                      className="text-xs px-2 py-1 rounded"
+                      style={{
+                        background: '#d9b26a', color: '#1a1030',
+                        border: 'none', cursor: 'pointer',
+                        fontWeight: 600, whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Appliquer
+                    </button>
+                  </div>
+                )}
 
                 {refundTarget && !refundTarget.admin_bypass && (
                   <>

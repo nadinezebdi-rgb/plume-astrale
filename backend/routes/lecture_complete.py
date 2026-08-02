@@ -223,10 +223,15 @@ async def lecture_complete_admin_ab_stats(
                 stats['sample_email_ids'][variant].append(eid)
 
     if include_ctr and stats['total'] > 0:
+        # Utilise le cache 24h ; si expire, refresh en arriere-plan et renvoie old stale
         try:
-            from services.resend_stats import aggregate_ab_ctr
-            ctr = await aggregate_ab_ctr(variant_email_ids)
-            stats['ctr'] = ctr
+            from services.resend_stats import get_cached_ab_ctr, refresh_ab_ctr_cache
+            cached = get_cached_ab_ctr()
+            if cached:
+                stats['ctr'] = cached
+            else:
+                # Refresh synchrone (peut prendre 5-10s pour la 1ere fois)
+                stats['ctr'] = await refresh_ab_ctr_cache()
         except Exception as e:
             logger.warning(f'[ab-stats] CTR aggregation fail: {e}')
             stats['ctr_error'] = str(e)[:200]
@@ -234,13 +239,39 @@ async def lecture_complete_admin_ab_stats(
     return stats
 
 
-@router.get('/admin/orders/export')
-async def lecture_complete_admin_export_csv(
+@router.post('/admin/ctr-refresh')
+async def lecture_complete_admin_ctr_refresh(
     current_user: Optional[dict] = Depends(get_optional_user),
 ):
-    """Export CSV des commandes 97€ pour comptabilite / analyse externe.
+    """Force le refresh du cache CTR (utile apres avoir envoye de nouveaux emails)."""
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+    from services.resend_stats import refresh_ab_ctr_cache
+    result = await refresh_ab_ctr_cache()
+    return {'refreshed': True, 'ctr': result}
 
-    Retourne un text/csv streamable.
+
+@router.get('/admin/orders/export')
+async def lecture_complete_admin_export_csv(
+    since: Optional[str] = None,
+    until: Optional[str] = None,
+    payment_status: Optional[str] = None,
+    include_bypass: bool = True,
+    refunded_only: bool = False,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Export CSV filtre des commandes 97€.
+
+    Query params :
+      - since : ISO date (2026-08-01) — inclut les tx crees a partir de cette date
+      - until : ISO date — exclut les tx apres cette date
+      - payment_status : 'paid' | 'unpaid' | 'initiated' — filtre exact
+      - include_bypass : false pour exclure les admin bypass (comptabilite reelle)
+      - refunded_only : true pour ne prendre que les remboursees
     """
     from fastapi.responses import StreamingResponse
     import io
@@ -254,13 +285,30 @@ async def lecture_complete_admin_export_csv(
         raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
 
     try:
-        r = sb.table('payment_transactions').select(
+        q = sb.table('payment_transactions').select(
             'session_id, user_email, created_at, amount, currency, payment_status, metadata'
-        ).eq('pack_id', 'lecture_complete').order('created_at', desc=True).limit(1000).execute()
+        ).eq('pack_id', 'lecture_complete')
+        if since:
+            q = q.gte('created_at', since)
+        if until:
+            q = q.lte('created_at', until)
+        if payment_status:
+            q = q.eq('payment_status', payment_status)
+        r = q.order('created_at', desc=True).limit(2000).execute()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
     rows = (r.data or []) if r else []
+    # Filtres Python (Supabase ne peut pas filtrer sur metadata sans jsonb)
+    filtered_rows: List[Dict[str, Any]] = []
+    for row in rows:
+        md = row.get('metadata') or {}
+        if not include_bypass and md.get('admin_bypass'):
+            continue
+        if refunded_only and not md.get('refunded_at'):
+            continue
+        filtered_rows.append(row)
+
     buf = io.StringIO()
     writer = _csv.writer(buf, quoting=_csv.QUOTE_MINIMAL)
     writer.writerow([
@@ -270,7 +318,7 @@ async def lecture_complete_admin_export_csv(
         'first_name', 'birth_date',
         'sequence_j1', 'sequence_j7', 'sequence_j13', 'sequence_j30', 'j30_variant',
     ])
-    for row in rows:
+    for row in filtered_rows:
         md = row.get('metadata') or {}
         octx = md.get('order_ctx') or {}
         writer.writerow([
@@ -297,7 +345,13 @@ async def lecture_complete_admin_export_csv(
         ])
     buf.seek(0)
     from datetime import datetime as _dt
-    fname = f'plume-astrale-lecture-complete-{_dt.now().strftime("%Y%m%d")}.csv'
+    filter_suffix = []
+    if since: filter_suffix.append(f'from-{since[:10]}')
+    if until: filter_suffix.append(f'to-{until[:10]}')
+    if not include_bypass: filter_suffix.append('no-bypass')
+    if refunded_only: filter_suffix.append('refunds-only')
+    fname_suffix = ('-' + '-'.join(filter_suffix)) if filter_suffix else ''
+    fname = f'plume-astrale-lecture-complete-{_dt.now().strftime("%Y%m%d")}{fname_suffix}.csv'
     return StreamingResponse(
         iter([buf.getvalue()]),
         media_type='text/csv',

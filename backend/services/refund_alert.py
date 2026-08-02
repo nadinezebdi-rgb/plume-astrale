@@ -1,14 +1,17 @@
 """
 Refund alerting service — surveille le taux de refund sur 7 jours glissants
-et alerte les admins par email si depasse 5%.
+et alerte les admins par email + Slack (opt-in) si depasse 5%.
 
 Idempotent : ne renvoie pas 2 fois la meme alerte le meme jour.
 """
 from __future__ import annotations
 import asyncio
 import logging
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List
+
+import httpx
 
 from services.supabase_client import get_admin_client
 from services.resend_service import send_email
@@ -18,6 +21,7 @@ logger = logging.getLogger(__name__)
 CHECK_INTERVAL_S = 60 * 60  # 1h
 REFUND_ALERT_THRESHOLD_PCT = 5.0
 MIN_PAID_TO_ALERT = 5  # ne pas alerter sur des petits volumes (1/1 = 100%)
+SLACK_WEBHOOK_URL = os.environ.get('SLACK_WEBHOOK_URL', '').strip()
 _ALERT_STATE: Dict[str, str] = {'last_alert_date': ''}
 
 
@@ -72,6 +76,65 @@ async def _get_admin_emails() -> List[str]:
         return ['admin@plume-astrale.fr']  # fallback
 
 
+async def send_slack_refund_alert(stats: Dict[str, Any]) -> bool:
+    """Poste un message dans Slack via incoming webhook. No-op si SLACK_WEBHOOK_URL absent."""
+    if not SLACK_WEBHOOK_URL:
+        return False
+    rate = stats.get('rate_pct', 0)
+    paid = stats.get('paid', 0)
+    refunded = stats.get('refunded', 0)
+    details = stats.get('details', [])
+    detail_lines = '\n'.join(
+        f'• `{d["email"]}` — {d["refunded_at"][:10]}'
+        + (f' ({d["reason"][:60]})' if d.get('reason') else '')
+        + (' _via webhook_' if d.get('via_webhook') else '')
+        for d in details[:10]
+    ) or '_Aucun refund detaille._'
+
+    payload = {
+        'text': f':warning: *Plume Astrale — Refund alert {rate}%*',
+        'blocks': [
+            {
+                'type': 'header',
+                'text': {'type': 'plain_text', 'text': f'⚠️ Refund Lecture Complete : {rate}%'},
+            },
+            {
+                'type': 'section',
+                'text': {
+                    'type': 'mrkdwn',
+                    'text': f'*{refunded}* remboursements sur *{paid}* paiements (7 jours, hors bypass admin).\n'
+                            f'Seuil d\'alerte : {REFUND_ALERT_THRESHOLD_PCT}%.',
+                },
+            },
+            {
+                'type': 'section',
+                'text': {'type': 'mrkdwn', 'text': f'*Refunds récents :*\n{detail_lines}'},
+            },
+            {
+                'type': 'actions',
+                'elements': [
+                    {
+                        'type': 'button',
+                        'text': {'type': 'plain_text', 'text': 'Ouvrir /admin'},
+                        'url': 'https://plume-astrale.fr/admin',
+                        'style': 'primary',
+                    },
+                ],
+            },
+        ],
+    }
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            r = await client.post(SLACK_WEBHOOK_URL, json=payload)
+            if r.status_code in (200, 204):
+                logger.info('[refund_alert] Slack ping OK')
+                return True
+            logger.warning(f'[refund_alert] Slack returned {r.status_code}: {r.text[:200]}')
+    except Exception as e:
+        logger.warning(f'[refund_alert] Slack post fail: {e}')
+    return False
+
+
 async def send_refund_alert(stats: Dict[str, Any]) -> int:
     """Envoie l'alerte aux admins. Retourne le nombre d'emails envoyes."""
     admins = await _get_admin_emails()
@@ -121,6 +184,13 @@ async def send_refund_alert(stats: Dict[str, Any]) -> int:
                 sent += 1
         except Exception as e:
             logger.warning(f'[refund_alert] send fail to {admin_email}: {e}')
+
+    # Slack notification en parallele (opt-in via SLACK_WEBHOOK_URL)
+    try:
+        await send_slack_refund_alert(stats)
+    except Exception as e:
+        logger.warning(f'[refund_alert] slack fail: {e}')
+
     return sent
 
 
