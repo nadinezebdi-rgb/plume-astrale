@@ -1374,3 +1374,31 @@ Testing agent iteration_57 : **backend 6/6 ✅, frontend 10/10 data-testid ✅**
 ### Tests
 - Testing agent iteration_59 : backend 9/9 ✅ (UI bloqué par login)
 - Testing agent iteration_60 (retest) : **frontend 11/11 checks ✅** (login, admin panel, refresh, badge Cercle J-89, tous les data-testid)
+
+## 2026-08-02 (soirée) — Journal Cercle auto + Batch fetch + Refund + J+30
+
+### 1. Journal quotidien automatique pour acheteurs bundle
+- `get_bundle_guests_for_daily_journal()` : retourne les acheteurs bundle 97€ actifs (<90j) non présents dans profiles (guests). Filtre exclu les refunded.
+- `send_daily_journal_batch()` fusionne users + guests + retourne `{sent, users, guests, total_eligible}`.
+- Nouvelle boucle background `daily_journal_scheduler_loop` lancée au startup dans server.py (vérif toutes les heures, exécute une fois/jour via `last_run_date`).
+- Fix pré-existant : `profiles.email_verified` n'existe pas → filtre retiré + fallback silencieux sur `journal_email_logs` absent.
+
+### 2. Batch admin fetch — N+1 supprimé
+- `/api/lecture-complete/admin/orders` utilise maintenant `.in_('metadata->>parent_bundle', parent_sids)` : **1 query au lieu de N** pour tous les enfants.
+- Fallback N+1 conservé en secours dans un `try/except`.
+
+### 3. Refund tracking + dashboard stats
+- Nouveau `POST /api/lecture-complete/admin/refund/{sid}` (admin only) → marque `metadata.refunded_at`, `refund_reason`, `refunded_by`. N'effectue PAS le remboursement Stripe (à faire manuellement dans le dashboard).
+- `/admin/orders` retourne maintenant `stats: {total_paid, total_refunded, refund_rate_pct}`.
+- `/cercle-status` retourne `{active:false, refunded:true}` pour les commandes remboursées.
+- La séquence email J+1/J+7/J+13/J+30 skip les tx refunded.
+- Frontend `AdminLectureComplete` : nouveau bandeau stats (data-testid=admin-lc-stats + admin-lc-refund-rate), bouton Rembourser (admin-lc-refund-{sid}), badge REMBOURSÉ (admin-lc-refunded-{sid}), bouton Relancer désactivé après refund.
+
+### 4. Sequence J+30 upsell
+- Nouvel email J+30 : "Une invitation pour aller plus loin" — Cercle Soléna longue durée à 19€/mois pendant 6 mois puis 29€ (au lieu de 29€ direct).
+- Idempotent via `metadata.sequence_j30_sent_at`.
+- Pastille J+30 ajoutée dans le tableau admin.
+
+### Tests
+- Testing agent iteration_61 : **backend 15/15 ✅, frontend 10/10 UI checks ✅**
+- Pytest suite `/app/backend/tests/test_iteration61_bundle_complementaires.py` (7.72s, 100%).

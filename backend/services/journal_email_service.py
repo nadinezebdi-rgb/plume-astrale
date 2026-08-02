@@ -26,9 +26,12 @@ async def get_users_for_daily_journal() -> List[Dict[str, Any]]:
         # Filter: must have email + birth_date
         users = [u for u in users if u.get('email') and u.get('birth_date')]
         
-        # Exclude already sent today
-        logs_res = sb.table('journal_email_logs').select('user_id').eq('sent_date', today).execute()
-        sent_ids = {log['user_id'] for log in (logs_res.data or [])}
+        # Exclude already sent today (journal_email_logs peut ne pas exister — fallback silencieux)
+        try:
+            logs_res = sb.table('journal_email_logs').select('user_id').eq('sent_date', today).execute()
+            sent_ids = {log['user_id'] for log in (logs_res.data or [])}
+        except Exception:
+            sent_ids = set()
         users = [u for u in users if u['id'] not in sent_ids]
         
         return users
