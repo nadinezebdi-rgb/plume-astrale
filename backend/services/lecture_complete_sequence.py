@@ -117,9 +117,17 @@ def _email_j13(prenom: str) -> tuple[str, str]:
     return subject, body
 
 
-def _email_j30(prenom: str) -> tuple[str, str]:
-    """J+30 upsell : offre Cercle Solena longue duree a tarif preferentiel."""
-    subject = '{p}, une invitation pour aller plus loin'.format(p=prenom)
+def _email_j30(prenom: str, variant: str = 'question') -> tuple[str, str]:
+    """J+30 upsell : offre Cercle Solena longue duree a tarif preferentiel.
+
+    A/B test sur le subject :
+      - 'question' : question ouverte "veux-tu aller plus loin ?"
+      - 'invitation' : invitation directe "une place dans le Cercle"
+    """
+    if variant == 'invitation':
+        subject = '{p}, ta place dans le Cercle Solena t\'attend'.format(p=prenom)
+    else:
+        subject = '{p}, veux-tu aller plus loin ?'.format(p=prenom)
     body = """
       <p>Il y a un mois, tu as ouvert la porte.</p>
       <p>Ta Lecture Complete t'a montre les cartes. Le sens des cycles, les
@@ -186,8 +194,14 @@ async def _process_transaction(tx: Dict[str, Any]) -> int:
         subject, body = _email_j13(prenom)
         cta_label = 'Acceder a mes documents'
     else:
-        subject, body = _email_j30(prenom)
+        # A/B test J+30 : variant deterministe sur session_id (50/50)
+        # Utilise hash(session_id) % 2 pour repartition stable (meme rerun -> meme variant)
+        import hashlib
+        h = int(hashlib.md5((session_id or '').encode('utf-8')).hexdigest(), 16)
+        variant = 'invitation' if (h % 2 == 0) else 'question'
+        subject, body = _email_j30(prenom, variant=variant)
         cta_label = 'Rejoindre le Cercle · 19€/mois'
+        md['sequence_j30_variant'] = variant
 
     html = _email_template(subject, prenom, body, cta_label)
     try:

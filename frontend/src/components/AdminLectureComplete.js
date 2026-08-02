@@ -1,6 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import { RefreshCw, CheckCircle2, XCircle, Clock, AlertTriangle, Mail } from 'lucide-react';
+import { RefreshCw, CheckCircle2, XCircle, Clock, AlertTriangle, Mail, Loader2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -42,6 +50,14 @@ export default function AdminLectureComplete({ token }) {
   const [redispatching, setRedispatching] = useState(null);
   const [refunding, setRefunding] = useState(null);
 
+  // Modal refund state
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const [refundTarget, setRefundTarget] = useState(null);  // {sid, email, amount, admin_bypass}
+  const [refundReason, setRefundReason] = useState('');
+  const [refundSkipStripe, setRefundSkipStripe] = useState(false);
+  const [refundError, setRefundError] = useState(null);
+  const [refundSuccess, setRefundSuccess] = useState(null);
+
   const load = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -76,18 +92,40 @@ export default function AdminLectureComplete({ token }) {
     }
   };
 
-  const refund = async (sid) => {
-    const reason = window.prompt('Raison du remboursement (optionnel) :');
-    if (reason === null) return; // annulé
-    if (!window.confirm(`Marquer la commande ${sid} comme remboursée ? (Ne déclenche pas le refund Stripe — à faire manuellement dans le dashboard Stripe)`)) return;
-    setRefunding(sid);
+  const openRefundModal = (order) => {
+    setRefundTarget({
+      sid: order.session_id,
+      email: order.email,
+      amount: order.amount,
+      admin_bypass: order.admin_bypass,
+    });
+    setRefundReason('');
+    setRefundSkipStripe(!!order.admin_bypass);  // pas de Stripe a rembourser pour les bypass
+    setRefundError(null);
+    setRefundSuccess(null);
+    setRefundModalOpen(true);
+  };
+
+  const confirmRefund = async () => {
+    if (!refundTarget) return;
+    setRefunding(refundTarget.sid);
+    setRefundError(null);
     try {
-      await axios.post(`${API}/api/lecture-complete/admin/refund/${sid}`, { reason: reason || undefined }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const r = await axios.post(
+        `${API}/api/lecture-complete/admin/refund/${refundTarget.sid}`,
+        { reason: refundReason || undefined, skip_stripe: refundSkipStripe },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setRefundSuccess(r.data);
       await load();
+      // Auto-fermeture apres 1.5s
+      setTimeout(() => {
+        setRefundModalOpen(false);
+        setRefundTarget(null);
+        setRefundSuccess(null);
+      }, 1500);
     } catch (e) {
-      alert(e.response?.data?.detail || 'Erreur refund');
+      setRefundError(e.response?.data?.detail || 'Erreur refund');
     } finally {
       setRefunding(null);
     }
@@ -140,7 +178,7 @@ export default function AdminLectureComplete({ token }) {
             Remboursés : <strong style={{ color: '#f87171' }}>{stats.total_refunded}</strong>
           </span>
           <span style={{ fontSize: 12, color: 'rgba(184,180,201,0.75)' }}>
-            Taux de refund : <strong data-testid="admin-lc-refund-rate" style={{ color: stats.refund_rate_pct > 5 ? '#f87171' : '#4ADE80' }}>{stats.refund_rate_pct}%</strong>
+            Taux de refund : <strong data-testid="admin-lc-stats-refund-rate" style={{ color: stats.refund_rate_pct > 5 ? '#f87171' : '#4ADE80' }}>{stats.refund_rate_pct}%</strong>
           </span>
         </div>
       )}
@@ -207,7 +245,7 @@ export default function AdminLectureComplete({ token }) {
                 </button>
                 {!o.refunded_at ? (
                   <button
-                    onClick={() => refund(o.session_id)}
+                    onClick={() => openRefundModal(o)}
                     disabled={refunding === o.session_id}
                     data-testid={`admin-lc-refund-${o.session_id}`}
                     style={{
@@ -263,6 +301,115 @@ export default function AdminLectureComplete({ token }) {
           </div>
         ))}
       </div>
+
+      {/* ═══ MODAL REFUND ═══ */}
+      <Dialog open={refundModalOpen} onOpenChange={setRefundModalOpen}>
+        <DialogContent
+          className="max-w-md"
+          data-testid="refund-modal"
+          style={{ background: '#141a33', color: '#e8e6f0', border: '1px solid rgba(217,178,106,0.3)' }}
+        >
+          <DialogHeader>
+            <DialogTitle style={{ color: '#f87171' }}>
+              Rembourser la commande
+            </DialogTitle>
+            <DialogDescription>
+              {refundTarget && (
+                <>
+                  <div className="text-xs opacity-70 font-mono break-all mb-2">
+                    {refundTarget.sid}
+                  </div>
+                  <div className="text-sm">
+                    <strong>{refundTarget.email}</strong>
+                    {' — '}{refundTarget.amount}€
+                    {refundTarget.admin_bypass && <span className="ml-2 text-purple-300">(admin bypass)</span>}
+                  </div>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {refundSuccess ? (
+            <div
+              data-testid="refund-modal-success"
+              className="rounded-lg p-3 text-sm"
+              style={{ background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ADE80' }}
+            >
+              ✓ Remboursement effectué{refundSuccess.stripe_refund_id ? ` · Stripe : ${refundSuccess.stripe_refund_id}` : ''}
+              {refundSuccess.stripe_skipped && <div className="text-xs opacity-70 mt-1">Stripe non appelé (admin bypass ou skip demandé).</div>}
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs uppercase tracking-wider block mb-1" style={{ color: '#d9b26a' }}>
+                    Raison (optionnel)
+                  </label>
+                  <textarea
+                    data-testid="refund-modal-reason"
+                    value={refundReason}
+                    onChange={(e) => setRefundReason(e.target.value)}
+                    placeholder="Ex : client a demandé, PDF défectueux, doublon…"
+                    rows={3}
+                    className="w-full rounded px-3 py-2 text-sm"
+                    style={{
+                      background: 'rgba(11,16,32,0.6)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      color: '#e8e6f0',
+                    }}
+                  />
+                </div>
+
+                {refundTarget && !refundTarget.admin_bypass && (
+                  <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'rgba(184,180,201,0.85)' }}>
+                    <input
+                      type="checkbox"
+                      checked={refundSkipStripe}
+                      onChange={(e) => setRefundSkipStripe(e.target.checked)}
+                      data-testid="refund-modal-skip-stripe"
+                    />
+                    Ne pas appeler Stripe (marquer localement uniquement)
+                  </label>
+                )}
+
+                {refundError && (
+                  <div
+                    data-testid="refund-modal-error"
+                    className="rounded p-2 text-xs"
+                    style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171' }}
+                  >
+                    {refundError}
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter>
+                <button
+                  type="button"
+                  onClick={() => setRefundModalOpen(false)}
+                  disabled={!!refunding}
+                  data-testid="refund-modal-cancel"
+                  className="px-4 py-2 rounded text-xs uppercase tracking-wider"
+                  style={{ background: 'transparent', color: 'rgba(184,180,201,0.75)', border: '1px solid rgba(255,255,255,0.15)' }}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmRefund}
+                  disabled={!!refunding}
+                  data-testid="refund-modal-confirm"
+                  className="px-4 py-2 rounded text-xs uppercase tracking-wider inline-flex items-center gap-1.5"
+                  style={{ background: '#f87171', color: '#0b1020', border: 'none', cursor: refunding ? 'not-allowed' : 'pointer', fontWeight: 600 }}
+                >
+                  {refunding && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  {refunding ? 'Refund…' : (refundSkipStripe || refundTarget?.admin_bypass ? 'Marquer remboursé' : 'Rembourser via Stripe')}
+                </button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -182,6 +182,42 @@ async def lecture_complete_scarcity():
     return get_scarcity_status()
 
 
+@router.get('/admin/ab-stats')
+async def lecture_complete_admin_ab_stats(
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Stats A/B test J+30 : nombre d'envois par variant (question vs invitation).
+
+    Le taux de clic reel devra etre lu depuis le dashboard Resend (les email_id sont
+    stockes dans metadata.sequence_j30_email_id).
+    """
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+
+    try:
+        r = sb.table('payment_transactions').select('metadata').eq('pack_id', 'lecture_complete').execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    rows = (r.data or []) if r else []
+    stats = {'question': 0, 'invitation': 0, 'total': 0, 'sample_email_ids': {'question': [], 'invitation': []}}
+    for row in rows:
+        md = row.get('metadata') or {}
+        if not md.get('sequence_j30_sent_at'):
+            continue
+        variant = md.get('sequence_j30_variant') or 'question'  # ancien envoi sans variant = question
+        stats[variant] = stats.get(variant, 0) + 1
+        stats['total'] += 1
+        eid = md.get('sequence_j30_email_id')
+        if eid and len(stats['sample_email_ids'][variant]) < 5:
+            stats['sample_email_ids'][variant].append(eid)
+    return stats
+
+
 @router.get('/admin/orders')
 async def lecture_complete_admin_orders(current_user: Optional[dict] = Depends(get_optional_user)):
     """Panneau admin : liste toutes les commandes 97€ avec l'etat des 5 PDFs enfants.
@@ -297,6 +333,7 @@ async def lecture_complete_admin_orders(current_user: Optional[dict] = Depends(g
 
 class RefundRequest(BaseModel):
     reason: Optional[str] = None
+    skip_stripe: Optional[bool] = False  # true → seulement marquer refunded, ne pas appeler Stripe
 
 
 @router.post('/admin/refund/{session_id}')
@@ -305,11 +342,17 @@ async def lecture_complete_admin_refund(
     payload: RefundRequest,
     current_user: Optional[dict] = Depends(get_optional_user),
 ):
-    """Marque une commande comme remboursee.
+    """Rembourse une commande via l'API Stripe + marque la tx.
 
-    Attention : n'effectue PAS le remboursement Stripe automatiquement — l'admin doit
-    lancer le refund manuellement dans le dashboard Stripe. Cette API sert uniquement
-    a tracker le statut cote base + arreter la sequence email et le journal.
+    Ordre :
+      1. Verifie admin
+      2. Charge la tx, verifie qu'elle n'est pas deja remboursee
+      3. Si skip_stripe=false ET session_id commence par 'cs_' : appelle stripe.Refund.create()
+      4. Marque metadata.refunded_at / refund_reason / stripe_refund_id
+      5. Retourne le detail
+
+    Note : pour les admin bypass (session_id 'admin-lecture-...'), skip_stripe est force
+    a true (pas de vrai paiement a rembourser).
     """
     if not current_user or not current_user.get('id'):
         raise HTTPException(status_code=401, detail='Authentification requise.')
@@ -319,22 +362,71 @@ async def lecture_complete_admin_refund(
         raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
 
     try:
-        r = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+        r = sb.table('payment_transactions').select('metadata, amount').eq(
+            'session_id', session_id).maybe_single().execute()
         if not r or not r.data:
             raise HTTPException(status_code=404, detail='Session introuvable.')
         md = r.data.get('metadata') or {}
+        if md.get('refunded_at'):
+            raise HTTPException(status_code=409, detail='Deja remboursee.')
+
+        stripe_refund_id: Optional[str] = None
+        stripe_refund_error: Optional[str] = None
+        skip = bool(payload.skip_stripe) or session_id.startswith('admin-') or bool(md.get('admin_bypass'))
+
+        if not skip:
+            # Appel Stripe API pour le refund reel
+            try:
+                import stripe as _stripe
+                settings = get_settings()
+                _stripe.api_key = settings.STRIPE_API_KEY
+                # Recupere le payment_intent depuis la session Stripe
+                sess = _stripe.checkout.Session.retrieve(session_id)
+                pi = sess.get('payment_intent') if isinstance(sess, dict) else sess.payment_intent
+                if not pi:
+                    raise Exception('Aucun payment_intent sur cette session Stripe.')
+                refund = _stripe.Refund.create(
+                    payment_intent=pi,
+                    reason='requested_by_customer',
+                    metadata={
+                        'session_id': session_id,
+                        'admin_id': current_user.get('id', ''),
+                        'reason_user': (payload.reason or '')[:250],
+                    },
+                )
+                stripe_refund_id = refund.get('id') if isinstance(refund, dict) else refund.id
+            except HTTPException:
+                raise
+            except Exception as e:
+                stripe_refund_error = str(e)[:400]
+                logger.error(f'[lecture_complete/refund] Stripe refund failed for {session_id}: {e}')
+                raise HTTPException(
+                    status_code=502,
+                    detail=f'Refund Stripe echoue : {stripe_refund_error}. Aucune donnee modifiee.',
+                )
+
         from datetime import datetime as _dt, timezone as _tz
         md['refunded_at'] = _dt.now(_tz.utc).isoformat()
         if payload.reason:
             md['refund_reason'] = payload.reason[:500]
         md['refunded_by'] = current_user.get('id')
+        if stripe_refund_id:
+            md['stripe_refund_id'] = stripe_refund_id
+        if skip:
+            md['refund_stripe_skipped'] = True
         sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {'refunded': True, 'session_id': session_id, 'refunded_at': md['refunded_at']}
+    return {
+        'refunded': True,
+        'session_id': session_id,
+        'refunded_at': md['refunded_at'],
+        'stripe_refund_id': stripe_refund_id,
+        'stripe_skipped': skip,
+    }
 
 
 @router.post('/admin/redispatch/{session_id}')

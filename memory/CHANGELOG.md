@@ -1402,3 +1402,39 @@ Testing agent iteration_57 : **backend 6/6 ✅, frontend 10/10 data-testid ✅**
 ### Tests
 - Testing agent iteration_61 : **backend 15/15 ✅, frontend 10/10 UI checks ✅**
 - Pytest suite `/app/backend/tests/test_iteration61_bundle_complementaires.py` (7.72s, 100%).
+
+## 2026-08-02 (fin de journée) — Migration SQL + Refund Stripe auto + Modal shadcn + A/B J+30
+
+### 1. Migration SQL propre
+- Nouveau fichier `/app/backend/migrations/2026_08_journal_tracking_and_email_verified.sql` :
+  - `ALTER TABLE profiles ADD COLUMN email_verified BOOLEAN DEFAULT true` (default true = pas de régression sur users existants)
+  - `CREATE TABLE journal_email_logs (id, user_id, email, sent_date, sent_at, email_provider_id, variant, created_at)` avec unique index `(email, sent_date)` pour empêcher les doublons
+  - RLS activé, policy service_role only
+- **⚠️ ACTION USER** : le fichier doit être appliqué manuellement via Supabase Dashboard → SQL Editor (l'API n'expose pas exec_sql).
+
+### 2. Refund Stripe automatique
+- `POST /api/lecture-complete/admin/refund/{sid}` appelle maintenant `stripe.Refund.create(payment_intent=...)` directement.
+- Auto-detect les admin bypass (session_id `admin-*` OU metadata.admin_bypass=true) → `stripe_skipped=true` (pas de vrai paiement à rembourser).
+- Body : `{reason?, skip_stripe?}` — checkbox `skip_stripe` disponible pour cas exceptionnels.
+- Réponse : `{refunded, session_id, refunded_at, stripe_refund_id, stripe_skipped}`
+- 409 si déjà remboursée, 502 si Stripe échoue (aucune donnée modifiée).
+
+### 3. Modal shadcn refund
+- Remplacé `window.prompt()` + `window.confirm()` par un vrai Dialog Radix/shadcn.
+- data-testid : refund-modal, refund-modal-reason, refund-modal-skip-stripe, refund-modal-cancel, refund-modal-confirm, refund-modal-success, refund-modal-error
+- Affiche : email, montant, badge admin bypass, textarea raison, checkbox skip Stripe (masquée pour les bypass), bouton "Rembourser via Stripe" ou "Marquer remboursé" selon contexte.
+- Auto-fermeture 1.5s après succès.
+- Fix collision testid : `admin-lc-refund-rate` → `admin-lc-stats-refund-rate` (le prefix matchait les boutons).
+
+### 4. A/B test J+30 upsell
+- `_email_j30(prenom, variant)` accepte maintenant 2 variantes :
+  - `question` : "{prenom}, veux-tu aller plus loin ?"
+  - `invitation` : "{prenom}, ta place dans le Cercle Solena t'attend"
+- Distribution déterministe 50/50 via `md5(session_id) % 2` (stable, replayable).
+- `metadata.sequence_j30_variant` stocké pour analytics.
+- Nouvel endpoint `GET /api/lecture-complete/admin/ab-stats` retourne `{question, invitation, total, sample_email_ids}` — l'admin lit ensuite le taux de clic dans Resend dashboard via ces email_ids.
+- Test distribution sur 100 sids : 48/52 (équilibré).
+
+### Tests
+- Smoke UI : modal shadcn s'affiche correctement, champ raison éditable, bouton adaptatif "MARQUER REMBOURSÉ" vs "REMBOURSER VIA STRIPE".
+- Smoke backend : refund bypass → stripe_skipped=true ✅, refund duplicate → 409 ✅, /admin/ab-stats retourne structure attendue ✅.
