@@ -644,9 +644,11 @@ async def lecture_complete_admin_refund(
 
 @router.post('/admin/test-slack')
 async def lecture_complete_admin_test_slack(
+    payload: Dict[str, Any] = None,
     current_user: Optional[dict] = Depends(get_optional_user),
 ):
-    """Envoie un ping de test vers le SLACK_WEBHOOK_URL pour verifier la config."""
+    """Envoie un ping de test vers Slack. Utilise `webhook_url` du body si fourni,
+    sinon fallback sur SLACK_WEBHOOK_URL env."""
     if not current_user or not current_user.get('id'):
         raise HTTPException(status_code=401, detail='Authentification requise.')
     sb = get_admin_client()
@@ -655,19 +657,61 @@ async def lecture_complete_admin_test_slack(
         raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
 
     import os as _os
-    if not _os.environ.get('SLACK_WEBHOOK_URL'):
-        return {'success': False, 'reason': 'SLACK_WEBHOOK_URL non configure dans /app/backend/.env'}
-    from services.refund_alert import send_slack_refund_alert
-    ok = await send_slack_refund_alert({
-        'rate_pct': 0.0,
-        'paid': 0,
-        'refunded': 0,
-        'details': [{'email': f'admin-test@{(current_user.get("email") or "plume").split("@")[-1]}',
-                     'refunded_at': '2026-08-02T00:00:00+00:00',
-                     'reason': 'PING DE TEST — ceci n\'est pas un vrai refund',
-                     'via_webhook': False}],
-    })
-    return {'success': bool(ok), 'reason': 'Ping envoye' if ok else 'Slack a renvoye une erreur (voir logs backend)'}
+    custom_url = ((payload or {}).get('webhook_url') or '').strip() if isinstance(payload, dict) else ''
+    target_url = custom_url or _os.environ.get('SLACK_WEBHOOK_URL', '').strip()
+    if not target_url:
+        return {'success': False, 'reason': 'Aucun webhook Slack fourni (input vide + SLACK_WEBHOOK_URL absent).'}
+
+    import httpx as _httpx
+    try:
+        async with _httpx.AsyncClient(timeout=8.0) as client:
+            r = await client.post(target_url, json={
+                'text': f':white_check_mark: *Plume Astrale — Ping de test*\n'
+                        f'Webhook OK. Test lance par {current_user.get("email","admin")}.',
+            })
+            if r.status_code in (200, 204):
+                return {'success': True, 'reason': 'Ping envoye (' + ('custom URL' if custom_url else '.env') + ')'}
+            return {'success': False, 'reason': f'Slack a renvoye {r.status_code}: {r.text[:200]}'}
+    except Exception as e:
+        return {'success': False, 'reason': f'Erreur reseau: {e}'}
+
+
+@router.get('/admin/settings')
+async def lecture_complete_admin_settings_get(
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Retourne les app settings (forced_j30_variant, historique alertes)."""
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+    from services.app_settings import get_setting, get_alerts_history
+    return {
+        'forced_j30_variant': get_setting('forced_j30_variant'),
+        'alerts_history': get_alerts_history(),
+    }
+
+
+@router.post('/admin/set-forced-variant')
+async def lecture_complete_admin_set_forced_variant(
+    payload: Dict[str, Any],
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Force 100% sur une variante A/B J+30 (ou reset avec variant=null)."""
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+    variant = (payload or {}).get('variant')
+    if variant not in (None, 'question', 'invitation'):
+        raise HTTPException(status_code=400, detail='variant doit etre null, "question" ou "invitation".')
+    from services.app_settings import set_setting
+    set_setting('forced_j30_variant', variant)
+    return {'forced_j30_variant': variant}
 
 
 @router.post('/admin/redispatch/{session_id}')
