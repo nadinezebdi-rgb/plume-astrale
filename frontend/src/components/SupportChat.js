@@ -17,7 +17,7 @@ const styles = `
     box-shadow:0 8px 30px rgba(201,162,75,.45),inset 0 1px 0 rgba(255,255,255,.35);
     cursor:pointer;border:none;font-size:28px;font-family:Georgia,serif;
     transition:transform .2s ease;animation:pac-float 4s ease-in-out infinite;}
-  .pac-bubble:hover{transform:scale(1.08);}
+  .pac-bubble:hover,.pac-bubble:focus{transform:scale(1.08);animation-play-state:paused;}
   @keyframes pac-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 
   .pac-panel{position:fixed;bottom:20px;right:20px;z-index:100;
@@ -70,7 +70,15 @@ const styles = `
   .pac-send:disabled{opacity:.5;cursor:not-allowed;}
 
   .pac-legal{font-size:10px;color:#7d7a90;text-align:center;margin-top:8px;font-style:italic;}
-`;
+
+  .pac-thumbs{display:flex;align-items:center;gap:6px;margin:4px 0 6px 12px;
+    font-size:10px;color:#7d7a90;letter-spacing:.02em;}
+  .pac-thumb-q{font-style:italic;}
+  .pac-thumb-btn{background:transparent;border:1px solid rgba(201,162,75,.25);
+    color:#c9a24b;padding:2px 8px;border-radius:12px;cursor:pointer;
+    font-size:12px;line-height:1;transition:all .18s;}
+  .pac-thumb-btn:hover{background:rgba(201,162,75,.1);border-color:rgba(201,162,75,.5);}
+  .pac-thumb-done{color:#4ADE80;font-size:10px;font-style:italic;}`;
 
 const INITIAL_MESSAGE = {
   role: 'assistant',
@@ -115,6 +123,9 @@ export default function SupportChat() {
         content: r.data?.reply || 'Erreur inattendue.',
         escalate: !!r.data?.escalate,
         support_email: r.data?.support_email,
+        exchange_idx: r.data?.exchange_idx,
+        session_id: r.data?.session_id,
+        helpful: null,
       }]);
     } catch (e) {
       setMessages((cur) => [...cur, {
@@ -133,6 +144,20 @@ export default function SupportChat() {
       e.preventDefault();
       send();
     }
+  };
+
+  const sendFeedback = async (msgIdx, helpful) => {
+    const msg = messages[msgIdx];
+    if (!msg || msg.exchange_idx == null || !msg.session_id) return;
+    if (msg.helpful !== null && msg.helpful !== undefined) return; // Déjà voté
+    try {
+      await axios.post(`${API}/api/chat/feedback`, {
+        session_id: msg.session_id,
+        exchange_idx: msg.exchange_idx,
+        helpful,
+      });
+      setMessages((cur) => cur.map((m, i) => i === msgIdx ? { ...m, helpful } : m));
+    } catch (_e) { /* silent */ }
   };
 
   return (
@@ -169,19 +194,42 @@ export default function SupportChat() {
           </div>
           <div className="pac-body" ref={bodyRef} data-testid="support-chat-body">
             {messages.map((m, i) => (
-              <div
-                key={i}
-                className={`pac-msg ${m.role === 'user' ? 'pac-msg-user' : 'pac-msg-bot'} ${m.escalate ? 'pac-msg-escalate' : ''}`}
-                data-testid={`support-chat-msg-${m.role}`}
-              >
-                {m.content}
-                {m.escalate && m.support_email && (
-                  <div className="pac-support">
-                    Contact humain :{' '}
-                    <a href={`mailto:${m.support_email}?subject=Plume Astrale - Support`}
-                      data-testid="support-chat-escalate-mail">
-                      {m.support_email}
-                    </a>
+              <div key={i}>
+                <div
+                  className={`pac-msg ${m.role === 'user' ? 'pac-msg-user' : 'pac-msg-bot'} ${m.escalate ? 'pac-msg-escalate' : ''}`}
+                  data-testid={`support-chat-msg-${m.role}`}
+                >
+                  {m.content}
+                  {m.escalate && m.support_email && (
+                    <div className="pac-support">
+                      Contact humain :{' '}
+                      <a href={`mailto:${m.support_email}?subject=Plume Astrale - Support`}
+                        data-testid="support-chat-escalate-mail">
+                        {m.support_email}
+                      </a>
+                    </div>
+                  )}
+                </div>
+                {/* FAQ Bridge : thumbs sur les réponses IA (skip la 1ere = welcome) */}
+                {m.role === 'assistant' && m.exchange_idx != null && (
+                  <div className="pac-thumbs" data-testid={`support-chat-thumbs-${i}`}>
+                    {m.helpful === true ? (
+                      <span className="pac-thumb-done">✓ Merci pour ton retour</span>
+                    ) : m.helpful === false ? (
+                      <span className="pac-thumb-done">✓ Retour noté</span>
+                    ) : (
+                      <>
+                        <span className="pac-thumb-q">Cette réponse a-t-elle aidé ?</span>
+                        <button type="button" className="pac-thumb-btn"
+                          onClick={() => sendFeedback(i, true)}
+                          data-testid={`support-chat-thumb-up-${i}`}
+                          aria-label="Oui, réponse utile">👍</button>
+                        <button type="button" className="pac-thumb-btn"
+                          onClick={() => sendFeedback(i, false)}
+                          data-testid={`support-chat-thumb-down-${i}`}
+                          aria-label="Non, réponse à améliorer">👎</button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

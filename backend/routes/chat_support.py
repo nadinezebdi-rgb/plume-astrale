@@ -13,12 +13,17 @@ from __future__ import annotations
 import logging
 import os
 import uuid
-from typing import List, Optional
-from fastapi import APIRouter, HTTPException
+from datetime import datetime, timezone
+from typing import List, Optional, Dict, Any
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
 from dotenv import load_dotenv
 load_dotenv()
+
+from middleware.auth import get_optional_user
+from services.supabase_client import get_admin_client
+from services.app_settings import get_setting, set_setting
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/chat', tags=['chat'])
@@ -93,6 +98,7 @@ class ChatResponse(BaseModel):
     escalate: bool
     session_id: str
     support_email: str
+    exchange_idx: Optional[int] = None
 
 
 @router.post('/support', response_model=ChatResponse)
@@ -140,9 +146,119 @@ async def chat_support(payload: ChatRequest):
         escalate = True
         reply = reply[len('[ESCALATE]'):].strip()
 
+    # Chat analytics : log chaque échange (idx dans la session) pour observabilité
+    exchange_idx = _log_chat_exchange(
+        session_id=session_id,
+        user_message=payload.message[:1000],
+        assistant_reply=reply[:1500],
+        escalate=escalate,
+    )
+
     return ChatResponse(
         reply=reply,
         escalate=escalate,
         session_id=session_id,
         support_email=SUPPORT_EMAIL,
+        exchange_idx=exchange_idx,
     )
+
+
+# ═══════════════════════════════════════════════════════════════
+# Analytics + FAQ Bridge feedback
+# ═══════════════════════════════════════════════════════════════
+
+MAX_LOG_ENTRIES = 500
+
+
+def _log_chat_exchange(session_id: str, user_message: str, assistant_reply: str,
+                       escalate: bool) -> int:
+    """Log un échange dans app_settings.chat_analytics (deque bornée). Retourne l'index unique."""
+    entries = get_setting('chat_analytics') or []
+    idx = len(entries)
+    entries.append({
+        'idx': idx,
+        'session_id': session_id,
+        'user_message': user_message,
+        'assistant_reply': assistant_reply,
+        'escalate': bool(escalate),
+        'helpful': None,  # sera set via /feedback
+        'created_at': datetime.now(timezone.utc).isoformat(),
+    })
+    # Cap : garde les 500 dernières entrées
+    if len(entries) > MAX_LOG_ENTRIES:
+        entries = entries[-MAX_LOG_ENTRIES:]
+        # Reindex pour cohérence (idx = position dans la liste tronquée)
+        for i, e in enumerate(entries):
+            e['idx'] = i
+        idx = len(entries) - 1
+    set_setting('chat_analytics', entries)
+    return idx
+
+
+class ChatFeedback(BaseModel):
+    session_id: str
+    exchange_idx: int
+    helpful: bool
+
+
+@router.post('/feedback')
+async def chat_feedback(payload: ChatFeedback):
+    """FAQ Bridge : le user clique 👍/👎 sur une réponse IA. On stocke le feedback."""
+    entries = get_setting('chat_analytics') or []
+    updated = False
+    for e in entries:
+        if e.get('session_id') == payload.session_id and e.get('idx') == payload.exchange_idx:
+            e['helpful'] = bool(payload.helpful)
+            e['feedback_at'] = datetime.now(timezone.utc).isoformat()
+            updated = True
+            break
+    if not updated:
+        raise HTTPException(status_code=404, detail='Échange introuvable.')
+    set_setting('chat_analytics', entries)
+    return {'ok': True}
+
+
+@router.get('/analytics')
+async def chat_analytics(current_user: Optional[dict] = Depends(get_optional_user)):
+    """Analytics chat — admin only. Renvoie stats agrégées + 50 derniers échanges."""
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq(
+        'id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+
+    entries = get_setting('chat_analytics') or []
+    total = len(entries)
+    escalated = sum(1 for e in entries if e.get('escalate'))
+    positive = sum(1 for e in entries if e.get('helpful') is True)
+    negative = sum(1 for e in entries if e.get('helpful') is False)
+    scored = positive + negative
+    helpful_rate = round((positive / scored * 100), 1) if scored else None
+    escalate_rate = round((escalated / total * 100), 1) if total else 0.0
+    unique_sessions = len({e.get('session_id') for e in entries if e.get('session_id')})
+
+    # Top 10 messages notes negatifs (FAQ gaps)
+    gaps: List[Dict[str, Any]] = []
+    for e in reversed(entries):
+        if e.get('helpful') is False:
+            gaps.append({
+                'user_message': (e.get('user_message') or '')[:200],
+                'assistant_reply': (e.get('assistant_reply') or '')[:200],
+                'escalate': bool(e.get('escalate')),
+                'created_at': e.get('created_at'),
+            })
+            if len(gaps) >= 10:
+                break
+
+    return {
+        'total_exchanges': total,
+        'unique_sessions': unique_sessions,
+        'escalate_rate_pct': escalate_rate,
+        'helpful_rate_pct': helpful_rate,
+        'positive_feedback': positive,
+        'negative_feedback': negative,
+        'faq_gaps': gaps,
+        'recent': list(reversed(entries[-50:])),
+    }

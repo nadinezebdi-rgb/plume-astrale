@@ -97,6 +97,41 @@
       "details": "Par admin@plume-astrale.fr",
       "channels": [],
       "at": "2026-08-02T15:26:09.102760+00:00"
+    },
+    {
+      "kind": "new_testimonial",
+      "title": "Nouveau témoignage : TEST_Iter66_3a4eb6 (pending)",
+      "details": "Retour de test iter66 pour valider le log_alert Slack (TEST_Iter66_3a4eb6).",
+      "channels": [],
+      "at": "2026-08-02T16:19:42.804357+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero A/B débloqué (50/50)",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T16:19:45.370851+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero forcé sur variante A",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T16:19:45.736436+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero forcé sur variante B",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T16:19:46.087255+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero A/B débloqué (50/50)",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-02T16:19:47.002118+00:00"
     }
   ],
   "slack_test_cooldown": {
@@ -171,19 +206,93 @@
       "author_id": "6ffa92d2-8fd9-4ead-8aec-7645561864de",
       "author_email": "test@plume-astrale.fr",
       "created_at": "2026-08-02T15:25:16.746101+00:00"
+    },
+    {
+      "id": "usr-63cd7a4293d5",
+      "initial": "T",
+      "name": "TEST_Iter66_3a4eb6",
+      "sign": "Balance",
+      "city": "Lyon",
+      "quote": "Retour de test iter66 pour valider le log_alert Slack (TEST_Iter66_3a4eb6).",
+      "transform_before": null,
+      "transform_after": null,
+      "status": "pending",
+      "stars": 5,
+      "author_id": "6ffa92d2-8fd9-4ead-8aec-7645561864de",
+      "author_email": "test@plume-astrale.fr",
+      "created_at": "2026-08-02T16:19:42.803823+00:00"
     }
   ],
   "landing_ab_hero_stats": {
     "A": {
-      "impression": 16,
+      "impression": 17,
       "cta_click": 1,
       "signup_click": 1
     },
     "B": {
-      "impression": 10,
+      "impression": 13,
       "cta_click": 1,
       "signup_click": 0
     }
   },
-  "forced_hero_variant": null
+  "forced_hero_variant": null,
+  "chat_analytics": [
+    {
+      "idx": 0,
+      "session_id": "sup-ed787c41928e4e80",
+      "user_message": "C est quoi la garantie de la lecture complète ?",
+      "assistant_reply": "La garantie « Clarté ou remboursée » dure 14 jours après la livraison de ta lecture. Si tu sens qu’elle ne t’apporte pas de vraie clarté, tu peux demander un remboursement intégral, sans avoir à te justifier.",
+      "escalate": false,
+      "helpful": true,
+      "created_at": "2026-08-02T16:15:19.913758+00:00",
+      "feedback_at": "2026-08-02T16:15:21.712221+00:00"
+    },
+    {
+      "idx": 1,
+      "session_id": "sup-9c32eb9b5de348c1",
+      "user_message": "J ai payé hier et je n ai rien reçu, où est ma commande ?",
+      "assistant_reply": "Je suis désolée pour ce contretemps — un humain est mieux placé pour vérifier ta commande. Écris à contact@plume-astrale.fr avec l’adresse email utilisée pour la commande, et si possible ton reçu Stripe, pour qu’on retrouve ta lecture rapidement.",
+      "escalate": true,
+      "helpful": null,
+      "created_at": "2026-08-02T16:15:21.568460+00:00"
+    },
+    {
+      "idx": 2,
+      "session_id": "sup-98fe6847e6184b58",
+      "user_message": "C'est quoi la garantie ?",
+      "assistant_reply": "La garantie « Clarté ou remboursée » dure 14 jours après la livraison de ta lecture. Si tu n’y trouves pas au moins une vraie clarté, tu peux demander le remboursement intégral, sans avoir à te justifier.",
+      "escalate": false,
+      "helpful": true,
+      "created_at": "2026-08-02T16:19:49.633674+00:00",
+      "feedback_at": "2026-08-02T16:19:51.167229+00:00"
+    },
+    {
+      "idx": 3,
+      "session_id": "sup-3de0b8437e824e9d",
+      "user_message": "J'ai payé hier et je n'ai rien reçu, aucun PDF.",
+      "assistant_reply": "Je suis désolée pour ce contretemps — un humain est mieux placé pour vérifier ta commande. Envoie un mail à contact@plume-astrale.fr avec l’adresse utilisée lors du paiement, et l’équipe pourra retrouver ta commande et t’aider rapidement.",
+      "escalate": true,
+      "helpful": null,
+      "created_at": "2026-08-02T16:19:51.066423+00:00"
+    },
+    {
+      "idx": 4,
+      "session_id": "sup-1a38fa86ddc546e9",
+      "user_message": "C'est quoi la garantie ?",
+      "assistant_reply": "La garantie « Clarté ou remboursée » est valable 14 jours après la livraison de ta lecture. Si tu n’y trouves pas au moins une vraie clarté pour avancer, tu peux demander le remboursement intégral, sans avoir à te justifier.",
+      "escalate": false,
+      "helpful": null,
+      "created_at": "2026-08-02T16:20:27.753469+00:00"
+    },
+    {
+      "idx": 5,
+      "session_id": "sup-58d6e124fee54303",
+      "user_message": "C'est quoi la garantie ?",
+      "assistant_reply": "La garantie « Clarté ou remboursée » dure 14 jours après la livraison de ta lecture. Si tu n’y trouves pas au moins une vraie clarté utile pour toi, tu peux demander le remboursement intégral, sans avoir à te justifier.",
+      "escalate": false,
+      "helpful": true,
+      "created_at": "2026-08-02T16:21:21.534761+00:00",
+      "feedback_at": "2026-08-02T16:21:22.493090+00:00"
+    }
+  ]
 }

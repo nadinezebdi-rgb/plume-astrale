@@ -158,7 +158,13 @@ const styles = `
   .pa-hero-portrait{position:relative;border-radius:24px;overflow:hidden;
     box-shadow:0 30px 80px rgba(0,0,0,.55);
     border:1px solid rgba(201,162,75,.25);aspect-ratio:3/4;background:#141a33;}
-  .pa-hero-slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .pa-hero-slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;
+    transform-origin:center 40%;will-change:opacity, transform;
+    animation:pa-ken-burns 16s ease-in-out infinite alternate both;}
+  @keyframes pa-ken-burns{
+    0%{transform:scale(1.02);}
+    100%{transform:scale(1.10);}
+  }
   .pa-hero-portrait::after{content:'';position:absolute;inset:0;z-index:1;
     background:linear-gradient(180deg,transparent 40%,rgba(11,15,36,.55) 100%);pointer-events:none;}
   .pa-hero-badge{position:absolute;bottom:20px;left:20px;right:20px;
