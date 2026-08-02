@@ -11,7 +11,6 @@ Idempotent : ne renvoie pas 2x le meme vendredi (via app_settings).
 from __future__ import annotations
 import asyncio
 import logging
-import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List
