@@ -110,8 +110,59 @@ def get_cached_ab_ctr() -> Optional[Dict[str, Any]]:
     return None
 
 
+async def _send_winner_notification(winner: str, ctr_data: Dict[str, Any]) -> None:
+    """Notifie l'admin (email + Slack) que le gagnant A/B est confirme."""
+    try:
+        from services.supabase_client import get_admin_client
+        from services.resend_service import send_email
+        sb = get_admin_client()
+        r = sb.table('profiles').select('email').eq('is_admin', True).execute()
+        admins = [(row.get('email') or '').strip() for row in (r.data or []) if row.get('email')]
+        w = ctr_data.get(winner, {})
+        l = ctr_data.get('question' if winner == 'invitation' else 'invitation', {})
+        subject = f'🏆 A/B J+30 : {winner} gagne (+{round(w.get("ctr",0) - l.get("ctr",0), 2)}pts CTR)'
+        html = f"""
+        <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#0b1020;color:#e8e6f0;padding:32px 24px;">
+          <div style="background:#141a33;border:1px solid #4ADE80;border-radius:12px;padding:26px;">
+            <h1 style="color:#4ADE80;font-size:22px;font-weight:400;margin:0 0 12px;">
+              🏆 Gagnant A/B J+30 confirme
+            </h1>
+            <p><strong>{winner.upper()}</strong> gagne avec un CTR de <strong>{w.get('ctr',0)}%</strong>
+              contre <strong>{l.get('ctr',0)}%</strong> pour l'autre variante.</p>
+            <p>Envoyes : {w.get('sent',0)} vs {l.get('sent',0)}</p>
+            <p style="color:#d9b26a;">Recommandation : bascule 100% sur cette variante pour le prochain cycle.</p>
+            <p style="margin-top:20px;">
+              <a href="https://plume-astrale.fr/admin" style="color:#d9b26a;">Ouvrir le tableau de bord →</a>
+            </p>
+          </div>
+        </div>
+        """
+        for admin in admins:
+            try:
+                await send_email(admin, subject, html)
+            except Exception as e:
+                logger.warning(f'[ctr_cache] winner email fail {admin}: {e}')
+        # Slack ping si configure
+        try:
+            from services.refund_alert import SLACK_WEBHOOK_URL
+            if SLACK_WEBHOOK_URL:
+                async with httpx.AsyncClient(timeout=8.0) as client:
+                    await client.post(SLACK_WEBHOOK_URL, json={
+                        'text': f'🏆 A/B J+30 : *{winner}* gagne ({w.get("ctr",0)}% CTR vs {l.get("ctr",0)}%).'
+                                f' Bascule recommandee.\nhttps://plume-astrale.fr/admin',
+                    })
+        except Exception as e:
+            logger.warning(f'[ctr_cache] winner Slack fail: {e}')
+    except Exception as e:
+        logger.warning(f'[ctr_cache] winner notification build fail: {e}')
+
+
 async def refresh_ab_ctr_cache() -> Optional[Dict[str, Any]]:
-    """Fetch toutes les tx J+30 -> aggrege CTR -> stocke dans cache."""
+    """Fetch toutes les tx J+30 -> aggrege CTR -> stocke dans cache.
+
+    Envoie une notification si un nouveau gagnant est confirme (transition
+    winner=None -> winner=X ou changement de gagnant).
+    """
     from services.supabase_client import get_admin_client
     sb = get_admin_client()
     try:
@@ -132,7 +183,6 @@ async def refresh_ab_ctr_cache() -> Optional[Dict[str, Any]]:
             variant_ids[variant].append(eid)
         total_sent += 1
     if total_sent == 0:
-        # Rien a agreger — reset cache avec structure vide
         empty = {
             'question': {'sent': 0, 'opened': 0, 'clicked': 0, 'open_rate': 0.0, 'ctr': 0.0},
             'invitation': {'sent': 0, 'opened': 0, 'clicked': 0, 'open_rate': 0.0, 'ctr': 0.0},
@@ -142,10 +192,21 @@ async def refresh_ab_ctr_cache() -> Optional[Dict[str, Any]]:
         _CTR_CACHE['ts'] = _time.monotonic()
         return empty
 
+    previous_winner = (_CTR_CACHE.get('data') or {}).get('winner')
     result = await aggregate_ab_ctr(variant_ids)
+    new_winner = result.get('winner')
+
     _CTR_CACHE['data'] = result
     _CTR_CACHE['ts'] = _time.monotonic()
-    logger.info(f'[ctr_cache] refreshed: q_ctr={result.get("question",{}).get("ctr")}%, inv_ctr={result.get("invitation",{}).get("ctr")}%, winner={result.get("winner")}')
+    logger.info(f'[ctr_cache] refreshed: q_ctr={result.get("question",{}).get("ctr")}%, inv_ctr={result.get("invitation",{}).get("ctr")}%, winner={new_winner}')
+
+    # Notification si nouveau gagnant confirme (transition ou changement)
+    if new_winner and new_winner != previous_winner:
+        # Verifie l'idempotence via cache_notified pour eviter re-envoi lors de refresh multiples
+        already = _CTR_CACHE.get('winner_notified') == new_winner
+        if not already:
+            await _send_winner_notification(new_winner, result)
+            _CTR_CACHE['winner_notified'] = new_winner
     return result
 
 

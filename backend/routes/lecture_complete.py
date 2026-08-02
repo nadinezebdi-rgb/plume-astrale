@@ -477,6 +477,7 @@ class RefundRequest(BaseModel):
     reason: Optional[str] = None
     skip_stripe: Optional[bool] = False  # true → seulement marquer refunded, ne pas appeler Stripe
     amount_cents: Optional[int] = None    # None = refund total ; sinon montant partiel en centimes
+    suspend_notifications: Optional[bool] = None  # None = auto (true si total refund)
 
 
 @router.post('/admin/refund/{session_id}')
@@ -579,6 +580,32 @@ async def lecture_complete_admin_refund(
             md['refunded_amount_cents'] = tx_amount_cents
         sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
 
+        # Cascade : suspendre les notifications si refund total (par defaut) ou explicitement demande
+        is_total = not md.get('refund_partial')
+        suspend = payload.suspend_notifications if payload.suspend_notifications is not None else is_total
+        suspended_profile = False
+        if suspend:
+            # Marque au niveau tx (sequence email + journal guests le respectent)
+            md['notifications_suspended'] = True
+            md['notifications_suspended_at'] = md['refunded_at']
+            # Tente aussi de marquer au niveau profile (registered user)
+            try:
+                tx2 = sb.table('payment_transactions').select('user_email').eq('session_id', session_id).maybe_single().execute()
+                target_email = (tx2.data or {}).get('user_email') if tx2 else None
+                if target_email:
+                    prof_res = sb.table('profiles').select('id, metadata').ilike('email', target_email).maybe_single().execute()
+                    if prof_res and prof_res.data:
+                        pmd = prof_res.data.get('metadata') or {}
+                        pmd['notifications_suspended_at'] = md['refunded_at']
+                        pmd['notifications_suspended_reason'] = 'refund_lecture_complete'
+                        sb.table('profiles').update({'metadata': pmd}).eq('id', prof_res.data['id']).execute()
+                        suspended_profile = True
+            except Exception as _e:
+                # colonne metadata absente sur profiles → non-bloquant (cf. migration SQL)
+                logger.info(f'[lecture_complete/refund] profile cascade skipped ({_e.__class__.__name__}); tx flag set')
+            # Persist tx suspend flag
+            sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+
         # Trace timeline admin
         try:
             from services.lecture_complete_bundle import append_admin_action
@@ -587,6 +614,8 @@ async def lecture_complete_admin_refund(
                 details_txt += f' · partiel {amount_cents/100:.2f}€'
             if stripe_refund_id:
                 details_txt += f' · stripe={stripe_refund_id}'
+            if suspend:
+                details_txt += ' · notifications suspendues' + (' (profile)' if suspended_profile else '')
             append_admin_action(
                 session_id,
                 'refund_stripe' if stripe_refund_id else 'refund',
@@ -609,7 +638,36 @@ async def lecture_complete_admin_refund(
         'stripe_skipped': skip,
         'partial': bool(md.get('refund_partial')),
         'refunded_amount_cents': md.get('refunded_amount_cents'),
+        'notifications_suspended': bool(md.get('notifications_suspended')),
     }
+
+
+@router.post('/admin/test-slack')
+async def lecture_complete_admin_test_slack(
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Envoie un ping de test vers le SLACK_WEBHOOK_URL pour verifier la config."""
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+
+    import os as _os
+    if not _os.environ.get('SLACK_WEBHOOK_URL'):
+        return {'success': False, 'reason': 'SLACK_WEBHOOK_URL non configure dans /app/backend/.env'}
+    from services.refund_alert import send_slack_refund_alert
+    ok = await send_slack_refund_alert({
+        'rate_pct': 0.0,
+        'paid': 0,
+        'refunded': 0,
+        'details': [{'email': f'admin-test@{(current_user.get("email") or "plume").split("@")[-1]}',
+                     'refunded_at': '2026-08-02T00:00:00+00:00',
+                     'reason': 'PING DE TEST — ceci n\'est pas un vrai refund',
+                     'via_webhook': False}],
+    })
+    return {'success': bool(ok), 'reason': 'Ping envoye' if ok else 'Slack a renvoye une erreur (voir logs backend)'}
 
 
 @router.post('/admin/redispatch/{session_id}')

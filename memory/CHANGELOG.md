@@ -1541,3 +1541,41 @@ Rappel : le fichier `/app/backend/migrations/2026_08_journal_tracking_and_email_
 - Slack no-op sans webhook → False silencieux ✅
 - Détection partiel : 6/6 positifs + 1/1 négatif ✅
 - Boucles refund_alert + ab_ctr_refresh démarrées au startup ✅
+
+## 2026-08-02 (dernier lot) — UI filtres export + Slack test + Winner alert + Refund cascade
+
+### 1. UI filtres export CSV
+- Bandeau tirets sous les boutons header avec 5 filtres visuels :
+  - Date `since` (input date) + Date `until`
+  - Select `payment_status` (Tous / Payé / Non payé / Initié)
+  - Checkbox "Inclure admin bypass" (default true)
+  - Checkbox "Remboursés uniquement" (default false)
+- data-testids : `admin-lc-export-filters, admin-lc-filter-since/until/status/bypass/refunded-only`
+- Le bouton Export CSV utilise ces filtres automatiquement (URLSearchParams).
+
+### 2. Webhook Slack test
+- Bouton "Tester Slack" (data-testid=admin-lc-test-slack) dans le header du panneau.
+- `POST /admin/test-slack` retourne `{success:bool, reason:str}`.
+- Si `SLACK_WEBHOOK_URL` absent → `{success:false, reason:'SLACK_WEBHOOK_URL non configure...'}`.
+- Si configuré → envoie un message avec `email: admin-test@..., reason: PING DE TEST — ceci n'est pas un vrai refund`.
+- Bandeau vert ✅ ou rouge ❌ affiché 5s (data-testid=admin-lc-slack-result).
+
+### 3. CTR alerte gagnant automatique
+- `_send_winner_notification(winner, ctr_data)` : envoie email HTML aux admins + Slack (si configuré) dès qu'un gagnant est confirmé.
+- Détection : `winner != previous_winner` dans `refresh_ab_ctr_cache` + idempotence via `_CTR_CACHE.winner_notified`.
+- Contenu : "🏆 A/B J+30 : {winner} gagne (+{gap}pts CTR)" avec recommandation de bascule.
+
+### 4. Refund cascade cercle (suspend notifications)
+- Nouveau field `suspend_notifications` (optional) dans `RefundRequest`. Default : `true` pour refund total, `false` pour partiel.
+- Cascade côté backend :
+  - `metadata.notifications_suspended=true` + `notifications_suspended_at` sur la tx (sequence + journal guests le respectent déjà via `refunded_at`).
+  - Si le profile existe : update `profile.metadata.notifications_suspended_at` + reason (fallback silencieux si colonne absente).
+  - Journal daily `get_users_for_daily_journal()` exclut les profiles avec `metadata.notifications_suspended_at`.
+- UI : checkbox "Suspendre les notifications futures" dans le modal refund (data-testid=refund-modal-suspend-notifications) — pré-cochée par défaut.
+- Migration SQL enrichie : `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb` + index partiel sur `notifications_suspended_at`.
+
+### Tests
+- Slack test endpoint : `{success:false, reason:'SLACK_WEBHOOK_URL non configure...'}` ✅
+- Refund + suspend : `refunded=true, suspended=true`, tx.notifications_suspended=true ✅
+- Screenshot admin panel avec 4 nouveaux widgets visibles ✅
+- Backend + frontend lint OK ✅

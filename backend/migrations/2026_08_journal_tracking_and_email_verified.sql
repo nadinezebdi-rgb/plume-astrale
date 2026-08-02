@@ -15,6 +15,15 @@ CREATE INDEX IF NOT EXISTS idx_profiles_email_verified
     ON public.profiles(email_verified)
     WHERE email_verified = true;
 
+-- 1bis) profiles.metadata JSONB : necessaire pour la cascade "notifications_suspended"
+--       lors d'un refund total du bundle 97€.
+ALTER TABLE public.profiles
+    ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_profiles_metadata_suspended
+    ON public.profiles((metadata->>'notifications_suspended_at'))
+    WHERE metadata ? 'notifications_suspended_at';
+
 
 -- 2) journal_email_logs : trace les envois quotidiens pour deduplication
 --    et pour le dashboard admin (taux d'ouverture, opt-out).

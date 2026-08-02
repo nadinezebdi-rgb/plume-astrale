@@ -20,7 +20,25 @@ async def get_users_for_daily_journal() -> List[Dict[str, Any]]:
         today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
         
         # Get all users with birth_date (colonne email_verified n'existe pas dans profiles)
-        users_res = sb.table('profiles').select('id,email,prenom,birth_date').execute()
+        try:
+            users_res = sb.table('profiles').select('id,email,prenom,birth_date,metadata').execute()
+            rows_raw = users_res.data or []
+        except Exception:
+            # Fallback : colonne metadata pas encore migree
+            users_res = sb.table('profiles').select('id,email,prenom,birth_date').execute()
+            rows_raw = users_res.data or []
+        # Exclure les profiles avec metadata.notifications_suspended_at (cascade refund)
+        users_raw = []
+        for u in rows_raw:
+            pmd = u.get('metadata') or {}
+            if pmd.get('notifications_suspended_at'):
+                continue
+            users_raw.append(u)
+        # Overwrite users_res-like structure downstream (rest of code expects users_res.data)
+        class _Wrap:
+            pass
+        users_res = _Wrap()
+        users_res.data = users_raw
         users = users_res.data or []
         
         # Filter: must have email + birth_date

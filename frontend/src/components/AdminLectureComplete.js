@@ -63,6 +63,13 @@ export default function AdminLectureComplete({ token }) {
   const [refundSuccess, setRefundSuccess] = useState(null);
   const [ctrLoading, setCtrLoading] = useState(false);
   const [suggestedPartial, setSuggestedPartial] = useState(null);
+  const [suspendNotifications, setSuspendNotifications] = useState(true);
+  // Filtres export CSV
+  const [exportFilters, setExportFilters] = useState({
+    since: '', until: '', payment_status: '', include_bypass: true, refunded_only: false,
+  });
+  const [slackTesting, setSlackTesting] = useState(false);
+  const [slackResult, setSlackResult] = useState(null);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -118,6 +125,7 @@ export default function AdminLectureComplete({ token }) {
     setRefundError(null);
     setRefundSuccess(null);
     setSuggestedPartial(null);
+    setSuspendNotifications(true);
     setRefundModalOpen(true);
   };
 
@@ -175,6 +183,7 @@ export default function AdminLectureComplete({ token }) {
           reason: refundReason || undefined,
           skip_stripe: refundSkipStripe,
           amount_cents,
+          suspend_notifications: suspendNotifications,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -209,10 +218,15 @@ export default function AdminLectureComplete({ token }) {
   };
 
   const exportCSV = () => {
-    // Ouvre l'URL avec le token dans un tab — la browser telecharge le CSV
-    // Comme l'endpoint requiert Authorization header, on utilise axios + Blob
+    const params = new URLSearchParams();
+    if (exportFilters.since) params.append('since', exportFilters.since);
+    if (exportFilters.until) params.append('until', exportFilters.until);
+    if (exportFilters.payment_status) params.append('payment_status', exportFilters.payment_status);
+    if (!exportFilters.include_bypass) params.append('include_bypass', 'false');
+    if (exportFilters.refunded_only) params.append('refunded_only', 'true');
+    const qs = params.toString();
     axios
-      .get(`${API}/api/lecture-complete/admin/orders/export`, {
+      .get(`${API}/api/lecture-complete/admin/orders/export${qs ? '?' + qs : ''}`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob',
       })
@@ -227,6 +241,23 @@ export default function AdminLectureComplete({ token }) {
         URL.revokeObjectURL(url);
       })
       .catch((e) => alert(e.response?.data?.detail || 'Export impossible'));
+  };
+
+  const testSlack = async () => {
+    setSlackTesting(true);
+    setSlackResult(null);
+    try {
+      const r = await axios.post(
+        `${API}/api/lecture-complete/admin/test-slack`, {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSlackResult(r.data);
+    } catch (e) {
+      setSlackResult({ success: false, reason: e.response?.data?.detail || 'Erreur reseau' });
+    } finally {
+      setSlackTesting(false);
+      setTimeout(() => setSlackResult(null), 5000);
+    }
   };
 
   return (
@@ -268,6 +299,93 @@ export default function AdminLectureComplete({ token }) {
         >
           Export CSV
         </button>
+        <button
+          onClick={testSlack}
+          disabled={slackTesting}
+          data-testid="admin-lc-test-slack"
+          style={{
+            marginLeft: 8,
+            padding: '8px 14px', borderRadius: 20,
+            background: 'transparent',
+            color: '#7C7CE5',
+            border: '1px solid rgba(124,124,229,0.4)',
+            cursor: 'pointer', fontSize: 12, letterSpacing: '.1em',
+            textTransform: 'uppercase',
+          }}
+        >
+          {slackTesting ? '...' : 'Tester Slack'}
+        </button>
+      </div>
+
+      {slackResult && (
+        <div
+          data-testid="admin-lc-slack-result"
+          style={{
+            padding: 10, marginBottom: 12, borderRadius: 8, fontSize: 12,
+            background: slackResult.success ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)',
+            border: `1px solid ${slackResult.success ? 'rgba(74,222,128,0.35)' : 'rgba(248,113,113,0.35)'}`,
+            color: slackResult.success ? '#4ADE80' : '#f87171',
+          }}
+        >
+          {slackResult.success ? '✅ Ping Slack envoyé' : '❌ ' + (slackResult.reason || 'Echec')}
+        </div>
+      )}
+
+      {/* Filtres export CSV */}
+      <div
+        data-testid="admin-lc-export-filters"
+        style={{
+          display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, padding: 10,
+          background: 'rgba(167,139,250,0.03)',
+          border: '1px dashed rgba(167,139,250,0.25)', borderRadius: 8,
+          fontSize: 11,
+        }}
+      >
+        <span style={{ color: 'rgba(184,180,201,0.75)', alignSelf: 'center' }}>Filtres Export :</span>
+        <input
+          type="date"
+          value={exportFilters.since}
+          onChange={(e) => setExportFilters(s => ({ ...s, since: e.target.value }))}
+          data-testid="admin-lc-filter-since"
+          style={{ background: 'rgba(11,16,32,0.5)', color: '#e8e6f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '4px 8px' }}
+        />
+        <span style={{ alignSelf: 'center', color: 'rgba(184,180,201,0.5)' }}>→</span>
+        <input
+          type="date"
+          value={exportFilters.until}
+          onChange={(e) => setExportFilters(s => ({ ...s, until: e.target.value }))}
+          data-testid="admin-lc-filter-until"
+          style={{ background: 'rgba(11,16,32,0.5)', color: '#e8e6f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '4px 8px' }}
+        />
+        <select
+          value={exportFilters.payment_status}
+          onChange={(e) => setExportFilters(s => ({ ...s, payment_status: e.target.value }))}
+          data-testid="admin-lc-filter-status"
+          style={{ background: 'rgba(11,16,32,0.5)', color: '#e8e6f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '4px 8px' }}
+        >
+          <option value="">Tous statuts</option>
+          <option value="paid">Payé</option>
+          <option value="unpaid">Non payé</option>
+          <option value="initiated">Initié</option>
+        </select>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'rgba(184,180,201,0.85)' }}>
+          <input
+            type="checkbox"
+            checked={exportFilters.include_bypass}
+            onChange={(e) => setExportFilters(s => ({ ...s, include_bypass: e.target.checked }))}
+            data-testid="admin-lc-filter-bypass"
+          />
+          Inclure admin bypass
+        </label>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'rgba(184,180,201,0.85)' }}>
+          <input
+            type="checkbox"
+            checked={exportFilters.refunded_only}
+            onChange={(e) => setExportFilters(s => ({ ...s, refunded_only: e.target.checked }))}
+            data-testid="admin-lc-filter-refunded-only"
+          />
+          Remboursés uniquement
+        </label>
       </div>
 
       {error && (
@@ -687,6 +805,15 @@ export default function AdminLectureComplete({ token }) {
                         data-testid="refund-modal-partial-toggle"
                       />
                       Remboursement partiel
+                    </label>
+                    <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'rgba(184,180,201,0.85)' }}>
+                      <input
+                        type="checkbox"
+                        checked={suspendNotifications}
+                        onChange={(e) => setSuspendNotifications(e.target.checked)}
+                        data-testid="refund-modal-suspend-notifications"
+                      />
+                      Suspendre les notifications futures (journal, séquence) pour ce client
                     </label>
                     {refundPartial && (
                       <div className="pl-6">
