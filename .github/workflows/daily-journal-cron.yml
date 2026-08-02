@@ -1,0 +1,16 @@
+name: Daily Journal Cron
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call daily journal endpoint
+        run: |
+          curl -sS -f -X POST \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            https://plume-astrale.fr/api/admin/cron/send-daily-journal
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
