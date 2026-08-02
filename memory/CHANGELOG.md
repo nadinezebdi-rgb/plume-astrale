@@ -1341,3 +1341,36 @@ Testing agent iteration_57 : **backend 6/6 ✅, frontend 10/10 data-testid ✅**
 ### Tests
 - Testing agent iteration_58 : **backend 8/8 ✅, frontend 100% ✅**.
 - Aucun bug bloquant. Note StrictMode : double fetch en dev, une seule en prod.
+
+## 2026-08-02 (nuit) — Admin panel + Cache + Sequence email + Badge Cercle
+
+### 4 features complémentaires bundle Lecture Complète 97€
+
+**1. Admin dashboard `/admin` > onglet "Lecture Complète"**
+- Backend : `GET /api/lecture-complete/admin/orders` (admin only) liste les commandes + état des 5 PDFs enfants + statut sequence email
+- Backend : `POST /api/lecture-complete/admin/redispatch/{sid}` (admin only) reset le flag bundle_dispatched + relance la génération
+- Frontend : nouveau composant `AdminLectureComplete` (data-testid admin-lecture-complete-panel, admin-lc-refresh, admin-lc-redispatch-{sid})
+
+**2. Cache scarcity 60s**
+- `_SCARCITY_CACHE` module-level avec TTL 60s (`time.monotonic()`) dans `get_scarcity_status()`
+- Évite un round-trip Supabase par pageview
+
+**3. Sequence email 14j**
+- Nouveau service `/app/backend/services/lecture_complete_sequence.py` avec boucle background (interval 30 min)
+- 3 emails : J+1 "As-tu ouvert ta lecture", J+7 "Qu'est-ce qui résonne", J+13 "Clarté ou remboursée — dernier appel doux"
+- Idempotent via metadata.sequence_j{1,7,13}_sent_at
+- Boucle lancée au startup dans `server.py` (`lecture_complete_sequence_loop`)
+- Test manuel bout-en-bout : tx backdatée 25h → email J+1 envoyé + metadata mise à jour ✅
+
+**4. Badge Cercle Soléna J-{X} sur /mon-compte**
+- Backend : `GET /api/lecture-complete/cercle-status` (auth requis) — retourne {active, days_remaining, expires_at, purchased_at, source} basé sur le dernier achat lecture_complete du user (<90j)
+- Frontend : badge violet/or entre solde crédits et onglets, affiche `J-{X}` + date d'expiration + lien "Accéder" vers /cercle-solena
+- data-testid : cercle-solena-badge, cercle-days-remaining, cercle-solena-access
+
+### Fixes admin login
+- Password admin@plume-astrale.fr reset via `supabase.auth.admin.update_user_by_id` (précédent était rejeté avec 400 Invalid credentials).
+- `/app/memory/test_credentials.md` mis à jour.
+
+### Tests
+- Testing agent iteration_59 : backend 9/9 ✅ (UI bloqué par login)
+- Testing agent iteration_60 (retest) : **frontend 11/11 checks ✅** (login, admin panel, refresh, badge Cercle J-89, tous les data-testid)
