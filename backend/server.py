@@ -2436,9 +2436,11 @@ async def _start_cart_recovery():
     from services.crosssell_astrocarto import crosssell_astrocarto_loop
     from services.horoscope_scheduler import daily_horoscope_scheduler_loop
     from services.lecture_complete_sequence import lecture_complete_sequence_loop
+    from services.journal_email_service import daily_journal_scheduler_loop
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
     _asyncio.create_task(astrocarto_followup_loop())
     _asyncio.create_task(crosssell_astrocarto_loop())
     _asyncio.create_task(daily_horoscope_scheduler_loop())
     _asyncio.create_task(lecture_complete_sequence_loop())
+    _asyncio.create_task(daily_journal_scheduler_loop())

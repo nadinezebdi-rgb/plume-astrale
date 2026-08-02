@@ -117,11 +117,38 @@ def _email_j13(prenom: str) -> tuple[str, str]:
     return subject, body
 
 
+def _email_j30(prenom: str) -> tuple[str, str]:
+    """J+30 upsell : offre Cercle Solena longue duree a tarif preferentiel."""
+    subject = '{p}, une invitation pour aller plus loin'.format(p=prenom)
+    body = """
+      <p>Il y a un mois, tu as ouvert la porte.</p>
+      <p>Ta Lecture Complete t'a montre les cartes. Le sens des cycles, les
+        heritages, les fenetres a venir. C'est un debut.</p>
+      <p style="font-style:italic;color:#d9b26a;">Mais un ciel ne se lit pas une fois.
+        Il se lit chaque saison, chaque nouvelle lune, chaque tournant.</p>
+      <p>Je t'invite dans le <strong>Cercle Solena longue duree</strong> — un
+        accompagnement continu, pas un abonnement de plus. Tu y trouves :</p>
+      <ul>
+        <li>Ton horoscope personnel chaque matin</li>
+        <li>Une lecture approfondie une fois par mois</li>
+        <li>Un canal direct avec moi pour tes questions urgentes</li>
+      </ul>
+      <p>Prix regulier : 29€/mois. Pour toi, parce que tu as deja fait le pas,
+        <strong style="color:#d9b26a;">19€/mois pendant 6 mois</strong> puis 29€.</p>
+      <p style="font-size:13px;color:#b8b4c9;">Offre valable 7 jours seulement. Sans engagement,
+        arret possible a tout moment.</p>
+    """
+    return subject, body
+
+
 async def _process_transaction(tx: Dict[str, Any]) -> int:
-    """Envoie l'email applicable pour cette transaction (J+1, J+7 ou J+13).
+    """Envoie l'email applicable pour cette transaction (J+1, J+7, J+13 ou J+30).
     Retourne 1 si un email a ete envoye, 0 sinon."""
     session_id = tx.get('session_id')
     md = tx.get('metadata') or {}
+    # Skip si refunded
+    if md.get('refunded_at'):
+        return 0
     email = tx.get('user_email') or (md.get('order_ctx') or {}).get('email')
     if not email:
         return 0
@@ -136,7 +163,7 @@ async def _process_transaction(tx: Dict[str, Any]) -> int:
         return 0
     age_h = (datetime.now(timezone.utc) - created_dt).total_seconds() / 3600.0
 
-    # Determine l'email a envoyer (max un par run)
+    # Determine l'email a envoyer (max un par run) — priorite au plus ancien non-envoye
     stage: str | None = None
     if age_h >= 24 and not md.get('sequence_j1_sent_at'):
         stage = 'j1'
@@ -144,6 +171,8 @@ async def _process_transaction(tx: Dict[str, Any]) -> int:
         stage = 'j7'
     elif age_h >= 24 * 13 and not md.get('sequence_j13_sent_at'):
         stage = 'j13'
+    elif age_h >= 24 * 30 and not md.get('sequence_j30_sent_at'):
+        stage = 'j30'
     if not stage:
         return 0
 
@@ -153,9 +182,12 @@ async def _process_transaction(tx: Dict[str, Any]) -> int:
     elif stage == 'j7':
         subject, body = _email_j7(prenom)
         cta_label = 'Relire ma lecture'
-    else:
+    elif stage == 'j13':
         subject, body = _email_j13(prenom)
         cta_label = 'Acceder a mes documents'
+    else:
+        subject, body = _email_j30(prenom)
+        cta_label = 'Rejoindre le Cercle · 19€/mois'
 
     html = _email_template(subject, prenom, body, cta_label)
     try:
@@ -180,16 +212,16 @@ async def _process_transaction(tx: Dict[str, Any]) -> int:
 
 
 async def _run_once() -> int:
-    """Cherche les tx lecture_complete payes de moins de 15j, envoie l'email applicable."""
+    """Cherche les tx lecture_complete payes de moins de 32j, envoie l'email applicable."""
     sb = get_admin_client()
     now = datetime.now(timezone.utc)
-    min_dt = now - timedelta(days=15)  # on ne remonte pas plus de 15j en arriere
+    min_dt = now - timedelta(days=32)  # J+30 + marge
     try:
         r = sb.table('payment_transactions').select(
             'session_id, user_email, created_at, metadata, payment_status, pack_id'
         ).eq('pack_id', 'lecture_complete').eq('payment_status', 'paid').gte(
             'created_at', min_dt.isoformat()
-        ).limit(200).execute()
+        ).limit(500).execute()
     except Exception as e:
         logger.warning(f'[lecture_complete_seq] fetch fail: {e}')
         return 0
@@ -204,8 +236,8 @@ async def _run_once() -> int:
 
 
 async def lecture_complete_sequence_loop() -> None:
-    """Boucle background — tourne toutes les 30 min."""
-    logger.info('[lecture_complete_seq] boucle demarree (J+1, J+7, J+13, toutes les 30 min)')
+    """Boucle background — tourne toutes les 30 min. Envoie J+1, J+7, J+13, J+30."""
+    logger.info('[lecture_complete_seq] boucle demarree (J+1, J+7, J+13, J+30, toutes les 30 min)')
     while True:
         try:
             n = await _run_once()

@@ -213,20 +213,36 @@ async def lecture_complete_admin_orders(current_user: Optional[dict] = Depends(g
         return {'orders': []}
 
     parent_sids = [p['session_id'] for p in parents]
-    # Charge en un seul batch tous les enfants (session_id qui commence par un parent + '--')
+    # BATCH FETCH: une seule requete pour tous les enfants (via metadata->>parent_bundle IN parents)
+    # Utilise le fait que tous les enfants ont metadata.lecture_complete_bundle = True et
+    # metadata.parent_bundle = <parent session_id>.
     children_by_parent: Dict[str, List[Dict[str, Any]]] = {sid: [] for sid in parent_sids}
     try:
-        # Supabase n'a pas de OR sur like ; on itere en petits paquets
-        for sid in parent_sids:
-            rr = sb.table('payment_transactions').select(
-                'session_id, pack_id, metadata, created_at'
-            ).like('session_id', f'{sid}--%').execute()
-            for row in (rr.data or []):
-                children_by_parent[sid].append(row)
+        # Filtre JSONB : metadata->>parent_bundle IN (parent_sids)
+        rr = sb.table('payment_transactions').select(
+            'session_id, pack_id, metadata, created_at'
+        ).in_('metadata->>parent_bundle', parent_sids).execute()
+        for row in (rr.data or []):
+            cmd = row.get('metadata') or {}
+            parent = cmd.get('parent_bundle')
+            if parent in children_by_parent:
+                children_by_parent[parent].append(row)
     except Exception as e:
-        logger.warning(f'[lecture_complete/admin] children fetch fail: {e}')
+        logger.warning(f'[lecture_complete/admin] batch children fetch fail: {e}')
+        # Fallback : boucle avec .like (N+1) si le filtre JSONB echoue
+        try:
+            for sid in parent_sids:
+                rr = sb.table('payment_transactions').select(
+                    'session_id, pack_id, metadata, created_at'
+                ).like('session_id', f'{sid}--%').execute()
+                for row in (rr.data or []):
+                    children_by_parent[sid].append(row)
+        except Exception as ee:
+            logger.warning(f'[lecture_complete/admin] fallback children fetch fail: {ee}')
 
     orders = []
+    total_paid = 0
+    total_refunded = 0
     for p in parents:
         sid = p['session_id']
         md = p.get('metadata') or {}
@@ -234,7 +250,14 @@ async def lecture_complete_admin_orders(current_user: Optional[dict] = Depends(g
             'j1': bool(md.get('sequence_j1_sent_at')),
             'j7': bool(md.get('sequence_j7_sent_at')),
             'j13': bool(md.get('sequence_j13_sent_at')),
+            'j30': bool(md.get('sequence_j30_sent_at')),
         }
+        refunded_at = md.get('refunded_at')
+        is_bypass = bool(md.get('admin_bypass'))
+        if p.get('payment_status') == 'paid' and not is_bypass:
+            total_paid += 1
+            if refunded_at:
+                total_refunded += 1
         children_summary = []
         for c in children_by_parent.get(sid, []):
             cmd = c.get('metadata') or {}
@@ -252,13 +275,66 @@ async def lecture_complete_admin_orders(current_user: Optional[dict] = Depends(g
             'created_at': p.get('created_at'),
             'amount': p.get('amount'),
             'payment_status': p.get('payment_status'),
-            'admin_bypass': bool(md.get('admin_bypass')),
+            'admin_bypass': is_bypass,
             'bundle_dispatched': bool(md.get('bundle_dispatched')),
             'bundle_error': md.get('bundle_error'),
+            'refunded_at': refunded_at,
+            'refund_reason': md.get('refund_reason'),
             'sequence': seq_status,
             'children': children_summary,
         })
-    return {'orders': orders}
+
+    refund_rate_pct = round((total_refunded / total_paid * 100), 1) if total_paid else 0.0
+    return {
+        'orders': orders,
+        'stats': {
+            'total_paid': total_paid,
+            'total_refunded': total_refunded,
+            'refund_rate_pct': refund_rate_pct,
+        },
+    }
+
+
+class RefundRequest(BaseModel):
+    reason: Optional[str] = None
+
+
+@router.post('/admin/refund/{session_id}')
+async def lecture_complete_admin_refund(
+    session_id: str,
+    payload: RefundRequest,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Marque une commande comme remboursee.
+
+    Attention : n'effectue PAS le remboursement Stripe automatiquement — l'admin doit
+    lancer le refund manuellement dans le dashboard Stripe. Cette API sert uniquement
+    a tracker le statut cote base + arreter la sequence email et le journal.
+    """
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+
+    try:
+        r = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+        if not r or not r.data:
+            raise HTTPException(status_code=404, detail='Session introuvable.')
+        md = r.data.get('metadata') or {}
+        from datetime import datetime as _dt, timezone as _tz
+        md['refunded_at'] = _dt.now(_tz.utc).isoformat()
+        if payload.reason:
+            md['refund_reason'] = payload.reason[:500]
+        md['refunded_by'] = current_user.get('id')
+        sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {'refunded': True, 'session_id': session_id, 'refunded_at': md['refunded_at']}
 
 
 @router.post('/admin/redispatch/{session_id}')
@@ -310,7 +386,7 @@ async def lecture_complete_cercle_status(
     sb = get_admin_client()
     try:
         r = sb.table('payment_transactions').select(
-            'session_id, created_at, payment_status'
+            'session_id, created_at, payment_status, metadata'
         ).eq('pack_id', 'lecture_complete').eq('payment_status', 'paid').ilike(
             'user_email', email
         ).order('created_at', desc=True).limit(1).execute()
@@ -323,6 +399,9 @@ async def lecture_complete_cercle_status(
         return {'active': False}
 
     tx = rows[0]
+    md = tx.get('metadata') or {}
+    if md.get('refunded_at'):
+        return {'active': False, 'refunded': True, 'refunded_at': md['refunded_at']}
     from datetime import datetime, timedelta, timezone
     try:
         created_dt = datetime.fromisoformat(tx['created_at'].replace('Z', '+00:00'))

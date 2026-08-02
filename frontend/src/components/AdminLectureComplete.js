@@ -36,9 +36,11 @@ const StatusPill = ({ status, ready, error }) => {
 
 export default function AdminLectureComplete({ token }) {
   const [orders, setOrders] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [redispatching, setRedispatching] = useState(null);
+  const [refunding, setRefunding] = useState(null);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -49,6 +51,7 @@ export default function AdminLectureComplete({ token }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrders(r.data?.orders || []);
+      setStats(r.data?.stats || null);
     } catch (e) {
       setError(e.response?.data?.detail || 'Chargement impossible.');
     } finally {
@@ -70,6 +73,23 @@ export default function AdminLectureComplete({ token }) {
       alert(e.response?.data?.detail || 'Erreur redispatch');
     } finally {
       setRedispatching(null);
+    }
+  };
+
+  const refund = async (sid) => {
+    const reason = window.prompt('Raison du remboursement (optionnel) :');
+    if (reason === null) return; // annulé
+    if (!window.confirm(`Marquer la commande ${sid} comme remboursée ? (Ne déclenche pas le refund Stripe — à faire manuellement dans le dashboard Stripe)`)) return;
+    setRefunding(sid);
+    try {
+      await axios.post(`${API}/api/lecture-complete/admin/refund/${sid}`, { reason: reason || undefined }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      await load();
+    } catch (e) {
+      alert(e.response?.data?.detail || 'Erreur refund');
+    } finally {
+      setRefunding(null);
     }
   };
 
@@ -101,6 +121,27 @@ export default function AdminLectureComplete({ token }) {
       {error && (
         <div style={{ padding: 12, background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 8, color: '#f87171', marginBottom: 16, fontSize: 13 }}>
           {error}
+        </div>
+      )}
+
+      {stats && (
+        <div
+          data-testid="admin-lc-stats"
+          style={{
+            display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16,
+            padding: 12, background: 'rgba(255,255,255,0.02)',
+            border: '1px solid rgba(217,178,106,0.15)', borderRadius: 10,
+          }}
+        >
+          <span style={{ fontSize: 12, color: 'rgba(184,180,201,0.75)' }}>
+            Payés (hors bypass) : <strong style={{ color: '#e8e6f0' }}>{stats.total_paid}</strong>
+          </span>
+          <span style={{ fontSize: 12, color: 'rgba(184,180,201,0.75)' }}>
+            Remboursés : <strong style={{ color: '#f87171' }}>{stats.total_refunded}</strong>
+          </span>
+          <span style={{ fontSize: 12, color: 'rgba(184,180,201,0.75)' }}>
+            Taux de refund : <strong data-testid="admin-lc-refund-rate" style={{ color: stats.refund_rate_pct > 5 ? '#f87171' : '#4ADE80' }}>{stats.refund_rate_pct}%</strong>
+          </span>
         </div>
       )}
 
@@ -148,21 +189,51 @@ export default function AdminLectureComplete({ token }) {
                   J+1 <span style={{ color: o.sequence?.j1 ? '#4ADE80' : 'rgba(184,180,201,0.4)' }}>●</span>
                   {' '}J+7 <span style={{ color: o.sequence?.j7 ? '#4ADE80' : 'rgba(184,180,201,0.4)' }}>●</span>
                   {' '}J+13 <span style={{ color: o.sequence?.j13 ? '#4ADE80' : 'rgba(184,180,201,0.4)' }}>●</span>
+                  {' '}J+30 <span style={{ color: o.sequence?.j30 ? '#4ADE80' : 'rgba(184,180,201,0.4)' }}>●</span>
                 </div>
                 <button
                   onClick={() => redispatch(o.session_id)}
-                  disabled={redispatching === o.session_id}
+                  disabled={redispatching === o.session_id || !!o.refunded_at}
                   data-testid={`admin-lc-redispatch-${o.session_id}`}
                   style={{
                     padding: '6px 12px', borderRadius: 16,
                     background: 'transparent',
-                    color: '#d9b26a',
-                    border: '1px solid rgba(217,178,106,0.5)',
-                    fontSize: 11, cursor: 'pointer',
+                    color: o.refunded_at ? 'rgba(184,180,201,0.4)' : '#d9b26a',
+                    border: `1px solid ${o.refunded_at ? 'rgba(184,180,201,0.2)' : 'rgba(217,178,106,0.5)'}`,
+                    fontSize: 11, cursor: o.refunded_at ? 'not-allowed' : 'pointer',
                   }}
                 >
                   {redispatching === o.session_id ? '...' : 'Relancer'}
                 </button>
+                {!o.refunded_at ? (
+                  <button
+                    onClick={() => refund(o.session_id)}
+                    disabled={refunding === o.session_id}
+                    data-testid={`admin-lc-refund-${o.session_id}`}
+                    style={{
+                      padding: '6px 12px', borderRadius: 16,
+                      background: 'transparent',
+                      color: '#f87171',
+                      border: '1px solid rgba(248,113,113,0.4)',
+                      fontSize: 11, cursor: 'pointer',
+                    }}
+                  >
+                    {refunding === o.session_id ? '...' : 'Rembourser'}
+                  </button>
+                ) : (
+                  <span
+                    data-testid={`admin-lc-refunded-${o.session_id}`}
+                    style={{
+                      padding: '4px 10px', borderRadius: 14,
+                      background: 'rgba(248,113,113,0.15)',
+                      color: '#f87171',
+                      fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase',
+                    }}
+                    title={o.refund_reason || 'Remboursé'}
+                  >
+                    Remboursé
+                  </span>
+                )}
               </div>
             </div>
 
