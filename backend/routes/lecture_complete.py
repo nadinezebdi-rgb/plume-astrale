@@ -669,7 +669,19 @@ async def lecture_complete_admin_test_slack(
                 'text': f':white_check_mark: *Plume Astrale — Ping de test*\n'
                         f'Webhook OK. Test lance par {current_user.get("email","admin")}.',
             })
-            if r.status_code in (200, 204):
+            success = r.status_code in (200, 204)
+            try:
+                from services.app_settings import log_alert
+                log_alert(
+                    kind='slack_test',
+                    title='Ping Slack test' + (' (OK)' if success else f' (FAIL {r.status_code})'),
+                    details=f'Lance par {current_user.get("email","admin")} · '
+                            + ('URL custom' if custom_url else 'SLACK_WEBHOOK_URL env'),
+                    channels=['slack'] if success else [],
+                )
+            except Exception:
+                pass
+            if success:
                 return {'success': True, 'reason': 'Ping envoye (' + ('custom URL' if custom_url else '.env') + ')'}
             return {'success': False, 'reason': f'Slack a renvoye {r.status_code}: {r.text[:200]}'}
     except Exception as e:

@@ -1,0 +1,33 @@
+{
+  "forced_j30_variant": null,
+  "alerts_history": [
+    {
+      "kind": "slack_test",
+      "title": "Ping Slack test (FAIL 404)",
+      "details": "Lance par admin@plume-astrale.fr · URL custom",
+      "channels": [],
+      "at": "2026-08-02T12:08:57.088451+00:00"
+    },
+    {
+      "kind": "slack_test",
+      "title": "Ping Slack test (FAIL 404)",
+      "details": "Lance par admin@plume-astrale.fr · URL custom",
+      "channels": [],
+      "at": "2026-08-02T12:11:17.403942+00:00"
+    },
+    {
+      "kind": "slack_test",
+      "title": "Ping Slack test (FAIL 404)",
+      "details": "Lance par admin@plume-astrale.fr · URL custom",
+      "channels": [],
+      "at": "2026-08-02T12:11:36.794105+00:00"
+    },
+    {
+      "kind": "slack_test",
+      "title": "Ping Slack test (FAIL 404)",
+      "details": "Lance par admin@plume-astrale.fr · URL custom",
+      "channels": [],
+      "at": "2026-08-02T12:13:56.199886+00:00"
+    }
+  ]
+}

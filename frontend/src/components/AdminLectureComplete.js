@@ -70,23 +70,36 @@ export default function AdminLectureComplete({ token }) {
   });
   const [slackTesting, setSlackTesting] = useState(false);
   const [slackResult, setSlackResult] = useState(null);
+  const [slackWebhookInput, setSlackWebhookInput] = useState('');
+  // Settings: A/B force winner + historique alertes
+  const [forcedVariant, setForcedVariant] = useState(null);   // 'question' | 'invitation' | null
+  const [alertsHistory, setAlertsHistory] = useState([]);
+  const [showAlertsHistory, setShowAlertsHistory] = useState(false);
+  const [settingsBusy, setSettingsBusy] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     setError(null);
     try {
-      const [ordersRes, abRes] = await Promise.all([
+      const [ordersRes, abRes, settingsRes] = await Promise.all([
         axios.get(`${API}/api/lecture-complete/admin/orders`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         axios.get(`${API}/api/lecture-complete/admin/ab-stats`, {
           headers: { Authorization: `Bearer ${token}` },
         }).catch(() => ({ data: null })),
+        axios.get(`${API}/api/lecture-complete/admin/settings`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => ({ data: null })),
       ]);
       setOrders(ordersRes.data?.orders || []);
       setStats(ordersRes.data?.stats || null);
       setAbStats(abRes.data || null);
+      if (settingsRes.data) {
+        setForcedVariant(settingsRes.data.forced_j30_variant || null);
+        setAlertsHistory(settingsRes.data.alerts_history || []);
+      }
     } catch (e) {
       setError(e.response?.data?.detail || 'Chargement impossible.');
     } finally {
@@ -247,16 +260,40 @@ export default function AdminLectureComplete({ token }) {
     setSlackTesting(true);
     setSlackResult(null);
     try {
+      const body = slackWebhookInput.trim() ? { webhook_url: slackWebhookInput.trim() } : {};
       const r = await axios.post(
-        `${API}/api/lecture-complete/admin/test-slack`, {},
+        `${API}/api/lecture-complete/admin/test-slack`, body,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSlackResult(r.data);
+      // Recharge l'historique alertes pour voir le log du test
+      load();
     } catch (e) {
       setSlackResult({ success: false, reason: e.response?.data?.detail || 'Erreur reseau' });
     } finally {
       setSlackTesting(false);
-      setTimeout(() => setSlackResult(null), 5000);
+      setTimeout(() => setSlackResult(null), 6000);
+    }
+  };
+
+  const setForcedVariantHandler = async (variant) => {
+    if (settingsBusy) return;
+    if (variant && !window.confirm(
+      `Forcer 100% des envois J+30 sur la variante "${variant}" ?\n\n` +
+      `Toutes les nouvelles séquences J+30 utiliseront exclusivement cette version.`
+    )) return;
+    setSettingsBusy(true);
+    try {
+      const r = await axios.post(
+        `${API}/api/lecture-complete/admin/set-forced-variant`,
+        { variant },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setForcedVariant(r.data.forced_j30_variant || null);
+    } catch (e) {
+      alert(e.response?.data?.detail || 'Impossible de forcer la variante.');
+    } finally {
+      setSettingsBusy(false);
     }
   };
 
@@ -315,6 +352,26 @@ export default function AdminLectureComplete({ token }) {
         >
           {slackTesting ? '...' : 'Tester Slack'}
         </button>
+      </div>
+
+      {/* Champ URL Slack custom */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
+        <label style={{ fontSize: 10, color: 'rgba(184,180,201,0.7)', letterSpacing: '.1em', textTransform: 'uppercase' }}>
+          Webhook Slack (optionnel)
+        </label>
+        <input
+          type="url"
+          value={slackWebhookInput}
+          onChange={(e) => setSlackWebhookInput(e.target.value)}
+          placeholder="https://hooks.slack.com/services/… (vide = SLACK_WEBHOOK_URL env)"
+          data-testid="admin-lc-slack-webhook-input"
+          style={{
+            flex: 1, minWidth: 320,
+            background: 'rgba(11,16,32,0.5)', color: '#e8e6f0',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 6, padding: '6px 10px', fontSize: 12,
+          }}
+        />
       </div>
 
       {slackResult && (
@@ -445,6 +502,82 @@ export default function AdminLectureComplete({ token }) {
               {ctrLoading ? 'Chargement…' : (abStats.ctr ? 'Rafraîchir CTR' : 'Charger CTR Resend')}
             </button>
           </div>
+          {/* Bascule variante gagnante */}
+          <div
+            data-testid="admin-lc-ab-force-panel"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+              marginBottom: 10, padding: 8, borderRadius: 6,
+              background: 'rgba(11,16,32,0.4)',
+              border: forcedVariant ? '1px solid rgba(74,222,128,0.35)' : '1px dashed rgba(255,255,255,0.08)',
+            }}
+          >
+            <span style={{ fontSize: 10, color: 'rgba(184,180,201,0.7)', letterSpacing: '.1em', textTransform: 'uppercase' }}>
+              Auto-bascule variante :
+            </span>
+            {forcedVariant ? (
+              <>
+                <span
+                  data-testid="admin-lc-ab-force-active"
+                  style={{
+                    fontSize: 11, color: '#4ADE80', fontWeight: 600,
+                    padding: '2px 8px', borderRadius: 10,
+                    background: 'rgba(74,222,128,0.12)',
+                  }}
+                >
+                  100% → {forcedVariant === 'question' ? '❓ Question' : '✉️ Invitation'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setForcedVariantHandler(null)}
+                  disabled={settingsBusy}
+                  data-testid="admin-lc-ab-force-reset"
+                  style={{
+                    fontSize: 10, padding: '4px 10px', borderRadius: 12,
+                    background: 'transparent', color: '#f87171',
+                    border: '1px solid rgba(248,113,113,0.35)', cursor: 'pointer',
+                    textTransform: 'uppercase', letterSpacing: '.1em',
+                  }}
+                >
+                  Reset A/B 50/50
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setForcedVariantHandler('question')}
+                  disabled={settingsBusy}
+                  data-testid="admin-lc-ab-force-question"
+                  style={{
+                    fontSize: 10, padding: '4px 10px', borderRadius: 12,
+                    background: 'transparent', color: '#A78BFA',
+                    border: '1px solid rgba(167,139,250,0.35)', cursor: 'pointer',
+                    textTransform: 'uppercase', letterSpacing: '.1em',
+                  }}
+                >
+                  Forcer Question 100%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForcedVariantHandler('invitation')}
+                  disabled={settingsBusy}
+                  data-testid="admin-lc-ab-force-invitation"
+                  style={{
+                    fontSize: 10, padding: '4px 10px', borderRadius: 12,
+                    background: 'transparent', color: '#d9b26a',
+                    border: '1px solid rgba(217,178,106,0.35)', cursor: 'pointer',
+                    textTransform: 'uppercase', letterSpacing: '.1em',
+                  }}
+                >
+                  Forcer Invitation 100%
+                </button>
+                <span style={{ fontSize: 10, color: 'rgba(184,180,201,0.55)', fontStyle: 'italic' }}>
+                  · défaut : hash session_id 50/50
+                </span>
+              </>
+            )}
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {['question', 'invitation'].map((v) => {
               const n = abStats[v] || 0;
@@ -532,6 +665,77 @@ export default function AdminLectureComplete({ token }) {
       {orders.length === 0 && !loading && (
         <p style={{ color: 'rgba(184,180,201,0.7)', fontSize: 14 }}>Aucune commande 97€ pour l&apos;instant.</p>
       )}
+
+      {/* Historique des alertes envoyées */}
+      <div
+        data-testid="admin-lc-alerts-history-panel"
+        style={{
+          marginBottom: 16, padding: 10, borderRadius: 10,
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid rgba(167,139,250,0.15)',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setShowAlertsHistory(v => !v)}
+          data-testid="admin-lc-alerts-history-toggle"
+          style={{
+            background: 'transparent', border: 'none', cursor: 'pointer', padding: 0,
+            display: 'flex', alignItems: 'center', gap: 6, width: '100%',
+            color: '#A78BFA', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase',
+          }}
+        >
+          {showAlertsHistory ? '▼' : '▶'} Historique alertes envoyées
+          <span style={{ color: 'rgba(184,180,201,0.55)', fontSize: 10, textTransform: 'none', letterSpacing: 0 }}>
+            · {alertsHistory.length} entrée{alertsHistory.length > 1 ? 's' : ''} (30 max)
+          </span>
+        </button>
+        {showAlertsHistory && (
+          <div data-testid="admin-lc-alerts-history-list" style={{ marginTop: 10 }}>
+            {alertsHistory.length === 0 ? (
+              <div style={{ fontSize: 12, color: 'rgba(184,180,201,0.55)', fontStyle: 'italic' }}>
+                Aucune alerte Slack ou email envoyée pour le moment.
+              </div>
+            ) : (
+              alertsHistory.slice().reverse().map((a, i) => (
+                <div
+                  key={i}
+                  data-testid={`admin-lc-alerts-history-item-${i}`}
+                  style={{
+                    marginBottom: 8, padding: 8, borderRadius: 6,
+                    background: 'rgba(11,16,32,0.4)',
+                    borderLeft: `3px solid ${a.kind === 'refund_alert' ? '#f87171' : a.kind === 'slack_test' ? '#4ADE80' : '#A78BFA'}`,
+                  }}
+                >
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, color: '#e8e6f0' }}>
+                    <span style={{
+                      padding: '1px 6px', borderRadius: 8,
+                      background: 'rgba(167,139,250,0.15)', color: '#A78BFA',
+                      fontSize: 9, letterSpacing: '.1em', textTransform: 'uppercase',
+                    }}>
+                      {a.kind}
+                    </span>
+                    <strong>{a.title}</strong>
+                    <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(184,180,201,0.55)' }}>
+                      {a.at ? new Date(a.at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+                    </span>
+                  </div>
+                  {a.details && (
+                    <div style={{ marginTop: 4, fontSize: 10, color: 'rgba(184,180,201,0.65)' }}>
+                      {a.details}
+                    </div>
+                  )}
+                  {a.channels && a.channels.length > 0 && (
+                    <div style={{ marginTop: 4, fontSize: 9, color: 'rgba(184,180,201,0.5)' }}>
+                      Canaux : {a.channels.join(' · ')}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {orders.map((o) => (
@@ -736,6 +940,41 @@ export default function AdminLectureComplete({ token }) {
             <>
               <div className="space-y-3">
                 <div>
+                  <label className="text-xs uppercase tracking-wider block mb-1" style={{ color: '#d9b26a' }}>
+                    Raison type
+                  </label>
+                  <select
+                    data-testid="refund-modal-reason-preset"
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (!v) return;
+                      const map = {
+                        pdf_defect: 'PDF défectueux ou incomplet',
+                        duplicate: 'Commande en doublon',
+                        unsatisfied: 'Client insatisfait du contenu',
+                        chargeback: 'Chargeback / litige carte',
+                        wrong_purchase: 'Achat par erreur (mauvais produit)',
+                        no_delivery: 'Livraison non reçue (bug orchestration)',
+                      };
+                      setRefundReason(prev => (prev ? prev + ' · ' : '') + (map[v] || v));
+                      e.target.value = '';
+                    }}
+                    className="w-full rounded px-3 py-2 text-sm mb-2"
+                    style={{
+                      background: 'rgba(11,16,32,0.6)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      color: '#e8e6f0',
+                    }}
+                    defaultValue=""
+                  >
+                    <option value="">— Sélectionner une raison type (optionnel) —</option>
+                    <option value="pdf_defect">PDF défectueux ou incomplet</option>
+                    <option value="duplicate">Commande en doublon</option>
+                    <option value="unsatisfied">Client insatisfait du contenu</option>
+                    <option value="chargeback">Chargeback / litige carte</option>
+                    <option value="wrong_purchase">Achat par erreur</option>
+                    <option value="no_delivery">Livraison non reçue</option>
+                  </select>
                   <label className="text-xs uppercase tracking-wider block mb-1" style={{ color: '#d9b26a' }}>
                     Raison (optionnel)
                   </label>

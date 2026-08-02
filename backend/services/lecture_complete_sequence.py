@@ -195,10 +195,18 @@ async def _process_transaction(tx: Dict[str, Any]) -> int:
         cta_label = 'Acceder a mes documents'
     else:
         # A/B test J+30 : variant deterministe sur session_id (50/50)
-        # Utilise hash(session_id) % 2 pour repartition stable (meme rerun -> meme variant)
-        import hashlib
-        h = int(hashlib.md5((session_id or '').encode('utf-8')).hexdigest(), 16)
-        variant = 'invitation' if (h % 2 == 0) else 'question'
+        # Override admin possible via app_settings.forced_j30_variant
+        try:
+            from services.app_settings import get_setting as _get_setting
+            forced = _get_setting('forced_j30_variant')
+        except Exception:
+            forced = None
+        if forced in ('question', 'invitation'):
+            variant = forced
+        else:
+            import hashlib
+            h = int(hashlib.md5((session_id or '').encode('utf-8')).hexdigest(), 16)
+            variant = 'invitation' if (h % 2 == 0) else 'question'
         subject, body = _email_j30(prenom, variant=variant)
         cta_label = 'Rejoindre le Cercle · 19€/mois'
         md['sequence_j30_variant'] = variant
