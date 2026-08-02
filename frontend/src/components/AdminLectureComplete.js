@@ -76,6 +76,12 @@ export default function AdminLectureComplete({ token }) {
   const [alertsHistory, setAlertsHistory] = useState([]);
   const [showAlertsHistory, setShowAlertsHistory] = useState(false);
   const [settingsBusy, setSettingsBusy] = useState(false);
+  // Weekly recap
+  const [recapBusy, setRecapBusy] = useState(false);
+  const [recapResult, setRecapResult] = useState(null);
+  // SVG cache stats
+  const [svgStats, setSvgStats] = useState(null);
+  const [svgStatsBusy, setSvgStatsBusy] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -297,6 +303,42 @@ export default function AdminLectureComplete({ token }) {
     }
   };
 
+  const sendWeeklyRecapNow = async () => {
+    if (recapBusy) return;
+    if (!window.confirm('Envoyer le recap hebdo maintenant à tous les admins ?')) return;
+    setRecapBusy(true);
+    setRecapResult(null);
+    try {
+      const r = await axios.post(
+        `${API}/api/lecture-complete/admin/weekly-recap-now`, {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setRecapResult(r.data);
+      load();
+    } catch (e) {
+      setRecapResult({ error: e.response?.data?.detail || 'Erreur' });
+    } finally {
+      setRecapBusy(false);
+      setTimeout(() => setRecapResult(null), 8000);
+    }
+  };
+
+  const loadSvgStats = async () => {
+    if (svgStatsBusy) return;
+    setSvgStatsBusy(true);
+    try {
+      const r = await axios.get(
+        `${API}/api/admin/cache/svg/stats`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSvgStats(r.data);
+    } catch (e) {
+      setSvgStats({ error: e.response?.data?.detail || 'Erreur' });
+    } finally {
+      setSvgStatsBusy(false);
+    }
+  };
+
   return (
     <div data-testid="admin-lecture-complete-panel">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -352,6 +394,22 @@ export default function AdminLectureComplete({ token }) {
         >
           {slackTesting ? '...' : 'Tester Slack'}
         </button>
+        <button
+          onClick={sendWeeklyRecapNow}
+          disabled={recapBusy}
+          data-testid="admin-lc-weekly-recap-now"
+          style={{
+            marginLeft: 8,
+            padding: '8px 14px', borderRadius: 20,
+            background: 'transparent',
+            color: '#4ADE80',
+            border: '1px solid rgba(74,222,128,0.4)',
+            cursor: 'pointer', fontSize: 12, letterSpacing: '.1em',
+            textTransform: 'uppercase',
+          }}
+        >
+          {recapBusy ? '...' : 'Envoyer Recap'}
+        </button>
       </div>
 
       {/* Champ URL Slack custom */}
@@ -387,6 +445,68 @@ export default function AdminLectureComplete({ token }) {
           {slackResult.success ? '✅ Ping Slack envoyé' : '❌ ' + (slackResult.reason || 'Echec')}
         </div>
       )}
+
+      {recapResult && (
+        <div
+          data-testid="admin-lc-recap-result"
+          style={{
+            padding: 10, marginBottom: 12, borderRadius: 8, fontSize: 12,
+            background: recapResult.error ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.12)',
+            border: `1px solid ${recapResult.error ? 'rgba(248,113,113,0.35)' : 'rgba(74,222,128,0.35)'}`,
+            color: recapResult.error ? '#f87171' : '#4ADE80',
+          }}
+        >
+          {recapResult.error
+            ? '❌ ' + recapResult.error
+            : `✅ Recap envoyé à ${recapResult.sent_to || 0} admin(s) — ${recapResult.stats?.paid || 0} paiements · ${recapResult.stats?.rate_pct || 0}% refund`
+          }
+        </div>
+      )}
+
+      {/* SVG cache stats collapsible */}
+      <div
+        data-testid="admin-lc-svg-cache-panel"
+        style={{
+          marginBottom: 16, padding: 10, borderRadius: 10,
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid rgba(124,124,229,0.15)',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => { if (!svgStats) loadSvgStats(); else setSvgStats(null); }}
+          data-testid="admin-lc-svg-cache-toggle"
+          style={{
+            background: 'transparent', border: 'none', cursor: 'pointer', padding: 0,
+            display: 'flex', alignItems: 'center', gap: 6, width: '100%',
+            color: '#7C7CE5', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase',
+          }}
+        >
+          {svgStats ? '▼' : '▶'} Cache SVG (Supabase Storage)
+          {svgStats && !svgStats.error && (
+            <span style={{ color: 'rgba(184,180,201,0.55)', fontSize: 10, textTransform: 'none', letterSpacing: 0 }}>
+              · {svgStats.total_files} fichiers · {svgStats.total_size_human}
+            </span>
+          )}
+          {svgStatsBusy && <span style={{ marginLeft: 8, fontSize: 10, color: 'rgba(184,180,201,0.5)' }}>chargement…</span>}
+        </button>
+        {svgStats && !svgStats.error && (
+          <div data-testid="admin-lc-svg-cache-details" style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
+            {Object.entries(svgStats.by_chart_type || {}).map(([ct, s]) => (
+              <div key={ct} style={{ padding: 8, borderRadius: 6, background: 'rgba(11,16,32,0.4)', fontSize: 11 }}>
+                <div style={{ color: '#e8e6f0', fontWeight: 600 }}>{ct}</div>
+                <div style={{ color: 'rgba(184,180,201,0.7)', marginTop: 2 }}>{s.files} fichier{s.files > 1 ? 's' : ''}</div>
+                <div style={{ color: 'rgba(184,180,201,0.55)', fontSize: 10 }}>
+                  {s.size_bytes ? `${Math.round(s.size_bytes / 1024)} KB` : '—'}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {svgStats?.error && (
+          <div style={{ marginTop: 8, fontSize: 11, color: '#f87171' }}>Erreur : {svgStats.error}</div>
+        )}
+      </div>
 
       {/* Filtres export CSV */}
       <div

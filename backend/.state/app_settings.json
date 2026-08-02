@@ -42,6 +42,43 @@
       "details": "Par admin@plume-astrale.fr",
       "channels": [],
       "at": "2026-08-02T12:18:00.888385+00:00"
+    },
+    {
+      "kind": "weekly_recap",
+      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
+      "details": "Top: aucun refund",
+      "channels": [
+        "email x2"
+      ],
+      "at": "2026-08-02T12:25:33.102145+00:00"
+    },
+    {
+      "kind": "slack_test",
+      "title": "Ping Slack test (FAIL 404)",
+      "details": "Lance par admin@plume-astrale.fr · URL custom",
+      "channels": [],
+      "at": "2026-08-02T12:25:33.963726+00:00"
+    },
+    {
+      "kind": "weekly_recap",
+      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
+      "details": "Top: aucun refund",
+      "channels": [
+        "email x2"
+      ],
+      "at": "2026-08-02T12:28:21.444617+00:00"
+    },
+    {
+      "kind": "weekly_recap",
+      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
+      "details": "Top: aucun refund",
+      "channels": [
+        "email x2"
+      ],
+      "at": "2026-08-02T12:29:48.272408+00:00"
     }
-  ]
+  ],
+  "slack_test_cooldown": {
+    "b658efb3-bcf5-45ea-a406-34e0576a91d1": 1785673703.089119
+  }
 }
