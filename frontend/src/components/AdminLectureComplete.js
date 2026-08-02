@@ -57,8 +57,11 @@ export default function AdminLectureComplete({ token }) {
   const [refundTarget, setRefundTarget] = useState(null);  // {sid, email, amount, admin_bypass}
   const [refundReason, setRefundReason] = useState('');
   const [refundSkipStripe, setRefundSkipStripe] = useState(false);
+  const [refundPartial, setRefundPartial] = useState(false);
+  const [refundAmount, setRefundAmount] = useState('');
   const [refundError, setRefundError] = useState(null);
   const [refundSuccess, setRefundSuccess] = useState(null);
+  const [ctrLoading, setCtrLoading] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -108,7 +111,9 @@ export default function AdminLectureComplete({ token }) {
       admin_bypass: order.admin_bypass,
     });
     setRefundReason('');
-    setRefundSkipStripe(!!order.admin_bypass);  // pas de Stripe a rembourser pour les bypass
+    setRefundSkipStripe(!!order.admin_bypass);
+    setRefundPartial(false);
+    setRefundAmount('');
     setRefundError(null);
     setRefundSuccess(null);
     setRefundModalOpen(true);
@@ -116,17 +121,30 @@ export default function AdminLectureComplete({ token }) {
 
   const confirmRefund = async () => {
     if (!refundTarget) return;
+    // Validation refund partiel
+    let amount_cents = null;
+    if (refundPartial) {
+      const parsed = parseFloat(refundAmount);
+      if (!parsed || parsed <= 0 || parsed > refundTarget.amount) {
+        setRefundError(`Montant invalide (entre 0 et ${refundTarget.amount}€).`);
+        return;
+      }
+      amount_cents = Math.round(parsed * 100);
+    }
     setRefunding(refundTarget.sid);
     setRefundError(null);
     try {
       const r = await axios.post(
         `${API}/api/lecture-complete/admin/refund/${refundTarget.sid}`,
-        { reason: refundReason || undefined, skip_stripe: refundSkipStripe },
+        {
+          reason: refundReason || undefined,
+          skip_stripe: refundSkipStripe,
+          amount_cents,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setRefundSuccess(r.data);
       await load();
-      // Auto-fermeture apres 1.5s
       setTimeout(() => {
         setRefundModalOpen(false);
         setRefundTarget(null);
@@ -137,6 +155,43 @@ export default function AdminLectureComplete({ token }) {
     } finally {
       setRefunding(null);
     }
+  };
+
+  const loadCTR = async () => {
+    if (!token) return;
+    setCtrLoading(true);
+    try {
+      const r = await axios.get(
+        `${API}/api/lecture-complete/admin/ab-stats?include_ctr=true`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAbStats(r.data);
+    } catch (e) {
+      // silent, garde les anciens stats
+    } finally {
+      setCtrLoading(false);
+    }
+  };
+
+  const exportCSV = () => {
+    // Ouvre l'URL avec le token dans un tab — la browser telecharge le CSV
+    // Comme l'endpoint requiert Authorization header, on utilise axios + Blob
+    axios
+      .get(`${API}/api/lecture-complete/admin/orders/export`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob',
+      })
+      .then((res) => {
+        const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `plume-astrale-commandes-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      })
+      .catch((e) => alert(e.response?.data?.detail || 'Export impossible'));
   };
 
   return (
@@ -161,6 +216,22 @@ export default function AdminLectureComplete({ token }) {
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           Rafraîchir
+        </button>
+        <button
+          onClick={exportCSV}
+          data-testid="admin-lc-export-csv"
+          style={{
+            marginLeft: 8,
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '8px 14px', borderRadius: 20,
+            background: 'transparent',
+            color: '#A78BFA',
+            border: '1px solid rgba(167,139,250,0.4)',
+            cursor: 'pointer', fontSize: 12, letterSpacing: '.1em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Export CSV
         </button>
       </div>
 
@@ -207,6 +278,19 @@ export default function AdminLectureComplete({ token }) {
             <span style={{ fontSize: 11, color: 'rgba(184,180,201,0.65)' }}>
               · {abStats.total} envois {abStats.total >= 50 ? '· prêt à décider' : `· ${50 - abStats.total} à attendre`}
             </span>
+            <button
+              onClick={loadCTR}
+              disabled={ctrLoading || abStats.total === 0}
+              data-testid="admin-lc-ab-load-ctr"
+              style={{
+                marginLeft: 'auto', fontSize: 10, padding: '4px 10px',
+                borderRadius: 12, background: 'rgba(167,139,250,0.15)',
+                color: '#A78BFA', border: '1px solid rgba(167,139,250,0.3)',
+                cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '.1em',
+              }}
+            >
+              {ctrLoading ? 'Chargement…' : (abStats.ctr ? 'Rafraîchir CTR' : 'Charger CTR Resend')}
+            </button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {['question', 'invitation'].map((v) => {
@@ -249,6 +333,44 @@ export default function AdminLectureComplete({ token }) {
           {abStats.total < 50 && (
             <div style={{ fontSize: 10, color: 'rgba(184,180,201,0.5)', marginTop: 8, fontStyle: 'italic' }}>
               Décision statistiquement fiable à partir de 50 envois. Vérifier le CTR dans Resend via les email_ids stockés.
+            </div>
+          )}
+          {abStats.ctr && (
+            <div
+              data-testid="admin-lc-ab-ctr"
+              style={{ marginTop: 12, padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}
+            >
+              <div style={{ fontSize: 11, color: '#d9b26a', marginBottom: 6, letterSpacing: '.1em', textTransform: 'uppercase' }}>
+                CTR réel via Resend
+                {abStats.ctr.winner && (
+                  <span style={{ color: '#4ADE80', marginLeft: 8, textTransform: 'none' }}>
+                    🏆 Gagnant : {abStats.ctr.winner === 'question' ? 'Question ouverte' : 'Invitation directe'}
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {['question', 'invitation'].map((v) => {
+                  const s = abStats.ctr[v] || {};
+                  return (
+                    <div key={v} style={{ fontSize: 11, color: 'rgba(184,180,201,0.85)' }}>
+                      <div style={{ marginBottom: 2, color: '#e8e6f0' }}>
+                        {v === 'question' ? '❓ Question' : '✉️ Invitation'}
+                      </div>
+                      <div>Envoyés : <strong>{s.sent || 0}</strong></div>
+                      <div>Ouverts : <strong>{s.opened || 0}</strong> ({s.open_rate || 0}%)</div>
+                      <div>Cliqués : <strong style={{ color: '#4ADE80' }}>{s.clicked || 0}</strong> (CTR {s.ctr || 0}%)</div>
+                      {s.sample_note && (
+                        <div style={{ fontSize: 9, color: 'rgba(184,180,201,0.5)', marginTop: 2 }}>{s.sample_note}</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {!abStats.ctr.winner && abStats.total >= 30 && (
+                <div style={{ fontSize: 10, color: 'rgba(184,180,201,0.55)', marginTop: 6, fontStyle: 'italic' }}>
+                  Écart CTR &lt; 0.5% ou volumes insuffisants — pas encore de gagnant fiable.
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -480,15 +602,49 @@ export default function AdminLectureComplete({ token }) {
                 </div>
 
                 {refundTarget && !refundTarget.admin_bypass && (
-                  <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'rgba(184,180,201,0.85)' }}>
-                    <input
-                      type="checkbox"
-                      checked={refundSkipStripe}
-                      onChange={(e) => setRefundSkipStripe(e.target.checked)}
-                      data-testid="refund-modal-skip-stripe"
-                    />
-                    Ne pas appeler Stripe (marquer localement uniquement)
-                  </label>
+                  <>
+                    <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'rgba(184,180,201,0.85)' }}>
+                      <input
+                        type="checkbox"
+                        checked={refundSkipStripe}
+                        onChange={(e) => setRefundSkipStripe(e.target.checked)}
+                        data-testid="refund-modal-skip-stripe"
+                      />
+                      Ne pas appeler Stripe (marquer localement uniquement)
+                    </label>
+                    <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'rgba(184,180,201,0.85)' }}>
+                      <input
+                        type="checkbox"
+                        checked={refundPartial}
+                        onChange={(e) => setRefundPartial(e.target.checked)}
+                        data-testid="refund-modal-partial-toggle"
+                      />
+                      Remboursement partiel
+                    </label>
+                    {refundPartial && (
+                      <div className="pl-6">
+                        <label className="text-xs uppercase tracking-wider block mb-1" style={{ color: '#d9b26a' }}>
+                          Montant à rembourser (€)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          max={refundTarget.amount}
+                          value={refundAmount}
+                          onChange={(e) => setRefundAmount(e.target.value)}
+                          placeholder={`Max ${refundTarget.amount}€`}
+                          data-testid="refund-modal-amount"
+                          className="w-full rounded px-3 py-2 text-sm"
+                          style={{
+                            background: 'rgba(11,16,32,0.6)',
+                            border: '1px solid rgba(255,255,255,0.15)',
+                            color: '#e8e6f0',
+                          }}
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {refundError && (

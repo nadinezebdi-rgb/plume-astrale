@@ -1470,3 +1470,37 @@ Rappel : le fichier `/app/backend/migrations/2026_08_journal_tracking_and_email_
 - Timeline UI expansible/collapsable ✅
 - AB panel affiché avec message "0 envois · 50 à attendre" ✅
 - sync_stripe_refund_webhook exporté + linké dans server.py ✅
+
+## 2026-08-02 (nuit) — Alerte refund + CTR auto + Export CSV + Refund partiel
+
+### 1. Alerte refund élevée (7 jours glissants)
+- Nouveau service `/app/backend/services/refund_alert.py` avec boucle `refund_alert_loop()` (vérif chaque heure).
+- Seuil : refund_rate > **5%** ET min 5 paiements sur 7j.
+- Email HTML envoyé aux `profiles WHERE is_admin=true` (fallback admin@plume-astrale.fr) avec taux + liste des refunds récents.
+- Max **1 alerte/jour** (throttle via `_ALERT_STATE.last_alert_date`).
+
+### 2. CTR A/B automatique via Resend API
+- Nouveau service `/app/backend/services/resend_stats.py` :
+  - `fetch_email_stats(email_id)` interroge `GET /emails/{id}` (opens/clicks).
+  - `aggregate_ab_ctr(variant_email_ids)` fetch en parallèle (cap 50/variant), compute open_rate + ctr + winner (≥30 envois par variant + écart CTR > 0.5%).
+- Endpoint `/admin/ab-stats?include_ctr=true` retourne maintenant `stats.ctr = {question:{sent,opened,clicked,open_rate,ctr}, invitation:{...}, winner, significant}`.
+- UI : bouton "Charger CTR Resend" (data-testid=admin-lc-ab-load-ctr) déclenche le fetch enrichi. Affichage 2 colonnes avec badge 🏆 Gagnant.
+
+### 3. Export CSV commandes
+- Nouveau endpoint `GET /admin/orders/export` (admin only) → StreamingResponse text/csv.
+- Colonnes : session_id, email, created_at, amount, currency, payment_status, admin_bypass, bundle_dispatched, refunded_at, refunded_amount_cents, refund_reason, refund_partial, stripe_refund_id, first_name, birth_date, sequence_j1/j7/j13/j30, j30_variant.
+- UI : bouton "Export CSV" (data-testid=admin-lc-export-csv) déclenche téléchargement Blob `plume-astrale-commandes-YYYY-MM-DD.csv`.
+
+### 4. Refund partiel UI
+- Nouveau champ `amount_cents` optionnel dans `RefundRequest`.
+- Backend valide : > 0, <= (montant restant en centimes). Passe `amount=X` à `stripe.Refund.create()` si fourni.
+- `metadata.refund_partial=true` + `refunded_amount_cents` accumulés.
+- UI (modal) : checkbox "Remboursement partiel" (refund-modal-partial-toggle) + champ montant (refund-modal-amount) qui apparaît conditionnellement (masqué pour admin bypass).
+- Le 409 "déjà remboursée" n'est déclenché QUE pour refund total ; un refund partiel peut être suivi d'un autre refund partiel.
+
+### Tests
+- Export CSV : status 200, content-type=text/csv, ligne header + 1 ligne data ✅
+- AB stats include_ctr=true : structure correcte + fetch Resend fonctionnel ✅
+- Refund partiel : 50€ marqué, `partial:true, refunded_amount_cents:5000` ✅
+- Refund alert : stats 7j calculées, boucle démarrée ✅
+- Backend lint OK ✅ / Frontend lint OK ✅

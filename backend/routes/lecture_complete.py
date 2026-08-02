@@ -184,12 +184,12 @@ async def lecture_complete_scarcity():
 
 @router.get('/admin/ab-stats')
 async def lecture_complete_admin_ab_stats(
+    include_ctr: bool = False,
     current_user: Optional[dict] = Depends(get_optional_user),
 ):
-    """Stats A/B test J+30 : nombre d'envois par variant (question vs invitation).
+    """Stats A/B test J+30 : nombre d'envois par variant + CTR reel via Resend API.
 
-    Le taux de clic reel devra etre lu depuis le dashboard Resend (les email_id sont
-    stockes dans metadata.sequence_j30_email_id).
+    include_ctr=true → aggrege les stats Resend (opens/clicks) par variant (peut prendre 5-10s).
     """
     if not current_user or not current_user.get('id'):
         raise HTTPException(status_code=401, detail='Authentification requise.')
@@ -204,18 +204,105 @@ async def lecture_complete_admin_ab_stats(
         raise HTTPException(status_code=500, detail=str(e))
 
     rows = (r.data or []) if r else []
-    stats = {'question': 0, 'invitation': 0, 'total': 0, 'sample_email_ids': {'question': [], 'invitation': []}}
+    stats: Dict[str, Any] = {
+        'question': 0, 'invitation': 0, 'total': 0,
+        'sample_email_ids': {'question': [], 'invitation': []},
+    }
+    variant_email_ids: Dict[str, List[str]] = {'question': [], 'invitation': []}
     for row in rows:
         md = row.get('metadata') or {}
         if not md.get('sequence_j30_sent_at'):
             continue
-        variant = md.get('sequence_j30_variant') or 'question'  # ancien envoi sans variant = question
+        variant = md.get('sequence_j30_variant') or 'question'
         stats[variant] = stats.get(variant, 0) + 1
         stats['total'] += 1
         eid = md.get('sequence_j30_email_id')
-        if eid and len(stats['sample_email_ids'][variant]) < 5:
-            stats['sample_email_ids'][variant].append(eid)
+        if eid:
+            variant_email_ids[variant].append(eid)
+            if len(stats['sample_email_ids'][variant]) < 5:
+                stats['sample_email_ids'][variant].append(eid)
+
+    if include_ctr and stats['total'] > 0:
+        try:
+            from services.resend_stats import aggregate_ab_ctr
+            ctr = await aggregate_ab_ctr(variant_email_ids)
+            stats['ctr'] = ctr
+        except Exception as e:
+            logger.warning(f'[ab-stats] CTR aggregation fail: {e}')
+            stats['ctr_error'] = str(e)[:200]
+
     return stats
+
+
+@router.get('/admin/orders/export')
+async def lecture_complete_admin_export_csv(
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Export CSV des commandes 97€ pour comptabilite / analyse externe.
+
+    Retourne un text/csv streamable.
+    """
+    from fastapi.responses import StreamingResponse
+    import io
+    import csv as _csv
+
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+
+    try:
+        r = sb.table('payment_transactions').select(
+            'session_id, user_email, created_at, amount, currency, payment_status, metadata'
+        ).eq('pack_id', 'lecture_complete').order('created_at', desc=True).limit(1000).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    rows = (r.data or []) if r else []
+    buf = io.StringIO()
+    writer = _csv.writer(buf, quoting=_csv.QUOTE_MINIMAL)
+    writer.writerow([
+        'session_id', 'email', 'created_at', 'amount_eur', 'currency', 'payment_status',
+        'admin_bypass', 'bundle_dispatched', 'refunded_at', 'refunded_amount_cents',
+        'refund_reason', 'refund_partial', 'stripe_refund_id',
+        'first_name', 'birth_date',
+        'sequence_j1', 'sequence_j7', 'sequence_j13', 'sequence_j30', 'j30_variant',
+    ])
+    for row in rows:
+        md = row.get('metadata') or {}
+        octx = md.get('order_ctx') or {}
+        writer.writerow([
+            row.get('session_id') or '',
+            row.get('user_email') or '',
+            row.get('created_at') or '',
+            row.get('amount') if row.get('amount') is not None else '',
+            row.get('currency') or '',
+            row.get('payment_status') or '',
+            'yes' if md.get('admin_bypass') else '',
+            'yes' if md.get('bundle_dispatched') else '',
+            md.get('refunded_at') or '',
+            md.get('refunded_amount_cents') or '',
+            (md.get('refund_reason') or '').replace('\n', ' '),
+            'yes' if md.get('refund_partial') else '',
+            md.get('stripe_refund_id') or '',
+            octx.get('first_name') or '',
+            octx.get('birth_date') or '',
+            'yes' if md.get('sequence_j1_sent_at') else '',
+            'yes' if md.get('sequence_j7_sent_at') else '',
+            'yes' if md.get('sequence_j13_sent_at') else '',
+            'yes' if md.get('sequence_j30_sent_at') else '',
+            md.get('sequence_j30_variant') or '',
+        ])
+    buf.seek(0)
+    from datetime import datetime as _dt
+    fname = f'plume-astrale-lecture-complete-{_dt.now().strftime("%Y%m%d")}.csv'
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type='text/csv',
+        headers={'Content-Disposition': f'attachment; filename="{fname}"'},
+    )
 
 
 @router.get('/admin/orders')
@@ -335,6 +422,7 @@ async def lecture_complete_admin_orders(current_user: Optional[dict] = Depends(g
 class RefundRequest(BaseModel):
     reason: Optional[str] = None
     skip_stripe: Optional[bool] = False  # true → seulement marquer refunded, ne pas appeler Stripe
+    amount_cents: Optional[int] = None    # None = refund total ; sinon montant partiel en centimes
 
 
 @router.post('/admin/refund/{session_id}')
@@ -347,13 +435,11 @@ async def lecture_complete_admin_refund(
 
     Ordre :
       1. Verifie admin
-      2. Charge la tx, verifie qu'elle n'est pas deja remboursee
+      2. Charge la tx, verifie qu'elle n'est pas deja remboursee (integralement)
       3. Si skip_stripe=false ET session_id commence par 'cs_' : appelle stripe.Refund.create()
-      4. Marque metadata.refunded_at / refund_reason / stripe_refund_id
+         Si amount_cents fourni : refund partiel via param `amount=`
+      4. Marque metadata.refunded_at / refund_reason / stripe_refund_id / refund_partial / refunded_amount_cents
       5. Retourne le detail
-
-    Note : pour les admin bypass (session_id 'admin-lecture-...'), skip_stripe est force
-    a true (pas de vrai paiement a rembourser).
     """
     if not current_user or not current_user.get('id'):
         raise HTTPException(status_code=401, detail='Authentification requise.')
@@ -368,33 +454,48 @@ async def lecture_complete_admin_refund(
         if not r or not r.data:
             raise HTTPException(status_code=404, detail='Session introuvable.')
         md = r.data.get('metadata') or {}
-        if md.get('refunded_at'):
-            raise HTTPException(status_code=409, detail='Deja remboursee.')
+        # Refund total deja fait → 409. Un refund partiel deja fait n'empeche PAS un refund additionnel.
+        if md.get('refunded_at') and not md.get('refund_partial'):
+            raise HTTPException(status_code=409, detail='Deja remboursee integralement.')
+
+        # Validation montant partiel
+        amount_cents: Optional[int] = payload.amount_cents
+        tx_amount_cents = int(round((r.data.get('amount') or 0) * 100))
+        already_refunded_cents = int(md.get('refunded_amount_cents') or 0)
+        if amount_cents is not None:
+            if amount_cents <= 0:
+                raise HTTPException(status_code=400, detail='Montant refund doit etre > 0.')
+            if amount_cents + already_refunded_cents > tx_amount_cents:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f'Montant depasse le solde restant ({tx_amount_cents - already_refunded_cents} centimes).',
+                )
 
         stripe_refund_id: Optional[str] = None
         stripe_refund_error: Optional[str] = None
         skip = bool(payload.skip_stripe) or session_id.startswith('admin-') or bool(md.get('admin_bypass'))
 
         if not skip:
-            # Appel Stripe API pour le refund reel
             try:
                 import stripe as _stripe
                 settings = get_settings()
                 _stripe.api_key = settings.STRIPE_API_KEY
-                # Recupere le payment_intent depuis la session Stripe
                 sess = _stripe.checkout.Session.retrieve(session_id)
                 pi = sess.get('payment_intent') if isinstance(sess, dict) else sess.payment_intent
                 if not pi:
                     raise Exception('Aucun payment_intent sur cette session Stripe.')
-                refund = _stripe.Refund.create(
-                    payment_intent=pi,
-                    reason='requested_by_customer',
-                    metadata={
+                refund_kwargs: Dict[str, Any] = {
+                    'payment_intent': pi,
+                    'reason': 'requested_by_customer',
+                    'metadata': {
                         'session_id': session_id,
                         'admin_id': current_user.get('id', ''),
                         'reason_user': (payload.reason or '')[:250],
                     },
-                )
+                }
+                if amount_cents is not None:
+                    refund_kwargs['amount'] = int(amount_cents)
+                refund = _stripe.Refund.create(**refund_kwargs)
                 stripe_refund_id = refund.get('id') if isinstance(refund, dict) else refund.id
             except HTTPException:
                 raise
@@ -415,17 +516,29 @@ async def lecture_complete_admin_refund(
             md['stripe_refund_id'] = stripe_refund_id
         if skip:
             md['refund_stripe_skipped'] = True
+        # Gestion du montant refund (partiel vs total)
+        if amount_cents is not None and amount_cents < tx_amount_cents - already_refunded_cents:
+            md['refund_partial'] = True
+            md['refunded_amount_cents'] = already_refunded_cents + amount_cents
+        else:
+            md['refund_partial'] = False
+            md['refunded_amount_cents'] = tx_amount_cents
         sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
 
         # Trace timeline admin
         try:
             from services.lecture_complete_bundle import append_admin_action
+            details_txt = (payload.reason or '')[:150]
+            if amount_cents is not None:
+                details_txt += f' · partiel {amount_cents/100:.2f}€'
+            if stripe_refund_id:
+                details_txt += f' · stripe={stripe_refund_id}'
             append_admin_action(
                 session_id,
                 'refund_stripe' if stripe_refund_id else 'refund',
                 admin_id=current_user.get('id'),
                 admin_email=current_user.get('email'),
-                details=(payload.reason or '')[:200] + (f' · stripe={stripe_refund_id}' if stripe_refund_id else ''),
+                details=details_txt,
             )
         except Exception as _e:
             logger.warning(f'[lecture_complete/refund] admin_action log failed: {_e}')
@@ -440,6 +553,8 @@ async def lecture_complete_admin_refund(
         'refunded_at': md['refunded_at'],
         'stripe_refund_id': stripe_refund_id,
         'stripe_skipped': skip,
+        'partial': bool(md.get('refund_partial')),
+        'refunded_amount_cents': md.get('refunded_amount_cents'),
     }
 
 
