@@ -69,6 +69,7 @@ from routes.marketing import router as marketing_router
 from routes.referral import router as referral_router
 from routes.lecture_complete import router as lecture_complete_router
 from routes.landing import router as landing_router
+from routes.chat_support import router as chat_support_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from emergentintegrations.payments.stripe.checkout import (
@@ -135,6 +136,7 @@ api_router.include_router(marketing_router)
 api_router.include_router(referral_router)
 api_router.include_router(lecture_complete_router)
 api_router.include_router(landing_router)
+api_router.include_router(chat_support_router)
 
 
 # ════════════════════════════════════════════

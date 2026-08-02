@@ -84,12 +84,13 @@ class TestimonialSubmit(BaseModel):
 
 
 @router.get('/testimonials')
-async def landing_testimonials_public():
-    """Renvoie jusqu'à 6 témoignages approuvés, du plus récent au plus ancien."""
+async def landing_testimonials_public(limit: int = 6):
+    """Renvoie jusqu'à `limit` témoignages approuvés (default 6, max 100).
+    Triés du plus récent au plus ancien."""
     items = _load_testimonials()
     approved = [t for t in items if t.get('status') == 'approved']
     approved.sort(key=lambda t: t.get('created_at', ''), reverse=True)
-    # Champs safe pour public (pas de status, pas d'email)
+    limit = max(1, min(100, int(limit or 6)))
     return {
         'testimonials': [{
             'id': t['id'],
@@ -101,7 +102,7 @@ async def landing_testimonials_public():
             'transform_before': t.get('transform_before'),
             'transform_after': t.get('transform_after'),
             'stars': t.get('stars', 5),
-        } for t in approved[:6]],
+        } for t in approved[:limit]],
     }
 
 
@@ -133,7 +134,55 @@ async def landing_testimonial_submit(
     }
     items.append(new)
     _save_testimonials(items)
+
+    # Ping Slack + log historique alertes
+    import asyncio as _asyncio
+    _asyncio.create_task(_notify_new_testimonial(new))
+
     return {'submitted': True, 'id': new['id'], 'status': 'pending'}
+
+
+async def _notify_new_testimonial(t: Dict[str, Any]) -> None:
+    """Notification Slack (best effort) + log_alert quand un nouveau témoignage arrive en pending."""
+    import os as _os
+    import httpx as _httpx
+    from services.app_settings import log_alert as _log_alert
+    slack_ok = False
+    webhook = _os.environ.get('SLACK_WEBHOOK_URL', '').strip()
+    if webhook:
+        blocks = [
+            {'type': 'header', 'text': {'type': 'plain_text',
+                'text': '✍️ Nouveau témoignage en attente'}},
+            {'type': 'section', 'text': {'type': 'mrkdwn',
+                'text': f'*{t.get("name")}*'
+                        + (f' · {t.get("sign")}' if t.get('sign') else '')
+                        + (f' · {t.get("city")}' if t.get('city') else '')
+                        + f'\n>{t.get("quote","")[:280]}'
+                        + f'\n_Soumis par_ `{t.get("author_email","?")}`'}},
+            {'type': 'actions', 'elements': [{
+                'type': 'button',
+                'text': {'type': 'plain_text', 'text': 'Ouvrir /admin'},
+                'url': 'https://plume-astrale.fr/admin',
+                'style': 'primary',
+            }]},
+        ]
+        try:
+            async with _httpx.AsyncClient(timeout=6.0) as client:
+                r = await client.post(webhook, json={
+                    'text': f'Nouveau témoignage : {t.get("name")}', 'blocks': blocks,
+                })
+                slack_ok = r.status_code in (200, 204)
+        except Exception as e:
+            logger.warning(f'[testimonial slack] fail: {e}')
+    try:
+        _log_alert(
+            kind='new_testimonial',
+            title=f'Nouveau témoignage : {t.get("name")} (pending)',
+            details=(t.get('quote') or '')[:180],
+            channels=['slack'] if slack_ok else [],
+        )
+    except Exception:
+        pass
 
 
 async def _require_admin(current_user: Optional[dict]) -> dict:
@@ -290,7 +339,15 @@ def _auto_detect_and_lock_winner() -> Optional[str]:
     if abs(ctr_a - ctr_b) < 2.0:
         return None
     winner = 'A' if ctr_a > ctr_b else 'B'
+    loser = 'B' if winner == 'A' else 'A'
     set_setting('forced_hero_variant', winner)
+    headlines = {
+        'A': 'Ton ciel de naissance contient une carte.',
+        'B': "La lecture que ton ciel attendait.",
+    }
+    winner_ctr = ctr_a if winner == 'A' else ctr_b
+    loser_ctr = ctr_b if winner == 'A' else ctr_a
+    delta = round(abs(ctr_a - ctr_b), 2)
     try:
         from services.app_settings import log_alert
         log_alert(
@@ -301,7 +358,113 @@ def _auto_detect_and_lock_winner() -> Optional[str]:
         )
     except Exception:
         pass
+    # Fire-and-forget notification email + slack (best effort)
+    try:
+        import asyncio as _asyncio
+        _asyncio.create_task(_notify_winner_locked(
+            winner=winner, loser=loser,
+            winner_headline=headlines[winner], loser_headline=headlines[loser],
+            winner_ctr=round(winner_ctr, 2), loser_ctr=round(loser_ctr, 2),
+            delta=delta, imp_a=imp_a, imp_b=imp_b,
+        ))
+    except Exception as e:
+        logger.warning(f'[hero autolock] notify schedule fail: {e}')
     return winner
+
+
+async def _notify_winner_locked(winner: str, loser: str,
+                                winner_headline: str, loser_headline: str,
+                                winner_ctr: float, loser_ctr: float, delta: float,
+                                imp_a: int, imp_b: int) -> None:
+    """Email + Slack (best effort) quand auto-lock hero declenche."""
+    import os as _os
+    import httpx as _httpx
+    from services.refund_alert import _get_admin_emails as _admins
+    from services.resend_service import send_email as _send
+    from services.app_settings import log_alert as _log_alert
+
+    subject = f'🏆 Plume Astrale — Hero A/B verrouillé sur {winner} (+{delta}pt CTR)'
+    html = f'''
+    <div style="max-width:640px;margin:0 auto;font-family:Georgia,serif;
+                background:#0b1020;color:#e8e6f0;padding:32px 24px;line-height:1.6;">
+      <div style="background:#141a33;border:1px solid rgba(217,178,106,0.35);border-radius:12px;padding:28px;">
+        <div style="color:#d9b26a;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;">
+          🏆 A/B Hero — Auto-lock déclenché
+        </div>
+        <h1 style="color:#d9b26a;font-size:22px;margin:10px 0 20px;">
+          Variante {winner} verrouillée à 100%
+        </h1>
+        <p style="color:#4ADE80;font-size:14px;margin:0 0 8px;">
+          <strong>Gagnant · {winner}</strong> — CTR {winner_ctr}%
+        </p>
+        <blockquote style="border-left:3px solid #d9b26a;padding-left:14px;
+          margin:6px 0 22px;color:#e8e6f0;font-style:italic;">« {winner_headline} »</blockquote>
+
+        <p style="color:#f87171;font-size:14px;margin:0 0 8px;">
+          <strong>Perdante · {loser}</strong> — CTR {loser_ctr}%
+        </p>
+        <blockquote style="border-left:3px solid #f87171;padding-left:14px;
+          margin:6px 0 22px;color:#b8b4c9;font-style:italic;">« {loser_headline} »</blockquote>
+
+        <p style="color:#b8b4c9;font-size:13px;margin-top:24px;">
+          Delta CTR : <strong style="color:#d9b26a;">+{delta}pt</strong> · Impressions A {imp_a} · B {imp_b}
+        </p>
+        <p style="margin-top:20px;font-size:12px;">
+          <a href="https://plume-astrale.fr/admin" style="color:#d9b26a;">Débloquer / gérer →</a>
+        </p>
+        <p style="font-size:11px;color:#7c7ce5;margin-top:20px;font-style:italic;">
+          Automatique · Déclenché à ≥100 impressions par variante et ≥2pt de delta CTR.
+        </p>
+      </div>
+    </div>
+    '''
+    admins = await _admins()
+    sent = 0
+    for admin_email in admins:
+        try:
+            eid = await _send(admin_email, subject, html)
+            if eid:
+                sent += 1
+        except Exception as e:
+            logger.warning(f'[hero autolock] send fail to {admin_email}: {e}')
+
+    slack_ok = False
+    webhook = _os.environ.get('SLACK_WEBHOOK_URL', '').strip()
+    if webhook:
+        try:
+            async with _httpx.AsyncClient(timeout=6.0) as client:
+                r = await client.post(webhook, json={
+                    'text': f'Hero A/B verrouillé automatiquement sur {winner} (+{delta}pt CTR).',
+                    'blocks': [
+                        {'type': 'header', 'text': {'type': 'plain_text',
+                            'text': f'🏆 Hero A/B → {winner} (+{delta}pt)'}},
+                        {'type': 'section', 'text': {'type': 'mrkdwn',
+                            'text': f'*Gagnante {winner}* — CTR {winner_ctr}%\n>{winner_headline}\n\n'
+                                    f'*Perdante {loser}* — CTR {loser_ctr}%\n>{loser_headline}\n\n'
+                                    f'Impressions A {imp_a} · B {imp_b}'}},
+                        {'type': 'actions', 'elements': [{'type': 'button',
+                            'text': {'type': 'plain_text', 'text': 'Ouvrir /admin'},
+                            'url': 'https://plume-astrale.fr/admin', 'style': 'primary'}]},
+                    ],
+                })
+                slack_ok = r.status_code in (200, 204)
+        except Exception as e:
+            logger.warning(f'[hero autolock] slack fail: {e}')
+
+    try:
+        channels = []
+        if sent:
+            channels.append(f'email x{sent}')
+        if slack_ok:
+            channels.append('slack')
+        _log_alert(
+            kind='hero_autolock_notified',
+            title=f'Auto-lock {winner} — notifs envoyées',
+            details=f'Delta {delta}pt · CTR {winner_ctr}% vs {loser_ctr}%',
+            channels=channels,
+        )
+    except Exception:
+        pass
 
 
 @router.get('/ab/serve-variant')

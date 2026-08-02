@@ -44,6 +44,8 @@ import CommandeSucces from "./pages/CommandeSucces";
 import CharteConfiance from "./pages/CharteConfiance";
 import MonCompte from "./pages/MonCompte";
 import Temoignage from "./pages/Temoignage";
+import TemoignagesPublic from "./pages/TemoignagesPublic";
+import SupportChat from "./components/SupportChat";
 import Admin from "./pages/Admin";
 import Energie from "./pages/Energie";
 import ChatIA from "./pages/ChatIA";
@@ -100,6 +102,7 @@ function GlobalOverlays() {
       <MobileTabBar />
       {!isLanding && <LiveSalesCounter />}
       {!isLanding && <LaunchBanner />}
+      <SupportChat />
     </>
   );
 }
@@ -206,6 +209,7 @@ function App() {
                 <Route path="/commande/succes" element={<CommandeSucces />} />
                 <Route path="/mon-compte" element={<MonCompte />} />
                 <Route path="/temoignage" element={<Temoignage />} />
+                <Route path="/temoignages" element={<TemoignagesPublic />} />
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
                 <Route path="/consultation" element={<Navigate to="/outils/consultation" replace />} />
                 <Route path="/energie" element={<Navigate to="/outils/energie" replace />} />

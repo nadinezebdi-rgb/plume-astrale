@@ -19,6 +19,7 @@ const SOLENA_PORTRAIT = 'https://customer-assets-0z36b82j.emergentagent.net/job_
 const SOLENA_LIFESTYLE = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/l6a6ew17_photos%20Sol%C3%A9na.webp';
 const SOLENA_MYSTIQUE = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/htvnb1ej_PHOTOS%20SOLENA%202.webp';
 const SOLENA_PDF = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/ib324e70_PHOTOS%20SOLENA%203.webp';
+const HERO_PORTRAITS = [SOLENA_PORTRAIT, SOLENA_LIFESTYLE, SOLENA_MYSTIQUE];
 const MANIFESTO_VIDEO = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/ly63ciw5_Le%20Manifeste%20Plume%20Astrale_1080p.mp4';
 const LOGO = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/ryuhr45s_logo%20plume%20%20%28250%20x%20250%20px%29.png';
 
@@ -157,8 +158,8 @@ const styles = `
   .pa-hero-portrait{position:relative;border-radius:24px;overflow:hidden;
     box-shadow:0 30px 80px rgba(0,0,0,.55);
     border:1px solid rgba(201,162,75,.25);aspect-ratio:3/4;background:#141a33;}
-  .pa-hero-portrait img{width:100%;height:100%;object-fit:cover;display:block;}
-  .pa-hero-portrait::after{content:'';position:absolute;inset:0;
+  .pa-hero-slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .pa-hero-portrait::after{content:'';position:absolute;inset:0;z-index:1;
     background:linear-gradient(180deg,transparent 40%,rgba(11,15,36,.55) 100%);pointer-events:none;}
   .pa-hero-badge{position:absolute;bottom:20px;left:20px;right:20px;
     background:rgba(11,15,36,.75);backdrop-filter:blur(10px);
@@ -242,11 +243,12 @@ const styles = `
     border-bottom:1px dashed rgba(122,95,42,.4);transition:opacity .18s ease;}
   .pa-share-link:hover{opacity:.75;}
 
-  /* Manifeste vidéo */
+  /* Manifeste vidéo — cadrage portrait (video verticale) */
   .pa-video-wrap{position:relative;border-radius:18px;overflow:hidden;
     border:1px solid rgba(201,162,75,.25);
-    box-shadow:0 20px 60px rgba(0,0,0,.5);background:#000;aspect-ratio:16/9;}
-  .pa-video-wrap video{width:100%;height:100%;display:block;object-fit:cover;background:#000;}
+    box-shadow:0 20px 60px rgba(0,0,0,.5);background:#000;
+    aspect-ratio:9/16;max-width:360px;margin:0 auto;}
+  .pa-video-wrap video{width:100%;height:100%;display:block;object-fit:contain;background:#000;}
   .pa-video-overlay{position:absolute;inset:0;pointer-events:none;
     background:radial-gradient(circle at center,rgba(11,15,36,.25),rgba(11,15,36,.6) 70%);
     display:flex;align-items:center;justify-content:center;
@@ -540,7 +542,18 @@ export default function Index() {
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [videoMuted, setVideoMuted] = useState(true);
   const [autoplayed, setAutoplayed] = useState(false);
+  const [heroPhotoIdx, setHeroPhotoIdx] = useState(0);
   const videoRef = React.useRef(null);
+
+  // Photo rotator hero — crossfade lent toutes les 6s (pause si tab en background)
+  React.useEffect(() => {
+    if (typeof document !== 'undefined' && document.hidden) return;
+    const id = setInterval(() => {
+      if (document.hidden) return;
+      setHeroPhotoIdx((i) => (i + 1) % HERO_PORTRAITS.length);
+    }, 6000);
+    return () => clearInterval(id);
+  }, []);
 
   // A/B pick + impression tracking. Interroge d'abord le backend pour honorer un lock manuel/auto.
   React.useEffect(() => {
@@ -703,9 +716,21 @@ export default function Index() {
                   Sans carte bancaire · Première réponse en 2 minutes
                 </p>
               </div>
-              <div className="pa-hero-portrait">
-                <img src={SOLENA_PORTRAIT} alt="Soléna, guide astrologique de Plume Astrale"
-                  loading="eager" />
+              <div className="pa-hero-portrait" data-testid="hero-portrait-rotator">
+                {HERO_PORTRAITS.map((src, i) => (
+                  <img
+                    key={src}
+                    src={src}
+                    alt="Soléna, guide astrologique de Plume Astrale"
+                    className="pa-hero-slide"
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    data-testid={`hero-portrait-${i}`}
+                    style={{
+                      opacity: i === heroPhotoIdx ? 1 : 0,
+                      transition: 'opacity 1.4s ease-in-out',
+                    }}
+                  />
+                ))}
                 <div className="pa-hero-badge">
                   <span>Soléna, guide astrologique</span>
                   <strong data-testid="hero-badge-rating">
