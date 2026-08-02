@@ -1295,3 +1295,27 @@ Le repo GitHub (prod) avait divergé : features développées hors Emergent (meg
 - 11 endpoints checkout testés, tous retournent 422 sans payload (donc existent et acceptent le body).
 - `/api/promo/validate` : TOUT2026 → valid:true admin_only:true ✅ ; code inconnu → valid:false ✅
 - Endpoints publics de contenu tous vérifiés 200 : tarot/jour, tarot/oui-non, oracle/teaser, daily/aries, plume-chat, astrology/natal-chart, couple/mystery.
+
+## 2026-08-02 — Repositionnement Landing v2 (Lecture Complète 97€)
+
+### Changement de positionnement majeur
+- **Cible** : femmes 35-70 ans
+- **Promesse** : guidance de vie (comprendre le présent, pas prédire le futur)
+- **Homepage / entièrement remplacée** : la Lune 3D + QuickOracle + SolenaVideoHero (ancien Index.js) → nouvelle Landing v2 long-form design Georgia serif + palette #d9b26a/#6a5acd (fidèle à la maquette user).
+
+### Structure Landing v2
+Bandeau lunaire → Hero ("Si tu me lis à cette heure-ci…") → Le Miroir → Je suis Soléna → Ce que Soléna éclaire (5 cartes) → Empilement de valeur (table 214€ barrée → 97€) → 4 bonus (90€ offerts) → Garantie 14 jours "Clarté ou remboursée" → 3 témoignages vérifiés → CTA final → FAQ 4 questions → mention légale.
+
+### Nouveau produit
+- **Lecture Complète du Ciel — 97€** (bundle Thème Natal + Fenêtres 2026 + Karma + Analyse Liens + Cercle Soléna 90j)
+- Backend : `POST /api/lecture-complete/checkout` + `GET /api/lecture-complete/status` (`/app/backend/routes/lecture_complete.py`)
+- Frontend : formulaire de checkout inline (email + prénom + naissance + ville) déroulé au clic
+- Page succès : `/lecture-complete/succes` avec polling toutes les 3s
+- Config PACKS `lecture_complete` (97€ EUR one-shot)
+- SEC-004 respecté : bypass admin via promo_code TOUT2026 uniquement
+
+### Livraison
+Bonus (Rituel du Soir, Carte des Liens, Calendrier 12 fenêtres, Question à Soléna) : livraison manuelle par Soléna après achat (par email).
+
+### Tests
+Testing agent iteration_57 : **backend 6/6 ✅, frontend 10/10 data-testid ✅**. Redirect Stripe confirmé, polling fonctionne, SEC-004 respecté.
