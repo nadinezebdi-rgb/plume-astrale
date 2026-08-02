@@ -80,5 +80,73 @@
   ],
   "slack_test_cooldown": {
     "b658efb3-bcf5-45ea-a406-34e0576a91d1": 1785673703.089119
+  },
+  "landing_testimonials": [
+    {
+      "id": "seed-lea-m",
+      "initial": "L",
+      "name": "Léa M.",
+      "sign": "Poissons",
+      "city": "Lyon",
+      "quote": "Rien de générique, rien de flou. Soléna m'a expliqué pourquoi je revivais toujours le même schéma — et comment le comprendre.",
+      "transform_before": "Je tournais en rond avec la même relation depuis 3 ans.",
+      "transform_after": "J'ai enfin compris le nœud, et posé un vrai choix.",
+      "status": "approved",
+      "stars": 5,
+      "created_at": "2026-07-15T10:00:00+00:00"
+    },
+    {
+      "id": "seed-sarah-t",
+      "initial": "S",
+      "name": "Sarah T.",
+      "sign": "Cancer",
+      "city": "Bordeaux",
+      "quote": "J'étais sceptique. La finesse de la lecture m'a scotchée. Ça m'a aidée à faire la paix avec une histoire de famille.",
+      "transform_before": "Un secret familial que je portais depuis toujours.",
+      "transform_after": "Une paix nouvelle avec mes racines.",
+      "status": "approved",
+      "stars": 5,
+      "created_at": "2026-07-18T14:30:00+00:00"
+    },
+    {
+      "id": "seed-manon-d",
+      "initial": "M",
+      "name": "Manon D.",
+      "sign": "Lion",
+      "city": "Marseille",
+      "quote": "Je relis ma lecture chaque semaine. Plus apaisant que trois ans à ressasser toute seule.",
+      "transform_before": "Nuits blanches à retourner les mêmes questions.",
+      "transform_after": "Un cap clair pour l'année, et le sommeil revenu.",
+      "status": "approved",
+      "stars": 5,
+      "created_at": "2026-07-22T09:15:00+00:00"
+    },
+    {
+      "id": "usr-56bdd432d06c",
+      "initial": "T",
+      "name": "TEST_Iter64",
+      "sign": "Verseau",
+      "city": "Paris",
+      "quote": "Ce témoignage de test iter64 est assez long pour passer la validation min_length.",
+      "transform_before": null,
+      "transform_after": null,
+      "status": "pending",
+      "stars": 5,
+      "author_id": "6ffa92d2-8fd9-4ead-8aec-7645561864de",
+      "author_email": "test@plume-astrale.fr",
+      "created_at": "2026-08-02T15:16:26.181042+00:00"
+    }
+  ],
+  "landing_ab_hero_stats": {
+    "A": {
+      "impression": 8,
+      "cta_click": 1,
+      "signup_click": 1
+    },
+    "B": {
+      "impression": 5,
+      "cta_click": 1,
+      "signup_click": 0
+    }
   }
 }

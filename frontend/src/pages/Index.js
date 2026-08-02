@@ -19,6 +19,38 @@ const SOLENA_PORTRAIT = 'https://customer-assets-0z36b82j.emergentagent.net/job_
 const SOLENA_LIFESTYLE = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/l6a6ew17_photos%20Sol%C3%A9na.webp';
 const SOLENA_MYSTIQUE = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/htvnb1ej_PHOTOS%20SOLENA%202.webp';
 const SOLENA_PDF = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/ib324e70_PHOTOS%20SOLENA%203.webp';
+const MANIFESTO_VIDEO = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/ly63ciw5_Le%20Manifeste%20Plume%20Astrale_1080p.mp4';
+
+/* A/B hero headline — stable per visitor via localStorage. */
+const AB_KEY = 'plume_hero_variant';
+const HERO_HEADLINES = {
+  A: { key: 'A', pre: 'Ton ciel de naissance contient ', em: 'une carte', post: '.' },
+  B: { key: 'B', pre: 'La lecture que ton ', em: 'ciel', post: ' attendait.' },
+};
+
+function pickHeroVariant() {
+  try {
+    const stored = localStorage.getItem(AB_KEY);
+    if (stored === 'A' || stored === 'B') return stored;
+    const v = Math.random() < 0.5 ? 'A' : 'B';
+    localStorage.setItem(AB_KEY, v);
+    return v;
+  } catch (_e) {
+    return Math.random() < 0.5 ? 'A' : 'B';
+  }
+}
+
+function trackAB(variant, event) {
+  try {
+    const body = JSON.stringify({ variant, event });
+    const url = `${API}/api/landing/ab/track`;
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));
+    } else {
+      fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
+    }
+  } catch (_e) { /* fire-and-forget */ }
+}
 
 const styles = `
   :root{
@@ -194,6 +226,35 @@ const styles = `
   .pa-bonus-card p{margin:0;font-size:.85rem;color:#6b6480;}
   .pa-bonus-old{display:inline-block;text-decoration:line-through;color:#8a86a0;
     font-size:.82rem;margin-top:8px;}
+
+  /* Manifeste vidéo */
+  .pa-video-wrap{position:relative;border-radius:18px;overflow:hidden;
+    border:1px solid rgba(201,162,75,.25);
+    box-shadow:0 20px 60px rgba(0,0,0,.5);background:#000;aspect-ratio:16/9;}
+  .pa-video-wrap video{width:100%;height:100%;display:block;object-fit:cover;background:#000;}
+  .pa-video-overlay{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(circle at center,rgba(11,15,36,.25),rgba(11,15,36,.6) 70%);
+    display:flex;align-items:center;justify-content:center;
+    transition:opacity .3s ease;}
+  .pa-video-playing .pa-video-overlay{opacity:0;}
+  .pa-video-play{width:76px;height:76px;border-radius:50%;
+    background:linear-gradient(135deg,var(--pa-gold),var(--pa-gold-soft));color:#1a1030;
+    display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:600;
+    box-shadow:0 8px 30px rgba(201,162,75,.5),inset 0 1px 0 rgba(255,255,255,.35);
+    animation:pa-pulse 2.2s ease-in-out infinite;}
+  @keyframes pa-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+  /* Sticky mobile CTA */
+  .pa-sticky-cta{position:fixed;bottom:16px;left:16px;right:16px;z-index:80;
+    display:none;justify-content:center;pointer-events:none;
+    animation:pa-sticky-in .3s ease-out;}
+  .pa-sticky-cta .pa-cta{pointer-events:auto;width:100%;max-width:400px;padding:14px 22px;
+    font-size:.95rem;
+    box-shadow:0 8px 30px rgba(201,162,75,.45),0 2px 8px rgba(0,0,0,.5);}
+  @keyframes pa-sticky-in{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+  @media(max-width:768px){
+    .pa-sticky-cta{display:flex;}
+  }
 
   /* Garantie */
   .pa-guarantee-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center;}
@@ -411,6 +472,38 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [heroVariant, setHeroVariant] = useState('A');
+  const [testimonials, setTestimonials] = useState(null);
+  const [showStickyCTA, setShowStickyCTA] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+
+  // A/B pick + impression tracking (une seule fois par mount)
+  React.useEffect(() => {
+    const v = pickHeroVariant();
+    setHeroVariant(v);
+    trackAB(v, 'impression');
+  }, []);
+
+  // Live testimonials fetch (fallback silencieux)
+  React.useEffect(() => {
+    let cancel = false;
+    fetch(`${API}/api/landing/testimonials`)
+      .then((r) => r.json())
+      .then((d) => { if (!cancel && d?.testimonials?.length) setTestimonials(d.testimonials); })
+      .catch(() => {});
+    return () => { cancel = true; };
+  }, []);
+
+  // Sticky mobile CTA : apparait quand on scrolle au-delà du hero
+  React.useEffect(() => {
+    const onScroll = () => {
+      const scrolled = (window.scrollY || document.documentElement.scrollTop || 0) > 620;
+      setShowStickyCTA(scrolled);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const startCheckout = async (form) => {
     setError(null); setLoading(true);
@@ -457,20 +550,24 @@ export default function Index() {
           <span className="pa-topbar-reass">Sans carte bancaire · Garantie 14 jours</span>
         </div>
 
-        {/* ═══ SECTION 1 · HÉROS (sombre, immersif, avec portrait) ═══ */}
-        <section className="pa-sec pa-sec-dark pa-starry" data-testid="landing-hero">
+        {/* ═══ SECTION 1 · HÉROS (sombre, immersif, avec portrait + A/B headline) ═══ */}
+        <section className="pa-sec pa-sec-dark pa-starry" data-testid="landing-hero"
+          data-hero-variant={heroVariant}>
           <div className="pa-wrap">
             <div className="pa-hero-grid">
               <div>
                 <div className="pa-eyebrow">Lecture personnalisée · femmes 35-70 ans</div>
-                <h1 className="pa-h1">
-                  Ton ciel de naissance contient <em>une carte</em>.
+                <h1 className="pa-h1" data-testid={`hero-headline-${heroVariant}`}>
+                  {HERO_HEADLINES[heroVariant].pre}
+                  <em>{HERO_HEADLINES[heroVariant].em}</em>
+                  {HERO_HEADLINES[heroVariant].post}
                 </h1>
                 <p className="pa-lead">
                   Une lecture personnelle de ton thème natal par Soléna — les cycles,
                   les répétitions, les tournants. Pas d'horoscope générique.
                 </p>
                 <Link to={signupPath} className="pa-cta" data-testid="landing-hero-signup"
+                  onClick={() => trackAB(heroVariant, 'signup_click')}
                   style={{ marginTop: 8 }}>
                   Recevoir ma lecture · 20 crédits offerts
                 </Link>
@@ -480,12 +577,43 @@ export default function Index() {
               </div>
               <div className="pa-hero-portrait">
                 <img src={SOLENA_PORTRAIT} alt="Soléna, guide astrologique de Plume Astrale"
-                  loading="eager" fetchPriority="high" />
+                  loading="eager" />
                 <div className="pa-hero-badge">
                   <span>Soléna, guide astrologique</span>
                   <strong>4,9/5 ★</strong>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ SECTION 1.5 · MANIFESTE VIDEO (transition sombre → clair) ═══ */}
+        <section className="pa-sec pa-sec-dark-2 pa-video-sec" data-testid="landing-manifesto"
+          style={{ padding: '56px 0' }}>
+          <div className="pa-wrap-narrow">
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <div className="pa-eyebrow">Le Manifeste Plume Astrale</div>
+              <h2 className="pa-h2" style={{ fontSize: 'clamp(1.4rem,2.4vw,1.8rem)' }}>
+                45 secondes pour comprendre <em className="pa-gold">ce que je fais avec toi</em>
+              </h2>
+            </div>
+            <div className={`pa-video-wrap ${videoPlaying ? 'pa-video-playing' : ''}`}
+              data-testid="landing-manifesto-video">
+              <video
+                src={MANIFESTO_VIDEO}
+                poster={SOLENA_MYSTIQUE}
+                preload="metadata"
+                playsInline
+                controls
+                onPlay={() => setVideoPlaying(true)}
+                onPause={() => setVideoPlaying(false)}
+                data-testid="landing-manifesto-player"
+              />
+              {!videoPlaying && (
+                <div className="pa-video-overlay" aria-hidden="true">
+                  <div className="pa-video-play">▶</div>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -597,7 +725,8 @@ export default function Index() {
               </div>
               <div style={{ textAlign: 'center', marginTop: 24 }}>
                 {!showForm ? (
-                  <button className="pa-cta" onClick={scrollToForm} data-testid="landing-open-form-btn">
+                  <button className="pa-cta" onClick={() => { trackAB(heroVariant, 'cta_click'); scrollToForm(); }}
+                    data-testid="landing-open-form-btn">
                     Recevoir ma lecture complète · 97€
                   </button>
                 ) : (
@@ -673,21 +802,34 @@ export default function Index() {
               <h2 className="pa-h2">Des femmes qui ont enfin vu clair</h2>
             </div>
             <div className="pa-testis">
-              <Testimonial initial="L" name="Léa M." sign="Poissons" city="Lyon"
-                quote="Rien de générique, rien de flou. Soléna m'a expliqué pourquoi je revivais toujours le même schéma — et comment le comprendre."
-                transformBefore="Je tournais en rond avec la même relation depuis 3 ans."
-                transformAfter="J'ai enfin compris le nœud, et posé un vrai choix." />
-              <Testimonial initial="S" name="Sarah T." sign="Cancer" city="Bordeaux"
-                quote="J'étais sceptique. La finesse de la lecture m'a scotchée. Ça m'a aidée à faire la paix avec une histoire de famille."
-                transformBefore="Un secret familial que je portais depuis toujours."
-                transformAfter="Une paix nouvelle avec mes racines." />
-              <Testimonial initial="M" name="Manon D." sign="Lion" city="Marseille"
-                quote="Je relis ma lecture chaque semaine. Plus apaisant que trois ans à ressasser toute seule."
-                transformBefore="Nuits blanches à retourner les mêmes questions."
-                transformAfter="Un cap clair pour l'année, et le sommeil revenu." />
+              {(testimonials || [
+                { initial: 'L', name: 'Léa M.', sign: 'Poissons', city: 'Lyon',
+                  quote: "Rien de générique, rien de flou. Soléna m'a expliqué pourquoi je revivais toujours le même schéma — et comment le comprendre.",
+                  transform_before: 'Je tournais en rond avec la même relation depuis 3 ans.',
+                  transform_after: "J'ai enfin compris le nœud, et posé un vrai choix." },
+                { initial: 'S', name: 'Sarah T.', sign: 'Cancer', city: 'Bordeaux',
+                  quote: "J'étais sceptique. La finesse de la lecture m'a scotchée. Ça m'a aidée à faire la paix avec une histoire de famille.",
+                  transform_before: 'Un secret familial que je portais depuis toujours.',
+                  transform_after: 'Une paix nouvelle avec mes racines.' },
+                { initial: 'M', name: 'Manon D.', sign: 'Lion', city: 'Marseille',
+                  quote: 'Je relis ma lecture chaque semaine. Plus apaisant que trois ans à ressasser toute seule.',
+                  transform_before: 'Nuits blanches à retourner les mêmes questions.',
+                  transform_after: "Un cap clair pour l'année, et le sommeil revenu." },
+              ]).slice(0, 6).map((t, i) => (
+                <Testimonial key={t.id || i}
+                  initial={t.initial}
+                  name={t.name}
+                  sign={t.sign || ''}
+                  city={t.city || ''}
+                  quote={t.quote}
+                  transformBefore={t.transform_before}
+                  transformAfter={t.transform_after}
+                />
+              ))}
             </div>
             <div style={{ textAlign: 'center', marginTop: 40 }}>
-              <button className="pa-cta" onClick={scrollToForm} data-testid="landing-testi-cta">
+              <button className="pa-cta" onClick={() => { trackAB(heroVariant, 'cta_click'); scrollToForm(); }}
+                data-testid="landing-testi-cta">
                 Recevoir ma lecture · 97€
               </button>
             </div>
@@ -737,10 +879,13 @@ export default function Index() {
                   ou laisser Soléna t'aider à lire ce qui se joue vraiment, dès maintenant.
                 </p>
                 <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 20 }}>
-                  <button className="pa-cta" onClick={scrollToForm} data-testid="landing-final-cta">
+                  <button className="pa-cta" onClick={() => { trackAB(heroVariant, 'cta_click'); scrollToForm(); }}
+                    data-testid="landing-final-cta">
                     Ma lecture complète · 97€
                   </button>
-                  <Link to={signupPath} className="pa-cta-outline" data-testid="landing-final-signup">
+                  <Link to={signupPath} className="pa-cta-outline"
+                    onClick={() => trackAB(heroVariant, 'signup_click')}
+                    data-testid="landing-final-signup">
                     Ou commencer gratuitement
                   </Link>
                 </div>
@@ -754,6 +899,19 @@ export default function Index() {
             </div>
           </div>
         </section>
+
+        {/* ═══ STICKY MOBILE CTA ═══ */}
+        {showStickyCTA && (
+          <div className="pa-sticky-cta" data-testid="landing-sticky-cta">
+            <button
+              className="pa-cta"
+              onClick={() => { trackAB(heroVariant, 'cta_click'); scrollToForm(); }}
+              data-testid="landing-sticky-cta-btn"
+            >
+              Ma lecture · 97€
+            </button>
+          </div>
+        )}
 
         {/* ═══ SECTION 11 · PIED DE PAGE ═══ */}
         <footer className="pa-footer">
