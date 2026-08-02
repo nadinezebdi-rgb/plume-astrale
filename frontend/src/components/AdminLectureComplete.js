@@ -82,6 +82,12 @@ export default function AdminLectureComplete({ token }) {
   // SVG cache stats
   const [svgStats, setSvgStats] = useState(null);
   const [svgStatsBusy, setSvgStatsBusy] = useState(false);
+  // Testimonials admin validator
+  const [testimonialsAdmin, setTestimonialsAdmin] = useState(null);
+  const [testimonialsBusy, setTestimonialsBusy] = useState(false);
+  // A/B hero panel
+  const [heroAbStats, setHeroAbStats] = useState(null);
+  const [heroAbBusy, setHeroAbBusy] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -339,6 +345,82 @@ export default function AdminLectureComplete({ token }) {
     }
   };
 
+  const loadTestimonialsAdmin = useCallback(async () => {
+    if (!token) return;
+    setTestimonialsBusy(true);
+    try {
+      const r = await axios.get(
+        `${API}/api/landing/testimonials/admin`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setTestimonialsAdmin(r.data?.testimonials || []);
+    } catch (_e) {
+      setTestimonialsAdmin([]);
+    } finally {
+      setTestimonialsBusy(false);
+    }
+  }, [token]);
+
+  const approveTestimonial = async (id) => {
+    try {
+      await axios.post(
+        `${API}/api/landing/testimonials/${id}/approve`, {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      loadTestimonialsAdmin();
+    } catch (e) { alert(e.response?.data?.detail || 'Erreur'); }
+  };
+
+  const deleteTestimonial = async (id) => {
+    if (!window.confirm('Supprimer définitivement ce témoignage ?')) return;
+    try {
+      await axios.delete(
+        `${API}/api/landing/testimonials/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      loadTestimonialsAdmin();
+    } catch (e) { alert(e.response?.data?.detail || 'Erreur'); }
+  };
+
+  const loadHeroAbStats = useCallback(async () => {
+    if (!token) return;
+    setHeroAbBusy(true);
+    try {
+      const r = await axios.get(
+        `${API}/api/landing/ab/stats`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setHeroAbStats(r.data);
+    } catch (_e) {
+      setHeroAbStats(null);
+    } finally {
+      setHeroAbBusy(false);
+    }
+  }, [token]);
+
+  const setHeroForcedVariant = async (variant) => {
+    if (variant && !window.confirm(
+      `Verrouiller 100% du trafic hero sur la variante "${variant}" ?`
+    )) return;
+    try {
+      const r = await axios.post(
+        `${API}/api/landing/ab/set-forced-variant`,
+        { variant },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setHeroAbStats((s) => s ? { ...s, forced_variant: r.data.forced_variant } : s);
+      loadHeroAbStats();
+    } catch (e) { alert(e.response?.data?.detail || 'Erreur'); }
+  };
+
+  // Auto-load admin panels sur mount une fois le token dispo
+  React.useEffect(() => {
+    if (token) {
+      loadTestimonialsAdmin();
+      loadHeroAbStats();
+    }
+  }, [token, loadTestimonialsAdmin, loadHeroAbStats]);
+
   return (
     <div data-testid="admin-lecture-complete-panel">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -506,6 +588,255 @@ export default function AdminLectureComplete({ token }) {
         {svgStats?.error && (
           <div style={{ marginTop: 8, fontSize: 11, color: '#f87171' }}>Erreur : {svgStats.error}</div>
         )}
+      </div>
+
+      {/* ═══ Hero A/B Panel ═══ */}
+      <div
+        data-testid="admin-lc-hero-ab-panel"
+        style={{
+          marginBottom: 16, padding: 14, borderRadius: 10,
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid rgba(74,222,128,0.15)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <span style={{ color: '#4ADE80', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 600 }}>
+            ⚡ Hero A/B Landing
+          </span>
+          {heroAbStats?.forced_variant && (
+            <span style={{ padding: '2px 8px', borderRadius: 10, fontSize: 10,
+              background: 'rgba(74,222,128,0.12)', color: '#4ADE80', fontWeight: 600 }}>
+              LOCK → {heroAbStats.forced_variant}
+            </span>
+          )}
+          {heroAbStats?.winner && !heroAbStats?.forced_variant && (
+            <span style={{ padding: '2px 8px', borderRadius: 10, fontSize: 10,
+              background: 'rgba(217,178,106,0.12)', color: '#d9b26a', fontWeight: 600 }}>
+              Gagnant détecté : {heroAbStats.winner}
+            </span>
+          )}
+          <button
+            onClick={loadHeroAbStats}
+            disabled={heroAbBusy}
+            data-testid="admin-lc-hero-ab-refresh"
+            style={{
+              marginLeft: 'auto', padding: '4px 10px', fontSize: 10,
+              background: 'transparent', color: '#A78BFA',
+              border: '1px solid rgba(167,139,250,0.35)', borderRadius: 10, cursor: 'pointer',
+            }}
+          >
+            {heroAbBusy ? '…' : '↻ refresh'}
+          </button>
+        </div>
+        {heroAbStats && (
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {['A', 'B'].map((v) => {
+                const row = heroAbStats.variants?.[v] || {};
+                const isWinner = heroAbStats.winner === v;
+                const isForced = heroAbStats.forced_variant === v;
+                return (
+                  <div
+                    key={v}
+                    data-testid={`admin-lc-hero-ab-variant-${v}`}
+                    style={{
+                      padding: 12, borderRadius: 8,
+                      background: isWinner ? 'rgba(74,222,128,0.06)' : 'rgba(11,16,32,0.4)',
+                      border: `1px solid ${isForced ? 'rgba(74,222,128,0.4)' : (isWinner ? 'rgba(217,178,106,0.25)' : 'rgba(255,255,255,0.05)')}`,
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: '#e8e6f0' }}>Variante {v}</span>
+                      {isWinner && <span style={{ fontSize: 10, color: '#d9b26a' }}>🏆</span>}
+                      {isForced && <span style={{ fontSize: 10, color: '#4ADE80' }}>🔒</span>}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#b8b4c9', fontStyle: 'italic', marginBottom: 8, lineHeight: 1.4 }}>
+                      « {heroAbStats.headlines?.[v] || '—'} »
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, fontSize: 11 }}>
+                      <div><div style={{ color: '#8a86a0', fontSize: 9, textTransform: 'uppercase' }}>Imp.</div><div style={{ color: '#e8e6f0' }}>{row.impression || 0}</div></div>
+                      <div><div style={{ color: '#8a86a0', fontSize: 9, textTransform: 'uppercase' }}>Clicks</div><div style={{ color: '#e8e6f0' }}>{row.total_clicks || 0}</div></div>
+                      <div><div style={{ color: '#8a86a0', fontSize: 9, textTransform: 'uppercase' }}>CTR</div><div style={{ color: isWinner ? '#d9b26a' : '#e8e6f0', fontWeight: 600 }}>{row.ctr_pct || 0}%</div></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+              {heroAbStats.forced_variant ? (
+                <button
+                  type="button"
+                  onClick={() => setHeroForcedVariant(null)}
+                  data-testid="admin-lc-hero-ab-unlock"
+                  style={{
+                    fontSize: 10, padding: '5px 12px', borderRadius: 12,
+                    background: 'transparent', color: '#f87171',
+                    border: '1px solid rgba(248,113,113,0.35)', cursor: 'pointer',
+                    textTransform: 'uppercase', letterSpacing: '.1em',
+                  }}
+                >
+                  Déverrouiller (retour A/B 50/50)
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setHeroForcedVariant('A')}
+                    data-testid="admin-lc-hero-ab-lock-a"
+                    style={{
+                      fontSize: 10, padding: '5px 12px', borderRadius: 12,
+                      background: 'transparent', color: '#A78BFA',
+                      border: '1px solid rgba(167,139,250,0.35)', cursor: 'pointer',
+                      textTransform: 'uppercase', letterSpacing: '.1em',
+                    }}
+                  >
+                    🔒 Lock A (100%)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHeroForcedVariant('B')}
+                    data-testid="admin-lc-hero-ab-lock-b"
+                    style={{
+                      fontSize: 10, padding: '5px 12px', borderRadius: 12,
+                      background: 'transparent', color: '#d9b26a',
+                      border: '1px solid rgba(217,178,106,0.35)', cursor: 'pointer',
+                      textTransform: 'uppercase', letterSpacing: '.1em',
+                    }}
+                  >
+                    🔒 Lock B (100%)
+                  </button>
+                  {heroAbStats.winner && (
+                    <button
+                      type="button"
+                      onClick={() => setHeroForcedVariant(heroAbStats.winner)}
+                      data-testid="admin-lc-hero-ab-lock-winner"
+                      style={{
+                        fontSize: 10, padding: '5px 12px', borderRadius: 12,
+                        background: 'linear-gradient(135deg,#c9a24b,#e2c07c)',
+                        color: '#1a1030', border: 'none', cursor: 'pointer', fontWeight: 600,
+                        textTransform: 'uppercase', letterSpacing: '.1em',
+                      }}
+                    >
+                      🏆 Locker le gagnant ({heroAbStats.winner})
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ═══ Testimonials Validator ═══ */}
+      <div
+        data-testid="admin-lc-testimonials-panel"
+        style={{
+          marginBottom: 16, padding: 14, borderRadius: 10,
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid rgba(217,178,106,0.15)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <span style={{ color: '#d9b26a', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 600 }}>
+            ✍️ Témoignages soumis
+          </span>
+          {testimonialsAdmin && (
+            <span style={{ color: '#b8b4c9', fontSize: 10 }}>
+              · {testimonialsAdmin.filter(t => t.status === 'pending').length} en attente ·
+              {' '}{testimonialsAdmin.filter(t => t.status === 'approved').length} approuvés
+            </span>
+          )}
+          <button
+            onClick={loadTestimonialsAdmin}
+            disabled={testimonialsBusy}
+            data-testid="admin-lc-testimonials-refresh"
+            style={{
+              marginLeft: 'auto', padding: '4px 10px', fontSize: 10,
+              background: 'transparent', color: '#A78BFA',
+              border: '1px solid rgba(167,139,250,0.35)', borderRadius: 10, cursor: 'pointer',
+            }}
+          >
+            {testimonialsBusy ? '…' : '↻ refresh'}
+          </button>
+        </div>
+        {testimonialsAdmin && testimonialsAdmin.length === 0 && (
+          <div style={{ fontSize: 12, color: 'rgba(184,180,201,0.55)', fontStyle: 'italic' }}>
+            Aucun témoignage pour l'instant.
+          </div>
+        )}
+        {testimonialsAdmin && testimonialsAdmin.map((t) => (
+          <div
+            key={t.id}
+            data-testid={`admin-lc-testimonial-${t.id}`}
+            style={{
+              marginBottom: 8, padding: 10, borderRadius: 8,
+              background: 'rgba(11,16,32,0.4)',
+              borderLeft: `3px solid ${t.status === 'approved' ? '#4ADE80' : '#f59e0b'}`,
+            }}
+          >
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+              <span style={{ padding: '1px 6px', borderRadius: 8, fontSize: 9,
+                background: t.status === 'approved' ? 'rgba(74,222,128,0.12)' : 'rgba(245,158,11,0.15)',
+                color: t.status === 'approved' ? '#4ADE80' : '#f59e0b',
+                letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 600,
+              }}>
+                {t.status}
+              </span>
+              <strong style={{ color: '#e8e6f0', fontSize: 12 }}>{t.name}</strong>
+              {t.sign && <span style={{ color: '#8a86a0', fontSize: 10 }}>{t.sign}</span>}
+              {t.city && <span style={{ color: '#8a86a0', fontSize: 10 }}>· {t.city}</span>}
+              <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(184,180,201,0.4)' }}>
+                {t.created_at ? new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : ''}
+              </span>
+            </div>
+            <div style={{ fontSize: 11, color: '#e8e6f0', lineHeight: 1.5, fontStyle: 'italic',
+              paddingLeft: 10, borderLeft: '2px solid rgba(217,178,106,0.3)' }}>
+              « {t.quote} »
+            </div>
+            {(t.transform_before || t.transform_after) && (
+              <div style={{ marginTop: 6, fontSize: 10, color: '#b8b4c9' }}>
+                {t.transform_before && <span><strong>Avant :</strong> {t.transform_before}</span>}
+                {t.transform_before && t.transform_after && <span> · </span>}
+                {t.transform_after && <span><strong>Après :</strong> {t.transform_after}</span>}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+              {t.status !== 'approved' && (
+                <button
+                  type="button"
+                  onClick={() => approveTestimonial(t.id)}
+                  data-testid={`admin-lc-testimonial-approve-${t.id}`}
+                  style={{
+                    fontSize: 10, padding: '4px 10px', borderRadius: 10,
+                    background: 'rgba(74,222,128,0.15)', color: '#4ADE80',
+                    border: '1px solid rgba(74,222,128,0.35)', cursor: 'pointer',
+                    textTransform: 'uppercase', letterSpacing: '.08em',
+                  }}
+                >
+                  ✓ Approuver
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => deleteTestimonial(t.id)}
+                data-testid={`admin-lc-testimonial-delete-${t.id}`}
+                style={{
+                  fontSize: 10, padding: '4px 10px', borderRadius: 10,
+                  background: 'transparent', color: '#f87171',
+                  border: '1px solid rgba(248,113,113,0.3)', cursor: 'pointer',
+                  textTransform: 'uppercase', letterSpacing: '.08em',
+                }}
+              >
+                × Supprimer
+              </button>
+              {t.author_email && (
+                <span style={{ fontSize: 9, color: '#7d7a90', marginLeft: 'auto', alignSelf: 'center' }}>
+                  {t.author_email}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Filtres export CSV */}

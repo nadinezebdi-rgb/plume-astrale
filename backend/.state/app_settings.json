@@ -166,7 +166,7 @@
       "quote": "Trois soirs de suite je suis revenue sur ma lecture. Ça m a débloqué quelque chose.",
       "transform_before": null,
       "transform_after": null,
-      "status": "pending",
+      "status": "approved",
       "stars": 5,
       "author_id": "6ffa92d2-8fd9-4ead-8aec-7645561864de",
       "author_email": "test@plume-astrale.fr",
@@ -180,7 +180,7 @@
       "signup_click": 1
     },
     "B": {
-      "impression": 7,
+      "impression": 9,
       "cta_click": 1,
       "signup_click": 0
     }

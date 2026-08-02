@@ -258,6 +258,20 @@ const styles = `
     box-shadow:0 8px 30px rgba(201,162,75,.5),inset 0 1px 0 rgba(255,255,255,.35);
     animation:pa-pulse 2.2s ease-in-out infinite;}
   @keyframes pa-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  .pa-video-unmute{position:absolute;top:14px;right:14px;z-index:2;
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(11,15,36,.75);backdrop-filter:blur(10px);
+    border:1px solid rgba(201,162,75,.4);color:var(--pa-gold-soft);
+    padding:8px 14px;border-radius:999px;cursor:pointer;
+    font-family:Georgia,serif;font-size:.85rem;letter-spacing:.02em;
+    transition:all .18s ease;
+    animation:pa-chip-in .3s ease-out;}
+  .pa-video-unmute:hover{background:rgba(11,15,36,.9);border-color:var(--pa-gold);
+    color:#fff;transform:translateY(-1px);}
+  @keyframes pa-chip-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+  /* Sparkline */
+  .pa-sparkline{display:block;max-width:110px;}
 
   /* Sticky mobile CTA */
   .pa-sticky-cta{position:fixed;bottom:16px;left:16px;right:16px;z-index:80;
@@ -439,6 +453,35 @@ const TrustItem = ({ icon, children }) => (
   </div>
 );
 
+/** Sparkline SVG basique : montre la tendance count sur N jours */
+const Sparkline = ({ points, width = 96, height = 22 }) => {
+  if (!points || points.length < 2) return null;
+  const values = points.map((p) => p.count || 0);
+  const max = Math.max(1, ...values);
+  const step = width / (points.length - 1);
+  const path = values.map((v, i) => {
+    const x = i * step;
+    const y = height - (v / max) * (height - 3) - 2;
+    return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}
+      className="pa-sparkline" role="img" aria-label={`Tendance ${points.length}j`}
+      data-testid="trust-sparkline">
+      <defs>
+        <linearGradient id="pa-spark-grad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#c9a24b" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#c9a24b" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={`${path} L${width},${height} L0,${height} Z`}
+        fill="url(#pa-spark-grad)" stroke="none" />
+      <path d={path} fill="none" stroke="#c9a24b" strokeWidth="1.6"
+        strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+};
+
 const IlluminationCard = ({ icon, title, children }) => (
   <div className="pa-card-light">
     <div className="pa-card-icon">{icon}</div>
@@ -492,8 +535,11 @@ export default function Index() {
   const [heroVariant, setHeroVariant] = useState('A');
   const [testimonials, setTestimonials] = useState(null);
   const [trustStats, setTrustStats] = useState(null);
+  const [ratingSeries, setRatingSeries] = useState(null);
   const [showStickyCTA, setShowStickyCTA] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
+  const [videoMuted, setVideoMuted] = useState(true);
+  const [autoplayed, setAutoplayed] = useState(false);
   const videoRef = React.useRef(null);
 
   // A/B pick + impression tracking. Interroge d'abord le backend pour honorer un lock manuel/auto.
@@ -534,6 +580,10 @@ export default function Index() {
       .then((r) => r.json())
       .then((d) => { if (!cancel && d) setTrustStats(d); })
       .catch(() => {});
+    fetch(`${API}/api/landing/rating-timeseries?days=30`)
+      .then((r) => r.json())
+      .then((d) => { if (!cancel && d?.points) setRatingSeries(d.points); })
+      .catch(() => {});
     return () => { cancel = true; };
   }, []);
 
@@ -554,19 +604,30 @@ export default function Index() {
       && window.matchMedia('(min-width: 900px)').matches;
     if (!isDesktop || !videoRef.current) return;
     const el = videoRef.current;
-    let autoplayed = false;
+    let didAutoplay = false;
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
-        if (e.isIntersecting && e.intersectionRatio >= 0.5 && !autoplayed) {
-          autoplayed = true;
+        if (e.isIntersecting && e.intersectionRatio >= 0.5 && !didAutoplay) {
+          didAutoplay = true;
           el.muted = true;
-          el.play().then(() => setVideoPlaying(true)).catch(() => { /* iOS/blocked = no-op */ });
+          el.play().then(() => {
+            setVideoPlaying(true);
+            setAutoplayed(true);
+            setVideoMuted(true);
+          }).catch(() => { /* iOS/blocked = no-op */ });
         }
       });
     }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
     io.observe(el);
     return () => io.disconnect();
   }, []);
+
+  const unmuteVideo = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = false;
+    videoRef.current.volume = 1.0;
+    setVideoMuted(false);
+  };
 
   const startCheckout = async (form) => {
     setError(null); setLoading(true);
@@ -685,6 +746,18 @@ export default function Index() {
                   <div className="pa-video-play">▶</div>
                 </div>
               )}
+              {autoplayed && videoPlaying && videoMuted && (
+                <button
+                  type="button"
+                  onClick={unmuteVideo}
+                  className="pa-video-unmute"
+                  data-testid="landing-manifesto-unmute"
+                  aria-label="Activer le son"
+                >
+                  <span aria-hidden="true">🔊</span>
+                  <span>Activer le son</span>
+                </button>
+              )}
             </div>
           </div>
         </section>
@@ -704,6 +777,15 @@ export default function Index() {
                 <span data-testid="trust-count">
                   {trustStats?.display_count || '+2 000'} lectures livrées
                 </span>
+                {ratingSeries && ratingSeries.length > 1 && (
+                  <div style={{ marginTop: 6, opacity: .85 }}>
+                    <Sparkline points={ratingSeries} />
+                    <div style={{ fontSize: 9, color: '#8a7f4a', letterSpacing: '.1em',
+                      textTransform: 'uppercase', marginTop: 2 }}>
+                      30 derniers jours
+                    </div>
+                  </div>
+                )}
               </TrustItem>
             </div>
           </div>

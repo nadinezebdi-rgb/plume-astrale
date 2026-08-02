@@ -356,3 +356,44 @@ async def landing_trust_stats():
         'average_rating': average_rating,
         'display_count': display_count,
     }
+
+
+@router.get('/rating-timeseries')
+async def landing_rating_timeseries(days: int = 30):
+    """Renvoie une timeseries lissée pour sparkline trust bar.
+    Points = un par jour sur `days` derniers jours.
+    Chaque point : {date, count (nb temoignages approuves ce jour-la),
+                    avg (moyenne etoiles rolling 7j, fallback 4.9)}
+    """
+    from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+    days = max(7, min(90, int(days or 30)))
+    items = _load_testimonials()
+    approved = [t for t in items if t.get('status') == 'approved']
+    # Bucket par jour
+    by_day: Dict[str, List[int]] = {}
+    for t in approved:
+        try:
+            d = _dt.fromisoformat((t.get('created_at') or '').replace('Z', '+00:00'))
+        except Exception:
+            continue
+        key = d.date().isoformat()
+        by_day.setdefault(key, []).append(int(t.get('stars', 5)))
+
+    today = _dt.now(_tz.utc).date()
+    points = []
+    global_avg = 4.9
+    # Rolling window de 7 jours pour lisser la moyenne
+    for i in range(days - 1, -1, -1):
+        day = today - _td(days=i)
+        key = day.isoformat()
+        window_stars: List[int] = []
+        for j in range(7):
+            wkey = (day - _td(days=j)).isoformat()
+            window_stars.extend(by_day.get(wkey, []))
+        avg = round(sum(window_stars) / len(window_stars), 2) if window_stars else global_avg
+        points.append({
+            'date': key,
+            'count': len(by_day.get(key, [])),
+            'avg': avg,
+        })
+    return {'points': points, 'days': days}
