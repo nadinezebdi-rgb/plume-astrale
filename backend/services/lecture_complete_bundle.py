@@ -252,6 +252,10 @@ async def handle_lecture_complete_webhook(session_id: str) -> Dict[str, Any]:
 
 MONTHLY_QUOTA = 12  # 12 lectures completes offertes par cycle (~28 jours)
 
+# Cache in-memory TTL 60s pour /scarcity (evite un round-trip Supabase par pageview).
+_SCARCITY_CACHE: Dict[str, Any] = {'ts': 0.0, 'data': None}
+_SCARCITY_CACHE_TTL_S = 60.0
+
 
 def _current_lunar_cycle_bounds() -> tuple[datetime, datetime]:
     """Retourne le debut du cycle lunaire courant (jour 1 du mois calendaire)
@@ -273,7 +277,15 @@ def get_scarcity_status() -> Dict[str, Any]:
 
     Compte les lectures completes vendues (status=completed, pack_id=lecture_complete,
     hors bypass admin) depuis le debut du mois calendaire courant.
+
+    Cache TTL 60s pour eviter une requete Supabase par pageview.
     """
+    import time
+    now_mono = time.monotonic()
+    cached = _SCARCITY_CACHE.get('data')
+    if cached and (now_mono - _SCARCITY_CACHE['ts']) < _SCARCITY_CACHE_TTL_S:
+        return cached
+
     start, end = _current_lunar_cycle_bounds()
     sb = get_admin_client()
     sold = 0
@@ -293,10 +305,13 @@ def get_scarcity_status() -> Dict[str, Any]:
         logger.warning(f'[lecture_complete] scarcity count failed: {e}')
 
     remaining = max(0, MONTHLY_QUOTA - sold)
-    return {
+    result = {
         'remaining': remaining,
         'sold': sold,
         'quota': MONTHLY_QUOTA,
         'cycle_end': end.isoformat(),
         'sold_out': remaining == 0,
     }
+    _SCARCITY_CACHE['data'] = result
+    _SCARCITY_CACHE['ts'] = now_mono
+    return result

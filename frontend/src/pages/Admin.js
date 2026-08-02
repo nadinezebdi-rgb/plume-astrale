@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import AdminThemeNatalFixer from '@/components/AdminThemeNatalFixer';
+import AdminLectureComplete from '@/components/AdminLectureComplete';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -236,7 +237,12 @@ export default function Admin() {
           <Tab label="Codes promo" active={tab === 'promo'} onClick={() => setTab('promo')} />
           <Tab label="PDFs envoyés" active={tab === 'pdfs-sent'} onClick={() => setTab('pdfs-sent')} count={pdfsSent?.total_with_supabase_url} />
           <Tab label="Fix Thème Natal" active={tab === 'fix-natal'} onClick={() => setTab('fix-natal')} />
+          <Tab label="Lecture Complète" active={tab === 'lecture-complete'} onClick={() => setTab('lecture-complete')} />
         </div>
+
+        {tab === 'lecture-complete' && (
+          <AdminLectureComplete token={token} />
+        )}
 
         {tab === 'fix-natal' && (
           <AdminThemeNatalFixer token={token} />

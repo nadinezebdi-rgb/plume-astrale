@@ -1,0 +1,35 @@
+{
+  "summary": "Iteration 59 — Lecture Complete admin dashboard, cache TTL, cercle-status, sequence loop. Backend: 9/9 pytest pass (unauth 401, invalid token 401, cercle-status unauth returns {active:false, reason:'not_authenticated'}, scarcity structure + cache identity, sequence module structure, server.py startup registers loop, monotonic-based TTL). Backend log confirms `[lecture_complete_seq] boucle demarree`. Frontend: structural presence of all data-testids verified via source (admin-lecture-complete-panel, admin-lc-refresh, admin-lc-redispatch-{sid}, cercle-solena-badge, cercle-days-remaining) + Admin.js tab wiring + MonCompte.js badge conditional. Authenticated E2E UI flow BLOCKED: admin creds in /app/memory/test_credentials.md (admin@plume-astrale.fr / PlumeAdmin2026) rejected by Supabase Auth with 400 'Invalid login credentials'. Guest flows verified.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration59_lecture_complete_admin.py",
+    "/app/test_reports/pytest/iteration59.xml"
+  ],
+  "action_items": [
+    "Fix or re-seed admin account: `admin@plume-astrale.fr / PlumeAdmin2026` is rejected by Supabase (400 Invalid login credentials) — either the password was changed in the Supabase dashboard, the user was deleted, or the record no longer exists. Update /app/memory/test_credentials.md accordingly, or re-create the admin via `scripts/` seed. Without a working admin login, authenticated E2E UI testing of /admin > 'Lecture Complète' tab, Refresh button, Redispatch button and the /mon-compte Cercle Soléna badge cannot be exercised in the browser."
+  ],
+  "critical_code_review_comments": [
+    "routes/lecture_complete.py admin_orders() fetches children one-by-one in a for-loop of `like` queries (N+1). For 100 parent orders that is 100 Supabase round-trips. Acceptable for now but should batch via `in_('session_id', [...])` with a prefix search alternative (e.g., dedicated parent_session_id column) once volume grows.",
+    "services/lecture_complete_sequence.py CHECK_INTERVAL_S = 30 min combined with age thresholds (>=24h for J+1) means an order placed at 23h58 may not receive J+1 until ~24h30. Non-blocking but if precise timing matters, lower the interval or store next_check_at.",
+    "cercle-status endpoint uses ilike on user_email but the schema likely allows an authenticated user to have multiple emails/aliases; consider also matching by profile_id if the tx stores user_id.",
+    "Admin redispatch endpoint mutates metadata directly (bundle_dispatched=false) but does not wrap in a transaction; if the async re-dispatch task races with concurrent webhook processing, could double-dispatch. Low risk since idempotency is checked inside handle_lecture_complete_webhook."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration59_lecture_complete_admin.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "structural-only (auth blocked)"},
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 → REJECTED by Supabase (400). Standard test user creds not tried (not needed for admin flow).",
+  "seed_data_creation": "None. Would have required inserting a lecture_complete paid tx <90d old for the logged-in user to render the cercle badge, but auth blocked.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All 4 features are structurally correct and backend endpoints behave as specified for unauthenticated & invalid-token paths. Scarcity cache returns identical objects across consecutive calls (validated). Sequence loop starts at server boot (log confirmed). To finish E2E validation, main agent must (a) fix the Supabase admin credentials so login succeeds, (b) create a paid lecture_complete tx row for the admin's email so both the /admin panel shows an order AND the /mon-compte badge renders. Then re-run Playwright script targeting selectors: [data-testid=admin-lecture-complete-panel], [data-testid=admin-lc-refresh], [data-testid^=admin-lc-redispatch-], [data-testid=cercle-solena-badge], [data-testid=cercle-days-remaining].",
+  "rca_of_the_issue": "Admin login 400 root cause not verified from testing agent (no DB access), but two likely causes: (1) the Supabase auth.users row for admin@plume-astrale.fr was deleted/recreated with a different password; (2) email_confirmed_at is null (though PRD says confirmation disabled). Reproduction: POST https://ebwicqvbkwogxneipaxh.supabase.co/auth/v1/token?grant_type=password with these creds → 400 Invalid login credentials. Mitigation: run a Supabase Admin SQL to reset password (`UPDATE auth.users SET encrypted_password=crypt('PlumeAdmin2026',gen_salt('bf')) WHERE email='admin@plume-astrale.fr'`) or use `supabase.auth.admin.update_user_by_id(...)`."
+}

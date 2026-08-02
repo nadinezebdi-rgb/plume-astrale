@@ -377,11 +377,22 @@ const MonCompte = () => {
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoMsg, setPromoMsg]         = useState(null); // {type:'success'|'error', text}
   const [pdfLoading, setPdfLoading]     = useState(false);
+  const [cercleStatus, setCercleStatus] = useState(null);
 
   // Redirection si non connecté — attendre que AuthContext finisse de restaurer la session
   useEffect(() => {
     if (!authLoading && !token) navigate('/connexion');
   }, [token, authLoading, navigate]);
+
+  // Cercle Solena 90j status (pour badge en tete de compte)
+  useEffect(() => {
+    if (!token) return;
+    let cancel = false;
+    axios.get(`${API_URL}/api/lecture-complete/cercle-status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((r) => { if (!cancel) setCercleStatus(r.data); }).catch(() => {});
+    return () => { cancel = true; };
+  }, [token]);
 
   // Succès abonnement depuis Stripe + Trigger PDF Natal depuis landing luxe
   useEffect(() => {
@@ -746,6 +757,46 @@ const MonCompte = () => {
               <Gift className="w-3.5 h-3.5" strokeWidth={1.5} /> Recharger
             </div>
           </Link>
+
+          {/* ── Badge Cercle Solena 90j (visible si bundle Lecture Complete achete) ── */}
+          {cercleStatus?.active && (
+            <div
+              data-testid="cercle-solena-badge"
+              className="mb-6 rounded-2xl p-4 flex items-center justify-between gap-3"
+              style={{
+                background: 'linear-gradient(135deg, rgba(167,139,250,0.12), rgba(217,178,106,0.08))',
+                border: '1px solid rgba(167,139,250,0.3)',
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.4)' }}
+                >
+                  <span style={{ fontSize: 18 }}>✦</span>
+                </div>
+                <div>
+                  <p className="text-xs tracking-widest uppercase mb-0.5" style={{ color: '#A78BFA', letterSpacing: '0.12em' }}>
+                    Cercle Soléna actif
+                  </p>
+                  <p className="text-base" style={{ color: 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif' }}>
+                    <strong data-testid="cercle-days-remaining">J-{cercleStatus.days_remaining}</strong>
+                    <span className="text-xs ml-2" style={{ color: 'var(--pa-muted)' }}>
+                      jusqu'au {new Date(cercleStatus.expires_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <Link
+                to="/cercle-solena"
+                className="text-xs uppercase tracking-widest px-3 py-1.5 rounded-full"
+                style={{ border: '1px solid rgba(167,139,250,0.5)', color: '#A78BFA', letterSpacing: '0.1em' }}
+                data-testid="cercle-solena-access"
+              >
+                Accéder
+              </Link>
+            </div>
+          )}
 
           {/* ── Navigation par onglets ── */}
           <div className="flex items-center gap-1 mb-8 overflow-x-auto pb-1" style={{ borderBottom: '1px solid rgba(212,175,55,0.1)' }}>

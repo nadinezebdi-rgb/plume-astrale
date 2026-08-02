@@ -11,7 +11,7 @@ Endpoints :
 from __future__ import annotations
 import logging
 import uuid
-from typing import Optional
+from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 
@@ -176,6 +176,172 @@ async def lecture_complete_scarcity():
     """Compteur honnete des lectures restantes ce cycle (mois calendaire).
 
     Utilise par le bandeau homepage : 'Il reste X lectures completes pour ce cycle lunaire'.
+    Cache TTL 60s cote service.
     """
     from services.lecture_complete_bundle import get_scarcity_status
     return get_scarcity_status()
+
+
+@router.get('/admin/orders')
+async def lecture_complete_admin_orders(current_user: Optional[dict] = Depends(get_optional_user)):
+    """Panneau admin : liste toutes les commandes 97€ avec l'etat des 5 PDFs enfants.
+
+    Reserve aux admins (is_admin=true). Non-admin -> 403.
+    """
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    try:
+        prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+        if not prof or not prof.data or not prof.data.get('is_admin'):
+            raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning(f'[lecture_complete/admin] admin check fail: {e}')
+        raise HTTPException(status_code=500, detail='Impossible de verifier vos droits.')
+
+    # Charge les commandes parentes
+    try:
+        r = sb.table('payment_transactions').select(
+            'session_id, user_email, created_at, amount, payment_status, metadata'
+        ).eq('pack_id', 'lecture_complete').order('created_at', desc=True).limit(100).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Fetch parents: {e}')
+    parents = (r.data or []) if r else []
+    if not parents:
+        return {'orders': []}
+
+    parent_sids = [p['session_id'] for p in parents]
+    # Charge en un seul batch tous les enfants (session_id qui commence par un parent + '--')
+    children_by_parent: Dict[str, List[Dict[str, Any]]] = {sid: [] for sid in parent_sids}
+    try:
+        # Supabase n'a pas de OR sur like ; on itere en petits paquets
+        for sid in parent_sids:
+            rr = sb.table('payment_transactions').select(
+                'session_id, pack_id, metadata, created_at'
+            ).like('session_id', f'{sid}--%').execute()
+            for row in (rr.data or []):
+                children_by_parent[sid].append(row)
+    except Exception as e:
+        logger.warning(f'[lecture_complete/admin] children fetch fail: {e}')
+
+    orders = []
+    for p in parents:
+        sid = p['session_id']
+        md = p.get('metadata') or {}
+        seq_status = {
+            'j1': bool(md.get('sequence_j1_sent_at')),
+            'j7': bool(md.get('sequence_j7_sent_at')),
+            'j13': bool(md.get('sequence_j13_sent_at')),
+        }
+        children_summary = []
+        for c in children_by_parent.get(sid, []):
+            cmd = c.get('metadata') or {}
+            children_summary.append({
+                'session_id': c['session_id'],
+                'kind': cmd.get('kind') or c.get('pack_id'),
+                'pdf_status': cmd.get('pdf_status') or ('success' if cmd.get('pdf_path') else 'pending'),
+                'pdf_ready': bool(cmd.get('pdf_path')),
+                'email_sent': bool(cmd.get('email_sent_at')),
+                'pdf_error': cmd.get('pdf_error'),
+            })
+        orders.append({
+            'session_id': sid,
+            'email': p.get('user_email'),
+            'created_at': p.get('created_at'),
+            'amount': p.get('amount'),
+            'payment_status': p.get('payment_status'),
+            'admin_bypass': bool(md.get('admin_bypass')),
+            'bundle_dispatched': bool(md.get('bundle_dispatched')),
+            'bundle_error': md.get('bundle_error'),
+            'sequence': seq_status,
+            'children': children_summary,
+        })
+    return {'orders': orders}
+
+
+@router.post('/admin/redispatch/{session_id}')
+async def lecture_complete_admin_redispatch(
+    session_id: str,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Force la re-generation d'un bundle (utile si un enfant a echoue)."""
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+
+    # Reset le flag bundle_dispatched pour permettre le re-dispatch
+    try:
+        r = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+        if not r or not r.data:
+            raise HTTPException(status_code=404, detail='Session introuvable.')
+        md = r.data.get('metadata') or {}
+        md['bundle_dispatched'] = False
+        sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    import asyncio
+    from services.lecture_complete_bundle import handle_lecture_complete_webhook
+    asyncio.create_task(handle_lecture_complete_webhook(session_id))
+    return {'redispatched': True, 'session_id': session_id}
+
+
+@router.get('/cercle-status')
+async def lecture_complete_cercle_status(
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Indique si l'utilisateur courant a un Cercle Solena 90j actif via un bundle 97€.
+
+    Retourne {active, days_remaining, expires_at, purchased_at, source} ou {active:false}.
+    """
+    if not current_user or not current_user.get('id'):
+        return {'active': False, 'reason': 'not_authenticated'}
+    email = (current_user.get('email') or '').lower()
+    if not email:
+        return {'active': False, 'reason': 'no_email'}
+
+    sb = get_admin_client()
+    try:
+        r = sb.table('payment_transactions').select(
+            'session_id, created_at, payment_status'
+        ).eq('pack_id', 'lecture_complete').eq('payment_status', 'paid').ilike(
+            'user_email', email
+        ).order('created_at', desc=True).limit(1).execute()
+    except Exception as e:
+        logger.warning(f'[lecture_complete/cercle-status] fetch fail: {e}')
+        return {'active': False, 'reason': 'db_error'}
+
+    rows = (r.data or []) if r else []
+    if not rows:
+        return {'active': False}
+
+    tx = rows[0]
+    from datetime import datetime, timedelta, timezone
+    try:
+        created_dt = datetime.fromisoformat(tx['created_at'].replace('Z', '+00:00'))
+    except Exception:
+        return {'active': False, 'reason': 'bad_created_at'}
+    expires_at = created_dt + timedelta(days=90)
+    now = datetime.now(timezone.utc)
+    if now >= expires_at:
+        return {
+            'active': False,
+            'expired': True,
+            'purchased_at': created_dt.isoformat(),
+            'expires_at': expires_at.isoformat(),
+        }
+    days_remaining = max(0, (expires_at - now).days)
+    return {
+        'active': True,
+        'days_remaining': days_remaining,
+        'expires_at': expires_at.isoformat(),
+        'purchased_at': created_dt.isoformat(),
+        'source': 'lecture_complete',
+    }
