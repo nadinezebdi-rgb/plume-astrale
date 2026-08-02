@@ -20,6 +20,7 @@ const SOLENA_LIFESTYLE = 'https://customer-assets-0z36b82j.emergentagent.net/job
 const SOLENA_MYSTIQUE = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/htvnb1ej_PHOTOS%20SOLENA%202.webp';
 const SOLENA_PDF = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/ib324e70_PHOTOS%20SOLENA%203.webp';
 const MANIFESTO_VIDEO = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/ly63ciw5_Le%20Manifeste%20Plume%20Astrale_1080p.mp4';
+const LOGO = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/ryuhr45s_logo%20plume%20%20%28250%20x%20250%20px%29.png';
 
 /* A/B hero headline — stable per visitor via localStorage. */
 const AB_KEY = 'plume_hero_variant';
@@ -134,11 +135,21 @@ const styles = `
   /* Barre supérieure */
   .pa-topbar{background:var(--pa-night-2);border-bottom:1px solid rgba(255,255,255,.05);
     display:flex;justify-content:space-between;align-items:center;
-    padding:10px 24px;font-size:12px;color:var(--pa-text-dim);}
-  .pa-topbar-brand{color:var(--pa-text-light);font-weight:600;letter-spacing:.06em;
-    text-transform:uppercase;font-size:11px;}
-  .pa-topbar-brand::before{content:'✦ ';color:var(--pa-gold);}
-  .pa-topbar-reass{letter-spacing:.04em;}
+    padding:12px 24px;font-size:12px;color:var(--pa-text-dim);}
+  .pa-topbar-brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;
+    color:var(--pa-text-light);font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;font-size:12px;
+    transition:opacity .18s ease;}
+  .pa-topbar-brand:hover{opacity:.85;}
+  .pa-topbar-logo{width:32px;height:32px;object-fit:contain;border-radius:6px;
+    filter:drop-shadow(0 2px 8px rgba(201,162,75,.35));}
+  .pa-topbar-account{display:inline-flex;align-items:center;gap:6px;text-decoration:none;
+    color:var(--pa-gold);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    padding:6px 14px;border:1px solid rgba(201,162,75,.35);border-radius:999px;
+    transition:all .18s ease;font-family:Georgia,serif;}
+  .pa-topbar-account:hover{background:rgba(201,162,75,.1);border-color:var(--pa-gold);}
+  .pa-topbar-account span{transition:transform .2s ease;}
+  .pa-topbar-account:hover span{transform:translateX(3px);}
 
   /* Hero */
   .pa-hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center;
@@ -350,8 +361,10 @@ const styles = `
     .pa-trust-grid{grid-template-columns:repeat(2,1fr);gap:14px;}
     .pa-footer-wrap{grid-template-columns:1fr;}
     .pa-sec{padding:64px 0;}
-    .pa-topbar{flex-direction:column;gap:4px;padding:8px 20px;}
-    .pa-topbar-reass{font-size:11px;}
+    .pa-topbar{padding:10px 16px;}
+    .pa-topbar-brand{font-size:11px;gap:8px;}
+    .pa-topbar-logo{width:28px;height:28px;}
+    .pa-topbar-account{font-size:10px;padding:5px 10px;letter-spacing:.06em;}
     .pa-guarantee{max-width:none;margin:0 auto;text-align:center;}
     .pa-final-grid > div:first-child{text-align:center;}
     .pa-final-grid > div:first-child > div:nth-child(4){justify-content:center;}
@@ -546,8 +559,13 @@ export default function Index() {
 
         {/* ═══ SECTION 0 · BARRE SUPÉRIEURE ═══ */}
         <div className="pa-topbar" data-testid="landing-topbar">
-          <span className="pa-topbar-brand">Plume Astrale</span>
-          <span className="pa-topbar-reass">Sans carte bancaire · Garantie 14 jours</span>
+          <Link to="/" className="pa-topbar-brand" data-testid="landing-topbar-brand">
+            <img src={LOGO} alt="Plume Astrale" className="pa-topbar-logo" />
+            <span>Plume Astrale</span>
+          </Link>
+          <Link to={signupPath} className="pa-topbar-account" data-testid="landing-topbar-account">
+            {user ? 'Mon compte' : 'Mon compte'} <span aria-hidden="true">→</span>
+          </Link>
         </div>
 
         {/* ═══ SECTION 1 · HÉROS (sombre, immersif, avec portrait + A/B headline) ═══ */}
@@ -556,7 +574,6 @@ export default function Index() {
           <div className="pa-wrap">
             <div className="pa-hero-grid">
               <div>
-                <div className="pa-eyebrow">Lecture personnalisée · femmes 35-70 ans</div>
                 <h1 className="pa-h1" data-testid={`hero-headline-${heroVariant}`}>
                   {HERO_HEADLINES[heroVariant].pre}
                   <em>{HERO_HEADLINES[heroVariant].em}</em>
