@@ -154,6 +154,18 @@ async def chat_support(payload: ChatRequest):
         escalate=escalate,
     )
 
+    # Slack ping proactif si escalade — fire-and-forget
+    if escalate:
+        try:
+            import asyncio as _asyncio
+            _asyncio.create_task(_notify_slack_escalation(
+                session_id=session_id,
+                user_message=payload.message[:600],
+                assistant_reply=reply[:400],
+            ))
+        except Exception as e:
+            logger.warning(f'[chat] escalation notify schedule fail: {e}')
+
     return ChatResponse(
         reply=reply,
         escalate=escalate,
@@ -161,6 +173,47 @@ async def chat_support(payload: ChatRequest):
         support_email=SUPPORT_EMAIL,
         exchange_uid=exchange_uid,
     )
+
+
+async def _notify_slack_escalation(session_id: str, user_message: str,
+                                   assistant_reply: str) -> None:
+    """Slack (best effort) + log_alert quand l'IA escalade une conversation."""
+    import httpx as _httpx
+    from services.app_settings import log_alert as _log_alert
+    webhook = os.environ.get('SLACK_WEBHOOK_URL', '').strip()
+    slack_ok = False
+    if webhook:
+        try:
+            async with _httpx.AsyncClient(timeout=6.0) as client:
+                r = await client.post(webhook, json={
+                    'text': f'🚨 Chat IA escaladé — session {session_id}',
+                    'blocks': [
+                        {'type': 'header', 'text': {'type': 'plain_text',
+                            'text': '🚨 Chat IA — Escalade utilisateur'}},
+                        {'type': 'section', 'text': {'type': 'mrkdwn',
+                            'text': f'*Message utilisateur*\n>{user_message}\n\n'
+                                    f'*Réponse IA*\n>{assistant_reply}\n\n'
+                                    f'_Session_ `{session_id}`'}},
+                        {'type': 'actions', 'elements': [{
+                            'type': 'button',
+                            'text': {'type': 'plain_text', 'text': 'Voir analytics'},
+                            'url': 'https://plume-astrale.fr/admin',
+                            'style': 'primary',
+                        }]},
+                    ],
+                })
+                slack_ok = r.status_code in (200, 204)
+        except Exception as e:
+            logger.warning(f'[chat escalation] slack fail: {e}')
+    try:
+        _log_alert(
+            kind='chat_escalation',
+            title=f'Escalade IA — session {session_id[:12]}',
+            details=user_message[:180],
+            channels=['slack'] if slack_ok else [],
+        )
+    except Exception:
+        pass
 
 
 # ═══════════════════════════════════════════════════════════════
