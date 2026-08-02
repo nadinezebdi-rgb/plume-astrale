@@ -304,6 +304,7 @@ async def chat_analytics(current_user: Optional[dict] = Depends(get_optional_use
 
     # Sessions escaladees non encore repondues par Soléna (pour admin reply widget)
     admin_replies = get_setting('chat_admin_replies') or {}
+    resolved = get_setting('chat_resolved_escalations') or {}
     escalated_sessions: Dict[str, Dict[str, Any]] = {}
     for e in entries:
         if not e.get('escalate'):
@@ -314,6 +315,7 @@ async def chat_analytics(current_user: Optional[dict] = Depends(get_optional_use
         # On garde le message le plus recent par session
         existing = escalated_sessions.get(sid)
         if not existing or (e.get('created_at') or '') > (existing.get('created_at') or ''):
+            res = resolved.get(sid) or {}
             escalated_sessions[sid] = {
                 'session_id': sid,
                 'last_user_message': (e.get('user_message') or '')[:400],
@@ -321,9 +323,12 @@ async def chat_analytics(current_user: Optional[dict] = Depends(get_optional_use
                 'created_at': e.get('created_at'),
                 'admin_replies_count': len(admin_replies.get(sid) or []),
                 'last_admin_reply_at': (admin_replies.get(sid) or [{}])[-1].get('at') if admin_replies.get(sid) else None,
+                'resolved': bool(res.get('resolved_at')),
+                'resolved_at': res.get('resolved_at'),
+                'resolved_by': res.get('by'),
             }
     escalations = sorted(escalated_sessions.values(),
-                         key=lambda x: x.get('created_at') or '', reverse=True)[:20]
+                         key=lambda x: x.get('created_at') or '', reverse=True)[:40]
 
     return {
         'total_exchanges': total,
@@ -411,3 +416,54 @@ async def chat_session_updates(session_id: str, since: Optional[str] = None):
             'author': 'Soléna',  # Toujours "Soléna" côté public
         } for m in filtered],
     }
+
+
+async def _require_admin(current_user: Optional[dict]) -> dict:
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin,email').eq(
+        'id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+    return prof.data
+
+
+@router.post('/escalation/{session_id}/resolve')
+async def chat_escalation_resolve(
+    session_id: str,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Admin : marque une escalade comme resolue (sort de la queue par default)."""
+    prof = await _require_admin(current_user)
+    resolved = get_setting('chat_resolved_escalations') or {}
+    resolved[session_id] = {
+        'resolved_at': datetime.now(timezone.utc).isoformat(),
+        'by': prof.get('email'),
+    }
+    set_setting('chat_resolved_escalations', resolved)
+    try:
+        from services.app_settings import log_alert
+        log_alert(
+            kind='chat_resolved',
+            title=f'Escalade resolue — session {session_id[:12]}',
+            details=f'Par {prof.get("email")}',
+            channels=[],
+        )
+    except Exception:
+        pass
+    return {'ok': True, 'resolved': True, 'session_id': session_id}
+
+
+@router.post('/escalation/{session_id}/reopen')
+async def chat_escalation_reopen(
+    session_id: str,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Admin : reouvre une escalade (retour dans la queue)."""
+    await _require_admin(current_user)
+    resolved = get_setting('chat_resolved_escalations') or {}
+    if session_id in resolved:
+        resolved.pop(session_id, None)
+        set_setting('chat_resolved_escalations', resolved)
+    return {'ok': True, 'resolved': False, 'session_id': session_id}

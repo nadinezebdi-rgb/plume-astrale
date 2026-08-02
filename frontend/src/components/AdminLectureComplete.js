@@ -92,6 +92,7 @@ export default function AdminLectureComplete({ token }) {
   const [chatEscalations, setChatEscalations] = useState(null);
   const [chatEscalationsBusy, setChatEscalationsBusy] = useState(false);
   const [replyDrafts, setReplyDrafts] = useState({});
+  const [showResolved, setShowResolved] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -446,6 +447,26 @@ export default function AdminLectureComplete({ token }) {
       loadChatEscalations();
       alert('Réponse envoyée à l\'utilisatrice — elle la verra dans son chat.');
     } catch (e) { alert(e.response?.data?.detail || 'Erreur envoi.'); }
+  };
+
+  const resolveEscalation = async (sessionId) => {
+    try {
+      await axios.post(
+        `${API}/api/chat/escalation/${sessionId}/resolve`, {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      loadChatEscalations();
+    } catch (e) { alert(e.response?.data?.detail || 'Erreur'); }
+  };
+
+  const reopenEscalation = async (sessionId) => {
+    try {
+      await axios.post(
+        `${API}/api/chat/escalation/${sessionId}/reopen`, {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      loadChatEscalations();
+    } catch (e) { alert(e.response?.data?.detail || 'Erreur'); }
   };
 
   // Auto-load admin panels sur mount une fois le token dispo
@@ -884,15 +905,26 @@ export default function AdminLectureComplete({ token }) {
           border: '1px solid rgba(248,113,113,0.18)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
           <span style={{ color: '#f87171', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 600 }}>
             🚨 Escalades chat IA
           </span>
           {chatEscalations && (
             <span style={{ color: '#b8b4c9', fontSize: 10 }}>
-              · {chatEscalations.length} session{chatEscalations.length > 1 ? 's' : ''} à traiter
+              · {chatEscalations.filter(e => !e.resolved).length} à traiter
+              {' · '}{chatEscalations.filter(e => e.resolved).length} résolues
             </span>
           )}
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#b8b4c9', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={showResolved}
+              onChange={(e) => setShowResolved(e.target.checked)}
+              data-testid="admin-lc-escalations-show-resolved"
+              style={{ cursor: 'pointer' }}
+            />
+            Afficher résolues
+          </label>
           <button
             onClick={loadChatEscalations}
             disabled={chatEscalationsBusy}
@@ -911,24 +943,34 @@ export default function AdminLectureComplete({ token }) {
             Aucune escalade en attente. Tout va bien 🌙
           </div>
         )}
-        {chatEscalations && chatEscalations.map((esc) => (
+        {chatEscalations && chatEscalations
+          .filter((esc) => showResolved ? true : !esc.resolved)
+          .map((esc) => (
           <div
             key={esc.session_id}
             data-testid={`admin-lc-escalation-${esc.session_id}`}
             style={{
               marginBottom: 10, padding: 10, borderRadius: 8,
-              background: 'rgba(11,16,32,0.4)',
-              borderLeft: `3px solid ${esc.admin_replies_count > 0 ? '#4ADE80' : '#f87171'}`,
+              background: esc.resolved ? 'rgba(74,222,128,0.03)' : 'rgba(11,16,32,0.4)',
+              opacity: esc.resolved ? 0.7 : 1,
+              borderLeft: `3px solid ${esc.resolved ? '#4ADE80' : (esc.admin_replies_count > 0 ? '#d9b26a' : '#f87171')}`,
             }}
           >
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-              <span style={{ padding: '1px 6px', borderRadius: 8, fontSize: 9,
-                background: esc.admin_replies_count > 0 ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.15)',
-                color: esc.admin_replies_count > 0 ? '#4ADE80' : '#f87171',
-                letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 600,
-              }}>
-                {esc.admin_replies_count > 0 ? `${esc.admin_replies_count} réponse${esc.admin_replies_count > 1 ? 's' : ''}` : 'À traiter'}
-              </span>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
+              {esc.resolved ? (
+                <span style={{ padding: '1px 6px', borderRadius: 8, fontSize: 9,
+                  background: 'rgba(74,222,128,0.15)', color: '#4ADE80',
+                  letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 600 }}>
+                  ✓ Résolu
+                </span>
+              ) : (
+                <span style={{ padding: '1px 6px', borderRadius: 8, fontSize: 9,
+                  background: esc.admin_replies_count > 0 ? 'rgba(217,178,106,0.15)' : 'rgba(248,113,113,0.15)',
+                  color: esc.admin_replies_count > 0 ? '#d9b26a' : '#f87171',
+                  letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 600 }}>
+                  {esc.admin_replies_count > 0 ? `${esc.admin_replies_count} réponse${esc.admin_replies_count > 1 ? 's' : ''}` : 'À traiter'}
+                </span>
+              )}
               <code style={{ fontSize: 9, color: '#8a86a0' }}>{esc.session_id}</code>
               <span style={{ marginLeft: 'auto', fontSize: 9, color: 'rgba(184,180,201,0.4)' }}>
                 {esc.created_at ? new Date(esc.created_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
@@ -948,36 +990,77 @@ export default function AdminLectureComplete({ token }) {
                 ✓ Dernière réponse humaine envoyée le {new Date(esc.last_admin_reply_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
               </div>
             )}
-            <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', marginTop: 8 }}>
-              <textarea
-                value={replyDrafts[esc.session_id] || ''}
-                onChange={(e) => setReplyDrafts((d) => ({ ...d, [esc.session_id]: e.target.value }))}
-                placeholder="Ta réponse à l'utilisatrice… (apparait dans son chat en direct)"
-                rows={2}
-                data-testid={`admin-lc-escalation-reply-input-${esc.session_id}`}
-                style={{
-                  flex: 1,
-                  background: 'rgba(11,16,32,0.6)', color: '#e8e6f0',
-                  border: '1px solid rgba(201,162,75,0.25)', borderRadius: 8,
-                  padding: '6px 10px', fontSize: 11, fontFamily: 'Georgia, serif',
-                  resize: 'vertical', minHeight: 40,
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => sendAdminReply(esc.session_id)}
-                data-testid={`admin-lc-escalation-reply-send-${esc.session_id}`}
-                style={{
-                  fontSize: 10, padding: '8px 14px', borderRadius: 12,
-                  background: 'linear-gradient(135deg,#c9a24b,#e2c07c)', color: '#1a1030',
-                  border: 'none', cursor: 'pointer', fontWeight: 600,
-                  textTransform: 'uppercase', letterSpacing: '.08em',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Envoyer
-              </button>
-            </div>
+            {esc.resolved && (
+              <div style={{ marginBottom: 6, fontSize: 10, color: '#4ADE80' }}>
+                Résolu par {esc.resolved_by} le {esc.resolved_at ? new Date(esc.resolved_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+              </div>
+            )}
+            {!esc.resolved && (
+              <>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', marginTop: 8 }}>
+                  <textarea
+                    value={replyDrafts[esc.session_id] || ''}
+                    onChange={(e) => setReplyDrafts((d) => ({ ...d, [esc.session_id]: e.target.value }))}
+                    placeholder="Ta réponse à l'utilisatrice… (apparait dans son chat en direct)"
+                    rows={2}
+                    data-testid={`admin-lc-escalation-reply-input-${esc.session_id}`}
+                    style={{
+                      flex: 1,
+                      background: 'rgba(11,16,32,0.6)', color: '#e8e6f0',
+                      border: '1px solid rgba(201,162,75,0.25)', borderRadius: 8,
+                      padding: '6px 10px', fontSize: 11, fontFamily: 'Georgia, serif',
+                      resize: 'vertical', minHeight: 40,
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => sendAdminReply(esc.session_id)}
+                    data-testid={`admin-lc-escalation-reply-send-${esc.session_id}`}
+                    style={{
+                      fontSize: 10, padding: '8px 14px', borderRadius: 12,
+                      background: 'linear-gradient(135deg,#c9a24b,#e2c07c)', color: '#1a1030',
+                      border: 'none', cursor: 'pointer', fontWeight: 600,
+                      textTransform: 'uppercase', letterSpacing: '.08em',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Envoyer
+                  </button>
+                </div>
+                <div style={{ marginTop: 8, textAlign: 'right' }}>
+                  <button
+                    type="button"
+                    onClick={() => resolveEscalation(esc.session_id)}
+                    data-testid={`admin-lc-escalation-resolve-${esc.session_id}`}
+                    style={{
+                      fontSize: 9, padding: '4px 10px', borderRadius: 10,
+                      background: 'rgba(74,222,128,0.1)', color: '#4ADE80',
+                      border: '1px solid rgba(74,222,128,0.35)', cursor: 'pointer',
+                      textTransform: 'uppercase', letterSpacing: '.08em',
+                    }}
+                  >
+                    ✓ Marquer résolu
+                  </button>
+                </div>
+              </>
+            )}
+            {esc.resolved && (
+              <div style={{ marginTop: 8, textAlign: 'right' }}>
+                <button
+                  type="button"
+                  onClick={() => reopenEscalation(esc.session_id)}
+                  data-testid={`admin-lc-escalation-reopen-${esc.session_id}`}
+                  style={{
+                    fontSize: 9, padding: '4px 10px', borderRadius: 10,
+                    background: 'transparent', color: '#A78BFA',
+                    border: '1px solid rgba(167,139,250,0.35)', cursor: 'pointer',
+                    textTransform: 'uppercase', letterSpacing: '.08em',
+                  }}
+                >
+                  ↺ Rouvrir
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
