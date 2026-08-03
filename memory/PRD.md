@@ -1,5 +1,28 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Aug 2026 (iter 69) — Enrichissement Page Stripe Checkout
+
+### Contexte utilisateur
+La page Stripe hébergée (celle qui s'ouvre au clic sur un bouton d'achat) affichait juste "Payment" + montant, sans image, sans description ni code promo. Impression cheap, incompatible avec un positionnement premium.
+
+### Livrables (2026-08-03)
+- ✅ `integrations/payments/stripe/product_catalog.py` — catalogue centralisé de 16 produits (lecture_complete, karma_destin_analysis, numerologie_code, kabbale_arbre_de_vie, pack_karmique_kabbale, mediumnite, croix_celtique, theme_natal_pdf_oneshot, synastrie_oneshot, fenetre_rencontre_avancee, astrocartographie, consultation_ultime, duo_completion, trio_decouverte) avec name premium + description commerciale + cover image (bucket public Supabase library/tarot).
+- ✅ `integrations/payments/stripe/checkout.py` `create_checkout_session()` enrichi : product_data.name/description/images injectés depuis le catalogue via metadata.product, `locale='fr'`, `allow_promotion_codes=True`, `custom_text.submit.message` avec rappel de livraison, `payment_intent_data.description` (visible reçu client + dashboard Stripe).
+- ✅ Bascule des 14 imports `from emergentintegrations.payments.stripe.checkout` → `from integrations.payments.stripe.checkout` (server.py, routes/{lecture_complete, kabbale, pack_karmique, karma_destin, numerologie, fenetre_rencontre, astrocartographie, consultation_ultime, duo_completion, trio_decouverte, theme_natal_oneshot, rencontres}, services/self_heal.py).
+
+### Tests curl Stripe (2026-08-03) — sessions cs_live_* réelles
+| Produit | Name enrichi | Image | Description | Locale FR | Promo code | Custom submit |
+|---|---|---|---|---|---|---|
+| Lecture Complète 97€ | ✅ | ✅ | ✅ 264c | ✅ | ✅ | ✅ |
+| Kabbale | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Pack Karmique | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Karma & Destin | ✅ | ✅ | ✅ 136c | ✅ | ✅ | ✅ |
+| Numérologie | ✅ | ✅ | ✅ 146c | ✅ | ✅ | ✅ |
+
+Note : les routes `synastrie_oneshot`, `subscriptions`, `premium_subscription` appellent Stripe directement (bypass wrapper) — hors périmètre iter 69, à traiter séparément.
+
+---
+
 ## 🆕 Session Aug 2026 (iter 68) — Tarot v2 IA + Jauge coût LLM
 
 ### Contexte

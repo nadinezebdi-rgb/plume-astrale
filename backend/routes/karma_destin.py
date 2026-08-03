@@ -19,7 +19,7 @@ from middleware.auth import get_optional_user
 from services.astrology_io_service import karmic_analysis
 from services.karma_destin_pdf import generate_karma_destin_pdf_ai
 from services.pdf_delivery import update_tx_pdf_metadata, send_pdf_email
-from emergentintegrations.payments.stripe.checkout import (
+from integrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
 

@@ -15,7 +15,7 @@ from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
 from services.duo_completion_service import handle_duo_completion_webhook, get_duo_status
 from middleware.auth import get_optional_user
-from emergentintegrations.payments.stripe.checkout import (
+from integrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
 
