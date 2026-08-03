@@ -76,6 +76,11 @@ export default function AdminLectureComplete({ token }) {
   const [alertsHistory, setAlertsHistory] = useState([]);
   const [showAlertsHistory, setShowAlertsHistory] = useState(false);
   const [settingsBusy, setSettingsBusy] = useState(false);
+  // AI Enrichment toggle (transversal PDFs)
+  const [aiEnrichmentEnabled, setAiEnrichmentEnabled] = useState(true);
+  const [aiToggleBusy, setAiToggleBusy] = useState(false);
+  // LLM usage / cost gauge
+  const [llmUsage, setLlmUsage] = useState(null);
   // Weekly recap
   const [recapBusy, setRecapBusy] = useState(false);
   const [recapResult, setRecapResult] = useState(null);
@@ -91,6 +96,7 @@ export default function AdminLectureComplete({ token }) {
   // Chat escalations reply
   const [chatEscalations, setChatEscalations] = useState(null);
   const [chatEscalationsBusy, setChatEscalationsBusy] = useState(false);
+  const [chatAnalyticsSummary, setChatAnalyticsSummary] = useState(null);
   const [replyDrafts, setReplyDrafts] = useState({});
   const [showResolved, setShowResolved] = useState(false);
 
@@ -99,7 +105,7 @@ export default function AdminLectureComplete({ token }) {
     setLoading(true);
     setError(null);
     try {
-      const [ordersRes, abRes, settingsRes] = await Promise.all([
+      const [ordersRes, abRes, settingsRes, llmRes] = await Promise.all([
         axios.get(`${API}/api/lecture-complete/admin/orders`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -109,6 +115,9 @@ export default function AdminLectureComplete({ token }) {
         axios.get(`${API}/api/lecture-complete/admin/settings`, {
           headers: { Authorization: `Bearer ${token}` },
         }).catch(() => ({ data: null })),
+        axios.get(`${API}/api/lecture-complete/admin/llm-usage`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => ({ data: null })),
       ]);
       setOrders(ordersRes.data?.orders || []);
       setStats(ordersRes.data?.stats || null);
@@ -116,7 +125,11 @@ export default function AdminLectureComplete({ token }) {
       if (settingsRes.data) {
         setForcedVariant(settingsRes.data.forced_j30_variant || null);
         setAlertsHistory(settingsRes.data.alerts_history || []);
+        if (typeof settingsRes.data.ai_enrichment_enabled === 'boolean') {
+          setAiEnrichmentEnabled(settingsRes.data.ai_enrichment_enabled);
+        }
       }
+      setLlmUsage(llmRes.data || null);
     } catch (e) {
       setError(e.response?.data?.detail || 'Chargement impossible.');
     } finally {
@@ -293,6 +306,30 @@ export default function AdminLectureComplete({ token }) {
     }
   };
 
+  const toggleAiEnrichment = async () => {
+    if (aiToggleBusy) return;
+    const nextValue = !aiEnrichmentEnabled;
+    if (!nextValue && !window.confirm(
+      "Désactiver l'enrichissement IA transversal des PDFs ?\n\n" +
+      "Les rapports générés utiliseront un texte statique riche pré-rédigé " +
+      "à la voix de Soléna (pages toujours étoffées, aucun appel LLM).\n\n" +
+      "Réactive-le dès que ton budget LLM le permet."
+    )) return;
+    setAiToggleBusy(true);
+    try {
+      const r = await axios.post(
+        `${API}/api/lecture-complete/admin/set-ai-enrichment`,
+        { enabled: nextValue },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAiEnrichmentEnabled(!!r.data.ai_enrichment_enabled);
+    } catch (e) {
+      alert(e.response?.data?.detail || 'Impossible de basculer le toggle IA.');
+    } finally {
+      setAiToggleBusy(false);
+    }
+  };
+
   const setForcedVariantHandler = async (variant) => {
     if (settingsBusy) return;
     if (variant && !window.confirm(
@@ -427,8 +464,18 @@ export default function AdminLectureComplete({ token }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setChatEscalations(r.data?.escalations || []);
+      setChatAnalyticsSummary({
+        total_exchanges: r.data?.total_exchanges || 0,
+        unique_sessions: r.data?.unique_sessions || 0,
+        escalate_rate_pct: r.data?.escalate_rate_pct || 0,
+        helpful_rate_pct: r.data?.helpful_rate_pct,
+        positive_feedback: r.data?.positive_feedback || 0,
+        negative_feedback: r.data?.negative_feedback || 0,
+        faq_gaps: r.data?.faq_gaps || [],
+      });
     } catch (_e) {
       setChatEscalations([]);
+      setChatAnalyticsSummary(null);
     } finally {
       setChatEscalationsBusy(false);
     }
@@ -480,6 +527,73 @@ export default function AdminLectureComplete({ token }) {
 
   return (
     <div data-testid="admin-lecture-complete-panel">
+      {/* ═══ Chat Analytics Card (top summary) ═══ */}
+      {chatAnalyticsSummary && chatAnalyticsSummary.total_exchanges > 0 && (
+        <div
+          data-testid="admin-lc-chat-analytics-card"
+          style={{
+            marginBottom: 16, padding: 16, borderRadius: 12,
+            background: 'linear-gradient(135deg, rgba(167,139,250,0.06), rgba(201,162,75,0.04))',
+            border: '1px solid rgba(167,139,250,0.25)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <span style={{ fontSize: 20 }}>✦</span>
+            <span style={{ color: '#A78BFA', fontSize: 11, letterSpacing: '.14em',
+              textTransform: 'uppercase', fontWeight: 600 }}>
+              Chat IA — Insights
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 12 }}>
+            <div data-testid="admin-lc-chat-analytics-total" style={{ padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}>
+              <div style={{ fontSize: 9, color: '#8a86a0', textTransform: 'uppercase', letterSpacing: '.08em' }}>Échanges</div>
+              <div style={{ fontSize: 20, color: '#e8e6f0', fontWeight: 600 }}>{chatAnalyticsSummary.total_exchanges}</div>
+            </div>
+            <div data-testid="admin-lc-chat-analytics-sessions" style={{ padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}>
+              <div style={{ fontSize: 9, color: '#8a86a0', textTransform: 'uppercase', letterSpacing: '.08em' }}>Sessions</div>
+              <div style={{ fontSize: 20, color: '#e8e6f0', fontWeight: 600 }}>{chatAnalyticsSummary.unique_sessions}</div>
+            </div>
+            <div data-testid="admin-lc-chat-analytics-escalate" style={{ padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}>
+              <div style={{ fontSize: 9, color: '#8a86a0', textTransform: 'uppercase', letterSpacing: '.08em' }}>Escalate rate</div>
+              <div style={{ fontSize: 20, color: chatAnalyticsSummary.escalate_rate_pct > 15 ? '#f87171' : '#e8e6f0', fontWeight: 600 }}>
+                {chatAnalyticsSummary.escalate_rate_pct}%
+              </div>
+            </div>
+            <div data-testid="admin-lc-chat-analytics-helpful" style={{ padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}>
+              <div style={{ fontSize: 9, color: '#8a86a0', textTransform: 'uppercase', letterSpacing: '.08em' }}>Utile</div>
+              <div style={{ fontSize: 20, color: '#4ADE80', fontWeight: 600 }}>
+                {chatAnalyticsSummary.helpful_rate_pct != null ? `${chatAnalyticsSummary.helpful_rate_pct}%` : '—'}
+              </div>
+              <div style={{ fontSize: 9, color: '#8a86a0', marginTop: 2 }}>
+                👍 {chatAnalyticsSummary.positive_feedback} · 👎 {chatAnalyticsSummary.negative_feedback}
+              </div>
+            </div>
+          </div>
+          {chatAnalyticsSummary.faq_gaps.length > 0 && (
+            <div>
+              <div style={{ fontSize: 10, color: '#d9b26a', letterSpacing: '.08em',
+                textTransform: 'uppercase', marginBottom: 6 }}>
+                🎯 Top 3 questions à améliorer
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {chatAnalyticsSummary.faq_gaps.slice(0, 3).map((g, i) => (
+                  <div
+                    key={i}
+                    data-testid={`admin-lc-chat-analytics-gap-${i}`}
+                    style={{
+                      fontSize: 11, color: '#e8e6f0', fontStyle: 'italic',
+                      padding: '6px 10px', background: 'rgba(11,16,32,0.35)', borderRadius: 6,
+                      borderLeft: '2px solid rgba(248,113,113,0.4)',
+                    }}
+                  >
+                    « {g.user_message} »
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <h2 style={{ fontSize: 22, color: '#d9b26a', margin: 0 }}>
           Lecture Complète — Commandes 97€
@@ -645,6 +759,162 @@ export default function AdminLectureComplete({ token }) {
         {svgStats?.error && (
           <div style={{ marginTop: 8, fontSize: 11, color: '#f87171' }}>Erreur : {svgStats.error}</div>
         )}
+      </div>
+
+      {/* ═══ Jauge Coût LLM (mensuel) ═══ */}
+      {llmUsage && (() => {
+        const cur = llmUsage.current || { total_calls: 0, total_cost_eur: 0, by_usage: {} };
+        const budget = Number(llmUsage.budget_eur || 30);
+        const spent = Number(cur.total_cost_eur || 0);
+        const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
+        const state = pct >= 90 ? 'danger' : pct >= 65 ? 'warn' : 'ok';
+        const color = state === 'danger' ? '#f87171' : state === 'warn' ? '#fbbf24' : '#4ADE80';
+        const usages = Object.entries(cur.by_usage || {});
+        return (
+          <div
+            data-testid="admin-lc-llm-usage-panel"
+            style={{
+              marginBottom: 16, padding: 14, borderRadius: 12,
+              background: 'rgba(24,24,32,0.55)',
+              border: `1px solid ${color}44`,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color, fontWeight: 700 }}>
+                ✦ Jauge coût GPT — {llmUsage.current_month}
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(232,230,240,0.6)' }}>
+                Budget mensuel : <b style={{ color: '#E8C766' }}>{budget.toFixed(0)} €</b>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1, height: 10, borderRadius: 6, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                <div style={{
+                  width: `${pct}%`, height: '100%',
+                  background: `linear-gradient(90deg, ${color}, ${color}bb)`,
+                  transition: 'width .5s ease',
+                }} />
+              </div>
+              <div style={{ minWidth: 110, textAlign: 'right' }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color }}>
+                  {spent.toFixed(2)} €
+                </div>
+                <div style={{ fontSize: 10, color: 'rgba(232,230,240,0.55)', letterSpacing: '.06em' }}>
+                  {pct.toFixed(0)}% du budget
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8,
+            }}>
+              <div style={{ fontSize: 11, color: 'rgba(232,230,240,0.7)' }}>
+                <div style={{ color: 'rgba(232,230,240,0.5)', letterSpacing: '.06em', fontSize: 10, textTransform: 'uppercase' }}>Total appels</div>
+                <div style={{ fontSize: 15, color: '#fff', marginTop: 2, fontWeight: 600 }}>{cur.total_calls}</div>
+              </div>
+              {usages.map(([usage, stats]) => (
+                <div key={usage} style={{ fontSize: 11, color: 'rgba(232,230,240,0.7)' }}>
+                  <div style={{ color: 'rgba(232,230,240,0.5)', letterSpacing: '.06em', fontSize: 10, textTransform: 'uppercase' }}>{usage}</div>
+                  <div style={{ fontSize: 13, color: '#fff', marginTop: 2 }}>
+                    <b>{stats.calls}</b> · <span style={{ color: '#E8C766' }}>{Number(stats.cost_eur || 0).toFixed(2)} €</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {state !== 'ok' && (
+              <div style={{
+                marginTop: 12, padding: '8px 10px', borderRadius: 8, fontSize: 11,
+                background: `${color}18`, color, lineHeight: 1.5,
+              }}>
+                {state === 'danger'
+                  ? "⚠ Budget quasi atteint. Envisage de désactiver ponctuellement l'IA depuis le toggle ci-dessous — les PDFs conservent leurs pages via le fallback statique riche."
+                  : "Attention : la moitié du budget est déjà consommée. Reste vigilant sur les prochains jours."}
+              </div>
+            )}
+
+            {llmUsage.history?.length > 0 && (
+              <div style={{ marginTop: 12, display: 'flex', gap: 10, alignItems: 'flex-end', height: 42 }}>
+                {llmUsage.history.map(h => {
+                  const hPct = budget > 0 ? Math.min(100, (h.total_cost_eur / budget) * 100) : 0;
+                  return (
+                    <div key={h.month} style={{ flex: 1, textAlign: 'center' }} title={`${h.total_calls} appels · ${h.total_cost_eur.toFixed(2)}€`}>
+                      <div style={{ height: 24, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                        <div style={{
+                          width: '60%', height: `${Math.max(4, hPct * 0.24)}px`,
+                          background: 'rgba(232,199,102,0.5)', borderRadius: 3,
+                        }} />
+                      </div>
+                      <div style={{ fontSize: 9, color: 'rgba(232,230,240,0.5)', marginTop: 3, letterSpacing: '.05em' }}>
+                        {h.month.slice(5)} · {h.total_cost_eur.toFixed(1)}€
+                      </div>
+                    </div>
+                  );
+                })}
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ height: 24, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                    <div style={{
+                      width: '60%', height: `${Math.max(4, pct * 0.24)}px`,
+                      background: color, borderRadius: 3,
+                    }} />
+                  </div>
+                  <div style={{ fontSize: 9, color, marginTop: 3, letterSpacing: '.05em', fontWeight: 600 }}>
+                    {llmUsage.current_month.slice(5)} · {spent.toFixed(1)}€
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ═══ AI Enrichment Toggle (transversal PDFs) ═══ */}
+      <div
+        data-testid="admin-lc-ai-enrichment-panel"
+        style={{
+          marginBottom: 16, padding: 12, borderRadius: 10,
+          background: aiEnrichmentEnabled ? 'rgba(74,222,128,0.05)' : 'rgba(248,113,113,0.05)',
+          border: `1px solid ${aiEnrichmentEnabled ? 'rgba(74,222,128,0.25)' : 'rgba(248,113,113,0.35)'}`,
+          display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 260 }}>
+          <div style={{
+            fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase',
+            color: aiEnrichmentEnabled ? '#4ADE80' : '#f87171', fontWeight: 600,
+          }}>
+            {aiEnrichmentEnabled ? '✦ Enrichissement IA actif' : '✦ Enrichissement IA désactivé'}
+          </div>
+          <div style={{
+            fontSize: 12, color: 'rgba(232,230,240,0.75)', marginTop: 4, lineHeight: 1.5,
+          }}>
+            {aiEnrichmentEnabled
+              ? "Les PDFs Karma, Numérologie, Kabbale, Médiumnité et Pack Karmique appellent GPT-5.4 pour rédiger les pages narratives Soléna."
+              : "Fallback statique riche pré-rédigé — pages toujours étoffées, aucun appel LLM (budget préservé)."}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={toggleAiEnrichment}
+          disabled={aiToggleBusy}
+          data-testid="admin-lc-ai-enrichment-toggle"
+          style={{
+            fontSize: 11, padding: '8px 14px', borderRadius: 20,
+            background: aiEnrichmentEnabled ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.15)',
+            color: aiEnrichmentEnabled ? '#f87171' : '#4ADE80',
+            border: `1px solid ${aiEnrichmentEnabled ? 'rgba(248,113,113,0.4)' : 'rgba(74,222,128,0.4)'}`,
+            cursor: aiToggleBusy ? 'wait' : 'pointer',
+            textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 600,
+            transition: 'all 0.2s ease',
+          }}
+        >
+          {aiToggleBusy
+            ? '…'
+            : aiEnrichmentEnabled
+              ? 'Désactiver l\'IA'
+              : 'Réactiver l\'IA'}
+        </button>
       </div>
 
       {/* ═══ Hero A/B Panel ═══ */}

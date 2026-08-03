@@ -17,7 +17,7 @@ from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
 from middleware.auth import get_optional_user
 from services.astrology_io_service import numerology_core_numbers
-from services.numerologie_pdf import generate_numerologie_pdf
+from services.numerologie_pdf import generate_numerologie_pdf_ai
 from services.pdf_delivery import update_tx_pdf_metadata, send_pdf_email
 from emergentintegrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
@@ -222,8 +222,8 @@ async def _generate_and_email_pdf(email: str, pdf_ctx: dict, session_id: str = '
             ],
         }
 
-        # Générer PDF
-        pdf_bytes = generate_numerologie_pdf(
+        # Générer PDF avec enrichissement IA (fallback silencieux si LLM fail)
+        pdf_bytes = await generate_numerologie_pdf_ai(
             first_name=first_name,
             birth_date_iso=birth_date_iso,
             numerology_data=numerology_data,

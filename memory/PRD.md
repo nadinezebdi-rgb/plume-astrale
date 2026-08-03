@@ -1,5 +1,78 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Aug 2026 (iter 68) — Tarot v2 IA + Jauge coût LLM
+
+### Contexte
+Sur base des Next Action Items de l'iter 67, priorité aux deux enrichissements suivants — l'IA reste **active** (l'utilisateur a explicitement rejeté toute désactivation), on veut juste (1) hisser Tarot v2 au niveau premium et (2) rendre le coût GPT visible pour anticiper.
+
+### Livrables (2026-08-03)
+
+**A. Enrichissement IA Croix Celtique**
+- ✅ `REPORT_SPECS['croix_celtique']` — 7 sections (introduction, nœud_present, racines_du_passe, lumiere_a_venir, forces_croisees, message_final, invitation_finale).
+- ✅ Fallback statique riche pour Croix Celtique (5 KB de texte pré-rédigé, voix Soléna, interpolation `{prenom}`).
+- ✅ `services/tarot_pdf_v2.py` — signature étendue avec `ai_sections`, insertion des 7 chapitres après la synthèse. Nouvel async wrapper `build_croix_celtique_pdf_v2_ai`.
+- ✅ POST `/api/tarot/croix-celtique/pdf` → utilise désormais le wrapper AI.
+- Résultat mesuré : PDF Croix Celtique passe de ~15 à **23 pages** en mode fallback (encore plus riche avec GPT réel).
+
+**B. Jauge coût LLM mensuelle**
+- ✅ `app_settings.record_llm_call(usage, tokens_estimate)` — persistence disque, cap 12 mois.
+- ✅ `app_settings.get_llm_usage(months=4)` — total du mois en cours + historique 3 mois précédents + budget.
+- ✅ `app_settings.set_llm_budget(eur)` — configurable via admin.
+- ✅ Hooks : `_call_gpt` dans `report_ai_enrichment.py` (usage `report_ai`, tarif ~0.008€/appel) et `chat_support.py` (usage `chat_support`, tarif ~0.001€/appel).
+- ✅ Endpoints : GET `/api/lecture-complete/admin/llm-usage` + POST `/api/lecture-complete/admin/set-llm-budget` (401/403 protégés).
+- ✅ UI : panneau `data-testid="admin-lc-llm-usage-panel"` avec barre de progression tricolore (verte < 65%, jaune 65-90%, rouge ≥ 90%), breakdown par usage, mini-histogramme des 3 derniers mois, message d'alerte contextuel quand seuil dépassé.
+- État : budget défaut **30€/mois**, tarif estimatif basé sur consommation moyenne GPT-5.4 Emergent LLM.
+
+### Tests curl (2026-08-03)
+| Test | Résultat |
+|---|---|
+| GET /admin/llm-usage sans token | 401 ✅ |
+| GET /admin/llm-usage non-admin | 403 ✅ |
+| GET /admin/llm-usage admin (état initial) | budget 30€, 0 appel ✅ |
+| Trigger POST /api/chat/support | +1 appel `chat_support` visible ✅ |
+| POST /admin/set-llm-budget {20} | budget maj à 20€ ✅ |
+| POST /api/tarot/croix-celtique/pdf toggle OFF | 23 pages, 5.5MB, 7 chapitres Soléna visibles + `Sophie` ✅ |
+
+---
+
+## 🆕 Session Aug 2026 — Toggle admin IA + fallback statique riche (iter 67)
+
+### Contexte
+Suite à l'enrichissement IA transversal des PDFs (iter 66), l'utilisateur voulait un **kill-switch admin** pour désactiver l'IA en cas de dépassement du budget LLM sans dégrader l'expérience premium.
+
+### Décision produit
+- Toggle **exposé uniquement dans les paramètres admin** (pas de bannière rouge sur le dashboard).
+- Quand OFF, les PDFs conservent des **pages étoffées** via un fallback **statique riche pré-rédigé** à la voix de Soléna (jamais de pages vides ou courtes).
+
+### Livrables (2026-08-03)
+- ✅ `services/report_ai_fallback.py` — 6 report_types (karma_destin, numerology, mediumnite, kabbale, pack_karmique, tarot_natal), 40+ paragraphes rédigés main, interpolation `{prenom}`, 2-4 paragraphes par section.
+- ✅ `services/report_ai_enrichment.enrich_report()` — check du toggle `ai_enrichment_disabled`, retourne le fallback statique quand OFF (aucun appel LLM). Fallback aussi utilisé en cas d'échec LLM (timeout/quota).
+- ✅ GET `/api/lecture-complete/admin/settings` — ajoute `ai_enrichment_enabled: bool` (défaut true).
+- ✅ POST `/api/lecture-complete/admin/set-ai-enrichment` — body `{enabled: bool}`, réservé admin (401/403), écrit `log_alert(kind='ai_enrichment_toggle')`.
+- ✅ Frontend `AdminLectureComplete.js` — panneau `admin-lc-ai-enrichment-panel` avec bouton toggle `admin-lc-ai-enrichment-toggle`, confirmation avant désactivation, sync depuis /admin/settings.
+- ✅ POST `/api/tarologie/pdf` — utilise désormais `generate_mediumnite_pdf_ai` (async). PDF de 12 pages garantis en ON et en OFF.
+- ✅ `pdf_luxury_wrap.generate_kabbale_pdf_luxury` et `generate_pack_karmique_pdf_luxury` — acceptent `ai_sections` en param optionnel et le propagent au legacy.
+- ✅ `kabbale_service.handle_kabbale_webhook` et `pack_karmique_service.handle_pack_karmique_webhook` — appellent maintenant `enrich_report()` avant la génération PDF.
+- ✅ Bugfix : import `Dict` manquant dans `mediumnite_pdf.py` (empêchait le chargement du module).
+
+### Tests curl (2026-08-03)
+| Test | Résultat |
+|---|---|
+| GET settings sans token | 401 ✅ |
+| GET settings user non-admin | 403 ✅ |
+| POST toggle sans token | 401 ✅ |
+| POST toggle non-admin | 403 ✅ |
+| Roundtrip ON→OFF→ON×2 avec persistence | ✅ |
+| Régression `set-forced-variant` | ✅ |
+| Tarologie PDF toggle OFF | 12 pages, 42KB, fallback riche ✅ |
+| Tarologie PDF toggle ON (GPT-5.4 réel) | 12 pages, 48KB, 50s ✅ |
+| Kabbale `_ai` toggle OFF (via python) | 13 pages, 3.2MB ✅ |
+| Pack Karmique `_ai` toggle OFF | 14 pages, 3.2MB ✅ |
+
+État actuel : `ai_enrichment_disabled=False` (toggle ON par défaut).
+
+---
+
 ## Projet
 **Plume Astrale** — Plateforme de guidance astrologique en francais avec IA.
 Site prod : plume-astrale.fr

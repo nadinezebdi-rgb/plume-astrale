@@ -4,6 +4,7 @@ PDF complet avec tirage 7 cartes + lecture médiumnique
 """
 import io
 import random
+from typing import Dict
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib.colors import HexColor
@@ -301,3 +302,76 @@ class MediumnitePDFGenerator:
 def generate_mediumnite_pdf(tirage_data: dict) -> bytes:
     gen = MediumnitePDFGenerator()
     return gen.generate(tirage_data)
+
+
+def _build_ai_enrichment_pdf(prenom: str, birth_date_iso: str,
+                              ai_sections: Dict[str, str],
+                              report_type: str = 'mediumnite') -> bytes:
+    """Construit un PDF SimpleDocTemplate contenant uniquement les sections IA.
+    Utilisé pour être concaténé à un PDF canvas existant via pypdf.
+    """
+    from io import BytesIO as _BIO
+    from reportlab.platypus import (SimpleDocTemplate as _SDT, Paragraph as _Par,
+                                     Spacer as _Sp, PageBreak as _PB)
+    from reportlab.lib.pagesizes import A4 as _A4
+    from reportlab.lib.styles import getSampleStyleSheet as _gss, ParagraphStyle as _PS
+    from reportlab.lib.enums import TA_JUSTIFY as _TAJ, TA_CENTER as _TAC
+    from reportlab.lib.units import cm as _cm
+
+    buf = _BIO()
+    doc = _SDT(buf, pagesize=_A4,
+               leftMargin=2.2 * _cm, rightMargin=2.2 * _cm,
+               topMargin=2 * _cm, bottomMargin=2 * _cm,
+               title='Enrichissement personnel — Plume Astrale',
+               author='Solena')
+    base = _gss()
+    styles = {
+        'h2': _PS('h2', parent=base['Heading2'], fontName='Helvetica-Bold',
+                  fontSize=15, textColor='#c9a24b', spaceAfter=10, alignment=_TAC),
+        'body': _PS('body', parent=base['BodyText'], fontName='Helvetica',
+                    fontSize=11, textColor='#3a3450', leading=17, alignment=_TAJ,
+                    spaceAfter=8),
+    }
+    from services.kabbale_pdf import _append_ai_sections as _append
+    story: list = []
+    story.append(_Par(f'✦ Enrichissement personnel de {prenom} ✦', styles['h2']))
+    story.append(_Sp(0, 0.5 * _cm))
+    _append(story, styles, ai_sections, report_type=report_type)
+    doc.build(story)
+    buf.seek(0)
+    return buf.getvalue()
+
+
+async def generate_mediumnite_pdf_ai(tirage_data: dict, prenom: str,
+                                      birth_date_iso: str) -> bytes:
+    """Génère le tirage Médiumnité + concatène des pages narratives IA en tête."""
+    base_pdf = generate_mediumnite_pdf(tirage_data)
+    try:
+        from services.report_ai_enrichment import enrich_report
+        # enrich_report gère lui-même le toggle admin :
+        # - IA ON  → appel LLM
+        # - IA OFF → fallback statique riche (pages étoffées pré-rédigées)
+        ai_sections = await enrich_report(
+            report_type='mediumnite',
+            prenom=prenom or 'Voyageur',
+            birth_date_iso=birth_date_iso or '',
+            context={'tirage': tirage_data},
+        )
+    except Exception:
+        return base_pdf
+    if not ai_sections:
+        return base_pdf
+    try:
+        enrichment_pdf = _build_ai_enrichment_pdf(prenom, birth_date_iso, ai_sections)
+        from io import BytesIO as _BIO2
+        from pypdf import PdfWriter, PdfReader
+        writer = PdfWriter()
+        for src in (base_pdf, enrichment_pdf):
+            reader = PdfReader(_BIO2(src))
+            for p in reader.pages:
+                writer.add_page(p)
+        out = _BIO2()
+        writer.write(out)
+        return out.getvalue()
+    except Exception:
+        return base_pdf

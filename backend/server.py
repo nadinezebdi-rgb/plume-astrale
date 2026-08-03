@@ -1437,7 +1437,11 @@ async def tarologie_pdf(request: Request):
     prenom = (body.get('prenom') or 'Voyageur').strip() or 'Voyageur'
     date_naissance = body.get('date_naissance') or '1990-01-01'
     tirage = tirage_mediumnite_complet(prenom, date_naissance)
-    pdf_bytes = generate_mediumnite_pdf(tirage)
+    # SEC-020 : version enrichie IA (concatène pages narratives Soléna).
+    # Le toggle admin `ai_enrichment_disabled` est géré par enrich_report :
+    # OFF → fallback statique riche, jamais de pages vides.
+    from services.mediumnite_pdf import generate_mediumnite_pdf_ai
+    pdf_bytes = await generate_mediumnite_pdf_ai(tirage, prenom, date_naissance)
     return Response(content=pdf_bytes, media_type='application/pdf', headers={
         'Content-Disposition': f'attachment; filename="tarologie_croix_{prenom}.pdf"'
     })
@@ -2096,17 +2100,20 @@ async def tarot_croix_celtique_pdf_endpoint(
     Le client envoie le résultat brut (10 cartes + synthèse) — c'est OK
     car il vient de payer ses 9 crédits pour l'obtenir, on ne facture pas le PDF.
     """
-    from services.tarot_pdf_v2 import build_croix_celtique_pdf_v2 as build_croix_celtique_pdf
+    from services.tarot_pdf_v2 import build_croix_celtique_pdf_v2_ai
     body = await request.json()
     tirage = body.get('tirage')
     if not tirage or not isinstance(tirage, list) or len(tirage) != 10:
         raise HTTPException(status_code=400, detail='Tirage invalide (10 cartes attendues).')
 
-    pdf_bytes = build_croix_celtique_pdf(
+    # SEC-020 : enrichissement IA transversal — 7 chapitres narratifs Soléna
+    # (toggle admin géré dans enrich_report).
+    pdf_bytes = await build_croix_celtique_pdf_v2_ai(
         question=body.get('question', ''),
         prenom=body.get('prenom') or user.get('email', 'Vous').split('@')[0],
         tirage=tirage,
         synthese=body.get('synthese', ''),
+        birth_date_iso=body.get('date_naissance') or body.get('birth_date') or '',
     )
 
     from fastapi.responses import Response as FastAPIResponse

@@ -74,9 +74,16 @@ class KarmaDestinPDFGenerator:
         first_name: str,
         birth_date_iso: str,
         karmic_data: Dict[str, Any],
+        ai_sections: Optional[Dict[str, str]] = None,
     ) -> bytes:
-        """Génère le PDF complet (15 pages)."""
+        """Génère le PDF complet (15 pages).
+
+        ai_sections : dict de contenu narratif enrichi par report_ai_enrichment.
+        Si fourni, chaque section remplace le texte générique par la version IA.
+        Si absent, fallback texte générique (comportement historique).
+        """
         buffer = BytesIO()
+        self._ai = ai_sections or {}
         doc = SimpleDocTemplate(
             buffer,
             pagesize=A4,
@@ -142,7 +149,13 @@ class KarmaDestinPDFGenerator:
         ]
     
     def _page_intro(self) -> List:
-        """Introduction au karma."""
+        """Introduction au karma — préfère IA si dispo."""
+        if getattr(self, '_ai', {}).get('introduction'):
+            return [
+                Paragraph('Comprendre Ton Karma', self.heading_style),
+                Spacer(0, 0.3 * cm),
+                Paragraph(self._ai['introduction'], self.body_style),
+            ]
         return [
             Paragraph('Comprendre Ton Karma', self.heading_style),
             Spacer(0, 0.3 * cm),
@@ -169,7 +182,7 @@ class KarmaDestinPDFGenerator:
         
         if isinstance(north_node, dict):
             nn_sign = north_node.get('sign', 'Inconnu')
-            nn_desc = north_node.get('description', 'Ton potentiel de croissance.')
+            nn_desc = getattr(self, '_ai', {}).get('noeud_nord') or north_node.get('description', 'Ton potentiel de croissance.')
             story.append(Paragraph(f'<b>Nœud Nord en {nn_sign}</b>', self.heading_style))
             story.append(Paragraph(f'{nn_desc}', self.body_style))
         
@@ -177,7 +190,7 @@ class KarmaDestinPDFGenerator:
         
         if isinstance(south_node, dict):
             sn_sign = south_node.get('sign', 'Inconnu')
-            sn_desc = south_node.get('description', 'Ce que tu as maîtrisé dans des vies antérieures.')
+            sn_desc = getattr(self, '_ai', {}).get('noeud_sud') or south_node.get('description', 'Ce que tu as maîtrisé dans des vies antérieures.')
             story.append(Paragraph(f'<b>Nœud Sud en {sn_sign}</b>', self.heading_style))
             story.append(Paragraph(f'{sn_desc}', self.body_style))
         
@@ -199,7 +212,7 @@ class KarmaDestinPDFGenerator:
         saturn = data.get('saturn', {})
         if isinstance(saturn, dict):
             saturn_sign = saturn.get('sign', 'Inconnu')
-            saturn_desc = saturn.get('description', 
+            saturn_desc = getattr(self, '_ai', {}).get('saturne') or saturn.get('description', 
                 'Saturne te teste pour te renforcer. Accueille ses leçons.')
             
             story.append(Paragraph(f'<b>Saturne en {saturn_sign}</b>', self.heading_style))
@@ -222,7 +235,7 @@ class KarmaDestinPDFGenerator:
         chiron = data.get('chiron', {})
         if isinstance(chiron, dict):
             chiron_sign = chiron.get('sign', 'Inconnu')
-            chiron_desc = chiron.get('description',
+            chiron_desc = getattr(self, '_ai', {}).get('chiron') or chiron.get('description',
                 'Ton blessure est ta porte de guérison.')
             
             story.append(Paragraph(f'<b>Chiron en {chiron_sign}</b>', self.heading_style))
@@ -246,7 +259,7 @@ class KarmaDestinPDFGenerator:
         pluto = data.get('pluto', {})
         if isinstance(pluto, dict):
             pluto_sign = pluto.get('sign', 'Inconnu')
-            pluto_desc = pluto.get('description',
+            pluto_desc = getattr(self, '_ai', {}).get('pluton') or pluto.get('description',
                 'Pluton t\'invite à muter, à renaître.')
             
             story.append(Paragraph(f'<b>Pluton en {pluto_sign}</b>', self.heading_style))
@@ -259,10 +272,16 @@ class KarmaDestinPDFGenerator:
         story = []
         story.append(Paragraph('⚜ Ton Héritage Karmique Générationnel ⚜', self.heading_style))
         
-        gen_karma = data.get('generational_karma', 
+        gen_karma = getattr(self, '_ai', {}).get('karma_generationnel') or data.get('generational_karma', 
             'Tes ancêtres vivent à travers toi. Tu portes leur sagesse et leurs apprentissages.')
         
         story.append(Paragraph(gen_karma, self.body_style))
+        
+        # Nouvelle section IA : Dates-clés karmiques
+        if getattr(self, '_ai', {}).get('dates_cles'):
+            story.append(Spacer(0, 0.6 * cm))
+            story.append(Paragraph('⚜ Tes Dates-Clés Karmiques ⚜', self.heading_style))
+            story.append(Paragraph(self._ai['dates_cles'], self.body_style))
         story.append(Spacer(0, 0.5 * cm))
         story.append(Paragraph(
             'Par tes choix conscients, tu guéris les patterns familiaux. '
@@ -306,10 +325,51 @@ def generate_karma_destin_pdf(
     first_name: str,
     birth_date_iso: str,
     karmic_data: Dict[str, Any],
+    ai_sections: Optional[Dict[str, str]] = None,
 ) -> bytes:
-    """Wrapper pour générer le PDF karma/destin."""
+    """Wrapper synchrone (compat).
+
+    Note : préférer generate_karma_destin_pdf_ai qui charge le narratif IA
+    automatiquement pour un rendu premium. Ce wrapper reste utilisable pour
+    les tests et le fallback sans réseau.
+    """
     return KarmaDestinPDFGenerator().generate(
         first_name=first_name,
         birth_date_iso=birth_date_iso,
         karmic_data=karmic_data,
+        ai_sections=ai_sections,
+    )
+
+
+async def generate_karma_destin_pdf_ai(
+    first_name: str,
+    birth_date_iso: str,
+    karmic_data: Dict[str, Any],
+) -> bytes:
+    """Génère le PDF Karma & Destin AVEC enrichissement IA transverse.
+
+    Appelle report_ai_enrichment pour obtenir des narratifs 3-4 paragraphes
+    par section (introduction, nœud nord, nœud sud, saturne, chiron, pluton,
+    karma générationnel, dates-clés, invitation finale).
+
+    Si l'IA échoue (timeout, key manquante), fallback silencieux sur le texte
+    générique — le PDF sort toujours.
+    """
+    try:
+        from services.report_ai_enrichment import enrich_report
+        ai_sections = await enrich_report(
+            report_type='karma_destin',
+            prenom=first_name,
+            birth_date_iso=birth_date_iso,
+            context=karmic_data,
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f'[karma_destin] AI enrich fail: {e}')
+        ai_sections = {}
+    return KarmaDestinPDFGenerator().generate(
+        first_name=first_name,
+        birth_date_iso=birth_date_iso,
+        karmic_data=karmic_data,
+        ai_sections=ai_sections,
     )

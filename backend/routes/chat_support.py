@@ -131,6 +131,11 @@ async def chat_support(payload: ChatRequest):
     try:
         reply_raw = await chat.send_message(UserMessage(text=payload.message[:1000]))
         reply = (reply_raw or '').strip()
+        try:
+            from services.app_settings import record_llm_call
+            record_llm_call('chat_support', tokens_estimate=len(reply) // 3)
+        except Exception:
+            pass
     except Exception as e:
         logger.error(f'[chat] LLM call fail: {e}')
         return ChatResponse(

@@ -722,6 +722,10 @@ async def lecture_complete_admin_settings_get(
     return {
         'forced_j30_variant': get_setting('forced_j30_variant'),
         'alerts_history': get_alerts_history(),
+        # SEC-020 : toggle admin pour l'enrichissement IA transversal des PDFs.
+        # Quand désactivé, les PDFs conservent leurs pages étoffées via un
+        # fallback statique riche (pré-rédigé à la voix de Soléna).
+        'ai_enrichment_enabled': not bool(get_setting('ai_enrichment_disabled')),
     }
 
 
@@ -769,6 +773,77 @@ async def lecture_complete_admin_set_forced_variant(
     except Exception:
         pass
     return {'forced_j30_variant': variant}
+
+
+@router.post('/admin/set-ai-enrichment')
+async def lecture_complete_admin_set_ai_enrichment(
+    payload: Dict[str, Any],
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Active/désactive l'enrichissement IA transversal des PDFs.
+
+    Body : { "enabled": true|false }
+    - enabled=true  → GPT-5.4 est appelé pour rédiger les pages narratives.
+    - enabled=false → un fallback statique riche pré-rédigé est utilisé
+      (pages toujours étoffées, mais sans coût LLM).
+    """
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+    enabled = bool((payload or {}).get('enabled', True))
+    from services.app_settings import set_setting
+    # On stocke la valeur "disabled" pour rester rétrocompatible avec les
+    # wrappers _ai qui lisaient déjà cette clé.
+    set_setting('ai_enrichment_disabled', not enabled)
+    try:
+        from services.app_settings import log_alert
+        log_alert(
+            kind='ai_enrichment_toggle',
+            title=f'Enrichissement IA {"activé" if enabled else "désactivé"}',
+            details=f'Par {current_user.get("email","admin")}',
+            channels=[],
+        )
+    except Exception:
+        pass
+    return {'ai_enrichment_enabled': enabled}
+
+
+@router.get('/admin/llm-usage')
+async def lecture_complete_admin_llm_usage(
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Jauge de coût LLM : appels + coût estimé du mois en cours et historique
+    des 3 derniers mois. Sert de radar pour anticiper les dépassements de budget.
+    """
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+    from services.app_settings import get_llm_usage
+    return get_llm_usage(months=4)
+
+
+@router.post('/admin/set-llm-budget')
+async def lecture_complete_admin_set_llm_budget(
+    payload: Dict[str, Any],
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Définit le budget LLM mensuel (€) — sert de repère pour la jauge admin."""
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+    budget = float((payload or {}).get('budget_eur', 30.0))
+    from services.app_settings import set_llm_budget
+    set_llm_budget(budget)
+    return {'budget_eur': budget}
 
 
 @router.post('/admin/redispatch/{session_id}')

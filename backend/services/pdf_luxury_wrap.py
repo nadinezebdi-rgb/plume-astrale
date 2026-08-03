@@ -177,10 +177,25 @@ def apply_luxury_wrap(pdf_bytes: bytes, prenom: str, subtitle: str, product: str
 
 # ─── Adaptateurs prêts à l'emploi ─────────────────────────────────
 
-def generate_kabbale_pdf_luxury(first_name: str, birth_date_iso: str, tree_of_life: dict) -> bytes:
-    """Kabbale luxe = ancien PDF + cover luxe + fin Soléna."""
+def generate_kabbale_pdf_luxury(
+    first_name: str,
+    birth_date_iso: str,
+    tree_of_life: dict,
+    ai_sections: dict | None = None,
+) -> bytes:
+    """Kabbale luxe = ancien PDF + cover luxe + fin Soléna.
+
+    Si `ai_sections` est fourni (dict enrichi via enrich_report), il est
+    passé au générateur legacy qui insère les paragraphes narratifs avant
+    les rituels finaux.
+    """
     from services.kabbale_pdf import generate_kabbale_pdf as _legacy
-    inner = _legacy(first_name=first_name, birth_date_iso=birth_date_iso, tree_of_life=tree_of_life)
+    inner = _legacy(
+        first_name=first_name,
+        birth_date_iso=birth_date_iso,
+        tree_of_life=tree_of_life,
+        ai_sections=ai_sections,
+    )
     return apply_luxury_wrap(
         inner,
         prenom=first_name,
@@ -211,8 +226,14 @@ def generate_pack_karmique_pdf_luxury(
     karmic: dict,
     tree_of_life: dict,
     synthesis: dict,
+    ai_sections: dict | None = None,
 ) -> bytes:
-    """Pack Karmique luxe (89€) = ancien PDF ~40 pages + cover luxe + fin Soléna."""
+    """Pack Karmique luxe (89€) = ancien PDF ~40 pages + cover luxe + fin Soléna.
+
+    Si `ai_sections` est fourni (dict enrichi via enrich_report), il est
+    passé au générateur legacy qui insère les paragraphes narratifs avant
+    la clôture Soléna.
+    """
     from services.pack_karmique_pdf import generate_pack_karmique_pdf as _legacy
     inner = _legacy(
         first_name=first_name,
@@ -220,6 +241,7 @@ def generate_pack_karmique_pdf_luxury(
         karmic=karmic,
         tree_of_life=tree_of_life,
         synthesis=synthesis,
+        ai_sections=ai_sections,
     )
     return apply_luxury_wrap(
         inner,

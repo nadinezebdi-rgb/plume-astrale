@@ -419,10 +419,11 @@ def _rituels_signature(story, styles, first_name: str, dominant_seph: str):
     story.append(_p("Guide chez Plume Astrale · plume-astrale.fr", styles['small']))
 
 
-def generate_kabbale_pdf(
+def _generate_kabbale_impl(
     first_name: str,
     birth_date_iso: str,
     tree_of_life: Dict[str, Any],
+    ai_sections: Optional[Dict[str, str]] = None,
 ) -> bytes:
     """Genere le PDF Kabbale complet a partir des donnees /kabbalah/tree-of-life-chart.
 
@@ -432,6 +433,7 @@ def generate_kabbale_pdf(
         tree_of_life: Dictionnaire retourne par astrology-api.io v3 /kabbalah/tree-of-life-chart
                       Contient : sephiroth, daat, paths, pillar_balance, dominant_sephirah,
                                  spiritual_focus, synthesis, system, tradition
+        ai_sections: sections narratives enrichies IA (optionnel)
     """
     data = tree_of_life.get('data', tree_of_life) if isinstance(tree_of_life, dict) else {}
     sephiroth = data.get('sephiroth') or {}
@@ -495,8 +497,95 @@ def generate_kabbale_pdf(
     _paths_page(story, styles, paths)
     _daat_page(story, styles, daat)
     _synthesis(story, styles, dominant_display, spiritual_focus, synthesis)
+
+    # Enrichissement IA : insere des sections narratives premium avant les rituels
+    if ai_sections:
+        _append_ai_sections(story, styles, ai_sections, report_type='kabbale')
+
     _rituels_signature(story, styles, first_name or "Voyageur", dominant_display)
 
     doc.build(story, onFirstPage=_bg_canvas, onLaterPages=_bg_canvas)
     buffer.seek(0)
     return buffer.getvalue()
+
+
+def _append_ai_sections(story, styles, ai_sections: Dict[str, str], report_type: str) -> None:
+    """Ajoute les sections narratives IA au story SimpleDocTemplate.
+
+    Reutilisable pour kabbale, pack_karmique et autres PDFs SimpleDocTemplate.
+    """
+    from reportlab.platypus import PageBreak, Paragraph, Spacer
+    from services.report_ai_enrichment import get_expected_sections
+    # Titres FR lisibles par cle
+    LABELS = {
+        # kabbale
+        'introduction': "Introduction personnelle",
+        'sephiroth_principales': "Tes 3 séphiroth dominantes",
+        'chemin_kabbalistique': "Ton chemin kabbalistique",
+        'gematria_nom': "La Gematria de ton nom",
+        'lettres_hebraiques': "Tes lettres hébraïques clés",
+        'invitation_finale': "Ton invitation finale",
+        # pack_karmique
+        'synthese': "Synthèse karmique",
+        'axe_karmique_principal': "Ton axe karmique principal",
+        'liens_karmiques': "Tes liens karmiques",
+        # mediumnite
+        'clairs': "Tes quatre clairs",
+        'guides': "Tes guides et protecteurs",
+        'blocages': "Blocages énergétiques",
+        'pratiques': "Pratiques d'éveil",
+        # karma_destin (au cas ou)
+        'noeud_nord': "Ton Nœud Nord — chemin",
+        'noeud_sud': "Ton Nœud Sud — héritage",
+        'saturne': "Saturne — leçons karmiques",
+        'chiron': "Chiron — blessure sacrée",
+        'pluton': "Pluton — transformation",
+        'karma_generationnel': "Karma générationnel",
+        'dates_cles': "Dates-clés karmiques",
+    }
+    expected = get_expected_sections(report_type)
+    if not expected:
+        expected = list(ai_sections.keys())
+    heading = styles.get('h2') or styles.get('heading') or styles.get('Heading')
+    body = styles.get('body') or styles.get('BodyText') or styles.get('Body')
+    for key in expected:
+        content = ai_sections.get(key)
+        if not content:
+            continue
+        story.append(PageBreak())
+        story.append(Paragraph(f'✦ {LABELS.get(key, key.replace("_", " ").title())} ✦', heading))
+        story.append(Spacer(0, 0.3 * 28.35))  # 0.3 cm
+        story.append(Paragraph(content, body))
+
+
+def generate_kabbale_pdf(
+    first_name: str,
+    birth_date_iso: str,
+    tree_of_life: Dict[str, Any],
+    ai_sections: Optional[Dict[str, str]] = None,
+) -> bytes:
+    return _generate_kabbale_impl(first_name, birth_date_iso, tree_of_life, ai_sections)
+
+
+async def generate_kabbale_pdf_ai(
+    first_name: str,
+    birth_date_iso: str,
+    tree_of_life: Dict[str, Any],
+) -> bytes:
+    """Version enrichie IA (voix Soléna, 6 sections premium).
+
+    Le toggle admin `ai_enrichment_disabled` est géré au niveau d'enrich_report :
+    - IA ON  → contenu généré par GPT-5.4
+    - IA OFF → fallback statique riche pré-rédigé (pages étoffées)
+    """
+    try:
+        from services.report_ai_enrichment import enrich_report
+        ai_sections = await enrich_report(
+            report_type='kabbale',
+            prenom=first_name,
+            birth_date_iso=birth_date_iso,
+            context={'tree_of_life': tree_of_life},
+        )
+    except Exception:
+        ai_sections = {}
+    return _generate_kabbale_impl(first_name, birth_date_iso, tree_of_life, ai_sections)

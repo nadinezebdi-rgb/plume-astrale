@@ -832,16 +832,15 @@ export default function Index() {
               </div>
               <div>
                 <div className="pa-eyebrow">L'histoire de Soléna</div>
-                <h2 className="pa-h2">Je suis <span className="pa-gold">Soléna</span>.</h2>
+                <h2 className="pa-h2">Bonjour, je suis <span className="pa-gold">Soléna</span>.</h2>
                 <p className="pa-lead">
-                  Depuis quinze ans, j'accompagne des femmes qui sentent qu'il y a
-                  une logique derrière leurs histoires. Une sur deux vient me voir non
-                  pour connaître l'avenir — mais pour <strong>comprendre le présent</strong>.
+                  Je suis la voix et le visage de Plume Astrale. Je suis là pour vous
+                  guider dans la découverte de votre thème, de vos cycles et de vos
+                  tirages afin de vous aider à mieux <strong>comprendre ce que vous traversez</strong>.
                 </p>
                 <p className="pa-lead">
-                  Ma méthode ne relève pas de la magie. C'est une lecture : ton thème
-                  natal calculé à la minute près, la symbolique du tarot, la trame
-                  karmique. Je te montre les cycles, les répétitions, les tournants.
+                  Mon rôle n'est pas de décider à votre place, mais de vous accompagner
+                  dans vos réflexions grâce à l'astrologie, au tarot et à la numérologie.
                 </p>
                 <div className="pa-signature">
                   <span className="pa-testi-avatar" style={{ width: 40, height: 40, fontSize: 16 }}>S</span>
