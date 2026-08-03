@@ -91,6 +91,7 @@ export default function AdminLectureComplete({ token }) {
   // Chat escalations reply
   const [chatEscalations, setChatEscalations] = useState(null);
   const [chatEscalationsBusy, setChatEscalationsBusy] = useState(false);
+  const [chatAnalyticsSummary, setChatAnalyticsSummary] = useState(null);
   const [replyDrafts, setReplyDrafts] = useState({});
   const [showResolved, setShowResolved] = useState(false);
 
@@ -427,8 +428,18 @@ export default function AdminLectureComplete({ token }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setChatEscalations(r.data?.escalations || []);
+      setChatAnalyticsSummary({
+        total_exchanges: r.data?.total_exchanges || 0,
+        unique_sessions: r.data?.unique_sessions || 0,
+        escalate_rate_pct: r.data?.escalate_rate_pct || 0,
+        helpful_rate_pct: r.data?.helpful_rate_pct,
+        positive_feedback: r.data?.positive_feedback || 0,
+        negative_feedback: r.data?.negative_feedback || 0,
+        faq_gaps: r.data?.faq_gaps || [],
+      });
     } catch (_e) {
       setChatEscalations([]);
+      setChatAnalyticsSummary(null);
     } finally {
       setChatEscalationsBusy(false);
     }
@@ -480,6 +491,73 @@ export default function AdminLectureComplete({ token }) {
 
   return (
     <div data-testid="admin-lecture-complete-panel">
+      {/* ═══ Chat Analytics Card (top summary) ═══ */}
+      {chatAnalyticsSummary && chatAnalyticsSummary.total_exchanges > 0 && (
+        <div
+          data-testid="admin-lc-chat-analytics-card"
+          style={{
+            marginBottom: 16, padding: 16, borderRadius: 12,
+            background: 'linear-gradient(135deg, rgba(167,139,250,0.06), rgba(201,162,75,0.04))',
+            border: '1px solid rgba(167,139,250,0.25)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <span style={{ fontSize: 20 }}>✦</span>
+            <span style={{ color: '#A78BFA', fontSize: 11, letterSpacing: '.14em',
+              textTransform: 'uppercase', fontWeight: 600 }}>
+              Chat IA — Insights
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 12 }}>
+            <div data-testid="admin-lc-chat-analytics-total" style={{ padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}>
+              <div style={{ fontSize: 9, color: '#8a86a0', textTransform: 'uppercase', letterSpacing: '.08em' }}>Échanges</div>
+              <div style={{ fontSize: 20, color: '#e8e6f0', fontWeight: 600 }}>{chatAnalyticsSummary.total_exchanges}</div>
+            </div>
+            <div data-testid="admin-lc-chat-analytics-sessions" style={{ padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}>
+              <div style={{ fontSize: 9, color: '#8a86a0', textTransform: 'uppercase', letterSpacing: '.08em' }}>Sessions</div>
+              <div style={{ fontSize: 20, color: '#e8e6f0', fontWeight: 600 }}>{chatAnalyticsSummary.unique_sessions}</div>
+            </div>
+            <div data-testid="admin-lc-chat-analytics-escalate" style={{ padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}>
+              <div style={{ fontSize: 9, color: '#8a86a0', textTransform: 'uppercase', letterSpacing: '.08em' }}>Escalate rate</div>
+              <div style={{ fontSize: 20, color: chatAnalyticsSummary.escalate_rate_pct > 15 ? '#f87171' : '#e8e6f0', fontWeight: 600 }}>
+                {chatAnalyticsSummary.escalate_rate_pct}%
+              </div>
+            </div>
+            <div data-testid="admin-lc-chat-analytics-helpful" style={{ padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}>
+              <div style={{ fontSize: 9, color: '#8a86a0', textTransform: 'uppercase', letterSpacing: '.08em' }}>Utile</div>
+              <div style={{ fontSize: 20, color: '#4ADE80', fontWeight: 600 }}>
+                {chatAnalyticsSummary.helpful_rate_pct != null ? `${chatAnalyticsSummary.helpful_rate_pct}%` : '—'}
+              </div>
+              <div style={{ fontSize: 9, color: '#8a86a0', marginTop: 2 }}>
+                👍 {chatAnalyticsSummary.positive_feedback} · 👎 {chatAnalyticsSummary.negative_feedback}
+              </div>
+            </div>
+          </div>
+          {chatAnalyticsSummary.faq_gaps.length > 0 && (
+            <div>
+              <div style={{ fontSize: 10, color: '#d9b26a', letterSpacing: '.08em',
+                textTransform: 'uppercase', marginBottom: 6 }}>
+                🎯 Top 3 questions à améliorer
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {chatAnalyticsSummary.faq_gaps.slice(0, 3).map((g, i) => (
+                  <div
+                    key={i}
+                    data-testid={`admin-lc-chat-analytics-gap-${i}`}
+                    style={{
+                      fontSize: 11, color: '#e8e6f0', fontStyle: 'italic',
+                      padding: '6px 10px', background: 'rgba(11,16,32,0.35)', borderRadius: 6,
+                      borderLeft: '2px solid rgba(248,113,113,0.4)',
+                    }}
+                  >
+                    « {g.user_message} »
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <h2 style={{ fontSize: 22, color: '#d9b26a', margin: 0 }}>
           Lecture Complète — Commandes 97€

@@ -19,6 +19,18 @@ const styles = `
     transition:transform .2s ease;animation:pac-float 4s ease-in-out infinite;}
   .pac-bubble:hover,.pac-bubble:focus{transform:scale(1.08);animation-play-state:paused;}
   @keyframes pac-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .pac-bubble-dot{position:absolute;top:-4px;right:-4px;
+    min-width:22px;height:22px;padding:0 6px;border-radius:11px;
+    background:#ef4444;color:#fff;font-size:11px;font-weight:700;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    border:2px solid #0b0f24;
+    box-shadow:0 2px 8px rgba(239,68,68,.5);
+    animation:pac-dot-pulse 1.6s ease-in-out infinite;}
+  @keyframes pac-dot-pulse{
+    0%,100%{box-shadow:0 2px 8px rgba(239,68,68,.5),0 0 0 0 rgba(239,68,68,.5);}
+    50%{box-shadow:0 2px 8px rgba(239,68,68,.5),0 0 0 8px rgba(239,68,68,0);}
+  }
 
   .pac-panel{position:fixed;bottom:20px;right:20px;z-index:100;
     width:min(360px, calc(100vw - 40px));height:min(520px, calc(100vh - 40px));
@@ -99,13 +111,21 @@ const INITIAL_MESSAGE = {
   escalate: false,
 };
 
+const SESSION_KEY = 'plume_chat_session_id';
+const LAST_SEEN_KEY = 'plume_chat_last_seen_at';
+
 export default function SupportChat() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
-  const [sessionId, setSessionId] = useState(null);
-  const [lastAdminReplyAt, setLastAdminReplyAt] = useState(null);
+  const [sessionId, setSessionId] = useState(() => {
+    try { return localStorage.getItem(SESSION_KEY); } catch (_e) { return null; }
+  });
+  const [lastAdminReplyAt, setLastAdminReplyAt] = useState(() => {
+    try { return localStorage.getItem(LAST_SEEN_KEY); } catch (_e) { return null; }
+  });
+  const [unreadCount, setUnreadCount] = useState(0);
   const bodyRef = useRef(null);
 
   useEffect(() => {
@@ -114,9 +134,17 @@ export default function SupportChat() {
     }
   }, [messages, busy]);
 
-  // Poll pour recuperer les reponses humaines de Soléna
+  // Persiste sessionId au localStorage dès qu'on en obtient un
   useEffect(() => {
-    if (!sessionId || !open) return;
+    if (sessionId) {
+      try { localStorage.setItem(SESSION_KEY, sessionId); } catch (_e) { /* ok */ }
+    }
+  }, [sessionId]);
+
+  // Poll pour recuperer les reponses humaines de Soléna
+  // Tourne même quand le panel est fermé, tant qu'on a un sessionId
+  useEffect(() => {
+    if (!sessionId) return;
     let cancel = false;
     const tick = async () => {
       try {
@@ -128,21 +156,57 @@ export default function SupportChat() {
         if (cancel) return;
         const fresh = d?.messages || [];
         if (fresh.length > 0) {
-          setMessages((cur) => [...cur, ...fresh.map((m) => ({
-            role: 'human',
-            content: m.message,
-            author: m.author,
-            at: m.at,
-          }))]);
-          setLastAdminReplyAt(fresh[fresh.length - 1].at);
+          if (open) {
+            // Panel ouvert : injecte les messages ET marque comme vu
+            setMessages((cur) => [...cur, ...fresh.map((m) => ({
+              role: 'human',
+              content: m.message,
+              author: m.author,
+              at: m.at,
+            }))]);
+            const lastAt = fresh[fresh.length - 1].at;
+            setLastAdminReplyAt(lastAt);
+            try { localStorage.setItem(LAST_SEEN_KEY, lastAt); } catch (_e) { /* ok */ }
+          } else {
+            // Panel fermé : incrémente le badge, ne consomme pas encore
+            setUnreadCount((n) => n + fresh.length);
+          }
         }
       } catch (_e) { /* silent */ }
     };
-    // Immediate + interval 20s
+    // Interval : 20s si panel ouvert, 45s si fermé (moins agressif)
+    const intervalMs = open ? 20000 : 45000;
     tick();
-    const id = setInterval(tick, 20000);
+    const id = setInterval(tick, intervalMs);
     return () => { cancel = true; clearInterval(id); };
   }, [sessionId, open, lastAdminReplyAt]);
+
+  // Consomme le badge et charge les messages non lus au ouverture
+  const openPanel = async () => {
+    setOpen(true);
+    if (!sessionId || unreadCount === 0) return;
+    // Fetch les non-lus depuis last_seen et les injecte
+    try {
+      const url = new URL(`${API}/api/chat/session-updates`);
+      url.searchParams.set('session_id', sessionId);
+      if (lastAdminReplyAt) url.searchParams.set('since', lastAdminReplyAt);
+      const r = await fetch(url.toString());
+      const d = await r.json();
+      const fresh = d?.messages || [];
+      if (fresh.length > 0) {
+        setMessages((cur) => [...cur, ...fresh.map((m) => ({
+          role: 'human',
+          content: m.message,
+          author: m.author,
+          at: m.at,
+        }))]);
+        const lastAt = fresh[fresh.length - 1].at;
+        setLastAdminReplyAt(lastAt);
+        try { localStorage.setItem(LAST_SEEN_KEY, lastAt); } catch (_e) { /* ok */ }
+      }
+    } catch (_e) { /* silent */ }
+    setUnreadCount(0);
+  };
 
   const send = async () => {
     const text = input.trim();
@@ -211,11 +275,18 @@ export default function SupportChat() {
         <button
           type="button"
           className="pac-bubble"
-          onClick={() => setOpen(true)}
+          onClick={openPanel}
           data-testid="support-chat-bubble"
-          aria-label="Ouvrir le chat de support"
+          aria-label={unreadCount > 0
+            ? `Ouvrir le chat de support (${unreadCount} nouvelle${unreadCount > 1 ? 's' : ''} réponse${unreadCount > 1 ? 's' : ''})`
+            : 'Ouvrir le chat de support'}
         >
           ✦
+          {unreadCount > 0 && (
+            <span className="pac-bubble-dot" data-testid="support-chat-unread-dot">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
         </button>
       )}
       {open && (
