@@ -76,6 +76,9 @@ export default function AdminLectureComplete({ token }) {
   const [alertsHistory, setAlertsHistory] = useState([]);
   const [showAlertsHistory, setShowAlertsHistory] = useState(false);
   const [settingsBusy, setSettingsBusy] = useState(false);
+  // AI Enrichment toggle (transversal PDFs)
+  const [aiEnrichmentEnabled, setAiEnrichmentEnabled] = useState(true);
+  const [aiToggleBusy, setAiToggleBusy] = useState(false);
   // Weekly recap
   const [recapBusy, setRecapBusy] = useState(false);
   const [recapResult, setRecapResult] = useState(null);
@@ -117,6 +120,9 @@ export default function AdminLectureComplete({ token }) {
       if (settingsRes.data) {
         setForcedVariant(settingsRes.data.forced_j30_variant || null);
         setAlertsHistory(settingsRes.data.alerts_history || []);
+        if (typeof settingsRes.data.ai_enrichment_enabled === 'boolean') {
+          setAiEnrichmentEnabled(settingsRes.data.ai_enrichment_enabled);
+        }
       }
     } catch (e) {
       setError(e.response?.data?.detail || 'Chargement impossible.');
@@ -291,6 +297,30 @@ export default function AdminLectureComplete({ token }) {
     } finally {
       setSlackTesting(false);
       setTimeout(() => setSlackResult(null), 6000);
+    }
+  };
+
+  const toggleAiEnrichment = async () => {
+    if (aiToggleBusy) return;
+    const nextValue = !aiEnrichmentEnabled;
+    if (!nextValue && !window.confirm(
+      "Désactiver l'enrichissement IA transversal des PDFs ?\n\n" +
+      "Les rapports générés utiliseront un texte statique riche pré-rédigé " +
+      "à la voix de Soléna (pages toujours étoffées, aucun appel LLM).\n\n" +
+      "Réactive-le dès que ton budget LLM le permet."
+    )) return;
+    setAiToggleBusy(true);
+    try {
+      const r = await axios.post(
+        `${API}/api/lecture-complete/admin/set-ai-enrichment`,
+        { enabled: nextValue },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAiEnrichmentEnabled(!!r.data.ai_enrichment_enabled);
+    } catch (e) {
+      alert(e.response?.data?.detail || 'Impossible de basculer le toggle IA.');
+    } finally {
+      setAiToggleBusy(false);
     }
   };
 
@@ -723,6 +753,54 @@ export default function AdminLectureComplete({ token }) {
         {svgStats?.error && (
           <div style={{ marginTop: 8, fontSize: 11, color: '#f87171' }}>Erreur : {svgStats.error}</div>
         )}
+      </div>
+
+      {/* ═══ AI Enrichment Toggle (transversal PDFs) ═══ */}
+      <div
+        data-testid="admin-lc-ai-enrichment-panel"
+        style={{
+          marginBottom: 16, padding: 12, borderRadius: 10,
+          background: aiEnrichmentEnabled ? 'rgba(74,222,128,0.05)' : 'rgba(248,113,113,0.05)',
+          border: `1px solid ${aiEnrichmentEnabled ? 'rgba(74,222,128,0.25)' : 'rgba(248,113,113,0.35)'}`,
+          display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 260 }}>
+          <div style={{
+            fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase',
+            color: aiEnrichmentEnabled ? '#4ADE80' : '#f87171', fontWeight: 600,
+          }}>
+            {aiEnrichmentEnabled ? '✦ Enrichissement IA actif' : '✦ Enrichissement IA désactivé'}
+          </div>
+          <div style={{
+            fontSize: 12, color: 'rgba(232,230,240,0.75)', marginTop: 4, lineHeight: 1.5,
+          }}>
+            {aiEnrichmentEnabled
+              ? "Les PDFs Karma, Numérologie, Kabbale, Médiumnité et Pack Karmique appellent GPT-5.4 pour rédiger les pages narratives Soléna."
+              : "Fallback statique riche pré-rédigé — pages toujours étoffées, aucun appel LLM (budget préservé)."}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={toggleAiEnrichment}
+          disabled={aiToggleBusy}
+          data-testid="admin-lc-ai-enrichment-toggle"
+          style={{
+            fontSize: 11, padding: '8px 14px', borderRadius: 20,
+            background: aiEnrichmentEnabled ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.15)',
+            color: aiEnrichmentEnabled ? '#f87171' : '#4ADE80',
+            border: `1px solid ${aiEnrichmentEnabled ? 'rgba(248,113,113,0.4)' : 'rgba(74,222,128,0.4)'}`,
+            cursor: aiToggleBusy ? 'wait' : 'pointer',
+            textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 600,
+            transition: 'all 0.2s ease',
+          }}
+        >
+          {aiToggleBusy
+            ? '…'
+            : aiEnrichmentEnabled
+              ? 'Désactiver l\'IA'
+              : 'Réactiver l\'IA'}
+        </button>
       </div>
 
       {/* ═══ Hero A/B Panel ═══ */}

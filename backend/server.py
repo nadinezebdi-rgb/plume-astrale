@@ -1417,7 +1417,11 @@ async def tarologie_pdf(request: Request):
     prenom = (body.get('prenom') or 'Voyageur').strip() or 'Voyageur'
     date_naissance = body.get('date_naissance') or '1990-01-01'
     tirage = tirage_mediumnite_complet(prenom, date_naissance)
-    pdf_bytes = generate_mediumnite_pdf(tirage)
+    # SEC-020 : version enrichie IA (concatène pages narratives Soléna).
+    # Le toggle admin `ai_enrichment_disabled` est géré par enrich_report :
+    # OFF → fallback statique riche, jamais de pages vides.
+    from services.mediumnite_pdf import generate_mediumnite_pdf_ai
+    pdf_bytes = await generate_mediumnite_pdf_ai(tirage, prenom, date_naissance)
     return Response(content=pdf_bytes, media_type='application/pdf', headers={
         'Content-Disposition': f'attachment; filename="tarologie_croix_{prenom}.pdf"'
     })

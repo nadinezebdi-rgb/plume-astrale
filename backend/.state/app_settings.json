@@ -6,13 +6,6 @@
       "title": "Ping Slack test (FAIL 404)",
       "details": "Lance par admin@plume-astrale.fr · URL custom",
       "channels": [],
-      "at": "2026-08-02T12:08:57.088451+00:00"
-    },
-    {
-      "kind": "slack_test",
-      "title": "Ping Slack test (FAIL 404)",
-      "details": "Lance par admin@plume-astrale.fr · URL custom",
-      "channels": [],
       "at": "2026-08-02T12:11:17.403942+00:00"
     },
     {
@@ -153,6 +146,76 @@
       "details": "Coucou, je vois ton message, je verifie ton paiement immediatement. Un instant.",
       "channels": [],
       "at": "2026-08-02T16:58:40.154575+00:00"
+    },
+    {
+      "kind": "ai_enrichment_toggle",
+      "title": "Enrichissement IA désactivé",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-03T10:14:04.139832+00:00"
+    },
+    {
+      "kind": "ai_enrichment_toggle",
+      "title": "Enrichissement IA activé",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-03T10:14:04.379257+00:00"
+    },
+    {
+      "kind": "ai_enrichment_toggle",
+      "title": "Enrichissement IA désactivé",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-03T10:14:20.583944+00:00"
+    },
+    {
+      "kind": "ai_enrichment_toggle",
+      "title": "Enrichissement IA activé",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-03T10:14:21.161483+00:00"
+    },
+    {
+      "kind": "ai_enrichment_toggle",
+      "title": "Enrichissement IA désactivé",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-03T10:35:32.715872+00:00"
+    },
+    {
+      "kind": "ai_enrichment_toggle",
+      "title": "Enrichissement IA activé",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-03T10:35:33.297350+00:00"
+    },
+    {
+      "kind": "ai_enrichment_toggle",
+      "title": "Enrichissement IA désactivé",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-03T10:35:34.184221+00:00"
+    },
+    {
+      "kind": "ai_enrichment_toggle",
+      "title": "Enrichissement IA activé",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-03T10:35:34.739631+00:00"
+    },
+    {
+      "kind": "ab_override",
+      "title": "A/B J+30 forcé sur question",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-03T10:35:35.535324+00:00"
+    },
+    {
+      "kind": "ab_override",
+      "title": "A/B J+30 réinitialisé (50/50)",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-03T10:35:35.853225+00:00"
     }
   ],
   "slack_test_cooldown": {
@@ -352,5 +415,6 @@
         "at": "2026-08-02T16:58:40.154008+00:00"
       }
     ]
-  }
+  },
+  "ai_enrichment_disabled": false
 }

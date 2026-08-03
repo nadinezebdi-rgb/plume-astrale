@@ -71,15 +71,31 @@ async def handle_kabbale_webhook(session_id: str) -> None:
         logger.error(f"[kabbale] no tree data for {session_id} — cannot generate PDF")
         return
 
-    # 2) Generation PDF
+    # 2) Generation PDF (avec enrichissement IA Soléna transversal)
     pdf_bytes = None
     pdf_path = None
     filename = f'kabbale_{session_id[-16:]}.pdf'
     try:
+        # SEC-020 : enrichissement narratif IA (voix Soléna, 6 sections premium).
+        # Le toggle admin `ai_enrichment_disabled` est géré par enrich_report :
+        # OFF → fallback statique riche pré-rédigé, jamais de pages vides.
+        try:
+            from services.report_ai_enrichment import enrich_report
+            ai_sections = await enrich_report(
+                report_type='kabbale',
+                prenom=first_name,
+                birth_date_iso=birth_date_iso,
+                context={'tree_of_life': tree_data},
+            )
+        except Exception as e:
+            logger.warning(f'[kabbale] enrich_report failed for {session_id}: {e}')
+            ai_sections = None
+
         pdf_bytes = generate_kabbale_pdf(
             first_name=first_name,
             birth_date_iso=birth_date_iso,
             tree_of_life=tree_data,
+            ai_sections=ai_sections,
         )
         out_dir = ASSETS_DIR / 'kabbale'
         out_dir.mkdir(parents=True, exist_ok=True)

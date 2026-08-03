@@ -158,15 +158,31 @@ async def handle_pack_karmique_webhook(session_id: str) -> None:
     # 2) Synthese croisee GPT
     synthesis = await _build_synthesis(first_name, karmic, tree, session_id[-12:])
 
-    # 3) PDF
+    # 3) PDF (avec enrichissement IA Soléna transversal)
     filename = f'pack_karmique_{session_id[-16:]}.pdf'
     try:
+        # SEC-020 : enrichissement narratif IA transversal (voix Soléna).
+        # Le toggle admin `ai_enrichment_disabled` est géré par enrich_report :
+        # OFF → fallback statique riche pré-rédigé, jamais de pages vides.
+        try:
+            from services.report_ai_enrichment import enrich_report
+            ai_sections = await enrich_report(
+                report_type='pack_karmique',
+                prenom=first_name,
+                birth_date_iso=birth_date_iso,
+                context={'karmic': karmic, 'tree_of_life': tree},
+            )
+        except Exception as e:
+            logger.warning(f'[pack_karmique] enrich_report failed for {session_id}: {e}')
+            ai_sections = None
+
         pdf_bytes = generate_pack_karmique_pdf(
             first_name=first_name,
             birth_date_iso=birth_date_iso,
             karmic=karmic,
             tree_of_life=tree,
             synthesis=synthesis,
+            ai_sections=ai_sections,
         )
         out_dir = ASSETS_DIR / 'pack_karmique'
         out_dir.mkdir(parents=True, exist_ok=True)

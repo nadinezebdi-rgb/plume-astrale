@@ -17,7 +17,7 @@ Structure :
 """
 from __future__ import annotations
 from io import BytesIO
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
@@ -268,8 +268,13 @@ def generate_pack_karmique_pdf(
     karmic: Dict[str, Any],
     tree_of_life: Dict[str, Any],
     synthesis: Dict[str, str],
+    ai_sections: Optional[Dict[str, str]] = None,
 ) -> bytes:
-    """Genere le PDF complet Pack Karmique + Kabbale (~40 pages)."""
+    """Genere le PDF complet Pack Karmique + Kabbale (~40 pages).
+
+    ai_sections : sections narratives IA (synthese, axe_karmique_principal,
+    liens_karmiques, invitation_finale) — insérées avant la synthèse croisée.
+    """
     kdata = karmic.get('data', karmic) if isinstance(karmic, dict) else {}
     interps = kdata.get('interpretations') or []
     chapters = _classify_interpretations(interps)
@@ -369,8 +374,47 @@ def generate_pack_karmique_pdf(
     _part_divider(story, styles, 'Partie III', 'LA SYNTHESE CROISEE',
                   "La ou l'astrologie karmique et la Kabbale se repondent — redigee pour toi seul(e).")
     _synthesis_pages(story, styles, synthesis)
+
+    # Enrichissement IA : nouvelles sections narratives premium en fin
+    if ai_sections:
+        from services.kabbale_pdf import _append_ai_sections
+        _append_ai_sections(story, styles, ai_sections, report_type='pack_karmique')
+
     _closing(story, styles, fn)
 
     doc.build(story, onFirstPage=_bg_canvas, onLaterPages=_bg_canvas)
     buffer.seek(0)
     return buffer.getvalue()
+
+
+async def generate_pack_karmique_pdf_ai(
+    first_name: str,
+    birth_date_iso: str,
+    karmic: Dict[str, Any],
+    tree_of_life: Dict[str, Any],
+    synthesis: Dict[str, str],
+) -> bytes:
+    """Version enrichie IA (voix Soléna, 4 sections premium).
+
+    Le toggle admin `ai_enrichment_disabled` est géré dans enrich_report :
+    - IA ON  → contenu généré par GPT-5.4
+    - IA OFF → fallback statique riche pré-rédigé (pages étoffées)
+    """
+    try:
+        from services.report_ai_enrichment import enrich_report
+        ai_sections = await enrich_report(
+            report_type='pack_karmique',
+            prenom=first_name,
+            birth_date_iso=birth_date_iso,
+            context={'karmic': karmic, 'tree_of_life': tree_of_life},
+        )
+    except Exception:
+        ai_sections = {}
+    return generate_pack_karmique_pdf(
+        first_name=first_name,
+        birth_date_iso=birth_date_iso,
+        karmic=karmic,
+        tree_of_life=tree_of_life,
+        synthesis=synthesis,
+        ai_sections=ai_sections,
+    )

@@ -1,5 +1,43 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Aug 2026 — Toggle admin IA + fallback statique riche (iter 67)
+
+### Contexte
+Suite à l'enrichissement IA transversal des PDFs (iter 66), l'utilisateur voulait un **kill-switch admin** pour désactiver l'IA en cas de dépassement du budget LLM sans dégrader l'expérience premium.
+
+### Décision produit
+- Toggle **exposé uniquement dans les paramètres admin** (pas de bannière rouge sur le dashboard).
+- Quand OFF, les PDFs conservent des **pages étoffées** via un fallback **statique riche pré-rédigé** à la voix de Soléna (jamais de pages vides ou courtes).
+
+### Livrables (2026-08-03)
+- ✅ `services/report_ai_fallback.py` — 6 report_types (karma_destin, numerology, mediumnite, kabbale, pack_karmique, tarot_natal), 40+ paragraphes rédigés main, interpolation `{prenom}`, 2-4 paragraphes par section.
+- ✅ `services/report_ai_enrichment.enrich_report()` — check du toggle `ai_enrichment_disabled`, retourne le fallback statique quand OFF (aucun appel LLM). Fallback aussi utilisé en cas d'échec LLM (timeout/quota).
+- ✅ GET `/api/lecture-complete/admin/settings` — ajoute `ai_enrichment_enabled: bool` (défaut true).
+- ✅ POST `/api/lecture-complete/admin/set-ai-enrichment` — body `{enabled: bool}`, réservé admin (401/403), écrit `log_alert(kind='ai_enrichment_toggle')`.
+- ✅ Frontend `AdminLectureComplete.js` — panneau `admin-lc-ai-enrichment-panel` avec bouton toggle `admin-lc-ai-enrichment-toggle`, confirmation avant désactivation, sync depuis /admin/settings.
+- ✅ POST `/api/tarologie/pdf` — utilise désormais `generate_mediumnite_pdf_ai` (async). PDF de 12 pages garantis en ON et en OFF.
+- ✅ `pdf_luxury_wrap.generate_kabbale_pdf_luxury` et `generate_pack_karmique_pdf_luxury` — acceptent `ai_sections` en param optionnel et le propagent au legacy.
+- ✅ `kabbale_service.handle_kabbale_webhook` et `pack_karmique_service.handle_pack_karmique_webhook` — appellent maintenant `enrich_report()` avant la génération PDF.
+- ✅ Bugfix : import `Dict` manquant dans `mediumnite_pdf.py` (empêchait le chargement du module).
+
+### Tests curl (2026-08-03)
+| Test | Résultat |
+|---|---|
+| GET settings sans token | 401 ✅ |
+| GET settings user non-admin | 403 ✅ |
+| POST toggle sans token | 401 ✅ |
+| POST toggle non-admin | 403 ✅ |
+| Roundtrip ON→OFF→ON×2 avec persistence | ✅ |
+| Régression `set-forced-variant` | ✅ |
+| Tarologie PDF toggle OFF | 12 pages, 42KB, fallback riche ✅ |
+| Tarologie PDF toggle ON (GPT-5.4 réel) | 12 pages, 48KB, 50s ✅ |
+| Kabbale `_ai` toggle OFF (via python) | 13 pages, 3.2MB ✅ |
+| Pack Karmique `_ai` toggle OFF | 14 pages, 3.2MB ✅ |
+
+État actuel : `ai_enrichment_disabled=False` (toggle ON par défaut).
+
+---
+
 ## Projet
 **Plume Astrale** — Plateforme de guidance astrologique en francais avec IA.
 Site prod : plume-astrale.fr

@@ -276,6 +276,17 @@ async def enrich_report(
         logger.warning(f'[report_ai] type inconnu: {report_type}')
         return {}
 
+    # ── Toggle admin : si l'IA est désactivée, on retourne un fallback riche
+    # statique (pages étoffées, pré-rédigées à la voix de Soléna).
+    try:
+        from services.app_settings import get_setting as _get_setting
+        if _get_setting('ai_enrichment_disabled'):
+            logger.info(f'[report_ai] IA désactivée (toggle admin) → fallback statique pour {report_type}')
+            from services.report_ai_fallback import get_static_fallback
+            return get_static_fallback(report_type, prenom or '')
+    except Exception as e:
+        logger.warning(f'[report_ai] toggle check failed: {e}')
+
     key = _cache_key(report_type, prenom, birth_date_iso, context)
     if use_cache:
         cached = _cache_read(key)
@@ -289,12 +300,21 @@ async def enrich_report(
     logger.info(f'[report_ai] génération {report_type} pour {prenom} ({key[:8]})')
     raw = await _call_gpt(system_msg, user_msg, session_id, timeout_s=90.0)
     if not raw:
-        return {}
+        # Échec LLM → fallback riche statique pour ne jamais servir des pages vides
+        try:
+            from services.report_ai_fallback import get_static_fallback
+            return get_static_fallback(report_type, prenom or '')
+        except Exception:
+            return {}
 
     parsed = _parse_json_response(raw)
     if not parsed:
         logger.warning(f'[report_ai] parse JSON échec pour {report_type}')
-        return {}
+        try:
+            from services.report_ai_fallback import get_static_fallback
+            return get_static_fallback(report_type, prenom or '')
+        except Exception:
+            return {}
 
     # Filtre sur les cles attendues + nettoyage
     expected = REPORT_SPECS[report_type]['sections'].keys()
