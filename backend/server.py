@@ -2080,17 +2080,20 @@ async def tarot_croix_celtique_pdf_endpoint(
     Le client envoie le résultat brut (10 cartes + synthèse) — c'est OK
     car il vient de payer ses 9 crédits pour l'obtenir, on ne facture pas le PDF.
     """
-    from services.tarot_pdf_v2 import build_croix_celtique_pdf_v2 as build_croix_celtique_pdf
+    from services.tarot_pdf_v2 import build_croix_celtique_pdf_v2_ai
     body = await request.json()
     tirage = body.get('tirage')
     if not tirage or not isinstance(tirage, list) or len(tirage) != 10:
         raise HTTPException(status_code=400, detail='Tirage invalide (10 cartes attendues).')
 
-    pdf_bytes = build_croix_celtique_pdf(
+    # SEC-020 : enrichissement IA transversal — 7 chapitres narratifs Soléna
+    # (toggle admin géré dans enrich_report).
+    pdf_bytes = await build_croix_celtique_pdf_v2_ai(
         question=body.get('question', ''),
         prenom=body.get('prenom') or user.get('email', 'Vous').split('@')[0],
         tirage=tirage,
         synthese=body.get('synthese', ''),
+        birth_date_iso=body.get('date_naissance') or body.get('birth_date') or '',
     )
 
     from fastapi.responses import Response as FastAPIResponse

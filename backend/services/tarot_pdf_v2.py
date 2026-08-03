@@ -17,8 +17,14 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 
 
-def build_croix_celtique_pdf_v2(question: str, prenom: str, tirage: list, synthese: str) -> bytes:
-    """Génère le PDF Croix Celtique au format livre de luxe."""
+def build_croix_celtique_pdf_v2(question: str, prenom: str, tirage: list, synthese: str,
+                                  ai_sections: dict | None = None) -> bytes:
+    """Génère le PDF Croix Celtique au format livre de luxe.
+
+    Si `ai_sections` est fourni (dict enrichi via enrich_report('croix_celtique', ...)),
+    on insère 7 chapitres narratifs Soléna après la synthèse et avant la fin
+    émotionnelle. Les clés attendues correspondent à REPORT_SPECS['croix_celtique'].
+    """
     buf = io.BytesIO()
     doc = build_luxury_doc(buf, title=f'Croix Celtique — {prenom}')
     styles = luxury_styles()
@@ -88,8 +94,76 @@ def build_croix_celtique_pdf_v2(question: str, prenom: str, tirage: list, synthe
             story.append(Paragraph(para, styles['body_luxe']))
     story.append(PageBreak())
 
+    # ─── Chapitres narratifs IA (Soléna) ────────────────────────
+    # Insérés seulement si `ai_sections` est fourni (7 sections).
+    if ai_sections:
+        _CHAP_LABELS = [
+            ('introduction',      "Le sens de ta Croix"),
+            ('noeud_present',     "Le nœud du présent"),
+            ('racines_du_passe',  "Les racines du passé"),
+            ('lumiere_a_venir',   "La lumière à venir"),
+            ('forces_croisees',   "Les forces croisées"),
+            ('message_final',     "Le message final"),
+            ('invitation_finale', "L'invitation de Soléna"),
+        ]
+        for key, label in _CHAP_LABELS:
+            html = (ai_sections.get(key) or '').strip()
+            if not html:
+                continue
+            story.append(Paragraph('✦ Chapitre Soléna ✦', styles['section_tag']))
+            story.append(Paragraph(label.upper(), styles['planet_name']))
+            story.append(Spacer(1, 0.8 * cm))
+            # Découpe en paragraphes autour de <br/><br/> ou double newline
+            for para in html.replace('<br/><br/>', '\n\n').split('\n\n'):
+                para = para.strip()
+                if para:
+                    story.append(Paragraph(para, styles['body_luxe']))
+                    story.append(Spacer(1, 0.3 * cm))
+            story.append(PageBreak())
+
     # ─── Fin émotionnelle ───────────────────────────────────────
     emotional_ending(story, styles, prenom=prenom)
 
     doc.build(story, onFirstPage=luxury_bg, onLaterPages=luxury_bg)
     return buf.getvalue()
+
+
+async def build_croix_celtique_pdf_v2_ai(
+    question: str,
+    prenom: str,
+    tirage: list,
+    synthese: str,
+    birth_date_iso: str = '',
+) -> bytes:
+    """Version enrichie IA — 7 chapitres narratifs Soléna après la synthèse.
+
+    Le toggle admin `ai_enrichment_disabled` est géré par enrich_report :
+    - IA ON  → GPT-5.4 rédige les chapitres en fonction du tirage réel.
+    - IA OFF → fallback statique riche (7 sections pré-rédigées).
+    """
+    try:
+        from services.report_ai_enrichment import enrich_report
+        # On envoie un context compact (les 10 positions + cartes tirées) au LLM.
+        compact_tirage = [
+            {
+                'pos': (e.get('position_id'), e.get('position_nom')),
+                'carte': (e.get('carte') or {}).get('nom'),
+                'renversee': (e.get('carte') or {}).get('is_reversed'),
+            }
+            for e in (tirage or [])
+        ]
+        ai_sections = await enrich_report(
+            report_type='croix_celtique',
+            prenom=prenom or 'Voyageuse',
+            birth_date_iso=birth_date_iso,
+            context={'question': question, 'tirage': compact_tirage, 'synthese_soléna': synthese[:2000]},
+        )
+    except Exception:
+        ai_sections = {}
+    return build_croix_celtique_pdf_v2(
+        question=question,
+        prenom=prenom,
+        tirage=tirage,
+        synthese=synthese,
+        ai_sections=ai_sections or None,
+    )

@@ -6,20 +6,6 @@
       "title": "Ping Slack test (FAIL 404)",
       "details": "Lance par admin@plume-astrale.fr · URL custom",
       "channels": [],
-      "at": "2026-08-02T12:11:17.403942+00:00"
-    },
-    {
-      "kind": "slack_test",
-      "title": "Ping Slack test (FAIL 404)",
-      "details": "Lance par admin@plume-astrale.fr · URL custom",
-      "channels": [],
-      "at": "2026-08-02T12:11:36.794105+00:00"
-    },
-    {
-      "kind": "slack_test",
-      "title": "Ping Slack test (FAIL 404)",
-      "details": "Lance par admin@plume-astrale.fr · URL custom",
-      "channels": [],
       "at": "2026-08-02T12:13:56.199886+00:00"
     },
     {
@@ -216,6 +202,20 @@
       "details": "Par admin@plume-astrale.fr",
       "channels": [],
       "at": "2026-08-03T10:35:35.853225+00:00"
+    },
+    {
+      "kind": "ai_enrichment_toggle",
+      "title": "Enrichissement IA désactivé",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-03T10:47:55.442968+00:00"
+    },
+    {
+      "kind": "ai_enrichment_toggle",
+      "title": "Enrichissement IA activé",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-08-03T10:47:59.367040+00:00"
     }
   ],
   "slack_test_cooldown": {
@@ -405,6 +405,15 @@
       "escalate": true,
       "helpful": null,
       "created_at": "2026-08-02T16:58:39.156532+00:00"
+    },
+    {
+      "uid": "4bd4e891ebd8",
+      "session_id": "test-1785754036",
+      "user_message": "Bonjour Soléna",
+      "assistant_reply": "Bonjour ✨ Je suis l’assistante virtuelle de Plume Astrale, ravie de t’accueillir. Si tu veux, je peux t’aider à découvrir la Lecture Complète, le compte gratuit, ou répondre à une question précise.",
+      "escalate": false,
+      "helpful": null,
+      "created_at": "2026-08-03T10:47:18.624802+00:00"
     }
   ],
   "chat_admin_replies": {
@@ -416,5 +425,14 @@
       }
     ]
   },
-  "ai_enrichment_disabled": false
+  "ai_enrichment_disabled": false,
+  "llm_usage": {
+    "2026-08": {
+      "chat_support": {
+        "calls": 1,
+        "tokens": 65
+      }
+    }
+  },
+  "llm_budget_eur": 30.0
 }

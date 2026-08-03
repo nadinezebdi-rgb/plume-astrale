@@ -811,6 +811,41 @@ async def lecture_complete_admin_set_ai_enrichment(
     return {'ai_enrichment_enabled': enabled}
 
 
+@router.get('/admin/llm-usage')
+async def lecture_complete_admin_llm_usage(
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Jauge de coût LLM : appels + coût estimé du mois en cours et historique
+    des 3 derniers mois. Sert de radar pour anticiper les dépassements de budget.
+    """
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+    from services.app_settings import get_llm_usage
+    return get_llm_usage(months=4)
+
+
+@router.post('/admin/set-llm-budget')
+async def lecture_complete_admin_set_llm_budget(
+    payload: Dict[str, Any],
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
+    """Définit le budget LLM mensuel (€) — sert de repère pour la jauge admin."""
+    if not current_user or not current_user.get('id'):
+        raise HTTPException(status_code=401, detail='Authentification requise.')
+    sb = get_admin_client()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not prof or not prof.data or not prof.data.get('is_admin'):
+        raise HTTPException(status_code=403, detail='Reserve aux administrateurs.')
+    budget = float((payload or {}).get('budget_eur', 30.0))
+    from services.app_settings import set_llm_budget
+    set_llm_budget(budget)
+    return {'budget_eur': budget}
+
+
 @router.post('/admin/redispatch/{session_id}')
 async def lecture_complete_admin_redispatch(
     session_id: str,

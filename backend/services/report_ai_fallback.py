@@ -476,6 +476,115 @@ _FALLBACKS: Dict[str, Dict[str, str]] = {
             "miroir vibrant qui te renvoie ta propre lumière."
         ),
     },
+    # ═══════════════════════════════════════════════════════════════
+    'croix_celtique': {
+        'introduction': (
+            "{prenom}, la Croix Celtique n'est pas un simple tirage — c'est une "
+            "cartographie. Dix cartes disposées en croix et en bâton, chacune tenant "
+            "un rôle précis : la situation, l'obstacle, le passé, l'avenir, l'intérieur, "
+            "l'entourage, les espoirs, la synthèse. Ensemble, elles composent une image "
+            "vivante de ta question — pas une réponse figée, mais une lecture en "
+            "mouvement."
+            "<br/><br/>"
+            "Ce document te propose ce que le tirage seul ne peut pas : une lecture "
+            "narrative. Les cartes, tu les as vues. Les interprétations, tu les as "
+            "lues. Ici, on relie les fils entre eux. On te raconte ce que la croix "
+            "chuchote quand on lui laisse le temps."
+            "<br/><br/>"
+            "Prends ces pages lentement. Reviens-y dans une semaine, puis dans un mois. "
+            "Une bonne Croix Celtique se relit — chaque relecture révèle une couche que "
+            "la précédente n'avait pas montrée."
+        ),
+        'noeud_present': (
+            "Les deux premières cartes forment le cœur de ton tirage : ta situation "
+            "actuelle et ce qui la traverse. Leur dialogue n'est pas anecdotique — il "
+            "décrit le climat exact dans lequel tu poses ta question aujourd'hui."
+            "<br/><br/>"
+            "Ce nœud du présent n'est ni un blocage, ni une chance — c'est une "
+            "condition. Un contexte que tu n'as pas choisi mais dans lequel tu peux "
+            "choisir. La sagesse consiste à distinguer ce qui dépend vraiment de toi "
+            "dans ce nœud, et ce qui appartient au décor."
+            "<br/><br/>"
+            "Une question à laisser reposer : que se passerait-il si tu acceptais "
+            "pleinement ce nœud plutôt que de le combattre ? Parfois, l'énergie qu'on "
+            "met à repousser une situation est exactement celle qu'il faudrait pour "
+            "la traverser."
+        ),
+        'racines_du_passe': (
+            "Les cartes trois et quatre racontent ce qui t'a menée jusqu'ici — la "
+            "première pour le passé récent, la seconde pour les fondations plus "
+            "lointaines. Ces cartes ne sont pas là pour te faire regretter ; elles sont "
+            "là pour te faire reconnaître."
+            "<br/><br/>"
+            "Ce que tu portes de ton passé n'est pas un fardeau à porter éternellement. "
+            "C'est une matière première. Chaque leçon durement apprise devient un "
+            "outil précis pour la suite. La Croix te rappelle ici quels outils sont "
+            "déjà à ta disposition — même ceux que tu croyais perdus."
+            "<br/><br/>"
+            "Repère les motifs qui se répètent depuis l'enfance. Ce sont eux qui "
+            "colorent le présent, plus que les faits objectifs. Nommer un motif "
+            "diminue son emprise ; le taire l'amplifie."
+        ),
+        'lumiere_a_venir': (
+            "Les cartes cinq et six ouvrent la porte de l'avenir. La cinquième "
+            "(couronne) dit ce à quoi tu aspires — parfois consciemment, parfois "
+            "seulement en rêve. La sixième (avenir proche) montre le prochain "
+            "mouvement qui se prépare, souvent dans les six semaines qui viennent."
+            "<br/><br/>"
+            "Cet avenir n'est pas gravé. Il est <i>en train</i> de se déposer, comme "
+            "une image dans un révélateur photographique. Tes choix, tes silences, tes "
+            "colères, tes gestes de tendresse — tout entre dans le bain."
+            "<br/><br/>"
+            "Ce que la Croix te suggère ici, ce n'est pas ce que <i>tu vas</i> faire, "
+            "c'est ce qui <i>demande</i> à être fait. Écoute cette différence avec "
+            "précaution : c'est là que ta liberté véritable se joue."
+        ),
+        'forces_croisees': (
+            "Les cartes sept et huit dessinent tes deux mondes — celui du dedans "
+            "(carte 7 : ton soi intérieur) et celui du dehors (carte 8 : ton "
+            "entourage, ton environnement, les vents extérieurs). Rare est le tirage "
+            "où ces deux mondes vibrent en harmonie parfaite."
+            "<br/><br/>"
+            "Là où ils se contredisent, tu vis un tiraillement — souvent silencieux, "
+            "parfois épuisant. Là où ils se rejoignent, tu gagnes en fluidité sans "
+            "même le remarquer. Cette lecture te propose une chose simple : où ta "
+            "vérité intérieure a-t-elle besoin d'être mieux écoutée, et où le monde "
+            "extérieur t'invite-t-il à t'ajuster ?"
+            "<br/><br/>"
+            "Aucune des deux voix n'a raison seule. C'est leur dialogue attentif qui "
+            "libère le mouvement juste."
+        ),
+        'message_final': (
+            "Les deux dernières cartes ferment la Croix. La neuvième (espoirs et "
+            "craintes) tient un miroir sensible — souvent, ce qu'on espère le plus et "
+            "ce qu'on redoute le plus se ressemblent étrangement. La dixième "
+            "(résultat) donne la ligne d'arrivée probable si le mouvement en cours se "
+            "poursuit sans être perturbé."
+            "<br/><br/>"
+            "Cette dixième carte n'est pas une prophétie. C'est un pronostic — comme "
+            "en médecine : si rien ne change, voilà où le chemin mène. Il te reste "
+            "l'entière possibilité de changer quelque chose, à tout moment."
+            "<br/><br/>"
+            "Reçois ce message final avec calme. Si la carte te réjouit, remercie-la "
+            "et prépare-toi à l'accueillir. Si elle t'inquiète, écoute-la comme un "
+            "avertissement bienveillant — pas comme une condamnation. La Croix, "
+            "toujours, laisse la dernière ligne à ta main."
+        ),
+        'invitation_finale': (
+            "{prenom}, ta Croix Celtique t'a parlé. Elle ne parlera pas plus fort si "
+            "tu la relis dix fois de suite — mais elle parlera plus finement si tu la "
+            "reposes et que tu la reprends dans trois jours."
+            "<br/><br/>"
+            "Pour les 30 prochains jours, choisis <b>un</b> geste concret que ces "
+            "cartes t'inspirent. Un seul. Une conversation à tenir, une limite à "
+            "poser, un projet à commencer, un pardon à écrire. La Croix récompense "
+            "ceux qui bougent avec elle. Elle ne juge jamais ceux qui doutent."
+            "<br/><br/>"
+            "Merci de m'avoir fait confiance pour cette lecture. Que ton chemin reste "
+            "vivant, {prenom} — et que ce document t'accompagne comme une main tendue, "
+            "pas comme un verdict. — Soléna"
+        ),
+    },
 }
 
 

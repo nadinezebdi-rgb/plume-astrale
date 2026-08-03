@@ -79,6 +79,8 @@ export default function AdminLectureComplete({ token }) {
   // AI Enrichment toggle (transversal PDFs)
   const [aiEnrichmentEnabled, setAiEnrichmentEnabled] = useState(true);
   const [aiToggleBusy, setAiToggleBusy] = useState(false);
+  // LLM usage / cost gauge
+  const [llmUsage, setLlmUsage] = useState(null);
   // Weekly recap
   const [recapBusy, setRecapBusy] = useState(false);
   const [recapResult, setRecapResult] = useState(null);
@@ -103,7 +105,7 @@ export default function AdminLectureComplete({ token }) {
     setLoading(true);
     setError(null);
     try {
-      const [ordersRes, abRes, settingsRes] = await Promise.all([
+      const [ordersRes, abRes, settingsRes, llmRes] = await Promise.all([
         axios.get(`${API}/api/lecture-complete/admin/orders`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -111,6 +113,9 @@ export default function AdminLectureComplete({ token }) {
           headers: { Authorization: `Bearer ${token}` },
         }).catch(() => ({ data: null })),
         axios.get(`${API}/api/lecture-complete/admin/settings`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => ({ data: null })),
+        axios.get(`${API}/api/lecture-complete/admin/llm-usage`, {
           headers: { Authorization: `Bearer ${token}` },
         }).catch(() => ({ data: null })),
       ]);
@@ -124,6 +129,7 @@ export default function AdminLectureComplete({ token }) {
           setAiEnrichmentEnabled(settingsRes.data.ai_enrichment_enabled);
         }
       }
+      setLlmUsage(llmRes.data || null);
     } catch (e) {
       setError(e.response?.data?.detail || 'Chargement impossible.');
     } finally {
@@ -754,6 +760,114 @@ export default function AdminLectureComplete({ token }) {
           <div style={{ marginTop: 8, fontSize: 11, color: '#f87171' }}>Erreur : {svgStats.error}</div>
         )}
       </div>
+
+      {/* ═══ Jauge Coût LLM (mensuel) ═══ */}
+      {llmUsage && (() => {
+        const cur = llmUsage.current || { total_calls: 0, total_cost_eur: 0, by_usage: {} };
+        const budget = Number(llmUsage.budget_eur || 30);
+        const spent = Number(cur.total_cost_eur || 0);
+        const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
+        const state = pct >= 90 ? 'danger' : pct >= 65 ? 'warn' : 'ok';
+        const color = state === 'danger' ? '#f87171' : state === 'warn' ? '#fbbf24' : '#4ADE80';
+        const usages = Object.entries(cur.by_usage || {});
+        return (
+          <div
+            data-testid="admin-lc-llm-usage-panel"
+            style={{
+              marginBottom: 16, padding: 14, borderRadius: 12,
+              background: 'rgba(24,24,32,0.55)',
+              border: `1px solid ${color}44`,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color, fontWeight: 700 }}>
+                ✦ Jauge coût GPT — {llmUsage.current_month}
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(232,230,240,0.6)' }}>
+                Budget mensuel : <b style={{ color: '#E8C766' }}>{budget.toFixed(0)} €</b>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1, height: 10, borderRadius: 6, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                <div style={{
+                  width: `${pct}%`, height: '100%',
+                  background: `linear-gradient(90deg, ${color}, ${color}bb)`,
+                  transition: 'width .5s ease',
+                }} />
+              </div>
+              <div style={{ minWidth: 110, textAlign: 'right' }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color }}>
+                  {spent.toFixed(2)} €
+                </div>
+                <div style={{ fontSize: 10, color: 'rgba(232,230,240,0.55)', letterSpacing: '.06em' }}>
+                  {pct.toFixed(0)}% du budget
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8,
+            }}>
+              <div style={{ fontSize: 11, color: 'rgba(232,230,240,0.7)' }}>
+                <div style={{ color: 'rgba(232,230,240,0.5)', letterSpacing: '.06em', fontSize: 10, textTransform: 'uppercase' }}>Total appels</div>
+                <div style={{ fontSize: 15, color: '#fff', marginTop: 2, fontWeight: 600 }}>{cur.total_calls}</div>
+              </div>
+              {usages.map(([usage, stats]) => (
+                <div key={usage} style={{ fontSize: 11, color: 'rgba(232,230,240,0.7)' }}>
+                  <div style={{ color: 'rgba(232,230,240,0.5)', letterSpacing: '.06em', fontSize: 10, textTransform: 'uppercase' }}>{usage}</div>
+                  <div style={{ fontSize: 13, color: '#fff', marginTop: 2 }}>
+                    <b>{stats.calls}</b> · <span style={{ color: '#E8C766' }}>{Number(stats.cost_eur || 0).toFixed(2)} €</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {state !== 'ok' && (
+              <div style={{
+                marginTop: 12, padding: '8px 10px', borderRadius: 8, fontSize: 11,
+                background: `${color}18`, color, lineHeight: 1.5,
+              }}>
+                {state === 'danger'
+                  ? "⚠ Budget quasi atteint. Envisage de désactiver ponctuellement l'IA depuis le toggle ci-dessous — les PDFs conservent leurs pages via le fallback statique riche."
+                  : "Attention : la moitié du budget est déjà consommée. Reste vigilant sur les prochains jours."}
+              </div>
+            )}
+
+            {llmUsage.history?.length > 0 && (
+              <div style={{ marginTop: 12, display: 'flex', gap: 10, alignItems: 'flex-end', height: 42 }}>
+                {llmUsage.history.map(h => {
+                  const hPct = budget > 0 ? Math.min(100, (h.total_cost_eur / budget) * 100) : 0;
+                  return (
+                    <div key={h.month} style={{ flex: 1, textAlign: 'center' }} title={`${h.total_calls} appels · ${h.total_cost_eur.toFixed(2)}€`}>
+                      <div style={{ height: 24, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                        <div style={{
+                          width: '60%', height: `${Math.max(4, hPct * 0.24)}px`,
+                          background: 'rgba(232,199,102,0.5)', borderRadius: 3,
+                        }} />
+                      </div>
+                      <div style={{ fontSize: 9, color: 'rgba(232,230,240,0.5)', marginTop: 3, letterSpacing: '.05em' }}>
+                        {h.month.slice(5)} · {h.total_cost_eur.toFixed(1)}€
+                      </div>
+                    </div>
+                  );
+                })}
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ height: 24, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                    <div style={{
+                      width: '60%', height: `${Math.max(4, pct * 0.24)}px`,
+                      background: color, borderRadius: 3,
+                    }} />
+                  </div>
+                  <div style={{ fontSize: 9, color, marginTop: 3, letterSpacing: '.05em', fontWeight: 600 }}>
+                    {llmUsage.current_month.slice(5)} · {spent.toFixed(1)}€
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ═══ AI Enrichment Toggle (transversal PDFs) ═══ */}
       <div

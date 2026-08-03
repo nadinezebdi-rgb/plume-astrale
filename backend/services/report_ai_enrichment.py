@@ -129,6 +129,18 @@ REPORT_SPECS: Dict[str, Dict[str, Any]] = {
             'invitation_finale': "Invitation finale 2 paragraphes",
         },
     },
+    'croix_celtique': {
+        'title': 'Croix Celtique — Chapitres Soléna',
+        'sections': {
+            'introduction': "Introduction 2-3 paragraphes : ce que révèle la disposition en croix pour la personne, pourquoi cet oracle-là précisément aujourd'hui",
+            'noeud_present': "Le nœud du présent 3 paragraphes : sens des cartes 1 (situation) et 2 (obstacle/aide), comment leur dialogue éclaire l'instant vécu",
+            'racines_du_passe': "Les racines du passé 3 paragraphes : cartes 3 (passé récent) et 4 (fondations lointaines), ce que l'on porte, ce qui se répète",
+            'lumiere_a_venir': "La lumière à venir 3 paragraphes : cartes 5 (couronne/aspiration) et 6 (avenir proche), ce qui cherche à naître, les gestes qui l'appellent",
+            'forces_croisees': "Les forces croisées 3 paragraphes : cartes 7 (soi intérieur) et 8 (environnement/entourage), les tensions à harmoniser",
+            'message_final': "Le message final 3 paragraphes : cartes 9 (espoirs/craintes) et 10 (résultat), la synthèse ultime que la Croix murmure",
+            'invitation_finale': "Invitation finale 2 paragraphes : geste concret des 30 prochains jours + parole de Soléna",
+        },
+    },
 }
 
 
@@ -182,10 +194,17 @@ async def _call_gpt(system_msg: str, user_msg: str, session_id: str,
             session_id=session_id,
             system_message=system_msg,
         ).with_model('openai', 'gpt-5.4')
-        return await _asyncio.wait_for(
+        result = await _asyncio.wait_for(
             chat.send_message(UserMessage(text=user_msg)),
             timeout=timeout_s,
         )
+        # Compteur de coût mensuel (usage report_ai — ~1800 tokens moyens)
+        try:
+            from services.app_settings import record_llm_call
+            record_llm_call('report_ai', tokens_estimate=len(result or '') // 3)
+        except Exception:
+            pass
+        return result
     except _asyncio.TimeoutError:
         logger.error(f'[report_ai] LLM TIMEOUT après {timeout_s}s (session={session_id})')
         return None

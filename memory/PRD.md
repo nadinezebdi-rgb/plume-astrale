@@ -1,5 +1,40 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Aug 2026 (iter 68) — Tarot v2 IA + Jauge coût LLM
+
+### Contexte
+Sur base des Next Action Items de l'iter 67, priorité aux deux enrichissements suivants — l'IA reste **active** (l'utilisateur a explicitement rejeté toute désactivation), on veut juste (1) hisser Tarot v2 au niveau premium et (2) rendre le coût GPT visible pour anticiper.
+
+### Livrables (2026-08-03)
+
+**A. Enrichissement IA Croix Celtique**
+- ✅ `REPORT_SPECS['croix_celtique']` — 7 sections (introduction, nœud_present, racines_du_passe, lumiere_a_venir, forces_croisees, message_final, invitation_finale).
+- ✅ Fallback statique riche pour Croix Celtique (5 KB de texte pré-rédigé, voix Soléna, interpolation `{prenom}`).
+- ✅ `services/tarot_pdf_v2.py` — signature étendue avec `ai_sections`, insertion des 7 chapitres après la synthèse. Nouvel async wrapper `build_croix_celtique_pdf_v2_ai`.
+- ✅ POST `/api/tarot/croix-celtique/pdf` → utilise désormais le wrapper AI.
+- Résultat mesuré : PDF Croix Celtique passe de ~15 à **23 pages** en mode fallback (encore plus riche avec GPT réel).
+
+**B. Jauge coût LLM mensuelle**
+- ✅ `app_settings.record_llm_call(usage, tokens_estimate)` — persistence disque, cap 12 mois.
+- ✅ `app_settings.get_llm_usage(months=4)` — total du mois en cours + historique 3 mois précédents + budget.
+- ✅ `app_settings.set_llm_budget(eur)` — configurable via admin.
+- ✅ Hooks : `_call_gpt` dans `report_ai_enrichment.py` (usage `report_ai`, tarif ~0.008€/appel) et `chat_support.py` (usage `chat_support`, tarif ~0.001€/appel).
+- ✅ Endpoints : GET `/api/lecture-complete/admin/llm-usage` + POST `/api/lecture-complete/admin/set-llm-budget` (401/403 protégés).
+- ✅ UI : panneau `data-testid="admin-lc-llm-usage-panel"` avec barre de progression tricolore (verte < 65%, jaune 65-90%, rouge ≥ 90%), breakdown par usage, mini-histogramme des 3 derniers mois, message d'alerte contextuel quand seuil dépassé.
+- État : budget défaut **30€/mois**, tarif estimatif basé sur consommation moyenne GPT-5.4 Emergent LLM.
+
+### Tests curl (2026-08-03)
+| Test | Résultat |
+|---|---|
+| GET /admin/llm-usage sans token | 401 ✅ |
+| GET /admin/llm-usage non-admin | 403 ✅ |
+| GET /admin/llm-usage admin (état initial) | budget 30€, 0 appel ✅ |
+| Trigger POST /api/chat/support | +1 appel `chat_support` visible ✅ |
+| POST /admin/set-llm-budget {20} | budget maj à 20€ ✅ |
+| POST /api/tarot/croix-celtique/pdf toggle OFF | 23 pages, 5.5MB, 7 chapitres Soléna visibles + `Sophie` ✅ |
+
+---
+
 ## 🆕 Session Aug 2026 — Toggle admin IA + fallback statique riche (iter 67)
 
 ### Contexte
