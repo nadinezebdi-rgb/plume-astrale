@@ -109,9 +109,16 @@ class NumerologiePDFGenerator:
         numerology_data: Dict[str, Any],
         personal_year_data: Optional[Dict[str, Any]] = None,
         forecast_data: Optional[Dict[str, Any]] = None,
+        ai_sections: Optional[Dict[str, str]] = None,
     ) -> bytes:
-        """Génère le PDF complet (12 pages)."""
+        """Génère le PDF complet (12 pages).
+
+        ai_sections : dict optionnel de narratifs enrichis (introduction,
+        chemin_de_vie, destinee, ame, personnalite, jour_naissance,
+        annee_personnelle, lo_shu, biorythmes, invitation_finale).
+        """
         buffer = BytesIO()
+        self._ai = ai_sections or {}
         doc = SimpleDocTemplate(
             buffer,
             pagesize=A4,
@@ -145,6 +152,25 @@ class NumerologiePDFGenerator:
             story.extend(self._pages_forecast(forecast_data))
             story.append(PageBreak())
         
+        # Nouvelles sections IA (Lo-Shu, biorythmes, invitation) — uniquement si dispo
+        if self._ai.get('lo_shu'):
+            story.append(Paragraph('✦ Ton Carré Lo-Shu — Numérologie Chinoise ✦', self.heading_style))
+            story.append(Spacer(0, 0.3 * cm))
+            story.append(Paragraph(self._ai['lo_shu'], self.body_style))
+            story.append(PageBreak())
+        
+        if self._ai.get('biorythmes'):
+            story.append(Paragraph('✦ Tes Biorythmes des 90 Prochains Jours ✦', self.heading_style))
+            story.append(Spacer(0, 0.3 * cm))
+            story.append(Paragraph(self._ai['biorythmes'], self.body_style))
+            story.append(PageBreak())
+        
+        if self._ai.get('invitation_finale'):
+            story.append(Paragraph('✦ Ton Invitation ✦', self.heading_style))
+            story.append(Spacer(0, 0.3 * cm))
+            story.append(Paragraph(self._ai['invitation_finale'], self.body_style))
+            story.append(PageBreak())
+        
         # Page 12: Rituels + signature
         story.extend(self._page_rituels_finaux(first_name))
         
@@ -171,6 +197,12 @@ class NumerologiePDFGenerator:
     
     def _page_intro(self) -> List:
         """Introduction à la numérologie sacrée."""
+        if getattr(self, '_ai', {}).get('introduction'):
+            return [
+                Paragraph('Bienvenue dans ton Univers Numéral', self.heading_style),
+                Spacer(0, 0.3 * cm),
+                Paragraph(self._ai['introduction'], self.body_style),
+            ]
         return [
             Paragraph('Bienvenue dans ton Univers Numéral', self.heading_style),
             Spacer(0, 0.3 * cm),
@@ -201,24 +233,45 @@ class NumerologiePDFGenerator:
         expression_num = data.get('expression_number', 1)
         heart_num = data.get('heart_number', 1)
         
-        for i, (title, num) in enumerate([
-            ('Nombre de Destin', str(destiny_num)),
-            ('Nombre d\'Expression', str(expression_num)),
-            ('Nombre de Cœur', str(heart_num)),
-        ]):
+        ai = getattr(self, '_ai', {})
+        # Mapping label affiché → clé narrative IA correspondante
+        entries = [
+            ('Nombre de Destin', str(destiny_num), 'chemin_de_vie'),
+            ('Nombre d\'Expression', str(expression_num), 'destinee'),
+            ('Nombre de Cœur', str(heart_num), 'ame'),
+        ]
+        
+        for i, (title, num, ai_key) in enumerate(entries):
             if i > 0:
                 story.append(Spacer(0, 0.8 * cm))
             
             num_clean = num.split('/')[0] if '/' in num else num  # Gère '11/2' format
             label, description = NOMBRES_FR.get(num_clean, ('Inconnu', 'Vibration secrète'))
             
-            story.append(Paragraph(f'<b>{title}</b> : {label}', self.heading_style))
-            story.append(Paragraph(description, self.body_style))
-            story.append(Paragraph(
-                f'La vibration du <b>{num}</b> te pousse vers une destinée '
-                'unique. Explore cette énergie pour manifester ton potentiel.',
-                self.body_style,
-            ))
+            story.append(Paragraph(f'<b>{title}</b> : {label} — Vibration {num}', self.heading_style))
+            # Narratif IA prioritaire (plusieurs paragraphes), fallback description courte
+            narrative = ai.get(ai_key) or description
+            story.append(Paragraph(narrative, self.body_style))
+            
+            # Ne pas ajouter la ligne générique si IA a déjà fourni un long narratif
+            if not ai.get(ai_key):
+                story.append(Paragraph(
+                    f'La vibration du <b>{num}</b> te pousse vers une destinée '
+                    'unique. Explore cette énergie pour manifester ton potentiel.',
+                    self.body_style,
+                ))
+        
+        # Section bonus : nombres complémentaires (personnalité + jour de naissance)
+        # Ces sections n'apparaissent que si l'IA a enrichi
+        if ai.get('personnalite'):
+            story.append(Spacer(0, 0.8 * cm))
+            story.append(Paragraph('<b>Nombre de Personnalité</b> — L\'image que tu projettes', self.heading_style))
+            story.append(Paragraph(ai['personnalite'], self.body_style))
+        
+        if ai.get('jour_naissance'):
+            story.append(Spacer(0, 0.8 * cm))
+            story.append(Paragraph('<b>Nombre du Jour de Naissance</b> — Ton talent inné', self.heading_style))
+            story.append(Paragraph(ai['jour_naissance'], self.body_style))
         
         return story
     
@@ -228,18 +281,25 @@ class NumerologiePDFGenerator:
         story.append(Paragraph('Ton Année Personnelle', self.heading_style))
         
         current_year_num = data.get('personal_year', 1)
-        year_description = data.get('year_description', 'Année de transformation.')
+        ai_narrative = getattr(self, '_ai', {}).get('annee_personnelle')
         
         story.append(Paragraph(
-            f'Année numérale <b>{current_year_num}</b> — {year_description}',
-            self.body_style,
+            f'Année numérale <b>{current_year_num}</b>',
+            self.heading_style,
         ))
-        story.append(Spacer(0, 0.5 * cm))
-        story.append(Paragraph(
-            'Cette année résonne avec les énergies de manifestation et de croissance. '
-            'Les cycles numériques te guident mois après mois.',
-            self.body_style,
-        ))
+        
+        if ai_narrative:
+            # Narratif IA long (3 paragraphes)
+            story.append(Paragraph(ai_narrative, self.body_style))
+        else:
+            year_description = data.get('year_description', 'Année de transformation.')
+            story.append(Paragraph(year_description, self.body_style))
+            story.append(Spacer(0, 0.5 * cm))
+            story.append(Paragraph(
+                'Cette année résonne avec les énergies de manifestation et de croissance. '
+                'Les cycles numériques te guident mois après mois.',
+                self.body_style,
+            ))
         
         return story
     
@@ -295,12 +355,50 @@ def generate_numerologie_pdf(
     numerology_data: Dict[str, Any],
     personal_year_data: Optional[Dict[str, Any]] = None,
     forecast_data: Optional[Dict[str, Any]] = None,
+    ai_sections: Optional[Dict[str, str]] = None,
 ) -> bytes:
-    """Wrapper pour générer le PDF numérologie."""
+    """Wrapper pour générer le PDF numérologie (accepte ai_sections optionnel)."""
     return NumerologiePDFGenerator().generate(
         first_name=first_name,
         birth_date_iso=birth_date_iso,
         numerology_data=numerology_data,
         personal_year_data=personal_year_data,
         forecast_data=forecast_data,
+        ai_sections=ai_sections,
+    )
+
+
+async def generate_numerologie_pdf_ai(
+    first_name: str,
+    birth_date_iso: str,
+    numerology_data: Dict[str, Any],
+    personal_year_data: Optional[Dict[str, Any]] = None,
+    forecast_data: Optional[Dict[str, Any]] = None,
+) -> bytes:
+    """Génère le PDF Numérologie AVEC enrichissement IA transverse.
+    Fallback silencieux sur le texte générique si l'IA échoue."""
+    try:
+        from services.report_ai_enrichment import enrich_report
+        context = {
+            'numerology': numerology_data,
+            'personal_year': personal_year_data,
+            'forecast': forecast_data,
+        }
+        ai_sections = await enrich_report(
+            report_type='numerology',
+            prenom=first_name,
+            birth_date_iso=birth_date_iso,
+            context=context,
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f'[numerologie] AI enrich fail: {e}')
+        ai_sections = {}
+    return NumerologiePDFGenerator().generate(
+        first_name=first_name,
+        birth_date_iso=birth_date_iso,
+        numerology_data=numerology_data,
+        personal_year_data=personal_year_data,
+        forecast_data=forecast_data,
+        ai_sections=ai_sections,
     )

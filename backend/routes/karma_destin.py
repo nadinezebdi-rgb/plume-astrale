@@ -17,7 +17,7 @@ from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
 from middleware.auth import get_optional_user
 from services.astrology_io_service import karmic_analysis
-from services.karma_destin_pdf import generate_karma_destin_pdf
+from services.karma_destin_pdf import generate_karma_destin_pdf_ai
 from services.pdf_delivery import update_tx_pdf_metadata, send_pdf_email
 from emergentintegrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
@@ -192,8 +192,8 @@ async def _generate_and_email_pdf(email: str, pdf_ctx: dict, session_id: str = '
         # Appel API avec language='fr'
         karmic_data = await karmic_analysis(birth_data, first_name, language='fr') or {}
         
-        # Générer PDF
-        pdf_bytes = generate_karma_destin_pdf(
+        # Générer PDF avec enrichissement IA (fallback générique si LLM fail)
+        pdf_bytes = await generate_karma_destin_pdf_ai(
             first_name=first_name,
             birth_date_iso=birth_date_iso,
             karmic_data=karmic_data,
