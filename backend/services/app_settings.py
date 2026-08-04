@@ -103,6 +103,11 @@ def get_alerts_history() -> List[Dict[str, Any]]:
 LLM_COST_TARIFF = {
     'report_ai': 0.008,   # ~1800 tokens output, appel long
     'chat_support': 0.001,
+    # Sora 2 video generation — coût par seconde de vidéo
+    'sora_2': 0.10,       # sora-2 : $0.10/s
+    'sora_2_pro': 0.30,   # sora-2-pro : $0.30/s
+    # OpenAI TTS — coût par 1000 caractères
+    'tts': 0.015,         # tts-1 : $15/M chars
     'default': 0.003,
 }
 
@@ -112,10 +117,14 @@ def _current_month() -> str:
     return datetime.now(timezone.utc).strftime('%Y-%m')
 
 
-def record_llm_call(usage: str, tokens_estimate: int = 0) -> None:
+def record_llm_call(usage: str, tokens_estimate: int = 0, units: float = 0.0) -> None:
     """Incrémente le compteur pour le mois en cours.
 
-    usage ∈ {'report_ai', 'chat_support', ...}. Ne lève jamais.
+    usage ∈ {'report_ai', 'chat_support', 'sora_2', 'sora_2_pro', 'tts', ...}.
+    - tokens_estimate : nb tokens output (informatif, non facturé ici).
+    - units : quantité facturable (sec pour Sora, chars pour TTS, ignoré pour LLM
+      texte où le coût est calculé par appel via `LLM_COST_TARIFF[usage]`).
+    Ne lève jamais.
     """
     try:
         with _LOCK:
@@ -123,9 +132,10 @@ def record_llm_call(usage: str, tokens_estimate: int = 0) -> None:
             counters = data.get('llm_usage') or {}
             month = _current_month()
             month_data = counters.get(month) or {}
-            u = month_data.get(usage) or {'calls': 0, 'tokens': 0}
+            u = month_data.get(usage) or {'calls': 0, 'tokens': 0, 'units': 0.0}
             u['calls'] = int(u.get('calls', 0)) + 1
             u['tokens'] = int(u.get('tokens', 0)) + int(tokens_estimate or 0)
+            u['units'] = float(u.get('units', 0.0)) + float(units or 0.0)
             month_data[usage] = u
             counters[month] = month_data
             # Cap à 12 mois
@@ -163,9 +173,20 @@ def get_llm_usage(months: int = 3) -> Dict[str, Any]:
         total_cost = 0.0
         for u, stats in md.items():
             calls = int(stats.get('calls', 0))
+            units = float(stats.get('units', 0.0))
             tariff = LLM_COST_TARIFF.get(u, LLM_COST_TARIFF['default'])
-            cost = round(calls * tariff, 4)
-            by_usage[u] = {'calls': calls, 'cost_eur': cost, 'tariff_eur': tariff}
+            # Sora / TTS : coût = tariff × units (secondes ou milliers de chars).
+            # LLM texte : coût = tariff × calls (1 tariff = 1 appel moyen).
+            if u in ('sora_2', 'sora_2_pro'):
+                cost = round(units * tariff, 4)
+            elif u == 'tts':
+                cost = round((units / 1000.0) * tariff, 4)  # tariff = $ per 1k chars
+            else:
+                cost = round(calls * tariff, 4)
+            by_usage[u] = {
+                'calls': calls, 'units': units,
+                'cost_eur': cost, 'tariff_eur': tariff,
+            }
             total_calls += calls
             total_cost += cost
         return {

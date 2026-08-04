@@ -431,6 +431,21 @@
       "chat_support": {
         "calls": 1,
         "tokens": 65
+      },
+      "sora_2": {
+        "calls": 10,
+        "tokens": 0,
+        "units": 80.0
+      },
+      "sora_2_pro": {
+        "calls": 2,
+        "tokens": 0,
+        "units": 16.0
+      },
+      "tts": {
+        "calls": 3,
+        "tokens": 0,
+        "units": 194.0
       }
     }
   },

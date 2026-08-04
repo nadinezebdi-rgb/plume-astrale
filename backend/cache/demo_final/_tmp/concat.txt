@@ -1,0 +1,7 @@
+file '/app/backend/cache/demo_final/_tmp/seg_01_hook.mp4'
+file '/app/backend/cache/demo_final/_tmp/seg_02_arrivee.mp4'
+file '/app/backend/cache/demo_final/_tmp/seg_03_lectures.mp4'
+file '/app/backend/cache/demo_final/_tmp/seg_04_chat.mp4'
+file '/app/backend/cache/demo_final/_tmp/seg_05_achat.mp4'
+file '/app/backend/cache/demo_final/_tmp/seg_06_livraison.mp4'
+file '/app/backend/cache/demo_final/_tmp/seg_07_cta.mp4'
