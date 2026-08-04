@@ -149,20 +149,31 @@ def _lib_image(story: list, path: Optional[str], width_cm: float = 6.0, hAlign: 
 
 
 def _cover(story, styles, first_name: str, birth_date: str, dominant_seph: str, spiritual_focus: str, birth_iso: str = ''):
-    story.append(Spacer(1, 2.5*cm))
+    story.append(Spacer(1, 1.8*cm))
     story.append(_p("PLUME ASTRALE · KABBALE", styles['caption']))
-    story.append(Spacer(1, 0.6*cm))
-    # Image du signe solaire (calculée depuis la date de naissance)
-    _lib_image(story, libimg.sign_from_date(birth_iso, size=2048), width_cm=6.5)
-    story.append(Spacer(1, 0.6*cm))
+    story.append(Spacer(1, 0.5*cm))
+    # Illustration Arbre de Vie (Etz Chaim) — hero centrée
+    from reportlab.platypus import Image as _RLImage
+    from pathlib import Path as _Path
+    _cover_img = _Path('/app/backend/assets/pdf_covers/arbre_de_vie_cover.png')
+    if _cover_img.exists():
+        try:
+            img = _RLImage(str(_cover_img), width=8.5*cm, height=8.5*cm, kind='proportional')
+            img.hAlign = 'CENTER'
+            story.append(img)
+        except Exception:
+            _lib_image(story, libimg.sign_from_date(birth_iso, size=2048), width_cm=6.5)
+    else:
+        _lib_image(story, libimg.sign_from_date(birth_iso, size=2048), width_cm=6.5)
+    story.append(Spacer(1, 0.5*cm))
     story.append(_p("TON ARBRE DE VIE", styles['title']))
-    story.append(Spacer(1, 0.3*cm))
+    story.append(Spacer(1, 0.2*cm))
     story.append(_p("<i>KABBALISTIQUE</i>", styles['subtitle']))
-    story.append(Spacer(1, 1.5*cm))
+    story.append(Spacer(1, 1.0*cm))
     story.append(_p(f"Etabli pour <b>{first_name}</b>", styles['italic']))
     if birth_date:
         story.append(_p(f"Ne(e) le {birth_date}", styles['meta']))
-    story.append(Spacer(1, 1.2*cm))
+    story.append(Spacer(1, 0.8*cm))
     if dominant_seph:
         story.append(_p("Ta Sephirah dominante", styles['caption']))
         story.append(Spacer(1, 0.2*cm))

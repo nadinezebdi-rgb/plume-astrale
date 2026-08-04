@@ -314,7 +314,7 @@
       "signup_click": 1
     },
     "B": {
-      "impression": 21,
+      "impression": 22,
       "cta_click": 1,
       "signup_click": 0
     }
@@ -446,6 +446,11 @@
         "calls": 12,
         "tokens": 0,
         "units": 825.0
+      },
+      "report_ai": {
+        "calls": 2,
+        "tokens": 7469,
+        "units": 0.0
       }
     }
   },

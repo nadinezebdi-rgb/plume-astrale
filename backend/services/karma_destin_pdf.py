@@ -15,6 +15,7 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle,
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.lib.pagesizes import A4
 
 # Palette Plume Astrale
 NIGHT       = colors.HexColor('#111625')
@@ -24,6 +25,33 @@ GOLD_LIGHT  = colors.HexColor('#E8C766')
 LAVENDER    = colors.HexColor('#E3D7FF')
 CREAM       = colors.HexColor('#F5EEE0')
 MUTED       = colors.HexColor('#9089B5')
+
+
+def _bg_canvas(canv, doc):
+    """Fond navy nuit + micro-étoiles + halo doré (aligné sur Kabbale)."""
+    canv.saveState()
+    W, H = A4
+    canv.setFillColor(NIGHT)
+    canv.rect(0, 0, W, H, fill=1, stroke=0)
+    # halo doré subtil en haut
+    for i, alpha in enumerate([0.02, 0.015, 0.01]):
+        canv.setFillColorRGB(0.83, 0.68, 0.21, alpha=alpha)
+        canv.circle(W/2, H, (i+1) * 6*cm, fill=1, stroke=0)
+    # micro-étoiles reproductibles
+    import random
+    r = random.Random(hash((doc.page,)))
+    for _ in range(35):
+        x = r.uniform(1*cm, W-1*cm)
+        y = r.uniform(1*cm, H-1*cm)
+        s = r.choice([0.4, 0.5, 0.6, 0.8])
+        canv.setFillColorRGB(1, 0.95, 0.75, alpha=r.uniform(0.2, 0.55))
+        canv.circle(x, y, s, fill=1, stroke=0)
+    # footer
+    canv.setFillColor(MUTED)
+    canv.setFont('Helvetica', 7)
+    canv.drawCentredString(W/2, 0.9*cm, f"Plume Astrale · Ton Analyse Karmique · page {doc.page}")
+    canv.restoreState()
+
 
 class KarmaDestinPDFGenerator:
     """Analyse karmique complète (15 pages) — Nœuds lunaires, Saturne, Chiron, karma générationnel."""
@@ -126,7 +154,7 @@ class KarmaDestinPDFGenerator:
         # Page 15: Rituels de libération
         story.extend(self._page_rituels_liberation(first_name))
         
-        doc.build(story)
+        doc.build(story, onFirstPage=_bg_canvas, onLaterPages=_bg_canvas)
         return buffer.getvalue()
     
     def _page_cover(self, name: str) -> List:
