@@ -309,12 +309,12 @@
   ],
   "landing_ab_hero_stats": {
     "A": {
-      "impression": 18,
+      "impression": 21,
       "cta_click": 1,
       "signup_click": 1
     },
     "B": {
-      "impression": 20,
+      "impression": 21,
       "cta_click": 1,
       "signup_click": 0
     }
@@ -443,9 +443,9 @@
         "units": 16.0
       },
       "tts": {
-        "calls": 3,
+        "calls": 12,
         "tokens": 0,
-        "units": 194.0
+        "units": 825.0
       }
     }
   },
