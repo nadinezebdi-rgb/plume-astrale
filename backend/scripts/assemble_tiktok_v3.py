@@ -110,6 +110,15 @@ def escape_text(s):
              .replace(',', '\\,').replace("'", '\u2019'))
 
 
+WATERMARK = (
+    f"drawtext=text='P L U M E   A S T R A L E':"
+    f"fontfile={FONT_BOLD}:"
+    f"fontsize=18:fontcolor=0xE8C766@0.85:"
+    f"borderw=1:bordercolor=black@0.5:"
+    f"x=w-text_w-24:y=28"
+)
+
+
 def drawtext(text, size, color, box_color):
     esc = escape_text(text)
     return (f"drawtext=text='{esc}':"
@@ -137,10 +146,10 @@ for scene in SCENES:
     if scene['src_type'] == 'img':
         kb = kb_filter(scene.get('kb'), scene['dur'])
         video_input = ['-loop', '1', '-t', str(scene['dur']), '-i', str(scene['src'])]
-        vf = f"{kb},{drawtext(scene['subtitle'], scene['sub_size'], scene['sub_color'], scene['sub_box'])}"
+        vf = f"{kb},{drawtext(scene['subtitle'], scene['sub_size'], scene['sub_color'], scene['sub_box'])},{WATERMARK}"
     else:
         video_input = ['-t', str(scene['dur']), '-i', str(scene['src'])]
-        vf = f"scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,{drawtext(scene['subtitle'], scene['sub_size'], scene['sub_color'], scene['sub_box'])}"
+        vf = f"scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,{drawtext(scene['subtitle'], scene['sub_size'], scene['sub_color'], scene['sub_box'])},{WATERMARK}"
     cmd = [
         'ffmpeg', '-y', *video_input,
         '-t', str(scene['dur']),

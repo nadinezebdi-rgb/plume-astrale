@@ -19,6 +19,8 @@ from reportlab.platypus import (
 from reportlab.pdfgen import canvas
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 
+from services.pdf_bg import make_bg_canvas
+
 # Palette
 NIGHT       = colors.HexColor('#111625')
 NIGHT_SOFT  = colors.HexColor('#1A2035')
@@ -198,7 +200,11 @@ class FenetreRencontrePDFGenerator:
         # Page 10: Affirmations quotidiennes + Conclusion
         story.extend(self._page_affirmations_finales(first_name))
         
-        doc.build(story)
+        doc.build(
+            story,
+            onFirstPage=make_bg_canvas('Ta Fenêtre de Rencontre'),
+            onLaterPages=make_bg_canvas('Ta Fenêtre de Rencontre'),
+        )
         return buffer.getvalue()
     
     def _page_cover(self, name: str) -> List:

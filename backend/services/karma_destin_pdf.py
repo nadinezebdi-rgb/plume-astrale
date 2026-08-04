@@ -29,28 +29,8 @@ MUTED       = colors.HexColor('#9089B5')
 
 def _bg_canvas(canv, doc):
     """Fond navy nuit + micro-étoiles + halo doré (aligné sur Kabbale)."""
-    canv.saveState()
-    W, H = A4
-    canv.setFillColor(NIGHT)
-    canv.rect(0, 0, W, H, fill=1, stroke=0)
-    # halo doré subtil en haut
-    for i, alpha in enumerate([0.02, 0.015, 0.01]):
-        canv.setFillColorRGB(0.83, 0.68, 0.21, alpha=alpha)
-        canv.circle(W/2, H, (i+1) * 6*cm, fill=1, stroke=0)
-    # micro-étoiles reproductibles
-    import random
-    r = random.Random(hash((doc.page,)))
-    for _ in range(35):
-        x = r.uniform(1*cm, W-1*cm)
-        y = r.uniform(1*cm, H-1*cm)
-        s = r.choice([0.4, 0.5, 0.6, 0.8])
-        canv.setFillColorRGB(1, 0.95, 0.75, alpha=r.uniform(0.2, 0.55))
-        canv.circle(x, y, s, fill=1, stroke=0)
-    # footer
-    canv.setFillColor(MUTED)
-    canv.setFont('Helvetica', 7)
-    canv.drawCentredString(W/2, 0.9*cm, f"Plume Astrale · Ton Analyse Karmique · page {doc.page}")
-    canv.restoreState()
+    from services.pdf_bg import make_bg_canvas
+    return make_bg_canvas('Ton Analyse Karmique')(canv, doc)
 
 
 class KarmaDestinPDFGenerator:
