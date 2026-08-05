@@ -1,5 +1,15 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 71) — Cleanup Roman/Livre dormant
+
+### Livrables (2026-02-05)
+- ✅ **Frontend** — Suppression `pages/Livre.js` + `pages/CommandeSucces.js`. Retrait imports/routes dans `App.js`. Retrait bloc "Book promotion" et imports `Book`/`Gift` dans `pages/Resultats.js`. Retrait `/commande/succes` de `PremiumStickyCTA.js` et `TrialBanner.js`.
+- ✅ **Redirections graceful** — `/livre` → `/nos-livres` et `/commande/succes` → `/nos-livres` (au cas où d'anciennes URLs seraient indexées).
+- ✅ **Backend** — Suppression `POST /api/order/book`, `GET /api/order/book/{session_id}`, `BookOrderRequest`, entrée `'book'` du `PRODUCT_CATALOG` dans `server.py`.
+- ✅ Vérifs : `grep` zéro résidu, lint Python et JS clean, backend/frontend RUNNING, endpoint POST `/api/order/book` → 404, `/livre` redirige vers `/nos-livres`.
+
+---
+
 ## 🆕 Session Feb 2026 (iter 70) — Validation Astrocarto + GSC + Cleanup
 
 ### Livrables (2026-02-05)

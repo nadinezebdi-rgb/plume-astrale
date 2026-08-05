@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Moon, Heart, Zap, Download, Mail, Share2, Sparkles, Sun, Eye, CheckCircle, Loader2, Book, Gift, Tag, Instagram, MessageCircle, Copy, Check } from 'lucide-react';
+import { Star, Moon, Heart, Zap, Download, Mail, Share2, Sparkles, Sun, Eye, CheckCircle, Loader2, Tag, Instagram, MessageCircle, Copy, Check } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -517,27 +517,6 @@ const Resultats = () => {
                     {linkCopied ? 'Copie !' : 'Copier'}
                   </button>
                 </div>
-              </div>
-            </div>
-            
-            {/* Book promotion */}
-            <div className="mt-8 p-4 rounded-sm bg-gradient-to-r from-[#D4AF37]/10 to-transparent border border-[#D4AF37]/30">
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <div className="flex items-center gap-3">
-                  <Gift className="w-8 h-8 text-[#D4AF37]" />
-                  <div className="text-left">
-                    <p className="text-[#F5EEE0] font-medium">Envie d'un livre à offrir ?</p>
-                    <p className="text-[#B8B0C8]/60 text-sm">Recevez votre manuscrit imprimé en édition reliée</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => navigate('/livre')}
-                  className="btn-mystical rounded-full flex items-center gap-2 text-sm whitespace-nowrap"
-                  data-testid="btn-order-book"
-                >
-                  <Book className="w-4 h-4" />
-                  Commander le livre • 49,90€
-                </button>
               </div>
             </div>
           </div>

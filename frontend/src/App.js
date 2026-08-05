@@ -43,8 +43,6 @@ import AnalyticsAdmin from "./pages/AnalyticsAdmin";
 import BuyCredits from "./pages/BuyCredits";
 import CreditSuccess from "./pages/CreditSuccess";
 import Choix from "./pages/Choix";
-import Livre from "./pages/Livre";
-import CommandeSucces from "./pages/CommandeSucces";
 import CharteConfiance from "./pages/CharteConfiance";
 import MonCompte from "./pages/MonCompte";
 import Temoignage from "./pages/Temoignage";
@@ -212,8 +210,8 @@ function App() {
                 <Route path="/premium/experience" element={<Navigate to="/acheter-credits" replace />} />
                 <Route path="/acheter-credits" element={<BuyCredits />} />
                 <Route path="/credits/succes" element={<CreditSuccess />} />
-                <Route path="/livre" element={<Livre />} />
-                <Route path="/commande/succes" element={<CommandeSucces />} />
+                <Route path="/livre" element={<Navigate to="/nos-livres" replace />} />
+                <Route path="/commande/succes" element={<Navigate to="/nos-livres" replace />} />
                 <Route path="/mon-compte" element={<MonCompte />} />
                 <Route path="/temoignage" element={<Temoignage />} />
                 <Route path="/temoignages" element={<TemoignagesPublic />} />

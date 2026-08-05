@@ -9,7 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 const HIDE_ON = [
   '/premium', '/paiement', '/admin', '/connexion', '/inscription',
   '/mot-de-passe-oublie', '/reinitialiser-mot-de-passe',
-  '/credits/succes', '/commande/succes', '/acheter-credits',
+  '/credits/succes', '/acheter-credits',
 ];
 
 const PremiumStickyCTA = () => {

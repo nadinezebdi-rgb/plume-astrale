@@ -2,7 +2,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 
 // Routes where banner should NOT appear (premium/payment/auth flows)
-const HIDE_ON_PATHS = ['/premium', '/paiement', '/credits/succes', '/commande/succes', '/inscription', '/connexion'];
+const HIDE_ON_PATHS = ['/premium', '/paiement', '/credits/succes', '/inscription', '/connexion'];
 
 export default function TrialBanner() {
   const location = useLocation();
