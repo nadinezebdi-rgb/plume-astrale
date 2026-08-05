@@ -1,5 +1,18 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 70) — Validation Astrocarto + GSC + Cleanup
+
+### Livrables (2026-02-05)
+- ✅ **Google Search Console** — fichier de vérification `google20ef3e9042a818bc.html` déposé dans `/app/frontend/public/`, servi HTTP 200 sur la preview. Reste à déployer en production pour finaliser la validation côté Google.
+- ✅ **Astrocartographie PDF** — vérifié visuellement (couverture + carte du monde) : fond navy `#111625`, texte crème lisible, titres dorés. **Aucun correctif nécessaire** — le générateur possède déjà son propre `_bg_canvas` local.
+- ✅ **Nettoyage `/app/backend/scripts/`** — 11 scripts one-off (assemble/gen/capture TikTok+Reels+voiceovers d'août 2025) archivés dans `scripts/_archive/` avec README. Aucun import runtime cassé (`grep from scripts.` → seul `horoscope_scheduler.py` référence `build_daily_horoscope`, conservé).
+
+### Backlog restant
+- P1 : Attente déploiement production pour finaliser la vérification GSC (le fichier n'est visible sur le domaine réel qu'après un push Deploy Emergent).
+- P2 : Suppression logique dormante "Roman/Livre" PDF.
+
+---
+
 ## 🆕 Session Aug 2026 (iter 69) — Enrichissement Page Stripe Checkout
 
 ### Contexte utilisateur
