@@ -104,7 +104,7 @@ async def self_heal_if_paid(session_id: str, already_delivered: bool, handler) -
         return
     _inflight.add(session_id)
     try:
-        from emergentintegrations.payments.stripe.checkout import StripeCheckout
+        from integrations.payments.stripe.checkout import StripeCheckout
         sc = StripeCheckout(api_key=os.environ['STRIPE_API_KEY'], webhook_url='')
         st = await sc.get_checkout_status(session_id)
         if getattr(st, 'payment_status', '') == 'paid':

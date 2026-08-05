@@ -23,7 +23,7 @@ from services.astrology_io_service import (
 )
 from services.fenetre_rencontre_pdf import generate_fenetre_rencontre_pdf
 from services.pdf_delivery import update_tx_pdf_metadata, send_pdf_email
-from emergentintegrations.payments.stripe.checkout import (
+from integrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
 

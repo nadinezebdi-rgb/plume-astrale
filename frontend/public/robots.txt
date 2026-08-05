@@ -1,9 +1,49 @@
+# robots.txt — Plume Astrale
+# Optimisé pour l'indexation SEO (2026-08)
+
 User-agent: *
 Allow: /
+
+# Pages publiques prioritaires (blog, offres, outils gratuits)
+Allow: /blog
+Allow: /premium
+Allow: /theme-natal
+Allow: /outils/
+Allow: /bibliotheque
+Allow: /rencontres-astrales
+Allow: /nos-livres
+Allow: /cercle-solena
+Allow: /mentions-legales
+Allow: /cgv
+
+# Pages transactionnelles et espaces perso — non indexables
 Disallow: /paiement/succes
 Disallow: /commande/succes
+Disallow: /lecture-complete/succes
 Disallow: /resultats
 Disallow: /apercu
 Disallow: /choix
+Disallow: /formulaire
+Disallow: /mon-compte
+Disallow: /mon-accueil
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /acheter-credits
 
+# Bots malveillants — bloqués
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: GPTBot
+Allow: /blog
+Disallow: /admin
+Disallow: /mon-compte
+
+# Sitemap
 Sitemap: https://plume-astrale.fr/sitemap.xml

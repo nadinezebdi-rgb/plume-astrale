@@ -34,23 +34,52 @@ class StripeCheckout:
 
     async def create_checkout_session(self, req: CheckoutSessionRequest) -> CheckoutSessionResponse:
         amount_cents = int(req.amount * 100)
-        session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            line_items=[{
-                "price_data": {
-                    "currency": req.currency,
-                    "unit_amount": amount_cents,
-                    "product_data": {
-                        "name": req.metadata.get("pack_name", "Plume Astrale"),
-                    },
+
+        # Enrichit la page Stripe (nom, description, image cover) via un
+        # catalogue centralisé indexé par metadata.product.
+        from .product_catalog import get_product_info
+        product_slug = req.metadata.get('product') or req.metadata.get('kind')
+        info = get_product_info(product_slug, fallback_name=req.metadata.get('pack_name', 'Plume Astrale'))
+
+        product_data: Dict[str, Any] = {'name': info['name']}
+        if info.get('description'):
+            product_data['description'] = info['description']
+        if info.get('image_url'):
+            product_data['images'] = [info['image_url']]
+
+        session_kwargs: Dict[str, Any] = {
+            'payment_method_types': ["card"],
+            'line_items': [{
+                'price_data': {
+                    'currency': req.currency,
+                    'unit_amount': amount_cents,
+                    'product_data': product_data,
                 },
-                "quantity": 1,
+                'quantity': 1,
             }],
-            mode="payment",
-            success_url=req.success_url,
-            cancel_url=req.cancel_url,
-            metadata=req.metadata,
-        )
+            'mode': "payment",
+            'success_url': req.success_url,
+            'cancel_url': req.cancel_url,
+            'metadata': req.metadata,
+            # Page Stripe en français (labels, boutons, factures)
+            'locale': 'fr',
+            # Active la case "J'ai un code promo" sur la page Stripe
+            'allow_promotion_codes': True,
+        }
+
+        custom_msg = info.get('custom_message')
+        if custom_msg:
+            session_kwargs['custom_text'] = {
+                'submit': {'message': custom_msg},
+            }
+
+        # payment_intent_data.description → apparaît dans le dashboard Stripe
+        # et sur le reçu du client
+        session_kwargs['payment_intent_data'] = {
+            'description': info['name'],
+        }
+
+        session = stripe.checkout.Session.create(**session_kwargs)
         return CheckoutSessionResponse(session_id=session.id, url=session.url)
 
     async def get_checkout_status(self, session_id: str) -> CheckoutStatusResponse:

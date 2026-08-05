@@ -23,6 +23,10 @@ import Archetype from "./pages/Archetype";
 import KabbaleSales from "./pages/KabbaleSales";
 import ThemeNatalLuxe from "./pages/ThemeNatalLuxe";
 import NosLivres from "./pages/NosLivres";
+import Blog from "./pages/Blog";
+import MentionsLegales from "./pages/MentionsLegales";
+import CGV from "./pages/CGV";
+import Footer from "./components/Footer";
 import KabbaleSucces from "./pages/KabbaleSucces";
 import AstrocartographieSales from "./pages/AstrocartographieSales";
 import AstrocartographieSucces from "./pages/AstrocartographieSucces";
@@ -120,6 +124,9 @@ function App() {
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/mentions-legales" element={<MentionsLegales />} />
+          <Route path="/cgv" element={<CGV />} />
           <Route path="/lecture-complete/succes" element={<LectureCompleteSucces />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/bibliotheque" element={<Bibliotheque />} />
@@ -237,6 +244,7 @@ function App() {
             </>
           } />
         </Routes>
+        <Footer />
       </BrowserRouter>
       </AuraProvider>
     </AuthProvider>

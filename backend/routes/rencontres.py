@@ -19,7 +19,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel, EmailStr
 from middleware.auth import get_optional_user
-from emergentintegrations.payments.stripe.checkout import (
+from integrations.payments.stripe.checkout import (
     StripeCheckout,
     CheckoutSessionRequest,
 )

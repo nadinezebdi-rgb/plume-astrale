@@ -72,7 +72,7 @@ from routes.landing import router as landing_router
 from routes.chat_support import router as chat_support_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
-from emergentintegrations.payments.stripe.checkout import (
+from integrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
 

@@ -21,6 +21,8 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 from reportlab.graphics.shapes import Drawing, Circle, Rect, Line, Polygon
 from reportlab.graphics import renderPDF
 
+from services.pdf_bg import make_bg_canvas
+
 # Palette Plume Astrale
 NIGHT       = colors.HexColor('#111625')
 NIGHT_SOFT  = colors.HexColor('#1A2035')
@@ -174,7 +176,11 @@ class NumerologiePDFGenerator:
         # Page 12: Rituels + signature
         story.extend(self._page_rituels_finaux(first_name))
         
-        doc.build(story)
+        doc.build(
+            story,
+            onFirstPage=make_bg_canvas('Ton Analyse Numérologique'),
+            onLaterPages=make_bg_canvas('Ton Analyse Numérologique'),
+        )
         return buffer.getvalue()
     
     def _page_cover(self, name: str) -> List:

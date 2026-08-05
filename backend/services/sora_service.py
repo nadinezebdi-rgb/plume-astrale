@@ -127,6 +127,13 @@ def generate_video_sync(
     dst = output_path or (_CACHE_DIR / f"sora_{video_id}.mp4")
     download_content(video_id, dst)
     logger.info(f"[sora] saved {dst} ({dst.stat().st_size // 1024} KB)")
+    # Enregistre le coût dans la jauge admin (usage sora_2 ou sora_2_pro).
+    try:
+        from services.app_settings import record_llm_call
+        usage_key = 'sora_2_pro' if model == 'sora-2-pro' else 'sora_2'
+        record_llm_call(usage_key, tokens_estimate=0, units=float(seconds))
+    except Exception:
+        pass
     return dst
 
 

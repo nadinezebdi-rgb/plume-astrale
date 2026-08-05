@@ -309,12 +309,12 @@
   ],
   "landing_ab_hero_stats": {
     "A": {
-      "impression": 17,
+      "impression": 23,
       "cta_click": 1,
       "signup_click": 1
     },
     "B": {
-      "impression": 17,
+      "impression": 23,
       "cta_click": 1,
       "signup_click": 0
     }
@@ -431,6 +431,26 @@
       "chat_support": {
         "calls": 1,
         "tokens": 65
+      },
+      "sora_2": {
+        "calls": 10,
+        "tokens": 0,
+        "units": 80.0
+      },
+      "sora_2_pro": {
+        "calls": 2,
+        "tokens": 0,
+        "units": 16.0
+      },
+      "tts": {
+        "calls": 12,
+        "tokens": 0,
+        "units": 825.0
+      },
+      "report_ai": {
+        "calls": 2,
+        "tokens": 7469,
+        "units": 0.0
       }
     }
   },

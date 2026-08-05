@@ -15,6 +15,7 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle,
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.lib.pagesizes import A4
 
 # Palette Plume Astrale
 NIGHT       = colors.HexColor('#111625')
@@ -24,6 +25,13 @@ GOLD_LIGHT  = colors.HexColor('#E8C766')
 LAVENDER    = colors.HexColor('#E3D7FF')
 CREAM       = colors.HexColor('#F5EEE0')
 MUTED       = colors.HexColor('#9089B5')
+
+
+def _bg_canvas(canv, doc):
+    """Fond navy nuit + micro-étoiles + halo doré (aligné sur Kabbale)."""
+    from services.pdf_bg import make_bg_canvas
+    return make_bg_canvas('Ton Analyse Karmique')(canv, doc)
+
 
 class KarmaDestinPDFGenerator:
     """Analyse karmique complète (15 pages) — Nœuds lunaires, Saturne, Chiron, karma générationnel."""
@@ -126,7 +134,7 @@ class KarmaDestinPDFGenerator:
         # Page 15: Rituels de libération
         story.extend(self._page_rituels_liberation(first_name))
         
-        doc.build(story)
+        doc.build(story, onFirstPage=_bg_canvas, onLaterPages=_bg_canvas)
         return buffer.getvalue()
     
     def _page_cover(self, name: str) -> List:

@@ -15,7 +15,7 @@ from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
 from services.trio_decouverte_service import handle_trio_decouverte_webhook, get_trio_status
 from middleware.auth import get_optional_user
-from emergentintegrations.payments.stripe.checkout import (
+from integrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
 
