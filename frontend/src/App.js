@@ -27,6 +27,7 @@ import NosLivres from "./pages/NosLivres";
 import Blog from "./pages/Blog";
 import MentionsLegales from "./pages/MentionsLegales";
 import CGV from "./pages/CGV";
+import Footer from "./components/Footer";
 import KabbaleSucces from "./pages/KabbaleSucces";
 import AstrocartographieSales from "./pages/AstrocartographieSales";
 import AstrocartographieSucces from "./pages/AstrocartographieSucces";
@@ -238,6 +239,7 @@ function App() {
             </>
           } />
         </Routes>
+        <Footer />
       </BrowserRouter>
       </AuraProvider>
     </AuthProvider>
