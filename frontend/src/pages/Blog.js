@@ -33,9 +33,16 @@ export default function Blog() {
       'description',
       "Articles de fond sur l'astrologie karmique, le tarot, la numérologie et la Kabbale. Écrits par Soléna pour t'accompagner dans ton chemin d'évolution."
     );
+    const metaAuthor = upsertMeta('name', 'author', 'Soléna · Plume Astrale');
+    const metaKeywords = upsertMeta('name', 'keywords', 'astrologie, karma, numérologie, tarot, kabbale, chemin de vie, thème natal, horoscope personnalisé, Soléna, plume astrale');
     const ogTitle = upsertMeta('property', 'og:title', 'Blog Plume Astrale');
     const ogType = upsertMeta('property', 'og:type', 'blog');
     const ogUrl = upsertMeta('property', 'og:url', 'https://plume-astrale.fr/blog');
+    const ogImage = upsertMeta('property', 'og:image', 'https://plume-astrale.fr/logo512.png');
+    const ogSite = upsertMeta('property', 'og:site_name', 'Plume Astrale');
+    const twCard = upsertMeta('name', 'twitter:card', 'summary_large_image');
+    const twTitle = upsertMeta('name', 'twitter:title', 'Blog Plume Astrale');
+    const twDesc = upsertMeta('name', 'twitter:description', metaDesc.getAttribute('content'));
     const canonical = (() => {
       let el = document.querySelector('link[rel="canonical"]');
       if (!el) {
@@ -47,7 +54,7 @@ export default function Blog() {
       return el;
     })();
 
-    // JSON-LD Blog schema (aide Google à comprendre la nature du contenu)
+    // JSON-LD Blog schema + Publisher (aide Google E-A-T)
     const ld = document.createElement('script');
     ld.type = 'application/ld+json';
     ld.text = JSON.stringify({
@@ -56,10 +63,27 @@ export default function Blog() {
       name: 'Blog Plume Astrale',
       url: 'https://plume-astrale.fr/blog',
       description: metaDesc.getAttribute('content'),
+      inLanguage: 'fr-FR',
+      author: {
+        '@type': 'Person',
+        name: 'Soléna',
+        jobTitle: 'Astrologue · Numérologue · Kabbaliste',
+        url: 'https://plume-astrale.fr',
+      },
       publisher: {
         '@type': 'Organization',
         name: 'Plume Astrale',
         url: 'https://plume-astrale.fr',
+        logo: {
+          '@type': 'ImageObject',
+          url: 'https://plume-astrale.fr/logo512.png',
+          width: 512,
+          height: 512,
+        },
+      },
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://plume-astrale.fr/blog',
       },
     });
     document.head.appendChild(ld);

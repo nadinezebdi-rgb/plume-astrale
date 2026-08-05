@@ -355,6 +355,21 @@ const Navbar = () => {
 
               {/* Vitrine — Thème Natal Complet 29€ one-shot (Gary Vee refonte 2026-02) */}
               <Link
+                to="/blog"
+                data-testid="navbar-blog-link"
+                style={{
+                  fontSize: 11, letterSpacing: '0.10em', textTransform: 'uppercase',
+                  textDecoration: 'none', padding: '7px 12px',
+                  color: 'rgba(212,175,55,0.85)', fontWeight: 500,
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#E8C766'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(212,175,55,0.85)'; }}
+              >
+                Blog
+              </Link>
+
+              <Link
                 to="/theme-natal"
                 data-testid="navbar-natal-vitrine"
                 style={{
@@ -476,6 +491,18 @@ const Navbar = () => {
               <div style={{ margin: '8px 0', borderTop: '1px solid rgba(212,175,55,0.1)' }} />
 
               {/* Vitrine — Thème Natal Complet 29€ (mobile) */}
+              <Link
+                to="/blog"
+                data-testid="mobile-navbar-blog-link"
+                style={{
+                  display: 'block', padding: '12px 0', fontSize: 13,
+                  color: 'rgba(212,175,55,0.85)', textDecoration: 'none',
+                  letterSpacing: '.08em', textTransform: 'uppercase',
+                }}
+              >
+                Blog
+              </Link>
+
               <Link
                 to="/theme-natal"
                 data-testid="mobile-navbar-natal-vitrine"
