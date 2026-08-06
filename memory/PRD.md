@@ -1,5 +1,30 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 74) — Mega Menu + Rollout NosLivres + Témoignages
+
+### Livrables (2026-02-06)
+- ✅ **Catalog centralisé** (`config/catalog.js`) — 7 LECTURES + 6 OUTILS avec titre, tagline, prix, route. Source de vérité partagée entre NavbarV2 et NosLivres.
+- ✅ **NavbarV2 mega menu** — dropdown "Services" ouvre panneau plein-largeur navy avec 2 colonnes :
+  - Lectures premium PDF (grid 2x4, chaque lecture avec titre Playfair + tagline + prix doré, Pack Karmique highlighted en écrin)
+  - Outils interactifs (list dense sans prix)
+  - Footer link "Voir toute la bibliothèque →"
+  - Mobile : accordéon expandable dans le panneau plein-écran hamburger, avec sous-titres "Lectures PDF" et "Outils"
+- ✅ **NosLivres v3** — réécrit sur charte light : hero + grid 7 cards (blanches, hover shadow gold), Pack Karmique en bordure dorée avec badge "L'OFFRE ÉCRIN", section sombre "Comment ça marche" avec 3 bénéfices (Download/Mail/ShieldCheck), CTA final light.
+- ✅ **TémoignagesPublic v3** — réécrit sur charte light : hero, filtres card blanche avec search + chips signes, grid témoignages avec avatar dégradé doré, quote Playfair italique bordée-left dorée, avant/après en petit.
+- ✅ **App.js** — routes `/nos-livres` et `/temoignages` déplacées au top-level (hors catch-all) pour éviter les navbars doubles. Doublons supprimés.
+
+### Vérifs
+- Lint JS : NavbarV2, NosLivres, TemoignagesPublic, App.js — clean.
+- Screenshots : Nos livres avec cards (7 lectures + Pack Karmique highlight), Nos livres section sombre "Comment ça marche", Témoignages avec 4 cards, Mega menu ouvert sur Homepage avec 2 colonnes visibles — tous validés.
+- Le mega menu couvre 13 destinations (7 lectures + 6 outils) — plus aucun outil n'est enclavé.
+
+### Encore à faire (backlog)
+- Newsletter Blog (mail hebdo Soro article dimanche).
+- Migration progressive des autres pages secondaires (ThemeNatalLuxe, Kabbale, Astrocartographie, KarmaDestin, Numérologie PDF, PackKarmique, Synastrie) — actuellement gardent le style dark mystic legacy.
+- Validation GSC après redéploiement production (fichier `google20ef3e9042a818bc.html` déjà en place).
+
+---
+
 ## 🆕 Session Feb 2026 (iter 73) — Phase 2 Rollout + Contact + Fix wording "livres"
 
 ### Contexte

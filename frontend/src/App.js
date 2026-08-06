@@ -126,6 +126,8 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/cgv" element={<CGV />} />
+          <Route path="/nos-livres" element={<NosLivres />} />
+          <Route path="/temoignages" element={<TemoignagesPublic />} />
           <Route path="/lecture-complete/succes" element={<LectureCompleteSucces />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/bibliotheque" element={<Bibliotheque />} />
@@ -198,7 +200,6 @@ function App() {
                 <Route path="/resultats" element={<Resultats />} />
                 <Route path="/kabbale" element={<KabbaleSales />} />
                 <Route path="/theme-natal-luxe" element={<ThemeNatalLuxe />} />
-                <Route path="/nos-livres" element={<NosLivres />} />
                 <Route path="/kabbale/succes" element={<KabbaleSucces />} />
                 <Route path="/astrocartographie" element={<AstrocartographieSales />} />
                 <Route path="/astrocartographie/succes" element={<AstrocartographieSucces />} />
@@ -216,7 +217,6 @@ function App() {
                 <Route path="/commande/succes" element={<Navigate to="/nos-livres" replace />} />
                 <Route path="/mon-compte" element={<MonCompte />} />
                 <Route path="/temoignage" element={<Temoignage />} />
-                <Route path="/temoignages" element={<TemoignagesPublic />} />
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
                 <Route path="/consultation" element={<Navigate to="/outils/consultation" replace />} />
                 <Route path="/energie" element={<Navigate to="/outils/energie" replace />} />
