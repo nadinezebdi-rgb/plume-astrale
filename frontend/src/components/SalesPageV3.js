@@ -184,7 +184,7 @@ export default function SalesPageV3({
           <div style={{ maxWidth: 720, marginBottom: 56 }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Ce que ta lecture contient</p>
             <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 16 }}>
-              {pages} pages, <span className="ps-italic">écrites à la main</span> pour toi.
+              {pages} pages, <span className="ps-italic">personnalisées à partir de ton thème</span> natal.
             </h2>
           </div>
           <div style={{

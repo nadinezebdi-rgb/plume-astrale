@@ -25,8 +25,8 @@ const SOLENA_PORTRAIT = 'https://customer-assets-0z36b82j.emergentagent.net/job_
 const VALUE_PILLARS = [
   {
     icon: Feather,
-    title: 'Écrite à la main',
-    body: 'Chaque lecture est composée pour toi, pas générée. Soléna prend ton thème natal complet et le traduit en récit intime.',
+    title: 'Personnalisée pour toi',
+    body: 'Chaque lecture est composée à partir de tes propres données de naissance — pas une variation générique par signe. Ton ciel, ton texte.',
   },
   {
     icon: Compass,
@@ -86,13 +86,21 @@ export default function Homepage() {
       <SEO
         path="/"
         title="Plume Astrale · Ta lecture astrologique écrite par Soléna"
-        description="Une lecture personnelle de ton thème natal, écrite à la main par Soléna. Livrée en 48h, à conserver longtemps."
+        description="Une lecture astrologique personnalisée à partir de tes données de naissance, composée par Soléna. Livrée en PDF premium en quelques minutes."
       />
 
       {/* ═══ SECTION 1 · HERO SOMBRE ═══ */}
       <section className="ps-section ps-section-dark" data-testid="ps-hero">
-        <CelestialBackdrop density={100} shootingStars interval={11000} />
-        <LiveConstellation sign="aquarius" size={520} />
+        <CelestialBackdrop density={180} shootingStars interval={8000} />
+        {/* Constellation zodiacale du mois — positionnée à gauche derrière le texte */}
+        <div style={{
+          position: 'absolute',
+          left: '2%', top: '10%',
+          width: 'min(560px, 42%)', height: '82%',
+          pointerEvents: 'none', zIndex: 0,
+        }} aria-hidden="true">
+          <LiveConstellation sign="auto" size={520} />
+        </div>
         <div className="ps-container">
           <div style={{
             display: 'grid',
@@ -232,7 +240,7 @@ export default function Homepage() {
 
       {/* ═══ SECTION 3 · L'HISTOIRE DE SOLÉNA (SOMBRE) ═══ */}
       <section className="ps-section ps-section-dark" data-testid="ps-story">
-        <CelestialBackdrop density={70} shootingStars interval={14000} />
+        <CelestialBackdrop density={140} shootingStars interval={10000} />
         <div className="ps-container">
           <div className="ps-narrow" style={{ textAlign: 'left' }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>La plume derrière les lectures</p>
@@ -241,8 +249,8 @@ export default function Homepage() {
             </h2>
             <p className="ps-body" style={{ color: 'rgba(247,245,240,0.85)', marginBottom: 20 }}>
               Astrologue formée à la tradition occidentale et à la kabbale hébraïque, Soléna
-              travaille lentement, à la main. Elle refuse le tout-automatique. Elle prend le
-              temps qu&apos;il faut pour t&apos;écrire.
+              travaille chaque lecture sur mesure. À partir de ta date, ton heure et ton lieu de naissance,
+              chaque paragraphe est composé spécifiquement pour toi — jamais d&apos;horoscope générique.
             </p>
             <p className="ps-body" style={{ color: 'rgba(247,245,240,0.85)', marginBottom: 32 }}>
               Chaque texte est une conversation posée, précise, apaisée. Une main tendue par
@@ -265,7 +273,7 @@ export default function Homepage() {
               Choisis <span className="ps-italic">la lecture</span> qui te parle en ce moment.
             </h2>
             <p className="ps-body" style={{ color: '#232323', maxWidth: 640 }}>
-              Chaque lecture est un PDF premium à télécharger, écrit à la main pour toi. Livraison instantanée par email.
+              Chaque lecture est un PDF premium à télécharger, personnalisé à partir de ton thème natal complet. Livraison instantanée par email.
             </p>
           </div>
 
@@ -320,7 +328,7 @@ export default function Homepage() {
 
       {/* ═══ SECTION 5 · TÉMOIGNAGES (SOMBRE) ═══ */}
       <section className="ps-section ps-section-dark" data-testid="ps-testimonials">
-        <CelestialBackdrop density={70} shootingStars interval={13000} />
+        <CelestialBackdrop density={140} shootingStars interval={10000} />
         <div className="ps-container">
           <div style={{ marginBottom: 56, maxWidth: 640 }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Ce qu&apos;elles en disent</p>

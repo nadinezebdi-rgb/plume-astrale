@@ -40,7 +40,7 @@ export default function FooterV2() {
               color: 'rgba(247,245,240,0.60)', maxWidth: 260,
             }}>
               L&apos;astrologie qui sait ton prénom.<br />
-              Écrite à la main par Soléna.
+              Personnalisée à partir de ton ciel.
             </p>
           </div>
 

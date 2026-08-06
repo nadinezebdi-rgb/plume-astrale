@@ -1,5 +1,33 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 79) — Zodiaque auto + constellation à gauche + texture papier + wording
+
+### Livrables (2026-02-06)
+- ✅ **`LiveConstellation` étoffée** avec les **12 constellations zodiacales complètes** (Bélier, Taureau, Gémeaux, Cancer, Lion, Vierge, Balance, Scorpion, Sagittaire, Capricorne, Verseau, Poissons). Chacune a 5-9 étoiles + lignes de connexion astronomiquement fidèles.
+- ✅ **`getCurrentZodiacSign(date)`** — fonction exportée qui détermine le signe en cours (tropical zodiac). Utilisée via `sign="auto"` sur la homepage. Vérifié en preview : Lion affiché ce 6 août 2026 (période 23 juillet - 22 août) ✓.
+- ✅ **Micro-label** discret sous la constellation : nom du signe en Inter uppercase letter-spacing gold rgba, fade-in 3s après chargement.
+- ✅ **Homepage hero** — constellation repositionnée en **absolute left 2% top 10%** (largeur 42% max), size 520. Ne masque plus le portrait Soléna à droite mais habille le texte à gauche.
+- ✅ **Densité étoiles augmentée** dans toutes les dark sections : Hero 100 → **180** + interval shooting 11s → **8s**. Story/Témoignages 70 → **140**. Interval shooting 14s → **10s**.
+- ✅ **Texture papier** sur `.ps-section-light::before` : SVG feTurbulence data-URI + 2 halos radiaux (doré haut-droite + navy bas-gauche) en `mix-blend-mode: multiply`. Résultat : sections claires vibrantes et vivantes sans agression.
+- ✅ **Wording "à la main" → "personnalisée"** partout où visible en v3 :
+  - `Homepage.js` : pillar 1 "Écrite à la main" → "**Personnalisée pour toi**" (nouveau texte : "composée à partir de tes propres données de naissance").
+  - `Homepage.js` : Story "travaille lentement, à la main" → "**travaille chaque lecture sur mesure. À partir de ta date, ton heure et ton lieu de naissance**".
+  - `Homepage.js` : Services p → "**personnalisé à partir de ton thème natal**".
+  - `SalesPageV3.js` : H2 dark section → "{pages} pages, **personnalisées à partir de ton thème** natal".
+  - `FooterV2.js` : tagline → "**Personnalisée à partir de ton ciel**".
+  - `NosLivres.js` + `KabbaleSales.js` : SEO descriptions et intro corrigées.
+
+### Vérifs
+- Lint clean sur Homepage.
+- Screenshots : Homepage hero avec Lion à gauche (constellation vivante bien visible derrière H1), texture papier discrète sur toutes les sections claires (Contact, Nos livres, Services, Valeur), copy "Personnalisée pour toi" au lieu de "Écrite à la main".
+
+### Encore à faire (backlog)
+- Newsletter Blog (mail hebdo Soro article dimanche).
+- Curseur étoilé (mini stars qui suivent la souris) — optionnel.
+- Dashboard leads pour les emails captés via les extraits.
+
+---
+
 ## 🆕 Session Feb 2026 (iter 78) — Suppression bandeau défilant
 
 ### Livrables (2026-02-06)
