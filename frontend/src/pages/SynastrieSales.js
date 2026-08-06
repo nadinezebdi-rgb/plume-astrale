@@ -1,5 +1,6 @@
 import React from 'react';
 import SalesPageV3 from '@/components/SalesPageV3';
+import { APERCUS } from '@/config/apercus';
 
 const INCLUDES = [
   { title: 'Vos deux Soleils croisés', text: 'Ce que vos élans essentiels se disent — attraction fondamentale ou danse à ajuster.' },
@@ -32,6 +33,7 @@ export default function SynastrieSales() {
       deliveryTime="10 min"
       includes={INCLUDES}
       testimonials={TESTIMONIALS}
+      apercu={APERCUS.synastry}
       guarantee="Clarté ou remboursée — 14 jours"
       ctaLabelAuth="Générer notre Synastrie"
       ctaLabelGuest="Analyser notre lien · 49€"

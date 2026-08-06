@@ -71,6 +71,7 @@ from routes.lecture_complete import router as lecture_complete_router
 from routes.landing import router as landing_router
 from routes.chat_support import router as chat_support_router
 from routes.contact import router as contact_router
+from routes.apercu_discount import router as apercu_discount_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from integrations.payments.stripe.checkout import (
@@ -138,6 +139,7 @@ api_router.include_router(lecture_complete_router)
 api_router.include_router(landing_router)
 api_router.include_router(chat_support_router)
 api_router.include_router(contact_router)
+api_router.include_router(apercu_discount_router)
 
 
 # ════════════════════════════════════════════

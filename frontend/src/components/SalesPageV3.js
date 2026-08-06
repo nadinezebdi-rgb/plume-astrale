@@ -325,6 +325,7 @@ export default function SalesPageV3({
           open={apercuOpen}
           onClose={() => setApercuOpen(false)}
           apercu={apercu}
+          productSlug={slug}
           ctaLabel={ctaLabel}
           onCta={() => { setApercuOpen(false); handleCta(); }}
         />

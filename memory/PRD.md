@@ -1,5 +1,41 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 76) — Aperçus complets + Réduction Retour -10%
+
+### Livrables (2026-02-06)
+- ✅ **Aperçus manquants complétés** dans `config/apercus.js` :
+  - `karmique` : chapitre inédit « Synthèse d'âme croisée » — 2 pages qui n'existent QUE dans le Pack Karmique.
+  - `synastry` : chapitre « Vos deux Vénus : Cancer × Scorpion » — un couple fictif Camille × Marc, 2 pages.
+- ✅ **`PackKarmique.js` + `SynastrieSales.js`** — passent désormais l'aperçu au template `SalesPageV3`. Bouton "Lire un extrait gratuit" activé sur les 7 pages produit.
+- ✅ **Backend `POST /api/apercu/discount`** (`routes/apercu_discount.py`) :
+  - Body : `{ email, product_slug }` avec validation Pydantic (EmailStr).
+  - Rate limit 60s/IP + honeypot-free.
+  - Envoi via Resend d'un mail HTML éditorial (Playfair + code MERCI10 mis en avant dans un cadre doré doubles pointillés + CTA "Recevoir {product}").
+  - Log lead dans Mongo `apercu_discount_leads` (best-effort, non-bloquant).
+  - Signé « — Soléna ».
+- ✅ **`ApercuLectureModal` refondu** — bloc "Réduction Bienvenue" ajouté sous le CTA principal :
+  - Card ivoire bordée or, icône Gift + eyebrow doré
+  - Titre Playfair "Envie de -10% sur ta lecture ?" avec `-10%` en italique doré
+  - Input email + bouton doré "M'envoyer -10%"
+  - États : idle → loading → success (feedback vert avec CheckCircle) / error (rouge avec AlertCircle)
+  - `productSlug` passé depuis `SalesPageV3` pour personnaliser le mail.
+- ✅ Router `apercu_discount_router` monté dans `server.py`.
+
+### Tests
+- Curl : 200 avec code MERCI10, 429 rate-limit, 422 validation email invalide → PASS.
+- Screenshot : modal Pack Karmique avec extrait + bloc discount visible en bas, formulaire fonctionnel, aperçu Synastrie rendu Playfair magnifique.
+
+### Config à prévoir côté Stripe
+- Créer dans Stripe Dashboard → Coupons → un coupon `MERCI10` (10% off, one-time use per customer).
+- La variable `APERCU_PROMO_CODE` dans `.env` permet de changer le nom du code sans redéploiement.
+
+### Encore à faire (backlog)
+- Newsletter Blog (mail hebdo Soro article dimanche).
+- Position badge "L'OFFRE ÉCRIN" sur Pack Karmique (léger overlap avec le prix).
+- Validation GSC après redéploiement production.
+
+---
+
 ## 🆕 Session Feb 2026 (iter 75) — Refonte pages produit + Aperçu Lecture
 
 ### Livrables (2026-02-06)

@@ -149,4 +149,66 @@ Concrètement, cela veut dire : ne quitte pas ton travail cette année, même si
     ],
     hint: 'La lecture complète décode ton chemin de vie, ton année personnelle, tes 3 nombres d\'expression et clôt sur ton mantra numérique personnel.',
   },
+
+  karmique: {
+    label: 'Pack Karmique',
+    hook: 'Voici comment Soléna ouvre la « Synthèse d\'âme croisée » — chapitre inédit du Pack — pour une lectrice fictive.',
+    pages: [
+      {
+        chapter: 'SYNTHÈSE — Ta trame karmique + kabbalistique croisée',
+        eyebrow: 'Extrait · 2 pages sur 40',
+        body: `Chère Camille,
+
+Ce chapitre-ci n'existe dans aucune autre lecture. Il n'apparaît que dans le Pack Karmique, parce qu'il ne peut être écrit qu'en croisant ton empreinte karmique et ton Arbre de Vie.
+
+Voici ce que la croisée révèle chez toi :
+
+Ton Nœud Sud (Bélier, la guerrière) et ton Sephirah dominant Chesed (la miséricorde qui déborde) forment un tandem que je n'observe que rarement. Tu portes, en même temps, la mémoire de celle qui a dû se battre seule et la vibration de celle qui veut tout donner à tout le monde.
+
+Ce n'est pas contradictoire. C'est une flèche karmique très rare : ton âme est venue apprendre à donner AVEC des limites. À aimer AVEC un cadre. À être miséricordieuse SANS s'oublier.`,
+      },
+      {
+        chapter: 'SYNTHÈSE — suite',
+        body: `Concrètement, ton karma te met dans des situations où tu veux tout offrir — puis tu explodes de fatigue. Ta Kabbale te dit : cette explosion est un rappel de Geburah (la Rigueur) qui essaie de reprendre sa place.
+
+Ta pratique pour cette vie-ci : chaque décision généreuse doit être précédée d'une question intérieure — « Est-ce que je peux tenir cet engagement encore dans trois semaines, sans en vouloir à personne ? » Si la réponse est non, tu dis non maintenant.
+
+C'est douloureux au début. Ton Bélier karmique déteste dire non — il préfère se battre. Ton Chesed déteste dire non — il préfère déborder. Mais ta Geburah t'attend.
+
+Une fois cette voix installée, quelque chose de nouveau va se produire : les gens autour de toi vont apprendre à te demander mieux. Ils ne le savent pas encore, mais ta vie est en train de leur apprendre à demander avec précision.`,
+      },
+    ],
+    hint: 'Le Pack Karmique complet est un PDF de 40 pages qui unit ton empreinte karmique (22p), ton Arbre de Vie (15p) et cette synthèse croisée (3p) inédite.',
+  },
+
+  synastry: {
+    label: 'Astrologie relationnelle',
+    hook: 'Voici comment Soléna ouvre le chapitre « Vos deux Vénus » pour un couple fictif : Camille (Vénus Cancer) et Marc (Vénus Scorpion).',
+    pages: [
+      {
+        chapter: 'CHAPITRE III — Vos deux Vénus : Cancer × Scorpion',
+        eyebrow: 'Extrait · 2 pages sur 25',
+        body: `Camille & Marc,
+
+Vos deux Vénus tissent une conversation d'eau — Cancer chez toi Camille, Scorpion chez toi Marc. C'est l'un des accords les plus profonds que la synastrie peut produire, mais aussi l'un des plus exigeants.
+
+Vénus Cancer donne dans la tendresse enveloppante. Elle veut nourrir, protéger, contenir. Elle aime dans le foyer, dans le rituel du soir, dans le geste répété qui rassure.
+
+Vénus Scorpion, elle, aime dans la profondeur, dans l'exclusivité, dans l'intensité qui ne se dilue jamais. Elle ne demande pas la surface — elle demande le fond.
+
+Ce que la synastrie révèle : quand vous vous rencontrez, Marc, tu perçois chez Camille une eau qui te repose enfin. Elle ne cherche pas à te fuir. Elle veut te contenir. Et toi Camille, tu perçois chez Marc une profondeur qui t'accueille — quelqu'un qui veut aller aussi loin que ton silence.`,
+      },
+      {
+        chapter: 'CHAPITRE III — suite',
+        body: `Le piège à surveiller : la Vénus Cancer peut, sous stress, se replier dans la bouderie muette. La Vénus Scorpion peut, sous stress, se venger silencieusement. Deux Vénus d'eau qui se ferment en même temps, c'est un couple qui peut ne plus se parler pendant trois jours sans même savoir pourquoi.
+
+Votre garde-fou : le rituel du dimanche soir. 20 minutes, sans écran, sans autre présence. Chacun dit à l'autre une chose qu'il/elle a apprécié cette semaine chez l'autre — précise, concrète, courte. Puis une chose qu'il/elle voudrait ajuster. Sans reproche, sans défense.
+
+Vos deux Vénus vous demandent cette ancre hebdomadaire. Sans elle, l'eau stagne. Avec elle, l'eau circule.
+
+Tenez ce rituel pendant six mois. Vous ne le lâcherez plus.`,
+      },
+    ],
+    hint: 'La lecture complète décode vos 2 Soleils, 2 Lunes, 2 Vénus, 2 Mars, aspects majeurs croisés, karma relationnel et clôt sur un rituel du couple.',
+  },
 };

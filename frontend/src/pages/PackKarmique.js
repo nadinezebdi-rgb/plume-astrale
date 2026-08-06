@@ -1,5 +1,6 @@
 import React from 'react';
 import SalesPageV3 from '@/components/SalesPageV3';
+import { APERCUS } from '@/config/apercus';
 
 const INCLUDES = [
   { title: 'Ton empreinte karmique', text: '22 pages sur tes Nœuds lunaires, ta Lune Noire et ton Chiron — l\'héritage d\'âme complet.' },
@@ -33,6 +34,7 @@ export default function PackKarmique() {
       heroBadge="L'offre écrin"
       includes={INCLUDES}
       testimonials={TESTIMONIALS}
+      apercu={APERCUS.karmique}
       guarantee="Clarté ou remboursée — 14 jours"
       ctaLabelAuth="Générer mon Pack Karmique"
       ctaLabelGuest="Recevoir mon Pack Karmique · 89€"
