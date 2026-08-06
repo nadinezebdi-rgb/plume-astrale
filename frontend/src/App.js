@@ -7,8 +7,7 @@ import TrialBanner from "./components/TrialBanner";
 
 import Index from "./pages/Homepage";
 import LectureCompleteSucces from "./pages/LectureCompleteSucces";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
+import AuthPage from "./pages/AuthPage";
 import Tarot from "./pages/Tarot";
 import Formulaire from "./pages/Formulaire";
 import Apercu from "./pages/Apercu";
@@ -92,6 +91,7 @@ import AuraProvider from "./components/design/AuraProvider";
 import LiveSalesCounter from "./components/LiveSalesCounter";
 import LaunchBanner from "./components/LaunchBanner";
 import { captureReferralFromURL } from "./lib/referral";
+import ShootingStars from "./components/design/ShootingStars";
 import { useLocation } from "react-router-dom";
 
 function GlobalOverlays() {
@@ -101,6 +101,7 @@ function GlobalOverlays() {
   return (
     <>
       <Starfield />
+      <ShootingStars />
       <NoiseOverlay />
       <MobileTabBar />
       {!isLanding && <LiveSalesCounter />}
@@ -160,8 +161,8 @@ function App() {
             <>
               <Navbar />
               <Routes>
-                <Route path="/inscription" element={<Register />} />
-                <Route path="/connexion" element={<Login />} />
+                <Route path="/inscription" element={<AuthPage />} />
+                <Route path="/connexion" element={<AuthPage />} />
                 <Route path="/mon-accueil" element={<AuthenticatedHome />} />
                 <Route path="/formulaire" element={<Formulaire />} />
                 <Route path="/apercu" element={<Apercu />} />
@@ -194,6 +195,7 @@ function App() {
                 <Route path="/tarot-oui-non" element={<Navigate to="/outils/tarot/oui-non" replace />} />
                 <Route path="/tarot" element={<Navigate to="/outils/tarot" replace />} />
                 <Route path="/compatibilite-amoureuse" element={<Navigate to="/outils/compatibilite" replace />} />
+                <Route path="/compatibilite" element={<Navigate to="/outils/compatibilite" replace />} />
                 <Route path="/mon-rituel" element={<Navigate to="/outils/rituel" replace />} />
                 <Route path="/chat-astral" element={<Navigate to="/outils/consultation" replace />} />
                 <Route path="/cercle-quotidien" element={<Navigate to="/communaute" replace />} />
@@ -226,7 +228,8 @@ function App() {
                 <Route path="/oracle" element={<Navigate to="/outils/oracle" replace />} />
                 <Route path="/mon-rituel" element={<Navigate to="/outils/rituel" replace />} />
                 <Route path="/revolution-solaire" element={<Navigate to="/outils/revolution-solaire" replace />} />
-                <Route path="/love-languages" element={<Navigate to="/outils/love-languages" replace />} />
+                <Route path="/horoscope" element={<Navigate to="/outils/horoscope" replace />} />
+                <Route path="/numerologie" element={<Navigate to="/outils/numerologie" replace />} />
                 <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
                 <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
                 <Route path="/notre-cadre" element={<NotreCadre />} />
@@ -234,6 +237,8 @@ function App() {
                 <Route path="/synastrie/succes" element={<SynastrieSucces />} />
                 <Route path="/astrosexo" element={<Navigate to="/outils/astrosexo" replace />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
+                {/* Catch-all : aucune route interne ne correspond -> retour accueil */}
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
               <CookieConsent />
             </>
