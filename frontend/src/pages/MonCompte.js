@@ -597,7 +597,7 @@ const MonCompte = () => {
     setReportsLoading(true);
     try {
       const res = await axios.get(`${API_URL}/api/reports`, {
-        headers: { Authorization: `****** },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setArchivedReports(res.data?.reports || []);
     } catch {
@@ -612,7 +612,7 @@ const MonCompte = () => {
     setReportPdfLoading(report.id);
     try {
       const res = await axios.get(`${API_URL}/api/reports/${report.id}/pdf`, {
-        headers: { Authorization: `****** },
+        headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
