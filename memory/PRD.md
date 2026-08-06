@@ -1,5 +1,17 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 78) — Suppression bandeau défilant
+
+### Livrables (2026-02-06)
+- ✅ `App.js` — retiré `import LaunchBanner` et son rendu conditionnel `{!isLanding && <LaunchBanner />}` dans `GlobalOverlays`.
+- ✅ `index.css` — supprimé le `padding-top: 40px` global du `body` qui compensait la hauteur du bandeau fixed.
+- ✅ Vérifs screenshots : Homepage, Kabbale (avec constellation + étoile filante capturée bonus), NosLivres — plus aucun bandeau défilant en haut. Navbar V2 en tête direct.
+
+### Note
+- Le composant `LaunchBanner.js` n'est pas supprimé du filesystem (au cas où) mais plus référencé nulle part.
+
+---
+
 ## 🆕 Session Feb 2026 (iter 77) — Étoiles scintillantes + constellation vivante
 
 ### Livrables (2026-02-06)
