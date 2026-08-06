@@ -198,7 +198,7 @@ async def handle_astrocartographie_webhook(session_id: str) -> None:
     # 6) Envoi email
     if email and pdf_bytes:
         try:
-           await _send_astrocarto_email(email, first_name, pdf_bytes, filename, pdf_url=md.get('pdf_supabase_url', ''), session_id=session_id) 
+            await _send_astrocarto_email(email, first_name, pdf_bytes, filename, pdf_url=md.get('pdf_supabase_url', ''), session_id=session_id)
             md['email_sent_at'] = datetime.now(timezone.utc).isoformat()
             sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
         except Exception as e:
