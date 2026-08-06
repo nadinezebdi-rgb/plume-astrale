@@ -123,14 +123,14 @@ async def handle_kabbale_webhook(session_id: str) -> None:
     # 3) Envoi email best-effort
     if email and pdf_bytes:
         try:
-            await _send_kabbale_email(email, first_name, pdf_bytes, filename, session_id=session_id)
+            await _send_kabbale_email(email, first_name, pdf_bytes, filename, session_id=session_id, pdf_url=md.get('pdf_supabase_url', ''))
             md['email_sent_at'] = datetime.now(timezone.utc).isoformat()
             sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
         except Exception as e:
             logger.warning(f"[kabbale] email failed for {session_id}: {e}")
 
 
-async def _send_kabbale_email(email: str, first_name: str, pdf_bytes: bytes, filename: str, session_id: str | None = None) -> None:
+async def _send_kabbale_email(email: str, first_name: str, pdf_bytes: bytes, filename: str, session_id: str | None = None, pdf_url: str = '') -> None:
     """Envoi email Resend avec PDF en piece jointe."""
     from services.email_journal import log_send_attempt, log_send_response
 
@@ -200,17 +200,22 @@ async def _send_kabbale_email(email: str, first_name: str, pdf_bytes: bytes, fil
     </div>
     """
 
+    pdf_url = pdf_url or ''
+    if pdf_url:
+        _btn = f'<div style="text-align:center;margin:24px 0;"><a href="{pdf_url}" style="display:inline-block;background:#D4AF37;color:#111625;font-weight:700;padding:14px 30px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;">Télécharger ton document →</a></div>'
+        _i = html.rfind('</div>')
+        html = (html[:_i] + _btn + html[_i:]) if _i != -1 else (html + _btn)
+
+    MAX_ATTACH = 30 * 1024 * 1024  # marge sous la limite Resend (40 Mo)
+    payload = {'from': sender, 'to': [email], 'subject': subject, 'html': html}
+    if pdf_bytes and len(pdf_bytes) <= MAX_ATTACH:
+        payload['attachments'] = [{'filename': filename, 'content': pdf_b64}]
+
     async with httpx.AsyncClient(timeout=30) as client:
         r = await client.post(
             'https://api.resend.com/emails',
             headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
-            json={
-                'from': sender,
-                'to': [email],
-                'subject': subject,
-                'html': html,
-                'attachments': [{'filename': filename, 'content': pdf_b64}],
-            },
+            json=payload,
         )
         resend_id = None
         try:
