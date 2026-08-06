@@ -22,7 +22,7 @@ from services.supabase_client import get_admin_client
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix='/api/reports', tags=['reports'])
+router = APIRouter(prefix='/reports', tags=['reports'])
 
 # ─── Types supportés ──────────────────────────────────────────────────────────
 REPORT_TYPES = {
@@ -165,7 +165,6 @@ async def generate_report_pdf(
     # ── Stockage Supabase Storage ─────────────────────────────────────────────
     file_name = f'{uuid.uuid4().hex[:16]}.pdf'
     storage_path = f'{report_type}/{file_name}'
-    pdf_path_stored = ''
     try:
         sb = get_admin_client()
         sb.storage.from_('reports').upload(
@@ -173,9 +172,16 @@ async def generate_report_pdf(
             pdf_bytes,
             {'content-type': 'application/pdf'},
         )
-        pdf_path_stored = storage_path
     except Exception as e:
-        logger.warning(f'[reports] storage upload failed (PDF still returned): {e}')
+        logger.error(f'[reports] storage upload failed: {e}')
+        try:
+            await wallet_service.add_credits(
+                current_user['id'], credits_cost,
+                f'Remboursement {titre} PDF (echec archivage)', tx_type='refund',
+            )
+        except Exception:
+            pass
+        raise HTTPException(status_code=502, detail="Échec d'archivage du PDF (upload).")
 
     # ── Persistance en base ───────────────────────────────────────────────────
     try:
@@ -185,11 +191,19 @@ async def generate_report_pdf(
             'type': report_type,
             'titre': f'{titre} — {name}',
             'inputs': payload.inputs or {},
-            'pdf_path': pdf_path_stored,
+            'pdf_path': storage_path,
             'created_at': datetime.now(timezone.utc).isoformat(),
         }).execute()
     except Exception as e:
-        logger.warning(f'[reports] DB insert failed: {e}')
+        logger.error(f'[reports] DB insert failed: {e}')
+        try:
+            await wallet_service.add_credits(
+                current_user['id'], credits_cost,
+                f'Remboursement {titre} PDF (echec persistance)', tx_type='refund',
+            )
+        except Exception:
+            pass
+        raise HTTPException(status_code=502, detail="Échec d'archivage du rapport en base.")
 
     filename = f'{report_type}-{name}.pdf'.lower()
     return Response(
