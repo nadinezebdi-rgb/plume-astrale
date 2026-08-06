@@ -128,6 +128,11 @@ function App() {
           <Route path="/cgv" element={<CGV />} />
           <Route path="/nos-livres" element={<NosLivres />} />
           <Route path="/temoignages" element={<TemoignagesPublic />} />
+          <Route path="/theme-natal-luxe" element={<ThemeNatalLuxe />} />
+          <Route path="/kabbale" element={<KabbaleSales />} />
+          <Route path="/astrocartographie" element={<AstrocartographieSales />} />
+          <Route path="/pack-karmique" element={<PackKarmique />} />
+          <Route path="/synastrie" element={<SynastrieSales />} />
           <Route path="/lecture-complete/succes" element={<LectureCompleteSucces />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/bibliotheque" element={<Bibliotheque />} />
@@ -198,12 +203,8 @@ function App() {
                 <Route path="/paiement" element={<Paiement />} />
                 <Route path="/paiement/succes" element={<PaiementSucces />} />
                 <Route path="/resultats" element={<Resultats />} />
-                <Route path="/kabbale" element={<KabbaleSales />} />
-                <Route path="/theme-natal-luxe" element={<ThemeNatalLuxe />} />
                 <Route path="/kabbale/succes" element={<KabbaleSucces />} />
-                <Route path="/astrocartographie" element={<AstrocartographieSales />} />
                 <Route path="/astrocartographie/succes" element={<AstrocartographieSucces />} />
-                <Route path="/pack-karmique" element={<PackKarmique />} />
                 <Route path="/pack-karmique/succes" element={<PackKarmiqueSucces />} />
                 <Route path="/karma-destin" element={<KarmaDestin />} />
                 <Route path="/tarologie" element={<Tarologie />} />
@@ -230,7 +231,6 @@ function App() {
                 <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
                 <Route path="/notre-cadre" element={<NotreCadre />} />
                 <Route path="/cercle" element={<Navigate to="/communaute" replace />} />
-                <Route path="/synastrie" element={<SynastrieSales />} />
                 <Route path="/synastrie/succes" element={<SynastrieSucces />} />
                 <Route path="/astrosexo" element={<Navigate to="/outils/astrosexo" replace />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />

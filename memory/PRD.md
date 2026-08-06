@@ -1,5 +1,35 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 75) — Refonte pages produit + Aperçu Lecture
+
+### Livrables (2026-02-06)
+- ✅ **`components/SalesPageV3.js`** — template unifié pour toutes les pages de vente PDF (~340 lignes). Sections : hero light (title/subtitle/prix card/rassurance/bouton aperçu), includes dark (grid cards), testimonials light, pricing dark final avec garantie + rassurances Stripe/mail. Props-driven, une page produit = ~50 lignes de data.
+- ✅ **`components/ApercuLectureModal.js`** — modal léger accessible (Escape close, body scroll lock, overlay clic). Affiche un extrait éditorial Playfair sur fond crème avec hook italique, chapitres, fondu doré + CTA final.
+- ✅ **`config/apercus.js`** — extraits gratuits pour 5 lectures : natal, kabbale, astrocarto, karma, numerologie. Chaque extrait = 2 pages simulées + hook + hint.
+- ✅ **Migration 7 pages produit** vers `SalesPageV3` :
+  - `ThemeNatalLuxe` (17,99€ · 49p · aperçu natal)
+  - `KabbaleSales` (39€ · 15p · aperçu kabbale)
+  - `AstrocartographieSales` (49€ · 18p · aperçu astrocarto)
+  - `KarmaDestinPDF` (29€ · 22p · aperçu karma)
+  - `NumerologiePDF` (29€ · 16p · aperçu numérologie)
+  - `PackKarmique` (89€ · 40p · badge L'OFFRE ÉCRIN, sans aperçu)
+  - `SynastrieSales` (49€ · 25p · sans aperçu)
+- ✅ **App.js** — 5 routes produit (`/theme-natal-luxe`, `/kabbale`, `/astrocartographie`, `/pack-karmique`, `/synastrie`) déplacées au top-level pour éviter les navbars doubles. Doublons dans le catch-all supprimés.
+
+### Vérifs
+- Lint clean sur SalesPageV3, ApercuLectureModal, App.js et les 5 pages migrées.
+- Screenshots validés : Thème Natal hero + modal aperçu ouvert, Kabbale + grid Sephiroth, Astrocartographie + lignes planétaires, Pack Karmique avec badge écrin doré.
+- Le modal aperçu s'ouvre au clic "Lire un extrait gratuit", ferme par ×, Escape ou clic overlay.
+- 7 pages vente = ~350 lignes total au lieu de ~2000 précédemment.
+
+### Encore à faire (backlog)
+- Newsletter Blog (mail hebdo Soro article dimanche).
+- Micro-ajustement badge "L'OFFRE ÉCRIN" position sur Pack Karmique (superpose légèrement le prix).
+- Compléter aperçus manquants : pack-karmique et synastrie.
+- Validation GSC après redéploiement production.
+
+---
+
 ## 🆕 Session Feb 2026 (iter 74) — Mega Menu + Rollout NosLivres + Témoignages
 
 ### Livrables (2026-02-06)
