@@ -70,6 +70,7 @@ from routes.referral import router as referral_router
 from routes.lecture_complete import router as lecture_complete_router
 from routes.landing import router as landing_router
 from routes.chat_support import router as chat_support_router
+from routes.contact import router as contact_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from integrations.payments.stripe.checkout import (
@@ -88,7 +89,6 @@ PRODUCT_CATALOG = {
     'tarot_oui_non': {'name': 'Tarot Oui/Non', 'amount': 4.99, 'currency': 'eur', 'success_path': '/paiement/succes', 'cancel_path': '/tarot-oui-non'},
     'tarologie_mediumnite': {'name': 'Tarologie Mediumnite', 'amount': 35.00, 'currency': 'eur', 'success_path': '/paiement/succes', 'cancel_path': '/tarologie'},
     'compatibilite': {'name': 'Compatibilite Amoureuse', 'amount': 29.90, 'currency': 'eur', 'success_path': '/paiement/succes', 'cancel_path': '/compatibilite-amoureuse'},
-    'book': {'name': 'Livre Astrologique', 'amount': 29.90, 'currency': 'eur', 'success_path': '/commande/succes', 'cancel_path': '/livre'},
 }
 
 STREAK_MILESTONES = {7: 3, 14: 5, 30: 10, 60: 15, 100: 25}
@@ -137,6 +137,7 @@ api_router.include_router(referral_router)
 api_router.include_router(lecture_complete_router)
 api_router.include_router(landing_router)
 api_router.include_router(chat_support_router)
+api_router.include_router(contact_router)
 
 
 # ════════════════════════════════════════════
@@ -1141,14 +1142,6 @@ class CompatibilityGenerateRequest(BaseModel):
     question: str | None = ''
 
 
-class BookOrderRequest(BaseModel):
-    product_id: str
-    origin_url: str
-    user_email: str | None = None
-    user_data: dict | None = None
-    shipping_address: dict | None = None
-
-
 def _resolve_origin_url(request: Request, explicit_origin: str | None) -> str:
     if explicit_origin and explicit_origin.strip():
         return explicit_origin.rstrip('/')
@@ -1445,34 +1438,6 @@ async def tarologie_pdf(request: Request):
     return Response(content=pdf_bytes, media_type='application/pdf', headers={
         'Content-Disposition': f'attachment; filename="tarologie_croix_{prenom}.pdf"'
     })
-
-
-@api_router.post('/order/book')
-async def order_book(payload: BookOrderRequest, http_request: Request):
-    if payload.product_id != 'livre':
-        raise HTTPException(status_code=400, detail='Produit livre attendu')
-    order_req = LegacyCheckoutRequest(
-        product_id='book',
-        origin_url=payload.origin_url,
-        user_email=payload.user_email,
-        user_data=payload.user_data,
-    )
-    checkout = await legacy_checkout_create(order_req, http_request)
-    return {
-        'url': checkout['url'],
-        'session_id': checkout['session_id'],
-        'order_id': f"book-{checkout['session_id'][:12]}",
-    }
-
-
-@api_router.get('/order/book/{session_id}')
-async def order_book_status(session_id: str):
-    status = await legacy_checkout_status(session_id)
-    return {
-        'session_id': session_id,
-        'status': status.get('status'),
-        'payment_status': status.get('payment_status'),
-    }
 
 
 @api_router.get('/premium/status')

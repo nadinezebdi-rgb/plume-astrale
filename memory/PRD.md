@@ -1,5 +1,153 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 75) — Refonte pages produit + Aperçu Lecture
+
+### Livrables (2026-02-06)
+- ✅ **`components/SalesPageV3.js`** — template unifié pour toutes les pages de vente PDF (~340 lignes). Sections : hero light (title/subtitle/prix card/rassurance/bouton aperçu), includes dark (grid cards), testimonials light, pricing dark final avec garantie + rassurances Stripe/mail. Props-driven, une page produit = ~50 lignes de data.
+- ✅ **`components/ApercuLectureModal.js`** — modal léger accessible (Escape close, body scroll lock, overlay clic). Affiche un extrait éditorial Playfair sur fond crème avec hook italique, chapitres, fondu doré + CTA final.
+- ✅ **`config/apercus.js`** — extraits gratuits pour 5 lectures : natal, kabbale, astrocarto, karma, numerologie. Chaque extrait = 2 pages simulées + hook + hint.
+- ✅ **Migration 7 pages produit** vers `SalesPageV3` :
+  - `ThemeNatalLuxe` (17,99€ · 49p · aperçu natal)
+  - `KabbaleSales` (39€ · 15p · aperçu kabbale)
+  - `AstrocartographieSales` (49€ · 18p · aperçu astrocarto)
+  - `KarmaDestinPDF` (29€ · 22p · aperçu karma)
+  - `NumerologiePDF` (29€ · 16p · aperçu numérologie)
+  - `PackKarmique` (89€ · 40p · badge L'OFFRE ÉCRIN, sans aperçu)
+  - `SynastrieSales` (49€ · 25p · sans aperçu)
+- ✅ **App.js** — 5 routes produit (`/theme-natal-luxe`, `/kabbale`, `/astrocartographie`, `/pack-karmique`, `/synastrie`) déplacées au top-level pour éviter les navbars doubles. Doublons dans le catch-all supprimés.
+
+### Vérifs
+- Lint clean sur SalesPageV3, ApercuLectureModal, App.js et les 5 pages migrées.
+- Screenshots validés : Thème Natal hero + modal aperçu ouvert, Kabbale + grid Sephiroth, Astrocartographie + lignes planétaires, Pack Karmique avec badge écrin doré.
+- Le modal aperçu s'ouvre au clic "Lire un extrait gratuit", ferme par ×, Escape ou clic overlay.
+- 7 pages vente = ~350 lignes total au lieu de ~2000 précédemment.
+
+### Encore à faire (backlog)
+- Newsletter Blog (mail hebdo Soro article dimanche).
+- Micro-ajustement badge "L'OFFRE ÉCRIN" position sur Pack Karmique (superpose légèrement le prix).
+- Compléter aperçus manquants : pack-karmique et synastrie.
+- Validation GSC après redéploiement production.
+
+---
+
+## 🆕 Session Feb 2026 (iter 74) — Mega Menu + Rollout NosLivres + Témoignages
+
+### Livrables (2026-02-06)
+- ✅ **Catalog centralisé** (`config/catalog.js`) — 7 LECTURES + 6 OUTILS avec titre, tagline, prix, route. Source de vérité partagée entre NavbarV2 et NosLivres.
+- ✅ **NavbarV2 mega menu** — dropdown "Services" ouvre panneau plein-largeur navy avec 2 colonnes :
+  - Lectures premium PDF (grid 2x4, chaque lecture avec titre Playfair + tagline + prix doré, Pack Karmique highlighted en écrin)
+  - Outils interactifs (list dense sans prix)
+  - Footer link "Voir toute la bibliothèque →"
+  - Mobile : accordéon expandable dans le panneau plein-écran hamburger, avec sous-titres "Lectures PDF" et "Outils"
+- ✅ **NosLivres v3** — réécrit sur charte light : hero + grid 7 cards (blanches, hover shadow gold), Pack Karmique en bordure dorée avec badge "L'OFFRE ÉCRIN", section sombre "Comment ça marche" avec 3 bénéfices (Download/Mail/ShieldCheck), CTA final light.
+- ✅ **TémoignagesPublic v3** — réécrit sur charte light : hero, filtres card blanche avec search + chips signes, grid témoignages avec avatar dégradé doré, quote Playfair italique bordée-left dorée, avant/après en petit.
+- ✅ **App.js** — routes `/nos-livres` et `/temoignages` déplacées au top-level (hors catch-all) pour éviter les navbars doubles. Doublons supprimés.
+
+### Vérifs
+- Lint JS : NavbarV2, NosLivres, TemoignagesPublic, App.js — clean.
+- Screenshots : Nos livres avec cards (7 lectures + Pack Karmique highlight), Nos livres section sombre "Comment ça marche", Témoignages avec 4 cards, Mega menu ouvert sur Homepage avec 2 colonnes visibles — tous validés.
+- Le mega menu couvre 13 destinations (7 lectures + 6 outils) — plus aucun outil n'est enclavé.
+
+### Encore à faire (backlog)
+- Newsletter Blog (mail hebdo Soro article dimanche).
+- Migration progressive des autres pages secondaires (ThemeNatalLuxe, Kabbale, Astrocartographie, KarmaDestin, Numérologie PDF, PackKarmique, Synastrie) — actuellement gardent le style dark mystic legacy.
+- Validation GSC après redéploiement production (fichier `google20ef3e9042a818bc.html` déjà en place).
+
+---
+
+## 🆕 Session Feb 2026 (iter 73) — Phase 2 Rollout + Contact + Fix wording "livres"
+
+### Contexte
+Après validation du pilote (iter 72), le user demande :
+1. Appliquer la charte v3 sur les pages secondaires (Blog, Mentions, CGV, NosLivres, Témoignages)
+2. Créer une vraie page `/contact` avec formulaire
+3. **Correction commerciale critique** : ne PAS parler de « livres reliés » / « reliure cuir nuit » — l'offre commercialisée est **exclusivement en PDF premium à télécharger**, jamais des livres physiques.
+
+### Livrables (2026-02-06)
+#### Correction wording physique → PDF
+- ✅ `Homepage.js` — supprimé "livre relié PDF" → "PDF premium à télécharger", "Trois livres" → "Trois lectures", "Reliure cuir nuit, dorures Playfair" → "PDF premium… livraison instantanée par email", "ton livre céleste" → "ta lecture personnelle"
+- ✅ `NosLivres.js` — SEO title/desc corrigés, "Cinq livres" → "Cinq lectures", "Reliure cuir nuit, dorures Cinzel" → "PDF premium à télécharger"
+- ✅ `PdfBookOpen.js` — les 3 `heroSub` des thèmes (astrocarto/kabbale/natal) remplacent "Reliure cuir nuit, dorures Cinzel" par "PDF premium"
+- ✅ `ThemeNatalLuxe.js` — SEO desc, hero p, "Ce que ton livre contient" → "Ce que ta lecture contient", CTA "Créer mon livre astral" → "Créer ma lecture astrale"
+- ✅ `SolenaWritingLoader.js` — étapes de chargement débarrassées de "couverture, reliure" et "Soléna écrit ton livre" → "Soléna écrit ta lecture"
+
+#### Composants + pages v3
+- ✅ **`PsPageShell`** créé (`components/PsPageShell.js`) — wrapper commun NavbarV2 + FooterV2 + fond crème par défaut.
+- ✅ **Blog v3** (`pages/Blog.js`) — réécrit sur charte light : fond `#F7F5F0`, cards Soro blanches (texte article NOIR sur BLANC — problème "doré-sur-violet" corrigé), CTA doré unique.
+- ✅ **Mentions Légales v3** — light bg, `.ps-eyebrow` dorés, corps anthracite lisible.
+- ✅ **CGV v3** — même traitement, structure numérotée intacte.
+- ✅ **Contact v3** (`pages/Contact.js`) — page à 2 colonnes : texte + coordonnées Instagram/email + formulaire (name/email/subject/message) avec honeypot anti-bot, validation, statut succès/erreur, CTA doré.
+
+#### Backend
+- ✅ **`routes/contact.py`** — `POST /api/contact` (ContactRequest Pydantic strict, honeypot anti-bot, rate limit 60s/IP en mémoire, envoi via Resend vers `SUPPORT_EMAIL`, fallback log si Resend indispo).
+- ✅ Router inclus dans `server.py`. Tests curl OK : 200 avec succès, 429 rate-limit, 422 validation.
+
+#### Navigation
+- ✅ **NavbarV2** — lien `Contact` désormais vers `/contact` (au lieu de `#contact`).
+- ✅ **FooterV2** — ajout du lien `Contact` dans la colonne Aide.
+- ✅ **App.js** — nouvelle route `/contact` + import `Contact`.
+
+### Vérifs
+- Lint : 5 fichiers frontend + 1 fichier backend clean.
+- Backend : health 200 après restart, `/api/contact` répond 200 / 422 / 429 selon input.
+- Screenshots : Blog (widget Soro maintenant lisible NOIR sur BLANC), Contact (form propre), Mentions & CGV (typographie éditoriale claire) — tous validés.
+
+### Encore à faire
+- Mega menu tools sur NavbarV2 (pour que les pages `/nos-livres`, `/temoignages` puissent aussi passer sur PsPageShell sans perdre les liens outils).
+- Newsletter Blog (mail hebdo Soro article dimanche).
+- Validation GSC après déploiement.
+
+---
+
+## 🆕 Session Feb 2026 (iter 72) — Refonte identité visuelle · Pilote Phase 1
+
+### Contexte
+Refonte visuelle demandée par utilisatrice : élégance lettrée + profondeur céleste nocturne, palette (#0F1A3C navy, #C9A24B doré, #F7F5F0 blanc cassé), Playfair Display + Inter, sections alternées clair/sombre, 8px scale strict, WCAG AA.
+
+### Livrables Phase 1 (2026-02-06)
+- ✅ **Design tokens v3** — ajoutés à `index.css` (additif, non-breaking). Nouveaux `--ps-*` : navy, indigo, cream, gold, anthracite, slate, mist, états success/error/info. Typographie Playfair + Inter. Échelle 8px (space-1 à space-12). Radius sm/md/lg/pill. Container max 1200px.
+- ✅ **Composants réutilisables** — classes CSS : `.ps-section` (light/dark), `.ps-container`, `.ps-narrow`, `.ps-h1/h2/h3`, `.ps-body`, `.ps-eyebrow`, `.ps-caption`, `.ps-italic`, `.ps-btn` (primary/outline), `.ps-card`, `.ps-input`, `.ps-label`.
+- ✅ **NavbarV2** (`components/NavbarV2.js`) — sticky navy #0F1A3C, logo Playfair, 5 liens Inter (Accueil/Services/Blog/Témoignages/Contact), Connexion + CTA doré "Recevoir ma lecture", mobile hamburger → panneau plein écran.
+- ✅ **FooterV2** (`components/FooterV2.js`) — fond navy, 4 colonnes (Marque/Explorer/Aide/Légal), icônes Instagram/Mail dorées, mentions RGPD/CNIL/PCI-DSS.
+- ✅ **Homepage** (`pages/Homepage.js`) — 6 sections alternées : Hero sombre + photo Soléna, Valeur claire (3 cards), Story sombre, Services claire (3 livres), Témoignages sombre, CTA final claire. Un seul CTA doré par section. Playfair titres + Inter corps.
+- ✅ **App.js** — `<Index />` = nouvelle `Homepage`. Ancienne `Footer.js` masquée sur `/`. Autres pages inchangées (navbar + footer legacy conservés pour Phase 2).
+
+### Vérifs
+- Lint JS clean (Homepage, NavbarV2, FooterV2).
+- Screenshots desktop hero + sections + footer OK — police Playfair chargée, palette navy/doré/cream respectée, alternance clair/sombre lisible.
+- `/blog`, `/nos-livres`, `/mon-compte` inchangés (identité mystique legacy).
+- Pages outils/PDFs (Kabbale, Karma, Tarologie…) → conservent dark mystique (choix utilisatrice).
+
+### Prochaines phases (Phase 2 - après validation user)
+- Rollout : `/nos-livres`, `/temoignages`, `/mentions-legales`, `/cgv` sur la nouvelle charte.
+- Contact page dédiée (le lien `#contact` de la navbar est provisoire).
+- Suppression progressive de l'ancien `Navbar.js` + `Footer.js` une fois toutes les pages migrées.
+
+---
+
+## 🆕 Session Feb 2026 (iter 71) — Cleanup Roman/Livre dormant
+
+### Livrables (2026-02-05)
+- ✅ **Frontend** — Suppression `pages/Livre.js` + `pages/CommandeSucces.js`. Retrait imports/routes dans `App.js`. Retrait bloc "Book promotion" et imports `Book`/`Gift` dans `pages/Resultats.js`. Retrait `/commande/succes` de `PremiumStickyCTA.js` et `TrialBanner.js`.
+- ✅ **Redirections graceful** — `/livre` → `/nos-livres` et `/commande/succes` → `/nos-livres` (au cas où d'anciennes URLs seraient indexées).
+- ✅ **Backend** — Suppression `POST /api/order/book`, `GET /api/order/book/{session_id}`, `BookOrderRequest`, entrée `'book'` du `PRODUCT_CATALOG` dans `server.py`.
+- ✅ Vérifs : `grep` zéro résidu, lint Python et JS clean, backend/frontend RUNNING, endpoint POST `/api/order/book` → 404, `/livre` redirige vers `/nos-livres`.
+
+---
+
+## 🆕 Session Feb 2026 (iter 70) — Validation Astrocarto + GSC + Cleanup
+
+### Livrables (2026-02-05)
+- ✅ **Google Search Console** — fichier de vérification `google20ef3e9042a818bc.html` déposé dans `/app/frontend/public/`, servi HTTP 200 sur la preview. Reste à déployer en production pour finaliser la validation côté Google.
+- ✅ **Astrocartographie PDF** — vérifié visuellement (couverture + carte du monde) : fond navy `#111625`, texte crème lisible, titres dorés. **Aucun correctif nécessaire** — le générateur possède déjà son propre `_bg_canvas` local.
+- ✅ **Nettoyage `/app/backend/scripts/`** — 11 scripts one-off (assemble/gen/capture TikTok+Reels+voiceovers d'août 2025) archivés dans `scripts/_archive/` avec README. Aucun import runtime cassé (`grep from scripts.` → seul `horoscope_scheduler.py` référence `build_daily_horoscope`, conservé).
+
+### Backlog restant
+- P1 : Attente déploiement production pour finaliser la vérification GSC (le fichier n'est visible sur le domaine réel qu'après un push Deploy Emergent).
+- P2 : Suppression logique dormante "Roman/Livre" PDF.
+
+---
+
 ## 🆕 Session Aug 2026 (iter 69) — Enrichissement Page Stripe Checkout
 
 ### Contexte utilisateur

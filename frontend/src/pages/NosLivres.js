@@ -1,258 +1,198 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Download, Mail, ShieldCheck } from 'lucide-react';
 import SEO from '@/components/SEO';
-import PdfBookOpen from '@/components/PdfBookOpen';
-import ApercuButton from '@/components/ApercuButton';
+import PsPageShell from '@/components/PsPageShell';
+import { LECTURES } from '@/config/catalog';
 
 /**
- * NosLivres — Vitrine comparative des 5 livres luxes de Plume Astrale.
+ * /nos-livres — Vitrine des lectures premium PDF · Charte v3 (light).
  *
- * L'utilisatrice sélectionne un livre via des onglets élégants et voit sa
- * couverture s'ouvrir en 3D. Chaque livre a son propre CTA.
- *
- * Positionnement : page "musée" — la marque affiche sa gamme avant de vendre.
+ * Chaque lecture est une lecture personnalisée au format PDF premium
+ * à télécharger. Aucun livre imprimé n'est vendu.
  */
 
-const BOOKS = [
-  {
-    key: 'natal',
-    title: 'Thème Natal',
-    accent: 'Ultra',
-    price: '80 crédits · ~18€',
-    priceHint: 'inclus dans le pack Nébuleuse 17,99€',
-    pages: '49 pages',
-    description: 'Onze planètes qui racontent qui tu es vraiment, écrites par Soléna à partir de 73 dimensions astrologiques croisées.',
-    cta: 'Créer mon Thème Natal',
-    ctaTo: '/theme-natal-luxe',
-  },
-  {
-    key: 'synastry',
-    title: 'Astrologie relationnelle',
-    accent: 'Sur mesure',
-    price: '49€',
-    priceHint: 'paiement unique',
-    pages: '25 pages',
-    description: 'L\'aspectarium de votre lien — les deux ciels dansent ensemble. Points d\'harmonie, tensions à cultiver, langages d\'amour croisés.',
-    cta: 'Analyser notre lien',
-    ctaTo: '/synastrie',
-  },
-  {
-    key: 'kabbale',
-    title: 'Arbre de Vie',
-    accent: 'Kabbalistique',
-    price: '39€',
-    priceHint: 'paiement unique',
-    pages: '15 pages',
-    description: 'Tes 10 Sephiroth et les 22 chemins hébraïques posés sur ta cartographie d\'âme. Où tu rayonnes, où tu ancres, où tu montes.',
-    cta: 'Recevoir mon Arbre',
-    ctaTo: '/kabbale',
-  },
-  {
-    key: 'astrocarto',
-    title: 'Astrocartographie',
-    accent: 'Géographie astrale',
-    price: '49€',
-    priceHint: 'paiement unique',
-    pages: '18 pages',
-    description: 'Sept lignes planétaires posées sur la carte du monde. Où vivre ta meilleure vie, où l\'amour te touche, où ton corps se pose enfin.',
-    cta: 'Découvrir mes lieux',
-    ctaTo: '/astrocartographie',
-  },
-  {
-    key: 'karmique',
-    title: 'Pack Karmique',
-    accent: 'L\'écrin ultime',
-    price: '89€',
-    priceHint: 'paiement unique · 3 livres réunis',
-    pages: '40 pages',
-    description: 'L\'écrin le plus profond de Plume Astrale — ton empreinte karmique, ton Arbre de Vie et ta synthèse d\'âme réunis dans un seul document relié.',
-    cta: 'Ouvrir mon Karmique',
-    ctaTo: '/pack-karmique',
-  },
-];
-
-const NosLivres = () => {
-  const [active, setActive] = useState('natal');
-  const book = BOOKS.find((b) => b.key === active) || BOOKS[0];
-
-  return (
-    <div
-      className="min-h-screen"
-      style={{ padding: '110px 20px 140px' }}
-      data-testid="nos-livres-page"
-    >
-      <SEO
-        path="/nos-livres"
-        title="Nos livres · La Bibliothèque Plume Astrale"
-        description="Cinq livres reliés cuir nuit, écrits par Soléna. Thème Natal, Astrologie relationnelle, Arbre de Vie, Astrocartographie, Pack Karmique. À découvrir ci-dessous."
-      />
-
-      <div className="max-w-4xl mx-auto">
-        {/* HERO */}
-        <div className="text-center mb-14">
-          <p
-            className="text-[10px] uppercase mb-4"
-            style={{ color: '#D4AF37', letterSpacing: '0.4em', fontFamily: 'Cinzel, serif' }}
-          >
-            ✦ La Bibliothèque Plume Astrale ✦
-          </p>
-          <h1
-            style={{
-              fontFamily: 'Cormorant Garamond, serif', fontWeight: 300,
-              fontSize: 'clamp(38px, 5.5vw, 62px)', color: '#F5EEE0',
-              lineHeight: 1.05, marginBottom: 20,
-            }}
-          >
-            Cinq livres,
-            <br />
-            <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>une seule signature.</em>
-          </h1>
-          <p
-            className="max-w-xl mx-auto text-base"
-            style={{
-              color: 'rgba(227,215,255,0.75)', fontFamily: 'Cormorant Garamond, serif',
-              lineHeight: 1.6, fontStyle: 'italic',
-            }}
-          >
-            Reliure cuir nuit, dorures Cinzel, chaque paragraphe écrit spécifiquement pour toi.
-            <span style={{ color: '#F5EEE0' }}> Choisis ton livre — regarde-le s&apos;ouvrir.</span>
-          </p>
-        </div>
-
-        {/* Onglets */}
-        <div className="flex flex-wrap justify-center gap-2 mb-10" data-testid="nos-livres-tabs">
-          {BOOKS.map((b) => {
-            const isActive = active === b.key;
-            return (
-              <button
-                key={b.key}
-                onClick={() => setActive(b.key)}
-                data-testid={`tab-${b.key}`}
-                className="px-4 py-2 text-[11px] transition-all"
-                style={{
-                  background: isActive
-                    ? 'linear-gradient(90deg, #8a6d1a 0%, #D4AF37 50%, #8a6d1a 100%)'
-                    : 'rgba(26,18,48,0.4)',
-                  color: isActive ? '#0E0A1E' : 'rgba(245,238,224,0.7)',
-                  border: `1px solid ${isActive ? 'rgba(212,175,55,0.7)' : 'rgba(212,175,55,0.22)'}`,
-                  borderRadius: 999,
-                  fontFamily: 'Cinzel, serif',
-                  letterSpacing: '0.22em',
-                  textTransform: 'uppercase',
-                  fontWeight: isActive ? 600 : 400,
-                  cursor: 'pointer',
-                }}
-              >
-                {b.title}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Livre actif */}
-        <div key={active} style={{ animation: 'fadeInUp 0.6s ease-out' }}>
-          <PdfBookOpen testId={`nos-livres-book-${active}`} theme={active} />
-
-          {/* Card de résumé */}
-          <div
-            className="mx-auto text-center p-6 md:p-8 mt-4"
-            style={{
-              maxWidth: 620,
-              background: 'linear-gradient(160deg, rgba(26,18,48,0.85) 0%, rgba(14,10,30,0.92) 100%)',
-              border: '1px solid rgba(212,175,55,0.4)',
-              borderRadius: 12,
-              boxShadow: '0 30px 60px -20px rgba(0,0,0,0.5)',
-            }}
-            data-testid={`nos-livres-details-${active}`}
-          >
-            <p
-              className="mb-2 text-[10px]"
-              style={{ color: '#D4AF37', letterSpacing: '0.3em', fontFamily: 'Cinzel, serif', textTransform: 'uppercase' }}
-            >
-              ✦ {book.accent} · {book.pages} ✦
-            </p>
-            <h3
-              className="mb-3"
-              style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, fontSize: 30, color: '#F5EEE0' }}
-            >
-              {book.title}
-            </h3>
-            <p
-              className="mb-6 max-w-md mx-auto text-sm"
-              style={{
-                fontFamily: 'Cormorant Garamond, serif',
-                color: 'rgba(227,215,255,0.85)',
-                fontStyle: 'italic', lineHeight: 1.55,
-              }}
-            >
-              {book.description}
-            </p>
-
-            <div className="mb-6">
-              <div style={{
-                fontFamily: 'Cormorant Garamond, serif', fontWeight: 300,
-                fontSize: 42, color: '#F5EEE0', lineHeight: 1,
-              }}>
-                {book.price}
-              </div>
-              <div className="text-[10px] mt-2" style={{
-                color: 'rgba(212,175,55,0.7)', letterSpacing: '0.22em',
-                fontFamily: 'Cinzel, serif', textTransform: 'uppercase',
-              }}>
-                {book.priceHint}
-              </div>
-            </div>
-
-            <Link
-              to={book.ctaTo}
-              data-testid={`cta-${book.key}`}
-              className="inline-flex items-center gap-3 py-3.5 px-8"
-              style={{
-                background: 'linear-gradient(90deg, #8a6d1a 0%, #D4AF37 50%, #8a6d1a 100%)',
-                color: '#0E0A1E',
-                borderRadius: 10,
-                fontFamily: 'Cinzel, serif', fontSize: 12,
-                letterSpacing: '0.28em', fontWeight: 600, textTransform: 'uppercase',
-                textDecoration: 'none',
-                boxShadow: '0 10px 30px -8px rgba(212,175,55,0.4)',
-              }}
-            >
-              <Sparkles className="w-4 h-4" strokeWidth={1.5} />
-              {book.cta}
-              <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
-            </Link>
-
-            {/* Aperçu 3 pages téléchargeable — rassure avant achat */}
-            <div className="mt-5">
-              <ApercuButton bookKey={book.key} />
-            </div>
-          </div>
-        </div>
-
-        {/* Retour */}
-        <div className="text-center mt-14">
-          <Link
-            to="/"
-            className="text-xs"
-            style={{
-              color: 'rgba(212,175,55,0.55)', fontFamily: 'Cinzel, serif',
-              letterSpacing: '0.24em', textTransform: 'uppercase',
-            }}
-          >
-            ← Retour à l&apos;accueil
-          </Link>
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to   { opacity: 1; transform: translateY(0);   }
-        }
-      `}</style>
-    </div>
-  );
+const DETAILS = {
+  natal:        { pages: 49, accent: 'La signature Plume', long: 'Onze planètes qui racontent qui tu es vraiment. Écrit à partir de 73 dimensions astrologiques croisées — le socle de toutes les autres lectures.' },
+  kabbale:      { pages: 15, accent: 'Kabbalistique',        long: '10 Sephiroth et 22 chemins hébraïques posés sur ta cartographie d\'âme. Où tu rayonnes, où tu ancres, où tu montes.' },
+  astrocarto:   { pages: 18, accent: 'Géographie astrale',   long: 'Sept lignes planétaires posées sur la carte du monde. Où vivre ta meilleure vie, où l\'amour te touche, où ton corps se pose enfin.' },
+  karma:        { pages: 22, accent: 'Chemin d\'âme',        long: 'Ta lignée karmique décodée : ce que tu portes de tes vies antérieures, ce que tu viens réparer, ce que tu viens accomplir cette fois-ci.' },
+  numerologie:  { pages: 16, accent: 'Numérologie sacrée',   long: 'Chemin de vie, année personnelle, nombres actifs. Une lecture chiffrée qui complète l\'astrologie avec précision.' },
+  karmique:     { pages: 40, accent: 'L\'écrin ultime',       long: 'Le format le plus profond de Plume Astrale — ton empreinte karmique, ton Arbre de Vie et ta synthèse d\'âme réunis dans un même PDF premium.' },
+  synastry:     { pages: 25, accent: 'Astro relationnelle', long: 'L\'aspectarium de votre lien — les deux ciels dansent ensemble. Points d\'harmonie, tensions à cultiver, langages d\'amour croisés.' },
 };
 
-export default NosLivres;
+const BENEFITS = [
+  { icon: Download, title: 'PDF premium à télécharger', body: 'Livré par email après paiement. Aucun envoi physique — tu conserves ta lecture indéfiniment.' },
+  { icon: Mail, title: 'Réponse en quelques minutes', body: 'Le PDF arrive sous 5 minutes après validation. En cas de retard, écris-nous, on retrouve ton dossier.' },
+  { icon: ShieldCheck, title: 'Paiement sécurisé Stripe', body: 'Carte bancaire, 3-D Secure, PCI-DSS. Aucune donnée bancaire stockée chez nous.' },
+];
+
+export default function NosLivres() {
+  return (
+    <PsPageShell background="light">
+      <SEO
+        path="/nos-livres"
+        title="Nos lectures · Bibliothèque Plume Astrale"
+        description="Sept lectures astrologiques premium en PDF à télécharger, écrites par Soléna. Thème Natal, Astrologie relationnelle, Arbre de Vie, Astrocartographie, Pack Karmique, Karma & Destin, Numérologie."
+      />
+
+      {/* Section hero */}
+      <section className="ps-section ps-section-light" data-testid="nos-livres-page">
+        <div className="ps-container">
+          <div style={{ maxWidth: 720, marginBottom: 64 }}>
+            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>La bibliothèque Plume Astrale</p>
+            <h1 className="ps-h1" style={{ color: '#0F1A3C', marginBottom: 20 }}>
+              Sept lectures, <span className="ps-italic">une seule signature.</span>
+            </h1>
+            <p className="ps-body" style={{ color: '#232323' }}>
+              Chaque lecture est un PDF premium à télécharger, écrit à la main par Soléna
+              spécifiquement pour toi. Aucune vente de livre physique — l&apos;objet est le texte,
+              soigné et unique.
+            </p>
+          </div>
+
+          {/* Grille des lectures */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: 24,
+          }}>
+            {LECTURES.map((lec) => {
+              const detail = DETAILS[lec.key] || {};
+              return (
+                <Link key={lec.key} to={lec.to}
+                  className="ps-card"
+                  data-testid={`nos-livres-card-${lec.key}`}
+                  style={{
+                    textDecoration: 'none',
+                    display: 'flex', flexDirection: 'column',
+                    borderColor: lec.highlight ? '#C9A24B' : '#E3E1DC',
+                    background: lec.highlight ? 'linear-gradient(135deg, #FFFEF8 0%, #FFFFFF 100%)' : '#fff',
+                  }}>
+                  {lec.highlight && (
+                    <div style={{
+                      alignSelf: 'flex-start',
+                      background: '#C9A24B', color: '#0F1A3C',
+                      fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600,
+                      letterSpacing: '0.12em', textTransform: 'uppercase',
+                      padding: '4px 10px', borderRadius: 6,
+                      marginBottom: 12,
+                    }}>
+                      L&apos;offre écrin
+                    </div>
+                  )}
+
+                  <div style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 11, fontWeight: 600,
+                    letterSpacing: '0.16em', textTransform: 'uppercase',
+                    color: '#C9A24B', marginBottom: 8,
+                  }}>
+                    {detail.accent}
+                  </div>
+
+                  <h2 className="ps-h3" style={{ color: '#0F1A3C', marginBottom: 8 }}>{lec.title}</h2>
+
+                  <p style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 14, lineHeight: 1.55, color: '#6B7280',
+                    margin: 0, marginBottom: 20, flex: 1,
+                  }}>
+                    {detail.long}
+                  </p>
+
+                  <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
+                    paddingTop: 16, borderTop: '1px solid #E3E1DC',
+                  }}>
+                    <div>
+                      <div style={{
+                        fontFamily: 'Playfair Display, serif',
+                        fontSize: 24, fontWeight: 500,
+                        color: '#0F1A3C', lineHeight: 1,
+                      }}>{lec.price}</div>
+                      <div style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: 12, color: '#6B7280',
+                        marginTop: 4,
+                      }}>{detail.pages} pages · PDF</div>
+                    </div>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 13, fontWeight: 500, color: '#C9A24B',
+                    }}>
+                      Découvrir
+                      <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Section bénéfices (sombre) */}
+      <section className="ps-section ps-section-dark" data-testid="nos-livres-benefits">
+        <div className="ps-container">
+          <div style={{ maxWidth: 720, marginBottom: 56 }}>
+            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Comment ça marche</p>
+            <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 20 }}>
+              Ton PDF <span className="ps-italic">t&apos;attend dans ta boîte mail</span> en quelques minutes.
+            </h2>
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: 24,
+          }}>
+            {BENEFITS.map((b) => {
+              const Icon = b.icon;
+              return (
+                <div key={b.title} className="ps-card" data-testid={`benefit-${b.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 10,
+                    background: 'rgba(201,162,75,0.10)',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    marginBottom: 16,
+                  }}>
+                    <Icon style={{ width: 20, height: 20, color: '#C9A24B' }} strokeWidth={1.6} />
+                  </div>
+                  <h3 className="ps-h3" style={{ color: '#F7F5F0', marginBottom: 10, fontSize: 20 }}>{b.title}</h3>
+                  <p style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 14, lineHeight: 1.6,
+                    color: 'rgba(247,245,240,0.72)', margin: 0,
+                  }}>{b.body}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA final */}
+      <section className="ps-section ps-section-light" data-testid="nos-livres-cta">
+        <div className="ps-container">
+          <div style={{ maxWidth: 640 }}>
+            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Prête à commencer ?</p>
+            <h2 className="ps-h2" style={{ color: '#0F1A3C', marginBottom: 24 }}>
+              20 crédits <span className="ps-italic">offerts</span> à l&apos;inscription.
+            </h2>
+            <p className="ps-body" style={{ color: '#232323', marginBottom: 32 }}>
+              Crée ton compte gratuit et découvre Soléna à ton rythme — sans carte bancaire, sans engagement.
+            </p>
+            <Link to="/inscription" className="ps-btn ps-btn-primary"
+              data-testid="nos-livres-cta-final"
+              style={{ padding: '16px 32px', fontSize: 16 }}>
+              Créer mon compte
+              <Sparkles style={{ width: 18, height: 18 }} strokeWidth={2} />
+            </Link>
+          </div>
+        </div>
+      </section>
+    </PsPageShell>
+  );
+}

@@ -1,69 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Star, ArrowRight, Search } from 'lucide-react';
 import SEO from '@/components/SEO';
+import PsPageShell from '@/components/PsPageShell';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-/* ═══════════════════════════════════════════════════════════
-   Page /temoignages — Public wall
-   Liste tous les temoignages approuves avec filtre par signe astro
-   ═══════════════════════════════════════════════════════════ */
-
-const styles = `
-  .pw-page{min-height:100vh;background:#0b0f24;color:#e8e6f0;
-    font-family:Georgia,'Times New Roman',serif;padding:60px 20px 100px;}
-  .pw-wrap{max-width:1100px;margin:0 auto;}
-  .pw-eyebrow{font-size:11px;letter-spacing:.24em;text-transform:uppercase;
-    color:#c9a24b;margin:0 0 12px;}
-  .pw-title{font-size:clamp(2rem,3.5vw,2.8rem);color:#e8e6f0;margin:0 0 12px;
-    font-weight:400;line-height:1.15;}
-  .pw-title em{color:#c9a24b;font-style:italic;}
-  .pw-lead{color:#b8b4c9;font-size:1rem;margin:0 0 32px;max-width:640px;}
-
-  .pw-filters{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 28px;
-    padding:14px;background:rgba(20,26,51,.5);border-radius:12px;
-    border:1px solid rgba(201,162,75,.15);}
-  .pw-search{flex:1;min-width:200px;background:rgba(11,15,36,.7);color:#e8e6f0;
-    border:1px solid rgba(201,162,75,.2);padding:10px 14px;border-radius:10px;
-    font-family:Georgia,serif;font-size:.9rem;}
-  .pw-search:focus{outline:none;border-color:#c9a24b;box-shadow:0 0 0 2px rgba(201,162,75,.15);}
-  .pw-chip{background:transparent;color:#b8b4c9;border:1px solid rgba(255,255,255,.1);
-    padding:6px 12px;border-radius:999px;cursor:pointer;font-family:Georgia,serif;
-    font-size:.82rem;transition:all .18s;letter-spacing:.02em;}
-  .pw-chip:hover{border-color:rgba(201,162,75,.4);color:#e8e6f0;}
-  .pw-chip-active{background:linear-gradient(135deg,#c9a24b,#e2c07c);color:#1a1030;
-    border-color:transparent;font-weight:600;}
-
-  .pw-count{color:#7d7a90;font-size:.85rem;margin-bottom:20px;letter-spacing:.03em;}
-
-  .pw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;}
-  .pw-card{background:rgba(20,26,51,.5);border:1px solid rgba(201,162,75,.15);
-    border-radius:16px;padding:22px;transition:transform .2s ease,border-color .2s ease;}
-  .pw-card:hover{transform:translateY(-3px);border-color:rgba(201,162,75,.35);}
-  .pw-card-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-  .pw-avatar{width:46px;height:46px;border-radius:50%;
-    background:linear-gradient(135deg,#c9a24b,#e2c07c);color:#1a1030;
-    display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;}
-  .pw-name{color:#e8e6f0;font-size:.95rem;font-weight:600;}
-  .pw-sub{color:#8a86a0;font-size:.78rem;margin-top:2px;}
-  .pw-stars{color:#c9a24b;font-size:.78rem;letter-spacing:.06em;margin-top:2px;}
-  .pw-quote{color:#e8e6f0;font-size:.9rem;line-height:1.55;font-style:italic;
-    padding-left:12px;border-left:2px solid #c9a24b;}
-  .pw-transform{margin-top:14px;padding-top:12px;border-top:1px dashed rgba(201,162,75,.2);
-    font-size:.78rem;color:#b8b4c9;line-height:1.5;}
-  .pw-transform strong{color:#c9a24b;}
-
-  .pw-empty{padding:60px 20px;text-align:center;color:#7d7a90;
-    background:rgba(20,26,51,.3);border-radius:12px;border:1px dashed rgba(255,255,255,.1);}
-
-  .pw-cta{display:inline-block;margin-top:32px;
-    background:linear-gradient(135deg,#c9a24b,#e2c07c);color:#1a1030;
-    padding:12px 26px;border-radius:999px;text-decoration:none;font-weight:600;
-    box-shadow:0 4px 20px rgba(201,162,75,.35);}
-  .pw-share{display:inline-block;margin-left:14px;color:#c9a24b;
-    text-decoration:none;border-bottom:1px dashed rgba(201,162,75,.4);
-    font-size:.9rem;padding-bottom:2px;}
-`;
+/**
+ * /temoignages — Mur des témoignages public · Charte v3 (light).
+ * Filtre par signe + recherche texte + affichage grid.
+ */
 
 const SIGNS = [
   'Bélier', 'Taureau', 'Gémeaux', 'Cancer', 'Lion', 'Vierge',
@@ -95,8 +41,7 @@ export default function TemoignagesPublic() {
         (t.name || '').toLowerCase().includes(q)
         || (t.city || '').toLowerCase().includes(q)
         || (t.quote || '').toLowerCase().includes(q)
-        || (t.sign || '').toLowerCase().includes(q)
-      );
+        || (t.sign || '').toLowerCase().includes(q));
     }
     return out;
   }, [items, query, signFilter]);
@@ -107,51 +52,65 @@ export default function TemoignagesPublic() {
   }, [items]);
 
   return (
-    <>
-      <SEO path="/temoignages"
+    <PsPageShell background="light">
+      <SEO
+        path="/temoignages"
         title="Témoignages · Plume Astrale"
-        description="Plus de mille femmes ont partagé ce que Soléna leur a apporté. Lis leurs mots — filtre par signe astrologique." />
-      <style>{styles}</style>
-      <div className="pw-page" data-testid="temoignages-public-page">
-        <div className="pw-wrap">
-          <div className="pw-eyebrow">Communauté Plume Astrale</div>
-          <h1 className="pw-title">Ce que les femmes ont <em>trouvé</em> ici.</h1>
-          <p className="pw-lead">
-            Chaque témoignage est validé par Soléna avant publication.
-            Prénom et signe seulement — pas d'email visible.
-          </p>
+        description="Plus de mille femmes ont partagé ce que Soléna leur a apporté. Lis leurs mots — filtre par signe astrologique."
+      />
 
-          <div className="pw-filters">
-            <input
-              type="text"
-              className="pw-search"
-              placeholder="Rechercher un prénom, une ville, un mot…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              data-testid="temoignages-search"
-            />
-            <button
-              type="button"
-              className={`pw-chip ${!signFilter ? 'pw-chip-active' : ''}`}
-              onClick={() => setSignFilter(null)}
-              data-testid="temoignages-chip-all"
-            >
+      <section className="ps-section ps-section-light" data-testid="temoignages-public-page">
+        <div className="ps-container">
+          {/* Header */}
+          <div style={{ maxWidth: 720, marginBottom: 48 }}>
+            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Communauté Plume Astrale</p>
+            <h1 className="ps-h1" style={{ color: '#0F1A3C', marginBottom: 20 }}>
+              Ce que les femmes ont <span className="ps-italic">trouvé</span> ici.
+            </h1>
+            <p className="ps-body" style={{ color: '#232323' }}>
+              Chaque témoignage est validé par Soléna avant publication. Prénom et signe seulement — pas d&apos;email visible.
+            </p>
+          </div>
+
+          {/* Filtres */}
+          <div style={{
+            background: '#fff',
+            border: '1px solid #E3E1DC',
+            borderRadius: 12,
+            padding: 20,
+            marginBottom: 32,
+            display: 'flex', flexWrap: 'wrap', gap: 10,
+            alignItems: 'center',
+          }}>
+            <div style={{ position: 'relative', flex: '1 1 240px', minWidth: 240 }}>
+              <Search style={{
+                position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                width: 16, height: 16, color: '#6B7280', pointerEvents: 'none',
+              }} strokeWidth={1.8} />
+              <input
+                type="text"
+                placeholder="Rechercher un prénom, une ville, un mot…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                data-testid="temoignages-search"
+                className="ps-input"
+                style={{ paddingLeft: 40, width: '100%' }}
+              />
+            </div>
+            <FilterChip active={!signFilter} onClick={() => setSignFilter(null)} testid="temoignages-chip-all">
               Tous les signes
-            </button>
+            </FilterChip>
             {signsWithData.map((s) => (
-              <button
-                key={s}
-                type="button"
-                className={`pw-chip ${signFilter === s ? 'pw-chip-active' : ''}`}
+              <FilterChip key={s}
+                active={signFilter === s}
                 onClick={() => setSignFilter(signFilter === s ? null : s)}
-                data-testid={`temoignages-chip-${s.toLowerCase()}`}
-              >
+                testid={`temoignages-chip-${s.toLowerCase()}`}>
                 {s}
-              </button>
+              </FilterChip>
             ))}
           </div>
 
-          <div className="pw-count" data-testid="temoignages-count">
+          <div className="ps-caption" style={{ marginBottom: 24 }} data-testid="temoignages-count">
             {loading ? 'Chargement…' :
               `${filtered.length} témoignage${filtered.length > 1 ? 's' : ''}`
               + (signFilter ? ` · signe ${signFilter}` : '')
@@ -159,47 +118,124 @@ export default function TemoignagesPublic() {
           </div>
 
           {!loading && filtered.length === 0 && (
-            <div className="pw-empty" data-testid="temoignages-empty">
+            <div style={{
+              padding: '60px 24px', textAlign: 'center',
+              background: '#fff', border: '1px dashed #E3E1DC',
+              borderRadius: 12,
+              fontFamily: 'Inter, sans-serif', color: '#6B7280',
+            }} data-testid="temoignages-empty">
               Aucun témoignage ne correspond à ta recherche.
             </div>
           )}
 
-          <div className="pw-grid">
+          {/* Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: 20,
+          }}>
             {filtered.map((t) => (
-              <div key={t.id} className="pw-card" data-testid={`temoignages-card-${t.id}`}>
-                <div className="pw-card-head">
-                  <div className="pw-avatar">{t.initial || (t.name || '?')[0]}</div>
-                  <div style={{ flex: 1 }}>
-                    <div className="pw-name">{t.name}</div>
-                    <div className="pw-sub">
-                      {t.sign && <span>{t.sign}</span>}
-                      {t.sign && t.city && <span> · </span>}
-                      {t.city && <span>{t.city}</span>}
-                    </div>
-                    <div className="pw-stars">{'★'.repeat(t.stars || 5)}</div>
-                  </div>
-                </div>
-                <div className="pw-quote">« {t.quote} »</div>
-                {(t.transform_before || t.transform_after) && (
-                  <div className="pw-transform">
-                    {t.transform_before && <><strong>Avant :</strong> {t.transform_before}<br /></>}
-                    {t.transform_after && <><strong>Après :</strong> {t.transform_after}</>}
-                  </div>
-                )}
-              </div>
+              <TestimonialCard key={t.id} t={t} />
             ))}
           </div>
 
-          <div style={{ marginTop: 40, textAlign: 'center' }}>
-            <Link to="/" className="pw-cta" data-testid="temoignages-cta-home">
-              Découvrir ma lecture · 97€
+          {/* CTA */}
+          <div style={{
+            marginTop: 56, paddingTop: 40,
+            borderTop: '1px solid #E3E1DC',
+            display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'center',
+          }}>
+            <Link to="/inscription" className="ps-btn ps-btn-primary"
+              data-testid="temoignages-cta-home">
+              Découvrir ma lecture
+              <ArrowRight style={{ width: 16, height: 16 }} strokeWidth={2} />
             </Link>
-            <Link to="/temoignage" className="pw-share" data-testid="temoignages-cta-share">
-              Partager mon témoignage →
+            <Link to="/temoignage" className="ps-btn ps-btn-outline"
+              data-testid="temoignages-cta-share">
+              Partager mon témoignage
             </Link>
           </div>
         </div>
+      </section>
+    </PsPageShell>
+  );
+}
+
+function FilterChip({ active, onClick, testid, children }) {
+  return (
+    <button type="button" onClick={onClick} data-testid={testid}
+      style={{
+        background: active ? '#0F1A3C' : 'transparent',
+        color: active ? '#F7F5F0' : '#232323',
+        border: active ? '1px solid #0F1A3C' : '1px solid #E3E1DC',
+        padding: '8px 14px', borderRadius: 999,
+        fontFamily: 'Inter, sans-serif', fontSize: 13,
+        fontWeight: active ? 500 : 400,
+        cursor: 'pointer',
+        letterSpacing: '0.02em',
+        transition: 'background 200ms ease, border-color 200ms ease',
+      }}
+      onMouseEnter={(e) => { if (!active) e.currentTarget.style.borderColor = '#C9A24B'; }}
+      onMouseLeave={(e) => { if (!active) e.currentTarget.style.borderColor = '#E3E1DC'; }}>
+      {children}
+    </button>
+  );
+}
+
+function TestimonialCard({ t }) {
+  return (
+    <div className="ps-card" data-testid={`temoignages-card-${t.id}`}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: 999,
+          background: 'linear-gradient(135deg, #C9A24B 0%, #A88536 100%)',
+          color: '#0F1A3C',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'Playfair Display, serif',
+          fontSize: 18, fontWeight: 600,
+          flexShrink: 0,
+        }}>
+          {t.initial || (t.name || '?')[0]}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 600,
+            color: '#0F1A3C', lineHeight: 1.2,
+          }}>{t.name}</div>
+          <div style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 12,
+            color: '#6B7280', marginTop: 2,
+          }}>
+            {t.sign && <span>{t.sign}</span>}
+            {t.sign && t.city && <span> · </span>}
+            {t.city && <span>{t.city}</span>}
+          </div>
+          <div style={{ display: 'flex', gap: 2, marginTop: 4 }}>
+            {[...Array(t.stars || 5)].map((_, i) => (
+              <Star key={i} style={{ width: 12, height: 12, color: '#C9A24B', fill: '#C9A24B' }} strokeWidth={0} />
+            ))}
+          </div>
+        </div>
       </div>
-    </>
+      <p style={{
+        fontFamily: 'Playfair Display, serif',
+        fontSize: 16, lineHeight: 1.55, fontStyle: 'italic',
+        color: '#232323', margin: 0,
+        paddingLeft: 14, borderLeft: '2px solid #C9A24B',
+      }}>
+        « {t.quote} »
+      </p>
+      {(t.transform_before || t.transform_after) && (
+        <div style={{
+          marginTop: 14, paddingTop: 14,
+          borderTop: '1px dashed #E3E1DC',
+          fontFamily: 'Inter, sans-serif', fontSize: 13,
+          color: '#6B7280', lineHeight: 1.55,
+        }}>
+          {t.transform_before && <div><strong style={{ color: '#C9A24B' }}>Avant :</strong> {t.transform_before}</div>}
+          {t.transform_after && <div><strong style={{ color: '#C9A24B' }}>Après :</strong> {t.transform_after}</div>}
+        </div>
+      )}
+    </div>
   );
 }

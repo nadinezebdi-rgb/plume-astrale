@@ -5,7 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import TrialBanner from "./components/TrialBanner";
 
-import Index from "./pages/Index";
+import Index from "./pages/Homepage";
 import LectureCompleteSucces from "./pages/LectureCompleteSucces";
 import AuthPage from "./pages/AuthPage";
 import Tarot from "./pages/Tarot";
@@ -24,6 +24,7 @@ import KabbaleSales from "./pages/KabbaleSales";
 import ThemeNatalLuxe from "./pages/ThemeNatalLuxe";
 import NosLivres from "./pages/NosLivres";
 import Blog from "./pages/Blog";
+import Contact from "./pages/Contact";
 import MentionsLegales from "./pages/MentionsLegales";
 import CGV from "./pages/CGV";
 import Footer from "./components/Footer";
@@ -42,8 +43,6 @@ import AnalyticsAdmin from "./pages/AnalyticsAdmin";
 import BuyCredits from "./pages/BuyCredits";
 import CreditSuccess from "./pages/CreditSuccess";
 import Choix from "./pages/Choix";
-import Livre from "./pages/Livre";
-import CommandeSucces from "./pages/CommandeSucces";
 import CharteConfiance from "./pages/CharteConfiance";
 import MonCompte from "./pages/MonCompte";
 import Temoignage from "./pages/Temoignage";
@@ -125,8 +124,16 @@ function App() {
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/cgv" element={<CGV />} />
+          <Route path="/nos-livres" element={<NosLivres />} />
+          <Route path="/temoignages" element={<TemoignagesPublic />} />
+          <Route path="/theme-natal-luxe" element={<ThemeNatalLuxe />} />
+          <Route path="/kabbale" element={<KabbaleSales />} />
+          <Route path="/astrocartographie" element={<AstrocartographieSales />} />
+          <Route path="/pack-karmique" element={<PackKarmique />} />
+          <Route path="/synastrie" element={<SynastrieSales />} />
           <Route path="/lecture-complete/succes" element={<LectureCompleteSucces />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/bibliotheque" element={<Bibliotheque />} />
@@ -198,13 +205,8 @@ function App() {
                 <Route path="/paiement" element={<Paiement />} />
                 <Route path="/paiement/succes" element={<PaiementSucces />} />
                 <Route path="/resultats" element={<Resultats />} />
-                <Route path="/kabbale" element={<KabbaleSales />} />
-                <Route path="/theme-natal-luxe" element={<ThemeNatalLuxe />} />
-                <Route path="/nos-livres" element={<NosLivres />} />
                 <Route path="/kabbale/succes" element={<KabbaleSucces />} />
-                <Route path="/astrocartographie" element={<AstrocartographieSales />} />
                 <Route path="/astrocartographie/succes" element={<AstrocartographieSucces />} />
-                <Route path="/pack-karmique" element={<PackKarmique />} />
                 <Route path="/pack-karmique/succes" element={<PackKarmiqueSucces />} />
                 <Route path="/karma-destin" element={<KarmaDestin />} />
                 <Route path="/tarologie" element={<Tarologie />} />
@@ -214,11 +216,10 @@ function App() {
                 <Route path="/premium/experience" element={<Navigate to="/acheter-credits" replace />} />
                 <Route path="/acheter-credits" element={<BuyCredits />} />
                 <Route path="/credits/succes" element={<CreditSuccess />} />
-                <Route path="/livre" element={<Livre />} />
-                <Route path="/commande/succes" element={<CommandeSucces />} />
+                <Route path="/livre" element={<Navigate to="/nos-livres" replace />} />
+                <Route path="/commande/succes" element={<Navigate to="/nos-livres" replace />} />
                 <Route path="/mon-compte" element={<MonCompte />} />
                 <Route path="/temoignage" element={<Temoignage />} />
-                <Route path="/temoignages" element={<TemoignagesPublic />} />
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
                 <Route path="/consultation" element={<Navigate to="/outils/consultation" replace />} />
                 <Route path="/energie" element={<Navigate to="/outils/energie" replace />} />
@@ -233,7 +234,6 @@ function App() {
                 <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
                 <Route path="/notre-cadre" element={<NotreCadre />} />
                 <Route path="/cercle" element={<Navigate to="/communaute" replace />} />
-                <Route path="/synastrie" element={<SynastrieSales />} />
                 <Route path="/synastrie/succes" element={<SynastrieSucces />} />
                 <Route path="/astrosexo" element={<Navigate to="/outils/astrosexo" replace />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
