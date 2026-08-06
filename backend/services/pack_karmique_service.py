@@ -208,14 +208,14 @@ async def handle_pack_karmique_webhook(session_id: str) -> None:
     # 4) Email best-effort
     if email:
         try:
-            await _send_email(email, first_name, pdf_bytes, filename)
+            await _send_email(email, first_name, pdf_bytes, filename, pdf_url=md.get('pdf_supabase_url', ''))
             md['email_sent_at'] = datetime.now(timezone.utc).isoformat()
             sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
         except Exception as e:
             logger.warning(f'[pack_karmique] email failed for {session_id}: {e}')
 
 
-async def _send_email(email: str, first_name: str, pdf_bytes: bytes, filename: str) -> None:
+async def _send_email(email: str, first_name: str, pdf_bytes: bytes, filename: str, pdf_url: str = '') -> None:
     api_key = os.environ.get('RESEND_API_KEY', '').strip()
     sender = os.environ.get('SENDER_EMAIL', 'Solena · Plume Astrale <contact@plume-astrale.fr>')
     if not api_key:
@@ -272,17 +272,27 @@ async def _send_email(email: str, first_name: str, pdf_bytes: bytes, filename: s
     </div>
     """
 
+    # Bouton de téléchargement (PDF hébergé sur Supabase Storage)
+    if pdf_url:
+        _btn = f'<div style="text-align:center;margin:24px 0;"><a href="{pdf_url}" style="display:inline-block;background:#D4AF37;color:#111625;font-weight:700;padding:14px 30px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;">Télécharger ton document →</a></div>'
+        _i = html.rfind('</div>')
+        html = (html[:_i] + _btn + html[_i:]) if _i != -1 else (html + _btn)
+
+    MAX_ATTACH = 30 * 1024 * 1024  # marge sous la limite Resend (40 Mo)
+    payload = {
+        'from': sender,
+        'to': [email],
+        'subject': 'Ton Pack Karmique + Kabbale est prêt ✦',
+        'html': html,
+    }
+    if pdf_bytes and len(pdf_bytes) <= MAX_ATTACH:
+        payload['attachments'] = [{'filename': filename, 'content': pdf_b64}]
+
     async with httpx.AsyncClient(timeout=30) as client:
         r = await client.post(
             'https://api.resend.com/emails',
             headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
-            json={
-                'from': sender,
-                'to': [email],
-                'subject': 'Ton Pack Karmique + Kabbale est prêt ✦',
-                'html': html,
-                'attachments': [{'filename': filename, 'content': pdf_b64}],
-            },
+            json=payload,
         )
         if r.status_code >= 400:
             logger.warning(f'[pack_karmique] Resend error {r.status_code}: {r.text[:300]}')
