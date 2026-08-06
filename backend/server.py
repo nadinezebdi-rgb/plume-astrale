@@ -72,6 +72,7 @@ from routes.landing import router as landing_router
 from routes.chat_support import router as chat_support_router
 from routes.contact import router as contact_router
 from routes.apercu_discount import router as apercu_discount_router
+from routes.reports import router as reports_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from integrations.payments.stripe.checkout import (
@@ -140,6 +141,7 @@ api_router.include_router(landing_router)
 api_router.include_router(chat_support_router)
 api_router.include_router(contact_router)
 api_router.include_router(apercu_discount_router)
+api_router.include_router(reports_router)
 
 
 # ════════════════════════════════════════════
@@ -861,15 +863,35 @@ async def stripe_webhook(request: Request):
             logger.warning(f'[kabbale] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'kabbale_arbre_de_vie'}
 
-    # Route vers Pack Karmique + Kabbale handler (pack 89 EUR)
-    if md.get('kind') == 'pack_karmique_kabbale':
-        from services.pack_karmique_service import handle_pack_karmique_webhook
+    # Route vers Numerologie handler si kind=numerologie_code (pack 19 EUR)
+    if md.get('kind') == 'numerologie_code':
+        from services.numerologie_webhook import handle_numerologie_webhook
         try:
             session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
-            await handle_pack_karmique_webhook(session_id)
+            await handle_numerologie_webhook(session_id)
         except Exception as e:
-            logger.warning(f'[pack_karmique] post-webhook fail: {e}')
-        return {'received': True, 'type': event_type, 'kind': 'pack_karmique_kabbale'}
+            logger.warning(f'[numerologie] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'numerologie_code'}
+
+    # Route vers Karma Destin handler si kind=karma_destin_analysis (pack 24 EUR)
+    if md.get('kind') == 'karma_destin_analysis':
+        from services.karma_destin_webhook import handle_karma_destin_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_karma_destin_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[karma_destin] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'karma_destin_analysis'}
+
+    # Route vers Fenetre Rencontre handler si kind=fenetre_rencontre_avancee (pack 29 EUR)
+    if md.get('kind') == 'fenetre_rencontre_avancee':
+        from services.fenetre_rencontre_webhook import handle_fenetre_rencontre_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_fenetre_rencontre_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[fenetre_rencontre] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'fenetre_rencontre_avancee'}
 
     # Route vers Numerologie handler si kind=numerologie_code (pack 19 EUR)
     if md.get('kind') == 'numerologie_code':
