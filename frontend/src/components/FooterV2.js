@@ -1,0 +1,153 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Instagram, Mail } from 'lucide-react';
+
+/**
+ * Footer V3 — refonte identité visuelle Feb 2026
+ * Fond bleu nuit #0F1A3C, liens secondaires + mentions légales + réseaux
+ */
+export default function FooterV2() {
+  const year = new Date().getFullYear();
+
+  return (
+    <footer data-testid="footer-v2" style={{
+      background: '#0F1A3C',
+      color: 'rgba(247,245,240,0.72)',
+      borderTop: '1px solid rgba(201,162,75,0.15)',
+      fontFamily: 'Inter, sans-serif',
+    }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 24px 32px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: 48,
+        }}>
+          {/* Brand */}
+          <div>
+            <div style={{
+              fontFamily: 'Playfair Display, serif',
+              fontSize: 24, fontWeight: 500,
+              color: '#F7F5F0', marginBottom: 12,
+            }}>
+              Plume <span style={{ color: '#C9A24B' }}>Astrale</span>
+            </div>
+            <p style={{
+              fontSize: 14, lineHeight: 1.6, margin: 0,
+              color: 'rgba(247,245,240,0.60)', maxWidth: 260,
+            }}>
+              L&apos;astrologie qui sait ton prénom.<br />
+              Écrite à la main par Soléna.
+            </p>
+          </div>
+
+          {/* Explorer */}
+          <div>
+            <FooterHeading>Explorer</FooterHeading>
+            <FooterLink to="/">Accueil</FooterLink>
+            <FooterLink to="/nos-livres">Services</FooterLink>
+            <FooterLink to="/blog">Blog</FooterLink>
+            <FooterLink to="/temoignages">Témoignages</FooterLink>
+            <FooterLink to="/quotidien">Horoscope du jour</FooterLink>
+          </div>
+
+          {/* Aide */}
+          <div>
+            <FooterHeading>Aide</FooterHeading>
+            <FooterLink to="/inscription">Créer un compte</FooterLink>
+            <FooterLink to="/connexion">Se connecter</FooterLink>
+            <FooterLink to="/mon-compte">Mon espace</FooterLink>
+            <a href="mailto:contact@plume-astrale.fr" style={footerLinkStyle} data-testid="footer-v2-contact">
+              contact@plume-astrale.fr
+            </a>
+          </div>
+
+          {/* Légal */}
+          <div>
+            <FooterHeading>Légal</FooterHeading>
+            <FooterLink to="/mentions-legales" testid="footer-v2-mentions">Mentions légales</FooterLink>
+            <FooterLink to="/cgv" testid="footer-v2-cgv">Conditions générales</FooterLink>
+            <div style={{
+              fontSize: 12, color: 'rgba(247,245,240,0.4)',
+              marginTop: 14, letterSpacing: '0.04em',
+            }}>
+              RGPD · CNIL · Stripe PCI-DSS
+            </div>
+
+            {/* Réseaux sociaux */}
+            <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
+              <a href="https://instagram.com/plume.astrale" aria-label="Instagram"
+                target="_blank" rel="noopener noreferrer"
+                data-testid="footer-v2-instagram"
+                style={socialIcon}>
+                <Instagram style={{ width: 18, height: 18 }} strokeWidth={1.6} />
+              </a>
+              <a href="mailto:contact@plume-astrale.fr" aria-label="Email"
+                data-testid="footer-v2-email-icon"
+                style={socialIcon}>
+                <Mail style={{ width: 18, height: 18 }} strokeWidth={1.6} />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div style={{
+          marginTop: 48,
+          paddingTop: 24,
+          borderTop: '1px solid rgba(247,245,240,0.08)',
+          fontSize: 12,
+          color: 'rgba(247,245,240,0.42)',
+          textAlign: 'center',
+          letterSpacing: '0.06em',
+        }}>
+          © {year} Plume Astrale · Tous droits réservés · Fait avec soin en France
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+const footerLinkStyle = {
+  display: 'block',
+  padding: '5px 0',
+  fontSize: 14,
+  color: 'rgba(247,245,240,0.72)',
+  textDecoration: 'none',
+  transition: 'color 200ms ease',
+  fontFamily: 'Inter, sans-serif',
+};
+
+const socialIcon = {
+  display: 'inline-flex',
+  alignItems: 'center', justifyContent: 'center',
+  width: 40, height: 40,
+  borderRadius: 999,
+  border: '1px solid rgba(201,162,75,0.35)',
+  color: '#C9A24B',
+  transition: 'background 200ms ease, border-color 200ms ease',
+  textDecoration: 'none',
+};
+
+function FooterHeading({ children }) {
+  return (
+    <div style={{
+      fontFamily: 'Inter, sans-serif',
+      fontSize: 12, fontWeight: 600,
+      letterSpacing: '0.14em',
+      textTransform: 'uppercase',
+      color: '#C9A24B',
+      marginBottom: 16,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function FooterLink({ to, children, testid }) {
+  return (
+    <Link to={to} data-testid={testid} style={footerLinkStyle}
+      onMouseEnter={(e) => (e.currentTarget.style.color = '#C9A24B')}
+      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(247,245,240,0.72)')}>
+      {children}
+    </Link>
+  );
+}

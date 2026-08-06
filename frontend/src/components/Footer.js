@@ -9,7 +9,9 @@ import { Link, useLocation } from 'react-router-dom';
 export default function Footer() {
   const { pathname } = useLocation();
   // Ne pas afficher sur les pages admin / dashboard / process de commande
+  // Ne pas afficher sur / non plus — la Homepage v3 embarque son propre FooterV2
   if (
+    pathname === '/' ||
     pathname.startsWith('/admin') ||
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/formulaire') ||

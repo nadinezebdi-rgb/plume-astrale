@@ -1,5 +1,31 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 72) — Refonte identité visuelle · Pilote Phase 1
+
+### Contexte
+Refonte visuelle demandée par utilisatrice : élégance lettrée + profondeur céleste nocturne, palette (#0F1A3C navy, #C9A24B doré, #F7F5F0 blanc cassé), Playfair Display + Inter, sections alternées clair/sombre, 8px scale strict, WCAG AA.
+
+### Livrables Phase 1 (2026-02-06)
+- ✅ **Design tokens v3** — ajoutés à `index.css` (additif, non-breaking). Nouveaux `--ps-*` : navy, indigo, cream, gold, anthracite, slate, mist, états success/error/info. Typographie Playfair + Inter. Échelle 8px (space-1 à space-12). Radius sm/md/lg/pill. Container max 1200px.
+- ✅ **Composants réutilisables** — classes CSS : `.ps-section` (light/dark), `.ps-container`, `.ps-narrow`, `.ps-h1/h2/h3`, `.ps-body`, `.ps-eyebrow`, `.ps-caption`, `.ps-italic`, `.ps-btn` (primary/outline), `.ps-card`, `.ps-input`, `.ps-label`.
+- ✅ **NavbarV2** (`components/NavbarV2.js`) — sticky navy #0F1A3C, logo Playfair, 5 liens Inter (Accueil/Services/Blog/Témoignages/Contact), Connexion + CTA doré "Recevoir ma lecture", mobile hamburger → panneau plein écran.
+- ✅ **FooterV2** (`components/FooterV2.js`) — fond navy, 4 colonnes (Marque/Explorer/Aide/Légal), icônes Instagram/Mail dorées, mentions RGPD/CNIL/PCI-DSS.
+- ✅ **Homepage** (`pages/Homepage.js`) — 6 sections alternées : Hero sombre + photo Soléna, Valeur claire (3 cards), Story sombre, Services claire (3 livres), Témoignages sombre, CTA final claire. Un seul CTA doré par section. Playfair titres + Inter corps.
+- ✅ **App.js** — `<Index />` = nouvelle `Homepage`. Ancienne `Footer.js` masquée sur `/`. Autres pages inchangées (navbar + footer legacy conservés pour Phase 2).
+
+### Vérifs
+- Lint JS clean (Homepage, NavbarV2, FooterV2).
+- Screenshots desktop hero + sections + footer OK — police Playfair chargée, palette navy/doré/cream respectée, alternance clair/sombre lisible.
+- `/blog`, `/nos-livres`, `/mon-compte` inchangés (identité mystique legacy).
+- Pages outils/PDFs (Kabbale, Karma, Tarologie…) → conservent dark mystique (choix utilisatrice).
+
+### Prochaines phases (Phase 2 - après validation user)
+- Rollout : `/nos-livres`, `/temoignages`, `/mentions-legales`, `/cgv` sur la nouvelle charte.
+- Contact page dédiée (le lien `#contact` de la navbar est provisoire).
+- Suppression progressive de l'ancien `Navbar.js` + `Footer.js` une fois toutes les pages migrées.
+
+---
+
 ## 🆕 Session Feb 2026 (iter 71) — Cleanup Roman/Livre dormant
 
 ### Livrables (2026-02-05)

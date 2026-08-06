@@ -5,7 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import TrialBanner from "./components/TrialBanner";
 
-import Index from "./pages/Index";
+import Index from "./pages/Homepage";
 import LectureCompleteSucces from "./pages/LectureCompleteSucces";
 import Register from "./pages/Register";
 import Login from "./pages/Login";

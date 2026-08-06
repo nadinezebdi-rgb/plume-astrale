@@ -836,3 +836,245 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
   .tarot-back-title { font-size: 9px; }
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PLUME SITE V3 — Design System refonte Feb 2026
+   Additive, non-breaking : les tokens --pa-* legacy restent pour les pages outils.
+   Nouveaux tokens --ps-* pour navbar, hero, sections alternées, footer.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* ── Palette v3 ── */
+  --ps-navy:        #0F1A3C;
+  --ps-indigo:      #1E2A5E;
+  --ps-cream:       #F7F5F0;
+  --ps-gold:        #C9A24B;
+  --ps-gold-dark:   #A88536;
+  --ps-anthracite:  #232323;
+  --ps-slate:       #6B7280;
+  --ps-mist:        #E3E1DC;
+
+  /* États */
+  --ps-success: #3C7A5A;
+  --ps-error:   #B4442E;
+  --ps-info:    #3B5BA5;
+
+  /* Typographie */
+  --ps-serif: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  --ps-sans:  'Inter', 'Work Sans', system-ui, sans-serif;
+
+  /* Espacements — échelle 8px stricte */
+  --ps-space-1: 8px;
+  --ps-space-2: 16px;
+  --ps-space-3: 24px;
+  --ps-space-4: 32px;
+  --ps-space-6: 48px;
+  --ps-space-8: 64px;
+  --ps-space-12: 96px;
+
+  /* Radius */
+  --ps-radius-sm: 8px;
+  --ps-radius:    12px;
+  --ps-radius-lg: 20px;
+  --ps-radius-pill: 999px;
+
+  /* Container */
+  --ps-max-width: 1200px;
+  --ps-content-width: 65ch;
+}
+
+/* ── Section wrappers alternés ── */
+.ps-section {
+  position: relative;
+  padding: var(--ps-space-12) var(--ps-space-3);
+  width: 100%;
+}
+@media (max-width: 767px) {
+  .ps-section { padding: var(--ps-space-6) var(--ps-space-3); }
+}
+.ps-section-light { background: var(--ps-cream); color: var(--ps-anthracite); }
+.ps-section-dark  { background: var(--ps-navy); color: var(--ps-cream); }
+.ps-section-dark::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 10%, rgba(201,162,75,0.08), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 90%, rgba(30,42,94,0.6), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.ps-section > .ps-container { position: relative; z-index: 1; }
+
+.ps-container {
+  max-width: var(--ps-max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+.ps-narrow { max-width: 780px; margin: 0 auto; }
+
+/* ── Typography ── */
+.ps-h1 {
+  font-family: var(--ps-serif);
+  font-weight: 500;
+  font-size: clamp(38px, 5vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.ps-h2 {
+  font-family: var(--ps-serif);
+  font-weight: 500;
+  font-size: clamp(28px, 3.5vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+.ps-h3 {
+  font-family: var(--ps-serif);
+  font-weight: 500;
+  font-size: clamp(22px, 2.5vw, 28px);
+  line-height: 1.25;
+  margin: 0;
+}
+.ps-body {
+  font-family: var(--ps-sans);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.6;
+  max-width: var(--ps-content-width);
+}
+@media (max-width: 767px) {
+  .ps-body { font-size: 15px; }
+}
+.ps-eyebrow {
+  font-family: var(--ps-sans);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ps-gold);
+}
+.ps-caption {
+  font-family: var(--ps-sans);
+  font-size: 14px;
+  color: var(--ps-slate);
+  line-height: 1.5;
+}
+.ps-italic {
+  font-family: var(--ps-serif);
+  font-style: italic;
+  color: var(--ps-gold);
+  font-weight: 400;
+}
+
+/* Couleurs de texte contextuelles */
+.ps-section-dark .ps-caption { color: rgba(247,245,240,0.68); }
+.ps-section-dark .ps-body    { color: rgba(247,245,240,0.88); }
+
+/* ── Boutons ── */
+.ps-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border-radius: var(--ps-radius-pill);
+  font-family: var(--ps-sans);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: transform 200ms ease, background 200ms ease, color 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  min-height: 48px;
+  white-space: nowrap;
+}
+.ps-btn-primary {
+  background: var(--ps-gold);
+  color: var(--ps-navy);
+  border-color: var(--ps-gold);
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(201,162,75,0.28);
+}
+.ps-btn-primary:hover {
+  background: var(--ps-gold-dark);
+  border-color: var(--ps-gold-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(201,162,75,0.38);
+}
+.ps-btn-outline {
+  background: transparent;
+  color: var(--ps-gold);
+  border-color: var(--ps-gold);
+}
+.ps-btn-outline:hover {
+  background: rgba(201,162,75,0.10);
+  transform: translateY(-1px);
+}
+.ps-section-light .ps-btn-outline { color: var(--ps-navy); border-color: var(--ps-navy); }
+.ps-section-light .ps-btn-outline:hover { background: rgba(15,26,60,0.06); }
+
+/* ── Card ── */
+.ps-card {
+  background: #fff;
+  border: 1px solid var(--ps-mist);
+  border-radius: var(--ps-radius);
+  padding: var(--ps-space-4);
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+.ps-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(15,26,60,0.08);
+  border-color: var(--ps-gold);
+}
+.ps-section-dark .ps-card {
+  background: var(--ps-indigo);
+  border-color: rgba(201,162,75,0.20);
+  color: var(--ps-cream);
+}
+.ps-section-dark .ps-card:hover {
+  border-color: var(--ps-gold);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+}
+
+/* ── Form fields v3 ── */
+.ps-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ps-label {
+  font-family: var(--ps-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ps-anthracite);
+  letter-spacing: 0.02em;
+}
+.ps-input {
+  padding: 12px 16px;
+  border: 1px solid var(--ps-mist);
+  border-radius: var(--ps-radius-sm);
+  font-family: var(--ps-sans);
+  font-size: 16px;
+  background: #fff;
+  color: var(--ps-anthracite);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+  min-height: 48px;
+}
+.ps-input:focus {
+  outline: none;
+  border-color: var(--ps-gold);
+  box-shadow: 0 0 0 3px rgba(201,162,75,0.18);
+}
+.ps-input:invalid:not(:placeholder-shown) { border-color: var(--ps-error); }
+
+/* ── Link souligné doré (navbar active + inline) ── */
+.ps-link-active { color: var(--ps-gold); border-bottom: 1.5px solid var(--ps-gold); padding-bottom: 2px; }
+
+/* ── Home wrapper : neutralise le starfield global sur la home v3 ── */
+body:has(.ps-home) { padding-top: 0 !important; }
+body:has(.ps-home)::before,
+body:has(.ps-home)::after { display: none !important; }
+.ps-home { position: relative; z-index: 1; }

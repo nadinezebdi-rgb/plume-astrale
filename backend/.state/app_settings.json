@@ -309,12 +309,12 @@
   ],
   "landing_ab_hero_stats": {
     "A": {
-      "impression": 23,
+      "impression": 24,
       "cta_click": 1,
       "signup_click": 1
     },
     "B": {
-      "impression": 25,
+      "impression": 27,
       "cta_click": 1,
       "signup_click": 0
     }
