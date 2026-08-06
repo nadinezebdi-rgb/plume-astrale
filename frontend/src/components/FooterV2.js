@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Mail } from 'lucide-react';
+import CelestialBackdrop from './CelestialBackdrop';
 
 /**
  * Footer V3 — refonte identité visuelle Feb 2026
@@ -15,8 +16,11 @@ export default function FooterV2() {
       color: 'rgba(247,245,240,0.72)',
       borderTop: '1px solid rgba(201,162,75,0.15)',
       fontFamily: 'Inter, sans-serif',
+      position: 'relative',
+      overflow: 'hidden',
     }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 24px 32px' }}>
+      <CelestialBackdrop density={50} shootingStars={false} />
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 24px 32px', position: 'relative', zIndex: 1 }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',

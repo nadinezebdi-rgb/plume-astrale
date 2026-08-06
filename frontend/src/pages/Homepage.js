@@ -7,6 +7,8 @@ import {
 import SEO from '@/components/SEO';
 import NavbarV2 from '@/components/NavbarV2';
 import FooterV2 from '@/components/FooterV2';
+import CelestialBackdrop from '@/components/CelestialBackdrop';
+import LiveConstellation from '@/components/LiveConstellation';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -89,6 +91,8 @@ export default function Homepage() {
 
       {/* ═══ SECTION 1 · HERO SOMBRE ═══ */}
       <section className="ps-section ps-section-dark" data-testid="ps-hero">
+        <CelestialBackdrop density={100} shootingStars interval={11000} />
+        <LiveConstellation sign="aquarius" size={520} />
         <div className="ps-container">
           <div style={{
             display: 'grid',
@@ -228,6 +232,7 @@ export default function Homepage() {
 
       {/* ═══ SECTION 3 · L'HISTOIRE DE SOLÉNA (SOMBRE) ═══ */}
       <section className="ps-section ps-section-dark" data-testid="ps-story">
+        <CelestialBackdrop density={70} shootingStars interval={14000} />
         <div className="ps-container">
           <div className="ps-narrow" style={{ textAlign: 'left' }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>La plume derrière les lectures</p>
@@ -315,6 +320,7 @@ export default function Homepage() {
 
       {/* ═══ SECTION 5 · TÉMOIGNAGES (SOMBRE) ═══ */}
       <section className="ps-section ps-section-dark" data-testid="ps-testimonials">
+        <CelestialBackdrop density={70} shootingStars interval={13000} />
         <div className="ps-container">
           <div style={{ marginBottom: 56, maxWidth: 640 }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Ce qu&apos;elles en disent</p>

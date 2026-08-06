@@ -1,5 +1,33 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 77) — Étoiles scintillantes + constellation vivante
+
+### Livrables (2026-02-06)
+- ✅ **`CelestialBackdrop`** (`components/CelestialBackdrop.js`) — starfield universel :
+  - SVG avec ~70-100 étoiles positionnées aléatoirement (memoized), radial gradient F7F5F0 pour glow doux.
+  - Scintillement individuel : chaque étoile pulse via CSS keyframes `cb-twinkle` avec `animation-delay` aléatoire (3-7s). Aucun impact perf.
+  - **Étoiles filantes** : spawn périodique (12s ±60% jitter) via `useEffect + setTimeout`. Traînée dorée avec `linear-gradient` + `drop-shadow` filter. Diagonale variable (±25°). Auto-cleanup après animation.
+  - Respect strict `prefers-reduced-motion` (arrêt des animations).
+  - Injecté dans : Hero Homepage (density 100), Story (70), Testimonials (70), Includes SalesPageV3 (70), Final CTA SalesPageV3 (65), NosLivres benefits (75), FooterV2 (50, sans shooting star).
+- ✅ **`LiveConstellation`** (`components/LiveConstellation.js`) — signature sur le héro Homepage :
+  - Constellation du **Verseau** (9 étoiles : Sadalmelik, Sadalsuud, Sadachbia, Skat, Ancha, Albali, Situla, Lambda, Psi) avec 8 lignes de connexion.
+  - Lignes dorées tracées progressivement au chargement via `stroke-dasharray/dashoffset` avec délai stagger (0.35s entre chaque).
+  - Étoiles vivantes : halo + cœur qui pulsent doucement (`lc-pulse-halo` + `lc-pulse-core` sur 4.5s, stagger par étoile).
+  - Container tourne 360° sur 120s → sensation de nuit étoilée qui tourne, imperceptible mais hypnotique.
+  - Data alternative disponible : `pisces` (Poissons).
+
+### Perf & Accessibilité
+- Rendu SVG stable (positions mémorisées), aucun re-render inutile.
+- GPU-friendly : uniquement `transform` et `opacity` animés.
+- Aria-hidden sur tous les backdrops (screen-readers ignorent).
+- `prefers-reduced-motion` → toutes animations désactivées.
+
+### Vérifs
+- Lint clean sur CelestialBackdrop, LiveConstellation, Homepage, NosLivres, SalesPageV3, FooterV2.
+- Screenshots validés : Hero avec constellation Verseau + halos dorés dansant autour de Soléna, sections dark testimonials/story avec starfield subtil, page Kabbale sales avec starfield sur "15 pages, écrites à la main", Footer avec ambiance discrète.
+
+---
+
 ## 🆕 Session Feb 2026 (iter 76) — Aperçus complets + Réduction Retour -10%
 
 ### Livrables (2026-02-06)
