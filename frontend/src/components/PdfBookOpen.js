@@ -23,14 +23,14 @@ const THEMES = {
     label: 'Astrocartographie',
     coverTitle: 'Ton\nAstrocartographie',
     coverSignature: 'Prénom · Naissance · 18 pages sur mesure',
-    heroSub: 'Reliure cuir nuit, dorures Cinzel, 18 pages sur ta géographie astrale. Ce que tu vois est ce que tu reçois par email.',
+    heroSub: 'PDF premium, 18 pages sur ta géographie astrale. Ce que tu vois est ce que tu reçois par email.',
     footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 18 pages',
   },
   kabbale: {
     label: 'Arbre de Vie',
     coverTitle: 'Ton\nArbre de Vie',
     coverSignature: 'Prénom · Naissance · 15 pages kabbalistiques',
-    heroSub: 'Reliure cuir nuit, lettres hébraïques dorées, 15 pages qui cartographient ton âme sur les 10 Sephiroth et 22 chemins.',
+    heroSub: 'PDF premium, 15 pages qui cartographient ton âme sur les 10 Sephiroth et 22 chemins de l\'Arbre de Vie.',
     footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 15 pages',
   },
   karmique: {
@@ -44,7 +44,7 @@ const THEMES = {
     label: 'Thème Natal',
     coverTitle: 'Ton\nThème Natal',
     coverSignature: 'Prénom · Naissance · 49 pages sur mesure',
-    heroSub: 'Reliure cuir nuit, dorures Cinzel, 49 pages où 11 planètes racontent qui tu es vraiment — écrit par Soléna à partir de 73 dimensions astrologiques.',
+    heroSub: 'PDF premium, 49 pages où 11 planètes racontent qui tu es vraiment — écrit par Soléna à partir de 73 dimensions astrologiques.',
     footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 49 pages',
   },
   synastry: {

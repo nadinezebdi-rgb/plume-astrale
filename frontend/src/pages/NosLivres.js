@@ -64,9 +64,9 @@ const BOOKS = [
     title: 'Pack Karmique',
     accent: 'L\'écrin ultime',
     price: '89€',
-    priceHint: 'paiement unique · 3 livres réunis',
+    priceHint: 'paiement unique · 3 lectures réunies',
     pages: '40 pages',
-    description: 'L\'écrin le plus profond de Plume Astrale — ton empreinte karmique, ton Arbre de Vie et ta synthèse d\'âme réunis dans un seul document relié.',
+    description: 'L\'écrin le plus profond de Plume Astrale — ton empreinte karmique, ton Arbre de Vie et ta synthèse d\'âme réunis dans un même PDF premium.',
     cta: 'Ouvrir mon Karmique',
     ctaTo: '/pack-karmique',
   },
@@ -84,8 +84,8 @@ const NosLivres = () => {
     >
       <SEO
         path="/nos-livres"
-        title="Nos livres · La Bibliothèque Plume Astrale"
-        description="Cinq livres reliés cuir nuit, écrits par Soléna. Thème Natal, Astrologie relationnelle, Arbre de Vie, Astrocartographie, Pack Karmique. À découvrir ci-dessous."
+        title="Nos lectures · La Bibliothèque Plume Astrale"
+        description="Cinq lectures astrologiques premium en PDF à télécharger, écrites par Soléna. Thème Natal, Astrologie relationnelle, Arbre de Vie, Astrocartographie, Pack Karmique."
       />
 
       <div className="max-w-4xl mx-auto">
@@ -104,7 +104,7 @@ const NosLivres = () => {
               lineHeight: 1.05, marginBottom: 20,
             }}
           >
-            Cinq livres,
+            Cinq lectures,
             <br />
             <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>une seule signature.</em>
           </h1>
@@ -115,8 +115,8 @@ const NosLivres = () => {
               lineHeight: 1.6, fontStyle: 'italic',
             }}
           >
-            Reliure cuir nuit, dorures Cinzel, chaque paragraphe écrit spécifiquement pour toi.
-            <span style={{ color: '#F5EEE0' }}> Choisis ton livre — regarde-le s&apos;ouvrir.</span>
+            PDF premium à télécharger, chaque paragraphe écrit spécifiquement pour toi.
+            <span style={{ color: '#F5EEE0' }}> Choisis ta lecture — regarde-la s&apos;ouvrir.</span>
           </p>
         </div>
 

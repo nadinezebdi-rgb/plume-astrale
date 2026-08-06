@@ -34,7 +34,7 @@ const VALUE_PILLARS = [
   {
     icon: Heart,
     title: 'Reçue en 48h',
-    body: 'Ta lecture arrive par email en format livre relié PDF. À lire posément, à conserver longtemps.',
+    body: 'Ta lecture arrive par email en PDF premium à télécharger. À lire posément, à conserver longtemps.',
   },
 ];
 
@@ -255,12 +255,12 @@ export default function Homepage() {
       <section className="ps-section ps-section-light" data-testid="ps-services">
         <div className="ps-container">
           <div style={{ marginBottom: 64 }}>
-            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Trois livres, une signature</p>
+            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Trois lectures, une signature</p>
             <h2 className="ps-h2" style={{ color: '#0F1A3C', marginBottom: 20, maxWidth: 640 }}>
-              Choisis <span className="ps-italic">le livre</span> qui te parle en ce moment.
+              Choisis <span className="ps-italic">la lecture</span> qui te parle en ce moment.
             </h2>
             <p className="ps-body" style={{ color: '#232323', maxWidth: 640 }}>
-              Reliure cuir nuit, dorures Playfair, chaque paragraphe pensé pour toi.
+              Chaque lecture est un PDF premium à télécharger, écrit à la main pour toi. Livraison instantanée par email.
             </p>
           </div>
 
@@ -367,7 +367,7 @@ export default function Homepage() {
           <div style={{ maxWidth: 640 }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Ta lecture t&apos;attend</p>
             <h2 className="ps-h2" style={{ color: '#0F1A3C', marginBottom: 24 }}>
-              Prête à recevoir <span className="ps-italic">ton livre céleste ?</span>
+              Prête à recevoir <span className="ps-italic">ta lecture personnelle ?</span>
             </h2>
             <p className="ps-body" style={{ color: '#232323', marginBottom: 32 }}>
               Ton compte t&apos;offre 20 crédits pour commencer — la première réponse arrive

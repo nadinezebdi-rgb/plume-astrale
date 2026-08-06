@@ -25,6 +25,7 @@ import KabbaleSales from "./pages/KabbaleSales";
 import ThemeNatalLuxe from "./pages/ThemeNatalLuxe";
 import NosLivres from "./pages/NosLivres";
 import Blog from "./pages/Blog";
+import Contact from "./pages/Contact";
 import MentionsLegales from "./pages/MentionsLegales";
 import CGV from "./pages/CGV";
 import Footer from "./components/Footer";
@@ -122,6 +123,7 @@ function App() {
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/cgv" element={<CGV />} />
           <Route path="/lecture-complete/succes" element={<LectureCompleteSucces />} />

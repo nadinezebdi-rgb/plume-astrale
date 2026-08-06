@@ -19,7 +19,7 @@ const STEPS = [
   { at: 28,  text: "J'écoute ce que tes planètes se disent entre elles…" },
   { at: 38,  text: "Je choisis chaque mot pour toi — pas pour ton signe, pour TOI…" },
   { at: 48,  text: "Je relie ta géographie astrale à ton histoire intérieure…" },
-  { at: 58,  text: "Je finalise ton livre — la couverture, la reliure, ma signature…" },
+  { at: 58,  text: "Je finalise ta lecture — la mise en page, la signature…" },
 ];
 
 const FLYING_WORDS = [
@@ -88,7 +88,7 @@ const SolenaWritingLoader = ({ estimatedSeconds = 55, testId = 'solena-writing-l
             <Sparkles className="w-5 h-5" strokeWidth={1.2} />
           </div>
           <div>
-            <div className="swl-label">✦ Soléna écrit ton livre ✦</div>
+            <div className="swl-label">✦ Soléna écrit ta lecture ✦</div>
             <div className="swl-name">Plume Astrale</div>
           </div>
         </div>

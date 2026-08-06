@@ -53,6 +53,7 @@ export default function FooterV2() {
           {/* Aide */}
           <div>
             <FooterHeading>Aide</FooterHeading>
+            <FooterLink to="/contact" testid="footer-v2-contact-link">Contact</FooterLink>
             <FooterLink to="/inscription">Créer un compte</FooterLink>
             <FooterLink to="/connexion">Se connecter</FooterLink>
             <FooterLink to="/mon-compte">Mon espace</FooterLink>

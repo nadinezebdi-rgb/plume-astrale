@@ -1,5 +1,49 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 73) — Phase 2 Rollout + Contact + Fix wording "livres"
+
+### Contexte
+Après validation du pilote (iter 72), le user demande :
+1. Appliquer la charte v3 sur les pages secondaires (Blog, Mentions, CGV, NosLivres, Témoignages)
+2. Créer une vraie page `/contact` avec formulaire
+3. **Correction commerciale critique** : ne PAS parler de « livres reliés » / « reliure cuir nuit » — l'offre commercialisée est **exclusivement en PDF premium à télécharger**, jamais des livres physiques.
+
+### Livrables (2026-02-06)
+#### Correction wording physique → PDF
+- ✅ `Homepage.js` — supprimé "livre relié PDF" → "PDF premium à télécharger", "Trois livres" → "Trois lectures", "Reliure cuir nuit, dorures Playfair" → "PDF premium… livraison instantanée par email", "ton livre céleste" → "ta lecture personnelle"
+- ✅ `NosLivres.js` — SEO title/desc corrigés, "Cinq livres" → "Cinq lectures", "Reliure cuir nuit, dorures Cinzel" → "PDF premium à télécharger"
+- ✅ `PdfBookOpen.js` — les 3 `heroSub` des thèmes (astrocarto/kabbale/natal) remplacent "Reliure cuir nuit, dorures Cinzel" par "PDF premium"
+- ✅ `ThemeNatalLuxe.js` — SEO desc, hero p, "Ce que ton livre contient" → "Ce que ta lecture contient", CTA "Créer mon livre astral" → "Créer ma lecture astrale"
+- ✅ `SolenaWritingLoader.js` — étapes de chargement débarrassées de "couverture, reliure" et "Soléna écrit ton livre" → "Soléna écrit ta lecture"
+
+#### Composants + pages v3
+- ✅ **`PsPageShell`** créé (`components/PsPageShell.js`) — wrapper commun NavbarV2 + FooterV2 + fond crème par défaut.
+- ✅ **Blog v3** (`pages/Blog.js`) — réécrit sur charte light : fond `#F7F5F0`, cards Soro blanches (texte article NOIR sur BLANC — problème "doré-sur-violet" corrigé), CTA doré unique.
+- ✅ **Mentions Légales v3** — light bg, `.ps-eyebrow` dorés, corps anthracite lisible.
+- ✅ **CGV v3** — même traitement, structure numérotée intacte.
+- ✅ **Contact v3** (`pages/Contact.js`) — page à 2 colonnes : texte + coordonnées Instagram/email + formulaire (name/email/subject/message) avec honeypot anti-bot, validation, statut succès/erreur, CTA doré.
+
+#### Backend
+- ✅ **`routes/contact.py`** — `POST /api/contact` (ContactRequest Pydantic strict, honeypot anti-bot, rate limit 60s/IP en mémoire, envoi via Resend vers `SUPPORT_EMAIL`, fallback log si Resend indispo).
+- ✅ Router inclus dans `server.py`. Tests curl OK : 200 avec succès, 429 rate-limit, 422 validation.
+
+#### Navigation
+- ✅ **NavbarV2** — lien `Contact` désormais vers `/contact` (au lieu de `#contact`).
+- ✅ **FooterV2** — ajout du lien `Contact` dans la colonne Aide.
+- ✅ **App.js** — nouvelle route `/contact` + import `Contact`.
+
+### Vérifs
+- Lint : 5 fichiers frontend + 1 fichier backend clean.
+- Backend : health 200 après restart, `/api/contact` répond 200 / 422 / 429 selon input.
+- Screenshots : Blog (widget Soro maintenant lisible NOIR sur BLANC), Contact (form propre), Mentions & CGV (typographie éditoriale claire) — tous validés.
+
+### Encore à faire
+- Mega menu tools sur NavbarV2 (pour que les pages `/nos-livres`, `/temoignages` puissent aussi passer sur PsPageShell sans perdre les liens outils).
+- Newsletter Blog (mail hebdo Soro article dimanche).
+- Validation GSC après déploiement.
+
+---
+
 ## 🆕 Session Feb 2026 (iter 72) — Refonte identité visuelle · Pilote Phase 1
 
 ### Contexte

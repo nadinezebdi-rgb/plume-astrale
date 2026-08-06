@@ -17,7 +17,7 @@ const NAV_LINKS = [
   { label: 'Services', to: '/nos-livres' },
   { label: 'Blog', to: '/blog' },
   { label: 'Témoignages', to: '/temoignages' },
-  { label: 'Contact', to: '#contact' },
+  { label: 'Contact', to: '/contact' },
 ];
 
 const linkBase = {

@@ -38,7 +38,7 @@ const ThemeNatalLuxe = () => {
       <SEO
         path="/theme-natal-luxe"
         title="Ton Thème Natal Luxe · 49 pages écrites par Soléna · Plume Astrale"
-        description="Un livre de 49 pages, cuir nuit et dorures Cinzel, où 11 planètes racontent qui tu es vraiment. Écrit par Soléna à partir de 73 dimensions astrologiques. Offre bienvenue : 17,99€ au lieu de 29€."
+        description="Un PDF premium de 49 pages où 11 planètes racontent qui tu es vraiment. Écrit par Soléna à partir de 73 dimensions astrologiques. Offre bienvenue : 17,99€ au lieu de 29€."
       />
 
       <div className="max-w-3xl mx-auto">
@@ -81,7 +81,7 @@ const ThemeNatalLuxe = () => {
             }}
           >
             49 pages où <span style={{ color: '#F5EEE0' }}>11 planètes</span> racontent
-            qui tu es vraiment. Reliure cuir nuit, dorures Cinzel, signature Soléna.
+            qui tu es vraiment. PDF premium à télécharger, signé Soléna.
             Écrit à partir de <span style={{ color: '#F5EEE0' }}>73 dimensions astrologiques</span>
             {' '}analysées spécifiquement pour toi.
           </p>
@@ -101,7 +101,7 @@ const ThemeNatalLuxe = () => {
               color: '#F5EEE0',
             }}
           >
-            Ce que ton livre contient
+            Ce que ta lecture contient
           </h2>
           <div className="grid md:grid-cols-2 gap-5">
             {[
@@ -259,7 +259,7 @@ const ThemeNatalLuxe = () => {
             }}
           >
             <Sparkles className="w-4 h-4" strokeWidth={1.5} />
-            {isAuthenticated ? 'Créer mon livre astral' : 'Recevoir mes 20 crédits'}
+            {isAuthenticated ? 'Créer ma lecture astrale' : 'Recevoir mes 20 crédits'}
             <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
           </button>
 
