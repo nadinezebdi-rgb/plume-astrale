@@ -454,6 +454,22 @@ const MonCompte = () => {
     } catch { /* ignore */ }
   }, [token]);
 
+  /* ─── Charger les rapports archivés ─── */
+  const fetchArchivedReports = useCallback(async () => {
+    if (!token) return;
+    setReportsLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/api/reports`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setArchivedReports(res.data?.reports || []);
+    } catch {
+      setArchivedReports([]);
+    } finally {
+      setReportsLoading(false);
+    }
+  }, [token]);
+
   useEffect(() => {
     const init = async () => {
       setLoading(true);
@@ -590,22 +606,6 @@ const MonCompte = () => {
     }
     setPdfLoading(false);
   };
-
-  /* ─── Charger les rapports archivés ─── */
-  const fetchArchivedReports = useCallback(async () => {
-    if (!token) return;
-    setReportsLoading(true);
-    try {
-      const res = await axios.get(`${API_URL}/api/reports`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setArchivedReports(res.data?.reports || []);
-    } catch {
-      setArchivedReports([]);
-    } finally {
-      setReportsLoading(false);
-    }
-  }, [token]);
 
   /* ─── Re-télécharger un rapport archivé ─── */
   const handleArchivedReportPdf = async (report) => {
