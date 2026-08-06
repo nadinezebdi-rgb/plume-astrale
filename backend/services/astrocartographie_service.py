@@ -268,7 +268,17 @@ async def _send_astrocarto_email(email: str, first_name: str, pdf_bytes: bytes, 
       </div>
     </div>
     """
+MAX_ATTACH = 30 * 1024 * 1024  # marge sous la limite Resend (40 Mo)
+        payload = {'from': sender, 'to': [email], 'subject': subject, 'html': html}
+        if pdf_bytes and len(pdf_bytes) <= MAX_ATTACH:
+            payload['attachments'] = [{'filename': filename, 'content': pdf_b64}]
 
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post(
+                'https://api.resend.com/emails',
+                headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+                json=payload,
+            )
     async with httpx.AsyncClient(timeout=30) as client:
         r = await client.post(
             'https://api.resend.com/emails',
