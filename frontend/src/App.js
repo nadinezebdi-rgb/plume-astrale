@@ -89,7 +89,6 @@ import Starfield from "./components/design/Starfield";
 import MobileTabBar from "./components/design/MobileTabBar";
 import AuraProvider from "./components/design/AuraProvider";
 import LiveSalesCounter from "./components/LiveSalesCounter";
-import LaunchBanner from "./components/LaunchBanner";
 import { captureReferralFromURL } from "./lib/referral";
 import ShootingStars from "./components/design/ShootingStars";
 import { useLocation } from "react-router-dom";
@@ -105,7 +104,6 @@ function GlobalOverlays() {
       <NoiseOverlay />
       <MobileTabBar />
       {!isLanding && <LiveSalesCounter />}
-      {!isLanding && <LaunchBanner />}
       <SupportChat />
     </>
   );

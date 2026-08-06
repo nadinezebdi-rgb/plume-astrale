@@ -85,8 +85,6 @@ body {
   position: relative;
   overflow-x: hidden;
   font-feature-settings: 'ss01', 'ss02', 'cv11';
-  /* Espace global pour le bandeau promo fixed (40px, cf. LaunchBanner) */
-  padding-top: 40px;
 }
 
 /* ═══════════════════════════════════════════════════════════

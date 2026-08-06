@@ -6,6 +6,7 @@ import {
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
 import ApercuLectureModal from '@/components/ApercuLectureModal';
+import CelestialBackdrop from '@/components/CelestialBackdrop';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -178,6 +179,7 @@ export default function SalesPageV3({
 
       {/* ─── INCLUDES (dark) ─────────────────────────────────── */}
       <section className="ps-section ps-section-dark" data-testid={`sales-${slug}-includes`}>
+        <CelestialBackdrop density={70} shootingStars interval={14000} />
         <div className="ps-container">
           <div style={{ maxWidth: 720, marginBottom: 56 }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Ce que ta lecture contient</p>
@@ -250,6 +252,7 @@ export default function SalesPageV3({
 
       {/* ─── PRICING + FINAL CTA (dark) ──────────────────────── */}
       <section className="ps-section ps-section-dark" data-testid={`sales-${slug}-final`}>
+        <CelestialBackdrop density={65} shootingStars interval={16000} />
         <div className="ps-container">
           <div className="ps-narrow" style={{
             marginLeft: 0,
@@ -325,6 +328,7 @@ export default function SalesPageV3({
           open={apercuOpen}
           onClose={() => setApercuOpen(false)}
           apercu={apercu}
+          productSlug={slug}
           ctaLabel={ctaLabel}
           onCta={() => { setApercuOpen(false); handleCta(); }}
         />

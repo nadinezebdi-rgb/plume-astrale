@@ -1,5 +1,81 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 78) — Suppression bandeau défilant
+
+### Livrables (2026-02-06)
+- ✅ `App.js` — retiré `import LaunchBanner` et son rendu conditionnel `{!isLanding && <LaunchBanner />}` dans `GlobalOverlays`.
+- ✅ `index.css` — supprimé le `padding-top: 40px` global du `body` qui compensait la hauteur du bandeau fixed.
+- ✅ Vérifs screenshots : Homepage, Kabbale (avec constellation + étoile filante capturée bonus), NosLivres — plus aucun bandeau défilant en haut. Navbar V2 en tête direct.
+
+### Note
+- Le composant `LaunchBanner.js` n'est pas supprimé du filesystem (au cas où) mais plus référencé nulle part.
+
+---
+
+## 🆕 Session Feb 2026 (iter 77) — Étoiles scintillantes + constellation vivante
+
+### Livrables (2026-02-06)
+- ✅ **`CelestialBackdrop`** (`components/CelestialBackdrop.js`) — starfield universel :
+  - SVG avec ~70-100 étoiles positionnées aléatoirement (memoized), radial gradient F7F5F0 pour glow doux.
+  - Scintillement individuel : chaque étoile pulse via CSS keyframes `cb-twinkle` avec `animation-delay` aléatoire (3-7s). Aucun impact perf.
+  - **Étoiles filantes** : spawn périodique (12s ±60% jitter) via `useEffect + setTimeout`. Traînée dorée avec `linear-gradient` + `drop-shadow` filter. Diagonale variable (±25°). Auto-cleanup après animation.
+  - Respect strict `prefers-reduced-motion` (arrêt des animations).
+  - Injecté dans : Hero Homepage (density 100), Story (70), Testimonials (70), Includes SalesPageV3 (70), Final CTA SalesPageV3 (65), NosLivres benefits (75), FooterV2 (50, sans shooting star).
+- ✅ **`LiveConstellation`** (`components/LiveConstellation.js`) — signature sur le héro Homepage :
+  - Constellation du **Verseau** (9 étoiles : Sadalmelik, Sadalsuud, Sadachbia, Skat, Ancha, Albali, Situla, Lambda, Psi) avec 8 lignes de connexion.
+  - Lignes dorées tracées progressivement au chargement via `stroke-dasharray/dashoffset` avec délai stagger (0.35s entre chaque).
+  - Étoiles vivantes : halo + cœur qui pulsent doucement (`lc-pulse-halo` + `lc-pulse-core` sur 4.5s, stagger par étoile).
+  - Container tourne 360° sur 120s → sensation de nuit étoilée qui tourne, imperceptible mais hypnotique.
+  - Data alternative disponible : `pisces` (Poissons).
+
+### Perf & Accessibilité
+- Rendu SVG stable (positions mémorisées), aucun re-render inutile.
+- GPU-friendly : uniquement `transform` et `opacity` animés.
+- Aria-hidden sur tous les backdrops (screen-readers ignorent).
+- `prefers-reduced-motion` → toutes animations désactivées.
+
+### Vérifs
+- Lint clean sur CelestialBackdrop, LiveConstellation, Homepage, NosLivres, SalesPageV3, FooterV2.
+- Screenshots validés : Hero avec constellation Verseau + halos dorés dansant autour de Soléna, sections dark testimonials/story avec starfield subtil, page Kabbale sales avec starfield sur "15 pages, écrites à la main", Footer avec ambiance discrète.
+
+---
+
+## 🆕 Session Feb 2026 (iter 76) — Aperçus complets + Réduction Retour -10%
+
+### Livrables (2026-02-06)
+- ✅ **Aperçus manquants complétés** dans `config/apercus.js` :
+  - `karmique` : chapitre inédit « Synthèse d'âme croisée » — 2 pages qui n'existent QUE dans le Pack Karmique.
+  - `synastry` : chapitre « Vos deux Vénus : Cancer × Scorpion » — un couple fictif Camille × Marc, 2 pages.
+- ✅ **`PackKarmique.js` + `SynastrieSales.js`** — passent désormais l'aperçu au template `SalesPageV3`. Bouton "Lire un extrait gratuit" activé sur les 7 pages produit.
+- ✅ **Backend `POST /api/apercu/discount`** (`routes/apercu_discount.py`) :
+  - Body : `{ email, product_slug }` avec validation Pydantic (EmailStr).
+  - Rate limit 60s/IP + honeypot-free.
+  - Envoi via Resend d'un mail HTML éditorial (Playfair + code MERCI10 mis en avant dans un cadre doré doubles pointillés + CTA "Recevoir {product}").
+  - Log lead dans Mongo `apercu_discount_leads` (best-effort, non-bloquant).
+  - Signé « — Soléna ».
+- ✅ **`ApercuLectureModal` refondu** — bloc "Réduction Bienvenue" ajouté sous le CTA principal :
+  - Card ivoire bordée or, icône Gift + eyebrow doré
+  - Titre Playfair "Envie de -10% sur ta lecture ?" avec `-10%` en italique doré
+  - Input email + bouton doré "M'envoyer -10%"
+  - États : idle → loading → success (feedback vert avec CheckCircle) / error (rouge avec AlertCircle)
+  - `productSlug` passé depuis `SalesPageV3` pour personnaliser le mail.
+- ✅ Router `apercu_discount_router` monté dans `server.py`.
+
+### Tests
+- Curl : 200 avec code MERCI10, 429 rate-limit, 422 validation email invalide → PASS.
+- Screenshot : modal Pack Karmique avec extrait + bloc discount visible en bas, formulaire fonctionnel, aperçu Synastrie rendu Playfair magnifique.
+
+### Config à prévoir côté Stripe
+- Créer dans Stripe Dashboard → Coupons → un coupon `MERCI10` (10% off, one-time use per customer).
+- La variable `APERCU_PROMO_CODE` dans `.env` permet de changer le nom du code sans redéploiement.
+
+### Encore à faire (backlog)
+- Newsletter Blog (mail hebdo Soro article dimanche).
+- Position badge "L'OFFRE ÉCRIN" sur Pack Karmique (léger overlap avec le prix).
+- Validation GSC après redéploiement production.
+
+---
+
 ## 🆕 Session Feb 2026 (iter 75) — Refonte pages produit + Aperçu Lecture
 
 ### Livrables (2026-02-06)

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, Download, Mail, ShieldCheck } from 'lucide-react';
 import SEO from '@/components/SEO';
 import PsPageShell from '@/components/PsPageShell';
+import CelestialBackdrop from '@/components/CelestialBackdrop';
 import { LECTURES } from '@/config/catalog';
 
 /**
@@ -136,6 +137,7 @@ export default function NosLivres() {
 
       {/* Section bénéfices (sombre) */}
       <section className="ps-section ps-section-dark" data-testid="nos-livres-benefits">
+        <CelestialBackdrop density={75} shootingStars interval={13000} />
         <div className="ps-container">
           <div style={{ maxWidth: 720, marginBottom: 56 }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Comment ça marche</p>

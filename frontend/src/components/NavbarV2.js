@@ -72,6 +72,7 @@ export default function NavbarV2() {
     background: '#0F1A3C',
     borderBottom: '1px solid rgba(201,162,75,0.18)',
     width: '100%',
+    overflow: 'hidden',
   };
 
   return (
