@@ -83,9 +83,24 @@ def _bg_canvas(canv, doc):
         s = r.choice([0.4, 0.5, 0.6, 0.8])
         canv.setFillColorRGB(1, 0.95, 0.75, alpha=r.uniform(0.2, 0.55))
         canv.circle(x, y, s, fill=1, stroke=0)
+    # ─── Cadre de page prestige (fine ligne dorée) ───
+    canv.setStrokeColor(GOLD)
+    canv.setLineWidth(0.35)
+    canv.setDash([0.6, 2.4], 0)
+    canv.rect(1.2 * cm, 1.2 * cm, W - 2.4 * cm, H - 2.4 * cm, fill=0, stroke=1)
+    canv.setDash([], 0)
+    # ─── Ornement en haut de page (petit soleil doré) ───
+    canv.setFillColor(GOLD)
+    canv.setStrokeColor(GOLD)
+    canv.setLineWidth(0.4)
+    canv.circle(W / 2, H - 1.55 * cm, 0.10 * cm, fill=1, stroke=0)
+    canv.line(W / 2 - 1.4 * cm, H - 1.55 * cm, W / 2 - 0.3 * cm, H - 1.55 * cm)
+    canv.line(W / 2 + 0.3 * cm, H - 1.55 * cm, W / 2 + 1.4 * cm, H - 1.55 * cm)
+    # ─── Footer : titre du livre + page ───
     canv.setFillColor(MUTED)
-    canv.setFont('Helvetica', 7)
-    canv.drawCentredString(W / 2, 0.9 * cm, f"Plume Astrale · Astrocartographie · page {doc.page}")
+    canv.setFont('Helvetica', 6.5)
+    canv.drawString(2 * cm, 0.75 * cm, "PLUME ASTRALE · ASTROCARTOGRAPHIE")
+    canv.drawRightString(W - 2 * cm, 0.75 * cm, f"— {doc.page} —")
     canv.restoreState()
 
 
@@ -121,30 +136,48 @@ def _svg_to_png_bytes(svg_str: str) -> Optional[bytes]:
         return None
 
 
+def _ornament(story, kind: str = 'star'):
+    """Séparateur décoratif discret : petit motif doré centré."""
+    from reportlab.platypus import Table, TableStyle
+    from reportlab.lib import colors as _c
+    glyph = {'star': '✦', 'diamond': '◆', 'dot': '·'}.get(kind, '✦')
+    # 3-glyph horizontal ornament centered
+    text = f'<font color="#D4AF37">{glyph}&nbsp;&nbsp;&nbsp;{glyph}&nbsp;&nbsp;&nbsp;{glyph}</font>'
+    p_style = ParagraphStyle('ornament', fontName='Helvetica', fontSize=9,
+                             alignment=TA_CENTER, leading=12, spaceBefore=6, spaceAfter=6)
+    story.append(Paragraph(text, p_style))
+
+
 def _cover(story, styles, first_name: str, birth_fr: str):
-    story.append(Spacer(1, 3.5 * cm))
+    story.append(Spacer(1, 4.5 * cm))
     story.append(_p("PLUME ASTRALE · RAPPORTS PRESTIGE", styles['caption']))
-    story.append(Spacer(1, 0.4 * cm))
+    _ornament(story, 'star')
+    story.append(Spacer(1, 0.3 * cm))
     story.append(_p("ASTROCARTOGRAPHIE", styles['title']))
-    story.append(Spacer(1, 0.2 * cm))
+    story.append(Spacer(1, 0.3 * cm))
     story.append(_p("<i>Où vivre ta meilleure vie</i>", styles['subtitle']))
-    story.append(Spacer(1, 2.2 * cm))
+    story.append(Spacer(1, 0.6 * cm))
+    _ornament(story, 'diamond')
+    story.append(Spacer(1, 2.4 * cm))
     story.append(_p(f"Établi pour <b>{first_name}</b>", styles['italic']))
     if birth_fr:
         story.append(_p(f"Né(e) le {birth_fr}", styles['meta']))
-    story.append(Spacer(1, 1.8 * cm))
+    story.append(Spacer(1, 2.4 * cm))
     story.append(_p(
         "« Le ciel ne t'a pas donné une seule maison. Il t'en a offert plusieurs — "
         "il te reste à découvrir laquelle t'attend. »",
         styles['quote']))
+    story.append(Spacer(1, 0.4 * cm))
+    _ornament(story, 'star')
     story.append(PageBreak())
 
 
 def _intro(story, styles):
     story.append(Spacer(1, 1.2 * cm))
     story.append(_p("Introduction", styles['caption']))
+    _ornament(story, 'star')
     story.append(_p("<i>L'astrocartographie</i>", styles['h2']))
-    story.append(Spacer(1, 0.3 * cm))
+    story.append(Spacer(1, 0.5 * cm))
     story.append(_p(
         "L'astrocartographie est une science ancienne réactualisée dans les années 1970 par Jim Lewis. "
         "Elle part d'un principe simple : ton thème natal est calculé pour l'instant précis et le lieu précis de ta naissance. "
@@ -162,20 +195,25 @@ def _intro(story, styles):
         "pour toi selon la géographie unique de ton ciel, et une carte du monde qui te montre où passent tes lignes. "
         "Ce n'est pas une ordonnance — c'est une invitation.",
         styles['body']))
+    story.append(Spacer(1, 0.6 * cm))
+    _ornament(story, 'diamond')
     story.append(PageBreak())
 
 
 def _world_map(story, styles, map_svg: Optional[str]):
-    """Insère la carte du monde SVG convertie en PNG."""
+    """Insère la carte du monde SVG convertie en PNG — pleine page format paysage sur A4 portrait."""
     story.append(Spacer(1, 0.8 * cm))
     story.append(_p("Ta carte du monde", styles['caption']))
+    _ornament(story, 'star')
     story.append(_p("<i>Les lignes de ton ciel projetées sur la Terre</i>", styles['h2']))
-    story.append(Spacer(1, 0.5 * cm))
+    story.append(Spacer(1, 0.6 * cm))
 
     png_bytes = _svg_to_png_bytes(map_svg) if map_svg else None
     if png_bytes:
         try:
-            img = Image(BytesIO(png_bytes), width=17 * cm, height=8.5 * cm)
+            # Format paysage plus grand — occupe presque toute la largeur utile A4 (~17cm)
+            # avec une hauteur généreuse pour révéler tous les détails géographiques
+            img = Image(BytesIO(png_bytes), width=17 * cm, height=11.5 * cm)
             img.hAlign = 'CENTER'
             story.append(img)
         except Exception as e:
@@ -184,29 +222,34 @@ def _world_map(story, styles, map_svg: Optional[str]):
     else:
         story.append(_p("[Carte du monde non disponible pour l'instant]", styles['italic']))
 
-    story.append(Spacer(1, 0.6 * cm))
+    story.append(Spacer(1, 0.8 * cm))
     story.append(_p(
         "Chaque couleur représente une planète. Chaque trait vertical (nord-sud) est une ligne d'Ascendant "
         "ou de Descendant, chaque trait courbe est une ligne de Milieu du Ciel ou de Fond du Ciel. "
         "Là où plusieurs lignes se croisent, l'énergie est intense — c'est ce qu'on appelle un <b>paran</b>. "
         "Les villes situées à moins de 800 km d'une ligne sont fortement influencées par la planète concernée.",
         styles['body']))
+    story.append(Spacer(1, 0.4 * cm))
+    _ornament(story, 'diamond')
     story.append(PageBreak())
 
 
 def _city_pages(story, styles, city_data: Dict[str, Any], enriched: Dict[str, str], is_bonus: bool = False):
-    """3 pages par ville (bonus = 2 pages)."""
+    """3 pages par ville (bonus = 2 pages) — présentation prestige avec ornements."""
     city = city_data.get('city', 'Ville inconnue')
     country = city_data.get('country', '')
 
     # PAGE 1 : Titre + headline + ambiance
-    story.append(Spacer(1, 1.5 * cm))
+    story.append(Spacer(1, 1.8 * cm))
     label = "DESTINATION BONUS · SOLÉNA" if is_bonus else "TA VILLE CHOISIE"
     story.append(_p(label, styles['caption']))
+    _ornament(story, 'star')
     story.append(Spacer(1, 0.3 * cm))
     story.append(_p(f"<i>{city}</i>", styles['title']))
     story.append(_p(country, styles['subtitle']))
-    story.append(Spacer(1, 0.8 * cm))
+    story.append(Spacer(1, 0.6 * cm))
+    _ornament(story, 'diamond')
+    story.append(Spacer(1, 0.4 * cm))
     if enriched.get('headline'):
         story.append(_p(f"« {enriched['headline']} »", styles['quote']))
     story.append(Spacer(1, 0.4 * cm))
@@ -215,6 +258,7 @@ def _city_pages(story, styles, city_data: Dict[str, Any], enriched: Dict[str, st
     story.append(_p(enriched.get('ambiance', ''), styles['body']))
 
     if is_bonus and enriched.get('why'):
+        story.append(Spacer(1, 0.2 * cm))
         story.append(_p("Pourquoi Soléna te l'offre", styles['h3']))
         story.append(_p(enriched['why'], styles['body']))
         if enriched.get('promise'):
@@ -226,7 +270,8 @@ def _city_pages(story, styles, city_data: Dict[str, Any], enriched: Dict[str, st
     # PAGE 2 : Domaines de vie
     story.append(Spacer(1, 1.2 * cm))
     story.append(_p(f"{city} · Domaines de vie", styles['caption']))
-    story.append(_p(f"<i>Ce que le lieu active en toi</i>", styles['h2']))
+    _ornament(story, 'star')
+    story.append(_p("<i>Ce que le lieu active en toi</i>", styles['h2']))
     story.append(Spacer(1, 0.5 * cm))
 
     story.append(_p("Ta trajectoire professionnelle", styles['h3']))
@@ -245,16 +290,18 @@ def _city_pages(story, styles, city_data: Dict[str, Any], enriched: Dict[str, st
 
     # PAGE 3 : Conseil + lignes actives (chosen only, pas bonus)
     if not is_bonus:
-        story.append(Spacer(1, 1.5 * cm))
+        story.append(Spacer(1, 1.8 * cm))
         story.append(_p(f"{city} · Le mot de Soléna", styles['caption']))
+        _ornament(story, 'star')
         story.append(_p("<i>Un conseil pour toi</i>", styles['h2']))
-        story.append(Spacer(1, 0.5 * cm))
+        story.append(Spacer(1, 0.6 * cm))
         story.append(_p(enriched.get('advice', ''), styles['body']))
 
         # Lignes planétaires actives
         nearby = city_data.get('nearby_lines') or []
         if nearby:
-            story.append(Spacer(1, 0.5 * cm))
+            story.append(Spacer(1, 0.6 * cm))
+            _ornament(story, 'diamond')
             story.append(_p("Les lignes planétaires actives ici", styles['h3']))
             for line in nearby[:6]:
                 if not isinstance(line, dict):
@@ -282,10 +329,11 @@ def _planetary_lines_pages(story, styles, lines_data: list):
         return
 
     # Page d'intro à la section
-    story.append(Spacer(1, 1.2 * cm))
+    story.append(Spacer(1, 1.4 * cm))
     story.append(_p("Tes lignes planétaires en détail", styles['caption']))
+    _ornament(story, 'star')
     story.append(_p("<i>Ce que chaque ligne active en toi</i>", styles['h2']))
-    story.append(Spacer(1, 0.4 * cm))
+    story.append(Spacer(1, 0.6 * cm))
     story.append(_p(
         "Chaque planète de ton thème natal projette 4 lignes sur la Terre : "
         "<b>Ascendant</b> (ton identité), <b>Descendant</b> (tes relations), "
@@ -293,6 +341,8 @@ def _planetary_lines_pages(story, styles, lines_data: list):
         "Vivre à moins de 800 km d'une de ces lignes active profondément l'énergie de la planète concernée. "
         "Voici l'interprétation de chacune de tes lignes principales.",
         styles['body']))
+    story.append(Spacer(1, 0.5 * cm))
+    _ornament(story, 'diamond')
     story.append(PageBreak())
 
     # Regrouper 2 interprétations par page (pour ne pas exploser la longueur)
@@ -305,15 +355,18 @@ def _planetary_lines_pages(story, styles, lines_data: list):
     # Pages : 2 lignes par page
     for i in range(0, len(entries), 2):
         chunk = entries[i:i + 2]
-        story.append(Spacer(1, 1.2 * cm))
+        story.append(Spacer(1, 1.4 * cm))
         story.append(_p("Tes lignes planétaires", styles['caption']))
-        story.append(Spacer(1, 0.3 * cm))
+        _ornament(story, 'star')
+        story.append(Spacer(1, 0.4 * cm))
         for j, entry in enumerate(chunk):
             title = f"{entry['planet_fr']} · {entry['line_fr']}"
             story.append(_p(title, styles['h3']))
             story.append(_p(f"<i>{entry['headline']}</i>", styles['italic']))
             story.append(_p(entry['body'], styles['body']))
             if j == 0 and len(chunk) > 1:
+                story.append(Spacer(1, 0.3 * cm))
+                _ornament(story, 'dot')
                 story.append(Spacer(1, 0.3 * cm))
         story.append(PageBreak())
 
@@ -327,10 +380,11 @@ def _planet_fr(planet: str) -> str:
 
 
 def _synthesis_page(story, styles, first_name: str, synthesis_text: str):
-    story.append(Spacer(1, 1.2 * cm))
+    story.append(Spacer(1, 1.4 * cm))
     story.append(_p("Synthèse", styles['caption']))
+    _ornament(story, 'star')
     story.append(_p("<i>Le message de Soléna</i>", styles['h2']))
-    story.append(Spacer(1, 0.5 * cm))
+    story.append(Spacer(1, 0.6 * cm))
     # Split paragraphs
     paragraphs = [p.strip() for p in synthesis_text.split('\n') if p.strip()]
     for para in paragraphs:
@@ -338,14 +392,17 @@ def _synthesis_page(story, styles, first_name: str, synthesis_text: str):
             story.append(_p(f"<i>{para}</i>", styles['italic']))
         else:
             story.append(_p(para, styles['body']))
+    story.append(Spacer(1, 0.5 * cm))
+    _ornament(story, 'diamond')
     story.append(PageBreak())
 
 
 def _rituel_signature(story, styles, first_name: str):
-    story.append(Spacer(1, 1.2 * cm))
+    story.append(Spacer(1, 1.4 * cm))
     story.append(_p("Rituel d'ancrage", styles['caption']))
+    _ornament(story, 'star')
     story.append(_p("<i>Avant de partir</i>", styles['h2']))
-    story.append(Spacer(1, 0.4 * cm))
+    story.append(Spacer(1, 0.5 * cm))
     story.append(_p(
         "Avant de réserver un billet ou de signer un bail, offre-toi ce rituel simple. Il ne demande "
         "qu'une bougie, un carnet, et vingt minutes de calme.",
@@ -366,10 +423,14 @@ def _rituel_signature(story, styles, first_name: str):
         "Ne prends pas de décision définitive avant d'y avoir passé au moins 7 jours. L'astrocartographie révèle, "
         "mais c'est toi qui goûtes. Prévois un séjour d'exploration, avec l'intention d'y écouter, pas d'y trancher.",
         styles['body']))
-    story.append(Spacer(1, 1 * cm))
+    story.append(Spacer(1, 1.2 * cm))
+    _ornament(story, 'diamond')
+    story.append(Spacer(1, 0.4 * cm))
     story.append(_p("Avec toute ma tendresse,", styles['italic']))
     story.append(_p("<i>— Soléna</i>", styles['h3c']))
     story.append(_p("Guide chez Plume Astrale · plume-astrale.fr", styles['small']))
+    story.append(Spacer(1, 0.6 * cm))
+    _ornament(story, 'star')
 
 
 def generate_astrocartographie_pdf(

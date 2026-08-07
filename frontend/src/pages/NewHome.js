@@ -75,7 +75,7 @@ export default function NewHome() {
     };
     try { localStorage.setItem(BIRTH_KEY, JSON.stringify(data)); } catch (e) { /* ignore */ }
     // Redirection vers la page de discussion avec Soléna (form prérempli via BIRTH_KEY)
-    navigate('/outils/consultation');
+    navigate('/services/consultation');
   };
 
   // Pré-chargement des assets

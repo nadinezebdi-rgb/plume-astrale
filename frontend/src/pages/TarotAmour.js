@@ -27,7 +27,7 @@ const TarotAmour = () => {
       return;
     }
     if (!isAuthenticated) {
-      navigate('/connexion?redirect=/outils/tarot/amour');
+      navigate('/connexion?redirect=/services/tarot/amour');
       return;
     }
     setError('');

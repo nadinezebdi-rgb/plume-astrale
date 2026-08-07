@@ -74,12 +74,12 @@ const ReferralPanel = ({ token }) => {
            style={{ background: 'var(--pa-surface)', border: '1px solid var(--pa-divider)' }}>
         <div className="flex items-start gap-4 mb-4">
           <div className="rounded-full p-3 shrink-0"
-               style={{ background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.35)' }}>
+               style={{ background: 'rgba(201,162,75,0.12)', border: '1px solid rgba(201,162,75,0.35)' }}>
             <Gift className="w-5 h-5" strokeWidth={1.5} style={{ color: 'var(--pa-accent)' }} />
           </div>
           <div>
             <h2 className="text-2xl mb-2"
-                style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+                style={{ fontFamily: 'Playfair Display, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
               Partage la lumière, reçois un cadeau
             </h2>
             <p className="text-sm leading-relaxed" style={{ color: 'var(--pa-body)' }}>
@@ -94,12 +94,12 @@ const ReferralPanel = ({ token }) => {
       {/* Lien + Copier */}
       <div className="rounded-2xl p-6"
            style={{ background: 'var(--pa-surface)', border: '1px solid var(--pa-divider)' }}>
-        <div className="text-[10px] uppercase mb-3" style={{ color: 'var(--pa-accent)', letterSpacing: '0.25em', fontFamily: 'Cinzel, serif' }}>
+        <div className="text-[10px] uppercase mb-3" style={{ color: 'var(--pa-accent)', letterSpacing: '0.25em', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
           ✦ Ton lien de parrainage
         </div>
         <div className="flex flex-col md:flex-row gap-3">
           <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl overflow-hidden"
-               style={{ background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.25)' }}>
+               style={{ background: 'rgba(201,162,75,0.05)', border: '1px solid rgba(201,162,75,0.25)' }}>
             <Link2 className="w-4 h-4 shrink-0" strokeWidth={1.5} style={{ color: 'var(--pa-accent)' }} />
             <span className="text-sm truncate" style={{ color: 'var(--pa-body)', fontFamily: 'monospace' }}
                   data-testid="referral-link-text">
@@ -111,11 +111,11 @@ const ReferralPanel = ({ token }) => {
             data-testid="referral-copy-btn"
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all hover:opacity-90"
             style={{
-              background: copied ? 'rgba(74,222,128,0.14)' : 'linear-gradient(135deg, #D4AF37 0%, #E8C766 100%)',
+              background: copied ? 'rgba(74,222,128,0.14)' : 'linear-gradient(135deg, #C9A24B 0%, #C9A24B 100%)',
               color: copied ? '#4ADE80' : '#0B0B1F',
               border: copied ? '1px solid rgba(74,222,128,0.4)' : 'none',
-              fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
-              cursor: 'pointer', fontWeight: 500,
+              fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
+              cursor: 'pointer',
             }}
           >
             {copied ? (<><Check className="w-4 h-4" /> Copié !</>) : (<><Copy className="w-4 h-4" /> Copier le lien</>)}
@@ -131,7 +131,7 @@ const ReferralPanel = ({ token }) => {
            style={{ background: 'var(--pa-surface)', border: '1px solid var(--pa-divider)' }}>
         <div className="flex items-center gap-2 mb-4">
           <Share2 className="w-4 h-4" strokeWidth={1.5} style={{ color: 'var(--pa-accent)' }} />
-          <span className="text-xs uppercase" style={{ color: 'var(--pa-accent)', letterSpacing: '0.25em', fontFamily: 'Cinzel, serif' }}>
+          <span className="text-xs uppercase" style={{ color: 'var(--pa-accent)', letterSpacing: '0.25em', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
             Partager en 1 clic
           </span>
         </div>
@@ -143,7 +143,7 @@ const ReferralPanel = ({ token }) => {
           </a>
           <a href={emailUrl} data-testid="referral-share-email"
              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl transition-all hover:opacity-90"
-             style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.3)', color: 'var(--pa-accent)', fontSize: 13 }}>
+             style={{ background: 'rgba(201,162,75,0.08)', border: '1px solid rgba(201,162,75,0.3)', color: 'var(--pa-accent)', fontSize: 13 }}>
             E-mail
           </a>
           <a href={twitterUrl} target="_blank" rel="noopener noreferrer" data-testid="referral-share-twitter"
@@ -166,13 +166,13 @@ const ReferralPanel = ({ token }) => {
         <div className="rounded-2xl p-6"
              style={{ background: 'var(--pa-surface)', border: '1px solid var(--pa-divider)' }}>
           <h3 className="text-base mb-4"
-              style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
+              style={{ fontFamily: 'Playfair Display, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
             Tes derniers parrainages
           </h3>
           <div className="space-y-2" data-testid="referral-history">
             {data.referrals.slice(0, 8).map((r) => (
               <div key={r.id} className="flex items-center justify-between p-3 rounded-lg"
-                   style={{ background: 'rgba(212,175,55,0.04)', border: '1px solid rgba(212,175,55,0.12)' }}>
+                   style={{ background: 'rgba(201,162,75,0.04)', border: '1px solid rgba(201,162,75,0.12)' }}>
                 <div className="text-xs" style={{ color: 'var(--pa-body)' }}>
                   {r.first_purchase_at
                     ? new Date(r.first_purchase_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -194,10 +194,10 @@ const ReferralPanel = ({ token }) => {
 
 const StatCell = ({ icon: Icon, value, label, testid, accent }) => (
   <div data-testid={testid} className="rounded-2xl p-4 text-center"
-       style={{ background: 'var(--pa-surface)', border: `1px solid ${accent ? 'rgba(212,175,55,0.35)' : 'var(--pa-divider)'}` }}>
+       style={{ background: 'var(--pa-surface)', border: `1px solid ${accent ? 'rgba(201,162,75,0.35)' : 'var(--pa-divider)'}` }}>
     <Icon className="w-4 h-4 mx-auto mb-2" strokeWidth={1.5} style={{ color: accent ? 'var(--pa-accent)' : 'var(--pa-muted)' }} />
     <div className="text-2xl mb-1"
-         style={{ color: accent ? 'var(--pa-accent)' : 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}>
+         style={{ color: accent ? 'var(--pa-accent)' : 'var(--pa-heading)', fontFamily: 'Playfair Display, serif', fontWeight: 300 }}>
       {value ?? 0}
     </div>
     <div className="text-[10px] uppercase" style={{ color: 'var(--pa-muted)', letterSpacing: '0.15em' }}>{label}</div>

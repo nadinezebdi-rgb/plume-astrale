@@ -1,5 +1,6 @@
 import React from 'react';
 import SalesPageV3 from '@/components/SalesPageV3';
+import AstroCartoHero from '@/components/AstroCartoHero';
 import { APERCUS } from '@/config/apercus';
 
 const INCLUDES = [
@@ -35,11 +36,7 @@ export default function AstrocartographieSales() {
       priceHint="paiement unique · PDF 18 pages"
       pages={18}
       deliveryTime="5 min"
-      heroImage={{
-        src: `${process.env.REACT_APP_BACKEND_URL}/api/assets/library/planets/uranus_1080.png`,
-        alt: 'Uranus, planète du mouvement et de la géographie',
-        caption: 'Uranus · Mouvement',
-      }}
+      heroNode={<AstroCartoHero />}
       includes={INCLUDES}
       testimonials={TESTIMONIALS}
       apercu={APERCUS.astrocarto}

@@ -59,12 +59,12 @@ export const LECTURES = [
 ];
 
 export const OUTILS = [
-  { key: 'consultation', title: 'Consultation Soléna', tagline: 'Échange chat guidé par IA', to: '/outils/consultation' },
-  { key: 'tarot', title: 'Tirage de tarot', tagline: '78 arcanes · plusieurs formats', to: '/outils/tarot' },
-  { key: 'horoscope', title: 'Horoscope du jour', tagline: 'Guidance quotidienne · 12 signes', to: '/outils/horoscope' },
-  { key: 'compatibilite', title: 'Compatibilité amoureuse', tagline: 'Deux prénoms, un aperçu', to: '/outils/compatibilite' },
-  { key: 'rituel', title: 'Rituel du soir', tagline: 'Ancrage · lune du jour', to: '/outils/rituel' },
-  { key: 'oracle', title: 'Oracle du jour', tagline: 'Une carte, une intention', to: '/outils/oracle' },
+  { key: 'consultation', title: 'Consultation Soléna', tagline: 'Échange chat guidé par IA', to: '/services/consultation' },
+  { key: 'tarot', title: 'Tirage de tarot', tagline: '78 arcanes · plusieurs formats', to: '/services/tarot' },
+  { key: 'horoscope', title: 'Horoscope du jour', tagline: 'Guidance quotidienne · 12 signes', to: '/services/horoscope' },
+  { key: 'compatibilite', title: 'Compatibilité amoureuse', tagline: 'Deux prénoms, un aperçu', to: '/services/compatibilite' },
+  { key: 'rituel', title: 'Rituel du soir', tagline: 'Ancrage · lune du jour', to: '/services/rituel' },
+  { key: 'oracle', title: 'Oracle du jour', tagline: 'Une carte, une intention', to: '/services/oracle' },
 ];
 
 export const OUTILS_LABEL = 'Services complémentaires';

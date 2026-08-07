@@ -385,7 +385,7 @@ const Formulaire = () => {
               gap: 12,
             }}>
               <button
-                onClick={() => navigate(`/outils/compatibilite?p1=${formData.prenom}&p2=${prenomPartner}`)}
+                onClick={() => navigate(`/services/compatibilite?p1=${formData.prenom}&p2=${prenomPartner}`)}
                 style={{
                   padding: '14px 24px',
                   borderRadius: 8,

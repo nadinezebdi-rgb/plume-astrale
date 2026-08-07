@@ -56,6 +56,7 @@ export default function SalesPageV3({
   deliveryTime = '5 min',
   heroBadge,
   heroImage,          // { src, alt, caption? }
+  heroNode,           // ReactNode — alternative visuel personnalisé (SVG, composant custom)
   includes,
   testimonials,
   apercu,
@@ -197,7 +198,19 @@ export default function SalesPageV3({
             </div>
 
             {/* Colonne visuelle décorative */}
-            {heroImage && (
+            {heroNode && (
+              <div style={{ position: 'relative', textAlign: 'center' }} data-testid={`sales-${slug}-hero-node`}>
+                <div style={{
+                  position: 'absolute',
+                  inset: '-30px',
+                  background: 'radial-gradient(circle at center, rgba(201,162,75,0.16) 0%, transparent 65%)',
+                  filter: 'blur(24px)',
+                  zIndex: 0,
+                }} />
+                <div style={{ position: 'relative', zIndex: 1 }}>{heroNode}</div>
+              </div>
+            )}
+            {!heroNode && heroImage && (
               <div style={{ position: 'relative', textAlign: 'center' }} data-testid={`sales-${slug}-hero-image`}>
                 <div style={{
                   position: 'absolute',

@@ -46,7 +46,7 @@ export default function MoonHero() {
     };
     try { localStorage.setItem(BIRTH_KEY, JSON.stringify(data)); } catch (e) { /* ignore */ }
     // Redirection vers la page de discussion avec Soléna (le formulaire est prérempli via BIRTH_KEY)
-    navigate('/outils/consultation');
+    navigate('/services/consultation');
   };
 
   return (

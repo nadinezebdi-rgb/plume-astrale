@@ -176,7 +176,7 @@ export default function AstroSexo() {
               </button>
             ) : !isAuthenticated ? (
               <Link
-                to="/inscription?next=/outils/astrosexo"
+                to="/inscription?next=/services/astrosexo"
                 className="inline-flex items-center gap-2 px-7 py-3 rounded-full"
                 style={{
                   background: 'linear-gradient(135deg, #D4AF37, #E8C766)',
