@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 
-import Navbar from "./components/Navbar";
+import Navbar from "./components/NavbarV2";
 import TrialBanner from "./components/TrialBanner";
 
 import Index from "./pages/Homepage";
@@ -28,7 +28,7 @@ import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import MentionsLegales from "./pages/MentionsLegales";
 import CGV from "./pages/CGV";
-import Footer from "./components/Footer";
+import Footer from "./components/FooterV2";
 import KabbaleSucces from "./pages/KabbaleSucces";
 import AstrocartographieSales from "./pages/AstrocartographieSales";
 import AstrocartographieSucces from "./pages/AstrocartographieSucces";
@@ -117,6 +117,7 @@ function App() {
       <BrowserRouter>
         {/* ─── Overlays globaux Plume Design System v2 ─── */}
         <GlobalOverlays />
+        <Navbar />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />
@@ -153,10 +154,9 @@ function App() {
           <Route path="/fenetre-rencontre-pdf" element={<Navigate to="/rencontres-astrales" replace />} />
           <Route path="/fenetre-rencontre/attente" element={<Navigate to="/rencontres-astrales" replace />} />
 
-          {/* Toutes les autres pages — avec Navbar */}
+          {/* Toutes les autres pages */}
           <Route path="*" element={
             <>
-              <Navbar />
               <Routes>
                 <Route path="/inscription" element={<Register />} />
                 <Route path="/connexion" element={<Login />} />

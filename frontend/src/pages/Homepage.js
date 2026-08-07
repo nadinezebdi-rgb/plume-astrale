@@ -5,8 +5,6 @@ import {
   Star, ShieldCheck, Clock, Mail,
 } from 'lucide-react';
 import SEO from '@/components/SEO';
-import NavbarV2 from '@/components/NavbarV2';
-import FooterV2 from '@/components/FooterV2';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
 import LiveConstellation from '@/components/LiveConstellation';
 import { useAuth } from '@/context/AuthContext';
@@ -82,7 +80,6 @@ export default function Homepage() {
 
   return (
     <div className="ps-home" data-testid="homepage-v2">
-      <NavbarV2 />
       <SEO
         path="/"
         title="Plume Astrale · Ta lecture astrologique écrite par Soléna"
@@ -416,7 +413,6 @@ export default function Homepage() {
           </div>
         </div>
       </section>
-      <FooterV2 />
     </div>
   );
 }

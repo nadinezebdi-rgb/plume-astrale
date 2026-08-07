@@ -1,5 +1,32 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 81) — Unification globale Navbar + Footer
+
+### Livrables (2026-02-07)
+- ✅ **`Navbar`** = **NavbarV2** dans `App.js` (import swap) — la nouvelle navbar remplace l'ancienne partout.
+- ✅ **`Footer`** = **FooterV2** dans `App.js` — le footer navy nouveau se rend globalement.
+- ✅ **`<Navbar />` déplacée au top-level** dans `App.js` juste après `<GlobalOverlays />` — rendue UNE seule fois pour toutes les routes (top-level + catch-all). Suppression du `<Navbar />` du catch-all wrapper qui créait un doublon potentiel.
+- ✅ **Suppression des embeds** :
+  - `Homepage.js` : retiré `<NavbarV2 />` et `<FooterV2 />` (rendus globalement).
+  - `PsPageShell.js` simplifié — ne contient plus que le `background` + `min-height`. Plus de Navbar / Footer embarqués.
+- ✅ Screenshots validés :
+  - **Homepage** : une seule NavbarV2 en tête, constellation Lion à gauche, hero navy avec starfield.
+  - **Inscription (page legacy dark mystique)** : maintenant coiffée avec la MÊME NavbarV2 que les pages v3 → continuité visuelle assurée entre pages v3 et pages legacy.
+  - **Contact (v3)** : NavbarV2 unifiée, texture papier, fond crème.
+
+### Impact
+- Rupture visuelle entre pages v3 et pages legacy éliminée sur le point le plus visible (la navbar + footer).
+- Les pages legacy (Inscription, Login, Formulaire, Outils, Choix, Paiement, MonCompte, etc.) conservent leur ambiance intérieure mais héritent de la navigation unifiée.
+- L'expérience utilisatrice est désormais fluide et cohérente d'un bout à l'autre du site.
+
+### Encore à faire (backlog)
+- Enrichissement visuel des pages produit avec images de bibliothèque (queue de comète, arbre de vie, etc.).
+- Migration progressive des pages Outils / MonCompte / Choix vers la charte claire quand souhaité.
+- Newsletter Blog.
+- Dashboard leads pour les emails captés via les extraits.
+
+---
+
 ## 🆕 Session Feb 2026 (iter 80) — Texture papier renforcée + cards qui poppent
 
 ### Livrables (2026-02-07)
