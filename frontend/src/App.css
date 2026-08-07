@@ -13,7 +13,28 @@
   pointer-events: none;
   overflow: hidden;
 }
+/* ── Effet 3D Révolution Solaire ── */
+.rs-3d-scene { perspective: 1200px; }
 
+.rs-3d-tilt {
+  transform-style: preserve-3d;
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 350ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.rs-3d-tilt:hover {
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.75),
+              0 12px 24px -12px rgba(212,175,55,0.20),
+              inset 0 1px 0 rgba(255,215,150,0.10);
+}
+
+/* Le contenu interne se détache en profondeur */
+.rs-3d-tilt .rs-3d-lift { transform: translateZ(40px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-3d-tilt { transition: none; }
+  .rs-3d-tilt:hover { transform: none !important; }
+}
 /* ── Orbes / nébuleuses violettes ── */
 .orb {
   position: absolute;
@@ -248,4 +269,25 @@
   background: #FFFFFF;
   border: 1px solid #E3E1DC;
   backdrop-filter: none;
+/* ── Effet 3D Révolution Solaire (cartes + bannière) ── */
+.rs-3d-scene { perspective: 1200px; }
+
+.rs-3d-tilt {
+  transform-style: preserve-3d;
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 350ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.rs-3d-tilt:hover {
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.75),
+              0 12px 24px -12px rgba(212,175,55,0.20),
+              inset 0 1px 0 rgba(255,215,150,0.10);
+}
+
+/* Élément qui se détache en profondeur au-dessus de la carte (ex: bouton) */
+.rs-3d-tilt .rs-3d-lift { transform: translateZ(40px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-3d-tilt { transition: none; }
+  .rs-3d-tilt:hover { transform: none !important; }
 }

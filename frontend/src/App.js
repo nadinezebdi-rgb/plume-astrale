@@ -7,8 +7,7 @@ import TrialBanner from "./components/TrialBanner";
 
 import Index from "./pages/Homepage";
 import LectureCompleteSucces from "./pages/LectureCompleteSucces";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
+import AuthPage from "./pages/AuthPage";
 import Tarot from "./pages/Tarot";
 import Formulaire from "./pages/Formulaire";
 import Apercu from "./pages/Apercu";
@@ -94,6 +93,7 @@ import MobileTabBar from "./components/design/MobileTabBar";
 import AuraProvider from "./components/design/AuraProvider";
 import LiveSalesCounter from "./components/LiveSalesCounter";
 import { captureReferralFromURL } from "./lib/referral";
+import ShootingStars from "./components/design/ShootingStars";
 import { useLocation } from "react-router-dom";
 
 function GlobalOverlays() {
@@ -103,6 +103,7 @@ function GlobalOverlays() {
   return (
     <>
       <Starfield />
+      <ShootingStars />
       <NoiseOverlay />
       <MobileTabBar />
       {!isLanding && <LiveSalesCounter />}
@@ -163,8 +164,8 @@ function App() {
           <Route path="*" element={
             <>
               <Routes>
-                <Route path="/inscription" element={<Register />} />
-                <Route path="/connexion" element={<Login />} />
+                <Route path="/inscription" element={<AuthPage />} />
+                <Route path="/connexion" element={<AuthPage />} />
                 <Route path="/mon-accueil" element={<AuthenticatedHome />} />
                 <Route path="/formulaire" element={<Formulaire />} />
                 <Route path="/apercu" element={<Apercu />} />
@@ -218,6 +219,7 @@ function App() {
                 <Route path="/compatibilite-amoureuse" element={<Navigate to="/services/compatibilite" replace />} />
                 <Route path="/mon-rituel" element={<Navigate to="/services/rituel" replace />} />
                 <Route path="/chat-astral" element={<Navigate to="/services/consultation" replace />} />
+                <Route path="/compatibilite" element={<Navigate to="/services/compatibilite" replace />} />
                 <Route path="/cercle-quotidien" element={<Navigate to="/communaute" replace />} />
                 <Route path="/cercle-dashboard" element={<Navigate to="/communaute" replace />} />
                 <Route path="/cercle" element={<Navigate to="/communaute" replace />} />
@@ -256,6 +258,8 @@ function App() {
                 <Route path="/synastrie/succes" element={<SynastrieSucces />} />
                 <Route path="/astrosexo" element={<Navigate to="/services/astrosexo" replace />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
+                {/* Catch-all : aucune route interne ne correspond -> retour accueil */}
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
               <CookieConsent />
             </>

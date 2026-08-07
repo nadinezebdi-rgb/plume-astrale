@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import PageHero from '@/components/PageHero';
 import PsPageShell from '@/components/PsPageShell';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { Sun, Moon, Star, Heart, Briefcase, Activity, Coins, RefreshCw, Loader2 
 import SEO from '@/components/SEO';
 import NatalCompletionPrompt from '@/components/NatalCompletionPrompt';
 import { TransitsToday } from '@/pages/RevolutionSolaire';
+const HoroscopeCosmos3D = lazy(() => import('@/components/HoroscopeCosmos3D'));
 
 const periodMap = { jour: 'daily', semaine: 'weekly', mois: 'monthly' };
 
@@ -208,6 +209,12 @@ const Horoscope = () => {
               {userData.prenom ? `${userData.prenom}, ` : ''}découvre ce que les astres te réservent
             </p>
 
+{/* Scene 3D cosmique */}
+            <div style={{ position: 'relative', width: '100%', height: '460px', margin: '2rem auto' }}>
+              <Suspense fallback={null}>
+                              <HoroscopeCosmos3D signe={userSign} />
+              </Suspense>
+              </div>
             {/* Planetary positions from Astrology API */}
             {natalData && (
               <div className="mt-4 flex flex-wrap justify-center gap-3">
