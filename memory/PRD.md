@@ -1,5 +1,28 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 80) — Texture papier renforcée + cards qui poppent
+
+### Livrables (2026-02-07)
+- ✅ **Texture papier VISIBLE** sur `.ps-section-light::before` :
+  - Grain feTurbulence renforcé : `baseFrequency 0.85 → 0.75` (grain plus doux) et `feColorMatrix opacity 0.08 → 0.20` (×2.5 plus visible).
+  - Halos radiaux doré/navy passés de 0.09/0.05 à **0.18/0.09** — chaleur bien perceptible en haut-droite et fraîcheur en bas-gauche.
+  - **Motif d'étoiles dorées miniatures** : 8 étoiles ponctuelles (1-1.5px) en radial-gradient repeat 300×300px, parsemage aléatoire façon semis parchemin. 6 dorées + 2 navy pour variété.
+  - Retiré le `mix-blend-mode: multiply` qui atténuait tout.
+- ✅ **Halo doré angulaire** ajouté via `.ps-section-light::after` — micro-halo blur en haut-droite pour dorer le coin, comme une signature.
+- ✅ **Cards renforcées** dans `.ps-card` :
+  - Ombres multi-couches : `0 1px 2px + 0 8px 24px` au repos, `0 2px 4px + 0 20px 40px` au hover.
+  - `translateY(-2px) → -4px` au hover pour vraie sensation de levée.
+  - `position: relative; z-index: 2` pour toujours passer au-dessus du motif de fond.
+- ✅ Screenshots validés sur Homepage (Value + Services) et NosLivres : contraste clair entre fond parchemin texturé (grain + étoiles semi + halos) et cards flottantes blanches nettes.
+
+### Encore à faire (backlog)
+- Newsletter Blog.
+- Curseur étoilé.
+- Dashboard leads.
+- Rituel mensuel zodiaque.
+
+---
+
 ## 🆕 Session Feb 2026 (iter 79) — Zodiaque auto + constellation à gauche + texture papier + wording
 
 ### Livrables (2026-02-06)
