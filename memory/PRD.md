@@ -28,12 +28,19 @@ Massive UX/UI refactoring for the premium astrology SaaS "Plume Astrale" toward 
   - `TirageTarot`, `ChatIA`, `Horoscope`, `Choix`, `MonCompte` migrés en cream V3 + Playfair Display
   - Scoped overrides `[data-shell="light"]` dans `index.css` pour `card-mystical`, `btn-mystical`, `plume-glass`
   - `BundleCard` refondu palette V3 (navy/or sur blanc)
-- **[2026-02-08] Astrocarto + V3 children + /services/ rebranding + PDF prestige** (iteration 69 — 100% frontend passed):
+- **[2026-02-08] PDF prestige unifié pour la vente de livres à Noël** (iteration 70):
+  - Nouveau module `services/pdf_prestige.py` : `prestige_bg`, `ornament`, `chapter_opener` (numérotation romaine I-VII), `toc_page` (sommaire éditorial), `simple_world_map_svg` (fallback carte du monde)
+  - `services/pdf_bg.make_bg_canvas()` upgradé : cadre or pointillé + soleil ornemental + footer éditorial "PLUME ASTRALE · PRODUCT — n —" → propage à Karma Destin + Numérologie
+  - `Kabbale` : `_bg_canvas` redirige vers `pdf_bg.make_bg_canvas('Ton Arbre de Vie')`
+  - `Synastrie` : `_bg_cream` ajoute cadre or pointillé + soleil + footer éditorial
+  - `Thème Natal luxury_bg` : cadre or pointillé + soleil ornemental + footer éditorial
+  - `Astrocartographie PDF` : sommaire (I-VII) + chapter openers numérotés + carte du monde de secours embarquée (garantit une belle carte à chaque livre imprimé)
+
+- **[2026-02-08] Astrocarto + V3 children + /services/ rebranding** (iteration 69 — 100% frontend passed):
   - `AstroCartoHero.js` : nouveau visuel SVG (carte du monde stylisée + 7 lignes planétaires + 3 villes + boussole) remplaçant la planète Uranus sur `/astrocartographie`
   - `SalesPageV3` accepte désormais `heroNode` (ReactNode) en plus de `heroImage`
   - NatalCompletionPrompt, TransitsToday, ReferralPanel, CreditsPaywallModal → palette V3 (Playfair, #C9A24B, navy)
   - Routes canoniques `/services/*` (16 routes) avec redirections legacy `/outils/*` conservées
-  - Astrocartographie PDF : cadre or dashed sur chaque page, ornements ✦ ◆ entre chapitres, carte du monde agrandie (17×11.5cm au lieu de 8.5cm), footer éditorial "PLUME ASTRALE · ASTROCARTOGRAPHIE — n —"
 
 ## Backlog
 

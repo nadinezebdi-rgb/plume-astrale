@@ -73,7 +73,7 @@ def _dl_image(url: str) -> Optional[io.BytesIO]:
 # ═══════════════════════════════════════════════════════════
 
 def luxury_bg(canvas, doc):
-    """Fond nuit + starfield doré + coin ornemental (invoqué par doc.build)."""
+    """Fond nuit + starfield doré + cadre or pointillé prestige (charte unifiée Feb 2026)."""
     canvas.saveState()
     w, h = A4
     # Fond nuit profonde
@@ -95,15 +95,25 @@ def luxury_bg(canvas, doc):
         canvas.setFillAlpha(rng.uniform(0.2, 0.7))
         canvas.circle(x, y, r, fill=1, stroke=0)
     canvas.setFillAlpha(1)
-    # Cadre or fin (marge intérieure)
+    # Cadre or pointillé (charte prestige)
     canvas.setStrokeColor(GOLD)
-    canvas.setLineWidth(0.4)
-    canvas.rect(1.3 * cm, 1.3 * cm, w - 2.6 * cm, h - 2.6 * cm, stroke=1, fill=0)
-    # Pagination discrète
+    canvas.setLineWidth(0.35)
+    canvas.setDash([0.6, 2.4], 0)
+    canvas.rect(1.2 * cm, 1.2 * cm, w - 2.4 * cm, h - 2.4 * cm, stroke=1, fill=0)
+    canvas.setDash([], 0)
+    # Soleil ornemental discret en haut
     if doc.page > 1:
-        canvas.setFont(font('Cinzel', 'Helvetica'), 7)
+        canvas.setFillColor(GOLD)
+        canvas.setLineWidth(0.4)
+        canvas.circle(w / 2, h - 1.55 * cm, 0.10 * cm, fill=1, stroke=0)
+        canvas.line(w / 2 - 1.4 * cm, h - 1.55 * cm, w / 2 - 0.3 * cm, h - 1.55 * cm)
+        canvas.line(w / 2 + 0.3 * cm, h - 1.55 * cm, w / 2 + 1.4 * cm, h - 1.55 * cm)
+    # Footer éditorial
+    if doc.page > 1:
         canvas.setFillColor(MUTED)
-        canvas.drawCentredString(w / 2, 1 * cm, f'✦ {doc.page} ✦')
+        canvas.setFont('Helvetica', 6.5)
+        canvas.drawString(2 * cm, 0.75 * cm, "PLUME ASTRALE · THÈME NATAL")
+        canvas.drawRightString(w - 2 * cm, 0.75 * cm, f"— {doc.page} —")
     canvas.restoreState()
 
 

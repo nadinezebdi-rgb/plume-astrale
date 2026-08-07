@@ -82,30 +82,9 @@ def _p(text: str, style: ParagraphStyle) -> Paragraph:
 
 
 def _bg_canvas(canv, doc):
-    """Fond degrade Nuit Douce + micro-etoiles + numero de page."""
-    canv.saveState()
-    W, H = A4
-    # Fond bleu nuit
-    canv.setFillColor(NIGHT)
-    canv.rect(0, 0, W, H, fill=1, stroke=0)
-    # Halo dore subtil en haut
-    for i, alpha in enumerate([0.02, 0.015, 0.01]):
-        canv.setFillColorRGB(0.83, 0.68, 0.21, alpha=alpha)
-        canv.circle(W/2, H, (i+1) * 6*cm, fill=1, stroke=0)
-    # Micro-etoiles fixes
-    import random
-    r = random.Random(hash((doc.page,)))
-    for _ in range(35):
-        x = r.uniform(1*cm, W-1*cm)
-        y = r.uniform(1*cm, H-1*cm)
-        s = r.choice([0.4, 0.5, 0.6, 0.8])
-        canv.setFillColorRGB(1, 0.95, 0.75, alpha=r.uniform(0.2, 0.55))
-        canv.circle(x, y, s, fill=1, stroke=0)
-    # Footer
-    canv.setFillColor(MUTED)
-    canv.setFont('Helvetica', 7)
-    canv.drawCentredString(W/2, 0.9*cm, f"Plume Astrale · Ton Arbre de Vie · page {doc.page}")
-    canv.restoreState()
+    """Fond prestige unifié Plume Astrale (cadre or + soleil ornemental + footer éditorial)."""
+    from services.pdf_bg import make_bg_canvas as _mkbg
+    return _mkbg('Ton Arbre de Vie')(canv, doc)
 
 
 # ── Styles ──

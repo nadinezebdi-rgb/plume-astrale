@@ -188,21 +188,30 @@ class SynastriePDFGenerator:
         c.setFillAlpha(1.0)
 
     def _bg_cream(self, c):
-        """Fond pages interieures : creme + lignes dorees discretes."""
+        """Fond pages interieures : creme + cadre or pointille + filets dores."""
         c.setFillColor(CREAM)
         c.rect(0, 0, self.w, self.h, fill=1, stroke=0)
-        # Filet superieur dore
+        # Cadre or pointille (charte prestige unifiee)
         c.setStrokeColor(GOLD)
+        c.setLineWidth(0.35)
+        c.setDash([0.6, 2.4], 0)
+        c.rect(1.2 * cm, 1.2 * cm, self.w - 2.4 * cm, self.h - 2.4 * cm, fill=0, stroke=1)
+        c.setDash([], 0)
+        # Filet superieur dore (repere de tete de page)
         c.setLineWidth(0.4)
         c.line(self.margin, self.h - 1.5 * cm, self.w - self.margin, self.h - 1.5 * cm)
         # Filet inferieur
         c.line(self.margin, 1.5 * cm, self.w - self.margin, 1.5 * cm)
+        # Soleil ornemental discret en haut au centre
+        c.setFillColor(GOLD)
+        c.circle(self.w / 2, self.h - 1.55 * cm, 0.10 * cm, fill=1, stroke=0)
 
     # ── Footer (sauf couverture) ──
     def _footer(self, c, page_num, total=25):
         c.setFillColor(INK_SOFT)
-        c.setFont("Helvetica", 7.5)
-        c.drawCentredString(self.w / 2, 1.0 * cm, f"Plume Astrale — Synastrie — {page_num}/{total}")
+        c.setFont("Helvetica", 6.5)
+        c.drawString(2 * cm, 0.75 * cm, "PLUME ASTRALE · SYNASTRIE")
+        c.drawRightString(self.w - 2 * cm, 0.75 * cm, f"— {page_num} —")
 
     # ── Wrapping helpers ──
     def _wrap(self, text, font, size, max_w, c):

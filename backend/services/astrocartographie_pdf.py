@@ -479,21 +479,54 @@ def generate_astrocartographie_pdf(
     story: list = []
 
     _cover(story, styles, first_name or "Voyageur", birth_fr)
+
+    # ─── Sommaire éditorial ───
+    from services.pdf_prestige import toc_page, chapter_opener as _chapter_opener, simple_world_map_svg
+    toc = [
+        {'roman': 'I',   'title': "L'astrocartographie",              'page': 4},
+        {'roman': 'II',  'title': "Ta carte du monde",                 'page': 6},
+        {'roman': 'III', 'title': "Tes lignes planétaires en détail", 'page': 8},
+        {'roman': 'IV',  'title': "Tes trois villes choisies",         'page': None},
+        {'roman': 'V',   'title': "Les destinations de Soléna",        'page': None},
+        {'roman': 'VI',  'title': "Synthèse",                          'page': None},
+        {'roman': 'VII', 'title': "Rituel d'ancrage",                  'page': None},
+    ]
+    toc_page(story, styles, toc)
+
+    _chapter_opener(story, styles, 'I', "L'astrocartographie", "Comprendre ce que ta carte révèle")
     _intro(story, styles)
-    _world_map(story, styles, map_svg)
+
+    _chapter_opener(story, styles, 'II', "Ta carte du monde", "Sept lignes tracées sur la Terre")
+    # Fallback : si l'API n'a pas renvoyé de SVG, on injecte la carte de secours
+    effective_map = map_svg
+    if not effective_map:
+        city_names = [c.get('city', '') for c in (chosen_cities or [])[:3]]
+        effective_map = simple_world_map_svg(city_names=city_names)
+    _world_map(story, styles, effective_map)
 
     # Section détaillée : chaque ligne planétaire avec interprétation approfondie
     if lines_data:
         from services.astrocartographie_lines_data import dedupe_lines
+        _chapter_opener(story, styles, 'III', "Tes lignes planétaires en détail",
+                        "L'interprétation de chacune de tes lignes")
         _planetary_lines_pages(story, styles, dedupe_lines(lines_data))
 
+    if chosen_cities:
+        _chapter_opener(story, styles, 'IV', "Tes trois villes choisies",
+                        "Les lieux que tu as sélectionnés")
     for c in chosen_cities:
         _city_pages(story, styles, c, c.get('enriched') or {}, is_bonus=False)
 
+    if bonus_cities:
+        _chapter_opener(story, styles, 'V', "Les destinations de Soléna",
+                        "Deux lieux inattendus, choisis pour toi")
     for b in bonus_cities:
         _city_pages(story, styles, b, b.get('enriched') or {}, is_bonus=True)
 
+    _chapter_opener(story, styles, 'VI', "Synthèse", "Le message de Soléna")
     _synthesis_page(story, styles, first_name, synthesis_text or "")
+
+    _chapter_opener(story, styles, 'VII', "Rituel d'ancrage", "Avant de partir")
     _rituel_signature(story, styles, first_name)
 
     doc.build(story, onFirstPage=_bg_canvas, onLaterPages=_bg_canvas)
