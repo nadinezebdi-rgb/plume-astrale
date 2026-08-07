@@ -119,87 +119,127 @@ class NumerologiePDFGenerator:
         chemin_de_vie, destinee, ame, personnalite, jour_naissance,
         annee_personnelle, lo_shu, biorythmes, invitation_finale).
         """
-        buffer = BytesIO()
         self._ai = ai_sections or {}
-        doc = SimpleDocTemplate(
-            buffer,
-            pagesize=A4,
-            topMargin=1.5 * cm,
-            bottomMargin=1.5 * cm,
-            leftMargin=1.5 * cm,
-            rightMargin=1.5 * cm,
+        _mini_styles = {
+            'caption': self.subtitle_style,
+            'h2': self.heading_style,
+            'title': self.title_style,
+            'subtitle': self.subtitle_style,
+        }
+
+        from services.pdf_multipass_toc import build_with_toc, chapter_marker
+        from services.pdf_prestige import toc_page as _toc_page, chapter_opener as _chapter_opener
+
+        def _build_story(page_map):
+            story = []
+            story.extend(self._page_cover(first_name))
+            story.append(PageBreak())
+
+            def _pg(cid, fb=None):
+                return page_map.get(cid, fb) if page_map is not None else fb
+
+            _toc_page(story, _mini_styles, [
+                {'roman': 'I',   'title': "Introduction à la numérologie sacrée", 'page': _pg('chap1')},
+                {'roman': 'II',  'title': "Tes nombres-clés",                     'page': _pg('chap2')},
+                {'roman': 'III', 'title': "Ton année personnelle",                'page': _pg('chap3')},
+                {'roman': 'IV',  'title': "Prévisions cycliques",                 'page': _pg('chap4')},
+                {'roman': 'V',   'title': "Ton Carré Lo-Shu",                     'page': _pg('chap5')},
+                {'roman': 'VI',  'title': "Rituels de vibration",                 'page': _pg('chap6')},
+            ])
+
+            story.append(chapter_marker('chap1'))
+            _chapter_opener(story, _mini_styles, 'I', "La numérologie sacrée", "Une invitation aux nombres")
+            story.extend(self._page_intro())
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap2'))
+            _chapter_opener(story, _mini_styles, 'II', "Tes nombres-clés", "Chemin de vie, expression, âme")
+            story.extend(self._pages_nombres_cles(numerology_data, first_name))
+            story.append(PageBreak())
+
+            if personal_year_data:
+                story.append(chapter_marker('chap3'))
+                _chapter_opener(story, _mini_styles, 'III', "Ton année personnelle", "Le cycle actif de ta vie")
+                story.extend(self._pages_annee_personnelle(personal_year_data))
+                story.append(PageBreak())
+
+            if forecast_data:
+                story.append(chapter_marker('chap4'))
+                _chapter_opener(story, _mini_styles, 'IV', "Prévisions cycliques", "Ton horizon numérologique")
+                story.extend(self._pages_forecast(forecast_data))
+                story.append(PageBreak())
+
+            if self._ai.get('lo_shu'):
+                story.append(chapter_marker('chap5'))
+                _chapter_opener(story, _mini_styles, 'V', "Ton Carré Lo-Shu", "Numérologie chinoise ancestrale")
+                story.append(Paragraph('✦ Ton Carré Lo-Shu — Numérologie Chinoise ✦', self.heading_style))
+                story.append(Spacer(0, 0.3 * cm))
+                story.append(Paragraph(self._ai['lo_shu'], self.body_style))
+                story.append(PageBreak())
+
+            if self._ai.get('biorythmes'):
+                story.append(Paragraph('✦ Tes Biorythmes des 90 Prochains Jours ✦', self.heading_style))
+                story.append(Spacer(0, 0.3 * cm))
+                story.append(Paragraph(self._ai['biorythmes'], self.body_style))
+                story.append(PageBreak())
+
+            if self._ai.get('invitation_finale'):
+                story.append(Paragraph('✦ Ton Invitation ✦', self.heading_style))
+                story.append(Spacer(0, 0.3 * cm))
+                story.append(Paragraph(self._ai['invitation_finale'], self.body_style))
+                story.append(PageBreak())
+
+            story.append(chapter_marker('chap6'))
+            _chapter_opener(story, _mini_styles, 'VI', "Rituels de vibration", "Cinq pratiques numérologiques")
+            story.extend(self._page_rituels_finaux(first_name))
+            return story
+
+        return build_with_toc(
+            _build_story,
+            doc_kwargs={
+                'pagesize': A4,
+                'topMargin': 1.5 * cm, 'bottomMargin': 1.5 * cm,
+                'leftMargin': 1.5 * cm, 'rightMargin': 1.5 * cm,
+            },
+            on_first_page=make_bg_canvas('Ton Analyse Numérologique'),
+            on_later_pages=make_bg_canvas('Ton Analyse Numérologique'),
         )
-        
-        story = []
-        
-        # Page 1: Couverture
-        story.extend(self._page_cover(first_name))
-        story.append(PageBreak())
-        
-        # Page 2: Introduction
-        story.extend(self._page_intro())
-        story.append(PageBreak())
-        
-        # Pages 3-5: Nombres clés
-        story.extend(self._pages_nombres_cles(numerology_data, first_name))
-        story.append(PageBreak())
-        
-        # Pages 6-8: Année personnelle
-        if personal_year_data:
-            story.extend(self._pages_annee_personnelle(personal_year_data))
-            story.append(PageBreak())
-        
-        # Pages 9-11: Prévisions
-        if forecast_data:
-            story.extend(self._pages_forecast(forecast_data))
-            story.append(PageBreak())
-        
-        # Nouvelles sections IA (Lo-Shu, biorythmes, invitation) — uniquement si dispo
-        if self._ai.get('lo_shu'):
-            story.append(Paragraph('✦ Ton Carré Lo-Shu — Numérologie Chinoise ✦', self.heading_style))
-            story.append(Spacer(0, 0.3 * cm))
-            story.append(Paragraph(self._ai['lo_shu'], self.body_style))
-            story.append(PageBreak())
-        
-        if self._ai.get('biorythmes'):
-            story.append(Paragraph('✦ Tes Biorythmes des 90 Prochains Jours ✦', self.heading_style))
-            story.append(Spacer(0, 0.3 * cm))
-            story.append(Paragraph(self._ai['biorythmes'], self.body_style))
-            story.append(PageBreak())
-        
-        if self._ai.get('invitation_finale'):
-            story.append(Paragraph('✦ Ton Invitation ✦', self.heading_style))
-            story.append(Spacer(0, 0.3 * cm))
-            story.append(Paragraph(self._ai['invitation_finale'], self.body_style))
-            story.append(PageBreak())
-        
-        # Page 12: Rituels + signature
-        story.extend(self._page_rituels_finaux(first_name))
-        
-        doc.build(
-            story,
-            onFirstPage=make_bg_canvas('Ton Analyse Numérologique'),
-            onLaterPages=make_bg_canvas('Ton Analyse Numérologique'),
-        )
-        return buffer.getvalue()
-    
+
     def _page_cover(self, name: str) -> List:
-        """Couverture dorée et mystique."""
-        return [
-            Spacer(0, 3 * cm),
+        """Couverture prestige avec hero illustré (chemin de vie)."""
+        from reportlab.platypus import Image as _RLImage
+        from pathlib import Path as _Path
+        elements: List = [Spacer(0, 1.5 * cm)]
+        _hero = _Path('/app/backend/assets/pdf_covers/numerologie_hero.png')
+        if _hero.exists():
+            try:
+                img = _RLImage(str(_hero), width=8 * cm, height=8 * cm, kind='proportional')
+                img.hAlign = 'CENTER'
+                elements.append(img)
+                elements.append(Spacer(0, 0.4 * cm))
+            except Exception:
+                pass
+        elements.extend([
             Paragraph('✦ TON CODE NUMÉROLOGIQUE ✦', self.title_style),
             Spacer(0, 0.5 * cm),
-            Paragraph(f'Destinée, Cycles & Vibrations de {name}', self.subtitle_style),
-            Spacer(0, 2 * cm),
+            Paragraph(f'Destinée, Cycles & Vibrations', self.subtitle_style),
+            Spacer(0, 0.9 * cm),
+        ])
+        # ═══ Nom du destinataire en dorure gaufrée ═══
+        from services.pdf_cover_personalization import embossed_name as _embossed
+        _embossed(elements, name, size='large')
+        elements.extend([
+            Spacer(0, 0.6 * cm),
             Paragraph(
                 'Chaque nombre vibre avec une essence cosmique.<br/>Ta date de naissance révèle tes cycles karmiques.',
                 self.body_style,
             ),
-            Spacer(0, 3 * cm),
+            Spacer(0, 1 * cm),
             Paragraph('par Solena — La voix de Plume Astrale', ParagraphStyle(
                 'Footer', fontName='Helvetica-Oblique', fontSize=10, textColor=GOLD_LIGHT, alignment=TA_CENTER
             )),
-        ]
+        ])
+        return elements
     
     def _page_intro(self) -> List:
         """Introduction à la numérologie sacrée."""

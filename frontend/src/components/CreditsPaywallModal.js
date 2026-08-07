@@ -51,7 +51,7 @@ const PACKS = [
       text: 'LE PLUS CHOISI',
       stat: 'Meilleur rapport',
     },
-    accent: '#D4AF37',
+    accent: '#C9A24B',
     highlight: true,
   },
   {
@@ -92,7 +92,7 @@ const PACKS = [
     ],
     pricePerCredit: '0,17€',
     badge: null,
-    accent: '#D4AF37',
+    accent: '#C9A24B',
     highlight: false,
   },
 ];
@@ -164,9 +164,9 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
       <div
         className="relative w-full max-w-5xl rounded-3xl overflow-hidden"
         style={{
-          background: 'linear-gradient(165deg, rgba(212,175,55,0.08) 0%, rgba(6,3,20,0.95) 100%)',
-          border: '1px solid rgba(212,175,55,0.25)',
-          boxShadow: '0 50px 150px rgba(212,175,55,0.15), 0 0 80px rgba(212,175,55,0.08)',
+          background: 'linear-gradient(165deg, rgba(201,162,75,0.08) 0%, rgba(6,3,20,0.95) 100%)',
+          border: '1px solid rgba(201,162,75,0.25)',
+          boxShadow: '0 50px 150px rgba(201,162,75,0.15), 0 0 80px rgba(201,162,75,0.08)',
         }}
         onClick={(e) => e.stopPropagation()}
         data-testid="credits-paywall-modal"
@@ -177,7 +177,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-50 p-2 rounded-full transition-all hover:scale-110"
-          style={{ color: '#D4AF37', background: 'rgba(212,175,55,0.1)' }}
+          style={{ color: '#C9A24B', background: 'rgba(201,162,75,0.1)' }}
           aria-label="Fermer"
           data-testid="credits-paywall-close"
         >
@@ -190,7 +190,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
           <h2
             className="text-3xl md:text-4xl mb-4"
             style={{
-              fontFamily: 'Cormorant Garamond, serif',
+              fontFamily: 'Playfair Display, serif',
               fontWeight: 300,
               color: '#F4E8D2',
             }}>
@@ -220,9 +220,9 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
         {/* FOOTER TRUST */}
         <div
           className="px-6 py-4 text-center border-t"
-          style={{ borderColor: 'rgba(212,175,55,0.1)' }}>
+          style={{ borderColor: 'rgba(201,162,75,0.1)' }}>
           <div className="flex flex-wrap justify-center gap-4 text-[10px] uppercase mb-4"
-            style={{ color: 'rgba(212,175,55,0.6)', letterSpacing: '0.15em' }}>
+            style={{ color: 'rgba(201,162,75,0.6)', letterSpacing: '0.15em' }}>
             <span className="flex items-center gap-1">
               <Check size={12} /> Paiement sécurisé Stripe
             </span>
@@ -239,7 +239,7 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
             onClick={onClose}
             className="text-xs uppercase opacity-60 hover:opacity-100 transition"
             style={{
-              color: '#D4AF37',
+              color: '#C9A24B',
               letterSpacing: '0.15em',
               background: 'transparent',
               border: 'none',
@@ -264,13 +264,13 @@ function PackCard({ pack, isLoading, onBuy }) {
       className="relative rounded-2xl p-7 flex flex-col transition-all transform hover:scale-105"
       style={{
         background: pack.highlight
-          ? 'linear-gradient(135deg, rgba(232,199,102,0.12), rgba(212,175,55,0.06))'
-          : 'rgba(212,175,55,0.04)',
+          ? 'linear-gradient(135deg, rgba(201,162,75,0.12), rgba(201,162,75,0.06))'
+          : 'rgba(201,162,75,0.04)',
         border: pack.highlight
-          ? '2px solid rgba(232,199,102,0.4)'
-          : '1px solid rgba(212,175,55,0.18)',
+          ? '2px solid rgba(201,162,75,0.4)'
+          : '1px solid rgba(201,162,75,0.18)',
         boxShadow: pack.highlight
-          ? '0 0 30px rgba(232,199,102,0.1), inset 0 0 30px rgba(232,199,102,0.04)'
+          ? '0 0 30px rgba(201,162,75,0.1), inset 0 0 30px rgba(201,162,75,0.04)'
           : 'none',
       }}
       data-testid={`paywall-pack-${pack.id}`}
@@ -316,7 +316,7 @@ function PackCard({ pack, isLoading, onBuy }) {
           <span
             className="text-3xl font-bold"
             style={{
-              fontFamily: 'Cormorant Garamond, serif',
+              fontFamily: 'Playfair Display, serif',
               color: pack.accent,
             }}>
             {pack.price}
@@ -368,7 +368,7 @@ function PackCard({ pack, isLoading, onBuy }) {
         style={{
           background: pack.highlight
             ? `linear-gradient(135deg, ${pack.accent}, ${pack.accent}dd)`
-            : 'rgba(212,175,55,0.1)',
+            : 'rgba(201,162,75,0.1)',
           color: pack.highlight ? '#0C0918' : pack.accent,
           border: pack.highlight ? 'none' : `1px solid ${pack.accent}`,
           letterSpacing: '0.15em',

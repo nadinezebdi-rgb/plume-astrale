@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Check, Circle, Sparkles } from 'lucide-react';
+import PsPageShell from '@/components/PsPageShell';
 
+/**
+ * Choix — page de sélection Essentiel / Premium.
+ * Migration V3 (Feb 2026) : fond crème #F7F5F0, Playfair Display en titres,
+ * cartes blanches à ombre douce, badge "Recommandé" doré.
+ */
 const Choix = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
@@ -19,9 +25,11 @@ const Choix = () => {
 
   if (!userData) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--pa-accent)' }} />
-      </div>
+      <PsPageShell background="light">
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Loader2 style={{ width: 22, height: 22, color: '#C9A24B' }} className="animate-spin" />
+        </div>
+      </PsPageShell>
     );
   }
 
@@ -48,92 +56,230 @@ const Choix = () => {
   ];
 
   return (
-    <div className="min-h-screen relative">
-      <div className="relative z-10 px-6 md:px-8 py-20 md:py-28">
-      <div className="max-w-3xl mx-auto">
-
+    <PsPageShell background="light">
+      <section
+        style={{
+          padding: '96px 24px 96px',
+          maxWidth: 1100,
+          margin: '0 auto',
+        }}
+      >
         {/* Header */}
-        <div className="text-center mb-16">
-          <p className="section-label">Choisissez votre guidance</p>
-          <h1
-            className="text-3xl md:text-4xl mb-4"
-            style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
+        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+          <p
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: '#C9A24B',
+              marginBottom: 16,
+            }}
           >
-            {userData.prenom ? `${userData.prenom}, v` : 'V'}otre manuscrit vous attend.
+            ✦ Choisis ta guidance ✦
+          </p>
+          <h1
+            style={{
+              fontFamily: 'Playfair Display, serif',
+              fontSize: 'clamp(32px, 5.4vw, 52px)',
+              fontWeight: 500,
+              color: '#0F1A3C',
+              lineHeight: 1.15,
+              marginBottom: 16,
+            }}
+          >
+            {userData.prenom ? `${userData.prenom}, ton` : 'Ton'}{' '}
+            <span style={{ fontStyle: 'italic', color: '#C9A24B' }}>manuscrit t&apos;attend.</span>
           </h1>
-          <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
-            Deux chemins s'offrent a vous. Choisissez celui qui resonne.
+          <p
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 15,
+              lineHeight: 1.65,
+              color: 'rgba(15,26,60,0.65)',
+              maxWidth: 520,
+              margin: '0 auto',
+            }}
+          >
+            Deux chemins s&apos;offrent à toi. Choisis celui qui résonne — sans engagement, sans surprise.
           </p>
         </div>
 
         {/* Plans grid */}
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
-
-          {/* Essentiel */}
-          <div className="py-10 px-8 rounded-sm" style={{ border: '1px solid var(--pa-divider)' }}>
-            <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--pa-muted)', letterSpacing: '0.12em' }}>Essentiel</p>
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-3xl" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>9,90 EUR</span>
-            </div>
-            <p className="text-xs mb-8" style={{ color: 'var(--pa-muted)' }}>Votre manuscrit celeste de base</p>
-
-            <div className="space-y-3 mb-10">
-              {essentielFeatures.map((f, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: f.on ? 'var(--pa-accent)' : 'var(--pa-divider)' }} />
-                  <span className="text-sm" style={{ color: f.on ? 'var(--pa-body)' : 'var(--pa-muted)', opacity: f.on ? 1 : 0.5 }}>
-                    {f.text}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <button onClick={() => handleSelectPlan('essentiel')} className="btn-editorial w-full justify-center" data-testid="btn-essentiel">
-              Découvrir l'essentiel
-            </button>
-          </div>
-
-          {/* Premium */}
-          <div className="py-10 px-8 rounded-sm relative" style={{ border: '1px solid rgba(196, 168, 130, 0.3)' }}>
-            <div className="absolute -top-3 left-8">
-              <span className="text-xs tracking-widest uppercase px-4 py-1" style={{ background: 'var(--pa-accent)', color: 'var(--pa-bg)', letterSpacing: '0.1em' }}>
-                Recommande
-              </span>
-            </div>
-
-            <p className="text-xs tracking-widest uppercase mb-3 mt-2" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>Premium</p>
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-3xl" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>29,90 EUR</span>
-            </div>
-            <p className="text-xs mb-8" style={{ color: 'var(--pa-muted)' }}>L'experience cosmique complete</p>
-
-            <div className="space-y-3 mb-10">
-              {premiumFeatures.map((f, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: f.highlight ? 'var(--pa-accent)' : 'var(--pa-accent)' }} />
-                  <span className="text-sm" style={{ color: f.highlight ? 'var(--pa-accent)' : 'var(--pa-body)' }}>
-                    {f.text}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <button onClick={() => handleSelectPlan('premium')} className="btn-editorial-filled w-full justify-center" data-testid="btn-premium">
-              Recevoir mon manuscrit complet
-            </button>
-          </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: 28,
+            marginBottom: 40,
+          }}
+        >
+          <PlanCard
+            label="Essentiel"
+            price="9,90€"
+            tagline="Ton manuscrit céleste de base"
+            features={essentielFeatures}
+            cta="Découvrir l'essentiel"
+            onSelect={() => handleSelectPlan('essentiel')}
+            testid="btn-essentiel"
+          />
+          <PlanCard
+            label="Premium"
+            price="29,90€"
+            tagline="L'expérience cosmique complète"
+            features={premiumFeatures}
+            cta="Recevoir mon manuscrit complet"
+            onSelect={() => handleSelectPlan('premium')}
+            recommended
+            testid="btn-premium"
+          />
         </div>
 
-        {/* Trust */}
-        <div className="flex flex-wrap justify-center gap-8 text-xs" style={{ color: 'var(--pa-muted)' }}>
-          <span>Paiement securise</span>
-          <span>Acces immediat</span>
-          <span>Satisfait ou rembourse 30j</span>
+        {/* Trust badges */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: 32,
+            fontFamily: 'Inter, sans-serif',
+            fontSize: 12,
+            letterSpacing: '0.10em',
+            textTransform: 'uppercase',
+            color: 'rgba(15,26,60,0.50)',
+          }}
+        >
+          <span>Paiement sécurisé</span>
+          <span>Accès immédiat</span>
+          <span>Satisfait ou remboursé 30j</span>
         </div>
-      </div>
-      </div>
-    </div>
+      </section>
+    </PsPageShell>
   );
 };
+
+function PlanCard({ label, price, tagline, features, cta, onSelect, recommended, testid }) {
+  return (
+    <div
+      data-testid={`plan-card-${label.toLowerCase()}`}
+      style={{
+        position: 'relative',
+        background: '#FFFFFF',
+        border: recommended ? '1px solid #C9A24B' : '1px solid #E3E1DC',
+        borderRadius: 16,
+        padding: '40px 32px 32px',
+        boxShadow: recommended
+          ? '0 24px 48px -20px rgba(201,162,75,0.30)'
+          : '0 12px 32px -18px rgba(15,26,60,0.10)',
+      }}
+    >
+      {recommended && (
+        <div
+          style={{
+            position: 'absolute',
+            top: -14,
+            left: 24,
+            background: '#C9A24B',
+            color: '#0F1A3C',
+            fontFamily: 'Inter, sans-serif',
+            fontSize: 10,
+            fontWeight: 600,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            padding: '5px 14px',
+            borderRadius: 999,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <Sparkles style={{ width: 11, height: 11 }} strokeWidth={2} />
+          Recommandé
+        </div>
+      )}
+
+      <p
+        style={{
+          fontFamily: 'Inter, sans-serif',
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: '0.20em',
+          textTransform: 'uppercase',
+          color: recommended ? '#C9A24B' : 'rgba(15,26,60,0.55)',
+          marginBottom: 12,
+        }}
+      >
+        {label}
+      </p>
+
+      <div
+        style={{
+          fontFamily: 'Playfair Display, serif',
+          fontSize: 40,
+          fontWeight: 500,
+          color: '#0F1A3C',
+          lineHeight: 1,
+          marginBottom: 6,
+        }}
+      >
+        {price}
+      </div>
+      <p
+        style={{
+          fontFamily: 'Inter, sans-serif',
+          fontSize: 13,
+          color: 'rgba(15,26,60,0.55)',
+          marginBottom: 28,
+        }}
+      >
+        {tagline}
+      </p>
+
+      <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px' }}>
+        {features.map((f, i) => (
+          <li
+            key={i}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '8px 0',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 14,
+              color: f.on ? '#232323' : 'rgba(15,26,60,0.35)',
+              opacity: f.on ? 1 : 0.7,
+            }}
+          >
+            {f.on ? (
+              <Check
+                style={{ width: 15, height: 15, color: f.highlight ? '#C9A24B' : '#7A8AB0', flexShrink: 0 }}
+                strokeWidth={2}
+              />
+            ) : (
+              <Circle
+                style={{ width: 8, height: 8, color: 'rgba(15,26,60,0.20)', flexShrink: 0 }}
+                strokeWidth={1.5}
+              />
+            )}
+            <span style={{ color: f.highlight ? '#C9A24B' : 'inherit', fontWeight: f.highlight ? 500 : 400 }}>
+              {f.text}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        type="button"
+        onClick={onSelect}
+        data-testid={testid}
+        className={recommended ? 'ps-btn ps-btn-primary' : 'ps-btn ps-btn-outline'}
+        style={{ width: '100%', justifyContent: 'center', padding: '14px 20px' }}
+      >
+        {cta}
+      </button>
+    </div>
+  );
+}
 
 export default Choix;

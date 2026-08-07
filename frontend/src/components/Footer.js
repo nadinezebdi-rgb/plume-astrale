@@ -70,7 +70,7 @@ export default function Footer() {
           <FooterLink to="/blog">Blog</FooterLink>
           <FooterLink to="/premium">Lecture Complète 97€</FooterLink>
           <FooterLink to="/bibliotheque">Bibliothèque</FooterLink>
-          <FooterLink to="/outils/tarot">Tarot</FooterLink>
+          <FooterLink to="/services/tarot">Tarot</FooterLink>
           <FooterLink to="/quotidien">Horoscope du jour</FooterLink>
         </div>
 

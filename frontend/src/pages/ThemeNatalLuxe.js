@@ -23,6 +23,7 @@ export default function ThemeNatalLuxe() {
   return (
     <SalesPageV3
       slug="natal"
+      previewProduct="theme-natal"
       path="/theme-natal-luxe"
       seoTitle="Ton Thème Natal Luxe · 49 pages écrites par Soléna · Plume Astrale"
       seoDescription="Un PDF premium de 49 pages où 11 planètes racontent qui tu es vraiment. Écrit par Soléna à partir de 73 dimensions astrologiques. Offre bienvenue : 17,99€."
@@ -34,6 +35,11 @@ export default function ThemeNatalLuxe() {
       priceHint="offre bienvenue · paiement unique"
       pages={49}
       deliveryTime="5 min"
+      heroImage={{
+        src: `${process.env.REACT_APP_BACKEND_URL}/api/assets/library/planets/sun_1080.png`,
+        alt: 'Le Soleil, planète centrale du thème natal',
+        caption: 'Le Soleil natal',
+      }}
       includes={INCLUDES}
       testimonials={TESTIMONIALS}
       apercu={APERCUS.natal}

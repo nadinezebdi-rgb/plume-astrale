@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import {
   User, Mail, MapPin, Calendar, Coins, Star, Flame,
   ArrowLeft, ArrowRight, Crown, Check, Sparkles,
-  LogOut, RefreshCw, ChevronRight, Gift, Shield
+  LogOut, RefreshCw, ChevronRight, Gift, Shield, HelpCircle
 } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
@@ -14,6 +14,8 @@ import LibraryImage from '@/components/LibraryImage';
 import BundleCard from '@/components/BundleCard';
 import SolenaWritingLoader from '@/components/SolenaWritingLoader';
 import ReferralPanel from '@/components/ReferralPanel';
+import CreditsInfoModal from '@/components/CreditsInfoModal';
+import PsPageShell from '@/components/PsPageShell';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -378,6 +380,7 @@ const MonCompte = () => {
   const [promoMsg, setPromoMsg]         = useState(null); // {type:'success'|'error', text}
   const [pdfLoading, setPdfLoading]     = useState(false);
   const [cercleStatus, setCercleStatus] = useState(null);
+  const [creditsInfoOpen, setCreditsInfoOpen] = useState(false);
   const [archivedReports, setArchivedReports] = useState(null); // null = pas encore chargé
   const [reportsLoading, setReportsLoading] = useState(false);
   const [reportPdfLoading, setReportPdfLoading] = useState(null); // id du rapport en cours
@@ -640,7 +643,9 @@ const MonCompte = () => {
   ];
 
   return (
-    <div className="min-h-screen relative" style={{ background: 'var(--pa-bg)' }}>
+    <PsPageShell background="light">
+    <div className="min-h-screen relative">
+      <CreditsInfoModal open={creditsInfoOpen} onClose={() => setCreditsInfoOpen(false)} />
       {/* Overlay animé pendant la génération du PDF Thème Natal (~60s) */}
       {pdfLoading && <SolenaWritingLoader estimatedSeconds={55} />}
 
@@ -778,9 +783,10 @@ const MonCompte = () => {
           )}
 
           {/* ── Bandeau solde crédits ── */}
+          <div style={{ position: 'relative', marginBottom: 32 }}>
           <Link
             to="/acheter-credits"
-            className="flex items-center justify-between gap-4 rounded-2xl px-6 py-4 mb-8 group transition-all duration-300 hover:border-[rgba(212,175,55,0.45)]"
+            className="flex items-center justify-between gap-4 rounded-2xl px-6 py-4 group transition-all duration-300 hover:border-[rgba(212,175,55,0.45)]"
             style={{
               background: 'linear-gradient(135deg, rgba(212,175,55,0.1) 0%, rgba(212,175,55,0.04) 100%)',
               border: '1px solid rgba(212,175,55,0.25)',
@@ -790,7 +796,7 @@ const MonCompte = () => {
             <div className="flex items-center gap-3">
               <Coins className="w-6 h-6" strokeWidth={1.5} style={{ color: 'var(--pa-accent)' }} />
               <div>
-                <p className="text-xs tracking-widest uppercase mb-0.5" style={{ color: 'var(--pa-muted)', letterSpacing: '0.1em' }}>
+                <p className="text-xs tracking-widest uppercase mb-0.5 flex items-center gap-1.5" style={{ color: 'var(--pa-muted)', letterSpacing: '0.1em' }}>
                   Solde de crédits
                 </p>
                 <p className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 300 }}>
@@ -805,6 +811,33 @@ const MonCompte = () => {
               <Gift className="w-3.5 h-3.5" strokeWidth={1.5} /> Recharger
             </div>
           </Link>
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCreditsInfoOpen(true); }}
+            data-testid="mon-compte-credits-help"
+            aria-label="Comprendre les crédits"
+            title="À quoi servent les crédits ?"
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              width: 28,
+              height: 28,
+              borderRadius: 999,
+              background: 'rgba(15,26,60,0.06)',
+              border: '1px solid rgba(201,162,75,0.30)',
+              color: '#C9A24B',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 0,
+              zIndex: 2,
+            }}
+          >
+            <HelpCircle style={{ width: 14, height: 14 }} strokeWidth={1.8} />
+          </button>
+          </div>
 
           {/* ── Badge Cercle Solena 90j (visible si bundle Lecture Complete achete) ── */}
           {cercleStatus?.active && (
@@ -1209,7 +1242,27 @@ const MonCompte = () => {
                 <div className="flex items-center gap-4">
                   <Coins className="w-8 h-8" strokeWidth={1.5} style={{ color: 'var(--pa-accent)' }} />
                   <div>
-                    <p className="text-xs tracking-widest uppercase mb-1" style={{ color: 'var(--pa-muted)', letterSpacing: '0.1em' }}>Solde actuel</p>
+                    <p className="text-xs tracking-widest uppercase mb-1 flex items-center gap-1.5" style={{ color: 'var(--pa-muted)', letterSpacing: '0.1em' }}>
+                      Solde actuel
+                      <button
+                        type="button"
+                        onClick={() => setCreditsInfoOpen(true)}
+                        data-testid="mon-compte-credits-tab-help"
+                        aria-label="Comprendre les crédits"
+                        title="À quoi servent les crédits ?"
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          padding: 0,
+                          cursor: 'pointer',
+                          color: 'var(--pa-accent)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <HelpCircle style={{ width: 13, height: 13 }} strokeWidth={1.8} />
+                      </button>
+                    </p>
                     <p className="text-3xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 300 }}>
                       {creditBalance} <span className="text-lg" style={{ color: 'var(--pa-accent)' }}>crédits</span>
                     </p>
@@ -1469,6 +1522,7 @@ const MonCompte = () => {
         onSuccess={chargerProfil}
       />
     </div>
+    </PsPageShell>
   );
 };
 

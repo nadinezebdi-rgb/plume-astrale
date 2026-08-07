@@ -179,7 +179,7 @@ class SynastriePDFGenerator:
             except Exception:
                 pass
 
-        # Fallback : halo dore subtil au centre haut (design original)
+        # Fallback : halo dore + illustration hero locale (cœurs entrelaces)
         for i, alpha in enumerate([0.04, 0.08, 0.12, 0.16, 0.20]):
             c.setFillColor(GOLD)
             c.setFillAlpha(alpha)
@@ -187,22 +187,44 @@ class SynastriePDFGenerator:
             c.circle(self.w / 2, self.h - 9 * cm, r, fill=1, stroke=0)
         c.setFillAlpha(1.0)
 
+        # Injection du hero V3 (deux cœurs entrelacés) — au centre haut
+        from pathlib import Path as _P
+        _hero = _P('/app/backend/assets/pdf_covers/synastrie_hero.png')
+        if _hero.exists():
+            try:
+                size = 10 * cm
+                x = (self.w - size) / 2
+                y = self.h - 4.5 * cm - size
+                c.drawImage(str(_hero), x, y, size, size,
+                            preserveAspectRatio=True, anchor='c', mask='auto')
+            except Exception:
+                pass
+
     def _bg_cream(self, c):
-        """Fond pages interieures : creme + lignes dorees discretes."""
+        """Fond pages interieures : creme + cadre or pointille + filets dores."""
         c.setFillColor(CREAM)
         c.rect(0, 0, self.w, self.h, fill=1, stroke=0)
-        # Filet superieur dore
+        # Cadre or pointille (charte prestige unifiee)
         c.setStrokeColor(GOLD)
+        c.setLineWidth(0.35)
+        c.setDash([0.6, 2.4], 0)
+        c.rect(1.2 * cm, 1.2 * cm, self.w - 2.4 * cm, self.h - 2.4 * cm, fill=0, stroke=1)
+        c.setDash([], 0)
+        # Filet superieur dore (repere de tete de page)
         c.setLineWidth(0.4)
         c.line(self.margin, self.h - 1.5 * cm, self.w - self.margin, self.h - 1.5 * cm)
         # Filet inferieur
         c.line(self.margin, 1.5 * cm, self.w - self.margin, 1.5 * cm)
+        # Soleil ornemental discret en haut au centre
+        c.setFillColor(GOLD)
+        c.circle(self.w / 2, self.h - 1.55 * cm, 0.10 * cm, fill=1, stroke=0)
 
     # ── Footer (sauf couverture) ──
     def _footer(self, c, page_num, total=25):
         c.setFillColor(INK_SOFT)
-        c.setFont("Helvetica", 7.5)
-        c.drawCentredString(self.w / 2, 1.0 * cm, f"Plume Astrale — Synastrie — {page_num}/{total}")
+        c.setFont("Helvetica", 6.5)
+        c.drawString(2 * cm, 0.75 * cm, "PLUME ASTRALE · SYNASTRIE")
+        c.drawRightString(self.w - 2 * cm, 0.75 * cm, f"— {page_num} —")
 
     # ── Wrapping helpers ──
     def _wrap(self, text, font, size, max_w, c):
@@ -350,21 +372,40 @@ class SynastriePDFGenerator:
         c.drawCentredString(self.w / 2, y, "le rapport de votre lien")
         y -= 3 * cm
 
-        # Noms
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 22)
+        # Noms — dorure gaufrée façon livre imprimé (édition personnelle pour un couple)
         n1 = (p1.get('prenom') or '').strip().title()
         n2 = (p2.get('prenom') or '').strip().title()
-        c.drawCentredString(self.w / 2, y, f"{n1}")
-        y -= 1 * cm
-        c.setFillColor(CREAM)
-        c.setFont("Helvetica-Oblique", 13)
-        c.drawCentredString(self.w / 2, y, "&")
-        y -= 1 * cm
+
+        # Petit filet + label "ÉDITION PERSONNELLE"
         c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 22)
-        c.drawCentredString(self.w / 2, y, f"{n2}")
-        y -= 2.5 * cm
+        c.setFont("Helvetica", 6)
+        c.drawCentredString(self.w / 2, y, "·   ·   ·")
+        y -= 0.5 * cm
+        c.setFillColor(INK_SOFT)
+        c.setFont("Helvetica", 7)
+        c.drawCentredString(self.w / 2, y, "É D I T I O N  ·  P E R S O N N E L L E  ·  P O U R")
+        y -= 1.1 * cm
+
+        # Prénom 1 (or vif, letter-spacé via espaces)
+        c.setFillColor(GOLD_LIGHT)
+        c.setFont("Helvetica-Bold", 24)
+        c.drawCentredString(self.w / 2, y, ' '.join(n1.upper()))
+        y -= 1.1 * cm
+        # &
+        c.setFillColor(CREAM)
+        c.setFont("Helvetica-Oblique", 15)
+        c.drawCentredString(self.w / 2, y, "&")
+        y -= 1.1 * cm
+        # Prénom 2
+        c.setFillColor(GOLD_LIGHT)
+        c.setFont("Helvetica-Bold", 24)
+        c.drawCentredString(self.w / 2, y, ' '.join(n2.upper()))
+        y -= 0.5 * cm
+        # Filet doré final
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica", 6)
+        c.drawCentredString(self.w / 2, y, "·   ·   ·")
+        y -= 2.0 * cm
 
         # Footer date
         c.setStrokeColor(GOLD)

@@ -12,35 +12,35 @@ const NAV_ITEMS = [
       {
         title: '🔮 Cartomancie',
         children: [
-          { label: 'Tarot', to: '/outils/tarot', highlight: true },
-          { label: 'Tirage Oui/Non', to: '/outils/tarot/oui-non' },
-          { label: 'Oracle des Anges', to: '/outils/oracle' },
+          { label: 'Tarot', to: '/services/tarot', highlight: true },
+          { label: 'Tirage Oui/Non', to: '/services/tarot/oui-non' },
+          { label: 'Oracle des Anges', to: '/services/oracle' },
         ],
       },
       {
         title: '⭐ Astrologie',
         children: [
-          { label: 'Thème Natal', to: '/outils/theme-natal', highlight: true },
-          { label: 'Horoscope', to: '/outils/horoscope' },
-          { label: 'Compatibilité', to: '/outils/compatibilite' },
-          { label: 'Révolution Solaire', to: '/outils/revolution-solaire' },
+          { label: 'Thème Natal', to: '/services/theme-natal', highlight: true },
+          { label: 'Horoscope', to: '/services/horoscope' },
+          { label: 'Compatibilité', to: '/services/compatibilite' },
+          { label: 'Révolution Solaire', to: '/services/revolution-solaire' },
         ],
       },
       {
         title: '🔢 Numérologie',
         children: [
-          { label: 'Numérologie', to: '/outils/numerologie' },
-          { label: 'Archétype Numérologique', to: '/outils/archetype' },
-          { label: 'Love Languages', to: '/outils/love-languages' },
+          { label: 'Numérologie', to: '/services/numerologie' },
+          { label: 'Archétype Numérologique', to: '/services/archetype' },
+          { label: 'Love Languages', to: '/services/love-languages' },
         ],
       },
       {
         title: '✨ Bien-être',
         children: [
-          { label: 'Énergie du Jour', to: '/outils/energie' },
-          { label: 'Rituels Personnels', to: '/outils/rituel' },
-          { label: 'Discussion avec Soléna', to: '/outils/consultation' },
-          { label: 'Énergies Amoureuses', to: '/outils/astrosexo' },
+          { label: 'Énergie du Jour', to: '/services/energie' },
+          { label: 'Rituels Personnels', to: '/services/rituel' },
+          { label: 'Discussion avec Soléna', to: '/services/consultation' },
+          { label: 'Énergies Amoureuses', to: '/services/astrosexo' },
         ],
       },
       {

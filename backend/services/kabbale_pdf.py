@@ -82,30 +82,9 @@ def _p(text: str, style: ParagraphStyle) -> Paragraph:
 
 
 def _bg_canvas(canv, doc):
-    """Fond degrade Nuit Douce + micro-etoiles + numero de page."""
-    canv.saveState()
-    W, H = A4
-    # Fond bleu nuit
-    canv.setFillColor(NIGHT)
-    canv.rect(0, 0, W, H, fill=1, stroke=0)
-    # Halo dore subtil en haut
-    for i, alpha in enumerate([0.02, 0.015, 0.01]):
-        canv.setFillColorRGB(0.83, 0.68, 0.21, alpha=alpha)
-        canv.circle(W/2, H, (i+1) * 6*cm, fill=1, stroke=0)
-    # Micro-etoiles fixes
-    import random
-    r = random.Random(hash((doc.page,)))
-    for _ in range(35):
-        x = r.uniform(1*cm, W-1*cm)
-        y = r.uniform(1*cm, H-1*cm)
-        s = r.choice([0.4, 0.5, 0.6, 0.8])
-        canv.setFillColorRGB(1, 0.95, 0.75, alpha=r.uniform(0.2, 0.55))
-        canv.circle(x, y, s, fill=1, stroke=0)
-    # Footer
-    canv.setFillColor(MUTED)
-    canv.setFont('Helvetica', 7)
-    canv.drawCentredString(W/2, 0.9*cm, f"Plume Astrale · Ton Arbre de Vie · page {doc.page}")
-    canv.restoreState()
+    """Fond prestige unifié Plume Astrale (cadre or + soleil ornemental + footer éditorial)."""
+    from services.pdf_bg import make_bg_canvas as _mkbg
+    return _mkbg('Ton Arbre de Vie')(canv, doc)
 
 
 # ── Styles ──
@@ -155,7 +134,10 @@ def _cover(story, styles, first_name: str, birth_date: str, dominant_seph: str, 
     # Illustration Arbre de Vie (Etz Chaim) — hero centrée
     from reportlab.platypus import Image as _RLImage
     from pathlib import Path as _Path
-    _cover_img = _Path('/app/backend/assets/pdf_covers/arbre_de_vie_cover.png')
+    # Priorité au nouveau hero V3 (palette navy/or unifiée), fallback sur l'ancien
+    _cover_img = _Path('/app/backend/assets/pdf_covers/kabbale_hero.png')
+    if not _cover_img.exists():
+        _cover_img = _Path('/app/backend/assets/pdf_covers/arbre_de_vie_cover.png')
     if _cover_img.exists():
         try:
             img = _RLImage(str(_cover_img), width=8.5*cm, height=8.5*cm, kind='proportional')
@@ -165,6 +147,10 @@ def _cover(story, styles, first_name: str, birth_date: str, dominant_seph: str, 
             _lib_image(story, libimg.sign_from_date(birth_iso, size=2048), width_cm=6.5)
     else:
         _lib_image(story, libimg.sign_from_date(birth_iso, size=2048), width_cm=6.5)
+    story.append(Spacer(1, 0.5*cm))
+    # ═══ Nom du destinataire en dorure gaufrée (édition personnelle) ═══
+    from services.pdf_cover_personalization import embossed_name as _embossed
+    _embossed(story, first_name, size='large')
     story.append(Spacer(1, 0.5*cm))
     story.append(_p("TON ARBRE DE VIE", styles['title']))
     story.append(Spacer(1, 0.2*cm))
@@ -475,15 +461,8 @@ def _generate_kabbale_impl(
             birth_fr = birth_date_iso
 
     buffer = BytesIO()
-    doc = SimpleDocTemplate(
-        buffer, pagesize=A4,
-        leftMargin=2.2*cm, rightMargin=2.2*cm,
-        topMargin=2*cm, bottomMargin=2*cm,
-        title="Ton Arbre de Vie Kabbalistique", author="Solena · Plume Astrale",
-    )
     styles = _make_styles()
 
-    story: list = []
     # Extraire la planète dominante depuis les Sephiroth
     dominant_planet = ''
     try:
@@ -501,23 +480,69 @@ def _generate_kabbale_impl(
     except Exception:
         dominant_planet = ''
 
-    _cover(story, styles, first_name or "Voyageur", birth_fr, dominant_display, spiritual_focus, birth_iso=birth_date_iso or '')
-    _intro(story, styles)
-    _pillars(story, styles, pillar_balance)
-    _sephiroth_pages(story, styles, sephiroth, dominant_planet=str(dominant_planet or ''))
-    _paths_page(story, styles, paths)
-    _daat_page(story, styles, daat)
-    _synthesis(story, styles, dominant_display, spiritual_focus, synthesis)
+    # ─── Story builder appelé en 2 passes (sommaire avec vraies pages) ───
+    from services.pdf_multipass_toc import build_with_toc, chapter_marker
+    from services.pdf_prestige import toc_page as _toc_page, chapter_opener as _chapter_opener
 
-    # Enrichissement IA : insere des sections narratives premium avant les rituels
-    if ai_sections:
-        _append_ai_sections(story, styles, ai_sections, report_type='kabbale')
+    def _build_story(page_map):
+        story: list = []
 
-    _rituels_signature(story, styles, first_name or "Voyageur", dominant_display)
+        _cover(story, styles, first_name or "Voyageur", birth_fr, dominant_display,
+               spiritual_focus, birth_iso=birth_date_iso or '')
 
-    doc.build(story, onFirstPage=_bg_canvas, onLaterPages=_bg_canvas)
-    buffer.seek(0)
-    return buffer.getvalue()
+        def _pg(cid, fallback=None):
+            return page_map.get(cid, fallback) if page_map is not None else fallback
+
+        _toc_page(story, styles, [
+            {'roman': 'I',   'title': "L'Arbre de Vie kabbalistique", 'page': _pg('chap1')},
+            {'roman': 'II',  'title': "Tes trois piliers",             'page': _pg('chap2')},
+            {'roman': 'III', 'title': "Les 10 Sephiroth",              'page': _pg('chap3')},
+            {'roman': 'IV',  'title': "Les 22 chemins",                'page': _pg('chap4')},
+            {'roman': 'V',   'title': "Da'at, la sphère invisible",    'page': _pg('chap5')},
+            {'roman': 'VI',  'title': "Synthèse",                      'page': _pg('chap6')},
+            {'roman': 'VII', 'title': "Rituels de communion",          'page': _pg('chap7')},
+        ])
+
+        story.append(chapter_marker('chap1'))
+        _chapter_opener(story, styles, 'I', "L'Arbre de Vie kabbalistique", "Comprendre l'ancien schéma")
+        _intro(story, styles)
+        story.append(chapter_marker('chap2'))
+        _chapter_opener(story, styles, 'II', "Tes trois piliers", "Rigueur, Miséricorde, Équilibre")
+        _pillars(story, styles, pillar_balance)
+        story.append(chapter_marker('chap3'))
+        _chapter_opener(story, styles, 'III', "Les 10 Sephiroth", "Les dix sphères de conscience")
+        _sephiroth_pages(story, styles, sephiroth, dominant_planet=str(dominant_planet or ''))
+        story.append(chapter_marker('chap4'))
+        _chapter_opener(story, styles, 'IV', "Les 22 chemins", "Les sentiers de la Lumière")
+        _paths_page(story, styles, paths)
+        story.append(chapter_marker('chap5'))
+        _chapter_opener(story, styles, 'V', "Da'at, la sphère invisible", "L'abîme et la connaissance")
+        _daat_page(story, styles, daat)
+        story.append(chapter_marker('chap6'))
+        _chapter_opener(story, styles, 'VI', "Synthèse", "Le message de Soléna")
+        _synthesis(story, styles, dominant_display, spiritual_focus, synthesis)
+
+        if ai_sections:
+            _append_ai_sections(story, styles, ai_sections, report_type='kabbale')
+
+        story.append(chapter_marker('chap7'))
+        _chapter_opener(story, styles, 'VII', "Rituels de communion", "Prières pour honorer ton Arbre")
+        _rituels_signature(story, styles, first_name or "Voyageur", dominant_display)
+
+        return story
+
+    return build_with_toc(
+        _build_story,
+        doc_kwargs={
+            'pagesize': A4,
+            'leftMargin': 2.2 * cm, 'rightMargin': 2.2 * cm,
+            'topMargin': 2 * cm, 'bottomMargin': 2 * cm,
+            'title': "Ton Arbre de Vie Kabbalistique",
+            'author': "Solena · Plume Astrale",
+        },
+        on_first_page=_bg_canvas,
+        on_later_pages=_bg_canvas,
+    )
 
 
 def _append_ai_sections(story, styles, ai_sections: Dict[str, str], report_type: str) -> None:

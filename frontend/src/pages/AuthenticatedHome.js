@@ -212,12 +212,12 @@ const AuthenticatedHome = () => {
               gap: 12,
             }}>
               {[
-                { icon: '🔮', label: 'Tarot', to: '/outils/tarot' },
-                { icon: '⭐', label: 'Horoscope', to: '/outils/horoscope' },
-                { icon: '🔢', label: 'Numérologie', to: '/outils/numerologie' },
-                { icon: '💕', label: 'Compatibilité', to: '/outils/compatibilite' },
-                { icon: '💬', label: 'Discussion avec Soléna', to: '/outils/consultation' },
-                { icon: '✨', label: 'Énergie du jour', to: '/outils/energie' },
+                { icon: '🔮', label: 'Tarot', to: '/services/tarot' },
+                { icon: '⭐', label: 'Horoscope', to: '/services/horoscope' },
+                { icon: '🔢', label: 'Numérologie', to: '/services/numerologie' },
+                { icon: '💕', label: 'Compatibilité', to: '/services/compatibilite' },
+                { icon: '💬', label: 'Discussion avec Soléna', to: '/services/consultation' },
+                { icon: '✨', label: 'Énergie du jour', to: '/services/energie' },
               ].map((service) => (
                 <Link
                   key={service.to}

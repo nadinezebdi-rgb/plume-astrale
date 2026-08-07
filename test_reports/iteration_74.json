@@ -1,0 +1,39 @@
+{
+  "summary": "Iteration 74 — validated Admin PDF Test Dashboard analytics (Mongo logs) + tier=ultra toggle for Thème Natal. Backend: 14/14 pytest cases pass on public URL — Supabase admin login (admin@plume-astrale.fr) works, all 6 products (astrocartographie, kabbale, karma-destin, numerologie, theme-natal, synastrie) return 200+application/pdf with admin JWT, 401/403 without token, 403 for non-admin (test@plume-astrale.fr), /_logs/recent returns Mongo-inserted logs (logs+stats arrays, no _id leak), tier=ultra flag is persisted in Mongo log entries. Frontend: 5/5 Playwright flows pass — anon→redirect /connexion?redirect=/admin/pdf-test, admin→full dashboard with hero+6 cards+analytics widget (10 rows visible), tier=ultra button shows gold bg rgb(201,162,75) and sends tier=ultra in request URL, non-admin→admin-pdf-test-denied screen with 'Accès réservé aux administrateurs'. FINDING: tier=ultra generates a PDF of ~9.8MB, identical size to tier=flash, because the mocked book_data in _fixture() lacks the internal fields (_em, acte3_chapters, dedication, etc.) that natal_pdf_v2 needs to render the enriched 25+ pages TOC path (gated by `bd = book_data.get('_source') in ('gpt','cache')`). Added '_source':'gpt' to the mock to unlock the gate — but sizes remained identical because other keys (_em with dominant_element/dominant_modality/dominant_element_count, acte3_chapters dict) are still missing → the code likely silently skips those blocks. The toggle END-TO-END wiring (UI→URL→backend receives tier→Mongo log stores tier) works perfectly; only the visual size delta requires a fuller mock.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/admin/pdf-test/theme-natal?tier=ultra", "issue": "PDF size identical to tier=flash (~9.86 MB). Mock book_data in routes/pdf_test_admin.py::_fixture is missing `_em` (dict with dominant_element/dominant_modality/dominant_element_count), `acte3_chapters` (dict with 9 keyed entries), `dedication` and other keys expected by natal_pdf_v2. Without them the ultra render silently falls back to the same layout as flash. The review request expects 'notably larger, 25+ pages'."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration74_admin_pdf_analytics.py",
+    "/app/test_reports/pytest/iteration74.xml"
+  ],
+  "action_items": [
+    "Enrich the tier=ultra mock in /app/backend/routes/pdf_test_admin.py::_fixture with `_em` dict, `acte3_chapters` dict (all 9 keys), `dedication`, `element_analysis`, `modality_analysis`, `trio_synthesis`, `aspects_harmonieux_headline/body`, `aspects_tensions_headline/body`, `rare_aspect_headline/body`, and `house_1..12` bodies — so the natal_pdf_v2 renders the full 25+ pages ultra layout with front matter TOC. Reference: services/natal_pdf_v2.py lines 123–437."
+  ],
+  "critical_code_review_comments": [
+    "routes/pdf_test_admin.py: tier=ultra mock originally missed `_source` (added by me) but still lacks structured fields → the 2-pass build_with_toc in natal_pdf_v2 skips enriched blocks silently. This makes the ultra toggle a no-op visually.",
+    "services/mongo.py: get_db() correctly returns None if MONGO_URL missing; _log_generation swallows all exceptions → analytics are non-blocking. Good pattern.",
+    "routes/pdf_test_admin.py::_logs/recent: uses find({}, {'_id': 0}) → excludes ObjectId cleanly. Aggregation stats output uses `_id` as group key (product name) which is safe.",
+    "AdminPdfTest.js: Hooks order is now clean (all hooks above the 3 gate returns). Fetch uses session.access_token via useAuth. Analytics refresh after PDF gen. Solid.",
+    "Minor: isAdmin fallback on line 26 hardcodes admin email — accept as safety net but profile.is_admin is source of truth."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration74_admin_pdf_analytics.py",
+    "/app/backend/routes/pdf_test_admin.py (added '_source':'gpt' to tier=ultra mock — partial fix, still needs more fields)"
+  ],
+  "success_rate": {"backend": "100% (14/14)", "frontend": "100% (5/5 functional; Test5 page.goto networkidle timed out but denied screen rendered correctly per screenshot)"},
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 (is_admin=true) ; test@plume-astrale.fr / TestPlume2026! (is_admin=false)",
+  "seed_data_creation": "None — Mongo logs auto-populated by generation tests (14 entries observed in /_logs/recent).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend endpoint /api/admin/pdf-test/{product} is fully secured by require_admin. Mongo collection admin_pdf_test_logs is populated on every gen with {admin_email, product, first_name, partner_name, tier, pdf_size, ip, created_at}. /_logs/recent returns {logs, stats, total} with _id excluded from logs (aggregation stats use _id as group key, safe). Frontend /admin/pdf-test triple-gates correctly. The tier=ultra toggle sends tier=ultra to backend and the log entry stores 'ultra' — verified end-to-end. Only cosmetic gap: the tier=ultra mock book_data needs enrichment to produce a visually larger PDF (see action_items).",
+  "rca of the issue": "tier=ultra PDF size == flash size because natal_pdf_v2 gates enriched rendering behind `bd = bool(book_data and book_data.get('_source') in ('gpt','cache'))` AND requires book_data['_em']['dominant_element'/'dominant_modality'/'dominant_element_count'], book_data['acte3_chapters'] (dict of 9 chapter templates), book_data['dedication'], and per-house/per-aspect body fields. The mock in _fixture() only provided narrative intros. Fix: extend the mock with a complete book_data shape mimicking a real GPT enrichment payload (see natal_book_enrichment.enrich_book_chapters return shape)."
+}

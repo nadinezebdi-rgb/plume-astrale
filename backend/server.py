@@ -72,6 +72,9 @@ from routes.landing import router as landing_router
 from routes.chat_support import router as chat_support_router
 from routes.contact import router as contact_router
 from routes.apercu_discount import router as apercu_discount_router
+from routes.gift import router as gift_router
+from routes.pdf_preview import router as pdf_preview_router
+from routes.pdf_test_admin import router as pdf_test_admin_router
 from routes.reports import router as reports_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
@@ -141,6 +144,9 @@ api_router.include_router(landing_router)
 api_router.include_router(chat_support_router)
 api_router.include_router(contact_router)
 api_router.include_router(apercu_discount_router)
+api_router.include_router(gift_router)
+api_router.include_router(pdf_preview_router)
+api_router.include_router(pdf_test_admin_router)
 api_router.include_router(reports_router)
 
 
@@ -2425,7 +2431,7 @@ if ASSETS_DIR.exists():
     # astrocartographie, pack_karmique, rencontres_ultime) passent par
     # /api/pdf/download avec un token opaque.
     # `synastrie_extracts` reste public (lead magnet, UUID de 48 bits agit comme token).
-    for _pub in ('library', 'fonts', 'synastrie_pdf', 'synastrie_extracts'):
+    for _pub in ('library', 'fonts', 'synastrie_pdf', 'synastrie_extracts', 'pdf_covers'):
         _p = ASSETS_DIR / _pub
         if _p.exists():
             app.mount(f'/api/assets/{_pub}', StaticFiles(directory=str(_p)), name=f'assets_{_pub}')

@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 
-import Navbar from "./components/Navbar";
+import Navbar from "./components/NavbarV2";
 import TrialBanner from "./components/TrialBanner";
 
 import Index from "./pages/Homepage";
@@ -27,7 +27,7 @@ import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import MentionsLegales from "./pages/MentionsLegales";
 import CGV from "./pages/CGV";
-import Footer from "./components/Footer";
+import Footer from "./components/FooterV2";
 import KabbaleSucces from "./pages/KabbaleSucces";
 import AstrocartographieSales from "./pages/AstrocartographieSales";
 import AstrocartographieSucces from "./pages/AstrocartographieSucces";
@@ -67,6 +67,9 @@ import Bibliotheque from "./pages/Bibliotheque";
 import Desabonnement from "./pages/Desabonnement";
 import AuthenticatedHome from "./pages/AuthenticatedHome";
 import CTATestPage from "./pages/CTATestPage";
+import CreditsInfo from "./pages/CreditsInfo";
+import LivresLanding from "./pages/LivresLanding";
+import AdminPdfTest from "./pages/AdminPdfTest";
 import CookieConsent from "./components/CookieConsent";
 
 // ─── Advanced PDF Products ────────────────────────────
@@ -118,6 +121,7 @@ function App() {
       <BrowserRouter>
         {/* ─── Overlays globaux Plume Design System v2 ─── */}
         <GlobalOverlays />
+        <Navbar />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />
@@ -138,6 +142,8 @@ function App() {
           <Route path="/rencontres-astrales" element={<RencontresAstrales />} />
           <Route path="/rencontres-astrales/succes" element={<RencontresUltimeSucces />} />
           <Route path="/test/cta" element={<CTATestPage />} />
+          <Route path="/credits" element={<CreditsInfo />} />
+          <Route path="/livres" element={<LivresLanding />} />
           <Route path="/numerologie-pdf" element={<NumerologiePDF />} />
           <Route path="/numerologie-pdf/attente" element={<NumerologieWaiting />} />
           <Route path="/karma-destin-pdf" element={<KarmaDestinPDF />} />
@@ -154,10 +160,9 @@ function App() {
           <Route path="/fenetre-rencontre-pdf" element={<Navigate to="/rencontres-astrales" replace />} />
           <Route path="/fenetre-rencontre/attente" element={<Navigate to="/rencontres-astrales" replace />} />
 
-          {/* Toutes les autres pages — avec Navbar */}
+          {/* Toutes les autres pages */}
           <Route path="*" element={
             <>
-              <Navbar />
               <Routes>
                 <Route path="/inscription" element={<AuthPage />} />
                 <Route path="/connexion" element={<AuthPage />} />
@@ -166,36 +171,55 @@ function App() {
                 <Route path="/apercu" element={<Apercu />} />
                 <Route path="/choix" element={<Choix />} />
                 
-                {/* ─── Routes canoniques /outils/* ─── */}
-                <Route path="/outils/theme-natal" element={<Formulaire />} />
-                <Route path="/outils/tarot" element={<TirageTarot />} />
-                <Route path="/outils/tarot/oui-non" element={<TarotOuiNon />} />
-                <Route path="/outils/tarot/croix-celtique" element={<TarotCroixCeltique />} />
-                <Route path="/outils/tarot/amour" element={<TarotAmour />} />
-                <Route path="/outils/horoscope" element={<Horoscope />} />
-                <Route path="/outils/numerologie" element={<Numerologie />} />
-                <Route path="/outils/archetype" element={<Archetype />} />
-                <Route path="/outils/compatibilite" element={<Compatibilite2 />} />
-                <Route path="/outils/revolution-solaire" element={<RevolutionSolaire />} />
-                <Route path="/outils/oracle" element={<Oracle />} />
-                <Route path="/outils/energie" element={<Energie />} />
-                <Route path="/outils/rituel" element={<MonRituel />} />
-                <Route path="/outils/consultation" element={<ChatIA />} />
-                <Route path="/outils/astrosexo" element={<AstroSexo />} />
-                <Route path="/outils/love-languages" element={<LoveLanguages />} />
+                {/* ─── Routes canoniques /services/* (rebranding Feb 2026) ─── */}
+                <Route path="/services/theme-natal" element={<Formulaire />} />
+                <Route path="/services/tarot" element={<TirageTarot />} />
+                <Route path="/services/tarot/oui-non" element={<TarotOuiNon />} />
+                <Route path="/services/tarot/croix-celtique" element={<TarotCroixCeltique />} />
+                <Route path="/services/tarot/amour" element={<TarotAmour />} />
+                <Route path="/services/horoscope" element={<Horoscope />} />
+                <Route path="/services/numerologie" element={<Numerologie />} />
+                <Route path="/services/archetype" element={<Archetype />} />
+                <Route path="/services/compatibilite" element={<Compatibilite2 />} />
+                <Route path="/services/revolution-solaire" element={<RevolutionSolaire />} />
+                <Route path="/services/oracle" element={<Oracle />} />
+                <Route path="/services/energie" element={<Energie />} />
+                <Route path="/services/rituel" element={<MonRituel />} />
+                <Route path="/services/consultation" element={<ChatIA />} />
+                <Route path="/services/astrosexo" element={<AstroSexo />} />
+                <Route path="/services/love-languages" element={<LoveLanguages />} />
                 <Route path="/communaute" element={<Cercle />} />
                 <Route path="/cercle-solena" element={<CercleSolena />} />
                 <Route path="/cercle-solena/succes" element={<CercleSolena />} />
                 <Route path="/admin/analytics" element={<AnalyticsAdmin />} />
+                <Route path="/admin/pdf-test" element={<AdminPdfTest />} />
+
+                {/* ─── Redirections /outils/* → /services/* (compat legacy) ─── */}
+                <Route path="/outils/theme-natal" element={<Navigate to="/services/theme-natal" replace />} />
+                <Route path="/outils/tarot" element={<Navigate to="/services/tarot" replace />} />
+                <Route path="/outils/tarot/oui-non" element={<Navigate to="/services/tarot/oui-non" replace />} />
+                <Route path="/outils/tarot/croix-celtique" element={<Navigate to="/services/tarot/croix-celtique" replace />} />
+                <Route path="/outils/tarot/amour" element={<Navigate to="/services/tarot/amour" replace />} />
+                <Route path="/outils/horoscope" element={<Navigate to="/services/horoscope" replace />} />
+                <Route path="/outils/numerologie" element={<Navigate to="/services/numerologie" replace />} />
+                <Route path="/outils/archetype" element={<Navigate to="/services/archetype" replace />} />
+                <Route path="/outils/compatibilite" element={<Navigate to="/services/compatibilite" replace />} />
+                <Route path="/outils/revolution-solaire" element={<Navigate to="/services/revolution-solaire" replace />} />
+                <Route path="/outils/oracle" element={<Navigate to="/services/oracle" replace />} />
+                <Route path="/outils/energie" element={<Navigate to="/services/energie" replace />} />
+                <Route path="/outils/rituel" element={<Navigate to="/services/rituel" replace />} />
+                <Route path="/outils/consultation" element={<Navigate to="/services/consultation" replace />} />
+                <Route path="/outils/astrosexo" element={<Navigate to="/services/astrosexo" replace />} />
+                <Route path="/outils/love-languages" element={<Navigate to="/services/love-languages" replace />} />
 
                 {/* ─── Backward compatibility redirects ─── */}
-                <Route path="/tirage-tarot" element={<Navigate to="/outils/tarot" replace />} />
-                <Route path="/tarot-oui-non" element={<Navigate to="/outils/tarot/oui-non" replace />} />
-                <Route path="/tarot" element={<Navigate to="/outils/tarot" replace />} />
-                <Route path="/compatibilite-amoureuse" element={<Navigate to="/outils/compatibilite" replace />} />
-                <Route path="/compatibilite" element={<Navigate to="/outils/compatibilite" replace />} />
-                <Route path="/mon-rituel" element={<Navigate to="/outils/rituel" replace />} />
-                <Route path="/chat-astral" element={<Navigate to="/outils/consultation" replace />} />
+                <Route path="/tirage-tarot" element={<Navigate to="/services/tarot" replace />} />
+                <Route path="/tarot-oui-non" element={<Navigate to="/services/tarot/oui-non" replace />} />
+                <Route path="/tarot" element={<Navigate to="/services/tarot" replace />} />
+                <Route path="/compatibilite-amoureuse" element={<Navigate to="/services/compatibilite" replace />} />
+                <Route path="/mon-rituel" element={<Navigate to="/services/rituel" replace />} />
+                <Route path="/chat-astral" element={<Navigate to="/services/consultation" replace />} />
+                <Route path="/compatibilite" element={<Navigate to="/services/compatibilite" replace />} />
                 <Route path="/cercle-quotidien" element={<Navigate to="/communaute" replace />} />
                 <Route path="/cercle-dashboard" element={<Navigate to="/communaute" replace />} />
                 <Route path="/cercle" element={<Navigate to="/communaute" replace />} />
@@ -219,21 +243,20 @@ function App() {
                 <Route path="/mon-compte" element={<MonCompte />} />
                 <Route path="/temoignage" element={<Temoignage />} />
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
-                <Route path="/consultation" element={<Navigate to="/outils/consultation" replace />} />
-                <Route path="/energie" element={<Navigate to="/outils/energie" replace />} />
+                <Route path="/consultation" element={<Navigate to="/services/consultation" replace />} />
+                <Route path="/energie" element={<Navigate to="/services/energie" replace />} />
                 <Route path="/premium/succes" element={<Navigate to="/acheter-credits" replace />} />
-                <Route path="/chat-astral" element={<Navigate to="/outils/consultation" replace />} />
-                <Route path="/oracle" element={<Navigate to="/outils/oracle" replace />} />
-                <Route path="/mon-rituel" element={<Navigate to="/outils/rituel" replace />} />
-                <Route path="/revolution-solaire" element={<Navigate to="/outils/revolution-solaire" replace />} />
-                <Route path="/horoscope" element={<Navigate to="/outils/horoscope" replace />} />
-                <Route path="/numerologie" element={<Navigate to="/outils/numerologie" replace />} />
+                <Route path="/chat-astral" element={<Navigate to="/services/consultation" replace />} />
+                <Route path="/oracle" element={<Navigate to="/services/oracle" replace />} />
+                <Route path="/mon-rituel" element={<Navigate to="/services/rituel" replace />} />
+                <Route path="/revolution-solaire" element={<Navigate to="/services/revolution-solaire" replace />} />
+                <Route path="/love-languages" element={<Navigate to="/services/love-languages" replace />} />
                 <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
                 <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
                 <Route path="/notre-cadre" element={<NotreCadre />} />
                 <Route path="/cercle" element={<Navigate to="/communaute" replace />} />
                 <Route path="/synastrie/succes" element={<SynastrieSucces />} />
-                <Route path="/astrosexo" element={<Navigate to="/outils/astrosexo" replace />} />
+                <Route path="/astrosexo" element={<Navigate to="/services/astrosexo" replace />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
                 {/* Catch-all : aucune route interne ne correspond -> retour accueil */}
                 <Route path="*" element={<Navigate to="/" replace />} />

@@ -114,8 +114,10 @@ def dedication_page(story, styles, prenom: str, dedication_text: Optional[str] =
 def table_of_contents_page(story, styles, entries: List[Dict[str, Any]]) -> None:
     """Table des matières formatée à la manière d'un livre relié.
 
-    entries = liste de dicts { 'type': 'part'|'chapter', 'label': str, 'page': int? }.
+    entries = liste de dicts :
+      { 'type': 'part'|'chapter', 'label': str, 'page': int? (optionnel) }
     Les 'part' sont en Cinzel doré, les 'chapter' en Cormorant crème.
+    Si 'page' est présent, un feuillet de points menant au numéro de page est ajouté.
     """
     story.append(Spacer(1, 1.5 * cm))
     story.append(Paragraph(
@@ -127,17 +129,29 @@ def table_of_contents_page(story, styles, entries: List[Dict[str, Any]]) -> None
     for e in entries:
         etype = e.get('type', 'chapter')
         label = e.get('label', '')
+        page = e.get('page')
         if etype == 'part':
             story.append(Spacer(1, 0.5 * cm))
+            page_html = (f'&nbsp;&nbsp;<font color="{GOLD_HEX}">{page}</font>'
+                         if page is not None else '')
             story.append(Paragraph(
-                f'<font color="{GOLD_HEX}">{label.upper()}</font>',
+                f'<font color="{GOLD_HEX}">{label.upper()}</font>{page_html}',
                 ParagraphStyle(f'toc_p_{label}', fontName=font('Cinzel', 'Helvetica'),
                                fontSize=11, alignment=TA_LEFT, leading=18,
                                leftIndent=1.5 * cm, spaceAfter=6),
             ))
         else:
+            if page is not None:
+                # Chapitre avec pointillés menant au numéro de page (façon livre)
+                inner = (
+                    f'<font color="{CREAM_HEX}">{label}</font>'
+                    f'&nbsp;&nbsp;<font color="#8B7A32">···········</font>&nbsp;&nbsp;'
+                    f'<font color="{GOLD_HEX}">{page}</font>'
+                )
+            else:
+                inner = f'<font color="{CREAM_HEX}">{label}</font>'
             story.append(Paragraph(
-                f'<font color="{CREAM_HEX}">{label}</font>',
+                inner,
                 ParagraphStyle(f'toc_c_{label}', fontName=font('Cormorant Garamond', 'Times-Roman'),
                                fontSize=12, alignment=TA_LEFT, leading=18,
                                leftIndent=2.5 * cm, spaceAfter=4),

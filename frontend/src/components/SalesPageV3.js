@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, Sparkles, ShieldCheck, Clock, Mail, Star, BookOpen, Check,
+  ArrowRight, Sparkles, ShieldCheck, Clock, Mail, Star, BookOpen, Check, Gift,
 } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
 import ApercuLectureModal from '@/components/ApercuLectureModal';
+import GiftModal from '@/components/GiftModal';
+import PdfPreviewButton from '@/components/PdfPreviewButton';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
 import { useAuth } from '@/context/AuthContext';
 
@@ -54,6 +56,9 @@ export default function SalesPageV3({
   pages,
   deliveryTime = '5 min',
   heroBadge,
+  heroImage,          // { src, alt, caption? }
+  heroNode,           // ReactNode — alternative visuel personnalisé (SVG, composant custom)
+  previewProduct,     // id du produit pour l'aperçu PDF 3 pages (ex: 'astrocartographie')
   includes,
   testimonials,
   apercu,
@@ -66,6 +71,7 @@ export default function SalesPageV3({
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [apercuOpen, setApercuOpen] = useState(false);
+  const [giftOpen, setGiftOpen] = useState(false);
 
   const handleCta = () => {
     navigate(isAuthenticated ? ctaTargetAuth : ctaTargetGuest);
@@ -80,7 +86,13 @@ export default function SalesPageV3({
       {/* ─── HERO (light) ────────────────────────────────────── */}
       <section className="ps-section ps-section-light" data-testid={`sales-${slug}-hero`}>
         <div className="ps-container">
-          <div style={{ maxWidth: 780 }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr',
+            gap: 48,
+            alignItems: 'center',
+          }} className="ps-sales-hero-grid">
+            <div style={{ maxWidth: 780 }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>{eyebrow}</p>
             <h1 className="ps-h1"
               style={{ color: '#0F1A3C', marginBottom: 24 }}
@@ -91,21 +103,24 @@ export default function SalesPageV3({
 
             {/* Prix hero card */}
             <div style={{
+              position: 'relative',
               display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap',
-              padding: '20px 24px',
+              padding: heroBadge ? '32px 24px 20px' : '20px 24px',
               background: '#fff',
               border: heroBadge ? '1px solid #C9A24B' : '1px solid #E3E1DC',
               borderRadius: 12,
               maxWidth: 560,
               marginBottom: 24,
+              marginTop: heroBadge ? 20 : 0,
             }}>
               {heroBadge && (
                 <span style={{
-                  position: 'absolute', transform: 'translateY(-38px)',
+                  position: 'absolute', top: -14, left: 24,
                   background: '#C9A24B', color: '#0F1A3C',
                   fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600,
                   letterSpacing: '0.14em', textTransform: 'uppercase',
                   padding: '5px 12px', borderRadius: 6,
+                  boxShadow: '0 4px 10px rgba(201,162,75,0.35)',
                 }}>{heroBadge}</span>
               )}
               <div>
@@ -168,13 +183,89 @@ export default function SalesPageV3({
                 onClick={() => setApercuOpen(true)}
                 data-testid={`sales-${slug}-apercu-btn`}
                 className="ps-btn ps-btn-outline"
-                style={{ marginTop: 28, padding: '12px 24px' }}>
+                style={{ marginTop: 28, marginRight: 12, padding: '12px 24px' }}>
                 <BookOpen style={{ width: 16, height: 16 }} strokeWidth={2} />
                 Lire un extrait gratuit
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => setGiftOpen(true)}
+              data-testid={`sales-${slug}-gift-btn`}
+              className="ps-btn ps-btn-outline"
+              style={{ marginTop: 28, padding: '12px 24px' }}>
+              <Gift style={{ width: 16, height: 16 }} strokeWidth={2} />
+              Offrir cette lecture
+            </button>
+
+            {/* Aperçu 3 pages téléchargeable (livre prestige) */}
+            {previewProduct && (
+              <div style={{ marginTop: 24 }}>
+                <PdfPreviewButton
+                  product={previewProduct}
+                  testid={`sales-${slug}-pdf-preview-btn`}
+                />
+              </div>
+            )}
+            </div>
+
+            {/* Colonne visuelle décorative */}
+            {heroNode && (
+              <div style={{ position: 'relative', textAlign: 'center' }} data-testid={`sales-${slug}-hero-node`}>
+                <div style={{
+                  position: 'absolute',
+                  inset: '-30px',
+                  background: 'radial-gradient(circle at center, rgba(201,162,75,0.16) 0%, transparent 65%)',
+                  filter: 'blur(24px)',
+                  zIndex: 0,
+                }} />
+                <div style={{ position: 'relative', zIndex: 1 }}>{heroNode}</div>
+              </div>
+            )}
+            {!heroNode && heroImage && (
+              <div style={{ position: 'relative', textAlign: 'center' }} data-testid={`sales-${slug}-hero-image`}>
+                <div style={{
+                  position: 'absolute',
+                  inset: '-30px',
+                  background: 'radial-gradient(circle at center, rgba(201,162,75,0.16) 0%, transparent 65%)',
+                  filter: 'blur(24px)',
+                  zIndex: 0,
+                }} />
+                <img
+                  src={heroImage.src}
+                  alt={heroImage.alt || ''}
+                  loading="lazy"
+                  style={{
+                    position: 'relative', zIndex: 1,
+                    maxWidth: 380, width: '100%', height: 'auto',
+                    borderRadius: 16,
+                    boxShadow:
+                      '0 24px 48px rgba(15,26,60,0.16), 0 0 0 1px rgba(201,162,75,0.15)',
+                    display: 'block', margin: '0 auto',
+                  }}
+                />
+                {heroImage.caption && (
+                  <div style={{
+                    position: 'relative', zIndex: 1,
+                    marginTop: 16,
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 12, letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(201,162,75,0.75)',
+                  }}>
+                    {heroImage.caption}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
+
+        <style>{`
+          @media (min-width: 900px) {
+            .ps-sales-hero-grid { grid-template-columns: 1.3fr 1fr !important; gap: 64px !important; }
+          }
+        `}</style>
       </section>
 
       {/* ─── INCLUDES (dark) ─────────────────────────────────── */}
@@ -184,7 +275,7 @@ export default function SalesPageV3({
           <div style={{ maxWidth: 720, marginBottom: 56 }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Ce que ta lecture contient</p>
             <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 16 }}>
-              {pages} pages, <span className="ps-italic">écrites à la main</span> pour toi.
+              {pages} pages, <span className="ps-italic">personnalisées à partir de ton thème</span> natal.
             </h2>
           </div>
           <div style={{
@@ -333,6 +424,15 @@ export default function SalesPageV3({
           onCta={() => { setApercuOpen(false); handleCta(); }}
         />
       )}
+
+      {/* Modal cadeau */}
+      <GiftModal
+        open={giftOpen}
+        onClose={() => setGiftOpen(false)}
+        productSlug={slug}
+        productLabel={apercu?.label || eyebrow?.split(' · ').pop() || 'Lecture'}
+        productPrice={priceMain}
+      />
     </PsPageShell>
   );
 }

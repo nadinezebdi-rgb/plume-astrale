@@ -32,7 +32,7 @@ const SafeEmptyState = ({
   const navigate = useNavigate();
   const openSolena = () => {
     // Redirection vers la page de discussion avec Soléna
-    navigate('/outils/consultation');
+    navigate('/services/consultation');
   };
 
   return (

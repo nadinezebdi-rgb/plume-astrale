@@ -56,18 +56,18 @@ const TransitsToday = () => {
   return (
     <section className="card-mystical mb-8" data-testid="transits-today">
       <div className="flex items-center gap-2 mb-4">
-        <Compass className="w-5 h-5 text-[#D4AF37]" strokeWidth={1.5} />
-        <h2 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
+        <Compass className="w-5 h-5 text-[#C9A24B]" strokeWidth={1.5} />
+        <h2 className="text-xl" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
           Transits du jour sur votre thème
         </h2>
       </div>
-      <p className="text-[#B8B0C8]/70 text-sm mb-5 font-light">
+      <p className="text-[#232323]/70 text-sm mb-5 font-light">
         Comment les planètes actuelles activent votre carte natale, en temps réel.
       </p>
 
 
       {loading && (
-        <div className="flex items-center gap-2 text-[#D4AF37]/70 text-sm" data-testid="transits-loading">
+        <div className="flex items-center gap-2 text-[#C9A24B]/70 text-sm" data-testid="transits-loading">
           <Loader2 className="w-4 h-4 animate-spin" /> Calcul des transits...
         </div>
       )}
@@ -80,17 +80,17 @@ const TransitsToday = () => {
             <ul className="space-y-3 mb-5" data-testid="transits-aspects">
               {aspects.map((a, i) => (
                 <li key={i} className="flex items-start gap-3 text-sm">
-                  <Sparkles className="w-4 h-4 text-[#D4AF37] mt-0.5" strokeWidth={1.5} />
+                  <Sparkles className="w-4 h-4 text-[#C9A24B] mt-0.5" strokeWidth={1.5} />
                   <div>
-                    <span className="text-[#F5EEE0]">
+                    <span className="text-[#0F1A3C]">
                       {(a.point_1 || a.planet_1 || a.first_planet || '')} {(a.aspect_name || a.aspect || a.type || '')} {(a.point_2 || a.planet_2 || a.second_planet || '')}
                     </span>
                     {(a.orb !== undefined || a.orb_value !== undefined) && (
-                      <span className="text-[#B8B0C8]/50 ml-2 text-xs">
+                      <span className="text-[#0F1A3C]/50 ml-2 text-xs">
                         orbe {Number(a.orb || a.orb_value).toFixed(2)}°
                       </span>
                     )}
-                    {a.description && <p className="text-[#B8B0C8]/70 mt-0.5 text-xs">{a.description}</p>}
+                    {a.description && <p className="text-[#232323]/70 mt-0.5 text-xs">{a.description}</p>}
                   </div>
                 </li>
               ))}
@@ -100,20 +100,20 @@ const TransitsToday = () => {
             <ul className="space-y-3 mb-5" data-testid="transits-events">
               {events.slice(0, 6).map((ev, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <Sparkles className="w-4 h-4 text-[#D4AF37] mt-1 flex-shrink-0" strokeWidth={1.5} />
+                  <Sparkles className="w-4 h-4 text-[#C9A24B] mt-1 flex-shrink-0" strokeWidth={1.5} />
                   <div>
                     {ev.title && (
-                      <p className="text-[#F5EEE0] text-sm mb-1" style={{ fontFamily: 'Cinzel, serif', letterSpacing: '0.05em' }}>
+                      <p className="text-[#0F1A3C] text-sm mb-1" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, letterSpacing: '0.05em' }}>
                         {ev.title}
                       </p>
                     )}
                     {ev.interpretation && (
-                      <p className="text-[#B8B0C8]/80 text-sm leading-relaxed" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                      <p className="text-[#232323]/80 text-sm leading-relaxed" style={{ fontFamily: 'Playfair Display, serif' }}>
                         {ev.interpretation}
                       </p>
                     )}
                     {ev.date && (
-                      <p className="text-[#D4AF37]/60 text-xs mt-1" style={{ letterSpacing: '0.15em' }}>
+                      <p className="text-[#C9A24B]/60 text-xs mt-1" style={{ letterSpacing: '0.15em' }}>
                         {ev.date}
                       </p>
                     )}
@@ -123,7 +123,7 @@ const TransitsToday = () => {
             </ul>
           )}
           {reportText && (
-            <p className="text-[#F5EEE0]/90 leading-relaxed" style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '16px', lineHeight: '1.85' }} data-testid="transits-report">
+            <p className="text-[#232323] leading-relaxed" style={{ fontFamily: 'Playfair Display, serif', fontSize: '16px', lineHeight: '1.85' }} data-testid="transits-report">
               {reportText}
             </p>
           )}
@@ -203,13 +203,13 @@ const RevolutionSolaire = () => {
 
 
         <div className="mb-10">
-          <p className="text-[#D4AF37] uppercase tracking-[0.3em] text-sm mb-3 font-light">
+          <p className="text-[#C9A24B] uppercase tracking-[0.3em] text-sm mb-3 font-light">
             Rituel Annuel · Swiss Ephemeris
           </p>
-          <h1 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
+          <h1 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
             Votre Révolution Solaire
           </h1>
-          <p className="text-base text-[#B8B0C8]/70 font-light">
+          <p className="text-base text-[#232323]/70 font-light">
             La carte précise des énergies qui vous accompagnent de votre prochain anniversaire au suivant.
           </p>
         </div>
@@ -227,7 +227,7 @@ const RevolutionSolaire = () => {
             <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
               Découvrez votre prochaine année
             </h2>
-            <p className="text-[#B8B0C8]/60 text-sm mb-5 max-w-md mx-auto">
+            <p className="text-[#232323]/60 text-sm mb-5 max-w-md mx-auto">
               Rapport complet basé sur la position exacte du Soleil au moment de votre prochain anniversaire — 20 crédits.
             </p>
             {error && <p className="text-amber-300 text-sm mb-4" data-testid="revolution-error">{error}</p>}
@@ -256,13 +256,13 @@ const RevolutionSolaire = () => {
           <div className="space-y-6" data-testid="revolution-result">
             <div className="card-mystical">
               <div className="flex items-center gap-3 mb-3">
-                <Sun className="w-6 h-6 text-[#D4AF37]" strokeWidth={1.4} />
-                <h2 className="text-xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
+                <Sun className="w-6 h-6 text-[#C9A24B]" strokeWidth={1.4} />
+                <h2 className="text-xl" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
                   Année {result.return_year} · {result.name}
                 </h2>
               </div>
               {overview && (
-                <p className="text-[#F5EEE0]/90 leading-relaxed" style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '16px', lineHeight: '1.9' }} data-testid="revolution-overview">
+                <p className="text-[#232323] leading-relaxed" style={{ fontFamily: 'Playfair Display, serif', fontSize: '16px', lineHeight: '1.9' }} data-testid="revolution-overview">
                   {overview}
                 </p>
               )}
@@ -271,18 +271,18 @@ const RevolutionSolaire = () => {
 
             {interpretations.length > 0 && (
               <div className="card-mystical" data-testid="revolution-interpretations">
-                <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
-                  <Star className="w-5 h-5 text-[#D4AF37]" strokeWidth={1.5} /> Thèmes majeurs de l&apos;année
+                <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+                  <Star className="w-5 h-5 text-[#C9A24B]" strokeWidth={1.5} /> Thèmes majeurs de l&apos;année
                 </h3>
                 <div className="space-y-5">
                   {interpretations.slice(0, 6).map((it, i) => (
-                    <div key={i} className="pb-4" style={{ borderBottom: i < 5 ? '1px solid rgba(212,175,55,0.15)' : 'none' }}>
+                    <div key={i} className="pb-4" style={{ borderBottom: i < 5 ? '1px solid rgba(201,162,75,0.15)' : 'none' }}>
                       {it.title && (
-                        <p className="text-[#D4AF37] uppercase tracking-widest text-xs mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
+                        <p className="text-[#C9A24B] uppercase tracking-widest text-xs mb-2" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
                           {it.title}
                         </p>
                       )}
-                      <p className="text-sm md:text-base text-[#F5EEE0]/90 leading-relaxed" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                      <p className="text-sm md:text-base text-[#232323] leading-relaxed" style={{ fontFamily: 'Playfair Display, serif' }}>
                         {it.text || it.interpretation || it.description}
                       </p>
                     </div>
@@ -296,10 +296,10 @@ const RevolutionSolaire = () => {
               <div className="grid md:grid-cols-2 gap-4" data-testid="revolution-life-areas">
                 {lifeAreas.slice(0, 12).map((la, i) => (
                   <div key={i} className="card-mystical">
-                    <p className="text-[#D4AF37] uppercase tracking-widest text-xs mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
+                    <p className="text-[#C9A24B] uppercase tracking-widest text-xs mb-2" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
                       {la.theme || (la.area_key || '').replace(/_/g, ' ')}
                     </p>
-                    <p className="text-sm text-[#F5EEE0]/85 leading-relaxed" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                    <p className="text-sm text-[#0F1A3C]/85 leading-relaxed" style={{ fontFamily: 'Playfair Display, serif' }}>
                       {la.prediction || la.text || la.description || ''}
                     </p>
                   </div>
@@ -310,17 +310,17 @@ const RevolutionSolaire = () => {
 
             {srAspects.length > 0 && (
               <div className="card-mystical" data-testid="revolution-sr-aspects">
-                <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
-                  <Compass className="w-5 h-5 text-[#D4AF37]" strokeWidth={1.5} /> Résonances avec votre thème natal
+                <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+                  <Compass className="w-5 h-5 text-[#C9A24B]" strokeWidth={1.5} /> Résonances avec votre thème natal
                 </h3>
                 <ul className="space-y-3">
                   {srAspects.slice(0, 6).map((a, i) => (
                     <li key={i} className="text-sm">
-                      <span className="text-[#F5EEE0]">
+                      <span className="text-[#0F1A3C]">
                         {(a.point_1 || a.planet_1 || '')} {(a.aspect_name || a.aspect || '')} {(a.point_2 || a.planet_2 || '')}
                       </span>
                       {a.interpretation && (
-                        <p className="text-[#B8B0C8]/75 mt-1 text-xs md:text-sm leading-relaxed" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                        <p className="text-[#232323]/75 mt-1 text-xs md:text-sm leading-relaxed" style={{ fontFamily: 'Playfair Display, serif' }}>
                           {a.interpretation}
                         </p>
                       )}

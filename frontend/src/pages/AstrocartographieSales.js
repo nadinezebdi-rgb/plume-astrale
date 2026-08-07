@@ -1,5 +1,6 @@
 import React from 'react';
 import SalesPageV3 from '@/components/SalesPageV3';
+import AstroCartoHero from '@/components/AstroCartoHero';
 import { APERCUS } from '@/config/apercus';
 
 const INCLUDES = [
@@ -25,6 +26,7 @@ export default function AstrocartographieSales() {
   return (
     <SalesPageV3
       slug="astrocarto"
+      previewProduct="astrocartographie"
       path="/astrocartographie"
       seoTitle="Astrocartographie · Où vivre ta meilleure vie · Plume Astrale"
       seoDescription="Un PDF premium de 18 pages qui pose 7 lignes planétaires sur la carte du monde. 3 villes idéales + 3 bonus, avec conseils pratiques. Signé Soléna."
@@ -35,6 +37,7 @@ export default function AstrocartographieSales() {
       priceHint="paiement unique · PDF 18 pages"
       pages={18}
       deliveryTime="5 min"
+      heroNode={<AstroCartoHero />}
       includes={INCLUDES}
       testimonials={TESTIMONIALS}
       apercu={APERCUS.astrocarto}

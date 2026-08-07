@@ -40,7 +40,7 @@ export default function FooterV2() {
               color: 'rgba(247,245,240,0.60)', maxWidth: 260,
             }}>
               L&apos;astrologie qui sait ton prénom.<br />
-              Écrite à la main par Soléna.
+              Personnalisée à partir de ton ciel.
             </p>
           </div>
 
@@ -61,6 +61,8 @@ export default function FooterV2() {
             <FooterLink to="/inscription">Créer un compte</FooterLink>
             <FooterLink to="/connexion">Se connecter</FooterLink>
             <FooterLink to="/mon-compte">Mon espace</FooterLink>
+            <FooterLink to="/livres" testid="footer-v2-livres-link">Nos livres prestige</FooterLink>
+            <FooterLink to="/credits" testid="footer-v2-credits-link">Comprendre les crédits</FooterLink>
             <a href="mailto:contact@plume-astrale.fr" style={footerLinkStyle} data-testid="footer-v2-contact">
               contact@plume-astrale.fr
             </a>

@@ -21,6 +21,7 @@ export default function SynastrieSales() {
   return (
     <SalesPageV3
       slug="synastry"
+      previewProduct="synastrie"
       path="/synastrie"
       seoTitle="Astrologie relationnelle · Vos deux ciels croisés · Plume Astrale"
       seoDescription="Un PDF premium de 25 pages qui croise vos deux thèmes natals. Attraction, tensions créatives, karma relationnel, rituel du couple. Signé Soléna."
@@ -31,6 +32,11 @@ export default function SynastrieSales() {
       priceHint="paiement unique · PDF 25 pages · pour un couple"
       pages={25}
       deliveryTime="10 min"
+      heroImage={{
+        src: `${process.env.REACT_APP_BACKEND_URL}/api/assets/library/tarot/06_les_amoureux_1080.png`,
+        alt: 'Les Amoureux · arcane du lien',
+        caption: 'Les Amoureux · Arcane VI',
+      }}
       includes={INCLUDES}
       testimonials={TESTIMONIALS}
       apercu={APERCUS.synastry}

@@ -21,6 +21,7 @@ export default function NumerologiePDF() {
   return (
     <SalesPageV3
       slug="numerologie"
+      previewProduct="numerologie"
       path="/numerologie-pdf"
       seoTitle="Numérologie sacrée · Chemin de vie décodé · Plume Astrale"
       seoDescription="Un PDF premium de 16 pages qui décode ton chemin de vie, ton année personnelle et tes 3 nombres d'expression. Signé Soléna."
@@ -31,6 +32,11 @@ export default function NumerologiePDF() {
       priceHint="paiement unique · PDF 16 pages"
       pages={16}
       deliveryTime="5 min"
+      heroImage={{
+        src: `${process.env.REACT_APP_BACKEND_URL}/api/assets/library/tarot/01_le_bateleur_512.png`,
+        alt: 'Le Bateleur, arcane des nombres et de la magie',
+        caption: 'Le Bateleur · Arcane I',
+      }}
       includes={INCLUDES}
       testimonials={TESTIMONIALS}
       apercu={APERCUS.numerologie}

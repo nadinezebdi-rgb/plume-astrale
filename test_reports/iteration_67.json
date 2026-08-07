@@ -1,0 +1,41 @@
+{
+  "summary": "Frontend testing of P0 Credits explanation strategy (Plume Astrale). Tested /credits public page, footer link, CreditsInfoModal wiring on ChatIA + MonCompte (banner + Crédits tab), Escape/close, stopPropagation, and V3 regression on Home, /theme-natal-luxe, /kabbale + GiftModal. All primary flows work. Only issue found: SEO title on /credits does not update (react-helmet-async not applying pageTitle).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "CreditsInfo (SEO)", "issue": "Document title remains 'Plume Astrale | Guidance Symbolique Personnalisée — Astrologie & Tarot' instead of 'Comment fonctionnent les crédits — Plume Astrale'. Helmet title is set in /app/frontend/src/pages/CreditsInfo.js via <SEO title=...> but is not reflected in document.title after 3s wait. Likely a HelmetProvider/context issue or a global title override in the app. Impact: SEO/social share for /credits.", "selector": "document.title", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Global", "issues": ["React console warning: 'a style property during rerender...' related to borderBottom shorthand mixed with borderBottomColor. Cosmetic/dev-only warning, not user-facing."]}
+    ]
+  },
+  "verified_flows": [
+    "/credits loads with Playfair hero 'Un crédit, une intention posée à Soléna.'",
+    "3 USAGE cards (10/30/60 crédits) present",
+    "4 PACKS (Comète 7,99€, Nébuleuse 17,99€ [BEST], Constellation 34,99€, Voie Lactée 59,99€) present",
+    "3 promises rendered with data-testid=credits-promise-* (Sans expiration / engagement / mauvaise surprise)",
+    "credits-info-cta-buy Link href = /acheter-credits (redirects to /connexion when anonymous, expected)",
+    "credits-info-cta-signup Link href = /inscription, navigates correctly",
+    "footer-v2-credits-link navigates to /credits from home",
+    "chat-credits-help opens credits-info-overlay + credits-info-modal; Escape closes; credits-info-close closes",
+    "mon-compte-credits-help opens modal WITHOUT navigating to /acheter-credits (stopPropagation OK)",
+    "mon-compte-credits-tab-help (in Crédits tab) opens modal",
+    "V3 regression OK on /, /theme-natal-luxe, /kabbale (nav + footer render, no page errors)",
+    "GiftModal opens on /theme-natal-luxe 'Offrir'"
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "Fix /credits SEO title — verify <HelmetProvider> is wrapping the app root and no other component overrides document.title. Check if react-helmet-async is properly hydrated on public pages that use PsPageShell + SEO."
+  ],
+  "critical_code_review_comments": [
+    "SEO title mismatch on /credits (see action items)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "95%"},
+  "test_credentials": "test@plume-astrale.fr / TestPlume2026! (used successfully)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "P0 credits UI wiring (modal + /credits page + footer link + '?' buttons on ChatIA and MonCompte) is fully functional. Only lingering issue: SEO title on /credits page is not applied by react-helmet-async — verify HelmetProvider setup or global title overrides."
+}

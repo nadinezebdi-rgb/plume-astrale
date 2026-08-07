@@ -892,7 +892,54 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
 @media (max-width: 767px) {
   .ps-section { padding: var(--ps-space-6) var(--ps-space-3); }
 }
-.ps-section-light { background: var(--ps-cream); color: var(--ps-anthracite); }
+.ps-section-light {
+  background: var(--ps-cream);
+  color: var(--ps-anthracite);
+}
+/* Texture papier vibrante + motif étoilé doré subtil sur les fonds clairs */
+.ps-section-light::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    /* halo doré chaleureux */
+    radial-gradient(ellipse 55% 40% at 88% 10%, rgba(201,162,75,0.18), transparent 55%),
+    radial-gradient(ellipse 45% 35% at 8% 90%, rgba(15,26,60,0.09), transparent 60%),
+    /* motif d'étoiles dorées miniatures (semis discret) */
+    radial-gradient(circle 1.5px at 40px 60px, rgba(201,162,75,0.35) 0%, transparent 100%),
+    radial-gradient(circle 1px   at 120px 20px, rgba(201,162,75,0.25) 0%, transparent 100%),
+    radial-gradient(circle 1.5px at 200px 140px, rgba(201,162,75,0.30) 0%, transparent 100%),
+    radial-gradient(circle 1px   at 80px 180px, rgba(15,26,60,0.20)   0%, transparent 100%),
+    radial-gradient(circle 1.2px at 260px 40px, rgba(201,162,75,0.28) 0%, transparent 100%),
+    radial-gradient(circle 1px   at 30px 220px, rgba(201,162,75,0.22) 0%, transparent 100%),
+    radial-gradient(circle 1.5px at 180px 260px, rgba(15,26,60,0.18)   0%, transparent 100%),
+    radial-gradient(circle 1px   at 250px 200px, rgba(201,162,75,0.24) 0%, transparent 100%),
+    /* grain papier feTurbulence — opacity ×2.5 vs. iter 79 */
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.06  0 0 0 0 0.10  0 0 0 0 0.15  0 0 0 0.20 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:
+    auto, auto,
+    300px 300px, 300px 300px, 300px 300px, 300px 300px,
+    300px 300px, 300px 300px, 300px 300px, 300px 300px,
+    240px 240px;
+  background-repeat:
+    no-repeat, no-repeat,
+    repeat, repeat, repeat, repeat,
+    repeat, repeat, repeat, repeat,
+    repeat;
+  pointer-events: none;
+  z-index: 0;
+}
+/* Décor doré léger dans les coins des sections claires */
+.ps-section-light::after {
+  content: '';
+  position: absolute;
+  top: 20px; right: 24px;
+  width: 60px; height: 60px;
+  background:
+    radial-gradient(circle at center, rgba(201,162,75,0.10) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(6px);
+}
 .ps-section-dark  { background: var(--ps-navy); color: var(--ps-cream); }
 .ps-section-dark::before {
   content: '';
@@ -1020,11 +1067,19 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
   border: 1px solid var(--ps-mist);
   border-radius: var(--ps-radius);
   padding: var(--ps-space-4);
-  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  position: relative;
+  z-index: 2;
+  /* Card légèrement surélevée pour pop sur le fond texturé */
+  box-shadow:
+    0 1px 2px rgba(15,26,60,0.04),
+    0 8px 24px rgba(15,26,60,0.06);
+  transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
 }
 .ps-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(15,26,60,0.08);
+  transform: translateY(-4px);
+  box-shadow:
+    0 2px 4px rgba(15,26,60,0.06),
+    0 20px 40px rgba(15,26,60,0.14);
   border-color: var(--ps-gold);
 }
 .ps-section-dark .ps-card {
@@ -1076,6 +1131,61 @@ body:has(.ps-home) { padding-top: 0 !important; }
 body:has(.ps-home)::before,
 body:has(.ps-home)::after { display: none !important; }
 .ps-home { position: relative; z-index: 1; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * V3 LIGHT SHELL — surcharges scopées via [data-shell="light"]
+ * Bascule automatique des composants dark hérités (card-mystical,
+ * btn-mystical, plume-glass, card-editorial) vers la palette
+ * crème/navy/or de la charte V3.
+ * ═══════════════════════════════════════════════════════════════ */
+[data-shell="light"] .card-mystical {
+  background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #E3E1DC !important;
+  box-shadow: 0 8px 24px -12px rgba(15,26,60,0.08);
+}
+[data-shell="light"] .card-mystical:hover {
+  border-color: rgba(201,162,75,0.55) !important;
+  animation: none !important;
+  box-shadow: 0 12px 28px -12px rgba(15,26,60,0.14);
+}
+[data-shell="light"] .btn-mystical {
+  color: #0F1A3C;
+  background: transparent;
+  border: 1px solid rgba(201,162,75,0.55);
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+[data-shell="light"] .btn-mystical:hover:not(:disabled) {
+  background: rgba(201,162,75,0.10);
+  border-color: #C9A24B;
+}
+[data-shell="light"] .btn-mystical-filled {
+  color: #0F1A3C;
+  background: #C9A24B;
+  border: 1px solid #C9A24B;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  box-shadow: 0 8px 22px -10px rgba(201,162,75,0.55);
+  animation: none;
+}
+[data-shell="light"] .btn-mystical-filled:hover:not(:disabled) {
+  background: #B48F3E;
+  box-shadow: 0 12px 28px -10px rgba(201,162,75,0.70);
+  transform: translateY(-1px);
+}
+[data-shell="light"] .plume-glass,
+[data-shell="light"] .plume-glass-featured {
+  background: #FFFFFF !important;
+  border: 1px solid #E3E1DC !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 12px 32px -18px rgba(15,26,60,0.10) !important;
+}
 /* Etoiles filantes globales */
 .plume-shooting-layer {
   position: fixed;

@@ -188,9 +188,9 @@ export default function NavbarV2() {
                 </Link>
               </div>
 
-              {/* Colonne Outils interactifs */}
+              {/* Colonne Services complémentaires */}
               <div>
-                <MegaHeading>Outils interactifs</MegaHeading>
+                <MegaHeading>Services complémentaires</MegaHeading>
                 {OUTILS.map((o) => (
                   <MegaLink key={o.key} to={o.to} testid={`mega-outil-${o.key}`}
                     title={o.title} tagline={o.tagline} compact />
@@ -233,7 +233,7 @@ export default function NavbarV2() {
                           <span style={{ color: '#C9A24B', fontSize: 13, fontWeight: 500 }}>{it.price}</span>
                         </Link>
                       ))}
-                      <div style={{ ...mobileSubHeading, marginTop: 12 }}>Outils</div>
+                      <div style={{ ...mobileSubHeading, marginTop: 12 }}>Services complémentaires</div>
                       {OUTILS.map((it) => (
                         <Link key={it.key} to={it.to} data-testid={`mob-outil-${it.key}`} style={mobileSubLink}>
                           {it.title}

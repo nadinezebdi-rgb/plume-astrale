@@ -47,8 +47,8 @@ export default function NosLivres() {
               Sept lectures, <span className="ps-italic">une seule signature.</span>
             </h1>
             <p className="ps-body" style={{ color: '#232323' }}>
-              Chaque lecture est un PDF premium à télécharger, écrit à la main par Soléna
-              spécifiquement pour toi. Aucune vente de livre physique — l&apos;objet est le texte,
+              Chaque lecture est un PDF premium à télécharger, personnalisé à partir de ton thème natal
+              (date, heure et lieu de naissance). Aucune vente de livre physique — l&apos;objet est le texte,
               soigné et unique.
             </p>
           </div>

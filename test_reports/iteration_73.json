@@ -1,0 +1,25 @@
+{
+  "summary": "Iteration 73 — validation of 2 tasks: (1) /api/admin/pdf-test/{product} now protected by require_admin (Supabase JWT), with frontend gate on /admin/pdf-test (redirect anonymous, 'Accès réservé' non-admin); (2) natal_pdf_v2.py refactor with build_with_toc 2-pass rendering. All 14 backend pytest cases pass (auth gate on 6 products, bad-token → 401, public /api/pdf-preview/{kabbale,astrocartographie} remain 200, regression on /credits /choix /astrocartographie /livres /outils/tarot). All 3 frontend Playwright flows pass: anon → redirect /connexion?redirect=/admin/pdf-test, test user (non-admin) → admin-pdf-test-denied visible with 'Accès réservé aux administrateurs', admin@ → full dashboard with 6 cards + firstname/partner inputs. natal_pdf_v2 direct fixture render produces 8.3 MB PDF (>500 KB target) without import/build errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_admin_pdf_security.py",
+    "/app/test_reports/pytest/iteration73.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "require_admin gate is properly wired via Depends(require_admin) in pdf_test_admin.py — returns 403 on missing/invalid Bearer token (verified curl).",
+    "Frontend /admin/pdf-test triple gate order is correct: authLoading spinner → !user redirect → !isAdmin denied → dashboard. Uses useAuth().session.access_token for Bearer.",
+    "natal_pdf_v2._build_story is a closure inside build_natal_pdf_v2 — the 2-pass build_with_toc invokes it twice (dry-run captures chapter_marker page numbers via page_map, real pass injects into TOC entries). Clean and idiomatic.",
+    "Minor : AdminPdfTest.js line 26 isAdmin fallback uses email 'admin@plume-astrale.fr' as heuristic — acceptable safety-net but the real source of truth is profile.is_admin from Supabase.",
+    "No _id ObjectId serialization risk — only Supabase postgrest client used."
+  ],
+  "updated_files": ["/app/backend/tests/test_admin_pdf_security.py"],
+  "success_rate": {"backend": "100% (14/14)", "frontend": "100% (3/3)"},
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 (is_admin=true) ; test@plume-astrale.fr / TestPlume2026! (is_admin=false)",
+  "seed_data_creation": "None — fixtures generated on-the-fly by _fixture() in pdf_test_admin.py",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Admin PDF test dashboard is now fully secured. Backend endpoint returns 403 without valid admin JWT (all 6 products). Frontend triple-gates (loading/anon/non-admin). natal_pdf_v2 refactored to 2-pass build_with_toc works — TOC entries carry {page: <int>} pointing to real chapter_marker page numbers. To retest natal PDF TOC pagination visually, admin user must open /admin/pdf-test → click 'Ouvrir' on Thème Natal card; the note dispatched via fetch(Bearer) opens PDF blob in new tab. If book_data (GPT enrichment) is None, the TOC block is skipped (bd=False path), so full 2-pass numbering only shows when book_data is provided.",
+  "rca of the issue": "N/A — no issues"
+}

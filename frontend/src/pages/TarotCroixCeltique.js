@@ -28,7 +28,7 @@ const TarotCroixCeltique = () => {
       return;
     }
     if (!isAuthenticated) {
-      navigate('/connexion?redirect=/outils/tarot/croix-celtique');
+      navigate('/connexion?redirect=/services/tarot/croix-celtique');
       return;
     }
     setError('');
