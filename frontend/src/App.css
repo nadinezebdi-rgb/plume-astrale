@@ -269,6 +269,7 @@
   background: #FFFFFF;
   border: 1px solid #E3E1DC;
   backdrop-filter: none;
+}
 /* ── Effet 3D Révolution Solaire (cartes + bannière) ── */
 .rs-3d-scene { perspective: 1200px; }
 
