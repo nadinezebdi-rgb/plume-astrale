@@ -148,6 +148,10 @@ def _cover(story, styles, first_name: str, birth_date: str, dominant_seph: str, 
     else:
         _lib_image(story, libimg.sign_from_date(birth_iso, size=2048), width_cm=6.5)
     story.append(Spacer(1, 0.5*cm))
+    # ═══ Nom du destinataire en dorure gaufrée (édition personnelle) ═══
+    from services.pdf_cover_personalization import embossed_name as _embossed
+    _embossed(story, first_name, size='large')
+    story.append(Spacer(1, 0.5*cm))
     story.append(_p("TON ARBRE DE VIE", styles['title']))
     story.append(Spacer(1, 0.2*cm))
     story.append(_p("<i>KABBALISTIQUE</i>", styles['subtitle']))

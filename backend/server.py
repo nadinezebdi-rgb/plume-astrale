@@ -2407,7 +2407,7 @@ if ASSETS_DIR.exists():
     # astrocartographie, pack_karmique, rencontres_ultime) passent par
     # /api/pdf/download avec un token opaque.
     # `synastrie_extracts` reste public (lead magnet, UUID de 48 bits agit comme token).
-    for _pub in ('library', 'fonts', 'synastrie_pdf', 'synastrie_extracts'):
+    for _pub in ('library', 'fonts', 'synastrie_pdf', 'synastrie_extracts', 'pdf_covers'):
         _p = ASSETS_DIR / _pub
         if _p.exists():
             app.mount(f'/api/assets/{_pub}', StaticFiles(directory=str(_p)), name=f'assets_{_pub}')

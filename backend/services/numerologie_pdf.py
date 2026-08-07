@@ -223,8 +223,14 @@ class NumerologiePDFGenerator:
         elements.extend([
             Paragraph('✦ TON CODE NUMÉROLOGIQUE ✦', self.title_style),
             Spacer(0, 0.5 * cm),
-            Paragraph(f'Destinée, Cycles & Vibrations de {name}', self.subtitle_style),
-            Spacer(0, 1.5 * cm),
+            Paragraph(f'Destinée, Cycles & Vibrations', self.subtitle_style),
+            Spacer(0, 0.9 * cm),
+        ])
+        # ═══ Nom du destinataire en dorure gaufrée ═══
+        from services.pdf_cover_personalization import embossed_name as _embossed
+        _embossed(elements, name, size='large')
+        elements.extend([
+            Spacer(0, 0.6 * cm),
             Paragraph(
                 'Chaque nombre vibre avec une essence cosmique.<br/>Ta date de naissance révèle tes cycles karmiques.',
                 self.body_style,

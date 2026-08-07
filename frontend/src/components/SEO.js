@@ -69,6 +69,11 @@ const SEO_DATA = {
     description: 'Un cr\u00e9dit, une intention pos\u00e9e \u00e0 Sol\u00e9na. D\u00e9couvre comment nos cr\u00e9dits te donnent acc\u00e8s aux consultations, tirages et rapports premium de Plume Astrale. Sans expiration, sans engagement.',
     keywords: 'cr\u00e9dits plume astrale, tarifs consultation astrologique, prix tarot en ligne, packs cr\u00e9dits astrologie, abonnement libre astrologie',
   },
+  '/livres': {
+    title: 'Nos livres prestige \u00e0 offrir \u2014 Plume Astrale',
+    description: 'Six rapports astrologiques imprim\u00e9s fa\u00e7on livre reli\u00e9 : Astrocartographie, Kabbale, Karma & Destin, Num\u00e9rologie, Th\u00e8me Natal, Synastrie. Couverture illustr\u00e9e, sommaire romain, chapitres num\u00e9rot\u00e9s. Aper\u00e7u gratuit 3 pages.',
+    keywords: 'livre astrologie personnalis\u00e9, cadeau astrologique No\u00ebl, rapport astral imprim\u00e9, livre th\u00e8me natal, livre kabbale, livre karma',
+  },
 };
 
 const SEO = ({ path }) => {

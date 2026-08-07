@@ -197,7 +197,11 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
 
     story.append(Paragraph(prenom, styles['cover_title']))
     story.append(Paragraph(subtitle, styles['cover_sub']))
-    story.append(Spacer(1, 1.5 * cm))
+    story.append(Spacer(1, 0.6 * cm))
+    # ═══ Nom du destinataire en dorure gaufrée (édition personnelle) ═══
+    from services.pdf_cover_personalization import embossed_name as _embossed
+    _embossed(story, prenom, size='medium')
+    story.append(Spacer(1, 0.9 * cm))
     story.append(Paragraph(datetime.now().strftime('%d %B %Y').upper(),
                            ParagraphStyle('date_cover', fontName=font('Cinzel', 'Helvetica'),
                                            fontSize=9, textColor=MUTED,

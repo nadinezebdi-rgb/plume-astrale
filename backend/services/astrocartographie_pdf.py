@@ -156,13 +156,16 @@ def _cover(story, styles, first_name: str, birth_fr: str):
     story.append(_p("ASTROCARTOGRAPHIE", styles['title']))
     story.append(Spacer(1, 0.3 * cm))
     story.append(_p("<i>Où vivre ta meilleure vie</i>", styles['subtitle']))
-    story.append(Spacer(1, 0.6 * cm))
+    story.append(Spacer(1, 0.4 * cm))
+    # ═══ Nom du destinataire en dorure gaufrée ═══
+    from services.pdf_cover_personalization import embossed_name as _embossed
+    _embossed(story, first_name, size='large')
+    story.append(Spacer(1, 0.4 * cm))
     _ornament(story, 'diamond')
-    story.append(Spacer(1, 2.4 * cm))
-    story.append(_p(f"Établi pour <b>{first_name}</b>", styles['italic']))
+    story.append(Spacer(1, 1.8 * cm))
     if birth_fr:
         story.append(_p(f"Né(e) le {birth_fr}", styles['meta']))
-    story.append(Spacer(1, 2.4 * cm))
+    story.append(Spacer(1, 2.0 * cm))
     story.append(_p(
         "« Le ciel ne t'a pas donné une seule maison. Il t'en a offert plusieurs — "
         "il te reste à découvrir laquelle t'attend. »",
@@ -468,67 +471,88 @@ def generate_astrocartographie_pdf(
             birth_fr = birth_date_iso
 
     buffer = BytesIO()
-    doc = SimpleDocTemplate(
-        buffer, pagesize=A4,
-        leftMargin=2.2 * cm, rightMargin=2.2 * cm,
-        topMargin=2 * cm, bottomMargin=2 * cm,
-        title="Astrocartographie — Où vivre ta meilleure vie",
-        author="Soléna · Plume Astrale",
-    )
     styles = _make_styles()
-    story: list = []
 
-    _cover(story, styles, first_name or "Voyageur", birth_fr)
-
-    # ─── Sommaire éditorial ───
+    # ─── Story builder appelé en 2 passes (pour numérotation TOC réelle) ───
+    from services.pdf_multipass_toc import build_with_toc, chapter_marker
     from services.pdf_prestige import toc_page, chapter_opener as _chapter_opener, simple_world_map_svg
-    toc = [
-        {'roman': 'I',   'title': "L'astrocartographie",              'page': 4},
-        {'roman': 'II',  'title': "Ta carte du monde",                 'page': 6},
-        {'roman': 'III', 'title': "Tes lignes planétaires en détail", 'page': 8},
-        {'roman': 'IV',  'title': "Tes trois villes choisies",         'page': None},
-        {'roman': 'V',   'title': "Les destinations de Soléna",        'page': None},
-        {'roman': 'VI',  'title': "Synthèse",                          'page': None},
-        {'roman': 'VII', 'title': "Rituel d'ancrage",                  'page': None},
-    ]
-    toc_page(story, styles, toc)
 
-    _chapter_opener(story, styles, 'I', "L'astrocartographie", "Comprendre ce que ta carte révèle")
-    _intro(story, styles)
+    def _build_story(page_map):
+        story: list = []
 
-    _chapter_opener(story, styles, 'II', "Ta carte du monde", "Sept lignes tracées sur la Terre")
-    # Fallback : si l'API n'a pas renvoyé de SVG, on injecte la carte de secours
-    effective_map = map_svg
-    if not effective_map:
-        city_names = [c.get('city', '') for c in (chosen_cities or [])[:3]]
-        effective_map = simple_world_map_svg(city_names=city_names)
-    _world_map(story, styles, effective_map)
+        _cover(story, styles, first_name or "Voyageur", birth_fr)
 
-    # Section détaillée : chaque ligne planétaire avec interprétation approfondie
-    if lines_data:
-        from services.astrocartographie_lines_data import dedupe_lines
-        _chapter_opener(story, styles, 'III', "Tes lignes planétaires en détail",
-                        "L'interprétation de chacune de tes lignes")
-        _planetary_lines_pages(story, styles, dedupe_lines(lines_data))
+        # ─── Sommaire éditorial avec vraies pages (2e passe) ou None (1re) ───
+        def _pg(cid, fallback=None):
+            if page_map is None:
+                return fallback
+            return page_map.get(cid, fallback)
 
-    if chosen_cities:
-        _chapter_opener(story, styles, 'IV', "Tes trois villes choisies",
-                        "Les lieux que tu as sélectionnés")
-    for c in chosen_cities:
-        _city_pages(story, styles, c, c.get('enriched') or {}, is_bonus=False)
+        toc = [
+            {'roman': 'I',   'title': "L'astrocartographie",              'page': _pg('chap1')},
+            {'roman': 'II',  'title': "Ta carte du monde",                 'page': _pg('chap2')},
+            {'roman': 'III', 'title': "Tes lignes planétaires en détail", 'page': _pg('chap3')},
+            {'roman': 'IV',  'title': "Tes trois villes choisies",         'page': _pg('chap4')},
+            {'roman': 'V',   'title': "Les destinations de Soléna",        'page': _pg('chap5')},
+            {'roman': 'VI',  'title': "Synthèse",                          'page': _pg('chap6')},
+            {'roman': 'VII', 'title': "Rituel d'ancrage",                  'page': _pg('chap7')},
+        ]
+        toc_page(story, styles, toc)
 
-    if bonus_cities:
-        _chapter_opener(story, styles, 'V', "Les destinations de Soléna",
-                        "Deux lieux inattendus, choisis pour toi")
-    for b in bonus_cities:
-        _city_pages(story, styles, b, b.get('enriched') or {}, is_bonus=True)
+        story.append(chapter_marker('chap1'))
+        _chapter_opener(story, styles, 'I', "L'astrocartographie", "Comprendre ce que ta carte révèle")
+        _intro(story, styles)
 
-    _chapter_opener(story, styles, 'VI', "Synthèse", "Le message de Soléna")
-    _synthesis_page(story, styles, first_name, synthesis_text or "")
+        story.append(chapter_marker('chap2'))
+        _chapter_opener(story, styles, 'II', "Ta carte du monde", "Sept lignes tracées sur la Terre")
+        # Fallback : si l'API n'a pas renvoyé de SVG, on injecte la carte de secours
+        effective_map = map_svg
+        if not effective_map:
+            city_names = [c.get('city', '') for c in (chosen_cities or [])[:3]]
+            effective_map = simple_world_map_svg(city_names=city_names)
+        _world_map(story, styles, effective_map)
 
-    _chapter_opener(story, styles, 'VII', "Rituel d'ancrage", "Avant de partir")
-    _rituel_signature(story, styles, first_name)
+        if lines_data:
+            from services.astrocartographie_lines_data import dedupe_lines
+            story.append(chapter_marker('chap3'))
+            _chapter_opener(story, styles, 'III', "Tes lignes planétaires en détail",
+                            "L'interprétation de chacune de tes lignes")
+            _planetary_lines_pages(story, styles, dedupe_lines(lines_data))
 
-    doc.build(story, onFirstPage=_bg_canvas, onLaterPages=_bg_canvas)
-    buffer.seek(0)
-    return buffer.getvalue()
+        if chosen_cities:
+            story.append(chapter_marker('chap4'))
+            _chapter_opener(story, styles, 'IV', "Tes trois villes choisies",
+                            "Les lieux que tu as sélectionnés")
+        for c in chosen_cities:
+            _city_pages(story, styles, c, c.get('enriched') or {}, is_bonus=False)
+
+        if bonus_cities:
+            story.append(chapter_marker('chap5'))
+            _chapter_opener(story, styles, 'V', "Les destinations de Soléna",
+                            "Deux lieux inattendus, choisis pour toi")
+        for b in bonus_cities:
+            _city_pages(story, styles, b, b.get('enriched') or {}, is_bonus=True)
+
+        story.append(chapter_marker('chap6'))
+        _chapter_opener(story, styles, 'VI', "Synthèse", "Le message de Soléna")
+        _synthesis_page(story, styles, first_name, synthesis_text or "")
+
+        story.append(chapter_marker('chap7'))
+        _chapter_opener(story, styles, 'VII', "Rituel d'ancrage", "Avant de partir")
+        _rituel_signature(story, styles, first_name)
+
+        return story
+
+    pdf_bytes = build_with_toc(
+        _build_story,
+        doc_kwargs={
+            'pagesize': A4,
+            'leftMargin': 2.2 * cm, 'rightMargin': 2.2 * cm,
+            'topMargin': 2 * cm, 'bottomMargin': 2 * cm,
+            'title': "Astrocartographie — Où vivre ta meilleure vie",
+            'author': "Soléna · Plume Astrale",
+        },
+        on_first_page=_bg_canvas,
+        on_later_pages=_bg_canvas,
+    )
+    return pdf_bytes

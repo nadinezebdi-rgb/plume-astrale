@@ -181,7 +181,13 @@ class KarmaDestinPDFGenerator:
             Paragraph('✦ TON ANALYSE KARMIQUE ✦', self.title_style),
             Spacer(0, 0.5 * cm),
             Paragraph('Destinée, Leçons & Guérison Spirituelle', self.subtitle_style),
-            Spacer(0, 1.5 * cm),
+            Spacer(0, 0.9 * cm),
+        ])
+        # ═══ Nom du destinataire en dorure gaufrée ═══
+        from services.pdf_cover_personalization import embossed_name as _embossed
+        _embossed(elements, name, size='large')
+        elements.extend([
+            Spacer(0, 0.6 * cm),
             Paragraph(
                 'Au-delà du présent, ton karma te parle.<br/>'
                 'Découvre les leçons que ton âme est venue apprendre.',
