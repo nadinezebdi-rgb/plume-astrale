@@ -68,6 +68,7 @@ import Bibliotheque from "./pages/Bibliotheque";
 import Desabonnement from "./pages/Desabonnement";
 import AuthenticatedHome from "./pages/AuthenticatedHome";
 import CTATestPage from "./pages/CTATestPage";
+import CreditsInfo from "./pages/CreditsInfo";
 import CookieConsent from "./components/CookieConsent";
 
 // ─── Advanced PDF Products ────────────────────────────
@@ -138,6 +139,7 @@ function App() {
           <Route path="/rencontres-astrales" element={<RencontresAstrales />} />
           <Route path="/rencontres-astrales/succes" element={<RencontresUltimeSucces />} />
           <Route path="/test/cta" element={<CTATestPage />} />
+          <Route path="/credits" element={<CreditsInfo />} />
           <Route path="/numerologie-pdf" element={<NumerologiePDF />} />
           <Route path="/numerologie-pdf/attente" element={<NumerologieWaiting />} />
           <Route path="/karma-destin-pdf" element={<KarmaDestinPDF />} />

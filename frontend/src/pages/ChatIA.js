@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Send, Loader2, Sparkles, Trash2, Coins, LogIn, ShoppingBag } from 'lucide-react';
+import { Send, Loader2, Sparkles, Trash2, Coins, LogIn, ShoppingBag, HelpCircle } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import NatalEssentials from '@/components/NatalEssentials';
 import CreditsPaywallModal from '@/components/CreditsPaywallModal';
+import CreditsInfoModal from '@/components/CreditsInfoModal';
 import SolenaThinkingBubble from '@/components/SolenaThinkingBubble';
 import { useAuth } from '@/context/AuthContext';
 
@@ -96,6 +97,7 @@ const ChatIA = () => {
   const [freeUsed, setFreeUsed] = useState(0);
   const [sessionId, setSessionId] = useState(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
+  const [creditsInfoOpen, setCreditsInfoOpen] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -527,6 +529,10 @@ const ChatIA = () => {
         onClose={() => setPaywallOpen(false)}
         context="chat_out"
       />
+      <CreditsInfoModal
+        open={creditsInfoOpen}
+        onClose={() => setCreditsInfoOpen(false)}
+      />
       <SEO title="Discussion avec Soléna — Plume Astrale" description="Pose toutes tes questions à Soléna en français. Une guidance personnalisée, alimentée par ta carte du ciel réelle." />
       <div style={{
         minHeight: '100vh',
@@ -569,6 +575,24 @@ const ChatIA = () => {
           }} data-testid="chat-quota-badge">
             <Coins style={{ width: 13, height: 13 }} />
             <span>{creditBalance ?? 0} credits — {messagesRemaining} message{messagesRemaining > 1 ? 's' : ''} restant{messagesRemaining > 1 ? 's' : ''} ({COST_PER_MESSAGE} cr/msg)</span>
+            <button
+              type="button"
+              onClick={() => setCreditsInfoOpen(true)}
+              data-testid="chat-credits-help"
+              aria-label="Comprendre les crédits"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                marginLeft: 2,
+                display: 'inline-flex',
+                alignItems: 'center',
+                color: 'rgba(212,175,55,0.75)',
+              }}
+            >
+              <HelpCircle style={{ width: 14, height: 14 }} strokeWidth={1.8} />
+            </button>
           </div>
         </div>
 
