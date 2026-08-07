@@ -28,6 +28,13 @@ Massive UX/UI refactoring for the premium astrology SaaS "Plume Astrale" toward 
   - `TirageTarot`, `ChatIA`, `Horoscope`, `Choix`, `MonCompte` migrés en cream V3 + Playfair Display
   - Scoped overrides `[data-shell="light"]` dans `index.css` pour `card-mystical`, `btn-mystical`, `plume-glass`
   - `BundleCard` refondu palette V3 (navy/or sur blanc)
+- **[2026-02-08] Cover personnalisée + TOC double-passe + landing /livres** (iteration 71 — 100% backend 12/12 + frontend):
+  - `services/pdf_cover_personalization.py` : helper `embossed_name` (dorure gaufrée façon livre imprimé — filet doré + "ÉDITION PERSONNELLE" + prénom letter-spacé en or vif) intégré dans Kabbale, Karma Destin, Numérologie, Astrocarto, Thème Natal
+  - `services/pdf_multipass_toc.py` : `ChapterMarker` (flowable invisible) + `build_with_toc()` fonction 2-passes (dry-run tracking + rebuild) → Astrocarto affiche maintenant les vrais numéros de page dans le sommaire
+  - Nouvelle page `/livres` (`LivresLanding.js`) : landing V3 des 6 rapports prestige (Astrocarto, Kabbale, Karma Destin, Numérologie, Thème Natal, Synastrie) avec cover thumbnails, prix, bouton "Aperçu 3 pages gratuit" + CTA "Découvrir" → page produit
+  - Mount `/api/assets/pdf_covers/*` en StaticFiles pour servir les 6 PNG covers au frontend
+  - Nouveau footer link "Nos livres prestige" → `/livres` (aux côtés de "Comprendre les crédits")
+
 - **[2026-02-08] TOC + illustrations hero + PDF preview** (iteration 70 — backend 100% 7/7, frontend 100% 6/6):
   - Nouveau `services/pdf_hero_illustrations.py` : 5 illustrations SVG signature (tree_of_life, karmic_nodes, entwined_hearts, natal_wheel, life_path)
   - Nouveau `services/pdf_book_intro.py` : `svg_to_png` + `render_hero_image` helpers
