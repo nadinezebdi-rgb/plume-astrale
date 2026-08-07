@@ -28,7 +28,14 @@ Massive UX/UI refactoring for the premium astrology SaaS "Plume Astrale" toward 
   - `TirageTarot`, `ChatIA`, `Horoscope`, `Choix`, `MonCompte` migrés en cream V3 + Playfair Display
   - Scoped overrides `[data-shell="light"]` dans `index.css` pour `card-mystical`, `btn-mystical`, `plume-glass`
   - `BundleCard` refondu palette V3 (navy/or sur blanc)
-- **[2026-02-08] Double-passe généralisé + Synastrie personnalisée + admin PDF test** (iteration 72 — 100% backend + frontend, 15/15 tests):
+- **[2026-02-08] Admin PDF test sécurisé + Thème Natal double-passe** (iteration 73 — 100% backend 14/14 + frontend 3/3):
+  - `/api/admin/pdf-test/{product}` protégé par `Depends(require_admin)` (Supabase JWT + profiles.is_admin) → 401/403 sans token admin
+  - Frontend `/admin/pdf-test` : triple-gate (spinner loading → redirect /connexion si anonyme → 'Accès réservé' si non-admin → dashboard complet), fetch(Bearer) pour ouvrir chaque PDF en blob
+  - `natal_pdf_v2.py` refactorisé avec `_build_story(page_map)` closure + `chapter_marker` aux 6 diviseurs de partie + `build_with_toc` 2-pass → TOC affiche vrais numéros de page pour les 6 parties du livre
+  - `pdf_book_pages.table_of_contents_page` accepte désormais `page` sur chaque entry avec feuillet pointillé doré vers numéro de page
+  - Tests pytest ajoutés : `/app/backend/tests/test_admin_pdf_security.py`
+
+- **[2026-02-08] Double-passe généralisé + Synastrie personnalisée + admin PDF test** (iteration 72):
   - `build_with_toc` (double-passe) appliqué à **Kabbale**, **Karma Destin**, **Numérologie** → sommaires affichent maintenant les vrais numéros de page (I·3, II·5, III·7…)
   - Synastrie : `_page_01_cover` refondu, deux prénoms en dorure gaufrée façon livre imprimé — filet + "ÉDITION PERSONNELLE POUR" + PRÉNOM 1 letter-spacé en or vif + "&" + PRÉNOM 2 + filet
   - Nouveau endpoint admin `GET /api/admin/pdf-test/{product}?first_name=X&partner_name=Y` (data factices réalistes, pas de cache, pas de crédits débités)
