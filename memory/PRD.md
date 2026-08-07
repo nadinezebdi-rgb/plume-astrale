@@ -28,7 +28,17 @@ Massive UX/UI refactoring for the premium astrology SaaS "Plume Astrale" toward 
   - `TirageTarot`, `ChatIA`, `Horoscope`, `Choix`, `MonCompte` migrés en cream V3 + Playfair Display
   - Scoped overrides `[data-shell="light"]` dans `index.css` pour `card-mystical`, `btn-mystical`, `plume-glass`
   - `BundleCard` refondu palette V3 (navy/or sur blanc)
-- **[2026-02-08] PDF prestige unifié pour la vente de livres à Noël** (iteration 70):
+- **[2026-02-08] TOC + illustrations hero + PDF preview** (iteration 70 — backend 100% 7/7, frontend 100% 6/6):
+  - Nouveau `services/pdf_hero_illustrations.py` : 5 illustrations SVG signature (tree_of_life, karmic_nodes, entwined_hearts, natal_wheel, life_path)
+  - Nouveau `services/pdf_book_intro.py` : `svg_to_png` + `render_hero_image` helpers
+  - 6 PNGs générés dans `/app/backend/assets/pdf_covers/` (astrocarto + 5 hero illustrations)
+  - Kabbale, Karma Destin, Numérologie : TOC (`toc_page`) + chapter openers romans (`chapter_opener` I..VII) + hero PNG en couverture
+  - Thème Natal (via `pdf_luxury_theme.cover_page`) : fallback local `natal_hero.png` (garanti même sans réseau)
+  - Synastrie (`_bg_cover`) : fallback local `synastrie_hero.png`
+  - Nouveau endpoint public `GET /api/pdf-preview/{product}` (cache mémoire) : PDF 3 pages téléchargeable (couverture + sommaire + chapter I + intro)
+  - Nouveau `components/PdfPreviewButton.js` avec prop `previewProduct` sur `SalesPageV3` → 6 pages produits affichent le bouton "Aperçu 3 pages gratuit"
+
+- **[2026-02-08] PDF prestige unifié** (iteration 69-70):
   - Nouveau module `services/pdf_prestige.py` : `prestige_bg`, `ornament`, `chapter_opener` (numérotation romaine I-VII), `toc_page` (sommaire éditorial), `simple_world_map_svg` (fallback carte du monde)
   - `services/pdf_bg.make_bg_canvas()` upgradé : cadre or pointillé + soleil ornemental + footer éditorial "PLUME ASTRALE · PRODUCT — n —" → propage à Karma Destin + Numérologie
   - `Kabbale` : `_bg_canvas` redirige vers `pdf_bg.make_bg_canvas('Ton Arbre de Vie')`
