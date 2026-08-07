@@ -167,15 +167,34 @@ def luxury_styles() -> dict:
 # ═══════════════════════════════════════════════════════════
 
 def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustration_slug: str = 'ciel_zodiaque'):
-    """Couverture pleine page : illustration cosmique + prénom + titre."""
+    """Couverture pleine page : illustration cosmique + prénom + titre.
+
+    Priorité au hero local /app/backend/assets/pdf_covers/natal_hero.png
+    (palette V3 unifiée). Fallback : illustration cosmique distante par slug.
+    """
     story.append(Spacer(1, 2 * cm))
     story.append(Paragraph('✦ PLUME ASTRALE ✦', styles['section_tag']))
     story.append(Spacer(1, 0.6 * cm))
-    img_bytes = _dl_image(illustration_url(illustration_slug, 800))
-    if img_bytes:
-        img = RLImage(img_bytes, width=10 * cm, height=10 * cm, mask='auto')
-        story.append(img)
-        story.append(Spacer(1, 1.2 * cm))
+
+    # Priorité : hero V3 local (garantit une belle carte prestige à chaque livre imprimé)
+    from pathlib import Path as _P
+    _hero_local = _P('/app/backend/assets/pdf_covers/natal_hero.png')
+    img_used = False
+    if _hero_local.exists():
+        try:
+            img = RLImage(str(_hero_local), width=10 * cm, height=10 * cm, mask='auto')
+            story.append(img)
+            story.append(Spacer(1, 1.2 * cm))
+            img_used = True
+        except Exception:
+            img_used = False
+    if not img_used:
+        img_bytes = _dl_image(illustration_url(illustration_slug, 800))
+        if img_bytes:
+            img = RLImage(img_bytes, width=10 * cm, height=10 * cm, mask='auto')
+            story.append(img)
+            story.append(Spacer(1, 1.2 * cm))
+
     story.append(Paragraph(prenom, styles['cover_title']))
     story.append(Paragraph(subtitle, styles['cover_sub']))
     story.append(Spacer(1, 1.5 * cm))

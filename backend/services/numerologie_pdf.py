@@ -136,26 +136,48 @@ class NumerologiePDFGenerator:
         story.extend(self._page_cover(first_name))
         story.append(PageBreak())
         
-        # Page 2: Introduction
+        # Page 2: Sommaire prestige
+        from services.pdf_prestige import toc_page as _toc_page, chapter_opener as _chapter_opener
+        _mini_styles = {
+            'caption': self.subtitle_style,
+            'h2': self.heading_style,
+            'title': self.title_style,
+            'subtitle': self.subtitle_style,
+        }
+        _toc_page(story, _mini_styles, [
+            {'roman': 'I',   'title': "Introduction à la numérologie sacrée", 'page': 4},
+            {'roman': 'II',  'title': "Tes nombres-clés",                       'page': None},
+            {'roman': 'III', 'title': "Ton année personnelle",                  'page': None},
+            {'roman': 'IV',  'title': "Prévisions cycliques",                   'page': None},
+            {'roman': 'V',   'title': "Ton Carré Lo-Shu",                       'page': None},
+            {'roman': 'VI',  'title': "Rituels de vibration",                   'page': None},
+        ])
+        
+        _chapter_opener(story, _mini_styles, 'I', "La numérologie sacrée", "Une invitation aux nombres")
+        # Page 3: Introduction
         story.extend(self._page_intro())
         story.append(PageBreak())
         
-        # Pages 3-5: Nombres clés
+        _chapter_opener(story, _mini_styles, 'II', "Tes nombres-clés", "Chemin de vie, expression, âme")
+        # Pages 4-6: Nombres clés
         story.extend(self._pages_nombres_cles(numerology_data, first_name))
         story.append(PageBreak())
         
-        # Pages 6-8: Année personnelle
+        # Pages 7-9: Année personnelle
         if personal_year_data:
+            _chapter_opener(story, _mini_styles, 'III', "Ton année personnelle", "Le cycle actif de ta vie")
             story.extend(self._pages_annee_personnelle(personal_year_data))
             story.append(PageBreak())
         
-        # Pages 9-11: Prévisions
+        # Pages 10-12: Prévisions
         if forecast_data:
+            _chapter_opener(story, _mini_styles, 'IV', "Prévisions cycliques", "Ton horizon numérologique")
             story.extend(self._pages_forecast(forecast_data))
             story.append(PageBreak())
         
         # Nouvelles sections IA (Lo-Shu, biorythmes, invitation) — uniquement si dispo
         if self._ai.get('lo_shu'):
+            _chapter_opener(story, _mini_styles, 'V', "Ton Carré Lo-Shu", "Numérologie chinoise ancestrale")
             story.append(Paragraph('✦ Ton Carré Lo-Shu — Numérologie Chinoise ✦', self.heading_style))
             story.append(Spacer(0, 0.3 * cm))
             story.append(Paragraph(self._ai['lo_shu'], self.body_style))
@@ -173,7 +195,8 @@ class NumerologiePDFGenerator:
             story.append(Paragraph(self._ai['invitation_finale'], self.body_style))
             story.append(PageBreak())
         
-        # Page 12: Rituels + signature
+        _chapter_opener(story, _mini_styles, 'VI', "Rituels de vibration", "Cinq pratiques numérologiques")
+        # Page finale: Rituels + signature
         story.extend(self._page_rituels_finaux(first_name))
         
         doc.build(
@@ -184,22 +207,34 @@ class NumerologiePDFGenerator:
         return buffer.getvalue()
     
     def _page_cover(self, name: str) -> List:
-        """Couverture dorée et mystique."""
-        return [
-            Spacer(0, 3 * cm),
+        """Couverture prestige avec hero illustré (chemin de vie)."""
+        from reportlab.platypus import Image as _RLImage
+        from pathlib import Path as _Path
+        elements: List = [Spacer(0, 1.5 * cm)]
+        _hero = _Path('/app/backend/assets/pdf_covers/numerologie_hero.png')
+        if _hero.exists():
+            try:
+                img = _RLImage(str(_hero), width=8 * cm, height=8 * cm, kind='proportional')
+                img.hAlign = 'CENTER'
+                elements.append(img)
+                elements.append(Spacer(0, 0.4 * cm))
+            except Exception:
+                pass
+        elements.extend([
             Paragraph('✦ TON CODE NUMÉROLOGIQUE ✦', self.title_style),
             Spacer(0, 0.5 * cm),
             Paragraph(f'Destinée, Cycles & Vibrations de {name}', self.subtitle_style),
-            Spacer(0, 2 * cm),
+            Spacer(0, 1.5 * cm),
             Paragraph(
                 'Chaque nombre vibre avec une essence cosmique.<br/>Ta date de naissance révèle tes cycles karmiques.',
                 self.body_style,
             ),
-            Spacer(0, 3 * cm),
+            Spacer(0, 1 * cm),
             Paragraph('par Solena — La voix de Plume Astrale', ParagraphStyle(
                 'Footer', fontName='Helvetica-Oblique', fontSize=10, textColor=GOLD_LIGHT, alignment=TA_CENTER
             )),
-        ]
+        ])
+        return elements
     
     def _page_intro(self) -> List:
         """Introduction à la numérologie sacrée."""

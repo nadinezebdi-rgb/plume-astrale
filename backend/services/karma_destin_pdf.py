@@ -106,31 +106,57 @@ class KarmaDestinPDFGenerator:
         # Page 1: Couverture
         story.extend(self._page_cover(first_name))
         story.append(PageBreak())
+
+        # Page 2: Sommaire prestige
+        from services.pdf_prestige import toc_page as _toc_page, chapter_opener as _chapter_opener
+        # Adapter les styles à l'API attendue par toc_page (`caption`, `h2`)
+        _mini_styles = {
+            'caption': self.subtitle_style,
+            'h2': self.heading_style,
+            'title': self.title_style,
+            'subtitle': self.subtitle_style,
+        }
+        _toc_page(story, _mini_styles, [
+            {'roman': 'I',   'title': "Comprendre ton karma",             'page': 4},
+            {'roman': 'II',  'title': "Tes nœuds lunaires",               'page': None},
+            {'roman': 'III', 'title': "Saturne — les leçons",             'page': None},
+            {'roman': 'IV',  'title': "Chiron — la blessure sacrée",      'page': None},
+            {'roman': 'V',   'title': "Pluton — la transformation",       'page': None},
+            {'roman': 'VI',  'title': "Karma générationnel",              'page': None},
+            {'roman': 'VII', 'title': "Rituels de libération",            'page': None},
+        ])
         
+        _chapter_opener(story, _mini_styles, 'I', "Comprendre ton karma", "Une invitation à l'écoute")
         # Page 2: Introduction karmique
         story.extend(self._page_intro())
         story.append(PageBreak())
         
+        _chapter_opener(story, _mini_styles, 'II', "Tes nœuds lunaires", "Le chemin de destinée")
         # Pages 3-5: Nœuds lunaires (chemin de destinée)
         story.extend(self._pages_noeuds_lunaires(karmic_data))
         story.append(PageBreak())
         
+        _chapter_opener(story, _mini_styles, 'III', "Saturne", "Les leçons karmiques")
         # Pages 6-8: Saturne (leçons karmiques)
         story.extend(self._pages_saturne(karmic_data))
         story.append(PageBreak())
         
+        _chapter_opener(story, _mini_styles, 'IV', "Chiron", "La blessure sacrée")
         # Pages 9-11: Chiron (guérison karmique)
         story.extend(self._pages_chiron(karmic_data))
         story.append(PageBreak())
         
+        _chapter_opener(story, _mini_styles, 'V', "Pluton", "La transformation profonde")
         # Pages 12-13: Pluton (transformation)
         story.extend(self._pages_pluton(karmic_data))
         story.append(PageBreak())
         
+        _chapter_opener(story, _mini_styles, 'VI', "Karma générationnel", "L'héritage des lignées")
         # Page 14: Karma générationnel
         story.extend(self._page_karma_generationnel(karmic_data))
         story.append(PageBreak())
         
+        _chapter_opener(story, _mini_styles, 'VII', "Rituels de libération", "Cinq pratiques pour l'âme")
         # Page 15: Rituels de libération
         story.extend(self._page_rituels_liberation(first_name))
         
@@ -138,23 +164,35 @@ class KarmaDestinPDFGenerator:
         return buffer.getvalue()
     
     def _page_cover(self, name: str) -> List:
-        """Couverture spirituelle."""
-        return [
-            Spacer(0, 3 * cm),
+        """Couverture spirituelle avec hero illustré (nœuds karmiques)."""
+        from reportlab.platypus import Image as _RLImage
+        from pathlib import Path as _Path
+        elements: List = [Spacer(0, 1.5 * cm)]
+        _hero = _Path('/app/backend/assets/pdf_covers/karma_hero.png')
+        if _hero.exists():
+            try:
+                img = _RLImage(str(_hero), width=8 * cm, height=8 * cm, kind='proportional')
+                img.hAlign = 'CENTER'
+                elements.append(img)
+                elements.append(Spacer(0, 0.4 * cm))
+            except Exception:
+                pass
+        elements.extend([
             Paragraph('✦ TON ANALYSE KARMIQUE ✦', self.title_style),
             Spacer(0, 0.5 * cm),
             Paragraph('Destinée, Leçons & Guérison Spirituelle', self.subtitle_style),
-            Spacer(0, 2 * cm),
+            Spacer(0, 1.5 * cm),
             Paragraph(
                 'Au-delà du présent, ton karma te parle.<br/>'
                 'Découvre les leçons que ton âme est venue apprendre.',
                 self.body_style,
             ),
-            Spacer(0, 3 * cm),
+            Spacer(0, 1 * cm),
             Paragraph('par Solena — La voix de Plume Astrale', ParagraphStyle(
                 'Footer', fontName='Helvetica-Oblique', fontSize=10, textColor=GOLD_LIGHT, alignment=TA_CENTER
             )),
-        ]
+        ])
+        return elements
     
     def _page_intro(self) -> List:
         """Introduction au karma — préfère IA si dispo."""

@@ -179,13 +179,26 @@ class SynastriePDFGenerator:
             except Exception:
                 pass
 
-        # Fallback : halo dore subtil au centre haut (design original)
+        # Fallback : halo dore + illustration hero locale (cœurs entrelaces)
         for i, alpha in enumerate([0.04, 0.08, 0.12, 0.16, 0.20]):
             c.setFillColor(GOLD)
             c.setFillAlpha(alpha)
             r = 12 * cm - i * 2 * cm
             c.circle(self.w / 2, self.h - 9 * cm, r, fill=1, stroke=0)
         c.setFillAlpha(1.0)
+
+        # Injection du hero V3 (deux cœurs entrelacés) — au centre haut
+        from pathlib import Path as _P
+        _hero = _P('/app/backend/assets/pdf_covers/synastrie_hero.png')
+        if _hero.exists():
+            try:
+                size = 10 * cm
+                x = (self.w - size) / 2
+                y = self.h - 4.5 * cm - size
+                c.drawImage(str(_hero), x, y, size, size,
+                            preserveAspectRatio=True, anchor='c', mask='auto')
+            except Exception:
+                pass
 
     def _bg_cream(self, c):
         """Fond pages interieures : creme + cadre or pointille + filets dores."""

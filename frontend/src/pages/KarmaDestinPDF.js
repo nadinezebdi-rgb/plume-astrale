@@ -20,6 +20,7 @@ export default function KarmaDestinPDF() {
   return (
     <SalesPageV3
       slug="karma"
+      previewProduct="karma-destin"
       path="/karma-destin-pdf"
       seoTitle="Karma & Destin · Ta lignée karmique décodée · Plume Astrale"
       seoDescription="Un PDF premium de 22 pages qui décode ta mémoire karmique, tes Nœuds lunaires, ta Lune Noire et Chiron. Signé Soléna."

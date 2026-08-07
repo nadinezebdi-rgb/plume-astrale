@@ -23,6 +23,7 @@ export default function ThemeNatalLuxe() {
   return (
     <SalesPageV3
       slug="natal"
+      previewProduct="theme-natal"
       path="/theme-natal-luxe"
       seoTitle="Ton Thème Natal Luxe · 49 pages écrites par Soléna · Plume Astrale"
       seoDescription="Un PDF premium de 49 pages où 11 planètes racontent qui tu es vraiment. Écrit par Soléna à partir de 73 dimensions astrologiques. Offre bienvenue : 17,99€."

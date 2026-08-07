@@ -134,7 +134,10 @@ def _cover(story, styles, first_name: str, birth_date: str, dominant_seph: str, 
     # Illustration Arbre de Vie (Etz Chaim) — hero centrée
     from reportlab.platypus import Image as _RLImage
     from pathlib import Path as _Path
-    _cover_img = _Path('/app/backend/assets/pdf_covers/arbre_de_vie_cover.png')
+    # Priorité au nouveau hero V3 (palette navy/or unifiée), fallback sur l'ancien
+    _cover_img = _Path('/app/backend/assets/pdf_covers/kabbale_hero.png')
+    if not _cover_img.exists():
+        _cover_img = _Path('/app/backend/assets/pdf_covers/arbre_de_vie_cover.png')
     if _cover_img.exists():
         try:
             img = _RLImage(str(_cover_img), width=8.5*cm, height=8.5*cm, kind='proportional')
@@ -481,17 +484,37 @@ def _generate_kabbale_impl(
         dominant_planet = ''
 
     _cover(story, styles, first_name or "Voyageur", birth_fr, dominant_display, spiritual_focus, birth_iso=birth_date_iso or '')
+
+    # ─── Sommaire prestige (charte livre unifiée) ───
+    from services.pdf_prestige import toc_page as _toc_page, chapter_opener as _chapter_opener
+    _toc_page(story, styles, [
+        {'roman': 'I',   'title': "L'Arbre de Vie kabbalistique", 'page': 4},
+        {'roman': 'II',  'title': "Tes trois piliers",             'page': None},
+        {'roman': 'III', 'title': "Les 10 Sephiroth",              'page': None},
+        {'roman': 'IV',  'title': "Les 22 chemins",                'page': None},
+        {'roman': 'V',   'title': "Da'at, la sphère invisible",    'page': None},
+        {'roman': 'VI',  'title': "Synthèse",                      'page': None},
+        {'roman': 'VII', 'title': "Rituels de communion",          'page': None},
+    ])
+
+    _chapter_opener(story, styles, 'I', "L'Arbre de Vie kabbalistique", "Comprendre l'ancien schéma")
     _intro(story, styles)
+    _chapter_opener(story, styles, 'II', "Tes trois piliers", "Rigueur, Miséricorde, Équilibre")
     _pillars(story, styles, pillar_balance)
+    _chapter_opener(story, styles, 'III', "Les 10 Sephiroth", "Les dix sphères de conscience")
     _sephiroth_pages(story, styles, sephiroth, dominant_planet=str(dominant_planet or ''))
+    _chapter_opener(story, styles, 'IV', "Les 22 chemins", "Les sentiers de la Lumière")
     _paths_page(story, styles, paths)
+    _chapter_opener(story, styles, 'V', "Da'at, la sphère invisible", "L'abîme et la connaissance")
     _daat_page(story, styles, daat)
+    _chapter_opener(story, styles, 'VI', "Synthèse", "Le message de Soléna")
     _synthesis(story, styles, dominant_display, spiritual_focus, synthesis)
 
     # Enrichissement IA : insere des sections narratives premium avant les rituels
     if ai_sections:
         _append_ai_sections(story, styles, ai_sections, report_type='kabbale')
 
+    _chapter_opener(story, styles, 'VII', "Rituels de communion", "Prières pour honorer ton Arbre")
     _rituels_signature(story, styles, first_name or "Voyageur", dominant_display)
 
     doc.build(story, onFirstPage=_bg_canvas, onLaterPages=_bg_canvas)

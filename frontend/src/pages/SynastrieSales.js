@@ -21,6 +21,7 @@ export default function SynastrieSales() {
   return (
     <SalesPageV3
       slug="synastry"
+      previewProduct="synastrie"
       path="/synastrie"
       seoTitle="Astrologie relationnelle · Vos deux ciels croisés · Plume Astrale"
       seoDescription="Un PDF premium de 25 pages qui croise vos deux thèmes natals. Attraction, tensions créatives, karma relationnel, rituel du couple. Signé Soléna."

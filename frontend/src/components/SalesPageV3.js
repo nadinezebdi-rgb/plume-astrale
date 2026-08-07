@@ -7,6 +7,7 @@ import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
 import ApercuLectureModal from '@/components/ApercuLectureModal';
 import GiftModal from '@/components/GiftModal';
+import PdfPreviewButton from '@/components/PdfPreviewButton';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
 import { useAuth } from '@/context/AuthContext';
 
@@ -57,6 +58,7 @@ export default function SalesPageV3({
   heroBadge,
   heroImage,          // { src, alt, caption? }
   heroNode,           // ReactNode — alternative visuel personnalisé (SVG, composant custom)
+  previewProduct,     // id du produit pour l'aperçu PDF 3 pages (ex: 'astrocartographie')
   includes,
   testimonials,
   apercu,
@@ -195,6 +197,16 @@ export default function SalesPageV3({
               <Gift style={{ width: 16, height: 16 }} strokeWidth={2} />
               Offrir cette lecture
             </button>
+
+            {/* Aperçu 3 pages téléchargeable (livre prestige) */}
+            {previewProduct && (
+              <div style={{ marginTop: 24 }}>
+                <PdfPreviewButton
+                  product={previewProduct}
+                  testid={`sales-${slug}-pdf-preview-btn`}
+                />
+              </div>
+            )}
             </div>
 
             {/* Colonne visuelle décorative */}
