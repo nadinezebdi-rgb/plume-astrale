@@ -143,19 +143,91 @@ def _fixture(product: str, first_name: str, partner_name: Optional[str] = None,
         # Tier ultra : injecte book_data mocké (comme GPT enrichi) pour déclencher
         # le rendu du sommaire complet 25+ pages avec toutes les parties/chapitres
         if tier == 'ultra':
+            # Chapitre-âme complet (5 clés × ~10 blocs) — mock 'GPT enrichi'
+            def _acte3_chapter(title: str) -> dict:
+                return {
+                    'citation_ouverture': "Il y a en toi une lumière que le monde n'a pas encore vue — et pourtant, elle éclaire déjà tout ce que tu touches.",
+                    'question_emotionnelle': f"Quelle part de {title.lower()} laisses-tu vraiment respirer ?",
+                    'analyse_html': (
+                        "<p>Ton thème natal dessine une architecture rare : une sensibilité mouvante habite "
+                        "chaque décision, chaque geste, chaque silence. Tu portes une manière d'aimer qui refuse "
+                        "les compromis tièdes — elle veut du vrai, du profond, du durable.</p>"
+                        "<p>Là où d'autres cherchent la clarté rapide, tu prends le temps de laisser mûrir. "
+                        "Cette lenteur n'est pas de la peur : c'est une forme d'intelligence lente, presque "
+                        "végétale, qui distingue ce qui compte de ce qui passe.</p>"
+                        "<p>Ta trajectoire s'écrit dans la fidélité aux liens choisis, dans la construction "
+                        "patiente d'un monde intérieur riche. C'est ta signature — reconnais-la.</p>"
+                    ),
+                    'phrase_memorable': "Tu n'as jamais eu besoin d'être vue pour exister. C'est peut-être pour cela qu'on te remarque.",
+                    'conseils': [
+                        "Nomme une chose que tu portes en secret depuis trop longtemps.",
+                        "Choisis un rituel qui honore ta lenteur — sans culpabilité.",
+                        "Laisse quelqu'un t'aider cette semaine, sans t'excuser d'exister.",
+                    ],
+                    'rituel_titre': f"Rituel — Ouvrir {title.lower()}",
+                    'rituel_body': (
+                        "À la nuit tombée, allume une bougie ivoire et pose une main sur ton cœur. "
+                        "Respire lentement, sept fois. À chaque expiration, prononce à voix basse un mot "
+                        "qui décrit ce que tu veux libérer. Laisse la flamme se consumer."
+                    ),
+                    'pierre': 'Quartz rose',
+                    'couleur': 'Or vieilli',
+                    'respiration': '4-7-8 (inspire 4, retiens 7, expire 8) × 5 cycles',
+                    'question_journal': f"Écris pendant 12 minutes sans t'arrêter : que veut me dire {title.lower()} aujourd'hui ?",
+                    'forces': ['Loyauté profonde', 'Sensibilité fine', 'Constance'],
+                    'defis': ['Difficulté à demander', 'Attente longue', 'Perfectionnisme silencieux'],
+                    'mission': f"Habiter {title.lower()} sans jamais te trahir — et laisser les autres apprendre de ton exemple.",
+                }
+            _long_html = (
+                "<p>Ton thème raconte une histoire précise : celle d'une âme qui a choisi cette incarnation "
+                "pour apprendre à conjuguer intensité et douceur. Les planètes de ton ciel s'accordent en "
+                "une mélodie unique, ni entièrement paisible ni entièrement tumultueuse.</p>"
+                "<p>Ce livre déplie chaque note de cette mélodie — les évidences, les nuances, les "
+                "silences. Prends ton temps pour l'écouter.</p>"
+            )
             natal_data['book_data'] = {
                 '_source': 'gpt',
                 'chapter_intro': "Ce livre s'ouvre comme une carte du ciel — la tienne. Chaque planète y raconte une part de qui tu es, et l'ensemble compose une mélodie unique au monde. Prends le temps de lire chaque page comme on lit une lettre longtemps attendue.",
+                'dedication': "Pour toi, qui as ouvert ce livre un soir où le ciel semblait vouloir te parler.",
                 'triangle_intime_intro': "Ton Soleil, ta Lune et ton Ascendant forment un triangle d'or — l'essence de ta signature intérieure.",
                 'planets_intimate_intro': "Voici les cinq planètes qui composent ton quotidien intime — celles qui vibrent chaque jour à ton contact.",
                 'planets_generational_intro': "Ces planètes plus lentes marquent les strates profondes de ta génération. Elles racontent l'époque à travers toi.",
                 'aspects_intro': "Les aspects sont la danse invisible entre tes planètes — parfois harmonieuse, parfois électrique. Tout y est mouvement.",
                 'houses_intro': "Les douze maisons sont les scènes de ta vie. Chacune met en lumière un domaine — l'amour, le travail, les racines, l'invisible.",
-                'year_ahead': "L'année qui vient te demande de ralentir puis d'oser. Regarde vers avril : quelque chose y bascule doucement, sans bruit.",
+                'year_ahead': _long_html + "<p>Regarde vers avril : quelque chose y bascule doucement, sans bruit. Un projet trouve sa forme. Un lien se dénoue ou s'approfondit. Fais confiance à ce tempo.</p>",
                 'emotional_ending': "Referme ce livre avec douceur. Tu portais déjà en toi tout ce qu'il révèle. Il n'a fait que rendre visible ce que le ciel avait tracé pour toi.",
                 'colophon': "Ce livre a été composé en Cinzel et Cormorant Garamond, sur papier crème virtuel, pour Plume Astrale, en février 2026.",
+                # ── Element / modality synthèse (Acte II)
+                '_em': {
+                    'dominant_element': 'Terre',
+                    'dominant_modality': 'Fixe',
+                    'dominant_element_count': 4,
+                    'dominant_modality_count': 5,
+                },
+                'element_analysis': _long_html + "<p>Ta dominante Terre te donne une assise rare — un rapport concret au réel, à la beauté sensorielle, au corps.</p>",
+                'modality_analysis': _long_html + "<p>Ta dominante Fixe raconte ta capacité à tenir, à approfondir, à ne pas céder à la mode du moment.</p>",
+                'trio_synthesis': _long_html + "<p>Soleil-Lune-Ascendant se répondent en écho : une identité qui construit, une émotion qui rêve, une manière d'apparaître qui rassure.</p>",
+                # ── Aspects (Acte II fin)
+                'aspects_harmonieux_headline': "La grâce en toi",
+                'aspects_harmonieux_body': _long_html,
+                'aspects_tensions_headline': "Le nœud qui te forge",
+                'aspects_tensions_body': _long_html,
+                'rare_aspect_headline': "Ta note rare",
+                'rare_aspect_body': _long_html,
+                # ── Acte III : les 5 chapitres d'âme
+                'acte3_chapters': {
+                    'coeur':     _acte3_chapter('Ton cœur'),
+                    'esprit':    _acte3_chapter('Ton esprit'),
+                    'blessures': _acte3_chapter('Tes blessures'),
+                    'desirs':    _acte3_chapter('Tes désirs'),
+                    'talents':   _acte3_chapter('Tes talents'),
+                },
+                # ── 12 maisons (Acte IV)
+                **{f'house_{n}': _long_html for n in range(1, 13)},
             }
-        return build_natal_pdf_v2(first_name, '1990-05-15', natal_data)
+        # book_data doit être passé comme kwarg explicite à build_natal_pdf_v2
+        book_data = natal_data.pop('book_data', None)
+        return build_natal_pdf_v2(first_name, '1990-05-15', natal_data, book_data=book_data)
 
     if product == 'synastrie':
         from services.synastrie_pdf_generator import generate_synastrie_pdf

@@ -23,6 +23,13 @@ Massive UX/UI refactoring for the premium astrology SaaS "Plume Astrale" toward 
   - `/credits` page (`CreditsInfo.js`) using `PsPageShell` + shared `CreditsInfoContent`
   - "?" HelpCircle wiring on ChatIA quota badge + MonCompte credit banner + MonCompte credits tab
   - Footer link "Comprendre les crédits" → `/credits`
+- **[2026-02-08] Admin PDF Test analytics + tier=ultra** (iteration 74 — 14/14 backend + 5/5 frontend + self-verified):
+  - Fixed React Hooks violation in `/app/frontend/src/pages/AdminPdfTest.js` (moved `useState`/`useCallback`/`useEffect` above the auth-gate early returns)
+  - MongoDB analytics collection `admin_pdf_test_logs` stores {admin_email, product, first_name, partner_name, tier, pdf_size, ip, created_at} on every generation
+  - `GET /api/admin/pdf-test/_logs/recent?limit=N` returns `{ logs, stats, total }` with per-product aggregate counts (admin-only)
+  - Admin dashboard displays live analytics widget with product stat chips + recent logs table (product, destinataire, tier, size, date)
+  - `tier=ultra` toggle on Thème Natal generates the FULL Prestige Book (86 pages / ~32 MB vs 13 pages / ~10 MB in flash) — mock `book_data` now includes `_source='gpt'`, `_em` with element+modality counts, complete `acte3_chapters` (5 chapters × 10 blocks each), `dedication`, `element_analysis`, `modality_analysis`, `trio_synthesis`, aspect headers, and 12 house bodies
+  - Fixed missing `book_data` kwarg pass-through in `_fixture()` → `build_natal_pdf_v2(..., book_data=...)`
 - **[2026-02-08] V3 Services & Legacy migration** (iteration 68 — 100% frontend passed):
   - `PsPageShell background="light"` désormais expose la palette V3 via CSS variables
   - `TirageTarot`, `ChatIA`, `Horoscope`, `Choix`, `MonCompte` migrés en cream V3 + Playfair Display
