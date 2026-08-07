@@ -64,6 +64,11 @@ const SEO_DATA = {
     description: 'Notre cadre : calculs astrologiques professionnels, lecture symbolique experte, restitution claire. Une guidance symbolique, pas une v\u00e9rit\u00e9 absolue. D\u00e9couvrez notre engagement \u00e9thique.',
     keywords: 'charte confiance astrologie, \u00e9thique tarot, guidance responsable, approche astrologique, d\u00e9ontologie astrologie',
   },
+  '/credits': {
+    title: 'Comment fonctionnent les cr\u00e9dits \u2014 Plume Astrale',
+    description: 'Un cr\u00e9dit, une intention pos\u00e9e \u00e0 Sol\u00e9na. D\u00e9couvre comment nos cr\u00e9dits te donnent acc\u00e8s aux consultations, tirages et rapports premium de Plume Astrale. Sans expiration, sans engagement.',
+    keywords: 'cr\u00e9dits plume astrale, tarifs consultation astrologique, prix tarot en ligne, packs cr\u00e9dits astrologie, abonnement libre astrologie',
+  },
 };
 
 const SEO = ({ path }) => {

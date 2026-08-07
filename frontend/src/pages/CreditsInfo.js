@@ -12,11 +12,7 @@ import { CreditsInfoContent } from '@/components/CreditsInfoModal';
 export default function CreditsInfo() {
   return (
     <PsPageShell background="light">
-      <SEO
-        title="Comment fonctionnent les crédits — Plume Astrale"
-        description="Un crédit, une intention. Découvre comment nos crédits te donnent accès aux consultations, tirages et rapports premium de Plume Astrale."
-        path="/credits"
-      />
+      <SEO path="/credits" />
 
       {/* ═══ HERO ═══ */}
       <section
