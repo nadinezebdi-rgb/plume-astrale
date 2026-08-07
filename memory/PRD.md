@@ -28,6 +28,12 @@ Massive UX/UI refactoring for the premium astrology SaaS "Plume Astrale" toward 
   - `TirageTarot`, `ChatIA`, `Horoscope`, `Choix`, `MonCompte` migrés en cream V3 + Playfair Display
   - Scoped overrides `[data-shell="light"]` dans `index.css` pour `card-mystical`, `btn-mystical`, `plume-glass`
   - `BundleCard` refondu palette V3 (navy/or sur blanc)
+- **[2026-02-08] Astrocarto + V3 children + /services/ rebranding + PDF prestige** (iteration 69 — 100% frontend passed):
+  - `AstroCartoHero.js` : nouveau visuel SVG (carte du monde stylisée + 7 lignes planétaires + 3 villes + boussole) remplaçant la planète Uranus sur `/astrocartographie`
+  - `SalesPageV3` accepte désormais `heroNode` (ReactNode) en plus de `heroImage`
+  - NatalCompletionPrompt, TransitsToday, ReferralPanel, CreditsPaywallModal → palette V3 (Playfair, #C9A24B, navy)
+  - Routes canoniques `/services/*` (16 routes) avec redirections legacy `/outils/*` conservées
+  - Astrocartographie PDF : cadre or dashed sur chaque page, ornements ✦ ◆ entre chapitres, carte du monde agrandie (17×11.5cm au lieu de 8.5cm), footer éditorial "PLUME ASTRALE · ASTROCARTOGRAPHIE — n —"
 
 ## Backlog
 
