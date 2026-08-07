@@ -1185,6 +1185,7 @@ body:has(.ps-home)::after { display: none !important; }
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   box-shadow: 0 12px 32px -18px rgba(15,26,60,0.10) !important;
+}
 /* Etoiles filantes globales */
 .plume-shooting-layer {
   position: fixed;
