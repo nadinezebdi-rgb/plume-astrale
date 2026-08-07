@@ -37,6 +37,11 @@ export default function KabbaleSales() {
       priceHint="paiement unique · PDF 15 pages"
       pages={15}
       deliveryTime="5 min"
+      heroImage={{
+        src: `${process.env.REACT_APP_BACKEND_URL}/api/assets/library/tarot/17_l_etoile_1080.png`,
+        alt: "L'Étoile · guidance spirituelle",
+        caption: 'L\'Étoile · Arcane XVII',
+      }}
       includes={INCLUDES}
       testimonials={TESTIMONIALS}
       apercu={APERCUS.kabbale}

@@ -66,3 +66,5 @@ export const OUTILS = [
   { key: 'rituel', title: 'Rituel du soir', tagline: 'Ancrage · lune du jour', to: '/outils/rituel' },
   { key: 'oracle', title: 'Oracle du jour', tagline: 'Une carte, une intention', to: '/outils/oracle' },
 ];
+
+export const OUTILS_LABEL = 'Services complémentaires';

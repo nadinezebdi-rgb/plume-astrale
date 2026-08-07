@@ -54,6 +54,7 @@ export default function SalesPageV3({
   pages,
   deliveryTime = '5 min',
   heroBadge,
+  heroImage,          // { src, alt, caption? }
   includes,
   testimonials,
   apercu,
@@ -80,7 +81,13 @@ export default function SalesPageV3({
       {/* ─── HERO (light) ────────────────────────────────────── */}
       <section className="ps-section ps-section-light" data-testid={`sales-${slug}-hero`}>
         <div className="ps-container">
-          <div style={{ maxWidth: 780 }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr',
+            gap: 48,
+            alignItems: 'center',
+          }} className="ps-sales-hero-grid">
+            <div style={{ maxWidth: 780 }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>{eyebrow}</p>
             <h1 className="ps-h1"
               style={{ color: '#0F1A3C', marginBottom: 24 }}
@@ -173,8 +180,53 @@ export default function SalesPageV3({
                 Lire un extrait gratuit
               </button>
             )}
+            </div>
+
+            {/* Colonne visuelle décorative */}
+            {heroImage && (
+              <div style={{ position: 'relative', textAlign: 'center' }} data-testid={`sales-${slug}-hero-image`}>
+                <div style={{
+                  position: 'absolute',
+                  inset: '-30px',
+                  background: 'radial-gradient(circle at center, rgba(201,162,75,0.16) 0%, transparent 65%)',
+                  filter: 'blur(24px)',
+                  zIndex: 0,
+                }} />
+                <img
+                  src={heroImage.src}
+                  alt={heroImage.alt || ''}
+                  loading="lazy"
+                  style={{
+                    position: 'relative', zIndex: 1,
+                    maxWidth: 380, width: '100%', height: 'auto',
+                    borderRadius: 16,
+                    boxShadow:
+                      '0 24px 48px rgba(15,26,60,0.16), 0 0 0 1px rgba(201,162,75,0.15)',
+                    display: 'block', margin: '0 auto',
+                  }}
+                />
+                {heroImage.caption && (
+                  <div style={{
+                    position: 'relative', zIndex: 1,
+                    marginTop: 16,
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 12, letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(201,162,75,0.75)',
+                  }}>
+                    {heroImage.caption}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
+
+        <style>{`
+          @media (min-width: 900px) {
+            .ps-sales-hero-grid { grid-template-columns: 1.3fr 1fr !important; gap: 64px !important; }
+          }
+        `}</style>
       </section>
 
       {/* ─── INCLUDES (dark) ─────────────────────────────────── */}

@@ -32,6 +32,11 @@ export default function PackKarmique() {
       pages={40}
       deliveryTime="10 min"
       heroBadge="L'offre écrin"
+      heroImage={{
+        src: `${process.env.REACT_APP_BACKEND_URL}/api/assets/library/tarot/19_le_soleil_1080.png`,
+        alt: 'Le Soleil, arcane de la plénitude',
+        caption: 'Le Soleil · Arcane XIX',
+      }}
       includes={INCLUDES}
       testimonials={TESTIMONIALS}
       apercu={APERCUS.karmique}

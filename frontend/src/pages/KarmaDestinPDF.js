@@ -30,6 +30,11 @@ export default function KarmaDestinPDF() {
       priceHint="paiement unique · PDF 22 pages"
       pages={22}
       deliveryTime="5 min"
+      heroImage={{
+        src: `${process.env.REACT_APP_BACKEND_URL}/api/assets/library/planets/pluto_1080.png`,
+        alt: 'Pluton, planète de la transformation karmique',
+        caption: 'Pluton · Transformation',
+      }}
       includes={INCLUDES}
       testimonials={TESTIMONIALS}
       apercu={APERCUS.karma}

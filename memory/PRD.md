@@ -1,5 +1,38 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 82) — Enrichissement images + rebranding "Outils" → "Services"
+
+### Livrables (2026-02-07)
+- ✅ **Rebranding "Outils" → "Services complémentaires"** :
+  - `catalog.js` : ajout `export const OUTILS_LABEL = 'Services complémentaires'`.
+  - `NavbarV2` desktop mega menu : column heading "Outils interactifs" → **"Services complémentaires"**.
+  - `NavbarV2` mobile panel : sous-heading "Outils" → **"Services complémentaires"**.
+- ✅ **`SalesPageV3` template** enrichi avec prop `heroImage = { src, alt, caption }` :
+  - Nouveau grid 2 colonnes dans le hero : texte à gauche + image décorative à droite (dès min-width 900px, colonne unique en mobile).
+  - Image : max-width 380px, `border-radius 16`, double `box-shadow` (halo doré 24px + ring or 1px), halo radial doré diffus blur 24px en arrière-plan (via absolute div ::before).
+  - Caption Inter uppercase letter-spacing gold rgba, discrete sous l'image.
+- ✅ **7 pages produit enrichies** avec images depuis `/api/assets/library/` :
+  - **Thème Natal** → `planets/sun_1080.png` · "Le Soleil natal"
+  - **Kabbale** → `tarot/17_l_etoile_1080.png` · "L'Étoile · Arcane XVII"
+  - **Astrocartographie** → `planets/uranus_1080.png` · "Uranus · Mouvement"
+  - **Karma & Destin** → `planets/pluto_1080.png` · "Pluton · Transformation"
+  - **Numérologie** → `tarot/01_le_bateleur_512.png` · "Le Bateleur · Arcane I"
+  - **Pack Karmique** → `tarot/19_le_soleil_1080.png` · "Le Soleil · Arcane XIX"
+  - **Synastrie** → `tarot/06_les_amoureux_1080.png` · "Les Amoureux · Arcane VI"
+- ✅ **Bug fix backend** : le backend avait crashé (moviepy import failure lié à ffmpeg introuvable, existant depuis avant). Restart supervisor a résolu — ffmpeg est bien à `/usr/bin/ffmpeg`. Le crash aléatoire semble venir des redémarrages précédents mal chainés. Server désormais stable.
+- ✅ Screenshots validés : les 4 pages testées (Natal, Kabbale, PackKarmique, Synastrie) affichent des visuels riches artistiques qui transforment complètement l'expérience — un vrai catalogue de luxe.
+
+### Non-fait dans cette iter (context budget)
+- Migration des 3 pages `/outils/*` (Consultation, Tarot, Horoscope) sur la charte claire — pages trop volumineuses (2100+ lignes total) pour cette iter.
+
+### Encore à faire (backlog)
+- Migration pages Outils (Consultation, Tarot, Horoscope) — prochaine iter dédiée.
+- Newsletter Blog.
+- Dashboard leads.
+- Fix micro position badge "L'OFFRE ÉCRIN" sur Pack Karmique.
+
+---
+
 ## 🆕 Session Feb 2026 (iter 81) — Unification globale Navbar + Footer
 
 ### Livrables (2026-02-07)

@@ -34,6 +34,11 @@ export default function ThemeNatalLuxe() {
       priceHint="offre bienvenue · paiement unique"
       pages={49}
       deliveryTime="5 min"
+      heroImage={{
+        src: `${process.env.REACT_APP_BACKEND_URL}/api/assets/library/planets/sun_1080.png`,
+        alt: 'Le Soleil, planète centrale du thème natal',
+        caption: 'Le Soleil natal',
+      }}
       includes={INCLUDES}
       testimonials={TESTIMONIALS}
       apercu={APERCUS.natal}
