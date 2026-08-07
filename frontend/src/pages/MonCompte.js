@@ -15,6 +15,7 @@ import BundleCard from '@/components/BundleCard';
 import SolenaWritingLoader from '@/components/SolenaWritingLoader';
 import ReferralPanel from '@/components/ReferralPanel';
 import CreditsInfoModal from '@/components/CreditsInfoModal';
+import PsPageShell from '@/components/PsPageShell';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -594,7 +595,8 @@ const MonCompte = () => {
   ];
 
   return (
-    <div className="min-h-screen relative" style={{ background: 'var(--pa-bg)' }}>
+    <PsPageShell background="light">
+    <div className="min-h-screen relative">
       <CreditsInfoModal open={creditsInfoOpen} onClose={() => setCreditsInfoOpen(false)} />
       {/* Overlay animé pendant la génération du PDF Thème Natal (~60s) */}
       {pdfLoading && <SolenaWritingLoader estimatedSeconds={55} />}
@@ -1386,6 +1388,7 @@ const MonCompte = () => {
         onSuccess={chargerProfil}
       />
     </div>
+    </PsPageShell>
   );
 };
 

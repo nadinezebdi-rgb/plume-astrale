@@ -19,17 +19,17 @@ const BundleCard = ({ dense = false, testId = 'bundle-card' }) => (
     className="plume-glass p-6 md:p-8 relative overflow-hidden"
     data-testid={testId}
     style={{
-      border: '1px solid rgba(212,175,55,0.4)',
-      boxShadow: '0 30px 80px -30px rgba(212,175,55,0.25)',
+      border: '1px solid rgba(201,162,75,0.4)',
+      boxShadow: '0 30px 80px -30px rgba(201,162,75,0.25)',
     }}
   >
     {/* Badge d'offre */}
     <div
       className="absolute top-3 right-3 px-3 py-1 rounded-full text-[10px] uppercase"
       style={{
-        background: 'linear-gradient(135deg, #D4AF37 0%, #E8C766 50%, #D4AF37 100%)',
-        color: '#0A0603',
-        fontFamily: 'Cinzel, serif',
+        background: '#C9A24B',
+        color: '#0F1A3C',
+        fontFamily: 'Inter, sans-serif',
         letterSpacing: '0.18em',
         fontWeight: 700,
       }}
@@ -40,31 +40,31 @@ const BundleCard = ({ dense = false, testId = 'bundle-card' }) => (
 
     <p
       className="text-[10px] uppercase mb-3"
-      style={{ color: '#D4AF37', letterSpacing: '0.32em', fontFamily: 'Cinzel, serif' }}
+      style={{ color: '#C9A24B', letterSpacing: '0.32em', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
     >
       ✦ Duo Découverte ✦
     </p>
 
     <h3
       style={{
-        fontFamily: 'Cormorant Garamond, serif',
+        fontFamily: 'Playfair Display, serif',
         fontWeight: 300,
         fontSize: dense ? 'clamp(22px, 2.6vw, 28px)' : 'clamp(26px, 3.4vw, 34px)',
-        color: '#F5EEE0',
+        color: '#0F1A3C',
         lineHeight: 1.15,
         marginBottom: 10,
       }}
       data-testid={`${testId}-title`}
     >
-      Ton <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>Arbre de Vie</em>
-      {' '}+ ta <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>meilleure destination</em>
+      Ton <em style={{ color: '#C9A24B', fontStyle: 'italic' }}>Arbre de Vie</em>
+      {' '}+ ta <em style={{ color: '#C9A24B', fontStyle: 'italic' }}>meilleure destination</em>
     </h3>
 
     <p
       className="text-sm md:text-base mb-5"
       style={{
-        color: 'rgba(227,215,255,0.8)',
-        fontFamily: 'Cormorant Garamond, serif',
+        color: '#232323',
+        fontFamily: 'Playfair Display, serif',
         fontStyle: 'italic',
         lineHeight: 1.55,
       }}
@@ -76,25 +76,25 @@ const BundleCard = ({ dense = false, testId = 'bundle-card' }) => (
 
     {/* Récap contenu */}
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-      <div className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.15)' }}>
-        <TreePine className="w-5 h-5 shrink-0 mt-0.5" strokeWidth={1.3} style={{ color: '#D4AF37' }} />
+      <div className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'rgba(201,162,75,0.05)', border: '1px solid rgba(201,162,75,0.15)' }}>
+        <TreePine className="w-5 h-5 shrink-0 mt-0.5" strokeWidth={1.3} style={{ color: '#C9A24B' }} />
         <div>
-          <div style={{ fontFamily: 'Cinzel, serif', fontSize: 12, color: '#F5EEE0', letterSpacing: '0.1em' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 12, color: '#0F1A3C', letterSpacing: '0.1em' }}>
             KABBALE
           </div>
-          <div className="text-xs mt-0.5" style={{ color: 'rgba(227,215,255,0.6)' }}>
-            10 Sephiroth · 22 chemins · <s>39€</s> <span style={{ color: '#D4AF37' }}>39€</span>
+          <div className="text-xs mt-0.5" style={{ color: 'rgba(15,26,60,0.60)' }}>
+            10 Sephiroth · 22 chemins · <s>39€</s> <span style={{ color: '#C9A24B' }}>39€</span>
           </div>
         </div>
       </div>
-      <div className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.15)' }}>
-        <Globe2 className="w-5 h-5 shrink-0 mt-0.5" strokeWidth={1.3} style={{ color: '#D4AF37' }} />
+      <div className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'rgba(201,162,75,0.05)', border: '1px solid rgba(201,162,75,0.15)' }}>
+        <Globe2 className="w-5 h-5 shrink-0 mt-0.5" strokeWidth={1.3} style={{ color: '#C9A24B' }} />
         <div>
-          <div style={{ fontFamily: 'Cinzel, serif', fontSize: 12, color: '#F5EEE0', letterSpacing: '0.1em' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 12, color: '#0F1A3C', letterSpacing: '0.1em' }}>
             ASTROCARTOGRAPHIE
           </div>
-          <div className="text-xs mt-0.5" style={{ color: 'rgba(227,215,255,0.6)' }}>
-            Lignes planétaires · 3 villes · <s>49€</s> <span style={{ color: '#D4AF37' }}>29€</span>
+          <div className="text-xs mt-0.5" style={{ color: 'rgba(15,26,60,0.60)' }}>
+            Lignes planétaires · 3 villes · <s>49€</s> <span style={{ color: '#C9A24B' }}>29€</span>
           </div>
         </div>
       </div>
@@ -102,17 +102,17 @@ const BundleCard = ({ dense = false, testId = 'bundle-card' }) => (
 
     {/* Prix ancre */}
     <div className="flex items-baseline gap-3 mb-5" data-testid={`${testId}-pricing`}>
-      <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 36, color: '#D4AF37', fontWeight: 300 }}>
+      <span style={{ fontFamily: 'Playfair Display, serif', fontSize: 36, color: '#C9A24B', fontWeight: 300 }}>
         68€
       </span>
-      <span style={{ textDecoration: 'line-through', color: 'rgba(227,215,255,0.4)', fontSize: 18 }}>88€</span>
-      <span className="text-xs" style={{ color: 'rgba(212,175,55,0.85)', letterSpacing: '0.15em' }}>
+      <span style={{ textDecoration: 'line-through', color: 'rgba(15,26,60,0.40)', fontSize: 18 }}>88€</span>
+      <span className="text-xs" style={{ color: 'rgba(201,162,75,0.85)', letterSpacing: '0.15em' }}>
         · TU ÉCONOMISES 20€
       </span>
     </div>
 
     <p className="text-[11px] mb-5" style={{ color: 'rgba(227,215,255,0.55)', lineHeight: 1.55 }}>
-      <Sparkles className="w-3 h-3 inline mr-1" style={{ color: '#D4AF37' }} />
+      <Sparkles className="w-3 h-3 inline mr-1" style={{ color: '#C9A24B' }} />
       Commence par ta Kabbale. Une fois ton Arbre reçu, ton Astrocartographie est déverrouillée
       à 29€ (au lieu de 49€) directement depuis ta page de succès.
     </p>

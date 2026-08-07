@@ -1131,3 +1131,58 @@ body:has(.ps-home) { padding-top: 0 !important; }
 body:has(.ps-home)::before,
 body:has(.ps-home)::after { display: none !important; }
 .ps-home { position: relative; z-index: 1; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * V3 LIGHT SHELL — surcharges scopées via [data-shell="light"]
+ * Bascule automatique des composants dark hérités (card-mystical,
+ * btn-mystical, plume-glass, card-editorial) vers la palette
+ * crème/navy/or de la charte V3.
+ * ═══════════════════════════════════════════════════════════════ */
+[data-shell="light"] .card-mystical {
+  background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #E3E1DC !important;
+  box-shadow: 0 8px 24px -12px rgba(15,26,60,0.08);
+}
+[data-shell="light"] .card-mystical:hover {
+  border-color: rgba(201,162,75,0.55) !important;
+  animation: none !important;
+  box-shadow: 0 12px 28px -12px rgba(15,26,60,0.14);
+}
+[data-shell="light"] .btn-mystical {
+  color: #0F1A3C;
+  background: transparent;
+  border: 1px solid rgba(201,162,75,0.55);
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+[data-shell="light"] .btn-mystical:hover:not(:disabled) {
+  background: rgba(201,162,75,0.10);
+  border-color: #C9A24B;
+}
+[data-shell="light"] .btn-mystical-filled {
+  color: #0F1A3C;
+  background: #C9A24B;
+  border: 1px solid #C9A24B;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  box-shadow: 0 8px 22px -10px rgba(201,162,75,0.55);
+  animation: none;
+}
+[data-shell="light"] .btn-mystical-filled:hover:not(:disabled) {
+  background: #B48F3E;
+  box-shadow: 0 12px 28px -10px rgba(201,162,75,0.70);
+  transform: translateY(-1px);
+}
+[data-shell="light"] .plume-glass,
+[data-shell="light"] .plume-glass-featured {
+  background: #FFFFFF !important;
+  border: 1px solid #E3E1DC !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 12px 32px -18px rgba(15,26,60,0.10) !important;
+}
