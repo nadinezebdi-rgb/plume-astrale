@@ -74,6 +74,7 @@ from routes.contact import router as contact_router
 from routes.apercu_discount import router as apercu_discount_router
 from routes.gift import router as gift_router
 from routes.pdf_preview import router as pdf_preview_router
+from routes.pdf_test_admin import router as pdf_test_admin_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from integrations.payments.stripe.checkout import (
@@ -144,6 +145,7 @@ api_router.include_router(contact_router)
 api_router.include_router(apercu_discount_router)
 api_router.include_router(gift_router)
 api_router.include_router(pdf_preview_router)
+api_router.include_router(pdf_test_admin_router)
 
 
 # ════════════════════════════════════════════

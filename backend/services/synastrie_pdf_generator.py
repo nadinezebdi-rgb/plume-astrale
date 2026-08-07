@@ -372,21 +372,40 @@ class SynastriePDFGenerator:
         c.drawCentredString(self.w / 2, y, "le rapport de votre lien")
         y -= 3 * cm
 
-        # Noms
-        c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 22)
+        # Noms — dorure gaufrée façon livre imprimé (édition personnelle pour un couple)
         n1 = (p1.get('prenom') or '').strip().title()
         n2 = (p2.get('prenom') or '').strip().title()
-        c.drawCentredString(self.w / 2, y, f"{n1}")
-        y -= 1 * cm
-        c.setFillColor(CREAM)
-        c.setFont("Helvetica-Oblique", 13)
-        c.drawCentredString(self.w / 2, y, "&")
-        y -= 1 * cm
+
+        # Petit filet + label "ÉDITION PERSONNELLE"
         c.setFillColor(GOLD)
-        c.setFont("Helvetica-Bold", 22)
-        c.drawCentredString(self.w / 2, y, f"{n2}")
-        y -= 2.5 * cm
+        c.setFont("Helvetica", 6)
+        c.drawCentredString(self.w / 2, y, "·   ·   ·")
+        y -= 0.5 * cm
+        c.setFillColor(INK_SOFT)
+        c.setFont("Helvetica", 7)
+        c.drawCentredString(self.w / 2, y, "É D I T I O N  ·  P E R S O N N E L L E  ·  P O U R")
+        y -= 1.1 * cm
+
+        # Prénom 1 (or vif, letter-spacé via espaces)
+        c.setFillColor(GOLD_LIGHT)
+        c.setFont("Helvetica-Bold", 24)
+        c.drawCentredString(self.w / 2, y, ' '.join(n1.upper()))
+        y -= 1.1 * cm
+        # &
+        c.setFillColor(CREAM)
+        c.setFont("Helvetica-Oblique", 15)
+        c.drawCentredString(self.w / 2, y, "&")
+        y -= 1.1 * cm
+        # Prénom 2
+        c.setFillColor(GOLD_LIGHT)
+        c.setFont("Helvetica-Bold", 24)
+        c.drawCentredString(self.w / 2, y, ' '.join(n2.upper()))
+        y -= 0.5 * cm
+        # Filet doré final
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica", 6)
+        c.drawCentredString(self.w / 2, y, "·   ·   ·")
+        y -= 2.0 * cm
 
         # Footer date
         c.setStrokeColor(GOLD)

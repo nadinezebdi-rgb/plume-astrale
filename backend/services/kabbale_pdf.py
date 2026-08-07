@@ -461,15 +461,8 @@ def _generate_kabbale_impl(
             birth_fr = birth_date_iso
 
     buffer = BytesIO()
-    doc = SimpleDocTemplate(
-        buffer, pagesize=A4,
-        leftMargin=2.2*cm, rightMargin=2.2*cm,
-        topMargin=2*cm, bottomMargin=2*cm,
-        title="Ton Arbre de Vie Kabbalistique", author="Solena · Plume Astrale",
-    )
     styles = _make_styles()
 
-    story: list = []
     # Extraire la planète dominante depuis les Sephiroth
     dominant_planet = ''
     try:
@@ -487,43 +480,69 @@ def _generate_kabbale_impl(
     except Exception:
         dominant_planet = ''
 
-    _cover(story, styles, first_name or "Voyageur", birth_fr, dominant_display, spiritual_focus, birth_iso=birth_date_iso or '')
-
-    # ─── Sommaire prestige (charte livre unifiée) ───
+    # ─── Story builder appelé en 2 passes (sommaire avec vraies pages) ───
+    from services.pdf_multipass_toc import build_with_toc, chapter_marker
     from services.pdf_prestige import toc_page as _toc_page, chapter_opener as _chapter_opener
-    _toc_page(story, styles, [
-        {'roman': 'I',   'title': "L'Arbre de Vie kabbalistique", 'page': 4},
-        {'roman': 'II',  'title': "Tes trois piliers",             'page': None},
-        {'roman': 'III', 'title': "Les 10 Sephiroth",              'page': None},
-        {'roman': 'IV',  'title': "Les 22 chemins",                'page': None},
-        {'roman': 'V',   'title': "Da'at, la sphère invisible",    'page': None},
-        {'roman': 'VI',  'title': "Synthèse",                      'page': None},
-        {'roman': 'VII', 'title': "Rituels de communion",          'page': None},
-    ])
 
-    _chapter_opener(story, styles, 'I', "L'Arbre de Vie kabbalistique", "Comprendre l'ancien schéma")
-    _intro(story, styles)
-    _chapter_opener(story, styles, 'II', "Tes trois piliers", "Rigueur, Miséricorde, Équilibre")
-    _pillars(story, styles, pillar_balance)
-    _chapter_opener(story, styles, 'III', "Les 10 Sephiroth", "Les dix sphères de conscience")
-    _sephiroth_pages(story, styles, sephiroth, dominant_planet=str(dominant_planet or ''))
-    _chapter_opener(story, styles, 'IV', "Les 22 chemins", "Les sentiers de la Lumière")
-    _paths_page(story, styles, paths)
-    _chapter_opener(story, styles, 'V', "Da'at, la sphère invisible", "L'abîme et la connaissance")
-    _daat_page(story, styles, daat)
-    _chapter_opener(story, styles, 'VI', "Synthèse", "Le message de Soléna")
-    _synthesis(story, styles, dominant_display, spiritual_focus, synthesis)
+    def _build_story(page_map):
+        story: list = []
 
-    # Enrichissement IA : insere des sections narratives premium avant les rituels
-    if ai_sections:
-        _append_ai_sections(story, styles, ai_sections, report_type='kabbale')
+        _cover(story, styles, first_name or "Voyageur", birth_fr, dominant_display,
+               spiritual_focus, birth_iso=birth_date_iso or '')
 
-    _chapter_opener(story, styles, 'VII', "Rituels de communion", "Prières pour honorer ton Arbre")
-    _rituels_signature(story, styles, first_name or "Voyageur", dominant_display)
+        def _pg(cid, fallback=None):
+            return page_map.get(cid, fallback) if page_map is not None else fallback
 
-    doc.build(story, onFirstPage=_bg_canvas, onLaterPages=_bg_canvas)
-    buffer.seek(0)
-    return buffer.getvalue()
+        _toc_page(story, styles, [
+            {'roman': 'I',   'title': "L'Arbre de Vie kabbalistique", 'page': _pg('chap1')},
+            {'roman': 'II',  'title': "Tes trois piliers",             'page': _pg('chap2')},
+            {'roman': 'III', 'title': "Les 10 Sephiroth",              'page': _pg('chap3')},
+            {'roman': 'IV',  'title': "Les 22 chemins",                'page': _pg('chap4')},
+            {'roman': 'V',   'title': "Da'at, la sphère invisible",    'page': _pg('chap5')},
+            {'roman': 'VI',  'title': "Synthèse",                      'page': _pg('chap6')},
+            {'roman': 'VII', 'title': "Rituels de communion",          'page': _pg('chap7')},
+        ])
+
+        story.append(chapter_marker('chap1'))
+        _chapter_opener(story, styles, 'I', "L'Arbre de Vie kabbalistique", "Comprendre l'ancien schéma")
+        _intro(story, styles)
+        story.append(chapter_marker('chap2'))
+        _chapter_opener(story, styles, 'II', "Tes trois piliers", "Rigueur, Miséricorde, Équilibre")
+        _pillars(story, styles, pillar_balance)
+        story.append(chapter_marker('chap3'))
+        _chapter_opener(story, styles, 'III', "Les 10 Sephiroth", "Les dix sphères de conscience")
+        _sephiroth_pages(story, styles, sephiroth, dominant_planet=str(dominant_planet or ''))
+        story.append(chapter_marker('chap4'))
+        _chapter_opener(story, styles, 'IV', "Les 22 chemins", "Les sentiers de la Lumière")
+        _paths_page(story, styles, paths)
+        story.append(chapter_marker('chap5'))
+        _chapter_opener(story, styles, 'V', "Da'at, la sphère invisible", "L'abîme et la connaissance")
+        _daat_page(story, styles, daat)
+        story.append(chapter_marker('chap6'))
+        _chapter_opener(story, styles, 'VI', "Synthèse", "Le message de Soléna")
+        _synthesis(story, styles, dominant_display, spiritual_focus, synthesis)
+
+        if ai_sections:
+            _append_ai_sections(story, styles, ai_sections, report_type='kabbale')
+
+        story.append(chapter_marker('chap7'))
+        _chapter_opener(story, styles, 'VII', "Rituels de communion", "Prières pour honorer ton Arbre")
+        _rituels_signature(story, styles, first_name or "Voyageur", dominant_display)
+
+        return story
+
+    return build_with_toc(
+        _build_story,
+        doc_kwargs={
+            'pagesize': A4,
+            'leftMargin': 2.2 * cm, 'rightMargin': 2.2 * cm,
+            'topMargin': 2 * cm, 'bottomMargin': 2 * cm,
+            'title': "Ton Arbre de Vie Kabbalistique",
+            'author': "Solena · Plume Astrale",
+        },
+        on_first_page=_bg_canvas,
+        on_later_pages=_bg_canvas,
+    )
 
 
 def _append_ai_sections(story, styles, ai_sections: Dict[str, str], report_type: str) -> None:

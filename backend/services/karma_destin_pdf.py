@@ -90,78 +90,81 @@ class KarmaDestinPDFGenerator:
         Si fourni, chaque section remplace le texte générique par la version IA.
         Si absent, fallback texte générique (comportement historique).
         """
-        buffer = BytesIO()
         self._ai = ai_sections or {}
-        doc = SimpleDocTemplate(
-            buffer,
-            pagesize=A4,
-            topMargin=1.5 * cm,
-            bottomMargin=1.5 * cm,
-            leftMargin=1.5 * cm,
-            rightMargin=1.5 * cm,
-        )
-        
-        story = []
-        
-        # Page 1: Couverture
-        story.extend(self._page_cover(first_name))
-        story.append(PageBreak())
-
-        # Page 2: Sommaire prestige
-        from services.pdf_prestige import toc_page as _toc_page, chapter_opener as _chapter_opener
-        # Adapter les styles à l'API attendue par toc_page (`caption`, `h2`)
         _mini_styles = {
             'caption': self.subtitle_style,
             'h2': self.heading_style,
             'title': self.title_style,
             'subtitle': self.subtitle_style,
         }
-        _toc_page(story, _mini_styles, [
-            {'roman': 'I',   'title': "Comprendre ton karma",             'page': 4},
-            {'roman': 'II',  'title': "Tes nœuds lunaires",               'page': None},
-            {'roman': 'III', 'title': "Saturne — les leçons",             'page': None},
-            {'roman': 'IV',  'title': "Chiron — la blessure sacrée",      'page': None},
-            {'roman': 'V',   'title': "Pluton — la transformation",       'page': None},
-            {'roman': 'VI',  'title': "Karma générationnel",              'page': None},
-            {'roman': 'VII', 'title': "Rituels de libération",            'page': None},
-        ])
-        
-        _chapter_opener(story, _mini_styles, 'I', "Comprendre ton karma", "Une invitation à l'écoute")
-        # Page 2: Introduction karmique
-        story.extend(self._page_intro())
-        story.append(PageBreak())
-        
-        _chapter_opener(story, _mini_styles, 'II', "Tes nœuds lunaires", "Le chemin de destinée")
-        # Pages 3-5: Nœuds lunaires (chemin de destinée)
-        story.extend(self._pages_noeuds_lunaires(karmic_data))
-        story.append(PageBreak())
-        
-        _chapter_opener(story, _mini_styles, 'III', "Saturne", "Les leçons karmiques")
-        # Pages 6-8: Saturne (leçons karmiques)
-        story.extend(self._pages_saturne(karmic_data))
-        story.append(PageBreak())
-        
-        _chapter_opener(story, _mini_styles, 'IV', "Chiron", "La blessure sacrée")
-        # Pages 9-11: Chiron (guérison karmique)
-        story.extend(self._pages_chiron(karmic_data))
-        story.append(PageBreak())
-        
-        _chapter_opener(story, _mini_styles, 'V', "Pluton", "La transformation profonde")
-        # Pages 12-13: Pluton (transformation)
-        story.extend(self._pages_pluton(karmic_data))
-        story.append(PageBreak())
-        
-        _chapter_opener(story, _mini_styles, 'VI', "Karma générationnel", "L'héritage des lignées")
-        # Page 14: Karma générationnel
-        story.extend(self._page_karma_generationnel(karmic_data))
-        story.append(PageBreak())
-        
-        _chapter_opener(story, _mini_styles, 'VII', "Rituels de libération", "Cinq pratiques pour l'âme")
-        # Page 15: Rituels de libération
-        story.extend(self._page_rituels_liberation(first_name))
-        
-        doc.build(story, onFirstPage=_bg_canvas, onLaterPages=_bg_canvas)
-        return buffer.getvalue()
+
+        # ─── Story builder appelé en 2 passes (sommaire avec vraies pages) ───
+        from services.pdf_multipass_toc import build_with_toc, chapter_marker
+        from services.pdf_prestige import toc_page as _toc_page, chapter_opener as _chapter_opener
+
+        def _build_story(page_map):
+            story = []
+            story.extend(self._page_cover(first_name))
+            story.append(PageBreak())
+
+            def _pg(cid, fb=None):
+                return page_map.get(cid, fb) if page_map is not None else fb
+
+            _toc_page(story, _mini_styles, [
+                {'roman': 'I',   'title': "Comprendre ton karma",         'page': _pg('chap1')},
+                {'roman': 'II',  'title': "Tes nœuds lunaires",           'page': _pg('chap2')},
+                {'roman': 'III', 'title': "Saturne — les leçons",         'page': _pg('chap3')},
+                {'roman': 'IV',  'title': "Chiron — la blessure sacrée",  'page': _pg('chap4')},
+                {'roman': 'V',   'title': "Pluton — la transformation",   'page': _pg('chap5')},
+                {'roman': 'VI',  'title': "Karma générationnel",          'page': _pg('chap6')},
+                {'roman': 'VII', 'title': "Rituels de libération",        'page': _pg('chap7')},
+            ])
+
+            story.append(chapter_marker('chap1'))
+            _chapter_opener(story, _mini_styles, 'I', "Comprendre ton karma", "Une invitation à l'écoute")
+            story.extend(self._page_intro())
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap2'))
+            _chapter_opener(story, _mini_styles, 'II', "Tes nœuds lunaires", "Le chemin de destinée")
+            story.extend(self._pages_noeuds_lunaires(karmic_data))
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap3'))
+            _chapter_opener(story, _mini_styles, 'III', "Saturne", "Les leçons karmiques")
+            story.extend(self._pages_saturne(karmic_data))
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap4'))
+            _chapter_opener(story, _mini_styles, 'IV', "Chiron", "La blessure sacrée")
+            story.extend(self._pages_chiron(karmic_data))
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap5'))
+            _chapter_opener(story, _mini_styles, 'V', "Pluton", "La transformation profonde")
+            story.extend(self._pages_pluton(karmic_data))
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap6'))
+            _chapter_opener(story, _mini_styles, 'VI', "Karma générationnel", "L'héritage des lignées")
+            story.extend(self._page_karma_generationnel(karmic_data))
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap7'))
+            _chapter_opener(story, _mini_styles, 'VII', "Rituels de libération", "Cinq pratiques pour l'âme")
+            story.extend(self._page_rituels_liberation(first_name))
+            return story
+
+        return build_with_toc(
+            _build_story,
+            doc_kwargs={
+                'pagesize': A4,
+                'topMargin': 1.5 * cm, 'bottomMargin': 1.5 * cm,
+                'leftMargin': 1.5 * cm, 'rightMargin': 1.5 * cm,
+            },
+            on_first_page=_bg_canvas,
+            on_later_pages=_bg_canvas,
+        )
     
     def _page_cover(self, name: str) -> List:
         """Couverture spirituelle avec hero illustré (nœuds karmiques)."""
