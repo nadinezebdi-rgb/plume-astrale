@@ -28,8 +28,23 @@ export default function AdminPdfTest() {
   const [partnerName, setPartnerName] = useState('Adrien');
   const [loading, setLoading] = useState(null);
   const [errMsg, setErrMsg] = useState(null);
+  const [analytics, setAnalytics] = useState({ logs: [], stats: [] });
+  const [natalTier, setNatalTier] = useState('flash');  // 'flash' | 'ultra'
 
   const backend = process.env.REACT_APP_BACKEND_URL;
+  const token = session?.access_token || null;
+
+  const fetchAnalytics = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${backend}/api/admin/pdf-test/_logs/recent?limit=10`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) setAnalytics(await res.json());
+    } catch (e) { /* silent */ }
+  }, [backend, token]);
+
+  useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
 
   // ─── Gate : chargement / non-authent / non-admin ───
   if (authLoading) {
@@ -80,22 +95,6 @@ export default function AdminPdfTest() {
       </PsPageShell>
     );
   }
-
-  const token = session?.access_token || null;
-  const [analytics, setAnalytics] = useState({ logs: [], stats: [] });
-  const [natalTier, setNatalTier] = useState('flash');  // 'flash' | 'ultra'
-
-  const fetchAnalytics = useCallback(async () => {
-    if (!token) return;
-    try {
-      const res = await fetch(`${backend}/api/admin/pdf-test/_logs/recent?limit=10`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) setAnalytics(await res.json());
-    } catch (e) { /* silent */ }
-  }, [backend, token]);
-
-  useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
 
   const buildUrl = (product, download = false) => {
     const params = new URLSearchParams({

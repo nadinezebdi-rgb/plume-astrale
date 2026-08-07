@@ -144,6 +144,7 @@ def _fixture(product: str, first_name: str, partner_name: Optional[str] = None,
         # le rendu du sommaire complet 25+ pages avec toutes les parties/chapitres
         if tier == 'ultra':
             natal_data['book_data'] = {
+                '_source': 'gpt',
                 'chapter_intro': "Ce livre s'ouvre comme une carte du ciel — la tienne. Chaque planète y raconte une part de qui tu es, et l'ensemble compose une mélodie unique au monde. Prends le temps de lire chaque page comme on lit une lettre longtemps attendue.",
                 'triangle_intime_intro': "Ton Soleil, ta Lune et ton Ascendant forment un triangle d'or — l'essence de ta signature intérieure.",
                 'planets_intimate_intro': "Voici les cinq planètes qui composent ton quotidien intime — celles qui vibrent chaque jour à ton contact.",
