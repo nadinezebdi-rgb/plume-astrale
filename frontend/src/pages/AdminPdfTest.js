@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
-import { FileText, ExternalLink, Loader2, RefreshCw, User, Users, ShieldAlert } from 'lucide-react';
+import { FileText, ExternalLink, Loader2, RefreshCw, User, Users, ShieldAlert, TrendingUp, Sparkles } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
 import { useAuth } from '@/context/AuthContext';
 
@@ -82,11 +82,26 @@ export default function AdminPdfTest() {
   }
 
   const token = session?.access_token || null;
+  const [analytics, setAnalytics] = useState({ logs: [], stats: [] });
+  const [natalTier, setNatalTier] = useState('flash');  // 'flash' | 'ultra'
+
+  const fetchAnalytics = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${backend}/api/admin/pdf-test/_logs/recent?limit=10`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) setAnalytics(await res.json());
+    } catch (e) { /* silent */ }
+  }, [backend, token]);
+
+  useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
 
   const buildUrl = (product, download = false) => {
     const params = new URLSearchParams({
       first_name: firstName || 'Léa',
       ...(product === 'synastrie' && partnerName ? { partner_name: partnerName } : {}),
+      ...(product === 'theme-natal' && natalTier === 'ultra' ? { tier: 'ultra' } : {}),
       ...(download ? { download: 'true' } : {}),
     });
     return `${backend}/api/admin/pdf-test/${product}?${params.toString()}`;
@@ -112,9 +127,10 @@ export default function AdminPdfTest() {
       const blobUrl = URL.createObjectURL(blob);
       const win = window.open(blobUrl, '_blank', 'noopener');
       if (download && win) {
-        // Force download name via anchor
         setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
       }
+      // Refresh analytics after successful gen
+      fetchAnalytics();
     } catch (e) {
       setErrMsg("Erreur réseau. Vérifie ta connexion.");
     } finally {
@@ -244,6 +260,50 @@ export default function AdminPdfTest() {
               }}
               placeholder="Adrien"
             />
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: 'rgba(15,26,60,0.55)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Sparkles style={{ width: 12, height: 12 }} strokeWidth={2} />
+              Thème natal · tier
+            </span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {['flash', 'ultra'].map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setNatalTier(t)}
+                  data-testid={`admin-pdf-test-tier-${t}`}
+                  style={{
+                    flex: 1,
+                    padding: '10px 14px',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: '0.10em',
+                    textTransform: 'uppercase',
+                    color: natalTier === t ? '#0F1A3C' : 'rgba(15,26,60,0.55)',
+                    background: natalTier === t ? '#C9A24B' : '#F7F5F0',
+                    border: `1px solid ${natalTier === t ? '#C9A24B' : '#E3E1DC'}`,
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
           </label>
         </div>
       </section>
@@ -424,6 +484,120 @@ export default function AdminPdfTest() {
             {errMsg}
           </div>
         )}
+
+        {/* ═══ ANALYTICS — dernières générations & stats par produit ═══ */}
+        <div
+          data-testid="admin-pdf-test-analytics"
+          style={{
+            marginTop: 40,
+            background: '#FFFFFF',
+            border: '1px solid #E3E1DC',
+            borderRadius: 14,
+            padding: 24,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+            <TrendingUp style={{ width: 18, height: 18, color: '#C9A24B' }} strokeWidth={1.8} />
+            <h3
+              style={{
+                fontFamily: 'Playfair Display, serif',
+                fontSize: 20,
+                fontWeight: 500,
+                color: '#0F1A3C',
+                margin: 0,
+              }}
+            >
+              Analytics — dernières générations
+            </h3>
+            <button
+              type="button"
+              onClick={fetchAnalytics}
+              data-testid="admin-pdf-test-analytics-refresh"
+              style={{
+                marginLeft: 'auto',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '6px 12px',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: '#C9A24B',
+                background: 'transparent',
+                border: '1px solid rgba(201,162,75,0.35)',
+                borderRadius: 999,
+                cursor: 'pointer',
+              }}
+            >
+              <RefreshCw style={{ width: 11, height: 11 }} strokeWidth={2} />
+              Rafraîchir
+            </button>
+          </div>
+
+          {/* Stats par produit */}
+          {analytics.stats && analytics.stats.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+              {analytics.stats.map((s) => (
+                <span
+                  key={s._id}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: 999,
+                    background: 'rgba(201,162,75,0.10)',
+                    border: '1px solid rgba(201,162,75,0.30)',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 12,
+                    color: '#0F1A3C',
+                  }}
+                >
+                  <strong>{s._id}</strong> · {s.count}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Table des logs récents */}
+          {analytics.logs.length === 0 ? (
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'rgba(15,26,60,0.55)', margin: 0 }}>
+              Aucune génération enregistrée pour le moment.
+            </p>
+          ) : (
+            <div style={{ overflow: 'auto', maxHeight: 260 }}>
+              <table style={{ width: '100%', fontFamily: 'Inter, sans-serif', fontSize: 12, borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#F7F5F0', color: 'rgba(15,26,60,0.55)', textAlign: 'left' }}>
+                    <th style={{ padding: '8px 10px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Produit</th>
+                    <th style={{ padding: '8px 10px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Destinataire</th>
+                    <th style={{ padding: '8px 10px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Tier</th>
+                    <th style={{ padding: '8px 10px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Taille</th>
+                    <th style={{ padding: '8px 10px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analytics.logs.map((l, i) => (
+                    <tr key={i} style={{ borderTop: '1px solid #E3E1DC' }}>
+                      <td style={{ padding: '8px 10px', color: '#0F1A3C', fontWeight: 500 }}>{l.product}</td>
+                      <td style={{ padding: '8px 10px', color: '#232323' }}>
+                        {l.first_name}{l.partner_name ? ` & ${l.partner_name}` : ''}
+                      </td>
+                      <td style={{ padding: '8px 10px', color: 'rgba(15,26,60,0.65)' }}>
+                        {l.tier || '—'}
+                      </td>
+                      <td style={{ padding: '8px 10px', color: 'rgba(15,26,60,0.65)' }}>
+                        {l.pdf_size ? `${Math.round(l.pdf_size / 1024)} KB` : '—'}
+                      </td>
+                      <td style={{ padding: '8px 10px', color: 'rgba(15,26,60,0.55)' }}>
+                        {l.created_at ? new Date(l.created_at).toLocaleString('fr-FR') : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </section>
     </PsPageShell>
   );

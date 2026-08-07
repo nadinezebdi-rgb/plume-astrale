@@ -14,8 +14,9 @@ signalé — à protéger via auth si expose publique). Le PDF est régénéré
 """
 from __future__ import annotations
 import logging
+from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from fastapi.responses import Response
 
 from routes.admin import require_admin
@@ -24,8 +25,35 @@ router = APIRouter(prefix="/admin/pdf-test", tags=["admin-pdf-test"])
 logger = logging.getLogger(__name__)
 
 
-def _fixture(product: str, first_name: str, partner_name: Optional[str] = None) -> bytes:
-    """Génère un PDF complet du produit demandé avec des données factices réalistes."""
+async def _log_generation(admin_email: str, product: str, first_name: str,
+                           partner_name: Optional[str], tier: Optional[str],
+                           pdf_size: int, ip: str) -> None:
+    """Trace la génération dans Mongo — non-bloquant, silencieux si Mongo indispo."""
+    try:
+        from services.mongo import get_db  # type: ignore
+        db = get_db()
+        if db is not None:
+            await db.admin_pdf_test_logs.insert_one({
+                'admin_email': admin_email,
+                'product': product,
+                'first_name': first_name,
+                'partner_name': partner_name,
+                'tier': tier,
+                'pdf_size': pdf_size,
+                'ip': ip,
+                'created_at': datetime.now(timezone.utc).isoformat(),
+            })
+    except Exception as e:
+        logger.debug(f'[admin_pdf_test] Mongo log skipped: {e}')
+
+
+def _fixture(product: str, first_name: str, partner_name: Optional[str] = None,
+              tier: Optional[str] = None) -> bytes:
+    """Génère un PDF complet du produit demandé avec des données factices réalistes.
+
+    `tier='ultra'` sur theme-natal enrichit le natal_data avec book_data mocké
+    (comme GPT le produirait) pour tester le TOC complet 25+ pages.
+    """
     if product == 'astrocartographie':
         from services.astrocartographie_pdf import generate_astrocartographie_pdf
         chosen = [
@@ -102,14 +130,30 @@ def _fixture(product: str, first_name: str, partner_name: Optional[str] = None) 
         natal_data = {
             'sun_sign': 'Taureau', 'moon_sign': 'Poissons', 'ascendant_sign': 'Vierge',
             'planets': [
-                {'name': 'Soleil',    'sign': 'Taureau',  'analysis': 'Ton Soleil en Taureau te donne une stabilité rassurante et un goût prononcé pour la beauté sensorielle.'},
-                {'name': 'Lune',      'sign': 'Poissons', 'analysis': 'Ta Lune en Poissons ouvre ton monde émotionnel à une sensibilité rare, presque médiumnique.'},
-                {'name': 'Mercure',   'sign': 'Gémeaux',  'analysis': 'Mercure en Gémeaux — ton esprit vif jongle avec les idées.'},
-                {'name': 'Vénus',     'sign': 'Bélier',   'analysis': 'Vénus en Bélier — tu aimes avec passion et immédiateté.'},
-                {'name': 'Mars',      'sign': 'Cancer',   'analysis': 'Mars en Cancer — tu défends les tiens avec ferveur.'},
+                {'name': 'Soleil',    'sign': 'Taureau',  'analysis': 'Ton Soleil en Taureau te donne une stabilité rassurante et un goût prononcé pour la beauté sensorielle. Tu construis lentement mais durablement.'},
+                {'name': 'Lune',      'sign': 'Poissons', 'analysis': 'Ta Lune en Poissons ouvre ton monde émotionnel à une sensibilité rare, presque médiumnique. Tu ressens ce que les autres cachent.'},
+                {'name': 'Mercure',   'sign': 'Gémeaux',  'analysis': 'Mercure en Gémeaux — ton esprit vif jongle avec les idées et les mots. La curiosité est ton moteur.'},
+                {'name': 'Vénus',     'sign': 'Bélier',   'analysis': "Vénus en Bélier — tu aimes avec passion et immédiateté. L'attente t'ennuie."},
+                {'name': 'Mars',      'sign': 'Cancer',   'analysis': 'Mars en Cancer — tu défends les tiens avec ferveur, mais évites la confrontation directe.'},
+                {'name': 'Jupiter',   'sign': 'Sagittaire', 'analysis': 'Jupiter en Sagittaire — un horizon s\'ouvre. La foi et le voyage te grandissent.'},
+                {'name': 'Saturne',   'sign': 'Verseau',  'analysis': "Saturne en Verseau — tes leçons passent par l'engagement collectif."},
             ],
-            'tier': 'ultra',
+            'tier': tier or 'flash',
         }
+        # Tier ultra : injecte book_data mocké (comme GPT enrichi) pour déclencher
+        # le rendu du sommaire complet 25+ pages avec toutes les parties/chapitres
+        if tier == 'ultra':
+            natal_data['book_data'] = {
+                'chapter_intro': "Ce livre s'ouvre comme une carte du ciel — la tienne. Chaque planète y raconte une part de qui tu es, et l'ensemble compose une mélodie unique au monde. Prends le temps de lire chaque page comme on lit une lettre longtemps attendue.",
+                'triangle_intime_intro': "Ton Soleil, ta Lune et ton Ascendant forment un triangle d'or — l'essence de ta signature intérieure.",
+                'planets_intimate_intro': "Voici les cinq planètes qui composent ton quotidien intime — celles qui vibrent chaque jour à ton contact.",
+                'planets_generational_intro': "Ces planètes plus lentes marquent les strates profondes de ta génération. Elles racontent l'époque à travers toi.",
+                'aspects_intro': "Les aspects sont la danse invisible entre tes planètes — parfois harmonieuse, parfois électrique. Tout y est mouvement.",
+                'houses_intro': "Les douze maisons sont les scènes de ta vie. Chacune met en lumière un domaine — l'amour, le travail, les racines, l'invisible.",
+                'year_ahead': "L'année qui vient te demande de ralentir puis d'oser. Regarde vers avril : quelque chose y bascule doucement, sans bruit.",
+                'emotional_ending': "Referme ce livre avec douceur. Tu portais déjà en toi tout ce qu'il révèle. Il n'a fait que rendre visible ce que le ciel avait tracé pour toi.",
+                'colophon': "Ce livre a été composé en Cinzel et Cormorant Garamond, sur papier crème virtuel, pour Plume Astrale, en février 2026.",
+            }
         return build_natal_pdf_v2(first_name, '1990-05-15', natal_data)
 
     if product == 'synastrie':
@@ -126,8 +170,10 @@ def _fixture(product: str, first_name: str, partner_name: Optional[str] = None) 
 @router.get("/{product}")
 async def generate_test_pdf(
     product: str,
+    request: Request,
     first_name: str = Query('Léa', description="Prénom factice pour la couverture"),
     partner_name: Optional[str] = Query(None, description="Prénom partenaire (synastrie)"),
+    tier: Optional[str] = Query(None, description="'ultra' pour Thème Natal 25+ pages"),
     download: bool = Query(False),
     _admin: dict = Depends(require_admin),
 ):
@@ -138,12 +184,17 @@ async def generate_test_pdf(
         raise HTTPException(status_code=404, detail=f"Produit '{product}' inconnu — options : {sorted(valid)}")
 
     try:
-        pdf_bytes = _fixture(key, first_name=first_name, partner_name=partner_name)
+        pdf_bytes = _fixture(key, first_name=first_name, partner_name=partner_name, tier=tier)
     except HTTPException:
         raise
     except Exception as e:
         logger.exception(f'[admin_pdf_test] gen {key} failed')
         raise HTTPException(status_code=500, detail=f"Génération impossible : {e}")
+
+    # Trace analytics (non-bloquant)
+    admin_email = (_admin or {}).get('email') or 'unknown'
+    ip = (request.client.host if request.client else '') or ''
+    await _log_generation(admin_email, key, first_name, partner_name, tier, len(pdf_bytes), ip)
 
     disposition = (
         f'attachment; filename="test-{key}-{first_name}.pdf"' if download
@@ -154,3 +205,27 @@ async def generate_test_pdf(
         media_type='application/pdf',
         headers={'Content-Disposition': disposition, 'Cache-Control': 'no-store'},
     )
+
+
+@router.get("/_logs/recent")
+async def get_recent_generations(_admin: dict = Depends(require_admin), limit: int = Query(20, ge=1, le=100)):
+    """Retourne les N dernières générations admin (pour le mini-widget analytics)."""
+    try:
+        from services.mongo import get_db  # type: ignore
+        db = get_db()
+        if db is None:
+            return {'logs': [], 'total': 0}
+        cursor = db.admin_pdf_test_logs.find({}, {'_id': 0}).sort('created_at', -1).limit(limit)
+        logs = [doc async for doc in cursor]
+        # Agrégation par produit (les 30 derniers jours)
+        pipeline = [
+            {'$sort': {'created_at': -1}},
+            {'$limit': 500},
+            {'$group': {'_id': '$product', 'count': {'$sum': 1}}},
+            {'$sort': {'count': -1}},
+        ]
+        stats = [doc async for doc in db.admin_pdf_test_logs.aggregate(pipeline)]
+        return {'logs': logs, 'total': len(logs), 'stats': stats}
+    except Exception as e:
+        logger.warning(f'[admin_pdf_test] recent logs fetch failed: {e}')
+        return {'logs': [], 'total': 0, 'stats': []}
