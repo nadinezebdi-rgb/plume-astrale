@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { FileText, ExternalLink, Loader2, RefreshCw, User, Users } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
+import { FileText, ExternalLink, Loader2, RefreshCw, User, Users, ShieldAlert } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
+import { useAuth } from '@/context/AuthContext';
 
 /**
  * /admin/pdf-test — dashboard admin pour prévisualiser chaque PDF prestige
@@ -20,11 +22,66 @@ const PRODUCTS = [
 ];
 
 export default function AdminPdfTest() {
+  const { user, session, loading: authLoading } = useAuth();
+  const isAdmin = user?.is_admin || user?.role === 'admin' || user?.email === 'admin@plume-astrale.fr';
   const [firstName, setFirstName] = useState('Léa');
   const [partnerName, setPartnerName] = useState('Adrien');
   const [loading, setLoading] = useState(null);
+  const [errMsg, setErrMsg] = useState(null);
 
   const backend = process.env.REACT_APP_BACKEND_URL;
+
+  // ─── Gate : chargement / non-authent / non-admin ───
+  if (authLoading) {
+    return (
+      <PsPageShell background="light">
+        <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Loader2 style={{ width: 22, height: 22, color: '#C9A24B' }} className="animate-spin" />
+        </div>
+      </PsPageShell>
+    );
+  }
+  if (!user) {
+    return <Navigate to={`/connexion?redirect=${encodeURIComponent('/admin/pdf-test')}`} replace />;
+  }
+  if (!isAdmin) {
+    return (
+      <PsPageShell background="light">
+        <section
+          data-testid="admin-pdf-test-denied"
+          style={{
+            padding: '120px 24px 60px',
+            maxWidth: 640,
+            margin: '0 auto',
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              display: 'inline-flex',
+              width: 60, height: 60,
+              alignItems: 'center', justifyContent: 'center',
+              borderRadius: 999,
+              background: 'rgba(176,83,63,0.10)',
+              border: '1px solid rgba(176,83,63,0.30)',
+              marginBottom: 24,
+            }}
+          >
+            <ShieldAlert style={{ width: 26, height: 26, color: '#B0533F' }} strokeWidth={1.6} />
+          </div>
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 32, color: '#0F1A3C', fontWeight: 500, marginBottom: 12 }}>
+            Accès réservé aux administrateurs
+          </h1>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'rgba(15,26,60,0.65)' }}>
+            Ce dashboard est un outil interne de vérification des rapports imprimés.
+            Contacte l&apos;équipe Plume Astrale si tu penses devoir y accéder.
+          </p>
+        </section>
+      </PsPageShell>
+    );
+  }
+
+  const token = session?.access_token || null;
 
   const buildUrl = (product, download = false) => {
     const params = new URLSearchParams({
@@ -35,10 +92,31 @@ export default function AdminPdfTest() {
     return `${backend}/api/admin/pdf-test/${product}?${params.toString()}`;
   };
 
-  const handleOpen = (product, download = false) => {
+  const handleOpen = async (product, download = false) => {
     setLoading(product);
+    setErrMsg(null);
     try {
-      window.open(buildUrl(product, download), '_blank', 'noopener');
+      // Auth-protected endpoint : on récupère le PDF via fetch avec Bearer, puis blob → new tab
+      const res = await fetch(buildUrl(product, download), {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.status === 401 || res.status === 403) {
+        setErrMsg("Session expirée ou droits insuffisants. Reconnecte-toi.");
+        return;
+      }
+      if (!res.ok) {
+        setErrMsg(`Génération impossible (HTTP ${res.status}).`);
+        return;
+      }
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const win = window.open(blobUrl, '_blank', 'noopener');
+      if (download && win) {
+        // Force download name via anchor
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+      }
+    } catch (e) {
+      setErrMsg("Erreur réseau. Vérifie ta connexion.");
     } finally {
       setTimeout(() => setLoading(null), 900);
     }
@@ -323,9 +401,29 @@ export default function AdminPdfTest() {
           >
             <strong style={{ color: '#B0533F' }}>Note interne :</strong> les PDF sont générés à la volée
             (pas de cache) pour refléter les changements de code en direct. Aucun crédit n&apos;est débité.
-            Cette page n&apos;est pas indexée et ne doit pas être exposée au public.
+            Cette page est protégée par is_admin — un utilisateur non-admin est redirigé.
           </p>
         </div>
+
+        {errMsg && (
+          <div
+            role="alert"
+            data-testid="admin-pdf-test-error"
+            style={{
+              marginTop: 16,
+              padding: '12px 16px',
+              background: 'rgba(176,83,63,0.10)',
+              border: '1px solid rgba(176,83,63,0.35)',
+              borderRadius: 10,
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 13,
+              color: '#B0533F',
+              textAlign: 'center',
+            }}
+          >
+            {errMsg}
+          </div>
+        )}
       </section>
     </PsPageShell>
   );

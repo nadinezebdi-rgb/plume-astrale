@@ -15,8 +15,10 @@ signalé — à protéger via auth si expose publique). Le PDF est régénéré
 from __future__ import annotations
 import logging
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from fastapi.responses import Response
+
+from routes.admin import require_admin
 
 router = APIRouter(prefix="/admin/pdf-test", tags=["admin-pdf-test"])
 logger = logging.getLogger(__name__)
@@ -127,6 +129,7 @@ async def generate_test_pdf(
     first_name: str = Query('Léa', description="Prénom factice pour la couverture"),
     partner_name: Optional[str] = Query(None, description="Prénom partenaire (synastrie)"),
     download: bool = Query(False),
+    _admin: dict = Depends(require_admin),
 ):
     """Génère et retourne le PDF complet du produit avec des données factices."""
     key = product.lower().strip()
