@@ -30,6 +30,11 @@ Massive UX/UI refactoring for the premium astrology SaaS "Plume Astrale" toward 
   - Admin dashboard displays live analytics widget with product stat chips + recent logs table (product, destinataire, tier, size, date)
   - `tier=ultra` toggle on Thème Natal generates the FULL Prestige Book (86 pages / ~32 MB vs 13 pages / ~10 MB in flash) — mock `book_data` now includes `_source='gpt'`, `_em` with element+modality counts, complete `acte3_chapters` (5 chapters × 10 blocks each), `dedication`, `element_analysis`, `modality_analysis`, `trio_synthesis`, aspect headers, and 12 house bodies
   - Fixed missing `book_data` kwarg pass-through in `_fixture()` → `build_natal_pdf_v2(..., book_data=...)`
+- **[2026-02-08] GSC verification + Interactive Flipbook** (self-verified):
+  - Google Search Console verification enabled TWO ways (redundant, safest) : meta tag `_HIsHjWgL61kcCdFBHvhPT4p3PE8AqPnADtRj42Sha8` in `public/index.html` + HTML file `public/google20ef3e9042a818bc.html`
+  - New backend endpoints `GET /api/pdf-preview/{product}/pages/meta` and `GET /api/pdf-preview/{product}/page/{n}.jpg` — rasterise the 3-page PDF preview to 150 DPI JPEGs via `pdf2image` (poppler), cached in-memory per product
+  - New React component `PdfFlipbook.jsx` — CSS 3D `perspective` + `rotateY` animation for realistic page-flip, keyboard nav (← → esc), preload of adjacent pages, close overlay
+  - New "Feuilleter le livre" button on each `/livres` card opens the flipbook modal — verified end-to-end via screenshot on theme-natal (page 1 cover → page 2 sommaire)
 - **[2026-02-08] V3 Services & Legacy migration** (iteration 68 — 100% frontend passed):
   - `PsPageShell background="light"` désormais expose la palette V3 via CSS variables
   - `TirageTarot`, `ChatIA`, `Horoscope`, `Choix`, `MonCompte` migrés en cream V3 + Playfair Display

@@ -269,3 +269,78 @@ async def get_pdf_preview(product: str, download: bool = Query(False)):
             'Cache-Control': 'public, max-age=3600',
         },
     )
+
+
+
+# Cache mémoire pour les pages rendues en JPEG (une seule fois par produit)
+_PAGE_CACHE: dict[str, list[bytes]] = {}
+
+
+def _render_pages_as_jpeg(product_key: str) -> list[bytes]:
+    """Rasterise chaque page du PDF preview en JPEG haute qualité.
+
+    Utilise pdf2image (poppler) — nécessite `pdftoppm` installé.
+    Résultat mis en cache par produit.
+    """
+    if product_key in _PAGE_CACHE:
+        return _PAGE_CACHE[product_key]
+
+    if product_key not in _CACHE:
+        _CACHE[product_key] = _build_preview_pdf(product_key)
+
+    from pdf2image import convert_from_bytes
+    # 150 DPI → bon compromis qualité / poids (~120 KB par page A4)
+    images = convert_from_bytes(_CACHE[product_key], dpi=150, fmt='jpeg')
+    pages: list[bytes] = []
+    for img in images:
+        buf = BytesIO()
+        img.save(buf, format='JPEG', quality=82, optimize=True)
+        pages.append(buf.getvalue())
+    _PAGE_CACHE[product_key] = pages
+    return pages
+
+
+@router.get("/{product}/page/{page_index}.jpg")
+async def get_pdf_preview_page(product: str, page_index: int):
+    """Retourne une page individuelle du PDF preview rendue en JPEG.
+
+    Utilisé par le composant Flipbook front-end pour afficher un feuilletage
+    interactif sur /livres. Page 0-indexée. Cache long (immutable côté client).
+    """
+    key = product.lower().strip()
+    if key not in PRODUCTS:
+        raise HTTPException(status_code=404, detail=f"Produit '{product}' inconnu")
+    if page_index < 0 or page_index > 10:
+        raise HTTPException(status_code=400, detail="page_index hors bornes")
+
+    try:
+        pages = _render_pages_as_jpeg(key)
+    except Exception as e:
+        logger.exception(f"[pdf_preview] page render failed for {key}")
+        raise HTTPException(status_code=500, detail=f"Rendu image impossible: {e}")
+
+    if page_index >= len(pages):
+        raise HTTPException(status_code=404, detail=f"Page {page_index} indisponible")
+
+    return Response(
+        content=pages[page_index],
+        media_type='image/jpeg',
+        headers={
+            'Content-Disposition': f'inline; filename="apercu-{key}-p{page_index}.jpg"',
+            'Cache-Control': 'public, max-age=86400, immutable',
+        },
+    )
+
+
+@router.get("/{product}/pages/meta")
+async def get_pdf_preview_meta(product: str):
+    """Retourne la liste des indices de page disponibles pour le flipbook."""
+    key = product.lower().strip()
+    if key not in PRODUCTS:
+        raise HTTPException(status_code=404, detail=f"Produit '{product}' inconnu")
+    try:
+        pages = _render_pages_as_jpeg(key)
+    except Exception as e:
+        logger.exception(f"[pdf_preview] meta failed for {key}")
+        raise HTTPException(status_code=500, detail=f"Meta impossible: {e}")
+    return {'product': key, 'total_pages': len(pages)}

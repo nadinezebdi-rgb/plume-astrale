@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, ArrowRight, Sparkles, Gift, ShieldCheck } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
 import PdfPreviewButton from '@/components/PdfPreviewButton';
+import PdfFlipbook from '@/components/PdfFlipbook';
 
 /**
  * /livres — Landing dédiée à la vente de rapports prestige comme livres imprimés
@@ -77,6 +78,7 @@ const BOOKS = [
 
 export default function LivresLanding() {
   const backend = process.env.REACT_APP_BACKEND_URL;
+  const [flipbookBook, setFlipbookBook] = useState(null);
 
   return (
     <PsPageShell background="light">
@@ -316,6 +318,40 @@ export default function LivresLanding() {
                     variant="ghost"
                     testid={`livres-preview-${b.slug}`}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setFlipbookBook(b)}
+                    data-testid={`livres-flipbook-${b.slug}`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      padding: '11px 20px',
+                      borderRadius: 999,
+                      background: 'transparent',
+                      color: '#0F1A3C',
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      letterSpacing: '0.10em',
+                      textTransform: 'uppercase',
+                      border: '1px solid #0F1A3C',
+                      cursor: 'pointer',
+                      transition: 'background 0.2s ease, color 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#0F1A3C';
+                      e.currentTarget.style.color = '#F7F5F0';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = '#0F1A3C';
+                    }}
+                  >
+                    <BookOpen style={{ width: 14, height: 14 }} strokeWidth={1.8} />
+                    Feuilleter le livre
+                  </button>
                   <Link
                     to={b.productPath}
                     data-testid={`livres-cta-${b.slug}`}
@@ -418,6 +454,16 @@ export default function LivresLanding() {
           </Link>
         </div>
       </section>
+
+      {/* ═══ FLIPBOOK MODAL ═══ */}
+      {flipbookBook && (
+        <PdfFlipbook
+          product={flipbookBook.slug}
+          title={flipbookBook.title}
+          onClose={() => setFlipbookBook(null)}
+          testid="livres-flipbook-modal"
+        />
+      )}
     </PsPageShell>
   );
 }
