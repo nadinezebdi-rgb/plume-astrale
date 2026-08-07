@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, Sparkles, ShieldCheck, Clock, Mail, Star, BookOpen, Check,
+  ArrowRight, Sparkles, ShieldCheck, Clock, Mail, Star, BookOpen, Check, Gift,
 } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
 import ApercuLectureModal from '@/components/ApercuLectureModal';
+import GiftModal from '@/components/GiftModal';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
 import { useAuth } from '@/context/AuthContext';
 
@@ -67,6 +68,7 @@ export default function SalesPageV3({
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [apercuOpen, setApercuOpen] = useState(false);
+  const [giftOpen, setGiftOpen] = useState(false);
 
   const handleCta = () => {
     navigate(isAuthenticated ? ctaTargetAuth : ctaTargetGuest);
@@ -98,21 +100,24 @@ export default function SalesPageV3({
 
             {/* Prix hero card */}
             <div style={{
+              position: 'relative',
               display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap',
-              padding: '20px 24px',
+              padding: heroBadge ? '32px 24px 20px' : '20px 24px',
               background: '#fff',
               border: heroBadge ? '1px solid #C9A24B' : '1px solid #E3E1DC',
               borderRadius: 12,
               maxWidth: 560,
               marginBottom: 24,
+              marginTop: heroBadge ? 20 : 0,
             }}>
               {heroBadge && (
                 <span style={{
-                  position: 'absolute', transform: 'translateY(-38px)',
+                  position: 'absolute', top: -14, left: 24,
                   background: '#C9A24B', color: '#0F1A3C',
                   fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600,
                   letterSpacing: '0.14em', textTransform: 'uppercase',
                   padding: '5px 12px', borderRadius: 6,
+                  boxShadow: '0 4px 10px rgba(201,162,75,0.35)',
                 }}>{heroBadge}</span>
               )}
               <div>
@@ -175,11 +180,20 @@ export default function SalesPageV3({
                 onClick={() => setApercuOpen(true)}
                 data-testid={`sales-${slug}-apercu-btn`}
                 className="ps-btn ps-btn-outline"
-                style={{ marginTop: 28, padding: '12px 24px' }}>
+                style={{ marginTop: 28, marginRight: 12, padding: '12px 24px' }}>
                 <BookOpen style={{ width: 16, height: 16 }} strokeWidth={2} />
                 Lire un extrait gratuit
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => setGiftOpen(true)}
+              data-testid={`sales-${slug}-gift-btn`}
+              className="ps-btn ps-btn-outline"
+              style={{ marginTop: 28, padding: '12px 24px' }}>
+              <Gift style={{ width: 16, height: 16 }} strokeWidth={2} />
+              Offrir cette lecture
+            </button>
             </div>
 
             {/* Colonne visuelle décorative */}
@@ -385,6 +399,15 @@ export default function SalesPageV3({
           onCta={() => { setApercuOpen(false); handleCta(); }}
         />
       )}
+
+      {/* Modal cadeau */}
+      <GiftModal
+        open={giftOpen}
+        onClose={() => setGiftOpen(false)}
+        productSlug={slug}
+        productLabel={apercu?.label || eyebrow?.split(' · ').pop() || 'Lecture'}
+        productPrice={priceMain}
+      />
     </PsPageShell>
   );
 }

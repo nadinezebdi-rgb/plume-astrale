@@ -1,5 +1,34 @@
 # Plume Astrale — PRD
 
+## 🆕 Session Feb 2026 (iter 83) — Fix badge + Guide Cadeau complet
+
+### Livrables (2026-02-07)
+- ✅ **Fix badge "L'OFFRE ÉCRIN"** dans `SalesPageV3` : position `absolute top:-14px left:24px` avec `box-shadow` doré au lieu de `transform: translateY(-38px)`. Padding hero card ajusté à `32px 24px 20px` quand badge présent + `margin-top:20px` pour la card. Plus aucun overlap avec le prix.
+- ✅ **Backend `POST /api/gift/reserve`** (`routes/gift.py`) :
+  - Payload : `{ buyer_name, buyer_email, recipient_name, recipient_email?, product_slug, occasion?, message? }`.
+  - Rate limit 60s/IP + validation Pydantic (EmailStr).
+  - Envoi via Resend : mail éditorial Playfair à l'acheteur avec récap + bon cadeau + lien Stripe (`/{product}?gift=1`) + fallback texte + notification support.
+  - Fix Python 3.11 : sortie des expressions avec backslash hors des f-strings (variables `occasion_line`, `message_block`, `occ_line`, `msg_line`).
+- ✅ **`GiftModal.js`** — modal charte v3 (fond crème + header sticky icône Gift dorée) :
+  - Formulaire grid 2 colonnes : buyer_name/buyer_email puis recipient_name/occasion + textarea message avec compteur /1000.
+  - États : idle / loading (bouton "Envoi…") / success (icône CheckCircle verte + CTA "Finaliser le paiement") / error (banner rouge).
+  - Escape/clic overlay/× ferment le modal.
+- ✅ **`SalesPageV3` enrichi** :
+  - Import `Gift` de lucide + `GiftModal`.
+  - Nouveau state `giftOpen` + bouton **"Offrir cette lecture"** en outline gold aux côtés de "Lire un extrait gratuit".
+  - Mount du `<GiftModal>` avec `productSlug`, `productLabel`, `productPrice`.
+- ✅ Tests screenshot : Pack Karmique avec badge OK, bouton gift ouvre modal propre, submit gift envoie backend (200 avec `checkout_url`).
+
+### Non-fait (context budget)
+- **Migration Services** (Consultation 820L + TirageTarot 848L + Horoscope 446L = 2100L) — trop volumineux pour cette iter, à reporter en iter dédiée.
+
+### Encore à faire (backlog)
+- Migration pages Services (Consultation, Tarot, Horoscope) sur charte claire — prochaine iter dédiée.
+- Newsletter Blog.
+- Dashboard leads (emails aperçu + leads cadeaux).
+
+---
+
 ## 🆕 Session Feb 2026 (iter 82) — Enrichissement images + rebranding "Outils" → "Services"
 
 ### Livrables (2026-02-07)
