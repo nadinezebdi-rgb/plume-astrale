@@ -28,7 +28,14 @@ Massive UX/UI refactoring for the premium astrology SaaS "Plume Astrale" toward 
   - `TirageTarot`, `ChatIA`, `Horoscope`, `Choix`, `MonCompte` migrés en cream V3 + Playfair Display
   - Scoped overrides `[data-shell="light"]` dans `index.css` pour `card-mystical`, `btn-mystical`, `plume-glass`
   - `BundleCard` refondu palette V3 (navy/or sur blanc)
-- **[2026-02-08] Cover personnalisée + TOC double-passe + landing /livres** (iteration 71 — 100% backend 12/12 + frontend):
+- **[2026-02-08] Double-passe généralisé + Synastrie personnalisée + admin PDF test** (iteration 72 — 100% backend + frontend, 15/15 tests):
+  - `build_with_toc` (double-passe) appliqué à **Kabbale**, **Karma Destin**, **Numérologie** → sommaires affichent maintenant les vrais numéros de page (I·3, II·5, III·7…)
+  - Synastrie : `_page_01_cover` refondu, deux prénoms en dorure gaufrée façon livre imprimé — filet + "ÉDITION PERSONNELLE POUR" + PRÉNOM 1 letter-spacé en or vif + "&" + PRÉNOM 2 + filet
+  - Nouveau endpoint admin `GET /api/admin/pdf-test/{product}?first_name=X&partner_name=Y` (data factices réalistes, pas de cache, pas de crédits débités)
+  - Nouvelle page `/admin/pdf-test` (`AdminPdfTest.js`) : dashboard V3 avec inputs prénom/partenaire + 6 cards produits + boutons OUVRIR/DL. Bannière rouge "ADMIN INTERNE"
+  - Note review : endpoint volontairement non-auth (interne dev). À protéger par `is_admin` avant expo publique
+
+- **[2026-02-08] Cover personnalisée + TOC double-passe + landing /livres** (iteration 71):
   - `services/pdf_cover_personalization.py` : helper `embossed_name` (dorure gaufrée façon livre imprimé — filet doré + "ÉDITION PERSONNELLE" + prénom letter-spacé en or vif) intégré dans Kabbale, Karma Destin, Numérologie, Astrocarto, Thème Natal
   - `services/pdf_multipass_toc.py` : `ChapterMarker` (flowable invisible) + `build_with_toc()` fonction 2-passes (dry-run tracking + rebuild) → Astrocarto affiche maintenant les vrais numéros de page dans le sommaire
   - Nouvelle page `/livres` (`LivresLanding.js`) : landing V3 des 6 rapports prestige (Astrocarto, Kabbale, Karma Destin, Numérologie, Thème Natal, Synastrie) avec cover thumbnails, prix, bouton "Aperçu 3 pages gratuit" + CTA "Découvrir" → page produit
