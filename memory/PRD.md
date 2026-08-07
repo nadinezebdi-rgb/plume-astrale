@@ -23,15 +23,21 @@ Massive UX/UI refactoring for the premium astrology SaaS "Plume Astrale" toward 
   - `/credits` page (`CreditsInfo.js`) using `PsPageShell` + shared `CreditsInfoContent`
   - "?" HelpCircle wiring on ChatIA quota badge + MonCompte credit banner + MonCompte credits tab
   - Footer link "Comprendre les crédits" → `/credits`
+- **[2026-02-08] V3 Services & Legacy migration** (iteration 68 — 100% frontend passed):
+  - `PsPageShell background="light"` désormais expose la palette V3 via CSS variables
+  - `TirageTarot`, `ChatIA`, `Horoscope`, `Choix`, `MonCompte` migrés en cream V3 + Playfair Display
+  - Scoped overrides `[data-shell="light"]` dans `index.css` pour `card-mystical`, `btn-mystical`, `plume-glass`
+  - `BundleCard` refondu palette V3 (navy/or sur blanc)
 
 ## Backlog
 
-### P1 — V3 Migration of Services Pages
-- Refactor `TirageTarot.js`, `ChatIA.js`, `Horoscope.js` with `PsPageShell` + paper textures + Playfair/Inter
-- Replace lingering "Outils" strings with "Services"
+### P1 — DONE (iteration 68)
+- ~~Refactor `TirageTarot.js`, `ChatIA.js`, `Horoscope.js`, `Choix.js`, `MonCompte.js` with `PsPageShell` + paper textures + Playfair/Inter~~ ✅
+- Replace lingering "Outils" strings with "Services" (route paths kept as `/outils/*` for backward compat)
 
-### P2 — Legacy cleanup
-- Migrate `Choix.js` and `MonCompte.js` to V3 light theme
+### P2 — Polish
+- Audit remaining hardcoded dark palette references in child components (NatalCompletionPrompt, TransitsToday, ReferralPanel, NatalEssentials, CreditsPaywallModal etc.) inside light-shell pages
+- Fully migrate the remaining chat bubbles interior (avatar tags, cost reminder) if visual polish desired
 
 ### P3 — Future
 - Generate real PDF gift vouchers (Resend currently emails checkout link only)

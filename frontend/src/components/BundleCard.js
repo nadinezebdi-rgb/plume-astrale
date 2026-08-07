@@ -111,7 +111,7 @@ const BundleCard = ({ dense = false, testId = 'bundle-card' }) => (
       </span>
     </div>
 
-    <p className="text-[11px] mb-5" style={{ color: 'rgba(227,215,255,0.55)', lineHeight: 1.55 }}>
+    <p className="text-[11px] mb-5" style={{ color: 'rgba(15,26,60,0.75)', lineHeight: 1.55 }}>
       <Sparkles className="w-3 h-3 inline mr-1" style={{ color: '#C9A24B' }} />
       Commence par ta Kabbale. Une fois ton Arbre reçu, ton Astrocartographie est déverrouillée
       à 29€ (au lieu de 49€) directement depuis ta page de succès.
