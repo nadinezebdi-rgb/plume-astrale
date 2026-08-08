@@ -193,7 +193,7 @@ const ThemeNatalOneshot = () => {
               · PAIEMENT UNIQUE
             </span>
           </div>
-          <p className="text-xs" style={{ color: 'rgba(227,215,255,0.45)', letterSpacing: '0.1em' }}>
+          <p className="text-xs" style={{ color: 'rgba(227,215,255,0.7)', letterSpacing: '0.1em' }}>
             Livré par email dans les 3 minutes suivant le paiement
           </p>
         </div>
@@ -230,7 +230,7 @@ const ThemeNatalOneshot = () => {
               Recevoir mon Thème Natal — 29€
               <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
             </button>
-            <p className="text-xs mt-4" style={{ color: 'rgba(227,215,255,0.5)', letterSpacing: '0.1em' }}>
+            <p className="text-xs mt-4" style={{ color: 'rgba(227,215,255,0.7)', letterSpacing: '0.1em' }}>
               Paiement sécurisé Stripe · Sans engagement · TVA incluse
             </p>
           </div>

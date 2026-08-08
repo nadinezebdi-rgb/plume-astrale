@@ -103,7 +103,7 @@ export default function LivresLanding() {
             borderRadius: 999,
             background: 'rgba(201,162,75,0.10)',
             border: '1px solid rgba(201,162,75,0.30)',
-            color: '#C9A24B',
+            color: '#8F6E24',
             fontFamily: 'Inter, sans-serif',
             fontSize: 11,
             fontWeight: 600,
@@ -152,7 +152,7 @@ export default function LivresLanding() {
             fontSize: 12,
             letterSpacing: '0.10em',
             textTransform: 'uppercase',
-            color: 'rgba(15,26,60,0.55)',
+            color: 'rgba(15,26,60,0.72)',
           }}
         >
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -243,7 +243,7 @@ export default function LivresLanding() {
                     fontWeight: 600,
                     letterSpacing: '0.20em',
                     textTransform: 'uppercase',
-                    color: '#C9A24B',
+                    color: '#8F6E24',
                     marginBottom: 10,
                   }}
                 >
@@ -298,7 +298,7 @@ export default function LivresLanding() {
                     style={{
                       fontFamily: 'Inter, sans-serif',
                       fontSize: 12,
-                      color: 'rgba(15,26,60,0.55)',
+                      color: 'rgba(15,26,60,0.72)',
                     }}
                   >
                     · {b.pages}

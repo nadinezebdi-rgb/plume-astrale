@@ -52,8 +52,8 @@ export default function PdfPreviewButton({ product, variant = 'inline', testid }
     ? {
         ...baseStyle,
         background: 'transparent',
-        border: '1px solid rgba(201,162,75,0.55)',
-        color: '#C9A24B',
+        border: '1px solid rgba(143,110,36,0.55)',
+        color: '#8F6E24',  /* deeper gold — AA on white */
       }
     : {
         ...baseStyle,
@@ -73,7 +73,7 @@ export default function PdfPreviewButton({ product, variant = 'inline', testid }
         style={style}
         onMouseEnter={(e) => {
           if (loading) return;
-          e.currentTarget.style.background = variant === 'ghost' ? 'rgba(201,162,75,0.10)' : '#F7F5F0';
+          e.currentTarget.style.background = variant === 'ghost' ? 'rgba(143,110,36,0.10)' : '#F7F5F0';
           e.currentTarget.style.transform = 'translateY(-1px)';
         }}
         onMouseLeave={(e) => {
@@ -98,7 +98,7 @@ export default function PdfPreviewButton({ product, variant = 'inline', testid }
         style={{
           fontFamily: 'Inter, sans-serif',
           fontSize: 11,
-          color: 'rgba(15,26,60,0.55)',
+          color: 'rgba(15,26,60,0.72)',
           margin: 0,
           textAlign: 'center',
         }}
