@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, Sparkles, Feather, BookOpen, Compass, Heart,
@@ -7,6 +7,7 @@ import {
 import SEO from '@/components/SEO';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
 import LiveConstellation from '@/components/LiveConstellation';
+import PdfFlipbook from '@/components/PdfFlipbook';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -77,6 +78,13 @@ const TESTIMONIALS = [
 export default function Homepage() {
   const { user } = useAuth();
   const signupPath = user ? '/mon-compte' : '/inscription';
+  const [flipbookBook, setFlipbookBook] = useState(null);
+
+  const FEATURED_BOOKS = [
+    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '17,99€', to: '/theme-natal' },
+    { slug: 'kabbale',           title: 'Arbre de Vie · Kabbale',   tagline: '10 Sephiroth · 22 chemins',         price: '39€',    to: '/kabbale' },
+    { slug: 'astrocartographie', title: 'Astrocartographie',        tagline: '7 lignes planétaires sur le monde', price: '49€',    to: '/astrocartographie' },
+  ];
 
   return (
     <div className="ps-home" data-testid="homepage-v2">
@@ -323,6 +331,124 @@ export default function Homepage() {
         </div>
       </section>
 
+      {/* ═══ SECTION 4bis · FEUILLETAGE DES LIVRES (SOMBRE) ═══ */}
+      <section className="ps-section ps-section-dark" data-testid="ps-flipbook-teaser">
+        <CelestialBackdrop density={90} shootingStars={false} />
+        <div className="ps-container" style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ marginBottom: 56, maxWidth: 680 }}>
+            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Feuilleter avant d&apos;acheter</p>
+            <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 16 }}>
+              Un extrait, comme si tu tenais le <span className="ps-italic">livre</span> entre tes mains.
+            </h2>
+            <p className="ps-body" style={{ color: 'rgba(247,245,240,0.78)' }}>
+              Chaque lecture est composée comme un vrai livre — couverture personnalisée, table
+              des matières, ornements dorés. Ouvre-en un pour toucher la matière.
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: 24,
+          }}>
+            {FEATURED_BOOKS.map((b) => (
+              <div key={b.slug}
+                data-testid={`home-flipbook-card-${b.slug}`}
+                style={{
+                  background: 'rgba(247,245,240,0.04)',
+                  border: '1px solid rgba(201,162,75,0.20)',
+                  borderRadius: 14,
+                  padding: 28,
+                  display: 'flex', flexDirection: 'column', gap: 16,
+                  transition: 'border-color 0.3s ease, transform 0.3s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(201,162,75,0.55)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(201,162,75,0.20)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <BookOpen style={{ width: 20, height: 20, color: '#C9A24B' }} strokeWidth={1.6} />
+                  <span style={{
+                    fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600,
+                    letterSpacing: '0.14em', textTransform: 'uppercase',
+                    color: 'rgba(247,245,240,0.55)',
+                  }}>Livre imprimé</span>
+                </div>
+
+                <div>
+                  <h3 style={{
+                    fontFamily: 'Playfair Display, serif',
+                    fontSize: 22, fontWeight: 500, color: '#F7F5F0',
+                    margin: 0, marginBottom: 6, lineHeight: 1.25,
+                  }}>{b.title}</h3>
+                  <p style={{
+                    fontFamily: 'Inter, sans-serif', fontSize: 13,
+                    color: 'rgba(247,245,240,0.62)',
+                    margin: 0,
+                  }}>{b.tagline}</p>
+                </div>
+
+                <div style={{
+                  fontFamily: 'Playfair Display, serif',
+                  fontSize: 24, color: '#C9A24B', fontStyle: 'italic',
+                }}>{b.price}</div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4 }}>
+                  <button
+                    type="button"
+                    onClick={() => setFlipbookBook(b)}
+                    data-testid={`home-flipbook-open-${b.slug}`}
+                    style={{
+                      flex: '1 1 auto',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      padding: '11px 18px', borderRadius: 999,
+                      background: '#C9A24B', color: '#0F1A3C',
+                      fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600,
+                      letterSpacing: '0.10em', textTransform: 'uppercase',
+                      border: 'none', cursor: 'pointer',
+                      transition: 'background 0.2s ease, transform 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#B58F3F'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = '#C9A24B'; }}
+                  >
+                    Feuilleter
+                    <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
+                  </button>
+                  <Link
+                    to={b.to}
+                    data-testid={`home-flipbook-detail-${b.slug}`}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '11px 16px',
+                      color: 'rgba(247,245,240,0.85)',
+                      fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500,
+                      letterSpacing: '0.10em', textTransform: 'uppercase',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Détails
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 40 }}>
+            <Link to="/nos-livres" className="ps-btn ps-btn-outline"
+              data-testid="home-flipbook-all-cta"
+              style={{ color: '#F7F5F0', borderColor: 'rgba(247,245,240,0.4)' }}>
+              Voir toute la bibliothèque
+              <ArrowRight style={{ width: 16, height: 16 }} strokeWidth={2} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ═══ SECTION 5 · TÉMOIGNAGES (SOMBRE) ═══ */}
       <section className="ps-section ps-section-dark" data-testid="ps-testimonials">
         <CelestialBackdrop density={140} shootingStars interval={10000} />
@@ -413,6 +539,16 @@ export default function Homepage() {
           </div>
         </div>
       </section>
+
+      {/* Flipbook modal */}
+      {flipbookBook && (
+        <PdfFlipbook
+          product={flipbookBook.slug}
+          title={flipbookBook.title}
+          onClose={() => setFlipbookBook(null)}
+          testid="home-flipbook-modal"
+        />
+      )}
     </div>
   );
 }
