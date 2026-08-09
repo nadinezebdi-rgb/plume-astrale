@@ -1,5 +1,3 @@
-import { Helmet } from 'react-helmet-async';
-
 /**
  * Composant SEO mobile-first — Plume Astrale
  *
@@ -331,6 +329,46 @@ const SEO_DATA = {
 /* ══════════════════════════════════════════════════════════════════════
    COMPOSANT
    ══════════════════════════════════════════════════════════════════════ */
+import { useEffect } from 'react';
+
+// Helper : upsert un <meta name="..."> ou <meta property="...">
+function upsertMeta(attr, value, content) {
+  if (typeof document === 'undefined') return;
+  let el = document.head.querySelector(`meta[${attr}="${value}"]`);
+  if (!el) {
+    el = document.createElement('meta');
+    el.setAttribute(attr, value);
+    document.head.appendChild(el);
+  }
+  el.setAttribute('content', content);
+}
+
+function upsertCanonical(href) {
+  if (typeof document === 'undefined') return;
+  let el = document.head.querySelector('link[rel="canonical"]');
+  if (!el) {
+    el = document.createElement('link');
+    el.setAttribute('rel', 'canonical');
+    document.head.appendChild(el);
+  }
+  el.setAttribute('href', href);
+}
+
+// Retire tous les <script type="application/ld+json" data-seo> puis les recrée
+function replaceJsonLd(schemas) {
+  if (typeof document === 'undefined') return;
+  document.head
+    .querySelectorAll('script[type="application/ld+json"][data-seo="dynamic"]')
+    .forEach((s) => s.remove());
+  schemas.forEach((schema) => {
+    const el = document.createElement('script');
+    el.type = 'application/ld+json';
+    el.setAttribute('data-seo', 'dynamic');
+    el.textContent = JSON.stringify(schema);
+    document.head.appendChild(el);
+  });
+}
+
 const SEO = ({ path, title, description, image, jsonLd }) => {
   const data = SEO_DATA[path] || SEO_DATA['/'];
   const canonical = `${DOMAIN}${path === '/' ? '' : path}`;
@@ -338,55 +376,57 @@ const SEO = ({ path, title, description, image, jsonLd }) => {
   const pageDesc = description || data.description;
   const pageImage = image || DEFAULT_IMAGE;
 
-  // Compose la liste des JSON-LD à injecter
-  const schemas = [WEBSITE_JSONLD, ORG_JSONLD];
-  if (data.ogType === 'product' && data.productSlug) {
-    schemas.push(productJsonLd(
-      data.productSlug,
-      pageTitle.replace(' · Plume Astrale', '').replace(' · Plume', ''),
-      pageDesc,
-      data.productPrice,
-      data.productPages,
-    ));
-  }
-  if (data.faq) schemas.push(FAQ_CREDITS_JSONLD);
-  if (jsonLd) {
-    if (Array.isArray(jsonLd)) schemas.push(...jsonLd);
-    else schemas.push(jsonLd);
-  }
+  useEffect(() => {
+    // Compose la liste des JSON-LD à injecter
+    const schemas = [WEBSITE_JSONLD, ORG_JSONLD];
+    if (data.ogType === 'product' && data.productSlug) {
+      schemas.push(productJsonLd(
+        data.productSlug,
+        pageTitle.replace(' · Plume Astrale', '').replace(' · Plume', ''),
+        pageDesc,
+        data.productPrice,
+        data.productPages,
+      ));
+    }
+    if (data.faq) schemas.push(FAQ_CREDITS_JSONLD);
+    if (jsonLd) {
+      if (Array.isArray(jsonLd)) schemas.push(...jsonLd);
+      else schemas.push(jsonLd);
+    }
 
-  return (
-    <Helmet title={pageTitle}>
-      <meta name="description" content={pageDesc} />
-      {data.keywords && <meta name="keywords" content={data.keywords} />}
-      <link rel="canonical" href={canonical} />
-      {data.noindex && <meta name="robots" content="noindex, follow" />}
+    // Titre
+    document.title = pageTitle;
 
-      {/* Open Graph */}
-      <meta property="og:type" content={data.ogType || 'website'} />
-      <meta property="og:url" content={canonical} />
-      <meta property="og:title" content={pageTitle} />
-      <meta property="og:description" content={pageDesc} />
-      <meta property="og:image" content={pageImage} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta property="og:site_name" content="Plume Astrale" />
-      <meta property="og:locale" content="fr_FR" />
+    // Meta description + keywords + robots
+    upsertMeta('name', 'description', pageDesc);
+    if (data.keywords) upsertMeta('name', 'keywords', data.keywords);
+    upsertMeta('name', 'robots', data.noindex ? 'noindex, follow' : 'index, follow');
 
-      {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={pageTitle} />
-      <meta name="twitter:description" content={pageDesc} />
-      <meta name="twitter:image" content={pageImage} />
+    // Canonical
+    upsertCanonical(canonical);
 
-      {/* Schema.org JSON-LD */}
-      {schemas.map((schema, i) => (
-        <script key={i} type="application/ld+json">
-          {JSON.stringify(schema)}
-        </script>
-      ))}
-    </Helmet>
-  );
+    // Open Graph
+    upsertMeta('property', 'og:type', data.ogType || 'website');
+    upsertMeta('property', 'og:url', canonical);
+    upsertMeta('property', 'og:title', pageTitle);
+    upsertMeta('property', 'og:description', pageDesc);
+    upsertMeta('property', 'og:image', pageImage);
+    upsertMeta('property', 'og:image:width', '1200');
+    upsertMeta('property', 'og:image:height', '630');
+    upsertMeta('property', 'og:site_name', 'Plume Astrale');
+    upsertMeta('property', 'og:locale', 'fr_FR');
+
+    // Twitter
+    upsertMeta('name', 'twitter:card', 'summary_large_image');
+    upsertMeta('name', 'twitter:title', pageTitle);
+    upsertMeta('name', 'twitter:description', pageDesc);
+    upsertMeta('name', 'twitter:image', pageImage);
+
+    // JSON-LD dynamiques (remplace les précédents dynamic; garde les statiques d'index.html)
+    replaceJsonLd(schemas);
+  }, [path, pageTitle, pageDesc, pageImage, canonical, data, jsonLd]);
+
+  return null;
 };
 
 export default SEO;

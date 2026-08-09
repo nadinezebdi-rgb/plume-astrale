@@ -58,6 +58,24 @@ const SERVICES = [
     price: '49€',
     to: '/astrocartographie',
   },
+  {
+    title: 'Karma & Destin',
+    desc: 'Ta lignée karmique, Nœud Nord et mission de vie.',
+    price: '29€',
+    to: '/karma-destin',
+  },
+  {
+    title: 'Compatibilité amoureuse',
+    desc: 'Vos deux ciels comparés — affinités, tensions, karma.',
+    price: '49€',
+    to: '/compatibilite-amoureuse',
+  },
+  {
+    title: 'Numérologie',
+    desc: 'Chemin de vie, expression, âme, année personnelle.',
+    price: '29€',
+    to: '/numerologie',
+  },
 ];
 
 const TESTIMONIALS = [
