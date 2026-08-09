@@ -626,11 +626,6 @@ const MonCompte = () => {
             <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Accueil
           </button>
 
-          {/* Bundle Découverte Soléna — offre irrésistible post-inscription/connexion */}
-          <div className="mb-6">
-            <BundleCard testId="mon-compte-bundle" dense />
-          </div>
-
           {/* Teaser Cercle Soléna — LTV mensuelle */}
           <Link
             to="/cercle-solena"
@@ -1031,12 +1026,12 @@ const MonCompte = () => {
               </div>
 
               {[
-                { to: '/karma-destin', title: 'Karma & Destin', subtitle: 'Lecture karmique avec Noeud Nord et mission de vie', price: 20, icon: '☉', accent: '#D4AF37' },
-                { to: '/compatibilite', title: 'Compatibilite (4 liens)', subtitle: 'Amour · Amitie · Famille · Travail', price: 20, icon: '♡', accent: '#F472B6' },
-                { to: '/revolution-solaire', title: 'Revolution Solaire', subtitle: "Themes de votre prochaine annee, votre rituel d'anniversaire", price: 20, icon: '✦', accent: '#FDE68A' },
-                { to: '/love-languages', title: "Langages d'Amour", subtitle: 'Votre signature affective selon Venus, Mars et Lune', price: 10, icon: '♥', accent: '#FB7185' },
-                { to: '/formulaire', title: 'Thème Natal complet', subtitle: 'Chart wheel + interprétations psychologiques (28 sections)', price: 20, icon: '✶', accent: '#A78BFA' },
-                { to: '/consultation', title: 'Chat avec Plume', subtitle: 'Conversation astrologique avec votre theme natal embarque', price: 3, perUse: true, icon: '✺', accent: '#7DD3FC' },
+                { to: '/karma-destin', title: 'Karma & Destin', subtitle: 'Lecture karmique avec Noeud Nord et mission de vie', price: 5, icon: '☉', accent: '#D4AF37' },
+                { to: '/compatibilite', title: 'Compatibilite (4 liens)', subtitle: 'Amour · Amitie · Famille · Travail', price: 5, icon: '♡', accent: '#F472B6' },
+                { to: '/revolution-solaire', title: 'Revolution Solaire', subtitle: "Themes de votre prochaine annee, votre rituel d'anniversaire", price: 5, icon: '✦', accent: '#FDE68A' },
+                { to: '/love-languages', title: "Langages d'Amour", subtitle: 'Votre signature affective selon Venus, Mars et Lune', price: 5, icon: '♥', accent: '#FB7185' },
+                { to: '/formulaire', title: 'Thème Natal complet', subtitle: 'Chart wheel + interprétations psychologiques (28 sections)', price: 5, icon: '✶', accent: '#A78BFA' },
+                { to: '/consultation', title: 'Chat avec Plume', subtitle: 'Conversation astrologique avec votre theme natal embarque', price: 5, perUse: true, icon: '✺', accent: '#7DD3FC' },
               ].map(({ to, title, subtitle, price, perUse, icon, accent }) => (
                 <Link
                   key={to}
@@ -1371,6 +1366,11 @@ const MonCompte = () => {
               </div>
             </div>
           )}
+
+          {/* Bundle Découverte Soléna — descendu en bas de page (offre secondaire) */}
+          <div className="mt-12 mb-6" data-testid="mon-compte-bundle-bottom">
+            <BundleCard testId="mon-compte-bundle" dense />
+          </div>
 
           {/* Séparateur bas de page */}
           <div className="mt-16 mb-6" style={{ borderTop: '1px solid rgba(212,175,55,0.1)' }} />

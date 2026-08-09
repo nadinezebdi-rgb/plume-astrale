@@ -164,6 +164,7 @@ export default function Register() {
                   placeholder="votre@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="off"
                   className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
                   style={inputStyle}
                   onFocus={(e) => (e.target.style.borderColor = '#D4AF37')}
@@ -184,6 +185,7 @@ export default function Register() {
                   placeholder="Minimum 6 caractères"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
                   className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors pr-10"
                   style={inputStyle}
                   onFocus={(e) => (e.target.style.borderColor = '#D4AF37')}
@@ -218,7 +220,7 @@ export default function Register() {
 
           {/* ÉTAPE 2 — Naissance */}
           {step === 2 && (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
               <div>
                 <label
                   className="block text-xs uppercase tracking-widest mb-2"

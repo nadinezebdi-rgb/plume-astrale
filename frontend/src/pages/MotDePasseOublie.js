@@ -63,7 +63,7 @@ export default function MotDePasseOublie() {
               </Link>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
               {error && (
                 <div className="p-3 rounded-lg text-sm text-center" style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.3)', color: '#fca5a5' }} data-testid="forgot-error">
                   {error}
@@ -77,6 +77,7 @@ export default function MotDePasseOublie() {
                   onChange={e => setEmail(e.target.value)}
                   required
                   autoFocus
+                  autoComplete="off"
                   placeholder="vous@exemple.com"
                   className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
                   style={{ borderColor: 'rgba(212,175,55,0.3)', color: 'var(--pa-body)' }}
