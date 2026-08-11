@@ -17,14 +17,13 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 # Pages à visiter avec un titre affiché et durée de scroll (secondes)
 TOUR = [
     { 'url': '/',                 'label': 'Bienvenue',              'scroll_sec': 8 },
-    { 'url': '/livres',           'label': 'Nos livres imprimés',    'scroll_sec': 7 },
-    { 'url': '/theme-natal',      'label': 'Thème Natal · 29€',      'scroll_sec': 5 },
-    { 'url': '/kabbale',          'label': 'Arbre de Vie · 39€',     'scroll_sec': 5 },
-    { 'url': '/astrocartographie','label': 'Astrocartographie · 49€','scroll_sec': 5 },
-    { 'url': '/karma-destin',     'label': 'Karma & Destin · 29€',   'scroll_sec': 5 },
-    { 'url': '/numerologie',      'label': 'Numérologie · 29€',      'scroll_sec': 4 },
-    { 'url': '/synastrie',        'label': 'Astrologie relationnelle · 49€', 'scroll_sec': 5 },
-    { 'url': '/credits',          'label': 'Comment ça marche',      'scroll_sec': 4 },
+    { 'url': '/theme-natal',      'label': 'Thème Natal · 29€',      'scroll_sec': 6 },
+    { 'url': '/kabbale',          'label': 'Arbre de Vie · 39€',     'scroll_sec': 6 },
+    { 'url': '/astrocartographie','label': 'Astrocartographie · 49€','scroll_sec': 6 },
+    { 'url': '/karma-destin',     'label': 'Karma & Destin · 29€',   'scroll_sec': 6 },
+    { 'url': '/numerologie',      'label': 'Numérologie · 29€',      'scroll_sec': 5 },
+    { 'url': '/synastrie',        'label': 'Astrologie relationnelle · 49€', 'scroll_sec': 6 },
+    { 'url': '/credits',          'label': 'Comment ça marche',      'scroll_sec': 5 },
 ]
 
 async def slow_scroll(page, duration_sec):
@@ -51,15 +50,17 @@ async def show_label(page, text):
         banner.textContent = {text!r};
         Object.assign(banner.style, {{
             position: 'fixed',
-            top: '80px', left: '50%',
+            top: '90px', left: '50%',
             transform: 'translateX(-50%) translateY(-20px)',
-            padding: '12px 32px',
+            padding: '10px 22px',
+            maxWidth: '85%',
             background: 'rgba(15, 26, 60, 0.95)',
             color: '#C9A24B',
             fontFamily: '"Playfair Display", serif',
             fontStyle: 'italic',
-            fontSize: '22px',
+            fontSize: '17px',
             letterSpacing: '0.02em',
+            textAlign: 'center',
             borderRadius: '999px',
             border: '1px solid rgba(201, 162, 75, 0.4)',
             boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
@@ -85,9 +86,12 @@ async def main():
             executable_path='/pw-browsers/chromium_headless_shell-1208/chrome-linux/headless_shell',
         )
         ctx = await browser.new_context(
-            viewport={'width': 1440, 'height': 810},
+            viewport={'width': 720, 'height': 1280},
             record_video_dir=str(OUT_DIR),
-            record_video_size={'width': 1440, 'height': 810},
+            record_video_size={'width': 720, 'height': 1280},
+            device_scale_factor=1,
+            is_mobile=True,
+            user_agent='Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
         )
         page = await ctx.new_page()
 
