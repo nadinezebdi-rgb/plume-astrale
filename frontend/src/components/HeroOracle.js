@@ -280,6 +280,8 @@ const HeroOracle = () => {
 const Wheel = ({ url, blurred }) => {
   const inner = url ? (
     <img src={url} alt="Ta carte natale"
+      loading="lazy"
+      decoding="async"
       style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 0 24px rgba(212,175,55,0.25))' }}
     />
   ) : (
