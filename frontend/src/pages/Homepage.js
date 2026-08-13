@@ -11,6 +11,7 @@ import PdfFlipbook from '@/components/PdfFlipbook';
 import CinematicHero from '@/components/CinematicHero';
 import PremiumPillars from '@/components/PremiumPillars';
 import SolenaGuideCard from '@/components/SolenaGuideCard';
+import HomepageMiniQuiz from '@/components/HomepageMiniQuiz';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -121,6 +122,10 @@ export default function Homepage() {
 
       {/* ═══ SECTION 1.7 · 4 PILIERS PREMIUM ═══ */}
       <PremiumPillars />
+
+      {/* ═══ SECTION 1.8 · MINI-QUIZ (Preview onboarding — conversion précoce) ═══ */}
+      <HomepageMiniQuiz />
+
       {/* ═══ SECTION 2 · PROPOSITION DE VALEUR (CLAIRE) ═══ */}
       <section className="ps-section ps-section-light" data-testid="ps-value">
         <div className="ps-container">

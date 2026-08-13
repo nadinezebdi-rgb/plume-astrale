@@ -1,0 +1,34 @@
+{
+  "summary": "Iteration 76 — Testé les 3 chantiers Plume Astrale (Manifesto page /manifesto, mini-quiz Homepage, rapport mensuel Cercle Soléna admin endpoints) + régression SEC-002 wallet race condition. Backend: 5/5 tests PASS après un fix critique (routes admin/cercle-monthly-report enregistrées après app.include_router — patché en @app.get/@app.post directs). Frontend: Manifesto + mini-quiz + skip step 1 sur ?situation=doute + see-all → tous PASS. SEC-002: 3/3 PASS.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/admin/cercle-monthly-report/{preview,send-all}", "issue": "Étaient déclarés avec @api_router APRÈS app.include_router(api_router) ligne 2382 → routes fantômes 404. Fix appliqué : décorateurs @app.get/@app.post directs avec chemin complet /api/... (aligné sur ligne 2436 /api/pdf/download). À noter : d'autres routes @api_router.* futures ajoutées après ligne 2382 auront le même bug — recommandation : déplacer app.include_router(api_router) tout à la fin de server.py."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration76_cercle_monthly_report.py",
+    "/app/backend/tests/test_wallet_race_condition.py",
+    "/app/test_reports/pytest/iteration_76.xml"
+  ],
+  "action_items": [
+    "Envisager de déplacer `app.include_router(api_router)` à la toute fin de server.py pour éviter que de futures routes @api_router.* enregistrées plus bas ne deviennent silencieusement 404 (le bug est déjà corrigé pour les 2 nouvelles routes de cette itération)."
+  ],
+  "critical_code_review_comments": [
+    "server.py atteint 2515 lignes — bien au-dessus du seuil de 700 recommandé. Le fichier devrait être scindé en modules par domaine (admin, cercle, tarot, etc.). C'est le contexte parfait dans lequel le bug 'route enregistrée après include_router' est apparu.",
+    "Manifesto.js et HomepageMiniQuiz.js utilisent des styles inline massifs. OK pour la première itération mais à refactorer en CSS module/Tailwind si le pattern se répète.",
+    "Le PDF preview endpoint accepte month=0..11 en int sans validation Pydantic ni bornes — un month=99 passera dans generate_monthly_pdf et pourrait planter (IndexError). Ajouter Query(ge=0, le=11)."
+  ],
+  "updated_files": [
+    "/app/backend/server.py (fix routes @api_router → @app pour cercle-monthly-report)",
+    "/app/backend/tests/test_iteration76_cercle_monthly_report.py (nouveau fichier)"
+  ],
+  "success_rate": {"backend": "100% (5/5 nouveaux + 3/3 SEC-002 régression)", "frontend": "100% (Manifesto page + mini-quiz + step-skip + see-all)"},
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 · test@plume-astrale.fr / TestPlume2026!",
+  "seed_data_creation": "Aucune",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 76 : PDF preview retourne ~28-45KB de PDF valide (%PDF header, application/pdf), Content-Disposition inline. send-all renvoie bien {sent, failed, skipped, total} en JSON même quand sent=0 (aucun abonné Cercle actif). Le fix côté server.py (2 décorateurs) est mineur mais essentiel — vérifier au prochain merge que le pattern reste correct. Sur /decouvrir?situation=doute la page affiche directement l'étape 2 avec le produit 'Votre thème personnel' à 17,99€ et un lien 'CHOISIR UNE AUTRE SITUATION' — le step 1 (grille de situations) est bien skipped.",
+  "rca of the issue": "Bug: GET/POST /api/admin/cercle-monthly-report/{preview,send-all} renvoyaient 404. Cause racine : dans server.py, `app.include_router(api_router)` est appelé à la ligne 2382, mais les deux nouveaux endpoints étaient déclarés lignes 2445/2462 avec @api_router.*. FastAPI copie les routes du router au moment de include_router — les routes ajoutées après ne sont PAS enregistrées sur l'app. Reproduction : curl http://localhost:8001/api/admin/cercle-monthly-report/preview → 404 avant fix, 401 après fix (comportement correct sans token). Mitigation appliquée : remplacé par @app.post('/api/admin/cercle-monthly-report/send-all') et @app.get('/api/admin/cercle-monthly-report/preview'), aligné sur le pattern de la ligne 2436."
+}

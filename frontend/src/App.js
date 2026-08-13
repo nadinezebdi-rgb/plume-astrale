@@ -26,6 +26,7 @@ import ThemeNatalLuxe from "./pages/ThemeNatalLuxe";
 import NosLivres from "./pages/NosLivres";
 import Blog from "./pages/Blog";
 import Decouvrir from "./pages/Decouvrir";
+import Manifesto from "./pages/Manifesto";
 import HoroscopeSign from "./pages/HoroscopeSign";
 import Contact from "./pages/Contact";
 import MentionsLegales from "./pages/MentionsLegales";
@@ -128,6 +129,7 @@ function App() {
           <Route path="/" element={<Index />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/decouvrir" element={<Decouvrir />} />
+          <Route path="/manifesto" element={<Manifesto />} />
           <Route path="/horoscope" element={<Horoscope />} />
           <Route path="/horoscope/:sign" element={<HoroscopeSign />} />
           <Route path="/contact" element={<Contact />} />

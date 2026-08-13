@@ -1,5 +1,5 @@
 """Plume Astrale — FastAPI backend (Supabase + Stripe + Astrology API)."""
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Query
 from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
@@ -2440,6 +2440,53 @@ async def pdf_download_endpoint(session_id: str, token: str):
     return await download_pdf(session_id, token)
 
 
+# ═══ Cercle Soléna — Rapport mensuel (admin/test triggers) ═══
+
+@app.post('/api/admin/cercle-monthly-report/send-all')
+async def admin_trigger_monthly_send(current_user: dict = Depends(get_current_user)):
+    """Admin-only : déclenche manuellement l'envoi du rapport mensuel à tous les
+    abonnés Cercle actifs. À utiliser pour test ou rattrapage.
+    """
+    from fastapi import HTTPException as _HTTPExc
+    sb = get_admin_client() if 'get_admin_client' in globals() else None
+    if not sb:
+        from services.supabase_client import get_admin_client as _gac
+        sb = _gac()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not (prof and prof.data and prof.data.get('is_admin')):
+        raise _HTTPExc(status_code=403, detail='Réservé aux administrateurs')
+    from services.cercle_monthly_report import send_monthly_reports_to_all
+    return await send_monthly_reports_to_all()
+
+
+@app.get('/api/admin/cercle-monthly-report/preview')
+async def admin_preview_monthly_pdf(
+    sign: str = 'Bélier',
+    element: str = 'Feu',
+    month: int = Query(0, ge=0, le=11),
+    first_name: str = 'Camille',
+    current_user: dict = Depends(get_current_user),
+):
+    """Admin-only : renvoie un PDF de prévisualisation pour vérifier le rendu.
+    Query : ?sign=Bélier&element=Feu&month=0..11&first_name=Camille
+    """
+    from fastapi import HTTPException as _HTTPExc
+    from fastapi.responses import Response as _FResponse
+    from services.supabase_client import get_admin_client as _gac
+    sb = _gac()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not (prof and prof.data and prof.data.get('is_admin')):
+        raise _HTTPExc(status_code=403, detail='Réservé aux administrateurs')
+    from services.cercle_monthly_report import generate_monthly_pdf
+    from datetime import datetime as _dt
+    now = _dt.utcnow()
+    month_idx = int(month) if month is not None else (now.month - 1)
+    pdf_bytes = generate_monthly_pdf(first_name, sign, element, month_idx, now.year)
+    return _FResponse(content=pdf_bytes, media_type='application/pdf', headers={
+        'Content-Disposition': f'inline; filename="preview-cercle-{sign}-{month_idx}.pdf"',
+    })
+
+
 @app.on_event('startup')
 async def _start_cart_recovery():
     import asyncio as _asyncio
@@ -2453,6 +2500,7 @@ async def _start_cart_recovery():
     from services.refund_alert import refund_alert_loop
     from services.resend_stats import ab_ctr_refresh_loop
     from services.weekly_insights import weekly_insights_loop
+    from services.cercle_monthly_report import cercle_monthly_report_loop
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
     _asyncio.create_task(astrocarto_followup_loop())
@@ -2463,3 +2511,4 @@ async def _start_cart_recovery():
     _asyncio.create_task(refund_alert_loop())
     _asyncio.create_task(ab_ctr_refresh_loop())
     _asyncio.create_task(weekly_insights_loop())
+    _asyncio.create_task(cercle_monthly_report_loop())

@@ -17,6 +17,17 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### Manifesto + Preview Onboarding + Monthly Report (2026-02-08)
+- **Manifesto page** — `/manifesto` : nouvelle page cinématique 3 chapitres (I. Le constat, II. La conviction, III. La promesse) avec IntersectionObserver pour animation au scroll, numéros romains géants en filigrane, citations en encadré, CTA final → /decouvrir.
+- **Preview Onboarding** — mini-quiz Homepage `HomepageMiniQuiz.js` monté après `PremiumPillars` : 3 situations (doute, relation, changement). Click → `/decouvrir?situation={key}` qui saute directement à l'étape 2 (recommandation produit). Bouton "Voir toutes les situations" pour ouvrir /decouvrir sans pré-sélection.
+- **Rapport Mensuel Cercle Soléna** :
+  - `services/monthly_mood_content.py` : port Python de monthlyMoods.js — 12 climats × 4 éléments + `get_sign_from_birthdate()`, 3 prompts journal par élément.
+  - `services/cercle_monthly_report.py` : PDF ReportLab 4 pages (Couverture + Climat du mois + Lecture personnelle + Journal 3 questions) — palette Night Blue/Or Hermès/Ivoire, moon + halo dessinés en ReportLab.
+  - Sender via Resend avec le PDF en pièce jointe.
+  - Scheduler asyncio calé sur le 1er du mois 6h UTC + fichier LAST_RUN pour idempotence.
+  - 2 endpoints admin : `GET /api/admin/cercle-monthly-report/preview?sign=&element=&month=0..11&first_name=` (Query validé 0..11) et `POST /api/admin/cercle-monthly-report/send-all`.
+- **Testing** : iteration 76 → 100% backend + 100% frontend + régression SEC-002 3/3 PASS. Bug critique (routes @api_router après include_router → 404) trouvé & fixé automatiquement par testing agent.
+
 ### Phase 4 Repositionnement + Éditorial + SEO + Conversion (2026-02-08)
 - **Phase 4 Branding** — `RencontresAstrales.js` : ancien portrait Soléna en fullbleed remplacé par un fond céleste SVG (lune dorée + halo + constellations en filigrane). L'avatar 60x60 reste (guide discrète). Aucune autre grande photo Soléna active sur les pages produit (vérifié : `Index.js` mort, `MoonHero`/`JabInteractif` non importés).
 - **Blog Editorial Pivot** — `/blog` : H1 réécrit "Comprendre les périodes de votre vie", 6 cartes éditoriales `FEATURED_TOPICS` (titres universels de développement personnel : "Pourquoi certaines relations reviennent-elles toujours ?", "Comment reconnaître le bon moment pour changer de vie", etc.), meta description + keywords + og + JSON-LD BlogPosting mis à jour. Widget Soro conservé en dessous.

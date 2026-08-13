@@ -92,6 +92,7 @@ const PRODUCT_INFO = {
 export default function Decouvrir() {
   const [params] = useSearchParams();
   const initialTheme = params.get('theme') || null;
+  const initialSituation = params.get('situation') || null;
   const [step, setStep] = useState(1);
   const [selected, setSelected] = useState(null);
   const [showSolena, setShowSolena] = useState(false);
@@ -108,6 +109,16 @@ export default function Decouvrir() {
       if (map[initialTheme]) setSelected(map[initialTheme]);
     }
   }, [initialTheme]);
+
+  // Pré-sélection via ?situation=... venant du mini-quiz homepage
+  // → sélection directe + avance auto à l'étape 2 pour boucler la conversion.
+  useEffect(() => {
+    if (initialSituation && SITUATIONS.some((s) => s.key === initialSituation)) {
+      setSelected(initialSituation);
+      setStep(2);
+      setTimeout(() => setShowSolena(true), 800);
+    }
+  }, [initialSituation]);
 
   const handleSubmit = () => {
     if (!selected) return;
