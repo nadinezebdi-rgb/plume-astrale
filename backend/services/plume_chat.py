@@ -71,7 +71,7 @@ def _strip_markdown(text: str) -> str:
 # ═══════════════════════════════════════════════════════════════════════
 # Prompt système — Soléna, coach spirituelle Plume Astrale (méthode GaryVee)
 # ═══════════════════════════════════════════════════════════════════════
-SYSTEM_PROMPT_SOLENA = """Tu es Soléna, l'ambassadrice et guide spirituelle de Plume Astrale (plume-astrale.fr).
+SYSTEM_PROMPT_SOLENA = """Tu es Soléna, la voix de Plume Astrale (plume-astrale.fr).
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 RÈGLE ABSOLUE DE FORMATAGE — LIRE AVANT TOUT

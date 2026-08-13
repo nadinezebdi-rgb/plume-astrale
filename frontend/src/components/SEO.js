@@ -6,7 +6,7 @@ const DEFAULT_IMAGE = 'https://static.prod-images.emergentagent.com/jobs/4ab45f1
 const SEO_DATA = {
   '/': {
     title: 'Plume Astrale | Guidance Symbolique Personnalis\u00e9e \u2014 Astrologie & Tarot',
-    description: 'Plume Astrale \u00e9claire vos dynamiques de vie gr\u00e2ce \u00e0 l\'astrologie, la num\u00e9rologie et le tarot. Calculs pr\u00e9cis, interpr\u00e9tation experte. D\u00e9couvrez votre th\u00e8me natal, tirage gratuit et guidance quotidienne.',
+    description: 'Connaissance de soi \u2014 mieux comprendre ses \u00e9motions, besoins et fonctionnements. Aide \u00e0 la r\u00e9flexion, relations, cycles de vie, d\u00e9veloppement personnel et introspection. Th\u00e8me natal, tirage gratuit et guidance quotidienne.',
     keywords: 'astrologie, th\u00e8me natal, tarot gratuit, num\u00e9rologie, guidance spirituelle, horoscope personnalis\u00e9, tirage tarot, chemin de vie, compatibilit\u00e9 amoureuse',
   },
   '/premium': {
@@ -35,9 +35,9 @@ const SEO_DATA = {
     keywords: 'horoscope du jour, guidance quotidienne, phase lunaire, conseil astrologique, horoscope gratuit',
   },
   '/tarologie': {
-    title: 'Tarologie & M\u00e9diumni\u00e9 | Tirage en Croix \u2014 Plume Astrale',
-    description: 'Tirage en croix complet avec 5 arcanes majeurs et lecture m\u00e9diumnique. Interpr\u00e9tation approfondie de votre situation actuelle et de vos perspectives.',
-    keywords: 'tarologie, tirage en croix, m\u00e9diumni\u00e9, lecture tarot, arcanes majeurs, tirage complet',
+    title: 'Tarologie & Lecture Symbolique | Tirage en Croix \u2014 Plume Astrale',
+    description: 'Tirage en croix complet avec 5 arcanes majeurs et lecture symbolique. Interpr\u00e9tation approfondie de votre situation actuelle et de vos perspectives.',
+    keywords: 'tarologie, tirage en croix, lecture tarot, arcanes majeurs, tirage complet',
   },
   '/compatibilite-amoureuse': {
     title: 'Compatibilit\u00e9 Amoureuse Astrologique | Astrologie relationnelle \u2014 Plume Astrale',
@@ -61,7 +61,7 @@ const SEO_DATA = {
   },
   '/charte-de-confiance': {
     title: 'Charte de Confiance | Approche Responsable \u2014 Plume Astrale',
-    description: 'Notre cadre : calculs astrologiques professionnels, lecture symbolique experte, restitution claire. Une guidance symbolique, pas une v\u00e9rit\u00e9 absolue. D\u00e9couvrez notre engagement \u00e9thique.',
+    description: 'Notre cadre : lecture symbolique personnalis\u00e9e, restitution claire. Une guidance symbolique, pas une v\u00e9rit\u00e9 absolue. D\u00e9couvrez notre engagement \u00e9thique.',
     keywords: 'charte confiance astrologie, \u00e9thique tarot, guidance responsable, approche astrologique, d\u00e9ontologie astrologie',
   },
   '/credits': {

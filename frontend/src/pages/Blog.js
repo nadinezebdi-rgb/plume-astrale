@@ -56,7 +56,7 @@ export default function Blog() {
       url: 'https://plume-astrale.fr/blog',
       description: metaDesc.getAttribute('content'),
       inLanguage: 'fr-FR',
-      author: { '@type': 'Person', name: 'Soléna', jobTitle: 'Astrologue · Numérologue · Kabbaliste' },
+      author: { '@type': 'Person', name: 'Soléna', jobTitle: 'Voix de Plume Astrale' },
       publisher: {
         '@type': 'Organization',
         name: 'Plume Astrale',

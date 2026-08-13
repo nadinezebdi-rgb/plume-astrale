@@ -491,8 +491,8 @@ const Compatibilite2 = () => {
                 <button onClick={() => navigate('/tarologie')} className="card-mystical hover:border-[#D4AF37]/50 transition-all group text-left" data-testid="upsell-tarologie">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-[#F5EEE0] font-medium mb-1">Tarologie & M&eacute;diumni&eacute;</h3>
-                      <p className="text-[#B8B0C8]/50 text-sm">Tirage 7 cartes + lecture m&eacute;diumnique</p>
+                      <h3 className="text-[#F5EEE0] font-medium mb-1">Tarologie & Lecture Symbolique</h3>
+                      <p className="text-[#B8B0C8]/50 text-sm">Tirage 7 cartes + lecture symbolique</p>
                       <span className="text-[#D4AF37] font-bold text-sm mt-1 inline-block">10 cr&eacute;dits</span>
                     </div>
                     <Sparkles className="w-5 h-5 text-[#D4AF37] group-hover:scale-110 transition-transform" />

@@ -82,8 +82,8 @@ export default function Homepage() {
     <div className="ps-home" data-testid="homepage-v2">
       <SEO
         path="/"
-        title="Plume Astrale · Ta lecture astrologique écrite par Soléna"
-        description="Une lecture astrologique personnalisée à partir de tes données de naissance, composée par Soléna. Livrée en PDF premium en quelques minutes."
+        title="Plume Astrale · Ta lecture personnalisée pour mieux te comprendre"
+        description="Connaissance de soi — mieux comprendre ses émotions, besoins et fonctionnements. Une lecture personnalisée à partir de tes données de naissance, livrée en PDF premium en quelques minutes."
       />
 
       {/* ═══ SECTION 1 · HERO SOMBRE ═══ */}
@@ -112,8 +112,9 @@ export default function Homepage() {
                 La lecture que ton <span className="ps-italic">ciel</span> attendait.
               </h1>
               <p className="ps-body" style={{ marginBottom: 32, color: 'rgba(247,245,240,0.85)' }}>
-                Une lecture personnelle de ton thème natal par Soléna — les cycles,
-                les répétitions, les tournants. Pas d&apos;horoscope générique.
+                Une lecture personnelle de ton thème natal, portée par la voix de
+                Plume Astrale — les cycles, les répétitions, les tournants. Pas
+                d&apos;horoscope générique.
               </p>
               <Link to={signupPath} className="ps-btn ps-btn-primary" data-testid="hero-cta"
                 style={{ padding: '16px 32px', fontSize: 16 }}>
@@ -135,7 +136,7 @@ export default function Homepage() {
               }} />
               <img
                 src={SOLENA_PORTRAIT}
-                alt="Soléna, guide astrologique de Plume Astrale"
+                alt="Soléna, la voix de Plume Astrale"
                 data-testid="hero-portrait"
                 style={{
                   position: 'relative', zIndex: 1,
@@ -165,7 +166,7 @@ export default function Homepage() {
                   fontFamily: 'Inter, sans-serif', fontSize: 13,
                   color: 'rgba(247,245,240,0.85)',
                 }}>
-                  Soléna, guide astrologique
+                  Soléna, la voix de Plume Astrale
                 </span>
                 <span style={{
                   color: '#C9A24B', fontWeight: 600, fontSize: 13,
@@ -245,13 +246,12 @@ export default function Homepage() {
               Soléna écrit une lecture <span className="ps-italic">à la fois.</span>
             </h2>
             <p className="ps-body" style={{ color: 'rgba(247,245,240,0.85)', marginBottom: 20 }}>
-              Astrologue formée à la tradition occidentale et à la kabbale hébraïque, Soléna
-              travaille chaque lecture sur mesure. À partir de ta date, ton heure et ton lieu de naissance,
-              chaque paragraphe est composé spécifiquement pour toi — jamais d&apos;horoscope générique.
+              Soléna est la voix de Plume Astrale. À partir de ta date, ton heure et ton lieu de naissance,
+              chaque lecture est composée une à une, spécifiquement pour toi — jamais d&apos;horoscope générique.
             </p>
             <p className="ps-body" style={{ color: 'rgba(247,245,240,0.85)', marginBottom: 32 }}>
-              Chaque texte est une conversation posée, précise, apaisée. Une main tendue par
-              une amie qui connaît ton ciel mieux que toi.
+              Chaque texte est une conversation posée, précise, apaisée. Une invitation à la
+              réflexion, pour mieux comprendre tes émotions, tes besoins et tes fonctionnements.
             </p>
             <Link to="/temoignages" className="ps-btn ps-btn-outline" data-testid="story-cta">
               Lire les témoignages
