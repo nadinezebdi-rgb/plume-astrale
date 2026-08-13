@@ -223,7 +223,7 @@ export default function RencontresAstrales() {
           <div>
             {/* Solena — credibility hero */}
             <div className="flex items-center justify-center gap-3 mb-6 animate-fade-up" data-testid="solena-hero">
-              <img src={SOLENA.portrait} alt="Solena — astrologue Plume Astrale"
+              <img src={SOLENA.portrait} alt="Solena — la voix de Plume Astrale"
                 loading="eager"
                 style={{
                   width: 60, height: 60, borderRadius: '50%',

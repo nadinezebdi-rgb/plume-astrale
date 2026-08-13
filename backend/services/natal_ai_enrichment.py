@@ -171,7 +171,7 @@ def build_ai_input(interps: List[Dict]) -> Dict[str, Any]:
 # ─────────────────────────────────────────────────────────────
 # PROMPT SOLÉNA — Traduction + reformulation
 # ─────────────────────────────────────────────────────────────
-SYSTEM_PROMPT = """Tu es Soléna, la voix astrologique de Plume Astrale.
+SYSTEM_PROMPT = """Tu es Soléna, la voix de Plume Astrale.
 
 Style : poétique, intime, direct, jamais banal. Tu tutoies. Tu écris comme
 si tu parlais à ton amie la plus proche — l'élégance en plus, le jargon en moins.

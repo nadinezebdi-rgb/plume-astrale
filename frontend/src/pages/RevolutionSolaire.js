@@ -1,3 +1,4 @@
+import use3DTilt from '@/hooks/use3DTilt';
 import React, { useState, useEffect } from 'react';
 import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +7,9 @@ import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import SafeEmptyState from '../components/design/SafeEmptyState';
 
+
 const API_URL = process.env.REACT_APP_BACKEND_URL;
+
 
 /** Composant affichant les transits du jour appliques au theme natal de l'utilisateur. */
 const TransitsToday = () => {
@@ -14,6 +17,7 @@ const TransitsToday = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
 
   useEffect(() => {
     if (!isAuthenticated || !user?.birth_date) return;
@@ -32,7 +36,9 @@ const TransitsToday = () => {
     return () => { cancel = true; };
   }, [isAuthenticated, user?.birth_date, token]);
 
+
   if (!isAuthenticated || !user?.birth_date) return null;
+
 
   const aspects = (() => {
     const chart = data?.chart || {};
@@ -40,10 +46,12 @@ const TransitsToday = () => {
     return (Array.isArray(arr) ? arr : []).slice(0, 5);
   })();
 
+
   const report = data?.report || {};
   // Vrai schéma astrology-api.io v3 : report.events est une liste d'événements interprétés
   const events = Array.isArray(report.events) ? report.events : [];
   const reportText = report.summary || report.text || '';
+
 
   return (
     <section className="card-mystical mb-8" data-testid="transits-today">
@@ -57,12 +65,14 @@ const TransitsToday = () => {
         Comment les planètes actuelles activent votre carte natale, en temps réel.
       </p>
 
+
       {loading && (
         <div className="flex items-center gap-2 text-[#C9A24B]/70 text-sm" data-testid="transits-loading">
           <Loader2 className="w-4 h-4 animate-spin" /> Calcul des transits...
         </div>
       )}
       {error && <p className="text-amber-300/70 text-sm" data-testid="transits-error">{error}</p>}
+
 
       {data && (
         <div>
@@ -124,6 +134,8 @@ const TransitsToday = () => {
 };
 
 
+
+
 const RevolutionSolaire = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, token } = useAuth();
@@ -131,6 +143,8 @@ const RevolutionSolaire = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [unlocked, setUnlocked] = useState(false);
+  const revTilt = use3DTilt({ max: 9, scale: 1.03 });
+
 
   const handleGenerate = async () => {
     if (!isAuthenticated) { navigate('/connexion?next=/revolution-solaire'); return; }
@@ -155,6 +169,7 @@ const RevolutionSolaire = () => {
     setLoading(false);
   };
 
+
   const report = result?.report || {};
   // Vrai schéma astrology-api.io v3 :
   //  - report.interpretations  → list de {title, text}
@@ -166,11 +181,13 @@ const RevolutionSolaire = () => {
   const srAspects = Array.isArray(report.sr_to_natal_aspects) ? report.sr_to_natal_aspects : [];
   const overview = report.overview || report.summary || '';
 
+
   // Détection safe : si l'API a répondu 200 mais qu'aucune section n'a de contenu
   // affichable, on montre le SafeEmptyState au lieu d'une page vide.
   const hasAnyContent = Boolean(
     overview || interpretations.length || lifeAreas.length || srAspects.length
   );
+
 
   return (
     <div className="min-h-screen px-6 md:px-8 py-20 md:py-28" data-testid="revolution-page">
@@ -184,6 +201,7 @@ const RevolutionSolaire = () => {
           <ArrowLeft className="w-3.5 h-3.5" /> Retour
         </button>
 
+
         <div className="mb-10">
           <p className="text-[#C9A24B] uppercase tracking-[0.3em] text-sm mb-3 font-light">
             Rituel Annuel · Swiss Ephemeris
@@ -196,10 +214,17 @@ const RevolutionSolaire = () => {
           </p>
         </div>
 
+
         {!result && (
-          <div className="card-mystical text-center py-10" data-testid="revolution-gate">
-            <Sun className="w-10 h-10 text-[#C9A24B] mx-auto mb-4" strokeWidth={1.3} />
-            <h2 className="text-xl mb-2" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+          <div
+            ref={revTilt.ref}
+            onMouseMove={revTilt.onMouseMove}
+            onMouseLeave={revTilt.onMouseLeave}
+            className="card-mystical rs-3d-tilt text-center py-10"
+            data-testid="revolution-gate"
+          >
+            <Sun className="w-10 h-10 text-[#D4AF37] mx-auto mb-4" strokeWidth={1.3} />
+            <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
               Découvrez votre prochaine année
             </h2>
             <p className="text-[#232323]/60 text-sm mb-5 max-w-md mx-auto">
@@ -209,13 +234,14 @@ const RevolutionSolaire = () => {
             <button
               onClick={handleGenerate}
               disabled={loading}
-              className="btn-mystical-filled rounded-full px-8 py-3 inline-flex items-center gap-2 disabled:opacity-60"
+              className="btn-mystical-filled rs-3d-lift rounded-full px-8 py-3 inline-flex items-center gap-2 disabled:opacity-60"
               data-testid="btn-generate-revolution"
             >
               {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Calcul en cours...</> : <><Sparkles className="w-4 h-4" /> Générer mon rapport</>}
             </button>
           </div>
         )}
+
 
         {result && !hasAnyContent && (
           <SafeEmptyState
@@ -224,6 +250,7 @@ const RevolutionSolaire = () => {
             extraContext={`Année visée : ${result.return_year || '—'}`}
           />
         )}
+
 
         {result && hasAnyContent && (
           <div className="space-y-6" data-testid="revolution-result">
@@ -240,6 +267,7 @@ const RevolutionSolaire = () => {
                 </p>
               )}
             </div>
+
 
             {interpretations.length > 0 && (
               <div className="card-mystical" data-testid="revolution-interpretations">
@@ -263,6 +291,7 @@ const RevolutionSolaire = () => {
               </div>
             )}
 
+
             {lifeAreas.length > 0 && (
               <div className="grid md:grid-cols-2 gap-4" data-testid="revolution-life-areas">
                 {lifeAreas.slice(0, 12).map((la, i) => (
@@ -277,6 +306,7 @@ const RevolutionSolaire = () => {
                 ))}
               </div>
             )}
+
 
             {srAspects.length > 0 && (
               <div className="card-mystical" data-testid="revolution-sr-aspects">
@@ -300,6 +330,7 @@ const RevolutionSolaire = () => {
               </div>
             )}
 
+
             <div className="flex justify-center gap-3 pt-4">
               <button onClick={() => { setResult(null); setUnlocked(true); }}
                 className="btn-mystical rounded-full px-6 py-2.5">
@@ -316,6 +347,7 @@ const RevolutionSolaire = () => {
     </div>
   );
 };
+
 
 export { TransitsToday };
 export default RevolutionSolaire;

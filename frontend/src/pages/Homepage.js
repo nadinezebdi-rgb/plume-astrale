@@ -172,13 +172,12 @@ export default function Homepage() {
               Soléna écrit une lecture <span className="ps-italic">à la fois.</span>
             </h2>
             <p className="ps-body" style={{ color: 'rgba(247,245,240,0.85)', marginBottom: 20 }}>
-              Astrologue formée à la tradition occidentale et à la kabbale hébraïque, Soléna
-              travaille chaque lecture sur mesure. À partir de ta date, ton heure et ton lieu de naissance,
-              chaque paragraphe est composé spécifiquement pour toi — jamais d&apos;horoscope générique.
+              Soléna est la voix de Plume Astrale. À partir de ta date, ton heure et ton lieu de naissance,
+              chaque lecture est composée une à une, spécifiquement pour toi — jamais d&apos;horoscope générique.
             </p>
             <p className="ps-body" style={{ color: 'rgba(247,245,240,0.85)', marginBottom: 32 }}>
-              Chaque texte est une conversation posée, précise, apaisée. Une main tendue par
-              une amie qui connaît ton ciel mieux que toi.
+              Chaque texte est une conversation posée, précise, apaisée. Une invitation à la
+              réflexion, pour mieux comprendre tes émotions, tes besoins et tes fonctionnements.
             </p>
             <Link to="/temoignages" className="ps-btn ps-btn-outline" data-testid="story-cta">
               Lire les témoignages

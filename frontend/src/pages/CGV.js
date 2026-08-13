@@ -27,7 +27,7 @@ export default function CGV() {
             </p>
 
             <LegalSection title="1. Objet">
-              <p>Les présentes CGV régissent la vente sur <strong>plume-astrale.fr</strong> de lectures astrologiques personnalisées (Karma, Numérologie, Kabbale, Médiumnité, Croix Celtique, Lecture Complète, Thème Natal, Consultation avec Soléna) sous forme de fichiers PDF numériques et de crédits de conversation.</p>
+              <p>Les présentes CGV régissent la vente sur <strong>plume-astrale.fr</strong> de lectures astrologiques personnalisées (Karma, Numérologie, Kabbale, Lecture Symbolique, Croix Celtique, Lecture Complète, Thème Natal, Consultation avec Soléna) sous forme de fichiers PDF numériques et de crédits de conversation.</p>
             </LegalSection>
 
             <LegalSection title="2. Prix et paiement">

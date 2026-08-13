@@ -101,7 +101,7 @@ const CharteConfiance = () => {
           <div className="space-y-4">
             {[
               'Calculs astrologiques professionnels',
-              'Lecture symbolique experte',
+              'Lecture symbolique personnalisée',
               'Restitution claire et structuree',
               'Chaque lecture est personnalis\u00e9e',
             ].map((item, i) => (
