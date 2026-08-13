@@ -8,6 +8,9 @@ import SEO from '@/components/SEO';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
 import LiveConstellation from '@/components/LiveConstellation';
 import PdfFlipbook from '@/components/PdfFlipbook';
+import CinematicHero from '@/components/CinematicHero';
+import PremiumPillars from '@/components/PremiumPillars';
+import SolenaGuideCard from '@/components/SolenaGuideCard';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -108,110 +111,18 @@ export default function Homepage() {
     <div className="ps-home" data-testid="homepage-v2">
       <SEO
         path="/"
-        title="Plume Astrale · Ta lecture astrologique écrite par Soléna"
-        description="Une lecture astrologique personnalisée à partir de tes données de naissance, composée par Soléna. Livrée en PDF premium en quelques minutes."
+        title="Comprendre les périodes de votre vie · Plume Astrale"
+        description="Une lecture personnalisée pour vous aider à mieux comprendre les grands moments de votre parcours."
       />
 
-      {/* ═══ SECTION 1 · HERO SOMBRE ═══ */}
-      <section className="ps-section ps-section-dark" data-testid="ps-hero">
-        <CelestialBackdrop density={180} shootingStars interval={8000} />
-        {/* Constellation zodiacale du mois — positionnée à gauche derrière le texte */}
-        <div style={{
-          position: 'absolute',
-          left: '2%', top: '10%',
-          width: 'min(560px, 42%)', height: '82%',
-          pointerEvents: 'none', zIndex: 0,
-        }} aria-hidden="true">
-          <LiveConstellation sign="auto" size={520} />
-        </div>
-        <div className="ps-container">
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr',
-            gap: 48,
-            alignItems: 'center',
-          }} className="ps-hero-grid">
-            {/* Copy */}
-            <div>
-              <p className="ps-eyebrow" style={{ marginBottom: 24 }}>Plume Astrale · Guidance céleste</p>
-              <h1 className="ps-h1" style={{ color: '#F7F5F0', marginBottom: 24 }}>
-                La lecture que ton <span className="ps-italic">ciel</span> attendait.
-              </h1>
-              <p className="ps-body" style={{ marginBottom: 32, color: 'rgba(247,245,240,0.85)' }}>
-                Une lecture personnelle de ton thème natal par Soléna — les cycles,
-                les répétitions, les tournants. Pas d&apos;horoscope générique.
-              </p>
-              <Link to={signupPath} className="ps-btn ps-btn-primary" data-testid="hero-cta"
-                style={{ padding: '16px 32px', fontSize: 16 }}>
-                Recevoir ma lecture
-                <ArrowRight style={{ width: 18, height: 18 }} strokeWidth={2} />
-              </Link>
-              <p className="ps-caption" style={{ marginTop: 16, color: 'rgba(247,245,240,0.55)' }}>
-                Sans carte bancaire · 20 crédits offerts à l&apos;inscription
-              </p>
-            </div>
+      {/* ═══ SECTION 1 · HERO CINÉMATOGRAPHIQUE (repositionnement 2026-08) ═══ */}
+      <CinematicHero />
 
-            {/* Portrait */}
-            <div style={{ position: 'relative' }}>
-              <div style={{
-                position: 'absolute',
-                inset: '-20px',
-                background: 'radial-gradient(ellipse 60% 70% at 50% 40%, rgba(201,162,75,0.18), transparent 65%)',
-                zIndex: 0,
-              }} />
-              <img
-                src={SOLENA_PORTRAIT}
-                alt="Soléna, guide astrologique de Plume Astrale"
-                data-testid="hero-portrait"
-                style={{
-                  position: 'relative', zIndex: 1,
-                  width: '100%',
-                  maxWidth: 480,
-                  height: 'auto',
-                  borderRadius: 12,
-                  filter: 'brightness(0.95) contrast(1.02) saturate(0.95) hue-rotate(-8deg)',
-                  boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
-                  margin: '0 auto',
-                  display: 'block',
-                }}
-                loading="eager"
-              />
-              <div style={{
-                position: 'absolute', bottom: 24, left: '50%',
-                transform: 'translateX(-50%)',
-                background: 'rgba(15,26,60,0.85)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(201,162,75,0.35)',
-                borderRadius: 999,
-                padding: '10px 20px',
-                display: 'flex', alignItems: 'center', gap: 12,
-                zIndex: 2,
-              }}>
-                <span style={{
-                  fontFamily: 'Inter, sans-serif', fontSize: 13,
-                  color: 'rgba(247,245,240,0.85)',
-                }}>
-                  Soléna, guide astrologique
-                </span>
-                <span style={{
-                  color: '#C9A24B', fontWeight: 600, fontSize: 13,
-                  display: 'flex', alignItems: 'center', gap: 4,
-                }}>
-                  <Star style={{ width: 14, height: 14, fill: '#C9A24B' }} strokeWidth={0} />
-                  4,9/5
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* ═══ SECTION 1.5 · SOLÉNA (apparition douce au scroll) ═══ */}
+      <SolenaGuideCard />
 
-        <style>{`
-          @media (min-width: 900px) {
-            .ps-hero-grid { grid-template-columns: 1.1fr 1fr !important; gap: 64px !important; }
-          }
-        `}</style>
-      </section>
-
+      {/* ═══ SECTION 1.7 · 4 PILIERS PREMIUM ═══ */}
+      <PremiumPillars />
       {/* ═══ SECTION 2 · PROPOSITION DE VALEUR (CLAIRE) ═══ */}
       <section className="ps-section ps-section-light" data-testid="ps-value">
         <div className="ps-container">

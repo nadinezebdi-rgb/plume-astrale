@@ -27,9 +27,9 @@ export default function ThemeNatalLuxe() {
       path="/theme-natal-luxe"
       seoTitle="Ton Thème Natal Luxe · 49 pages écrites par Soléna · Plume Astrale"
       seoDescription="Un PDF premium de 49 pages où 11 planètes racontent qui tu es vraiment. Écrit par Soléna à partir de 73 dimensions astrologiques. Offre bienvenue : 17,99€."
-      eyebrow="Bibliothèque Plume · Thème Natal"
-      title='Ton Thème Natal, <span class="ps-italic">écrit pour toi.</span>'
-      subtitle="Onze planètes racontent qui tu es vraiment. Un PDF premium de 49 pages, à partir de 73 dimensions astrologiques croisées, signé Soléna."
+      eyebrow="Comprendre — Votre thème personnel"
+      title='Comprendre qui vous êtes <span class="ps-italic">vraiment</span>.'
+      subtitle="Une lecture de 49 pages, écrite à partir de votre date de naissance. Ce qui vous anime en profondeur, vos forces, vos zones sensibles, votre rythme intérieur."
       priceMain="17,99€"
       priceStrike="29€"
       priceHint="offre bienvenue · paiement unique"

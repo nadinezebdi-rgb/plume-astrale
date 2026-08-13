@@ -31,9 +31,9 @@ export default function KabbaleSales() {
       path="/kabbale"
       seoTitle="Arbre de Vie · Kabbale · 15 pages écrites par Soléna"
       seoDescription="Un PDF premium de 15 pages qui cartographie ton âme sur les 10 Sephiroth et les 22 chemins hébraïques. Personnalisé à partir de ton thème natal."
-      eyebrow="Bibliothèque Plume · Kabbale"
-      title='Ton Arbre de Vie, <span class="ps-italic">cartographié.</span>'
-      subtitle="10 Sephiroth et 22 chemins hébraïques posés sur ta cartographie d'âme. Où tu rayonnes, où tu ancres, où tu montes."
+      eyebrow="Comprendre — Arbre de Vie"
+      title='L&apos;architecture invisible de <span class="ps-italic">votre chemin</span>.'
+      subtitle="Une lecture de 15 pages pour comprendre les grandes lignes de votre évolution intérieure — ce qui vous porte, ce qui vous freine, ce qui reste à explorer."
       priceMain="39€"
       priceHint="paiement unique · PDF 15 pages"
       pages={15}

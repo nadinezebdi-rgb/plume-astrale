@@ -25,9 +25,9 @@ export default function SynastrieSales() {
       path="/synastrie"
       seoTitle="Astrologie relationnelle · Vos deux ciels croisés · Plume Astrale"
       seoDescription="Un PDF premium de 25 pages qui croise vos deux thèmes natals. Attraction, tensions créatives, karma relationnel, rituel du couple. Signé Soléna."
-      eyebrow="Bibliothèque Plume · Synastrie"
-      title='Vos deux ciels, <span class="ps-italic">croisés.</span>'
-      subtitle="L'aspectarium de votre lien — 25 pages où vos deux thèmes natals dansent ensemble. Points d'harmonie, tensions à cultiver, langages d'amour croisés."
+      eyebrow="Comprendre — Votre lien"
+      title='Comprendre la dynamique qui <span class="ps-italic">vous lie</span>.'
+      subtitle="Une lecture de 25 pages qui décrypte votre relation — ce qui vous rapproche, ce qui vous éprouve, ce que vous êtes venus apprendre l'un de l'autre."
       priceMain="49€"
       priceHint="paiement unique · PDF 25 pages · pour un couple"
       pages={25}

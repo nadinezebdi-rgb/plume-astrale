@@ -1,17 +1,30 @@
 # Plume Astrale — PRD
 
-## Original Problem Statement
-Massive UX/UI refactoring for the premium astrology SaaS "Plume Astrale" toward an elegant, literary, celestial aesthetic. Unify visual identity (Navy #0F1A3C, Gold #C9A24B, Cream #F7F5F0), migrate legacy pages to V3 template, improve sales conversion (Aperçu preview modal + email capture with MERCI10 discount), add "Offrir" (gift) option to product pages, clarify Credits value proposition. Rename "Outils" → "Services" site-wide.
+## Original Problem Statement (v3, 2026-08-13 · strategic repositioning)
+Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme une **marque française de développement personnel** aidant les gens à comprendre les **grandes périodes de leur vie**. L'astrologie devient le moteur de calcul invisible. Concurrents : Headspace, Petit Bambou, The Pattern, coachs de vie, livres de développement personnel.
+
+**Vocabulaire à bannir** : destin, magie, prédiction, voyance, pouvoirs, révélations.
+**Vocabulaire cible** : périodes, cycles, compréhension, évolution, réflexion, décisions, équilibre, chemin, confiance, moments clés.
+
+**Soléna** : présence discrète (guide qui apparaît au bon moment), plus le personnage principal. Modèle Apple/Airbnb/Headspace : la marque > le porte-parole.
 
 **Language**: French — all UI copy and agent responses.
 
-## Design System (V3)
-- Palette : #0F1A3C (Navy), #C9A24B (Gold), #F7F5F0 (Cream), #232323 (Anthracite)
-- Typography : Playfair Display (headings) + Inter (body)
-- Paper textures via `feTurbulence` SVG on light backgrounds
-- Celestial backdrops + LiveConstellation (auto-zodiac) on dark backgrounds
+## Design System (v3.1, 2026-08 repositionnement)
+- Palette : **#0A1128** (navy profond) + **#0F1A3C** (navy standard) + **#1E2A5E** (indigo subtil) + **#B8935A** (or Hermès) + **#C9A24B** (gold accent) + **#F7F5F0** (ivoire) + **#8F6E24** (deep gold, textes sur clair)
+- Typography : Playfair Display (headings, italics editorial) + Inter (body)
+- Univers visuel : cosmique cinématique — lune dorée, constellations filigrane, champ d'étoiles animées procédural, textures dorées
+- Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### Repositionnement (2026-08-13)
+- **CinematicHero.js** — nouveau hero cinématique : fond bleu nuit profond radial, canvas starfield animé (90 étoiles twinkle), lune dorée qui monte, constellations SVG en filigrane, H1 « Comprendre les périodes de votre vie. », CTA « Découvrir mon parcours »
+- **SolenaGuideCard.js** — apparition douce au scroll (IntersectionObserver), petit avatar circulaire, « Bonjour, je suis Soléna. Je serai votre guide tout au long de votre parcours. »
+- **PremiumPillars.js** — 4 cartes premium (Cycles / Relations / Décisions / Évolution), chacune pointant vers `/decouvrir?theme=...`
+- **Decouvrir.js** — nouvelle page `/decouvrir` : questionnaire situation-first 6 choix, mapping intelligent → recommandation produit, apparition émotionnelle de Soléna en étape 2
+- **6 pages produit** : H1 réécrits en langage universel (Thème Natal, Kabbale, Astrocartographie, Karma & Destin, Numérologie, Synastrie) — bannit destin/magie/prédiction, adopte périodes/cycles/comprendre
+
+### Historique (voir sections suivantes pour détails)
 - V3 visual rollout on 7 PDF sales pages (unified `SalesPageV3`)
 - Unified `NavbarV2` (mega menu Services) + `FooterV2`
 - `LiveConstellation` (dynamic zodiac by date) + `CelestialBackdrop` site-wide
