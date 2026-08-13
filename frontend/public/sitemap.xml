@@ -87,6 +87,18 @@
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
+  <url><loc>https://plume-astrale.fr/horoscope/belier</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://plume-astrale.fr/horoscope/taureau</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://plume-astrale.fr/horoscope/gemeaux</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://plume-astrale.fr/horoscope/cancer</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://plume-astrale.fr/horoscope/lion</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://plume-astrale.fr/horoscope/vierge</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://plume-astrale.fr/horoscope/balance</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://plume-astrale.fr/horoscope/scorpion</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://plume-astrale.fr/horoscope/sagittaire</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://plume-astrale.fr/horoscope/capricorne</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://plume-astrale.fr/horoscope/verseau</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://plume-astrale.fr/horoscope/poissons</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
   <url>
     <loc>https://plume-astrale.fr/compatibilite-amoureuse</loc>
     <changefreq>weekly</changefreq>
