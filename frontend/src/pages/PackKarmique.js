@@ -11,11 +11,7 @@ const INCLUDES = [
   { title: '89€ au lieu de 68€', text: 'Une seule commande, un seul PDF de 40 pages — l\'écrin le plus profond de Plume Astrale.' },
 ];
 
-const TESTIMONIALS = [
-  { name: 'Delphine · Marseille', quote: 'Le format le plus complet que j\'ai reçu. Une bibliothèque à moi seule.' },
-  { name: 'Anne · Strasbourg', quote: 'La synthèse d\'âme est extraordinaire. Rien à voir avec les lectures séparées.' },
-  { name: 'Céline · Bordeaux', quote: 'Je l\'offre à ma sœur pour ses 40 ans. Le cadeau ultime.' },
-];
+const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function PackKarmique() {
   return (

@@ -1,17 +1,66 @@
 # Plume Astrale — PRD
 
-## Original Problem Statement
-Massive UX/UI refactoring for the premium astrology SaaS "Plume Astrale" toward an elegant, literary, celestial aesthetic. Unify visual identity (Navy #0F1A3C, Gold #C9A24B, Cream #F7F5F0), migrate legacy pages to V3 template, improve sales conversion (Aperçu preview modal + email capture with MERCI10 discount), add "Offrir" (gift) option to product pages, clarify Credits value proposition. Rename "Outils" → "Services" site-wide.
+## Original Problem Statement (v3, 2026-08-13 · strategic repositioning)
+Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme une **marque française de développement personnel** aidant les gens à comprendre les **grandes périodes de leur vie**. L'astrologie devient le moteur de calcul invisible. Concurrents : Headspace, Petit Bambou, The Pattern, coachs de vie, livres de développement personnel.
+
+**Vocabulaire à bannir** : destin, magie, prédiction, voyance, pouvoirs, révélations.
+**Vocabulaire cible** : périodes, cycles, compréhension, évolution, réflexion, décisions, équilibre, chemin, confiance, moments clés.
+
+**Soléna** : présence discrète (guide qui apparaît au bon moment), plus le personnage principal. Modèle Apple/Airbnb/Headspace : la marque > le porte-parole.
 
 **Language**: French — all UI copy and agent responses.
 
-## Design System (V3)
-- Palette : #0F1A3C (Navy), #C9A24B (Gold), #F7F5F0 (Cream), #232323 (Anthracite)
-- Typography : Playfair Display (headings) + Inter (body)
-- Paper textures via `feTurbulence` SVG on light backgrounds
-- Celestial backdrops + LiveConstellation (auto-zodiac) on dark backgrounds
+## Design System (v3.1, 2026-08 repositionnement)
+- Palette : **#0A1128** (navy profond) + **#0F1A3C** (navy standard) + **#1E2A5E** (indigo subtil) + **#B8935A** (or Hermès) + **#C9A24B** (gold accent) + **#F7F5F0** (ivoire) + **#8F6E24** (deep gold, textes sur clair)
+- Typography : Playfair Display (headings, italics editorial) + Inter (body)
+- Univers visuel : cosmique cinématique — lune dorée, constellations filigrane, champ d'étoiles animées procédural, textures dorées
+- Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### Parallax + CTA Cercle + Purge concours (2026-02-08)
+- **Parallax cinématique** : hero + Manifesto Chapitre III animent leur fond à 0.3x du scroll (rAF, translate3d, willChange:transform, respect `prefers-reduced-motion`). Vérifié : `translate3d(0px,0px,0px)` → `translate3d(0px,90px,0px)` sur scroll de 300px.
+- **Mini-CTA Cercle sur Manifesto** : bloc doré `data-testid="manifesto-cta-cercle"` entre Chapitre III et CTA final, Crown icon + "Recevoir ce type de lecture chaque mois — 14,99€", 50 crédits + rapport mensuel + résiliable en un clic → clic redirige vers /cercle-solena.
+- **Purge concours 2026 (zero fake content)** :
+  - Backend `_SEED_TESTIMONIALS = []` + filtre auto qui retire tout ancien `seed-*` en DB au premier load.
+  - Frontend : `TESTIMONIALS = []` sur Homepage, KabbaleSales, AstrocartographieSales, KarmaDestinPDF, NumerologiePDF, PackKarmique, SynastrieSales, ThemeNatalLuxe.
+  - `TestimonialsWidget.js` : les 4 exports `TESTIMONIALS_*` vidés + le widget renvoie déjà `null` si empty.
+  - `LiveSalesCounter.js` réécrit → retourne `null` (fake social proof prénoms/villes/produits supprimé).
+  - `SEO.js` : suppression de "4,9/5 sur 2 400 rapports livrés" du meta /temoignage.
+  - `TemoignagesPublic.js` : suppression de "Plus de mille femmes" + nouvelle empty-state invitant à soumettre un vrai témoignage.
+  - Homepage : Section 5 (testimonials + "4,9/5 sur plus de 2 400") supprimée entièrement.
+  - Vrai témoignage utilisateur (`usr-*` id) préservé dans le DB → apparaîtra sur /temoignages.
+
+### Manifesto + Preview Onboarding + Monthly Report (2026-02-08)
+- **Manifesto page** — `/manifesto` : nouvelle page cinématique 3 chapitres (I. Le constat, II. La conviction, III. La promesse) avec IntersectionObserver pour animation au scroll, numéros romains géants en filigrane, citations en encadré, CTA final → /decouvrir.
+- **Preview Onboarding** — mini-quiz Homepage `HomepageMiniQuiz.js` monté après `PremiumPillars` : 3 situations (doute, relation, changement). Click → `/decouvrir?situation={key}` qui saute directement à l'étape 2 (recommandation produit). Bouton "Voir toutes les situations" pour ouvrir /decouvrir sans pré-sélection.
+- **Rapport Mensuel Cercle Soléna** :
+  - `services/monthly_mood_content.py` : port Python de monthlyMoods.js — 12 climats × 4 éléments + `get_sign_from_birthdate()`, 3 prompts journal par élément.
+  - `services/cercle_monthly_report.py` : PDF ReportLab 4 pages (Couverture + Climat du mois + Lecture personnelle + Journal 3 questions) — palette Night Blue/Or Hermès/Ivoire, moon + halo dessinés en ReportLab.
+  - Sender via Resend avec le PDF en pièce jointe.
+  - Scheduler asyncio calé sur le 1er du mois 6h UTC + fichier LAST_RUN pour idempotence.
+  - 2 endpoints admin : `GET /api/admin/cercle-monthly-report/preview?sign=&element=&month=0..11&first_name=` (Query validé 0..11) et `POST /api/admin/cercle-monthly-report/send-all`.
+- **Testing** : iteration 76 → 100% backend + 100% frontend + régression SEC-002 3/3 PASS. Bug critique (routes @api_router après include_router → 404) trouvé & fixé automatiquement par testing agent.
+
+### Phase 4 Repositionnement + Éditorial + SEO + Conversion (2026-02-08)
+- **Phase 4 Branding** — `RencontresAstrales.js` : ancien portrait Soléna en fullbleed remplacé par un fond céleste SVG (lune dorée + halo + constellations en filigrane). L'avatar 60x60 reste (guide discrète). Aucune autre grande photo Soléna active sur les pages produit (vérifié : `Index.js` mort, `MoonHero`/`JabInteractif` non importés).
+- **Blog Editorial Pivot** — `/blog` : H1 réécrit "Comprendre les périodes de votre vie", 6 cartes éditoriales `FEATURED_TOPICS` (titres universels de développement personnel : "Pourquoi certaines relations reviennent-elles toujours ?", "Comment reconnaître le bon moment pour changer de vie", etc.), meta description + keywords + og + JSON-LD BlogPosting mis à jour. Widget Soro conservé en dessous.
+- **Humeur du Mois** — 12 pages `/horoscope/:sign` : nouvelle section "L'humeur de {mois} · {SignName}" dynamique, calculée depuis `new Date().getMonth()`. 12 climats universels × 4 éléments = 48 accents uniques dans `config/monthlyMoods.js`. Title/description SEO incluent maintenant le mois → Googlebot recrawl attendu tous les 30 jours.
+- **Cercle Recommandé Badge** — `CreditsPaywallModal.js` : bannière dorée en haut du modal avec badge "★ Recommandé", crown icon, prix 14,99€/mois, 50 crédits chat, CTA "Découvrir le Cercle" → navigate('/cercle-solena') via useNavigate. Halo décoratif + hover scale.
+- **Testing** : Testing agent 100% backend + 100% frontend (iteration 75).
+
+### Sécurité (2026-02-08 — SEC-001/002/003)
+- **SEC-001** — `/api/plume-chat` et `/api/plume-chat/stream` : auth JWT requise + `charge_or_premium('chat_astral', ...)` AVANT tout appel LLM → impossible de bypasser la déduction crédits (401 sans token, 402 si solde insuffisant, HTTP 200 sinon).
+- **SEC-002** — `services/wallet_service.py` : verrou `asyncio.Lock` par `user_id` autour de `deduct_credits`, `add_credits`, `deduct_chat_or_credits`, `add_chat_credits`, `redeem_promo`, `mark_free_tarot_used`. Nouveau helper atomique `claim_free_tarot(user_id)` (check+mark dans le même verrou) → `/api/credits/use` (tarot_oui_non) refactorisé. Tests pytest de concurrence (`tests/test_wallet_race_condition.py`) : 20 déductions concurrentes → 8 succès + 12 refus 402, jamais de double-spend.
+- **SEC-003** — `GET /api/plume-chat/history/{session_id}` : `Depends(get_current_user)` + `get_session_history(session_id, user_id)` filtre systématiquement par `user_id` → impossible de lire l'historique d'un autre utilisateur.
+
+### Repositionnement (2026-08-13)
+- **CinematicHero.js** — nouveau hero cinématique : fond bleu nuit profond radial, canvas starfield animé (90 étoiles twinkle), lune dorée qui monte, constellations SVG en filigrane, H1 « Comprendre les périodes de votre vie. », CTA « Découvrir mon parcours »
+- **SolenaGuideCard.js** — apparition douce au scroll (IntersectionObserver), petit avatar circulaire, « Bonjour, je suis Soléna. Je serai votre guide tout au long de votre parcours. »
+- **PremiumPillars.js** — 4 cartes premium (Cycles / Relations / Décisions / Évolution), chacune pointant vers `/decouvrir?theme=...`
+- **Decouvrir.js** — nouvelle page `/decouvrir` : questionnaire situation-first 6 choix, mapping intelligent → recommandation produit, apparition émotionnelle de Soléna en étape 2
+- **6 pages produit** : H1 réécrits en langage universel (Thème Natal, Kabbale, Astrocartographie, Karma & Destin, Numérologie, Synastrie) — bannit destin/magie/prédiction, adopte périodes/cycles/comprendre
+
+### Historique (voir sections suivantes pour détails)
 - V3 visual rollout on 7 PDF sales pages (unified `SalesPageV3`)
 - Unified `NavbarV2` (mega menu Services) + `FooterV2`
 - `LiveConstellation` (dynamic zodiac by date) + `CelestialBackdrop` site-wide

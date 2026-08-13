@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import LazyVideo from '@/components/LazyVideo';
 import SEO from '@/components/SEO';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -545,11 +546,7 @@ export default function Index() {
   const [trustStats, setTrustStats] = useState(null);
   const [ratingSeries, setRatingSeries] = useState(null);
   const [showStickyCTA, setShowStickyCTA] = useState(false);
-  const [videoPlaying, setVideoPlaying] = useState(false);
-  const [videoMuted, setVideoMuted] = useState(true);
-  const [autoplayed, setAutoplayed] = useState(false);
   const [heroPhotoIdx, setHeroPhotoIdx] = useState(0);
-  const videoRef = React.useRef(null);
 
   // Photo rotator hero — crossfade lent toutes les 6s (pause si tab en background)
   React.useEffect(() => {
@@ -616,37 +613,6 @@ export default function Index() {
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  // Manifesto autoplay muted quand la vidéo entre dans le viewport (desktop uniquement)
-  React.useEffect(() => {
-    const isDesktop = typeof window !== 'undefined' && window.matchMedia
-      && window.matchMedia('(min-width: 900px)').matches;
-    if (!isDesktop || !videoRef.current) return;
-    const el = videoRef.current;
-    let didAutoplay = false;
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting && e.intersectionRatio >= 0.5 && !didAutoplay) {
-          didAutoplay = true;
-          el.muted = true;
-          el.play().then(() => {
-            setVideoPlaying(true);
-            setAutoplayed(true);
-            setVideoMuted(true);
-          }).catch(() => { /* iOS/blocked = no-op */ });
-        }
-      });
-    }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  const unmuteVideo = () => {
-    if (!videoRef.current) return;
-    videoRef.current.muted = false;
-    videoRef.current.volume = 1.0;
-    setVideoMuted(false);
-  };
 
   const startCheckout = async (form) => {
     setError(null); setLoading(true);
@@ -748,7 +714,7 @@ export default function Index() {
           </div>
         </section>
 
-        {/* ═══ SECTION 1.5 · MANIFESTE VIDEO (transition sombre → clair) ═══ */}
+        {/* ═══ SECTION 1.5 · MANIFESTE VIDEO (lazy-loaded : ne charge qu'au clic) ═══ */}
         <section className="pa-sec pa-sec-dark-2 pa-video-sec" data-testid="landing-manifesto"
           style={{ padding: '56px 0' }}>
           <div className="pa-wrap-narrow">
@@ -758,37 +724,12 @@ export default function Index() {
                 45 secondes pour comprendre <em className="pa-gold">ce que je fais avec toi</em>
               </h2>
             </div>
-            <div className={`pa-video-wrap ${videoPlaying ? 'pa-video-playing' : ''}`}
-              data-testid="landing-manifesto-video">
-              <video
-                ref={videoRef}
+            <div className="pa-video-wrap" data-testid="landing-manifesto-video">
+              <LazyVideo
                 src={MANIFESTO_VIDEO}
                 poster={SOLENA_MYSTIQUE}
-                preload="metadata"
-                playsInline
-                controls
-                muted
-                onPlay={() => setVideoPlaying(true)}
-                onPause={() => setVideoPlaying(false)}
-                data-testid="landing-manifesto-player"
+                testId="landing-manifesto"
               />
-              {!videoPlaying && (
-                <div className="pa-video-overlay" aria-hidden="true">
-                  <div className="pa-video-play">▶</div>
-                </div>
-              )}
-              {autoplayed && videoPlaying && videoMuted && (
-                <button
-                  type="button"
-                  onClick={unmuteVideo}
-                  className="pa-video-unmute"
-                  data-testid="landing-manifesto-unmute"
-                  aria-label="Activer le son"
-                >
-                  <span aria-hidden="true">🔊</span>
-                  <span>Activer le son</span>
-                </button>
-              )}
             </div>
           </div>
         </section>

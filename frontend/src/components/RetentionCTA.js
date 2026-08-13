@@ -31,7 +31,7 @@ export default function RetentionCTA({ type, onNext, onDismiss, creditsNeeded = 
     // Après chat session → Upsell synastrie
     chat_completed: {
       emoji: null,
-      title: 'Prête pour la prochaine révélation?',
+      title: 'Prêt pour la prochaine lecture ?',
       message: 'Découvrez votre synastrie de couple — comment les astres vous unissent avec votre partenaire.',
       cta: 'Analyser ma synastrie',
       color: '#E8944A',

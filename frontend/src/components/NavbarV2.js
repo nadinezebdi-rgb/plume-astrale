@@ -14,6 +14,7 @@ import { LECTURES, OUTILS } from '@/config/catalog';
 const NAV_LINKS = [
   { label: 'Accueil', to: '/' },
   { label: 'Services', to: '/nos-livres', hasMega: true },
+  { label: 'Manifesto', to: '/manifesto' },
   { label: 'Blog', to: '/blog' },
   { label: 'Témoignages', to: '/temoignages' },
   { label: 'Contact', to: '/contact' },
@@ -72,7 +73,6 @@ export default function NavbarV2() {
     background: '#0F1A3C',
     borderBottom: '1px solid rgba(201,162,75,0.18)',
     width: '100%',
-    overflow: 'hidden',
   };
 
   return (
@@ -377,9 +377,18 @@ const mobileSubLink = {
 
 function AccountMenu({ user, onLogout }) {
   const [open, setOpen] = useState(false);
+  const closeTimer = useRef(null);
+  const openNow = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setOpen(true);
+  };
+  const closeSoon = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setOpen(false), 220);
+  };
   return (
     <div style={{ position: 'relative' }}
-      onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      onMouseEnter={openNow} onMouseLeave={closeSoon}>
       <button data-testid="nav-v2-account-btn" style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
         background: 'transparent', border: 'none', cursor: 'pointer',
@@ -392,18 +401,25 @@ function AccountMenu({ user, onLogout }) {
         <ChevronDown style={{ width: 14, height: 14 }} strokeWidth={1.8} />
       </button>
       {open && (
-        <div style={{
-          position: 'absolute', top: '100%', right: 0, marginTop: 8,
-          background: '#1E2A5E', border: '1px solid rgba(201,162,75,0.20)',
-          borderRadius: 12, padding: 8, minWidth: 200,
-          boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
-        }} data-testid="nav-v2-account-menu">
-          <Link to="/mon-compte" style={menuItem}>Mon espace</Link>
-          <Link to="/acheter-credits" style={menuItem}>Mes crédits</Link>
-          {user?.is_admin && <Link to="/admin" style={{ ...menuItem, color: '#C9A24B' }}>Administration</Link>}
-          <button onClick={onLogout} style={{ ...menuItem, background: 'none', border: 'none', textAlign: 'left', width: '100%', cursor: 'pointer' }}>
-            Déconnexion
-          </button>
+        <div
+          onMouseEnter={openNow}
+          onMouseLeave={closeSoon}
+          style={{
+            position: 'absolute', top: '100%', right: 0,
+            paddingTop: 8,  // gap visuel invisible mais survolable
+          }}>
+          <div style={{
+            background: '#1E2A5E', border: '1px solid rgba(201,162,75,0.20)',
+            borderRadius: 12, padding: 8, minWidth: 200,
+            boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
+          }} data-testid="nav-v2-account-menu">
+            <Link to="/mon-compte" style={menuItem}>Mon espace</Link>
+            <Link to="/acheter-credits" style={menuItem}>Mes crédits</Link>
+            {user?.is_admin && <Link to="/admin" style={{ ...menuItem, color: '#C9A24B' }}>Administration</Link>}
+            <button onClick={onLogout} style={{ ...menuItem, background: 'none', border: 'none', textAlign: 'left', width: '100%', cursor: 'pointer' }}>
+              Déconnexion
+            </button>
+          </div>
         </div>
       )}
     </div>

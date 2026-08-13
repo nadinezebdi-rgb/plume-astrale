@@ -16,11 +16,7 @@ const INCLUDES = [
   { title: 'Ta carte du monde personnelle', text: 'Un visuel astral que tu peux imprimer — tes 7 lignes planétaires en un coup d\'œil.' },
 ];
 
-const TESTIMONIALS = [
-  { name: 'Amélie · Bordeaux', quote: 'J\'hésitais entre 4 pays. Sa carte m\'a débloquée en une lecture.' },
-  { name: 'Sophie · Genève', quote: 'Lisbonne était sur ma ligne Vénus-AC. J\'y suis allée. Elle avait raison.' },
-  { name: 'Marion · Rennes', quote: 'La précision géographique est bluffante. Un document qui vaut son pesant d\'or.' },
-];
+const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function AstrocartographieSales() {
   return (
@@ -30,9 +26,9 @@ export default function AstrocartographieSales() {
       path="/astrocartographie"
       seoTitle="Astrocartographie · Où vivre ta meilleure vie · Plume Astrale"
       seoDescription="Un PDF premium de 18 pages qui pose 7 lignes planétaires sur la carte du monde. 3 villes idéales + 3 bonus, avec conseils pratiques. Signé Soléna."
-      eyebrow="Bibliothèque Plume · Astrocartographie"
-      title='Où vivre <span class="ps-italic">ta meilleure vie ?</span>'
-      subtitle="Sept lignes planétaires posées sur la carte du monde. Où l'amour te touche, où ton corps se pose enfin, où tu deviens visible — Soléna te trace la carte."
+      eyebrow="Comprendre — Astrocartographie"
+      title='Où votre vie peut prendre un <span class="ps-italic">nouveau souffle</span>.'
+      subtitle="Certains lieux vous portent. D'autres vous freinent. Une lecture de 18 pages pour reconnaître les endroits qui vous correspondent vraiment."
       priceMain="49€"
       priceHint="paiement unique · PDF 18 pages"
       pages={18}

@@ -56,7 +56,7 @@ export default function TemoignagesPublic() {
       <SEO
         path="/temoignages"
         title="Témoignages · Plume Astrale"
-        description="Plus de mille femmes ont partagé ce que Soléna leur a apporté. Lis leurs mots — filtre par signe astrologique."
+        description="Découvrez ce que les lectrices Plume Astrale partagent après leur lecture — filtrable par signe astrologique."
       />
 
       <section className="ps-section ps-section-light" data-testid="temoignages-public-page">
@@ -124,7 +124,18 @@ export default function TemoignagesPublic() {
               borderRadius: 12,
               fontFamily: 'Inter, sans-serif', color: '#6B7280',
             }} data-testid="temoignages-empty">
-              Aucun témoignage ne correspond à ta recherche.
+              {items.length === 0 ? (
+                <>
+                  <div style={{ fontFamily: 'Playfair Display, serif', fontStyle: 'italic', fontSize: 20, color: '#0F1A3C', marginBottom: 12 }}>
+                    Les premiers témoignages arrivent bientôt.
+                  </div>
+                  <div style={{ maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>
+                    Vous avez reçu une lecture Plume Astrale ? <Link to="/temoignage" style={{ color: '#C9A24B', textDecoration: 'underline', textUnderlineOffset: 3 }}>Partagez votre expérience</Link> — nous validons chaque témoignage avant publication.
+                  </div>
+                </>
+              ) : (
+                'Aucun témoignage ne correspond à ta recherche.'
+              )}
             </div>
           )}
 

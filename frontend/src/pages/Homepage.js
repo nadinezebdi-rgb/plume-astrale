@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, Sparkles, Feather, BookOpen, Compass, Heart,
@@ -7,6 +7,11 @@ import {
 import SEO from '@/components/SEO';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
 import LiveConstellation from '@/components/LiveConstellation';
+import PdfFlipbook from '@/components/PdfFlipbook';
+import CinematicHero from '@/components/CinematicHero';
+import PremiumPillars from '@/components/PremiumPillars';
+import SolenaGuideCard from '@/components/SolenaGuideCard';
+import HomepageMiniQuiz from '@/components/HomepageMiniQuiz';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -17,8 +22,6 @@ import { useAuth } from '@/context/AuthContext';
  * Playfair Display pour les titres, Inter pour le corps.
  * Un seul CTA doré par section. Grille 12 colonnes, max 1200px.
  */
-
-const SOLENA_PORTRAIT = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/72jssj5l_IMG01_portrait_femme_mystique_corrigee_2.png';
 
 const VALUE_PILLARS = [
   {
@@ -57,135 +60,58 @@ const SERVICES = [
     price: '49€',
     to: '/astrocartographie',
   },
+  {
+    title: 'Karma & Destin',
+    desc: 'Ta lignée karmique, Nœud Nord et mission de vie.',
+    price: '29€',
+    to: '/karma-destin',
+  },
+  {
+    title: 'Compatibilité amoureuse',
+    desc: 'Vos deux ciels comparés — affinités, tensions, karma.',
+    price: '49€',
+    to: '/compatibilite-amoureuse',
+  },
+  {
+    title: 'Numérologie',
+    desc: 'Chemin de vie, expression, âme, année personnelle.',
+    price: '29€',
+    to: '/numerologie',
+  },
 ];
 
-const TESTIMONIALS = [
-  {
-    name: 'Camille · Lyon',
-    quote: '« J\'ai lu trois fois d\'affilée. C\'était comme si Soléna me connaissait depuis toujours. »',
-  },
-  {
-    name: 'Elsa · Bruxelles',
-    quote: '« Chaque page m\'a apaisée. C\'est un cadeau que je m\'offre chaque année désormais. »',
-  },
-  {
-    name: 'Léa · Toulouse',
-    quote: '« Un texte d\'une justesse rare. Un objet précieux. »',
-  },
-];
+const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function Homepage() {
   const { user } = useAuth();
   const signupPath = user ? '/mon-compte' : '/inscription';
+  const [flipbookBook, setFlipbookBook] = useState(null);
+
+  const FEATURED_BOOKS = [
+    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '17,99€', to: '/theme-natal' },
+    { slug: 'kabbale',           title: 'Arbre de Vie · Kabbale',   tagline: '10 Sephiroth · 22 chemins',         price: '39€',    to: '/kabbale' },
+    { slug: 'astrocartographie', title: 'Astrocartographie',        tagline: '7 lignes planétaires sur le monde', price: '49€',    to: '/astrocartographie' },
+  ];
 
   return (
     <div className="ps-home" data-testid="homepage-v2">
       <SEO
         path="/"
-        title="Plume Astrale · Ta lecture personnalisée pour mieux te comprendre"
-        description="Connaissance de soi — mieux comprendre ses émotions, besoins et fonctionnements. Une lecture personnalisée à partir de tes données de naissance, livrée en PDF premium en quelques minutes."
+        title="Comprendre les périodes de votre vie · Plume Astrale"
+        description="Une lecture personnalisée pour vous aider à mieux comprendre les grands moments de votre parcours."
       />
 
-      {/* ═══ SECTION 1 · HERO SOMBRE ═══ */}
-      <section className="ps-section ps-section-dark" data-testid="ps-hero">
-        <CelestialBackdrop density={180} shootingStars interval={8000} />
-        {/* Constellation zodiacale du mois — positionnée à gauche derrière le texte */}
-        <div style={{
-          position: 'absolute',
-          left: '2%', top: '10%',
-          width: 'min(560px, 42%)', height: '82%',
-          pointerEvents: 'none', zIndex: 0,
-        }} aria-hidden="true">
-          <LiveConstellation sign="auto" size={520} />
-        </div>
-        <div className="ps-container">
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr',
-            gap: 48,
-            alignItems: 'center',
-          }} className="ps-hero-grid">
-            {/* Copy */}
-            <div>
-              <p className="ps-eyebrow" style={{ marginBottom: 24 }}>Plume Astrale · Guidance céleste</p>
-              <h1 className="ps-h1" style={{ color: '#F7F5F0', marginBottom: 24 }}>
-                La lecture que ton <span className="ps-italic">ciel</span> attendait.
-              </h1>
-              <p className="ps-body" style={{ marginBottom: 32, color: 'rgba(247,245,240,0.85)' }}>
-                Une lecture personnelle de ton thème natal, portée par la voix de
-                Plume Astrale — les cycles, les répétitions, les tournants. Pas
-                d&apos;horoscope générique.
-              </p>
-              <Link to={signupPath} className="ps-btn ps-btn-primary" data-testid="hero-cta"
-                style={{ padding: '16px 32px', fontSize: 16 }}>
-                Recevoir ma lecture
-                <ArrowRight style={{ width: 18, height: 18 }} strokeWidth={2} />
-              </Link>
-              <p className="ps-caption" style={{ marginTop: 16, color: 'rgba(247,245,240,0.55)' }}>
-                Sans carte bancaire · 20 crédits offerts à l&apos;inscription
-              </p>
-            </div>
+      {/* ═══ SECTION 1 · HERO CINÉMATOGRAPHIQUE (repositionnement 2026-08) ═══ */}
+      <CinematicHero />
 
-            {/* Portrait */}
-            <div style={{ position: 'relative' }}>
-              <div style={{
-                position: 'absolute',
-                inset: '-20px',
-                background: 'radial-gradient(ellipse 60% 70% at 50% 40%, rgba(201,162,75,0.18), transparent 65%)',
-                zIndex: 0,
-              }} />
-              <img
-                src={SOLENA_PORTRAIT}
-                alt="Soléna, la voix de Plume Astrale"
-                data-testid="hero-portrait"
-                style={{
-                  position: 'relative', zIndex: 1,
-                  width: '100%',
-                  maxWidth: 480,
-                  height: 'auto',
-                  borderRadius: 12,
-                  filter: 'brightness(0.95) contrast(1.02) saturate(0.95) hue-rotate(-8deg)',
-                  boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
-                  margin: '0 auto',
-                  display: 'block',
-                }}
-                loading="eager"
-              />
-              <div style={{
-                position: 'absolute', bottom: 24, left: '50%',
-                transform: 'translateX(-50%)',
-                background: 'rgba(15,26,60,0.85)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(201,162,75,0.35)',
-                borderRadius: 999,
-                padding: '10px 20px',
-                display: 'flex', alignItems: 'center', gap: 12,
-                zIndex: 2,
-              }}>
-                <span style={{
-                  fontFamily: 'Inter, sans-serif', fontSize: 13,
-                  color: 'rgba(247,245,240,0.85)',
-                }}>
-                  Soléna, la voix de Plume Astrale
-                </span>
-                <span style={{
-                  color: '#C9A24B', fontWeight: 600, fontSize: 13,
-                  display: 'flex', alignItems: 'center', gap: 4,
-                }}>
-                  <Star style={{ width: 14, height: 14, fill: '#C9A24B' }} strokeWidth={0} />
-                  4,9/5
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* ═══ SECTION 1.5 · SOLÉNA (apparition douce au scroll) ═══ */}
+      <SolenaGuideCard />
 
-        <style>{`
-          @media (min-width: 900px) {
-            .ps-hero-grid { grid-template-columns: 1.1fr 1fr !important; gap: 64px !important; }
-          }
-        `}</style>
-      </section>
+      {/* ═══ SECTION 1.7 · 4 PILIERS PREMIUM ═══ */}
+      <PremiumPillars />
+
+      {/* ═══ SECTION 1.8 · MINI-QUIZ (Preview onboarding — conversion précoce) ═══ */}
+      <HomepageMiniQuiz />
 
       {/* ═══ SECTION 2 · PROPOSITION DE VALEUR (CLAIRE) ═══ */}
       <section className="ps-section ps-section-light" data-testid="ps-value">
@@ -323,26 +249,19 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* ═══ SECTION 5 · TÉMOIGNAGES (SOMBRE) ═══ */}
-      <section className="ps-section ps-section-dark" data-testid="ps-testimonials">
-        <CelestialBackdrop density={140} shootingStars interval={10000} />
-        <div className="ps-container">
-          <div style={{ marginBottom: 56, maxWidth: 640 }}>
-            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Ce qu&apos;elles en disent</p>
-            <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 12 }}>
-              Elles ont reçu leur <span className="ps-italic">lecture.</span>
+      {/* ═══ SECTION 4bis · FEUILLETAGE DES LIVRES (SOMBRE) ═══ */}
+      <section className="ps-section ps-section-dark" data-testid="ps-flipbook-teaser">
+        <CelestialBackdrop density={90} shootingStars={false} />
+        <div className="ps-container" style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ marginBottom: 56, maxWidth: 680 }}>
+            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Feuilleter avant d&apos;acheter</p>
+            <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 16 }}>
+              Un extrait, comme si tu tenais le <span className="ps-italic">livre</span> entre tes mains.
             </h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16 }}>
-              {[1, 2, 3, 4, 5].map(i => (
-                <Star key={i} style={{ width: 18, height: 18, color: '#C9A24B', fill: '#C9A24B' }} strokeWidth={0} />
-              ))}
-              <span style={{
-                fontFamily: 'Inter, sans-serif', fontSize: 14,
-                color: 'rgba(247,245,240,0.75)', marginLeft: 8,
-              }}>
-                4,9/5 sur plus de 2 400 lectures livrées
-              </span>
-            </div>
+            <p className="ps-body" style={{ color: 'rgba(247,245,240,0.78)' }}>
+              Chaque lecture est composée comme un vrai livre — couverture personnalisée, table
+              des matières, ornements dorés. Ouvre-en un pour toucher la matière.
+            </p>
           </div>
 
           <div style={{
@@ -350,27 +269,109 @@ export default function Homepage() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
             gap: 24,
           }}>
-            {TESTIMONIALS.map((t, i) => (
-              <div key={i} className="ps-card" data-testid={`testimonial-${i}`}>
-                <p style={{
-                  fontFamily: 'Playfair Display, serif',
-                  fontSize: 18, lineHeight: 1.5, fontStyle: 'italic',
-                  color: 'rgba(247,245,240,0.95)', margin: 0, marginBottom: 20,
-                }}>
-                  {t.quote}
-                </p>
+            {FEATURED_BOOKS.map((b) => (
+              <div key={b.slug}
+                data-testid={`home-flipbook-card-${b.slug}`}
+                style={{
+                  background: 'rgba(247,245,240,0.04)',
+                  border: '1px solid rgba(201,162,75,0.20)',
+                  borderRadius: 14,
+                  padding: 28,
+                  display: 'flex', flexDirection: 'column', gap: 16,
+                  transition: 'border-color 0.3s ease, transform 0.3s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(201,162,75,0.55)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(201,162,75,0.20)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <BookOpen style={{ width: 20, height: 20, color: '#C9A24B' }} strokeWidth={1.6} />
+                  <span style={{
+                    fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600,
+                    letterSpacing: '0.14em', textTransform: 'uppercase',
+                    color: 'rgba(247,245,240,0.55)',
+                  }}>Livre imprimé</span>
+                </div>
+
+                <div>
+                  <h3 style={{
+                    fontFamily: 'Playfair Display, serif',
+                    fontSize: 22, fontWeight: 500, color: '#F7F5F0',
+                    margin: 0, marginBottom: 6, lineHeight: 1.25,
+                  }}>{b.title}</h3>
+                  <p style={{
+                    fontFamily: 'Inter, sans-serif', fontSize: 13,
+                    color: 'rgba(247,245,240,0.62)',
+                    margin: 0,
+                  }}>{b.tagline}</p>
+                </div>
+
                 <div style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 13, fontWeight: 500,
-                  color: '#C9A24B', letterSpacing: '0.06em',
-                }}>
-                  — {t.name}
+                  fontFamily: 'Playfair Display, serif',
+                  fontSize: 24, color: '#C9A24B', fontStyle: 'italic',
+                }}>{b.price}</div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4 }}>
+                  <button
+                    type="button"
+                    onClick={() => setFlipbookBook(b)}
+                    data-testid={`home-flipbook-open-${b.slug}`}
+                    style={{
+                      flex: '1 1 auto',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      padding: '11px 18px', borderRadius: 999,
+                      background: '#C9A24B', color: '#0F1A3C',
+                      fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600,
+                      letterSpacing: '0.10em', textTransform: 'uppercase',
+                      border: 'none', cursor: 'pointer',
+                      transition: 'background 0.2s ease, transform 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#B58F3F'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = '#C9A24B'; }}
+                  >
+                    Feuilleter
+                    <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
+                  </button>
+                  <Link
+                    to={b.to}
+                    data-testid={`home-flipbook-detail-${b.slug}`}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '11px 16px',
+                      color: 'rgba(247,245,240,0.85)',
+                      fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500,
+                      letterSpacing: '0.10em', textTransform: 'uppercase',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Détails
+                  </Link>
                 </div>
               </div>
             ))}
           </div>
+
+          <div style={{ marginTop: 40 }}>
+            <Link to="/nos-livres" className="ps-btn ps-btn-outline"
+              data-testid="home-flipbook-all-cta"
+              style={{ color: '#F7F5F0', borderColor: 'rgba(247,245,240,0.4)' }}>
+              Voir toute la bibliothèque
+              <ArrowRight style={{ width: 16, height: 16 }} strokeWidth={2} />
+            </Link>
+          </div>
         </div>
       </section>
+
+      {/* ═══ SECTION 5 · TÉMOIGNAGES ═══
+          Retirée pendant le concours 2026 : aucun avis codé en dur,
+          aucune métrique non prouvée (4,9/5 sur 2 400 lectures). La section
+          reviendra dès que des vrais témoignages seront collectés via
+          /temoignages (soumission user → approbation admin). */}
 
       {/* ═══ SECTION 6 · APPEL À L'ACTION FINAL (CLAIRE) ═══ */}
       <section className="ps-section ps-section-light" data-testid="ps-final-cta">
@@ -413,6 +414,16 @@ export default function Homepage() {
           </div>
         </div>
       </section>
+
+      {/* Flipbook modal */}
+      {flipbookBook && (
+        <PdfFlipbook
+          product={flipbookBook.slug}
+          title={flipbookBook.title}
+          onClose={() => setFlipbookBook(null)}
+          testid="home-flipbook-modal"
+        />
+      )}
     </div>
   );
 }

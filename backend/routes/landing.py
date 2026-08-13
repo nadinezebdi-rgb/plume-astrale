@@ -30,44 +30,22 @@ router = APIRouter(prefix='/landing', tags=['landing'])
 # Testimonials
 # ═══════════════════════════════════════════════════════════════
 
-_SEED_TESTIMONIALS = [
-    {
-        'id': 'seed-lea-m',
-        'initial': 'L', 'name': 'Léa M.', 'sign': 'Poissons', 'city': 'Lyon',
-        'quote': "Rien de générique, rien de flou. Soléna m'a expliqué pourquoi je revivais toujours le même schéma — et comment le comprendre.",
-        'transform_before': 'Je tournais en rond avec la même relation depuis 3 ans.',
-        'transform_after': "J'ai enfin compris le nœud, et posé un vrai choix.",
-        'status': 'approved', 'stars': 5,
-        'created_at': '2026-07-15T10:00:00+00:00',
-    },
-    {
-        'id': 'seed-sarah-t',
-        'initial': 'S', 'name': 'Sarah T.', 'sign': 'Cancer', 'city': 'Bordeaux',
-        'quote': "J'étais sceptique. La finesse de la lecture m'a scotchée. Ça m'a aidée à faire la paix avec une histoire de famille.",
-        'transform_before': 'Un secret familial que je portais depuis toujours.',
-        'transform_after': 'Une paix nouvelle avec mes racines.',
-        'status': 'approved', 'stars': 5,
-        'created_at': '2026-07-18T14:30:00+00:00',
-    },
-    {
-        'id': 'seed-manon-d',
-        'initial': 'M', 'name': 'Manon D.', 'sign': 'Lion', 'city': 'Marseille',
-        'quote': 'Je relis ma lecture chaque semaine. Plus apaisant que trois ans à ressasser toute seule.',
-        'transform_before': 'Nuits blanches à retourner les mêmes questions.',
-        'transform_after': "Un cap clair pour l'année, et le sommeil revenu.",
-        'status': 'approved', 'stars': 5,
-        'created_at': '2026-07-22T09:15:00+00:00',
-    },
-]
+_SEED_TESTIMONIALS: List[Dict[str, Any]] = []
+# ═══ Concours 2026 : aucun témoignage seed. Seuls les vrais témoignages
+# ═══ soumis puis approuvés en admin apparaissent publiquement.
 
 
 def _load_testimonials() -> List[Dict[str, Any]]:
-    """Charge la liste; seed le premier appel."""
+    """Charge la liste; ne seed plus (concours : pas de faux témoignages)."""
     data = get_setting('landing_testimonials')
     if data is None:
-        set_setting('landing_testimonials', _SEED_TESTIMONIALS)
-        return list(_SEED_TESTIMONIALS)
-    return list(data)
+        set_setting('landing_testimonials', [])
+        return []
+    # PURGE : si des seed "seed-*" traînent en DB, on les retire à la volée.
+    filtered = [t for t in data if not str(t.get('id', '')).startswith('seed-')]
+    if len(filtered) != len(data):
+        set_setting('landing_testimonials', filtered)
+    return list(filtered)
 
 
 def _save_testimonials(items: List[Dict[str, Any]]) -> None:

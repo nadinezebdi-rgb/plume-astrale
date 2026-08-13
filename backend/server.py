@@ -1,5 +1,5 @@
 """Plume Astrale — FastAPI backend (Supabase + Stripe + Astrology API)."""
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Query
 from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
@@ -399,11 +399,10 @@ async def use_credits(payload: UseCreditsRequest, current_user: dict = Depends(g
     if not cost:
         raise HTTPException(status_code=400, detail='Service inconnu')
 
-    # 1er tarot oui/non gratuit
+    # 1er tarot oui/non gratuit — SEC-002 : check + mark atomiques
     if payload.service_id == 'tarot_oui_non':
-        used = await wallet_service.has_used_free_tarot(current_user['id'])
-        if not used:
-            await wallet_service.mark_free_tarot_used(current_user['id'])
+        claimed = await wallet_service.claim_free_tarot(current_user['id'])
+        if claimed:
             balance = await wallet_service.get_balance(current_user['id'])
             return {'success': True, 'free': True, 'free_draw': True, 'credit_balance': balance}
 
@@ -2176,12 +2175,16 @@ async def get_daily(zodiac_sign: str):
 # ════════════════════════════════════════════
 # PLUME CHAT IA
 # ════════════════════════════════════════════
+PLUME_CHAT_COST = 1  # crédits par message
+from services.wallet_service import charge_or_premium
+
+
 @api_router.post('/plume-chat')
 async def plume_chat_endpoint(
     request: Request,
-    current_user: Optional[dict] = Depends(get_optional_user),
+    current_user: dict = Depends(get_current_user),
 ):
-    """Body: { message, session_id, birth_data }. Auth optionnelle — invite OK."""
+    """Body: { message, session_id, birth_data }. Auth REQUISE + déduction crédits serveur."""
     try:
         body = await request.json()
         message = (body.get('message') or '').strip()
@@ -2190,7 +2193,15 @@ async def plume_chat_endpoint(
 
         session_id = body.get('session_id') or f'plume-{uuid.uuid4().hex[:12]}'
         birth_data = body.get('birth_data') or body.get('user_data')
-        user_id = current_user['id'] if current_user else None
+        user_id = current_user['id']
+
+        # ─── SEC-001 : déduction crédits AVANT appel LLM (bypass impossible) ───
+        try:
+            await charge_or_premium(user_id, 'chat_astral', PLUME_CHAT_COST, f'Chat Plume (session {session_id[:12]})')
+        except HTTPException as he:
+            if he.status_code == 402:
+                return {'success': False, 'message': 'Solde de crédits insuffisant.', 'error': 'insufficient_credits'}
+            raise
 
         result = await plume_chat_service(
             message=message,
@@ -2200,6 +2211,8 @@ async def plume_chat_endpoint(
         )
         result['session_id'] = session_id
         return result
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f'Plume chat endpoint error: {e}', exc_info=True)
         return {'success': False, 'message': 'Une perturbation cosmique empeche la connexion.'}
@@ -2208,17 +2221,10 @@ async def plume_chat_endpoint(
 @api_router.post('/plume-chat/stream')
 async def plume_chat_stream_endpoint(
     request: Request,
-    current_user: Optional[dict] = Depends(get_optional_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """SSE endpoint : yield chaque delta textuel de Soléna au fur et à mesure.
-
-    Body identique à `/plume-chat` : { message, session_id, birth_data }.
-    Réponse : `text/event-stream` — chaque événement est de la forme :
-        data: {"delta": "..."}\n\n
-    Événements de contrôle :
-        data: {"session_id": "..."}   (envoyé en tête, permet au client de le stocker)
-        data: {"error": "..."}         (en cas d'échec)
-        data: [DONE]                   (fin du stream)
+    Auth REQUISE + déduction crédits serveur avant tout appel LLM.
     """
     body = await request.json()
     message = (body.get('message') or '').strip()
@@ -2230,7 +2236,18 @@ async def plume_chat_stream_endpoint(
 
     session_id = body.get('session_id') or f'plume-{uuid.uuid4().hex[:12]}'
     birth_data = body.get('birth_data') or body.get('user_data')
-    user_id = current_user['id'] if current_user else None
+    user_id = current_user['id']
+
+    # ─── SEC-001 : déduction crédits AVANT stream (bypass impossible) ───
+    try:
+        await charge_or_premium(user_id, 'chat_astral', PLUME_CHAT_COST, f'Chat Plume stream (session {session_id[:12]})')
+    except HTTPException as he:
+        if he.status_code == 402:
+            async def _no_credit():
+                yield 'data: {"error":"Solde de crédits insuffisant."}\n\n'
+                yield 'data: [DONE]\n\n'
+            return StreamingResponse(_no_credit(), media_type='text/event-stream')
+        raise
 
     async def _sse():
         # 1) Envoi immédiat du session_id (utile pour un client qui vient d'en créer un)
@@ -2266,10 +2283,10 @@ async def plume_chat_stream_endpoint(
 
 
 @api_router.post('/astro-chat')
-async def legacy_astro_chat_alias(request: Request):
+async def legacy_astro_chat_alias(request: Request, current_user: dict = Depends(get_current_user)):
     """Legacy alias used by older OracleChat component.
-    Delegates to plume-chat and keeps response shape with `answer`."""
-    result = await plume_chat_endpoint(request, current_user=None)
+    Delegates to plume-chat (auth requise, déduit crédit serveur)."""
+    result = await plume_chat_endpoint(request, current_user=current_user)
     return {
         'success': bool(result.get('success')),
         'answer': result.get('answer') or result.get('message') or '',
@@ -2280,9 +2297,10 @@ async def legacy_astro_chat_alias(request: Request):
 @api_router.get('/plume-chat/history/{session_id}')
 async def plume_chat_history_endpoint(
     session_id: str,
-    current_user: Optional[dict] = Depends(get_optional_user),
+    current_user: dict = Depends(get_current_user),
 ):
-    user_id = current_user['id'] if current_user else None
+    """SEC-003 : auth requise pour lister l'historique + filtre user_id systématique."""
+    user_id = current_user['id']
     messages = await get_session_history(session_id, user_id)
     return {'success': True, 'messages': messages}
 
@@ -2444,6 +2462,53 @@ async def pdf_download_endpoint(session_id: str, token: str):
     return await download_pdf(session_id, token)
 
 
+# ═══ Cercle Soléna — Rapport mensuel (admin/test triggers) ═══
+
+@app.post('/api/admin/cercle-monthly-report/send-all')
+async def admin_trigger_monthly_send(current_user: dict = Depends(get_current_user)):
+    """Admin-only : déclenche manuellement l'envoi du rapport mensuel à tous les
+    abonnés Cercle actifs. À utiliser pour test ou rattrapage.
+    """
+    from fastapi import HTTPException as _HTTPExc
+    sb = get_admin_client() if 'get_admin_client' in globals() else None
+    if not sb:
+        from services.supabase_client import get_admin_client as _gac
+        sb = _gac()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not (prof and prof.data and prof.data.get('is_admin')):
+        raise _HTTPExc(status_code=403, detail='Réservé aux administrateurs')
+    from services.cercle_monthly_report import send_monthly_reports_to_all
+    return await send_monthly_reports_to_all()
+
+
+@app.get('/api/admin/cercle-monthly-report/preview')
+async def admin_preview_monthly_pdf(
+    sign: str = 'Bélier',
+    element: str = 'Feu',
+    month: int = Query(0, ge=0, le=11),
+    first_name: str = 'Camille',
+    current_user: dict = Depends(get_current_user),
+):
+    """Admin-only : renvoie un PDF de prévisualisation pour vérifier le rendu.
+    Query : ?sign=Bélier&element=Feu&month=0..11&first_name=Camille
+    """
+    from fastapi import HTTPException as _HTTPExc
+    from fastapi.responses import Response as _FResponse
+    from services.supabase_client import get_admin_client as _gac
+    sb = _gac()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not (prof and prof.data and prof.data.get('is_admin')):
+        raise _HTTPExc(status_code=403, detail='Réservé aux administrateurs')
+    from services.cercle_monthly_report import generate_monthly_pdf
+    from datetime import datetime as _dt
+    now = _dt.utcnow()
+    month_idx = int(month) if month is not None else (now.month - 1)
+    pdf_bytes = generate_monthly_pdf(first_name, sign, element, month_idx, now.year)
+    return _FResponse(content=pdf_bytes, media_type='application/pdf', headers={
+        'Content-Disposition': f'inline; filename="preview-cercle-{sign}-{month_idx}.pdf"',
+    })
+
+
 @app.on_event('startup')
 async def _start_cart_recovery():
     import asyncio as _asyncio
@@ -2457,6 +2522,7 @@ async def _start_cart_recovery():
     from services.refund_alert import refund_alert_loop
     from services.resend_stats import ab_ctr_refresh_loop
     from services.weekly_insights import weekly_insights_loop
+    from services.cercle_monthly_report import cercle_monthly_report_loop
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
     _asyncio.create_task(astrocarto_followup_loop())
@@ -2467,3 +2533,4 @@ async def _start_cart_recovery():
     _asyncio.create_task(refund_alert_loop())
     _asyncio.create_task(ab_ctr_refresh_loop())
     _asyncio.create_task(weekly_insights_loop())
+    _asyncio.create_task(cercle_monthly_report_loop())

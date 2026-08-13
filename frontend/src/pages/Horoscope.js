@@ -4,6 +4,7 @@ import PsPageShell from '@/components/PsPageShell';
 import { useNavigate } from 'react-router-dom';
 import { Sun, Moon, Star, Heart, Briefcase, Activity, Coins, RefreshCw, Loader2 } from 'lucide-react';
 import SEO from '@/components/SEO';
+import ZodiacGrid from '@/components/ZodiacGrid';
 import NatalCompletionPrompt from '@/components/NatalCompletionPrompt';
 import { TransitsToday } from '@/pages/RevolutionSolaire';
 const HoroscopeCosmos3D = lazy(() => import('@/components/HoroscopeCosmos3D'));
@@ -132,7 +133,7 @@ const Horoscope = () => {
   useEffect(() => {
     const data = localStorage.getItem('plume_astrale_data');
     if (!data) {
-      navigate('/formulaire');
+      // Ne pas rediriger — laisser les visiteurs anonymes voir la ZodiacGrid + CTA inscription
       return;
     }
     const parsed = JSON.parse(data);
@@ -176,8 +177,28 @@ const Horoscope = () => {
   if (!userData) {
     return (
       <PsPageShell background="light">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="w-12 h-12 border-2 border-[#C9A24B] border-t-transparent rounded-full animate-spin" />
+        <SEO path="/horoscope" />
+        <ZodiacGrid />
+        <div className="max-w-2xl mx-auto py-20 px-6 text-center">
+          <p className="uppercase tracking-[0.3em] text-xs mb-4" style={{ color: '#8F6E24', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
+            Votre horoscope personnalisé
+          </p>
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)', color: '#0A1128', marginBottom: 24, fontWeight: 400 }}>
+            Créez votre espace pour recevoir votre horoscope personnalisé.
+          </h1>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'rgba(15,26,60,0.72)', marginBottom: 32, lineHeight: 1.65 }}>
+            En vous inscrivant, votre horoscope est calculé à partir de votre thème natal complet
+            (Soleil, Lune, Ascendant) — pas uniquement du signe solaire.
+          </p>
+          <a href="/inscription" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 10,
+            padding: '14px 32px', borderRadius: 999, background: '#B8935A',
+            color: '#0A1128', textDecoration: 'none',
+            fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600,
+            letterSpacing: '0.14em', textTransform: 'uppercase',
+          }}>
+            Créer mon compte
+          </a>
         </div>
       </PsPageShell>
     );
@@ -193,11 +214,14 @@ const Horoscope = () => {
     <div className="min-h-screen">
       <SEO path="/horoscope" />
 
+      {/* Grille 12 signes — accès direct aux mini-pages SEO */}
+      <ZodiacGrid />
+
       <div className="px-6 md:px-8 py-20 md:py-28">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <p className="uppercase tracking-[0.3em] text-xs mb-4" style={{ color: '#C9A24B', fontFamily: 'Inter, sans-serif', fontWeight: 600, letterSpacing: '0.22em' }}>
+            <p className="uppercase tracking-[0.3em] text-xs mb-4" style={{ color: '#8F6E24', fontFamily: 'Inter, sans-serif', fontWeight: 600, letterSpacing: '0.22em' }}>
               ✦ Votre Horoscope ✦
             </p>
 

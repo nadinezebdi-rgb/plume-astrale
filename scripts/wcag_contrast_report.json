@@ -1,0 +1,128 @@
+[
+  {
+    "url": "/",
+    "label": "Accueil",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/theme-natal",
+    "label": "Vente · Thème Natal",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/kabbale",
+    "label": "Vente · Kabbale",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/astrocartographie",
+    "label": "Vente · Astrocartographie",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/karma-destin",
+    "label": "Vente · Karma & Destin",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/numerologie",
+    "label": "Vente · Numérologie",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/synastrie",
+    "label": "Vente · Synastrie",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/livres",
+    "label": "Livres · landing",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/nos-livres",
+    "label": "Nos livres · catalog",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/blog",
+    "label": "Blog",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/temoignages",
+    "label": "Témoignages",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/contact",
+    "label": "Contact",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/credits",
+    "label": "Crédits · info",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/mentions-legales",
+    "label": "Mentions légales",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/cgv",
+    "label": "CGV",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/services/tirage-tarot",
+    "label": "Tirage Tarot (gate)",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/services/chatia",
+    "label": "ChatIA (gate)",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/services/horoscope",
+    "label": "Horoscope",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/services/choix",
+    "label": "Choix (gate)",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/connexion",
+    "label": "Connexion",
+    "violations": [],
+    "error": null
+  },
+  {
+    "url": "/inscription",
+    "label": "Inscription",
+    "violations": [],
+    "error": null
+  }
+]

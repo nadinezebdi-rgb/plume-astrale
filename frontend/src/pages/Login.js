@@ -61,7 +61,7 @@ const handleSubmit = async (e) => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
             <div>
               <label className="block text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--pa-muted)', letterSpacing: '0.1em' }}>Adresse e-mail</label>
               <input
@@ -69,6 +69,7 @@ const handleSubmit = async (e) => {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
+                autoComplete="off"
                 className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
                 style={{ borderColor: 'rgba(212,175,55,0.3)', color: 'var(--pa-body)' }}
                 onFocus={e => e.target.style.borderColor = '#D4AF37'}
@@ -83,6 +84,7 @@ const handleSubmit = async (e) => {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
+                autoComplete="new-password"
                 className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors pr-10"
                 style={{ borderColor: 'rgba(212,175,55,0.3)', color: 'var(--pa-body)' }}
                 onFocus={e => e.target.style.borderColor = '#D4AF37'}

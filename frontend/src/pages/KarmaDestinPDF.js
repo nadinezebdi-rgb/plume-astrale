@@ -11,10 +11,7 @@ const INCLUDES = [
   { title: 'Rituel de libération', text: 'Un rituel personnalisé de 21 jours pour dissoudre un pattern karmique répétitif.' },
 ];
 
-const TESTIMONIALS = [
-  { name: 'Isabelle · Toulouse', quote: 'C\'est venu clarifier pourquoi je répétais la même histoire depuis 20 ans. Bouleversant.' },
-  { name: 'Sonia · Aix', quote: 'Le chapitre sur mon Chiron m\'a fait pleurer — puis tout est devenu limpide.' },
-];
+const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function KarmaDestinPDF() {
   return (
@@ -24,9 +21,9 @@ export default function KarmaDestinPDF() {
       path="/karma-destin-pdf"
       seoTitle="Karma & Destin · Ta lignée karmique décodée · Plume Astrale"
       seoDescription="Un PDF premium de 22 pages qui décode ta mémoire karmique, tes Nœuds lunaires, ta Lune Noire et Chiron. Signé Soléna."
-      eyebrow="Bibliothèque Plume · Karma"
-      title='Ta lignée karmique, <span class="ps-italic">décodée.</span>'
-      subtitle="Ce que tu portes de tes vies antérieures, ce que tu viens réparer, ce que tu viens accomplir cette fois-ci."
+      eyebrow="Comprendre — Ce qui revient"
+      title='Comprendre les schémas qui <span class="ps-italic">reviennent</span>.'
+      subtitle="Une lecture de 22 pages pour reconnaître ce qui se répète dans votre parcours, ce que vous êtes en train de dénouer, et ce que vous êtes venu apprendre."
       priceMain="29€"
       priceHint="paiement unique · PDF 22 pages"
       pages={22}

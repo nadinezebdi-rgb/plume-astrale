@@ -84,7 +84,7 @@ export function CreditsInfoContent({ compact = false }) {
               <div style={{
                 fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600,
                 letterSpacing: '0.14em', textTransform: 'uppercase',
-                color: '#C9A24B', marginBottom: 10,
+                color: '#8F6E24', marginBottom: 10,
               }}>= {u.cost}</div>
               <p style={{ fontSize: 13, lineHeight: 1.55, color: '#6B7280', margin: 0 }}>
                 {u.desc}
@@ -110,7 +110,7 @@ export function CreditsInfoContent({ compact = false }) {
               color: '#0F1A3C', minWidth: 130,
             }}>{p.name}</div>
             <div style={{
-              fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#C9A24B',
+              fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#8F6E24',
               fontWeight: 600, minWidth: 80,
             }}>{p.credits} cr</div>
             <div style={{ flex: 1, fontSize: 13, color: '#6B7280' }}>{p.hint}</div>

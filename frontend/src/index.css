@@ -995,11 +995,14 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
 }
 .ps-eyebrow {
   font-family: var(--ps-sans);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--ps-gold);
+  color: #8F6E24;  /* AA compliant on white (~4.7:1) — deeper brand gold */
+}
+.ps-section-dark .ps-eyebrow {
+  color: var(--ps-gold);  /* Sur fond sombre, gold clair OK (>7:1) */
 }
 .ps-caption {
   font-family: var(--ps-sans);
@@ -1010,8 +1013,12 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
 .ps-italic {
   font-family: var(--ps-serif);
   font-style: italic;
-  color: var(--ps-gold);
+  color: #8F6E24;  /* AA compliant on light background */
   font-weight: 400;
+}
+.ps-section-dark .ps-italic,
+[data-shell="dark"] .ps-italic {
+  color: var(--ps-gold);  /* Sur fond sombre, gold clair OK */
 }
 
 /* Couleurs de texte contextuelles */
@@ -1058,8 +1065,10 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
   background: rgba(201,162,75,0.10);
   transform: translateY(-1px);
 }
-.ps-section-light .ps-btn-outline { color: var(--ps-navy); border-color: var(--ps-navy); }
-.ps-section-light .ps-btn-outline:hover { background: rgba(15,26,60,0.06); }
+.ps-section-light .ps-btn-outline,
+[data-shell="light"] .ps-btn-outline { color: var(--ps-navy); border-color: var(--ps-navy); }
+.ps-section-light .ps-btn-outline:hover,
+[data-shell="light"] .ps-btn-outline:hover { background: rgba(15,26,60,0.06); }
 
 /* ── Card ── */
 .ps-card {

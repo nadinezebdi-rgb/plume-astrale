@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, Sparkles, ShieldCheck, Clock, Mail, Star, BookOpen, Check, Gift,
 } from 'lucide-react';
@@ -8,6 +7,7 @@ import SEO from '@/components/SEO';
 import ApercuLectureModal from '@/components/ApercuLectureModal';
 import GiftModal from '@/components/GiftModal';
 import PdfPreviewButton from '@/components/PdfPreviewButton';
+import PdfFlipbook from '@/components/PdfFlipbook';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
 import { useAuth } from '@/context/AuthContext';
 
@@ -72,6 +72,7 @@ export default function SalesPageV3({
   const navigate = useNavigate();
   const [apercuOpen, setApercuOpen] = useState(false);
   const [giftOpen, setGiftOpen] = useState(false);
+  const [flipbookOpen, setFlipbookOpen] = useState(false);
 
   const handleCta = () => {
     navigate(isAuthenticated ? ctaTargetAuth : ctaTargetGuest);
@@ -200,9 +201,38 @@ export default function SalesPageV3({
 
             {/* Aperçu 3 pages téléchargeable (livre prestige) */}
             {previewProduct && (
-              <div style={{ marginTop: 24 }}>
+              <div style={{ marginTop: 24, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setFlipbookOpen(true)}
+                  data-testid={`sales-${slug}-flipbook-btn`}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    padding: '11px 20px', borderRadius: 999,
+                    background: '#0F1A3C', color: '#F7F5F0',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 12, fontWeight: 600,
+                    letterSpacing: '0.10em', textTransform: 'uppercase',
+                    border: '1px solid #0F1A3C', cursor: 'pointer',
+                    transition: 'background 0.2s ease, color 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#C9A24B';
+                    e.currentTarget.style.color = '#0F1A3C';
+                    e.currentTarget.style.borderColor = '#C9A24B';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#0F1A3C';
+                    e.currentTarget.style.color = '#F7F5F0';
+                    e.currentTarget.style.borderColor = '#0F1A3C';
+                  }}
+                >
+                  <BookOpen style={{ width: 14, height: 14 }} strokeWidth={1.8} />
+                  Feuilleter le livre
+                </button>
                 <PdfPreviewButton
                   product={previewProduct}
+                  variant="ghost"
                   testid={`sales-${slug}-pdf-preview-btn`}
                 />
               </div>
@@ -433,6 +463,16 @@ export default function SalesPageV3({
         productLabel={apercu?.label || eyebrow?.split(' · ').pop() || 'Lecture'}
         productPrice={priceMain}
       />
+
+      {/* Flipbook 3D — feuilletage interactif */}
+      {flipbookOpen && previewProduct && (
+        <PdfFlipbook
+          product={previewProduct}
+          title={apercu?.label || eyebrow?.split(' · ').pop() || 'Aperçu du livre'}
+          onClose={() => setFlipbookOpen(false)}
+          testid={`sales-${slug}-flipbook-modal`}
+        />
+      )}
     </PsPageShell>
   );
 }

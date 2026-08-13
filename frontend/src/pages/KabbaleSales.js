@@ -17,11 +17,7 @@ const INCLUDES = [
   { title: 'Ton nom kabbalistique', text: 'Le nom en hébreu qui traduit ta signature d\'âme, calculé à partir de ta naissance.' },
 ];
 
-const TESTIMONIALS = [
-  { name: 'Sarah · Nice', quote: 'Je n\'avais jamais lu quelque chose d\'aussi juste sur moi. Une révélation.' },
-  { name: 'Nadia · Paris', quote: 'La Kabbale m\'intimidait. Soléna m\'a offert une porte que je peux enfin franchir.' },
-  { name: 'Élise · Montréal', quote: 'C\'est devenu ma boussole. Je le relis à chaque virage.' },
-];
+const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function KabbaleSales() {
   return (
@@ -31,9 +27,9 @@ export default function KabbaleSales() {
       path="/kabbale"
       seoTitle="Arbre de Vie · Kabbale · 15 pages écrites par Soléna"
       seoDescription="Un PDF premium de 15 pages qui cartographie ton âme sur les 10 Sephiroth et les 22 chemins hébraïques. Personnalisé à partir de ton thème natal."
-      eyebrow="Bibliothèque Plume · Kabbale"
-      title='Ton Arbre de Vie, <span class="ps-italic">cartographié.</span>'
-      subtitle="10 Sephiroth et 22 chemins hébraïques posés sur ta cartographie d'âme. Où tu rayonnes, où tu ancres, où tu montes."
+      eyebrow="Comprendre — Arbre de Vie"
+      title='L&apos;architecture invisible de <span class="ps-italic">votre chemin</span>.'
+      subtitle="Une lecture de 15 pages pour comprendre les grandes lignes de votre évolution intérieure — ce qui vous porte, ce qui vous freine, ce qui reste à explorer."
       priceMain="39€"
       priceHint="paiement unique · PDF 15 pages"
       pages={15}

@@ -32,14 +32,14 @@ const TirageTarot = () => {
   const [syntheseUnlocked, setSyntheseUnlocked] = useState(false);
   const [creditUnlocked, setCreditUnlocked] = useState(false);
 
-  // Domaines avec icônes
+  // Domaines avec icônes (couleurs adaptées pour fond clair)
   const domaines = {
-    amour: { nom: "Amour & Relations", icone: Heart, couleur: "text-pink-400" },
-    travail: { nom: "Carrière & Travail", icone: Briefcase, couleur: "text-blue-400" },
-    argent: { nom: "Finances & Abondance", icone: Coins, couleur: "text-yellow-400" },
-    sante: { nom: "Santé & Bien-être", icone: Leaf, couleur: "text-green-400" },
-    spirituel: { nom: "Spiritualité & Développement", icone: Sun, couleur: "text-[#B8A9E8]" },
-    general: { nom: "Question Générale", icone: CircleDot, couleur: "text-[#C9A24B]" }
+    amour: { nom: "Amour & Relations", icone: Heart, couleur: "text-rose-600" },
+    travail: { nom: "Carrière & Travail", icone: Briefcase, couleur: "text-blue-700" },
+    argent: { nom: "Finances & Abondance", icone: Coins, couleur: "text-amber-700" },
+    sante: { nom: "Santé & Bien-être", icone: Leaf, couleur: "text-emerald-700" },
+    spirituel: { nom: "Spiritualité & Développement", icone: Sun, couleur: "text-purple-700" },
+    general: { nom: "Question Générale", icone: CircleDot, couleur: "text-[#B58F3F]" }
   };
 
   // Positions pour le tirage celtique
@@ -523,7 +523,7 @@ const TirageTarot = () => {
                         className: `w-5 h-5 ${domaines[domaine].couleur}`, 
                         strokeWidth: 1.5 
                       })}
-                      <span className="text-[#F5EEE0]">{domaines[domaine].nom}</span>
+                      <span className="text-[#0F1A3C] font-medium">{domaines[domaine].nom}</span>
                     </div>
                     <ChevronDown className={`w-5 h-5 text-[#C9A24B] transition-transform ${showDomaines ? 'rotate-180' : ''}`} />
                   </div>
@@ -543,7 +543,7 @@ const TirageTarot = () => {
                           className: `w-5 h-5 ${value.couleur}`, 
                           strokeWidth: 1.5 
                         })}
-                        <span className="text-[#F5EEE0]">{value.nom}</span>
+                        <span className="text-[#0F1A3C]">{value.nom}</span>
                       </div>
                     ))}
                   </div>
@@ -561,12 +561,12 @@ const TirageTarot = () => {
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     placeholder="Formulez votre question avec clarté et sincérité..."
-                    className="w-full bg-[#1C1735] border border-[#C9A24B]/30 rounded-xl py-4 pl-12 pr-4 text-[#F5EEE0] placeholder-[#B8B0C8]/40 focus:outline-none focus:border-[#C9A24B] transition-colors resize-none"
+                    className="w-full bg-white border border-[#0F1A3C]/25 rounded-xl py-4 pl-12 pr-4 text-[#0F1A3C] placeholder-[#0F1A3C]/40 focus:outline-none focus:border-[#C9A24B] transition-colors resize-none"
                     rows={4}
                     data-testid="input-question"
                   />
                 </div>
-                <p className="text-[#0F1A3C]/45 text-xs mt-2">
+                <p className="text-[#232323]/70 text-xs mt-2">
                   Exemples : "Vais-je trouver l'amour cette année ?" • "Mon projet professionnel va-t-il aboutir ?"
                 </p>
               </div>
@@ -686,7 +686,7 @@ const TirageTarot = () => {
               <div className="card-mystical bg-[#C9A24B]/10 mb-8">
                 <p className="text-center">
                   <span className="text-[#232323]/65 text-sm">Votre question : </span>
-                  <span className="text-[#F5EEE0] italic">"{question}"</span>
+                  <span className="text-[#0F1A3C] italic">"{question}"</span>
                 </p>
               </div>
 
@@ -750,7 +750,7 @@ const TirageTarot = () => {
                         <h4 className="text-[#C9A24B] text-lg mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
                           Conseil des Arcanes
                         </h4>
-                        <p className="text-[#F5EEE0] italic">{tirageData.conseil_final}</p>
+                        <p className="text-[#0F1A3C] italic">{tirageData.conseil_final}</p>
                       </div>
                     </div>
                   </div>
@@ -765,11 +765,11 @@ const TirageTarot = () => {
                     <h3 className="text-xl mb-4 text-[#C9A24B]" style={{ fontFamily: 'Playfair Display, serif' }}>
                       Énergie Globale
                     </h3>
-                    <p className="text-[#F5EEE0] mb-4">{tirageData.analyse.energie_globale}</p>
+                    <p className="text-[#0F1A3C] mb-4">{tirageData.analyse.energie_globale}</p>
                     <div className="flex gap-4 text-sm">
-                      <span className="text-green-400">✓ {tirageData.analyse.cartes_droites} cartes droites</span>
-                      <span className="text-red-400">↻ {tirageData.analyse.cartes_renversees} cartes renversées</span>
-                      <span className="text-[#C9A24B]">◆ Élément dominant : {tirageData.analyse.element_dominant}</span>
+                      <span className="text-emerald-700">✓ {tirageData.analyse.cartes_droites} cartes droites</span>
+                      <span className="text-rose-700">↻ {tirageData.analyse.cartes_renversees} cartes renversées</span>
+                      <span className="text-[#B58F3F]">◆ Élément dominant : {tirageData.analyse.element_dominant}</span>
                     </div>
                   </div>
 
@@ -777,22 +777,22 @@ const TirageTarot = () => {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="card-mystical">
                       <h4 className="text-[#C9A24B] mb-2">Situation Actuelle</h4>
-                      <p className="text-[#F5EEE0] font-semibold mb-1">{tirageData.analyse.situation_actuelle?.carte}</p>
+                      <p className="text-[#0F1A3C] font-semibold mb-1">{tirageData.analyse.situation_actuelle?.carte}</p>
                       <p className="text-[#232323]/70 text-sm">{tirageData.analyse.situation_actuelle?.message}</p>
                     </div>
                     <div className="card-mystical">
                       <h4 className="text-[#C9A24B] mb-2">Obstacle Principal</h4>
-                      <p className="text-[#F5EEE0] font-semibold mb-1">{tirageData.analyse.obstacle_principal?.carte}</p>
+                      <p className="text-[#0F1A3C] font-semibold mb-1">{tirageData.analyse.obstacle_principal?.carte}</p>
                       <p className="text-[#232323]/70 text-sm">{tirageData.analyse.obstacle_principal?.message}</p>
                     </div>
                     <div className="card-mystical">
                       <h4 className="text-[#C9A24B] mb-2">Fondement</h4>
-                      <p className="text-[#F5EEE0] font-semibold mb-1">{tirageData.analyse.fondement?.carte}</p>
+                      <p className="text-[#0F1A3C] font-semibold mb-1">{tirageData.analyse.fondement?.carte}</p>
                       <p className="text-[#232323]/70 text-sm">{tirageData.analyse.fondement?.message}</p>
                     </div>
                     <div className="card-mystical">
                       <h4 className="text-[#C9A24B] mb-2">Résultat Probable</h4>
-                      <p className="text-[#F5EEE0] font-semibold mb-1">{tirageData.analyse.resultat_probable?.carte}</p>
+                      <p className="text-[#0F1A3C] font-semibold mb-1">{tirageData.analyse.resultat_probable?.carte}</p>
                       <p className="text-[#232323]/70 text-sm">{tirageData.analyse.resultat_probable?.message}</p>
                     </div>
                   </div>
@@ -813,7 +813,7 @@ const TirageTarot = () => {
                         <h4 className="text-[#C9A24B] text-lg mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
                           Conseil d'Action
                         </h4>
-                        <p className="text-[#F5EEE0] whitespace-pre-line">{tirageData.analyse.conseil_action}</p>
+                        <p className="text-[#0F1A3C] whitespace-pre-line">{tirageData.analyse.conseil_action}</p>
                       </div>
                     </div>
                   </div>

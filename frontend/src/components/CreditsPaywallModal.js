@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { X, Loader2, Sparkles, Zap, Flame, Check, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, Loader2, Check, Crown, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -106,6 +107,7 @@ const PACKS = [
  */
 export default function CreditsPaywallModal({ open, onClose, context = 'chat_out' }) {
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [loadingPack, setLoadingPack] = useState(null);
 
   if (!open) return null;
@@ -134,19 +136,19 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
   // Contexte narratif d'urgence
   const HEADLINES = {
     chat_out: {
-      title: '✨ Ta puissance astrale t\'appelle',
+      title: 'Continuons votre lecture',
       emoji: '🌙',
-      body: 'Plume a encore tellement à révéler sur ton destin amoureux. Quelques euros pour débloquer une guidance sans limite.',
+      body: 'Plume peut vous aider à comprendre encore beaucoup de choses sur vos relations. Un petit engagement pour une lecture sans limite.',
     },
     chat_low: {
-      title: '⚡ Ta lumière faiblit',
+      title: 'Vos crédits touchent à leur fin',
       emoji: '💫',
-      body: 'Une dernière étincelle avant le silence cosmique. Recharge maintenant pour ne rien manquer.',
+      body: 'Une dernière étincelle avant la pause. Rechargez maintenant pour continuer votre parcours sans interruption.',
     },
     generic: {
-      title: '🔮 Redécouvre ta destinée',
+      title: 'Reprenez votre parcours',
       emoji: '✨',
-      body: 'Accès illimité à tes lectures astrales personnalisées.',
+      body: 'Accès illimité à toutes vos lectures personnalisées.',
     },
   };
   const h = HEADLINES[context] || HEADLINES.chat_out;
@@ -200,6 +202,110 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
             className="max-w-lg mx-auto text-sm md:text-base"
             style={{ color: 'rgba(244,232,210,0.8)', lineHeight: 1.6 }}>
             {h.body}
+          </p>
+        </div>
+
+        {/* ═══ CERCLE SOLÉNA — Bannière RECOMMANDÉE (conversion booster) ═══ */}
+        <div className="px-6 md:px-8 pb-4" data-testid="paywall-cercle-banner">
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              navigate('/cercle-solena');
+            }}
+            className="w-full text-left rounded-2xl p-5 md:p-6 transition-all hover:scale-[1.01] group"
+            style={{
+              position: 'relative',
+              background: 'linear-gradient(135deg, rgba(184,147,90,0.20) 0%, rgba(201,162,75,0.12) 60%, rgba(184,147,90,0.08) 100%)',
+              border: '1.5px solid rgba(201,162,75,0.45)',
+              boxShadow: '0 0 40px rgba(201,162,75,0.15)',
+              cursor: 'pointer',
+              overflow: 'hidden',
+            }}
+            data-testid="paywall-cercle-cta"
+          >
+            {/* Badge Recommandé */}
+            <span
+              className="absolute -top-2 -left-2 px-3 py-1 rounded-md text-[10px] uppercase font-bold"
+              style={{
+                background: '#C9A24B',
+                color: '#0A1128',
+                letterSpacing: '0.16em',
+                boxShadow: '0 4px 14px rgba(201,162,75,0.5)',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              ★ Recommandé
+            </span>
+
+            {/* Halo décoratif */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                top: '-40%', right: '-10%',
+                width: 220, height: 220,
+                background: 'radial-gradient(circle, rgba(201,162,75,0.28) 0%, transparent 70%)',
+                pointerEvents: 'none',
+              }}
+            />
+
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 relative">
+              <div
+                className="shrink-0 w-14 h-14 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'rgba(201,162,75,0.18)',
+                  border: '1px solid rgba(201,162,75,0.45)',
+                }}
+              >
+                <Crown size={24} strokeWidth={1.5} style={{ color: '#C9A24B' }} />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div
+                  className="text-[10px] uppercase mb-1"
+                  style={{ color: 'rgba(201,162,75,0.85)', letterSpacing: '0.22em', fontFamily: 'Inter, sans-serif' }}
+                >
+                  Le choix des habitué·es · Cercle Soléna
+                </div>
+                <div
+                  className="text-lg md:text-xl mb-1"
+                  style={{ fontFamily: 'Playfair Display, serif', color: '#F4E8D2', fontStyle: 'italic', lineHeight: 1.3 }}
+                >
+                  50 crédits chat chaque mois — pour 14,99€
+                </div>
+                <div
+                  className="text-xs md:text-sm"
+                  style={{ color: 'rgba(244,232,210,0.72)' }}
+                >
+                  Soit <strong style={{ color: '#C9A24B' }}>0,30€ / question</strong>, sans engagement, résiliable en un clic.
+                  Le tarif le plus doux pour continuer à échanger avec Soléna sur la durée.
+                </div>
+              </div>
+
+              <div
+                className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-full"
+                style={{
+                  background: '#C9A24B',
+                  color: '#0A1128',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Découvrir le Cercle
+                <ArrowRight size={14} strokeWidth={2.5} />
+              </div>
+            </div>
+          </button>
+
+          <p
+            className="text-center text-[11px] mt-3 uppercase"
+            style={{ color: 'rgba(244,232,210,0.5)', letterSpacing: '0.24em', fontFamily: 'Inter, sans-serif' }}
+          >
+            — ou choisis un pack à l&apos;unité —
           </p>
         </div>
 

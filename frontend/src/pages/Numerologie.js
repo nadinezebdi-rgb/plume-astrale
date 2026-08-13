@@ -32,7 +32,7 @@ const DESCRIPTIONS_LOCALES = {
     5: "Votre âme est assoiffée de liberté et d'expériences variées. Ce qui vous fait vibrer, c'est la nouveauté, les voyages intérieurs ou extérieurs, et la diversité des rencontres.",
     6: "Votre âme est mue par l'amour et le désir de prendre soin. Ce qui vous comble profondément, c'est nourrir, embellir et protéger ceux que vous aimez.",
     7: "Votre âme cherche la vérité cachée et la profondeur. Vous désirez comprendre ce que les autres ne voient pas et trouver le sens ultime de votre existence.",
-    8: "Votre âme désire le pouvoir utilisé avec sagesse et l'abondance méritée. Vous voulez avoir un impact réel et tangible dans le monde matériel.",
+    8: "Votre âme aspire à exercer une influence utile et à créer une abondance méritée. Vous voulez avoir un impact réel et tangible dans le monde matériel.",
     9: "Votre âme aspire à la transcendance et au service universel. Ce qui vous comble, c'est de contribuer à quelque chose de plus grand que vous.",
   },
   expression: {

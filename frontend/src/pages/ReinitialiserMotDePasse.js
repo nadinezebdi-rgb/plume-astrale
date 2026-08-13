@@ -93,7 +93,7 @@ export default function ReinitialiserMotDePasse() {
               </Link>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
               {error && (
                 <div className="p-3 rounded-lg text-sm text-center" style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.3)', color: '#fca5a5' }} data-testid="reset-error">
                   {error}
@@ -108,6 +108,7 @@ export default function ReinitialiserMotDePasse() {
                   required
                   minLength={8}
                   autoFocus
+                  autoComplete="new-password"
                   className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors pr-10"
                   style={{ borderColor: 'rgba(212,175,55,0.3)', color: 'var(--pa-body)' }}
                   onFocus={e => e.target.style.borderColor = '#D4AF37'}
@@ -126,6 +127,7 @@ export default function ReinitialiserMotDePasse() {
                   onChange={e => setConfirm(e.target.value)}
                   required
                   minLength={8}
+                  autoComplete="new-password"
                   className="w-full bg-transparent border-b py-2 text-base outline-none transition-colors"
                   style={{ borderColor: 'rgba(212,175,55,0.3)', color: 'var(--pa-body)' }}
                   onFocus={e => e.target.style.borderColor = '#D4AF37'}
