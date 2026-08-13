@@ -45,6 +45,7 @@ export default function CinematicHero() {
       {/* Layer 1 · Image de fond cinématique */}
       <div
         aria-hidden="true"
+        className="ch-bg"
         style={{
           position: 'absolute',
           inset: 0,
@@ -199,6 +200,27 @@ export default function CinematicHero() {
         @keyframes scrollHint {
           0%, 100% { opacity: 0.3; transform: translateY(0); }
           50%      { opacity: 0.95; transform: translateY(6px); }
+        }
+        /* Mobile portrait 9:16 — image carrée 1024x1024 : on doit garder
+           à la fois la lune (haut) et la silhouette (bas). Astuces :
+           - background-size: contain-then-cover en gardant width 100%
+           - background-position en pourcentage bien calibré
+           - Hauteur de section réduite pour laisser respirer la compo */
+        @media (max-width: 640px) {
+          [data-testid="cinematic-hero"] {
+            min-height: min(92vh, 720px) !important;
+          }
+          .ch-bg {
+            /* On zoome légèrement + décale pour cadrer moon + silhouette */
+            background-size: 175% auto !important;
+            background-position: 50% 22% !important;
+          }
+        }
+        @media (max-width: 400px) {
+          .ch-bg {
+            background-size: 210% auto !important;
+            background-position: 50% 18% !important;
+          }
         }
       `}</style>
     </section>

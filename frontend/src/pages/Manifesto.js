@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import SEO from '@/components/SEO';
 
+const HERO_IMAGE = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/kl8cl3tc_femme%20face%20%C3%A0%20la%20lune.png';
+
 /**
  * Manifesto de Plume Astrale — page cinématique en 3 chapitres.
  *
@@ -216,22 +218,56 @@ export default function Manifesto() {
       </section>
 
       {/* Chapters */}
-      {CHAPTERS.map((ch, i) => (
+      {CHAPTERS.map((ch, i) => {
+        const isPromise = i === 2; // Chapitre III · La promesse — fond photo cinématique
+        return (
         <section
           key={ch.number}
           ref={(el) => (chapterRefs.current[i] = el)}
           data-testid={`manifesto-chapter-${i + 1}`}
           style={{
-            padding: '120px 24px',
-            maxWidth: 900,
-            margin: '0 auto',
+            padding: isPromise ? '160px 24px 200px' : '120px 24px',
+            maxWidth: isPromise ? '100%' : 900,
+            margin: isPromise ? '0' : '0 auto',
             position: 'relative',
             zIndex: 1,
             opacity: visibleChapters[i] ? 1 : 0,
             transform: visibleChapters[i] ? 'translateY(0)' : 'translateY(40px)',
             transition: 'opacity 1.1s cubic-bezier(.22,.61,.36,1), transform 1.1s cubic-bezier(.22,.61,.36,1)',
+            overflow: isPromise ? 'hidden' : 'visible',
           }}
         >
+          {/* Fond photo cinématique — uniquement pour le chapitre III */}
+          {isPromise && (
+            <>
+              <div
+                aria-hidden="true"
+                style={{
+                  position: 'absolute', inset: 0,
+                  backgroundImage: `url("${HERO_IMAGE}")`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center 40%',
+                  backgroundRepeat: 'no-repeat',
+                  opacity: visibleChapters[i] ? 0.55 : 0.35,
+                  transition: 'opacity 1.6s ease',
+                  zIndex: -2,
+                }}
+              />
+              <div
+                aria-hidden="true"
+                style={{
+                  position: 'absolute', inset: 0,
+                  background: `linear-gradient(180deg,
+                    rgba(10, 17, 40, 0.85) 0%,
+                    rgba(10, 17, 40, 0.55) 25%,
+                    rgba(10, 17, 40, 0.55) 75%,
+                    rgba(10, 17, 40, 0.92) 100%
+                  )`,
+                  zIndex: -1,
+                }}
+              />
+            </>
+          )}
           {/* Numéro romain géant en filigrane */}
           <div
             aria-hidden="true"
@@ -242,7 +278,7 @@ export default function Manifesto() {
               fontFamily: 'Playfair Display, serif',
               fontSize: 220,
               lineHeight: 1,
-              color: 'rgba(184, 147, 90, 0.06)',
+              color: isPromise ? 'rgba(184, 147, 90, 0.10)' : 'rgba(184, 147, 90, 0.06)',
               fontStyle: 'italic',
               userSelect: 'none',
             }}
@@ -250,7 +286,12 @@ export default function Manifesto() {
             {ch.number}
           </div>
 
-          <div style={{ position: 'relative', textAlign: 'center' }}>
+          <div style={{
+            position: 'relative',
+            textAlign: 'center',
+            maxWidth: isPromise ? 900 : 'auto',
+            margin: isPromise ? '0 auto' : 0,
+          }}>
             <p
               style={{
                 fontFamily: 'Inter, sans-serif',
@@ -258,6 +299,7 @@ export default function Manifesto() {
                 letterSpacing: '0.32em', textTransform: 'uppercase',
                 color: '#B8935A',
                 marginBottom: 24,
+                textShadow: isPromise ? '0 2px 12px rgba(10,17,40,0.85)' : 'none',
               }}
             >
               Chapitre {ch.number} · {ch.kicker}
@@ -270,6 +312,7 @@ export default function Manifesto() {
                 lineHeight: 1.15,
                 color: '#F7F5F0',
                 marginBottom: 16,
+                textShadow: isPromise ? '0 4px 32px rgba(10,17,40,0.85)' : 'none',
               }}
             >
               {ch.title}
@@ -281,6 +324,7 @@ export default function Manifesto() {
                 fontSize: 'clamp(18px, 2vw, 22px)',
                 color: '#C9A24B',
                 marginBottom: 48,
+                textShadow: isPromise ? '0 2px 20px rgba(10,17,40,0.85)' : 'none',
               }}
             >
               {ch.subtitle}
@@ -296,6 +340,7 @@ export default function Manifesto() {
                     lineHeight: 1.75,
                     color: 'rgba(247, 245, 240, 0.9)',
                     marginBottom: 20,
+                    textShadow: isPromise ? '0 2px 12px rgba(10,17,40,0.6)' : 'none',
                   }}
                 >
                   {p}
@@ -312,6 +357,9 @@ export default function Manifesto() {
                 maxWidth: 620,
                 marginLeft: 'auto',
                 marginRight: 'auto',
+                background: isPromise ? 'rgba(10, 17, 40, 0.40)' : 'transparent',
+                backdropFilter: isPromise ? 'blur(6px)' : 'none',
+                borderRadius: isPromise ? 4 : 0,
               }}
             >
               <p
@@ -329,7 +377,8 @@ export default function Manifesto() {
             </blockquote>
           </div>
         </section>
-      ))}
+      );
+      })}
 
       {/* CTA final */}
       <section

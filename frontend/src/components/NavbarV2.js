@@ -14,6 +14,7 @@ import { LECTURES, OUTILS } from '@/config/catalog';
 const NAV_LINKS = [
   { label: 'Accueil', to: '/' },
   { label: 'Services', to: '/nos-livres', hasMega: true },
+  { label: 'Manifesto', to: '/manifesto' },
   { label: 'Blog', to: '/blog' },
   { label: 'Témoignages', to: '/temoignages' },
   { label: 'Contact', to: '/contact' },
