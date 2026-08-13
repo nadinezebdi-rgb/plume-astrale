@@ -17,11 +17,7 @@ const INCLUDES = [
   { title: 'Ton nom kabbalistique', text: 'Le nom en hébreu qui traduit ta signature d\'âme, calculé à partir de ta naissance.' },
 ];
 
-const TESTIMONIALS = [
-  { name: 'Sarah · Nice', quote: 'Je n\'avais jamais lu quelque chose d\'aussi juste sur moi. Une révélation.' },
-  { name: 'Nadia · Paris', quote: 'La Kabbale m\'intimidait. Soléna m\'a offert une porte que je peux enfin franchir.' },
-  { name: 'Élise · Montréal', quote: 'C\'est devenu ma boussole. Je le relis à chaque virage.' },
-];
+const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function KabbaleSales() {
   return (

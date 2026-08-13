@@ -16,11 +16,7 @@ const INCLUDES = [
   { title: 'Ta carte du monde personnelle', text: 'Un visuel astral que tu peux imprimer — tes 7 lignes planétaires en un coup d\'œil.' },
 ];
 
-const TESTIMONIALS = [
-  { name: 'Amélie · Bordeaux', quote: 'J\'hésitais entre 4 pays. Sa carte m\'a débloquée en une lecture.' },
-  { name: 'Sophie · Genève', quote: 'Lisbonne était sur ma ligne Vénus-AC. J\'y suis allée. Elle avait raison.' },
-  { name: 'Marion · Rennes', quote: 'La précision géographique est bluffante. Un document qui vaut son pesant d\'or.' },
-];
+const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function AstrocartographieSales() {
   return (

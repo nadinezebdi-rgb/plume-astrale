@@ -12,10 +12,7 @@ const INCLUDES = [
   { title: 'Rituel du couple', text: 'Un rituel court à faire ensemble tous les samedis — pour cultiver l\'harmonie.' },
 ];
 
-const TESTIMONIALS = [
-  { name: 'Elsa & Marc · Lyon', quote: 'On a lu à voix haute, un chapitre chacun. Ça a changé notre conversation pour de bon.' },
-  { name: 'Camille & Sam · Paris', quote: 'La lecture du karma relationnel nous a réconciliés avec 3 ans de non-dits.' },
-];
+const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function SynastrieSales() {
   return (

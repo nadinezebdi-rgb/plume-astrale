@@ -312,7 +312,7 @@ const SEO_DATA = {
   '/cercle':          { title: 'Cercle Soléna · 19€/mois',            description: "Rejoins le Cercle Soléna : 100 crédits chat/mois, communauté privée, -10% sur les livres.", keywords: 'cercle soléna, abonnement astrologie' },
   '/consultation':    { title: 'Chat avec Plume · Plume Astrale',     description: "Discute avec Plume — ton thème natal embarqué, réponses instantanées, conversation fluide.", keywords: 'chat astrologique, consultation astrologique ligne' },
   '/archetype':       { title: 'Ton archétype dominant · Plume',       description: "Découvre ton archétype dominant, ton ombre et ton équilibre intérieur — analyse jungienne.", keywords: 'archétype jungien, ombre, individuation' },
-  '/temoignage':      { title: 'Témoignages · Plume Astrale',          description: "Ce qu'elles disent de leurs lectures Plume Astrale — 4,9/5 sur 2 400 rapports livrés.", keywords: 'témoignages astrologie, avis plume astrale' },
+  '/temoignage':      { title: 'Témoignages · Plume Astrale',          description: "Ce qu'elles disent de leurs lectures Plume Astrale — vraies expériences partagées.", keywords: 'témoignages astrologie, avis plume astrale' },
 
   /* ─── Pages succès (noindex) ─── */
   '/theme-natal/succes':        { title: 'Ton thème natal arrive · Plume', description: 'Ton livre est en génération. Livraison par email.', keywords: '', noindex: true },

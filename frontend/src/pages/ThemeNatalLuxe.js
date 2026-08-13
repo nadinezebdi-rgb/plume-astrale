@@ -13,11 +13,7 @@ const INCLUDES = [
   { title: 'Signature Soléna', text: 'Chaque paragraphe écrit spécifiquement pour toi, jamais recopié d\'un signe.' },
 ];
 
-const TESTIMONIALS = [
-  { name: 'Camille · Lyon', quote: 'J\'ai lu trois fois d\'affilée. C\'était comme si Soléna me connaissait depuis toujours.' },
-  { name: 'Elsa · Bruxelles', quote: 'Chaque page m\'a apaisée. Un cadeau que je m\'offre chaque année désormais.' },
-  { name: 'Léa · Toulouse', quote: 'Un texte d\'une justesse rare. J\'ai retrouvé du sens à ce que je vivais.' },
-];
+const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function ThemeNatalLuxe() {
   return (

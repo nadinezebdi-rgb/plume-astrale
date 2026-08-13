@@ -12,10 +12,7 @@ const INCLUDES = [
   { title: 'Ton mantra numérique', text: 'Une phrase courte à répéter chaque matin — vibrationnellement alignée sur ton chemin.' },
 ];
 
-const TESTIMONIALS = [
-  { name: 'Julie · Paris', quote: 'J\'ai enfin compris pourquoi 2025 avait été si dense pour moi. Précision d\'orfèvre.' },
-  { name: 'Aurélie · Nantes', quote: 'Le nombre d\'âme m\'a fait pleurer — c\'était exactement ce que je cachais.' },
-];
+const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function NumerologiePDF() {
   return (

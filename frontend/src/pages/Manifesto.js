@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Crown } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 const HERO_IMAGE = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/kl8cl3tc_femme%20face%20%C3%A0%20la%20lune.png';
@@ -60,6 +60,7 @@ const CHAPTERS = [
 export default function Manifesto() {
   const chapterRefs = useRef([]);
   const [visibleChapters, setVisibleChapters] = useState([false, false, false]);
+  const [ch3ParallaxY, setCh3ParallaxY] = useState(0);
 
   useEffect(() => {
     const observers = chapterRefs.current.map((el, i) => {
@@ -81,6 +82,34 @@ export default function Manifesto() {
       return obs;
     });
     return () => observers.forEach((o) => o && o.disconnect());
+  }, []);
+
+  // Parallax 0.3x sur le fond du Chapitre III uniquement (perf : rAF + délégation scroll)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (mq.matches) return;
+    let raf = null;
+    const onScroll = () => {
+      if (raf !== null) return;
+      raf = requestAnimationFrame(() => {
+        const el = chapterRefs.current[2]; // Chapitre III
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          // Décalage relatif au centre du viewport pour un effet symétrique
+          const centerOffset = rect.top + rect.height / 2 - window.innerHeight / 2;
+          setCh3ParallaxY(-centerOffset * 0.3);
+        }
+        raf = null;
+      });
+    };
+    // 1er run pour position initiale
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (raf !== null) cancelAnimationFrame(raf);
+    };
   }, []);
 
   return (
@@ -237,19 +266,25 @@ export default function Manifesto() {
             overflow: isPromise ? 'hidden' : 'visible',
           }}
         >
-          {/* Fond photo cinématique — uniquement pour le chapitre III */}
+          {/* Fond photo cinématique — uniquement pour le chapitre III (parallax 0.3x) */}
           {isPromise && (
             <>
               <div
                 aria-hidden="true"
                 style={{
-                  position: 'absolute', inset: 0,
+                  position: 'absolute',
+                  top: '-15%',
+                  left: 0,
+                  right: 0,
+                  height: '130%',
                   backgroundImage: `url("${HERO_IMAGE}")`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center 40%',
                   backgroundRepeat: 'no-repeat',
                   opacity: visibleChapters[i] ? 0.55 : 0.35,
+                  transform: `translate3d(0, ${ch3ParallaxY}px, 0)`,
                   transition: 'opacity 1.6s ease',
+                  willChange: 'transform',
                   zIndex: -2,
                 }}
               />
@@ -379,6 +414,123 @@ export default function Manifesto() {
         </section>
       );
       })}
+
+      {/* Mini-CTA Cercle Soléna — bascule vers l'abonnement mensuel après Chapitre III */}
+      <section
+        data-testid="manifesto-cta-cercle"
+        style={{
+          padding: '80px 24px 20px',
+          textAlign: 'center',
+          position: 'relative',
+          zIndex: 1,
+          maxWidth: 720,
+          margin: '0 auto',
+        }}
+      >
+        <Link
+          to="/cercle-solena"
+          data-testid="manifesto-cta-cercle-link"
+          style={{
+            display: 'block',
+            padding: '32px 36px',
+            borderRadius: 20,
+            background: 'linear-gradient(135deg, rgba(184,147,90,0.18) 0%, rgba(201,162,75,0.10) 60%, rgba(184,147,90,0.06) 100%)',
+            border: '1px solid rgba(201,162,75,0.42)',
+            textDecoration: 'none',
+            color: '#F7F5F0',
+            position: 'relative',
+            overflow: 'hidden',
+            transition: 'all 0.45s cubic-bezier(.22,.61,.36,1)',
+            boxShadow: '0 0 40px rgba(201,162,75,0.10)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-3px)';
+            e.currentTarget.style.borderColor = 'rgba(201,162,75,0.65)';
+            e.currentTarget.style.boxShadow = '0 20px 60px rgba(201,162,75,0.20)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.borderColor = 'rgba(201,162,75,0.42)';
+            e.currentTarget.style.boxShadow = '0 0 40px rgba(201,162,75,0.10)';
+          }}
+        >
+          {/* Halo décoratif */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              top: '-50%', left: '50%',
+              transform: 'translateX(-50%)',
+              width: 360, height: 360,
+              background: 'radial-gradient(circle, rgba(201,162,75,0.25) 0%, transparent 70%)',
+              pointerEvents: 'none',
+            }}
+          />
+          <div style={{ position: 'relative' }}>
+            <div
+              style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: 54, height: 54, borderRadius: '50%',
+                background: 'rgba(201,162,75,0.20)',
+                border: '1px solid rgba(201,162,75,0.55)',
+                marginBottom: 20,
+              }}
+            >
+              <Crown size={26} strokeWidth={1.5} style={{ color: '#C9A24B' }} />
+            </div>
+            <p
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11, fontWeight: 500,
+                letterSpacing: '0.32em', textTransform: 'uppercase',
+                color: '#B8935A',
+                margin: 0, marginBottom: 12,
+              }}
+            >
+              Cercle Soléna · L&apos;abonnement mensuel
+            </p>
+            <p
+              style={{
+                fontFamily: 'Playfair Display, serif',
+                fontStyle: 'italic',
+                fontSize: 'clamp(20px, 2.6vw, 26px)',
+                lineHeight: 1.35,
+                color: '#F7F5F0',
+                margin: 0, marginBottom: 14,
+                maxWidth: 560,
+                marginLeft: 'auto', marginRight: 'auto',
+              }}
+            >
+              Recevoir ce type de lecture chaque mois — <span style={{ color: '#C9A24B' }}>14,99€</span>
+            </p>
+            <p
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 14, lineHeight: 1.6,
+                color: 'rgba(247,245,240,0.72)',
+                margin: 0, marginBottom: 20,
+                maxWidth: 500,
+                marginLeft: 'auto', marginRight: 'auto',
+              }}
+            >
+              50 crédits chat + un rapport mensuel personnalisé livré le 1er.
+              Sans engagement, résiliable en un clic.
+            </p>
+            <span
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 12, fontWeight: 600,
+                letterSpacing: '0.18em', textTransform: 'uppercase',
+                color: '#C9A24B',
+              }}
+            >
+              Découvrir le Cercle
+              <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2.5} />
+            </span>
+          </div>
+        </Link>
+      </section>
 
       {/* CTA final */}
       <section

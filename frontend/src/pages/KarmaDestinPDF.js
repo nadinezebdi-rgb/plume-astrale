@@ -11,10 +11,7 @@ const INCLUDES = [
   { title: 'Rituel de libération', text: 'Un rituel personnalisé de 21 jours pour dissoudre un pattern karmique répétitif.' },
 ];
 
-const TESTIMONIALS = [
-  { name: 'Isabelle · Toulouse', quote: 'C\'est venu clarifier pourquoi je répétais la même histoire depuis 20 ans. Bouleversant.' },
-  { name: 'Sonia · Aix', quote: 'Le chapitre sur mon Chiron m\'a fait pleurer — puis tout est devenu limpide.' },
-];
+const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function KarmaDestinPDF() {
   return (

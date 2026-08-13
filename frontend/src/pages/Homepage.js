@@ -80,20 +80,7 @@ const SERVICES = [
   },
 ];
 
-const TESTIMONIALS = [
-  {
-    name: 'Camille · Lyon',
-    quote: '« J\'ai lu trois fois d\'affilée. C\'était comme si Soléna me connaissait depuis toujours. »',
-  },
-  {
-    name: 'Elsa · Bruxelles',
-    quote: '« Chaque page m\'a apaisée. C\'est un cadeau que je m\'offre chaque année désormais. »',
-  },
-  {
-    name: 'Léa · Toulouse',
-    quote: '« Un texte d\'une justesse rare. Un objet précieux. »',
-  },
-];
+const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function Homepage() {
   const { user } = useAuth();
@@ -381,54 +368,11 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* ═══ SECTION 5 · TÉMOIGNAGES (SOMBRE) ═══ */}
-      <section className="ps-section ps-section-dark" data-testid="ps-testimonials">
-        <CelestialBackdrop density={140} shootingStars interval={10000} />
-        <div className="ps-container">
-          <div style={{ marginBottom: 56, maxWidth: 640 }}>
-            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Ce qu&apos;elles en disent</p>
-            <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 12 }}>
-              Elles ont reçu leur <span className="ps-italic">lecture.</span>
-            </h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16 }}>
-              {[1, 2, 3, 4, 5].map(i => (
-                <Star key={i} style={{ width: 18, height: 18, color: '#C9A24B', fill: '#C9A24B' }} strokeWidth={0} />
-              ))}
-              <span style={{
-                fontFamily: 'Inter, sans-serif', fontSize: 14,
-                color: 'rgba(247,245,240,0.75)', marginLeft: 8,
-              }}>
-                4,9/5 sur plus de 2 400 lectures livrées
-              </span>
-            </div>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 24,
-          }}>
-            {TESTIMONIALS.map((t, i) => (
-              <div key={i} className="ps-card" data-testid={`testimonial-${i}`}>
-                <p style={{
-                  fontFamily: 'Playfair Display, serif',
-                  fontSize: 18, lineHeight: 1.5, fontStyle: 'italic',
-                  color: 'rgba(247,245,240,0.95)', margin: 0, marginBottom: 20,
-                }}>
-                  {t.quote}
-                </p>
-                <div style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 13, fontWeight: 500,
-                  color: '#C9A24B', letterSpacing: '0.06em',
-                }}>
-                  — {t.name}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ═══ SECTION 5 · TÉMOIGNAGES ═══
+          Retirée pendant le concours 2026 : aucun avis codé en dur,
+          aucune métrique non prouvée (4,9/5 sur 2 400 lectures). La section
+          reviendra dès que des vrais témoignages seront collectés via
+          /temoignages (soumission user → approbation admin). */}
 
       {/* ═══ SECTION 6 · APPEL À L'ACTION FINAL (CLAIRE) ═══ */}
       <section className="ps-section ps-section-light" data-testid="ps-final-cta">

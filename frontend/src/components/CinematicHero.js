@@ -11,6 +11,8 @@ import { ArrowRight } from 'lucide-react';
  *
  * Composition :
  *   • Image de fond en cover, ancrée haute pour garder ciel + lune
+ *   • Parallax subtil (0.3x) au scroll — l'image descend plus lentement
+ *     que le contenu → sensation de profondeur cinématique
  *   • Voile bleu nuit dégradé pour lisibilité de la typo
  *   • Copy éditorial centré (H1, subtitle, CTA)
  *   • Scroll indicator discret
@@ -19,6 +21,7 @@ const HERO_IMAGE = 'https://customer-assets-0z36b82j.emergentagent.net/job_consu
 
 export default function CinematicHero() {
   const [visible, setVisible] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     // Préchargement pour éviter le flash pendant que l'image charge
@@ -26,6 +29,26 @@ export default function CinematicHero() {
     img.src = HERO_IMAGE;
     const t = setTimeout(() => setVisible(true), 120);
     return () => clearTimeout(t);
+  }, []);
+
+  // Parallax léger 0.3x — désactivé si prefers-reduced-motion
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (mq.matches) return;
+    let raf = null;
+    const onScroll = () => {
+      if (raf !== null) return;
+      raf = requestAnimationFrame(() => {
+        setScrollY(window.scrollY);
+        raf = null;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (raf !== null) cancelAnimationFrame(raf);
+    };
   }, []);
 
   return (
@@ -42,7 +65,7 @@ export default function CinematicHero() {
         justifyContent: 'center',
       }}
     >
-      {/* Layer 1 · Image de fond cinématique */}
+      {/* Layer 1 · Image de fond cinématique (avec parallax 0.3x au scroll) */}
       <div
         aria-hidden="true"
         className="ch-bg"
@@ -55,8 +78,9 @@ export default function CinematicHero() {
           backgroundRepeat: 'no-repeat',
           zIndex: 1,
           opacity: visible ? 1 : 0,
-          transform: visible ? 'scale(1)' : 'scale(1.04)',
-          transition: 'opacity 1600ms ease, transform 3600ms cubic-bezier(0.16, 1, 0.3, 1)',
+          transform: `translate3d(0, ${scrollY * 0.3}px, 0) scale(${visible ? 1 : 1.04})`,
+          transition: 'opacity 1600ms ease',
+          willChange: 'transform',
         }}
       />
 

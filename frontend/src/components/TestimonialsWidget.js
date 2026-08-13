@@ -159,102 +159,16 @@ const TestimonialsWidget = ({
   );
 };
 
-// ─── Datasets pré-remplis (à remplacer par tes vrais témoignages) ────────────
+// ─── Datasets — vidés pour le concours 2026 (rien ne doit être faux). ────
+// Ils seront remplis dès que de vrais témoignages seront collectés via
+// /temoignages (soumission user → approbation admin dans /admin).
 
-export const TESTIMONIALS_KABBALE = [
-  {
-    name: 'Camille D.',
-    city: 'Lyon',
-    sign: 'Balance',
-    rating: 5,
-    quote: "Je n'avais jamais lu quelque chose d'aussi précis sur mon chemin intérieur. Les Sephiroth m'ont donné un langage pour ce que je ressens depuis toujours.",
-  },
-  {
-    name: 'Élodie R.',
-    city: 'Bordeaux',
-    sign: 'Poissons',
-    rating: 5,
-    quote: "Reçu en 2 minutes après le paiement. 15 pages qui donnent des frissons. J'ai enfin compris pourquoi je fonctionne par cycles de 7 ans.",
-  },
-  {
-    name: 'Sophie M.',
-    city: 'Bruxelles',
-    sign: 'Capricorne',
-    rating: 5,
-    quote: "Le diagnostic des Piliers a mis des mots sur mon déséquilibre. Je relis ce PDF chaque semaine. C'est devenu mon guide de fond.",
-  },
-];
+export const TESTIMONIALS_KABBALE = [];
 
-export const TESTIMONIALS_ASTROCARTO = [
-  {
-    name: 'Nadia B.',
-    city: 'Paris',
-    sign: 'Sagittaire',
-    rating: 5,
-    quote: "J'hésitais entre Lisbonne et Barcelone. Soléna m'a orientée vers Lisbonne — 3 mois après j'y étais. Ma vie a basculé, littéralement.",
-  },
-  {
-    name: 'Laurence P.',
-    city: 'Montréal',
-    sign: 'Taureau',
-    rating: 5,
-    quote: "18 pages hyper détaillées. La ligne Vénus qui passe sur Bali… je comprends enfin pourquoi j'y ai pleuré de bonheur en 2019.",
-  },
-  {
-    name: 'Estelle V.',
-    city: 'Nantes',
-    sign: 'Vierge',
-    rating: 5,
-    quote: "Le bonus Soléna était une ville dont je n'avais jamais entendu parler. Je pars la visiter en avril. Je fais confiance au ciel maintenant.",
-  },
-];
+export const TESTIMONIALS_ASTROCARTO = [];
 
-export const TESTIMONIALS_KARMA = [
-  {
-    name: 'Aurélie J.',
-    city: 'Toulouse',
-    sign: 'Cancer',
-    rating: 5,
-    quote: "Le nœud sud dans ma 7e maison expliquait tout. J'ai enfin lâché une relation qui me tirait vers le passé depuis 10 ans.",
-  },
-  {
-    name: 'Marion T.',
-    city: 'Marseille',
-    sign: 'Scorpion',
-    rating: 5,
-    quote: "89€ pour comprendre ma mission d'incarnation. Aucun coach ne m'avait donné cette clarté. Les rituels sont d'une justesse rare.",
-  },
-  {
-    name: 'Céline F.',
-    city: 'Genève',
-    sign: 'Verseau',
-    rating: 5,
-    quote: "J'ai reconnu chaque schéma karmique décrit. C'est comme si Soléna m'avait lue à cœur ouvert. Bouleversant.",
-  },
-];
+export const TESTIMONIALS_KARMA = [];
 
-export const TESTIMONIALS_COMPATIBILITE = [
-  {
-    name: 'Julie & Thomas',
-    city: 'Rennes',
-    sign: 'Gémeaux × Lion',
-    rating: 5,
-    quote: "On l'a lu ensemble à voix haute. On a ri, on a pleuré. Ça a mis des mots sur ce qu'on n'arrivait pas à se dire depuis 4 ans.",
-  },
-  {
-    name: 'Amélie C.',
-    city: 'Lille',
-    sign: 'Balance × Bélier',
-    rating: 5,
-    quote: "Analyse ultra fine des aspects. La synastrie Vénus-Mars nous a fait comprendre notre alchimie physique. Bluffant.",
-  },
-  {
-    name: 'Inès L.',
-    city: 'Nice',
-    sign: 'Vierge × Poissons',
-    rating: 5,
-    quote: "Je l'ai offert à mon meilleur ami pour ses 30 ans (compat amitié). Il m'a rappelée en larmes le soir même.",
-  },
-];
+export const TESTIMONIALS_COMPATIBILITE = [];
 
 export default TestimonialsWidget;

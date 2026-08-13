@@ -17,6 +17,19 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### Parallax + CTA Cercle + Purge concours (2026-02-08)
+- **Parallax cinématique** : hero + Manifesto Chapitre III animent leur fond à 0.3x du scroll (rAF, translate3d, willChange:transform, respect `prefers-reduced-motion`). Vérifié : `translate3d(0px,0px,0px)` → `translate3d(0px,90px,0px)` sur scroll de 300px.
+- **Mini-CTA Cercle sur Manifesto** : bloc doré `data-testid="manifesto-cta-cercle"` entre Chapitre III et CTA final, Crown icon + "Recevoir ce type de lecture chaque mois — 14,99€", 50 crédits + rapport mensuel + résiliable en un clic → clic redirige vers /cercle-solena.
+- **Purge concours 2026 (zero fake content)** :
+  - Backend `_SEED_TESTIMONIALS = []` + filtre auto qui retire tout ancien `seed-*` en DB au premier load.
+  - Frontend : `TESTIMONIALS = []` sur Homepage, KabbaleSales, AstrocartographieSales, KarmaDestinPDF, NumerologiePDF, PackKarmique, SynastrieSales, ThemeNatalLuxe.
+  - `TestimonialsWidget.js` : les 4 exports `TESTIMONIALS_*` vidés + le widget renvoie déjà `null` si empty.
+  - `LiveSalesCounter.js` réécrit → retourne `null` (fake social proof prénoms/villes/produits supprimé).
+  - `SEO.js` : suppression de "4,9/5 sur 2 400 rapports livrés" du meta /temoignage.
+  - `TemoignagesPublic.js` : suppression de "Plus de mille femmes" + nouvelle empty-state invitant à soumettre un vrai témoignage.
+  - Homepage : Section 5 (testimonials + "4,9/5 sur plus de 2 400") supprimée entièrement.
+  - Vrai témoignage utilisateur (`usr-*` id) préservé dans le DB → apparaîtra sur /temoignages.
+
 ### Manifesto + Preview Onboarding + Monthly Report (2026-02-08)
 - **Manifesto page** — `/manifesto` : nouvelle page cinématique 3 chapitres (I. Le constat, II. La conviction, III. La promesse) avec IntersectionObserver pour animation au scroll, numéros romains géants en filigrane, citations en encadré, CTA final → /decouvrir.
 - **Preview Onboarding** — mini-quiz Homepage `HomepageMiniQuiz.js` monté après `PremiumPillars` : 3 situations (doute, relation, changement). Click → `/decouvrir?situation={key}` qui saute directement à l'étape 2 (recommandation produit). Bouton "Voir toutes les situations" pour ouvrir /decouvrir sans pré-sélection.
