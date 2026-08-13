@@ -107,7 +107,7 @@ const TirageDuJour = () => {
               className="btn-mystical-filled rounded-xl py-3 px-8 flex items-center gap-2 mx-auto"
             >
               <Eye className="w-5 h-5" strokeWidth={1.5} />
-              Révéler ma carte
+              Voir ma carte
               <Sparkles className="w-5 h-5" strokeWidth={1.5} />
             </button>
           </div>

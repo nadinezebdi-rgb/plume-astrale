@@ -92,46 +92,116 @@ export default function CinematicHero() {
         }}
       />
 
-      {/* Layer 2 · Rising moon SVG */}
+      {/* Layer 2 · Rising 3D moon (ivoire réaliste, halo doré, rotation + flottement) */}
       <div
         aria-hidden="true"
         style={{
           position: 'absolute',
           left: '50%',
-          bottom: '-160px',
+          bottom: '-260px',
           transform: `translateX(-50%) translateY(${visible ? '0' : '80px'})`,
-          transition: 'transform 3000ms cubic-bezier(0.16, 1, 0.3, 1)',
-          zIndex: 2,
+          transition: 'transform 3000ms cubic-bezier(0.16, 1, 0.3, 1), opacity 1600ms ease',
           opacity: visible ? 1 : 0,
-          transitionProperty: 'transform, opacity',
-          transitionDuration: '3000ms, 1600ms',
+          zIndex: 2,
+          width: 620,
+          height: 620,
         }}
       >
-        <svg width="720" height="720" viewBox="0 0 720 720" xmlns="http://www.w3.org/2000/svg">
+        {/* Halo doré (statique, derrière la lune) */}
+        <svg
+          viewBox="0 0 720 720"
+          width="100%"
+          height="100%"
+          style={{ position: 'absolute', inset: 0 }}
+        >
           <defs>
-            <radialGradient id="moon-glow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#F5D896" stopOpacity="1" />
-              <stop offset="40%" stopColor="#D4B369" stopOpacity="0.9" />
-              <stop offset="70%" stopColor="#B8935A" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#B8935A" stopOpacity="0" />
-            </radialGradient>
-            <radialGradient id="moon-body" cx="30%" cy="30%" r="70%">
-              <stop offset="0%" stopColor="#FBF3DB" />
-              <stop offset="55%" stopColor="#E8CC96" />
-              <stop offset="100%" stopColor="#8F6E24" />
+            <radialGradient id="moon-halo-outer" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#F5D896" stopOpacity="0" />
+              <stop offset="35%" stopColor="#D4B369" stopOpacity="0.14" />
+              <stop offset="55%" stopColor="#B8935A" stopOpacity="0.28" />
+              <stop offset="72%" stopColor="#8F6E24" stopOpacity="0.10" />
+              <stop offset="100%" stopColor="#8F6E24" stopOpacity="0" />
             </radialGradient>
           </defs>
-          {/* Halo */}
-          <circle cx="360" cy="360" r="340" fill="url(#moon-glow)" opacity="0.7" />
-          <circle cx="360" cy="360" r="280" fill="url(#moon-glow)" opacity="0.5" />
-          {/* Moon body */}
-          <circle cx="360" cy="360" r="180" fill="url(#moon-body)" />
-          {/* Subtle craters */}
-          <circle cx="310" cy="310" r="18" fill="rgba(143,110,36,0.20)" />
-          <circle cx="410" cy="380" r="12" fill="rgba(143,110,36,0.15)" />
-          <circle cx="380" cy="440" r="22" fill="rgba(143,110,36,0.18)" />
-          <circle cx="290" cy="410" r="9"  fill="rgba(143,110,36,0.14)" />
+          <circle cx="360" cy="360" r="360" fill="url(#moon-halo-outer)" />
         </svg>
+
+        {/* Lune 3D — SVG cratered, rotation + flottement */}
+        <div
+          className="moon-3d"
+          style={{
+            position: 'absolute',
+            left: '50%', top: '50%',
+            width: 340, height: 340,
+            marginLeft: -170, marginTop: -170,
+          }}
+        >
+          <svg
+            viewBox="0 0 340 340"
+            width="100%"
+            height="100%"
+            style={{ animation: 'moon-rotate 240s linear infinite' }}
+          >
+            <defs>
+              {/* Sphère principale : ivoire avec ombre */}
+              <radialGradient id="moon-body-3d" cx="35%" cy="30%" r="85%">
+                <stop offset="0%" stopColor="#FFFFFF" />
+                <stop offset="25%" stopColor="#F7F5F0" />
+                <stop offset="55%" stopColor="#E8E2D2" />
+                <stop offset="80%" stopColor="#8A7F68" />
+                <stop offset="100%" stopColor="#2A2418" />
+              </radialGradient>
+              {/* Highlight de reflet (haut-gauche) */}
+              <radialGradient id="moon-highlight" cx="30%" cy="25%" r="30%">
+                <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+              </radialGradient>
+              {/* Ombre latérale profonde (droite) */}
+              <radialGradient id="moon-shadow" cx="80%" cy="55%" r="65%">
+                <stop offset="0%" stopColor="#0A1128" stopOpacity="0" />
+                <stop offset="60%" stopColor="#0A1128" stopOpacity="0.20" />
+                <stop offset="100%" stopColor="#0A1128" stopOpacity="0.45" />
+              </radialGradient>
+              {/* Motif texture surface (craters micro) */}
+              <filter id="moon-texture">
+                <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" />
+                <feColorMatrix values="0 0 0 0 0.05
+                                       0 0 0 0 0.02
+                                       0 0 0 0 0.00
+                                       0 0 0 0.18 0" />
+                <feComposite in2="SourceGraphic" operator="in" />
+              </filter>
+            </defs>
+
+            {/* Corps sphérique */}
+            <circle cx="170" cy="170" r="160" fill="url(#moon-body-3d)" />
+            {/* Texture bruit (micro-relief) */}
+            <circle cx="170" cy="170" r="160" fill="#F7F5F0" filter="url(#moon-texture)" opacity="0.55" />
+            {/* Cratères réalistes */}
+            <g opacity="0.35">
+              <ellipse cx="140" cy="120" rx="22" ry="19" fill="#8A7F68" />
+              <ellipse cx="140" cy="118" rx="18" ry="15" fill="#B8AC94" />
+              <ellipse cx="215" cy="155" rx="14" ry="12" fill="#8A7F68" />
+              <ellipse cx="215" cy="153" rx="11" ry="9" fill="#B8AC94" />
+              <ellipse cx="185" cy="210" rx="28" ry="24" fill="#8A7F68" />
+              <ellipse cx="185" cy="207" rx="24" ry="20" fill="#B8AC94" />
+              <ellipse cx="115" cy="195" rx="12" ry="11" fill="#8A7F68" />
+              <ellipse cx="240" cy="220" rx="9" ry="8" fill="#8A7F68" />
+              <ellipse cx="105" cy="245" rx="16" ry="14" fill="#8A7F68" />
+              <ellipse cx="105" cy="243" rx="13" ry="11" fill="#B8AC94" />
+              <ellipse cx="250" cy="105" rx="10" ry="9" fill="#8A7F68" />
+              <ellipse cx="90" cy="150" rx="7" ry="6" fill="#8A7F68" />
+              <ellipse cx="205" cy="270" rx="11" ry="10" fill="#8A7F68" />
+              <ellipse cx="155" cy="270" rx="8" ry="7" fill="#8A7F68" />
+            </g>
+            {/* Highlight (au-dessus des cratères) */}
+            <circle cx="170" cy="170" r="160" fill="url(#moon-highlight)" />
+            {/* Ombre latérale (donne le volume 3D) */}
+            <circle cx="170" cy="170" r="160" fill="url(#moon-shadow)" />
+            {/* Bord subtil (contour éclairé) */}
+            <circle cx="170" cy="170" r="159" fill="none" stroke="#FFFFFF" strokeWidth="0.6" opacity="0.35" />
+          </svg>
+        </div>
       </div>
 
       {/* Layer 3 · Filigrane constellation */}
@@ -290,6 +360,23 @@ export default function CinematicHero() {
         @keyframes scrollHint {
           0%, 100% { opacity: 0.3; transform: translateY(0); }
           50% { opacity: 0.9; transform: translateY(6px); }
+        }
+        @keyframes moon-rotate {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        @keyframes moon-float {
+          0%, 100% { transform: translateY(0); }
+          50%      { transform: translateY(-14px); }
+        }
+        .moon-3d {
+          animation: moon-float 9s ease-in-out infinite;
+          filter: drop-shadow(0 24px 60px rgba(184, 147, 90, 0.25))
+                  drop-shadow(0 0 80px rgba(247, 245, 240, 0.15));
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .moon-3d { animation: none; }
+          .moon-3d svg { animation: none !important; }
         }
       `}</style>
     </section>

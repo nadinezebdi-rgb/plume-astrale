@@ -79,7 +79,7 @@ export default function NatalCompletionPrompt({ variant = 'card', className = ''
               }}
             >
               Ajoute ton <strong style={{ color: '#0F1A3C' }}>heure de naissance</strong> pour
-              révéler ton Ascendant précis et lire tes maisons astrologiques.
+              connaître votre Ascendant précis et comprendre vos maisons astrologiques.
             </p>
           </div>
 

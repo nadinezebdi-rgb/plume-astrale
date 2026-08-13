@@ -134,19 +134,19 @@ export default function CreditsPaywallModal({ open, onClose, context = 'chat_out
   // Contexte narratif d'urgence
   const HEADLINES = {
     chat_out: {
-      title: '✨ Ta puissance astrale t\'appelle',
+      title: 'Continuons votre lecture',
       emoji: '🌙',
-      body: 'Plume a encore tellement à révéler sur ton destin amoureux. Quelques euros pour débloquer une guidance sans limite.',
+      body: 'Plume peut vous aider à comprendre encore beaucoup de choses sur vos relations. Un petit engagement pour une lecture sans limite.',
     },
     chat_low: {
-      title: '⚡ Ta lumière faiblit',
+      title: 'Vos crédits touchent à leur fin',
       emoji: '💫',
-      body: 'Une dernière étincelle avant le silence cosmique. Recharge maintenant pour ne rien manquer.',
+      body: 'Une dernière étincelle avant la pause. Rechargez maintenant pour continuer votre parcours sans interruption.',
     },
     generic: {
-      title: '🔮 Redécouvre ta destinée',
+      title: 'Reprenez votre parcours',
       emoji: '✨',
-      body: 'Accès illimité à tes lectures astrales personnalisées.',
+      body: 'Accès illimité à toutes vos lectures personnalisées.',
     },
   };
   const h = HEADLINES[context] || HEADLINES.chat_out;

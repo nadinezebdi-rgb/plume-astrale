@@ -234,7 +234,7 @@ const KarmaDestin = () => {
                   style={{ background: '#D4AF37', color: '#111625', fontWeight: 600, letterSpacing: '0.12em' }}
                 >
                   <Sparkles className="w-4 h-4" />
-                  Révéler mon Karma & Destin
+                  Voir mon Karma & Destin
                 </button>
               </div>
             </div>
@@ -279,7 +279,7 @@ const KarmaDestin = () => {
                 <button type="submit" disabled={loading || !formData.prenom || !formData.dateNaissance}
                   className="w-full flex items-center justify-center gap-3 py-4 rounded-xl text-sm tracking-widest uppercase transition-all duration-300 disabled:opacity-30"
                   style={{ background: '#D4AF37', color: '#111625', fontWeight: 600, letterSpacing: '0.12em' }}>
-                  {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Consultation des archives akashiques...</> : <><Sparkles className="w-4 h-4" /> Révéler mon Karma & Destin (15 crédits)</>}
+                  {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Composition de votre lecture...</> : <><Sparkles className="w-4 h-4" /> Voir mon Karma & Destin (15 crédits)</>}
                 </button>
               </form>
             </div>

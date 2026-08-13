@@ -126,7 +126,7 @@ const HeroOracle = () => {
           {error && <div style={errorStyle} data-testid="hero-error">{error}</div>}
           <button onClick={computeTeaser} style={primaryCta} data-testid="hero-cta-reveal">
             <Sparkles style={{ width: 16, height: 16 }} strokeWidth={1.8} />
-            ✦ Révéler mon énergie
+            ✦ Découvrir mon énergie
           </button>
           <p style={{ textAlign: 'center', fontSize: 11, color: 'rgba(212,175,55,0.55)', marginTop: 14, letterSpacing: '0.06em' }}>
             Gratuit · sans carte

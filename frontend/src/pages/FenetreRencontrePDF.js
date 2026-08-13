@@ -88,7 +88,7 @@ const FenetreRencontrePDF = () => {
     <>
       <SEO
         title="Fenêtres de Rencontre Avancées - Plume Astrale"
-        description="Découvre les périodes cosmiques favorables à ta rencontre destinée. Rapport PDF 10 pages avec synastrie optionnelle."
+        description="Découvre les périodes favorables à une rencontre importante. Rapport PDF 10 pages avec synastrie optionnelle."
       />
 
       <div className="min-h-screen bg-gradient-to-b from-[#0C0918] to-[#1A1F2E] text-[#F4E8D2] pt-20 pb-20">
@@ -104,7 +104,7 @@ const FenetreRencontrePDF = () => {
             </h1>
 
             <p className="text-xl md:text-2xl text-[#E3D7FF] mb-8 leading-relaxed">
-              Les périodes cosmiques favorables à ta rencontre destinée.<br />
+              Les périodes favorables à une rencontre marquante.<br />
               <span className="text-[#D4AF37]">Transits • Phases Lunaires • Synchronicité</span>
             </p>
 
@@ -155,7 +155,7 @@ const FenetreRencontrePDF = () => {
             <div className="bg-[#1A2035]/80 border border-[#D4AF37]/40 rounded-lg p-6 hover:border-[#D4AF37]/80 transition">
               <Sparkles className="w-10 h-10 text-[#D4AF37] mb-4" />
               <h3 className="font-bold text-[#E3D7FF] mb-2 text-lg">Synastrie (Optionnel)</h3>
-              <p className="text-[#F4E8D2] text-sm">Compatibilité + prédictions couple</p>
+              <p className="text-[#F4E8D2] text-sm">Compatibilité + dynamiques du couple</p>
             </div>
           </div>
 
@@ -185,7 +185,7 @@ const FenetreRencontrePDF = () => {
             <div className="bg-[#1A2035] border border-[#D4AF37]/50 rounded-lg p-8 flex flex-col justify-center">
               <h3 className="text-[#D4AF37] text-sm font-bold uppercase tracking-wider mb-4">Comment Ça Marche</h3>
               <p className="text-[#F4E8D2] leading-relaxed mb-4">
-                Une fenêtre de rencontre est un period où l'univers aligné les énergies pour faciliter ta rencontre destinée.
+                Une fenêtre de rencontre est une période où les énergies s'alignent pour faciliter un lien important.
               </p>
               <p className="text-[#E3D7FF] leading-relaxed">
                 Tes transits personnels + phases lunaires = les moments parfaits pour rayonner ta meilleure énergie.

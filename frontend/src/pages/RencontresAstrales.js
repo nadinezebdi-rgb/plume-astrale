@@ -288,7 +288,7 @@ export default function RencontresAstrales() {
 
             {/* Trust indicators */}
             <div className="grid grid-cols-3 gap-6 mt-10 text-center">
-              <TrustItem icon={Star} title="12 000+" subtitle="révélations" />
+              <TrustItem icon={Star} title="12 000+" subtitle="lectures livrées" />
               <TrustItem icon={Heart} title="4.8/5" subtitle="satisfaction" />
               <TrustItem icon={Lock} title="100%" subtitle="confidentiel" />
             </div>
@@ -313,7 +313,7 @@ export default function RencontresAstrales() {
                 style={{ background: 'rgba(212,175,55,0.10)', border: '1px solid rgba(212,175,55,0.35)' }}>
                 <Sparkles className="w-3.5 h-3.5" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
                 <span className="text-[10px] uppercase" style={{ color: '#D4AF37', letterSpacing: '0.25em' }}>
-                  Ta révélation
+                  Votre lecture
                 </span>
               </div>
               <h2 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300 }}>
