@@ -17,6 +17,13 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### Phase 4 Repositionnement + Éditorial + SEO + Conversion (2026-02-08)
+- **Phase 4 Branding** — `RencontresAstrales.js` : ancien portrait Soléna en fullbleed remplacé par un fond céleste SVG (lune dorée + halo + constellations en filigrane). L'avatar 60x60 reste (guide discrète). Aucune autre grande photo Soléna active sur les pages produit (vérifié : `Index.js` mort, `MoonHero`/`JabInteractif` non importés).
+- **Blog Editorial Pivot** — `/blog` : H1 réécrit "Comprendre les périodes de votre vie", 6 cartes éditoriales `FEATURED_TOPICS` (titres universels de développement personnel : "Pourquoi certaines relations reviennent-elles toujours ?", "Comment reconnaître le bon moment pour changer de vie", etc.), meta description + keywords + og + JSON-LD BlogPosting mis à jour. Widget Soro conservé en dessous.
+- **Humeur du Mois** — 12 pages `/horoscope/:sign` : nouvelle section "L'humeur de {mois} · {SignName}" dynamique, calculée depuis `new Date().getMonth()`. 12 climats universels × 4 éléments = 48 accents uniques dans `config/monthlyMoods.js`. Title/description SEO incluent maintenant le mois → Googlebot recrawl attendu tous les 30 jours.
+- **Cercle Recommandé Badge** — `CreditsPaywallModal.js` : bannière dorée en haut du modal avec badge "★ Recommandé", crown icon, prix 14,99€/mois, 50 crédits chat, CTA "Découvrir le Cercle" → navigate('/cercle-solena') via useNavigate. Halo décoratif + hover scale.
+- **Testing** : Testing agent 100% backend + 100% frontend (iteration 75).
+
 ### Sécurité (2026-02-08 — SEC-001/002/003)
 - **SEC-001** — `/api/plume-chat` et `/api/plume-chat/stream` : auth JWT requise + `charge_or_premium('chat_astral', ...)` AVANT tout appel LLM → impossible de bypasser la déduction crédits (401 sans token, 402 si solde insuffisant, HTTP 200 sinon).
 - **SEC-002** — `services/wallet_service.py` : verrou `asyncio.Lock` par `user_id` autour de `deduct_credits`, `add_credits`, `deduct_chat_or_credits`, `add_chat_credits`, `redeem_promo`, `mark_free_tarot_used`. Nouveau helper atomique `claim_free_tarot(user_id)` (check+mark dans le même verrou) → `/api/credits/use` (tarot_oui_non) refactorisé. Tests pytest de concurrence (`tests/test_wallet_race_condition.py`) : 20 déductions concurrentes → 8 succès + 12 refus 402, jamais de double-spend.

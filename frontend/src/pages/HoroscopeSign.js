@@ -3,6 +3,7 @@ import { Link, useParams, Navigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { ZODIAC_SIGNS, getSignBySlug } from '@/config/zodiacSigns';
+import { getMonthlyMood } from '@/config/monthlyMoods';
 
 /**
  * Horoscope par signe · SEO longue traîne.
@@ -26,6 +27,10 @@ export default function HoroscopeSign() {
   const prev = ZODIAC_SIGNS[(idx - 1 + 12) % 12];
   const next = ZODIAC_SIGNS[(idx + 1) % 12];
 
+  // Humeur du mois (dynamique — change tous les 30 jours pour attirer Googlebot)
+  const monthly = getMonthlyMood(sign);
+  const monthCapitalized = monthly.monthName.charAt(0).toUpperCase() + monthly.monthName.slice(1);
+
   const productSlugToTitle = {
     '/theme-natal': 'Votre thème personnel',
     '/theme-natal-luxe': 'Votre lecture Luxe',
@@ -48,8 +53,8 @@ export default function HoroscopeSign() {
     >
       <SEO
         path={`/horoscope/${sign.slug}`}
-        title={`${sign.name} · Comprendre votre signe · Plume Astrale`}
-        description={`Traits, cycles favorables et périodes clés du signe ${sign.name} (${sign.dates}). Une lecture accessible pour mieux comprendre votre parcours.`}
+        title={`${sign.name} · ${monthCapitalized} · Comprendre votre signe · Plume Astrale`}
+        description={`Humeur de ${monthly.monthName} pour le signe ${sign.name} (${sign.dates}) : traits, cycles favorables et périodes clés. Une lecture claire, mise à jour chaque mois.`}
       />
 
       <div style={{ maxWidth: 780, margin: '0 auto' }}>
@@ -200,6 +205,81 @@ export default function HoroscopeSign() {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* Humeur du mois — dynamique, change chaque mois pour SEO */}
+        <section
+          data-testid={`${slug}-monthly-mood`}
+          style={{
+            marginBottom: 72,
+            padding: '48px 40px',
+            borderRadius: 20,
+            background: 'linear-gradient(135deg, rgba(30, 42, 94, 0.55) 0%, rgba(15, 26, 60, 0.35) 100%)',
+            border: '1px solid rgba(184, 147, 90, 0.28)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Croissant doré filigrane en fond */}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 200 200"
+            style={{ position: 'absolute', top: -20, right: -20, width: 200, height: 200, opacity: 0.10 }}
+          >
+            <defs>
+              <radialGradient id="mm-crescent" cx="0.5" cy="0.5" r="0.5">
+                <stop offset="0%" stopColor="#F7F5F0" />
+                <stop offset="100%" stopColor="#B8935A" />
+              </radialGradient>
+            </defs>
+            <circle cx="100" cy="100" r="70" fill="url(#mm-crescent)" />
+            <circle cx="120" cy="90" r="65" fill="#0F1A3C" />
+          </svg>
+
+          <p
+            style={{
+              fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500,
+              letterSpacing: '0.32em', textTransform: 'uppercase',
+              color: '#B8935A', margin: 0, marginBottom: 12,
+            }}
+          >
+            L&apos;humeur de {monthly.monthName} · {sign.name}
+          </p>
+          <h2
+            style={{
+              fontFamily: 'Playfair Display, serif',
+              fontSize: 'clamp(22px, 2.6vw, 28px)',
+              fontWeight: 400, lineHeight: 1.25,
+              color: '#F7F5F0', margin: 0, marginBottom: 20,
+              fontStyle: 'italic',
+            }}
+          >
+            {monthly.title}
+          </h2>
+          <p
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 15, lineHeight: 1.7,
+              color: 'rgba(247, 245, 240, 0.88)',
+              margin: 0, marginBottom: 20,
+              maxWidth: 620,
+            }}
+          >
+            {monthly.body}
+          </p>
+          <p
+            style={{
+              fontFamily: 'Playfair Display, serif', fontStyle: 'italic',
+              fontSize: 16, lineHeight: 1.6,
+              color: '#C9A24B',
+              margin: 0,
+              paddingTop: 16,
+              borderTop: '1px solid rgba(184, 147, 90, 0.20)',
+              maxWidth: 620,
+            }}
+          >
+            {monthly.accent}
+          </p>
         </section>
 
         {/* CTA */}

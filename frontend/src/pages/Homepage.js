@@ -22,8 +22,6 @@ import { useAuth } from '@/context/AuthContext';
  * Un seul CTA doré par section. Grille 12 colonnes, max 1200px.
  */
 
-const SOLENA_PORTRAIT = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/72jssj5l_IMG01_portrait_femme_mystique_corrigee_2.png';
-
 const VALUE_PILLARS = [
   {
     icon: Feather,

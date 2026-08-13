@@ -147,23 +147,52 @@ export default function RencontresAstrales() {
     }}>
       <SEO title="Rencontres Astrales — Décode ta prochaine histoire d&apos;amour" description="Découvre l'identité astrale de ton futur partenaire et tes fenêtres de rencontre gravées dans ton ciel." path="/rencontres-astrales" />
 
-      {/* Portrait Solena en fond du hero (uniquement step form) — plus de vidéo */}
+      {/* Fond céleste (repositionnement Phase 4) — lune dorée + constellation en filigrane
+          remplace l'ancien portrait Soléna en fullbleed. Soléna reste guide discrète (avatar 60x60 plus bas). */}
       {step === 'form' && (
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', zIndex: 0 }} aria-hidden="true">
-          <img
-            src={SOLENA.portrait}
-            alt=""
-            style={{
-              position: 'absolute', top: '50%', left: '50%',
-              transform: 'translate(-50%, -50%) scale(1.15)',
-              width: '100%', height: '100%', objectFit: 'cover',
-              opacity: 0.24, filter: 'blur(2px) saturate(1.1)',
-            }}
-            data-testid="solena-bg-portrait"
-          />
+          {/* Aurore dorée diffuse */}
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'radial-gradient(ellipse at center, rgba(17,22,37,0.55) 0%, rgba(17,22,37,0.90) 65%, #111625 100%)',
+            background: 'radial-gradient(ellipse at 50% 30%, rgba(184,147,90,0.18) 0%, rgba(184,147,90,0.06) 30%, transparent 55%)',
+          }} />
+          {/* Lune dorée centrale */}
+          <svg viewBox="0 0 800 800" preserveAspectRatio="xMidYMid slice"
+            style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '90%', height: '90%', opacity: 0.55 }}>
+            <defs>
+              <radialGradient id="moonBody" cx="0.42" cy="0.42" r="0.55">
+                <stop offset="0%" stopColor="#F7F5F0" />
+                <stop offset="55%" stopColor="#E8D9B4" />
+                <stop offset="100%" stopColor="#B8935A" />
+              </radialGradient>
+              <radialGradient id="moonHalo" cx="0.5" cy="0.5" r="0.5">
+                <stop offset="0%" stopColor="rgba(184,147,90,0.35)" />
+                <stop offset="100%" stopColor="rgba(184,147,90,0)" />
+              </radialGradient>
+            </defs>
+            {/* Halo diffus */}
+            <circle cx="400" cy="380" r="280" fill="url(#moonHalo)" />
+            {/* Corps lunaire */}
+            <circle cx="400" cy="380" r="115" fill="url(#moonBody)" opacity="0.85" />
+            {/* Constellation filigrane — 5 étoiles reliées, façon Cassiopée */}
+            <g stroke="#B8935A" strokeWidth="0.8" fill="none" opacity="0.45">
+              <line x1="180" y1="180" x2="260" y2="140" />
+              <line x1="260" y1="140" x2="340" y2="200" />
+              <line x1="340" y1="200" x2="420" y2="150" />
+              <line x1="420" y1="150" x2="510" y2="210" />
+            </g>
+            {[
+              [180, 180], [260, 140], [340, 200], [420, 150], [510, 210],
+              [620, 520], [560, 610], [640, 630], [700, 560],
+              [140, 560], [110, 640], [200, 640],
+            ].map(([x, y], i) => (
+              <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 2.4 : 1.6} fill="#F7F5F0" opacity="0.75" />
+            ))}
+          </svg>
+          {/* Vignettage doux pour lisibilité du contenu */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'radial-gradient(ellipse at center, rgba(17,22,37,0.35) 0%, rgba(17,22,37,0.75) 65%, #111625 100%)',
           }} />
         </div>
       )}
