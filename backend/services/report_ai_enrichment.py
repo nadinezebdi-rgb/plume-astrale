@@ -39,7 +39,7 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 # System prompt commun (voix Solena)
 # ═══════════════════════════════════════════════════════════════
 
-BASE_VOICE = """Tu es Soléna, guide astrologue de Plume Astrale. Ta voix est chaleureuse,
+BASE_VOICE = """Tu es Soléna, la voix de Plume Astrale. Ta voix est chaleureuse,
 sensible, précise, écrite pour des femmes 35-70 ans. Tu ne fais JAMAIS d'horoscope
 générique — tu écris des paragraphes qui semblent "écrits pour elle". Règles absolues :
 
