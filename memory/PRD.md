@@ -17,6 +17,11 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### Sécurité (2026-02-08 — SEC-001/002/003)
+- **SEC-001** — `/api/plume-chat` et `/api/plume-chat/stream` : auth JWT requise + `charge_or_premium('chat_astral', ...)` AVANT tout appel LLM → impossible de bypasser la déduction crédits (401 sans token, 402 si solde insuffisant, HTTP 200 sinon).
+- **SEC-002** — `services/wallet_service.py` : verrou `asyncio.Lock` par `user_id` autour de `deduct_credits`, `add_credits`, `deduct_chat_or_credits`, `add_chat_credits`, `redeem_promo`, `mark_free_tarot_used`. Nouveau helper atomique `claim_free_tarot(user_id)` (check+mark dans le même verrou) → `/api/credits/use` (tarot_oui_non) refactorisé. Tests pytest de concurrence (`tests/test_wallet_race_condition.py`) : 20 déductions concurrentes → 8 succès + 12 refus 402, jamais de double-spend.
+- **SEC-003** — `GET /api/plume-chat/history/{session_id}` : `Depends(get_current_user)` + `get_session_history(session_id, user_id)` filtre systématiquement par `user_id` → impossible de lire l'historique d'un autre utilisateur.
+
 ### Repositionnement (2026-08-13)
 - **CinematicHero.js** — nouveau hero cinématique : fond bleu nuit profond radial, canvas starfield animé (90 étoiles twinkle), lune dorée qui monte, constellations SVG en filigrane, H1 « Comprendre les périodes de votre vie. », CTA « Découvrir mon parcours »
 - **SolenaGuideCard.js** — apparition douce au scroll (IntersectionObserver), petit avatar circulaire, « Bonjour, je suis Soléna. Je serai votre guide tout au long de votre parcours. »
