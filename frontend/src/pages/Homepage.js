@@ -165,7 +165,6 @@ export default function Homepage() {
 
       {/* ═══ SECTION 3 · SUPPRIMÉE (2026-02-14) — Soléna n'est pas astrologue,
               c'est un avatar / une voix éditoriale. Aucune claim d'action humaine. ═══ */}
-
       {/* ═══ SECTION 4 · SERVICES (CLAIRE) ═══ */}
       <section className="ps-section ps-section-light" data-testid="ps-services">
         <div className="ps-container">
