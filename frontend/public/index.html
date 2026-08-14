@@ -31,13 +31,22 @@
         <meta name="twitter:description" content="Une lecture personnelle de ton thème natal composée par Soléna. Livre imprimé prestige, livraison en 48h." />
         <meta name="twitter:image" content="https://plume-astrale.fr/og-cover.jpg" />
 
-        <!-- Fonts (only the ones actually used) -->
+        <!-- Fonts (only the ones actually used) — display=swap pour éviter FOUT -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
         <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
         <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+
+        <!-- Preload hero image de la home (LCP mobile) — fetchpriority=high -->
+        <link
+          rel="preload"
+          as="image"
+          href="https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/kl8cl3tc_femme%20face%20%C3%A0%20la%20lune.png"
+          fetchpriority="high"
+        />
+
         <title>Plume Astrale · Ta lecture astrologique unique</title>
 
         <!-- JSON-LD Structured Data -->

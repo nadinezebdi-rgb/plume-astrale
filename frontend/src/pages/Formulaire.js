@@ -619,11 +619,11 @@ const Formulaire = () => {
   return (
     <div className="min-h-screen relative">
       <SEO path="/formulaire" />
-      <div className="relative z-10 flex flex-col justify-center px-6 md:px-8 py-12" style={{ minHeight: '100vh' }}>
+      <div className="relative z-10 flex flex-col px-4 sm:px-6 md:px-8 pt-6 pb-12 sm:justify-center sm:py-12 formulaire-viewport" style={{ minHeight: '100vh' }}>
       <div className="max-w-lg mx-auto w-full">
 
         {/* Progress */}
-        <div className="flex items-center justify-between mb-16">
+        <div className="flex items-center justify-between mb-6 sm:mb-16">
           <button
             onClick={handleBack}
             className={`link-editorial text-xs ${step === 0 ? 'invisible' : ''}`}
@@ -638,7 +638,7 @@ const Formulaire = () => {
         </div>
 
         {/* Progress bar */}
-        <div className="h-px mb-16 relative" style={{ background: 'var(--pa-divider)' }}>
+        <div className="h-px mb-8 sm:mb-16 relative" style={{ background: 'var(--pa-divider)' }}>
           <div
             className="h-px absolute left-0 top-0 transition-all duration-700"
             style={{ width: `${((step + 1) / steps.length) * 100}%`, background: 'var(--pa-accent)' }}
@@ -646,10 +646,10 @@ const Formulaire = () => {
         </div>
 
         {/* Question */}
-        <div className="text-center mb-12">
-          <img src="https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/xb75bltg_img3.png" alt="" className="w-16 md:w-20 mx-auto mb-6 opacity-70" style={{ filter: 'drop-shadow(0 0 15px rgba(212,175,55,0.12))' }} />
+        <div className="text-center mb-8 sm:mb-12">
+          <img src="https://customer-assets.emergentagent.com/job_6ebe2661-1b82-4742-afc5-632bf29dfcc5/artifacts/xb75bltg_img3.png" alt="" width="80" height="80" loading="eager" className="w-12 sm:w-16 md:w-20 mx-auto mb-4 sm:mb-6 opacity-70" style={{ filter: 'drop-shadow(0 0 15px rgba(212,175,55,0.12))' }} />
           <h1
-            className="text-2xl md:text-4xl mb-4"
+            className="text-xl sm:text-2xl md:text-4xl mb-3 sm:mb-4"
             style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}
           >
             {currentStep.title}
@@ -660,7 +660,7 @@ const Formulaire = () => {
         </div>
 
         {/* Input */}
-        <div className="mb-12">
+        <div className="mb-8 sm:mb-12">
           {currentStep.type === 'gender' ? (
             <div className="flex gap-4 justify-center">
               {[{ val: 'female', label: 'Femme' }, { val: 'male', label: 'Homme' }].map(g => (
@@ -755,6 +755,20 @@ const Formulaire = () => {
               placeholder={currentStep.placeholder}
               className="input-editorial text-center text-lg w-full"
               autoFocus
+              autoComplete={
+                currentStep.field === 'prenom' || currentStep.field === 'prenomPartner' ? 'given-name'
+                : currentStep.field === 'email' ? 'email'
+                : currentStep.field === 'ville' ? 'address-level2'
+                : 'off'
+              }
+              inputMode={currentStep.type === 'email' ? 'email' : 'text'}
+              autoCapitalize={
+                currentStep.type === 'email' ? 'none'
+                : (currentStep.field === 'prenom' || currentStep.field === 'prenomPartner' || currentStep.field === 'ville') ? 'words'
+                : 'off'
+              }
+              autoCorrect="off"
+              spellCheck="false"
               data-testid={`input-${currentStep.field}`}
             />
           )}
@@ -771,6 +785,10 @@ const Formulaire = () => {
                 onKeyPress={handleKeyPress}
                 placeholder={currentStep.extra.placeholder}
                 className="input-editorial text-center text-lg w-full"
+                autoComplete={currentStep.extra.field === 'pays' ? 'country-name' : 'off'}
+                autoCapitalize="words"
+                autoCorrect="off"
+                spellCheck="false"
                 data-testid={`input-${currentStep.extra.field}`}
               />
               {errors[currentStep.extra.field] && (

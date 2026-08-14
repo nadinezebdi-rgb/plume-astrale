@@ -9,6 +9,7 @@ import GiftModal from '@/components/GiftModal';
 import PdfPreviewButton from '@/components/PdfPreviewButton';
 import PdfFlipbook from '@/components/PdfFlipbook';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
+import StickyMobileCta from '@/components/StickyMobileCta';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -473,6 +474,15 @@ export default function SalesPageV3({
           testid={`sales-${slug}-flipbook-modal`}
         />
       )}
+
+      {/* Sticky Mobile CTA — visible seulement sur mobile quand le hero disparaît */}
+      <StickyMobileCta
+        priceMain={priceMain}
+        priceStrike={priceStrike}
+        ctaLabel={ctaLabel}
+        onCta={handleCta}
+        testid={`sales-${slug}-sticky-cta`}
+      />
     </PsPageShell>
   );
 }
