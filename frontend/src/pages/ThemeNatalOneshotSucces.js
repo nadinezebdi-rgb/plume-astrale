@@ -176,7 +176,7 @@ const ThemeNatalOneshotSucces = () => {
             </div>
 
             <p className="text-center text-sm mb-4" style={{ color: '#F5EEE0', fontFamily: 'Cormorant Garamond, serif' }}>
-              <em style={{ color: '#D4AF37' }}>Soléna écrit ton grimoire</em> — reste sur cette page, il apparaîtra dès qu&apos;il sera prêt.
+              <em style={{ color: '#D4AF37' }}>Ton grimoire se compose</em> — reste sur cette page, il apparaîtra dès qu&apos;il sera prêt.
             </p>
 
             {/* Barre de progression */}

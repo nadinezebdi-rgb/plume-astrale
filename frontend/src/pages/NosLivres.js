@@ -35,7 +35,7 @@ export default function NosLivres() {
       <SEO
         path="/nos-livres"
         title="Nos lectures · Bibliothèque Plume Astrale"
-        description="Sept lectures astrologiques premium en PDF à télécharger, écrites par Soléna. Thème Natal, Astrologie relationnelle, Arbre de Vie, Astrocartographie, Pack Karmique, Karma & Destin, Numérologie."
+        description="Sept lectures astrologiques premium en PDF à télécharger — Thème Natal, Astrologie relationnelle, Arbre de Vie, Astrocartographie, Pack Karmique, Karma & Destin, Numérologie."
       />
 
       {/* Section hero */}

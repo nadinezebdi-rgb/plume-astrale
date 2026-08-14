@@ -89,7 +89,7 @@ export default function Homepage() {
   const [flipbookBook, setFlipbookBook] = useState(null);
 
   const FEATURED_BOOKS = [
-    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '17,99€', to: '/theme-natal' },
+    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '29,99€', to: '/theme-natal' },
     { slug: 'kabbale',           title: 'Arbre de Vie · Kabbale',   tagline: '10 Sephiroth · 22 chemins',         price: '39€',    to: '/kabbale' },
     { slug: 'astrocartographie', title: 'Astrocartographie',        tagline: '7 lignes planétaires sur le monde', price: '49€',    to: '/astrocartographie' },
   ];
@@ -163,31 +163,8 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* ═══ SECTION 3 · L'HISTOIRE DE SOLÉNA (SOMBRE) ═══ */}
-      <section className="ps-section ps-section-dark" data-testid="ps-story">
-        <CelestialBackdrop density={140} shootingStars interval={10000} />
-        <div className="ps-container">
-          <div className="ps-narrow" style={{ textAlign: 'left' }}>
-            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>La plume derrière les lectures</p>
-            <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 24 }}>
-              Soléna écrit une lecture <span className="ps-italic">à la fois.</span>
-            </h2>
-            <p className="ps-body" style={{ color: 'rgba(247,245,240,0.85)', marginBottom: 20 }}>
-              Astrologue formée à la tradition occidentale et à la kabbale hébraïque, Soléna
-              travaille chaque lecture sur mesure. À partir de ta date, ton heure et ton lieu de naissance,
-              chaque paragraphe est composé spécifiquement pour toi — jamais d&apos;horoscope générique.
-            </p>
-            <p className="ps-body" style={{ color: 'rgba(247,245,240,0.85)', marginBottom: 32 }}>
-              Chaque texte est une conversation posée, précise, apaisée. Une main tendue par
-              une amie qui connaît ton ciel mieux que toi.
-            </p>
-            <Link to="/temoignages" className="ps-btn ps-btn-outline" data-testid="story-cta">
-              Lire les témoignages
-              <ArrowRight style={{ width: 16, height: 16 }} strokeWidth={2} />
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* ═══ SECTION 3 · SUPPRIMÉE (2026-02-14) — Soléna n'est pas astrologue,
+              c'est un avatar / une voix éditoriale. Aucune claim d'action humaine. ═══ */}
 
       {/* ═══ SECTION 4 · SERVICES (CLAIRE) ═══ */}
       <section className="ps-section ps-section-light" data-testid="ps-services">

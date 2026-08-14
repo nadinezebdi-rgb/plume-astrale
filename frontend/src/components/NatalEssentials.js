@@ -157,7 +157,7 @@ export default function NatalEssentials({ token, prenom: prenomProp }) {
               fontStyle: 'italic', textAlign: 'center', paddingTop: 6,
               borderTop: '1px solid rgba(212,175,55,0.08)',
             }}>
-              Chaque réponse de Soléna est calibrée sur ces 3 axes — pas un assistant générique, mais une voix qui connaît
+              Chaque réponse est calibrée sur ces 3 axes — pas un texte générique, mais une lecture qui prend en compte
               déjà <span style={{ color: '#D4AF37' }}>ton ciel de naissance</span>.
             </div>
           </>

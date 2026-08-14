@@ -44,7 +44,7 @@ const THEMES = {
     label: 'Thème Natal',
     coverTitle: 'Ton\nThème Natal',
     coverSignature: 'Prénom · Naissance · 49 pages sur mesure',
-    heroSub: 'PDF premium, 49 pages où 11 planètes racontent qui tu es vraiment — écrit par Soléna à partir de 73 dimensions astrologiques.',
+    heroSub: 'PDF premium, 49 pages où 11 planètes racontent qui tu es vraiment — 73 dimensions astrologiques analysées et écrites dans un style éditorial signé Plume Astrale.',
     footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 49 pages',
   },
   synastry: {

@@ -55,7 +55,7 @@ const PRODUCT_INFO = {
     title: 'Votre thème personnel',
     subtitle: 'Un livre imprimé de 49 pages pour comprendre qui vous êtes vraiment.',
     to: '/theme-natal',
-    price: '17,99€',
+    price: '29,99€',
   },
   'theme-natal-luxe': {
     title: 'Votre lecture personnelle · édition Luxe',

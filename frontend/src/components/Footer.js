@@ -60,7 +60,7 @@ export default function Footer() {
           </div>
           <p style={{ margin: 0, fontSize: 12 }}>
             L&rsquo;astrologie qui sait ton prénom.<br/>
-            Écrite par Soléna.
+            Signature éditoriale Plume Astrale.
           </p>
         </div>
 
