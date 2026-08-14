@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
@@ -48,6 +48,7 @@ const styles = `
 export default function Temoignage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const [form, setForm] = useState({
     name: '', sign: '', city: '', quote: '',
     transform_before: '', transform_after: '',
@@ -55,6 +56,14 @@ export default function Temoignage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+
+  // Pré-remplissage depuis email J+2 (?prenom=Camille&session=xxx&utm_source=email)
+  useEffect(() => {
+    const prenomQ = params.get('prenom');
+    if (prenomQ) {
+      setForm((s) => (s.name ? s : { ...s, name: prenomQ }));
+    }
+  }, [params]);
 
   useEffect(() => {
     if (!user) {
@@ -102,7 +111,7 @@ export default function Temoignage() {
               <h1 className="pat-title">Merci pour ton témoignage 🌙</h1>
               <div className="pat-ok" data-testid="temoignage-success">
                 Ton témoignage a été envoyé à Soléna pour validation. Il apparaîtra sur la page
-                d'accueil dans les prochaines heures.
+                d&apos;accueil dans les prochaines heures.
               </div>
               <p className="pat-note" style={{ marginTop: 20 }}>
                 <Link to="/mon-compte" className="pat-link">Retour à mon espace</Link>
@@ -112,8 +121,8 @@ export default function Temoignage() {
             <>
               <h1 className="pat-title">Partager mon témoignage</h1>
               <p className="pat-lead">
-                Ton retour aide d'autres femmes à se lancer.
-                Reste simple et sincère — pas besoin d'en faire trop.
+                Ton retour aide d&apos;autres femmes à se lancer.
+                Reste simple et sincère — pas besoin d&apos;en faire trop.
               </p>
               <form className="pat-form" onSubmit={submit} data-testid="temoignage-form">
                 <div className="pat-row">
@@ -166,7 +175,7 @@ export default function Temoignage() {
                   {loading ? 'Envoi…' : 'Envoyer mon témoignage'}
                 </button>
                 <p className="pat-note">
-                  Soléna valide chaque témoignage avant publication. Ton email n'apparaîtra jamais.
+                  Soléna valide chaque témoignage avant publication. Ton email n&apos;apparaîtra jamais.
                 </p>
               </form>
             </>

@@ -17,6 +17,12 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### Guest Posts + Trigger Testimonial + Baromètre + IG Visual (2026-02-08)
+- **Trigger Testimonial Email J+2** : nouveau stage `testimonial` dans `lecture_complete_sequence.py` — email envoyé 48h après achat Lecture Complète avec CTA vers `/temoignage?prenom=X&session=Y&utm_source=email&utm_campaign=testimonial_j2`. `Temoignage.js` pré-remplit le champ prénom depuis la query string.
+- **Baromètre 2026** (`/barometre-2026`) : page pépite éditoriale — 4 chiffres clés (87%, 3, 1 sur 2, 92%), 3 périodes analysées (Retour de Saturne 28-32 / Uranus 35-42 / Chiron 48-55), méthodologie transparente. **JSON-LD schema.org Report** injecté (éligible relais presse). Route + sitemap OK.
+- **Instagram Visual Generator** : `services/instagram_visual.py` — génère un PNG 1080x1350 (portrait 4:5 IG-ready) avec kicker doré "L'HUMEUR DE {mois} · {sign}" + citation Playfair italique + croissant doré filigrane + signature "Plume Astrale · plume-astrale.fr". Automatiquement **attaché aux emails du rapport mensuel Cercle** (2ème pièce jointe après le PDF). Email invite les abonnées à partager en story avec @plumeastrale → chaque abonnée devient ambassadrice organique.
+- **Guest Posts Pitches** : `docs/GUEST_POSTS_PITCHES.md` — 3 emails prêts à envoyer à Psychologies, Marie Claire, Slate (angles, corps, checklist).
+
 ### SEO P3 CI + Post-lecture CTA + Featured Blog + Backlinks (2026-02-08)
 - **CI Prerender (P3 activation)** : `scripts/build:seo` = `yarn build && yarn prerender`. `README-prerender.md` mis à jour avec recettes GitHub Actions, Vercel/Netlify, et Emergent. `optionalDependencies` retirées (Chromium ~180Mo ne se télécharge PAS sur les postes dev). L'installation `yarn add -D puppeteer serve` est faite **uniquement** au moment du build CI/CD.
 - **Post-lecture Testimonial CTA** : nouvelle carte dorée `testimonial-cta-card` sur /mon-compte (onglet Aperçu) — visible UNIQUEMENT si l'utilisateur a une transaction de type `deduction` ou `purchase` (heuristique : consommation réelle). Icon Star + copy "Votre expérience compte" + bouton `Partager mon expérience` → /temoignage.

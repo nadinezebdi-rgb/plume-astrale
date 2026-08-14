@@ -1,13 +1,15 @@
 """
-Sequence email post-achat Lecture Complete 97€ — 3 emails de suivi sur 14 jours.
+Sequence email post-achat Lecture Complete 97€ — 4 emails de suivi sur 30 jours.
 
 Objectif : maximiser la valeur percue, augmenter les taux d'ouverture et
 reduire les refunds de la garantie 14j.
 
 Emails :
-  - J+1 : "As-tu ouvert ta lecture ?"     (metadata.sequence_j1_sent_at)
-  - J+7 : "Qu'est-ce qui resonne ?"        (metadata.sequence_j7_sent_at)
+  - J+1  : "As-tu ouvert ta lecture ?"           (metadata.sequence_j1_sent_at)
+  - J+2  : "Partage ton experience"              (metadata.sequence_testimonial_sent_at) ← NEW
+  - J+7  : "Qu'est-ce qui resonne ?"             (metadata.sequence_j7_sent_at)
   - J+13 : "Clarte ou remboursee — dernier appel doux" (metadata.sequence_j13_sent_at)
+  - J+30 : Cercle Solena upsell A/B             (metadata.sequence_j30_sent_at)
 
 Boucle background lancee au startup, s'execute toutes les 30 min.
 Ne renvoie jamais 2 fois le meme email (idempotent via metadata).
@@ -78,6 +80,25 @@ def _email_j1(prenom: str) -> tuple[str, str]:
         Regarde ce que ton ciel dit de ton Soleil.</p>
       <p>Cinq minutes. C'est tout ce que tu dois a cette voix qui, hier, avait besoin
         d'une reponse.</p>
+    """
+    return subject, body
+
+
+def _email_testimonial(prenom: str) -> tuple[str, str]:
+    """J+2 : email de collecte de temoignage a chaud, apres la 1ere lecture."""
+    subject = 'Ta lecture t\'a apporte quelque chose, {p} ?'.format(p=prenom)
+    body = """
+      <p>48 heures que ta lecture est arrivee. J'imagine que tu l'as ouverte,
+        peut-etre relue une deuxieme fois.</p>
+      <p>Je t'ecris pour une seule raison : <strong>ton experience compte</strong>
+        pour la prochaine personne qui hesite.</p>
+      <p style="font-style:italic;color:#d9b26a;">Deux minutes, quelques mots
+        sinceres. Ce que tu as ressenti, ce qui t'a touchee, ce qui t'a
+        surprise. Rien de plus.</p>
+      <p>Chaque temoignage aide quelqu'un a oser son premier pas — comme toi tu
+        l'as ose. C'est ma seule forme de publicite, et la plus juste.</p>
+      <p style="font-size:13px;color:#b8b4c9;">Si tu prefereres ne pas partager,
+        pas de souci — merci simplement d'avoir fait confiance a Plume Astrale.</p>
     """
     return subject, body
 
@@ -175,6 +196,8 @@ async def _process_transaction(tx: Dict[str, Any]) -> int:
     stage: str | None = None
     if age_h >= 24 and not md.get('sequence_j1_sent_at'):
         stage = 'j1'
+    elif age_h >= 48 and not md.get('sequence_testimonial_sent_at'):
+        stage = 'testimonial'
     elif age_h >= 24 * 7 and not md.get('sequence_j7_sent_at'):
         stage = 'j7'
     elif age_h >= 24 * 13 and not md.get('sequence_j13_sent_at'):
@@ -187,12 +210,26 @@ async def _process_transaction(tx: Dict[str, Any]) -> int:
     if stage == 'j1':
         subject, body = _email_j1(prenom)
         cta_label = 'Ouvrir ma lecture'
+        cta_href = 'https://plume-astrale.fr/mon-compte'
+    elif stage == 'testimonial':
+        subject, body = _email_testimonial(prenom)
+        cta_label = 'Partager mon experience'
+        # URL pre-remplie : passe prenom + session_id pour hydrater le formulaire
+        from urllib.parse import quote
+        cta_href = (
+            f'https://plume-astrale.fr/temoignage'
+            f'?prenom={quote(prenom)}'
+            f'&session={quote(session_id or "")}'
+            f'&utm_source=email&utm_campaign=testimonial_j2'
+        )
     elif stage == 'j7':
         subject, body = _email_j7(prenom)
         cta_label = 'Relire ma lecture'
+        cta_href = 'https://plume-astrale.fr/mon-compte'
     elif stage == 'j13':
         subject, body = _email_j13(prenom)
         cta_label = 'Acceder a mes documents'
+        cta_href = 'https://plume-astrale.fr/mon-compte'
     else:
         # A/B test J+30 : variant deterministe sur session_id (50/50)
         # Override admin possible via app_settings.forced_j30_variant
@@ -209,9 +246,10 @@ async def _process_transaction(tx: Dict[str, Any]) -> int:
             variant = 'invitation' if (h % 2 == 0) else 'question'
         subject, body = _email_j30(prenom, variant=variant)
         cta_label = 'Rejoindre le Cercle · 19€/mois'
+        cta_href = 'https://plume-astrale.fr/cercle-solena'
         md['sequence_j30_variant'] = variant
 
-    html = _email_template(subject, prenom, body, cta_label)
+    html = _email_template(subject, prenom, body, cta_label, cta_href=cta_href)
     try:
         eid = await send_email(email, subject, html)
     except Exception as e:

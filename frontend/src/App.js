@@ -28,6 +28,7 @@ import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
 import Decouvrir from "./pages/Decouvrir";
 import Manifesto from "./pages/Manifesto";
+import Barometre2026 from "./pages/Barometre2026";
 import HoroscopeSign from "./pages/HoroscopeSign";
 import Contact from "./pages/Contact";
 import MentionsLegales from "./pages/MentionsLegales";
@@ -132,6 +133,7 @@ function App() {
           <Route path="/blog/:slug" element={<BlogArticle />} />
           <Route path="/decouvrir" element={<Decouvrir />} />
           <Route path="/manifesto" element={<Manifesto />} />
+          <Route path="/barometre-2026" element={<Barometre2026 />} />
           <Route path="/horoscope" element={<Horoscope />} />
           <Route path="/horoscope/:sign" element={<HoroscopeSign />} />
           <Route path="/contact" element={<Contact />} />
