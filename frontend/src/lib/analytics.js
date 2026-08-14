@@ -67,6 +67,13 @@ function loadTrackers() {
     window.fbq('init', META_PIXEL);
     window.fbq('track', 'PageView');
   }
+
+  const X_PIXEL = process.env.REACT_APP_X_PIXEL_ID;
+  if (X_PIXEL) {
+    // X (Twitter) Universal Website Tag — chargé UNIQUEMENT après consentement
+    !function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);},s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='https://static.ads-twitter.com/uwt.js',a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');
+    window.twq('config', X_PIXEL);
+  }
 }
 
 // Charge si consentement deja accorde (page reload)
@@ -107,6 +114,10 @@ export function event(name, props = {}) {
       if (metaStd) window.fbq('track', metaStd, props);
       // 2) Event custom Meta (tel quel) — utilisé pour créer des audiences custom
       window.fbq('trackCustom', name, props);
+    }
+    if (window.twq) {
+      // X (Twitter) ads : track l'event custom pour créer des audiences
+      window.twq('event', name, props);
     }
   } catch (_e) { /* analytics call failed silently */ }
 }
@@ -159,6 +170,10 @@ export function revenue(name, amountEur, extraProps = {}) {
       // Meta ads : Purchase = event standard optimisable, value + currency requis
       window.fbq('track', 'Purchase', { value: amountEur, currency: 'EUR', ...extraProps });
       window.fbq('trackCustom', name, { value: amountEur, currency: 'EUR', ...extraProps });
+    }
+    if (window.twq) {
+      // X ads : Purchase custom event
+      window.twq('event', name, { value: amountEur, currency: 'EUR', ...extraProps });
     }
   } catch (_e) { /* silent */ }
 }

@@ -2501,6 +2501,7 @@ async def _start_cart_recovery():
     from services.resend_stats import ab_ctr_refresh_loop
     from services.weekly_insights import weekly_insights_loop
     from services.cercle_monthly_report import cercle_monthly_report_loop
+    from services.instagram_weekly_post import ig_weekly_post_loop
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
     _asyncio.create_task(astrocarto_followup_loop())
@@ -2512,3 +2513,4 @@ async def _start_cart_recovery():
     _asyncio.create_task(ab_ctr_refresh_loop())
     _asyncio.create_task(weekly_insights_loop())
     _asyncio.create_task(cercle_monthly_report_loop())
+    _asyncio.create_task(ig_weekly_post_loop())

@@ -17,6 +17,13 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### X Pixel + Footer Social + IG Auto-post + Test Docs (2026-02-08)
+- **X (Twitter) Pixel** `18ce55wyjwl` intégré dans `analytics.js` — chargé UNIQUEMENT après consentement RGPD. Track events custom (`twq('event', name, props)`) sur toutes les conversions. Vérifié en direct : `window.twq = function` + script `ads-twitter.com` chargé.
+- **Footer social élargi** : 4 icônes réseaux ajoutées dans `FooterV2.js` (Instagram + Facebook + X + LinkedIn) + Email. Config centralisée `SOCIAL_LINKS` en tête de fichier — mettre à jour les URLs quand les comptes FB/X/LinkedIn seront créés. `data-testid` sur chaque icône.
+- **Instagram Weekly Auto-post scaffold** : `services/instagram_weekly_post.py` — boucle asyncio calée sur lundi 8h UTC, rotation 12 signes basée sur ISO week, template caption + hashtags. Requiert `INSTAGRAM_ACCESS_TOKEN` (60j) + `INSTAGRAM_BUSINESS_ID=17841440273868005` dans `.env` backend + implémentation de `_upload_visual_to_public_url()` selon infra (TODO doc dans le code). Sans token, la fonction sort silencieusement (log warning).
+- **Vérif Instagram handle** : `https://instagram.com/plumeastrale.fr` renvoie HTTP 302 → login page IG (comportement normal pour crawler non-authentifié). Handle accepté par IG.
+- **Meta Pixel Test Events guide** : `docs/META_PIXEL_TEST_EVENTS.md` — instructions Meta Pixel Helper (extension Chrome) + Test Events console Meta Business Manager + mapping événements + 3 audiences prêtes à créer (panier abandonné, lookalike acheteuses, engagement blog).
+
 ### Meta Pixel (Facebook + Instagram) — RGPD compliant (2026-02-08)
 - **Meta Pixel `1801418127692821`** intégré dans `analytics.js` → couvre FB **ET** Instagram (un seul pixel Meta pour toutes les propriétés). Chargé **UNIQUEMENT** après consentement utilisateur via bandeau cookies.
 - **REACT_APP_META_PIXEL_ID** ajouté dans `frontend/.env` (pas hardcodé).

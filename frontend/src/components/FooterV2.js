@@ -1,7 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Mail } from 'lucide-react';
+import { Instagram, Mail, Facebook, Linkedin, Twitter } from 'lucide-react';
 import CelestialBackdrop from './CelestialBackdrop';
+
+// Configuration des réseaux sociaux — URLs à mettre à jour quand les comptes
+// sont créés. Passer une chaîne vide pour masquer une icône.
+const SOCIAL_LINKS = {
+  instagram: 'https://instagram.com/plumeastrale.fr',
+  facebook: 'https://www.facebook.com/plumeastrale',        // à créer/vérifier
+  x:        'https://x.com/plumeastrale',                    // à créer/vérifier
+  linkedin: 'https://www.linkedin.com/company/plume-astrale', // à créer/vérifier
+};
 
 /**
  * Footer V3 — refonte identité visuelle Feb 2026
@@ -81,13 +90,39 @@ export default function FooterV2() {
             </div>
 
             {/* Réseaux sociaux */}
-            <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-              <a href="https://instagram.com/plumeastrale.fr" aria-label="Instagram · @plumeastrale.fr"
-                target="_blank" rel="noopener noreferrer"
-                data-testid="footer-v2-instagram"
-                style={socialIcon}>
-                <Instagram style={{ width: 18, height: 18 }} strokeWidth={1.6} />
-              </a>
+            <div style={{ display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
+              {SOCIAL_LINKS.instagram && (
+                <a href={SOCIAL_LINKS.instagram} aria-label="Instagram · @plumeastrale.fr"
+                  target="_blank" rel="noopener noreferrer"
+                  data-testid="footer-v2-instagram"
+                  style={socialIcon}>
+                  <Instagram style={{ width: 18, height: 18 }} strokeWidth={1.6} />
+                </a>
+              )}
+              {SOCIAL_LINKS.facebook && (
+                <a href={SOCIAL_LINKS.facebook} aria-label="Facebook"
+                  target="_blank" rel="noopener noreferrer"
+                  data-testid="footer-v2-facebook"
+                  style={socialIcon}>
+                  <Facebook style={{ width: 18, height: 18 }} strokeWidth={1.6} />
+                </a>
+              )}
+              {SOCIAL_LINKS.x && (
+                <a href={SOCIAL_LINKS.x} aria-label="X (Twitter)"
+                  target="_blank" rel="noopener noreferrer"
+                  data-testid="footer-v2-x"
+                  style={socialIcon}>
+                  <Twitter style={{ width: 18, height: 18 }} strokeWidth={1.6} />
+                </a>
+              )}
+              {SOCIAL_LINKS.linkedin && (
+                <a href={SOCIAL_LINKS.linkedin} aria-label="LinkedIn"
+                  target="_blank" rel="noopener noreferrer"
+                  data-testid="footer-v2-linkedin"
+                  style={socialIcon}>
+                  <Linkedin style={{ width: 18, height: 18 }} strokeWidth={1.6} />
+                </a>
+              )}
               <a href="mailto:contact@plume-astrale.fr" aria-label="Email"
                 data-testid="footer-v2-email-icon"
                 style={socialIcon}>
