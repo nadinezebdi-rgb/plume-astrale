@@ -82,7 +82,7 @@ export default function FooterV2() {
 
             {/* Réseaux sociaux */}
             <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-              <a href="https://instagram.com/plume.astrale" aria-label="Instagram"
+              <a href="https://instagram.com/plumeastrale.fr" aria-label="Instagram · @plumeastrale.fr"
                 target="_blank" rel="noopener noreferrer"
                 data-testid="footer-v2-instagram"
                 style={socialIcon}>

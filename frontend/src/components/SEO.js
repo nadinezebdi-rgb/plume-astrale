@@ -32,7 +32,7 @@ const ORG_JSONLD = {
   logo: `${DOMAIN}/logo512.png`,
   description: "Astrologie personnalisée & livres prestige composés par Soléna.",
   sameAs: [
-    'https://www.instagram.com/plume.astrale/',
+    'https://www.instagram.com/plumeastrale.fr/',
   ],
   contactPoint: {
     '@type': 'ContactPoint',

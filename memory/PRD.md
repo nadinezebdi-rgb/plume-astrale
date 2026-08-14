@@ -17,6 +17,15 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### Meta Pixel (Facebook + Instagram) — RGPD compliant (2026-02-08)
+- **Meta Pixel `1801418127692821`** intégré dans `analytics.js` → couvre FB **ET** Instagram (un seul pixel Meta pour toutes les propriétés). Chargé **UNIQUEMENT** après consentement utilisateur via bandeau cookies.
+- **REACT_APP_META_PIXEL_ID** ajouté dans `frontend/.env` (pas hardcodé).
+- **Mapping des events métier → events standard Meta** (dictionnaire `META_EVENT_MAP` dans analytics.js) pour rendre les events optimisables par les ads : `signup_completed → CompleteRegistration`, `*_checkout → InitiateCheckout`, `cercle_solena_active → Subscribe`, `credit_purchase → Purchase`, etc. + `trackCustom(name)` en parallèle pour créer des audiences custom.
+- **PageView SPA** : nouveau composant `RouteTracker.js` monté dans App.js → tire un PageView sur chaque changement de route React Router (GA4 + Meta Pixel). Vérifié en direct : PageView refires correctement sur `/blog`.
+- **noscript fallback** : image `facebook.com/tr?id=1801418127692821&ev=PageView&noscript=1` ajoutée en fin de body dans `index.html`.
+- **Instagram Business ID `17841440273868005`** noté pour futur usage (auto-post reel via Meta Graph API — voir Next Action Items).
+- **Corrections liens sociaux** : `FooterV2.js` et `SEO.js` mis à jour avec le vrai handle `plumeastrale.fr` (anciennement `plume.astrale`).
+
 ### Guest Posts + Trigger Testimonial + Baromètre + IG Visual (2026-02-08)
 - **Trigger Testimonial Email J+2** : nouveau stage `testimonial` dans `lecture_complete_sequence.py` — email envoyé 48h après achat Lecture Complète avec CTA vers `/temoignage?prenom=X&session=Y&utm_source=email&utm_campaign=testimonial_j2`. `Temoignage.js` pré-remplit le champ prénom depuis la query string.
 - **Baromètre 2026** (`/barometre-2026`) : page pépite éditoriale — 4 chiffres clés (87%, 3, 1 sur 2, 92%), 3 périodes analysées (Retour de Saturne 28-32 / Uranus 35-42 / Chiron 48-55), méthodologie transparente. **JSON-LD schema.org Report** injecté (éligible relais presse). Route + sitemap OK.

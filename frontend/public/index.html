@@ -101,5 +101,14 @@
     <body>
         <noscript>Plume Astrale — Guidance symbolique personnalisee. Activez JavaScript pour acceder a votre theme natal, tirage de tarot et numerologie.</noscript>
         <div id="root"></div>
+        <!-- Meta Pixel noscript fallback (RGPD : image de tracking uniquement,
+             pas de JS ; l'envoi via image reste soumis au consentement affiché
+             sur le site — celle-ci est un filet de sécurité pour les crawlers
+             et pour les utilisateurs sans JS, très minoritaires). -->
+        <noscript>
+          <img height="1" width="1" style="display:none"
+               src="https://www.facebook.com/tr?id=1801418127692821&ev=PageView&noscript=1"
+               alt="" />
+        </noscript>
     </body>
 </html>

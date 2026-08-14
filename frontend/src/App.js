@@ -30,6 +30,7 @@ import Decouvrir from "./pages/Decouvrir";
 import Manifesto from "./pages/Manifesto";
 import Barometre2026 from "./pages/Barometre2026";
 import HoroscopeSign from "./pages/HoroscopeSign";
+import RouteTracker from "./components/RouteTracker";
 import Contact from "./pages/Contact";
 import MentionsLegales from "./pages/MentionsLegales";
 import CGV from "./pages/CGV";
@@ -125,6 +126,7 @@ function App() {
       <BrowserRouter>
         {/* ─── Overlays globaux Plume Design System v2 ─── */}
         <GlobalOverlays />
+        <RouteTracker />
         <Navbar />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
