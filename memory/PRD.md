@@ -17,6 +17,13 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### SEO P3/P4/P6/P7 concours (2026-02-08)
+- **P3 Prerender SSG** : script sur-mesure `frontend/scripts/prerender.js` + `README-prerender.md`. Opt-in via `yarn add -D puppeteer serve` puis `yarn prerender` après `yarn build`. Sort en code 0 si puppeteer absent → ne bloque JAMAIS le build. À ajouter au pipeline CI/CD entre `yarn build` et le deploy pour servir tout le HTML SEO dès le premier byte.
+- **P4 Désindexation /formulaire** : la meta `noindex, follow` était déjà en place via `SEO.js` (config `/formulaire: { noindex: true }`). `robots.txt` nettoyé (Disallow retiré) pour laisser Googlebot voir le noindex et désindexer l'URL déjà présente dans l'index.
+- **P6 Alignement robots.txt ↔ sitemap** : retrait des `Allow:` vers paths obsolètes (`/bibliotheque`, `/rencontres-astrales`, `/outils/`). Blocage propre des paths transactionnels (`/paiement/`, `/commande/`, `/mon-compte`, `/admin`, etc.).
+- **P7 Contenu enrichi /horoscope/:sign** : `config/zodiacDeepContent.js` — générateur qui combine element + modality + ruler pour produire 3 sections (Amour ~90 mots, Travail ~90 mots, Croissance ~80 mots) + 4 questions FAQ par signe. `HoroscopeSign.js` intègre ces sections + injecte le JSON-LD `FAQPage` (schema.org). Total : ~700 mots par page (contre ~250 avant) sur les 12 signes.
+- Vérifié : `/horoscope/lion` a 4 FAQ items, JSON-LD FAQPage validé (4 mainEntity), sections H2 uniques, ~700 mots dans le HTML source.
+
 ### SEO P1/P2/P5 concours (2026-02-08)
 - **P1 Canonical fix (BLOQUANT)** : suppression de `<link rel="canonical" href="https://plume-astrale.fr">` hardcodé dans `public/index.html` (cause : toutes les pages étaient vues comme doublons de la home par Google). `SEO.js` (déjà en place) définit désormais dynamiquement le canonical auto-référent correct sur chaque route.
 - **P2 Articles blog en URLs propres (BLOQUANT)** :
