@@ -9,9 +9,12 @@
         <meta name="robots" content="index, follow" />
         <meta name="googlebot" content="index, follow" />
         <meta name="google-site-verification" content="_HIsHjWgL61kcCdFBHvhPT4p3PE8AqPnADtRj42Sha8" />
-        <link rel="canonical" href="https://plume-astrale.fr" />
+        <!-- ⚠ SEO P1 (concours 2026-02) : PAS de balise canonical hardcodée ici.
+             Toutes les pages pointaient à tort vers la home → toutes vues en doublons.
+             La bonne balise canonical est désormais injectée dynamiquement par
+             /src/components/SEO.js à partir de la route actuelle. -->
 
-        <!-- Open Graph defaults (overridden per page by react-helmet-async) -->
+        <!-- Open Graph defaults (overridden per page by /src/components/SEO.js) -->
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://plume-astrale.fr" />
         <meta property="og:title" content="Plume Astrale · Ta lecture astrologique unique" />
@@ -38,6 +41,9 @@
         <title>Plume Astrale · Ta lecture astrologique unique</title>
 
         <!-- JSON-LD Structured Data -->
+        <!-- ⚠ SEO P5 (concours 2026-02) : suppression du bloc potentialAction/
+             SearchAction — pas de recherche interne implémentée, l'URL
+             /?q={search_term_string} générait un rapport d'erreur Search Console. -->
         <script type="application/ld+json">
         {
             "@context": "https://schema.org",
@@ -45,12 +51,7 @@
             "name": "Plume Astrale",
             "url": "https://plume-astrale.fr",
             "description": "Guidance symbolique personnalisee — Astrologie, tarot et numerologie",
-            "inLanguage": "fr",
-            "potentialAction": {
-                "@type": "SearchAction",
-                "target": "https://plume-astrale.fr/?q={search_term_string}",
-                "query-input": "required name=search_term_string"
-            }
+            "inLanguage": "fr"
         }
         </script>
         <script type="application/ld+json">

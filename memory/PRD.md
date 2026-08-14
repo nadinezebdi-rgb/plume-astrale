@@ -17,6 +17,17 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### SEO P1/P2/P5 concours (2026-02-08)
+- **P1 Canonical fix (BLOQUANT)** : suppression de `<link rel="canonical" href="https://plume-astrale.fr">` hardcodé dans `public/index.html` (cause : toutes les pages étaient vues comme doublons de la home par Google). `SEO.js` (déjà en place) définit désormais dynamiquement le canonical auto-référent correct sur chaque route.
+- **P2 Articles blog en URLs propres (BLOQUANT)** :
+  - Registre 9 articles dans `config/blogArticles.js` (title, description, tag, date, excerpt par article)
+  - Nouvelle route `/blog/:slug` (`pages/BlogArticle.js`) avec canonical + title + H1 + JSON-LD BlogPosting uniques par article + widget Soro pour le corps de l'article
+  - Redirection `/blog?post=slug` → `/blog/slug` via React Router `<Navigate replace>` sur le composant Blog
+  - 9 URLs propres ajoutées au `sitemap.xml`
+- **P5 SearchAction fix** : suppression du bloc `potentialAction` JSON-LD dans `index.html` (pas de recherche interne implémentée → générait un rapport d'erreur Search Console).
+- **Bonus sitemap** : ajout de `/manifesto` et `/decouvrir` (nouvelles pages du repositionnement).
+- **Vérifié** : canonical `https://plume-astrale.fr/blog/comprendre-le-retour-de-saturne` ≠ home. Title/H1 uniques. Redirect `?post=X` → `/blog/X` fonctionnel.
+
 ### Parallax + CTA Cercle + Purge concours (2026-02-08)
 - **Parallax cinématique** : hero + Manifesto Chapitre III animent leur fond à 0.3x du scroll (rAF, translate3d, willChange:transform, respect `prefers-reduced-motion`). Vérifié : `translate3d(0px,0px,0px)` → `translate3d(0px,90px,0px)` sur scroll de 300px.
 - **Mini-CTA Cercle sur Manifesto** : bloc doré `data-testid="manifesto-cta-cercle"` entre Chapitre III et CTA final, Crown icon + "Recevoir ce type de lecture chaque mois — 14,99€", 50 crédits + rapport mensuel + résiliable en un clic → clic redirige vers /cercle-solena.

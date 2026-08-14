@@ -25,6 +25,7 @@ import KabbaleSales from "./pages/KabbaleSales";
 import ThemeNatalLuxe from "./pages/ThemeNatalLuxe";
 import NosLivres from "./pages/NosLivres";
 import Blog from "./pages/Blog";
+import BlogArticle from "./pages/BlogArticle";
 import Decouvrir from "./pages/Decouvrir";
 import Manifesto from "./pages/Manifesto";
 import HoroscopeSign from "./pages/HoroscopeSign";
@@ -128,6 +129,7 @@ function App() {
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogArticle />} />
           <Route path="/decouvrir" element={<Decouvrir />} />
           <Route path="/manifesto" element={<Manifesto />} />
           <Route path="/horoscope" element={<Horoscope />} />
