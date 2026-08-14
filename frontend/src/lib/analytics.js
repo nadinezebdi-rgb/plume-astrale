@@ -160,20 +160,28 @@ export const EVENTS = {
 export function revenue(name, amountEur, extraProps = {}) {
   if (getConsent() !== 'accepted') return;
   try {
+    // event_id unique pour deduplication CAPI (server-side) ↔ pixel (client-side).
+    // Meta considère 2 events avec même event_id + même event_name comme identiques.
+    const eventID = extraProps.eventID || `${name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const enriched = { ...extraProps, eventID };
     if (window.gtag) {
-      window.gtag('event', name, { value: amountEur, currency: 'EUR', ...extraProps });
+      window.gtag('event', name, { value: amountEur, currency: 'EUR', ...enriched });
     }
     if (window.plausible) {
-      window.plausible(name, { props: extraProps, revenue: { amount: amountEur, currency: 'EUR' } });
+      window.plausible(name, { props: enriched, revenue: { amount: amountEur, currency: 'EUR' } });
     }
     if (window.fbq) {
       // Meta ads : Purchase = event standard optimisable, value + currency requis
-      window.fbq('track', 'Purchase', { value: amountEur, currency: 'EUR', ...extraProps });
-      window.fbq('trackCustom', name, { value: amountEur, currency: 'EUR', ...extraProps });
+      // 3ème arg = { eventID } → clé de deduplication avec la CAPI backend
+      window.fbq('track', 'Purchase', { value: amountEur, currency: 'EUR', ...extraProps }, { eventID });
+      window.fbq('trackCustom', name, { value: amountEur, currency: 'EUR', ...extraProps }, { eventID });
     }
     if (window.twq) {
-      // X ads : Purchase custom event
       window.twq('event', name, { value: amountEur, currency: 'EUR', ...extraProps });
     }
+    // Retourne l'eventID pour que l'appelant puisse le transmettre au backend
+    // et que le backend le rejoue dans son event CAPI (dédup Meta).
+    return eventID;
   } catch (_e) { /* silent */ }
+  return null;
 }

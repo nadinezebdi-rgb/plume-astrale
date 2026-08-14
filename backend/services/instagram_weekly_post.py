@@ -130,7 +130,13 @@ async def _upload_visual_to_public_url(png_bytes: bytes, sign_name: str) -> str 
 
 async def _post_to_instagram(image_url: str, caption: str) -> str | None:
     """Publie via Meta Graph API — 2 étapes : create media container puis publish."""
-    if not IG_ACCESS_TOKEN:
+    # Prefer le token rafraîchi (fichier /tmp) sinon fallback au .env au boot
+    try:
+        from services.instagram_token_refresh import get_current_token
+        token = get_current_token()
+    except Exception:
+        token = IG_ACCESS_TOKEN
+    if not token:
         logger.warning('[ig_weekly] INSTAGRAM_ACCESS_TOKEN absent — post skippé.')
         return None
     async with httpx.AsyncClient(timeout=45) as client:
@@ -140,7 +146,7 @@ async def _post_to_instagram(image_url: str, caption: str) -> str | None:
             data={
                 'image_url': image_url,
                 'caption': caption,
-                'access_token': IG_ACCESS_TOKEN,
+                'access_token': token,
             },
         )
         if r.status_code >= 400:
@@ -156,7 +162,7 @@ async def _post_to_instagram(image_url: str, caption: str) -> str | None:
             f'https://graph.facebook.com/v20.0/{IG_BUSINESS_ID}/media_publish',
             data={
                 'creation_id': creation_id,
-                'access_token': IG_ACCESS_TOKEN,
+                'access_token': token,
             },
         )
         if r2.status_code >= 400:

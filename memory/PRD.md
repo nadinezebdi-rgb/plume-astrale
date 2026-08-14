@@ -17,7 +17,23 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
-### Meta CAPI + IG Upload + X Ads Doc + LinkedIn removal (2026-02-08)
+### Mobile Conversion Fix + IG Token Auto-Refresh + CAPI Health (2026-02-14)
+- **🔴 Fix critique perte de conversion mobile GSC** (P0) : audit responsive complet sur viewport 390x844 (iPhone 14) — 19 routes publiques testées. AVANT : `/theme-natal-luxe` overflow 98px, `/kabbale` 54px, `/credits` 135px (contenu qui dépassait le viewport → CTA principaux inaccessibles). APRÈS : 0px overflow sur les 19 routes.
+- **Root causes identifiées** :
+  - `.ps-h1` : `clamp(38px, 5vw, 56px)` → min 38px trop grand pour mobiles étroits. Réduit à `clamp(30px, 6.5vw, 56px)` + `overflow-wrap: break-word` + `hyphens: auto`.
+  - `.ps-btn` : `white-space: nowrap` + textes CTA longs ("Recevoir mes 20 crédits · Commencer") → forçait le débordement. Ajout `@media(max-width:640px) { white-space: normal, padding: 13px 20px, font-size: 14px }`.
+  - `.ps-sales-hero-price` (SalesPageV3) : ligne horizontale prix + CTA → stack vertical sur mobile (`flex-direction: column`, CTA `width: 100%`).
+  - Cookie banner (`data-testid=cookie-consent`) se superposait à la mobile tabbar 72px → CSS `bottom: calc(88px + env(safe-area-inset-bottom))` sur mobile.
+  - Body sans padding-bottom → contenu masqué par tabbar → ajout `padding-bottom: calc(72px + env(safe-area-inset-bottom))` en <768px.
+  - Global : `html, body { overflow-x: hidden; max-width: 100vw }` + `* { max-width: 100% }` en filet de sécurité.
+  - Inputs iOS auto-zoom : `input, textarea, select { font-size: 16px }` en <767px pour bloquer le zoom iOS.
+- **`/api/admin/capi-health`** (GET admin-only) : envoie un Test Event PageView vers Meta CAPI avec `event_id` unique, retourne `{status, pixel_id, token_configured, test_code, capi_ok, hint}`. Permet de valider en 1 clic que `META_CAPI_ACCESS_TOKEN` fonctionne (auparavant impossible sans devtools réseau).
+- **`/api/admin/ig-token/refresh`** (POST admin-only) : force le refresh manuel du token Instagram Long-Lived.
+- **Background task `ig_token_refresh_loop`** : nouveau service `services/instagram_token_refresh.py`. Tourne toutes les 24h ; si le token est âgé de >50j, appelle `GET graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token`, stocke le nouveau token + timestamp dans `/tmp/plume_ig_token_meta.json`. `instagram_weekly_post._post_to_instagram()` utilise désormais `get_current_token()` (priorité au token rafraîchi vs .env bootstrap). Résout le crash IG auto-post à J+60.
+- **Prerender CI verification** : `scripts/build:seo` = `yarn build && yarn prerender`. Script tolérant : exit 0 si puppeteer absent → ne bloque jamais le build. 60 routes publiques prerendrées incluant home, blog articles, sales pages, horoscope signes, cercle, etc.
+- **Testing** : iteration 77 → backend 100% (8/8) + frontend mobile 100% (19/19 routes overflow=0). Aucune régression.
+
+
 - **Meta Conversions API server-side** : nouveau service `services/meta_capi.py` avec fonction `send_capi_event()` — PII hashées SHA-256, deduplication via `event_id`, support Test Events. **Hook automatique dans `wallet_service.add_credits`** : à chaque `tx_type='purchase'`, un event Meta CAPI Purchase est fire en async (hors du verrou wallet, avec email hashé + valeur EUR). Récupère ~20% de conversions bloquées par les bloqueurs de pixel navigateur.
 - **Config CAPI (.env backend)** : `META_PIXEL_ID=1801418127692821` (fallback si absent), `META_CAPI_ACCESS_TOKEN` (System User Token, à générer par user dans Meta Business), `META_CAPI_TEST_CODE` optionnel.
 - **Instagram Storage Upload** : `_upload_visual_to_public_url()` implémenté dans `instagram_weekly_post.py` avec Supabase Storage bucket `public`. Path : `ig-weekly/{signe}-{ISO-week}.png`. Nécessite créer le bucket "public" dans Supabase Dashboard (marqué public).

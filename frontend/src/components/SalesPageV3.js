@@ -103,7 +103,7 @@ export default function SalesPageV3({
             </p>
 
             {/* Prix hero card */}
-            <div style={{
+            <div className="ps-sales-hero-price" style={{
               position: 'relative',
               display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap',
               padding: heroBadge ? '32px 24px 20px' : '20px 24px',

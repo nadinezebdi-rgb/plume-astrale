@@ -2487,6 +2487,75 @@ async def admin_preview_monthly_pdf(
     })
 
 
+@app.get('/api/admin/capi-health')
+async def admin_capi_health(current_user: dict = Depends(get_current_user)):
+    """Admin-only : envoie un Test Event vers Meta CAPI pour valider le token.
+
+    Utilise `META_CAPI_TEST_CODE` si présent → l'event apparaîtra dans
+    Meta Events Manager > Test Events.
+
+    Retourne : {status, pixel_id, token_configured, test_code, capi_ok}
+    """
+    from fastapi import HTTPException as _HTTPExc
+    from services.supabase_client import get_admin_client as _gac
+    sb = _gac()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not (prof and prof.data and prof.data.get('is_admin')):
+        raise _HTTPExc(status_code=403, detail='Réservé aux administrateurs')
+
+    import os as _os
+    import uuid as _uuid
+    from services.meta_capi import send_capi_event, META_PIXEL_ID
+    token_configured = bool(_os.environ.get('META_CAPI_ACCESS_TOKEN'))
+    test_code = _os.environ.get('META_CAPI_TEST_CODE')
+    if not token_configured:
+        return {
+            'status': 'error',
+            'reason': 'META_CAPI_ACCESS_TOKEN absent dans .env backend',
+            'pixel_id': META_PIXEL_ID,
+            'token_configured': False,
+            'test_code': test_code,
+            'capi_ok': False,
+        }
+
+    test_event_id = f'health-check-{_uuid.uuid4()}'
+    ok = await send_capi_event(
+        event_name='PageView',
+        event_id=test_event_id,
+        event_source_url='https://plume-astrale.fr/admin/capi-health',
+    )
+    return {
+        'status': 'ok' if ok else 'error',
+        'pixel_id': META_PIXEL_ID,
+        'token_configured': True,
+        'test_code': test_code,
+        'test_event_id': test_event_id,
+        'capi_ok': ok,
+        'hint': (
+            'Va dans Meta Events Manager → Datasets → Test Events pour voir le '
+            'PageView reçu (utilise le code de test ci-dessus).'
+            if test_code else
+            'Configure META_CAPI_TEST_CODE dans .env backend + Meta Events Manager > Test Events'
+            ' pour voir l\'event en temps réel.'
+        ),
+    }
+
+
+@app.post('/api/admin/ig-token/refresh')
+async def admin_refresh_ig_token(current_user: dict = Depends(get_current_user)):
+    """Admin-only : force le rafraîchissement manuel du token Instagram Long-Lived."""
+    from fastapi import HTTPException as _HTTPExc
+    from services.supabase_client import get_admin_client as _gac
+    sb = _gac()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not (prof and prof.data and prof.data.get('is_admin')):
+        raise _HTTPExc(status_code=403, detail='Réservé aux administrateurs')
+    from services.instagram_token_refresh import refresh_ig_token, _token_age_days
+    result = await refresh_ig_token()
+    result['current_token_age_days'] = _token_age_days()
+    return result
+
+
 @app.on_event('startup')
 async def _start_cart_recovery():
     import asyncio as _asyncio
@@ -2502,6 +2571,7 @@ async def _start_cart_recovery():
     from services.weekly_insights import weekly_insights_loop
     from services.cercle_monthly_report import cercle_monthly_report_loop
     from services.instagram_weekly_post import ig_weekly_post_loop
+    from services.instagram_token_refresh import ig_token_refresh_loop
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
     _asyncio.create_task(astrocarto_followup_loop())
@@ -2514,3 +2584,4 @@ async def _start_cart_recovery():
     _asyncio.create_task(weekly_insights_loop())
     _asyncio.create_task(cercle_monthly_report_loop())
     _asyncio.create_task(ig_weekly_post_loop())
+    _asyncio.create_task(ig_token_refresh_loop())

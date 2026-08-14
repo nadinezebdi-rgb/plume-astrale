@@ -99,24 +99,25 @@ export function CreditsInfoContent({ compact = false }) {
       <div style={{ display: 'grid', gap: 10, marginBottom: 32 }}>
         {PACKS.map((p) => (
           <div key={p.name} data-testid={`credits-pack-${p.name.toLowerCase().replace(/\s+/g, '-')}`}
+            className="ps-credits-pack-row"
             style={{
-              display: 'flex', alignItems: 'center', gap: 16,
+              display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
               padding: '14px 18px', background: '#fff',
               border: p.badge ? '1px solid #C9A24B' : '1px solid #E3E1DC',
               borderRadius: 10,
             }}>
             <div style={{
               fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 500,
-              color: '#0F1A3C', minWidth: 130,
+              color: '#0F1A3C', minWidth: 0,
             }}>{p.name}</div>
             <div style={{
               fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#8F6E24',
-              fontWeight: 600, minWidth: 80,
+              fontWeight: 600, minWidth: 0, whiteSpace: 'nowrap',
             }}>{p.credits} cr</div>
-            <div style={{ flex: 1, fontSize: 13, color: '#6B7280' }}>{p.hint}</div>
+            <div style={{ flex: '1 1 200px', fontSize: 13, color: '#6B7280', minWidth: 0 }}>{p.hint}</div>
             <div style={{
               fontFamily: 'Playfair Display, serif', fontSize: 20, fontWeight: 500,
-              color: '#0F1A3C',
+              color: '#0F1A3C', whiteSpace: 'nowrap',
             }}>{p.price}</div>
             {p.badge && <span style={{
               background: '#C9A24B', color: '#0F1A3C',
