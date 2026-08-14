@@ -1,15 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Mail, Facebook, Linkedin, Twitter } from 'lucide-react';
+import { Instagram, Mail, Facebook, Twitter } from 'lucide-react';
 import CelestialBackdrop from './CelestialBackdrop';
 
 // Configuration des réseaux sociaux — URLs à mettre à jour quand les comptes
 // sont créés. Passer une chaîne vide pour masquer une icône.
 const SOCIAL_LINKS = {
   instagram: 'https://instagram.com/plumeastrale.fr',
-  facebook: 'https://www.facebook.com/plumeastrale',        // à créer/vérifier
-  x:        'https://x.com/plumeastrale',                    // à créer/vérifier
-  linkedin: 'https://www.linkedin.com/company/plume-astrale', // à créer/vérifier
+  facebook: 'https://www.facebook.com/plumeastrale',  // à créer/vérifier
+  x:        'https://x.com/plumeastrale',              // à créer/vérifier
+  // linkedin retiré — pas de compte Plume Astrale sur LinkedIn.
 };
 
 /**
@@ -113,14 +113,6 @@ export default function FooterV2() {
                   data-testid="footer-v2-x"
                   style={socialIcon}>
                   <Twitter style={{ width: 18, height: 18 }} strokeWidth={1.6} />
-                </a>
-              )}
-              {SOCIAL_LINKS.linkedin && (
-                <a href={SOCIAL_LINKS.linkedin} aria-label="LinkedIn"
-                  target="_blank" rel="noopener noreferrer"
-                  data-testid="footer-v2-linkedin"
-                  style={socialIcon}>
-                  <Linkedin style={{ width: 18, height: 18 }} strokeWidth={1.6} />
                 </a>
               )}
               <a href="mailto:contact@plume-astrale.fr" aria-label="Email"

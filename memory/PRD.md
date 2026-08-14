@@ -17,6 +17,14 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### Meta CAPI + IG Upload + X Ads Doc + LinkedIn removal (2026-02-08)
+- **Meta Conversions API server-side** : nouveau service `services/meta_capi.py` avec fonction `send_capi_event()` — PII hashées SHA-256, deduplication via `event_id`, support Test Events. **Hook automatique dans `wallet_service.add_credits`** : à chaque `tx_type='purchase'`, un event Meta CAPI Purchase est fire en async (hors du verrou wallet, avec email hashé + valeur EUR). Récupère ~20% de conversions bloquées par les bloqueurs de pixel navigateur.
+- **Config CAPI (.env backend)** : `META_PIXEL_ID=1801418127692821` (fallback si absent), `META_CAPI_ACCESS_TOKEN` (System User Token, à générer par user dans Meta Business), `META_CAPI_TEST_CODE` optionnel.
+- **Instagram Storage Upload** : `_upload_visual_to_public_url()` implémenté dans `instagram_weekly_post.py` avec Supabase Storage bucket `public`. Path : `ig-weekly/{signe}-{ISO-week}.png`. Nécessite créer le bucket "public" dans Supabase Dashboard (marqué public).
+- **X Ads Custom Audience guide** : `docs/X_ADS_AUDIENCE_GUIDE.md` — création audience "Panier abandonné 30j" étape par étape + campagne retargeting + créatifs + métriques cibles + audiences #2/#3 à créer plus tard.
+- **Footer LinkedIn retiré** — pas de compte Plume Astrale sur LinkedIn. Footer reste avec Instagram + Facebook + X + Email.
+- **Régression** : les 3 tests pytest SEC-002 wallet race condition passent toujours ✓.
+
 ### X Pixel + Footer Social + IG Auto-post + Test Docs (2026-02-08)
 - **X (Twitter) Pixel** `18ce55wyjwl` intégré dans `analytics.js` — chargé UNIQUEMENT après consentement RGPD. Track events custom (`twq('event', name, props)`) sur toutes les conversions. Vérifié en direct : `window.twq = function` + script `ads-twitter.com` chargé.
 - **Footer social élargi** : 4 icônes réseaux ajoutées dans `FooterV2.js` (Instagram + Facebook + X + LinkedIn) + Email. Config centralisée `SOCIAL_LINKS` en tête de fichier — mettre à jour les URLs quand les comptes FB/X/LinkedIn seront créés. `data-testid` sur chaque icône.

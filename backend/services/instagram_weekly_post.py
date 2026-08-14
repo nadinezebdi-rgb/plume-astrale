@@ -100,28 +100,32 @@ def _pick_sign_of_week() -> tuple[str, str]:
 
 
 async def _upload_visual_to_public_url(png_bytes: bytes, sign_name: str) -> str | None:
-    """Upload le PNG à un endpoint public (Supabase Storage / S3 / CloudFront).
-    À implémenter selon l'infra choisie. Renvoie l'URL publique HTTPS.
+    """Upload le PNG dans le bucket public Supabase Storage.
 
-    ⚠ Meta Graph API refuse les URLs locales ou signées temporairement — il
-    faut une URL HTTPS accessible sans auth pendant au moins 24h.
+    Bucket : `public` (créer ce bucket depuis Supabase Dashboard > Storage,
+    marqué "public" pour lecture anonyme). Le fichier reste 24h+ accessible
+    HTTPS sans auth — requis par Meta Graph API pour poster.
     """
-    # TODO(user) : implémenter selon l'infra
-    # Options :
-    #   1. Supabase Storage bucket public : upload puis get_public_url
-    #   2. AWS S3 avec bucket policy public read
-    #   3. Endpoint FastAPI qui sert temporairement depuis /tmp
-    #
-    # Exemple Supabase :
-    #   from services.supabase_client import get_admin_client
-    #   sb = get_admin_client()
-    #   path = f'ig-weekly/{sign_name.lower()}-{_current_week_key()}.png'
-    #   sb.storage.from_('public').upload(path, png_bytes,
-    #       {'content-type': 'image/png', 'upsert': 'true'})
-    #   return sb.storage.from_('public').get_public_url(path)
-    logger.warning('[ig_weekly] upload public URL non configuré — post skippé. '
-                  'À implémenter dans _upload_visual_to_public_url().')
-    return None
+    try:
+        from services.supabase_client import get_admin_client
+        sb = get_admin_client()
+        # Normalise le nom du fichier (retire accents)
+        clean = sign_name.lower().replace('é', 'e').replace('è', 'e').replace('î', 'i')
+        path = f'ig-weekly/{clean}-{_current_week_key()}.png'
+        # upsert=true pour écraser si on rejoue la même semaine
+        sb.storage.from_('public').upload(
+            path,
+            png_bytes,
+            {'content-type': 'image/png', 'upsert': 'true'},
+        )
+        public_url = sb.storage.from_('public').get_public_url(path)
+        # Certaines versions du SDK renvoient l'URL avec `?` en trailing → clean
+        public_url = public_url.rstrip('?')
+        logger.info(f'[ig_weekly] visual uploadé : {public_url}')
+        return public_url
+    except Exception as e:
+        logger.error(f'[ig_weekly] upload Supabase Storage échoué : {e}')
+        return None
 
 
 async def _post_to_instagram(image_url: str, caption: str) -> str | None:
