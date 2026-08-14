@@ -17,6 +17,12 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### SEO P3 CI + Post-lecture CTA + Featured Blog + Backlinks (2026-02-08)
+- **CI Prerender (P3 activation)** : `scripts/build:seo` = `yarn build && yarn prerender`. `README-prerender.md` mis à jour avec recettes GitHub Actions, Vercel/Netlify, et Emergent. `optionalDependencies` retirées (Chromium ~180Mo ne se télécharge PAS sur les postes dev). L'installation `yarn add -D puppeteer serve` est faite **uniquement** au moment du build CI/CD.
+- **Post-lecture Testimonial CTA** : nouvelle carte dorée `testimonial-cta-card` sur /mon-compte (onglet Aperçu) — visible UNIQUEMENT si l'utilisateur a une transaction de type `deduction` ou `purchase` (heuristique : consommation réelle). Icon Star + copy "Votre expérience compte" + bouton `Partager mon expérience` → /temoignage.
+- **Featured Blog Articles Homepage** : nouvelle section `ps-featured-articles` entre les paywalls et le CTA final. 6 cartes cliquables tirées de `BLOG_ARTICLES.slice(0, 6)` + lien "Tous les articles" → /blog. Maillage interne renforcé (P8). Vérifié : les 6 liens redirigent bien vers `/blog/:slug`.
+- **Backlinks Strategy** : document `/app/docs/BACKLINKS_STRATEGY.md` — plan sur 3 phases (annuaires premium 8 sites, guest posts sur 6 cibles éditoriales FR, contenu partageable), budget, KPI 6 mois, ce qu'il faut éviter (Penguin).
+
 ### SEO P3/P4/P6/P7 concours (2026-02-08)
 - **P3 Prerender SSG** : script sur-mesure `frontend/scripts/prerender.js` + `README-prerender.md`. Opt-in via `yarn add -D puppeteer serve` puis `yarn prerender` après `yarn build`. Sort en code 0 si puppeteer absent → ne bloque JAMAIS le build. À ajouter au pipeline CI/CD entre `yarn build` et le deploy pour servir tout le HTML SEO dès le premier byte.
 - **P4 Désindexation /formulaire** : la meta `noindex, follow` était déjà en place via `SEO.js` (config `/formulaire: { noindex: true }`). `robots.txt` nettoyé (Disallow retiré) pour laisser Googlebot voir le noindex et désindexer l'URL déjà présente dans l'index.

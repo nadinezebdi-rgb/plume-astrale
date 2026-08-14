@@ -13,16 +13,48 @@ Le bilan SEO 2026-02 a identifié 3 blockers :
 
 ## Activation en 3 étapes
 
-### 1. Installer les dépendances (une seule fois)
+### 1. Installer les dépendances (une seule fois, côté CI/CD **uniquement**)
 ```bash
 cd /app/frontend
 yarn add -D puppeteer serve
 ```
-> ⚠ `puppeteer` télécharge Chromium (~180 Mo). Ne l'ajoutez que si votre
-> pipeline CI/CD peut se le permettre. Alternative : `puppeteer-core` + Chrome
-> système (à configurer manuellement dans `prerender.js`).
+> ⚠ `puppeteer` télécharge Chromium (~180 Mo). **Ne l'installez PAS en local**
+> si votre poste dev est petit. L'installation doit se faire côté CI/CD au
+> moment du deploy, jamais sur les postes développeurs.
+>
+> Alternative légère : `puppeteer-core` + Chrome système déjà présent dans
+> l'image Docker (à configurer manuellement dans `prerender.js`).
 
-### 2. Lancer localement pour vérifier
+### 2. Recette prêtes-à-l'emploi
+
+**GitHub Actions** — `.github/workflows/deploy.yml`
+```yaml
+name: Deploy Plume Astrale
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      - run: yarn install --frozen-lockfile
+      - run: yarn add -D puppeteer serve       # ← install SSG deps uniquement en CI
+      - run: yarn build:seo                    # ← build + prerender en un shot
+      - name: Deploy to production
+        run: <votre commande deploy>
+```
+
+**Vercel / Netlify** — dans les settings du projet :
+- Build command : `yarn add -D puppeteer serve && yarn build:seo`
+- Publish directory : `build`
+
+**Emergent** — contactez le support pour ajouter au pipeline :
+> "Avant le deploy, exécuter : `yarn add -D puppeteer serve && yarn build:seo`"
+
+### 3. Vérifier le résultat
 ```bash
 yarn build && yarn prerender
 ```
