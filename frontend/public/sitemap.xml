@@ -7,6 +7,23 @@
     <priority>1.0</priority>
   </url>
 
+  <!-- Nouvelles pages éditoriales (repositionnement 2026-02) -->
+  <url>
+    <loc>https://plume-astrale.fr/manifesto</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/barometre-2026</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/decouvrir</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Bibliothèque de livres imprimés -->
   <url>
     <loc>https://plume-astrale.fr/livres</loc>
@@ -133,6 +150,16 @@
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
+  <!-- SEO P2 (concours 2026-02) : 9 articles blog en URLs propres /blog/slug -->
+  <url><loc>https://plume-astrale.fr/blog/calculer-son-chemin-de-vie-avec-precision</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://plume-astrale.fr/blog/interpreter-venus-en-astrologie</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://plume-astrale.fr/blog/comprendre-le-retour-de-saturne</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://plume-astrale.fr/blog/theme-natal-vocation-professionnelle</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://plume-astrale.fr/blog/compatibilite-amoureuse-selon-theme-natal</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://plume-astrale.fr/blog/signification-des-maisons-astrologiques</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://plume-astrale.fr/blog/comment-connaitre-son-ascendant-astrologique</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://plume-astrale.fr/blog/previsions-astrologiques-personnalisees-2026</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://plume-astrale.fr/blog/theme-astral-personnalise-gratuit</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url>
     <loc>https://plume-astrale.fr/temoignage</loc>
     <changefreq>weekly</changefreq>

@@ -1026,6 +1026,69 @@ const MonCompte = () => {
                   <ChevronRight className="w-3 h-3 ml-auto" strokeWidth={1.5} style={{ color: 'var(--pa-muted)' }} />
                 </button>
               </div>
+
+              {/* Post-lecture Testimonial CTA — visible si l'utilisateur a
+                  déjà consommé au moins une lecture (transaction de type deduction).
+                  But : accélérer la collecte de vrais témoignages. */}
+              {transactions.some((tx) => tx.tx_type === 'deduction' || tx.tx_type === 'purchase') && (
+                <div
+                  data-testid="testimonial-cta-card"
+                  className="rounded-2xl p-6 md:p-7 mt-6"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.05) 100%)',
+                    border: '1px solid rgba(212,175,55,0.35)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div style={{
+                    position: 'absolute', top: -30, right: -30,
+                    width: 140, height: 140,
+                    background: 'radial-gradient(circle, rgba(212,175,55,0.22) 0%, transparent 70%)',
+                    pointerEvents: 'none',
+                  }} aria-hidden="true" />
+                  <div style={{ position: 'relative', display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: 48, height: 48, borderRadius: '50%',
+                      background: 'rgba(212,175,55,0.16)',
+                      border: '1px solid rgba(212,175,55,0.4)',
+                      flexShrink: 0,
+                    }}>
+                      <Star size={22} strokeWidth={1.5} style={{ color: 'var(--pa-accent)' }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 240 }}>
+                      <p className="text-[10px] tracking-widest uppercase mb-2" style={{ color: 'var(--pa-accent)', letterSpacing: '0.22em', fontFamily: 'Cinzel, serif', fontWeight: 500 }}>
+                        Merci d&apos;être là
+                      </p>
+                      <h3 className="text-lg md:text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400, fontStyle: 'italic' }}>
+                        Votre expérience compte
+                      </h3>
+                      <p className="text-sm" style={{ color: 'var(--pa-body)', lineHeight: 1.6, margin: 0 }}>
+                        Deux minutes pour partager quelques mots sur ce que votre lecture vous a apporté — vos mots aident d&apos;autres personnes à oser leur premier pas.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => navigate('/temoignage')}
+                      data-testid="testimonial-cta-btn"
+                      style={{
+                        padding: '12px 24px', borderRadius: 999,
+                        background: 'var(--pa-accent)', color: '#0A1128',
+                        fontFamily: 'Cinzel, serif', fontWeight: 500,
+                        fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
+                        border: 'none', cursor: 'pointer',
+                        transition: 'all 0.3s cubic-bezier(.22,.61,.36,1)',
+                        display: 'inline-flex', alignItems: 'center', gap: 8,
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(212,175,55,0.4)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                    >
+                      Partager mon expérience
+                      <ChevronRight className="w-3 h-3" strokeWidth={2.5} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

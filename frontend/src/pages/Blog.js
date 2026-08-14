@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
+import { BLOG_ARTICLES } from '@/config/blogArticles';
 
 /**
  * Blog Plume Astrale — page SEO dédiée · Charte v3.1 (repositionnement Phase 4).
@@ -49,7 +50,14 @@ const FEATURED_TOPICS = [
 ];
 
 export default function Blog() {
+  const [params] = useSearchParams();
+  const postParam = params.get('post');
+  const knownSlug = postParam ? BLOG_ARTICLES.find((a) => a.slug === postParam) : null;
+
   useEffect(() => {
+    // SEO P2 : si /blog?post=slug avec un slug inconnu, on ne charge PAS
+    // le widget (on va rediriger côté render).
+    if (knownSlug) return;
     const prevTitle = document.title;
     document.title = 'Blog Plume Astrale · Comprendre les périodes de votre vie';
 
@@ -121,6 +129,13 @@ export default function Blog() {
       if (ld.parentNode) document.head.removeChild(ld);
     };
   }, []);
+
+  // SEO P2 : redirection /blog?post=slug → /blog/slug (URL propre)
+  // Placée APRÈS useEffect pour respecter rules-of-hooks — le return
+  // conditionnel court-circuite le rendu mais pas les hooks au-dessus.
+  if (knownSlug) {
+    return <Navigate to={`/blog/${postParam}`} replace />;
+  }
 
   return (
     <PsPageShell background="light">

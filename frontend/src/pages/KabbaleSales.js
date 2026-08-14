@@ -25,7 +25,7 @@ export default function KabbaleSales() {
       slug="kabbale"
       previewProduct="kabbale"
       path="/kabbale"
-      seoTitle="Arbre de Vie · Kabbale · 15 pages écrites par Soléna"
+      seoTitle="Arbre de Vie · Kabbale · 15 pages personnalisées"
       seoDescription="Un PDF premium de 15 pages qui cartographie ton âme sur les 10 Sephiroth et les 22 chemins hébraïques. Personnalisé à partir de ton thème natal."
       eyebrow="Comprendre — Arbre de Vie"
       title='L&apos;architecture invisible de <span class="ps-italic">votre chemin</span>.'

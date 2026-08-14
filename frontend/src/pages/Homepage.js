@@ -12,6 +12,7 @@ import CinematicHero from '@/components/CinematicHero';
 import PremiumPillars from '@/components/PremiumPillars';
 import SolenaGuideCard from '@/components/SolenaGuideCard';
 import HomepageMiniQuiz from '@/components/HomepageMiniQuiz';
+import { BLOG_ARTICLES } from '@/config/blogArticles';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -88,7 +89,7 @@ export default function Homepage() {
   const [flipbookBook, setFlipbookBook] = useState(null);
 
   const FEATURED_BOOKS = [
-    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '17,99€', to: '/theme-natal' },
+    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '29,99€', to: '/theme-natal' },
     { slug: 'kabbale',           title: 'Arbre de Vie · Kabbale',   tagline: '10 Sephiroth · 22 chemins',         price: '39€',    to: '/kabbale' },
     { slug: 'astrocartographie', title: 'Astrocartographie',        tagline: '7 lignes planétaires sur le monde', price: '49€',    to: '/astrocartographie' },
   ];
@@ -162,31 +163,8 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* ═══ SECTION 3 · L'HISTOIRE DE SOLÉNA (SOMBRE) ═══ */}
-      <section className="ps-section ps-section-dark" data-testid="ps-story">
-        <CelestialBackdrop density={140} shootingStars interval={10000} />
-        <div className="ps-container">
-          <div className="ps-narrow" style={{ textAlign: 'left' }}>
-            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>La plume derrière les lectures</p>
-            <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 24 }}>
-              Soléna écrit une lecture <span className="ps-italic">à la fois.</span>
-            </h2>
-            <p className="ps-body" style={{ color: 'rgba(247,245,240,0.85)', marginBottom: 20 }}>
-              Soléna est la voix de Plume Astrale. À partir de ta date, ton heure et ton lieu de naissance,
-              chaque lecture est composée une à une, spécifiquement pour toi — jamais d&apos;horoscope générique.
-            </p>
-            <p className="ps-body" style={{ color: 'rgba(247,245,240,0.85)', marginBottom: 32 }}>
-              Chaque texte est une conversation posée, précise, apaisée. Une invitation à la
-              réflexion, pour mieux comprendre tes émotions, tes besoins et tes fonctionnements.
-            </p>
-            <Link to="/temoignages" className="ps-btn ps-btn-outline" data-testid="story-cta">
-              Lire les témoignages
-              <ArrowRight style={{ width: 16, height: 16 }} strokeWidth={2} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
+      {/* ═══ SECTION 3 · SUPPRIMÉE (2026-02-14) — Soléna n'est pas astrologue,
+              c'est un avatar / une voix éditoriale. Aucune claim d'action humaine. ═══ */}
       {/* ═══ SECTION 4 · SERVICES (CLAIRE) ═══ */}
       <section className="ps-section ps-section-light" data-testid="ps-services">
         <div className="ps-container">
@@ -372,6 +350,113 @@ export default function Homepage() {
           aucune métrique non prouvée (4,9/5 sur 2 400 lectures). La section
           reviendra dès que des vrais témoignages seront collectés via
           /temoignages (soumission user → approbation admin). */}
+
+      {/* ═══ SECTION 5.5 · ARTICLES BLOG À LA UNE (P8 maillage interne) ═══ */}
+      <section
+        className="ps-section ps-section-light"
+        data-testid="ps-featured-articles"
+        style={{ borderTop: '1px solid #E3E1DC' }}
+      >
+        <div className="ps-container">
+          <div style={{ marginBottom: 40, display: 'flex', justifyContent: 'space-between', alignItems: 'end', flexWrap: 'wrap', gap: 20 }}>
+            <div style={{ maxWidth: 560 }}>
+              <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Le journal Plume Astrale</p>
+              <h2 className="ps-h2" style={{ color: '#0F1A3C', marginBottom: 12 }}>
+                Articles à <span className="ps-italic">explorer</span>.
+              </h2>
+              <p className="ps-body" style={{ color: '#5A5D6B', margin: 0 }}>
+                Six lectures pour comprendre les cycles, les relations, les décisions — sans jargon.
+              </p>
+            </div>
+            <Link
+              to="/blog"
+              data-testid="featured-articles-see-all"
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 12, fontWeight: 600,
+                letterSpacing: '0.16em', textTransform: 'uppercase',
+                color: '#C9A24B', textDecoration: 'none',
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                paddingBottom: 4,
+                borderBottom: '1px solid rgba(201, 162, 75, 0.4)',
+              }}
+            >
+              Tous les articles
+              <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
+            </Link>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: 20,
+          }}>
+            {BLOG_ARTICLES.slice(0, 6).map((article, i) => (
+              <Link
+                key={article.slug}
+                to={`/blog/${article.slug}`}
+                data-testid={`featured-article-${i}`}
+                style={{
+                  display: 'flex', flexDirection: 'column',
+                  padding: 24,
+                  background: '#FFFFFF',
+                  border: '1px solid #E3E1DC',
+                  borderRadius: 12,
+                  textDecoration: 'none',
+                  color: '#0F1A3C',
+                  transition: 'transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.borderColor = '#C9A24B';
+                  e.currentTarget.style.boxShadow = '0 14px 34px rgba(15, 26, 60, 0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = '#E3E1DC';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 10, letterSpacing: '0.22em',
+                  textTransform: 'uppercase', color: '#B8935A',
+                  fontWeight: 500, marginBottom: 12,
+                }}>
+                  {article.tag}
+                </div>
+                <h3 style={{
+                  fontFamily: 'Playfair Display, serif',
+                  fontSize: 19, lineHeight: 1.3, fontWeight: 400,
+                  fontStyle: 'italic', color: '#0F1A3C',
+                  margin: 0, marginBottom: 12,
+                  flex: 1,
+                }}>
+                  {article.title}
+                </h3>
+                <p style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 13, lineHeight: 1.55,
+                  color: '#5A5D6B',
+                  margin: 0, marginBottom: 16,
+                }}>
+                  {article.excerpt}
+                </p>
+                <span style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 11, fontWeight: 600,
+                  letterSpacing: '0.14em', textTransform: 'uppercase',
+                  color: '#C9A24B',
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                }}>
+                  Lire l&apos;article
+                  <ArrowRight style={{ width: 12, height: 12 }} strokeWidth={2} />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ═══ SECTION 6 · APPEL À L'ACTION FINAL (CLAIRE) ═══ */}
       <section className="ps-section ps-section-light" data-testid="ps-final-cta">

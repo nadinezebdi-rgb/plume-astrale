@@ -77,12 +77,12 @@ export default function LectureCompleteSucces() {
           {status === 'timeout' && (
             <p style={{ color: '#f87171' }}>
               La confirmation prend plus de temps que prévu. Vérifie tes emails dans quelques minutes.
-              Si tu vois un débit sur ta carte mais rien ne bouge, contacte Soléna.
+              Si tu vois un débit sur ta carte mais rien ne bouge, contacte le support Plume Astrale.
             </p>
           )}
           {status === 'error' && (
             <p style={{ color: '#f87171' }}>
-              Impossible de vérifier ta commande. Écris à Soléna avec le numéro de session : <code>{sessionId}</code>
+              Impossible de vérifier ta commande. Écris au support Plume Astrale avec le numéro de session : <code>{sessionId}</code>
             </p>
           )}
           {status === 'missing' && (

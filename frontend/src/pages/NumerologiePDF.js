@@ -21,7 +21,7 @@ export default function NumerologiePDF() {
       previewProduct="numerologie"
       path="/numerologie-pdf"
       seoTitle="Numérologie sacrée · Chemin de vie décodé · Plume Astrale"
-      seoDescription="Un PDF premium de 16 pages qui décode ton chemin de vie, ton année personnelle et tes 3 nombres d'expression. Signé Soléna."
+      seoDescription="Un PDF premium de 16 pages qui décode ton chemin de vie, ton année personnelle et tes 3 nombres d'expression."
       eyebrow="Comprendre — Les nombres"
       title='Les nombres qui rythment <span class="ps-italic">votre parcours</span>.'
       subtitle="Une lecture de 16 pages qui décrypte votre chemin de vie, l'année en cours, et les repères qui structurent votre évolution intérieure."

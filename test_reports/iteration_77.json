@@ -1,0 +1,32 @@
+{
+  "summary": "Iteration 77 — Validation des 2 nouveaux endpoints admin (capi-health, ig-token/refresh) + background task ig_token_refresh_loop + fix de conversion mobile (overflow horizontal, safe-area tabbar, cookie banner). Backend: 8/8 tests PASS. Frontend mobile 390x844: 19/19 routes publiques sans overflow (all 0px), H1 + CTA hero /theme-natal-luxe entièrement visibles, body padding-bottom = 72px, CSS cookie-consent bottom=88px correctement au-dessus de la tabbar. Aucune régression détectée.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration77_admin_capi_ig_token.py",
+    "/app/test_reports/pytest/iteration_77.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py atteint désormais 2588 lignes — les 2 nouveaux endpoints admin utilisent bien @app.get/@app.post directs (bonne pratique post-fix iter 76). Continuer à surveiller le split de server.py en modules.",
+    "Le endpoint /api/admin/capi-health effectue un SELECT sur profiles pour vérifier is_admin — un helper `require_admin(current_user)` DRY serait bénéfique car ce pattern est répété (déjà dans cercle-monthly-report et autres routes admin).",
+    "services/instagram_token_refresh.py — vérifier que _token_age_days() retourne 0/None quand pas de token pour éviter TypeError sur clients."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration77_admin_capi_ig_token.py (nouveau)"
+  ],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "100% (19/19 routes + hero CTA + cookie CSS)"},
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 · test@plume-astrale.fr / TestPlume2026!",
+  "seed_data_creation": "Aucune",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iter 77 : (1) GET /api/admin/capi-health → 401 sans token, 403 non-admin, 200 admin avec {status:'error', token_configured:false, capi_ok:false} car META_CAPI_ACCESS_TOKEN vide en test — comportement attendu. (2) POST /api/admin/ig-token/refresh → 401 sans token, 200 admin avec {status:'skipped', reason:'no_token_configured', current_token_age_days:...}. (3) Log backend confirme '[ig_token] boucle démarrée — cycle 24h, seuil 50j' au startup. (4) Mobile 390px: toutes routes ont overflow=0px (fix CSS lignes 1220-1300 : html/body overflow-x:hidden + max-width:100vw + *{max-width:100%}). Body padding-bottom=72px (safe-area tabbar). Cookie banner CSS: bottom=88px → cookie.bottom=756 < tabbar.top=772 (gap 16px). Hero CTA sales-natal-cta-hero: width=284px sur parent 326px (87%, safe). H1 ps-h1: 326px de large sur 390px viewport (dans les marges). Tests régression tarot/jour, apercu/discount, plume-chat/history OK.",
+  "rca of the issue": "Pas de bug identifié. Le fix mobile conversion (overflow horizontal) fonctionne correctement sur les 19 routes testées — la règle CSS `html, body { overflow-x: hidden; max-width: 100vw }` combinée à `*{max-width:100%}` est efficace mais agressive : elle peut masquer de vrais bugs de layout dans le futur (contenus qui débordent silencieusement). Recommandation : ajouter un test E2E régulier avec assertion scrollWidth<=innerWidth+2 (comme fait ici) pour attraper toute régression."
+}

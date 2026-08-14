@@ -4,6 +4,7 @@ import { ArrowRight, ArrowLeft } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { ZODIAC_SIGNS, getSignBySlug } from '@/config/zodiacSigns';
 import { getMonthlyMood } from '@/config/monthlyMoods';
+import { getDeepContent } from '@/config/zodiacDeepContent';
 
 /**
  * Horoscope par signe · SEO longue traîne.
@@ -31,6 +32,18 @@ export default function HoroscopeSign() {
   const monthly = getMonthlyMood(sign);
   const monthCapitalized = monthly.monthName.charAt(0).toUpperCase() + monthly.monthName.slice(1);
 
+  // Contenu SEO enrichi (P7) — Amour, Travail, Croissance + FAQPage schema
+  const deep = getDeepContent(sign);
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: deep.faq.map(({ q, a }) => ({
+      '@type': 'Question',
+      name: q,
+      acceptedAnswer: { '@type': 'Answer', text: a },
+    })),
+  };
+
   const productSlugToTitle = {
     '/theme-natal': 'Votre thème personnel',
     '/theme-natal-luxe': 'Votre lecture Luxe',
@@ -55,6 +68,7 @@ export default function HoroscopeSign() {
         path={`/horoscope/${sign.slug}`}
         title={`${sign.name} · ${monthCapitalized} · Comprendre votre signe · Plume Astrale`}
         description={`Humeur de ${monthly.monthName} pour le signe ${sign.name} (${sign.dates}) : traits, cycles favorables et périodes clés. Une lecture claire, mise à jour chaque mois.`}
+        jsonLd={faqJsonLd}
       />
 
       <div style={{ maxWidth: 780, margin: '0 auto' }}>
@@ -280,6 +294,143 @@ export default function HoroscopeSign() {
           >
             {monthly.accent}
           </p>
+        </section>
+
+        {/* ═══ P7 · Contenu enrichi SEO (600-900 mots + FAQPage schema) ═══ */}
+
+        {/* Amour & relations */}
+        <section
+          data-testid={`${slug}-love`}
+          style={{ marginBottom: 56, maxWidth: 720 }}
+        >
+          <p style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500,
+            letterSpacing: '0.28em', textTransform: 'uppercase',
+            color: '#B8935A', marginBottom: 12,
+          }}>
+            {sign.name} en amour
+          </p>
+          <h2 style={{
+            fontFamily: 'Playfair Display, serif',
+            fontSize: 'clamp(20px, 2.4vw, 26px)', fontWeight: 400,
+            color: '#F7F5F0', margin: 0, marginBottom: 16, fontStyle: 'italic',
+          }}>
+            Comment le {sign.name} aime
+          </h2>
+          <p style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 15, lineHeight: 1.75,
+            color: 'rgba(247, 245, 240, 0.85)', margin: 0,
+          }}>
+            {deep.loveText}
+          </p>
+        </section>
+
+        {/* Travail & vocation */}
+        <section
+          data-testid={`${slug}-career`}
+          style={{ marginBottom: 56, maxWidth: 720 }}
+        >
+          <p style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500,
+            letterSpacing: '0.28em', textTransform: 'uppercase',
+            color: '#B8935A', marginBottom: 12,
+          }}>
+            {sign.name} au travail
+          </p>
+          <h2 style={{
+            fontFamily: 'Playfair Display, serif',
+            fontSize: 'clamp(20px, 2.4vw, 26px)', fontWeight: 400,
+            color: '#F7F5F0', margin: 0, marginBottom: 16, fontStyle: 'italic',
+          }}>
+            La vocation du {sign.name}
+          </h2>
+          <p style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 15, lineHeight: 1.75,
+            color: 'rgba(247, 245, 240, 0.85)', margin: 0,
+          }}>
+            {deep.careerText}
+          </p>
+        </section>
+
+        {/* Croissance & équilibre */}
+        <section
+          data-testid={`${slug}-growth`}
+          style={{ marginBottom: 56, maxWidth: 720 }}
+        >
+          <p style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500,
+            letterSpacing: '0.28em', textTransform: 'uppercase',
+            color: '#B8935A', marginBottom: 12,
+          }}>
+            Croissance intérieure
+          </p>
+          <h2 style={{
+            fontFamily: 'Playfair Display, serif',
+            fontSize: 'clamp(20px, 2.4vw, 26px)', fontWeight: 400,
+            color: '#F7F5F0', margin: 0, marginBottom: 16, fontStyle: 'italic',
+          }}>
+            L&apos;évolution du {sign.name}
+          </h2>
+          <p style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 15, lineHeight: 1.75,
+            color: 'rgba(247, 245, 240, 0.85)', margin: 0,
+          }}>
+            {deep.growthText}
+          </p>
+        </section>
+
+        {/* FAQ (schema.org/FAQPage) */}
+        <section
+          data-testid={`${slug}-faq`}
+          style={{ marginBottom: 72, maxWidth: 720 }}
+        >
+          <p style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500,
+            letterSpacing: '0.28em', textTransform: 'uppercase',
+            color: '#B8935A', marginBottom: 12,
+          }}>
+            Questions fréquentes
+          </p>
+          <h2 style={{
+            fontFamily: 'Playfair Display, serif',
+            fontSize: 'clamp(22px, 2.6vw, 28px)', fontWeight: 400,
+            color: '#F7F5F0', margin: 0, marginBottom: 24, fontStyle: 'italic',
+          }}>
+            Ce qu&apos;on nous demande sur le {sign.name}
+          </h2>
+          <div>
+            {deep.faq.map(({ q, a }, i) => (
+              <details
+                key={i}
+                data-testid={`${slug}-faq-item-${i}`}
+                style={{
+                  marginBottom: 12,
+                  padding: '20px 24px',
+                  borderRadius: 12,
+                  background: 'rgba(30, 42, 94, 0.28)',
+                  border: '1px solid rgba(184, 147, 90, 0.20)',
+                }}
+              >
+                <summary style={{
+                  fontFamily: 'Playfair Display, serif', fontSize: 17,
+                  fontWeight: 400, lineHeight: 1.4,
+                  color: '#F7F5F0', cursor: 'pointer', listStyle: 'none',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  gap: 12,
+                }}>
+                  <span>{q}</span>
+                  <span aria-hidden="true" style={{ color: '#B8935A', fontSize: 20, lineHeight: 1 }}>+</span>
+                </summary>
+                <p style={{
+                  fontFamily: 'Inter, sans-serif', fontSize: 14, lineHeight: 1.7,
+                  color: 'rgba(247, 245, 240, 0.78)',
+                  margin: 0, marginTop: 12,
+                }}>
+                  {a}
+                </p>
+              </details>
+            ))}
+          </div>
         </section>
 
         {/* CTA */}

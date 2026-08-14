@@ -13,13 +13,13 @@ import { Sparkles } from 'lucide-react';
  */
 
 const STEPS = [
-  { at: 0,   text: "Ton ciel s'aligne — je consulte tes 73 dimensions astrales…" },
-  { at: 8,   text: "Je relis ton Soleil, ta Lune, tes 8 autres planètes…" },
-  { at: 18,  text: "Je décrypte les aspects qui te distinguent des autres personnes de ton signe…" },
-  { at: 28,  text: "J'écoute ce que tes planètes se disent entre elles…" },
-  { at: 38,  text: "Je choisis chaque mot pour toi — pas pour ton signe, pour TOI…" },
-  { at: 48,  text: "Je relie ta géographie astrale à ton histoire intérieure…" },
-  { at: 58,  text: "Je finalise ta lecture — la mise en page, la signature…" },
+  { at: 0,   text: "Ton ciel s'aligne — 73 dimensions astrales analysées…" },
+  { at: 8,   text: "Ton Soleil, ta Lune et tes 8 autres planètes sont relues…" },
+  { at: 18,  text: "Les aspects qui te distinguent des autres personnes de ton signe sont décryptés…" },
+  { at: 28,  text: "La conversation entre tes planètes est écoutée…" },
+  { at: 38,  text: "Chaque mot est choisi pour toi — pas pour ton signe, pour TOI…" },
+  { at: 48,  text: "Ta géographie astrale est reliée à ton histoire intérieure…" },
+  { at: 58,  text: "Ta lecture se finalise — mise en page, signature éditoriale…" },
 ];
 
 const FLYING_WORDS = [
@@ -82,13 +82,13 @@ const SolenaWritingLoader = ({ estimatedSeconds = 55, testId = 'solena-writing-l
       </div>
 
       <div className="swl-card">
-        {/* Signature Soléna */}
+        {/* Signature éditoriale Plume Astrale */}
         <div className="swl-signature">
           <div className="swl-orb">
             <Sparkles className="w-5 h-5" strokeWidth={1.2} />
           </div>
           <div>
-            <div className="swl-label">✦ Soléna écrit ta lecture ✦</div>
+            <div className="swl-label">✦ Ta lecture se compose ✦</div>
             <div className="swl-name">Plume Astrale</div>
           </div>
         </div>

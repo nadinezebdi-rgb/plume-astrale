@@ -32,7 +32,7 @@ const ORG_JSONLD = {
   logo: `${DOMAIN}/logo512.png`,
   description: "Astrologie personnalisée & livres prestige composés par Soléna.",
   sameAs: [
-    'https://www.instagram.com/plume.astrale/',
+    'https://www.instagram.com/plumeastrale.fr/',
   ],
   contactPoint: {
     '@type': 'ContactPoint',
@@ -156,8 +156,8 @@ const SEO_DATA = {
     productSlug: 'theme-natal',
   },
   '/theme-natal-luxe': {
-    title: 'Thème natal Luxe · Édition écrite à la main',
-    description: "L'édition Luxe : 86 pages personnalisées, chapitres d'âme, rituels, aspects karmiques. Écrit main par Soléna.",
+    title: 'Thème natal Luxe · Édition personnalisée',
+    description: "L'édition Luxe : 86 pages personnalisées, chapitres d'âme, rituels, aspects karmiques — signature éditoriale Plume Astrale.",
     keywords: 'thème natal luxe, thème natal complet, livre astrologique premium',
     ogType: 'product',
     productPrice: '49',
@@ -202,7 +202,7 @@ const SEO_DATA = {
   },
   '/numerologie': {
     title: 'Numérologie personnalisée · Plume Astrale',
-    description: "Ton chemin de vie, nombre d'expression, nombre d'âme et année 2026 — analyse complète guidée par Soléna.",
+    description: "Ton chemin de vie, nombre d'expression, nombre d'âme et année 2026 — analyse complète personnalisée.",
     keywords: 'numérologie personnalisée, chemin de vie, nombre expression',
     ogType: 'website',
   },

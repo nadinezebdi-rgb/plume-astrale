@@ -46,14 +46,51 @@ except OSError as _e:
     )
     _mp_cfg = None
 
-from moviepy.editor import (
-    AudioFileClip,
-    ColorClip,
-    CompositeVideoClip,
-    ImageClip,
-    VideoClip,
-    concatenate_videoclips,
-)
+# ---------------------------------------------------------------------------
+# Lazy moviepy.editor import — DO NOT import at module load. moviepy.editor
+# pulls ffmpeg via imageio_ffmpeg at import time ; s'il est absent, cela
+# fait crasher tout le backend au démarrage. On importe à la demande, dans
+# les entrypoints publics (generate_*), avec try/except pour dégrader
+# proprement au lieu de propager une ImportError.
+# ---------------------------------------------------------------------------
+AudioFileClip = None
+ColorClip = None
+CompositeVideoClip = None
+ImageClip = None
+VideoClip = None
+concatenate_videoclips = None
+_MOVIEPY_LOADED = False
+
+
+def _import_moviepy_editor() -> None:
+    """Lazy import moviepy.editor. Idempotent, raises RuntimeError on failure."""
+    global AudioFileClip, ColorClip, CompositeVideoClip
+    global ImageClip, VideoClip, concatenate_videoclips, _MOVIEPY_LOADED
+    if _MOVIEPY_LOADED:
+        return
+    try:
+        from moviepy.editor import (
+            AudioFileClip as _AudioFileClip,
+            ColorClip as _ColorClip,
+            CompositeVideoClip as _CompositeVideoClip,
+            ImageClip as _ImageClip,
+            VideoClip as _VideoClip,
+            concatenate_videoclips as _concatenate_videoclips,
+        )
+    except (ImportError, OSError, RuntimeError) as e:
+        raise RuntimeError(
+            "moviepy.editor unavailable (ffmpeg/imageio-ffmpeg missing?). "
+            "Video generation is disabled. Install ffmpeg + `pip install "
+            f"moviepy` to re-enable. Original error: {e}"
+        ) from e
+    AudioFileClip = _AudioFileClip
+    ColorClip = _ColorClip
+    CompositeVideoClip = _CompositeVideoClip
+    ImageClip = _ImageClip
+    VideoClip = _VideoClip
+    concatenate_videoclips = _concatenate_videoclips
+    _MOVIEPY_LOADED = True
+
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 # Compat shim: MoviePy 1.0.3 uses PIL.Image.ANTIALIAS (removed in Pillow 10)
@@ -580,6 +617,7 @@ def generate_tiktok_video(
     Build the full 30s vertical TikTok video. Returns path to the MP4.
     Set preview=True for a 480p faster render.
     """
+    _import_moviepy_editor()
     output_path = OUTPUT_DIR / output_filename
 
     logger.info("[video] building cosmic background...")
@@ -936,6 +974,7 @@ def generate_tirage_video(
 
     mute=True → silent MP4 (perfect to add TikTok music on top).
     """
+    _import_moviepy_editor()
     output_path = OUTPUT_DIR / output_filename
 
     logger.info("[video/tirage] building background...")
@@ -1267,6 +1306,7 @@ def generate_hook_template_video(
       duration: 15-60 seconds (30 recommended)
       mute: True → export silencieux (à combiner avec son TikTok)
     """
+    _import_moviepy_editor()
     if not hook or not body:
         raise ValueError("hook and body are required")
     duration = max(10.0, min(60.0, float(duration)))
@@ -1474,6 +1514,7 @@ def generate_cinematic_video(
       duration: 15-60s (30 default)
       mute: True → silent MP4 (recommended for TikTok music)
     """
+    _import_moviepy_editor()
     from services.pexels_service import get_and_download, get_and_download_by_id
 
     if not hook or not body:
@@ -1781,6 +1822,7 @@ def generate_tiktok_native_video(
       pexels_query / pexels_video_id: source footage
       accent_word: 1 word from hook rendered in gold
     """
+    _import_moviepy_editor()
     from services.pexels_service import get_and_download, get_and_download_by_id
 
     if not hook or not fragments:
@@ -1953,6 +1995,7 @@ def generate_tiktok_with_custom_bg(
     as background instead of Pexels. Silent MP4 (no audio overlay here —
     caller can merge audio afterwards via ffmpeg).
     """
+    _import_moviepy_editor()
     if not hook or not fragments:
         raise ValueError("hook + fragments required")
     duration = max(6.0, min(90.0, float(duration)))

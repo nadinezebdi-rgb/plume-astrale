@@ -963,25 +963,30 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
 .ps-h1 {
   font-family: var(--ps-serif);
   font-weight: 500;
-  font-size: clamp(38px, 5vw, 56px);
-  line-height: 1.08;
+  font-size: clamp(30px, 6.5vw, 56px);
+  line-height: 1.12;
   letter-spacing: -0.01em;
   margin: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 .ps-h2 {
   font-family: var(--ps-serif);
   font-weight: 500;
-  font-size: clamp(28px, 3.5vw, 40px);
-  line-height: 1.15;
+  font-size: clamp(24px, 4.5vw, 40px);
+  line-height: 1.18;
   letter-spacing: -0.005em;
   margin: 0;
+  overflow-wrap: break-word;
 }
 .ps-h3 {
   font-family: var(--ps-serif);
   font-weight: 500;
-  font-size: clamp(22px, 2.5vw, 28px);
-  line-height: 1.25;
+  font-size: clamp(20px, 3.5vw, 28px);
+  line-height: 1.28;
   margin: 0;
+  overflow-wrap: break-word;
 }
 .ps-body {
   font-family: var(--ps-sans);
@@ -1000,6 +1005,10 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #8F6E24;  /* AA compliant on white (~4.7:1) — deeper brand gold */
+  overflow-wrap: break-word;
+}
+@media (max-width: 480px) {
+  .ps-eyebrow { font-size: 11px; letter-spacing: 0.14em; }
 }
 .ps-section-dark .ps-eyebrow {
   color: var(--ps-gold);  /* Sur fond sombre, gold clair OK (>7:1) */
@@ -1029,6 +1038,7 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
 .ps-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   padding: 14px 28px;
   border-radius: var(--ps-radius-pill);
@@ -1042,6 +1052,17 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
   transition: transform 200ms ease, background 200ms ease, color 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
   min-height: 48px;
   white-space: nowrap;
+  text-align: center;
+  max-width: 100%;
+}
+@media (max-width: 640px) {
+  .ps-btn {
+    white-space: normal;
+    padding: 13px 20px;
+    font-size: 14px;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+  }
 }
 .ps-btn-primary {
   background: var(--ps-gold);
@@ -1195,6 +1216,84 @@ body:has(.ps-home)::after { display: none !important; }
   -webkit-backdrop-filter: none !important;
   box-shadow: 0 12px 32px -18px rgba(15,26,60,0.10) !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * MOBILE CONVERSION FIXES (2026-02-14)
+ * — Adressent la perte de conversions mobiles Google Search Console
+ * — Corrige débordement horizontal, chevauchement tabbar/cookie,
+ *   scaling H1/CTA sur écrans < 480px
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Prevent global horizontal overflow */
+html, body { overflow-x: hidden; max-width: 100vw; }
+* { max-width: 100%; }
+
+/* ps-container : add safe padding on all viewports */
+.ps-container { padding-left: 16px; padding-right: 16px; box-sizing: border-box; }
+@media (min-width: 768px) {
+  .ps-container { padding-left: 24px; padding-right: 24px; }
+}
+
+/* Sales hero price card : stack vertically on mobile so CTA gets full width */
+@media (max-width: 640px) {
+  .ps-sales-hero-price {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    padding: 20px !important;
+  }
+  .ps-sales-hero-price > div { width: 100%; }
+  .ps-sales-hero-price .ps-btn,
+  .ps-sales-hero-price button.ps-btn-primary {
+    width: 100%;
+  }
+}
+
+/* Safe area bottom : le mobile tabbar (72px) ne masque plus le dernier CTA */
+@media (max-width: 767px) {
+  body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  /* Auth/checkout pages : la tabbar est masquée, on retire le padding */
+  body:has(.plume-tabbar[hidden]) { padding-bottom: 0; }
+}
+
+/* Cookie banner : ne doit pas se superposer à la tabbar mobile (72px) */
+@media (max-width: 767px) {
+  [data-testid="cookie-consent"] {
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+    margin-right: 84px !important; /* évite chat bubble */
+  }
+}
+
+/* Support chat bubble : remonter au-dessus de la tabbar */
+@media (max-width: 767px) {
+  [data-testid="support-chat-bubble"],
+  .pac-bubble {
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* Empêcher les <img> et vidéos de dépasser leur conteneur mobile */
+img, video, iframe, svg { max-width: 100%; height: auto; }
+
+/* Assure que les tableaux et pré-formattés ne cassent pas la mise en page */
+pre, code, table { max-width: 100%; overflow-x: auto; word-break: break-word; }
+
+/* Padding responsif accru sur .ps-section pour éviter les collages bord d'écran */
+@media (max-width: 480px) {
+  .ps-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  /* Petits écrans : les grilles à 2 colonnes doivent passer en 1 colonne */
+  .ps-sales-hero-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Améliore la lecture des inputs sur mobile (iOS zoom bug si < 16px) */
+@media (max-width: 767px) {
+  input[type="text"], input[type="email"], input[type="tel"],
+  input[type="password"], input[type="number"], input[type="date"],
+  textarea, select { font-size: 16px !important; }
 /* Etoiles filantes globales */
 .plume-shooting-layer {
   position: fixed;
@@ -1246,5 +1345,4 @@ body:has(.ps-home)::after { display: none !important; }
   to   { opacity: 1; transform: translateY(0); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .auth-fade { animation: none; }
-}
+  .auth-fade { animation: none; }}

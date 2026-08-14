@@ -347,6 +347,12 @@ def _build_html_email(first_name: str, sign_name: str, month_name: str) -> str:
           Le PDF est joint à ce message. Nous vous conseillons de l'imprimer ou de le
           garder ouvert dans un onglet — il gagne à être relu plusieurs fois dans le mois.
         </p>
+        <p style="padding:16px 0;border-top:1px solid rgba(184,147,90,0.20);margin-top:24px;">
+          <strong style="color:#C9A24B;">✦ Petit cadeau bonus</strong> — vous trouverez aussi
+          en pièce jointe un <strong>mini-visuel Instagram</strong> tout prêt, avec votre
+          citation du mois. Si vous voulez le partager en story ou en feed, tag
+          <em>@plumeastrale</em> — chaque partage aide d'autres personnes à trouver leur cap.
+        </p>
       </div>
 
       <div style="text-align:center;padding:24px 0;border-top:1px solid rgba(184,147,90,0.20);">
@@ -366,14 +372,21 @@ def _build_html_email(first_name: str, sign_name: str, month_name: str) -> str:
 
 
 async def _send_report_email(email: str, first_name: str, sign_name: str, month_name: str,
-                             pdf_bytes: bytes) -> Optional[str]:
+                             pdf_bytes: bytes, ig_bytes: bytes | None = None) -> Optional[str]:
     if not RESEND_API_KEY:
         logger.warning('[cercle_monthly] RESEND_API_KEY absent — email non envoyé')
         return None
     pdf_b64 = base64.b64encode(pdf_bytes).decode('ascii')
-    filename = f'humeur-de-{month_name}.pdf'
+    pdf_filename = f'humeur-de-{month_name}.pdf'
     subject = f"L'humeur de {month_name} · votre rapport Cercle Soléna"
     html = _build_html_email(first_name, sign_name, month_name)
+    attachments = [{'filename': pdf_filename, 'content': pdf_b64}]
+    if ig_bytes:
+        ig_b64 = base64.b64encode(ig_bytes).decode('ascii')
+        attachments.append({
+            'filename': f'ig-{sign_name.lower()}-{month_name}.png',
+            'content': ig_b64,
+        })
     try:
         async with httpx.AsyncClient(timeout=30) as client:
             r = await client.post(
@@ -387,7 +400,7 @@ async def _send_report_email(email: str, first_name: str, sign_name: str, month_
                     'to': [email],
                     'subject': subject,
                     'html': html,
-                    'attachments': [{'filename': filename, 'content': pdf_b64}],
+                    'attachments': attachments,
                 },
             )
             if r.status_code >= 400:
@@ -487,7 +500,17 @@ async def send_monthly_reports_to_all() -> dict:
                 generate_monthly_pdf, first_name, sign_name, sign_element, month_index, year,
             )
             month_name = MONTH_NAMES_FR[month_index]
-            eid = await _send_report_email(email, first_name, sign_name, month_name, pdf_bytes)
+            # Génère aussi le mini-visuel IG partageable (empowerment ambassadrice)
+            ig_bytes = None
+            try:
+                from services.instagram_visual import generate_ig_visual
+                mood_accent = get_monthly_mood(sign_element, month_index)['accent']
+                ig_bytes = await asyncio.to_thread(
+                    generate_ig_visual, sign_name, month_name, mood_accent,
+                )
+            except Exception as e:
+                logger.warning(f'[cercle_monthly] IG visual generation failed for {email}: {e}')
+            eid = await _send_report_email(email, first_name, sign_name, month_name, pdf_bytes, ig_bytes)
             if eid:
                 sent += 1
                 logger.info(f'[cercle_monthly] ✓ envoyé à {email} (id={eid}, {sign_name}/{sign_element})')

@@ -17,6 +17,76 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
 ## What's implemented
+### Mobile Conversion Fix + IG Token Auto-Refresh + CAPI Health (2026-02-14)
+- **🔴 Fix critique perte de conversion mobile GSC** (P0) : audit responsive complet sur viewport 390x844 (iPhone 14) — 19 routes publiques testées. AVANT : `/theme-natal-luxe` overflow 98px, `/kabbale` 54px, `/credits` 135px (contenu qui dépassait le viewport → CTA principaux inaccessibles). APRÈS : 0px overflow sur les 19 routes.
+- **Root causes identifiées** :
+  - `.ps-h1` : `clamp(38px, 5vw, 56px)` → min 38px trop grand pour mobiles étroits. Réduit à `clamp(30px, 6.5vw, 56px)` + `overflow-wrap: break-word` + `hyphens: auto`.
+  - `.ps-btn` : `white-space: nowrap` + textes CTA longs ("Recevoir mes 20 crédits · Commencer") → forçait le débordement. Ajout `@media(max-width:640px) { white-space: normal, padding: 13px 20px, font-size: 14px }`.
+  - `.ps-sales-hero-price` (SalesPageV3) : ligne horizontale prix + CTA → stack vertical sur mobile (`flex-direction: column`, CTA `width: 100%`).
+  - Cookie banner (`data-testid=cookie-consent`) se superposait à la mobile tabbar 72px → CSS `bottom: calc(88px + env(safe-area-inset-bottom))` sur mobile.
+  - Body sans padding-bottom → contenu masqué par tabbar → ajout `padding-bottom: calc(72px + env(safe-area-inset-bottom))` en <768px.
+  - Global : `html, body { overflow-x: hidden; max-width: 100vw }` + `* { max-width: 100% }` en filet de sécurité.
+  - Inputs iOS auto-zoom : `input, textarea, select { font-size: 16px }` en <767px pour bloquer le zoom iOS.
+- **`/api/admin/capi-health`** (GET admin-only) : envoie un Test Event PageView vers Meta CAPI avec `event_id` unique, retourne `{status, pixel_id, token_configured, test_code, capi_ok, hint}`. Permet de valider en 1 clic que `META_CAPI_ACCESS_TOKEN` fonctionne (auparavant impossible sans devtools réseau).
+- **`/api/admin/ig-token/refresh`** (POST admin-only) : force le refresh manuel du token Instagram Long-Lived.
+- **Background task `ig_token_refresh_loop`** : nouveau service `services/instagram_token_refresh.py`. Tourne toutes les 24h ; si le token est âgé de >50j, appelle `GET graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token`, stocke le nouveau token + timestamp dans `/tmp/plume_ig_token_meta.json`. `instagram_weekly_post._post_to_instagram()` utilise désormais `get_current_token()` (priorité au token rafraîchi vs .env bootstrap). Résout le crash IG auto-post à J+60.
+- **Prerender CI verification** : `scripts/build:seo` = `yarn build && yarn prerender`. Script tolérant : exit 0 si puppeteer absent → ne bloque jamais le build. 60 routes publiques prerendrées incluant home, blog articles, sales pages, horoscope signes, cercle, etc.
+- **Testing** : iteration 77 → backend 100% (8/8) + frontend mobile 100% (19/19 routes overflow=0). Aucune régression.
+
+
+- **Meta Conversions API server-side** : nouveau service `services/meta_capi.py` avec fonction `send_capi_event()` — PII hashées SHA-256, deduplication via `event_id`, support Test Events. **Hook automatique dans `wallet_service.add_credits`** : à chaque `tx_type='purchase'`, un event Meta CAPI Purchase est fire en async (hors du verrou wallet, avec email hashé + valeur EUR). Récupère ~20% de conversions bloquées par les bloqueurs de pixel navigateur.
+- **Config CAPI (.env backend)** : `META_PIXEL_ID=1801418127692821` (fallback si absent), `META_CAPI_ACCESS_TOKEN` (System User Token, à générer par user dans Meta Business), `META_CAPI_TEST_CODE` optionnel.
+- **Instagram Storage Upload** : `_upload_visual_to_public_url()` implémenté dans `instagram_weekly_post.py` avec Supabase Storage bucket `public`. Path : `ig-weekly/{signe}-{ISO-week}.png`. Nécessite créer le bucket "public" dans Supabase Dashboard (marqué public).
+- **X Ads Custom Audience guide** : `docs/X_ADS_AUDIENCE_GUIDE.md` — création audience "Panier abandonné 30j" étape par étape + campagne retargeting + créatifs + métriques cibles + audiences #2/#3 à créer plus tard.
+- **Footer LinkedIn retiré** — pas de compte Plume Astrale sur LinkedIn. Footer reste avec Instagram + Facebook + X + Email.
+- **Régression** : les 3 tests pytest SEC-002 wallet race condition passent toujours ✓.
+
+### X Pixel + Footer Social + IG Auto-post + Test Docs (2026-02-08)
+- **X (Twitter) Pixel** `18ce55wyjwl` intégré dans `analytics.js` — chargé UNIQUEMENT après consentement RGPD. Track events custom (`twq('event', name, props)`) sur toutes les conversions. Vérifié en direct : `window.twq = function` + script `ads-twitter.com` chargé.
+- **Footer social élargi** : 4 icônes réseaux ajoutées dans `FooterV2.js` (Instagram + Facebook + X + LinkedIn) + Email. Config centralisée `SOCIAL_LINKS` en tête de fichier — mettre à jour les URLs quand les comptes FB/X/LinkedIn seront créés. `data-testid` sur chaque icône.
+- **Instagram Weekly Auto-post scaffold** : `services/instagram_weekly_post.py` — boucle asyncio calée sur lundi 8h UTC, rotation 12 signes basée sur ISO week, template caption + hashtags. Requiert `INSTAGRAM_ACCESS_TOKEN` (60j) + `INSTAGRAM_BUSINESS_ID=17841440273868005` dans `.env` backend + implémentation de `_upload_visual_to_public_url()` selon infra (TODO doc dans le code). Sans token, la fonction sort silencieusement (log warning).
+- **Vérif Instagram handle** : `https://instagram.com/plumeastrale.fr` renvoie HTTP 302 → login page IG (comportement normal pour crawler non-authentifié). Handle accepté par IG.
+- **Meta Pixel Test Events guide** : `docs/META_PIXEL_TEST_EVENTS.md` — instructions Meta Pixel Helper (extension Chrome) + Test Events console Meta Business Manager + mapping événements + 3 audiences prêtes à créer (panier abandonné, lookalike acheteuses, engagement blog).
+
+### Meta Pixel (Facebook + Instagram) — RGPD compliant (2026-02-08)
+- **Meta Pixel `1801418127692821`** intégré dans `analytics.js` → couvre FB **ET** Instagram (un seul pixel Meta pour toutes les propriétés). Chargé **UNIQUEMENT** après consentement utilisateur via bandeau cookies.
+- **REACT_APP_META_PIXEL_ID** ajouté dans `frontend/.env` (pas hardcodé).
+- **Mapping des events métier → events standard Meta** (dictionnaire `META_EVENT_MAP` dans analytics.js) pour rendre les events optimisables par les ads : `signup_completed → CompleteRegistration`, `*_checkout → InitiateCheckout`, `cercle_solena_active → Subscribe`, `credit_purchase → Purchase`, etc. + `trackCustom(name)` en parallèle pour créer des audiences custom.
+- **PageView SPA** : nouveau composant `RouteTracker.js` monté dans App.js → tire un PageView sur chaque changement de route React Router (GA4 + Meta Pixel). Vérifié en direct : PageView refires correctement sur `/blog`.
+- **noscript fallback** : image `facebook.com/tr?id=1801418127692821&ev=PageView&noscript=1` ajoutée en fin de body dans `index.html`.
+- **Instagram Business ID `17841440273868005`** noté pour futur usage (auto-post reel via Meta Graph API — voir Next Action Items).
+- **Corrections liens sociaux** : `FooterV2.js` et `SEO.js` mis à jour avec le vrai handle `plumeastrale.fr` (anciennement `plume.astrale`).
+
+### Guest Posts + Trigger Testimonial + Baromètre + IG Visual (2026-02-08)
+- **Trigger Testimonial Email J+2** : nouveau stage `testimonial` dans `lecture_complete_sequence.py` — email envoyé 48h après achat Lecture Complète avec CTA vers `/temoignage?prenom=X&session=Y&utm_source=email&utm_campaign=testimonial_j2`. `Temoignage.js` pré-remplit le champ prénom depuis la query string.
+- **Baromètre 2026** (`/barometre-2026`) : page pépite éditoriale — 4 chiffres clés (87%, 3, 1 sur 2, 92%), 3 périodes analysées (Retour de Saturne 28-32 / Uranus 35-42 / Chiron 48-55), méthodologie transparente. **JSON-LD schema.org Report** injecté (éligible relais presse). Route + sitemap OK.
+- **Instagram Visual Generator** : `services/instagram_visual.py` — génère un PNG 1080x1350 (portrait 4:5 IG-ready) avec kicker doré "L'HUMEUR DE {mois} · {sign}" + citation Playfair italique + croissant doré filigrane + signature "Plume Astrale · plume-astrale.fr". Automatiquement **attaché aux emails du rapport mensuel Cercle** (2ème pièce jointe après le PDF). Email invite les abonnées à partager en story avec @plumeastrale → chaque abonnée devient ambassadrice organique.
+- **Guest Posts Pitches** : `docs/GUEST_POSTS_PITCHES.md` — 3 emails prêts à envoyer à Psychologies, Marie Claire, Slate (angles, corps, checklist).
+
+### SEO P3 CI + Post-lecture CTA + Featured Blog + Backlinks (2026-02-08)
+- **CI Prerender (P3 activation)** : `scripts/build:seo` = `yarn build && yarn prerender`. `README-prerender.md` mis à jour avec recettes GitHub Actions, Vercel/Netlify, et Emergent. `optionalDependencies` retirées (Chromium ~180Mo ne se télécharge PAS sur les postes dev). L'installation `yarn add -D puppeteer serve` est faite **uniquement** au moment du build CI/CD.
+- **Post-lecture Testimonial CTA** : nouvelle carte dorée `testimonial-cta-card` sur /mon-compte (onglet Aperçu) — visible UNIQUEMENT si l'utilisateur a une transaction de type `deduction` ou `purchase` (heuristique : consommation réelle). Icon Star + copy "Votre expérience compte" + bouton `Partager mon expérience` → /temoignage.
+- **Featured Blog Articles Homepage** : nouvelle section `ps-featured-articles` entre les paywalls et le CTA final. 6 cartes cliquables tirées de `BLOG_ARTICLES.slice(0, 6)` + lien "Tous les articles" → /blog. Maillage interne renforcé (P8). Vérifié : les 6 liens redirigent bien vers `/blog/:slug`.
+- **Backlinks Strategy** : document `/app/docs/BACKLINKS_STRATEGY.md` — plan sur 3 phases (annuaires premium 8 sites, guest posts sur 6 cibles éditoriales FR, contenu partageable), budget, KPI 6 mois, ce qu'il faut éviter (Penguin).
+
+### SEO P3/P4/P6/P7 concours (2026-02-08)
+- **P3 Prerender SSG** : script sur-mesure `frontend/scripts/prerender.js` + `README-prerender.md`. Opt-in via `yarn add -D puppeteer serve` puis `yarn prerender` après `yarn build`. Sort en code 0 si puppeteer absent → ne bloque JAMAIS le build. À ajouter au pipeline CI/CD entre `yarn build` et le deploy pour servir tout le HTML SEO dès le premier byte.
+- **P4 Désindexation /formulaire** : la meta `noindex, follow` était déjà en place via `SEO.js` (config `/formulaire: { noindex: true }`). `robots.txt` nettoyé (Disallow retiré) pour laisser Googlebot voir le noindex et désindexer l'URL déjà présente dans l'index.
+- **P6 Alignement robots.txt ↔ sitemap** : retrait des `Allow:` vers paths obsolètes (`/bibliotheque`, `/rencontres-astrales`, `/outils/`). Blocage propre des paths transactionnels (`/paiement/`, `/commande/`, `/mon-compte`, `/admin`, etc.).
+- **P7 Contenu enrichi /horoscope/:sign** : `config/zodiacDeepContent.js` — générateur qui combine element + modality + ruler pour produire 3 sections (Amour ~90 mots, Travail ~90 mots, Croissance ~80 mots) + 4 questions FAQ par signe. `HoroscopeSign.js` intègre ces sections + injecte le JSON-LD `FAQPage` (schema.org). Total : ~700 mots par page (contre ~250 avant) sur les 12 signes.
+- Vérifié : `/horoscope/lion` a 4 FAQ items, JSON-LD FAQPage validé (4 mainEntity), sections H2 uniques, ~700 mots dans le HTML source.
+
+### SEO P1/P2/P5 concours (2026-02-08)
+- **P1 Canonical fix (BLOQUANT)** : suppression de `<link rel="canonical" href="https://plume-astrale.fr">` hardcodé dans `public/index.html` (cause : toutes les pages étaient vues comme doublons de la home par Google). `SEO.js` (déjà en place) définit désormais dynamiquement le canonical auto-référent correct sur chaque route.
+- **P2 Articles blog en URLs propres (BLOQUANT)** :
+  - Registre 9 articles dans `config/blogArticles.js` (title, description, tag, date, excerpt par article)
+  - Nouvelle route `/blog/:slug` (`pages/BlogArticle.js`) avec canonical + title + H1 + JSON-LD BlogPosting uniques par article + widget Soro pour le corps de l'article
+  - Redirection `/blog?post=slug` → `/blog/slug` via React Router `<Navigate replace>` sur le composant Blog
+  - 9 URLs propres ajoutées au `sitemap.xml`
+- **P5 SearchAction fix** : suppression du bloc `potentialAction` JSON-LD dans `index.html` (pas de recherche interne implémentée → générait un rapport d'erreur Search Console).
+- **Bonus sitemap** : ajout de `/manifesto` et `/decouvrir` (nouvelles pages du repositionnement).
+- **Vérifié** : canonical `https://plume-astrale.fr/blog/comprendre-le-retour-de-saturne` ≠ home. Title/H1 uniques. Redirect `?post=X` → `/blog/X` fonctionnel.
+
 ### Parallax + CTA Cercle + Purge concours (2026-02-08)
 - **Parallax cinématique** : hero + Manifesto Chapitre III animent leur fond à 0.3x du scroll (rAF, translate3d, willChange:transform, respect `prefers-reduced-motion`). Vérifié : `translate3d(0px,0px,0px)` → `translate3d(0px,90px,0px)` sur scroll de 300px.
 - **Mini-CTA Cercle sur Manifesto** : bloc doré `data-testid="manifesto-cta-cercle"` entre Chapitre III et CTA final, Crown icon + "Recevoir ce type de lecture chaque mois — 14,99€", 50 crédits + rapport mensuel + résiliable en un clic → clic redirige vers /cercle-solena.

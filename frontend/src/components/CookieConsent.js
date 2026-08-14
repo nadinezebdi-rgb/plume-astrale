@@ -33,7 +33,6 @@ export default function CookieConsent() {
         border: '1px solid rgba(212,175,55,0.25)',
         backdropFilter: 'blur(14px)',
         boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
-        marginRight: '84px', /* évite le chat bubble sur mobile (60px + 24 gap) */
       }}
       role="dialog"
       aria-label="Consentement cookies"

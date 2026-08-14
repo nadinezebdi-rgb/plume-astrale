@@ -318,7 +318,7 @@ export default function SupportChat() {
                     <div className="pac-msg-human-head">
                       <span className="pac-msg-human-avatar">S</span>
                       <span className="pac-msg-human-label">
-                        {m.author || 'Soléna'} · réponse humaine
+                        {m.author || 'Plume Astrale'} · support
                       </span>
                     </div>
                     <div>{m.content}</div>

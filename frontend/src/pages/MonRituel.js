@@ -289,7 +289,7 @@ const MonRituel = () => {
         setJournalResponse(res.data.message || "Une perturbation cosmique. Reessaie.");
       }
     } catch (e) {
-      setJournalResponse("Soléna est silencieuse. Verifie ta connexion et reessaie.");
+      setJournalResponse("Le journal est momentanément silencieux. Vérifie ta connexion et réessaie.");
     }
     setJournalLoading(false);
   };
