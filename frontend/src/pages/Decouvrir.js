@@ -438,6 +438,85 @@ export default function Decouvrir() {
           </div>
         )}
       </div>
+
+      {/* ─── STICKY FOOTER (F500 audit 2026-02) — Fourchette de prix + CTA ─── */}
+      {step === 1 && (
+        <div
+          data-testid="decouvrir-sticky-footer"
+          style={{
+            position: 'fixed',
+            left: 0,
+            right: 0,
+            bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
+            zIndex: 40,
+            padding: '12px 16px',
+            background: 'rgba(15, 26, 60, 0.94)',
+            borderTop: '1px solid rgba(212,175,55,0.35)',
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+            boxShadow: '0 -8px 24px rgba(0,0,0,0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+          }}
+        >
+          <div style={{ minWidth: 0, flexShrink: 0 }}>
+            <div style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+              color: 'rgba(212,175,55,0.85)',
+              marginBottom: 2,
+            }}>
+              À partir de
+            </div>
+            <div style={{
+              fontFamily: 'Playfair Display, serif',
+              fontSize: 22, fontWeight: 500,
+              color: '#F5EEE0', lineHeight: 1,
+            }}>
+              29,99€
+            </div>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 12, color: 'rgba(247,245,240,0.72)',
+              lineHeight: 1.35,
+            }}>
+              PDF premium · livré en 60s · garantie 14j
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!selected}
+            data-testid="decouvrir-sticky-cta"
+            style={{
+              padding: '11px 18px',
+              borderRadius: 999,
+              background: selected ? '#B8935A' : 'rgba(184,147,90,0.4)',
+              color: '#0F1A3C',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 12, fontWeight: 600,
+              letterSpacing: '0.10em', textTransform: 'uppercase',
+              border: 'none',
+              cursor: selected ? 'pointer' : 'not-allowed',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              whiteSpace: 'nowrap',
+              transition: 'background 0.2s ease',
+            }}
+          >
+            {selected ? 'Découvrir' : 'Choisir'}
+            <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
+          </button>
+        </div>
+      )}
+
+      <style>{`
+        @media (min-width: 768px) {
+          [data-testid="decouvrir-sticky-footer"] { bottom: 24px !important; left: auto !important; right: 24px !important; max-width: 440px; border-radius: 12px; border: 1px solid rgba(212,175,55,0.35) !important; }
+        }
+      `}</style>
     </div>
   );
 }

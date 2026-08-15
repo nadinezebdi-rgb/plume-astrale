@@ -222,6 +222,111 @@ const CercleSolena = () => {
       />
 
       <div className="max-w-5xl mx-auto px-6 pb-24 pt-4">
+        {/* ROI Comparator (F500 audit 2026-02) — ancre le prix mensuel comme rationnel */}
+        <div
+          className="plume-glass p-6 md:p-8 mb-8"
+          data-testid="cercle-roi-comparator"
+          style={{ border: '1px solid rgba(212,175,55,0.35)' }}
+        >
+          <p
+            style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: 11,
+              letterSpacing: '0.28em',
+              color: '#D4AF37',
+              marginBottom: 12,
+              textTransform: 'uppercase',
+            }}
+          >
+            ✦ Calcul de valeur ✦
+          </p>
+          <h2
+            style={{
+              fontFamily: 'Cormorant Garamond, serif',
+              fontSize: 26,
+              fontWeight: 300,
+              color: '#F5EEE0',
+              marginBottom: 20,
+              lineHeight: 1.25,
+            }}
+          >
+            Pourquoi le Cercle coûte <span style={{ fontStyle: 'italic', color: '#D4AF37' }}>15 % moins cher</span> qu&apos;acheter à l&apos;unité.
+          </h2>
+          <div
+            className="grid grid-cols-1 md:grid-cols-3 gap-4"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            <div
+              data-testid="cercle-roi-unit"
+              style={{
+                padding: 18,
+                background: 'rgba(15,26,60,0.35)',
+                border: '1px solid rgba(227,215,255,0.15)',
+                borderRadius: 10,
+              }}
+            >
+              <div style={{ fontSize: 11, letterSpacing: '0.14em', color: 'rgba(227,215,255,0.55)', textTransform: 'uppercase', marginBottom: 8 }}>
+                À l&apos;unité
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 500, color: '#F5EEE0', marginBottom: 4 }}>
+                17,99€ <span style={{ fontSize: 13, color: 'rgba(227,215,255,0.65)' }}>· 50 crédits</span>
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(227,215,255,0.55)' }}>
+                Soit <b style={{ color: '#F5EEE0' }}>0,36€ / crédit</b>
+              </div>
+            </div>
+            <div
+              data-testid="cercle-roi-monthly"
+              style={{
+                padding: 18,
+                background: 'rgba(212,175,55,0.10)',
+                border: '1px solid rgba(212,175,55,0.5)',
+                borderRadius: 10,
+              }}
+            >
+              <div style={{ fontSize: 11, letterSpacing: '0.14em', color: '#D4AF37', textTransform: 'uppercase', marginBottom: 8 }}>
+                Cercle Soléna
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 500, color: '#F5EEE0', marginBottom: 4 }}>
+                14,99€ <span style={{ fontSize: 13, color: 'rgba(227,215,255,0.65)' }}>· 50 crédits/mois</span>
+              </div>
+              <div style={{ fontSize: 12, color: '#D4AF37' }}>
+                Soit <b>0,30€ / crédit</b> — plus les 4 avantages inclus
+              </div>
+            </div>
+            <div
+              data-testid="cercle-roi-savings"
+              style={{
+                padding: 18,
+                background: 'rgba(15,26,60,0.35)',
+                border: '1px solid rgba(227,215,255,0.15)',
+                borderRadius: 10,
+              }}
+            >
+              <div style={{ fontSize: 11, letterSpacing: '0.14em', color: 'rgba(227,215,255,0.55)', textTransform: 'uppercase', marginBottom: 8 }}>
+                Économie annuelle
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 500, color: '#F5EEE0', marginBottom: 4 }}>
+                36€ / an
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(227,215,255,0.55)' }}>
+                Sans compter la Lecture mensuelle offerte + les -10 % PDF
+              </div>
+            </div>
+          </div>
+          <p
+            style={{
+              fontSize: 12,
+              color: 'rgba(227,215,255,0.55)',
+              marginTop: 14,
+              fontStyle: 'italic',
+              fontFamily: 'Cormorant Garamond, serif',
+            }}
+          >
+            Sans engagement · Résiliable en 1 clic depuis le Portail Stripe · Accès conservé jusqu&apos;à la fin du mois payé.
+          </p>
+        </div>
+
         {/* 2 tiers side-by-side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-14" data-testid="cercle-tiers-grid">
           <TierCard
