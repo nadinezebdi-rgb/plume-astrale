@@ -1,0 +1,31 @@
+{
+  "summary": "Iteration 78 — Audit conversion F500 Plume Astrale : validation des nouveaux blocs de confiance (TrustBar, SalesTrustBlock, ROI comparator, Sticky footer /decouvrir) + dépersonnalisation Soléna + correction prix Thème Natal 29,99€. Backend régression 8/8 PASS (login Supabase, tarot/jour, plume-chat auth, capi-health admin/unauth, ig-token/refresh admin/unauth, video_generator lazy import). Frontend 100% : TrustBar présent mobile+desktop (4 items, 0 overflow), 7 sales pages avec guarantee-value + 3 sous-blocs (guarantee, value-compare, certifications), theme-natal-trust-block avec 3 sous-blocs et aucune mention 'IA Soléna/voix de Soléna/Astrologue formée', cercle-roi-comparator au-dessus de cercle-tiers-grid avec titre contenant '15 % moins cher' et 3 sous-blocs (unit/monthly/savings), decouvrir-sticky-footer en position fixed avec '29,99€' + 'À PARTIR', CTA disabled=True initialement puis disabled=False après clic sur situation. Prix /theme-natal-luxe: 29,99€ affiché, 17,99€ absent. Homepage: 17,99€ absent, ps-story absent, aucun texte Soléna interdit. Mobile 390x844: overflow horizontal = 0px sur 15 routes publiques testées. Aucune régression détectée.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration78_f500_regression.py",
+    "/app/test_reports/pytest/iteration_78.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Le testid de guarantee-value varie par page (sales-natal, sales-kabbale, sales-astrocarto, sales-synastry, sales-numerologie, sales-karma, sales-karmique) — bien conforme au slug injecté dans SalesPageV3, mais il faudrait documenter la table de mapping slug ↔ route pour éviter de rechercher au cas par cas dans les futurs tests QA.",
+    "Décision UX : le decouvrir-sticky-footer reste visible même après sélection d'une situation en step 1 (seul le CTA change d'état disabled→enabled). Conforme au spec (footer disparaît en step 2), mais l'utilisateur pourrait s'attendre à un feedback visuel plus fort (ex: prix qui apparaît au premier scroll)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration78_f500_regression.py (nouveau)"
+  ],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "100% (TrustBar + 7 sales + theme-natal-oneshot + cercle-roi + sticky footer + prix + 15 routes overflow)"},
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 · test@plume-astrale.fr / TestPlume2026! (auth via Supabase /auth/v1/token — pas d'endpoint /api/auth/login côté backend)",
+  "seed_data_creation": "Aucune",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iter 78 valide l'audit F500 conversion : (a) TrustBar réutilisable Home avec 4 sous-testids trust-* — visible sur mobile ET desktop, ne crée pas d'overflow. (b) SalesTrustBlock est monté avec le pattern sales-<slug>-guarantee-value où slug varie: natal (theme-natal-luxe), kabbale, astrocarto, synastry (attention synastry vs synastrie), numerologie, karma, karmique. (c) ThemeNatalOneshot expose data-testid='theme-natal-trust-block' avec sous-testids theme-natal-trust-guarantee/compare/cadre — thème dark. (d) CercleSolena.js : cercle-roi-comparator avec sous cercle-roi-unit/monthly/savings — apparaît AVANT cercle-tiers-grid en DOM. (e) Decouvrir.js : sticky footer fixed uniquement step===1 ; sur clic situation-*, le CTA passe de disabled=True à disabled=False (validé sur situation-doute). Le footer reste visible même après sélection (attendu). Backend regression: pas d'endpoint /api/auth/login — utiliser Supabase directement (voir _supabase_login helper repris de iter 77).",
+  "rca of the issue": "Aucun bug identifié. Note technique: la première exécution du test backend contenait un bug (utilisait /api/auth/login inexistant) — corrigé en utilisant Supabase /auth/v1/token comme dans iter 77. Après correction: 8/8 PASS."
+}
