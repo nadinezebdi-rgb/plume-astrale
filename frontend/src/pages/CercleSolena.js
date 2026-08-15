@@ -15,25 +15,25 @@ const TIERS = {
     key: 'normal',
     name: 'Cercle Soléna',
     price: 14.99,
-    chat_credits: 50,
+    chat_credits: 100,
     benefits: [
-      { icon: Gift, title: '50 crédits chat par mois', desc: 'Utilisables uniquement sur le chat avec Soléna. Rechargés chaque mois.' },
+      { icon: Gift, title: '100 crédits par mois', desc: 'Environ 20 questions ou 6 tirages tarot. Rechargés chaque 1er du mois.' },
       { icon: Users, title: 'Accès au Cercle', desc: 'Communauté privée d\u2019initiées, échanges, méditations.' },
       { icon: Calendar, title: 'Lecture Nouvelle Lune', desc: 'Une lecture symbolique mensuelle offerte à chaque cycle.' },
-      { icon: Sparkles, title: '-10% sur les PDF', desc: 'Sur Kabbale, Astrocarto, Pack Karmique.' },
+      { icon: Sparkles, title: '-10% sur les PDF Signature', desc: 'Thème Natal, Astrologie relationnelle, Voyage karmique.' },
     ],
   },
   premium: {
     key: 'premium',
     name: 'Cercle Soléna Premium',
     price: 29.0,
-    chat_credits: 150,
+    chat_credits: 250,
     benefits: [
-      { icon: Gift, title: '150 crédits chat par mois', desc: '3× plus de conversations, la même intimité. Rechargés chaque mois.' },
+      { icon: Gift, title: '250 crédits par mois', desc: 'Environ 50 questions ou 16 tirages tarot. Rechargés chaque 1er du mois.' },
       { icon: Crown, title: 'Priorité Soléna', desc: 'Réponses en priorité + accès aux lectures collectives premium.' },
       { icon: Users, title: 'Accès au Cercle', desc: 'Communauté privée + salons Premium réservés.' },
       { icon: Calendar, title: 'Lecture Nouvelle & Pleine Lune', desc: 'Deux lectures mensuelles offertes (au lieu d\u2019une).' },
-      { icon: Sparkles, title: '-15% sur les PDF', desc: 'Réduction majorée sur tout le catalogue.' },
+      { icon: Sparkles, title: '-20% sur les PDF Signature', desc: 'Réduction majorée sur tout le catalogue.' },
     ],
   },
 };
@@ -213,7 +213,7 @@ const CercleSolena = () => {
     <>
       <SEO
         title="Cercle Soléna — Abonnement mensuel Plume Astrale"
-        description="Rejoins le Cercle Soléna. Deux tiers : 50 crédits chat/mois à 14,99€ ou 150 chat + priorité à 29€. Résiliable à tout moment."
+        description="Rejoins le Cercle Soléna. Deux tiers : 100 crédits/mois à 14,99€ ou 250 crédits + priorité à 29€. Résiliable à tout moment."
       />
       <PageHero
         badge="✦ Cercle Soléna ✦"
@@ -250,7 +250,7 @@ const CercleSolena = () => {
               lineHeight: 1.25,
             }}
           >
-            Pourquoi le Cercle coûte <span style={{ fontStyle: 'italic', color: '#D4AF37' }}>15 % moins cher</span> qu&apos;acheter à l&apos;unité.
+            Pourquoi le Cercle coûte <span style={{ fontStyle: 'italic', color: '#D4AF37' }}>29 % moins cher</span> qu&apos;acheter à l&apos;unité.
           </h2>
           <div
             className="grid grid-cols-1 md:grid-cols-3 gap-4"
@@ -266,13 +266,13 @@ const CercleSolena = () => {
               }}
             >
               <div style={{ fontSize: 11, letterSpacing: '0.14em', color: 'rgba(227,215,255,0.55)', textTransform: 'uppercase', marginBottom: 8 }}>
-                À l&apos;unité
+                Pack Régulier · à l&apos;unité
               </div>
               <div style={{ fontSize: 24, fontWeight: 500, color: '#F5EEE0', marginBottom: 4 }}>
-                17,99€ <span style={{ fontSize: 13, color: 'rgba(227,215,255,0.65)' }}>· 50 crédits</span>
+                14,99€ <span style={{ fontSize: 13, color: 'rgba(227,215,255,0.65)' }}>· 100 crédits</span>
               </div>
               <div style={{ fontSize: 12, color: 'rgba(227,215,255,0.55)' }}>
-                Soit <b style={{ color: '#F5EEE0' }}>0,36€ / crédit</b>
+                Soit <b style={{ color: '#F5EEE0' }}>0,15€ / crédit</b> — sans avantage inclus
               </div>
             </div>
             <div
@@ -288,10 +288,10 @@ const CercleSolena = () => {
                 Cercle Soléna
               </div>
               <div style={{ fontSize: 24, fontWeight: 500, color: '#F5EEE0', marginBottom: 4 }}>
-                14,99€ <span style={{ fontSize: 13, color: 'rgba(227,215,255,0.65)' }}>· 50 crédits/mois</span>
+                14,99€ <span style={{ fontSize: 13, color: 'rgba(227,215,255,0.65)' }}>· 100 crédits/mois</span>
               </div>
               <div style={{ fontSize: 12, color: '#D4AF37' }}>
-                Soit <b>0,30€ / crédit</b> — plus les 4 avantages inclus
+                Même prix + 3 avantages inclus (lecture mensuelle · -10 % PDF · communauté)
               </div>
             </div>
             <div
@@ -304,13 +304,13 @@ const CercleSolena = () => {
               }}
             >
               <div style={{ fontSize: 11, letterSpacing: '0.14em', color: 'rgba(227,215,255,0.55)', textTransform: 'uppercase', marginBottom: 8 }}>
-                Économie annuelle
+                Valeur cumulée annuelle
               </div>
               <div style={{ fontSize: 24, fontWeight: 500, color: '#F5EEE0', marginBottom: 4 }}>
-                36€ / an
+                +72€ / an
               </div>
               <div style={{ fontSize: 12, color: 'rgba(227,215,255,0.55)' }}>
-                Sans compter la Lecture mensuelle offerte + les -10 % PDF
+                12 lectures mensuelles offertes + -10 % sur chaque PDF Signature acheté
               </div>
             </div>
           </div>

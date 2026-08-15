@@ -13,6 +13,7 @@ import PremiumPillars from '@/components/PremiumPillars';
 import SolenaGuideCard from '@/components/SolenaGuideCard';
 import HomepageMiniQuiz from '@/components/HomepageMiniQuiz';
 import TrustBar from '@/components/TrustBar';
+import HowItWorks3Tiers from '@/components/HowItWorks3Tiers';
 import { BLOG_ARTICLES } from '@/config/blogArticles';
 import { useAuth } from '@/context/AuthContext';
 
@@ -90,7 +91,7 @@ export default function Homepage() {
   const [flipbookBook, setFlipbookBook] = useState(null);
 
   const FEATURED_BOOKS = [
-    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '29,99€', to: '/theme-natal' },
+    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '39€', to: '/theme-natal' },
     { slug: 'kabbale',           title: 'Arbre de Vie · Kabbale',   tagline: '10 Sephiroth · 22 chemins',         price: '39€',    to: '/kabbale' },
     { slug: 'astrocartographie', title: 'Astrocartographie',        tagline: '7 lignes planétaires sur le monde', price: '49€',    to: '/astrocartographie' },
   ];
@@ -114,6 +115,9 @@ export default function Homepage() {
 
       {/* ═══ SECTION 1.7 · 4 PILIERS PREMIUM ═══ */}
       <PremiumPillars />
+
+      {/* ═══ SECTION 1.75 · COMMENT ÇA MARCHE (F500 clarté PDF vs Crédits vs Gratuit) ═══ */}
+      <HowItWorks3Tiers />
 
       {/* ═══ SECTION 1.8 · MINI-QUIZ (Preview onboarding — conversion précoce) ═══ */}
       <HomepageMiniQuiz />
@@ -479,7 +483,7 @@ export default function Homepage() {
             <Link to={signupPath} className="ps-btn ps-btn-primary"
               data-testid="final-cta"
               style={{ padding: '16px 32px', fontSize: 16 }}>
-              Créer mon compte · 20 crédits offerts
+              Créer mon compte · Aperçu Thème Natal + 20 crédits offerts
               <Sparkles style={{ width: 18, height: 18 }} strokeWidth={2} />
             </Link>
 

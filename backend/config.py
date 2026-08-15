@@ -193,30 +193,30 @@ class Settings:
         },
     }
 
-    # Grille GaryVee — tous les services sont des multiples/fractions de 10 cr (unité = 1 question)
+    # Grille F500 2026-02 — refonte cohérence + réduction "rapports premium" pour forcer conversion PDF
     SERVICE_COSTS = {
         # Produits d'appel — micro-conversion
-        'tarot_oui_non': 5,          # demi-question — flash & indolore
-        'archetype': 15,             # Ton Archetype — micro-produit viral 4,99€ equivalent
-        # Chat — l'unite de base
-        'chat_astral': 10,           # 1 question = 10 cr
-        'lecture_tarot': 10,
-        'love_languages': 10,
-        # Services approfondis (3-4 questions)
-        'tarot_marseille': 30,       # Lecture Tarot approfondie
-        'tarot_celtique': 30,
-        'tarologie': 30,
-        'numerologie': 30,           # Année perso / Chemin de vie
-        'lecture_astrologique': 40,  # Cycle actuel : transits, Mercure retrograde
-        # Rapports premium (6 questions equivalentes)
-        # Thème Natal Flash (5 pages, IA légère) — loss leader d'acquisition
-        # La version Complète 20-40 pages est vendue en one-shot 29€ (voir PACKS)
-        'theme_natal_pdf': 30,       # 5 pages flash — descendu de 80 (2026-02 refonte)
-        'cartographie': 60,
-        'cartographie_premium': 60,
-        'synastrie': 60,
-        'revolution_solaire': 60,
-        'karma_destin': 60,
+        'tarot_oui_non': 3,          # micro flash — indolore
+        'archetype': 10,             # Ton Archetype — micro-produit
+        # Chat — nouvelle unité de base (F500: 10→5 pour augmenter la fréquence d'usage)
+        'chat_astral': 5,            # 1 question = 5 cr
+        'lecture_tarot': 5,
+        'love_languages': 5,
+        # Services approfondis (F500: 30→15)
+        'tarot_marseille': 15,       # Lecture Tarot approfondie
+        'tarot_celtique': 15,
+        'tarologie': 15,
+        'numerologie': 15,           # Année perso / Chemin de vie
+        'lecture_astrologique': 20,  # Cycle actuel : transits, Mercure retrograde
+        # Rapports premium (F500: 60→REMOVED — force PDF Signature)
+        # Ces IDs restent pour compat, mais coût aligné pour ne PLUS concurrencer les PDF
+        # (l'utilisateur est incité vers le PDF Signature via UI)
+        'theme_natal_pdf': 15,       # 5 pages flash — descendu de 80→30→15 (F500 2026-02)
+        'cartographie': 30,
+        'cartographie_premium': 30,
+        'synastrie': 30,
+        'revolution_solaire': 30,
+        'karma_destin': 30,
     }
 
 
