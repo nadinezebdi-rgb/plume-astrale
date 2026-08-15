@@ -2572,6 +2572,12 @@ async def _start_cart_recovery():
     from services.cercle_monthly_report import cercle_monthly_report_loop
     from services.instagram_weekly_post import ig_weekly_post_loop
     from services.instagram_token_refresh import ig_token_refresh_loop
+    from services.promo_bootstrap import ensure_permanent_promo_codes
+    # Bootstrap idempotent des codes promo permanents (TOUT2026)
+    try:
+        ensure_permanent_promo_codes()
+    except Exception as _e:
+        logging.getLogger(__name__).warning(f'promo bootstrap skipped: {_e}')
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
     _asyncio.create_task(astrocarto_followup_loop())
