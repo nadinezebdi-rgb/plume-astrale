@@ -44,10 +44,10 @@ stripe.api_key = _settings.STRIPE_API_KEY
 
 # Constantes métier
 # ─── Cercle Soléna : 2 tiers (Gary Vee refonte 2026-02) ────────────────
-# Normal   : 14,99€/mo → +50 chat_credits/mois (chat-only)
-# Premium  : 29€/mo    → +150 chat_credits/mois + accès communauté renforcé
-CERCLE_MONTHLY_CHAT_CREDITS = 50           # tier normal
-CERCLE_PREMIUM_MONTHLY_CHAT_CREDITS = 150  # tier premium
+# Normal   : 14,99€/mo → +100 chat_credits/mois (chat-only)
+# Premium  : 29€/mo    → +250 chat_credits/mois + accès communauté renforcé
+CERCLE_MONTHLY_CHAT_CREDITS = 100          # tier normal (F500 2026-02: 50→100, alignement Pack Régulier)
+CERCLE_PREMIUM_MONTHLY_CHAT_CREDITS = 250  # tier premium (F500 2026-02: 150→250, alignement Pack Généreux)
 CERCLE_PRODUCT_KEY = 'cercle_solena'
 CERCLE_PREMIUM_PRODUCT_KEY = 'cercle_solena_premium'
 

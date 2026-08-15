@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, Loader2, Star, Moon, Sun, Check, X } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
+import SalesTrustBlock from '@/components/SalesTrustBlock';
 import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -144,7 +145,7 @@ const ThemeNatalOneshot = () => {
       <SEO
         path="/theme-natal"
         title="Ton Thème Natal Complet · 29€ · Plume Astrale"
-        description="Un PDF luxe de 20 à 40 pages : tes 11 planètes, ton ascendant, tes maisons, tes aspects — enrichi par l'IA voix Soléna. Reçu par email en 3 minutes."
+        description="Un PDF luxe de 20 à 40 pages : tes 11 planètes, ton ascendant, tes maisons, tes aspects — signature éditoriale Plume Astrale. Reçu par email en 3 minutes."
       />
 
       <div className="max-w-4xl mx-auto">
@@ -181,7 +182,7 @@ const ThemeNatalOneshot = () => {
             }}
           >
             Un document luxe de 20 à 40 pages qui décode ton ciel de naissance —
-            11 planètes, ascendant, maisons, aspects, enrichi par la voix de Soléna.
+            11 planètes, ascendant, maisons, aspects, signature éditoriale Plume Astrale.
           </p>
           <div className="inline-flex items-baseline gap-2 mb-2" data-testid="theme-natal-oneshot-price">
             <span
@@ -199,11 +200,11 @@ const ThemeNatalOneshot = () => {
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {[
             { icon: Sun, title: 'Tes 11 planètes en signes & maisons', desc: 'Soleil, Lune, Mercure, Vénus, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton, Chiron.' },
             { icon: Moon, title: 'Ton ascendant & tes 12 maisons', desc: 'Le décor complet de ta scène astrale — Placidus, avec cuspides précises.' },
-            { icon: Star, title: 'Ta carte du ciel et tes aspects', desc: 'Wheel astral en HD + tous les aspects majeurs interprétés par l\'IA Soléna.' },
+            { icon: Star, title: 'Ta carte du ciel et tes aspects', desc: 'Wheel astral en HD + tous les aspects majeurs interprétés dans le style éditorial Plume Astrale.' },
           ].map(({ icon: Icon, title, desc }, i) => (
             <div key={i} className="plume-glass p-6" data-testid={`theme-natal-oneshot-feature-${i}`}>
               <Icon className="w-7 h-7 mb-3" style={{ color: '#D4AF37' }} strokeWidth={1.2} />
@@ -218,6 +219,17 @@ const ThemeNatalOneshot = () => {
               </p>
             </div>
           ))}
+        </div>
+
+        {/* F500 Trust block — garantie + comparateur + cadre */}
+        <div style={{ marginBottom: 40, marginLeft: -20, marginRight: -20 }}>
+          <SalesTrustBlock
+            priceMain="29€"
+            marketPrice="150-250€"
+            marketLabel="consultation astro"
+            theme="dark"
+            testid="theme-natal"
+          />
         </div>
 
         {step === 0 ? (

@@ -133,15 +133,13 @@ const PACKS = [
 ];
 
 const SERVICE_COSTS = [
-  { name: 'Consultation astrale personnalisée', cost: '10 crédits / question' },
-  { name: 'Tarot Oui / Non', cost: '1er tirage gratuit, puis 2 crédits' },
-  { name: 'Lecture Tarot approfondie', cost: '10 crédits' },
-  { name: 'Thème Natal Ultra (49 pages)', cost: '80 crédits' },
-  { name: 'Synastrie amoureuse', cost: '20 crédits' },
-  { name: 'Révolution Solaire', cost: '20 crédits' },
-  { name: 'Numérologie', cost: '10 crédits' },
-  { name: 'Archétype Numérologique', cost: '15 crédits' },
-  { name: 'Cartographie Premium (allégée)', cost: '60 crédits' },
+  { name: 'Question à Soléna (chat)', cost: '5 crédits / question' },
+  { name: 'Tarot Oui / Non', cost: '1er tirage gratuit, puis 3 crédits' },
+  { name: 'Lecture Tarot approfondie', cost: '15 crédits' },
+  { name: 'Archétype Numérologique', cost: '10 crédits' },
+  { name: 'Numérologie (année perso)', cost: '15 crédits' },
+  { name: 'Thème Natal Flash 5 pages', cost: '15 crédits' },
+  { name: 'Astrocartographie · Synastrie · Karma', cost: '30 crédits (aperçu)' },
 ];
 
 export default function BuyCredits() {
@@ -219,7 +217,7 @@ export default function BuyCredits() {
             Rechargez votre puissance astrale
           </h2>
           <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>
-            10 crédits = 1 question à Plume. Chaque pack contient des crédits offerts.
+            5 crédits = 1 question à Soléna. Chaque pack contient des crédits offerts.
           </p>
         </div>
 

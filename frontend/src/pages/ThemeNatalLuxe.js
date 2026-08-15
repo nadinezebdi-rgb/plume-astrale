@@ -22,11 +22,11 @@ export default function ThemeNatalLuxe() {
       previewProduct="theme-natal"
       path="/theme-natal-luxe"
       seoTitle="Ton Thème Natal Luxe · 49 pages personnalisées · Plume Astrale"
-      seoDescription="Un PDF premium de 49 pages où 11 planètes racontent qui tu es vraiment, à partir de 73 dimensions astrologiques. 29,99€ · paiement unique."
+      seoDescription="Un PDF premium de 49 pages où 11 planètes racontent qui tu es vraiment, à partir de 73 dimensions astrologiques. 39€ · paiement unique."
       eyebrow="Comprendre — Votre thème personnel"
       title='Comprendre qui vous êtes <span class="ps-italic">vraiment</span>.'
       subtitle="Une lecture de 49 pages, calculée à partir de votre date de naissance. Ce qui vous anime en profondeur, vos forces, vos zones sensibles, votre rythme intérieur."
-      priceMain="29,99€"
+      priceMain="39€"
       priceHint="paiement unique · livraison instantanée"
       pages={49}
       deliveryTime="5 min"

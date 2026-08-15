@@ -9,6 +9,7 @@ import GiftModal from '@/components/GiftModal';
 import PdfPreviewButton from '@/components/PdfPreviewButton';
 import PdfFlipbook from '@/components/PdfFlipbook';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
+import StickyMobileCta from '@/components/StickyMobileCta';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -298,6 +299,93 @@ export default function SalesPageV3({
         `}</style>
       </section>
 
+      {/* ─── GUARANTEE & VALUE (F500 audit — clarté acheteur) ────────── */}
+      <section
+        className="ps-section ps-section-light"
+        data-testid={`sales-${slug}-guarantee-value`}
+        style={{ paddingTop: 40, paddingBottom: 40, background: '#F7F5F0', borderTop: '1px solid #E3E1DC', borderBottom: '1px solid #E3E1DC' }}
+      >
+        <div className="ps-container" style={{ maxWidth: 1180 }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: 24,
+            alignItems: 'start',
+          }}>
+            {/* Garantie */}
+            <div data-testid={`sales-${slug}-guarantee`} style={{
+              padding: 20, background: '#fff',
+              border: '1px solid #C9A24B',
+              borderRadius: 12,
+            }}>
+              <div style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11, fontWeight: 600, letterSpacing: '0.16em',
+                textTransform: 'uppercase', color: '#8F6E24', marginBottom: 8,
+              }}>Garantie</div>
+              <div style={{
+                fontFamily: 'Playfair Display, serif',
+                fontSize: 22, fontWeight: 500, color: '#0F1A3C', lineHeight: 1.25, marginBottom: 6,
+              }}>Satisfait ou remboursé <span className="ps-italic">14 jours</span></div>
+              <div style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13, color: '#6B7280', lineHeight: 1.5,
+              }}>Sans condition. Un simple email à hello@plume-astrale.fr — remboursement sous 48h.</div>
+            </div>
+
+            {/* Comparateur de valeur */}
+            <div data-testid={`sales-${slug}-value-compare`} style={{
+              padding: 20, background: '#fff',
+              border: '1px solid #E3E1DC',
+              borderRadius: 12,
+            }}>
+              <div style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11, fontWeight: 600, letterSpacing: '0.16em',
+                textTransform: 'uppercase', color: '#8F6E24', marginBottom: 8,
+              }}>Comparateur de valeur</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 6 }}>
+                <span style={{
+                  fontFamily: 'Playfair Display, serif',
+                  fontSize: 26, fontWeight: 500, color: '#0F1A3C',
+                }}>{priceMain}</span>
+                <span style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 13, color: '#6B7280',
+                }}>vs. consultation astro : <s>150-250€</s></span>
+              </div>
+              <div style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13, color: '#6B7280', lineHeight: 1.5,
+              }}>Analyse écrite, archivable, relisible à vie — vs. 1h d&apos;échange oral non transcrit.</div>
+            </div>
+
+            {/* Certifications & Support */}
+            <div data-testid={`sales-${slug}-certifications`} style={{
+              padding: 20, background: '#fff',
+              border: '1px solid #E3E1DC',
+              borderRadius: 12,
+            }}>
+              <div style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11, fontWeight: 600, letterSpacing: '0.16em',
+                textTransform: 'uppercase', color: '#8F6E24', marginBottom: 8,
+              }}>Cadre & Support</div>
+              <ul style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13, color: '#232323', lineHeight: 1.7,
+                margin: 0, padding: 0, listStyle: 'none',
+              }}>
+                <li>· Paiement Stripe (PCI DSS niveau 1)</li>
+                <li>· PDF téléchargeable à vie · format A4</li>
+                <li>· Support 7j/7 · réponse sous 24h</li>
+                <li>· RGPD conforme · aucune revente de données</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ─── INCLUDES (dark) ─────────────────────────────────── */}
       <section className="ps-section ps-section-dark" data-testid={`sales-${slug}-includes`}>
         <CelestialBackdrop density={70} shootingStars interval={14000} />
@@ -473,6 +561,15 @@ export default function SalesPageV3({
           testid={`sales-${slug}-flipbook-modal`}
         />
       )}
+
+      {/* Sticky Mobile CTA — visible seulement sur mobile quand le hero disparaît */}
+      <StickyMobileCta
+        priceMain={priceMain}
+        priceStrike={priceStrike}
+        ctaLabel={ctaLabel}
+        onCta={handleCta}
+        testid={`sales-${slug}-sticky-cta`}
+      />
     </PsPageShell>
   );
 }

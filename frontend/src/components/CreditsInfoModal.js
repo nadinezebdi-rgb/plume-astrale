@@ -13,28 +13,27 @@ const USAGE = [
   {
     icon: MessageCircle,
     title: '1 question à Soléna',
-    cost: '10 crédits',
+    cost: '5 crédits',
     desc: 'Une question posée au chat guidé — sur ton mois, un doute, un transit qui te trouble.',
   },
   {
     icon: BookOpen,
     title: '1 tirage de tarot approfondi',
-    cost: '30 crédits',
+    cost: '15 crédits',
     desc: 'Tarot de Marseille, croix celtique ou tarologie complète — 5 arcanes commentés en détail.',
   },
   {
     icon: Compass,
-    title: '1 rapport premium',
-    cost: '60 crédits',
-    desc: 'Astrocartographie · Synastrie · Karma · Révolution solaire — un dossier complet livré instantanément.',
+    title: 'Astro-guidance mensuelle',
+    cost: '10 crédits',
+    desc: 'Un dossier synthétique de ton mois à venir — cycles, aspects majeurs, rendez-vous à honorer.',
   },
 ];
 
 const PACKS = [
-  { name: 'Comète',        credits: 30,  price: '7,99€',  hint: 'Dépannage rapide · 3 questions' },
-  { name: 'Nébuleuse',     credits: 80,  price: '17,99€', hint: 'Le plus choisi · 8 questions ou 1 rapport + questions', badge: true },
-  { name: 'Constellation', credits: 180, price: '34,99€', hint: 'Meilleure valeur · 18 questions ou 3 rapports' },
-  { name: 'Voie Lactée',   credits: 350, price: '59,99€', hint: '3 mois d\'exploration' },
+  { name: 'Découverte',   credits: 40,  price: '6,99€',  hint: '8 questions ou 2 tirages tarot' },
+  { name: 'Régulier',     credits: 100, price: '14,99€', hint: '20 questions · le plus choisi', badge: true },
+  { name: 'Généreux',     credits: 250, price: '29,99€', hint: 'Meilleure valeur · 3 mois d\'exploration' },
 ];
 
 export function CreditsInfoContent({ compact = false }) {
@@ -137,7 +136,7 @@ export function CreditsInfoContent({ compact = false }) {
         </Link>
         <Link to="/inscription" className="ps-btn ps-btn-outline"
           data-testid="credits-info-cta-signup" style={{ padding: '12px 24px' }}>
-          20 crédits offerts à l&apos;inscription
+          Aperçu Thème Natal + 20 crédits offerts
           <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
         </Link>
       </div>

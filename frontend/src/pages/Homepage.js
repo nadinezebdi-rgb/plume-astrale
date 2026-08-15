@@ -12,6 +12,8 @@ import CinematicHero from '@/components/CinematicHero';
 import PremiumPillars from '@/components/PremiumPillars';
 import SolenaGuideCard from '@/components/SolenaGuideCard';
 import HomepageMiniQuiz from '@/components/HomepageMiniQuiz';
+import TrustBar from '@/components/TrustBar';
+import HowItWorks3Tiers from '@/components/HowItWorks3Tiers';
 import { BLOG_ARTICLES } from '@/config/blogArticles';
 import { useAuth } from '@/context/AuthContext';
 
@@ -27,18 +29,18 @@ import { useAuth } from '@/context/AuthContext';
 const VALUE_PILLARS = [
   {
     icon: Feather,
-    title: 'Personnalisée pour toi',
-    body: 'Chaque lecture est composée à partir de tes propres données de naissance — pas une variation générique par signe. Ton ciel, ton texte.',
+    title: 'Analyse personnalisée',
+    body: 'Composée à partir de vos données de naissance exactes (date, heure, lieu) — pas une variation générique par signe. Chaque lecture est unique.',
   },
   {
     icon: Compass,
-    title: 'Guidance ciblée',
-    body: 'Les cycles, les répétitions, les tournants. Ce que ton ciel te propose — et le langage pour y répondre.',
+    title: 'Guidance actionnable',
+    body: 'Vos cycles, vos points d\'inflexion, vos leviers de décision. Pas de prédictions — un cadre pour lire les périodes qui comptent.',
   },
   {
     icon: Heart,
-    title: 'Reçue en 48h',
-    body: 'Ta lecture arrive par email en PDF premium à télécharger. À lire posément, à conserver longtemps.',
+    title: 'Livraison sous 60 secondes',
+    body: 'PDF premium reçu instantanément par email dès validation du paiement. À télécharger, archiver, imprimer — vous en gardez la propriété à vie.',
   },
 ];
 
@@ -89,7 +91,7 @@ export default function Homepage() {
   const [flipbookBook, setFlipbookBook] = useState(null);
 
   const FEATURED_BOOKS = [
-    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '29,99€', to: '/theme-natal' },
+    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '39€', to: '/theme-natal' },
     { slug: 'kabbale',           title: 'Arbre de Vie · Kabbale',   tagline: '10 Sephiroth · 22 chemins',         price: '39€',    to: '/kabbale' },
     { slug: 'astrocartographie', title: 'Astrocartographie',        tagline: '7 lignes planétaires sur le monde', price: '49€',    to: '/astrocartographie' },
   ];
@@ -98,18 +100,24 @@ export default function Homepage() {
     <div className="ps-home" data-testid="homepage-v2">
       <SEO
         path="/"
-        title="Comprendre les périodes de votre vie · Plume Astrale"
-        description="Une lecture personnalisée pour vous aider à mieux comprendre les grands moments de votre parcours."
+        title="Plume Astrale · Lectures astrologiques personnalisées en PDF"
+        description="Une lecture astrologique personnalisée, composée à partir de votre thème natal exact. PDF premium livré en 60 secondes · garantie 14 jours · paiement Stripe sécurisé."
       />
 
       {/* ═══ SECTION 1 · HERO CINÉMATOGRAPHIQUE (repositionnement 2026-08) ═══ */}
       <CinematicHero />
+
+      {/* ═══ SECTION 1.1 · TRUST BAR (F500 audit 2026-02) — garanties + livraison + support ═══ */}
+      <TrustBar variant="dense" />
 
       {/* ═══ SECTION 1.5 · SOLÉNA (apparition douce au scroll) ═══ */}
       <SolenaGuideCard />
 
       {/* ═══ SECTION 1.7 · 4 PILIERS PREMIUM ═══ */}
       <PremiumPillars />
+
+      {/* ═══ SECTION 1.75 · COMMENT ÇA MARCHE (F500 clarté PDF vs Crédits vs Gratuit) ═══ */}
+      <HowItWorks3Tiers />
 
       {/* ═══ SECTION 1.8 · MINI-QUIZ (Preview onboarding — conversion précoce) ═══ */}
       <HomepageMiniQuiz />
@@ -118,13 +126,13 @@ export default function Homepage() {
       <section className="ps-section ps-section-light" data-testid="ps-value">
         <div className="ps-container">
           <div style={{ maxWidth: 680, marginBottom: 64 }}>
-            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Une seule promesse</p>
+            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Trois engagements, tenus à chaque page</p>
             <h2 className="ps-h2" style={{ color: '#0F1A3C', marginBottom: 20 }}>
               Une lecture personnelle, <span className="ps-italic">jamais générique.</span>
             </h2>
             <p className="ps-body" style={{ color: '#232323' }}>
-              Ton thème natal n&apos;est comparable à aucun autre. Ta lecture ne l&apos;est pas non plus.
-              Trois principes, tenus à chaque page.
+              Votre thème natal n&apos;est comparable à aucun autre — votre lecture ne l&apos;est pas non plus.
+              Chaque PDF est calculé sur vos données exactes de naissance et rédigé sur mesure.
             </p>
           </div>
 
@@ -474,7 +482,7 @@ export default function Homepage() {
             <Link to={signupPath} className="ps-btn ps-btn-primary"
               data-testid="final-cta"
               style={{ padding: '16px 32px', fontSize: 16 }}>
-              Créer mon compte · 20 crédits offerts
+              Créer mon compte · Aperçu Thème Natal + 20 crédits offerts
               <Sparkles style={{ width: 18, height: 18 }} strokeWidth={2} />
             </Link>
 
