@@ -141,6 +141,8 @@ function App() {
           <Route path="/barometre-2026" element={<Barometre2026 />} />
           <Route path="/horoscope" element={<Horoscope />} />
           <Route path="/horoscope/:sign" element={<HoroscopeSign />} />
+          {/* SEO Rebuild P1 (2026-02) : sous-routes semaine/mois — même composant, période lue via param */}
+          <Route path="/horoscope/:sign/:period" element={<HoroscopeSign />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/cgv" element={<CGV />} />

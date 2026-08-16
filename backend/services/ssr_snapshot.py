@@ -46,19 +46,19 @@ _STATIC_ROUTES = [
     {'path': '/decouvrir', 'ttl_hours': 24, 'priority': 0.9},
     {'path': '/manifesto', 'ttl_hours': 168, 'priority': 0.7},
     {'path': '/cercle-solena', 'ttl_hours': 24, 'priority': 0.95},
-    {'path': '/nos-livres', 'ttl_hours': 24, 'priority': 0.85},
+    # SEO 2026-02 : canonical de la bibliothèque = /livres (301 depuis /nos-livres)
+    {'path': '/livres', 'ttl_hours': 24, 'priority': 0.85},
     {'path': '/blog', 'ttl_hours': 12, 'priority': 0.9},
-    {'path': '/temoignage', 'ttl_hours': 24, 'priority': 0.6},
+    {'path': '/temoignages', 'ttl_hours': 24, 'priority': 0.6},
     {'path': '/credits', 'ttl_hours': 24, 'priority': 0.75},
     {'path': '/barometre-2026', 'ttl_hours': 24, 'priority': 0.7},
-    # Sales pages
-    {'path': '/theme-natal-luxe', 'ttl_hours': 24, 'priority': 0.95},
-    {'path': '/theme-natal', 'ttl_hours': 24, 'priority': 0.9},
-    {'path': '/kabbale', 'ttl_hours': 24, 'priority': 0.85},
+    # Sales pages — canonical short URLs (SEO Rebuild P1 2026-02)
+    {'path': '/theme-natal', 'ttl_hours': 24, 'priority': 0.95},
+    # NEW: Voyage Karmique — fusion Kabbale + Karma Destin 49€ (Feb 2026 Nocturne)
+    {'path': '/voyage-karmique', 'ttl_hours': 24, 'priority': 0.95},
     {'path': '/astrocartographie', 'ttl_hours': 24, 'priority': 0.85},
     {'path': '/synastrie', 'ttl_hours': 24, 'priority': 0.85},
     {'path': '/numerologie-pdf', 'ttl_hours': 24, 'priority': 0.8},
-    {'path': '/karma-destin-pdf', 'ttl_hours': 24, 'priority': 0.8},
     {'path': '/pack-karmique', 'ttl_hours': 24, 'priority': 0.8},
     # Horoscope index
     {'path': '/horoscope', 'ttl_hours': 6, 'priority': 0.9},
@@ -150,8 +150,11 @@ async def save_snapshot(route: dict, data: dict) -> None:
     # Force canonical propre (jamais localhost:3000 même si extrait tôt)
     data['canonical'] = f'{PUBLIC_DOMAIN}{route["path"]}'
 
-    # Strip SearchAction des JSON-LD extraits
+    # Strip SearchAction des JSON-LD extraits + dédup par empreinte JSON
+    # (SEO Rebuild P1 2026-02 : le hook useSSRSnapshot ré-injecte les schémas à
+    # chaque re-render, on retrouve WebSite/Organization dupliqués 4-8 fois.)
     if isinstance(data.get('jsonld'), list):
+        seen = set()
         cleaned = []
         for schema in data['jsonld']:
             if not isinstance(schema, dict):
@@ -159,6 +162,15 @@ async def save_snapshot(route: dict, data: dict) -> None:
             action = schema.get('potentialAction')
             if isinstance(action, dict) and action.get('@type') == 'SearchAction':
                 schema = {k: v for k, v in schema.items() if k != 'potentialAction'}
+            # Empreinte stable pour dédup
+            try:
+                import json as _json
+                fp = _json.dumps(schema, sort_keys=True, ensure_ascii=False)
+            except Exception:
+                fp = str(schema)
+            if fp in seen:
+                continue
+            seen.add(fp)
             cleaned.append(schema)
         data['jsonld'] = cleaned
 

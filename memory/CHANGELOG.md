@@ -1648,3 +1648,32 @@ Rappel : le fichier `/app/backend/migrations/2026_08_journal_tracking_and_email_
   - `GET /api/seo/content?path=/` → canonical `https://plume-astrale.fr/`, SearchAction absent
   - `GET /api/sitemap.xml` → 0 occurrence de `/nos-livres` ou `/theme-natal-luxe`
   - `/mentions-legales`, `/cgv`, `/decouvrir?theme=dark` chargent correctement
+
+## 2026-02-16 (2) — SSR Refresh + Rich Snippet Audit
+### Refresh SSR complet (55 → 66 URLs)
+- Endpoint `/api/admin/seo/refresh?only_expired=false` déclenché en local (bypass Cloudflare 100s timeout)
+- **63 snapshots régénérés en 8 min** via Playwright headless
+- Nouveaux paths ajoutés à `SEO_ROUTES` : `/voyage-karmique`, `/livres` (canonique)
+- Retirés de `SEO_ROUTES` : `/nos-livres`, `/theme-natal-luxe`, `/kabbale`, `/karma-destin-pdf`, `/temoignage` (transitionnels → canonique ou 301)
+- **Router fix** : ajout `<Route path="/horoscope/:sign/:period" element={<HoroscopeSign />} />` — les 24 URLs `/horoscope/[signe]/semaine|mois` étaient tombées dans mon nouveau 404 catch-all. Réactivées avec H1 correct = nom du signe.
+
+### Dédup JSON-LD (patch en base + protection future)
+- `save_snapshot()` déduplique par empreinte JSON stable (sort_keys)
+- One-shot patch : **56/63 snapshots patchés** — `/theme-natal` passe de 40 à 5 schémas, `/horoscope` de 32 à 4
+- 2 WebSite/Blog résiduels par page : viennent d'`index.html` (statique) + `SEO.js` (dynamique) — deux schémas légitimement distincts, aucune pénalité Google
+
+### Audit Rich Snippets — 5 URLs cibles
+Chaque URL a été validée sur 6 critères SEO :
+| URL | canonical https | title 30-70c | desc 100-170c | H1 | no SearchAction | JSON-LD |
+|---|---|---|---|---|---|---|
+| `/` | ✅ | ✅ 46c | ✅ 105c | ✅ | ✅ | ✅ 4 schémas |
+| `/theme-natal` | ✅ | ✅ 45c | ✅ 154c | ✅ | ✅ | ✅ 5 (avec Product) |
+| `/voyage-karmique` | ✅ | ✅ 68c | ✅ 161c | ✅ | ✅ | ✅ 4 schémas |
+| `/horoscope` | ✅ | ✅ 42c | ✅ 102c | ✅ | ✅ | ✅ 4 schémas |
+| `/blog` | ✅ | ✅ 57c | ✅ 166c | ✅ | ✅ | ✅ 4 (avec Blog) |
+
+**Résultat : 5 ✅ / 0 ⚠️ / 0 ❌ — 100% pass**
+
+### Observations mineures (non-bloquantes)
+- `/horoscope` H1 = "Créez votre espace pour recevoir votre horoscope personnalisé" (CTA visiteurs anonymes). Éditorialement moins fort qu'un H1 topique — piste d'amélioration future : forcer un H1 topique tout en haut du composant.
+- `Product` JSON-LD sur `/voyage-karmique` : n'est pas encore émis (SEO_DATA n'a pas d'entrée `ogType: 'product'` pour ce path). Piste : ajouter `productSlug: 'voyage-karmique'` dans SEO_DATA pour émettre Product + Offer + AggregateRating comme sur les autres pages livre.
