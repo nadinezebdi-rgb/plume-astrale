@@ -2593,6 +2593,72 @@ async def admin_refresh_seo(current_user: dict = Depends(get_current_user), only
     return await refresh_all(only_expired=only_expired)
 
 
+# ─── Sitemap + Feed dynamiques (F500 SEO 2026-02) ────────────────────
+@app.get('/api/sitemap.xml')
+async def sitemap_xml():
+    """Sitemap XML dynamique — mirror de la collection MongoDB seo_content.
+
+    Chaque URL a <loc>, <lastmod>, <changefreq>, <priority>.
+    Sert d'entry point pour Google Search Console.
+    """
+    from fastapi.responses import Response as _Resp
+    from services.ssr_snapshot import _get_mongo, PUBLIC_DOMAIN
+    db = _get_mongo()
+    cursor = db.seo_content.find({}, {'path': 1, 'updated_at': 1, 'priority': 1, 'ttl_hours': 1})
+    entries = await cursor.to_list(length=500)
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>',
+             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for e in entries:
+        ttl = e.get('ttl_hours', 24)
+        freq = 'hourly' if ttl <= 6 else ('daily' if ttl <= 24 else ('weekly' if ttl <= 168 else 'monthly'))
+        lastmod = (e.get('updated_at') or '')[:10]  # YYYY-MM-DD
+        lines.append(
+            f'  <url><loc>{PUBLIC_DOMAIN}{e["path"]}</loc>'
+            f'<lastmod>{lastmod}</lastmod>'
+            f'<changefreq>{freq}</changefreq>'
+            f'<priority>{e.get("priority", 0.5):.2f}</priority></url>'
+        )
+    lines.append('</urlset>')
+    return _Resp(content='\n'.join(lines), media_type='application/xml')
+
+
+@app.get('/api/feed.xml')
+async def feed_xml():
+    """RSS 2.0 feed — horoscopes + articles blog pour Google Discover / Merchant."""
+    from fastapi.responses import Response as _Resp
+    from services.ssr_snapshot import _get_mongo, PUBLIC_DOMAIN
+    db = _get_mongo()
+    cursor = db.seo_content.find(
+        {'path': {'$regex': r'^/(horoscope|blog)'}},
+        {'path': 1, 'meta_title': 1, 'meta_desc': 1, 'updated_at': 1, 'og_image': 1}
+    ).sort('updated_at', -1).limit(100)
+    entries = await cursor.to_list(length=100)
+    items = []
+    for e in entries:
+        title = (e.get('meta_title') or e['path']).replace('&', '&amp;').replace('<', '&lt;')
+        desc = (e.get('meta_desc') or '').replace('&', '&amp;').replace('<', '&lt;')[:280]
+        url = f'{PUBLIC_DOMAIN}{e["path"]}'
+        img = e.get('og_image') or ''
+        pub = (e.get('updated_at') or '')
+        media = f'<enclosure url="{img}" type="image/jpeg"/>' if img else ''
+        items.append(
+            f'<item><title>{title}</title><link>{url}</link><guid isPermaLink="true">{url}</guid>'
+            f'<description>{desc}</description><pubDate>{pub}</pubDate>{media}</item>'
+        )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">\n'
+        '<channel>\n'
+        '<title>Plume Astrale · Horoscopes &amp; Articles</title>\n'
+        f'<link>{PUBLIC_DOMAIN}</link>\n'
+        '<description>Lectures astrologiques personnalisées &amp; guidance quotidienne.</description>\n'
+        '<language>fr-FR</language>\n'
+        + '\n'.join(items) +
+        '\n</channel></rss>'
+    )
+    return _Resp(content=xml, media_type='application/rss+xml')
+
+
 @app.on_event('startup')
 async def _start_cart_recovery():
     import asyncio as _asyncio

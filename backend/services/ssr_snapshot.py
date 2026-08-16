@@ -26,8 +26,21 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# Routes MVP (Étape 1a — Top 20)
-SEO_ROUTES = [
+SIGNS = ['belier','taureau','gemeaux','cancer','lion','vierge','balance','scorpion','sagittaire','capricorne','verseau','poissons']
+BLOG_SLUGS = [
+    'calculer-son-chemin-de-vie-avec-precision',
+    'interpreter-venus-en-astrologie',
+    'comprendre-le-retour-de-saturne',
+    'theme-natal-vocation-professionnelle',
+    'compatibilite-amoureuse-selon-theme-natal',
+    'signification-des-maisons-astrologiques',
+    'comment-connaitre-son-ascendant-astrologique',
+    'previsions-astrologiques-personnalisees-2026',
+    'theme-astral-personnalise-gratuit',
+]
+
+# Routes MVP (Étape 1a — Top 20) + Extension Phase 2 (~40 routes)
+_STATIC_ROUTES = [
     # Home + tunnel principal
     {'path': '/', 'ttl_hours': 24, 'priority': 1.0},
     {'path': '/decouvrir', 'ttl_hours': 24, 'priority': 0.9},
@@ -35,6 +48,9 @@ SEO_ROUTES = [
     {'path': '/cercle-solena', 'ttl_hours': 24, 'priority': 0.95},
     {'path': '/nos-livres', 'ttl_hours': 24, 'priority': 0.85},
     {'path': '/blog', 'ttl_hours': 12, 'priority': 0.9},
+    {'path': '/temoignage', 'ttl_hours': 24, 'priority': 0.6},
+    {'path': '/credits', 'ttl_hours': 24, 'priority': 0.75},
+    {'path': '/barometre-2026', 'ttl_hours': 24, 'priority': 0.7},
     # Sales pages
     {'path': '/theme-natal-luxe', 'ttl_hours': 24, 'priority': 0.95},
     {'path': '/theme-natal', 'ttl_hours': 24, 'priority': 0.9},
@@ -43,21 +59,23 @@ SEO_ROUTES = [
     {'path': '/synastrie', 'ttl_hours': 24, 'priority': 0.85},
     {'path': '/numerologie-pdf', 'ttl_hours': 24, 'priority': 0.8},
     {'path': '/karma-destin-pdf', 'ttl_hours': 24, 'priority': 0.8},
-    # Horoscope — refresh toutes les heures (contenu qui change quotidiennement)
+    {'path': '/pack-karmique', 'ttl_hours': 24, 'priority': 0.8},
+    # Horoscope index
     {'path': '/horoscope', 'ttl_hours': 6, 'priority': 0.9},
-    {'path': '/horoscope/belier', 'ttl_hours': 6, 'priority': 0.7},
-    {'path': '/horoscope/taureau', 'ttl_hours': 6, 'priority': 0.7},
-    {'path': '/horoscope/gemeaux', 'ttl_hours': 6, 'priority': 0.7},
-    {'path': '/horoscope/cancer', 'ttl_hours': 6, 'priority': 0.7},
-    {'path': '/horoscope/lion', 'ttl_hours': 6, 'priority': 0.7},
-    {'path': '/horoscope/vierge', 'ttl_hours': 6, 'priority': 0.7},
-    {'path': '/horoscope/balance', 'ttl_hours': 6, 'priority': 0.7},
-    {'path': '/horoscope/scorpion', 'ttl_hours': 6, 'priority': 0.7},
-    {'path': '/horoscope/sagittaire', 'ttl_hours': 6, 'priority': 0.7},
-    {'path': '/horoscope/capricorne', 'ttl_hours': 6, 'priority': 0.7},
-    {'path': '/horoscope/verseau', 'ttl_hours': 6, 'priority': 0.7},
-    {'path': '/horoscope/poissons', 'ttl_hours': 6, 'priority': 0.7},
 ]
+
+# 12 signes × (jour + semaine + mois) + articles blog
+_HOROSCOPE_ROUTES = [
+    {'path': f'/horoscope/{s}', 'ttl_hours': 6, 'priority': 0.7} for s in SIGNS
+] + [
+    {'path': f'/horoscope/{s}/semaine', 'ttl_hours': 24, 'priority': 0.6} for s in SIGNS
+] + [
+    {'path': f'/horoscope/{s}/mois', 'ttl_hours': 168, 'priority': 0.55} for s in SIGNS
+]
+
+_BLOG_ROUTES = [{'path': f'/blog/{slug}', 'ttl_hours': 168, 'priority': 0.65} for slug in BLOG_SLUGS]
+
+SEO_ROUTES = _STATIC_ROUTES + _HOROSCOPE_ROUTES + _BLOG_ROUTES  # ~64 routes total
 
 BASE_URL_INTERNAL = 'http://localhost:3000'  # frontend interne, non-public
 CHROMIUM_PATH = '/pw-browsers/chromium_headless_shell-1208/chrome-linux/headless_shell'
@@ -120,7 +138,7 @@ def _get_mongo():
 
 
 async def save_snapshot(route: dict, data: dict) -> None:
-    """Enregistre le snapshot en base (upsert par path)."""
+    """Enregistre le snapshot en base (upsert par path) + ping IndexNow."""
     db = _get_mongo()
     now = datetime.now(timezone.utc)
     doc = {
@@ -132,6 +150,35 @@ async def save_snapshot(route: dict, data: dict) -> None:
         'expires_at': (now + timedelta(hours=route['ttl_hours'])).isoformat(),
     }
     await db.seo_content.update_one({'path': route['path']}, {'$set': doc}, upsert=True)
+    # Ping IndexNow (Bing/Yandex/Naver) — non-bloquant, best-effort
+    try:
+        await _ping_indexnow(route['path'])
+    except Exception as e:
+        logger.debug(f'[ssr] indexnow ping skipped for {route["path"]}: {e}')
+
+
+PUBLIC_DOMAIN = os.environ.get('SEO_PUBLIC_DOMAIN', 'https://plume-astrale.fr').rstrip('/')
+INDEXNOW_KEY = os.environ.get('INDEXNOW_KEY', '').strip()
+
+
+async def _ping_indexnow(path: str) -> None:
+    """Notifie IndexNow (Bing/Yandex) qu'une URL vient d'être mise à jour.
+
+    Nécessite INDEXNOW_KEY dans .env et un fichier /{key}.txt à la racine
+    du domaine contenant la clé (validation propriété). No-op si absent.
+    """
+    if not INDEXNOW_KEY:
+        return
+    import httpx
+    url = f'{PUBLIC_DOMAIN}{path}'
+    payload = {
+        'host': PUBLIC_DOMAIN.replace('https://', '').replace('http://', ''),
+        'key': INDEXNOW_KEY,
+        'keyLocation': f'{PUBLIC_DOMAIN}/{INDEXNOW_KEY}.txt',
+        'urlList': [url],
+    }
+    async with httpx.AsyncClient(timeout=5) as client:
+        await client.post('https://api.indexnow.org/indexnow', json=payload)
 
 
 async def get_snapshot(path: str) -> Optional[dict]:
