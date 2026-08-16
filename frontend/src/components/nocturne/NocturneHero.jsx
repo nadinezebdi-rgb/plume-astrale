@@ -58,7 +58,7 @@ export default function NocturneHero() {
               <ArrowRight style={{ width: 16, height: 16 }} strokeWidth={1.5} />
             </Link>
             <Link
-              to="/nos-livres"
+              to="/livres"
               className="ne-btn-ghost"
               data-testid="nocturne-hero-cta-ghost"
               style={{ color: 'var(--ne-celeste)' }}

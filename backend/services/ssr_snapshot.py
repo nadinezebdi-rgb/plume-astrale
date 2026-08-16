@@ -138,9 +138,30 @@ def _get_mongo():
 
 
 async def save_snapshot(route: dict, data: dict) -> None:
-    """Enregistre le snapshot en base (upsert par path) + ping IndexNow."""
+    """Enregistre le snapshot en base (upsert par path) + ping IndexNow.
+
+    SEO P1 (2026-02-16) :
+      - Force canonical = PUBLIC_DOMAIN + path (jamais localhost)
+      - Strip SearchAction du JSON-LD (endpoint /?q= n'existe pas côté site)
+    """
     db = _get_mongo()
     now = datetime.now(timezone.utc)
+
+    # Force canonical propre (jamais localhost:3000 même si extrait tôt)
+    data['canonical'] = f'{PUBLIC_DOMAIN}{route["path"]}'
+
+    # Strip SearchAction des JSON-LD extraits
+    if isinstance(data.get('jsonld'), list):
+        cleaned = []
+        for schema in data['jsonld']:
+            if not isinstance(schema, dict):
+                continue
+            action = schema.get('potentialAction')
+            if isinstance(action, dict) and action.get('@type') == 'SearchAction':
+                schema = {k: v for k, v in schema.items() if k != 'potentialAction'}
+            cleaned.append(schema)
+        data['jsonld'] = cleaned
+
     doc = {
         **data,
         'path': route['path'],

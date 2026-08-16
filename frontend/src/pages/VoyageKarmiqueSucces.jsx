@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { ArrowRight, Check, Loader2 } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -55,6 +56,7 @@ export default function VoyageKarmiqueSucces() {
 
   return (
     <section className="ne-section ne-section-night" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center' }} data-testid="voyage-succes">
+      <SEO path="/voyage-karmique/succes" />
       <div className="ne-container" style={{ maxWidth: 720 }}>
         {!status.ready ? (
           <div>

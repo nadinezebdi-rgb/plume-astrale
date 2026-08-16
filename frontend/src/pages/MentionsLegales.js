@@ -2,26 +2,16 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
+import SEO from '@/components/SEO';
 
 /**
  * Mentions Légales — obligatoires en France (LCEN 2004). Charte v3 (light).
+ * SEO P1 (2026-02-16) : noindex, follow via <SEO> component.
  */
 export default function MentionsLegales() {
-  useEffect(() => {
-    document.title = 'Mentions légales · Plume Astrale';
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute('content', "Mentions légales et informations éditeur de Plume Astrale — astrologie personnalisée par Soléna.");
-    let robots = document.querySelector('meta[name="robots"]');
-    if (!robots) {
-      robots = document.createElement('meta');
-      robots.setAttribute('name', 'robots');
-      document.head.appendChild(robots);
-    }
-    robots.setAttribute('content', 'index, follow');
-  }, []);
-
   return (
     <PsPageShell background="light">
+      <SEO path="/mentions-legales" />
       <section className="ps-section ps-section-light" data-testid="mentions-page">
         <div className="ps-container">
           <div className="ps-narrow" style={{ marginLeft: 0 }}>

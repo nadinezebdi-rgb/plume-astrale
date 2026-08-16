@@ -297,7 +297,7 @@ export default function Homepage() {
           </div>
 
           <div style={{ marginTop: 40 }}>
-            <Link to="/nos-livres" className="ps-btn ps-btn-outline"
+            <Link to="/livres" className="ps-btn ps-btn-outline"
               data-testid="home-flipbook-all-cta"
               style={{ color: '#F7F5F0', borderColor: 'rgba(247,245,240,0.4)' }}>
               Voir toute la bibliothèque

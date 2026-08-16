@@ -2,19 +2,16 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
+import SEO from '@/components/SEO';
 
 /**
  * Conditions Générales de Vente — obligatoires pour un e-commerce FR. Charte v3.
+ * SEO P1 (2026-02-16) : noindex, follow via <SEO>.
  */
 export default function CGV() {
-  useEffect(() => {
-    document.title = 'Conditions générales de vente · Plume Astrale';
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute('content', "Conditions générales de vente Plume Astrale — droit de rétractation, livraison, garanties.");
-  }, []);
-
   return (
     <PsPageShell background="light">
+      <SEO path="/cgv" />
       <section className="ps-section ps-section-light" data-testid="cgv-page">
         <div className="ps-container">
           <div className="ps-narrow" style={{ marginLeft: 0 }}>

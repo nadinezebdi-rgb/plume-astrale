@@ -248,7 +248,7 @@ export default function VoyageKarmiqueSales() {
               </footer>
             </blockquote>
             <div style={{ marginTop: 48 }}>
-              <Link to="/nos-livres" className="ne-btn-ghost" data-testid="voyage-back">
+              <Link to="/livres" className="ne-btn-ghost" data-testid="voyage-back">
                 Voir toute la bibliothèque
               </Link>
             </div>

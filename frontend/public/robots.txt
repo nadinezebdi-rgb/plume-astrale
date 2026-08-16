@@ -1,48 +1,97 @@
 # robots.txt — Plume Astrale
-# SEO P4 + P6 (concours 2026-02) : aligné avec /sitemap.xml
+# SEO Technical Rebuild v2 (2026-02-16) — P0 + P1 corrections
 #
-# Politique : autoriser tout par défaut, désindexer explicitement les pages
-# transactionnelles / espaces perso via `<meta name="robots">` inline OU
-# `Disallow` ici pour les paths dont le rendu client ne peut pas injecter
-# de meta noindex (ex: paths qui redirigent immédiatement).
+# Politique : autoriser tout par défaut, désindexer explicitement :
+#   - Pages transactionnelles / espaces perso via `<meta name="robots">` inline
+#   - Paramètres query non-canoniques via Disallow: /*?param=
 
 User-agent: *
 Allow: /
 
-# Pages transactionnelles & privées — jamais indexer
+# ─── Pages transactionnelles / privées (jamais indexer) ───
 Disallow: /paiement/
 Disallow: /commande/
 Disallow: /lecture-complete/succes
+Disallow: /voyage-karmique/succes
+Disallow: /theme-natal/succes
+Disallow: /astrocartographie/succes
+Disallow: /kabbale/succes
+Disallow: /pack-karmique/succes
+Disallow: /synastrie/succes
+Disallow: /trio-decouverte/succes
+Disallow: /duo-completion/succes
+Disallow: /credits/succes
+Disallow: /rencontres-astrales/succes
+Disallow: /premium/succes
+Disallow: /cercle-solena/succes
+Disallow: /paiement/succes
+Disallow: /numerologie-pdf/attente
 Disallow: /resultats
 Disallow: /apercu
 Disallow: /choix
 Disallow: /mon-compte
 Disallow: /mon-accueil
 Disallow: /admin
+Disallow: /admin/
 Disallow: /dashboard
 Disallow: /acheter-credits
+Disallow: /desabonnement
+Disallow: /mot-de-passe-oublie
+Disallow: /reinitialiser-mot-de-passe
+Disallow: /test/
 
-# P4 : /formulaire a désormais un <meta name="robots" content="noindex,follow">
-# côté client. Le Disallow ici est RETIRÉ pour permettre à Googlebot de crawler
-# la page, voir le noindex, et désindexer proprement l'URL déjà présente
-# dans l'index. Une fois désindexée (2-4 semaines), on pourra rebloquer.
+# ─── Paramètres query non-canoniques (P1 SEO Rebuild 2026-02) ───
+# Le SearchAction JSON-LD a été retiré ; on bloque le crawl du ?q= littéral.
+Disallow: /*?q=
+Disallow: /*?search=
+# Personnalisation UI qui ne change pas le contenu SEO : canonicaliser sans param.
+Disallow: /*?theme=
+Disallow: /*?utm_
+Disallow: /*?fbclid=
+Disallow: /*?gclid=
 
-# Bots agressifs — bloqués
-User-agent: SemrushBot
-Disallow: /
+# ─── Formulaires / pages qui ont un <meta name="robots" content="noindex"> ───
+# On les laisse crawlables pour que Googlebot voie le noindex et désindexe.
 
-User-agent: AhrefsBot
-Disallow: /
-
+# ─── Bots agressifs / IA sans valeur métier ───
 User-agent: MJ12bot
 Disallow: /
 
-# GPTBot — accès limité au blog public uniquement
+User-agent: DotBot
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+# ─── SEO tools autorisés (retrait du block Ahrefs/Semrush) ───
+# SEO Rebuild P1 (2026-02) : ces bots aident le monitoring backlinks/positions.
+# On les autorise sur le contenu public, on bloque juste les zones perso.
+User-agent: AhrefsBot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /mon-compte
+Disallow: /mon-accueil
+Disallow: /paiement/
+Disallow: /commande/
+Crawl-delay: 5
+
+User-agent: SemrushBot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /mon-compte
+Disallow: /mon-accueil
+Disallow: /paiement/
+Disallow: /commande/
+Crawl-delay: 5
+
+# ─── GPTBot — accès limité au blog public uniquement ───
 User-agent: GPTBot
 Allow: /blog
 Disallow: /admin
 Disallow: /mon-compte
 
-# Sitemap
+# ─── Sitemap ───
 Sitemap: https://plume-astrale.fr/sitemap.xml
 Sitemap: https://plume-astrale.fr/api/sitemap.xml

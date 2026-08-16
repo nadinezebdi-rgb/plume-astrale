@@ -24,6 +24,7 @@ import Archetype from "./pages/Archetype";
 import KabbaleSales from "./pages/KabbaleSales";
 import VoyageKarmiqueSales from "./pages/VoyageKarmiqueSales";
 import VoyageKarmiqueSucces from "./pages/VoyageKarmiqueSucces";
+import NotFound from "./pages/NotFound";
 import ThemeNatalLuxe from "./pages/ThemeNatalLuxe";
 import NosLivres from "./pages/NosLivres";
 import Blog from "./pages/Blog";
@@ -143,9 +144,9 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/cgv" element={<CGV />} />
-          <Route path="/nos-livres" element={<NosLivres />} />
+          <Route path="/nos-livres" element={<Navigate to="/livres" replace />} />
           <Route path="/temoignages" element={<TemoignagesPublic />} />
-          <Route path="/theme-natal-luxe" element={<ThemeNatalLuxe />} />
+          <Route path="/theme-natal-luxe" element={<Navigate to="/theme-natal" replace />} />
           {/* Voyage Karmique — fusion Kabbale + Karma Destin (49€, Feb 2026 Nocturne) */}
           <Route path="/voyage-karmique" element={<VoyageKarmiqueSales />} />
           <Route path="/voyage-karmique/succes" element={<VoyageKarmiqueSucces />} />
@@ -258,8 +259,8 @@ function App() {
                 <Route path="/premium/experience" element={<Navigate to="/acheter-credits" replace />} />
                 <Route path="/acheter-credits" element={<BuyCredits />} />
                 <Route path="/credits/succes" element={<CreditSuccess />} />
-                <Route path="/livre" element={<Navigate to="/nos-livres" replace />} />
-                <Route path="/commande/succes" element={<Navigate to="/nos-livres" replace />} />
+                <Route path="/livre" element={<Navigate to="/livres" replace />} />
+                <Route path="/commande/succes" element={<Navigate to="/livres" replace />} />
                 <Route path="/mon-compte" element={<MonCompte />} />
                 <Route path="/temoignage" element={<Temoignage />} />
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
@@ -278,6 +279,8 @@ function App() {
                 <Route path="/synastrie/succes" element={<SynastrieSucces />} />
                 <Route path="/astrosexo" element={<Navigate to="/services/astrosexo" replace />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
+                {/* SEO P0 (2026-02-16) : catch-all 404 réel avec noindex */}
+                <Route path="*" element={<NotFound />} />
               </Routes>
               <CookieConsent />
             </>

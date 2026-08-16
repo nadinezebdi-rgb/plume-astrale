@@ -1619,3 +1619,32 @@ Rappel : le fichier `/app/backend/migrations/2026_08_journal_tracking_and_email_
 ### 🚨 Action utilisateur requise (bloquant paiements)
 - **Rotation clé Stripe** : `STRIPE_API_KEY` dans `/app/backend/.env` est expirée → tous checkouts Stripe (Voyage Karmique, Thème Natal, Astrocarto, Kabbale, Karma Destin, packs de crédits) retournent 500. Remplacer par nouvelle clé `sk_live_*` ou `sk_test_*` puis `sudo supervisorctl restart backend`.
 - **Optionnel** : créer table Supabase `lead_magnet_downloads` (columns: email, first_name, birth_date, birth_place, token, created_at) pour tracker les leads. Actuellement tracking silencieusement skip (non-bloquant, PDF est bien généré et servi).
+
+---
+
+## 2026-02-16 — SEO Technical Rebuild P0 + P1 (couche corrective au-dessus du SSR)
+### P0 · Corrections critiques
+- **Vraie page 404** : `/app/frontend/src/pages/NotFound.jsx` (Nocturne Éditorial, `noindex, follow`, meta `prerender-status-code=404`, 3 CTA sûrs). App.js : `<Route path="*" element={<NotFound />} />` en fin de wildcard.
+- **Canonical strip query params** : `SEO.js` retire `?param=…` du canonical (fix duplication d'index sur `?theme=…`).
+- **SearchAction JSON-LD retiré** : `WEBSITE_JSONLD` dans `SEO.js` sans `potentialAction` (Google crawlait `/blog?q={search_term_string}` littéralement, générait des soft-404).
+- **Backend snapshots patchés** : script one-shot a mis à jour les **58 snapshots** en base — canonical `http://localhost:3000/` → `https://plume-astrale.fr/`, SearchAction stripé. `ssr_snapshot.py::save_snapshot()` sanitize désormais canonical + strip SearchAction à chaque écriture.
+
+### P1 · Corrections priorité haute
+- **Redirects 301 client-side (SEO 2a)** : `/nos-livres` → `/livres`, `/theme-natal-luxe` → `/theme-natal`. 8 liens internes mis à jour (`NavbarV2`, `FooterV2`, `Homepage`, `HowItWorks3Tiers`, `NocturneHero`, `NocturneServices`, `VoyageKarmiqueSales`).
+- **`<SEO>` sur pages tunnel** : ajouté à `MentionsLegales.js`, `CGV.js`, `VoyageKarmiqueSucces.jsx` avec `noindex: true` dans SEO_DATA (`/mentions-legales`, `/cgv`, `/politique-confidentialite`, `/panier`, `/temoignage`, `/voyage-karmique/succes`).
+- **robots.txt v2** : Ahrefs/Semrush **débloqués** (Crawl-delay 5s, Disallow zones perso). Ajout `Disallow: /*?q=`, `/*?theme=`, `/*?utm_`, `/*?fbclid=`, `/*?gclid=`. Ajout Disallow sur toutes les pages `/succes`.
+- **Sitemap statique purgé** : `/nos-livres` et `/theme-natal-luxe` retirés de `public/sitemap.xml`.
+- **Sitemap dynamique auto-nettoyé** : après purge des 4 snapshots Mongo (`/nos-livres`, `/theme-natal-luxe`, `/kabbale`, `/karma-destin`, `/karma-destin-pdf`), le `/api/sitemap.xml` reflète le vrai périmètre canonique (55 URLs).
+- **`/horoscope` real index** (Q3c) : déjà en place — H1 unique + `<ZodiacGrid>` listant les 12 signes vers `/horoscope/[signe]`. Pas de JS redirect.
+
+### Limitations connues (nécessitent config infra Emergent)
+- **HTTP 404 status réel** : le K8s ingress renvoie 200+SPA pour toute URL non-`/api/*`. La page NotFound sert le noindex meta et `prerender-status-code=404` (Google respecte ce dernier via prerender), mais un vrai 404 HTTP demande une règle ingress ou un catch-all serveur frontend. **Action utilisateur : contacter Emergent Support pour catch-all HTTP 404**.
+- **X-Robots-Tag HTTP header** : impossible depuis FastAPI (qui ne sert que `/api/*`). Le noindex passe uniquement par `<meta name="robots">` — suffisant pour Googlebot (rendu JS), mais un header serait un signal supplémentaire pour crawlers non-JS.
+- **robots.txt en preview** : servi par Cloudflare (générique). En production `plume-astrale.fr`, c'est notre `public/robots.txt` qui sert.
+
+### Tests (iteration_80 puis validation post-fix)
+- Iteration 80 : 4/5 backend + 70% frontend, 3 issues remontées (canonical localhost, SearchAction, SEO manquant sur pages légales).
+- Post-fix validation curl :
+  - `GET /api/seo/content?path=/` → canonical `https://plume-astrale.fr/`, SearchAction absent
+  - `GET /api/sitemap.xml` → 0 occurrence de `/nos-livres` ou `/theme-natal-luxe`
+  - `/mentions-legales`, `/cgv`, `/decouvrir?theme=dark` chargent correctement

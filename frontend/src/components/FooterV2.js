@@ -57,7 +57,7 @@ export default function FooterV2() {
           <div>
             <FooterHeading>Explorer</FooterHeading>
             <FooterLink to="/">Accueil</FooterLink>
-            <FooterLink to="/nos-livres">Services</FooterLink>
+            <FooterLink to="/livres">Services</FooterLink>
             <FooterLink to="/blog">Blog</FooterLink>
             <FooterLink to="/temoignages">Témoignages</FooterLink>
             <FooterLink to="/quotidien">Horoscope du jour</FooterLink>

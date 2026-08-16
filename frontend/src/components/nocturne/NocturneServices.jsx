@@ -107,7 +107,7 @@ export default function NocturneServices() {
         </div>
 
         <div style={{ marginTop: 64, textAlign: 'left' }}>
-          <Link to="/nos-livres" className="ne-btn-ghost" data-testid="nocturne-services-all" style={{ color: 'var(--ne-celeste)' }}>
+          <Link to="/livres" className="ne-btn-ghost" data-testid="nocturne-services-all" style={{ color: 'var(--ne-celeste)' }}>
             Voir toute la bibliothèque
             <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.5} />
           </Link>
