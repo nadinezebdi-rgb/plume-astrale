@@ -1579,3 +1579,43 @@ Rappel : le fichier `/app/backend/migrations/2026_08_journal_tracking_and_email_
 - Refund + suspend : `refunded=true, suspended=true`, tx.notifications_suspended=true ✅
 - Screenshot admin panel avec 4 nouveaux widgets visibles ✅
 - Backend + frontend lint OK ✅
+
+---
+
+## 2026-02-16 — Nocturne Éditorial : refonte artistique + Lead Magnet + Voyage Karmique
+### Vague 1 · Design Tokens
+- Ajouté `/app/frontend/src/index.css` (+400 lignes) : variables `--ne-*` (palette 15 couleurs, 3 typographies via Google Fonts, échelle 8px, easing cinématographique), classes utilitaires `.ne-section`, `.ne-container`, `.ne-btn`, `.ne-card`, `.ne-input`, `.ne-reveal-*` (staggered 200ms)
+- Étendu `tailwind.config.js` avec namespace `nocturne.*` (14 couleurs) + `font-ne-serif/sans/mono` + spacing `ne-16/24`
+
+### Vague 2 · Refonte Homepage
+- Créé `/app/frontend/src/components/nocturne/NocturneHero.jsx` (hero "Que traversez-vous ce mois-ci ?" avec overline mono ACTE I / Fraunces italic gold sur "ce mois-ci")
+- Créé `/app/frontend/src/components/nocturne/NocturneManifest.jsx` (les 3 refus fondateurs : déterminisme / kitsch / sur-promesse)
+- Créé `/app/frontend/src/components/nocturne/NocturneServices.jsx` (les 3 lectures : Thème Natal 39€, Voyage Karmique 49€ [recommandé], Astrocarto 49€)
+- Créé `/app/frontend/src/components/nocturne/NocturneClosing.jsx` (épilogue "Souhaitez-vous que ce texte vous accompagne ?")
+- `Homepage.js` : hero remplacé par NocturneHero, ancienne section services remplacée par NocturneServices, closing final remplacé par NocturneClosing — TrustBar, HowItWorks3Tiers, PremiumPillars, MiniQuiz F500 conservés
+
+### Vague 3 · Lead Magnet PDF (aperçu 5 pages gratuit)
+- Créé `/app/backend/services/lead_magnet_pdf.py` : `build_lead_magnet_pdf(email, first_name, birth_date, birth_time?, birth_place?)` → 5 pages (Couverture + Ouverture + Soleil narré + Saison intérieure du mois + Épilogue). Narration Nocturne Éditorial pour les 12 signes solaires + 12 mois calendaires. `send_lead_magnet_email()` via Resend.
+- Créé `/app/backend/routes/lead_magnet.py` : `POST /api/lead-magnet/generate` (public, rate-limit 5min/email) + `GET /api/lead-magnet/download/{token}` (token uuid4 opaque, path traversal safe)
+- Créé `/app/frontend/src/components/nocturne/NocturneLeadMagnet.jsx` (formulaire 4 champs, éditorial, écran succès avec bouton téléchargement)
+- Section ajoutée à Homepage juste avant NocturneClosing
+
+### Vague 4 · Voyage Karmique Fusion (49€ = Kabbale 39€ + Karma Destin 24€, économie 22%)
+- Ajouté pack `voyage_karmique` (49€ oneshot) dans `/app/backend/config.py`
+- Créé `/app/backend/services/voyage_karmique_service.py` : `handle_voyage_karmique_webhook()` orchestrateur — génère les 2 PDFs (Kabbale via `generate_kabbale_pdf_luxury`, Karma via `generate_karma_destin_pdf`) en parallèle, upload Supabase, envoie 1 email Nocturne avec les 2 liens
+- Créé `/app/backend/routes/voyage_karmique.py` : `POST /checkout` (Stripe session avec bypass promo `TOUT2026`) + `GET /status` (polling avec self-heal)
+- Dispatch webhook Stripe (`kind=voyage_karmique`) branché dans `/app/backend/server.py`
+- Créé `/app/frontend/src/pages/VoyageKarmiqueSales.jsx` (hero + les 2 livres + formulaire checkout + épilogue Soléna)
+- Créé `/app/frontend/src/pages/VoyageKarmiqueSucces.jsx` (polling status, 2 boutons téléchargement + citation Soléna)
+- App.js : nouvelles routes `/voyage-karmique` + `/voyage-karmique/succes` + **redirects 301 client-side** `/kabbale` → `/voyage-karmique`, `/karma-destin` → `/voyage-karmique`, `/karma-destin-pdf` → `/voyage-karmique`
+
+### Tests (iteration_79.json)
+- Backend : **7/8 pass (87.5%)** — Le seul échec `/api/voyage-karmique/checkout` = clé Stripe LIVE `sk_live_...Wiw9wh` **EXPIRÉE** dans `backend/.env` (bloque TOUS les checkouts Stripe, pas juste voyage-karmique — issue env, pas code)
+- Frontend : **100% (all UI flows + redirects work)**
+- Non-régression validée : `/theme-natal`, `/astrocartographie`, `/nos-livres`, `/blog` → 200
+- PDF lead-magnet validé : > 5000 octets, entête `%PDF-`, mime `application/pdf`, rate-limit 429 confirmé, path traversal bloqué
+- Fichier test créé : `/app/backend/tests/test_iteration79_nocturne.py`
+
+### 🚨 Action utilisateur requise (bloquant paiements)
+- **Rotation clé Stripe** : `STRIPE_API_KEY` dans `/app/backend/.env` est expirée → tous checkouts Stripe (Voyage Karmique, Thème Natal, Astrocarto, Kabbale, Karma Destin, packs de crédits) retournent 500. Remplacer par nouvelle clé `sk_live_*` ou `sk_test_*` puis `sudo supervisorctl restart backend`.
+- **Optionnel** : créer table Supabase `lead_magnet_downloads` (columns: email, first_name, birth_date, birth_place, token, created_at) pour tracker les leads. Actuellement tracking silencieusement skip (non-bloquant, PDF est bien généré et servi).

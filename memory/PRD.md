@@ -16,6 +16,15 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Univers visuel : cosmique cinématique — lune dorée, constellations filigrane, champ d'étoiles animées procédural, textures dorées
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
+
+## Design System v4 — NOCTURNE ÉDITORIAL (2026-02-16, refonte artistique)
+- **Brand Design Book** : `/app/memory/BRAND_DESIGN_BOOK.md` (14 sections) + `/app/memory/BRAND_DESIGN_EXEC_SUMMARY.md` (2 pages)
+- **Palette Nocturne** : Bleu Prussien Nocturne `#0B1A2E` · Encre d'Astre `#141B2E` · Papier Céleste `#F5F0E6` · Ivoire de Vélin `#EDE6D8` · Laiton Patiné `#B8935A` · Terre de Rose `#B47562` · Sauge Voilée `#8A9E8E` · Encre de Vigne `#4A2C3D` (sceau signature, 1 usage/page)
+- **Typographies (Google Fonts free)** : Fraunces (éditorial H1/H2/citations) + Inter Tight (moderniste corps/UI) + JetBrains Mono (technique labels)
+- **Motion cinématographique** : easing `cubic-bezier(0.16, 1, 0.3, 1)` — durées 600-900ms — animations respiratoires staggered de 120-200ms — pas de bounce/spring/spinner
+- **Design tokens** : préfixe `--ne-*` dans `/app/frontend/src/index.css` (additifs, non-breaking) + namespace Tailwind `nocturne.*`
+- **Composants Nocturne** : `.ne-btn` (plats, coins 2px, sans ombre) · `.ne-card` (filet 1px, hover translate 2px + ombre 24px 8%) · `.ne-input` (filet inférieur uniquement) · `.ne-section-night` / `.ne-section-paper` (grain SVG + halos radiaux)
+
 ## What's implemented
 ### Mobile Conversion Fix + IG Token Auto-Refresh + CAPI Health (2026-02-14)
 - **🔴 Fix critique perte de conversion mobile GSC** (P0) : audit responsive complet sur viewport 390x844 (iPhone 14) — 19 routes publiques testées. AVANT : `/theme-natal-luxe` overflow 98px, `/kabbale` 54px, `/credits` 135px (contenu qui dépassait le viewport → CTA principaux inaccessibles). APRÈS : 0px overflow sur les 19 routes.

@@ -171,6 +171,19 @@ class Settings:
             'product': 'karma_destin_analysis',
             'tagline': 'Nœuds lunaires + Saturne + Chiron + Pluton — PDF 15 pages guide spirituel.',
         },
+        # ═══════════════════════════════════════════════════════════
+        # Voyage Karmique — fusion Kabbale + Karma Destin (Nocturne Éditorial, Feb 2026)
+        # Économie: 49€ vs 39+24 = 63€ séparés
+        'voyage_karmique': {
+            'name': 'Voyage Karmique',
+            'credits': 0,
+            'bonus': 0,
+            'amount': 49.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'voyage_karmique',
+            'tagline': "L'Arbre de Vie Kabbalistique + votre lignée karmique — deux livres réunis en un seul voyage. Économisez 14€.",
+        },
         'fenetre_rencontre_avancee': {
             'name': 'Fenêtres de Rencontre Avancées',
             'credits': 0,   # one-shot

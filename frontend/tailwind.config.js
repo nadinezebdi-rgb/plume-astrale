@@ -64,12 +64,35 @@ module.exports = {
           water: '#7BA5D9',
           air: '#C4B0E0',
           earth: '#9DAA82'
+        },
+        // Nocturne Éditorial — v4 (Feb 2026)
+        nocturne: {
+          night:       '#0B1A2E',
+          astre:       '#141B2E',
+          fusain:      '#0A0A0F',
+          celeste:     '#F5F0E6',
+          velin:       '#EDE6D8',
+          craie:       '#FBF8F2',
+          laiton:      '#B8935A',
+          'laiton-dk': '#A17E4A',
+          terre:       '#B47562',
+          sauge:       '#8A9E8E',
+          noctilucent: '#3D5A80',
+          vigne:       '#4A2C3D',
         }
       },
       fontFamily: {
         'plume-serif': ['Cinzel', 'serif'],
         'plume-italic': ['"Cormorant Garamond"', 'serif'],
-        'plume-body': ['"Plus Jakarta Sans"', 'Inter', 'sans-serif']
+        'plume-body': ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+        // Nocturne Éditorial
+        'ne-serif': ['Fraunces', '"Cormorant Garamond"', 'Georgia', 'serif'],
+        'ne-sans':  ['"Inter Tight"', 'Inter', 'system-ui', 'sans-serif'],
+        'ne-mono':  ['"JetBrains Mono"', '"IBM Plex Mono"', 'monospace'],
+      },
+      spacing: {
+        'ne-16': '128px',
+        'ne-24': '192px',
       },
       transitionTimingFunction: {
         'plume-silk': 'cubic-bezier(0.22, 1, 0.36, 1)'

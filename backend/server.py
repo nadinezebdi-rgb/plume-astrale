@@ -75,6 +75,8 @@ from routes.apercu_discount import router as apercu_discount_router
 from routes.gift import router as gift_router
 from routes.pdf_preview import router as pdf_preview_router
 from routes.pdf_test_admin import router as pdf_test_admin_router
+from routes.lead_magnet import router as lead_magnet_router
+from routes.voyage_karmique import router as voyage_karmique_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from integrations.payments.stripe.checkout import (
@@ -146,6 +148,8 @@ api_router.include_router(apercu_discount_router)
 api_router.include_router(gift_router)
 api_router.include_router(pdf_preview_router)
 api_router.include_router(pdf_test_admin_router)
+api_router.include_router(lead_magnet_router)
+api_router.include_router(voyage_karmique_router)
 
 
 # ════════════════════════════════════════════
@@ -895,6 +899,16 @@ async def stripe_webhook(request: Request):
         except Exception as e:
             logger.warning(f'[karma_destin] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'karma_destin_analysis'}
+
+    # Route vers Voyage Karmique handler si kind=voyage_karmique (fusion Kabbale + Karma, 49 EUR, Feb 2026)
+    if md.get('kind') == 'voyage_karmique':
+        from services.voyage_karmique_service import handle_voyage_karmique_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_voyage_karmique_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[voyage_karmique] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'voyage_karmique'}
 
     # Route vers Consultation Ultime handler si kind=consultation_ultime (149 EUR hyperpremium)
     if md.get('kind') == 'consultation_ultime':

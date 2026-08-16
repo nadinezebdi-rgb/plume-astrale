@@ -1295,3 +1295,422 @@ pre, code, table { max-width: 100%; overflow-x: auto; word-break: break-word; }
   input[type="password"], input[type="number"], input[type="date"],
   textarea, select { font-size: 16px !important; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * NOCTURNE ÉDITORIAL — Design System v4 (Feb 2026)
+ * Direction artistique "Page arrachée à un livre d'art au coucher du soleil"
+ * Palette : Bleu Prussien Nocturne + Papier Céleste + Laiton Patiné
+ * Typographies : Fraunces (éditorial) + Inter Tight (moderniste) + JetBrains Mono (technique)
+ * Additive, non-breaking. Utilise préfixe --ne-* et .ne-* / .noct-*.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..800,0..100,0..1&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ─── Palette Nocturne Éditorial ─── */
+  --ne-night:         #0B1A2E;   /* Bleu Prussien Nocturne — fond nuit */
+  --ne-astre:         #141B2E;   /* Encre d'Astre — surfaces élevées nuit */
+  --ne-fusain:        #0A0A0F;   /* Noir de Fusain — typo principale mode clair */
+  --ne-celeste:       #F5F0E6;   /* Papier Céleste — fond jour */
+  --ne-velin:         #EDE6D8;   /* Ivoire de Vélin — surfaces jour */
+  --ne-craie:         #FBF8F2;   /* Craie Douce — ultra clair */
+
+  /* ─── Accents ─── */
+  --ne-laiton:        #B8935A;   /* Laiton Patiné — accent premium */
+  --ne-laiton-hover:  #A17E4A;   /* Laiton foncé — hover */
+  --ne-terre:         #B47562;   /* Terre de Rose — chaleur */
+  --ne-sauge:         #8A9E8E;   /* Sauge Voilée — calme */
+  --ne-noctilucent:   #3D5A80;   /* Bleu Noctilucent — liens sombres */
+  --ne-vigne:         #4A2C3D;   /* Encre de Vigne — sceau signature (1x/page) */
+
+  /* ─── Fonctionnels ─── */
+  --ne-succes:        #6B8E5A;   /* Vert Lichen */
+  --ne-alerte:        #C08F4E;   /* Ocre Brûlée */
+  --ne-erreur:        #A54B3F;   /* Rouge Sépia */
+  --ne-info:          #5A7A8E;   /* Bleu Ardoise */
+
+  /* ─── Typographies ─── */
+  --ne-serif: 'Fraunces', 'Cormorant Garamond', Georgia, serif;
+  --ne-sans:  'Inter Tight', 'Inter', system-ui, sans-serif;
+  --ne-mono:  'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* ─── Espacement (échelle 8px) ─── */
+  --ne-1:  8px;
+  --ne-2:  16px;
+  --ne-3:  24px;
+  --ne-4:  32px;
+  --ne-6:  48px;
+  --ne-8:  64px;
+  --ne-10: 80px;
+  --ne-12: 96px;
+  --ne-16: 128px;
+  --ne-24: 192px;
+
+  /* ─── Rayons ─── */
+  --ne-r-sharp:  2px;
+  --ne-r-card:   4px;
+  --ne-r-panel:  8px;
+
+  /* ─── Motion — cinématographique ─── */
+  --ne-ease:      cubic-bezier(0.16, 1, 0.3, 1);
+  --ne-fast:      350ms;
+  --ne-medium:    600ms;
+  --ne-slow:      900ms;
+
+  /* ─── Container ─── */
+  --ne-max: 1200px;
+  --ne-reading-max: 65ch;
+}
+
+/* ─── Section wrapper Nocturne (respiration doublée) ─── */
+.ne-section {
+  position: relative;
+  padding: var(--ne-16) var(--ne-3);
+  width: 100%;
+}
+@media (max-width: 767px) {
+  .ne-section { padding: var(--ne-8) var(--ne-3); }
+}
+.ne-section-night {
+  background: var(--ne-night);
+  color: var(--ne-celeste);
+}
+.ne-section-night::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 10%, rgba(184,147,90,0.08), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 90%, rgba(20,27,46,0.6), transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+.ne-section-paper {
+  background: var(--ne-celeste);
+  color: var(--ne-fusain);
+}
+.ne-section-paper::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 55% 40% at 88% 10%, rgba(184,147,90,0.14), transparent 55%),
+    radial-gradient(ellipse 45% 35% at 8% 90%, rgba(11,26,46,0.06), transparent 60%),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.05  0 0 0 0 0.08  0 0 0 0 0.12  0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: auto, auto, 260px 260px;
+  background-repeat: no-repeat, no-repeat, repeat;
+  pointer-events: none;
+  z-index: 0;
+}
+.ne-section > .ne-container { position: relative; z-index: 1; }
+
+.ne-container {
+  max-width: var(--ne-max);
+  margin: 0 auto;
+  padding: 0 16px;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .ne-container { padding: 0 24px; }
+}
+.ne-narrow { max-width: 780px; margin: 0 auto; }
+.ne-reading { max-width: var(--ne-reading-max); }
+
+/* ─── Typographie ─── */
+.ne-display {
+  font-family: var(--ne-serif);
+  font-weight: 400;
+  font-size: clamp(40px, 8vw, 96px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-variation-settings: 'opsz' 144, 'SOFT' 0, 'WONK' 0;
+  margin: 0;
+}
+.ne-h1 {
+  font-family: var(--ne-serif);
+  font-weight: 400;
+  font-size: clamp(32px, 6vw, 56px);
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  font-variation-settings: 'opsz' 120;
+  margin: 0;
+}
+.ne-h2 {
+  font-family: var(--ne-serif);
+  font-weight: 400;
+  font-size: clamp(24px, 4.5vw, 36px);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  font-variation-settings: 'opsz' 96;
+  margin: 0;
+}
+.ne-h3 {
+  font-family: var(--ne-sans);
+  font-weight: 500;
+  font-size: clamp(18px, 2.5vw, 22px);
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+.ne-body {
+  font-family: var(--ne-sans);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.7;
+  max-width: var(--ne-reading-max);
+}
+@media (max-width: 767px) { .ne-body { font-size: 16px; line-height: 1.65; } }
+.ne-lead {
+  font-family: var(--ne-serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(19px, 2.6vw, 24px);
+  line-height: 1.5;
+  color: rgba(245,240,230,0.86);
+  font-variation-settings: 'opsz' 40;
+}
+.ne-section-paper .ne-lead { color: rgba(10,10,15,0.75); }
+.ne-caption {
+  font-family: var(--ne-sans);
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(245,240,230,0.6);
+}
+.ne-section-paper .ne-caption { color: rgba(10,10,15,0.55); }
+.ne-overline {
+  font-family: var(--ne-mono);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ne-laiton);
+}
+.ne-serif-italic {
+  font-family: var(--ne-serif);
+  font-style: italic;
+  font-weight: 300;
+  font-variation-settings: 'opsz' 80;
+}
+.ne-mono { font-family: var(--ne-mono); }
+
+/* Filet de séparation éditorial */
+.ne-rule {
+  border: 0;
+  border-top: 1px solid rgba(184,147,90,0.35);
+  margin: var(--ne-3) 0;
+  width: 100%;
+}
+.ne-rule-short {
+  border: 0;
+  border-top: 1px solid var(--ne-laiton);
+  width: 48px;
+  margin: 0 0 var(--ne-3) 0;
+}
+
+/* ─── Boutons Nocturne (plats, coins droits, sans ombre) ─── */
+.ne-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 32px;
+  border-radius: var(--ne-r-sharp);
+  font-family: var(--ne-sans);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background var(--ne-fast) var(--ne-ease), color var(--ne-fast) var(--ne-ease), border-color var(--ne-fast) var(--ne-ease);
+  min-height: 48px;
+  white-space: nowrap;
+  text-align: center;
+}
+@media (max-width: 640px) {
+  .ne-btn { padding: 14px 24px; font-size: 13px; white-space: normal; line-height: 1.25; }
+}
+/* Primaire — Le Sceau (fond sombre sur clair, ou clair sur sombre) */
+.ne-btn-primary {
+  background: var(--ne-astre);
+  color: var(--ne-celeste);
+  border-color: var(--ne-astre);
+}
+.ne-btn-primary:hover {
+  background: var(--ne-night);
+  border-color: var(--ne-night);
+}
+.ne-section-night .ne-btn-primary {
+  background: var(--ne-laiton);
+  color: var(--ne-night);
+  border-color: var(--ne-laiton);
+}
+.ne-section-night .ne-btn-primary:hover {
+  background: var(--ne-laiton-hover);
+  border-color: var(--ne-laiton-hover);
+}
+/* Secondaire — Le Filet */
+.ne-btn-secondary {
+  background: transparent;
+  color: var(--ne-laiton);
+  border-color: var(--ne-laiton);
+}
+.ne-btn-secondary:hover {
+  background: rgba(184,147,90,0.08);
+  color: var(--ne-laiton-hover);
+}
+.ne-section-night .ne-btn-secondary {
+  color: var(--ne-celeste);
+  border-color: rgba(245,240,230,0.4);
+}
+.ne-section-night .ne-btn-secondary:hover {
+  border-color: var(--ne-celeste);
+  background: rgba(245,240,230,0.05);
+}
+/* Tertiaire — Le Mot (lien souligné) */
+.ne-btn-ghost {
+  background: transparent;
+  border: none;
+  padding: 8px 4px;
+  min-height: auto;
+  color: var(--ne-laiton);
+  font-family: var(--ne-sans);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  position: relative;
+}
+.ne-btn-ghost::after {
+  content: '';
+  position: absolute;
+  left: 4px; right: 4px; bottom: 4px;
+  height: 1px;
+  background: var(--ne-laiton);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--ne-fast) var(--ne-ease);
+}
+.ne-btn-ghost:hover::after { transform: scaleX(1); }
+
+/* ─── Cartes Nocturne ─── */
+.ne-card {
+  background: var(--ne-craie);
+  border: 1px solid var(--ne-velin);
+  border-radius: var(--ne-r-card);
+  padding: var(--ne-4);
+  position: relative;
+  transition: transform var(--ne-fast) var(--ne-ease), box-shadow var(--ne-fast) var(--ne-ease), border-color var(--ne-fast) var(--ne-ease);
+}
+.ne-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(11,26,46,0.08);
+  border-color: var(--ne-laiton);
+}
+.ne-section-night .ne-card {
+  background: var(--ne-astre);
+  border-color: rgba(184,147,90,0.2);
+  color: var(--ne-celeste);
+}
+.ne-section-night .ne-card:hover {
+  border-color: var(--ne-laiton);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+}
+/* Carte avec sceau (recommandée) — filet Laiton en haut */
+.ne-card-sealed {
+  border-top: 2px solid var(--ne-laiton);
+}
+
+/* ─── Formulaires éditoriaux ─── */
+.ne-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: var(--ne-3);
+}
+.ne-label {
+  font-family: var(--ne-sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(10,10,15,0.62);
+}
+.ne-section-night .ne-label { color: rgba(245,240,230,0.6); }
+.ne-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--ne-velin);
+  color: var(--ne-fusain);
+  padding: 12px 4px;
+  font-family: var(--ne-serif);
+  font-size: 18px;
+  font-weight: 400;
+  outline: none;
+  transition: border-color var(--ne-medium) var(--ne-ease);
+  border-radius: 0;
+}
+.ne-input:focus { border-bottom-color: var(--ne-laiton); }
+.ne-input::placeholder { color: rgba(10,10,15,0.35); font-style: italic; }
+.ne-section-night .ne-input {
+  color: var(--ne-celeste);
+  border-bottom-color: rgba(184,147,90,0.3);
+}
+.ne-section-night .ne-input:focus { border-bottom-color: var(--ne-laiton); }
+.ne-section-night .ne-input::placeholder { color: rgba(245,240,230,0.35); }
+
+/* ─── Animations respiratoires ─── */
+@keyframes ne-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ne-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.ne-reveal {
+  animation: ne-fade-up var(--ne-slow) var(--ne-ease) both;
+}
+.ne-reveal-1 { animation-delay: 0ms; }
+.ne-reveal-2 { animation-delay: 200ms; }
+.ne-reveal-3 { animation-delay: 400ms; }
+.ne-reveal-4 { animation-delay: 600ms; }
+.ne-reveal-5 { animation-delay: 800ms; }
+.ne-reveal-6 { animation-delay: 1000ms; }
+
+/* ─── Grille éditoriale ─── */
+.ne-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--ne-4);
+}
+.ne-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--ne-3);
+}
+
+/* Marges éditoriales asymétriques */
+.ne-offset-left { margin-left: 0; }
+@media (min-width: 1024px) {
+  .ne-offset-left { padding-left: 8%; }
+}
+
+/* Signature d'Encre de Vigne — utilisée 1x max par page */
+.ne-signature {
+  color: var(--ne-vigne);
+  font-family: var(--ne-serif);
+  font-style: italic;
+}
+.ne-section-night .ne-signature { color: var(--ne-terre); }
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .ne-reveal, .ne-reveal-1, .ne-reveal-2, .ne-reveal-3,
+  .ne-reveal-4, .ne-reveal-5, .ne-reveal-6 {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

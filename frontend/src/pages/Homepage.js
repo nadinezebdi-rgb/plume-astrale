@@ -14,6 +14,12 @@ import SolenaGuideCard from '@/components/SolenaGuideCard';
 import HomepageMiniQuiz from '@/components/HomepageMiniQuiz';
 import TrustBar from '@/components/TrustBar';
 import HowItWorks3Tiers from '@/components/HowItWorks3Tiers';
+// Nocturne Éditorial — Feb 2026
+import NocturneHero from '@/components/nocturne/NocturneHero';
+import NocturneManifest from '@/components/nocturne/NocturneManifest';
+import NocturneServices from '@/components/nocturne/NocturneServices';
+import NocturneClosing from '@/components/nocturne/NocturneClosing';
+import NocturneLeadMagnet from '@/components/nocturne/NocturneLeadMagnet';
 import { BLOG_ARTICLES } from '@/config/blogArticles';
 import { useAuth } from '@/context/AuthContext';
 
@@ -104,8 +110,11 @@ export default function Homepage() {
         description="Une lecture astrologique personnalisée, composée à partir de votre thème natal exact. PDF premium livré en 60 secondes · garantie 14 jours · paiement Stripe sécurisé."
       />
 
-      {/* ═══ SECTION 1 · HERO CINÉMATOGRAPHIQUE (repositionnement 2026-08) ═══ */}
-      <CinematicHero />
+      {/* ═══ SECTION 1 · HERO NOCTURNE ÉDITORIAL (Feb 2026 — refonte artistique) ═══ */}
+      <NocturneHero />
+
+      {/* ═══ SECTION 1.05 · MANIFESTE NOCTURNE — les trois refus fondateurs ═══ */}
+      <NocturneManifest />
 
       {/* ═══ SECTION 1.1 · TRUST BAR (F500 audit 2026-02) — garanties + livraison + support ═══ */}
       <TrustBar variant="dense" />
@@ -118,6 +127,9 @@ export default function Homepage() {
 
       {/* ═══ SECTION 1.75 · COMMENT ÇA MARCHE (F500 clarté PDF vs Crédits vs Gratuit) ═══ */}
       <HowItWorks3Tiers />
+
+      {/* ═══ SECTION 1.77 · TROIS LECTURES NOCTURNE (remplace ancienne section services) ═══ */}
+      <NocturneServices />
 
       {/* ═══ SECTION 1.8 · MINI-QUIZ (Preview onboarding — conversion précoce) ═══ */}
       <HomepageMiniQuiz />
@@ -174,67 +186,8 @@ export default function Homepage() {
       {/* ═══ SECTION 3 · SUPPRIMÉE (2026-02-14) — Soléna n'est pas astrologue,
               c'est un avatar / une voix éditoriale. Aucune claim d'action humaine. ═══ */}
 
-      {/* ═══ SECTION 4 · SERVICES (CLAIRE) ═══ */}
-      <section className="ps-section ps-section-light" data-testid="ps-services">
-        <div className="ps-container">
-          <div style={{ marginBottom: 64 }}>
-            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Trois lectures, une signature</p>
-            <h2 className="ps-h2" style={{ color: '#0F1A3C', marginBottom: 20, maxWidth: 640 }}>
-              Choisis <span className="ps-italic">la lecture</span> qui te parle en ce moment.
-            </h2>
-            <p className="ps-body" style={{ color: '#232323', maxWidth: 640 }}>
-              Chaque lecture est un PDF premium à télécharger, personnalisé à partir de ton thème natal complet. Livraison instantanée par email.
-            </p>
-          </div>
+      {/* ═══ SECTION 4 · REMPLACÉE PAR NocturneServices (voir plus haut, section 1.77) ═══ */}
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 24,
-            marginBottom: 48,
-          }}>
-            {SERVICES.map((svc) => (
-              <Link key={svc.to} to={svc.to}
-                className="ps-card"
-                data-testid={`service-${svc.title.toLowerCase().replace(/[^a-z]/g, '-')}`}
-                style={{ textDecoration: 'none', display: 'block' }}>
-                <div style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  marginBottom: 16,
-                }}>
-                  <BookOpen style={{ width: 22, height: 22, color: '#C9A24B' }} strokeWidth={1.6} />
-                  <span style={{
-                    fontFamily: 'Playfair Display, serif',
-                    fontSize: 22, color: '#0F1A3C', fontWeight: 500,
-                  }}>
-                    {svc.price}
-                  </span>
-                </div>
-                <h3 className="ps-h3" style={{ color: '#0F1A3C', marginBottom: 8 }}>{svc.title}</h3>
-                <p style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 15, lineHeight: 1.55, color: '#6B7280', margin: 0, marginBottom: 20,
-                }}>
-                  {svc.desc}
-                </p>
-                <span style={{
-                  fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500,
-                  color: '#C9A24B', display: 'inline-flex', alignItems: 'center', gap: 4,
-                }}>
-                  Découvrir <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
-                </span>
-              </Link>
-            ))}
-          </div>
-
-          <div style={{ textAlign: 'left' }}>
-            <Link to="/nos-livres" className="ps-btn ps-btn-outline" data-testid="services-all-cta">
-              Voir tous les services
-              <ArrowRight style={{ width: 16, height: 16 }} strokeWidth={2} />
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* ═══ SECTION 4bis · FEUILLETAGE DES LIVRES (SOMBRE) ═══ */}
       <section className="ps-section ps-section-dark" data-testid="ps-flipbook-teaser">
@@ -467,47 +420,11 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* ═══ SECTION 6 · APPEL À L'ACTION FINAL (CLAIRE) ═══ */}
-      <section className="ps-section ps-section-light" data-testid="ps-final-cta">
-        <div className="ps-container">
-          <div style={{ maxWidth: 640 }}>
-            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Ta lecture t&apos;attend</p>
-            <h2 className="ps-h2" style={{ color: '#0F1A3C', marginBottom: 24 }}>
-              Prête à recevoir <span className="ps-italic">ta lecture personnelle ?</span>
-            </h2>
-            <p className="ps-body" style={{ color: '#232323', marginBottom: 32 }}>
-              Ton compte t&apos;offre 20 crédits pour commencer — la première réponse arrive
-              en deux minutes. Aucun engagement, aucune carte bancaire requise.
-            </p>
+      {/* ═══ SECTION 5.7 · LEAD MAGNET NOCTURNE (aperçu 5 pages gratuit) ═══ */}
+      <NocturneLeadMagnet />
 
-            <Link to={signupPath} className="ps-btn ps-btn-primary"
-              data-testid="final-cta"
-              style={{ padding: '16px 32px', fontSize: 16 }}>
-              Créer mon compte · Aperçu Thème Natal + 20 crédits offerts
-              <Sparkles style={{ width: 18, height: 18 }} strokeWidth={2} />
-            </Link>
-
-            <div style={{
-              display: 'flex', flexWrap: 'wrap', gap: 24,
-              marginTop: 32, color: '#6B7280',
-              fontFamily: 'Inter, sans-serif', fontSize: 13,
-            }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <ShieldCheck style={{ width: 16, height: 16, color: '#3C7A5A' }} strokeWidth={1.8} />
-                Paiement sécurisé Stripe
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Clock style={{ width: 16, height: 16, color: '#3B5BA5' }} strokeWidth={1.8} />
-                Réponse en 2 minutes
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Mail style={{ width: 16, height: 16, color: '#C9A24B' }} strokeWidth={1.8} />
-                Livrée par email
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ═══ SECTION 6 · APPEL À L'ACTION FINAL — NOCTURNE ÉDITORIAL ═══ */}
+      <NocturneClosing signupPath={signupPath} />
 
       {/* Flipbook modal */}
       {flipbookBook && (
