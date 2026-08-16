@@ -1677,3 +1677,17 @@ Chaque URL a été validée sur 6 critères SEO :
 ### Observations mineures (non-bloquantes)
 - `/horoscope` H1 = "Créez votre espace pour recevoir votre horoscope personnalisé" (CTA visiteurs anonymes). Éditorialement moins fort qu'un H1 topique — piste d'amélioration future : forcer un H1 topique tout en haut du composant.
 - `Product` JSON-LD sur `/voyage-karmique` : n'est pas encore émis (SEO_DATA n'a pas d'entrée `ogType: 'product'` pour ce path). Piste : ajouter `productSlug: 'voyage-karmique'` dans SEO_DATA pour émettre Product + Offer + AggregateRating comme sur les autres pages livre.
+
+## 2026-02-16 (3) — Meta Pixel rotation + /horoscope H1 topique
+### Meta Pixel — nouveau pixel `1439222681373534`
+- `frontend/.env` : `REACT_APP_META_PIXEL_ID=1439222681373534` (ancien : 1801418127692821)
+- `backend/.env` : `META_PIXEL_ID=1439222681373534` (aligné pour dédup CAPI côté serveur)
+- Le pixel s'intègre via l'existant `frontend/src/lib/analytics.js` — chargement GDPR-aware après consentement, puis PageView + Purchase (avec `eventID` pour dédup CAPI)
+- Confirmation : ID `1439222681373534` bien injecté dans le bundle JS (5 occurrences)
+
+### /horoscope — H1 topique éditorial
+- Avant : H1 = "Créez votre espace pour recevoir votre horoscope personnalisé." (CTA anonyme)
+- Après : **H1 = "Horoscopes quotidiens des 12 signes"** — signal fort pour Googlebot
+- Le CTA "Créer mon compte" descendu en H2 sous-hiérarchie
+- Overline "JOURNAL CÉLESTE · 12 SIGNES", lead éditorial, ZodiacGrid des 12 signes conservée
+- Snapshot Mongo re-généré : `/horoscope` H1 capturé correctement
