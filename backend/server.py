@@ -2556,6 +2556,43 @@ async def admin_refresh_ig_token(current_user: dict = Depends(get_current_user))
     return result
 
 
+# ─── SEO SSR Snapshot endpoints ──────────────────────────────────────
+@app.get('/api/seo/content')
+async def seo_get_content(path: str):
+    """Retourne le snapshot SEO d'une route (public — consommé par prerender.js).
+
+    Query : ?path=/theme-natal-luxe
+
+    Retour : {path, meta_title, meta_desc, h1, html_body, jsonld, ...}
+    Retourne 404 si aucun snapshot en base (fallback vers React SPA vanilla côté frontend).
+    """
+    from fastapi import HTTPException as _HTTPExc
+    from services.ssr_snapshot import get_snapshot
+    if not path.startswith('/'):
+        path = '/' + path
+    doc = await get_snapshot(path)
+    if not doc:
+        raise _HTTPExc(status_code=404, detail=f'No SEO snapshot for {path}')
+    return doc
+
+
+@app.post('/api/admin/seo/refresh')
+async def admin_refresh_seo(current_user: dict = Depends(get_current_user), only_expired: bool = False):
+    """Admin-only : force le refresh des snapshots SEO.
+
+    ?only_expired=false → refresh TOUS les snapshots (utile après un gros changement de copie)
+    ?only_expired=true  → ne refresh que ceux qui ont expiré (cycle normal)
+    """
+    from fastapi import HTTPException as _HTTPExc
+    from services.supabase_client import get_admin_client as _gac
+    sb = _gac()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not (prof and prof.data and prof.data.get('is_admin')):
+        raise _HTTPExc(status_code=403, detail='Réservé aux administrateurs')
+    from services.ssr_snapshot import refresh_all
+    return await refresh_all(only_expired=only_expired)
+
+
 @app.on_event('startup')
 async def _start_cart_recovery():
     import asyncio as _asyncio
@@ -2573,6 +2610,7 @@ async def _start_cart_recovery():
     from services.instagram_weekly_post import ig_weekly_post_loop
     from services.instagram_token_refresh import ig_token_refresh_loop
     from services.promo_bootstrap import ensure_permanent_promo_codes
+    from services.ssr_snapshot import ssr_refresh_loop
     # Bootstrap idempotent des codes promo permanents (TOUT2026)
     try:
         ensure_permanent_promo_codes()
@@ -2591,3 +2629,4 @@ async def _start_cart_recovery():
     _asyncio.create_task(cercle_monthly_report_loop())
     _asyncio.create_task(ig_weekly_post_loop())
     _asyncio.create_task(ig_token_refresh_loop())
+    _asyncio.create_task(ssr_refresh_loop())
