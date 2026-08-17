@@ -1294,6 +1294,7 @@ pre, code, table { max-width: 100%; overflow-x: auto; word-break: break-word; }
   input[type="text"], input[type="email"], input[type="tel"],
   input[type="password"], input[type="number"], input[type="date"],
   textarea, select { font-size: 16px !important; }
+}
 /* Etoiles filantes globales */
 .plume-shooting-layer {
   position: fixed;
