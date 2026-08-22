@@ -33,6 +33,11 @@ export default function AstrocartographieSales() {
       priceHint="paiement unique · PDF 18 pages"
       pages={18}
       deliveryTime="5 min"
+      heroImage={{
+        src: `${process.env.REACT_APP_BACKEND_URL}/api/assets/library/planets/jupiter_1080.png`,
+        alt: 'Jupiter — planète de l\'expansion et des lieux d\'abondance',
+        caption: 'Jupiter · planète de l\'expansion',
+      }}
       heroNode={<AstroCartoHero />}
       includes={INCLUDES}
       testimonials={TESTIMONIALS}

@@ -48,11 +48,8 @@ const WEBSITE_JSONLD = {
   name: 'Plume Astrale',
   url: DOMAIN,
   inLanguage: 'fr-FR',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: `${DOMAIN}/blog?q={search_term_string}`,
-    'query-input': 'required name=search_term_string',
-  },
+  // SEO P0 (2026-02-16) : SearchAction retiré — pas d'endpoint /?q= réel côté site,
+  // Google crawlait ce paramètre littéral et générait des soft-404. Redirection dans robots.txt.
 };
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -308,11 +305,18 @@ const SEO_DATA = {
   '/mon-compte':      { title: 'Mon espace · Plume Astrale',         description: "Ton espace personnel Plume Astrale.", keywords: '', noindex: true },
   '/mon-accueil':     { title: 'Bienvenue · Plume Astrale',           description: "Ton espace personnel Plume Astrale.", keywords: '', noindex: true },
   '/admin':           { title: 'Administration · Plume Astrale',      description: "Espace administrateur.",             keywords: '', noindex: true },
+  // SEO P1 (2026-02-16) : pages légales & tunnel — noindex, follow
+  '/mentions-legales':          { title: 'Mentions légales · Plume Astrale',       description: 'Éditeur, hébergeur, contact — informations légales de Plume Astrale.', keywords: '', noindex: true },
+  '/cgv':                       { title: 'Conditions générales · Plume Astrale',   description: 'Conditions générales de vente Plume Astrale.', keywords: '', noindex: true },
+  '/politique-confidentialite': { title: 'Confidentialité · Plume Astrale',        description: 'Politique de protection des données Plume Astrale.', keywords: '', noindex: true },
+  '/panier':                    { title: 'Panier · Plume Astrale',                 description: 'Votre panier Plume Astrale.', keywords: '', noindex: true },
+  '/temoignage':      { title: 'Envoyer un témoignage · Plume Astrale',            description: "Partagez votre expérience Plume Astrale.", keywords: '', noindex: true },
+  '/voyage-karmique/succes':    { title: 'Votre Voyage Karmique arrive · Plume',   description: 'Vos deux livres sont en génération.', keywords: '', noindex: true },
   '/acheter-credits': { title: 'Acheter des crédits · Plume Astrale', description: "Recharge ton solde de crédits — packs à partir de 9€.", keywords: 'acheter crédits astrologie' },
   '/cercle':          { title: 'Cercle Soléna · 19€/mois',            description: "Rejoins le Cercle Soléna : 100 crédits chat/mois, communauté privée, -10% sur les livres.", keywords: 'cercle soléna, abonnement astrologie' },
   '/consultation':    { title: 'Chat avec Plume · Plume Astrale',     description: "Discute avec Plume — ton thème natal embarqué, réponses instantanées, conversation fluide.", keywords: 'chat astrologique, consultation astrologique ligne' },
   '/archetype':       { title: 'Ton archétype dominant · Plume',       description: "Découvre ton archétype dominant, ton ombre et ton équilibre intérieur — analyse jungienne.", keywords: 'archétype jungien, ombre, individuation' },
-  '/temoignage':      { title: 'Témoignages · Plume Astrale',          description: "Ce qu'elles disent de leurs lectures Plume Astrale — vraies expériences partagées.", keywords: 'témoignages astrologie, avis plume astrale' },
+  '/temoignage':      { title: 'Envoyer un témoignage · Plume Astrale',            description: "Partagez votre expérience Plume Astrale.", keywords: '', noindex: true, _dup: true },
 
   /* ─── Pages succès (noindex) ─── */
   '/theme-natal/succes':        { title: 'Ton thème natal arrive · Plume', description: 'Ton livre est en génération. Livraison par email.', keywords: '', noindex: true },
@@ -369,12 +373,17 @@ function replaceJsonLd(schemas) {
   });
 }
 
-const SEO = ({ path, title, description, image, jsonLd }) => {
+const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp }) => {
   const data = SEO_DATA[path] || SEO_DATA['/'];
-  const canonical = `${DOMAIN}${path === '/' ? '' : path}`;
+  // SEO P0 (2026-02-16) : canonical toujours strip des query params (ex: ?theme=…)
+  // pour éviter les doublons d'indexation. Le path arrivant ici est déjà décoré côté route.
+  const cleanPath = (path === '/' ? '' : path).split('?')[0].split('#')[0];
+  const canonical = `${DOMAIN}${cleanPath}`;
   const pageTitle = title || data.title;
   const pageDesc = description || data.description;
   const pageImage = image || DEFAULT_IMAGE;
+  // noindex : la prop override toujours le mapping SEO_DATA
+  const shouldNoindex = (noindexProp === true) || (noindexProp !== false && !!data.noindex);
 
   useEffect(() => {
     // Compose la liste des JSON-LD à injecter
@@ -400,7 +409,7 @@ const SEO = ({ path, title, description, image, jsonLd }) => {
     // Meta description + keywords + robots
     upsertMeta('name', 'description', pageDesc);
     if (data.keywords) upsertMeta('name', 'keywords', data.keywords);
-    upsertMeta('name', 'robots', data.noindex ? 'noindex, follow' : 'index, follow');
+    upsertMeta('name', 'robots', shouldNoindex ? 'noindex, follow' : 'index, follow');
 
     // Canonical
     upsertCanonical(canonical);
@@ -424,7 +433,7 @@ const SEO = ({ path, title, description, image, jsonLd }) => {
 
     // JSON-LD dynamiques (remplace les précédents dynamic; garde les statiques d'index.html)
     replaceJsonLd(schemas);
-  }, [path, pageTitle, pageDesc, pageImage, canonical, data, jsonLd]);
+  }, [path, pageTitle, pageDesc, pageImage, canonical, data, jsonLd, shouldNoindex]);
 
   return null;
 };

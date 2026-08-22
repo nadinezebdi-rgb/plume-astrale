@@ -92,12 +92,48 @@ const META_EVENT_MAP = {
   pack_karmique_checkout:      'InitiateCheckout',
   cercle_solena_checkout:      'InitiateCheckout',
   cercle_solena_active:        'Subscribe',
-  credit_purchase:             'Purchase',
+  credit_purchase:             'Purchase',      // achat d'un pack (vrai revenu)
+  credits_spent:               null,            // consommation de crédits déjà achetés
   pdf_download:                null,
   bundle_click:                'ViewContent',
   solena_click:                'ViewContent',
   solena_question:             'Contact',
 };
+
+/**
+ * Génère un event_id unique, partagé pixel client ↔ CAPI serveur.
+ */
+export function newEventId(prefix = 'evt') {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function readCookie(name) {
+  try {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  } catch (_e) { return null; }
+}
+
+/**
+ * Signaux d'attribution Meta. Renvoie {} sans consentement.
+ * - event_id : clé de déduplication pixel <-> CAPI
+ * - fbp/fbc  : cookies posés par le pixel (fbc reconstruit depuis ?fbclid= si absent)
+ */
+export function getCapiAttribution(prefix = 'evt') {
+  if (getConsent() !== 'accepted') return {};
+  const out = { event_id: newEventId(prefix) };
+  const fbp = readCookie('_fbp');
+  if (fbp) out.fbp = fbp;
+  let fbc = readCookie('_fbc');
+  if (!fbc) {
+    try {
+      const fbclid = new URLSearchParams(window.location.search).get('fbclid');
+      if (fbclid) fbc = `fb.1.${Date.now()}.${fbclid}`;
+    } catch (_e) { /* URL non parsable */ }
+  }
+  if (fbc) out.fbc = fbc;
+  return out;
+}
 
 /**
  * Track un event metier. No-op si l'utilisateur n'a pas consenti.
@@ -149,7 +185,8 @@ export const EVENTS = {
   PACK_KARMIQUE_CHECKOUT:      'pack_karmique_checkout',
   CERCLE_SOLENA_CHECKOUT:      'cercle_solena_checkout',
   CERCLE_SOLENA_ACTIVE:        'cercle_solena_active',
-  CREDIT_PURCHASE:             'credit_purchase',
+  CREDIT_PURCHASE:             'credit_purchase',   // achat d'un pack de crédits
+  CREDITS_SPENT:               'credits_spent',     // usage d'un outil payé en crédits
   PDF_DOWNLOAD:                'pdf_download',
 };
 

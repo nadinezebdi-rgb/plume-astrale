@@ -16,7 +16,27 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Univers visuel : cosmique cinématique — lune dorée, constellations filigrane, champ d'étoiles animées procédural, textures dorées
 - Zones vide, respiration, layout premium (Apple/Hermès)
 
+
+## Design System v4 — NOCTURNE ÉDITORIAL (2026-02-16, refonte artistique)
+- **Brand Design Book** : `/app/memory/BRAND_DESIGN_BOOK.md` (14 sections) + `/app/memory/BRAND_DESIGN_EXEC_SUMMARY.md` (2 pages)
+- **Palette Nocturne** : Bleu Prussien Nocturne `#0B1A2E` · Encre d'Astre `#141B2E` · Papier Céleste `#F5F0E6` · Ivoire de Vélin `#EDE6D8` · Laiton Patiné `#B8935A` · Terre de Rose `#B47562` · Sauge Voilée `#8A9E8E` · Encre de Vigne `#4A2C3D` (sceau signature, 1 usage/page)
+- **Typographies (Google Fonts free)** : Fraunces (éditorial H1/H2/citations) + Inter Tight (moderniste corps/UI) + JetBrains Mono (technique labels)
+- **Motion cinématographique** : easing `cubic-bezier(0.16, 1, 0.3, 1)` — durées 600-900ms — animations respiratoires staggered de 120-200ms — pas de bounce/spring/spinner
+- **Design tokens** : préfixe `--ne-*` dans `/app/frontend/src/index.css` (additifs, non-breaking) + namespace Tailwind `nocturne.*`
+- **Composants Nocturne** : `.ne-btn` (plats, coins 2px, sans ombre) · `.ne-card` (filet 1px, hover translate 2px + ombre 24px 8%) · `.ne-input` (filet inférieur uniquement) · `.ne-section-night` / `.ne-section-paper` (grain SVG + halos radiaux)
+
 ## What's implemented
+
+## SEO Technical Rebuild v2 (2026-02-16, couche corrective P0+P1)
+- **404 réelle** : `/app/frontend/src/pages/NotFound.jsx` (Nocturne, noindex, prerender-status-code=404). App.js wildcard `*` → NotFound.
+- **Canonical propre** : SEO.js strip query params (`?theme=…`, `?utm_*`, `?fbclid=`) ; backend `ssr_snapshot.save_snapshot()` force `https://plume-astrale.fr{path}` (fini le `localhost:3000` en base).
+- **SearchAction JSON-LD supprimé** : plus de `/blog?q={search_term_string}` littéral crawlé par Google. Frontend `SEO.js` + backend `save_snapshot()` + patch en base des 58 snapshots existants.
+- **301 client-side canonicalisation** : `/nos-livres` → `/livres`, `/theme-natal-luxe` → `/theme-natal` + 8 liens internes réécrits.
+- **noindex tunnel** : `<SEO>` ajouté à MentionsLegales, CGV, VoyageKarmiqueSucces avec SEO_DATA `noindex: true` (`/mentions-legales`, `/cgv`, `/politique-confidentialite`, `/panier`, `/temoignage`).
+- **robots.txt v2** : Ahrefs/Semrush débloqués (Crawl-delay 5s), Disallow ajouté sur `/*?q=`, `/*?theme=`, `/*?utm_`, `/*?fbclid=`, `/*?gclid=`, toutes pages `/succes`.
+- **Sitemaps synchronisés** : `public/sitemap.xml` purgé + `/api/sitemap.xml` (Mongo) sans `/nos-livres`, `/theme-natal-luxe`, `/kabbale`, `/karma-destin`, `/karma-destin-pdf`.
+- **Limitation infra** : vraie réponse HTTP 404 nécessite catch-all K8s ingress (à demander à Emergent Support). En attendant : noindex meta + prerender-status-code header (Google-friendly).
+
 ### Mobile Conversion Fix + IG Token Auto-Refresh + CAPI Health (2026-02-14)
 - **🔴 Fix critique perte de conversion mobile GSC** (P0) : audit responsive complet sur viewport 390x844 (iPhone 14) — 19 routes publiques testées. AVANT : `/theme-natal-luxe` overflow 98px, `/kabbale` 54px, `/credits` 135px (contenu qui dépassait le viewport → CTA principaux inaccessibles). APRÈS : 0px overflow sur les 19 routes.
 - **Root causes identifiées** :

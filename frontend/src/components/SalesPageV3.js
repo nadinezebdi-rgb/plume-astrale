@@ -10,6 +10,7 @@ import PdfPreviewButton from '@/components/PdfPreviewButton';
 import PdfFlipbook from '@/components/PdfFlipbook';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
 import StickyMobileCta from '@/components/StickyMobileCta';
+import PromoCodeField from '@/components/PromoCodeField';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -74,9 +75,19 @@ export default function SalesPageV3({
   const [apercuOpen, setApercuOpen] = useState(false);
   const [giftOpen, setGiftOpen] = useState(false);
   const [flipbookOpen, setFlipbookOpen] = useState(false);
+  const [promoState, setPromoState] = useState({ status: 'idle', code: '', final_amount: 0 });
+
+  // Parse le prix (accepte "39€", "29,99€", "89€")
+  const numericPrice = parseFloat(String(priceMain).replace(/[€\s]/g, '').replace(',', '.')) || 0;
 
   const handleCta = () => {
-    navigate(isAuthenticated ? ctaTargetAuth : ctaTargetGuest);
+    let target = isAuthenticated ? ctaTargetAuth : ctaTargetGuest;
+    // Propage le code promo (admin bypass ou reduc) via URL param
+    if (promoState.status === 'ok' && promoState.code) {
+      const separator = target.includes('?') ? '&' : '?';
+      target = `${target}${separator}promo_code=${encodeURIComponent(promoState.code)}`;
+    }
+    navigate(target);
   };
 
   const ctaLabel = isAuthenticated ? ctaLabelAuth : ctaLabelGuest;
@@ -157,6 +168,39 @@ export default function SalesPageV3({
                 <ArrowRight style={{ width: 16, height: 16 }} strokeWidth={2} />
               </button>
             </div>
+
+            {/* Champ Code promo compact — F500 2026-02 · TOUT2026 admin bypass */}
+            <details
+              data-testid={`sales-${slug}-promo-details`}
+              style={{
+                marginTop: 16, marginBottom: 8,
+                background: 'rgba(15,26,60,0.03)',
+                border: '1px solid #E3E1DC',
+                borderRadius: 10, padding: '10px 14px',
+                fontFamily: 'Inter, sans-serif', fontSize: 13,
+              }}
+            >
+              <summary
+                data-testid={`sales-${slug}-promo-toggle`}
+                style={{
+                  cursor: 'pointer', color: '#8F6E24',
+                  fontWeight: 500, letterSpacing: '0.02em',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  listStyle: 'none',
+                }}
+              >
+                <span style={{ fontSize: 14 }}>🎟️</span>
+                J&apos;ai un code promo
+              </summary>
+              <div style={{ marginTop: 12 }}>
+                <PromoCodeField
+                  price={numericPrice}
+                  product={slug}
+                  testIdBase={`sales-${slug}`}
+                  onStateChange={setPromoState}
+                />
+              </div>
+            </details>
 
             {/* Ligne rassurance */}
             <div style={{

@@ -108,6 +108,13 @@ async def self_heal_if_paid(session_id: str, already_delivered: bool, handler) -
         sc = StripeCheckout(api_key=os.environ['STRIPE_API_KEY'], webhook_url='')
         st = await sc.get_checkout_status(session_id)
         if getattr(st, 'payment_status', '') == 'paid':
+            # Le webhook Stripe n'est pas arrivé : ce chemin envoie l'event Meta.
+            # track_purchase_once est idempotent (verrou capi_sent_at).
+            try:
+                from services.capi_purchase import track_purchase_once
+                await track_purchase_once(session_id, {'payment_status': 'paid'})
+            except Exception as e:
+                logger.warning(f'[self_heal] capi purchase fail: {e}')
             logger.info(f'[self_heal] paiement confirmé via polling Stripe → livraison déclenchée ({session_id})')
             await handler(session_id)
     except Exception as e:

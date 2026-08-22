@@ -1579,3 +1579,159 @@ Rappel : le fichier `/app/backend/migrations/2026_08_journal_tracking_and_email_
 - Refund + suspend : `refunded=true, suspended=true`, tx.notifications_suspended=true ✅
 - Screenshot admin panel avec 4 nouveaux widgets visibles ✅
 - Backend + frontend lint OK ✅
+
+---
+
+## 2026-02-16 — Nocturne Éditorial : refonte artistique + Lead Magnet + Voyage Karmique
+### Vague 1 · Design Tokens
+- Ajouté `/app/frontend/src/index.css` (+400 lignes) : variables `--ne-*` (palette 15 couleurs, 3 typographies via Google Fonts, échelle 8px, easing cinématographique), classes utilitaires `.ne-section`, `.ne-container`, `.ne-btn`, `.ne-card`, `.ne-input`, `.ne-reveal-*` (staggered 200ms)
+- Étendu `tailwind.config.js` avec namespace `nocturne.*` (14 couleurs) + `font-ne-serif/sans/mono` + spacing `ne-16/24`
+
+### Vague 2 · Refonte Homepage
+- Créé `/app/frontend/src/components/nocturne/NocturneHero.jsx` (hero "Que traversez-vous ce mois-ci ?" avec overline mono ACTE I / Fraunces italic gold sur "ce mois-ci")
+- Créé `/app/frontend/src/components/nocturne/NocturneManifest.jsx` (les 3 refus fondateurs : déterminisme / kitsch / sur-promesse)
+- Créé `/app/frontend/src/components/nocturne/NocturneServices.jsx` (les 3 lectures : Thème Natal 39€, Voyage Karmique 49€ [recommandé], Astrocarto 49€)
+- Créé `/app/frontend/src/components/nocturne/NocturneClosing.jsx` (épilogue "Souhaitez-vous que ce texte vous accompagne ?")
+- `Homepage.js` : hero remplacé par NocturneHero, ancienne section services remplacée par NocturneServices, closing final remplacé par NocturneClosing — TrustBar, HowItWorks3Tiers, PremiumPillars, MiniQuiz F500 conservés
+
+### Vague 3 · Lead Magnet PDF (aperçu 5 pages gratuit)
+- Créé `/app/backend/services/lead_magnet_pdf.py` : `build_lead_magnet_pdf(email, first_name, birth_date, birth_time?, birth_place?)` → 5 pages (Couverture + Ouverture + Soleil narré + Saison intérieure du mois + Épilogue). Narration Nocturne Éditorial pour les 12 signes solaires + 12 mois calendaires. `send_lead_magnet_email()` via Resend.
+- Créé `/app/backend/routes/lead_magnet.py` : `POST /api/lead-magnet/generate` (public, rate-limit 5min/email) + `GET /api/lead-magnet/download/{token}` (token uuid4 opaque, path traversal safe)
+- Créé `/app/frontend/src/components/nocturne/NocturneLeadMagnet.jsx` (formulaire 4 champs, éditorial, écran succès avec bouton téléchargement)
+- Section ajoutée à Homepage juste avant NocturneClosing
+
+### Vague 4 · Voyage Karmique Fusion (49€ = Kabbale 39€ + Karma Destin 24€, économie 22%)
+- Ajouté pack `voyage_karmique` (49€ oneshot) dans `/app/backend/config.py`
+- Créé `/app/backend/services/voyage_karmique_service.py` : `handle_voyage_karmique_webhook()` orchestrateur — génère les 2 PDFs (Kabbale via `generate_kabbale_pdf_luxury`, Karma via `generate_karma_destin_pdf`) en parallèle, upload Supabase, envoie 1 email Nocturne avec les 2 liens
+- Créé `/app/backend/routes/voyage_karmique.py` : `POST /checkout` (Stripe session avec bypass promo `TOUT2026`) + `GET /status` (polling avec self-heal)
+- Dispatch webhook Stripe (`kind=voyage_karmique`) branché dans `/app/backend/server.py`
+- Créé `/app/frontend/src/pages/VoyageKarmiqueSales.jsx` (hero + les 2 livres + formulaire checkout + épilogue Soléna)
+- Créé `/app/frontend/src/pages/VoyageKarmiqueSucces.jsx` (polling status, 2 boutons téléchargement + citation Soléna)
+- App.js : nouvelles routes `/voyage-karmique` + `/voyage-karmique/succes` + **redirects 301 client-side** `/kabbale` → `/voyage-karmique`, `/karma-destin` → `/voyage-karmique`, `/karma-destin-pdf` → `/voyage-karmique`
+
+### Tests (iteration_79.json)
+- Backend : **7/8 pass (87.5%)** — Le seul échec `/api/voyage-karmique/checkout` = clé Stripe LIVE `sk_live_...Wiw9wh` **EXPIRÉE** dans `backend/.env` (bloque TOUS les checkouts Stripe, pas juste voyage-karmique — issue env, pas code)
+- Frontend : **100% (all UI flows + redirects work)**
+- Non-régression validée : `/theme-natal`, `/astrocartographie`, `/nos-livres`, `/blog` → 200
+- PDF lead-magnet validé : > 5000 octets, entête `%PDF-`, mime `application/pdf`, rate-limit 429 confirmé, path traversal bloqué
+- Fichier test créé : `/app/backend/tests/test_iteration79_nocturne.py`
+
+### 🚨 Action utilisateur requise (bloquant paiements)
+- **Rotation clé Stripe** : `STRIPE_API_KEY` dans `/app/backend/.env` est expirée → tous checkouts Stripe (Voyage Karmique, Thème Natal, Astrocarto, Kabbale, Karma Destin, packs de crédits) retournent 500. Remplacer par nouvelle clé `sk_live_*` ou `sk_test_*` puis `sudo supervisorctl restart backend`.
+- **Optionnel** : créer table Supabase `lead_magnet_downloads` (columns: email, first_name, birth_date, birth_place, token, created_at) pour tracker les leads. Actuellement tracking silencieusement skip (non-bloquant, PDF est bien généré et servi).
+
+---
+
+## 2026-02-16 — SEO Technical Rebuild P0 + P1 (couche corrective au-dessus du SSR)
+### P0 · Corrections critiques
+- **Vraie page 404** : `/app/frontend/src/pages/NotFound.jsx` (Nocturne Éditorial, `noindex, follow`, meta `prerender-status-code=404`, 3 CTA sûrs). App.js : `<Route path="*" element={<NotFound />} />` en fin de wildcard.
+- **Canonical strip query params** : `SEO.js` retire `?param=…` du canonical (fix duplication d'index sur `?theme=…`).
+- **SearchAction JSON-LD retiré** : `WEBSITE_JSONLD` dans `SEO.js` sans `potentialAction` (Google crawlait `/blog?q={search_term_string}` littéralement, générait des soft-404).
+- **Backend snapshots patchés** : script one-shot a mis à jour les **58 snapshots** en base — canonical `http://localhost:3000/` → `https://plume-astrale.fr/`, SearchAction stripé. `ssr_snapshot.py::save_snapshot()` sanitize désormais canonical + strip SearchAction à chaque écriture.
+
+### P1 · Corrections priorité haute
+- **Redirects 301 client-side (SEO 2a)** : `/nos-livres` → `/livres`, `/theme-natal-luxe` → `/theme-natal`. 8 liens internes mis à jour (`NavbarV2`, `FooterV2`, `Homepage`, `HowItWorks3Tiers`, `NocturneHero`, `NocturneServices`, `VoyageKarmiqueSales`).
+- **`<SEO>` sur pages tunnel** : ajouté à `MentionsLegales.js`, `CGV.js`, `VoyageKarmiqueSucces.jsx` avec `noindex: true` dans SEO_DATA (`/mentions-legales`, `/cgv`, `/politique-confidentialite`, `/panier`, `/temoignage`, `/voyage-karmique/succes`).
+- **robots.txt v2** : Ahrefs/Semrush **débloqués** (Crawl-delay 5s, Disallow zones perso). Ajout `Disallow: /*?q=`, `/*?theme=`, `/*?utm_`, `/*?fbclid=`, `/*?gclid=`. Ajout Disallow sur toutes les pages `/succes`.
+- **Sitemap statique purgé** : `/nos-livres` et `/theme-natal-luxe` retirés de `public/sitemap.xml`.
+- **Sitemap dynamique auto-nettoyé** : après purge des 4 snapshots Mongo (`/nos-livres`, `/theme-natal-luxe`, `/kabbale`, `/karma-destin`, `/karma-destin-pdf`), le `/api/sitemap.xml` reflète le vrai périmètre canonique (55 URLs).
+- **`/horoscope` real index** (Q3c) : déjà en place — H1 unique + `<ZodiacGrid>` listant les 12 signes vers `/horoscope/[signe]`. Pas de JS redirect.
+
+### Limitations connues (nécessitent config infra Emergent)
+- **HTTP 404 status réel** : le K8s ingress renvoie 200+SPA pour toute URL non-`/api/*`. La page NotFound sert le noindex meta et `prerender-status-code=404` (Google respecte ce dernier via prerender), mais un vrai 404 HTTP demande une règle ingress ou un catch-all serveur frontend. **Action utilisateur : contacter Emergent Support pour catch-all HTTP 404**.
+- **X-Robots-Tag HTTP header** : impossible depuis FastAPI (qui ne sert que `/api/*`). Le noindex passe uniquement par `<meta name="robots">` — suffisant pour Googlebot (rendu JS), mais un header serait un signal supplémentaire pour crawlers non-JS.
+- **robots.txt en preview** : servi par Cloudflare (générique). En production `plume-astrale.fr`, c'est notre `public/robots.txt` qui sert.
+
+### Tests (iteration_80 puis validation post-fix)
+- Iteration 80 : 4/5 backend + 70% frontend, 3 issues remontées (canonical localhost, SearchAction, SEO manquant sur pages légales).
+- Post-fix validation curl :
+  - `GET /api/seo/content?path=/` → canonical `https://plume-astrale.fr/`, SearchAction absent
+  - `GET /api/sitemap.xml` → 0 occurrence de `/nos-livres` ou `/theme-natal-luxe`
+  - `/mentions-legales`, `/cgv`, `/decouvrir?theme=dark` chargent correctement
+
+## 2026-02-16 (2) — SSR Refresh + Rich Snippet Audit
+### Refresh SSR complet (55 → 66 URLs)
+- Endpoint `/api/admin/seo/refresh?only_expired=false` déclenché en local (bypass Cloudflare 100s timeout)
+- **63 snapshots régénérés en 8 min** via Playwright headless
+- Nouveaux paths ajoutés à `SEO_ROUTES` : `/voyage-karmique`, `/livres` (canonique)
+- Retirés de `SEO_ROUTES` : `/nos-livres`, `/theme-natal-luxe`, `/kabbale`, `/karma-destin-pdf`, `/temoignage` (transitionnels → canonique ou 301)
+- **Router fix** : ajout `<Route path="/horoscope/:sign/:period" element={<HoroscopeSign />} />` — les 24 URLs `/horoscope/[signe]/semaine|mois` étaient tombées dans mon nouveau 404 catch-all. Réactivées avec H1 correct = nom du signe.
+
+### Dédup JSON-LD (patch en base + protection future)
+- `save_snapshot()` déduplique par empreinte JSON stable (sort_keys)
+- One-shot patch : **56/63 snapshots patchés** — `/theme-natal` passe de 40 à 5 schémas, `/horoscope` de 32 à 4
+- 2 WebSite/Blog résiduels par page : viennent d'`index.html` (statique) + `SEO.js` (dynamique) — deux schémas légitimement distincts, aucune pénalité Google
+
+### Audit Rich Snippets — 5 URLs cibles
+Chaque URL a été validée sur 6 critères SEO :
+| URL | canonical https | title 30-70c | desc 100-170c | H1 | no SearchAction | JSON-LD |
+|---|---|---|---|---|---|---|
+| `/` | ✅ | ✅ 46c | ✅ 105c | ✅ | ✅ | ✅ 4 schémas |
+| `/theme-natal` | ✅ | ✅ 45c | ✅ 154c | ✅ | ✅ | ✅ 5 (avec Product) |
+| `/voyage-karmique` | ✅ | ✅ 68c | ✅ 161c | ✅ | ✅ | ✅ 4 schémas |
+| `/horoscope` | ✅ | ✅ 42c | ✅ 102c | ✅ | ✅ | ✅ 4 schémas |
+| `/blog` | ✅ | ✅ 57c | ✅ 166c | ✅ | ✅ | ✅ 4 (avec Blog) |
+
+**Résultat : 5 ✅ / 0 ⚠️ / 0 ❌ — 100% pass**
+
+### Observations mineures (non-bloquantes)
+- `/horoscope` H1 = "Créez votre espace pour recevoir votre horoscope personnalisé" (CTA visiteurs anonymes). Éditorialement moins fort qu'un H1 topique — piste d'amélioration future : forcer un H1 topique tout en haut du composant.
+- `Product` JSON-LD sur `/voyage-karmique` : n'est pas encore émis (SEO_DATA n'a pas d'entrée `ogType: 'product'` pour ce path). Piste : ajouter `productSlug: 'voyage-karmique'` dans SEO_DATA pour émettre Product + Offer + AggregateRating comme sur les autres pages livre.
+
+## 2026-02-16 (3) — Meta Pixel rotation + /horoscope H1 topique
+### Meta Pixel — nouveau pixel `1439222681373534`
+- `frontend/.env` : `REACT_APP_META_PIXEL_ID=1439222681373534` (ancien : 1801418127692821)
+- `backend/.env` : `META_PIXEL_ID=1439222681373534` (aligné pour dédup CAPI côté serveur)
+- Le pixel s'intègre via l'existant `frontend/src/lib/analytics.js` — chargement GDPR-aware après consentement, puis PageView + Purchase (avec `eventID` pour dédup CAPI)
+- Confirmation : ID `1439222681373534` bien injecté dans le bundle JS (5 occurrences)
+
+### /horoscope — H1 topique éditorial
+- Avant : H1 = "Créez votre espace pour recevoir votre horoscope personnalisé." (CTA anonyme)
+- Après : **H1 = "Horoscopes quotidiens des 12 signes"** — signal fort pour Googlebot
+- Le CTA "Créer mon compte" descendu en H2 sous-hiérarchie
+- Overline "JOURNAL CÉLESTE · 12 SIGNES", lead éditorial, ZodiacGrid des 12 signes conservée
+- Snapshot Mongo re-généré : `/horoscope` H1 capturé correctement
+
+---
+
+## 2026-02-16 (4) — Meta CAPI Rebuild : dedup + attribution complète tous produits
+### Problème résolu
+Sur **73 paiements confirmés en base, ZÉRO n'était tracké dans Meta**. Le tunnel packs de crédits ne représente en réalité aucune vente ; tout le CA passe par les produits one-shot (thème natal, kabbale, voyage karmique, consultation ultime 149€, astrocartographie, synastrie…). Aucun de ces 13 handlers n'appelait la CAPI — Meta n'a jamais vu une vente réelle.
+
+### Architecture retenue
+- **Middleware d'attribution** (`middleware/meta_attribution.py`) : lit `session_id` dans la réponse de toutes les routes `/checkout` et persiste les signaux navigateur (event_id, _fbp, _fbc, IP, UA) dans une table dédiée. **Aucune des 13 routes produit n'est touchée.**
+- **Table dédiée** (`checkout_attribution`) et non `payment_transactions.metadata` — évite les races avec les handlers produit qui font read-modify-write.
+- **Verrou d'idempotence** : UPDATE conditionnel `capi_sent_at NULL → date`, seul l'appelant qui gagne la course envoie. Verrou relâché si Meta refuse (retry possible).
+- **Point d'envoi unique** (`services/capi_purchase.py::track_purchase_once`) appelé depuis 2 endroits : webhook Stripe (avant routage produit) + `self_heal_if_paid` (reprise si webhook manqué).
+- **Frontend intercepteur axios** (`lib/metaAttribution.js`) — 1 seul point qui joint `X-Meta-Event-Id`/`X-Meta-Fbp`/`X-Meta-Fbc` en headers sur tous les POST `/checkout`. Aucune page produit modifiée.
+
+### Corrections annexes
+- `wallet_service.add_credits()` : `send_capi_event` retiré. Fonction générique (achat/refund/bonus/grant admin) qui ne dispose ni du montant réel ni des signaux — un refund comptait comme une vente.
+- Montant Purchase : `session.amount_total / 100` (vraie recette Stripe) au lieu de `credits × 0.9` (barème inventé).
+- `TarotAmour.js` / `TarotCroixCeltique.js` : `EVENTS.CREDIT_PURCHASE` → `EVENTS.CREDITS_SPENT` (consommation ≠ achat, plus de Purchase Meta parasite).
+- `getCapiAttribution()` renvoie `{}` sans consentement cookies (RGPD-safe).
+
+### Défense en profondeur (2026-02-16)
+- Le middleware log un `warning` unique si la table `checkout_attribution` est absente au lieu de crasher — permet un rollout inversé (backend avant migration).
+
+### Fichiers créés
+- `backend/middleware/meta_attribution.py`
+- `backend/services/capi_purchase.py`
+- `backend/tests/test_meta_capi_dedup.py` (15 tests statiques)
+- `backend/tests/test_meta_attribution_middleware.py` (4 tests fonctionnels TestClient FastAPI)
+- `frontend/src/lib/metaAttribution.js`
+- `supabase/checkout_attribution_migration.sql`
+
+### Tests
+- **19/19 pass** (statiques + fonctionnels middleware avec Supabase mocké)
+- Lint Python + JS : 0 erreur
+- Backend démarre sans erreur, middleware chargé
+
+### 🚨 Action manuelle utilisateur AVANT redéploiement production
+1. **Exécuter la migration SQL** dans Supabase SQL Editor :
+   ```sql
+   -- copier/coller le contenu de /app/supabase/checkout_attribution_migration.sql
+   ```
+2. **Vérifier** : `SELECT * FROM public.checkout_attribution LIMIT 1;` (doit renvoyer 0 ligne, pas d'erreur)
+3. **Rollout ordre** : Migration → Backend → Frontend (sinon le middleware log un warning inoffensif)
+4. **Vérifier après déploiement** : Business Manager → Events Manager → Test Events, faire un vrai achat, confirmer 1 seul Purchase reçu (pas 2 → dédup OK)

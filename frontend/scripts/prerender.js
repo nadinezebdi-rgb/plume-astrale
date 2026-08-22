@@ -102,22 +102,59 @@ async function main() {
   });
   console.log('▸ Chromium démarré');
 
-  let ok = 0, ko = 0;
+  // Backend URL for SSR snapshot injection (F500 2026-02 · Prerender Baker)
+  // Le contenu html_body de MongoDB est injecté dans <div id="root"> pour que
+  // Googlebot lise le contenu SANS attendre le bundle JS.
+  const SSR_API = process.env.REACT_APP_BACKEND_URL || 'https://consultation-astro.preview.emergentagent.com';
+  const https = require('https');
+
+  async function fetchSnapshot(route) {
+    return new Promise((resolve) => {
+      const url = `${SSR_API}/api/seo/content?path=${encodeURIComponent(route)}`;
+      const req = https.get(url, { timeout: 4000 }, (res) => {
+        if (res.statusCode !== 200) return resolve(null);
+        let body = '';
+        res.on('data', (c) => (body += c));
+        res.on('end', () => {
+          try { resolve(JSON.parse(body)); } catch { resolve(null); }
+        });
+      });
+      req.on('error', () => resolve(null));
+      req.on('timeout', () => { req.destroy(); resolve(null); });
+    });
+  }
+
+  let ok = 0, ko = 0, baked = 0;
   for (const route of ROUTES) {
     const url = `http://localhost:${PORT}${route}`;
     try {
       const page = await browser.newPage();
       await page.setUserAgent('Mozilla/5.0 (compatible; PlumeSSG/1.0)');
       await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 });
-      // Attend que React ait fini son travail (SEO.js pose les meta dans useEffect)
       await page.waitForFunction(
         () => document.querySelector('link[rel="canonical"]') !== null,
         { timeout: 10000 },
       ).catch(() => null);
-      // Petite marge additionnelle pour les IntersectionObserver / lazy sections
       await new Promise((res) => setTimeout(res, 600));
 
-      const html = await page.content();
+      let html = await page.content();
+
+      // Prerender Baker : injecte le html_body du snapshot MongoDB dans #root
+      // → Googlebot voit le contenu sans exécuter le JS (crawl budget préservé).
+      try {
+        const snap = await fetchSnapshot(route);
+        if (snap && snap.html_body && snap.html_body.length > 500) {
+          const rootMarker = /<div id="root">.*?<\/div>/is;
+          const injection = `<div id="root"><div data-ssr-baked="true">${snap.html_body}</div></div>`;
+          if (rootMarker.test(html)) {
+            html = html.replace(rootMarker, injection);
+            baked++;
+          }
+        }
+      } catch (bakeErr) {
+        // silencieux — le HTML brut de Puppeteer reste le fallback
+      }
+
       const outPath = route === '/' ? path.join(BUILD_DIR, 'index.html') : path.join(BUILD_DIR, route, 'index.html');
       fs.mkdirSync(path.dirname(outPath), { recursive: true });
       fs.writeFileSync(outPath, html, 'utf8');
@@ -133,7 +170,7 @@ async function main() {
   await browser.close();
   serveProc.kill('SIGTERM');
 
-  console.log(`\n▸ Prerender terminé — ${ok} OK / ${ko} erreurs sur ${ROUTES.length} routes.`);
+  console.log(`\n▸ Prerender terminé — ${ok} OK / ${ko} erreurs · ${baked} snapshots MongoDB injectés.`);
   if (ko > 0) {
     console.log('  (Les routes en erreur restent servies par le SPA fallback — index.html)');
   }

@@ -178,16 +178,32 @@ const Horoscope = () => {
     return (
       <PsPageShell background="light">
         <SEO path="/horoscope" />
-        <ZodiacGrid />
-        <div className="max-w-2xl mx-auto py-20 px-6 text-center">
+        <div className="max-w-3xl mx-auto pt-20 pb-8 px-6 text-center">
           <p className="uppercase tracking-[0.3em] text-xs mb-4" style={{ color: '#8F6E24', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
-            Votre horoscope personnalisé
+            Journal céleste &middot; 12 signes
           </p>
-          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)', color: '#0A1128', marginBottom: 24, fontWeight: 400 }}>
-            Créez votre espace pour recevoir votre horoscope personnalisé.
+          {/* SEO Rebuild P1 (2026-02) : H1 topique éditorial pour Googlebot,
+              plus fort qu'un CTA "Créez votre espace" côté SERP. */}
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(32px, 5.5vw, 52px)', color: '#0A1128', marginBottom: 16, fontWeight: 400, lineHeight: 1.1 }}>
+            Horoscopes quotidiens
+            <br />
+            <em style={{ fontStyle: 'italic', color: '#C9A24B', fontWeight: 400 }}>des 12 signes</em>
           </h1>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, color: 'rgba(15,26,60,0.72)', maxWidth: 560, margin: '0 auto 12px', lineHeight: 1.6 }}>
+            Ce que la journée porte pour chaque signe du zodiaque —
+            une lecture éditoriale mise à jour chaque matin, en français fin.
+          </p>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'rgba(15,26,60,0.55)', fontStyle: 'italic', marginBottom: 24 }}>
+            Choisissez votre signe ci-dessous pour lire la note du jour, de la semaine ou du mois.
+          </p>
+        </div>
+        <ZodiacGrid />
+        <div className="max-w-2xl mx-auto py-16 px-6 text-center">
+          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: '#0A1128', marginBottom: 16, fontWeight: 400 }}>
+            Une lecture <em style={{ fontStyle: 'italic', color: '#C9A24B' }}>personnalisée</em>, pas seulement solaire.
+          </h2>
           <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'rgba(15,26,60,0.72)', marginBottom: 32, lineHeight: 1.65 }}>
-            En vous inscrivant, votre horoscope est calculé à partir de votre thème natal complet
+            En créant votre compte, l&rsquo;horoscope est calculé à partir de votre thème natal complet
             (Soleil, Lune, Ascendant) — pas uniquement du signe solaire.
           </p>
           <a href="/inscription" style={{

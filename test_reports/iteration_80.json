@@ -1,0 +1,49 @@
+{
+  "summary": "SEO Technical Rebuild P0+P1 tested via Playwright (frontend) + pytest (backend). 4/5 backend tests pass. Frontend: 404 page, redirects, /horoscope, canonical strip, Navbar link → /livres, and regression routes all pass. THREE critical frontend issues found: (1) Homepage / canonical is 'http://localhost:3000/' via backend /api/seo/content SSR snapshot, (2) SearchAction JSON-LD is still injected on home & other pages from backend seo_content collection (frontend SEO.js was cleaned but backend Mongo docs still contain it), (3) /mentions-legales, /cgv, /voyage-karmique/succes render pages that do NOT include the <SEO> component, so noindex meta is never set despite SEO_DATA additions. ONE backend issue: /api/sitemap.xml still lists /nos-livres and /theme-natal-luxe (stored in seo_content collection).",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "/api/sitemap.xml", "issue": "Still contains /nos-livres and /theme-natal-luxe (both must be removed post-301 redirect). Sitemap is generated from Mongo seo_content collection — those documents were not purged.", "priority": "HIGH"},
+      {"endpoint": "/api/seo/content?path=/", "issue": "Returns canonical='http://localhost:3000/' (localhost leaking into prod meta) AND still returns a SearchAction JSON-LD schema. Backend seo_content Mongo docs need to be regenerated: canonical must use PUBLIC_DOMAIN and SearchAction must be dropped from jsonld builder (mirroring SEO.js P0 change).", "priority": "CRITICAL"}
+    ],
+    "minor": [
+      {"endpoint": "/robots.txt", "issue": "Preview infra serves a Cloudflare-managed robots.txt (User-agent: *, Content-Signal, blocks CCBot/ClaudeBot/GPTBot etc.) that overrides /app/frontend/public/robots.txt. Ahrefs/Semrush Allow directives + Disallow /*?q= etc. are therefore NOT present on preview. This will work on prod plume-astrale.fr where the app-served file wins. Non-blocking for scope but flag for QA sign-off."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "MentionsLegales.js / CGV.js / VoyageKarmiqueSucces.jsx", "issue": "These pages do NOT render <SEO path=... />, so the noindex directives added to SEO_DATA never reach the DOM. meta[name=robots] stays 'index, follow'. Must import and render <SEO /> at the top of each.", "selector": "meta[name=robots]", "priority": "HIGH"},
+      {"component": "Homepage / SEO SSR snapshot", "issue": "useSSRSnapshot overrides canonical with 'http://localhost:3000/' from backend and re-injects SearchAction. Root cause is backend data — see backend issues.", "selector": "link[rel=canonical]", "priority": "CRITICAL"}
+    ],
+    "integration_issues": [
+      {"flow": "Client-side redirects /nos-livres, /theme-natal-luxe", "issue": "WORKING — page.url() confirms final URL is /livres and /theme-natal respectively.", "affected_selectors": []},
+      {"flow": "404 NotFound rendering", "issue": "WORKING — data-testid=notfound-page + notfound-h1 visible, meta name=robots='noindex, follow', meta name=prerender-status-code='404' present.", "affected_selectors": ["[data-testid=notfound-page]"]},
+      {"flow": "Canonical strip query params /decouvrir?theme=dark", "issue": "WORKING — canonical is https://plume-astrale.fr/decouvrir (no query).", "affected_selectors": []}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_seo_rebuild.py",
+    "/app/test_reports/pytest/iter80.xml"
+  ],
+  "action_items": [
+    "MAIN AGENT: Purge or filter the MongoDB seo_content collection to drop paths '/nos-livres' and '/theme-natal-luxe' (they were removed from public/sitemap.xml but the dynamic /api/sitemap.xml reads from Mongo).",
+    "MAIN AGENT: Fix backend /api/seo/content builder — the '/' entry has canonical='http://localhost:3000/' (must be https://plume-astrale.fr/) AND still emits a SearchAction JSON-LD. Regenerate SSR snapshots after fix (or run the SSR snapshot job).",
+    "MAIN AGENT: Add <SEO path='/mentions-legales' /> to MentionsLegales.js, <SEO path='/cgv' /> to CGV.js, <SEO path='/voyage-karmique/succes' /> to VoyageKarmiqueSucces.jsx — otherwise the noindex mapping is dead code. Also verify /politique-confidentialite has a route (currently falls through to NotFound 404, which happens to noindex correctly but hides real content if the page exists).",
+    "MAIN AGENT (optional): The /robots.txt served by preview is Cloudflare-managed — verify prod plume-astrale.fr will serve /app/frontend/public/robots.txt before P0 sign-off."
+  ],
+  "critical_code_review_comments": [
+    "SEO.js P0 SearchAction removal is correct, but useSSRSnapshot.js unconditionally overrides canonical and injects backend jsonld — creating a fragile coupling where backend seo_content docs must always mirror SEO.js. Consider a shared source of truth or a snapshot regeneration hook on deploy.",
+    "SEO_DATA has a duplicate key '/temoignage' (lines 313 & 319) — the second overrides the first; consolidate.",
+    "App.js: /politique-confidentialite has no route defined so it renders NotFound (which by coincidence noindexes). If the page is supposed to exist, add a route; otherwise remove the SEO_DATA entry to avoid confusion.",
+    "Backend /api/sitemap.xml has no filter — any stale seo_content document leaks to Google. Add an allowlist or a 'sitemap_include' flag."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_seo_rebuild.py (new)"
+  ],
+  "success_rate": {"backend": "80%", "frontend": "70%"},
+  "seed_data_creation": "None — used existing endpoints. Lead-magnet test creates TEST_seo_rebuild@example.com token (harmless).",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Once main agent fixes: (1) Mongo seo_content purge of /nos-livres and /theme-natal-luxe, (2) home canonical (drop localhost:3000) + remove SearchAction from backend jsonld builder, (3) add <SEO> to MentionsLegales/CGV/VoyageKarmiqueSucces — retest by (a) re-running /app/backend/tests/test_seo_rebuild.py (all 5 should pass), (b) Playwright: navigate /, /mentions-legales, /cgv, /voyage-karmique/succes and assert meta[name=robots] === 'noindex, follow' where expected, and canonical starts with https://plume-astrale.fr. Preview base: https://consultation-astro.preview.emergentagent.com.",
+  "rca of the issue": "Root cause 1 (sitemap + home canonical + SearchAction leak): the P0+P1 patch was applied only to the frontend layer (SEO.js, public/robots.txt, public/sitemap.xml, App.js redirects). But three prod endpoints are backed by MongoDB `seo_content`: /api/sitemap.xml (dynamic), /api/seo/content (SSR snapshot injected by useSSRSnapshot.js), and canonical/jsonld are overridden client-side by that hook. The Mongo docs were not regenerated after the code change so stale data (localhost URL, SearchAction schema, deprecated paths) still surfaces. Root cause 2 (noindex missing on legal pages): SEO_DATA was updated but MentionsLegales.js, CGV.js, VoyageKarmiqueSucces.jsx never import/render the <SEO> component, so the mapping never executes."
+}

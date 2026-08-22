@@ -13,7 +13,7 @@ import { LECTURES, OUTILS } from '@/config/catalog';
 
 const NAV_LINKS = [
   { label: 'Accueil', to: '/' },
-  { label: 'Services', to: '/nos-livres', hasMega: true },
+  { label: 'Services', to: '/livres', hasMega: true },
   { label: 'Manifesto', to: '/manifesto' },
   { label: 'Blog', to: '/blog' },
   { label: 'Témoignages', to: '/temoignages' },
@@ -53,7 +53,7 @@ export default function NavbarV2() {
 
   const isActive = (to) => location.pathname === to;
   const isServicesActive = () =>
-    location.pathname === '/nos-livres'
+    location.pathname === '/livres'
     || LECTURES.some(l => location.pathname === l.to)
     || OUTILS.some(o => location.pathname === o.to);
 
@@ -182,7 +182,7 @@ export default function NavbarV2() {
                       title={l.title} tagline={l.tagline} price={l.price} highlight={l.highlight} />
                   ))}
                 </div>
-                <Link to="/nos-livres" data-testid="mega-all-lectures" style={megaFooterLink}>
+                <Link to="/livres" data-testid="mega-all-lectures" style={megaFooterLink}>
                   Voir toute la bibliothèque
                   <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
                 </Link>

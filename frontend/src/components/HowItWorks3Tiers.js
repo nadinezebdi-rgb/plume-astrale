@@ -56,7 +56,7 @@ const TIERS = [
     ],
     footer: 'Aucun crédit requis · livré en 60 secondes',
     cta: 'Voir les PDF',
-    ctaLink: '/nos-livres',
+    ctaLink: '/livres',
     testid: 'how-tier-pdf',
   },
 ];

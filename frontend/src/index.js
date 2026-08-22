@@ -4,6 +4,10 @@ import { HelmetProvider } from 'react-helmet-async';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { installMetaAttribution } from '@/lib/metaAttribution';
+
+// Attache les signaux Meta (_fbp/_fbc/event_id) aux appels de checkout.
+installMetaAttribution();
 
 // Mute console.log/debug/info en production (garde console.error/warn pour les vrais problèmes).
 // Réduit le bruit dans la console des visiteurs + évite d'exposer des infos internes.

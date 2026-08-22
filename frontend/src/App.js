@@ -21,6 +21,9 @@ import Tarologie from "./pages/Tarologie";
 import Numerologie from "./pages/Numerologie";
 import Archetype from "./pages/Archetype";
 import KabbaleSales from "./pages/KabbaleSales";
+import VoyageKarmiqueSales from "./pages/VoyageKarmiqueSales";
+import VoyageKarmiqueSucces from "./pages/VoyageKarmiqueSucces";
+import NotFound from "./pages/NotFound";
 import ThemeNatalLuxe from "./pages/ThemeNatalLuxe";
 import NosLivres from "./pages/NosLivres";
 import Blog from "./pages/Blog";
@@ -139,13 +142,22 @@ function App() {
           <Route path="/barometre-2026" element={<Barometre2026 />} />
           <Route path="/horoscope" element={<Horoscope />} />
           <Route path="/horoscope/:sign" element={<HoroscopeSign />} />
+          {/* SEO Rebuild P1 (2026-02) : sous-routes semaine/mois — même composant, période lue via param */}
+          <Route path="/horoscope/:sign/:period" element={<HoroscopeSign />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/cgv" element={<CGV />} />
-          <Route path="/nos-livres" element={<NosLivres />} />
+          <Route path="/nos-livres" element={<Navigate to="/livres" replace />} />
           <Route path="/temoignages" element={<TemoignagesPublic />} />
-          <Route path="/theme-natal-luxe" element={<ThemeNatalLuxe />} />
-          <Route path="/kabbale" element={<KabbaleSales />} />
+          <Route path="/theme-natal-luxe" element={<Navigate to="/theme-natal" replace />} />
+          {/* Voyage Karmique — fusion Kabbale + Karma Destin (49€, Feb 2026 Nocturne) */}
+          <Route path="/voyage-karmique" element={<VoyageKarmiqueSales />} />
+          <Route path="/voyage-karmique/succes" element={<VoyageKarmiqueSucces />} />
+          {/* Ancienne route Kabbale — 301 vers Voyage Karmique */}
+          <Route path="/kabbale" element={<Navigate to="/voyage-karmique" replace />} />
+          {/* Ancienne route Karma Destin — 301 vers Voyage Karmique */}
+          <Route path="/karma-destin" element={<Navigate to="/voyage-karmique" replace />} />
+          <Route path="/karma-destin-pdf" element={<Navigate to="/voyage-karmique" replace />} />
           <Route path="/astrocartographie" element={<AstrocartographieSales />} />
           <Route path="/pack-karmique" element={<PackKarmique />} />
           <Route path="/synastrie" element={<SynastrieSales />} />
@@ -159,8 +171,8 @@ function App() {
           <Route path="/livres" element={<LivresLanding />} />
           <Route path="/numerologie-pdf" element={<NumerologiePDF />} />
           <Route path="/numerologie-pdf/attente" element={<NumerologieWaiting />} />
-          <Route path="/karma-destin-pdf" element={<KarmaDestinPDF />} />
-          <Route path="/karma-destin/attente" element={<KarmaDestinWaiting />} />
+          {/* Ancienne route karma-destin-pdf — 301 vers Voyage Karmique (déclaré plus haut) */}
+          <Route path="/karma-destin/attente" element={<Navigate to="/voyage-karmique" replace />} />
           {/* Thème Natal one-shot 29€ (Gary Vee refonte Feb 2026) */}
           <Route path="/theme-natal" element={<ThemeNatalOneshot />} />
           <Route path="/theme-natal/succes" element={<ThemeNatalOneshotSucces />} />
@@ -243,7 +255,7 @@ function App() {
                 <Route path="/kabbale/succes" element={<KabbaleSucces />} />
                 <Route path="/astrocartographie/succes" element={<AstrocartographieSucces />} />
                 <Route path="/pack-karmique/succes" element={<PackKarmiqueSucces />} />
-                <Route path="/karma-destin" element={<KarmaDestin />} />
+                <Route path="/karma-destin" element={<Navigate to="/voyage-karmique" replace />} />
                 <Route path="/tarologie" element={<Tarologie />} />
                 <Route path="/quotidien" element={<Quotidien />} />
                 <Route path="/premium" element={<Navigate to="/acheter-credits" replace />} />
@@ -251,8 +263,8 @@ function App() {
                 <Route path="/premium/experience" element={<Navigate to="/acheter-credits" replace />} />
                 <Route path="/acheter-credits" element={<BuyCredits />} />
                 <Route path="/credits/succes" element={<CreditSuccess />} />
-                <Route path="/livre" element={<Navigate to="/nos-livres" replace />} />
-                <Route path="/commande/succes" element={<Navigate to="/nos-livres" replace />} />
+                <Route path="/livre" element={<Navigate to="/livres" replace />} />
+                <Route path="/commande/succes" element={<Navigate to="/livres" replace />} />
                 <Route path="/mon-compte" element={<MonCompte />} />
                 <Route path="/temoignage" element={<Temoignage />} />
                 <Route path="/charte-de-confiance" element={<CharteConfiance />} />
@@ -271,8 +283,8 @@ function App() {
                 <Route path="/synastrie/succes" element={<SynastrieSucces />} />
                 <Route path="/astrosexo" element={<Navigate to="/services/astrosexo" replace />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
-                {/* Catch-all : aucune route interne ne correspond -> retour accueil */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                {/* SEO P0 (2026-02-16) : catch-all 404 réel avec noindex */}
+                <Route path="*" element={<NotFound />} />
               </Routes>
               <CookieConsent />
             </>

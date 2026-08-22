@@ -1,0 +1,42 @@
+{
+  "summary": "Iteration 79 — Nocturne Editorial refonte tested. Backend: 7/8 tests pass (health, products, packs.voyage_karmique=49€, lead-magnet generate/rate-limit/download, voyage-karmique status 404). ONLY failure: POST /api/voyage-karmique/checkout returns 500 because Stripe LIVE API key is EXPIRED (backend logs: 'stripe._error.AuthenticationError: Expired API Key provided: sk_live_...Wiw9wh'). This is an environment/credentials issue, not code. Frontend: all Nocturne sections present on /, lead-magnet flow works end-to-end (form → download button), /voyage-karmique renders correctly with all data-testids, 49€ and 'Deux livres' copy present, form POSTs correctly to /api/voyage-karmique/checkout (fails only due to expired Stripe key). Redirects /kabbale and /karma-destin → /voyage-karmique work client-side. Regression /theme-natal, /astrocartographie, /nos-livres, /blog all 200.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "/api/voyage-karmique/checkout", "issue": "Returns 500 — Stripe LIVE API key expired (sk_live_...Wiw9wh). Same key would affect all other Stripe checkouts. NOT a code bug — needs Stripe key rotation in backend/.env STRIPE_API_KEY.", "priority": "CRITICAL"}
+    ],
+    "minor": [
+      {"endpoint": "/api/lead-magnet/generate", "issue": "Supabase table 'public.lead_magnet_downloads' does not exist — tracking silently skipped (non-blocking, PDF still generated and served). Consider creating the table for lead-tracking analytics."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Voyage Karmique checkout submit", "issue": "Form submits POST correctly but backend returns 500 (expired Stripe key). User has no visible checkout redirect.", "affected_selectors": ["[data-testid=voyage-submit]"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration79_nocturne.py",
+    "/app/test_reports/pytest/iter79.xml"
+  ],
+  "action_items": [
+    "URGENT: Rotate Stripe API key — current sk_live_...Wiw9wh is EXPIRED, blocking ALL Stripe checkouts (voyage-karmique, theme-natal, kabbale, astrocarto, etc.). Update STRIPE_API_KEY in /app/backend/.env then restart backend.",
+    "Optional: Create Supabase table 'lead_magnet_downloads' for lead-tracking (columns: email, first_name, birth_date, birth_place, token, created_at)."
+  ],
+  "critical_code_review_comments": [
+    "voyage_karmique.py line 168 uses .maybe_single().execute() — if session_id doesn't exist, tx_res.data is None → correctly returns 404. Good.",
+    "lead_magnet.py rate-limit is in-memory (_LAST_GEN dict) — will reset on backend restart and won't scale across multiple workers. Acceptable for MVP.",
+    "lead_magnet download token check (len<16, isalnum) is defensive and prevents path traversal — good.",
+    "Stripe key currently uses live key in preview env — should use sk_test_* for dev/preview to avoid this class of issue."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration79_nocturne.py (new)"
+  ],
+  "success_rate": {"backend": "87.5% (7/8 — the 1 failure is env/creds not code)", "frontend": "100% (all UI flows + redirects work; checkout POST fails only because of upstream Stripe expired key)"},
+  "test_credentials": "Not required for these public endpoints. Stripe key issue: STRIPE_API_KEY in backend/.env is expired live key.",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "After Stripe key rotation, re-run test_voyage_karmique_checkout to confirm 200 with url+session_id. All Nocturne frontend testids and redirects verified working. Lead magnet PDF generation confirmed producing valid PDF (>5000 bytes, %PDF header, application/pdf mime).",
+  "rca of the issue": "Stripe checkout 500: root cause is expired sk_live_ key in backend/.env. Reproduction: POST /api/voyage-karmique/checkout with valid payload → 500 Internal Server Error. Backend log shows stripe._error.AuthenticationError: Expired API Key. Mitigation: main agent must obtain a fresh Stripe secret key (test or live per env intent) and update STRIPE_API_KEY, then sudo supervisorctl restart backend."
+}

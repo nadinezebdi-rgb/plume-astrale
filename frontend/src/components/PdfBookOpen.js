@@ -18,11 +18,15 @@ import { Sparkles } from 'lucide-react';
 // ─────────────────────────────────────────────────────────────
 // THÈMES : chaque produit a sa propre double-page intérieure + copie
 // ─────────────────────────────────────────────────────────────
+const API = process.env.REACT_APP_BACKEND_URL;
+const IMG = (p) => `${API}/api/assets/library/${p}`;
+
 const THEMES = {
   astrocarto: {
     label: 'Astrocartographie',
     coverTitle: 'Ton\nAstrocartographie',
     coverSignature: 'Prénom · Naissance · 18 pages sur mesure',
+    coverImage: IMG('planets/jupiter_512.png'),
     heroSub: 'PDF premium, 18 pages sur ta géographie astrale. Ce que tu vois est ce que tu reçois par email.',
     footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 18 pages',
   },
@@ -30,6 +34,7 @@ const THEMES = {
     label: 'Arbre de Vie',
     coverTitle: 'Ton\nArbre de Vie',
     coverSignature: 'Prénom · Naissance · 15 pages kabbalistiques',
+    coverImage: IMG('tarot/17_l_etoile_512.png'),
     heroSub: 'PDF premium, 15 pages qui cartographient ton âme sur les 10 Sephiroth et 22 chemins de l\'Arbre de Vie.',
     footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 15 pages',
   },
@@ -37,6 +42,7 @@ const THEMES = {
     label: 'Pack Karmique',
     coverTitle: 'Ton\nPack Karmique',
     coverSignature: 'Prénom · Naissance · 40 pages sur mesure',
+    coverImage: IMG('tarot/19_le_soleil_512.png'),
     heroSub: 'L\'écrin le plus profond de Plume Astrale. 40 pages qui unissent ton empreinte karmique, ton Arbre de Vie et ta synthèse d\'âme.',
     footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 40 pages',
   },
@@ -44,6 +50,7 @@ const THEMES = {
     label: 'Thème Natal',
     coverTitle: 'Ton\nThème Natal',
     coverSignature: 'Prénom · Naissance · 49 pages sur mesure',
+    coverImage: IMG('planets/sun_512.png'),
     heroSub: 'PDF premium, 49 pages où 11 planètes racontent qui tu es vraiment — 73 dimensions astrologiques analysées et écrites dans un style éditorial signé Plume Astrale.',
     footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 49 pages',
   },
@@ -51,6 +58,7 @@ const THEMES = {
     label: 'Astrologie relationnelle',
     coverTitle: 'Votre\nAstrologie relationnelle',
     coverSignature: 'Deux prénoms · Deux ciels · 25 pages croisées',
+    coverImage: IMG('tarot/06_les_amoureux_512.png'),
     heroSub: 'L\'aspectarium de votre lien — 25 pages où vos deux ciels dansent ensemble. Aspects planétaires croisés, langages d\'amour et points de tendresse à cultiver.',
     footerHint: 'Passe la souris pour rouvrir · Livraison PDF instantanée · 25 pages',
   },
@@ -315,9 +323,27 @@ const BookCover = ({ theme }) => {
       <div className="pbo-cover-title">{line1}<br/>{line2}</div>
       <div className="pbo-cover-sub">✦ Édition Plume Astrale ✦</div>
       <div className="pbo-cover-medallion">
-        <div className="pbo-cover-medallion-inner" />
-        <div className="pbo-cover-cross-h" />
-        <div className="pbo-cover-cross-v" />
+        {t.coverImage ? (
+          <img
+            src={t.coverImage}
+            alt=""
+            className="pbo-cover-medallion-img"
+            style={{
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%', objectFit: 'contain',
+              borderRadius: '50%',
+              opacity: 0.92,
+              filter: 'drop-shadow(0 0 12px rgba(212,175,55,0.35))',
+            }}
+            loading="lazy"
+          />
+        ) : (
+          <>
+            <div className="pbo-cover-medallion-inner" />
+            <div className="pbo-cover-cross-h" />
+            <div className="pbo-cover-cross-v" />
+          </>
+        )}
       </div>
       <div className="pbo-cover-signature">{t.coverSignature}</div>
       <div className="pbo-cover-flourish pbo-cover-flourish-bot">✦</div>

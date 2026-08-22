@@ -30,42 +30,27 @@
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
   </url>
-  <url>
-    <loc>https://plume-astrale.fr/nos-livres</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
+  <!-- Bibliothèque canonique (2026-02-16 : /nos-livres → /livres) -->
 
-  <!-- 6 pages produit livre (priorité maximale — pages transactionnelles) -->
+  <!-- Pages produit livre (priorité maximale — pages transactionnelles) -->
   <url>
     <loc>https://plume-astrale.fr/theme-natal</loc>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
   </url>
+  <!-- /theme-natal-luxe retiré (redirect 301 → /theme-natal, SEO Rebuild P1 2026-02) -->
+  <!-- /kabbale retiré (redirect 301 → /voyage-karmique, Feb 2026 Nocturne fusion) -->
+  <!-- /karma-destin retiré (redirect 301 → /voyage-karmique) -->
+  <!-- /karma-destin-pdf retiré (redirect 301 → /voyage-karmique) -->
   <url>
-    <loc>https://plume-astrale.fr/theme-natal-luxe</loc>
+    <loc>https://plume-astrale.fr/voyage-karmique</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/kabbale</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.95</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/astrocartographie</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/karma-destin</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/karma-destin-pdf</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/numerologie</loc>

@@ -75,6 +75,8 @@ from routes.apercu_discount import router as apercu_discount_router
 from routes.gift import router as gift_router
 from routes.pdf_preview import router as pdf_preview_router
 from routes.pdf_test_admin import router as pdf_test_admin_router
+from routes.lead_magnet import router as lead_magnet_router
+from routes.voyage_karmique import router as voyage_karmique_router
 from routes.reports import router as reports_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
@@ -147,6 +149,8 @@ api_router.include_router(apercu_discount_router)
 api_router.include_router(gift_router)
 api_router.include_router(pdf_preview_router)
 api_router.include_router(pdf_test_admin_router)
+api_router.include_router(lead_magnet_router)
+api_router.include_router(voyage_karmique_router)
 api_router.include_router(reports_router)
 
 
@@ -695,6 +699,15 @@ async def payment_status(session_id: str, current_user: dict = Depends(get_curre
     if tx.get('user_id') and tx['user_id'] != current_user['id']:
         raise HTTPException(status_code=403, detail='Accès refusé')
 
+    def _capi_event_id() -> Optional[str]:
+        """event_id d'attribution enregistré au checkout (rejoué par le pixel)."""
+        try:
+            r = sb.table('checkout_attribution').select('event_id').eq(
+                'session_id', session_id).maybe_single().execute()
+            return (r.data or {}).get('event_id') if r else None
+        except Exception:
+            return None
+
     # Si deja accordes, on renvoie le status existant
     if tx['credits_granted']:
         balance = await wallet_service.get_balance(current_user['id'])
@@ -704,6 +717,9 @@ async def payment_status(session_id: str, current_user: dict = Depends(get_curre
             'credits_granted': True,
             'credits': tx['credits'],
             'credit_balance': balance,
+            'amount': float(tx.get('amount') or 0),
+            'currency': tx.get('currency') or 'EUR',
+            'capi_event_id': _capi_event_id(),
         }
 
     # Sinon on interroge Stripe
@@ -725,6 +741,12 @@ async def payment_status(session_id: str, current_user: dict = Depends(get_curre
             tx_type='purchase',
         )
         updates['credits_granted'] = True
+        # Meta CAPI : envoi idempotent (verrou capi_sent_at).
+        try:
+            from services.capi_purchase import track_purchase_once
+            await track_purchase_once(session_id, {'payment_status': 'paid'})
+        except Exception as e:
+            logger.warning(f'[capi_purchase] status polling fail: {e}')
 
     sb.table('payment_transactions').update(updates).eq('session_id', session_id).execute()
 
@@ -736,6 +758,9 @@ async def payment_status(session_id: str, current_user: dict = Depends(get_curre
         'credits_granted': updates.get('credits_granted', tx['credits_granted']),
         'credits': tx['credits'],
         'credit_balance': new_balance,
+        'amount': float(tx.get('amount') or 0),
+        'currency': tx.get('currency') or 'EUR',
+        'capi_event_id': _capi_event_id(),
     }
 
 
@@ -809,6 +834,18 @@ async def stripe_webhook(request: Request):
                     )
         except Exception as e:
             logger.warning(f'[referral] webhook hook fail: {e}')
+
+    # ─── Meta CAPI : Purchase server-side, tous produits confondus ────────
+    # Placé AVANT le routage par produit (chaque branche fait un `return`,
+    # donc c'est le seul point traversé par tous les paiements). Idempotent
+    # via `checkout_attribution.capi_sent_at` (UPDATE conditionnel).
+    try:
+        _sd = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
+        if _sd.get('payment_status') == 'paid':
+            from services.capi_purchase import track_purchase_once
+            await track_purchase_once(_sd.get('id'), _sd)
+    except Exception as e:
+        logger.warning(f'[capi_purchase] webhook hook fail: {e}')
 
     # ─── Route Cercle Soléna (abonnement 19€/mois) EN PREMIER ───────────────
     # Consume : customer.subscription.* + invoice.payment_succeeded (mensuel)
@@ -917,6 +954,16 @@ async def stripe_webhook(request: Request):
         except Exception as e:
             logger.warning(f'[karma_destin] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'karma_destin_analysis'}
+
+    # Route vers Voyage Karmique handler si kind=voyage_karmique (fusion Kabbale + Karma, 49 EUR, Feb 2026)
+    if md.get('kind') == 'voyage_karmique':
+        from services.voyage_karmique_service import handle_voyage_karmique_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_voyage_karmique_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[voyage_karmique] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'voyage_karmique'}
 
     # Route vers Consultation Ultime handler si kind=consultation_ultime (149 EUR hyperpremium)
     if md.get('kind') == 'consultation_ultime':
@@ -2429,6 +2476,11 @@ app.add_middleware(
 # ═══════════════════════════════════════════════════════════════════
 from services.stripe_guard import stripe_live_guard_middleware, log_startup_stripe_status
 app.middleware('http')(stripe_live_guard_middleware)
+
+# Attribution Meta : capture les signaux navigateur sur toutes les routes de
+# checkout, sans avoir à modifier les 13 routes produit.
+from middleware.meta_attribution import meta_attribution_middleware
+app.middleware('http')(meta_attribution_middleware)
 log_startup_stripe_status()
 
 
@@ -2578,6 +2630,109 @@ async def admin_refresh_ig_token(current_user: dict = Depends(get_current_user))
     return result
 
 
+# ─── SEO SSR Snapshot endpoints ──────────────────────────────────────
+@app.get('/api/seo/content')
+async def seo_get_content(path: str):
+    """Retourne le snapshot SEO d'une route (public — consommé par prerender.js).
+
+    Query : ?path=/theme-natal-luxe
+
+    Retour : {path, meta_title, meta_desc, h1, html_body, jsonld, ...}
+    Retourne 404 si aucun snapshot en base (fallback vers React SPA vanilla côté frontend).
+    """
+    from fastapi import HTTPException as _HTTPExc
+    from services.ssr_snapshot import get_snapshot
+    if not path.startswith('/'):
+        path = '/' + path
+    doc = await get_snapshot(path)
+    if not doc:
+        raise _HTTPExc(status_code=404, detail=f'No SEO snapshot for {path}')
+    return doc
+
+
+@app.post('/api/admin/seo/refresh')
+async def admin_refresh_seo(current_user: dict = Depends(get_current_user), only_expired: bool = False):
+    """Admin-only : force le refresh des snapshots SEO.
+
+    ?only_expired=false → refresh TOUS les snapshots (utile après un gros changement de copie)
+    ?only_expired=true  → ne refresh que ceux qui ont expiré (cycle normal)
+    """
+    from fastapi import HTTPException as _HTTPExc
+    from services.supabase_client import get_admin_client as _gac
+    sb = _gac()
+    prof = sb.table('profiles').select('is_admin').eq('id', current_user['id']).maybe_single().execute()
+    if not (prof and prof.data and prof.data.get('is_admin')):
+        raise _HTTPExc(status_code=403, detail='Réservé aux administrateurs')
+    from services.ssr_snapshot import refresh_all
+    return await refresh_all(only_expired=only_expired)
+
+
+# ─── Sitemap + Feed dynamiques (F500 SEO 2026-02) ────────────────────
+@app.get('/api/sitemap.xml')
+async def sitemap_xml():
+    """Sitemap XML dynamique — mirror de la collection MongoDB seo_content.
+
+    Chaque URL a <loc>, <lastmod>, <changefreq>, <priority>.
+    Sert d'entry point pour Google Search Console.
+    """
+    from fastapi.responses import Response as _Resp
+    from services.ssr_snapshot import _get_mongo, PUBLIC_DOMAIN
+    db = _get_mongo()
+    cursor = db.seo_content.find({}, {'path': 1, 'updated_at': 1, 'priority': 1, 'ttl_hours': 1})
+    entries = await cursor.to_list(length=500)
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>',
+             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for e in entries:
+        ttl = e.get('ttl_hours', 24)
+        freq = 'hourly' if ttl <= 6 else ('daily' if ttl <= 24 else ('weekly' if ttl <= 168 else 'monthly'))
+        lastmod = (e.get('updated_at') or '')[:10]  # YYYY-MM-DD
+        lines.append(
+            f'  <url><loc>{PUBLIC_DOMAIN}{e["path"]}</loc>'
+            f'<lastmod>{lastmod}</lastmod>'
+            f'<changefreq>{freq}</changefreq>'
+            f'<priority>{e.get("priority", 0.5):.2f}</priority></url>'
+        )
+    lines.append('</urlset>')
+    return _Resp(content='\n'.join(lines), media_type='application/xml')
+
+
+@app.get('/api/feed.xml')
+async def feed_xml():
+    """RSS 2.0 feed — horoscopes + articles blog pour Google Discover / Merchant."""
+    from fastapi.responses import Response as _Resp
+    from services.ssr_snapshot import _get_mongo, PUBLIC_DOMAIN
+    db = _get_mongo()
+    cursor = db.seo_content.find(
+        {'path': {'$regex': r'^/(horoscope|blog)'}},
+        {'path': 1, 'meta_title': 1, 'meta_desc': 1, 'updated_at': 1, 'og_image': 1}
+    ).sort('updated_at', -1).limit(100)
+    entries = await cursor.to_list(length=100)
+    items = []
+    for e in entries:
+        title = (e.get('meta_title') or e['path']).replace('&', '&amp;').replace('<', '&lt;')
+        desc = (e.get('meta_desc') or '').replace('&', '&amp;').replace('<', '&lt;')[:280]
+        url = f'{PUBLIC_DOMAIN}{e["path"]}'
+        img = e.get('og_image') or ''
+        pub = (e.get('updated_at') or '')
+        media = f'<enclosure url="{img}" type="image/jpeg"/>' if img else ''
+        items.append(
+            f'<item><title>{title}</title><link>{url}</link><guid isPermaLink="true">{url}</guid>'
+            f'<description>{desc}</description><pubDate>{pub}</pubDate>{media}</item>'
+        )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">\n'
+        '<channel>\n'
+        '<title>Plume Astrale · Horoscopes &amp; Articles</title>\n'
+        f'<link>{PUBLIC_DOMAIN}</link>\n'
+        '<description>Lectures astrologiques personnalisées &amp; guidance quotidienne.</description>\n'
+        '<language>fr-FR</language>\n'
+        + '\n'.join(items) +
+        '\n</channel></rss>'
+    )
+    return _Resp(content=xml, media_type='application/rss+xml')
+
+
 @app.on_event('startup')
 async def _start_cart_recovery():
     import asyncio as _asyncio
@@ -2594,6 +2749,13 @@ async def _start_cart_recovery():
     from services.cercle_monthly_report import cercle_monthly_report_loop
     from services.instagram_weekly_post import ig_weekly_post_loop
     from services.instagram_token_refresh import ig_token_refresh_loop
+    from services.promo_bootstrap import ensure_permanent_promo_codes
+    from services.ssr_snapshot import ssr_refresh_loop
+    # Bootstrap idempotent des codes promo permanents (TOUT2026)
+    try:
+        ensure_permanent_promo_codes()
+    except Exception as _e:
+        logging.getLogger(__name__).warning(f'promo bootstrap skipped: {_e}')
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
     _asyncio.create_task(astrocarto_followup_loop())
@@ -2607,3 +2769,4 @@ async def _start_cart_recovery():
     _asyncio.create_task(cercle_monthly_report_loop())
     _asyncio.create_task(ig_weekly_post_loop())
     _asyncio.create_task(ig_token_refresh_loop())
+    _asyncio.create_task(ssr_refresh_loop())
