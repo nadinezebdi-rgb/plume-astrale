@@ -39,6 +39,21 @@ def _sha256(v: Optional[str]) -> Optional[str]:
     return hashlib.sha256(v.strip().lower().encode('utf-8')).hexdigest()
 
 
+def extract_client_signals(request) -> dict:
+    """Signaux de matching Meta extraits de la requête FastAPI.
+
+    Derrière Vercel/Railway, `request.client.host` est l'IP du proxy — on
+    prend le premier hop de X-Forwarded-For (IP réelle du visiteur).
+    """
+    ua = request.headers.get('user-agent') or None
+    forwarded = request.headers.get('x-forwarded-for', '')
+    if forwarded:
+        ip = forwarded.split(',')[0].strip() or None
+    else:
+        ip = request.client.host if request.client else None
+    return {'client_ip': ip, 'client_user_agent': ua}
+
+
 async def send_capi_event(
     event_name: str,
     event_id: str | None = None,

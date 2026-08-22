@@ -697,6 +697,15 @@ async def payment_status(session_id: str, current_user: dict = Depends(get_curre
     if tx.get('user_id') and tx['user_id'] != current_user['id']:
         raise HTTPException(status_code=403, detail='Accès refusé')
 
+    def _capi_event_id() -> Optional[str]:
+        """event_id d'attribution enregistré au checkout (rejoué par le pixel)."""
+        try:
+            r = sb.table('checkout_attribution').select('event_id').eq(
+                'session_id', session_id).maybe_single().execute()
+            return (r.data or {}).get('event_id') if r else None
+        except Exception:
+            return None
+
     # Si deja accordes, on renvoie le status existant
     if tx['credits_granted']:
         balance = await wallet_service.get_balance(current_user['id'])
@@ -706,6 +715,9 @@ async def payment_status(session_id: str, current_user: dict = Depends(get_curre
             'credits_granted': True,
             'credits': tx['credits'],
             'credit_balance': balance,
+            'amount': float(tx.get('amount') or 0),
+            'currency': tx.get('currency') or 'EUR',
+            'capi_event_id': _capi_event_id(),
         }
 
     # Sinon on interroge Stripe
@@ -727,6 +739,12 @@ async def payment_status(session_id: str, current_user: dict = Depends(get_curre
             tx_type='purchase',
         )
         updates['credits_granted'] = True
+        # Meta CAPI : envoi idempotent (verrou capi_sent_at).
+        try:
+            from services.capi_purchase import track_purchase_once
+            await track_purchase_once(session_id, {'payment_status': 'paid'})
+        except Exception as e:
+            logger.warning(f'[capi_purchase] status polling fail: {e}')
 
     sb.table('payment_transactions').update(updates).eq('session_id', session_id).execute()
 
@@ -738,6 +756,9 @@ async def payment_status(session_id: str, current_user: dict = Depends(get_curre
         'credits_granted': updates.get('credits_granted', tx['credits_granted']),
         'credits': tx['credits'],
         'credit_balance': new_balance,
+        'amount': float(tx.get('amount') or 0),
+        'currency': tx.get('currency') or 'EUR',
+        'capi_event_id': _capi_event_id(),
     }
 
 
@@ -811,6 +832,18 @@ async def stripe_webhook(request: Request):
                     )
         except Exception as e:
             logger.warning(f'[referral] webhook hook fail: {e}')
+
+    # ─── Meta CAPI : Purchase server-side, tous produits confondus ────────
+    # Placé AVANT le routage par produit (chaque branche fait un `return`,
+    # donc c'est le seul point traversé par tous les paiements). Idempotent
+    # via `checkout_attribution.capi_sent_at` (UPDATE conditionnel).
+    try:
+        _sd = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
+        if _sd.get('payment_status') == 'paid':
+            from services.capi_purchase import track_purchase_once
+            await track_purchase_once(_sd.get('id'), _sd)
+    except Exception as e:
+        logger.warning(f'[capi_purchase] webhook hook fail: {e}')
 
     # ─── Route Cercle Soléna (abonnement 19€/mois) EN PREMIER ───────────────
     # Consume : customer.subscription.* + invoice.payment_succeeded (mensuel)
@@ -2421,6 +2454,11 @@ app.add_middleware(
 # ═══════════════════════════════════════════════════════════════════
 from services.stripe_guard import stripe_live_guard_middleware, log_startup_stripe_status
 app.middleware('http')(stripe_live_guard_middleware)
+
+# Attribution Meta : capture les signaux navigateur sur toutes les routes de
+# checkout, sans avoir à modifier les 13 routes produit.
+from middleware.meta_attribution import meta_attribution_middleware
+app.middleware('http')(meta_attribution_middleware)
 log_startup_stripe_status()
 
 

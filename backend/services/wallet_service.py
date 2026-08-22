@@ -261,28 +261,12 @@ async def add_credits(user_id: str, amount: int, description: str, tx_type: str 
         sb = get_admin_client()
         new_balance = await _add_credits_no_lock(sb, user_id, amount, description, tx_type)
 
-    # ─── Meta Conversions API (server-side) — fire hors du verrou pour ne
-    # pas ralentir les transactions. tx_type='purchase' = vrai achat client.
-    if tx_type == 'purchase':
-        try:
-            from services.meta_capi import send_capi_event
-            # Récupérer email + prix estimé pour Meta dedup avec pixel client
-            prof = sb.table('profiles').select('email').eq('id', user_id).maybe_single().execute()
-            email = prof.data.get('email') if (prof and prof.data) else None
-            # Estimation du prix EUR à partir du nb de crédits (barème indicatif)
-            # 20 credits = 20€ · 50 = 45€ · 100 = 80€
-            value_eur = round(amount * 0.9, 2) if amount > 0 else 0
-            import asyncio as _asyncio
-            _asyncio.create_task(send_capi_event(
-                event_name='Purchase',
-                user_email=email,
-                value=value_eur,
-                currency='EUR',
-                content_name=description,
-                num_items=amount,
-            ))
-        except Exception:
-            pass  # Ne jamais bloquer l'achat pour un problème CAPI
+    # ─── Meta Conversions API : Purchase server-side ────────────────────────
+    # NOTE : PLUS envoyé ici. add_credits() est générique (achat, refund, bonus,
+    # grant admin) et n'a accès ni au montant réellement payé, ni à l'event_id
+    # de déduplication, ni aux cookies _fbp/_fbc. L'event part de :
+    #   - services.capi_purchase.track_purchase_once() (webhook Stripe + polling)
+    # qui dispose de tout le contexte nécessaire.
 
     return new_balance
 

@@ -1691,3 +1691,47 @@ Chaque URL a été validée sur 6 critères SEO :
 - Le CTA "Créer mon compte" descendu en H2 sous-hiérarchie
 - Overline "JOURNAL CÉLESTE · 12 SIGNES", lead éditorial, ZodiacGrid des 12 signes conservée
 - Snapshot Mongo re-généré : `/horoscope` H1 capturé correctement
+
+---
+
+## 2026-02-16 (4) — Meta CAPI Rebuild : dedup + attribution complète tous produits
+### Problème résolu
+Sur **73 paiements confirmés en base, ZÉRO n'était tracké dans Meta**. Le tunnel packs de crédits ne représente en réalité aucune vente ; tout le CA passe par les produits one-shot (thème natal, kabbale, voyage karmique, consultation ultime 149€, astrocartographie, synastrie…). Aucun de ces 13 handlers n'appelait la CAPI — Meta n'a jamais vu une vente réelle.
+
+### Architecture retenue
+- **Middleware d'attribution** (`middleware/meta_attribution.py`) : lit `session_id` dans la réponse de toutes les routes `/checkout` et persiste les signaux navigateur (event_id, _fbp, _fbc, IP, UA) dans une table dédiée. **Aucune des 13 routes produit n'est touchée.**
+- **Table dédiée** (`checkout_attribution`) et non `payment_transactions.metadata` — évite les races avec les handlers produit qui font read-modify-write.
+- **Verrou d'idempotence** : UPDATE conditionnel `capi_sent_at NULL → date`, seul l'appelant qui gagne la course envoie. Verrou relâché si Meta refuse (retry possible).
+- **Point d'envoi unique** (`services/capi_purchase.py::track_purchase_once`) appelé depuis 2 endroits : webhook Stripe (avant routage produit) + `self_heal_if_paid` (reprise si webhook manqué).
+- **Frontend intercepteur axios** (`lib/metaAttribution.js`) — 1 seul point qui joint `X-Meta-Event-Id`/`X-Meta-Fbp`/`X-Meta-Fbc` en headers sur tous les POST `/checkout`. Aucune page produit modifiée.
+
+### Corrections annexes
+- `wallet_service.add_credits()` : `send_capi_event` retiré. Fonction générique (achat/refund/bonus/grant admin) qui ne dispose ni du montant réel ni des signaux — un refund comptait comme une vente.
+- Montant Purchase : `session.amount_total / 100` (vraie recette Stripe) au lieu de `credits × 0.9` (barème inventé).
+- `TarotAmour.js` / `TarotCroixCeltique.js` : `EVENTS.CREDIT_PURCHASE` → `EVENTS.CREDITS_SPENT` (consommation ≠ achat, plus de Purchase Meta parasite).
+- `getCapiAttribution()` renvoie `{}` sans consentement cookies (RGPD-safe).
+
+### Défense en profondeur (2026-02-16)
+- Le middleware log un `warning` unique si la table `checkout_attribution` est absente au lieu de crasher — permet un rollout inversé (backend avant migration).
+
+### Fichiers créés
+- `backend/middleware/meta_attribution.py`
+- `backend/services/capi_purchase.py`
+- `backend/tests/test_meta_capi_dedup.py` (15 tests statiques)
+- `backend/tests/test_meta_attribution_middleware.py` (4 tests fonctionnels TestClient FastAPI)
+- `frontend/src/lib/metaAttribution.js`
+- `supabase/checkout_attribution_migration.sql`
+
+### Tests
+- **19/19 pass** (statiques + fonctionnels middleware avec Supabase mocké)
+- Lint Python + JS : 0 erreur
+- Backend démarre sans erreur, middleware chargé
+
+### 🚨 Action manuelle utilisateur AVANT redéploiement production
+1. **Exécuter la migration SQL** dans Supabase SQL Editor :
+   ```sql
+   -- copier/coller le contenu de /app/supabase/checkout_attribution_migration.sql
+   ```
+2. **Vérifier** : `SELECT * FROM public.checkout_attribution LIMIT 1;` (doit renvoyer 0 ligne, pas d'erreur)
+3. **Rollout ordre** : Migration → Backend → Frontend (sinon le middleware log un warning inoffensif)
+4. **Vérifier après déploiement** : Business Manager → Events Manager → Test Events, faire un vrai achat, confirmer 1 seul Purchase reçu (pas 2 → dédup OK)

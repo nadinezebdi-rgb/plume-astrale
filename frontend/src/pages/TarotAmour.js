@@ -34,7 +34,7 @@ const TarotAmour = () => {
     setReading(null);
     setRevealedIdx(-1);
     setLoading(true);
-    track(EVENTS.CREDIT_PURCHASE, { tool: 'tarot_amour', cost: CREDIT_COST });
+    track(EVENTS.CREDITS_SPENT, { tool: 'tarot_amour', cost: CREDIT_COST });
     try {
       const r = await axios.post(
         `${API}/api/tarot/amour`,

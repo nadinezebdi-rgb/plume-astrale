@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import axios from 'axios';
+import { revenue, EVENTS } from '@/lib/analytics';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -24,6 +25,18 @@ export default function CreditSuccess() {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.data.payment_status === 'paid') {
+          // Pixel client : rejoue l'event_id du backend pour dédup avec CAPI.
+          // Garde-fou : une fois par session_id, même si l'utilisateur refresh.
+          try {
+            const key = `pa_purchase_tracked_${sessionId}`;
+            if (!sessionStorage.getItem(key)) {
+              sessionStorage.setItem(key, '1');
+              revenue(EVENTS.CREDIT_PURCHASE, res.data.amount, {
+                eventID: res.data.capi_event_id,
+                credits: res.data.credits,
+              });
+            }
+          } catch (_e) { /* sessionStorage indisponible */ }
           await refreshBalance();
           setStatus('success');
           return;
