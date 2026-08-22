@@ -66,42 +66,51 @@
         <script type="application/ld+json">
         {
             "@context": "https://schema.org",
-            "@type": "ProfessionalService",
+            "@type": "Organization",
             "name": "Plume Astrale",
             "url": "https://plume-astrale.fr",
-            "description": "Espace de guidance symbolique fonde sur des calculs astrologiques precis et une interpretation experte.",
-            "serviceType": ["Astrologie", "Tarot", "Numerologie", "Guidance spirituelle"],
+            "logo": "https://plume-astrale.fr/logo512.png",
+            "image": "https://plume-astrale.fr/logo512.png",
+            "description": "Connaissance de soi — mieux comprendre ses émotions, besoins et fonctionnements. Aide à la réflexion, relations, cycles de vie, développement personnel et introspection.",
             "areaServed": {
                 "@type": "Country",
                 "name": "France"
-            },
-            "hasOfferCatalog": {
-                "@type": "OfferCatalog",
-                "name": "Services Plume Astrale",
-                "itemListElement": [
-                    {
-                        "@type": "Offer",
-                        "name": "Tirage Tarot Oui/Non",
-                        "description": "3 tirages gratuits par jour — Reponse symbolique immediate",
-                        "price": "0",
-                        "priceCurrency": "EUR"
-                    },
-                    {
-                        "@type": "Offer",
-                        "name": "Theme Astral Professionnel",
-                        "description": "Votre theme astral complet en PDF — 28+ pages",
-                        "price": "29.90",
-                        "priceCurrency": "EUR"
-                    },
-                    {
-                        "@type": "Offer",
-                        "name": "Experience Premium — Cartographie Celeste",
-                        "description": "Parcours guide en 5 etapes + PDF Premium — Astrologie, numerologie et projection 12 mois",
-                        "price": "199",
-                        "priceCurrency": "EUR"
-                    }
-                ]
             }
+        }
+        </script>
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "Product",
+                    "name": "Thème Astral Professionnel",
+                    "description": "Votre thème astral complet en PDF — 28+ pages, composé sur mesure à partir de votre date, heure et lieu de naissance.",
+                    "image": "https://plume-astrale.fr/logo512.png",
+                    "brand": { "@type": "Brand", "name": "Plume Astrale" },
+                    "offers": {
+                        "@type": "Offer",
+                        "url": "https://plume-astrale.fr/theme-natal-luxe",
+                        "price": "29.90",
+                        "priceCurrency": "EUR",
+                        "availability": "https://schema.org/InStock"
+                    }
+                },
+                {
+                    "@type": "Product",
+                    "name": "Expérience Premium — Cartographie Céleste",
+                    "description": "Parcours guidé en 5 étapes + PDF Premium — thème natal approfondi, numérologie et projection sur 12 mois.",
+                    "image": "https://plume-astrale.fr/logo512.png",
+                    "brand": { "@type": "Brand", "name": "Plume Astrale" },
+                    "offers": {
+                        "@type": "Offer",
+                        "url": "https://plume-astrale.fr/premium",
+                        "price": "199",
+                        "priceCurrency": "EUR",
+                        "availability": "https://schema.org/InStock"
+                    }
+                }
+            ]
         }
         </script>
 

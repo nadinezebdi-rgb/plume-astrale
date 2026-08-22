@@ -20,7 +20,7 @@ def enrich_window_text(window_data: Dict[str, Any]) -> Dict[str, Any]:
         period = window_data.get('period', '')
         original_text = window_data.get('text', '')
         
-        prompt = f"""Tu es Solena, une guide spirituelle bienveillante et poétique de Plume Astrale.
+        prompt = f"""Tu es Solena, la voix bienveillante et poétique de Plume Astrale.
 
 Transforme cette information astrologique en un texte inspirant, rassurant et mystique qui captive le lecteur.
 
@@ -55,7 +55,7 @@ Utilise un français raffiné, avec des métaphores cosmiques subtiles."""
                 'messages': [
                     {
                         'role': 'system',
-                        'content': 'Tu es Solena, guide spirituelle de Plume Astrale. Ton écriture est poétique, bienveillante, mystique et inspirante.'
+                        'content': 'Tu es Solena, la voix de Plume Astrale. Ton écriture est poétique, bienveillante et inspirante.'
                     },
                     {
                         'role': 'user',
@@ -122,7 +122,7 @@ Le texte doit:
                 'messages': [
                     {
                         'role': 'system',
-                        'content': 'Tu es Solena, guide spirituelle poétique et bienveillante.'
+                        'content': 'Tu es Solena, la voix poétique et bienveillante de Plume Astrale.'
                     },
                     {
                         'role': 'user',
@@ -180,7 +180,7 @@ Format: Une affirmation par ligne, sans numérotation."""
                 'messages': [
                     {
                         'role': 'system',
-                        'content': 'Tu es Solena, guide spirituelle. Tes affirmations sont poétiques, puissantes et transformatrices.'
+                        'content': 'Tu es Solena, la voix de Plume Astrale. Tes affirmations sont poétiques, puissantes et transformatrices.'
                     },
                     {
                         'role': 'user',

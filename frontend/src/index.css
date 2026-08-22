@@ -1714,3 +1714,55 @@ pre, code, table { max-width: 100%; overflow-x: auto; word-break: break-word; }
     transform: none !important;
   }
 }
+/* Etoiles filantes globales */
+.plume-shooting-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.plume-shooting-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #F4D98C;
+  box-shadow: 0 0 6px 1px rgba(244, 217, 140, 0.8);
+  opacity: 0;
+  transform: rotate(45deg);
+  animation-name: plume-shoot;
+  animation-timing-function: ease-in;
+  animation-iteration-count: 1;
+}
+.plume-shooting-star::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 2px;
+  width: 120px;
+  height: 1px;
+  transform: translateY(-50%);
+  background: linear-gradient(to left, rgba(244, 217, 140, 0.9), transparent);
+}
+@keyframes plume-shoot {
+  0% { opacity: 0; transform: translate(0, 0) rotate(45deg); }
+  10% { opacity: 1; }
+  100% { opacity: 0; transform: translate(280px, 280px) rotate(45deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plume-shooting-star { animation: none; display: none; }
+}
+
+
+/* ── Formulaire auth unifié (connexion / inscription) ── */
+/* Transition douce entre les vues connexion / inscription / étapes */
+.auth-fade {
+  animation: authFade 0.45s ease both;
+}
+@keyframes authFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-fade { animation: none; }}

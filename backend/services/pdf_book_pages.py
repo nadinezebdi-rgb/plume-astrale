@@ -521,7 +521,7 @@ def colophon_page(story, styles, prenom: str, referral_code: Optional[str] = Non
                            fontSize=9, alignment=TA_CENTER, spaceAfter=30),
         ))
     story.append(Paragraph(
-        '— Soléna, ton oracle numérique<br/>Plume Astrale · plume-astrale.fr',
+        '— Soléna, la voix de Plume Astrale<br/>plume-astrale.fr',
         ParagraphStyle('col_sig', fontName=font('Cinzel', 'Helvetica'),
                        fontSize=9, textColor=GOLD, alignment=TA_CENTER, spaceBefore=20, letterSpacing=2),
     ))
