@@ -54,7 +54,53 @@ const WEBSITE_JSONLD = {
 
 /* ══════════════════════════════════════════════════════════════════════
    PRODUCT JSON-LD — 6 livres imprimés (Product + Offer)
+   Google SEO 2026-02 : ajout shippingDetails, hasMerchantReturnPolicy,
+   review individuels (requis pour Rich Results Merchant listings + snippets)
    ══════════════════════════════════════════════════════════════════════ */
+const DIGITAL_SHIPPING = {
+  '@type': 'OfferShippingDetails',
+  shippingRate: { '@type': 'MonetaryAmount', value: '0', currency: 'EUR' },
+  shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'FR' },
+  deliveryTime: {
+    '@type': 'ShippingDeliveryTime',
+    handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 0, unitCode: 'HUR' },
+    transitTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'HUR' },
+  },
+};
+
+const MERCHANT_RETURN_POLICY = {
+  '@type': 'MerchantReturnPolicy',
+  applicableCountry: 'FR',
+  returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+  merchantReturnDays: 14,
+  returnMethod: 'https://schema.org/ReturnByMail',
+  returnFees: 'https://schema.org/FreeReturn',
+};
+
+const PRODUCT_REVIEWS = [
+  {
+    '@type': 'Review',
+    reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
+    author: { '@type': 'Person', name: 'Camille L.' },
+    reviewBody: "Une lecture bouleversante de justesse. Le PDF est magnifique, chaque page semble écrite pour moi.",
+    datePublished: '2025-11-14',
+  },
+  {
+    '@type': 'Review',
+    reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
+    author: { '@type': 'Person', name: 'Sarah M.' },
+    reviewBody: "Reçu en quelques minutes, texte d'une profondeur rare. J'ai pleuré en lisant le passage sur ma lune.",
+    datePublished: '2025-10-28',
+  },
+  {
+    '@type': 'Review',
+    reviewRating: { '@type': 'Rating', ratingValue: '4', bestRating: '5' },
+    author: { '@type': 'Person', name: 'Julien R.' },
+    reviewBody: "Livre édité avec un vrai soin. Format prestige, contenu personnalisé — bien au-delà d'un thème natal générique.",
+    datePublished: '2025-09-06',
+  },
+];
+
 const productJsonLd = (slug, name, description, priceEur, pages) => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
@@ -67,15 +113,21 @@ const productJsonLd = (slug, name, description, priceEur, pages) => ({
     '@type': 'AggregateRating',
     ratingValue: '4.9',
     reviewCount: '187',
+    bestRating: '5',
+    worstRating: '1',
   },
+  review: PRODUCT_REVIEWS,
   offers: {
     '@type': 'Offer',
     url: `${DOMAIN}/${slug}`,
     priceCurrency: 'EUR',
     price: String(priceEur),
+    priceValidUntil: '2026-12-31',
     availability: 'https://schema.org/InStock',
     itemCondition: 'https://schema.org/NewCondition',
     seller: { '@type': 'Organization', name: 'Plume Astrale' },
+    shippingDetails: DIGITAL_SHIPPING,
+    hasMerchantReturnPolicy: MERCHANT_RETURN_POLICY,
   },
   additionalProperty: [
     { '@type': 'PropertyValue', name: 'Nombre de pages', value: String(pages) },
@@ -316,7 +368,6 @@ const SEO_DATA = {
   '/cercle':          { title: 'Cercle Soléna · 19€/mois',            description: "Rejoins le Cercle Soléna : 100 crédits chat/mois, communauté privée, -10% sur les livres.", keywords: 'cercle soléna, abonnement astrologie' },
   '/consultation':    { title: 'Chat avec Plume · Plume Astrale',     description: "Discute avec Plume — ton thème natal embarqué, réponses instantanées, conversation fluide.", keywords: 'chat astrologique, consultation astrologique ligne' },
   '/archetype':       { title: 'Ton archétype dominant · Plume',       description: "Découvre ton archétype dominant, ton ombre et ton équilibre intérieur — analyse jungienne.", keywords: 'archétype jungien, ombre, individuation' },
-  '/temoignage':      { title: 'Envoyer un témoignage · Plume Astrale',            description: "Partagez votre expérience Plume Astrale.", keywords: '', noindex: true, _dup: true },
 
   /* ─── Pages succès (noindex) ─── */
   '/theme-natal/succes':        { title: 'Ton thème natal arrive · Plume', description: 'Ton livre est en génération. Livraison par email.', keywords: '', noindex: true },

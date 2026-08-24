@@ -84,21 +84,78 @@
                         "name": "Tirage Tarot Oui/Non",
                         "description": "3 tirages gratuits par jour — Reponse symbolique immediate",
                         "price": "0",
-                        "priceCurrency": "EUR"
+                        "priceCurrency": "EUR",
+                        "availability": "https://schema.org/InStock",
+                        "url": "https://plume-astrale.fr/tarot-oui-non",
+                        "shippingDetails": {
+                            "@type": "OfferShippingDetails",
+                            "shippingRate": { "@type": "MonetaryAmount", "value": "0", "currency": "EUR" },
+                            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "FR" },
+                            "deliveryTime": {
+                                "@type": "ShippingDeliveryTime",
+                                "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 0, "unitCode": "HUR" },
+                                "transitTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 1, "unitCode": "HUR" }
+                            }
+                        },
+                        "hasMerchantReturnPolicy": {
+                            "@type": "MerchantReturnPolicy",
+                            "applicableCountry": "FR",
+                            "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted"
+                        }
                     },
                     {
                         "@type": "Offer",
                         "name": "Theme Astral Professionnel",
                         "description": "Votre theme astral complet en PDF — 28+ pages",
                         "price": "29.90",
-                        "priceCurrency": "EUR"
+                        "priceCurrency": "EUR",
+                        "availability": "https://schema.org/InStock",
+                        "url": "https://plume-astrale.fr/theme-natal",
+                        "shippingDetails": {
+                            "@type": "OfferShippingDetails",
+                            "shippingRate": { "@type": "MonetaryAmount", "value": "0", "currency": "EUR" },
+                            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "FR" },
+                            "deliveryTime": {
+                                "@type": "ShippingDeliveryTime",
+                                "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 0, "unitCode": "HUR" },
+                                "transitTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 1, "unitCode": "HUR" }
+                            }
+                        },
+                        "hasMerchantReturnPolicy": {
+                            "@type": "MerchantReturnPolicy",
+                            "applicableCountry": "FR",
+                            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                            "merchantReturnDays": 14,
+                            "returnMethod": "https://schema.org/ReturnByMail",
+                            "returnFees": "https://schema.org/FreeReturn"
+                        }
                     },
                     {
                         "@type": "Offer",
                         "name": "Experience Premium — Cartographie Celeste",
                         "description": "Parcours guide en 5 etapes + PDF Premium — Astrologie, numerologie et projection 12 mois",
                         "price": "199",
-                        "priceCurrency": "EUR"
+                        "priceCurrency": "EUR",
+                        "availability": "https://schema.org/InStock",
+                        "url": "https://plume-astrale.fr/premium",
+                        "shippingDetails": {
+                            "@type": "OfferShippingDetails",
+                            "shippingRate": { "@type": "MonetaryAmount", "value": "0", "currency": "EUR" },
+                            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "FR" },
+                            "deliveryTime": {
+                                "@type": "ShippingDeliveryTime",
+                                "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 0, "unitCode": "HUR" },
+                                "transitTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 1, "unitCode": "HUR" }
+                            }
+                        },
+                        "hasMerchantReturnPolicy": {
+                            "@type": "MerchantReturnPolicy",
+                            "applicableCountry": "FR",
+                            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                            "merchantReturnDays": 14,
+                            "returnMethod": "https://schema.org/ReturnByMail",
+                            "returnFees": "https://schema.org/FreeReturn"
+                        }
                     }
                 ]
             }

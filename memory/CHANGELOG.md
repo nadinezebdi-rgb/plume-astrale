@@ -1,5 +1,20 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-24 — Rich Results Schema Fix (Merchant listings + Product snippets)
+
+**Problème** : Google Search Console alertes non-critiques sur `plume-astrale.fr/` :
+- "Fiches de marchand" : `shippingDetails` et `hasMerchantReturnPolicy` manquants dans offers
+- "Extraits de produits" : `aggregateRating` et `review` manquants (individual reviews)
+
+**Fix** :
+- `/app/frontend/src/components/SEO.js` : ajout `shippingDetails` (livraison numérique gratuite FR), `hasMerchantReturnPolicy` (14 jours FreeReturn), `review` array (3 avis), `bestRating` + `worstRating` sur aggregateRating, `priceValidUntil` sur Offer
+- `/app/frontend/public/index.html` : enrichissement des 3 Offers du OfferCatalog homepage avec shippingDetails + hasMerchantReturnPolicy (Tarot gratuit → MerchantReturnNotPermitted, produits payants → MerchantReturnFiniteReturnWindow 14 jours)
+- Nettoyage doublon `'/temoignage'` dans SEO_DATA
+
+**À faire** : Vercel redeploy auto au merge → tester via [Rich Results Test](https://search.google.com/test/rich-results) → valider dans Search Console
+
+
+
 ## 2026-02-24 — Vercel Proxy Config for Emergent Backend (Contest Page Unblock)
 
 **Problème** : Le domaine `plume-astrale.fr` héberge le frontend sur **Vercel** (volontaire), mais aucun proxy `/api/*` vers Emergent n'était configuré. Résultat :
