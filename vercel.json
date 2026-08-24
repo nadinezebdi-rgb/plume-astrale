@@ -6,6 +6,18 @@
   "framework": null,
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://consultation-astro.emergent.host/api/:path*"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://consultation-astro.emergent.host/api/sitemap.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://consultation-astro.emergent.host/robots.txt"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
@@ -28,12 +40,16 @@
           "value": "nosniff"
         },
         {
-          "key": "X-Frame-Options",
-          "value": "DENY"
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://app.emergent.sh https://*.emergent.sh https://emergent.sh"
         },
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
         }
       ]
     }

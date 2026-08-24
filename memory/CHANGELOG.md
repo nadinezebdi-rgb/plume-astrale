@@ -1,5 +1,26 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-24 — Vercel Proxy Config for Emergent Backend (Contest Page Unblock)
+
+**Problème** : Le domaine `plume-astrale.fr` héberge le frontend sur **Vercel** (volontaire), mais aucun proxy `/api/*` vers Emergent n'était configuré. Résultat :
+- Meta CAPI dedup cassée (cookies `_fbp`/`_fbc` cross-origin bloqués)
+- `/sitemap.xml` retournait le SPA fallback au lieu du XML
+- `X-Frame-Options: DENY` bloquait l'iframe sur la page concours Emergent (`app.emergent.sh/showcase/building-france/...`) → `ERR_BLOCKED_BY_RESPONSE`
+
+**Fix** : Réécriture de `/app/vercel.json` avec :
+- Rewrites `/api/*` + `/sitemap.xml` + `/robots.txt` → `https://consultation-astro.emergent.host` (URL prod Emergent stable)
+- Remplacement `X-Frame-Options: DENY` par CSP `frame-ancestors 'self' https://app.emergent.sh https://*.emergent.sh https://emergent.sh` (débloque le concours, garde protection clickjacking)
+- Ajout `Referrer-Policy: strict-origin-when-cross-origin`
+- SPA fallback conservé pour toutes les autres routes
+
+**À faire côté user** :
+1. Merger `vercel.json` via GitHub (Save to Github)
+2. Sur Vercel Dashboard → Env vars : vider `REACT_APP_BACKEND_URL` (ou le mettre à `https://plume-astrale.fr`) → axios devient relatif → same-origin
+3. Redéployer Vercel
+4. Vérifier que la page `app.emergent.sh/showcase/building-france/...` affiche bien plume-astrale.fr dans son iframe
+
+
+
 
 ## 2026-02-23 (nuit) — 📊 Métriques pipeline + Régénération 4 PDFs + Tarot hub validé
 
