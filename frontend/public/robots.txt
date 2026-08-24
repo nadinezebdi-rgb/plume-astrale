@@ -95,4 +95,3 @@ Disallow: /mon-compte
 
 # ─── Sitemap ───
 Sitemap: https://plume-astrale.fr/sitemap.xml
-Sitemap: https://plume-astrale.fr/api/sitemap.xml
