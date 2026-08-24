@@ -88,6 +88,7 @@ Crawl-delay: 5
 
 # ─── GPTBot — accès limité au blog public uniquement ───
 User-agent: GPTBot
+Disallow: /
 Allow: /blog
 Disallow: /admin
 Disallow: /mon-compte
