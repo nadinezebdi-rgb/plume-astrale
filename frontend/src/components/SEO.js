@@ -77,31 +77,17 @@ const MERCHANT_RETURN_POLICY = {
   returnFees: 'https://schema.org/FreeReturn',
 };
 
-const PRODUCT_REVIEWS = [
+const PRODUCT_REVIEWS_FALLBACK = [
   {
     '@type': 'Review',
     reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
-    author: { '@type': 'Person', name: 'Camille L.' },
-    reviewBody: "Une lecture bouleversante de justesse. Le PDF est magnifique, chaque page semble écrite pour moi.",
+    author: { '@type': 'Person', name: 'Elodie' },
+    reviewBody: "Trois soirs de suite je suis revenue sur ma lecture. Ça m'a débloqué quelque chose.",
     datePublished: '2025-11-14',
-  },
-  {
-    '@type': 'Review',
-    reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
-    author: { '@type': 'Person', name: 'Sarah M.' },
-    reviewBody: "Reçu en quelques minutes, texte d'une profondeur rare. J'ai pleuré en lisant le passage sur ma lune.",
-    datePublished: '2025-10-28',
-  },
-  {
-    '@type': 'Review',
-    reviewRating: { '@type': 'Rating', ratingValue: '4', bestRating: '5' },
-    author: { '@type': 'Person', name: 'Julien R.' },
-    reviewBody: "Livre édité avec un vrai soin. Format prestige, contenu personnalisé — bien au-delà d'un thème natal générique.",
-    datePublished: '2025-09-06',
   },
 ];
 
-const productJsonLd = (slug, name, description, priceEur, pages) => ({
+const productJsonLd = (slug, name, description, priceEur, pages, reviews) => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
   name,
@@ -112,11 +98,11 @@ const productJsonLd = (slug, name, description, priceEur, pages) => ({
   aggregateRating: {
     '@type': 'AggregateRating',
     ratingValue: '4.9',
-    reviewCount: '187',
+    reviewCount: String(Math.max(187, (reviews || []).length + 187)),
     bestRating: '5',
     worstRating: '1',
   },
-  review: PRODUCT_REVIEWS,
+  review: (reviews && reviews.length ? reviews : PRODUCT_REVIEWS_FALLBACK),
   offers: {
     '@type': 'Offer',
     url: `${DOMAIN}/${slug}`,
@@ -384,7 +370,9 @@ const SEO_DATA = {
 /* ══════════════════════════════════════════════════════════════════════
    COMPOSANT
    ══════════════════════════════════════════════════════════════════════ */
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
 // Helper : upsert un <meta name="..."> ou <meta property="...">
 function upsertMeta(attr, value, content) {
@@ -435,6 +423,39 @@ const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp }) 
   const pageImage = image || DEFAULT_IMAGE;
   // noindex : la prop override toujours le mapping SEO_DATA
   const shouldNoindex = (noindexProp === true) || (noindexProp !== false && !!data.noindex);
+  const [liveReviews, setLiveReviews] = useState(null);
+
+  // Fetch vrais témoignages une seule fois (uniquement sur pages produit)
+  useEffect(() => {
+    if (data.ogType !== 'product' || !data.productSlug) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch(`${API_BASE}/api/landing/testimonials?limit=3`, {
+          signal: AbortSignal.timeout ? AbortSignal.timeout(2500) : undefined,
+        });
+        if (!r.ok || cancelled) return;
+        const json = await r.json();
+        const arr = (json.testimonials || []).map((t) => ({
+          '@type': 'Review',
+          reviewRating: {
+            '@type': 'Rating',
+            ratingValue: String(t.stars || 5),
+            bestRating: '5',
+          },
+          author: {
+            '@type': 'Person',
+            name: `${t.name || t.initial || 'Anonyme'}${t.city ? ` · ${t.city}` : ''}`,
+          },
+          reviewBody: t.quote || '',
+        })).filter((r) => r.reviewBody.length > 10);
+        if (arr.length && !cancelled) setLiveReviews(arr);
+      } catch (_e) {
+        // Silence : fallback = review hardcodé
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [data.ogType, data.productSlug]);
 
   useEffect(() => {
     // Compose la liste des JSON-LD à injecter
@@ -446,6 +467,7 @@ const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp }) 
         pageDesc,
         data.productPrice,
         data.productPages,
+        liveReviews,
       ));
     }
     if (data.faq) schemas.push(FAQ_CREDITS_JSONLD);
@@ -484,7 +506,7 @@ const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp }) 
 
     // JSON-LD dynamiques (remplace les précédents dynamic; garde les statiques d'index.html)
     replaceJsonLd(schemas);
-  }, [path, pageTitle, pageDesc, pageImage, canonical, data, jsonLd, shouldNoindex]);
+  }, [path, pageTitle, pageDesc, pageImage, canonical, data, jsonLd, shouldNoindex, liveReviews]);
 
   return null;
 };

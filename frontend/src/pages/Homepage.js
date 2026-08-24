@@ -20,6 +20,7 @@ import NocturneManifest from '@/components/nocturne/NocturneManifest';
 import NocturneServices from '@/components/nocturne/NocturneServices';
 import NocturneClosing from '@/components/nocturne/NocturneClosing';
 import NocturneLeadMagnet from '@/components/nocturne/NocturneLeadMagnet';
+import ContestVoteBanner from '@/components/ContestVoteBanner';
 import { BLOG_ARTICLES } from '@/config/blogArticles';
 import { useAuth } from '@/context/AuthContext';
 
@@ -112,6 +113,9 @@ export default function Homepage() {
 
       {/* ═══ SECTION 1 · HERO NOCTURNE ÉDITORIAL (Feb 2026 — refonte artistique) ═══ */}
       <NocturneHero />
+
+      {/* Floating CTA — concours Emergent Building France */}
+      <ContestVoteBanner />
 
       {/* ═══ SECTION 1.05 · MANIFESTE NOCTURNE — les trois refus fondateurs ═══ */}
       <NocturneManifest />

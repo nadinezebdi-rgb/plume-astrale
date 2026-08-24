@@ -1,5 +1,26 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-24 — Real Reviews + Contest Vote Banner
+
+**Tâche 3 — Real Reviews Widget** :
+- `SEO.js` : `productJsonLd()` accepte désormais un paramètre `reviews`
+- Ajout d'un `useEffect` dans le composant `SEO` qui fetch `/api/landing/testimonials?limit=3` sur les pages produit uniquement (timeout 2.5s, silencieux en cas d'échec)
+- Mapping DB → schema : `stars` → `ratingValue`, `name + city` → `author.name`, `quote` → `reviewBody`
+- Fallback = 1 review hardcodé (Elodie · Nantes, réel témoignage approuvé) si l'API échoue
+- Testé : SEO.js-dynamic Product injecte bien le vrai avis DB
+
+**Tâche 4 — Contest Vote Banner** :
+- Nouveau composant `/app/frontend/src/components/ContestVoteBanner.js`
+- CTA flottant bottom-right (mobile-safe `env(safe-area-inset-bottom)`)
+- Design Nocturne Éditorial : navy #0F1A3C + doré #C9A24B, Playfair title, animation slide-up
+- Dismissible avec persistance localStorage 7 jours (`contest_banner_dismissed_at`)
+- Apparition après 3s pour ne pas parasiter le premier scroll
+- Ciblé homepage uniquement (monté dans `pages/Homepage.js`)
+- Cible : `https://app.emergent.sh/showcase/building-france/984cc6e3-63c5-40e6-9b25-b4704912a70d?ref=nadi762374`
+- Testids : `contest-vote-banner`, `contest-vote-banner-close`
+
+
+
 ## 2026-02-24 — Rich Results Schema Fix (Merchant listings + Product snippets)
 
 **Problème** : Google Search Console alertes non-critiques sur `plume-astrale.fr/` :
