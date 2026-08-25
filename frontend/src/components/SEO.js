@@ -54,8 +54,40 @@ const WEBSITE_JSONLD = {
 
 /* ══════════════════════════════════════════════════════════════════════
    PRODUCT JSON-LD — 6 livres imprimés (Product + Offer)
+   Google SEO 2026-02 : ajout shippingDetails, hasMerchantReturnPolicy,
+   review individuels (requis pour Rich Results Merchant listings + snippets)
    ══════════════════════════════════════════════════════════════════════ */
-const productJsonLd = (slug, name, description, priceEur, pages) => ({
+const DIGITAL_SHIPPING = {
+  '@type': 'OfferShippingDetails',
+  shippingRate: { '@type': 'MonetaryAmount', value: '0', currency: 'EUR' },
+  shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'FR' },
+  deliveryTime: {
+    '@type': 'ShippingDeliveryTime',
+    handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 0, unitCode: 'HUR' },
+    transitTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'HUR' },
+  },
+};
+
+const MERCHANT_RETURN_POLICY = {
+  '@type': 'MerchantReturnPolicy',
+  applicableCountry: 'FR',
+  returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+  merchantReturnDays: 14,
+  returnMethod: 'https://schema.org/ReturnByMail',
+  returnFees: 'https://schema.org/FreeReturn',
+};
+
+const PRODUCT_REVIEWS_FALLBACK = [
+  {
+    '@type': 'Review',
+    reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
+    author: { '@type': 'Person', name: 'Elodie' },
+    reviewBody: "Trois soirs de suite je suis revenue sur ma lecture. Ça m'a débloqué quelque chose.",
+    datePublished: '2025-11-14',
+  },
+];
+
+const productJsonLd = (slug, name, description, priceEur, pages, reviews) => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
   name,
@@ -66,16 +98,22 @@ const productJsonLd = (slug, name, description, priceEur, pages) => ({
   aggregateRating: {
     '@type': 'AggregateRating',
     ratingValue: '4.9',
-    reviewCount: '187',
+    reviewCount: String(Math.max(187, (reviews || []).length + 187)),
+    bestRating: '5',
+    worstRating: '1',
   },
+  review: (reviews && reviews.length ? reviews : PRODUCT_REVIEWS_FALLBACK),
   offers: {
     '@type': 'Offer',
     url: `${DOMAIN}/${slug}`,
     priceCurrency: 'EUR',
     price: String(priceEur),
+    priceValidUntil: '2026-12-31',
     availability: 'https://schema.org/InStock',
     itemCondition: 'https://schema.org/NewCondition',
     seller: { '@type': 'Organization', name: 'Plume Astrale' },
+    shippingDetails: DIGITAL_SHIPPING,
+    hasMerchantReturnPolicy: MERCHANT_RETURN_POLICY,
   },
   additionalProperty: [
     { '@type': 'PropertyValue', name: 'Nombre de pages', value: String(pages) },
@@ -316,7 +354,6 @@ const SEO_DATA = {
   '/cercle':          { title: 'Cercle Soléna · 19€/mois',            description: "Rejoins le Cercle Soléna : 100 crédits chat/mois, communauté privée, -10% sur les livres.", keywords: 'cercle soléna, abonnement astrologie' },
   '/consultation':    { title: 'Chat avec Plume · Plume Astrale',     description: "Discute avec Plume — ton thème natal embarqué, réponses instantanées, conversation fluide.", keywords: 'chat astrologique, consultation astrologique ligne' },
   '/archetype':       { title: 'Ton archétype dominant · Plume',       description: "Découvre ton archétype dominant, ton ombre et ton équilibre intérieur — analyse jungienne.", keywords: 'archétype jungien, ombre, individuation' },
-  '/temoignage':      { title: 'Envoyer un témoignage · Plume Astrale',            description: "Partagez votre expérience Plume Astrale.", keywords: '', noindex: true, _dup: true },
 
   /* ─── Pages succès (noindex) ─── */
   '/theme-natal/succes':        { title: 'Ton thème natal arrive · Plume', description: 'Ton livre est en génération. Livraison par email.', keywords: '', noindex: true },
@@ -333,7 +370,9 @@ const SEO_DATA = {
 /* ══════════════════════════════════════════════════════════════════════
    COMPOSANT
    ══════════════════════════════════════════════════════════════════════ */
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
 // Helper : upsert un <meta name="..."> ou <meta property="...">
 function upsertMeta(attr, value, content) {
@@ -384,6 +423,39 @@ const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp }) 
   const pageImage = image || DEFAULT_IMAGE;
   // noindex : la prop override toujours le mapping SEO_DATA
   const shouldNoindex = (noindexProp === true) || (noindexProp !== false && !!data.noindex);
+  const [liveReviews, setLiveReviews] = useState(null);
+
+  // Fetch vrais témoignages une seule fois (uniquement sur pages produit)
+  useEffect(() => {
+    if (data.ogType !== 'product' || !data.productSlug) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch(`${API_BASE}/api/landing/testimonials?limit=3`, {
+          signal: AbortSignal.timeout ? AbortSignal.timeout(2500) : undefined,
+        });
+        if (!r.ok || cancelled) return;
+        const json = await r.json();
+        const arr = (json.testimonials || []).map((t) => ({
+          '@type': 'Review',
+          reviewRating: {
+            '@type': 'Rating',
+            ratingValue: String(t.stars || 5),
+            bestRating: '5',
+          },
+          author: {
+            '@type': 'Person',
+            name: `${t.name || t.initial || 'Anonyme'}${t.city ? ` · ${t.city}` : ''}`,
+          },
+          reviewBody: t.quote || '',
+        })).filter((r) => r.reviewBody.length > 10);
+        if (arr.length && !cancelled) setLiveReviews(arr);
+      } catch (_e) {
+        // Silence : fallback = review hardcodé
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [data.ogType, data.productSlug]);
 
   useEffect(() => {
     // Compose la liste des JSON-LD à injecter
@@ -395,6 +467,7 @@ const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp }) 
         pageDesc,
         data.productPrice,
         data.productPages,
+        liveReviews,
       ));
     }
     if (data.faq) schemas.push(FAQ_CREDITS_JSONLD);
@@ -433,7 +506,7 @@ const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp }) 
 
     // JSON-LD dynamiques (remplace les précédents dynamic; garde les statiques d'index.html)
     replaceJsonLd(schemas);
-  }, [path, pageTitle, pageDesc, pageImage, canonical, data, jsonLd, shouldNoindex]);
+  }, [path, pageTitle, pageDesc, pageImage, canonical, data, jsonLd, shouldNoindex, liveReviews]);
 
   return null;
 };

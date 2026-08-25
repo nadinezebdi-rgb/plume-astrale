@@ -2593,11 +2593,49 @@ async def admin_capi_health(current_user: dict = Depends(get_current_user)):
         }
 
     test_event_id = f'health-check-{_uuid.uuid4()}'
-    ok = await send_capi_event(
-        event_name='PageView',
-        event_id=test_event_id,
-        event_source_url='https://plume-astrale.fr/admin/capi-health',
-    )
+    # Appel direct à Meta pour capturer le message d'erreur exact (send_capi_event masque les 400)
+    import httpx as _httpx
+    import time as _time
+    meta_error = None
+    meta_response = None
+    meta_status = None
+    try:
+        payload = {
+            'data': [{
+                'event_name': 'PageView',
+                'event_time': int(_time.time()),
+                'action_source': 'website',
+                'event_id': test_event_id,
+                'event_source_url': 'https://plume-astrale.fr/admin/capi-health',
+                'user_data': {},
+            }],
+        }
+        if test_code:
+            payload['test_event_code'] = test_code
+        async with _httpx.AsyncClient(timeout=10) as _c:
+            _r = await _c.post(
+                f'https://graph.facebook.com/v20.0/{META_PIXEL_ID}/events',
+                params={'access_token': _os.environ['META_CAPI_ACCESS_TOKEN']},
+                json=payload,
+            )
+        meta_status = _r.status_code
+        try:
+            meta_response = _r.json()
+        except Exception:
+            meta_response = {'raw': _r.text[:500]}
+        if _r.status_code >= 400:
+            err = (meta_response or {}).get('error', {})
+            meta_error = {
+                'meta_message': err.get('message'),
+                'meta_type': err.get('type'),
+                'meta_code': err.get('code'),
+                'meta_subcode': err.get('error_subcode'),
+                'meta_fbtrace_id': err.get('fbtrace_id'),
+            }
+        ok = _r.status_code < 400
+    except Exception as _e:
+        ok = False
+        meta_error = {'exception': str(_e)[:300]}
     return {
         'status': 'ok' if ok else 'error',
         'pixel_id': META_PIXEL_ID,
@@ -2605,10 +2643,13 @@ async def admin_capi_health(current_user: dict = Depends(get_current_user)):
         'test_code': test_code,
         'test_event_id': test_event_id,
         'capi_ok': ok,
+        'meta_http_status': meta_status,
+        'meta_response': meta_response,
+        'meta_error': meta_error,
         'hint': (
             'Va dans Meta Events Manager → Datasets → Test Events pour voir le '
             'PageView reçu (utilise le code de test ci-dessus).'
-            if test_code else
+            if test_code and ok else
             'Configure META_CAPI_TEST_CODE dans .env backend + Meta Events Manager > Test Events'
             ' pour voir l\'event en temps réel.'
         ),

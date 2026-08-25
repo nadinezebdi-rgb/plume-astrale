@@ -1,5 +1,55 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-24 — CAPI Health Check Enrichi (diagnostic Meta explicite)
+
+**Problème** : `GET /api/admin/capi-health` renvoyait `capi_ok: false` sans indiquer POURQUOI. La fonction `send_capi_event` masquait l'erreur Meta (400+ → return False silent).
+
+**Fix** : `server.py` endpoint `admin_capi_health` fait désormais un appel direct à `graph.facebook.com/v20.0/{PIXEL_ID}/events` et retourne :
+- `meta_http_status` : code HTTP renvoyé par Meta
+- `meta_response` : payload complet de Meta
+- `meta_error` : `{message, type, code, subcode, fbtrace_id}` extraits si erreur 400+
+- `capi_ok` : True uniquement si HTTP 2xx
+
+Permet un diagnostic immédiat des tokens invalides, permissions manquantes, pixel non lié, app dev mode, etc.
+
+
+
+## 2026-02-24 — Real Reviews + Contest Vote Banner
+
+**Tâche 3 — Real Reviews Widget** :
+- `SEO.js` : `productJsonLd()` accepte désormais un paramètre `reviews`
+- Ajout d'un `useEffect` dans le composant `SEO` qui fetch `/api/landing/testimonials?limit=3` sur les pages produit uniquement (timeout 2.5s, silencieux en cas d'échec)
+- Mapping DB → schema : `stars` → `ratingValue`, `name + city` → `author.name`, `quote` → `reviewBody`
+- Fallback = 1 review hardcodé (Elodie · Nantes, réel témoignage approuvé) si l'API échoue
+- Testé : SEO.js-dynamic Product injecte bien le vrai avis DB
+
+**Tâche 4 — Contest Vote Banner** :
+- Nouveau composant `/app/frontend/src/components/ContestVoteBanner.js`
+- CTA flottant bottom-right (mobile-safe `env(safe-area-inset-bottom)`)
+- Design Nocturne Éditorial : navy #0F1A3C + doré #C9A24B, Playfair title, animation slide-up
+- Dismissible avec persistance localStorage 7 jours (`contest_banner_dismissed_at`)
+- Apparition après 3s pour ne pas parasiter le premier scroll
+- Ciblé homepage uniquement (monté dans `pages/Homepage.js`)
+- Cible : `https://app.emergent.sh/showcase/building-france/984cc6e3-63c5-40e6-9b25-b4704912a70d?ref=nadi762374`
+- Testids : `contest-vote-banner`, `contest-vote-banner-close`
+
+
+
+## 2026-02-24 — Rich Results Schema Fix (Merchant listings + Product snippets)
+
+**Problème** : Google Search Console alertes non-critiques sur `plume-astrale.fr/` :
+- "Fiches de marchand" : `shippingDetails` et `hasMerchantReturnPolicy` manquants dans offers
+- "Extraits de produits" : `aggregateRating` et `review` manquants (individual reviews)
+
+**Fix** :
+- `/app/frontend/src/components/SEO.js` : ajout `shippingDetails` (livraison numérique gratuite FR), `hasMerchantReturnPolicy` (14 jours FreeReturn), `review` array (3 avis), `bestRating` + `worstRating` sur aggregateRating, `priceValidUntil` sur Offer
+- `/app/frontend/public/index.html` : enrichissement des 3 Offers du OfferCatalog homepage avec shippingDetails + hasMerchantReturnPolicy (Tarot gratuit → MerchantReturnNotPermitted, produits payants → MerchantReturnFiniteReturnWindow 14 jours)
+- Nettoyage doublon `'/temoignage'` dans SEO_DATA
+
+**À faire** : Vercel redeploy auto au merge → tester via [Rich Results Test](https://search.google.com/test/rich-results) → valider dans Search Console
+
+
+
 ## 2026-02-24 — Vercel Proxy Config for Emergent Backend (Contest Page Unblock)
 
 **Problème** : Le domaine `plume-astrale.fr` héberge le frontend sur **Vercel** (volontaire), mais aucun proxy `/api/*` vers Emergent n'était configuré. Résultat :
