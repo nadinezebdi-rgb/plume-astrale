@@ -1,5 +1,21 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-25 — E2E test suite pour audit P0
+
+**Fichier créé** : `/app/backend/tests/test_audit_p0_delivery.py`
+
+**Couverture — 11 tests, exécution 0.18s** :
+- Bug 1 (Voyage Karmique) : `inspect.signature()` vérifie que `generate_karma_destin_pdf` accepte `karmic_data`, refuse `natal_data`. Vérif source du service.
+- Bugs 2 & 3 (livraison Synastrie/Pack Karmique/Voyage Karmique) : `parametrize` sur les 3 dossiers → vérifie existence disque + création fichier probe UUID + GET HTTP 200 + contenu identique + cleanup try/finally.
+- Bug 4 (route dépréciée) : POST `/api/couple/compatibility/preview` retourne 410 Gone avec message pointant vers la route principale + absence de l'OpenAPI schema.
+- Sanity : `/api/health` répond 200.
+
+**Résultat** : 10 passed, 1 skipped (OpenAPI absent). Timeout 10s, BASE_URL surchargeable via `BACKEND_URL` env — CI-ready.
+
+Verrouille les 4 fixes P0 contre toute régression future.
+
+
+
 ## 2026-02-25 — Fix P0 audit livraison PDF post-paiement
 
 **4 bugs critiques identifiés par audit externe résolus** :
