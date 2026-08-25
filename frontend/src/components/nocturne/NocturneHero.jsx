@@ -71,6 +71,22 @@ export default function NocturneHero() {
                 </div>
               ))}
             </div>
+
+            <p
+              className="ne-reveal ne-reveal-7"
+              data-testid="nocturne-hero-engine-note"
+              style={{
+                marginTop: 24,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11.5,
+                letterSpacing: '0.06em',
+                color: 'rgba(247, 245, 240, 0.55)',
+                lineHeight: 1.55,
+                maxWidth: 520,
+              }}
+            >
+              Moteur&nbsp;: basé sur la bibliothèque de précision <em style={{ color: 'rgba(247, 245, 240, 0.72)', fontStyle: 'italic' }}>Swiss Ephemeris</em> (norme NASA&nbsp;/&nbsp;JPL).
+            </p>
           </div>
 
           <div className="ne-hero-book-stage ne-reveal ne-reveal-3" aria-label="Aperçu du livre personnalisé Plume Astrale">

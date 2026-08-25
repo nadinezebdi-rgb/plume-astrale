@@ -1,5 +1,17 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-25 — Trust badge Swiss Ephemeris (norme NASA / JPL)
+
+Ajout d'une mention scientifique sur l'API de calcul astronomique dans 4 emplacements clés :
+- **NocturneHero** (homepage) : nouveau texte sous les preuves chiffrées "Moteur : basé sur la bibliothèque de précision Swiss Ephemeris (norme NASA / JPL)."
+- **NocturneFAQ** ("Qui est Soléna ?") : *"Swiss Ephemeris, la bibliothèque astronomique de précision qui suit la norme NASA (JPL) et est utilisée en recherche universitaire"*
+- **Confidentialité** (encart IA) : mention complète "moteur qui suit la norme NASA (JPL)"
+- **Manifesto** (à propos Soléna) : *"la bibliothèque de précision Swiss Ephemeris (norme NASA / JPL)"*
+
+Objectif : crédibiliser la partie astronomique (calculs) tout en préservant la transparence sur la partie éditoriale (IA). La cohérence de formulation renforce le message.
+
+
+
 ## 2026-02-25 — Correction critique : Soléna clairement identifiée comme voix IA
 
 **Problème** : plusieurs textes récemment ajoutés (Manifesto section "À propos", MentionsLegales, alt-texts) présentaient Soléna comme une personne réelle avec une biographie ("depuis 10 ans", "mes soirées", "fondatrice"). Risque légal (fausse représentation) et éthique.
