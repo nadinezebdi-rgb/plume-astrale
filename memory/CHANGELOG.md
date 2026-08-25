@@ -1,5 +1,23 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-25 — Portrait Soléna intégré dans SolenaGuideCard
+
+**Demande** : remplacer l'avatar générique par le portrait fourni par l'utilisatrice (femme aux cheveux bruns ondulés, blouse vert sauge, fond constellations) dans la carte "Bonjour, je suis Soléna".
+
+**Livrables** :
+- Portrait téléchargé depuis les assets : `/app/frontend/public/branding/solena-portrait.png` (1.6 MB, PNG)
+- `SolenaGuideCard.js` : `SOLENA_AVATAR` swap externe → local `/branding/solena-portrait.png`
+- Avatar agrandi 72×72 → 96×96 px (portrait plus lisible)
+- Halo doré `boxShadow: 0 8px 24px rgba(15, 26, 60, 0.22), 0 0 0 3px rgba(201, 162, 75, 0.14)`
+- `objectPosition: 50% 20%` pour cadrer sur le visage plutôt que le buste
+- Alt text enrichi : "Soléna, guide éditoriale Plume Astrale" (SEO + accessibilité)
+- Couleurs normalisées à `#0F1A3C` (cohérent avec la charte unifiée)
+- Titre passé de 20px à 22px pour équilibrer le nouvel avatar plus grand
+
+Testé visuellement : le portrait s'affiche dans la carte flottante, cadré sur le visage, halo doré subtil, cohérent avec l'esthétique Nocturne.
+
+
+
 ## 2026-02-25 — Unification bleu nuit `#0F1A3C` partout
 
 **Problème** : 15 variantes de bleu-nuit hexadécimal + 6 rgba proches se baladaient dans le codebase (#1A2035, #1a1030, #0F1230, #1a1230, #0b0f24, #1A1F2E, #0b1020, #0B1A2E, #0B0F1E, #0B0B0F, #1a2755, #0f0a20, #0F0C1F, #0B0E14, #0B0B1F, `#0C0918` splash…), créant des micro-décalages visuels entre sections.

@@ -9,7 +9,7 @@ import React, { useEffect, useRef, useState } from 'react';
  * Soléna n'est plus le personnage principal — elle est une présence rassurante
  * qui se dévoile au bon moment.
  */
-const SOLENA_AVATAR = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/hp82ivrl_Solena-glow.png';
+const SOLENA_AVATAR = '/branding/solena-portrait.png';
 
 export default function SolenaGuideCard({ testid = 'solena-guide' }) {
   const [visible, setVisible] = useState(false);
@@ -62,18 +62,19 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
       >
         <div
           style={{
-            width: 72,
-            height: 72,
+            width: 96,
+            height: 96,
             flexShrink: 0,
             borderRadius: '50%',
             overflow: 'hidden',
-            background: 'linear-gradient(135deg, #0A1128 0%, #1E2A5E 100%)',
+            background: 'linear-gradient(135deg, #0F1A3C 0%, #1E2A5E 100%)',
             padding: 2,
+            boxShadow: '0 8px 24px rgba(15, 26, 60, 0.22), 0 0 0 3px rgba(201, 162, 75, 0.14)',
           }}
         >
           <img
             src={SOLENA_AVATAR}
-            alt="Soléna"
+            alt="Soléna, guide éditoriale Plume Astrale"
             data-testid={`${testid}-avatar`}
             loading="lazy"
             decoding="async"
@@ -82,6 +83,7 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
               height: '100%',
               borderRadius: '50%',
               objectFit: 'cover',
+              objectPosition: '50% 20%',
               display: 'block',
             }}
           />
@@ -92,9 +94,9 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
             style={{
               fontFamily: 'Playfair Display, serif',
               fontStyle: 'italic',
-              fontSize: 20,
+              fontSize: 22,
               lineHeight: 1.4,
-              color: '#0A1128',
+              color: '#0F1A3C',
               margin: 0,
               marginBottom: 6,
             }}
