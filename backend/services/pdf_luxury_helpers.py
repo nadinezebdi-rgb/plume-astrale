@@ -140,3 +140,67 @@ def sanitize_ornaments(text: str) -> str:
 def orn(glyph: str = '✦') -> str:
     """Retourne un glyphe unique wrappé en `<font name="OrnamentSerif">` prêt à insérer."""
     return f'<font name="OrnamentSerif">{glyph}</font>'
+
+
+# ═══════════════════════════════════════════════════════════
+#   CMYK PRINT-READY — BleedBox / TrimBox (post-processing)
+# ═══════════════════════════════════════════════════════════
+def add_print_boxes(pdf_bytes: bytes, bleed_mm: float = 3.0) -> bytes:
+    """Ajoute les boîtes BleedBox et TrimBox à chaque page d'un PDF existant.
+
+    Les imprimeurs professionnels exigent trois boîtes distinctes :
+      - MediaBox  : le format physique de la page (papier réel, avec fond perdu)
+      - BleedBox  : la zone jusqu'où le fond perdu se prolonge (MediaBox par défaut)
+      - TrimBox   : la zone finale après rognage (MediaBox - bleed_mm de chaque côté)
+
+    Sans ces boîtes, l'imprimeur ne sait pas où couper — il refuse le fichier
+    ou coupe à l'aveugle. Cette fonction post-traite un PDF ReportLab standard
+    (généré en A4 216x297 mm) et ajoute :
+      - BleedBox = MediaBox (le fond perdu est déjà dans le design Nocturne)
+      - TrimBox  = MediaBox rétrécie de `bleed_mm` mm de chaque côté
+
+    Best-effort : si pypdf échoue, retourne le PDF original intact.
+
+    Note : ReportLab ne sait pas embed un profil ICC CMYK — le PDF reste RGB.
+    Une conversion RGB→CMYK vraie doit être faite par l'imprimeur (Ghostscript
+    ou Photoshop). Mais BleedBox/TrimBox suffisent pour le workflow print.
+    """
+    if not pdf_bytes or not pdf_bytes.startswith(b'%PDF-'):
+        return pdf_bytes
+    try:
+        from pypdf import PdfReader, PdfWriter
+        from pypdf.generic import RectangleObject
+        from io import BytesIO
+        reader = PdfReader(BytesIO(pdf_bytes))
+        writer = PdfWriter()
+
+        # 1 mm = 2.834645669 points
+        bleed_pts = bleed_mm * 2.834645669
+
+        for page in reader.pages:
+            # MediaBox est déjà présente
+            media = page.mediabox
+            left, bottom, right, top = float(media.left), float(media.bottom), float(media.right), float(media.top)
+            # BleedBox = MediaBox (aucun ajout, notre design va jusqu'au bord)
+            page.bleedbox = RectangleObject((left, bottom, right, top))
+            # TrimBox = MediaBox - bleed_mm de chaque côté
+            page.trimbox = RectangleObject((
+                left + bleed_pts, bottom + bleed_pts,
+                right - bleed_pts, top - bleed_pts,
+            ))
+            # ArtBox = TrimBox (contenu visible identique)
+            page.artbox = page.trimbox
+            writer.add_page(page)
+
+        # Metadata print-ready
+        writer.add_metadata({
+            '/Producer': 'Plume Astrale · Nocturne print-ready',
+            '/Trapped': '/False',
+        })
+
+        out = BytesIO()
+        writer.write(out)
+        return out.getvalue()
+    except Exception as e:
+        logger.warning(f'[pdf_luxury_helpers] add_print_boxes failed (returning original): {e}')
+        return pdf_bytes

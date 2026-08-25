@@ -123,6 +123,10 @@ def build_colophon(
 
     # ═══ Bloc partenariat (uniquement si code parrainage disponible) ═══
     if referral_code and referral_link:
+        # Le QR encode l'URL de tracking `/r/{code}` (analytics + attribution)
+        # pas le lien direct — permet de mesurer les scans réels PDF → web.
+        _tracker_base = referral_link.split('/?ref=')[0].rstrip('/')
+        qr_target_url = f'{_tracker_base}/r/{referral_code}'
         # Ligne de séparation dorée
         story.append(Paragraph(
             '<font color="#D4AF37">'
@@ -151,7 +155,7 @@ def build_colophon(
         story.append(Spacer(1, 0.6 * cm))
 
         # ═══ QR code + code lisible côte à côte ═══
-        qr_png = _generate_qr_bytes(referral_link, box_size=10)
+        qr_png = _generate_qr_bytes(qr_target_url, box_size=10)
         code_style = ParagraphStyle(
             'colophon_code', fontName=display_bold,
             fontSize=22, textColor=GOLD_LIGHT, alignment=TA_CENTER,

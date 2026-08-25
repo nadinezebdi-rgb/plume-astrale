@@ -485,43 +485,17 @@ def year_ahead_page(story, styles, prenom: str, body_html: str) -> None:
 
 def colophon_page(story, styles, prenom: str, referral_code: Optional[str] = None,
                    referral_link: Optional[str] = None) -> None:
-    """Dernier feuillet : signature Soléna + code parrainage discret."""
-    story.append(Spacer(1, 8 * cm))
-    story.append(Paragraph(
-        f'<font color="{GOLD_HEX}">✦</font>',
-        ParagraphStyle('col_star', fontName=font('Cinzel', 'Helvetica'),
-                       fontSize=22, alignment=TA_CENTER, spaceAfter=24),
-    ))
-    story.append(Paragraph(
-        f'Merci, {prenom}.',
-        ParagraphStyle('col_thanks', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
-                       fontSize=22, textColor=CREAM, alignment=TA_CENTER,
-                       leading=28, spaceAfter=14),
-    ))
-    story.append(Paragraph(
-        'Que ces pages voyagent avec toi<br/>comme un feu doux dans ta poche.',
-        ParagraphStyle('col_body', fontName=font('Cormorant Garamond', 'Times-Roman'),
-                       fontSize=13, textColor=LAVENDER, alignment=TA_CENTER,
-                       leading=20, spaceAfter=40),
-    ))
-    if referral_code and referral_link:
-        story.append(Paragraph(
-            f'<font color="{GOLD_HEX}">Offre à un proche</font>',
-            ParagraphStyle('col_ref_tag', fontName=font('Cinzel', 'Helvetica'),
-                           fontSize=9, alignment=TA_CENTER, spaceAfter=8, letterSpacing=3),
-        ))
-        story.append(Paragraph(
-            f'Ton code personnel de parrainage : <b>{referral_code}</b>',
-            ParagraphStyle('col_ref_code', fontName=font('Cormorant Garamond', 'Times-Roman'),
-                           fontSize=11, textColor=CREAM, alignment=TA_CENTER, spaceAfter=4),
-        ))
-        story.append(Paragraph(
-            f'<font color="{MUTED_HEX}">{referral_link}</font>',
-            ParagraphStyle('col_ref_link', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
-                           fontSize=9, alignment=TA_CENTER, spaceAfter=30),
-        ))
-    story.append(Paragraph(
-        '— Soléna, ton oracle numérique<br/>Plume Astrale · plume-astrale.fr',
-        ParagraphStyle('col_sig', fontName=font('Cinzel', 'Helvetica'),
-                       fontSize=9, textColor=GOLD, alignment=TA_CENTER, spaceBefore=20, letterSpacing=2),
-    ))
+    """Dernier feuillet : délègue au colophon Nocturne partagé (QR code + citation Soléna).
+
+    Historique 2026-02 → 2026-02-26 : remplacement de l'ancien colophon texte-only
+    par le module `pdf_colophon` unifié (avec QR code, code letter-spaced, kicker
+    éditorial) pour cohérence visuelle avec Karma, Numérologie, Voyage Karmique.
+    """
+    from services.pdf_colophon import build_colophon
+    # `styles` du natal book n'a pas les mêmes clés que celui de pdf_prestige,
+    # mais build_colophon lit ses propres styles via pdf_theme — on passe {} en fallback.
+    build_colophon(
+        story, {}, prenom=prenom,
+        referral_code=referral_code, referral_link=referral_link,
+        product_name='Ton Thème Natal',
+    )

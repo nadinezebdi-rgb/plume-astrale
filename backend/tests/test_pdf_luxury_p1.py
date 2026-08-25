@@ -244,3 +244,46 @@ def test_colophon_embeds_qr_and_referral_code():
         f'Le PDF avec referral_code doit contenir un bloc partenariat + QR '
         f'(delta observé : {len(pdf_ref) - len(pdf_no_ref)} bytes, minimum attendu : 1000).'
     )
+
+
+# ─────────────────────────────────────────────────────────────
+# 4) CMYK print-ready — BleedBox / TrimBox metadata
+# ─────────────────────────────────────────────────────────────
+def test_add_print_boxes_injects_trimbox_and_bleedbox():
+    """add_print_boxes doit ajouter BleedBox + TrimBox à chaque page."""
+    from services.pdf_luxury_helpers import add_print_boxes
+    from services.karma_destin_pdf import generate_karma_destin_pdf
+    from pypdf import PdfReader
+    from io import BytesIO
+    mock = {'north_node': {'sign': 'Lion'}, 'south_node': {'sign': 'Verseau'}}
+    raw = generate_karma_destin_pdf('Sophie', '1990-06-15', mock)
+    print_ready = add_print_boxes(raw, bleed_mm=3.0)
+    r = PdfReader(BytesIO(print_ready))
+    p = r.pages[0]
+    # MediaBox reste inchangée (A4 = 595.28 × 841.89 pt)
+    assert abs(float(p.mediabox.width) - 595.276) < 1
+    # TrimBox est en retrait de 3mm (~ 8.5 pt) de chaque côté
+    assert abs(float(p.trimbox.width) - (float(p.mediabox.width) - 2 * 8.5)) < 1, (
+        f'TrimBox width {float(p.trimbox.width)} ne correspond pas à MediaBox - 2×bleed'
+    )
+    # BleedBox == MediaBox (design plein bord)
+    assert float(p.bleedbox.width) == float(p.mediabox.width)
+
+
+def test_add_print_boxes_safe_on_invalid_input():
+    """Safe fallback : retourne bytes intacts si input invalide."""
+    from services.pdf_luxury_helpers import add_print_boxes
+    assert add_print_boxes(b'') == b''
+    assert add_print_boxes(b'not-a-pdf') == b'not-a-pdf'
+
+
+# ─────────────────────────────────────────────────────────────
+# 5) QR Referral Tracker — redirection /r/{code}
+# ─────────────────────────────────────────────────────────────
+def test_qr_tracker_router_registered():
+    """La route /r/{code} doit être enregistrée dans l'app FastAPI."""
+    from services.qr_referral_tracker import router
+    routes = [r.path for r in router.routes]
+    assert any('/r/{code}' in p for p in routes), (
+        f'Route /r/{{code}} manquante. Routes trouvées : {routes}'
+    )

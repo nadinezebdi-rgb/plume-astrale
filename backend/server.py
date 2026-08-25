@@ -2503,6 +2503,13 @@ async def pdf_download_endpoint(session_id: str, token: str):
     return await download_pdf(session_id, token)
 
 
+# ═══ QR Referral Tracker (2026-02-26) ═══
+# Enregistre le router à la racine (`/r/{code}`) — c'est un raccourci
+# NON-préfixé /api car il doit être court pour tenir dans un QR PDF.
+from services.qr_referral_tracker import router as _qr_tracker_router
+app.include_router(_qr_tracker_router)
+
+
 # ═══ Cercle Soléna — Rapport mensuel (admin/test triggers) ═══
 
 @app.post('/api/admin/cercle-monthly-report/send-all')
