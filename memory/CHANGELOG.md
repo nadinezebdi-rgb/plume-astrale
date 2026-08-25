@@ -1,5 +1,19 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-25 — Soléna Portrait Deployment Pack (WebP + Manifesto + Signature)
+
+**3 tâches livrées** :
+
+**WebP Portrait** : `solena-portrait.png` (1.66 MB) → `solena-portrait.webp` (104 KB) via Pillow — gain **–94%**. Servi via `<picture>` avec fallback PNG dans `SolenaGuideCard.js` et `NocturneManifest.jsx`. `currentSrc` confirmé `.webp` sur navigateurs modernes.
+
+**Manifesto Hero Photo** : `NocturneManifest.jsx` restructuré en grille 2 colonnes (1fr / 380px) desktop, empilée < 880px. Portrait droit avec aspect-ratio 4:5, padding doré 10px, gradient `rgba(201,162,75,0.14 → 0.04)`, shadow navy `0 24px 60px -20px rgba(15,26,60,0.35)`, saturation légère 0.92, `objectPosition: 50% 25%` pour cadrage sur le visage. Caption "— SOLÉNA · GUIDE ÉDITORIALE" en ne-mono doré tracking 0.24em. data-testid `nocturne-manifest-portrait` + `nocturne-manifest-portrait-img`.
+
+**Signature Line** : ajout de "— Soléna" sous le texte de la carte flottante dans `SolenaGuideCard.js` — police Inter, 10px, uppercase, letter-spacing 0.24em, couleur `#C9A24B`, weight 600. data-testid `solena-guide-signature`.
+
+Testé visuellement : screenshots confirment portrait intégré à droite du manifeste + signature dorée dans la carte SolenaGuideCard + WebP servi correctement.
+
+
+
 ## 2026-02-25 — Portrait Soléna intégré dans SolenaGuideCard
 
 **Demande** : remplacer l'avatar générique par le portrait fourni par l'utilisatrice (femme aux cheveux bruns ondulés, blouse vert sauge, fond constellations) dans la carte "Bonjour, je suis Soléna".
