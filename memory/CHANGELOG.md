@@ -1,5 +1,16 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-24 — CAPI Fully Operational + Contest Banner Wording
+
+**✅ CAPI opérationnel** : après le fix user_data (IP + UA + email hashé), le health check retourne `capi_ok: true`, `meta_http_status: 200`, `events_received: 1`. Meta CAPI est end-to-end fonctionnel.
+
+**Correction contest banner** : le texte "Plume Astrale est finaliste" contredisait le règlement Emergent (Top 100/10 annoncés le 19 septembre 2026). Remplacé par :
+- Titre : "Soutenez Plume Astrale au concours Building France"
+- Sous-titre : "Emergent récompense les créations françaises indépendantes. Un clic, un vote — et vous nous aidez à faire connaître notre écriture."
+- Règlement-safe et plus crédible
+
+
+
 ## 2026-02-24 — CAPI Health Check Fix (Meta requires user_data since 2024)
 
 **Diagnostic obtenu grâce au diagnostic enrichi** :
