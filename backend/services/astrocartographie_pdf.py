@@ -111,13 +111,22 @@ def _make_styles():
 
 
 def _svg_to_png_bytes(svg_str: str) -> Optional[bytes]:
-    """Convertit un SVG (string) en PNG bytes via cairosvg si dispo, sinon None."""
+    """Convertit un SVG (string) en PNG bytes via cairosvg si dispo, sinon None.
+
+    Le PNG 1600×1360 brut pèse 5-10 Mo → on l'aplatit en JPEG optimisé (~90 Ko).
+    Reportlab.Image accepte les JPEG sans modification d'API en aval.
+    """
     if not svg_str:
         return None
     try:
         import cairosvg  # type: ignore
-        return cairosvg.svg2png(bytestring=svg_str.encode('utf-8'),
+        raw = cairosvg.svg2png(bytestring=svg_str.encode('utf-8'),
                                 output_width=1600, background_color='white')
+        try:
+            from services.pdf_luxury_helpers import compress_image_bytes
+            return compress_image_bytes(raw, max_width=1400, quality=90, force_jpeg=True)
+        except Exception:
+            return raw
     except Exception as e:
         logger.warning(f"[astrocarto_pdf] cairosvg unavailable, trying svglib: {e}")
     try:
@@ -140,9 +149,11 @@ def _ornament(story, kind: str = 'star'):
     """Séparateur décoratif discret : petit motif doré centré."""
     from reportlab.platypus import Table, TableStyle
     from reportlab.lib import colors as _c
+    from services.pdf_theme import register_fonts as _register_fonts
+    _register_fonts()  # garantit la police `Symbol` pour les glyphes ornementaux
     glyph = {'star': '✦', 'diamond': '◆', 'dot': '·'}.get(kind, '✦')
-    # 3-glyph horizontal ornament centered
-    text = f'<font color="#D4AF37">{glyph}&nbsp;&nbsp;&nbsp;{glyph}&nbsp;&nbsp;&nbsp;{glyph}</font>'
+    g = f'<font name="OrnamentSerif">{glyph}</font>'
+    text = f'<font color="#D4AF37">{g}&nbsp;&nbsp;&nbsp;{g}&nbsp;&nbsp;&nbsp;{g}</font>'
     p_style = ParagraphStyle('ornament', fontName='Helvetica', fontSize=9,
                              alignment=TA_CENTER, leading=12, spaceBefore=6, spaceAfter=6)
     story.append(Paragraph(text, p_style))

@@ -17,6 +17,12 @@ from reportlab.platypus import (
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 from reportlab.lib.pagesizes import A4
 
+from services.pdf_theme import register_fonts as _register_luxury_fonts
+
+# Enregistre la police OrnamentSerif (FreeSerif) au chargement du module afin que
+# tout `<font name="OrnamentSerif">` inline dans les Paragraph soit résolu.
+_register_luxury_fonts()
+
 # Palette Plume Astrale
 NIGHT       = colors.HexColor('#111625')
 NIGHT_SOFT  = colors.HexColor('#1A2035')
@@ -83,6 +89,8 @@ class KarmaDestinPDFGenerator:
         birth_date_iso: str,
         karmic_data: Dict[str, Any],
         ai_sections: Optional[Dict[str, str]] = None,
+        referral_code: Optional[str] = None,
+        referral_link: Optional[str] = None,
     ) -> bytes:
         """Génère le PDF complet (15 pages).
 
@@ -111,13 +119,16 @@ class KarmaDestinPDFGenerator:
                 return page_map.get(cid, fb) if page_map is not None else fb
 
             _toc_page(story, _mini_styles, [
-                {'roman': 'I',   'title': "Comprendre ton karma",         'page': _pg('chap1')},
-                {'roman': 'II',  'title': "Tes nœuds lunaires",           'page': _pg('chap2')},
-                {'roman': 'III', 'title': "Saturne — les leçons",         'page': _pg('chap3')},
-                {'roman': 'IV',  'title': "Chiron — la blessure sacrée",  'page': _pg('chap4')},
-                {'roman': 'V',   'title': "Pluton — la transformation",   'page': _pg('chap5')},
-                {'roman': 'VI',  'title': "Karma générationnel",          'page': _pg('chap6')},
-                {'roman': 'VII', 'title': "Rituels de libération",        'page': _pg('chap7')},
+                {'roman': 'I',    'title': "Comprendre ton karma",         'page': _pg('chap1')},
+                {'roman': 'II',   'title': "Tes nœuds lunaires",           'page': _pg('chap2')},
+                {'roman': 'III',  'title': "Saturne — les leçons",         'page': _pg('chap3')},
+                {'roman': 'IV',   'title': "Chiron — la blessure sacrée",  'page': _pg('chap4')},
+                {'roman': 'V',    'title': "Pluton — la transformation",   'page': _pg('chap5')},
+                {'roman': 'VI',   'title': "Karma générationnel",          'page': _pg('chap6')},
+                {'roman': 'VII',  'title': "Rituels de libération",        'page': _pg('chap7')},
+                {'roman': 'VIII', 'title': "Affirmations & Mantras",       'page': _pg('chap8')},
+                {'roman': 'IX',   'title': "Journal karmique",             'page': _pg('chap9')},
+                {'roman': 'X',    'title': "Ta feuille de route",          'page': _pg('chap10')},
             ])
 
             story.append(chapter_marker('chap1'))
@@ -153,6 +164,30 @@ class KarmaDestinPDFGenerator:
             story.append(chapter_marker('chap7'))
             _chapter_opener(story, _mini_styles, 'VII', "Rituels de libération", "Cinq pratiques pour l'âme")
             story.extend(self._page_rituels_liberation(first_name))
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap8'))
+            _chapter_opener(story, _mini_styles, 'VIII', "Affirmations & Mantras", "La voix qui te ramène à toi")
+            story.extend(self._page_affirmations(first_name))
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap9'))
+            _chapter_opener(story, _mini_styles, 'IX', "Journal karmique", "Trois prompts d'écriture")
+            story.extend(self._page_journal_karmique(first_name))
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap10'))
+            _chapter_opener(story, _mini_styles, 'X', "Ta feuille de route", "Les 90 prochains jours")
+            story.extend(self._page_feuille_route(first_name))
+
+            # ═══ Colophon Nocturne — dernière page ═══
+            story.append(PageBreak())
+            from services.pdf_colophon import build_colophon
+            build_colophon(
+                story, _mini_styles, prenom=first_name,
+                referral_code=referral_code, referral_link=referral_link,
+                product_name='Ton Analyse Karmique',
+            )
             return story
 
         return build_with_toc(
@@ -181,7 +216,7 @@ class KarmaDestinPDFGenerator:
             except Exception:
                 pass
         elements.extend([
-            Paragraph('✦ TON ANALYSE KARMIQUE ✦', self.title_style),
+            Paragraph('<font name="OrnamentSerif">✦</font> TON ANALYSE KARMIQUE <font name="OrnamentSerif">✦</font>', self.title_style),
             Spacer(0, 0.5 * cm),
             Paragraph('Destinée, Leçons & Guérison Spirituelle', self.subtitle_style),
             Spacer(0, 0.9 * cm),
@@ -228,27 +263,37 @@ class KarmaDestinPDFGenerator:
         ]
     
     def _pages_noeuds_lunaires(self, data: Dict[str, Any]) -> List:
-        """Nœud nord/sud — chemin de destinée."""
+        """Nœud nord/sud — chemin de destinée (2 pages : nord + sud séparés)."""
         story = []
-        story.append(Paragraph('⚜ Les Nœuds Lunaires — Ton Chemin d\'Évolution ⚜', self.heading_style))
-        
+        story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Les Nœuds Lunaires — Ton Chemin d\'Évolution <font name="OrnamentSerif">⚜</font>', self.heading_style))
+
         north_node = data.get('north_node', {})
         south_node = data.get('south_node', {})
-        
+
         if isinstance(north_node, dict):
             nn_sign = north_node.get('sign', 'Inconnu')
             nn_desc = getattr(self, '_ai', {}).get('noeud_nord') or north_node.get('description', 'Ton potentiel de croissance.')
             story.append(Paragraph(f'<b>Nœud Nord en {nn_sign}</b>', self.heading_style))
             story.append(Paragraph(f'{nn_desc}', self.body_style))
-        
-        story.append(Spacer(0, 0.8 * cm))
-        
+            story.append(Spacer(0, 0.5 * cm))
+            story.append(Paragraph(
+                '<i>Le Nœud Nord indique la direction vers laquelle ton âme aspire — '
+                'ce que tu es venue apprendre et intégrer dans cette incarnation. '
+                'C\'est ta boussole intime, celle qui te tire vers l\'inconfort '
+                'fertile de la croissance.</i>',
+                self.body_style,
+            ))
+
+        # Séparation N/S sur deux pages : le pôle sud mérite sa page dédiée
+        story.append(PageBreak())
+        story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Le Pôle Karmique — Ton Nœud Sud <font name="OrnamentSerif">⚜</font>', self.heading_style))
+
         if isinstance(south_node, dict):
             sn_sign = south_node.get('sign', 'Inconnu')
             sn_desc = getattr(self, '_ai', {}).get('noeud_sud') or south_node.get('description', 'Ce que tu as maîtrisé dans des vies antérieures.')
             story.append(Paragraph(f'<b>Nœud Sud en {sn_sign}</b>', self.heading_style))
             story.append(Paragraph(f'{sn_desc}', self.body_style))
-        
+
         story.append(Spacer(0, 0.5 * cm))
         story.append(Paragraph(
             'Tu n\'as pas besoin de développer le Nœud Sud — tu l\'as déjà. '
@@ -256,13 +301,20 @@ class KarmaDestinPDFGenerator:
             'même si cela semble inconfortable au départ.',
             self.body_style,
         ))
-        
+        story.append(Spacer(0, 0.4 * cm))
+        story.append(Paragraph(
+            '<i>La tension entre ces deux pôles est le moteur de ton évolution. '
+            'Certains jours, tu retomberas dans les facilités du Sud ; d\'autres, '
+            'tu goûteras à la lumière neuve du Nord. Les deux sont nécessaires.</i>',
+            self.body_style,
+        ))
+
         return story
     
     def _pages_saturne(self, data: Dict[str, Any]) -> List:
         """Saturne — leçons karmiques et tests de vie."""
         story = []
-        story.append(Paragraph('⚜ Saturne — Tes Leçons Karmiques ⚜', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Saturne — Tes Leçons Karmiques <font name="OrnamentSerif">⚜</font>', self.heading_style))
         
         saturn = data.get('saturn', {})
         if isinstance(saturn, dict):
@@ -285,7 +337,7 @@ class KarmaDestinPDFGenerator:
     def _pages_chiron(self, data: Dict[str, Any]) -> List:
         """Chiron — blessure sacrée et guérison."""
         story = []
-        story.append(Paragraph('⚜ Chiron — La Blessure Sacrée & La Guérison ⚜', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Chiron — La Blessure Sacrée & La Guérison <font name="OrnamentSerif">⚜</font>', self.heading_style))
         
         chiron = data.get('chiron', {})
         if isinstance(chiron, dict):
@@ -309,7 +361,7 @@ class KarmaDestinPDFGenerator:
     def _pages_pluton(self, data: Dict[str, Any]) -> List:
         """Pluton — transformation et pouvoir."""
         story = []
-        story.append(Paragraph('⚜ Pluton — Transformations de Pouvoir ⚜', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Pluton — Transformations de Pouvoir <font name="OrnamentSerif">⚜</font>', self.heading_style))
         
         pluto = data.get('pluto', {})
         if isinstance(pluto, dict):
@@ -325,7 +377,7 @@ class KarmaDestinPDFGenerator:
     def _page_karma_generationnel(self, data: Dict[str, Any]) -> List:
         """Karma générationnel — héritage ancestral."""
         story = []
-        story.append(Paragraph('⚜ Ton Héritage Karmique Générationnel ⚜', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Ton Héritage Karmique Générationnel <font name="OrnamentSerif">⚜</font>', self.heading_style))
         
         gen_karma = getattr(self, '_ai', {}).get('karma_generationnel') or data.get('generational_karma', 
             'Tes ancêtres vivent à travers toi. Tu portes leur sagesse et leurs apprentissages.')
@@ -335,7 +387,7 @@ class KarmaDestinPDFGenerator:
         # Nouvelle section IA : Dates-clés karmiques
         if getattr(self, '_ai', {}).get('dates_cles'):
             story.append(Spacer(0, 0.6 * cm))
-            story.append(Paragraph('⚜ Tes Dates-Clés Karmiques ⚜', self.heading_style))
+            story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Tes Dates-Clés Karmiques <font name="OrnamentSerif">⚜</font>', self.heading_style))
             story.append(Paragraph(self._ai['dates_cles'], self.body_style))
         story.append(Spacer(0, 0.5 * cm))
         story.append(Paragraph(
@@ -364,7 +416,7 @@ class KarmaDestinPDFGenerator:
             ),
             Spacer(0, 1 * cm),
             Paragraph(
-                '─ ✦ ─<br/><br/>'
+                '─ <font name="OrnamentSerif">✦</font> ─<br/><br/>'
                 'Ton karma n\'est pas ta destinée — c\'est ton tremplin.<br/>'
                 f'À bientôt, {name}.<br/><br/>'
                 '<i>Solena — La voix de Plume Astrale</i>',
@@ -375,12 +427,156 @@ class KarmaDestinPDFGenerator:
             ),
         ]
 
+    def _page_affirmations(self, name: str) -> List:
+        """Affirmations karmiques personnalisées — 7 phrases-clés pour l'ancrage."""
+        return [
+            Paragraph('Sept affirmations pour ton chemin', self.heading_style),
+            Spacer(0, 0.4 * cm),
+            Paragraph(
+                '<i>Chaque matin, choisis une affirmation qui résonne. Répète-la à voix '
+                'haute, la main sur le cœur. Laisse la vibration s\'installer avant d\'ouvrir '
+                'ton téléphone. Trois respirations profondes suffisent.</i>',
+                self.body_style,
+            ),
+            Spacer(0, 0.6 * cm),
+            Paragraph(
+                '<b>I.</b>  Je suis libéré(e) de tout ce qui ne m\'appartient plus.<br/><br/>'
+                '<b>II.</b>  Mes ancêtres marchent avec moi — leur sagesse me guide sans me contraindre.<br/><br/>'
+                '<b>III.</b>  Je choisis ma direction, même quand mes anciens réflexes tirent en arrière.<br/><br/>'
+                '<b>IV.</b>  Mes blessures deviennent mes ponts vers les autres.<br/><br/>'
+                '<b>V.</b>  Saturne n\'est pas mon ennemi — c\'est mon architecte intérieur.<br/><br/>'
+                '<b>VI.</b>  Chaque cycle qui se ferme prépare le suivant. J\'accueille les fins.<br/><br/>'
+                f'<b>VII.</b>  Je m\'appelle {name}, et j\'ai le droit d\'écrire ma propre histoire.',
+                ParagraphStyle(
+                    'affirm', fontName='Helvetica-Oblique', fontSize=11.5,
+                    textColor=CREAM, alignment=TA_LEFT, leading=17, spaceAfter=6,
+                ),
+            ),
+            Spacer(0, 0.5 * cm),
+            Paragraph(
+                '<i>Écris ta huitième affirmation ci-dessous — celle qui te ressemble.</i><br/><br/>'
+                '<font color="#9089B5">'
+                '________________________________________________________<br/><br/>'
+                '________________________________________________________'
+                '</font>',
+                self.body_style,
+            ),
+        ]
+
+    def _page_journal_karmique(self, name: str) -> List:
+        """Trois prompts d'écriture pour intégrer l'analyse karmique."""
+        return [
+            Paragraph('Trois prompts pour ton journal', self.heading_style),
+            Spacer(0, 0.4 * cm),
+            Paragraph(
+                '<i>Prends une soirée calme. Un thé, un carnet, une bougie. '
+                'Écris sans te relire — laisse les mots venir.</i>',
+                self.body_style,
+            ),
+            Spacer(0, 0.7 * cm),
+            Paragraph(
+                '<b>Prompt 1 — La dette invisible</b><br/>'
+                'Quelle est la peur ancienne qui gouverne encore mes choix aujourd\'hui ? '
+                'D\'où me vient-elle ? Est-elle vraiment la mienne ?',
+                self.body_style,
+            ),
+            Spacer(0, 0.3 * cm),
+            Paragraph(
+                '<font color="#9089B5">'
+                '________________________________________________________<br/>'
+                '________________________________________________________<br/>'
+                '________________________________________________________'
+                '</font>',
+                self.body_style,
+            ),
+            Spacer(0, 0.7 * cm),
+            Paragraph(
+                '<b>Prompt 2 — Le pont de Chiron</b><br/>'
+                'Quelle blessure suis-je en train de transformer en cadeau pour les autres ? '
+                'À qui pourrais-je enseigner ce que j\'ai appris en la traversant ?',
+                self.body_style,
+            ),
+            Spacer(0, 0.3 * cm),
+            Paragraph(
+                '<font color="#9089B5">'
+                '________________________________________________________<br/>'
+                '________________________________________________________<br/>'
+                '________________________________________________________'
+                '</font>',
+                self.body_style,
+            ),
+            Spacer(0, 0.7 * cm),
+            Paragraph(
+                '<b>Prompt 3 — Le pas suivant</b><br/>'
+                f'{name}, quelle est la plus petite action concrète que je peux poser cette '
+                'semaine, qui incarne mon Nœud Nord ?',
+                self.body_style,
+            ),
+            Spacer(0, 0.3 * cm),
+            Paragraph(
+                '<font color="#9089B5">'
+                '________________________________________________________<br/>'
+                '________________________________________________________<br/>'
+                '________________________________________________________'
+                '</font>',
+                self.body_style,
+            ),
+        ]
+
+    def _page_feuille_route(self, name: str) -> List:
+        """Feuille de route 90 jours — 3 saisons de 30 jours."""
+        return [
+            Paragraph('Tes 90 prochains jours', self.heading_style),
+            Spacer(0, 0.3 * cm),
+            Paragraph(
+                f'<i>{name}, ne cherche pas à tout changer d\'un coup. Le karma se '
+                'dénoue lentement, par petites décisions cohérentes. Voici trois saisons '
+                'de trente jours — trois marches vers ton Nœud Nord.</i>',
+                self.body_style,
+            ),
+            Spacer(0, 0.7 * cm),
+            Paragraph(
+                '<b>Jours 1 → 30 · Observer</b><br/>'
+                'Note chaque situation où tu reprends un ancien réflexe (le pôle Sud). '
+                'Ne juge pas — observe. À la fin du mois, tu auras une carte précise de '
+                'tes automatismes karmiques.',
+                self.body_style,
+            ),
+            Spacer(0, 0.5 * cm),
+            Paragraph(
+                '<b>Jours 31 → 60 · Choisir</b><br/>'
+                'Repère UN seul pattern (parmi ceux notés) que tu veux transformer. '
+                'Chaque fois qu\'il se présente, choisis consciemment l\'alternative — '
+                'même petite. Tu forges un nouveau chemin neuronal.',
+                self.body_style,
+            ),
+            Spacer(0, 0.5 * cm),
+            Paragraph(
+                '<b>Jours 61 → 90 · Incarner</b><br/>'
+                'Célèbre les progrès. Écris une lettre à toi-même à J+90 : décris qui tu es '
+                'devenue en incarnant ton Nœud Nord un peu chaque jour. Cette lettre est '
+                'ta boussole pour la suite du voyage.',
+                self.body_style,
+            ),
+            Spacer(0, 0.9 * cm),
+            Paragraph(
+                '<i>« Tout ce que tu dois faire, c\'est décider ce que tu vas faire '
+                'du temps qui t\'est donné. »</i>',
+                ParagraphStyle(
+                    'quote_route', fontName='Helvetica-Oblique', fontSize=11,
+                    textColor=GOLD_LIGHT, alignment=TA_CENTER, leading=15,
+                ),
+            ),
+        ]
+
 
 def generate_karma_destin_pdf(
     first_name: str,
     birth_date_iso: str,
     karmic_data: Dict[str, Any],
     ai_sections: Optional[Dict[str, str]] = None,
+    referral_code: Optional[str] = None,
+    referral_link: Optional[str] = None,
 ) -> bytes:
     """Wrapper synchrone (compat).
 
@@ -393,6 +589,8 @@ def generate_karma_destin_pdf(
         birth_date_iso=birth_date_iso,
         karmic_data=karmic_data,
         ai_sections=ai_sections,
+        referral_code=referral_code,
+        referral_link=referral_link,
     )
 
 
@@ -400,6 +598,8 @@ async def generate_karma_destin_pdf_ai(
     first_name: str,
     birth_date_iso: str,
     karmic_data: Dict[str, Any],
+    referral_code: Optional[str] = None,
+    referral_link: Optional[str] = None,
 ) -> bytes:
     """Génère le PDF Karma & Destin AVEC enrichissement IA transverse.
 
@@ -427,4 +627,6 @@ async def generate_karma_destin_pdf_ai(
         birth_date_iso=birth_date_iso,
         karmic_data=karmic_data,
         ai_sections=ai_sections,
+        referral_code=referral_code,
+        referral_link=referral_link,
     )

@@ -1,0 +1,66 @@
+{
+  "summary": "Tested Plume Astrale /livres refonte (PhysicalBookScene 6 real book covers), hover halo, mobile responsiveness, admin QR stats dashboard, and backend endpoints (/api/admin/referral-scan-stats, /api/pdf/download?print_ready=1). All 7 targeted features PASS. Two non-blocking issues identified: (1) Low contrast on /admin/qr-stats page - light cream text on light PsPageShell background; (2) React 'duplicate key' console warning on /livres.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/admin/referral-scan-stats", "issue": "Supabase table 'referral_scan_counters' missing → endpoint soft-fails with {ok:false, error:'PGRST205'}. Endpoint code handles it gracefully (returns 200), but frontend renders qr-stats-error banner instead of qr-stats-empty. Consider creating the table or treating PGRST205 as empty in the endpoint."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/admin/qr-stats", "issues": ["Text color #F5EEE0 (cream) on PsPageShell light background → very low contrast on the title 'Scans QR de parrainage', KPI cards labels, and subtitle. The page uses dark-theme colors while rendered inside a light shell. Fix: either pass background='dark' to PsPageShell or use dark ink colors (#1a1a2e-ish) matching the site's light theme."]}
+    ],
+    "console_warnings": [
+      {"page": "/livres", "issue": "React 'Encountered two children with the same key' warning printed 3× on mount. Likely inside PsPageShell/navbar/footer rather than the BOOKS map (each book has unique slug). Worth grep-ing for map() without key or with duplicate keys."}
+    ]
+  },
+  "test_results_detail": {
+    "livres_desktop_1440x900": {
+      "6_cards_present": true,
+      "6_covers_loaded_naturalWidth": [1200, 1200, 1200, 1200, 1200, 1200],
+      "prices_visible": ["49\u20ac", "59\u20ac", "54\u20ac", "39\u20ac", "69\u20ac", "64\u20ac"],
+      "cta_buttons_present": {"decouvrir": 6, "flipbook": 6, "preview": 6},
+      "hover_halo_transform_before": "none",
+      "hover_halo_transform_after": "matrix(1.55, 0, 0, 1.55, -50.22, 22.32)",
+      "cta_click_navigates": "/theme-natal-luxe (from livres-cta-theme-natal)"
+    },
+    "livres_mobile_375x812": {
+      "horizontal_overflow": false,
+      "scrollWidth_vs_innerWidth": "375 <= 375",
+      "6_covers_loaded_on_mobile": true,
+      "last_card_visible_after_scroll": true
+    },
+    "admin_qr_stats": {
+      "non_auth_redirect_to_root": true,
+      "admin_page_accessible_with_admin_creds": true,
+      "data_testid_admin-qr-stats-page_visible": true,
+      "error_state_shown_because_supabase_table_missing": true
+    },
+    "backend_curl": {
+      "/api/admin/referral-scan-stats?top=50": "HTTP 200, {ok:false, error:'PGRST205 table missing', top_codes:[]} - soft-fail as designed",
+      "/api/pdf/download?session_id=fake&token=fake&print_ready=1": "HTTP 404 'Transaction introuvable' - signature accepts print_ready (NOT 422, NOT 500 - no regression)",
+      "/api/pdf/download baseline (no print_ready)": "HTTP 404 - identical behavior",
+      "6x /api/assets/pdf_covers/*.png": "all HTTP 200, sizes 129-205 KB"
+    }
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Fix contrast on /admin/qr-stats: the page uses dark-theme colors (#F5EEE0, #B9B0D5) but is wrapped in PsPageShell default (light) - either pass background='dark' or invert colors to dark ink.",
+    "Fix React duplicate-key warning on /livres (3 warnings on mount) - not in BOOKS map (slugs unique), likely in navbar/shell/footer.",
+    "Optional: create Supabase table 'referral_scan_counters' (code text pk, count int, updated_at timestamptz) OR make the endpoint return {ok:true, top_codes:[]} when PGRST205 (table missing) so UI shows empty state instead of error banner."
+  ],
+  "critical_code_review_comments": [
+    "PhysicalBookScene.js gracefully handles image error via onError opacity=0 - good defensive pattern.",
+    "AdminQrStats.js correctly does client-side redirect via <Navigate to='/'/> for non-admin; uses session.access_token from AuthContext - clean.",
+    "qr_referral_tracker.py: soft-fail catch is broad but appropriate for a best-effort analytics endpoint. Consider narrowing exception + treating PGRST205 specifically as empty."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 (from /app/memory/test_credentials.md) - login successful",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "The /livres refonte with PhysicalBookScene is fully working - 6 real cover PNGs load with naturalWidth=1200, hover halo transform scale(1.55) confirmed via computed style, CTAs navigate to product pages, mobile has no horizontal overflow. Admin dashboard /admin/qr-stats is functional but the Supabase table 'referral_scan_counters' does not exist yet - endpoint soft-fails to {ok:false} and UI renders error state (not empty state). Contrast issue on that page: dark-theme colors on light shell. Backend param print_ready is properly typed as bool - no 422 regression."
+}

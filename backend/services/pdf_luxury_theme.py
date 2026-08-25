@@ -33,6 +33,10 @@ from services.pdf_theme import (
     GOLD, GOLD_LIGHT, CREAM, LAVENDER, MUTED, NIGHT, NIGHT_SOFT, PALETTE,
 )
 
+# Enregistre les polices luxe (Cormorant + Cinzel + OrnamentSerif) au chargement
+# du module → tout `<font name="OrnamentSerif">` inline dans les Paragraph est résolu.
+register_fonts()
+
 # Hex strings pour usage inline HTML `<font color="#..">`
 GOLD_HEX       = '#D4AF37'
 GOLD_LIGHT_HEX = '#E8C766'
@@ -173,7 +177,7 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
     (palette V3 unifiée). Fallback : illustration cosmique distante par slug.
     """
     story.append(Spacer(1, 2 * cm))
-    story.append(Paragraph('✦ PLUME ASTRALE ✦', styles['section_tag']))
+    story.append(Paragraph('<font name="OrnamentSerif">✦</font> PLUME ASTRALE <font name="OrnamentSerif">✦</font>', styles['section_tag']))
     story.append(Spacer(1, 0.6 * cm))
 
     # Priorité : hero V3 local (garantit une belle carte prestige à chaque livre imprimé)
@@ -212,7 +216,7 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
 def opening_page(story: list, styles: dict, prenom: str, first_line: str = "Ton ciel n'a jamais été aussi clair."):
     """Page 2 — l'accueil spectaculaire : prénom + ligne d'ouverture pleine page."""
     story.append(Spacer(1, 8 * cm))
-    story.append(Paragraph(f'<font color="{GOLD_HEX}">✦</font>', styles['planet_glyph']))
+    story.append(Paragraph(f'<font color="{GOLD_HEX}"><font name="OrnamentSerif">✦</font></font>', styles['planet_glyph']))
     story.append(Spacer(1, 0.5 * cm))
     story.append(Paragraph(prenom, styles['cover_title']))
     story.append(Paragraph(first_line, styles['waouh']))
@@ -266,7 +270,7 @@ def chart_wheel_page(
 
     # Chapter tag + titre — compact pour que tout tienne sur UNE page
     story.append(Spacer(1, 0.5 * cm))
-    story.append(Paragraph('✦ TA CARTE DU CIEL ✦', styles['section_tag']))
+    story.append(Paragraph('<font name="OrnamentSerif">✦</font> TA CARTE DU CIEL <font name="OrnamentSerif">✦</font>', styles['section_tag']))
     story.append(Paragraph(f'La signature astrale de {prenom}', styles['cover_title']))
     story.append(Paragraph(
         f'Née le {birth_date_fr}',
@@ -360,7 +364,7 @@ def emotional_ending(story: list, styles: dict, prenom: str):
         Paragraph('— Soléna', styles['signature']),
         Spacer(1, 0.7 * cm),
         Paragraph(
-            f'<font color="{GOLD_HEX}">✦ ⁘ ✦</font>',
+            f'<font color="{GOLD_HEX}"><font name="OrnamentSerif">✦ ⁘ ✦</font></font>',
             ParagraphStyle('final_ornament', fontName=font('Cinzel', 'Helvetica'),
                            fontSize=18, textColor=GOLD, alignment=TA_CENTER,
                            leading=22, spaceBefore=6),
@@ -456,7 +460,7 @@ def photos_grid_2x2(
             except Exception:
                 img_flow = None
         if img_flow is None:
-            img_flow = Paragraph(f'<font color="{GOLD_HEX}" size="42">✦</font>',
+            img_flow = Paragraph(f'<font color="{GOLD_HEX}" size="42"><font name="OrnamentSerif">✦</font></font>',
                                  ParagraphStyle('grid_placeholder', fontName='Helvetica',
                                                 fontSize=42, textColor=GOLD,
                                                 alignment=TA_CENTER, leading=44))

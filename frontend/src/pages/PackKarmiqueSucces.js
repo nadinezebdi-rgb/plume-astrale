@@ -4,6 +4,7 @@ import { CheckCircle2, Download, ArrowRight, Loader2, Mail } from 'lucide-react'
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import CercleSolenaInvite from '@/components/CercleSolenaInvite';
+import PdfDownloadButtons from '@/components/PdfDownloadButtons';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -89,15 +90,17 @@ const PackKarmiqueSucces = () => {
         </div>
 
         <div className="text-center">
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             {status.pdf_url && (
-              <a href={`${API}${status.pdf_url}`} target="_blank" rel="noopener noreferrer" className="plume-btn-primary" data-testid="pack-karmique-download-btn">
-                <Download className="w-4 h-4" strokeWidth={1.5} />
-                Télécharger mon PDF
-              </a>
+              <PdfDownloadButtons
+                pdfUrl={status.pdf_url}
+                apiBase={API}
+                label="Télécharger mon PDF"
+                testidPrefix="pack-karmique"
+              />
             )}
             <Link to="/" className="plume-btn-secondary" data-testid="pack-karmique-home-btn">
-              Retour à l'accueil
+              Retour à l&apos;accueil
               <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
             </Link>
           </div>

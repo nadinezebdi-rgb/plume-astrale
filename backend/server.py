@@ -1110,9 +1110,11 @@ async def _trigger_synastrie_pdf_email(session_id: Optional[str]) -> None:
 
     # Generation PDF best-effort
     pdf_path = None
+    pdf_token = None
     try:
         from services.synastrie_pdf_generator import generate_synastrie_pdf
         from services.synastrie_enrichment import fetch_astro_data, enrich_pages
+        from services.pdf_download import new_pdf_token, build_signed_pdf_url
         p1 = rec['person1_data']
         p2 = rec['person2_data']
         # Enrichissement Option A : 10 pages personnalisees via GPT-4o-mini + astro-api
@@ -1129,12 +1131,17 @@ async def _trigger_synastrie_pdf_email(session_id: Optional[str]) -> None:
         out_path = out_dir / filename
         with open(out_path, 'wb') as f:
             f.write(pdf_bytes)
-        pdf_path = f'/api/assets/synastrie/{filename}'
+        # SEC 2026-02-26 : téléchargement via token opaque au lieu d'un lien statique
+        # /api/assets/synastrie/... qui exposait la structure de fichiers.
+        # Le token est encodé DANS pdf_path (query string) pour éviter une
+        # migration schema (pas de colonne pdf_token dédiée).
+        pdf_token = new_pdf_token()
+        pdf_path = build_signed_pdf_url(session_id, pdf_token)
         sb.table('synastrie_purchases').update({
             'pdf_path': pdf_path,
             'pdf_generated_at': datetime.now(timezone.utc).isoformat(),
         }).eq('id', rec['id']).execute()
-        logger.info(f'[synastrie] PDF generated: {pdf_path}')
+        logger.info(f'[synastrie] PDF generated (signed): {pdf_path}')
     except Exception as e:
         logger.error(f'[synastrie] PDF gen failed: {e}')
 
@@ -2496,17 +2503,13 @@ async def api_health_check():
 
 
 if ASSETS_DIR.exists():
-    # SEC-003 : on ne monte PLUS `assets/` en totalité. Seuls les sous-dossiers
-    # de ressources partagées sont exposés. Les PDFs personnels (kabbale,
-    # astrocartographie, pack_karmique, rencontres_ultime) passent par
-    # /api/pdf/download avec un token opaque.
-    # `synastrie_extracts` reste public (lead magnet, UUID de 48 bits agit comme token).
-    # Feb 2026 (audit) : ajout synastrie, pack_karmique, voyage_karmique pour
-    # restaurer les téléchargements post-paiement — les URLs incluent des UUID
-    # ou tokens de session qui agissent comme protection best-effort.
+    # SEC-003 2026-02-26 : on ne monte PLUS les dossiers de PDFs personnels
+    # en statique. Voyage Karmique, Synastrie, Pack Karmique passent désormais
+    # tous par /api/pdf/download avec un token opaque (empêche l'énumération
+    # des URLs de commandes voisines).
+    # `synastrie_extracts` reste public (lead magnet, UUID 48 bits = token).
     for _pub in (
-        'library', 'fonts', 'synastrie_pdf', 'synastrie_extracts', 'pdf_covers',
-        'synastrie', 'pack_karmique', 'voyage_karmique',
+        'library', 'fonts', 'synastrie_extracts', 'pdf_covers',
     ):
         _p = ASSETS_DIR / _pub
         # Créer le dossier s'il n'existe pas — nécessaire pour que le mount soit
@@ -2516,10 +2519,20 @@ if ASSETS_DIR.exists():
 
 
 @app.get('/api/pdf/download')
-async def pdf_download_endpoint(session_id: str, token: str):
-    """SEC-003 : téléchargement authentifié par token opaque des PDFs personnels."""
+async def pdf_download_endpoint(session_id: str, token: str, print_ready: bool = False):
+    """SEC-003 : téléchargement authentifié par token opaque des PDFs personnels.
+
+    `print_ready=1` (query param) → PDF avec BleedBox/TrimBox 3mm pour impression pro.
+    """
     from services.pdf_download import download_pdf
-    return await download_pdf(session_id, token)
+    return await download_pdf(session_id, token, print_ready=print_ready)
+
+
+# ═══ QR Referral Tracker (2026-02-26) ═══
+# Enregistre le router à la racine (`/r/{code}`) — c'est un raccourci
+# NON-préfixé /api car il doit être court pour tenir dans un QR PDF.
+from services.qr_referral_tracker import router as _qr_tracker_router
+app.include_router(_qr_tracker_router)
 
 
 # ═══ Cercle Soléna — Rapport mensuel (admin/test triggers) ═══
@@ -2875,12 +2888,18 @@ async def _start_cart_recovery():
     from services.instagram_weekly_post import ig_weekly_post_loop
     from services.instagram_token_refresh import ig_token_refresh_loop
     from services.promo_bootstrap import ensure_permanent_promo_codes
+    from services.qr_referral_tracker import ensure_referral_scan_tables
     from services.ssr_snapshot import ssr_refresh_loop
     # Bootstrap idempotent des codes promo permanents (TOUT2026)
     try:
         ensure_permanent_promo_codes()
     except Exception as _e:
         logging.getLogger(__name__).warning(f'promo bootstrap skipped: {_e}')
+    # Sonde des tables QR referral (log WARNING actionnable si absente).
+    try:
+        ensure_referral_scan_tables()
+    except Exception as _e:
+        logging.getLogger(__name__).warning(f'qr referral bootstrap skipped: {_e}')
     _asyncio.create_task(cart_recovery_loop())
     _asyncio.create_task(lead_nurture_loop())
     _asyncio.create_task(astrocarto_followup_loop())

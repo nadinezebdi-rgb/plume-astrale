@@ -22,6 +22,11 @@ from reportlab.graphics.shapes import Drawing, Circle, Rect, Line, Polygon
 from reportlab.graphics import renderPDF
 
 from services.pdf_bg import make_bg_canvas
+from services.pdf_theme import register_fonts as _register_luxury_fonts
+
+# Enregistre la police OrnamentSerif (FreeSerif) au chargement du module afin que
+# tout `<font name="OrnamentSerif">` inline dans les Paragraph soit résolu.
+_register_luxury_fonts()
 
 # Palette Plume Astrale
 NIGHT       = colors.HexColor('#111625')
@@ -112,6 +117,8 @@ class NumerologiePDFGenerator:
         personal_year_data: Optional[Dict[str, Any]] = None,
         forecast_data: Optional[Dict[str, Any]] = None,
         ai_sections: Optional[Dict[str, str]] = None,
+        referral_code: Optional[str] = None,
+        referral_link: Optional[str] = None,
     ) -> bytes:
         """Génère le PDF complet (12 pages).
 
@@ -139,12 +146,15 @@ class NumerologiePDFGenerator:
                 return page_map.get(cid, fb) if page_map is not None else fb
 
             _toc_page(story, _mini_styles, [
-                {'roman': 'I',   'title': "Introduction à la numérologie sacrée", 'page': _pg('chap1')},
-                {'roman': 'II',  'title': "Tes nombres-clés",                     'page': _pg('chap2')},
-                {'roman': 'III', 'title': "Ton année personnelle",                'page': _pg('chap3')},
-                {'roman': 'IV',  'title': "Prévisions cycliques",                 'page': _pg('chap4')},
-                {'roman': 'V',   'title': "Ton Carré Lo-Shu",                     'page': _pg('chap5')},
-                {'roman': 'VI',  'title': "Rituels de vibration",                 'page': _pg('chap6')},
+                {'roman': 'I',    'title': "Introduction à la numérologie sacrée", 'page': _pg('chap1')},
+                {'roman': 'II',   'title': "Tes nombres-clés",                     'page': _pg('chap2')},
+                {'roman': 'III',  'title': "Ton année personnelle",                'page': _pg('chap3')},
+                {'roman': 'IV',   'title': "Prévisions cycliques",                 'page': _pg('chap4')},
+                {'roman': 'V',    'title': "Ton Carré Lo-Shu",                     'page': _pg('chap5')},
+                {'roman': 'VI',   'title': "Rituels de vibration",                 'page': _pg('chap6')},
+                {'roman': 'VII',  'title': "Compatibilités numériques",            'page': _pg('chap7')},
+                {'roman': 'VIII', 'title': "Affirmations & Mantras",               'page': _pg('chap8')},
+                {'roman': 'IX',   'title': "Journal des vibrations",               'page': _pg('chap9')},
             ])
 
             story.append(chapter_marker('chap1'))
@@ -172,19 +182,19 @@ class NumerologiePDFGenerator:
             if self._ai.get('lo_shu'):
                 story.append(chapter_marker('chap5'))
                 _chapter_opener(story, _mini_styles, 'V', "Ton Carré Lo-Shu", "Numérologie chinoise ancestrale")
-                story.append(Paragraph('✦ Ton Carré Lo-Shu — Numérologie Chinoise ✦', self.heading_style))
+                story.append(Paragraph('<font name="OrnamentSerif">✦</font> Ton Carré Lo-Shu — Numérologie Chinoise <font name="OrnamentSerif">✦</font>', self.heading_style))
                 story.append(Spacer(0, 0.3 * cm))
                 story.append(Paragraph(self._ai['lo_shu'], self.body_style))
                 story.append(PageBreak())
 
             if self._ai.get('biorythmes'):
-                story.append(Paragraph('✦ Tes Biorythmes des 90 Prochains Jours ✦', self.heading_style))
+                story.append(Paragraph('<font name="OrnamentSerif">✦</font> Tes Biorythmes des 90 Prochains Jours <font name="OrnamentSerif">✦</font>', self.heading_style))
                 story.append(Spacer(0, 0.3 * cm))
                 story.append(Paragraph(self._ai['biorythmes'], self.body_style))
                 story.append(PageBreak())
 
             if self._ai.get('invitation_finale'):
-                story.append(Paragraph('✦ Ton Invitation ✦', self.heading_style))
+                story.append(Paragraph('<font name="OrnamentSerif">✦</font> Ton Invitation <font name="OrnamentSerif">✦</font>', self.heading_style))
                 story.append(Spacer(0, 0.3 * cm))
                 story.append(Paragraph(self._ai['invitation_finale'], self.body_style))
                 story.append(PageBreak())
@@ -192,6 +202,30 @@ class NumerologiePDFGenerator:
             story.append(chapter_marker('chap6'))
             _chapter_opener(story, _mini_styles, 'VI', "Rituels de vibration", "Cinq pratiques numérologiques")
             story.extend(self._page_rituels_finaux(first_name))
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap7'))
+            _chapter_opener(story, _mini_styles, 'VII', "Compatibilités numériques", "Ta résonance avec les autres")
+            story.extend(self._page_compatibilites(numerology_data, first_name))
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap8'))
+            _chapter_opener(story, _mini_styles, 'VIII', "Affirmations & Mantras", "Sept phrases pour t'ancrer")
+            story.extend(self._page_affirmations_numo(first_name))
+            story.append(PageBreak())
+
+            story.append(chapter_marker('chap9'))
+            _chapter_opener(story, _mini_styles, 'IX', "Journal des vibrations", "Trois prompts pour intégrer")
+            story.extend(self._page_journal_numo(first_name))
+
+            # ═══ Colophon Nocturne — dernière page ═══
+            story.append(PageBreak())
+            from services.pdf_colophon import build_colophon
+            build_colophon(
+                story, _mini_styles, prenom=first_name,
+                referral_code=referral_code, referral_link=referral_link,
+                product_name='Ton Code Numérologique',
+            )
             return story
 
         return build_with_toc(
@@ -220,7 +254,7 @@ class NumerologiePDFGenerator:
             except Exception:
                 pass
         elements.extend([
-            Paragraph('✦ TON CODE NUMÉROLOGIQUE ✦', self.title_style),
+            Paragraph('<font name="OrnamentSerif">✦</font> TON CODE NUMÉROLOGIQUE <font name="OrnamentSerif">✦</font>', self.title_style),
             Spacer(0, 0.5 * cm),
             Paragraph(f'Destinée, Cycles & Vibrations', self.subtitle_style),
             Spacer(0, 0.9 * cm),
@@ -270,15 +304,15 @@ class NumerologiePDFGenerator:
         ]
     
     def _pages_nombres_cles(self, data: Dict[str, Any], name: str) -> List:
-        """Détail des 3 nombres principaux."""
+        """Détail des 3 nombres principaux — chacun sur sa page (3 pages)."""
         story = []
         story.append(Paragraph('Tes Nombres Clés', self.heading_style))
-        
+
         # Extrait données (peut varier selon format API)
         destiny_num = data.get('destiny_number', 1)
         expression_num = data.get('expression_number', 1)
         heart_num = data.get('heart_number', 1)
-        
+
         ai = getattr(self, '_ai', {})
         # Mapping label affiché → clé narrative IA correspondante
         entries = [
@@ -286,19 +320,21 @@ class NumerologiePDFGenerator:
             ('Nombre d\'Expression', str(expression_num), 'destinee'),
             ('Nombre de Cœur', str(heart_num), 'ame'),
         ]
-        
+
         for i, (title, num, ai_key) in enumerate(entries):
             if i > 0:
-                story.append(Spacer(0, 0.8 * cm))
-            
+                # Chaque nombre-clé mérite sa page dédiée (respect de la promesse
+                # marketing 16 pages minimum + confort de lecture).
+                story.append(PageBreak())
+
             num_clean = num.split('/')[0] if '/' in num else num  # Gère '11/2' format
             label, description = NOMBRES_FR.get(num_clean, ('Inconnu', 'Vibration secrète'))
-            
+
             story.append(Paragraph(f'<b>{title}</b> : {label} — Vibration {num}', self.heading_style))
             # Narratif IA prioritaire (plusieurs paragraphes), fallback description courte
             narrative = ai.get(ai_key) or description
             story.append(Paragraph(narrative, self.body_style))
-            
+
             # Ne pas ajouter la ligne générique si IA a déjà fourni un long narratif
             if not ai.get(ai_key):
                 story.append(Paragraph(
@@ -306,19 +342,26 @@ class NumerologiePDFGenerator:
                     'unique. Explore cette énergie pour manifester ton potentiel.',
                     self.body_style,
                 ))
-        
+            # Ancrage rituel bref au bas de chaque page-nombre (crédibilité éditoriale)
+            story.append(Spacer(0, 0.4 * cm))
+            story.append(Paragraph(
+                f'<i>Ancrage — laisse cette vibration résonner en toi. Où la retrouves-tu '
+                f'dans tes journées actuelles ?</i>',
+                self.body_style,
+            ))
+
         # Section bonus : nombres complémentaires (personnalité + jour de naissance)
         # Ces sections n'apparaissent que si l'IA a enrichi
         if ai.get('personnalite'):
-            story.append(Spacer(0, 0.8 * cm))
+            story.append(PageBreak())
             story.append(Paragraph('<b>Nombre de Personnalité</b> — L\'image que tu projettes', self.heading_style))
             story.append(Paragraph(ai['personnalite'], self.body_style))
-        
+
         if ai.get('jour_naissance'):
-            story.append(Spacer(0, 0.8 * cm))
+            story.append(PageBreak())
             story.append(Paragraph('<b>Nombre du Jour de Naissance</b> — Ton talent inné', self.heading_style))
             story.append(Paragraph(ai['jour_naissance'], self.body_style))
-        
+
         return story
     
     def _pages_annee_personnelle(self, data: Dict[str, Any]) -> List:
@@ -383,7 +426,7 @@ class NumerologiePDFGenerator:
             ),
             Spacer(0, 1 * cm),
             Paragraph(
-                '─ ✦ ─<br/><br/>'
+                '─ <font name="OrnamentSerif">✦</font> ─<br/><br/>'
                 'Ce chemin numéral est ton secret cosmique.<br/>'
                 f'À bientôt, {name}.<br/><br/>'
                 '<i>Solena — La voix de Plume Astrale</i>',
@@ -391,6 +434,149 @@ class NumerologiePDFGenerator:
                     'Signature', fontName='Helvetica-Oblique', fontSize=11,
                     textColor=GOLD, alignment=TA_CENTER, leading=14
                 ),
+            ),
+        ]
+
+    def _page_compatibilites(self, data: Dict[str, Any], name: str) -> List:
+        """Compatibilités numérologiques — carte des affinités selon les nombres."""
+        destiny_num = data.get('destiny_number', 1)
+        num_clean = str(destiny_num).split('/')[0]
+        # Table simplifiée des affinités (numérologie classique)
+        AFFINITIES = {
+            '1': ('3, 5, 6', "les créatifs, les libres, les aimants"),
+            '2': ('1, 4, 8', "les leaders, les bâtisseurs, les stratèges"),
+            '3': ('1, 5, 7', "les entrepreneurs, les aventuriers, les sages"),
+            '4': ('2, 6, 8', "les diplomates, les protecteurs, les puissants"),
+            '5': ('1, 3, 7', "les leaders, les créatifs, les mystiques"),
+            '6': ('2, 3, 9', "les diplomates, les créatifs, les humanistes"),
+            '7': ('3, 5, 9', "les créatifs, les libres, les humanistes"),
+            '8': ('2, 4, 6', "les diplomates, les bâtisseurs, les protecteurs"),
+            '9': ('3, 6, 7', "les créatifs, les protecteurs, les sages"),
+            '11': ('2, 4, 22', "les diplomates, les bâtisseurs, les visionnaires"),
+            '22': ('4, 8, 11', "les bâtisseurs, les puissants, les intuitifs"),
+            '33': ('6, 9, 11', "les protecteurs, les humanistes, les intuitifs"),
+        }
+        aff_nums, aff_desc = AFFINITIES.get(num_clean, ('3, 5, 7', "les âmes qui résonnent"))
+
+        return [
+            Paragraph('Avec qui résonnes-tu ?', self.heading_style),
+            Spacer(0, 0.3 * cm),
+            Paragraph(
+                f'{name}, avec ton nombre de destin <b>{destiny_num}</b>, tu vibres particulièrement '
+                f'en présence des personnes dont le nombre est <b>{aff_nums}</b> — {aff_desc}.',
+                self.body_style,
+            ),
+            Spacer(0, 0.5 * cm),
+            Paragraph(
+                'Cela ne signifie pas que les autres nombres sont exclus — la numérologie '
+                'ne dresse pas de barrière. Elle éclaire simplement les résonances naturelles, '
+                'celles où le dialogue s\'installe sans effort, où les projets se déploient '
+                'sans friction inutile.',
+                self.body_style,
+            ),
+            Spacer(0, 0.7 * cm),
+            Paragraph('<b>Trois clés de compatibilité</b>', self.heading_style),
+            Paragraph(
+                '<b>I. Amitié</b> — Cherche des personnes dont le nombre de destin partage '
+                'les mêmes racines vibratoires que le tien. Vous n\'aurez pas besoin d\'expliquer.<br/><br/>'
+                '<b>II. Amour</b> — Compare vos <i>nombres de cœur</i> plutôt que vos destins. '
+                'C\'est là que se joue l\'intimité profonde.<br/><br/>'
+                '<b>III. Travail</b> — Choisis un partenaire dont le nombre d\'<i>expression</i> '
+                'complète le tien. Vous couvrirez ensemble un spectre plus large.',
+                self.body_style,
+            ),
+            Spacer(0, 0.6 * cm),
+            Paragraph(
+                '<i>Note dans ton journal les trois personnes avec qui tu résonnes le plus '
+                'aujourd\'hui. Vérifie leurs nombres — souvent, la carte confirme ce que ton '
+                'corps sait déjà.</i>',
+                self.body_style,
+            ),
+        ]
+
+    def _page_affirmations_numo(self, name: str) -> List:
+        """Sept affirmations numérologiques calibrées."""
+        return [
+            Paragraph('Sept affirmations pour tes vibrations', self.heading_style),
+            Spacer(0, 0.4 * cm),
+            Paragraph(
+                '<i>Choisis-en une par matin. Répète-la trois fois à voix basse, la main sur '
+                'le sternum. Les nombres sont des fréquences — ta voix les active.</i>',
+                self.body_style,
+            ),
+            Spacer(0, 0.6 * cm),
+            Paragraph(
+                '<b>I.</b>  Je suis en résonance avec les nombres qui composent mon être.<br/><br/>'
+                '<b>II.</b>  Ma date de naissance n\'est pas un hasard — c\'est un code.<br/><br/>'
+                '<b>III.</b>  Je manifeste avec grâce ce que ma vibration attire à moi.<br/><br/>'
+                '<b>IV.</b>  Chaque cycle numérique est une invitation, jamais une contrainte.<br/><br/>'
+                '<b>V.</b>  J\'accueille les défis de mon année personnelle comme des enseignements.<br/><br/>'
+                '<b>VI.</b>  Mon Nombre de Cœur est ma vérité intime — je le respecte, je l\'écoute.<br/><br/>'
+                f'<b>VII.</b>  {name}, je suis unique, calibrée, alignée. Rien ne me manque.',
+                ParagraphStyle(
+                    'affirm_numo', fontName='Helvetica-Oblique', fontSize=11.5,
+                    textColor=CREAM, alignment=TA_LEFT, leading=17, spaceAfter=6,
+                ),
+            ),
+        ]
+
+    def _page_journal_numo(self, name: str) -> List:
+        """Trois prompts d'écriture numérologique."""
+        return [
+            Paragraph('Trois prompts pour intégrer tes nombres', self.heading_style),
+            Spacer(0, 0.4 * cm),
+            Paragraph(
+                '<i>Un carnet, une lumière tamisée, dix minutes. Réponds sans réfléchir — '
+                'la première image qui vient est la bonne.</i>',
+                self.body_style,
+            ),
+            Spacer(0, 0.7 * cm),
+            Paragraph(
+                '<b>Prompt 1 — La vibration dominante</b><br/>'
+                'Où, dans ma vie actuelle, ma vibration principale s\'exprime-t-elle le plus '
+                'librement ? Où est-elle bridée ?',
+                self.body_style,
+            ),
+            Spacer(0, 0.3 * cm),
+            Paragraph(
+                '<font color="#9089B5">'
+                '________________________________________________________<br/>'
+                '________________________________________________________<br/>'
+                '________________________________________________________'
+                '</font>',
+                self.body_style,
+            ),
+            Spacer(0, 0.7 * cm),
+            Paragraph(
+                '<b>Prompt 2 — Le cycle en cours</b><br/>'
+                'Que m\'apprend cette année personnelle ? Quelle décision différée par peur '
+                'suis-je invitée à prendre maintenant ?',
+                self.body_style,
+            ),
+            Spacer(0, 0.3 * cm),
+            Paragraph(
+                '<font color="#9089B5">'
+                '________________________________________________________<br/>'
+                '________________________________________________________<br/>'
+                '________________________________________________________'
+                '</font>',
+                self.body_style,
+            ),
+            Spacer(0, 0.7 * cm),
+            Paragraph(
+                '<b>Prompt 3 — L\'ancrage</b><br/>'
+                f'{name}, quelle est la plus petite habitude quotidienne qui incarne ma '
+                'vibration idéale ? Puis-je la commencer demain matin ?',
+                self.body_style,
+            ),
+            Spacer(0, 0.3 * cm),
+            Paragraph(
+                '<font color="#9089B5">'
+                '________________________________________________________<br/>'
+                '________________________________________________________<br/>'
+                '________________________________________________________'
+                '</font>',
+                self.body_style,
             ),
         ]
 
@@ -402,6 +588,8 @@ def generate_numerologie_pdf(
     personal_year_data: Optional[Dict[str, Any]] = None,
     forecast_data: Optional[Dict[str, Any]] = None,
     ai_sections: Optional[Dict[str, str]] = None,
+    referral_code: Optional[str] = None,
+    referral_link: Optional[str] = None,
 ) -> bytes:
     """Wrapper pour générer le PDF numérologie (accepte ai_sections optionnel)."""
     return NumerologiePDFGenerator().generate(
@@ -411,6 +599,8 @@ def generate_numerologie_pdf(
         personal_year_data=personal_year_data,
         forecast_data=forecast_data,
         ai_sections=ai_sections,
+        referral_code=referral_code,
+        referral_link=referral_link,
     )
 
 
@@ -420,6 +610,8 @@ async def generate_numerologie_pdf_ai(
     numerology_data: Dict[str, Any],
     personal_year_data: Optional[Dict[str, Any]] = None,
     forecast_data: Optional[Dict[str, Any]] = None,
+    referral_code: Optional[str] = None,
+    referral_link: Optional[str] = None,
 ) -> bytes:
     """Génère le PDF Numérologie AVEC enrichissement IA transverse.
     Fallback silencieux sur le texte générique si l'IA échoue."""
@@ -447,4 +639,6 @@ async def generate_numerologie_pdf_ai(
         personal_year_data=personal_year_data,
         forecast_data=forecast_data,
         ai_sections=ai_sections,
+        referral_code=referral_code,
+        referral_link=referral_link,
     )

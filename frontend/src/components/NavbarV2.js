@@ -14,6 +14,7 @@ import { LECTURES, OUTILS } from '@/config/catalog';
 const NAV_LINKS = [
   { label: 'Accueil', to: '/' },
   { label: 'Services', to: '/livres', hasMega: true },
+  { label: 'Nos livres', to: '/livres' },
   { label: 'Manifesto', to: '/manifesto' },
   { label: 'Blog', to: '/blog' },
   { label: 'Témoignages', to: '/temoignages' },
@@ -95,7 +96,7 @@ export default function NavbarV2() {
               const active = l.hasMega ? isServicesActive() : isActive(l.to);
               if (l.hasMega) {
                 return (
-                  <div key={l.to} style={{ position: 'relative' }}
+                  <div key={l.label} style={{ position: 'relative' }}
                     onMouseEnter={openMega} onMouseLeave={closeMegaSoon}>
                     <button
                       type="button"
@@ -116,8 +117,8 @@ export default function NavbarV2() {
                 );
               }
               return (
-                <Link key={l.to} to={l.to}
-                  data-testid={`nav-v2-${l.label.toLowerCase()}`}
+                <Link key={l.label} to={l.to}
+                  data-testid={`nav-v2-${l.label.toLowerCase().replace(/\s+/g, '-')}`}
                   style={active ? { ...linkBase, ...linkActive } : linkBase}
                   onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = '#C9A24B'; }}
                   onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = 'rgba(247,245,240,0.78)'; }}>
@@ -212,7 +213,7 @@ export default function NavbarV2() {
           {NAV_LINKS.map((l) => {
             if (l.hasMega) {
               return (
-                <div key={l.to}>
+                <div key={l.label}>
                   <button
                     onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
                     data-testid="nav-v2-mobile-services-toggle"
@@ -245,8 +246,8 @@ export default function NavbarV2() {
               );
             }
             return (
-              <Link key={l.to} to={l.to}
-                data-testid={`nav-v2-mobile-${l.label.toLowerCase()}`}
+              <Link key={l.label} to={l.to}
+                data-testid={`nav-v2-mobile-${l.label.toLowerCase().replace(/\s+/g, '-')}`}
                 style={{
                   ...mobileLinkStyle,
                   color: isActive(l.to) ? '#C9A24B' : '#F7F5F0',

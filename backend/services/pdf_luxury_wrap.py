@@ -14,6 +14,12 @@ import io
 import logging
 from typing import Callable
 
+from services.pdf_theme import register_fonts as _register_luxury_fonts
+
+# Enregistre les polices luxe (Cormorant + Cinzel + OrnamentSerif) au chargement
+# du module → tout `<font name="OrnamentSerif">` inline est résolu.
+_register_luxury_fonts()
+
 logger = logging.getLogger(__name__)
 
 # Slugs adaptés à chaque produit
@@ -53,7 +59,7 @@ def _prepend_luxury_cover(pdf_bytes: bytes, prenom: str, subtitle: str, cover_sl
         opening_page(story, styles, prenom=prenom, first_line="Voici ce que tu as attiré à toi.")
         if grid_cells and grid_title:
             photos_grid_2x2(story, styles,
-                            chapter_tag=grid_tag or '✦ Ton empreinte ✦',
+                            chapter_tag=grid_tag or '<font name="OrnamentSerif">✦</font> Ton empreinte <font name="OrnamentSerif">✦</font>',
                             title=grid_title,
                             cells=grid_cells)
         doc.build(story, onFirstPage=luxury_bg, onLaterPages=luxury_bg)
@@ -123,7 +129,7 @@ def apply_luxury_wrap(pdf_bytes: bytes, prenom: str, subtitle: str, product: str
 
     if product == 'astrocarto':
         slugs = ASTROCARTO_SLUGS
-        grid_tag = '✦ Tes lignes-monde ✦'
+        grid_tag = '<font name="OrnamentSerif">✦</font> Tes lignes-monde <font name="OrnamentSerif">✦</font>'
         grid_title = 'Les 4 planètes qui tracent ta géographie sacrée'
         grid_cells = [
             {'image': libimg.planet('Soleil'), 'label': 'Soleil', 'sublabel': 'Ta vitalité'},
@@ -133,7 +139,7 @@ def apply_luxury_wrap(pdf_bytes: bytes, prenom: str, subtitle: str, product: str
         ]
     elif product == 'karmique':
         slugs = KARMIQUE_SLUGS
-        grid_tag = '✦ Ton empreinte d\'âme ✦'
+        grid_tag = '<font name="OrnamentSerif">✦</font> Ton empreinte d\'âme <font name="OrnamentSerif">✦</font>'
         grid_title = 'Les 4 piliers de ton chemin karmique'
         grid_cells = [
             {'image': libimg.planet('Saturne'), 'label': 'Saturne', 'sublabel': 'Tes leçons'},
@@ -143,7 +149,7 @@ def apply_luxury_wrap(pdf_bytes: bytes, prenom: str, subtitle: str, product: str
         ]
     elif product == 'synastry':
         slugs = SYNASTRY_SLUGS
-        grid_tag = '✦ Vos 4 langages ✦'
+        grid_tag = '<font name="OrnamentSerif">✦</font> Vos 4 langages <font name="OrnamentSerif">✦</font>'
         grid_title = 'Les planètes qui gouvernent votre lien'
         grid_cells = [
             {'image': libimg.planet('Soleil'), 'label': 'Soleil', 'sublabel': 'Votre identité'},
@@ -153,7 +159,7 @@ def apply_luxury_wrap(pdf_bytes: bytes, prenom: str, subtitle: str, product: str
         ]
     else:  # kabbale
         slugs = KABBALE_SLUGS
-        grid_tag = '✦ Les 4 mondes ✦'
+        grid_tag = '<font name="OrnamentSerif">✦</font> Les 4 mondes <font name="OrnamentSerif">✦</font>'
         grid_title = 'Les Sephiroth qui te structurent'
         grid_cells = [
             {'image': libimg.planet('Soleil'), 'label': 'Tiphereth', 'sublabel': 'La Beauté'},

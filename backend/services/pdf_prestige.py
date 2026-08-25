@@ -36,8 +36,17 @@ _ORNAMENT_STYLE = ParagraphStyle(
 
 def ornament(story: list, kind: str = 'star') -> None:
     """Insère un séparateur décoratif doré centré (3 glyphes)."""
+    from services.pdf_theme import register_fonts
+    register_fonts()  # garantit la police `Symbol` (FreeSerif) pour les glyphes ornementaux
     glyph = {'star': '✦', 'diamond': '◆', 'dot': '·'}.get(kind, '✦')
-    text = f'<font color="#D4AF37">{glyph}&nbsp;&nbsp;&nbsp;{glyph}&nbsp;&nbsp;&nbsp;{glyph}</font>'
+    # Wrap chaque glyphe dans la police Symbol pour éviter le rendu en carré vide
+    # (Cormorant/Cinzel ne fournissent pas les blocs Dingbats).
+    glyph_html = f'<font name="OrnamentSerif">{glyph}</font>'
+    text = (
+        f'<font color="#D4AF37">'
+        f'{glyph_html}&nbsp;&nbsp;&nbsp;{glyph_html}&nbsp;&nbsp;&nbsp;{glyph_html}'
+        f'</font>'
+    )
     story.append(Paragraph(text, _ORNAMENT_STYLE))
 
 

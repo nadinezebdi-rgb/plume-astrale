@@ -70,7 +70,6 @@ export default function FooterV2() {
             <FooterLink to="/inscription">Créer un compte</FooterLink>
             <FooterLink to="/connexion">Se connecter</FooterLink>
             <FooterLink to="/mon-compte">Mon espace</FooterLink>
-            <FooterLink to="/livres" testid="footer-v2-livres-link">Nos livres prestige</FooterLink>
             <FooterLink to="/credits" testid="footer-v2-credits-link">Comprendre les crédits</FooterLink>
             <a href="mailto:contact@plume-astrale.fr" style={footerLinkStyle} data-testid="footer-v2-contact">
               contact@plume-astrale.fr

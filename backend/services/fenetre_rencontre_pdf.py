@@ -20,6 +20,11 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 
 from services.pdf_bg import make_bg_canvas
+from services.pdf_theme import register_fonts as _register_luxury_fonts
+
+# Enregistre la police OrnamentSerif (FreeSerif) au chargement du module afin que
+# tout `<font name="OrnamentSerif">` inline dans les Paragraph soit résolu.
+_register_luxury_fonts()
 
 # Palette
 NIGHT       = colors.HexColor('#111625')
@@ -224,7 +229,7 @@ class FenetreRencontrePDFGenerator:
             story.append(img_table)
             story.append(Spacer(0, 0.8 * cm))
         
-        story.append(Paragraph('✦ FENÊTRES DE RENCONTRE ✦', self.title_style))
+        story.append(Paragraph('<font name="OrnamentSerif">✦</font> FENÊTRES DE RENCONTRE <font name="OrnamentSerif">✦</font>', self.title_style))
         story.append(Spacer(0, 0.3 * cm))
         story.append(Paragraph('Les Moments Cosmiques Favorables à ta Rencontre', self.subtitle_style))
         story.append(Spacer(0, 1 * cm))
@@ -296,7 +301,7 @@ class FenetreRencontrePDFGenerator:
             story.append(img_table)
             story.append(Spacer(0, 0.5 * cm))
         
-        story.append(Paragraph(f'✦ {window_type} ✦', self.heading_style))
+        story.append(Paragraph(f'<font name="OrnamentSerif">✦</font> {window_type} <font name="OrnamentSerif">✦</font>', self.heading_style))
         story.append(Paragraph(f'Période : {period}', self.subtitle_style))
         story.append(Spacer(0, 0.5 * cm))
         
@@ -334,7 +339,7 @@ class FenetreRencontrePDFGenerator:
             story.append(img_table)
             story.append(Spacer(0, 0.5 * cm))
         
-        story.append(Paragraph('✦ Analyse de Compatibilité ✦', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">✦</font> Analyse de Compatibilité <font name="OrnamentSerif">✦</font>', self.heading_style))
         
         compatibility_score = data.get('compatibility_score', 'À calculer')
         interpretation = data.get('interpretation', 
@@ -377,7 +382,7 @@ class FenetreRencontrePDFGenerator:
     def _page_transits_bonus(self, birth_date_iso: str) -> List:
         """Page 7 (bonus): Infos supplémentaires sur les transits actuels."""
         story = []
-        story.append(Paragraph('✦ Les Énergies Cosmiques en Jeu ✦', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">✦</font> Les Énergies Cosmiques en Jeu <font name="OrnamentSerif">✦</font>', self.heading_style))
         story.append(Spacer(0, 0.3 * cm))
         
         story.append(Paragraph(
@@ -441,7 +446,7 @@ class FenetreRencontrePDFGenerator:
     def _page_cristaux(self) -> List:
         """Page 9: Cristaux et pierres énergétiques."""
         story = []
-        story.append(Paragraph('✦ Les Cristaux de l\'Amour ✦', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">✦</font> Les Cristaux de l\'Amour <font name="OrnamentSerif">✦</font>', self.heading_style))
         story.append(Spacer(0, 0.3 * cm))
         
         story.append(Paragraph(
@@ -469,7 +474,7 @@ class FenetreRencontrePDFGenerator:
     def _page_affirmations_finales(self, name: str) -> List:
         """Page 10: Affirmations quotidiennes et conclusion."""
         story = []
-        story.append(Paragraph('✦ Tes Affirmations Quotidiennes ✦', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">✦</font> Tes Affirmations Quotidiennes <font name="OrnamentSerif">✦</font>', self.heading_style))
         story.append(Spacer(0, 0.3 * cm))
         
         story.append(Paragraph(
@@ -494,7 +499,7 @@ class FenetreRencontrePDFGenerator:
         story.append(Paragraph(affirmations_text + '<br/><br/>', self.body_style))
         
         story.append(Paragraph(
-            '─ ✦ ─<br/><br/>'
+            '─ <font name="OrnamentSerif">✦</font> ─<br/><br/>'
             f'Chère {name}, tu as entre les mains la carte de ton destin amoureux. '
             'Ces fenêtres ne sont pas des promesses, ce sont des invitations. '
             'L\'univers t\'ouvre des portes ; à toi d\'y marcher avec confiance et rayonnement.<br/><br/>'
