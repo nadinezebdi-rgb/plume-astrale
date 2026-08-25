@@ -72,21 +72,24 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
             boxShadow: '0 8px 24px rgba(15, 26, 60, 0.22), 0 0 0 3px rgba(201, 162, 75, 0.14)',
           }}
         >
-          <img
-            src={SOLENA_AVATAR}
-            alt="Soléna, guide éditoriale Plume Astrale"
-            data-testid={`${testid}-avatar`}
-            loading="lazy"
-            decoding="async"
-            style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: '50%',
-              objectFit: 'cover',
-              objectPosition: '50% 20%',
-              display: 'block',
-            }}
-          />
+          <picture>
+            <source srcSet="/branding/solena-portrait-v2.webp" type="image/webp" />
+            <img
+              src={SOLENA_AVATAR}
+              alt="Soléna, voix éditoriale IA de Plume Astrale"
+              data-testid={`${testid}-avatar`}
+              loading="lazy"
+              decoding="async"
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                objectPosition: '50% 20%',
+                display: 'block',
+              }}
+            />
+          </picture>
         </div>
 
         <div>
@@ -110,9 +113,24 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
               lineHeight: 1.55,
               color: 'rgba(15, 26, 60, 0.72)',
               margin: 0,
+              marginBottom: 12,
             }}
           >
-            Je serai votre guide tout au long de votre parcours.
+            La voix éditoriale IA qui rédige vos lectures Plume Astrale.
+          </p>
+          <p
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 10,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              color: '#C9A24B',
+              fontWeight: 600,
+              margin: 0,
+            }}
+            data-testid={`${testid}-signature`}
+          >
+            Soléna &middot; voix IA
           </p>
         </div>
       </div>

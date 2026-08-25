@@ -26,7 +26,11 @@ export default function MentionsLegales() {
               SIRET : 87860206900022<br />
               Siège social : 2 rue Yvan Gaussen, 30250 Sommières, France<br />
               Email : <LegalLink href="mailto:contact@plume-astrale.fr">contact@plume-astrale.fr</LegalLink><br />
-              Directrice de la publication : <em>Soléna</em></p>
+              Directeur de la publication : représentant légal de LEARNACTIF</p>
+              <p style={{ marginTop: 12 }}>
+                <em>Soléna</em> est la <strong>voix éditoriale conçue par Plume Astrale et propulsée par une intelligence artificielle</strong> pour rédiger les lectures personnalisées.
+                Ce n&apos;est pas une personne réelle&nbsp;: c&apos;est un style d&apos;écriture, un ton et un vocabulaire que nous avons composés pour traduire les données astrologiques en textes littéraires.
+              </p>
             </LegalSection>
 
             <LegalSection title="Hébergement">

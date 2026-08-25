@@ -11,23 +11,84 @@ export default function NocturneManifest() {
       data-testid="nocturne-manifest"
     >
       <div className="ne-container">
-        <div style={{ maxWidth: 780 }}>
-          <div className="ne-overline" data-testid="nocturne-manifest-overline">Acte II &middot; Le Manifeste</div>
-          <h2 className="ne-h1" style={{ marginTop: 24, color: 'var(--ne-fusain)', maxWidth: 720 }}>
-            Nous croyons que chaque vie est un <span className="ne-serif-italic" style={{ color: 'var(--ne-vigne)' }}>texte</span>.
-          </h2>
-          <hr className="ne-rule-short" style={{ marginTop: 32, marginBottom: 32 }} />
-          <p className="ne-lead" style={{ marginBottom: 48 }}>
-            Que ce texte a des chapitres, des saisons, des respirations.
-            <br />
-            Que le ciel n&rsquo;est pas un oracle mais un <em>calendrier poétique</em>.
-            <br />
-            Que comprendre son cycle n&rsquo;est pas prédire son destin&nbsp;: c&rsquo;est habiter son présent avec plus de justesse.
-          </p>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 380px)',
+          gap: 'clamp(32px, 5vw, 80px)',
+          alignItems: 'start',
+        }} className="ne-manifest-hero">
+          <div>
+            <div className="ne-overline" data-testid="nocturne-manifest-overline">Acte II &middot; Le Manifeste</div>
+            <h2 className="ne-h1" style={{ marginTop: 24, color: 'var(--ne-fusain)', maxWidth: 720 }}>
+              Nous croyons que chaque vie est un <span className="ne-serif-italic" style={{ color: 'var(--ne-vigne)' }}>texte</span>.
+            </h2>
+            <hr className="ne-rule-short" style={{ marginTop: 32, marginBottom: 32 }} />
+            <p className="ne-lead" style={{ marginBottom: 0 }}>
+              Que ce texte a des chapitres, des saisons, des respirations.
+              <br />
+              Que le ciel n&rsquo;est pas un oracle mais un <em>calendrier poétique</em>.
+              <br />
+              Que comprendre son cycle n&rsquo;est pas prédire son destin&nbsp;: c&rsquo;est habiter son présent avec plus de justesse.
+            </p>
+          </div>
+
+          {/* Portrait Soléna — présence éditoriale de l'auteure */}
+          <figure
+            data-testid="nocturne-manifest-portrait"
+            style={{
+              margin: 0,
+              position: 'relative',
+              padding: 10,
+              background: 'linear-gradient(180deg, rgba(201,162,75,0.14) 0%, rgba(201,162,75,0.04) 100%)',
+              borderRadius: 4,
+              boxShadow: '0 24px 60px -20px rgba(15, 26, 60, 0.35), 0 0 0 1px rgba(201, 162, 75, 0.18)',
+            }}
+          >
+            <picture>
+              <source srcSet="/branding/solena-portrait-v2.webp" type="image/webp" />
+              <img
+                src="/branding/solena-portrait.png"
+                alt="Illustration représentant Soléna, voix éditoriale IA de Plume Astrale"
+                loading="lazy"
+                decoding="async"
+                data-testid="nocturne-manifest-portrait-img"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  aspectRatio: '4 / 5',
+                  objectFit: 'cover',
+                  objectPosition: '50% 25%',
+                  filter: 'saturate(0.92) contrast(1.02)',
+                }}
+              />
+            </picture>
+            <figcaption
+              className="ne-mono"
+              style={{
+                marginTop: 14,
+                textAlign: 'right',
+                fontSize: 10,
+                letterSpacing: '0.24em',
+                color: 'var(--ne-laiton)',
+                textTransform: 'uppercase',
+              }}
+            >
+              — Soléna &middot; voix éditoriale IA
+            </figcaption>
+          </figure>
         </div>
 
+        <style>{`
+          @media (max-width: 880px) {
+            .ne-manifest-hero {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
+
         {/* Trois refus, éditorial */}
-        <div className="ne-grid-3" style={{ marginTop: 64 }} data-testid="nocturne-manifest-tenets">
+        <div className="ne-grid-3" style={{ marginTop: 96 }} data-testid="nocturne-manifest-tenets">
           {[
             {
               n: '01',

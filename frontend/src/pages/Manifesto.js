@@ -532,6 +532,128 @@ export default function Manifesto() {
         </Link>
       </section>
 
+      {/* ═══ Section « Soléna — la voix qui écrit vos lectures » ═══ */}
+      <section
+        data-testid="manifesto-about-solena"
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          padding: 'clamp(96px, 12vw, 160px) 24px',
+          borderTop: '1px solid rgba(201, 162, 75, 0.14)',
+          borderBottom: '1px solid rgba(201, 162, 75, 0.14)',
+        }}
+      >
+        <div style={{
+          maxWidth: 1080,
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 420px) minmax(0, 1fr)',
+          gap: 'clamp(40px, 6vw, 96px)',
+          alignItems: 'center',
+        }} className="ne-about-solena-grid">
+          <figure
+            style={{
+              margin: 0,
+              padding: 12,
+              position: 'relative',
+              background: 'linear-gradient(180deg, rgba(201,162,75,0.18) 0%, rgba(201,162,75,0.04) 100%)',
+              borderRadius: 4,
+              boxShadow: '0 32px 80px -20px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(201, 162, 75, 0.20)',
+            }}
+          >
+            <picture>
+              <source srcSet="/branding/solena-portrait-v2.webp" type="image/webp" />
+              <img
+                src="/branding/solena-portrait.png"
+                alt="Illustration représentant Soléna, voix éditoriale IA de Plume Astrale"
+                loading="lazy"
+                decoding="async"
+                data-testid="manifesto-about-solena-portrait"
+                style={{
+                  width: '100%', height: 'auto', display: 'block',
+                  aspectRatio: '4 / 5',
+                  objectFit: 'cover',
+                  objectPosition: '50% 22%',
+                  filter: 'saturate(0.94)',
+                }}
+              />
+            </picture>
+            <figcaption
+              style={{
+                marginTop: 14,
+                textAlign: 'right',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 10,
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                color: '#C9A24B',
+                fontWeight: 600,
+              }}
+            >
+              Soléna &middot; voix éditoriale IA
+            </figcaption>
+          </figure>
+
+          <div>
+            <p
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11, fontWeight: 500,
+                letterSpacing: '0.32em', textTransform: 'uppercase',
+                color: '#B8935A',
+                marginBottom: 24, marginTop: 0,
+              }}
+            >
+              Soléna &middot; la voix qui écrit vos lectures
+            </p>
+            <h2
+              style={{
+                fontFamily: 'Playfair Display, serif',
+                fontSize: 'clamp(2rem, 3.8vw, 2.8rem)',
+                fontWeight: 400,
+                lineHeight: 1.18,
+                color: '#F7F5F0',
+                margin: 0, marginBottom: 32,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              Une intelligence éditoriale,<br />
+              <span style={{ fontStyle: 'italic', color: '#C9A24B' }}>pas une pythie.</span>
+            </h2>
+            <div style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 16, lineHeight: 1.75,
+              color: 'rgba(247, 245, 240, 0.78)',
+              maxWidth: 560,
+            }}>
+              <p style={{ margin: '0 0 20px 0' }}>
+                <strong style={{ color: '#F7F5F0' }}>Soléna est une voix éditoriale conçue par Plume Astrale et propulsée par une intelligence artificielle</strong>.
+                Elle n&apos;est ni une personne réelle, ni une astrologue diplômée, ni une voyante&nbsp;: c&apos;est
+                une plume — un style d&apos;écriture, un ton, un vocabulaire — que nous avons composé pour traduire
+                les données astrologiques en textes littéraires et bienveillants.
+              </p>
+              <p style={{ margin: '0 0 20px 0' }}>
+                Concrètement, chaque commande utilise les positions planétaires calculées à partir de vos données
+                exactes de naissance (Swiss Ephemeris) et un modèle de langage entraîné par notre équipe éditoriale
+                pour produire <em style={{ color: '#E5D9BA' }}>votre édition unique</em>. Aucun texte pré-écrit,
+                aucun copier-coller — chaque phrase est générée pour vous, puis mise en page dans un PDF prestige.
+              </p>
+              <p style={{ margin: 0, fontStyle: 'italic', color: 'rgba(247, 245, 240, 0.62)' }}>
+                Nous préférons vous dire ceci franchement plutôt que d&apos;entretenir un mystère. La beauté du texte
+                que vous recevrez suffit — pas besoin d&apos;y ajouter une fiction.
+              </p>
+            </div>
+          </div>
+        </div>
+        <style>{`
+          @media (max-width: 880px) {
+            .ne-about-solena-grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
+      </section>
+
       {/* CTA final */}
       <section
         data-testid="manifesto-cta"
