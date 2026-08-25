@@ -346,6 +346,7 @@ const SEO_DATA = {
   // SEO P1 (2026-02-16) : pages légales & tunnel — noindex, follow
   '/mentions-legales':          { title: 'Mentions légales · Plume Astrale',       description: 'Éditeur, hébergeur, contact — informations légales de Plume Astrale.', keywords: '', noindex: true },
   '/cgv':                       { title: 'Conditions générales · Plume Astrale',   description: 'Conditions générales de vente Plume Astrale.', keywords: '', noindex: true },
+  '/confidentialite':           { title: 'Politique de confidentialité · Plume Astrale', description: 'Comment Plume Astrale (LEARNACTIF) collecte, protège et utilise vos données. RGPD, cookies, Meta Pixel, vos droits.', keywords: 'confidentialité, RGPD, données personnelles, cookies, Meta Pixel, plume astrale' },
   '/politique-confidentialite': { title: 'Confidentialité · Plume Astrale',        description: 'Politique de protection des données Plume Astrale.', keywords: '', noindex: true },
   '/panier':                    { title: 'Panier · Plume Astrale',                 description: 'Votre panier Plume Astrale.', keywords: '', noindex: true },
   '/temoignage':      { title: 'Envoyer un témoignage · Plume Astrale',            description: "Partagez votre expérience Plume Astrale.", keywords: '', noindex: true },

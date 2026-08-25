@@ -37,6 +37,7 @@ import RouteTracker from "./components/RouteTracker";
 import Contact from "./pages/Contact";
 import MentionsLegales from "./pages/MentionsLegales";
 import CGV from "./pages/CGV";
+import Confidentialite from "./pages/Confidentialite";
 import Footer from "./components/FooterV2";
 import KabbaleSucces from "./pages/KabbaleSucces";
 import AstrocartographieSales from "./pages/AstrocartographieSales";
@@ -131,6 +132,7 @@ function App() {
         <GlobalOverlays />
         <RouteTracker />
         <Navbar />
+        <CookieConsent />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<Index />} />
@@ -146,6 +148,10 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/cgv" element={<CGV />} />
+          <Route path="/confidentialite" element={<Confidentialite />} />
+          {/* Alias fréquents pour la Politique de confidentialité */}
+          <Route path="/politique-de-confidentialite" element={<Navigate to="/confidentialite" replace />} />
+          <Route path="/privacy" element={<Navigate to="/confidentialite" replace />} />
           <Route path="/nos-livres" element={<Navigate to="/livres" replace />} />
           <Route path="/temoignages" element={<TemoignagesPublic />} />
           <Route path="/theme-natal-luxe" element={<Navigate to="/theme-natal" replace />} />
@@ -284,7 +290,6 @@ function App() {
                 {/* SEO P0 (2026-02-16) : catch-all 404 réel avec noindex */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-              <CookieConsent />
             </>
           } />
         </Routes>

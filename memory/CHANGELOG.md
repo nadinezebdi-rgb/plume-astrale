@@ -1,5 +1,29 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-24 — Privacy Policy + Blocking Cookie Consent (Meta App review)
+
+**Objectif** : Débloquer la publication de l'app Meta (Marketing API) qui exigeait une URL de Politique de confidentialité + fermer la conformité RGPD stricte via un bandeau cookies bloquant.
+
+**Livrables** :
+- **Nouvelle page `/confidentialite`** (`Confidentialite.js`) — conforme RGPD + section dédiée Meta Pixel/CAPI (que Meta scrute lors de la review) :
+  - Éditeur : LEARNACTIF, SIRET 87860206900022, 2 rue Yvan Gaussen 30250 Sommières
+  - 10 sections : responsable, données collectées, sous-traitants (Stripe/Supabase/Vercel/Resend/Meta/OpenAI), Meta Pixel + CAPI, cookies, durées, droits RGPD, sécurité, mineurs, modifications
+  - Route + alias `/politique-de-confidentialite` + `/privacy`
+  - SSR snapshot (priority 0.4, TTL 720h) → indexé dans sitemap
+- **Bandeau cookies bloquant** (`CookieConsent.js` réécrit) :
+  - Modale plein-écran avec overlay opaque (backdrop-filter blur)
+  - `document.body.style.overflow = 'hidden'` bloque le scroll
+  - 3 CTAs : Tout accepter / Tout refuser / Personnaliser
+  - Panneau custom avec 3 catégories (Essentiels verrouillés / Mesure d'audience / Publicité)
+  - Switches toggle + persistance localStorage `pa_consent_v1` et `pa_consent_prefs_v1`
+  - Réouverture via custom event `open-cookie-preferences` (bouton footer)
+  - Design Nocturne (crème + doré + Playfair)
+- **Bug fix critique** : `CookieConsent` était monté dans le catch-all `path="*"` d'App.js, donc absent de la homepage `/`. Déplacé au niveau BrowserRouter (visible sur toutes les pages).
+- **Footer enrichi** : liens "Confidentialité" + "Gérer les cookies" (data-testid `footer-v2-cookies`)
+- **Mentions légales complétées** avec les données LEARNACTIF (cohérence Meta review)
+
+
+
 ## 2026-02-24 — CAPI Health Check Enrichi (diagnostic Meta explicite)
 
 **Problème** : `GET /api/admin/capi-health` renvoyait `capi_ok: false` sans indiquer POURQUOI. La fonction `send_capi_event` masquait l'erreur Meta (400+ → return False silent).
