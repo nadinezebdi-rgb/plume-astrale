@@ -9,7 +9,7 @@ import React, { useEffect, useRef, useState } from 'react';
  * Soléna n'est plus le personnage principal — elle est une présence rassurante
  * qui se dévoile au bon moment.
  */
-const SOLENA_AVATAR = 'https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/hp82ivrl_Solena-glow.png';
+const SOLENA_AVATAR = '/branding/solena-portrait.png';
 
 export default function SolenaGuideCard({ testid = 'solena-guide' }) {
   const [visible, setVisible] = useState(false);
@@ -54,7 +54,7 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
           borderRadius: 20,
           background: '#FFFFFF',
           border: '1px solid rgba(15, 26, 60, 0.08)',
-          boxShadow: '0 24px 48px -20px rgba(10, 17, 40, 0.15)',
+          boxShadow: '0 24px 48px -20px rgba(15, 26, 60, 0.15)',
           opacity: visible ? 1 : 0,
           transform: visible ? 'translateY(0)' : 'translateY(24px)',
           transition: 'opacity 1200ms cubic-bezier(0.16, 1, 0.3, 1), transform 1200ms cubic-bezier(0.16, 1, 0.3, 1)',
@@ -62,18 +62,19 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
       >
         <div
           style={{
-            width: 72,
-            height: 72,
+            width: 96,
+            height: 96,
             flexShrink: 0,
             borderRadius: '50%',
             overflow: 'hidden',
-            background: 'linear-gradient(135deg, #0A1128 0%, #1E2A5E 100%)',
+            background: 'linear-gradient(135deg, #0F1A3C 0%, #1E2A5E 100%)',
             padding: 2,
+            boxShadow: '0 8px 24px rgba(15, 26, 60, 0.22), 0 0 0 3px rgba(201, 162, 75, 0.14)',
           }}
         >
           <img
             src={SOLENA_AVATAR}
-            alt="Soléna"
+            alt="Soléna, guide éditoriale Plume Astrale"
             data-testid={`${testid}-avatar`}
             loading="lazy"
             decoding="async"
@@ -82,6 +83,7 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
               height: '100%',
               borderRadius: '50%',
               objectFit: 'cover',
+              objectPosition: '50% 20%',
               display: 'block',
             }}
           />
@@ -92,9 +94,9 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
             style={{
               fontFamily: 'Playfair Display, serif',
               fontStyle: 'italic',
-              fontSize: 20,
+              fontSize: 22,
               lineHeight: 1.4,
-              color: '#0A1128',
+              color: '#0F1A3C',
               margin: 0,
               marginBottom: 6,
             }}
@@ -106,7 +108,7 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
               fontFamily: 'Inter, sans-serif',
               fontSize: 14,
               lineHeight: 1.55,
-              color: 'rgba(10, 17, 40, 0.72)',
+              color: 'rgba(15, 26, 60, 0.72)',
               margin: 0,
             }}
           >

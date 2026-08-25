@@ -83,7 +83,7 @@ export default function CookieConsent() {
       <style>{`
         .cc-overlay {
           position: fixed; inset: 0;
-          background: rgba(11, 15, 30, 0.82);
+          background: rgba(15, 26, 60, 0.82);
           backdrop-filter: blur(6px);
           -webkit-backdrop-filter: blur(6px);
           z-index: 99998;
@@ -102,7 +102,7 @@ export default function CookieConsent() {
           background: linear-gradient(180deg, #F7F5F0 0%, #FFFFFF 100%);
           border: 1px solid #E7E1D4;
           border-radius: 16px;
-          box-shadow: 0 40px 80px rgba(11, 15, 30, 0.45),
+          box-shadow: 0 40px 80px rgba(15, 26, 60, 0.45),
                       0 0 0 1px rgba(201, 162, 75, 0.10);
           padding: 32px 32px 24px;
           font-family: 'Inter', -apple-system, sans-serif;

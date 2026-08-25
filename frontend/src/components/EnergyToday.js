@@ -21,7 +21,7 @@ function EnergyCard({ id, data }) {
       style={{
         padding: '20px 22px',
         borderRadius: 16,
-        background: 'linear-gradient(180deg, rgba(6,8,26,0.85) 0%, rgba(11,14,40,0.75) 100%)',
+        background: 'linear-gradient(180deg, rgba(6,8,26,0.85) 0%, rgba(15, 26, 60,0.75) 100%)',
         border: `1px solid ${meta.color}40`,
         backdropFilter: 'blur(20px)',
         boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
@@ -57,7 +57,7 @@ function GuestCTA() {
       style={{
         maxWidth: 540, margin: '0 auto', padding: '32px 26px', textAlign: 'center',
         borderRadius: 18,
-        background: 'linear-gradient(180deg, rgba(6,8,26,0.85) 0%, rgba(11,14,40,0.7) 100%)',
+        background: 'linear-gradient(180deg, rgba(6,8,26,0.85) 0%, rgba(15, 26, 60,0.7) 100%)',
         border: '1px solid rgba(212,175,55,0.3)',
       }}
       data-testid="energy-guest-cta"
@@ -71,7 +71,7 @@ function GuestCTA() {
       </p>
       <button onClick={() => navigate('/inscription')} style={{
         padding: '12px 28px', borderRadius: 999, border: 'none',
-        background: '#D4AF37', color: '#0F1230',
+        background: '#D4AF37', color: '#0F1A3C',
         fontFamily: 'Cinzel, serif', fontSize: 11, fontWeight: 600,
         letterSpacing: '0.18em', textTransform: 'uppercase', cursor: 'pointer',
       }} data-testid="energy-register-btn">

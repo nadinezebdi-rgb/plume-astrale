@@ -128,7 +128,7 @@ const SolenaWritingLoader = ({ estimatedSeconds = 55, testId = 'solena-writing-l
           background:
             radial-gradient(ellipse at 30% 20%, rgba(212,175,55,0.10), transparent 55%),
             radial-gradient(ellipse at 70% 80%, rgba(167,139,250,0.12), transparent 55%),
-            linear-gradient(160deg, #0e0a1e 0%, #1a1230 50%, #0a0813 100%);
+            linear-gradient(160deg, #0e0a1e 0%, #0F1A3C 50%, #0a0813 100%);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
           animation: swl-fade-in 0.6s ease-out;

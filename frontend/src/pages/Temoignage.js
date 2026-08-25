@@ -13,7 +13,7 @@ const API = process.env.REACT_APP_BACKEND_URL;
    ═══════════════════════════════════════════════════════════ */
 
 const styles = `
-  .pat-page{min-height:100vh;background:#0b0f24;color:#e8e6f0;
+  .pat-page{min-height:100vh;background:#0F1A3C;color:#e8e6f0;
     font-family:Georgia,'Times New Roman',serif;padding:60px 20px;}
   .pat-wrap{max-width:640px;margin:0 auto;}
   .pat-title{font-size:clamp(1.8rem,3vw,2.4rem);color:#c9a24b;margin:0 0 14px;line-height:1.2;}
@@ -24,14 +24,14 @@ const styles = `
   @media(max-width:520px){.pat-row{grid-template-columns:1fr;}}
   .pat-label{font-size:.78rem;color:#b8b4c9;letter-spacing:.08em;
     text-transform:uppercase;margin-bottom:6px;display:block;}
-  .pat-input,.pat-ta{background:rgba(11,15,36,.7);border:1px solid rgba(201,162,75,.2);
+  .pat-input,.pat-ta{background:rgba(15, 26, 60,.7);border:1px solid rgba(201,162,75,.2);
     color:#e8e6f0;padding:12px 14px;border-radius:10px;
     font-family:Georgia,serif;font-size:.95rem;width:100%;box-sizing:border-box;}
   .pat-input:focus,.pat-ta:focus{outline:none;border-color:#c9a24b;
     box-shadow:0 0 0 3px rgba(201,162,75,.15);}
   .pat-ta{min-height:120px;resize:vertical;}
   .pat-count{font-size:.75rem;color:#7d7a90;text-align:right;margin-top:2px;}
-  .pat-cta{background:linear-gradient(135deg,#c9a24b,#e2c07c);color:#1a1030;
+  .pat-cta{background:linear-gradient(135deg,#c9a24b,#e2c07c);color:#0F1A3C;
     font-weight:600;padding:14px 24px;border-radius:999px;border:none;cursor:pointer;
     font-size:1rem;letter-spacing:.02em;font-family:Georgia,serif;
     box-shadow:0 4px 20px rgba(201,162,75,.35);transition:transform .18s ease;}

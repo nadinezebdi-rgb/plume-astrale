@@ -140,7 +140,7 @@ export default function RencontresAstrales() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'radial-gradient(ellipse at top, #1A2035 0%, #141A2C 50%, #111625 100%)',
+      background: 'radial-gradient(ellipse at top, #0F1A3C 0%, #141A2C 50%, #111625 100%)',
       color: '#F5EEE0',
       overflow: 'hidden',
       position: 'relative',
@@ -464,7 +464,7 @@ export default function RencontresAstrales() {
             {/* CTA 29€ */}
             <div className="rounded-3xl p-6 md:p-10 relative overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, #111625, #1A2035)',
+                background: 'linear-gradient(135deg, #111625, #0F1A3C)',
                 border: '2px solid #D4AF37',
                 boxShadow: '0 40px 100px rgba(212,175,55,0.25)',
               }} data-testid="cta-premium">

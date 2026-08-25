@@ -73,7 +73,7 @@ export default function NatalDataModal({ open, onClose, onSuccess }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'linear-gradient(180deg, rgba(20,24,60,0.97) 0%, rgba(11,14,40,0.97) 100%)',
+          background: 'linear-gradient(180deg, rgba(20,24,60,0.97) 0%, rgba(15, 26, 60,0.97) 100%)',
           border: '1px solid rgba(212,175,55,0.3)',
           borderRadius: 18, padding: '28px 24px',
           maxWidth: 480, width: '100%', maxHeight: '90vh', overflowY: 'auto',
@@ -149,7 +149,7 @@ export default function NatalDataModal({ open, onClose, onSuccess }) {
           <Field label="Pays">
             <select value={form.birth_country} onChange={(e) => handleChange('birth_country', e.target.value)}
               data-testid="natal-birth-country" style={inputStyle}>
-              {COUNTRIES.map((c) => <option key={c} value={c} style={{ background: '#0F1230', color: '#fff' }}>{c}</option>)}
+              {COUNTRIES.map((c) => <option key={c} value={c} style={{ background: '#0F1A3C', color: '#fff' }}>{c}</option>)}
             </select>
           </Field>
 
@@ -172,7 +172,7 @@ export default function NatalDataModal({ open, onClose, onSuccess }) {
           <button type="submit" disabled={saving} data-testid="natal-modal-save"
             style={{
               marginTop: 6, padding: '13px 24px', borderRadius: 999, border: 'none',
-              background: '#D4AF37', color: '#0F1230', cursor: saving ? 'wait' : 'pointer',
+              background: '#D4AF37', color: '#0F1A3C', cursor: saving ? 'wait' : 'pointer',
               fontFamily: 'Cinzel, serif', fontSize: 12, fontWeight: 600,
               letterSpacing: '0.16em', textTransform: 'uppercase',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,

@@ -65,7 +65,7 @@ export default function ContestVoteBanner() {
           right: 24px;
           z-index: 9998;
           max-width: 360px;
-          background: linear-gradient(135deg, #0F1A3C 0%, #1a2755 100%);
+          background: linear-gradient(135deg, #0F1A3C 0%, #0F1A3C 100%);
           border: 1px solid rgba(201, 162, 75, 0.35);
           border-radius: 14px;
           padding: 18px 20px 18px 18px;
@@ -186,10 +186,10 @@ export default function ContestVoteBanner() {
           <Trophy size={12} strokeWidth={2.2} /> Concours en cours
         </div>
         <p className="contest-title">
-          Plume Astrale est finaliste du concours <em>Building France</em>
+          Plume Astrale participe au concours <em>Building France</em>
         </p>
         <p className="contest-sub">
-          Votre voix peut faire la différence. Un clic, un vote — et vous soutenez la création française indépendante.
+          Découvrez le projet puis, s&rsquo;il vous convainc, soutenez la création française indépendante.
         </p>
         <span className="contest-cta">
           Voter pour nous <ExternalLink size={12} strokeWidth={2.5} />

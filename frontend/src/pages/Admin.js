@@ -828,7 +828,7 @@ function UserActions({ user, token, onChange }) {
             onClick={(e) => e.stopPropagation()}
             data-testid={`admin-actions-modal-${user.id}`}
             style={{
-              background: '#0F0C1F', border: '1px solid rgba(212,175,55,0.3)',
+              background: '#0F1A3C', border: '1px solid rgba(212,175,55,0.3)',
               borderRadius: 16, padding: 24, maxWidth: 460, width: '100%',
               maxHeight: '90vh', overflowY: 'auto',
             }}

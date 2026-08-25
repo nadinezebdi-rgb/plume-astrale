@@ -545,21 +545,21 @@ export default function AdminLectureComplete({ token }) {
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 12 }}>
-            <div data-testid="admin-lc-chat-analytics-total" style={{ padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}>
+            <div data-testid="admin-lc-chat-analytics-total" style={{ padding: 10, background: 'rgba(15, 26, 60,0.4)', borderRadius: 8 }}>
               <div style={{ fontSize: 9, color: '#8a86a0', textTransform: 'uppercase', letterSpacing: '.08em' }}>Échanges</div>
               <div style={{ fontSize: 20, color: '#e8e6f0', fontWeight: 600 }}>{chatAnalyticsSummary.total_exchanges}</div>
             </div>
-            <div data-testid="admin-lc-chat-analytics-sessions" style={{ padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}>
+            <div data-testid="admin-lc-chat-analytics-sessions" style={{ padding: 10, background: 'rgba(15, 26, 60,0.4)', borderRadius: 8 }}>
               <div style={{ fontSize: 9, color: '#8a86a0', textTransform: 'uppercase', letterSpacing: '.08em' }}>Sessions</div>
               <div style={{ fontSize: 20, color: '#e8e6f0', fontWeight: 600 }}>{chatAnalyticsSummary.unique_sessions}</div>
             </div>
-            <div data-testid="admin-lc-chat-analytics-escalate" style={{ padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}>
+            <div data-testid="admin-lc-chat-analytics-escalate" style={{ padding: 10, background: 'rgba(15, 26, 60,0.4)', borderRadius: 8 }}>
               <div style={{ fontSize: 9, color: '#8a86a0', textTransform: 'uppercase', letterSpacing: '.08em' }}>Escalate rate</div>
               <div style={{ fontSize: 20, color: chatAnalyticsSummary.escalate_rate_pct > 15 ? '#f87171' : '#e8e6f0', fontWeight: 600 }}>
                 {chatAnalyticsSummary.escalate_rate_pct}%
               </div>
             </div>
-            <div data-testid="admin-lc-chat-analytics-helpful" style={{ padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}>
+            <div data-testid="admin-lc-chat-analytics-helpful" style={{ padding: 10, background: 'rgba(15, 26, 60,0.4)', borderRadius: 8 }}>
               <div style={{ fontSize: 9, color: '#8a86a0', textTransform: 'uppercase', letterSpacing: '.08em' }}>Utile</div>
               <div style={{ fontSize: 20, color: '#4ADE80', fontWeight: 600 }}>
                 {chatAnalyticsSummary.helpful_rate_pct != null ? `${chatAnalyticsSummary.helpful_rate_pct}%` : '—'}
@@ -582,7 +582,7 @@ export default function AdminLectureComplete({ token }) {
                     data-testid={`admin-lc-chat-analytics-gap-${i}`}
                     style={{
                       fontSize: 11, color: '#e8e6f0', fontStyle: 'italic',
-                      padding: '6px 10px', background: 'rgba(11,16,32,0.35)', borderRadius: 6,
+                      padding: '6px 10px', background: 'rgba(15, 26, 60,0.35)', borderRadius: 6,
                       borderLeft: '2px solid rgba(248,113,113,0.4)',
                     }}
                   >
@@ -678,7 +678,7 @@ export default function AdminLectureComplete({ token }) {
           data-testid="admin-lc-slack-webhook-input"
           style={{
             flex: 1, minWidth: 320,
-            background: 'rgba(11,16,32,0.5)', color: '#e8e6f0',
+            background: 'rgba(15, 26, 60,0.5)', color: '#e8e6f0',
             border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: 6, padding: '6px 10px', fontSize: 12,
           }}
@@ -746,7 +746,7 @@ export default function AdminLectureComplete({ token }) {
         {svgStats && !svgStats.error && (
           <div data-testid="admin-lc-svg-cache-details" style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
             {Object.entries(svgStats.by_chart_type || {}).map(([ct, s]) => (
-              <div key={ct} style={{ padding: 8, borderRadius: 6, background: 'rgba(11,16,32,0.4)', fontSize: 11 }}>
+              <div key={ct} style={{ padding: 8, borderRadius: 6, background: 'rgba(15, 26, 60,0.4)', fontSize: 11 }}>
                 <div style={{ color: '#e8e6f0', fontWeight: 600 }}>{ct}</div>
                 <div style={{ color: 'rgba(184,180,201,0.7)', marginTop: 2 }}>{s.files} fichier{s.files > 1 ? 's' : ''}</div>
                 <div style={{ color: 'rgba(184,180,201,0.55)', fontSize: 10 }}>
@@ -968,7 +968,7 @@ export default function AdminLectureComplete({ token }) {
                     data-testid={`admin-lc-hero-ab-variant-${v}`}
                     style={{
                       padding: 12, borderRadius: 8,
-                      background: isWinner ? 'rgba(74,222,128,0.06)' : 'rgba(11,16,32,0.4)',
+                      background: isWinner ? 'rgba(74,222,128,0.06)' : 'rgba(15, 26, 60,0.4)',
                       border: `1px solid ${isForced ? 'rgba(74,222,128,0.4)' : (isWinner ? 'rgba(217,178,106,0.25)' : 'rgba(255,255,255,0.05)')}`,
                     }}
                   >
@@ -1040,7 +1040,7 @@ export default function AdminLectureComplete({ token }) {
                       style={{
                         fontSize: 10, padding: '5px 12px', borderRadius: 12,
                         background: 'linear-gradient(135deg,#c9a24b,#e2c07c)',
-                        color: '#1a1030', border: 'none', cursor: 'pointer', fontWeight: 600,
+                        color: '#0F1A3C', border: 'none', cursor: 'pointer', fontWeight: 600,
                         textTransform: 'uppercase', letterSpacing: '.1em',
                       }}
                     >
@@ -1097,7 +1097,7 @@ export default function AdminLectureComplete({ token }) {
             data-testid={`admin-lc-testimonial-${t.id}`}
             style={{
               marginBottom: 8, padding: 10, borderRadius: 8,
-              background: 'rgba(11,16,32,0.4)',
+              background: 'rgba(15, 26, 60,0.4)',
               borderLeft: `3px solid ${t.status === 'approved' ? '#4ADE80' : '#f59e0b'}`,
             }}
           >
@@ -1221,7 +1221,7 @@ export default function AdminLectureComplete({ token }) {
             data-testid={`admin-lc-escalation-${esc.session_id}`}
             style={{
               marginBottom: 10, padding: 10, borderRadius: 8,
-              background: esc.resolved ? 'rgba(74,222,128,0.03)' : 'rgba(11,16,32,0.4)',
+              background: esc.resolved ? 'rgba(74,222,128,0.03)' : 'rgba(15, 26, 60,0.4)',
               opacity: esc.resolved ? 0.7 : 1,
               borderLeft: `3px solid ${esc.resolved ? '#4ADE80' : (esc.admin_replies_count > 0 ? '#d9b26a' : '#f87171')}`,
             }}
@@ -1276,7 +1276,7 @@ export default function AdminLectureComplete({ token }) {
                     data-testid={`admin-lc-escalation-reply-input-${esc.session_id}`}
                     style={{
                       flex: 1,
-                      background: 'rgba(11,16,32,0.6)', color: '#e8e6f0',
+                      background: 'rgba(15, 26, 60,0.6)', color: '#e8e6f0',
                       border: '1px solid rgba(201,162,75,0.25)', borderRadius: 8,
                       padding: '6px 10px', fontSize: 11, fontFamily: 'Georgia, serif',
                       resize: 'vertical', minHeight: 40,
@@ -1288,7 +1288,7 @@ export default function AdminLectureComplete({ token }) {
                     data-testid={`admin-lc-escalation-reply-send-${esc.session_id}`}
                     style={{
                       fontSize: 10, padding: '8px 14px', borderRadius: 12,
-                      background: 'linear-gradient(135deg,#c9a24b,#e2c07c)', color: '#1a1030',
+                      background: 'linear-gradient(135deg,#c9a24b,#e2c07c)', color: '#0F1A3C',
                       border: 'none', cursor: 'pointer', fontWeight: 600,
                       textTransform: 'uppercase', letterSpacing: '.08em',
                       whiteSpace: 'nowrap',
@@ -1351,7 +1351,7 @@ export default function AdminLectureComplete({ token }) {
           value={exportFilters.since}
           onChange={(e) => setExportFilters(s => ({ ...s, since: e.target.value }))}
           data-testid="admin-lc-filter-since"
-          style={{ background: 'rgba(11,16,32,0.5)', color: '#e8e6f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '4px 8px' }}
+          style={{ background: 'rgba(15, 26, 60,0.5)', color: '#e8e6f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '4px 8px' }}
         />
         <span style={{ alignSelf: 'center', color: 'rgba(184,180,201,0.5)' }}>→</span>
         <input
@@ -1359,13 +1359,13 @@ export default function AdminLectureComplete({ token }) {
           value={exportFilters.until}
           onChange={(e) => setExportFilters(s => ({ ...s, until: e.target.value }))}
           data-testid="admin-lc-filter-until"
-          style={{ background: 'rgba(11,16,32,0.5)', color: '#e8e6f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '4px 8px' }}
+          style={{ background: 'rgba(15, 26, 60,0.5)', color: '#e8e6f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '4px 8px' }}
         />
         <select
           value={exportFilters.payment_status}
           onChange={(e) => setExportFilters(s => ({ ...s, payment_status: e.target.value }))}
           data-testid="admin-lc-filter-status"
-          style={{ background: 'rgba(11,16,32,0.5)', color: '#e8e6f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '4px 8px' }}
+          style={{ background: 'rgba(15, 26, 60,0.5)', color: '#e8e6f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '4px 8px' }}
         >
           <option value="">Tous statuts</option>
           <option value="paid">Payé</option>
@@ -1455,7 +1455,7 @@ export default function AdminLectureComplete({ token }) {
             style={{
               display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
               marginBottom: 10, padding: 8, borderRadius: 6,
-              background: 'rgba(11,16,32,0.4)',
+              background: 'rgba(15, 26, 60,0.4)',
               border: forcedVariant ? '1px solid rgba(74,222,128,0.35)' : '1px dashed rgba(255,255,255,0.08)',
             }}
           >
@@ -1536,7 +1536,7 @@ export default function AdminLectureComplete({ token }) {
                   data-testid={`admin-lc-ab-${v}`}
                   style={{
                     padding: 10, borderRadius: 8,
-                    background: 'rgba(11,16,32,0.5)',
+                    background: 'rgba(15, 26, 60,0.5)',
                     border: `1px solid ${isLeader ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.06)'}`,
                   }}
                 >
@@ -1571,7 +1571,7 @@ export default function AdminLectureComplete({ token }) {
           {abStats.ctr && (
             <div
               data-testid="admin-lc-ab-ctr"
-              style={{ marginTop: 12, padding: 10, background: 'rgba(11,16,32,0.4)', borderRadius: 8 }}
+              style={{ marginTop: 12, padding: 10, background: 'rgba(15, 26, 60,0.4)', borderRadius: 8 }}
             >
               <div style={{ fontSize: 11, color: '#d9b26a', marginBottom: 6, letterSpacing: '.1em', textTransform: 'uppercase' }}>
                 CTR réel via Resend
@@ -1650,7 +1650,7 @@ export default function AdminLectureComplete({ token }) {
                   data-testid={`admin-lc-alerts-history-item-${i}`}
                   style={{
                     marginBottom: 8, padding: 8, borderRadius: 6,
-                    background: 'rgba(11,16,32,0.4)',
+                    background: 'rgba(15, 26, 60,0.4)',
                     borderLeft: `3px solid ${a.kind === 'refund_alert' ? '#f87171' : a.kind === 'slack_test' ? '#4ADE80' : '#A78BFA'}`,
                   }}
                 >
@@ -1781,7 +1781,7 @@ export default function AdminLectureComplete({ token }) {
                   key={c.session_id}
                   style={{
                     padding: 10, borderRadius: 8,
-                    background: 'rgba(11,16,32,0.5)',
+                    background: 'rgba(15, 26, 60,0.5)',
                     border: '1px solid rgba(255,255,255,0.06)',
                   }}
                 >
@@ -1908,7 +1908,7 @@ export default function AdminLectureComplete({ token }) {
                     }}
                     className="w-full rounded px-3 py-2 text-sm mb-2"
                     style={{
-                      background: 'rgba(11,16,32,0.6)',
+                      background: 'rgba(15, 26, 60,0.6)',
                       border: '1px solid rgba(255,255,255,0.15)',
                       color: '#e8e6f0',
                     }}
@@ -1933,7 +1933,7 @@ export default function AdminLectureComplete({ token }) {
                     rows={3}
                     className="w-full rounded px-3 py-2 text-sm"
                     style={{
-                      background: 'rgba(11,16,32,0.6)',
+                      background: 'rgba(15, 26, 60,0.6)',
                       border: '1px solid rgba(255,255,255,0.15)',
                       color: '#e8e6f0',
                     }}
@@ -1962,7 +1962,7 @@ export default function AdminLectureComplete({ token }) {
                       data-testid="refund-modal-apply-suggestion"
                       className="text-xs px-2 py-1 rounded"
                       style={{
-                        background: '#d9b26a', color: '#1a1030',
+                        background: '#d9b26a', color: '#0F1A3C',
                         border: 'none', cursor: 'pointer',
                         fontWeight: 600, whiteSpace: 'nowrap',
                       }}
@@ -2017,7 +2017,7 @@ export default function AdminLectureComplete({ token }) {
                           data-testid="refund-modal-amount"
                           className="w-full rounded px-3 py-2 text-sm"
                           style={{
-                            background: 'rgba(11,16,32,0.6)',
+                            background: 'rgba(15, 26, 60,0.6)',
                             border: '1px solid rgba(255,255,255,0.15)',
                             color: '#e8e6f0',
                           }}
@@ -2055,7 +2055,7 @@ export default function AdminLectureComplete({ token }) {
                   disabled={!!refunding}
                   data-testid="refund-modal-confirm"
                   className="px-4 py-2 rounded text-xs uppercase tracking-wider inline-flex items-center gap-1.5"
-                  style={{ background: '#f87171', color: '#0b1020', border: 'none', cursor: refunding ? 'not-allowed' : 'pointer', fontWeight: 600 }}
+                  style={{ background: '#f87171', color: '#0F1A3C', border: 'none', cursor: refunding ? 'not-allowed' : 'pointer', fontWeight: 600 }}
                 >
                   {refunding && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   {refunding ? 'Refund…' : (refundSkipStripe || refundTarget?.admin_bypass ? 'Marquer remboursé' : 'Rembourser via Stripe')}

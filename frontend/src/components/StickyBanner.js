@@ -10,7 +10,7 @@ const StickyBanner = () => {
         textAlign: "center",
         fontSize: "14px",
         fontWeight: "600",
-        color: "#0B0E14",
+        color: "#0F1A3C",
         letterSpacing: "0.05em",
         boxShadow: "0 2px 12px rgba(212, 175, 55, 0.3)",
       }}

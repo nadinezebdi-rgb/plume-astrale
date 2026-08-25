@@ -1,5 +1,90 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-25 — Portrait Soléna intégré dans SolenaGuideCard
+
+**Demande** : remplacer l'avatar générique par le portrait fourni par l'utilisatrice (femme aux cheveux bruns ondulés, blouse vert sauge, fond constellations) dans la carte "Bonjour, je suis Soléna".
+
+**Livrables** :
+- Portrait téléchargé depuis les assets : `/app/frontend/public/branding/solena-portrait.png` (1.6 MB, PNG)
+- `SolenaGuideCard.js` : `SOLENA_AVATAR` swap externe → local `/branding/solena-portrait.png`
+- Avatar agrandi 72×72 → 96×96 px (portrait plus lisible)
+- Halo doré `boxShadow: 0 8px 24px rgba(15, 26, 60, 0.22), 0 0 0 3px rgba(201, 162, 75, 0.14)`
+- `objectPosition: 50% 20%` pour cadrer sur le visage plutôt que le buste
+- Alt text enrichi : "Soléna, guide éditoriale Plume Astrale" (SEO + accessibilité)
+- Couleurs normalisées à `#0F1A3C` (cohérent avec la charte unifiée)
+- Titre passé de 20px à 22px pour équilibrer le nouvel avatar plus grand
+
+Testé visuellement : le portrait s'affiche dans la carte flottante, cadré sur le visage, halo doré subtil, cohérent avec l'esthétique Nocturne.
+
+
+
+## 2026-02-25 — Unification bleu nuit `#0F1A3C` partout
+
+**Problème** : 15 variantes de bleu-nuit hexadécimal + 6 rgba proches se baladaient dans le codebase (#1A2035, #1a1030, #0F1230, #1a1230, #0b0f24, #1A1F2E, #0b1020, #0B1A2E, #0B0F1E, #0B0B0F, #1a2755, #0f0a20, #0F0C1F, #0B0E14, #0B0B1F, `#0C0918` splash…), créant des micro-décalages visuels entre sections.
+
+**Fix** : normalisation à `#0F1A3C` (référence Nocturne Éditorial) via find-replace bulk :
+- **259 occurrences** de `#0F1A3C` en HEX (+49 par rapport à avant)
+- **158 occurrences** de `rgba(15, 26, 60, α)` (0 avant)
+- Splash background `public/index.html` migré vers `#0F1A3C`
+- Variable CSS `--ne-night` déjà correcte (référence conservée)
+
+Résultat : homepage et pages internes maintenant strictement uniformes en teinte de bleu nuit — plus aucun écart entre navbar, hero, showcase, sections sombres, floating banners.
+
+
+
+## 2026-02-25 — Mini-vidéo cinématique "Sophie" sur homepage
+
+**Objectif** : reproduire la scène cinématique du livre astrologique fournie en référence, avec le prénom "Sophie" gravé sur la couverture, sous forme d'une mini-vidéo intégrée à la homepage.
+
+**Génération d'images** (Gemini Nano Banana via EMERGENT_LLM_KEY) :
+- Script `/tmp/gen_sophie_images.py` — 3 prompts photorealistiques éditoriaux
+- 3 images 1408x832 générées et sauvées dans `/app/frontend/public/videos/sophie/` :
+  - `sophie-02-cover.png` : couverture navy avec "PLUME ASTRALE" + "Sophie" en script doré + galets et bougies
+  - `sophie-03-hands.png` : mains tournant une page "Votre thème natal · Sophie"
+  - `sophie-01-open.png` : livre ouvert Birth Chart + page texte natal chart
+
+**Nouveau composant `CinematicBookShowcase.jsx`** :
+- Séquence 3 slides avec cross-fade 1.4s + Ken Burns 6s (scale 1.02 → 1.12, translate -2%, -1.5%)
+- Progression 3 barres dorées 5s en bas de la scène
+- Bouton pause/play glass morphism en haut à droite
+- Caption dynamique italique Playfair sous chaque slide
+- Layout 5/6 (copy + video stage), max-width 1200, responsive < 880px
+- Vignette + gradient inférieur pour ambiance cinéma
+- Respect `prefers-reduced-motion`
+- data-testid : `cinematic-book-showcase`, `cinematic-showcase-stage`, `cinematic-showcase-toggle`, `cinematic-showcase-cta`
+
+**Intégration** : monté dans `Homepage.js` en section 1.03 (entre `NocturneHero` et `ConcoursImpact`).
+
+Testé visuellement : les 3 slides s'enchaînent correctement, cross-fade fluide, Ken Burns actif, boutons pause/play fonctionnels.
+
+
+
+## 2026-02-25 — Refonte concours Building France 2026
+
+**Objectif** : Comprendre la promesse produit en <3s, faire de l'aperçu gratuit l'action principale, montrer visuellement le livrable, expliquer le flux Emergent, retirer la mention prématurée "finaliste".
+
+**Fichiers remplacés** (paquet livré `plume-astrale-refonte-concours-2026.zip`) :
+- `frontend/src/components/nocturne/NocturneHero.jsx` — nouveau hero éditorial avec livre 3D + 3 pastilles réassurance + 3 preuves chiffrées (49 pages, <60s, 5 pages offertes)
+- `frontend/src/components/nocturne/ConcoursImpact.jsx` — NOUVEAU composant, 4 étapes numérotées expliquant le flux Emergent (Renseigner / Interpréter / Composer / Recevoir)
+- `frontend/src/components/ContestVoteBanner.js` — wording règlement-safe "Plume Astrale participe au concours Building France"
+- `frontend/src/pages/Homepage.js` — insertion ConcoursImpact section 1.05, retrait section témoignages (aucun avis codé en dur pendant le concours), nouveau SEO title "Votre ciel devient un livre personnalisé"
+- `frontend/src/index.css` — +481 lignes (classes `.ne-hero-premium-*`, `.ne-hero-book-*`, `.ne-impact-*`)
+
+Testé visuellement en preview : hero rendu correctement avec livre premium + halo orbital, 3 preuves chiffrées, 4 étapes ConcoursImpact, bannière contest avec wording règlement-safe.
+
+
+
+## 2026-02-24 — CAPI Fully Operational + Contest Banner Wording
+
+**✅ CAPI opérationnel** : après le fix user_data (IP + UA + email hashé), le health check retourne `capi_ok: true`, `meta_http_status: 200`, `events_received: 1`. Meta CAPI est end-to-end fonctionnel.
+
+**Correction contest banner** : le texte "Plume Astrale est finaliste" contredisait le règlement Emergent (Top 100/10 annoncés le 19 septembre 2026). Remplacé par :
+- Titre : "Soutenez Plume Astrale au concours Building France"
+- Sous-titre : "Emergent récompense les créations françaises indépendantes. Un clic, un vote — et vous nous aidez à faire connaître notre écriture."
+- Règlement-safe et plus crédible
+
+
+
 ## 2026-02-24 — CAPI Health Check Fix (Meta requires user_data since 2024)
 
 **Diagnostic obtenu grâce au diagnostic enrichi** :

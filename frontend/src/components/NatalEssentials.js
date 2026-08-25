@@ -102,7 +102,7 @@ export default function NatalEssentials({ token, prenom: prenomProp }) {
         style={{
           padding: '18px 20px 20px',
           borderRadius: 16,
-          background: 'linear-gradient(180deg, rgba(6,8,26,0.85) 0%, rgba(11,14,40,0.75) 100%)',
+          background: 'linear-gradient(180deg, rgba(6,8,26,0.85) 0%, rgba(15, 26, 60,0.75) 100%)',
           border: '1px solid rgba(212,175,55,0.35)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
           backdropFilter: 'blur(20px)',

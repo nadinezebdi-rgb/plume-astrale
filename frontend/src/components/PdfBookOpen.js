@@ -532,7 +532,7 @@ const PdfBookOpen = ({ testId = 'pdf-book-open', theme = 'astrocarto' }) => {
           position: relative;
           background:
             linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.15)),
-            linear-gradient(160deg, #1a1230 0%, #0e0a1e 100%);
+            linear-gradient(160deg, #0F1A3C 0%, #0e0a1e 100%);
           padding: 26px 30px 30px;
           font-family: 'Cormorant Garamond', serif;
           color: #F5EEE0;
@@ -542,12 +542,12 @@ const PdfBookOpen = ({ testId = 'pdf-book-open', theme = 'astrocarto' }) => {
           border-right: 1px solid rgba(212,175,55,0.35);
           background:
             radial-gradient(circle at 100% 50%, rgba(0,0,0,0.4), transparent 40%),
-            linear-gradient(160deg, #1a1230 0%, #0e0a1e 100%);
+            linear-gradient(160deg, #0F1A3C 0%, #0e0a1e 100%);
         }
         .pbo-page-right {
           background:
             radial-gradient(circle at 0% 50%, rgba(0,0,0,0.4), transparent 40%),
-            linear-gradient(200deg, #1a1230 0%, #0e0a1e 100%);
+            linear-gradient(200deg, #0F1A3C 0%, #0e0a1e 100%);
         }
 
         .pbo-header {
@@ -850,7 +850,7 @@ const PdfBookOpen = ({ testId = 'pdf-book-open', theme = 'astrocarto' }) => {
           background:
             radial-gradient(circle at 30% 20%, rgba(212,175,55,0.08), transparent 50%),
             radial-gradient(circle at 70% 80%, rgba(167,139,250,0.06), transparent 55%),
-            linear-gradient(150deg, #0f0a20 0%, #1a1230 55%, #06040f 100%);
+            linear-gradient(150deg, #0F1A3C 0%, #0F1A3C 55%, #06040f 100%);
           padding: 28px 24px;
           overflow: hidden;
           border: 1px solid rgba(212,175,55,0.4);

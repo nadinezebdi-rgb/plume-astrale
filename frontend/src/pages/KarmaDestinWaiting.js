@@ -44,7 +44,7 @@ const KarmaDestinWaiting = () => {
   }, [sessionId, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0C0918] to-[#1A1F2E] text-[#F4E8D2] flex items-center justify-center pt-20 pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-[#0C0918] to-[#0F1A3C] text-[#F4E8D2] flex items-center justify-center pt-20 pb-20">
       <div className="max-w-2xl mx-auto px-4 text-center">
         {status === 'loading' || status === 'waiting' ? (
           <>
@@ -73,7 +73,7 @@ const KarmaDestinWaiting = () => {
               Ton Analyse Karmique & Destinée a été générée avec succès.
             </p>
 
-            <div className="bg-[#1A2035] border-2 border-[#D4AF37] rounded-lg p-8 mb-8">
+            <div className="bg-[#0F1A3C] border-2 border-[#D4AF37] rounded-lg p-8 mb-8">
               <Mail className="w-12 h-12 text-[#D4AF37] mx-auto mb-4" />
               <p className="text-[#F4E8D2] mb-4">
                 Un lien de téléchargement a été envoyé à ton email.
