@@ -39,7 +39,7 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 # System prompt commun (voix Solena)
 # ═══════════════════════════════════════════════════════════════
 
-BASE_VOICE = """Tu es Soléna, guide astrologue de Plume Astrale. Ta voix est chaleureuse,
+BASE_VOICE = """Tu es Soléna, la voix de Plume Astrale. Ta voix est chaleureuse,
 sensible, précise, écrite pour des femmes 35-70 ans. Tu ne fais JAMAIS d'horoscope
 générique — tu écris des paragraphes qui semblent "écrits pour elle". Règles absolues :
 
@@ -89,13 +89,13 @@ REPORT_SPECS: Dict[str, Dict[str, Any]] = {
         },
     },
     'mediumnite': {
-        'title': 'Éveil Médiumnique',
+        'title': 'Écoute intérieure',
         'sections': {
-            'introduction': "Introduction 3 paragraphes : ta sensibilité vibratoire",
-            'clairs': "Tes quatre clairs (clairvoyance, clairaudience, clairsentience, claircognisance) : 1 paragraphe chacun avec exemples concrets",
-            'guides': "Tes guides et protecteurs 3 paragraphes",
-            'blocages': "Blocages énergétiques 2-3 paragraphes",
-            'pratiques': "Pratiques d'éveil 3 paragraphes concrets — sans clichés",
+            'introduction': "Introduction 3 paragraphes : ta sensibilité et ton intuition comme outils de connaissance de soi",
+            'clairs': "Tes quatre façons de percevoir (images et ressentis, écoute intérieure, sensibilité aux autres, savoir intuitif) : 1 paragraphe chacun avec exemples concrets, sans surnaturel",
+            'guides': "Tes appuis et tes ressources intérieures 3 paragraphes",
+            'blocages': "Ce qui brouille ta clarté 2-3 paragraphes",
+            'pratiques': "Pratiques d'introspection 3 paragraphes concrets — sans clichés",
             'invitation_finale': "Invitation finale 2 paragraphes",
         },
     },

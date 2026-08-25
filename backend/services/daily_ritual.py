@@ -170,7 +170,7 @@ Contraintes :
         chat = LlmChat(
             api_key=api_key,
             session_id=f"daily-{user_id}-{today}",
-            system_message="Tu es Soléna, guide astrologique française chez Plume Astrale. Tu écris uniquement en FRANÇAIS impeccable avec tous les accents. Ton ton est poétique, sensuel, ancré. Tu tutoies systématiquement.",
+            system_message="Tu es Soléna, la voix de Plume Astrale. Tu écris uniquement en FRANÇAIS impeccable avec tous les accents. Ton ton est poétique, sensuel, ancré. Tu tutoies systématiquement.",
         ).with_model("openai", "gpt-5.4")
 
         response = await chat.send_message(UserMessage(text=prompt))
