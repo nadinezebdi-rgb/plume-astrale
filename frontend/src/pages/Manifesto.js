@@ -618,7 +618,7 @@ export default function Manifesto() {
               }}
             >
               Une intelligence éditoriale,<br />
-              <span style={{ fontStyle: 'italic', color: '#C9A24B' }}>pas une pythie.</span>
+              <span style={{ fontStyle: 'italic', color: '#C9A24B' }}>pas un psy.</span>
             </h2>
             <div style={{
               fontFamily: 'Inter, sans-serif',
