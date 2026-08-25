@@ -2540,7 +2540,7 @@ async def admin_preview_monthly_pdf(
 
 
 @app.get('/api/admin/capi-health')
-async def admin_capi_health(current_user: dict = Depends(get_current_user)):
+async def admin_capi_health(request: Request, current_user: dict = Depends(get_current_user)):
     """Admin-only : envoie un Test Event vers Meta CAPI pour valider le token.
 
     Utilise `META_CAPI_TEST_CODE` si présent → l'event apparaîtra dans
@@ -2574,9 +2574,16 @@ async def admin_capi_health(current_user: dict = Depends(get_current_user)):
     # Appel direct à Meta pour capturer le message d'erreur exact (send_capi_event masque les 400)
     import httpx as _httpx
     import time as _time
+    import hashlib as _hashlib
     meta_error = None
     meta_response = None
     meta_status = None
+    # Meta refuse depuis 2024 les events sans user_data. On envoie l'IP + UA de l'admin + email hashé
+    # pour satisfaire le seuil minimum de matching (aucun stockage : c'est un event de test à durée de vie ~10s).
+    _client_ip = (request.headers.get('x-forwarded-for', '').split(',')[0].strip()
+                  or (request.client.host if request.client else '127.0.0.1'))
+    _client_ua = request.headers.get('user-agent', 'PlumeAstrale-HealthCheck/1.0')
+    _admin_email_hash = _hashlib.sha256((current_user.get('email') or '').lower().encode()).hexdigest()
     try:
         payload = {
             'data': [{
@@ -2585,7 +2592,11 @@ async def admin_capi_health(current_user: dict = Depends(get_current_user)):
                 'action_source': 'website',
                 'event_id': test_event_id,
                 'event_source_url': 'https://plume-astrale.fr/admin/capi-health',
-                'user_data': {},
+                'user_data': {
+                    'client_ip_address': _client_ip,
+                    'client_user_agent': _client_ua,
+                    'em': [_admin_email_hash],
+                },
             }],
         }
         if test_code:
