@@ -99,6 +99,33 @@ async def qr_referral_redirect(code: str, request: Request):
     return resp
 
 
+def ensure_referral_scan_tables() -> dict:
+    """Bootstrap idempotent : vérifie que les tables QR referral existent.
+
+    Ne crée PAS les tables (Supabase RESTful API ne permet pas le DDL).
+    Sonde `referral_scan_counters` par une lecture rapide. Si absente,
+    log une WARNING actionnable avec le chemin du fichier SQL à jouer
+    dans le SQL editor Supabase. Retourne un diag pour l'admin.
+    """
+    try:
+        from services.supabase_client import get_admin_client
+        sb = get_admin_client()
+        r = sb.table('referral_scan_counters').select('code').limit(1).execute()
+        return {'exists': True, 'rows_sample': len(r.data or [])}
+    except Exception as e:
+        err = str(e)
+        if 'PGRST205' in err or 'not find the table' in err.lower() or 'does not exist' in err.lower():
+            logger.warning(
+                '[qr_tracker] Table `referral_scan_counters` absente. '
+                'Exécuter /app/backend/migrations/2026_02_referral_scan_counters.sql '
+                'dans le SQL Editor Supabase pour activer les analytics QR. '
+                "Sans ça, le dashboard /admin/qr-stats affiche 'aucun scan'."
+            )
+            return {'exists': False, 'error': 'table_missing', 'sql_path': '/app/backend/migrations/2026_02_referral_scan_counters.sql'}
+        logger.warning(f'[qr_tracker] table probe failed: {e}')
+        return {'exists': False, 'error': err[:200]}
+
+
 @router.get('/api/admin/referral-scan-stats')
 async def referral_scan_stats(top: int = 50):
     """Admin : renvoie les codes les plus scannés (best-effort, silent fail).

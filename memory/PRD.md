@@ -27,6 +27,11 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### Print-ready CTA · Halo global · QR migration SQL (2026-02-26)
+- **Print-ready CTA visible** : nouveau composant `components/PdfDownloadButtons.js` (duo bouton standard + "VERSION IMPRIMEUR (bord perdu 3 mm)"). Câblé sur 3 pages Succes principales : Thème Natal Oneshot, Astrocartographie, Pack Karmique. Le second bouton s'affiche uniquement si `pdfUrl` pointe vers `/api/pdf/download` (masqué pour Supabase static). data-testid `{prefix}-print-ready-btn`.
+- **Halo doré global** : classes utilitaires `.luxury-halo`, `.pa-glass`, `.pa-glass-gold`, `.pa-card` dans `src/index.css` — au survol, box-shadow doré 3 couches (halo diffus + strie + rebond) + translateY(-2px). `prefers-reduced-motion` respecté (halo statique sans translation). Applicable à tout élément via `className="luxury-halo"`.
+- **Migration SQL Supabase** : nouveau fichier `/app/backend/migrations/2026_02_referral_scan_counters.sql` avec les deux tables (`referral_scans` journal + `referral_scan_counters` agrégat) + index composite + RLS activé. Startup bootstrap `qr_referral_tracker.ensure_referral_scan_tables()` sonde la présence de la table et log une WARNING actionnable pointant vers le fichier SQL si absente. Endpoint `/api/admin/referral-scan-stats` fait déjà le soft-fail proprement (`{ok:true, top_codes:[]}`).
+
 ### CMYK Print-Ready · Referral tracker · Natal colophon unifié (2026-02-26)
 - **Pack Karmique migration** : le mount statique `/api/assets/pack_karmique/*` avait déjà été retiré lors de la vague précédente. Tous les téléchargements passent maintenant par `/api/pdf/download` (token opaque). Test suite vérifie que le folder retourne 404 sur les probes.
 - **Colophon Thème Natal unifié** : `pdf_book_pages.colophon_page` délègue désormais à `pdf_colophon.build_colophon` — cohérence visuelle Karma + Numérologie + Voyage Karmique + Thème Natal (QR code, code Cinzel doré, citation Soléna, kicker éditorial).

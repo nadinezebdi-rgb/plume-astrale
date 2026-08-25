@@ -240,6 +240,57 @@ p {
   -webkit-backdrop-filter: blur(14px);
 }
 
+/* ═══════════ Luxury halo — hover 3D doré partagé ═══════════
+   Ajoute un halo doré animé au survol de n'importe quelle carte
+   (pa-glass, pa-glass-gold, pa-card, luxury-halo). Utilise deux couches :
+   - box-shadow doré diffus qui grossit à l'hover
+   - légère élévation via transform: translateY(-2px)
+
+   L'effet marche AUSSI sur les liens/boutons/sections marqués `.luxury-halo`.
+   Respect strict de `prefers-reduced-motion` — aucun mouvement pour les
+   utilisateurs qui l'ont désactivé, mais le halo reste subtil au hover. */
+.luxury-halo,
+.pa-glass,
+.pa-glass-gold,
+.pa-card {
+  transition:
+    box-shadow 420ms ease,
+    transform 420ms ease,
+    border-color 320ms ease;
+  will-change: box-shadow, transform;
+}
+
+.luxury-halo:hover,
+.pa-glass:hover,
+.pa-glass-gold:hover,
+.pa-card:hover {
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.35),
+    0 10px 32px -8px rgba(212, 175, 55, 0.35),
+    0 22px 60px -20px rgba(232, 199, 102, 0.28),
+    0 0 90px -10px rgba(212, 175, 55, 0.22);
+  border-color: rgba(212, 175, 55, 0.55);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luxury-halo,
+  .pa-glass,
+  .pa-glass-gold,
+  .pa-card {
+    transition: box-shadow 250ms ease, border-color 250ms ease;
+  }
+  .luxury-halo:hover,
+  .pa-glass:hover,
+  .pa-glass-gold:hover,
+  .pa-card:hover {
+    transform: none;
+    box-shadow:
+      0 0 0 1px rgba(212, 175, 55, 0.35),
+      0 8px 24px -8px rgba(212, 175, 55, 0.28);
+  }
+}
+
 /* ═══════════ Editorial inputs (form fields, dropdowns) ═══════════ */
 .input-editorial {
   background: transparent;

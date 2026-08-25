@@ -4,6 +4,7 @@ import { CheckCircle2, Download, ArrowRight, Loader2, Mail, Star, Moon, Sparkles
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import CercleSolenaInvite from '@/components/CercleSolenaInvite';
+import PdfDownloadButtons from '@/components/PdfDownloadButtons';
 import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -249,15 +250,12 @@ const ThemeNatalOneshotSucces = () => {
 
         {/* Download */}
         {status.pdf_ready && status.pdf_url ? (
-          <a
-            href={status.pdf_url}
-            className="plume-btn-primary inline-flex"
-            data-testid="theme-natal-oneshot-download-btn"
-          >
-            <Download className="w-4 h-4" strokeWidth={1.5} />
-            Télécharger mon Thème Natal
-            <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
-          </a>
+          <PdfDownloadButtons
+            pdfUrl={status.pdf_url}
+            apiBase={API}
+            label="Télécharger mon Thème Natal"
+            testidPrefix="theme-natal-oneshot"
+          />
         ) : status.pdf_status === 'failed' ? (
           <div
             className="max-w-lg mx-auto p-5 rounded-xl text-left"
