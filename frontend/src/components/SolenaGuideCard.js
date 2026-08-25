@@ -73,10 +73,10 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
           }}
         >
           <picture>
-            <source srcSet="/branding/solena-portrait.webp" type="image/webp" />
+            <source srcSet="/branding/solena-portrait-v2.webp" type="image/webp" />
             <img
               src={SOLENA_AVATAR}
-              alt="Soléna, guide éditoriale Plume Astrale"
+              alt="Soléna, voix éditoriale IA de Plume Astrale"
               data-testid={`${testid}-avatar`}
               loading="lazy"
               decoding="async"
@@ -116,7 +116,7 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
               marginBottom: 12,
             }}
           >
-            Je serai votre guide tout au long de votre parcours.
+            La voix éditoriale IA qui rédige vos lectures Plume Astrale.
           </p>
           <p
             style={{
@@ -130,7 +130,7 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
             }}
             data-testid={`${testid}-signature`}
           >
-            — Soléna
+            Soléna &middot; voix IA
           </p>
         </div>
       </div>

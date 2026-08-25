@@ -45,10 +45,10 @@ export default function NocturneManifest() {
             }}
           >
             <picture>
-              <source srcSet="/branding/solena-portrait.webp" type="image/webp" />
+              <source srcSet="/branding/solena-portrait-v2.webp" type="image/webp" />
               <img
                 src="/branding/solena-portrait.png"
-                alt="Portrait de Soléna, guide éditoriale de Plume Astrale"
+                alt="Illustration représentant Soléna, voix éditoriale IA de Plume Astrale"
                 loading="lazy"
                 decoding="async"
                 data-testid="nocturne-manifest-portrait-img"
@@ -74,7 +74,7 @@ export default function NocturneManifest() {
                 textTransform: 'uppercase',
               }}
             >
-              — Soléna &middot; guide éditoriale
+              — Soléna &middot; voix éditoriale IA
             </figcaption>
           </figure>
         </div>

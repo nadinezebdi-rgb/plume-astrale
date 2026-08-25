@@ -13,6 +13,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Play, Pause } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const SLIDES = [
   {
@@ -37,6 +38,10 @@ const SLIDE_DURATION = 5000; // 5 secondes par image
 export default function CinematicBookShowcase() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
+  // Personnalisation : prénom du user connecté (fallback "Sophie" pour visiteurs)
+  const { user } = useAuth();
+  const displayName = (user?.prenom || '').trim() || 'Sophie';
+  const isPersonalized = !!(user?.prenom && user.prenom.trim());
 
   useEffect(() => {
     if (paused) return undefined;
@@ -266,10 +271,15 @@ export default function CinematicBookShowcase() {
 
       <div className="cbs-container">
         <div className="cbs-copy">
-          <span className="cbs-eyebrow">Édition personnelle · Prénom Sophie</span>
+          <span className="cbs-eyebrow">
+            {isPersonalized ? 'Aperçu personnalisé' : 'Édition personnelle'} · Prénom {displayName}
+          </span>
           <h2>
-            Un livre qui porte votre nom,<br />
-            <em>composé pour vous.</em>
+            {isPersonalized ? (
+              <>Bientôt, ce livre portera <em>votre nom</em>.</>
+            ) : (
+              <>Un livre qui porte votre nom,<br /><em>composé pour vous.</em></>
+            )}
           </h2>
           <span className="cbs-caption" aria-live="polite">
             <span className="cbs-caption-dot" />

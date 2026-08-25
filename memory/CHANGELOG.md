@@ -1,5 +1,41 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-25 — Correction critique : Soléna clairement identifiée comme voix IA
+
+**Problème** : plusieurs textes récemment ajoutés (Manifesto section "À propos", MentionsLegales, alt-texts) présentaient Soléna comme une personne réelle avec une biographie ("depuis 10 ans", "mes soirées", "fondatrice"). Risque légal (fausse représentation) et éthique.
+
+**Corrections partout** :
+- `Manifesto.js` section "À propos" → réécrite explicitement : "Soléna est une voix éditoriale conçue par Plume Astrale et propulsée par une intelligence artificielle. Elle n'est ni une personne réelle, ni une astrologue diplômée, ni une voyante." Titre "Une intelligence éditoriale, pas une pythie".
+- `SolenaGuideCard.js` : sub-titre "La voix éditoriale IA qui rédige vos lectures Plume Astrale" + signature "Soléna · voix IA"
+- `NocturneManifest.jsx` : alt "Illustration représentant Soléna, voix éditoriale IA" + caption "voix éditoriale IA"
+- `MentionsLegales.js` : "Directrice de la publication : Soléna" (juridiquement invalide, Soléna n'existe pas) → remplacée par "Directeur de la publication : représentant légal de LEARNACTIF" + paragraphe explicatif ajouté
+- `Confidentialite.js` : ajout d'un encart "Transparence sur l'usage de l'IA" détaillant : Soléna = LLM (OpenAI) + Swiss Ephemeris, ni personne réelle, ni astrologue, ni voyante
+
+Vérifié programmatiquement : 0 mensonges détectés, 3 marqueurs IA transparents présents (intelligence artificielle, voix éditoriale, IA).
+
+
+
+## 2026-02-25 — Personalized Showcase + Manifesto About Soléna Section
+
+**CinematicBookShowcase personnalisation** :
+- `CinematicBookShowcase.jsx` importe `useAuth` de `@/context/AuthContext`
+- `displayName = user?.prenom?.trim() || 'Sophie'` (fallback safe)
+- Eyebrow devient dynamique : "Aperçu personnalisé · Prénom {theirName}" (connecté) vs "Édition personnelle · Prénom Sophie" (visiteur)
+- H2 dynamique : "Bientôt, ce livre portera votre nom." (connecté) vs "Un livre qui porte votre nom, composé pour vous." (visiteur)
+- L'image reste "Sophie" (les cover images sont figées — modifier chaque image par utilisateur serait trop coûteux). Le décalage nom/image devient une invitation à commander sa propre édition.
+
+**Manifesto → nouvelle section "À propos · Celle qui écrit"** :
+- Ajoutée entre le Cercle Premium promo et le CTA final
+- Grid 2 colonnes (420px portrait / 1fr texte), empilée < 880px
+- Portrait 4:5 avec cadre doré `rgba(201,162,75,0.18 → 0.04)`, shadow `0 32px 80px -20px rgba(0,0,0,0.55)`, saturation 0.94
+- Titre "Un stylo, une carte du ciel, **et beaucoup d'écoute**." (Playfair 2.8rem responsive)
+- Bio 3 paragraphes éditoriaux + citation italique en clôture ("Si vous ouvrez votre livre et qu'il vous fait pleurer...")
+- Signature "— SOLÉNA · GUIDE ÉDITORIALE" en Inter uppercase tracking 0.24em doré
+- data-testid `manifesto-about-solena` + `manifesto-about-solena-portrait`
+- Testé : WebP servi, portrait chargé, layout responsive OK
+
+
+
 ## 2026-02-25 — Soléna Portrait Deployment Pack (WebP + Manifesto + Signature)
 
 **3 tâches livrées** :

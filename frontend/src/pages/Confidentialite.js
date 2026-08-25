@@ -130,13 +130,16 @@ export default function Confidentialite() {
                   </tr>
                   <tr>
                     <td style={tdStyle}><strong>OpenAI</strong></td>
-                    <td style={tdStyle}>Génération éditoriale des textes des lectures</td>
+                    <td style={tdStyle}>Génération éditoriale des textes des lectures (voix Soléna, IA)</td>
                     <td style={tdStyle}>États-Unis (DPF)</td>
                   </tr>
                 </tbody>
               </table>
               <p style={{ marginTop: 16, fontSize: 14, color: '#6C6C6C' }}>
                 Les transferts hors UE reposent sur le <strong>Data Privacy Framework (DPF)</strong> approuvé par la Commission européenne le 10 juillet 2023 (décision d&apos;adéquation), ou sur des <strong>clauses contractuelles types</strong> validées par la CNIL.
+              </p>
+              <p style={{ marginTop: 16, fontSize: 14, color: '#3A3A3A', background: '#F7F5F0', borderLeft: '3px solid #C9A24B', padding: '14px 18px' }}>
+                <strong>Transparence sur l&apos;usage de l&apos;IA</strong>&nbsp;: <em>Soléna</em>, la voix qui rédige vos lectures, est un système d&apos;intelligence artificielle propulsé par un modèle de langage tiers (OpenAI) piloté par nos prompts éditoriaux. Ce n&apos;est <strong>ni une personne réelle, ni une astrologue diplômée, ni une voyante</strong>. Les positions planétaires sont calculées par le moteur astronomique open-source <em>Swiss Ephemeris</em>&nbsp;; le texte est ensuite composé par le LLM à partir de vos données de naissance. Les échanges avec Soléna dans le chat sont soumis aux <PrivacyLink external href="https://openai.com/policies/eu-privacy-policy/">conditions de confidentialité d&apos;OpenAI EU</PrivacyLink>.
               </p>
             </PrivacySection>
 
