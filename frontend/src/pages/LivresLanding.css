@@ -395,6 +395,23 @@
   border-radius: 50%;
   background: rgba(255, 191, 85, 0.18);
   filter: blur(32px);
+  transition: transform .55s ease, background .55s ease, filter .55s ease, opacity .55s ease;
+}
+
+/* Halo doré au survol — renforce l'effet luxe et attire l'œil sur le livre.
+   Le halo s'agrandit, s'intensifie et se déplace légèrement vers le centre
+   du livre. Respect prefers-reduced-motion : aucun changement de position. */
+.livres-card:hover .pa-book-scene__light {
+  background: rgba(255, 202, 108, 0.42);
+  filter: blur(58px);
+  transform: scale(1.55) translate(-18%, 8%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .livres-card:hover .pa-book-scene__light {
+    transform: none;
+    filter: blur(38px);
+  }
 }
 
 .pa-book-scene__candle {

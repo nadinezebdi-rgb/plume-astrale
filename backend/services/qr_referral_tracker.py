@@ -101,12 +101,21 @@ async def qr_referral_redirect(code: str, request: Request):
 
 @router.get('/api/admin/referral-scan-stats')
 async def referral_scan_stats(top: int = 50):
-    """Admin : renvoie les codes les plus scannés (best-effort, silent fail)."""
+    """Admin : renvoie les codes les plus scannés (best-effort, silent fail).
+
+    PGRST205 (table manquante) = pas d'erreur pour l'utilisateur, retourne
+    simplement une liste vide → le dashboard affiche l'état "aucun scan"
+    plutôt qu'une bannière d'erreur alarmante.
+    """
     try:
         from services.supabase_client import get_admin_client
         sb = get_admin_client()
         r = sb.table('referral_scan_counters').select('code, count, updated_at').order('count', desc=True).limit(top).execute()
         return {'ok': True, 'top_codes': r.data or []}
     except Exception as e:
+        err_str = str(e)
+        # PGRST205 = "The schema must be reloaded" / table missing → traiter comme empty
+        if 'PGRST205' in err_str or 'not find the table' in err_str.lower() or 'does not exist' in err_str.lower():
+            return {'ok': True, 'top_codes': []}
         logger.info(f'[qr_tracker] stats endpoint soft-fail: {e}')
-        return {'ok': False, 'error': str(e)[:200], 'top_codes': []}
+        return {'ok': False, 'error': err_str[:200], 'top_codes': []}

@@ -81,6 +81,7 @@ import CTATestPage from "./pages/CTATestPage";
 import CreditsInfo from "./pages/CreditsInfo";
 import LivresLanding from "./pages/LivresLanding";
 import AdminPdfTest from "./pages/AdminPdfTest";
+import AdminQrStats from "./pages/AdminQrStats";
 import CookieConsent from "./components/CookieConsent";
 
 // ─── Advanced PDF Products ────────────────────────────
@@ -223,6 +224,7 @@ function App() {
                 <Route path="/cercle-solena/succes" element={<CercleSolena />} />
                 <Route path="/admin/analytics" element={<AnalyticsAdmin />} />
                 <Route path="/admin/pdf-test" element={<AdminPdfTest />} />
+                <Route path="/admin/qr-stats" element={<AdminQrStats />} />
 
                 {/* ─── Redirections /outils/* → /services/* (compat legacy) ─── */}
                 <Route path="/outils/theme-natal" element={<Navigate to="/services/theme-natal" replace />} />

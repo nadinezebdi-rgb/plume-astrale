@@ -2497,10 +2497,13 @@ if ASSETS_DIR.exists():
 
 
 @app.get('/api/pdf/download')
-async def pdf_download_endpoint(session_id: str, token: str):
-    """SEC-003 : téléchargement authentifié par token opaque des PDFs personnels."""
+async def pdf_download_endpoint(session_id: str, token: str, print_ready: bool = False):
+    """SEC-003 : téléchargement authentifié par token opaque des PDFs personnels.
+
+    `print_ready=1` (query param) → PDF avec BleedBox/TrimBox 3mm pour impression pro.
+    """
     from services.pdf_download import download_pdf
-    return await download_pdf(session_id, token)
+    return await download_pdf(session_id, token, print_ready=print_ready)
 
 
 # ═══ QR Referral Tracker (2026-02-26) ═══

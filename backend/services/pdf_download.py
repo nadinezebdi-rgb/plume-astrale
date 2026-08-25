@@ -182,7 +182,7 @@ def _match_token_and_resolve(
     return None, None, None
 
 
-async def download_pdf(session_id: str, token: str):
+async def download_pdf(session_id: str, token: str, print_ready: bool = False):
     """Endpoint handler : valide (session_id, token) et streame le fichier.
 
     Aucune auth Bearer requise — mais le token opaque de 32 octets fait
@@ -195,6 +195,10 @@ async def download_pdf(session_id: str, token: str):
          (`kabbale_pdf_token`, `karma_pdf_token`) dans la même session.
       3. Synastrie (table `synastrie_purchases` séparée) : fallback lookup
          par `stripe_session_id` + colonne `pdf_token`.
+
+    Si `print_ready=True`, le PDF sortant est post-processé avec
+    BleedBox/TrimBox (3mm de fond perdu) — livrable direct pour imprimeur pro.
+    Le filename inclut `-print-ready` pour distinction visuelle.
     """
     if not session_id or not token:
         raise HTTPException(status_code=400, detail='session_id et token requis')
@@ -211,7 +215,7 @@ async def download_pdf(session_id: str, token: str):
 
     if not r or not r.data:
         # Fallback : lookup dans synastrie_purchases (session Stripe séparée)
-        return await _download_synastrie_pdf(session_id, token, sb)
+        return await _download_synastrie_pdf(session_id, token, sb, print_ready=print_ready)
 
     tx = r.data
     md = tx.get('metadata') or {}
@@ -248,14 +252,44 @@ async def download_pdf(session_id: str, token: str):
             ),
         )
 
-    return FileResponse(
-        path=str(pdf_file),
-        media_type='application/pdf',
-        filename=pdf_file.name,
-    )
+    return _stream_pdf_file(pdf_file, print_ready=print_ready)
 
 
-async def _download_synastrie_pdf(session_id: str, token: str, sb):
+def _stream_pdf_file(pdf_file: Path, print_ready: bool = False) -> FileResponse:
+    """Streame un PDF depuis le disque, avec transformation print-ready optionnelle.
+
+    Si `print_ready=True`, on lit le PDF, on injecte BleedBox/TrimBox via
+    `add_print_boxes()`, et on renvoie le résultat comme un flux temporaire.
+    Sinon, `FileResponse` streame directement depuis le disque (zero-copy).
+    """
+    if not print_ready:
+        return FileResponse(
+            path=str(pdf_file),
+            media_type='application/pdf',
+            filename=pdf_file.name,
+        )
+    # Print-ready : lecture + transformation + réponse en mémoire
+    try:
+        from services.pdf_luxury_helpers import add_print_boxes
+        raw = pdf_file.read_bytes()
+        processed = add_print_boxes(raw, bleed_mm=3.0)
+        from fastapi.responses import Response
+        out_name = pdf_file.stem + '-print-ready.pdf'
+        return Response(
+            content=processed,
+            media_type='application/pdf',
+            headers={'Content-Disposition': f'attachment; filename="{out_name}"'},
+        )
+    except Exception as e:
+        logger.warning(f'[pdf_download] print_ready transform failed: {e} — fallback plain')
+        return FileResponse(
+            path=str(pdf_file),
+            media_type='application/pdf',
+            filename=pdf_file.name,
+        )
+
+
+async def _download_synastrie_pdf(session_id: str, token: str, sb, print_ready: bool = False):
     """Lookup dans `synastrie_purchases` (table séparée, session Stripe distincte).
 
     Le token est stocké encodé dans la colonne `pdf_path` sous forme
@@ -300,9 +334,7 @@ async def _download_synastrie_pdf(session_id: str, token: str, sb):
     # Le fichier local suit la convention synastrie_{purchase_id}.pdf
     local_file = ASSETS_DIR / 'synastrie' / f'synastrie_{rec["id"]}.pdf'
     if local_file.exists():
-        return FileResponse(
-            path=str(local_file), media_type='application/pdf', filename=local_file.name,
-        )
+        return _stream_pdf_file(local_file, print_ready=print_ready)
 
     raise HTTPException(
         status_code=404,
