@@ -1,5 +1,49 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-25 — E2E test suite pour audit P0
+
+**Fichier créé** : `/app/backend/tests/test_audit_p0_delivery.py`
+
+**Couverture — 11 tests, exécution 0.18s** :
+- Bug 1 (Voyage Karmique) : `inspect.signature()` vérifie que `generate_karma_destin_pdf` accepte `karmic_data`, refuse `natal_data`. Vérif source du service.
+- Bugs 2 & 3 (livraison Synastrie/Pack Karmique/Voyage Karmique) : `parametrize` sur les 3 dossiers → vérifie existence disque + création fichier probe UUID + GET HTTP 200 + contenu identique + cleanup try/finally.
+- Bug 4 (route dépréciée) : POST `/api/couple/compatibility/preview` retourne 410 Gone avec message pointant vers la route principale + absence de l'OpenAPI schema.
+- Sanity : `/api/health` répond 200.
+
+**Résultat** : 10 passed, 1 skipped (OpenAPI absent). Timeout 10s, BASE_URL surchargeable via `BACKEND_URL` env — CI-ready.
+
+Verrouille les 4 fixes P0 contre toute régression future.
+
+
+
+## 2026-02-25 — Fix P0 audit livraison PDF post-paiement
+
+**4 bugs critiques identifiés par audit externe résolus** :
+
+**Bug 1 — Voyage Karmique TypeError bloquant** :
+- `services/voyage_karmique_service.py:133` : appel `generate_karma_destin_pdf(natal_data=karma_data)` → paramètre inexistant, TypeError systématique
+- Fix : `karmic_data=karma_data` (paramètre correct de la signature)
+- Vérifié via `inspect.signature()` : `['first_name', 'birth_date_iso', 'karmic_data', 'ai_sections']`
+
+**Bug 2 — Synastrie payante lien 404** :
+- `server.py:1104` écrit dans `assets/synastrie/` mais seul `assets/synastrie_pdf` et `assets/synastrie_extracts` étaient mounted
+- Fix : ajout de `synastrie` (+ `pack_karmique` + `voyage_karmique`) à la liste des dossiers exposés dans le mount block
+- Création automatique des dossiers via `mkdir(parents=True, exist_ok=True)` au démarrage (mount actif dès premier PDF)
+
+**Bug 3 — Extrait Pack Karmique lien direct cassé** : idem Synastrie, résolu par le même fix mount
+
+**Bug 4 — Route /couple/compatibility/preview triplement cassée** :
+- Async sur fonction sync, schéma birth_date incompatible, ne renvoyait ni bytes ni URL
+- Fix : route conservée mais retourne HTTP 410 Gone avec message pointant vers `/api/compatibility/generate` (parcours principal fonctionnel)
+- `include_in_schema=False` pour la retirer de l'OpenAPI
+
+**Tests curl validés** :
+- `/api/health` → HTTP 200 ✅
+- `/api/couple/compatibility/preview` → HTTP 410 (deprecated) ✅
+- `/api/assets/{synastrie,pack_karmique,voyage_karmique}/hello.txt` → HTTP 200 ✅
+
+
+
 ## 2026-02-25 — Trust badge Swiss Ephemeris (norme NASA / JPL)
 
 Ajout d'une mention scientifique sur l'API de calcul astronomique dans 4 emplacements clés :

@@ -103,61 +103,15 @@ async def get_couple_mystery(request: MysteryRequest):
         raise HTTPException(status_code=500, detail="Erreur lors de la génération")
 
 
-@router.post("/compatibility/preview")
-async def get_compatibility_preview(request: CompatibilityRequest, current_user = Depends(get_optional_user)):
+@router.post("/compatibility/preview", deprecated=True, include_in_schema=False)
+async def get_compatibility_preview_deprecated():
+    """DÉPRÉCIÉ (Feb 2026, audit) — cette route était triplement cassée :
+    - appel async sur fonction synchrone
+    - schéma birth_date incompatible avec generate_compatibility_pdf (attend day/month/year)
+    - ne renvoyait ni PDF ni URL utilisable
+    Le parcours principal utilise /api/compatibility/generate.
     """
-    Génère un aperçu de compatibilité avec les calculs AstrologyIO.
-    Coût: 5 crédits ou accès premium.
-    """
-    try:
-        # Vérifier les crédits si utilisateur authentifié
-        if current_user:
-            user_credits = await wallet_service.get_balance(current_user['user_id'])
-            if user_credits < 5:
-                raise HTTPException(
-                    status_code=402,
-                    detail=f"Crédits insuffisants (besoin: 5, possédé: {user_credits})"
-                )
-        else:
-            # Non authentifié = proposition de paiement
-            raise HTTPException(
-                status_code=401,
-                detail="Authentification requise pour l'étude complète"
-            )
-        
-        # Déduire les crédits
-        await wallet_service.deduct_credits(
-            current_user['user_id'],
-            5,
-            reason="compatibility_study",
-            metadata={"prenom1": request.prenom1, "prenom2": request.prenom2}
-        )
-        
-        # Générer le PDF de compatibilité
-        pdf_buffer = await generate_compatibility_pdf({
-            "prenom": request.prenom1,
-            "birth_date": request.birth_date1,
-            "birth_time": request.birth_time1,
-            "birth_place": request.birth_place1,
-            "birth_country": request.birth_country1,
-        }, {
-            "prenom": request.prenom2,
-            "birth_date": request.birth_date2,
-            "birth_time": request.birth_time2,
-            "birth_place": request.birth_place2,
-            "birth_country": request.birth_country2,
-        })
-        
-        return {
-            "status": "success",
-            "message": "Étude de compatibilité générée",
-            "credits_deducted": 5,
-            "pdf_ready": True
-        }
-        
-    except HTTPException:
-        # Re-raise HTTPException sans wrapper (preserve 401/402/etc.)
-        raise
-    except Exception as e:
-        logger.error(f"[couple/compatibility] error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    raise HTTPException(
+        status_code=410,
+        detail="Route dépréciée. Utilisez POST /api/compatibility/generate.",
+    )

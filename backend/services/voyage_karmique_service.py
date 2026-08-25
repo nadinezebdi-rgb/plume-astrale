@@ -130,7 +130,7 @@ async def handle_voyage_karmique_webhook(session_id: str, force: bool = False) -
                 generate_karma_destin_pdf,
                 first_name=first_name,
                 birth_date_iso=birth_date_iso,
-                natal_data=karma_data,
+                karmic_data=karma_data,
             )
             filename = f'voyage_karmique_karma_{session_id[-16:]}.pdf'
             out_dir = ASSETS_DIR / 'voyage_karmique'
