@@ -94,6 +94,32 @@ def register_fonts() -> bool:
                 except Exception as e:
                     logger.warning(f"[pdf_theme] failed to load {path}: {e}")
 
+    # Police `OrnamentSerif` pour glyphes ornementaux (✦ ⚜ ◆ ❖ ─).
+    # Cormorant/Cinzel ne fournissent PAS ces glyphes — sans cette police,
+    # ReportLab affiche des carrés vides (.notdef). FreeSerif couvre le
+    # bloc "Dingbats" + "Miscellaneous Symbols" nécessaires à nos ornements.
+    # ⚠ NE JAMAIS renommer en "Symbol" (nom PS built-in réservé qui shadow la registration).
+    symbol_paths = [
+        Path('/usr/share/fonts/truetype/freefont/FreeSerif.ttf'),
+        Path('/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf'),
+        FONTS_DIR / 'FreeSerif.ttf',
+    ]
+    for symbol_path in symbol_paths:
+        if symbol_path.exists():
+            try:
+                pdfmetrics.registerFont(TTFont('OrnamentSerif', str(symbol_path)))
+                # ReportLab ps2tt fallback ne connaît pas les fonts custom → on doit
+                # enregistrer une family mapping pour que `<font name="OrnamentSerif">`
+                # dans un Paragraph ne lève pas "Can't map determine family/bold/italic".
+                pdfmetrics.registerFontFamily(
+                    'OrnamentSerif',
+                    normal='OrnamentSerif', bold='OrnamentSerif',
+                    italic='OrnamentSerif', boldItalic='OrnamentSerif',
+                )
+                break
+            except Exception as e:
+                logger.warning(f"[pdf_theme] failed to load OrnamentSerif font {symbol_path}: {e}")
+
     if not loaded_any:
         logger.info(f"[pdf_theme] custom fonts not found in {FONTS_DIR} — using Helvetica fallback")
 

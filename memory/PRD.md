@@ -27,6 +27,12 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### Premium PDF Enrichment P1 (2026-02-26, luxury polish)
+- **Fix "carrés vides" ✦/⚜/◆/─** : les polices Cormorant Garamond & Cinzel ne fournissaient pas les glyphes ornementaux → toutes les étoiles/fleur-de-lys apparaissaient en `.notdef` (carré vide). Solution : registration de `FreeSerif.ttf` sous le nom `OrnamentSerif` (⚠ pas `Symbol`, nom PS réservé) dans `services/pdf_theme.register_fonts()` + `registerFontFamily()` pour que `ps2tt('ornamentserif')` réussisse. Wrapping automatisé (`<font name="OrnamentSerif">`) sur 53 occurrences dans 8 fichiers : `pdf_prestige`, `pdf_luxury_theme`, `pdf_luxury_wrap`, `karma_destin_pdf`, `numerologie_pdf`, `fenetre_rencontre_pdf`, `astrocartographie_pdf`, `pdf_luxury_helpers`.
+- **Compression PNG → JPEG** : les charts cairosvg 1600px pèsent 500 kB - 15 Mo (traits fins anti-aliasés). Nouveau helper `services/pdf_luxury_helpers.compress_image_bytes()` (Pillow, quality 88-90, RGBA flatten, max 1400px) branché sur 3 sites : `theme_natal_oneshot_service` (chart wheel), `pdf_book_intro.svg_to_png` (hero SVG), `astrocartographie_pdf._svg_to_png_bytes` (world map). Gain observé : 2.3× sur un chart simple, attendu 5-15× sur les vrais charts natal (45 Mo → ~1-3 Mo). Safe fallback : retourne les bytes originaux si le résultat compressé n'est pas plus petit.
+- **Regression suite** : `tests/test_pdf_luxury_p1.py` (9 tests) verrouille : nom de police correct, family mapping ps2tt, compression effective, RGBA→RGB flatten, size ceiling < 2 Mo pour Karma Destin.
+
+
 ## SEO Technical Rebuild v2 (2026-02-16, couche corrective P0+P1)
 - **404 réelle** : `/app/frontend/src/pages/NotFound.jsx` (Nocturne, noindex, prerender-status-code=404). App.js wildcard `*` → NotFound.
 - **Canonical propre** : SEO.js strip query params (`?theme=…`, `?utm_*`, `?fbclid=`) ; backend `ssr_snapshot.save_snapshot()` force `https://plume-astrale.fr{path}` (fini le `localhost:3000` en base).

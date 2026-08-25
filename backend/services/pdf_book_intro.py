@@ -32,13 +32,24 @@ logger = logging.getLogger(__name__)
 
 
 def svg_to_png(svg_str: str) -> Optional[bytes]:
-    """Convertit un SVG en PNG via cairosvg. Retourne None en cas d'échec."""
+    """Convertit un SVG en PNG via cairosvg, puis compresse en JPEG optimisé.
+
+    Retourne None en cas d'échec. Les bytes retournés sont un JPEG (magic 0xFFD8),
+    qui reste parfaitement accepté par `reportlab.platypus.Image` — pas de changement
+    d'API en aval.
+    """
     if not svg_str:
         return None
     try:
         import cairosvg
-        return cairosvg.svg2png(bytestring=svg_str.encode('utf-8'),
-                                 output_width=1200, output_height=1200)
+        raw = cairosvg.svg2png(bytestring=svg_str.encode('utf-8'),
+                                output_width=1200, output_height=1200)
+        # Compression drastique (PNG 1200x1200 ~ 3-8 Mo → JPEG ~ 80-150 Ko)
+        try:
+            from services.pdf_luxury_helpers import compress_image_bytes
+            return compress_image_bytes(raw, max_width=1200, quality=90, force_jpeg=True)
+        except Exception:
+            return raw
     except Exception as e:
         logger.warning(f"[pdf_book_intro] svg_to_png failed: {e}")
         return None

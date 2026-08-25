@@ -22,6 +22,11 @@ from reportlab.graphics.shapes import Drawing, Circle, Rect, Line, Polygon
 from reportlab.graphics import renderPDF
 
 from services.pdf_bg import make_bg_canvas
+from services.pdf_theme import register_fonts as _register_luxury_fonts
+
+# Enregistre la police OrnamentSerif (FreeSerif) au chargement du module afin que
+# tout `<font name="OrnamentSerif">` inline dans les Paragraph soit résolu.
+_register_luxury_fonts()
 
 # Palette Plume Astrale
 NIGHT       = colors.HexColor('#111625')
@@ -172,19 +177,19 @@ class NumerologiePDFGenerator:
             if self._ai.get('lo_shu'):
                 story.append(chapter_marker('chap5'))
                 _chapter_opener(story, _mini_styles, 'V', "Ton Carré Lo-Shu", "Numérologie chinoise ancestrale")
-                story.append(Paragraph('✦ Ton Carré Lo-Shu — Numérologie Chinoise ✦', self.heading_style))
+                story.append(Paragraph('<font name="OrnamentSerif">✦</font> Ton Carré Lo-Shu — Numérologie Chinoise <font name="OrnamentSerif">✦</font>', self.heading_style))
                 story.append(Spacer(0, 0.3 * cm))
                 story.append(Paragraph(self._ai['lo_shu'], self.body_style))
                 story.append(PageBreak())
 
             if self._ai.get('biorythmes'):
-                story.append(Paragraph('✦ Tes Biorythmes des 90 Prochains Jours ✦', self.heading_style))
+                story.append(Paragraph('<font name="OrnamentSerif">✦</font> Tes Biorythmes des 90 Prochains Jours <font name="OrnamentSerif">✦</font>', self.heading_style))
                 story.append(Spacer(0, 0.3 * cm))
                 story.append(Paragraph(self._ai['biorythmes'], self.body_style))
                 story.append(PageBreak())
 
             if self._ai.get('invitation_finale'):
-                story.append(Paragraph('✦ Ton Invitation ✦', self.heading_style))
+                story.append(Paragraph('<font name="OrnamentSerif">✦</font> Ton Invitation <font name="OrnamentSerif">✦</font>', self.heading_style))
                 story.append(Spacer(0, 0.3 * cm))
                 story.append(Paragraph(self._ai['invitation_finale'], self.body_style))
                 story.append(PageBreak())
@@ -220,7 +225,7 @@ class NumerologiePDFGenerator:
             except Exception:
                 pass
         elements.extend([
-            Paragraph('✦ TON CODE NUMÉROLOGIQUE ✦', self.title_style),
+            Paragraph('<font name="OrnamentSerif">✦</font> TON CODE NUMÉROLOGIQUE <font name="OrnamentSerif">✦</font>', self.title_style),
             Spacer(0, 0.5 * cm),
             Paragraph(f'Destinée, Cycles & Vibrations', self.subtitle_style),
             Spacer(0, 0.9 * cm),
@@ -383,7 +388,7 @@ class NumerologiePDFGenerator:
             ),
             Spacer(0, 1 * cm),
             Paragraph(
-                '─ ✦ ─<br/><br/>'
+                '─ <font name="OrnamentSerif">✦</font> ─<br/><br/>'
                 'Ce chemin numéral est ton secret cosmique.<br/>'
                 f'À bientôt, {name}.<br/><br/>'
                 '<i>Solena — La voix de Plume Astrale</i>',

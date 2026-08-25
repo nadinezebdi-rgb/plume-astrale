@@ -174,6 +174,13 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
                 bytestring=svg_resolved.encode('utf-8'),
                 output_width=1600,
             )
+            # Compression : le PNG brut (1600x1600 RGBA) pèse 10-30 Mo. On l'aplatit
+            # en JPEG optimisé (~150 Ko) — invisible à l'œil, drastique sur la taille finale.
+            if chart_png_bytes:
+                from services.pdf_luxury_helpers import compress_image_bytes
+                chart_png_bytes = await _asyncio.to_thread(
+                    compress_image_bytes, chart_png_bytes, 1400, 90, True,
+                )
     except Exception as e:
         logger.warning(f"[theme_natal_oneshot] chart wheel unavailable: {e}")
 

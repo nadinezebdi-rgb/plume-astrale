@@ -17,6 +17,12 @@ from reportlab.platypus import (
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 from reportlab.lib.pagesizes import A4
 
+from services.pdf_theme import register_fonts as _register_luxury_fonts
+
+# Enregistre la police OrnamentSerif (FreeSerif) au chargement du module afin que
+# tout `<font name="OrnamentSerif">` inline dans les Paragraph soit résolu.
+_register_luxury_fonts()
+
 # Palette Plume Astrale
 NIGHT       = colors.HexColor('#111625')
 NIGHT_SOFT  = colors.HexColor('#1A2035')
@@ -181,7 +187,7 @@ class KarmaDestinPDFGenerator:
             except Exception:
                 pass
         elements.extend([
-            Paragraph('✦ TON ANALYSE KARMIQUE ✦', self.title_style),
+            Paragraph('<font name="OrnamentSerif">✦</font> TON ANALYSE KARMIQUE <font name="OrnamentSerif">✦</font>', self.title_style),
             Spacer(0, 0.5 * cm),
             Paragraph('Destinée, Leçons & Guérison Spirituelle', self.subtitle_style),
             Spacer(0, 0.9 * cm),
@@ -230,7 +236,7 @@ class KarmaDestinPDFGenerator:
     def _pages_noeuds_lunaires(self, data: Dict[str, Any]) -> List:
         """Nœud nord/sud — chemin de destinée."""
         story = []
-        story.append(Paragraph('⚜ Les Nœuds Lunaires — Ton Chemin d\'Évolution ⚜', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Les Nœuds Lunaires — Ton Chemin d\'Évolution <font name="OrnamentSerif">⚜</font>', self.heading_style))
         
         north_node = data.get('north_node', {})
         south_node = data.get('south_node', {})
@@ -262,7 +268,7 @@ class KarmaDestinPDFGenerator:
     def _pages_saturne(self, data: Dict[str, Any]) -> List:
         """Saturne — leçons karmiques et tests de vie."""
         story = []
-        story.append(Paragraph('⚜ Saturne — Tes Leçons Karmiques ⚜', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Saturne — Tes Leçons Karmiques <font name="OrnamentSerif">⚜</font>', self.heading_style))
         
         saturn = data.get('saturn', {})
         if isinstance(saturn, dict):
@@ -285,7 +291,7 @@ class KarmaDestinPDFGenerator:
     def _pages_chiron(self, data: Dict[str, Any]) -> List:
         """Chiron — blessure sacrée et guérison."""
         story = []
-        story.append(Paragraph('⚜ Chiron — La Blessure Sacrée & La Guérison ⚜', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Chiron — La Blessure Sacrée & La Guérison <font name="OrnamentSerif">⚜</font>', self.heading_style))
         
         chiron = data.get('chiron', {})
         if isinstance(chiron, dict):
@@ -309,7 +315,7 @@ class KarmaDestinPDFGenerator:
     def _pages_pluton(self, data: Dict[str, Any]) -> List:
         """Pluton — transformation et pouvoir."""
         story = []
-        story.append(Paragraph('⚜ Pluton — Transformations de Pouvoir ⚜', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Pluton — Transformations de Pouvoir <font name="OrnamentSerif">⚜</font>', self.heading_style))
         
         pluto = data.get('pluto', {})
         if isinstance(pluto, dict):
@@ -325,7 +331,7 @@ class KarmaDestinPDFGenerator:
     def _page_karma_generationnel(self, data: Dict[str, Any]) -> List:
         """Karma générationnel — héritage ancestral."""
         story = []
-        story.append(Paragraph('⚜ Ton Héritage Karmique Générationnel ⚜', self.heading_style))
+        story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Ton Héritage Karmique Générationnel <font name="OrnamentSerif">⚜</font>', self.heading_style))
         
         gen_karma = getattr(self, '_ai', {}).get('karma_generationnel') or data.get('generational_karma', 
             'Tes ancêtres vivent à travers toi. Tu portes leur sagesse et leurs apprentissages.')
@@ -335,7 +341,7 @@ class KarmaDestinPDFGenerator:
         # Nouvelle section IA : Dates-clés karmiques
         if getattr(self, '_ai', {}).get('dates_cles'):
             story.append(Spacer(0, 0.6 * cm))
-            story.append(Paragraph('⚜ Tes Dates-Clés Karmiques ⚜', self.heading_style))
+            story.append(Paragraph('<font name="OrnamentSerif">⚜</font> Tes Dates-Clés Karmiques <font name="OrnamentSerif">⚜</font>', self.heading_style))
             story.append(Paragraph(self._ai['dates_cles'], self.body_style))
         story.append(Spacer(0, 0.5 * cm))
         story.append(Paragraph(
@@ -364,7 +370,7 @@ class KarmaDestinPDFGenerator:
             ),
             Spacer(0, 1 * cm),
             Paragraph(
-                '─ ✦ ─<br/><br/>'
+                '─ <font name="OrnamentSerif">✦</font> ─<br/><br/>'
                 'Ton karma n\'est pas ta destinée — c\'est ton tremplin.<br/>'
                 f'À bientôt, {name}.<br/><br/>'
                 '<i>Solena — La voix de Plume Astrale</i>',
