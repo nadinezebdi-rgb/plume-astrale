@@ -32,8 +32,8 @@ function PricingCard({ title, price, period, features, cta, highlighted, onCta, 
       padding: '32px 28px',
       borderRadius: 20,
       background: highlighted
-        ? 'linear-gradient(180deg, rgba(212,175,55,0.15) 0%, rgba(11,14,40,0.85) 100%)'
-        : 'linear-gradient(180deg, rgba(6,8,26,0.6) 0%, rgba(11,14,40,0.5) 100%)',
+        ? 'linear-gradient(180deg, rgba(212,175,55,0.15) 0%, rgba(15, 26, 60,0.85) 100%)'
+        : 'linear-gradient(180deg, rgba(6,8,26,0.6) 0%, rgba(15, 26, 60,0.5) 100%)',
       border: highlighted
         ? '1.5px solid rgba(212,175,55,0.55)'
         : '1px solid rgba(212,175,55,0.18)',
@@ -45,7 +45,7 @@ function PricingCard({ title, price, period, features, cta, highlighted, onCta, 
         <div style={{
           position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
           padding: '4px 14px', borderRadius: 999,
-          background: '#D4AF37', color: '#0F1230',
+          background: '#D4AF37', color: '#0F1A3C',
           fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase',
           fontFamily: 'Cinzel, serif', fontWeight: 600,
         }}>
@@ -84,7 +84,7 @@ function PricingCard({ title, price, period, features, cta, highlighted, onCta, 
       <button onClick={onCta} disabled={loading} style={{
         width: '100%', padding: '14px 24px', borderRadius: 999,
         background: highlighted ? '#D4AF37' : 'transparent',
-        color: highlighted ? '#0F1230' : '#D4AF37',
+        color: highlighted ? '#0F1A3C' : '#D4AF37',
         border: highlighted ? 'none' : '1px solid rgba(212,175,55,0.4)',
         fontFamily: 'Cinzel, serif', fontSize: 11, fontWeight: 600,
         letterSpacing: '0.18em', textTransform: 'uppercase',

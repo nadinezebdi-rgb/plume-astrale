@@ -126,7 +126,7 @@ const PremiumLanding = () => {
               className="flex items-center justify-center gap-2 text-[13px] uppercase tracking-widest px-8 py-3.5 rounded-full transition-all duration-300"
               style={{
                 background: 'linear-gradient(135deg, #D4AF37, #D4AF37)',
-                color: '#0B0B0F',
+                color: '#0F1A3C',
                 fontWeight: 600,
                 letterSpacing: '0.1em',
                 border: 'none',
@@ -252,7 +252,7 @@ const PremiumLanding = () => {
               data-testid="premium-cta-btn"
               style={{
                 background: 'linear-gradient(135deg, #D4AF37, #D4AF37)',
-                color: '#0B0B0F',
+                color: '#0F1A3C',
                 padding: '14px 28px',
                 borderRadius: '999px',
                 fontWeight: 600,

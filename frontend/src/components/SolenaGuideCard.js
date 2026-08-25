@@ -54,7 +54,7 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
           borderRadius: 20,
           background: '#FFFFFF',
           border: '1px solid rgba(15, 26, 60, 0.08)',
-          boxShadow: '0 24px 48px -20px rgba(10, 17, 40, 0.15)',
+          boxShadow: '0 24px 48px -20px rgba(15, 26, 60, 0.15)',
           opacity: visible ? 1 : 0,
           transform: visible ? 'translateY(0)' : 'translateY(24px)',
           transition: 'opacity 1200ms cubic-bezier(0.16, 1, 0.3, 1), transform 1200ms cubic-bezier(0.16, 1, 0.3, 1)',
@@ -106,7 +106,7 @@ export default function SolenaGuideCard({ testid = 'solena-guide' }) {
               fontFamily: 'Inter, sans-serif',
               fontSize: 14,
               lineHeight: 1.55,
-              color: 'rgba(10, 17, 40, 0.72)',
+              color: 'rgba(15, 26, 60, 0.72)',
               margin: 0,
             }}
           >

@@ -79,7 +79,7 @@ export default function RencontresUltimeSucces() {
     <div
       style={{
         minHeight: '100vh',
-        background: 'radial-gradient(ellipse at 50% 20%, #1A2035 0%, #111625 55%, #050308 100%)',
+        background: 'radial-gradient(ellipse at 50% 20%, #0F1A3C 0%, #111625 55%, #050308 100%)',
         color: '#F5EEE0',
         padding: '60px 20px 80px',
         fontFamily: 'Inter, sans-serif',

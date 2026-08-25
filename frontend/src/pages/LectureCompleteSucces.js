@@ -43,7 +43,7 @@ export default function LectureCompleteSucces() {
       <SEO path="/lecture-complete/succes" title="Merci · Plume Astrale" />
       <div
         style={{
-          background: '#0b1020',
+          background: '#0F1A3C',
           color: '#e8e6f0',
           minHeight: '100vh',
           fontFamily: 'Georgia, serif',

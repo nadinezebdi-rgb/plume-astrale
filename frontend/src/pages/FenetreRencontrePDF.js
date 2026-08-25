@@ -91,7 +91,7 @@ const FenetreRencontrePDF = () => {
         description="Découvre les périodes favorables à une rencontre importante. Rapport PDF 10 pages avec synastrie optionnelle."
       />
 
-      <div className="min-h-screen bg-gradient-to-b from-[#0C0918] to-[#1A1F2E] text-[#F4E8D2] pt-20 pb-20">
+      <div className="min-h-screen bg-gradient-to-b from-[#0C0918] to-[#0F1A3C] text-[#F4E8D2] pt-20 pb-20">
         <div className="max-w-5xl mx-auto px-4">
           {/* Hero */}
           <div className="text-center mb-16">
@@ -108,7 +108,7 @@ const FenetreRencontrePDF = () => {
               <span className="text-[#D4AF37]">Transits • Phases Lunaires • Synchronicité</span>
             </p>
 
-            <div className="inline-block bg-[#1A2035] border-2 border-[#D4AF37] rounded-lg px-8 py-4 mb-8">
+            <div className="inline-block bg-[#0F1A3C] border-2 border-[#D4AF37] rounded-lg px-8 py-4 mb-8">
               <p className="text-3xl font-bold text-[#D4AF37]">29€</p>
               <p className="text-[#E3D7FF] text-sm">PDF 10 pages • Synastrie optionnelle</p>
             </div>
@@ -121,7 +121,7 @@ const FenetreRencontrePDF = () => {
               className={`px-6 py-3 rounded-lg font-semibold transition ${
                 tab === 'solo'
                   ? 'bg-[#D4AF37] text-[#0C0918]'
-                  : 'bg-[#1A2035] text-[#E3D7FF] border border-[#D4AF37]/30 hover:border-[#D4AF37]'
+                  : 'bg-[#0F1A3C] text-[#E3D7FF] border border-[#D4AF37]/30 hover:border-[#D4AF37]'
               }`}
             >
               Pour Moi Seul(e)
@@ -131,7 +131,7 @@ const FenetreRencontrePDF = () => {
               className={`px-6 py-3 rounded-lg font-semibold transition ${
                 tab === 'duo'
                   ? 'bg-[#D4AF37] text-[#0C0918]'
-                  : 'bg-[#1A2035] text-[#E3D7FF] border border-[#D4AF37]/30 hover:border-[#D4AF37]'
+                  : 'bg-[#0F1A3C] text-[#E3D7FF] border border-[#D4AF37]/30 hover:border-[#D4AF37]'
               }`}
             >
               + Synastrie avec Partenaire
@@ -140,19 +140,19 @@ const FenetreRencontrePDF = () => {
 
           {/* Features */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-            <div className="bg-[#1A2035]/80 border border-[#D4AF37]/40 rounded-lg p-6 hover:border-[#D4AF37]/80 transition">
+            <div className="bg-[#0F1A3C]/80 border border-[#D4AF37]/40 rounded-lg p-6 hover:border-[#D4AF37]/80 transition">
               <Calendar className="w-10 h-10 text-[#D4AF37] mb-4" />
               <h3 className="font-bold text-[#E3D7FF] mb-2 text-lg">3 Fenêtres Détaillées</h3>
               <p className="text-[#F4E8D2] text-sm">Ouverture • Synchronicité • Destin</p>
             </div>
 
-            <div className="bg-[#1A2035]/80 border border-[#D4AF37]/40 rounded-lg p-6 hover:border-[#D4AF37]/80 transition">
+            <div className="bg-[#0F1A3C]/80 border border-[#D4AF37]/40 rounded-lg p-6 hover:border-[#D4AF37]/80 transition">
               <Heart className="w-10 h-10 text-[#D4AF37] mb-4" />
               <h3 className="font-bold text-[#E3D7FF] mb-2 text-lg">Conseils d'Activation</h3>
               <p className="text-[#F4E8D2] text-sm">Rituels • Cristaux • Affirmations</p>
             </div>
 
-            <div className="bg-[#1A2035]/80 border border-[#D4AF37]/40 rounded-lg p-6 hover:border-[#D4AF37]/80 transition">
+            <div className="bg-[#0F1A3C]/80 border border-[#D4AF37]/40 rounded-lg p-6 hover:border-[#D4AF37]/80 transition">
               <Sparkles className="w-10 h-10 text-[#D4AF37] mb-4" />
               <h3 className="font-bold text-[#E3D7FF] mb-2 text-lg">Synastrie (Optionnel)</h3>
               <p className="text-[#F4E8D2] text-sm">Compatibilité + dynamiques du couple</p>
@@ -182,7 +182,7 @@ const FenetreRencontrePDF = () => {
               </ul>
             </div>
 
-            <div className="bg-[#1A2035] border border-[#D4AF37]/50 rounded-lg p-8 flex flex-col justify-center">
+            <div className="bg-[#0F1A3C] border border-[#D4AF37]/50 rounded-lg p-8 flex flex-col justify-center">
               <h3 className="text-[#D4AF37] text-sm font-bold uppercase tracking-wider mb-4">Comment Ça Marche</h3>
               <p className="text-[#F4E8D2] leading-relaxed mb-4">
                 Une fenêtre de rencontre est une période où les énergies s'alignent pour faciliter un lien important.
@@ -194,7 +194,7 @@ const FenetreRencontrePDF = () => {
           </div>
 
           {/* Form */}
-          <div className="bg-gradient-to-b from-[#1A2035] to-[#111625] border border-[#D4AF37]/50 rounded-lg p-8 md:p-12">
+          <div className="bg-gradient-to-b from-[#0F1A3C] to-[#111625] border border-[#D4AF37]/50 rounded-lg p-8 md:p-12">
             <h2 className="text-3xl font-bold text-[#D4AF37] mb-8 text-center">
               {tab === 'solo' ? 'Calcule Tes Fenêtres' : 'Calcule Ta Synastrie'}
             </h2>

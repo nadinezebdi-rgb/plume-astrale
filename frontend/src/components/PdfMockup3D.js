@@ -233,7 +233,7 @@ const PdfMockup3D = ({ testId = 'pdf-mockup' }) => (
         position: relative;
         aspect-ratio: 0.72 / 1;
         padding: 22px 18px;
-        background: linear-gradient(160deg, #1a1230 0%, #0e0a1e 100%);
+        background: linear-gradient(160deg, #0F1A3C 0%, #0e0a1e 100%);
         border: 1px solid rgba(212,175,55,0.35);
         border-radius: 6px;
         box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6), 0 0 40px -20px rgba(212,175,55,0.4);

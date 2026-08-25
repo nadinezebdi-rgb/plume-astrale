@@ -1,5 +1,19 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-25 — Unification bleu nuit `#0F1A3C` partout
+
+**Problème** : 15 variantes de bleu-nuit hexadécimal + 6 rgba proches se baladaient dans le codebase (#1A2035, #1a1030, #0F1230, #1a1230, #0b0f24, #1A1F2E, #0b1020, #0B1A2E, #0B0F1E, #0B0B0F, #1a2755, #0f0a20, #0F0C1F, #0B0E14, #0B0B1F, `#0C0918` splash…), créant des micro-décalages visuels entre sections.
+
+**Fix** : normalisation à `#0F1A3C` (référence Nocturne Éditorial) via find-replace bulk :
+- **259 occurrences** de `#0F1A3C` en HEX (+49 par rapport à avant)
+- **158 occurrences** de `rgba(15, 26, 60, α)` (0 avant)
+- Splash background `public/index.html` migré vers `#0F1A3C`
+- Variable CSS `--ne-night` déjà correcte (référence conservée)
+
+Résultat : homepage et pages internes maintenant strictement uniformes en teinte de bleu nuit — plus aucun écart entre navbar, hero, showcase, sections sombres, floating banners.
+
+
+
 ## 2026-02-25 — Mini-vidéo cinématique "Sophie" sur homepage
 
 **Objectif** : reproduire la scène cinématique du livre astrologique fournie en référence, avec le prénom "Sophie" gravé sur la couverture, sous forme d'une mini-vidéo intégrée à la homepage.

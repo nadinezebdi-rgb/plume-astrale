@@ -39,7 +39,7 @@ export default function TrialBanner() {
         .trial-banner-cta {
           padding: 6px 16px;
           border-radius: 999px;
-          background: #0F1230;
+          background: #0F1A3C;
           color: #E8C766;
           border: 1px solid rgba(232,199,102,0.55);
           font-family: 'Cinzel, serif';
@@ -53,7 +53,7 @@ export default function TrialBanner() {
         }
         .trial-banner-cta:hover {
           background: #E8C766;
-          color: #0F1230;
+          color: #0F1A3C;
           transform: translateY(-1px);
         }
         @media (max-width: 640px) {

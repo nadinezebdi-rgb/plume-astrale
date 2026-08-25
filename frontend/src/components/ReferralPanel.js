@@ -112,7 +112,7 @@ const ReferralPanel = ({ token }) => {
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all hover:opacity-90"
             style={{
               background: copied ? 'rgba(74,222,128,0.14)' : 'linear-gradient(135deg, #C9A24B 0%, #C9A24B 100%)',
-              color: copied ? '#4ADE80' : '#0B0B1F',
+              color: copied ? '#4ADE80' : '#0F1A3C',
               border: copied ? '1px solid rgba(74,222,128,0.4)' : 'none',
               fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
               cursor: 'pointer',

@@ -93,12 +93,12 @@ export default function CinematicHero() {
           zIndex: 2,
           background: `
             linear-gradient(180deg,
-              rgba(10, 17, 40, 0.62) 0%,
-              rgba(10, 17, 40, 0.30) 30%,
-              rgba(10, 17, 40, 0.45) 60%,
-              rgba(10, 17, 40, 0.88) 100%
+              rgba(15, 26, 60, 0.62) 0%,
+              rgba(15, 26, 60, 0.30) 30%,
+              rgba(15, 26, 60, 0.45) 60%,
+              rgba(15, 26, 60, 0.88) 100%
             ),
-            radial-gradient(ellipse at 50% 40%, rgba(10, 17, 40, 0) 0%, rgba(10, 17, 40, 0.35) 70%)
+            radial-gradient(ellipse at 50% 40%, rgba(15, 26, 60, 0) 0%, rgba(15, 26, 60, 0.35) 70%)
           `,
         }}
       />
@@ -125,7 +125,7 @@ export default function CinematicHero() {
             textTransform: 'uppercase',
             color: 'rgba(184, 147, 90, 0.95)',
             marginBottom: 32,
-            textShadow: '0 2px 12px rgba(10, 17, 40, 0.8)',
+            textShadow: '0 2px 12px rgba(15, 26, 60, 0.8)',
           }}
         >
           Plume Astrale
@@ -140,7 +140,7 @@ export default function CinematicHero() {
             lineHeight: 1.12,
             color: '#F7F5F0',
             marginBottom: 32,
-            textShadow: '0 4px 32px rgba(10, 17, 40, 0.85)',
+            textShadow: '0 4px 32px rgba(15, 26, 60, 0.85)',
           }}
         >
           Comprendre les <em style={{ fontStyle: 'italic', color: '#C9A24B' }}>périodes</em> de votre&nbsp;vie.
@@ -154,7 +154,7 @@ export default function CinematicHero() {
             color: 'rgba(247, 245, 240, 0.90)',
             maxWidth: 560,
             margin: '0 auto 48px',
-            textShadow: '0 2px 16px rgba(10, 17, 40, 0.8)',
+            textShadow: '0 2px 16px rgba(15, 26, 60, 0.8)',
           }}
         >
           Une lecture personnalisée pour vous aider à mieux comprendre

@@ -55,7 +55,7 @@ export default function CinematicBookShowcase() {
       <style>{`
         .cbs-section {
           position: relative;
-          background: linear-gradient(180deg, #0B0F1E 0%, #0F1A3C 100%);
+          background: linear-gradient(180deg, #0F1A3C 0%, #0F1A3C 100%);
           padding: clamp(72px, 9vw, 128px) 0;
           overflow: hidden;
         }
@@ -161,7 +161,7 @@ export default function CinematicBookShowcase() {
           box-shadow:
             0 40px 80px rgba(0, 0, 0, 0.5),
             0 0 0 1px rgba(201, 162, 75, 0.18) inset;
-          background: #0B0F1E;
+          background: #0F1A3C;
         }
         .cbs-slide {
           position: absolute; inset: 0;
@@ -226,7 +226,7 @@ export default function CinematicBookShowcase() {
           z-index: 3;
           width: 36px; height: 36px;
           border-radius: 50%;
-          background: rgba(11, 15, 30, 0.55);
+          background: rgba(15, 26, 60, 0.55);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
           border: 1px solid rgba(247, 245, 240, 0.2);

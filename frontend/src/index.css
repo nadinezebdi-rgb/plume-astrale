@@ -10,7 +10,7 @@
   /* Palette Nuit Douce + Or Brossé — magazine de luxe */
   --plume-night:        #111625;   /* Nuit Douce — fond principal */
   --plume-night-deep:   #0C1120;   /* Variante encore + profonde pour body */
-  --plume-night-soft:   #1A2035;   /* Nuit Profonde — surfaces cartes */
+  --plume-night-soft:   #0F1A3C;   /* Nuit Profonde — surfaces cartes */
   --plume-gold:         #D4AF37;   /* Or Brossé — accents */
   --plume-gold-bright:  #E8C766;   /* Or clair au hover */
   --plume-lavender:     #E3D7FF;   /* Lavande Pâle — textes secondaires */
@@ -25,7 +25,7 @@
   --pa-bg:           var(--plume-night);
   --pa-bg-deep:      var(--plume-night-deep);
   --pa-bg-mid:       var(--plume-night-soft);
-  --pa-surface:      #1A2035;
+  --pa-surface:      #0F1A3C;
   --pa-surface-hover:#232A45;
   --pa-glass:        rgba(212, 175, 55, 0.04);
   --pa-glass-strong: rgba(212, 175, 55, 0.08);
@@ -277,7 +277,7 @@ select.input-editorial {
   padding-right: 30px;
 }
 select.input-editorial option {
-  background: #0F1230;
+  background: #0F1A3C;
   color: #F4E4BC;
 }
 
@@ -739,7 +739,7 @@ body.aura-earth .plume-scroll-thread { background: linear-gradient(180deg, trans
   background:
     radial-gradient(circle at 30% 20%, rgba(212,175,55,0.25) 0%, transparent 50%),
     radial-gradient(circle at 70% 80%, rgba(212,175,55,0.2) 0%, transparent 55%),
-    linear-gradient(160deg, #1a1230 0%, #0e0a1e 60%, #150e28 100%);
+    linear-gradient(160deg, #0F1A3C 0%, #0e0a1e 60%, #150e28 100%);
   border: 2px solid rgba(212,175,55,0.45);
   box-shadow:
     inset 0 0 40px rgba(212,175,55,0.15),
@@ -1309,7 +1309,7 @@ pre, code, table { max-width: 100%; overflow-x: auto; word-break: break-word; }
 
 :root {
   /* ─── Palette Nocturne Éditorial ─── */
-  --ne-night:         #0B1A2E;   /* Bleu Prussien Nocturne — fond nuit */
+  --ne-night:         #0F1A3C;   /* Bleu Prussien Nocturne — fond nuit */
   --ne-astre:         #141B2E;   /* Encre d'Astre — surfaces élevées nuit */
   --ne-fusain:        #0A0A0F;   /* Noir de Fusain — typo principale mode clair */
   --ne-celeste:       #F5F0E6;   /* Papier Céleste — fond jour */
@@ -1393,7 +1393,7 @@ pre, code, table { max-width: 100%; overflow-x: auto; word-break: break-word; }
   position: absolute; inset: 0;
   background:
     radial-gradient(ellipse 55% 40% at 88% 10%, rgba(184,147,90,0.14), transparent 55%),
-    radial-gradient(ellipse 45% 35% at 8% 90%, rgba(11,26,46,0.06), transparent 60%),
+    radial-gradient(ellipse 45% 35% at 8% 90%, rgba(15, 26, 60,0.06), transparent 60%),
     url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.05  0 0 0 0 0.08  0 0 0 0 0.12  0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: auto, auto, 260px 260px;
   background-repeat: no-repeat, no-repeat, repeat;
@@ -1605,7 +1605,7 @@ pre, code, table { max-width: 100%; overflow-x: auto; word-break: break-word; }
 }
 .ne-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(11,26,46,0.08);
+  box-shadow: 0 8px 24px rgba(15, 26, 60,0.08);
   border-color: var(--ne-laiton);
 }
 .ne-section-night .ne-card {
@@ -1964,7 +1964,7 @@ pre, code, table { max-width: 100%; overflow-x: auto; word-break: break-word; }
   position: absolute;
   z-index: 3;
   border: 1px solid rgba(184,147,90,0.28);
-  background: rgba(11,26,46,0.82);
+  background: rgba(15, 26, 60,0.82);
   backdrop-filter: blur(18px);
   color: rgba(245,240,230,0.82);
   font-family: var(--ne-sans);
@@ -2019,14 +2019,14 @@ pre, code, table { max-width: 100%; overflow-x: auto; word-break: break-word; }
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 80px;
-  border-top: 1px solid rgba(11,26,46,0.16);
-  border-bottom: 1px solid rgba(11,26,46,0.16);
+  border-top: 1px solid rgba(15, 26, 60,0.16);
+  border-bottom: 1px solid rgba(15, 26, 60,0.16);
 }
 .ne-impact-step {
   position: relative;
   min-height: 310px;
   padding: 30px 26px 34px;
-  border-right: 1px solid rgba(11,26,46,0.12);
+  border-right: 1px solid rgba(15, 26, 60,0.12);
   transition: background var(--ne-medium) var(--ne-ease), transform var(--ne-medium) var(--ne-ease);
 }
 .ne-impact-step:last-child { border-right: 0; }
@@ -2103,7 +2103,7 @@ pre, code, table { max-width: 100%; overflow-x: auto; word-break: break-word; }
   .ne-impact-heading { grid-template-columns: 1fr; gap: 30px; }
   .ne-impact-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ne-impact-step:nth-child(2) { border-right: 0; }
-  .ne-impact-step:nth-child(-n+2) { border-bottom: 1px solid rgba(11,26,46,0.12); }
+  .ne-impact-step:nth-child(-n+2) { border-bottom: 1px solid rgba(15, 26, 60,0.12); }
 }
 @media (max-width: 640px) {
   .ne-hero-premium { padding-top: 104px; padding-bottom: 72px; }
@@ -2130,7 +2130,7 @@ pre, code, table { max-width: 100%; overflow-x: auto; word-break: break-word; }
   .ne-impact-step:nth-child(2) {
     min-height: auto;
     border-right: 0;
-    border-bottom: 1px solid rgba(11,26,46,0.12);
+    border-bottom: 1px solid rgba(15, 26, 60,0.12);
   }
   .ne-impact-step:last-child { border-bottom: 0; }
   .ne-impact-step-top { margin-bottom: 30px; }
