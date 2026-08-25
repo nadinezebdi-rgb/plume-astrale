@@ -1,461 +1,283 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, ArrowRight, Sparkles, Gift, ShieldCheck } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpen,
+  Gift,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
 import PdfPreviewButton from '@/components/PdfPreviewButton';
 import PdfFlipbook from '@/components/PdfFlipbook';
+import PhysicalBookScene from '@/components/PhysicalBookScene';
+import './LivresLanding.css';
 
-/**
- * /livres — Landing dédiée à la vente de rapports prestige comme livres imprimés
- * pour la campagne Noël. Présente les 6 rapports avec leur illustration hero,
- * un bouton de téléchargement d'aperçu 3 pages, et le lien vers la page produit.
- *
- * Palette V3 cream, Playfair Display, or #C9A24B.
- */
 const BOOKS = [
   {
     slug: 'astrocartographie',
     productPath: '/astrocartographie',
     title: 'Astrocartographie',
+    shortTitle: 'Astrocartographie',
     subtitle: 'Où vivre ta meilleure vie',
     tagline: 'Sept lignes planétaires tracées sur la carte du monde.',
+    insideLabel: 'Votre carte du monde personnelle',
+    coverLabel: 'Atlas céleste personnalisé',
     pages: '18 pages',
     price: '49€',
     heroPng: 'astrocarto_hero.png',
+    symbol: '✦',
+    accent: '#d8b557',
+    accentSoft: '#b68e31',
+    tilt: '-7deg',
   },
   {
     slug: 'kabbale',
     productPath: '/kabbale',
-    title: "Ton Arbre de Vie",
+    title: 'Ton Arbre de Vie',
+    shortTitle: 'Arbre de Vie',
     subtitle: 'Kabbalistique',
     tagline: 'Dix séphiroth et vingt-deux chemins de conscience.',
+    insideLabel: 'Les dix séphiroth révélées',
+    coverLabel: 'Étude kabbalistique',
     pages: '30 pages',
     price: '59€',
     heroPng: 'kabbale_hero.png',
+    symbol: '◇',
+    accent: '#c7a357',
+    accentSoft: '#95752e',
+    tilt: '-5deg',
   },
   {
     slug: 'karma-destin',
     productPath: '/karma-destin-pdf',
     title: 'Ton Analyse Karmique',
+    shortTitle: 'Analyse Karmique',
     subtitle: 'Destinée & Guérison',
     tagline: 'Nœuds lunaires, Saturne, Chiron, Pluton — le fil de ton âme.',
+    insideLabel: 'Les mémoires de votre âme',
+    coverLabel: 'Destinée et guérison',
     pages: '25 pages',
     price: '54€',
     heroPng: 'karma_hero.png',
+    symbol: '☊',
+    accent: '#d2ae56',
+    accentSoft: '#9d762d',
+    tilt: '-8deg',
   },
   {
     slug: 'numerologie',
     productPath: '/numerologie-pdf',
     title: 'Ton Code Numérologique',
+    shortTitle: 'Code Numérologique',
     subtitle: 'Cycles & Vibrations',
     tagline: 'Chemin de vie, année personnelle, biorythmes.',
+    insideLabel: 'Votre signature vibratoire',
+    coverLabel: 'Cycles et vibrations',
     pages: '20 pages',
     price: '39€',
     heroPng: 'numerologie_hero.png',
+    symbol: 'Ⅶ',
+    accent: '#d8b557',
+    accentSoft: '#a17b30',
+    tilt: '-6deg',
   },
   {
     slug: 'theme-natal',
     productPath: '/theme-natal-luxe',
     title: 'Ton Thème Natal',
+    shortTitle: 'Thème Natal',
     subtitle: 'Ton ciel de naissance dévoilé',
     tagline: '38 pages sur les 12 signes, planètes, maisons et aspects.',
+    insideLabel: 'La carte de votre ciel de naissance',
+    coverLabel: 'Édition céleste complète',
     pages: '38 pages',
     price: '69€',
     heroPng: 'natal_hero.png',
+    symbol: '☉',
+    accent: '#e0bc62',
+    accentSoft: '#a88438',
+    tilt: '-7deg',
   },
   {
     slug: 'synastrie',
     productPath: '/synastrie',
     title: 'Votre Synastrie',
+    shortTitle: 'Synastrie',
     subtitle: "L'astrologie de votre lien",
     tagline: "L'analyse détaillée de la rencontre entre deux ciels.",
+    insideLabel: 'Deux cartes du ciel, une rencontre',
+    coverLabel: 'Étude relationnelle',
     pages: '32 pages',
     price: '64€',
     heroPng: 'synastrie_hero.png',
+    symbol: '☾',
+    accent: '#d4b568',
+    accentSoft: '#9f8139',
+    tilt: '-5deg',
   },
 ];
 
 export default function LivresLanding() {
-  const backend = process.env.REACT_APP_BACKEND_URL;
+  const backend = process.env.REACT_APP_BACKEND_URL || '';
   const [flipbookBook, setFlipbookBook] = useState(null);
 
   return (
     <PsPageShell background="light">
       <SEO path="/livres" />
 
-      {/* ═══ HERO ═══ */}
-      <section
-        data-testid="livres-hero"
-        style={{
-          padding: '110px 24px 40px',
-          maxWidth: 960,
-          margin: '0 auto',
-          textAlign: 'center',
-        }}
-      >
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '6px 14px',
-            borderRadius: 999,
-            background: 'rgba(201,162,75,0.10)',
-            border: '1px solid rgba(201,162,75,0.30)',
-            color: '#8F6E24',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            marginBottom: 20,
-          }}
-        >
-          <BookOpen style={{ width: 12, height: 12 }} strokeWidth={2} />
-          Édition prestige · offrir un livre
-        </div>
-        <h1
-          style={{
-            fontFamily: 'Playfair Display, serif',
-            fontSize: 'clamp(36px, 6vw, 58px)',
-            color: '#0F1A3C',
-            fontWeight: 500,
-            lineHeight: 1.12,
-            marginBottom: 20,
-          }}
-        >
-          Nos livres <span style={{ fontStyle: 'italic', color: '#C9A24B' }}>prestige</span>,{' '}
-          <span style={{ display: 'block' }}>à offrir ou à s&apos;offrir.</span>
-        </h1>
-        <p
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: 17,
-            lineHeight: 1.65,
-            color: '#232323',
-            maxWidth: 620,
-            margin: '0 auto 24px',
-          }}
-        >
-          Six rapports personnalisés, chacun imprimé façon livre relié :
-          couverture illustrée, sommaire romain, chapitres numérotés, papier
-          crème. Un présent qui s&apos;ouvre — et qui se garde.
-        </p>
-        <div
-          style={{
-            display: 'inline-flex',
-            gap: 20,
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: 12,
-            letterSpacing: '0.10em',
-            textTransform: 'uppercase',
-            color: 'rgba(15,26,60,0.72)',
-          }}
-        >
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <Sparkles style={{ width: 14, height: 14, color: '#C9A24B' }} strokeWidth={1.8} />
-            Aperçu 3 pages gratuit
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <Gift style={{ width: 14, height: 14, color: '#C9A24B' }} strokeWidth={1.8} />
-            Option cadeau
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <ShieldCheck style={{ width: 14, height: 14, color: '#C9A24B' }} strokeWidth={1.8} />
-            Livraison PDF immédiate
-          </span>
-        </div>
-      </section>
+      <main className="livres-page">
+        <section className="livres-hero" data-testid="livres-hero">
+          <div className="livres-hero__eyebrow">
+            <BookOpen strokeWidth={1.8} />
+            Édition prestige · votre histoire reliée
+          </div>
 
-      {/* ═══ GRILLE DES 6 LIVRES ═══ */}
-      <section
-        style={{
-          padding: '32px 24px 96px',
-          maxWidth: 1200,
-          margin: '0 auto',
-        }}
-      >
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: 28,
-          }}
-        >
-          {BOOKS.map((b) => (
-            <article
-              key={b.slug}
-              data-testid={`livres-card-${b.slug}`}
-              style={{
-                background: '#FFFFFF',
-                border: '1px solid #E3E1DC',
-                borderRadius: 18,
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                boxShadow: '0 16px 32px -20px rgba(15,26,60,0.10)',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 24px 48px -20px rgba(15,26,60,0.18)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 16px 32px -20px rgba(15,26,60,0.10)';
-              }}
-            >
-              {/* Cover thumbnail */}
-              <div
-                style={{
-                  background: '#0F1A3C',
-                  padding: 28,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  aspectRatio: '4 / 3',
-                }}
+          <h1>
+            Ce n&apos;est pas un simple rapport.
+            <span className="block">
+              C&apos;est <em>votre livre.</em>
+            </span>
+          </h1>
+
+          <p className="livres-hero__lead">
+            Un ouvrage astrologique personnel, imprimé comme un beau livre :
+            couverture illustrée, pages crème et chapitres écrits à partir de
+            votre ciel. À feuilleter, à offrir et à garder.
+          </p>
+
+          <div className="livres-hero__proofs" aria-label="Avantages des livres">
+            <span>
+              <Sparkles strokeWidth={1.8} />
+              Aperçu 3 pages gratuit
+            </span>
+            <span>
+              <Gift strokeWidth={1.8} />
+              Option cadeau
+            </span>
+            <span>
+              <ShieldCheck strokeWidth={1.8} />
+              Livraison PDF immédiate
+            </span>
+          </div>
+        </section>
+
+        <section className="livres-collection" aria-labelledby="collection-title">
+          <header className="livres-collection__intro">
+            <div>
+              <span className="livres-collection__eyebrow">
+                La collection Plume Astrale
+              </span>
+              <h2 id="collection-title">
+                Six portes d&apos;entrée vers votre histoire céleste.
+              </h2>
+            </div>
+            <p>
+              Chaque ouvrage est composé pour une seule personne. Choisissez
+              celui qui répond à votre question du moment, puis découvrez son
+              aperçu avant de commencer.
+            </p>
+          </header>
+
+          <div className="livres-grid">
+            {BOOKS.map((book) => (
+              <article
+                key={book.slug}
+                className="livres-card"
+                data-testid={`livres-card-${book.slug}`}
               >
-                <img
-                  src={`${backend}/api/assets/pdf_covers/${b.heroPng}`}
-                  alt={`Illustration ${b.title}`}
-                  style={{
-                    maxWidth: '75%',
-                    maxHeight: '100%',
-                    objectFit: 'contain',
-                    filter: 'drop-shadow(0 12px 32px rgba(201,162,75,0.25))',
-                  }}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
+                <PhysicalBookScene
+                  book={book}
+                  coverSrc={`${backend}/api/assets/pdf_covers/${book.heroPng}`}
                 />
-              </div>
 
-              {/* Contenu */}
-              <div style={{ padding: '28px 26px', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                <p
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: '0.20em',
-                    textTransform: 'uppercase',
-                    color: '#8F6E24',
-                    marginBottom: 10,
-                  }}
-                >
-                  {b.subtitle}
-                </p>
-                <h3
-                  style={{
-                    fontFamily: 'Playfair Display, serif',
-                    fontSize: 24,
-                    fontWeight: 500,
-                    color: '#0F1A3C',
-                    lineHeight: 1.2,
-                    marginBottom: 10,
-                  }}
-                >
-                  {b.title}
-                </h3>
-                <p
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 14,
-                    lineHeight: 1.55,
-                    color: '#232323',
-                    marginBottom: 18,
-                    flexGrow: 1,
-                  }}
-                >
-                  {b.tagline}
-                </p>
+                <div className="livres-card__content">
+                  <div className="livres-card__topline">
+                    <p className="livres-card__category">{book.subtitle}</p>
+                    <span className="livres-card__edition">Livre personnalisé</span>
+                  </div>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    gap: 10,
-                    marginBottom: 20,
-                    paddingBottom: 16,
-                    borderBottom: '1px dashed rgba(15,26,60,0.12)',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: 'Playfair Display, serif',
-                      fontSize: 28,
-                      fontWeight: 500,
-                      color: '#0F1A3C',
-                    }}
-                  >
-                    {b.price}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: 12,
-                      color: 'rgba(15,26,60,0.72)',
-                    }}
-                  >
-                    · {b.pages}
-                  </span>
+                  <h3>{book.title}</h3>
+                  <p className="livres-card__tagline">{book.tagline}</p>
+
+                  <div className="livres-card__meta">
+                    <span className="livres-card__price">{book.price}</span>
+                    <span className="livres-card__meta-mark" aria-hidden="true" />
+                    <span className="livres-card__pages">{book.pages}</span>
+                    <span className="livres-card__material">
+                      Couverture reliée · papier crème
+                    </span>
+                  </div>
+
+                  <div className="livres-card__actions">
+                    <PdfPreviewButton
+                      product={book.slug}
+                      variant="ghost"
+                      testid={`livres-preview-${book.slug}`}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setFlipbookBook(book)}
+                      className="livres-card__flip"
+                      data-testid={`livres-flipbook-${book.slug}`}
+                    >
+                      <BookOpen strokeWidth={1.8} />
+                      Feuilleter
+                    </button>
+
+                    <Link
+                      to={book.productPath}
+                      className="livres-card__cta"
+                      data-testid={`livres-cta-${book.slug}`}
+                    >
+                      Découvrir
+                      <ArrowRight strokeWidth={2} />
+                    </Link>
+                  </div>
                 </div>
+              </article>
+            ))}
+          </div>
+        </section>
 
-                {/* Actions */}
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 10,
-                  }}
-                >
-                  <PdfPreviewButton
-                    product={b.slug}
-                    variant="ghost"
-                    testid={`livres-preview-${b.slug}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setFlipbookBook(b)}
-                    data-testid={`livres-flipbook-${b.slug}`}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      padding: '11px 20px',
-                      borderRadius: 999,
-                      background: 'transparent',
-                      color: '#0F1A3C',
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      letterSpacing: '0.10em',
-                      textTransform: 'uppercase',
-                      border: '1px solid #0F1A3C',
-                      cursor: 'pointer',
-                      transition: 'background 0.2s ease, color 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#0F1A3C';
-                      e.currentTarget.style.color = '#F7F5F0';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = '#0F1A3C';
-                    }}
-                  >
-                    <BookOpen style={{ width: 14, height: 14 }} strokeWidth={1.8} />
-                    Feuilleter le livre
-                  </button>
-                  <Link
-                    to={b.productPath}
-                    data-testid={`livres-cta-${b.slug}`}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 10,
-                      padding: '12px 22px',
-                      borderRadius: 999,
-                      background: '#C9A24B',
-                      color: '#0F1A3C',
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      letterSpacing: '0.10em',
-                      textTransform: 'uppercase',
-                      textDecoration: 'none',
-                      boxShadow: '0 8px 20px -10px rgba(201,162,75,0.65)',
-                      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                      e.currentTarget.style.boxShadow = '0 12px 28px -10px rgba(201,162,75,0.80)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 8px 20px -10px rgba(201,162,75,0.65)';
-                    }}
-                  >
-                    Découvrir
-                    <ArrowRight style={{ width: 15, height: 15 }} strokeWidth={2} />
-                  </Link>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+        <section className="livres-final-cta">
+          <div className="livres-final-cta__inner">
+            <p className="ps-eyebrow">Un présent qui reste</p>
+            <h2>
+              Un livre unique,{' '}
+              <em>écrit pour une seule personne au monde.</em>
+            </h2>
+            <p>
+              Chaque rapport est construit à partir de la carte du ciel exacte
+              du destinataire. Le prénom s&apos;inscrit sur la couverture et
+              les chapitres racontent une histoire qui ne ressemble à aucune
+              autre.
+            </p>
+            <div className="livres-final-cta__actions">
+              <Link
+                to="/credits"
+                data-testid="livres-cta-credits"
+                className="ps-btn ps-btn-outline"
+                style={{ padding: '13px 26px' }}
+              >
+                Comprendre les crédits
+              </Link>
+              <Link
+                to="/inscription"
+                data-testid="livres-cta-signup"
+                className="ps-btn ps-btn-primary"
+                style={{ padding: '13px 26px' }}
+              >
+                Créer mon livre
+                <ArrowRight style={{ width: 15, height: 15 }} strokeWidth={2} />
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
 
-      {/* ═══ CTA FINAL ═══ */}
-      <section
-        style={{
-          padding: '32px 24px 96px',
-          maxWidth: 780,
-          margin: '0 auto',
-          textAlign: 'center',
-        }}
-      >
-        <p className="ps-eyebrow" style={{ marginBottom: 14 }}>Un présent qui reste</p>
-        <h2
-          style={{
-            fontFamily: 'Playfair Display, serif',
-            fontSize: 'clamp(28px, 4vw, 40px)',
-            color: '#0F1A3C',
-            fontWeight: 500,
-            lineHeight: 1.2,
-            marginBottom: 14,
-          }}
-        >
-          Un livre unique, <span style={{ fontStyle: 'italic', color: '#C9A24B' }}>écrit pour une seule personne au monde</span>.
-        </h2>
-        <p
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: 16,
-            lineHeight: 1.7,
-            color: '#232323',
-            marginBottom: 24,
-          }}
-        >
-          Chaque rapport est généré à partir de la carte du ciel exacte du destinataire.
-          Pas de modèle générique, pas de duplicata — le prénom se grave en dorure sur la couverture,
-          les chapitres racontent son histoire à lui, à elle.
-        </p>
-        <div
-          style={{
-            display: 'inline-flex',
-            gap: 14,
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-          }}
-        >
-          <Link
-            to="/credits"
-            data-testid="livres-cta-credits"
-            className="ps-btn ps-btn-outline"
-            style={{ padding: '13px 26px' }}
-          >
-            Comprendre les crédits
-          </Link>
-          <Link
-            to="/inscription"
-            data-testid="livres-cta-signup"
-            className="ps-btn ps-btn-primary"
-            style={{ padding: '13px 26px' }}
-          >
-            Commencer ma lecture
-            <ArrowRight style={{ width: 15, height: 15 }} strokeWidth={2} />
-          </Link>
-        </div>
-      </section>
-
-      {/* ═══ FLIPBOOK MODAL ═══ */}
       {flipbookBook && (
         <PdfFlipbook
           product={flipbookBook.slug}
