@@ -1,5 +1,20 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-24 — CAPI Health Check Fix (Meta requires user_data since 2024)
+
+**Diagnostic obtenu grâce au diagnostic enrichi** :
+- Meta code 100, subcode 2804050 : *"You haven't added sufficient customer information parameter data for this event"*
+- Token OK, App Live OK, mais Meta refuse depuis 2024 les events avec `user_data: {}` (seuil de matching minimum)
+
+**Fix** : `admin_capi_health` endpoint (`server.py`) enrichit désormais le `user_data` de l'event test avec :
+- `client_ip_address` (extrait de `x-forwarded-for` ou `request.client.host`)
+- `client_user_agent` (header User-Agent de l'admin)
+- `em: [sha256(admin_email)]` (email hashé, satisfait le matching sans exposer de PII)
+
+Aucune donnée utilisateur final n'est utilisée — c'est l'admin qui teste depuis son navigateur. Les vrais events Purchase (Stripe webhook) fournissaient déjà ces paramètres via `meta_attribution_middleware`.
+
+
+
 ## 2026-02-24 — CNIL Compliance Fixes (cookie policy + renewal + analytics)
 
 **Fix P0 — Contradiction Mentions Légales / Meta Pixel (CNIL risk)** :
