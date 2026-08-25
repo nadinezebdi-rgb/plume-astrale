@@ -1,5 +1,20 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-25 — Refonte concours Building France 2026
+
+**Objectif** : Comprendre la promesse produit en <3s, faire de l'aperçu gratuit l'action principale, montrer visuellement le livrable, expliquer le flux Emergent, retirer la mention prématurée "finaliste".
+
+**Fichiers remplacés** (paquet livré `plume-astrale-refonte-concours-2026.zip`) :
+- `frontend/src/components/nocturne/NocturneHero.jsx` — nouveau hero éditorial avec livre 3D + 3 pastilles réassurance + 3 preuves chiffrées (49 pages, <60s, 5 pages offertes)
+- `frontend/src/components/nocturne/ConcoursImpact.jsx` — NOUVEAU composant, 4 étapes numérotées expliquant le flux Emergent (Renseigner / Interpréter / Composer / Recevoir)
+- `frontend/src/components/ContestVoteBanner.js` — wording règlement-safe "Plume Astrale participe au concours Building France"
+- `frontend/src/pages/Homepage.js` — insertion ConcoursImpact section 1.05, retrait section témoignages (aucun avis codé en dur pendant le concours), nouveau SEO title "Votre ciel devient un livre personnalisé"
+- `frontend/src/index.css` — +481 lignes (classes `.ne-hero-premium-*`, `.ne-hero-book-*`, `.ne-impact-*`)
+
+Testé visuellement en preview : hero rendu correctement avec livre premium + halo orbital, 3 preuves chiffrées, 4 étapes ConcoursImpact, bannière contest avec wording règlement-safe.
+
+
+
 ## 2026-02-24 — CAPI Fully Operational + Contest Banner Wording
 
 **✅ CAPI opérationnel** : après le fix user_data (IP + UA + email hashé), le health check retourne `capi_ok: true`, `meta_http_status: 200`, `events_received: 1`. Meta CAPI est end-to-end fonctionnel.

@@ -20,6 +20,7 @@ import NocturneManifest from '@/components/nocturne/NocturneManifest';
 import NocturneServices from '@/components/nocturne/NocturneServices';
 import NocturneClosing from '@/components/nocturne/NocturneClosing';
 import NocturneLeadMagnet from '@/components/nocturne/NocturneLeadMagnet';
+import ConcoursImpact from '@/components/nocturne/ConcoursImpact';
 import ContestVoteBanner from '@/components/ContestVoteBanner';
 import { BLOG_ARTICLES } from '@/config/blogArticles';
 import { useAuth } from '@/context/AuthContext';
@@ -107,8 +108,8 @@ export default function Homepage() {
     <div className="ps-home" data-testid="homepage-v2">
       <SEO
         path="/"
-        title="Plume Astrale · Lectures astrologiques personnalisées en PDF"
-        description="Une lecture astrologique personnalisée, composée à partir de votre thème natal exact. PDF premium livré en 60 secondes · garantie 14 jours · paiement Stripe sécurisé."
+        title="Plume Astrale · Votre ciel devient un livre personnalisé"
+        description="Transformez vos données de naissance en une lecture personnalisée de 49 pages, composée et livrée en moins de 60 secondes. Aperçu 5 pages offert, sans carte bancaire."
       />
 
       {/* ═══ SECTION 1 · HERO NOCTURNE ÉDITORIAL (Feb 2026 — refonte artistique) ═══ */}
@@ -117,26 +118,29 @@ export default function Homepage() {
       {/* Floating CTA — concours Emergent Building France */}
       <ContestVoteBanner />
 
-      {/* ═══ SECTION 1.05 · MANIFESTE NOCTURNE — les trois refus fondateurs ═══ */}
-      <NocturneManifest />
+      {/* ═══ SECTION 1.05 · PREUVE PRODUIT + FLUX EMERGENT ═══ */}
+      <ConcoursImpact />
 
       {/* ═══ SECTION 1.1 · TRUST BAR (F500 audit 2026-02) — garanties + livraison + support ═══ */}
       <TrustBar variant="dense" />
 
-      {/* ═══ SECTION 1.5 · SOLÉNA (apparition douce au scroll) ═══ */}
-      <SolenaGuideCard />
-
-      {/* ═══ SECTION 1.7 · 4 PILIERS PREMIUM ═══ */}
-      <PremiumPillars />
-
       {/* ═══ SECTION 1.75 · COMMENT ÇA MARCHE (F500 clarté PDF vs Crédits vs Gratuit) ═══ */}
       <HowItWorks3Tiers />
 
-      {/* ═══ SECTION 1.77 · TROIS LECTURES NOCTURNE (remplace ancienne section services) ═══ */}
-      <NocturneServices />
-
       {/* ═══ SECTION 1.8 · MINI-QUIZ (Preview onboarding — conversion précoce) ═══ */}
       <HomepageMiniQuiz />
+
+      {/* ═══ SECTION 1.9 · MANIFESTE NOCTURNE — différenciation de marque ═══ */}
+      <NocturneManifest />
+
+      {/* ═══ SECTION 2.0 · SOLÉNA (apparition douce au scroll) ═══ */}
+      <SolenaGuideCard />
+
+      {/* ═══ SECTION 2.1 · 4 PILIERS PREMIUM ═══ */}
+      <PremiumPillars />
+
+      {/* ═══ SECTION 2.2 · TROIS LECTURES NOCTURNE ═══ */}
+      <NocturneServices />
 
       {/* ═══ SECTION 2 · PROPOSITION DE VALEUR (CLAIRE) ═══ */}
       <section className="ps-section ps-section-light" data-testid="ps-value">

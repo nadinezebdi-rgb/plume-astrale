@@ -186,10 +186,10 @@ export default function ContestVoteBanner() {
           <Trophy size={12} strokeWidth={2.2} /> Concours en cours
         </div>
         <p className="contest-title">
-          Soutenez <em>Plume Astrale</em> au concours <em>Building France</em>
+          Plume Astrale participe au concours <em>Building France</em>
         </p>
         <p className="contest-sub">
-          Emergent récompense les créations françaises indépendantes. Un clic, un vote — et vous nous aidez à faire connaître notre écriture.
+          Découvrez le projet puis, s&rsquo;il vous convainc, soutenez la création française indépendante.
         </p>
         <span className="contest-cta">
           Voter pour nous <ExternalLink size={12} strokeWidth={2.5} />
