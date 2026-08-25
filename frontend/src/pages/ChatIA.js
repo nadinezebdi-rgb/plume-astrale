@@ -90,7 +90,8 @@ const ChatIA = () => {
     {
       role: 'assistant',
       content:
-        "Bienvenue dans ton sanctuaire. Je suis Soléna — pose-moi une question sur ton chemin, tes émotions, ton thème natal, tes liens. Les astres écoutent.",
+        "Bonjour. Je suis Soléna, la voix éditoriale IA de Plume Astrale — pose-moi une question sur ton thème natal, tes cycles, tes questionnements. Je réponds avec le vocabulaire d'une plume, pas d'une thérapeute.",
+      disclaimer: true,
     },
   ]);
   const [input, setInput] = useState('');
@@ -728,10 +729,31 @@ const ChatIA = () => {
                   }}>
                     {msg.role === 'assistant' && (
                       <span style={{ color: '#C9A24B', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
-                        Soléna
+                        Soléna &middot; voix IA
                       </span>
                     )}
                     {msg.content}
+                    {msg.disclaimer && (
+                      <div
+                        data-testid="chat-ai-disclaimer"
+                        style={{
+                          marginTop: 14,
+                          padding: '10px 12px',
+                          background: 'rgba(201, 162, 75, 0.08)',
+                          border: '1px solid rgba(201, 162, 75, 0.22)',
+                          borderRadius: 6,
+                          fontSize: 12,
+                          lineHeight: 1.5,
+                          color: 'rgba(247, 245, 240, 0.72)',
+                          fontStyle: 'italic',
+                          fontFamily: 'Inter, sans-serif',
+                        }}
+                      >
+                        Rappel &middot; Soléna est une voix éditoriale <strong>propulsée par une intelligence artificielle</strong>.
+                        Ce n&apos;est ni une astrologue diplômée, ni une voyante, ni une thérapeute.
+                        En cas de mal-être, contactez un professionnel de santé.
+                      </div>
+                    )}
                   </div>
                 </div>
               );

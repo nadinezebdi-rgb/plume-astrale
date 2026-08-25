@@ -20,6 +20,7 @@ import NocturneManifest from '@/components/nocturne/NocturneManifest';
 import NocturneServices from '@/components/nocturne/NocturneServices';
 import NocturneClosing from '@/components/nocturne/NocturneClosing';
 import NocturneLeadMagnet from '@/components/nocturne/NocturneLeadMagnet';
+import NocturneFAQ from '@/components/nocturne/NocturneFAQ';
 import ConcoursImpact from '@/components/nocturne/ConcoursImpact';
 import CinematicBookShowcase from '@/components/nocturne/CinematicBookShowcase';
 import ContestVoteBanner from '@/components/ContestVoteBanner';
@@ -434,6 +435,9 @@ export default function Homepage() {
 
       {/* ═══ SECTION 5.7 · LEAD MAGNET NOCTURNE (aperçu 5 pages gratuit) ═══ */}
       <NocturneLeadMagnet />
+
+      {/* ═══ SECTION 5.8 · FAQ TRANSPARENTE (Qui est Soléna, RGPD, remboursement) ═══ */}
+      <NocturneFAQ />
 
       {/* ═══ SECTION 6 · APPEL À L'ACTION FINAL — NOCTURNE ÉDITORIAL ═══ */}
       <NocturneClosing signupPath={signupPath} />

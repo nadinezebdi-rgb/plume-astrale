@@ -634,7 +634,7 @@ export default function Manifesto() {
               </p>
               <p style={{ margin: '0 0 20px 0' }}>
                 Concrètement, chaque commande utilise les positions planétaires calculées à partir de vos données
-                exactes de naissance (Swiss Ephemeris) et un modèle de langage entraîné par notre équipe éditoriale
+                exactes de naissance par la bibliothèque de précision <em style={{ color: '#E5D9BA' }}>Swiss Ephemeris</em> (norme NASA / JPL) et un modèle de langage entraîné par notre équipe éditoriale
                 pour produire <em style={{ color: '#E5D9BA' }}>votre édition unique</em>. Aucun texte pré-écrit,
                 aucun copier-coller — chaque phrase est générée pour vous, puis mise en page dans un PDF prestige.
               </p>
