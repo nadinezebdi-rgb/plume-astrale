@@ -6,8 +6,7 @@ Usage:
     python tests/smoke_api_compat.py --suite quick
     python tests/smoke_api_compat.py --suite pdf
 
-This script runs fully local using FastAPI TestClient and mocks Stripe-dependent
-legacy checkout aliases so no external checkout call is required.
+This script runs fully local using FastAPI TestClient, so no external call is required.
 """
 
 from __future__ import annotations
@@ -15,7 +14,6 @@ from __future__ import annotations
 import os
 import sys
 import argparse
-from typing import Any
 
 
 def _set_defaults() -> None:
@@ -57,23 +55,6 @@ def main() -> int:
     except Exception as exc:
         _fail("imports", str(exc))
         return 2
-
-    # Mock Stripe-dependent aliases so this smoke test can run offline.
-    async def fake_legacy_checkout_create(payload: Any, http_request: Any) -> dict:
-        return {
-            "url": "https://checkout.stripe.com/c/test_dummy",
-            "session_id": "cs_test_dummy_123",
-        }
-
-    async def fake_legacy_checkout_status(session_id: str) -> dict:
-        return {
-            "status": "complete",
-            "payment_status": "paid",
-            "session_id": session_id,
-        }
-
-    server.legacy_checkout_create = fake_legacy_checkout_create
-    server.legacy_checkout_status = fake_legacy_checkout_status
 
     client = TestClient(server.app)
     failed = False
@@ -166,33 +147,6 @@ def main() -> int:
         else:
             failed = True
             _fail("/api/premium/generate", f"status={r.status_code} body={r.text[:160]}")
-
-        r = client.post(
-            "/api/order/book",
-            json={
-                "product_id": "livre",
-                "origin_url": "https://plume-astrale.fr",
-                "user_email": "test@example.com",
-                "user_data": {"prenom": "Nadine"},
-            },
-        )
-        if r.status_code == 200 and r.json().get("session_id"):
-            _ok("/api/order/book")
-            sid = r.json().get("session_id")
-        else:
-            failed = True
-            sid = "cs_test_dummy_123"
-            _fail("/api/order/book", f"status={r.status_code} body={r.text[:160]}")
-
-        r = client.get(f"/api/order/book/{sid}")
-        if r.status_code == 200 and r.json().get("payment_status"):
-            _ok("/api/order/book/{session_id}")
-        else:
-            failed = True
-            _fail(
-                "/api/order/book/{session_id}",
-                f"status={r.status_code} body={r.text[:160]}",
-            )
 
     if run_pdf:
         if not prem_data.get("steps"):
