@@ -82,6 +82,18 @@ export default function FooterV2() {
             <FooterHeading>Légal</FooterHeading>
             <FooterLink to="/mentions-legales" testid="footer-v2-mentions">Mentions légales</FooterLink>
             <FooterLink to="/cgv" testid="footer-v2-cgv">Conditions générales</FooterLink>
+            <FooterLink to="/confidentialite" testid="footer-v2-confidentialite">Confidentialité</FooterLink>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('open-cookie-preferences'))}
+              style={{
+                background: 'transparent', border: 'none', padding: 0,
+                color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left',
+              }}
+              data-testid="footer-v2-cookies"
+            >
+              Gérer les cookies
+            </button>
             <div style={{
               fontSize: 12, color: 'rgba(247,245,240,0.4)',
               marginTop: 14, letterSpacing: '0.04em',

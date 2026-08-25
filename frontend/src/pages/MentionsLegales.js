@@ -22,12 +22,11 @@ export default function MentionsLegales() {
 
             <LegalSection title="Éditeur du site">
               <p><strong>Plume Astrale</strong><br />
-              Site édité par : <em>[à compléter : raison sociale, forme juridique]</em><br />
-              SIRET : <em>[à compléter]</em><br />
-              Capital social : <em>[le cas échéant]</em><br />
-              Adresse du siège : <em>[à compléter]</em><br />
+              Site édité par : <strong>LEARNACTIF</strong><br />
+              SIRET : 87860206900022<br />
+              Siège social : 2 rue Yvan Gaussen, 30250 Sommières, France<br />
               Email : <LegalLink href="mailto:contact@plume-astrale.fr">contact@plume-astrale.fr</LegalLink><br />
-              Directrice de la publication : <em>Soléna [nom complet]</em></p>
+              Directrice de la publication : <em>Soléna</em></p>
             </LegalSection>
 
             <LegalSection title="Hébergement">
@@ -45,7 +44,7 @@ export default function MentionsLegales() {
             </LegalSection>
 
             <LegalSection title="Cookies">
-              <p>Nous utilisons des cookies techniques (session de connexion, panier) et des cookies de mesure d&apos;audience anonymes. Aucun cookie publicitaire. Tu peux les désactiver depuis ton navigateur.</p>
+              <p>Nous utilisons trois catégories de cookies&nbsp;: (i) des cookies <strong>techniques essentiels</strong> (session de connexion, panier, sécurité), (ii) des cookies de <strong>mesure d&apos;audience anonymisée</strong>, et (iii) des cookies <strong>publicitaires</strong> déposés par le Meta Pixel (Facebook / Instagram) uniquement <strong>après votre consentement explicite</strong>. Vous pouvez modifier vos préférences à tout moment via le bouton <em>&laquo; Gérer les cookies &raquo;</em> en pied de page. Détails complets dans notre <LegalLink href="/confidentialite">Politique de confidentialité</LegalLink>.</p>
             </LegalSection>
 
             <LegalSection title="Contact">

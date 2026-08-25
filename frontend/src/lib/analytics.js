@@ -15,18 +15,32 @@
  */
 
 const CONSENT_KEY = 'pa_consent_v1';
+const CONSENT_TIMESTAMP_KEY = 'pa_consent_ts_v1';
+// CNIL 2020 : la durée de vie du consentement ne peut excéder 13 mois.
+const CONSENT_MAX_AGE_MS = 13 * 30 * 24 * 60 * 60 * 1000; // ≈ 13 mois
 
 export function getConsent() {
   try {
     const v = localStorage.getItem(CONSENT_KEY);
-    if (v === 'accepted') return 'accepted';
-    if (v === 'refused') return 'refused';
+    if (v !== 'accepted' && v !== 'refused') return null;
+    // Vérifie l'âge du consentement (CNIL 13 mois)
+    const ts = parseInt(localStorage.getItem(CONSENT_TIMESTAMP_KEY) || '0', 10);
+    if (ts && Date.now() - ts > CONSENT_MAX_AGE_MS) {
+      // Consentement expiré : purge et redemande
+      localStorage.removeItem(CONSENT_KEY);
+      localStorage.removeItem(CONSENT_TIMESTAMP_KEY);
+      return null;
+    }
+    return v;
   } catch (_e) { /* localStorage unavailable */ }
   return null;
 }
 
 export function setConsent(value) {
-  try { localStorage.setItem(CONSENT_KEY, value); } catch (_e) { /* localStorage unavailable */ }
+  try {
+    localStorage.setItem(CONSENT_KEY, value);
+    localStorage.setItem(CONSENT_TIMESTAMP_KEY, String(Date.now()));
+  } catch (_e) { /* localStorage unavailable */ }
   if (value === 'accepted') loadTrackers();
 }
 

@@ -52,6 +52,8 @@ _STATIC_ROUTES = [
     {'path': '/temoignages', 'ttl_hours': 24, 'priority': 0.6},
     {'path': '/credits', 'ttl_hours': 24, 'priority': 0.75},
     {'path': '/barometre-2026', 'ttl_hours': 24, 'priority': 0.7},
+    # Pages légales (obligatoires — Meta / Google review)
+    {'path': '/confidentialite', 'ttl_hours': 720, 'priority': 0.4},
     # Sales pages — canonical short URLs (SEO Rebuild P1 2026-02)
     {'path': '/theme-natal', 'ttl_hours': 24, 'priority': 0.95},
     # NEW: Voyage Karmique — fusion Kabbale + Karma Destin 49€ (Feb 2026 Nocturne)
