@@ -1,5 +1,24 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-24 — CNIL Compliance Fixes (cookie policy + renewal + analytics)
+
+**Fix P0 — Contradiction Mentions Légales / Meta Pixel (CNIL risk)** :
+- `MentionsLegales.js` section "Cookies" : la phrase "Aucun cookie publicitaire" contredisait l'usage réel du Meta Pixel
+- Remplacée par la vérité : 3 catégories (essentiels / audience anonymisée / publicitaires Meta déposés uniquement après consentement explicite) + lien vers Confidentialité + rappel du bouton "Gérer les cookies"
+
+**Consent Age Renewal (CNIL 13 mois)** :
+- `lib/analytics.js` : nouvelle clé `pa_consent_ts_v1` stocke le timestamp du choix
+- `getConsent()` vérifie l'âge : si > 13 mois, purge et retourne null → la modale réapparaît automatiquement
+- Conforme à la recommandation CNIL 2020 (durée max du consentement cookies)
+
+**Cookie Prefs Analytics (RGPD-safe, no PII)** :
+- `POST /api/analytics/cookie-consent` : log anonyme `{choice, analytics, advertising, source}` — aucune donnée personnelle
+- `GET /api/admin/cookie-consent-stats` : agrégat 30 jours (répartition par choix, taux d'opt-in analytics/advertising) — admin only
+- MongoDB collection `cookie_consent_events`
+- `CookieConsent.js` `finalize()` envoie l'event via `fetch(..., {keepalive: true})` pour survivre au unload
+
+
+
 ## 2026-02-24 — Privacy Policy + Blocking Cookie Consent (Meta App review)
 
 **Objectif** : Débloquer la publication de l'app Meta (Marketing API) qui exigeait une URL de Politique de confidentialité + fermer la conformité RGPD stricte via un bandeau cookies bloquant.

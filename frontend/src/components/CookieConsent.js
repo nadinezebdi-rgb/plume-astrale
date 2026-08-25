@@ -40,6 +40,27 @@ export default function CookieConsent() {
   }, []);
 
   const finalize = useCallback((choice) => {
+    // Log analytics anonyme des choix (aucune PII, RGPD-safe)
+    const finalPrefs = {
+      analytics: choice === 'accepted' ? true : choice === 'refused' ? false : prefs.analytics,
+      advertising: choice === 'accepted' ? true : choice === 'refused' ? false : prefs.advertising,
+    };
+    try {
+      const API = process.env.REACT_APP_BACKEND_URL || '';
+      fetch(`${API}/api/analytics/cookie-consent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          choice,
+          analytics: finalPrefs.analytics,
+          advertising: finalPrefs.advertising,
+          source: 'initial',
+        }),
+        // keepalive pour survivre au unload de la page
+        keepalive: true,
+      }).catch(() => { /* silent */ });
+    } catch (_e) { /* silent */ }
+
     // choice = 'accepted' (tout) | 'refused' (rien) | 'custom' (selon prefs)
     if (choice === 'accepted') {
       setConsent('accepted');

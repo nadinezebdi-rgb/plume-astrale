@@ -1,5 +1,5 @@
 """Plume Astrale — FastAPI backend (Supabase + Stripe + Astrology API)."""
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Query
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Query, Body
 from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
@@ -2684,6 +2684,71 @@ async def admin_refresh_seo(current_user: dict = Depends(get_current_user), only
         raise _HTTPExc(status_code=403, detail='Réservé aux administrateurs')
     from services.ssr_snapshot import refresh_all
     return await refresh_all(only_expired=only_expired)
+
+
+
+# ─── Cookie consent analytics (RGPD-safe, no PII) ────────────────────
+@app.post('/api/analytics/cookie-consent')
+async def cookie_consent_log(payload: dict = Body(...)):
+    """Log anonyme des choix de consentement cookies.
+    
+    Aucune donnée personnelle collectée — seulement les préférences agrégées.
+    Payload attendu : {choice: 'accepted'|'refused'|'custom', analytics: bool, advertising: bool, source: 'initial'|'reopened'}
+    """
+    from services.ssr_snapshot import _get_mongo
+    from datetime import datetime as _dt, timezone as _tz
+    choice = str(payload.get('choice', ''))[:20]
+    if choice not in ('accepted', 'refused', 'custom'):
+        return {'status': 'ignored'}
+    doc = {
+        'choice': choice,
+        'analytics': bool(payload.get('analytics', False)),
+        'advertising': bool(payload.get('advertising', False)),
+        'source': str(payload.get('source', 'initial'))[:20],
+        'created_at': _dt.now(_tz.utc).isoformat(),
+    }
+    try:
+        db = _get_mongo()
+        await db.cookie_consent_events.insert_one(doc)
+    except Exception as _e:
+        logger.warning(f'[cookie-consent] log failed: {_e}')
+    return {'status': 'ok'}
+
+
+@app.get('/api/admin/cookie-consent-stats')
+async def cookie_consent_stats(current_user=Depends(get_current_user)):
+    """Stats agrégées des choix de consentement — accessible admin uniquement.
+    Retourne totaux 30 derniers jours + répartition par catégorie.
+    """
+    if current_user.get('email') != 'admin@plume-astrale.fr':
+        raise HTTPException(status_code=403, detail='Admin only')
+    from services.ssr_snapshot import _get_mongo
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    db = _get_mongo()
+    since = (_dt.now(_tz.utc) - _td(days=30)).isoformat()
+    pipeline = [
+        {'$match': {'created_at': {'$gte': since}}},
+        {'$group': {
+            '_id': '$choice',
+            'count': {'$sum': 1},
+            'with_analytics': {'$sum': {'$cond': ['$analytics', 1, 0]}},
+            'with_advertising': {'$sum': {'$cond': ['$advertising', 1, 0]}},
+        }},
+    ]
+    try:
+        agg = await db.cookie_consent_events.aggregate(pipeline).to_list(length=10)
+    except Exception:
+        agg = []
+    total = sum(r['count'] for r in agg)
+    return {
+        'period_days': 30,
+        'total_events': total,
+        'by_choice': {r['_id']: {
+            'count': r['count'],
+            'analytics_opted_in': r['with_analytics'],
+            'advertising_opted_in': r['with_advertising'],
+        } for r in agg},
+    }
 
 
 # ─── Sitemap + Feed dynamiques (F500 SEO 2026-02) ────────────────────
