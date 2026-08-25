@@ -1088,9 +1088,11 @@ async def _trigger_synastrie_pdf_email(session_id: Optional[str]) -> None:
 
     # Generation PDF best-effort
     pdf_path = None
+    pdf_token = None
     try:
         from services.synastrie_pdf_generator import generate_synastrie_pdf
         from services.synastrie_enrichment import fetch_astro_data, enrich_pages
+        from services.pdf_download import new_pdf_token, build_signed_pdf_url
         p1 = rec['person1_data']
         p2 = rec['person2_data']
         # Enrichissement Option A : 10 pages personnalisees via GPT-4o-mini + astro-api
@@ -1107,12 +1109,17 @@ async def _trigger_synastrie_pdf_email(session_id: Optional[str]) -> None:
         out_path = out_dir / filename
         with open(out_path, 'wb') as f:
             f.write(pdf_bytes)
-        pdf_path = f'/api/assets/synastrie/{filename}'
+        # SEC 2026-02-26 : téléchargement via token opaque au lieu d'un lien statique
+        # /api/assets/synastrie/... qui exposait la structure de fichiers.
+        # Le token est encodé DANS pdf_path (query string) pour éviter une
+        # migration schema (pas de colonne pdf_token dédiée).
+        pdf_token = new_pdf_token()
+        pdf_path = build_signed_pdf_url(session_id, pdf_token)
         sb.table('synastrie_purchases').update({
             'pdf_path': pdf_path,
             'pdf_generated_at': datetime.now(timezone.utc).isoformat(),
         }).eq('id', rec['id']).execute()
-        logger.info(f'[synastrie] PDF generated: {pdf_path}')
+        logger.info(f'[synastrie] PDF generated (signed): {pdf_path}')
     except Exception as e:
         logger.error(f'[synastrie] PDF gen failed: {e}')
 
@@ -2474,17 +2481,13 @@ async def api_health_check():
 
 
 if ASSETS_DIR.exists():
-    # SEC-003 : on ne monte PLUS `assets/` en totalité. Seuls les sous-dossiers
-    # de ressources partagées sont exposés. Les PDFs personnels (kabbale,
-    # astrocartographie, pack_karmique, rencontres_ultime) passent par
-    # /api/pdf/download avec un token opaque.
-    # `synastrie_extracts` reste public (lead magnet, UUID de 48 bits agit comme token).
-    # Feb 2026 (audit) : ajout synastrie, pack_karmique, voyage_karmique pour
-    # restaurer les téléchargements post-paiement — les URLs incluent des UUID
-    # ou tokens de session qui agissent comme protection best-effort.
+    # SEC-003 2026-02-26 : on ne monte PLUS les dossiers de PDFs personnels
+    # en statique. Voyage Karmique, Synastrie, Pack Karmique passent désormais
+    # tous par /api/pdf/download avec un token opaque (empêche l'énumération
+    # des URLs de commandes voisines).
+    # `synastrie_extracts` reste public (lead magnet, UUID 48 bits = token).
     for _pub in (
-        'library', 'fonts', 'synastrie_pdf', 'synastrie_extracts', 'pdf_covers',
-        'synastrie', 'pack_karmique', 'voyage_karmique',
+        'library', 'fonts', 'synastrie_extracts', 'pdf_covers',
     ):
         _p = ASSETS_DIR / _pub
         # Créer le dossier s'il n'existe pas — nécessaire pour que le mount soit

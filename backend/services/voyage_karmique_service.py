@@ -75,6 +75,19 @@ async def handle_voyage_karmique_webhook(session_id: str, force: bool = False) -
         diag['error'] = 'no birth_data'
         return diag
 
+    # Récupère le code parrainage utilisateur pour le colophon final
+    referral_code = None
+    referral_link = None
+    try:
+        user_id = md.get('user_id') or tx.get('user_id')
+        if user_id:
+            from services.referral_service import ensure_referral_code
+            referral_code = await ensure_referral_code(user_id)
+            _base = os.environ.get('PUBLIC_APP_URL', 'https://plume-astrale.fr').rstrip('/')
+            referral_link = f'{_base}/?ref={referral_code}'
+    except Exception as e:
+        logger.info(f'[voyage_karmique] referral code lookup skipped: {e}')
+
     # ─── 1) Générer le PDF Kabbale ───
     kabbale_link_signed = md.get('kabbale_pdf_path')
     kabbale_supabase = md.get('kabbale_supabase_url')
@@ -131,6 +144,8 @@ async def handle_voyage_karmique_webhook(session_id: str, force: bool = False) -
                 first_name=first_name,
                 birth_date_iso=birth_date_iso,
                 karmic_data=karma_data,
+                referral_code=referral_code,
+                referral_link=referral_link,
             )
             filename = f'voyage_karmique_karma_{session_id[-16:]}.pdf'
             out_dir = ASSETS_DIR / 'voyage_karmique'

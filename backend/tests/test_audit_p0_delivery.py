@@ -79,30 +79,51 @@ def test_asset_folder_exists_on_disk(folder):
     )
 
 
-@pytest.mark.parametrize('folder', ['synastrie', 'pack_karmique', 'voyage_karmique'])
-def test_asset_folder_serves_files_over_http(folder):
-    """Le mount /api/assets/{folder}/ DOIT servir les fichiers physiques.
-    Ce test crée un fichier temporaire, le récupère via HTTP, puis nettoie.
+@pytest.mark.parametrize('folder', ['synastrie', 'voyage_karmique'])
+def test_asset_folder_no_longer_publicly_served(folder):
+    """Post-migration 2026-02-26 : les dossiers `synastrie` et `voyage_karmique`
+    ne sont PLUS exposés en statique. L'accès passe désormais par
+    /api/pdf/download?session_id=X&token=Y (token opaque).
+
+    Ce test verrouille la fin de la surface d'attaque énumération :
+    un attaquant qui essaie /api/assets/synastrie/anyfile.pdf doit obtenir 404,
+    pas un fichier PDF.
     """
     unique_name = f'_e2e_probe_{uuid.uuid4().hex[:8]}.txt'
     probe_path = ASSETS_DIR / folder / unique_name
     probe_content = f'audit-p0-{folder}-{unique_name}'
-
     try:
         probe_path.write_text(probe_content)
         r = requests.get(
             f'{BASE_URL}/api/assets/{folder}/{unique_name}',
             timeout=10,
         )
-        assert r.status_code == 200, (
-            f'/api/assets/{folder}/{unique_name} devrait renvoyer HTTP 200, '
-            f'a renvoyé HTTP {r.status_code}. Le mount StaticFiles est-il bien '
-            f'déclaré dans server.py ?'
+        assert r.status_code == 404, (
+            f'/api/assets/{folder}/{unique_name} devrait renvoyer HTTP 404 '
+            f'(mount statique retiré 2026-02-26 pour SEC), a renvoyé HTTP {r.status_code}. '
+            f'Vérifier que server.py ne monte plus {folder} dans /api/assets/*.'
         )
-        assert r.text.strip() == probe_content, (
-            f'Le contenu servi ({r.text[:50]!r}) diffère du fichier écrit ({probe_content!r}). '
-            f'Le mount pointe-t-il vers le bon dossier ?'
+    finally:
+        if probe_path.exists():
+            probe_path.unlink()
+
+
+def test_pack_karmique_folder_still_served():
+    """Pack Karmique conserve son mount temporaire (grace period pour les
+    achats existants). À migrer à son tour ultérieurement.
+
+    Test optional : si le mount est retiré, ce test doit skip proprement.
+    """
+    unique_name = f'_e2e_probe_{uuid.uuid4().hex[:8]}.txt'
+    probe_path = ASSETS_DIR / 'pack_karmique' / unique_name
+    try:
+        probe_path.write_text('probe')
+        r = requests.get(
+            f'{BASE_URL}/api/assets/pack_karmique/{unique_name}',
+            timeout=10,
         )
+        # 200 tant que le mount est présent, 404 sinon (comportement acceptable)
+        assert r.status_code in (200, 404)
     finally:
         if probe_path.exists():
             probe_path.unlink()

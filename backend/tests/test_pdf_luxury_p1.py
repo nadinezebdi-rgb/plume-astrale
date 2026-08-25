@@ -185,3 +185,62 @@ def test_pdf_size_under_luxury_ceiling():
         f'PDF Karma Destin fait {len(pdf)/(1024*1024):.1f} Mo — '
         'régression du fix P1 compression (attendu < 2 Mo).'
     )
+
+
+def test_karma_destin_pdf_hits_promised_page_count():
+    """La sales copy promet ~22 pages. Vérifie qu'on tient la promesse."""
+    from pypdf import PdfReader
+    from io import BytesIO
+    from services.karma_destin_pdf import generate_karma_destin_pdf
+    mock = {
+        'north_node': {'sign': 'Lion'},
+        'south_node': {'sign': 'Verseau'},
+        'saturn': {'sign': 'Capricorne'},
+        'chiron': {'sign': 'Poissons'},
+        'pluto': {'sign': 'Scorpion'},
+    }
+    pdf = generate_karma_destin_pdf('Sophie', '1990-06-15', mock)
+    n = len(PdfReader(BytesIO(pdf)).pages)
+    assert n >= 22, (
+        f'Karma & Destin doit générer ≥ 22 pages (promise marketing), '
+        f'a généré {n} pages seulement.'
+    )
+
+
+def test_numerologie_pdf_hits_promised_page_count():
+    """La sales copy promet ~16 pages. Vérifie qu'on tient la promesse."""
+    from pypdf import PdfReader
+    from io import BytesIO
+    from services.numerologie_pdf import NumerologiePDFGenerator
+    mock = {
+        'life_path': 7, 'destiny_number': 7, 'expression_number': 3, 'heart_number': 6,
+        'personality_number': 9, 'birthday_number': 15,
+        'lo_shu': {'grid': [[1, 2, 3], [4, 5, 6], [7, 8, 9]]},
+    }
+    pdf = NumerologiePDFGenerator().generate(
+        'Sophie', '1990-06-15', mock,
+        personal_year_data={'personal_year': 5, 'year_description': 'Test'},
+        forecast_data={'forecast': [{'period': 'Prochain mois', 'insight': 'Test'}]},
+    )
+    n = len(PdfReader(BytesIO(pdf)).pages)
+    assert n >= 16, (
+        f'Numérologie doit générer ≥ 16 pages (promise marketing), '
+        f'a généré {n} pages seulement.'
+    )
+
+
+def test_colophon_embeds_qr_and_referral_code():
+    """Le colophon avec code parrainage doit générer un QR code embarqué."""
+    from services.karma_destin_pdf import generate_karma_destin_pdf
+    mock = {'north_node': {'sign': 'Lion'}, 'south_node': {'sign': 'Verseau'}}
+    pdf_no_ref = generate_karma_destin_pdf('Sophie', '1990-06-15', mock)
+    pdf_ref = generate_karma_destin_pdf(
+        'Sophie', '1990-06-15', mock,
+        referral_code='SOPH1234',
+        referral_link='https://plume-astrale.fr/?ref=SOPH1234',
+    )
+    # Le PDF avec parrainage doit être significativement plus lourd (QR image + code)
+    assert len(pdf_ref) - len(pdf_no_ref) > 1000, (
+        f'Le PDF avec referral_code doit contenir un bloc partenariat + QR '
+        f'(delta observé : {len(pdf_ref) - len(pdf_no_ref)} bytes, minimum attendu : 1000).'
+    )
