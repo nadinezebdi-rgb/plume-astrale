@@ -1,5 +1,19 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-24 — CAPI Health Check Enrichi (diagnostic Meta explicite)
+
+**Problème** : `GET /api/admin/capi-health` renvoyait `capi_ok: false` sans indiquer POURQUOI. La fonction `send_capi_event` masquait l'erreur Meta (400+ → return False silent).
+
+**Fix** : `server.py` endpoint `admin_capi_health` fait désormais un appel direct à `graph.facebook.com/v20.0/{PIXEL_ID}/events` et retourne :
+- `meta_http_status` : code HTTP renvoyé par Meta
+- `meta_response` : payload complet de Meta
+- `meta_error` : `{message, type, code, subcode, fbtrace_id}` extraits si erreur 400+
+- `capi_ok` : True uniquement si HTTP 2xx
+
+Permet un diagnostic immédiat des tokens invalides, permissions manquantes, pixel non lié, app dev mode, etc.
+
+
+
 ## 2026-02-24 — Real Reviews + Contest Vote Banner
 
 **Tâche 3 — Real Reviews Widget** :
