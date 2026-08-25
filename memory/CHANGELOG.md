@@ -1,5 +1,32 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02-25 — Mini-vidéo cinématique "Sophie" sur homepage
+
+**Objectif** : reproduire la scène cinématique du livre astrologique fournie en référence, avec le prénom "Sophie" gravé sur la couverture, sous forme d'une mini-vidéo intégrée à la homepage.
+
+**Génération d'images** (Gemini Nano Banana via EMERGENT_LLM_KEY) :
+- Script `/tmp/gen_sophie_images.py` — 3 prompts photorealistiques éditoriaux
+- 3 images 1408x832 générées et sauvées dans `/app/frontend/public/videos/sophie/` :
+  - `sophie-02-cover.png` : couverture navy avec "PLUME ASTRALE" + "Sophie" en script doré + galets et bougies
+  - `sophie-03-hands.png` : mains tournant une page "Votre thème natal · Sophie"
+  - `sophie-01-open.png` : livre ouvert Birth Chart + page texte natal chart
+
+**Nouveau composant `CinematicBookShowcase.jsx`** :
+- Séquence 3 slides avec cross-fade 1.4s + Ken Burns 6s (scale 1.02 → 1.12, translate -2%, -1.5%)
+- Progression 3 barres dorées 5s en bas de la scène
+- Bouton pause/play glass morphism en haut à droite
+- Caption dynamique italique Playfair sous chaque slide
+- Layout 5/6 (copy + video stage), max-width 1200, responsive < 880px
+- Vignette + gradient inférieur pour ambiance cinéma
+- Respect `prefers-reduced-motion`
+- data-testid : `cinematic-book-showcase`, `cinematic-showcase-stage`, `cinematic-showcase-toggle`, `cinematic-showcase-cta`
+
+**Intégration** : monté dans `Homepage.js` en section 1.03 (entre `NocturneHero` et `ConcoursImpact`).
+
+Testé visuellement : les 3 slides s'enchaînent correctement, cross-fade fluide, Ken Burns actif, boutons pause/play fonctionnels.
+
+
+
 ## 2026-02-25 — Refonte concours Building France 2026
 
 **Objectif** : Comprendre la promesse produit en <3s, faire de l'aperçu gratuit l'action principale, montrer visuellement le livrable, expliquer le flux Emergent, retirer la mention prématurée "finaliste".

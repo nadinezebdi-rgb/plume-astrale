@@ -21,6 +21,7 @@ import NocturneServices from '@/components/nocturne/NocturneServices';
 import NocturneClosing from '@/components/nocturne/NocturneClosing';
 import NocturneLeadMagnet from '@/components/nocturne/NocturneLeadMagnet';
 import ConcoursImpact from '@/components/nocturne/ConcoursImpact';
+import CinematicBookShowcase from '@/components/nocturne/CinematicBookShowcase';
 import ContestVoteBanner from '@/components/ContestVoteBanner';
 import { BLOG_ARTICLES } from '@/config/blogArticles';
 import { useAuth } from '@/context/AuthContext';
@@ -117,6 +118,9 @@ export default function Homepage() {
 
       {/* Floating CTA — concours Emergent Building France */}
       <ContestVoteBanner />
+
+      {/* ═══ SECTION 1.03 · CINEMATIC BOOK SHOWCASE (mini-vidéo Sophie) ═══ */}
+      <CinematicBookShowcase />
 
       {/* ═══ SECTION 1.05 · PREUVE PRODUIT + FLUX EMERGENT ═══ */}
       <ConcoursImpact />
