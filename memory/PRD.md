@@ -27,6 +27,9 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### 🔗 CTA Édition Reliée sur Hero home (2026-02-27)
+- **NocturneHero CTA #3** : ajout d'un lien pill doré subtil "VOIR L'ÉDITION RELIÉE — 149 €" (data-testid `nocturne-hero-cta-edition-reliee`) sous les deux CTA principaux, pointant vers `/edition-reliee`. Style volontairement discret (pill contour doré + Sparkles + ArrowRight) pour ne pas concurrencer le CTA principal "Créer mon aperçu offert" tout en connectant la nouvelle sales page 149€ au parcours principal (auparavant page orpheline accessible uniquement via URL directe).
+
 ### 🎁 Carte cadeau + Nettoyage home 8-blocs (2026-02-26)
 - **Carte cadeau MVP complet** : SQL migration `2026_02_gift_cards.sql` (table `gift_cards` avec code opaque `PLUME-XXXX-XXXX`), service `gift_card_service.py` (Stripe checkout + webhook handler avec metadata `kind=gift_card` + envoi email destinataire via Resend + rédemption avec génération PDF), routes `routes/gift_cards.py` (`/products`, `/purchase`, `/{code}`, `/{code}/redeem`), webhook branché dans le dispatcher Stripe global. Frontend : `/carte-cadeau` (formulaire acheteur, 3 produits, message perso) et `/carte-cadeau/redeem/{code}` (destinataire complète ses données → PDF). Résout l'objection "je n'ai pas son heure de naissance" (audit business 26/08).
 - **Nettoyage home 8-blocs** : suppression `HowItWorks3Tiers` (Trois façons d'entrer), `HomepageMiniQuiz`, `PremiumPillars` (Quatre repères), `VALUE_PILLARS` section (Trois engagements), Section 5.5 (Six articles blog), `NocturneLeadMagnet` (2ᵉ formulaire). Résultat : un seul formulaire sur la home (dans Hero), une seule proposition de valeur cohérente. 3 liens blog compacts déplacés dans le footer.
