@@ -63,6 +63,20 @@ export default function FooterV2() {
             <FooterLink to="/quotidien">Horoscope du jour</FooterLink>
           </div>
 
+          {/* Le journal — 3 articles remplaçant l'ancien bloc home 5.5 (audit 2026-02-26) */}
+          <div>
+            <FooterHeading>Le journal</FooterHeading>
+            <FooterLink to="/blog/comprendre-le-retour-de-saturne" testid="footer-v2-blog-saturne">
+              Le retour de Saturne
+            </FooterLink>
+            <FooterLink to="/blog/calculer-son-chemin-de-vie-avec-precision" testid="footer-v2-blog-chemin">
+              Calculer son chemin de vie
+            </FooterLink>
+            <FooterLink to="/blog/theme-natal-vocation-professionnelle" testid="footer-v2-blog-vocation">
+              Thème natal et vocation
+            </FooterLink>
+          </div>
+
           {/* Aide */}
           <div>
             <FooterHeading>Aide</FooterHeading>

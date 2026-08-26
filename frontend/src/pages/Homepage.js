@@ -23,7 +23,6 @@ import NocturneLeadMagnet from '@/components/nocturne/NocturneLeadMagnet';
 import NocturneFAQ from '@/components/nocturne/NocturneFAQ';
 import ConcoursImpact from '@/components/nocturne/ConcoursImpact';
 import CinematicBookShowcase from '@/components/nocturne/CinematicBookShowcase';
-import ContestVoteBanner from '@/components/ContestVoteBanner';
 import { BLOG_ARTICLES } from '@/config/blogArticles';
 import { useAuth } from '@/context/AuthContext';
 
@@ -117,8 +116,7 @@ export default function Homepage() {
       {/* ═══ SECTION 1 · HERO NOCTURNE ÉDITORIAL (Feb 2026 — refonte artistique) ═══ */}
       <NocturneHero />
 
-      {/* Floating CTA — concours Emergent Building France */}
-      <ContestVoteBanner />
+      {/* Bandeau concours retiré 2026-02-26 — votes clos depuis le 25 août. */}
 
       {/* ═══ SECTION 1.03 · CINEMATIC BOOK SHOWCASE (mini-vidéo Sophie) ═══ */}
       <CinematicBookShowcase />
@@ -129,11 +127,14 @@ export default function Homepage() {
       {/* ═══ SECTION 1.1 · TRUST BAR (F500 audit 2026-02) — garanties + livraison + support ═══ */}
       <TrustBar variant="dense" />
 
-      {/* ═══ SECTION 1.75 · COMMENT ÇA MARCHE (F500 clarté PDF vs Crédits vs Gratuit) ═══ */}
-      <HowItWorks3Tiers />
-
-      {/* ═══ SECTION 1.8 · MINI-QUIZ (Preview onboarding — conversion précoce) ═══ */}
-      <HomepageMiniQuiz />
+      {/* ═══ 2026-02-26 · NETTOYAGE HOME 8-BLOCS ═══
+          Retirés d'après audit business :
+            - HowItWorks3Tiers (Trois façons d'entrer) — force un choix de modèle économique
+            - HomepageMiniQuiz — remplacé par occasions dans la refonte future
+            - PremiumPillars (Quatre repères) — bruit visuel, redondant avec TrustBar
+            - VALUE_PILLARS section (Trois engagements) — même famille, ne convertit pas
+            - Section 5.5 (Six articles blog) — remplacée par 3 liens compacts dans le footer
+            - NocturneLeadMagnet (second formulaire) — un seul formulaire sur la page (dans Hero) */}
 
       {/* ═══ SECTION 1.9 · MANIFESTE NOCTURNE — différenciation de marque ═══ */}
       <NocturneManifest />
@@ -141,60 +142,13 @@ export default function Homepage() {
       {/* ═══ SECTION 2.0 · SOLÉNA (apparition douce au scroll) ═══ */}
       <SolenaGuideCard />
 
-      {/* ═══ SECTION 2.1 · 4 PILIERS PREMIUM ═══ */}
-      <PremiumPillars />
-
       {/* ═══ SECTION 2.2 · TROIS LECTURES NOCTURNE ═══ */}
       <NocturneServices />
 
-      {/* ═══ SECTION 2 · PROPOSITION DE VALEUR (CLAIRE) ═══ */}
-      <section className="ps-section ps-section-light" data-testid="ps-value">
-        <div className="ps-container">
-          <div style={{ maxWidth: 680, marginBottom: 64 }}>
-            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Trois engagements, tenus à chaque page</p>
-            <h2 className="ps-h2" style={{ color: '#0F1A3C', marginBottom: 20 }}>
-              Une lecture personnelle, <span className="ps-italic">jamais générique.</span>
-            </h2>
-            <p className="ps-body" style={{ color: '#232323' }}>
-              Votre thème natal n&apos;est comparable à aucun autre — votre lecture ne l&apos;est pas non plus.
-              Chaque PDF est calculé sur vos données exactes de naissance et rédigé sur mesure.
-            </p>
-          </div>
+      {/* ═══ SECTION 2 · SUPPRIMÉE (2026-02-26 audit) — VALUE_PILLARS "Trois engagements"
+              redondant avec TrustBar + NocturneServices. La grille NocturneServices
+              tient déjà la promesse (une lecture personnelle, jamais générique). ═══ */}
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: 32,
-          }}>
-            {VALUE_PILLARS.map((pillar) => {
-              const Icon = pillar.icon;
-              return (
-                <div key={pillar.title} className="ps-card" data-testid={`value-${pillar.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                  <div style={{
-                    width: 48, height: 48,
-                    borderRadius: 12,
-                    background: '#F7F5F0',
-                    border: '1px solid #E3E1DC',
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    marginBottom: 20,
-                  }}>
-                    <Icon style={{ width: 22, height: 22, color: '#C9A24B' }} strokeWidth={1.6} />
-                  </div>
-                  <h3 className="ps-h3" style={{ color: '#0F1A3C', marginBottom: 12 }}>{pillar.title}</h3>
-                  <p style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 15, lineHeight: 1.6,
-                    color: '#6B7280',
-                    margin: 0,
-                  }}>
-                    {pillar.body}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
       {/* ═══ SECTION 3 · SUPPRIMÉE (2026-02-14) — Soléna n'est pas astrologue,
               c'est un avatar / une voix éditoriale. Aucune claim d'action humaine. ═══ */}
@@ -326,115 +280,13 @@ export default function Homepage() {
           reviendra dès que des vrais témoignages seront collectés via
           /temoignages (soumission user → approbation admin). */}
 
-      {/* ═══ SECTION 5.5 · ARTICLES BLOG À LA UNE (P8 maillage interne) ═══ */}
-      <section
-        className="ps-section ps-section-light"
-        data-testid="ps-featured-articles"
-        style={{ borderTop: '1px solid #E3E1DC' }}
-      >
-        <div className="ps-container">
-          <div style={{ marginBottom: 40, display: 'flex', justifyContent: 'space-between', alignItems: 'end', flexWrap: 'wrap', gap: 20 }}>
-            <div style={{ maxWidth: 560 }}>
-              <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Le journal Plume Astrale</p>
-              <h2 className="ps-h2" style={{ color: '#0F1A3C', marginBottom: 12 }}>
-                Articles à <span className="ps-italic">explorer</span>.
-              </h2>
-              <p className="ps-body" style={{ color: '#5A5D6B', margin: 0 }}>
-                Six lectures pour comprendre les cycles, les relations, les décisions — sans jargon.
-              </p>
-            </div>
-            <Link
-              to="/blog"
-              data-testid="featured-articles-see-all"
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: 12, fontWeight: 600,
-                letterSpacing: '0.16em', textTransform: 'uppercase',
-                color: '#C9A24B', textDecoration: 'none',
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                paddingBottom: 4,
-                borderBottom: '1px solid rgba(201, 162, 75, 0.4)',
-              }}
-            >
-              Tous les articles
-              <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
-            </Link>
-          </div>
+      {/* ═══ SECTION 5.5 · SUPPRIMÉE (2026-02-26 audit) — Six articles blog en carte
+              retirés au profit de 3 liens compacts dans le footer. Ceci évite
+              la dilution de l'attention sur la home et redirige la découverte
+              vers /blog où elle a plus de sens. ═══ */}
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-            gap: 20,
-          }}>
-            {BLOG_ARTICLES.slice(0, 6).map((article, i) => (
-              <Link
-                key={article.slug}
-                to={`/blog/${article.slug}`}
-                data-testid={`featured-article-${i}`}
-                style={{
-                  display: 'flex', flexDirection: 'column',
-                  padding: 24,
-                  background: '#FFFFFF',
-                  border: '1px solid #E3E1DC',
-                  borderRadius: 12,
-                  textDecoration: 'none',
-                  color: '#0F1A3C',
-                  transition: 'transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.borderColor = '#C9A24B';
-                  e.currentTarget.style.boxShadow = '0 14px 34px rgba(15, 26, 60, 0.08)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.borderColor = '#E3E1DC';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <div style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 10, letterSpacing: '0.22em',
-                  textTransform: 'uppercase', color: '#B8935A',
-                  fontWeight: 500, marginBottom: 12,
-                }}>
-                  {article.tag}
-                </div>
-                <h3 style={{
-                  fontFamily: 'Playfair Display, serif',
-                  fontSize: 19, lineHeight: 1.3, fontWeight: 400,
-                  fontStyle: 'italic', color: '#0F1A3C',
-                  margin: 0, marginBottom: 12,
-                  flex: 1,
-                }}>
-                  {article.title}
-                </h3>
-                <p style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 13, lineHeight: 1.55,
-                  color: '#5A5D6B',
-                  margin: 0, marginBottom: 16,
-                }}>
-                  {article.excerpt}
-                </p>
-                <span style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 11, fontWeight: 600,
-                  letterSpacing: '0.14em', textTransform: 'uppercase',
-                  color: '#C9A24B',
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                }}>
-                  Lire l&apos;article
-                  <ArrowRight style={{ width: 12, height: 12 }} strokeWidth={2} />
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ SECTION 5.7 · LEAD MAGNET NOCTURNE (aperçu 5 pages gratuit) ═══ */}
-      <NocturneLeadMagnet />
+      {/* ═══ SECTION 5.7 · SUPPRIMÉE (2026-02-26 audit) — NocturneLeadMagnet retiré.
+              La home a désormais un seul formulaire, dans NocturneHero. ═══ */}
 
       {/* ═══ SECTION 5.8 · FAQ TRANSPARENTE (Qui est Soléna, RGPD, remboursement) ═══ */}
       <NocturneFAQ />

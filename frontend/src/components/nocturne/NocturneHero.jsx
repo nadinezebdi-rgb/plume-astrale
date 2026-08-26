@@ -57,6 +57,42 @@ export default function NocturneHero() {
               </Link>
             </div>
 
+            <Link
+              to="/edition-reliee"
+              className="ne-reveal ne-reveal-5"
+              data-testid="nocturne-hero-cta-edition-reliee"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 10,
+                marginTop: 18,
+                padding: '10px 18px',
+                borderRadius: 999,
+                border: '1px solid rgba(196, 162, 92, 0.45)',
+                background: 'linear-gradient(135deg, rgba(196, 162, 92, 0.14), rgba(196, 162, 92, 0.04))',
+                color: 'var(--ne-or, #C4A25C)',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 12.5,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                textDecoration: 'none',
+                fontWeight: 500,
+                transition: 'transform 200ms ease, border-color 200ms ease, background 200ms ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.borderColor = 'rgba(196, 162, 92, 0.9)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.borderColor = 'rgba(196, 162, 92, 0.45)';
+              }}
+            >
+              <Sparkles style={{ width: 14, height: 14 }} strokeWidth={1.6} />
+              Voir l&rsquo;Édition Reliée — 149&nbsp;€
+              <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.6} />
+            </Link>
+
             <div className="ne-hero-reassurance ne-reveal ne-reveal-5">
               <span><ShieldCheck aria-hidden="true" /> Sans carte bancaire</span>
               <span><Clock3 aria-hidden="true" /> Livraison immédiate</span>

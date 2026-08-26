@@ -94,8 +94,28 @@ async def generate_lead_magnet(payload: LeadMagnetRequest, request: Request):
     _LAST_GEN[email] = now
 
     # Track dans Supabase (best-effort)
+    # 2026-02-26 AUDIT FIX : l'ancien code insérait dans `lead_magnet_downloads`
+    # qui n'existe PAS dans le schéma Supabase → les leads du formulaire aperçu
+    # n'étaient JAMAIS persistés (log INFO silencieux). On insère désormais dans
+    # `oracle_leads` — la même table que lit `/api/admin/leads`.
     try:
         sb = get_admin_client()
+        # Upsert par email pour éviter les doublons si un visiteur ré-utilise le
+        # formulaire après le rate-limit de 5 min.
+        sb.table('oracle_leads').upsert({
+            'email': email,
+            'first_name': payload.first_name,
+            'birth_date': payload.birth_date,
+            'source': 'lead_magnet_apercu_5p',
+            'consent_marketing': True,
+            'created_at': datetime.now(timezone.utc).isoformat(),
+        }, on_conflict='email').execute()
+    except Exception as e:
+        logger.warning(f'[lead_magnet] oracle_leads persist FAILED: {e}')
+
+    # Journal détaillé complémentaire (best-effort) — utile si un jour la table
+    # `lead_magnet_downloads` est créée pour tracker le PDF token / téléchargement.
+    try:
         sb.table('lead_magnet_downloads').insert({
             'email': email,
             'first_name': payload.first_name,
@@ -105,8 +125,8 @@ async def generate_lead_magnet(payload: LeadMagnetRequest, request: Request):
             'created_at': datetime.now(timezone.utc).isoformat(),
         }).execute()
     except Exception as e:
-        # Table peut ne pas exister → non bloquant
-        logger.info(f'[lead_magnet] tracking skip: {e}')
+        # Table optionnelle — ne pas polluer les logs si absente
+        logger.debug(f'[lead_magnet] token journal skip: {e}')
 
     # URL absolue du PDF (via l'API — pas de partage direct du disque)
     base = str(request.base_url).rstrip('/')

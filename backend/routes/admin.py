@@ -11,6 +11,54 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/admin', tags=['admin'])
 
 
+# ═══════════════════════════════════════════════════════════════
+# Exclusion des emails internes / tests des compteurs revenus.
+# 2026-02-26 — L'audit a révélé que le dashboard mélangeait sessions
+# de test (admin, TEST_*, @example.com, contact@, t@test.fr) avec les
+# vrais paiements clients → 165€ affichés = 0€ réels.
+# ═══════════════════════════════════════════════════════════════
+_INTERNAL_EMAIL_ALLOWLIST_EXACT = {
+    'admin@plume-astrale.fr',
+    'contact@plume-astrale.fr',
+    'test@plume-astrale.fr',
+    'test@plume.fr',
+    't@test.fr',
+    'test2.stripe@example.com',
+    'guest@example.com',
+    # Comptes proches/famille — dépenses hors périmètre commercial
+    # (identifiés dans l'audit du 2026-02-26 comme comptes premium 2100).
+    'nadine.zebdi@gmail.com',
+    'aml.numerique30@gmail.com',
+}
+
+_INTERNAL_EMAIL_PATTERNS = (
+    'test-',
+    'test_',
+    '_test',
+    '+test',
+    '@example.com',
+    '@example.org',
+    '@example.fr',
+    '@plume-astrale.fr',  # tous les emails internes du domaine
+)
+
+
+def _is_internal_email(email) -> bool:
+    """True si l'email est un compte interne/test à exclure des compteurs revenus.
+
+    - Insensible à la casse.
+    - Match exact via allowlist explicite (proches identifiés) OU patterns
+      lâches (`test-*`, `@example.com`…).
+    - Retourne True pour les valeurs None/vides (préférer prudence).
+    """
+    if not email:
+        return True
+    e = str(email).strip().lower()
+    if e in _INTERNAL_EMAIL_ALLOWLIST_EXACT:
+        return True
+    return any(p in e for p in _INTERNAL_EMAIL_PATTERNS)
+
+
 def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
     """Dependency : verifie que l'utilisateur est admin."""
     sb = get_admin_client()
@@ -22,7 +70,13 @@ def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
 
 @router.get('/stats')
 async def admin_stats(_admin: dict = Depends(require_admin)):
-    """KPIs principaux du dashboard."""
+    """KPIs principaux du dashboard.
+
+    2026-02-26 — Compteurs assainis :
+    - Revenus : uniquement `payment_status IN ('paid','completed')` (exclut unpaid/pending).
+    - Exclusion des emails internes/test (admin@, test-, @example.com, patterns TEST_*).
+    - Exposition d'un compteur `internal_txs_excluded` pour transparence.
+    """
     sb = get_admin_client()
     now = datetime.now(timezone.utc)
     today = now.date().isoformat()
@@ -37,16 +91,23 @@ async def admin_stats(_admin: dict = Depends(require_admin)):
     signups_7d = sb.table('profiles').select('id', count='exact').gte('created_at', week_ago).execute().count or 0
     signups_30d = sb.table('profiles').select('id', count='exact').gte('created_at', month_ago).execute().count or 0
 
-    # Paiements completes (credits_granted=true)
-    paid_txs = sb.table('payment_transactions').select('*').eq('credits_granted', True).execute().data or []
+    # Paiements RÉELS uniquement — payment_status paid|completed + email non-interne
+    raw_paid_txs = sb.table('payment_transactions').select('*').in_(
+        'payment_status', ['paid', 'completed'],
+    ).execute().data or []
+    paid_txs = [t for t in raw_paid_txs if not _is_internal_email(t.get('user_email'))]
+    internal_excluded = len(raw_paid_txs) - len(paid_txs)
     total_revenue = sum(float(t.get('amount') or 0) for t in paid_txs)
     revenue_7d = sum(float(t.get('amount') or 0) for t in paid_txs if t.get('created_at', '') >= week_ago)
     revenue_30d = sum(float(t.get('amount') or 0) for t in paid_txs if t.get('created_at', '') >= month_ago)
     total_paid_count = len(paid_txs)
     paying_users = len({t['user_id'] for t in paid_txs if t.get('user_id')})
 
-    # Stripe sessions initiees mais pas payees (= abandons / en attente)
-    pending = sb.table('payment_transactions').select('session_id', count='exact').eq('credits_granted', False).execute().count or 0
+    # Stripe sessions initiees mais pas payees (= abandons / en attente) — hors tests
+    raw_pending = sb.table('payment_transactions').select('user_email').in_(
+        'payment_status', ['unpaid', 'pending'],
+    ).execute().data or []
+    pending = sum(1 for t in raw_pending if not _is_internal_email(t.get('user_email')))
 
     # Credits en circulation
     wallets = sb.table('wallets').select('credit_balance').execute().data or []
@@ -75,6 +136,7 @@ async def admin_stats(_admin: dict = Depends(require_admin)):
             'last_30d_eur': round(revenue_30d, 2),
             'total_paid_count': total_paid_count,
             'pending_count': pending,
+            'internal_txs_excluded': internal_excluded,
         },
         'engagement': {
             'credits_in_wallets': credits_in_wallets,

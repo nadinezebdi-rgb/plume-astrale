@@ -81,6 +81,11 @@ import CreditsInfo from "./pages/CreditsInfo";
 import LivresLanding from "./pages/LivresLanding";
 import AdminPdfTest from "./pages/AdminPdfTest";
 import AdminQrStats from "./pages/AdminQrStats";
+import GiftCardPurchase from "./pages/GiftCardPurchase";
+import GiftCardRedeem from "./pages/GiftCardRedeem";
+import EditionReliee from "./pages/EditionReliee";
+import EditionRelieeMerci from "./pages/EditionRelieeMerci";
+import RelectureRefus from "./pages/RelectureRefus";
 import CookieConsent from "./components/CookieConsent";
 
 // ─── Advanced PDF Products ────────────────────────────
@@ -226,6 +231,12 @@ function App() {
                 <Route path="/admin/analytics" element={<AnalyticsAdmin />} />
                 <Route path="/admin/pdf-test" element={<AdminPdfTest />} />
                 <Route path="/admin/qr-stats" element={<AdminQrStats />} />
+                <Route path="/carte-cadeau" element={<GiftCardPurchase />} />
+                <Route path="/carte-cadeau/redeem/:code" element={<GiftCardRedeem />} />
+                <Route path="/carte-cadeau/merci" element={<GiftCardPurchase />} />
+                <Route path="/edition-reliee" element={<EditionReliee />} />
+                <Route path="/edition-reliee/merci" element={<EditionRelieeMerci />} />
+                <Route path="/relecture/:token" element={<RelectureRefus />} />
 
                 {/* ─── Redirections /outils/* → /services/* (compat legacy) ─── */}
                 <Route path="/outils/theme-natal" element={<Navigate to="/services/theme-natal" replace />} />

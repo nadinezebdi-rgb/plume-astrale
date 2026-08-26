@@ -163,6 +163,105 @@ export default function LivresLanding() {
           </div>
         </section>
 
+        <section className="livres-tiers" data-testid="livres-tiers" aria-labelledby="livres-tiers-title">
+          <header className="livres-tiers__intro">
+            <span className="livres-tiers__eyebrow">Le Thème Natal · trois façons de le recevoir</span>
+            <h2 id="livres-tiers-title">
+              Un même livre. <em>Trois manières de l&apos;offrir.</em>
+            </h2>
+            <p className="livres-tiers__lead">
+              49 pages, composées à partir d&apos;un ciel de naissance exact.
+              L&apos;aperçu pour se faire une idée. Le numérique pour lire.
+              L&apos;Édition Reliée pour offrir un objet qui reste.
+            </p>
+          </header>
+
+          <div className="livres-tiers__grid">
+            <article className="livres-tier" data-testid="livres-tier-apercu">
+              <p className="livres-tier__eyebrow">Pour découvrir</p>
+              <h3 className="livres-tier__title">Aperçu offert</h3>
+              <p className="livres-tier__price">
+                <span className="livres-tier__amount">0 €</span>
+                <span className="livres-tier__unit">5 pages · PDF</span>
+              </p>
+              <ul className="livres-tier__list">
+                <li>Sa carte du ciel imprimable</li>
+                <li>Trois chapitres composés</li>
+                <li>Livré par email en 60 secondes</li>
+              </ul>
+              <Link
+                to="/inscription"
+                className="livres-tier__cta livres-tier__cta--ghost"
+                data-testid="livres-tier-apercu-cta"
+              >
+                Créer mon aperçu
+                <ArrowRight strokeWidth={2} />
+              </Link>
+            </article>
+
+            <article className="livres-tier" data-testid="livres-tier-numerique">
+              <p className="livres-tier__eyebrow">Pour lire</p>
+              <h3 className="livres-tier__title">Édition Numérique</h3>
+              <p className="livres-tier__price">
+                <span className="livres-tier__amount">49 €</span>
+                <span className="livres-tier__unit">49 pages · PDF haute résolution</span>
+              </p>
+              <ul className="livres-tier__list">
+                <li>Onze chapitres complets</li>
+                <li>Carte du ciel à imprimer</li>
+                <li>Relu à la main avant envoi</li>
+                <li>À télécharger, à conserver, à réimprimer</li>
+              </ul>
+              <Link
+                to="/theme-natal-luxe"
+                className="livres-tier__cta livres-tier__cta--ghost"
+                data-testid="livres-tier-numerique-cta"
+              >
+                Commander le PDF
+                <ArrowRight strokeWidth={2} />
+              </Link>
+            </article>
+
+            <article
+              className="livres-tier livres-tier--featured"
+              data-testid="livres-tier-reliee"
+            >
+              <span className="livres-tier__badge">Le cadeau qui reste</span>
+              <p className="livres-tier__eyebrow">Pour offrir</p>
+              <h3 className="livres-tier__title">Édition Reliée</h3>
+              <p className="livres-tier__price">
+                <span className="livres-tier__amount">149 €</span>
+                <span className="livres-tier__unit">Livre imprimé, cousu, numéroté</span>
+              </p>
+              <ul className="livres-tier__list">
+                <li>Tout ce que contient l&apos;Édition Numérique</li>
+                <li>Livre relié à la main dans son coffret</li>
+                <li>Carte du ciel grand format à encadrer</li>
+                <li>Votre dédicace imprimée en tête d&apos;ouvrage</li>
+                <li>
+                  <b>Vous lisez avant qu&apos;on imprime</b> · garantie 72 h
+                </li>
+              </ul>
+              <Link
+                to="/edition-reliee"
+                className="livres-tier__cta livres-tier__cta--primary"
+                data-testid="livres-tier-reliee-cta"
+              >
+                Voir l&apos;Édition Reliée
+                <ArrowRight strokeWidth={2} />
+              </Link>
+            </article>
+          </div>
+
+          <p className="livres-tiers__note">
+            Vous n&apos;avez pas son heure de naissance ?{' '}
+            <Link to="/carte-cadeau" data-testid="livres-tiers-giftcard-link">
+              La carte cadeau
+            </Link>{' '}
+            laisse la destinataire renseigner ses données elle-même.
+          </p>
+        </section>
+
         <section className="livres-collection" aria-labelledby="collection-title">
           <header className="livres-collection__intro">
             <div>
