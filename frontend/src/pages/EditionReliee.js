@@ -5,6 +5,7 @@ import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
 
 const CTA_PRICE = 149;
+const API = process.env.REACT_APP_BACKEND_URL || '';
 
 function computeDeadline(birthDateStr) {
   if (!birthDateStr) return null;
@@ -21,6 +22,7 @@ function computeDeadline(birthDateStr) {
 export default function EditionReliee() {
   const [birthDate, setBirthDate] = useState('');
   const deadline = useMemo(() => computeDeadline(birthDate), [birthDate]);
+  const [showForm, setShowForm] = useState(false);
 
   return (
     <PsPageShell background="dark">
@@ -40,9 +42,14 @@ export default function EditionReliee() {
             <b> 49 pages qui n'existe qu'en un exemplaire</b>. Relu à la main. Imprimé, cousu, numéroté.
             Chez elle en cinq jours.
           </p>
-          <a href="/carte-cadeau" data-testid="er-cta-primary-top" style={ctaPrimary}>
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            data-testid="er-cta-primary-top"
+            style={ctaPrimary}
+          >
             Composer son livre — {CTA_PRICE}&nbsp;€
-          </a>
+          </button>
           <p style={reassure}>
             Vous lisez le texte entier avant qu'on imprime · Expédié sous 5 jours · Livré en France
           </p>
@@ -222,17 +229,186 @@ export default function EditionReliee() {
           <p style={{ ...body, fontStyle: 'italic', fontSize: '1.3rem', color: '#E8C766', marginBottom: 32 }}>
             Il lui restera longtemps après que le dîner sera oublié.
           </p>
-          <a href="/carte-cadeau" data-testid="er-cta-primary-bottom" style={ctaPrimary}>
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            data-testid="er-cta-primary-bottom"
+            style={ctaPrimary}
+          >
             Composer son livre — {CTA_PRICE}&nbsp;€
-          </a>
+          </button>
           <p style={reassure}>
             Vous lisez avant qu'on imprime · Paiement sécurisé Stripe · Expédié de France
           </p>
         </section>
       </div>
+
+      {showForm && (
+        <CheckoutModal onClose={() => setShowForm(false)} />
+      )}
     </PsPageShell>
   );
 }
+
+// ── Modal Checkout Édition Reliée ─────────────────────────────
+function CheckoutModal({ onClose }) {
+  const [form, setForm] = useState({
+    purchaser_email: '',
+    purchaser_first_name: '',
+    recipient_first_name: '',
+    birth_date: '',
+    birth_time: '',
+    birth_city: '',
+    dedication: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const update = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    if (!form.birth_time) {
+      setError("Sans heure de naissance, la carte du ciel perd les maisons. Deux options : ouvrez la carte cadeau, ou écrivez-nous et nous adaptons.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const r = await fetch(`${API}/api/edition-reliee/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          birth_country: 'FR',
+          origin_url: window.location.origin,
+        }),
+      });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        setError(d.detail || 'Erreur lors de la création du paiement. Réessayez ou écrivez-nous à contact@plume-astrale.fr.');
+        setSubmitting(false);
+        return;
+      }
+      const data = await r.json();
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      setError('Réponse inattendue du serveur. Écrivez-nous à contact@plume-astrale.fr.');
+      setSubmitting(false);
+    } catch {
+      setError('Impossible de contacter le serveur. Vérifiez votre connexion.');
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div data-testid="er-checkout-modal" style={modalBackdrop} onClick={onClose}>
+      <div style={modalCard} onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Fermer"
+          data-testid="er-checkout-modal-close"
+          style={modalClose}
+        >
+          ×
+        </button>
+        <p style={{ ...eyebrow, textAlign: 'center' }}>ÉDITION RELIÉE · 149 €</p>
+        <h2 style={{ ...h2, textAlign: 'center', marginTop: 12, marginBottom: 8 }}>
+          Composons son livre.
+        </h2>
+        <p style={{ ...body, textAlign: 'center', color: '#B9B0D5', margin: '0 0 24px' }}>
+          Vous ne payez que si le texte la touche. Garantie 72 h.
+        </p>
+
+        <form onSubmit={submit}>
+          <p style={formGroupLabel}>Votre email — le PDF y sera envoyé</p>
+          <input type="email" required value={form.purchaser_email} onChange={update('purchaser_email')}
+                 placeholder="vous@exemple.fr" data-testid="er-form-email" style={input}/>
+
+          <p style={formGroupLabel}>Votre prénom</p>
+          <input type="text" required value={form.purchaser_first_name} onChange={update('purchaser_first_name')}
+                 placeholder="Marie" data-testid="er-form-purchaser" style={input}/>
+
+          <div style={{ height: 22 }} />
+          <p style={{ ...eyebrow, textAlign: 'left' }}>SES DONNÉES DE NAISSANCE</p>
+
+          <p style={formGroupLabel}>Son prénom (imprimé sur la couverture)</p>
+          <input type="text" required value={form.recipient_first_name} onChange={update('recipient_first_name')}
+                 placeholder="Julie" data-testid="er-form-recipient" style={input}/>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 6 }}>
+            <div>
+              <p style={formGroupLabel}>Sa date de naissance</p>
+              <input type="date" required value={form.birth_date} onChange={update('birth_date')}
+                     data-testid="er-form-birth-date" style={input}/>
+            </div>
+            <div>
+              <p style={formGroupLabel}>Son heure exacte</p>
+              <input type="time" required value={form.birth_time} onChange={update('birth_time')}
+                     data-testid="er-form-birth-time" style={input}/>
+            </div>
+          </div>
+
+          <p style={formGroupLabel}>Sa ville de naissance</p>
+          <input type="text" required value={form.birth_city} onChange={update('birth_city')}
+                 placeholder="Marseille" data-testid="er-form-birth-city" style={input}/>
+
+          <p style={formGroupLabel}>Une dédicace imprimée en tête d'ouvrage (optionnel)</p>
+          <textarea rows={3} maxLength={400} value={form.dedication} onChange={update('dedication')}
+                    placeholder="Pour Julie, qui prend soin de ce que d'autres oublient."
+                    data-testid="er-form-dedication" style={{ ...input, resize: 'vertical', fontFamily: 'inherit' }}/>
+
+          <p style={{ ...body, margin: '16px 0', color: '#B9B0D5', fontSize: '0.9rem', fontStyle: 'italic' }}>
+            Vous n'avez pas son heure de naissance ? Prenez la{' '}
+            <Link to="/carte-cadeau" style={linkGold}>carte cadeau</Link>{' '}
+            à la place — elle la renseignera elle-même.
+          </p>
+
+          {error && (
+            <p data-testid="er-form-error" style={{ ...body, color: '#E8916B', background: 'rgba(180,117,98,0.14)', padding: '12px 14px', borderRadius: 4, fontSize: '0.95rem', margin: '12px 0' }}>
+              {error}
+            </p>
+          )}
+
+          <button type="submit" disabled={submitting} data-testid="er-form-submit"
+                  style={{ ...ctaPrimary, width: '100%', textAlign: 'center', padding: '18px 28px', marginTop: 16, cursor: submitting ? 'wait' : 'pointer', opacity: submitting ? 0.7 : 1 }}>
+            {submitting ? 'Redirection vers Stripe…' : `Payer ${CTA_PRICE} € en toute sécurité`}
+          </button>
+          <p style={{ ...reassure, textAlign: 'center', marginTop: 14 }}>
+            Paiement sécurisé Stripe · PDF dans l'heure · 72h pour relire avant impression
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+const modalBackdrop = {
+  position: 'fixed', inset: 0, background: 'rgba(6,10,26,0.88)', backdropFilter: 'blur(6px)',
+  zIndex: 9999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+  padding: '32px 16px', overflowY: 'auto',
+};
+const modalCard = {
+  position: 'relative', maxWidth: 560, width: '100%',
+  background: 'linear-gradient(180deg, #0F1A3C 0%, #15112A 100%)',
+  border: '1px solid rgba(212,175,55,0.35)', borderRadius: 10,
+  padding: '40px 32px 32px', color: '#F5EEE0',
+  boxShadow: '0 24px 60px -20px rgba(0,0,0,0.6)',
+  fontFamily: '"Cormorant Garamond", serif',
+};
+const modalClose = {
+  position: 'absolute', top: 12, right: 16, width: 32, height: 32,
+  background: 'transparent', border: 'none', color: 'rgba(240,230,211,0.7)',
+  fontSize: 28, lineHeight: 1, cursor: 'pointer', padding: 0,
+};
+const formGroupLabel = {
+  fontFamily: '"Cinzel", serif', fontSize: '0.68rem', letterSpacing: 2,
+  color: 'rgba(212,175,55,0.85)', textTransform: 'uppercase',
+  margin: '18px 0 6px',
+};
 
 const eyebrow = { fontFamily: '"Cinzel", serif', fontSize: '0.75rem', letterSpacing: 3, color: '#D4AF37', margin: 0 };
 const h1 = { fontFamily: '"Playfair Display", serif', fontSize: 'clamp(2.2rem, 5vw, 3.4rem)', color: '#F5EEE0', margin: 0, fontWeight: 400, lineHeight: 1.15 };

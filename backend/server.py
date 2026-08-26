@@ -78,6 +78,7 @@ from routes.pdf_test_admin import router as pdf_test_admin_router
 from routes.lead_magnet import router as lead_magnet_router
 from routes.voyage_karmique import router as voyage_karmique_router
 from routes.gift_cards import router as gift_cards_router
+from routes.edition_reliee import router as edition_reliee_router
 from routes.print_approvals import (
     api_router as print_approval_api_router,
     admin_router as print_approval_admin_router,
@@ -118,6 +119,7 @@ api_router.include_router(rencontres_router)
 api_router.include_router(analytics_router)
 api_router.include_router(compatible_router)
 api_router.include_router(gift_cards_router)
+api_router.include_router(edition_reliee_router)
 api_router.include_router(print_approval_api_router)
 api_router.include_router(print_approval_admin_router)
 
@@ -900,6 +902,16 @@ async def stripe_webhook(request: Request):
         except Exception as e:
             logger.warning(f'[gift_card] webhook handler fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'gift_card'}
+
+    # Route vers edition_reliee_service (Édition Reliée 149€ — flow 72h approbation)
+    if md.get('kind') == 'edition_reliee':
+        from services.edition_reliee_service import handle_edition_reliee_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_edition_reliee_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[edition_reliee] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'edition_reliee'}
 
     # Route vers rencontres_ultime handler si kind=rencontres_ultime (pack 29,99 EUR)
     if md.get('kind') == 'rencontres_ultime':
