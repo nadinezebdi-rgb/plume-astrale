@@ -27,6 +27,19 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### 📖 Trois paliers Thème Natal · Sceau fondatrice · Flow approbation 72h (2026-02-27)
+- **Livres — Trois paliers Thème Natal** (`/livres`) : nouvelle section `livres-tiers` placée juste après le hero, dédiée au flagship Thème Natal. Trois cartes cohérentes : *Aperçu offert (0 €, 5 pages)*, *Édition Numérique (49 €, 49 pages)*, *Édition Reliée (149 €, livre imprimé)*. Palier Reliée mis en valeur avec fond navy + badge doré "Le cadeau qui reste" + CTA gradient. Note bas-de-section pointant vers la carte cadeau pour lever l'objection "je n'ai pas son heure de naissance". CSS additif (`LivresLanding.css` +230 lignes), responsive < 960px en colonne unique. data-testids `livres-tier-{apercu,numerique,reliee}-cta`.
+- **Sceau fondatrice** (`/edition-reliee`) : bloc `er-block-6b-sceau` inséré entre la Garantie (B6) et Ce qui est compris (B7). Médaillon rond avec initiale N italique + halo doré + double paragraphe éditorial signé "Nadine · fondatrice · relectrice · signataire". Renforce le positionnement artisanal français (Marseille 2024) contre les concurrents robotisés.
+- **Flow d'approbation 72h "Vous lisez avant qu'on imprime"** :
+  - Migration SQL `2026_02_print_approvals.sql` : table `print_approvals` (status `awaiting_review|approved|refused|expired`, tokens opaques `approve_token`+`refuse_token` uuid.hex, `deadline_at = created_at + 72h`, `reminder_24h_sent_at` / `reminder_48h_sent_at` pour idempotence, index composite status+deadline, RLS activée). À exécuter dans Supabase.
+  - Service `services/print_approval_service.py` : `create_print_approval()` (insert + email initial), `approve()` / `refuse(reason)`, `_send_reminder_email(kind='24h'|'48h')`, `_notify_admin_approval()` (alerte admin sur décision), `print_approval_loop()` (cycle 15 min : envoie rappels J+1/J+2 idempotents, marque `expired` passé 72h).
+  - Routes `routes/print_approvals.py` : `GET /api/print-approval/approve/{token}` (lien 1-clic depuis email, retourne HTML de courtoisie signé Nadine), `POST /api/print-approval/refuse/{token}` (raison optionnelle), `GET /api/print-approval/{token}` (fetch infos via refuse_token pour la page front), `GET /api/admin/print-approvals` (listing admin).
+  - Page front `/relecture/:token` (`RelectureRefus.js`) : ouvre le PDF en preview, textarea 1000 chars pour la raison du refus, boutons "REFUSER · REMBOURSEMENT INTÉGRAL" + "Y réfléchir encore", états `done` / `already_refused` / `already_approved` gérés. noindex.
+  - Emails Nocturne (via Resend) : email initial (2 CTA côte-à-côte "APPROUVER · IMPRIMEZ" gradient doré vs "DIRE POURQUOI ÇA NE VA PAS" outline), rappel J+1 doux, rappel J+2 "dernière relance". Signature "— Nadine" en Playfair italique.
+  - Loop enregistré dans `server.py` startup (`asyncio.create_task(print_approval_loop())`).
+  - Tests pytest : `tests/test_print_approval.py` — 10/10 pass (signature service, tokens invalides, endpoints 404, admin list 200, migration SQL bien formée, loop idempotent, email contient les 3 liens critiques).
+  - **Statut** : plumbing complet et testé. Reste à câbler `create_print_approval(...)` dans le webhook Stripe quand le produit Édition Reliée 149 € sera activé côté paiement (attendu après retours imprimeurs du fondateur).
+
 ### 🔗 CTA Édition Reliée sur Hero home (2026-02-27)
 - **NocturneHero CTA #3** : ajout d'un lien pill doré subtil "VOIR L'ÉDITION RELIÉE — 149 €" (data-testid `nocturne-hero-cta-edition-reliee`) sous les deux CTA principaux, pointant vers `/edition-reliee`. Style volontairement discret (pill contour doré + Sparkles + ArrowRight) pour ne pas concurrencer le CTA principal "Créer mon aperçu offert" tout en connectant la nouvelle sales page 149€ au parcours principal (auparavant page orpheline accessible uniquement via URL directe).
 

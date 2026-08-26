@@ -1125,3 +1125,282 @@
     transform: none;
   }
 }
+
+/* ─────────────────────────────────────────────
+   Trois paliers · Thème Natal (2026-02-27)
+   Aperçu offert · Numérique 49€ · Reliée 149€
+   ───────────────────────────────────────────── */
+.livres-tiers {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 70px 24px 32px;
+}
+
+.livres-tiers__intro {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 48px;
+}
+
+.livres-tiers__eyebrow {
+  display: inline-block;
+  font-family: 'Cinzel', 'Cormorant Garamond', serif;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #8F6E24;
+  margin-bottom: 14px;
+}
+
+.livres-tiers__intro h2 {
+  font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 500;
+  color: var(--livres-ink, #0F1A3C);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0 0 16px;
+}
+
+.livres-tiers__intro h2 em {
+  font-style: italic;
+  color: #8F6E24;
+  font-weight: 400;
+}
+
+.livres-tiers__lead {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(35, 35, 35, 0.72);
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.livres-tiers__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.livres-tier {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 34px 28px 30px;
+  background: #FFFFFF;
+  border: 1px solid rgba(143, 110, 36, 0.16);
+  border-radius: 6px;
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 240ms ease;
+}
+
+.livres-tier:hover {
+  transform: translateY(-3px);
+  border-color: rgba(143, 110, 36, 0.34);
+  box-shadow: 0 22px 44px -20px rgba(15, 26, 60, 0.18);
+}
+
+.livres-tier--featured {
+  background: linear-gradient(180deg, #0F1A3C 0%, #1E2A5E 100%);
+  border-color: rgba(212, 175, 55, 0.45);
+  color: #F5F0E6;
+  box-shadow: 0 20px 40px -18px rgba(15, 26, 60, 0.35);
+}
+
+.livres-tier--featured:hover {
+  border-color: rgba(212, 175, 55, 0.75);
+  box-shadow: 0 30px 56px -20px rgba(15, 26, 60, 0.45),
+              inset 0 0 0 1px rgba(212, 175, 55, 0.2);
+}
+
+.livres-tier__badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 14px;
+  background: linear-gradient(135deg, #D4AF37, #E8C766);
+  color: #0F1A3C;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.livres-tier__eyebrow {
+  font-family: 'Cinzel', serif;
+  font-size: 10.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #8F6E24;
+  margin: 0 0 12px;
+}
+
+.livres-tier--featured .livres-tier__eyebrow {
+  color: #D4AF37;
+}
+
+.livres-tier__title {
+  font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--livres-ink, #0F1A3C);
+  margin: 0 0 16px;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.livres-tier--featured .livres-tier__title {
+  color: #F5F0E6;
+}
+
+.livres-tier__price {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 0 0 20px;
+  margin: 0 0 20px;
+  border-bottom: 1px solid rgba(143, 110, 36, 0.15);
+}
+
+.livres-tier--featured .livres-tier__price {
+  border-color: rgba(212, 175, 55, 0.22);
+}
+
+.livres-tier__amount {
+  font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+  font-size: 40px;
+  font-weight: 500;
+  color: #8F6E24;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.livres-tier--featured .livres-tier__amount {
+  color: #E8C766;
+}
+
+.livres-tier__unit {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: rgba(35, 35, 35, 0.6);
+  line-height: 1.4;
+}
+
+.livres-tier--featured .livres-tier__unit {
+  color: rgba(245, 240, 230, 0.6);
+}
+
+.livres-tier__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px;
+  flex: 1;
+}
+
+.livres-tier__list li {
+  position: relative;
+  padding: 8px 0 8px 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(35, 35, 35, 0.82);
+}
+
+.livres-tier__list li::before {
+  content: '·';
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  color: #8F6E24;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.livres-tier--featured .livres-tier__list li {
+  color: rgba(245, 240, 230, 0.86);
+}
+
+.livres-tier--featured .livres-tier__list li::before {
+  color: #D4AF37;
+}
+
+.livres-tier__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 22px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: transform 200ms ease, background 200ms ease, border-color 200ms ease;
+}
+
+.livres-tier__cta svg {
+  width: 14px;
+  height: 14px;
+}
+
+.livres-tier__cta--ghost {
+  background: transparent;
+  color: var(--livres-ink, #0F1A3C);
+  border: 1px solid rgba(143, 110, 36, 0.4);
+}
+
+.livres-tier__cta--ghost:hover {
+  border-color: #8F6E24;
+  transform: translateY(-1px);
+}
+
+.livres-tier__cta--primary {
+  background: linear-gradient(135deg, #D4AF37, #E8C766);
+  color: #0F1A3C;
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+
+.livres-tier__cta--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px -8px rgba(212, 175, 55, 0.55);
+}
+
+.livres-tiers__note {
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  color: rgba(35, 35, 35, 0.65);
+  margin: 24px 0 0;
+}
+
+.livres-tiers__note a {
+  color: #8F6E24;
+  text-decoration: underline;
+  text-decoration-color: rgba(143, 110, 36, 0.4);
+  font-weight: 500;
+}
+
+.livres-tiers__note a:hover {
+  text-decoration-color: #8F6E24;
+}
+
+@media (max-width: 960px) {
+  .livres-tiers__grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .livres-tier {
+    padding: 30px 24px 26px;
+  }
+}

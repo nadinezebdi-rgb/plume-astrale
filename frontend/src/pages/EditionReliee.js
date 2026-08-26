@@ -130,6 +130,31 @@ export default function EditionReliee() {
           </p>
         </section>
 
+        {/* B6.5 · Sceau fondatrice */}
+        <section data-testid="er-block-6b-sceau" style={sceauWrap}>
+          <div style={sceauCard}>
+            <div style={sceauSeal} aria-hidden="true">
+              <span style={sceauSealMark}>N</span>
+              <span style={sceauSealRing}>· PLUME ASTRALE · ATELIER FRANÇAIS ·</span>
+            </div>
+            <p style={sceauEyebrow}>LE SCEAU DE LA FONDATRICE</p>
+            <p style={sceauBody}>
+              Je m'appelle <b>Nadine</b>. J'ai fondé Plume Astrale à Marseille, en 2024,
+              pour écrire les livres que je cherchais et ne trouvais pas :
+              des ouvrages qui prennent une vie au sérieux, et qui prennent le temps.
+            </p>
+            <p style={sceauBody}>
+              Chaque exemplaire de l'Édition Reliée passe entre mes mains :
+              je relis chaque page, je corrige ce qui sonne faux, je signe le colophon,
+              je numérote le coffret. Je ne délègue rien de tout ça.
+            </p>
+            <div style={sceauSignatureLine}>
+              <span style={sceauSignatureName}>Nadine</span>
+              <span style={sceauSignatureRole}>fondatrice · relectrice · signataire</span>
+            </div>
+          </div>
+        </section>
+
         {/* B7 · Ce qui est compris */}
         <section data-testid="er-block-7-included">
           <p style={eyebrow}>CE QUI EST COMPRIS</p>
@@ -230,3 +255,39 @@ const input = { display: 'block', marginTop: 6, padding: '10px 14px', background
 const linkGold = { color: '#D4AF37', textDecoration: 'underline', textDecorationColor: 'rgba(212,175,55,0.4)' };
 const faqItem = { padding: '18px 0', borderBottom: '1px solid rgba(212,175,55,0.16)', cursor: 'pointer' };
 const faqSummary = { fontFamily: '"Cinzel", serif', fontSize: '0.95rem', letterSpacing: 1, color: '#F5EEE0', outline: 'none' };
+
+// ── Sceau fondatrice ──
+const sceauWrap = { margin: '80px 0', display: 'flex', justifyContent: 'center' };
+const sceauCard = {
+  position: 'relative', maxWidth: 620, width: '100%',
+  padding: '56px 40px 44px', textAlign: 'center',
+  background: 'radial-gradient(circle at 50% 0%, rgba(212,175,55,0.10), rgba(15,26,60,0.4) 70%)',
+  border: '1px solid rgba(212,175,55,0.3)', borderRadius: 8,
+};
+const sceauSeal = {
+  position: 'absolute', top: -44, left: '50%', transform: 'translateX(-50%)',
+  width: 88, height: 88, borderRadius: '50%',
+  background: 'radial-gradient(circle, #1A1030 40%, #0F1A3C 100%)',
+  border: '1.5px solid #D4AF37', display: 'flex', alignItems: 'center', justifyContent: 'center',
+  boxShadow: '0 0 24px rgba(212,175,55,0.35), inset 0 0 12px rgba(212,175,55,0.15)',
+};
+const sceauSealMark = {
+  fontFamily: '"Playfair Display", serif', fontStyle: 'italic',
+  fontSize: 42, color: '#E8C766', fontWeight: 400, lineHeight: 1,
+};
+const sceauSealRing = {
+  position: 'absolute', inset: 0, borderRadius: '50%',
+  fontFamily: '"Cinzel", serif', fontSize: 6, letterSpacing: 1.5, color: 'rgba(232,199,102,0.35)',
+  display: 'none', // décoratif potentiel — masqué par défaut
+};
+const sceauEyebrow = { fontFamily: '"Cinzel", serif', fontSize: '0.7rem', letterSpacing: 3, color: '#D4AF37', margin: '18px 0 20px' };
+const sceauBody = { fontSize: '1.02rem', color: '#F5EEE0', margin: '14px 0', lineHeight: 1.65 };
+const sceauSignatureLine = { marginTop: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 };
+const sceauSignatureName = {
+  fontFamily: '"Playfair Display", serif', fontStyle: 'italic',
+  fontSize: '2.1rem', color: '#E8C766', lineHeight: 1,
+};
+const sceauSignatureRole = {
+  fontFamily: '"Cinzel", serif', fontSize: '0.65rem', letterSpacing: 2.5,
+  color: 'rgba(232,199,102,0.6)', textTransform: 'uppercase',
+};

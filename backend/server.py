@@ -78,6 +78,10 @@ from routes.pdf_test_admin import router as pdf_test_admin_router
 from routes.lead_magnet import router as lead_magnet_router
 from routes.voyage_karmique import router as voyage_karmique_router
 from routes.gift_cards import router as gift_cards_router
+from routes.print_approvals import (
+    api_router as print_approval_api_router,
+    admin_router as print_approval_admin_router,
+)
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from integrations.payments.stripe.checkout import (
@@ -114,6 +118,8 @@ api_router.include_router(rencontres_router)
 api_router.include_router(analytics_router)
 api_router.include_router(compatible_router)
 api_router.include_router(gift_cards_router)
+api_router.include_router(print_approval_api_router)
+api_router.include_router(print_approval_admin_router)
 
 
 # Helper interne pour deduire credits d'un service donne (utilise par les routes)
@@ -2904,3 +2910,6 @@ async def _start_cart_recovery():
     _asyncio.create_task(ig_weekly_post_loop())
     _asyncio.create_task(ig_token_refresh_loop())
     _asyncio.create_task(ssr_refresh_loop())
+    # Flow d'approbation 72h "Vous lisez avant qu'on imprime" (Édition Reliée)
+    from services.print_approval_service import print_approval_loop
+    _asyncio.create_task(print_approval_loop())
