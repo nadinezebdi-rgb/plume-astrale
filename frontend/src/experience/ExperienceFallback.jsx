@@ -114,7 +114,9 @@ export default function ExperienceFallback({
       {expanded >= 4 && (
         <section className="exp-section" data-testid="experience-scene-4">
           <div className="exp-section-inner exp-s4__stack">
-            <p className="exp-s4__written" data-visible="true">PLUME <em>Astrale</em></p>
+            <p className="exp-h1" style={{ marginBottom: 20 }}>
+              PLUME <em>Astrale</em>
+            </p>
             <div className="exp-s4__phrases">
               <p className="exp-h2 exp-s4__phrase" data-visible="true">Votre histoire est unique.</p>
               <p className="exp-h2 exp-s4__phrase" data-visible="true">Votre ciel aussi.</p>

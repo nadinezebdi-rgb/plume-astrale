@@ -582,24 +582,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 60px;
-  padding-top: 12vh;
+  gap: 40px;
+  padding-top: 8vh;
 }
 
-.exp-s4__written {
-  font-family: var(--exp-serif);
-  font-style: italic;
-  font-size: clamp(34px, 5vw, 60px);
-  letter-spacing: 0.06em;
-  color: var(--exp-ivory);
-  opacity: 0;
-  transition: opacity 1800ms ease;
-  margin: 0;
+/* Espace réservé pour la formation des particules (plume → "Plume Astrale") */
+.exp-s4__particle-space {
+  width: 100%;
+  height: 42vh;
+  min-height: 260px;
+  max-height: 460px;
 }
-
-.exp-s4__written[data-visible="true"] { opacity: 1; }
-
-.exp-s4__written em { font-style: italic; color: var(--exp-gold); }
 
 .exp-s4__phrases {
   display: flex;

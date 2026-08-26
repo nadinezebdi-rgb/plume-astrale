@@ -1,89 +1,201 @@
 /**
- * Scene 04 — Apparition de la plume
+ * Scene 04 — Apparition de la plume + écriture "Plume Astrale"
  * ─────────────────────────────────────────────────────────────
- * Le MOMENT WOW.
+ * LE MOMENT WOW en 4 phases :
+ *   Phase A (0 → 5.0 s)  : dispersion → PLUME calligraphique (rachis courbé,
+ *                          barbes asymétriques, pointe wispy)
+ *   Phase B (5.0 → 7.0 s): la plume respire immobile (pause d'admiration)
+ *   Phase C (7.0 → 10.0 s): morphing PLUME → texte "Plume Astrale"
+ *   Phase D (10.0 s → ∞) : texte stable + sweep doré cinématique gauche→droite
  *
- * • ~600 particules démarrent en positions aléatoires (dispersion).
- * • Elles convergent PROGRESSIVEMENT vers un ensemble de positions
- *   cibles qui dessinent une plume calligraphique.
- * • Une fois la formation atteinte, elles respirent doucement.
- *
- * La formation est pilotée par `globalProgress` (0..1 sur les 4 scènes).
- * L'interpolation démarre à progress=0.75 (début scène 4) et se termine
- * à progress=0.95 (avant les derniers 5% qui laissent la plume respirer).
+ * Le sweep cinématique est un sprite additif discret qui traverse le texte,
+ * comme un rayon de lumière sur du velours — pas un flash, une caresse.
  */
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useExperienceStore } from '../useExperienceStore';
 
-const FEATHER_TEXTURE = (() => {
+// Textures particules (halo doré doux)
+const PARTICLE_TEX = (() => {
   if (typeof document === 'undefined') return null;
-  const size = 64;
-  const canvas = document.createElement('canvas');
-  canvas.width = size; canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  const grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  grad.addColorStop(0, 'rgba(255, 246, 220, 1)');
-  grad.addColorStop(0.4, 'rgba(216, 183, 106, 0.35)');
-  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, size, size);
-  return new THREE.CanvasTexture(canvas);
+  const s = 64;
+  const c = document.createElement('canvas');
+  c.width = s; c.height = s;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+  g.addColorStop(0, 'rgba(255, 246, 220, 1)');
+  g.addColorStop(0.35, 'rgba(216, 183, 106, 0.5)');
+  g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, s, s);
+  return new THREE.CanvasTexture(c);
 })();
 
-/**
- * Génère les positions cibles qui dessinent une plume calligraphique.
- * On sample :
- *   • le rachis (colonne centrale, courbe légère)
- *   • les barbes de gauche et de droite (perpendiculaires au rachis,
- *     de plus en plus longues vers le milieu, plus courtes aux extrémités)
- *   • quelques particules près du calamus (pointe basse) pour l'ancre visuelle
- */
+// Sprite de lumière cinématique (halo large ivoire/or)
+const SWEEP_TEX = (() => {
+  if (typeof document === 'undefined') return null;
+  const s = 256;
+  const c = document.createElement('canvas');
+  c.width = s; c.height = s;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+  g.addColorStop(0, 'rgba(255, 246, 220, 0.9)');
+  g.addColorStop(0.25, 'rgba(216, 183, 106, 0.4)');
+  g.addColorStop(0.6, 'rgba(118, 87, 200, 0.1)');
+  g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, s, s);
+  return new THREE.CanvasTexture(c);
+})();
+
+// ─── Génération des positions cibles PLUME ─────────────────────
+// Design : vraie plume d'écrivain calligraphique.
+//   • rachis vertical courbé légèrement (S doux)
+//   • barbes ASYMÉTRIQUES : plus longues et incurvées d'un côté, plus courtes de l'autre
+//   • pointe (haut) wispy — barbes plus rares, plus courtes
+//   • base (bas) : quelques particules pour la pointe/calamus fine
 function generateFeatherTargets(count) {
   const targets = new Float32Array(count * 3);
-  const barbCount = Math.floor(count * 0.85);
-  const rachisCount = count - barbCount;
+  const rachisCount = Math.floor(count * 0.14);       // 14% pour la colonne
+  const rightBarbCount = Math.floor(count * 0.52);    // 52% côté long (droit)
+  const leftBarbCount = Math.floor(count * 0.30);     // 30% côté court (gauche)
+  const wispCount = count - rachisCount - rightBarbCount - leftBarbCount; // pointe
 
-  // Rachis vertical courbé (~une belle S doux)
+  // Utilitaire : position du rachis pour un paramètre t (0 = base, 1 = pointe)
+  const rachisAt = (t) => {
+    // Courbe S : rachis passe légèrement à droite au milieu, puis revient
+    const y = (t - 0.5) * 3.4;                          // -1.7 → +1.7
+    const x = Math.sin(t * Math.PI) * 0.18 - 0.05;      // courbure douce
+    return [x, y];
+  };
+
+  let idx = 0;
+
+  // 1. Rachis
   for (let i = 0; i < rachisCount; i++) {
-    const t = i / (rachisCount - 1); // 0..1
-    const y = (t - 0.5) * 4;         // -2..+2
-    const x = Math.sin(t * Math.PI * 0.5) * 0.15; // légère courbure
-    const z = 0;
-    targets[i * 3 + 0] = x;
-    targets[i * 3 + 1] = y;
-    targets[i * 3 + 2] = z;
+    const t = i / (rachisCount - 1);
+    const [rx, ry] = rachisAt(t);
+    targets[idx * 3 + 0] = rx;
+    targets[idx * 3 + 1] = ry;
+    targets[idx * 3 + 2] = (Math.random() - 0.5) * 0.05;
+    idx++;
   }
 
-  // Barbes : pour chaque particule barbe, tirer aléatoirement une position le long
-  // du rachis (t=0..1) puis un offset perpendiculaire dont l'amplitude dépend de t.
-  for (let i = 0; i < barbCount; i++) {
-    const t = Math.random();
-    const y = (t - 0.5) * 4;
-    const rachisX = Math.sin(t * Math.PI * 0.5) * 0.15;
+  // 2. Barbes côté DROIT (longues, incurvées vers la pointe)
+  for (let i = 0; i < rightBarbCount; i++) {
+    const t = 0.05 + Math.random() * 0.92; // évite base et pointe extrêmes
+    const [rx, ry] = rachisAt(t);
 
-    // Enveloppe de la plume : plus large au milieu, effilée en haut et bas
-    // Utilise sinus modulé : envelope(t) = sin(π*t)^1.2
-    const envelope = Math.pow(Math.sin(Math.PI * t), 1.2);
-    // Amplitude max de la barbe (côté gauche/droit)
-    const side = Math.random() < 0.5 ? -1 : 1;
-    const barbLen = (0.15 + Math.random() * 0.85) * envelope * 1.4;
-    // Angle de la barbe (légèrement incliné vers le bas — plus élégant)
-    const angle = -0.25;
-    const bx = rachisX + side * barbLen * Math.cos(angle);
-    const by = y + barbLen * Math.sin(angle) * side * 0.3;
-    const bz = (Math.random() - 0.5) * 0.15;
+    // Enveloppe : la plume est plus large vers 40% de sa hauteur
+    // Bell-shape asymétrique, culminant vers t=0.35
+    const envelope = Math.pow(Math.sin(Math.PI * t), 1.4) * 1.1;
+    // Longueur de la barbe
+    const barbLen = (0.35 + Math.random() * 0.75) * envelope;
+    // Angle : les barbes s'inclinent vers la pointe (haut)
+    // Plus t est grand (près de la pointe), plus l'angle monte
+    const angle = -0.10 + t * 0.35; // -0.1 rad (léger descendant) → +0.25 rad (montant)
 
-    // Placement dans le buffer (après le rachis)
-    const idx = rachisCount + i;
+    // Position finale = rachis + vecteur perpendiculaire modifié
+    const bx = rx + Math.cos(angle) * barbLen;
+    const by = ry + Math.sin(angle) * barbLen;
+    // Léger décalage aléatoire pour organicité
+    const bz = (Math.random() - 0.5) * 0.14;
+    const jitter = (Math.random() - 0.5) * 0.04;
+
+    targets[idx * 3 + 0] = bx + jitter;
+    targets[idx * 3 + 1] = by + jitter;
+    targets[idx * 3 + 2] = bz;
+    idx++;
+  }
+
+  // 3. Barbes côté GAUCHE (plus courtes — plume "d'un côté")
+  for (let i = 0; i < leftBarbCount; i++) {
+    const t = 0.08 + Math.random() * 0.88;
+    const [rx, ry] = rachisAt(t);
+    const envelope = Math.pow(Math.sin(Math.PI * t), 1.5) * 0.7; // enveloppe réduite
+    const barbLen = (0.25 + Math.random() * 0.55) * envelope;
+    const angle = Math.PI - 0.05 + t * 0.30; // ~PI (gauche), légère montée vers pointe
+
+    const bx = rx + Math.cos(angle) * barbLen;
+    const by = ry + Math.sin(angle) * barbLen;
+    const bz = (Math.random() - 0.5) * 0.14;
+    const jitter = (Math.random() - 0.5) * 0.04;
+
+    targets[idx * 3 + 0] = bx + jitter;
+    targets[idx * 3 + 1] = by + jitter;
+    targets[idx * 3 + 2] = bz;
+    idx++;
+  }
+
+  // 4. Wisps de pointe — quelques particules libres au bout, effet plume légère
+  for (let i = 0; i < wispCount; i++) {
+    const t = 0.88 + Math.random() * 0.14; // très haut
+    const [rx, ry] = rachisAt(Math.min(1, t));
+    const side = Math.random() < 0.65 ? 1 : -1; // majoritairement à droite
+    const wispLen = Math.random() * 0.55 * (1 - (t - 0.88) / 0.14 * 0.6);
+    const angle = side > 0 ? (0.15 + Math.random() * 0.35) : (Math.PI - 0.15 - Math.random() * 0.35);
+    const bx = rx + Math.cos(angle) * wispLen;
+    const by = ry + Math.sin(angle) * wispLen + Math.random() * 0.4;
+    const bz = (Math.random() - 0.5) * 0.2;
+
     targets[idx * 3 + 0] = bx;
     targets[idx * 3 + 1] = by;
     targets[idx * 3 + 2] = bz;
+    idx++;
   }
 
   return targets;
 }
+
+// ─── Génération des positions cibles TEXTE (via canvas 2D) ─────
+// On dessine "Plume Astrale" en italique sur un canvas offscreen,
+// puis on échantillonne les pixels opaques comme positions cibles.
+function generateTextTargets(text, count, ctxOpts = {}) {
+  if (typeof document === 'undefined') return new Float32Array(count * 3);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 220;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // Font stack robuste : Playfair/Cormorant si chargés, sinon Georgia italic
+  ctx.font = ctxOpts.font || 'italic 500 130px "Cormorant Garamond", "Playfair Display", Georgia, serif';
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const pixels = imgData.data;
+
+  // Collecte des pixels opaques (une passe sur 3 pour économiser)
+  const opaquePoints = [];
+  for (let py = 0; py < canvas.height; py += 2) {
+    for (let px = 0; px < canvas.width; px += 2) {
+      const alpha = pixels[(py * canvas.width + px) * 4 + 3];
+      if (alpha > 128) opaquePoints.push([px, py]);
+    }
+  }
+
+  const targets = new Float32Array(count * 3);
+  if (opaquePoints.length === 0) return targets; // fallback silencieux
+
+  // Cadrage : occupe ~5.0 unités de large, ~1.0 de haut, centré sur (0, 0)
+  const worldW = 5.2;
+  const worldH = 1.1;
+  for (let i = 0; i < count; i++) {
+    const pt = opaquePoints[Math.floor(Math.random() * opaquePoints.length)];
+    const nx = (pt[0] / canvas.width - 0.5) * worldW;
+    const ny = -(pt[1] / canvas.height - 0.5) * worldH; // flip Y (canvas: top→down)
+    targets[i * 3 + 0] = nx;
+    targets[i * 3 + 1] = ny;
+    targets[i * 3 + 2] = (Math.random() - 0.5) * 0.06;
+  }
+  return targets;
+}
+
+// ─── Composant ─────────────────────────────────────────────────
 
 export default function Scene04Feather() {
   const isLowEnd = useExperienceStore((s) => s.isLowEnd);
@@ -91,16 +203,20 @@ export default function Scene04Feather() {
   const currentScene = useExperienceStore((s) => s.currentScene);
   const reducedMotion = useExperienceStore((s) => s.reducedMotion);
 
-  const count = isLowEnd ? 120 : isMobile ? 220 : 360;
+  const count = isLowEnd ? 200 : isMobile ? 340 : 580;
 
-  const { startPositions, targetPositions, offsets, currentPositions } = useMemo(() => {
+  // Positions cibles : plume + texte (générées une fois)
+  const {
+    startPositions, featherTargets, textTargets,
+    offsets, currentPositions,
+  } = useMemo(() => {
     const startPositions = new Float32Array(count * 3);
-    const targetPositions = generateFeatherTargets(count);
+    const featherTargets = generateFeatherTargets(count);
+    const textTargets = generateTextTargets('Plume Astrale', count);
     const offsets = new Float32Array(count);
     const currentPositions = new Float32Array(count * 3);
 
     for (let i = 0; i < count; i++) {
-      // Positions de départ : dispersées dans une sphère
       const r = 3 + Math.random() * 3;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
@@ -112,55 +228,97 @@ export default function Scene04Feather() {
       currentPositions[i * 3 + 2] = startPositions[i * 3 + 2];
       offsets[i] = Math.random() * Math.PI * 2;
     }
-    return { startPositions, targetPositions, offsets, currentPositions };
+    return { startPositions, featherTargets, textTargets, offsets, currentPositions };
   }, [count]);
+
+  // Timings des phases (en secondes)
+  const T_FEATHER = reducedMotion ? 0.4 : 5.0;      // dispersion → plume
+  const T_PAUSE = reducedMotion ? 0.2 : 2.0;        // plume immobile
+  const T_MORPH = reducedMotion ? 0.4 : 3.0;        // plume → texte
+  // Après T_FEATHER + T_PAUSE + T_MORPH → texte stable + sweep
 
   const pointsRef = useRef();
   const geoRef = useRef();
-  const formationStartRef = useRef(null); // timestamp du démarrage de la formation
+  const sweepRef = useRef();
+  const startTimeRef = useRef(null);
 
-  // Démarre la formation dès que scene 4 devient active
-  React.useEffect(() => {
-    if (currentScene === 4 && formationStartRef.current === null) {
-      formationStartRef.current = performance.now();
+  // Démarre le chronomètre dès que la scène 4 devient active
+  useEffect(() => {
+    if (currentScene === 4 && startTimeRef.current === null) {
+      startTimeRef.current = performance.now();
     }
     if (currentScene < 4) {
-      // Reset — l'utilisateur remonte, la plume se re-dispersera au prochain passage
-      formationStartRef.current = null;
+      startTimeRef.current = null;
     }
   }, [currentScene]);
+
+  // ─── Régénère les positions cibles texte quand les fonts sont chargées ──
+  const textTargetsRef = useRef(textTargets);
+  useEffect(() => {
+    if (typeof document === 'undefined' || !document.fonts) return;
+    document.fonts.ready.then(() => {
+      textTargetsRef.current = generateTextTargets('Plume Astrale', count);
+    });
+  }, [count]);
 
   useFrame((state) => {
     if (!geoRef.current) return;
     const t = state.clock.getElapsedTime();
 
-    // Formation temporelle : 0 → 1 sur 5 secondes après l'arrivée sur scène 4
-    let convergence = 0;
-    if (formationStartRef.current !== null) {
-      const elapsedMs = performance.now() - formationStartRef.current;
-      const FORMATION_DURATION_MS = reducedMotion ? 400 : 5000;
-      convergence = Math.min(1, elapsedMs / FORMATION_DURATION_MS);
+    // Progression en secondes depuis l'arrivée sur scène 4
+    let elapsed = 0;
+    if (startTimeRef.current !== null) {
+      elapsed = (performance.now() - startTimeRef.current) / 1000;
     }
-    // Ease out cubic
-    const eased = 1 - Math.pow(1 - convergence, 3);
 
+    // Détermine la phase et calcule les positions
     const posAttr = geoRef.current.attributes.position;
+    const activeTextTargets = textTargetsRef.current;
+
     for (let i = 0; i < count; i++) {
       const sx = startPositions[i * 3 + 0];
       const sy = startPositions[i * 3 + 1];
       const sz = startPositions[i * 3 + 2];
-      const tx = targetPositions[i * 3 + 0];
-      const ty = targetPositions[i * 3 + 1];
-      const tz = targetPositions[i * 3 + 2];
+      const fx = featherTargets[i * 3 + 0];
+      const fy = featherTargets[i * 3 + 1];
+      const fz = featherTargets[i * 3 + 2];
+      const tx = activeTextTargets[i * 3 + 0];
+      const ty = activeTextTargets[i * 3 + 1];
+      const tz = activeTextTargets[i * 3 + 2];
 
-      let x = sx + (tx - sx) * eased;
-      let y = sy + (ty - sy) * eased;
-      let z = sz + (tz - sz) * eased;
+      let x, y, z;
 
-      if (!reducedMotion && eased > 0.9) {
-        const breath = Math.sin(t * 0.7 + offsets[i]) * 0.02;
-        x += breath;
-        y += breath * 0.5;
+      if (elapsed < T_FEATHER) {
+        // Phase A : dispersion → plume (ease-out cubic)
+        const p = elapsed / T_FEATHER;
+        const eased = 1 - Math.pow(1 - p, 3);
+        x = sx + (fx - sx) * eased;
+        y = sy + (fy - sy) * eased;
+        z = sz + (fz - sz) * eased;
+      } else if (elapsed < T_FEATHER + T_PAUSE) {
+        // Phase B : plume immobile (breathing)
+        x = fx; y = fy; z = fz;
+        if (!reducedMotion) {
+          const breath = Math.sin(t * 0.6 + offsets[i]) * 0.015;
+          x += breath;
+          y += breath * 0.5;
+        }
+      } else if (elapsed < T_FEATHER + T_PAUSE + T_MORPH) {
+        // Phase C : morphing plume → texte (ease-in-out cubic)
+        const p = (elapsed - T_FEATHER - T_PAUSE) / T_MORPH;
+        const eased = p < 0.5
+          ? 4 * p * p * p
+          : 1 - Math.pow(-2 * p + 2, 3) / 2;
+        x = fx + (tx - fx) * eased;
+        y = fy + (ty - fy) * eased;
+        z = fz + (tz - fz) * eased;
+      } else {
+        // Phase D : texte stable + micro-respiration
+        x = tx; y = ty; z = tz;
+        if (!reducedMotion) {
+          const breath = Math.sin(t * 0.5 + offsets[i]) * 0.008;
+          x += breath;
+        }
       }
 
       posAttr.array[i * 3 + 0] = x;
@@ -169,30 +327,72 @@ export default function Scene04Feather() {
     }
     posAttr.needsUpdate = true;
 
-    if (pointsRef.current && eased > 0.85) {
-      const rotAmount = (eased - 0.85) / 0.15;
-      pointsRef.current.rotation.z = Math.sin(t * 0.3) * 0.06 * rotAmount;
+    // ─── Sweep cinématique : uniquement en phase D ─────────
+    if (sweepRef.current) {
+      const inPhaseD = elapsed > T_FEATHER + T_PAUSE + T_MORPH;
+      if (inPhaseD && !reducedMotion) {
+        // Le sprite balaie de gauche (-3.5) à droite (+3.5), boucle toutes les 8s
+        const sweepT = ((elapsed - T_FEATHER - T_PAUSE - T_MORPH) % 8) / 8;
+        // Petite courbe : reste caché sauf entre 0.15 et 0.85
+        const inSweep = sweepT > 0.10 && sweepT < 0.90;
+        sweepRef.current.visible = inSweep;
+        if (inSweep) {
+          const local = (sweepT - 0.10) / 0.80; // 0..1
+          sweepRef.current.position.x = -3.5 + local * 7.0;
+          sweepRef.current.position.y = 0.4; // aligné sur la position des particules
+          // Fade in / out doux
+          const fade = Math.sin(local * Math.PI); // pic à 0.5
+          sweepRef.current.material.opacity = 0.55 * fade;
+        }
+      } else {
+        sweepRef.current.visible = false;
+      }
+    }
+
+    // Légère rotation quand plume formée (phase B seulement)
+    if (pointsRef.current) {
+      const inBreathing = elapsed >= T_FEATHER && elapsed < T_FEATHER + T_PAUSE;
+      const rotTarget = inBreathing ? Math.sin(t * 0.3) * 0.05 : 0;
+      pointsRef.current.rotation.z = THREE.MathUtils.lerp(
+        pointsRef.current.rotation.z,
+        rotTarget,
+        0.03
+      );
     }
   });
 
   return (
-    <points ref={pointsRef} position={[0, 0, 0]}>
-      <bufferGeometry ref={geoRef}>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[currentPositions, 3]}
+    <group>
+      <points ref={pointsRef} position={[0, 0.4, 0]}>
+        <bufferGeometry ref={geoRef}>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[currentPositions, 3]}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          map={PARTICLE_TEX}
+          size={0.1}
+          sizeAttenuation
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          opacity={0.95}
+          color="#F4EFE6"
         />
-      </bufferGeometry>
-      <pointsMaterial
-        map={FEATHER_TEXTURE}
-        size={0.14}
-        sizeAttenuation
-        transparent
-        depthWrite={false}
-        blending={THREE.AdditiveBlending}
-        opacity={0.95}
-        color="#F4EFE6"
-      />
-    </points>
+      </points>
+
+      {/* Sweep cinématique — halo doré large qui traverse le texte */}
+      <sprite ref={sweepRef} scale={[2.2, 1.6, 1]} position={[0, 0.4, 0]} visible={false}>
+        <spriteMaterial
+          map={SWEEP_TEX}
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          opacity={0}
+          color="#F4EFE6"
+        />
+      </sprite>
+    </group>
   );
 }

@@ -85,14 +85,19 @@ export default function ExperienceRoot() {
     return () => clearTimeout(t1);
   }, [currentScene]);
 
-  // ── Scène 4 : timing des phrases ─────────────────────────────
+  // ── Scène 4 : timing des phrases (aligné sur les phases de Scene04Feather) ─
+  //  Phase A 0-5s : plume se dessine (aucun texte overlay)
+  //  Phase B 5-7s : plume respire (aucun texte overlay)
+  //  Phase C 7-10s : morph plume → texte particules "Plume Astrale"
+  //  Phase D 10s+ : texte particules stable + sweep cinématique
+  //   → phrases HTML apparaissent APRÈS que le texte particules est stable
   useEffect(() => {
     if (currentScene !== 4) return;
     setScene4Step(0);
-    const t1 = setTimeout(() => setScene4Step(1), 3200); // écrit PLUME ASTRALE
-    const t2 = setTimeout(() => setScene4Step(2), 5000); // phrase 1
-    const t3 = setTimeout(() => setScene4Step(3), 7200); // phrase 2
-    const t4 = setTimeout(() => setScene4Step(4), 9200); // CTA
+    const t1 = setTimeout(() => setScene4Step(1), 10500); // le texte particules vient d'être formé
+    const t2 = setTimeout(() => setScene4Step(2), 12500); // "Votre histoire est unique"
+    const t3 = setTimeout(() => setScene4Step(3), 14500); // "Votre ciel aussi"
+    const t4 = setTimeout(() => setScene4Step(4), 16500); // CTA final
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, [currentScene]);
 
@@ -318,13 +323,8 @@ export default function ExperienceRoot() {
           data-testid="experience-scene-4"
         >
           <div className="exp-section-inner exp-s4__stack">
-            <p
-              className="exp-s4__written"
-              data-visible={scene4Step >= 1}
-              data-testid="scene-4-signature"
-            >
-              PLUME <em>Astrale</em>
-            </p>
+            {/* Zone réservée au dessin particules (plume → "Plume Astrale") */}
+            <div className="exp-s4__particle-space" aria-hidden="true" />
 
             <div className="exp-s4__phrases">
               <p className="exp-h2 exp-s4__phrase" data-visible={scene4Step >= 2}>
