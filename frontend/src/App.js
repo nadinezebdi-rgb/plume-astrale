@@ -84,6 +84,7 @@ import AdminPdfTest from "./pages/AdminPdfTest";
 import AdminQrStats from "./pages/AdminQrStats";
 import GiftCardPurchase from "./pages/GiftCardPurchase";
 import GiftCardRedeem from "./pages/GiftCardRedeem";
+import EditionReliee from "./pages/EditionReliee";
 import CookieConsent from "./components/CookieConsent";
 
 // ─── Advanced PDF Products ────────────────────────────
@@ -230,6 +231,7 @@ function App() {
                 <Route path="/carte-cadeau" element={<GiftCardPurchase />} />
                 <Route path="/carte-cadeau/redeem/:code" element={<GiftCardRedeem />} />
                 <Route path="/carte-cadeau/merci" element={<GiftCardPurchase />} />
+                <Route path="/edition-reliee" element={<EditionReliee />} />
 
                 {/* ─── Redirections /outils/* → /services/* (compat legacy) ─── */}
                 <Route path="/outils/theme-natal" element={<Navigate to="/services/theme-natal" replace />} />
