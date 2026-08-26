@@ -79,6 +79,7 @@ from routes.lead_magnet import router as lead_magnet_router
 from routes.voyage_karmique import router as voyage_karmique_router
 from routes.gift_cards import router as gift_cards_router
 from routes.edition_reliee import router as edition_reliee_router
+from routes.daily_article import router as daily_article_router
 from routes.print_approvals import (
     api_router as print_approval_api_router,
     admin_router as print_approval_admin_router,
@@ -120,6 +121,7 @@ api_router.include_router(analytics_router)
 api_router.include_router(compatible_router)
 api_router.include_router(gift_cards_router)
 api_router.include_router(edition_reliee_router)
+api_router.include_router(daily_article_router)
 api_router.include_router(print_approval_api_router)
 api_router.include_router(print_approval_admin_router)
 

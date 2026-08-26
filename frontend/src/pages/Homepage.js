@@ -21,7 +21,7 @@ import NocturneServices from '@/components/nocturne/NocturneServices';
 import NocturneClosing from '@/components/nocturne/NocturneClosing';
 import NocturneLeadMagnet from '@/components/nocturne/NocturneLeadMagnet';
 import NocturneFAQ from '@/components/nocturne/NocturneFAQ';
-import ConcoursImpact from '@/components/nocturne/ConcoursImpact';
+import NocturneDailyArticle from '@/components/nocturne/NocturneDailyArticle';
 import CinematicBookShowcase from '@/components/nocturne/CinematicBookShowcase';
 import { BLOG_ARTICLES } from '@/config/blogArticles';
 import { useAuth } from '@/context/AuthContext';
@@ -121,8 +121,10 @@ export default function Homepage() {
       {/* ═══ SECTION 1.03 · CINEMATIC BOOK SHOWCASE (mini-vidéo Sophie) ═══ */}
       <CinematicBookShowcase />
 
-      {/* ═══ SECTION 1.05 · PREUVE PRODUIT + FLUX EMERGENT ═══ */}
-      <ConcoursImpact />
+      {/* ═══ SECTION 1.05 · SUPPRIMÉE (2026-02-27) — ConcoursImpact retiré :
+              redondant avec le formulaire du Hero (étape 01 "Vous renseignez votre ciel")
+              et avec NocturneClosing (CTA "Commencer mon expérience"). Le concours étant
+              clos, le message "Construit avec Emergent" ne portait plus valeur. ═══ */}
 
       {/* ═══ SECTION 1.1 · TRUST BAR (F500 audit 2026-02) — garanties + livraison + support ═══ */}
       <TrustBar variant="dense" />
@@ -144,6 +146,13 @@ export default function Homepage() {
 
       {/* ═══ SECTION 2.2 · TROIS LECTURES NOCTURNE ═══ */}
       <NocturneServices />
+
+      {/* ═══ SECTION 2.5 · L'ARTICLE DU JOUR — offert à chaque visiteur (2026-02-27)
+              Rotation quotidienne parmi les 9 articles publiés. Ancre "vous repartez
+              avec quelque chose", sans forcer l'achat. Deux voies :
+              lire tout de suite (/blog/{slug}) OU se l'envoyer par email
+              (POST /api/daily-article/send → capture lead + email article). ═══ */}
+      <NocturneDailyArticle />
 
       {/* ═══ SECTION 2 · SUPPRIMÉE (2026-02-26 audit) — VALUE_PILLARS "Trois engagements"
               redondant avec TrustBar + NocturneServices. La grille NocturneServices
