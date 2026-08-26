@@ -52,6 +52,12 @@ export default function NavbarV2() {
     setMobileServicesOpen(false);
   }, [location.pathname]);
 
+  // Pages immersives sans navbar (prototype /experience, à étendre si besoin).
+  // Placé ici APRÈS tous les hooks pour respecter les rules-of-hooks.
+  if (location.pathname === '/experience' || location.pathname.startsWith('/experience/')) {
+    return null;
+  }
+
   const isActive = (to) => location.pathname === to;
   const isServicesActive = () =>
     location.pathname === '/livres'

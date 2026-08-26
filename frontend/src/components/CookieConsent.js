@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Cookie, Shield, BarChart3, Target, ChevronDown } from 'lucide-react';
 import { getConsent, setConsent } from '@/lib/analytics';
 
@@ -75,6 +75,13 @@ export default function CookieConsent() {
     }
     setVisible(false);
   }, [prefs]);
+
+  const location = useLocation();
+  // Pages immersives — cache complètement le bandeau pour ne pas casser l'effet WOW
+  // (le prototype /experience ne collecte aucune donnée personnelle).
+  if (location.pathname === '/experience' || location.pathname.startsWith('/experience/')) {
+    return null;
+  }
 
   if (!visible) return null;
 

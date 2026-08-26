@@ -87,6 +87,7 @@ import GiftCardRedeem from "./pages/GiftCardRedeem";
 import EditionReliee from "./pages/EditionReliee";
 import EditionRelieeMerci from "./pages/EditionRelieeMerci";
 import RelectureRefus from "./pages/RelectureRefus";
+import ExperiencePage from "./pages/Experience";
 import CookieConsent from "./components/CookieConsent";
 
 // ─── Advanced PDF Products ────────────────────────────
@@ -236,6 +237,7 @@ function App() {
                 <Route path="/edition-reliee" element={<EditionReliee />} />
                 <Route path="/edition-reliee/merci" element={<EditionRelieeMerci />} />
                 <Route path="/relecture/:token" element={<RelectureRefus />} />
+                <Route path="/experience" element={<ExperiencePage />} />
 
                 {/* ─── Redirections /outils/* → /services/* (compat legacy) ─── */}
                 <Route path="/outils/theme-natal" element={<Navigate to="/services/theme-natal" replace />} />
