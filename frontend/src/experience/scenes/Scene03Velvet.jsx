@@ -33,7 +33,7 @@ export default function Scene03Velvet() {
   const isMobile = useExperienceStore((s) => s.isMobile);
   const reducedMotion = useExperienceStore((s) => s.reducedMotion);
 
-  const dustCount = isLowEnd ? 80 : isMobile ? 150 : 300;
+  const dustCount = isLowEnd ? 30 : isMobile ? 50 : 100;
 
   const dustPositions = useMemo(() => {
     const arr = new Float32Array(dustCount * 3);

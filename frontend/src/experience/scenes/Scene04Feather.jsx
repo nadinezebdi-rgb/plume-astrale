@@ -88,15 +88,15 @@ function generateFeatherTargets(count) {
 export default function Scene04Feather() {
   const isLowEnd = useExperienceStore((s) => s.isLowEnd);
   const isMobile = useExperienceStore((s) => s.isMobile);
-  const globalProgress = useExperienceStore((s) => s.globalProgress);
+  const currentScene = useExperienceStore((s) => s.currentScene);
   const reducedMotion = useExperienceStore((s) => s.reducedMotion);
 
-  const count = isLowEnd ? 160 : isMobile ? 320 : 600;
+  const count = isLowEnd ? 120 : isMobile ? 220 : 360;
 
   const { startPositions, targetPositions, offsets, currentPositions } = useMemo(() => {
     const startPositions = new Float32Array(count * 3);
     const targetPositions = generateFeatherTargets(count);
-    const offsets = new Float32Array(count); // pour animation respiration
+    const offsets = new Float32Array(count);
     const currentPositions = new Float32Array(count * 3);
 
     for (let i = 0; i < count; i++) {
@@ -107,7 +107,6 @@ export default function Scene04Feather() {
       startPositions[i * 3 + 0] = r * Math.sin(phi) * Math.cos(theta);
       startPositions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       startPositions[i * 3 + 2] = r * Math.cos(phi) - 2;
-      // Copie initiale
       currentPositions[i * 3 + 0] = startPositions[i * 3 + 0];
       currentPositions[i * 3 + 1] = startPositions[i * 3 + 1];
       currentPositions[i * 3 + 2] = startPositions[i * 3 + 2];
@@ -118,18 +117,31 @@ export default function Scene04Feather() {
 
   const pointsRef = useRef();
   const geoRef = useRef();
+  const formationStartRef = useRef(null); // timestamp du démarrage de la formation
+
+  // Démarre la formation dès que scene 4 devient active
+  React.useEffect(() => {
+    if (currentScene === 4 && formationStartRef.current === null) {
+      formationStartRef.current = performance.now();
+    }
+    if (currentScene < 4) {
+      // Reset — l'utilisateur remonte, la plume se re-dispersera au prochain passage
+      formationStartRef.current = null;
+    }
+  }, [currentScene]);
 
   useFrame((state) => {
     if (!geoRef.current) return;
     const t = state.clock.getElapsedTime();
 
-    // Progress de convergence : monte de 0 à 1 entre globalProgress 0.75 et 0.95
-    const convergence = THREE.MathUtils.clamp(
-      (globalProgress - 0.75) / 0.20,
-      0,
-      1
-    );
-    // Ease out cubic pour un mouvement plus doux à la fin
+    // Formation temporelle : 0 → 1 sur 5 secondes après l'arrivée sur scène 4
+    let convergence = 0;
+    if (formationStartRef.current !== null) {
+      const elapsedMs = performance.now() - formationStartRef.current;
+      const FORMATION_DURATION_MS = reducedMotion ? 400 : 5000;
+      convergence = Math.min(1, elapsedMs / FORMATION_DURATION_MS);
+    }
+    // Ease out cubic
     const eased = 1 - Math.pow(1 - convergence, 3);
 
     const posAttr = geoRef.current.attributes.position;
@@ -141,12 +153,10 @@ export default function Scene04Feather() {
       const ty = targetPositions[i * 3 + 1];
       const tz = targetPositions[i * 3 + 2];
 
-      // Interpolation start → target
       let x = sx + (tx - sx) * eased;
       let y = sy + (ty - sy) * eased;
       let z = sz + (tz - sz) * eased;
 
-      // Respiration une fois formée
       if (!reducedMotion && eased > 0.9) {
         const breath = Math.sin(t * 0.7 + offsets[i]) * 0.02;
         x += breath;
@@ -159,7 +169,6 @@ export default function Scene04Feather() {
     }
     posAttr.needsUpdate = true;
 
-    // Rotation douce de la plume complète une fois formée
     if (pointsRef.current && eased > 0.85) {
       const rotAmount = (eased - 0.85) / 0.15;
       pointsRef.current.rotation.z = Math.sin(t * 0.3) * 0.06 * rotAmount;
@@ -176,7 +185,7 @@ export default function Scene04Feather() {
       </bufferGeometry>
       <pointsMaterial
         map={FEATHER_TEXTURE}
-        size={0.12}
+        size={0.14}
         sizeAttenuation
         transparent
         depthWrite={false}

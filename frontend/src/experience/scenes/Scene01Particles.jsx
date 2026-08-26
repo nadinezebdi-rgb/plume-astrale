@@ -36,7 +36,7 @@ export default function Scene01Particles() {
   const isMobile = useExperienceStore((s) => s.isMobile);
   const reducedMotion = useExperienceStore((s) => s.reducedMotion);
 
-  const count = isLowEnd ? 240 : isMobile ? 550 : 1200;
+  const count = isLowEnd ? 90 : isMobile ? 180 : 380;
 
   // Génération procédurale des positions (une fois)
   const { positions, sizes, phases } = useMemo(() => {
