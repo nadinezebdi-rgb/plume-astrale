@@ -234,7 +234,7 @@ const Tarologie = () => {
           <div className="mb-12">
             <p className="section-label">Lecture sacr&eacute;e</p>
             <h1 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
-              Tarologie & M&eacute;diumni&eacute;
+              Tarologie & Lecture Symbolique
             </h1>
             <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
               Un tirage en croix de 5 Arcanes Majeurs avec interpr&eacute;tations profondes
@@ -372,7 +372,7 @@ const Tarologie = () => {
                 'Interpretation detaillee par position',
                 'Analyse des obstacles et conseils',
                 'Vision du futur et synthese profonde',
-                'Lecture m\u00e9diumnique personnalis\u00e9e',
+                'Lecture symbolique personnalis\u00e9e',
                 'PDF complet a telecharger',
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2 text-[#B8B0C8]/70 text-sm">
@@ -532,10 +532,10 @@ const Tarologie = () => {
                     <div className="text-center px-6">
                       <Lock className="w-10 h-10 text-[#D4AF37] mx-auto mb-3" />
                       <h3 className="text-[#F5EEE0] text-lg mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
-                        4 Interpretations + Lecture Mediumnique
+                        4 Interprétations + Lecture Symbolique
                       </h3>
                       <p className="text-[#B8B0C8]/60 text-sm mb-4">
-                        D&eacute;bloquez les interpr&eacute;tations compl&egrave;tes et la lecture m&eacute;diumnique pour 10 cr&eacute;dits
+                        D&eacute;bloquez les interpr&eacute;tations compl&egrave;tes et la lecture symbolique pour 10 cr&eacute;dits
                       </p>
                       <button
                         onClick={handlePurchase}
@@ -591,11 +591,11 @@ const Tarologie = () => {
                   <div className="absolute inset-0 bg-[#111625]/80 backdrop-blur-sm z-10 flex items-center justify-center">
                     <div className="text-center px-6">
                       <Lock className="w-8 h-8 text-[#D4AF37]/50 mx-auto mb-2" />
-                      <p className="text-[#D4AF37]/70 text-sm">Lecture m&eacute;diumnique incluse</p>
+                      <p className="text-[#D4AF37]/70 text-sm">Lecture symbolique incluse</p>
                     </div>
                   </div>
                   <div className="opacity-20 p-4">
-                    <h3 className="text-xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>Lecture Mediumnique</h3>
+                    <h3 className="text-xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>Lecture Symbolique</h3>
                     <div className="space-y-3">
                       <div><h4 className="text-[#D4AF37]">Empreinte du Passe</h4><p className="text-[#B8B0C8]/50">Lorem ipsum dolor sit amet...</p></div>
                       <div><h4 className="text-[#D4AF37]">Energies du Present</h4><p className="text-[#B8B0C8]/50">Lorem ipsum dolor sit amet...</p></div>
@@ -608,7 +608,7 @@ const Tarologie = () => {
               {hasPaid && tirage.lecture_mediumnique && (
                 <div className="bg-[#15112A]/80 border border-[#D4AF37]/20 rounded-sm p-6" data-testid="lecture-full">
                   <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
-                    Lecture Mediumnique
+                    Lecture Symbolique
                   </h3>
                   {[
                     { key: 'passe', label: 'Empreinte du Passe' },
