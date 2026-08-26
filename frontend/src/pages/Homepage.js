@@ -23,7 +23,6 @@ import NocturneLeadMagnet from '@/components/nocturne/NocturneLeadMagnet';
 import NocturneFAQ from '@/components/nocturne/NocturneFAQ';
 import ConcoursImpact from '@/components/nocturne/ConcoursImpact';
 import CinematicBookShowcase from '@/components/nocturne/CinematicBookShowcase';
-import ContestVoteBanner from '@/components/ContestVoteBanner';
 import { BLOG_ARTICLES } from '@/config/blogArticles';
 import { useAuth } from '@/context/AuthContext';
 
@@ -117,8 +116,7 @@ export default function Homepage() {
       {/* ═══ SECTION 1 · HERO NOCTURNE ÉDITORIAL (Feb 2026 — refonte artistique) ═══ */}
       <NocturneHero />
 
-      {/* Floating CTA — concours Emergent Building France */}
-      <ContestVoteBanner />
+      {/* Bandeau concours retiré 2026-02-26 — votes clos depuis le 25 août. */}
 
       {/* ═══ SECTION 1.03 · CINEMATIC BOOK SHOWCASE (mini-vidéo Sophie) ═══ */}
       <CinematicBookShowcase />

@@ -52,7 +52,7 @@ const TIERS = [
     items: [
       'Thème Natal Signature · 49 pages · 39€',
       'Astrologie relationnelle · 25 pages · 29€',
-      'Voyage karmique · 35 pages · 49€',
+      'Voyage karmique · 39 pages · 49€',
     ],
     footer: 'Aucun crédit requis · livré en 60 secondes',
     cta: 'Voir les PDF',

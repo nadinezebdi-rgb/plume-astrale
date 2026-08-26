@@ -27,6 +27,13 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### 🟥 P0 — Assainissement mesure & incohérences (2026-02-26)
+Basé sur l'audit business complet livré par le fondateur.
+- **Retrait bandeau concours Building France** : `ContestVoteBanner` désactivé sur `Homepage.js` (votes clos depuis le 25 août — érodait la crédibilité de chaque visiteur).
+- **Alignement pagination** : Voyage Karmique passe de "35/60 pages" → **39 pages** partout (mesure réelle Kabbale 15p + Karma 24p) ; Thème Natal passe de "40 à 50" → **49 pages** figé sur NocturneServices, ThemeNatalOneshotSucces + Homepage. Fin des promesses variables.
+- **Compteur revenus admin assaini** : `routes/admin.py::admin_stats` filtre désormais `payment_status IN ('paid','completed')` (exclut unpaid/pending) ET exclut les emails internes (`_is_internal_email`) via allowlist explicite (admin@, contact@, t@test.fr, TEST_*, @example.com, @plume-astrale.fr, proches identifiés dans l'audit : nadine.zebdi, aml.numerique30, juliette.zebdi). Nouveau champ payload `revenue.internal_txs_excluded` pour transparence. **Résultat : le dashboard affichait 165.99€/64 → affiche maintenant 0.00€/0 (audit confirmé à 100%)**.
+- **Bug lead capture RÉSOLU** : le formulaire aperçu 5 pages tentait d'insérer dans `lead_magnet_downloads` (table INEXISTANTE dans le schéma Supabase → 100% des leads perdus silencieusement depuis juin). Fix `routes/lead_magnet.py::generate_lead_magnet` : upsert dans `oracle_leads` (source=`lead_magnet_apercu_5p`) — la même table lue par `/api/admin/leads`. Test end-to-end validé : lead persisté et visible en 1s. Table `lead_magnet_downloads` conservée en journal secondaire optionnel.
+
 ### Print-ready CTA · Halo global · QR migration SQL (2026-02-26)
 - **Print-ready CTA visible** : nouveau composant `components/PdfDownloadButtons.js` (duo bouton standard + "VERSION IMPRIMEUR (bord perdu 3 mm)"). Câblé sur 3 pages Succes principales : Thème Natal Oneshot, Astrocartographie, Pack Karmique. Le second bouton s'affiche uniquement si `pdfUrl` pointe vers `/api/pdf/download` (masqué pour Supabase static). data-testid `{prefix}-print-ready-btn`.
 - **Halo doré global** : classes utilitaires `.luxury-halo`, `.pa-glass`, `.pa-glass-gold`, `.pa-card` dans `src/index.css` — au survol, box-shadow doré 3 couches (halo diffus + strie + rebond) + translateY(-2px). `prefers-reduced-motion` respecté (halo statique sans translation). Applicable à tout élément via `className="luxury-halo"`.
