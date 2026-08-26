@@ -27,6 +27,10 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### 🎁 Carte cadeau + Nettoyage home 8-blocs (2026-02-26)
+- **Carte cadeau MVP complet** : SQL migration `2026_02_gift_cards.sql` (table `gift_cards` avec code opaque `PLUME-XXXX-XXXX`), service `gift_card_service.py` (Stripe checkout + webhook handler avec metadata `kind=gift_card` + envoi email destinataire via Resend + rédemption avec génération PDF), routes `routes/gift_cards.py` (`/products`, `/purchase`, `/{code}`, `/{code}/redeem`), webhook branché dans le dispatcher Stripe global. Frontend : `/carte-cadeau` (formulaire acheteur, 3 produits, message perso) et `/carte-cadeau/redeem/{code}` (destinataire complète ses données → PDF). Résout l'objection "je n'ai pas son heure de naissance" (audit business 26/08).
+- **Nettoyage home 8-blocs** : suppression `HowItWorks3Tiers` (Trois façons d'entrer), `HomepageMiniQuiz`, `PremiumPillars` (Quatre repères), `VALUE_PILLARS` section (Trois engagements), Section 5.5 (Six articles blog), `NocturneLeadMagnet` (2ᵉ formulaire). Résultat : un seul formulaire sur la home (dans Hero), une seule proposition de valeur cohérente. 3 liens blog compacts déplacés dans le footer.
+
 ### 🟥 P0 — Assainissement mesure & incohérences (2026-02-26)
 Basé sur l'audit business complet livré par le fondateur.
 - **Retrait bandeau concours Building France** : `ContestVoteBanner` désactivé sur `Homepage.js` (votes clos depuis le 25 août — érodait la crédibilité de chaque visiteur).

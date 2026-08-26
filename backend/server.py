@@ -77,6 +77,7 @@ from routes.pdf_preview import router as pdf_preview_router
 from routes.pdf_test_admin import router as pdf_test_admin_router
 from routes.lead_magnet import router as lead_magnet_router
 from routes.voyage_karmique import router as voyage_karmique_router
+from routes.gift_cards import router as gift_cards_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from integrations.payments.stripe.checkout import (
@@ -112,6 +113,7 @@ api_router.include_router(library_router)
 api_router.include_router(rencontres_router)
 api_router.include_router(analytics_router)
 api_router.include_router(compatible_router)
+api_router.include_router(gift_cards_router)
 
 
 # Helper interne pour deduire credits d'un service donne (utilise par les routes)
@@ -882,6 +884,16 @@ async def stripe_webhook(request: Request):
         except Exception as e:
             logger.warning(f'[synastrie] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'synastrie_oneshot'}
+
+    # Route vers gift_card_service pour les achats carte cadeau
+    if md.get('kind') == 'gift_card':
+        from services.gift_card_service import handle_gift_card_webhook
+        evt_dict = event if isinstance(event, dict) else _json.loads(stripe.util.json_dumps(event))
+        try:
+            handle_gift_card_webhook(evt_dict)
+        except Exception as e:
+            logger.warning(f'[gift_card] webhook handler fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'gift_card'}
 
     # Route vers rencontres_ultime handler si kind=rencontres_ultime (pack 29,99 EUR)
     if md.get('kind') == 'rencontres_ultime':
