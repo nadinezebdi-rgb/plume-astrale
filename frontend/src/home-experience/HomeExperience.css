@@ -1,0 +1,39 @@
+/**
+ * HomeExperience.css — styles spécifiques à /home-experience-v3
+ *
+ * Phase 1 minimal : uniquement les règles responsive pour ActNav
+ * (masquée sur mobile < 900px) et le pivot palette variable pour
+ * les futurs actes V-VIII (Phase 2).
+ *
+ * On préfixe --hex3-* pour ne pas entrer en conflit avec les 3
+ * univers existants (--ps-*, --ne-*, --exp-*).
+ */
+
+:root {
+  /* Palette pivot Home Experience V3 — alignée sur la charte Nocturne */
+  --hex3-night:      #0F1A3C;   /* Bleu Prussien Nocturne */
+  --hex3-void:       #070713;   /* Fond canvas 3D */
+  --hex3-gold:       #C9A24B;   /* Or éditorial (pivot des 3 systèmes) */
+  --hex3-gold-soft:  rgba(216, 183, 106, 0.9);
+  --hex3-cream:      #F7F5F0;   /* Papier céleste */
+  --hex3-ivory:      #F4EFE6;   /* Ivoire experience */
+
+  /* Typographies — héritées, non redéfinies */
+}
+
+/* Masque ActNav sur mobile (< 900px) — respect règle Mobile-First :
+   la nav verticale n'est pas essentielle, le scroll natif suffit. */
+@media (max-width: 899px) {
+  .hex3-actnav {
+    display: none !important;
+  }
+}
+
+/* Reduced motion : pas de scale, pas de glow sur les points nav */
+@media (prefers-reduced-motion: reduce) {
+  .hex3-actnav button {
+    transition: background 200ms ease !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}

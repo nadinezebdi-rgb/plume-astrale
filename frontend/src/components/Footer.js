@@ -12,6 +12,10 @@ export default function Footer() {
   // Ne pas afficher sur / non plus — la Homepage v3 embarque son propre FooterV2
   if (
     pathname === '/' ||
+    pathname === '/experience' ||
+    pathname.startsWith('/experience/') ||
+    pathname === '/home-experience-v3' ||
+    pathname.startsWith('/home-experience-v3/') ||
     pathname.startsWith('/admin') ||
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/formulaire') ||

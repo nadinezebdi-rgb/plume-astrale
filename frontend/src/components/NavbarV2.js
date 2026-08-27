@@ -52,9 +52,12 @@ export default function NavbarV2() {
     setMobileServicesOpen(false);
   }, [location.pathname]);
 
-  // Pages immersives sans navbar (prototype /experience, à étendre si besoin).
+  // Pages immersives sans navbar (prototype /experience + /home-experience-v3).
+  const isImmersive = (p) =>
+    p === '/experience' || p.startsWith('/experience/') ||
+    p === '/home-experience-v3' || p.startsWith('/home-experience-v3/');
   // Placé ici APRÈS tous les hooks pour respecter les rules-of-hooks.
-  if (location.pathname === '/experience' || location.pathname.startsWith('/experience/')) {
+  if (isImmersive(location.pathname)) {
     return null;
   }
 
