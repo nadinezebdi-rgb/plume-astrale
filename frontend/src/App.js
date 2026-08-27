@@ -90,6 +90,7 @@ import EditionRelieeMerci from "./pages/EditionRelieeMerci";
 import RelectureRefus from "./pages/RelectureRefus";
 import ExperiencePage from "./pages/Experience";
 import HomeExperienceV3 from "./pages/HomeExperienceV3";
+import ScrollToTop from "./components/ScrollToTop";
 import CookieConsent from "./components/CookieConsent";
 
 // ─── Advanced PDF Products ────────────────────────────
@@ -138,6 +139,7 @@ function App() {
       <AuraProvider>
       <BrowserRouter>
         {/* ─── Overlays globaux Plume Design System v2 ─── */}
+        <ScrollToTop />
         <GlobalOverlays />
         <RouteTracker />
         <Navbar />
