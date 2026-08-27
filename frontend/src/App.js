@@ -6,6 +6,7 @@ import Navbar from "./components/NavbarV2";
 import TrialBanner from "./components/TrialBanner";
 
 import Index from "./pages/Homepage";
+import ABTestHome from "./components/ABTestHome";
 import LectureCompleteSucces from "./pages/LectureCompleteSucces";
 import AuthPage from "./pages/AuthPage";
 import Tarot from "./pages/Tarot";
@@ -86,6 +87,7 @@ import GiftCardRedeem from "./pages/GiftCardRedeem";
 import EditionReliee from "./pages/EditionReliee";
 import EditionRelieeMerci from "./pages/EditionRelieeMerci";
 import RelectureRefus from "./pages/RelectureRefus";
+import ExperiencePage from "./pages/Experience";
 import CookieConsent from "./components/CookieConsent";
 
 // ─── Advanced PDF Products ────────────────────────────
@@ -142,7 +144,7 @@ function App() {
         <CookieConsent />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<ABTestHome />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogArticle />} />
           <Route path="/decouvrir" element={<Decouvrir />} />
@@ -237,6 +239,7 @@ function App() {
                 <Route path="/edition-reliee" element={<EditionReliee />} />
                 <Route path="/edition-reliee/merci" element={<EditionRelieeMerci />} />
                 <Route path="/relecture/:token" element={<RelectureRefus />} />
+                <Route path="/experience" element={<ExperiencePage />} />
 
                 {/* ─── Redirections /outils/* → /services/* (compat legacy) ─── */}
                 <Route path="/outils/theme-natal" element={<Navigate to="/services/theme-natal" replace />} />

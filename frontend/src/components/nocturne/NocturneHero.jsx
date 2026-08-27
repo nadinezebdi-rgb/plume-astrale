@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Clock3, ShieldCheck, Sparkles } from 'lucide-react';
+import StarfieldBackdrop from '@/components/StarfieldBackdrop';
+import FeatherCursor from '@/components/FeatherCursor';
 
 const PROOFS = [
   { value: '49', label: 'pages personnalisées' },
@@ -14,9 +16,12 @@ const PROOFS = [
  * une action principale sans risque et une preuve immédiate de personnalisation.
  */
 export default function NocturneHero() {
+  const sectionRef = useRef(null);
   return (
-    <section className="ne-section ne-section-night ne-hero-premium" data-testid="nocturne-hero">
-      <div className="ne-container">
+    <section ref={sectionRef} className="ne-section ne-section-night ne-hero-premium" data-testid="nocturne-hero" style={{ position: 'relative', overflow: 'hidden' }}>
+      <StarfieldBackdrop density={70} color="216, 183, 106" fade={0.45} />
+      <FeatherCursor containerRef={sectionRef} />
+      <div className="ne-container" style={{ position: 'relative', zIndex: 1 }}>
         <div className="ne-hero-premium-grid">
           <div className="ne-hero-premium-copy">
             <div className="ne-overline ne-reveal ne-reveal-1" data-testid="nocturne-hero-overline">
@@ -29,7 +34,10 @@ export default function NocturneHero() {
               style={{ color: 'var(--ne-celeste)' }}
             >
               Votre ciel devient
-              <span className="ne-hero-title-accent"> un livre.</span>
+              <span
+                className="ne-hero-title-accent"
+                style={{ fontFamily: '"Cormorant Garamond", "Playfair Display", Georgia, serif', fontStyle: 'italic', fontWeight: 500 }}
+              > un livre.</span>
             </h1>
 
             <p className="ne-hero-premium-lead ne-reveal ne-reveal-3" data-testid="nocturne-hero-lead">

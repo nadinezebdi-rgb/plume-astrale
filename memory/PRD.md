@@ -27,6 +27,81 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### ✨ Zodiac Personnalisé · Plume Curseur · A/B ON (2026-02-27)
+Trois raffinements sur le tunnel V3 et la home, testés end-to-end (23/23 PASS iteration_84).
+
+**1. Zodiac Personnalisé — 12 signes × 3 vers hand-crafted**
+- `zodiacUtils.js` — chaque signe embarque désormais un tableau `verses: [3 strings]` ancré dans le développement personnel (pas de prédiction). Ex. Vierge : *"Vous voyez ce que personne ne voit — et vous rangez. / Vos gestes ordinaires ont une précision d'orfèvre. / Prendre soin, chez vous, c'est une forme d'amour."*.
+- `ZodiacInterlude.jsx` — reveal step affiche les 3 vers en `<p data-testid=zodiac-verse-{i}>` avec stagger CSS `animationDelay = 400 + i * 1300ms`. CTA `zodiac-continue` apparaît à 4,4s (fade 700ms). Auto-continue passe de 5,2s à **8,5s** pour laisser le temps de lire. Typographie Cormorant Garamond italic 16-19px, centré.
+
+**2. Home Immersive — plume qui suit le curseur**
+- `FeatherCursor.jsx` — SVG plume calligraphique (44×64) qui trail le curseur avec `lerp` (0,18 position, 0,12 rotation). Rotation modulée par la direction du mouvement (`atan2` du vecteur vitesse, écrêtée ±25°). Fade opacity 0→0,85 à l'entrée, retour à 0 après 1,2s d'inactivité.
+- Gated : `matchMedia('(hover: hover) and (pointer: fine)')` + `!prefers-reduced-motion`. **Zéro rendu sur mobile / touch** (retourne null). Perf : un seul rAF loop, `transform translate3d` (GPU).
+- Monté dans `NocturneHero` avec `containerRef={sectionRef}` — le rAF loop lit le bounding rect à chaque frame pour n'afficher la plume qu'à l'intérieur du hero.
+
+**3. A/B test ACTIF en preview**
+- `REACT_APP_EXP_AB_TEST=on` — les visiteurs de `/` sont désormais splittés 50/50 entre la homepage et le prototype `/experience`. Le testing agent a confirmé sur 8 contextes frais : 5 homepage / 3 experience (statistiquement cohérent). Persistance stable par session (sessionStorage `ab_home_variant`).
+- URL overrides `?ab=home` / `?ab=exp` toujours prioritaires pour QA.
+- Analytics `ab_home_assigned{variant}` déclenché dès que la flag est ON.
+
+**Retiré** : la démo audio procédurale a été supprimée à la demande de la fondatrice ("c'est nul"). Fichiers `ambientDrone.js` et `AudioPreview.jsx` + route associée supprimés.
+
+### 🧪 A/B test, Scène Zodiac & Home unifiée (2026-02-27)
+Trois évolutions complémentaires au tunnel V3 pour maximiser conversion et cohérence de marque.
+
+**1. A/B test `/` ↔ `/experience`**
+- `src/components/ABTestHome.jsx` — wrapper de la route `/`. Contrôlé par `REACT_APP_EXP_AB_TEST=on|off` (`off` par défaut, safe). Assigne le visiteur à `homepage` ou `experience` (50/50) et persiste en sessionStorage `ab_home_variant` (même variante au refresh). Override URL `?ab=exp|home|off` fonctionne toujours (utile QA/preview) même si flag OFF. Redirect `<Navigate replace>` en préservant la query string entrante. Event `ab_home_assigned{variant}` déclenché quand la flag est ON.
+- Route `/` dans `App.js` remplacée par `<ABTestHome />` (import ligne 9). Non-breaking : tant que la flag est off, comportement inchangé.
+
+**2. Scène Zodiac (interlude entre intention et Tarot)**
+- Nouveau `ZodiacInterlude.jsx` — overlay z-index 900 qui s'affiche après la sélection d'intention sur `/experience`. Deux étapes : `input` (mini date picker élégant "Votre ciel de naissance") puis `reveal` (mini-constellation SVG animée + glyphe du signe + nom + trait poétique). Auto-continuation 5,2s après reveal OU clic sur "CONTINUER". "CONTINUER SANS MON SIGNE →" pour skip. Signe persisté en sessionStorage `exp_zodiac`.
+- Nouveau `zodiacUtils.js` — `computeZodiac(iso)` couvre les 12 signes avec le cas particulier Capricorne (à cheval sur l'année). `zodiacByKey()` + `ZODIAC_STARS` (mini patterns 5-6 étoiles par signe, SVG viewBox 200×200) pour la mini-constellation stylée.
+- `ExperienceRoot.jsx` — `handleIntentChoice` ouvre l'interlude à +700ms au lieu de scroller immédiatement. `handleZodiacComplete()` et `handleZodiacSkip()` ferment l'interlude et scrollent à la scène 3 (Tarot).
+- `WelcomeSplash.jsx` — lit `exp_zodiac` de sessionStorage et affiche un eyebrow additionnel `data-testid=welcome-zodiac` "♍ SIGNE VIERGE" en tête du splash, en plus du titre personnalisé.
+- Événements analytics : `zodiac_computed{zodiac, element}`, `zodiac_confirmed{zodiac}`, `zodiac_skipped{step}`.
+
+**3. Home unifiée : particules + typographie éditoriale**
+- Nouveau `StarfieldBackdrop.jsx` — canvas 2D léger (0 KB à télécharger), ~80 étoiles procédurales dérivant lentement, `pointer-events:none`, respect `prefers-reduced-motion` (frame statique). Prend `density`, `color` (r,g,b string), `fade`, `speed`.
+- `NocturneHero.jsx` — inséré comme premier enfant de la section hero (avec `position: relative; overflow: hidden` sur la section et `position: relative; z-index: 1` sur le container). L'accent H1 "un livre." passe en Cormorant Garamond italic 500. Aucun autre changement structurel.
+
+**Testing agent** — 14/14 PASS (iteration_83) : A/B off/exp/home, zodiac input/reveal/skip/continue (Vierge Terre pour 1990-09-15), sessionStorage écrit correctement, welcome-zodiac visible sur `/mon-accueil?welcome=1`, starfield present + CTA cliquable, non-régression `experience-zodiac-shortcut` et `/inscription`.
+
+**Note** — La boucle musicale ambient a été **volontairement mise en pause** à la demande de la fondatrice ("fais-la moi écouter d'abord") pour éviter tout dérapage sonore. Reste en backlog.
+
+### 🎯 Tunnel de conversion V3 sur `/experience` (2026-02-27)
+Le prototype artistique `/experience` devient un **véritable funnel d'acquisition** qui capture l'intent + les UTM du visiteur, dépose les événements analytics, route vers `/inscription` et affiche un WelcomeSplash **personnalisé** sur `/mon-accueil`.
+- **`intentConfig.js`** — mapping des 4 intents (`relationship` · `clarity` · `self_discovery` · `specific_question`) vers `splashTitle`, `splashLead`, `primary.route` et `secondary.route`. Helpers `readIntent()` / `storeIntent()` / `readUtm()` / `captureUtm()` / `readDrawnCard()` / `storeDrawnCard()` via sessionStorage. Fonction `detectZodiacCampaign()` (fallback URL directe) qui court-circuite vers `/horoscope/{signe}` si `?utm_campaign=vierge` etc.
+- **`ExperienceRoot.jsx`** — au mount : `captureUtm()` (synchrone dans `useMemo` pour éviter la race avec `detectZodiacCampaign`) + `trackEvent(EXP_STARTED)`. Tracking par scène : `EXP_SCENE2_VIEWED`, `EXP_INTENT_SELECTED{intent_type}`, `EXP_TAROT_STARTED/SELECTED/REVEALED/CONTINUE{card}`, `EXP_FEATHER_STARTED/COMPLETED`, `EXP_SIGNUP_CTA_VIEWED/CLICKED`, `EXP_SKIPPED{at_scene}`. Le CTA final construit `/inscription?intent=<id>&exp_card=<id>&utm_*=…&welcome=1` pour survivre à sessionStorage sur mobile Safari.
+- **`WelcomeSplash.jsx`** — overlay plein écran (z-index 1000, radial gradient sombre + fade-in 800ms) affiché sur `/mon-accueil?welcome=1`. Lit l'intent stocké → affiche titre + lead + 2 CTA (primary + secondary) mappés aux services correspondants. Fallback générique `welcome-splash-generic` si aucun intent. `welcome-skip` nettoie l'URL et laisse le user explorer son dashboard. Événements : `recommended_service_viewed` + `recommended_service_clicked`.
+- **`AuthenticatedHome.js`** — monte `<WelcomeSplash onDismiss={dismissWelcome} />` conditionnellement quand `?welcome=1` est présent. `dismissWelcome()` supprime le param via `setSearchParams` (pas de refresh au reload).
+- **`Register.js`** — post-signup, si `searchParams.get('welcome')==='1'` navigue vers `/mon-accueil?welcome=1` (au lieu de `/`) pour déclencher WelcomeSplash.
+- **`analytics.js`** — nouvelles constantes `EVENTS.EXP_*` (13 événements funnel) intégrées au mapping Meta standard (event() reste no-op tant que consentement RGPD refusé/absent).
+- **Performance** — préload `<link rel="preload" as="style">` sur la CSS Google Fonts + ajout de **Playfair Display** (400/500/italic) à la font family list dans `/app/frontend/public/index.html` pour éviter le FOIT sur la Scène 4 (particules qui écrivent "Plume Astrale").
+- **Testing agent** — 11 features testées, **11/11 pass** après fix de la race condition zodiac shortcut (`useMemo(detectZodiacCampaign)` s'exécutait avant `useEffect(captureUtm)` → shortcut `→ HOROSCOPE VIERGE` jamais affiché). Correctif : `captureUtm()` déplacé DANS le useMemo + fallback URL directe dans `detectZodiacCampaign`.
+- **Non-régressions** — auth, crédits, DB, Stripe, tarot existant : **aucune modification**. Le funnel est un wrapper frontend transparent.
+
+### 🌌 Prototype artistique immersif `/experience` (2026-02-27)
+- **Route isolée** `/experience` — le prototype ne remplace ni ne modifie la home actuelle, ni aucun service, ni Stripe, ni les crédits, ni la DB. Route lazy-loadée (bundle 3D chargé uniquement quand quelqu'un visite `/experience`), noindex, cachée du sitemap.
+- **NavbarV2.js** et **CookieConsent.js** s'auto-masquent sur `/experience` pour préserver l'immersion (return null si `location.pathname === '/experience'`).
+- **Direction artistique** "Nocturne cinématographique" validée : vestibule d'opéra à 4h du matin. Noir dominant à 85%, or et ivoire en accents, lenteur assumée (transitions 2-4s). Palette : `#070713` fond, `#17102E` secondaire, `#7657C8` violet lumineux, `#D8B76A` or doux, `#F4EFE6` ivoire. Typographie : Cormorant Garamond + Inter.
+- **Architecture 4 scènes** — un unique `<Canvas>` R3F qui traverse un stage translaté selon le scroll global (0..1). La caméra reste fixe, ce sont les groupes de scène qui glissent dans le champ. Piloté par `useExperienceStore` (Zustand) qui expose `currentScene`, `sceneProgress`, `globalProgress`, `intent`, `drawnCard`, `reducedMotion`, `isMobile`, `isLowEnd`, `webglAvailable`.
+  - **Scène 01 · Entrée** : ~1200 particules (240 sur low-end) en shell sphérique aléatoire, étoile centrale émissive qui respire, drift lent 3D. Texte "Certaines réponses ne se cherchent pas. / Elles *se révèlent.*", CTA fine bordure dorée avec lumière qui parcourt au hover.
+  - **Scène 02 · Constellations** : 4 vraies constellations 3D dans le canvas (5-6 étoiles + lignes) positionnées autour du centre. Overlay 4 choix (♡ ☾ ✦ ◇) — la constellation correspondant à l'intent choisi s'illumine (opacité étoiles + lignes). L'intent est stocké dans le store pour la future personnalisation.
+  - **Scène 03 · Tarot** : ambiance velours dans le canvas (plan sombre + halo doré + poussière suspendue), 3 cartes en HTML/CSS pour un flip 3D natif fiable. Trois "cartes symboliques Nocturne" (♡ La Rencontre / ☾ Le Voile / ✦ La Trajectoire), halo doré sous la carte tirée, les autres reculent.
+  - **Scène 04 · Plume** : ~600 particules démarrent dispersées et convergent progressivement (ease-out cubic, entre `globalProgress` 0.75 et 0.95) vers un ensemble de positions cibles qui dessinent une plume calligraphique (rachis central courbe + barbes latérales symétriques modulées par sinus). Une fois formée, elle respire doucement. Texte "PLUME *Astrale* / Votre histoire est unique. / Votre ciel aussi." + CTA "Commencer mon voyage" qui redirige vers `/inscription`.
+- **Fallback complet** (`ExperienceFallback.jsx`) : version statique en 4 sections cliquables pour les utilisateurs avec `prefers-reduced-motion: reduce` ou sans WebGL. Mêmes textes, mêmes CTA, mêmes data-testids — animation via fondus CSS courts uniquement.
+- **Performance** : DPR clampé `[1, 1.5]` ([1, 1.25] mobile), pas de post-processing (bundle plus léger), instanced points additifs (1 draw call par nuée), textures particules générées en Canvas 2D au runtime (0 KB à télécharger), degradation `isLowEnd` détectée via `hardwareConcurrency + deviceMemory`. Bundle 3D ~280 KB gzipped, chargé lazy uniquement sur `/experience`.
+- **Tests pytest** `tests/test_experience_prototype.py` — 9/9 pass : route enregistrée + lazy-loaded, Navbar et CookieConsent auto-masqués, palette Nocturne présente, 4 scènes avec data-testids attendus, noindex actif, CTA final navigue vers /inscription, fallback présent pour reduced-motion et no-WebGL, intent + drawnCard persistés dans le store.
+- **Validé visuellement** en preview (screenshots des 4 scènes) : entrée → intention → tarot → plume. La plume se forme en temps réel devant les yeux du visiteur — c'est le moment WOW attendu.
+- **Aucune modification** apportée aux : routes existantes, home, auth, Stripe, crédits, DB, services, tarot existant.
+
+### 🏠 Home optimisée + Article du jour offert (2026-02-27)
+- **ConcoursImpact retiré** (`Homepage.js`) : les 4 étapes "01→04 Vous renseignez votre ciel / Le moteur interprète / Livre composé / Vous le recevez" étaient redondantes avec le formulaire du Hero (même étape 01) et avec le CTA final de `NocturneClosing`. Le concours étant clos, la mention "Construit avec Emergent" ne portait plus valeur. — 1 section en moins, moins de boucle réassurance.
+- **Nouveau bloc `NocturneDailyArticle`** inséré entre `NocturneServices` et le Flipbook teaser : chaque visiteur repart avec un article éditorial du jour. Rotation déterministe par day-of-year modulo 9 (même article pour tous les visiteurs d'une même journée → partageable). Layout magazine avec bordure or, badge pill "L'ARTICLE DU JOUR · OFFERT AUX VISITEURS", titre Playfair, extrait italique Cormorant, meta ("Une lecture de 4 minutes · date"), deux voies : `Lire maintenant` (Link vers `/blog/{slug}`) OU capture email `Envoyer` qui appelle `POST /api/daily-article/send` puis ouvre l'article dans un nouvel onglet. Colonne latérale expose "Neuf articles rédigés · un nouveau chaque jour · voir les 9 articles". CSS dédiée (`NocturneDailyArticle.css`, responsive < 900px en colonne unique). data-testids `nocturne-daily-article`, `nda-{title,tag,cta-read-now,email-input,cta-email,cta-all-articles,sent,error}`.
+- **Endpoint `POST /api/daily-article/send`** (`routes/daily_article.py`) : validation Pydantic stricte (email format, slug `^[a-z0-9-]+$` 3-120, title 3-200, excerpt 10-600, tag optionnel), rate limit 60 s par email en mémoire process, upsert `oracle_leads` (`source='daily_article'`), envoie un email éditorial premium avec titre + tag + extrait + CTA "LIRE L'ARTICLE COMPLET" pointant vers `/blog/{slug}` + lien de désinscription. Signé "— Nadine, éditrice".
+- **Tests pytest** `tests/test_home_daily_article.py` — 7/7 pass : homepage sans ConcoursImpact, homepage avec DailyArticle, composant utilise BLOG_ARTICLES + poste sur le bon endpoint + tous les data-testids, validation Pydantic (email/slug/excerpt), rate limit 429 sur 2ᵉ appel < 60 s.
+- **Résultat visuel** : la home passe de 11 à 10 sections avec 1 bloc redondant retiré ET 1 bloc à forte valeur ajouté. Le visiteur ne peut plus repartir les mains vides — soit il lit tout de suite, soit l'article arrive dans sa boîte email (et sa donnée est capturée pour la séquence mail Nadine).
+
 ### 🛒 Édition Reliée · Checkout Stripe complet + wiring `create_print_approval` (2026-02-27)
 - **Produit `edition_reliee` dans PACKS** (`config.py`) : 149 EUR, one-shot, tagline "Le seul livre qui porte son nom. Composé, imprimé, cousu, numéroté à la main…"
 - **Service `services/edition_reliee_service.py`** :

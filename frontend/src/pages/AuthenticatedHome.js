@@ -1,13 +1,25 @@
-import React, { useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Coins, Sparkles, Edit3, ArrowRight, LogOut } from 'lucide-react';
 import SEO from '@/components/SEO';
 import BundleCard from '@/components/BundleCard';
+import WelcomeSplash from '@/experience/WelcomeSplash';
 
 const AuthenticatedHome = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loading, user, creditBalance, logout } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const showWelcome = searchParams.get('welcome') === '1';
+  const [welcomeVisible, setWelcomeVisible] = useState(showWelcome);
+
+  const dismissWelcome = () => {
+    setWelcomeVisible(false);
+    // Nettoie l'URL pour ne pas ré-afficher au refresh
+    const p = new URLSearchParams(searchParams);
+    p.delete('welcome');
+    setSearchParams(p, { replace: true });
+  };
 
   // Si pas authentifié -> rediriger vers home (mais on attend que l'auth
   // Supabase soit hydratée pour éviter la race condition qui éjecte
@@ -26,6 +38,7 @@ const AuthenticatedHome = () => {
   return (
     <>
       <SEO path="/mon-accueil" />
+      {welcomeVisible && <WelcomeSplash onDismiss={dismissWelcome} />}
       <div style={{
         minHeight: '100vh',
         background: 'linear-gradient(180deg, #131840 0%, #1B2150 50%, #131840 100%)',

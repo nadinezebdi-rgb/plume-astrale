@@ -1,0 +1,703 @@
+/* =============================================================
+   PROTOTYPE — /experience
+   "Nocturne cinématographique"
+   Palette : #070713 · #17102E · #7657C8 · #D8B76A · #F4EFE6
+   Le noir domine, l'or ponctue, tout respire.
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap');
+
+:root {
+  --exp-ink: #070713;
+  --exp-ink-2: #17102E;
+  --exp-violet: #7657C8;
+  --exp-gold: #D8B76A;
+  --exp-gold-soft: rgba(216, 183, 106, 0.55);
+  --exp-gold-line: rgba(216, 183, 106, 0.32);
+  --exp-ivory: #F4EFE6;
+  --exp-ivory-dim: rgba(244, 239, 230, 0.6);
+  --exp-ivory-faint: rgba(244, 239, 230, 0.28);
+
+  --exp-serif: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --exp-sans: 'Inter', -apple-system, system-ui, sans-serif;
+}
+
+.exp-root {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  background: var(--exp-ink);
+  color: var(--exp-ivory);
+  font-family: var(--exp-serif);
+  overflow-x: hidden;
+  cursor: default;
+  isolation: isolate;
+}
+
+/* Le Canvas 3D reste fixe pendant que le scroll orchestre les scènes */
+.exp-canvas-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Sur mobile en fallback CSS, la couche canvas est cachée */
+.exp-root[data-fallback="true"] .exp-canvas-layer { display: none; }
+
+/* La couche UI s'aligne au scroll (une section = 100vh) */
+.exp-ui-layer {
+  position: relative;
+  z-index: 2;
+}
+
+.exp-section {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  box-sizing: border-box;
+}
+
+.exp-section-inner {
+  width: 100%;
+  max-width: 1100px;
+  text-align: center;
+  pointer-events: auto; /* activé au niveau des enfants qui doivent recevoir clic */
+}
+
+/* =============================================================
+   Typographie
+   ============================================================= */
+
+.exp-h1 {
+  font-family: var(--exp-serif);
+  font-weight: 400;
+  font-size: clamp(38px, 6.4vw, 82px);
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  color: var(--exp-ivory);
+  margin: 0;
+}
+
+.exp-h1 em {
+  font-style: italic;
+  color: var(--exp-gold);
+  font-weight: 400;
+}
+
+.exp-h2 {
+  font-family: var(--exp-serif);
+  font-weight: 400;
+  font-size: clamp(24px, 3.4vw, 44px);
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  color: var(--exp-ivory);
+  margin: 0;
+}
+
+.exp-lead {
+  font-family: var(--exp-serif);
+  font-style: italic;
+  font-size: clamp(15px, 1.6vw, 20px);
+  color: var(--exp-ivory-dim);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.exp-eyebrow {
+  font-family: var(--exp-sans);
+  font-size: 10.5px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--exp-gold-soft);
+  margin: 0;
+  font-weight: 400;
+}
+
+.exp-brand {
+  font-family: var(--exp-serif);
+  font-weight: 400;
+  letter-spacing: 0.32em;
+  font-size: clamp(14px, 1.6vw, 22px);
+  color: var(--exp-ivory);
+  text-transform: uppercase;
+}
+
+.exp-brand em {
+  font-style: italic;
+  letter-spacing: 0.06em;
+  color: var(--exp-gold);
+}
+
+/* Signature — fine ligne dorée d'1px qui parcourt les bordures */
+.exp-gilded {
+  position: relative;
+}
+
+.exp-gilded::before,
+.exp-gilded::after {
+  content: '';
+  position: absolute;
+  background: var(--exp-gold-line);
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.exp-gilded::before {
+  top: 0; left: 0; right: 0; height: 1px;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.exp-gilded::after {
+  bottom: 0; left: 0; right: 0; height: 1px;
+  transform: scaleX(0);
+  transform-origin: right;
+}
+
+.exp-gilded:hover::before,
+.exp-gilded:hover::after {
+  transform: scaleX(1);
+}
+
+/* =============================================================
+   Bouton "premium" — fine bordure lumineuse + micro-animation
+   ============================================================= */
+
+.exp-btn {
+  --btn-border: rgba(216, 183, 106, 0.5);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 36px;
+  background: transparent;
+  color: var(--exp-ivory);
+  font-family: var(--exp-sans);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  border: 1px solid var(--btn-border);
+  border-radius: 2px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: color 400ms ease, letter-spacing 500ms ease;
+  text-decoration: none;
+}
+
+.exp-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(216, 183, 106, 0.14) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.exp-btn:hover {
+  color: var(--exp-gold);
+  letter-spacing: 0.36em;
+}
+
+.exp-btn:hover::before {
+  transform: translateX(100%);
+}
+
+.exp-btn__glyph {
+  color: var(--exp-gold);
+  font-size: 14px;
+  transform: translateY(-1px);
+}
+
+/* Bouton secondaire (link ghost) */
+.exp-linkline {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--exp-sans);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--exp-ivory-faint);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 12px 4px;
+  transition: color 400ms ease;
+}
+
+.exp-linkline:hover {
+  color: var(--exp-gold);
+}
+
+.exp-linkline__chevron {
+  display: inline-block;
+  transition: transform 400ms ease;
+}
+
+.exp-linkline:hover .exp-linkline__chevron {
+  transform: translateY(3px);
+}
+
+/* =============================================================
+   Scène 01 — entrée
+   ============================================================= */
+
+.exp-s1 { min-height: 100vh; }
+
+.exp-s1__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  opacity: 0;
+  animation: exp-fade-slow 3.6s 0.6s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.exp-s1__brand-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  align-items: center;
+}
+
+.exp-s1__brand {
+  opacity: 0;
+  animation: exp-cinematic-reveal 3.2s 1.0s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.exp-s1__phrase-1 {
+  opacity: 0;
+  animation: exp-cinematic-reveal 3.4s 2.6s forwards cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 720px;
+}
+
+.exp-s1__phrase-2 {
+  opacity: 0;
+  color: var(--exp-ivory);
+  animation: exp-cinematic-reveal 3.4s 4.6s forwards cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 720px;
+}
+
+.exp-s1__phrase-2 em {
+  font-style: italic;
+  color: var(--exp-gold);
+}
+
+.exp-s1__cta {
+  opacity: 0;
+  animation: exp-fade-slow 2.4s 5.6s forwards ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+/* Petit indice scroll animé */
+.exp-scroll-hint {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  animation: exp-fade-slow 2s 6.8s forwards ease-out;
+}
+
+.exp-scroll-hint__line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(180deg, transparent 0%, var(--exp-gold-line) 50%, transparent 100%);
+  margin: 8px auto 0;
+  animation: exp-scroll-line 2.4s infinite;
+}
+
+@keyframes exp-scroll-line {
+  0%, 100% { opacity: 0.25; transform: scaleY(0.6); }
+  50% { opacity: 1; transform: scaleY(1); }
+}
+
+/* =============================================================
+   Scène 02 — constellations
+   ============================================================= */
+
+.exp-s2__intro {
+  margin-bottom: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+}
+
+.exp-s2__phrase {
+  opacity: 0;
+  transition: opacity 1600ms ease;
+  max-width: 620px;
+}
+
+.exp-s2__phrase[data-visible="true"] { opacity: 1; }
+
+.exp-s2__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 40px;
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+@media (max-width: 720px) {
+  .exp-s2__grid { grid-template-columns: 1fr; gap: 20px; }
+}
+
+.exp-s2__choice {
+  --choice-opacity: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 12px;
+  padding: 32px 30px 30px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--exp-ivory);
+  transition: opacity 500ms ease, transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: var(--choice-opacity);
+}
+
+.exp-s2__grid[data-hovering="true"] .exp-s2__choice:not(:hover) {
+  --choice-opacity: 0.32;
+}
+
+.exp-s2__choice::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--exp-gold-line);
+  transform: scaleX(0.14);
+  transform-origin: left;
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.exp-s2__choice:hover {
+  transform: translateY(-4px);
+}
+
+.exp-s2__choice:hover::before { transform: scaleX(1); }
+
+.exp-s2__choice-glyph {
+  font-size: 22px;
+  color: var(--exp-gold);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  transition: opacity 500ms ease, transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.exp-s2__choice:hover .exp-s2__choice-glyph {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.exp-s2__choice-label {
+  font-family: var(--exp-serif);
+  font-style: italic;
+  font-size: clamp(19px, 2.2vw, 26px);
+  color: var(--exp-ivory);
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+/* =============================================================
+   Scène 03 — Tarot
+   ============================================================= */
+
+.exp-s3__intro {
+  margin-bottom: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+}
+
+.exp-s3__cards {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 380px;
+  perspective: 1600px;
+}
+
+@media (max-width: 720px) {
+  .exp-s3__cards { gap: 16px; min-height: 320px; }
+}
+
+.exp-s3__card {
+  --card-w: 190px;
+  --card-h: 300px;
+  --card-rot: 0deg;
+  --card-dy: 0px;
+  position: relative;
+  width: var(--card-w);
+  height: var(--card-h);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 500ms ease;
+  transform: rotate(var(--card-rot)) translateY(var(--card-dy));
+}
+
+.exp-s3__card[data-featured="true"] {
+  --card-w: 200px;
+  --card-h: 316px;
+  z-index: 2;
+}
+
+@media (max-width: 720px) {
+  .exp-s3__card { --card-w: 130px; --card-h: 205px; }
+  .exp-s3__card[data-featured="true"] { --card-w: 138px; --card-h: 218px; }
+}
+
+.exp-s3__cards[data-hovering="true"] .exp-s3__card:not(:hover) {
+  transform: rotate(var(--card-rot)) translateY(calc(var(--card-dy) + 6px)) scale(0.97);
+  opacity: 0.58;
+}
+
+.exp-s3__card:hover:not([data-flipped="true"]) {
+  transform: rotate(var(--card-rot)) translateY(calc(var(--card-dy) - 18px));
+}
+
+.exp-s3__card[data-flipped="true"] {
+  transform: rotate(0deg) translateY(-14px) scale(1.12) rotateY(180deg);
+  z-index: 3;
+}
+
+/* Autre cartes qui reculent quand une est retournée */
+.exp-s3__cards:has([data-flipped="true"]) .exp-s3__card:not([data-flipped="true"]) {
+  opacity: 0;
+  transform: rotate(var(--card-rot)) translateX(var(--card-away, 0)) scale(0.9);
+  pointer-events: none;
+}
+
+.exp-s3__cards:has([data-flipped="true"]) .exp-s3__card:not([data-flipped="true"]):first-child {
+  --card-away: -60px;
+}
+
+.exp-s3__cards:has([data-flipped="true"]) .exp-s3__card:not([data-flipped="true"]):last-child {
+  --card-away: 60px;
+}
+
+/* Halo doré sous la carte au hover */
+.exp-s3__card::before {
+  content: '';
+  position: absolute;
+  left: 50%; bottom: -22px;
+  width: 80%;
+  height: 22px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(216, 183, 106, 0.35) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.exp-s3__card:hover::before,
+.exp-s3__card[data-flipped="true"]::before {
+  opacity: 1;
+}
+
+.exp-s3__face,
+.exp-s3__back {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  backface-visibility: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow:
+    0 20px 40px -14px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(216, 183, 106, 0.18);
+}
+
+.exp-s3__back {
+  /* image de fond injectée en style inline depuis le composant */
+}
+
+.exp-s3__face {
+  transform: rotateY(180deg);
+  /* image de fond injectée en style inline depuis le composant */
+}
+
+.exp-s3__result {
+  margin-top: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+
+.exp-s3__result[data-visible="true"] {
+  opacity: 1;
+}
+
+/* =============================================================
+   Scène 04 — apparition de la plume
+   ============================================================= */
+
+.exp-s4__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding-top: 8vh;
+}
+
+/* Espace réservé pour la formation des particules (plume → "Plume Astrale") */
+.exp-s4__particle-space {
+  width: 100%;
+  height: 42vh;
+  min-height: 260px;
+  max-height: 460px;
+}
+
+.exp-s4__phrases {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  max-width: 640px;
+}
+
+.exp-s4__phrase {
+  opacity: 0;
+  transition: opacity 1600ms ease;
+}
+
+.exp-s4__phrase[data-visible="true"] { opacity: 1; }
+
+.exp-s4__final-cta {
+  opacity: 0;
+  transition: opacity 1600ms ease;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+}
+
+.exp-s4__final-cta[data-visible="true"] { opacity: 1; }
+
+/* =============================================================
+   Header + Son toggle (fixé en overlay)
+   ============================================================= */
+
+.exp-topbar {
+  position: fixed;
+  top: 22px;
+  left: 32px;
+  right: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 4;
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .exp-topbar { top: 16px; left: 20px; right: 20px; }
+}
+
+.exp-topbar__logo,
+.exp-topbar__sound,
+.exp-topbar__exit {
+  pointer-events: auto;
+  font-family: var(--exp-sans);
+  font-size: 10.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--exp-ivory-faint);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 400ms ease;
+}
+
+.exp-topbar__logo { letter-spacing: 0.22em; }
+
+.exp-topbar__sound:hover,
+.exp-topbar__exit:hover { color: var(--exp-gold); }
+
+/* Bord bas — indicateur de scène (subtil) */
+.exp-scene-indicator {
+  position: fixed;
+  bottom: 24px;
+  right: 32px;
+  z-index: 4;
+  font-family: var(--exp-sans);
+  font-size: 10px;
+  letter-spacing: 0.36em;
+  color: var(--exp-ivory-faint);
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* =============================================================
+   Utilitaires animation
+   ============================================================= */
+
+@keyframes exp-fade-slow {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Reveal cinématique : flou net + opacité + micro-scale.
+   Utilisé sur les éléments texte principaux de la scène 1. */
+@keyframes exp-cinematic-reveal {
+  0%   { opacity: 0; filter: blur(8px); transform: scale(0.985); }
+  60%  { opacity: 0.9; filter: blur(1px); transform: scale(0.997); }
+  100% { opacity: 1; filter: blur(0); transform: scale(1); }
+}
+
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .exp-s1__stack,
+  .exp-s1__brand,
+  .exp-s1__phrase-1,
+  .exp-s1__phrase-2,
+  .exp-s1__cta,
+  .exp-scroll-hint {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+  .exp-scroll-hint__line { animation: none; opacity: 0.6; }
+}
+
+/* =============================================================
+   Fallback statique (no-WebGL) — la structure reste,
+   les particules deviennent un dégradé radial figé.
+   ============================================================= */
+
+.exp-root[data-fallback="true"] .exp-section {
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(118, 87, 200, 0.10), transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(216, 183, 106, 0.06), transparent 40%),
+    var(--exp-ink);
+}
