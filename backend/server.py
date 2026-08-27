@@ -2743,15 +2743,15 @@ async def seo_get_content(path: str):
     Query : ?path=/theme-natal-luxe
 
     Retour : {path, meta_title, meta_desc, h1, html_body, jsonld, ...}
-    Retourne 404 si aucun snapshot en base (fallback vers React SPA vanilla côté frontend).
+    Retourne 204 (No Content) si aucun snapshot en base — fallback vers React
+    SPA vanilla côté frontend, ET pas de 404 bruyant en console navigateur.
     """
-    from fastapi import HTTPException as _HTTPExc
     from services.ssr_snapshot import get_snapshot
     if not path.startswith('/'):
         path = '/' + path
     doc = await get_snapshot(path)
     if not doc:
-        raise _HTTPExc(status_code=404, detail=f'No SEO snapshot for {path}')
+        return Response(status_code=204)
     return doc
 
 
