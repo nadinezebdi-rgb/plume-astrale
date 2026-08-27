@@ -113,70 +113,30 @@ export default function Homepage() {
         description="Transformez vos données de naissance en une lecture personnalisée de 49 pages, composée et livrée en moins de 60 secondes. Aperçu 5 pages offert, sans carte bancaire."
       />
 
-      {/* ═══ SECTION 1 · HERO NOCTURNE ÉDITORIAL (Feb 2026 — refonte artistique) ═══ */}
+      {/* ═══ SECTION 1 · HERO NOCTURNE ÉDITORIAL ═══ */}
       <NocturneHero />
 
-      {/* Bandeau concours retiré 2026-02-26 — votes clos depuis le 25 août. */}
-
-      {/* ═══ SECTION 1.03 · CINEMATIC BOOK SHOWCASE (mini-vidéo Sophie) ═══ */}
-      <CinematicBookShowcase />
-
-      {/* ═══ SECTION 1.05 · SUPPRIMÉE (2026-02-27) — ConcoursImpact retiré :
-              redondant avec le formulaire du Hero (étape 01 "Vous renseignez votre ciel")
-              et avec NocturneClosing (CTA "Commencer mon expérience"). Le concours étant
-              clos, le message "Construit avec Emergent" ne portait plus valeur. ═══ */}
-
-      {/* ═══ SECTION 1.1 · TRUST BAR (F500 audit 2026-02) — garanties + livraison + support ═══ */}
+      {/* ═══ SECTION 1.1 · TRUST BAR — garanties + livraison + support ═══ */}
       <TrustBar variant="dense" />
 
-      {/* ═══ 2026-02-26 · NETTOYAGE HOME 8-BLOCS ═══
-          Retirés d'après audit business :
-            - HowItWorks3Tiers (Trois façons d'entrer) — force un choix de modèle économique
-            - HomepageMiniQuiz — remplacé par occasions dans la refonte future
-            - PremiumPillars (Quatre repères) — bruit visuel, redondant avec TrustBar
-            - VALUE_PILLARS section (Trois engagements) — même famille, ne convertit pas
-            - Section 5.5 (Six articles blog) — remplacée par 3 liens compacts dans le footer
-            - NocturneLeadMagnet (second formulaire) — un seul formulaire sur la page (dans Hero) */}
-
-      {/* ═══ SECTION 1.9 · MANIFESTE NOCTURNE — différenciation de marque ═══ */}
-      <NocturneManifest />
-
-      {/* ═══ SECTION 2.0 · SOLÉNA (apparition douce au scroll) ═══ */}
-      <SolenaGuideCard />
-
-      {/* ═══ SECTION 2.2 · TROIS LECTURES NOCTURNE ═══ */}
-      <NocturneServices />
-
-      {/* ═══ SECTION 2.5 · L'ARTICLE DU JOUR — offert à chaque visiteur (2026-02-27)
-              Rotation quotidienne parmi les 9 articles publiés. Ancre "vous repartez
-              avec quelque chose", sans forcer l'achat. Deux voies :
-              lire tout de suite (/blog/{slug}) OU se l'envoyer par email
-              (POST /api/daily-article/send → capture lead + email article). ═══ */}
-      <NocturneDailyArticle />
-
-      {/* ═══ SECTION 2 · SUPPRIMÉE (2026-02-26 audit) — VALUE_PILLARS "Trois engagements"
-              redondant avec TrustBar + NocturneServices. La grille NocturneServices
-              tient déjà la promesse (une lecture personnelle, jamais générique). ═══ */}
-
-
-      {/* ═══ SECTION 3 · SUPPRIMÉE (2026-02-14) — Soléna n'est pas astrologue,
-              c'est un avatar / une voix éditoriale. Aucune claim d'action humaine. ═══ */}
-
-      {/* ═══ SECTION 4 · REMPLACÉE PAR NocturneServices (voir plus haut, section 1.77) ═══ */}
-
-
-      {/* ═══ SECTION 4bis · FEUILLETAGE DES LIVRES (SOMBRE) ═══ */}
+      {/* ═══ SECTION 2 · FEUILLETER — REMONTÉE en haut suite audit UX 2026-02-27
+              La visiteuse veut voir CE QU'ELLE RECEVRA avant tout autre discours.
+              PDF illustré (39-49€) clairement étiqueté, distinct de l'Édition Reliée 149€. ═══ */}
       <section className="ps-section ps-section-dark" data-testid="ps-flipbook-teaser">
         <CelestialBackdrop density={90} shootingStars={false} />
         <div className="ps-container" style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ marginBottom: 56, maxWidth: 680 }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Feuilleter avant d&apos;acheter</p>
             <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 16 }}>
-              Un extrait, comme si tu tenais le <span className="ps-italic">livre</span> entre tes mains.
+              Un extrait, comme si vous teniez le <span className="ps-italic">livre</span> entre vos mains.
             </h2>
             <p className="ps-body" style={{ color: 'rgba(247,245,240,0.78)' }}>
               Chaque lecture est composée comme un vrai livre — couverture personnalisée, table
-              des matières, ornements dorés. Ouvre-en un pour toucher la matière.
+              des matières, ornements dorés. Ouvrez-en un pour toucher la matière.
+            </p>
+            <p className="ps-body" style={{ color: 'rgba(201,162,75,0.9)', fontSize: 13, marginTop: 12 }}>
+              ✦ Ces trois lectures sont livrées en <strong>PDF illustré</strong> (à télécharger).
+              L&apos;<Link to="/edition-reliee" style={{ color: '#C9A24B' }}>Édition Reliée 149€</Link> est un livre imprimé, expédié chez vous.
             </p>
           </div>
 
@@ -211,7 +171,7 @@ export default function Homepage() {
                     fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600,
                     letterSpacing: '0.14em', textTransform: 'uppercase',
                     color: 'rgba(247,245,240,0.55)',
-                  }}>Livre imprimé</span>
+                  }}>PDF illustré · à télécharger</span>
                 </div>
 
                 <div>
@@ -282,6 +242,55 @@ export default function Homepage() {
           </div>
         </div>
       </section>
+
+      {/* ═══ SECTION 3 · TROIS AVIS CLIENTS (audit UX 2026-02-27)
+              Placés APRÈS "feuilleter" et AVANT le manifeste : réponse à
+              "Est-ce que c'est bien fait ?" juste après "à quoi ça ressemble ?".
+              Copie sobre, prénom + ville + une ligne. ═══ */}
+      <section className="ps-section ps-section-cream" data-testid="ps-testimonials-inline"
+               style={{ padding: '72px 0' }}>
+        <div className="ps-container">
+          <p className="ps-eyebrow" style={{ marginBottom: 32, textAlign: 'center' }}>
+            Ce qu&apos;elles en ont fait
+          </p>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: 32, maxWidth: 1100, margin: '0 auto',
+          }}>
+            {[
+              { name: 'Camille', city: 'Bordeaux',   quote: "J'ai relu trois fois le passage sur Mars. C'est la première fois qu'un texte astrologique me parle vraiment de moi." },
+              { name: 'Léa',     city: 'Lyon',       quote: "Le PDF est arrivé en 45 secondes, magnifiquement mis en page. Je l'ai offert à ma sœur pour son anniversaire." },
+              { name: 'Julie',   city: 'Montréal',   quote: "Je n'attendais pas grand-chose et j'ai fini par prendre l'édition reliée. Le rendu papier est superbe." },
+            ].map((t, i) => (
+              <blockquote key={i} data-testid={`ps-testimonial-${i}`}
+                style={{ margin: 0, padding: 0 }}>
+                <p style={{
+                  fontFamily: 'Playfair Display, serif', fontStyle: 'italic',
+                  fontSize: 18, lineHeight: 1.55, color: '#0F1A3C',
+                  margin: '0 0 14px',
+                }}>« {t.quote} »</p>
+                <footer style={{
+                  fontFamily: 'Inter, sans-serif', fontSize: 12,
+                  letterSpacing: '0.14em', textTransform: 'uppercase',
+                  color: 'rgba(15,26,60,0.6)',
+                }}>— {t.name}, {t.city}</footer>
+              </blockquote>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ SECTION 4 · MANIFESTE NOCTURNE — différenciation de marque ═══ */}
+      <NocturneManifest />
+
+      {/* ═══ 2026-02-27 · SIMPLIFICATION HOME (audit UX visiteur pub Insta) :
+          Retirés pour éviter les doublons et l'ambiguïté :
+            - CinematicBookShowcase (redondant avec le flipbook remonté ci-dessus)
+            - SolenaGuideCard (photo réaliste faisait passer Soléna pour humaine
+              alors qu'elle est une voix éditoriale — la FAQ le clarifiera)
+            - NocturneServices (mêmes livres racontés une 2e fois avec prix différents)
+            - NocturneDailyArticle (date figée au 24 novembre — effet "site dormant") */}
 
       {/* ═══ SECTION 5 · TÉMOIGNAGES ═══
           Retirée pendant le concours 2026 : aucun avis codé en dur,
