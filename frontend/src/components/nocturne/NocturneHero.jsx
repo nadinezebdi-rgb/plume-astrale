@@ -1,8 +1,7 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Clock3, ShieldCheck, Sparkles } from 'lucide-react';
 import StarfieldBackdrop from '@/components/StarfieldBackdrop';
-import FeatherCursor from '@/components/FeatherCursor';
 
 const PROOFS = [
   { value: '49', label: 'pages personnalisées' },
@@ -16,11 +15,9 @@ const PROOFS = [
  * une action principale sans risque et une preuve immédiate de personnalisation.
  */
 export default function NocturneHero() {
-  const sectionRef = useRef(null);
   return (
-    <section ref={sectionRef} className="ne-section ne-section-night ne-hero-premium" data-testid="nocturne-hero" style={{ position: 'relative', overflow: 'hidden' }}>
+    <section className="ne-section ne-section-night ne-hero-premium" data-testid="nocturne-hero" style={{ position: 'relative', overflow: 'hidden' }}>
       <StarfieldBackdrop density={70} color="216, 183, 106" fade={0.45} />
-      <FeatherCursor containerRef={sectionRef} />
       <div className="ne-container" style={{ position: 'relative', zIndex: 1 }}>
         <div className="ne-hero-premium-grid">
           <div className="ne-hero-premium-copy">
