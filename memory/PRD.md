@@ -27,6 +27,28 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### 🧪 A/B test, Scène Zodiac & Home unifiée (2026-02-27)
+Trois évolutions complémentaires au tunnel V3 pour maximiser conversion et cohérence de marque.
+
+**1. A/B test `/` ↔ `/experience`**
+- `src/components/ABTestHome.jsx` — wrapper de la route `/`. Contrôlé par `REACT_APP_EXP_AB_TEST=on|off` (`off` par défaut, safe). Assigne le visiteur à `homepage` ou `experience` (50/50) et persiste en sessionStorage `ab_home_variant` (même variante au refresh). Override URL `?ab=exp|home|off` fonctionne toujours (utile QA/preview) même si flag OFF. Redirect `<Navigate replace>` en préservant la query string entrante. Event `ab_home_assigned{variant}` déclenché quand la flag est ON.
+- Route `/` dans `App.js` remplacée par `<ABTestHome />` (import ligne 9). Non-breaking : tant que la flag est off, comportement inchangé.
+
+**2. Scène Zodiac (interlude entre intention et Tarot)**
+- Nouveau `ZodiacInterlude.jsx` — overlay z-index 900 qui s'affiche après la sélection d'intention sur `/experience`. Deux étapes : `input` (mini date picker élégant "Votre ciel de naissance") puis `reveal` (mini-constellation SVG animée + glyphe du signe + nom + trait poétique). Auto-continuation 5,2s après reveal OU clic sur "CONTINUER". "CONTINUER SANS MON SIGNE →" pour skip. Signe persisté en sessionStorage `exp_zodiac`.
+- Nouveau `zodiacUtils.js` — `computeZodiac(iso)` couvre les 12 signes avec le cas particulier Capricorne (à cheval sur l'année). `zodiacByKey()` + `ZODIAC_STARS` (mini patterns 5-6 étoiles par signe, SVG viewBox 200×200) pour la mini-constellation stylée.
+- `ExperienceRoot.jsx` — `handleIntentChoice` ouvre l'interlude à +700ms au lieu de scroller immédiatement. `handleZodiacComplete()` et `handleZodiacSkip()` ferment l'interlude et scrollent à la scène 3 (Tarot).
+- `WelcomeSplash.jsx` — lit `exp_zodiac` de sessionStorage et affiche un eyebrow additionnel `data-testid=welcome-zodiac` "♍ SIGNE VIERGE" en tête du splash, en plus du titre personnalisé.
+- Événements analytics : `zodiac_computed{zodiac, element}`, `zodiac_confirmed{zodiac}`, `zodiac_skipped{step}`.
+
+**3. Home unifiée : particules + typographie éditoriale**
+- Nouveau `StarfieldBackdrop.jsx` — canvas 2D léger (0 KB à télécharger), ~80 étoiles procédurales dérivant lentement, `pointer-events:none`, respect `prefers-reduced-motion` (frame statique). Prend `density`, `color` (r,g,b string), `fade`, `speed`.
+- `NocturneHero.jsx` — inséré comme premier enfant de la section hero (avec `position: relative; overflow: hidden` sur la section et `position: relative; z-index: 1` sur le container). L'accent H1 "un livre." passe en Cormorant Garamond italic 500. Aucun autre changement structurel.
+
+**Testing agent** — 14/14 PASS (iteration_83) : A/B off/exp/home, zodiac input/reveal/skip/continue (Vierge Terre pour 1990-09-15), sessionStorage écrit correctement, welcome-zodiac visible sur `/mon-accueil?welcome=1`, starfield present + CTA cliquable, non-régression `experience-zodiac-shortcut` et `/inscription`.
+
+**Note** — La boucle musicale ambient a été **volontairement mise en pause** à la demande de la fondatrice ("fais-la moi écouter d'abord") pour éviter tout dérapage sonore. Reste en backlog.
+
 ### 🎯 Tunnel de conversion V3 sur `/experience` (2026-02-27)
 Le prototype artistique `/experience` devient un **véritable funnel d'acquisition** qui capture l'intent + les UTM du visiteur, dépose les événements analytics, route vers `/inscription` et affiche un WelcomeSplash **personnalisé** sur `/mon-accueil`.
 - **`intentConfig.js`** — mapping des 4 intents (`relationship` · `clarity` · `self_discovery` · `specific_question`) vers `splashTitle`, `splashLead`, `primary.route` et `secondary.route`. Helpers `readIntent()` / `storeIntent()` / `readUtm()` / `captureUtm()` / `readDrawnCard()` / `storeDrawnCard()` via sessionStorage. Fonction `detectZodiacCampaign()` (fallback URL directe) qui court-circuite vers `/horoscope/{signe}` si `?utm_campaign=vierge` etc.

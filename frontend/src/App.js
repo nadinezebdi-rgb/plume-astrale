@@ -6,6 +6,7 @@ import Navbar from "./components/NavbarV2";
 import TrialBanner from "./components/TrialBanner";
 
 import Index from "./pages/Homepage";
+import ABTestHome from "./components/ABTestHome";
 import LectureCompleteSucces from "./pages/LectureCompleteSucces";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
@@ -142,7 +143,7 @@ function App() {
         <CookieConsent />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<ABTestHome />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogArticle />} />
           <Route path="/decouvrir" element={<Decouvrir />} />

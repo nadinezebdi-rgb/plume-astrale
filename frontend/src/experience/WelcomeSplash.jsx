@@ -9,16 +9,23 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { INTENT_CONFIG, readIntent } from './intentConfig';
+import { zodiacByKey } from './zodiacUtils';
 import { event as trackEvent } from '@/lib/analytics';
+
+function readZodiac() {
+  try { return window.sessionStorage.getItem('exp_zodiac') || null; } catch { return null; }
+}
 
 export default function WelcomeSplash({ onDismiss }) {
   const navigate = useNavigate();
   const intent = readIntent();
   const config = intent ? INTENT_CONFIG[intent] : null;
+  const zodiacKey = readZodiac();
+  const zodiac = zodiacKey ? zodiacByKey(zodiacKey) : null;
 
   useEffect(() => {
-    trackEvent('recommended_service_viewed', { intent_type: intent || 'none' });
-  }, [intent]);
+    trackEvent('recommended_service_viewed', { intent_type: intent || 'none', zodiac: zodiacKey || 'none' });
+  }, [intent, zodiacKey]);
 
   const handleCTA = (route, kind) => () => {
     trackEvent('recommended_service_clicked', { intent_type: intent, route, kind });
@@ -48,6 +55,12 @@ export default function WelcomeSplash({ onDismiss }) {
     <div style={overlayStyle} data-testid="welcome-splash">
       <style>{`@keyframes welcomeFadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }`}</style>
       <div style={cardStyle}>
+        {zodiac && (
+          <p style={{ ...eyebrowStyle, marginBottom: 8 }} data-testid="welcome-zodiac">
+            <span style={{ color: '#D8B76A', fontSize: 18, marginRight: 10 }}>{zodiac.glyph}</span>
+            SIGNE {zodiac.name.toUpperCase()}
+          </p>
+        )}
         <p style={eyebrowStyle}>
           <span style={{ color: '#D8B76A', fontSize: 18, marginRight: 12 }}>{config.icon}</span>
           {config.label.toUpperCase()}

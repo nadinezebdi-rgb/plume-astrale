@@ -16,6 +16,7 @@ import ExperienceCanvas from './ExperienceCanvas';
 import ExperienceFallback from './ExperienceFallback';
 import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
 import { storeIntent, storeDrawnCard, captureUtm, detectZodiacCampaign, readUtm } from './intentConfig';
+import ZodiacInterlude from './ZodiacInterlude';
 import { event as trackEvent, EVENTS } from '@/lib/analytics';
 import './Experience.css';
 
@@ -54,6 +55,7 @@ export default function ExperienceRoot() {
   const [hoveringCard, setHoveringCard] = useState(false);
   const [scene2Step, setScene2Step] = useState(0); // 0=phrase1, 1=phrase2+choices, 2=chosen
   const [scene4Step, setScene4Step] = useState(0); // 0=silence, 1=writing, 2=phrase1, 3=phrase2, 4=cta
+  const [zodiacVisible, setZodiacVisible] = useState(false);
   const sectionRefs = useRef({ 1: null, 2: null, 3: null, 4: null });
 
   // Fallback pour reduced-motion ou pas de WebGL
@@ -149,8 +151,21 @@ export default function ExperienceRoot() {
     storeIntent(intentId);
     trackEvent(EVENTS.EXP_INTENT_SELECTED, { intent_type: intentId });
     setScene2Step(2);
-    setTimeout(() => scrollToScene(3), 900);
-  }, [setIntent, scrollToScene]);
+    // Ouvre l'interlude Zodiac. Le passage à la scène 3 se fera après
+    // completion / skip du signe.
+    setTimeout(() => setZodiacVisible(true), 700);
+  }, [setIntent]);
+
+  const handleZodiacComplete = useCallback((sign) => {
+    setZodiacVisible(false);
+    if (sign) trackEvent('zodiac_confirmed', { zodiac: sign.key });
+    setTimeout(() => scrollToScene(3), 350);
+  }, [scrollToScene]);
+
+  const handleZodiacSkip = useCallback(() => {
+    setZodiacVisible(false);
+    setTimeout(() => scrollToScene(3), 200);
+  }, [scrollToScene]);
 
   const handleCardDraw = useCallback((cardId) => {
     if (drawnCard) return;
@@ -392,8 +407,7 @@ export default function ExperienceRoot() {
           </div>
         </section>
 
-        {/* ─── Scène 04 ───────────────────────────────────── */}
-        <section
+        {/* ─── Scène 04 ───────────────────────────────────── */}        <section
           ref={(el) => (sectionRefs.current[4] = el)}
           className="exp-section"
           data-testid="experience-scene-4"
@@ -448,6 +462,12 @@ export default function ExperienceRoot() {
           </div>
         </section>
       </div>
+
+      <ZodiacInterlude
+        visible={zodiacVisible}
+        onComplete={handleZodiacComplete}
+        onSkip={handleZodiacSkip}
+      />
     </div>
   );
 }
