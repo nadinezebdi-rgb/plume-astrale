@@ -16,6 +16,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import StarfieldBackdrop from '@/components/StarfieldBackdrop';
+import Act5DailyArticle from './Act5DailyArticle';
 import { event as trackEvent } from '@/lib/analytics';
 
 // ─── Mini-SVG icons poétiques par service ─────────────────
@@ -202,7 +203,12 @@ export default function Act5Universe() {
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 1200, margin: '0 auto' }}>
         {SERVICES.map((svc, i) => (
-          <ServiceBand key={svc.key} svc={svc} index={i} />
+          <React.Fragment key={svc.key}>
+            <ServiceBand svc={svc} index={i} />
+            {/* Article du jour entre services 3 et 4 : voix éditoriale
+                quotidienne intégrée dans la trame narrative */}
+            {i === 2 && <Act5DailyArticle />}
+          </React.Fragment>
         ))}
       </div>
     </section>

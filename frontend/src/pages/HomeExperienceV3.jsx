@@ -21,9 +21,9 @@ const HomeExperienceRoot = lazy(() => import('@/home-experience/HomeExperienceRo
 const JSONLD = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'Plume Astrale — Prototype Immersif',
-  url: 'https://plume-astrale.fr/home-experience-v3',
-  description: 'Prototype homepage cinématographique de Plume Astrale. Un voyage en huit actes de la question intime à la découverte de votre univers astrologique.',
+  name: 'Plume Astrale',
+  url: 'https://plume-astrale.fr',
+  description: 'Plume Astrale — Développement personnel & compréhension de vos cycles de vie.',
   publisher: {
     '@type': 'Organization',
     name: 'Plume Astrale',
@@ -61,9 +61,9 @@ export default function HomeExperienceV3() {
     <>
       <SEO
         path="/home-experience-v3"
-        title="Prototype · Plume Astrale"
-        description="Prototype homepage immersive Plume Astrale — un voyage en huit actes."
-        noindex
+        title="Plume Astrale — Une question, un signe, une révélation"
+        description="Un voyage cinématographique en huit actes de la question intime à la découverte de votre univers astrologique."
+        canonical="https://plume-astrale.fr/"
       />
       <script
         type="application/ld+json"
