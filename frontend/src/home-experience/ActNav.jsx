@@ -21,7 +21,7 @@ const ACTS = [
   { id: 8, label: 'VOTRE ESPACE',    glyph: '·' },
 ];
 
-export default function ActNav({ currentAct = 1, onJump, actsAvailable = 8 }) {
+export default function ActNav({ currentAct = 1, onJump, actsAvailable = 8, hidden = false }) {
   const [hover, setHover] = useState(null);
 
   // Respect reduced motion : pas de scale sur hover
@@ -34,6 +34,8 @@ export default function ActNav({ currentAct = 1, onJump, actsAvailable = 8 }) {
     mq.addEventListener?.('change', listener);
     return () => mq.removeEventListener?.('change', listener);
   }, []);
+
+  if (hidden) return null;
 
   return (
     <nav

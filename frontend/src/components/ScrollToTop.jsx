@@ -19,10 +19,19 @@ export default function ScrollToTop() {
   const { pathname, hash } = useLocation();
 
   useLayoutEffect(() => {
-    if (hash) return; // ancre — laisser le browser gérer
-    // Instant scroll (pas smooth) pour éviter tout flash de contenu en cours
-    // de route
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    if (hash) return;
+    const scroll = () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    // 1er scroll : immédiat, avant peinture
+    scroll();
+    // 2ème et 3ème passe : re-scroll après montage des composants lazy
+    // (Cookie banner, WelcomeSplash overlay, formulaires longs) qui shiftent
+    // parfois la mise en page après leur mount.
+    const r1 = requestAnimationFrame(scroll);
+    const t2 = setTimeout(scroll, 250);
+    return () => {
+      cancelAnimationFrame(r1);
+      clearTimeout(t2);
+    };
   }, [pathname, hash]);
 
   return null;

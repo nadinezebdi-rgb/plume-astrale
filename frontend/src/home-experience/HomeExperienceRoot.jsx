@@ -31,10 +31,20 @@ const Act6Personalization = lazy(() => import('./acts/Act6Personalization'));
 const Act7Conversion      = lazy(() => import('./acts/Act7Conversion'));
 const Act8Reassurance     = lazy(() => import('./acts/Act8Reassurance'));
 
+const ACT_LABELS = {
+  1: "Acte 1 : l'appel",
+  2: 'Acte 2 : la question',
+  3: 'Acte 3 : la révélation',
+  4: 'Acte 4 : la plume',
+  5: "Acte 5 : l'univers",
+  6: 'Acte 6 : pour vous',
+  7: 'Acte 7 : commencer',
+  8: 'Acte 8 : votre espace',
+};
+
 export default function HomeExperienceRoot() {
   const currentScene = useExperienceStore((s) => s.currentScene);
   const setScene = useExperienceStore((s) => s.setScene);
-  // Charge la suite du parcours dès que l'utilisateur atteint l'Acte 3
   const [loadRest, setLoadRest] = useState(false);
 
   useEffect(() => {
@@ -45,6 +55,9 @@ export default function HomeExperienceRoot() {
     if (currentScene >= 3 && !loadRest) setLoadRest(true);
     if (currentScene >= 1 && currentScene <= 8) {
       trackEvent('home_v3_act_viewed', { act: currentScene });
+      // Annonce vocale discrète pour lecteurs d'écran
+      const live = document.getElementById('hex3-live-region');
+      if (live) live.textContent = ACT_LABELS[currentScene] || '';
     }
   }, [currentScene, loadRest]);
 
@@ -53,8 +66,8 @@ export default function HomeExperienceRoot() {
   useScrollTriggerActs({ actsCount: 8, onActChange: handleActChange });
 
   const handleJumpToAct = (actId) => {
-    // Cherche d'abord dans les scènes /experience (1-4), puis dans les
-    // nouvelles sections Home V3 (5-8)
+    // Si le user saute directement à Act 5-8, force le lazy load immédiat
+    if (actId >= 5 && !loadRest) setLoadRest(true);
     const el = document.querySelector(`[data-testid="experience-scene-${actId}"]`)
             || document.querySelector(`[data-testid="home-experience-scene-${actId}"]`);
     if (el) {
@@ -63,6 +76,13 @@ export default function HomeExperienceRoot() {
       trackEvent('home_v3_actnav_clicked', { act: actId });
     }
   };
+
+  // En mode fallback (WebGL absent ou reduced-motion), on cache ActNav :
+  // la structure 8-actes n'est pas parfaitement reproduite dans le fallback
+  // 2D, ce qui pourrait dérouter l'utilisateur.
+  const webglAvailable = useExperienceStore((s) => s.webglAvailable);
+  const reducedMotion = useExperienceStore((s) => s.reducedMotion);
+  const showActNav = webglAvailable !== false && !reducedMotion;
 
   return (
     <>
@@ -80,6 +100,7 @@ export default function HomeExperienceRoot() {
         currentAct={currentScene}
         onJump={handleJumpToAct}
         actsAvailable={8}
+        hidden={!showActNav}
       />
     </>
   );
