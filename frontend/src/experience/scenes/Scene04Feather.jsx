@@ -381,25 +381,25 @@ export default function Scene04Feather() {
           y += breath * 0.5;
         }
       } else if (elapsed < T_END_WRITING) {
-        // Phase E WRITING — synchronisée gauche → droite
-        // Chaque particule ne bouge vers son texte QUE lorsque writeProgress dépasse son seuil
-        const FADE_WINDOW = 0.14;
-        const threshold = writeThresholds[i];
-        const local = Math.max(0, Math.min(1,
-          (writeProgress - threshold) / FADE_WINDOW
-        ));
-        // ease-out cubic
-        const eased = 1 - Math.pow(1 - local, 3);
-        x = fx + (tx - fx) * eased;
-        y = fy + (ty - fy) * eased;
-        z = fz + (tz - fz) * eased;
-      } else {
-        // Phase F STABLE — texte + micro-respiration
-        x = tx; y = ty; z = tz;
+        // Phase E ASCENT (NEW) — la plume s'élève doucement et disparaît, comme
+        // envolée par le vent, sans se transformer en pixels de texte.
+        // Le titre HTML "PLUME Astrale" (rendu en Cormorant Garamond crisp)
+        // prend le relais visuel — plus jamais de pixellisation.
+        const p = (elapsed - T_END_PAUSE) / T_WRITING;
+        const eased = 1 - Math.pow(1 - p, 2);  // ease-out
+        const rise = eased * 3.2;              // s'élève de +3.2 unités world
+        const drift = (Math.random() - 0.5) * 0; // pas de bruit horizontal
+        x = fx + drift;
+        y = fy + rise;
+        z = fz;
         if (!reducedMotion) {
-          const breath = Math.sin(t * 0.5 + offsets[i]) * 0.008;
-          x += breath;
+          x += Math.sin(t * 0.6 + offsets[i]) * 0.02 * (1 - p);
         }
+      } else {
+        // Phase F HIDDEN — les particules sont dispersées / invisibles
+        x = fx;
+        y = fy + 3.2;
+        z = fz;
       }
 
       posAttr.array[i * 3 + 0] = x;
@@ -408,41 +408,28 @@ export default function Scene04Feather() {
     }
     posAttr.needsUpdate = true;
 
-    // ─── QUILL sprite : suit la tête d'écriture pendant phase E ────
+    // ─── QUILL sprite : désactivé (plus de phase écriture pixelisée) ────
     if (quillRef.current) {
-      const inWriting = elapsed >= T_END_PAUSE && elapsed < T_END_WRITING + 0.5;
-      quillRef.current.visible = inWriting;
-      if (inWriting && !reducedMotion) {
-        // Bornes X du texte pour la position de la pointe
-        const TEXT_HALF_W = 2.6; // aligne avec generateTextTargets worldW/2
-        const headX = -TEXT_HALF_W + writeProgress * (TEXT_HALF_W * 2);
-        quillRef.current.position.x = headX;
-        quillRef.current.position.y = 0.4;
-        quillRef.current.position.z = 0.05;
-        // Fade in au début, fade out à la fin
-        const fadeIn = Math.min(1, (elapsed - T_END_PAUSE) / 0.4);
-        const fadeOut = Math.min(1, Math.max(0, (T_END_WRITING + 0.5 - elapsed) / 0.5));
-        quillRef.current.material.opacity = 0.7 * fadeIn * fadeOut;
-      }
+      quillRef.current.visible = false;
     }
 
-    // ─── SWEEP cinématique : uniquement en phase F ────
+    // ─── SWEEP cinématique : désactivé (plus de phase F texte stable) ────
     if (sweepRef.current) {
-      const inPhaseF = elapsed >= T_END_WRITING;
-      if (inPhaseF && !reducedMotion) {
-        const sweepT = ((elapsed - T_END_WRITING) % 8) / 8;
-        const inSweep = sweepT > 0.10 && sweepT < 0.90;
-        sweepRef.current.visible = inSweep;
-        if (inSweep) {
-          const local = (sweepT - 0.10) / 0.80;
-          sweepRef.current.position.x = -3.5 + local * 7.0;
-          sweepRef.current.position.y = 0.4;
-          const fade = Math.sin(local * Math.PI);
-          sweepRef.current.material.opacity = 0.55 * fade;
-        }
-      } else {
-        sweepRef.current.visible = false;
+      sweepRef.current.visible = false;
+    }
+
+    // ─── Fade out progressif des particules pendant Phase E ─────────────
+    // Les particules s'élèvent ET s'estompent : à la fin de la phase E
+    // il ne reste plus que le titre HTML "PLUME Astrale" en Cormorant Garamond.
+    if (pointsRef.current && pointsRef.current.material) {
+      let targetOpacity = 0.95;
+      if (elapsed >= T_END_PAUSE) {
+        const p = Math.min(1, (elapsed - T_END_PAUSE) / T_WRITING);
+        targetOpacity = 0.95 * (1 - p);
       }
+      pointsRef.current.material.opacity = THREE.MathUtils.lerp(
+        pointsRef.current.material.opacity, targetOpacity, 0.15
+      );
     }
 
     // Rotation douce plume en phase D
