@@ -15,7 +15,7 @@
  * les actes V-VIII (Univers services, Personnalisation, Conversion,
  * Rassurance). Voir /app/memory/PRD.md → "Master Homepage Experience".
  */
-import React, { useCallback, useEffect } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import ExperienceRoot from '@/experience/ExperienceRoot';
 import { useExperienceStore } from '@/experience/useExperienceStore';
 import { event as trackEvent } from '@/lib/analytics';
@@ -23,35 +23,39 @@ import ActNav from './ActNav';
 import useScrollTriggerActs from './useScrollTriggerActs';
 import './HomeExperience.css';
 
+// Actes V-VIII code-splittés : ne chargent qu'après le scroll utilisateur
+// (déclenché quand on approche de la fin d'Acte IV). Perf critical mobile.
+const Act5Universe        = lazy(() => import('./acts/Act5Universe'));
+const Act6Personalization = lazy(() => import('./acts/Act6Personalization'));
+const Act7Conversion      = lazy(() => import('./acts/Act7Conversion'));
+const Act8Reassurance     = lazy(() => import('./acts/Act8Reassurance'));
+
 export default function HomeExperienceRoot() {
   const currentScene = useExperienceStore((s) => s.currentScene);
   const setScene = useExperienceStore((s) => s.setScene);
+  // Charge la suite du parcours dès que l'utilisateur atteint l'Acte 3
+  const [loadRest, setLoadRest] = useState(false);
 
-  // Analytics : distingue ce parcours de /experience standalone.
   useEffect(() => {
     trackEvent('home_v3_started', {});
   }, []);
 
-  // Track chaque changement d'acte
   useEffect(() => {
-    if (currentScene >= 1 && currentScene <= 4) {
+    if (currentScene >= 3 && !loadRest) setLoadRest(true);
+    if (currentScene >= 1 && currentScene <= 8) {
       trackEvent('home_v3_act_viewed', { act: currentScene });
     }
-  }, [currentScene]);
+  }, [currentScene, loadRest]);
 
-  // ScrollTrigger : source of truth secondaire pour currentScene.
-  // ExperienceRoot pilote déjà globalProgress + currentScene via onScroll natif
-  // (calcul par tranche 0.25). ScrollTrigger vient s'ajouter avec une bornes
-  // basée sur "top center → bottom center" de chaque section, ce qui donne
-  // une bascule plus précise et permet d'orchestrer plus tard des timelines
-  // GSAP synchronisées avec le scroll (Phase 2 : transitions Actes V-VIII).
-  const handleActChange = useCallback((act) => {
-    setScene(act);
-  }, [setScene]);
-  useScrollTriggerActs({ actsCount: 4, onActChange: handleActChange });
+  // ScrollTrigger orchestrateur pour les 8 actes
+  const handleActChange = useCallback((act) => setScene(act), [setScene]);
+  useScrollTriggerActs({ actsCount: 8, onActChange: handleActChange });
 
   const handleJumpToAct = (actId) => {
-    const el = document.querySelector(`[data-testid="experience-scene-${actId}"]`);
+    // Cherche d'abord dans les scènes /experience (1-4), puis dans les
+    // nouvelles sections Home V3 (5-8)
+    const el = document.querySelector(`[data-testid="experience-scene-${actId}"]`)
+            || document.querySelector(`[data-testid="home-experience-scene-${actId}"]`);
     if (el) {
       const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
       el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
@@ -62,10 +66,18 @@ export default function HomeExperienceRoot() {
   return (
     <>
       <ExperienceRoot />
+      {loadRest && (
+        <Suspense fallback={<div style={{ minHeight: '100vh', background: '#070713' }} />}>
+          <Act5Universe />
+          <Act6Personalization />
+          <Act7Conversion />
+          <Act8Reassurance />
+        </Suspense>
+      )}
       <ActNav
         currentAct={currentScene}
         onJump={handleJumpToAct}
-        actsAvailable={4}
+        actsAvailable={8}
       />
     </>
   );

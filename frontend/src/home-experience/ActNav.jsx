@@ -11,17 +11,17 @@
 import React, { useEffect, useState } from 'react';
 
 const ACTS = [
-  { id: 1, label: "L'APPEL",       glyph: '·' },
-  { id: 2, label: 'LA QUESTION',   glyph: '·' },
-  { id: 3, label: 'LA RÉVÉLATION', glyph: '✦' },
-  { id: 4, label: 'LA PLUME',      glyph: '·' },
-  // Phase 2 :
-  // { id: 5, label: "L'UNIVERS",   glyph: '·' },
-  // { id: 6, label: 'VOTRE CHEMIN', glyph: '·' },
-  // { id: 7, label: 'COMMENCER',   glyph: '·' },
+  { id: 1, label: "L'APPEL",         glyph: '·' },
+  { id: 2, label: 'LA QUESTION',     glyph: '·' },
+  { id: 3, label: 'LA RÉVÉLATION',   glyph: '✦' },
+  { id: 4, label: 'LA PLUME',        glyph: '·' },
+  { id: 5, label: "L'UNIVERS",       glyph: '·' },
+  { id: 6, label: 'POUR VOUS',       glyph: '·' },
+  { id: 7, label: 'COMMENCER',       glyph: '✦' },
+  { id: 8, label: 'VOTRE ESPACE',    glyph: '·' },
 ];
 
-export default function ActNav({ currentAct = 1, onJump, actsAvailable = 4 }) {
+export default function ActNav({ currentAct = 1, onJump, actsAvailable = 8 }) {
   const [hover, setHover] = useState(null);
 
   // Respect reduced motion : pas de scale sur hover
