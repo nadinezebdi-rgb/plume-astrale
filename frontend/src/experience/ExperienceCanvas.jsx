@@ -9,8 +9,9 @@
  * • Aucun postprocessing (bundle plus léger, meilleure compat mobile).
  *   Le bloom est faux : sprites additifs sur les particules.
  */
-import React, { Suspense, useEffect, useRef } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { PerformanceMonitor } from '@react-three/drei';
 import * as THREE from 'three';
 import { useExperienceStore } from './useExperienceStore';
 import Scene01Particles from './scenes/Scene01Particles';
@@ -68,12 +69,16 @@ function StageController() {
 export default function ExperienceCanvas() {
   const isLowEnd = useExperienceStore((s) => s.isLowEnd);
   const isMobile = useExperienceStore((s) => s.isMobile);
+  // DPR runtime : starts at safe max, may be reduced by <PerformanceMonitor>
+  // if the framerate drops below 40 FPS. Non-breaking : par défaut on garde
+  // exactement les mêmes bornes qu'avant (mobile 1-1.25, desktop 1-1.5).
+  const [dpr, setDpr] = useState(isMobile ? [1, 1.25] : [1, 1.5]);
 
   return (
     <div className="exp-canvas-layer" data-testid="experience-canvas">
       <Canvas
         camera={{ position: [0, 0, 6], fov: 55, near: 0.1, far: 100 }}
-        dpr={isMobile ? [1, 1.25] : [1, 1.5]}
+        dpr={dpr}
         gl={{
           antialias: !isLowEnd,
           alpha: false,
@@ -81,6 +86,11 @@ export default function ExperienceCanvas() {
         }}
         style={{ background: '#070713' }}
       >
+        <PerformanceMonitor
+          onDecline={() => setDpr([1, isMobile ? 1 : 1.15])}
+          onIncline={() => setDpr(isMobile ? [1, 1.25] : [1, 1.5])}
+          flipflops={2}
+        />
         <color attach="background" args={['#070713']} />
         <ambientLight intensity={0.15} color="#7657C8" />
         <Suspense fallback={null}>

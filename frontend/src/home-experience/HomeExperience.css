@@ -1,0 +1,113 @@
+/**
+ * HomeExperience.css — styles /home-experience-v3
+ *
+ * Palette unifiée cosmique noire — cohérence visuelle totale avec les
+ * scènes WebGL Actes I-IV. Tous les Actes V-VIII partagent le même
+ * fond noir profond, la même topographie de titres, et sont reliés
+ * par un fil doré vertical continu.
+ */
+
+:root {
+  /* Palette pivot Home Experience V3 */
+  --hex3-void:       #070713;   /* Fond canvas 3D + Actes V-VIII */
+  --hex3-void-soft:  #0B0B18;   /* Séparateur discret entre sections */
+  --hex3-gold:       #D8B76A;   /* Or éditorial (accent unique) */
+  --hex3-gold-line:  rgba(216, 183, 106, 0.35);
+  --hex3-ivory:      #F4EFE6;
+  --hex3-ivory-mute: rgba(244, 239, 230, 0.65);
+}
+
+/* Toutes les sections des Actes V-VIII partagent la même trame */
+.hex3-section {
+  position: relative;
+  background: var(--hex3-void);
+  color: var(--hex3-ivory);
+  overflow: hidden;
+}
+
+/* Fil doré vertical entre sections : trace le voyage éditorial */
+.hex3-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  width: 1px; height: 60px;
+  background: linear-gradient(180deg, transparent, var(--hex3-gold-line));
+  pointer-events: none;
+}
+.hex3-section:first-of-type::before { display: none; }
+
+/* Eyebrow standardisé */
+.hex3-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: rgba(216, 183, 106, 0.75);
+  margin: 0 0 22px;
+}
+
+/* H2 standardisé */
+.hex3-h2 {
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 1.12;
+  color: var(--hex3-ivory);
+  margin: 0;
+}
+.hex3-h2 em {
+  font-style: italic;
+  color: var(--hex3-gold);
+}
+
+/* Masque ActNav sur mobile */
+@media (max-width: 899px) {
+  .hex3-actnav {
+    display: none !important;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hex3-actnav button {
+    transition: background 200ms ease !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  .hex3-floating-feather {
+    animation: none !important;
+  }
+}
+
+/* Focus visible clavier — accessibilité WCAG AA
+   Halo doré ~2px sur les éléments interactifs quand navigation clavier. */
+.hex3-actnav button:focus-visible,
+.hex3-section a:focus-visible,
+.hex3-section button:focus-visible {
+  outline: 2px solid rgba(216, 183, 106, 0.85);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* Plume flottante Acte VII — respiration lente 12s */
+@keyframes hex3FeatherFloat {
+  0%,   100% { transform: translateX(-50%) rotate(-14deg) translateY(0); opacity: 0.18; }
+  50%        { transform: translateX(-50%) rotate(-10deg) translateY(-14px); opacity: 0.24; }
+}
+
+/* Entrance stagger — appliqué via ScrollTrigger scrub sur les Actes V-VIII */
+.hex3-stagger > * {
+  opacity: 0;
+  transform: translateY(24px);
+}
+.hex3-stagger.is-in > * {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 900ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hex3-stagger.is-in > *:nth-child(1) { transition-delay:   0ms; }
+.hex3-stagger.is-in > *:nth-child(2) { transition-delay: 200ms; }
+.hex3-stagger.is-in > *:nth-child(3) { transition-delay: 400ms; }
+.hex3-stagger.is-in > *:nth-child(4) { transition-delay: 600ms; }
+.hex3-stagger.is-in > *:nth-child(5) { transition-delay: 800ms; }

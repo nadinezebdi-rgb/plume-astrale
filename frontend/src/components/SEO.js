@@ -413,12 +413,12 @@ function replaceJsonLd(schemas) {
   });
 }
 
-const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp }) => {
+const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp, canonical: canonicalOverride }) => {
   const data = SEO_DATA[path] || SEO_DATA['/'];
   // SEO P0 (2026-02-16) : canonical toujours strip des query params (ex: ?theme=…)
   // pour éviter les doublons d'indexation. Le path arrivant ici est déjà décoré côté route.
   const cleanPath = (path === '/' ? '' : path).split('?')[0].split('#')[0];
-  const canonical = `${DOMAIN}${cleanPath}`;
+  const canonical = canonicalOverride || `${DOMAIN}${cleanPath}`;
   const pageTitle = title || data.title;
   const pageDesc = description || data.description;
   const pageImage = image || DEFAULT_IMAGE;

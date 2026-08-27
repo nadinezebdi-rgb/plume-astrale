@@ -1,0 +1,33 @@
+{
+  "summary": "Phase 3 FINALE validation of /home-experience-v3 (Actes I → VIII). All 8 acts working end-to-end. Actes V-VIII (Univers services, Personnalisation, Conversion, Rassurance) lazy-load correctly after currentScene>=3. Personalization mapping validated for 3 intents (self_discovery, relationship, no-intent fallback). ActThread golden-line SVG present; feather floating animation active with correct keyframe name. Signup CTA propagates intent+welcome+source. 22/23 checks pass. One minor finding on scrollY after ScrollToTop navigation to /inscription (185px instead of 0px, likely due to layout shift after route change).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "ScrollToTop from /home-experience-v3 → /inscription",
+        "issue": "After clicking home-experience-signup-cta from Act 7, window.scrollY reads 185px (not 0px) at ~1.3s post-navigation. Root cause: /inscription page mounts lazy sections/cookie banner AFTER the useLayoutEffect scroll-to-top has already run, so subsequent DOM mutations shift the viewport. Not a broken user-flow (header + form are visible), but strict spec expected scrollY===0. Consider adding a second requestAnimationFrame scroll in ScrollToTop, or reading `location.state.scrollTop=0` pattern.",
+        "affected_selectors": ["/inscription page mount", "ScrollToTop.jsx useLayoutEffect"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "MINOR: Investigate why window.scrollY=185 after navigating from Act7 to /inscription. Likely a race between useLayoutEffect and lazy content mount. Suggestion in ScrollToTop.jsx: schedule an extra scrollTo(0,0) via requestAnimationFrame or on 'load' event after route change."
+  ],
+  "critical_code_review_comments": [
+    "Act6Personalization.jsx: relies on both useExperienceStore.intent AND sessionStorage.exp_intent via readIntent(). Good fallback chain, but note that a full page reload on Act 6 (direct URL) will only find intent in sessionStorage — works as expected. No hardcoded routes leak.",
+    "Act7Conversion.jsx buildSignupUrl: correctly encodes intent/exp_card/utm/welcome/source. Verified href = /inscription?intent=self_discovery&welcome=1&source=home_v3.",
+    "HomeExperienceRoot.jsx: lazy-loading Actes V-VIII triggers ONLY when currentScene>=3. Direct jump to act-5 via ActNav requires user to first cross act-3 (my test flow simulates this by clicking act-3 then act-5). Consider triggering setLoadRest(true) synchronously when ActNav jumps to an act >=5 as well, to avoid the 2-click workaround. Not a bug — just UX polish.",
+    "ExperienceFallback (reduced-motion path) diverges heavily from the 8-act WebGL structure (no exp-s1__brand h1, no scene-4 particles, only a single hero + CTA). This is expected but means the 8-act taxonomy is only advertised on the full-motion path. ActNav is still rendered with 8 dots which may confuse reduced-motion users. Suggestion: reduce ActNav to actsAvailable=1 or hide it when fallback is active.",
+    "ActThread.jsx: getTotalLength() computed once on mount from a viewBox 0..100 path — after resize, the dash length can be off. Consider a ResizeObserver, or use pathLength='1' attribute + integer offset."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A (frontend only)", "frontend": "96% (22/23)" },
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iteration 87 validated Phase 3 FINALE. Detailed PASS list:\n\nRoute /home-experience-v3 (desktop 1920x1080):\n- experience-root visible ✓ ; no navbar, footer-v2, cookie-banner ✓\n- meta noindex ✓\n- ActNav: 8 buttons data-testid=home-experience-act-1..8 all visible ✓\n- Acte I h1.exp-s1__brand 82px Cormorant ✓ ; scene-1-cta clickable ✓\n- Acte II: 4 intent buttons visible ✓ ; click clarity → zodiac-form ✓\n- Zodiac 1990-09-15 → zodiac-reveal + zodiac-name='Vierge' + 3 verses staggered ✓\n- Acte III scene-3 visible, moon-card click → scene-3-continue appears ✓\n- Acte IV @ ~13s: scene-4-brand data-visible=true text='PLUME Astrale' ✓\n- Transition IV→V: hex3-thread-4-5 SVG present ✓\n- Acte V: scene-5 present ✓ ; 6 services (tarot/theme/numero/compat/horoscope/cycles) all present with data-testid ✓ ; CTAs point to /services/tarot, /theme-natal, /services/numerologie, /services/compatibilite, /horoscope, /services/revolution-solaire ✓\n- Acte VI self_discovery: intro='Vous avez choisi de mieux vous comprendre.' primary=/theme-natal secondary=/services/numerologie ✓\n- Acte VI relationship: intro='Vous nous avez dit qu'une relation vous questionnait.' primary=/services/compatibilite secondary=/services/tarot/amour ✓\n- Acte VI no intent → fallback intro='Par où souhaitez-vous commencer ?' ✓\n- Acte VII: eyebrow ACTE VII, h2 'ne fait que commencer', '20 crédits offerts' present ✓ ; signup-cta href=/inscription?intent=X&welcome=1&source=home_v3 ✓ ; login-cta href=/connexion ✓\n- Acte VII plume: .hex3-floating-feather present, animationName='hex3FeatherFloat' ✓\n- Acte VIII: 3 step data-testids ✓ ; 7 footer-link testids (services/mon-compte/faq/contact/mentions/cgv/confidentialite) ✓\n\nResponsive (mobile 400x800):\n- .hex3-actnav display:none ✓ ; home-experience-act-1 not visible ✓\n\nNon-régression:\n- / homepage: nocturne-hero present ✓ ; no plume-cursor ✓ ; starfield present ✓\n- /experience: experience-root visible ✓ ; NO ActNav ✓\n- /inscription: form loads ✓\n\nConsole:\n- No pageerror ✓\n- Warnings only: THREE.Clock deprecated, WebGL GPU stall, preload asset — all non-blocking\n\nOne finding: scrollY=185 (not 0) after signup navigation. Documented in integration_issues.\n\nActes V-VIII intents 'clarity' and 'specific_question' were not individually verified through the UI (would require additional sessionStorage cycle) but the RECOMMENDATIONS mapping is static in Act6Personalization.jsx and inspection confirms the correct routes: clarity→/services/tarot + /services/revolution-solaire, specific_question→/services/tarot/oui-non + /services/tarot. If E1 wants full parametric coverage, run a param table over the 4 intents.",
+  "rca of the issue": "scrollY=185 post-navigation to /inscription: useLayoutEffect in ScrollToTop fires synchronously after pathname change; however /inscription mounts CookieBanner + form + WelcomeSplash overlay after the layout effect completes, and their combined layout shifts and possible focus() calls end up scrolling the window down by ~185px. Fix: chain a rAF-based additional scrollTo(0,0) in ScrollToTop, or listen to a 'route-mounted' signal from routes that have known heavy async mounting."
+}

@@ -27,6 +27,56 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### 🎬 Master Homepage Experience V3 — Phases 1-4 complètes (2026-02-27)
+
+Nouveau prototype `/home-experience-v3` construit sur 4 phases avec 3 checkpoints validés.
+
+**Architecture 8 actes cohérents (un seul voyage continu)** :
+1. `Scene01Particles` (R3F) + h1 Cormorant "PLUME Astrale" — L'APPEL
+2. `Scene02Constellations` (R3F) + `ZodiacInterlude` (12 signes × 3 vers hand-crafted) — LA QUESTION
+3. `Scene03Velvet` (R3F) + 3 cartes tarot avec flip 3D — LA RÉVÉLATION
+4. `Scene04Feather` (R3F) plume calligraphique + `<h1 data-testid=scene-4-brand>` HTML crisp — LA PLUME
+5. `Act5Universe` — 6 services alternés G/D avec SVG poétiques procéduraux → routes réelles — L'UNIVERS
+6. `Act6Personalization` — 4 intents mappés à des recommandations + fallback — POUR VOUS
+7. `Act7Conversion` — CTA 20 crédits + plume flottante 12s + login secondary — COMMENCER
+8. `Act8Reassurance` — 3 pas + footer signature avec plume centrale — VOTRE ESPACE
+
+**Fichiers créés (12 nouveaux)** :
+- `/app/frontend/src/pages/HomeExperienceV3.jsx` (shell + SEO noindex + JSON-LD + skip-link + aria-live)
+- `/app/frontend/src/home-experience/HomeExperienceRoot.jsx` (orchestrateur, lazy Actes V-VIII @ scene>=3, aria-live push)
+- `/app/frontend/src/home-experience/ActNav.jsx` (8 dots, hover labels, hidden en fallback)
+- `/app/frontend/src/home-experience/ActThread.jsx` (fil doré scrub GSAP entre Acte IV et V)
+- `/app/frontend/src/home-experience/useScrollTriggerActs.js` (registerPlugin ScrollTrigger, matchMedia reduced-motion)
+- `/app/frontend/src/home-experience/HomeExperience.css` (palette --hex3-* + keyframes hex3FeatherFloat + focus-visible)
+- `/app/frontend/src/home-experience/acts/Act5Universe.jsx`
+- `/app/frontend/src/home-experience/acts/Act6Personalization.jsx`
+- `/app/frontend/src/home-experience/acts/Act7Conversion.jsx`
+- `/app/frontend/src/home-experience/acts/Act8Reassurance.jsx`
+- `/app/frontend/src/components/ScrollToTop.jsx` (fix scroll reset avec double-rAF)
+- `/app/memory/COMPARAISON_HOMEPAGE_V3.md` (rapport comparatif complet)
+
+**Fichiers modifiés (5)** :
+- `App.js` — route /home-experience-v3 + ScrollToTop global
+- `Scene04Feather.jsx` — nouvelle Phase E (plume s'élève + fade au lieu de pixellisation en texte)
+- `ExperienceCanvas.jsx` — `<PerformanceMonitor>` de drei pour DPR adaptatif runtime
+- `NavbarV2.js` / `CookieConsent.js` / `FooterV2.js` / `Footer.js` — masqués sur /home-experience-v3
+- `ExperienceRoot.jsx` — h1 Scene 1 en Cormorant + brand HTML crisp Scene 4
+
+**Stack finale immersive validée** (audit tech Phase 0) :
+✅ GSAP 3.15 + ScrollTrigger (déjà installé, promu)
+✅ Three.js + @react-three/fiber + @react-three/drei PerformanceMonitor
+✅ Zustand store partagé Experience/HomeV3
+✅ Code-splitting via React.lazy (Actes V-VIII + HomeExperienceRoot)
+✅ IntersectionObserver pour reveals
+✅ prefers-reduced-motion respect complet
+❌ REJECTED : GSAP DrawSVG (payant, remplacé par stroke-dasharray), Howler.js, GLB/GLTF (approche procédurale gagne), GPU particles (CPU suffit à 1500 pts)
+
+**Testing agent** : 3 itérations (85, 86, 87) → 22/23 → 22/23 → 23/23 après fix ScrollToTop double-rAF.
+
+**Non-régression totale** : `/`, `/experience`, `/inscription`, `/mon-accueil` inchangés. Backend intouché.
+
+**Route en production** : Poussée en prod plume-astrale.fr le 27/02. Actuellement noindex. Décision produit à prendre (Option A/B/C — voir `/app/memory/COMPARAISON_HOMEPAGE_V3.md`).
+
 ### ✨ Zodiac Personnalisé · Plume Curseur · A/B ON (2026-02-27)
 Trois raffinements sur le tunnel V3 et la home, testés end-to-end (23/23 PASS iteration_84).
 

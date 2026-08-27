@@ -39,13 +39,9 @@
         <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
         <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
 
-        <!-- Preload hero image de la home (LCP mobile) — fetchpriority=high -->
-        <link
-          rel="preload"
-          as="image"
-          href="https://customer-assets-0z36b82j.emergentagent.net/job_consultation-astro/artifacts/kl8cl3tc_femme%20face%20%C3%A0%20la%20lune.png"
-          fetchpriority="high"
-        />
+        <!-- Preload hero image supprimé : image utilisée uniquement sur
+             /manifesto → chargement à la demande (pas de gain LCP mesurable
+             sur les autres routes, warning "preload not used" évité). -->
 
         <title>Plume Astrale · Ta lecture astrologique unique</title>
 

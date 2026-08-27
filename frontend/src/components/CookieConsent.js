@@ -79,7 +79,10 @@ export default function CookieConsent() {
   const location = useLocation();
   // Pages immersives — cache complètement le bandeau pour ne pas casser l'effet WOW
   // (le prototype /experience ne collecte aucune donnée personnelle).
-  if (location.pathname === '/experience' || location.pathname.startsWith('/experience/')) {
+  const isImmersive = (p) =>
+    p === '/experience' || p.startsWith('/experience/') ||
+    p === '/home-experience-v3' || p.startsWith('/home-experience-v3/');
+  if (isImmersive(location.pathname)) {
     return null;
   }
 
