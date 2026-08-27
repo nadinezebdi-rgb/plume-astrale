@@ -15,13 +15,15 @@ import { useExperienceStore } from './useExperienceStore';
 import ExperienceCanvas from './ExperienceCanvas';
 import ExperienceFallback from './ExperienceFallback';
 import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
+import { storeIntent, storeDrawnCard, captureUtm, detectZodiacCampaign, readUtm } from './intentConfig';
+import { event as trackEvent, EVENTS } from '@/lib/analytics';
 import './Experience.css';
 
 const INTENTS = [
-  { id: 'relationship',  glyph: '♡', label: 'Une relation me questionne' },
-  { id: 'clarity',       glyph: '☾', label: "J'ai besoin d'y voir plus clair" },
-  { id: 'selfDiscovery', glyph: '✦', label: 'Je veux mieux me comprendre' },
-  { id: 'question',      glyph: '◇', label: "J'ai une question précise" },
+  { id: 'relationship',       glyph: '♡', label: 'Une relation me questionne' },
+  { id: 'clarity',            glyph: '☾', label: "J'ai besoin d'y voir plus clair" },
+  { id: 'self_discovery',     glyph: '✦', label: 'Je veux mieux me comprendre' },
+  { id: 'specific_question',  glyph: '◇', label: "J'ai une question précise" },
 ];
 
 const CARDS = [
@@ -100,9 +102,13 @@ export default function ExperienceRoot() {
     const t1 = setTimeout(() => setScene4Step(1), 12500); // "Plume Astrale" vient d'être écrit
     const t2 = setTimeout(() => setScene4Step(2), 14000); // "Votre histoire est unique"
     const t3 = setTimeout(() => setScene4Step(3), 16000); // "Votre ciel aussi"
-    const t4 = setTimeout(() => setScene4Step(4), 18000); // CTA final
+    const t4 = setTimeout(() => {
+      setScene4Step(4);
+      trackEvent(EVENTS.EXP_FEATHER_COMPLETED, {});
+      trackEvent(EVENTS.EXP_SIGNUP_CTA_VIEWED, { intent_type: intent || 'none' });
+    }, 18000); // CTA final
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
-  }, [currentScene]);
+  }, [currentScene, intent]);
 
   // ── Smooth scroll helper ─────────────────────────────────────
   const scrollToScene = useCallback((n) => {
@@ -115,9 +121,33 @@ export default function ExperienceRoot() {
   const cardBackImage = useMemo(() => getCardBackTexture(), []);
   const cardFaceImage = useMemo(() => getCardFaceTexture(), []);
 
+  // ── Capture UTM + démarrage funnel (une seule fois) ─────────
+  useEffect(() => {
+    trackEvent(EVENTS.EXP_STARTED, {});
+  }, []);
+
+  // ── Tracking par scène ──────────────────────────────────────
+  useEffect(() => {
+    if (currentScene === 2) trackEvent(EVENTS.EXP_SCENE2_VIEWED, {});
+    if (currentScene === 3) trackEvent(EVENTS.EXP_TAROT_STARTED, {});
+    if (currentScene === 4) trackEvent(EVENTS.EXP_FEATHER_STARTED, {});
+  }, [currentScene]);
+
+  // ── Détection campagne horoscope (court-circuit) ────────────
+  //  IMPORTANT : captureUtm() doit être exécuté AVANT detectZodiacCampaign()
+  //  car ce dernier lit sessionStorage. On les enchaîne dans le useMemo pour
+  //  garantir l'ordre lors du render initial (les useEffect s'exécuteraient
+  //  trop tard et le shortcut serait mémoïsé à null).
+  const zodiac = useMemo(() => {
+    captureUtm();
+    return detectZodiacCampaign();
+  }, []);
+
   // ── Handlers ─────────────────────────────────────────────────
   const handleIntentChoice = useCallback((intentId) => {
     setIntent(intentId);
+    storeIntent(intentId);
+    trackEvent(EVENTS.EXP_INTENT_SELECTED, { intent_type: intentId });
     setScene2Step(2);
     setTimeout(() => scrollToScene(3), 900);
   }, [setIntent, scrollToScene]);
@@ -125,11 +155,29 @@ export default function ExperienceRoot() {
   const handleCardDraw = useCallback((cardId) => {
     if (drawnCard) return;
     setDrawnCard(cardId);
+    storeDrawnCard(cardId);
+    trackEvent(EVENTS.EXP_TAROT_SELECTED, { card: cardId });
+    // Après ~1.2s la carte est retournée → track reveal
+    setTimeout(() => trackEvent(EVENTS.EXP_TAROT_REVEALED, { card: cardId }), 1200);
   }, [setDrawnCard, drawnCard]);
 
   const handleFinalCTA = useCallback(() => {
-    navigate('/inscription');
-  }, [navigate]);
+    trackEvent(EVENTS.EXP_SIGNUP_CTA_CLICKED, { intent_type: intent || 'none', card: drawnCard || 'none' });
+    // Construit un lien /inscription enrichi (intent + card + utm) pour survivre à sessionStorage
+    const utm = readUtm();
+    const params = new URLSearchParams();
+    if (intent) params.set('intent', intent);
+    if (drawnCard) params.set('exp_card', drawnCard);
+    // Passe utm_* / source / campaign
+    Object.entries(utm).forEach(([k, v]) => { if (v) params.set(k, v); });
+    params.set('welcome', '1'); // AuthenticatedHome le lira post-inscription
+    navigate(`/inscription?${params.toString()}`);
+  }, [navigate, intent, drawnCard]);
+
+  const handleSkip = useCallback(() => {
+    trackEvent(EVENTS.EXP_SKIPPED, { at_scene: currentScene });
+    navigate('/');
+  }, [navigate, currentScene]);
 
   // ── Fallback (pas d'animation lourde) ─────────────────────────
   if (useFallback) {
@@ -156,14 +204,26 @@ export default function ExperienceRoot() {
       {/* Topbar fixe */}
       <header className="exp-topbar" data-testid="experience-topbar">
         <span className="exp-topbar__logo">PLUME <em style={{ fontStyle: 'italic', letterSpacing: '0.05em' }}>Astrale</em></span>
-        <button
-          type="button"
-          className="exp-topbar__exit"
-          onClick={() => navigate('/')}
-          data-testid="experience-exit"
-        >
-          Retour au sanctuaire
-        </button>
+        <div style={{ display: 'flex', gap: 24, alignItems: 'center', pointerEvents: 'auto' }}>
+          {zodiac && (
+            <a
+              href={`/horoscope/${zodiac}`}
+              className="exp-topbar__exit"
+              data-testid="experience-zodiac-shortcut"
+              style={{ color: '#D8B76A' }}
+            >
+              → Horoscope {zodiac.charAt(0).toUpperCase() + zodiac.slice(1)}
+            </a>
+          )}
+          <button
+            type="button"
+            className="exp-topbar__exit"
+            onClick={handleSkip}
+            data-testid="experience-skip"
+          >
+            Passer l&apos;expérience →
+          </button>
+        </div>
       </header>
 
       <ExperienceCanvas />
@@ -224,13 +284,13 @@ export default function ExperienceRoot() {
                 className="exp-lead exp-s2__phrase"
                 data-visible={scene2Step === 0}
               >
-                Vous n'êtes peut-être pas arrivé ici par hasard.
+                Vous n&apos;êtes peut-être pas arrivé ici par hasard.
               </p>
               <p
                 className="exp-h2 exp-s2__phrase"
                 data-visible={scene2Step >= 1}
               >
-                Qu'est-ce qui vous amène aujourd'hui&nbsp;?
+                Qu&apos;est-ce qui vous amène aujourd&apos;hui&nbsp;?
               </p>
             </div>
 
@@ -312,14 +372,20 @@ export default function ExperienceRoot() {
             </div>
 
             <div className="exp-s3__result" data-visible={drawnCard !== null}>
-              <p className="exp-lead">Cette carte a quelque chose à vous montrer.</p>
+              <p className="exp-lead">Cette carte éclaire une partie de votre question.</p>
+              <p className="exp-lead" style={{ opacity: 0.6, marginTop: -8 }}>
+                Mais seule, elle ne raconte pas toute l&apos;histoire.
+              </p>
               <button
                 type="button"
                 className="exp-linkline"
-                onClick={() => scrollToScene(4)}
+                onClick={() => {
+                  trackEvent(EVENTS.EXP_TAROT_CONTINUE, { card: drawnCard });
+                  scrollToScene(4);
+                }}
                 data-testid="scene-3-continue"
               >
-                Continuer mon tirage
+                ✦ Découvrir la suite de mon tirage
                 <span className="exp-linkline__chevron">↓</span>
               </button>
             </div>
@@ -346,6 +412,17 @@ export default function ExperienceRoot() {
             </div>
 
             <div className="exp-s4__final-cta" data-visible={scene4Step >= 4}>
+              <p className="exp-lead" style={{ marginBottom: 8 }}>Votre voyage ne fait que commencer.</p>
+              <p style={{
+                fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.32em',
+                textTransform: 'uppercase', color: 'var(--exp-gold)',
+                margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <span style={{ fontSize: 18 }}>🎁</span> 20 crédits offerts
+              </p>
+              <p className="exp-lead" style={{ opacity: 0.55, marginBottom: 32 }}>
+                pour découvrir Plume Astrale.
+              </p>
               <button
                 type="button"
                 className="exp-btn"
@@ -358,10 +435,13 @@ export default function ExperienceRoot() {
               <button
                 type="button"
                 className="exp-linkline"
-                onClick={handleFinalCTA}
+                onClick={() => {
+                  trackEvent(EVENTS.EXP_SIGNUP_CTA_CLICKED, { intent_type: intent, card: drawnCard, mode: 'login' });
+                  navigate('/connexion');
+                }}
                 data-testid="scene-4-cta-secondary"
               >
-                Découvrir Plume Astrale
+                Déjà membre ? Se connecter
                 <span className="exp-linkline__chevron">→</span>
               </button>
             </div>

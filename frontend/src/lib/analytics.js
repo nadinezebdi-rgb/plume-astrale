@@ -203,6 +203,23 @@ export const EVENTS = {
   CREDIT_PURCHASE:             'credit_purchase',   // achat d'un pack de crédits
   CREDITS_SPENT:               'credits_spent',     // usage d'un outil payé en crédits
   PDF_DOWNLOAD:                'pdf_download',
+  // ── Prototype /experience V3 · funnel de conversion ──
+  EXP_STARTED:                 'experience_started',
+  EXP_SKIPPED:                 'experience_skipped',
+  EXP_SCENE1_COMPLETED:        'experience_scene_1_completed',
+  EXP_SCENE2_VIEWED:           'experience_scene_2_viewed',
+  EXP_INTENT_SELECTED:         'intent_selected',           // + intent_type
+  EXP_TAROT_STARTED:           'tarot_scene_started',
+  EXP_TAROT_HOVERED:           'tarot_card_hovered',
+  EXP_TAROT_SELECTED:          'tarot_card_selected',
+  EXP_TAROT_REVEALED:          'tarot_card_revealed',
+  EXP_TAROT_CONTINUE:          'tarot_continue_clicked',
+  EXP_FEATHER_STARTED:         'feather_scene_started',
+  EXP_FEATHER_COMPLETED:       'feather_completed',
+  EXP_SIGNUP_CTA_VIEWED:       'signup_cta_viewed',
+  EXP_SIGNUP_CTA_CLICKED:      'signup_cta_clicked',
+  EXP_RECOMMENDED_VIEWED:      'recommended_service_viewed',
+  EXP_RECOMMENDED_CLICKED:     'recommended_service_clicked',
 };
 
 /**

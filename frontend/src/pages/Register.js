@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { UserPlus, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import SEO from '@/components/SEO';
@@ -18,6 +18,7 @@ const inputStyle = {
 
 export default function Register() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { register } = useAuth();
 
   const [step, setStep] = useState(1);
@@ -76,7 +77,13 @@ export default function Register() {
       });
 
       track(EVENTS.SIGNUP_COMPLETED, { has_birth_data: true });
-      navigate('/');
+      // Si l'utilisateur vient du tunnel /experience (welcome=1 dans l'URL),
+      // on le redirige vers /mon-accueil?welcome=1 pour déclencher WelcomeSplash.
+      if (searchParams.get('welcome') === '1') {
+        navigate('/mon-accueil?welcome=1');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       console.error('Register error:', err);
       const msg = err?.response?.data?.detail || "Erreur lors de l'inscription";

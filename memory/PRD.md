@@ -27,6 +27,18 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### 🎯 Tunnel de conversion V3 sur `/experience` (2026-02-27)
+Le prototype artistique `/experience` devient un **véritable funnel d'acquisition** qui capture l'intent + les UTM du visiteur, dépose les événements analytics, route vers `/inscription` et affiche un WelcomeSplash **personnalisé** sur `/mon-accueil`.
+- **`intentConfig.js`** — mapping des 4 intents (`relationship` · `clarity` · `self_discovery` · `specific_question`) vers `splashTitle`, `splashLead`, `primary.route` et `secondary.route`. Helpers `readIntent()` / `storeIntent()` / `readUtm()` / `captureUtm()` / `readDrawnCard()` / `storeDrawnCard()` via sessionStorage. Fonction `detectZodiacCampaign()` (fallback URL directe) qui court-circuite vers `/horoscope/{signe}` si `?utm_campaign=vierge` etc.
+- **`ExperienceRoot.jsx`** — au mount : `captureUtm()` (synchrone dans `useMemo` pour éviter la race avec `detectZodiacCampaign`) + `trackEvent(EXP_STARTED)`. Tracking par scène : `EXP_SCENE2_VIEWED`, `EXP_INTENT_SELECTED{intent_type}`, `EXP_TAROT_STARTED/SELECTED/REVEALED/CONTINUE{card}`, `EXP_FEATHER_STARTED/COMPLETED`, `EXP_SIGNUP_CTA_VIEWED/CLICKED`, `EXP_SKIPPED{at_scene}`. Le CTA final construit `/inscription?intent=<id>&exp_card=<id>&utm_*=…&welcome=1` pour survivre à sessionStorage sur mobile Safari.
+- **`WelcomeSplash.jsx`** — overlay plein écran (z-index 1000, radial gradient sombre + fade-in 800ms) affiché sur `/mon-accueil?welcome=1`. Lit l'intent stocké → affiche titre + lead + 2 CTA (primary + secondary) mappés aux services correspondants. Fallback générique `welcome-splash-generic` si aucun intent. `welcome-skip` nettoie l'URL et laisse le user explorer son dashboard. Événements : `recommended_service_viewed` + `recommended_service_clicked`.
+- **`AuthenticatedHome.js`** — monte `<WelcomeSplash onDismiss={dismissWelcome} />` conditionnellement quand `?welcome=1` est présent. `dismissWelcome()` supprime le param via `setSearchParams` (pas de refresh au reload).
+- **`Register.js`** — post-signup, si `searchParams.get('welcome')==='1'` navigue vers `/mon-accueil?welcome=1` (au lieu de `/`) pour déclencher WelcomeSplash.
+- **`analytics.js`** — nouvelles constantes `EVENTS.EXP_*` (13 événements funnel) intégrées au mapping Meta standard (event() reste no-op tant que consentement RGPD refusé/absent).
+- **Performance** — préload `<link rel="preload" as="style">` sur la CSS Google Fonts + ajout de **Playfair Display** (400/500/italic) à la font family list dans `/app/frontend/public/index.html` pour éviter le FOIT sur la Scène 4 (particules qui écrivent "Plume Astrale").
+- **Testing agent** — 11 features testées, **11/11 pass** après fix de la race condition zodiac shortcut (`useMemo(detectZodiacCampaign)` s'exécutait avant `useEffect(captureUtm)` → shortcut `→ HOROSCOPE VIERGE` jamais affiché). Correctif : `captureUtm()` déplacé DANS le useMemo + fallback URL directe dans `detectZodiacCampaign`.
+- **Non-régressions** — auth, crédits, DB, Stripe, tarot existant : **aucune modification**. Le funnel est un wrapper frontend transparent.
+
 ### 🌌 Prototype artistique immersif `/experience` (2026-02-27)
 - **Route isolée** `/experience` — le prototype ne remplace ni ne modifie la home actuelle, ni aucun service, ni Stripe, ni les crédits, ni la DB. Route lazy-loadée (bundle 3D chargé uniquement quand quelqu'un visite `/experience`), noindex, cachée du sitemap.
 - **NavbarV2.js** et **CookieConsent.js** s'auto-masquent sur `/experience` pour préserver l'immersion (return null si `location.pathname === '/experience'`).
