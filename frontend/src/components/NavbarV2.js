@@ -12,13 +12,14 @@ import { LECTURES, OUTILS } from '@/config/catalog';
  */
 
 const NAV_LINKS = [
-  { label: 'Accueil', to: '/' },
-  { label: 'Services', to: '/livres', hasMega: true },
-  { label: 'Nos livres', to: '/livres' },
+  // Menu simplifié (audit UX 2026-02-27) : 8 → 4 entrées essentielles.
+  // - "Accueil" retiré (logo Plume Astrale renvoie déjà à la home)
+  // - "Services" et "Nos livres" fusionnés (même destination /livres)
+  // - "Contact" déplacé dans le footer
+  { label: 'Livres', to: '/livres', hasMega: true },
   { label: 'Manifesto', to: '/manifesto' },
   { label: 'Blog', to: '/blog' },
   { label: 'Témoignages', to: '/temoignages' },
-  { label: 'Contact', to: '/contact' },
 ];
 
 const linkBase = {
@@ -95,12 +96,14 @@ export default function NavbarV2() {
             fontWeight: 500, fontSize: 22, letterSpacing: '0.02em',
             color: '#F7F5F0', textDecoration: 'none',
             display: 'flex', alignItems: 'baseline', gap: 6,
+            flexShrink: 0,  // évite compression du logo sur écrans étroits
+            whiteSpace: 'nowrap',
           }}>
             Plume <span style={{ color: '#C9A24B' }}>Astrale</span>
           </Link>
 
           {/* Desktop links */}
-          <div className="ps-desktop-nav" style={{ display: 'none', alignItems: 'center', gap: 32 }}>
+          <div className="ps-desktop-nav" style={{ display: 'none', alignItems: 'center', gap: 26 }}>
             {NAV_LINKS.map((l) => {
               const active = l.hasMega ? isServicesActive() : isActive(l.to);
               if (l.hasMega) {
@@ -151,7 +154,7 @@ export default function NavbarV2() {
               </Link>
             )}
             <Link to="/inscription" className="ps-btn ps-btn-primary" data-testid="nav-v2-cta"
-              style={{ padding: '10px 20px', fontSize: 14, minHeight: 40 }}>
+              style={{ padding: '10px 20px', fontSize: 14, minHeight: 40, whiteSpace: 'nowrap', flexShrink: 0 }}>
               Recevoir ma lecture
             </Link>
           </div>
@@ -294,7 +297,10 @@ export default function NavbarV2() {
       <style>{`
         .ps-desktop-nav { display: none !important; }
         .ps-mobile-toggle { display: inline-flex !important; }
-        @media (min-width: 1024px) {
+        /* Breakpoint remonté à 1100px (audit UX 2026-02-27) : évite le
+           chevauchement logo / liens / CTA sur les écrans étroits (iPad
+           landscape 1024, netbooks). Menu mobile à partir de 1099px. */
+        @media (min-width: 1100px) {
           .ps-desktop-nav { display: flex !important; }
           .ps-mobile-toggle { display: none !important; }
         }
