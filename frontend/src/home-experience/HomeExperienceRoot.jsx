@@ -20,6 +20,7 @@ import ExperienceRoot from '@/experience/ExperienceRoot';
 import { useExperienceStore } from '@/experience/useExperienceStore';
 import { event as trackEvent } from '@/lib/analytics';
 import ActNav from './ActNav';
+import ActThread from './ActThread';
 import useScrollTriggerActs from './useScrollTriggerActs';
 import './HomeExperience.css';
 
@@ -68,6 +69,7 @@ export default function HomeExperienceRoot() {
       <ExperienceRoot />
       {loadRest && (
         <Suspense fallback={<div style={{ minHeight: '100vh', background: '#070713' }} />}>
+          <ActThread heightVh={70} testid="hex3-thread-4-5" />
           <Act5Universe />
           <Act6Personalization />
           <Act7Conversion />

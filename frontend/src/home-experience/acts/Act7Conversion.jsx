@@ -81,15 +81,16 @@ export default function Act7Conversion() {
       }}
     >
       <StarfieldBackdrop density={50} color="216, 183, 106" fade={0.22} />
-      {/* Petite plume signature en fond (SVG stylisé, opacity très basse) */}
+      {/* Petite plume signature en fond (SVG stylisé, animation lente flottante) */}
       <svg
         aria-hidden="true"
         viewBox="0 0 44 64"
+        className="hex3-floating-feather"
         style={{
-          position: 'absolute', top: '20%', left: '50%',
-          transform: 'translateX(-50%) rotate(-14deg)',
-          width: 90, height: 130, opacity: 0.15,
+          position: 'absolute', top: '18%', left: '50%',
+          width: 90, height: 130, opacity: 0.18,
           filter: 'drop-shadow(0 0 30px rgba(216,183,106,0.4))',
+          animation: 'hex3FeatherFloat 12s ease-in-out infinite',
         }}
       >
         <path d="M22 4 Q 21 20 22 30 Q 23 44 22 60"

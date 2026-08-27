@@ -74,4 +74,30 @@
     transform: none !important;
     box-shadow: none !important;
   }
+  .hex3-floating-feather {
+    animation: none !important;
+  }
 }
+
+/* Plume flottante Acte VII — respiration lente 12s */
+@keyframes hex3FeatherFloat {
+  0%,   100% { transform: translateX(-50%) rotate(-14deg) translateY(0); opacity: 0.18; }
+  50%        { transform: translateX(-50%) rotate(-10deg) translateY(-14px); opacity: 0.24; }
+}
+
+/* Entrance stagger — appliqué via ScrollTrigger scrub sur les Actes V-VIII */
+.hex3-stagger > * {
+  opacity: 0;
+  transform: translateY(24px);
+}
+.hex3-stagger.is-in > * {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 900ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hex3-stagger.is-in > *:nth-child(1) { transition-delay:   0ms; }
+.hex3-stagger.is-in > *:nth-child(2) { transition-delay: 200ms; }
+.hex3-stagger.is-in > *:nth-child(3) { transition-delay: 400ms; }
+.hex3-stagger.is-in > *:nth-child(4) { transition-delay: 600ms; }
+.hex3-stagger.is-in > *:nth-child(5) { transition-delay: 800ms; }

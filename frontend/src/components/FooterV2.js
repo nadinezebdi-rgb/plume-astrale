@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Instagram, Mail, Facebook, Twitter } from 'lucide-react';
 import CelestialBackdrop from './CelestialBackdrop';
 
@@ -17,6 +17,15 @@ const SOCIAL_LINKS = {
  * Fond bleu nuit #0F1A3C, liens secondaires + mentions légales + réseaux
  */
 export default function FooterV2() {
+  const { pathname } = useLocation();
+  // Cache le footer sur les routes immersives (/experience, /home-experience-v3)
+  // qui embarquent leur propre footer signature.
+  if (
+    pathname === '/experience' || pathname.startsWith('/experience/') ||
+    pathname === '/home-experience-v3' || pathname.startsWith('/home-experience-v3/')
+  ) {
+    return null;
+  }
   const year = new Date().getFullYear();
 
   return (
