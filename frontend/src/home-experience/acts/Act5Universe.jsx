@@ -15,6 +15,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import StarfieldBackdrop from '@/components/StarfieldBackdrop';
 import { event as trackEvent } from '@/lib/analytics';
 
 // ─── Mini-SVG icons poétiques par service ─────────────────
@@ -184,35 +185,22 @@ export default function Act5Universe() {
       data-testid="home-experience-scene-5"
       className="hex3-section hex3-act-5"
       style={{
-        position: 'relative', zIndex: 5,
-        background: 'linear-gradient(180deg, #070713 0%, #0F1A3C 30%, #0F1A3C 70%, #070713 100%)',
-        padding: '120px 0 60px',
-        color: '#F4EFE6',
+        padding: '140px 0 80px',
       }}
     >
-      <div style={{ maxWidth: 1200, margin: '0 auto 60px', textAlign: 'center', padding: '0 24px' }}>
-        <p style={{
-          fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.36em',
-          textTransform: 'uppercase', color: 'rgba(216,183,106,0.75)', margin: '0 0 20px',
-        }}>ACTE V · L&apos;UNIVERS</p>
-        <h2 style={{
-          fontFamily: '"Cormorant Garamond", "Playfair Display", serif',
-          fontWeight: 400, fontSize: 'clamp(40px, 5.5vw, 68px)', lineHeight: 1.1,
-          margin: '0 0 12px', color: '#F4EFE6',
-        }}>Plusieurs chemins.</h2>
-        <h2 style={{
-          fontFamily: '"Cormorant Garamond", "Playfair Display", serif',
-          fontWeight: 400, fontStyle: 'italic', fontSize: 'clamp(40px, 5.5vw, 68px)', lineHeight: 1.1,
-          margin: '0 0 30px', color: '#D8B76A',
-        }}>Un seul univers.</h2>
+      <StarfieldBackdrop density={90} color="216, 183, 106" fade={0.3} />
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 1200, margin: '0 auto 60px', textAlign: 'center', padding: '0 24px' }}>
+        <p className="hex3-eyebrow">ACTE V · L&apos;UNIVERS</p>
+        <h2 className="hex3-h2" style={{ marginBottom: 12 }}>Plusieurs chemins.</h2>
+        <h2 className="hex3-h2" style={{ marginBottom: 30 }}><em>Un seul univers.</em></h2>
         <p style={{
           fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
           fontSize: 'clamp(17px, 1.8vw, 22px)',
-          color: 'rgba(244,239,230,0.65)', margin: 0,
+          color: 'var(--hex3-ivory-mute)', margin: 0,
         }}>Explorez Plume Astrale.</p>
       </div>
 
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 1200, margin: '0 auto' }}>
         {SERVICES.map((svc, i) => (
           <ServiceBand key={svc.key} svc={svc} index={i} />
         ))}

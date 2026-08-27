@@ -13,6 +13,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import StarfieldBackdrop from '@/components/StarfieldBackdrop';
 import { useAuth } from '@/context/AuthContext';
 import { useExperienceStore } from '@/experience/useExperienceStore';
 import { readIntent, readDrawnCard, readUtm } from '@/experience/intentConfig';
@@ -74,14 +75,12 @@ export default function Act7Conversion() {
       data-testid="home-experience-scene-7"
       className="hex3-section hex3-act-7"
       style={{
-        position: 'relative', zIndex: 5,
-        background: 'radial-gradient(ellipse at 50% 40%, #17102E 0%, #070713 65%)',
-        padding: '160px 24px 140px',
-        color: '#F4EFE6',
+        padding: '180px 24px 160px',
         opacity: visible ? 1 : 0,
         transition: 'opacity 1600ms cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
+      <StarfieldBackdrop density={50} color="216, 183, 106" fade={0.22} />
       {/* Petite plume signature en fond (SVG stylisé, opacity très basse) */}
       <svg
         aria-hidden="true"
@@ -103,18 +102,11 @@ export default function Act7Conversion() {
         </g>
       </svg>
 
-      <div style={{ maxWidth: 620, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-        <p style={{
-          fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.36em',
-          textTransform: 'uppercase', color: 'rgba(216,183,106,0.75)', margin: '0 0 26px',
-        }}>ACTE VII · COMMENCER</p>
+      <div style={{ maxWidth: 620, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 2 }}>
+        <p className="hex3-eyebrow">ACTE VII · COMMENCER</p>
 
-        <h2 style={{
-          fontFamily: '"Cormorant Garamond", "Playfair Display", serif',
-          fontWeight: 400, fontSize: 'clamp(38px, 5vw, 60px)', lineHeight: 1.15,
-          color: '#F4EFE6', margin: '0 0 20px',
-        }}>
-          Votre voyage <em style={{ color: '#D8B76A', fontStyle: 'italic' }}>ne fait que commencer.</em>
+        <h2 className="hex3-h2">
+          Votre voyage <em>ne fait que commencer.</em>
         </h2>
 
         <p style={{

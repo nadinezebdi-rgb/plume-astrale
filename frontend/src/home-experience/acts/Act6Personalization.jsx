@@ -11,6 +11,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import StarfieldBackdrop from '@/components/StarfieldBackdrop';
 import { useExperienceStore } from '@/experience/useExperienceStore';
 import { readIntent } from '@/experience/intentConfig';
 import { event as trackEvent } from '@/lib/analytics';
@@ -89,19 +90,14 @@ export default function Act6Personalization() {
       data-testid="home-experience-scene-6"
       className="hex3-section hex3-act-6"
       style={{
-        position: 'relative', zIndex: 5,
-        background: 'linear-gradient(180deg, #070713 0%, #100A20 100%)',
-        padding: '140px 24px 120px',
-        color: '#F4EFE6',
+        padding: '160px 24px 140px',
         opacity: visible ? 1 : 0,
         transition: 'opacity 1400ms cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
-      <div style={{ maxWidth: 780, margin: '0 auto', textAlign: 'center' }}>
-        <p style={{
-          fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.36em',
-          textTransform: 'uppercase', color: 'rgba(216,183,106,0.75)', margin: '0 0 24px',
-        }}>ACTE VI · POUR VOUS</p>
+      <StarfieldBackdrop density={60} color="216, 183, 106" fade={0.25} />
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 780, margin: '0 auto', textAlign: 'center' }}>
+        <p className="hex3-eyebrow">ACTE VI · POUR VOUS</p>
 
         <p
           data-testid="home-experience-personalization-intro"

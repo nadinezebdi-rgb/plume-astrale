@@ -1,35 +1,73 @@
 /**
- * HomeExperience.css — styles spécifiques à /home-experience-v3
+ * HomeExperience.css — styles /home-experience-v3
  *
- * Phase 1 minimal : uniquement les règles responsive pour ActNav
- * (masquée sur mobile < 900px) et le pivot palette variable pour
- * les futurs actes V-VIII (Phase 2).
- *
- * On préfixe --hex3-* pour ne pas entrer en conflit avec les 3
- * univers existants (--ps-*, --ne-*, --exp-*).
+ * Palette unifiée cosmique noire — cohérence visuelle totale avec les
+ * scènes WebGL Actes I-IV. Tous les Actes V-VIII partagent le même
+ * fond noir profond, la même topographie de titres, et sont reliés
+ * par un fil doré vertical continu.
  */
 
 :root {
-  /* Palette pivot Home Experience V3 — alignée sur la charte Nocturne */
-  --hex3-night:      #0F1A3C;   /* Bleu Prussien Nocturne */
-  --hex3-void:       #070713;   /* Fond canvas 3D */
-  --hex3-gold:       #C9A24B;   /* Or éditorial (pivot des 3 systèmes) */
-  --hex3-gold-soft:  rgba(216, 183, 106, 0.9);
-  --hex3-cream:      #F7F5F0;   /* Papier céleste */
-  --hex3-ivory:      #F4EFE6;   /* Ivoire experience */
-
-  /* Typographies — héritées, non redéfinies */
+  /* Palette pivot Home Experience V3 */
+  --hex3-void:       #070713;   /* Fond canvas 3D + Actes V-VIII */
+  --hex3-void-soft:  #0B0B18;   /* Séparateur discret entre sections */
+  --hex3-gold:       #D8B76A;   /* Or éditorial (accent unique) */
+  --hex3-gold-line:  rgba(216, 183, 106, 0.35);
+  --hex3-ivory:      #F4EFE6;
+  --hex3-ivory-mute: rgba(244, 239, 230, 0.65);
 }
 
-/* Masque ActNav sur mobile (< 900px) — respect règle Mobile-First :
-   la nav verticale n'est pas essentielle, le scroll natif suffit. */
+/* Toutes les sections des Actes V-VIII partagent la même trame */
+.hex3-section {
+  position: relative;
+  background: var(--hex3-void);
+  color: var(--hex3-ivory);
+  overflow: hidden;
+}
+
+/* Fil doré vertical entre sections : trace le voyage éditorial */
+.hex3-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  width: 1px; height: 60px;
+  background: linear-gradient(180deg, transparent, var(--hex3-gold-line));
+  pointer-events: none;
+}
+.hex3-section:first-of-type::before { display: none; }
+
+/* Eyebrow standardisé */
+.hex3-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: rgba(216, 183, 106, 0.75);
+  margin: 0 0 22px;
+}
+
+/* H2 standardisé */
+.hex3-h2 {
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 1.12;
+  color: var(--hex3-ivory);
+  margin: 0;
+}
+.hex3-h2 em {
+  font-style: italic;
+  color: var(--hex3-gold);
+}
+
+/* Masque ActNav sur mobile */
 @media (max-width: 899px) {
   .hex3-actnav {
     display: none !important;
   }
 }
 
-/* Reduced motion : pas de scale, pas de glow sur les points nav */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .hex3-actnav button {
     transition: background 200ms ease !important;

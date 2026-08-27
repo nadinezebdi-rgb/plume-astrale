@@ -10,6 +10,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import StarfieldBackdrop from '@/components/StarfieldBackdrop';
 
 const STEPS = [
   { n: '01', title: 'Créez votre espace',            body: 'Quelques informations et vous êtes chez vous.' },
@@ -52,28 +53,20 @@ export default function Act8Reassurance() {
       data-testid="home-experience-scene-8"
       className="hex3-section hex3-act-8"
       style={{
-        position: 'relative', zIndex: 5,
-        background: 'linear-gradient(180deg, #070713 0%, #05040A 100%)',
-        padding: '120px 24px 60px',
-        color: '#F4EFE6',
+        padding: '140px 24px 60px',
       }}
     >
+      <StarfieldBackdrop density={40} color="216, 183, 106" fade={0.2} />
       <div style={{
+        position: 'relative', zIndex: 1,
         maxWidth: 1100, margin: '0 auto',
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(20px)',
         transition: 'opacity 1400ms ease, transform 1400ms cubic-bezier(0.16, 1, 0.3, 1)',
       }}>
         <div style={{ textAlign: 'center', marginBottom: 70 }}>
-          <p style={{
-            fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.36em',
-            textTransform: 'uppercase', color: 'rgba(216,183,106,0.75)', margin: '0 0 18px',
-          }}>VOTRE ESPACE PLUME ASTRALE</p>
-          <h2 style={{
-            fontFamily: '"Cormorant Garamond", "Playfair Display", serif',
-            fontWeight: 400, fontSize: 'clamp(32px, 4.2vw, 48px)', lineHeight: 1.15,
-            color: '#F4EFE6', margin: 0,
-          }}>Trois pas <em style={{ color: '#D8B76A' }}>pour commencer.</em></h2>
+          <p className="hex3-eyebrow">VOTRE ESPACE PLUME ASTRALE</p>
+          <h2 className="hex3-h2" style={{ fontSize: 'clamp(32px, 4.2vw, 48px)' }}>Trois pas <em>pour commencer.</em></h2>
         </div>
 
         <div style={{
