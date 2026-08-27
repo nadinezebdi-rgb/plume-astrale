@@ -89,7 +89,6 @@ import EditionReliee from "./pages/EditionReliee";
 import EditionRelieeMerci from "./pages/EditionRelieeMerci";
 import RelectureRefus from "./pages/RelectureRefus";
 import ExperiencePage from "./pages/Experience";
-import AudioPreview from "./pages/AudioPreview";
 import CookieConsent from "./components/CookieConsent";
 
 // ─── Advanced PDF Products ────────────────────────────
@@ -240,7 +239,6 @@ function App() {
                 <Route path="/edition-reliee/merci" element={<EditionRelieeMerci />} />
                 <Route path="/relecture/:token" element={<RelectureRefus />} />
                 <Route path="/experience" element={<ExperiencePage />} />
-                <Route path="/experience/audio-preview" element={<AudioPreview />} />
 
                 {/* ─── Redirections /outils/* → /services/* (compat legacy) ─── */}
                 <Route path="/outils/theme-natal" element={<Navigate to="/services/theme-natal" replace />} />
