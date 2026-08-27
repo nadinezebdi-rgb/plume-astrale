@@ -273,19 +273,19 @@
 
 .exp-s1__brand {
   opacity: 0;
-  animation: exp-fade-slow 2.4s 1.2s forwards ease-out;
+  animation: exp-cinematic-reveal 3.2s 1.0s forwards cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .exp-s1__phrase-1 {
   opacity: 0;
-  animation: exp-fade-slow 2.4s 2.4s forwards ease-out;
+  animation: exp-cinematic-reveal 3.4s 2.6s forwards cubic-bezier(0.16, 1, 0.3, 1);
   max-width: 720px;
 }
 
 .exp-s1__phrase-2 {
   opacity: 0;
   color: var(--exp-ivory);
-  animation: exp-fade-slow 2.4s 4.0s forwards ease-out;
+  animation: exp-cinematic-reveal 3.4s 4.6s forwards cubic-bezier(0.16, 1, 0.3, 1);
   max-width: 720px;
 }
 
@@ -447,6 +447,8 @@
 .exp-s3__card {
   --card-w: 190px;
   --card-h: 300px;
+  --card-rot: 0deg;
+  --card-dy: 0px;
   position: relative;
   width: var(--card-w);
   height: var(--card-h);
@@ -455,25 +457,49 @@
   padding: 0;
   cursor: pointer;
   transform-style: preserve-3d;
-  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
-  transform: translateY(0);
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 500ms ease;
+  transform: rotate(var(--card-rot)) translateY(var(--card-dy));
+}
+
+.exp-s3__card[data-featured="true"] {
+  --card-w: 200px;
+  --card-h: 316px;
+  z-index: 2;
 }
 
 @media (max-width: 720px) {
-  .exp-s3__card { --card-w: 140px; --card-h: 220px; }
+  .exp-s3__card { --card-w: 130px; --card-h: 205px; }
+  .exp-s3__card[data-featured="true"] { --card-w: 138px; --card-h: 218px; }
 }
 
 .exp-s3__cards[data-hovering="true"] .exp-s3__card:not(:hover) {
-  transform: translateY(6px) scale(0.98);
-  opacity: 0.62;
+  transform: rotate(var(--card-rot)) translateY(calc(var(--card-dy) + 6px)) scale(0.97);
+  opacity: 0.58;
 }
 
 .exp-s3__card:hover:not([data-flipped="true"]) {
-  transform: translateY(-14px);
+  transform: rotate(var(--card-rot)) translateY(calc(var(--card-dy) - 18px));
 }
 
 .exp-s3__card[data-flipped="true"] {
-  transform: translateY(-10px) rotateY(180deg);
+  transform: rotate(0deg) translateY(-14px) scale(1.12) rotateY(180deg);
+  z-index: 3;
+}
+
+/* Autre cartes qui reculent quand une est retournée */
+.exp-s3__cards:has([data-flipped="true"]) .exp-s3__card:not([data-flipped="true"]) {
+  opacity: 0;
+  transform: rotate(var(--card-rot)) translateX(var(--card-away, 0)) scale(0.9);
+  pointer-events: none;
+}
+
+.exp-s3__cards:has([data-flipped="true"]) .exp-s3__card:not([data-flipped="true"]):first-child {
+  --card-away: -60px;
+}
+
+.exp-s3__cards:has([data-flipped="true"]) .exp-s3__card:not([data-flipped="true"]):last-child {
+  --card-away: 60px;
 }
 
 /* Halo doré sous la carte au hover */
@@ -498,66 +524,23 @@
 .exp-s3__back {
   position: absolute;
   inset: 0;
-  border-radius: 4px;
+  border-radius: 6px;
   backface-visibility: hidden;
-  border: 1px solid var(--exp-gold-line);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   box-shadow:
-    0 20px 40px -14px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(216, 183, 106, 0.14);
+    0 20px 40px -14px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(216, 183, 106, 0.18);
 }
 
 .exp-s3__back {
-  background:
-    radial-gradient(ellipse at 50% 30%, rgba(118, 87, 200, 0.12), transparent 60%),
-    linear-gradient(180deg, #0C0A20 0%, #060517 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.exp-s3__back-mark {
-  color: var(--exp-gold);
-  font-family: var(--exp-serif);
-  font-style: italic;
-  font-size: 44px;
-  opacity: 0.7;
+  /* image de fond injectée en style inline depuis le composant */
 }
 
 .exp-s3__face {
   transform: rotateY(180deg);
-  background:
-    linear-gradient(180deg, #0F0B26 0%, #060517 100%);
-  padding: 32px 22px 24px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  text-align: center;
-}
-
-.exp-s3__face-glyph {
-  font-size: 46px;
-  color: var(--exp-gold);
-  font-weight: 300;
-  line-height: 1;
-}
-
-.exp-s3__face-name {
-  font-family: var(--exp-serif);
-  font-style: italic;
-  font-size: 22px;
-  color: var(--exp-ivory);
-  line-height: 1.2;
-  margin: 12px 0 0;
-}
-
-.exp-s3__face-tagline {
-  font-family: var(--exp-sans);
-  font-size: 9.5px;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: var(--exp-gold-soft);
-  margin-top: 6px;
+  /* image de fond injectée en style inline depuis le composant */
 }
 
 .exp-s3__result {
@@ -683,6 +666,14 @@
 @keyframes exp-fade-slow {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+/* Reveal cinématique : flou net + opacité + micro-scale.
+   Utilisé sur les éléments texte principaux de la scène 1. */
+@keyframes exp-cinematic-reveal {
+  0%   { opacity: 0; filter: blur(8px); transform: scale(0.985); }
+  60%  { opacity: 0.9; filter: blur(1px); transform: scale(0.997); }
+  100% { opacity: 1; filter: blur(0); transform: scale(1); }
 }
 
 /* Prefers reduced motion */

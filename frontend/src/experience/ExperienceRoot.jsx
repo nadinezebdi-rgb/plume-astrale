@@ -8,12 +8,13 @@
  * • Écoute le scroll pour mettre à jour globalProgress et currentScene
  * • Gère les CTA / choix qui pilotent le store et déclenchent des scrolls
  */
-import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeviceProfile } from './hooks/useDeviceProfile';
 import { useExperienceStore } from './useExperienceStore';
 import ExperienceCanvas from './ExperienceCanvas';
 import ExperienceFallback from './ExperienceFallback';
+import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
 import './Experience.css';
 
 const INTENTS = [
@@ -24,9 +25,9 @@ const INTENTS = [
 ];
 
 const CARDS = [
-  { id: 'heart',  glyph: '♡', name: 'La Rencontre',  tagline: 'Ce qui vous relie' },
-  { id: 'moon',   glyph: '☾', name: 'Le Voile',      tagline: 'Ce qui se dévoile' },
-  { id: 'star',   glyph: '✦', name: 'La Trajectoire', tagline: 'Ce qui vous porte' },
+  { id: 'heart',  glyph: '♡', name: 'La Rencontre',  tagline: 'Ce qui vous relie',   rot: -6, dy: 0 },
+  { id: 'moon',   glyph: '☾', name: 'Le Voile',      tagline: 'Ce qui se dévoile',   rot:  0, dy: -8 },
+  { id: 'star',   glyph: '✦', name: 'La Trajectoire', tagline: 'Ce qui vous porte',  rot:  6, dy: 0 },
 ];
 
 export default function ExperienceRoot() {
@@ -39,6 +40,7 @@ export default function ExperienceRoot() {
   const setScene = useExperienceStore((s) => s.setScene);
   const setIntent = useExperienceStore((s) => s.setIntent);
   const setDrawnCard = useExperienceStore((s) => s.setDrawnCard);
+  const setHoveredIntent = useExperienceStore((s) => s.setHoveredIntent);
   const intent = useExperienceStore((s) => s.intent);
   const drawnCard = useExperienceStore((s) => s.drawnCard);
   const currentScene = useExperienceStore((s) => s.currentScene);
@@ -85,19 +87,20 @@ export default function ExperienceRoot() {
     return () => clearTimeout(t1);
   }, [currentScene]);
 
-  // ── Scène 4 : timing des phrases (aligné sur les phases de Scene04Feather) ─
-  //  Phase A 0-5s : plume se dessine (aucun texte overlay)
-  //  Phase B 5-7s : plume respire (aucun texte overlay)
-  //  Phase C 7-10s : morph plume → texte particules "Plume Astrale"
-  //  Phase D 10s+ : texte particules stable + sweep cinématique
-  //   → phrases HTML apparaissent APRÈS que le texte particules est stable
+  // ── Scène 4 : timing des phrases (aligné sur les phases de Scene04Feather V2) ─
+  //  Phase A CHAOS       [0.0, 0.8]      chaos
+  //  Phase B ATTRACTION  [0.8, 1.6]      attraction subtile
+  //  Phase C FORMATION   [1.6, 6.0]      plume se dessine
+  //  Phase D PAUSE       [6.0, 8.0]      silence visuel — plume complète
+  //  Phase E WRITING     [8.0, 12.0]     plume écrit "Plume Astrale" gauche→droite
+  //  Phase F STABLE      [12.0, ∞)       texte stable + sweep + phrases HTML
   useEffect(() => {
     if (currentScene !== 4) return;
     setScene4Step(0);
-    const t1 = setTimeout(() => setScene4Step(1), 10500); // le texte particules vient d'être formé
-    const t2 = setTimeout(() => setScene4Step(2), 12500); // "Votre histoire est unique"
-    const t3 = setTimeout(() => setScene4Step(3), 14500); // "Votre ciel aussi"
-    const t4 = setTimeout(() => setScene4Step(4), 16500); // CTA final
+    const t1 = setTimeout(() => setScene4Step(1), 12500); // "Plume Astrale" vient d'être écrit
+    const t2 = setTimeout(() => setScene4Step(2), 14000); // "Votre histoire est unique"
+    const t3 = setTimeout(() => setScene4Step(3), 16000); // "Votre ciel aussi"
+    const t4 = setTimeout(() => setScene4Step(4), 18000); // CTA final
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, [currentScene]);
 
@@ -107,6 +110,10 @@ export default function ExperienceRoot() {
     if (!el) return;
     el.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
   }, [reducedMotion]);
+
+  // ── Textures des cartes (générées une fois) ─────────────────
+  const cardBackImage = useMemo(() => getCardBackTexture(), []);
+  const cardFaceImage = useMemo(() => getCardFaceTexture(), []);
 
   // ── Handlers ─────────────────────────────────────────────────
   const handleIntentChoice = useCallback((intentId) => {
@@ -240,8 +247,10 @@ export default function ExperienceRoot() {
                   className="exp-s2__choice exp-gilded"
                   data-testid={`scene-2-choice-${it.id}`}
                   data-active={intent === it.id}
-                  onMouseEnter={() => setHoveringIntent(true)}
-                  onMouseLeave={() => setHoveringIntent(false)}
+                  onMouseEnter={() => { setHoveringIntent(true); setHoveredIntent(it.id); }}
+                  onMouseLeave={() => { setHoveringIntent(false); setHoveredIntent(null); }}
+                  onFocus={() => setHoveredIntent(it.id)}
+                  onBlur={() => setHoveredIntent(null)}
                   onClick={() => handleIntentChoice(it.id)}
                 >
                   <span className="exp-s2__choice-glyph">{it.glyph}</span>
@@ -280,23 +289,24 @@ export default function ExperienceRoot() {
                   className="exp-s3__card"
                   data-testid={`scene-3-card-${c.id}`}
                   data-flipped={drawnCard === c.id}
+                  data-featured={c.id === 'moon' ? 'true' : 'false'}
+                  style={{ '--card-rot': `${c.rot}deg`, '--card-dy': `${c.dy}px` }}
                   disabled={drawnCard && drawnCard !== c.id}
                   onMouseEnter={() => setHoveringCard(true)}
                   onMouseLeave={() => setHoveringCard(false)}
                   onClick={() => handleCardDraw(c.id)}
                   aria-label={`Tirer la carte ${c.name}`}
                 >
-                  <div className="exp-s3__back" aria-hidden={drawnCard === c.id}>
-                    <span className="exp-s3__back-mark">P</span>
-                  </div>
-                  <div className="exp-s3__face" aria-hidden={drawnCard !== c.id}>
-                    <span className="exp-s3__face-glyph">{c.glyph}</span>
-                    <div>
-                      <p className="exp-s3__face-name">{c.name}</p>
-                      <p className="exp-s3__face-tagline">{c.tagline}</p>
-                    </div>
-                    <span className="exp-eyebrow" style={{ opacity: 0.6 }}>Plume Astrale</span>
-                  </div>
+                  <div
+                    className="exp-s3__back"
+                    aria-hidden={drawnCard === c.id}
+                    style={{ backgroundImage: `url(${cardBackImage})` }}
+                  />
+                  <div
+                    className="exp-s3__face"
+                    aria-hidden={drawnCard !== c.id}
+                    style={{ backgroundImage: `url(${cardFaceImage})` }}
+                  />
                 </button>
               ))}
             </div>

@@ -7,12 +7,15 @@
  * animation JS/GL, seulement des fondus CSS courts + un dégradé radial
  * de fond figé qui rappelle l'atmosphère cosmique.
  */
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
 
 export default function ExperienceFallback({
   intents, cards, onIntentChoice, onCardDraw, onFinalCTA, intent, drawnCard,
 }) {
   const [expanded, setExpanded] = useState(1);
+  const cardBackImage = useMemo(() => getCardBackTexture(), []);
+  const cardFaceImage = useMemo(() => getCardFaceTexture(), []);
 
   return (
     <div className="exp-root" data-fallback="true" data-testid="experience-fallback">
@@ -83,18 +86,19 @@ export default function ExperienceFallback({
                   className="exp-s3__card"
                   data-testid={`scene-3-card-${c.id}`}
                   data-flipped={drawnCard === c.id}
+                  data-featured={c.id === 'moon' ? 'true' : 'false'}
+                  style={{ '--card-rot': `${c.rot || 0}deg`, '--card-dy': `${c.dy || 0}px` }}
                   disabled={drawnCard && drawnCard !== c.id}
                   onClick={() => onCardDraw(c.id)}
                 >
-                  <div className="exp-s3__back"><span className="exp-s3__back-mark">P</span></div>
-                  <div className="exp-s3__face">
-                    <span className="exp-s3__face-glyph">{c.glyph}</span>
-                    <div>
-                      <p className="exp-s3__face-name">{c.name}</p>
-                      <p className="exp-s3__face-tagline">{c.tagline}</p>
-                    </div>
-                    <span className="exp-eyebrow" style={{ opacity: 0.6 }}>Plume Astrale</span>
-                  </div>
+                  <div
+                    className="exp-s3__back"
+                    style={{ backgroundImage: `url(${cardBackImage})` }}
+                  />
+                  <div
+                    className="exp-s3__face"
+                    style={{ backgroundImage: `url(${cardFaceImage})` }}
+                  />
                 </button>
               ))}
             </div>

@@ -15,6 +15,7 @@ export const useExperienceStore = create((set) => ({
 
   // Interaction utilisateur (sera consommé par la vraie feature plus tard)
   intent: null, // 'relationship' | 'clarity' | 'selfDiscovery' | 'question'
+  hoveredIntent: null, // hover en direct pour illuminer la constellation
   drawnCard: null, // clé de la carte symbolique
 
   // Contraintes environnement
@@ -31,6 +32,7 @@ export const useExperienceStore = create((set) => ({
   setSceneProgress: (p) => set({ sceneProgress: p }),
   setGlobalProgress: (p) => set({ globalProgress: p }),
   setIntent: (i) => set({ intent: i }),
+  setHoveredIntent: (i) => set({ hoveredIntent: i }),
   setDrawnCard: (c) => set({ drawnCard: c }),
   setDeviceProfile: (profile) => set(profile),
   toggleSound: () => set((s) => ({ soundEnabled: !s.soundEnabled })),

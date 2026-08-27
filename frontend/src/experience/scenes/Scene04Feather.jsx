@@ -49,6 +49,23 @@ const SWEEP_TEX = (() => {
   return new THREE.CanvasTexture(c);
 })();
 
+// Sprite de la pointe de plume — halo elliptique doré pour figurer la tête d'écriture
+const QUILL_TEX = (() => {
+  if (typeof document === 'undefined') return null;
+  const s = 128;
+  const c = document.createElement('canvas');
+  c.width = s; c.height = s;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+  g.addColorStop(0, 'rgba(255, 250, 232, 1)');
+  g.addColorStop(0.15, 'rgba(232, 199, 102, 0.8)');
+  g.addColorStop(0.45, 'rgba(216, 183, 106, 0.25)');
+  g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, s, s);
+  return new THREE.CanvasTexture(c);
+})();
+
 // ─── Génération des positions cibles PLUME ─────────────────────
 // Design : vraie plume d'écrivain calligraphique.
 //   • rachis vertical courbé légèrement (S doux)
@@ -208,13 +225,28 @@ export default function Scene04Feather() {
   // Positions cibles : plume + texte (générées une fois)
   const {
     startPositions, featherTargets, textTargets,
-    offsets, currentPositions,
+    offsets, currentPositions, writeThresholds,
+    chaosOffsets,
   } = useMemo(() => {
     const startPositions = new Float32Array(count * 3);
     const featherTargets = generateFeatherTargets(count);
     const textTargets = generateTextTargets('Plume Astrale', count);
     const offsets = new Float32Array(count);
     const currentPositions = new Float32Array(count * 3);
+    // writeThreshold[i] = position X du texte normalisée sur [0..1]
+    //   → détermine QUAND cette particule commence à se placer pendant l'écriture
+    const writeThresholds = new Float32Array(count);
+    // Chaos : bruit local propre à chaque particule
+    const chaosOffsets = new Float32Array(count * 2);
+
+    // Bornes X du texte pour normaliser
+    let minX = Infinity, maxX = -Infinity;
+    for (let i = 0; i < count; i++) {
+      const tx = textTargets[i * 3 + 0];
+      if (tx < minX) minX = tx;
+      if (tx > maxX) maxX = tx;
+    }
+    const textWidth = Math.max(0.001, maxX - minX);
 
     for (let i = 0; i < count; i++) {
       const r = 3 + Math.random() * 3;
@@ -227,19 +259,36 @@ export default function Scene04Feather() {
       currentPositions[i * 3 + 1] = startPositions[i * 3 + 1];
       currentPositions[i * 3 + 2] = startPositions[i * 3 + 2];
       offsets[i] = Math.random() * Math.PI * 2;
+      // WriteThreshold: 0 pour particule extrême gauche, 1 pour extrême droite
+      writeThresholds[i] = (textTargets[i * 3 + 0] - minX) / textWidth;
+      // Chaos offsets (petit vecteur perturbateur pour chaos phase)
+      chaosOffsets[i * 2 + 0] = (Math.random() - 0.5) * 0.15;
+      chaosOffsets[i * 2 + 1] = (Math.random() - 0.5) * 0.15;
     }
-    return { startPositions, featherTargets, textTargets, offsets, currentPositions };
+    return {
+      startPositions, featherTargets, textTargets, offsets,
+      currentPositions, writeThresholds, chaosOffsets,
+    };
   }, [count]);
 
   // Timings des phases (en secondes)
-  const T_FEATHER = reducedMotion ? 0.4 : 5.0;      // dispersion → plume
-  const T_PAUSE = reducedMotion ? 0.2 : 2.0;        // plume immobile
-  const T_MORPH = reducedMotion ? 0.4 : 3.0;        // plume → texte
-  // Après T_FEATHER + T_PAUSE + T_MORPH → texte stable + sweep
+  const T_CHAOS = reducedMotion ? 0.2 : 0.8;         // chaos initial
+  const T_ATTRACTION = reducedMotion ? 0.2 : 0.8;    // attraction subtile
+  const T_FORMATION = reducedMotion ? 0.4 : 4.4;     // formation complète plume
+  const T_PAUSE = reducedMotion ? 0.2 : 2.0;         // silence visuel
+  const T_WRITING = reducedMotion ? 0.4 : 4.0;       // écriture synchronisée gauche→droite
+
+  // Cumulatifs
+  const T_END_CHAOS = T_CHAOS;
+  const T_END_ATTRACTION = T_END_CHAOS + T_ATTRACTION;
+  const T_END_FORMATION = T_END_ATTRACTION + T_FORMATION;
+  const T_END_PAUSE = T_END_FORMATION + T_PAUSE;
+  const T_END_WRITING = T_END_PAUSE + T_WRITING;
 
   const pointsRef = useRef();
   const geoRef = useRef();
   const sweepRef = useRef();
+  const quillRef = useRef();
   const startTimeRef = useRef(null);
 
   // Démarre le chronomètre dès que la scène 4 devient active
@@ -265,15 +314,27 @@ export default function Scene04Feather() {
     if (!geoRef.current) return;
     const t = state.clock.getElapsedTime();
 
-    // Progression en secondes depuis l'arrivée sur scène 4
     let elapsed = 0;
     if (startTimeRef.current !== null) {
       elapsed = (performance.now() - startTimeRef.current) / 1000;
     }
 
-    // Détermine la phase et calcule les positions
     const posAttr = geoRef.current.attributes.position;
     const activeTextTargets = textTargetsRef.current;
+
+    // Détermine la phase courante
+    // Phase A CHAOS         [0, T_END_CHAOS]         particules oscillent en place à leur position de départ
+    // Phase B ATTRACTION    [T_END_CHAOS, T_END_ATTRACTION]   drift subtil vers plume (10%)
+    // Phase C FORMATION     [T_END_ATTRACTION, T_END_FORMATION]  interpolation start → plume
+    // Phase D PAUSE         [T_END_FORMATION, T_END_PAUSE]    plume respire
+    // Phase E WRITING       [T_END_PAUSE, T_END_WRITING]     écriture synchronisée gauche→droite
+    // Phase F STABLE        [T_END_WRITING, ∞)             texte stable + sweep
+
+    // writeProgress (0..1) sur toute la phase E
+    let writeProgress = 0;
+    if (elapsed >= T_END_PAUSE) {
+      writeProgress = Math.min(1, (elapsed - T_END_PAUSE) / T_WRITING);
+    }
 
     for (let i = 0; i < count; i++) {
       const sx = startPositions[i * 3 + 0];
@@ -288,32 +349,52 @@ export default function Scene04Feather() {
 
       let x, y, z;
 
-      if (elapsed < T_FEATHER) {
-        // Phase A : dispersion → plume (ease-out cubic)
-        const p = elapsed / T_FEATHER;
-        const eased = 1 - Math.pow(1 - p, 3);
+      if (elapsed < T_END_CHAOS) {
+        // Phase A CHAOS — oscillation locale, aucun mouvement vers cible
+        const cx = chaosOffsets[i * 2 + 0];
+        const cy = chaosOffsets[i * 2 + 1];
+        x = sx + Math.sin(t * 1.5 + offsets[i]) * cx;
+        y = sy + Math.cos(t * 1.5 + offsets[i]) * cy;
+        z = sz;
+      } else if (elapsed < T_END_ATTRACTION) {
+        // Phase B ATTRACTION — dérive subtile vers plume (0 → 10%)
+        const p = (elapsed - T_END_CHAOS) / T_ATTRACTION;
+        const eased = p * p; // ease-in
+        const drift = eased * 0.10;
+        x = sx + (fx - sx) * drift;
+        y = sy + (fy - sy) * drift;
+        z = sz + (fz - sz) * drift;
+      } else if (elapsed < T_END_FORMATION) {
+        // Phase C FORMATION — dispersion → plume complète (10% → 100%)
+        const p = (elapsed - T_END_ATTRACTION) / T_FORMATION;
+        const p2 = 0.10 + p * 0.90;
+        const eased = 1 - Math.pow(1 - p2, 3);
         x = sx + (fx - sx) * eased;
         y = sy + (fy - sy) * eased;
         z = sz + (fz - sz) * eased;
-      } else if (elapsed < T_FEATHER + T_PAUSE) {
-        // Phase B : plume immobile (breathing)
+      } else if (elapsed < T_END_PAUSE) {
+        // Phase D PAUSE — plume respire
         x = fx; y = fy; z = fz;
         if (!reducedMotion) {
           const breath = Math.sin(t * 0.6 + offsets[i]) * 0.015;
           x += breath;
           y += breath * 0.5;
         }
-      } else if (elapsed < T_FEATHER + T_PAUSE + T_MORPH) {
-        // Phase C : morphing plume → texte (ease-in-out cubic)
-        const p = (elapsed - T_FEATHER - T_PAUSE) / T_MORPH;
-        const eased = p < 0.5
-          ? 4 * p * p * p
-          : 1 - Math.pow(-2 * p + 2, 3) / 2;
+      } else if (elapsed < T_END_WRITING) {
+        // Phase E WRITING — synchronisée gauche → droite
+        // Chaque particule ne bouge vers son texte QUE lorsque writeProgress dépasse son seuil
+        const FADE_WINDOW = 0.14;
+        const threshold = writeThresholds[i];
+        const local = Math.max(0, Math.min(1,
+          (writeProgress - threshold) / FADE_WINDOW
+        ));
+        // ease-out cubic
+        const eased = 1 - Math.pow(1 - local, 3);
         x = fx + (tx - fx) * eased;
         y = fy + (ty - fy) * eased;
         z = fz + (tz - fz) * eased;
       } else {
-        // Phase D : texte stable + micro-respiration
+        // Phase F STABLE — texte + micro-respiration
         x = tx; y = ty; z = tz;
         if (!reducedMotion) {
           const breath = Math.sin(t * 0.5 + offsets[i]) * 0.008;
@@ -327,21 +408,36 @@ export default function Scene04Feather() {
     }
     posAttr.needsUpdate = true;
 
-    // ─── Sweep cinématique : uniquement en phase D ─────────
+    // ─── QUILL sprite : suit la tête d'écriture pendant phase E ────
+    if (quillRef.current) {
+      const inWriting = elapsed >= T_END_PAUSE && elapsed < T_END_WRITING + 0.5;
+      quillRef.current.visible = inWriting;
+      if (inWriting && !reducedMotion) {
+        // Bornes X du texte pour la position de la pointe
+        const TEXT_HALF_W = 2.6; // aligne avec generateTextTargets worldW/2
+        const headX = -TEXT_HALF_W + writeProgress * (TEXT_HALF_W * 2);
+        quillRef.current.position.x = headX;
+        quillRef.current.position.y = 0.4;
+        quillRef.current.position.z = 0.05;
+        // Fade in au début, fade out à la fin
+        const fadeIn = Math.min(1, (elapsed - T_END_PAUSE) / 0.4);
+        const fadeOut = Math.min(1, Math.max(0, (T_END_WRITING + 0.5 - elapsed) / 0.5));
+        quillRef.current.material.opacity = 0.7 * fadeIn * fadeOut;
+      }
+    }
+
+    // ─── SWEEP cinématique : uniquement en phase F ────
     if (sweepRef.current) {
-      const inPhaseD = elapsed > T_FEATHER + T_PAUSE + T_MORPH;
-      if (inPhaseD && !reducedMotion) {
-        // Le sprite balaie de gauche (-3.5) à droite (+3.5), boucle toutes les 8s
-        const sweepT = ((elapsed - T_FEATHER - T_PAUSE - T_MORPH) % 8) / 8;
-        // Petite courbe : reste caché sauf entre 0.15 et 0.85
+      const inPhaseF = elapsed >= T_END_WRITING;
+      if (inPhaseF && !reducedMotion) {
+        const sweepT = ((elapsed - T_END_WRITING) % 8) / 8;
         const inSweep = sweepT > 0.10 && sweepT < 0.90;
         sweepRef.current.visible = inSweep;
         if (inSweep) {
-          const local = (sweepT - 0.10) / 0.80; // 0..1
+          const local = (sweepT - 0.10) / 0.80;
           sweepRef.current.position.x = -3.5 + local * 7.0;
-          sweepRef.current.position.y = 0.4; // aligné sur la position des particules
-          // Fade in / out doux
-          const fade = Math.sin(local * Math.PI); // pic à 0.5
+          sweepRef.current.position.y = 0.4;
+          const fade = Math.sin(local * Math.PI);
           sweepRef.current.material.opacity = 0.55 * fade;
         }
       } else {
@@ -349,14 +445,12 @@ export default function Scene04Feather() {
       }
     }
 
-    // Légère rotation quand plume formée (phase B seulement)
+    // Rotation douce plume en phase D
     if (pointsRef.current) {
-      const inBreathing = elapsed >= T_FEATHER && elapsed < T_FEATHER + T_PAUSE;
+      const inBreathing = elapsed >= T_END_FORMATION && elapsed < T_END_PAUSE;
       const rotTarget = inBreathing ? Math.sin(t * 0.3) * 0.05 : 0;
       pointsRef.current.rotation.z = THREE.MathUtils.lerp(
-        pointsRef.current.rotation.z,
-        rotTarget,
-        0.03
+        pointsRef.current.rotation.z, rotTarget, 0.03
       );
     }
   });
@@ -386,6 +480,18 @@ export default function Scene04Feather() {
       <sprite ref={sweepRef} scale={[2.2, 1.6, 1]} position={[0, 0.4, 0]} visible={false}>
         <spriteMaterial
           map={SWEEP_TEX}
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          opacity={0}
+          color="#F4EFE6"
+        />
+      </sprite>
+
+      {/* Quill — pointe de plume qui trace le texte pendant la phase E */}
+      <sprite ref={quillRef} scale={[0.5, 0.35, 1]} position={[-2.6, 0.4, 0.05]} visible={false}>
+        <spriteMaterial
+          map={QUILL_TEX}
           transparent
           depthWrite={false}
           blending={THREE.AdditiveBlending}
