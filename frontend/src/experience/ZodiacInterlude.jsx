@@ -26,10 +26,10 @@ export default function ZodiacInterlude({ visible, onComplete, onSkip }) {
     }
   }, [visible]);
 
-  // Auto-continuation 5s après reveal
+  // Auto-continuation ~8s après reveal (laisse le temps de lire les 3 vers)
   useEffect(() => {
     if (step !== 'reveal') return;
-    const t = setTimeout(() => onComplete && onComplete(sign), 5200);
+    const t = setTimeout(() => onComplete && onComplete(sign), 8500);
     return () => clearTimeout(t);
   }, [step, sign, onComplete]);
 
@@ -56,6 +56,7 @@ export default function ZodiacInterlude({ visible, onComplete, onSkip }) {
         @keyframes zodiacFade { from { opacity: 0; } to { opacity: 1; } }
         @keyframes starBirth  { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
         @keyframes linePull   { from { stroke-dashoffset: 240; } to { stroke-dashoffset: 0; } }
+        @keyframes verseIn    { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
       {step === 'input' && (
@@ -103,7 +104,7 @@ export default function ZodiacInterlude({ visible, onComplete, onSkip }) {
             {sign.element.toUpperCase()} · SIGNE {sign.name.toUpperCase()}
           </p>
 
-          <svg viewBox="0 0 200 200" style={{ width: 220, height: 220, margin: '4px auto 12px', display: 'block' }} aria-hidden="true">
+          <svg viewBox="0 0 200 200" style={{ width: 200, height: 200, margin: '4px auto 8px', display: 'block' }} aria-hidden="true">
             {/* Lignes du pattern */}
             {stars.slice(1).map((pt, i) => {
               const prev = stars[i];
@@ -137,13 +138,28 @@ export default function ZodiacInterlude({ visible, onComplete, onSkip }) {
           </svg>
 
           <h2 style={titleStyle} data-testid="zodiac-name">{sign.name}</h2>
-          <p style={{ ...leadStyle, marginTop: 6 }}>
-            En vous, <em>{sign.trait}</em>.
-          </p>
+
+          {/* Trois vers hand-crafted, staggered */}
+          <div style={{ marginTop: 18, marginBottom: 8 }}>
+            {(sign.verses || [`En vous, ${sign.trait}.`]).map((verse, i) => (
+              <p
+                key={i}
+                data-testid={`zodiac-verse-${i}`}
+                style={{
+                  ...verseStyle,
+                  animation: `verseIn 900ms cubic-bezier(0.16, 1, 0.3, 1) both`,
+                  animationDelay: `${400 + i * 1300}ms`,
+                }}
+              >
+                {verse}
+              </p>
+            ))}
+          </div>
+
           <button
             type="button"
             onClick={() => onComplete && onComplete(sign)}
-            style={{ ...ctaPrimary, marginTop: 12 }}
+            style={{ ...ctaPrimary, marginTop: 20, opacity: 0, animation: 'verseIn 700ms ease 4400ms forwards' }}
             data-testid="zodiac-continue"
           >
             <span style={{ color: '#D8B76A' }}>✦</span> CONTINUER
@@ -178,6 +194,16 @@ const titleStyle = {
 const leadStyle = {
   fontStyle: 'italic', fontSize: 'clamp(15px, 1.6vw, 18px)',
   color: 'rgba(244, 239, 230, 0.72)', margin: '0 0 26px', lineHeight: 1.6,
+};
+const verseStyle = {
+  fontFamily: '"Cormorant Garamond", "Playfair Display", Georgia, serif',
+  fontStyle: 'italic',
+  fontSize: 'clamp(16px, 1.7vw, 19px)',
+  color: 'rgba(244, 239, 230, 0.85)',
+  lineHeight: 1.55,
+  margin: '0 auto 10px',
+  maxWidth: 460,
+  textAlign: 'center',
 };
 const inputStyle = {
   background: 'transparent',

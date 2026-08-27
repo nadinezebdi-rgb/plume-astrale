@@ -5,19 +5,82 @@
 
 // Signes ordonnés + date de début (inclus). Dernière période (Capricorne)
 // couvre à cheval sur l'année → gestion spéciale.
+// `verses` : 3 vers courts hand-crafted par signe — ancrés dans le
+// développement personnel plutôt que dans la prédiction. Affichés
+// séquentiellement (stagger 900ms) sur le reveal de la scène Zodiac.
 const ZODIAC_SIGNS = [
-  { key: 'capricorne',  glyph: '♑', name: 'Capricorne',  element: 'Terre', start: [12, 22], end: [ 1, 19], trait: 'la patience de la montagne' },
-  { key: 'verseau',     glyph: '♒', name: 'Verseau',     element: 'Air',   start: [ 1, 20], end: [ 2, 18], trait: 'la clarté de la vision' },
-  { key: 'poissons',    glyph: '♓', name: 'Poissons',    element: 'Eau',   start: [ 2, 19], end: [ 3, 20], trait: 'la profondeur des courants intérieurs' },
-  { key: 'belier',      glyph: '♈', name: 'Bélier',      element: 'Feu',   start: [ 3, 21], end: [ 4, 19], trait: 'le courage d\u2019ouvrir des portes' },
-  { key: 'taureau',     glyph: '♉', name: 'Taureau',     element: 'Terre', start: [ 4, 20], end: [ 5, 20], trait: 'la lenteur qui construit' },
-  { key: 'gemeaux',     glyph: '♊', name: 'Gémeaux',     element: 'Air',   start: [ 5, 21], end: [ 6, 20], trait: 'la vivacité des liens' },
-  { key: 'cancer',      glyph: '♋', name: 'Cancer',      element: 'Eau',   start: [ 6, 21], end: [ 7, 22], trait: 'la mémoire des marées' },
-  { key: 'lion',        glyph: '♌', name: 'Lion',        element: 'Feu',   start: [ 7, 23], end: [ 8, 22], trait: 'la générosité de la lumière' },
-  { key: 'vierge',      glyph: '♍', name: 'Vierge',      element: 'Terre', start: [ 8, 23], end: [ 9, 22], trait: 'la précision qui prend soin' },
-  { key: 'balance',     glyph: '♎', name: 'Balance',     element: 'Air',   start: [ 9, 23], end: [10, 22], trait: 'la recherche du juste équilibre' },
-  { key: 'scorpion',    glyph: '♏', name: 'Scorpion',    element: 'Eau',   start: [10, 23], end: [11, 21], trait: 'l\u2019intensité de la transformation' },
-  { key: 'sagittaire',  glyph: '♐', name: 'Sagittaire',  element: 'Feu',   start: [11, 22], end: [12, 21], trait: 'la flèche vers l\u2019horizon' },
+  { key: 'capricorne',  glyph: '♑', name: 'Capricorne',  element: 'Terre', start: [12, 22], end: [ 1, 19], trait: 'la patience de la montagne',
+    verses: [
+      'Vous savez attendre. C\u2019est votre pouvoir le plus discret.',
+      'Ce que vous construisez ne se voit qu\u2019au bout de dix ans.',
+      'Sous votre calme, il y a une ambition que peu soup\u00e7onnent.',
+    ] },
+  { key: 'verseau',     glyph: '♒', name: 'Verseau',     element: 'Air',   start: [ 1, 20], end: [ 2, 18], trait: 'la clart\u00e9 de la vision',
+    verses: [
+      'Vous voyez le monde depuis un angle que peu ont explor\u00e9.',
+      'Vos amiti\u00e9s valent plus que la plupart des liens convenus.',
+      'Vous \u00eates en avance \u2014 souvent seul, jamais perdu.',
+    ] },
+  { key: 'poissons',    glyph: '♓', name: 'Poissons',    element: 'Eau',   start: [ 2, 19], end: [ 3, 20], trait: 'la profondeur des courants int\u00e9rieurs',
+    verses: [
+      'Vous ne traversez pas la vie, vous la ressentez.',
+      'Ce qui \u00e9chappe aux autres, vous l\u2019entendez d\u00e9j\u00e0.',
+      'Votre douceur cache une profondeur que peu explorent.',
+    ] },
+  { key: 'belier',      glyph: '♈', name: 'B\u00e9lier',  element: 'Feu',   start: [ 3, 21], end: [ 4, 19], trait: 'le courage d\u2019ouvrir des portes',
+    verses: [
+      'Vous commencez avant que les autres n\u2019aient fini de r\u00e9fl\u00e9chir.',
+      'Le monde vous doit une chose : de la place pour vos \u00e9lans.',
+      'Votre courage n\u2019a pas de mode d\u2019emploi \u2014 et c\u2019est bien.',
+    ] },
+  { key: 'taureau',     glyph: '♉', name: 'Taureau',     element: 'Terre', start: [ 4, 20], end: [ 5, 20], trait: 'la lenteur qui construit',
+    verses: [
+      'Vous ne bougez pas vite. Vous bougez juste.',
+      'Chez vous, la beaut\u00e9 n\u2019est pas un luxe : c\u2019est un besoin.',
+      'Ce que vous construisez tient longtemps \u2014 parce que vous, vous tenez.',
+    ] },
+  { key: 'gemeaux',     glyph: '♊', name: 'G\u00e9meaux', element: 'Air',   start: [ 5, 21], end: [ 6, 20], trait: 'la vivacit\u00e9 des liens',
+    verses: [
+      'Vous \u00eates toujours au moins deux. C\u2019est votre force, pas un d\u00e9faut.',
+      'Rien ne vous ennuie plus qu\u2019une seule v\u00e9rit\u00e9.',
+      'Vos mots vont plus vite que la plupart des silences.',
+    ] },
+  { key: 'cancer',      glyph: '♋', name: 'Cancer',      element: 'Eau',   start: [ 6, 21], end: [ 7, 22], trait: 'la m\u00e9moire des mar\u00e9es',
+    verses: [
+      'Vous ressentez ce que les autres n\u2019ont pas encore nomm\u00e9.',
+      'Votre maison n\u2019est pas un lieu, c\u2019est un \u00e9tat.',
+      'On revient toujours vers vous \u2014 on se souvient d\u2019y avoir \u00e9t\u00e9 accueilli.',
+    ] },
+  { key: 'lion',        glyph: '♌', name: 'Lion',        element: 'Feu',   start: [ 7, 23], end: [ 8, 22], trait: 'la g\u00e9n\u00e9rosit\u00e9 de la lumi\u00e8re',
+    verses: [
+      'Vous ne demandez pas la lumi\u00e8re. Elle vous cherche.',
+      'Vous \u00eates g\u00e9n\u00e9reux comme on donne le soleil : sans compter.',
+      'Ce que vous appelez fiert\u00e9, d\u2019autres l\u2019appellent dignit\u00e9.',
+    ] },
+  { key: 'vierge',      glyph: '♍', name: 'Vierge',      element: 'Terre', start: [ 8, 23], end: [ 9, 22], trait: 'la pr\u00e9cision qui prend soin',
+    verses: [
+      'Vous voyez ce que personne ne voit \u2014 et vous rangez.',
+      'Vos gestes ordinaires ont une pr\u00e9cision d\u2019orf\u00e8vre.',
+      'Prendre soin, chez vous, c\u2019est une forme d\u2019amour.',
+    ] },
+  { key: 'balance',     glyph: '♎', name: 'Balance',     element: 'Air',   start: [ 9, 23], end: [10, 22], trait: 'la recherche du juste \u00e9quilibre',
+    verses: [
+      'Vous cherchez l\u2019\u00e9quilibre comme on cherche \u00e0 respirer.',
+      'Vos d\u00e9cisions prennent du temps \u2014 parce qu\u2019elles vous engagent.',
+      'La beaut\u00e9, pour vous, n\u2019est jamais accessoire.',
+    ] },
+  { key: 'scorpion',    glyph: '♏', name: 'Scorpion',    element: 'Eau',   start: [10, 23], end: [11, 21], trait: 'l\u2019intensit\u00e9 de la transformation',
+    verses: [
+      'Vous n\u2019avez pas peur du fond. C\u2019est l\u00e0 que vous respirez.',
+      'Ce que vous transformez, vous le transformez pour de bon.',
+      'Votre intensit\u00e9 n\u2019est pas un exc\u00e8s \u2014 c\u2019est votre langue maternelle.',
+    ] },
+  { key: 'sagittaire',  glyph: '♐', name: 'Sagittaire',  element: 'Feu',   start: [11, 22], end: [12, 21], trait: 'la fl\u00e8che vers l\u2019horizon',
+    verses: [
+      'Vous cherchez plus loin que le prochain virage.',
+      'Votre foi dans la vie d\u00e9place vraiment quelque chose.',
+      'Vous partez avant de savoir \u2014 et vous savez en marchant.',
+    ] },
 ];
 
 /**

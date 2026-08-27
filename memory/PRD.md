@@ -27,6 +27,25 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### ✨ Zodiac Personnalisé · Plume Curseur · A/B ON (2026-02-27)
+Trois raffinements sur le tunnel V3 et la home, testés end-to-end (23/23 PASS iteration_84).
+
+**1. Zodiac Personnalisé — 12 signes × 3 vers hand-crafted**
+- `zodiacUtils.js` — chaque signe embarque désormais un tableau `verses: [3 strings]` ancré dans le développement personnel (pas de prédiction). Ex. Vierge : *"Vous voyez ce que personne ne voit — et vous rangez. / Vos gestes ordinaires ont une précision d'orfèvre. / Prendre soin, chez vous, c'est une forme d'amour."*.
+- `ZodiacInterlude.jsx` — reveal step affiche les 3 vers en `<p data-testid=zodiac-verse-{i}>` avec stagger CSS `animationDelay = 400 + i * 1300ms`. CTA `zodiac-continue` apparaît à 4,4s (fade 700ms). Auto-continue passe de 5,2s à **8,5s** pour laisser le temps de lire. Typographie Cormorant Garamond italic 16-19px, centré.
+
+**2. Home Immersive — plume qui suit le curseur**
+- `FeatherCursor.jsx` — SVG plume calligraphique (44×64) qui trail le curseur avec `lerp` (0,18 position, 0,12 rotation). Rotation modulée par la direction du mouvement (`atan2` du vecteur vitesse, écrêtée ±25°). Fade opacity 0→0,85 à l'entrée, retour à 0 après 1,2s d'inactivité.
+- Gated : `matchMedia('(hover: hover) and (pointer: fine)')` + `!prefers-reduced-motion`. **Zéro rendu sur mobile / touch** (retourne null). Perf : un seul rAF loop, `transform translate3d` (GPU).
+- Monté dans `NocturneHero` avec `containerRef={sectionRef}` — le rAF loop lit le bounding rect à chaque frame pour n'afficher la plume qu'à l'intérieur du hero.
+
+**3. A/B test ACTIF en preview**
+- `REACT_APP_EXP_AB_TEST=on` — les visiteurs de `/` sont désormais splittés 50/50 entre la homepage et le prototype `/experience`. Le testing agent a confirmé sur 8 contextes frais : 5 homepage / 3 experience (statistiquement cohérent). Persistance stable par session (sessionStorage `ab_home_variant`).
+- URL overrides `?ab=home` / `?ab=exp` toujours prioritaires pour QA.
+- Analytics `ab_home_assigned{variant}` déclenché dès que la flag est ON.
+
+**Retiré** : la démo audio procédurale a été supprimée à la demande de la fondatrice ("c'est nul"). Fichiers `ambientDrone.js` et `AudioPreview.jsx` + route associée supprimés.
+
 ### 🧪 A/B test, Scène Zodiac & Home unifiée (2026-02-27)
 Trois évolutions complémentaires au tunnel V3 pour maximiser conversion et cohérence de marque.
 
