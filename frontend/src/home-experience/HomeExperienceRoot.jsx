@@ -15,34 +15,42 @@
  * les actes V-VIII (Univers services, Personnalisation, Conversion,
  * Rassurance). Voir /app/memory/PRD.md → "Master Homepage Experience".
  */
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import ExperienceRoot from '@/experience/ExperienceRoot';
 import { useExperienceStore } from '@/experience/useExperienceStore';
 import { event as trackEvent } from '@/lib/analytics';
 import ActNav from './ActNav';
+import useScrollTriggerActs from './useScrollTriggerActs';
 import './HomeExperience.css';
 
 export default function HomeExperienceRoot() {
   const currentScene = useExperienceStore((s) => s.currentScene);
+  const setScene = useExperienceStore((s) => s.setScene);
 
   // Analytics : distingue ce parcours de /experience standalone.
-  // Firera une seule fois (dépendances vides), et seulement si consent RGPD OK
-  // (l'event() est no-op sinon).
   useEffect(() => {
     trackEvent('home_v3_started', {});
   }, []);
 
-  // Track chaque changement d'acte (mêmes bornes que les scènes actuelles)
+  // Track chaque changement d'acte
   useEffect(() => {
     if (currentScene >= 1 && currentScene <= 4) {
       trackEvent('home_v3_act_viewed', { act: currentScene });
     }
   }, [currentScene]);
 
+  // ScrollTrigger : source of truth secondaire pour currentScene.
+  // ExperienceRoot pilote déjà globalProgress + currentScene via onScroll natif
+  // (calcul par tranche 0.25). ScrollTrigger vient s'ajouter avec une bornes
+  // basée sur "top center → bottom center" de chaque section, ce qui donne
+  // une bascule plus précise et permet d'orchestrer plus tard des timelines
+  // GSAP synchronisées avec le scroll (Phase 2 : transitions Actes V-VIII).
+  const handleActChange = useCallback((act) => {
+    setScene(act);
+  }, [setScene]);
+  useScrollTriggerActs({ actsCount: 4, onActChange: handleActChange });
+
   const handleJumpToAct = (actId) => {
-    // Réutilise le scroll natif — ExperienceRoot expose ses <section>
-    // avec ref, mais on peut aussi scroller depuis l'extérieur via le
-    // sélecteur data-testid (public).
     const el = document.querySelector(`[data-testid="experience-scene-${actId}"]`);
     if (el) {
       const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;

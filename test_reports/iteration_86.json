@@ -1,0 +1,31 @@
+{
+  "summary": "Frontend validation Phase 1 Master Homepage Experience — fixes typographiques Scene 1 & 4, intégration GSAP ScrollTrigger, PerformanceMonitor. Tests exécutés sur /home-experience-v3 et /experience (desktop 1920x1080 + mobile 400x800). 11/12 tests passent. Une observation sur la borne stricte du test ScrollTrigger à 2.5x innerHeight.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "ScrollTrigger borne stricte scroll=innerHeight*2.5",
+        "issue": "À exactement scroll=innerHeight*2.5, act-4 est déjà current (au lieu de act-3 attendu par la spec). Comportement conforme à la config `start: 'top center'` : scene-4 top touche le centre du viewport pile à 2.5x (car chaque scène = 100vh). act-3 est current sur l'intervalle [1.5x, 2.5x) — vérifié à 2.0x et 2.3x → act-3 OK. La spec de test attendait act-3 à 2.5x, mais le boundary logique est légèrement décalé. RCA: `(N-1)*100vh - 50vh` = trigger `top center` de scène N. Non bloquant, seulement une question de tolérance de borne.",
+        "affected_selectors": ["[data-testid=\"home-experience-act-3\"]", "[data-testid=\"home-experience-act-4\"]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "OPTIONNEL: Pour que scroll=innerHeight*2.5 renvoie act-3 (comme demandé strictement dans la spec), remonter légèrement le point de bascule ScrollTrigger (par ex. `start: 'top 40%'` au lieu de `top center`) ou ajouter une hystérésis. Sinon accepter le comportement actuel: act-3 est current de 1.5x à ~2.49x, act-4 prend le relais à partir de 2.5x."
+  ],
+  "critical_code_review_comments": [
+    "useScrollTriggerActs: la borne top center génère un split à N*100vh - 50vh qui coincide avec les multiples entiers demi de innerHeight — ce qui rend le test à 2.5x borderline. Documenter ou ajuster.",
+    "HomeExperienceRoot: en mode reduced-motion / fallback, ExperienceRoot rend ExperienceFallback qui n'expose pas les mêmes data-testids que la version WebGL (scene-1 h1 exp-s1__brand absent). Considérer harmoniser si les tests doivent couvrir les 2 chemins.",
+    "ExperienceCanvas: PerformanceMonitor bien monté; DPR devient state React — attention à ne pas provoquer de reflow du Canvas au changement (R3F recrée les buffers). Peut-être seuiller onDecline/onIncline via debounce si en prod on constate des flashs."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A (frontend only)", "frontend": "92%" },
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iteration 86 a validé la Phase 1 finale. Résultats clés:\n- Scene 1 h1.exp-s1__brand: 82px Cormorant Garamond ✓ (sur /home-experience-v3 ET /experience)\n- Scene 4 h1[data-testid=scene-4-brand]: apparaît avec data-visible=true après ~13s dans scene 4, 82px Cormorant, text-shadow rgba(216, 183, 106, 0.35) ✓\n- Phrases scene 4 (Votre histoire.../Votre ciel...) apparaissent SOUS le h1 (brand top=-28, phrase0=138, phrase1=210) ✓\n- ScrollTrigger 1.5x→act-2 ✓ ; 2.0x→act-3 ✓ ; 2.3x→act-3 ✓ ; 2.5x→act-4 (borderline, cf. issue) ; 3.5x→act-4 ✓\n- ActNav click act-4 → scrollY exactement innerHeight*3 ✓\n- /experience non-régression: root visible, h1 nouveau format, ActNav absente ✓\n- Reduced motion: window.ScrollTrigger.getAll() = 0 (aucun trigger crée) ✓, fallback UI rendue\n- Mobile 400x800: canvas ok\n- Console: aucune pageerror. Warnings mineurs (THREE.Clock deprecated, WebGL GPU stall) non bloquants.",
+  "rca of the issue": "ScrollTrigger config `start:'top center', end:'bottom center'` sur 4 sections 100vh crée des points de bascule exacts à N*100vh - 50vh (=0.5, 1.5, 2.5, 3.5). Le test 'scroll=innerHeight*2.5 → act-3' tombe pile sur la frontière act-3→act-4, où ScrollTrigger active déjà act-4. Comportement fonctionnel et attendu de la config, mais légèrement décalé vs la spec de test."
+}

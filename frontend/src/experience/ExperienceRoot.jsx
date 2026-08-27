@@ -258,11 +258,13 @@ export default function ExperienceRoot() {
           <div className="exp-section-inner">
             <div className="exp-s1__stack">
               <div className="exp-s1__brand-wrap">
-                <p className="exp-eyebrow exp-s1__brand">PLUME <em style={{ fontStyle: 'italic', letterSpacing: '0.06em', color: 'var(--exp-gold)' }}>Astrale</em></p>
-                <p className="exp-h2 exp-s1__phrase-1">
+                <h1 className="exp-h1 exp-s1__brand">
+                  PLUME <em>Astrale</em>
+                </h1>
+                <p className="exp-lead exp-s1__phrase-1">
                   Certaines réponses ne se cherchent pas.
                 </p>
-                <p className="exp-h1 exp-s1__phrase-2">
+                <p className="exp-h2 exp-s1__phrase-2">
                   Elles <em>se révèlent.</em>
                 </p>
               </div>
@@ -413,8 +415,20 @@ export default function ExperienceRoot() {
           data-testid="experience-scene-4"
         >
           <div className="exp-section-inner exp-s4__stack">
-            {/* Zone réservée au dessin particules (plume → "Plume Astrale") */}
+            {/* Zone réservée au dessin particules (plume → signature) */}
             <div className="exp-s4__particle-space" aria-hidden="true" />
+
+            {/* Titre HTML PARFAITEMENT LISIBLE — apparaît juste après que
+                les particules aient tracé le mot en Phase E (12s+).
+                Les particules restent en fond comme un halo, le texte HTML
+                Cormorant Garamond assure la lisibilité définitive. */}
+            <h1
+              className="exp-h1 exp-s4__brand-final"
+              data-visible={scene4Step >= 1}
+              data-testid="scene-4-brand"
+            >
+              PLUME <em>Astrale</em>
+            </h1>
 
             <div className="exp-s4__phrases">
               <p className="exp-h2 exp-s4__phrase" data-visible={scene4Step >= 2}>
