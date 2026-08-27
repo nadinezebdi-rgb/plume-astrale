@@ -8,7 +8,7 @@ import SEO from '@/components/SEO';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
 import LiveConstellation from '@/components/LiveConstellation';
 import PdfFlipbook from '@/components/PdfFlipbook';
-import CinematicHero from '@/components/CinematicHero';
+// Note : CinematicHero retiré — utilisé uniquement sur /manifesto (dead import ici).
 import PremiumPillars from '@/components/PremiumPillars';
 import SolenaGuideCard from '@/components/SolenaGuideCard';
 import HomepageMiniQuiz from '@/components/HomepageMiniQuiz';
