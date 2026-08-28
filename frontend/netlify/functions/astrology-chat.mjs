@@ -1,8 +1,9 @@
 const CHAT_API_URL = "https://json-chat.astrologyapi.com/api/chat";
 
 function getAuthHeader() {
-  const userId = Netlify.env.get("ASTROLOGY_API_USER_ID");
-  const apiKey = Netlify.env.get("ASTROLOGY_API_KEY");
+  const env = globalThis.Netlify?.env;
+  const userId = env?.get("ASTROLOGY_API_USER_ID");
+  const apiKey = env?.get("ASTROLOGY_API_KEY");
   if (!userId || !apiKey) {
     throw new Error("Astrology API credentials not configured");
   }

@@ -1363,7 +1363,7 @@ Voici des actions concretes pour honorer cette double influence :
             while t > 9 and t not in [11, 22, 33]:
                 t = sum(int(x) for x in str(t))
             return t
-        except:
+        except Exception:
             return 1
 
     def _calc_personal_year(self, date_str, year):
@@ -1373,7 +1373,7 @@ Voici des actions concretes pour honorer cette double influence :
             while t > 9:
                 t = sum(int(x) for x in str(t))
             return t
-        except:
+        except Exception:
             return 1
 
     # ============= MAIN =============

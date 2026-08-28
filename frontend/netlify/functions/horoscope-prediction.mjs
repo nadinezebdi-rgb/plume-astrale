@@ -1,8 +1,9 @@
 const ASTROLOGY_API_BASE = "https://json.astrologyapi.com/v1";
 
 function getAuthHeader() {
-  const userId = Netlify.env.get("ASTROLOGY_API_USER_ID");
-  const apiKey = Netlify.env.get("ASTROLOGY_API_KEY");
+  const env = globalThis.Netlify?.env;
+  const userId = env?.get("ASTROLOGY_API_USER_ID");
+  const apiKey = env?.get("ASTROLOGY_API_KEY");
   return "Basic " + btoa(`${userId}:${apiKey}`);
 }
 

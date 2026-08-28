@@ -122,7 +122,7 @@ _SIGN_MAP = {
     'leo': 'Lion', 'vir': 'Vierge', 'lib': 'Balance', 'sco': 'Scorpion',
     'sag': 'Sagittaire', 'cap': 'Capricorne', 'aqu': 'Verseau', 'pis': 'Poissons',
     'aries': 'Bélier', 'taurus': 'Taureau', 'gemini': 'Gémeaux',
-    'cancer': 'Cancer', 'leo': 'Lion', 'virgo': 'Vierge', 'libra': 'Balance',
+    'cancer': 'Cancer', 'virgo': 'Vierge', 'libra': 'Balance',
     'scorpio': 'Scorpion', 'sagittarius': 'Sagittaire', 'capricorn': 'Capricorne',
     'aquarius': 'Verseau', 'pisces': 'Poissons',
 }

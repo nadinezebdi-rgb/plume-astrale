@@ -5,6 +5,7 @@ Endpoints :
   GET  /api/edition-reliee/status   → polling live pour /edition-reliee/merci
 """
 from __future__ import annotations
+import asyncio
 import logging
 from typing import Optional
 
@@ -12,7 +13,9 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, EmailStr, Field
 
 from services.edition_reliee_service import create_edition_reliee_checkout
+from services.edition_reliee_service import handle_edition_reliee_webhook
 from services.supabase_client import get_admin_client
+from services.self_heal import self_heal_if_paid
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/edition-reliee', tags=['edition-reliee'])
@@ -72,6 +75,12 @@ async def edition_reliee_status(session_id: str):
         raise HTTPException(404, 'Session introuvable.')
     tx = r.data
     md = tx.get('metadata') or {}
+
+    # Fallback self-heal : si webhook Stripe non reçu, vérifie côté Stripe et
+    # relance le handler. Idempotent (verrou _inflight + payment_transactions
+    # update conditionnel côté service). Cf. incident sales P0 Feb 2026.
+    asyncio.create_task(self_heal_if_paid(session_id, bool(md.get('pdf_path')), handle_edition_reliee_webhook))
+
     return {
         'status': tx.get('status'),
         'payment_status': tx.get('payment_status'),

@@ -1,5 +1,6 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { Gift, Sparkles, X } from 'lucide-react';
 
 // Routes where banner should NOT appear (premium/payment/auth flows)
 const HIDE_ON_PATHS = ['/premium', '/paiement', '/credits/succes', '/inscription', '/connexion'];
@@ -9,6 +10,11 @@ export default function TrialBanner() {
 
   const onHiddenRoute = HIDE_ON_PATHS.some((p) => location.pathname.startsWith(p));
   if (onHiddenRoute) return null;
+
+  // Trial countdown state (feature dormante — banner masqué par défaut ci-dessous)
+  const showCountdown = false;
+  const remainingDays = 0;
+  const handleDismiss = () => {};
 
   return (
     <div

@@ -9,6 +9,7 @@ Endpoints :
   GET  /api/lecture-complete/status     → polling paiement
 """
 from __future__ import annotations
+import asyncio
 import logging
 import uuid
 from typing import Any, Dict, List, Optional
@@ -18,6 +19,8 @@ from pydantic import BaseModel
 from config import get_settings
 from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
+from services.self_heal import self_heal_if_paid
+from services.lecture_complete_bundle import handle_lecture_complete_webhook
 from middleware.auth import get_optional_user
 from integrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
@@ -161,6 +164,11 @@ async def lecture_complete_status(session_id: str):
         raise HTTPException(404, 'Session introuvable.')
     tx = tx_res.data
     md = tx.get('metadata') or {}
+
+    # Fallback self-heal : si webhook Stripe non reçu, vérifie côté Stripe et
+    # relance la dispatch du bundle. Idempotent. Cf. incident sales P0 Feb 2026.
+    asyncio.create_task(self_heal_if_paid(session_id, bool(md.get('bundle_dispatched')), handle_lecture_complete_webhook))
+
     return {
         'status': tx.get('status'),
         'payment_status': tx.get('payment_status'),
