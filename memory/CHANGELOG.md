@@ -1,4 +1,31 @@
 # CHANGELOG - Plume Astrale
+## 2026-02-28 (soir) — Refactor handler webhook Stripe (audit 3 pièges classiques)
+
+**Contexte** : après le premier fix diagnostic, un audit externe a soulevé les 3 pièges classiques qui cassent 90% des handlers webhook Stripe. Audit + fix :
+
+**Piège 1 (raw body)** : ✅ déjà OK — `await request.body()` (bytes) passé à `construct_event()`.
+
+**Piège 2 (< 30 s)** : ❌ cassé — les handlers PDF prennent 60-300 s → Stripe retry → doublons. Fixé :
+- Extraction du routing dans `_process_stripe_event_inner()` (module-level helper)
+- Endpoint léger : verify signature + idempotence + `asyncio.create_task()` + return 200 en < 500 ms
+- Wrapper `_process_stripe_event()` capture les exceptions et met à jour `stripe_webhook_events.status`
+
+**Piège 3 (idempotence event.id)** : ⚠️ partiel — flags métier existants, mais pas de guard global. Fixé :
+- Nouvelle table `public.stripe_webhook_events` (PK `event_id`)
+- Migration : `/app/backend/migrations/2026_02_28_stripe_webhook_events.sql`
+- INSERT en amont : PK conflict → retour idempotent
+- Colonnes `status` + `error_message` pour retry manuel via `/admin/payments-health`
+- Mode dégradé si table absente (logs warning, comportement inchangé)
+
+**Livrables** :
+- `backend/server.py` — refactor endpoint `POST /api/webhook/stripe` (endpoint léger + 2 helpers `_mark_webhook_done`/`_mark_webhook_failed` + wrapper `_process_stripe_event` + routing renommé `_process_stripe_event_inner`)
+- `backend/tests/test_stripe_webhook_refactor.py` — 8 tests pytest (raw body, construct_event, asyncio.create_task, wrapper exception-safe, idempotence insert, signature `_process_stripe_event_inner`, import asyncio module-level) → **8/8 pass en 6 s**
+- `backend/migrations/2026_02_28_stripe_webhook_events.sql` — migration à jouer manuellement dans SQL Editor
+- `memory/DIAGNOSTIC_STRIPE_WEBHOOK_HANDLER.md` — audit détaillé des 3 pièges + guide de test avec Stripe CLI
+
+**Vérif preview** : réponse `POST /api/webhook/stripe` sans secret → 503 en 500 ms ; avec bad signature → 400 en 100 ms. Test unit du wrapper : `_process_stripe_event` capture bien les exceptions sans propager.
+
+
 ## 2026-02-28 — INCIDENT P0 Stripe : diagnostic + fondations recovery
 
 **Contexte** : audit marketing utilisateur remonte 22 checkouts Stripe échoués et 0 vente. Analyse complète front + back + Supabase :

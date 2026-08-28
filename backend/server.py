@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
+import asyncio
 import uuid
 import base64
 import json
@@ -778,18 +779,23 @@ async def payment_status(session_id: str, current_user: dict = Depends(get_curre
 
 @api_router.post('/webhook/stripe')
 async def stripe_webhook(request: Request):
-    """Webhook Stripe — credite l'utilisateur (one-shot) ou active Premium (subscription)."""
+    """Webhook Stripe — endpoint LÉGER.
+
+    Étapes (doivent finir en < 30 s, timeout Stripe) :
+      1. Lecture RAW body + validation signature (piège #1)
+      2. Guard idempotence via `stripe_webhook_events.event_id` (piège #3)
+      3. Fire-and-forget `_process_stripe_event_inner` en tâche background
+      4. Retour 200 immédiat (piège #2 : les handlers PDF prennent 60-300 s)
+    """
     body = await request.body()
     sig = request.headers.get('Stripe-Signature', '')
 
-    # Detect subscription event via raw body parsing (apres handle_webhook ca devient typed)
-    import stripe, json as _json
+    import stripe, json as _json  # noqa: F401 — _json utilisé plus bas
     stripe.api_key = settings.STRIPE_API_KEY
     webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 
-    # SÉCURITÉ (SEC-001) : la signature Stripe est OBLIGATOIRE. Aucun fallback permissif :
-    # sans secret, un attaquant peut forger un event et déclencher la livraison de PDFs
-    # premium + crédits gratuits. On rejette explicitement dans ce cas.
+    # SÉCURITÉ (SEC-001) : signature Stripe obligatoire. Sans secret, un
+    # attaquant peut forger un event et déclencher livraison PDF gratuite.
     if not webhook_secret:
         logger.error('[stripe_webhook] STRIPE_WEBHOOK_SECRET manquant — refus de traiter le webhook.')
         try:
@@ -815,8 +821,106 @@ async def stripe_webhook(request: Request):
             logger.warning(f'[stripe_webhook] alerte email fail: {_e}')
         raise HTTPException(status_code=400, detail='Invalid signature')
 
+    event_id = event.get('id') if isinstance(event, dict) else event.id
     event_type = event.get('type') if isinstance(event, dict) else event.type
     data_obj = (event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object)
+
+    # Métadonnées d'audit pour la ligne d'idempotence
+    session_id_meta = None
+    kind_meta = None
+    try:
+        _do_dict = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
+        if _do_dict.get('object') == 'checkout.session':
+            session_id_meta = _do_dict.get('id')
+        _md = _do_dict.get('metadata') or {}
+        kind_meta = _md.get('kind') or _md.get('product')
+    except Exception:
+        pass
+
+    # ═══════════════════════════════════════════════════════════════════
+    # IDEMPOTENCE GLOBALE — piège #3 : Stripe retry un même event pendant
+    # 3 jours si l'endpoint tarde > 30 s ; sans guard, doublons PDF/email.
+    # Table `stripe_webhook_events` : cf. migrations/2026_02_28_*.sql
+    # ═══════════════════════════════════════════════════════════════════
+    sb = get_admin_client()
+    try:
+        sb.table('stripe_webhook_events').insert({
+            'event_id': event_id,
+            'event_type': event_type,
+            'session_id': session_id_meta,
+            'kind': kind_meta,
+            'status': 'processing',
+        }).execute()
+    except Exception as e:
+        msg = str(e).lower()
+        # PK conflict → déjà traité ou en cours → 200 idempotent
+        if 'duplicate' in msg or '23505' in msg or 'stripe_webhook_events_pkey' in msg or 'already exists' in msg:
+            logger.info(f'[stripe_webhook] event {event_id} déjà reçu — idempotent skip')
+            return {'received': True, 'idempotent': True, 'event_id': event_id}
+        # Autre erreur (ex : table absente si migration pas encore jouée) →
+        # on log mais on continue en mode dégradé (mieux vaut un doublon
+        # potentiel qu'une livraison manquée).
+        logger.warning(f'[stripe_webhook] insert idempotence fail (mode dégradé): {e}')
+
+    # ═══════════════════════════════════════════════════════════════════
+    # RÉPONSE 200 IMMÉDIATE + traitement asynchrone en tâche background —
+    # piège #2 : Stripe timeout à 30 s, certains handlers PDF font 60-300 s.
+    # ═══════════════════════════════════════════════════════════════════
+    asyncio.create_task(_process_stripe_event(event, event_type, data_obj, event_id))
+    return {'received': True, 'queued': True, 'event_id': event_id}
+
+
+def _mark_webhook_done(event_id: str) -> None:
+    """Marque un event Stripe comme traité avec succès."""
+    if not event_id:
+        return
+    try:
+        from datetime import datetime as _dt, timezone as _tz
+        get_admin_client().table('stripe_webhook_events').update({
+            'status': 'done',
+            'handled_at': _dt.now(_tz.utc).isoformat(),
+        }).eq('event_id', event_id).execute()
+    except Exception as e:
+        logger.warning(f'[stripe_webhook] mark_done fail {event_id}: {e}')
+
+
+def _mark_webhook_failed(event_id: str, err: str) -> None:
+    """Marque un event Stripe comme échoué (pour retry manuel via /admin)."""
+    if not event_id:
+        return
+    try:
+        from datetime import datetime as _dt, timezone as _tz
+        get_admin_client().table('stripe_webhook_events').update({
+            'status': 'failed',
+            'handled_at': _dt.now(_tz.utc).isoformat(),
+            'error_message': (err or '')[:2000],
+        }).eq('event_id', event_id).execute()
+    except Exception as e:
+        logger.warning(f'[stripe_webhook] mark_failed fail {event_id}: {e}')
+
+
+async def _process_stripe_event(event, event_type, data_obj, event_id):
+    """Wrapper qui capture les erreurs et met à jour `stripe_webhook_events`.
+
+    Le vrai routing produit est dans `_process_stripe_event_inner`. Ce wrapper
+    permet d'observer les échecs (colonne `error_message`) et de retry via
+    l'endpoint `/api/admin/stripe-recovery`.
+    """
+    try:
+        await _process_stripe_event_inner(event, event_type, data_obj)
+        _mark_webhook_done(event_id)
+    except Exception as e:
+        logger.exception(f'[stripe_webhook processor] event {event_id} failed: {e}')
+        _mark_webhook_failed(event_id, str(e))
+
+
+async def _process_stripe_event_inner(event, event_type, data_obj):
+    """Routing produit du webhook Stripe (ex-corps de `stripe_webhook`).
+
+    Appelé en background par `_process_stripe_event`. Ses `return` retournent
+    des dicts qui sont ignorés (fire-and-forget).
+    """
+    import stripe, json as _json
 
     # ─── Sync automatique des refunds Stripe (dashboard Stripe ou chargeback) ───
     # Ecoute charge.refunded pour mettre a jour metadata.refunded_at si un admin
