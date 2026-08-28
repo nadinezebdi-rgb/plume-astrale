@@ -1,4 +1,19 @@
 # CHANGELOG - Plume Astrale
+## 2026-02-28 (nuit) — Recovery nocturne + onglet Santé paiements dans /admin
+
+**Livrables** :
+- `services/stripe_recovery_scheduler.py` — boucle `stripe_recovery_nightly_loop()` déclenchée toutes les nuits à 03h UTC, rejoue `recover_stuck_batch(days=1, dry_run=False)` sur les 24h. Envoie un email admin (rate-limité 1/jour) si au moins 1 session récupérée. Branché au startup FastAPI dans `server.py` (log confirmé : `boucle démarrée (déclenchement quotidien à 03h UTC, fenêtre 24h)`).
+- `pages/Admin.js` — nouvel onglet **Santé paiements** (icône HeartPulse) directement dans le tableau de bord `/admin`, avec :
+  - polling léger de `/api/admin/payments-health?days=30` au mount pour piloter le badge
+  - **badge rouge avec compteur** si `stuck_sessions_count > 10` (ex : `Santé paiements [47]`)
+  - point rouge discret si `overall_status === 'red'` mais < 10 sessions
+  - couleur border/text passe en rouge quand critique
+  - redirige vers `/admin/payments-health` au clic
+- Screenshot preview validé : le badge affiche **47** avec bordure rouge sur le compte admin actuel.
+
+Tests non-régression : `tests/test_stripe_webhook_refactor.py` 8/8 toujours pass.
+
+
 ## 2026-02-28 (soir) — Refactor handler webhook Stripe (audit 3 pièges classiques)
 
 **Contexte** : après le premier fix diagnostic, un audit externe a soulevé les 3 pièges classiques qui cassent 90% des handlers webhook Stripe. Audit + fix :

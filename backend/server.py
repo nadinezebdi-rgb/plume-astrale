@@ -3049,3 +3049,6 @@ async def _start_cart_recovery():
     # Flow d'approbation 72h "Vous lisez avant qu'on imprime" (Édition Reliée)
     from services.print_approval_service import print_approval_loop
     _asyncio.create_task(print_approval_loop())
+    # Recovery nocturne Stripe : rejoue le batch chaque nuit sur les 24h (Feb 2026)
+    from services.stripe_recovery_scheduler import stripe_recovery_nightly_loop
+    _asyncio.create_task(stripe_recovery_nightly_loop())
