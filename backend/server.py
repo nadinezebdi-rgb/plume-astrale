@@ -40,6 +40,7 @@ from services import astrology_io_service as aio
 from services.energy_service import get_energy_today
 from services import premium_subscription
 from routes.admin import router as admin_router
+from routes.admin_payments import router as admin_payments_router
 from routes.health import router as health_router
 from routes.promo import router as promo_router
 from routes.astrology_v3 import router as astrology_v3_router
@@ -109,6 +110,7 @@ STREAK_MILESTONES = {7: 3, 14: 5, 30: 10, 60: 15, 100: 25}
 app = FastAPI(title='Plume Astrale API')
 api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
+api_router.include_router(admin_payments_router)
 api_router.include_router(health_router)
 api_router.include_router(promo_router)
 api_router.include_router(astrology_v3_router)
@@ -790,11 +792,27 @@ async def stripe_webhook(request: Request):
     # premium + crédits gratuits. On rejette explicitement dans ce cas.
     if not webhook_secret:
         logger.error('[stripe_webhook] STRIPE_WEBHOOK_SECRET manquant — refus de traiter le webhook.')
+        try:
+            from services.webhook_alert import send_webhook_alert
+            await send_webhook_alert(
+                reason='webhook_secret_missing',
+                details='STRIPE_WEBHOOK_SECRET absent de backend/.env. Tous les webhooks Stripe entrants sont rejetés en HTTP 503, aucune livraison PDF n\'a lieu.',
+            )
+        except Exception as _e:
+            logger.warning(f'[stripe_webhook] alerte email fail: {_e}')
         raise HTTPException(status_code=503, detail='Webhook secret not configured')
     try:
         event = stripe.Webhook.construct_event(body, sig, webhook_secret)
     except Exception as e:
         logger.warning(f'[stripe_webhook] signature invalide: {e}')
+        try:
+            from services.webhook_alert import send_webhook_alert
+            await send_webhook_alert(
+                reason='signature_invalid',
+                details=f'Signature Stripe invalide : {e}. Vérifiez que STRIPE_WEBHOOK_SECRET correspond bien au signing secret du dashboard Stripe.',
+            )
+        except Exception as _e:
+            logger.warning(f'[stripe_webhook] alerte email fail: {_e}')
         raise HTTPException(status_code=400, detail='Invalid signature')
 
     event_type = event.get('type') if isinstance(event, dict) else event.type

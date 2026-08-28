@@ -52,6 +52,7 @@ import Compatibilite2 from "./pages/Compatibilite2";
 import Cercle from "./pages/Cercle";import Quotidien from "./pages/Quotidien";
 import CercleSolena from "./pages/CercleSolena";
 import AnalyticsAdmin from "./pages/AnalyticsAdmin";
+import AdminPaymentsHealth from "./pages/AdminPaymentsHealth";
 import BuyCredits from "./pages/BuyCredits";
 import CreditSuccess from "./pages/CreditSuccess";
 import Choix from "./pages/Choix";
@@ -235,6 +236,7 @@ function App() {
                 <Route path="/admin/analytics" element={<AnalyticsAdmin />} />
                 <Route path="/admin/pdf-test" element={<AdminPdfTest />} />
                 <Route path="/admin/qr-stats" element={<AdminQrStats />} />
+                <Route path="/admin/payments-health" element={<AdminPaymentsHealth />} />
                 <Route path="/carte-cadeau" element={<GiftCardPurchase />} />
                 <Route path="/carte-cadeau/redeem/:code" element={<GiftCardRedeem />} />
                 <Route path="/carte-cadeau/merci" element={<GiftCardPurchase />} />

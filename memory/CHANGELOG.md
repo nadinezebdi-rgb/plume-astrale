@@ -1,4 +1,25 @@
 # CHANGELOG - Plume Astrale
+## 2026-02-28 — INCIDENT P0 Stripe : diagnostic + fondations recovery
+
+**Contexte** : audit marketing utilisateur remonte 22 checkouts Stripe échoués et 0 vente. Analyse complète front + back + Supabase :
+
+**Cause racine** : `STRIPE_WEBHOOK_SECRET` absent de `/app/backend/.env` (rendu obligatoire depuis SEC-001 en juillet 2026). Résultat : tous les webhooks Stripe entrants sont rejetés en 503 → aucune livraison PDF post-paiement.
+
+**Bilan Supabase** : sur 92 sessions Stripe RÉELLES en 60 jours, 82 en `initiated/unpaid`, 3 en `paid` via self-heal manuel, 4520,80 € de sessions potentiellement bloquées.
+
+**Recovery scan effectué** (dry-run, 82 sessions) : 73 `unknown_by_stripe` (ancien compte Stripe / expirées, non récupérables), 9 `abandoned` (vraiment non payées), **0 payées non délivrées** → BONNE NOUVELLE : personne n'a payé sans recevoir son PDF, les 22 abandons Stripe étaient de vrais abandons.
+
+**Livrable** :
+- `services/stripe_recovery.py` — service de scan + recovery avec `asyncio.to_thread` + `Semaphore(8)`, 82 sessions traitées en 12,9 s
+- `routes/admin_payments.py` — `GET /api/admin/payments-health`, `POST /api/admin/stripe-recovery`, `GET /api/admin/stripe-recovery/preview`
+- `services/webhook_alert.py` — email admin auto (rate-limité 1/h) déclenché depuis `/api/webhook/stripe` quand secret manquant ou signature invalide
+- `pages/AdminPaymentsHealth.jsx` — dashboard admin avec feu tricolore (rouge/orange/vert), KPIs (conversion, revenus, sessions bloquées, perte potentielle), tableau par pack, 20 dernières bloquées, boutons dry-run + run recovery
+- Fallback `self_heal_if_paid` ajouté aux 3 routes qui l'oubliaient : `lecture_complete`, `edition_reliee`, `consultation_ultime`
+- Rapport diagnostic complet : `/app/memory/DIAGNOSTIC_STRIPE_2026-02.md` avec 5 requêtes SQL Supabase prêtes à coller
+
+**Action utilisateur** (bloquée) : coller la valeur `STRIPE_WEBHOOK_SECRET` (à récupérer sur https://dashboard.stripe.com/webhooks) pour finaliser le fix. Endpoint à créer : `https://plume-astrale.fr/api/webhook/stripe`, events `checkout.session.completed` + refunds + subscriptions.
+
+
 
 ## 2026-02-25 — E2E test suite pour audit P0
 
