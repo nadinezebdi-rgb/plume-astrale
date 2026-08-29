@@ -279,7 +279,7 @@ S = {
     # Corps
     'body': ParagraphStyle('body', fontName=SERIF, fontSize=10.5,
                             textColor=INK, alignment=TA_JUSTIFY, leading=16,
-                            spaceAfter=8),
+                            spaceBefore=4, spaceAfter=10),
     'body_lead': ParagraphStyle('body_lead', fontName=SERIF, fontSize=11.5,
                                  textColor=INK, alignment=TA_JUSTIFY, leading=18,
                                  spaceAfter=10),
@@ -486,51 +486,66 @@ def p5_ciel_naissance(story):
 def p6_ouverture_ch4(story):
     """Ouverture chapitre IV — Votre façon d'aimer.
 
-    Ouverture pleine page très aérée : symbole, tag, titre, sous-titre, puis BLANC.
+    Centrée verticalement + petite illustration bronze en pied pour combler le blanc.
     """
-    story.append(Spacer(1, 30 * mm))
+    story.append(Spacer(1, 42 * mm))
     story.append(Paragraph(
         f'<font name="{ORN}" color="#B8935A" size="14">{G_VENUS}</font>',
         ParagraphStyle('orn_venus', fontName=ORN, fontSize=14,
                        textColor=BRONZE, alignment=TA_CENTER, leading=20)))
-    story.append(Spacer(1, 12 * mm))
+    story.append(Spacer(1, 10 * mm))
     story.append(Paragraph(spaced('CHAPITRE IV'), S['section_cap']))
     story.append(Paragraph('Votre façon d\'aimer', S['h1']))
     story.append(Spacer(1, 6 * mm))
     story.append(Paragraph(
         '<i>Ce que Vénus révèle de votre manière d\'aimer,<br/>de recevoir et de vous attacher.</i>',
         S['kicker']))
-    # Beaucoup de blanc volontaire en dessous — pas d'autre contenu
+    # Illustration bas de page (composition Vénus / rose des vents bronze)
+    story.append(Spacer(1, 30 * mm))
+    story.append(Paragraph(
+        f'<font name="{ORN}" color="#C9A97A" size="18">{Z_TAURUS}   {orn(G_VENUS, 22)}   {Z_PISCES}</font>',
+        ParagraphStyle('venus_orn_foot', fontName=ORN, fontSize=18,
+                       textColor=BRONZE_LIGHT, alignment=TA_CENTER, leading=26)))
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph(
+        '<i>Les signes que traverse Vénus dans votre thème.</i>',
+        ParagraphStyle('venus_foot_cap', fontName=ITAL, fontSize=9,
+                       textColor=MUTED, alignment=TA_CENTER, leading=14)))
 
 
 def p7_texte_standard(story):
-    """Page texte standard — narration avec capitale ornée."""
+    """Page texte standard — narration avec capitale ornée (fix leading collision)."""
     story.append(Spacer(1, 6 * mm))
     story.append(Paragraph('Le langage secret de votre Vénus', S['h2']))
-    paras = [
-        (
-            f'<font name="{BOLD}" color="#B8935A" size="30">V</font>ous n\'aimez pas comme la plupart des gens de votre âge. '
-            f'Là où beaucoup cherchent la certitude, vous êtes attirée par ce qui vibre — '
-            f'par ce qui pourrait ne pas rester. Votre Vénus est en Poissons, rétrograde ({deg("11° 08′")}), '
-            f'et c\'est cette particularité — que seuls quelques thèmes de votre génération portent — '
-            f'qui donne à votre rapport amoureux son grain si singulier.'
-        ),
-        (
-            "Rétrograde ne veut pas dire défaillante. Cela signifie que Vénus, chez vous, a "
-            "appris à faire un pas en arrière avant de tendre la main. Vous rencontrez quelqu\'un, "
-            "et il y a un temps de silence intérieur — quelques semaines, parfois plus — avant "
-            "que quelque chose s\'ouvre. Ceux qui vous aiment finissent par apprendre à "
-            "respecter cette lenteur. C\'est votre manière de rester fidèle à vous-même."
-        ),
-        (
-            "En Poissons, Vénus dissout les frontières. Vous confondez parfois <i>aimer</i> et "
-            "<i>ressentir avec</i>. La peine de l\'autre devient la vôtre en quelques secondes. "
-            "Cela fait de vous une amie très aimée — et une compagne pour qui certains soirs "
-            "ne se referment pas facilement."
-        ),
-    ]
-    for p in paras:
-        story.append(Paragraph(p, S['body']))
+    story.append(Spacer(1, 8 * mm))  # ← clearance avant la capitale ornée
+    # Capitale ornée réduite (22pt au lieu de 30pt) pour éviter collision
+    first_para = (
+        f'<font name="{BOLD}" color="#B8935A" size="22">V</font>ous n\'aimez pas comme la '
+        f'plupart des gens de votre âge. Là où beaucoup cherchent la certitude, vous êtes '
+        f'attirée par ce qui vibre — par ce qui pourrait ne pas rester. Votre Vénus est en '
+        f'Poissons, rétrograde ({deg("11° 08′")}), et c\'est cette particularité — que seuls '
+        f'quelques thèmes de votre génération portent — qui donne à votre rapport amoureux '
+        f'son grain si singulier.'
+    )
+    # Style dédié avec leading plus généreux pour absorber la capitale
+    lead_style = ParagraphStyle(
+        'body_dropcap', parent=S['body'],
+        fontName=SERIF, fontSize=10.5, leading=18, spaceAfter=14, spaceBefore=4,
+    )
+    story.append(Paragraph(first_para, lead_style))
+    story.append(Paragraph(
+        "Rétrograde ne veut pas dire défaillante. Cela signifie que Vénus, chez vous, a "
+        "appris à faire un pas en arrière avant de tendre la main. Vous rencontrez quelqu\'un, "
+        "et il y a un temps de silence intérieur — quelques semaines, parfois plus — avant "
+        "que quelque chose s\'ouvre. Ceux qui vous aiment finissent par apprendre à "
+        "respecter cette lenteur. C\'est votre manière de rester fidèle à vous-même.",
+        S['body']))
+    story.append(Paragraph(
+        "En Poissons, Vénus dissout les frontières. Vous confondez parfois <i>aimer</i> et "
+        "<i>ressentir avec</i>. La peine de l\'autre devient la vôtre en quelques secondes. "
+        "Cela fait de vous une amie très aimée — et une compagne pour qui certains soirs "
+        "ne se referment pas facilement.",
+        S['body']))
 
 
 def p8_planete_venus(story):
@@ -608,62 +623,75 @@ def p9_encart_force_defi(story):
         S['body']))
 
 
-def p10_respiration(story):
-    """Page de respiration — minimaliste, une phrase, beaucoup de blanc."""
-    story.append(Spacer(1, 68 * mm))
+def p10_double_citations(story):
+    """Page-respiration : deux citations complémentaires, beaucoup de blanc."""
+    story.append(Spacer(1, 26 * mm))
     story.append(Paragraph(
         f'<font name="{ORN}" color="#B8935A" size="13">— · —</font>',
-        ParagraphStyle('breath_orn', fontName=ORN, fontSize=13,
+        ParagraphStyle('breath_orn_1', fontName=ORN, fontSize=13,
                        textColor=BRONZE, alignment=TA_CENTER)))
-    story.append(Spacer(1, 12 * mm))
+    story.append(Spacer(1, 8 * mm))
+    # Citation 1 — méditation intérieure
     story.append(Paragraph(
         '<i>Certaines parts de nous ne demandent pas à être changées.<br/>'
         'Seulement à être comprises.</i>',
         S['breath_line']))
-
-
-def p11_double_page_premium(story):
-    """Double page premium — grande citation littéraire pleine page.
-
-    Sur une double page, cette page (verso) se lit AVEC la page suivante (recto).
-    Ici c\'est l\'auteur du livre qui parle de la lecture qui va suivre.
-    """
-    story.append(Spacer(1, 55 * mm))
+    story.append(Spacer(1, 34 * mm))
+    # Petit filet séparateur
     story.append(Paragraph(
-        f'<font name="{ORN}" color="#B8935A" size="10">— · —</font>',
-        ParagraphStyle('quote_orn', fontName=ORN, fontSize=10,
+        f'<font name="{ORN}" color="#B8935A" size="11">— · —</font>',
+        ParagraphStyle('sep_dot', fontName=ORN, fontSize=11,
                        textColor=BRONZE, alignment=TA_CENTER)))
-    story.append(Spacer(1, 12 * mm))
+    story.append(Spacer(1, 8 * mm))
+    # Citation 2 — la tradition astrologique
     story.append(Paragraph(
-        '« Les étoiles ne décident rien.<br/><br/>'
+        '« Les étoiles ne décident rien.<br/>'
         'Elles inclinent, elles éclairent,<br/>'
-        'elles se souviennent — mais ne commandent<br/>pas. »',
-        ParagraphStyle('quote', fontName=ITAL, fontSize=16,
-                       textColor=INK, alignment=TA_CENTER, leading=26,
+        'elles se souviennent — mais ne commandent pas. »',
+        ParagraphStyle('quote_2', fontName=ITAL, fontSize=14,
+                       textColor=INK, alignment=TA_CENTER, leading=22,
                        leftIndent=6 * mm, rightIndent=6 * mm)))
-    story.append(Spacer(1, 12 * mm))
+    story.append(Spacer(1, 6 * mm))
     story.append(Paragraph(
-        f'<font name="{CAPS}" size="8" color="#7A7488">PTOLÉMÉE   ·   TÉTRABIBLE   ·   II<sup>e</sup> SIÈCLE</font>',
-        ParagraphStyle('quote_src', fontName=CAPS, fontSize=8,
+        f'<font name="{CAPS}" size="7.5" color="#7A7488">PTOLÉMÉE   ·   TÉTRABIBLE   ·   II<sup>e</sup> SIÈCLE</font>',
+        ParagraphStyle('quote_src_2', fontName=CAPS, fontSize=7.5,
                        textColor=MUTED, alignment=TA_CENTER)))
 
 
-def p12_derniere_page(story):
-    """Dernière page — signature de marque, très épurée."""
-    story.append(Spacer(1, 62 * mm))
+def p11_derniere_page(story):
+    """Dernière page — signature marque + mentions légales structurées."""
+    # Signature Plume Astrale (centre)
+    story.append(Spacer(1, 38 * mm))
     story.append(Paragraph(
-        f'<font name="{ORN}" color="#B8935A" size="16">{Z_TAURUS}   {G_SUN}   {Z_SAG}</font>',
-        ParagraphStyle('last_orn', fontName=ORN, fontSize=16,
-                       textColor=BRONZE, alignment=TA_CENTER, leading=22)))
-    story.append(Spacer(1, 20 * mm))
+        f'<font name="{ORN}" color="#B8935A" size="14">{Z_TAURUS}   {G_SUN}   {Z_SAG}</font>',
+        ParagraphStyle('last_orn', fontName=ORN, fontSize=14,
+                       textColor=BRONZE, alignment=TA_CENTER, leading=20)))
+    story.append(Spacer(1, 12 * mm))
     story.append(Paragraph(spaced('PLUME ASTRALE'), S['brand_sig']))
-    story.append(Spacer(1, 8 * mm))
+    story.append(Spacer(1, 5 * mm))
     story.append(Paragraph(
         '<i>Une création éditoriale personnelle,<br/>inspirée de votre ciel de naissance.</i>',
         S['brand_sig_sub']))
-    story.append(Spacer(1, 42 * mm))
-    story.append(Paragraph(spaced('CONCEPTION & ÉDITION — PLUME ASTRALE', gap=1), S['legal']))
-    story.append(Paragraph('plume-astrale.fr  ·  contact@plume-astrale.fr', S['legal']))
+    # Mentions légales (bas de page, bien séparées)
+    story.append(Spacer(1, 30 * mm))
+    story.append(Paragraph(
+        f'<font name="{ORN}" color="#C9A97A" size="9">— · —</font>',
+        ParagraphStyle('legal_sep', fontName=ORN, fontSize=9,
+                       textColor=BRONZE_LIGHT, alignment=TA_CENTER)))
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph(spaced('CONCEPTION & ÉDITION', gap=1), S['legal']))
+    story.append(Paragraph('Plume Astrale SAS · 12 rue des Étoiles · 13000 Marseille',
+                            S['legal']))
+    story.append(Paragraph('contact@plume-astrale.fr  ·  plume-astrale.fr', S['legal']))
+    story.append(Spacer(1, 2 * mm))
+    story.append(Paragraph(spaced('IMPRESSION', gap=1), S['legal']))
+    story.append(Paragraph('Imprimé à la demande · Édition numérique du 28 février 2026', S['legal']))
+    story.append(Paragraph('Dépôt légal : 1<sup>er</sup> trimestre 2026 · ISBN à venir',
+                            S['legal']))
+    story.append(Spacer(1, 2 * mm))
+    story.append(Paragraph(
+        '© Plume Astrale, 2026. Ce livre a été composé pour une seule personne — vous.',
+        S['legal']))
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -677,17 +705,15 @@ def build(out_path: str) -> None:
     story: list = []
     pages = [
         (p1_cover,               'cover'),
-        (p2_garde,               'garde'),
-        (p3_titre,               'right_nf'),  # page titre sans folio
-        (p4_sommaire,            'left'),
-        (p5_ciel_naissance,      'right'),
-        (p6_ouverture_ch4,       'left'),
-        (p7_texte_standard,      'right'),
-        (p8_planete_venus,       'left'),
-        (p9_encart_force_defi,   'right'),
-        (p10_respiration,        'left'),
-        (p11_double_page_premium,'right'),
-        (p12_derniere_page,      'right_nf'),  # dernière page sans folio
+        (p3_titre,               'right_nf'),  # page titre sans folio (page 2 garde supprimée)
+        (p4_sommaire,            'right'),
+        (p5_ciel_naissance,      'left'),
+        (p6_ouverture_ch4,       'right'),
+        (p7_texte_standard,      'left'),
+        (p8_planete_venus,       'right'),
+        (p9_encart_force_defi,   'left'),
+        (p10_double_citations,   'right'),
+        (p11_derniere_page,      'right_nf'),  # dernière page sans folio
     ]
     for i, (fn, tmpl) in enumerate(pages):
         if i == 0:
