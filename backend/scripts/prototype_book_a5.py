@@ -41,7 +41,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import (
     BaseDocTemplate, PageTemplate, Frame,
     Paragraph, Spacer, PageBreak, Image as RLImage,
-    Table, TableStyle, NextPageTemplate,
+    Table, TableStyle, NextPageTemplate, Flowable,
 )
 
 from services.pdf_theme import register_fonts, font
@@ -144,6 +144,98 @@ def corner_bracket(canv, cx: float, cy: float, size: float = 3, color=BRONZE):
     canv.line(cx, cy, cx + size, cy)
     canv.line(cx, cy, cx, cy - size)
     canv.restoreState()
+
+
+# ═══════════════════════════════════════════════════════════════
+# PLUME DORÉE — emblème central de Plume Astrale
+# ═══════════════════════════════════════════════════════════════
+def draw_feather(canv, cx: float, cy: float, height: float,
+                 color=BRONZE, angle_deg: float = -8):
+    """Dessine une plume stylisée (rachis courbe + barbes) autour de (cx, cy).
+
+    La plume est centrée verticalement sur cy (base et pointe équidistantes).
+    `angle_deg` : légère inclinaison naturelle (négatif = vers la gauche en haut).
+    """
+    import math
+    h = height
+    w = height * 0.28  # ratio plume élégante
+    canv.saveState()
+    canv.translate(cx, cy - h / 2)
+    if angle_deg:
+        canv.rotate(angle_deg)
+    canv.setStrokeColor(color)
+    canv.setFillColor(color)
+    canv.setLineWidth(0.5)
+
+    # Rachis (tige centrale) — bezier légèrement courbé
+    path = canv.beginPath()
+    path.moveTo(0, 0)
+    path.curveTo(w * 0.10, h * 0.35, -w * 0.06, h * 0.75, 0, h)
+    canv.setLineWidth(0.7)
+    canv.drawPath(path, stroke=1, fill=0)
+
+    # Barbes (vanes) — 18 barbes courtes, plus longues au centre
+    canv.setLineWidth(0.35)
+    n_barbs = 20
+    barb_angle = 40  # angle vs rachis
+    for i in range(1, n_barbs):
+        t = i / n_barbs  # 0..1 (base → pointe)
+        y = h * t
+        # Longueur : max au centre (t=0.5), courte en base et pointe
+        barb_len = w * 1.15 * (1 - (2 * abs(t - 0.5)) ** 1.6)
+        if barb_len < 0.3:
+            continue
+        # Léger décalage horizontal du point d'attache selon la courbure du rachis
+        rachis_x = w * 0.10 * math.sin(t * math.pi)
+        # Angle de la barbe : plus incliné vers la pointe
+        theta = math.radians(barb_angle + (t - 0.5) * 20)
+        ax = barb_len * math.cos(theta)
+        ay = barb_len * math.sin(theta)
+        # Barbe gauche
+        canv.line(rachis_x, y, rachis_x - ax, y + ay * 0.6)
+        # Barbe droite (barbes de l'autre côté, plus courtes de 15% pour asymétrie naturelle)
+        canv.line(rachis_x, y, rachis_x + ax * 0.85, y + ay * 0.55)
+
+    # Pointe : petite touche pleine
+    canv.setFillColor(color)
+    canv.circle(0, h, 0.5, fill=1, stroke=0)
+    # Base du rachis : petit calame pointu
+    canv.setLineWidth(1.0)
+    canv.line(0, 0, w * 0.05, -h * 0.05)
+
+    canv.restoreState()
+
+
+class Feather(Flowable):
+    """Flowable ReportLab qui dessine une plume dorée centrée dans son espace.
+
+    Utilisation :
+        story.append(Feather(height=18*mm))
+        story.append(Feather(height=14*mm, color=GOLD_VIVID, angle_deg=-6))
+    """
+    def __init__(self, height=18 * mm, color=BRONZE, angle_deg: float = -8,
+                 hAlign: str = 'CENTER'):
+        super().__init__()
+        self.height = height
+        # Largeur du bounding box : on prend un peu plus large que la plume
+        # pour absorber la rotation
+        self.width = height * 0.7
+        self.color = color
+        self.angle_deg = angle_deg
+        self.hAlign = hAlign
+
+    def wrap(self, availW, availH):
+        return self.width, self.height
+
+    def draw(self):
+        draw_feather(
+            self.canv,
+            cx=self.width / 2,
+            cy=self.height / 2,
+            height=self.height,
+            color=self.color,
+            angle_deg=self.angle_deg,
+        )
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -447,11 +539,8 @@ def p5_ciel_naissance(story):
     story.append(Paragraph(spaced('CHAPITRE I'), S['section_cap']))
     story.append(Paragraph('Votre ciel de naissance', S['h1']))
     story.append(Spacer(1, 3 * mm))
-    story.append(Paragraph(
-        f'<font name="{ORN}" color="#B8935A" size="10">— · —</font>',
-        ParagraphStyle('h_rule', fontName=ORN, fontSize=10,
-                       textColor=BRONZE, alignment=TA_CENTER)))
-    story.append(Spacer(1, 6 * mm))
+    story.append(Feather(height=8 * mm))
+    story.append(Spacer(1, 4 * mm))
     # Carte du ciel — pièce maîtresse (plus compacte)
     story.append(img(COVERS / 'natal_hero.png', 62, 62))
     story.append(Spacer(1, 6 * mm))
@@ -465,20 +554,20 @@ def p5_ciel_naissance(story):
     ], colWidths=[110 * mm], hAlign='CENTER')
     story.append(meta_table)
     story.append(Spacer(1, 4 * mm))
-    # 3 planètes clés — plus resserré
+    # 3 planètes clés — plus resserré (glyphes retirés au profit d'un layout épuré)
     trio = Table([[
-        Paragraph(f'{orn(G_SUN, 14, BRONZE)}<br/><font name="{CAPS}" size="7" color="#B8935A">SOLEIL</font><br/>'
-                  f'<font name="{SERIF}" size="10" color="#1C1B26">Taureau {orn(Z_TAURUS, 10, INK)}</font><br/>'
+        Paragraph(f'<font name="{CAPS}" size="7.5" color="#B8935A">SOLEIL</font><br/>'
+                  f'<font name="{SERIF}" size="11" color="#1C1B26">Taureau</font><br/>'
                   f'<font name="{CAPS}" size="7" color="#7A7488">{deg("24° 12′")}</font>',
-                  ParagraphStyle('trio', fontName=SERIF, fontSize=10, alignment=TA_CENTER, leading=13)),
-        Paragraph(f'{orn(G_MOON, 14, BRONZE)}<br/><font name="{CAPS}" size="7" color="#B8935A">LUNE</font><br/>'
-                  f'<font name="{SERIF}" size="10" color="#1C1B26">Sagittaire {orn(Z_SAG, 10, INK)}</font><br/>'
+                  ParagraphStyle('trio', fontName=SERIF, fontSize=10, alignment=TA_CENTER, leading=14)),
+        Paragraph(f'<font name="{CAPS}" size="7.5" color="#B8935A">LUNE</font><br/>'
+                  f'<font name="{SERIF}" size="11" color="#1C1B26">Sagittaire</font><br/>'
                   f'<font name="{CAPS}" size="7" color="#7A7488">{deg("8° 03′")}</font>',
-                  ParagraphStyle('trio', fontName=SERIF, fontSize=10, alignment=TA_CENTER, leading=13)),
-        Paragraph(f'<font name="{CAPS_BOLD}" size="12" color="#B8935A">AC</font><br/><font name="{CAPS}" size="7" color="#B8935A">ASCENDANT</font><br/>'
-                  f'<font name="{SERIF}" size="10" color="#1C1B26">Gémeaux {orn(Z_GEMINI, 10, INK)}</font><br/>'
+                  ParagraphStyle('trio', fontName=SERIF, fontSize=10, alignment=TA_CENTER, leading=14)),
+        Paragraph(f'<font name="{CAPS}" size="7.5" color="#B8935A">ASCENDANT</font><br/>'
+                  f'<font name="{SERIF}" size="11" color="#1C1B26">Gémeaux</font><br/>'
                   f'<font name="{CAPS}" size="7" color="#7A7488">{deg("3° 47′")}</font>',
-                  ParagraphStyle('trio', fontName=SERIF, fontSize=10, alignment=TA_CENTER, leading=13)),
+                  ParagraphStyle('trio', fontName=SERIF, fontSize=10, alignment=TA_CENTER, leading=14)),
     ]], colWidths=[36 * mm, 36 * mm, 36 * mm], hAlign='CENTER')
     story.append(trio)
 
@@ -486,13 +575,10 @@ def p5_ciel_naissance(story):
 def p6_ouverture_ch4(story):
     """Ouverture chapitre IV — Votre façon d'aimer.
 
-    Centrée verticalement + petite illustration bronze en pied pour combler le blanc.
+    Centrée verticalement + plume dorée en tête et en pied (emblème Plume Astrale).
     """
-    story.append(Spacer(1, 42 * mm))
-    story.append(Paragraph(
-        f'<font name="{ORN}" color="#B8935A" size="14">{G_VENUS}</font>',
-        ParagraphStyle('orn_venus', fontName=ORN, fontSize=14,
-                       textColor=BRONZE, alignment=TA_CENTER, leading=20)))
+    story.append(Spacer(1, 40 * mm))
+    story.append(Feather(height=18 * mm))
     story.append(Spacer(1, 10 * mm))
     story.append(Paragraph(spaced('CHAPITRE IV'), S['section_cap']))
     story.append(Paragraph('Votre façon d\'aimer', S['h1']))
@@ -500,17 +586,9 @@ def p6_ouverture_ch4(story):
     story.append(Paragraph(
         '<i>Ce que Vénus révèle de votre manière d\'aimer,<br/>de recevoir et de vous attacher.</i>',
         S['kicker']))
-    # Illustration bas de page (composition Vénus / rose des vents bronze)
-    story.append(Spacer(1, 30 * mm))
-    story.append(Paragraph(
-        f'<font name="{ORN}" color="#C9A97A" size="18">{Z_TAURUS}   {orn(G_VENUS, 22)}   {Z_PISCES}</font>',
-        ParagraphStyle('venus_orn_foot', fontName=ORN, fontSize=18,
-                       textColor=BRONZE_LIGHT, alignment=TA_CENTER, leading=26)))
-    story.append(Spacer(1, 4 * mm))
-    story.append(Paragraph(
-        '<i>Les signes que traverse Vénus dans votre thème.</i>',
-        ParagraphStyle('venus_foot_cap', fontName=ITAL, fontSize=9,
-                       textColor=MUTED, alignment=TA_CENTER, leading=14)))
+    # Petite plume en pied pour équilibrer visuellement la page
+    story.append(Spacer(1, 34 * mm))
+    story.append(Feather(height=12 * mm, color=BRONZE_LIGHT))
 
 
 def p7_texte_standard(story):
@@ -551,15 +629,12 @@ def p7_texte_standard(story):
 def p8_planete_venus(story):
     """Page dédiée à une planète — Vénus, structure éditoriale."""
     story.append(Spacer(1, 4 * mm))
-    story.append(Paragraph(
-        f'<font name="{ORN}" color="#B8935A" size="26">{G_VENUS}</font>',
-        ParagraphStyle('venus_glyph', fontName=ORN, fontSize=26,
-                       textColor=BRONZE, alignment=TA_CENTER, leading=32)))
+    story.append(Feather(height=14 * mm))
     story.append(Spacer(1, 2 * mm))
     story.append(Paragraph(spaced('VOTRE VÉNUS'), S['section_cap']))
     story.append(Spacer(1, 2 * mm))
     story.append(Paragraph(
-        f'<font name="{CAPS}" size="8" color="#7A7488">POISSONS {orn(Z_PISCES, 8, MUTED)}  ·  MAISON X  ·  {deg("11° 08′")}  ·  RÉTROGRADE</font>',
+        f'<font name="{CAPS}" size="8" color="#7A7488">POISSONS  ·  MAISON X  ·  {deg("11° 08′")}  ·  RÉTROGRADE</font>',
         ParagraphStyle('venus_meta', fontName=CAPS, fontSize=8, textColor=MUTED,
                        alignment=TA_CENTER, spaceAfter=10)))
     story.append(Spacer(1, 8 * mm))
@@ -662,10 +737,7 @@ def p11_derniere_page(story):
     """Dernière page — signature marque + mentions légales structurées."""
     # Signature Plume Astrale (centre)
     story.append(Spacer(1, 38 * mm))
-    story.append(Paragraph(
-        f'<font name="{ORN}" color="#B8935A" size="14">{Z_TAURUS}   {G_SUN}   {Z_SAG}</font>',
-        ParagraphStyle('last_orn', fontName=ORN, fontSize=14,
-                       textColor=BRONZE, alignment=TA_CENTER, leading=20)))
+    story.append(Feather(height=16 * mm))
     story.append(Spacer(1, 12 * mm))
     story.append(Paragraph(spaced('PLUME ASTRALE'), S['brand_sig']))
     story.append(Spacer(1, 5 * mm))
