@@ -25,7 +25,35 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - **Design tokens** : préfixe `--ne-*` dans `/app/frontend/src/index.css` (additifs, non-breaking) + namespace Tailwind `nocturne.*`
 - **Composants Nocturne** : `.ne-btn` (plats, coins 2px, sans ombre) · `.ne-card` (filet 1px, hover translate 2px + ombre 24px 8%) · `.ne-input` (filet inférieur uniquement) · `.ne-section-night` / `.ne-section-paper` (grain SVG + halos radiaux)
 
-## What's implemented
+### 📖 LOT 3 — Plume Astrale Book Rendering Engine (étapes 1-3, 2026-03-15)
+
+**Contexte** : refonte du système de génération PDF vers un moteur unifié séparant strictement contenu / design / impression, en préparation du pivot Livre Astral personnalisé (120 pages · A5 · Numérique 24€ / Broché 69€ / Reliée 119€).
+
+**Fichiers créés** :
+- `/app/backend/migrations/2026_03_book_manuscripts.sql` — table `book_manuscripts` avec JSONB par chapitre + `design_version` pour re-render post-refonte sans re-appel LLM
+- `/app/backend/services/book_engine/__init__.py` — package public
+- `/app/backend/services/book_engine/domain.py` — dataclasses typées (`Manuscript`, `Chapter`, `ChapterBlock`, `BlockKind` avec 15 types, `BirthData`, `PrintSpecs`, `Edition`, `EDITIONS`)
+- `/app/backend/services/book_engine/document.py` — `BookDocument` ReportLab A5 recto/verso + `render_manuscript_to_pdf()`
+- `/app/backend/tests/test_book_engine.py` — 6/6 PASS
+
+**Direction artistique verrouillée v3** :
+- Format A5 (148×210 mm), marges miroir gouttière 20mm / extérieur 16mm
+- Fond ivoire chaud `#FBF7EE`, texte anthracite `#1C1B26`, bronze mat `#B8935A`
+- Bleu nuit `#0F1A3C` réservé cover + garde
+- **Plume dorée** au canvas (rachis courbe + barbes), scalable, remplace tous les glyphes décoratifs
+- **Allura** (Google Fonts, OFL) embarquée + subsettée pour dédicaces, kickers manuscrits ("Ce que Vénus murmure de vous…"), messages de fin. JAMAIS pour corps ou citations.
+- Signature **PLUME ASTRALE** (jamais Soléna)
+- 4 polices embarquées : Cormorant Light + LightItalic + Cinzel + Allura + FreeSerif (fallback Helvetica)
+
+**Prototype disponible pour validation** : `/prototype_book_a5.pdf` (10 pages, direction artistique validée), `/pilot_book.pdf` (généré depuis le vrai moteur, 3 pages)
+
+**Action user pending** :
+- Migration SQL `2026_03_book_manuscripts.sql` à jouer dans Supabase production
+- Migration SQL `2026_03_book_chapters.sql` (LOT 1) toujours en attente
+
+**Statut** : moteur fonctionnel bout en bout. Prêt pour LOT 3.4 (structure des 12 chapitres) → LOT 3.5-12.
+
+
 
 ### 🛒 LOT 2 — Frontend /composer L'Atelier wizard 4 étapes (2026-03-01)
 Le seul tunnel de commande du livre unifié. Un fichier `ComposerPage.jsx` + `ComposerSucces.jsx`.

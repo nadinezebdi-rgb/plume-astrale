@@ -730,10 +730,11 @@ def p10_double_citations(story):
         ParagraphStyle('breath_orn_1', fontName=ORN, fontSize=13,
                        textColor=BRONZE, alignment=TA_CENTER)))
     story.append(Spacer(1, 6 * mm))
-    # Citation 1 — méditation intérieure MANUSCRITE (Allura)
+    # Citation 1 — méditation intérieure (Cormorant italique, PAS Allura)
     story.append(Paragraph(
-        'Certaines parts de nous ne demandent pas à être changées.<br/>Seulement à être comprises.',
-        S['script_quote']))
+        '<i>Certaines parts de nous ne demandent pas à être changées.<br/>'
+        'Seulement à être comprises.</i>',
+        S['breath_line']))
     story.append(Spacer(1, 30 * mm))
     # Petit filet séparateur
     story.append(Paragraph(
