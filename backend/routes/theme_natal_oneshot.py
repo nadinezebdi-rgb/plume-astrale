@@ -54,8 +54,15 @@ async def theme_natal_oneshot_checkout(
 
     if not payload.email or '@' not in payload.email:
         raise HTTPException(400, 'Email invalide.')
-    if not payload.birth_date or not payload.birth_time:
-        raise HTTPException(400, 'Date et heure de naissance requises.')
+    if not payload.birth_date:
+        raise HTTPException(400, 'Date de naissance requise.')
+
+    # Feb 2026 — Analyse marque §V : l'heure de naissance devient OPTIONNELLE.
+    # Sans heure, l'ascendant se trompe 11 fois sur 12 et les 12 maisons sont
+    # fausses. On accepte la commande, on flag no_birth_time=True, et le PDF
+    # sortira en "Édition des Planètes" (sans ascendant, sans maisons).
+    no_birth_time = not payload.birth_time or payload.birth_time.strip() in ('', '12:00', '12:00:00')
+    birth_time_effective = payload.birth_time or '12:00'  # noon = médian pour Soleil/planètes (précision ±0.5°)
 
     host_url = str(request.base_url).rstrip('/')
     webhook_url = f'{host_url}/api/webhook/stripe'
@@ -68,7 +75,7 @@ async def theme_natal_oneshot_checkout(
     # Prépare birth_data v3
     try:
         y, m, d = payload.birth_date[:10].split('-')
-        h, mi = payload.birth_time[:5].split(':')
+        h, mi = birth_time_effective[:5].split(':')
         birth_data = {'year': int(y), 'month': int(m), 'day': int(d), 'hour': int(h), 'minute': int(mi)}
         if payload.latitude is not None:
             birth_data['latitude'] = float(payload.latitude)
@@ -85,6 +92,7 @@ async def theme_natal_oneshot_checkout(
         'first_name': (payload.first_name or '').strip(),
         'birth_date_iso': payload.birth_date,
         'birth_data': birth_data,
+        'no_birth_time': no_birth_time,  # §V audit marque Feb 2026
     }
 
     # Bypass promo admin

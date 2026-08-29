@@ -117,6 +117,13 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
     is_ultra = ai_planet_count >= 7 or v3_raw_count >= 7
     planet_list = _ULTRA_PLANETS if is_ultra else _LEGACY_PLANETS
 
+    # §V audit marque Feb 2026 : sans heure de naissance, l'ascendant est faux
+    # 11 fois sur 12 (parcourt 12 signes en 24h). On le retire explicitement
+    # de la liste des planètes commentées.
+    no_birth_time = bool(user_data.get('no_birth_time'))
+    if no_birth_time:
+        planet_list = [p for p in planet_list if p != 'Ascendant']
+
     def _find_sign(planet_name_fr: str) -> str:
         if planets_data:
             if isinstance(planets_data, dict):
@@ -191,7 +198,11 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
     natal_data = {
         'sun_sign': _find_sign('Soleil') or 'Cancer',
         'moon_sign': _find_sign('Lune') or 'Poissons',
-        'ascendant_sign': _find_sign('Ascendant') or 'Vierge',
+        # §V audit marque : ascendant vide si no_birth_time (sinon 'Vierge' par défaut
+        # trompeur). Le fallback 'Vierge' n'est utilisé QUE si l'heure est connue mais
+        # l'API n'a pas remonté d'ascendant (cas très rare).
+        'ascendant_sign': '' if no_birth_time else (_find_sign('Ascendant') or 'Vierge'),
+        'no_birth_time': no_birth_time,
         'planets': planets,
         'synthese_aspects': synthese,
         'tier': 'ultra' if is_ultra else 'legacy',

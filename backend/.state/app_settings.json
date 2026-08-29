@@ -2,13 +2,6 @@
   "forced_j30_variant": null,
   "alerts_history": [
     {
-      "kind": "ab_override",
-      "title": "A/B J+30 réinitialisé (50/50)",
-      "details": "Par admin@plume-astrale.fr",
-      "channels": [],
-      "at": "2026-08-02T12:18:00.888385+00:00"
-    },
-    {
       "kind": "weekly_recap",
       "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
       "details": "Top: aucun refund",
@@ -220,6 +213,15 @@
         "email x2"
       ],
       "at": "2026-08-14T09:04:30.840729+00:00"
+    },
+    {
+      "kind": "weekly_recap",
+      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
+      "details": "Top: aucun refund",
+      "channels": [
+        "email x2"
+      ],
+      "at": "2026-08-28T09:59:39.999714+00:00"
     }
   ],
   "slack_test_cooldown": {
@@ -420,5 +422,5 @@
     }
   },
   "llm_budget_eur": 30.0,
-  "weekly_recap_last_date": "2026-08-14"
+  "weekly_recap_last_date": "2026-08-28"
 }

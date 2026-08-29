@@ -484,12 +484,15 @@ def year_ahead_page(story, styles, prenom: str, body_html: str) -> None:
 
 
 def colophon_page(story, styles, prenom: str, referral_code: Optional[str] = None,
-                   referral_link: Optional[str] = None) -> None:
+                   referral_link: Optional[str] = None, product_name: str = 'Ton Thème Natal') -> None:
     """Dernier feuillet : délègue au colophon Nocturne partagé (QR code + citation Soléna).
 
     Historique 2026-02 → 2026-02-26 : remplacement de l'ancien colophon texte-only
     par le module `pdf_colophon` unifié (avec QR code, code letter-spaced, kicker
     éditorial) pour cohérence visuelle avec Karma, Numérologie, Voyage Karmique.
+
+    Feb 2026 (§V audit marque) : `product_name` paramétrable pour distinguer
+    l'édition standard de l'"Édition des Planètes" (sans ascendant, sans maisons).
     """
     from services.pdf_colophon import build_colophon
     # `styles` du natal book n'a pas les mêmes clés que celui de pdf_prestige,
@@ -497,5 +500,5 @@ def colophon_page(story, styles, prenom: str, referral_code: Optional[str] = Non
     build_colophon(
         story, {}, prenom=prenom,
         referral_code=referral_code, referral_link=referral_link,
-        product_name='Ton Thème Natal',
+        product_name=product_name,
     )

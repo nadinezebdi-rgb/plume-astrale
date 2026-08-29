@@ -129,16 +129,31 @@ class RecoveryPayload(BaseModel):
     limit: int = 100
     dry_run: bool = True
     session_id: Optional[str] = None  # cible une session unique si fourni
+    mode: str = 'stripe'              # 'stripe' (default) | 'db_replay' (from stripe_webhook_events)
 
 
 @router.post('/stripe-recovery')
 async def stripe_recovery(payload: RecoveryPayload, _admin: dict = Depends(require_admin)) -> Dict[str, Any]:
     """Scan les sessions bloquées et déclenche la livraison si Stripe dit `paid`.
 
+    Deux modes :
+    - `mode='stripe'` (default) : croise avec l'API Stripe → limité aux 30j de
+      rétention Stripe, mais couvre les sessions dont on n'a pas de payload local.
+    - `mode='db_replay'` : rejoue depuis `stripe_webhook_events` (colonne payload).
+      Fonctionne au-delà des 30j Stripe, plus rapide, mais nécessite que l'event
+      soit passé au moins une fois par notre webhook.
+
+    Params :
     - `dry_run=True` (défaut) : rapport seul, aucun handler appelé.
     - `dry_run=False` : mise à jour DB + trigger handlers produit.
-    - `session_id=cs_xxx` : cible une seule session (utile pour recovery manuel).
+    - `session_id=cs_xxx` : cible une seule session (mode stripe uniquement).
     """
+    if payload.mode == 'db_replay':
+        # Rejoue les events failed / orphans depuis stripe_webhook_events
+        from server import replay_pending_events
+        report = await replay_pending_events(limit=payload.limit, dry_run=payload.dry_run)
+        return {'mode': 'db_replay', **report}
+
     if payload.session_id:
         result = await recover_session(payload.session_id, dry_run=payload.dry_run)
         return {'mode': 'single', 'result': result}

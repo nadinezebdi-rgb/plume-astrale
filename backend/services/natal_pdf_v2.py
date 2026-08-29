@@ -110,6 +110,8 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
         sun_sign = natal_data.get('sun_sign', '')
         moon_sign = natal_data.get('moon_sign', '')
         asc_sign = natal_data.get('ascendant_sign', '')
+        # §V audit marque : édition sans ascendant/maisons quand l'heure est absente
+        no_birth_time = bool(natal_data.get('no_birth_time'))
 
         # Format FR de la date (utilisé plusieurs fois)
         _MOIS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
@@ -121,6 +123,14 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
             date_fr = birth_date
 
         bd = bool(book_data and book_data.get('_source') in ('gpt', 'cache'))
+
+        # §V audit marque Feb 2026 : sans heure de naissance, on désactive le
+        # mode livre riche qui repose sur Ascendant, Trio, 12 Maisons — toutes
+        # ces sections seraient fausses. On garde uniquement les 10 planètes
+        # commentées (Soleil, Lune, Mercure, Vénus, Mars, Jupiter, Saturne,
+        # Uranus, Neptune, Pluton) et le colophon "Édition des Planètes".
+        if no_birth_time:
+            bd = False
 
         # ══════════════════════════════════════════════════════════════
         # FRONT MATTER (uniquement si book_data disponible)
@@ -194,8 +204,10 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
         id_cells = [
             {'image': _planet_image_path('Soleil'), 'label': 'Soleil', 'sublabel': sun_sign},
             {'image': _planet_image_path('Lune'), 'label': 'Lune', 'sublabel': moon_sign},
-            {'image': _sign_image_path(asc_sign) if asc_sign else None, 'label': 'Ascendant', 'sublabel': asc_sign},
         ]
+        # §V audit marque : ascendant seulement si heure connue (sinon faux 11/12)
+        if asc_sign and not no_birth_time:
+            id_cells.append({'image': _sign_image_path(asc_sign), 'label': 'Ascendant', 'sublabel': asc_sign})
         fourth = next((p for p in planets if p.get('name') == 'Vénus'),
                       planets[3] if len(planets) > 3 else None)
         if fourth:
@@ -440,8 +452,11 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
         emotional_ending(story, styles, prenom=prenom)
 
         # Colophon final avec code parrainage
-        if bd:
-            colophon_page(story, styles, prenom, referral_code, referral_link)
+        # §V audit marque : mention "Édition des Planètes" si sans heure
+        # (colophon appelé aussi en no_birth_time bien que bd=False)
+        _product_name = 'Thème Natal — Édition des Planètes' if no_birth_time else 'Thème Natal'
+        if bd or no_birth_time:
+            colophon_page(story, styles, prenom, referral_code, referral_link, product_name=_product_name)
 
         return story
 

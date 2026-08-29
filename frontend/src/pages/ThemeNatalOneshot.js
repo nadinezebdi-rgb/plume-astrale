@@ -111,8 +111,9 @@ const ThemeNatalOneshot = () => {
     if (!form.first_name.trim()) return setError('Prénom requis');
     // birth_date_fr est prioritaire (masque local), sinon utilise birth_date ISO existant
     const isoDate = form.birth_date || toISO(form.birth_date_fr);
-    if (!isoDate || !form.birth_time) return setError('Date et heure de naissance requises (JJ/MM/AAAA et HH:MM)');
+    if (!isoDate) return setError('Date de naissance requise (JJ/MM/AAAA)');
     if (!form.birth_city.trim()) return setError('Ville de naissance requise');
+    // §V audit marque Feb 2026 : heure OPTIONNELLE, on passe en "Édition des Planètes" sans elle
     setLoading(true);
     try {
       const r = await axios.post(
@@ -301,7 +302,7 @@ const ThemeNatalOneshot = () => {
                 </div>
                 <div>
                   <label className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
-                    Heure naiss. (HH:MM, 24h)
+                    Heure naiss. (HH:MM, 24h) — optionnel
                   </label>
                   <input
                     type="text"
@@ -313,6 +314,13 @@ const ThemeNatalOneshot = () => {
                     data-testid="theme-natal-oneshot-birthtime"
                     className="w-full mt-2 px-4 py-3 rounded-xl bg-plume-night-soft/60 border border-plume-gold/20 text-plume-lavender focus:outline-none focus:border-plume-gold/60"
                   />
+                  {(!form.birth_time || form.birth_time === '12:00') && (
+                    <p className="mt-2 text-xs leading-relaxed" style={{ color: 'rgba(212,175,55,0.75)' }} data-testid="theme-natal-no-birth-time-notice">
+                      Sans heure exacte, votre livre sera composé en <em>Édition des Planètes</em> :
+                      Soleil, Lune et les 8 autres planètes — sans ascendant ni maisons, car ceux-ci
+                      changent au fil des heures et nous ne les écrivons pas s'ils ne sont pas sûrs.
+                    </p>
+                  )}
                 </div>
               </div>
               <div>
