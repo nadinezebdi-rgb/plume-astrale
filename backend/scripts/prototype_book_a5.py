@@ -79,6 +79,9 @@ ITAL = font('Cormorant-Italic', 'Helvetica-Oblique')
 BOLD = font('Cormorant-Bold', 'Helvetica-Bold')
 CAPS = font('Cinzel', 'Helvetica')
 CAPS_BOLD = font('Cinzel-Bold', 'Helvetica-Bold')
+# Allura — manuscrite cursive élégante. Fallback : italique Cormorant (jamais Helvetica-Oblique
+# qui casserait totalement l'esprit éditorial).
+SCRIPT = font('Allura', font('Cormorant-Italic', 'Helvetica-Oblique'))
 ORN = 'OrnamentSerif'
 
 # Helper : espacement letter-spacing pour Cinzel (ReportLab colapse les espaces normaux)
@@ -368,6 +371,20 @@ S = {
     'kicker': ParagraphStyle('kicker', fontName=ITAL, fontSize=12.5,
                               textColor=MUTED, alignment=TA_CENTER, leading=18,
                               spaceAfter=10),
+    # Kicker manuscrit — cursive Allura pour sous-titre émotionnel d'ouverture de chapitre.
+    # Ex: "Ce que votre ciel murmure de vous…" en Allura, puis h1 en Cormorant.
+    # RESTREINT à 1-2 lignes maximum. Jamais utilisé pour du corps de texte.
+    'kicker_script': ParagraphStyle('kicker_script', fontName=SCRIPT, fontSize=22,
+                                     textColor=BRONZE, alignment=TA_CENTER, leading=28,
+                                     spaceAfter=10),
+    # Signature manuscrite pour dédicace et messages de fin (Allura 18-24pt)
+    'script_sig': ParagraphStyle('script_sig', fontName=SCRIPT, fontSize=24,
+                                  textColor=BRONZE, alignment=TA_CENTER, leading=32,
+                                  spaceAfter=8),
+    # Citation manuscrite intime (respiration) — Allura 20pt anthracite
+    'script_quote': ParagraphStyle('script_quote', fontName=SCRIPT, fontSize=26,
+                                    textColor=INK, alignment=TA_CENTER, leading=34,
+                                    leftIndent=8 * mm, rightIndent=8 * mm, spaceAfter=8),
     # Corps
     'body': ParagraphStyle('body', fontName=SERIF, fontSize=10.5,
                             textColor=INK, alignment=TA_JUSTIFY, leading=16,
@@ -575,19 +592,22 @@ def p5_ciel_naissance(story):
 def p6_ouverture_ch4(story):
     """Ouverture chapitre IV — Votre façon d'aimer.
 
-    Centrée verticalement + plume dorée en tête et en pied (emblème Plume Astrale).
+    Composition : plume + tag chapitre + h1 + sous-titre manuscrit Allura.
+    Le sous-titre manuscrit est LE seul mot cursif de la page (ex du brief user :
+    "Ce que votre ciel murmure de vous…").
     """
-    story.append(Spacer(1, 40 * mm))
+    story.append(Spacer(1, 38 * mm))
     story.append(Feather(height=18 * mm))
     story.append(Spacer(1, 10 * mm))
     story.append(Paragraph(spaced('CHAPITRE IV'), S['section_cap']))
     story.append(Paragraph('Votre façon d\'aimer', S['h1']))
-    story.append(Spacer(1, 6 * mm))
+    story.append(Spacer(1, 4 * mm))
+    # Sous-titre MANUSCRIT (Allura) — accent émotionnel unique de la page
     story.append(Paragraph(
-        '<i>Ce que Vénus révèle de votre manière d\'aimer,<br/>de recevoir et de vous attacher.</i>',
-        S['kicker']))
+        'Ce que Vénus murmure de vous…',
+        S['kicker_script']))
     # Petite plume en pied pour équilibrer visuellement la page
-    story.append(Spacer(1, 34 * mm))
+    story.append(Spacer(1, 32 * mm))
     story.append(Feather(height=12 * mm, color=BRONZE_LIGHT))
 
 
@@ -699,26 +719,29 @@ def p9_encart_force_defi(story):
 
 
 def p10_double_citations(story):
-    """Page-respiration : deux citations complémentaires, beaucoup de blanc."""
+    """Page-respiration : deux citations complémentaires, beaucoup de blanc.
+
+    Citation 1 : manuscrite (Allura) — intime, murmurée
+    Citation 2 : Ptolémée (Cormorant italique) — patrimoine culturel
+    """
     story.append(Spacer(1, 26 * mm))
     story.append(Paragraph(
         f'<font name="{ORN}" color="#B8935A" size="13">— · —</font>',
         ParagraphStyle('breath_orn_1', fontName=ORN, fontSize=13,
                        textColor=BRONZE, alignment=TA_CENTER)))
-    story.append(Spacer(1, 8 * mm))
-    # Citation 1 — méditation intérieure
+    story.append(Spacer(1, 6 * mm))
+    # Citation 1 — méditation intérieure MANUSCRITE (Allura)
     story.append(Paragraph(
-        '<i>Certaines parts de nous ne demandent pas à être changées.<br/>'
-        'Seulement à être comprises.</i>',
-        S['breath_line']))
-    story.append(Spacer(1, 34 * mm))
+        'Certaines parts de nous ne demandent pas à être changées.<br/>Seulement à être comprises.',
+        S['script_quote']))
+    story.append(Spacer(1, 30 * mm))
     # Petit filet séparateur
     story.append(Paragraph(
         f'<font name="{ORN}" color="#B8935A" size="11">— · —</font>',
         ParagraphStyle('sep_dot', fontName=ORN, fontSize=11,
                        textColor=BRONZE, alignment=TA_CENTER)))
     story.append(Spacer(1, 8 * mm))
-    # Citation 2 — la tradition astrologique
+    # Citation 2 — la tradition astrologique (Cormorant italique)
     story.append(Paragraph(
         '« Les étoiles ne décident rien.<br/>'
         'Elles inclinent, elles éclairent,<br/>'
@@ -736,21 +759,26 @@ def p10_double_citations(story):
 def p11_derniere_page(story):
     """Dernière page — signature marque + mentions légales structurées."""
     # Signature Plume Astrale (centre)
-    story.append(Spacer(1, 38 * mm))
-    story.append(Feather(height=16 * mm))
-    story.append(Spacer(1, 12 * mm))
+    story.append(Spacer(1, 30 * mm))
+    story.append(Feather(height=14 * mm))
+    story.append(Spacer(1, 6 * mm))
+    # Message de fin MANUSCRIT (Allura) — dédicace intime avant la signature marque
+    story.append(Paragraph(
+        'écrit pour vous,',
+        S['script_sig']))
+    story.append(Spacer(1, 4 * mm))
     story.append(Paragraph(spaced('PLUME ASTRALE'), S['brand_sig']))
-    story.append(Spacer(1, 5 * mm))
+    story.append(Spacer(1, 4 * mm))
     story.append(Paragraph(
         '<i>Une création éditoriale personnelle,<br/>inspirée de votre ciel de naissance.</i>',
         S['brand_sig_sub']))
     # Mentions légales (bas de page, bien séparées)
-    story.append(Spacer(1, 30 * mm))
+    story.append(Spacer(1, 22 * mm))
     story.append(Paragraph(
         f'<font name="{ORN}" color="#C9A97A" size="9">— · —</font>',
         ParagraphStyle('legal_sep', fontName=ORN, fontSize=9,
                        textColor=BRONZE_LIGHT, alignment=TA_CENTER)))
-    story.append(Spacer(1, 4 * mm))
+    story.append(Spacer(1, 3 * mm))
     story.append(Paragraph(spaced('CONCEPTION & ÉDITION', gap=1), S['legal']))
     story.append(Paragraph('Plume Astrale SAS · 12 rue des Étoiles · 13000 Marseille',
                             S['legal']))
