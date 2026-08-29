@@ -87,13 +87,13 @@ class Settings:
             'product': 'theme_natal_pdf_oneshot',
             'tagline': 'Votre portrait astrologique complet — 11 planètes, ascendant, maisons, aspects — PDF luxe à partir de 49 pages, voix Soléna.',
         },
-        # Édition Reliée 149€ — livre imprimé, cousu, numéroté (2026-02-27)
+        # Édition Reliée 119€ — livre imprimé, cousu, numéroté (2026-02-27, prix baissé de 149→119 §XII audit marque)
         # Flow spécifique : approbation 72h avant impression (services/print_approval_service.py)
         'edition_reliee': {
             'name': 'Édition Reliée — Thème Natal',
             'credits': 0,
             'bonus': 0,
-            'amount': 149.00,
+            'amount': 119.00,
             'currency': 'eur',
             'kind': 'oneshot',
             'product': 'edition_reliee',

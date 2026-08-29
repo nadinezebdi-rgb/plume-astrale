@@ -1,4 +1,39 @@
 # CHANGELOG - Plume Astrale
+## 2026-02-29 — P2 §XII audit marque : refonte offre (textes verbatim user)
+
+**Contexte** : user fournit les textes prêts du chapitre XII (accueil + page produit) et la grille §VII des nouveaux prix (24 / 69 / 119 / 199 €). Intégration verbatim, sans reformulation.
+
+**Prix mis à jour (backend Stripe)** :
+- `config.py:PACKS.edition_reliee.amount` passe de **149 → 119 €** (§VII, §XII "Cent Premières"). Verified E2E : nouveau checkout enregistre bien 119 EUR en base.
+
+**Refonte accueil** (`NocturneHero.jsx` + `Homepage.js`) :
+- **Hero titre** : "Le seul cadeau qu'on lit en entier avant de l'offrir." (verbatim)
+- **Hero corps** : "Un livre d'au moins 49 pages composé à partir de sa minute exacte de naissance, imprimé et relié en un seul exemplaire. Vous lisez tout avant que nous imprimions. Chez elle en cinq jours."
+- **CTA principal** : "Composer son livre — 119 €" pointe `/edition-reliee`
+- **Sous-CTA** : "Vous lisez avant qu'on imprime · Expédié de France"
+- **Nouveau bloc 1.05** : deuxième bloc accueil "Vous cherchez depuis une heure..." (verbatim)
+- **CTA "Voir l'Édition Reliée"** dans le hero passe de 149 à 119 €
+
+**Refonte page produit** (`EditionReliee.js`) :
+- `CTA_PRICE` : 149 → 119 €, propagation cascade dans SEO, éligibilité "Cent Premières", FAQ, eyebrow ("ÉDITION RELIÉE · 119 €")
+- **Nouveau bloc B7.5 · "Trois façons de ne rien risquer"** (3 garanties visibles en cartes bordées or) : Avant l'impression / Après la livraison / À la réception. Email unique `contact@plume-astrale.fr`.
+- **Nouveau bloc B7.6 · "Empilement de valeur"** : liste des 7 éléments (livre 119 €, 5 bonus 60,99 €, Bon à Tirer inestimable). Total 199,99 € barré, "Vous payez 119 €" en Cormorant 32px doré.
+- **Bloc B8 urgence** réécrit avec le texte verbatim "Un anniversaire ne se déplace pas. Comptez huit jours..." + reformulation de la ligne dynamique de compte à rebours ("Sa date est le [JJ] ? Commandez avant le [JJ moins 8]")
+- **Signature Nadine** enrichie : "— Nadine, fondatrice, relectrice, signataire"
+
+**Non fait volontairement** (par manque de contexte / hors P2 texte direct) :
+- Refonte des routes `Broché 69 €` et `Coffret Deux Vies 199 €` (mentionnés §VII mais pas de textes complets fournis, produits pas encore créés en backend)
+- Compte à rebours "moins de 8 jours → basculer sur offre PDF immédiate" (partie logique JS, à ajouter si les textes §XII "Trop juste ? Vous recevez l'exemplaire numérique complet le jour même" doivent être visibles)
+- Vouvoiement global sur tout le site (chantier éditorial dédié)
+- Retirer Kabbale/Astrocartographie de la Homepage et en faire des chapitres additionnels +29 € (§VII, plus lourd — nécessite refonte tunnel checkout)
+- Emails "panier abandonné" à câbler dans `services/cart_recovery.py`
+- Publicité Meta (hors code)
+
+**Vérifs preview** :
+- POST checkout Édition Reliée : 200 + `amount = 119 EUR` en DB ✅
+- 26 tests non-régression (15 P0 + 11 webhook Stripe) toujours verts en 3.1 s
+
+
 ## 2026-02-28 (nuit) — Extension P0 §V à tout le catalogue
 
 **Contexte** : le fix P0 "heure de naissance optionnelle" appliqué au Thème Natal doit couvrir tout le catalogue pour tenir le manifeste "refus de la sur-promesse" sur tous les produits.

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
 
-const CTA_PRICE = 149;
+const CTA_PRICE = 119;
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
 function computeDeadline(birthDateStr) {
@@ -29,7 +29,7 @@ export default function EditionReliee() {
       <SEO
         path="/edition-reliee"
         title="Un exemplaire au monde · Édition Reliée Plume Astrale"
-        description="Le seul livre qui porte son nom. Composé, imprimé et relié à la main, en cinq jours. Vous lisez avant qu'on imprime — 149€."
+        description="Le seul livre qui porte son nom. Composé, imprimé et relié à la main, en cinq jours. Vous lisez avant qu'on imprime — 119€."
       />
       <div style={{ maxWidth: 780, margin: '0 auto', padding: '80px 24px', color: '#F5EEE0', fontFamily: '"Cormorant Garamond", serif', lineHeight: 1.65 }}>
 
@@ -179,26 +179,77 @@ export default function EditionReliee() {
           </p>
         </section>
 
+        {/* B7.5 · TROIS GARANTIES (chapitre XII audit marque Feb 2026) */}
+        <section data-testid="er-block-guarantees" style={sectionCard}>
+          <p style={eyebrow}>TROIS FAÇONS DE NE RIEN RISQUER</p>
+          <h2 style={h2}>Trois façons de ne rien risquer</h2>
+          <div style={{ display: 'grid', gap: 20, marginTop: 20 }}>
+            <div style={{ padding: 20, borderLeft: '3px solid #D4AF37', background: 'rgba(212,175,55,0.06)', borderRadius: 6 }}>
+              <b style={{ color: '#D4AF37', letterSpacing: '0.05em' }}>Avant l&apos;impression</b>
+              <p style={{ ...body, marginTop: 8 }}>Vous lisez le livre entier. Si le texte ne vous touche pas, remboursement intégral et rien n&apos;est imprimé.</p>
+            </div>
+            <div style={{ padding: 20, borderLeft: '3px solid #D4AF37', background: 'rgba(212,175,55,0.06)', borderRadius: 6 }}>
+              <b style={{ color: '#D4AF37', letterSpacing: '0.05em' }}>Après la livraison</b>
+              <p style={{ ...body, marginTop: 8 }}>14 jours pour changer d&apos;avis, sans justification. Un email à <a href="mailto:contact@plume-astrale.fr" style={{ color: '#E8C766' }}>contact@plume-astrale.fr</a>, remboursé sous 48 heures.</p>
+            </div>
+            <div style={{ padding: 20, borderLeft: '3px solid #D4AF37', background: 'rgba(212,175,55,0.06)', borderRadius: 6 }}>
+              <b style={{ color: '#D4AF37', letterSpacing: '0.05em' }}>À la réception</b>
+              <p style={{ ...body, marginTop: 8 }}>Coffret abîmé ou colis perdu&nbsp;: nous réimprimons et réexpédions, sans photo à fournir et sans retour à faire.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* B7.6 · EMPILEMENT DE VALEUR (chapitre XII audit marque Feb 2026) */}
+        <section data-testid="er-block-value-stack" style={sectionCard}>
+          <p style={eyebrow}>CE QUE VOUS RECEVEZ</p>
+          <h2 style={h2}>Ce que le livre contient</h2>
+          <ul style={{ listStyle: 'none', padding: 0, marginTop: 20 }}>
+            {[
+              ["Le livre imprimé, cousu, numéroté, dans son coffret — à partir de 49 pages", "119 €"],
+              ["Bonus 1 — La carte du ciel grand format, à encadrer", "19 €"],
+              ["Bonus 2 — L'exemplaire numérique, le jour de la commande", "24 €"],
+              ["Bonus 3 — L'Heure Retrouvée, ou la carte cadeau", "19 €"],
+              ["Bonus 4 — La dédicace imprimée en tête d'ouvrage", "9 €"],
+              ["Bonus 5 — Un mois de Cercle Soléna offert", "9,99 €"],
+              ["Le Bon à Tirer — relecture intégrale avant impression", "inestimable"],
+            ].map(([label, price]) => (
+              <li key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, padding: '12px 0', borderBottom: '1px solid rgba(212,175,55,0.15)' }}>
+                <span style={{ color: 'rgba(247,245,240,0.85)', fontSize: 15 }}>{label}</span>
+                <span style={{ color: '#D4AF37', fontWeight: 600, whiteSpace: 'nowrap' }}>{price}</span>
+              </li>
+            ))}
+          </ul>
+          <div style={{ marginTop: 24, padding: 20, background: 'rgba(212,175,55,0.10)', borderRadius: 8, textAlign: 'center' }}>
+            <div style={{ color: 'rgba(247,245,240,0.72)', fontSize: 14 }}>Valeur totale : <s>199,99 €</s></div>
+            <div style={{ color: '#D4AF37', fontFamily: 'Cormorant Garamond, serif', fontSize: 32, fontWeight: 400, marginTop: 4 }}>Vous payez&nbsp;: 119 €</div>
+          </div>
+        </section>
+
         {/* B8 · Pourquoi maintenant */}
         <section data-testid="er-block-8-urgency" style={sectionCard}>
-          <p style={eyebrow}>POURQUOI MAINTENANT</p>
-          <label style={{ display: 'block', marginTop: 12 }}>
+          <p style={eyebrow}>UN ANNIVERSAIRE NE SE DÉPLACE PAS</p>
+          <h2 style={h2}>Un anniversaire ne se déplace pas.</h2>
+          <p style={{ ...body, marginTop: 16 }}>
+            Comptez huit jours entre votre commande et sa boîte aux lettres&nbsp;:
+            72 heures pour lire et valider le texte, cinq jours ouvrés pour imprimer,
+            relier et expédier.
+          </p>
+          <label style={{ display: 'block', marginTop: 20 }}>
             <small style={{ color: '#B9B0D5', letterSpacing: 1 }}>Sa date d'anniversaire</small>
             <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)}
                    data-testid="er-anniversary-input" style={input} />
           </label>
           {deadline && (
             <p style={{ ...body, marginTop: 12 }} data-testid="er-deadline-computed">
-              Son anniversaire : <b>{deadline.anniversary}</b>. Pour qu'il arrive à temps,
-              commandez avant <b style={{ color: '#E8C766' }}>{deadline.orderBy}</b>.
+              Sa date est le <b>{deadline.anniversary}</b>&nbsp;? Commandez avant le <b style={{ color: '#E8C766' }}>{deadline.orderBy}</b>.
             </p>
           )}
           <p style={{ ...body, marginTop: 24 }}>
             <b>Les Cent Premières.</b> Je relis et signe chaque exemplaire à la main. Je ne peux
-            pas en faire plus de cent. Les numéros <b>1 à 100 sont à 149 €</b> — ensuite, le prix
-            passe à 199 €.
+            pas en faire plus de cent. Les numéros <b>1 à 100 sont à 119 €</b> — au-delà, le prix
+            passe à 149 €.
           </p>
-          <p style={{ marginTop: 12, textAlign: 'right', fontStyle: 'italic', color: '#D4AF37' }}>— Nadine</p>
+          <p style={{ marginTop: 12, textAlign: 'right', fontStyle: 'italic', color: '#D4AF37' }}>— Nadine, fondatrice, relectrice, signataire</p>
         </section>
 
         {/* B9 · FAQ */}
@@ -212,7 +263,7 @@ export default function EditionReliee() {
               'Deux solutions : la carte cadeau, qu’elle complète elle-même, ou une version sans heure — le livre perd les maisons, il garde tout le reste. Dites-le-nous, nous adaptons.'],
             ['Et si elle ne croit pas à l’astrologie ?',
               'Nous ne prédisons rien et nous ne parlons pas de destin. Le ciel est traité ici comme un calendrier poétique : une manière de nommer ce qu’on traverse. Beaucoup de nos lecteurs n’y « croient » pas. Ils lisent un livre écrit pour eux.'],
-            ['149 €, ce n’est pas cher pour un livre ?',
+            ['119 €, ce n’est pas cher pour un livre ?',
               'C’est le prix d’un livre d’art tiré à un seul exemplaire, relu à la main et fabriqué pour une personne. Et vous ne payez que si le texte vous touche.'],
             ['Combien de temps pour la livraison ?',
               'Le PDF dans l’heure. Le livre relié sous cinq jours ouvrés après votre accord.'],
@@ -315,7 +366,7 @@ function CheckoutModal({ onClose }) {
         >
           ×
         </button>
-        <p style={{ ...eyebrow, textAlign: 'center' }}>ÉDITION RELIÉE · 149 €</p>
+        <p style={{ ...eyebrow, textAlign: 'center' }}>ÉDITION RELIÉE · 119 €</p>
         <h2 style={{ ...h2, textAlign: 'center', marginTop: 12, marginBottom: 8 }}>
           Composons son livre.
         </h2>
