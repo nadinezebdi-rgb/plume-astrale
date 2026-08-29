@@ -55,6 +55,13 @@ async def lecture_complete_checkout(
 
     if not payload.email or '@' not in payload.email:
         raise HTTPException(400, 'Email invalide.')
+    if not payload.birth_date:
+        raise HTTPException(400, 'Date de naissance requise.')
+
+    # §V audit marque Feb 2026 : heure OPTIONNELLE pour toutes les commandes.
+    # Le bundle Lecture Complète comporte un Thème Natal complet → si heure
+    # absente, on flag pour que le PDF du thème sorte en "Édition des Planètes".
+    no_birth_time = not payload.birth_time or payload.birth_time.strip() in ('', '12:00', '12:00:00')
 
     host_url = str(request.base_url).rstrip('/')
     webhook_url = f'{host_url}/api/webhook/stripe'
@@ -67,10 +74,11 @@ async def lecture_complete_checkout(
     order_ctx = {
         'first_name': (payload.first_name or '').strip(),
         'birth_date': payload.birth_date,
-        'birth_time': payload.birth_time,
+        'birth_time': payload.birth_time or '12:00',  # défaut anti-crash API
         'birth_city': payload.birth_city,
         'birth_country': payload.birth_country,
         'email': payload.email,
+        'no_birth_time': no_birth_time,  # §V audit marque
     }
 
     # Bypass promo admin (SEC-004 : seul un compte is_admin=true peut consommer)

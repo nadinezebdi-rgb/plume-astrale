@@ -1,4 +1,23 @@
 # CHANGELOG - Plume Astrale
+## 2026-02-28 (nuit) — Extension P0 §V à tout le catalogue
+
+**Contexte** : le fix P0 "heure de naissance optionnelle" appliqué au Thème Natal doit couvrir tout le catalogue pour tenir le manifeste "refus de la sur-promesse" sur tous les produits.
+
+**Étendu** :
+- `routes/karma_destin.py` — accepte `birth_time` vide, pose `pdf_ctx.no_birth_time` (produit basé sur les nœuds karmiques, calculés sur la date : pas de risque marque même sans heure, mais le flag est propagé pour tracer).
+- `routes/voyage_karmique.py` — idem, même logique.
+- `routes/edition_reliee.py` — champ `birth_time` passe de `str` obligatoire à `Optional[str]`, propagation vers `create_edition_reliee_checkout(no_birth_time=...)`. L'Édition Reliée étant un Thème Natal imprimé, elle hérite automatiquement du fix P0 côté PDF (le service natal_pdf_v2 applique déjà les règles §V).
+- `services/edition_reliee_service.py` — nouveau kwarg `no_birth_time` stocké dans `pdf_ctx`.
+- `routes/lecture_complete.py` — accepte `birth_time` vide + ajoute validation `birth_date` requise (absente avant), pose `order_ctx.no_birth_time`. Le bundle contient un Thème Natal complet donc hérite du fix P0.
+
+**Vérifs preview** : les 4 endpoints (`karma-destin`, `voyage-karmique`, `lecture-complete`, `edition-reliee`) acceptent POST checkout sans `birth_time` → HTTP 200 + `no_birth_time=True` bien stocké dans Supabase.
+
+**Tests non-régression** : `tests/test_no_birth_time.py` passe de 10 à 15 tests (+5 : karma_destin, voyage_karmique, edition_reliee route + service, lecture_complete). **26/26 pass en 3.3 s** avec les 11 tests webhook Stripe.
+
+**Ce qui n'est PAS fait** (à faire si besoin dans une passe P2 dédiée) :
+- Notice éditoriale "Édition des Planètes" sur les formulaires front des 4 autres produits (aujourd'hui uniquement `/theme-natal`). Le flag est bien posé côté DB dès qu'un client oublie l'heure, mais le message informatif reste à ajouter dans les modals `KarmaDestin`, `VoyageKarmique`, `EditionReliee`, `LectureComplete`. Impact business faible car ces produits reposent moins sur l'ascendant/maisons.
+
+
 ## 2026-02-28 (soir suite) — P1 §I audit marque : les 7 fuites unifiées
 
 **Contexte** : audit marque signale 7 incohérences visibles dans le funnel :

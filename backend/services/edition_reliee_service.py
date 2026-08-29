@@ -42,13 +42,14 @@ async def create_edition_reliee_checkout(
     purchaser_first_name: str,
     recipient_first_name: str,
     birth_date_iso: str,        # 'YYYY-MM-DD'
-    birth_time: str,            # 'HH:MM'
+    birth_time: str,            # 'HH:MM' — 12:00 par défaut si no_birth_time=True
     birth_city: str,
     birth_country: str = 'FR',
     latitude: Optional[float] = None,
     longitude: Optional[float] = None,
     dedication: Optional[str] = None,
     origin: str,
+    no_birth_time: bool = False,  # §V audit marque Feb 2026
 ) -> dict:
     """Crée la session Stripe checkout pour un achat Édition Reliée 149 €.
 
@@ -86,6 +87,7 @@ async def create_edition_reliee_checkout(
         'first_name': (recipient_first_name or '').strip() or 'Ami(e)',
         'birth_date_iso': birth_date_iso,
         'birth_data': birth_data,
+        'no_birth_time': no_birth_time,  # §V audit marque
     }
 
     # Stripe checkout — 149 EUR

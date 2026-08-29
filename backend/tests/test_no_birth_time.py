@@ -100,6 +100,61 @@ def test_natal_pdf_v2_calls_colophon_even_in_no_birth_time_mode():
     assert 'if bd or no_birth_time:' in src
 
 
+# ═════════════════════════════════════════════════════════════════════════
+# Extension P0 aux 4 autres produits (lecture_complete, edition_reliee,
+# karma_destin, voyage_karmique) — Feb 2026
+# ═════════════════════════════════════════════════════════════════════════
+
+def test_karma_destin_accepts_missing_birth_time():
+    """POST /karma-destin/checkout doit accepter birth_time vide + flag."""
+    from routes.karma_destin import karma_destin_checkout
+    src = inspect.getsource(karma_destin_checkout)
+    assert 'not payload.birth_date or not payload.birth_time' not in src
+    assert 'no_birth_time' in src
+    assert "'no_birth_time': no_birth_time" in src
+
+
+def test_voyage_karmique_accepts_missing_birth_time():
+    """POST /voyage-karmique/checkout doit accepter birth_time vide + flag."""
+    from routes.voyage_karmique import voyage_karmique_checkout
+    src = inspect.getsource(voyage_karmique_checkout)
+    assert 'not payload.birth_date or not payload.birth_time' not in src
+    assert 'no_birth_time' in src
+
+
+def test_edition_reliee_accepts_missing_birth_time():
+    """POST /edition-reliee/checkout doit accepter birth_time optional + flag."""
+    from routes.edition_reliee import edition_reliee_checkout, CheckoutPayload
+    # Le champ birth_time est maintenant Optional
+    fields = CheckoutPayload.model_fields
+    assert fields['birth_time'].is_required() is False
+    src = inspect.getsource(edition_reliee_checkout)
+    assert 'no_birth_time' in src
+    # Le service reçoit le flag
+    assert 'no_birth_time=no_birth_time' in src
+
+
+def test_edition_reliee_service_accepts_no_birth_time_kwarg():
+    """create_edition_reliee_checkout doit accepter no_birth_time et le propager."""
+    from services.edition_reliee_service import create_edition_reliee_checkout
+    sig = inspect.signature(create_edition_reliee_checkout)
+    assert 'no_birth_time' in sig.parameters
+    src = inspect.getsource(create_edition_reliee_checkout)
+    assert "'no_birth_time': no_birth_time" in src
+
+
+def test_lecture_complete_accepts_missing_birth_time():
+    """POST /lecture-complete/checkout doit accepter birth_time vide + flag.
+
+    Comme le bundle inclut un Thème Natal, sans heure, ce dernier sortira
+    en Édition des Planètes automatiquement.
+    """
+    from routes.lecture_complete import lecture_complete_checkout
+    src = inspect.getsource(lecture_complete_checkout)
+    assert 'no_birth_time' in src
+    assert "'no_birth_time': no_birth_time" in src
+
+
 if __name__ == '__main__':
     import pytest
     pytest.main([__file__, '-v'])
