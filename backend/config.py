@@ -87,6 +87,18 @@ class Settings:
             'product': 'theme_natal_pdf_oneshot',
             'tagline': 'Votre portrait astrologique complet — 11 planètes, ascendant, maisons, aspects — PDF luxe à partir de 49 pages, voix Soléna.',
         },
+        # Édition Brochée 69€ — livre imprimé broché (2026-03 pivot /composer L'Atelier)
+        # Tier intermédiaire entre Numérique 24€ et Reliée 119€ ; expédition ~7 jours.
+        'edition_brochee': {
+            'name': 'Édition Brochée — Thème Natal',
+            'credits': 0,
+            'bonus': 0,
+            'amount': 69.00,
+            'currency': 'eur',
+            'kind': 'oneshot',
+            'product': 'edition_brochee',
+            'tagline': "Livre broché imprimé sur papier ivoire, expédié sous 7 jours. Composé, relu, signé.",
+        },
         # Édition Reliée 119€ — livre imprimé, cousu, numéroté (2026-02-27, prix baissé de 149→119 §XII audit marque)
         # Flow spécifique : approbation 72h avant impression (services/print_approval_service.py)
         'edition_reliee': {

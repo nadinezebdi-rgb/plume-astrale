@@ -1,0 +1,244 @@
+"""Route /api/composer — L'Atelier (pivot livre unifié, 2026-03).
+
+Endpoints :
+  POST /api/composer/quote     → calcul dynamique (source de vérité serveur)
+  GET  /api/composer/chapters  → catalogue des chapitres actifs (public)
+  POST /api/composer/checkout  → session Stripe pour Numérique / Broché / Relié
+                                  avec metadata.chapters (jsonl) + calcul re-vérifié
+
+Le prix N'EST JAMAIS accepté depuis le client. Le client envoie l'édition et
+la liste de slugs — le serveur recalcule avec la règle 29/19/99.
+"""
+from __future__ import annotations
+import logging
+import uuid
+from typing import List, Optional
+
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, EmailStr, Field
+
+from config import get_settings
+from services.book_composer_pricing import (
+    EDITIONS,
+    compute_quote,
+    load_active_chapters,
+)
+from services.supabase_client import get_admin_client
+from integrations.payments.stripe.checkout import (
+    StripeCheckout, CheckoutSessionRequest,
+)
+
+logger = logging.getLogger(__name__)
+router = APIRouter(prefix='/composer', tags=['composer'])
+
+
+# ── Schémas Pydantic ────────────────────────────────────────────
+class QuotePayload(BaseModel):
+    edition: str = Field(pattern=r'^(numerique|brochee|reliee)$')
+    chapter_slugs: List[str] = Field(default_factory=list, max_length=20)
+    no_birth_time: bool = False
+
+
+class CheckoutPayload(BaseModel):
+    edition: str = Field(pattern=r'^(numerique|brochee|reliee)$')
+    chapter_slugs: List[str] = Field(default_factory=list, max_length=20)
+    email: EmailStr
+    first_name: str = Field(min_length=1, max_length=80)
+    birth_date: str = Field(pattern=r'^\d{4}-\d{2}-\d{2}$')
+    birth_time: Optional[str] = Field(default=None, pattern=r'^\d{2}:\d{2}$')
+    birth_city: str = Field(min_length=2, max_length=120)
+    birth_country: Optional[str] = Field(default='FR', max_length=4)
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    origin_url: str = Field(min_length=8, max_length=200)
+    # Optionnels (uniquement pour Broché/Relié — dédicace + destinataire)
+    recipient_first_name: Optional[str] = Field(default=None, max_length=80)
+    dedication: Optional[str] = Field(default=None, max_length=800)
+
+
+# ── Endpoints ───────────────────────────────────────────────────
+@router.get('/chapters')
+async def composer_chapters(no_birth_time: bool = False):
+    """Catalogue des chapitres actifs (utilisé par l'étape 2 du wizard)."""
+    catalog = load_active_chapters(no_birth_time=no_birth_time)
+    return {
+        'editions': [
+            {
+                'slug': slug,
+                'label': meta['label'],
+                'price_eur': meta['price_eur'],
+                'delivery': meta['delivery'],
+                'pages_base': meta['pages_base'],
+            }
+            for slug, meta in EDITIONS.items()
+        ],
+        'chapters': [
+            {
+                'slug': c.slug,
+                'name': c.name,
+                'subtitle': c.subtitle,
+                'pages_added': c.pages_added,
+                'tagline': c.tagline,
+                'requires_no_birth_time': c.requires_no_birth_time,
+                'sort_order': c.sort_order,
+            }
+            for c in catalog
+        ],
+        'pricing_rules': {
+            'first_chapter_eur': 29,
+            'next_chapter_eur': 19,
+            'chapters_cap_eur': 99,
+        },
+    }
+
+
+@router.post('/quote')
+async def composer_quote(payload: QuotePayload):
+    """Calcul dynamique du prix pour affichage live dans le wizard."""
+    try:
+        q = compute_quote(
+            edition=payload.edition,
+            chapter_slugs=payload.chapter_slugs,
+            no_birth_time=payload.no_birth_time,
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+    return {
+        'edition': q.edition,
+        'edition_label': q.edition_label,
+        'edition_price_eur': q.edition_price_eur,
+        'chapters': q.chapters,
+        'chapters_subtotal_eur': q.chapters_subtotal_eur,
+        'chapters_price_eur': q.chapters_price_eur,
+        'chapters_cap_applied': q.chapters_cap_applied,
+        'total_eur': q.total_eur,
+        'total_pages': q.total_pages,
+        'currency': q.currency,
+        'warnings': q.warnings,
+    }
+
+
+@router.post('/checkout')
+async def composer_checkout(payload: CheckoutPayload, request: Request):
+    """Crée la session Stripe pour la commande /composer avec pricing serveur re-vérifié."""
+    settings = get_settings()
+
+    # Détection heure absente (voir §V audit marque Feb 2026)
+    no_birth_time = (
+        not payload.birth_time
+        or payload.birth_time.strip() in ('', '12:00', '12:00:00')
+    )
+    birth_time_effective = payload.birth_time or '12:00'
+
+    # RECALCUL SERVEUR — jamais accepter un prix client
+    try:
+        q = compute_quote(
+            edition=payload.edition,
+            chapter_slugs=payload.chapter_slugs,
+            no_birth_time=no_birth_time,
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+    # Prépare birth_data v3 (miroir de theme_natal_oneshot)
+    try:
+        y, m, d = payload.birth_date[:10].split('-')
+        h, mi = birth_time_effective[:5].split(':')
+        birth_data = {'year': int(y), 'month': int(m), 'day': int(d), 'hour': int(h), 'minute': int(mi)}
+        if payload.latitude is not None:
+            birth_data['latitude'] = float(payload.latitude)
+        if payload.longitude is not None:
+            birth_data['longitude'] = float(payload.longitude)
+        if payload.birth_city:
+            birth_data['city'] = payload.birth_city
+        if payload.birth_country:
+            birth_data['country_code'] = payload.birth_country.upper()
+    except Exception as e:
+        raise HTTPException(400, f'Format date/heure invalide : {e}')
+
+    pdf_ctx = {
+        'first_name': payload.first_name.strip(),
+        'birth_date_iso': payload.birth_date,
+        'birth_data': birth_data,
+        'no_birth_time': no_birth_time,
+        # Composer-specific
+        'edition': q.edition,
+        'chapters': [c['slug'] for c in q.chapters],
+        'recipient_first_name': (payload.recipient_first_name or '').strip() or None,
+        'dedication': (payload.dedication or '').strip() or None,
+    }
+
+    host_url = str(request.base_url).rstrip('/')
+    webhook_url = f'{host_url}/api/webhook/stripe'
+    stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
+
+    origin = payload.origin_url.rstrip('/')
+    success_url = f'{origin}/composer/succes?session_id={{CHECKOUT_SESSION_ID}}'
+    cancel_url = f'{origin}/composer'
+
+    # Metadata Stripe (limitée à ~40 clés, ~500 chars/valeur → on sérialise les chapters en CSV)
+    chapters_csv = ','.join(pdf_ctx['chapters'])
+    metadata = {
+        'kind': 'composer_book',
+        'product': 'composer_book',
+        'edition': q.edition,
+        'chapters': chapters_csv[:450],
+        'email': payload.email.lower(),
+        'total_eur': str(q.total_eur),
+        'no_birth_time': '1' if no_birth_time else '0',
+    }
+
+    req = CheckoutSessionRequest(
+        amount=float(q.total_eur),
+        currency=q.currency,
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata=metadata,
+    )
+    session = await stripe_checkout.create_checkout_session(req)
+
+    # Trace payment_transactions (source de vérité pour le webhook)
+    try:
+        sb = get_admin_client()
+        sb.table('payment_transactions').insert({
+            'session_id': session.session_id,
+            'user_email': payload.email.lower(),
+            'pack_id': f'composer_{q.edition}',
+            'amount': float(q.total_eur),
+            'currency': q.currency,
+            'credits': 0,
+            'status': 'initiated',
+            'payment_status': 'unpaid',
+            'credits_granted': False,
+            'metadata': {
+                'kind': 'composer_book',
+                'product': 'composer_book',
+                'edition': q.edition,
+                'chapters': pdf_ctx['chapters'],
+                'quote': {
+                    'edition_price_eur': q.edition_price_eur,
+                    'chapters_price_eur': q.chapters_price_eur,
+                    'chapters_subtotal_eur': q.chapters_subtotal_eur,
+                    'chapters_cap_applied': q.chapters_cap_applied,
+                    'total_eur': q.total_eur,
+                    'total_pages': q.total_pages,
+                },
+                'pdf_ctx': pdf_ctx,
+            },
+        }).execute()
+    except Exception as e:
+        logger.warning(f'[composer] payment_transactions insert failed: {e}')
+
+    return {
+        'url': session.url,
+        'session_id': session.session_id,
+        'quote': {
+            'edition': q.edition,
+            'edition_label': q.edition_label,
+            'edition_price_eur': q.edition_price_eur,
+            'chapters_price_eur': q.chapters_price_eur,
+            'total_eur': q.total_eur,
+            'total_pages': q.total_pages,
+        },
+    }

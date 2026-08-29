@@ -27,6 +27,32 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### 🛒 LOT 1 — Backend foundations /composer L'Atelier (2026-03-01)
+Pivot produit majeur : le **Thème Natal devient l'UNIQUE base** avec 3 tiers d'édition (Numérique 24€ / Broché 69€ / Relié 119€). Tous les autres rapports deviennent des "chapitres" optionnels ajoutés au livre unifié.
+
+**Règle de pricing serveur (source de vérité)** :
+- +29€ pour le 1er chapitre choisi
+- +19€ pour chaque chapitre suivant
+- Plafond 99€ sur la somme des chapitres uniquement (l'édition s'ajoute par-dessus)
+
+**Exemples** : Numérique seul = 24€ · Numérique + 2 chapitres = 72€ (24+29+19) · Broché + 3 chapitres = 136€ (69+29+19+19) · Reliée + 6 chapitres = 218€ (119+cap 99€).
+
+**Fichiers créés (4)** :
+- `/app/backend/migrations/2026_03_book_chapters.sql` — table `book_chapters` + seed 6 chapitres (arbre_de_vie · astrocartographie · karma_destin · heure_retrouvee · etoiles_fixes · symboles_sabiens) + RLS + policy lecture publique.
+- `/app/backend/services/book_composer_pricing.py` — moteur de pricing (`compute_quote`, `load_active_chapters`, `EDITIONS`). Fallback local si Supabase KO.
+- `/app/backend/routes/composer.py` — endpoints `GET /api/composer/chapters` · `POST /api/composer/quote` · `POST /api/composer/checkout`. Le prix est TOUJOURS recalculé côté serveur ; le client envoie l'édition + slugs, jamais un montant.
+- `/app/backend/tests/test_composer_pricing.py` — 19/19 tests PASS (règles 29/19/99, plafond, dédup, filtre heure_retrouvee, endpoints HTTP).
+
+**Config** : `edition_brochee` (69€) ajouté dans `config.PACKS` entre Numérique et Reliée.
+
+**Register** : `composer_router` inclus dans `server.py` (post voyage_karmique_router).
+
+**Chapitre spécial** : `heure_retrouvee` (rectification symbolique) n'apparaît dans le catalogue que si `no_birth_time=True`.
+
+**Statut** : LOT 1 complet et testé. Reste à jouer la migration SQL dans Supabase pour activer l'édition chaud du catalogue (fallback local en attendant).
+
+
+
 ### 🎬 Master Homepage Experience V3 — Phases 1-4 complètes (2026-02-27)
 
 Nouveau prototype `/home-experience-v3` construit sur 4 phases avec 3 checkpoints validés.

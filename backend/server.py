@@ -79,6 +79,7 @@ from routes.pdf_preview import router as pdf_preview_router
 from routes.pdf_test_admin import router as pdf_test_admin_router
 from routes.lead_magnet import router as lead_magnet_router
 from routes.voyage_karmique import router as voyage_karmique_router
+from routes.composer import router as composer_router
 from routes.gift_cards import router as gift_cards_router
 from routes.edition_reliee import router as edition_reliee_router
 from routes.daily_article import router as daily_article_router
@@ -165,6 +166,7 @@ api_router.include_router(pdf_preview_router)
 api_router.include_router(pdf_test_admin_router)
 api_router.include_router(lead_magnet_router)
 api_router.include_router(voyage_karmique_router)
+api_router.include_router(composer_router)
 
 
 # ════════════════════════════════════════════
