@@ -27,6 +27,31 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ## What's implemented
 
+### 🛒 LOT 2 — Frontend /composer L'Atelier wizard 4 étapes (2026-03-01)
+Le seul tunnel de commande du livre unifié. Un fichier `ComposerPage.jsx` + `ComposerSucces.jsx`.
+
+**Architecture** :
+- Étape 1 : email, prénom, date, **heure optionnelle** (si vide → hint dynamique "L'Heure Retrouvée vous sera proposée"), ville
+- Étape 2 : catalogue live via `GET /api/composer/chapters` (filtre `no_birth_time` selon présence heure), cartes sélectionnables avec `+29 €` / `+19 €` selon position, badge visuel de sélection, notice plafond 99 € quand atteint
+- Étape 3 : 3 éditions (Numérique 24 · Brochée 69 · Reliée 119) avec running total live
+- Étape 4 : récapitulatif complet + breakdown par chapitre + champ dédicace + recipient (si Brochée/Reliée) + CTA "Payer X € en toute sécurité" → redirect Stripe
+
+**Composants clefs** :
+- **PriceRail sticky bottom** : affiche `total_eur` + nombre de chapitres + pages en permanence
+- **Stepper cliquable** (retour possible aux étapes précédentes)
+- **Live quote** via `POST /api/composer/quote` à chaque changement (édition ou slug) — le prix est **toujours celui du serveur**
+- Filtre auto : si l'utilisateur avait coché "L'Heure Retrouvée" puis renseigne son heure, le chapitre est retiré silencieusement
+
+**Route ajoutée** : `/composer` et `/composer/succes` dans `App.js`.
+
+**Smoke test E2E validé** : parcours complet Numérique → 2 chapitres → Brochée → recap = 117 € (69+29+19) ✓ · Le prix live du rail passe bien de "—" à 72€ à 117€ ✓ · L'Heure Retrouvée visible uniquement si heure vide ✓ · Champ dédicace apparaît uniquement pour Brochée/Reliée ✓.
+
+**Fichiers créés (2)** :
+- `/app/frontend/src/pages/ComposerPage.jsx` (wizard 4 étapes, ~530 lignes styles inline)
+- `/app/frontend/src/pages/ComposerSucces.jsx` (polling état de commande post-Stripe)
+
+**Statut** : LOT 2 complet et validé E2E. Prochaine étape : LOT 3 (assemblage PDF dynamique — le webhook Stripe doit reconnaître `kind='composer_book'` et assembler base + chapitres).
+
 ### 🛒 LOT 1 — Backend foundations /composer L'Atelier (2026-03-01)
 Pivot produit majeur : le **Thème Natal devient l'UNIQUE base** avec 3 tiers d'édition (Numérique 24€ / Broché 69€ / Relié 119€). Tous les autres rapports deviennent des "chapitres" optionnels ajoutés au livre unifié.
 

@@ -78,6 +78,8 @@ import RencontresAstrales from "./pages/RencontresAstrales";
 import RencontresUltimeSucces from "./pages/RencontresUltimeSucces";
 import Bibliotheque from "./pages/Bibliotheque";
 import Desabonnement from "./pages/Desabonnement";
+import ComposerPage from "./pages/ComposerPage";
+import ComposerSucces from "./pages/ComposerSucces";
 import AuthenticatedHome from "./pages/AuthenticatedHome";
 import CTATestPage from "./pages/CTATestPage";
 import CreditsInfo from "./pages/CreditsInfo";
@@ -309,6 +311,8 @@ function App() {
                 <Route path="/synastrie/succes" element={<SynastrieSucces />} />
                 <Route path="/astrosexo" element={<Navigate to="/services/astrosexo" replace />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
+                <Route path="/composer" element={<ComposerPage />} />
+                <Route path="/composer/succes" element={<ComposerSucces />} />
                 {/* SEO P0 (2026-02-16) : catch-all 404 réel avec noindex */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
