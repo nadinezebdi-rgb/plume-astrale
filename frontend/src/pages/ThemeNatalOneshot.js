@@ -145,8 +145,8 @@ const ThemeNatalOneshot = () => {
     <div className="min-h-screen relative" style={{ padding: '110px 20px 140px' }} data-testid="theme-natal-oneshot-page">
       <SEO
         path="/theme-natal"
-        title="Ton Thème Natal Complet · 29€ · Plume Astrale"
-        description="Un PDF luxe de 20 à 40 pages : tes 11 planètes, ton ascendant, tes maisons, tes aspects — signature éditoriale Plume Astrale. Reçu par email en 3 minutes."
+        title="Ton Thème Natal Complet · 24€ · Plume Astrale"
+        description="Un PDF luxe à partir de 49 pages : tes 11 planètes, ton ascendant, tes maisons, tes aspects — signature éditoriale Plume Astrale. Reçu par email en 3 minutes."
       />
 
       <div className="max-w-4xl mx-auto">
@@ -182,14 +182,14 @@ const ThemeNatalOneshot = () => {
               lineHeight: 1.6,
             }}
           >
-            Un document luxe de 20 à 40 pages qui décode ton ciel de naissance —
+            Un document luxe à partir de 49 pages qui décode ton ciel de naissance —
             11 planètes, ascendant, maisons, aspects, signature éditoriale Plume Astrale.
           </p>
           <div className="inline-flex items-baseline gap-2 mb-2" data-testid="theme-natal-oneshot-price">
             <span
               style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 48, fontWeight: 300, color: '#D4AF37' }}
             >
-              29€
+              24€
             </span>
             <span className="text-xs" style={{ color: 'rgba(227,215,255,0.55)', letterSpacing: '0.2em' }}>
               · PAIEMENT UNIQUE
@@ -225,7 +225,7 @@ const ThemeNatalOneshot = () => {
         {/* F500 Trust block — garantie + comparateur + cadre */}
         <div style={{ marginBottom: 40, marginLeft: -20, marginRight: -20 }}>
           <SalesTrustBlock
-            priceMain="29€"
+            priceMain="24€"
             marketPrice="150-250€"
             marketLabel="consultation astro"
             theme="dark"
@@ -240,7 +240,7 @@ const ThemeNatalOneshot = () => {
               className="plume-btn-primary"
               data-testid="theme-natal-oneshot-cta-start"
             >
-              Recevoir mon Thème Natal — 29€
+              Recevoir mon Thème Natal — 24€
               <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
             </button>
             <p className="text-xs mt-4" style={{ color: 'rgba(227,215,255,0.7)', letterSpacing: '0.1em' }}>

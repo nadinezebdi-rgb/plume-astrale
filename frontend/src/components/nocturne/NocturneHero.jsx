@@ -151,7 +151,7 @@ export default function NocturneHero() {
                 />
                 <div className="ne-hero-book-kicker">Édition personnelle</div>
                 <div className="ne-hero-book-name">Votre prénom</div>
-                <div className="ne-hero-book-subtitle">Thème natal &middot; 49 pages</div>
+                <div className="ne-hero-book-subtitle">Thème natal &middot; à partir de 49 pages</div>
               </div>
             </div>
 

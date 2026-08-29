@@ -76,16 +76,16 @@ class Settings:
             'tagline': "Analyse karmique complete + Arbre de Vie + synthese croisee IA — PDF ~40 pages.",
         },
         # ═══════════════════════════════════════════════════════════
-        # Thème Natal one-shot 29€ — flagship (2026-02 Gary Vee refonte)
+        # Thème Natal one-shot 24€ — flagship (2026-02 refonte prix §VII audit marque)
         'theme_natal_pdf_oneshot': {
             'name': 'Thème Natal Complet',
             'credits': 0,   # one-shot
             'bonus': 0,
-            'amount': 29.00,
+            'amount': 24.00,
             'currency': 'eur',
             'kind': 'oneshot',
             'product': 'theme_natal_pdf_oneshot',
-            'tagline': 'Ton portrait astrologique complet — 11 planètes, ascendant, maisons, aspects — PDF luxe 20 à 40 pages, voix Soléna.',
+            'tagline': 'Votre portrait astrologique complet — 11 planètes, ascendant, maisons, aspects — PDF luxe à partir de 49 pages, voix Soléna.',
         },
         # Édition Reliée 149€ — livre imprimé, cousu, numéroté (2026-02-27)
         # Flow spécifique : approbation 72h avant impression (services/print_approval_service.py)

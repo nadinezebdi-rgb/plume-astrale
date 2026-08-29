@@ -1,5 +1,5 @@
 """
-Route /api/theme-natal-oneshot : landing produit Thème Natal 29€ (one-shot Stripe).
+Route /api/theme-natal-oneshot : landing produit Thème Natal 24€ (one-shot Stripe).
 Créé 2026-02 dans le cadre de la refonte Gary Vee pricing.
 
 Endpoints :

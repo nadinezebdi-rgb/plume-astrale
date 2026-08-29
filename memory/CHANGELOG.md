@@ -1,4 +1,25 @@
 # CHANGELOG - Plume Astrale
+## 2026-02-28 (soir suite) — P1 §I audit marque : les 7 fuites unifiées
+
+**Contexte** : audit marque signale 7 incohérences visibles dans le funnel :
+
+1. **Prix Thème Natal unifié à 24€** (avant : 29€ backend / 39€ Luxe / 49€ Édition Reliée pointant au mauvais endroit) — modif Stripe backend `config.py:PACKS.theme_natal_pdf_oneshot.amount = 24.00`, propagation cascade dans `ThemeNatalOneshot.js` (hero, price tag, trust block, CTA button — 4 endroits), `Homepage.js` (SERVICES + FEATURED_BOOKS), `TrioDecouverte.js`, `cart_recovery.py`, docstrings + commentaires. **Note** : Karma&Destin et Numérologie restent à 29€ (autres produits, hors scope audit).
+2. **"À partir de 49 pages" partout** (avant : "20 à 40 pages" / "49 pages" secs) — 10 fichiers modifiés (`SEO.js`, `HowItWorks3Tiers.js`, `PdfBookOpen.js` × 3, `NocturneFAQ`, `NocturneServices`, `NocturneHero`, `SalesPageV3`, `EditionRelieeMerci.js`, `TrioDecouverte.js`, `catalog.js`).
+3. **Emails contact unifiés à `contact@plume-astrale.fr`** (avant : `hello@` dans SalesTrustBlock et SalesPageV3).
+4. **Moteur unique : "Swiss Ephemeris (norme NASA/JPL)"** (avant : `Premium.js` et `ChatIA.js` disaient "AstrologyAPI" seul, incohérent avec Manifesto/Confidentialité qui pointent Swiss Ephemeris — source de vérité).
+5. **Crédits cohérents : "2 questions offertes (10 crédits par question)"** dans `ChatIA.js` (avant : "10 consultations offertes" — contradiction avec le tarif 10 crédits/question défini dans HomeCreditPacks et Numerologie).
+6. **Vouvoiement / tutoiement — SKIP volontaire** : chantier trop large (500+ occurrences dispersées, risque de casser du sens dans les articles blog + voix Soléna). À faire dans une passe dédiée avec review éditoriale — proposé en Next Action Item.
+7. **Liens footer morts — DÉJÀ RÉSOLU** : audit basé sur ancien Footer. Le `/services` seul et `/comprendre-les-credits` ne sont plus dans `Footer.js` actuel (vérifié). Seule `/services/tarot` reste (routée dans App.js:218, ✓ valide).
+
+**Vérifs preview** :
+- POST checkout Thème Natal → DB confirme `amount = 24 EUR` ✅
+- Screenshot `/theme-natal` → hero `24€`, sous-titre "à partir de 49 pages", garantie `contact@plume-astrale.fr` visibles ✅
+- 21 tests non-régression (10 P0 + 11 webhook) toujours verts en 3 s
+- Grep résiduel : 0 `hello@`, 0 "AstrologyAPI" seul, 0 "10 consultations", 0 lien footer mort
+
+**Rappel** : le prix backend Stripe passé de 29 à 24 EUR affecte les nouveaux checkouts. Les anciennes sessions Stripe encore ouvertes gardent leur prix d'origine (Stripe garantie côté leur), aucune régression sur les paiements en cours.
+
+
 ## 2026-02-28 (fin) — P0 §V audit marque : Édition des Planètes (heure de naissance optionnelle)
 
 **Contexte** : audit marque signalait qu'un client sans heure de naissance recevait un thème natal avec **ascendant faux 11/12 du temps** et 12 maisons erronées (l'API par défaut met 12h00 sans le signaler). Contraire au manifeste "refus de la sur-promesse". Risque marque n°1.

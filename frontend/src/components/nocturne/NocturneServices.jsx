@@ -11,7 +11,7 @@ const LECTURES = [
     n: '01',
     titre: 'Thème Natal',
     murmure: 'Onze planètes qui composent votre signature dans le ciel.',
-    detail: 'PDF de 49 pages. Livré par email, à conserver, à imprimer, à relire.',
+    detail: 'PDF à partir de 49 pages. Livré par email, à conserver, à imprimer, à relire.',
     prix: '39 €',
     to: '/theme-natal',
   },

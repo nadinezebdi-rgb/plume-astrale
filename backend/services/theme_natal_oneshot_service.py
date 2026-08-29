@@ -1,5 +1,5 @@
 """
-Orchestrateur post-paiement pour le pack "theme_natal_pdf_oneshot" (29 EUR).
+Orchestrateur post-paiement pour le pack "theme_natal_pdf_oneshot" (24 EUR).
 Fetch les données natales v3 + enrichit avec GPT-5.4 + génère le PDF luxe + envoie l'email.
 
 Mirror du pattern services/kabbale_service.py.

@@ -468,7 +468,7 @@ const ChatIA = () => {
               display: 'flex', flexDirection: 'column', gap: 10,
             }}>
               {[
-                '10 consultations offertes à l\'inscription',
+                '2 questions offertes à l\'inscription (10 crédits par question)',
                 'Calcul précis de ton thème natal',
                 'Réponses personnalisées en français',
                 'Historique de tes conversations',
@@ -515,7 +515,7 @@ const ChatIA = () => {
               borderTop: '1px solid rgba(201,162,75,0.1)',
               fontSize: 11, color: 'rgba(15,26,60,0.50)', lineHeight: 1.5,
             }}>
-              Calculs astrologiques propulsés par <strong style={{ color: 'rgba(201,162,75,0.85)' }}>AstrologyAPI</strong> —
+              Calculs astrologiques via <strong style={{ color: 'rgba(201,162,75,0.85)' }}>Swiss Ephemeris (norme NASA/JPL)</strong> —
               utilisée par des plateformes spécialisées dans le monde entier.
             </div>
           </div>

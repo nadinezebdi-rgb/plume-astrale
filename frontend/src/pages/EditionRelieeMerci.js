@@ -49,7 +49,7 @@ export default function EditionRelieeMerci() {
           Merci — nous composons son livre.
         </h1>
         <p style={body}>
-          Votre paiement est confirmé. Nous générons maintenant le PDF complet de 49 pages
+          Votre paiement est confirmé. Nous générons maintenant le PDF complet à partir de 49 pages
           à partir des données de naissance que vous nous avez transmises.
         </p>
 

@@ -57,7 +57,7 @@ const SERVICES = [
   {
     title: 'Thème Natal',
     desc: 'Onze planètes qui racontent qui tu es vraiment.',
-    price: '29€',
+    price: '24€',
     to: '/theme-natal',
   },
   {
@@ -100,7 +100,7 @@ export default function Homepage() {
   const [flipbookBook, setFlipbookBook] = useState(null);
 
   const FEATURED_BOOKS = [
-    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '39€', to: '/theme-natal' },
+    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: 'À partir de 49 pages · 11 planètes décodées',   price: '24€', to: '/theme-natal' },
     { slug: 'kabbale',           title: 'Arbre de Vie · Kabbale',   tagline: '10 Sephiroth · 22 chemins',         price: '39€',    to: '/kabbale' },
     { slug: 'astrocartographie', title: 'Astrocartographie',        tagline: '7 lignes planétaires sur le monde', price: '49€',    to: '/astrocartographie' },
   ];
@@ -121,7 +121,7 @@ export default function Homepage() {
 
       {/* ═══ SECTION 2 · FEUILLETER — REMONTÉE en haut suite audit UX 2026-02-27
               La visiteuse veut voir CE QU'ELLE RECEVRA avant tout autre discours.
-              PDF illustré (39-49€) clairement étiqueté, distinct de l'Édition Reliée 149€. ═══ */}
+              PDF illustré (24-49€) clairement étiqueté, distinct de l'Édition Reliée 149€. ═══ */}
       <section className="ps-section ps-section-dark" data-testid="ps-flipbook-teaser">
         <CelestialBackdrop density={90} shootingStars={false} />
         <div className="ps-container" style={{ position: 'relative', zIndex: 1 }}>

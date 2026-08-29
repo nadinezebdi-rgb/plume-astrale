@@ -26,7 +26,7 @@ import { useAuth } from '@/context/AuthContext';
  *   subtitle        : paragraphe descriptif
  *   priceMain       : "17,99€"
  *   priceStrike     : "29€"     (optionnel — prix barré)
- *   priceHint       : "paiement unique · PDF 49 pages"
+ *   priceHint       : "paiement unique · PDF à partir de 49 pages"
  *   pages           : 49
  *   deliveryTime    : "5 min"
  *   heroBadge       : "L'offre écrin" (optionnel)
@@ -374,7 +374,7 @@ export default function SalesPageV3({
               <div style={{
                 fontFamily: 'Inter, sans-serif',
                 fontSize: 13, color: '#6B7280', lineHeight: 1.5,
-              }}>Sans condition. Un simple email à hello@plume-astrale.fr — remboursement sous 48h.</div>
+              }}>Sans condition. Un simple email à contact@plume-astrale.fr — remboursement sous 48h.</div>
             </div>
 
             {/* Comparateur de valeur */}
