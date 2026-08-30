@@ -36,6 +36,7 @@ export default function ComposerPage() {
   const [selectedChapters, setSelectedChapters] = useState([]);
   const [edition, setEdition] = useState('numerique');
   const [recipient, setRecipient] = useState({ recipient_first_name: '', dedication: '' });
+  const [promo, setPromo] = useState({ code: '', applied: false, message: null, total_eur: 0, original_total_eur: 0 });
 
   const noBirthTime = !birth.birth_time;
 
@@ -83,6 +84,43 @@ export default function ComposerPage() {
 
   useEffect(() => { refreshQuote(); }, [refreshQuote]);
 
+  // ── Application code promo ───────────────────────────────────
+  const applyPromo = useCallback(async () => {
+    if (!promo.code) return;
+    try {
+      const r = await fetch(`${API}/api/composer/apply-promo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: promo.code,
+          edition,
+          chapter_slugs: selectedChapters,
+          no_birth_time: noBirthTime,
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok || !d.valid) {
+        setPromo((p) => ({ ...p, applied: false, message: 'Code invalide ou expiré.' }));
+        return;
+      }
+      setPromo({
+        code: d.code,
+        applied: true,
+        total_eur: d.total_eur,
+        original_total_eur: d.original_total_eur,
+        message: `Code «\u00A0${d.label}\u00A0» appliqué — ${d.discount_pct}% de réduction.`,
+      });
+    } catch {
+      setPromo((p) => ({ ...p, applied: false, message: 'Erreur réseau. Réessayez.' }));
+    }
+  }, [promo.code, edition, selectedChapters, noBirthTime]);
+
+  // Reset promo si l'utilisateur change édition/chapitres après application
+  useEffect(() => {
+    if (promo.applied) setPromo((p) => ({ ...p, applied: false, message: null }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [edition, selectedChapters]);
+
   // ── Navigation ──────────────────────────────────────────────
   const canGoNext = useMemo(() => {
     if (step === 0) {
@@ -118,6 +156,9 @@ export default function ComposerPage() {
         birth_country: birth.birth_country || 'FR',
         origin_url: window.location.origin,
       };
+      if (promo.applied && promo.code) {
+        payload.promo_code = promo.code;
+      }
       if (edition !== 'numerique') {
         if (recipient.recipient_first_name.trim()) {
           payload.recipient_first_name = recipient.recipient_first_name.trim();
@@ -206,6 +247,9 @@ export default function ComposerPage() {
               submitting={submitting}
               submitError={submitError}
               onSubmit={submit}
+              promo={promo}
+              setPromo={setPromo}
+              applyPromo={applyPromo}
             />
           )}
         </main>
@@ -416,10 +460,11 @@ function StepEdition({ catalog, edition, setEdition, quote }) {
 // ═══════════════════════════════════════════════════════════════
 // STEP 4 · Récapitulatif + destinataire optionnel + submit
 // ═══════════════════════════════════════════════════════════════
-function StepRecap({ birth, edition, recipient, setRecipient, quote, catalog, submitting, submitError, onSubmit }) {
+function StepRecap({ birth, edition, recipient, setRecipient, quote, catalog, submitting, submitError, onSubmit, promo, setPromo, applyPromo }) {
   const updateRecipient = (k) => (e) => setRecipient((r) => ({ ...r, [k]: e.target.value }));
   const isPhysical = edition === 'brochee' || edition === 'reliee';
   const editionMeta = catalog?.editions?.find((e) => e.slug === edition);
+  const finalTotal = promo?.applied ? promo.total_eur : (quote?.total_eur || 0);
 
   return (
     <section data-testid="composer-step-recap">
@@ -455,7 +500,44 @@ function StepRecap({ birth, edition, recipient, setRecipient, quote, catalog, su
 
       <div style={totalBox}>
         <span style={totalLabel}>Total à régler</span>
-        <span style={totalValue} data-testid="composer-total">{quote?.total_eur || 0} €</span>
+        <span style={totalValue} data-testid="composer-total">
+          {promo?.applied && (
+            <span style={{ fontSize: '1rem', color: '#B9B0D5', textDecoration: 'line-through', marginRight: 10 }}>
+              {promo.original_total_eur} €
+            </span>
+          )}
+          {finalTotal} €
+        </span>
+      </div>
+
+      {/* Code promo — universel, disponible pour tous */}
+      <div style={{ marginTop: 20, padding: '14px 16px', border: '1px dashed rgba(212,175,55,0.35)', borderRadius: 4 }}>
+        <p style={{ ...eyebrow, textAlign: 'left', margin: 0 }}>J'AI UN CODE PROMO</p>
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <input
+            type="text"
+            value={promo?.code || ''}
+            onChange={(e) => setPromo((p) => ({ ...p, code: e.target.value.toUpperCase(), applied: false, message: null }))}
+            placeholder="Votre code (ex : TOUT2026)"
+            data-testid="composer-input-promo"
+            style={{ ...input, marginTop: 0, flex: 1, textTransform: 'uppercase' }}
+          />
+          <button
+            type="button"
+            onClick={applyPromo}
+            data-testid="composer-apply-promo"
+            disabled={!promo?.code}
+            style={{ ...ctaGhost, minWidth: 110, opacity: promo?.code ? 1 : 0.5, cursor: promo?.code ? 'pointer' : 'not-allowed' }}
+          >
+            Appliquer
+          </button>
+        </div>
+        {promo?.message && (
+          <p data-testid="composer-promo-message"
+             style={{ margin: '10px 0 0', fontSize: '0.9rem', color: promo.applied ? '#E8C766' : '#E8916B' }}>
+            {promo.message}
+          </p>
+        )}
       </div>
 
       {submitError && (
@@ -470,7 +552,10 @@ function StepRecap({ birth, edition, recipient, setRecipient, quote, catalog, su
         style={{ ...ctaPrimary, width: '100%', textAlign: 'center', padding: '18px 28px', marginTop: 20,
                  cursor: submitting ? 'wait' : 'pointer', opacity: submitting ? 0.7 : 1 }}
       >
-        {submitting ? 'Redirection vers Stripe…' : `Payer ${quote?.total_eur || 0} € en toute sécurité`}
+        {submitting ? 'Redirection…'
+          : (promo?.applied && finalTotal === 0)
+            ? 'Générer mon livre (offert)'
+            : `Payer ${finalTotal} € en toute sécurité`}
       </button>
       <p style={reassure}>
         Paiement sécurisé Stripe · Composition dans l'heure · Édition Reliée : approbation 72 h avant impression

@@ -54,6 +54,33 @@ class CheckoutPayload(BaseModel):
     # Optionnels (uniquement pour Broché/Relié — dédicace + destinataire)
     recipient_first_name: Optional[str] = Field(default=None, max_length=80)
     dedication: Optional[str] = Field(default=None, max_length=800)
+    # Code promo (universel, dispo pour n'importe qui, pas admin only)
+    promo_code: Optional[str] = Field(default=None, max_length=40)
+
+
+# Codes promo actifs — TOUT2026 offre 100% de réduction (test/friends)
+# Étendable via table Supabase promo_codes plus tard.
+_PROMO_CODES = {
+    'TOUT2026': {'discount_pct': 100, 'active': True, 'label': 'Offert 2026'},
+}
+
+
+class ApplyPromoPayload(BaseModel):
+    code: str = Field(min_length=1, max_length=40)
+    edition: str = Field(pattern=r'^(numerique|brochee|reliee)$')
+    chapter_slugs: List[str] = Field(default_factory=list, max_length=20)
+    no_birth_time: bool = False
+
+
+def _validate_promo(code: Optional[str]) -> Optional[dict]:
+    """Retourne le dict du promo si valide, sinon None."""
+    if not code:
+        return None
+    normalized = code.strip().upper()
+    promo = _PROMO_CODES.get(normalized)
+    if promo and promo.get('active'):
+        return {'code': normalized, **promo}
+    return None
 
 
 # ── Endpoints ───────────────────────────────────────────────────
@@ -119,9 +146,37 @@ async def composer_quote(payload: QuotePayload):
     }
 
 
+@router.post('/apply-promo')
+async def composer_apply_promo(payload: ApplyPromoPayload):
+    """Valide un code promo et retourne le prix réduit — jamais 402 (le code peut juste être invalide).
+    Réponse : {valid, discount_pct, label, total_eur, quote}
+    """
+    promo = _validate_promo(payload.code)
+    try:
+        q = compute_quote(edition=payload.edition, chapter_slugs=payload.chapter_slugs,
+                          no_birth_time=payload.no_birth_time)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    if not promo:
+        return {'valid': False, 'total_eur': q.total_eur, 'discount_pct': 0}
+    discounted = max(0, q.total_eur * (100 - promo['discount_pct']) // 100)
+    return {
+        'valid': True,
+        'code': promo['code'],
+        'label': promo['label'],
+        'discount_pct': promo['discount_pct'],
+        'original_total_eur': q.total_eur,
+        'total_eur': discounted,
+    }
+
+
 @router.post('/checkout')
 async def composer_checkout(payload: CheckoutPayload, request: Request):
-    """Crée la session Stripe pour la commande /composer avec pricing serveur re-vérifié."""
+    """Crée la session Stripe pour la commande /composer avec pricing serveur re-vérifié.
+
+    Si un `promo_code` 100% est fourni et valide, court-circuite Stripe :
+    crée une transaction payée en base et retourne l'URL de succès directement.
+    """
     settings = get_settings()
 
     # Détection heure absente (voir §V audit marque Feb 2026)
@@ -168,6 +223,59 @@ async def composer_checkout(payload: CheckoutPayload, request: Request):
         'recipient_first_name': (payload.recipient_first_name or '').strip() or None,
         'dedication': (payload.dedication or '').strip() or None,
     }
+
+    # ── Bypass Stripe pour code promo 100% ──────────────────────
+    promo = _validate_promo(payload.promo_code)
+    if promo and promo.get('discount_pct') == 100:
+        import uuid as _uuid
+        fake_session_id = f'promo_{promo["code"].lower()}_{_uuid.uuid4().hex[:16]}'
+        origin = payload.origin_url.rstrip('/')
+        # Trace transaction comme "payée" (offerte) directement
+        try:
+            sb = get_admin_client()
+            sb.table('payment_transactions').insert({
+                'session_id': fake_session_id,
+                'user_email': payload.email.lower(),
+                'pack_id': f'composer_{q.edition}',
+                'amount': 0.0,
+                'currency': q.currency,
+                'credits': 0,
+                'status': 'complete',
+                'payment_status': 'paid',
+                'credits_granted': True,
+                'metadata': {
+                    'kind': 'composer_book',
+                    'product': 'composer_book',
+                    'edition': q.edition,
+                    'chapters': pdf_ctx['chapters'],
+                    'promo_code': promo['code'],
+                    'promo_label': promo['label'],
+                    'quote': {
+                        'edition_price_eur': q.edition_price_eur,
+                        'chapters_price_eur': q.chapters_price_eur,
+                        'total_eur': q.total_eur,      # prix avant réduction (audit)
+                        'paid_eur': 0,                  # payé (offert)
+                        'total_pages': q.total_pages,
+                    },
+                    'pdf_ctx': pdf_ctx,
+                },
+            }).execute()
+        except Exception as e:
+            logger.warning(f'[composer] promo insert failed: {e}')
+        # TODO LOT 3.5 : déclencher ici le pipeline de génération PDF en background
+        logger.info(f'[composer] Promo {promo["code"]} applied for {payload.email} → session {fake_session_id}')
+        return {
+            'url': f'{origin}/composer/succes?session_id={fake_session_id}&promo=1',
+            'session_id': fake_session_id,
+            'promo_applied': promo['code'],
+            'quote': {
+                'edition': q.edition, 'edition_label': q.edition_label,
+                'edition_price_eur': q.edition_price_eur,
+                'chapters_price_eur': q.chapters_price_eur,
+                'total_eur': 0, 'original_total_eur': q.total_eur,
+                'total_pages': q.total_pages,
+            },
+        }
 
     host_url = str(request.base_url).rstrip('/')
     webhook_url = f'{host_url}/api/webhook/stripe'
