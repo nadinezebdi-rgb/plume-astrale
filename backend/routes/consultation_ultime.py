@@ -18,6 +18,7 @@ from pydantic import BaseModel
 from config import get_settings
 from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
+from services.self_heal import self_heal_if_paid
 from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
 from middleware.auth import get_optional_user
 from integrations.payments.stripe.checkout import (
@@ -261,6 +262,11 @@ async def consultation_ultime_status(session_id: str):
         raise HTTPException(404, 'Session introuvable.')
     tx = r.data
     md = tx.get('metadata') or {}
+
+    # Fallback self-heal : si webhook Stripe non reçu, vérifie côté Stripe et
+    # relance dispatch (email Soléna + PDF). Idempotent. Cf. incident P0 Feb 2026.
+    asyncio.create_task(self_heal_if_paid(session_id, bool(md.get('consultation_dispatched_at')), handle_consultation_ultime_webhook))
+
     return {
         'status': tx.get('status'),
         'payment_status': tx.get('payment_status'),

@@ -80,6 +80,12 @@ def register_fonts() -> bool:
         'Cormorant':     ['CormorantGaramond-Regular.ttf', 'CormorantGaramond.ttf'],
         'Cormorant-Bold': ['CormorantGaramond-Bold.ttf'],
         'Cormorant-Italic': ['CormorantGaramond-Italic.ttf'],
+        # Allura — cursive manuscrite élégante (Google Fonts, OFL).
+        # Usage RESTREINT : citations personnelles, sous-titres émotionnels,
+        # dédicaces, messages de fin. JAMAIS pour paragraphes longs (lisibilité).
+        # ReportLab embarque + subsette automatiquement la TTF dans le PDF final
+        # → rendu strictement identique en numérique et en print (Lulu/Bookelis).
+        'Allura':        ['Allura-Regular.ttf'],
     }
 
     loaded_any = False

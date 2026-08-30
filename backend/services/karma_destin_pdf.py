@@ -15,7 +15,6 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle,
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
-from reportlab.lib.pagesizes import A4
 
 from services.pdf_theme import register_fonts as _register_luxury_fonts
 

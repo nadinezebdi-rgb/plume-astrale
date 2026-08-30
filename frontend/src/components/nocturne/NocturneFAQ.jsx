@@ -68,7 +68,7 @@ const FAQ_ITEMS = [
     a: (
       <>
         <p>
-          <strong>Moins d&apos;une minute</strong> pour la plupart des lectures. Les commandes complexes (livre premium 49 pages) peuvent demander jusqu&apos;à 3 minutes.
+          <strong>Moins d&apos;une minute</strong> pour la plupart des lectures. Les commandes complexes (livre premium à partir de 49 pages) peuvent demander jusqu&apos;à 3 minutes.
         </p>
         <p style={{ marginTop: 12 }}>
           Le PDF vous est ensuite envoyé par email et reste accessible dans votre espace <em>Ma Bibliothèque</em>.

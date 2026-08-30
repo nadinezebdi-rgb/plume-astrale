@@ -1,0 +1,16 @@
+{# Page carte du ciel — pleine page seule, §5.3 #}
+<section class="page page-wheel {{ side }}">
+  <div class="block" style="height: auto;">
+    <h2>Le cadran de votre ciel</h2>
+    <p class="lede">Le dessin exact du ciel à l'instant de votre naissance, tracé à la minute près. Chaque planète y occupe une place unique — sa signature.</p>
+  </div>
+  {# La roue est un SVG carré 1000×1000, inline pour garantir la fidélité de rendu #}
+  <div class="wheel">{{ wheel_svg|safe }}</div>
+  <p class="caption">
+    Ascendant <b>{{ asc_label }}</b> · Milieu du Ciel <b>{{ mc_label }}</b> · {{ house_system }}
+  </p>
+  <div class="folio">
+    <span>Le Livre Astral de {{ first_name }}</span>
+    <span>{{ folio }}</span>
+  </div>
+</section>

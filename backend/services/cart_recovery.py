@@ -28,7 +28,7 @@ PRODUCT_INFO = {
     'numerologie_code': ('Ton Code Numérologique (19€)', '/numerologie-pdf'),
     'karma_destin_analysis': ('Ton Analyse Karmique & Destinée (24€)', '/karma-destin-pdf'),
     'fenetre_rencontre_avancee': ('Tes Fenêtres de Rencontre (29€)', '/rencontres-astrales'),  # deprecated 2026-02 — redirige vers Rencontres Ultime
-    'theme_natal_pdf_oneshot': ('Ton Thème Natal Complet (29€)', '/theme-natal'),
+    'theme_natal_pdf_oneshot': ('Ton Thème Natal Complet (24€)', '/theme-natal'),
     'comete': ('Pack Comète — 30 crédits (7,99€)', '/acheter-credits'),
     'nebuleuse': ('Pack Nébuleuse — 80 crédits (17,99€)', '/acheter-credits'),
     'constellation': ('Pack Constellation — 180 crédits (34,99€)', '/acheter-credits'),

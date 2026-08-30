@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import {
   Users, Euro, TrendingUp, MessageCircle, Coins, ShoppingCart,
-  Loader2, RefreshCw, Search, Tag, Activity, Sparkles, Plus, Power, Trash2, Crown,
+  Loader2, RefreshCw, Search, Tag, Activity, Sparkles, Plus, Power, Trash2, Crown, HeartPulse,
 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import AdminThemeNatalFixer from '@/components/AdminThemeNatalFixer';
@@ -95,6 +95,7 @@ export default function Admin() {
   const [leads, setLeads] = useState([]);
   const [leadsTotal, setLeadsTotal] = useState(0);
   const [pdfsSent, setPdfsSent] = useState(null);
+  const [paymentsHealth, setPaymentsHealth] = useState(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -162,6 +163,14 @@ export default function Admin() {
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, [token]);
+
+  useEffect(() => {
+    if (!token || !user?.is_admin) return;
+    // Poll léger de la santé paiements pour piloter le badge d'alerte du tab
+    axios.get(`${API}/api/admin/payments-health?days=30`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(r => setPaymentsHealth(r.data)).catch(() => {});
+  }, [token, user?.is_admin]);
 
   useEffect(() => {
     if (!token || !user?.is_admin) return;
@@ -238,6 +247,31 @@ export default function Admin() {
           <Tab label="PDFs envoyés" active={tab === 'pdfs-sent'} onClick={() => setTab('pdfs-sent')} count={pdfsSent?.total_with_supabase_url} />
           <Tab label="Fix Thème Natal" active={tab === 'fix-natal'} onClick={() => setTab('fix-natal')} />
           <Tab label="Lecture Complète" active={tab === 'lecture-complete'} onClick={() => setTab('lecture-complete')} />
+          {/* Santé paiements — redirige vers /admin/payments-health, badge rouge si sessions bloquees > 10 ou status=red */}
+          <a href="/admin/payments-health"
+             className="px-4 py-2 text-xs uppercase tracking-widest rounded-full transition-all inline-flex items-center gap-2"
+             style={{
+               border: '1px solid',
+               borderColor: (paymentsHealth?.overall_status === 'red' || (paymentsHealth?.stuck_sessions_count || 0) > 10)
+                 ? '#EF4444' : 'rgba(212,175,55,0.25)',
+               color: (paymentsHealth?.overall_status === 'red' || (paymentsHealth?.stuck_sessions_count || 0) > 10)
+                 ? '#EF4444' : '#D4AF37',
+               letterSpacing: '0.1em',
+             }}
+             data-testid="admin-tab-sante-paiements">
+            <HeartPulse className="w-3.5 h-3.5" strokeWidth={2} />
+            Santé paiements
+            {(paymentsHealth?.stuck_sessions_count || 0) > 10 && (
+              <span className="inline-flex items-center justify-center rounded-full text-[10px] px-1.5 py-0.5"
+                    style={{ background: '#EF4444', color: '#fff', minWidth: 20, fontWeight: 700 }}
+                    data-testid="admin-tab-sante-paiements-badge">
+                {paymentsHealth.stuck_sessions_count}
+              </span>
+            )}
+            {paymentsHealth?.overall_status === 'red' && (paymentsHealth?.stuck_sessions_count || 0) <= 10 && (
+              <span className="inline-block w-2 h-2 rounded-full" style={{ background: '#EF4444' }} />
+            )}
+          </a>
         </div>
 
         {tab === 'lecture-complete' && (

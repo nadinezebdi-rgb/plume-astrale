@@ -183,7 +183,7 @@ const SEO_DATA = {
   /* ─── 6 pages livre imprimé (Product schema) ─── */
   '/theme-natal': {
     title: 'Ton thème natal en livre imprimé · Plume Astrale',
-    description: "Livre imprimé personnalisé de 49 pages avec ton prénom en couverture. 11 planètes décodées, carte du ciel HD.",
+    description: "Livre imprimé personnalisé à partir de 49 pages avec ton prénom en couverture. 11 planètes décodées, carte du ciel HD.",
     keywords: 'thème natal, livre astrologique personnalisé, thème astral pdf',
     ogType: 'product',
     productPrice: '17.99',

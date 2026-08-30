@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
+import asyncio
 import uuid
 import base64
 import json
@@ -40,6 +41,8 @@ from services import astrology_io_service as aio
 from services.energy_service import get_energy_today
 from services import premium_subscription
 from routes.admin import router as admin_router
+from routes.admin_payments import router as admin_payments_router
+from routes.admin_book import router as admin_book_router
 from routes.health import router as health_router
 from routes.promo import router as promo_router
 from routes.astrology_v3 import router as astrology_v3_router
@@ -77,6 +80,7 @@ from routes.pdf_preview import router as pdf_preview_router
 from routes.pdf_test_admin import router as pdf_test_admin_router
 from routes.lead_magnet import router as lead_magnet_router
 from routes.voyage_karmique import router as voyage_karmique_router
+from routes.composer import router as composer_router
 from routes.gift_cards import router as gift_cards_router
 from routes.edition_reliee import router as edition_reliee_router
 from routes.daily_article import router as daily_article_router
@@ -110,6 +114,8 @@ STREAK_MILESTONES = {7: 3, 14: 5, 30: 10, 60: 15, 100: 25}
 app = FastAPI(title='Plume Astrale API')
 api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
+api_router.include_router(admin_payments_router)
+api_router.include_router(admin_book_router)
 api_router.include_router(health_router)
 api_router.include_router(promo_router)
 api_router.include_router(astrology_v3_router)
@@ -163,6 +169,7 @@ api_router.include_router(pdf_preview_router)
 api_router.include_router(pdf_test_admin_router)
 api_router.include_router(lead_magnet_router)
 api_router.include_router(voyage_karmique_router)
+api_router.include_router(composer_router)
 api_router.include_router(reports_router)
 
 
@@ -778,29 +785,277 @@ async def payment_status(session_id: str, current_user: dict = Depends(get_curre
 
 @api_router.post('/webhook/stripe')
 async def stripe_webhook(request: Request):
-    """Webhook Stripe — credite l'utilisateur (one-shot) ou active Premium (subscription)."""
+    """Webhook Stripe — endpoint LÉGER.
+
+    Étapes (doivent finir en < 30 s, timeout Stripe) :
+      1. Lecture RAW body (piège #1) + validation signature
+      2. Filtre whitelist `HANDLED_EVENT_TYPES` (évite les doublons cross-events)
+      3. Claim idempotent via `stripe_webhook_events` (piège #3), atomique
+      4. Fire-and-forget en tâche background référencée (GC-safe)
+      5. Retour 200 immédiat (piège #2 : les handlers PDF prennent 60-300 s)
+    """
     body = await request.body()
     sig = request.headers.get('Stripe-Signature', '')
 
-    # Detect subscription event via raw body parsing (apres handle_webhook ca devient typed)
-    import stripe, json as _json
-    stripe.api_key = settings.STRIPE_API_KEY
+    import stripe as _stripe
+    _stripe.api_key = settings.STRIPE_API_KEY
     webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 
-    # SÉCURITÉ (SEC-001) : la signature Stripe est OBLIGATOIRE. Aucun fallback permissif :
-    # sans secret, un attaquant peut forger un event et déclencher la livraison de PDFs
-    # premium + crédits gratuits. On rejette explicitement dans ce cas.
+    # SÉCURITÉ (SEC-001) : signature Stripe obligatoire. Sans secret, un
+    # attaquant peut forger un event et déclencher livraison PDF gratuite.
+    # 500 volontaire : Stripe rejouera une fois le secret configuré (retry 3j).
     if not webhook_secret:
-        logger.error('[stripe_webhook] STRIPE_WEBHOOK_SECRET manquant — refus de traiter le webhook.')
-        raise HTTPException(status_code=503, detail='Webhook secret not configured')
-    try:
-        event = stripe.Webhook.construct_event(body, sig, webhook_secret)
-    except Exception as e:
-        logger.warning(f'[stripe_webhook] signature invalide: {e}')
-        raise HTTPException(status_code=400, detail='Invalid signature')
+        logger.error('[stripe_webhook] STRIPE_WEBHOOK_SECRET absent — 500 pour forcer replay ultérieur.')
+        try:
+            from services.webhook_alert import send_webhook_alert
+            await send_webhook_alert(
+                reason='webhook_secret_missing',
+                details='STRIPE_WEBHOOK_SECRET absent des variables d\'env. Tous les webhooks Stripe entrants sont refusés → aucune livraison PDF.',
+            )
+        except Exception as _e:
+            logger.warning(f'[stripe_webhook] alerte email fail: {_e}')
+        raise HTTPException(status_code=500, detail='webhook secret not configured')
 
-    event_type = event.get('type') if isinstance(event, dict) else event.type
-    data_obj = (event.get('data', {}).get('object') if isinstance(event, dict) else event.data.object)
+    # stripe-python a déplacé les exceptions selon les versions
+    try:
+        _SigErr = _stripe.error.SignatureVerificationError
+    except AttributeError:  # stripe >= 12
+        _SigErr = _stripe.SignatureVerificationError
+
+    try:
+        event = _stripe.Webhook.construct_event(body, sig, webhook_secret)
+    except _SigErr:
+        # 400 : Stripe arrête de rejouer (un 500 ici ferait boucler 3 jours).
+        logger.warning('[stripe_webhook] signature invalide')
+        try:
+            from services.webhook_alert import send_webhook_alert
+            await send_webhook_alert(
+                reason='signature_invalid',
+                details='Signature Stripe invalide. Vérifiez que STRIPE_WEBHOOK_SECRET correspond bien au signing secret du dashboard Stripe.',
+            )
+        except Exception as _e:
+            logger.warning(f'[stripe_webhook] alerte email fail: {_e}')
+        raise HTTPException(status_code=400, detail='invalid signature')
+    except ValueError:
+        logger.warning('[stripe_webhook] payload JSON illisible')
+        raise HTTPException(status_code=400, detail='invalid payload')
+    except Exception as _e:
+        # Autre erreur du SDK Stripe (event malformé, version incompatible)
+        # → 400 pour éviter le retry loop 3 jours.
+        logger.warning(f'[stripe_webhook] event construction fail: {type(_e).__name__}: {_e}')
+        raise HTTPException(status_code=400, detail='invalid event')
+
+    event_id = event['id'] if isinstance(event, dict) else event.id
+    event_type = event['type'] if isinstance(event, dict) else event.type
+    data_obj = (event['data']['object'] if isinstance(event, dict) else event.data.object)
+
+    # ═══════════════════════════════════════════════════════════════════
+    # WHITELIST — types que _process_stripe_event sait vraiment traiter.
+    # Tout le reste = 200 sans effet (l'onglet Events Stripe garde trace).
+    # Ajouter un type ici sans qu'il soit géré = mensonge de statut.
+    # ═══════════════════════════════════════════════════════════════════
+    if event_type not in HANDLED_EVENT_TYPES:
+        return {'received': True, 'ignored': True, 'event_type': event_type}
+
+    # Métadonnées d'audit pour la ligne d'idempotence
+    session_id_meta = None
+    kind_meta = None
+    try:
+        _do_dict = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
+        if _do_dict.get('object') == 'checkout.session':
+            session_id_meta = _do_dict.get('id')
+        _md = _do_dict.get('metadata') or {}
+        kind_meta = _md.get('kind') or _md.get('product')
+    except Exception:
+        pass
+
+    # service_role obligatoire : RLS activée sans policy, un client anon
+    # verrait TOUS ses inserts refusés → plus aucune idempotence.
+    sb = get_admin_client()
+    try:
+        payload_dict = json.loads(body) if body else {}
+    except Exception:
+        payload_dict = None
+    try:
+        claim = _claim_event(sb, event_id, event_type, session_id_meta, kind_meta, payload_dict)
+    except Exception:
+        # Sans idempotence, on ne traite PAS : 500 → Stripe rejouera.
+        logger.exception(f'[stripe_webhook] claim impossible pour {event_id} — 500 pour retry')
+        raise HTTPException(status_code=500, detail='idempotency store unavailable')
+
+    if claim == 'done':
+        return {'received': True, 'idempotent': True, 'event_id': event_id}
+
+    _spawn(_process_stripe_event_safe(event, event_type, data_obj, event_id))
+    return {'received': True, 'queued': True, 'event_id': event_id, 'claim': claim}
+
+
+# ═════════════════════════════════════════════════════════════════════════
+# STRIPE WEBHOOK — Whitelist + idempotence (Feb 2026, audit ChatGPT)
+# ═════════════════════════════════════════════════════════════════════════
+
+# ⚠️ Seuls ces event types déclenchent une livraison. Tout le reste renvoie
+# 200 sans effet. Empêche notamment qu'un même paiement soit livré deux fois
+# via deux events différents (ex : checkout.session.completed ET payment_intent.succeeded).
+# Doit refléter EXACTEMENT ce que `_process_stripe_event_inner` sait traiter.
+HANDLED_EVENT_TYPES = {
+    'checkout.session.completed',                # livraison PDFs, subscriptions, referral
+    'checkout.session.async_payment_succeeded',  # virements SEPA / paiements différés
+    'charge.refunded',                           # sync refunds → services/lecture_complete_bundle
+    'refund.created',
+    'refund.updated',
+    'customer.subscription.created',             # Cercle Soléna (créer abonnement)
+    'customer.subscription.updated',             # Cercle Soléna (changement plan)
+    'customer.subscription.deleted',             # Cercle Soléna (annulation)
+    'invoice.payment_succeeded',                 # Cercle Soléna (renouvellement mensuel)
+}
+
+# Au-delà de ce délai, une ligne 'processing' est considérée orpheline
+# (crash pod, redéploiement) et peut être reprise par un retry Stripe.
+_STALE_PROCESSING_MINUTES = 10
+_WEBHOOK_TABLE = 'stripe_webhook_events'
+
+# CPython ne garde qu'une référence faible sur les tâches : sans ce set,
+# le GC peut annuler une tâche en plein vol, silencieusement.
+_BG_TASKS: set = set()
+
+
+def _spawn(coro) -> asyncio.Task:
+    """Spawn `coro` en tâche background référencée (GC-safe)."""
+    task = asyncio.create_task(coro)
+    _BG_TASKS.add(task)
+    task.add_done_callback(_BG_TASKS.discard)
+    return task
+
+
+def _is_unique_violation(exc: Exception) -> bool:
+    """Violation de PK Postgres = event déjà connu."""
+    code = getattr(exc, 'code', '') or ''
+    if code == '23505':
+        return True
+    text = str(exc).lower()
+    return '23505' in text or 'duplicate key' in text
+
+
+def _claim_event(sb, event_id, event_type, session_id_meta, kind_meta, payload) -> str:
+    """
+    Prend la main sur un event Stripe. Retourne :
+      'new'       — première réception, à traiter
+      'reclaimed' — event connu mais échoué ou orphelin, ré-attribué, à traiter
+      'done'      — déjà traité avec succès, ou traitement en cours réel : rien à faire
+
+    Toute autre erreur (Supabase down, table absente) remonte : le handler
+    répond 500 → Stripe rejoue. Ne JAMAIS avaler cette erreur : sans ligne
+    en base, il n'y a plus d'idempotence.
+    """
+    from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+    row = {
+        'event_id': event_id,
+        'event_type': event_type,
+        'session_id': session_id_meta,
+        'kind': kind_meta,
+        'status': 'processing',
+        'payload': payload,  # requis pour replay au-delà des 30j de rétention Stripe
+    }
+    try:
+        sb.table(_WEBHOOK_TABLE).insert(row).execute()
+        return 'new'
+    except Exception as exc:
+        if not _is_unique_violation(exc):
+            raise
+
+    # L'event existe → deux UPDATE conditionnels atomiques Postgres :
+    # une seule livraison concurrente verra `res.data` non vide.
+    # 1) reprise d'un échec ou d'une ligne jamais démarrée
+    res = (
+        sb.table(_WEBHOOK_TABLE)
+        .update({
+            'status': 'processing',
+            'handled_at': None,
+            'error_message': None,
+            'payload': payload,
+        })
+        .eq('event_id', event_id)
+        .in_('status', ['failed', 'received'])
+        .execute()
+    )
+    if res.data:
+        return 'reclaimed'
+
+    # 2) reprise d'un 'processing' orphelin (crash pod en cours de route)
+    stale_before = (
+        _dt.now(_tz.utc) - _td(minutes=_STALE_PROCESSING_MINUTES)
+    ).isoformat().replace('+00:00', 'Z')
+    res = (
+        sb.table(_WEBHOOK_TABLE)
+        .update({
+            'status': 'processing',
+            'handled_at': None,
+            'error_message': None,
+            'payload': payload,
+        })
+        .eq('event_id', event_id)
+        .eq('status', 'processing')
+        .lt('received_at', stale_before)
+        .execute()
+    )
+    if res.data:
+        logger.warning(f'[stripe_webhook] event {event_id} repris après processing orphelin')
+        return 'reclaimed'
+
+    return 'done'
+
+
+def _mark_webhook(sb, event_id: str, status: str, error: str = None) -> None:
+    """Met à jour le status d'un event webhook (done / failed).
+
+    Ne JAMAIS lever : un échec de marquage ne doit pas masquer le traitement.
+    """
+    if not event_id:
+        return
+    try:
+        from datetime import datetime as _dt, timezone as _tz
+        sb.table(_WEBHOOK_TABLE).update({
+            'status': status,
+            'handled_at': _dt.now(_tz.utc).isoformat(),
+            'error_message': (error or '')[:2000] or None,
+        }).eq('event_id', event_id).execute()
+    except Exception:
+        logger.exception(f'[stripe_webhook] mark {status} fail {event_id}')
+
+
+# Compat rétro (ancienne API utilisée par 3 fichiers)
+def _mark_webhook_done(event_id: str) -> None:
+    _mark_webhook(get_admin_client(), event_id, 'done')
+
+
+def _mark_webhook_failed(event_id: str, err: str) -> None:
+    _mark_webhook(get_admin_client(), event_id, 'failed', err)
+
+
+async def _process_stripe_event_safe(event, event_type, data_obj, event_id) -> None:
+    """Wrapper : capture toute exception, met à jour `stripe_webhook_events`.
+
+    Ne lève JAMAIS. Le vrai routing produit est `_process_stripe_event`
+    (module-level, aka ex-`_process_stripe_event_inner`).
+    """
+    sb = get_admin_client()
+    try:
+        await _process_stripe_event(event, event_type, data_obj, event_id)
+    except Exception as exc:
+        logger.exception(f'[stripe_webhook] échec traitement {event_id} ({event_type})')
+        _mark_webhook(sb, event_id, 'failed', f'{type(exc).__name__}: {exc}')
+    else:
+        _mark_webhook(sb, event_id, 'done')
+
+
+async def _process_stripe_event(event, event_type, data_obj, event_id=None):
+    """Routing produit du webhook Stripe (ex-`_process_stripe_event_inner`).
+
+    Signature (event, event_type, data_obj, event_id=None) — `event_id` gardé
+    optionnel pour compat rétro. Appelé en background par `_process_stripe_event_safe`.
+    """
+    import stripe, json as _json
 
     # ─── Sync automatique des refunds Stripe (dashboard Stripe ou chargeback) ───
     # Ecoute charge.refunded pour mettre a jour metadata.refunded_at si un admin
@@ -1026,6 +1281,28 @@ async def stripe_webhook(request: Request):
         except Exception as e:
             logger.warning(f'[trio_decouverte] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'trio_decouverte'}
+
+    # Route vers Composer Book handler si kind=composer_book (pivot livre unifié, LOT 3)
+    if md.get('kind') == 'composer_book':
+        from services.book_engine.pipeline import build_book_pdf_for_session
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            # Marque la transaction comme payée avant de lancer le pipeline
+            try:
+                sb2 = get_admin_client()
+                sb2.table('payment_transactions').update({
+                    'status': 'complete',
+                    'payment_status': 'paid',
+                    'credits_granted': True,
+                }).eq('session_id', session_id).execute()
+            except Exception as e:
+                logger.warning(f'[composer_book] tx paid update fail: {e}')
+            # Lance la génération PDF (peut prendre 30-90s avec LLM)
+            import asyncio as _asyncio
+            _asyncio.create_task(build_book_pdf_for_session(session_id))
+        except Exception as e:
+            logger.warning(f'[composer_book] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'composer_book'}
 
     # Route vers Thème Natal one-shot handler si kind=theme_natal_pdf_oneshot (pack 29 EUR, Gary Vee refonte 2026-02)
     if md.get('kind') == 'theme_natal_pdf_oneshot':
@@ -2949,3 +3226,85 @@ async def _start_cart_recovery():
     # Flow d'approbation 72h "Vous lisez avant qu'on imprime" (Édition Reliée)
     from services.print_approval_service import print_approval_loop
     _asyncio.create_task(print_approval_loop())
+    # Recovery nocturne Stripe : rejoue le batch chaque nuit sur les 24h (Feb 2026)
+    from services.stripe_recovery_scheduler import stripe_recovery_nightly_loop
+    _asyncio.create_task(stripe_recovery_nightly_loop())
+
+
+
+@app.on_event('shutdown')
+async def _drain_stripe_webhook_background_tasks():
+    """Attend les traitements webhook Stripe en cours (max 20 s).
+
+    Limite le nombre de lignes bloquées en `processing` lors d'un redéploiement.
+    """
+    if not _BG_TASKS:
+        return
+    logger.info(f'[stripe_webhook] shutdown : attente de {len(_BG_TASKS)} traitement(s)')
+    try:
+        await asyncio.wait(set(_BG_TASKS), timeout=20)
+    except Exception as _e:
+        logger.warning(f'[stripe_webhook] drain shutdown: {_e}')
+
+
+async def replay_pending_events(limit: int = 100, dry_run: bool = True) -> dict:
+    """
+    Rejoue depuis la BASE (colonne payload) les events failed ou processing
+    orphelins. Ne dépend plus de Stripe → fonctionne aussi au-delà des 30j
+    de rétention Stripe.
+
+    Appelé par `/api/admin/stripe-recovery` (mode replay-from-db).
+    """
+    import stripe as _stripe
+    _stripe.api_key = settings.STRIPE_API_KEY
+
+    sb = get_admin_client()
+    from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+    stale_before = (_dt.now(_tz.utc) - _td(minutes=_STALE_PROCESSING_MINUTES)).isoformat().replace('+00:00', 'Z')
+
+    failed = (
+        sb.table(_WEBHOOK_TABLE).select('*')
+        .eq('status', 'failed').limit(limit).execute().data or []
+    )
+    orphans = (
+        sb.table(_WEBHOOK_TABLE).select('*')
+        .eq('status', 'processing').lt('received_at', stale_before)
+        .limit(limit).execute().data or []
+    )
+    rows = failed + orphans
+
+    if dry_run:
+        return {
+            'dry_run': True,
+            'failed': len(failed),
+            'orphans': len(orphans),
+            'events': [
+                {'event_id': r['event_id'], 'type': r['event_type'],
+                 'session_id': r.get('session_id'), 'error': r.get('error_message')}
+                for r in rows
+            ],
+        }
+
+    relaunched = []
+    for r in rows:
+        payload = r.get('payload')
+        if not payload:
+            continue
+        try:
+            claim = _claim_event(sb, r['event_id'], r['event_type'],
+                                 r.get('session_id'), r.get('kind'), payload)
+        except Exception as e:
+            logger.warning(f'[replay] claim fail {r["event_id"]}: {e}')
+            continue
+        if claim == 'done':
+            continue  # concurrent replay
+        try:
+            event = _stripe.util.convert_to_stripe_object(payload)
+            data_obj = event['data']['object'] if isinstance(event, dict) else event.data.object
+            _spawn(_process_stripe_event_safe(event, r['event_type'], data_obj, r['event_id']))
+            relaunched.append(r['event_id'])
+        except Exception as e:
+            logger.warning(f'[replay] spawn fail {r["event_id"]}: {e}')
+            _mark_webhook(sb, r['event_id'], 'failed', f'replay_spawn_fail: {e}')
+
+    return {'dry_run': False, 'relaunched': len(relaunched), 'event_ids': relaunched}

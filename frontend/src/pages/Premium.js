@@ -260,7 +260,7 @@ export default function Premium() {
             borderTop: '1px solid rgba(212,175,55,0.1)',
           }}>
             <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>
-              Calculs astrologiques propulsés par <strong style={{ color: 'rgba(212,175,55,0.75)' }}>AstrologyAPI</strong> ·
+              Calculs astrologiques via <strong style={{ color: 'rgba(212,175,55,0.75)' }}>Swiss Ephemeris (norme NASA/JPL)</strong> ·
               Paiement sécurisé par <strong style={{ color: 'rgba(212,175,55,0.75)' }}>Stripe</strong>
             </p>
           </div>

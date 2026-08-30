@@ -9,7 +9,7 @@ export const LECTURES = [
   {
     key: 'natal',
     title: 'Thème Natal',
-    tagline: '49 pages · 11 planètes décodées',
+    tagline: 'À partir de 49 pages · 11 planètes décodées',
     price: '39€',
     to: '/theme-natal-luxe',
   },

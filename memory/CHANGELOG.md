@@ -1,4 +1,206 @@
 # CHANGELOG - Plume Astrale
+## 2026-02-29 — P2 §XII audit marque : refonte offre (textes verbatim user)
+
+**Contexte** : user fournit les textes prêts du chapitre XII (accueil + page produit) et la grille §VII des nouveaux prix (24 / 69 / 119 / 199 €). Intégration verbatim, sans reformulation.
+
+**Prix mis à jour (backend Stripe)** :
+- `config.py:PACKS.edition_reliee.amount` passe de **149 → 119 €** (§VII, §XII "Cent Premières"). Verified E2E : nouveau checkout enregistre bien 119 EUR en base.
+
+**Refonte accueil** (`NocturneHero.jsx` + `Homepage.js`) :
+- **Hero titre** : "Le seul cadeau qu'on lit en entier avant de l'offrir." (verbatim)
+- **Hero corps** : "Un livre d'au moins 49 pages composé à partir de sa minute exacte de naissance, imprimé et relié en un seul exemplaire. Vous lisez tout avant que nous imprimions. Chez elle en cinq jours."
+- **CTA principal** : "Composer son livre — 119 €" pointe `/edition-reliee`
+- **Sous-CTA** : "Vous lisez avant qu'on imprime · Expédié de France"
+- **Nouveau bloc 1.05** : deuxième bloc accueil "Vous cherchez depuis une heure..." (verbatim)
+- **CTA "Voir l'Édition Reliée"** dans le hero passe de 149 à 119 €
+
+**Refonte page produit** (`EditionReliee.js`) :
+- `CTA_PRICE` : 149 → 119 €, propagation cascade dans SEO, éligibilité "Cent Premières", FAQ, eyebrow ("ÉDITION RELIÉE · 119 €")
+- **Nouveau bloc B7.5 · "Trois façons de ne rien risquer"** (3 garanties visibles en cartes bordées or) : Avant l'impression / Après la livraison / À la réception. Email unique `contact@plume-astrale.fr`.
+- **Nouveau bloc B7.6 · "Empilement de valeur"** : liste des 7 éléments (livre 119 €, 5 bonus 60,99 €, Bon à Tirer inestimable). Total 199,99 € barré, "Vous payez 119 €" en Cormorant 32px doré.
+- **Bloc B8 urgence** réécrit avec le texte verbatim "Un anniversaire ne se déplace pas. Comptez huit jours..." + reformulation de la ligne dynamique de compte à rebours ("Sa date est le [JJ] ? Commandez avant le [JJ moins 8]")
+- **Signature Nadine** enrichie : "— Nadine, fondatrice, relectrice, signataire"
+
+**Non fait volontairement** (par manque de contexte / hors P2 texte direct) :
+- Refonte des routes `Broché 69 €` et `Coffret Deux Vies 199 €` (mentionnés §VII mais pas de textes complets fournis, produits pas encore créés en backend)
+- Compte à rebours "moins de 8 jours → basculer sur offre PDF immédiate" (partie logique JS, à ajouter si les textes §XII "Trop juste ? Vous recevez l'exemplaire numérique complet le jour même" doivent être visibles)
+- Vouvoiement global sur tout le site (chantier éditorial dédié)
+- Retirer Kabbale/Astrocartographie de la Homepage et en faire des chapitres additionnels +29 € (§VII, plus lourd — nécessite refonte tunnel checkout)
+- Emails "panier abandonné" à câbler dans `services/cart_recovery.py`
+- Publicité Meta (hors code)
+
+**Vérifs preview** :
+- POST checkout Édition Reliée : 200 + `amount = 119 EUR` en DB ✅
+- 26 tests non-régression (15 P0 + 11 webhook Stripe) toujours verts en 3.1 s
+
+
+## 2026-02-28 (nuit) — Extension P0 §V à tout le catalogue
+
+**Contexte** : le fix P0 "heure de naissance optionnelle" appliqué au Thème Natal doit couvrir tout le catalogue pour tenir le manifeste "refus de la sur-promesse" sur tous les produits.
+
+**Étendu** :
+- `routes/karma_destin.py` — accepte `birth_time` vide, pose `pdf_ctx.no_birth_time` (produit basé sur les nœuds karmiques, calculés sur la date : pas de risque marque même sans heure, mais le flag est propagé pour tracer).
+- `routes/voyage_karmique.py` — idem, même logique.
+- `routes/edition_reliee.py` — champ `birth_time` passe de `str` obligatoire à `Optional[str]`, propagation vers `create_edition_reliee_checkout(no_birth_time=...)`. L'Édition Reliée étant un Thème Natal imprimé, elle hérite automatiquement du fix P0 côté PDF (le service natal_pdf_v2 applique déjà les règles §V).
+- `services/edition_reliee_service.py` — nouveau kwarg `no_birth_time` stocké dans `pdf_ctx`.
+- `routes/lecture_complete.py` — accepte `birth_time` vide + ajoute validation `birth_date` requise (absente avant), pose `order_ctx.no_birth_time`. Le bundle contient un Thème Natal complet donc hérite du fix P0.
+
+**Vérifs preview** : les 4 endpoints (`karma-destin`, `voyage-karmique`, `lecture-complete`, `edition-reliee`) acceptent POST checkout sans `birth_time` → HTTP 200 + `no_birth_time=True` bien stocké dans Supabase.
+
+**Tests non-régression** : `tests/test_no_birth_time.py` passe de 10 à 15 tests (+5 : karma_destin, voyage_karmique, edition_reliee route + service, lecture_complete). **26/26 pass en 3.3 s** avec les 11 tests webhook Stripe.
+
+**Ce qui n'est PAS fait** (à faire si besoin dans une passe P2 dédiée) :
+- Notice éditoriale "Édition des Planètes" sur les formulaires front des 4 autres produits (aujourd'hui uniquement `/theme-natal`). Le flag est bien posé côté DB dès qu'un client oublie l'heure, mais le message informatif reste à ajouter dans les modals `KarmaDestin`, `VoyageKarmique`, `EditionReliee`, `LectureComplete`. Impact business faible car ces produits reposent moins sur l'ascendant/maisons.
+
+
+## 2026-02-28 (soir suite) — P1 §I audit marque : les 7 fuites unifiées
+
+**Contexte** : audit marque signale 7 incohérences visibles dans le funnel :
+
+1. **Prix Thème Natal unifié à 24€** (avant : 29€ backend / 39€ Luxe / 49€ Édition Reliée pointant au mauvais endroit) — modif Stripe backend `config.py:PACKS.theme_natal_pdf_oneshot.amount = 24.00`, propagation cascade dans `ThemeNatalOneshot.js` (hero, price tag, trust block, CTA button — 4 endroits), `Homepage.js` (SERVICES + FEATURED_BOOKS), `TrioDecouverte.js`, `cart_recovery.py`, docstrings + commentaires. **Note** : Karma&Destin et Numérologie restent à 29€ (autres produits, hors scope audit).
+2. **"À partir de 49 pages" partout** (avant : "20 à 40 pages" / "49 pages" secs) — 10 fichiers modifiés (`SEO.js`, `HowItWorks3Tiers.js`, `PdfBookOpen.js` × 3, `NocturneFAQ`, `NocturneServices`, `NocturneHero`, `SalesPageV3`, `EditionRelieeMerci.js`, `TrioDecouverte.js`, `catalog.js`).
+3. **Emails contact unifiés à `contact@plume-astrale.fr`** (avant : `hello@` dans SalesTrustBlock et SalesPageV3).
+4. **Moteur unique : "Swiss Ephemeris (norme NASA/JPL)"** (avant : `Premium.js` et `ChatIA.js` disaient "AstrologyAPI" seul, incohérent avec Manifesto/Confidentialité qui pointent Swiss Ephemeris — source de vérité).
+5. **Crédits cohérents : "2 questions offertes (10 crédits par question)"** dans `ChatIA.js` (avant : "10 consultations offertes" — contradiction avec le tarif 10 crédits/question défini dans HomeCreditPacks et Numerologie).
+6. **Vouvoiement / tutoiement — SKIP volontaire** : chantier trop large (500+ occurrences dispersées, risque de casser du sens dans les articles blog + voix Soléna). À faire dans une passe dédiée avec review éditoriale — proposé en Next Action Item.
+7. **Liens footer morts — DÉJÀ RÉSOLU** : audit basé sur ancien Footer. Le `/services` seul et `/comprendre-les-credits` ne sont plus dans `Footer.js` actuel (vérifié). Seule `/services/tarot` reste (routée dans App.js:218, ✓ valide).
+
+**Vérifs preview** :
+- POST checkout Thème Natal → DB confirme `amount = 24 EUR` ✅
+- Screenshot `/theme-natal` → hero `24€`, sous-titre "à partir de 49 pages", garantie `contact@plume-astrale.fr` visibles ✅
+- 21 tests non-régression (10 P0 + 11 webhook) toujours verts en 3 s
+- Grep résiduel : 0 `hello@`, 0 "AstrologyAPI" seul, 0 "10 consultations", 0 lien footer mort
+
+**Rappel** : le prix backend Stripe passé de 29 à 24 EUR affecte les nouveaux checkouts. Les anciennes sessions Stripe encore ouvertes gardent leur prix d'origine (Stripe garantie côté leur), aucune régression sur les paiements en cours.
+
+
+## 2026-02-28 (fin) — P0 §V audit marque : Édition des Planètes (heure de naissance optionnelle)
+
+**Contexte** : audit marque signalait qu'un client sans heure de naissance recevait un thème natal avec **ascendant faux 11/12 du temps** et 12 maisons erronées (l'API par défaut met 12h00 sans le signaler). Contraire au manifeste "refus de la sur-promesse". Risque marque n°1.
+
+**Fix appliqué (surgical)** :
+- `routes/theme_natal_oneshot.py` — accepte `birth_time` vide (avant : 400). Détecte `''` / `'12:00'` / `'12:00:00'` comme "défaut suspect" → pose `pdf_ctx.no_birth_time = True`. Envoie `birth_time='12:00'` à l'API pour ne pas casser le calcul planétaire (Soleil/planètes précises à ±0.5° avec heure = médiane).
+- `services/theme_natal_oneshot_service.py` — lit le flag, force `user_data.ascendant_sign = ''`, propage `user_data.no_birth_time`.
+- `services/natal_pdf_adapter.py` — filtre `'Ascendant'` de `_ULTRA_PLANETS` / `_LEGACY_PLANETS` quand no_birth_time. `natal_data.ascendant_sign` vide (plus de fallback `'Vierge'` trompeur).
+- `services/natal_pdf_v2.py` — skip la cell Ascendant dans la grille identité 2×2. **Force `bd=False`** quand no_birth_time → désactive tout le mode livre riche (trio Soleil×Lune×Ascendant, 12 Maisons, Acte III éditorial) qui reposent sur l'ascendant. Le colophon est appelé quand même avec `product_name='Thème Natal — Édition des Planètes'`.
+- `services/pdf_book_pages.py` — `colophon_page(...)` accepte `product_name` paramétrable.
+- `pages/ThemeNatalOneshot.js` (front) — retire la validation `birth_time obligatoire`, ajoute un label "Heure naiss. — optionnel" + notice éditoriale sous le champ quand vide/12:00 : "Sans heure exacte, votre livre sera composé en Édition des Planètes : Soleil, Lune et les 8 autres planètes — sans ascendant ni maisons, car ceux-ci changent au fil des heures et nous ne les écrivons pas s'ils ne sont pas sûrs."
+
+**Vérifs E2E preview** :
+- POST checkout SANS `birth_time` → 200 + `pdf_ctx.no_birth_time=True` en DB ✓
+- POST checkout avec `birth_time='12:00'` (défaut suspect) → 200 + `pdf_ctx.no_birth_time=True` ✓
+- POST checkout avec vraie heure `'14:37'` → 200 + `pdf_ctx.no_birth_time=False` ✓
+- POST sans `birth_date` → 400 "Date de naissance requise" (comportement inchangé) ✓
+
+**Tests non-régression** : `backend/tests/test_no_birth_time.py` **10/10 pass en 1.5 s** (checkout accepte, flag `12:00`, pdf_adapter retire Ascendant, pdf_v2 skip cell + désactive book mode, colophon paramétrable, "Édition des Planètes" transmis, service lit flag, service zero ascendant, colophon appelé même sans book mode). Les 11 tests webhook Stripe passent toujours en 2.9 s. Total non-régression : **19/19 pass**.
+
+**Non fait volontairement (P2 backlog §V)** :
+- "Éditions parallèles à 00:00 et 23:59, ne garder que ce qui matche" — heuristique nice-to-have. Le fix actuel suffit pour tenir le manifeste : on n'écrit que ce qui est certain quelle que soit l'heure (les planètes lentes + Soleil + Lune avec marge de ±6° sur Lune si née un jour de bascule — à ajouter en P2 si besoin).
+- Extension du fix à `lecture_complete`, `edition_reliee`, `karma_destin`, `voyage_karmique` — même problème potentiel. À prioriser en P1 selon les volumes de vente.
+
+
+## 2026-02-28 (fin) — Handler webhook v2 (review externe ChatGPT)
+
+**Contexte** : review externe pertinente sur mon handler v1 → ajout de 7 corrections :
+
+1. **Whitelist HANDLED_EVENT_TYPES** en amont : les types non gérés renvoient 200 sans écrire en DB. Contient les 9 types réellement traités par le routing (checkout.session.completed + async_payment_succeeded, charge.refunded + refund.created/updated, customer.subscription.created/updated/deleted, invoice.payment_succeeded).
+
+2. **_claim_event()** à 3 états ('new' | 'reclaimed' | 'done') remplace le try/except :
+   - INSERT nouveau → 'new'
+   - PK conflict → UPDATE conditionnel sur status IN ('failed','received') → 'reclaimed'
+   - UPDATE conditionnel sur processing ORPHELIN (> 10 min) → 'reclaimed'
+   - Sinon → 'done' (déjà traité ou processing valide)
+   - Toute autre exception (table absente, Supabase down) est **relevée** → 500 → Stripe rejoue. **Plus jamais de traitement sans idempotence**.
+
+3. **_BG_TASKS set + _spawn()** : garde une référence GC-safe sur les tâches (sinon CPython peut GC-annuler une tâche en plein vol).
+
+4. **Shutdown hook** attend max 20 s les traitements en cours avant l'arrêt (limite les orphelins lors des redéploiements).
+
+5. **400 sur signature invalide** (au lieu de 500) : empêche Stripe de boucler 3 jours. `SignatureVerificationError` compatible stripe 12+.
+
+6. **payload stocké à l'insert** (colonne JSONB) : permet le replay depuis la base au-delà des 30j de rétention Stripe.
+
+7. **`replay_pending_events(dry_run=)`** : rejoue les events failed/orphelins depuis stripe_webhook_events.payload (pas depuis Stripe). Branché sur `/api/admin/stripe-recovery?mode=db_replay`.
+
+**Livrables** :
+- `backend/server.py` — refactor complet endpoint + helpers `_claim_event`, `_mark_webhook`, `_spawn`, `_process_stripe_event_safe`, shutdown hook, `replay_pending_events`
+- `backend/migrations/2026_02_28_stripe_webhook_events_v2.sql` — index status/received, index session_id, colonne attempts, vue `stripe_webhook_health`, commentaire sur le garde-fou métier (payment_transactions.session_id PK + metadata.pdf_path suffisent chez nous)
+- `backend/tests/test_stripe_webhook_refactor.py` — 11 tests (8 initiaux + 3 nouveaux : reraise non-23505, reclaim failed row, concurrence)
+- `backend/routes/admin_payments.py` — payload `mode='db_replay'` sur `/api/admin/stripe-recovery`
+
+**Vérifs preview** :
+- Sans secret → 500 en 640 ms (Stripe rejouera)
+- Whitelist bloque `payment_intent.succeeded` → 200 en 137 ms sans écrire en DB
+- Bad signature → 400 en 409 ms (pas retry loop)
+- Sans table stripe_webhook_events → 500 volontaire "idempotency store unavailable" (Stripe rejouera après migration jouée)
+- 11/11 tests pytest pass en 3 s
+
+**Note stack** : `payment_transactions.session_id` est déjà PK unique + `metadata.pdf_path`/`pdf_status` traçent la livraison. Le garde-fou métier `UNIQUE(session_id, kind)` proposé par la review reste **commenté** dans la migration : redondant chez nous, mais utile si on ajoute une table de livraison dédiée un jour.
+
+
+## 2026-02-28 (nuit) — Recovery nocturne + onglet Santé paiements dans /admin
+
+**Livrables** :
+- `services/stripe_recovery_scheduler.py` — boucle `stripe_recovery_nightly_loop()` déclenchée toutes les nuits à 03h UTC, rejoue `recover_stuck_batch(days=1, dry_run=False)` sur les 24h. Envoie un email admin (rate-limité 1/jour) si au moins 1 session récupérée. Branché au startup FastAPI dans `server.py` (log confirmé : `boucle démarrée (déclenchement quotidien à 03h UTC, fenêtre 24h)`).
+- `pages/Admin.js` — nouvel onglet **Santé paiements** (icône HeartPulse) directement dans le tableau de bord `/admin`, avec :
+  - polling léger de `/api/admin/payments-health?days=30` au mount pour piloter le badge
+  - **badge rouge avec compteur** si `stuck_sessions_count > 10` (ex : `Santé paiements [47]`)
+  - point rouge discret si `overall_status === 'red'` mais < 10 sessions
+  - couleur border/text passe en rouge quand critique
+  - redirige vers `/admin/payments-health` au clic
+- Screenshot preview validé : le badge affiche **47** avec bordure rouge sur le compte admin actuel.
+
+Tests non-régression : `tests/test_stripe_webhook_refactor.py` 8/8 toujours pass.
+
+
+## 2026-02-28 (soir) — Refactor handler webhook Stripe (audit 3 pièges classiques)
+
+**Contexte** : après le premier fix diagnostic, un audit externe a soulevé les 3 pièges classiques qui cassent 90% des handlers webhook Stripe. Audit + fix :
+
+**Piège 1 (raw body)** : ✅ déjà OK — `await request.body()` (bytes) passé à `construct_event()`.
+
+**Piège 2 (< 30 s)** : ❌ cassé — les handlers PDF prennent 60-300 s → Stripe retry → doublons. Fixé :
+- Extraction du routing dans `_process_stripe_event_inner()` (module-level helper)
+- Endpoint léger : verify signature + idempotence + `asyncio.create_task()` + return 200 en < 500 ms
+- Wrapper `_process_stripe_event()` capture les exceptions et met à jour `stripe_webhook_events.status`
+
+**Piège 3 (idempotence event.id)** : ⚠️ partiel — flags métier existants, mais pas de guard global. Fixé :
+- Nouvelle table `public.stripe_webhook_events` (PK `event_id`)
+- Migration : `/app/backend/migrations/2026_02_28_stripe_webhook_events.sql`
+- INSERT en amont : PK conflict → retour idempotent
+- Colonnes `status` + `error_message` pour retry manuel via `/admin/payments-health`
+- Mode dégradé si table absente (logs warning, comportement inchangé)
+
+**Livrables** :
+- `backend/server.py` — refactor endpoint `POST /api/webhook/stripe` (endpoint léger + 2 helpers `_mark_webhook_done`/`_mark_webhook_failed` + wrapper `_process_stripe_event` + routing renommé `_process_stripe_event_inner`)
+- `backend/tests/test_stripe_webhook_refactor.py` — 8 tests pytest (raw body, construct_event, asyncio.create_task, wrapper exception-safe, idempotence insert, signature `_process_stripe_event_inner`, import asyncio module-level) → **8/8 pass en 6 s**
+- `backend/migrations/2026_02_28_stripe_webhook_events.sql` — migration à jouer manuellement dans SQL Editor
+- `memory/DIAGNOSTIC_STRIPE_WEBHOOK_HANDLER.md` — audit détaillé des 3 pièges + guide de test avec Stripe CLI
+
+**Vérif preview** : réponse `POST /api/webhook/stripe` sans secret → 503 en 500 ms ; avec bad signature → 400 en 100 ms. Test unit du wrapper : `_process_stripe_event` capture bien les exceptions sans propager.
+
+
+## 2026-02-28 — INCIDENT P0 Stripe : diagnostic + fondations recovery
+
+**Contexte** : audit marketing utilisateur remonte 22 checkouts Stripe échoués et 0 vente. Analyse complète front + back + Supabase :
+
+**Cause racine** : `STRIPE_WEBHOOK_SECRET` absent de `/app/backend/.env` (rendu obligatoire depuis SEC-001 en juillet 2026). Résultat : tous les webhooks Stripe entrants sont rejetés en 503 → aucune livraison PDF post-paiement.
+
+**Bilan Supabase** : sur 92 sessions Stripe RÉELLES en 60 jours, 82 en `initiated/unpaid`, 3 en `paid` via self-heal manuel, 4520,80 € de sessions potentiellement bloquées.
+
+**Recovery scan effectué** (dry-run, 82 sessions) : 73 `unknown_by_stripe` (ancien compte Stripe / expirées, non récupérables), 9 `abandoned` (vraiment non payées), **0 payées non délivrées** → BONNE NOUVELLE : personne n'a payé sans recevoir son PDF, les 22 abandons Stripe étaient de vrais abandons.
+
+**Livrable** :
+- `services/stripe_recovery.py` — service de scan + recovery avec `asyncio.to_thread` + `Semaphore(8)`, 82 sessions traitées en 12,9 s
+- `routes/admin_payments.py` — `GET /api/admin/payments-health`, `POST /api/admin/stripe-recovery`, `GET /api/admin/stripe-recovery/preview`
+- `services/webhook_alert.py` — email admin auto (rate-limité 1/h) déclenché depuis `/api/webhook/stripe` quand secret manquant ou signature invalide
+- `pages/AdminPaymentsHealth.jsx` — dashboard admin avec feu tricolore (rouge/orange/vert), KPIs (conversion, revenus, sessions bloquées, perte potentielle), tableau par pack, 20 dernières bloquées, boutons dry-run + run recovery
+- Fallback `self_heal_if_paid` ajouté aux 3 routes qui l'oubliaient : `lecture_complete`, `edition_reliee`, `consultation_ultime`
+- Rapport diagnostic complet : `/app/memory/DIAGNOSTIC_STRIPE_2026-02.md` avec 5 requêtes SQL Supabase prêtes à coller
+
+**Action utilisateur** (bloquée) : coller la valeur `STRIPE_WEBHOOK_SECRET` (à récupérer sur https://dashboard.stripe.com/webhooks) pour finaliser le fix. Endpoint à créer : `https://plume-astrale.fr/api/webhook/stripe`, events `checkout.session.completed` + refunds + subscriptions.
+
+
 
 ## 2026-02-25 — E2E test suite pour audit P0
 

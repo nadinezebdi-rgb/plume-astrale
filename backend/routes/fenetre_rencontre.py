@@ -295,7 +295,7 @@ async def _generate_and_email_pdf(email: str, pdf_ctx: dict, session_id: str = '
                 synastry_data = await relationship_compatibility(
                     birth_data, partner_birth_data, 'Toi', 'Partenaire', language='fr'
                 ) or {}
-            except:
+            except Exception:
                 pass  # Skip synastry si erreur
         
         # Générer PDF

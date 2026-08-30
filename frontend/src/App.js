@@ -51,6 +51,7 @@ import Compatibilite2 from "./pages/Compatibilite2";
 import Cercle from "./pages/Cercle";import Quotidien from "./pages/Quotidien";
 import CercleSolena from "./pages/CercleSolena";
 import AnalyticsAdmin from "./pages/AnalyticsAdmin";
+import AdminPaymentsHealth from "./pages/AdminPaymentsHealth";
 import BuyCredits from "./pages/BuyCredits";
 import CreditSuccess from "./pages/CreditSuccess";
 import Choix from "./pages/Choix";
@@ -76,6 +77,8 @@ import RencontresAstrales from "./pages/RencontresAstrales";
 import RencontresUltimeSucces from "./pages/RencontresUltimeSucces";
 import Bibliotheque from "./pages/Bibliotheque";
 import Desabonnement from "./pages/Desabonnement";
+import ComposerPage from "./pages/ComposerPage";
+import ComposerSucces from "./pages/ComposerSucces";
 import AuthenticatedHome from "./pages/AuthenticatedHome";
 import CTATestPage from "./pages/CTATestPage";
 import CreditsInfo from "./pages/CreditsInfo";
@@ -236,6 +239,7 @@ function App() {
                 <Route path="/admin/analytics" element={<AnalyticsAdmin />} />
                 <Route path="/admin/pdf-test" element={<AdminPdfTest />} />
                 <Route path="/admin/qr-stats" element={<AdminQrStats />} />
+                <Route path="/admin/payments-health" element={<AdminPaymentsHealth />} />
                 <Route path="/carte-cadeau" element={<GiftCardPurchase />} />
                 <Route path="/carte-cadeau/redeem/:code" element={<GiftCardRedeem />} />
                 <Route path="/carte-cadeau/merci" element={<GiftCardPurchase />} />
@@ -309,6 +313,8 @@ function App() {
                 <Route path="/synastrie/succes" element={<SynastrieSucces />} />
                 <Route path="/astrosexo" element={<Navigate to="/services/astrosexo" replace />} />
                 <Route path="/desabonnement" element={<Desabonnement />} />
+                <Route path="/composer" element={<ComposerPage />} />
+                <Route path="/composer/succes" element={<ComposerSucces />} />
                 {/* SEO P0 (2026-02-16) : catch-all 404 réel avec noindex */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -25,7 +25,179 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - **Design tokens** : préfixe `--ne-*` dans `/app/frontend/src/index.css` (additifs, non-breaking) + namespace Tailwind `nocturne.*`
 - **Composants Nocturne** : `.ne-btn` (plats, coins 2px, sans ombre) · `.ne-card` (filet 1px, hover translate 2px + ombre 24px 8%) · `.ne-input` (filet inférieur uniquement) · `.ne-section-night` / `.ne-section-paper` (grain SVG + halos radiaux)
 
-## What's implemented
+
+### 🎯 LOT 3 P0 — Pipeline PDF end-to-end livré (2026-02-16)
+
+**Fichiers créés** :
+- `/app/backend/services/book_engine/svg_bronze.py` — reskin post-traitement des SVGs Kerykeion (résout `var(--kerykeion-*)` en bronze `#B8935A` sur ivoire `#FBF7EE`, cairosvg-compatible, idempotent)
+- `/app/backend/services/book_engine/prose_generator.py` — chaîne de prompts anti-slop Claude Sonnet 4-6 pour le Chapitre IV « Votre façon d'aimer ». BLACKLIST stricte (49 tournures : « cosmique », « invite à », « révèle », « en effet », « plonger », etc.). Audit log en cas de détection.
+- `/app/backend/services/book_engine/pipeline.py` — orchestrateur : fetch astro → SVG bronze rasterizé → prose LLM → Manuscript → ReportLab PDF → upload Supabase Storage → statut idempotent
+- `/app/backend/tests/test_book_pipeline.py` — 9 tests (svg_bronze, prose, pipeline)
+
+**Endpoints nouveaux** :
+- `GET  /api/composer/status/{session_id}` — poll pour page succès (`{pdf_status, pdf_ready, pdf_url, pdf_pages, chapters}`)
+- `POST /api/composer/regenerate/{session_id}` — régénère un PDF (background par défaut, `?wait=true` pour bloquant)
+- Webhook Stripe `kind=composer_book` — déclenche `build_book_pdf_for_session` après paiement
+- Bypass promo `TOUT2026` — planifie `build_book_pdf_for_session` en `asyncio.create_task`
+
+**Validé E2E le 16/02/2026** :
+- 30 pages A5 générées (Chapitre I roue bronze + Chapitre IV LLM ~2200 mots + 10 placeholders + add-ons)
+- Claude Sonnet 4-6 : appel LLM 68s, JSON strict, 1 seule occurrence slop détectée (`plonger`) → audit log-only
+- Roue céleste bronze embarquée en Chapitre I : 1200×805px, glyphes zodiacaux + planètes + aspects + angles AS/MC en bronze sur ivoire (validation visuelle : superbe)
+- Upload Supabase Storage : `reports/pdfs/composer_book/{session_id}-v{ts}.pdf` avec URL publique signée
+- Idempotence : re-run sans `force=True` = skip
+- 25/25 tests unitaires composer + book engine passent, aucune régression
+
+**Dette connue** :
+- Supabase table `book_chapters` non seedée en preview → fallback local utilisé (6 slugs : `arbre_de_vie`, `astrocartographie`, `karma_destin`, `heure_retrouvee`, `etoiles_fixes`, `symboles_sabiens`)
+- 11/12 chapitres socle et 6/6 add-ons restent des placeholders légers (P1 : à écrire un par un avec la même chaîne anti-slop que le Chapitre IV)
+
+### 📖 LOT 3.4 — Structure des 12 chapitres + 6 add-on verrouillée (2026-03-15)
+
+### 📘 LOT 4.1 — Moteur PDF v2 (HTML + Chromium) livré (2026-02-16 soir)
+
+**Rupture architecturale** : ReportLab (moteur v1) → Chromium `--print-to-pdf` sur HTML/CSS/SVG (moteur v2, cf. `guide-mise-en-page-livre-astral.md` fourni par l'utilisateur). Les deux moteurs cohabitent tant que la parité n'est pas atteinte.
+
+**Fichiers créés** :
+- `/app/backend/services/book_engine_v2/css/book.css` — feuille de style unique en mm/pt (§0), palette normative (§3), profils `print`/`screen` (§1.1), marges symétriques recto/verso (§1.2), typographie française (hyphens, orphans, widows), polices Cormorant statiques @font-face
+- `/app/backend/services/book_engine_v2/templates/` — 7 gabarits Jinja2 (`book`, `_cover`, `_title`, `_chapter_opener`, `_wheel`, `_tables`, `_body`, `_blank`, `_colophon`) sans aucun style inline
+- `/app/backend/services/book_engine_v2/renderer.py` — assemble le livre (belle page pour chapitres, blanches d'ajustement, multiple de 4 §1), rend via Chromium (fallback WeasyPrint)
+- `/app/backend/services/book_engine_v2/wheel.py` — adapte les données astrology-io.io vers `natal_wheel.build_wheel()` du kit (planètes, cuspides, ascendant, aspects majeurs, distribution éléments/modes)
+- `/app/backend/services/book_engine_v2/pdf_qa.py` — 6 contrôles bloquants du §8 (format A5, pagination ÷4, polices toutes incorporées CID TrueType sans Type 3, aucun bitmap, aucun placeholder en profil print, roue carrée à ±0.2 mm)
+- `/app/backend/services/book_engine_v2/vendor/natal_wheel_kit.py` — générateur SVG carré du kit livré (copie exacte)
+- `/app/backend/routes/admin_book.py` — endpoints admin `/api/admin/book/generate/{sid}`, `/qa/{sid}`, `/preview.pdf`
+- `/app/backend/assets/book/fonts/` — 10 statiques Cormorant Garamond (Light, Regular, Medium, SemiBold, Bold + italiques) extraites depuis la variable Google Fonts via `fonttools` (§2.1 : jamais de variable)
+- `/app/backend/assets/book/assets/` — 10 SVG du kit (plume, plume-claire, plume-fine, plume-4barbes, plume-inclinee, logo-plume, logo-plume-degrade, porte-plume, separateur, wheel)
+- `/app/backend/tests/test_book_engine_v2.py` — 10 tests unitaires (wheel + renderer + QA)
+
+**Validation E2E le 16/02/2026 sur session Amélie (`promo_tout2026_6f1ccd6f5bd74569`)** :
+- PDF v2 32 pages A5 (148.2 × 209.9 mm) généré en ~2s via Chromium
+- Roue céleste carrée : rayon H 52.47 mm ≈ V 52.47 mm — Δ 0.00 mm (tolérance guide : 0.2 mm)
+- Cormorant Garamond incorporée en CID TrueType (subsetted, no Type 3) — polices système résiduelles utilisées uniquement pour les glyphes astro `♌ ☉ ♀…` (warn QA, non bloquant en `screen`)
+- Aucun bitmap dans le PDF (tout vectoriel)
+- Aucune veuve détectée sur le pilote Amélie
+- Tests : 10/10 nouveaux + 24/24 régression composer/book_v1 = 34/34 verts
+
+**Décisions de conception** :
+- Moteur v2 = Chromium par défaut, WeasyPrint en fallback si le binaire est absent (`shutil.which()`)
+- `book.css` unique (§0 règle 1), symlinks `book_engine_v2/{fonts,assets}` vers `assets/book/{fonts,assets}` pour la résolution CSS relative
+- Pour la roue céleste, on ignore désormais le SVG Kerykeion d'astrology-api.io (post-traitement du LOT 3 = obsolète) et on redessine avec `natal_wheel.build_wheel()` qui reçoit des longitudes brutes → SVG carré viewBox 1000×1000, garantit `|H-V| < 0.2 mm` (§5.2)
+- Chapitre I : la roue occupe une page entière seule, les tableaux positions+aspects passent en page suivante (§5.3)
+- La pagination folio commence à la page 5 (après cover / blank / title / blank)
+- Multiplicité de 4 assurée par ajout de blanches en fin de volume
+
+**Dette connue (à traiter en LOT 4.2)** :
+- Chapitres II, III, V à XII restent des placeholders légers → QA `check_no_placeholder_chapters` renvoie fail en profil `print` (comportement voulu §6.2). À compléter avec la chaîne anti-slop Claude Sonnet 4-6 existante.
+- Warn QA polices : 3 polices système résiduelles pour les glyphes astro. À traiter par embed de Noto Sans Symbols 2 en @font-face.
+- Le moteur v2 n'est PAS encore branché sur le webhook Stripe ni sur `TOUT2026` — le pipeline v1 reste actif. La bascule se fera au LOT 4.3 après completion des chapitres et validation utilisateur du rendu v2 sur Amélie.
+
+**Endpoints ajoutés (admin uniquement)** :
+- `POST /api/admin/book/generate/{session_id}?profile=screen|print` — génère le PDF v2 en local (aucune écriture Supabase/tx.metadata)
+- `GET  /api/admin/book/qa/{session_id}` — retourne le rapport JSON des 6 checks
+- `GET  /api/admin/book/preview.pdf?session_id=…` — sert le PDF pour visualisation
+
+
+
+**Fichiers créés** :
+- `/app/backend/services/book_engine/registry.py` — `ChapterSpec`, `Formule`, `SOCLE` (12), `ADDONS` (6), `FORMULES` (5) verrouillés en dataclasses immuables
+- `/app/backend/services/book_engine/cover_generator.py` — génération cover Nano Banana (gemini-3.1-flash-image-preview) + fallback sur COUVERTURE_PLUME_masked_1400.jpg
+
+**Structure éditoriale figée** :
+- **12 chapitres socle** = 120 pages cible : Votre ciel de naissance (I, 8p) · Les grandes lignes de vous (II, 8p) · Votre trio identitaire (III, 14p) · Votre façon d'aimer (IV, 10p) · Vos façons d'entrer en relation (V, 10p) · Vos forces naturelles (VI, 10p) · Vos passages étroits (VII, 12p) · Votre travail dans le monde (VIII, 10p) · Vos grandes dynamiques de vie (IX, 10p) · Le temps qui vous traverse (X, 10p) · Votre chemin personnel (XI, 10p) · Portrait astral (XII, 8p)
+- **6 chapitres add-on** en Deuxième partie (numérotation I à VI) : Arbre de Vie · Ailleurs (Astrocarto) · Voyage Karmique · Heure Retrouvée · Étoiles Fixes · Symboles Sabiens
+- **5 formules bundle** : L'Essentiel · La Traversée intérieure · L'Ailleurs qui appelle · L'Heure Retrouvée · Le Livre Complet (plafond 99€ · 184 pages)
+
+**Kickers manuscrits Allura** définis pour les 18 chapitres, phrases courtes évocatrices.
+
+**Cover Nano Banana** — playbook intégré via `integration_playbook_expert_v2` :
+- Modèle : `gemini-3.1-flash-image-preview`
+- `EMERGENT_LLM_KEY` (déjà en .env)
+- Prompt calibré : palette bleu nuit + or, cadran astral, zones texte réservées (haut 33% + bas 20% en fond uni pour overlay typo ReportLab)
+- Fallback : `COUVERTURE_PLUME_masked_1400.jpg` si génération échoue
+- Coût estimé : ~0,05€ / cover, idempotent par `session_id`
+
+**Statut** : structure verrouillée, cover generator prêt (non testé live pour économiser crédits). Prochaine étape : chapitre pilote complet (10 pages "Votre façon d'aimer" avec prose anti-slop) + roue céleste bronze SVG.
+
+### 📖 LOT 3 — Plume Astrale Book Rendering Engine (étapes 1-3, 2026-03-15)
+
+**Contexte** : refonte du système de génération PDF vers un moteur unifié séparant strictement contenu / design / impression, en préparation du pivot Livre Astral personnalisé (120 pages · A5 · Numérique 24€ / Broché 69€ / Reliée 119€).
+
+**Fichiers créés** :
+- `/app/backend/migrations/2026_03_book_manuscripts.sql` — table `book_manuscripts` avec JSONB par chapitre + `design_version` pour re-render post-refonte sans re-appel LLM
+- `/app/backend/services/book_engine/__init__.py` — package public
+- `/app/backend/services/book_engine/domain.py` — dataclasses typées (`Manuscript`, `Chapter`, `ChapterBlock`, `BlockKind` avec 15 types, `BirthData`, `PrintSpecs`, `Edition`, `EDITIONS`)
+- `/app/backend/services/book_engine/document.py` — `BookDocument` ReportLab A5 recto/verso + `render_manuscript_to_pdf()`
+- `/app/backend/tests/test_book_engine.py` — 6/6 PASS
+
+**Direction artistique verrouillée v3** :
+- Format A5 (148×210 mm), marges miroir gouttière 20mm / extérieur 16mm
+- Fond ivoire chaud `#FBF7EE`, texte anthracite `#1C1B26`, bronze mat `#B8935A`
+- Bleu nuit `#0F1A3C` réservé cover + garde
+- **Plume dorée** au canvas (rachis courbe + barbes), scalable, remplace tous les glyphes décoratifs
+- **Allura** (Google Fonts, OFL) embarquée + subsettée pour dédicaces, kickers manuscrits ("Ce que Vénus murmure de vous…"), messages de fin. JAMAIS pour corps ou citations.
+- Signature **PLUME ASTRALE** (jamais Soléna)
+- 4 polices embarquées : Cormorant Light + LightItalic + Cinzel + Allura + FreeSerif (fallback Helvetica)
+
+**Prototype disponible pour validation** : `/prototype_book_a5.pdf` (10 pages, direction artistique validée), `/pilot_book.pdf` (généré depuis le vrai moteur, 3 pages)
+
+**Action user pending** :
+- Migration SQL `2026_03_book_manuscripts.sql` à jouer dans Supabase production
+- Migration SQL `2026_03_book_chapters.sql` (LOT 1) toujours en attente
+
+**Statut** : moteur fonctionnel bout en bout. Prêt pour LOT 3.4 (structure des 12 chapitres) → LOT 3.5-12.
+
+
+
+### 🛒 LOT 2 — Frontend /composer L'Atelier wizard 4 étapes (2026-03-01)
+Le seul tunnel de commande du livre unifié. Un fichier `ComposerPage.jsx` + `ComposerSucces.jsx`.
+
+**Architecture** :
+- Étape 1 : email, prénom, date, **heure optionnelle** (si vide → hint dynamique "L'Heure Retrouvée vous sera proposée"), ville
+- Étape 2 : catalogue live via `GET /api/composer/chapters` (filtre `no_birth_time` selon présence heure), cartes sélectionnables avec `+29 €` / `+19 €` selon position, badge visuel de sélection, notice plafond 99 € quand atteint
+- Étape 3 : 3 éditions (Numérique 24 · Brochée 69 · Reliée 119) avec running total live
+- Étape 4 : récapitulatif complet + breakdown par chapitre + champ dédicace + recipient (si Brochée/Reliée) + CTA "Payer X € en toute sécurité" → redirect Stripe
+
+**Composants clefs** :
+- **PriceRail sticky bottom** : affiche `total_eur` + nombre de chapitres + pages en permanence
+- **Stepper cliquable** (retour possible aux étapes précédentes)
+- **Live quote** via `POST /api/composer/quote` à chaque changement (édition ou slug) — le prix est **toujours celui du serveur**
+- Filtre auto : si l'utilisateur avait coché "L'Heure Retrouvée" puis renseigne son heure, le chapitre est retiré silencieusement
+
+**Route ajoutée** : `/composer` et `/composer/succes` dans `App.js`.
+
+**Smoke test E2E validé** : parcours complet Numérique → 2 chapitres → Brochée → recap = 117 € (69+29+19) ✓ · Le prix live du rail passe bien de "—" à 72€ à 117€ ✓ · L'Heure Retrouvée visible uniquement si heure vide ✓ · Champ dédicace apparaît uniquement pour Brochée/Reliée ✓.
+
+**Fichiers créés (2)** :
+- `/app/frontend/src/pages/ComposerPage.jsx` (wizard 4 étapes, ~530 lignes styles inline)
+- `/app/frontend/src/pages/ComposerSucces.jsx` (polling état de commande post-Stripe)
+
+**Statut** : LOT 2 complet et validé E2E. Prochaine étape : LOT 3 (assemblage PDF dynamique — le webhook Stripe doit reconnaître `kind='composer_book'` et assembler base + chapitres).
+
+### 🛒 LOT 1 — Backend foundations /composer L'Atelier (2026-03-01)
+Pivot produit majeur : le **Thème Natal devient l'UNIQUE base** avec 3 tiers d'édition (Numérique 24€ / Broché 69€ / Relié 119€). Tous les autres rapports deviennent des "chapitres" optionnels ajoutés au livre unifié.
+
+**Règle de pricing serveur (source de vérité)** :
+- +29€ pour le 1er chapitre choisi
+- +19€ pour chaque chapitre suivant
+- Plafond 99€ sur la somme des chapitres uniquement (l'édition s'ajoute par-dessus)
+
+**Exemples** : Numérique seul = 24€ · Numérique + 2 chapitres = 72€ (24+29+19) · Broché + 3 chapitres = 136€ (69+29+19+19) · Reliée + 6 chapitres = 218€ (119+cap 99€).
+
+**Fichiers créés (4)** :
+- `/app/backend/migrations/2026_03_book_chapters.sql` — table `book_chapters` + seed 6 chapitres (arbre_de_vie · astrocartographie · karma_destin · heure_retrouvee · etoiles_fixes · symboles_sabiens) + RLS + policy lecture publique.
+- `/app/backend/services/book_composer_pricing.py` — moteur de pricing (`compute_quote`, `load_active_chapters`, `EDITIONS`). Fallback local si Supabase KO.
+- `/app/backend/routes/composer.py` — endpoints `GET /api/composer/chapters` · `POST /api/composer/quote` · `POST /api/composer/checkout`. Le prix est TOUJOURS recalculé côté serveur ; le client envoie l'édition + slugs, jamais un montant.
+- `/app/backend/tests/test_composer_pricing.py` — 19/19 tests PASS (règles 29/19/99, plafond, dédup, filtre heure_retrouvee, endpoints HTTP).
+
+**Config** : `edition_brochee` (69€) ajouté dans `config.PACKS` entre Numérique et Reliée.
+
+**Register** : `composer_router` inclus dans `server.py` (post voyage_karmique_router).
+
+**Chapitre spécial** : `heure_retrouvee` (rectification symbolique) n'apparaît dans le catalogue que si `no_birth_time=True`.
+
+**Statut** : LOT 1 complet et testé. Reste à jouer la migration SQL dans Supabase pour activer l'édition chaud du catalogue (fallback local en attendant).
+
+
 
 ### 🎬 Master Homepage Experience V3 — Phases 1-4 complètes (2026-02-27)
 

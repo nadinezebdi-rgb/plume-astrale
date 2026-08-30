@@ -1,5 +1,5 @@
 """
-Orchestrateur post-paiement pour le pack "theme_natal_pdf_oneshot" (29 EUR).
+Orchestrateur post-paiement pour le pack "theme_natal_pdf_oneshot" (24 EUR).
 Fetch les données natales v3 + enrichit avec GPT-5.4 + génère le PDF luxe + envoie l'email.
 
 Mirror du pattern services/kabbale_service.py.
@@ -95,6 +95,9 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     name = (pdf_ctx.get('first_name') or 'Ami(e)').strip()
     birth_date_iso = pdf_ctx.get('birth_date_iso') or ''
     bd = pdf_ctx.get('birth_data') or {}
+    # §V audit marque : heure absente = édition sans ascendant / sans maisons
+    no_birth_time = bool(pdf_ctx.get('no_birth_time'))
+    diag['no_birth_time'] = no_birth_time
 
     if not bd:
         logger.error(f"[theme_natal_oneshot] no birth_data for {session_id}")
@@ -156,7 +159,12 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         'moon_sign': _sign_fr('moon'),
         'venus_sign': _sign_fr('venus'),
         'mars_sign': _sign_fr('mars'),
-        'ascendant_sign': aio.sign_to_fr(asc_sign_en) if asc_sign_en else '',
+        # ⚠️ ascendant_sign VIDE si no_birth_time — même si l'API a calculé
+        # un ascendant avec l'heure par défaut 12h, il est faux 11 fois sur 12.
+        # Le générateur PDF (natal_pdf_adapter) le respecte et retire aussi
+        # 'Ascendant' du planet_list.
+        'ascendant_sign': '' if no_birth_time else (aio.sign_to_fr(asc_sign_en) if asc_sign_en else ''),
+        'no_birth_time': no_birth_time,
         'ai_interpretations': ai_result,
     }
 

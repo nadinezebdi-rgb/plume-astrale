@@ -54,8 +54,13 @@ async def karma_destin_checkout(
     
     if not payload.email or '@' not in payload.email:
         raise HTTPException(400, 'Email invalide.')
-    if not payload.birth_date or not payload.birth_time:
-        raise HTTPException(400, 'Date et heure de naissance requises.')
+    if not payload.birth_date:
+        raise HTTPException(400, 'Date de naissance requise.')
+
+    # §V audit marque Feb 2026 : heure de naissance OPTIONNELLE. Sans heure,
+    # PDF sortira en "Édition des Planètes" (skip nœuds/ascendant/maisons).
+    no_birth_time = not payload.birth_time or payload.birth_time.strip() in ('', '12:00', '12:00:00')
+    birth_time_effective = payload.birth_time or '12:00'
     
     host_url = str(request.base_url).rstrip('/')
     webhook_url = f'{host_url}/api/webhook/stripe'
@@ -68,7 +73,7 @@ async def karma_destin_checkout(
     # Préparer birth_data
     try:
         y, m, d = payload.birth_date[:10].split('-')
-        h, mi = payload.birth_time[:5].split(':')
+        h, mi = birth_time_effective[:5].split(':')
         birth_data = {
             'year': int(y), 'month': int(m), 'day': int(d),
             'hour': int(h), 'minute': int(mi),
@@ -82,12 +87,13 @@ async def karma_destin_checkout(
         if payload.birth_country:
             birth_data['country_code'] = payload.birth_country
     except Exception as e:
-        raise HTTPException(400, f'Format date/heure invalide : {e}')
+        raise HTTPException(400, f'Format date invalide : {e}')
     
     pdf_ctx = {
         'first_name': (payload.first_name or '').strip(),
         'birth_date_iso': payload.birth_date,
         'birth_data': birth_data,
+        'no_birth_time': no_birth_time,  # §V audit marque
     }
     
     # BYPASS PROMO

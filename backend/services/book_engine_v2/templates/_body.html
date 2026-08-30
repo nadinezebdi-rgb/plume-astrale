@@ -1,0 +1,12 @@
+{# Page corps — un bloc suit de texte avec H2, paragraphes, encarts, citations #}
+<section class="page {{ side }}">
+  <div class="block">
+    <div class="body-text">
+      {{ content_html|safe }}
+    </div>
+  </div>
+  <div class="folio">
+    <span>Le Livre Astral de {{ first_name }}</span>
+    <span>{{ folio }}</span>
+  </div>
+</section>

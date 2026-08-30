@@ -90,7 +90,7 @@ export default function SalesTrustBlock({
             Satisfait ou remboursé <span style={{ fontStyle: 'italic' }}>14 jours</span>
           </div>
           <div style={styles.hint}>
-            Sans condition. Un simple email à hello@plume-astrale.fr — remboursement sous 48h.
+            Sans condition. Un simple email à contact@plume-astrale.fr — remboursement sous 48h.
           </div>
         </div>
 

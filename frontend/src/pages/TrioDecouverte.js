@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 const API = process.env.REACT_APP_BACKEND_URL;
 
 const INCLUDED = [
-  { icon: Sun, name: 'Thème Natal Complet', price: 29, desc: 'PDF luxe 20-40 pages · 11 planètes + ascendant + maisons + aspects' },
+  { icon: Sun, name: 'Thème Natal Complet', price: 24, desc: 'PDF luxe à partir de 49 pages · 11 planètes + ascendant + maisons + aspects' },
   { icon: Star, name: 'Numérologie Sacrée', price: 19, desc: 'PDF 12 pages · chemin de vie, année personnelle, année maîtresse' },
   { icon: Moon, name: 'Arbre de Vie Kabbale', price: 39, desc: 'PDF 15 pages · les 10 sephiroth + tes correspondances' },
 ];

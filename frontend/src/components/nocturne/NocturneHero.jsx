@@ -30,25 +30,26 @@ export default function NocturneHero() {
               data-testid="nocturne-hero-title"
               style={{ color: 'var(--ne-celeste)' }}
             >
-              Votre ciel devient
+              Le seul cadeau qu&rsquo;on
               <span
                 className="ne-hero-title-accent"
                 style={{ fontFamily: '"Cormorant Garamond", "Playfair Display", Georgia, serif', fontStyle: 'italic', fontWeight: 500 }}
-              > un livre.</span>
+              > lit en entier avant de l&rsquo;offrir.</span>
             </h1>
 
             <p className="ne-hero-premium-lead ne-reveal ne-reveal-3" data-testid="nocturne-hero-lead">
-              À partir de vos données de naissance, Plume Astrale calcule, rédige et compose
-              une lecture qui ne ressemble qu&rsquo;à vous — livrée par email en moins de 60 secondes.
+              Un livre d&rsquo;au moins 49 pages composé à partir de sa minute exacte de naissance,
+              imprimé et relié en un seul exemplaire. Vous lisez tout avant que nous imprimions.
+              Chez elle en cinq jours.
             </p>
 
             <div className="ne-hero-actions ne-reveal ne-reveal-4">
               <Link
-                to="/inscription"
+                to="/edition-reliee"
                 className="ne-btn ne-btn-primary ne-hero-primary"
                 data-testid="nocturne-hero-cta-primary"
               >
-                Créer mon aperçu offert
+                Composer son livre — 119 €
                 <ArrowRight style={{ width: 17, height: 17 }} strokeWidth={1.7} />
               </Link>
               <Link
@@ -60,6 +61,21 @@ export default function NocturneHero() {
                 <BookOpen style={{ width: 16, height: 16 }} strokeWidth={1.5} />
                 Feuilleter un exemple
               </Link>
+            </div>
+
+            <div
+              className="ne-reveal ne-reveal-5"
+              data-testid="nocturne-hero-guarantees"
+              style={{
+                marginTop: 16,
+                fontSize: 13,
+                letterSpacing: '0.03em',
+                color: 'rgba(216, 183, 106, 0.72)',
+                fontFamily: '"Cormorant Garamond", Georgia, serif',
+                fontStyle: 'italic',
+              }}
+            >
+              Vous lisez avant qu&rsquo;on imprime · Expédié de France
             </div>
 
             <Link
@@ -94,7 +110,7 @@ export default function NocturneHero() {
               }}
             >
               <Sparkles style={{ width: 14, height: 14 }} strokeWidth={1.6} />
-              Voir l&rsquo;Édition Reliée — 149&nbsp;€
+              Voir l&rsquo;Édition Reliée — 119&nbsp;€
               <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.6} />
             </Link>
 
@@ -151,7 +167,7 @@ export default function NocturneHero() {
                 />
                 <div className="ne-hero-book-kicker">Édition personnelle</div>
                 <div className="ne-hero-book-name">Votre prénom</div>
-                <div className="ne-hero-book-subtitle">Thème natal &middot; 49 pages</div>
+                <div className="ne-hero-book-subtitle">Thème natal &middot; à partir de 49 pages</div>
               </div>
             </div>
 

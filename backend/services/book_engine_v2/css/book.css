@@ -1,0 +1,455 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Le Livre Astral — book.css — feuille de style unique
+   Réf : guide-mise-en-page-livre-astral.md (§0 règle non négociable n°1)
+
+   Convention : tout en millimètres et points, jamais de px, jamais de %
+   pour une dimension imprimée, jamais de vw/vh (§0 règle n°2).
+
+   Deux profils pilotés par la classe `body.screen` :
+     - body sans classe        → profil PRINT (fond blanc, papier ivoire chez l'imprimeur)
+     - body.screen             → profil SCREEN (fond crème #FBF7F0, pas de fonds perdus)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Palette normative (§3) — aucune couleur en dehors */
+:root {
+  --paper: #FFFFFF;             /* profil print — défaut */
+  --ink: #3E352C;               /* titres */
+  --text: #4A3F35;              /* texte courant */
+  --gold: #A8823F;              /* sur-titres, filets, plume */
+  --gold-soft: #C9AE7C;         /* traits secondaires, aspects de flux */
+  --gold-pale: #E3D6BC;         /* graduations, filets de tableau */
+  --band: #F3EBDC;              /* secteurs zodiacaux alternés */
+  --caption: #8A7C69;           /* légendes, notes */
+  --hair-thin: 0.3pt;           /* seuil minimal d'impression + marge */
+  --hair-med: 0.4pt;
+  --hair-thick: 0.7pt;          /* 0.25 mm plancher §3 */
+}
+body.screen {
+  --paper: #FBF7F0;             /* profil screen (fond crème) */
+}
+
+/* ── Polices statiques (§2.1) : jamais de variable, jamais de CDN ── */
+@font-face {
+  font-family: "Cormorant Garamond"; font-weight: 300; font-style: normal;
+  src: url("../fonts/CormorantGaramond-Light.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Cormorant Garamond"; font-weight: 400; font-style: normal;
+  src: url("../fonts/CormorantGaramond-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Cormorant Garamond"; font-weight: 500; font-style: normal;
+  src: url("../fonts/CormorantGaramond-Medium.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Cormorant Garamond"; font-weight: 600; font-style: normal;
+  src: url("../fonts/CormorantGaramond-SemiBold.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Cormorant Garamond"; font-weight: 700; font-style: normal;
+  src: url("../fonts/CormorantGaramond-Bold.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Cormorant Garamond"; font-weight: 300; font-style: italic;
+  src: url("../fonts/CormorantGaramond-LightItalic.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Cormorant Garamond"; font-weight: 400; font-style: italic;
+  src: url("../fonts/CormorantGaramond-Italic.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Cormorant Garamond"; font-weight: 500; font-style: italic;
+  src: url("../fonts/CormorantGaramond-MediumItalic.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Cormorant Garamond"; font-weight: 600; font-style: italic;
+  src: url("../fonts/CormorantGaramond-SemiBoldItalic.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Cormorant Garamond"; font-weight: 700; font-style: italic;
+  src: url("../fonts/CormorantGaramond-BoldItalic.ttf") format("truetype");
+}
+
+/* ── Page A5 148×210 (§1) — margins gérées en CSS, pas par le moteur ── */
+@page { size: 148mm 210mm; margin: 0; }
+
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--text);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 400;
+  font-variant-emoji: text;              /* empêche le rendu emoji couleur */
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  position: relative;
+  width: 148mm;
+  height: 210mm;
+  background: var(--paper);
+  overflow: hidden;
+  page-break-after: always;
+  break-after: page;
+  box-sizing: border-box;
+}
+.page:last-child { page-break-after: auto; break-after: auto; }
+
+/* Bloc de texte utile 110×168 (§1) — marges 20/18/20/22 avec inversion recto/verso (§1.2) */
+.block {
+  position: absolute;
+  top: 20mm;
+  width: 110mm;
+  height: 168mm;
+}
+.page.recto .block { left: 20mm; }        /* impaire : dos à gauche */
+.page.verso .block { left: 18mm; }        /* paire : dos à droite */
+.page.recto .plume.t, .page.recto .plume.b { left: 22mm; }
+.page.verso .plume.t, .page.verso .plume.b { right: 22mm; left: auto; }
+
+/* Folio (§1.2) — aligné bord extérieur, jamais en zone de sécurité */
+.folio {
+  position: absolute;
+  bottom: 12mm;
+  width: 110mm;
+  display: flex;
+  justify-content: space-between;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 400;
+  font-size: 7pt;
+  line-height: 10pt;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--caption);
+}
+.page.recto .folio { left: 20mm; }
+.page.verso .folio { left: 18mm; }
+
+/* ── Typographie française (§2) ─────────────────────────────────────── */
+p, li {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  orphans: 3;
+  widows: 3;
+}
+h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+h1, h2, h3, .chapno, .kicker { widows: 3; orphans: 3; }
+
+/* Corps de texte (§2) */
+.body-text {
+  font-size: 10.5pt;
+  line-height: 15.5pt;
+  color: var(--text);
+}
+.body-text p { margin: 0 0 3.5mm; }
+.body-text p + p { text-indent: 3.5mm; }
+.body-text p.no-indent, .body-text p:first-child { text-indent: 0; }
+
+/* Titre H2 fer à gauche (§2) */
+h2 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 400;
+  font-size: 14.5pt;
+  line-height: 19pt;
+  letter-spacing: 0.01em;
+  text-align: left;
+  margin: 0 0 3mm;
+  color: var(--ink);
+}
+.lede {
+  font-size: 10pt;
+  line-height: 15.5pt;
+  margin: 0 0 6mm;
+  color: var(--text);
+}
+
+/* ── Ouverture de chapitre (§6.1) ────────────────────────────────────── */
+.plume {
+  position: absolute;
+  height: 24mm;
+  width: auto;
+}
+.plume.t { top: 22mm; }
+.plume.b { bottom: 26mm; transform: rotate(180deg); }
+
+.chapter-opener .opener {
+  position: absolute;
+  top: 78mm;
+  width: 110mm;
+  text-align: center;
+}
+.page.recto.chapter-opener .opener { left: 20mm; }
+.page.verso.chapter-opener .opener { left: 18mm; }
+
+.chapno {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 400;
+  font-size: 8.5pt;
+  line-height: 12pt;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--gold);
+  margin: 0 0 7mm;
+}
+h1 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 300;
+  font-size: 23pt;
+  line-height: 27pt;
+  text-align: center;
+  margin: 0 0 6mm;
+  color: var(--ink);
+  text-transform: none;                  /* jamais en capitales (§2) */
+}
+.kicker {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 300;
+  font-style: italic;
+  font-size: 13pt;
+  line-height: 19.5pt;
+  text-align: center;
+  color: var(--gold);
+  margin: 0;
+}
+
+/* ── Page carte du ciel (§5.3) ───────────────────────────────────────── */
+.page-wheel .block {
+  height: auto;                          /* le titre + chapeau seulement, pas la hauteur pleine */
+}
+.wheel {
+  display: block;
+  position: absolute;
+  left: 16mm;
+  top: 60mm;
+  width: 116mm;
+  height: 116mm;                         /* OBLIGATOIRE — identique à width */
+  aspect-ratio: 1 / 1;                   /* ceinture et bretelles (§5.2) */
+}
+/* Quand la roue est un SVG inline dans un <div class="wheel">, on force le SVG
+   enfant à remplir son parent (le SVG du kit a width="1000" en dur). */
+.wheel > svg { display: block; width: 100%; height: 100%; }
+.caption {
+  position: absolute;
+  top: 181mm;
+  left: 16mm;
+  width: 116mm;
+  margin: 0;
+  font-size: 8pt;
+  line-height: 12pt;
+  letter-spacing: 0.05em;
+  text-align: center;
+  color: var(--caption);
+}
+.caption b { font-weight: 400; color: var(--gold); }
+
+/* ── Tableaux positions et aspects (§5.6) ────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 9pt;
+  line-height: 13pt;
+  color: var(--text);
+}
+th {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 400;
+  font-size: 7.5pt;
+  line-height: 10.5pt;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-align: left;
+  padding: 0 0 2mm;
+  border-bottom: var(--hair-med) solid var(--gold-pale);
+}
+td {
+  padding: 1.6mm 0;
+  border-bottom: var(--hair-thin) solid #EDE3D2;
+  font-variant-numeric: tabular-nums;
+}
+td.g {
+  font-family: "DejaVu Sans", "Noto Sans Symbols 2", "Cormorant Garamond", serif;
+  font-size: 11pt;
+  color: var(--gold);
+  width: 9mm;
+  padding-right: 1mm;
+}
+td.n {
+  text-align: right;
+  white-space: nowrap;
+  color: var(--text);
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 8mm;
+}
+
+/* Aspects — liste sur deux colonnes */
+.aspects-block { margin-top: 7mm; font-size: 8.5pt; line-height: 12.5pt; }
+.aspects-block ul {
+  padding: 0; margin: 3mm 0 0;
+  columns: 2; column-gap: 8mm;
+  list-style: none;
+}
+.aspects-block li { margin-bottom: 1.2mm; break-inside: avoid; }
+.aspects-block .glyph {
+  font-family: "DejaVu Sans", "Noto Sans Symbols 2", serif;
+  color: var(--gold);
+}
+
+.legend {
+  margin-top: 5mm;
+  font-size: 7.5pt;
+  line-height: 11pt;
+  color: var(--caption);
+}
+.legend .swatch-row {
+  display: flex; gap: 9mm; align-items: center; margin-bottom: 2mm;
+}
+.legend .swatch {
+  display: inline-flex; align-items: center; gap: 2mm;
+}
+
+/* ── Séparateur dans le texte (§4.4) ─────────────────────────────────── */
+.separator {
+  display: block;
+  width: 24mm;
+  height: auto;
+  margin: 6mm auto;
+}
+
+/* ── Encart, citation, respiration (préservation du LOT 3) ───────────── */
+.encart {
+  margin: 6mm 6mm;
+  padding: 5mm 6mm;
+  border-top: var(--hair-med) solid var(--gold-pale);
+  border-bottom: var(--hair-med) solid var(--gold-pale);
+  font-style: italic;
+  font-size: 10.5pt;
+  line-height: 15.5pt;
+  color: var(--ink);
+  text-align: left;
+}
+.encart .label {
+  display: block;
+  font-style: normal;
+  font-size: 7.5pt;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 3mm;
+}
+
+.quote-literary {
+  margin: 8mm 12mm;
+  font-style: italic;
+  font-size: 12pt;
+  line-height: 17pt;
+  text-align: center;
+  color: var(--ink);
+}
+.quote-literary .source {
+  display: block;
+  margin-top: 3mm;
+  font-style: normal;
+  font-size: 8.5pt;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--caption);
+}
+.quote-breath {
+  margin: 12mm 14mm;
+  text-align: center;
+  font-style: italic;
+  font-size: 13pt;
+  line-height: 19pt;
+  color: var(--gold);
+}
+
+/* ── Cover (§6) ──────────────────────────────────────────────────────── */
+.page-cover {
+  background: var(--paper);
+}
+.page-cover .cover-inner {
+  position: absolute;
+  top: 40mm; left: 0; right: 0;
+  text-align: center;
+}
+.page-cover .brand {
+  font-size: 8.5pt;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 8mm;
+}
+.page-cover .cover-title {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 300;
+  font-size: 32pt;
+  line-height: 38pt;
+  color: var(--ink);
+  margin: 0 0 6mm;
+}
+.page-cover .cover-firstname {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 300;
+  font-style: italic;
+  font-size: 18pt;
+  line-height: 24pt;
+  color: var(--gold);
+  margin: 0 0 20mm;
+}
+.page-cover .cover-logo {
+  display: block;
+  margin: 0 auto;
+  height: 34mm;
+}
+.page-cover .cover-birthline {
+  position: absolute;
+  bottom: 30mm;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 8pt;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--caption);
+}
+
+/* ── Colophon (§6) ───────────────────────────────────────────────────── */
+.page-colophon {
+  text-align: center;
+}
+.page-colophon .colophon-inner {
+  position: absolute;
+  top: 60mm; left: 0; right: 0;
+  padding: 0 20mm;
+}
+.page-colophon .plume-mark {
+  display: block;
+  margin: 0 auto 10mm;
+  height: 16mm;
+}
+.page-colophon p {
+  font-size: 9pt;
+  line-height: 14pt;
+  color: var(--caption);
+  text-align: center;
+  margin: 0 0 3mm;
+}
+.page-colophon .edition {
+  font-size: 8.5pt;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-top: 6mm;
+}
+
+/* ── Blank (§6) ──────────────────────────────────────────────────────── */
+.page-blank { background: var(--paper); }
+.page-blank .folio { display: none; }    /* ni folio ni titre courant (§6) */

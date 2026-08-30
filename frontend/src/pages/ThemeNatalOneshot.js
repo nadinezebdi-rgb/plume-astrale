@@ -111,8 +111,9 @@ const ThemeNatalOneshot = () => {
     if (!form.first_name.trim()) return setError('Prénom requis');
     // birth_date_fr est prioritaire (masque local), sinon utilise birth_date ISO existant
     const isoDate = form.birth_date || toISO(form.birth_date_fr);
-    if (!isoDate || !form.birth_time) return setError('Date et heure de naissance requises (JJ/MM/AAAA et HH:MM)');
+    if (!isoDate) return setError('Date de naissance requise (JJ/MM/AAAA)');
     if (!form.birth_city.trim()) return setError('Ville de naissance requise');
+    // §V audit marque Feb 2026 : heure OPTIONNELLE, on passe en "Édition des Planètes" sans elle
     setLoading(true);
     try {
       const r = await axios.post(
@@ -144,8 +145,8 @@ const ThemeNatalOneshot = () => {
     <div className="min-h-screen relative" style={{ padding: '110px 20px 140px' }} data-testid="theme-natal-oneshot-page">
       <SEO
         path="/theme-natal"
-        title="Ton Thème Natal Complet · 29€ · Plume Astrale"
-        description="Un PDF luxe de 20 à 40 pages : tes 11 planètes, ton ascendant, tes maisons, tes aspects — signature éditoriale Plume Astrale. Reçu par email en 3 minutes."
+        title="Ton Thème Natal Complet · 24€ · Plume Astrale"
+        description="Un PDF luxe à partir de 49 pages : tes 11 planètes, ton ascendant, tes maisons, tes aspects — signature éditoriale Plume Astrale. Reçu par email en 3 minutes."
       />
 
       <div className="max-w-4xl mx-auto">
@@ -181,14 +182,14 @@ const ThemeNatalOneshot = () => {
               lineHeight: 1.6,
             }}
           >
-            Un document luxe de 20 à 40 pages qui décode ton ciel de naissance —
+            Un document luxe à partir de 49 pages qui décode ton ciel de naissance —
             11 planètes, ascendant, maisons, aspects, signature éditoriale Plume Astrale.
           </p>
           <div className="inline-flex items-baseline gap-2 mb-2" data-testid="theme-natal-oneshot-price">
             <span
               style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 48, fontWeight: 300, color: '#D4AF37' }}
             >
-              29€
+              24€
             </span>
             <span className="text-xs" style={{ color: 'rgba(227,215,255,0.55)', letterSpacing: '0.2em' }}>
               · PAIEMENT UNIQUE
@@ -224,7 +225,7 @@ const ThemeNatalOneshot = () => {
         {/* F500 Trust block — garantie + comparateur + cadre */}
         <div style={{ marginBottom: 40, marginLeft: -20, marginRight: -20 }}>
           <SalesTrustBlock
-            priceMain="29€"
+            priceMain="24€"
             marketPrice="150-250€"
             marketLabel="consultation astro"
             theme="dark"
@@ -239,7 +240,7 @@ const ThemeNatalOneshot = () => {
               className="plume-btn-primary"
               data-testid="theme-natal-oneshot-cta-start"
             >
-              Recevoir mon Thème Natal — 29€
+              Recevoir mon Thème Natal — 24€
               <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
             </button>
             <p className="text-xs mt-4" style={{ color: 'rgba(227,215,255,0.7)', letterSpacing: '0.1em' }}>
@@ -301,7 +302,7 @@ const ThemeNatalOneshot = () => {
                 </div>
                 <div>
                   <label className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
-                    Heure naiss. (HH:MM, 24h)
+                    Heure naiss. (HH:MM, 24h) — optionnel
                   </label>
                   <input
                     type="text"
@@ -313,6 +314,13 @@ const ThemeNatalOneshot = () => {
                     data-testid="theme-natal-oneshot-birthtime"
                     className="w-full mt-2 px-4 py-3 rounded-xl bg-plume-night-soft/60 border border-plume-gold/20 text-plume-lavender focus:outline-none focus:border-plume-gold/60"
                   />
+                  {(!form.birth_time || form.birth_time === '12:00') && (
+                    <p className="mt-2 text-xs leading-relaxed" style={{ color: 'rgba(212,175,55,0.75)' }} data-testid="theme-natal-no-birth-time-notice">
+                      Sans heure exacte, votre livre sera composé en <em>Édition des Planètes</em> :
+                      Soleil, Lune et les 8 autres planètes — sans ascendant ni maisons, car ceux-ci
+                      changent au fil des heures et nous ne les écrivons pas s'ils ne sont pas sûrs.
+                    </p>
+                  )}
                 </div>
               </div>
               <div>

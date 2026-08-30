@@ -1,0 +1,14 @@
+{# Ouverture de chapitre — toujours en belle page (§1), plume haute + basse (§6.1) #}
+<section class="page chapter-opener {{ side }}">
+  <img class="plume t" src="{{ asset('plume.svg') }}" alt="">
+  <img class="plume b" src="{{ asset('plume-claire.svg') }}" alt="">
+  <div class="opener">
+    <p class="chapno">Chapitre&nbsp;&nbsp;{{ roman_num }}</p>
+    <h1>{{ title }}</h1>
+    {% if kicker %}<p class="kicker">{{ kicker }}</p>{% endif %}
+  </div>
+  <div class="folio">
+    <span>Le Livre Astral de {{ first_name }}</span>
+    <span>{{ folio }}</span>
+  </div>
+</section>

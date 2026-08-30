@@ -57,7 +57,7 @@ const SERVICES = [
   {
     title: 'Thème Natal',
     desc: 'Onze planètes qui racontent qui tu es vraiment.',
-    price: '29€',
+    price: '24€',
     to: '/theme-natal',
   },
   {
@@ -100,7 +100,7 @@ export default function Homepage() {
   const [flipbookBook, setFlipbookBook] = useState(null);
 
   const FEATURED_BOOKS = [
-    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '39€', to: '/theme-natal' },
+    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: 'À partir de 49 pages · 11 planètes décodées',   price: '24€', to: '/theme-natal' },
     { slug: 'kabbale',           title: 'Arbre de Vie · Kabbale',   tagline: '10 Sephiroth · 22 chemins',         price: '39€',    to: '/kabbale' },
     { slug: 'astrocartographie', title: 'Astrocartographie',        tagline: '7 lignes planétaires sur le monde', price: '49€',    to: '/astrocartographie' },
   ];
@@ -116,12 +116,30 @@ export default function Homepage() {
       {/* ═══ SECTION 1 · HERO NOCTURNE ÉDITORIAL ═══ */}
       <NocturneHero />
 
+      {/* ═══ SECTION 1.05 · DEUXIÈME BLOC ACCUEIL (chapitre XII audit marque Feb 2026) ═══ */}
+      <section className="ps-section ps-section-dark" data-testid="home-second-block" style={{ padding: '80px 24px' }}>
+        <div className="ps-container" style={{ maxWidth: 720, margin: '0 auto', textAlign: 'left' }}>
+          <p className="ps-body" style={{
+            color: 'rgba(247,245,240,0.88)',
+            fontFamily: '"Cormorant Garamond", Georgia, serif',
+            fontSize: '1.35rem',
+            fontStyle: 'italic',
+            lineHeight: 1.7,
+            margin: 0,
+          }}>
+            Vous cherchez depuis une heure. Vous avez vu la bougie, le coffret, le bracelet gravé.<br/>
+            Tous ces cadeaux disent la même chose&nbsp;: <em>j&rsquo;ai pensé à toi.</em><br/>
+            Aucun ne dit&nbsp;: <strong style={{ color: '#C9A24B', fontStyle: 'normal' }}>je te connais.</strong>
+          </p>
+        </div>
+      </section>
+
       {/* ═══ SECTION 1.1 · TRUST BAR — garanties + livraison + support ═══ */}
       <TrustBar variant="dense" />
 
       {/* ═══ SECTION 2 · FEUILLETER — REMONTÉE en haut suite audit UX 2026-02-27
               La visiteuse veut voir CE QU'ELLE RECEVRA avant tout autre discours.
-              PDF illustré (39-49€) clairement étiqueté, distinct de l'Édition Reliée 149€. ═══ */}
+              PDF illustré (24€) clairement étiqueté, distinct de l'Édition Reliée 119€. ═══ */}
       <section className="ps-section ps-section-dark" data-testid="ps-flipbook-teaser">
         <CelestialBackdrop density={90} shootingStars={false} />
         <div className="ps-container" style={{ position: 'relative', zIndex: 1 }}>
@@ -136,7 +154,7 @@ export default function Homepage() {
             </p>
             <p className="ps-body" style={{ color: 'rgba(201,162,75,0.9)', fontSize: 13, marginTop: 12 }}>
               ✦ Ces trois lectures sont livrées en <strong>PDF illustré</strong> (à télécharger).
-              L&apos;<Link to="/edition-reliee" style={{ color: '#C9A24B' }}>Édition Reliée 149€</Link> est un livre imprimé, expédié chez vous.
+              L&apos;<Link to="/edition-reliee" style={{ color: '#C9A24B' }}>Édition Reliée 119€</Link> est un livre imprimé, expédié chez vous.
             </p>
           </div>
 

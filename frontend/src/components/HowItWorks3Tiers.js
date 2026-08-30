@@ -50,7 +50,7 @@ const TIERS = [
     title: 'PDF Signature',
     subtitle: 'Une lecture-signature, gardée pour toujours',
     items: [
-      'Thème Natal Signature · 49 pages · 39€',
+      'Thème Natal Signature · à partir de 49 pages · 24€',
       'Astrologie relationnelle · 25 pages · 29€',
       'Voyage karmique · 39 pages · 49€',
     ],
