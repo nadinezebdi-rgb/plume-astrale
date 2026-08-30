@@ -224,6 +224,7 @@ export default function ComposerPage() {
                   cs.includes(slug) ? cs.filter((s) => s !== slug) : [...cs, slug]
                 )
               }
+              onApplyFormula={(addons) => setSelectedChapters(addons)}
               quote={quote}
               noBirthTime={noBirthTime}
             />
@@ -351,19 +352,57 @@ function StepBirthData({ birth, setBirth }) {
 // ═══════════════════════════════════════════════════════════════
 // STEP 2 · Choix des chapitres
 // ═══════════════════════════════════════════════════════════════
-function StepChapters({ catalog, loading, error, selected, onToggle, quote, noBirthTime }) {
+function StepChapters({ catalog, loading, error, selected, onToggle, quote, noBirthTime, onApplyFormula }) {
   if (loading) return <p style={bodyStyle}>Chargement du catalogue…</p>;
   if (error) return <p style={{ ...bodyStyle, color: '#E8916B' }}>{error}</p>;
   if (!catalog) return null;
+
+  const formulas = [
+    { slug: 'essentiel', label: "L'Essentiel", tagline: 'Je veux comprendre mon ciel, sans plus.', addons: [] },
+    { slug: 'traversee_interieure', label: 'La Traversée intérieure', tagline: "Je me cherche, je veux savoir d'où je viens et où je vais.", addons: ['karma_destin', 'arbre_de_vie'] },
+    { slug: 'ailleurs', label: "L'Ailleurs qui appelle", tagline: "J'hésite entre plusieurs lieux, plusieurs vies.", addons: ['astrocartographie'] },
+    { slug: 'heure_retrouvee', label: "L'Heure Retrouvée", tagline: "Je n'ai pas mon heure exacte, mais je veux un vrai livre.", addons: ['heure_retrouvee', 'symboles_sabiens'] },
+    { slug: 'complet', label: 'Le Livre Complet', tagline: 'Je veux tout, sans compromis.',
+      addons: ['arbre_de_vie', 'astrocartographie', 'karma_destin', 'etoiles_fixes', 'symboles_sabiens'] },
+  ];
 
   return (
     <section data-testid="composer-step-chapters">
       <h2 style={h2Style}>Vos chapitres</h2>
       <p style={bodyStyle}>
         Le Thème Natal complet est <b>toujours inclus</b> — 49 pages qui composent le socle.
-        Ajoutez ce qui vous parle : le premier chapitre coûte 29 €, chaque suivant 19 €,
-        <b> et le pack "tout compris" est plafonné à 99 €</b>. Aucun impact sur le calcul si vous
-        changez d'avis à l'étape suivante.
+        Choisissez une formule adaptée à ce que vous cherchez, ou composez vous-même votre livre.
+      </p>
+
+      {/* 5 Formules — accès rapide */}
+      <p style={{ ...eyebrow, marginTop: 22 }}>NOS FORMULES</p>
+      <div data-testid="composer-formulas" style={formulasGrid}>
+        {formulas.map((f) => {
+          const selectedSlugs = new Set(selected);
+          const formulaSlugs = new Set(f.addons);
+          const isActive = formulaSlugs.size === selectedSlugs.size &&
+            [...formulaSlugs].every((s) => selectedSlugs.has(s));
+          return (
+            <button
+              key={f.slug}
+              type="button"
+              onClick={() => onApplyFormula(f.addons)}
+              data-testid={`composer-formula-${f.slug}`}
+              data-active={isActive}
+              style={{ ...formulaCard, ...(isActive ? formulaCardActive : {}) }}
+            >
+              <span style={formulaLabel}>{f.label}</span>
+              <span style={formulaTagline}>« {f.tagline} »</span>
+              {isActive && <span style={formulaCheck} aria-hidden>✓</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Composition à la carte */}
+      <p style={{ ...eyebrow, marginTop: 28 }}>À LA CARTE</p>
+      <p style={{ ...bodyStyle, fontSize: '0.92rem', color: '#B9B0D5', margin: '4px 0 14px' }}>
+        Le premier chapitre coûte 29 €, chaque suivant 19 €, et le pack "tout compris" est plafonné à 99 €.
       </p>
 
       <div style={chaptersGrid}>
@@ -636,7 +675,13 @@ const input = { display: 'block', width: '100%', marginTop: 6, padding: '11px 14
 const twoCols = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 };
 const hintBox = { marginTop: 24, padding: '16px 18px', background: 'rgba(232,199,102,0.06)', border: '1px solid rgba(212,175,55,0.22)', borderRadius: 4, color: '#F5EEE0' };
 
-const chaptersGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14, marginTop: 22 };
+const chaptersGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14, marginTop: 12 };
+const formulasGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12, marginTop: 10 };
+const formulaCard = { position: 'relative', padding: '16px 18px', background: 'rgba(11,26,46,0.7)', border: '1px solid rgba(212,175,55,0.22)', borderRadius: 6, color: '#F5EEE0', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.18s', display: 'flex', flexDirection: 'column', gap: 6 };
+const formulaCardActive = { borderColor: '#D4AF37', background: 'rgba(212,175,55,0.10)', boxShadow: '0 0 20px rgba(212,175,55,0.14)' };
+const formulaLabel = { fontFamily: '"Playfair Display", serif', fontSize: '1.05rem', color: '#F5EEE0' };
+const formulaTagline = { fontSize: '0.85rem', color: '#B9B0D5', fontStyle: 'italic', lineHeight: 1.4 };
+const formulaCheck = { position: 'absolute', top: 8, right: 10, width: 22, height: 22, borderRadius: '50%', background: '#D4AF37', color: '#0F1A3C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: '0.75rem' };
 const chapterCard = { position: 'relative', padding: '20px 18px', background: 'rgba(11,26,46,0.7)', border: '1px solid rgba(212,175,55,0.25)', borderRadius: 6, color: '#F5EEE0', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.18s' };
 const chapterCardSelected = { borderColor: '#D4AF37', background: 'rgba(212,175,55,0.10)', boxShadow: '0 0 24px rgba(212,175,55,0.15)' };
 const chapterHead = { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 };

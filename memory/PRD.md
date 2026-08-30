@@ -25,6 +25,33 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - **Design tokens** : préfixe `--ne-*` dans `/app/frontend/src/index.css` (additifs, non-breaking) + namespace Tailwind `nocturne.*`
 - **Composants Nocturne** : `.ne-btn` (plats, coins 2px, sans ombre) · `.ne-card` (filet 1px, hover translate 2px + ombre 24px 8%) · `.ne-input` (filet inférieur uniquement) · `.ne-section-night` / `.ne-section-paper` (grain SVG + halos radiaux)
 
+
+### 🎯 LOT 3 P0 — Pipeline PDF end-to-end livré (2026-02-16)
+
+**Fichiers créés** :
+- `/app/backend/services/book_engine/svg_bronze.py` — reskin post-traitement des SVGs Kerykeion (résout `var(--kerykeion-*)` en bronze `#B8935A` sur ivoire `#FBF7EE`, cairosvg-compatible, idempotent)
+- `/app/backend/services/book_engine/prose_generator.py` — chaîne de prompts anti-slop Claude Sonnet 4-6 pour le Chapitre IV « Votre façon d'aimer ». BLACKLIST stricte (49 tournures : « cosmique », « invite à », « révèle », « en effet », « plonger », etc.). Audit log en cas de détection.
+- `/app/backend/services/book_engine/pipeline.py` — orchestrateur : fetch astro → SVG bronze rasterizé → prose LLM → Manuscript → ReportLab PDF → upload Supabase Storage → statut idempotent
+- `/app/backend/tests/test_book_pipeline.py` — 9 tests (svg_bronze, prose, pipeline)
+
+**Endpoints nouveaux** :
+- `GET  /api/composer/status/{session_id}` — poll pour page succès (`{pdf_status, pdf_ready, pdf_url, pdf_pages, chapters}`)
+- `POST /api/composer/regenerate/{session_id}` — régénère un PDF (background par défaut, `?wait=true` pour bloquant)
+- Webhook Stripe `kind=composer_book` — déclenche `build_book_pdf_for_session` après paiement
+- Bypass promo `TOUT2026` — planifie `build_book_pdf_for_session` en `asyncio.create_task`
+
+**Validé E2E le 16/02/2026** :
+- 30 pages A5 générées (Chapitre I roue bronze + Chapitre IV LLM ~2200 mots + 10 placeholders + add-ons)
+- Claude Sonnet 4-6 : appel LLM 68s, JSON strict, 1 seule occurrence slop détectée (`plonger`) → audit log-only
+- Roue céleste bronze embarquée en Chapitre I : 1200×805px, glyphes zodiacaux + planètes + aspects + angles AS/MC en bronze sur ivoire (validation visuelle : superbe)
+- Upload Supabase Storage : `reports/pdfs/composer_book/{session_id}-v{ts}.pdf` avec URL publique signée
+- Idempotence : re-run sans `force=True` = skip
+- 25/25 tests unitaires composer + book engine passent, aucune régression
+
+**Dette connue** :
+- Supabase table `book_chapters` non seedée en preview → fallback local utilisé (6 slugs : `arbre_de_vie`, `astrocartographie`, `karma_destin`, `heure_retrouvee`, `etoiles_fixes`, `symboles_sabiens`)
+- 11/12 chapitres socle et 6/6 add-ons restent des placeholders légers (P1 : à écrire un par un avec la même chaîne anti-slop que le Chapitre IV)
+
 ### 📖 LOT 3.4 — Structure des 12 chapitres + 6 add-on verrouillée (2026-03-15)
 
 **Fichiers créés** :

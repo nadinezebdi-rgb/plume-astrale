@@ -1258,6 +1258,28 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
             logger.warning(f'[trio_decouverte] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'trio_decouverte'}
 
+    # Route vers Composer Book handler si kind=composer_book (pivot livre unifié, LOT 3)
+    if md.get('kind') == 'composer_book':
+        from services.book_engine.pipeline import build_book_pdf_for_session
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            # Marque la transaction comme payée avant de lancer le pipeline
+            try:
+                sb2 = get_admin_client()
+                sb2.table('payment_transactions').update({
+                    'status': 'complete',
+                    'payment_status': 'paid',
+                    'credits_granted': True,
+                }).eq('session_id', session_id).execute()
+            except Exception as e:
+                logger.warning(f'[composer_book] tx paid update fail: {e}')
+            # Lance la génération PDF (peut prendre 30-90s avec LLM)
+            import asyncio as _asyncio
+            _asyncio.create_task(build_book_pdf_for_session(session_id))
+        except Exception as e:
+            logger.warning(f'[composer_book] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'composer_book'}
+
     # Route vers Thème Natal one-shot handler si kind=theme_natal_pdf_oneshot (pack 29 EUR, Gary Vee refonte 2026-02)
     if md.get('kind') == 'theme_natal_pdf_oneshot':
         from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook

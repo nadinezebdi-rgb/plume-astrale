@@ -262,7 +262,13 @@ async def composer_checkout(payload: CheckoutPayload, request: Request):
             }).execute()
         except Exception as e:
             logger.warning(f'[composer] promo insert failed: {e}')
-        # TODO LOT 3.5 : déclencher ici le pipeline de génération PDF en background
+        # Déclenche le pipeline de génération PDF en arrière-plan
+        try:
+            import asyncio as _asyncio
+            from services.book_engine.pipeline import build_book_pdf_for_session
+            _asyncio.create_task(build_book_pdf_for_session(fake_session_id))
+        except Exception as e:
+            logger.warning(f'[composer] pipeline schedule failed: {e}')
         logger.info(f'[composer] Promo {promo["code"]} applied for {payload.email} → session {fake_session_id}')
         return {
             'url': f'{origin}/composer/succes?session_id={fake_session_id}&promo=1',
@@ -350,3 +356,50 @@ async def composer_checkout(payload: CheckoutPayload, request: Request):
             'total_pages': q.total_pages,
         },
     }
+
+
+@router.get('/status/{session_id}')
+async def composer_status(session_id: str):
+    """Poll pour la page de succès : renvoie l'état de la génération PDF.
+
+    Réponse : {status, pdf_ready, pdf_url, pdf_pages, edition}
+    """
+    try:
+        sb = get_admin_client()
+        row = sb.table('payment_transactions').select('*').eq(
+            'session_id', session_id
+        ).limit(1).execute()
+    except Exception as e:
+        raise HTTPException(500, f'Supabase read failed: {e}')
+    if not row.data:
+        raise HTTPException(404, 'session inconnue')
+    tx = row.data[0]
+    md = tx.get('metadata') or {}
+    pdf_status = md.get('pdf_status')  # None | 'success' | 'failed'
+    return {
+        'status': tx.get('status'),
+        'payment_status': tx.get('payment_status'),
+        'pdf_status': pdf_status,
+        'pdf_ready': pdf_status == 'success',
+        'pdf_url': md.get('pdf_supabase_url') or md.get('pdf_path'),
+        'pdf_pages': md.get('pdf_pages'),
+        'edition': md.get('edition'),
+        'chapters': md.get('chapters') or [],
+    }
+
+
+@router.post('/regenerate/{session_id}')
+async def composer_regenerate(session_id: str, wait: bool = False):
+    """Force la régénération du PDF.
+
+    Par défaut : lance en tâche de fond et retourne immédiatement (pour éviter
+    les 502 de Cloudflare sur les longs appels LLM).
+    Avec `?wait=true` : bloquant, utile en local pour debug.
+    """
+    from services.book_engine.pipeline import build_book_pdf_for_session
+    if wait:
+        diag = await build_book_pdf_for_session(session_id, force=True)
+        return diag
+    import asyncio as _asyncio
+    _asyncio.create_task(build_book_pdf_for_session(session_id, force=True))
+    return {'scheduled': True, 'session_id': session_id}
