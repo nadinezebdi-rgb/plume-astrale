@@ -25,6 +25,28 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - **Design tokens** : préfixe `--ne-*` dans `/app/frontend/src/index.css` (additifs, non-breaking) + namespace Tailwind `nocturne.*`
 - **Composants Nocturne** : `.ne-btn` (plats, coins 2px, sans ombre) · `.ne-card` (filet 1px, hover translate 2px + ombre 24px 8%) · `.ne-input` (filet inférieur uniquement) · `.ne-section-night` / `.ne-section-paper` (grain SVG + halos radiaux)
 
+### 📖 LOT 3.4 — Structure des 12 chapitres + 6 add-on verrouillée (2026-03-15)
+
+**Fichiers créés** :
+- `/app/backend/services/book_engine/registry.py` — `ChapterSpec`, `Formule`, `SOCLE` (12), `ADDONS` (6), `FORMULES` (5) verrouillés en dataclasses immuables
+- `/app/backend/services/book_engine/cover_generator.py` — génération cover Nano Banana (gemini-3.1-flash-image-preview) + fallback sur COUVERTURE_PLUME_masked_1400.jpg
+
+**Structure éditoriale figée** :
+- **12 chapitres socle** = 120 pages cible : Votre ciel de naissance (I, 8p) · Les grandes lignes de vous (II, 8p) · Votre trio identitaire (III, 14p) · Votre façon d'aimer (IV, 10p) · Vos façons d'entrer en relation (V, 10p) · Vos forces naturelles (VI, 10p) · Vos passages étroits (VII, 12p) · Votre travail dans le monde (VIII, 10p) · Vos grandes dynamiques de vie (IX, 10p) · Le temps qui vous traverse (X, 10p) · Votre chemin personnel (XI, 10p) · Portrait astral (XII, 8p)
+- **6 chapitres add-on** en Deuxième partie (numérotation I à VI) : Arbre de Vie · Ailleurs (Astrocarto) · Voyage Karmique · Heure Retrouvée · Étoiles Fixes · Symboles Sabiens
+- **5 formules bundle** : L'Essentiel · La Traversée intérieure · L'Ailleurs qui appelle · L'Heure Retrouvée · Le Livre Complet (plafond 99€ · 184 pages)
+
+**Kickers manuscrits Allura** définis pour les 18 chapitres, phrases courtes évocatrices.
+
+**Cover Nano Banana** — playbook intégré via `integration_playbook_expert_v2` :
+- Modèle : `gemini-3.1-flash-image-preview`
+- `EMERGENT_LLM_KEY` (déjà en .env)
+- Prompt calibré : palette bleu nuit + or, cadran astral, zones texte réservées (haut 33% + bas 20% en fond uni pour overlay typo ReportLab)
+- Fallback : `COUVERTURE_PLUME_masked_1400.jpg` si génération échoue
+- Coût estimé : ~0,05€ / cover, idempotent par `session_id`
+
+**Statut** : structure verrouillée, cover generator prêt (non testé live pour économiser crédits). Prochaine étape : chapitre pilote complet (10 pages "Votre façon d'aimer" avec prose anti-slop) + roue céleste bronze SVG.
+
 ### 📖 LOT 3 — Plume Astrale Book Rendering Engine (étapes 1-3, 2026-03-15)
 
 **Contexte** : refonte du système de génération PDF vers un moteur unifié séparant strictement contenu / design / impression, en préparation du pivot Livre Astral personnalisé (120 pages · A5 · Numérique 24€ / Broché 69€ / Reliée 119€).
