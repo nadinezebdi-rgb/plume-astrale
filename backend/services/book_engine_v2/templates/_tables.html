@@ -1,0 +1,62 @@
+{# Page tableaux positions + aspects — §5.6 #}
+<section class="page page-tables {{ side }}">
+  <div class="block">
+    <h2>Positions et aspects</h2>
+    <div class="grid2">
+      <table>
+        <tr><th colspan="4">Planètes</th></tr>
+        {% for row in planets_left %}
+        <tr>
+          <td class="g">{{ row.glyph }}&#xFE0E;</td>
+          <td>{{ row.name }}</td>
+          <td class="n">{{ row.position }}{% if row.retrograde %} ℞{% endif %}</td>
+          <td class="n">{{ row.house }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      <table>
+        <tr><th colspan="4">&nbsp;</th></tr>
+        {% for row in planets_right %}
+        <tr>
+          <td class="g">{{ row.glyph }}&#xFE0E;</td>
+          <td>{{ row.name }}</td>
+          <td class="n">{{ row.position }}{% if row.retrograde %} ℞{% endif %}</td>
+          <td class="n">{{ row.house }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div class="aspects-block">
+      <table><tr><th colspan="2">Aspects majeurs</th></tr></table>
+      <ul>
+        {% for a in aspects %}
+        <li>
+          <span class="glyph">{{ a.glyph_a }}&#xFE0E;</span>
+          {{ a.name }}
+          <span class="glyph">{{ a.glyph_b }}&#xFE0E;</span>
+          &nbsp;—&nbsp; orbe {{ a.orb }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="legend">
+      <div class="swatch-row">
+        <span class="swatch">
+          <svg height="4" width="30"><line x1="0" y1="2" x2="30" y2="2" stroke="#A8823F" stroke-width="1.1"/></svg>
+          Aspects de tension (carré, opposition)
+        </span>
+        <span class="swatch">
+          <svg height="4" width="30"><line x1="0" y1="2" x2="30" y2="2" stroke="#C9AE7C" stroke-width="1" stroke-dasharray="6 5"/></svg>
+          Aspects de flux (trigone, sextile)
+        </span>
+      </div>
+      {{ distribution_line }}
+    </div>
+  </div>
+  <div class="folio">
+    <span>Le Livre Astral de {{ first_name }}</span>
+    <span>{{ folio }}</span>
+  </div>
+</section>

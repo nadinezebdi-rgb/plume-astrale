@@ -54,6 +54,50 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 ### 📖 LOT 3.4 — Structure des 12 chapitres + 6 add-on verrouillée (2026-03-15)
 
+### 📘 LOT 4.1 — Moteur PDF v2 (HTML + Chromium) livré (2026-02-16 soir)
+
+**Rupture architecturale** : ReportLab (moteur v1) → Chromium `--print-to-pdf` sur HTML/CSS/SVG (moteur v2, cf. `guide-mise-en-page-livre-astral.md` fourni par l'utilisateur). Les deux moteurs cohabitent tant que la parité n'est pas atteinte.
+
+**Fichiers créés** :
+- `/app/backend/services/book_engine_v2/css/book.css` — feuille de style unique en mm/pt (§0), palette normative (§3), profils `print`/`screen` (§1.1), marges symétriques recto/verso (§1.2), typographie française (hyphens, orphans, widows), polices Cormorant statiques @font-face
+- `/app/backend/services/book_engine_v2/templates/` — 7 gabarits Jinja2 (`book`, `_cover`, `_title`, `_chapter_opener`, `_wheel`, `_tables`, `_body`, `_blank`, `_colophon`) sans aucun style inline
+- `/app/backend/services/book_engine_v2/renderer.py` — assemble le livre (belle page pour chapitres, blanches d'ajustement, multiple de 4 §1), rend via Chromium (fallback WeasyPrint)
+- `/app/backend/services/book_engine_v2/wheel.py` — adapte les données astrology-io.io vers `natal_wheel.build_wheel()` du kit (planètes, cuspides, ascendant, aspects majeurs, distribution éléments/modes)
+- `/app/backend/services/book_engine_v2/pdf_qa.py` — 6 contrôles bloquants du §8 (format A5, pagination ÷4, polices toutes incorporées CID TrueType sans Type 3, aucun bitmap, aucun placeholder en profil print, roue carrée à ±0.2 mm)
+- `/app/backend/services/book_engine_v2/vendor/natal_wheel_kit.py` — générateur SVG carré du kit livré (copie exacte)
+- `/app/backend/routes/admin_book.py` — endpoints admin `/api/admin/book/generate/{sid}`, `/qa/{sid}`, `/preview.pdf`
+- `/app/backend/assets/book/fonts/` — 10 statiques Cormorant Garamond (Light, Regular, Medium, SemiBold, Bold + italiques) extraites depuis la variable Google Fonts via `fonttools` (§2.1 : jamais de variable)
+- `/app/backend/assets/book/assets/` — 10 SVG du kit (plume, plume-claire, plume-fine, plume-4barbes, plume-inclinee, logo-plume, logo-plume-degrade, porte-plume, separateur, wheel)
+- `/app/backend/tests/test_book_engine_v2.py` — 10 tests unitaires (wheel + renderer + QA)
+
+**Validation E2E le 16/02/2026 sur session Amélie (`promo_tout2026_6f1ccd6f5bd74569`)** :
+- PDF v2 32 pages A5 (148.2 × 209.9 mm) généré en ~2s via Chromium
+- Roue céleste carrée : rayon H 52.47 mm ≈ V 52.47 mm — Δ 0.00 mm (tolérance guide : 0.2 mm)
+- Cormorant Garamond incorporée en CID TrueType (subsetted, no Type 3) — polices système résiduelles utilisées uniquement pour les glyphes astro `♌ ☉ ♀…` (warn QA, non bloquant en `screen`)
+- Aucun bitmap dans le PDF (tout vectoriel)
+- Aucune veuve détectée sur le pilote Amélie
+- Tests : 10/10 nouveaux + 24/24 régression composer/book_v1 = 34/34 verts
+
+**Décisions de conception** :
+- Moteur v2 = Chromium par défaut, WeasyPrint en fallback si le binaire est absent (`shutil.which()`)
+- `book.css` unique (§0 règle 1), symlinks `book_engine_v2/{fonts,assets}` vers `assets/book/{fonts,assets}` pour la résolution CSS relative
+- Pour la roue céleste, on ignore désormais le SVG Kerykeion d'astrology-api.io (post-traitement du LOT 3 = obsolète) et on redessine avec `natal_wheel.build_wheel()` qui reçoit des longitudes brutes → SVG carré viewBox 1000×1000, garantit `|H-V| < 0.2 mm` (§5.2)
+- Chapitre I : la roue occupe une page entière seule, les tableaux positions+aspects passent en page suivante (§5.3)
+- La pagination folio commence à la page 5 (après cover / blank / title / blank)
+- Multiplicité de 4 assurée par ajout de blanches en fin de volume
+
+**Dette connue (à traiter en LOT 4.2)** :
+- Chapitres II, III, V à XII restent des placeholders légers → QA `check_no_placeholder_chapters` renvoie fail en profil `print` (comportement voulu §6.2). À compléter avec la chaîne anti-slop Claude Sonnet 4-6 existante.
+- Warn QA polices : 3 polices système résiduelles pour les glyphes astro. À traiter par embed de Noto Sans Symbols 2 en @font-face.
+- Le moteur v2 n'est PAS encore branché sur le webhook Stripe ni sur `TOUT2026` — le pipeline v1 reste actif. La bascule se fera au LOT 4.3 après completion des chapitres et validation utilisateur du rendu v2 sur Amélie.
+
+**Endpoints ajoutés (admin uniquement)** :
+- `POST /api/admin/book/generate/{session_id}?profile=screen|print` — génère le PDF v2 en local (aucune écriture Supabase/tx.metadata)
+- `GET  /api/admin/book/qa/{session_id}` — retourne le rapport JSON des 6 checks
+- `GET  /api/admin/book/preview.pdf?session_id=…` — sert le PDF pour visualisation
+
+
+
 **Fichiers créés** :
 - `/app/backend/services/book_engine/registry.py` — `ChapterSpec`, `Formule`, `SOCLE` (12), `ADDONS` (6), `FORMULES` (5) verrouillés en dataclasses immuables
 - `/app/backend/services/book_engine/cover_generator.py` — génération cover Nano Banana (gemini-3.1-flash-image-preview) + fallback sur COUVERTURE_PLUME_masked_1400.jpg
