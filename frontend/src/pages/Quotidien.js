@@ -330,7 +330,7 @@ const Quotidien = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm mb-0.5 transition-colors duration-300 group-hover:text-[#D4AF37]" style={{ color: 'var(--pa-heading)' }}>
-                        Tarologie & M&eacute;diumni&eacute; — 35 EUR
+                        Tarologie & Lecture Symbolique — 35 EUR
                       </p>
                       <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Lecture compl&egrave;te et PDF personnalis&eacute;</p>
                     </div>

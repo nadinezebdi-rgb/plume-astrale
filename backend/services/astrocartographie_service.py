@@ -198,14 +198,14 @@ async def handle_astrocartographie_webhook(session_id: str) -> None:
     # 6) Envoi email
     if email and pdf_bytes:
         try:
-            await _send_astrocarto_email(email, first_name, pdf_bytes, filename, session_id=session_id)
+            await _send_astrocarto_email(email, first_name, pdf_bytes, filename, pdf_url=md.get('pdf_supabase_url', ''), session_id=session_id)
             md['email_sent_at'] = datetime.now(timezone.utc).isoformat()
             sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
         except Exception as e:
             logger.warning(f"[astrocarto] email failed for {session_id}: {e}")
 
 
-async def _send_astrocarto_email(email: str, first_name: str, pdf_bytes: bytes, filename: str, session_id: str | None = None) -> None:
+async def _send_astrocarto_email(email: str, first_name: str, pdf_bytes: bytes, filename: str, pdf_url: str = '', session_id: str | None = None) -> None:
     from services.email_journal import log_send_attempt, log_send_response
 
     api_key = os.environ.get('RESEND_API_KEY', '').strip()
@@ -223,6 +223,16 @@ async def _send_astrocarto_email(email: str, first_name: str, pdf_bytes: bytes, 
 
     pdf_b64 = base64.b64encode(pdf_bytes).decode('ascii')
     fn = (first_name or 'ami(e)').strip()
+
+    download_block = (
+        f'<div style="margin-top:24px;padding:20px;background:#1A2035;border:1px solid rgba(212,175,55,0.15);border-radius:12px;text-align:center;">'
+        f'<a href="{pdf_url}" style="display:inline-block;background:#D4AF37;color:#111625;font-weight:700;padding:14px 30px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;">Télécharger ton document →</a>'
+        f'</div>'
+    ) if pdf_url else (
+        '<div style="margin-top:24px;padding:20px;background:#1A2035;border:1px solid rgba(212,175,55,0.15);border-radius:12px;text-align:center;">'
+        '<div style="font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#D4AF37;margin-bottom:8px;">✦ Ton document est en pièce jointe ✦</div>'
+        '</div>'
+    )
 
     html = f"""
     <div style="max-width:600px;margin:0 auto;font-family:'Cormorant Garamond',Georgia,serif;color:#F5EEE0;background:#111625;padding:40px 24px;">
@@ -247,14 +257,10 @@ async def _send_astrocarto_email(email: str, first_name: str, pdf_bytes: bytes, 
           <li><strong>2 destinations bonus</strong> que Soléna te dédie personnellement</li>
           <li>Une <strong>synthèse</strong> pour t'aider à choisir + un rituel d'ancrage</li>
         </ul>
-        <div style="margin-top:24px;padding:20px;background:#1A2035;border:1px solid rgba(212,175,55,0.15);border-radius:12px;text-align:center;">
-          <div style="font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#D4AF37;margin-bottom:8px;">
-            ✦ Ton document est en pièce jointe ✦
-          </div>
-          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;color:#E3D7FF;">
-            Une tasse de thé, une carte du monde ouverte à côté.<br>
-            La géographie de ton âme t'attend.
-          </div>
+        {download_block}
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;color:#E3D7FF;text-align:center;margin-top:16px;">
+          Une tasse de thé, une carte du monde ouverte à côté.<br>
+          La géographie de ton âme t'attend.
         </div>
         <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(212,175,55,0.15);text-align:center;">
           <div style="font-family:'Cormorant Garamond',serif;font-style:italic;color:#F5EEE0;font-size:20px;">
@@ -269,26 +275,28 @@ async def _send_astrocarto_email(email: str, first_name: str, pdf_bytes: bytes, 
     </div>
     """
 
+    MAX_ATTACH = 30 * 1024 * 1024  # marge sous la limite Resend (40 Mo)
+    payload = {'from': sender, 'to': [email], 'subject': subject, 'html': html}
+    if pdf_bytes and len(pdf_bytes) <= MAX_ATTACH:
+        payload['attachments'] = [{'filename': filename, 'content': pdf_b64}]
+
     async with httpx.AsyncClient(timeout=30) as client:
         r = await client.post(
             'https://api.resend.com/emails',
             headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
-            json={
-                'from': sender, 'to': [email], 'subject': subject, 'html': html,
-                'attachments': [{'filename': filename, 'content': pdf_b64}],
-            },
+            json=payload,
         )
-        resend_id = None
-        try:
-            resend_id = r.json().get('id') if r.status_code < 300 else None
-        except Exception:
-            pass
-        log_send_response(
-            row_id, http_status=r.status_code, resend_id=resend_id,
-            body=None if r.status_code < 300 else r.text,
-            to_email=email, subject=subject, product='astrocartographie', session_id=session_id,
-        )
-        if r.status_code >= 400:
-            logger.warning(f"[astrocarto] Resend error {r.status_code}: {r.text[:300]}")
-        else:
-            logger.info(f"[astrocarto] Email sent to {email}")
+    resend_id = None
+    try:
+        resend_id = r.json().get('id') if r.status_code < 300 else None
+    except Exception:
+        pass
+    log_send_response(
+        row_id, http_status=r.status_code, resend_id=resend_id,
+        body=None if r.status_code < 300 else r.text,
+        to_email=email, subject=subject, product='astrocartographie', session_id=session_id,
+    )
+    if r.status_code >= 400:
+        logger.warning(f"[astrocarto] Resend error {r.status_code}: {r.text[:300]}")
+    else:
+        logger.info(f"[astrocarto] Email sent to {email}")
