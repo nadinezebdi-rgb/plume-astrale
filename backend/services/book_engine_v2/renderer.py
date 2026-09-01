@@ -179,7 +179,7 @@ def _side(page_number: int) -> str:
     return 'recto' if page_number % 2 == 1 else 'verso'
 
 
-def _build_page_specs(m: Manuscript) -> list[PageSpec]:
+def _build_page_specs(m: Manuscript, *, cover_png_path: Optional[Path] = None) -> list[PageSpec]:
     """Ordonne les pages du livre selon §6 du guide.
 
     Ordre canonique :
@@ -203,11 +203,15 @@ def _build_page_specs(m: Manuscript) -> list[PageSpec]:
     page_num = 1
 
     # 1. Couverture (recto, pas de folio)
+    cover_bg_url = None
+    if cover_png_path and Path(cover_png_path).exists():
+        cover_bg_url = Path(cover_png_path).resolve().as_uri()
     specs.append(PageSpec('_cover.html', {
         'first_name': m.first_name,
         'birth_date_fr': date_fr,
         'birth_time_fr': time_fr,
         'birth_city': city,
+        'cover_bg_url': cover_bg_url,
     }, counts_in_pagination=False))
     page_num += 1
 
@@ -333,12 +337,14 @@ def _label_edition(e) -> str:
 # ═══════════════════════════════════════════════════════════════════
 # Rendu HTML complet
 # ═══════════════════════════════════════════════════════════════════
-def render_manuscript_to_html(manuscript: Manuscript, *, profile: str = 'print') -> str:
+def render_manuscript_to_html(manuscript: Manuscript, *, profile: str = 'print',
+                              cover_png_path: Optional[Path] = None) -> str:
     """Compose le book.html complet.
 
     profile ∈ {'print', 'screen'} — voir §1.1 du guide.
+    cover_png_path : PNG optionnel (Nano Banana) posé en fond de couverture.
     """
-    specs = _build_page_specs(manuscript)
+    specs = _build_page_specs(manuscript, cover_png_path=cover_png_path)
 
     def _asset(name: str) -> str:
         return _asset_url(ASSETS_DIR, name)
@@ -403,12 +409,15 @@ def _render_pdf_weasyprint(html_path: Path, out_path: Path) -> None:
     HTML(filename=str(html_path)).write_pdf(str(out_path))
 
 
-def render_manuscript_to_pdf_v2(manuscript: Manuscript, *, profile: str = 'print') -> bytes:
+def render_manuscript_to_pdf_v2(manuscript: Manuscript, *, profile: str = 'print',
+                                 cover_png_path: Optional[Path] = None) -> bytes:
     """Point d'entrée : Manuscript → bytes PDF.
 
     Utilise Chromium par défaut ; bascule sur WeasyPrint si Chromium absent.
+    `cover_png_path` : PNG facultatif (Nano Banana) à poser en fond de couverture.
     """
-    html_str = render_manuscript_to_html(manuscript, profile=profile)
+    html_str = render_manuscript_to_html(manuscript, profile=profile,
+                                          cover_png_path=cover_png_path)
     with tempfile.TemporaryDirectory(prefix='book_v2_') as tmp:
         tmp_dir = Path(tmp)
         html_path = tmp_dir / 'book.html'

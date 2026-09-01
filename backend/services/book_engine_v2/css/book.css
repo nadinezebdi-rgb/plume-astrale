@@ -70,6 +70,19 @@ body.screen {
   src: url("../fonts/CormorantGaramond-BoldItalic.ttf") format("truetype");
 }
 
+/* Police à glyphes astro (§2, §5.4) : Noto Sans Symbols 2 couvre tous les glyphes
+   zodiacaux (♈-♓), planétaires (☉ ☽ ☿ ♀ ♂ ♃ ♄ ♅ ♆ ♇), et les nœuds/aspects.
+   On l'utilise via `font-family: "Astro"` pour empêcher toute substitution système. */
+@font-face {
+  font-family: "Astro";
+  font-weight: 400; font-style: normal;
+  src: url("../fonts/NotoSansSymbols2-Regular.ttf") format("truetype");
+  /* Ne charge que les points de code des glyphes astrologiques (§2.1 subset). */
+  unicode-range: U+2600-26FF, U+2295-2298, U+260A-260D, U+263F-2647, U+2648-2653,
+                 U+26B3-26B7, U+26E4-26E7, U+2295, U+2650-2653, U+2E97, U+26BD,
+                 U+2318;
+}
+
 /* ── Page A5 148×210 (§1) — margins gérées en CSS, pas par le moteur ── */
 @page { size: 148mm 210mm; margin: 0; }
 
@@ -273,7 +286,7 @@ td {
   font-variant-numeric: tabular-nums;
 }
 td.g {
-  font-family: "DejaVu Sans", "Noto Sans Symbols 2", "Cormorant Garamond", serif;
+  font-family: "Astro", "Cormorant Garamond", serif;
   font-size: 11pt;
   color: var(--gold);
   width: 9mm;
@@ -299,7 +312,7 @@ td.n {
 }
 .aspects-block li { margin-bottom: 1.2mm; break-inside: avoid; }
 .aspects-block .glyph {
-  font-family: "DejaVu Sans", "Noto Sans Symbols 2", serif;
+  font-family: "Astro", "Cormorant Garamond", serif;
   color: var(--gold);
 }
 

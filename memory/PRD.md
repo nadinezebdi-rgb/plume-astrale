@@ -98,6 +98,39 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 
 
+
+### 📚 LOT 4.2 — Livre complet, cover Nano Banana, bascule v2 en production (2026-02-16 nuit)
+
+**Ce qui est livré**
+
+1. **Les 12 chapitres du socle sont écrits** — plus aucun placeholder en profil `screen`. Chaque chapitre a son propre user-prompt ancré dans les données astrales exactes (degré, signe, maison), sa signature-extractor et son fallback JSON. Les 11 nouveaux prompts sont dans `/app/backend/services/book_engine_v2/chapter_prompts.py`. La chaîne anti-slop Claude Sonnet 4-6 est réutilisée intégralement depuis le LOT 3 (SYSTEM_PROMPT + BLACKLIST 49 tournures).
+
+2. **Cover personnalisée Nano Banana** — Gemini 3.1 flash image preview via `EMERGENT_LLM_KEY`, prompt normatif bronze/ivoire (aucune couleur hors palette, aucun texte, silhouette de plume en pied, constellations Soleil + Lune + figure allégorique Ascendant). Résultat pour Amélie (Taureau/Capricorne/Vierge) : cadran cosmique en ligne claire éditoriale, cache sur signature (`hash(sun|moon|asc|first_name)` → PNG local dans `/app/backend/assets/book/covers_cache/`).
+
+3. **Noto Sans Symbols 2 embarqué** — police à glyphes astrologique déclarée sous l'alias `Astro` en `@font-face` avec `unicode-range` limité aux points de code zodiacaux/planétaires. Le SVG de la roue céleste voit sa `font-family` réécrite pour prioriser `Astro`. La `Fedora fontconfig` fallback vers Segoe UI Symbol est éliminée.
+
+4. **Moteur v2 branché sur le pipeline de production** — flag `USE_V2_ENGINE=1` dans `backend/.env`. Le webhook Stripe (`kind=composer_book`) et le bypass promo `TOUT2026` déclenchent maintenant `build_full_manuscript` (12 appels LLM en parallèle limités à 3 concurrents, avec `asyncio.to_thread` pour libérer le event loop des appels bloquants `litellm.completion`), puis `render_manuscript_to_pdf_v2`, puis upload Supabase Storage. Le moteur v1 ReportLab reste disponible en flip du flag (`USE_V2_ENGINE=0`).
+
+**Validation E2E 16/02/2026 sur Amélie (`promo_tout2026_6f1ccd6f5bd74569`)**
+- 32 pages A5, ÷4, 148.2 × 209.9 mm — conforme
+- Roue céleste carrée : rayon H 52.47 mm = V 52.47 mm, Δ 0.00 mm
+- Ascendant Vierge 10°15, Milieu du Ciel Gémeaux 4°47 — corrects après fix d'extraction des cuspides depuis `chart_data.house_cusps`
+- Aucun bitmap, aucun placeholder, 12/12 chapitres avec vraie prose Claude Sonnet 4-6
+- Warn polices : 2 fallback (`FreeMono`, `LiberationSerif`) pour caractères hors Cormorant/Astro (chiffres tabulaires, ligatures) — non bloquant, `emb yes`, pas de Type 3
+- Tests : 44/44 verts (10 v2 + 9 v1 + 25 régression)
+
+**Bugs découverts + corrigés en cours de route**
+- `_call_claude` de `book_engine.prose_generator` bloquait le event loop (litellm.completion synchrone dans un `async def` fictif d'emergentintegrations). Fix : wrap dans `asyncio.to_thread` avec sa propre boucle interne. Idem pour `cover_generator.generate_cover_image`.
+- `_fetch_astro` n'exposait pas les cuspides → cover Nano Banana appelée avec Asc vide et roue céleste sans cuspides précises. Fix : ajout de `houses[]` normalisées avec `absolute_longitude`.
+- `wheel._to_longitude_deg` ignorait `absolute_longitude` (format astrology-io v3). Fix : lecture prioritaire de `absolute_longitude` si présent.
+
+**Dette restante (LOT 4.3)**
+- Le texte overlay de la couverture (`Le Livre Astral / de Amélie / date · heure · ville`) chevauche l'illustration Nano Banana → ajouter un masque ivoire semi-transparent 60 % sur les zones de texte.
+- Certaines cover Nano Banana peuvent contenir un texte parasite (le prompt dit "no text" mais Gemini triche parfois) → à monitorer, filtrer par OCR si récurrent.
+- Chapitres XI/XII sont un peu plus courts (~1800 mots) que l'objectif 2200 → affiner leurs prompts pour tenir 10 pages.
+- Les 6 add-ons restent des placeholders. À écrire au LOT 5.
+- 2 polices système résiduelles → à couvrir par un `@font-face` de Cormorant Garamond avec `unicode-range: U+0030-0039, U+2000-206F` explicite ou par un embed complet de la fonte.
+
 **Fichiers créés** :
 - `/app/backend/services/book_engine/registry.py` — `ChapterSpec`, `Formule`, `SOCLE` (12), `ADDONS` (6), `FORMULES` (5) verrouillés en dataclasses immuables
 - `/app/backend/services/book_engine/cover_generator.py` — génération cover Nano Banana (gemini-3.1-flash-image-preview) + fallback sur COUVERTURE_PLUME_masked_1400.jpg

@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from pathlib import Path
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
@@ -105,15 +106,34 @@ async def _build_manuscript_from_session(session_id: str) -> Manuscript:
 async def admin_generate_v2(
     session_id: str,
     profile: str = Query('screen', description="'print' ou 'screen'"),
+    with_cover: bool = Query(False, description='Génère la cover Nano Banana avant rendu'),
 ):
     """Génère un PDF v2 (Chromium/HTML) et le sauve en local pour aperçu.
 
-    N'écrit PAS dans Supabase Storage ni dans `payment_transactions.metadata` —
-    ce endpoint sert uniquement à valider le rendu avant bascule production.
+    Si `with_cover=true`, appelle d'abord Gemini Nano Banana pour créer une
+    couverture personnalisée (cadran cosmique bronze) à partir de Soleil/Lune/Ascendant.
+    N'écrit PAS dans Supabase Storage ni dans `payment_transactions.metadata`.
     """
     manuscript = await _build_manuscript_from_session(session_id)
+    cover_path: Optional[Path] = None
+    if with_cover:
+        try:
+            from services.book_engine_v2.cover_generator import (
+                generate_cover_image, resolve_signs_fr, COVER_CACHE_DIR,
+            )
+            sun, moon, asc = resolve_signs_fr(manuscript.astro_data or {})
+            png = await generate_cover_image(
+                first_name=manuscript.first_name,
+                sun_sign=sun, moon_sign=moon, asc_sign=asc,
+            )
+            if png:
+                cover_path = COVER_CACHE_DIR / f'{session_id}.png'
+                cover_path.write_bytes(png)
+        except Exception as exc:
+            logger.warning(f'[admin/book] cover gen failed: {exc}')
     pdf_bytes = await asyncio.to_thread(
         render_manuscript_to_pdf_v2, manuscript, profile=profile,
+        cover_png_path=cover_path,
     )
     out = _pdf_path_for(session_id)
     out.write_bytes(pdf_bytes)
@@ -125,6 +145,7 @@ async def admin_generate_v2(
         'profile': profile,
         'bytes': len(pdf_bytes),
         'local_path': str(out),
+        'cover_generated': cover_path is not None,
         'preview_url': f'/api/admin/book/preview.pdf?session_id={session_id}',
     }
 
