@@ -64,11 +64,15 @@ async def generate_cover_image(
     moon_sign: str,
     asc_sign: str,
     force: bool = False,
+    max_retries: int = 2,
 ) -> Optional[bytes]:
     """Génère l'illustration de couverture personnalisée.
 
-    Retourne les bytes PNG ou None si la génération échoue (le renderer bascule
-    alors sur un fallback SVG statique — pas de crash).
+    Post-processing OCR (tesseract français) : si l'image contient plus de 5
+    caractères imprimables détectés (Gemini triche parfois malgré le prompt
+    "no text"), on relance la génération jusqu'à `max_retries` fois.
+
+    Retourne les bytes PNG ou None si la génération échoue.
     Idempotent : cache local sur la signature.
     """
     cache_key = _cache_key(sun_sign, moon_sign, asc_sign, first_name)
@@ -85,12 +89,13 @@ async def generate_cover_image(
         sun_sign=sun_sign, moon_sign=moon_sign, asc_sign=asc_sign,
     )
 
-    def _sync_gen() -> Optional[bytes]:
+    def _sync_gen(attempt_seed: int) -> Optional[bytes]:
         import asyncio as _a
         loop = _a.new_event_loop()
         try:
             chat = (
-                LlmChat(api_key=api_key, session_id=f'cover_{cache_key}',
+                LlmChat(api_key=api_key,
+                        session_id=f'cover_{cache_key}_{attempt_seed}',
                         system_message='You are an editorial illustrator for a French premium publishing house.')
                 .with_model('gemini', 'gemini-3.1-flash-image-preview')
                 .with_params(modalities=['image', 'text'])
@@ -99,28 +104,69 @@ async def generate_cover_image(
                 chat.send_message_multimodal_response(UserMessage(text=prompt))
             )
             if not images:
-                logger.warning(f'[cover_gen] Gemini returned no image for {cache_key}')
                 return None
             img = images[0]
             data_b64 = img.get('data') if isinstance(img, dict) else None
-            if not data_b64:
-                logger.warning('[cover_gen] no `data` field in gemini image response')
-                return None
-            return base64.b64decode(data_b64)
+            return base64.b64decode(data_b64) if data_b64 else None
         finally:
             loop.close()
 
+    for attempt in range(max_retries + 1):
+        try:
+            import asyncio as _a
+            png_bytes = await _a.to_thread(_sync_gen, attempt)
+            if not png_bytes:
+                logger.warning(f'[cover_gen] attempt {attempt+1} : no image returned')
+                continue
+            # ── Filtre OCR : rejette si texte parasite détecté ────────
+            n_chars, txt = _detect_text_in_image(png_bytes)
+            if n_chars > 5:
+                logger.warning(
+                    f'[cover_gen] attempt {attempt+1}: {n_chars} chars OCR détectés '
+                    f'({txt[:60]!r}), retry'
+                )
+                if attempt < max_retries:
+                    continue
+                # Dernier essai : on garde quand même l'image (mieux qu'aucune)
+                logger.warning('[cover_gen] max retries atteint, image gardée malgré texte')
+            cache_path.write_bytes(png_bytes)
+            logger.info(
+                f'[cover_gen] cover generated : {len(png_bytes)} bytes '
+                f'→ {cache_path.name} (attempt {attempt+1}, {n_chars} chars OCR)'
+            )
+            return png_bytes
+        except Exception as exc:
+            logger.error(f'[cover_gen] attempt {attempt+1} failed: {exc}')
+
+    return None
+
+
+def _detect_text_in_image(png_bytes: bytes) -> tuple[int, str]:
+    """Retourne (nb_caractères_imprimables_détectés, texte_brut).
+
+    Utilise tesseract-ocr français. Filtre les faux positifs (single chars,
+    caractères purement décoratifs) en ne comptant que les chaînes ≥ 3 chars
+    alphabétiques.
+
+    Retourne (0, '') si tesseract absent — le filtre devient no-op mais la
+    génération continue normalement.
+    """
     try:
-        import asyncio as _a
-        png_bytes = await _a.to_thread(_sync_gen)
-        if not png_bytes:
-            return None
-        cache_path.write_bytes(png_bytes)
-        logger.info(f'[cover_gen] cover generated : {len(png_bytes)} bytes → {cache_path.name}')
-        return png_bytes
+        import pytesseract  # type: ignore
+        from PIL import Image
+        import io as _io
+    except ImportError:
+        return 0, ''
+    try:
+        img = Image.open(_io.BytesIO(png_bytes))
+        raw = pytesseract.image_to_string(img, lang='fra', config='--psm 6')
+        # Compte uniquement les mots ≥ 3 chars alphabétiques
+        import re
+        words = re.findall(r'[A-Za-zÀ-ÿ]{3,}', raw)
+        return sum(len(w) for w in words), ' '.join(words[:10])
     except Exception as exc:
-        logger.error(f'[cover_gen] Gemini call failed: {exc}')
-        return None
+        logger.debug(f'[cover_gen] OCR failed (non fatal): {exc}')
+        return 0, ''
 
 
 def resolve_signs_fr(astro: dict) -> tuple[str, str, str]:

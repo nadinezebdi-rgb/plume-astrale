@@ -173,6 +173,48 @@ Réécriture complète de `frontend/src/pages/ComposerSucces.jsx` (280 lignes) :
 - Certaines cover Nano Banana peuvent avoir du texte parasite (Gemini triche parfois malgré le prompt)
 - Le lien de téléchargement final devrait être `pdf_url` = URL Supabase Storage ; à valider en E2E production
 
+
+### 📖 LOT 4.4 — Flipbook, Lulu, filtre OCR (2026-02-17 après-midi)
+
+**1. Flipbook `/mon-compte/mon-livre`**
+
+- Nouveau endpoint backend `GET /api/composer/pages/{session_id}/{page_num}.jpg` : rasterise à la demande une page du PDF v2 en JPEG via `pdftoppm -jpeg quality=82 -r 130`, cache local sous `/app/backend/assets/book/flipbook_cache/{session_id}/pNNN_dpiXXX.jpg`, télécharge le PDF depuis Supabase Storage si nécessaire.
+- Frontend `MonLivrePage.jsx` (250 lignes) : lecteur A5 avec navigation clavier (`←` `→` `PageUp` `PageDown` `Home` `End`), boutons ‹ › contextuels sur les bords, curseur/slider, compteur "Page N / T", bouton "Télécharger le PDF".
+- **Son doux de feuille synthétisé** : WebAudio API génère un bruit rose de 140 ms filtré passe-bande 2800 Hz avec enveloppe exponentielle → sonorité "papier" authentique, sans fichier externe.
+- Preload +1 et +2 des pages suivantes pour un feuilletage fluide.
+- Route ajoutée dans `App.js`.
+
+**2. LuluPrintProvider (brochée + reliée)**
+
+Nouveau module `services/print/lulu_provider.py` :
+- `calculate_spine_mm(pages, paper_type)` — formule officielle 2025 (0.0572 mm/page en cream 60 lb) : 32p → 1.83 mm, 200p → 11.44 mm
+- `build_cover_spec(pages)` — dimensions couverture Lulu (2×148 + dos + 2×3 mm bleed)
+- `validate_manuscript_for_print(manuscript, edition, pages_hint)` : min 32 pages pour brochée, min 24 pour reliée, warn si dos < 3 mm (pas de titre sur la tranche), enforce multiple de 4
+- `estimate_retail_price_eur(pages, edition, quantity)` : base + per_page × pages × marge Plume (2.2) + shipping France Colissimo. 40p brochée = ~18 €, 200p reliée = ~58 €
+- Endpoint `GET /api/composer/print-specs/{session_id}?edition=brochee&quantity=1` retourne `{validation, price, cover_spec}`
+
+**3. Filtre OCR Cover Nano Banana**
+
+- Post-traitement des images Gemini via `pytesseract` (français, PSM 6) après génération
+- Comptage des **caractères imprimables uniquement** (`[A-Za-zÀ-ÿ]{3,}`) → seuil de rejet à > 5 caractères
+- **Retry automatique** jusqu'à `max_retries=2` : si texte parasite détecté, la génération redémarre avec un `session_id` variant (Gemini re-tire une variation). Si les 3 tentatives échouent, on garde quand même l'image (mieux que rien) et on log un warning.
+- Ajout dépendance : `pytesseract==0.3.13` (tesseract-ocr + tesseract-ocr-fra installés apt)
+- Test : image contenant "LE LIVRE ASTRAL Amélie" détecte 20 chars ; image cercle bronze pur : 0 char
+
+**Validation**
+- 26/26 tests verts (7 nouveaux Lulu + 10 v2 + 9 pipeline). Aucune régression.
+- Endpoint `/api/composer/pages/{sid}/1.jpg` sert 83 Ko en 200 OK, page 2 en 14 Ko après cache
+- Endpoint `/api/composer/print-specs/{sid}?edition=brochee` : `validation.ok=true`, `spine_mm=2.29`, `total_eur=17.98` pour un livre de 40 pages
+- Frontend `/mon-compte/mon-livre` : rendu correct, "Feuilletez votre livre", titre Cormorant 300, palette bronze/ivoire cohérente
+- OCR : filtre fonctionne (20 chars détectés sur texte, 0 sur illustration pure)
+
+**Dette restante (LOT 4.5+)**
+- Auth réelle sur `/mon-compte/mon-livre` : actuellement `?session_id=xxx` en clair, à sécuriser via token JWT / cookie
+- Preview thumbnail des 10 premières pages sur la page d'accueil du compte
+- Endpoint Lulu Print API réel (envoi PDF + cover pour impression) — payer et livrer
+- Gestion d'erreur si le PDF n'a pas encore été généré : afficher un lien vers `/composer/succes`
+- OCR : évaluer si tesseract latin est plus permissif que français sur des glyphes zodiacaux (♌ ♀) — risque de faux positif
+
 - Les 6 add-ons restent des placeholders. À écrire au LOT 5.
 - 2 polices système résiduelles → à couvrir par un `@font-face` de Cormorant Garamond avec `unicode-range: U+0030-0039, U+2000-206F` explicite ou par un embed complet de la fonte.
 
