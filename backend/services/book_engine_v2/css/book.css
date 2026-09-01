@@ -283,7 +283,6 @@ th {
 td {
   padding: 1.6mm 0;
   border-bottom: var(--hair-thin) solid #EDE3D2;
-  font-variant-numeric: tabular-nums;
 }
 td.g {
   font-family: "Astro", "Cormorant Garamond", serif;

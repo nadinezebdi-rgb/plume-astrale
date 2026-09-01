@@ -246,8 +246,8 @@ def _distribution_line(planets: list[tuple[str, float, bool]]) -> str:
         elements[_SIGN_ELEMENT[sign_fr]] += 1
         modes[_SIGN_MODE[sign_fr]] += 1
     total = sum(elements.values()) or 1
-    elem_str = ' · '.join(f'{k} {round(v * 100 / total)}\u202f%' for k, v in elements.items())
-    mode_str = ' · '.join(f'{k} {round(v * 100 / total)}\u202f%' for k, v in modes.items())
+    elem_str = ' · '.join(f'{k}\u00a0{round(v * 100 / total)}\u00a0%' for k, v in elements.items())
+    mode_str = ' · '.join(f'{k}\u00a0{round(v * 100 / total)}\u00a0%' for k, v in modes.items())
     return f'{elem_str} — {mode_str}'
 
 

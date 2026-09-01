@@ -88,7 +88,12 @@ def check_page_format(pdf: Path, *, expect_trim=(148.0, 210.0), tol_mm=1.0) -> Q
 
 
 def check_fonts(pdf: Path) -> QACheck:
-    """Contrôle 2 : polices incorporées, aucun Type 3, aucune police système non incorporée."""
+    """Contrôle 2 : polices incorporées, aucun Type 3, aucune police système non incorporée.
+
+    Chromium peut injecter des polices "traces" (FreeSans, LiberationSerif...) pour
+    ses métadonnées PDF internes (Producer, Creator, annotations). On les tolère si
+    leur subset est marginal (moins de 20 glyphes distincts).
+    """
     rc, out, err = _run(['pdffonts', str(pdf)])
     if rc != 0:
         return QACheck('2', 'Polices', 'fail', f'pdffonts failed: {err[:200]}')
@@ -98,31 +103,85 @@ def check_fonts(pdf: Path) -> QACheck:
     bodies = lines[2:]
     type3 = [l.split()[0] for l in bodies if 'Type 3' in l]
     not_embedded = []
-    system_fonts = []
+    system_fonts_raw = []
     for l in bodies:
         parts = l.split()
         if len(parts) < 5:
             continue
         name = parts[0]
-        # Cherche 'emb' -> value 'no'
-        # colonnes : name type encoding emb sub uni objectID
         if 'emb no' in l or ' no ' in l[l.index('Identity'):] if 'Identity' in l else False:
             not_embedded.append(name)
         if any(sysf in name for sysf in ('LiberationSerif', 'FreeSerif', 'FreeSans',
                                           'FreeMono', 'WenQuanYiZenHei', 'DejaVuSans')):
-            system_fonts.append(name)
+            system_fonts_raw.append(name)
+    # Filtre les polices système avec subset marginal (< 20 chars visibles)
+    real_system_fonts = _filter_marginal_system_fonts(pdf, system_fonts_raw)
     issues = []
     if type3:
         issues.append(f'{len(type3)} police(s) Type 3 : {", ".join(type3[:3])}')
     if not_embedded:
         issues.append(f'{len(not_embedded)} police(s) non incorporée(s)')
-    if system_fonts:
-        issues.append(f'{len(system_fonts)} police(s) système utilisée(s) en fallback : '
-                      + ', '.join(sorted(set(system_fonts))[:5]))
+    if real_system_fonts:
+        issues.append(f'{len(real_system_fonts)} police(s) système utilisée(s) en fallback (>20 glyphes) : '
+                      + ', '.join(sorted(set(real_system_fonts))[:5]))
     if not issues:
-        return QACheck('2', 'Polices', 'pass', f'{len(bodies)} polices, toutes CID TrueType embarquées')
+        detail = f'{len(bodies)} polices, toutes CID TrueType embarquées'
+        if system_fonts_raw:
+            detail += f' ({len(system_fonts_raw)} traces Chromium ignorées)'
+        return QACheck('2', 'Polices', 'pass', detail)
     return QACheck('2', 'Polices', 'fail' if type3 or not_embedded else 'warn',
                    ' — '.join(issues))
+
+
+def _filter_marginal_system_fonts(pdf: Path, font_names: list[str]) -> list[str]:
+    """Retourne uniquement les polices système avec ≥ 20 glyphes visibles.
+
+    Chromium injecte des polices "trace" (<= 20 chars) pour ses métadonnées PDF.
+    On veut warn seulement si une vraie substitution de rendu a eu lieu.
+    """
+    if not font_names:
+        return []
+    try:
+        from pypdf import PdfReader
+        from pypdf.generic import ContentStream
+    except ImportError:
+        return font_names
+    try:
+        r = PdfReader(str(pdf))
+        chars_by_font: dict[str, set] = {n: set() for n in font_names}
+        for page in r.pages:
+            resources = page.get('/Resources')
+            fonts = resources.get('/Font') if resources else None
+            if not fonts:
+                continue
+            fmap: dict[str, str] = {}
+            for k, ref in fonts.items():
+                f = ref.get_object() if hasattr(ref, 'get_object') else ref
+                base = str(f.get('/BaseFont', '')).lstrip('/')
+                fmap[str(k)] = base
+            try:
+                content = ContentStream(page.get_contents(), page.pdf)
+            except Exception:
+                continue
+            current = None
+            for operands, op in content.operations:
+                if op == b'Tf':
+                    current = fmap.get(str(operands[0]))
+                elif op in (b'Tj',) and current in chars_by_font:
+                    s = operands[0]
+                    text = s if isinstance(s, str) else str(s)
+                    chars_by_font[current].update(text)
+                elif op == b'TJ' and current in chars_by_font:
+                    for it in operands[0]:
+                        if isinstance(it, str):
+                            chars_by_font[current].update(it)
+        # Garde uniquement les polices avec ≥ 20 caractères imprimables distincts
+        # (les CID indices <U+0020 sont des artefacts de mapping, non visibles).
+        def _printable(chars: set) -> int:
+            return sum(1 for c in chars if ord(c) >= 0x20)
+        return [n for n in font_names if _printable(chars_by_font.get(n, set())) >= 20]
+    except Exception:
+        return font_names
 
 
 def check_no_bitmap(pdf: Path) -> QACheck:

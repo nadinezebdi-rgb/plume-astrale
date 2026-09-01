@@ -265,6 +265,138 @@ CONTEXTE : ce chapitre inclut DÉJÀ la roue céleste graphique en page 2 et un 
 STRUCTURE : ouverture qui parle du moment de la naissance (pas de "au moment fatidique"), puis explication de ce qu'est la roue céleste, puis un premier zoom sur le trio Soleil/Lune/Ascendant sans tout dévoiler (le chapitre III le fera).
 Cite Bachelard, Colette, ou Camus.
 """ + _STRUCTURE_JSON,
+
+    # ═══════════════════════════════════════════════════════════════════
+    # ADD-ONS (Deuxième partie du livre — chapitres facultatifs)
+    # ═══════════════════════════════════════════════════════════════════
+
+    # ─── Add-on I — L'Arbre de Vie (Kabbale) ───
+    'arbre_de_vie': """Rédige le CHAPITRE ADDITIONNEL I « L'Arbre de Vie » du Livre Astral de {first_name}.
+
+DONNÉES ASTRALES EXACTES :
+- Soleil : {sun_sign} · {sun_house} · {sun_deg}
+- Lune : {moon_sign} · {moon_house}
+- Mercure : {mercury_sign} · {mercury_house}
+- Vénus : {venus_sign} · {venus_house}
+- Mars : {mars_sign} · {mars_house}
+- Jupiter : {jupiter_sign} · {jupiter_house}
+- Saturne : {saturn_sign} · {saturn_house}
+
+STRUCTURE (12 pages A5, ~2600 mots) :
+La Kabbale propose 10 stations (les Séphiroth) sur l'Arbre de Vie, chacune correspondant à une qualité de conscience. Traite l'appariement CLASSIQUE : Kether/Neptune (couronne), Chokhmah/Uranus (sagesse), Binah/Saturne (compréhension), Chesed/Jupiter (grâce), Guévourah/Mars (rigueur), Tiphéreth/Soleil (beauté, cœur), Netzach/Vénus (victoire), Hod/Mercure (splendeur), Yesod/Lune (fondation), Malkhouth/Terre (royaume).
+
+Ton ferme et sobre — pas d'ésotérisme creux, pas de "vibrations séphirothiques". Ancre chaque Séphirah dans la position exacte de la planète correspondante chez {first_name}, en donnant UNE image concrète issue de sa vie possible (par ex. "Saturne en {saturn_sign} dessine Binah comme un savoir lent, celui qu'on n'accepte qu'après trois hivers").
+
+Cite Gershom Scholem (La Kabbale et sa symbolique) OU Emmanuel Levinas.
+""" + _STRUCTURE_JSON,
+
+    # ─── Add-on II — L'Ailleurs qui vous appelle (Astrocartographie) ───
+    'astrocartographie': """Rédige le CHAPITRE ADDITIONNEL II « L'Ailleurs qui vous appelle » du Livre Astral de {first_name}.
+
+DONNÉES ASTRALES EXACTES :
+- Soleil : {sun_sign} · {sun_house} · {sun_deg}
+- Lune : {moon_sign} · {moon_house}
+- Jupiter : {jupiter_sign} · {jupiter_house}
+- Vénus : {venus_sign} · {venus_house}
+- Ascendant : {asc_sign}
+- Milieu du Ciel : {mc_sign}
+
+STRUCTURE (14 pages A5, ~3000 mots) :
+L'astrocartographie projette les axes planétaires (AS/DS/MC/IC) sur une mappemonde. Chaque planète trace 4 lignes autour du globe. Sous chaque ligne, le thème de {first_name} s'exprime différemment.
+
+Traite quatre GRANDS AXES humains :
+1. Ligne Soleil-MC : là où on veut être reconnu·e → parle de l'endroit où {first_name} apparaîtrait dans sa lumière (métaphore de ville sans NOMMER de ville — chaque signe correspond à un archétype de lieu : {sun_sign} = quel type de paysage ?)
+2. Ligne Lune-IC : là où on veut poser sa tête → refuge
+3. Ligne Vénus-DS : là où l'amour vient plus facilement
+4. Ligne Jupiter-AS : là où la croissance s'ouvre
+
+Ton adulte, jamais "consultez votre carte" — plutôt inviter à SENTIR quel pays a réveillé quelque chose.
+Cite Nicolas Bouvier (L'Usage du monde) OU Sylvain Tesson.
+""" + _STRUCTURE_JSON,
+
+    # ─── Add-on III — Voyage Karmique (Nœuds lunaires · Saturne · Chiron · Pluton) ───
+    'karma_destin': """Rédige le CHAPITRE ADDITIONNEL III « Voyage Karmique » du Livre Astral de {first_name}.
+
+DONNÉES ASTRALES EXACTES :
+- Nœud Nord : ancré au chapitre (direction évolutive)
+- Nœud Sud : opposé du Nœud Nord (bagage porté)
+- Saturne : {saturn_sign} · {saturn_house} · {saturn_deg}
+- Chiron : {chiron_sign} · {chiron_house} · {chiron_deg}
+- Pluton : {pluto_sign} · {pluto_house} · {pluto_deg}{pluto_retro}
+
+STRUCTURE (16 pages A5, ~3400 mots) — sujet dense, plus long :
+Le mot "karma" est piégé. Ici, on l'entend au sens de "ce que l'âme a apporté" — pas de dette moralisatrice, pas de réincarnation littérale. C'est une manière de lire les axes du thème qui parlent d'héritage.
+
+Sections :
+1. Le Nœud Sud comme bagage — ce que {first_name} sait déjà faire "trop bien" et qui l'endort
+2. Le Nœud Nord comme apprentissage — ce vers quoi ça tire, avec inconfort
+3. Saturne comme structure — le seuil qu'on ne franchit qu'à 29-30 ans
+4. Chiron comme blessure originelle — non pas à guérir mais à habiter
+5. Pluton comme mue — les transformations qu'on ne choisit pas
+
+Ton tendre-ferme. Zéro jargon new age. Cite Rilke (Lettres à un jeune poète) OU Etty Hillesum.
+""" + _STRUCTURE_JSON,
+
+    # ─── Add-on IV — L'Heure Retrouvée (rectification symbolique) ───
+    'heure_retrouvee': """Rédige le CHAPITRE ADDITIONNEL IV « L'Heure Retrouvée » du Livre Astral de {first_name}.
+
+CONTEXTE PARTICULIER : ce chapitre s'adresse à quelqu'un qui NE CONNAÎT PAS son heure exacte de naissance. On ne peut donc pas donner de position d'Ascendant ni de maison précise. On travaille en SYMBOLIQUE : chercher dans les faits de sa vie l'écho d'une heure.
+
+DONNÉES ASTRALES (utilisables sans heure) :
+- Soleil : {sun_sign} · {sun_deg}
+- Lune : {moon_sign} · {moon_deg}
+- Vénus : {venus_sign}
+- Mars : {mars_sign}
+
+STRUCTURE (10 pages A5, ~2200 mots) :
+1. Ouverture : "Il y a une heure que vous ne connaissez pas. Ce chapitre ne prétend pas la retrouver — il prétend l'écouter."
+2. Les 12 Ascendants possibles → très brève évocation de chacun (12 paragraphes courts de 3-4 lignes, un par signe). Chaque Ascendant est une hypothèse de vie, non un diagnostic.
+3. Comment sentir : la première chose qu'on voit dans un miroir le matin, l'endroit du corps qui parle en premier quand on est fatigué·e, le sujet d'obsession dans les vingt premières années.
+4. Un exercice : demander à trois personnes proches quel mot elles utiliseraient pour vous décrire — souvent leurs mots pointent l'Ascendant.
+
+Ton humble, laisse le mystère. Cite Christian Bobin OU Pierre Michon.
+""" + _STRUCTURE_JSON,
+
+    # ─── Add-on V — Étoiles Fixes ───
+    'etoiles_fixes': """Rédige le CHAPITRE ADDITIONNEL V « Étoiles Fixes » du Livre Astral de {first_name}.
+
+DONNÉES ASTRALES (traitement symbolique — on ne fait pas de calcul d'orbe fine ici) :
+- Soleil : {sun_sign} · {sun_deg}
+- Lune : {moon_sign} · {moon_deg}
+- Ascendant : {asc_sign}
+- Milieu du Ciel : {mc_sign}
+
+STRUCTURE (10 pages A5, ~2200 mots) :
+Les étoiles fixes sont les vraies étoiles du ciel (contrairement aux planètes qui se déplacent). Quatre grandes étoiles royales portent des noms qui résonnent dans toutes les cultures :
+- Regulus (au cœur du Lion, la royauté) — 29° Lion
+- Aldébaran (l'œil du Taureau, la force calme) — 9° Gémeaux
+- Antarès (le cœur du Scorpion, la passion consumée) — 9° Sagittaire
+- Fomalhaut (la bouche du Poisson, la parole poétique) — 3° Poissons
+
+Traite chacune : ce qu'elle apporte quand elle est proche d'une planète du thème. Précise que pour {first_name}, il faudrait un calcul d'orbe fine — ce chapitre est un guide pour SENTIR laquelle des quatre l'appelle. Puis évoque Sirius (l'étoile du chien, la loyauté antique), Vega, Aldébaran (déjà cité) et Régulus comme les autres phares.
+
+Cite Alain (Propos sur le bonheur) OU Marguerite Yourcenar (Mémoires d'Hadrien, passage sur Antinoüs et les astres).
+""" + _STRUCTURE_JSON,
+
+    # ─── Add-on VI — Symboles Sabiens ───
+    'symboles_sabiens': """Rédige le CHAPITRE ADDITIONNEL VI « Symboles Sabiens » du Livre Astral de {first_name}.
+
+DONNÉES ASTRALES EXACTES :
+- Soleil : {sun_sign} · {sun_deg}  (arrondir au degré supérieur pour trouver le Sabien : ex. 24°25 = 25e degré)
+- Lune : {moon_sign} · {moon_deg}
+- Ascendant : {asc_sign}
+- Milieu du Ciel : {mc_sign}
+
+CONTEXTE : les 360 Symboles Sabiens (Marc Edmund Jones, 1925) attribuent une IMAGE à chaque degré du zodiaque. Chaque image est une scène concrète, souvent surprenante ("Un vieil homme portant du bois pour l'hiver", "Une femme qui rêve devant sa fenêtre").
+
+STRUCTURE (12 pages A5, ~2600 mots) :
+1. Ouverture : présentation courte des Sabiens et de leur origine.
+2. Zoom sur le degré du Soleil de {first_name} : à {sun_deg} de {sun_sign}, si tu cites un Sabien authentique, cite-le en italiques puis développe l'écho. Si tu ne connais pas le Sabien exact, INVENTE une image dans le style (une scène concrète en une phrase avec un article défini "Une", "Un") mais SIGNALE-le honnêtement ("Le Sabien de ce degré, tel qu'il pourrait être formulé aujourd'hui...").
+3. Idem pour la Lune, l'Ascendant, le Milieu du Ciel.
+4. Une clôture : ce que ces quatre images ensemble racontent de {first_name}.
+
+Ton poétique-concret, jamais abstrait. Cite Dane Rudhyar (An Astrological Mandala) OU Julien Gracq.
+""" + _STRUCTURE_JSON,
 }
 
 

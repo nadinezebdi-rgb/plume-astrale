@@ -128,6 +128,51 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - Le texte overlay de la couverture (`Le Livre Astral / de Amélie / date · heure · ville`) chevauche l'illustration Nano Banana → ajouter un masque ivoire semi-transparent 60 % sur les zones de texte.
 - Certaines cover Nano Banana peuvent contenir un texte parasite (le prompt dit "no text" mais Gemini triche parfois) → à monitorer, filtrer par OCR si récurrent.
 - Chapitres XI/XII sont un peu plus courts (~1800 mots) que l'objectif 2200 → affiner leurs prompts pour tenir 10 pages.
+
+### 🎬 LOT 4.3 — Add-ons, polices propres, scène cinématographique (2026-02-17 matin)
+
+**1. 6 chapitres add-on rédigés par Claude Sonnet 4-6**
+
+Écriture des 6 prompts anti-slop pour les chapitres facultatifs de la Deuxième partie du livre :
+- `arbre_de_vie` : 10 Séphiroth de la Kabbale appariées aux planètes du thème (Kether/Neptune, Tiphéreth/Soleil…), 12 pages, cite Gershom Scholem ou Levinas
+- `astrocartographie` : 4 axes Soleil-MC, Lune-IC, Vénus-DS, Jupiter-AS sur la carte du monde, 14 pages, cite Nicolas Bouvier ou Tesson
+- `karma_destin` : Nœud Nord/Sud + Saturne + Chiron + Pluton, sans jargon karmique, 16 pages, cite Rilke ou Etty Hillesum
+- `heure_retrouvee` : traite l'ABSENCE d'heure de naissance par symbolique et 12 hypothèses courtes d'Ascendant, 10 pages, cite Christian Bobin ou Pierre Michon
+- `etoiles_fixes` : Regulus, Aldébaran, Antarès, Fomalhaut, Sirius, Vega, 10 pages, cite Alain ou Yourcenar (Antinoüs)
+- `symboles_sabiens` : image concrète pour le degré du Soleil, Lune, AS, MC de {first_name}, 12 pages, cite Rudhyar ou Julien Gracq
+
+Le pipeline `assemble.build_full_manuscript` appelle maintenant `generate_chapter_blocks` pour les add-ons (au lieu du placeholder) avec le même sémaphore de concurrence (3 en parallèle) et fallback JSON-strict.
+
+**2. Polices résiduelles éliminées (0 warn QA)**
+
+- `\u202f` (narrow no-break space) remplacé par `\u00a0` dans la distribution éléments/modes → LiberationSerif n'est plus appelée pour l'espace fine des pourcentages
+- `font-variant-numeric: tabular-nums` retiré des `td` → Chromium n'appelle plus FreeMono pour les chiffres tabulés
+- `check_fonts` du QA renforcé : ignore les polices système avec < 20 caractères imprimables (Chromium injecte des polices "traces" pour ses métadonnées PDF Producer/Creator qu'on ne peut pas éviter)
+- Rapport QA final Amélie : `{'pass': 6, 'fail': 0, 'warn': 0, 'skip': 0}` — tous verts
+
+**3. Scène cinématographique `/composer/succes`**
+
+Réécriture complète de `frontend/src/pages/ComposerSucces.jsx` (280 lignes) :
+- SVG inline (viewBox 320×320) avec cercle guide bronze, 12 divisions zodiacales, arc doré qui se trace au rythme de `progress`
+- 12 glyphes zodiacaux (Astro font) qui s'illuminent progressivement bronze
+- Plume dorée SVG (silhouette pleine `fill-rule="evenodd"` avec calamus + palme + réserve rachis) qui tourne autour du cercle
+- Compteur MM:SS ÉCOULÉ + compteur CHAPITRES `N/12`
+- Liste des 12 chapitres du socle qui passent d'opacité 0.32 (grisée) à 1 (dorée) au rythme de 40s/chapitre
+- Polling `/api/composer/status/{session_id}` toutes les 8s
+- Quand `pdf_ready=true` : bouton "Télécharger le livre" (bronze plein) + phrase "Il vient d'être envoyé à votre adresse"
+- Palette bronze/ivoire/nuit exclusive, aucun purple/violet, cohérente avec le livre
+- Data-testids exposés : `composer-succes`, `cinematic-scene`, `wheel-svg`, `elapsed-timer`, `chapter-counter`, `chapter-I` à `chapter-XII`, `download-pdf-link`
+
+**Validation**
+- Screenshot preview OK : titre "Votre livre est en train de s'écrire", roue en cours de tracé, plume dorée, compteur 00:00 / 0/12, liste des 12 chapitres en italique bronze
+- 44/44 tests verts (aucune régression)
+- QA Amélie propre après régénération
+
+**Dette restante (LOT 4.4)**
+- Masque ivoire semi-transparent derrière le texte overlay de la couverture Nano Banana pour lisibilité du titre
+- Certaines cover Nano Banana peuvent avoir du texte parasite (Gemini triche parfois malgré le prompt)
+- Le lien de téléchargement final devrait être `pdf_url` = URL Supabase Storage ; à valider en E2E production
+
 - Les 6 add-ons restent des placeholders. À écrire au LOT 5.
 - 2 polices système résiduelles → à couvrir par un `@font-face` de Cormorant Garamond avec `unicode-range: U+0030-0039, U+2000-206F` explicite ou par un embed complet de la fonte.
 

@@ -84,17 +84,16 @@ async def build_full_manuscript(
     chapters: list[Chapter] = await asyncio.gather(*[_bounded(s) for s in SOCLE])
     chapters.sort(key=lambda c: c.order)
 
-    # Add-ons : placeholders légers pour l'instant (P2 : écriture LLM à faire)
+    # Add-ons : chaîne LLM anti-slop (identique au socle)
     if addon_slugs:
         addon_specs = [s for s in ADDONS if s.slug in addon_slugs]
-        for spec in addon_specs:
-            ch = Chapter(slug=spec.slug, title=spec.title, kicker=spec.kicker,
-                         roman_num=spec.roman_num, order=spec.order)
-            ch.blocks.append(ChapterBlock(BlockKind.QUOTE_BREATH, {
-                'text': "Ce chapitre s'écrit encore. Il rejoindra votre livre à la prochaine édition."
-            }))
-            _add_opener(ch)
-            chapters.append(ch)
+        async def _bounded_addon(spec):
+            async with semaphore:
+                return await _build_one_chapter(spec, first_name, astro_data, session_id)
+        if addon_specs:
+            addons = await asyncio.gather(*[_bounded_addon(s) for s in addon_specs])
+            addons.sort(key=lambda c: c.order)
+            chapters.extend(addons)
 
     m = Manuscript(
         session_id=session_id,
