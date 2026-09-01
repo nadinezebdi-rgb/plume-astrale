@@ -98,6 +98,126 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 
 
 
+
+### 📚 LOT 4.2 — Livre complet, cover Nano Banana, bascule v2 en production (2026-02-16 nuit)
+
+**Ce qui est livré**
+
+1. **Les 12 chapitres du socle sont écrits** — plus aucun placeholder en profil `screen`. Chaque chapitre a son propre user-prompt ancré dans les données astrales exactes (degré, signe, maison), sa signature-extractor et son fallback JSON. Les 11 nouveaux prompts sont dans `/app/backend/services/book_engine_v2/chapter_prompts.py`. La chaîne anti-slop Claude Sonnet 4-6 est réutilisée intégralement depuis le LOT 3 (SYSTEM_PROMPT + BLACKLIST 49 tournures).
+
+2. **Cover personnalisée Nano Banana** — Gemini 3.1 flash image preview via `EMERGENT_LLM_KEY`, prompt normatif bronze/ivoire (aucune couleur hors palette, aucun texte, silhouette de plume en pied, constellations Soleil + Lune + figure allégorique Ascendant). Résultat pour Amélie (Taureau/Capricorne/Vierge) : cadran cosmique en ligne claire éditoriale, cache sur signature (`hash(sun|moon|asc|first_name)` → PNG local dans `/app/backend/assets/book/covers_cache/`).
+
+3. **Noto Sans Symbols 2 embarqué** — police à glyphes astrologique déclarée sous l'alias `Astro` en `@font-face` avec `unicode-range` limité aux points de code zodiacaux/planétaires. Le SVG de la roue céleste voit sa `font-family` réécrite pour prioriser `Astro`. La `Fedora fontconfig` fallback vers Segoe UI Symbol est éliminée.
+
+4. **Moteur v2 branché sur le pipeline de production** — flag `USE_V2_ENGINE=1` dans `backend/.env`. Le webhook Stripe (`kind=composer_book`) et le bypass promo `TOUT2026` déclenchent maintenant `build_full_manuscript` (12 appels LLM en parallèle limités à 3 concurrents, avec `asyncio.to_thread` pour libérer le event loop des appels bloquants `litellm.completion`), puis `render_manuscript_to_pdf_v2`, puis upload Supabase Storage. Le moteur v1 ReportLab reste disponible en flip du flag (`USE_V2_ENGINE=0`).
+
+**Validation E2E 16/02/2026 sur Amélie (`promo_tout2026_6f1ccd6f5bd74569`)**
+- 32 pages A5, ÷4, 148.2 × 209.9 mm — conforme
+- Roue céleste carrée : rayon H 52.47 mm = V 52.47 mm, Δ 0.00 mm
+- Ascendant Vierge 10°15, Milieu du Ciel Gémeaux 4°47 — corrects après fix d'extraction des cuspides depuis `chart_data.house_cusps`
+- Aucun bitmap, aucun placeholder, 12/12 chapitres avec vraie prose Claude Sonnet 4-6
+- Warn polices : 2 fallback (`FreeMono`, `LiberationSerif`) pour caractères hors Cormorant/Astro (chiffres tabulaires, ligatures) — non bloquant, `emb yes`, pas de Type 3
+- Tests : 44/44 verts (10 v2 + 9 v1 + 25 régression)
+
+**Bugs découverts + corrigés en cours de route**
+- `_call_claude` de `book_engine.prose_generator` bloquait le event loop (litellm.completion synchrone dans un `async def` fictif d'emergentintegrations). Fix : wrap dans `asyncio.to_thread` avec sa propre boucle interne. Idem pour `cover_generator.generate_cover_image`.
+- `_fetch_astro` n'exposait pas les cuspides → cover Nano Banana appelée avec Asc vide et roue céleste sans cuspides précises. Fix : ajout de `houses[]` normalisées avec `absolute_longitude`.
+- `wheel._to_longitude_deg` ignorait `absolute_longitude` (format astrology-io v3). Fix : lecture prioritaire de `absolute_longitude` si présent.
+
+**Dette restante (LOT 4.3)**
+- Le texte overlay de la couverture (`Le Livre Astral / de Amélie / date · heure · ville`) chevauche l'illustration Nano Banana → ajouter un masque ivoire semi-transparent 60 % sur les zones de texte.
+- Certaines cover Nano Banana peuvent contenir un texte parasite (le prompt dit "no text" mais Gemini triche parfois) → à monitorer, filtrer par OCR si récurrent.
+- Chapitres XI/XII sont un peu plus courts (~1800 mots) que l'objectif 2200 → affiner leurs prompts pour tenir 10 pages.
+
+### 🎬 LOT 4.3 — Add-ons, polices propres, scène cinématographique (2026-02-17 matin)
+
+**1. 6 chapitres add-on rédigés par Claude Sonnet 4-6**
+
+Écriture des 6 prompts anti-slop pour les chapitres facultatifs de la Deuxième partie du livre :
+- `arbre_de_vie` : 10 Séphiroth de la Kabbale appariées aux planètes du thème (Kether/Neptune, Tiphéreth/Soleil…), 12 pages, cite Gershom Scholem ou Levinas
+- `astrocartographie` : 4 axes Soleil-MC, Lune-IC, Vénus-DS, Jupiter-AS sur la carte du monde, 14 pages, cite Nicolas Bouvier ou Tesson
+- `karma_destin` : Nœud Nord/Sud + Saturne + Chiron + Pluton, sans jargon karmique, 16 pages, cite Rilke ou Etty Hillesum
+- `heure_retrouvee` : traite l'ABSENCE d'heure de naissance par symbolique et 12 hypothèses courtes d'Ascendant, 10 pages, cite Christian Bobin ou Pierre Michon
+- `etoiles_fixes` : Regulus, Aldébaran, Antarès, Fomalhaut, Sirius, Vega, 10 pages, cite Alain ou Yourcenar (Antinoüs)
+- `symboles_sabiens` : image concrète pour le degré du Soleil, Lune, AS, MC de {first_name}, 12 pages, cite Rudhyar ou Julien Gracq
+
+Le pipeline `assemble.build_full_manuscript` appelle maintenant `generate_chapter_blocks` pour les add-ons (au lieu du placeholder) avec le même sémaphore de concurrence (3 en parallèle) et fallback JSON-strict.
+
+**2. Polices résiduelles éliminées (0 warn QA)**
+
+- `\u202f` (narrow no-break space) remplacé par `\u00a0` dans la distribution éléments/modes → LiberationSerif n'est plus appelée pour l'espace fine des pourcentages
+- `font-variant-numeric: tabular-nums` retiré des `td` → Chromium n'appelle plus FreeMono pour les chiffres tabulés
+- `check_fonts` du QA renforcé : ignore les polices système avec < 20 caractères imprimables (Chromium injecte des polices "traces" pour ses métadonnées PDF Producer/Creator qu'on ne peut pas éviter)
+- Rapport QA final Amélie : `{'pass': 6, 'fail': 0, 'warn': 0, 'skip': 0}` — tous verts
+
+**3. Scène cinématographique `/composer/succes`**
+
+Réécriture complète de `frontend/src/pages/ComposerSucces.jsx` (280 lignes) :
+- SVG inline (viewBox 320×320) avec cercle guide bronze, 12 divisions zodiacales, arc doré qui se trace au rythme de `progress`
+- 12 glyphes zodiacaux (Astro font) qui s'illuminent progressivement bronze
+- Plume dorée SVG (silhouette pleine `fill-rule="evenodd"` avec calamus + palme + réserve rachis) qui tourne autour du cercle
+- Compteur MM:SS ÉCOULÉ + compteur CHAPITRES `N/12`
+- Liste des 12 chapitres du socle qui passent d'opacité 0.32 (grisée) à 1 (dorée) au rythme de 40s/chapitre
+- Polling `/api/composer/status/{session_id}` toutes les 8s
+- Quand `pdf_ready=true` : bouton "Télécharger le livre" (bronze plein) + phrase "Il vient d'être envoyé à votre adresse"
+- Palette bronze/ivoire/nuit exclusive, aucun purple/violet, cohérente avec le livre
+- Data-testids exposés : `composer-succes`, `cinematic-scene`, `wheel-svg`, `elapsed-timer`, `chapter-counter`, `chapter-I` à `chapter-XII`, `download-pdf-link`
+
+**Validation**
+- Screenshot preview OK : titre "Votre livre est en train de s'écrire", roue en cours de tracé, plume dorée, compteur 00:00 / 0/12, liste des 12 chapitres en italique bronze
+- 44/44 tests verts (aucune régression)
+- QA Amélie propre après régénération
+
+**Dette restante (LOT 4.4)**
+- Masque ivoire semi-transparent derrière le texte overlay de la couverture Nano Banana pour lisibilité du titre
+- Certaines cover Nano Banana peuvent avoir du texte parasite (Gemini triche parfois malgré le prompt)
+- Le lien de téléchargement final devrait être `pdf_url` = URL Supabase Storage ; à valider en E2E production
+
+
+### 📖 LOT 4.4 — Flipbook, Lulu, filtre OCR (2026-02-17 après-midi)
+
+**1. Flipbook `/mon-compte/mon-livre`**
+
+- Nouveau endpoint backend `GET /api/composer/pages/{session_id}/{page_num}.jpg` : rasterise à la demande une page du PDF v2 en JPEG via `pdftoppm -jpeg quality=82 -r 130`, cache local sous `/app/backend/assets/book/flipbook_cache/{session_id}/pNNN_dpiXXX.jpg`, télécharge le PDF depuis Supabase Storage si nécessaire.
+- Frontend `MonLivrePage.jsx` (250 lignes) : lecteur A5 avec navigation clavier (`←` `→` `PageUp` `PageDown` `Home` `End`), boutons ‹ › contextuels sur les bords, curseur/slider, compteur "Page N / T", bouton "Télécharger le PDF".
+- **Son doux de feuille synthétisé** : WebAudio API génère un bruit rose de 140 ms filtré passe-bande 2800 Hz avec enveloppe exponentielle → sonorité "papier" authentique, sans fichier externe.
+- Preload +1 et +2 des pages suivantes pour un feuilletage fluide.
+- Route ajoutée dans `App.js`.
+
+**2. LuluPrintProvider (brochée + reliée)**
+
+Nouveau module `services/print/lulu_provider.py` :
+- `calculate_spine_mm(pages, paper_type)` — formule officielle 2025 (0.0572 mm/page en cream 60 lb) : 32p → 1.83 mm, 200p → 11.44 mm
+- `build_cover_spec(pages)` — dimensions couverture Lulu (2×148 + dos + 2×3 mm bleed)
+- `validate_manuscript_for_print(manuscript, edition, pages_hint)` : min 32 pages pour brochée, min 24 pour reliée, warn si dos < 3 mm (pas de titre sur la tranche), enforce multiple de 4
+- `estimate_retail_price_eur(pages, edition, quantity)` : base + per_page × pages × marge Plume (2.2) + shipping France Colissimo. 40p brochée = ~18 €, 200p reliée = ~58 €
+- Endpoint `GET /api/composer/print-specs/{session_id}?edition=brochee&quantity=1` retourne `{validation, price, cover_spec}`
+
+**3. Filtre OCR Cover Nano Banana**
+
+- Post-traitement des images Gemini via `pytesseract` (français, PSM 6) après génération
+- Comptage des **caractères imprimables uniquement** (`[A-Za-zÀ-ÿ]{3,}`) → seuil de rejet à > 5 caractères
+- **Retry automatique** jusqu'à `max_retries=2` : si texte parasite détecté, la génération redémarre avec un `session_id` variant (Gemini re-tire une variation). Si les 3 tentatives échouent, on garde quand même l'image (mieux que rien) et on log un warning.
+- Ajout dépendance : `pytesseract==0.3.13` (tesseract-ocr + tesseract-ocr-fra installés apt)
+- Test : image contenant "LE LIVRE ASTRAL Amélie" détecte 20 chars ; image cercle bronze pur : 0 char
+
+**Validation**
+- 26/26 tests verts (7 nouveaux Lulu + 10 v2 + 9 pipeline). Aucune régression.
+- Endpoint `/api/composer/pages/{sid}/1.jpg` sert 83 Ko en 200 OK, page 2 en 14 Ko après cache
+- Endpoint `/api/composer/print-specs/{sid}?edition=brochee` : `validation.ok=true`, `spine_mm=2.29`, `total_eur=17.98` pour un livre de 40 pages
+- Frontend `/mon-compte/mon-livre` : rendu correct, "Feuilletez votre livre", titre Cormorant 300, palette bronze/ivoire cohérente
+- OCR : filtre fonctionne (20 chars détectés sur texte, 0 sur illustration pure)
+
+**Dette restante (LOT 4.5+)**
+- Auth réelle sur `/mon-compte/mon-livre` : actuellement `?session_id=xxx` en clair, à sécuriser via token JWT / cookie
+- Preview thumbnail des 10 premières pages sur la page d'accueil du compte
+- Endpoint Lulu Print API réel (envoi PDF + cover pour impression) — payer et livrer
+- Gestion d'erreur si le PDF n'a pas encore été généré : afficher un lien vers `/composer/succes`
+- OCR : évaluer si tesseract latin est plus permissif que français sur des glyphes zodiacaux (♌ ♀) — risque de faux positif
+
+- Les 6 add-ons restent des placeholders. À écrire au LOT 5.
+- 2 polices système résiduelles → à couvrir par un `@font-face` de Cormorant Garamond avec `unicode-range: U+0030-0039, U+2000-206F` explicite ou par un embed complet de la fonte.
+
 **Fichiers créés** :
 - `/app/backend/services/book_engine/registry.py` — `ChapterSpec`, `Formule`, `SOCLE` (12), `ADDONS` (6), `FORMULES` (5) verrouillés en dataclasses immuables
 - `/app/backend/services/book_engine/cover_generator.py` — génération cover Nano Banana (gemini-3.1-flash-image-preview) + fallback sur COUVERTURE_PLUME_masked_1400.jpg

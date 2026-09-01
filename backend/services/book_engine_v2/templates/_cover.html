@@ -1,10 +1,14 @@
-{# Couverture — pas de folio (§6) #}
-<section class="page page-cover recto">
+{# Couverture — pas de folio (§6). L'illustration Nano Banana (si dispo) est
+   posée en fond ; le texte Cormorant est superposé. Sans illustration, on
+   utilise juste le logo-plume vectoriel. #}
+<section class="page page-cover recto" {% if cover_bg_url %}style="background-image: url({{ cover_bg_url }}); background-size: cover; background-position: center;"{% endif %}>
   <div class="cover-inner">
     <p class="brand">Plume Astrale</p>
     <h1 class="cover-title">Le Livre Astral</h1>
     <p class="cover-firstname">de {{ first_name }}</p>
-    <img class="cover-logo" src="{{ asset('logo-plume.svg') }}" alt="">
+    {% if not cover_bg_url %}
+      <img class="cover-logo" src="{{ asset('logo-plume.svg') }}" alt="">
+    {% endif %}
   </div>
   <p class="cover-birthline">
     {{ birth_date_fr }} · {{ birth_time_fr }} · {{ birth_city }}

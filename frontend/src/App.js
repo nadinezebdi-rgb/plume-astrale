@@ -79,6 +79,7 @@ import Bibliotheque from "./pages/Bibliotheque";
 import Desabonnement from "./pages/Desabonnement";
 import ComposerPage from "./pages/ComposerPage";
 import ComposerSucces from "./pages/ComposerSucces";
+import MonLivrePage from "./pages/MonLivrePage";
 import AuthenticatedHome from "./pages/AuthenticatedHome";
 import CTATestPage from "./pages/CTATestPage";
 import CreditsInfo from "./pages/CreditsInfo";
@@ -315,6 +316,7 @@ function App() {
                 <Route path="/desabonnement" element={<Desabonnement />} />
                 <Route path="/composer" element={<ComposerPage />} />
                 <Route path="/composer/succes" element={<ComposerSucces />} />
+                <Route path="/mon-compte/mon-livre" element={<MonLivrePage />} />
                 {/* SEO P0 (2026-02-16) : catch-all 404 réel avec noindex */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

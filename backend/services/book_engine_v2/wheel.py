@@ -68,19 +68,23 @@ def _to_longitude_deg(value: Any) -> float | None:
 
     Accepte :
       - float direct (degré absolu 0-360)
-      - dict {'sign': 'aries', 'degree': 12.5}  → 0° Bélier = 0, 12.5° Bélier = 12.5
-      - dict {'degree': 42.3}  → utilisation directe
+      - dict {'absolute_longitude': 98.6}  → utilisation directe (astrology-io v3)
+      - dict {'sign': 'Taurus', 'degree': 12.5}  → 0° Taureau = 30, 12.5° Taureau = 42.5
+      - dict {'degree': 42.3}  → si degree > 30 : longitude absolue déjà
     """
     if value is None:
         return None
     if isinstance(value, (int, float)):
         return float(value) % 360.0
     if isinstance(value, dict):
+        # 1. Astrology-io v3 : `absolute_longitude` déjà en 0-360
+        abs_lon = value.get('absolute_longitude')
+        if isinstance(abs_lon, (int, float)):
+            return float(abs_lon) % 360.0
+        # 2. Fallback : combine sign + degré relatif
         deg = value.get('degree')
         if isinstance(deg, (int, float)) and deg > 30:
-            # Déjà en longitude absolue
             return float(deg) % 360.0
-        # Sinon combine sign + degré relatif
         sign = (value.get('sign') or '').lower()
         sign_fr = _SIGN_EN_FR.get(sign, '')
         if sign_fr in _SIGN_ORDER and isinstance(deg, (int, float)):
@@ -173,8 +177,20 @@ def build_wheel_svg(wheel_data: dict) -> str:
     Le SVG produit a `viewBox="0 0 1000 1000"` + `preserveAspectRatio="xMidYMid meet"`,
     donc l'inclusion HTML avec width=116mm et height=116mm garantit un cercle
     (§5.2 : |largeur − hauteur| < 0,2 mm dans le contrôle QA).
+
+    Post-traitement : substitue la font-family par défaut du kit ("DejaVu Sans, …")
+    par notre police embarquée "Astro" (Noto Sans Symbols 2 subset via @font-face)
+    afin d'éliminer tout fallback système à l'export Chromium (§8 QA polices).
     """
-    return build_wheel(wheel_data['svg_planets'], wheel_data['svg_cusps'])
+    svg = build_wheel(wheel_data['svg_planets'], wheel_data['svg_cusps'])
+    # Le kit met la font-family sur le <svg> root, tous les <text> en héritent.
+    # On la remplace pour forcer notre "Astro" en tête (embed CSS via @font-face).
+    svg = svg.replace(
+        'font-family="DejaVu Sans, Noto Sans Symbols 2, Segoe UI Symbol, serif"',
+        'font-family="Astro, Cormorant Garamond, serif"',
+        1,
+    )
+    return svg
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -230,8 +246,8 @@ def _distribution_line(planets: list[tuple[str, float, bool]]) -> str:
         elements[_SIGN_ELEMENT[sign_fr]] += 1
         modes[_SIGN_MODE[sign_fr]] += 1
     total = sum(elements.values()) or 1
-    elem_str = ' · '.join(f'{k} {round(v * 100 / total)}\u202f%' for k, v in elements.items())
-    mode_str = ' · '.join(f'{k} {round(v * 100 / total)}\u202f%' for k, v in modes.items())
+    elem_str = ' · '.join(f'{k}\u00a0{round(v * 100 / total)}\u00a0%' for k, v in elements.items())
+    mode_str = ' · '.join(f'{k}\u00a0{round(v * 100 / total)}\u00a0%' for k, v in modes.items())
     return f'{elem_str} — {mode_str}'
 
 

@@ -403,3 +403,120 @@ async def composer_regenerate(session_id: str, wait: bool = False):
     import asyncio as _asyncio
     _asyncio.create_task(build_book_pdf_for_session(session_id, force=True))
     return {'scheduled': True, 'session_id': session_id}
+
+
+# ═══════════════════════════════════════════════════════════════════
+# FLIPBOOK — Rasterization page par page pour /mon-compte/mon-livre
+# ═══════════════════════════════════════════════════════════════════
+@router.get('/pages/{session_id}/{page_num}.jpg')
+async def composer_page_jpg(session_id: str, page_num: int, dpi: int = 130):
+    """Rasterise la page N du PDF v2 d'une session en JPEG pour le flipbook.
+
+    Cache local (`/app/backend/assets/book/flipbook_cache/{session_id}/pN.jpg`).
+    Réponse : image/jpeg direct (Content-Type + Cache-Control 24h).
+    """
+    from fastapi.responses import Response as FResponse
+    import subprocess
+    from pathlib import Path
+    if page_num < 1 or page_num > 999:
+        raise HTTPException(400, 'page_num invalide (1..999)')
+
+    cache_dir = Path('/app/backend/assets/book/flipbook_cache') / session_id
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    out = cache_dir / f'p{page_num:03d}_dpi{dpi}.jpg'
+    if out.exists():
+        return FResponse(out.read_bytes(), media_type='image/jpeg',
+                         headers={'Cache-Control': 'public, max-age=86400'})
+
+    # Retrouve le PDF (Supabase Storage URL depuis payment_transactions.metadata)
+    try:
+        sb = get_admin_client()
+        row = sb.table('payment_transactions').select('metadata').eq(
+            'session_id', session_id
+        ).limit(1).execute()
+    except Exception as e:
+        raise HTTPException(500, f'lookup fail: {e}')
+    if not row.data:
+        raise HTTPException(404, 'session inconnue')
+    md = row.data[0].get('metadata') or {}
+    pdf_url = md.get('pdf_supabase_url') or md.get('pdf_path')
+    local_path = md.get('pdf_local_path')
+    if local_path and Path(local_path).exists():
+        pdf_src = local_path
+    elif pdf_url:
+        # Télécharge dans un tmp
+        import tempfile, urllib.request
+        with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tf:
+            with urllib.request.urlopen(pdf_url, timeout=15) as r:
+                tf.write(r.read())
+            pdf_src = tf.name
+    else:
+        raise HTTPException(404, 'PDF non disponible pour cette session')
+
+    # Rasterize page N via pdftoppm
+    tmp_prefix = str(cache_dir / f'render_{page_num}')
+    rc = subprocess.run(
+        ['pdftoppm', '-r', str(dpi), '-f', str(page_num), '-l', str(page_num),
+         '-jpeg', '-jpegopt', 'quality=82', pdf_src, tmp_prefix],
+        capture_output=True, timeout=25,
+    )
+    if rc.returncode != 0:
+        raise HTTPException(500, f'pdftoppm failed: {rc.stderr.decode()[:200]}')
+    # pdftoppm crée : {prefix}-NN.jpg (padding 2-3 digits selon nb pages)
+    from glob import glob
+    produced = glob(f'{tmp_prefix}-*.jpg')
+    if not produced:
+        raise HTTPException(500, 'pdftoppm n a produit aucun JPG')
+    produced[0]
+    Path(produced[0]).rename(out)
+    return FResponse(out.read_bytes(), media_type='image/jpeg',
+                     headers={'Cache-Control': 'public, max-age=86400'})
+
+
+# ═══════════════════════════════════════════════════════════════════
+# LULU — Specs impression pour la page /mon-compte/mon-livre
+# ═══════════════════════════════════════════════════════════════════
+@router.get('/print-specs/{session_id}')
+async def composer_print_specs(session_id: str,
+                                edition: str = 'brochee',
+                                quantity: int = 1):
+    """Retourne dimensions (dos, cover) + estimation prix pour l'édition demandée."""
+    from services.book_engine.domain import Edition
+    from services.print.lulu_provider import (
+        estimate_retail_price_eur,
+        validate_manuscript_for_print,
+        build_cover_spec,
+    )
+    try:
+        ed = Edition(edition)
+    except ValueError:
+        raise HTTPException(400, f'Edition inconnue: {edition}')
+    if ed not in (Edition.BROCHEE, Edition.RELIEE):
+        raise HTTPException(400, 'Print specs uniquement pour brochée/reliée')
+    try:
+        sb = get_admin_client()
+        row = sb.table('payment_transactions').select('metadata').eq(
+            'session_id', session_id).limit(1).execute()
+    except Exception as e:
+        raise HTTPException(500, f'lookup fail: {e}')
+    if not row.data:
+        raise HTTPException(404, 'session inconnue')
+    md = row.data[0].get('metadata') or {}
+    pages = md.get('pdf_pages') or 32
+
+    # Validation via un manuscript minimal (on n'a besoin que du nombre de chapitres)
+    from services.book_engine.domain import Manuscript, BirthData
+    from datetime import datetime, timezone
+    m = Manuscript(
+        session_id=session_id, user_email='', first_name='',
+        birth_data=BirthData(date_iso='1990-01-01', time_hhmm='12:00', city=''),
+        astro_data={}, chapters=[], edition=ed,
+        created_at=datetime.now(timezone.utc),
+    )
+    validation = validate_manuscript_for_print(m, ed, pages_hint=pages)
+    price = estimate_retail_price_eur(validation.pages, ed, quantity)
+    return {
+        'validation': validation.to_dict(),
+        'price': price,
+        'cover_spec': build_cover_spec(validation.pages),
+    }
