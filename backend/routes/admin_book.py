@@ -168,3 +168,65 @@ async def admin_preview_pdf(session_id: str):
         raise HTTPException(404, 'aucun PDF v2 disponible')
     return FileResponse(str(pdf), media_type='application/pdf',
                         filename=f'livre_astral_v2_{session_id}.pdf')
+
+
+@router.post('/regen-cover/{session_id}')
+async def admin_regen_cover(
+    session_id: str,
+    force: bool = Query(True, description='Bypasse le cache Nano Banana'),
+    preview: bool = Query(False, description='Retourne le PNG au lieu du JSON'),
+):
+    """Force la régénération de la couverture Nano Banana pour une session.
+
+    Bypasse le cache si `force=true` (défaut). Le filtre OCR anti-texte-parasite
+    reste actif (jusqu'à 2 retries). En `preview=true`, retourne directement
+    l'image PNG (200 OK, image/png).
+    """
+    from services.book_engine_v2.cover_generator import (
+        COVER_CACHE_DIR, generate_cover_image, resolve_signs_fr,
+        _detect_text_in_image,
+    )
+    from services.book_engine.pipeline import _fetch_astro
+    from fastapi.responses import Response as FResponse
+
+    # Fetch minimal : astro data seulement (pas de LLM ni de manuscrit)
+    sb = get_admin_client()
+    row = sb.table('payment_transactions').select('metadata,user_email').eq(
+        'session_id', session_id).limit(1).execute()
+    if not row.data:
+        raise HTTPException(404, 'session inconnue')
+    md = row.data[0].get('metadata') or {}
+    pdf_ctx = md.get('pdf_ctx') or {}
+    first_name = pdf_ctx.get('first_name') or 'Voyageuse'
+    birth_data = pdf_ctx.get('birth_data') or {}
+    try:
+        astro = await _fetch_astro(birth_data, first_name)
+    except Exception as e:
+        raise HTTPException(500, f'astro fetch failed: {e}')
+
+    sun, moon, asc = resolve_signs_fr(astro)
+    png = await generate_cover_image(
+        first_name=first_name, sun_sign=sun, moon_sign=moon, asc_sign=asc,
+        force=force,
+    )
+    if not png:
+        raise HTTPException(502, 'Gemini n a pas retourné d image après retries')
+
+    n_chars, sample = _detect_text_in_image(png)
+    session_copy = COVER_CACHE_DIR / f'{session_id}.png'
+    session_copy.write_bytes(png)
+
+    if preview:
+        return FResponse(png, media_type='image/png',
+                         headers={'Cache-Control': 'no-store'})
+    return {
+        'ok': True,
+        'session_id': session_id,
+        'first_name': first_name,
+        'signature': {'sun': sun, 'moon': moon, 'ascendant': asc},
+        'bytes': len(png),
+        'ocr_chars': n_chars,
+        'ocr_sample': sample if n_chars else '',
+        'session_png_path': str(session_copy),
+        'preview_url': f'/api/admin/book/regen-cover/{session_id}?force=false&preview=true',
+    }
