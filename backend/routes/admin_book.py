@@ -170,6 +170,148 @@ async def admin_preview_pdf(session_id: str):
                         filename=f'livre_astral_v2_{session_id}.pdf')
 
 
+@router.get('/pdf-engine-health')
+async def admin_pdf_engine_health():
+    """Diagnostic complet de l'infra PDF v2 sur l'environnement courant.
+
+    Retourne un JSON avec l'état des 6 dépendances critiques :
+      1. USE_V2_ENGINE lu depuis l'env
+      2. Chromium binaire trouvé + version
+      3. Fichiers de polices Cormorant + NotoSansSymbols2
+      4. EMERGENT_LLM_KEY présent (booléen, jamais la valeur)
+      5. Table Supabase book_manuscripts accessible
+      6. Cache directories accessibles en écriture
+
+    Usage prod : `curl https://plume-astrale.fr/api/admin/book/pdf-engine-health | jq`
+    """
+    import os
+    import shutil
+    import subprocess
+    from datetime import datetime, timezone
+    from pathlib import Path
+
+    checks: dict = {}
+
+    # 1. USE_V2_ENGINE
+    v2_env = os.environ.get('USE_V2_ENGINE')
+    checks['use_v2_engine'] = {
+        'value': v2_env,
+        'v2_active': v2_env == '1',
+        'ok': v2_env == '1',
+        'hint': '' if v2_env == '1' else
+                'Ajouter USE_V2_ENGINE=1 dans les env vars prod puis redéployer.',
+    }
+
+    # 2. Chromium
+    from services.book_engine_v2.renderer import CHROMIUM_BINARIES
+    chromium_path = None
+    chromium_version = None
+    for name in CHROMIUM_BINARIES:
+        p = shutil.which(name)
+        if p:
+            chromium_path = p
+            try:
+                r = subprocess.run([p, '--version'], capture_output=True, timeout=8)
+                chromium_version = r.stdout.decode(errors='replace').strip()
+            except Exception:
+                chromium_version = 'version-check-failed'
+            break
+    checks['chromium'] = {
+        'binary_path': chromium_path,
+        'version': chromium_version,
+        'ok': chromium_path is not None,
+        'hint': '' if chromium_path else
+                "Chromium introuvable. Ajouter 'chromium' aux apt packages du build "
+                "Docker en prod, sinon fallback WeasyPrint (dégradé).",
+    }
+
+    # 3. Polices
+    fonts_dir = Path('/app/backend/assets/book/fonts')
+    expected = [
+        'CormorantGaramond-Light.ttf', 'CormorantGaramond-Regular.ttf',
+        'CormorantGaramond-Italic.ttf', 'CormorantGaramond-Bold.ttf',
+        'NotoSansSymbols2-Regular.ttf',
+    ]
+    found = {f: (fonts_dir / f).exists() for f in expected}
+    checks['fonts'] = {
+        'fonts_dir': str(fonts_dir),
+        'dir_exists': fonts_dir.exists(),
+        'files': found,
+        'missing': [f for f, v in found.items() if not v],
+        'ok': all(found.values()),
+    }
+
+    # 4. EMERGENT_LLM_KEY (booléen)
+    llm_key = os.environ.get('EMERGENT_LLM_KEY')
+    checks['emergent_llm_key'] = {
+        'present': bool(llm_key),
+        'valid_prefix': (llm_key or '').startswith('sk-emergent-') if llm_key else False,
+        'ok': bool(llm_key),
+        'hint': '' if llm_key else
+                "Sans EMERGENT_LLM_KEY : ni chapitres LLM, ni cover Nano Banana. "
+                "À ajouter dans env vars prod.",
+    }
+
+    # 5. Supabase table book_manuscripts
+    sb_check: dict = {'ok': False, 'accessible': False, 'error': None}
+    try:
+        from services.supabase_client import get_admin_client
+        sb = get_admin_client()
+        row = sb.table('book_manuscripts').select('id', count='exact').limit(1).execute()
+        sb_check['accessible'] = True
+        sb_check['row_count'] = getattr(row, 'count', None)
+        sb_check['ok'] = True
+    except Exception as e:
+        msg = str(e)[:250]
+        sb_check['error'] = msg
+        if 'book_manuscripts' in msg.lower() and (
+            'not found' in msg.lower() or 'does not exist' in msg.lower()
+            or 'schema cache' in msg.lower()
+        ):
+            sb_check['hint'] = ('Table absente. Exécuter 2026_03_book_manuscripts.sql '
+                                'dans le SQL Editor Supabase du projet.')
+    checks['supabase'] = sb_check
+
+    # 6. Cache dirs
+    cache_dirs = {
+        'covers_cache': '/app/backend/assets/book/covers_cache',
+        'flipbook_cache': '/app/backend/assets/book/flipbook_cache',
+        'composer_books': '/app/backend/assets/composer_books',
+        'composer_books_v2': '/app/backend/assets/composer_books_v2',
+    }
+    cache_status = {}
+    for name, path in cache_dirs.items():
+        p = Path(path)
+        writable = False
+        if p.exists():
+            try:
+                t = p / '.write_test'
+                t.write_text('ok'); t.unlink()
+                writable = True
+            except Exception:
+                pass
+        cache_status[name] = {
+            'path': path, 'exists': p.exists(), 'writable': writable,
+            'file_count': (len(list(p.iterdir())) if p.exists() else 0),
+        }
+    checks['cache_dirs'] = {
+        'dirs': cache_status,
+        'ok': all(d['writable'] or d['exists'] for d in cache_status.values()),
+    }
+
+    # Verdict global
+    return {
+        'ok': all(v.get('ok', False) for v in checks.values()),
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+        'engine_active': 'v2' if checks['use_v2_engine']['v2_active'] else 'v1',
+        'checks': checks,
+        'summary': {
+            'passing': sum(1 for v in checks.values() if v.get('ok')),
+            'failing': sum(1 for v in checks.values() if not v.get('ok')),
+        },
+    }
+
+
 @router.post('/regen-cover/{session_id}')
 async def admin_regen_cover(
     session_id: str,
