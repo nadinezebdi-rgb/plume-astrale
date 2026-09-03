@@ -1,4 +1,19 @@
 # CHANGELOG - Plume Astrale
+
+## 2026-03-04 — 🔴 Bug Nadine : fallbacks trompeurs Thème Natal (P0)
+
+**Contexte** : user upload le PDF « Thème Natal — Nadine.pdf » signalant que les données astrologiques semblent fausses / génériques. Root cause identifiée : `natal_pdf_adapter.generate_manuscrit_pdf` utilisait des fallbacks HARDCODÉS (`'Cancer'/'Poissons'/'Vierge'/'Inconnu'`) quand `_find_sign()` retournait vide, produisant un PDF avec des signes astrologiques **inventés**. Reproduction API : Nadine a en réalité Lune **Bélier** + Ascendant **Gémeaux** (le PDF affichait Poissons/Vierge).
+
+**Fixes appliqués** :
+1. **`backend/services/natal_pdf_adapter.py`** : suppression des 4 fallbacks hardcodés (`or 'Cancer'`, `or 'Poissons'`, `or 'Vierge'`, `or 'Inconnu'`). Si `_find_sign()` retourne vide pour Soleil/Lune (core), lève `RuntimeError` explicite au lieu de générer un PDF avec fausses positions.
+2. **`backend/services/theme_natal_oneshot_service.py`** : garde `_CORE_PLANETS` — refuse de générer le PDF si `planets_dict` a moins de 5 planètes core (Sun/Moon/Mercury/Venus/Mars). Marque `pdf_status='failed'` avec `pdf_error` détaillé et alerte email admin via Resend (rate-limitée 1/6h, réutilise `ADMIN_ALERT_EMAIL` et `RESEND_API_KEY`).
+3. **`backend/tests/test_natal_pdf_adapter_no_fallback.py`** : 4 tests de régression validant l'absence des fallbacks trompeurs dans le source + le comportement d'échec propre.
+
+**Vérifié** : 19 tests pytest passent (13 existants no_birth_time + 4 nouveaux + 2 autres), génération PDF E2E avec la vraie API astrology-api.io renvoie bien 12 planètes correctes pour Nadine.
+
+**Impact prod** : plus jamais de PDF avec fausses positions envoyé au client. En cas d'échec API (401 crédits, 5xx, timeout), le client reçoit statut `failed` (UI sort du spinner) et l'admin est alerté.
+
+
 ## 2026-02-29 — P2 §XII audit marque : refonte offre (textes verbatim user)
 
 **Contexte** : user fournit les textes prêts du chapitre XII (accueil + page produit) et la grille §VII des nouveaux prix (24 / 69 / 119 / 199 €). Intégration verbatim, sans reformulation.
