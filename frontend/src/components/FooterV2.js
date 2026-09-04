@@ -66,10 +66,32 @@ export default function FooterV2() {
           <div>
             <FooterHeading>Explorer</FooterHeading>
             <FooterLink to="/">Accueil</FooterLink>
-            <FooterLink to="/livres">Services</FooterLink>
+            <FooterLink to="/livres">Livres imprimés</FooterLink>
             <FooterLink to="/blog">Blog</FooterLink>
             <FooterLink to="/temoignages">Témoignages</FooterLink>
-            <FooterLink to="/quotidien">Horoscope du jour</FooterLink>
+            <FooterLink to="/theme-natal" testid="footer-v2-theme-natal">Thème natal</FooterLink>
+            <FooterLink to="/synastrie" testid="footer-v2-synastrie">Compatibilité amoureuse</FooterLink>
+            <FooterLink to="/voyage-karmique" testid="footer-v2-voyage-karmique">Voyage karmique</FooterLink>
+            <FooterLink to="/astrocartographie" testid="footer-v2-astrocarto">Astrocartographie</FooterLink>
+          </div>
+
+          {/* Horoscope — silo SEO ouvert (audit Feb 2026) */}
+          <div>
+            <FooterHeading>Horoscope</FooterHeading>
+            <FooterLink to="/horoscope" testid="footer-v2-horoscope-hub">Tous les signes</FooterLink>
+            <FooterLink to="/quotidien" testid="footer-v2-horoscope-jour">Horoscope du jour</FooterLink>
+            <FooterLink to="/horoscope/belier" testid="footer-v2-horo-belier">Bélier</FooterLink>
+            <FooterLink to="/horoscope/taureau" testid="footer-v2-horo-taureau">Taureau</FooterLink>
+            <FooterLink to="/horoscope/gemeaux" testid="footer-v2-horo-gemeaux">Gémeaux</FooterLink>
+            <FooterLink to="/horoscope/cancer" testid="footer-v2-horo-cancer">Cancer</FooterLink>
+            <FooterLink to="/horoscope/lion" testid="footer-v2-horo-lion">Lion</FooterLink>
+            <FooterLink to="/horoscope/vierge" testid="footer-v2-horo-vierge">Vierge</FooterLink>
+            <FooterLink to="/horoscope/balance" testid="footer-v2-horo-balance">Balance</FooterLink>
+            <FooterLink to="/horoscope/scorpion" testid="footer-v2-horo-scorpion">Scorpion</FooterLink>
+            <FooterLink to="/horoscope/sagittaire" testid="footer-v2-horo-sagittaire">Sagittaire</FooterLink>
+            <FooterLink to="/horoscope/capricorne" testid="footer-v2-horo-capricorne">Capricorne</FooterLink>
+            <FooterLink to="/horoscope/verseau" testid="footer-v2-horo-verseau">Verseau</FooterLink>
+            <FooterLink to="/horoscope/poissons" testid="footer-v2-horo-poissons">Poissons</FooterLink>
           </div>
 
           {/* Le journal — 3 articles remplaçant l'ancien bloc home 5.5 (audit 2026-02-26) */}

@@ -867,3 +867,59 @@ async def admin_svg_cache_stats(_admin: dict = Depends(require_admin)):
         'total_size_human': _human(total_size),
         'by_chart_type': by_type,
     }
+
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Silent Failure Radar (Feb 2026) — surface les sessions PDF failed
+# ═══════════════════════════════════════════════════════════════════
+@router.get('/pdf-failures/last-24h')
+async def admin_pdf_failures_last_24h(
+    hours: int = 24,
+    _admin: dict = Depends(require_admin),
+):
+    """Liste les sessions dont `metadata.pdf_status='failed'` dans les X dernières heures.
+
+    Retourne pour chacune : session_id, kind, email, first_name, pdf_error,
+    pdf_failed_at, planets_core_missing (si présent). Trié par date décroissante.
+    Le front admin peut afficher une bannière et un bouton « Régénérer ».
+    """
+    from datetime import datetime, timezone, timedelta
+
+    sb = get_admin_client()
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=max(1, min(hours, 168)))).isoformat()
+
+    # Filtre côté serveur : pdf_status = 'failed' via JSONB
+    try:
+        res = sb.table('payment_transactions').select(
+            'session_id, user_email, created_at, metadata'
+        ).gte('created_at', cutoff).order('created_at', desc=True).limit(500).execute()
+    except Exception as e:
+        logger.exception(f'[admin] pdf-failures fetch failed: {e}')
+        return {'items': [], 'total': 0, 'error': str(e)[:200]}
+
+    items = []
+    for row in (res.data or []):
+        md = row.get('metadata') or {}
+        if md.get('pdf_status') != 'failed':
+            continue
+        pdf_ctx = md.get('pdf_ctx') or {}
+        items.append({
+            'session_id': row.get('session_id'),
+            'user_email': row.get('user_email') or pdf_ctx.get('email') or '',
+            'first_name': pdf_ctx.get('first_name') or '',
+            'kind': md.get('kind') or 'unknown',
+            'created_at': row.get('created_at'),
+            'pdf_error': (md.get('pdf_error') or '')[:400],
+            'pdf_failed_at': md.get('pdf_failed_at'),
+            'planets_core_missing': md.get('planets_core_missing') or [],
+            'regenerate_in_progress': bool(md.get('regenerate_started_at')
+                                           and not md.get('regenerate_diag')
+                                           and not md.get('regenerate_error')),
+        })
+    return {
+        'items': items,
+        'total': len(items),
+        'window_hours': hours,
+        'since': cutoff,
+    }

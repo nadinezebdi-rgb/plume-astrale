@@ -9,6 +9,7 @@ import {
 import SEO from '@/components/SEO';
 import AdminThemeNatalFixer from '@/components/AdminThemeNatalFixer';
 import AdminLectureComplete from '@/components/AdminLectureComplete';
+import AdminFailureBanner from '@/components/AdminFailureBanner';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -236,6 +237,8 @@ export default function Admin() {
             </button>
           </div>
         </div>
+
+        <AdminFailureBanner token={token} />
 
         <div className="flex flex-wrap gap-2 mb-8">
           <Tab label="Vue d'ensemble" active={tab === 'overview'} onClick={() => setTab('overview')} />

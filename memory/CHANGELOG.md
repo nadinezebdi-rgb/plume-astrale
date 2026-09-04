@@ -1,17 +1,23 @@
 # CHANGELOG - Plume Astrale
 
-## 2026-03-04 — 🔴 Bug Nadine : fallbacks trompeurs Thème Natal (P0)
+## 2026-03-04 — 🔴 Bug Nadine + SEO P0/P1 wave
 
-**Contexte** : user upload le PDF « Thème Natal — Nadine.pdf » signalant que les données astrologiques semblent fausses / génériques. Root cause identifiée : `natal_pdf_adapter.generate_manuscrit_pdf` utilisait des fallbacks HARDCODÉS (`'Cancer'/'Poissons'/'Vierge'/'Inconnu'`) quand `_find_sign()` retournait vide, produisant un PDF avec des signes astrologiques **inventés**. Reproduction API : Nadine a en réalité Lune **Bélier** + Ascendant **Gémeaux** (le PDF affichait Poissons/Vierge).
+**Bug Nadine (P0)** : root cause = fallbacks hardcodés dans `natal_pdf_adapter.py` (`'Cancer'/'Poissons'/'Vierge'/'Inconnu'`) qui masquaient les échecs API astrology-api.io. Nadine (17/07/1968) a en réalité Lune Bélier + Ascendant Gémeaux (PDF affichait Poissons/Vierge).
+- **Fix** : suppression des fallbacks → `RuntimeError` explicite. Garde `_CORE_PLANETS ≥ 5` dans `theme_natal_oneshot_service`, `pdf_status='failed'` en base, alerte email admin via Resend (rate-limitée 1/6h). 4 tests régression ajoutés (19 tests total OK).
 
-**Fixes appliqués** :
-1. **`backend/services/natal_pdf_adapter.py`** : suppression des 4 fallbacks hardcodés (`or 'Cancer'`, `or 'Poissons'`, `or 'Vierge'`, `or 'Inconnu'`). Si `_find_sign()` retourne vide pour Soleil/Lune (core), lève `RuntimeError` explicite au lieu de générer un PDF avec fausses positions.
-2. **`backend/services/theme_natal_oneshot_service.py`** : garde `_CORE_PLANETS` — refuse de générer le PDF si `planets_dict` a moins de 5 planètes core (Sun/Moon/Mercury/Venus/Mars). Marque `pdf_status='failed'` avec `pdf_error` détaillé et alerte email admin via Resend (rate-limitée 1/6h, réutilise `ADMIN_ALERT_EMAIL` et `RESEND_API_KEY`).
-3. **`backend/tests/test_natal_pdf_adapter_no_fallback.py`** : 4 tests de régression validant l'absence des fallbacks trompeurs dans le source + le comportement d'échec propre.
+**Cover Mask (P2)** : gradient radial ivoire semi-transparent derrière le titre du livre quand cover_bg_url présent (Nano Banana). Garantit lisibilité du texte sur toute illustration. `_cover.html` + `book.css`.
 
-**Vérifié** : 19 tests pytest passent (13 existants no_birth_time + 4 nouveaux + 2 autres), génération PDF E2E avec la vraie API astrology-api.io renvoie bien 12 planètes correctes pour Nadine.
+**Silent Failure Radar** : nouvel endpoint `GET /api/admin/pdf-failures/last-24h` + composant React `AdminFailureBanner` intégré en haut de `/admin`. Liste les sessions failed avec bouton « Régénérer » par ligne.
 
-**Impact prod** : plus jamais de PDF avec fausses positions envoyé au client. En cas d'échec API (401 crédits, 5xx, timeout), le client reçoit statut `failed` (UI sort du spinner) et l'admin est alerté.
+**SEO P0/P1 wave (post-audit)** :
+- Canonical loop `/compatibilite-amoureuse` ↔ `/services/compatibilite` → fix via `canonicalPath` dans SEO_DATA. La canonical pointe désormais toujours vers `/services/compatibilite`.
+- H1 accueil : « Le seul cadeau qu'on lit » → « Le seul livre de thème natal qu'on lit en entier avant de l'offrir » (mots-clés SEO : livre + thème natal).
+- Sitemap statique regénéré : **87 URLs** (vs 80) avec `lastmod` variés par catégorie (daily/weekly/monthly/yearly). Inclut : hub `/horoscope`, 36 pages signes (12 × 3 périodes), 10 services, 9 blog posts, pages légales.
+- Maillage interne : `FooterV2` étoffé avec colonne « Horoscope » (12 signes + hub) et 4 liens produits (Thème natal, Compatibilité, Voyage karmique, Astrocarto). Résout le silo orphelin détecté par l'audit.
+
+**Prod Migration Check** : commande curl fournie au user pour lancer sur `plume-astrale.fr/api/admin/book/pdf-engine-health` (6 checks : engine, chromium, fonts, LLM key, supabase, cache).
+
+**Legacy Cleanup mis en attente** (scope 10-15h, risque prod sur Kabbale/Astrocarto). À planifier sur itération dédiée.
 
 
 ## 2026-02-29 — P2 §XII audit marque : refonte offre (textes verbatim user)

@@ -1,7 +1,10 @@
 {# Couverture — pas de folio (§6). L'illustration Nano Banana (si dispo) est
    posée en fond ; le texte Cormorant est superposé. Sans illustration, on
-   utilise juste le logo-plume vectoriel. #}
-<section class="page page-cover recto" {% if cover_bg_url %}style="background-image: url({{ cover_bg_url }}); background-size: cover; background-position: center;"{% endif %}>
+   utilise juste le logo-plume vectoriel. Un masque ivoire radial est appliqué
+   derrière le titre pour garantir la lisibilité au-dessus de n'importe quelle
+   illustration Nano Banana (fix Feb 2026). #}
+<section class="page page-cover recto{% if cover_bg_url %} has-bg{% endif %}" {% if cover_bg_url %}style="background-image: url({{ cover_bg_url }}); background-size: cover; background-position: center;"{% endif %}>
+  {% if cover_bg_url %}<div class="cover-mask"></div>{% endif %}
   <div class="cover-inner">
     <p class="brand">Plume Astrale</p>
     <h1 class="cover-title">Le Livre Astral</h1>

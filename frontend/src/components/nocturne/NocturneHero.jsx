@@ -30,11 +30,11 @@ export default function NocturneHero() {
               data-testid="nocturne-hero-title"
               style={{ color: 'var(--ne-celeste)' }}
             >
-              Le seul cadeau qu&rsquo;on
+              Le seul livre de thème natal&nbsp;
               <span
                 className="ne-hero-title-accent"
                 style={{ fontFamily: '"Cormorant Garamond", "Playfair Display", Georgia, serif', fontStyle: 'italic', fontWeight: 500 }}
-              > lit en entier avant de l&rsquo;offrir.</span>
+              >qu&rsquo;on lit en entier avant de l&rsquo;offrir.</span>
             </h1>
 
             <p className="ne-hero-premium-lead ne-reveal ne-reveal-3" data-testid="nocturne-hero-lead">

@@ -229,7 +229,7 @@ const Compatibilite2 = () => {
 
   return (
     <div className="min-h-screen">
-      <SEO path="/compatibilite-amoureuse" />
+      <SEO path="/services/compatibilite" />
       <div className="px-6 md:px-8 py-20 md:py-28">
         <div className="max-w-3xl mx-auto">
 

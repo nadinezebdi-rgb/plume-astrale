@@ -281,10 +281,16 @@ const SEO_DATA = {
     description: "Ton horoscope hebdo et mensuel — 12 signes du zodiaque, prévisions détaillées écrites en français fin.",
     keywords: 'horoscope hebdomadaire, horoscope mensuel, prévisions astrologiques',
   },
+  '/services/compatibilite': {
+    title: 'Compatibilité amoureuse astrologique · Plume',
+    description: "Ta compatibilité amoureuse en synastrie complète — affinités, tensions, karma. Rapport de 25 pages.",
+    keywords: 'compatibilité amoureuse, synastrie, astrologie couple',
+  },
   '/compatibilite-amoureuse': {
     title: 'Compatibilité amoureuse astrologique · Plume',
     description: "Ta compatibilité amoureuse en synastrie complète — affinités, tensions, karma. Rapport de 25 pages.",
     keywords: 'compatibilité amoureuse, synastrie, astrologie couple',
+    canonicalPath: '/services/compatibilite',  // SEO P0 Feb 2026 : fix canonical loop
   },
   '/astrosexo': {
     title: 'AstroSexo · Compatibilité intime',
@@ -418,7 +424,11 @@ const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp, ca
   // SEO P0 (2026-02-16) : canonical toujours strip des query params (ex: ?theme=…)
   // pour éviter les doublons d'indexation. Le path arrivant ici est déjà décoré côté route.
   const cleanPath = (path === '/' ? '' : path).split('?')[0].split('#')[0];
-  const canonical = canonicalOverride || `${DOMAIN}${cleanPath}`;
+  // SEO P0 Feb 2026 (bug audit) : si l'entrée SEO_DATA déclare `canonicalPath`,
+  // on route la canonical vers cette autre URL — utile pour les doublons
+  // d'intention (ex. /compatibilite-amoureuse → /services/compatibilite).
+  const canonicalPath = data.canonicalPath ? data.canonicalPath.split('?')[0] : cleanPath;
+  const canonical = canonicalOverride || `${DOMAIN}${canonicalPath}`;
   const pageTitle = title || data.title;
   const pageDesc = description || data.description;
   const pageImage = image || DEFAULT_IMAGE;
