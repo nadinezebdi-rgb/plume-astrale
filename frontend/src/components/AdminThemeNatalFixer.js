@@ -142,8 +142,89 @@ const AdminThemeNatalFixer = ({ token }) => {
 
   const bd = info?.birth_data_source;
 
+  // Recherche par prénom/email (Nadine Rerun — Feb 2026)
+  const [searchQ, setSearchQ] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const runSearch = async () => {
+    if (searchQ.trim().length < 2) return;
+    setSearching(true);
+    try {
+      const r = await axios.get(
+        `${API}/api/admin/theme-natal/search?q=${encodeURIComponent(searchQ.trim())}&limit=20`,
+        { headers }
+      );
+      setSearchResults(r.data.items || []);
+    } catch (e) {
+      setErr(`Recherche échouée : ${e?.response?.data?.detail || e.message}`);
+    } finally {
+      setSearching(false);
+    }
+  };
+
   return (
     <div className="space-y-6" data-testid="admin-theme-natal-fixer">
+      {/* Recherche rapide par prénom, email ou session_id */}
+      <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,175,55,0.18)' }}>
+        <h3 className="text-base mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>
+          Rechercher une commande
+        </h3>
+        <div className="flex gap-3">
+          <input
+            data-testid="fixer-search-input"
+            value={searchQ}
+            onChange={e => setSearchQ(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && runSearch()}
+            placeholder="Nadine, nom@email.fr, cs_live_… — min 2 caractères"
+            className="flex-1 px-4 py-3 rounded-lg text-sm"
+            style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(212,175,55,0.25)', color: '#F5EEE0' }}
+          />
+          <button
+            data-testid="fixer-search-btn"
+            onClick={runSearch}
+            disabled={searching || searchQ.trim().length < 2}
+            className="px-5 py-3 rounded-lg text-xs uppercase tracking-widest"
+            style={{ background: '#D4AF37', color: '#111625', letterSpacing: '0.1em', fontWeight: 500 }}
+          >
+            {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Rechercher'}
+          </button>
+        </div>
+        {searchResults.length > 0 && (
+          <div className="mt-4 space-y-2" data-testid="fixer-search-results">
+            {searchResults.map(r => (
+              <button
+                key={r.session_id}
+                onClick={() => {
+                  setSessionId(r.session_id);
+                  setSearchResults([]);
+                  setSearchQ('');
+                  setTimeout(inspect, 100);
+                }}
+                className="w-full text-left rounded-lg p-3 hover:bg-white/5 transition-colors"
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(212,175,55,0.12)' }}
+                data-testid={`fixer-search-result-${r.session_id.slice(-12)}`}
+              >
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 15, color: '#F5EEE0' }}>
+                    {r.first_name || 'Sans prénom'}
+                  </span>
+                  <span style={{ color: 'rgba(227,215,255,0.5)' }}>·</span>
+                  <span className="text-xs" style={{ color: 'rgba(227,215,255,0.75)' }}>{r.user_email}</span>
+                  {r.pdf_status === 'failed' && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] uppercase" style={{ background: 'rgba(239,68,68,0.2)', color: '#EF4444' }}>
+                      failed
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs font-mono" style={{ color: 'rgba(227,215,255,0.5)' }}>
+                  {r.session_id} · {r.birth_date} · {r.birth_city || '—'}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,175,55,0.18)' }}>
         <h3 className="text-base mb-3" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>
           Session Thème Natal à corriger

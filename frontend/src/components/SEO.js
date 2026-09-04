@@ -286,6 +286,16 @@ const SEO_DATA = {
     description: "Ta compatibilité amoureuse en synastrie complète — affinités, tensions, karma. Rapport de 25 pages.",
     keywords: 'compatibilité amoureuse, synastrie, astrologie couple',
   },
+  '/services/tarot': {
+    title: 'Tarot personnalisé en ligne · Lecture composée sur mesure',
+    description: "Une lecture de tarot de Marseille composée pour votre question. PDF haute résolution en 60 secondes. 4 protocoles disponibles.",
+    keywords: 'tarot en ligne, tarot personnalisé, tirage tarot, croix celtique',
+  },
+  '/services/oracle': {
+    title: 'Oracle personnel · Message poétique pour votre journée',
+    description: "Un message d'oracle composé pour votre question du jour. 44 lames illustrées, message de 150-300 mots + rituel d'intégration.",
+    keywords: 'oracle en ligne, tirage oracle, message spirituel',
+  },
   '/compatibilite-amoureuse': {
     title: 'Compatibilité amoureuse astrologique · Plume',
     description: "Ta compatibilité amoureuse en synastrie complète — affinités, tensions, karma. Rapport de 25 pages.",

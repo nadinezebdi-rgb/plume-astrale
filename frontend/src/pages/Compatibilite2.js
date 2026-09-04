@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, Loader2, ArrowLeft, Sparkles, Download, Star, Users, Tag, MessageCircle, Coins, LogIn, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
+import SEOServiceEnrich from '@/components/SEOServiceEnrich';
 import axios from 'axios';
 import { asset } from '../lib/assets';
 import TestimonialsWidget, { TESTIMONIALS_COMPATIBILITE } from '@/components/TestimonialsWidget';
@@ -488,6 +489,8 @@ const Compatibilite2 = () => {
           )}
         </div>
       </div>
+      {/* SEO Enrichment — audit Feb 2026 : contenu long + FAQ JSON-LD */}
+      <SEOServiceEnrich slug="compatibilite" />
     </div>
   );
 };

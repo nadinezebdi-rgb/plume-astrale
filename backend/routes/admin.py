@@ -593,6 +593,61 @@ async def admin_pdfs_sent(
 
 
 
+@router.get('/theme-natal/search')
+async def admin_search_theme_natal(
+    q: str,
+    limit: int = 20,
+    _admin: dict = Depends(require_admin),
+):
+    """Cherche des sessions Thème Natal par prénom, email ou fragment de session_id.
+
+    Sert au « Nadine Rerun » : retrouver rapidement une commande sans avoir le session_id.
+    Retourne les 20 résultats les plus récents. Insensible à la casse.
+    """
+    q_clean = (q or '').strip().lower()
+    if len(q_clean) < 2:
+        return {'items': [], 'query': q_clean, 'note': 'Requête trop courte (min 2 char)'}
+    sb = get_admin_client()
+    try:
+        # Chargement large (500 dernières commandes) — filtrage côté Python (JSONB metadata)
+        res = sb.table('payment_transactions').select(
+            'session_id, user_email, created_at, status, metadata'
+        ).order('created_at', desc=True).limit(500).execute()
+    except Exception as e:
+        logger.exception(f'[admin] search theme_natal fail: {e}')
+        return {'items': [], 'error': str(e)[:200]}
+
+    items = []
+    for row in (res.data or []):
+        md = row.get('metadata') or {}
+        if md.get('kind') != 'theme_natal_pdf_oneshot':
+            continue
+        pdf_ctx = md.get('pdf_ctx') or {}
+        haystack = ' '.join([
+            str(row.get('user_email') or ''),
+            str(pdf_ctx.get('email') or ''),
+            str(pdf_ctx.get('first_name') or ''),
+            str(pdf_ctx.get('last_name') or ''),
+            str(row.get('session_id') or ''),
+        ]).lower()
+        if q_clean in haystack:
+            items.append({
+                'session_id': row.get('session_id'),
+                'user_email': row.get('user_email') or pdf_ctx.get('email') or '',
+                'first_name': pdf_ctx.get('first_name') or '',
+                'birth_date': pdf_ctx.get('birth_date') or '',
+                'birth_city': pdf_ctx.get('birth_city') or '',
+                'created_at': row.get('created_at'),
+                'status': row.get('status'),
+                'pdf_status': md.get('pdf_status') or 'ok',
+                'pdf_error': (md.get('pdf_error') or '')[:200],
+                'has_pdf_url': bool(md.get('pdf_url') or md.get('pdf_signed_url')),
+            })
+        if len(items) >= max(1, min(limit, 50)):
+            break
+    return {'items': items, 'total': len(items), 'query': q_clean}
+
+
 @router.post('/theme-natal/regenerate/{session_id}')
 async def admin_regenerate_theme_natal(session_id: str, _admin: dict = Depends(require_admin)):
     """Force la régénération du PDF Thème Natal pour une session. Réponse IMMÉDIATE.

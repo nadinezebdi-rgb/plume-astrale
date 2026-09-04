@@ -1,5 +1,29 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-03-04 (bis) — Nadine Rerun + SSR Prerender + SEO Enrichment
+
+**Nadine Rerun (P0)** :
+- Nouvel endpoint `GET /api/admin/theme-natal/search?q=…` cherche par prénom/email/session_id dans les 500 dernières commandes Thème Natal (matching JSONB metadata).
+- Composant `AdminThemeNatalFixer` étoffé avec section « Rechercher une commande » : input + résultats cliquables qui pré-remplissent le champ session_id et lancent l'inspection.
+- Flux 1-clic : tab « Fix Thème Natal » → taper « Nadine » → cliquer un résultat → cliquer « Régénérer ». Régénération complète en 30-90s avec les vraies données API.
+
+**SSR Prerender (P0 SEO)** :
+- `frontend/scripts/prerender.js` upgradé : `puppeteer-core` (5 Mo) + Chrome système au lieu de `puppeteer` (300 Mo). Auto-détection du binaire via `CHROME_BIN` env, `/usr/bin/google-chrome`, `/usr/bin/chromium`, `/root/bin/chromium`.
+- Routes ROUTES étendues : ~80 routes prerendered incluant hub `/horoscope` + 36 pages signes (12 × 3 périodes), 10 pages `/services/*`, 9 blog posts, éditoriaux.
+- Injection MongoDB : chaque HTML statique inclut le `html_body` du snapshot SEO dans `<div id="root">` → Googlebot voit contenu SANS exécuter JS.
+- `yarn build:seo` disponible (déjà présent dans package.json).
+- Documentation complète : `frontend/scripts/README-prerender.md` (GitHub Actions, Vercel/Netlify, Emergent pipelines).
+
+**SEO Enrichment (P1)** :
+- Nouveau module `frontend/src/data/seoServiceContent.js` : contenu curated pour `compatibilite`, `tarot`, `oracle` (~1500 mots chacun : intro, how_it_works, benefits, who_for, FAQ 5-8 items).
+- Composant `SEOServiceEnrich.jsx` : rend le contenu + injecte JSON-LD FAQPage pour rich snippets Google.
+- Intégré dans `Compatibilite2.js`, `TirageTarot.js`, `Oracle.js` avec `<SEO path="/services/xxx" />` + `<SEOServiceEnrich slug="xxx" />` en fin de rendu.
+- `SEO_DATA` étoffé avec entries `/services/tarot` et `/services/oracle` (title, description, keywords).
+
+**Legacy Migration (Kabbale/Astrocarto vers v2)** : mise en attente cette itération — scope 10-15h avec risque régression prod sur 3 produits (pack karmique, mediumnite, pdf_luxury_wrap). À planifier sur itération dédiée avec plan de rollback.
+
+
+
 ## 2026-03-04 — 🔴 Bug Nadine + SEO P0/P1 wave
 
 **Bug Nadine (P0)** : root cause = fallbacks hardcodés dans `natal_pdf_adapter.py` (`'Cancer'/'Poissons'/'Vierge'/'Inconnu'`) qui masquaient les échecs API astrology-api.io. Nadine (17/07/1968) a en réalité Lune Bélier + Ascendant Gémeaux (PDF affichait Poissons/Vierge).

@@ -27,10 +27,16 @@ const path = require('path');
 const { spawn } = require('child_process');
 
 // Routes à prerendrer (alignées sur sitemap.xml — pages publiques uniquement)
+const SIGNS = ['belier','taureau','gemeaux','cancer','lion','vierge','balance','scorpion','sagittaire','capricorne','verseau','poissons'];
+const HORO_ROUTES = SIGNS.flatMap((s) => [`/horoscope/${s}`, `/horoscope/${s}/semaine`, `/horoscope/${s}/mois`]);
+const SERVICES = ['tarot','compatibilite','oracle','rituel','energie','archetype','consultation','revolution-solaire','love-languages','astrosexo'];
+const SERVICES_ROUTES = SERVICES.map((s) => `/services/${s}`);
 const ROUTES = [
   '/',
   '/manifesto',
   '/decouvrir',
+  '/cercle-solena',
+  '/barometre-2026',
   '/blog',
   '/blog/calculer-son-chemin-de-vie-avec-precision',
   '/blog/interpreter-venus-en-astrologie',
@@ -42,21 +48,19 @@ const ROUTES = [
   '/blog/previsions-astrologiques-personnalisees-2026',
   '/blog/theme-astral-personnalise-gratuit',
   '/nos-livres', '/livres',
-  '/theme-natal', '/theme-natal-luxe',
+  '/theme-natal', '/theme-natal-luxe', '/theme-natal-pdf',
   '/kabbale', '/astrocartographie',
   '/karma-destin', '/karma-destin-pdf',
   '/numerologie', '/numerologie-pdf',
-  '/synastrie',
+  '/synastrie', '/voyage-karmique', '/pack-karmique',
+  '/edition-reliee',
   '/tarot-oui-non', '/tarologie', '/quotidien',
   '/horoscope',
-  '/horoscope/belier', '/horoscope/taureau', '/horoscope/gemeaux',
-  '/horoscope/cancer', '/horoscope/lion', '/horoscope/vierge',
-  '/horoscope/balance', '/horoscope/scorpion', '/horoscope/sagittaire',
-  '/horoscope/capricorne', '/horoscope/verseau', '/horoscope/poissons',
-  '/compatibilite-amoureuse', '/astrosexo', '/archetype',
-  '/premium', '/cercle', '/temoignage',
+  ...HORO_ROUTES,
+  ...SERVICES_ROUTES,
+  '/premium', '/cercle', '/temoignages',
   '/credits', '/charte-de-confiance',
-  '/mentions-legales', '/cgv',
+  '/mentions-legales', '/cgv', '/confidentialite', '/contact',
 ];
 
 const PORT = 5555; // Port temporaire pour serve
@@ -68,16 +72,31 @@ async function main() {
     process.exit(1);
   }
 
-  // Vérification puppeteer (optionnel)
+  // Vérification puppeteer-core (SEO prerender Feb 2026 — light 5MB au lieu de 300MB)
   let puppeteer;
   try {
-    puppeteer = require('puppeteer');
+    puppeteer = require('puppeteer-core');
   } catch (e) {
-    console.log('\n⚠ puppeteer non installé — prerender skippé.');
+    console.log('\n⚠ puppeteer-core non installé — prerender skippé.');
     console.log('  Pour activer le SSG SEO :');
-    console.log('  $ yarn add -D puppeteer serve\n');
+    console.log('  $ yarn add -D puppeteer-core serve\n');
     process.exit(0); // exit 0 pour ne PAS bloquer le build
   }
+
+  // Détecte le binaire Chromium disponible (image K8s : /usr/bin/google-chrome ou /root/bin/chromium)
+  const CHROME_CANDIDATES = [
+    process.env.CHROME_BIN,
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium',
+    '/root/bin/chromium',
+    '/usr/bin/chromium-browser',
+  ].filter(Boolean);
+  const chromeBin = CHROME_CANDIDATES.find((p) => { try { return fs.existsSync(p); } catch { return false; } });
+  if (!chromeBin) {
+    console.log(`\n⚠ Aucun binaire Chrome/Chromium trouvé. Cherché : ${CHROME_CANDIDATES.join(', ')}`);
+    process.exit(0);
+  }
+  console.log(`▸ Chrome trouvé : ${chromeBin}`);
 
   // Vérification serve
   let serveBin;
@@ -98,7 +117,8 @@ async function main() {
   await new Promise((res) => setTimeout(res, 2000));
 
   const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    executablePath: chromeBin,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   });
   console.log('▸ Chromium démarré');
 
@@ -106,12 +126,14 @@ async function main() {
   // Le contenu html_body de MongoDB est injecté dans <div id="root"> pour que
   // Googlebot lise le contenu SANS attendre le bundle JS.
   const SSR_API = process.env.REACT_APP_BACKEND_URL || 'https://consultation-astro.preview.emergentagent.com';
-  const https = require('https');
+  const httpsMod = require('https');
+  const httpMod = require('http');
 
   async function fetchSnapshot(route) {
     return new Promise((resolve) => {
       const url = `${SSR_API}/api/seo/content?path=${encodeURIComponent(route)}`;
-      const req = https.get(url, { timeout: 4000 }, (res) => {
+      const mod = url.startsWith('https:') ? httpsMod : httpMod;
+      const req = mod.get(url, { timeout: 4000 }, (res) => {
         if (res.statusCode !== 200) return resolve(null);
         let body = '';
         res.on('data', (c) => (body += c));
