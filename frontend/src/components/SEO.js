@@ -296,6 +296,36 @@ const SEO_DATA = {
     description: "Un message d'oracle composé pour votre question du jour. 44 lames illustrées, message de 150-300 mots + rituel d'intégration.",
     keywords: 'oracle en ligne, tirage oracle, message spirituel',
   },
+  '/services/rituel': {
+    title: 'Rituel personnel composé sur mesure · Plume Astrale',
+    description: "Un rituel de 15-40 min aligné avec votre thème natal et la Lune actuelle. PDF illustré + journal d'intégration.",
+    keywords: 'rituel astrologique, rituel lune, cérémonie personnelle',
+  },
+  '/services/energie': {
+    title: 'Lecture énergétique astrologique · Cartographie des 12 maisons',
+    description: "Cartographiez la circulation de votre énergie dans vos 12 maisons astrologiques. Plan d'action 90 jours inclus.",
+    keywords: 'énergie astrologique, 12 maisons, bilan énergétique',
+  },
+  '/services/archetype': {
+    title: 'Votre archétype dominant · Analyse jungienne du thème natal',
+    description: "Découvrez l'archétype qui structure votre vie intérieure (Reine, Guerrière, Amante, Sage…). Rapport de 20 pages.",
+    keywords: 'archétype jungien, personnalité, thème natal',
+  },
+  '/services/consultation': {
+    title: 'Consultation astrologique par chat IA · Illimitée',
+    description: "Une conversation illimitée avec votre astrologue de poche, ancrée dans VOTRE thème natal. Réponse en 3-8 secondes.",
+    keywords: 'consultation astrologique, chat IA astrologie, astrologue en ligne',
+  },
+  '/services/revolution-solaire': {
+    title: 'Révolution solaire · Le thème de votre nouvelle année astrologique',
+    description: "Le thème astrologique de votre année à venir, calculé au moment exact du retour du Soleil. Rapport 30 pages avec calendrier mois par mois.",
+    keywords: 'révolution solaire, anniversaire astrologique, thème annuel',
+  },
+  '/services/love-languages': {
+    title: 'Vos langages de l\'amour selon votre thème natal',
+    description: "Comment vous aimez et comment on doit vous aimer, révélé par Vénus et Mars. Rapport de 15 pages, version couple disponible.",
+    keywords: 'langages de l\'amour, Vénus astrologie, Mars couple',
+  },
   '/compatibilite-amoureuse': {
     title: 'Compatibilité amoureuse astrologique · Plume',
     description: "Ta compatibilité amoureuse en synastrie complète — affinités, tensions, karma. Rapport de 25 pages.",

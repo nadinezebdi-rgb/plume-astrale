@@ -167,6 +167,284 @@ export const SEO_SERVICE_CONTENT = {
       },
     ],
   },
+
+  rituel: {
+    kicker: 'Rituel personnel',
+    title: 'Un rituel composé pour votre saison intérieure',
+    intro: `Un rituel, chez Plume Astrale, n'est ni magique ni ésotérique — c'est une chorégraphie douce de gestes, de mots et de pauses qui vient sceller une intention. Nous composons chaque rituel à partir de votre thème natal du jour, de la phase lunaire en cours et de votre intention personnelle. Le résultat est une pratique de 15 à 40 minutes, adaptée à votre appartement, sans besoin d'outils compliqués — une bougie, un carnet, votre respiration suffisent. Chaque rituel est livré en PDF illustré avec une chronologie précise, des phrases à prononcer, et un journal d'intégration à remplir dans les jours suivants.`,
+    how_it_works: {
+      title: 'Comment on compose votre rituel',
+      body: `Vous nous confiez votre date de naissance, votre lieu, votre intention (« lâcher prise sur une relation », « ancrer un projet », « célébrer une réussite »). Notre moteur croise votre thème natal avec la phase lunaire actuelle et sélectionne parmi 40 archétypes rituels celui qui correspond à votre saison intérieure. Un texte de 1500-2500 mots est ensuite composé sur mesure : préparation, chronologie, phrases d'ancrage, journal post-rituel.`,
+    },
+    benefits: {
+      title: 'Ce que vous recevez',
+      items: [
+        'Un PDF illustré de 8-12 pages, aligné avec votre thème natal',
+        'Une chronologie précise minute par minute',
+        '3 phrases d\'ancrage à prononcer à voix haute',
+        'Un journal d\'intégration à remplir sur 7 jours',
+        'Une playlist Spotify accompagnante (fournie en lien)',
+      ],
+    },
+    who_for: {
+      title: 'À qui c\'est destiné',
+      body: `Aux personnes qui traversent une transition (deuil, rupture, changement professionnel, deuil d'un rêve), aux femmes qui suivent leur cycle lunaire, aux hommes qui cherchent à ritualiser leur vie intérieure sans jargon spirituel. Pas besoin d'être ésotérique — un rituel bien composé fonctionne comme une thérapie brève, avec des marqueurs symboliques qui aident le corps à intégrer un changement mental.`,
+    },
+    faq: [
+      {
+        q: "Faut-il des ingrédients particuliers ?",
+        a: "Non. Nous composons uniquement avec ce que vous avez déjà : une bougie, un stylo, un carnet, un verre d'eau. Certains rituels demandent un objet personnel qui vous représente ; nous vous laissons le choisir.",
+      },
+      {
+        q: "Combien de temps prend un rituel complet ?",
+        a: "Entre 15 et 40 minutes selon la complexité. Vous choisissez la durée au moment de la commande. Un rituel court fonctionne aussi bien qu'un long ; c'est votre présence qui compte, pas le temps passé.",
+      },
+      {
+        q: "Puis-je adapter le rituel à mes croyances ?",
+        a: "Absolument. Le texte propose des phrases d'ancrage neutres (« je choisis de », « je pose »), mais vous pouvez les remplacer par des références à votre spiritualité personnelle (christianisme, bouddhisme, laïcité, autre). L'important est que vous soyez authentique.",
+      },
+      {
+        q: "Est-ce que ça fonctionne vraiment ?",
+        a: "Un rituel bien conduit active la mémoire corporelle : le cerveau associe un état intérieur à un ensemble de gestes. Le lendemain, revivre mentalement le rituel ramène l'état émotionnel qui l'a accompagné. C'est un mécanisme documenté en psychologie cognitive.",
+      },
+      {
+        q: "Faut-il être seul ou en groupe ?",
+        a: "Nos rituels sont conçus pour la solitude. Un rituel de groupe fonctionne différemment (dynamique collective, témoins). Si vous voulez vivre un rituel avec quelqu'un, nous proposons un format duo sur demande.",
+      },
+    ],
+  },
+
+  energie: {
+    kicker: 'Lecture énergétique',
+    title: 'Comprendre où circule (et où bloque) votre énergie personnelle',
+    intro: `L'énergie, en astrologie humaniste, n'est pas un fluide mystique — c'est la circulation de votre attention, de votre vitalité et de vos élans à travers les 12 secteurs de votre vie (les 12 maisons astrologiques). Certaines personnes ont une énergie qui déborde dans le travail et s'assèche dans le couple ; d'autres investissent tout dans le foyer et négligent leur mission. Notre lecture énergétique cartographie précisément où votre feu intérieur brûle fort, où il vacille, et surtout comment le rééquilibrer. C'est un guide de conservation d'énergie personnalisé, écrit dans un français vivant sans jargon.`,
+    how_it_works: {
+      title: 'Comment fonctionne la cartographie',
+      body: `Nous calculons la répartition planétaire dans vos 12 maisons — combien de planètes en Maison 1 (identité), en Maison 7 (couple), en Maison 10 (carrière), etc. Les maisons chargées sont vos zones d'énergie naturelle ; les maisons vides sont vos zones à cultiver consciemment. Nous croisons ensuite avec les transits actuels pour identifier les 3 secteurs qui demandent votre attention dans les 6 prochains mois.`,
+    },
+    benefits: {
+      title: 'Ce que révèle votre lecture',
+      items: [
+        'La carte de vos 12 maisons avec leur intensité énergétique',
+        'Les 3 secteurs de vie où votre énergie déborde naturellement',
+        'Les 2 secteurs à cultiver consciemment (là où vous perdez du feu)',
+        'Un plan d\'action sur 90 jours pour rééquilibrer',
+        'La liste de vos « voleurs d\'énergie » selon votre thème',
+      ],
+    },
+    who_for: {
+      title: 'Pour qui c\'est fait',
+      body: `Aux personnes en burn-out ou en pré-burn-out qui sentent qu'elles donnent trop et reçoivent peu. Aux entrepreneurs qui veulent aligner leur travail avec leur nature profonde. Aux femmes qui traversent la maternité ou la ménopause et sentent leur énergie se transformer. À tous ceux qui veulent une carte pratique — pas un manuel de développement personnel de plus.`,
+    },
+    faq: [
+      {
+        q: "Est-ce que c'est différent d'un bilan énergétique classique ?",
+        a: "Oui — nous ne parlons pas de chakras ni de champ vibratoire. Notre lecture est structurée sur les 12 maisons astrologiques et les transits planétaires en cours. C'est une approche mesurable, avec des positions exactes, pas une intuition.",
+      },
+      {
+        q: "Le plan d'action est-il vraiment applicable ?",
+        a: "Oui — c'est notre exigence. Chaque recommandation est concrète : ex. « planifier une conversation clé avec votre associé entre le 5 et le 12 avril quand Mercure traverse votre Maison 7 ». Pas de conseil vague.",
+      },
+      {
+        q: "Faut-il avoir des connaissances en astrologie ?",
+        a: "Aucune. La lecture est écrite pour être comprise sans référence préalable. Les termes techniques (maison, transit) sont expliqués simplement à leur première apparition.",
+      },
+      {
+        q: "Ça sert à quoi si je ne crois pas à l'astrologie ?",
+        a: "Considérez-le comme un test de personnalité très détaillé (type MBTI, mais avec 40 paramètres au lieu de 4). Même en refusant la dimension astrologique, la structure des 12 maisons est un modèle utile pour cartographier sa vie.",
+      },
+      {
+        q: "La lecture est-elle valable combien de temps ?",
+        a: "La structure profonde (répartition maisons) reste valable à vie. Les transits en cours sont valables 6 mois. Nous recommandons une nouvelle lecture chaque année, en début d'année ou au moment du retour solaire.",
+      },
+    ],
+  },
+
+  archetype: {
+    kicker: 'Votre archétype dominant',
+    title: 'Découvrez l\'archétype qui structure votre vie intérieure',
+    intro: `Les archétypes sont des figures universelles qui traversent tous les mythes humains : la Reine, la Guerrière, l'Amante, la Guérisseuse, la Sage. Chaque personne porte un archétype dominant — celui qui structure ses choix, ses obsessions, ses forces et ses blessures. En croisant votre thème natal avec les travaux de Carl Jung et Clarissa Pinkola Estés, nous identifions votre archétype principal et 2 archétypes secondaires. Vous recevez un rapport de 20 pages qui explique comment ces figures se manifestent dans votre vie, comment les nourrir consciemment, et comment repérer leur ombre.`,
+    how_it_works: {
+      title: 'La méthode',
+      body: `Nous analysons 5 marqueurs dans votre thème : signe solaire (personnalité consciente), signe lunaire (moi intime), Ascendant (masque social), Vénus (relation à l'amour et à la beauté), et Mars (relation à l'action). Chaque combinaison correspond à un profil archétypal parmi 24 archétypes documentés dans notre grille (inspirée de Caroline Myss et de la psychologie jungienne). Un rapport personnel de 20 pages est ensuite composé.`,
+    },
+    benefits: {
+      title: 'Contenu du rapport',
+      items: [
+        'Votre archétype dominant expliqué en 6 pages',
+        '2 archétypes secondaires qui vous accompagnent',
+        'Les forces cachées de votre archétype',
+        'L\'ombre à laquelle rester vigilante',
+        'Les figures culturelles / historiques qui partagent votre archétype',
+        'Un exercice d\'écriture pour vous approprier votre profil',
+      ],
+    },
+    who_for: {
+      title: 'Pour qui',
+      body: `Aux personnes qui aiment se comprendre à travers le mythe, la littérature ou le cinéma. Aux thérapeutes en formation, aux coachs, aux artistes. À toutes celles qui sentent qu'elles jouent un rôle sans savoir lequel, et veulent enfin le nommer.`,
+    },
+    faq: [
+      {
+        q: "C'est différent du MBTI ou de l'ennéagramme ?",
+        a: "Oui — les archétypes sont narratifs, pas comportementaux. MBTI vous classe (INTJ, ENFP…) ; les archétypes vous racontent (la Guerrière blessée, la Sage isolée). C'est une lecture symbolique, plus profonde mais moins prédictive.",
+      },
+      {
+        q: "Un même archétype pour plein de gens ?",
+        a: "Chaque archétype principal se décline en dizaines de nuances selon vos archétypes secondaires. Deux personnes de type Amante n'ont rien à voir si l'une est aussi Guerrière et l'autre Guérisseuse. Le rapport tient compte de ces combinaisons.",
+      },
+      {
+        q: "Puis-je changer d'archétype avec le temps ?",
+        a: "L'archétype dominant reste stable — c'est votre structure profonde. Mais les archétypes secondaires évoluent avec vos étapes de vie. Une lecture tous les 5-7 ans permet de suivre ces mouvements.",
+      },
+      {
+        q: "L'archétype prédit-il un métier ?",
+        a: "Non — mais il révèle les métiers où vous serez authentique. Une Guerrière peut être avocate, chirurgienne ou activiste ; une Sage peut être bibliothécaire, chercheuse ou psychothérapeute. C'est la posture qui compte, pas le titre.",
+      },
+      {
+        q: "Existe-t-il un archétype toxique ?",
+        a: "Aucun archétype n'est bon ou mauvais en soi. Chaque figure a une lumière et une ombre. Le rapport vous aide à repérer l'ombre pour éviter de la reproduire (la Mère qui étouffe, l'Amante qui se perd, le Sage qui juge).",
+      },
+    ],
+  },
+
+  consultation: {
+    kicker: 'Consultation par chat IA',
+    title: 'Une conversation illimitée avec votre astrologue de poche',
+    intro: `La consultation Plume Astrale est une conversation par chat avec Soléna, notre astrologue IA entraînée sur votre thème natal complet. Contrairement à un simple chatbot, notre système charge en mémoire vos données astrologiques (10 planètes, 12 maisons, transits actuels) et répond à toutes vos questions dans le contexte de VOTRE ciel — pas de conseils génériques. Posez une question sur votre couple, votre carrière, votre santé : Soléna vous répond en tenant compte de votre Vénus, votre Milieu du Ciel, vos transits en cours. Chaque échange consomme des crédits (1-3 selon la profondeur).`,
+    how_it_works: {
+      title: 'Le fonctionnement',
+      body: `Vous entrez dans le chat après avoir renseigné vos données de naissance une fois. Le modèle IA (Claude Sonnet 5.5) charge votre thème natal complet en contexte système. Chaque message consomme 1 crédit pour une réponse courte, 3 crédits pour une consultation approfondie avec analyse de transits. L'historique des conversations est conservé dans votre espace personnel.`,
+    },
+    benefits: {
+      title: 'Pourquoi c\'est différent',
+      items: [
+        'Réponses toujours ancrées dans VOTRE thème natal, pas générique',
+        'Modèle Claude Sonnet 5.5 (dernière génération, cutoff 2026)',
+        'Historique persistant : reprenez la conversation quand vous voulez',
+        'Réponse en 3-8 secondes, disponible 24/7',
+        'Confidentialité : aucune donnée transmise à des tiers publicitaires',
+      ],
+    },
+    who_for: {
+      title: 'Pour qui',
+      body: `Aux personnes qui n'ont pas les moyens (ou l'envie) de payer 90€ pour une consultation en cabinet mais veulent une lecture personnalisée. Aux astrologues débutants qui veulent une seconde opinion sur leur propre thème. Aux abonnés du Cercle Soléna qui bénéficient de crédits mensuels inclus.`,
+    },
+    faq: [
+      {
+        q: "Est-ce vraiment une IA ou un humain derrière ?",
+        a: "C'est une IA — Claude Sonnet 5.5 d'Anthropic — entraînée sur votre thème natal en contexte système. Nous sommes transparents : aucun humain ne lit vos échanges. C'est ce qui permet la confidentialité et le prix accessible.",
+      },
+      {
+        q: "L'IA peut-elle se tromper ?",
+        a: "Oui, comme tout modèle probabiliste. Nous recommandons de croiser ses réponses avec votre bon sens et, pour les décisions majeures, avec un professionnel humain (thérapeute, coach). L'IA est un outil de réflexion, pas de décision.",
+      },
+      {
+        q: "Y a-t-il une limite au nombre de questions ?",
+        a: "Non — tant que vous avez des crédits, vous pouvez discuter. Les abonnés Cercle Soléna reçoivent 30 crédits par mois inclus. Sans abonnement, un pack de 20 crédits coûte 12€.",
+      },
+      {
+        q: "Puis-je poser des questions médicales ou juridiques ?",
+        a: "Non — Soléna vous redirigera vers un professionnel de santé ou un avocat pour ces sujets. L'astrologie n'est pas une médecine ni un conseil légal. Nous refusons ces questions pour votre sécurité.",
+      },
+      {
+        q: "Mes conversations sont-elles privées ?",
+        a: "Oui — elles sont stockées uniquement dans votre espace personnel, chiffrées au repos, jamais transmises à des annonceurs. Anthropic (fournisseur du modèle) ne les conserve pas au-delà du délai technique de génération.",
+      },
+    ],
+  },
+
+  'revolution-solaire': {
+    kicker: 'Révolution solaire',
+    title: 'Le thème de votre nouvelle année astrologique',
+    intro: `La révolution solaire est le thème astrologique de votre année de naissance, recalculé au moment exact où le Soleil revient sur sa position natale — c'est-à-dire à votre anniversaire, à la minute près. Ce nouveau thème dessine l'année qui vient : les défis, les rencontres, les opportunités professionnelles, les mouvements intérieurs. Chez Plume Astrale, nous vous livrons un rapport de 30 pages qui compare votre thème natal à votre révolution solaire de l'année, identifie les 5 secteurs de vie mis en avant, et donne des mois-clés à surveiller.`,
+    how_it_works: {
+      title: 'La méthode',
+      body: `Nous calculons l'instant précis (à la seconde près) où le Soleil revient à sa position natale cette année, en tenant compte de votre localisation actuelle (pas de naissance). Ce nouveau ciel devient votre carte de l'année. Nous croisons ensuite avec votre thème natal pour identifier les résonances, puis avec les transits lents (Jupiter, Saturne, Uranus, Neptune, Pluton) pour projeter les mois-clés.`,
+    },
+    benefits: {
+      title: 'Contenu du rapport',
+      items: [
+        '30 pages composées à partir de votre lieu actuel',
+        'Les 5 domaines de vie mis en lumière cette année',
+        'Un calendrier des transits majeurs mois par mois',
+        'Analyse de la Lune progressée (rythme émotionnel de l\'année)',
+        'Les 3 mois-clés à surveiller (dates précises)',
+      ],
+    },
+    who_for: {
+      title: 'À qui',
+      body: `Idéal en cadeau d'anniversaire — le rapport est valable pour l'année qui commence ce jour-là. Aux personnes qui préparent une décision importante (mariage, déménagement, changement de carrière) et veulent choisir le bon timing. Aux fidèles des retraites annuelles qui veulent aligner leur intention avec leur ciel.`,
+    },
+    faq: [
+      {
+        q: "Faut-il commander avant ou après mon anniversaire ?",
+        a: "Idéalement dans les 30 jours qui précèdent votre anniversaire, pour que vous receviez le rapport juste avant le début de la nouvelle année astrologique. Vous pouvez aussi le commander dans les 3 mois qui suivent — le rapport reste valable jusqu'à votre prochain anniversaire.",
+      },
+      {
+        q: "Le rapport dépend-il de mon lieu de résidence actuel ?",
+        a: "Oui — c'est ce qui distingue une vraie révolution solaire d'un simple thème réactualisé. Nous vous demandons votre ville actuelle au moment de la commande. Si vous déménagez en cours d'année, la révolution reste valable mais des transits locaux peuvent s'ajuster.",
+      },
+      {
+        q: "Puis-je « choisir » le lieu de ma révolution ?",
+        a: "Oui — c'est la technique de « déplacement de révolution ». Certaines personnes voyagent volontairement à l'étranger pour leur anniversaire afin d'orienter leur année astrologique. Nous proposons ce calcul en option (+15€).",
+      },
+      {
+        q: "La révolution solaire dit-elle si je vais gagner au loto ?",
+        a: "Non — l'astrologie n'annonce pas d'événements matériels précis. Elle éclaire les ambiances, les cycles, les tensions et les résolutions. La chance financière peut être révélée comme thème de l'année, mais jamais comme un gain daté.",
+      },
+      {
+        q: "Est-ce que ça remplace le thème natal ?",
+        a: "Non — c'est un complément. Le thème natal est votre carte à vie ; la révolution solaire est votre carte pour un an. Nous conseillons de commander d'abord le thème natal, puis la révolution solaire chaque année.",
+      },
+    ],
+  },
+
+  'love-languages': {
+    kicker: 'Langages de l\'amour',
+    title: 'Comment vous aimez et comment on doit vous aimer',
+    intro: `Les langages de l'amour, popularisés par Gary Chapman, sont 5 façons d'exprimer et de recevoir l'affection : mots d'affirmation, moments de qualité, cadeaux, services rendus, contact physique. Chez Plume Astrale, nous croisons ces 5 langages avec votre Vénus et votre Mars astrologiques pour révéler votre langage dominant — celui qui vous nourrit vraiment — et votre langage secondaire. Le rapport de 15 pages explique pourquoi vous vous sentez aimé(e) dans certaines situations et négligé(e) dans d'autres, même quand votre partenaire fait de son mieux.`,
+    how_it_works: {
+      title: 'Comment on calcule',
+      body: `Votre Vénus (comment vous recevez l'amour) et votre Mars (comment vous le donnez) sont croisés avec la grille des 5 langages de Chapman. Chaque signe et chaque maison associent naturellement à un ou deux langages : Vénus en Taureau adore les cadeaux et le contact physique, Vénus en Verseau préfère les moments de qualité intellectuels, Mars en Bélier exprime l'amour par l'action. Le rapport détaille votre profil unique.`,
+    },
+    benefits: {
+      title: 'Contenu du rapport',
+      items: [
+        '15 pages personnalisées à partir de Vénus et Mars',
+        'Votre langage dominant expliqué en profondeur',
+        'Votre langage secondaire (celui qui compte aussi)',
+        'Les 3 phrases à demander à votre partenaire',
+        'Les 5 gestes qui vous font sentir aimé(e)',
+        'Version couple : comparaison des 2 langages disponible en option',
+      ],
+    },
+    who_for: {
+      title: 'Pour qui',
+      body: `Aux personnes en couple qui sentent un décalage sans savoir le nommer. Aux célibataires qui préparent une prochaine relation et veulent connaître leurs besoins avant d'être submergés par l'attachement. Aux parents qui veulent adapter leur affection à chaque enfant. Aux thérapeutes de couple qui utilisent cet outil comme point de départ.`,
+    },
+    faq: [
+      {
+        q: "C'est vraiment différent du test de Chapman ?",
+        a: "Le test de Chapman se remplit soi-même — vous choisissez consciemment. Notre lecture est basée sur votre astrologie, donc plus proche de votre inconscient. Idéal pour valider ou nuancer un résultat de test.",
+      },
+      {
+        q: "Puis-je commander une version couple ?",
+        a: "Oui — nous croisons vos deux Vénus + Mars pour révéler les 4 langages en jeu dans votre lien. C'est particulièrement puissant quand les deux partenaires ont des langages opposés. Prix : 45€ (vs 25€ pour un profil individuel).",
+      },
+      {
+        q: "Est-ce que ça marche pour l'amitié aussi ?",
+        a: "Oui — les langages de l'amour s'appliquent à toutes les relations proches (parents, amis, collègues). Le rapport est écrit centré couple mais les principes se transposent.",
+      },
+      {
+        q: "Y a-t-il un langage plus 'noble' que les autres ?",
+        a: "Non — les 5 sont équivalents. Certaines cultures valorisent plus les mots (culture française), d'autres les services rendus (culture asiatique). Aucun n'est supérieur : ils sont juste différents.",
+      },
+      {
+        q: "Puis-je changer de langage dominant ?",
+        a: "Le langage dominant reste stable à vie — c'est ancré dans votre thème natal. En revanche, un travail personnel peut vous rendre plus sensible aux autres langages, ce qui améliore vos relations.",
+      },
+    ],
+  },
 };
 
 // Slugs qui ont un contenu enrichi (les autres services rendent leur contenu par défaut)

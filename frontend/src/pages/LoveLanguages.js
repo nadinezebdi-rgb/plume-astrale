@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, Sparkles, ArrowLeft, Loader2, Download, Share2, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
+import SEO from '@/components/SEO';
+import SEOServiceEnrich from '@/components/SEOServiceEnrich';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -167,6 +169,7 @@ const LoveLanguages = () => {
           </div>
         )}
       </div>
+      <SEOServiceEnrich slug="love-languages" />
     </div>
   );
 };

@@ -1,5 +1,21 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-03-04 (ter) — Enrichment Wave 2 + CI Prerender doc + Legacy Roadmap
+
+**Enrichment Wave 2 (P1)** :
+- 7 nouveaux slugs ajoutés à `seoServiceContent.js` : `rituel`, `energie`, `archetype`, `consultation`, `revolution-solaire`, `love-languages` (+ les 3 précédents = 9 pages services au total, ~1500 mots chacune avec FAQ JSON-LD).
+- Composant `SEOServiceEnrich` intégré dans `MonRituel.js`, `Energie.js`, `Archetype.js`, `ChatIA.js`, `RevolutionSolaire.js`, `LoveLanguages.js`.
+- 7 nouvelles entries `SEO_DATA` (title/description/keywords) pour `/services/rituel|energie|archetype|consultation|revolution-solaire|love-languages`.
+- Chaque page passe de 800-1200 chars à ~10 000+ chars, avec FAQ rich snippets Google.
+
+**CI Prerender doc** : `frontend/scripts/CI-PRERENDER.md` — guide opérationnel pour Emergent, GitHub Actions, Vercel, Netlify. Inclut le ticket support Emergent à envoyer, recettes YAML, tests de vérification post-déploiement, plan de rollback.
+
+**Legacy Migration Roadmap** : `/app/memory/LEGACY_MIGRATION_ROADMAP.md` — estimation détaillée (16-20h), plan Phase 1 (Kabbale, 3 endpoints à migrer) / Phase 2 (Astrocarto, 1 endpoint) / Phase 3 (cleanup v1). Feature flags recommandés (`USE_V2_KABBALE`, `USE_V2_ASTROCARTO`) pour rollback rapide. Coût estimé 2000-2500€ ou 1 semaine dev dédiée.
+
+**Nadine Book** : bloqué en attente de la session_id ou email de la commande de Nadine. L'endpoint `GET /api/admin/theme-natal/search?q=nadine` est prêt et le composant admin permet la régénération 1-clic dès qu'on connaît le session_id.
+
+
+
 ## 2026-03-04 (bis) — Nadine Rerun + SSR Prerender + SEO Enrichment
 
 **Nadine Rerun (P0)** :
