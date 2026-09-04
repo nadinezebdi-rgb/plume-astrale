@@ -85,3 +85,25 @@ def test_theme_natal_oneshot_guards_planets_dict():
     assert 'planets_core_missing' in src or "core manquantes" in src, (
         'Diag core_missing manquant'
     )
+
+
+def test_normalize_birth_data_converts_country_name_to_code():
+    """Bug Nadine : birth_data contenait country_code='France' → HTTP 422.
+    Vérifie que normalize_birth_data corrige toutes les variantes.
+    """
+    from services.astrology_io_service import normalize_birth_data
+    # Cas Nadine exact
+    bd = {'year': 1968, 'month': 7, 'day': 17, 'country_code': 'France'}
+    out = normalize_birth_data(bd)
+    assert out['country_code'] == 'FR', f'Expected FR, got {out["country_code"]}'
+    # Autres cas
+    assert normalize_birth_data({'country_code': 'FR'})['country_code'] == 'FR'
+    assert normalize_birth_data({'country_code': 'fr'})['country_code'] == 'FR'
+    assert normalize_birth_data({'country_code': 'Belgium'})['country_code'] == 'BE'
+    assert normalize_birth_data({'country_code': 'Royaume-Uni'})['country_code'] == 'GB'
+    # Cast numériques (webhook parfois envoie des strings)
+    out2 = normalize_birth_data({'year': '1990', 'month': '5', 'hour': '14', 'latitude': '48.85'})
+    assert out2['year'] == 1990
+    assert out2['month'] == 5
+    assert out2['hour'] == 14
+    assert out2['latitude'] == 48.85

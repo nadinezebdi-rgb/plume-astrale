@@ -26,26 +26,43 @@ Le package `puppeteer-core` (5 Mo) est déjà installé dans `package.json` —
 
 ## Recette Emergent (contact support)
 
-Envoyez ce ticket au support Emergent :
+Emergent ne propose actuellement **aucune personnalisation self-service** du pipeline de build. Il faut passer par le support pour ajouter `yarn build:seo`.
+
+**Comment procéder** :
+
+1. Récupérer votre **Job ID** : bouton info (i) en haut à droite de l'interface Emergent chat
+2. Envoyer un email à **support@emergent.sh** avec le template ci-dessous
+3. Le support intervient manuellement sur votre pipeline (délai standard)
+
+**Template email à copier-coller** :
 
 ```
-Sujet : Ajouter yarn build:seo au pipeline de déploiement
+À : support@emergent.sh
+Sujet : Ajout de yarn build:seo au pipeline de production (SEO prerender)
 
 Bonjour,
 
-Merci d'ajouter à notre pipeline de build de production, après l'étape
-`yarn install`, la commande suivante :
+Job ID : <RÉCUPÉRER via le bouton (i) dans l'interface Emergent>
+
+Merci d'ajouter à mon pipeline de build de production le remplacement
+de la commande actuelle par :
 
     CHROME_BIN=/usr/bin/google-chrome yarn build:seo
 
-- `yarn build:seo` = alias pour `yarn build && yarn prerender`
-- Le script `scripts/prerender.js` génère les HTML statiques dans /build
-- Il utilise puppeteer-core + Chrome système (déjà présent dans l'image
-  pour le PDF engine v2). Pas de téléchargement supplémentaire.
-- Durée estimée : +90-120 secondes (pour ~80 routes).
+au lieu de `yarn build`.
 
-Merci !
+- Le script `frontend/scripts/prerender.js` est déjà prêt (puppeteer-core, léger)
+- Il utilise Chrome système (déjà présent dans l'image Docker pour le PDF engine v2)
+- Durée additionnelle estimée : +90 à 120 secondes par déploiement
+- Objectif : permettre l'indexation Google en générant les HTML statiques
+  avec contenu SEO complet dans build/{route}/index.html
+
+Merci pour votre aide.
 ```
+
+Alternative si le support prend trop de temps : demander à l'agent Emergent de modifier
+`package.json` pour que `"build": "craco build && yarn prerender"` (attention : risque
+de casser si Chrome n'est pas dispo dans l'env de build).
 
 ## Recette GitHub Actions
 

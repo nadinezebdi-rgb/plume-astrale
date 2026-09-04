@@ -172,6 +172,9 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         logger.error(f"[theme_natal_oneshot] no birth_data for {session_id}")
         diag['error'] = 'no birth_data in metadata.pdf_ctx'
         return diag
+    # Normalise le birth_data avant tout appel API (bug Nadine Feb 2026 :
+    # country_code arrivait en "France" au lieu de "FR" → HTTP 422 silencieux).
+    bd = aio.normalize_birth_data(bd)
     diag['birth_data'] = {
         'first_name': name, 'birth_date_iso': birth_date_iso,
         'city': bd.get('city') or bd.get('location'),

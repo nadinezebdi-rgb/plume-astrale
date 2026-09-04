@@ -1,5 +1,29 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-03-04 (final) — Nadine Book régénéré + normalize_birth_data + Emergent support
+
+**🎯 Bug Nadine 100% résolu**
+
+Vraie root cause identifiée en régénérant : l'API `astrology-api.io` rejette `country_code="France"` avec **HTTP 422** (ISO 3166-1 exige 2 lettres). C'est ce qui faisait échouer `natal_chart()` → `planets_dict={}` → fallback trompeurs 'Cancer/Poissons/Vierge'.
+
+**Fix appliqué** :
+- Nouvelle fonction `astrology_io_service.normalize_birth_data(bd)` : normalise `country_code` (via `_COUNTRY_CODE_MAP`), cast des types numériques (year/month/day/hour/minute → int, latitude/longitude → float). Défensif : gère les strings, formats longs, casse mixte.
+- Appelée systématiquement dans `theme_natal_oneshot_service` avant tout appel API.
+
+**Nadine Book livré** :
+- Session identifiée : `admin-natal-cccc9ca6831245bc` (email `nadine.zebdi@gmail.com`, 13 tentatives commande dont 1 completée en admin_bypass).
+- Régénération réussie via `handle_theme_natal_oneshot_webhook(force=True)`.
+- **Vraies positions** dans le nouveau PDF : Soleil Cancer, Lune **Bélier** (vs Poissons ❌ avant), Ascendant **Gémeaux** (vs Vierge ❌ avant), 11 planètes correctes, 20 pages (vs 10 avant), 11.8 MB.
+- URL Supabase : `https://ebwicqvbkwogxneipaxh.supabase.co/storage/v1/object/public/reports/pdfs/theme_natal/admin-natal-cccc9ca6831245bc-v1788533270.pdf`.
+
+**Emergent support** :
+- Aucun self-service disponible pour modifier le pipeline de build Emergent → contact obligatoire.
+- Template email à envoyer à `support@emergent.sh` documenté dans `frontend/scripts/CI-PRERENDER.md` (avec Job ID à récupérer via bouton info Emergent).
+
+**Test régression ajouté** : `test_normalize_birth_data_converts_country_name_to_code` — protège contre le retour du bug (5 tests total sur test_natal_pdf_adapter_no_fallback.py, 20 tests global OK).
+
+
+
 ## 2026-03-04 (ter) — Enrichment Wave 2 + CI Prerender doc + Legacy Roadmap
 
 **Enrichment Wave 2 (P1)** :
