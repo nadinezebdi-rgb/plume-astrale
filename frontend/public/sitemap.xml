@@ -5,490 +5,532 @@
      routes inexistantes (/archetype, /numerologie), et les doublons canoniques
      /services/horoscope (→ /horoscope) et /services/theme-natal (→ /theme-natal). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Accueil & pages de marque -->
+  <!-- Accueil et editoriaux (priorite maximale) -->
   <url>
     <loc>https://plume-astrale.fr/</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.00</priority>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/decouvrir</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.90</priority>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/manifesto</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/cercle-solena</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.95</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/temoignages</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/credits</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
+    <loc>https://plume-astrale.fr/cercle-solena</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
     <loc>https://plume-astrale.fr/barometre-2026</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/communaute</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/temoignage</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.50</priority>
+    <priority>0.7</priority>
   </url>
-  <url>
-    <loc>https://plume-astrale.fr/charte-de-confiance</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.40</priority>
-  </url>
-  <!-- Pages de vente -->
+  <!-- Bibliotheque et livres imprimes -->
   <url>
     <loc>https://plume-astrale.fr/livres</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.85</priority>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/theme-natal</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://plume-astrale.fr/voyage-karmique</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.95</priority>
+    <loc>https://plume-astrale.fr/theme-natal-luxe</loc>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://plume-astrale.fr/astrocartographie</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
+    <loc>https://plume-astrale.fr/theme-natal-pdf</loc>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/synastrie</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
+    <loc>https://plume-astrale.fr/voyage-karmique</loc>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/karma-destin</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/karma-destin-pdf</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/astrocartographie</loc>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/numerologie</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://plume-astrale.fr/numerologie-pdf</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.80</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/pack-karmique</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.80</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
   </url>
-  <!-- Horoscope -->
+  <url>
+    <loc>https://plume-astrale.fr/edition-reliee</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/tarologie</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/tarot-oui-non</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/premium</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Services (fix audit SEO Feb 2026 : silo orphelin) -->
+  <url>
+    <loc>https://plume-astrale.fr/services/tarot</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/services/compatibilite</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/services/oracle</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/services/rituel</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/services/energie</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/services/archetype</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/services/consultation</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/services/revolution-solaire</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/services/love-languages</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/services/astrosexo</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <!-- Horoscope hub et 36 pages signes -->
   <url>
     <loc>https://plume-astrale.fr/horoscope</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.90</priority>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/quotidien</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/belier</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/taureau</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/gemeaux</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/cancer</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/lion</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/vierge</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/balance</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/scorpion</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/sagittaire</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/capricorne</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/verseau</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/poissons</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.70</priority>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/belier/semaine</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/taureau/semaine</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/gemeaux/semaine</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/cancer/semaine</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/lion/semaine</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/vierge/semaine</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/balance/semaine</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/scorpion/semaine</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/sagittaire/semaine</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/capricorne/semaine</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/verseau/semaine</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/horoscope/poissons/semaine</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.60</priority>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/belier/mois</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/taureau</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/taureau/semaine</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/taureau/mois</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/gemeaux</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/gemeaux/semaine</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/gemeaux/mois</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/cancer</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/cancer/semaine</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/cancer/mois</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/lion</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/lion/semaine</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/lion/mois</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/vierge</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/vierge/semaine</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/vierge/mois</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/balance</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/balance/semaine</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/balance/mois</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/scorpion</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/scorpion/semaine</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/scorpion/mois</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/sagittaire</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/sagittaire/semaine</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/sagittaire/mois</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/capricorne</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/capricorne/semaine</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.65</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/capricorne/mois</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/verseau</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/verseau/semaine</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/verseau/mois</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/poissons</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://plume-astrale.fr/horoscope/poissons/semaine</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/poissons/mois</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
   </url>
-  <!-- Blog -->
+  <!-- Blog editorial (9 articles longue-traine) -->
   <url>
     <loc>https://plume-astrale.fr/blog</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.90</priority>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/blog/calculer-son-chemin-de-vie-avec-precision</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.65</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/blog/interpreter-venus-en-astrologie</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.65</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/blog/comprendre-le-retour-de-saturne</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.65</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/blog/theme-natal-vocation-professionnelle</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.65</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/blog/compatibilite-amoureuse-selon-theme-natal</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.65</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/blog/signification-des-maisons-astrologiques</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.65</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/blog/comment-connaitre-son-ascendant-astrologique</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.65</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/blog/previsions-astrologiques-personnalisees-2026</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.65</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/blog/theme-astral-personnalise-gratuit</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.65</priority>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
-  <!-- Services (/services/*) -->
+  <!-- Pages info et editoriales -->
   <url>
-    <loc>https://plume-astrale.fr/services/tarot</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.65</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/services/tarot/oui-non</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/services/tarot/amour</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/services/tarot/croix-celtique</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/services/compatibilite</loc>
-    <lastmod>2026-08-24</lastmod>
+    <loc>https://plume-astrale.fr/temoignages</loc>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.65</priority>
   </url>
   <url>
-    <loc>https://plume-astrale.fr/services/astrosexo</loc>
-    <lastmod>2026-08-24</lastmod>
+    <loc>https://plume-astrale.fr/credits</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.60</priority>
+    <priority>0.75</priority>
   </url>
   <url>
-    <loc>https://plume-astrale.fr/services/numerologie</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.60</priority>
+    <loc>https://plume-astrale.fr/contact</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://plume-astrale.fr/services/archetype</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.60</priority>
+    <loc>https://plume-astrale.fr/charte-de-confiance</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://plume-astrale.fr/services/revolution-solaire</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.60</priority>
+    <loc>https://plume-astrale.fr/mentions-legales</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://plume-astrale.fr/services/oracle</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
+    <loc>https://plume-astrale.fr/cgv</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://plume-astrale.fr/services/energie</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/services/rituel</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/services/consultation</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.60</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/services/love-languages</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.55</priority>
-  </url>
-  <!-- Autres pages publiques -->
-  <url>
-    <loc>https://plume-astrale.fr/quotidien</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.65</priority>
-  </url>
-  <url>
-    <loc>https://plume-astrale.fr/tarologie</loc>
-    <lastmod>2026-08-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.60</priority>
+    <loc>https://plume-astrale.fr/confidentialite</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>

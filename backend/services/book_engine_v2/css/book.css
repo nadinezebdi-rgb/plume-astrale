@@ -388,10 +388,29 @@ td.n {
 .page-cover {
   background: var(--paper);
 }
+/* Masque ivoire radial derrière le titre — apparaît uniquement quand une
+   illustration Nano Banana (cover_bg_url) est présente. Garantit la
+   lisibilité du texte au-dessus de n'importe quelle image (fix Feb 2026,
+   suite bug d'illisibilité sur illustrations chargées). */
+.page-cover.has-bg .cover-mask {
+  position: absolute;
+  top: 20mm; left: 8mm; right: 8mm;
+  height: 105mm;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(247, 245, 240, 0.94) 0%,
+    rgba(247, 245, 240, 0.86) 40%,
+    rgba(247, 245, 240, 0.55) 70%,
+    rgba(247, 245, 240, 0.00) 100%
+  );
+  z-index: 0;
+  border-radius: 40mm;
+}
 .page-cover .cover-inner {
   position: absolute;
   top: 40mm; left: 0; right: 0;
   text-align: center;
+  z-index: 1;
 }
 .page-cover .brand {
   font-size: 8.5pt;

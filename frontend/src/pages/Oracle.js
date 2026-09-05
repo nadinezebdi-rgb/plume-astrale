@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { EnrichedBadge } from "../components/EnrichedBadge";
 import { FadeInEnrichedText } from "../components/FadeInEnrichedText";
+import SEO from "../components/SEO";
+import SEOServiceEnrich from "../components/SEOServiceEnrich";
 
 export default function Oracle() {
   const { creditBalance } = useAuth();
@@ -47,38 +49,43 @@ export default function Oracle() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
+    <>
+      <SEO path="/services/oracle" />
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
 
-      <h1 className="text-3xl mb-6">Ton Oracle personnel</h1>
+        <h1 className="text-3xl mb-6">Ton Oracle personnel</h1>
 
-      <input
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        placeholder="Pose ta question..."
-        className="border p-3 w-full max-w-md mb-4"
-      />
+        <input
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Pose ta question..."
+          className="border p-3 w-full max-w-md mb-4"
+        />
 
-      <button
-        onClick={askOracle}
-        className="bg-black text-white px-6 py-3"
-      >
-        {loading ? "Consultation..." : "Recevoir ma réponse"}
-      </button>
+        <button
+          onClick={askOracle}
+          className="bg-black text-white px-6 py-3"
+        >
+          {loading ? "Consultation..." : "Recevoir ma réponse"}
+        </button>
 
-      {response && (
-        <div className="mt-6 max-w-md">
-          <EnrichedBadge variant="compact" visible={enriched} align="center" />
-          <FadeInEnrichedText text={response} enabled={enriched} speed={160} />
-          <button
-            className="mt-4 text-yellow-500"
-            onClick={() => window.location.href = "/acheter-credits"}
-          >
-            Continuer la discussion →
-          </button>
-        </div>
-      )}
+        {response && (
+          <div className="mt-6 max-w-md">
+            <EnrichedBadge variant="compact" visible={enriched} align="center" />
+            <FadeInEnrichedText text={response} enabled={enriched} speed={160} />
+            <button
+              className="mt-4 text-yellow-500"
+              onClick={() => window.location.href = "/acheter-credits"}
+            >
+              Continuer la discussion →
+            </button>
+          </div>
+        )}
 
-      {error && <p className="text-red-500">{error}</p>}
-    </div>
+        {error && <p className="text-red-500">{error}</p>}
+      </div>
+      {/* SEO enrichment — audit Feb 2026 */}
+      <SEOServiceEnrich slug="oracle" />
+    </>
   );
 }

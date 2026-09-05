@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import SEO from '@/components/SEO';
+import SEOServiceEnrich from '@/components/SEOServiceEnrich';
 import {
   Sun, Cloud, Moon, Wind, Flame, Heart, CloudRain,
   Sparkles, Target, BookHeart, Send, Loader2, Flame as FlameIcon,
@@ -628,6 +630,7 @@ const MonRituel = () => {
 
         </div>
       </div>
+      <SEOServiceEnrich slug="rituel" />
     </>
   );
 };

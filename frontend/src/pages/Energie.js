@@ -1,11 +1,12 @@
 import React from 'react';
 import EnergyToday from '@/components/EnergyToday';
 import SEO from '@/components/SEO';
+import SEOServiceEnrich from '@/components/SEOServiceEnrich';
 
 export default function Energie() {
   return (
     <>
-      <SEO title="Mon énergie du jour — Plume Astrale" description="Ta lecture énergétique quotidienne, basée sur ton thème natal et les cycles planétaires actuels." />
+      <SEO path="/services/energie" />
       <div style={{
         minHeight: '100vh',
         background: 'linear-gradient(180deg, #131840 0%, #1B2150 50%, #131840 100%)',
@@ -15,6 +16,7 @@ export default function Energie() {
       }}>
         <EnergyToday />
       </div>
+      <SEOServiceEnrich slug="energie" />
     </>
   );
 }

@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowLeft, Loader2, Sun, Star, Compass, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
+import SEO from '@/components/SEO';
+import SEOServiceEnrich from '@/components/SEOServiceEnrich';
 import SafeEmptyState from '../components/design/SafeEmptyState';
 
 
@@ -344,6 +346,7 @@ const RevolutionSolaire = () => {
           </div>
         )}
       </div>
+      <SEOServiceEnrich slug="revolution-solaire" />
     </div>
   );
 };

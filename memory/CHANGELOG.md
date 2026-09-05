@@ -1,4 +1,89 @@
 # CHANGELOG - Plume Astrale
+
+## 2026-03-04 (final) — Nadine Book régénéré + normalize_birth_data + Emergent support
+
+**🎯 Bug Nadine 100% résolu**
+
+Vraie root cause identifiée en régénérant : l'API `astrology-api.io` rejette `country_code="France"` avec **HTTP 422** (ISO 3166-1 exige 2 lettres). C'est ce qui faisait échouer `natal_chart()` → `planets_dict={}` → fallback trompeurs 'Cancer/Poissons/Vierge'.
+
+**Fix appliqué** :
+- Nouvelle fonction `astrology_io_service.normalize_birth_data(bd)` : normalise `country_code` (via `_COUNTRY_CODE_MAP`), cast des types numériques (year/month/day/hour/minute → int, latitude/longitude → float). Défensif : gère les strings, formats longs, casse mixte.
+- Appelée systématiquement dans `theme_natal_oneshot_service` avant tout appel API.
+
+**Nadine Book livré** :
+- Session identifiée : `admin-natal-cccc9ca6831245bc` (email `nadine.zebdi@gmail.com`, 13 tentatives commande dont 1 completée en admin_bypass).
+- Régénération réussie via `handle_theme_natal_oneshot_webhook(force=True)`.
+- **Vraies positions** dans le nouveau PDF : Soleil Cancer, Lune **Bélier** (vs Poissons ❌ avant), Ascendant **Gémeaux** (vs Vierge ❌ avant), 11 planètes correctes, 20 pages (vs 10 avant), 11.8 MB.
+- URL Supabase : `https://ebwicqvbkwogxneipaxh.supabase.co/storage/v1/object/public/reports/pdfs/theme_natal/admin-natal-cccc9ca6831245bc-v1788533270.pdf`.
+
+**Emergent support** :
+- Aucun self-service disponible pour modifier le pipeline de build Emergent → contact obligatoire.
+- Template email à envoyer à `support@emergent.sh` documenté dans `frontend/scripts/CI-PRERENDER.md` (avec Job ID à récupérer via bouton info Emergent).
+
+**Test régression ajouté** : `test_normalize_birth_data_converts_country_name_to_code` — protège contre le retour du bug (5 tests total sur test_natal_pdf_adapter_no_fallback.py, 20 tests global OK).
+
+
+
+## 2026-03-04 (ter) — Enrichment Wave 2 + CI Prerender doc + Legacy Roadmap
+
+**Enrichment Wave 2 (P1)** :
+- 7 nouveaux slugs ajoutés à `seoServiceContent.js` : `rituel`, `energie`, `archetype`, `consultation`, `revolution-solaire`, `love-languages` (+ les 3 précédents = 9 pages services au total, ~1500 mots chacune avec FAQ JSON-LD).
+- Composant `SEOServiceEnrich` intégré dans `MonRituel.js`, `Energie.js`, `Archetype.js`, `ChatIA.js`, `RevolutionSolaire.js`, `LoveLanguages.js`.
+- 7 nouvelles entries `SEO_DATA` (title/description/keywords) pour `/services/rituel|energie|archetype|consultation|revolution-solaire|love-languages`.
+- Chaque page passe de 800-1200 chars à ~10 000+ chars, avec FAQ rich snippets Google.
+
+**CI Prerender doc** : `frontend/scripts/CI-PRERENDER.md` — guide opérationnel pour Emergent, GitHub Actions, Vercel, Netlify. Inclut le ticket support Emergent à envoyer, recettes YAML, tests de vérification post-déploiement, plan de rollback.
+
+**Legacy Migration Roadmap** : `/app/memory/LEGACY_MIGRATION_ROADMAP.md` — estimation détaillée (16-20h), plan Phase 1 (Kabbale, 3 endpoints à migrer) / Phase 2 (Astrocarto, 1 endpoint) / Phase 3 (cleanup v1). Feature flags recommandés (`USE_V2_KABBALE`, `USE_V2_ASTROCARTO`) pour rollback rapide. Coût estimé 2000-2500€ ou 1 semaine dev dédiée.
+
+**Nadine Book** : bloqué en attente de la session_id ou email de la commande de Nadine. L'endpoint `GET /api/admin/theme-natal/search?q=nadine` est prêt et le composant admin permet la régénération 1-clic dès qu'on connaît le session_id.
+
+
+
+## 2026-03-04 (bis) — Nadine Rerun + SSR Prerender + SEO Enrichment
+
+**Nadine Rerun (P0)** :
+- Nouvel endpoint `GET /api/admin/theme-natal/search?q=…` cherche par prénom/email/session_id dans les 500 dernières commandes Thème Natal (matching JSONB metadata).
+- Composant `AdminThemeNatalFixer` étoffé avec section « Rechercher une commande » : input + résultats cliquables qui pré-remplissent le champ session_id et lancent l'inspection.
+- Flux 1-clic : tab « Fix Thème Natal » → taper « Nadine » → cliquer un résultat → cliquer « Régénérer ». Régénération complète en 30-90s avec les vraies données API.
+
+**SSR Prerender (P0 SEO)** :
+- `frontend/scripts/prerender.js` upgradé : `puppeteer-core` (5 Mo) + Chrome système au lieu de `puppeteer` (300 Mo). Auto-détection du binaire via `CHROME_BIN` env, `/usr/bin/google-chrome`, `/usr/bin/chromium`, `/root/bin/chromium`.
+- Routes ROUTES étendues : ~80 routes prerendered incluant hub `/horoscope` + 36 pages signes (12 × 3 périodes), 10 pages `/services/*`, 9 blog posts, éditoriaux.
+- Injection MongoDB : chaque HTML statique inclut le `html_body` du snapshot SEO dans `<div id="root">` → Googlebot voit contenu SANS exécuter JS.
+- `yarn build:seo` disponible (déjà présent dans package.json).
+- Documentation complète : `frontend/scripts/README-prerender.md` (GitHub Actions, Vercel/Netlify, Emergent pipelines).
+
+**SEO Enrichment (P1)** :
+- Nouveau module `frontend/src/data/seoServiceContent.js` : contenu curated pour `compatibilite`, `tarot`, `oracle` (~1500 mots chacun : intro, how_it_works, benefits, who_for, FAQ 5-8 items).
+- Composant `SEOServiceEnrich.jsx` : rend le contenu + injecte JSON-LD FAQPage pour rich snippets Google.
+- Intégré dans `Compatibilite2.js`, `TirageTarot.js`, `Oracle.js` avec `<SEO path="/services/xxx" />` + `<SEOServiceEnrich slug="xxx" />` en fin de rendu.
+- `SEO_DATA` étoffé avec entries `/services/tarot` et `/services/oracle` (title, description, keywords).
+
+**Legacy Migration (Kabbale/Astrocarto vers v2)** : mise en attente cette itération — scope 10-15h avec risque régression prod sur 3 produits (pack karmique, mediumnite, pdf_luxury_wrap). À planifier sur itération dédiée avec plan de rollback.
+
+
+
+## 2026-03-04 — 🔴 Bug Nadine + SEO P0/P1 wave
+
+**Bug Nadine (P0)** : root cause = fallbacks hardcodés dans `natal_pdf_adapter.py` (`'Cancer'/'Poissons'/'Vierge'/'Inconnu'`) qui masquaient les échecs API astrology-api.io. Nadine (17/07/1968) a en réalité Lune Bélier + Ascendant Gémeaux (PDF affichait Poissons/Vierge).
+- **Fix** : suppression des fallbacks → `RuntimeError` explicite. Garde `_CORE_PLANETS ≥ 5` dans `theme_natal_oneshot_service`, `pdf_status='failed'` en base, alerte email admin via Resend (rate-limitée 1/6h). 4 tests régression ajoutés (19 tests total OK).
+
+**Cover Mask (P2)** : gradient radial ivoire semi-transparent derrière le titre du livre quand cover_bg_url présent (Nano Banana). Garantit lisibilité du texte sur toute illustration. `_cover.html` + `book.css`.
+
+**Silent Failure Radar** : nouvel endpoint `GET /api/admin/pdf-failures/last-24h` + composant React `AdminFailureBanner` intégré en haut de `/admin`. Liste les sessions failed avec bouton « Régénérer » par ligne.
+
+**SEO P0/P1 wave (post-audit)** :
+- Canonical loop `/compatibilite-amoureuse` ↔ `/services/compatibilite` → fix via `canonicalPath` dans SEO_DATA. La canonical pointe désormais toujours vers `/services/compatibilite`.
+- H1 accueil : « Le seul cadeau qu'on lit » → « Le seul livre de thème natal qu'on lit en entier avant de l'offrir » (mots-clés SEO : livre + thème natal).
+- Sitemap statique regénéré : **87 URLs** (vs 80) avec `lastmod` variés par catégorie (daily/weekly/monthly/yearly). Inclut : hub `/horoscope`, 36 pages signes (12 × 3 périodes), 10 services, 9 blog posts, pages légales.
+- Maillage interne : `FooterV2` étoffé avec colonne « Horoscope » (12 signes + hub) et 4 liens produits (Thème natal, Compatibilité, Voyage karmique, Astrocarto). Résout le silo orphelin détecté par l'audit.
+
+**Prod Migration Check** : commande curl fournie au user pour lancer sur `plume-astrale.fr/api/admin/book/pdf-engine-health` (6 checks : engine, chromium, fonts, LLM key, supabase, cache).
+
+**Legacy Cleanup mis en attente** (scope 10-15h, risque prod sur Kabbale/Astrocarto). À planifier sur itération dédiée.
+
+
 ## 2026-02-29 — P2 §XII audit marque : refonte offre (textes verbatim user)
 
 **Contexte** : user fournit les textes prêts du chapitre XII (accueil + page produit) et la grille §VII des nouveaux prix (24 / 69 / 119 / 199 €). Intégration verbatim, sans reformulation.

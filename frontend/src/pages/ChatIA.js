@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Send, Loader2, Sparkles, Trash2, Coins, LogIn, ShoppingBag, HelpCircle } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
+import SEOServiceEnrich from '@/components/SEOServiceEnrich';
 import PsPageShell from '@/components/PsPageShell';
 import NatalEssentials from '@/components/NatalEssentials';
 import CreditsPaywallModal from '@/components/CreditsPaywallModal';
@@ -860,6 +861,7 @@ const ChatIA = () => {
           textarea::-webkit-scrollbar-thumb { background: rgba(201,162,75,0.35); border-radius: 4px; }
         `}</style>
       </div>
+      <SEOServiceEnrich slug="consultation" />
     </PsPageShell>
   );
 };

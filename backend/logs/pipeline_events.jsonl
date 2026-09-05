@@ -12,3 +12,6 @@
 {"ts": "2026-07-31T15:21:42.679872+00:00", "event": "natal_pdf_generated", "source": "api_v3_only", "tier": "ultra", "bytes": 31459237, "ai_planet_count": 0}
 {"ts": "2026-07-31T16:05:57.426128+00:00", "event": "natal_pdf_generated", "source": "api_v3_only", "tier": "ultra", "bytes": 9501085, "ai_planet_count": 0}
 {"ts": "2026-08-02T09:09:15.041806+00:00", "event": "natal_pdf_generated", "source": "gpt", "tier": "ultra", "bytes": 13701721, "ai_planet_count": 11}
+{"ts": "2026-09-03T13:48:30.597040+00:00", "event": "natal_pdf_generated", "source": "none", "tier": "legacy", "bytes": 7561658, "ai_planet_count": 0}
+{"ts": "2026-09-04T14:47:23.043461+00:00", "event": "natal_pdf_generated", "source": "gpt", "tier": "ultra", "bytes": 11808115, "ai_planet_count": 11}
+{"ts": "2026-09-04T14:47:50.655489+00:00", "event": "natal_pdf_generated", "source": "cache", "tier": "ultra", "bytes": 11808115, "ai_planet_count": 11}

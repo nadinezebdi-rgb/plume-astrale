@@ -593,6 +593,61 @@ async def admin_pdfs_sent(
 
 
 
+@router.get('/theme-natal/search')
+async def admin_search_theme_natal(
+    q: str,
+    limit: int = 20,
+    _admin: dict = Depends(require_admin),
+):
+    """Cherche des sessions Thème Natal par prénom, email ou fragment de session_id.
+
+    Sert au « Nadine Rerun » : retrouver rapidement une commande sans avoir le session_id.
+    Retourne les 20 résultats les plus récents. Insensible à la casse.
+    """
+    q_clean = (q or '').strip().lower()
+    if len(q_clean) < 2:
+        return {'items': [], 'query': q_clean, 'note': 'Requête trop courte (min 2 char)'}
+    sb = get_admin_client()
+    try:
+        # Chargement large (500 dernières commandes) — filtrage côté Python (JSONB metadata)
+        res = sb.table('payment_transactions').select(
+            'session_id, user_email, created_at, status, metadata'
+        ).order('created_at', desc=True).limit(500).execute()
+    except Exception as e:
+        logger.exception(f'[admin] search theme_natal fail: {e}')
+        return {'items': [], 'error': str(e)[:200]}
+
+    items = []
+    for row in (res.data or []):
+        md = row.get('metadata') or {}
+        if md.get('kind') != 'theme_natal_pdf_oneshot':
+            continue
+        pdf_ctx = md.get('pdf_ctx') or {}
+        haystack = ' '.join([
+            str(row.get('user_email') or ''),
+            str(pdf_ctx.get('email') or ''),
+            str(pdf_ctx.get('first_name') or ''),
+            str(pdf_ctx.get('last_name') or ''),
+            str(row.get('session_id') or ''),
+        ]).lower()
+        if q_clean in haystack:
+            items.append({
+                'session_id': row.get('session_id'),
+                'user_email': row.get('user_email') or pdf_ctx.get('email') or '',
+                'first_name': pdf_ctx.get('first_name') or '',
+                'birth_date': pdf_ctx.get('birth_date') or '',
+                'birth_city': pdf_ctx.get('birth_city') or '',
+                'created_at': row.get('created_at'),
+                'status': row.get('status'),
+                'pdf_status': md.get('pdf_status') or 'ok',
+                'pdf_error': (md.get('pdf_error') or '')[:200],
+                'has_pdf_url': bool(md.get('pdf_url') or md.get('pdf_signed_url')),
+            })
+        if len(items) >= max(1, min(limit, 50)):
+            break
+    return {'items': items, 'total': len(items), 'query': q_clean}
+
+
 @router.post('/theme-natal/regenerate/{session_id}')
 async def admin_regenerate_theme_natal(session_id: str, _admin: dict = Depends(require_admin)):
     """Force la régénération du PDF Thème Natal pour une session. Réponse IMMÉDIATE.
@@ -866,4 +921,60 @@ async def admin_svg_cache_stats(_admin: dict = Depends(require_admin)):
         'total_size_bytes': total_size,
         'total_size_human': _human(total_size),
         'by_chart_type': by_type,
+    }
+
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Silent Failure Radar (Feb 2026) — surface les sessions PDF failed
+# ═══════════════════════════════════════════════════════════════════
+@router.get('/pdf-failures/last-24h')
+async def admin_pdf_failures_last_24h(
+    hours: int = 24,
+    _admin: dict = Depends(require_admin),
+):
+    """Liste les sessions dont `metadata.pdf_status='failed'` dans les X dernières heures.
+
+    Retourne pour chacune : session_id, kind, email, first_name, pdf_error,
+    pdf_failed_at, planets_core_missing (si présent). Trié par date décroissante.
+    Le front admin peut afficher une bannière et un bouton « Régénérer ».
+    """
+    from datetime import datetime, timezone, timedelta
+
+    sb = get_admin_client()
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=max(1, min(hours, 168)))).isoformat()
+
+    # Filtre côté serveur : pdf_status = 'failed' via JSONB
+    try:
+        res = sb.table('payment_transactions').select(
+            'session_id, user_email, created_at, metadata'
+        ).gte('created_at', cutoff).order('created_at', desc=True).limit(500).execute()
+    except Exception as e:
+        logger.exception(f'[admin] pdf-failures fetch failed: {e}')
+        return {'items': [], 'total': 0, 'error': str(e)[:200]}
+
+    items = []
+    for row in (res.data or []):
+        md = row.get('metadata') or {}
+        if md.get('pdf_status') != 'failed':
+            continue
+        pdf_ctx = md.get('pdf_ctx') or {}
+        items.append({
+            'session_id': row.get('session_id'),
+            'user_email': row.get('user_email') or pdf_ctx.get('email') or '',
+            'first_name': pdf_ctx.get('first_name') or '',
+            'kind': md.get('kind') or 'unknown',
+            'created_at': row.get('created_at'),
+            'pdf_error': (md.get('pdf_error') or '')[:400],
+            'pdf_failed_at': md.get('pdf_failed_at'),
+            'planets_core_missing': md.get('planets_core_missing') or [],
+            'regenerate_in_progress': bool(md.get('regenerate_started_at')
+                                           and not md.get('regenerate_diag')
+                                           and not md.get('regenerate_error')),
+        })
+    return {
+        'items': items,
+        'total': len(items),
+        'window_hours': hours,
+        'since': cutoff,
     }

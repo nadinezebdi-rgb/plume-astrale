@@ -20,6 +20,75 @@ logger = logging.getLogger(__name__)
 ASSETS_DIR = Path(__file__).resolve().parent.parent / 'assets'
 
 
+# ── Alerte admin quand astrology-api.io retourne <5 planètes core ──
+# Réutilise le pattern de astrology_io_service._alert_invalid_key (Resend, 1 alerte / 6h)
+_last_empty_planets_alert_ts = 0.0
+
+
+async def _alert_empty_planets(
+    session_id: str, user_email: str, first_name: str, err_msg: str,
+    planets_count: int, core_missing: list,
+) -> None:
+    """Envoie une alerte email admin quand un PDF Thème Natal échoue
+    faute de planètes retournées par astrology-api.io.
+
+    Rate-limitée à 1 alerte toutes les 6h pour éviter le spam.
+    """
+    global _last_empty_planets_alert_ts
+    now = datetime.now(timezone.utc).timestamp()
+    if now - _last_empty_planets_alert_ts < 6 * 3600:
+        logger.info(f'[theme_natal_oneshot] alerte empty_planets skipped (rate-limited) session={session_id}')
+        return
+    _last_empty_planets_alert_ts = now
+    resend_key = os.environ.get('RESEND_API_KEY', '').strip()
+    to = os.environ.get('ADMIN_ALERT_EMAIL', '').strip()
+    if not resend_key or not to:
+        logger.warning(
+            f'[theme_natal_oneshot] astrology-api.io a retourné <5 planètes '
+            f'MAIS RESEND_API_KEY/ADMIN_ALERT_EMAIL manquant — alerte non envoyée. '
+            f'session={session_id} count={planets_count} missing={core_missing}'
+        )
+        return
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.post(
+                'https://api.resend.com/emails',
+                headers={
+                    'Authorization': f'Bearer {resend_key}',
+                    'Content-Type': 'application/json',
+                },
+                json={
+                    'from': os.environ.get('SENDER_EMAIL', 'Plume Astrale <contact@plume-astrale.fr>'),
+                    'to': [to],
+                    'subject': '🚨 ALERTE Plume Astrale — Thème Natal échoué (planètes vides)',
+                    'html': (
+                        "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;'>"
+                        "<h2 style='color:#B91C1C;'>🚨 PDF Thème Natal refusé (planètes manquantes)</h2>"
+                        "<p>Le webhook <code>theme_natal_pdf_oneshot</code> a détecté un retour "
+                        f"d'API incomplet (<b>{planets_count} planètes</b> seulement, core manquantes : "
+                        f"<code>{core_missing}</code>).</p>"
+                        f"<p><b>Session :</b> <code>{session_id}</code><br>"
+                        f"<b>Client :</b> {first_name} &lt;{user_email}&gt;<br>"
+                        f"<b>Détail :</b> {err_msg}</p>"
+                        "<p><b>Action :</b><br>"
+                        "1. Vérifier <a href='https://dashboard.astrology-api.io'>dashboard.astrology-api.io</a> "
+                        "(crédits épuisés ? 401 ? plan expiré ?)<br>"
+                        "2. Une fois le service rétabli, forcer la régénération : "
+                        f"<code>POST /api/admin/regenerate-theme-natal/{session_id}?force=true</code></p>"
+                        "<p style='color:#888;font-size:12px;'>Anti-spam : maximum 1 alerte toutes les 6 heures. "
+                        "Le client voit un statut 'failed' — l'UI sort du spinner.</p>"
+                        "</div>"
+                    ),
+                },
+            )
+            if r.status_code < 400:
+                logger.info(f'[theme_natal_oneshot] alerte empty_planets envoyée à {to} session={session_id}')
+            else:
+                logger.error(f'[theme_natal_oneshot] alert email error {r.status_code}: {r.text[:200]}')
+    except Exception as e:
+        logger.error(f'[theme_natal_oneshot] alert email failed: {e}')
+
+
 async def handle_theme_natal_oneshot_webhook(session_id: str, force: bool = False) -> dict:
     """Wrapper qui garantit que TOUTE exception non prévue marque
     `metadata.pdf_status = 'failed'` (sinon l'UI reste en spinner infini).
@@ -103,6 +172,9 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         logger.error(f"[theme_natal_oneshot] no birth_data for {session_id}")
         diag['error'] = 'no birth_data in metadata.pdf_ctx'
         return diag
+    # Normalise le birth_data avant tout appel API (bug Nadine Feb 2026 :
+    # country_code arrivait en "France" au lieu de "FR" → HTTP 422 silencieux).
+    bd = aio.normalize_birth_data(bd)
     diag['birth_data'] = {
         'first_name': name, 'birth_date_iso': birth_date_iso,
         'city': bd.get('city') or bd.get('location'),
@@ -129,6 +201,42 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         return diag
     diag['planets_from_chart'] = len(planets_dict or {})
     diag['interpretations_count'] = len(interpretations or [])
+
+    # ⚠️ GARDE ANTI-SLOP v2 (Feb 2026) : refuser de générer un PDF si l'API
+    # astrology-api.io n'a pas remonté au moins Soleil + Lune + 3 autres planètes.
+    # Le générateur `natal_pdf_adapter` avait des fallbacks hardcodés
+    # ('Cancer'/'Poissons'/'Vierge') qui masquaient les échecs silencieux
+    # (timeout / crédits épuisés / 500 upstream). Bug remonté par Nadine :
+    # son PDF affichait Lune Poissons alors que sa vraie Lune est en Bélier.
+    _CORE_PLANETS = ('sun', 'moon', 'mercury', 'venus', 'mars')
+    _core_ok = sum(1 for k in _CORE_PLANETS if k in (planets_dict or {}))
+    _core_missing = [k for k in _CORE_PLANETS if k not in (planets_dict or {})]
+    if _core_ok < 5:
+        err_msg = (
+            f'astrology-api.io a retourné {len(planets_dict or {})} planètes '
+            f'(core manquantes: {_core_missing}). '
+            f'Refus de générer un PDF avec fallbacks trompeurs. '
+            f'Vérifier crédits/quota/timeout sur dashboard.astrology-api.io.'
+        )
+        logger.error(f'[theme_natal_oneshot] {err_msg} session={session_id}')
+        diag['error'] = err_msg
+        diag['planets_core_ok'] = _core_ok
+        diag['planets_core_missing'] = _core_missing
+        # Marque failed + notifie admin (best-effort — n'empêche pas le return)
+        md['pdf_status'] = 'failed'
+        md['pdf_error'] = err_msg[:400]
+        md['pdf_failed_at'] = datetime.now(timezone.utc).isoformat()
+        try:
+            sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+        except Exception as _e:
+            logger.warning(f'[theme_natal_oneshot] failed to persist pdf_status: {_e}')
+        try:
+            await _alert_empty_planets(session_id, email or '', name, err_msg,
+                                       planets_count=len(planets_dict or {}),
+                                       core_missing=_core_missing)
+        except Exception as _e:
+            logger.warning(f'[theme_natal_oneshot] admin alert failed: {_e}')
+        return diag
 
     # 2) Enrichissement GPT-5.4 Ultra (11 planètes + synthèse aspects)
     ai_result: dict = {}

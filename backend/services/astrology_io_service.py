@@ -499,6 +499,49 @@ def _country_to_code(country: Optional[str]) -> Optional[str]:
     return _COUNTRY_CODE_MAP.get(c.lower())
 
 
+def normalize_birth_data(bd: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalise un dict birth_data pour être accepté par astrology-api.io v3.
+
+    Corrige les cas remontés en prod (bug Nadine Feb 2026) :
+      - country_code au format long ("France") → ISO 2 lettres ("FR")
+      - country_code déjà en 2 lettres mais minuscule → majuscule
+      - Types numériques stringifiés → int/float
+      - Filtre les clés vides pour ne pas envoyer null à l'API
+
+    Retourne un NOUVEAU dict (non-mutating).
+    """
+    if not isinstance(bd, dict):
+        return bd
+    out = dict(bd)
+    # country_code : normaliser (crucial — Nadine avait 'France' → HTTP 422)
+    cc = out.get('country_code')
+    if cc:
+        cc_str = str(cc).strip()
+        if len(cc_str) == 2 and cc_str.isalpha():
+            out['country_code'] = cc_str.upper()
+        else:
+            code = _COUNTRY_CODE_MAP.get(cc_str.lower())
+            if code:
+                out['country_code'] = code
+            else:
+                # Fallback : premières 2 lettres majuscules (défensif)
+                out['country_code'] = cc_str[:2].upper() if cc_str[:2].isalpha() else 'FR'
+    # Cast des champs numériques (webhook peut envoyer des strings)
+    for k in ('year', 'month', 'day', 'hour', 'minute'):
+        if k in out and out[k] is not None:
+            try:
+                out[k] = int(out[k])
+            except (ValueError, TypeError):
+                pass
+    for k in ('latitude', 'longitude'):
+        if k in out and out[k] is not None:
+            try:
+                out[k] = float(out[k])
+            except (ValueError, TypeError):
+                pass
+    return out
+
+
 # ════════ HOROSCOPE BY SIGN ════════
 
 async def horoscope_sign(sign: str, period: str = 'daily', language: str = 'fr') -> Optional[Dict]:

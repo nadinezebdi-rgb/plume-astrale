@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Crown, Sparkles, Shield, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
+import SEOServiceEnrich from '@/components/SEOServiceEnrich';
 import { useAuth } from '@/context/AuthContext';
 import SafeEmptyState from '@/components/design/SafeEmptyState';
 
@@ -204,6 +205,7 @@ const Archetype = () => {
           />
         )}
       </div>
+      <SEOServiceEnrich slug="archetype" />
     </div>
   );
 };

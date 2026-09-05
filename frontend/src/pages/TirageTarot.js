@@ -11,6 +11,8 @@ import { asset } from '../lib/assets';
 import LibraryImage from '@/components/LibraryImage';
 import TarotCardBack from '@/components/TarotCardBack';
 import PsPageShell from '@/components/PsPageShell';
+import SEO from '@/components/SEO';
+import SEOServiceEnrich from '@/components/SEOServiceEnrich';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -306,6 +308,7 @@ const TirageTarot = () => {
 
   return (
     <PsPageShell background="light">
+      <SEO path="/services/tarot" />
     <div className="min-h-screen relative">
       {/* Background image décoratif */}
       <div 
@@ -844,6 +847,8 @@ const TirageTarot = () => {
         </div>
       </div>
     </div>
+    {/* SEO enrichment — audit Feb 2026 */}
+    <SEOServiceEnrich slug="tarot" />
     </PsPageShell>
   );
 };

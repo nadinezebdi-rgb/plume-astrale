@@ -173,8 +173,17 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
         'Saturne': 'Saturn', 'Uranus': 'Uranus',
         'Neptune': 'Neptune', 'Pluton': 'Pluto', 'Ascendant': 'Ascendant',
     }
+    # ⚠️ Anti-slop v2 : on refuse de générer un PDF avec des positions
+    # bidon. Si _find_sign() ne trouve rien pour une planète, on lève une
+    # RuntimeError explicite plutôt que d'insérer un fallback trompeur
+    # (ex. 'Inconnu' ou 'Cancer' hardcodé). L'appelant (theme_natal_oneshot_service)
+    # doit valider planets_dict >=5 planètes AVANT d'appeler ce générateur.
+    missing_signs: list[str] = []
     for planet in planet_list:
-        sign = _find_sign(planet) or 'Inconnu'
+        sign = _find_sign(planet)
+        if not sign:
+            missing_signs.append(planet)
+            continue
         ai_text = (ai.get(_AI_KEY[planet], '') or '').strip()
         if ai_text:
             analysis = ai_text
@@ -195,13 +204,23 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
 
     synthese = (ai.get('synthese_aspects') or '').strip() if is_ultra else ''
 
+    # ⚠️ Anti-slop v2 : si des planètes CORE (Soleil/Lune) manquent de signe,
+    # on refuse net. Pour les autres (Vénus/Mars/…), on lève aussi car
+    # afficher 'Inconnu' est trompeur pour un livre payé 24 EUR.
+    if missing_signs:
+        core_missing = [p for p in missing_signs if p in ('Soleil', 'Lune', 'Ascendant')]
+        raise RuntimeError(
+            f'natal_pdf_adapter: signes manquants pour {missing_signs!r} '
+            f'(core_missing={core_missing!r}) — planets_data vide ou incomplet. '
+            f'Refus de générer un PDF avec fallbacks trompeurs. '
+            f'Vérifier astrology-api.io (crédits, 401, timeout) côté appelant.'
+        )
+
     natal_data = {
-        'sun_sign': _find_sign('Soleil') or 'Cancer',
-        'moon_sign': _find_sign('Lune') or 'Poissons',
-        # §V audit marque : ascendant vide si no_birth_time (sinon 'Vierge' par défaut
-        # trompeur). Le fallback 'Vierge' n'est utilisé QUE si l'heure est connue mais
-        # l'API n'a pas remonté d'ascendant (cas très rare).
-        'ascendant_sign': '' if no_birth_time else (_find_sign('Ascendant') or 'Vierge'),
+        'sun_sign': _find_sign('Soleil'),
+        'moon_sign': _find_sign('Lune'),
+        # §V audit marque : ascendant vide si no_birth_time (sinon faux 11/12)
+        'ascendant_sign': '' if no_birth_time else _find_sign('Ascendant'),
         'no_birth_time': no_birth_time,
         'planets': planets,
         'synthese_aspects': synthese,

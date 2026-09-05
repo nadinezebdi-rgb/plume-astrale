@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, Loader2, ArrowLeft, Sparkles, Download, Star, Users, Tag, MessageCircle, Coins, LogIn, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
+import SEOServiceEnrich from '@/components/SEOServiceEnrich';
 import axios from 'axios';
 import { asset } from '../lib/assets';
 import TestimonialsWidget, { TESTIMONIALS_COMPATIBILITE } from '@/components/TestimonialsWidget';
@@ -249,7 +250,7 @@ const Compatibilite2 = () => {
 
   return (
     <div className="min-h-screen">
-      <SEO path="/compatibilite-amoureuse" />
+      <SEO path="/services/compatibilite" />
       <div className="px-6 md:px-8 py-20 md:py-28">
         <div className="max-w-3xl mx-auto">
 
@@ -508,6 +509,8 @@ const Compatibilite2 = () => {
           )}
         </div>
       </div>
+      {/* SEO Enrichment — audit Feb 2026 : contenu long + FAQ JSON-LD */}
+      <SEOServiceEnrich slug="compatibilite" />
     </div>
   );
 };
