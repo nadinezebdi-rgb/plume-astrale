@@ -77,7 +77,7 @@ jobs:
           python -m pip install --disable-pip-version-check -r backend/requirements.txt
 
       - name: Run PDF compatibility smoke test
-              env:
-                        ASTROLOGY_API_IO_KEY: ${{ secrets.ASTROLOGY_API_IO_KEY }}
+        env:
+          ASTROLOGY_API_IO_KEY: ${{ secrets.ASTROLOGY_API_IO_KEY }}
         run: |
           python tests/smoke_api_compat.py --suite pdf
