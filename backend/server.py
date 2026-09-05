@@ -1638,30 +1638,90 @@ async def share_generate_card(payload: PdfUserDataRequest):
     return Response(content=png, media_type='image/png', headers={'Cache-Control': 'no-store'})
 
 
+async def _planets_for_natal_pdf(user_data: dict) -> dict:
+        """Positions planetaires reelles pour les PDF natals.
+
+            natal_pdf_adapter refuse de generer (garde anti-slop) si les signes
+                manquent : on interroge astrology-api.io ici au lieu de lui passer
+                    planets_data=None, et on renvoie une 503 explicite si l'API est muette.
+                        """
+        raw_date = str(user_data.get('dateNaissance') or user_data.get('birth_date') or '').strip()
+        raw_time = str(user_data.get('heureNaissance') or user_data.get('birth_time') or '12:00').strip()
+        try:
+                    y, m, d = [int(x) for x in raw_date.split('-')[:3]]
+                    parts = (raw_time.replace('h', ':').split(':') + ['0'])[:2]
+                    hh, mm = int(parts[0]), int(parts[1])
+except Exception:
+        raise HTTPException(status_code=422, detail='Date ou heure de naissance invalide')
+
+    prenom = user_data.get('prenom') or user_data.get('name') or 'Voyageur'
+    ville = str(user_data.get('ville') or 'Paris').split(',')[0].strip()
+    pays = str(user_data.get('pays') or 'France')
+    bd = aio.make_birth_data(
+                y, m, d, hh, mm,
+                city=ville,
+                country_code='FR' if pays.lower() == 'france' else None,
+    )
+
+    chart = None
+    planets = {}
+    try:
+                chart = await aio.natal_chart(bd, name=prenom, language='fr')
+                planets = aio.extract_planets(chart) or {}
+                if not planets:
+                                chart = await aio.get_positions(bd, name=prenom, language='fr')
+                                planets = aio.extract_planets(chart) or {}
+    except Exception as exc:
+                logger.error(f'[pdf] positions astrology-api indisponibles: {exc}')
+                planets = {}
+
+    if not planets:
+                raise HTTPException(
+                                status_code=503,
+                                detail='Positions planetaires indisponibles (astrology-api.io) - PDF non genere',
+                )
+
+    if not planets.get('ascendant'):
+                asc = aio.extract_ascendant_sign_en(chart)
+                if not asc:
+                                try:
+                                                    cusps = await aio.get_house_cusps(bd, name=prenom, language='fr')
+                                                    asc = aio.extract_ascendant_sign_en(cusps)
+                                except Exception as exc:
+                                                    logger.warning(f'[pdf] house-cusps indisponibles: {exc}')
+                                                    asc = None
+                                            if asc:
+                                                            planets['ascendant'] = {'name': 'Ascendant', 'sign': asc, 'house': 1, 'degree': None}
+
+    return planets
+
+
 @api_router.post('/pdf/generate')
 async def pdf_generate(payload: PdfUserDataRequest):
-    user_data = payload.user_data or {}
-    pdf_bytes = generate_manuscrit_pdf(user_data=user_data, planets_data=None, horoscope_data=None)
-    return Response(content=pdf_bytes, media_type='application/pdf', headers={
-        'Content-Disposition': f'attachment; filename="manuscrit_{user_data.get("prenom", "plume")}.pdf"'
-    })
+        user_data = payload.user_data or {}
+        planets_data = await _planets_for_natal_pdf(user_data)
+        pdf_bytes = generate_manuscrit_pdf(user_data=user_data, planets_data=planets_data, horoscope_data=None)
+        return Response(content=pdf_bytes, media_type='application/pdf', headers={
+                    'Content-Disposition': f'attachment; filename="manuscrit_{user_data.get("prenom", "plume")}.pdf"'
+        })
 
 
 @api_router.post('/pdf/pro-horoscope')
 async def pdf_pro_horoscope(request: Request):
-    body = await request.json()
-    user_data = {
-        'prenom': body.get('name') or 'Voyageur',
-        'dateNaissance': f"{int(body.get('year', 1990)):04d}-{int(body.get('month', 1)):02d}-{int(body.get('day', 1)):02d}",
-        'heureNaissance': f"{int(body.get('hour', 12)):02d}:{int(body.get('minute', 0)):02d}",
-        'ville': (body.get('place') or 'Paris').split(',')[0].strip(),
-        'pays': 'France',
-    }
-    pdf_bytes = generate_manuscrit_pdf(user_data=user_data, planets_data=None, horoscope_data=None)
-    return Response(content=pdf_bytes, media_type='application/pdf', headers={
-        'Content-Disposition': f'attachment; filename="theme_astral_pro_{user_data.get("prenom", "plume")}.pdf"'
-    })
-
+        body = await request.json()
+        user_data = {
+                    'prenom': body.get('name') or 'Voyageur',
+                    'dateNaissance': f"{int(body.get('year', 1990)):04d}-{int(body.get('month', 1)):02d}-{int(body.get('day', 1)):02d}",
+                    'heureNaissance': f"{int(body.get('hour', 12)):02d}:{int(body.get('minute', 0)):02d}",
+                    'ville': (body.get('place') or 'Paris').split(',')[0].strip(),
+                    'pays': 'France',
+        }
+        planets_data = await _planets_for_natal_pdf(user_data)
+        pdf_bytes = generate_manuscrit_pdf(user_data=user_data, planets_data=planets_data, horoscope_data=None)
+        return Response(content=pdf_bytes, media_type='application/pdf', headers={
+                    'Content-Disposition': f'attachment; filename="theme_astral_pro_{user_data.get("prenom", "plume")}.pdf"'
+        })
+    
 
 @api_router.post('/pdf/preview')
 async def pdf_preview(payload: PdfUserDataRequest):
