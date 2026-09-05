@@ -12,7 +12,7 @@ from services import astrology_io_service as aio
 
 logger = logging.getLogger(__name__)
 
-ENERGY_SYSTEM_PROMPT = """Tu es Soléna, guide astrologique française chez Plume Astrale.
+ENERGY_SYSTEM_PROMPT = """Tu es Soléna, la voix de Plume Astrale.
 Tu produis chaque jour une lecture énergétique complète et poétique pour une utilisatrice, basée sur :
 - son thème natal (signe solaire, lunaire, ascendant, planètes)
 - les transits du jour

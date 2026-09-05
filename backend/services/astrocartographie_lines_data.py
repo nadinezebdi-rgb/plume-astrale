@@ -23,7 +23,7 @@ PLANETARY_LINES: dict[str, dict[str, dict[str, str]]] = {
     },
     'Moon': {
         'AC': {'headline': "Ta peau devient poreuse",
-               'body': "La Lune-Ascendant te rend sensible, réceptive, presque médiumnique. Les émotions des lieux te traversent. Beau pour l'inspiration artistique et le lien maternel, à surveiller si tu es hypersensible."},
+               'body': "La Lune-Ascendant te rend sensible, réceptive, très intuitive. Les émotions des lieux te traversent. Beau pour l'inspiration artistique et le lien maternel, à surveiller si tu es hypersensible."},
         'DC': {'headline': "L'intimité qui déborde",
                'body': "Les relations deviennent nourricières, fusionnelles, parfois enveloppantes. Tu croises des âmes qui savent te consoler — et qui parfois te dévorent. Ligne d'amour tendre et vulnérable."},
         'MC': {'headline': "Un métier de cœur",
