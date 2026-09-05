@@ -188,3 +188,87 @@ async def stripe_recovery_preview(
             for row in stuck
         ],
     }
+
+
+
+@router.get('/stripe-webhook-health')
+async def admin_stripe_webhook_health(_admin: dict = Depends(require_admin)) -> Dict[str, Any]:
+    """Diagnostic Stripe webhook — indique si STRIPE_WEBHOOK_SECRET est configuré,
+    SANS jamais le révéler. Retourne aussi les stats récentes de webhooks reçus.
+
+    Utilisé pour valider après un ajout de variable env sur Emergent Deployments.
+    """
+    from datetime import timedelta as _td
+    secret = os.environ.get('STRIPE_WEBHOOK_SECRET', '').strip()
+    api_key = os.environ.get('STRIPE_API_KEY', '').strip()
+
+    # Ne JAMAIS retourner la valeur. Uniquement des indicateurs booléens et un hash court non-réversible.
+    secret_configured = bool(secret)
+    secret_format_ok = secret.startswith('whsec_') if secret else False
+    secret_len = len(secret) if secret else 0
+    # Fingerprint = 8 premiers chars du sha256 (non-réversible, sert juste à confirmer si prod ↔ preview matchent)
+    fingerprint = None
+    if secret:
+        import hashlib
+        fingerprint = hashlib.sha256(secret.encode()).hexdigest()[:8]
+
+    api_key_mode = None
+    if api_key.startswith('sk_live_'):
+        api_key_mode = 'live'
+    elif api_key.startswith('sk_test_'):
+        api_key_mode = 'test'
+    elif api_key:
+        api_key_mode = 'unknown'
+
+    # Stats webhooks récents (24h) — table stripe_webhook_events (colonne handled_at)
+    sb = get_admin_client()
+    webhook_stats: Dict[str, Any] = {'last_24h': None, 'error': None}
+    try:
+        cutoff = (datetime.now(timezone.utc) - _td(hours=24)).isoformat()
+        # `handled_at` = null pour les rows encore en processing ; on prend tout et on filtre côté Python
+        res = sb.table('stripe_webhook_events').select(
+            'event_type, status, handled_at'
+        ).gte('handled_at', cutoff).limit(500).execute()
+        rows = res.data or []
+        by_status: Dict[str, int] = {}
+        by_type: Dict[str, int] = {}
+        for r in rows:
+            s = r.get('status') or 'unknown'
+            t = r.get('event_type') or 'unknown'
+            by_status[s] = by_status.get(s, 0) + 1
+            by_type[t] = by_type.get(t, 0) + 1
+        webhook_stats['last_24h'] = {
+            'total': len(rows),
+            'by_status': by_status,
+            'by_type': by_type,
+        }
+    except Exception as e:
+        webhook_stats['error'] = str(e)[:200]
+
+    ready = secret_configured and secret_format_ok and bool(api_key)
+    hints = []
+    if not secret_configured:
+        hints.append("STRIPE_WEBHOOK_SECRET absent — ajouter la variable via Emergent Deployments → Production → Environment Variables (valeur commence par 'whsec_')")
+    elif not secret_format_ok:
+        hints.append(f"STRIPE_WEBHOOK_SECRET présent mais ne commence pas par 'whsec_' (longueur={secret_len}). Vérifier qu'aucun espace/guillemet n'a été copié.")
+    if not api_key:
+        hints.append("STRIPE_API_KEY absent — impossible d'appeler l'API Stripe")
+    if api_key_mode == 'test' and secret_configured:
+        hints.append("STRIPE_API_KEY en mode TEST mais webhook secret configuré : vérifier cohérence live/test avec le dashboard Stripe")
+
+    return {
+        'ready': ready,
+        'secret': {
+            'configured': secret_configured,
+            'format_valid': secret_format_ok,
+            'length': secret_len,
+            'fingerprint': fingerprint,  # 8 chars sha256, non-réversible
+        },
+        'api_key': {
+            'configured': bool(api_key),
+            'mode': api_key_mode,
+        },
+        'webhook_events': webhook_stats,
+        'hints': hints,
+        'checked_at': datetime.now(timezone.utc).isoformat(),
+    }
