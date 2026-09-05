@@ -77,16 +77,6 @@ const MERCHANT_RETURN_POLICY = {
   returnFees: 'https://schema.org/FreeReturn',
 };
 
-const PRODUCT_REVIEWS_FALLBACK = [
-  {
-    '@type': 'Review',
-    reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
-    author: { '@type': 'Person', name: 'Elodie' },
-    reviewBody: "Trois soirs de suite je suis revenue sur ma lecture. Ça m'a débloqué quelque chose.",
-    datePublished: '2025-11-14',
-  },
-];
-
 const productJsonLd = (slug, name, description, priceEur, pages, reviews) => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
@@ -95,14 +85,7 @@ const productJsonLd = (slug, name, description, priceEur, pages, reviews) => ({
   brand: { '@type': 'Brand', name: 'Plume Astrale' },
   category: 'Astrologie · Livre personnalisé',
   image: `${DOMAIN}/covers/${slug}.jpg`,
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.9',
-    reviewCount: String(Math.max(187, (reviews || []).length + 187)),
-    bestRating: '5',
-    worstRating: '1',
-  },
-  review: (reviews && reviews.length ? reviews : PRODUCT_REVIEWS_FALLBACK),
+  review: reviews && reviews.length ? reviews : undefined,
   offers: {
     '@type': 'Offer',
     url: `${DOMAIN}/${slug}`,
