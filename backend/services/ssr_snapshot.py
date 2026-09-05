@@ -249,7 +249,25 @@ async def refresh_all(only_expired: bool = True) -> dict:
 
 
 async def ssr_refresh_loop() -> None:
-    """Background task — refresh les snapshots expirés toutes les heures."""
+    """Background task — refresh les snapshots expirés toutes les heures.
+
+    ⚠️ Désactivé par défaut en prod (Feb 2026) : le prerender.js au build
+    (yarn build:seo) génère déjà les HTML statiques → SSR runtime redondant.
+    Playwright n'étant pas dans l'image prod, la boucle bouclerait sur des
+    ImportError. Activer via env `SSR_SNAPSHOT_ENABLED=1` UNIQUEMENT si vous
+    installez `playwright` + `playwright install chromium` en post-install.
+    """
+    if os.environ.get('SSR_SNAPSHOT_ENABLED', '0') not in ('1', 'true', 'yes', 'on'):
+        logger.info('[ssr] refresh loop DESACTIVEE (SSR_SNAPSHOT_ENABLED != 1). '
+                    'Le prerender au build (yarn build:seo) gere le SEO côté frontend.')
+        return
+    # Sanity check : playwright dispo ?
+    try:
+        from playwright.async_api import async_playwright  # noqa: F401
+    except Exception as e:
+        logger.warning(f'[ssr] Playwright indisponible ({e}). Loop skipped. '
+                       f'Pour activer : `pip install playwright && playwright install chromium`.')
+        return
     logger.info('[ssr] refresh loop démarrée — cycle 1h')
     # Bootstrap : première passe au démarrage (only_expired=False force le refresh initial)
     try:

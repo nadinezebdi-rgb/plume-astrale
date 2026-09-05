@@ -1,5 +1,23 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-03-04 (v4) — Fix startup lourd + désactivation SSR runtime
+
+**Diagnostic Emergent** : 2 problèmes remontés
+1. Playwright non installé en prod → `ssr_refresh_loop` throw `ImportError` sur chaque cycle
+2. Tâches lourdes au démarrage (horoscope, PDF, capture SSR) → app peu réactive au boot
+
+**Fixes appliqués** :
+
+- **`backend/services/ssr_snapshot.py`** : `ssr_refresh_loop` désactivée par défaut. Activation via `SSR_SNAPSHOT_ENABLED=1`. Sanity check `playwright` importable avant même de démarrer. **Rationale** : le prerender.js frontend (`yarn build:seo`) génère déjà les HTML statiques au build → SSR runtime redondant.
+- **`backend/services/horoscope_scheduler.py`** : startup grace period de 90s avant le recovery-run des 36 générations LLM (12 signes × 3 périodes).
+- **`backend/services/print_approval_service.py`** : startup grace period de 120s avant le premier `_process_reminders()` (envoi emails + PDF).
+
+**Vérifié** : `Application startup complete` immédiat, log SSR clean ("DESACTIVEE… le prerender au build gère le SEO"), 20 tests pytest OK.
+
+**Impact prod** : app réactive au boot, aucun spam d'erreurs Playwright, tâches lourdes différées de 90-120s post-démarrage. Aucune fonctionnalité perdue puisque le SEO est géré au build (`yarn build:seo`).
+
+
+
 ## 2026-03-04 (final) — Nadine Book régénéré + normalize_birth_data + Emergent support
 
 **🎯 Bug Nadine 100% résolu**
