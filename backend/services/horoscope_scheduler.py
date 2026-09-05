@@ -61,11 +61,19 @@ async def daily_horoscope_scheduler_loop() -> None:
     """Boucle infinie : dort jusqu'à 6h UTC puis lance la régénération."""
     logger.info('[horoscope_scheduler] boucle démarrée — cible 6h UTC quotidien')
 
+    # Startup grace period : ne pas bloquer le démarrage de l'app avec 36
+    # générations LLM séquentielles. On attend 90s pour que Uvicorn/K8s
+    # health checks soient stables avant toute charge lourde (Feb 2026).
+    try:
+        await asyncio.sleep(90)
+    except asyncio.CancelledError:
+        raise
+
     # Au démarrage : si on n'a pas encore tourné aujourd'hui ET qu'il est déjà passé 6h,
     # lance immédiatement (recovery cas de restart tardif).
     now = datetime.now(timezone.utc)
     if now.hour >= TARGET_HOUR_UTC and not _already_ran_today():
-        logger.info('[horoscope_scheduler] recovery — pas encore tourné aujourd\u2019hui, lancement immédiat')
+        logger.info('[horoscope_scheduler] recovery — pas encore tourné aujourd\u2019hui, lancement immédiat (après grace period)')
         await _regenerate_all()
 
     while True:

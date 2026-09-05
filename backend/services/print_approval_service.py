@@ -444,6 +444,12 @@ async def print_approval_loop():
     À démarrer dans server.py startup (`asyncio.create_task(print_approval_loop())`).
     """
     logger.info(f'[print_approval] loop démarré — cycle {LOOP_INTERVAL_SEC}s')
+    # Startup grace period : évite de bloquer le boot avec envoi d'emails
+    # + génération de PDF de rappel dès le démarrage (Feb 2026).
+    try:
+        await asyncio.sleep(120)
+    except asyncio.CancelledError:
+        raise
     while True:
         try:
             stats = await _process_reminders()
