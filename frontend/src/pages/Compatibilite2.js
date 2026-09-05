@@ -163,7 +163,6 @@ const Compatibilite2 = () => {
       });
       const data = await res.json();
       if (data.url) {
-        localStorage.setItem('plume_compat_data', JSON.stringify({ person1, person2, question }));
         window.location.href = data.url;
       }
     } catch (e) {
