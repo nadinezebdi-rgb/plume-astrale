@@ -404,9 +404,9 @@ const TarotOuiNon = () => {
                   <div className="space-y-4">
                     <button onClick={() => navigate('/tarologie')} className="block w-full text-left group rounded-xl p-4 transition-all duration-300 hover:bg-[var(--pa-surface)]">
                       <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#D4AF37]" style={{ color: 'var(--pa-heading)' }}>
-                        Tarologie & Médiumnité — 35 €
+                        Tarologie & Lecture Symbolique — 35 €
                       </p>
-                      <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Tirage complet 7 cartes + lecture médiumnique en PDF</p>
+                      <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Tirage complet 7 cartes + lecture symbolique en PDF</p>
                     </button>
                     <button onClick={() => navigate('/formulaire')} className="block w-full text-left group rounded-xl p-4 transition-all duration-300 hover:bg-[var(--pa-surface)]">
                       <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#D4AF37]" style={{ color: 'var(--pa-heading)' }}>

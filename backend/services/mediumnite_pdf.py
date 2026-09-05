@@ -1,6 +1,6 @@
 """
-Générateur PDF Tarologie Médiumnité
-PDF complet avec tirage 7 cartes + lecture médiumnique
+Générateur PDF Tarologie Symbolique
+PDF complet avec tirage 7 cartes + lecture symbolique
 """
 import io
 import random
@@ -105,7 +105,7 @@ class MediumnitePDFGenerator:
 
         c.setFillColor(CREAM)
         c.setFont("Helvetica-Bold", 28)
-        c.drawCentredString(self.width / 2, y, "Tarologie & Mediumnite")
+        c.drawCentredString(self.width / 2, y, "Tarologie & Lecture Symbolique")
 
         c.setFillColor(GOLD)
         c.setFont("Helvetica", 14)
@@ -120,7 +120,7 @@ class MediumnitePDFGenerator:
         c.setFillAlpha(0.6)
         c.setFont("Helvetica-Oblique", 11)
         c.drawCentredString(self.width / 2, y - 4 * cm, "Un voyage au coeur de votre ame")
-        c.drawCentredString(self.width / 2, y - 5 * cm, "a travers les Arcanes et la guidance mediumnique")
+        c.drawCentredString(self.width / 2, y - 5 * cm, "a travers les Arcanes et la lecture symbolique")
         c.setFillAlpha(1.0)
 
         c.setFillColor(GOLD)
@@ -214,18 +214,18 @@ class MediumnitePDFGenerator:
 
             y -= content_h + 0.6 * cm
 
-        # === LECTURE MEDIUMNIQUE ===
+        # === LECTURE SYMBOLIQUE ===
         self._new_page(c)
         y = self.height - 3 * cm
 
         c.setFillColor(GOLD)
         c.setFont("Helvetica-Bold", 20)
-        c.drawCentredString(self.width / 2, y, "Lecture Mediumnique")
+        c.drawCentredString(self.width / 2, y, "Lecture Symbolique")
         y -= 0.8 * cm
         c.setFillColor(LIGHT_TEXT)
         c.setFillAlpha(0.6)
         c.setFont("Helvetica-Oblique", 10)
-        c.drawCentredString(self.width / 2, y, "Messages recus pour votre ame")
+        c.drawCentredString(self.width / 2, y, "Ce que revele votre tirage")
         c.setFillAlpha(1.0)
         y -= 2 * cm
 
@@ -234,7 +234,7 @@ class MediumnitePDFGenerator:
             ("Empreinte du Passe", lecture.get("passe", "")),
             ("Energies du Present", lecture.get("present", "")),
             ("Visions du Futur", lecture.get("futur", "")),
-            ("Message de Votre Ame", lecture.get("conseil_ame", "")),
+            ("Un Conseil pour Vous", lecture.get("conseil_ame", "")),
         ]
 
         for titre, texte in sections:
@@ -275,7 +275,7 @@ class MediumnitePDFGenerator:
         c.setFont("Helvetica-Oblique", 12)
         msg_final = (
             f"Cher(e) {prenom}, cette lecture est un cadeau de l'univers. "
-            "Les cartes et les messages mediumniques vous guident mais ne vous enferment pas. "
+            "Les cartes et les messages de ce tirage vous eclairent mais ne vous enferment pas. "
             "Vous restez le maitre de votre destinee. Utilisez ces revelations comme des phares "
             "pour eclairer votre chemin, et rappelez-vous : votre lumiere interieure est votre "
             "plus grande force."
@@ -292,7 +292,7 @@ class MediumnitePDFGenerator:
         c.setFillColor(GOLD)
         c.setFillAlpha(0.5)
         c.setFont("Helvetica", 9)
-        c.drawCentredString(self.width / 2, y, "Plume Astrale - Tarologie & Mediumnite")
+        c.drawCentredString(self.width / 2, y, "Plume Astrale - Tarologie & Lecture Symbolique")
         c.setFillAlpha(1.0)
 
         c.save()
@@ -344,7 +344,7 @@ def _build_ai_enrichment_pdf(prenom: str, birth_date_iso: str,
 
 async def generate_mediumnite_pdf_ai(tirage_data: dict, prenom: str,
                                       birth_date_iso: str) -> bytes:
-    """Génère le tirage Médiumnité + concatène des pages narratives IA en tête."""
+    """Génère le tirage Symbolique + concatène des pages narratives IA en tête."""
     base_pdf = generate_mediumnite_pdf(tirage_data)
     try:
         from services.report_ai_enrichment import enrich_report

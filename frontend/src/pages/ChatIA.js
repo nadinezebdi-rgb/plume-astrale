@@ -134,7 +134,7 @@ const ChatIA = () => {
         } catch (e) { /* silence : session neuve OK */ }
       })();
     }
-  }, []);
+  }, [token]);
 
   // Load anonymous free counter
   useEffect(() => {

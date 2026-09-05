@@ -53,7 +53,7 @@ NUM_DESCRIPTIONS = {
         4: 'Tu bâtiras une œuvre solide et durable.',
         5: 'Ta vie sera riche d\'expériences variées.',
         6: 'Tu seras le pilier d\'une communauté aimante.',
-        7: 'Tu deviendras un guide spirituel reconnu.',
+        7: 'Tu deviendras une référence inspirante pour les autres.',
         8: 'Tu atteindras succès matériel et reconnaissance.',
         9: 'Tu marqueras le monde par ta générosité.',
         11: 'Tu illumineras spirituellement ton entourage.',
