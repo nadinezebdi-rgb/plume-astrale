@@ -64,7 +64,7 @@ const DIGITAL_SHIPPING = {
   deliveryTime: {
     '@type': 'ShippingDeliveryTime',
     handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 0, unitCode: 'DAY' },
-    transitTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 0, unitCode: 'DAY' },
+    transitTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
   },
 };
 
@@ -77,6 +77,8 @@ const MERCHANT_RETURN_POLICY = {
   returnFees: 'https://schema.org/FreeReturn',
 };
 
+const PRODUCT_REVIEWS_FALLBACK = [];
+
 const productJsonLd = (slug, name, description, priceEur, pages, reviews) => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
@@ -85,7 +87,7 @@ const productJsonLd = (slug, name, description, priceEur, pages, reviews) => ({
   brand: { '@type': 'Brand', name: 'Plume Astrale' },
   category: 'Astrologie · Livre personnalisé',
   image: `${DOMAIN}/covers/${slug}.jpg`,
-  review: reviews && reviews.length ? reviews : undefined,
+  ...(reviews && reviews.length ? { review: reviews } : {}),
   offers: {
     '@type': 'Offer',
     url: `${DOMAIN}/${slug}`,
