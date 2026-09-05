@@ -63,8 +63,8 @@ const DIGITAL_SHIPPING = {
   shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'FR' },
   deliveryTime: {
     '@type': 'ShippingDeliveryTime',
-    handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 0, unitCode: 'HUR' },
-    transitTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'HUR' },
+    handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 0, unitCode: 'DAY' },
+    transitTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
   },
 };
 
@@ -77,15 +77,7 @@ const MERCHANT_RETURN_POLICY = {
   returnFees: 'https://schema.org/FreeReturn',
 };
 
-const PRODUCT_REVIEWS_FALLBACK = [
-  {
-    '@type': 'Review',
-    reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
-    author: { '@type': 'Person', name: 'Elodie' },
-    reviewBody: "Trois soirs de suite je suis revenue sur ma lecture. Ça m'a débloqué quelque chose.",
-    datePublished: '2025-11-14',
-  },
-];
+const PRODUCT_REVIEWS_FALLBACK = [];
 
 const productJsonLd = (slug, name, description, priceEur, pages, reviews) => ({
   '@context': 'https://schema.org',
@@ -95,14 +87,7 @@ const productJsonLd = (slug, name, description, priceEur, pages, reviews) => ({
   brand: { '@type': 'Brand', name: 'Plume Astrale' },
   category: 'Astrologie · Livre personnalisé',
   image: `${DOMAIN}/covers/${slug}.jpg`,
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.9',
-    reviewCount: String(Math.max(187, (reviews || []).length + 187)),
-    bestRating: '5',
-    worstRating: '1',
-  },
-  review: (reviews && reviews.length ? reviews : PRODUCT_REVIEWS_FALLBACK),
+  ...(reviews && reviews.length ? { review: reviews } : {}),
   offers: {
     '@type': 'Offer',
     url: `${DOMAIN}/${slug}`,
