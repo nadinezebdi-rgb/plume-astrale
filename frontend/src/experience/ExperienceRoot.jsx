@@ -16,6 +16,7 @@ import ExperienceCanvas from './ExperienceCanvas';
 import ExperienceFallback from './ExperienceFallback';
 import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
 import { storeIntent, storeDrawnCard, captureUtm, detectZodiacCampaign, readUtm } from './intentConfig';
+import { getScene3Revelation } from './scene3Revelations';
 import ZodiacInterlude from './ZodiacInterlude';
 import { event as trackEvent, EVENTS } from '@/lib/analytics';
 import './Experience.css';
@@ -123,9 +124,21 @@ export default function ExperienceRoot() {
   const cardBackImage = useMemo(() => getCardBackTexture(), []);
   const cardFaceImage = useMemo(() => getCardFaceTexture(), []);
 
-  // ── Capture UTM + démarrage funnel (une seule fois) ─────────
+  // ── Capture UTM + hydratation du store depuis sessionStorage ─
+  //  Utile si l'utilisateur rafraîchit à mi-parcours ou revient via
+  //  un lien externe avec ?intent=… : sinon le store zustand reste
+  //  à null et la scène 3 retombe sur le fallback générique.
   useEffect(() => {
     trackEvent(EVENTS.EXP_STARTED, {});
+    // Hydrate intent / drawnCard depuis query params ou sessionStorage
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const intentQ = params.get('intent') || window.sessionStorage.getItem('exp_intent');
+      const cardQ = params.get('exp_card') || window.sessionStorage.getItem('exp_card');
+      if (intentQ && !intent) setIntent(intentQ);
+      if (cardQ && !drawnCard) setDrawnCard(cardQ);
+    } catch { /* noop */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Tracking par scène ──────────────────────────────────────
@@ -389,22 +402,29 @@ export default function ExperienceRoot() {
             </div>
 
             <div className="exp-s3__result" data-visible={drawnCard !== null}>
-              <p className="exp-lead">Cette carte éclaire une partie de votre question.</p>
-              <p className="exp-lead" style={{ opacity: 0.6, marginTop: -8 }}>
-                Mais seule, elle ne raconte pas toute l&apos;histoire.
-              </p>
-              <button
-                type="button"
-                className="exp-linkline"
-                onClick={() => {
-                  trackEvent(EVENTS.EXP_TAROT_CONTINUE, { card: drawnCard });
-                  scrollToScene(4);
-                }}
-                data-testid="scene-3-continue"
-              >
-                ✦ Découvrir la suite de mon tirage
-                <span className="exp-linkline__chevron">↓</span>
-              </button>
+              {(() => {
+                const rev = getScene3Revelation(drawnCard, intent);
+                return (
+                  <>
+                    <p className="exp-lead" data-testid="scene-3-revelation">{rev.revelation}</p>
+                    <p className="exp-lead" style={{ opacity: 0.6, marginTop: -8 }} data-testid="scene-3-tension">
+                      {rev.tension}
+                    </p>
+                    <button
+                      type="button"
+                      className="exp-linkline"
+                      onClick={() => {
+                        trackEvent(EVENTS.EXP_TAROT_CONTINUE, { card: drawnCard, intent_type: intent || 'none' });
+                        scrollToScene(4);
+                      }}
+                      data-testid="scene-3-continue"
+                    >
+                      ✦ {rev.cta}
+                      <span className="exp-linkline__chevron">↓</span>
+                    </button>
+                  </>
+                );
+              })()}
             </div>
           </div>
         </section>

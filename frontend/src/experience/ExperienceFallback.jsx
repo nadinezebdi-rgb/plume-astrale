@@ -9,6 +9,7 @@
  */
 import React, { useState, useMemo } from 'react';
 import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
+import { getScene3Revelation } from './scene3Revelations';
 
 export default function ExperienceFallback({
   intents, cards, onIntentChoice, onCardDraw, onFinalCTA, intent, drawnCard,
@@ -102,14 +103,20 @@ export default function ExperienceFallback({
                 </button>
               ))}
             </div>
-            {drawnCard && (
-              <div className="exp-s3__result" data-visible="true" style={{ marginTop: 50 }}>
-                <p className="exp-lead">Cette carte a quelque chose à vous montrer.</p>
-                <button className="exp-linkline" onClick={() => setExpanded(4)}>
-                  Continuer mon tirage <span>↓</span>
-                </button>
-              </div>
-            )}
+            {drawnCard && (() => {
+              const rev = getScene3Revelation(drawnCard, intent);
+              return (
+                <div className="exp-s3__result" data-visible="true" style={{ marginTop: 50 }}>
+                  <p className="exp-lead" data-testid="scene-3-revelation">{rev.revelation}</p>
+                  <p className="exp-lead" style={{ opacity: 0.6, marginTop: -8 }} data-testid="scene-3-tension">
+                    {rev.tension}
+                  </p>
+                  <button className="exp-linkline" onClick={() => setExpanded(4)} data-testid="scene-3-continue">
+                    ✦ {rev.cta} <span>↓</span>
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         </section>
       )}
