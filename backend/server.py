@@ -1290,11 +1290,23 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
             # Marque la transaction comme payée avant de lancer le pipeline
             try:
                 sb2 = get_admin_client()
-                sb2.table('payment_transactions').update({
+                update = {
                     'status': 'complete',
                     'payment_status': 'paid',
                     'credits_granted': True,
-                }).eq('session_id', session_id).execute()
+                }
+                # Éditions imprimées : on conserve l'adresse de livraison collectée par Stripe
+                try:
+                    from services.book_engine.fulfillment import extract_shipping
+                    shipping = extract_shipping(data_obj)
+                    if shipping:
+                        cur = sb2.table('payment_transactions').select('metadata').eq(
+                            'session_id', session_id).limit(1).execute()
+                        cur_md = (cur.data[0].get('metadata') if cur and cur.data else None) or {}
+                        update['metadata'] = {**cur_md, 'shipping': shipping}
+                except Exception as e:
+                    logger.warning(f'[composer_book] shipping capture fail: {e}')
+                sb2.table('payment_transactions').update(update).eq('session_id', session_id).execute()
             except Exception as e:
                 logger.warning(f'[composer_book] tx paid update fail: {e}')
             # Lance la génération PDF (peut prendre 30-90s avec LLM)

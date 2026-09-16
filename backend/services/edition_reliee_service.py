@@ -114,6 +114,9 @@ async def create_edition_reliee_checkout(
             'quantity': 1,
         }],
         customer_email=purchaser_email,
+        # Livre imprimé → adresse de livraison obligatoire
+        shipping_address_collection={'allowed_countries': ['FR', 'BE', 'LU', 'CH', 'MC']},
+        phone_number_collection={'enabled': True},
         success_url=success_url,
         cancel_url=cancel_url,
         # Note : Stripe metadata caps at ~500 chars total, on garde donc court.
