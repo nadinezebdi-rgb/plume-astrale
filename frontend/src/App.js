@@ -88,7 +88,6 @@ import AdminPdfTest from "./pages/AdminPdfTest";
 import AdminQrStats from "./pages/AdminQrStats";
 import GiftCardPurchase from "./pages/GiftCardPurchase";
 import GiftCardRedeem from "./pages/GiftCardRedeem";
-import EditionReliee from "./pages/EditionReliee";
 import EditionRelieeMerci from "./pages/EditionRelieeMerci";
 import RelectureRefus from "./pages/RelectureRefus";
 import ExperiencePage from "./pages/Experience";
@@ -244,7 +243,7 @@ function App() {
                 <Route path="/carte-cadeau" element={<GiftCardPurchase />} />
                 <Route path="/carte-cadeau/redeem/:code" element={<GiftCardRedeem />} />
                 <Route path="/carte-cadeau/merci" element={<GiftCardPurchase />} />
-                <Route path="/edition-reliee" element={<EditionReliee />} />
+                <Route path="/edition-reliee" element={<Navigate to="/composer?edition=reliee" replace />} />
                 <Route path="/edition-reliee/merci" element={<EditionRelieeMerci />} />
                 <Route path="/relecture/:token" element={<RelectureRefus />} />
                 <Route path="/experience" element={<ExperiencePage />} />
