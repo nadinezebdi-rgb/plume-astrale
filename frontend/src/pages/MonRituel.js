@@ -8,7 +8,6 @@ import {
   Sparkles, Target, BookHeart, Send, Loader2, Flame as FlameIcon,
   Stars, Lock, ChevronDown, ChevronUp, RefreshCw,
 } from 'lucide-react';
-import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
