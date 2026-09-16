@@ -1,9 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { UserPlus, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
+import { UserPlus, Eye, EyeOff, Loader2, ArrowLeft, Gift } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { event as track, EVENTS } from '@/lib/analytics';
+import { INTENT_CONFIG, readIntent, readDrawnCard, readUtm } from '@/experience/intentConfig';
+
+// Cartes de l'expérience — libellés utilisés pour le rappel visuel du tunnel.
+// Miroir de ExperienceRoot.CARDS — garder synchronisé.
+const EXP_CARDS = {
+  heart: { glyph: '♡', name: 'La Rencontre' },
+  moon:  { glyph: '☾', name: 'Le Voile' },
+  star:  { glyph: '✦', name: 'La Trajectoire' },
+};
 
 const COUNTRIES = [
   'France', 'Belgique', 'Suisse', 'Canada', 'Luxembourg', 'Monaco',
@@ -25,6 +34,22 @@ export default function Register() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // ── Contexte tunnel /experience ──────────────────────────────────────
+  // Priorité : query params > sessionStorage (survit à sessionStorage flushé).
+  const expContext = useMemo(() => {
+    const fromWelcome = searchParams.get('welcome') === '1';
+    const intentKey = searchParams.get('intent') || readIntent();
+    const cardKey = searchParams.get('exp_card') || readDrawnCard();
+    if (!fromWelcome && !intentKey && !cardKey) return null;
+    return {
+      fromWelcome,
+      intent: intentKey && INTENT_CONFIG[intentKey] ? INTENT_CONFIG[intentKey] : null,
+      intentKey,
+      card: cardKey && EXP_CARDS[cardKey] ? EXP_CARDS[cardKey] : null,
+      cardKey,
+    };
+  }, [searchParams]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -79,8 +104,16 @@ export default function Register() {
       track(EVENTS.SIGNUP_COMPLETED, { has_birth_data: true });
       // Si l'utilisateur vient du tunnel /experience (welcome=1 dans l'URL),
       // on le redirige vers /mon-accueil?welcome=1 pour déclencher WelcomeSplash.
+      // On propage intent + exp_card + utm dans l'URL pour survivre à un
+      // sessionStorage nettoyé (navigation privée, cookies bloqués).
       if (searchParams.get('welcome') === '1') {
-        navigate('/mon-accueil?welcome=1');
+        const p = new URLSearchParams();
+        p.set('welcome', '1');
+        if (expContext?.intentKey) p.set('intent', expContext.intentKey);
+        if (expContext?.cardKey)   p.set('exp_card', expContext.cardKey);
+        const utm = readUtm();
+        Object.entries(utm).forEach(([k, v]) => { if (v) p.set(k, v); });
+        navigate(`/mon-accueil?${p.toString()}`);
       } else {
         navigate('/');
       }
@@ -105,6 +138,81 @@ export default function Register() {
             backdropFilter: 'blur(16px)',
           }}
         >
+          {/* Rappel visuel du tunnel /experience — évite la cassure narrative
+              entre l'immersion (obscurité → intention → carte → plume) et le
+              formulaire technique. Affiché uniquement si welcome=1 ou si
+              l'utilisateur a un intent/card stocké en session. */}
+          {expContext && (expContext.intent || expContext.card || expContext.fromWelcome) && (
+            <div
+              className="mb-8"
+              data-testid="register-experience-recall"
+              style={{
+                padding: '16px 20px',
+                borderRadius: 10,
+                background: 'radial-gradient(ellipse at 20% 0%, rgba(216,183,106,0.10), rgba(7,7,19,0.35))',
+                border: '1px solid rgba(216,183,106,0.22)',
+                animation: 'expRecallFadeIn 700ms ease-out',
+              }}
+            >
+              <style>{`@keyframes expRecallFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}`}</style>
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: 12, flexWrap: 'wrap',
+              }}>
+                {expContext.card && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} data-testid="register-recall-card">
+                    <span style={{
+                      fontSize: 22, color: '#D8B76A',
+                      fontFamily: '"Cormorant Garamond", serif', lineHeight: 1,
+                    }}>{expContext.card.glyph}</span>
+                    <div>
+                      <p style={{
+                        fontFamily: '"Inter", sans-serif', fontSize: 10, letterSpacing: '0.24em',
+                        textTransform: 'uppercase', color: 'rgba(244,239,230,0.55)', margin: 0,
+                      }}>Votre carte</p>
+                      <p style={{
+                        fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
+                        color: '#F4EFE6', fontSize: 15, margin: '2px 0 0',
+                      }}>{expContext.card.name}</p>
+                    </div>
+                  </div>
+                )}
+                {expContext.intent && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} data-testid="register-recall-intent">
+                    <span style={{
+                      fontSize: 20, color: '#D8B76A',
+                      fontFamily: '"Cormorant Garamond", serif', lineHeight: 1,
+                    }}>{expContext.intent.icon}</span>
+                    <div>
+                      <p style={{
+                        fontFamily: '"Inter", sans-serif', fontSize: 10, letterSpacing: '0.24em',
+                        textTransform: 'uppercase', color: 'rgba(244,239,230,0.55)', margin: 0,
+                      }}>Votre intention</p>
+                      <p style={{
+                        fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
+                        color: '#F4EFE6', fontSize: 15, margin: '2px 0 0',
+                      }}>{expContext.intent.label}</p>
+                    </div>
+                  </div>
+                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} data-testid="register-recall-gift">
+                  <Gift className="w-4 h-4" style={{ color: '#D8B76A' }} strokeWidth={1.6} />
+                  <span style={{
+                    fontFamily: '"Inter", sans-serif', fontSize: 10.5, letterSpacing: '0.24em',
+                    textTransform: 'uppercase', color: '#D8B76A', fontWeight: 500,
+                  }}>20 crédits offerts</span>
+                </div>
+              </div>
+              <p style={{
+                marginTop: 12, marginBottom: 0,
+                fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
+                color: 'rgba(244,239,230,0.72)', fontSize: 14, lineHeight: 1.5,
+              }}>
+                Une dernière étape avant de découvrir la suite de votre tirage.
+              </p>
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex items-center justify-center gap-3 mb-8">
             <UserPlus className="w-5 h-5" style={{ color: '#D4AF37' }} strokeWidth={1.5} />
