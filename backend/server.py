@@ -3093,12 +3093,23 @@ async def cookie_consent_stats(current_user=Depends(get_current_user)):
 
 
 # ─── Sitemap + Feed dynamiques (F500 SEO 2026-02) ────────────────────
+# ⚠️ SEO REBUILD P1 (Feb 2026) : ces URLs sont 301 redirigées vers leur canonical.
+# Elles NE DOIVENT JAMAIS apparaître dans le sitemap, sinon Google conserve
+# la version dépréciée dans son index et signale du duplicate content.
+_DEPRECATED_SEO_PATHS = frozenset({
+    '/nos-livres',        # → /livres
+    '/theme-natal-luxe',  # → /theme-natal
+})
+
+
 @app.get('/api/sitemap.xml')
 async def sitemap_xml():
     """Sitemap XML dynamique — mirror de la collection MongoDB seo_content.
 
     Chaque URL a <loc>, <lastmod>, <changefreq>, <priority>.
     Sert d'entry point pour Google Search Console.
+    Filtre défensif : exclut _DEPRECATED_SEO_PATHS pour éviter les régressions
+    quand un ancien snapshot MongoDB persiste (SEO Rebuild P1).
     """
     from fastapi.responses import Response as _Resp
     from services.ssr_snapshot import _get_mongo, PUBLIC_DOMAIN
@@ -3108,11 +3119,14 @@ async def sitemap_xml():
     lines = ['<?xml version="1.0" encoding="UTF-8"?>',
              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     for e in entries:
+        path = e.get('path')
+        if not path or path in _DEPRECATED_SEO_PATHS:
+            continue
         ttl = e.get('ttl_hours', 24)
         freq = 'hourly' if ttl <= 6 else ('daily' if ttl <= 24 else ('weekly' if ttl <= 168 else 'monthly'))
         lastmod = (e.get('updated_at') or '')[:10]  # YYYY-MM-DD
         lines.append(
-            f'  <url><loc>{PUBLIC_DOMAIN}{e["path"]}</loc>'
+            f'  <url><loc>{PUBLIC_DOMAIN}{path}</loc>'
             f'<lastmod>{lastmod}</lastmod>'
             f'<changefreq>{freq}</changefreq>'
             f'<priority>{e.get("priority", 0.5):.2f}</priority></url>'
