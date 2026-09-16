@@ -45,7 +45,7 @@ export default function NocturneHero() {
 
             <div className="ne-hero-actions ne-reveal ne-reveal-4">
               <Link
-                to="/edition-reliee"
+                to="/composer?edition=reliee"
                 className="ne-btn ne-btn-primary ne-hero-primary"
                 data-testid="nocturne-hero-cta-primary"
               >
@@ -79,7 +79,7 @@ export default function NocturneHero() {
             </div>
 
             <Link
-              to="/edition-reliee"
+              to="/composer?edition=reliee"
               className="ne-reveal ne-reveal-5"
               data-testid="nocturne-hero-cta-edition-reliee"
               style={{

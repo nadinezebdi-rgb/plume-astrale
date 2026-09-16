@@ -154,7 +154,7 @@ export default function Homepage() {
             </p>
             <p className="ps-body" style={{ color: 'rgba(201,162,75,0.9)', fontSize: 13, marginTop: 12 }}>
               ✦ Ces trois lectures sont livrées en <strong>PDF illustré</strong> (à télécharger).
-              L&apos;<Link to="/edition-reliee" style={{ color: '#C9A24B' }}>Édition Reliée 119€</Link> est un livre imprimé, expédié chez vous.
+              L&apos;<Link to="/composer?edition=reliee" style={{ color: '#C9A24B' }}>Édition Reliée 119€</Link> est un livre imprimé, expédié chez vous.
             </p>
           </div>
 
