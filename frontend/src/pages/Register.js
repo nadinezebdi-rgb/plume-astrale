@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { UserPlus, Eye, EyeOff, Loader2, ArrowLeft, Gift } from 'lucide-react';
 import SEO from '@/components/SEO';
-import { event as track, EVENTS } from '@/lib/analytics';
+import { event as track, EVENTS, signUpStart } from '@/lib/analytics';
 import { INTENT_CONFIG, readIntent, readDrawnCard, readUtm } from '@/experience/intentConfig';
 
 // Cartes de l'expérience — libellés utilisés pour le rappel visuel du tunnel.
@@ -60,6 +60,17 @@ export default function Register() {
   const [birthMinute, setBirthMinute] = useState('');
   const [birthPlace, setBirthPlace] = useState('');
   const [birthCountry, setBirthCountry] = useState('France');
+
+  // ── GA4 sign_up_start ─────────────────────────────────────────────
+  // Émis une seule fois par session (helper signUpStart gère la dédup via
+  // sessionStorage). Pas de PII envoyée. Émis au montage pour capter
+  // même les users qui abandonneront avant de remplir le form.
+  useEffect(() => {
+    signUpStart({
+      source: expContext?.fromWelcome ? 'experience' : 'direct',
+      intent_type: expContext?.intentKey || 'none',
+    });
+  }, [expContext]);
 
   const goStep2 = () => {
     if (!email || !password) {

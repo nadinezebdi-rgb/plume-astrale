@@ -44,11 +44,50 @@ export function setConsent(value) {
   if (value === 'accepted') loadTrackers();
 }
 
+// ─── Google Consent Mode v2 ───────────────────────────────────────────
+// Google exige (Mars 2024) que les signaux de consentement soient déclarés
+// AVANT le chargement de gtag.js pour l'UE. Defaults = 'denied'. Passe à
+// 'granted' quand l'utilisateur accepte via CookieConsent.
+// Sans ça, GA4 n'anonymise pas correctement les visiteurs UE non-consentants.
+function pushConsentDefaults() {
+  if (typeof window === 'undefined') return;
+  window.dataLayer = window.dataLayer || [];
+  // eslint-disable-next-line no-inner-declarations
+  function gtag() { window.dataLayer.push(arguments); }
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    functionality_storage: 'granted',   // strictement nécessaire
+    security_storage: 'granted',        // strictement nécessaire
+    wait_for_update: 500,               // ms — le CMP peut update sans data loss
+  });
+}
+
+function pushConsentGranted() {
+  if (typeof window === 'undefined' || !window.dataLayer) return;
+  // eslint-disable-next-line no-inner-declarations
+  function gtag() { window.dataLayer.push(arguments); }
+  gtag('consent', 'update', {
+    ad_storage: 'granted',
+    ad_user_data: 'granted',
+    ad_personalization: 'granted',
+    analytics_storage: 'granted',
+  });
+}
+
+// Publie les defaults IMMÉDIATEMENT (avant tout script tiers)
+if (typeof window !== 'undefined') pushConsentDefaults();
+
 let _loaded = false;
 
 function loadTrackers() {
   if (_loaded) return;
   _loaded = true;
+
+  // Signaux de consentement UE — active la mesure complète
+  pushConsentGranted();
 
   const GA = process.env.REACT_APP_GA4_ID;
   const PLAUSIBLE_DOMAIN = process.env.REACT_APP_PLAUSIBLE_DOMAIN;
@@ -63,7 +102,12 @@ function loadTrackers() {
     function gtag() { window.dataLayer.push(arguments); }
     window.gtag = gtag;
     gtag('js', new Date());
-    gtag('config', GA, { anonymize_ip: true });
+    // send_page_view=false : le RouteTracker est la source unique de page_view
+    // (évite double comptage entre config initial + navigation SPA)
+    gtag('config', GA, {
+      anonymize_ip: true,
+      send_page_view: false,
+    });
   }
 
   if (PLAUSIBLE_DOMAIN) {
@@ -115,6 +159,26 @@ const META_EVENT_MAP = {
   solena_question:             'Contact',
 };
 
+// Mapping des events métier Plume Astrale → events standard GA4.
+// GA4 reconnaît nativement une liste courte d'events pour l'e-commerce et
+// les rapports de conversion (Explorations, Attribution, Funnel).
+// Les events non-mappés partent quand même en GA4 en tant que custom events.
+const GA4_EVENT_MAP = {
+  signup_started:              'sign_up_start',       // début du parcours d'inscription
+  signup_completed:            'sign_up',             // GA4 standard
+  login_success:               'login',               // GA4 standard
+  login:                       'login',               // GA4 standard
+  kabbale_checkout:            'begin_checkout',      // GA4 e-commerce
+  astrocarto_checkout:         'begin_checkout',
+  pack_karmique_checkout:      'begin_checkout',
+  cercle_solena_checkout:      'begin_checkout',
+  cercle_solena_active:        'subscribe',
+  credit_purchase:             'purchase',            // GA4 e-commerce (via revenue())
+  bundle_click:                'view_item',
+  solena_click:                'view_item',
+  // Autres : passent tels quels en GA4 custom events
+};
+
 /**
  * Génère un event_id unique, partagé pixel client ↔ CAPI serveur.
  */
@@ -152,32 +216,138 @@ export function getCapiAttribution(prefix = 'evt') {
 
 /**
  * Track un event metier. No-op si l'utilisateur n'a pas consenti.
- * Envoi vers GA4, Plausible ET Meta Pixel (avec mapping vers events standard Meta).
+ * Envoi vers GA4 (nom mappé si dispo), Plausible ET Meta Pixel.
+ *
+ * Anti-PII : `props` ne DOIT PAS contenir email, prénom, téléphone, adresse,
+ * mot de passe, token. Voir sanitizeProps() ci-dessus. Les callers restent
+ * responsables de ne pas passer de PII, sanitizeProps() est un garde-fou.
  */
 export function event(name, props = {}) {
   if (getConsent() !== 'accepted') return;
+  const safe = sanitizeProps(props);
   try {
-    if (window.gtag) window.gtag('event', name, props);
-    if (window.plausible) window.plausible(name, { props });
+    if (window.gtag) {
+      // Utilise le nom GA4 standard si mappé (sign_up, login, purchase, etc.)
+      // sinon envoie le nom custom (compat rétro + audiences custom).
+      const ga4Name = GA4_EVENT_MAP[name] || name;
+      window.gtag('event', ga4Name, safe);
+    }
+    if (window.plausible) window.plausible(name, { props: safe });
     if (window.fbq) {
       // 1) Event standard Meta (si mapping existe) — utilisé par les ads
       const metaStd = META_EVENT_MAP[name];
-      if (metaStd) window.fbq('track', metaStd, props);
+      if (metaStd) window.fbq('track', metaStd, safe);
       // 2) Event custom Meta (tel quel) — utilisé pour créer des audiences custom
-      window.fbq('trackCustom', name, props);
+      window.fbq('trackCustom', name, safe);
     }
     if (window.twq) {
       // X (Twitter) ads : track l'event custom pour créer des audiences
-      window.twq('event', name, props);
+      window.twq('event', name, safe);
     }
   } catch (_e) { /* analytics call failed silently */ }
+}
+
+/**
+ * Anti-PII garde-fou : supprime les clés potentiellement identifiantes
+ * avant d'envoyer vers les trackers. Ne modifie pas l'objet original.
+ */
+const PII_KEYS = new Set([
+  'email', 'e_mail', 'user_email',
+  'password', 'pwd', 'motdepasse', 'mot_de_passe',
+  'prenom', 'first_name', 'last_name', 'nom',
+  'phone', 'telephone', 'mobile',
+  'address', 'adresse', 'postal_code', 'code_postal',
+  'token', 'access_token', 'jwt', 'authorization', 'bearer',
+]);
+function sanitizeProps(props) {
+  if (!props || typeof props !== 'object') return {};
+  const out = {};
+  for (const k of Object.keys(props)) {
+    if (PII_KEYS.has(k.toLowerCase())) continue;
+    const v = props[k];
+    // Détection basique d'email en valeur (au cas où un caller confond les clés)
+    if (typeof v === 'string' && /@[a-z0-9.-]+\.[a-z]{2,}/i.test(v)) continue;
+    out[k] = v;
+  }
+  return out;
+}
+
+/**
+ * Helper : track un clic sur CTA avec paramètres normalisés pour GA4.
+ * Émis en tant que `cta_click` — event custom trackable dans les Explorations.
+ * @param {string} name - libellé humain, ex: 'Découvrir mon thème natal'
+ * @param {object} extra - { destination, cta_location } — pas de PII
+ */
+export function ctaClick(name, extra = {}) {
+  if (getConsent() !== 'accepted') return;
+  const page_location = typeof window !== 'undefined'
+    ? (window.location.pathname + window.location.search)
+    : '';
+  event('cta_click', { cta_name: name, page_location, ...extra });
+}
+
+/**
+ * Helper : marque le début du parcours d'inscription (event GA4 `sign_up_start`).
+ * Dedup côté client via sessionStorage — un user ne devrait pas générer 5 events
+ * si on remonte et redescend le form. La complétion émet `sign_up` séparément.
+ */
+export function signUpStart(props = {}) {
+  if (getConsent() !== 'accepted') return;
+  try {
+    if (window.sessionStorage.getItem('pa_signup_start_tracked') === '1') return;
+    window.sessionStorage.setItem('pa_signup_start_tracked', '1');
+  } catch { /* noop */ }
+  event('signup_started', props); // → mappé sign_up_start (GA4) + Lead (Meta)
+}
+
+/**
+ * Helper : marque l'arrivée sur une page de checkout Stripe (event GA4
+ * `begin_checkout`). Dedup par `checkoutKey` unique (ex: pack_id + session_id)
+ * pour éviter les doubles émissions si l'utilisateur reload la page.
+ * @param {string} name      - event métier (kabbale_checkout, astrocarto_checkout, …)
+ * @param {string} checkoutKey - clé unique du checkout (ex: pack_id ou session_id)
+ * @param {number} amountEur - montant en euros
+ * @param {object} extra     - { item_name, item_category, ... }
+ */
+export function beginCheckout(name, checkoutKey, amountEur, extra = {}) {
+  if (getConsent() !== 'accepted') return;
+  try {
+    const key = `pa_begin_checkout_${checkoutKey}`;
+    if (window.sessionStorage.getItem(key) === '1') return; // anti-double
+    window.sessionStorage.setItem(key, '1');
+  } catch { /* noop */ }
+  const items = extra.items || [{
+    item_id: extra.pack_id || checkoutKey || name,
+    item_name: extra.item_name || name,
+    item_category: extra.item_category || 'checkout',
+    price: amountEur,
+    quantity: 1,
+  }];
+  // Envoie via event() (mappe sur `begin_checkout` GA4 + `InitiateCheckout` Meta)
+  event(name, {
+    value: amountEur,
+    currency: 'EUR',
+    items,
+    ...extra,
+  });
 }
 
 export function pageView(path) {
   if (getConsent() !== 'accepted') return;
   try {
     if (window.gtag && process.env.REACT_APP_GA4_ID) {
-      window.gtag('config', process.env.REACT_APP_GA4_ID, { page_path: path });
+      // GA4 event `page_view` explicite — pas config() car send_page_view=false.
+      // Émettre un unique event `page_view` par navigation SPA évite le double
+      // comptage (config()+event() combinés produisaient 2 hits par route).
+      const page_location = typeof window !== 'undefined'
+        ? window.location.origin + path
+        : path;
+      const page_title = typeof document !== 'undefined' ? document.title : '';
+      window.gtag('event', 'page_view', {
+        page_path: path,
+        page_location,
+        page_title,
+      });
     }
     if (window.fbq) window.fbq('track', 'PageView');
     // plausible auto-track les pageviews
@@ -192,6 +362,7 @@ export const EVENTS = {
   SIGNUP_STARTED:              'signup_started',
   SIGNUP_COMPLETED:            'signup_completed',
   LOGIN:                       'login',
+  CTA_CLICK:                   'cta_click',
   SOLENA_CLICK:                'solena_click',
   SOLENA_QUESTION:             'solena_question',
   BUNDLE_CLICK:                'bundle_click',
@@ -223,8 +394,20 @@ export const EVENTS = {
 };
 
 /**
- * Track une conversion avec un montant (EUR). GA4 event 'purchase' + Plausible
- * revenue tracking automatique via props.revenue.
+ * Track une conversion avec un montant (EUR). Envoie l'event standard GA4
+ * `purchase` (structure e-commerce complète avec items[]) + Plausible revenue
+ * + Meta Pixel Purchase (dédup via eventID) + X Pixel.
+ *
+ * Dédup :
+ *   - Meta ↔ CAPI : `eventID` partagé client/serveur (transmis via extraProps.eventID)
+ *   - Rafraîchissement page : le CALLER doit gérer une clé sessionStorage
+ *     (voir CreditSuccess.js `pa_purchase_tracked_${sessionId}`).
+ *   - GA4 : GA4 déduplique nativement sur `transaction_id` (ne pas oublier)
+ *
+ * @param {string} name         - nom métier (ex: 'credit_purchase') — mappé GA4 → 'purchase'
+ * @param {number} amountEur    - montant en euros (obligatoire)
+ * @param {object} extraProps   - { eventID, transaction_id, credits, items, ... }
+ *                                items = [{ item_id, item_name, item_category, price, quantity }]
  */
 export function revenue(name, amountEur, extraProps = {}) {
   if (getConsent() !== 'accepted') return;
@@ -232,9 +415,31 @@ export function revenue(name, amountEur, extraProps = {}) {
     // event_id unique pour deduplication CAPI (server-side) ↔ pixel (client-side).
     // Meta considère 2 events avec même event_id + même event_name comme identiques.
     const eventID = extraProps.eventID || `${name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const enriched = { ...extraProps, eventID };
+    // transaction_id GA4 = clé de dédup native GA4. Reprend eventID si absent.
+    const transaction_id = extraProps.transaction_id || eventID;
+
+    // Structure e-commerce GA4 : items[] permet aux rapports Explorer / Monetization
+    // de fonctionner. On dérive un item par défaut si le caller n'en fournit pas.
+    const items = extraProps.items || [{
+      item_id: extraProps.pack_id || name,
+      item_name: extraProps.item_name || name,
+      item_category: extraProps.item_category || 'credits',
+      price: amountEur,
+      quantity: 1,
+    }];
+
+    const enriched = { ...extraProps, eventID, transaction_id };
+
     if (window.gtag) {
-      window.gtag('event', name, { value: amountEur, currency: 'EUR', ...enriched });
+      // Nom GA4 standard : 'purchase' (mappé) ou fallback custom
+      const ga4Name = GA4_EVENT_MAP[name] || name;
+      window.gtag('event', ga4Name, {
+        transaction_id,
+        value: amountEur,
+        currency: 'EUR',
+        items,
+        ...extraProps,
+      });
     }
     if (window.plausible) {
       window.plausible(name, { props: enriched, revenue: { amount: amountEur, currency: 'EUR' } });
