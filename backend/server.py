@@ -1316,7 +1316,7 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
             logger.warning(f'[composer_book] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'composer_book'}
 
-    # Route vers Thème Natal one-shot handler si kind=theme_natal_pdf_oneshot (pack 29 EUR, Gary Vee refonte 2026-02)
+    # Route vers Thème Natal one-shot handler si kind=theme_natal_pdf_oneshot (pack 24 EUR)
     if md.get('kind') == 'theme_natal_pdf_oneshot':
         from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
         try:
@@ -2342,6 +2342,57 @@ async def horoscope_prediction(payload: HoroscopeRequest):
 @api_router.get('/tarot/jour')
 async def get_jour():
     return {'success': True, 'data': tirage_du_jour()}
+
+
+class ExperienceTarotRequest(BaseModel):
+    session_id: Optional[str] = None
+    intent: Optional[str] = 'general'
+
+
+_TAROT_ASSET_SLUGS = {
+    0: '00_le_mat', 1: '01_le_bateleur', 2: '02_la_papesse',
+    3: '03_l_imperatrice', 4: '04_l_empereur', 5: '05_le_pape',
+    6: '06_les_amoureux', 7: '07_le_chariot', 8: '08_la_force',
+    9: '09_l_hermite', 10: '10_la_roue_de_fortune', 11: '11_la_justice',
+    12: '12_le_pendu', 13: '13_la_mort', 14: '14_la_temperance',
+    15: '15_le_diable', 16: '16_la_maison_dieu', 17: '17_l_etoile',
+    18: '18_la_lune', 19: '19_le_soleil', 20: '20_le_jugement',
+    21: '21_le_monde',
+}
+
+
+@api_router.post('/tarot/experience-draw')
+async def experience_tarot_draw(payload: ExperienceTarotRequest):
+    """Tirage d'accueil gratuit : 3 arcanes uniques, sans débit de crédits."""
+    intent_to_domain = {
+        'relationship': 'amour',
+        'clarity': 'general',
+        'self_discovery': 'spirituel',
+        'specific_question': 'general',
+    }
+    domain = intent_to_domain.get(payload.intent or '', 'general')
+    seed = (payload.session_id or str(uuid.uuid4())).strip()[:120]
+    reading = tirage_marseille_question(
+        question='Quelle énergie souhaite se révéler maintenant ?',
+        domaine=domain,
+        seed=seed,
+    )
+    cards = []
+    for index, card in enumerate(reading.get('cartes', [])):
+        number = card.get('numero')
+        slug = _TAROT_ASSET_SLUGS.get(number, '17_l_etoile')
+        cards.append({
+            **card,
+            'id': f"arcane-{number}-{index}",
+            'image_url': f'/api/library/file/tarot/{slug}_512.png',
+        })
+    return {
+        'success': True,
+        'draw_id': seed,
+        'cards': cards,
+        'synthese': reading.get('synthese'),
+        'disclaimer': 'Lecture symbolique proposée comme support de réflexion.',
+    }
 
 
 class OracleQuestionRequest(BaseModel):

@@ -100,7 +100,7 @@ import NumerologiePDF from "./pages/NumerologiePDF";
 import NumerologieWaiting from "./pages/NumerologieWaiting";
 import KarmaDestinPDF from "./pages/KarmaDestinPDF";
 import KarmaDestinWaiting from "./pages/KarmaDestinWaiting";
-// ThemeNatal one-shot 29€ (Gary Vee refonte Feb 2026)
+// ThemeNatal one-shot 24€
 import ThemeNatalOneshot from "./pages/ThemeNatalOneshot";
 import ThemeNatalOneshotSucces from "./pages/ThemeNatalOneshotSucces";
 // Trio Découverte 79€ (Gary Vee refonte Feb 2026)
@@ -193,7 +193,7 @@ function App() {
           <Route path="/numerologie-pdf/attente" element={<NumerologieWaiting />} />
           {/* Ancienne route karma-destin-pdf — 301 vers Voyage Karmique (déclaré plus haut) */}
           <Route path="/karma-destin/attente" element={<Navigate to="/voyage-karmique" replace />} />
-          {/* Thème Natal one-shot 29€ (Gary Vee refonte Feb 2026) */}
+          {/* Thème Natal one-shot 24€ */}
           <Route path="/theme-natal" element={<ThemeNatalOneshot />} />
           <Route path="/theme-natal/succes" element={<ThemeNatalOneshotSucces />} />
           {/* Trio Découverte 79€ (Gary Vee refonte Feb 2026) */}

@@ -17,6 +17,7 @@ import ExperienceFallback from './ExperienceFallback';
 import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
 import { storeIntent, storeDrawnCard, captureUtm, detectZodiacCampaign, readUtm } from './intentConfig';
 import ZodiacInterlude from './ZodiacInterlude';
+import AmbientSound from './AmbientSound';
 import { event as trackEvent, EVENTS } from '@/lib/analytics';
 import './Experience.css';
 
@@ -32,6 +33,21 @@ const CARDS = [
   { id: 'moon',   glyph: '☾', name: 'Le Voile',      tagline: 'Ce qui se dévoile',   rot:  0, dy: -8 },
   { id: 'star',   glyph: '✦', name: 'La Trajectoire', tagline: 'Ce qui vous porte',  rot:  6, dy: 0 },
 ];
+
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+
+function getExperienceSessionId() {
+  const key = 'plume_experience_draw_id';
+  try {
+    const stored = window.sessionStorage.getItem(key);
+    if (stored) return stored;
+    const id = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+    window.sessionStorage.setItem(key, id);
+    return id;
+  } catch {
+    return `${Date.now()}-${Math.random()}`;
+  }
+}
 
 export default function ExperienceRoot() {
   useDeviceProfile();
@@ -56,6 +72,8 @@ export default function ExperienceRoot() {
   const [scene2Step, setScene2Step] = useState(0); // 0=phrase1, 1=phrase2+choices, 2=chosen
   const [scene4Step, setScene4Step] = useState(0); // 0=silence, 1=writing, 2=phrase1, 3=phrase2, 4=cta
   const [zodiacVisible, setZodiacVisible] = useState(false);
+  const [experienceCards, setExperienceCards] = useState([]);
+  const [cardsLoading, setCardsLoading] = useState(true);
   const sectionRefs = useRef({ 1: null, 2: null, 3: null, 4: null });
 
   // Fallback pour reduced-motion ou pas de WebGL
@@ -122,6 +140,41 @@ export default function ExperienceRoot() {
   // ── Textures des cartes (générées une fois) ─────────────────
   const cardBackImage = useMemo(() => getCardBackTexture(), []);
   const cardFaceImage = useMemo(() => getCardFaceTexture(), []);
+  const displayCards = experienceCards.length ? experienceCards : CARDS;
+  const selectedCard = displayCards.find((card) => card.id === drawnCard);
+
+  // Le tirage est demandé au backend dès l'ouverture de l'expérience.
+  // Les faces restent cachées jusqu'au choix, mais les cartes sont déjà réelles.
+  useEffect(() => {
+    const controller = new AbortController();
+    const loadDraw = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/tarot/experience-draw`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: getExperienceSessionId(), intent: 'general' }),
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error(`Tarot API ${response.status}`);
+        const payload = await response.json();
+        const rotations = [-6, 0, 6];
+        const offsets = [0, -8, 0];
+        const cards = (payload.cards || []).map((card, index) => ({
+          ...card,
+          rot: rotations[index] || 0,
+          dy: offsets[index] || 0,
+          image: card.image_url ? `${API_URL}${card.image_url}` : cardFaceImage,
+        }));
+        if (cards.length === 3) setExperienceCards(cards);
+      } catch (error) {
+        if (error.name !== 'AbortError') console.warn('[experience] tirage API indisponible, fallback local', error);
+      } finally {
+        setCardsLoading(false);
+      }
+    };
+    loadDraw();
+    return () => controller.abort();
+  }, [cardFaceImage]); // Le tirage reste stable pendant toute la visite.
 
   // ── Capture UTM + démarrage funnel (une seule fois) ─────────
   useEffect(() => {
@@ -216,6 +269,7 @@ export default function ExperienceRoot() {
       ref={rootRef}
       data-testid="experience-root"
     >
+      <AmbientSound />
       {/* Topbar fixe */}
       <header className="exp-topbar" data-testid="experience-topbar">
         <span className="exp-topbar__logo">PLUME <em style={{ fontStyle: 'italic', letterSpacing: '0.05em' }}>Astrale</em></span>
@@ -359,14 +413,14 @@ export default function ExperienceRoot() {
               data-hovering={hoveringCard ? 'true' : 'false'}
               data-testid="scene-3-cards"
             >
-              {CARDS.map((c) => (
+              {displayCards.map((c, index) => (
                 <button
                   key={c.id}
                   type="button"
                   className="exp-s3__card"
                   data-testid={`scene-3-card-${c.id}`}
                   data-flipped={drawnCard === c.id}
-                  data-featured={c.id === 'moon' ? 'true' : 'false'}
+                  data-featured={index === 1 ? 'true' : 'false'}
                   style={{ '--card-rot': `${c.rot}deg`, '--card-dy': `${c.dy}px` }}
                   disabled={drawnCard && drawnCard !== c.id}
                   onMouseEnter={() => setHoveringCard(true)}
@@ -382,17 +436,28 @@ export default function ExperienceRoot() {
                   <div
                     className="exp-s3__face"
                     aria-hidden={drawnCard !== c.id}
-                    style={{ backgroundImage: `url(${cardFaceImage})` }}
+                    style={{
+                      backgroundImage: `linear-gradient(rgba(16,25,54,0.08), rgba(49,32,82,0.18)), url(${c.image || cardFaceImage})`,
+                      transform: `rotateY(180deg) ${c.orientation === 'renverse' ? 'rotate(180deg)' : ''}`,
+                    }}
                   />
                 </button>
               ))}
             </div>
 
+            {cardsLoading && <p className="exp-eyebrow">Les arcanes composent votre tirage…</p>}
+
             <div className="exp-s3__result" data-visible={drawnCard !== null}>
-              <p className="exp-lead">Cette carte éclaire une partie de votre question.</p>
-              <p className="exp-lead" style={{ opacity: 0.6, marginTop: -8 }}>
-                Mais seule, elle ne raconte pas toute l&apos;histoire.
-              </p>
+              {selectedCard && experienceCards.length > 0 ? (
+                <div className="exp-card-reading">
+                  <strong>{selectedCard.nom}</strong>
+                  <span>{selectedCard.orientation_fr} · {(selectedCard.mots_cles || []).join(' · ')}</span>
+                  <p>{selectedCard.interpretation}</p>
+                  <p style={{ opacity: 0.72 }}>{selectedCard.conseil}</p>
+                </div>
+              ) : (
+                <p className="exp-lead">Cette carte éclaire une partie de votre question.</p>
+              )}
               <button
                 type="button"
                 className="exp-linkline"
