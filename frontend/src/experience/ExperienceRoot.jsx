@@ -36,17 +36,8 @@ const CARDS = [
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
-function getExperienceSessionId() {
-  const key = 'plume_experience_draw_id';
-  try {
-    const stored = window.sessionStorage.getItem(key);
-    if (stored) return stored;
-    const id = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
-    window.sessionStorage.setItem(key, id);
-    return id;
-  } catch {
-    return `${Date.now()}-${Math.random()}`;
-  }
+function createExperienceSessionId() {
+  return window.crypto?.randomUUID?.() || `exp-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 export default function ExperienceRoot() {
@@ -75,6 +66,7 @@ export default function ExperienceRoot() {
   const [experienceCards, setExperienceCards] = useState([]);
   const [cardsLoading, setCardsLoading] = useState(true);
   const sectionRefs = useRef({ 1: null, 2: null, 3: null, 4: null });
+  const experienceSessionIdRef = useRef(createExperienceSessionId());
 
   // Fallback pour reduced-motion ou pas de WebGL
   const useFallback = reducedMotion || !webglAvailable;
@@ -152,7 +144,7 @@ export default function ExperienceRoot() {
         const response = await fetch(`${API_URL}/api/tarot/experience-draw`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: getExperienceSessionId(), intent: 'general' }),
+          body: JSON.stringify({ session_id: experienceSessionIdRef.current, intent: 'general' }),
           signal: controller.signal,
         });
         if (!response.ok) throw new Error(`Tarot API ${response.status}`);

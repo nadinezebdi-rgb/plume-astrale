@@ -79,6 +79,16 @@ def test_fallback_present_for_reduced_motion_and_webgl():
     assert 'ExperienceFallback' in code
 
 
+def test_experience_draw_seed_is_fresh_per_visit():
+    """Le tirage d'accueil doit être généré avec un seed propre à chaque
+    visite et non réutilisé depuis sessionStorage."""
+    with open('/app/frontend/src/experience/ExperienceRoot.jsx') as f:
+        code = f.read()
+    assert 'createExperienceSessionId' in code
+    assert 'randomUUID' in code or 'Date.now()' in code
+    assert 'sessionStorage.getItem' not in code
+
+
 def test_intent_and_drawn_card_persist_in_store():
     """L'intent choisi + la carte tirée doivent être stockés dans Zustand
     (pour personnaliser le vrai parcours plus tard)."""
