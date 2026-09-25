@@ -45,25 +45,9 @@ export function setConsent(value) {
 }
 
 // ─── Google Consent Mode v2 ───────────────────────────────────────────
-// Google exige (Mars 2024) que les signaux de consentement soient déclarés
-// AVANT le chargement de gtag.js pour l'UE. Defaults = 'denied'. Passe à
-// 'granted' quand l'utilisateur accepte via CookieConsent.
-// Sans ça, GA4 n'anonymise pas correctement les visiteurs UE non-consentants.
-function pushConsentDefaults() {
-  if (typeof window === 'undefined') return;
-  window.dataLayer = window.dataLayer || [];
-  // eslint-disable-next-line no-inner-declarations
-  function gtag() { window.dataLayer.push(arguments); }
-  gtag('consent', 'default', {
-    ad_storage: 'denied',
-    ad_user_data: 'denied',
-    ad_personalization: 'denied',
-    analytics_storage: 'denied',
-    functionality_storage: 'granted',   // strictement nécessaire
-    security_storage: 'granted',        // strictement nécessaire
-    wait_for_update: 500,               // ms — le CMP peut update sans data loss
-  });
-}
+// Les DEFAULTS ('denied') sont poussés inline dans public/index.html AVANT
+// le chargement de GTM. Ici on ne pousse que la mise à jour 'granted' après
+// que l'utilisateur a explicitement accepté via le bandeau CookieConsent.
 
 function pushConsentGranted() {
   if (typeof window === 'undefined' || !window.dataLayer) return;
@@ -76,9 +60,6 @@ function pushConsentGranted() {
     analytics_storage: 'granted',
   });
 }
-
-// Publie les defaults IMMÉDIATEMENT (avant tout script tiers)
-if (typeof window !== 'undefined') pushConsentDefaults();
 
 let _loaded = false;
 
@@ -214,6 +195,92 @@ export function getCapiAttribution(prefix = 'evt') {
   return out;
 }
 
+// ─── Dashboard A/B interne (Mongo) ────────────────────────────────────
+// Mirror une sous-liste d'events (funnel critique) vers notre backend pour
+// alimenter le widget /admin. Non-cassant : silencieux si l'endpoint échoue.
+// RGPD : aucune PII envoyée (sanitizeProps déjà appliqué en amont).
+
+// Whitelist locale : mêmes events acceptés côté backend. Envoyer autre chose
+// est un pur no-op (économise du réseau).
+const FUNNEL_EVENTS = new Set([
+  'experience_visit',
+  'intent_selected',
+  'tarot_card_selected',
+  'tarot_continue_clicked',
+  'feather_completed',
+  'signup_started',
+  'signup_completed',
+  'credit_purchase',
+]);
+
+// Génère un visitor_id anonyme persisté en localStorage.
+// Format : pa-<8 chars> — pas d'infos identifiantes.
+function getVisitorId() {
+  try {
+    const KEY = 'pa_visitor_id';
+    let vid = localStorage.getItem(KEY);
+    if (!vid) {
+      vid = 'pa-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+      localStorage.setItem(KEY, vid);
+    }
+    return vid;
+  } catch { return null; }
+}
+
+// Lit le variant A/B assigné par ABTestHome ou déduit du chemin courant.
+function getVariant() {
+  try {
+    const stored = window.sessionStorage.getItem('ab_home_variant');
+    if (stored === 'homepage' || stored === 'experience') return stored;
+    const path = window.location.pathname;
+    if (path === '/experience' || path.startsWith('/experience?')) return 'experience';
+    if (path === '/') return 'homepage';
+  } catch { /* noop */ }
+  return 'direct';
+}
+
+function readSessionUtm() {
+  try {
+    const s = window.sessionStorage.getItem('exp_utm');
+    return s ? JSON.parse(s) : {};
+  } catch { return {}; }
+}
+
+function sendFunnelEvent(name, safeProps) {
+  if (!FUNNEL_EVENTS.has(name)) return;
+  const API = process.env.REACT_APP_BACKEND_URL;
+  if (!API) return;
+  const visitor_id = getVisitorId();
+  if (!visitor_id) return;
+  const utm = readSessionUtm();
+  const payload = {
+    event_name: name,
+    visitor_id,
+    variant: getVariant(),
+    session_id: null, // pas nécessaire pour l'agrégation
+    intent_type: safeProps.intent_type || null,
+    card: safeProps.card || null,
+    utm_source: utm.utm_source || utm.source || null,
+    utm_campaign: utm.utm_campaign || utm.campaign || null,
+    amount_eur: typeof safeProps.value === 'number' ? safeProps.value : null,
+    transaction_id: safeProps.transaction_id || safeProps.eventID || null,
+    path: typeof window !== 'undefined' ? window.location.pathname : null,
+  };
+  // sendBeacon = fire-and-forget, ne bloque pas le thread principal
+  try {
+    const url = `${API}/api/experience/funnel-event`;
+    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    if (navigator.sendBeacon && navigator.sendBeacon(url, blob)) return;
+    // Fallback fetch keepalive (sendBeacon peut échouer sur Safari privé)
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(() => { /* silent */ });
+  } catch { /* noop */ }
+}
+
 /**
  * Track un event metier. No-op si l'utilisateur n'a pas consenti.
  * Envoi vers GA4 (nom mappé si dispo), Plausible ET Meta Pixel.
@@ -226,6 +293,13 @@ export function event(name, props = {}) {
   if (getConsent() !== 'accepted') return;
   const safe = sanitizeProps(props);
   try {
+    // Push GTM-native (format {event: name, ...params}) — permet à l'user de
+    // créer des Custom Event Triggers dans GTM sans passer par gtag(). Les
+    // paramètres sont accessibles via dataLayer variables dans GTM.
+    if (typeof window !== 'undefined') {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event: name, ...safe });
+    }
     if (window.gtag) {
       // Utilise le nom GA4 standard si mappé (sign_up, login, purchase, etc.)
       // sinon envoie le nom custom (compat rétro + audiences custom).
@@ -244,6 +318,9 @@ export function event(name, props = {}) {
       // X (Twitter) ads : track l'event custom pour créer des audiences
       window.twq('event', name, safe);
     }
+    // Dashboard A/B interne (Mongo) : mirror seulement les events du funnel
+    // (pas de flood — whitelist backend + throttle nécessaire pour hover etc.)
+    sendFunnelEvent(name, safe);
   } catch (_e) { /* analytics call failed silently */ }
 }
 
@@ -335,14 +412,24 @@ export function beginCheckout(name, checkoutKey, amountEur, extra = {}) {
 export function pageView(path) {
   if (getConsent() !== 'accepted') return;
   try {
+    const page_location = typeof window !== 'undefined'
+      ? window.location.origin + path
+      : path;
+    const page_title = typeof document !== 'undefined' ? document.title : '';
+    // Push GTM-native — le container GTM peut déclencher GA4 config + toute
+    // autre balise sur un trigger "History Change" ou "Page View" custom.
+    if (typeof window !== 'undefined') {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'page_view',
+        page_path: path,
+        page_location,
+        page_title,
+      });
+    }
     if (window.gtag && process.env.REACT_APP_GA4_ID) {
-      // GA4 event `page_view` explicite — pas config() car send_page_view=false.
-      // Émettre un unique event `page_view` par navigation SPA évite le double
-      // comptage (config()+event() combinés produisaient 2 hits par route).
-      const page_location = typeof window !== 'undefined'
-        ? window.location.origin + path
-        : path;
-      const page_title = typeof document !== 'undefined' ? document.title : '';
+      // Compat direct GA4 (seulement si REACT_APP_GA4_ID rempli — sinon
+      // GTM se charge de tout via son container).
       window.gtag('event', 'page_view', {
         page_path: path,
         page_location,
@@ -432,6 +519,21 @@ export function revenue(name, amountEur, extraProps = {}) {
 
     const enriched = { ...extraProps, eventID, transaction_id };
 
+    // Push GTM-native e-commerce — l'user peut configurer une balise GA4
+    // Enhanced E-commerce dans GTM avec trigger event=purchase.
+    if (typeof window !== 'undefined') {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'purchase',
+        ecommerce: {
+          transaction_id,
+          value: amountEur,
+          currency: 'EUR',
+          items,
+        },
+      });
+    }
+
     if (window.gtag) {
       // Nom GA4 standard : 'purchase' (mappé) ou fallback custom
       const ga4Name = GA4_EVENT_MAP[name] || name;
@@ -455,6 +557,9 @@ export function revenue(name, amountEur, extraProps = {}) {
     if (window.twq) {
       window.twq('event', name, { value: amountEur, currency: 'EUR', ...extraProps });
     }
+    // Dashboard A/B interne (Mongo) : envoie value + transaction_id pour
+    // le calcul du CA/visiteur. Dédup native via unique index (visitor_id, txn).
+    sendFunnelEvent(name, { value: amountEur, transaction_id, ...sanitizeProps(extraProps) });
     // Retourne l'eventID pour que l'appelant puisse le transmettre au backend
     // et que le backend le rejoue dans son event CAPI (dédup Meta).
     return eventID;

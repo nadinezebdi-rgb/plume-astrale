@@ -51,6 +51,8 @@ export default function ABTestHome() {
   useEffect(() => {
     if (!enabled) return;
     trackEvent('ab_home_assigned', { variant });
+    // Alimente le dashboard A/B interne : 1 event par visite (variant homepage)
+    trackEvent('experience_visit', { variant });
   }, [enabled, variant]);
 
   if (variant === 'experience') {

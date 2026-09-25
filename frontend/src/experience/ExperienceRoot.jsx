@@ -130,6 +130,8 @@ export default function ExperienceRoot() {
   //  à null et la scène 3 retombe sur le fallback générique.
   useEffect(() => {
     trackEvent(EVENTS.EXP_STARTED, {});
+    // Dashboard A/B interne : 1 event par visite (variant experience)
+    trackEvent('experience_visit', { variant: 'experience' });
     // Hydrate intent / drawnCard depuis query params ou sessionStorage
     try {
       const params = new URLSearchParams(window.location.search);

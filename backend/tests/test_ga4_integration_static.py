@@ -41,15 +41,19 @@ def test_analytics_never_hardcodes_ga4_id():
 
 
 def test_consent_mode_v2_defaults_denied():
-    src = ANALYTICS.read_text()
-    assert 'pushConsentDefaults' in src, 'Consent Mode v2 defaults absents'
+    """Depuis l'intégration GTM, les defaults sont poussés inline dans
+    public/index.html (avant chargement GTM). analytics.js pousse uniquement
+    l'update 'granted' après acceptation."""
+    html = Path('/app/frontend/public/index.html').read_text()
+    assert "consent', 'default'" in html, "Consent Mode v2 defaults absents de index.html"
     for signal in ('ad_storage', 'analytics_storage', 'ad_user_data', 'ad_personalization'):
-        assert signal in src, f'Signal Consent Mode v2 manquant : {signal}'
-    # Defaults doivent être denied
-    assert "ad_storage: 'denied'" in src, 'ad_storage default doit être denied'
-    assert "analytics_storage: 'denied'" in src, 'analytics_storage default doit être denied'
-    # Update on accept
-    assert 'pushConsentGranted' in src, 'Update consent (granted) manquant'
+        assert signal in html, f'Signal Consent Mode v2 manquant dans index.html : {signal}'
+    assert "ad_storage: 'denied'" in html, 'ad_storage default doit être denied'
+    assert "analytics_storage: 'denied'" in html, 'analytics_storage default doit être denied'
+
+    src = ANALYTICS.read_text()
+    # Update on accept — reste dans analytics.js
+    assert 'pushConsentGranted' in src, 'Update consent (granted) manquant dans analytics.js'
     assert "'update'" in src or '"update"' in src, "gtag('consent', 'update', …) absent"
 
 

@@ -11,6 +11,7 @@ import AdminThemeNatalFixer from '@/components/AdminThemeNatalFixer';
 import AdminLectureComplete from '@/components/AdminLectureComplete';
 import AdminFailureBanner from '@/components/AdminFailureBanner';
 import StripeWebhookHealthWidget from '@/components/StripeWebhookHealthWidget';
+import ExperienceFunnelWidget from '@/components/ExperienceFunnelWidget';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -241,6 +242,7 @@ export default function Admin() {
 
         <AdminFailureBanner token={token} />
         <StripeWebhookHealthWidget token={token} />
+        <ExperienceFunnelWidget token={token} />
 
         <div className="flex flex-wrap gap-2 mb-8">
           <Tab label="Vue d'ensemble" active={tab === 'overview'} onClick={() => setTab('overview')} />

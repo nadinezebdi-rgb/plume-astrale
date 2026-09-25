@@ -43,6 +43,10 @@ from services import premium_subscription
 from routes.admin import router as admin_router
 from routes.admin_payments import router as admin_payments_router
 from routes.admin_book import router as admin_book_router
+from routes.experience_funnel import (
+    funnel_router as experience_funnel_public_router,
+    admin_funnel_router as experience_funnel_admin_router,
+)
 from routes.health import router as health_router
 from routes.promo import router as promo_router
 from routes.astrology_v3 import router as astrology_v3_router
@@ -114,6 +118,8 @@ app = FastAPI(title='Plume Astrale API')
 api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
 api_router.include_router(admin_payments_router)
+api_router.include_router(experience_funnel_public_router)
+api_router.include_router(experience_funnel_admin_router)
 api_router.include_router(admin_book_router)
 api_router.include_router(health_router)
 api_router.include_router(promo_router)
