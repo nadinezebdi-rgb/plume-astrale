@@ -18,7 +18,7 @@ import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
 import { storeIntent, storeDrawnCard, captureUtm, detectZodiacCampaign, readUtm } from './intentConfig';
 import { getScene3Revelation } from './scene3Revelations';
 import ZodiacInterlude from './ZodiacInterlude';
-import { event as trackEvent, EVENTS } from '@/lib/analytics';
+import { event as trackEvent, EVENTS, ctaClick } from '@/lib/analytics';
 import './Experience.css';
 
 const INTENTS = [
@@ -227,6 +227,12 @@ export default function ExperienceRoot() {
 
   const handleFinalCTA = useCallback(() => {
     trackEvent(EVENTS.EXP_SIGNUP_CTA_CLICKED, { intent_type: intent || 'none', card: drawnCard || 'none' });
+    // ctaClick GA4 / GTM standard — permet la mesure de conversion sur ce CTA précis
+    ctaClick('Commencer mon voyage', {
+      destination: '/inscription',
+      cta_location: 'experience_scene_4_feather',
+      intent_type: intent || 'none',
+    });
     // Construit un lien /inscription enrichi (intent + card + utm) pour survivre à sessionStorage
     const utm = readUtm();
     const params = new URLSearchParams();
