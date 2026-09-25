@@ -18,3 +18,4 @@
 {"ts": "2026-09-25T16:46:29.280456+00:00", "event": "natal_pdf_generated", "source": "gpt", "tier": "legacy", "bytes": 72490, "ai_planet_count": 0, "engine": "book_engine_v2_print"}
 {"ts": "2026-09-25T16:48:07.725219+00:00", "event": "natal_pdf_generated", "source": "gpt", "tier": "legacy", "bytes": 73436, "ai_planet_count": 0, "engine": "book_engine_v2_print"}
 {"ts": "2026-09-25T16:48:17.906822+00:00", "event": "natal_pdf_generated", "source": "gpt", "tier": "legacy", "bytes": 73436, "ai_planet_count": 0, "engine": "book_engine_v2_print"}
+{"ts": "2026-09-25T17:28:20.802509+00:00", "event": "natal_pdf_generated", "source": "gpt", "tier": "legacy", "bytes": 71231, "ai_planet_count": 0, "engine": "book_engine_v2_print"}
