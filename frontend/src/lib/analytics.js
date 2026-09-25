@@ -377,9 +377,11 @@ export const EVENTS = {
   // ── Prototype /experience V3 · funnel de conversion ──
   EXP_STARTED:                 'experience_started',
   EXP_SKIPPED:                 'experience_skipped',
+  EXP_SOURCE_CAPTURED:         'experience_source_captured',  // 1× à l'arrivée si UTM/source détectés
   EXP_SCENE1_COMPLETED:        'experience_scene_1_completed',
   EXP_SCENE2_VIEWED:           'experience_scene_2_viewed',
-  EXP_INTENT_SELECTED:         'intent_selected',           // + intent_type
+  EXP_INTENT_VIEWED:           'intent_viewed',               // affichage de la question des 4 intents
+  EXP_INTENT_SELECTED:         'intent_selected',             // + intent_type
   EXP_TAROT_STARTED:           'tarot_scene_started',
   EXP_TAROT_HOVERED:           'tarot_card_hovered',
   EXP_TAROT_SELECTED:          'tarot_card_selected',

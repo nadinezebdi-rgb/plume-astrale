@@ -35,8 +35,24 @@ export function useDeviceProfile() {
     const isLowEnd = isMobile && (cores <= 4 || mem <= 3);
     const webglAvailable = detectWebGL();
 
+    // Data-saver + connexion lente (2G/3G) → force le fallback pour économiser
+    // ~600ko de Three.js + textures. Non-cassant : le fallback offre la même
+    // expérience narrative (4 scènes, CTA, tarot, plume) sans WebGL.
+    let saveData = false;
+    let slowConnection = false;
+    try {
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (conn) {
+        saveData = !!conn.saveData;
+        slowConnection = ['slow-2g', '2g', '3g'].includes(conn.effectiveType);
+      }
+    } catch { /* API non supportée */ }
+
+    // Force reducedMotion=true si data-saver ou connexion lente
+    const finalReduced = reducedMotion || saveData || slowConnection;
+
     setDeviceProfile({
-      reducedMotion,
+      reducedMotion: finalReduced,
       isMobile,
       isLowEnd,
       webglAvailable,

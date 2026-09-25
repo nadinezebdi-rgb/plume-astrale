@@ -142,19 +142,42 @@ export default function ExperienceRoot() {
   }, []);
 
   // ── Tracking par scène ──────────────────────────────────────
+  //  Émet un event par transition d'entrée (guard useRef → 1× par instance).
+  //  scene_1_completed = signal de fin de la scène 1 (utile pour funnel GA4).
+  const scenesTrackedRef = useRef(new Set());
   useEffect(() => {
-    if (currentScene === 2) trackEvent(EVENTS.EXP_SCENE2_VIEWED, {});
-    if (currentScene === 3) trackEvent(EVENTS.EXP_TAROT_STARTED, {});
-    if (currentScene === 4) trackEvent(EVENTS.EXP_FEATHER_STARTED, {});
-  }, [currentScene]);
+    const tracked = scenesTrackedRef.current;
+    if (currentScene >= 2 && !tracked.has('scene1_completed')) {
+      tracked.add('scene1_completed');
+      trackEvent(EVENTS.EXP_SCENE1_COMPLETED, {});
+    }
+    if (currentScene === 2 && !tracked.has('scene2_viewed')) {
+      tracked.add('scene2_viewed');
+      trackEvent(EVENTS.EXP_SCENE2_VIEWED, {});
+      trackEvent(EVENTS.EXP_INTENT_VIEWED, {}); // affichage de la question des 4 intentions
+    }
+    if (currentScene === 3 && !tracked.has('scene3_started')) {
+      tracked.add('scene3_started');
+      trackEvent(EVENTS.EXP_TAROT_STARTED, { intent_type: intent || 'none' });
+    }
+    if (currentScene === 4 && !tracked.has('scene4_started')) {
+      tracked.add('scene4_started');
+      trackEvent(EVENTS.EXP_FEATHER_STARTED, {});
+    }
+  }, [currentScene, intent]);
 
-  // ── Détection campagne horoscope (court-circuit) ────────────
+  // ── Détection campagne horoscope (court-circuit) + capture UTM ────
   //  IMPORTANT : captureUtm() doit être exécuté AVANT detectZodiacCampaign()
   //  car ce dernier lit sessionStorage. On les enchaîne dans le useMemo pour
   //  garantir l'ordre lors du render initial (les useEffect s'exécuteraient
   //  trop tard et le shortcut serait mémoïsé à null).
   const zodiac = useMemo(() => {
-    captureUtm();
+    const captured = captureUtm();
+    // Émet un event uniquement si des UTM/source ont vraiment été capturées
+    // (évite le bruit pour les visites directes). Aucune PII envoyée.
+    if (Object.keys(captured).length > 0) {
+      trackEvent(EVENTS.EXP_SOURCE_CAPTURED, captured);
+    }
     return detectZodiacCampaign();
   }, []);
 
@@ -180,11 +203,22 @@ export default function ExperienceRoot() {
     setTimeout(() => scrollToScene(3), 200);
   }, [scrollToScene]);
 
+  // ── Tracking hover cartes (débouncé, 1× par card_id par session) ───
+  //  Le hover en 3D peut se déclencher plusieurs fois par seconde ; on ne
+  //  garde que la première émission par carte pour éviter le flood analytics.
+  const hoveredCardsRef = useRef(new Set());
+  const handleCardHover = useCallback((cardId) => {
+    setHoveringCard(true);
+    if (hoveredCardsRef.current.has(cardId)) return;
+    hoveredCardsRef.current.add(cardId);
+    trackEvent(EVENTS.EXP_TAROT_HOVERED, { card: cardId, intent_type: intent || 'none' });
+  }, [intent]);
+
   const handleCardDraw = useCallback((cardId) => {
     if (drawnCard) return;
     setDrawnCard(cardId);
     storeDrawnCard(cardId);
-    trackEvent(EVENTS.EXP_TAROT_SELECTED, { card: cardId });
+    trackEvent(EVENTS.EXP_TAROT_SELECTED, { card: cardId, intent_type: intent || 'none' });
     // Après ~1.2s la carte est retournée → track reveal
     setTimeout(() => trackEvent(EVENTS.EXP_TAROT_REVEALED, { card: cardId }), 1200);
   }, [setDrawnCard, drawnCard]);
@@ -382,8 +416,9 @@ export default function ExperienceRoot() {
                   data-featured={c.id === 'moon' ? 'true' : 'false'}
                   style={{ '--card-rot': `${c.rot}deg`, '--card-dy': `${c.dy}px` }}
                   disabled={drawnCard && drawnCard !== c.id}
-                  onMouseEnter={() => setHoveringCard(true)}
+                  onMouseEnter={() => handleCardHover(c.id)}
                   onMouseLeave={() => setHoveringCard(false)}
+                  onFocus={() => handleCardHover(c.id)}
                   onClick={() => handleCardDraw(c.id)}
                   aria-label={`Tirer la carte ${c.name}`}
                 >
