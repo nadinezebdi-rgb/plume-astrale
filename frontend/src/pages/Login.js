@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import SEO from '../components/SEO';
-import { event as trackEvent } from '@/lib/analytics';
+import { event as trackEvent, EVENTS } from '@/lib/analytics';
 
 export default function Login() {
   const { login } = useAuth();
@@ -28,7 +28,8 @@ const handleSubmit = async (e) => {
   try {
     await login(email, password);
 
-    trackEvent('login_success');
+    // GA4 standard `login` (Meta n'a pas d'équivalent standard — ignoré côté ads)
+    trackEvent(EVENTS.LOGIN);
 
     // redirection après connexion : respecte ?redirect=... sinon /mon-compte
     const params = new URLSearchParams(window.location.search);

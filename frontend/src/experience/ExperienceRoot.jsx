@@ -16,9 +16,9 @@ import ExperienceCanvas from './ExperienceCanvas';
 import ExperienceFallback from './ExperienceFallback';
 import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
 import { storeIntent, storeDrawnCard, captureUtm, detectZodiacCampaign, readUtm } from './intentConfig';
+import { getScene3Revelation } from './scene3Revelations';
 import ZodiacInterlude from './ZodiacInterlude';
-import AmbientSound from './AmbientSound';
-import { event as trackEvent, EVENTS } from '@/lib/analytics';
+import { event as trackEvent, EVENTS, ctaClick } from '@/lib/analytics';
 import './Experience.css';
 
 const INTENTS = [
@@ -168,25 +168,62 @@ export default function ExperienceRoot() {
     return () => controller.abort();
   }, [cardFaceImage]); // Le tirage reste stable pendant toute la visite.
 
-  // ── Capture UTM + démarrage funnel (une seule fois) ─────────
+  // ── Capture UTM + hydratation du store depuis sessionStorage ─
+  //  Utile si l'utilisateur rafraîchit à mi-parcours ou revient via
+  //  un lien externe avec ?intent=… : sinon le store zustand reste
+  //  à null et la scène 3 retombe sur le fallback générique.
   useEffect(() => {
     trackEvent(EVENTS.EXP_STARTED, {});
+    // Dashboard A/B interne : 1 event par visite (variant experience)
+    trackEvent('experience_visit', { variant: 'experience' });
+    // Hydrate intent / drawnCard depuis query params ou sessionStorage
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const intentQ = params.get('intent') || window.sessionStorage.getItem('exp_intent');
+      const cardQ = params.get('exp_card') || window.sessionStorage.getItem('exp_card');
+      if (intentQ && !intent) setIntent(intentQ);
+      if (cardQ && !drawnCard) setDrawnCard(cardQ);
+    } catch { /* noop */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Tracking par scène ──────────────────────────────────────
+  //  Émet un event par transition d'entrée (guard useRef → 1× par instance).
+  //  scene_1_completed = signal de fin de la scène 1 (utile pour funnel GA4).
+  const scenesTrackedRef = useRef(new Set());
   useEffect(() => {
-    if (currentScene === 2) trackEvent(EVENTS.EXP_SCENE2_VIEWED, {});
-    if (currentScene === 3) trackEvent(EVENTS.EXP_TAROT_STARTED, {});
-    if (currentScene === 4) trackEvent(EVENTS.EXP_FEATHER_STARTED, {});
-  }, [currentScene]);
+    const tracked = scenesTrackedRef.current;
+    if (currentScene >= 2 && !tracked.has('scene1_completed')) {
+      tracked.add('scene1_completed');
+      trackEvent(EVENTS.EXP_SCENE1_COMPLETED, {});
+    }
+    if (currentScene === 2 && !tracked.has('scene2_viewed')) {
+      tracked.add('scene2_viewed');
+      trackEvent(EVENTS.EXP_SCENE2_VIEWED, {});
+      trackEvent(EVENTS.EXP_INTENT_VIEWED, {}); // affichage de la question des 4 intentions
+    }
+    if (currentScene === 3 && !tracked.has('scene3_started')) {
+      tracked.add('scene3_started');
+      trackEvent(EVENTS.EXP_TAROT_STARTED, { intent_type: intent || 'none' });
+    }
+    if (currentScene === 4 && !tracked.has('scene4_started')) {
+      tracked.add('scene4_started');
+      trackEvent(EVENTS.EXP_FEATHER_STARTED, {});
+    }
+  }, [currentScene, intent]);
 
-  // ── Détection campagne horoscope (court-circuit) ────────────
+  // ── Détection campagne horoscope (court-circuit) + capture UTM ────
   //  IMPORTANT : captureUtm() doit être exécuté AVANT detectZodiacCampaign()
   //  car ce dernier lit sessionStorage. On les enchaîne dans le useMemo pour
   //  garantir l'ordre lors du render initial (les useEffect s'exécuteraient
   //  trop tard et le shortcut serait mémoïsé à null).
   const zodiac = useMemo(() => {
-    captureUtm();
+    const captured = captureUtm();
+    // Émet un event uniquement si des UTM/source ont vraiment été capturées
+    // (évite le bruit pour les visites directes). Aucune PII envoyée.
+    if (Object.keys(captured).length > 0) {
+      trackEvent(EVENTS.EXP_SOURCE_CAPTURED, captured);
+    }
     return detectZodiacCampaign();
   }, []);
 
@@ -212,17 +249,34 @@ export default function ExperienceRoot() {
     setTimeout(() => scrollToScene(3), 200);
   }, [scrollToScene]);
 
+  // ── Tracking hover cartes (débouncé, 1× par card_id par session) ───
+  //  Le hover en 3D peut se déclencher plusieurs fois par seconde ; on ne
+  //  garde que la première émission par carte pour éviter le flood analytics.
+  const hoveredCardsRef = useRef(new Set());
+  const handleCardHover = useCallback((cardId) => {
+    setHoveringCard(true);
+    if (hoveredCardsRef.current.has(cardId)) return;
+    hoveredCardsRef.current.add(cardId);
+    trackEvent(EVENTS.EXP_TAROT_HOVERED, { card: cardId, intent_type: intent || 'none' });
+  }, [intent]);
+
   const handleCardDraw = useCallback((cardId) => {
     if (drawnCard) return;
     setDrawnCard(cardId);
     storeDrawnCard(cardId);
-    trackEvent(EVENTS.EXP_TAROT_SELECTED, { card: cardId });
+    trackEvent(EVENTS.EXP_TAROT_SELECTED, { card: cardId, intent_type: intent || 'none' });
     // Après ~1.2s la carte est retournée → track reveal
     setTimeout(() => trackEvent(EVENTS.EXP_TAROT_REVEALED, { card: cardId }), 1200);
   }, [setDrawnCard, drawnCard]);
 
   const handleFinalCTA = useCallback(() => {
     trackEvent(EVENTS.EXP_SIGNUP_CTA_CLICKED, { intent_type: intent || 'none', card: drawnCard || 'none' });
+    // ctaClick GA4 / GTM standard — permet la mesure de conversion sur ce CTA précis
+    ctaClick('Commencer mon voyage', {
+      destination: '/inscription',
+      cta_location: 'experience_scene_4_feather',
+      intent_type: intent || 'none',
+    });
     // Construit un lien /inscription enrichi (intent + card + utm) pour survivre à sessionStorage
     const utm = readUtm();
     const params = new URLSearchParams();
@@ -415,8 +469,9 @@ export default function ExperienceRoot() {
                   data-featured={index === 1 ? 'true' : 'false'}
                   style={{ '--card-rot': `${c.rot}deg`, '--card-dy': `${c.dy}px` }}
                   disabled={drawnCard && drawnCard !== c.id}
-                  onMouseEnter={() => setHoveringCard(true)}
+                  onMouseEnter={() => handleCardHover(c.id)}
                   onMouseLeave={() => setHoveringCard(false)}
+                  onFocus={() => handleCardHover(c.id)}
                   onClick={() => handleCardDraw(c.id)}
                   aria-label={`Tirer la carte ${c.name}`}
                 >
@@ -440,28 +495,29 @@ export default function ExperienceRoot() {
             {cardsLoading && <p className="exp-eyebrow">Les arcanes composent votre tirage…</p>}
 
             <div className="exp-s3__result" data-visible={drawnCard !== null}>
-              {selectedCard && experienceCards.length > 0 ? (
-                <div className="exp-card-reading">
-                  <strong>{selectedCard.nom}</strong>
-                  <span>{selectedCard.orientation_fr} · {(selectedCard.mots_cles || []).join(' · ')}</span>
-                  <p>{selectedCard.interpretation}</p>
-                  <p style={{ opacity: 0.72 }}>{selectedCard.conseil}</p>
-                </div>
-              ) : (
-                <p className="exp-lead">Cette carte éclaire une partie de votre question.</p>
-              )}
-              <button
-                type="button"
-                className="exp-linkline"
-                onClick={() => {
-                  trackEvent(EVENTS.EXP_TAROT_CONTINUE, { card: drawnCard });
-                  scrollToScene(4);
-                }}
-                data-testid="scene-3-continue"
-              >
-                ✦ Découvrir la suite de mon tirage
-                <span className="exp-linkline__chevron">↓</span>
-              </button>
+              {(() => {
+                const rev = getScene3Revelation(drawnCard, intent);
+                return (
+                  <>
+                    <p className="exp-lead" data-testid="scene-3-revelation">{rev.revelation}</p>
+                    <p className="exp-lead" style={{ opacity: 0.6, marginTop: -8 }} data-testid="scene-3-tension">
+                      {rev.tension}
+                    </p>
+                    <button
+                      type="button"
+                      className="exp-linkline"
+                      onClick={() => {
+                        trackEvent(EVENTS.EXP_TAROT_CONTINUE, { card: drawnCard, intent_type: intent || 'none' });
+                        scrollToScene(4);
+                      }}
+                      data-testid="scene-3-continue"
+                    >
+                      ✦ {rev.cta}
+                      <span className="exp-linkline__chevron">↓</span>
+                    </button>
+                  </>
+                );
+              })()}
             </div>
           </div>
         </section>
