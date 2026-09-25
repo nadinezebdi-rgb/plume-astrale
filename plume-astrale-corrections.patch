@@ -1,0 +1,953 @@
+diff --git a/backend/integrations/payments/stripe/product_catalog.py b/backend/integrations/payments/stripe/product_catalog.py
+index 2e7c52d..b08fd22 100644
+--- a/backend/integrations/payments/stripe/product_catalog.py
++++ b/backend/integrations/payments/stripe/product_catalog.py
+@@ -34,8 +34,8 @@ CATALOG: Dict[str, Dict[str, Any]] = {
+         'name': "Lecture Complète — Le Bundle Signature",
+         'description': (
+             "Ta cartographie céleste complète : Thème Natal détaillé + Karma & Destin + "
+-            "Numérologie + Kabbale (Arbre de Vie) + Tirage Médiumnité. "
+-            "5 PDFs livrés instantanément par email, rédigés par Soléna via GPT-5.4. "
++            "Numérologie + Kabbale (Arbre de Vie) + Tirage Symbolique. "
++            "5 PDFs livrés instantanément par email, dans la voix de Soléna. "
+             "Environ 90 pages personnalisées avec ta date et ton prénom."
+         ),
+         'image_url': _tarot_img('19_le_soleil'),
+@@ -50,7 +50,7 @@ CATALOG: Dict[str, Dict[str, Any]] = {
+         'name': "Karma & Destin — La Mémoire de ton Âme",
+         'description': (
+             "Ton axe karmique Nord/Sud, Saturne, Chiron, Pluton, karma générationnel "
+-            "et dates-clés de ta vie. PDF ~15 pages, voix de Soléna, GPT-5.4."
++            "et dates-clés de ta vie. PDF ~15 pages, dans la voix de Soléna."
+         ),
+         'image_url': _tarot_img('13_la_mort'),
+         'submit_label': 'auto',
+@@ -84,7 +84,7 @@ CATALOG: Dict[str, Dict[str, Any]] = {
+         'description': (
+             "L'union des deux lectures les plus profondes : ton empreinte karmique "
+             "(Nord/Sud, dates-clés) croisée avec ton Arbre de Vie kabbalistique. "
+-            "PDF ~14 pages, écrit par Soléna via GPT-5.4."
++            "PDF ~14 pages, dans la voix de Soléna."
+         ),
+         'image_url': _tarot_img('03_l_imperatrice'),
+         'submit_label': 'auto',
+@@ -92,11 +92,11 @@ CATALOG: Dict[str, Dict[str, Any]] = {
+     },
+ 
+     'mediumnite': {
+-        'name': "Tirage Médiumnité — La Croix qui te Parle",
++        'name': "Tirage Symbolique — La Croix qui te Parle",
+         'description': (
+-            "Un tirage complet à 5 arcanes qui révèle tes canaux médiumniques "
+-            "(clairvoyance, clairaudience, clairsentience), tes guides et tes blocages. "
+-            "PDF illustré, ~12 pages."
++            "Un tirage complet à 5 arcanes pour éclairer tes dynamiques intérieures : "
++            "ce qui t'anime, ce qui te freine, tes ressources. Une lecture symbolique, "
++            "comme matière à réflexion. PDF illustré, ~12 pages."
+         ),
+         'image_url': _tarot_img('02_la_papesse'),
+         'submit_label': 'auto',
+@@ -208,7 +208,7 @@ CATALOG: Dict[str, Dict[str, Any]] = {
+         'name': "Duo Découverte — 2 Lectures Combinées",
+         'description': (
+             "Deux lectures Plume Astrale au prix de l'audace : combine ce qui te parle "
+-            "le plus (Karma, Kabbale, Numéro, Tarot ou Médiumnité)."
++            "le plus (Karma, Kabbale, Numéro, Tarot ou Lecture Symbolique)."
+         ),
+         'image_url': _tarot_img('10_la_roue_de_fortune'),
+         'submit_label': 'auto',
+@@ -219,7 +219,7 @@ CATALOG: Dict[str, Dict[str, Any]] = {
+         'name': "Duo Découverte — 2 Lectures Combinées",
+         'description': (
+             "Deux lectures Plume Astrale au prix de l'audace : combine ce qui te parle "
+-            "le plus (Karma, Kabbale, Numéro, Tarot ou Médiumnité)."
++            "le plus (Karma, Kabbale, Numéro, Tarot ou Lecture Symbolique)."
+         ),
+         'image_url': _tarot_img('10_la_roue_de_fortune'),
+         'submit_label': 'auto',
+diff --git a/backend/services/astrocartographie_lines_data.py b/backend/services/astrocartographie_lines_data.py
+index d9232b1..9fb5303 100644
+--- a/backend/services/astrocartographie_lines_data.py
++++ b/backend/services/astrocartographie_lines_data.py
+@@ -23,7 +23,7 @@ PLANETARY_LINES: dict[str, dict[str, dict[str, str]]] = {
+     },
+     'Moon': {
+         'AC': {'headline': "Ta peau devient poreuse",
+-               'body': "La Lune-Ascendant te rend sensible, réceptive, presque médiumnique. Les émotions des lieux te traversent. Beau pour l'inspiration artistique et le lien maternel, à surveiller si tu es hypersensible."},
++               'body': "La Lune-Ascendant te rend sensible, réceptive, très intuitive. Les émotions des lieux te traversent. Beau pour l'inspiration artistique et le lien maternel, à surveiller si tu es hypersensible."},
+         'DC': {'headline': "L'intimité qui déborde",
+                'body': "Les relations deviennent nourricières, fusionnelles, parfois enveloppantes. Tu croises des âmes qui savent te consoler — et qui parfois te dévorent. Ligne d'amour tendre et vulnérable."},
+         'MC': {'headline': "Un métier de cœur",
+diff --git a/backend/services/mediumnite_pdf.py b/backend/services/mediumnite_pdf.py
+index fd4639e..fc9b140 100644
+--- a/backend/services/mediumnite_pdf.py
++++ b/backend/services/mediumnite_pdf.py
+@@ -1,6 +1,6 @@
+ """
+-Générateur PDF Tarologie Médiumnité
+-PDF complet avec tirage 7 cartes + lecture médiumnique
++Générateur PDF Tarologie Symbolique
++PDF complet avec tirage 7 cartes + lecture symbolique
+ """
+ import io
+ import random
+@@ -105,7 +105,7 @@ class MediumnitePDFGenerator:
+ 
+         c.setFillColor(CREAM)
+         c.setFont("Helvetica-Bold", 28)
+-        c.drawCentredString(self.width / 2, y, "Tarologie & Mediumnite")
++        c.drawCentredString(self.width / 2, y, "Tarologie & Lecture Symbolique")
+ 
+         c.setFillColor(GOLD)
+         c.setFont("Helvetica", 14)
+@@ -120,7 +120,7 @@ class MediumnitePDFGenerator:
+         c.setFillAlpha(0.6)
+         c.setFont("Helvetica-Oblique", 11)
+         c.drawCentredString(self.width / 2, y - 4 * cm, "Un voyage au coeur de votre ame")
+-        c.drawCentredString(self.width / 2, y - 5 * cm, "a travers les Arcanes et la guidance mediumnique")
++        c.drawCentredString(self.width / 2, y - 5 * cm, "a travers les Arcanes et la lecture symbolique")
+         c.setFillAlpha(1.0)
+ 
+         c.setFillColor(GOLD)
+@@ -214,18 +214,18 @@ class MediumnitePDFGenerator:
+ 
+             y -= content_h + 0.6 * cm
+ 
+-        # === LECTURE MEDIUMNIQUE ===
++        # === LECTURE SYMBOLIQUE ===
+         self._new_page(c)
+         y = self.height - 3 * cm
+ 
+         c.setFillColor(GOLD)
+         c.setFont("Helvetica-Bold", 20)
+-        c.drawCentredString(self.width / 2, y, "Lecture Mediumnique")
++        c.drawCentredString(self.width / 2, y, "Lecture Symbolique")
+         y -= 0.8 * cm
+         c.setFillColor(LIGHT_TEXT)
+         c.setFillAlpha(0.6)
+         c.setFont("Helvetica-Oblique", 10)
+-        c.drawCentredString(self.width / 2, y, "Messages recus pour votre ame")
++        c.drawCentredString(self.width / 2, y, "Ce que revele votre tirage")
+         c.setFillAlpha(1.0)
+         y -= 2 * cm
+ 
+@@ -234,7 +234,7 @@ class MediumnitePDFGenerator:
+             ("Empreinte du Passe", lecture.get("passe", "")),
+             ("Energies du Present", lecture.get("present", "")),
+             ("Visions du Futur", lecture.get("futur", "")),
+-            ("Message de Votre Ame", lecture.get("conseil_ame", "")),
++            ("Un Conseil pour Vous", lecture.get("conseil_ame", "")),
+         ]
+ 
+         for titre, texte in sections:
+@@ -275,7 +275,7 @@ class MediumnitePDFGenerator:
+         c.setFont("Helvetica-Oblique", 12)
+         msg_final = (
+             f"Cher(e) {prenom}, cette lecture est un cadeau de l'univers. "
+-            "Les cartes et les messages mediumniques vous guident mais ne vous enferment pas. "
++            "Les cartes et les messages de ce tirage vous eclairent mais ne vous enferment pas. "
+             "Vous restez le maitre de votre destinee. Utilisez ces revelations comme des phares "
+             "pour eclairer votre chemin, et rappelez-vous : votre lumiere interieure est votre "
+             "plus grande force."
+@@ -292,7 +292,7 @@ class MediumnitePDFGenerator:
+         c.setFillColor(GOLD)
+         c.setFillAlpha(0.5)
+         c.setFont("Helvetica", 9)
+-        c.drawCentredString(self.width / 2, y, "Plume Astrale - Tarologie & Mediumnite")
++        c.drawCentredString(self.width / 2, y, "Plume Astrale - Tarologie & Lecture Symbolique")
+         c.setFillAlpha(1.0)
+ 
+         c.save()
+@@ -344,7 +344,7 @@ def _build_ai_enrichment_pdf(prenom: str, birth_date_iso: str,
+ 
+ async def generate_mediumnite_pdf_ai(tirage_data: dict, prenom: str,
+                                       birth_date_iso: str) -> bytes:
+-    """Génère le tirage Médiumnité + concatène des pages narratives IA en tête."""
++    """Génère le tirage Symbolique + concatène des pages narratives IA en tête."""
+     base_pdf = generate_mediumnite_pdf(tirage_data)
+     try:
+         from services.report_ai_enrichment import enrich_report
+diff --git a/backend/services/natal_pdf_v2.py b/backend/services/natal_pdf_v2.py
+index 8d5d073..b778ad0 100644
+--- a/backend/services/natal_pdf_v2.py
++++ b/backend/services/natal_pdf_v2.py
+@@ -39,7 +39,7 @@ PLANET_META = {
+     'Jupiter':   {'glyph': '♃', 'dialogue': "Tu doutes de ta chance. Et pourtant, chaque fois que tu t'ouvres à l'inconnu, le ciel s'aligne."},
+     'Saturne':   {'glyph': '♄', 'dialogue': "Ce que tu prends pour un plafond, c'est en réalité une fondation."},
+     'Uranus':    {'glyph': '♅', 'dialogue': "Ce que tu appelles instabilité, tes ancêtres l'appelaient génie. C'est ta manière de mettre le monde à jour."},
+-    'Neptune':   {'glyph': '♆', 'dialogue': "Tu as ce don rare : sentir avant de voir. Ce n'est pas de la fuite — c'est de la clairvoyance qui n'a pas trouvé ses mots."},
++    'Neptune':   {'glyph': '♆', 'dialogue': "Tu as cette sensibilité : sentir avant de voir. Ce n'est pas de la fuite — c'est une intuition qui n'a pas encore trouvé ses mots."},
+     'Pluton':    {'glyph': '♇', 'dialogue': "Ce que tu as traversé de plus dur t'a préparée à voir ce que personne ne veut regarder. C'est ta force silencieuse."},
+     'Ascendant': {'glyph': '⇑', 'dialogue': "Les autres te trouvent parfois plus forte que tu ne te sens. Et cette impression n'est pas fausse."},
+ }
+diff --git a/backend/services/numerology_service.py b/backend/services/numerology_service.py
+index 1101007..ac58ce5 100644
+--- a/backend/services/numerology_service.py
++++ b/backend/services/numerology_service.py
+@@ -53,7 +53,7 @@ NUM_DESCRIPTIONS = {
+         4: 'Tu bâtiras une œuvre solide et durable.',
+         5: 'Ta vie sera riche d\'expériences variées.',
+         6: 'Tu seras le pilier d\'une communauté aimante.',
+-        7: 'Tu deviendras un guide spirituel reconnu.',
++        7: 'Tu deviendras une référence inspirante pour les autres.',
+         8: 'Tu atteindras succès matériel et reconnaissance.',
+         9: 'Tu marqueras le monde par ta générosité.',
+         11: 'Tu illumineras spirituellement ton entourage.',
+diff --git a/backend/services/openai_enrichment_service.py b/backend/services/openai_enrichment_service.py
+index 6bcf85a..4f123ec 100644
+--- a/backend/services/openai_enrichment_service.py
++++ b/backend/services/openai_enrichment_service.py
+@@ -20,7 +20,7 @@ def enrich_window_text(window_data: Dict[str, Any]) -> Dict[str, Any]:
+         period = window_data.get('period', '')
+         original_text = window_data.get('text', '')
+         
+-        prompt = f"""Tu es Solena, une guide spirituelle bienveillante et poétique de Plume Astrale.
++        prompt = f"""Tu es Solena, la voix bienveillante et poétique de Plume Astrale.
+ 
+ Transforme cette information astrologique en un texte inspirant, rassurant et mystique qui captive le lecteur.
+ 
+@@ -55,7 +55,7 @@ Utilise un français raffiné, avec des métaphores cosmiques subtiles."""
+                 'messages': [
+                     {
+                         'role': 'system',
+-                        'content': 'Tu es Solena, guide spirituelle de Plume Astrale. Ton écriture est poétique, bienveillante, mystique et inspirante.'
++                        'content': 'Tu es Solena, la voix de Plume Astrale. Ton écriture est poétique, bienveillante et inspirante.'
+                     },
+                     {
+                         'role': 'user',
+@@ -122,7 +122,7 @@ Le texte doit:
+                 'messages': [
+                     {
+                         'role': 'system',
+-                        'content': 'Tu es Solena, guide spirituelle poétique et bienveillante.'
++                        'content': 'Tu es Solena, la voix poétique et bienveillante de Plume Astrale.'
+                     },
+                     {
+                         'role': 'user',
+@@ -180,7 +180,7 @@ Format: Une affirmation par ligne, sans numérotation."""
+                 'messages': [
+                     {
+                         'role': 'system',
+-                        'content': 'Tu es Solena, guide spirituelle. Tes affirmations sont poétiques, puissantes et transformatrices.'
++                        'content': 'Tu es Solena, la voix de Plume Astrale. Tes affirmations sont poétiques, puissantes et transformatrices.'
+                     },
+                     {
+                         'role': 'user',
+diff --git a/backend/services/plume_chat.py b/backend/services/plume_chat.py
+index cf305ff..481c638 100644
+--- a/backend/services/plume_chat.py
++++ b/backend/services/plume_chat.py
+@@ -71,7 +71,7 @@ def _strip_markdown(text: str) -> str:
+ # ═══════════════════════════════════════════════════════════════════════
+ # Prompt système — Soléna, coach spirituelle Plume Astrale (méthode GaryVee)
+ # ═══════════════════════════════════════════════════════════════════════
+-SYSTEM_PROMPT_SOLENA = """Tu es Soléna, l'ambassadrice et guide spirituelle de Plume Astrale (plume-astrale.fr).
++SYSTEM_PROMPT_SOLENA = """Tu es Soléna, la voix de Plume Astrale (plume-astrale.fr).
+ 
+ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ RÈGLE ABSOLUE DE FORMATAGE — LIRE AVANT TOUT
+diff --git a/backend/services/report_ai_enrichment.py b/backend/services/report_ai_enrichment.py
+index fb99aa4..d3d8d45 100644
+--- a/backend/services/report_ai_enrichment.py
++++ b/backend/services/report_ai_enrichment.py
+@@ -89,13 +89,13 @@ REPORT_SPECS: Dict[str, Dict[str, Any]] = {
+         },
+     },
+     'mediumnite': {
+-        'title': 'Éveil Médiumnique',
++        'title': 'Écoute intérieure',
+         'sections': {
+-            'introduction': "Introduction 3 paragraphes : ta sensibilité vibratoire",
+-            'clairs': "Tes quatre clairs (clairvoyance, clairaudience, clairsentience, claircognisance) : 1 paragraphe chacun avec exemples concrets",
+-            'guides': "Tes guides et protecteurs 3 paragraphes",
+-            'blocages': "Blocages énergétiques 2-3 paragraphes",
+-            'pratiques': "Pratiques d'éveil 3 paragraphes concrets — sans clichés",
++            'introduction': "Introduction 3 paragraphes : ta sensibilité et ton intuition comme outils de connaissance de soi",
++            'clairs': "Tes quatre façons de percevoir (images et ressentis, écoute intérieure, sensibilité aux autres, savoir intuitif) : 1 paragraphe chacun avec exemples concrets, sans surnaturel",
++            'guides': "Tes appuis et tes ressources intérieures 3 paragraphes",
++            'blocages': "Ce qui brouille ta clarté 2-3 paragraphes",
++            'pratiques': "Pratiques d'introspection 3 paragraphes concrets — sans clichés",
+             'invitation_finale': "Invitation finale 2 paragraphes",
+         },
+     },
+diff --git a/backend/services/report_ai_fallback.py b/backend/services/report_ai_fallback.py
+index c5fce1e..f0ae315 100644
+--- a/backend/services/report_ai_fallback.py
++++ b/backend/services/report_ai_fallback.py
+@@ -243,79 +243,80 @@ _FALLBACKS: Dict[str, Dict[str, str]] = {
+     # ═══════════════════════════════════════════════════════════════
+     'mediumnite': {
+         'introduction': (
+-            "{prenom}, ta sensibilité vibratoire n'est pas une fragilité — c'est un "
+-            "instrument. Beaucoup de femmes traversent leur vie sans reconnaître ce "
+-            "qu'elles perçoivent : les intuitions justes, les rêves qui préviennent, les "
+-            "présences ressenties dans les pièces vides. Ce document te propose de "
+-            "nommer ces capacités."
++            "{prenom}, ta sensibilité n'est pas une fragilité — c'est un instrument de "
++            "connaissance de soi. Beaucoup de personnes traversent leur vie sans nommer "
++            "ce qu'elles perçoivent : les intuitions justes, les émotions qui montent "
++            "sans prévenir, les ambiances qu'elles captent dans une pièce. Ce document "
++            "te propose de mettre des mots sur ces perceptions."
+             "<br/><br/>"
+-            "La médiumnité n'est pas un don réservé à quelques élues. C'est une "
+-            "compétence humaine, en sommeil chez la plupart, mais éveillable par tout le "
+-            "monde. La tienne s'est probablement déjà manifestée — sans que tu oses la "
+-            "prendre au sérieux."
++            "Il ne s'agit pas d'un don réservé à quelques-uns. C'est une manière d'être "
++            "attentif à soi, en sommeil chez la plupart, mais que chacun peut cultiver. "
++            "La tienne s'est probablement déjà manifestée — sans que tu oses vraiment "
++            "t'y fier."
+             "<br/><br/>"
+             "Prends ce que tu vas lire comme une carte, pas comme un verdict. Tu es la "
+             "seule à décider ce que tu en fais."
+         ),
+         'clairs': (
+-            "<b>Clairvoyance</b> : tu vois — parfois en rêve, parfois en flash éveillé — "
+-            "des scènes que tu n'as pas vécues mais qui sont vraies. Ce sens s'affine "
+-            "avec le sommeil régulier et l'écriture matinale."
++            "<b>Les images et les ressentis</b> : tu penses souvent en images, et tes "
++            "rêves rejouent ce que ta journée n'a pas eu le temps de digérer. Ce sens "
++            "s'affine avec un sommeil régulier et quelques lignes écrites au réveil."
+             "<br/><br/>"
+-            "<b>Clairaudience</b> : tu entends — dans le silence, souvent le matin — des "
+-            "phrases courtes, presque murmurées. Ce ne sont pas des voix intrusives ; ce "
+-            "sont des rappels justes. Note-les avant qu'elles s'effacent."
++            "<b>L'écoute intérieure</b> : dans le silence, souvent le matin, des phrases "
++            "courtes te reviennent. Ce ne sont pas des ordres — ce sont tes propres "
++            "repères qui se rappellent à toi. Note-les avant qu'elles s'effacent."
+             "<br/><br/>"
+-            "<b>Clairsentience</b> : tu ressens dans ton corps l'état émotionnel des "
+-            "personnes que tu croises. Ce n'est pas de l'imagination : c'est ton système "
+-            "nerveux qui capte des informations subtiles. Apprends à distinguer ce qui "
+-            "est toi de ce qui est l'autre."
++            "<b>La sensibilité aux autres</b> : tu ressens l'état émotionnel des "
++            "personnes que tu croises. Ce n'est pas de l'imagination : ton système "
++            "nerveux capte des signaux subtils. Apprends à distinguer ce qui est toi de "
++            "ce qui vient de l'autre."
+             "<br/><br/>"
+-            "<b>Claircognisance</b> : tu <i>sais</i>, sans pouvoir expliquer comment. Ce "
+-            "savoir arrive d'un bloc, souvent hors de propos. Fais-lui confiance quand "
+-            "il est doux ; interroge-le quand il vient teinté de peur."
++            "<b>Le savoir intuitif</b> : parfois tu <i>sais</i>, sans pouvoir expliquer "
++            "comment. C'est souvent ta mémoire qui reconnaît un schéma déjà vu. "
++            "Fais-lui confiance quand il est calme ; interroge-le quand il vient teinté "
++            "de peur."
+         ),
+         'guides': (
+-            "Tu n'es pas seule. Autour de toi circulent — que tu y crois ou non — des "
+-            "présences bienveillantes : des ancêtres féminines de ta lignée, un ou "
+-            "plusieurs guides d'âme, parfois un être plus vaste qui veille depuis "
+-            "toujours. Ces présences ne <i>font</i> pas les choses à ta place ; elles "
+-            "orientent, elles rappellent, elles réconfortent."
++            "Tu n'es pas seule pour avancer. Autour de toi existent des appuis bien "
++            "réels : les personnes de confiance, tes valeurs, tes souvenirs de moments "
++            "où tu as tenu bon. Ces ressources ne font pas les choses à ta place ; "
++            "elles t'orientent, te rappellent qui tu es, te réconfortent."
+             "<br/><br/>"
+-            "Reconnaître leur travail commence par de petits signes : plumes, papillons "
+-            "blancs, séries de chiffres qui reviennent, chansons qui surgissent au bon "
+-            "moment. Le monde parle constamment — il attend que tu écoutes."
++            "Les reconnaître commence par de petits repères : ce qui t'apaise, ce qui te "
++            "remet d'aplomb, les gestes qui te font du bien. Prends l'habitude de les "
++            "remarquer — ils forment ta boîte à outils intérieure."
+             "<br/><br/>"
+-            "Une pratique douce : chaque soir, remercie mentalement les présences qui "
+-            "t'ont accompagnée dans la journée. Ce simple geste installe un dialogue."
++            "Une pratique douce : chaque soir, repense à un moment de la journée où tu "
++            "t'es sentie soutenue, par quelqu'un ou par toi-même. Ce simple geste "
++            "renforce ta sécurité intérieure."
+         ),
+         'blocages': (
+-            "Ce qui bouche ta médiumnité n'est pas ton âme — c'est ton mental fatigué. "
+-            "Trois blocages classiques : le doute permanent (« je vais inventer »), la "
+-            "peur de ce qui pourrait être vu, et la surcharge sensorielle (écrans, "
+-            "bruits, agenda saturé)."
++            "Ce qui brouille ta clarté, ce n'est pas toi — c'est ton mental fatigué. "
++            "Trois freins classiques : le doute permanent (« je vais me tromper »), la "
++            "peur d'être vraiment vue, et la surcharge (écrans, bruit, agenda saturé)."
+             "<br/><br/>"
+-            "L'ouverture médiumnique ne se force pas. Elle se libère par soustraction : "
+-            "moins d'informations parasites, plus de silence, un corps posé. Ta clarté "
+-            "revient à la vitesse de ton apaisement."
++            "L'écoute de soi ne se force pas. Elle revient par soustraction : moins "
++            "d'informations parasites, plus de silence, un corps posé. Ta clarté revient "
++            "à la vitesse de ton apaisement."
+         ),
+         'pratiques': (
+             "<b>1. La marche silencieuse quotidienne (15 min)</b> — Marche seule, sans "
+-            "téléphone, sans musique. Observe ce que ton attention accroche naturellement. "
+-            "Après trois semaines, ton canal médiumnique commence à circuler."
++            "téléphone, sans musique. Observe ce que ton attention accroche "
++            "naturellement. Après trois semaines, ton écoute intérieure devient plus "
++            "nette."
+             "<br/><br/>"
+-            "<b>2. Le journal des présences</b> — Chaque soir, note trois choses : une "
+-            "intuition que tu as eue, un signe que tu as vu, une émotion qui t'a semblé "
+-            "venir d'ailleurs. La médiumnité n'apparaît pas — elle se remarque."
++            "<b>2. Le journal de bord</b> — Chaque soir, note trois choses : une "
++            "intuition que tu as eue, une émotion marquante, une chose que tu as "
++            "comprise sur toi. La clarté n'apparaît pas d'un coup — elle se remarque."
+             "<br/><br/>"
+             "<b>3. Le silence hebdomadaire (2h)</b> — Une fois par semaine, offre-toi "
+-            "deux heures sans stimulation extérieure. C'est dans cet espace que tes "
+-            "guides trouvent la place de te parler."
++            "deux heures sans stimulation extérieure. C'est dans cet espace que tu "
++            "t'entends enfin penser."
+         ),
+         'invitation_finale': (
+-            "{prenom}, tu n'as pas besoin de <i>devenir</i> médium — tu l'es déjà. Ce "
+-            "document t'invite juste à cesser de nier ce que tu perçois. Le monde a besoin "
+-            "de femmes qui écoutent l'invisible sans en faire un spectacle."
++            "{prenom}, tu n'as pas besoin de devenir quelqu'un d'autre — apprends "
++            "seulement à cesser de nier ce que tu perçois. Mieux se comprendre, c'est "
++            "déjà commencer à mieux avancer."
+         ),
+     },
+ 
+diff --git a/backend/services/tarot_service.py b/backend/services/tarot_service.py
+index b97c803..26e9231 100644
+--- a/backend/services/tarot_service.py
++++ b/backend/services/tarot_service.py
+@@ -1,5 +1,5 @@
+ """
+-Service Tarot - Oui/Non et Tarologie Médiumnité
++Service Tarot - Oui/Non et Tarologie Symbolique
+ """
+ import hashlib
+ import os
+@@ -178,35 +178,35 @@ ARCANES_TAROT = [
+     },
+ ]
+ 
+-# Thèmes de médiumnité pour la tarologie complète
++# Thèmes de lecture symbolique pour la tarologie complète
+ THEMES_MEDIUMNITE = {
+     "passe": [
+-        "Votre passé porte l'empreinte d'une âme ancienne. Les expériences vécues ont forgé une résilience rare.",
+-        "Des vies antérieures influencent encore vos schémas actuels. Une blessure karmique demande à être guérie.",
+-        "L'enfant intérieur que vous étiez porte encore des trésors inexploités. Reconnectez-vous à cette innocence.",
+-        "Un ancêtre veille sur vous depuis l'au-delà. Son énergie protectrice guide vos pas.",
+-        "Le karma de vos vies passées se résout progressivement. Vous êtes sur la voie de la libération.",
++        "Votre passé a forgé une résilience rare. Les épreuves traversées font aujourd'hui partie de vos forces.",
++        "Certains schémas anciens influencent encore vos réactions d'aujourd'hui. Les reconnaître, c'est déjà commencer à s'en libérer.",
++        "L'enfant que vous étiez porte encore des ressources inexploitées. Renouez avec cette part spontanée de vous.",
++        "Une personne de votre histoire vous a transmis un appui durable. Sa trace vous accompagne encore.",
++        "Ce que vous avez vécu se met peu à peu en ordre. Vous avancez sur le chemin de l'apaisement.",
+     ],
+     "present": [
+-        "Votre aura vibre à une fréquence de transformation. Les énergies actuelles accélèrent votre évolution.",
+-        "Un guide spirituel essaie d'entrer en contact avec vous. Soyez attentif(ve) aux signes répétitifs.",
+-        "Votre chakra du cœur est en pleine expansion. L'amour inconditionnel devient votre vibration naturelle.",
+-        "Les synchronicités que vous vivez ne sont pas des coïncidences. Elles sont des confirmations de votre chemin.",
+-        "Une énergie de guérison circule en vous. Vous êtes capable de transmuter la douleur en sagesse.",
++        "Vous traversez une période de transformation. Ce qui bouge en vous accélère votre évolution.",
++        "Une intuition cherche à se faire entendre. Soyez attentif(ve) à ce qui revient souvent dans vos pensées.",
++        "Votre capacité à vous ouvrir grandit. La bienveillance envers vous-même devient plus naturelle.",
++        "Les coïncidences que vous remarquez ne sont pas anodines : ce sont des repères qui confirment votre direction.",
++        "Un élan de réparation est à l'œuvre. Vous êtes capable de transformer la difficulté en compréhension.",
+     ],
+     "futur": [
+-        "Je vois une porte s'ouvrir dans les prochains mois. Une opportunité alignée avec votre mission d'âme.",
+-        "Un cycle de 7 ans s'achève. La prochaine phase apportera une croissance spirituelle accélérée.",
+-        "Une rencontre karmique est inscrite dans votre avenir proche. Elle transformera votre vision du monde.",
+-        "L'univers prépare un cadeau que vous n'osez même pas imaginer. Gardez votre cœur ouvert.",
+-        "Votre don médiumnique va se développer naturellement. Acceptez cette évolution avec confiance.",
++        "Une porte s'ouvrira dans les prochains mois : une occasion alignée avec ce qui compte vraiment pour vous.",
++        "Un cycle s'achève. La phase suivante apportera une croissance personnelle plus assumée.",
++        "Une rencontre marquante vous attend. Elle fera bouger votre regard sur les choses.",
++        "Une bonne surprise se prépare, que vous n'osez pas encore imaginer. Gardez votre curiosité ouverte.",
++        "Votre sensibilité va continuer à s'affirmer. Accueillez cette évolution avec confiance.",
+     ],
+     "conseil_ame": [
+-        "Votre âme vous demande de ralentir et d'écouter. Le silence est votre meilleur conseiller.",
+-        "Il est temps de poser des limites énergétiques saines. Protégez votre lumière intérieure.",
+-        "Votre mission dans cette vie est liée au service des autres. Mais servez d'abord votre propre guérison.",
+-        "L'authenticité est votre chemin de libération. Cessez de porter les masques qui ne vous appartiennent pas.",
+-        "Votre corps physique est un véhicule sacré. Honorez-le par des pratiques de purification régulières.",
++        "Ralentissez et écoutez-vous. Le silence est votre meilleur conseiller.",
++        "Il est temps de poser des limites saines. Préservez votre énergie et votre espace.",
++        "Ce qui vous porte est lié aux autres. Mais prenez d'abord soin de vous.",
++        "L'authenticité est votre chemin. Déposez les rôles qui ne vous appartiennent pas.",
++        "Votre corps mérite votre attention. Honorez-le par des habitudes qui vous font du bien.",
+     ],
+ }
+ 
+@@ -295,7 +295,7 @@ def _reversed_wrap(base_message: str, orientation: str) -> str:
+ 
+ 
+ def tirage_mediumnite_complet(prenom: str, date_naissance: str) -> dict:
+-    """Tirage de tarologie médiumnité complet - 7 cartes + lecture médiumnique"""
++    """Tirage de tarologie symbolique complet - 7 cartes + lecture symbolique"""
+     seed = int(hashlib.md5(f"{prenom}-{date_naissance}-{datetime.now().date().isoformat()}".encode(), usedforsecurity=False).hexdigest(), 16)
+     rng = random.Random(seed)
+ 
+@@ -328,7 +328,7 @@ def tirage_mediumnite_complet(prenom: str, date_naissance: str) -> dict:
+             "message": carte[orient],
+         })
+ 
+-    # Lecture médiumnique
++    # Lecture symbolique
+     lecture = {
+         "passe": rng.choice(THEMES_MEDIUMNITE["passe"]),
+         "present": rng.choice(THEMES_MEDIUMNITE["present"]),
+@@ -386,7 +386,7 @@ def tirage_en_croix(prenom: str, date_naissance: str) -> dict:
+             "interpretation": interp.get(position_id, ""),
+         })
+ 
+-    # Lecture médiumnique complémentaire
++    # Lecture symbolique complémentaire
+     lecture = {
+         "passe": rng.choice(THEMES_MEDIUMNITE["passe"]),
+         "present": rng.choice(THEMES_MEDIUMNITE["present"]),
+diff --git a/frontend/public/index.html b/frontend/public/index.html
+index b20dc6a..5b3ded2 100644
+--- a/frontend/public/index.html
++++ b/frontend/public/index.html
+@@ -4,7 +4,7 @@
+         <meta charset="utf-8" />
+         <meta name="viewport" content="width=device-width, initial-scale=1" />
+         <meta name="theme-color" content="#0C0918" />
+-        <meta name="description" content="Plume Astrale — Guidance symbolique personnalisee. Astrologie, tarot et numerologie. Calculs precis, interpretation experte. Decouvrez votre theme natal." />
++        <meta name="description" content="Connaissance de soi — mieux comprendre ses émotions, besoins et fonctionnements. Aide à la réflexion, relations, cycles de vie, développement personnel et introspection." />
+         <meta name="author" content="Plume Astrale" />
+         <meta name="robots" content="index, follow" />
+         <meta name="googlebot" content="index, follow" />
+@@ -15,7 +15,7 @@
+         <meta property="og:type" content="website" />
+         <meta property="og:url" content="https://plume-astrale.fr" />
+         <meta property="og:title" content="Plume Astrale | Guidance Symbolique Personnalisee" />
+-        <meta property="og:description" content="Astrologie, tarot et numerologie. Calculs precis, interpretation experte. Decouvrez votre theme natal et votre guidance quotidienne." />
++        <meta property="og:description" content="Connaissance de soi — mieux comprendre ses émotions, besoins et fonctionnements. Aide à la réflexion, relations, cycles de vie, développement personnel et introspection." />
+         <meta property="og:image" content="https://static.prod-images.emergentagent.com/jobs/4ab45f1c-820b-4113-96c8-845aa5b0f3e2/images/e6ac5f3284cff4212addcf06b794de85c24a62bc2c57b60538aadfec8e4f2aa8.png" />
+         <meta property="og:site_name" content="Plume Astrale" />
+         <meta property="og:locale" content="fr_FR" />
+@@ -23,7 +23,7 @@
+         <!-- Twitter Card -->
+         <meta name="twitter:card" content="summary_large_image" />
+         <meta name="twitter:title" content="Plume Astrale | Guidance Symbolique Personnalisee" />
+-        <meta name="twitter:description" content="Astrologie, tarot et numerologie. Calculs precis, interpretation experte." />
++        <meta name="twitter:description" content="Connaissance de soi — mieux comprendre ses émotions, besoins et fonctionnements. Développement personnel et introspection." />
+         <meta name="twitter:image" content="https://static.prod-images.emergentagent.com/jobs/4ab45f1c-820b-4113-96c8-845aa5b0f3e2/images/e6ac5f3284cff4212addcf06b794de85c24a62bc2c57b60538aadfec8e4f2aa8.png" />
+ 
+         <!-- Fonts (only the ones actually used) -->
+@@ -54,42 +54,51 @@
+         <script type="application/ld+json">
+         {
+             "@context": "https://schema.org",
+-            "@type": "ProfessionalService",
++            "@type": "Organization",
+             "name": "Plume Astrale",
+             "url": "https://plume-astrale.fr",
+-            "description": "Espace de guidance symbolique fonde sur des calculs astrologiques precis et une interpretation experte.",
+-            "serviceType": ["Astrologie", "Tarot", "Numerologie", "Guidance spirituelle"],
++            "logo": "https://plume-astrale.fr/logo512.png",
++            "image": "https://plume-astrale.fr/logo512.png",
++            "description": "Connaissance de soi — mieux comprendre ses émotions, besoins et fonctionnements. Aide à la réflexion, relations, cycles de vie, développement personnel et introspection.",
+             "areaServed": {
+                 "@type": "Country",
+                 "name": "France"
+-            },
+-            "hasOfferCatalog": {
+-                "@type": "OfferCatalog",
+-                "name": "Services Plume Astrale",
+-                "itemListElement": [
+-                    {
+-                        "@type": "Offer",
+-                        "name": "Tirage Tarot Oui/Non",
+-                        "description": "3 tirages gratuits par jour — Reponse symbolique immediate",
+-                        "price": "0",
+-                        "priceCurrency": "EUR"
+-                    },
+-                    {
++            }
++        }
++        </script>
++        <script type="application/ld+json">
++        {
++            "@context": "https://schema.org",
++            "@graph": [
++                {
++                    "@type": "Product",
++                    "name": "Thème Astral Professionnel",
++                    "description": "Votre thème astral complet en PDF — 28+ pages, composé sur mesure à partir de votre date, heure et lieu de naissance.",
++                    "image": "https://plume-astrale.fr/logo512.png",
++                    "brand": { "@type": "Brand", "name": "Plume Astrale" },
++                    "offers": {
+                         "@type": "Offer",
+-                        "name": "Theme Astral Professionnel",
+-                        "description": "Votre theme astral complet en PDF — 28+ pages",
++                        "url": "https://plume-astrale.fr/theme-natal-luxe",
+                         "price": "29.90",
+-                        "priceCurrency": "EUR"
+-                    },
+-                    {
++                        "priceCurrency": "EUR",
++                        "availability": "https://schema.org/InStock"
++                    }
++                },
++                {
++                    "@type": "Product",
++                    "name": "Expérience Premium — Cartographie Céleste",
++                    "description": "Parcours guidé en 5 étapes + PDF Premium — thème natal approfondi, numérologie et projection sur 12 mois.",
++                    "image": "https://plume-astrale.fr/logo512.png",
++                    "brand": { "@type": "Brand", "name": "Plume Astrale" },
++                    "offers": {
+                         "@type": "Offer",
+-                        "name": "Experience Premium — Cartographie Celeste",
+-                        "description": "Parcours guide en 5 etapes + PDF Premium — Astrologie, numerologie et projection 12 mois",
++                        "url": "https://plume-astrale.fr/premium",
+                         "price": "199",
+-                        "priceCurrency": "EUR"
++                        "priceCurrency": "EUR",
++                        "availability": "https://schema.org/InStock"
+                     }
+-                ]
+-            }
++                }
++            ]
+         }
+         </script>
+ 
+diff --git a/frontend/src/components/AdminLectureComplete.js b/frontend/src/components/AdminLectureComplete.js
+index b386a7a..1e1c5c5 100644
+--- a/frontend/src/components/AdminLectureComplete.js
++++ b/frontend/src/components/AdminLectureComplete.js
+@@ -890,7 +890,7 @@ export default function AdminLectureComplete({ token }) {
+             fontSize: 12, color: 'rgba(232,230,240,0.75)', marginTop: 4, lineHeight: 1.5,
+           }}>
+             {aiEnrichmentEnabled
+-              ? "Les PDFs Karma, Numérologie, Kabbale, Médiumnité et Pack Karmique appellent GPT-5.4 pour rédiger les pages narratives Soléna."
++              ? "Les PDFs Karma, Numérologie, Kabbale, Lecture Symbolique et Pack Karmique appellent GPT-5.4 pour rédiger les pages narratives Soléna."
+               : "Fallback statique riche pré-rédigé — pages toujours étoffées, aucun appel LLM (budget préservé)."}
+           </div>
+         </div>
+diff --git a/frontend/src/components/SEO.js b/frontend/src/components/SEO.js
+index 82d6ddc..34dcada 100644
+--- a/frontend/src/components/SEO.js
++++ b/frontend/src/components/SEO.js
+@@ -6,7 +6,7 @@ const DEFAULT_IMAGE = 'https://static.prod-images.emergentagent.com/jobs/4ab45f1
+ const SEO_DATA = {
+   '/': {
+     title: 'Plume Astrale | Guidance Symbolique Personnalis\u00e9e \u2014 Astrologie & Tarot',
+-    description: 'Plume Astrale \u00e9claire vos dynamiques de vie gr\u00e2ce \u00e0 l\'astrologie, la num\u00e9rologie et le tarot. Calculs pr\u00e9cis, interpr\u00e9tation experte. D\u00e9couvrez votre th\u00e8me natal, tirage gratuit et guidance quotidienne.',
++    description: 'Connaissance de soi \u2014 mieux comprendre ses \u00e9motions, besoins et fonctionnements. Aide \u00e0 la r\u00e9flexion, relations, cycles de vie, d\u00e9veloppement personnel et introspection. Th\u00e8me natal, tirage gratuit et guidance quotidienne.',
+     keywords: 'astrologie, th\u00e8me natal, tarot gratuit, num\u00e9rologie, guidance spirituelle, horoscope personnalis\u00e9, tirage tarot, chemin de vie, compatibilit\u00e9 amoureuse',
+   },
+   '/premium': {
+@@ -35,9 +35,9 @@ const SEO_DATA = {
+     keywords: 'horoscope du jour, guidance quotidienne, phase lunaire, conseil astrologique, horoscope gratuit',
+   },
+   '/tarologie': {
+-    title: 'Tarologie & M\u00e9diumni\u00e9 | Tirage en Croix \u2014 Plume Astrale',
+-    description: 'Tirage en croix complet avec 5 arcanes majeurs et lecture m\u00e9diumnique. Interpr\u00e9tation approfondie de votre situation actuelle et de vos perspectives.',
+-    keywords: 'tarologie, tirage en croix, m\u00e9diumni\u00e9, lecture tarot, arcanes majeurs, tirage complet',
++    title: 'Tarologie & Lecture Symbolique | Tirage en Croix \u2014 Plume Astrale',
++    description: 'Tirage en croix complet avec 5 arcanes majeurs et lecture symbolique. Interpr\u00e9tation approfondie de votre situation actuelle et de vos perspectives.',
++    keywords: 'tarologie, tirage en croix, lecture tarot, arcanes majeurs, tirage complet',
+   },
+   '/compatibilite-amoureuse': {
+     title: 'Compatibilit\u00e9 Amoureuse Astrologique | Astrologie relationnelle \u2014 Plume Astrale',
+@@ -61,7 +61,7 @@ const SEO_DATA = {
+   },
+   '/charte-de-confiance': {
+     title: 'Charte de Confiance | Approche Responsable \u2014 Plume Astrale',
+-    description: 'Notre cadre : calculs astrologiques professionnels, lecture symbolique experte, restitution claire. Une guidance symbolique, pas une v\u00e9rit\u00e9 absolue. D\u00e9couvrez notre engagement \u00e9thique.',
++    description: 'Notre cadre : lecture symbolique personnalis\u00e9e, restitution claire. Une guidance symbolique, pas une v\u00e9rit\u00e9 absolue. D\u00e9couvrez notre engagement \u00e9thique.',
+     keywords: 'charte confiance astrologie, \u00e9thique tarot, guidance responsable, approche astrologique, d\u00e9ontologie astrologie',
+   },
+   '/credits': {
+diff --git a/frontend/src/lib/solena.js b/frontend/src/lib/solena.js
+index 07a7ebf..853f0bb 100644
+--- a/frontend/src/lib/solena.js
++++ b/frontend/src/lib/solena.js
+@@ -1,25 +1,25 @@
+-// Assets de Solena — ambassadrice de Plume Astrale.
++// Assets de Solena — voix de Plume Astrale.
+ // Portrait servi via CDN Emergent (portrait mystique définitif — plus de vidéos).
+ 
+ export const SOLENA = {
+   name: 'Solena',
+-  title: 'Astrologue & guide spirituelle',
++  title: 'Voix de Plume Astrale',
+   tagline: 'La voix de Plume Astrale',
+   bio_short:
+-    "Tu revis les mêmes schémas amoureux ? Tu attires des relations qui te blessent ? Il y a quinze ans, j'ai passé six mois à décoder mon propre ciel pour comprendre pourquoi. Aujourd'hui, j'ai fait le même travail pour plus de 2 000 personnes. La prochaine ? Toi.",
++    "Soléna est la voix de Plume Astrale : celle qui met des mots sur ce que révèle ton thème. Pas une vérité figée — une invitation à mieux comprendre tes émotions, tes besoins et tes fonctionnements.",
+   bio_long: [
+-    "Tu as cette impression tenace que la vie tourne en boucle. Les mêmes partenaires. Les mêmes disputes. Les mêmes fins d'histoire. C'est exactement ce que je pensais aussi, il y a quinze ans.",
+-    "Ce que j'ai découvert en décodant mon thème natal m'a bouleversée : ces schémas ne sont pas des fatalités. Ce sont des cycles. Et un cycle, ça se lit, ça se comprend, ça se transforme.",
+-    "Depuis, j'ai accompagné plus de 2 000 âmes avec la même méthode : astrologie précise (éphémérides professionnelles, pas d'horoscope générique), tarot évolutif, lecture karmique. Pas de futur figé — des choix, des invitations, des tournants.",
+-    "Tu es prête à comprendre ce qui se joue vraiment dans ta vie amoureuse ? On commence maintenant.",
++    "Plume Astrale part d'une idée simple : mieux se connaître pour mieux avancer. Tes données de naissance ne dictent pas ton avenir — elles ouvrent une lecture de tes cycles, tes relations et tes élans.",
++    "Soléna est la voix qui porte ces lectures. Chaque texte est composé pour toi, comme une conversation posée : ni horoscope générique, ni prédiction — une matière à réflexion.",
++    "L'idée n'est pas de te dire quoi faire, mais de t'aider à voir plus clair : tes schémas, tes ressources, tes tournants. Le reste t'appartient.",
++    "Prête à mieux te comprendre ? On commence quand tu veux.",
+   ],
+   specialities: [
+-    "Thème natal et carte du ciel personnalisée",
+-    "Compatibilité amoureuse (synastrie et karmique)",
+-    "Prévisions par transits et fenêtres de rencontre",
+-    "Rituels énergétiques et lithothérapie",
+-    "Tarot évolutif (Marseille, Rider-Waite)",
+-    "Guidance médiumnique éthique",
++    "Connaissance de soi",
++    "Aide à la réflexion",
++    "Relations",
++    "Cycles de vie",
++    "Développement personnel",
++    "Introspection",
+   ],
+   portrait: 'https://customer-assets.emergentagent.com/job_consultation-astro/artifacts/n7vv5dtw_IMG01_portrait_femme_mystique_corrigee_2.png',
+   // Legacy fallback (plus utilisé — portrait uniquement partout).
+diff --git a/frontend/src/pages/Blog.js b/frontend/src/pages/Blog.js
+index b7dd6d0..5da0738 100644
+--- a/frontend/src/pages/Blog.js
++++ b/frontend/src/pages/Blog.js
+@@ -56,7 +56,7 @@ export default function Blog() {
+       url: 'https://plume-astrale.fr/blog',
+       description: metaDesc.getAttribute('content'),
+       inLanguage: 'fr-FR',
+-      author: { '@type': 'Person', name: 'Soléna', jobTitle: 'Astrologue · Numérologue · Kabbaliste' },
++      author: { '@type': 'Person', name: 'Soléna', jobTitle: 'Voix de Plume Astrale' },
+       publisher: {
+         '@type': 'Organization',
+         name: 'Plume Astrale',
+diff --git a/frontend/src/pages/CGV.js b/frontend/src/pages/CGV.js
+index 7fe7888..dae4def 100644
+--- a/frontend/src/pages/CGV.js
++++ b/frontend/src/pages/CGV.js
+@@ -27,7 +27,7 @@ export default function CGV() {
+             </p>
+ 
+             <LegalSection title="1. Objet">
+-              <p>Les présentes CGV régissent la vente sur <strong>plume-astrale.fr</strong> de lectures astrologiques personnalisées (Karma, Numérologie, Kabbale, Médiumnité, Croix Celtique, Lecture Complète, Thème Natal, Consultation avec Soléna) sous forme de fichiers PDF numériques et de crédits de conversation.</p>
++              <p>Les présentes CGV régissent la vente sur <strong>plume-astrale.fr</strong> de lectures astrologiques personnalisées (Karma, Numérologie, Kabbale, Lecture Symbolique, Croix Celtique, Lecture Complète, Thème Natal, Consultation avec Soléna) sous forme de fichiers PDF numériques et de crédits de conversation.</p>
+             </LegalSection>
+ 
+             <LegalSection title="2. Prix et paiement">
+diff --git a/frontend/src/pages/CharteConfiance.js b/frontend/src/pages/CharteConfiance.js
+index 656b82f..ccd6e6c 100644
+--- a/frontend/src/pages/CharteConfiance.js
++++ b/frontend/src/pages/CharteConfiance.js
+@@ -101,7 +101,7 @@ const CharteConfiance = () => {
+           <div className="space-y-4">
+             {[
+               'Calculs astrologiques professionnels',
+-              'Lecture symbolique experte',
++              'Lecture symbolique personnalisée',
+               'Restitution claire et structuree',
+               'Chaque lecture est personnalis\u00e9e',
+             ].map((item, i) => (
+diff --git a/frontend/src/pages/Compatibilite2.js b/frontend/src/pages/Compatibilite2.js
+index e93bfaa..0861339 100644
+--- a/frontend/src/pages/Compatibilite2.js
++++ b/frontend/src/pages/Compatibilite2.js
+@@ -491,8 +491,8 @@ const Compatibilite2 = () => {
+                 <button onClick={() => navigate('/tarologie')} className="card-mystical hover:border-[#D4AF37]/50 transition-all group text-left" data-testid="upsell-tarologie">
+                   <div className="flex items-center justify-between">
+                     <div>
+-                      <h3 className="text-[#F5EEE0] font-medium mb-1">Tarologie & M&eacute;diumni&eacute;</h3>
+-                      <p className="text-[#B8B0C8]/50 text-sm">Tirage 7 cartes + lecture m&eacute;diumnique</p>
++                      <h3 className="text-[#F5EEE0] font-medium mb-1">Tarologie & Lecture Symbolique</h3>
++                      <p className="text-[#B8B0C8]/50 text-sm">Tirage 7 cartes + lecture symbolique</p>
+                       <span className="text-[#D4AF37] font-bold text-sm mt-1 inline-block">10 cr&eacute;dits</span>
+                     </div>
+                     <Sparkles className="w-5 h-5 text-[#D4AF37] group-hover:scale-110 transition-transform" />
+diff --git a/frontend/src/pages/Homepage.js b/frontend/src/pages/Homepage.js
+index f11903a..5a80fd6 100644
+--- a/frontend/src/pages/Homepage.js
++++ b/frontend/src/pages/Homepage.js
+@@ -82,8 +82,8 @@ export default function Homepage() {
+     <div className="ps-home" data-testid="homepage-v2">
+       <SEO
+         path="/"
+-        title="Plume Astrale · Ta lecture astrologique écrite par Soléna"
+-        description="Une lecture astrologique personnalisée à partir de tes données de naissance, composée par Soléna. Livrée en PDF premium en quelques minutes."
++        title="Plume Astrale · Ta lecture personnalisée pour mieux te comprendre"
++        description="Connaissance de soi — mieux comprendre ses émotions, besoins et fonctionnements. Une lecture personnalisée à partir de tes données de naissance, livrée en PDF premium en quelques minutes."
+       />
+ 
+       {/* ═══ SECTION 1 · HERO SOMBRE ═══ */}
+@@ -112,8 +112,9 @@ export default function Homepage() {
+                 La lecture que ton <span className="ps-italic">ciel</span> attendait.
+               </h1>
+               <p className="ps-body" style={{ marginBottom: 32, color: 'rgba(247,245,240,0.85)' }}>
+-                Une lecture personnelle de ton thème natal par Soléna — les cycles,
+-                les répétitions, les tournants. Pas d&apos;horoscope générique.
++                Une lecture personnelle de ton thème natal, portée par la voix de
++                Plume Astrale — les cycles, les répétitions, les tournants. Pas
++                d&apos;horoscope générique.
+               </p>
+               <Link to={signupPath} className="ps-btn ps-btn-primary" data-testid="hero-cta"
+                 style={{ padding: '16px 32px', fontSize: 16 }}>
+@@ -135,7 +136,7 @@ export default function Homepage() {
+               }} />
+               <img
+                 src={SOLENA_PORTRAIT}
+-                alt="Soléna, guide astrologique de Plume Astrale"
++                alt="Soléna, la voix de Plume Astrale"
+                 data-testid="hero-portrait"
+                 style={{
+                   position: 'relative', zIndex: 1,
+@@ -165,7 +166,7 @@ export default function Homepage() {
+                   fontFamily: 'Inter, sans-serif', fontSize: 13,
+                   color: 'rgba(247,245,240,0.85)',
+                 }}>
+-                  Soléna, guide astrologique
++                  Soléna, la voix de Plume Astrale
+                 </span>
+                 <span style={{
+                   color: '#C9A24B', fontWeight: 600, fontSize: 13,
+@@ -245,13 +246,12 @@ export default function Homepage() {
+               Soléna écrit une lecture <span className="ps-italic">à la fois.</span>
+             </h2>
+             <p className="ps-body" style={{ color: 'rgba(247,245,240,0.85)', marginBottom: 20 }}>
+-              Astrologue formée à la tradition occidentale et à la kabbale hébraïque, Soléna
+-              travaille chaque lecture sur mesure. À partir de ta date, ton heure et ton lieu de naissance,
+-              chaque paragraphe est composé spécifiquement pour toi — jamais d&apos;horoscope générique.
++              Soléna est la voix de Plume Astrale. À partir de ta date, ton heure et ton lieu de naissance,
++              chaque lecture est composée une à une, spécifiquement pour toi — jamais d&apos;horoscope générique.
+             </p>
+             <p className="ps-body" style={{ color: 'rgba(247,245,240,0.85)', marginBottom: 32 }}>
+-              Chaque texte est une conversation posée, précise, apaisée. Une main tendue par
+-              une amie qui connaît ton ciel mieux que toi.
++              Chaque texte est une conversation posée, précise, apaisée. Une invitation à la
++              réflexion, pour mieux comprendre tes émotions, tes besoins et tes fonctionnements.
+             </p>
+             <Link to="/temoignages" className="ps-btn ps-btn-outline" data-testid="story-cta">
+               Lire les témoignages
+diff --git a/frontend/src/pages/Index.js b/frontend/src/pages/Index.js
+index 6f48ae7..5cb3db2 100644
+--- a/frontend/src/pages/Index.js
++++ b/frontend/src/pages/Index.js
+@@ -727,7 +727,7 @@ export default function Index() {
+                   <img
+                     key={src}
+                     src={src}
+-                    alt="Soléna, guide astrologique de Plume Astrale"
++                    alt="Soléna, la voix de Plume Astrale"
+                     className="pa-hero-slide"
+                     loading={i === 0 ? 'eager' : 'lazy'}
+                     data-testid={`hero-portrait-${i}`}
+@@ -738,7 +738,7 @@ export default function Index() {
+                   />
+                 ))}
+                 <div className="pa-hero-badge">
+-                  <span>Soléna, guide astrologique</span>
++                  <span>Soléna, la voix de Plume Astrale</span>
+                   <strong data-testid="hero-badge-rating">
+                     {trustStats?.average_rating ? `${trustStats.average_rating}/5` : '4,9/5'} ★
+                   </strong>
+diff --git a/frontend/src/pages/Quotidien.js b/frontend/src/pages/Quotidien.js
+index 3092aad..5ca7b1f 100644
+--- a/frontend/src/pages/Quotidien.js
++++ b/frontend/src/pages/Quotidien.js
+@@ -330,7 +330,7 @@ const Quotidien = () => {
+                   <div className="flex items-center justify-between">
+                     <div>
+                       <p className="text-sm mb-0.5 transition-colors duration-300 group-hover:text-[#D4AF37]" style={{ color: 'var(--pa-heading)' }}>
+-                        Tarologie & M&eacute;diumni&eacute; — 35 EUR
++                        Tarologie & Lecture Symbolique — 35 EUR
+                       </p>
+                       <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Lecture compl&egrave;te et PDF personnalis&eacute;</p>
+                     </div>
+diff --git a/frontend/src/pages/RencontresAstrales.js b/frontend/src/pages/RencontresAstrales.js
+index 985428e..2471702 100644
+--- a/frontend/src/pages/RencontresAstrales.js
++++ b/frontend/src/pages/RencontresAstrales.js
+@@ -194,7 +194,7 @@ export default function RencontresAstrales() {
+           <div>
+             {/* Solena — credibility hero */}
+             <div className="flex items-center justify-center gap-3 mb-6 animate-fade-up" data-testid="solena-hero">
+-              <img src={SOLENA.portrait} alt="Solena — astrologue Plume Astrale"
++              <img src={SOLENA.portrait} alt="Solena — la voix de Plume Astrale"
+                 loading="eager"
+                 style={{
+                   width: 60, height: 60, borderRadius: '50%',
+diff --git a/frontend/src/pages/RencontresUltimeSucces.js b/frontend/src/pages/RencontresUltimeSucces.js
+index 4e2e588..16f76d1 100644
+--- a/frontend/src/pages/RencontresUltimeSucces.js
++++ b/frontend/src/pages/RencontresUltimeSucces.js
+@@ -288,7 +288,7 @@ export default function RencontresUltimeSucces() {
+               — Solena
+             </div>
+             <div className="text-[10px] uppercase mt-1" style={{ color: 'rgba(244,232,210,0.5)', letterSpacing: '0.25em' }}>
+-              Guide astrologue chez Plume Astrale
++              La voix de Plume Astrale
+             </div>
+           </div>
+         )}
+diff --git a/frontend/src/pages/Tarologie.js b/frontend/src/pages/Tarologie.js
+index f90c278..4bc849e 100644
+--- a/frontend/src/pages/Tarologie.js
++++ b/frontend/src/pages/Tarologie.js
+@@ -234,7 +234,7 @@ const Tarologie = () => {
+           <div className="mb-12">
+             <p className="section-label">Lecture sacr&eacute;e</p>
+             <h1 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 300, color: 'var(--pa-heading)' }}>
+-              Tarologie & M&eacute;diumni&eacute;
++              Tarologie & Lecture Symbolique
+             </h1>
+             <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
+               Un tirage en croix de 5 Arcanes Majeurs avec interpr&eacute;tations profondes
+@@ -372,7 +372,7 @@ const Tarologie = () => {
+                 'Interpretation detaillee par position',
+                 'Analyse des obstacles et conseils',
+                 'Vision du futur et synthese profonde',
+-                'Lecture m\u00e9diumnique personnalis\u00e9e',
++                'Lecture symbolique personnalis\u00e9e',
+                 'PDF complet a telecharger',
+               ].map((item, i) => (
+                 <div key={i} className="flex items-center gap-2 text-[#B8B0C8]/70 text-sm">
+@@ -532,10 +532,10 @@ const Tarologie = () => {
+                     <div className="text-center px-6">
+                       <Lock className="w-10 h-10 text-[#D4AF37] mx-auto mb-3" />
+                       <h3 className="text-[#F5EEE0] text-lg mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+-                        4 Interpretations + Lecture Mediumnique
++                        4 Interprétations + Lecture Symbolique
+                       </h3>
+                       <p className="text-[#B8B0C8]/60 text-sm mb-4">
+-                        D&eacute;bloquez les interpr&eacute;tations compl&egrave;tes et la lecture m&eacute;diumnique pour 10 cr&eacute;dits
++                        D&eacute;bloquez les interpr&eacute;tations compl&egrave;tes et la lecture symbolique pour 10 cr&eacute;dits
+                       </p>
+                       <button
+                         onClick={handlePurchase}
+@@ -591,11 +591,11 @@ const Tarologie = () => {
+                   <div className="absolute inset-0 bg-[#111625]/80 backdrop-blur-sm z-10 flex items-center justify-center">
+                     <div className="text-center px-6">
+                       <Lock className="w-8 h-8 text-[#D4AF37]/50 mx-auto mb-2" />
+-                      <p className="text-[#D4AF37]/70 text-sm">Lecture m&eacute;diumnique incluse</p>
++                      <p className="text-[#D4AF37]/70 text-sm">Lecture symbolique incluse</p>
+                     </div>
+                   </div>
+                   <div className="opacity-20 p-4">
+-                    <h3 className="text-xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>Lecture Mediumnique</h3>
++                    <h3 className="text-xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>Lecture Symbolique</h3>
+                     <div className="space-y-3">
+                       <div><h4 className="text-[#D4AF37]">Empreinte du Passe</h4><p className="text-[#B8B0C8]/50">Lorem ipsum dolor sit amet...</p></div>
+                       <div><h4 className="text-[#D4AF37]">Energies du Present</h4><p className="text-[#B8B0C8]/50">Lorem ipsum dolor sit amet...</p></div>
+@@ -608,7 +608,7 @@ const Tarologie = () => {
+               {hasPaid && tirage.lecture_mediumnique && (
+                 <div className="bg-[#15112A]/80 border border-[#D4AF37]/20 rounded-sm p-6" data-testid="lecture-full">
+                   <h3 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
+-                    Lecture Mediumnique
++                    Lecture Symbolique
+                   </h3>
+                   {[
+                     { key: 'passe', label: 'Empreinte du Passe' },
+diff --git a/frontend/src/pages/TarotOuiNon.js b/frontend/src/pages/TarotOuiNon.js
+index 5a2eed1..714bf09 100644
+--- a/frontend/src/pages/TarotOuiNon.js
++++ b/frontend/src/pages/TarotOuiNon.js
+@@ -404,9 +404,9 @@ const TarotOuiNon = () => {
+                   <div className="space-y-4">
+                     <button onClick={() => navigate('/tarologie')} className="block w-full text-left group rounded-xl p-4 transition-all duration-300 hover:bg-[var(--pa-surface)]">
+                       <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#D4AF37]" style={{ color: 'var(--pa-heading)' }}>
+-                        Tarologie & Médiumnité — 35 €
++                        Tarologie & Lecture Symbolique — 35 €
+                       </p>
+-                      <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Tirage complet 7 cartes + lecture médiumnique en PDF</p>
++                      <p className="text-xs" style={{ color: 'var(--pa-muted)' }}>Tirage complet 7 cartes + lecture symbolique en PDF</p>
+                     </button>
+                     <button onClick={() => navigate('/formulaire')} className="block w-full text-left group rounded-xl p-4 transition-all duration-300 hover:bg-[var(--pa-surface)]">
+                       <p className="text-sm mb-1 transition-colors duration-300 group-hover:text-[#D4AF37]" style={{ color: 'var(--pa-heading)' }}>

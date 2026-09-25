@@ -92,6 +92,7 @@ from routes.print_approvals import (
     api_router as print_approval_api_router,
     admin_router as print_approval_admin_router,
 )
+from routes.reports import router as reports_router
 
 # Stripe (via emergentintegrations — gere les sandbox keys aussi)
 from integrations.payments.stripe.checkout import (
@@ -175,6 +176,7 @@ api_router.include_router(pdf_test_admin_router)
 api_router.include_router(lead_magnet_router)
 api_router.include_router(voyage_karmique_router)
 api_router.include_router(composer_router)
+api_router.include_router(reports_router)
 
 
 # ════════════════════════════════════════════
@@ -1196,15 +1198,35 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
             logger.warning(f'[kabbale] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'kabbale_arbre_de_vie'}
 
-    # Route vers Pack Karmique + Kabbale handler (pack 89 EUR)
-    if md.get('kind') == 'pack_karmique_kabbale':
-        from services.pack_karmique_service import handle_pack_karmique_webhook
+    # Route vers Numerologie handler si kind=numerologie_code (pack 19 EUR)
+    if md.get('kind') == 'numerologie_code':
+        from services.numerologie_webhook import handle_numerologie_webhook
         try:
             session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
-            await handle_pack_karmique_webhook(session_id)
+            await handle_numerologie_webhook(session_id)
         except Exception as e:
-            logger.warning(f'[pack_karmique] post-webhook fail: {e}')
-        return {'received': True, 'type': event_type, 'kind': 'pack_karmique_kabbale'}
+            logger.warning(f'[numerologie] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'numerologie_code'}
+
+    # Route vers Karma Destin handler si kind=karma_destin_analysis (pack 24 EUR)
+    if md.get('kind') == 'karma_destin_analysis':
+        from services.karma_destin_webhook import handle_karma_destin_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_karma_destin_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[karma_destin] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'karma_destin_analysis'}
+
+    # Route vers Fenetre Rencontre handler si kind=fenetre_rencontre_avancee (pack 29 EUR)
+    if md.get('kind') == 'fenetre_rencontre_avancee':
+        from services.fenetre_rencontre_webhook import handle_fenetre_rencontre_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_fenetre_rencontre_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[fenetre_rencontre] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'fenetre_rencontre_avancee'}
 
     # Route vers Numerologie handler si kind=numerologie_code (pack 19 EUR)
     if md.get('kind') == 'numerologie_code':
@@ -1274,11 +1296,23 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
             # Marque la transaction comme payée avant de lancer le pipeline
             try:
                 sb2 = get_admin_client()
-                sb2.table('payment_transactions').update({
+                update = {
                     'status': 'complete',
                     'payment_status': 'paid',
                     'credits_granted': True,
-                }).eq('session_id', session_id).execute()
+                }
+                # Éditions imprimées : on conserve l'adresse de livraison collectée par Stripe
+                try:
+                    from services.book_engine.fulfillment import extract_shipping
+                    shipping = extract_shipping(data_obj)
+                    if shipping:
+                        cur = sb2.table('payment_transactions').select('metadata').eq(
+                            'session_id', session_id).limit(1).execute()
+                        cur_md = (cur.data[0].get('metadata') if cur and cur.data else None) or {}
+                        update['metadata'] = {**cur_md, 'shipping': shipping}
+                except Exception as e:
+                    logger.warning(f'[composer_book] shipping capture fail: {e}')
+                sb2.table('payment_transactions').update(update).eq('session_id', session_id).execute()
             except Exception as e:
                 logger.warning(f'[composer_book] tx paid update fail: {e}')
             # Lance la génération PDF (peut prendre 30-90s avec LLM)
@@ -1288,7 +1322,7 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
             logger.warning(f'[composer_book] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'composer_book'}
 
-    # Route vers Thème Natal one-shot handler si kind=theme_natal_pdf_oneshot (pack 29 EUR, Gary Vee refonte 2026-02)
+    # Route vers Thème Natal one-shot handler si kind=theme_natal_pdf_oneshot (pack 24 EUR)
     if md.get('kind') == 'theme_natal_pdf_oneshot':
         from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
         try:
@@ -1622,10 +1656,69 @@ async def share_generate_card(payload: PdfUserDataRequest):
     return Response(content=png, media_type='image/png', headers={'Cache-Control': 'no-store'})
 
 
+async def _planets_for_natal_pdf(user_data: dict) -> dict:
+    """Positions planetaires reelles pour les PDF natals.
+
+    natal_pdf_adapter refuse de generer (garde anti-slop) si les signes
+    manquent : on interroge astrology-api.io ici au lieu de lui passer
+    planets_data=None, et on renvoie une 503 explicite si l'API est muette.
+    """
+    raw_date = str(user_data.get('dateNaissance') or user_data.get('birth_date') or '').strip()
+    raw_time = str(user_data.get('heureNaissance') or user_data.get('birth_time') or '12:00').strip()
+    try:
+        y, m, d = [int(x) for x in raw_date.split('-')[:3]]
+        parts = (raw_time.replace('h', ':').split(':') + ['0'])[:2]
+        hh, mm = int(parts[0]), int(parts[1])
+    except Exception:
+        raise HTTPException(status_code=422, detail='Date ou heure de naissance invalide')
+
+    prenom = user_data.get('prenom') or user_data.get('name') or 'Voyageur'
+    ville = str(user_data.get('ville') or 'Paris').split(',')[0].strip()
+    pays = str(user_data.get('pays') or 'France')
+    bd = aio.make_birth_data(
+        y, m, d, hh, mm,
+        city=ville,
+        country_code='FR' if pays.lower() == 'france' else None,
+    )
+
+    chart = None
+    planets = {}
+    try:
+        chart = await aio.natal_chart(bd, name=prenom, language='fr')
+        planets = aio.extract_planets(chart) or {}
+        if not planets:
+            chart = await aio.get_positions(bd, name=prenom, language='fr')
+            planets = aio.extract_planets(chart) or {}
+    except Exception as exc:
+        logger.error(f'[pdf] positions astrology-api indisponibles: {exc}')
+        planets = {}
+
+    if not planets:
+        raise HTTPException(
+            status_code=503,
+            detail='Positions planetaires indisponibles (astrology-api.io) - PDF non genere',
+        )
+
+    if not planets.get('ascendant'):
+        asc = aio.extract_ascendant_sign_en(chart)
+        if not asc:
+            try:
+                cusps = await aio.get_house_cusps(bd, name=prenom, language='fr')
+                asc = aio.extract_ascendant_sign_en(cusps)
+            except Exception as exc:
+                logger.warning(f'[pdf] house-cusps indisponibles: {exc}')
+                asc = None
+        if asc:
+            planets['ascendant'] = {'name': 'Ascendant', 'sign': asc, 'house': 1, 'degree': None}
+
+    return planets
+
+
 @api_router.post('/pdf/generate')
 async def pdf_generate(payload: PdfUserDataRequest):
     user_data = payload.user_data or {}
-    pdf_bytes = generate_manuscrit_pdf(user_data=user_data, planets_data=None, horoscope_data=None)
+    planets_data = await _planets_for_natal_pdf(user_data)
+    pdf_bytes = generate_manuscrit_pdf(user_data=user_data, planets_data=planets_data, horoscope_data=None)
     return Response(content=pdf_bytes, media_type='application/pdf', headers={
         'Content-Disposition': f'attachment; filename="manuscrit_{user_data.get("prenom", "plume")}.pdf"'
     })
@@ -1641,11 +1734,12 @@ async def pdf_pro_horoscope(request: Request):
         'ville': (body.get('place') or 'Paris').split(',')[0].strip(),
         'pays': 'France',
     }
-    pdf_bytes = generate_manuscrit_pdf(user_data=user_data, planets_data=None, horoscope_data=None)
+    planets_data = await _planets_for_natal_pdf(user_data)
+    pdf_bytes = generate_manuscrit_pdf(user_data=user_data, planets_data=planets_data, horoscope_data=None)
     return Response(content=pdf_bytes, media_type='application/pdf', headers={
         'Content-Disposition': f'attachment; filename="theme_astral_pro_{user_data.get("prenom", "plume")}.pdf"'
     })
-
+    
 
 @api_router.post('/pdf/preview')
 async def pdf_preview(payload: PdfUserDataRequest):
@@ -2254,6 +2348,57 @@ async def horoscope_prediction(payload: HoroscopeRequest):
 @api_router.get('/tarot/jour')
 async def get_jour():
     return {'success': True, 'data': tirage_du_jour()}
+
+
+class ExperienceTarotRequest(BaseModel):
+    session_id: Optional[str] = None
+    intent: Optional[str] = 'general'
+
+
+_TAROT_ASSET_SLUGS = {
+    0: '00_le_mat', 1: '01_le_bateleur', 2: '02_la_papesse',
+    3: '03_l_imperatrice', 4: '04_l_empereur', 5: '05_le_pape',
+    6: '06_les_amoureux', 7: '07_le_chariot', 8: '08_la_force',
+    9: '09_l_hermite', 10: '10_la_roue_de_fortune', 11: '11_la_justice',
+    12: '12_le_pendu', 13: '13_la_mort', 14: '14_la_temperance',
+    15: '15_le_diable', 16: '16_la_maison_dieu', 17: '17_l_etoile',
+    18: '18_la_lune', 19: '19_le_soleil', 20: '20_le_jugement',
+    21: '21_le_monde',
+}
+
+
+@api_router.post('/tarot/experience-draw')
+async def experience_tarot_draw(payload: ExperienceTarotRequest):
+    """Tirage d'accueil gratuit : 3 arcanes uniques, sans débit de crédits."""
+    intent_to_domain = {
+        'relationship': 'amour',
+        'clarity': 'general',
+        'self_discovery': 'spirituel',
+        'specific_question': 'general',
+    }
+    domain = intent_to_domain.get(payload.intent or '', 'general')
+    seed = (payload.session_id or str(uuid.uuid4())).strip()[:120]
+    reading = tirage_marseille_question(
+        question='Quelle énergie souhaite se révéler maintenant ?',
+        domaine=domain,
+        seed=seed,
+    )
+    cards = []
+    for index, card in enumerate(reading.get('cartes', [])):
+        number = card.get('numero')
+        slug = _TAROT_ASSET_SLUGS.get(number, '17_l_etoile')
+        cards.append({
+            **card,
+            'id': f"arcane-{number}-{index}",
+            'image_url': f'/api/library/file/tarot/{slug}_512.png',
+        })
+    return {
+        'success': True,
+        'draw_id': seed,
+        'cards': cards,
+        'synthese': reading.get('synthese'),
+        'disclaimer': 'Lecture symbolique proposée comme support de réflexion.',
+    }
 
 
 class OracleQuestionRequest(BaseModel):

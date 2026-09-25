@@ -94,7 +94,7 @@ const HomeCreditPacks = () => {
             return (
               <Link
                 key={p.id}
-                to="/buy-credits"
+                to="/acheter-credits"
                 className="group relative rounded-2xl p-6 transition-all hover:scale-[1.03] hover:-translate-y-1"
                 style={{
                   background: isFeatured
@@ -235,7 +235,7 @@ const HomeCreditPacks = () => {
             Paiement sécurisé Stripe · Crédits non expirables · Utilisables sur tout le site
           </p>
           <Link
-            to="/buy-credits"
+            to="/acheter-credits"
             style={{
               display: 'inline-flex',
               alignItems: 'center',

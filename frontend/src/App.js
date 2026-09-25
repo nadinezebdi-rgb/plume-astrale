@@ -8,8 +8,7 @@ import TrialBanner from "./components/TrialBanner";
 import Index from "./pages/Homepage";
 import ABTestHome from "./components/ABTestHome";
 import LectureCompleteSucces from "./pages/LectureCompleteSucces";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
+import AuthPage from "./pages/AuthPage";
 import Tarot from "./pages/Tarot";
 import Formulaire from "./pages/Formulaire";
 import Apercu from "./pages/Apercu";
@@ -89,7 +88,6 @@ import AdminPdfTest from "./pages/AdminPdfTest";
 import AdminQrStats from "./pages/AdminQrStats";
 import GiftCardPurchase from "./pages/GiftCardPurchase";
 import GiftCardRedeem from "./pages/GiftCardRedeem";
-import EditionReliee from "./pages/EditionReliee";
 import EditionRelieeMerci from "./pages/EditionRelieeMerci";
 import RelectureRefus from "./pages/RelectureRefus";
 import ExperiencePage from "./pages/Experience";
@@ -102,7 +100,7 @@ import NumerologiePDF from "./pages/NumerologiePDF";
 import NumerologieWaiting from "./pages/NumerologieWaiting";
 import KarmaDestinPDF from "./pages/KarmaDestinPDF";
 import KarmaDestinWaiting from "./pages/KarmaDestinWaiting";
-// ThemeNatal one-shot 29€ (Gary Vee refonte Feb 2026)
+// ThemeNatal one-shot 24€
 import ThemeNatalOneshot from "./pages/ThemeNatalOneshot";
 import ThemeNatalOneshotSucces from "./pages/ThemeNatalOneshotSucces";
 // Trio Découverte 79€ (Gary Vee refonte Feb 2026)
@@ -118,6 +116,7 @@ import MobileTabBar from "./components/design/MobileTabBar";
 import AuraProvider from "./components/design/AuraProvider";
 import LiveSalesCounter from "./components/LiveSalesCounter";
 import { captureReferralFromURL } from "./lib/referral";
+import ShootingStars from "./components/design/ShootingStars";
 import { useLocation } from "react-router-dom";
 
 function GlobalOverlays() {
@@ -127,6 +126,7 @@ function GlobalOverlays() {
   return (
     <>
       <Starfield />
+      <ShootingStars />
       <NoiseOverlay />
       <MobileTabBar />
       {!isLanding && <LiveSalesCounter />}
@@ -193,7 +193,7 @@ function App() {
           <Route path="/numerologie-pdf/attente" element={<NumerologieWaiting />} />
           {/* Ancienne route karma-destin-pdf — 301 vers Voyage Karmique (déclaré plus haut) */}
           <Route path="/karma-destin/attente" element={<Navigate to="/voyage-karmique" replace />} />
-          {/* Thème Natal one-shot 29€ (Gary Vee refonte Feb 2026) */}
+          {/* Thème Natal one-shot 24€ */}
           <Route path="/theme-natal" element={<ThemeNatalOneshot />} />
           <Route path="/theme-natal/succes" element={<ThemeNatalOneshotSucces />} />
           {/* Trio Découverte 79€ (Gary Vee refonte Feb 2026) */}
@@ -209,8 +209,8 @@ function App() {
           <Route path="*" element={
             <>
               <Routes>
-                <Route path="/inscription" element={<Register />} />
-                <Route path="/connexion" element={<Login />} />
+                <Route path="/inscription" element={<AuthPage />} />
+                <Route path="/connexion" element={<AuthPage />} />
                 <Route path="/mon-accueil" element={<AuthenticatedHome />} />
                 <Route path="/formulaire" element={<Formulaire />} />
                 <Route path="/apercu" element={<Apercu />} />
@@ -243,7 +243,7 @@ function App() {
                 <Route path="/carte-cadeau" element={<GiftCardPurchase />} />
                 <Route path="/carte-cadeau/redeem/:code" element={<GiftCardRedeem />} />
                 <Route path="/carte-cadeau/merci" element={<GiftCardPurchase />} />
-                <Route path="/edition-reliee" element={<EditionReliee />} />
+                <Route path="/edition-reliee" element={<Navigate to="/composer?edition=reliee" replace />} />
                 <Route path="/edition-reliee/merci" element={<EditionRelieeMerci />} />
                 <Route path="/relecture/:token" element={<RelectureRefus />} />
                 <Route path="/experience" element={<ExperiencePage />} />
@@ -274,6 +274,7 @@ function App() {
                 <Route path="/compatibilite-amoureuse" element={<Navigate to="/services/compatibilite" replace />} />
                 <Route path="/mon-rituel" element={<Navigate to="/services/rituel" replace />} />
                 <Route path="/chat-astral" element={<Navigate to="/services/consultation" replace />} />
+                <Route path="/compatibilite" element={<Navigate to="/services/compatibilite" replace />} />
                 <Route path="/cercle-quotidien" element={<Navigate to="/communaute" replace />} />
                 <Route path="/cercle-dashboard" element={<Navigate to="/communaute" replace />} />
                 <Route path="/cercle" element={<Navigate to="/communaute" replace />} />

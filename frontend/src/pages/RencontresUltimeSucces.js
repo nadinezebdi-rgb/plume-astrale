@@ -288,7 +288,7 @@ export default function RencontresUltimeSucces() {
               — Solena
             </div>
             <div className="text-[10px] uppercase mt-1" style={{ color: 'rgba(244,232,210,0.5)', letterSpacing: '0.25em' }}>
-              Guide astrologue chez Plume Astrale
+              La voix de Plume Astrale
             </div>
           </div>
         )}

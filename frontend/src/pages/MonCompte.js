@@ -381,6 +381,9 @@ const MonCompte = () => {
   const [pdfLoading, setPdfLoading]     = useState(false);
   const [cercleStatus, setCercleStatus] = useState(null);
   const [creditsInfoOpen, setCreditsInfoOpen] = useState(false);
+  const [archivedReports, setArchivedReports] = useState(null); // null = pas encore chargé
+  const [reportsLoading, setReportsLoading] = useState(false);
+  const [reportPdfLoading, setReportPdfLoading] = useState(null); // id du rapport en cours
 
   // Redirection si non connecté — attendre que AuthContext finisse de restaurer la session
   useEffect(() => {
@@ -454,6 +457,22 @@ const MonCompte = () => {
     } catch { /* ignore */ }
   }, [token]);
 
+  /* ─── Charger les rapports archivés ─── */
+  const fetchArchivedReports = useCallback(async () => {
+    if (!token) return;
+    setReportsLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/api/reports`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setArchivedReports(res.data?.reports || []);
+    } catch {
+      setArchivedReports([]);
+    } finally {
+      setReportsLoading(false);
+    }
+  }, [token]);
+
   useEffect(() => {
     const init = async () => {
       setLoading(true);
@@ -462,6 +481,13 @@ const MonCompte = () => {
     };
     init();
   }, [chargerProfil, chargerTransactions]);
+
+  /* ── Charger les rapports archivés lorsque l'onglet est activé ── */
+  useEffect(() => {
+    if (activeTab === 'rapports' && archivedReports === null) {
+      fetchArchivedReports();
+    }
+  }, [activeTab, fetchArchivedReports]);
 
   /* ── Check-in quotidien ── */
   const handleCheckin = async () => {
@@ -584,11 +610,33 @@ const MonCompte = () => {
     setPdfLoading(false);
   };
 
+  /* ─── Re-télécharger un rapport archivé ─── */
+  const handleArchivedReportPdf = async (report) => {
+    setReportPdfLoading(report.id);
+    try {
+      const res = await axios.get(`${API_URL}/api/reports/${report.id}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${report.type}-${report.titre || 'rapport'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      alert('Impossible de télécharger ce rapport. Réessayez dans quelques instants.');
+    } finally {
+      setReportPdfLoading(null);
+    }
+  };
+
   /* ─── Onglets ─── */
   const tabs = [
     { id: 'apercu',       label: 'Aperçu'       },
     { id: 'rapports',     label: 'Mes Rapports' },
-    { id: 'abonnement',   label: 'Abonnement'   },
     { id: 'credits',      label: 'Crédits'       },
     { id: 'parrainage',   label: 'Parrainage'   },
     { id: 'fidelite',     label: 'Assiduité'    },
@@ -1077,9 +1125,7 @@ const MonCompte = () => {
                 </div>
                 <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
                   Chaque rapport est calcule avec les ephemerides Swiss Ephemeris.
-                  {profil?.premium_status === 'active'
-                    ? ' Tous les rapports sont offerts avec votre abonnement Premium.'
-                    : " Réservez vos lectures avec vos crédits, ou débloquez l'accès illimité via l'abonnement Premium."}
+                  Débloquez vos lectures avec vos crédits
                 </p>
                 {!profil?.birth_date && (
                   <p className="text-xs mt-2" style={{ color: '#94A3B8' }}>
@@ -1087,6 +1133,69 @@ const MonCompte = () => {
                   </p>
                 )}
               </div>
+
+              {/* ── Rapports archivés ── */}
+              {reportsLoading && (
+                <p className="text-sm text-center py-4" style={{ color: 'var(--pa-muted)' }}>
+                  Chargement de vos rapports…
+                </p>
+              )}
+              {!reportsLoading && archivedReports && archivedReports.length > 0 && (
+                <div className="space-y-3">
+                  <h3
+                    className="text-sm uppercase tracking-widest"
+                    style={{ color: 'var(--pa-muted)', letterSpacing: '0.12em' }}
+                  >
+                    Rapports générés
+                  </h3>
+                  {archivedReports.map((report) => (
+                    <div
+                      key={report.id}
+                      className="rounded-2xl p-4 flex items-center gap-4"
+                      style={{ background: 'var(--pa-surface)', border: '1px solid var(--pa-divider)' }}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className="text-sm truncate"
+                          style={{ color: 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif' }}
+                        >
+                          {report.titre}
+                        </p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--pa-muted)' }}>
+                          {report.created_at ? new Date(report.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+                        </p>
+                      </div>
+                      {report.pdf_path && (
+                        <button
+                          onClick={() => handleArchivedReportPdf(report)}
+                          disabled={reportPdfLoading === report.id}
+                          data-testid={`btn-archived-pdf-${report.id}`}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 5,
+                            padding: '6px 14px', borderRadius: 999, flexShrink: 0,
+                            background: 'rgba(212,175,55,0.1)',
+                            border: '1px solid rgba(212,175,55,0.35)',
+                            color: 'var(--pa-accent)',
+                            fontSize: 11,
+                            letterSpacing: '0.08em', textTransform: 'uppercase',
+                            cursor: reportPdfLoading === report.id ? 'not-allowed' : 'pointer',
+                          }}
+                        >
+                          {reportPdfLoading === report.id ? '⏳' : '✦'} PDF
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ── Catalogue — débloquer une nouvelle lecture ── */}
+              <h3
+                className="text-sm uppercase tracking-widest pt-2"
+                style={{ color: 'var(--pa-muted)', letterSpacing: '0.12em' }}
+              >
+                Débloquer une lecture
+              </h3>
 
               {[
                 { to: '/karma-destin', title: 'Karma & Destin', subtitle: 'Lecture karmique avec Noeud Nord et mission de vie', price: 5, icon: '☉', accent: '#D4AF37' },
@@ -1131,11 +1240,7 @@ const MonCompte = () => {
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      {profil?.premium_status === 'active' ? (
-                        <span className="text-[10px] tracking-widest uppercase px-2 py-0.5 rounded-full" style={{ background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ADE80', letterSpacing: '0.1em' }}>
-                          Offert
-                        </span>
-                      ) : (
+                      {profil?.premium_status !== 'active' && (
                         <span className="text-base" style={{ color: 'var(--pa-accent)', fontFamily: 'Cormorant Garamond, serif' }}>
                           {price} cr
                         </span>
@@ -1384,11 +1489,11 @@ const MonCompte = () => {
                 </h2>
                 <div className="space-y-3">
                   {[
-                    { jours: 7,   bonus: 3,  label: 'Une semaine de constance' },
-                    { jours: 14,  bonus: 5,  label: 'Deux semaines d\'alignement' },
-                    { jours: 30,  bonus: 10, label: 'Un mois d\'assiduité' },
-                    { jours: 60,  bonus: 15, label: 'Deux mois de fidélité' },
-                    { jours: 100, bonus: 25, label: 'Cent jours de présence céleste' },
+                    { jours: 7,   bonus: 10,  label: 'Une semaine de constance' },
+                    { jours: 14,  bonus: 20,  label: 'Deux semaines d\'alignement' },
+                    { jours: 30,  bonus: 30, label: 'Un mois d\'assiduité' },
+                    { jours: 60,  bonus: 45, label: 'Deux mois de fidélité' },
+                    { jours: 100, bonus: 125, label: 'Cent jours de présence céleste' },
                   ].map(({ jours, bonus, label }) => {
                     const atteint = (fidelite?.streak_count ?? 0) >= jours;
                     return (

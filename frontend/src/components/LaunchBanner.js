@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 /**
  * Bandeau offre de lancement — cliquable (→ /inscription), texte défilant en boucle.
- * Message unique et strict : "Crée ton compte et reçoit 20 crédits!"
+  * Message unique et strict : "Recevez 20 crédits gratuits pour créer votre compte. Pas de CB demandée"
  */
 const LaunchBanner = () => {
   const navigate = useNavigate();
@@ -21,8 +21,8 @@ const LaunchBanner = () => {
       }}
       data-testid="launch-banner-text"
     >
-      Crée ton compte et reçoit 20 crédits!
-    </span>
+        Recevez 20 crédits gratuits pour créer votre compte. Pas de CB demandée
+        </span>
   );
 
   return (

@@ -31,6 +31,9 @@ from integrations.payments.stripe.checkout import (
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/composer', tags=['composer'])
 
+# Pays de livraison acceptés pour les éditions imprimées
+PRINT_SHIPPING_COUNTRIES = ['FR', 'BE', 'LU', 'CH', 'MC']
+
 
 # ── Schémas Pydantic ────────────────────────────────────────────
 class QuotePayload(BaseModel):
@@ -303,14 +306,52 @@ async def composer_checkout(payload: CheckoutPayload, request: Request):
         'no_birth_time': '1' if no_birth_time else '0',
     }
 
-    req = CheckoutSessionRequest(
-        amount=float(q.total_eur),
-        currency=q.currency,
-        success_url=success_url,
-        cancel_url=cancel_url,
-        metadata=metadata,
-    )
-    session = await stripe_checkout.create_checkout_session(req)
+    if q.edition == 'numerique':
+        req = CheckoutSessionRequest(
+            amount=float(q.total_eur),
+            currency=q.currency,
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata=metadata,
+        )
+        session = await stripe_checkout.create_checkout_session(req)
+        session_id_out, session_url_out = session.session_id, session.url
+    else:
+        # Éditions imprimées (brochée / reliée) : Stripe DOIT collecter l'adresse
+        # de livraison — sans elle, impossible d'expédier le livre.
+        import stripe as _stripe
+        _stripe.api_key = settings.STRIPE_API_KEY
+        try:
+            s_session = _stripe.checkout.Session.create(
+                mode='payment',
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': q.currency,
+                        'product_data': {
+                            'name': f'Plume Astrale — {q.edition_label}',
+                            'description': 'Livre personnalisé imprimé. Vous relisez le PDF avant impression (72h).',
+                        },
+                        'unit_amount': int(round(float(q.total_eur) * 100)),
+                    },
+                    'quantity': 1,
+                }],
+                customer_email=payload.email.lower(),
+                shipping_address_collection={'allowed_countries': PRINT_SHIPPING_COUNTRIES},
+                phone_number_collection={'enabled': True},
+                success_url=success_url,
+                cancel_url=cancel_url,
+                metadata=metadata,
+            )
+        except Exception as e:
+            logger.exception(f'[composer] stripe print checkout failed: {e}')
+            raise HTTPException(502, 'Paiement indisponible, réessayez dans un instant.')
+        session_id_out, session_url_out = s_session.id, s_session.url
+
+    class _S:  # compat avec le code ci-dessous (session.session_id / session.url)
+        session_id = session_id_out
+        url = session_url_out
+    session = _S
 
     # Trace payment_transactions (source de vérité pour le webhook)
     try:

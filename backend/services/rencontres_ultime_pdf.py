@@ -184,7 +184,7 @@ def _p_cover(c, sun_sign: str, first_name: str):
     # Signature bas
     c.setFont("Helvetica-Oblique", 10)
     c.setFillColor(HexColor('#8B7355'))
-    c.drawCentredString(W / 2, 3 * cm, "— Solena, guide astrologue")
+    c.drawCentredString(W / 2, 3 * cm, "— Solena, la voix de Plume Astrale")
     c.setFont("Helvetica", 8)
     c.drawCentredString(W / 2, 2.3 * cm, "PLUME  ASTRALE  ·  " + _date_fr().upper())
 
@@ -719,7 +719,7 @@ def _p_benediction(c, page_num, first_name):
     c.drawCentredString(W / 2, y, "— Solena")
     c.setFont("Helvetica", 8)
     c.setFillColor(INK_SOFT)
-    c.drawCentredString(W / 2, y - 16, "Guide astrologue chez Plume Astrale")
+    c.drawCentredString(W / 2, y - 16, "La voix de Plume Astrale")
 
 
 # ═══════════════════════════════ Synastrie 12 domaines ═══════════════════════════════

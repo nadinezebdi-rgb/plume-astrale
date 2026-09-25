@@ -34,8 +34,8 @@ CATALOG: Dict[str, Dict[str, Any]] = {
         'name': "Lecture Complète — Le Bundle Signature",
         'description': (
             "Ta cartographie céleste complète : Thème Natal détaillé + Karma & Destin + "
-            "Numérologie + Kabbale (Arbre de Vie) + Tirage Médiumnité. "
-            "5 PDFs livrés instantanément par email, rédigés par Soléna via GPT-5.4. "
+            "Numérologie + Kabbale (Arbre de Vie) + Tirage Symbolique. "
+            "5 PDFs livrés instantanément par email, dans la voix de Soléna. "
             "Environ 90 pages personnalisées avec ta date et ton prénom."
         ),
         'image_url': _tarot_img('19_le_soleil'),
@@ -50,7 +50,7 @@ CATALOG: Dict[str, Dict[str, Any]] = {
         'name': "Karma & Destin — La Mémoire de ton Âme",
         'description': (
             "Ton axe karmique Nord/Sud, Saturne, Chiron, Pluton, karma générationnel "
-            "et dates-clés de ta vie. PDF ~15 pages, voix de Soléna, GPT-5.4."
+            "et dates-clés de ta vie. PDF ~15 pages, dans la voix de Soléna."
         ),
         'image_url': _tarot_img('13_la_mort'),
         'submit_label': 'auto',
@@ -84,7 +84,7 @@ CATALOG: Dict[str, Dict[str, Any]] = {
         'description': (
             "L'union des deux lectures les plus profondes : ton empreinte karmique "
             "(Nord/Sud, dates-clés) croisée avec ton Arbre de Vie kabbalistique. "
-            "PDF ~14 pages, écrit par Soléna via GPT-5.4."
+            "PDF ~14 pages, dans la voix de Soléna."
         ),
         'image_url': _tarot_img('03_l_imperatrice'),
         'submit_label': 'auto',
@@ -92,11 +92,11 @@ CATALOG: Dict[str, Dict[str, Any]] = {
     },
 
     'mediumnite': {
-        'name': "Tirage Médiumnité — La Croix qui te Parle",
+        'name': "Tirage Symbolique — La Croix qui te Parle",
         'description': (
-            "Un tirage complet à 5 arcanes qui révèle tes canaux médiumniques "
-            "(clairvoyance, clairaudience, clairsentience), tes guides et tes blocages. "
-            "PDF illustré, ~12 pages."
+            "Un tirage complet à 5 arcanes pour éclairer tes dynamiques intérieures : "
+            "ce qui t'anime, ce qui te freine, tes ressources. Une lecture symbolique, "
+            "comme matière à réflexion. PDF illustré, ~12 pages."
         ),
         'image_url': _tarot_img('02_la_papesse'),
         'submit_label': 'auto',
@@ -208,7 +208,7 @@ CATALOG: Dict[str, Dict[str, Any]] = {
         'name': "Duo Découverte — 2 Lectures Combinées",
         'description': (
             "Deux lectures Plume Astrale au prix de l'audace : combine ce qui te parle "
-            "le plus (Karma, Kabbale, Numéro, Tarot ou Médiumnité)."
+            "le plus (Karma, Kabbale, Numéro, Tarot ou Lecture Symbolique)."
         ),
         'image_url': _tarot_img('10_la_roue_de_fortune'),
         'submit_label': 'auto',
@@ -219,7 +219,7 @@ CATALOG: Dict[str, Dict[str, Any]] = {
         'name': "Duo Découverte — 2 Lectures Combinées",
         'description': (
             "Deux lectures Plume Astrale au prix de l'audace : combine ce qui te parle "
-            "le plus (Karma, Kabbale, Numéro, Tarot ou Médiumnité)."
+            "le plus (Karma, Kabbale, Numéro, Tarot ou Lecture Symbolique)."
         ),
         'image_url': _tarot_img('10_la_roue_de_fortune'),
         'submit_label': 'auto',

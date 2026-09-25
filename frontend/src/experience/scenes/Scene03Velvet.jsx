@@ -60,7 +60,7 @@ export default function Scene03Velvet() {
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.4, 0]}>
         <planeGeometry args={[14, 10, 1, 1]} />
         <meshBasicMaterial
-          color="#0A0818"
+          color="#261B48"
           transparent
           opacity={0.9}
         />

@@ -448,6 +448,15 @@ async def build_book_pdf_for_session(session_id: str, *, force: bool = False) ->
     diag['pdf_supabase_url'] = supabase_url
     diag['pdf_local_path'] = str(local_path)
     diag['pdf_signed_url'] = md.get('pdf_path')
+
+    # 7. Livraison : email PDF (numérique) ou relecture 72h + alerte admin (imprimé).
+    #    Ne doit jamais faire échouer la génération.
+    try:
+        from .fulfillment import deliver_book
+        diag['delivery'] = await deliver_book(session_id=session_id, tx=tx, md=md)
+    except Exception as e:
+        logger.warning(f'[pipeline] delivery failed for {session_id}: {e}')
+        diag['delivery_error'] = str(e)
     logger.info(
         f'[pipeline] Book PDF built for {session_id}: '
         f'{diag["pdf_pages"]} pages, {diag["pdf_bytes"]} bytes'

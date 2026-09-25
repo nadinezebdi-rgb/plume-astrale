@@ -46,7 +46,7 @@ async def theme_natal_oneshot_checkout(
     request: Request,
     current_user: Optional[dict] = Depends(get_optional_user),
 ):
-    """Crée une session Stripe pour le Thème Natal 29 EUR one-shot."""
+    """Crée une session Stripe pour le Thème Natal 24 EUR one-shot."""
     settings = get_settings()
     pack = settings.PACKS.get('theme_natal_pdf_oneshot')
     if not pack:

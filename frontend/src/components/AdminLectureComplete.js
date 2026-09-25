@@ -890,7 +890,7 @@ export default function AdminLectureComplete({ token }) {
             fontSize: 12, color: 'rgba(232,230,240,0.75)', marginTop: 4, lineHeight: 1.5,
           }}>
             {aiEnrichmentEnabled
-              ? "Les PDFs Karma, Numérologie, Kabbale, Médiumnité et Pack Karmique appellent GPT-5.4 pour rédiger les pages narratives Soléna."
+              ? "Les PDFs Karma, Numérologie, Kabbale, Lecture Symbolique et Pack Karmique appellent GPT-5.4 pour rédiger les pages narratives Soléna."
               : "Fallback statique riche pré-rédigé — pages toujours étoffées, aucun appel LLM (budget préservé)."}
           </div>
         </div>

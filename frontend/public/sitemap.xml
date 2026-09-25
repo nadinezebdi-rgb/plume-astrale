@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Plume Astrale — sitemap statique, généré le 2026-08-24.
+     Source : SEO_ROUTES (backend/services/ssr_snapshot.py) + pages publiques hors registre.
+     Exclus volontairement : redirections <Navigate>, pages noindex (/cgv, /mentions-legales),
+     routes inexistantes (/archetype, /numerologie), et les doublons canoniques
+     /services/horoscope (→ /horoscope) et /services/theme-natal (→ /theme-natal). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Accueil et editoriaux (priorite maximale) -->
   <url>
@@ -290,7 +295,7 @@
     <loc>https://plume-astrale.fr/horoscope/lion/semaine</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.55</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/lion/mois</loc>
@@ -308,7 +313,7 @@
     <loc>https://plume-astrale.fr/horoscope/vierge/semaine</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.55</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/vierge/mois</loc>
@@ -380,7 +385,7 @@
     <loc>https://plume-astrale.fr/horoscope/capricorne/semaine</loc>
     <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.65</priority>
   </url>
   <url>
     <loc>https://plume-astrale.fr/horoscope/capricorne/mois</loc>

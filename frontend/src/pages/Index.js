@@ -693,7 +693,7 @@ export default function Index() {
                   <img
                     key={src}
                     src={src}
-                    alt="Soléna, guide astrologique de Plume Astrale"
+                    alt="Soléna, la voix de Plume Astrale"
                     className="pa-hero-slide"
                     loading={i === 0 ? 'eager' : 'lazy'}
                     data-testid={`hero-portrait-${i}`}
@@ -704,7 +704,7 @@ export default function Index() {
                   />
                 ))}
                 <div className="pa-hero-badge">
-                  <span>Soléna, guide astrologique</span>
+                  <span>Soléna, la voix de Plume Astrale</span>
                   <strong data-testid="hero-badge-rating">
                     {trustStats?.average_rating ? `${trustStats.average_rating}/5` : '4,9/5'} ★
                   </strong>

@@ -49,7 +49,7 @@ const NAV_ITEMS = [
           { label: 'Trio Découverte · 79€ · -8€', to: '/trio-decouverte', highlight: true },
           { label: 'Pack Karmique + Kabbale · 89€', to: '/pack-karmique' },
           { label: 'Consultation Ultime · 149€', to: '/consultation-ultime' },
-          { label: 'Thème Natal Complet · 29€', to: '/theme-natal' },
+          { label: 'Thème Natal Complet · 24€', to: '/theme-natal' },
           { label: 'Astrocartographie · 49€', to: '/astrocartographie' },
           { label: 'Arbre de Vie Kabbale · 39€', to: '/kabbale' },
           { label: 'Guide Ultime des Rencontres · 34,99€', to: '/rencontres-astrales' },
@@ -353,7 +353,7 @@ const Navbar = () => {
               })}
               <div style={{ width: 1, height: 16, background: '#D4AF37', opacity: 0.2 }} />
 
-              {/* Vitrine — Thème Natal Complet 29€ one-shot (Gary Vee refonte 2026-02) */}
+              {/* Vitrine — Thème Natal Complet 24€ */}
               <Link
                 to="/blog"
                 data-testid="navbar-blog-link"
@@ -392,7 +392,7 @@ const Navbar = () => {
                   background: '#111625', color: '#E8C766',
                   letterSpacing: '0.06em', fontWeight: 600, marginLeft: 2,
                 }}>
-                  29€
+                  24€
                 </span>
               </Link>
 
@@ -490,7 +490,7 @@ const Navbar = () => {
               })}
               <div style={{ margin: '8px 0', borderTop: '1px solid rgba(212,175,55,0.1)' }} />
 
-              {/* Vitrine — Thème Natal Complet 29€ (mobile) */}
+              {/* Vitrine — Thème Natal Complet 24€ (mobile) */}
               <Link
                 to="/blog"
                 data-testid="mobile-navbar-blog-link"
@@ -522,7 +522,7 @@ const Navbar = () => {
                   background: '#111625', color: '#E8C766',
                   letterSpacing: '0.05em', fontWeight: 600,
                 }}>
-                  29€
+                  24€
                 </span>
               </Link>
 

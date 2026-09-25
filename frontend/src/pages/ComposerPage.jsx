@@ -34,7 +34,15 @@ export default function ComposerPage() {
     birth_country: 'FR',
   });
   const [selectedChapters, setSelectedChapters] = useState([]);
-  const [edition, setEdition] = useState('numerique');
+  // Pré-sélection via ?edition=reliee|brochee|numerique (liens depuis la home)
+  const [edition, setEdition] = useState(() => {
+    try {
+      const q = new URLSearchParams(window.location.search).get('edition');
+      return ['numerique', 'brochee', 'reliee'].includes(q) ? q : 'numerique';
+    } catch {
+      return 'numerique';
+    }
+  });
   const [recipient, setRecipient] = useState({ recipient_first_name: '', dedication: '' });
   const [promo, setPromo] = useState({ code: '', applied: false, message: null, total_eur: 0, original_total_eur: 0 });
 

@@ -1,5 +1,5 @@
 """
-Service Tarot - Oui/Non et Tarologie Médiumnité
+Service Tarot - Oui/Non et Tarologie Symbolique
 """
 import hashlib
 import os
@@ -178,35 +178,35 @@ ARCANES_TAROT = [
     },
 ]
 
-# Thèmes de médiumnité pour la tarologie complète
+# Thèmes de lecture symbolique pour la tarologie complète
 THEMES_MEDIUMNITE = {
     "passe": [
-        "Votre passé porte l'empreinte d'une âme ancienne. Les expériences vécues ont forgé une résilience rare.",
-        "Des vies antérieures influencent encore vos schémas actuels. Une blessure karmique demande à être guérie.",
-        "L'enfant intérieur que vous étiez porte encore des trésors inexploités. Reconnectez-vous à cette innocence.",
-        "Un ancêtre veille sur vous depuis l'au-delà. Son énergie protectrice guide vos pas.",
-        "Le karma de vos vies passées se résout progressivement. Vous êtes sur la voie de la libération.",
+        "Votre passé a forgé une résilience rare. Les épreuves traversées font aujourd'hui partie de vos forces.",
+        "Certains schémas anciens influencent encore vos réactions d'aujourd'hui. Les reconnaître, c'est déjà commencer à s'en libérer.",
+        "L'enfant que vous étiez porte encore des ressources inexploitées. Renouez avec cette part spontanée de vous.",
+        "Une personne de votre histoire vous a transmis un appui durable. Sa trace vous accompagne encore.",
+        "Ce que vous avez vécu se met peu à peu en ordre. Vous avancez sur le chemin de l'apaisement.",
     ],
     "present": [
-        "Votre aura vibre à une fréquence de transformation. Les énergies actuelles accélèrent votre évolution.",
-        "Un guide spirituel essaie d'entrer en contact avec vous. Soyez attentif(ve) aux signes répétitifs.",
-        "Votre chakra du cœur est en pleine expansion. L'amour inconditionnel devient votre vibration naturelle.",
-        "Les synchronicités que vous vivez ne sont pas des coïncidences. Elles sont des confirmations de votre chemin.",
-        "Une énergie de guérison circule en vous. Vous êtes capable de transmuter la douleur en sagesse.",
+        "Vous traversez une période de transformation. Ce qui bouge en vous accélère votre évolution.",
+        "Une intuition cherche à se faire entendre. Soyez attentif(ve) à ce qui revient souvent dans vos pensées.",
+        "Votre capacité à vous ouvrir grandit. La bienveillance envers vous-même devient plus naturelle.",
+        "Les coïncidences que vous remarquez ne sont pas anodines : ce sont des repères qui confirment votre direction.",
+        "Un élan de réparation est à l'œuvre. Vous êtes capable de transformer la difficulté en compréhension.",
     ],
     "futur": [
-        "Je vois une porte s'ouvrir dans les prochains mois. Une opportunité alignée avec votre mission d'âme.",
-        "Un cycle de 7 ans s'achève. La prochaine phase apportera une croissance spirituelle accélérée.",
-        "Une rencontre karmique est inscrite dans votre avenir proche. Elle transformera votre vision du monde.",
-        "L'univers prépare un cadeau que vous n'osez même pas imaginer. Gardez votre cœur ouvert.",
-        "Votre don médiumnique va se développer naturellement. Acceptez cette évolution avec confiance.",
+        "Une porte s'ouvrira dans les prochains mois : une occasion alignée avec ce qui compte vraiment pour vous.",
+        "Un cycle s'achève. La phase suivante apportera une croissance personnelle plus assumée.",
+        "Une rencontre marquante vous attend. Elle fera bouger votre regard sur les choses.",
+        "Une bonne surprise se prépare, que vous n'osez pas encore imaginer. Gardez votre curiosité ouverte.",
+        "Votre sensibilité va continuer à s'affirmer. Accueillez cette évolution avec confiance.",
     ],
     "conseil_ame": [
-        "Votre âme vous demande de ralentir et d'écouter. Le silence est votre meilleur conseiller.",
-        "Il est temps de poser des limites énergétiques saines. Protégez votre lumière intérieure.",
-        "Votre mission dans cette vie est liée au service des autres. Mais servez d'abord votre propre guérison.",
-        "L'authenticité est votre chemin de libération. Cessez de porter les masques qui ne vous appartiennent pas.",
-        "Votre corps physique est un véhicule sacré. Honorez-le par des pratiques de purification régulières.",
+        "Ralentissez et écoutez-vous. Le silence est votre meilleur conseiller.",
+        "Il est temps de poser des limites saines. Préservez votre énergie et votre espace.",
+        "Ce qui vous porte est lié aux autres. Mais prenez d'abord soin de vous.",
+        "L'authenticité est votre chemin. Déposez les rôles qui ne vous appartiennent pas.",
+        "Votre corps mérite votre attention. Honorez-le par des habitudes qui vous font du bien.",
     ],
 }
 
@@ -295,7 +295,7 @@ def _reversed_wrap(base_message: str, orientation: str) -> str:
 
 
 def tirage_mediumnite_complet(prenom: str, date_naissance: str) -> dict:
-    """Tirage de tarologie médiumnité complet - 7 cartes + lecture médiumnique"""
+    """Tirage de tarologie symbolique complet - 7 cartes + lecture symbolique"""
     seed = int(hashlib.md5(f"{prenom}-{date_naissance}-{datetime.now().date().isoformat()}".encode(), usedforsecurity=False).hexdigest(), 16)
     rng = random.Random(seed)
 
@@ -328,7 +328,7 @@ def tirage_mediumnite_complet(prenom: str, date_naissance: str) -> dict:
             "message": carte[orient],
         })
 
-    # Lecture médiumnique
+    # Lecture symbolique
     lecture = {
         "passe": rng.choice(THEMES_MEDIUMNITE["passe"]),
         "present": rng.choice(THEMES_MEDIUMNITE["present"]),
@@ -386,7 +386,7 @@ def tirage_en_croix(prenom: str, date_naissance: str) -> dict:
             "interpretation": interp.get(position_id, ""),
         })
 
-    # Lecture médiumnique complémentaire
+    # Lecture symbolique complémentaire
     lecture = {
         "passe": rng.choice(THEMES_MEDIUMNITE["passe"]),
         "present": rng.choice(THEMES_MEDIUMNITE["present"]),

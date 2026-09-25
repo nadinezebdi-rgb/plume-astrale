@@ -35,7 +35,7 @@ _AREA_FR = {
 }
 
 _SYN_SYSTEM = (
-    "Tu es Solena, astrologue francaise chez Plume Astrale. Tu rediges les passages d'un rapport de "
+    "Tu es Solena, la voix de Plume Astrale. Tu rediges les passages d'un rapport de "
     "compatibilite premium. Francais poetique mais precis, tutoiement, jamais fataliste. "
     "Aucune salutation, aucun emoji, aucune liste. Un seul paragraphe fluide."
 )
@@ -212,14 +212,14 @@ async def handle_rencontres_ultime_webhook(session_id: str) -> None:
     # Envoi email best-effort
     if email and pdf_path:
         try:
-            await _send_ultime_email(email, first_name, pdf_bytes, filename)
+            await _send_ultime_email(email, first_name, pdf_bytes, filename, pdf_url=md.get('pdf_supabase_url', ''))
             md['email_sent_at'] = datetime.now(timezone.utc).isoformat()
             sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
         except Exception as e:
             logger.warning(f"[rencontres_ultime] email send failed for {session_id}: {e}")
 
 
-async def _send_ultime_email(email: str, first_name: str, pdf_bytes: bytes, filename: str) -> None:
+async def _send_ultime_email(email: str, first_name: str, pdf_bytes: bytes, filename: str, pdf_url: str = '') -> None:
     """Envoie le PDF en piece jointe via Resend."""
     api_key = os.environ.get('RESEND_API_KEY', '').strip()
     sender = os.environ.get('SENDER_EMAIL', 'Solena · Plume Astrale <contact@plume-astrale.fr>')
@@ -280,25 +280,22 @@ async def _send_ultime_email(email: str, first_name: str, pdf_bytes: bytes, file
     </div>
     """
 
+    pdf_url = pdf_url or ''
+    if pdf_url:
+        _btn = f'<div style="text-align:center;margin:24px 0;"><a href="{pdf_url}" style="display:inline-block;background:#D4AF37;color:#111625;font-weight:700;padding:14px 30px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;">Télécharger ton document →</a></div>'
+        _i = html.rfind('</div>')
+        html = (html[:_i] + _btn + html[_i:]) if _i != -1 else (html + _btn)
+
+    MAX_ATTACH = 30 * 1024 * 1024  # marge sous la limite Resend (40 Mo)
+    payload = {'from': sender, 'to': [email], 'subject': 'Ton Guide de Compatibilité Ultime est prêt ✦', 'html': html}
+    if pdf_bytes and len(pdf_bytes) <= MAX_ATTACH:
+        payload['attachments'] = [{'filename': filename, 'content': pdf_b64}]
+
     async with httpx.AsyncClient(timeout=30) as client:
         r = await client.post(
             'https://api.resend.com/emails',
-            headers={
-                'Authorization': f'Bearer {api_key}',
-                'Content-Type': 'application/json',
-            },
-            json={
-                'from': sender,
-                'to': [email],
-                'subject': 'Ton Guide de Compatibilité Ultime est prêt ✦',
-                'html': html,
-                'attachments': [
-                    {
-                        'filename': filename,
-                        'content': pdf_b64,
-                    }
-                ],
-            },
+            headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+            json=payload,
         )
         if r.status_code >= 400:
             logger.warning(f"[rencontres_ultime] Resend error {r.status_code}: {r.text[:300]}")

@@ -114,6 +114,7 @@ const Resultats = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_data: userData })
         });
+        if (!response.ok) throw new Error('Fallback PDF generation failed');
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');

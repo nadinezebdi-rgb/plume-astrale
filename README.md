@@ -6,7 +6,7 @@ Application web d'astrologie et de tarot — thème astral, tirage tarot, horosc
 
 - **Frontend** : React 19, Tailwind CSS, React Router v7, Craco
 - **Backend** : FastAPI (Python), MongoDB, Stripe
-- **Déploiement** : Netlify (frontend) + Railway/Docker (backend)
+- **Déploiement** : Vercel (frontend) + Railway/Docker (backend)
 
 ## Installation locale
 

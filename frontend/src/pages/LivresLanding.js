@@ -243,7 +243,7 @@ export default function LivresLanding() {
                 </li>
               </ul>
               <Link
-                to="/edition-reliee"
+                to="/composer?edition=reliee"
                 className="livres-tier__cta livres-tier__cta--primary"
                 data-testid="livres-tier-reliee-cta"
               >
