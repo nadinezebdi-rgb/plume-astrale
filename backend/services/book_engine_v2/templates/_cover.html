@@ -13,7 +13,9 @@
       <img class="cover-logo" src="{{ asset('logo-plume.svg') }}" alt="">
     {% endif %}
   </div>
+  {% if birth_line %}
   <p class="cover-birthline">
-    {{ birth_date_fr }} · {{ birth_time_fr }} · {{ birth_city }}
+    {{ birth_line }}
   </p>
+  {% endif %}
 </section>

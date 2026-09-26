@@ -77,6 +77,10 @@ def _render_block(block: ChapterBlock) -> str:
     if kind == BlockKind.H2:
         return f'<h2>{_escape(data.get("text", ""))}</h2>'
     if kind == BlockKind.PARAGRAPH:
+        # Support `raw=True` pour laisser passer du HTML curé (ex: <em class="…">).
+        # Sécurité : ce flag n'est settable que côté Python — jamais depuis un user input.
+        if data.get('raw'):
+            return f'<p>{data.get("text", "")}</p>'
         return f'<p>{_escape(data.get("text", ""))}</p>'
     if kind == BlockKind.PARAGRAPH_DROPCAP:
         # Dropcap géré via CSS `p:first-child::first-letter` sur le premier <p>
@@ -159,19 +163,47 @@ def _split_chapter_into_body_pages(chapter: Chapter) -> list[str]:
 # ═══════════════════════════════════════════════════════════════════
 # Assemblage global
 # ═══════════════════════════════════════════════════════════════════
-def _fmt_birth_line(m: Manuscript) -> tuple[str, str, str]:
-    """Formatte '15 mai 1990', '14:30', 'Paris' pour la couverture."""
-    date_fr = m.birth_data.date_iso or ''
+def _fmt_date_fr(date_iso: str) -> str:
+    """'1963-07-05' → '5 juillet 1963'. Retourne '' si parsing échoue."""
+    if not date_iso:
+        return ''
     try:
-        y, mo, d = m.birth_data.date_iso.split('-')
-        months = ['janvier','février','mars','avril','mai','juin',
-                  'juillet','août','septembre','octobre','novembre','décembre']
-        date_fr = f'{int(d)} {months[int(mo)-1]} {y}'
+        y, mo, d = date_iso.split('-')
+        months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+        return f'{int(d)} {months[int(mo) - 1]} {y}'
     except Exception:
-        pass
-    time_fr = m.birth_data.time_hhmm or '—'
-    city = m.birth_data.city or '—'
-    return date_fr, time_fr, city
+        return date_iso or ''
+
+
+def _fmt_time_fr(time_hhmm: str | None) -> str:
+    """'14:30' → '14 h 30'. Retourne '' si absent."""
+    if not time_hhmm:
+        return ''
+    try:
+        h, mn = time_hhmm.split(':')[:2]
+        return f'{int(h)} h {int(mn):02d}'
+    except Exception:
+        return time_hhmm or ''
+
+
+def _fmt_birth_line(m: Manuscript) -> tuple[str, str, str, str]:
+    """Retourne (date_fr, time_fr, city, combined) — combined évite les
+    séparateurs orphelins '· — · —' quand time ou city manquent.
+    """
+    date_fr = _fmt_date_fr(m.birth_data.date_iso or '')
+    time_fr = _fmt_time_fr(m.birth_data.time_hhmm)
+    city = (m.birth_data.city or '').strip()
+
+    # Construit une ligne élégante SEULEMENT à partir des champs remplis.
+    # Séparateur '·' entre date et lieu, virgule entre date et heure.
+    parts: list[str] = []
+    if date_fr:
+        parts.append(date_fr + (f', {time_fr}' if time_fr else ''))
+    if city:
+        parts.append(city)
+    combined = ' · '.join(parts)
+    return date_fr, time_fr, city, combined
 
 
 def _side(page_number: int) -> str:
@@ -195,7 +227,7 @@ def _build_page_specs(m: Manuscript, *, cover_png_path: Optional[Path] = None) -
       Colophon (dernière page)
       Blanches pour atteindre un multiple de 4
     """
-    date_fr, time_fr, city = _fmt_birth_line(m)
+    date_fr, time_fr, city, birth_line = _fmt_birth_line(m)
     edition_label = m.edition.value if isinstance(m.edition, Edition) else str(m.edition)
     edition_year = (m.created_at.year if m.created_at else date.today().year)
 
@@ -211,6 +243,7 @@ def _build_page_specs(m: Manuscript, *, cover_png_path: Optional[Path] = None) -
         'birth_date_fr': date_fr,
         'birth_time_fr': time_fr,
         'birth_city': city,
+        'birth_line': birth_line,
         'cover_bg_url': cover_bg_url,
     }, counts_in_pagination=False))
     page_num += 1

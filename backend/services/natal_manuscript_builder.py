@@ -66,6 +66,20 @@ def build_natal_manuscript(
     """
     prenom = (prenom or 'Voyageuse').strip() or 'Voyageuse'
 
+    # Format élégant de la date de naissance pour l'afficher dans le chapitre
+    # (juste sous le chapter_opener, avant les trio_cards).
+    def _fmt_date_fr(date_iso: str) -> str:
+        if not date_iso:
+            return ''
+        try:
+            y, mo, d = date_iso.split('-')[:3]
+            months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+            return f'{int(d)} {months[int(mo) - 1]} {y}'
+        except Exception:
+            return date_iso or ''
+    birth_date_fr = _fmt_date_fr(birth_date)
+
     blocks: list[ChapterBlock] = []
 
     # 1) CHAPTER_OPENING (belle page ornée)
@@ -74,6 +88,15 @@ def build_natal_manuscript(
         'title': f'Le Ciel de {prenom}',
         'kicker': 'Votre thème natal, dévoilé.',
     }))
+
+    # 1bis) Date de naissance juste sous le chapter_opener — signature contextuelle.
+    #  Rendu comme un paragraphe italique fin (or, small caps via CSS .lede-date).
+    #  Skip si date parsing échoue.
+    if birth_date_fr:
+        blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
+            'text': f'<span class="lede-date">Né·e le {birth_date_fr}.</span>',
+            'raw': True,
+        }))
 
     # 2) TRIO_CARDS Soleil / Lune / Ascendant (skip Ascendant si no_birth_time)
     trio: list[dict] = []
