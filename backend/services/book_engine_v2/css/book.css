@@ -178,6 +178,17 @@ h2 {
   margin: 0 0 6mm;
   color: var(--text);
 }
+/* Date de naissance sous le chapter_opener — signature contextuelle sobre */
+.lede-date {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 9.5pt;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  text-align: center;
+  display: block;
+}
 
 /* ── Ouverture de chapitre (§6.1) ────────────────────────────────────── */
 .plume {
