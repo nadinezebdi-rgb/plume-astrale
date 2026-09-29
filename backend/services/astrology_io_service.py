@@ -585,6 +585,14 @@ async def get_positions(birth_data: Dict[str, Any], name: str = 'Voyageur', lang
     })
 
 
+async def tarot_daily_card(user_id: str, life_area: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Fetch the shared daily tarot card without requiring natal data."""
+    params: Dict[str, Any] = {'user_id': user_id}
+    if life_area:
+        params['life_area'] = life_area
+    return await _get('/tarot/cards/daily', params)
+
+
 async def get_house_cusps(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Cuspides des 12 maisons (Placidus)."""
     return await _call('/data/house-cusps', {

@@ -2364,6 +2364,8 @@ class ExperienceTarotAlternativeRequest(BaseModel):
 
 
 _EXPERIENCE_ALTERNATIVE_COUNTS: dict[str, int] = {}
+_EXPERIENCE_DAILY_CACHE: dict[str, dict] = {}
+_EXPERIENCE_DAILY_LOCK = asyncio.Lock()
 
 
 _TAROT_ASSET_SLUGS = {
@@ -2376,6 +2378,86 @@ _TAROT_ASSET_SLUGS = {
     18: '18_la_lune', 19: '19_le_soleil', 20: '20_le_jugement',
     21: '21_le_monde',
 }
+
+_DAILY_SUIT_FR = {
+    'wands': 'Bâtons', 'cups': 'Coupes', 'swords': 'Épées', 'pentacles': 'Deniers',
+}
+_DAILY_RANK_FR = {
+    1: 'As', 2: 'Deux', 3: 'Trois', 4: 'Quatre', 5: 'Cinq',
+    6: 'Six', 7: 'Sept', 8: 'Huit', 9: 'Neuf', 10: 'Dix',
+    11: 'Valet', 12: 'Cavalier', 13: 'Reine', 14: 'Roi',
+}
+_DAILY_SUIT_MOOD = {
+    'wands': 'L’élan et la créativité donnent le ton : choisis une action concrète et avance.',
+    'cups': 'Les émotions et les liens sont au premier plan : écoute ce que tu ressens avant de répondre.',
+    'swords': 'La clarté et les décisions comptent aujourd’hui : privilégie les mots simples et justes.',
+    'pentacles': 'L’ancrage et le concret guident la journée : avance par un petit pas réalisable.',
+}
+
+
+def _daily_experience_payload(reading: dict, day: str, source: str) -> dict:
+    api_card = reading.get('card') or reading.get('carte') or {}
+    report = reading.get('report') or {}
+    number = api_card.get('number')
+    try:
+        number = int(number) if number is not None else None
+    except (TypeError, ValueError):
+        number = None
+
+    orientation_raw = str(api_card.get('orientation') or 'upright').lower()
+    reversed_card = orientation_raw in ('reversed', 'reverse', 'renverse', 'renversé')
+    orientation = 'renverse' if reversed_card else 'droit'
+    orientation_fr = 'Renversé' if reversed_card else 'Droit'
+    arcana_type = str(api_card.get('arcana') or '').lower()
+    arcana = ARCANES_MAJEURS.get(number) if arcana_type not in ('minor', 'minor arcana', 'minor_arcana') else None
+
+    api_name = api_card.get('name') or {}
+    if isinstance(api_name, dict):
+        api_name = api_name.get('fr') or api_name.get('en') or ''
+    else:
+        api_name = str(api_name)
+
+    if arcana:
+        card_name = arcana.get('nom') or api_name or 'Arcane du jour'
+        interpretation_data = arcana.get(orientation) or arcana.get('droit') or {}
+        mood = interpretation_data.get('general') or interpretation_data.get('amour') or ''
+        advice = interpretation_data.get('conseil') or ''
+        keywords = arcana.get('mots_cles') or []
+        if isinstance(keywords, str):
+            keywords = [keywords]
+    else:
+        suit = str(api_card.get('suit') or '').lower()
+        suit_label = _DAILY_SUIT_FR.get(suit)
+        rank = api_card.get('rank') or number
+        try:
+            rank_label = _DAILY_RANK_FR.get(int(rank), str(rank))
+        except (TypeError, ValueError):
+            rank_label = str(rank or '')
+        card_name = f'{rank_label} de {suit_label}' if suit_label and rank_label else api_name or 'Arcane du jour'
+        mood = _DAILY_SUIT_MOOD.get(suit, 'Accueille la journée avec attention et choisis ce qui te fait du bien.')
+        if reversed_card:
+            mood = 'Cette énergie invite à ralentir et à réajuster : ' + mood[0].lower() + mood[1:]
+        advice = 'Prends cette carte comme une invitation à réfléchir, jamais comme une prédiction.'
+        keywords = [suit_label] if suit_label else []
+
+    return {
+        'success': True,
+        'source': source,
+        'date': day,
+        'card': {
+            'id': str(api_card.get('id') or f'daily-{day}'),
+            'numero': number,
+            'nom': card_name,
+            'name': card_name,
+            'orientation': orientation,
+            'orientation_fr': orientation_fr,
+            'mots_cles': keywords,
+            'interpretation': mood or str(report.get('interpretation') or ''),
+            'conseil': advice,
+        },
+        'mood': mood or str(report.get('interpretation') or ''),
+        'disclaimer': 'Lecture symbolique gratuite du jour, proposée comme support de réflexion.',
+    }
 
 
 @api_router.post('/tarot/experience-draw')
@@ -2410,6 +2492,49 @@ async def experience_tarot_draw(payload: ExperienceTarotRequest):
         'synthese': reading.get('synthese'),
         'disclaimer': 'Lecture symbolique proposée comme support de réflexion.',
     }
+
+
+@api_router.get('/tarot/experience-daily')
+async def experience_tarot_daily():
+    """Daily free Astrology API card, cached by UTC date."""
+    from datetime import datetime, timezone
+
+    day = datetime.now(timezone.utc).date().isoformat()
+    if day in _EXPERIENCE_DAILY_CACHE:
+        return _EXPERIENCE_DAILY_CACHE[day]
+
+    async with _EXPERIENCE_DAILY_LOCK:
+        if day in _EXPERIENCE_DAILY_CACHE:
+            return _EXPERIENCE_DAILY_CACHE[day]
+
+        reading = None
+        try:
+            reading = await aio.tarot_daily_card(user_id=f'plume-astrale-global-{day}')
+        except Exception:
+            logging.getLogger(__name__).exception('Astrology API daily tarot request failed')
+
+        if isinstance(reading, dict) and (reading.get('card') or reading.get('carte')):
+            result = _daily_experience_payload(reading, day, 'astrology-api.io')
+        else:
+            local = tirage_du_jour()
+            local_card = local.get('carte') or {}
+            fallback = {
+                'card': {
+                    'id': f"major_{local_card.get('numero', 17)}",
+                    'number': local_card.get('numero'),
+                    'arcana': 'major',
+                    'name': {'fr': local_card.get('nom') or 'Carte du jour'},
+                    'orientation': 'reversed' if local_card.get('orientation') == 'renverse' else 'upright',
+                    'suit': local_card.get('element'),
+                },
+                'report': {'interpretation': local_card.get('interpretation_generale') or local.get('message_energie') or ''},
+            }
+            result = _daily_experience_payload(fallback, day, 'local-fallback')
+            result['card']['conseil'] = local.get('conseil_du_jour') or result['card']['conseil']
+
+        _EXPERIENCE_DAILY_CACHE.clear()
+        _EXPERIENCE_DAILY_CACHE[day] = result
+        return result
 
 
 @api_router.post('/tarot/experience-alternative')
