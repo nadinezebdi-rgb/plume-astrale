@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 # ────────────────────────────────────────────────────────────────
 # Config
 # ────────────────────────────────────────────────────────────────
-LIBRARY_ROOT = Path("/app/backend/assets/library")
+LIBRARY_ROOT = Path(__file__).resolve().parent.parent / "assets" / "library"
 STYLE_REFS_DIR = LIBRARY_ROOT / "style-refs"
 MANIFEST_PATH = LIBRARY_ROOT / "manifest.json"
 MODEL_ID = "gemini-3.1-flash-image-preview"
