@@ -38,13 +38,13 @@ from services.pdf_theme import (
 register_fonts()
 
 # Hex strings pour usage inline HTML `<font color="#..">`
-GOLD_HEX       = '#D4AF37'
-GOLD_LIGHT_HEX = '#E8C766'
-CREAM_HEX      = '#F5EEE0'
-LAVENDER_HEX   = '#E3D7FF'
-MUTED_HEX      = '#B8B0C8'
-NIGHT_HEX      = '#0A0813'
-NIGHT_SOFT_HEX = '#1a1230'
+GOLD_HEX       = '#79570F'
+GOLD_LIGHT_HEX = '#8A6418'
+CREAM_HEX      = '#26242B'
+LAVENDER_HEX   = '#514657'
+MUTED_HEX      = '#5E5A63'
+NIGHT_HEX      = '#FFFFFF'
+NIGHT_SOFT_HEX = '#F5F2EA'
 
 
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
@@ -73,38 +73,19 @@ def _dl_image(url: str) -> Optional[io.BytesIO]:
 
 
 # ═══════════════════════════════════════════════════════════
-#   FOND PLEINE PAGE (starfield doré + texture parchemin subtile)
+#   FOND PRINT (papier blanc + cadre bronze discret)
 # ═══════════════════════════════════════════════════════════
 
 def luxury_bg(canvas, doc):
-    """Fond nuit + starfield doré + cadre or pointillé prestige (charte unifiée Feb 2026)."""
+    """Fond blanc print, sans aplat sombre ni décor consommateur d'encre."""
     canvas.saveState()
     w, h = A4
-    # Fond nuit profonde
     canvas.setFillColor(NIGHT)
     canvas.rect(0, 0, w, h, fill=1, stroke=0)
-    # Overlay dégradé subtil vers coin (effet parchemin cosmique)
-    canvas.setFillColor(NIGHT_SOFT)
-    canvas.setFillAlpha(0.5)
-    canvas.circle(w * 0.85, h * 0.15, 200, fill=1, stroke=0)
-    canvas.setFillAlpha(1)
-    # Starfield doré (pseudo-random déterministe)
-    import random as _r
-    rng = _r.Random(42)
-    canvas.setFillColor(GOLD)
-    for _ in range(80):
-        x = rng.random() * w
-        y = rng.random() * h
-        r = rng.choice([0.4, 0.6, 0.8, 1.0, 0.5])
-        canvas.setFillAlpha(rng.uniform(0.2, 0.7))
-        canvas.circle(x, y, r, fill=1, stroke=0)
-    canvas.setFillAlpha(1)
-    # Cadre or pointillé (charte prestige)
+    # Filet bronze fin, imprimable sans aplat.
     canvas.setStrokeColor(GOLD)
-    canvas.setLineWidth(0.35)
-    canvas.setDash([0.6, 2.4], 0)
+    canvas.setLineWidth(0.45)
     canvas.rect(1.2 * cm, 1.2 * cm, w - 2.4 * cm, h - 2.4 * cm, stroke=1, fill=0)
-    canvas.setDash([], 0)
     # Soleil ornemental discret en haut
     if doc.page > 1:
         canvas.setFillColor(GOLD)

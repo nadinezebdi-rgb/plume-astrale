@@ -30,14 +30,14 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 
 logger = logging.getLogger(__name__)
 
-# Palette Plume Astrale
-NIGHT       = colors.HexColor('#111625')
-NIGHT_SOFT  = colors.HexColor('#1A2035')
-GOLD        = colors.HexColor('#D4AF37')
-GOLD_LIGHT  = colors.HexColor('#E8C766')
-LAVENDER    = colors.HexColor('#E3D7FF')
-CREAM       = colors.HexColor('#F5EEE0')
-MUTED       = colors.HexColor('#9089B5')
+# Palette print : papier blanc, encre foncée et bronze contrasté.
+NIGHT       = colors.white
+NIGHT_SOFT  = colors.HexColor('#F5F2EA')
+GOLD        = colors.HexColor('#79570F')
+GOLD_LIGHT  = colors.HexColor('#8A6418')
+LAVENDER    = colors.HexColor('#514657')
+CREAM       = colors.HexColor('#26242B')
+MUTED       = colors.HexColor('#5E5A63')
 
 
 import re
@@ -70,33 +70,13 @@ def _p(text: str, style: ParagraphStyle) -> Paragraph:
 def _bg_canvas(canv, doc):
     canv.saveState()
     W, H = A4
-    canv.setFillColor(NIGHT)
+    canv.setFillColor(colors.white)
     canv.rect(0, 0, W, H, fill=1, stroke=0)
-    for i, alpha in enumerate([0.02, 0.015, 0.01]):
-        canv.setFillColorRGB(0.83, 0.68, 0.21, alpha=alpha)
-        canv.circle(W / 2, H, (i + 1) * 6 * cm, fill=1, stroke=0)
-    import random
-    r = random.Random(hash((doc.page,)))
-    for _ in range(30):
-        x = r.uniform(1 * cm, W - 1 * cm)
-        y = r.uniform(1 * cm, H - 1 * cm)
-        s = r.choice([0.4, 0.5, 0.6, 0.8])
-        canv.setFillColorRGB(1, 0.95, 0.75, alpha=r.uniform(0.2, 0.55))
-        canv.circle(x, y, s, fill=1, stroke=0)
-    # ─── Cadre de page prestige (fine ligne dorée) ───
+    # Filet bronze discret, sans fond coloré ni étoiles à l'impression.
     canv.setStrokeColor(GOLD)
-    canv.setLineWidth(0.35)
-    canv.setDash([0.6, 2.4], 0)
+    canv.setLineWidth(0.45)
     canv.rect(1.2 * cm, 1.2 * cm, W - 2.4 * cm, H - 2.4 * cm, fill=0, stroke=1)
-    canv.setDash([], 0)
-    # ─── Ornement en haut de page (petit soleil doré) ───
-    canv.setFillColor(GOLD)
-    canv.setStrokeColor(GOLD)
-    canv.setLineWidth(0.4)
-    canv.circle(W / 2, H - 1.55 * cm, 0.10 * cm, fill=1, stroke=0)
-    canv.line(W / 2 - 1.4 * cm, H - 1.55 * cm, W / 2 - 0.3 * cm, H - 1.55 * cm)
-    canv.line(W / 2 + 0.3 * cm, H - 1.55 * cm, W / 2 + 1.4 * cm, H - 1.55 * cm)
-    # ─── Footer : titre du livre + page ───
+    # Footer : titre du livre + page
     canv.setFillColor(MUTED)
     canv.setFont('Helvetica', 6.5)
     canv.drawString(2 * cm, 0.75 * cm, "PLUME ASTRALE · ASTROCARTOGRAPHIE")

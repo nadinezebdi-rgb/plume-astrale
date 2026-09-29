@@ -34,13 +34,14 @@ LAST_RUN_FILE = Path('/tmp/plume_cercle_monthly_last_run.txt')  # stocke 'YYYY-M
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'Soléna · Plume Astrale <contact@plume-astrale.fr>')
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
 
-# ═══════════════════════ Charte graphique ═══════════════════════
-NIGHT_BLUE = (0.039, 0.067, 0.157)   # #0A1128
-INK_BLUE = (0.059, 0.102, 0.235)     # #0F1A3C
-GOLD = (0.722, 0.578, 0.353)         # #B8935A
-GOLD_LIGHT = (0.788, 0.635, 0.294)   # #C9A24B
-IVORY = (0.969, 0.961, 0.941)        # #F7F5F0
-IVORY_DIM = (0.85, 0.84, 0.82)
+# ═══════════════════════ Charte print ═══════════════════════
+PAPER = (1.0, 1.0, 1.0)
+NIGHT_BLUE = PAPER
+INK_BLUE = (0.14, 0.13, 0.16)
+GOLD = (0.43, 0.31, 0.07)
+GOLD_LIGHT = (0.49, 0.35, 0.08)
+IVORY = INK_BLUE
+IVORY_DIM = (0.34, 0.32, 0.36)
 
 # Try to register serif + sans fonts. Fallback to Helvetica.
 _FONT_SERIF = 'Helvetica'
@@ -83,20 +84,9 @@ _register_fonts_once()
 # ═══════════════════════ PDF Generation ═══════════════════════
 
 def _draw_starry_background(c: canvas.Canvas, w: float, h: float):
-    """Fond dégradé bleu nuit + étoiles."""
-    # Rectangle solide bleu nuit
+    """Fond blanc imprimable."""
     c.setFillColorRGB(*NIGHT_BLUE)
     c.rect(0, 0, w, h, stroke=0, fill=1)
-    # Étoiles
-    import random
-    rng = random.Random(42)  # seed fixe pour reproductibilité
-    c.setFillColorRGB(*IVORY)
-    for _ in range(60):
-        x = rng.uniform(0, w)
-        y = rng.uniform(0, h)
-        r = rng.uniform(0.3, 1.2)
-        c.setFillAlpha(rng.uniform(0.2, 0.6))
-        c.circle(x, y, r, stroke=0, fill=1)
     c.setFillAlpha(1)
 
 
@@ -109,7 +99,7 @@ def _draw_gold_moon(c: canvas.Canvas, cx: float, cy: float, radius: float):
         c.circle(cx, cy, radius * (1 + i * 0.15), stroke=0, fill=1)
     # Corps
     c.setFillAlpha(1)
-    c.setFillColorRGB(*IVORY)
+    c.setFillColorRGB(*PAPER)
     c.circle(cx, cy, radius, stroke=0, fill=1)
     c.setFillColorRGB(*GOLD)
     c.setFillAlpha(0.3)

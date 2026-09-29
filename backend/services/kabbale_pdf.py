@@ -28,14 +28,14 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 
 from services import library_images as libimg
 
-# Palette Plume Astrale
-NIGHT       = colors.HexColor('#111625')
-NIGHT_SOFT  = colors.HexColor('#1A2035')
-GOLD        = colors.HexColor('#D4AF37')
-GOLD_LIGHT  = colors.HexColor('#E8C766')
-LAVENDER    = colors.HexColor('#E3D7FF')
-CREAM       = colors.HexColor('#F5EEE0')
-MUTED       = colors.HexColor('#9089B5')
+# Palette print : papier blanc, encre foncée et bronze contrasté.
+NIGHT       = colors.white
+NIGHT_SOFT  = colors.HexColor('#F5F2EA')
+GOLD        = colors.HexColor('#79570F')
+GOLD_LIGHT  = colors.HexColor('#8A6418')
+LAVENDER    = colors.HexColor('#514657')
+CREAM       = colors.HexColor('#26242B')
+MUTED       = colors.HexColor('#5E5A63')
 
 # Traductions des Sephirot (nom hebreu -> FR poetique)
 _SEPHIROT_FR = {

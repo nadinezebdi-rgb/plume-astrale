@@ -38,7 +38,7 @@ register_fonts()
 # ═══════════════════════════════════════════════════════════════
 # Palette Plume Astrale v1 (extrait du prototype validé)
 # ═══════════════════════════════════════════════════════════════
-IVORY = HexColor('#FBF7EE')
+IVORY = HexColor('#FFFFFF')
 INK = HexColor('#1C1B26')
 NIGHT = HexColor('#0F1A3C')
 BRONZE = HexColor('#B8935A')

@@ -244,9 +244,9 @@ def simple_world_map_svg(city_names: Optional[List[str]] = None) -> str:
 
     # Grille discrète
     for y in (80, 130, 170, 210, 260):
-        parts.append(f'<line x1="24" y1="{y}" x2="376" y2="{y}" stroke="#0F1A3C" stroke-width="0.35" opacity="0.14"/>')
+        parts.append(f'<line x1="24" y1="{y}" x2="376" y2="{y}" stroke="#26242B" stroke-width="0.35" opacity="0.14"/>')
     for x in (80, 140, 200, 260, 320):
-        parts.append(f'<line x1="{x}" y1="24" x2="{x}" y2="316" stroke="#0F1A3C" stroke-width="0.35" opacity="0.14"/>')
+        parts.append(f'<line x1="{x}" y1="24" x2="{x}" y2="316" stroke="#26242B" stroke-width="0.35" opacity="0.14"/>')
 
     # Silhouettes continents
     continents = [
@@ -257,7 +257,7 @@ def simple_world_map_svg(city_names: Optional[List[str]] = None) -> str:
         'M 225 82 Q 260 78, 300 88 Q 322 102, 320 122 Q 305 138, 275 138 Q 240 132, 225 118 Z',
         'M 290 195 Q 310 190, 320 205 Q 325 220, 315 232 Q 300 235, 290 225 Q 285 210, 290 198 Z',
     ]
-    parts.append('<g fill="#0F1A3C" opacity="0.10">')
+    parts.append('<g fill="#26242B" opacity="0.10">')
     for p in continents:
         parts.append(f'<path d="{p}"/>')
     parts.append('</g>')
@@ -277,7 +277,7 @@ def simple_world_map_svg(city_names: Optional[List[str]] = None) -> str:
         if label:
             parts.append(
                 f'<text x="{x + 8}" y="{y + 3}" font-family="Helvetica" font-size="8" '
-                f'font-weight="600" fill="#0F1A3C" opacity="0.75">{label}</text>'
+                f'font-weight="600" fill="#26242B" opacity="0.75">{label}</text>'
             )
 
     # Compass N
@@ -289,7 +289,7 @@ def simple_world_map_svg(city_names: Optional[List[str]] = None) -> str:
     parts.append('</g>')
 
     # Étiquette
-    parts.append('<text x="24" y="322" font-family="Helvetica" font-size="8" letter-spacing="1.6" fill="#0F1A3C" opacity="0.55">CARTE ASTRALE PLANÉTAIRE · PLUME ASTRALE</text>')
+    parts.append('<text x="24" y="322" font-family="Helvetica" font-size="8" letter-spacing="1.6" fill="#26242B" opacity="0.75">CARTE ASTRALE PLANÉTAIRE · PLUME ASTRALE</text>')
 
     parts.append('</svg>')
     return ''.join(parts)

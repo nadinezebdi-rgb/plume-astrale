@@ -10,12 +10,12 @@ from reportlab.lib.units import cm
 from reportlab.lib.colors import HexColor
 from reportlab.pdfgen import canvas
 
-GOLD = HexColor('#C5A059')
-DARK_PURPLE = HexColor('#0F0518')
-LIGHT_PURPLE = HexColor('#1A0B2E')
-CREAM = HexColor('#F3E5AB')
-LIGHT_TEXT = HexColor('#E0D9F6')
-MEDIUM_PURPLE = HexColor('#2D1B4E')
+GOLD = HexColor('#79570F')
+DARK_PURPLE = HexColor('#FFFFFF')
+LIGHT_PURPLE = HexColor('#F5F2EA')
+CREAM = HexColor('#26242B')
+LIGHT_TEXT = HexColor('#26242B')
+MEDIUM_PURPLE = HexColor('#F5F2EA')
 
 
 class MediumnitePDFGenerator:

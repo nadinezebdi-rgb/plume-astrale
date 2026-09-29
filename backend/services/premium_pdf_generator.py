@@ -13,13 +13,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-GOLD = HexColor('#C5A059')
-DARK_PURPLE = HexColor('#0F0518')
-LIGHT_PURPLE = HexColor('#1A0B2E')
-CREAM = HexColor('#F0E6D3')
-BODY_TEXT = HexColor('#B8B0C8')
-MUTED = HexColor('#8A7FA0')
-SOFT_GOLD = HexColor('#D4AF37')
+GOLD = HexColor('#79570F')
+DARK_PURPLE = HexColor('#FFFFFF')
+LIGHT_PURPLE = HexColor('#F5F2EA')
+CREAM = HexColor('#26242B')
+BODY_TEXT = HexColor('#26242B')
+MUTED = HexColor('#5E5A63')
+SOFT_GOLD = HexColor('#8A6418')
 
 STEP_ICONS = {
     "step_1_fondement": "I",
@@ -39,24 +39,10 @@ class PremiumPDFGenerator:
     def _draw_bg(self, c):
         c.setFillColor(DARK_PURPLE)
         c.rect(0, 0, self.width, self.height, fill=1)
-        c.setFillColor(LIGHT_PURPLE)
-        c.setFillAlpha(0.25)
-        for i in range(8):
-            c.rect(0, self.height - (i + 1) * cm, self.width, cm, fill=1)
-        c.setFillAlpha(1.0)
-        random.seed(self.page_num * 77)
-        c.setFillColor(HexColor('#FFFFFF'))
-        for _ in range(30):
-            x = random.uniform(0, self.width)
-            y = random.uniform(0, self.height)
-            size = random.uniform(0.2, 0.8)
-            c.setFillAlpha(random.uniform(0.08, 0.3))
-            c.circle(x, y, size, fill=1)
-        c.setFillAlpha(1.0)
 
     def _draw_border(self, c):
         c.setStrokeColor(GOLD)
-        c.setStrokeAlpha(0.2)
+        c.setStrokeAlpha(0.65)
         c.setLineWidth(0.5)
         c.rect(1.5 * cm, 1.5 * cm, self.width - 3 * cm, self.height - 3 * cm)
         c.setStrokeAlpha(1.0)

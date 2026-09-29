@@ -27,13 +27,13 @@ from services.pdf_theme import register_fonts as _register_luxury_fonts
 _register_luxury_fonts()
 
 # Palette
-NIGHT       = colors.HexColor('#111625')
-NIGHT_SOFT  = colors.HexColor('#1A2035')
-GOLD        = colors.HexColor('#D4AF37')
-GOLD_LIGHT  = colors.HexColor('#E8C766')
-LAVENDER    = colors.HexColor('#E3D7FF')
-CREAM       = colors.HexColor('#F5EEE0')
-MUTED       = colors.HexColor('#9089B5')
+NIGHT       = colors.white
+NIGHT_SOFT  = colors.HexColor('#F5F2EA')
+GOLD        = colors.HexColor('#79570F')
+GOLD_LIGHT  = colors.HexColor('#8A6418')
+LAVENDER    = colors.HexColor('#514657')
+CREAM       = colors.HexColor('#26242B')
+MUTED       = colors.HexColor('#5E5A63')
 
 class FenetreRencontrePDFGenerator:
     """Fenêtres de rencontre avancées avec calculs astrologiques."""
@@ -47,7 +47,7 @@ class FenetreRencontrePDFGenerator:
         'imperatrice': 'https://ebwicqvbkwogxneipaxh.supabase.co/storage/v1/object/public/library/tarot/03_l_imperatrice_1080.png',
     }
     
-    VIOLET_DARK = colors.HexColor('#2D1B4E')  # Fond violet foncé cosmique
+    VIOLET_DARK = colors.white  # Fond blanc print
     
     def __init__(self):
         self.styles = getSampleStyleSheet()
@@ -55,7 +55,7 @@ class FenetreRencontrePDFGenerator:
         self._setup_styles()
     
     def _add_background(self, canvas_obj, doc):
-        """Ajoute un fond violet foncé à chaque page."""
+        """Ajoute un fond blanc print à chaque page."""
         canvas_obj.saveState()
         canvas_obj.setFillColor(self.VIOLET_DARK)
         canvas_obj.rect(0, 0, doc.pagesize[0], doc.pagesize[1], fill=1, stroke=0)

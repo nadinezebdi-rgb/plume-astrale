@@ -18,14 +18,14 @@ from reportlab.platypus import (
 from reportlab.pdfgen import canvas as pdfgen_canvas
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 
-# Palette
-VIOLET_DARK = colors.HexColor('#2D1B4E')
-CREAM       = colors.HexColor('#F5EEE0')
-LAVENDER    = colors.HexColor('#E3D7FF')
-GOLD_LIGHT  = colors.HexColor('#E8C766')
+# Palette print
+VIOLET_DARK = colors.white
+CREAM       = colors.HexColor('#26242B')
+LAVENDER    = colors.HexColor('#514657')
+GOLD_LIGHT  = colors.HexColor('#8A6418')
 
 class VioletRectangle(Flowable):
-    """Rectangle violet qui s'étend sur toute la hauteur disponible"""
+    """Rectangle blanc qui s'étend sur toute la hauteur disponible."""
     def __init__(self, width, height):
         self.width = width
         self.height = height
@@ -35,7 +35,7 @@ class VioletRectangle(Flowable):
         self.canv.rect(0, 0, self.width, self.height, fill=1, stroke=0)
 
 class FenetreRencontrePDFGenerator:
-    """Fenêtres de rencontre avec fond violet sur TOUTES les pages"""
+    """Fenêtres de rencontre avec fond blanc sur toutes les pages."""
     
     TAROT_IMAGES = {
         'amoureux': 'https://ebwicqvbkwogxneipaxh.supabase.co/storage/v1/object/public/library/tarot/06_les_amoureux_1080.png',
@@ -105,11 +105,11 @@ class FenetreRencontrePDFGenerator:
         synastry_data: Optional[Dict[str, Any]] = None,
         affirmations: Optional[List[str]] = None,
     ) -> bytes:
-        """Génère le PDF 10 pages avec fond VIOLET"""
+        """Génère le PDF print de 10 pages avec fond blanc."""
         self.affirmations = affirmations or []
         buffer = BytesIO()
         
-        # Utiliser un Canvas-based approach pour garantir le fond violet
+        # Utiliser un canvas dédié pour garantir le fond blanc sur chaque page.
         doc = SimpleDocTemplate(
             buffer,
             pagesize=A4,
@@ -128,7 +128,7 @@ class FenetreRencontrePDFGenerator:
             def beforeDrawPage(self, canvas, doc):
                 """Dessine le fond VIOLET avant tout contenu"""
                 canvas.saveState()
-                canvas.setFillColor(self.generator.VIOLET_DARK if hasattr(self.generator, 'VIOLET_DARK') else colors.HexColor('#2D1B4E'))
+                canvas.setFillColor(self.generator.VIOLET_DARK if hasattr(self.generator, 'VIOLET_DARK') else colors.white)
                 # Remplir TOUTE la page (incluant les marges)
                 canvas.rect(-1000, -1000, 3000, 3000, fill=1, stroke=0)
                 canvas.restoreState()
