@@ -13,14 +13,14 @@ from reportlab.lib.colors import HexColor
 from reportlab.lib.units import cm
 
 # ─── PALETTE ─────────────────────────────────────────────────────────
-BG_NIGHT     = HexColor('#0B1020')
-GOLD         = HexColor('#C8A24A')
-CREAM        = HexColor('#F8F3E8')
-GREY_SUBTLE  = HexColor('#A9B0C3')
-BG_NIGHT_HEX = '#0B1020'
-GOLD_HEX     = '#C8A24A'
-CREAM_HEX    = '#F8F3E8'
-GREY_HEX     = '#A9B0C3'
+BG_NIGHT     = HexColor('#FFFFFF')
+GOLD         = HexColor('#79570F')
+CREAM        = HexColor('#26242B')
+GREY_SUBTLE  = HexColor('#5E5A63')
+BG_NIGHT_HEX = '#FFFFFF'
+GOLD_HEX     = '#79570F'
+CREAM_HEX    = '#26242B'
+GREY_HEX     = '#5E5A63'
 
 # ─── TYPOGRAPHIE (pt) ────────────────────────────────────────────────
 H_CHAPTER = 52   # ouvertures de chapitre monumentales

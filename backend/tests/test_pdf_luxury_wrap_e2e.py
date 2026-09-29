@@ -27,6 +27,12 @@ def _assert_valid_pdf(pdf_bytes: bytes, min_pages: int, min_size_kb: int, label:
     size_kb = len(pdf_bytes) // 1024
     assert pages >= min_pages, f'{label}: {pages} pages < {min_pages}'
     assert size_kb >= min_size_kb, f'{label}: {size_kb}KB < {min_size_kb}KB'
+    for page_number, page in enumerate(reader.pages, start=1):
+        contents = page.get_contents()
+        assert contents is not None, f'{label}: page {page_number} has no content stream'
+        assert b'1 1 1 rg' in contents.get_data(), (
+            f'{label}: page {page_number} is missing the white print background'
+        )
     print(f'  OK {label}: {pages} pages, {size_kb} KB')
     return pages
 

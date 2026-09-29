@@ -49,7 +49,7 @@ def _generate_qr_bytes(url: str, box_size: int = 8) -> Optional[bytes]:
         )
         qr.add_data(url)
         qr.make(fit=True)
-        img = qr.make_image(fill_color='#0F1A3C', back_color='#F5EEE0')
+        img = qr.make_image(fill_color='#26242B', back_color='#FFFFFF')
         buf = BytesIO()
         img.save(buf, format='PNG')
         raw = buf.getvalue()

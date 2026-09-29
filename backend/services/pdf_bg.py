@@ -1,6 +1,6 @@
-"""Canvas de fond partagé pour tous les PDFs premium Plume Astrale.
+"""Canvas de fond print partagé pour les PDFs Plume Astrale.
 
-Dessine un fond navy nuit + halo doré + micro-étoiles + cadre or éditorial + footer prestige.
+Dessine un papier blanc, un filet bronze discret et un footer à fort contraste.
 Utilisation :
     from services.pdf_bg import make_bg_canvas
     doc.build(story, onFirstPage=make_bg_canvas('Ton Analyse Karmique'),
@@ -15,16 +15,15 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 
-NIGHT = colors.HexColor('#111625')
-GOLD  = colors.HexColor('#D4AF37')
-MUTED = colors.HexColor('#9089B5')
+PAPER = colors.white
+GOLD  = colors.HexColor('#79570F')
+MUTED = colors.HexColor('#5E5A63')
 
 
 def make_bg_canvas(footer_label: str = 'Plume Astrale'):
     """Retourne une fonction (canv, doc) à passer à SimpleDocTemplate.build().
 
-    Charte prestige unifiée : fond nuit + halo + 30 étoiles + cadre or pointillé
-    + petit soleil ornemental en haut + footer "PLUME ASTRALE · <PRODUCT>   — n —".
+    Charte print : papier blanc + cadre bronze fin + footer "PLUME ASTRALE · <PRODUCT>   — n —".
     """
     footer_upper = str(footer_label).upper()
 
@@ -32,23 +31,9 @@ def make_bg_canvas(footer_label: str = 'Plume Astrale'):
         canv.saveState()
         W, H = A4
 
-        # Fond nuit
-        canv.setFillColor(NIGHT)
+        # Fond blanc pour impression et lecture.
+        canv.setFillColor(PAPER)
         canv.rect(0, 0, W, H, fill=1, stroke=0)
-
-        # Halo doré en haut
-        for i, alpha in enumerate([0.02, 0.015, 0.01]):
-            canv.setFillColorRGB(0.83, 0.68, 0.21, alpha=alpha)
-            canv.circle(W / 2, H, (i + 1) * 6 * cm, fill=1, stroke=0)
-
-        # 30 étoiles stables (seed = page number)
-        r = random.Random(hash((doc.page,)))
-        for _ in range(30):
-            x = r.uniform(1 * cm, W - 1 * cm)
-            y = r.uniform(1 * cm, H - 1 * cm)
-            s = r.choice([0.4, 0.5, 0.6, 0.8])
-            canv.setFillColorRGB(1, 0.95, 0.75, alpha=r.uniform(0.2, 0.55))
-            canv.circle(x, y, s, fill=1, stroke=0)
 
         # Cadre or pointillé
         canv.setStrokeColor(GOLD)

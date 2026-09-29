@@ -3,7 +3,7 @@ pdf_hero_illustrations.py — 5 illustrations SVG uniques pour la couverture
 de chaque rapport prestige Plume Astrale.
 
 Chaque fonction retourne un SVG (str) prêt à être rasterisé et injecté en
-couverture. Palette V3 : navy #0F1A3C, or #C9A24B, crème #F7F5F0.
+couverture. Palette print : fond blanc, encre foncée et bronze contrasté.
 
 Illustrations :
   - `tree_of_life_svg()`      → Arbre séphirotique kabbalistique (10 séphirot + 22 chemins)
@@ -17,17 +17,17 @@ from typing import Optional
 
 
 # ═══════════════════════════════════════════════════════════════
-#  Enveloppe commune : fond navy + halo doré + cadre pointillé
+#  Enveloppe commune : fond blanc + halo bronze léger + cadre fin
 # ═══════════════════════════════════════════════════════════════
 def _wrap(inner_svg: str, subtitle: Optional[str] = None) -> str:
-    """Enveloppe commune 400×400 : fond nuit + halo + cadre + inner content."""
+    """Enveloppe commune 400×400 : papier blanc, cadre bronze et illustration."""
     sub = subtitle or ''
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="1200" height="1200">
 <defs>
   <radialGradient id="ph-halo" cx="50%" cy="45%" r="60%">
     <stop offset="0%" stop-color="#C9A24B" stop-opacity="0.20"/>
     <stop offset="40%" stop-color="#C9A24B" stop-opacity="0.05"/>
-    <stop offset="100%" stop-color="#0F1A3C" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
   </radialGradient>
   <linearGradient id="ph-gold-line" x1="0%" y1="0%" x2="100%" y2="0%">
     <stop offset="0%" stop-color="#C9A24B" stop-opacity="0.3"/>
@@ -36,7 +36,7 @@ def _wrap(inner_svg: str, subtitle: Optional[str] = None) -> str:
   </linearGradient>
   <filter id="ph-glow"><feGaussianBlur stdDeviation="1.6"/></filter>
 </defs>
-<rect width="400" height="400" fill="#0F1A3C"/>
+<rect width="400" height="400" fill="#FFFFFF"/>
 <ellipse cx="200" cy="180" rx="220" ry="200" fill="url(#ph-halo)"/>
 <rect x="16" y="16" width="368" height="368" fill="none" stroke="url(#ph-gold-line)" stroke-width="0.7" stroke-dasharray="1 3" opacity="0.7"/>
 {inner_svg}
@@ -76,9 +76,9 @@ def tree_of_life_svg() -> str:
     inner.append('<g>')
     for i,(x,y) in seph.items():
         r = 15 if i in (1,6,10) else 12
-        inner.append(f'<circle cx="{x}" cy="{y}" r="{r+3}" fill="#C9A24B" opacity="0.20"/>')
-        inner.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="#0F1A3C" stroke="#C9A24B" stroke-width="1.2"/>')
-        inner.append(f'<text x="{x}" y="{y+3}" text-anchor="middle" font-family="Helvetica" font-size="8" font-weight="600" fill="#C9A24B">{i}</text>')
+        inner.append(f'<circle cx="{x}" cy="{y}" r="{r+3}" fill="#79570F" opacity="0.12"/>')
+        inner.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="#FFFFFF" stroke="#79570F" stroke-width="1.2"/>')
+        inner.append(f'<text x="{x}" y="{y+3}" text-anchor="middle" font-family="Helvetica" font-size="8" font-weight="600" fill="#26242B">{i}</text>')
     inner.append('</g>')
     return _wrap('\n'.join(inner), subtitle='arbre séphirotique')
 
@@ -101,7 +101,7 @@ def karmic_nodes_svg() -> str:
 
     # Nœud Nord (☊) — en haut
     inner.append('<g transform="translate(200,110)">')
-    inner.append('<circle r="42" fill="#0F1A3C" stroke="#C9A24B" stroke-width="1.5"/>')
+    inner.append('<circle r="42" fill="#FFFFFF" stroke="#79570F" stroke-width="1.5"/>')
     inner.append('<circle r="46" fill="none" stroke="#C9A24B" stroke-width="0.5" opacity="0.5"/>')
     inner.append('<path d="M -20 15 C -25 -5, -8 -20, 0 -8 C 8 -20, 25 -5, 20 15 M -15 15 A 5 5 0 0 0 -5 15 M 15 15 A 5 5 0 0 0 5 15" fill="none" stroke="#C9A24B" stroke-width="2.2" stroke-linecap="round"/>')
     inner.append('<text x="0" y="55" text-anchor="middle" font-family="Helvetica" font-size="7" fill="#C9A24B" opacity="0.75">NŒUD NORD</text>')
@@ -109,7 +109,7 @@ def karmic_nodes_svg() -> str:
 
     # Nœud Sud (☋) — en bas
     inner.append('<g transform="translate(200,290)">')
-    inner.append('<circle r="42" fill="#0F1A3C" stroke="#C9A24B" stroke-width="1.5"/>')
+    inner.append('<circle r="42" fill="#FFFFFF" stroke="#79570F" stroke-width="1.5"/>')
     inner.append('<circle r="46" fill="none" stroke="#C9A24B" stroke-width="0.5" opacity="0.5"/>')
     inner.append('<path d="M -20 -15 C -25 5, -8 20, 0 8 C 8 20, 25 5, 20 -15 M -15 -15 A 5 5 0 0 1 -5 -15 M 15 -15 A 5 5 0 0 1 5 -15" fill="none" stroke="#C9A24B" stroke-width="2.2" stroke-linecap="round"/>')
     inner.append('<text x="0" y="-52" text-anchor="middle" font-family="Helvetica" font-size="7" fill="#C9A24B" opacity="0.75">NŒUD SUD</text>')
@@ -136,12 +136,12 @@ def entwined_hearts_svg() -> str:
 
     # Cœur 1 (à gauche, contour or)
     inner.append('<g transform="translate(155,195) rotate(-8)">')
-    inner.append(f'<path d="{heart_path}" fill="#0F1A3C" stroke="#C9A24B" stroke-width="2.5"/>')
+    inner.append(f'<path d="{heart_path}" fill="#FFFFFF" stroke="#79570F" stroke-width="2.5"/>')
     inner.append('</g>')
 
     # Cœur 2 (à droite, contour or plus clair)
     inner.append('<g transform="translate(245,205) rotate(12)">')
-    inner.append(f'<path d="{heart_path}" fill="#0F1A3C" stroke="#DDB966" stroke-width="2.5" opacity="0.95"/>')
+    inner.append(f'<path d="{heart_path}" fill="#FFFFFF" stroke="#8A6418" stroke-width="2.5" opacity="0.95"/>')
     inner.append('</g>')
 
     # Fil doré qui relie
@@ -169,7 +169,7 @@ def natal_wheel_svg() -> str:
     R_planet = 80
     # Cercle extérieur
     inner.append(f'<circle cx="200" cy="200" r="{R_outer+8}" fill="none" stroke="#C9A24B" stroke-width="0.6" opacity="0.5"/>')
-    inner.append(f'<circle cx="200" cy="200" r="{R_outer}" fill="#0F1A3C" stroke="#C9A24B" stroke-width="1.2"/>')
+    inner.append(f'<circle cx="200" cy="200" r="{R_outer}" fill="#FFFFFF" stroke="#79570F" stroke-width="1.2"/>')
     inner.append(f'<circle cx="200" cy="200" r="{R_inner}" fill="none" stroke="#C9A24B" stroke-width="0.8"/>')
     inner.append(f'<circle cx="200" cy="200" r="45" fill="none" stroke="#C9A24B" stroke-width="0.5" opacity="0.6"/>')
 
@@ -238,13 +238,13 @@ def life_path_svg() -> str:
     # 9 disques numérotés
     for x, y, n in positions:
         r = 15 if n == 9 else 13
-        inner.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r+3}" fill="#C9A24B" opacity="0.18"/>')
-        inner.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r}" fill="#0F1A3C" stroke="#C9A24B" stroke-width="1.1"/>')
-        inner.append(f'<text x="{x:.1f}" y="{y+4:.1f}" text-anchor="middle" font-family="Helvetica" font-size="11" font-weight="700" fill="#C9A24B">{n}</text>')
+        inner.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r+3}" fill="#79570F" opacity="0.12"/>')
+        inner.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r}" fill="#FFFFFF" stroke="#79570F" stroke-width="1.1"/>')
+        inner.append(f'<text x="{x:.1f}" y="{y+4:.1f}" text-anchor="middle" font-family="Helvetica" font-size="11" font-weight="700" fill="#26242B">{n}</text>')
 
     # Étoile au centre (soi)
     inner.append('<g transform="translate(200,200)">')
-    inner.append('<circle r="14" fill="#0F1A3C" stroke="#C9A24B" stroke-width="1.5"/>')
+    inner.append('<circle r="14" fill="#FFFFFF" stroke="#79570F" stroke-width="1.5"/>')
     inner.append('<path d="M 0 -8 L 2 -2.5 L 8 -2 L 3.5 1.5 L 5 8 L 0 4 L -5 8 L -3.5 1.5 L -8 -2 L -2 -2.5 Z" fill="#C9A24B"/>')
     inner.append('</g>')
     return _wrap('\n'.join(inner), subtitle='chemin de vie')
