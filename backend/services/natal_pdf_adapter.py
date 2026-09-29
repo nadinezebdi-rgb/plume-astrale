@@ -224,22 +224,16 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
         'no_birth_time': no_birth_time,
         'planets': planets,
         'synthese_aspects': synthese,
+        'enhanced_personal_analysis': user_data.get('enhanced_personal_analysis') or {},
         'tier': 'ultra' if is_ultra else 'legacy',
     }
 
     try:
-        # NOUVEAU (Feb 2026) : bascule sur book_engine_v2 (fond BLANC print).
-        # L'ancien natal_pdf_v2 (fond sombre luxe) est conservé en fallback safety
-        # pour ne PAS priver un client payant en cas d'échec du nouveau moteur.
-        from services.natal_manuscript_builder import build_natal_manuscript
-        from services.book_engine_v2 import render_manuscript_to_pdf_v2
-        manuscript = build_natal_manuscript(
-            prenom=prenom,
-            birth_date=birth_date,
-            natal_data=natal_data,
-            chart_png_bytes=chart_png_bytes,
-        )
-        pdf_bytes = render_manuscript_to_pdf_v2(manuscript, profile='print')
+        pdf_bytes = build_natal_pdf_v2(prenom=prenom, birth_date=birth_date, natal_data=natal_data,
+                                       chart_png_bytes=chart_png_bytes,
+                                       book_data=book_data,
+                                       referral_code=referral_code,
+                                       referral_link=referral_link)
         # Track pipeline health : source (gpt/gpt_partial/api_v3_only/none) + tier + taille
         try:
             from services.pipeline_metrics import track_pipeline_event
@@ -249,38 +243,12 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
                 tier=natal_data['tier'],
                 bytes=len(pdf_bytes),
                 ai_planet_count=ai_planet_count,
-                engine='book_engine_v2_print',
             )
         except Exception:
             pass
         return pdf_bytes
     except Exception as e:
-        logger.exception(f'[book_engine_v2 print] fallback to natal_pdf_v2 dark: {e}')
-        # Fallback #1 : natal_pdf_v2 (ancien moteur fond sombre) — safety net
-        try:
-            pdf_bytes = build_natal_pdf_v2(
-                prenom=prenom, birth_date=birth_date, natal_data=natal_data,
-                chart_png_bytes=chart_png_bytes,
-                book_data=book_data,
-                referral_code=referral_code,
-                referral_link=referral_link,
-            )
-            try:
-                from services.pipeline_metrics import track_pipeline_event
-                track_pipeline_event(
-                    'natal_pdf_generated',
-                    source=ai.get('_source') or 'none',
-                    tier=natal_data['tier'],
-                    bytes=len(pdf_bytes),
-                    ai_planet_count=ai_planet_count,
-                    engine='natal_pdf_v2_dark_fallback',
-                )
-            except Exception:
-                pass
-            return pdf_bytes
-        except Exception as e2:
-            logger.exception(f'[natal_pdf_v2] final fallback to legacy: {e2}')
-            e = e2  # utilisé plus bas dans le tracking legacy_wrapped
+        logger.exception(f'[natal_pdf_v2] fallback to legacy: {e}')
         from services.pdf_generator import generate_manuscrit_pdf as legacy
         legacy_bytes = legacy(user_data=user_data, planets_data=planets_data, horoscope_data=horoscope_data)
         # Wrap luxe même sur le fallback legacy — jamais servir un PDF nu

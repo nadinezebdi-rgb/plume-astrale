@@ -202,6 +202,17 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     diag['planets_from_chart'] = len(planets_dict or {})
     diag['interpretations_count'] = len(interpretations or [])
 
+    enhanced_analysis = None
+    try:
+        enhanced_analysis = await aio.enhanced_personal_analysis(bd, name=name)
+        if not isinstance(enhanced_analysis, dict):
+            enhanced_analysis = None
+    except Exception as e:
+        logger.warning(f'[theme_natal_oneshot] enhanced astrology unavailable: {e}')
+    diag['enhanced_analysis_source'] = 'astrology-api.io' if enhanced_analysis else 'unavailable'
+    diag['enhanced_aspects_count'] = len((enhanced_analysis or {}).get('aspects') or [])
+    diag['enhanced_fixed_stars_count'] = len((enhanced_analysis or {}).get('fixed_stars') or [])
+
     # ⚠️ GARDE ANTI-SLOP v2 (Feb 2026) : refuser de générer un PDF si l'API
     # astrology-api.io n'a pas remonté au moins Soleil + Lune + 3 autres planètes.
     # Le générateur `natal_pdf_adapter` avait des fallbacks hardcodés
@@ -274,6 +285,7 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         'ascendant_sign': '' if no_birth_time else (aio.sign_to_fr(asc_sign_en) if asc_sign_en else ''),
         'no_birth_time': no_birth_time,
         'ai_interpretations': ai_result,
+        'enhanced_personal_analysis': enhanced_analysis,
     }
 
     # 4) Chart wheel SVG → PNG (utilise le cache — 0 crédit API si déjà présent)
@@ -420,6 +432,7 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
                     'houses': houses,
                     'ascendant_sign_en': asc_sign_en,
                     'raw_natal': chart or {},
+                    'enhanced_personal_analysis': enhanced_analysis,
                 },
                 edition=Edition.NUMERIQUE,
             )
