@@ -202,17 +202,6 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     diag['planets_from_chart'] = len(planets_dict or {})
     diag['interpretations_count'] = len(interpretations or [])
 
-    enhanced_analysis = None
-    try:
-        enhanced_analysis = await aio.enhanced_personal_analysis(bd, name=name)
-        if not isinstance(enhanced_analysis, dict):
-            enhanced_analysis = None
-    except Exception as e:
-        logger.warning(f'[theme_natal_oneshot] enhanced astrology unavailable: {e}')
-    diag['enhanced_analysis_source'] = 'astrology-api.io' if enhanced_analysis else 'unavailable'
-    diag['enhanced_aspects_count'] = len((enhanced_analysis or {}).get('aspects') or [])
-    diag['enhanced_fixed_stars_count'] = len((enhanced_analysis or {}).get('fixed_stars') or [])
-
     # ⚠️ GARDE ANTI-SLOP v2 (Feb 2026) : refuser de générer un PDF si l'API
     # astrology-api.io n'a pas remonté au moins Soleil + Lune + 3 autres planètes.
     # Le générateur `natal_pdf_adapter` avait des fallbacks hardcodés
@@ -248,6 +237,17 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         except Exception as _e:
             logger.warning(f'[theme_natal_oneshot] admin alert failed: {_e}')
         return diag
+
+    enhanced_analysis = None
+    try:
+        enhanced_analysis = await aio.enhanced_personal_analysis(bd, name=name)
+        if not isinstance(enhanced_analysis, dict):
+            enhanced_analysis = None
+    except Exception as e:
+        logger.warning(f'[theme_natal_oneshot] enhanced astrology unavailable: {e}')
+    diag['enhanced_analysis_source'] = 'astrology-api.io' if enhanced_analysis else 'unavailable'
+    diag['enhanced_aspects_count'] = len((enhanced_analysis or {}).get('aspects') or [])
+    diag['enhanced_fixed_stars_count'] = len((enhanced_analysis or {}).get('fixed_stars') or [])
 
     # 2) Enrichissement GPT-5.4 Ultra (11 planètes + synthèse aspects)
     ai_result: dict = {}
