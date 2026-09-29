@@ -146,7 +146,7 @@ def test_render_html_contains_cover_and_wheel():
 
 def test_render_pdf_v2_bytes_and_pages():
     from services.book_engine_v2 import render_manuscript_to_pdf_v2
-    pdf = render_manuscript_to_pdf_v2(_sample_manuscript(), profile='screen')
+    pdf = render_manuscript_to_pdf_v2(_sample_manuscript(), profile='print')
     assert pdf.startswith(b'%PDF'), 'PDF signature manquante'
     assert len(pdf) > 50_000, f'PDF trop petit ({len(pdf)} bytes)'
 
@@ -157,7 +157,7 @@ def test_render_pdf_v2_qa_page_format_ok(tmp_path):
     from services.book_engine_v2.pdf_qa import (
         check_page_format, check_no_bitmap, check_wheel_geometry,
     )
-    pdf = render_manuscript_to_pdf_v2(_sample_manuscript(), profile='screen')
+    pdf = render_manuscript_to_pdf_v2(_sample_manuscript(), profile='print')
     p = tmp_path / 'book.pdf'
     p.write_bytes(pdf)
     assert check_page_format(p).status == 'pass'

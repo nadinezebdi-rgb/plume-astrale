@@ -349,7 +349,7 @@ async def build_book_pdf_for_session(session_id: str, *, force: bool = False) ->
         try:
             pdf_bytes = await asyncio.to_thread(
                 render_manuscript_to_pdf_v2, manuscript,
-                profile='screen',            # screen par défaut ; print sur demande LOT 4.3
+                profile='print',
                 cover_png_path=cover_path,
             )
         except Exception as e:

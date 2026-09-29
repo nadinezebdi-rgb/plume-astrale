@@ -13,6 +13,7 @@ from pathlib import Path
 from pydantic import BaseModel
 from typing import Optional
 from urllib.parse import urlparse
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 # Config + middleware
 from config import get_settings
@@ -22,7 +23,7 @@ from middleware.auth import get_current_user, get_optional_user
 from services.daily_content import get_daily_content
 from services.tarot_service import tirage_oui_non, tirage_en_croix, tirage_mediumnite_complet
 from services.tarot_premium import (
-    tirage_marseille_question, tirage_croix_celtique, tirage_du_jour,
+    ARCANES_MAJEURS, tirage_marseille_question, tirage_croix_celtique, tirage_du_jour,
     DOMAINES_QUESTIONS,
 )
 from services.natal_pdf_adapter import generate_manuscrit_pdf
@@ -2355,6 +2356,16 @@ class ExperienceTarotRequest(BaseModel):
     intent: Optional[str] = 'general'
 
 
+class ExperienceTarotAlternativeRequest(BaseModel):
+    session_id: str
+    intent: str = 'general'
+    card_number: int
+    orientation: str
+
+
+_EXPERIENCE_ALTERNATIVE_COUNTS: dict[str, int] = {}
+
+
 _TAROT_ASSET_SLUGS = {
     0: '00_le_mat', 1: '01_le_bateleur', 2: '02_la_papesse',
     3: '03_l_imperatrice', 4: '04_l_empereur', 5: '05_le_pape',
@@ -2399,6 +2410,58 @@ async def experience_tarot_draw(payload: ExperienceTarotRequest):
         'synthese': reading.get('synthese'),
         'disclaimer': 'Lecture symbolique proposée comme support de réflexion.',
     }
+
+
+@api_router.post('/tarot/experience-alternative')
+async def experience_tarot_alternative(payload: ExperienceTarotAlternativeRequest):
+    session_id = (payload.session_id or '').strip()[:120]
+    if not session_id:
+        raise HTTPException(status_code=400, detail='session_id requis')
+    if payload.orientation not in ('droit', 'renverse'):
+        raise HTTPException(status_code=400, detail='orientation invalide')
+    if payload.intent not in ('relationship', 'clarity', 'self_discovery', 'specific_question', 'general'):
+        raise HTTPException(status_code=400, detail='intention invalide')
+    if payload.card_number not in ARCANES_MAJEURS:
+        raise HTTPException(status_code=400, detail='carte invalide')
+
+    count = _EXPERIENCE_ALTERNATIVE_COUNTS.get(session_id, 0)
+    if count >= 3:
+        raise HTTPException(status_code=429, detail='limite de lectures alternatives atteinte')
+    if session_id not in _EXPERIENCE_ALTERNATIVE_COUNTS and len(_EXPERIENCE_ALTERNATIVE_COUNTS) >= 10000:
+        _EXPERIENCE_ALTERNATIVE_COUNTS.pop(next(iter(_EXPERIENCE_ALTERNATIVE_COUNTS)))
+    _EXPERIENCE_ALTERNATIVE_COUNTS[session_id] = count + 1
+
+    arcane = ARCANES_MAJEURS[payload.card_number]
+    interpretation = arcane[payload.orientation]
+    domain = 'amour' if payload.intent == 'relationship' else 'general'
+    source = interpretation.get(domain, interpretation.get('general', ''))
+    api_key = os.environ.get('EMERGENT_LLM_KEY', '').strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail='service de lecture indisponible')
+
+    prompt = (
+        f"Carte : {arcane['nom']} ({payload.orientation}).\n"
+        f"Intention : {payload.intent}.\n"
+        f"Sens de référence : {source}\n\n"
+        "Écris une interprétation alternative inédite en français, en une ou deux phrases. "
+        "Reste fidèle au sens de référence, sans prédiction certaine, fatalisme, jargon ni "
+        "conseil médical, juridique ou financier. N'ajoute aucun fait sur la personne. "
+        "Réponds uniquement par le texte, sans titre ni guillemets."
+    )
+    try:
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f'tarot-alternative-{session_id}-{count + 1}',
+            system_message='Tu es Soléna, une voix de tarot douce, claire et non déterministe. Tu écris exclusivement en français.',
+        ).with_model('anthropic', 'claude-sonnet-4-6')
+        alternative = (await chat.send_message(UserMessage(text=prompt))).strip()
+        if not alternative:
+            raise ValueError('empty tarot alternative')
+    except Exception as exc:
+        logger.warning(f'[experience tarot] alternative generation failed: {exc}')
+        raise HTTPException(status_code=503, detail='service de lecture momentanément indisponible') from exc
+
+    return {'success': True, 'alternative': alternative}
 
 
 class OracleQuestionRequest(BaseModel):
