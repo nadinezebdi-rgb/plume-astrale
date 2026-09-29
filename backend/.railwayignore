@@ -1,0 +1,7 @@
+cache/
+.state/
+logs/
+__pycache__/
+*.pyc
+tests/
+scripts/

@@ -384,17 +384,59 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     pdf_bytes = None
     filename = f'theme_natal_{session_id[-16:]}.pdf'
     try:
-        from services.natal_pdf_adapter import generate_manuscrit_pdf
         import asyncio as _asyncio
-        pdf_bytes = await _asyncio.to_thread(
-            generate_manuscrit_pdf,
-            user_data=user_data,
-            planets_data=list(planets_dict.values()),
-            chart_png_bytes=chart_png_bytes,
-            book_data=book_data,
-            referral_code=referral_code_book,
-            referral_link=referral_link_book,
-        )
+        if os.environ.get('USE_V2_ENGINE', '0') == '1':
+            from services.book_engine.domain import BirthData, Edition
+            from services.book_engine_v2 import render_manuscript_to_pdf_v2
+            from services.book_engine_v2.assemble import build_full_manuscript
+
+            chart_data = (chart or {}).get('chart_data') or {}
+            houses = []
+            for house in chart_data.get('house_cusps') or []:
+                if isinstance(house, dict):
+                    houses.append({
+                        'house': house.get('house'),
+                        'sign': aio.expand_sign(house.get('sign') or ''),
+                        'degree': house.get('degree'),
+                        'absolute_longitude': house.get('absolute_longitude'),
+                    })
+            hour = bd.get('hour', 12)
+            minute = bd.get('minute', 0)
+            birth_time = None if no_birth_time else f'{int(hour):02d}:{int(minute):02d}'
+            manuscript = await build_full_manuscript(
+                session_id=session_id,
+                user_email=email or '',
+                first_name=name,
+                birth_data=BirthData(
+                    date_iso=birth_date_iso or '1990-01-01',
+                    time_hhmm=birth_time,
+                    city=bd.get('city') or bd.get('location') or '',
+                    country_code=bd.get('country_code') or 'FR',
+                    latitude=bd.get('latitude'),
+                    longitude=bd.get('longitude'),
+                ),
+                astro_data={
+                    'planets': planets_dict,
+                    'houses': houses,
+                    'ascendant_sign_en': asc_sign_en,
+                    'raw_natal': chart or {},
+                },
+                edition=Edition.NUMERIQUE,
+            )
+            pdf_bytes = await _asyncio.to_thread(
+                render_manuscript_to_pdf_v2, manuscript, profile='print',
+            )
+        else:
+            from services.natal_pdf_adapter import generate_manuscrit_pdf
+            pdf_bytes = await _asyncio.to_thread(
+                generate_manuscrit_pdf,
+                user_data=user_data,
+                planets_data=list(planets_dict.values()),
+                chart_png_bytes=chart_png_bytes,
+                book_data=book_data,
+                referral_code=referral_code_book,
+                referral_link=referral_link_book,
+            )
         out_dir = ASSETS_DIR / 'theme_natal'
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / filename
