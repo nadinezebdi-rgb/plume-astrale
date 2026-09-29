@@ -185,7 +185,12 @@ async def serve_file(category: str, filename: str):
     # 2) Fallback local (fichier non encore migre)
     p = LIBRARY_ROOT / category / fname
     if p.exists() and p.is_file():
-        media_type = "image/svg+xml" if fname.endswith(".svg") else "image/png"
+        media_type = {
+            ".svg": "image/svg+xml",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".webp": "image/webp",
+        }.get(p.suffix.lower(), "image/png")
         return FileResponse(p, media_type=media_type)
 
     raise HTTPException(404, "File not found")
