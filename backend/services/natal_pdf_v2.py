@@ -47,7 +47,7 @@ PLANET_META = {
 _PLANET_NAMES_FR = {
     'sun': 'Soleil', 'moon': 'Lune', 'mercury': 'Mercure', 'venus': 'Vénus',
     'mars': 'Mars', 'jupiter': 'Jupiter', 'saturn': 'Saturne',
-    'uranus': 'Uranus', 'neptune': 'Neptune', 'pluto': 'Pluton',
+    'uranus': 'Uranus', 'neptune': 'Neptune', 'pluto': 'Pluton', 'ascendant': 'Ascendant',
     'mean_node': 'Nœud moyen', 'true_node': 'Nœud vrai',
     'part_of_fortune': 'Part de Fortune', 'part_of_spirit': "Part d'Esprit",
 }
@@ -81,7 +81,8 @@ def _enhanced_personal_analysis_sections(analysis: Optional[dict], no_birth_time
         return escape(str(value), quote=False)
 
     def sign(value) -> str:
-        return safe(sign_to_fr(str(value or '')))
+        from services.astrology_io_service import expand_sign
+        return safe(sign_to_fr(expand_sign(str(value or ''))))
 
     def degree(value) -> str:
         try:
@@ -136,23 +137,27 @@ def _enhanced_personal_analysis_sections(analysis: Optional[dict], no_birth_time
     if life_areas:
         cycles.append(f"<b>Domaines mis en relief :</b> {', '.join(life_areas)}")
 
-    extra_points = []
-    classic_points = {'sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'ascendant'}
+    placements = []
     for point in analysis.get('planets') or []:
         if not isinstance(point, dict):
             continue
         key = str(point.get('name') or '').strip().lower().replace(' ', '_')
-        if key not in _PLANET_NAMES_FR or key in classic_points:
+        if key not in _PLANET_NAMES_FR:
             continue
-        details = [sign(point.get('sign'))] if point.get('sign') else []
+        details = []
+        if point.get('sign'):
+            details.append(sign(point['sign']))
         position = degree(point.get('position'))
         if position:
             details.append(position)
         if not no_birth_time and point.get('house'):
             details.append(house_name(point['house']))
-        extra_points.append(f"{planet_name(key)} : {' · '.join(details)}")
-    if extra_points:
-        cycles.append(f"<b>Points complémentaires :</b> {' ; '.join(extra_points[:5])}")
+        if point.get('retrograde') is True:
+            details.append('rétrograde')
+        if details:
+            placements.append(f"{planet_name(key)} : {' · '.join(details)}")
+    if placements:
+        cycles.append(f"<b>Positions précises :</b> {' ; '.join(placements[:14])}")
 
     signatures = []
     for aspect in (analysis.get('aspects') or [])[:6]:

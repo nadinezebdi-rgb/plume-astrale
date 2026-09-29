@@ -49,7 +49,7 @@ def test_enhanced_pdf_sections_include_features_and_respect_missing_birth_time()
         'planets': [
             {'name': 'Mean_Node', 'sign': 'Can', 'position': 4.125, 'house': 'Tenth_House'},
             {'name': 'Part_of_Fortune', 'sign': 'Tau', 'position': 12.5, 'house': 'Second_House'},
-            {'name': 'Sun', 'dignities': {'domicile': True}},
+            {'name': 'Sun', 'sign': 'Tau', 'position': 20.82, 'house': 'Tenth_House', 'dignities': {'domicile': True}},
         ],
         'aspects': [{
             'planet_a': 'Sun', 'planet_b': 'Moon', 'aspect_type': 'trine',
@@ -63,6 +63,7 @@ def test_enhanced_pdf_sections_include_features_and_respect_missing_birth_time()
     all_text = '\n'.join(body for _, body in sections)
     assert 'Gibbeuse croissante' in all_text
     assert 'Nœud moyen' in all_text
+    assert 'Soleil : Taureau · 20,82° · Maison X' in all_text
     assert 'Soleil trigone Lune' in all_text
     assert 'en formation' in all_text
     assert 'Aldebaran' in all_text
