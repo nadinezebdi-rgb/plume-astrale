@@ -4,6 +4,13 @@
   "outputDirectory": "frontend/build",
   "installCommand": "cd frontend && yarn install",
   "framework": null,
+  "redirects": [
+    {
+      "source": "/home-experience-v3",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",

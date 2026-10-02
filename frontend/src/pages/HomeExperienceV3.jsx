@@ -60,7 +60,7 @@ export default function HomeExperienceV3() {
   return (
     <>
       <SEO
-        path="/home-experience-v3"
+        path="/"
         title="Plume Astrale — Une question, un signe, une révélation"
         description="Un voyage cinématographique en huit actes de la question intime à la découverte de votre univers astrologique."
         canonical="https://plume-astrale.fr/"
