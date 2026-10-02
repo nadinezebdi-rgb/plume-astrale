@@ -41,6 +41,8 @@ function LoadingVoid() {
         minHeight: '100vh',
         background: '#070713',
         display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
         alignItems: 'center',
         justifyContent: 'center',
         color: 'rgba(216, 183, 106, 0.6)',
@@ -50,8 +52,13 @@ function LoadingVoid() {
         textTransform: 'uppercase',
       }}
     >
-      <span aria-hidden="true" style={{ marginRight: 14 }}>✦</span>
-      Le voyage commence…
+      <span aria-hidden="true" style={{ fontSize: 22 }}>✦</span>
+      <span style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', fontSize: 22, color: '#F4EFE6' }}>
+        Plume Astrale
+      </span>
+      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'none' }}>
+        Ton ciel, raconté avec douceur…
+      </span>
     </div>
   );
 }

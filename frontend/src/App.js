@@ -128,7 +128,7 @@ function GlobalOverlays() {
       <Starfield />
       <ShootingStars />
       <NoiseOverlay />
-      <MobileTabBar />
+      {!isLanding && <MobileTabBar />}
       {!isLanding && <LiveSalesCounter />}
       <SupportChat />
     </>
