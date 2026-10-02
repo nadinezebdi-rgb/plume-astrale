@@ -21,7 +21,7 @@ export default function FooterV2() {
   // Cache le footer sur les routes immersives (/experience, /home-experience-v3)
   // qui embarquent leur propre footer signature.
   if (
-    pathname === '/experience' || pathname.startsWith('/experience/') ||
+    pathname === '/' || pathname === '/experience' || pathname.startsWith('/experience/') ||
     pathname === '/home-experience-v3' || pathname.startsWith('/home-experience-v3/')
   ) {
     return null;

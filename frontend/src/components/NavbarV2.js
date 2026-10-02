@@ -55,7 +55,7 @@ export default function NavbarV2() {
 
   // Pages immersives sans navbar (prototype /experience + /home-experience-v3).
   const isImmersive = (p) =>
-    p === '/experience' || p.startsWith('/experience/') ||
+    p === '/' || p === '/experience' || p.startsWith('/experience/') ||
     p === '/home-experience-v3' || p.startsWith('/home-experience-v3/');
   // Placé ici APRÈS tous les hooks pour respecter les rules-of-hooks.
   if (isImmersive(location.pathname)) {
