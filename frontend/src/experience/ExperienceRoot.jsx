@@ -12,6 +12,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallba
 import { useNavigate } from 'react-router-dom';
 import { useDeviceProfile } from './hooks/useDeviceProfile';
 import { useExperienceStore } from './useExperienceStore';
+import AmbientSound from './AmbientSound';
 import ExperienceCanvas from './ExperienceCanvas';
 import ExperienceFallback from './ExperienceFallback';
 import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
