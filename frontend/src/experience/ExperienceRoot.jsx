@@ -17,7 +17,6 @@ import ExperienceCanvas from './ExperienceCanvas';
 import ExperienceFallback from './ExperienceFallback';
 import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
 import { storeIntent, storeDrawnCard, captureUtm, detectZodiacCampaign, readUtm } from './intentConfig';
-import { getScene3Revelation } from './scene3Revelations';
 import ZodiacInterlude from './ZodiacInterlude';
 import { event as trackEvent, EVENTS, ctaClick } from '@/lib/analytics';
 import './Experience.css';
@@ -37,9 +36,6 @@ const CARDS = [
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
-function createExperienceSessionId() {
-  return window.crypto?.randomUUID?.() || `exp-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
 
 export default function ExperienceRoot() {
   useDeviceProfile();
@@ -67,7 +63,6 @@ export default function ExperienceRoot() {
   const [experienceCards, setExperienceCards] = useState([]);
   const [cardsLoading, setCardsLoading] = useState(true);
   const sectionRefs = useRef({ 1: null, 2: null, 3: null, 4: null });
-  const experienceSessionIdRef = useRef(createExperienceSessionId());
 
   // Fallback pour reduced-motion ou pas de WebGL
   const useFallback = reducedMotion || !webglAvailable;
@@ -136,38 +131,36 @@ export default function ExperienceRoot() {
   const displayCards = experienceCards.length ? experienceCards : CARDS;
   const selectedCard = displayCards.find((card) => card.id === drawnCard);
 
-  // Le tirage est demandé au backend dès l'ouverture de l'expérience.
-  // Les faces restent cachées jusqu'au choix, mais les cartes sont déjà réelles.
+  // Load today's tarot card before presenting its back to the visitor.
   useEffect(() => {
     const controller = new AbortController();
-    const loadDraw = async () => {
+    const loadDailyCard = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/tarot/experience-draw`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: experienceSessionIdRef.current, intent: 'general' }),
-          signal: controller.signal,
-        });
+        const response = await fetch(`${API_URL}/api/tarot/jour`, { signal: controller.signal });
         if (!response.ok) throw new Error(`Tarot API ${response.status}`);
         const payload = await response.json();
-        const rotations = [-6, 0, 6];
-        const offsets = [0, -8, 0];
-        const cards = (payload.cards || []).map((card, index) => ({
+        const card = payload.data?.carte;
+        if (!payload.success || !card) throw new Error('Daily tarot response has no card');
+        setExperienceCards([{
           ...card,
-          rot: rotations[index] || 0,
-          dy: offsets[index] || 0,
-          image: card.image_url ? `${API_URL}${card.image_url}` : cardFaceImage,
-        }));
-        if (cards.length === 3) setExperienceCards(cards);
+          id: `daily-${payload.data.date}`,
+          name: card.nom,
+          interpretation: card.interpretation_generale,
+          rot: 0,
+          dy: 0,
+          image: getCardFaceTexture(card),
+        }]);
       } catch (error) {
-        if (error.name !== 'AbortError') console.warn('[experience] tirage API indisponible, fallback local', error);
+        if (error.name !== 'AbortError') {
+          console.warn('[experience] carte du jour indisponible, fallback local', error);
+        }
       } finally {
-        setCardsLoading(false);
+        if (!controller.signal.aborted) setCardsLoading(false);
       }
     };
-    loadDraw();
+    loadDailyCard();
     return () => controller.abort();
-  }, [cardFaceImage]); // Le tirage reste stable pendant toute la visite.
+  }, []);
 
   // ── Capture UTM + hydratation du store depuis sessionStorage ─
   //  Utile si l'utilisateur rafraîchit à mi-parcours ou revient via
@@ -485,7 +478,7 @@ export default function ExperienceRoot() {
                     className="exp-s3__face"
                     aria-hidden={drawnCard !== c.id}
                     style={{
-                      backgroundImage: `linear-gradient(rgba(16,25,54,0.08), rgba(49,32,82,0.18)), url(${c.image || cardFaceImage})`,
+                      backgroundImage: `linear-gradient(rgba(16,25,54,0.08), rgba(49,32,82,0.18)), url(${c.image || getCardFaceTexture(c) || cardFaceImage})`,
                       transform: `rotateY(180deg) ${c.orientation === 'renverse' ? 'rotate(180deg)' : ''}`,
                     }}
                   />
@@ -496,29 +489,28 @@ export default function ExperienceRoot() {
             {cardsLoading && <p className="exp-eyebrow">Les arcanes composent votre tirage…</p>}
 
             <div className="exp-s3__result" data-visible={drawnCard !== null}>
-              {(() => {
-                const rev = getScene3Revelation(drawnCard, intent);
-                return (
-                  <>
-                    <p className="exp-lead" data-testid="scene-3-revelation">{rev.revelation}</p>
-                    <p className="exp-lead" style={{ opacity: 0.6, marginTop: -8 }} data-testid="scene-3-tension">
-                      {rev.tension}
-                    </p>
-                    <button
-                      type="button"
-                      className="exp-linkline"
-                      onClick={() => {
-                        trackEvent(EVENTS.EXP_TAROT_CONTINUE, { card: drawnCard, intent_type: intent || 'none' });
-                        scrollToScene(4);
-                      }}
-                      data-testid="scene-3-continue"
-                    >
-                      ✦ {rev.cta}
-                      <span className="exp-linkline__chevron">↓</span>
-                    </button>
-                  </>
-                );
-              })()}
+              {selectedCard ? (
+                <div className="exp-card-reading">
+                  <strong>{selectedCard.nom || selectedCard.name}</strong>
+                  <span>{selectedCard.orientation_fr || selectedCard.orientation} · {(selectedCard.mots_cles || []).join(' · ')}</span>
+                  <p>{selectedCard.interpretation}</p>
+                  <p style={{ opacity: 0.72 }}>{selectedCard.conseil}</p>
+                </div>
+              ) : (
+                <p className="exp-lead">Cette carte éclaire une partie de votre question.</p>
+              )}
+              <button
+                type="button"
+                className="exp-linkline"
+                onClick={() => {
+                  trackEvent(EVENTS.EXP_TAROT_CONTINUE, { card: drawnCard, intent_type: intent || 'none' });
+                  scrollToScene(4);
+                }}
+                data-testid="scene-3-continue"
+              >
+                ✦ Découvrir la suite de mon tirage
+                <span className="exp-linkline__chevron">↓</span>
+              </button>
             </div>
           </div>
         </section>

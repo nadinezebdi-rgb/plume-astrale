@@ -98,7 +98,7 @@ export default function ExperienceFallback({
                   />
                   <div
                     className="exp-s3__face"
-                    style={{ backgroundImage: `url(${cardFaceImage})` }}
+                    style={{ backgroundImage: `url(${c.image || getCardFaceTexture(c) || cardFaceImage})` }}
                   />
                 </button>
               ))}

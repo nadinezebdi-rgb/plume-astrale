@@ -9,6 +9,16 @@
 
 const W = 400;
 const H = 600;
+const CARD_BACK_TEXTURE = '/experience/plume-astrale-card-back.jpg';
+const CARD_FACE_ASSETS = [
+  '00_le_mat', '01_le_bateleur', '02_la_papesse', '03_l_imperatrice',
+  '04_l_empereur', '05_le_pape', '06_les_amoureux', '07_le_chariot',
+  '08_la_force', '09_l_hermite', '10_la_roue_de_fortune', '11_la_justice',
+  '12_le_pendu', '13_la_mort', '14_la_temperance', '15_le_diable',
+  '16_la_maison_dieu', '17_l_etoile', '18_la_lune', '19_le_soleil',
+  '20_le_jugement', '21_le_monde',
+];
+const CARD_FACE_BASE_URL = 'https://ebwicqvbkwogxneipaxh.supabase.co/storage/v1/object/public/library/tarot';
 
 function makeBackTexture() {
   if (typeof document === 'undefined') return '';
@@ -178,15 +188,18 @@ function makeFaceTexture() {
   return c.toDataURL('image/png');
 }
 
-let _backCache = null;
 let _faceCache = null;
 
 export function getCardBackTexture() {
-  if (_backCache === null) _backCache = makeBackTexture();
-  return _backCache;
+  return CARD_BACK_TEXTURE || makeBackTexture();
 }
 
-export function getCardFaceTexture() {
+export function getCardFaceTexture(card = {}) {
+  if (typeof card === 'string') card = { nom: card };
+  if (card.image_url) return card.image_url;
+  const number = Number(card.numero ?? card.number);
+  const artSlug = Number.isInteger(number) ? CARD_FACE_ASSETS[number] : null;
+  if (artSlug) return `${CARD_FACE_BASE_URL}/${artSlug}_512.png`;
   if (_faceCache === null) _faceCache = makeFaceTexture();
   return _faceCache;
 }

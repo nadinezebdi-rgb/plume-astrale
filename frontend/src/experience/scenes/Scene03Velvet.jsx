@@ -4,7 +4,7 @@
  * Les cartes elles-mêmes sont en HTML/CSS (retournement 3D natif,
  * beaucoup plus stable que de créer 3 <PlaneGeometry> avec textures
  * dynamiques). Cette scène 3D fournit seulement L'AMBIANCE :
- *   • plan horizontal texturé (velours sombre + poussière lumineuse)
+ *   • halo chaud et poussière lumineuse, sans plan de sol opaque
  *   • spot light chaud venant du dessus
  *   • quelques particules de poussière qui flottent
  */
@@ -56,16 +56,6 @@ export default function Scene03Velvet() {
 
   return (
     <group>
-      {/* Plan velours horizontal (léger reflet vers l'observateur) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.4, 0]}>
-        <planeGeometry args={[14, 10, 1, 1]} />
-        <meshBasicMaterial
-          color="#261B48"
-          transparent
-          opacity={0.9}
-        />
-      </mesh>
-
       {/* Halo lumineux au centre (comme un spot venant du dessus) */}
       <sprite scale={[6, 3.5, 1]} position={[0, 0.2, -0.5]}>
         <spriteMaterial
@@ -73,7 +63,7 @@ export default function Scene03Velvet() {
           transparent
           depthWrite={false}
           blending={THREE.AdditiveBlending}
-          color="#D8B76A"
+          color="#79570F"
           opacity={0.28}
         />
       </sprite>
@@ -91,7 +81,7 @@ export default function Scene03Velvet() {
           depthWrite={false}
           blending={THREE.AdditiveBlending}
           opacity={0.6}
-          color="#F4EFE6"
+          color="#26242B"
         />
       </points>
     </group>

@@ -92,18 +92,17 @@ export default function ExperienceCanvas() {
         dpr={dpr}
         gl={{
           antialias: !isLowEnd,
-          alpha: false,
+          alpha: true,
           powerPreference: 'high-performance',
         }}
-        style={{ background: '#101936' }}
+        style={{ background: 'transparent' }}
       >
         <PerformanceMonitor
           onDecline={() => setDpr([1, isMobile ? 1 : 1.15])}
           onIncline={() => setDpr(isMobile ? [1, 1.25] : [1, 1.5])}
           flipflops={2}
         />
-        <color attach="background" args={['#101936']} />
-        <ambientLight intensity={0.15} color="#7657C8" />
+        <ambientLight intensity={0.3} color="#79570F" />
         <Suspense fallback={null}>
           <StageController />
         </Suspense>

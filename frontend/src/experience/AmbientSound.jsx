@@ -8,7 +8,7 @@ export default function AmbientSound() {
 
   const playMelodyStep = useCallback(() => {
     const audio = audioRef.current;
-    if (!audio || !enabled) return;
+    if (!audio) return;
 
     const { ctx, master } = audio;
     const notes = [261.63, 329.63, 392.0, 440.0, 523.25, 440.0, 392.0, 329.63, 293.66, 329.63, 392.0, 523.25];
@@ -41,7 +41,7 @@ export default function AmbientSound() {
     shimmer.stop(ctx.currentTime + 0.95);
 
     stepRef.current += 1;
-  }, [enabled]);
+  }, []);
 
   const start = useCallback(async () => {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -70,18 +70,13 @@ export default function AmbientSound() {
     setEnabled(true);
   }, [playMelodyStep]);
 
-  useEffect(() => {
-    const unlock = () => start();
-    const events = ['pointerdown', 'touchstart', 'keydown', 'click'];
-    events.forEach((eventName) => window.addEventListener(eventName, unlock, { passive: true }));
-    return () => {
-      events.forEach((eventName) => window.removeEventListener(eventName, unlock));
+  useEffect(() => () => {
       if (timerRef.current) {
         window.clearInterval(timerRef.current);
         timerRef.current = null;
       }
-    };
-  }, [start]);
+      if (audioRef.current?.ctx.state !== 'closed') audioRef.current?.ctx.close();
+    }, []);
 
   const toggle = async () => {
     if (!audioRef.current) return start();
