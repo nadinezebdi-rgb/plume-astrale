@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from config import get_settings
 from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
+from services import public_free_promo
 from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
 from middleware.auth import get_optional_user
 from integrations.payments.stripe.checkout import (
@@ -95,10 +96,19 @@ async def theme_natal_oneshot_checkout(
         'no_birth_time': no_birth_time,  # §V audit marque Feb 2026
     }
 
+    # Promo publique (Thème Natal offert) : ouverte à tous, encadrée par date/plafond/e-mail
+    public_free = False
+    if payload.promo_code and public_free_promo.is_active_code(payload.promo_code):
+        ok, msg = public_free_promo.check_redeemable(payload.promo_code, payload.email)
+        if not ok:
+            raise HTTPException(400, msg)
+        public_free = True
+
     # Bypass promo admin
-    if payload.promo_code and try_consume_promo(
+    if public_free or (payload.promo_code and try_consume_promo(
         payload.promo_code, admin_user=current_user, product='theme_natal_pdf_oneshot'
-    ):
+    )):
+        # Préfixe `admin-natal-` : self_heal relance la génération sans passer par Stripe
         fake_session_id = f'admin-natal-{uuid.uuid4().hex[:16]}'
         try:
             from datetime import datetime, timezone
@@ -118,6 +128,7 @@ async def theme_natal_oneshot_checkout(
                     'kind': 'theme_natal_pdf_oneshot',
                     'pdf_ctx': pdf_ctx,
                     'admin_bypass': True,
+                    'public_free_promo': public_free,
                     'promo_code': payload.promo_code.strip().upper(),
                     # Statut initial 'pending' : si le pod backend crashe/redémarre
                     # avant d'atteindre pdf_status: success ou failed, le poll /status
