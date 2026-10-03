@@ -96,25 +96,14 @@ export default function ExperienceRoot({ managedScroll = false }) {
     return () => clearTimeout(t1);
   }, [currentScene]);
 
-  // ── Scène 4 : timing des phrases (aligné sur les phases de Scene04Feather V2) ─
-  //  Phase A CHAOS       [0.0, 0.8]      chaos
-  //  Phase B ATTRACTION  [0.8, 1.6]      attraction subtile
-  //  Phase C FORMATION   [1.6, 6.0]      plume se dessine
-  //  Phase D PAUSE       [6.0, 8.0]      silence visuel — plume complète
-  //  Phase E WRITING     [8.0, 12.0]     plume écrit "Plume Astrale" gauche→droite
-  //  Phase F STABLE      [12.0, ∞)       texte stable + sweep + phrases HTML
+  // Reveal the offer as soon as the visitor reaches the final scene.
   useEffect(() => {
-    if (currentScene !== 4) return;
-    setScene4Step(0);
-    const t1 = setTimeout(() => setScene4Step(1), 12500); // "Plume Astrale" vient d'être écrit
-    const t2 = setTimeout(() => setScene4Step(2), 14000); // "Votre histoire est unique"
-    const t3 = setTimeout(() => setScene4Step(3), 16000); // "Votre ciel aussi"
-    const t4 = setTimeout(() => {
+    if (currentScene === 4) {
       setScene4Step(4);
-      trackEvent(EVENTS.EXP_FEATHER_COMPLETED, {});
       trackEvent(EVENTS.EXP_SIGNUP_CTA_VIEWED, { intent_type: intent || 'none' });
-    }, 18000); // CTA final
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+    } else {
+      setScene4Step(0);
+    }
   }, [currentScene, intent]);
 
   // ── Smooth scroll helper ─────────────────────────────────────
@@ -201,7 +190,8 @@ export default function ExperienceRoot({ managedScroll = false }) {
     }
     if (currentScene === 4 && !tracked.has('scene4_started')) {
       tracked.add('scene4_started');
-      trackEvent(EVENTS.EXP_FEATHER_STARTED, {});
+      trackEvent('home_v3_offer_reached', {});
+      trackEvent('home_v3_purchase_cta_viewed', { intent: intent || 'none' });
     }
   }, [currentScene, intent]);
 
@@ -281,6 +271,32 @@ export default function ExperienceRoot({ managedScroll = false }) {
     navigate(`/inscription?${params.toString()}`);
   }, [navigate, intent, drawnCard]);
 
+  const handleLoginCTA = useCallback(() => {
+    trackEvent(EVENTS.EXP_SIGNUP_CTA_CLICKED, { intent_type: intent || 'none', card: drawnCard || 'none', mode: 'login' });
+    navigate('/connexion');
+  }, [navigate, intent, drawnCard]);
+
+  const handleExploreOffers = useCallback(() => {
+    const situationByIntent = {
+      relationship: 'relation',
+      clarity: 'doute',
+      self_discovery: 'comprendre',
+      specific_question: 'decision',
+    };
+    const situation = situationByIntent[intent] || 'decision';
+    const destination = `/decouvrir?situation=${situation}`;
+    trackEvent('home_v3_purchase_cta_clicked', {
+      intent: intent || 'none',
+      card: drawnCard || 'none',
+    });
+    ctaClick('Voir ma recommandation', {
+      destination,
+      cta_location: 'experience_scene_4_recommendation',
+      intent_type: intent || 'none',
+    });
+    navigate(destination);
+  }, [navigate, intent, drawnCard]);
+
   const handleSkip = useCallback(() => {
     trackEvent(EVENTS.EXP_SKIPPED, { at_scene: currentScene });
     navigate('/');
@@ -295,6 +311,8 @@ export default function ExperienceRoot({ managedScroll = false }) {
         onIntentChoice={handleIntentChoice}
         onCardDraw={handleCardDraw}
         onFinalCTA={handleFinalCTA}
+        onExploreOffers={handleExploreOffers}
+        onLogin={handleLoginCTA}
         intent={intent}
         drawnCard={drawnCard}
       />
@@ -519,13 +537,6 @@ export default function ExperienceRoot({ managedScroll = false }) {
           data-testid="experience-scene-4"
         >
           <div className="exp-section-inner exp-s4__stack">
-            {/* Zone réservée au dessin particules (plume → signature) */}
-            <div className="exp-s4__particle-space" aria-hidden="true" />
-
-            {/* Titre HTML PARFAITEMENT LISIBLE — apparaît juste après que
-                les particules aient tracé le mot en Phase E (12s+).
-                Les particules restent en fond comme un halo, le texte HTML
-                Cormorant Garamond assure la lisibilité définitive. */}
             <h1
               className="exp-h1 exp-s4__brand-final"
               data-visible={scene4Step >= 1}
@@ -558,19 +569,24 @@ export default function ExperienceRoot({ managedScroll = false }) {
               <button
                 type="button"
                 className="exp-btn"
-                onClick={handleFinalCTA}
+                onClick={handleExploreOffers}
                 data-testid="scene-4-cta"
               >
                 <span className="exp-btn__glyph">✦</span>
-                Commencer mon voyage
+                Voir ma recommandation
               </button>
               <button
                 type="button"
                 className="exp-linkline"
-                onClick={() => {
-                  trackEvent(EVENTS.EXP_SIGNUP_CTA_CLICKED, { intent_type: intent, card: drawnCard, mode: 'login' });
-                  navigate('/connexion');
-                }}
+                onClick={handleFinalCTA}
+                data-testid="scene-4-signup-cta"
+              >
+                Créer mon espace · 20 crédits offerts
+              </button>
+              <button
+                type="button"
+                className="exp-linkline"
+                onClick={handleLoginCTA}
                 data-testid="scene-4-cta-secondary"
               >
                 Déjà membre ? Se connecter

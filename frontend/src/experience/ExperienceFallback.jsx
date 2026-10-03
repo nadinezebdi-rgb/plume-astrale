@@ -12,7 +12,7 @@ import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
 import { getScene3Revelation } from './scene3Revelations';
 
 export default function ExperienceFallback({
-  intents, cards, onIntentChoice, onCardDraw, onFinalCTA, intent, drawnCard,
+  intents, cards, onIntentChoice, onCardDraw, onFinalCTA, onExploreOffers, onLogin, intent, drawnCard,
 }) {
   const [expanded, setExpanded] = useState(1);
   const cardBackImage = useMemo(() => getCardBackTexture(), []);
@@ -133,11 +133,14 @@ export default function ExperienceFallback({
               <p className="exp-h2 exp-s4__phrase" data-visible="true">Votre ciel aussi.</p>
             </div>
             <div className="exp-s4__final-cta" data-visible="true">
-              <button className="exp-btn" onClick={onFinalCTA} data-testid="scene-4-cta">
-                <span className="exp-btn__glyph">✦</span> Commencer mon voyage
+              <button className="exp-btn" onClick={onExploreOffers} data-testid="scene-4-cta">
+                <span className="exp-btn__glyph">✦</span> Voir ma recommandation
               </button>
-              <button className="exp-linkline" onClick={onFinalCTA} data-testid="scene-4-cta-secondary">
-                Découvrir Plume Astrale <span>→</span>
+              <button className="exp-linkline" onClick={onFinalCTA} data-testid="scene-4-signup-cta">
+                Créer mon espace · 20 crédits offerts
+              </button>
+              <button className="exp-linkline" onClick={onLogin} data-testid="scene-4-cta-secondary">
+                Déjà membre ? Se connecter <span>→</span>
               </button>
             </div>
           </div>

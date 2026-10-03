@@ -109,8 +109,10 @@ export default function HomeExperienceRoot() {
 
       const pageTop = (element) => element.getBoundingClientRect().top + window.scrollY;
       const servicesTop = pageTop(services);
+      const offerScene = document.querySelector('[data-testid="experience-scene-4"]');
+      const offerTop = offerScene ? pageTop(offerScene) : servicesTop - window.innerHeight;
       const conversion = document.querySelector('[data-testid="home-experience-scene-7"]');
-      const fadeStart = servicesTop - window.innerHeight * 0.6;
+      const fadeStart = offerTop - window.innerHeight * 0.4;
       const fadeEnd = conversion
         ? pageTop(conversion) - window.innerHeight * 0.6
         : servicesTop + window.innerHeight * 7;
