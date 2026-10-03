@@ -12,7 +12,6 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallba
 import { useNavigate } from 'react-router-dom';
 import { useDeviceProfile } from './hooks/useDeviceProfile';
 import { useExperienceStore } from './useExperienceStore';
-import AmbientSound from './AmbientSound';
 import ExperienceCanvas from './ExperienceCanvas';
 import ExperienceFallback from './ExperienceFallback';
 import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
@@ -309,7 +308,6 @@ export default function ExperienceRoot({ managedScroll = false }) {
       ref={rootRef}
       data-testid="experience-root"
     >
-      <AmbientSound />
       {/* Topbar fixe */}
       <header className="exp-topbar" data-testid="experience-topbar">
         <span className="exp-topbar__logo">PLUME <em style={{ fontStyle: 'italic', letterSpacing: '0.05em' }}>Astrale</em></span>
