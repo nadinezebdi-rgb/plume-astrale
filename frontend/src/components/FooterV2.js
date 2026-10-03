@@ -18,12 +18,8 @@ const SOCIAL_LINKS = {
  */
 export default function FooterV2() {
   const { pathname } = useLocation();
-  // Cache le footer sur les routes immersives (/experience, /home-experience-v3)
-  // qui embarquent leur propre footer signature.
-  if (
-    pathname === '/' || pathname === '/experience' || pathname.startsWith('/experience/') ||
-    pathname === '/home-experience-v3' || pathname.startsWith('/home-experience-v3/')
-  ) {
+  // Prototype /experience uniquement : l'accueil affiche le footer légal (CGV, RGPD).
+  if (pathname === '/experience' || pathname.startsWith('/experience/')) {
     return null;
   }
   const year = new Date().getFullYear();
