@@ -9,44 +9,55 @@
  * Le hook observe aussi les sections ajoutées après leur chargement différé.
  */
 import { useEffect } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-// Registration idempotente au module load (une seule fois par bundle)
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 export default function useScrollTriggerActs({ actsCount = 4, onActChange }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const triggers = new Map();
-    const syncTriggers = () => {
-      let addedTrigger = false;
+    let activeAct = null;
+    let frame = null;
+
+    const updateActiveAct = () => {
+      frame = null;
+      const viewportCenter = window.innerHeight / 2;
+      let nearestAct = null;
+      let nearestDistance = Infinity;
+
       for (let i = 1; i <= actsCount; i += 1) {
         const el = document.querySelector(`[data-testid="experience-scene-${i}"]`)
           || document.querySelector(`[data-testid="home-experience-scene-${i}"]`);
-        if (!el || triggers.has(i)) continue;
-        triggers.set(i, ScrollTrigger.create({
-          trigger: el,
-          start: 'top center',
-          end: 'bottom center',
-          onEnter: () => onActChange?.(i, 'enter'),
-          onEnterBack: () => onActChange?.(i, 'enter-back'),
-        }));
-        addedTrigger = true;
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        const distance = viewportCenter < rect.top
+          ? rect.top - viewportCenter
+          : viewportCenter > rect.bottom
+            ? viewportCenter - rect.bottom
+            : 0;
+        if (distance < nearestDistance) {
+          nearestAct = i;
+          nearestDistance = distance;
+        }
       }
-      if (addedTrigger) ScrollTrigger.refresh();
+
+      if (nearestAct !== null && nearestAct !== activeAct) {
+        activeAct = nearestAct;
+        onActChange?.(nearestAct, 'scroll');
+      }
     };
 
-    syncTriggers();
-    const observer = new MutationObserver(syncTriggers);
+    const scheduleUpdate = () => {
+      if (frame === null) frame = window.requestAnimationFrame(updateActiveAct);
+    };
+    scheduleUpdate();
+    window.addEventListener('scroll', scheduleUpdate, { passive: true });
+    window.addEventListener('resize', scheduleUpdate);
+    const observer = new MutationObserver(scheduleUpdate);
     observer.observe(document.body, { childList: true, subtree: true });
-    ScrollTrigger.refresh();
 
     return () => {
       observer.disconnect();
-      triggers.forEach((trigger) => trigger.kill());
+      window.removeEventListener('scroll', scheduleUpdate);
+      window.removeEventListener('resize', scheduleUpdate);
+      if (frame !== null) window.cancelAnimationFrame(frame);
     };
   }, [actsCount, onActChange]);
 }
