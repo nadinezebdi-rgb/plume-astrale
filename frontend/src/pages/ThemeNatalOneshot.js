@@ -233,6 +233,23 @@ const ThemeNatalOneshot = () => {
           />
         </div>
 
+        <div className="plume-glass p-6 max-w-xl mx-auto mb-10 text-center" data-testid="theme-natal-oneshot-print-offer">
+          <h3 className="text-lg mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>
+            Envie du livre imprimé ?
+          </h3>
+          <p className="text-sm mb-4" style={{ color: 'rgba(227,215,255,0.72)', lineHeight: 1.6 }}>
+            Les éditions brochée (69€) et reliée (119€) ajoutent les chapitres « Les douze maisons » détaillées et « Étoiles fixes », en format A5 prêt pour l'impression.
+          </p>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <button type="button" className="plume-btn-secondary" onClick={() => nav('/composer?edition=brochee')} data-testid="theme-natal-oneshot-print-brochee">
+              Édition brochée
+            </button>
+            <button type="button" className="plume-btn-secondary" onClick={() => nav('/composer?edition=reliee')} data-testid="theme-natal-oneshot-print-reliee">
+              Édition reliée
+            </button>
+          </div>
+        </div>
+
         {step === 0 ? (
           <div className="text-center">
             <button
