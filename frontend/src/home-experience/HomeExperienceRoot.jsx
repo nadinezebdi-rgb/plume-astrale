@@ -134,7 +134,7 @@ export default function HomeExperienceRoot() {
 
   return (
     <>
-      <ExperienceRoot />
+      <ExperienceRoot managedScroll />
       {loadRest && (
         <Suspense fallback={<div style={{ minHeight: '100vh', background: '#070713' }} />}>
           <ActThread heightVh={70} testid="hex3-thread-4-5" />

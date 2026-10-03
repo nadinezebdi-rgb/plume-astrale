@@ -6,11 +6,7 @@
  * Remplace le useEffect(scroll) custom d'ExperienceRoot (qui reste en
  * place pour /experience standalone), sans casser rien.
  *
- * Utilise gsap.matchMedia pour :
- *   - désactiver totalement sur prefers-reduced-motion
- *   - alléger le nombre de refresh sur mobile
- *
- * Phase 1 : 4 actes. Phase 2 étendra à 8 sans changer l'API.
+ * Le hook observe aussi les sections ajoutées après leur chargement différé.
  */
 import { useEffect } from 'react';
 import { gsap } from 'gsap';
@@ -24,28 +20,33 @@ if (typeof window !== 'undefined') {
 export default function useScrollTriggerActs({ actsCount = 4, onActChange }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return; // Fallback : ExperienceRoot pilote déjà le store via son onScroll natif
+    const triggers = new Map();
+    const syncTriggers = () => {
+      let addedTrigger = false;
+      for (let i = 1; i <= actsCount; i += 1) {
+        const el = document.querySelector(`[data-testid="experience-scene-${i}"]`)
+          || document.querySelector(`[data-testid="home-experience-scene-${i}"]`);
+        if (!el || triggers.has(i)) continue;
+        triggers.set(i, ScrollTrigger.create({
+          trigger: el,
+          start: 'top center',
+          end: 'bottom center',
+          onEnter: () => onActChange?.(i, 'enter'),
+          onEnterBack: () => onActChange?.(i, 'enter-back'),
+        }));
+        addedTrigger = true;
+      }
+      if (addedTrigger) ScrollTrigger.refresh();
+    };
 
-    const triggers = [];
-    for (let i = 1; i <= actsCount; i += 1) {
-      const el = document.querySelector(`[data-testid="experience-scene-${i}"]`);
-      if (!el) continue;
-      const st = ScrollTrigger.create({
-        trigger: el,
-        start: 'top center',
-        end: 'bottom center',
-        onEnter:     () => onActChange && onActChange(i, 'enter'),
-        onEnterBack: () => onActChange && onActChange(i, 'enter-back'),
-      });
-      triggers.push(st);
-    }
-
-    // Refresh forcé après mount pour prendre en compte les 100vh
+    syncTriggers();
+    const observer = new MutationObserver(syncTriggers);
+    observer.observe(document.body, { childList: true, subtree: true });
     ScrollTrigger.refresh();
 
     return () => {
-      triggers.forEach((t) => t.kill());
+      observer.disconnect();
+      triggers.forEach((trigger) => trigger.kill());
     };
   }, [actsCount, onActChange]);
 }

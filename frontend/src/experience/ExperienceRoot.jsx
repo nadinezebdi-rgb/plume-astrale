@@ -37,7 +37,7 @@ const CARDS = [
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 
-export default function ExperienceRoot() {
+export default function ExperienceRoot({ managedScroll = false }) {
   useDeviceProfile();
   const rootRef = useRef(null);
   const navigate = useNavigate();
@@ -82,12 +82,12 @@ export default function ExperienceRoot() {
         progress < 0.50 ? 2 :
         progress < 0.75 ? 3 :
         4;
-      setScene(scene);
+      if (!managedScroll) setScene(scene);
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [setGlobalProgress, setScene, useFallback]);
+  }, [managedScroll, setGlobalProgress, setScene, useFallback]);
 
   // ── Scène 2 : timing des phrases ─────────────────────────────
   useEffect(() => {
