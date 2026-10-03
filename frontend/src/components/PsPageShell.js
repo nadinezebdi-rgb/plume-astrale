@@ -11,22 +11,22 @@ import React from 'react';
  * Navbar + Footer sont rendus globalement dans App.js.
  */
 const LIGHT_TOKENS = {
-  '--pa-bg':            '#F7F5F0',
-  '--pa-bg-deep':       '#F7F5F0',
+  '--pa-bg':            'var(--plume-ivory)',
+  '--pa-bg-deep':       'var(--plume-ivory)',
   '--pa-bg-mid':        '#FFFFFF',
   '--pa-surface':       '#FFFFFF',
   '--pa-surface-hover': '#FBF9F4',
 
-  '--pa-heading':       '#0F1A3C',
+  '--pa-heading':       'var(--plume-night-soft)',
   '--pa-body':          '#232323',
-  '--pa-muted':         'rgba(15,26,60,0.55)',
+  '--pa-muted':         'rgba(17,22,37,0.62)',
 
-  '--pa-accent':        '#C9A24B',
-  '--pa-accent-hover':  '#B48F3E',
-  '--pa-accent-bright': '#DDB966',
+  '--pa-accent':        'var(--plume-gold)',
+  '--pa-accent-hover':  'var(--plume-gold-bright)',
+  '--pa-accent-bright': 'var(--plume-gold-bright)',
 
-  '--pa-divider':       'rgba(15,26,60,0.10)',
-  '--pa-divider-soft':  'rgba(15,26,60,0.06)',
+  '--pa-divider':       'rgba(17,22,37,0.12)',
+  '--pa-divider-soft':  'rgba(17,22,37,0.07)',
 };
 
 // Léger grain papier (feTurbulence) — cohérence avec les pages produits V3
@@ -41,13 +41,17 @@ export default function PsPageShell({ background = 'light', children }) {
   const style = isLight
     ? {
         ...LIGHT_TOKENS,
-        background: '#F7F5F0',
+        background: 'var(--plume-ivory)',
         backgroundImage: PAPER_TEXTURE_SVG,
         backgroundRepeat: 'repeat',
         minHeight: '100vh',
         color: '#232323',
       }
-    : { background: '#0F1A3C', minHeight: '100vh' };
+    : {
+        background: 'var(--plume-night)',
+        color: 'var(--plume-ivory)',
+        minHeight: '100vh',
+      };
   return (
     <div className="ps-home" data-testid="ps-page-shell" data-shell={background} style={style}>
       {children}

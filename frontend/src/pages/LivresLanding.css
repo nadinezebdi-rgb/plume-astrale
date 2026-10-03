@@ -1,9 +1,9 @@
 .livres-page {
-  --livres-night: #0d0621;
-  --livres-ink: #101a3d;
-  --livres-gold: #c9a24b;
-  --livres-gold-bright: #e6c66f;
-  --livres-cream: #f4f0e8;
+  --livres-night: var(--plume-night-deep);
+  --livres-ink: var(--plume-night);
+  --livres-gold: var(--plume-gold);
+  --livres-gold-bright: var(--plume-gold-bright);
+  --livres-cream: var(--plume-ivory);
   --livres-paper: #fffdf8;
   --livres-text: #25242a;
 }
@@ -26,8 +26,8 @@
   transform: translateX(-50%);
   background: radial-gradient(
     ellipse,
-    rgba(201, 162, 75, 0.13) 0%,
-    rgba(107, 63, 160, 0.04) 44%,
+    rgba(212, 175, 55, 0.12) 0%,
+    rgba(151, 166, 190, 0.04) 44%,
     transparent 72%
   );
   pointer-events: none;
@@ -40,10 +40,10 @@
   align-items: center;
   gap: 8px;
   padding: 7px 15px;
-  border: 1px solid rgba(201, 162, 75, 0.34);
+  border: 1px solid rgba(212, 175, 55, 0.34);
   border-radius: 999px;
   color: #8f6e24;
-  background: rgba(201, 162, 75, 0.09);
+  background: rgba(212, 175, 55, 0.09);
   font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 700;
@@ -89,7 +89,7 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 12px 24px;
-  color: rgba(15, 26, 60, 0.74);
+  color: rgba(17, 22, 37, 0.74);
   font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 600;
@@ -122,7 +122,7 @@
   gap: 40px;
   margin: 0 0 34px;
   padding: 0 2px 26px;
-  border-bottom: 1px solid rgba(15, 26, 60, 0.11);
+  border-bottom: 1px solid rgba(17, 22, 37, 0.11);
 }
 
 .livres-collection__eyebrow {
@@ -163,7 +163,7 @@
   min-width: 0;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(15, 26, 60, 0.11);
+  border: 1px solid rgba(17, 22, 37, 0.11);
   border-radius: 24px;
   background: var(--livres-paper);
   box-shadow:
@@ -177,16 +177,16 @@
 
 .livres-card:hover {
   transform: translateY(-7px);
-  border-color: rgba(201, 162, 75, 0.38);
+  border-color: rgba(212, 175, 55, 0.38);
   box-shadow:
     0 2px 0 rgba(255, 255, 255, 0.9) inset,
     0 38px 80px -42px rgba(13, 6, 33, 0.52);
 }
 
 .livres-card:focus-within {
-  border-color: rgba(201, 162, 75, 0.62);
+  border-color: rgba(212, 175, 55, 0.62);
   box-shadow:
-    0 0 0 3px rgba(201, 162, 75, 0.15),
+    0 0 0 3px rgba(212, 175, 55, 0.15),
     0 30px 70px -42px rgba(13, 6, 33, 0.48);
 }
 
@@ -218,7 +218,7 @@
 
 .livres-card__edition {
   flex: 0 0 auto;
-  color: rgba(15, 26, 60, 0.55);
+  color: rgba(17, 22, 37, 0.55);
   font-family: 'Inter', sans-serif;
   font-size: 9px;
   font-weight: 600;
@@ -251,8 +251,8 @@
   gap: 13px;
   margin-bottom: 20px;
   padding: 16px 0;
-  border-top: 1px solid rgba(15, 26, 60, 0.08);
-  border-bottom: 1px solid rgba(15, 26, 60, 0.08);
+  border-top: 1px solid rgba(17, 22, 37, 0.08);
+  border-bottom: 1px solid rgba(17, 22, 37, 0.08);
 }
 
 .livres-card__price {
@@ -264,7 +264,7 @@
 }
 
 .livres-card__pages {
-  color: rgba(15, 26, 60, 0.61);
+  color: rgba(17, 22, 37, 0.61);
   font-family: 'Inter', sans-serif;
   font-size: 12px;
 }
@@ -278,7 +278,7 @@
 
 .livres-card__material {
   margin-left: auto;
-  color: rgba(15, 26, 60, 0.54);
+  color: rgba(17, 22, 37, 0.54);
   font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 600;
@@ -321,7 +321,7 @@
 }
 
 .livres-card__flip {
-  border: 1px solid rgba(15, 26, 60, 0.56);
+  border: 1px solid rgba(17, 22, 37, 0.56);
   color: var(--livres-ink);
   background: transparent;
   cursor: pointer;
@@ -349,7 +349,7 @@
 
 .livres-card__flip:focus-visible,
 .livres-card__cta:focus-visible {
-  outline: 3px solid rgba(201, 162, 75, 0.34);
+  outline: 3px solid rgba(212, 175, 55, 0.34);
   outline-offset: 3px;
 }
 
@@ -366,7 +366,7 @@
   margin: 0;
   overflow: hidden;
   isolation: isolate;
-  border-bottom: 1px solid rgba(15, 26, 60, 0.1);
+  border-bottom: 1px solid rgba(17, 22, 37, 0.1);
   background:
     linear-gradient(118deg, rgba(255, 255, 255, 0.5), transparent 43%),
     radial-gradient(circle at 80% 18%, rgba(244, 180, 75, 0.22), transparent 20%),
@@ -888,7 +888,7 @@
   padding: 6px 10px;
   border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 999px;
-  color: rgba(15, 26, 60, 0.68);
+  color: rgba(17, 22, 37, 0.68);
   background: rgba(255, 255, 255, 0.58);
   backdrop-filter: blur(10px);
   font-family: 'Inter', sans-serif;
@@ -903,12 +903,12 @@
   max-width: 1080px;
   margin: 0 auto 96px;
   overflow: hidden;
-  border: 1px solid rgba(230, 198, 111, 0.28);
+  border: 1px solid rgba(232, 199, 102, 0.28);
   border-radius: 28px;
   color: #f7f1e5;
   background:
-    radial-gradient(circle at 86% 15%, rgba(201, 162, 75, 0.2), transparent 28%),
-    radial-gradient(circle at 8% 90%, rgba(107, 63, 160, 0.23), transparent 32%),
+    radial-gradient(circle at 86% 15%, rgba(212, 175, 55, 0.16), transparent 28%),
+    radial-gradient(circle at 8% 90%, rgba(151, 166, 190, 0.08), transparent 32%),
     var(--livres-night);
   box-shadow: 0 35px 80px -46px rgba(13, 6, 33, 0.75);
   text-align: center;
@@ -1156,7 +1156,7 @@
   font-family: 'Playfair Display', 'Cormorant Garamond', serif;
   font-size: clamp(30px, 4vw, 46px);
   font-weight: 500;
-  color: var(--livres-ink, #0F1A3C);
+  color: var(--livres-ink, var(--plume-night));
   letter-spacing: -0.02em;
   line-height: 1.1;
   margin: 0 0 16px;
@@ -1200,19 +1200,19 @@
 .livres-tier:hover {
   transform: translateY(-3px);
   border-color: rgba(143, 110, 36, 0.34);
-  box-shadow: 0 22px 44px -20px rgba(15, 26, 60, 0.18);
+  box-shadow: 0 22px 44px -20px rgba(17, 22, 37, 0.18);
 }
 
 .livres-tier--featured {
-  background: linear-gradient(180deg, #0F1A3C 0%, #1E2A5E 100%);
+  background: linear-gradient(180deg, var(--plume-night) 0%, var(--plume-night-soft) 100%);
   border-color: rgba(212, 175, 55, 0.45);
-  color: #F5F0E6;
-  box-shadow: 0 20px 40px -18px rgba(15, 26, 60, 0.35);
+  color: var(--plume-ivory);
+  box-shadow: 0 20px 40px -18px rgba(17, 22, 37, 0.35);
 }
 
 .livres-tier--featured:hover {
   border-color: rgba(212, 175, 55, 0.75);
-  box-shadow: 0 30px 56px -20px rgba(15, 26, 60, 0.45),
+  box-shadow: 0 30px 56px -20px rgba(17, 22, 37, 0.45),
               inset 0 0 0 1px rgba(212, 175, 55, 0.2);
 }
 
@@ -1223,7 +1223,7 @@
   transform: translateX(-50%);
   padding: 5px 14px;
   background: linear-gradient(135deg, #D4AF37, #E8C766);
-  color: #0F1A3C;
+  color: var(--plume-night);
   font-family: 'Cinzel', serif;
   font-size: 10px;
   letter-spacing: 0.22em;
@@ -1250,7 +1250,7 @@
   font-family: 'Playfair Display', 'Cormorant Garamond', serif;
   font-size: 26px;
   font-weight: 500;
-  color: var(--livres-ink, #0F1A3C);
+  color: var(--livres-ink, var(--plume-night));
   margin: 0 0 16px;
   letter-spacing: -0.01em;
   line-height: 1.15;
@@ -1354,7 +1354,7 @@
 
 .livres-tier__cta--ghost {
   background: transparent;
-  color: var(--livres-ink, #0F1A3C);
+  color: var(--livres-ink, var(--plume-night));
   border: 1px solid rgba(143, 110, 36, 0.4);
 }
 
@@ -1365,7 +1365,7 @@
 
 .livres-tier__cta--primary {
   background: linear-gradient(135deg, #D4AF37, #E8C766);
-  color: #0F1A3C;
+  color: var(--plume-night);
   border: 1px solid transparent;
   font-weight: 600;
 }

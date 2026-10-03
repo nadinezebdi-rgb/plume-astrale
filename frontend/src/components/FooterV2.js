@@ -14,7 +14,7 @@ const SOCIAL_LINKS = {
 
 /**
  * Footer V3 — refonte identité visuelle Feb 2026
- * Fond bleu nuit #0F1A3C, liens secondaires + mentions légales + réseaux
+ * Fond nuit Plume Astrale, liens secondaires + mentions légales + réseaux
  */
 export default function FooterV2() {
   const { pathname } = useLocation();
@@ -30,9 +30,9 @@ export default function FooterV2() {
 
   return (
     <footer data-testid="footer-v2" style={{
-      background: '#0F1A3C',
-      color: 'rgba(247,245,240,0.72)',
-      borderTop: '1px solid rgba(201,162,75,0.15)',
+      background: 'var(--plume-night)',
+      color: 'var(--pa-muted)',
+      borderTop: '1px solid rgba(212,175,55,0.15)',
       fontFamily: 'Inter, sans-serif',
       position: 'relative',
       overflow: 'hidden',
@@ -49,13 +49,13 @@ export default function FooterV2() {
             <div style={{
               fontFamily: 'Playfair Display, serif',
               fontSize: 24, fontWeight: 500,
-              color: '#F7F5F0', marginBottom: 12,
+              color: 'var(--plume-ivory)', marginBottom: 12,
             }}>
-              Plume <span style={{ color: '#C9A24B' }}>Astrale</span>
+              Plume <span style={{ color: 'var(--plume-gold)' }}>Astrale</span>
             </div>
             <p style={{
               fontSize: 14, lineHeight: 1.6, margin: 0,
-              color: 'rgba(247,245,240,0.60)', maxWidth: 260,
+              color: 'rgba(244,239,230,0.60)', maxWidth: 260,
             }}>
               L&apos;astrologie qui sait ton prénom.<br />
               Personnalisée à partir de ton ciel.
@@ -139,7 +139,7 @@ export default function FooterV2() {
               Gérer les cookies
             </button>
             <div style={{
-              fontSize: 12, color: 'rgba(247,245,240,0.4)',
+              fontSize: 12, color: 'rgba(244,239,230,0.4)',
               marginTop: 14, letterSpacing: '0.04em',
             }}>
               RGPD · CNIL · Stripe PCI-DSS
@@ -183,9 +183,9 @@ export default function FooterV2() {
         <div style={{
           marginTop: 48,
           paddingTop: 24,
-          borderTop: '1px solid rgba(247,245,240,0.08)',
+          borderTop: '1px solid rgba(244,239,230,0.08)',
           fontSize: 12,
-          color: 'rgba(247,245,240,0.42)',
+          color: 'rgba(244,239,230,0.42)',
           textAlign: 'center',
           letterSpacing: '0.06em',
         }}>
@@ -200,7 +200,7 @@ const footerLinkStyle = {
   display: 'block',
   padding: '5px 0',
   fontSize: 14,
-  color: 'rgba(247,245,240,0.72)',
+  color: 'rgba(244,239,230,0.72)',
   textDecoration: 'none',
   transition: 'color 200ms ease',
   fontFamily: 'Inter, sans-serif',
@@ -211,8 +211,8 @@ const socialIcon = {
   alignItems: 'center', justifyContent: 'center',
   width: 40, height: 40,
   borderRadius: 999,
-  border: '1px solid rgba(201,162,75,0.35)',
-  color: '#C9A24B',
+  border: '1px solid rgba(212,175,55,0.35)',
+  color: 'var(--plume-gold)',
   transition: 'background 200ms ease, border-color 200ms ease',
   textDecoration: 'none',
 };
@@ -224,7 +224,7 @@ function FooterHeading({ children }) {
       fontSize: 12, fontWeight: 600,
       letterSpacing: '0.14em',
       textTransform: 'uppercase',
-      color: '#C9A24B',
+      color: 'var(--plume-gold)',
       marginBottom: 16,
     }}>
       {children}
@@ -235,8 +235,8 @@ function FooterHeading({ children }) {
 function FooterLink({ to, children, testid }) {
   return (
     <Link to={to} data-testid={testid} style={footerLinkStyle}
-      onMouseEnter={(e) => (e.currentTarget.style.color = '#C9A24B')}
-      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(247,245,240,0.72)')}>
+      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--plume-gold)')}
+      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(244,239,230,0.72)')}>
       {children}
     </Link>
   );
