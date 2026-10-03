@@ -14,9 +14,9 @@ import { LECTURES, OUTILS } from '@/config/catalog';
 const NAV_LINKS = [
   // Menu simplifié (audit UX 2026-02-27) : 8 → 4 entrées essentielles.
   // - "Accueil" retiré (logo Plume Astrale renvoie déjà à la home)
-  // - "Services" et "Nos livres" fusionnés (même destination /livres)
+  // - "Services" et "Nos livres" fusionnés sous une entrée "Services"
   // - "Contact" déplacé dans le footer
-  { label: 'Livres', to: '/livres', hasMega: true },
+  { label: 'Services', to: '/livres', hasMega: true },
   { label: 'Manifesto', to: '/manifesto' },
   { label: 'Blog', to: '/blog' },
   { label: 'Témoignages', to: '/temoignages' },
@@ -184,11 +184,21 @@ export default function NavbarV2() {
             boxShadow: '0 24px 48px rgba(0,0,0,0.35)',
           }}>
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px' }}>
+            <p data-testid="nav-v2-services-intro" style={{
+              maxWidth: 760,
+              margin: '0 0 28px',
+              color: 'rgba(247,245,240,0.72)',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 15,
+              lineHeight: 1.6,
+            }}>
+              Des lectures et des outils pour éclairer vos choix et prendre des décisions en confiance.
+            </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 48 }}>
 
-              {/* Colonne Lectures Premium PDF */}
+              {/* Colonne Lectures personnalisées */}
               <div>
-                <MegaHeading>Lectures premium — PDF à télécharger</MegaHeading>
+                <MegaHeading>Lectures personnalisées</MegaHeading>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   {LECTURES.map((l) => (
                     <MegaLink key={l.key} to={l.to} testid={`mega-lecture-${l.key}`}
@@ -196,7 +206,7 @@ export default function NavbarV2() {
                   ))}
                 </div>
                 <Link to="/livres" data-testid="mega-all-lectures" style={megaFooterLink}>
-                  Voir toute la bibliothèque
+                  Voir toutes les lectures
                   <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
                 </Link>
               </div>
@@ -209,7 +219,6 @@ export default function NavbarV2() {
                     title={o.title} tagline={o.tagline} compact />
                 ))}
               </div>
-
             </div>
           </div>
         </div>
@@ -239,7 +248,16 @@ export default function NavbarV2() {
                   </button>
                   {mobileServicesOpen && (
                     <div style={{ padding: '4px 8px 20px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <div style={mobileSubHeading}>Lectures premium PDF</div>
+                      <p data-testid="nav-v2-mobile-services-intro" style={{
+                        margin: '4px 0 12px',
+                        color: 'rgba(247,245,240,0.72)',
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: 14,
+                        lineHeight: 1.55,
+                      }}>
+                        Des lectures et des outils pour éclairer vos choix et prendre des décisions en confiance.
+                      </p>
+                      <div style={mobileSubHeading}>Lectures personnalisées</div>
                       {LECTURES.map((it) => (
                         <Link key={it.key} to={it.to} data-testid={`mob-lecture-${it.key}`} style={mobileSubLink}>
                           <span>{it.title}</span>
