@@ -39,6 +39,10 @@ class ThemeNatalCheckoutPayload(BaseModel):
     longitude: Optional[float] = None
     origin_url: str
     promo_code: Optional[str] = None
+    pay_with_credits: bool = False
+
+
+NATAL_CREDITS_COST = 80
 
 
 @router.post('/checkout')
@@ -104,8 +108,19 @@ async def theme_natal_oneshot_checkout(
             raise HTTPException(400, msg)
         public_free = True
 
+    # Paiement en crédits : compte connecté obligatoire, débit avant génération
+    paid_with_credits = False
+    if payload.pay_with_credits and not public_free:
+        if not current_user:
+            raise HTTPException(401, 'Connecte-toi pour payer avec tes crédits.')
+        from services import wallet_service
+        await wallet_service.deduct_credits(
+            current_user['id'], NATAL_CREDITS_COST, f'Thème Natal PDF ({NATAL_CREDITS_COST} crédits)'
+        )
+        paid_with_credits = True
+
     # Bypass promo admin
-    if public_free or (payload.promo_code and try_consume_promo(
+    if public_free or paid_with_credits or (payload.promo_code and try_consume_promo(
         payload.promo_code, admin_user=current_user, product='theme_natal_pdf_oneshot'
     )):
         # Préfixe `admin-natal-` : self_heal relance la génération sans passer par Stripe
@@ -129,7 +144,8 @@ async def theme_natal_oneshot_checkout(
                     'pdf_ctx': pdf_ctx,
                     'admin_bypass': True,
                     'public_free_promo': public_free,
-                    'promo_code': payload.promo_code.strip().upper(),
+                    'paid_with_credits': paid_with_credits,
+                    'promo_code': (payload.promo_code or '').strip().upper(),
                     # Statut initial 'pending' : si le pod backend crashe/redémarre
                     # avant d'atteindre pdf_status: success ou failed, le poll /status
                     # détectera ce pending stale et relancera la génération via self_heal.

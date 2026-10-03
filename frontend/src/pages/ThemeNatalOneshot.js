@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const PACK_PRICE = 24;
+const PACK_CREDITS = 80;
 
 // Helpers date FR : dd/MM/yyyy <-> yyyy-MM-dd (format API)
 const fromISO = (iso) => {
@@ -105,8 +106,9 @@ const ThemeNatalOneshot = () => {
     }
   };
 
-  const handleCheckout = async () => {
+  const handleCheckout = async (withCredits = false) => {
     setError(null);
+    if (withCredits === true && !isAuthenticated) return nav('/connexion?redirect=/theme-natal');
     if (!form.email || !form.email.includes('@')) return setError('Email invalide');
     if (!form.first_name.trim()) return setError('Prénom requis');
     // birth_date_fr est prioritaire (masque local), sinon utilise birth_date ISO existant
@@ -129,6 +131,7 @@ const ThemeNatalOneshot = () => {
           longitude: form.longitude,
           origin_url: window.location.origin,
           promo_code: promoState.status === 'ok' && promoCode.trim() ? promoCode.trim() : undefined,
+          pay_with_credits: withCredits === true,
         },
         token ? { headers: { Authorization: `Bearer ${token}` } } : {},
       );
@@ -260,6 +263,9 @@ const ThemeNatalOneshot = () => {
               Recevoir mon Thème Natal — 24€
               <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
             </button>
+            <p className="text-sm mt-3" style={{ color: '#D4AF37' }} data-testid="theme-natal-oneshot-price-credits">
+              {PACK_PRICE} € ou {PACK_CREDITS} crédits
+            </p>
             <p className="text-xs mt-4" style={{ color: 'rgba(227,215,255,0.7)', letterSpacing: '0.1em' }}>
               Paiement sécurisé Stripe · Sans engagement · TVA incluse
             </p>
@@ -451,7 +457,7 @@ const ThemeNatalOneshot = () => {
                 </p>
               )}
               <button
-                onClick={handleCheckout}
+                onClick={() => handleCheckout(false)}
                 disabled={loading}
                 className="plume-btn-primary w-full justify-center"
                 data-testid="theme-natal-oneshot-checkout-btn"
@@ -474,6 +480,18 @@ const ThemeNatalOneshot = () => {
                   </>
                 )}
               </button>
+              <button
+                type="button"
+                onClick={() => handleCheckout(true)}
+                disabled={loading}
+                className="plume-btn-secondary w-full justify-center mt-3"
+                data-testid="theme-natal-oneshot-credits-btn"
+              >
+                {isAuthenticated ? `Payer avec  crédits` : `Se connecter pour payer en  crédits`}
+              </button>
+              <p className="text-xs text-center mt-2" style={{ color: 'rgba(227,215,255,0.7)' }}>
+                {PACK_PRICE} € ou {PACK_CREDITS} crédits · 100 crédits offerts à l'inscription jusqu'à lundi
+              </p>
               <p
                 className="text-[10px] text-center mt-3"
                 style={{ color: 'rgba(227,215,255,0.4)', letterSpacing: '0.2em' }}
