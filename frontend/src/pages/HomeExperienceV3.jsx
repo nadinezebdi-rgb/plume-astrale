@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Plus, Sparkles } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { useCart } from '@/context/CartContext';
 import { LECTURES, OUTILS } from '@/config/catalog';
 import '../home-experience/HomeExperience.css';
 
@@ -19,24 +20,42 @@ const JSONLD = {
 };
 
 function ServiceList({ title, items, testid }) {
+  const { addItem, items: cartItems } = useCart();
+
   return (
     <section className="home-gateway__group" aria-label={title} data-testid={testid}>
       <h3>{title}</h3>
       <ul>
-        {items.map((item) => (
-          <li key={item.key}>
-            <Link to={item.to} data-testid={`home-gateway-service-${item.key}`}>
-              <span className="home-gateway__service-copy">
-                <strong>{item.title}</strong>
-                <span>{item.tagline}</span>
-              </span>
-              <span className="home-gateway__service-meta">
-                {item.price && <span>{item.price}</span>}
-                <ArrowRight size={16} aria-hidden="true" />
-              </span>
-            </Link>
-          </li>
-        ))}
+        {items.map((item) => {
+          const inCart = cartItems.some((entry) => entry.key === item.key);
+          return (
+            <li key={item.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Link to={item.to} data-testid={`home-gateway-service-${item.key}`} style={{ flex: 1, minWidth: 0 }}>
+                <span className="home-gateway__service-copy">
+                  <strong>{item.title}</strong>
+                  <span>{item.tagline}</span>
+                </span>
+                <span className="home-gateway__service-meta">
+                  {item.price && <span>{item.price}</span>}
+                  <ArrowRight size={16} aria-hidden="true" />
+                </span>
+              </Link>
+              {item.price && (
+                <button
+                  type="button"
+                  aria-label={inCart ? `${item.title} est dans le panier` : `Ajouter ${item.title} au panier`}
+                  title={inCart ? 'Déjà dans le panier' : 'Ajouter au panier'}
+                  data-testid={`home-gateway-add-${item.key}`}
+                  onClick={() => addItem(item)}
+                  disabled={inCart}
+                  style={{ display: 'grid', width: 40, height: 40, flex: '0 0 40px', placeItems: 'center', border: '1px solid rgba(212,175,55,0.45)', borderRadius: 3, background: 'transparent', color: 'var(--plume-gold)', cursor: inCart ? 'default' : 'pointer', opacity: inCart ? 0.72 : 1 }}
+                >
+                  {inCart ? <Check size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}
+                </button>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

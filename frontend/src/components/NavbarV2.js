@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LogIn, LogOut, User, ChevronDown, ArrowRight, ChevronRight } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, User, ChevronDown, ArrowRight, ChevronRight, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 import { LECTURES, OUTILS } from '@/config/catalog';
 
 /**
@@ -12,26 +13,24 @@ import { LECTURES, OUTILS } from '@/config/catalog';
  */
 
 const NAV_LINKS = [
-  // Menu simplifié (audit UX 2026-02-27) : 8 → 4 entrées essentielles.
-  // - "Accueil" retiré (logo Plume Astrale renvoie déjà à la home)
-  // - "Services" et "Nos livres" fusionnés sous une entrée "Services"
-  // - "Contact" déplacé dans le footer
-  { label: 'Services', to: '/livres', hasMega: true },
-  { label: 'Manifesto', to: '/manifesto' },
+  { label: 'Accueil', to: '/' },
+  { label: 'Prestations', to: '/livres', hasMega: true },
   { label: 'Blog', to: '/blog' },
-  { label: 'Témoignages', to: '/temoignages' },
+  { label: 'Nous contacter', to: '/contact' },
+  { label: 'FAQ', to: '/faq' },
+  { label: 'Panier', to: '/panier', cart: true },
 ];
 
 const linkBase = {
   fontFamily: 'Inter, sans-serif',
-  fontSize: 14,
+  fontSize: 13,
   fontWeight: 500,
   color: 'rgba(244,239,230,0.78)',
   textDecoration: 'none',
   padding: '6px 4px',
   transition: 'color 200ms ease, border-color 200ms ease',
   borderBottom: '1.5px solid transparent',
-  letterSpacing: '0.02em',
+  letterSpacing: 0,
   cursor: 'pointer',
   background: 'transparent',
   border: 'none',
@@ -46,6 +45,7 @@ export default function NavbarV2() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuth();
+  const { count: cartCount } = useCart();
 
   useEffect(() => {
     setOpen(false);
@@ -55,7 +55,7 @@ export default function NavbarV2() {
 
   // Pages immersives sans navbar (prototype /experience + /home-experience-v3).
   const isImmersive = (p) =>
-    p === '/' || p === '/experience' || p.startsWith('/experience/') ||
+    p === '/experience' || p.startsWith('/experience/') ||
     p === '/home-experience-v3' || p.startsWith('/home-experience-v3/');
   // Placé ici APRÈS tous les hooks pour respecter les rules-of-hooks.
   if (isImmersive(location.pathname)) {
@@ -103,7 +103,7 @@ export default function NavbarV2() {
           </Link>
 
           {/* Desktop links */}
-          <div className="ps-desktop-nav" style={{ display: 'none', alignItems: 'center', gap: 26 }}>
+          <div className="ps-desktop-nav" style={{ display: 'none', alignItems: 'center', gap: 18 }}>
             {NAV_LINKS.map((l) => {
               const active = l.hasMega ? isServicesActive() : isActive(l.to);
               if (l.hasMega) {
@@ -131,10 +131,12 @@ export default function NavbarV2() {
               return (
                 <Link key={l.label} to={l.to}
                   data-testid={`nav-v2-${l.label.toLowerCase().replace(/\s+/g, '-')}`}
-                  style={active ? { ...linkBase, ...linkActive } : linkBase}
+                  aria-label={l.cart && cartCount ? `Panier, ${cartCount} article${cartCount > 1 ? 's' : ''}` : undefined}
+                  style={{ ...(active ? { ...linkBase, ...linkActive } : linkBase), display: 'inline-flex', alignItems: 'center', gap: 6 }}
                   onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = 'var(--plume-gold)'; }}
                   onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = 'rgba(244,239,230,0.78)'; }}>
-                  {l.label}
+                  {l.cart && <ShoppingCart size={15} strokeWidth={1.8} aria-hidden="true" />}
+                  {l.label}{l.cart && cartCount > 0 && <span data-testid="nav-cart-count" style={{ color: 'var(--plume-gold)', fontSize: 12 }}>{cartCount}</span>}
                 </Link>
               );
             })}
@@ -154,8 +156,8 @@ export default function NavbarV2() {
               </Link>
             )}
             <Link to="/inscription" className="ps-btn ps-btn-primary" data-testid="nav-v2-cta"
-              style={{ padding: '10px 20px', fontSize: 14, minHeight: 40, whiteSpace: 'nowrap', flexShrink: 0 }}>
-              Recevoir ma lecture
+              style={{ padding: '10px 16px', fontSize: 13, minHeight: 40, whiteSpace: 'nowrap', flexShrink: 0 }}>
+              Créer un compte
             </Link>
           </div>
 
@@ -278,11 +280,17 @@ export default function NavbarV2() {
             return (
               <Link key={l.label} to={l.to}
                 data-testid={`nav-v2-mobile-${l.label.toLowerCase().replace(/\s+/g, '-')}`}
+                aria-label={l.cart && cartCount ? `Panier, ${cartCount} article${cartCount > 1 ? 's' : ''}` : undefined}
                 style={{
                   ...mobileLinkStyle,
                   color: isActive(l.to) ? 'var(--plume-gold)' : 'var(--plume-ivory)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
                 }}>
-                {l.label}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  {l.cart && <ShoppingCart size={18} strokeWidth={1.8} aria-hidden="true" />}
+                  {l.label}
+                </span>
+                {l.cart && cartCount > 0 && <span data-testid="nav-cart-count-mobile" style={{ color: 'var(--plume-gold)', font: '14px Inter, sans-serif' }}>{cartCount}</span>}
               </Link>
             );
           })}
@@ -304,7 +312,7 @@ export default function NavbarV2() {
                   Connexion
                 </Link>
                 <Link to="/inscription" className="ps-btn ps-btn-primary" style={{ justifyContent: 'center' }}>
-                  Recevoir ma lecture
+                  Créer un compte
                 </Link>
               </>
             )}
@@ -315,10 +323,7 @@ export default function NavbarV2() {
       <style>{`
         .ps-desktop-nav { display: none !important; }
         .ps-mobile-toggle { display: inline-flex !important; }
-        /* Breakpoint remonté à 1100px (audit UX 2026-02-27) : évite le
-           chevauchement logo / liens / CTA sur les écrans étroits (iPad
-           landscape 1024, netbooks). Menu mobile à partir de 1099px. */
-        @media (min-width: 1100px) {
+        @media (min-width: 1200px) {
           .ps-desktop-nav { display: flex !important; }
           .ps-mobile-toggle { display: none !important; }
         }
