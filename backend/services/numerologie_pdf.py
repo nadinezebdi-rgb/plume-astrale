@@ -23,6 +23,7 @@ from reportlab.graphics import renderPDF
 
 from services.pdf_bg import make_bg_canvas
 from services.pdf_theme import register_fonts as _register_luxury_fonts
+from services.numerologie_cycles import build_cycles
 
 # Enregistre la police OrnamentSerif (FreeSerif) au chargement du module afin que
 # tout `<font name="OrnamentSerif">` inline dans les Paragraph soit résolu.
@@ -119,14 +120,16 @@ class NumerologiePDFGenerator:
         ai_sections: Optional[Dict[str, str]] = None,
         referral_code: Optional[str] = None,
         referral_link: Optional[str] = None,
+        cycles: Optional[Dict[str, Any]] = None,
     ) -> bytes:
-        """Génère le PDF complet (12 pages).
+        """Génère le PDF complet (cycles, pinacles, Lo-Shu et biorythmes inclus).
 
         ai_sections : dict optionnel de narratifs enrichis (introduction,
         chemin_de_vie, destinee, ame, personnalite, jour_naissance,
         annee_personnelle, lo_shu, biorythmes, invitation_finale).
         """
         self._ai = ai_sections or {}
+        self._cycles = cycles or {}
         _mini_styles = {
             'caption': self.subtitle_style,
             'h2': self.heading_style,
@@ -145,79 +148,56 @@ class NumerologiePDFGenerator:
             def _pg(cid, fb=None):
                 return page_map.get(cid, fb) if page_map is not None else fb
 
+            cyc = self._cycles or {}
+            chapters = [
+                ('intro', "Introduction à la numérologie sacrée", "La numérologie sacrée", "Une invitation aux nombres", True),
+                ('nombres', "Tes nombres-clés", "Tes nombres-clés", "Chemin de vie, expression, âme", True),
+                ('annee', "Ton année personnelle", "Ton année personnelle", "Le cycle actif de ta vie", bool(personal_year_data)),
+                ('mois', "Tes 12 prochains mois", "Mois par mois", "Ton horizon numérologique", bool(cyc.get('months'))),
+                ('pinacles', "Tes grands cycles de vie & défis", "Pinacles & défis", "Les quatre saisons de ton existence", bool(cyc.get('pinnacles'))),
+                ('forecast', "Prévisions cycliques", "Prévisions cycliques", "Ton horizon numérologique", bool(forecast_data)),
+                ('loshu', "Ton Carré Lo-Shu", "Ton Carré Lo-Shu", "Numérologie chinoise ancestrale", bool(cyc.get('lo_shu')) or bool(self._ai.get('lo_shu'))),
+                ('karma', "Dettes karmiques & leçons", "Dettes karmiques & leçons", "Ce que ton âme vient apprendre", bool(cyc.get('lo_shu'))),
+                ('bio', "Tes biorythmes", "Biorythmes", "Les 90 prochains jours", bool(cyc.get('biorhythms')) or bool(self._ai.get('biorythmes'))),
+                ('rituels', "Rituels de vibration", "Rituels de vibration", "Cinq pratiques numérologiques", True),
+                ('compat', "Compatibilités numériques", "Compatibilités numériques", "Ta résonance avec les autres", True),
+                ('affirm', "Affirmations & Mantras", "Affirmations & Mantras", "Sept phrases pour t'ancrer", True),
+                ('journal', "Journal des vibrations", "Journal des vibrations", "Trois prompts pour intégrer", True),
+            ]
+            chapters = [c for c in chapters if c[4]]
+            romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII']
+            roman = {c[0]: romans[i] for i, c in enumerate(chapters)}
+
             _toc_page(story, _mini_styles, [
-                {'roman': 'I',    'title': "Introduction à la numérologie sacrée", 'page': _pg('chap1')},
-                {'roman': 'II',   'title': "Tes nombres-clés",                     'page': _pg('chap2')},
-                {'roman': 'III',  'title': "Ton année personnelle",                'page': _pg('chap3')},
-                {'roman': 'IV',   'title': "Prévisions cycliques",                 'page': _pg('chap4')},
-                {'roman': 'V',    'title': "Ton Carré Lo-Shu",                     'page': _pg('chap5')},
-                {'roman': 'VI',   'title': "Rituels de vibration",                 'page': _pg('chap6')},
-                {'roman': 'VII',  'title': "Compatibilités numériques",            'page': _pg('chap7')},
-                {'roman': 'VIII', 'title': "Affirmations & Mantras",               'page': _pg('chap8')},
-                {'roman': 'IX',   'title': "Journal des vibrations",               'page': _pg('chap9')},
+                {'roman': roman[c[0]], 'title': c[1], 'page': _pg(f'chap_{c[0]}')} for c in chapters
             ])
 
-            story.append(chapter_marker('chap1'))
-            _chapter_opener(story, _mini_styles, 'I', "La numérologie sacrée", "Une invitation aux nombres")
-            story.extend(self._page_intro())
-            story.append(PageBreak())
-
-            story.append(chapter_marker('chap2'))
-            _chapter_opener(story, _mini_styles, 'II', "Tes nombres-clés", "Chemin de vie, expression, âme")
-            story.extend(self._pages_nombres_cles(numerology_data, first_name))
-            story.append(PageBreak())
-
-            if personal_year_data:
-                story.append(chapter_marker('chap3'))
-                _chapter_opener(story, _mini_styles, 'III', "Ton année personnelle", "Le cycle actif de ta vie")
-                story.extend(self._pages_annee_personnelle(personal_year_data))
-                story.append(PageBreak())
-
-            if forecast_data:
-                story.append(chapter_marker('chap4'))
-                _chapter_opener(story, _mini_styles, 'IV', "Prévisions cycliques", "Ton horizon numérologique")
-                story.extend(self._pages_forecast(forecast_data))
-                story.append(PageBreak())
-
-            if self._ai.get('lo_shu'):
-                story.append(chapter_marker('chap5'))
-                _chapter_opener(story, _mini_styles, 'V', "Ton Carré Lo-Shu", "Numérologie chinoise ancestrale")
-                story.append(Paragraph('<font name="OrnamentSerif">✦</font> Ton Carré Lo-Shu — Numérologie Chinoise <font name="OrnamentSerif">✦</font>', self.heading_style))
-                story.append(Spacer(0, 0.3 * cm))
-                story.append(Paragraph(self._ai['lo_shu'], self.body_style))
-                story.append(PageBreak())
-
-            if self._ai.get('biorythmes'):
-                story.append(Paragraph('<font name="OrnamentSerif">✦</font> Tes Biorythmes des 90 Prochains Jours <font name="OrnamentSerif">✦</font>', self.heading_style))
-                story.append(Spacer(0, 0.3 * cm))
-                story.append(Paragraph(self._ai['biorythmes'], self.body_style))
-                story.append(PageBreak())
+            builders = {
+                'intro': lambda: self._page_intro(),
+                'nombres': lambda: self._pages_nombres_cles(numerology_data, first_name),
+                'annee': lambda: self._pages_annee_personnelle(personal_year_data, cyc),
+                'mois': lambda: self._pages_mois(cyc),
+                'pinacles': lambda: self._pages_pinacles(cyc),
+                'forecast': lambda: self._pages_forecast(forecast_data),
+                'loshu': lambda: self._pages_loshu(cyc),
+                'karma': lambda: self._pages_karma(cyc),
+                'bio': lambda: self._pages_biorythmes(cyc),
+                'rituels': lambda: self._page_rituels_finaux(first_name),
+                'compat': lambda: self._page_compatibilites(numerology_data, first_name),
+                'affirm': lambda: self._page_affirmations_numo(first_name),
+                'journal': lambda: self._page_journal_numo(first_name),
+            }
+            for i, (cid, _toc, opener_title, opener_sub, _on) in enumerate(chapters):
+                story.append(chapter_marker(f'chap_{cid}'))
+                _chapter_opener(story, _mini_styles, roman[cid], opener_title, opener_sub)
+                story.extend(builders[cid]())
+                if cid != 'journal':
+                    story.append(PageBreak())
 
             if self._ai.get('invitation_finale'):
                 story.append(Paragraph('<font name="OrnamentSerif">✦</font> Ton Invitation <font name="OrnamentSerif">✦</font>', self.heading_style))
                 story.append(Spacer(0, 0.3 * cm))
                 story.append(Paragraph(self._ai['invitation_finale'], self.body_style))
-                story.append(PageBreak())
-
-            story.append(chapter_marker('chap6'))
-            _chapter_opener(story, _mini_styles, 'VI', "Rituels de vibration", "Cinq pratiques numérologiques")
-            story.extend(self._page_rituels_finaux(first_name))
-            story.append(PageBreak())
-
-            story.append(chapter_marker('chap7'))
-            _chapter_opener(story, _mini_styles, 'VII', "Compatibilités numériques", "Ta résonance avec les autres")
-            story.extend(self._page_compatibilites(numerology_data, first_name))
-            story.append(PageBreak())
-
-            story.append(chapter_marker('chap8'))
-            _chapter_opener(story, _mini_styles, 'VIII', "Affirmations & Mantras", "Sept phrases pour t'ancrer")
-            story.extend(self._page_affirmations_numo(first_name))
-            story.append(PageBreak())
-
-            story.append(chapter_marker('chap9'))
-            _chapter_opener(story, _mini_styles, 'IX', "Journal des vibrations", "Trois prompts pour intégrer")
-            story.extend(self._page_journal_numo(first_name))
-
             # ═══ Colophon Nocturne — dernière page ═══
             story.append(PageBreak())
             from services.pdf_colophon import build_colophon
@@ -364,7 +344,7 @@ class NumerologiePDFGenerator:
 
         return story
     
-    def _pages_annee_personnelle(self, data: Dict[str, Any]) -> List:
+    def _pages_annee_personnelle(self, data: Dict[str, Any], cyc: Optional[Dict[str, Any]] = None) -> List:
         """Analyse année personnelle (cycle annuel)."""
         story = []
         story.append(Paragraph('Ton Année Personnelle', self.heading_style))
@@ -389,8 +369,191 @@ class NumerologiePDFGenerator:
                 'Les cycles numériques te guident mois après mois.',
                 self.body_style,
             ))
+        if cyc and cyc.get('personal_year_text') and not ai_narrative:
+            story.append(Paragraph(
+                f"<b>{cyc['personal_year_theme']}</b> — {cyc['personal_year_text']}",
+                self.body_style,
+            ))
         
         return story
+
+    def _table(self, rows: List[List[Any]], widths: List[float]) -> Table:
+        t = Table(rows, colWidths=widths, repeatRows=1)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), NIGHT_SOFT),
+            ('TEXTCOLOR', (0, 0), (-1, 0), GOLD),
+            ('LINEBELOW', (0, 0), (-1, -1), 0.4, GOLD_LIGHT),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('TOPPADDING', (0, 0), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ]))
+        return t
+
+    def _cell(self, text: str, bold: bool = False) -> Paragraph:
+        style = ParagraphStyle(
+            'Cell', fontName='Helvetica-Bold' if bold else 'Helvetica', fontSize=9.5,
+            textColor=CREAM, leading=13,
+        )
+        return Paragraph(text, style)
+
+    def _pages_mois(self, cyc: Dict[str, Any]) -> List:
+        """Calendrier des 12 prochains mois personnels."""
+        story: List = [
+            Paragraph('Tes 12 prochains mois', self.heading_style),
+            Paragraph(
+                f"Ton année personnelle actuelle est le <b>{cyc['personal_year']}</b> "
+                f"({cyc['personal_year_theme']}). Chaque mois porte sa propre couleur, "
+                "obtenue en additionnant ton année personnelle et le numéro du mois.",
+                self.body_style,
+            ),
+            Spacer(0, 0.3 * cm),
+        ]
+        rows = [[self._cell('<b>Mois</b>'), self._cell('<b>Nombre</b>'), self._cell('<b>Ce que ce mois t\'invite à faire</b>')]]
+        for m in cyc['months']:
+            rows.append([
+                self._cell(m['label'], bold=True),
+                self._cell(str(m['personal_month'])),
+                self._cell(f"<b>{m['theme']}.</b> {m['text']}"),
+            ])
+        story.append(self._table(rows, [3.3 * cm, 1.8 * cm, 12.4 * cm]))
+        return story
+
+    def _pages_pinacles(self, cyc: Dict[str, Any]) -> List:
+        """Quatre pinacles (grandes périodes) et quatre défis."""
+        story: List = [
+            Paragraph('Tes quatre grands cycles', self.heading_style),
+            Paragraph(
+                'Ta vie se déroule en quatre grandes saisons, calculées à partir de ta date de naissance. '
+                'Chacune apporte une énergie dominante et des opportunités spécifiques.',
+                self.body_style,
+            ),
+            Spacer(0, 0.3 * cm),
+        ]
+        rows = [[self._cell('<b>Cycle</b>'), self._cell('<b>Période</b>'), self._cell('<b>Nombre</b>'), self._cell('<b>Énergie</b>')]]
+        for p in cyc['pinnacles']:
+            rows.append([
+                self._cell(f"Cycle {p['index']}", bold=True),
+                self._cell(f"{p['age']} (dès {p['year_from']})"),
+                self._cell(str(p['number'])),
+                self._cell(p['text']),
+            ])
+        story.append(self._table(rows, [2.2 * cm, 4.6 * cm, 1.8 * cm, 8.9 * cm]))
+        story.append(Spacer(0, 0.6 * cm))
+        story.append(Paragraph('Tes quatre défis', self.heading_style))
+        story.append(Paragraph(
+            'Les défis ne sont pas des obstacles figés : ce sont les points d\'entraînement '
+            'qui te font grandir pendant chaque cycle.',
+            self.body_style,
+        ))
+        rows = [[self._cell('<b>Défi</b>'), self._cell('<b>Nombre</b>'), self._cell('<b>Leçon</b>')]]
+        for c in cyc['challenges']:
+            rows.append([self._cell(f"Défi {c['index']}", bold=True), self._cell(str(c['number'])), self._cell(c['text'])])
+        story.append(self._table(rows, [2.2 * cm, 1.8 * cm, 13.5 * cm]))
+        return story
+
+    def _loshu_grid(self, lo: Dict[str, Any]) -> Table:
+        cell_style = ParagraphStyle(
+            'LoShuCell', fontName='Helvetica-Bold', fontSize=18, textColor=GOLD,
+            alignment=TA_CENTER, leading=22,
+        )
+        rows = []
+        for line in lo['grid']:
+            rows.append([
+                Paragraph((str(n) * lo['counts'][n]) if lo['counts'][n] else '<font color="#B5B0A8">·</font>', cell_style)
+                for n in line
+            ])
+        t = Table(rows, colWidths=[2.6 * cm] * 3, rowHeights=[1.9 * cm] * 3)
+        t.setStyle(TableStyle([
+            ('GRID', (0, 0), (-1, -1), 0.8, GOLD_LIGHT),
+            ('BACKGROUND', (0, 0), (-1, -1), NIGHT_SOFT),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        t.hAlign = 'CENTER'
+        return t
+
+    def _pages_loshu(self, cyc: Dict[str, Any]) -> List:
+        lo = cyc.get('lo_shu')
+        story: List = [Paragraph('Ton Carré Lo-Shu', self.heading_style)]
+        if lo:
+            story.append(Paragraph(
+                'Le Lo-Shu est une grille de 3 × 3 cases. Les chiffres de ta date de naissance '
+                's\'y placent : les cases remplies sont tes forces, les cases vides tes zones d\'apprentissage.',
+                self.body_style,
+            ))
+            story.append(Spacer(0, 0.3 * cm))
+            story.append(self._loshu_grid(lo))
+            story.append(Spacer(0, 0.5 * cm))
+        if self._ai.get('lo_shu'):
+            story.append(Paragraph(self._ai['lo_shu'], self.body_style))
+        if lo:
+            story.append(Paragraph('Tes forces', self.heading_style))
+            for item in lo['present']:
+                n = item['number']
+                count = f" (×{item['count']}, énergie renforcée)" if item['count'] > 1 else ''
+                story.append(Paragraph(f"<b>{n}</b>{count} — {item['text']}", self.body_style))
+            if lo['arrows']:
+                story.append(Paragraph('Tes flèches d\'individualité', self.heading_style))
+                for a in lo['arrows']:
+                    story.append(Paragraph(f"<b>{a['name']}</b> — {a['text']}", self.body_style))
+        return story
+
+    def _pages_karma(self, cyc: Dict[str, Any]) -> List:
+        story: List = [Paragraph('Dettes karmiques & leçons', self.heading_style)]
+        debts = cyc.get('karmic_debts') or []
+        if debts:
+            story.append(Paragraph(
+                'Certains nombres de ta date de naissance portent une mémoire : ils signalent un thème '
+                'que ton âme est venue travailler.',
+                self.body_style,
+            ))
+            for d in debts:
+                story.append(Paragraph(f"<b>{d['number']}</b> (via ton {d['source']}) — {d['text']}", self.body_style))
+        else:
+            story.append(Paragraph(
+                'Aucune dette karmique classique (13, 14, 16, 19) n\'apparaît dans ta date de naissance : '
+                'tu ne portes pas de thème de rattrapage marqué, et tes apprentissages se jouent surtout '
+                'à travers tes défis et les cases vides de ton carré.',
+                self.body_style,
+            ))
+        lo = cyc.get('lo_shu') or {}
+        if lo.get('missing'):
+            story.append(Paragraph('Tes leçons à intégrer (chiffres absents)', self.heading_style))
+            for item in lo['missing']:
+                story.append(Paragraph(f"<b>{item['number']}</b> — {item['text']}", self.body_style))
+        if lo.get('empty_arrows'):
+            story.append(Paragraph('Flèches à cultiver', self.heading_style))
+            for a in lo['empty_arrows']:
+                story.append(Paragraph(f"<b>{a['name']}</b> — {a['text']}", self.body_style))
+        return story
+
+    def _pages_biorythmes(self, cyc: Dict[str, Any]) -> List:
+        story: List = [Paragraph('Tes biorythmes des 90 prochains jours', self.heading_style)]
+        bio = cyc.get('biorhythms')
+        if self._ai.get('biorythmes'):
+            story.append(Paragraph(self._ai['biorythmes'], self.body_style))
+        if bio:
+            story.append(Paragraph(
+                'Les biorythmes décrivent trois cycles réguliers depuis ta naissance : physique (23 jours), '
+                'émotionnel (28 jours) et intellectuel (33 jours). Ils sont un repère de rythme, pas une prédiction.',
+                self.body_style,
+            ))
+            rows = [[self._cell('<b>Cycle</b>'), self._cell('<b>Aujourd\'hui</b>'), self._cell('<b>Prochains sommets</b>'), self._cell('<b>Jours de bascule</b>')]]
+            for k in ('physique', 'émotionnel', 'intellectuel'):
+                rows.append([
+                    self._cell(k.capitalize(), bold=True),
+                    self._cell(f"{bio['today'][k]:+d} %"),
+                    self._cell(', '.join(bio['peaks'][k][:3]) or '—'),
+                    self._cell(', '.join(bio['critical'][k][:4]) or '—'),
+                ])
+            story.append(self._table(rows, [3 * cm, 2.6 * cm, 5.4 * cm, 6.5 * cm]))
+            story.append(Spacer(0, 0.3 * cm))
+            story.append(Paragraph(
+                'Les jours de bascule (le cycle passe par zéro) sont propices au recentrage : '
+                'allège ton agenda et évite les décisions lourdes si tu te sens fatigué(e).',
+                self.body_style,
+            ))
+        return story
+
     
     def _pages_forecast(self, data: Dict[str, Any]) -> List:
         """Prévisions et cycles futurs."""
@@ -399,7 +562,7 @@ class NumerologiePDFGenerator:
         
         forecast = data.get('forecast', [])
         if isinstance(forecast, list) and len(forecast) > 0:
-            for item in forecast[:3]:  # Max 3 prévisions
+            for item in forecast[:5]:
                 if isinstance(item, dict):
                     period = item.get('period', 'Prochain mois')
                     insight = item.get('insight', 'Énergie nouvelle en approche.')
@@ -590,6 +753,7 @@ def generate_numerologie_pdf(
     ai_sections: Optional[Dict[str, str]] = None,
     referral_code: Optional[str] = None,
     referral_link: Optional[str] = None,
+    cycles: Optional[Dict[str, Any]] = None,
 ) -> bytes:
     """Wrapper pour générer le PDF numérologie (accepte ai_sections optionnel)."""
     return NumerologiePDFGenerator().generate(
@@ -601,7 +765,23 @@ def generate_numerologie_pdf(
         ai_sections=ai_sections,
         referral_code=referral_code,
         referral_link=referral_link,
+        cycles=cycles if cycles is not None else build_cycles(birth_date_iso),
     )
+
+
+def _cycles_summary(cycles: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Résumé compact et stable (sans dates) pour guider l'IA."""
+    if not cycles:
+        return {}
+    return {
+        'chemin_de_vie': cycles['life_path'],
+        'annee_personnelle': cycles['personal_year'],
+        'pinacles': [p['number'] for p in cycles['pinnacles']],
+        'defis': [c['number'] for c in cycles['challenges']],
+        'dettes_karmiques': [d['number'] for d in cycles['karmic_debts']],
+        'lo_shu_chiffres_absents': [m['number'] for m in cycles['lo_shu']['missing']],
+        'lo_shu_chiffres_repetes': cycles['lo_shu']['repeated'],
+    }
 
 
 async def generate_numerologie_pdf_ai(
@@ -621,6 +801,7 @@ async def generate_numerologie_pdf_ai(
             'numerology': numerology_data,
             'personal_year': personal_year_data,
             'forecast': forecast_data,
+            'resume_cycles': _cycles_summary(build_cycles(birth_date_iso)),
         }
         ai_sections = await enrich_report(
             report_type='numerology',
@@ -641,4 +822,5 @@ async def generate_numerologie_pdf_ai(
         ai_sections=ai_sections,
         referral_code=referral_code,
         referral_link=referral_link,
+        cycles=build_cycles(birth_date_iso),
     )
