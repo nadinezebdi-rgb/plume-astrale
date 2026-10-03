@@ -456,12 +456,12 @@
 
 .exp-s3__card {
   --card-w: 190px;
-  --card-h: 300px;
   --card-rot: 0deg;
   --card-dy: 0px;
   position: relative;
   width: var(--card-w);
-  height: var(--card-h);
+  height: auto;
+  aspect-ratio: 512 / 911;
   background: none;
   border: none;
   padding: 0;
@@ -474,13 +474,12 @@
 
 .exp-s3__card[data-featured="true"] {
   --card-w: 200px;
-  --card-h: 316px;
   z-index: 2;
 }
 
 @media (max-width: 720px) {
-  .exp-s3__card { --card-w: 130px; --card-h: 205px; }
-  .exp-s3__card[data-featured="true"] { --card-w: 138px; --card-h: 218px; }
+  .exp-s3__card { --card-w: 130px; }
+  .exp-s3__card[data-featured="true"] { --card-w: 138px; }
 }
 
 .exp-s3__cards[data-hovering="true"] .exp-s3__card:not(:hover) {
