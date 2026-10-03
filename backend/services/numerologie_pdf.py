@@ -29,14 +29,8 @@ from services.numerologie_cycles import build_cycles
 # tout `<font name="OrnamentSerif">` inline dans les Paragraph soit résolu.
 _register_luxury_fonts()
 
-# Palette Plume Astrale
-NIGHT       = colors.white
-NIGHT_SOFT  = colors.HexColor('#F5F2EA')
-GOLD        = colors.HexColor('#79570F')
-GOLD_LIGHT  = colors.HexColor('#8A6418')
-LAVENDER    = colors.HexColor('#514657')
-CREAM       = colors.HexColor('#26242B')
-MUTED       = colors.HexColor('#5E5A63')
+# Palette Plume Astrale (source unique : services/pdf_theme.py)
+from services.pdf_theme import NIGHT, NIGHT_SOFT, GOLD, GOLD_LIGHT, LAVENDER, CREAM, MUTED
 
 # Traductions français
 NOMBRES_FR = {
