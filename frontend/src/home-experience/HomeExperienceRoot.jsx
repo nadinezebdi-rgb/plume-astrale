@@ -46,6 +46,7 @@ export default function HomeExperienceRoot() {
   const currentScene = useExperienceStore((s) => s.currentScene);
   const setScene = useExperienceStore((s) => s.setScene);
   const [loadRest, setLoadRest] = useState(false);
+  const [pendingAct, setPendingAct] = useState(null);
 
   useEffect(() => {
     trackEvent('home_v3_started', {});
@@ -65,24 +66,71 @@ export default function HomeExperienceRoot() {
   const handleActChange = useCallback((act) => setScene(act), [setScene]);
   useScrollTriggerActs({ actsCount: 8, onActChange: handleActChange });
 
-  const handleJumpToAct = (actId) => {
-    // Si le user saute directement à Act 5-8, force le lazy load immédiat
-    if (actId >= 5 && !loadRest) setLoadRest(true);
-    const el = document.querySelector(`[data-testid="experience-scene-${actId}"]`)
-            || document.querySelector(`[data-testid="home-experience-scene-${actId}"]`);
-    if (el) {
-      const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-      el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-      trackEvent('home_v3_actnav_clicked', { act: actId });
-    }
-  };
+  const handleJumpToAct = useCallback((actId) => {
+    if (actId >= 5) setLoadRest(true);
+    setPendingAct(actId);
+  }, []);
 
-  // En mode fallback (WebGL absent ou reduced-motion), on cache ActNav :
-  // la structure 8-actes n'est pas parfaitement reproduite dans le fallback
-  // 2D, ce qui pourrait dérouter l'utilisateur.
-  const webglAvailable = useExperienceStore((s) => s.webglAvailable);
-  const reducedMotion = useExperienceStore((s) => s.reducedMotion);
-  const showActNav = webglAvailable !== false && !reducedMotion;
+  useEffect(() => {
+    if (!pendingAct) return undefined;
+    let frame;
+    let attempts = 0;
+    const selector = pendingAct <= 4
+      ? `[data-testid="experience-scene-${pendingAct}"]`
+      : `[data-testid="home-experience-scene-${pendingAct}"]`;
+
+    const findAct = () => {
+      const element = document.querySelector(selector);
+      if (element) {
+        const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        element.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+        trackEvent('home_v3_actnav_clicked', { act: pendingAct });
+        setPendingAct(null);
+        return;
+      }
+      attempts += 1;
+      if (attempts < 180) frame = window.requestAnimationFrame(findAct);
+      else setPendingAct(null);
+    };
+
+    frame = window.requestAnimationFrame(findAct);
+    return () => window.cancelAnimationFrame(frame);
+  }, [pendingAct]);
+
+  useEffect(() => {
+    const updateCanvasIntensity = () => {
+      const canvas = document.querySelector('[data-testid="experience-canvas"]');
+      if (!canvas) return;
+      const services = document.querySelector('[data-testid="home-experience-scene-5"]');
+      if (!services) {
+        canvas.style.opacity = '1';
+        return;
+      }
+
+      const pageTop = (element) => element.getBoundingClientRect().top + window.scrollY;
+      const servicesTop = pageTop(services);
+      const conversion = document.querySelector('[data-testid="home-experience-scene-7"]');
+      const fadeStart = servicesTop - window.innerHeight * 0.6;
+      const fadeEnd = conversion
+        ? pageTop(conversion) - window.innerHeight * 0.6
+        : servicesTop + window.innerHeight * 7;
+      const progress = Math.max(0, Math.min(1,
+        (window.scrollY - fadeStart) / Math.max(window.innerHeight, fadeEnd - fadeStart)
+      ));
+      canvas.style.opacity = (1 - progress * 0.9).toFixed(2);
+    };
+
+    updateCanvasIntensity();
+    window.addEventListener('scroll', updateCanvasIntensity, { passive: true });
+    window.addEventListener('resize', updateCanvasIntensity);
+    const observer = new MutationObserver(updateCanvasIntensity);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      window.removeEventListener('scroll', updateCanvasIntensity);
+      window.removeEventListener('resize', updateCanvasIntensity);
+      observer.disconnect();
+    };
+  }, [loadRest]);
 
   return (
     <>
@@ -100,7 +148,6 @@ export default function HomeExperienceRoot() {
         currentAct={currentScene}
         onJump={handleJumpToAct}
         actsAvailable={8}
-        hidden={!showActNav}
       />
     </>
   );

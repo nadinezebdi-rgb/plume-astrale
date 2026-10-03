@@ -9,6 +9,7 @@
  * (aria-label, elements bien nommés).
  */
 import React, { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ACTS = [
   { id: 1, label: "L'APPEL",         glyph: '·' },
@@ -36,68 +37,87 @@ export default function ActNav({ currentAct = 1, onJump, actsAvailable = 8, hidd
   }, []);
 
   if (hidden) return null;
+  const activeAct = Math.min(Math.max(currentAct, 1), actsAvailable);
+  const activeLabel = ACTS[activeAct - 1]?.label || ACTS[0].label;
 
   return (
-    <nav
-      aria-label="Navigation des actes"
-      data-testid="home-experience-actnav"
-      style={{
-        position: 'fixed', top: '50%', right: 26,
-        transform: 'translateY(-50%)',
-        display: 'flex', flexDirection: 'column', gap: 26,
-        zIndex: 20,
-        pointerEvents: 'auto',
-      }}
-      className="hex3-actnav"
-    >
-      {ACTS.slice(0, actsAvailable).map((a) => {
-        const isCurrent = a.id === currentAct;
-        const isHover = hover === a.id;
-        return (
-          <div key={a.id} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            {/* Label au hover */}
-            <span
-              aria-hidden={!isHover}
-              style={{
-                position: 'absolute', right: 22, top: '50%', transform: 'translateY(-50%)',
-                fontFamily: '"Inter", sans-serif',
-                fontSize: 10, letterSpacing: '0.24em', textTransform: 'uppercase',
-                color: 'rgba(216, 183, 106, 0.9)',
-                whiteSpace: 'nowrap',
-                opacity: isHover ? 1 : 0,
-                pointerEvents: 'none',
-                transition: 'opacity 320ms ease',
-              }}
-            >
-              {a.label}
-            </span>
-            <button
-              type="button"
-              aria-label={`Aller à l'acte ${a.id} : ${a.label}`}
-              onClick={() => onJump && onJump(a.id)}
-              onMouseEnter={() => setHover(a.id)}
-              onMouseLeave={() => setHover(null)}
-              onFocus={() => setHover(a.id)}
-              onBlur={() => setHover(null)}
-              data-testid={`home-experience-act-${a.id}`}
-              data-current={isCurrent}
-              style={{
-                width: 8, height: 8, padding: 0,
-                borderRadius: '50%',
-                background: isCurrent
-                  ? 'rgba(216, 183, 106, 0.95)'
-                  : (isHover ? 'rgba(216, 183, 106, 0.55)' : 'rgba(244, 239, 230, 0.28)'),
-                border: 'none', cursor: 'pointer',
-                transform: !reduce && (isCurrent || isHover) ? 'scale(1.35)' : 'scale(1)',
-                transition: 'transform 360ms cubic-bezier(0.16, 1, 0.3, 1), background 320ms ease',
-                boxShadow: isCurrent
-                  ? '0 0 12px rgba(216, 183, 106, 0.55)'
-                  : 'none',
-              }}
-            />
+    <>
+      <nav
+        aria-label="Navigation des actes"
+        data-testid="home-experience-actnav"
+        className="hex3-actnav"
+      >
+        {ACTS.slice(0, actsAvailable).map((act) => {
+          const isCurrent = act.id === activeAct;
+          const isHover = hover === act.id;
+          return (
+            <div key={act.id} className="hex3-actnav__item">
+              <span className="hex3-actnav__label" aria-hidden={!isHover} data-visible={isHover}>
+                {act.label}
+              </span>
+              <button
+                type="button"
+                aria-label={`Aller à l'acte ${act.id} : ${act.label}`}
+                aria-current={isCurrent ? 'step' : undefined}
+                onClick={() => onJump?.(act.id)}
+                onMouseEnter={() => setHover(act.id)}
+                onMouseLeave={() => setHover(null)}
+                onFocus={() => setHover(act.id)}
+                onBlur={() => setHover(null)}
+                data-testid={`home-experience-act-${act.id}`}
+                data-current={isCurrent}
+                className="hex3-actnav__button"
+              >
+                <span
+                  className="hex3-actnav__dot"
+                  data-current={isCurrent}
+                  data-hover={isHover}
+                  data-reduced-motion={reduce}
+                />
+              </button>
+            </div>
+          );
+        })}
+      </nav>
+
+      <nav className="hex3-actnav-mobile" aria-label="Progression des actes" data-testid="home-experience-mobile-nav">
+        <button
+          type="button"
+          className="hex3-actnav-mobile__arrow"
+          aria-label={`Acte précédent : ${ACTS[Math.max(0, activeAct - 2)].label}`}
+          disabled={activeAct <= 1}
+          onClick={() => onJump?.(activeAct - 1)}
+        >
+          <ChevronLeft size={18} aria-hidden="true" />
+        </button>
+        <div className="hex3-actnav-mobile__progress">
+          <div className="hex3-actnav-mobile__current">
+            <span>ACTE {activeAct} / {actsAvailable}</span>
+            <strong>{activeLabel}</strong>
           </div>
-        );
-      })}
-    </nav>
+          <div className="hex3-actnav-mobile__steps">
+            {ACTS.slice(0, actsAvailable).map((act) => (
+              <button
+                key={act.id}
+                type="button"
+                aria-label={`Aller à l'acte ${act.id} : ${act.label}`}
+                aria-current={act.id === activeAct ? 'step' : undefined}
+                onClick={() => onJump?.(act.id)}
+                data-current={act.id === activeAct}
+              />
+            ))}
+          </div>
+        </div>
+        <button
+          type="button"
+          className="hex3-actnav-mobile__next"
+          aria-label={`Acte suivant : ${ACTS[Math.min(actsAvailable - 1, activeAct)].label}`}
+          disabled={activeAct >= actsAvailable}
+          onClick={() => onJump?.(activeAct + 1)}
+        >
+          Suivant <ChevronRight size={16} aria-hidden="true" />
+        </button>
+      </nav>
+    </>
   );
 }
