@@ -7,7 +7,7 @@ import SalesTrustBlock from '@/components/SalesTrustBlock';
 import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
-const PACK_PRICE = 29;
+const PACK_PRICE = 24;
 
 // Helpers date FR : dd/MM/yyyy <-> yyyy-MM-dd (format API)
 const fromISO = (iso) => {

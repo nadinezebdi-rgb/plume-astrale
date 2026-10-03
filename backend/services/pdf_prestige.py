@@ -191,7 +191,7 @@ def toc_page(story: list, styles: dict, chapters: List[Dict[str, Any]]) -> None:
         line = (
             f'<font color="#D4AF37">{roman}</font>'
             f'&nbsp;&nbsp;·&nbsp;&nbsp;<i>{title}</i>'
-            f'&nbsp;&nbsp;<font color="#9089B5">····</font>&nbsp;&nbsp;'
+            f'&nbsp;&nbsp;<font color="#5E5A63">····</font>&nbsp;&nbsp;'
             f'<font color="#D4AF37">{page_str}</font>'
         )
         story.append(Paragraph(line, row_style))

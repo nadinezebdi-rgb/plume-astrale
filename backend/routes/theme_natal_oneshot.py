@@ -3,7 +3,7 @@ Route /api/theme-natal-oneshot : landing produit Thème Natal 24€ (one-shot St
 Créé 2026-02 dans le cadre de la refonte Gary Vee pricing.
 
 Endpoints :
-  POST /api/theme-natal-oneshot/checkout   → session Stripe (29 EUR) ou bypass via promo_code
+  POST /api/theme-natal-oneshot/checkout   → session Stripe (24 EUR) ou bypass via promo_code
   GET  /api/theme-natal-oneshot/status     → polling live pour la page succès
 """
 from __future__ import annotations

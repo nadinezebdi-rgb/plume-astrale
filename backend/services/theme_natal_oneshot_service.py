@@ -301,7 +301,7 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     #    cairosvg est CPU-bound (blocke le event loop) → on l'exécute dans un thread.
     chart_png_bytes: bytes | None = None
     try:
-        svg_str = await aio.chart_svg_render(bd, name=name, theme='dark', language='fr')
+        svg_str = await aio.chart_svg_render(bd, name=name, theme='light', language='fr')
         if svg_str:
             from services.svg_utils import resolve_svg_css_vars
             import cairosvg, asyncio as _asyncio
@@ -321,16 +321,12 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     except Exception as e:
         logger.warning(f"[theme_natal_oneshot] chart wheel unavailable: {e}")
 
-    # 4.5) Enrichissement narratif LIVRE — désactivé volontairement.
-    # Le mode "livre" (front matter + Actes + maisons + épilogue) produit un
-    # PDF de 30-100 Mo trop lourd à ouvrir sur mobile et téléchargement lent.
-    # Le code reste en place (services/natal_book_enrichment.py, pdf_book_pages.py,
-    # pdf_editorial_templates.py) pour réactivation ultérieure via BOOK_MODE_ENABLED.
-    #
-    # Pour réactiver plus tard : mettre BOOK_MODE_ENABLED='true' dans backend/.env
-    # OU changer la valeur par défaut ci-dessous à True.
+    # 4.5) Enrichissement narratif LIVRE (front matter + Actes + 12 maisons + épilogue).
+    # Actif par défaut : le PDF fait 49 pages. Le poids est maîtrisé car les images de la
+    # bibliothèque sont recompressées (services/library_images._light_copy).
+    # Pour revenir au PDF court (17 pages) : BOOK_MODE_ENABLED=false.
     book_data = None
-    if os.environ.get('BOOK_MODE_ENABLED', 'false').lower() == 'true':
+    if os.environ.get('BOOK_MODE_ENABLED', 'true').lower() == 'true':
         try:
             from services.natal_book_enrichment import enrich_book_chapters
             aspects_for_book = []

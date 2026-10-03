@@ -467,7 +467,7 @@ function PdfsSentSection({ data, loading, reload }) {
     'kabbale': 'Kabbale',
     'pack_karmique_kabbale': 'Pack Karmique',
     'pack_karmique': 'Pack Karmique',
-    'theme_natal_pdf_oneshot': 'Thème Natal 29€',
+    'theme_natal_pdf_oneshot': 'Thème Natal 24€',
     'theme_natal_pdf': 'Thème Natal (crédits)',
     'astrocartographie': 'Astrocartographie',
     'rencontres_ultime': 'Rencontres Ultime',
