@@ -20,6 +20,15 @@ logger = logging.getLogger(__name__)
 ASSETS_DIR = Path(__file__).resolve().parent.parent / 'assets'
 
 
+def _resolve_edition(md: dict):
+    """Édition demandée dans les métadonnées de la transaction (numérique par défaut)."""
+    from services.book_engine.domain import Edition
+    try:
+        return Edition(md.get('edition') or 'numerique')
+    except ValueError:
+        return Edition.NUMERIQUE
+
+
 # ── Alerte admin quand astrology-api.io retourne <5 planètes core ──
 # Réutilise le pattern de astrology_io_service._alert_invalid_key (Resend, 1 alerte / 6h)
 _last_empty_planets_alert_ts = 0.0
@@ -433,8 +442,9 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
                     'ascendant_sign_en': asc_sign_en,
                     'raw_natal': chart or {},
                     'enhanced_personal_analysis': enhanced_analysis,
+                    'fixed_stars': (enhanced_analysis or {}).get('fixed_stars') or [],
                 },
-                edition=Edition.NUMERIQUE,
+                edition=_resolve_edition(md),
             )
             pdf_bytes = await _asyncio.to_thread(
                 render_manuscript_to_pdf_v2, manuscript, profile='print',
