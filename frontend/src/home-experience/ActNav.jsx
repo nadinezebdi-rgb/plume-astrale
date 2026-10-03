@@ -93,16 +93,20 @@ export default function ActNav({ currentAct = 1, onJump, actsAvailable = 8, hidd
         <div className="hex3-actnav-mobile__progress">
           <div className="hex3-actnav-mobile__current">
             <span>ACTE {activeAct} / {actsAvailable}</span>
-            <strong>{activeLabel}</strong>
+            <select
+              aria-label="Choisir un acte"
+              value={activeAct}
+              onChange={(event) => onJump?.(Number(event.target.value))}
+            >
+              {ACTS.slice(0, actsAvailable).map((act) => (
+                <option key={act.id} value={act.id}>{act.label}</option>
+              ))}
+            </select>
           </div>
-          <div className="hex3-actnav-mobile__steps">
+          <div className="hex3-actnav-mobile__steps" aria-hidden="true">
             {ACTS.slice(0, actsAvailable).map((act) => (
-              <button
+              <span
                 key={act.id}
-                type="button"
-                aria-label={`Aller à l'acte ${act.id} : ${act.label}`}
-                aria-current={act.id === activeAct ? 'step' : undefined}
-                onClick={() => onJump?.(act.id)}
                 data-current={act.id === activeAct}
               />
             ))}

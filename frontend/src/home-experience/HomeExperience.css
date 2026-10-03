@@ -260,12 +260,39 @@
     letter-spacing: 0.08em;
   }
 
-  .hex3-actnav-mobile__current strong {
-    overflow: hidden;
+  .hex3-actnav-mobile__current select {
+    flex: 1;
+    width: auto;
+    max-width: 160px;
+    min-width: 0;
+    min-height: 40px;
+    padding: 0 3px;
+    border: 0;
+    background: transparent;
     color: #F4EFE6;
-    font-weight: 500;
+    font: 500 11px 'Inter', sans-serif;
+    letter-spacing: 0.08em;
+    text-align: right;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    text-transform: uppercase;
+  }
+
+  .hex3-actnav-mobile__current option {
+    background: #101936;
+    color: #F4EFE6;
+  }
+
+  .hex3-actnav-mobile__current select:focus-visible {
+    outline: 2px solid rgba(216, 183, 106, 0.95);
+    outline-offset: 2px;
+  }
+
+  .hex3-actnav-mobile__steps span {
+    overflow: hidden;
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(244, 239, 230, 0.35);
   }
 
   .hex3-actnav-mobile__steps {
@@ -274,26 +301,7 @@
     margin-top: 5px;
   }
 
-  .hex3-actnav-mobile__steps button {
-    flex: 1;
-    min-width: 16px;
-    height: 14px;
-    padding: 5px 0;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-  }
-
-  .hex3-actnav-mobile__steps button::before {
-    content: '';
-    display: block;
-    width: 100%;
-    height: 3px;
-    border-radius: 2px;
-    background: rgba(244, 239, 230, 0.35);
-  }
-
-  .hex3-actnav-mobile__steps button[data-current="true"]::before { background: #D8B76A; }
+  .hex3-actnav-mobile__steps span[data-current="true"] { background: #D8B76A; }
 }
 
 @media (max-width: 720px) {
