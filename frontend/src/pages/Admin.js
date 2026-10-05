@@ -9,6 +9,7 @@ import {
 import SEO from '@/components/SEO';
 import AdminThemeNatalFixer from '@/components/AdminThemeNatalFixer';
 import AdminLectureComplete from '@/components/AdminLectureComplete';
+import AdminGenerateReadings from '@/components/AdminGenerateReadings';
 import AdminFailureBanner from '@/components/AdminFailureBanner';
 import StripeWebhookHealthWidget from '@/components/StripeWebhookHealthWidget';
 import ExperienceFunnelWidget from '@/components/ExperienceFunnelWidget';
@@ -254,6 +255,7 @@ export default function Admin() {
           <Tab label="PDFs envoyés" active={tab === 'pdfs-sent'} onClick={() => setTab('pdfs-sent')} count={pdfsSent?.total_with_supabase_url} />
           <Tab label="Fix Thème Natal" active={tab === 'fix-natal'} onClick={() => setTab('fix-natal')} />
           <Tab label="Lecture Complète" active={tab === 'lecture-complete'} onClick={() => setTab('lecture-complete')} />
+          <Tab label="Générer les lectures" active={tab === 'generate'} onClick={() => setTab('generate')} />
           {/* Santé paiements — redirige vers /admin/payments-health, badge rouge si sessions bloquees > 10 ou status=red */}
           <a href="/admin/payments-health"
              className="px-4 py-2 text-xs uppercase tracking-widest rounded-full transition-all inline-flex items-center gap-2"
@@ -280,6 +282,10 @@ export default function Admin() {
             )}
           </a>
         </div>
+
+        {tab === 'generate' && (
+          <AdminGenerateReadings token={token} defaultEmail={user?.email || ''} />
+        )}
 
         {tab === 'lecture-complete' && (
           <AdminLectureComplete token={token} />
