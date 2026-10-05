@@ -6,46 +6,58 @@
  * Remplace le useEffect(scroll) custom d'ExperienceRoot (qui reste en
  * place pour /experience standalone), sans casser rien.
  *
- * Utilise gsap.matchMedia pour :
- *   - désactiver totalement sur prefers-reduced-motion
- *   - alléger le nombre de refresh sur mobile
- *
- * Phase 1 : 4 actes. Phase 2 étendra à 8 sans changer l'API.
+ * Le hook observe aussi les sections ajoutées après leur chargement différé.
  */
 import { useEffect } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-// Registration idempotente au module load (une seule fois par bundle)
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 export default function useScrollTriggerActs({ actsCount = 4, onActChange }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return; // Fallback : ExperienceRoot pilote déjà le store via son onScroll natif
+    let activeAct = null;
+    let frame = null;
 
-    const triggers = [];
-    for (let i = 1; i <= actsCount; i += 1) {
-      const el = document.querySelector(`[data-testid="experience-scene-${i}"]`);
-      if (!el) continue;
-      const st = ScrollTrigger.create({
-        trigger: el,
-        start: 'top center',
-        end: 'bottom center',
-        onEnter:     () => onActChange && onActChange(i, 'enter'),
-        onEnterBack: () => onActChange && onActChange(i, 'enter-back'),
-      });
-      triggers.push(st);
-    }
+    const updateActiveAct = () => {
+      frame = null;
+      const viewportCenter = window.innerHeight / 2;
+      let nearestAct = null;
+      let nearestDistance = Infinity;
 
-    // Refresh forcé après mount pour prendre en compte les 100vh
-    ScrollTrigger.refresh();
+      for (let i = 1; i <= actsCount; i += 1) {
+        const el = document.querySelector(`[data-testid="experience-scene-${i}"]`)
+          || document.querySelector(`[data-testid="home-experience-scene-${i}"]`);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        const distance = viewportCenter < rect.top
+          ? rect.top - viewportCenter
+          : viewportCenter > rect.bottom
+            ? viewportCenter - rect.bottom
+            : 0;
+        if (distance < nearestDistance) {
+          nearestAct = i;
+          nearestDistance = distance;
+        }
+      }
+
+      if (nearestAct !== null && nearestAct !== activeAct) {
+        activeAct = nearestAct;
+        onActChange?.(nearestAct, 'scroll');
+      }
+    };
+
+    const scheduleUpdate = () => {
+      if (frame === null) frame = window.requestAnimationFrame(updateActiveAct);
+    };
+    scheduleUpdate();
+    window.addEventListener('scroll', scheduleUpdate, { passive: true });
+    window.addEventListener('resize', scheduleUpdate);
+    const observer = new MutationObserver(scheduleUpdate);
+    observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      triggers.forEach((t) => t.kill());
+      observer.disconnect();
+      window.removeEventListener('scroll', scheduleUpdate);
+      window.removeEventListener('resize', scheduleUpdate);
+      if (frame !== null) window.cancelAnimationFrame(frame);
     };
   }, [actsCount, onActChange]);
 }

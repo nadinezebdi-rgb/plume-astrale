@@ -76,10 +76,60 @@ def sig_generic(astro: dict, first_name: str) -> dict:
     return out
 
 
-# ═══════════════════════════════════════════════════════════════════
-# Prompts par chapitre (11 restants après Chapitre IV déjà fait)
-# ═══════════════════════════════════════════════════════════════════
+_PLANET_LABELS = {
+    'sun': 'Soleil', 'moon': 'Lune', 'mercury': 'Mercure', 'venus': 'Vénus',
+    'mars': 'Mars', 'jupiter': 'Jupiter', 'saturn': 'Saturne', 'uranus': 'Uranus',
+    'neptune': 'Neptune', 'pluto': 'Pluton', 'chiron': 'Chiron',
+}
 
+
+def _houses_block(astro: dict) -> str:
+    """Une ligne par maison : signe de la cuspide + planètes occupantes."""
+    from .wheel import _to_longitude_deg, _SIGN_ORDER
+    houses = astro.get('houses') or []
+    planets = astro.get('planets') or {}
+    lines = []
+    for i in range(12):
+        cusp = ''
+        if isinstance(houses, list) and i < len(houses) and houses[i] is not None:
+            lon = _to_longitude_deg(houses[i])
+            if lon is not None:
+                cusp = f"cuspide en {_fmt_sign_fr(_SIGN_ORDER[int(lon // 30) % 12])} à {int(lon % 30)}°"
+        occupants = []
+        for key, label in _PLANET_LABELS.items():
+            try:
+                if int((planets.get(key) or {}).get('house')) == i + 1:
+                    occupants.append(label)
+            except (TypeError, ValueError):
+                continue
+        lines.append(
+            f"- Maison {i + 1} : {cusp or 'cuspide inconnue'} · "
+            f"{', '.join(occupants) if occupants else 'aucune planète'}"
+        )
+    return '\n'.join(lines)
+
+
+def _fixed_stars_block(astro: dict) -> str:
+    """Étoiles fixes réellement calculées (API), sinon mention d'absence."""
+    stars = astro.get('fixed_stars') or []
+    lines = []
+    for s in stars[:12] if isinstance(stars, list) else []:
+        if not isinstance(s, dict):
+            continue
+        name = s.get('name') or s.get('star')
+        if not name:
+            continue
+        target = s.get('planet') or s.get('conjunct') or s.get('body') or ''
+        orb = s.get('orb')
+        extra = f" · conjointe à {target}" if target else ''
+        extra += f" (orbe {orb})" if orb is not None else ''
+        lines.append(f"- {name}{extra}")
+    return '\n'.join(lines) or "- (aucun calcul d'orbe fine disponible     pour ce thème)"
+
+
+    # ═══════════════════════════════════════════════════════════════════
+    # Prompts par chapitre
+    # ═══════════════════════════════════════════════════════════════════
 # Chaque prompt suit la MÊME structure minimale :
 #   1. paragraph_dropcap ouverture
 #   2. h2 + 2 paragraphes
@@ -357,6 +407,20 @@ STRUCTURE (10 pages A5, ~2200 mots) :
 Ton humble, laisse le mystère. Cite Christian Bobin OU Pierre Michon.
 """ + _STRUCTURE_JSON,
 
+    # ─── Add-on VII — Les douze maisons ───
+    'maisons_detaillees': """Rédige le CHAPITRE ADDITIONNEL VII « Les douze maisons » du Livre Astral de {first_name}.
+
+DONNÉES EXACTES (cuspide et planètes de chaque maison) :
+{houses_block}
+- Ascendant : {asc_sign} · Milieu du Ciel : {mc_sign}
+
+STRUCTURE (14 pages A5, ~3000 mots) :
+Ouvre par une introduction courte : les maisons sont les douze pièces d'une même demeure, le signe dit COMMENT, la planète dit QUI, la maison dit OÙ. Puis, pour CHACUNE des douze maisons dans l'ordre, un h2 « Maison N — thème de la maison » et un ou deux paragraphes ancrés dans le signe de la cuspide et les planètes occupantes réelles. Pour une maison vide, parle du signe de la cuspide et de ce que cela dit de ce territoire sans drame. Si une cuspide est « inconnue », dis honnêtement que l'heure de naissance manque et reste symbolique.
+Termine par un encart « VOTRE CLÉ » : les deux ou trois maisons les plus habitées et ce qu'elles disent des lieux de vie où {first_name} s'investit.
+
+Ton humble, concret, aucun cliché. Cite Gaston Bachelard (La Poétique de l'espace) OU Georges Perec (Espèces d'espaces).
+""" + _STRUCTURE_JSON,
+
     # ─── Add-on V — Étoiles Fixes ───
     'etoiles_fixes': """Rédige le CHAPITRE ADDITIONNEL V « Étoiles Fixes » du Livre Astral de {first_name}.
 
@@ -365,6 +429,9 @@ DONNÉES ASTRALES (traitement symbolique — on ne fait pas de calcul d'orbe fin
 - Lune : {moon_sign} · {moon_deg}
 - Ascendant : {asc_sign}
 - Milieu du Ciel : {mc_sign}
+
+ÉTOILES FIXES CALCULÉES POUR CE THÈME (priorité absolue si la liste existe ; sinon, reste symbolique) :
+{fixed_stars_block}
 
 STRUCTURE (10 pages A5, ~2200 mots) :
 Les étoiles fixes sont les vraies étoiles du ciel (contrairement aux planètes qui se déplacent). Quatre grandes étoiles royales portent des noms qui résonnent dans toutes les cultures :
@@ -428,6 +495,8 @@ async def generate_chapter_blocks(
         return []
 
     sig = sig_generic(astro_data, first_name)
+    sig['houses_block'] = _houses_block(astro_data)
+    sig['fixed_stars_block'] = _fixed_stars_block(astro_data)
     try:
         user = prompt_template.format(**sig)
     except KeyError as e:

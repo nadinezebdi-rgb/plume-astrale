@@ -9,10 +9,10 @@
  */
 import React, { useState, useMemo } from 'react';
 import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
+import { getScene3Revelation } from './scene3Revelations';
 
 export default function ExperienceFallback({
-  intents, cards, onIntentChoice, onCardDraw, onFinalCTA, intent, drawnCard,
-  dailyReading, dailyReadingLoading, dailyReadingError,
+  intents, cards, onIntentChoice, onCardDraw, onFinalCTA, onExploreOffers, onLogin, intent, drawnCard,
 }) {
   const [expanded, setExpanded] = useState(1);
   const cardBackImage = useMemo(() => getCardBackTexture(), []);
@@ -43,33 +43,6 @@ export default function ExperienceFallback({
             <span className="exp-btn__glyph">✦</span>
             Entrer dans mon univers
           </button>
-          <div className="exp-s1__daily-reading" data-testid="experience-daily-reading">
-            <img className="exp-s1__daily-card-back" src={cardBackImage} alt="Dos de la carte du jour" />
-            <div className="exp-s1__daily-copy">
-              <p className="exp-eyebrow">Humeur du jour · offerte</p>
-              {dailyReadingLoading ? (
-                <p className="exp-s1__daily-loading" role="status">Le ciel du jour se dessine…</p>
-              ) : dailyReading ? (
-                <>
-                  <h2>{dailyReading.card.nom}</h2>
-                  <p>{dailyReading.mood}</p>
-                  <span className="exp-s1__daily-source">
-                    {dailyReading.source === 'astrology-api.io' ? 'Carte du jour · Astrology API' : 'Tirage de secours'}
-                  </span>
-                </>
-              ) : (
-                <p role="status">{dailyReadingError || 'La carte du jour est momentanément indisponible.'}</p>
-              )}
-              <button
-                type="button"
-                className="exp-s1__daily-link"
-                onClick={() => setExpanded(3)}
-                disabled={!dailyReading}
-              >
-                Voir la carte tirée <span aria-hidden="true">↓</span>
-              </button>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -125,19 +98,25 @@ export default function ExperienceFallback({
                   />
                   <div
                     className="exp-s3__face"
-                    style={{ backgroundImage: `url(${cardFaceImage})` }}
+                    style={{ backgroundImage: `url(${c.image || getCardFaceTexture(c) || cardFaceImage})` }}
                   />
                 </button>
               ))}
             </div>
-            {drawnCard && (
-              <div className="exp-s3__result" data-visible="true" style={{ marginTop: 50 }}>
-                <p className="exp-lead">Cette carte a quelque chose à vous montrer.</p>
-                <button className="exp-linkline" onClick={() => setExpanded(4)}>
-                  Continuer mon tirage <span>↓</span>
-                </button>
-              </div>
-            )}
+            {drawnCard && (() => {
+              const rev = getScene3Revelation(drawnCard, intent);
+              return (
+                <div className="exp-s3__result" data-visible="true" style={{ marginTop: 50 }}>
+                  <p className="exp-lead" data-testid="scene-3-revelation">{rev.revelation}</p>
+                  <p className="exp-lead" style={{ opacity: 0.6, marginTop: -8 }} data-testid="scene-3-tension">
+                    {rev.tension}
+                  </p>
+                  <button className="exp-linkline" onClick={() => setExpanded(4)} data-testid="scene-3-continue">
+                    ✦ {rev.cta} <span>↓</span>
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         </section>
       )}
@@ -154,11 +133,14 @@ export default function ExperienceFallback({
               <p className="exp-h2 exp-s4__phrase" data-visible="true">Votre ciel aussi.</p>
             </div>
             <div className="exp-s4__final-cta" data-visible="true">
-              <button className="exp-btn" onClick={onFinalCTA} data-testid="scene-4-cta">
-                <span className="exp-btn__glyph">✦</span> Commencer mon voyage
+              <button className="exp-btn" onClick={onExploreOffers} data-testid="scene-4-cta">
+                <span className="exp-btn__glyph">✦</span> Voir ma recommandation
               </button>
-              <button className="exp-linkline" onClick={onFinalCTA} data-testid="scene-4-cta-secondary">
-                Découvrir Plume Astrale <span>→</span>
+              <button className="exp-linkline" onClick={onFinalCTA} data-testid="scene-4-signup-cta">
+                Créer mon espace · 20 crédits offerts
+              </button>
+              <button className="exp-linkline" onClick={onLogin} data-testid="scene-4-cta-secondary">
+                Déjà membre ? Se connecter <span>→</span>
               </button>
             </div>
           </div>

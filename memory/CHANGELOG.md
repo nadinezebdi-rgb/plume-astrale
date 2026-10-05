@@ -1,5 +1,25 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02 (fork) — Régression SEO fix + tests de non-régression consolidés
+
+**🔴 Régression SEO trouvée en preview** : le sitemap `/api/sitemap.xml` exposait encore `/nos-livres` et `/theme-natal-luxe` (paths 301-redirigés vers `/livres` et `/theme-natal`). Ces snapshots résiduels traînaient dans `seo_content` MongoDB et provoquaient du duplicate content côté Google.
+
+**Fixes appliqués** :
+- **`backend/server.py`** : ajout de la constante `_DEPRECATED_SEO_PATHS` + filtre défensif dans `sitemap_xml()` pour skipper les URLs 301-redirigées, même si elles persistent en DB.
+- **Cleanup MongoDB** : `delete_many({'path': {'$in': ['/theme-natal-luxe', '/nos-livres']}})` → 2 entrées supprimées, `seo_content` passe de 67 à 65 documents.
+- **Sitemap live vérifié** : 65 URLs, 0 URL dépréciée (avant : 67 URLs dont 2 dépréciées).
+
+**Tests de non-régression ajoutés** :
+- **`tests/test_sitemap_deprecated_paths_filter.py`** (2 tests) — Bloque la ré-apparition de `/nos-livres` / `/theme-natal-luxe` dans le sitemap et impose le filtre défensif dans `sitemap_xml()`.
+- **`tests/test_k8s_asyncio_deploy_fix.py`** (2 tests) — Garantit que `build_pdf_for_signe` reste wrappé dans `asyncio.to_thread` (sinon crash liveness probe K8s / redémarrage pod). Vérifie aussi le commentaire `DEPLOY FIX` explicatif au-dessus de l'appel critique.
+- **`tests/test_stripe_webhook_health_endpoint.py`** (4 tests) — Verrouille : (1) l'endpoint est protégé par `require_admin`, (2) le secret Stripe n'est JAMAIS retourné en clair (seul un fingerprint sha256 8-chars), (3) `ready=false` + hint actionnable quand `STRIPE_WEBHOOK_SECRET` absent, (4) format `whsec_` mal formé détecté.
+
+**Vérifié** : 18/18 tests pytest passent (nouveaux + Nadine + SEO existants). Backend redémarré, sitemap live confirmé propre en preview.
+
+**Impact prod** : plus de duplicate content signalé à Google, robustesse renforcée contre futures régressions sur SEO / K8s deploy / Stripe webhook config.
+
+
+
 ## 2026-03-04 (v4) — Fix startup lourd + désactivation SSR runtime
 
 **Diagnostic Emergent** : 2 problèmes remontés

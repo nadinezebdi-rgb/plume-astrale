@@ -17,8 +17,7 @@ import ExperienceFallback from './ExperienceFallback';
 import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
 import { storeIntent, storeDrawnCard, captureUtm, detectZodiacCampaign, readUtm } from './intentConfig';
 import ZodiacInterlude from './ZodiacInterlude';
-import AmbientSound from './AmbientSound';
-import { event as trackEvent, EVENTS } from '@/lib/analytics';
+import { event as trackEvent, EVENTS, ctaClick } from '@/lib/analytics';
 import './Experience.css';
 
 const INTENTS = [
@@ -36,11 +35,8 @@ const CARDS = [
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
-function createExperienceSessionId() {
-  return window.crypto?.randomUUID?.() || `exp-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
 
-export default function ExperienceRoot() {
+export default function ExperienceRoot({ managedScroll = false }) {
   useDeviceProfile();
   const rootRef = useRef(null);
   const navigate = useNavigate();
@@ -66,7 +62,6 @@ export default function ExperienceRoot() {
   const [experienceCards, setExperienceCards] = useState([]);
   const [cardsLoading, setCardsLoading] = useState(true);
   const sectionRefs = useRef({ 1: null, 2: null, 3: null, 4: null });
-  const experienceSessionIdRef = useRef(createExperienceSessionId());
 
   // Fallback pour reduced-motion ou pas de WebGL
   const useFallback = reducedMotion || !webglAvailable;
@@ -86,12 +81,12 @@ export default function ExperienceRoot() {
         progress < 0.50 ? 2 :
         progress < 0.75 ? 3 :
         4;
-      setScene(scene);
+      if (!managedScroll) setScene(scene);
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [setGlobalProgress, setScene, useFallback]);
+  }, [managedScroll, setGlobalProgress, setScene, useFallback]);
 
   // ── Scène 2 : timing des phrases ─────────────────────────────
   useEffect(() => {
@@ -101,25 +96,14 @@ export default function ExperienceRoot() {
     return () => clearTimeout(t1);
   }, [currentScene]);
 
-  // ── Scène 4 : timing des phrases (aligné sur les phases de Scene04Feather V2) ─
-  //  Phase A CHAOS       [0.0, 0.8]      chaos
-  //  Phase B ATTRACTION  [0.8, 1.6]      attraction subtile
-  //  Phase C FORMATION   [1.6, 6.0]      plume se dessine
-  //  Phase D PAUSE       [6.0, 8.0]      silence visuel — plume complète
-  //  Phase E WRITING     [8.0, 12.0]     plume écrit "Plume Astrale" gauche→droite
-  //  Phase F STABLE      [12.0, ∞)       texte stable + sweep + phrases HTML
+  // Reveal the offer as soon as the visitor reaches the final scene.
   useEffect(() => {
-    if (currentScene !== 4) return;
-    setScene4Step(0);
-    const t1 = setTimeout(() => setScene4Step(1), 12500); // "Plume Astrale" vient d'être écrit
-    const t2 = setTimeout(() => setScene4Step(2), 14000); // "Votre histoire est unique"
-    const t3 = setTimeout(() => setScene4Step(3), 16000); // "Votre ciel aussi"
-    const t4 = setTimeout(() => {
+    if (currentScene === 4) {
       setScene4Step(4);
-      trackEvent(EVENTS.EXP_FEATHER_COMPLETED, {});
       trackEvent(EVENTS.EXP_SIGNUP_CTA_VIEWED, { intent_type: intent || 'none' });
-    }, 18000); // CTA final
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+    } else {
+      setScene4Step(0);
+    }
   }, [currentScene, intent]);
 
   // ── Smooth scroll helper ─────────────────────────────────────
@@ -135,58 +119,94 @@ export default function ExperienceRoot() {
   const displayCards = experienceCards.length ? experienceCards : CARDS;
   const selectedCard = displayCards.find((card) => card.id === drawnCard);
 
-  // Le tirage est demandé au backend dès l'ouverture de l'expérience.
-  // Les faces restent cachées jusqu'au choix, mais les cartes sont déjà réelles.
+  // Load today's tarot card before presenting its back to the visitor.
   useEffect(() => {
     const controller = new AbortController();
-    const loadDraw = async () => {
+    const loadDailyCard = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/tarot/experience-draw`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: experienceSessionIdRef.current, intent: 'general' }),
-          signal: controller.signal,
-        });
+        const response = await fetch(`${API_URL}/api/tarot/jour`, { signal: controller.signal });
         if (!response.ok) throw new Error(`Tarot API ${response.status}`);
         const payload = await response.json();
-        const rotations = [-6, 0, 6];
-        const offsets = [0, -8, 0];
-        const cards = (payload.cards || []).map((card, index) => ({
+        const card = payload.data?.carte;
+        if (!payload.success || !card) throw new Error('Daily tarot response has no card');
+        setExperienceCards([{
           ...card,
-          rot: rotations[index] || 0,
-          dy: offsets[index] || 0,
-          image: card.image_url ? `${API_URL}${card.image_url}` : cardFaceImage,
-        }));
-        if (cards.length === 3) setExperienceCards(cards);
+          id: `daily-${payload.data.date}`,
+          name: card.nom,
+          interpretation: card.interpretation_generale,
+          rot: 0,
+          dy: 0,
+          image: getCardFaceTexture(card),
+        }]);
       } catch (error) {
-        if (error.name !== 'AbortError') console.warn('[experience] tirage API indisponible, fallback local', error);
+        if (error.name !== 'AbortError') {
+          console.warn('[experience] carte du jour indisponible, fallback local', error);
+        }
       } finally {
-        setCardsLoading(false);
+        if (!controller.signal.aborted) setCardsLoading(false);
       }
     };
-    loadDraw();
+    loadDailyCard();
     return () => controller.abort();
-  }, [cardFaceImage]); // Le tirage reste stable pendant toute la visite.
+  }, []);
 
-  // ── Capture UTM + démarrage funnel (une seule fois) ─────────
+  // ── Capture UTM + hydratation du store depuis sessionStorage ─
+  //  Utile si l'utilisateur rafraîchit à mi-parcours ou revient via
+  //  un lien externe avec ?intent=… : sinon le store zustand reste
+  //  à null et la scène 3 retombe sur le fallback générique.
   useEffect(() => {
     trackEvent(EVENTS.EXP_STARTED, {});
+    // Dashboard A/B interne : 1 event par visite (variant experience)
+    trackEvent('experience_visit', { variant: 'experience' });
+    // Hydrate intent / drawnCard depuis query params ou sessionStorage
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const intentQ = params.get('intent') || window.sessionStorage.getItem('exp_intent');
+      const cardQ = params.get('exp_card') || window.sessionStorage.getItem('exp_card');
+      if (intentQ && !intent) setIntent(intentQ);
+      if (cardQ && !drawnCard) setDrawnCard(cardQ);
+    } catch { /* noop */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Tracking par scène ──────────────────────────────────────
+  //  Émet un event par transition d'entrée (guard useRef → 1× par instance).
+  //  scene_1_completed = signal de fin de la scène 1 (utile pour funnel GA4).
+  const scenesTrackedRef = useRef(new Set());
   useEffect(() => {
-    if (currentScene === 2) trackEvent(EVENTS.EXP_SCENE2_VIEWED, {});
-    if (currentScene === 3) trackEvent(EVENTS.EXP_TAROT_STARTED, {});
-    if (currentScene === 4) trackEvent(EVENTS.EXP_FEATHER_STARTED, {});
-  }, [currentScene]);
+    const tracked = scenesTrackedRef.current;
+    if (currentScene >= 2 && !tracked.has('scene1_completed')) {
+      tracked.add('scene1_completed');
+      trackEvent(EVENTS.EXP_SCENE1_COMPLETED, {});
+    }
+    if (currentScene === 2 && !tracked.has('scene2_viewed')) {
+      tracked.add('scene2_viewed');
+      trackEvent(EVENTS.EXP_SCENE2_VIEWED, {});
+      trackEvent(EVENTS.EXP_INTENT_VIEWED, {}); // affichage de la question des 4 intentions
+    }
+    if (currentScene === 3 && !tracked.has('scene3_started')) {
+      tracked.add('scene3_started');
+      trackEvent(EVENTS.EXP_TAROT_STARTED, { intent_type: intent || 'none' });
+    }
+    if (currentScene === 4 && !tracked.has('scene4_started')) {
+      tracked.add('scene4_started');
+      trackEvent('home_v3_offer_reached', {});
+      trackEvent('home_v3_purchase_cta_viewed', { intent: intent || 'none' });
+    }
+  }, [currentScene, intent]);
 
-  // ── Détection campagne horoscope (court-circuit) ────────────
+  // ── Détection campagne horoscope (court-circuit) + capture UTM ────
   //  IMPORTANT : captureUtm() doit être exécuté AVANT detectZodiacCampaign()
   //  car ce dernier lit sessionStorage. On les enchaîne dans le useMemo pour
   //  garantir l'ordre lors du render initial (les useEffect s'exécuteraient
   //  trop tard et le shortcut serait mémoïsé à null).
   const zodiac = useMemo(() => {
-    captureUtm();
+    const captured = captureUtm();
+    // Émet un event uniquement si des UTM/source ont vraiment été capturées
+    // (évite le bruit pour les visites directes). Aucune PII envoyée.
+    if (Object.keys(captured).length > 0) {
+      trackEvent(EVENTS.EXP_SOURCE_CAPTURED, captured);
+    }
     return detectZodiacCampaign();
   }, []);
 
@@ -212,17 +232,34 @@ export default function ExperienceRoot() {
     setTimeout(() => scrollToScene(3), 200);
   }, [scrollToScene]);
 
+  // ── Tracking hover cartes (débouncé, 1× par card_id par session) ───
+  //  Le hover en 3D peut se déclencher plusieurs fois par seconde ; on ne
+  //  garde que la première émission par carte pour éviter le flood analytics.
+  const hoveredCardsRef = useRef(new Set());
+  const handleCardHover = useCallback((cardId) => {
+    setHoveringCard(true);
+    if (hoveredCardsRef.current.has(cardId)) return;
+    hoveredCardsRef.current.add(cardId);
+    trackEvent(EVENTS.EXP_TAROT_HOVERED, { card: cardId, intent_type: intent || 'none' });
+  }, [intent]);
+
   const handleCardDraw = useCallback((cardId) => {
     if (drawnCard) return;
     setDrawnCard(cardId);
     storeDrawnCard(cardId);
-    trackEvent(EVENTS.EXP_TAROT_SELECTED, { card: cardId });
+    trackEvent(EVENTS.EXP_TAROT_SELECTED, { card: cardId, intent_type: intent || 'none' });
     // Après ~1.2s la carte est retournée → track reveal
     setTimeout(() => trackEvent(EVENTS.EXP_TAROT_REVEALED, { card: cardId }), 1200);
   }, [setDrawnCard, drawnCard]);
 
   const handleFinalCTA = useCallback(() => {
     trackEvent(EVENTS.EXP_SIGNUP_CTA_CLICKED, { intent_type: intent || 'none', card: drawnCard || 'none' });
+    // ctaClick GA4 / GTM standard — permet la mesure de conversion sur ce CTA précis
+    ctaClick('Commencer mon voyage', {
+      destination: '/inscription',
+      cta_location: 'experience_scene_4_feather',
+      intent_type: intent || 'none',
+    });
     // Construit un lien /inscription enrichi (intent + card + utm) pour survivre à sessionStorage
     const utm = readUtm();
     const params = new URLSearchParams();
@@ -232,6 +269,32 @@ export default function ExperienceRoot() {
     Object.entries(utm).forEach(([k, v]) => { if (v) params.set(k, v); });
     params.set('welcome', '1'); // AuthenticatedHome le lira post-inscription
     navigate(`/inscription?${params.toString()}`);
+  }, [navigate, intent, drawnCard]);
+
+  const handleLoginCTA = useCallback(() => {
+    trackEvent(EVENTS.EXP_SIGNUP_CTA_CLICKED, { intent_type: intent || 'none', card: drawnCard || 'none', mode: 'login' });
+    navigate('/connexion');
+  }, [navigate, intent, drawnCard]);
+
+  const handleExploreOffers = useCallback(() => {
+    const situationByIntent = {
+      relationship: 'relation',
+      clarity: 'doute',
+      self_discovery: 'comprendre',
+      specific_question: 'decision',
+    };
+    const situation = situationByIntent[intent] || 'decision';
+    const destination = `/decouvrir?situation=${situation}`;
+    trackEvent('home_v3_purchase_cta_clicked', {
+      intent: intent || 'none',
+      card: drawnCard || 'none',
+    });
+    ctaClick('Voir ma recommandation', {
+      destination,
+      cta_location: 'experience_scene_4_recommendation',
+      intent_type: intent || 'none',
+    });
+    navigate(destination);
   }, [navigate, intent, drawnCard]);
 
   const handleSkip = useCallback(() => {
@@ -248,6 +311,8 @@ export default function ExperienceRoot() {
         onIntentChoice={handleIntentChoice}
         onCardDraw={handleCardDraw}
         onFinalCTA={handleFinalCTA}
+        onExploreOffers={handleExploreOffers}
+        onLogin={handleLoginCTA}
         intent={intent}
         drawnCard={drawnCard}
       />
@@ -261,7 +326,6 @@ export default function ExperienceRoot() {
       ref={rootRef}
       data-testid="experience-root"
     >
-      <AmbientSound />
       {/* Topbar fixe */}
       <header className="exp-topbar" data-testid="experience-topbar">
         <span className="exp-topbar__logo">PLUME <em style={{ fontStyle: 'italic', letterSpacing: '0.05em' }}>Astrale</em></span>
@@ -415,8 +479,9 @@ export default function ExperienceRoot() {
                   data-featured={index === 1 ? 'true' : 'false'}
                   style={{ '--card-rot': `${c.rot}deg`, '--card-dy': `${c.dy}px` }}
                   disabled={drawnCard && drawnCard !== c.id}
-                  onMouseEnter={() => setHoveringCard(true)}
+                  onMouseEnter={() => handleCardHover(c.id)}
                   onMouseLeave={() => setHoveringCard(false)}
+                  onFocus={() => handleCardHover(c.id)}
                   onClick={() => handleCardDraw(c.id)}
                   aria-label={`Tirer la carte ${c.name}`}
                 >
@@ -429,7 +494,7 @@ export default function ExperienceRoot() {
                     className="exp-s3__face"
                     aria-hidden={drawnCard !== c.id}
                     style={{
-                      backgroundImage: `linear-gradient(rgba(16,25,54,0.08), rgba(49,32,82,0.18)), url(${c.image || cardFaceImage})`,
+                      backgroundImage: `linear-gradient(rgba(16,25,54,0.08), rgba(49,32,82,0.18)), url(${c.image || getCardFaceTexture(c) || cardFaceImage})`,
                       transform: `rotateY(180deg) ${c.orientation === 'renverse' ? 'rotate(180deg)' : ''}`,
                     }}
                   />
@@ -440,10 +505,10 @@ export default function ExperienceRoot() {
             {cardsLoading && <p className="exp-eyebrow">Les arcanes composent votre tirage…</p>}
 
             <div className="exp-s3__result" data-visible={drawnCard !== null}>
-              {selectedCard && experienceCards.length > 0 ? (
+              {selectedCard ? (
                 <div className="exp-card-reading">
-                  <strong>{selectedCard.nom}</strong>
-                  <span>{selectedCard.orientation_fr} · {(selectedCard.mots_cles || []).join(' · ')}</span>
+                  <strong>{selectedCard.nom || selectedCard.name}</strong>
+                  <span>{selectedCard.orientation_fr || selectedCard.orientation} · {(selectedCard.mots_cles || []).join(' · ')}</span>
                   <p>{selectedCard.interpretation}</p>
                   <p style={{ opacity: 0.72 }}>{selectedCard.conseil}</p>
                 </div>
@@ -454,7 +519,7 @@ export default function ExperienceRoot() {
                 type="button"
                 className="exp-linkline"
                 onClick={() => {
-                  trackEvent(EVENTS.EXP_TAROT_CONTINUE, { card: drawnCard });
+                  trackEvent(EVENTS.EXP_TAROT_CONTINUE, { card: drawnCard, intent_type: intent || 'none' });
                   scrollToScene(4);
                 }}
                 data-testid="scene-3-continue"
@@ -472,13 +537,6 @@ export default function ExperienceRoot() {
           data-testid="experience-scene-4"
         >
           <div className="exp-section-inner exp-s4__stack">
-            {/* Zone réservée au dessin particules (plume → signature) */}
-            <div className="exp-s4__particle-space" aria-hidden="true" />
-
-            {/* Titre HTML PARFAITEMENT LISIBLE — apparaît juste après que
-                les particules aient tracé le mot en Phase E (12s+).
-                Les particules restent en fond comme un halo, le texte HTML
-                Cormorant Garamond assure la lisibilité définitive. */}
             <h1
               className="exp-h1 exp-s4__brand-final"
               data-visible={scene4Step >= 1}
@@ -511,19 +569,24 @@ export default function ExperienceRoot() {
               <button
                 type="button"
                 className="exp-btn"
-                onClick={handleFinalCTA}
+                onClick={handleExploreOffers}
                 data-testid="scene-4-cta"
               >
                 <span className="exp-btn__glyph">✦</span>
-                Commencer mon voyage
+                Voir ma recommandation
               </button>
               <button
                 type="button"
                 className="exp-linkline"
-                onClick={() => {
-                  trackEvent(EVENTS.EXP_SIGNUP_CTA_CLICKED, { intent_type: intent, card: drawnCard, mode: 'login' });
-                  navigate('/connexion');
-                }}
+                onClick={handleFinalCTA}
+                data-testid="scene-4-signup-cta"
+              >
+                Créer mon espace · 20 crédits offerts
+              </button>
+              <button
+                type="button"
+                className="exp-linkline"
+                onClick={handleLoginCTA}
                 data-testid="scene-4-cta-secondary"
               >
                 Déjà membre ? Se connecter

@@ -3,7 +3,7 @@ Route /api/theme-natal-oneshot : landing produit Thème Natal 24€ (one-shot St
 Créé 2026-02 dans le cadre de la refonte Gary Vee pricing.
 
 Endpoints :
-  POST /api/theme-natal-oneshot/checkout   → session Stripe (29 EUR) ou bypass via promo_code
+  POST /api/theme-natal-oneshot/checkout   → session Stripe (24 EUR) ou bypass via promo_code
   GET  /api/theme-natal-oneshot/status     → polling live pour la page succès
 """
 from __future__ import annotations
@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from config import get_settings
 from services.supabase_client import get_admin_client
 from services.promo_bypass import try_consume_promo
+from services import public_free_promo
 from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
 from middleware.auth import get_optional_user
 from integrations.payments.stripe.checkout import (
@@ -38,6 +39,10 @@ class ThemeNatalCheckoutPayload(BaseModel):
     longitude: Optional[float] = None
     origin_url: str
     promo_code: Optional[str] = None
+    pay_with_credits: bool = False
+
+
+NATAL_CREDITS_COST = 80
 
 
 @router.post('/checkout')
@@ -95,10 +100,30 @@ async def theme_natal_oneshot_checkout(
         'no_birth_time': no_birth_time,  # §V audit marque Feb 2026
     }
 
+    # Promo publique (Thème Natal offert) : ouverte à tous, encadrée par date/plafond/e-mail
+    public_free = False
+    if payload.promo_code and public_free_promo.is_active_code(payload.promo_code):
+        ok, msg = public_free_promo.check_redeemable(payload.promo_code, payload.email)
+        if not ok:
+            raise HTTPException(400, msg)
+        public_free = True
+
+    # Paiement en crédits : compte connecté obligatoire, débit avant génération
+    paid_with_credits = False
+    if payload.pay_with_credits and not public_free:
+        if not current_user:
+            raise HTTPException(401, 'Connecte-toi pour payer avec tes crédits.')
+        from services import wallet_service
+        await wallet_service.deduct_credits(
+            current_user['id'], NATAL_CREDITS_COST, f'Thème Natal PDF ({NATAL_CREDITS_COST} crédits)'
+        )
+        paid_with_credits = True
+
     # Bypass promo admin
-    if payload.promo_code and try_consume_promo(
+    if public_free or paid_with_credits or (payload.promo_code and try_consume_promo(
         payload.promo_code, admin_user=current_user, product='theme_natal_pdf_oneshot'
-    ):
+    )):
+        # Préfixe `admin-natal-` : self_heal relance la génération sans passer par Stripe
         fake_session_id = f'admin-natal-{uuid.uuid4().hex[:16]}'
         try:
             from datetime import datetime, timezone
@@ -118,7 +143,9 @@ async def theme_natal_oneshot_checkout(
                     'kind': 'theme_natal_pdf_oneshot',
                     'pdf_ctx': pdf_ctx,
                     'admin_bypass': True,
-                    'promo_code': payload.promo_code.strip().upper(),
+                    'public_free_promo': public_free,
+                    'paid_with_credits': paid_with_credits,
+                    'promo_code': (payload.promo_code or '').strip().upper(),
                     # Statut initial 'pending' : si le pod backend crashe/redémarre
                     # avant d'atteindre pdf_status: success ou failed, le poll /status
                     # détectera ce pending stale et relancera la génération via self_heal.

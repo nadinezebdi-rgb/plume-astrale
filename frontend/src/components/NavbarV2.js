@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LogIn, LogOut, User, ChevronDown, ArrowRight, ChevronRight } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, User, ChevronDown, ArrowRight, ChevronRight, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 import { LECTURES, OUTILS } from '@/config/catalog';
 
 /**
@@ -12,31 +13,29 @@ import { LECTURES, OUTILS } from '@/config/catalog';
  */
 
 const NAV_LINKS = [
-  // Menu simplifié (audit UX 2026-02-27) : 8 → 4 entrées essentielles.
-  // - "Accueil" retiré (logo Plume Astrale renvoie déjà à la home)
-  // - "Services" et "Nos livres" fusionnés (même destination /livres)
-  // - "Contact" déplacé dans le footer
-  { label: 'Livres', to: '/livres', hasMega: true },
-  { label: 'Manifesto', to: '/manifesto' },
+  { label: 'Accueil', to: '/' },
+  { label: 'Prestations', to: '/livres', hasMega: true },
   { label: 'Blog', to: '/blog' },
-  { label: 'Témoignages', to: '/temoignages' },
+  { label: 'Nous contacter', to: '/contact' },
+  { label: 'FAQ', to: '/faq' },
+  { label: 'Panier', to: '/panier', cart: true },
 ];
 
 const linkBase = {
   fontFamily: 'Inter, sans-serif',
-  fontSize: 14,
+  fontSize: 13,
   fontWeight: 500,
-  color: 'rgba(247,245,240,0.78)',
+  color: 'rgba(244,239,230,0.78)',
   textDecoration: 'none',
   padding: '6px 4px',
   transition: 'color 200ms ease, border-color 200ms ease',
   borderBottom: '1.5px solid transparent',
-  letterSpacing: '0.02em',
+  letterSpacing: 0,
   cursor: 'pointer',
   background: 'transparent',
   border: 'none',
 };
-const linkActive = { color: '#C9A24B', borderBottomColor: '#C9A24B' };
+const linkActive = { color: 'var(--plume-gold)', borderBottomColor: 'var(--plume-gold)' };
 
 export default function NavbarV2() {
   const [open, setOpen] = useState(false);
@@ -46,6 +45,7 @@ export default function NavbarV2() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuth();
+  const { count: cartCount } = useCart();
 
   useEffect(() => {
     setOpen(false);
@@ -81,8 +81,8 @@ export default function NavbarV2() {
 
   const navStyle = {
     position: 'sticky', top: 0, zIndex: 100,
-    background: '#0F1A3C',
-    borderBottom: '1px solid rgba(201,162,75,0.18)',
+    background: 'var(--plume-night)',
+    borderBottom: '1px solid rgba(212,175,55,0.18)',
     width: '100%',
   };
 
@@ -94,16 +94,16 @@ export default function NavbarV2() {
           <Link to="/" data-testid="navbar-logo-v2" style={{
             fontFamily: 'Playfair Display, serif',
             fontWeight: 500, fontSize: 22, letterSpacing: '0.02em',
-            color: '#F7F5F0', textDecoration: 'none',
+            color: 'var(--plume-ivory)', textDecoration: 'none',
             display: 'flex', alignItems: 'baseline', gap: 6,
             flexShrink: 0,  // évite compression du logo sur écrans étroits
             whiteSpace: 'nowrap',
           }}>
-            Plume <span style={{ color: '#C9A24B' }}>Astrale</span>
+            Plume <span style={{ color: 'var(--plume-gold)' }}>Astrale</span>
           </Link>
 
           {/* Desktop links */}
-          <div className="ps-desktop-nav" style={{ display: 'none', alignItems: 'center', gap: 26 }}>
+          <div className="ps-desktop-nav" style={{ display: 'none', alignItems: 'center', gap: 18 }}>
             {NAV_LINKS.map((l) => {
               const active = l.hasMega ? isServicesActive() : isActive(l.to);
               if (l.hasMega) {
@@ -131,10 +131,12 @@ export default function NavbarV2() {
               return (
                 <Link key={l.label} to={l.to}
                   data-testid={`nav-v2-${l.label.toLowerCase().replace(/\s+/g, '-')}`}
-                  style={active ? { ...linkBase, ...linkActive } : linkBase}
-                  onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = '#C9A24B'; }}
-                  onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = 'rgba(247,245,240,0.78)'; }}>
-                  {l.label}
+                  aria-label={l.cart && cartCount ? `Panier, ${cartCount} article${cartCount > 1 ? 's' : ''}` : undefined}
+                  style={{ ...(active ? { ...linkBase, ...linkActive } : linkBase), display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = 'var(--plume-gold)'; }}
+                  onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = 'rgba(244,239,230,0.78)'; }}>
+                  {l.cart && <ShoppingCart size={15} strokeWidth={1.8} aria-hidden="true" />}
+                  {l.label}{l.cart && cartCount > 0 && <span data-testid="nav-cart-count" style={{ color: 'var(--plume-gold)', fontSize: 12 }}>{cartCount}</span>}
                 </Link>
               );
             })}
@@ -147,15 +149,15 @@ export default function NavbarV2() {
             ) : (
               <Link to="/connexion" data-testid="nav-v2-login"
                 style={{ ...linkBase, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#C9A24B'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(247,245,240,0.78)'; }}>
+                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--plume-gold)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(244,239,230,0.78)'; }}>
                 <LogIn style={{ width: 15, height: 15 }} strokeWidth={1.8} />
                 Connexion
               </Link>
             )}
             <Link to="/inscription" className="ps-btn ps-btn-primary" data-testid="nav-v2-cta"
-              style={{ padding: '10px 20px', fontSize: 14, minHeight: 40, whiteSpace: 'nowrap', flexShrink: 0 }}>
-              Recevoir ma lecture
+              style={{ padding: '10px 16px', fontSize: 13, minHeight: 40, whiteSpace: 'nowrap', flexShrink: 0 }}>
+              Créer un compte
             </Link>
           </div>
 
@@ -164,7 +166,7 @@ export default function NavbarV2() {
             onClick={() => setOpen(!open)}
             data-testid="nav-v2-mobile-toggle"
             aria-label="Menu"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#F7F5F0', padding: 4 }}>
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--plume-ivory)', padding: 4 }}>
             {open ? <X strokeWidth={1.5} /> : <Menu strokeWidth={1.5} />}
           </button>
         </div>
@@ -178,17 +180,27 @@ export default function NavbarV2() {
           data-testid="nav-v2-mega"
           style={{
             position: 'absolute', top: '100%', left: 0, right: 0,
-            background: '#0F1A3C',
-            borderTop: '1px solid rgba(201,162,75,0.18)',
-            borderBottom: '1px solid rgba(201,162,75,0.18)',
+            background: 'var(--plume-night)',
+            borderTop: '1px solid rgba(212,175,55,0.18)',
+            borderBottom: '1px solid rgba(212,175,55,0.18)',
             boxShadow: '0 24px 48px rgba(0,0,0,0.35)',
           }}>
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px' }}>
+            <p data-testid="nav-v2-services-intro" style={{
+              maxWidth: 760,
+              margin: '0 0 28px',
+              color: 'rgba(244,239,230,0.72)',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 15,
+              lineHeight: 1.6,
+            }}>
+              Des lectures et des outils pour éclairer vos choix et prendre des décisions en confiance.
+            </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 48 }}>
 
-              {/* Colonne Lectures Premium PDF */}
+              {/* Colonne Lectures personnalisées */}
               <div>
-                <MegaHeading>Lectures premium — PDF à télécharger</MegaHeading>
+                <MegaHeading>Lectures personnalisées</MegaHeading>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   {LECTURES.map((l) => (
                     <MegaLink key={l.key} to={l.to} testid={`mega-lecture-${l.key}`}
@@ -196,7 +208,7 @@ export default function NavbarV2() {
                   ))}
                 </div>
                 <Link to="/livres" data-testid="mega-all-lectures" style={megaFooterLink}>
-                  Voir toute la bibliothèque
+                  Voir toutes les lectures
                   <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
                 </Link>
               </div>
@@ -209,7 +221,6 @@ export default function NavbarV2() {
                     title={o.title} tagline={o.tagline} compact />
                 ))}
               </div>
-
             </div>
           </div>
         </div>
@@ -219,7 +230,7 @@ export default function NavbarV2() {
       {open && (
         <div style={{
           position: 'fixed', top: 64, left: 0, right: 0, bottom: 0,
-          background: '#0F1A3C', zIndex: 99, overflowY: 'auto',
+          background: 'var(--plume-night)', zIndex: 99, overflowY: 'auto',
           padding: '24px', display: 'flex', flexDirection: 'column', gap: 8,
         }} data-testid="nav-v2-mobile-panel">
           {NAV_LINKS.map((l) => {
@@ -239,11 +250,20 @@ export default function NavbarV2() {
                   </button>
                   {mobileServicesOpen && (
                     <div style={{ padding: '4px 8px 20px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <div style={mobileSubHeading}>Lectures premium PDF</div>
+                      <p data-testid="nav-v2-mobile-services-intro" style={{
+                        margin: '4px 0 12px',
+                        color: 'rgba(244,239,230,0.72)',
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: 14,
+                        lineHeight: 1.55,
+                      }}>
+                        Des lectures et des outils pour éclairer vos choix et prendre des décisions en confiance.
+                      </p>
+                      <div style={mobileSubHeading}>Lectures personnalisées</div>
                       {LECTURES.map((it) => (
                         <Link key={it.key} to={it.to} data-testid={`mob-lecture-${it.key}`} style={mobileSubLink}>
                           <span>{it.title}</span>
-                          <span style={{ color: '#C9A24B', fontSize: 13, fontWeight: 500 }}>{it.price}</span>
+                          <span style={{ color: 'var(--plume-gold)', fontSize: 13, fontWeight: 500 }}>{it.price}</span>
                         </Link>
                       ))}
                       <div style={{ ...mobileSubHeading, marginTop: 12 }}>Services complémentaires</div>
@@ -260,11 +280,17 @@ export default function NavbarV2() {
             return (
               <Link key={l.label} to={l.to}
                 data-testid={`nav-v2-mobile-${l.label.toLowerCase().replace(/\s+/g, '-')}`}
+                aria-label={l.cart && cartCount ? `Panier, ${cartCount} article${cartCount > 1 ? 's' : ''}` : undefined}
                 style={{
                   ...mobileLinkStyle,
-                  color: isActive(l.to) ? '#C9A24B' : '#F7F5F0',
+                  color: isActive(l.to) ? 'var(--plume-gold)' : 'var(--plume-ivory)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
                 }}>
-                {l.label}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  {l.cart && <ShoppingCart size={18} strokeWidth={1.8} aria-hidden="true" />}
+                  {l.label}
+                </span>
+                {l.cart && cartCount > 0 && <span data-testid="nav-cart-count-mobile" style={{ color: 'var(--plume-gold)', font: '14px Inter, sans-serif' }}>{cartCount}</span>}
               </Link>
             );
           })}
@@ -286,7 +312,7 @@ export default function NavbarV2() {
                   Connexion
                 </Link>
                 <Link to="/inscription" className="ps-btn ps-btn-primary" style={{ justifyContent: 'center' }}>
-                  Recevoir ma lecture
+                  Créer un compte
                 </Link>
               </>
             )}
@@ -297,10 +323,7 @@ export default function NavbarV2() {
       <style>{`
         .ps-desktop-nav { display: none !important; }
         .ps-mobile-toggle { display: inline-flex !important; }
-        /* Breakpoint remonté à 1100px (audit UX 2026-02-27) : évite le
-           chevauchement logo / liens / CTA sur les écrans étroits (iPad
-           landscape 1024, netbooks). Menu mobile à partir de 1099px. */
-        @media (min-width: 1100px) {
+        @media (min-width: 1200px) {
           .ps-desktop-nav { display: flex !important; }
           .ps-mobile-toggle { display: none !important; }
         }
@@ -317,7 +340,7 @@ function MegaHeading({ children }) {
       fontFamily: 'Inter, sans-serif',
       fontSize: 11, fontWeight: 600,
       letterSpacing: '0.18em', textTransform: 'uppercase',
-      color: '#C9A24B', marginBottom: 16,
+      color: 'var(--plume-gold)', marginBottom: 16,
     }}>{children}</div>
   );
 }
@@ -330,30 +353,30 @@ function MegaLink({ to, title, tagline, price, testid, highlight, compact }) {
       borderRadius: 10,
       textDecoration: 'none',
       transition: 'background 200ms ease, transform 200ms ease',
-      border: highlight ? '1px solid rgba(201,162,75,0.35)' : '1px solid transparent',
-      background: highlight ? 'rgba(201,162,75,0.06)' : 'transparent',
+      border: highlight ? '1px solid rgba(212,175,55,0.35)' : '1px solid transparent',
+      background: highlight ? 'rgba(212,175,55,0.06)' : 'transparent',
     }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(30,42,94,0.6)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = highlight ? 'rgba(201,162,75,0.06)' : 'transparent'; }}>
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(35,42,69,0.72)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = highlight ? 'rgba(212,175,55,0.06)' : 'transparent'; }}>
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         gap: 12, marginBottom: 2,
       }}>
         <span style={{
           fontFamily: 'Playfair Display, serif',
-          fontSize: 16, color: '#F7F5F0', fontWeight: 500,
+          fontSize: 16, color: 'var(--plume-ivory)', fontWeight: 500,
         }}>{title}</span>
         {price && (
           <span style={{
             fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600,
-            color: '#C9A24B', flexShrink: 0,
+            color: 'var(--plume-gold)', flexShrink: 0,
           }}>{price}</span>
         )}
       </div>
       {tagline && (
         <div style={{
           fontFamily: 'Inter, sans-serif',
-          fontSize: 12, color: 'rgba(247,245,240,0.55)', lineHeight: 1.4,
+          fontSize: 12, color: 'rgba(244,239,230,0.55)', lineHeight: 1.4,
         }}>{tagline}</div>
       )}
     </Link>
@@ -363,32 +386,32 @@ function MegaLink({ to, title, tagline, price, testid, highlight, compact }) {
 const megaFooterLink = {
   marginTop: 20, display: 'inline-flex', alignItems: 'center', gap: 6,
   fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500,
-  color: '#C9A24B', textDecoration: 'none',
+  color: 'var(--plume-gold)', textDecoration: 'none',
   paddingBottom: 2, borderBottom: '1px solid transparent',
 };
 
 const mobileLinkStyle = {
   fontFamily: 'Playfair Display, serif',
   fontSize: 24, fontWeight: 500,
-  color: '#F7F5F0', textDecoration: 'none',
+  color: 'var(--plume-ivory)', textDecoration: 'none',
   padding: '16px 0',
-  borderBottom: '1px solid rgba(247,245,240,0.08)',
+  borderBottom: '1px solid rgba(244,239,230,0.08)',
 };
 
 const mobileSubHeading = {
   fontFamily: 'Inter, sans-serif',
   fontSize: 10, fontWeight: 600,
   letterSpacing: '0.18em', textTransform: 'uppercase',
-  color: '#C9A24B', margin: '8px 0 4px',
+  color: 'var(--plume-gold)', margin: '8px 0 4px',
 };
 
 const mobileSubLink = {
   fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 400,
-  color: 'rgba(247,245,240,0.85)',
+  color: 'rgba(244,239,230,0.85)',
   padding: '10px 0',
   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
   textDecoration: 'none',
-  borderBottom: '1px solid rgba(247,245,240,0.05)',
+  borderBottom: '1px solid rgba(244,239,230,0.05)',
 };
 
 function AccountMenu({ user, onLogout }) {
@@ -408,7 +431,7 @@ function AccountMenu({ user, onLogout }) {
       <button data-testid="nav-v2-account-btn" style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
         background: 'transparent', border: 'none', cursor: 'pointer',
-        color: 'rgba(247,245,240,0.85)',
+        color: 'rgba(244,239,230,0.85)',
         fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500,
         padding: '6px 4px',
       }}>
@@ -425,13 +448,13 @@ function AccountMenu({ user, onLogout }) {
             paddingTop: 8,  // gap visuel invisible mais survolable
           }}>
           <div style={{
-            background: '#1E2A5E', border: '1px solid rgba(201,162,75,0.20)',
+            background: 'var(--plume-night-soft)', border: '1px solid rgba(212,175,55,0.20)',
             borderRadius: 12, padding: 8, minWidth: 200,
             boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
           }} data-testid="nav-v2-account-menu">
             <Link to="/mon-compte" style={menuItem}>Mon espace</Link>
             <Link to="/acheter-credits" style={menuItem}>Mes crédits</Link>
-            {user?.is_admin && <Link to="/admin" style={{ ...menuItem, color: '#C9A24B' }}>Administration</Link>}
+            {user?.is_admin && <Link to="/admin" style={{ ...menuItem, color: 'var(--plume-gold)' }}>Administration</Link>}
             <button onClick={onLogout} style={{ ...menuItem, background: 'none', border: 'none', textAlign: 'left', width: '100%', cursor: 'pointer' }}>
               Déconnexion
             </button>
@@ -444,7 +467,7 @@ function AccountMenu({ user, onLogout }) {
 
 const menuItem = {
   display: 'block', padding: '10px 14px',
-  color: 'rgba(247,245,240,0.85)',
+  color: 'rgba(244,239,230,0.85)',
   fontFamily: 'Inter, sans-serif', fontSize: 14,
   textDecoration: 'none', borderRadius: 8,
 };

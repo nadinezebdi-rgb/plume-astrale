@@ -116,7 +116,7 @@ def build_colophon(
     )
     story.append(Paragraph(
         '— Soléna,<br/>'
-        '<font size="10" color="#9089B5">voix éditoriale de Plume Astrale</font>',
+        '<font size="10" color="#5E5A63">voix éditoriale de Plume Astrale</font>',
         signature_style,
     ))
     story.append(Spacer(1, 1.4 * cm))
@@ -199,6 +199,6 @@ def build_colophon(
         edition_style,
     ))
     story.append(Paragraph(
-        f'<font size="7" color="#9089B5">Généré le {datetime.now().strftime("%d %B %Y").lower()} · pour {prenom or "toi"}</font>',
+        f'<font size="7" color="#5E5A63">Généré le {datetime.now().strftime("%d %B %Y").lower()} · pour {prenom or "toi"}</font>',
         edition_style,
     ))

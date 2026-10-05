@@ -21,7 +21,7 @@ from typing import Iterable, Optional
 from services.book_engine.domain import (
     BirthData, BlockKind, Chapter, ChapterBlock, Edition, Manuscript,
 )
-from services.book_engine.registry import SOCLE, ADDONS
+from services.book_engine.registry import SOCLE, ADDONS, PRINT_INCLUDED_ADDONS
 from .chapter_prompts import generate_chapter_blocks
 
 logger = logging.getLogger(__name__)
@@ -83,6 +83,10 @@ async def build_full_manuscript(
 
     chapters: list[Chapter] = await asyncio.gather(*[_bounded(s) for s in SOCLE])
     chapters.sort(key=lambda c: c.order)
+
+    # Les éditions imprimées incluent maisons détaillées + étoiles fixes
+    if edition in (Edition.BROCHEE, Edition.RELIEE):
+        addon_slugs = list(dict.fromkeys([*(addon_slugs or []), *PRINT_INCLUDED_ADDONS]))
 
     # Add-ons : chaîne LLM anti-slop (identique au socle)
     if addon_slugs:

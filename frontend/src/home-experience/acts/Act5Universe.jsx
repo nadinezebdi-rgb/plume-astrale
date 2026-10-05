@@ -201,6 +201,28 @@ export default function Act5Universe() {
         }}>Explorez Plume Astrale.</p>
       </div>
 
+      <nav className="hex3-service-index" aria-label="Accès direct aux services">
+        <p className="hex3-service-index__heading">Explorer par besoin</p>
+        <div className="hex3-service-index__grid">
+          {SERVICES.map((svc) => (
+            <Link
+              key={svc.key}
+              to={svc.route}
+              className="hex3-service-index__link"
+              data-testid={`home-experience-service-index-${svc.key}`}
+              onClick={() => trackEvent('home_v3_service_selected', { service: svc.key, source: 'service_index' })}
+            >
+              <span className="hex3-service-index__title">{svc.title}</span>
+              <span className="hex3-service-index__tagline">{svc.tagline}</span>
+              <span className="hex3-service-index__arrow" aria-hidden="true">→</span>
+            </Link>
+          ))}
+        </div>
+        <Link to="/acheter-credits" className="hex3-service-index__pricing">
+          Voir les tarifs et les crédits <span aria-hidden="true">→</span>
+        </Link>
+      </nav>
+
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 1200, margin: '0 auto' }}>
         {SERVICES.map((svc, i) => (
           <React.Fragment key={svc.key}>

@@ -45,14 +45,21 @@ def _mark_ran_today() -> None:
 
 
 async def _regenerate_all() -> None:
-    """Régénère les 12 PDFs et log les résultats."""
+    """Régénère les 12 PDFs et log les résultats.
+
+    ⚠️ Chaque signe est offloadé en thread pool pour ne PAS bloquer l'event
+    loop (build_pdf_for_signe = ReportLab sync). Timeout global de 15 minutes
+    pour éviter qu'une génération runaway (LLM lent, API down) coince l'app.
+    """
     from scripts.build_daily_horoscope import build_all
     logger.info('[horoscope_scheduler] ═══ Lancement régénération quotidienne 12 signes ═══')
     try:
-        paths = await build_all()
+        paths = await asyncio.wait_for(build_all(), timeout=900)  # 15 min hard cap
         total_kb = sum(p.stat().st_size for p in paths) // 1024
         logger.info(f'[horoscope_scheduler] ✓ {len(paths)}/12 PDFs régénérés ({total_kb} KB total)')
         _mark_ran_today()
+    except asyncio.TimeoutError:
+        logger.error('[horoscope_scheduler] TIMEOUT 15 min — génération quotidienne interrompue. Retentera au prochain cycle.')
     except Exception as e:
         logger.exception(f'[horoscope_scheduler] échec régénération : {e}')
 

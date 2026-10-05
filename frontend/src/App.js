@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 
 import Navbar from "./components/NavbarV2";
 import TrialBanner from "./components/TrialBanner";
@@ -30,6 +31,8 @@ import NosLivres from "./pages/NosLivres";
 import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
 import Decouvrir from "./pages/Decouvrir";
+import FAQ from "./pages/FAQ";
+import CartPage from "./pages/CartPage";
 import Manifesto from "./pages/Manifesto";
 import Barometre2026 from "./pages/Barometre2026";
 import HoroscopeSign from "./pages/HoroscopeSign";
@@ -128,7 +131,7 @@ function GlobalOverlays() {
       <Starfield />
       <ShootingStars />
       <NoiseOverlay />
-      <MobileTabBar />
+      {!isLanding && <MobileTabBar />}
       {!isLanding && <LiveSalesCounter />}
       <SupportChat />
     </>
@@ -140,6 +143,7 @@ function App() {
   React.useEffect(() => { captureReferralFromURL(); }, []);
   return (
     <AuthProvider>
+      <CartProvider>
       <AuraProvider>
       <BrowserRouter>
         {/* ─── Overlays globaux Plume Design System v2 ─── */}
@@ -154,6 +158,8 @@ function App() {
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogArticle />} />
           <Route path="/decouvrir" element={<Decouvrir />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/panier" element={<CartPage />} />
           <Route path="/manifesto" element={<Manifesto />} />
           <Route path="/barometre-2026" element={<Barometre2026 />} />
           <Route path="/horoscope" element={<Horoscope />} />
@@ -325,6 +331,7 @@ function App() {
         <Footer />
       </BrowserRouter>
       </AuraProvider>
+      </CartProvider>
     </AuthProvider>
   );
 }

@@ -134,8 +134,8 @@ export default function Decouvrir() {
       data-testid="page-decouvrir"
       style={{
         minHeight: '100vh',
-        background: 'radial-gradient(ellipse at 50% 0%, #1E2A5E 0%, #0F1A3C 40%, #0A1128 100%)',
-        color: '#F7F5F0',
+        background: 'radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.08) 0%, var(--plume-night-soft) 42%, var(--plume-night) 100%)',
+        color: 'var(--plume-ivory)',
         padding: '96px 24px',
       }}
     >
@@ -155,7 +155,7 @@ export default function Decouvrir() {
                 fontSize: 11,
                 letterSpacing: '0.4em',
                 textTransform: 'uppercase',
-                color: 'rgba(184, 147, 90, 0.85)',
+                color: 'var(--plume-gold)',
                 marginBottom: 32,
                 textAlign: 'center',
               }}
@@ -171,10 +171,10 @@ export default function Decouvrir() {
                 lineHeight: 1.2,
                 textAlign: 'center',
                 marginBottom: 24,
-                color: '#F7F5F0',
+                color: 'var(--plume-ivory)',
               }}
             >
-              Que traversez-vous <em style={{ color: '#B8935A' }}>aujourd&apos;hui</em>&nbsp;?
+              Que traversez-vous <em style={{ color: 'var(--plume-gold)' }}>aujourd&apos;hui</em>&nbsp;?
             </h1>
 
             <p
@@ -183,7 +183,7 @@ export default function Decouvrir() {
                 fontSize: 15,
                 lineHeight: 1.6,
                 textAlign: 'center',
-                color: 'rgba(247, 245, 240, 0.7)',
+                color: 'var(--pa-muted)',
                 marginBottom: 64,
               }}
             >
@@ -205,23 +205,23 @@ export default function Decouvrir() {
                       padding: '20px 24px',
                       borderRadius: 14,
                       background: isSelected
-                        ? 'linear-gradient(135deg, rgba(184, 147, 90, 0.18) 0%, rgba(184, 147, 90, 0.08) 100%)'
-                        : 'rgba(30, 42, 94, 0.35)',
-                      border: `1px solid ${isSelected ? '#B8935A' : 'rgba(184, 147, 90, 0.15)'}`,
-                      color: '#F7F5F0',
+                        ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.16) 0%, rgba(212, 175, 55, 0.07) 100%)'
+                        : 'rgba(26, 32, 53, 0.62)',
+                      border: `1px solid ${isSelected ? 'var(--plume-gold)' : 'rgba(212, 175, 55, 0.18)'}`,
+                      color: 'var(--plume-ivory)',
                       cursor: 'pointer',
                       transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = 'rgba(184, 147, 90, 0.5)';
-                        e.currentTarget.style.background = 'rgba(30, 42, 94, 0.5)';
+                        e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.5)';
+                        e.currentTarget.style.background = 'rgba(26, 32, 53, 0.78)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = 'rgba(184, 147, 90, 0.15)';
-                        e.currentTarget.style.background = 'rgba(30, 42, 94, 0.35)';
+                        e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.18)';
+                        e.currentTarget.style.background = 'rgba(26, 32, 53, 0.62)';
                       }
                     }}
                   >
@@ -229,7 +229,7 @@ export default function Decouvrir() {
                       style={{
                         fontFamily: 'Playfair Display, serif',
                         fontSize: 19,
-                        color: isSelected ? '#F7F5F0' : 'rgba(247, 245, 240, 0.92)',
+                        color: isSelected ? 'var(--plume-ivory)' : 'rgba(244, 239, 230, 0.92)',
                         marginBottom: 4,
                       }}
                     >
@@ -239,7 +239,7 @@ export default function Decouvrir() {
                       style={{
                         fontFamily: 'Inter, sans-serif',
                         fontSize: 13,
-                        color: 'rgba(247, 245, 240, 0.55)',
+                        color: 'var(--pa-muted)',
                         lineHeight: 1.5,
                       }}
                     >
@@ -262,8 +262,8 @@ export default function Decouvrir() {
                   gap: 12,
                   padding: '18px 40px',
                   borderRadius: 999,
-                  background: selected ? '#B8935A' : 'rgba(184, 147, 90, 0.2)',
-                  color: selected ? '#0A1128' : 'rgba(247, 245, 240, 0.4)',
+                  background: selected ? 'var(--plume-gold)' : 'rgba(212, 175, 55, 0.2)',
+                  color: selected ? 'var(--plume-night)' : 'rgba(244, 239, 230, 0.46)',
                   fontFamily: 'Inter, sans-serif',
                   fontSize: 14,
                   fontWeight: 600,
@@ -299,7 +299,7 @@ export default function Decouvrir() {
                   fontStyle: 'italic',
                   fontSize: 22,
                   lineHeight: 1.5,
-                  color: 'rgba(247, 245, 240, 0.92)',
+                  color: 'rgba(244, 239, 230, 0.92)',
                   maxWidth: 560,
                   margin: '0 auto 12px',
                 }}
@@ -312,7 +312,7 @@ export default function Decouvrir() {
                   fontSize: 12,
                   letterSpacing: '0.24em',
                   textTransform: 'uppercase',
-                  color: 'rgba(184, 147, 90, 0.8)',
+                  color: 'var(--plume-gold)',
                   margin: 0,
                 }}
               >
@@ -326,8 +326,8 @@ export default function Decouvrir() {
                 opacity: showSolena ? 1 : 0,
                 transform: showSolena ? 'translateY(0)' : 'translateY(20px)',
                 transition: 'opacity 1600ms 600ms ease, transform 1600ms 600ms cubic-bezier(0.16, 1, 0.3, 1)',
-                background: 'rgba(30, 42, 94, 0.35)',
-                border: '1px solid rgba(184, 147, 90, 0.3)',
+                background: 'rgba(26, 32, 53, 0.62)',
+                border: '1px solid rgba(212, 175, 55, 0.28)',
                 borderRadius: 20,
                 padding: '48px 40px',
                 maxWidth: 560,
@@ -341,7 +341,7 @@ export default function Decouvrir() {
                   fontSize: 11,
                   letterSpacing: '0.4em',
                   textTransform: 'uppercase',
-                  color: 'rgba(184, 147, 90, 0.85)',
+                  color: 'var(--plume-gold)',
                   marginBottom: 20,
                 }}
               >
@@ -352,7 +352,7 @@ export default function Decouvrir() {
                   fontFamily: 'Playfair Display, serif',
                   fontSize: 'clamp(1.5rem, 3vw, 2rem)',
                   fontWeight: 400,
-                  color: '#F7F5F0',
+                  color: 'var(--plume-ivory)',
                   lineHeight: 1.25,
                   marginBottom: 16,
                 }}
@@ -364,7 +364,7 @@ export default function Decouvrir() {
                   fontFamily: 'Inter, sans-serif',
                   fontSize: 15,
                   lineHeight: 1.6,
-                  color: 'rgba(247, 245, 240, 0.72)',
+                  color: 'var(--pa-muted)',
                   marginBottom: 32,
                 }}
               >
@@ -376,7 +376,7 @@ export default function Decouvrir() {
                   fontFamily: 'Playfair Display, serif',
                   fontSize: 28,
                   fontStyle: 'italic',
-                  color: '#B8935A',
+                  color: 'var(--plume-gold)',
                   marginBottom: 32,
                 }}
               >
@@ -392,8 +392,8 @@ export default function Decouvrir() {
                   gap: 12,
                   padding: '16px 36px',
                   borderRadius: 999,
-                  background: '#B8935A',
-                  color: '#0A1128',
+                  background: 'var(--plume-gold)',
+                  color: 'var(--plume-night)',
                   fontFamily: 'Inter, sans-serif',
                   fontSize: 13,
                   fontWeight: 600,
@@ -402,8 +402,8 @@ export default function Decouvrir() {
                   textDecoration: 'none',
                   transition: 'all 0.4s ease',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#C9A24B'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = '#B8935A'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--plume-gold-bright)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--plume-gold)'; }}
               >
                 Découvrir
                 <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
@@ -422,7 +422,7 @@ export default function Decouvrir() {
                 gap: 6,
                 background: 'transparent',
                 border: 'none',
-                color: 'rgba(247, 245, 240, 0.55)',
+                color: 'var(--pa-muted)',
                 fontFamily: 'Inter, sans-serif',
                 fontSize: 12,
                 letterSpacing: '0.14em',
@@ -450,7 +450,7 @@ export default function Decouvrir() {
             bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
             zIndex: 40,
             padding: '12px 16px',
-            background: 'rgba(15, 26, 60, 0.94)',
+            background: 'rgba(17, 22, 37, 0.94)',
             borderTop: '1px solid rgba(212,175,55,0.35)',
             backdropFilter: 'blur(14px)',
             WebkitBackdropFilter: 'blur(14px)',
@@ -464,7 +464,7 @@ export default function Decouvrir() {
             <div style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
-              color: 'rgba(212,175,55,0.85)',
+              color: 'var(--plume-gold)',
               marginBottom: 2,
             }}>
               À partir de
@@ -472,7 +472,7 @@ export default function Decouvrir() {
             <div style={{
               fontFamily: 'Playfair Display, serif',
               fontSize: 22, fontWeight: 500,
-              color: '#F5EEE0', lineHeight: 1,
+              color: 'var(--plume-ivory)', lineHeight: 1,
             }}>
               39€
             </div>
@@ -480,7 +480,7 @@ export default function Decouvrir() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
               fontFamily: 'Inter, sans-serif',
-              fontSize: 12, color: 'rgba(247,245,240,0.72)',
+              fontSize: 12, color: 'var(--pa-muted)',
               lineHeight: 1.35,
             }}>
               PDF premium · livré en 60s · garantie 14j
@@ -494,8 +494,8 @@ export default function Decouvrir() {
             style={{
               padding: '11px 18px',
               borderRadius: 999,
-              background: selected ? '#B8935A' : 'rgba(184,147,90,0.4)',
-              color: '#0F1A3C',
+              background: selected ? 'var(--plume-gold)' : 'rgba(212,175,55,0.4)',
+              color: 'var(--plume-night)',
               fontFamily: 'Inter, sans-serif',
               fontSize: 12, fontWeight: 600,
               letterSpacing: '0.10em', textTransform: 'uppercase',

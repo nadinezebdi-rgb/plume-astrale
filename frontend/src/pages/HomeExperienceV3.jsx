@@ -1,29 +1,17 @@
-/**
- * HomeExperienceV3 — Page shell.
- *
- * Route : /home-experience-v3
- * Meta  : noindex tant que non validé pour prod.
- *
- * Optimisation Phase 4 :
- *  1. Lazy-load complet de HomeExperienceRoot (le bundle R3F ~250 KB gz
- *     ne charge PAS sur les autres pages du site).
- *  2. JSON-LD Organization + WebSite pour indexation propre (quand
- *     le noindex sera levé, aucun retravail SEO).
- *  3. Skip-link accessibilité clavier (visible on focus).
- *  4. aria-live discret pour annoncer les changements d'actes aux
- *     lecteurs d'écran (respecte l'expérience immersive visuelle).
- */
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Check, Plus, Sparkles } from 'lucide-react';
 import SEO from '@/components/SEO';
-
-const HomeExperienceRoot = lazy(() => import('@/home-experience/HomeExperienceRoot'));
+import { useCart } from '@/context/CartContext';
+import { LECTURES, OUTILS } from '@/config/catalog';
+import '../home-experience/HomeExperience.css';
 
 const JSONLD = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'Plume Astrale',
   url: 'https://plume-astrale.fr',
-  description: 'Plume Astrale — Développement personnel & compréhension de vos cycles de vie.',
+  description: 'Lectures astrologiques, tarot et guidances pour prendre des décisions éclairées.',
   publisher: {
     '@type': 'Organization',
     name: 'Plume Astrale',
@@ -31,28 +19,45 @@ const JSONLD = {
   },
 };
 
-function LoadingVoid() {
+function ServiceList({ title, items, testid }) {
+  const { addItem, items: cartItems } = useCart();
+
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      aria-label="Chargement de l'expérience immersive"
-      style={{
-        minHeight: '100vh',
-        background: '#111625',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'rgba(212, 175, 55, 0.9)',
-        fontFamily: '"Inter", sans-serif',
-        fontSize: 11,
-        letterSpacing: '0.32em',
-        textTransform: 'uppercase',
-      }}
-    >
-      <span aria-hidden="true" style={{ marginRight: 14 }}>✦</span>
-      Le voyage commence…
-    </div>
+    <section className="home-gateway__group" aria-label={title} data-testid={testid}>
+      <h3>{title}</h3>
+      <ul>
+        {items.map((item) => {
+          const inCart = cartItems.some((entry) => entry.key === item.key);
+          return (
+            <li key={item.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Link to={item.to} data-testid={`home-gateway-service-${item.key}`} style={{ flex: 1, minWidth: 0 }}>
+                <span className="home-gateway__service-copy">
+                  <strong>{item.title}</strong>
+                  <span>{item.tagline}</span>
+                </span>
+                <span className="home-gateway__service-meta">
+                  {item.price && <span>{item.price}</span>}
+                  <ArrowRight size={16} aria-hidden="true" />
+                </span>
+              </Link>
+              {item.price && (
+                <button
+                  type="button"
+                  aria-label={inCart ? `${item.title} est dans le panier` : `Ajouter ${item.title} au panier`}
+                  title={inCart ? 'Déjà dans le panier' : 'Ajouter au panier'}
+                  data-testid={`home-gateway-add-${item.key}`}
+                  onClick={() => addItem(item)}
+                  disabled={inCart}
+                  style={{ display: 'grid', width: 40, height: 40, flex: '0 0 40px', placeItems: 'center', border: '1px solid rgba(212,175,55,0.45)', borderRadius: 3, background: 'transparent', color: 'var(--plume-gold)', cursor: inCart ? 'default' : 'pointer', opacity: inCart ? 0.72 : 1 }}
+                >
+                  {inCart ? <Check size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 
@@ -61,52 +66,43 @@ export default function HomeExperienceV3() {
     <>
       <SEO
         path="/"
-        title="Plume Astrale — Ton ciel, raconté avec douceur"
-        description="Découvre ton thème natal, tes cycles et les clés de ta vie avec une lecture astrologique personnalisée, poétique et claire."
+        title="Plume Astrale — Lectures et services pour éclairer vos choix"
+        description="Astrologie, tarot et guidances personnalisées pour mieux vous comprendre et prendre des décisions éclairées."
         canonical="https://plume-astrale.fr/"
-        noindex
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }}
       />
+      <main className="home-gateway" data-testid="home-gateway">
+        <section className="home-gateway__hero" aria-labelledby="home-gateway-title">
+          <p className="home-gateway__eyebrow"><Sparkles size={14} aria-hidden="true" /> Lectures · Tarot · Guidances</p>
+          <h1 id="home-gateway-title">Plume Astrale</h1>
+          <p className="home-gateway__promise">Mieux vous comprendre. <em>Choisir la suite.</em></p>
+          <p className="home-gateway__description">
+            Des lectures personnalisées et des services pour éclairer ce que vous traversez et prendre vos décisions avec plus de clarté.
+          </p>
+          <a href="#home-gateway-services" className="home-gateway__primary" data-testid="home-gateway-primary-cta">
+            Voir tous les services <ArrowRight size={17} aria-hidden="true" />
+          </a>
+        </section>
 
-      {/* Skip-link accessibilité clavier — invisible sauf au focus */}
-      <a
-        href="#hex3-main"
-        style={{
-          position: 'absolute', top: -40, left: 12, zIndex: 1000,
-          background: '#FFFFFF', color: '#26242B',
-          padding: '10px 18px', borderRadius: 3,
-          fontFamily: '"Inter", sans-serif', fontSize: 12,
-          letterSpacing: '0.18em', textTransform: 'uppercase',
-          textDecoration: 'none',
-          border: '1px solid rgba(121, 87, 15, 0.45)',
-        }}
-        onFocus={(e) => { e.currentTarget.style.top = '12px'; }}
-        onBlur={(e) => { e.currentTarget.style.top = '-40px'; }}
-      >
-        Aller au contenu principal
-      </a>
-
-      {/* H1 sémantique fondamental — visible via .exp-s1__brand en Acte I */}
-      <main id="hex3-main" style={{ position: 'relative' }}>
-        <Suspense fallback={<LoadingVoid />}>
-          <HomeExperienceRoot />
-        </Suspense>
+        <section
+          className="home-gateway__catalog"
+          id="home-gateway-services"
+          aria-labelledby="home-gateway-services-title"
+          data-testid="home-gateway-services"
+        >
+          <header>
+            <p className="home-gateway__eyebrow">À explorer</p>
+            <h2 id="home-gateway-services-title">Choisissez votre éclairage</h2>
+          </header>
+          <div className="home-gateway__lists">
+            <ServiceList title="Lectures personnalisées" items={LECTURES} testid="home-gateway-readings" />
+            <ServiceList title="Guidances et outils" items={OUTILS} testid="home-gateway-tools" />
+          </div>
+        </section>
       </main>
-
-      {/* aria-live discret : voix off pour lecteurs d'écran uniquement */}
-      <div
-        id="hex3-live-region"
-        aria-live="polite"
-        aria-atomic="true"
-        style={{
-          position: 'absolute', width: 1, height: 1, padding: 0,
-          margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)',
-          whiteSpace: 'nowrap', border: 0,
-        }}
-      />
     </>
   );
 }

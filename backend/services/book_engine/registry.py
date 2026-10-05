@@ -182,7 +182,18 @@ ADDONS: tuple[ChapterSpec, ...] = (
         astro_focus='360 symboles Sabiens — images pour les 10 planètes + AC/MC',
         api_endpoint='/api/astrology-v3/sabian-symbols',
     ),
+    ChapterSpec(
+        slug='maisons_detaillees',
+        title='Les douze maisons',
+        kicker='Les douze pièces où se joue votre vie.',
+        roman_num='VII', order=106, target_pages=14,
+        is_addon=True,
+        astro_focus='Cuspide de chaque maison, planètes qui l\'habitent',
+    ),
 )
+
+# Chapitres inclus d'office dans les éditions imprimées (brochée / reliée)
+PRINT_INCLUDED_ADDONS: tuple[str, ...] = ('maisons_detaillees', 'etoiles_fixes')
 
 
 # ═══════════════════════════════════════════════════════════════

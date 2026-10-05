@@ -68,7 +68,7 @@ def embossed_name(story: list, first_name: str, size: str = 'large') -> None:
     label_style = ParagraphStyle(
         'emboss_label', fontName='Helvetica', fontSize=7,
         alignment=TA_CENTER,
-        textColor=colors.HexColor('#9089B5'),
+        textColor=colors.HexColor('#5E5A63'),
         leading=10, letterSpacing=2.4,
     )
     story.append(Paragraph('ÉDITION PERSONNELLE', label_style))

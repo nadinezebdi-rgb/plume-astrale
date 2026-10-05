@@ -32,6 +32,17 @@ async def validate_promo(payload: ValidatePayload):
     if not code:
         return {'valid': False, 'message': 'Code vide.'}
 
+    # ─── 0) Promo publique « Thème Natal offert » (limitée dans le temps) ───
+    from services import public_free_promo
+    if public_free_promo.is_active_code(code, payload.product):
+        original = float(payload.amount or 0)
+        return {
+            'valid': True, 'source': 'public_free',
+            'discount_percent': 100, 'discount_amount': original, 'final_amount': 0,
+            'message': 'Code valide — ton Thème Natal est offert (1 par adresse e-mail).',
+            'admin_only': False,
+        }
+
     # ─── 1) Cherche d'abord dans la table promo_codes locale (bypass admin) ───
     sb = get_admin_client()
     try:

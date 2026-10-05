@@ -159,8 +159,42 @@
         </script>
 
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
+
+        <!-- Google Consent Mode v2 — defaults denied (RGPD/UE, obligatoire depuis mars 2024).
+             Doit être poussé AVANT le chargement de GTM pour que Google respecte le consentement.
+             Le passage à `granted` est effectué dans src/lib/analytics.js après acceptation cookies. -->
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('consent', 'default', {
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied',
+            analytics_storage: 'denied',
+            functionality_storage: 'granted',
+            security_storage: 'granted',
+            wait_for_update: 500
+          });
+        </script>
+
+        <!-- Google Tag Manager — orchestre GA4, Google Ads, et toute autre balise
+             configurée dans l'interface GTM. Le container ID est GTM-NQFXFLRR.
+             ⚠ RGPD : GTM respecte Consent Mode v2 déclaré au-dessus, aucun tag
+             analytics/ads ne se déclenche tant que le consentement n'est pas passé
+             à `granted` (via CookieConsent → analytics.js). -->
+        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-NQFXFLRR');</script>
+        <!-- End Google Tag Manager -->
     </head>
     <body>
+        <!-- Google Tag Manager (noscript) — filet de sécurité utilisateurs sans JS -->
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NQFXFLRR"
+        height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe></noscript>
+        <!-- End Google Tag Manager (noscript) -->
+
         <noscript>Plume Astrale — Guidance symbolique personnalisee. Activez JavaScript pour acceder a votre theme natal, tirage de tarot et numerologie.</noscript>
         <div id="root"></div>
         <!-- Meta Pixel noscript fallback (RGPD : image de tracking uniquement,

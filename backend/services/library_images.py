@@ -107,7 +107,38 @@ def _download(remote_url: str, local_path: Path) -> bool:
         return False
 
 
+def _light_copy(src: str) -> str:
+    """Copie JPEG légère (cache temporaire) d'une image opaque : ~550 Ko -> ~60 Ko.
+
+    Les fichiers du dépôt ne sont jamais modifiés. Les images avec transparence
+    et toute erreur renvoient le chemin d'origine.
+    """
+    try:
+        import tempfile
+        from PIL import Image
+        source = Path(src)
+        dest = Path(tempfile.gettempdir()) / 'plume_library_light' / source.parent.name / (source.stem + '.jpg')
+        if dest.exists() and dest.stat().st_mtime >= source.stat().st_mtime:
+            return str(dest)
+        with Image.open(source) as im:
+            if im.mode in ('RGBA', 'LA') and im.getchannel('A').getextrema()[0] < 255:
+                return src
+            rgb = im.convert('RGB')
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        rgb.save(dest, format='JPEG', quality=82, optimize=True)
+        return str(dest)
+    except Exception as e:
+        logger.debug(f'[library_images] light copy skipped for {src}: {e}')
+        return src
+
+
 def _resolve(category: str, slug: str, size: int = 1080) -> Optional[str]:
+    """Chemin local de l'image, recompressée pour l'embed PDF (None si introuvable)."""
+    full = _resolve_full(category, slug, size)
+    return _light_copy(full) if full else None
+
+
+def _resolve_full(category: str, slug: str, size: int = 1080) -> Optional[str]:
     """Retourne un chemin local vers l'image (téléchargé si nécessaire).
     Retourne None si l'image n'existe pas dans le manifest."""
     filename = f'{slug}_{size}.png'

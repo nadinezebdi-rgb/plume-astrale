@@ -20,6 +20,15 @@ logger = logging.getLogger(__name__)
 ASSETS_DIR = Path(__file__).resolve().parent.parent / 'assets'
 
 
+def _resolve_edition(md: dict):
+    """Édition demandée dans les métadonnées de la transaction (numérique par défaut)."""
+    from services.book_engine.domain import Edition
+    try:
+        return Edition(md.get('edition') or 'numerique')
+    except ValueError:
+        return Edition.NUMERIQUE
+
+
 # ── Alerte admin quand astrology-api.io retourne <5 planètes core ──
 # Réutilise le pattern de astrology_io_service._alert_invalid_key (Resend, 1 alerte / 6h)
 _last_empty_planets_alert_ts = 0.0
@@ -292,7 +301,7 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     #    cairosvg est CPU-bound (blocke le event loop) → on l'exécute dans un thread.
     chart_png_bytes: bytes | None = None
     try:
-        svg_str = await aio.chart_svg_render(bd, name=name, theme='dark', language='fr')
+        svg_str = await aio.chart_svg_render(bd, name=name, theme='light', language='fr')
         if svg_str:
             from services.svg_utils import resolve_svg_css_vars
             import cairosvg, asyncio as _asyncio
@@ -312,16 +321,12 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     except Exception as e:
         logger.warning(f"[theme_natal_oneshot] chart wheel unavailable: {e}")
 
-    # 4.5) Enrichissement narratif LIVRE — désactivé volontairement.
-    # Le mode "livre" (front matter + Actes + maisons + épilogue) produit un
-    # PDF de 30-100 Mo trop lourd à ouvrir sur mobile et téléchargement lent.
-    # Le code reste en place (services/natal_book_enrichment.py, pdf_book_pages.py,
-    # pdf_editorial_templates.py) pour réactivation ultérieure via BOOK_MODE_ENABLED.
-    #
-    # Pour réactiver plus tard : mettre BOOK_MODE_ENABLED='true' dans backend/.env
-    # OU changer la valeur par défaut ci-dessous à True.
+    # 4.5) Enrichissement narratif LIVRE (front matter + Actes + 12 maisons + épilogue).
+    # Actif par défaut : le PDF fait 49 pages. Le poids est maîtrisé car les images de la
+    # bibliothèque sont recompressées (services/library_images._light_copy).
+    # Pour revenir au PDF court (17 pages) : BOOK_MODE_ENABLED=false.
     book_data = None
-    if os.environ.get('BOOK_MODE_ENABLED', 'false').lower() == 'true':
+    if os.environ.get('BOOK_MODE_ENABLED', 'true').lower() == 'true':
         try:
             from services.natal_book_enrichment import enrich_book_chapters
             aspects_for_book = []
@@ -433,8 +438,9 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
                     'ascendant_sign_en': asc_sign_en,
                     'raw_natal': chart or {},
                     'enhanced_personal_analysis': enhanced_analysis,
+                    'fixed_stars': (enhanced_analysis or {}).get('fixed_stars') or [],
                 },
-                edition=Edition.NUMERIQUE,
+                edition=_resolve_edition(md),
             )
             pdf_bytes = await _asyncio.to_thread(
                 render_manuscript_to_pdf_v2, manuscript, profile='print',

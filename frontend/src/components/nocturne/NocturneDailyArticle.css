@@ -7,8 +7,8 @@
 .nda-section {
   position: relative;
   padding: 100px 24px;
-  background: #0C0918;
-  color: #F5EEE0;
+  background: var(--plume-night-deep);
+  color: var(--plume-ivory);
   overflow: hidden;
   isolation: isolate;
 }
@@ -19,7 +19,7 @@
   z-index: 0;
   background:
     radial-gradient(ellipse 60% 50% at 20% 30%, rgba(212, 175, 55, 0.10), transparent 60%),
-    radial-gradient(ellipse 50% 40% at 90% 80%, rgba(88, 74, 150, 0.14), transparent 65%);
+    radial-gradient(ellipse 50% 40% at 90% 80%, rgba(151, 166, 190, 0.08), transparent 65%);
   pointer-events: none;
 }
 
@@ -38,7 +38,7 @@
   font-size: 11px;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: #D4AF37;
+  color: var(--plume-gold);
   padding: 8px 18px;
   border: 1px solid rgba(212, 175, 55, 0.35);
   border-radius: 100px;
@@ -63,8 +63,8 @@
 .nda-editorial {
   padding: 38px 40px 40px;
   background: linear-gradient(180deg,
-    rgba(21, 17, 42, 0.85) 0%,
-    rgba(15, 26, 60, 0.75) 100%);
+    rgba(26, 32, 53, 0.9) 0%,
+    rgba(12, 17, 32, 0.92) 100%);
   border: 1px solid rgba(212, 175, 55, 0.35);
   border-radius: 12px;
   box-shadow:
@@ -82,7 +82,7 @@
   font-size: 10.5px;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: #D4AF37;
+  color: var(--plume-gold);
   padding: 5px 12px;
   border: 1px solid rgba(212, 175, 55, 0.4);
   border-radius: 100px;
@@ -93,7 +93,7 @@
   font-family: 'Playfair Display', 'Cormorant Garamond', serif;
   font-size: clamp(28px, 4vw, 42px);
   font-weight: 400;
-  color: #F5EEE0;
+  color: var(--plume-ivory);
   line-height: 1.15;
   letter-spacing: -0.01em;
   margin: 0 0 20px;
@@ -146,7 +146,7 @@
   font-weight: 600;
   text-decoration: none;
   background: linear-gradient(135deg, #D4AF37, #E8C766);
-  color: #0F1A3C;
+  color: var(--plume-night);
   border-radius: 4px;
   transition: transform 200ms ease, box-shadow 200ms ease;
 }
@@ -187,7 +187,7 @@
   min-width: 0;
   padding: 12px 16px;
   background: rgba(12, 9, 24, 0.55);
-  color: #F5EEE0;
+  color: var(--plume-ivory);
   border: 1px solid rgba(212, 175, 55, 0.3);
   border-radius: 4px;
   font-family: 'Inter', sans-serif;
@@ -280,7 +280,7 @@
 }
 
 .nda-side-body b {
-  color: #F5EEE0;
+  color: var(--plume-ivory);
   font-weight: 500;
 }
 
@@ -300,6 +300,6 @@
 }
 
 .nda-side-cta:hover {
-  color: #F5EEE0;
+  color: var(--plume-ivory);
   border-color: #E8C766;
 }

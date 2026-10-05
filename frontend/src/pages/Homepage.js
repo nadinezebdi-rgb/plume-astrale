@@ -5,6 +5,7 @@ import {
   Star, ShieldCheck, Clock, Mail,
 } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { ctaClick } from '@/lib/analytics';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
 import LiveConstellation from '@/components/LiveConstellation';
 import PdfFlipbook from '@/components/PdfFlipbook';
@@ -213,7 +214,10 @@ export default function Homepage() {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4 }}>
                   <button
                     type="button"
-                    onClick={() => setFlipbookBook(b)}
+                    onClick={() => {
+                      ctaClick(`Feuilleter · ${b.tagline || b.slug}`, { destination: 'flipbook_modal', cta_location: 'home_featured_books' });
+                      setFlipbookBook(b);
+                    }}
                     data-testid={`home-flipbook-open-${b.slug}`}
                     style={{
                       flex: '1 1 auto',
@@ -233,6 +237,7 @@ export default function Homepage() {
                   </button>
                   <Link
                     to={b.to}
+                    onClick={() => ctaClick('Détails livre', { destination: b.to, cta_location: 'home_featured_books' })}
                     data-testid={`home-flipbook-detail-${b.slug}`}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -253,6 +258,7 @@ export default function Homepage() {
           <div style={{ marginTop: 40 }}>
             <Link to="/livres" className="ps-btn ps-btn-outline"
               data-testid="home-flipbook-all-cta"
+              onClick={() => ctaClick('Voir toute la bibliothèque', { destination: '/livres', cta_location: 'home_featured_books' })}
               style={{ color: '#F7F5F0', borderColor: 'rgba(247,245,240,0.4)' }}>
               Voir toute la bibliothèque
               <ArrowRight style={{ width: 16, height: 16 }} strokeWidth={2} />

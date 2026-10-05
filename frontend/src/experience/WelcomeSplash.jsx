@@ -10,7 +10,7 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { INTENT_CONFIG, readIntent } from './intentConfig';
 import { zodiacByKey } from './zodiacUtils';
-import { event as trackEvent } from '@/lib/analytics';
+import { event as trackEvent, ctaClick } from '@/lib/analytics';
 
 function readZodiac() {
   try { return window.sessionStorage.getItem('exp_zodiac') || null; } catch { return null; }
@@ -27,8 +27,15 @@ export default function WelcomeSplash({ onDismiss }) {
     trackEvent('recommended_service_viewed', { intent_type: intent || 'none', zodiac: zodiacKey || 'none' });
   }, [intent, zodiacKey]);
 
-  const handleCTA = (route, kind) => () => {
+  const handleCTA = (route, kind, label) => () => {
     trackEvent('recommended_service_clicked', { intent_type: intent, route, kind });
+    // ctaClick GA4/GTM standard — nom précis + destination + intent segmentable
+    ctaClick(label || `Recommended service (${kind})`, {
+      destination: route,
+      cta_location: 'welcome_splash',
+      intent_type: intent || 'none',
+      kind,
+    });
     // Nettoie l'intent — le user est arrivé au bout du funnel
     try { window.sessionStorage.removeItem('exp_intent'); } catch { /* noop */ }
     navigate(route);
@@ -72,7 +79,7 @@ export default function WelcomeSplash({ onDismiss }) {
           <button
             type="button"
             data-testid={config.primary.testid}
-            onClick={handleCTA(config.primary.route, 'primary')}
+            onClick={handleCTA(config.primary.route, 'primary', config.primary.label)}
             style={ctaPrimary}
           >
             <span style={{ color: '#D8B76A' }}>✦</span> {config.primary.label.toUpperCase()}
@@ -80,7 +87,7 @@ export default function WelcomeSplash({ onDismiss }) {
           <button
             type="button"
             data-testid={config.secondary.testid}
-            onClick={handleCTA(config.secondary.route, 'secondary')}
+            onClick={handleCTA(config.secondary.route, 'secondary', config.secondary.label)}
             style={ctaGhost}
           >
             {config.secondary.label} →

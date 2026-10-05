@@ -77,11 +77,8 @@ export default function CookieConsent() {
   }, [prefs]);
 
   const location = useLocation();
-  // Pages immersives — cache complètement le bandeau pour ne pas casser l'effet WOW
-  // (le prototype /experience ne collecte aucune donnée personnelle).
-  const isImmersive = (p) =>
-    p === '/experience' || p.startsWith('/experience/') ||
-    p === '/home-experience-v3' || p.startsWith('/home-experience-v3/');
+  // Seul le prototype /experience (sans données personnelles) masque le bandeau.
+  const isImmersive = (p) => p === '/experience' || p.startsWith('/experience/');
   if (isImmersive(location.pathname)) {
     return null;
   }

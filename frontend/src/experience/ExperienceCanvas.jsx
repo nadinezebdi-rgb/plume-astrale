@@ -9,7 +9,7 @@
  * • Aucun postprocessing (bundle plus léger, meilleure compat mobile).
  *   Le bloom est faux : sprites additifs sur les particules.
  */
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { PerformanceMonitor } from '@react-three/drei';
 import * as THREE from 'three';
@@ -17,18 +17,16 @@ import { useExperienceStore } from './useExperienceStore';
 import Scene01Particles from './scenes/Scene01Particles';
 import Scene02Constellations from './scenes/Scene02Constellations';
 import Scene03Velvet from './scenes/Scene03Velvet';
-import Scene04Feather from './scenes/Scene04Feather';
 
 // ─── Contrôleur caméra + scènes ────────────────────────────────
 function StageController() {
   const groupRef = useRef();
   const globalProgress = useExperienceStore((s) => s.globalProgress);
   const isMobile = useExperienceStore((s) => s.isMobile);
-
   useFrame((state) => {
     if (!groupRef.current) return;
     // Le "stage" translate en Y en fonction du scroll global (0..1 sur 4 scènes)
-    const targetY = globalProgress * -18; // amplitude
+    const targetY = globalProgress * -12; // three atmospheric scenes; no long feather reveal
     groupRef.current.position.y = THREE.MathUtils.lerp(
       groupRef.current.position.y,
       targetY,
@@ -57,10 +55,6 @@ function StageController() {
       {/* Scène 3 — velours + cartes (y=+12) */}
       <group position={[0, 12, 0]}>
         <Scene03Velvet />
-      </group>
-      {/* Scène 4 — plume (y=+18) */}
-      <group position={[0, 18, 0]}>
-        <Scene04Feather />
       </group>
     </group>
   );
@@ -92,9 +86,7 @@ export default function ExperienceCanvas() {
           flipflops={2}
         />
         <ambientLight intensity={0.3} color="#79570F" />
-        <Suspense fallback={null}>
-          <StageController />
-        </Suspense>
+        <StageController />
       </Canvas>
     </div>
   );

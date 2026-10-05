@@ -129,13 +129,18 @@ async def build_daily_for_sign(slug: str) -> Path:
     api_data = await horoscope_sign(en_sign, 'daily', 'fr')
     if not api_data:
         logger.warning(f'[daily_horoscope] API a renvoyé None pour {en_sign} — fallback contenu statique')
-        return build_pdf_for_signe(base)
+        return await asyncio.to_thread(build_pdf_for_signe, base)
 
     logger.info(f'[daily_horoscope] Enrichissement GPT pour {slug}...')
     enriched = await _enrich_with_solena(base, api_data)
 
     logger.info(f'[daily_horoscope] Génération PDF pour {slug}...')
-    path = build_pdf_for_signe(enriched)
+    # ⚠️ DEPLOY FIX (Feb 2026) : build_pdf_for_signe utilise ReportLab en
+    # synchrone + télécharge des images via HTTP bloquant. Sans to_thread,
+    # 12 générations séquentielles bloquent l'event loop asyncio ~60-90s,
+    # ce qui fait timeout la liveness probe /health de K8s → pod redémarre
+    # en boucle. On offload en thread pool pour garder /health réactif.
+    path = await asyncio.to_thread(build_pdf_for_signe, enriched)
     return path
 
 

@@ -2,12 +2,14 @@
  * Générateurs de textures de cartes V2 — dessinées en canvas 2D à la volée.
  * Retourne des data-URLs à utiliser comme background-image CSS.
  *
- * Deux faces : verso personnalisé et recto illustré depuis la bibliothèque tarot.
+ * Deux faces :
+ *   - VERSO : noir → violet profond radial, double bordure d'or fine, étoile 6-branches
+ *   - RECTO : "L'Étoile Intérieure" — étoile 7 rayons + cercle pointillé + numérotation XVII
  */
 
 const W = 400;
 const H = 600;
-const CARD_BACK_TEXTURE = '/api/library/file/tarot/plume-astrale-card-back.jpg';
+const CARD_BACK_TEXTURE = '/experience/plume-astrale-card-back.jpg';
 const CARD_FACE_ASSETS = [
   '00_le_mat', '01_le_bateleur', '02_la_papesse', '03_l_imperatrice',
   '04_l_empereur', '05_le_pape', '06_les_amoureux', '07_le_chariot',
@@ -17,90 +19,179 @@ const CARD_FACE_ASSETS = [
   '20_le_jugement', '21_le_monde',
 ];
 const CARD_FACE_BASE_URL = 'https://ebwicqvbkwogxneipaxh.supabase.co/storage/v1/object/public/library/tarot';
-const ROMAN_ARCANA = [
-  '0', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
-  'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI',
-];
 
-function makeFaceTexture(card = {}) {
+function makeBackTexture() {
   if (typeof document === 'undefined') return '';
   const c = document.createElement('canvas');
   c.width = W; c.height = H;
   const ctx = c.getContext('2d');
-  const number = Number(card.numero ?? card.number);
-  const cardName = typeof card.nom === 'string'
-    ? card.nom
-    : typeof card.name === 'string'
-      ? card.name
-      : card.name?.fr || card.name?.en || 'Arcane du jour';
 
-  // A pale face keeps the drawn arcana visibly distinct from the dark card back.
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, '#F3EADB');
-  bg.addColorStop(1, '#D9CBB4');
+  // Fond radial noir → violet profond
+  const bg = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, H * 0.7);
+  bg.addColorStop(0, '#17102E');
+  bg.addColorStop(0.6, '#0C0918');
+  bg.addColorStop(1, '#060314');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  ctx.strokeStyle = 'rgba(121, 87, 15, 0.82)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(12, 12, W - 24, H - 24);
-  ctx.strokeStyle = 'rgba(121, 87, 15, 0.42)';
+  // Vignette sombre en bordure
+  const vig = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.75);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.7)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, W, H);
+
+  // Double bordure d'or à 8px et 14px
+  ctx.strokeStyle = 'rgba(216, 183, 106, 0.6)';
   ctx.lineWidth = 1;
-  ctx.strokeRect(19, 19, W - 38, H - 38);
+  ctx.strokeRect(8, 8, W - 16, H - 16);
+  ctx.strokeStyle = 'rgba(216, 183, 106, 0.28)';
+  ctx.strokeRect(14, 14, W - 28, H - 28);
 
-  ctx.fillStyle = '#59452B';
-  ctx.textAlign = 'center';
-  ctx.font = '500 24px "Cormorant Garamond", Georgia, serif';
-  ctx.fillText(ROMAN_ARCANA[number] || '✦', W / 2, 52);
-
+  // Étoile 6 branches au centre (trait or fin)
   ctx.save();
-  ctx.translate(W / 2, H / 2 - 20);
-
-  // A bespoke geometric emblem stands in for missing source artwork.
-  ctx.strokeStyle = 'rgba(89, 69, 43, 0.78)';
-  ctx.lineWidth = 1.5;
+  ctx.translate(W / 2, H / 2);
+  ctx.strokeStyle = 'rgba(216, 183, 106, 0.7)';
+  ctx.lineWidth = 1.2;
+  const R = 60;
+  const r = 22;
   ctx.beginPath();
-  ctx.arc(0, 0, 112, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.strokeStyle = 'rgba(121, 87, 15, 0.75)';
-  for (let i = 0; i < 8; i++) {
-    const angle = (Math.PI * 2 * i) / 8 - Math.PI / 2;
-    ctx.beginPath();
-    ctx.moveTo(Math.cos(angle) * 22, Math.sin(angle) * 22);
-    ctx.lineTo(Math.cos(angle) * 94, Math.sin(angle) * 94);
-    ctx.stroke();
+  for (let i = 0; i < 12; i++) {
+    const angle = (Math.PI * 2 * i) / 12 - Math.PI / 2;
+    const radius = i % 2 === 0 ? R : r;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
   }
-
-  ctx.beginPath();
-  ctx.arc(0, 0, 38 + (Number.isFinite(number) ? number % 16 : 0), 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(89, 69, 43, 0.7)';
+  ctx.closePath();
   ctx.stroke();
+
+  // Petit cercle central
   ctx.beginPath();
-  ctx.arc(0, 0, 8, 0, Math.PI * 2);
-  ctx.fillStyle = '#79570F';
+  ctx.arc(0, 0, 4, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(232, 199, 102, 0.85)';
   ctx.fill();
   ctx.restore();
-
-  ctx.fillStyle = '#3A3026';
-  ctx.textAlign = 'center';
-  ctx.font = '500 27px "Cormorant Garamond", Georgia, serif';
-  let title = cardName;
-  while (ctx.measureText(title).width > W - 48 && title.length > 8) title = `${title.slice(0, -2)}…`;
-  ctx.fillText(title, W / 2, H - 72);
-
-  ctx.fillStyle = 'rgba(58, 48, 38, 0.72)';
-  ctx.font = '400 10px "Inter", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('TAROT DE MARSEILLE', W / 2, H - 48);
 
   return c.toDataURL('image/png');
 }
 
-const _faceCache = new Map();
+function makeFaceTexture() {
+  if (typeof document === 'undefined') return '';
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+
+  // Fond navy profond
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#0F0B26');
+  bg.addColorStop(1, '#060314');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Vignette
+  const vig = ctx.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, H * 0.75);
+  vig.addColorStop(0, 'rgba(216, 183, 106, 0.10)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.65)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, W, H);
+
+  // Double bordure d'or
+  ctx.strokeStyle = 'rgba(216, 183, 106, 0.55)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(8, 8, W - 16, H - 16);
+  ctx.strokeStyle = 'rgba(216, 183, 106, 0.22)';
+  ctx.strokeRect(14, 14, W - 28, H - 28);
+
+  // Numérotation romaine "XVII" en haut
+  ctx.fillStyle = 'rgba(232, 199, 102, 0.75)';
+  ctx.textAlign = 'center';
+  ctx.font = 'italic 500 22px "Cormorant Garamond", Georgia, serif';
+  ctx.fillText('XVII', W / 2, 44);
+
+  // ─── Illustration : étoile 7 rayons + cercle pointillé ───
+  ctx.save();
+  ctx.translate(W / 2, H / 2 - 20);
+
+  // Cercle extérieur pointillé
+  ctx.strokeStyle = 'rgba(216, 183, 106, 0.35)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([2, 4]);
+  ctx.beginPath();
+  ctx.arc(0, 0, 110, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Rayons partant du centre (7 rayons pour l'Étoile Intérieure)
+  ctx.strokeStyle = 'rgba(232, 199, 102, 0.7)';
+  ctx.lineWidth = 1.4;
+  for (let i = 0; i < 7; i++) {
+    const angle = (Math.PI * 2 * i) / 7 - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(angle) * 15, Math.sin(angle) * 15);
+    ctx.lineTo(Math.cos(angle) * 90, Math.sin(angle) * 90);
+    ctx.stroke();
+  }
+
+  // Petites étoiles secondaires sur le cercle
+  for (let i = 0; i < 7; i++) {
+    const angle = (Math.PI * 2 * i) / 7 - Math.PI / 2;
+    const x = Math.cos(angle) * 110;
+    const y = Math.sin(angle) * 110;
+    ctx.beginPath();
+    ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 246, 220, 0.9)';
+    ctx.fill();
+  }
+
+  // Étoile centrale (halo doux)
+  const halo = ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
+  halo.addColorStop(0, 'rgba(255, 246, 220, 1)');
+  halo.addColorStop(0.4, 'rgba(232, 199, 102, 0.7)');
+  halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = halo;
+  ctx.fillRect(-25, -25, 50, 50);
+  // Cœur brillant
+  ctx.beginPath();
+  ctx.arc(0, 0, 5, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 246, 220, 1)';
+  ctx.fill();
+
+  ctx.restore();
+
+  // ─── Nom de la carte ───
+  ctx.fillStyle = 'rgba(232, 199, 102, 0.95)';
+  ctx.textAlign = 'center';
+  ctx.font = 'italic 500 26px "Cormorant Garamond", Georgia, serif';
+  ctx.fillText("L'Étoile Intérieure", W / 2, H - 78);
+
+  // Tagline
+  ctx.fillStyle = 'rgba(244, 239, 230, 0.55)';
+  ctx.font = '400 10.5px "Inter", sans-serif';
+  ctx.textAlign = 'center';
+  const tagline = 'CE QUI VOUS ÉCLAIRE QUAND TOUT S\'ÉTEINT';
+  ctx.fillText(tagline, W / 2, H - 54);
+
+  // Petit ornement doré en bas
+  ctx.strokeStyle = 'rgba(216, 183, 106, 0.5)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(W / 2 - 30, H - 38);
+  ctx.lineTo(W / 2 + 30, H - 38);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(W / 2, H - 38, 2.5, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(232, 199, 102, 0.85)';
+  ctx.fill();
+
+  return c.toDataURL('image/png');
+}
+
+let _faceCache = null;
 
 export function getCardBackTexture() {
-  return CARD_BACK_TEXTURE;
+  return CARD_BACK_TEXTURE || makeBackTexture();
 }
 
 export function getCardFaceTexture(card = {}) {
@@ -109,9 +200,6 @@ export function getCardFaceTexture(card = {}) {
   const number = Number(card.numero ?? card.number);
   const artSlug = Number.isInteger(number) ? CARD_FACE_ASSETS[number] : null;
   if (artSlug) return `${CARD_FACE_BASE_URL}/${artSlug}_512.png`;
-
-  const name = card.nom || card.name?.fr || card.name?.en || card.name || 'Arcane du jour';
-  const cacheKey = `${number}:${name}`;
-  if (!_faceCache.has(cacheKey)) _faceCache.set(cacheKey, makeFaceTexture({ ...card, numero: number, nom: name }));
-  return _faceCache.get(cacheKey);
+  if (_faceCache === null) _faceCache = makeFaceTexture();
+  return _faceCache;
 }

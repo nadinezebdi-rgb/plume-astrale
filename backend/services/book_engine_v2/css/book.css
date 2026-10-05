@@ -16,6 +16,7 @@
   --ink: #3E352C;               /* titres */
   --text: #4A3F35;              /* texte courant */
   --gold: #A8823F;              /* sur-titres, filets, plume */
+  --title-gold: #8A6418;        /* titres h1/h2 — même or que pdf_theme.GOLD_LIGHT */
   --gold-soft: #C9AE7C;         /* traits secondaires, aspects de flux */
   --gold-pale: #E3D6BC;         /* graduations, filets de tableau */
   --band: #F3EBDC;              /* secteurs zodiacaux alternés */
@@ -25,7 +26,7 @@
   --hair-thick: 0.7pt;          /* 0.25 mm plancher §3 */
 }
 body.screen {
-  --paper: #FBF7F0;             /* profil screen (fond crème) */
+  --paper: #FFFFFF;             /* profil screen : même papier blanc que le print */
 }
 
 /* ── Polices statiques (§2.1) : jamais de variable, jamais de CDN ── */
@@ -170,13 +171,24 @@ h2 {
   letter-spacing: 0.01em;
   text-align: left;
   margin: 0 0 3mm;
-  color: var(--ink);
+  color: var(--title-gold);
 }
 .lede {
   font-size: 10pt;
   line-height: 15.5pt;
   margin: 0 0 6mm;
   color: var(--text);
+}
+/* Date de naissance sous le chapter_opener — signature contextuelle sobre */
+.lede-date {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 9.5pt;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  text-align: center;
+  display: block;
 }
 
 /* ── Ouverture de chapitre (§6.1) ────────────────────────────────────── */
@@ -215,7 +227,7 @@ h1 {
   line-height: 27pt;
   text-align: center;
   margin: 0 0 6mm;
-  color: var(--ink);
+  color: var(--title-gold);
   text-transform: none;                  /* jamais en capitales (§2) */
 }
 .kicker {

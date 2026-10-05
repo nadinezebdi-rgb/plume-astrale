@@ -16,6 +16,7 @@ credit_balance >= amount RETURNING credit_balance`).
 import asyncio
 from fastapi import HTTPException
 from services.supabase_client import get_admin_client
+from services import signup_promo
 
 # ─── SEC-002 : verrous par utilisateur pour empêcher les race conditions ───
 _user_locks: dict[str, asyncio.Lock] = {}
@@ -39,7 +40,8 @@ async def get_balance(user_id: str) -> int:
         # auto-create wallet if missing (failsafe en plus du trigger)
         sb.table('wallets').insert({'user_id': user_id, 'credit_balance': 20}).execute()
         return 20
-    return int(res.data['credit_balance'])
+    balance = int(res.data['credit_balance'])
+    return balance + signup_promo.grant_if_eligible(sb, user_id, balance)
 
 
 # ─── Chat credits (Cercle Soléna) — wallet séparé ────────────────────────
