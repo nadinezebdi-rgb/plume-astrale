@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import { CartProvider } from "./context/CartContext";
+import { CartProvider, CartCheckoutBridge } from "./context/CartContext";
 
 import Navbar from "./components/NavbarV2";
 import TrialBanner from "./components/TrialBanner";
@@ -328,6 +328,7 @@ function App() {
             </>
           } />
         </Routes>
+        <CartCheckoutBridge />
         <Footer />
       </BrowserRouter>
       </AuraProvider>

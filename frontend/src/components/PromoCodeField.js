@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Loader2, Check, X } from 'lucide-react';
+import { getCartPromo } from '@/lib/cartPromo';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -32,8 +33,8 @@ export default function PromoCodeField({ price, product, testIdBase = 'promo', o
     if (onStateChange) onStateChange(next);
   };
 
-  const apply = async () => {
-    const c = code.trim();
+  const apply = async (codeArg) => {
+    const c = (typeof codeArg === 'string' ? codeArg : code).trim();
     if (!c) return;
     setValidating(true);
     try {
@@ -79,6 +80,15 @@ export default function PromoCodeField({ price, product, testIdBase = 'promo', o
       setValidating(false);
     }
   };
+
+  // Reprend le code saisi dans le panier.
+  useEffect(() => {
+    const cartCode = getCartPromo();
+    if (!cartCode) return;
+    setCode(cartCode);
+    apply(cartCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div data-testid={`${testIdBase}-promo-field`}>

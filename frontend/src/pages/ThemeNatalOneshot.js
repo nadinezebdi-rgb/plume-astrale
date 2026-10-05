@@ -5,6 +5,7 @@ import axios from 'axios';
 import SEO from '@/components/SEO';
 import SalesTrustBlock from '@/components/SalesTrustBlock';
 import { useAuth } from '@/context/AuthContext';
+import { getCartPromo } from '@/lib/cartPromo';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const PACK_PRICE = 24;
@@ -77,8 +78,17 @@ const ThemeNatalOneshot = () => {
 
   const upd = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const applyPromo = async () => {
-    const code = promoCode.trim();
+  // Reprend le code saisi dans le panier.
+  useEffect(() => {
+    const cartCode = getCartPromo();
+    if (!cartCode) return;
+    setPromoCode(cartCode);
+    applyPromo(cartCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const applyPromo = async (codeArg) => {
+    const code = (typeof codeArg === 'string' ? codeArg : promoCode).trim();
     if (!code) return;
     setValidatingPromo(true);
     setPromoState({ status: 'idle', message: '', discount_percent: 0, discount_amount: 0, final_amount: PACK_PRICE });
