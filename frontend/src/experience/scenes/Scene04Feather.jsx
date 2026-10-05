@@ -459,7 +459,7 @@ export default function Scene04Feather() {
           depthWrite={false}
           blending={THREE.AdditiveBlending}
           opacity={0.95}
-          color="#F4EFE6"
+          color="#26242B"
         />
       </points>
 
@@ -471,7 +471,7 @@ export default function Scene04Feather() {
           depthWrite={false}
           blending={THREE.AdditiveBlending}
           opacity={0}
-          color="#F4EFE6"
+          color="#26242B"
         />
       </sprite>
 
@@ -483,7 +483,7 @@ export default function Scene04Feather() {
           depthWrite={false}
           blending={THREE.AdditiveBlending}
           opacity={0}
-          color="#F4EFE6"
+          color="#26242B"
         />
       </sprite>
     </group>

@@ -1,0 +1,6 @@
+.git/
+.vercel/
+backend/
+frontend/node_modules/
+frontend/build/
+tmp_video/

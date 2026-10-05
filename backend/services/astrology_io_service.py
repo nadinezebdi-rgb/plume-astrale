@@ -585,6 +585,14 @@ async def get_positions(birth_data: Dict[str, Any], name: str = 'Voyageur', lang
     })
 
 
+async def tarot_daily_card(user_id: str, life_area: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Tire la carte quotidienne Astrology API sans demander de thème natal."""
+    params: Dict[str, Any] = {'user_id': user_id}
+    if life_area:
+        params['life_area'] = life_area
+    return await _get('/tarot/cards/daily', params)
+
+
 async def get_house_cusps(birth_data: Dict[str, Any], name: str = 'Voyageur', language: str = 'fr') -> Optional[Dict]:
     """Cuspides des 12 maisons (Placidus)."""
     return await _call('/data/house-cusps', {
@@ -615,6 +623,25 @@ async def natal_chart(birth_data: Dict[str, Any], name: str = 'Voyageur', langua
     return await _call('/charts/natal', {
         'subject': make_subject(name, birth_data),
         'options': {'language': language, 'house_system': 'P'},
+    })
+
+
+async def enhanced_personal_analysis(
+    birth_data: Dict[str, Any], name: str = 'Voyageur',
+) -> Optional[Dict[str, Any]]:
+    """Fetch enhanced natal points, precise aspects, dignities, and lunar context."""
+    return await _call('/enhanced/personal-analysis', {
+        'subject': make_subject(name, normalize_birth_data(birth_data)),
+        'options': {
+            'house_system': 'W',
+            'zodiac_type': 'Tropic',
+            'active_points': [
+                'Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn',
+                'Mean_Node', 'True_Node', 'Part_of_Fortune', 'Part_of_Spirit',
+            ],
+            'precision': 4,
+        },
+        'orbs': {'major_aspects_deg': 2, 'minor_aspects_deg': 1},
     })
 
 

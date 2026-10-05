@@ -79,20 +79,20 @@ export default function Act8Reassurance() {
               data-testid={`home-experience-step-${i + 1}`}
               style={{
                 textAlign: 'left', padding: '0 12px',
-                borderLeft: '1px solid rgba(216,183,106,0.28)',
+                borderLeft: '1px solid rgba(212,175,55,0.24)',
               }}
             >
               <p style={{
                 fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
-                fontSize: 42, color: '#D8B76A', margin: '0 0 12px', lineHeight: 1,
+                fontSize: 42, color: 'var(--hex3-gold)', margin: '0 0 12px', lineHeight: 1,
               }}>{s.n}</p>
               <h3 style={{
                 fontFamily: '"Cormorant Garamond", serif', fontWeight: 400,
-                fontSize: 22, color: '#F4EFE6', margin: '0 0 8px',
+                fontSize: 22, color: 'var(--hex3-ivory)', margin: '0 0 8px',
               }}>{s.title}</h3>
               <p style={{
                 fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
-                fontSize: 16, color: 'rgba(244,239,230,0.60)', lineHeight: 1.55, margin: 0,
+                fontSize: 16, color: 'var(--hex3-ivory-mute)', lineHeight: 1.55, margin: 0,
               }}>{s.body}</p>
             </div>
           ))}
@@ -108,7 +108,7 @@ export default function Act8Reassurance() {
             aria-hidden="true"
           >
             <line x1="1" y1="0" x2="1" y2="120"
-                  stroke="rgba(216,183,106,0.5)" strokeWidth="1"
+                  stroke="rgba(212,175,55,0.5)" strokeWidth="1"
                   strokeDasharray="2 3" />
           </svg>
           <svg
@@ -118,12 +118,12 @@ export default function Act8Reassurance() {
               position: 'absolute', bottom: 0, left: '50%',
               transform: 'translateX(-50%)',
               width: 34, height: 50,
-              filter: 'drop-shadow(0 0 10px rgba(216,183,106,0.55))',
+              filter: 'drop-shadow(0 0 10px rgba(212,175,55,0.25))',
             }}
           >
             <path d="M22 4 Q 21 20 22 30 Q 23 44 22 60"
-                  stroke="#C4A25C" strokeWidth="1.1" fill="none" strokeLinecap="round" />
-            <g stroke="#D8B76A" strokeWidth="0.9" fill="none" strokeLinecap="round" opacity="0.75">
+                  stroke="#D4AF37" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+                <g stroke="#D4AF37" strokeWidth="0.9" fill="none" strokeLinecap="round" opacity="0.75">
               {[10,16,22,28,34,40,46,52].flatMap((y) => [
                 <path key={`l${y}`} d={`M22 ${y} Q 14 ${y+2} 7 ${y}`} />,
                 <path key={`r${y}`} d={`M22 ${y} Q 30 ${y+2} 37 ${y}`} />,
@@ -135,16 +135,16 @@ export default function Act8Reassurance() {
         <div style={{
           textAlign: 'center', marginBottom: 44,
           fontFamily: '"Cormorant Garamond", "Playfair Display", serif',
-          fontSize: 26, color: '#F4EFE6', letterSpacing: '0.05em',
+          fontSize: 26, color: 'var(--hex3-ivory)', letterSpacing: '0.05em',
         }}>
-          PLUME <em style={{ color: '#D8B76A' }}>Astrale</em>
+          PLUME <em style={{ color: 'var(--hex3-gold)' }}>Astrale</em>
         </div>
 
         <div style={{
           display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center',
           fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          borderTop: '1px solid rgba(216,183,106,0.12)',
+          borderTop: '1px solid rgba(212,175,55,0.18)',
           paddingTop: 32,
         }}>
           {FOOTER_LINKS.map((l) => (
@@ -152,11 +152,11 @@ export default function Act8Reassurance() {
               key={l.to}
               to={l.to}
               style={{
-                color: 'rgba(244,239,230,0.55)', textDecoration: 'none',
+                color: 'var(--hex3-ivory-mute)', textDecoration: 'none',
                 transition: 'color 300ms ease',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#D8B76A'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(244,239,230,0.55)'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--hex3-gold)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--hex3-ivory-mute)'; }}
               data-testid={`home-experience-footer-link-${l.to.replace(/[^a-z0-9]/gi, '-')}`}
             >
               {l.label}
@@ -167,7 +167,7 @@ export default function Act8Reassurance() {
         <p style={{
           textAlign: 'center', fontSize: 11,
           fontFamily: '"Inter", sans-serif', letterSpacing: '0.14em',
-          color: 'rgba(244,239,230,0.28)', marginTop: 28,
+          color: 'rgba(244,239,230,0.52)', marginTop: 28,
         }}>
           © {new Date().getFullYear()} PLUME ASTRALE — TOUS DROITS RÉSERVÉS
         </p>

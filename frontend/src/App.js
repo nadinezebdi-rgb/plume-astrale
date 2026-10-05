@@ -150,7 +150,7 @@ function App() {
         <CookieConsent />
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
-          <Route path="/" element={<ABTestHome />} />
+          <Route path="/" element={<HomeExperienceV3 />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogArticle />} />
           <Route path="/decouvrir" element={<Decouvrir />} />
@@ -247,7 +247,7 @@ function App() {
                 <Route path="/edition-reliee/merci" element={<EditionRelieeMerci />} />
                 <Route path="/relecture/:token" element={<RelectureRefus />} />
                 <Route path="/experience" element={<ExperiencePage />} />
-                <Route path="/home-experience-v3" element={<HomeExperienceV3 />} />
+                <Route path="/home-experience-v3" element={<Navigate to="/" replace />} />
 
                 {/* ─── Redirections /outils/* → /services/* (compat legacy) ─── */}
                 <Route path="/outils/theme-natal" element={<Navigate to="/services/theme-natal" replace />} />

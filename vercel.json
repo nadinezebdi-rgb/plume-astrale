@@ -4,10 +4,17 @@
   "outputDirectory": "frontend/build",
   "installCommand": "cd frontend && yarn install",
   "framework": null,
+  "redirects": [
+    {
+      "source": "/home-experience-v3",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://consultation-astro.emergent.host/api/:path*"
+      "destination": "https://plume-astrale-production.up.railway.app/api/:path*"
     },
     {
       "source": "/sitemap.xml",

@@ -44,6 +44,185 @@ PLANET_META = {
     'Ascendant': {'glyph': '⇑', 'dialogue': "Les autres te trouvent parfois plus forte que tu ne te sens. Et cette impression n'est pas fausse."},
 }
 
+_PLANET_NAMES_FR = {
+    'sun': 'Soleil', 'moon': 'Lune', 'mercury': 'Mercure', 'venus': 'Vénus',
+    'mars': 'Mars', 'jupiter': 'Jupiter', 'saturn': 'Saturne',
+    'uranus': 'Uranus', 'neptune': 'Neptune', 'pluto': 'Pluton', 'ascendant': 'Ascendant',
+    'mean_node': 'Nœud moyen', 'true_node': 'Nœud vrai',
+    'part_of_fortune': 'Part de Fortune', 'part_of_spirit': "Part d'Esprit",
+}
+_ASPECT_NAMES_FR = {
+    'conjunction': 'conjonction', 'opposition': 'opposition', 'trine': 'trigone',
+    'square': 'carré', 'sextile': 'sextile', 'quincunx': 'quinconce',
+}
+_LUNAR_PHASES_FR = {
+    'new moon': 'Nouvelle Lune', 'waxing crescent': 'Premier croissant',
+    'first quarter': 'Premier quartier', 'waxing gibbous': 'Gibbeuse croissante',
+    'full moon': 'Pleine Lune', 'waning gibbous': 'Gibbeuse décroissante',
+    'last quarter': 'Dernier quartier', 'waning crescent': 'Dernier croissant',
+}
+_HOUSE_NAMES_FR = {
+    'first_house': 'Maison I', 'second_house': 'Maison II', 'third_house': 'Maison III',
+    'fourth_house': 'Maison IV', 'fifth_house': 'Maison V', 'sixth_house': 'Maison VI',
+    'seventh_house': 'Maison VII', 'eighth_house': 'Maison VIII', 'ninth_house': 'Maison IX',
+    'tenth_house': 'Maison X', 'eleventh_house': 'Maison XI', 'twelfth_house': 'Maison XII',
+}
+
+
+def _enhanced_personal_analysis_sections(analysis: Optional[dict], no_birth_time: bool = False) -> list[tuple[str, str]]:
+    """Build concise factual French sections from Astrology API enrichment data."""
+    if not isinstance(analysis, dict):
+        return []
+
+    from html import escape
+    from services.astrology_io_service import sign_to_fr
+
+    def safe(value) -> str:
+        return escape(str(value), quote=False)
+
+    def sign(value) -> str:
+        from services.astrology_io_service import expand_sign
+        return safe(sign_to_fr(expand_sign(str(value or ''))))
+
+    def degree(value) -> str:
+        try:
+            return f'{float(value):.2f}'.replace('.', ',') + '°'
+        except (TypeError, ValueError):
+            return ''
+
+    def planet_name(value) -> str:
+        key = str(value or '').strip().lower().replace(' ', '_')
+        return _PLANET_NAMES_FR.get(key, safe(value or ''))
+
+    def house_name(value) -> str:
+        key = str(value or '').strip().lower().replace(' ', '_')
+        return _HOUSE_NAMES_FR.get(key, safe(str(value or '').replace('_', ' ')))
+
+    cycles = []
+    lunar = analysis.get('lunar_phase') or {}
+    if lunar:
+        phase_name = str(lunar.get('phase_name') or '')
+        phase = _LUNAR_PHASES_FR.get(phase_name.lower(), safe(phase_name))
+        metrics = []
+        if lunar.get('illumination_percent') is not None:
+            metrics.append(f"{safe(lunar['illumination_percent'])} % éclairée")
+        if lunar.get('moon_age_days') is not None and not no_birth_time:
+            metrics.append(f"âge lunaire : {safe(lunar['moon_age_days'])} jours")
+        label = 'Phase lunaire estimée pour la date' if no_birth_time else 'Phase lunaire à la naissance'
+        cycles.append(f"<b>{label} :</b> {phase}" + (f" ({', '.join(metrics)})" if metrics else ''))
+
+    chronocrator = analysis.get('chronocrator') or {}
+    if chronocrator and not no_birth_time:
+        method = str(chronocrator.get('method') or '')
+        method_fr = 'Profection annuelle' if 'profection' in method.lower() else safe(method or 'Cycle annuel')
+        details = []
+        if chronocrator.get('sign'):
+            details.append(f"signe activé : {sign(chronocrator['sign'])}")
+        if chronocrator.get('ruler'):
+            details.append(f"maître : {planet_name(chronocrator['ruler'])}")
+        themes = [_PLANET_NAMES_FR.get(str(theme).lower(), safe(str(theme).replace('_', ' ')))
+                  for theme in (chronocrator.get('house_themes') or [])[:4]]
+        if themes:
+            details.append(f"thèmes : {', '.join(themes)}")
+        if details:
+            cycles.append(f"<b>{method_fr} :</b> {' ; '.join(details)}")
+
+    life_areas_fr = {
+        'career_success': 'réussite professionnelle', 'creative_expression': 'expression créative',
+        'leadership': 'leadership', 'relationships': 'relations', 'family': 'famille',
+        'personal_growth': 'évolution personnelle', 'spirituality': 'spiritualité',
+    }
+    life_areas = [life_areas_fr.get(str(area).lower(), safe(str(area).replace('_', ' ')))
+                  for area in (analysis.get('life_areas') or [])[:5]]
+    if life_areas:
+        cycles.append(f"<b>Domaines mis en relief :</b> {', '.join(life_areas)}")
+
+    placements = []
+    for point in analysis.get('planets') or []:
+        if not isinstance(point, dict):
+            continue
+        key = str(point.get('name') or '').strip().lower().replace(' ', '_')
+        if key not in _PLANET_NAMES_FR:
+            continue
+        details = []
+        if point.get('sign'):
+            details.append(sign(point['sign']))
+        position = degree(point.get('position'))
+        if position:
+            details.append(position)
+        if not no_birth_time and point.get('house'):
+            details.append(house_name(point['house']))
+        if point.get('retrograde') is True:
+            details.append('rétrograde')
+        if details:
+            placements.append(f"{planet_name(key)} : {' · '.join(details)}")
+    if placements:
+        cycles.append(f"<b>Positions précises :</b> {' ; '.join(placements[:14])}")
+
+    signatures = []
+    for aspect in (analysis.get('aspects') or [])[:6]:
+        if not isinstance(aspect, dict):
+            continue
+        aspect_points = {
+            str(aspect.get('planet_a') or '').strip().lower(),
+            str(aspect.get('planet_b') or '').strip().lower(),
+        }
+        if no_birth_time and aspect_points.intersection({'moon', 'ascendant'}):
+            continue
+        aspect_type = _ASPECT_NAMES_FR.get(
+            str(aspect.get('aspect_type') or '').lower(), safe(aspect.get('aspect_type') or 'aspect'),
+        )
+        parts = [f"{planet_name(aspect.get('planet_a'))} {aspect_type} {planet_name(aspect.get('planet_b'))}"]
+        orb = degree(aspect.get('orb'))
+        if orb:
+            parts.append(f'orbe {orb}')
+        if aspect.get('applying') is True:
+            parts.append('en formation')
+        elif aspect.get('applying') is False:
+            parts.append('séparant')
+        signatures.append(' — '.join(parts))
+    if signatures:
+        signatures.insert(0, '<b>Aspects les plus précis :</b>')
+
+    condition_labels = {
+        'domicile': 'en domicile', 'exaltation': 'en exaltation',
+        'exile': 'en exil', 'fall': 'en chute', 'retrograde': 'rétrograde',
+        'combust': 'combuste', 'cazimi': 'en cazimi',
+    }
+    conditions = []
+    for point in analysis.get('planets') or []:
+        if not isinstance(point, dict):
+            continue
+        active = []
+        for section in ('dignities', 'debilities', 'conditions'):
+            for key, value in (point.get(section) or {}).items():
+                if value is True and key in condition_labels:
+                    active.append(condition_labels[key])
+        if active:
+            conditions.append(f"{planet_name(point.get('name'))} : {', '.join(active)}")
+    if conditions:
+        signatures.append('<b>Conditions planétaires :</b>')
+        signatures.extend(conditions[:5])
+
+    fixed_stars = []
+    for star in (analysis.get('fixed_stars') or [])[:3]:
+        if not isinstance(star, dict):
+            continue
+        if no_birth_time and str(star.get('planet') or '').strip().lower() in {'moon', 'ascendant'}:
+            continue
+        orb = degree(star.get('orb'))
+        detail = f"{safe(star.get('star') or 'Étoile fixe')} en lien avec {planet_name(star.get('planet'))}"
+        fixed_stars.append(detail + (f' (orbe {orb})' if orb else ''))
+    if fixed_stars:
+        signatures.append(f"<b>Étoiles fixes proches :</b> {' ; '.join(fixed_stars)}")
+
+    pages = []
+    if cycles:
+        pages.append(('Les rythmes de ton ciel', '<br/>'.join(cycles)))
+    if signatures:
+        pages.append(('Les signatures précises', '<br/>'.join(signatures)))
+    return pages
+
 
 def _planet_image_path(planet_fr: str) -> Optional[str]:
     """Retourne le chemin local de l'image de la planète (bibliothèque Supabase).
@@ -406,6 +585,19 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                 body_html=synthese,
                 image_local_path=None,
                 dialogue_question="Tes planètes se parlent — certaines s'aiment, d'autres se cherchent. Écoute leur conversation.",
+                glyph=None,
+            )
+
+        for section_title, section_body in _enhanced_personal_analysis_sections(
+            natal_data.get('enhanced_personal_analysis'), no_birth_time=no_birth_time,
+        ):
+            planet_dense_page(
+                story, styles,
+                planet_name=section_title,
+                sign='Astrologie enrichie',
+                body_html=section_body,
+                image_local_path=None,
+                dialogue_question=None,
                 glyph=None,
             )
 

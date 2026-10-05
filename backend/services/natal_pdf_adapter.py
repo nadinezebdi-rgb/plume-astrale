@@ -224,6 +224,7 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
         'no_birth_time': no_birth_time,
         'planets': planets,
         'synthese_aspects': synthese,
+        'enhanced_personal_analysis': user_data.get('enhanced_personal_analysis') or {},
         'tier': 'ultra' if is_ultra else 'legacy',
     }
 

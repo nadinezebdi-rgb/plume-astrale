@@ -24,22 +24,22 @@ const SVG = {
   card: (
     <svg viewBox="0 0 100 140" width="90" height="126" aria-hidden="true">
       <rect x="8" y="8" width="84" height="124" rx="4"
-            fill="rgba(23,16,46,0.9)" stroke="rgba(216,183,106,0.55)" strokeWidth="0.8" />
+            fill="#1A2035" stroke="rgba(212,175,55,0.55)" strokeWidth="0.8" />
       <text x="50" y="80" textAnchor="middle" fontSize="42"
-            fill="rgba(216,183,106,0.75)"
+            fill="rgba(212,175,55,0.9)"
             fontFamily='"Cormorant Garamond", serif' fontStyle="italic">✦</text>
-      <line x1="20" y1="118" x2="80" y2="118" stroke="rgba(216,183,106,0.35)" strokeWidth="0.4" />
+      <line x1="20" y1="118" x2="80" y2="118" stroke="rgba(212,175,55,0.35)" strokeWidth="0.4" />
     </svg>
   ),
   sky: (
     <svg viewBox="0 0 140 140" width="126" height="126" aria-hidden="true">
-      <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(216,183,106,0.35)" strokeWidth="0.6" />
-      <circle cx="70" cy="70" r="42" fill="none" stroke="rgba(216,183,106,0.25)" strokeWidth="0.4" strokeDasharray="2 3" />
-      <circle cx="70" cy="70" r="22" fill="none" stroke="rgba(216,183,106,0.20)" strokeWidth="0.4" strokeDasharray="1 2" />
+      <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(212,175,55,0.35)" strokeWidth="0.6" />
+      <circle cx="70" cy="70" r="42" fill="none" stroke="rgba(212,175,55,0.25)" strokeWidth="0.4" strokeDasharray="2 3" />
+      <circle cx="70" cy="70" r="22" fill="none" stroke="rgba(212,175,55,0.20)" strokeWidth="0.4" strokeDasharray="1 2" />
       {[[70,10],[130,70],[70,130],[10,70],[110,110],[30,30],[110,30],[30,110]].map(([x,y],i)=>(
-        <circle key={i} cx={x} cy={y} r="2.4" fill="#F4EFE6" style={{filter:'drop-shadow(0 0 5px rgba(216,183,106,0.7))'}} />
+        <circle key={i} cx={x} cy={y} r="2.4" fill="#F4EFE6" style={{filter:'drop-shadow(0 0 5px rgba(212,175,55,0.35))'}} />
       ))}
-      <circle cx="70" cy="70" r="3" fill="#D8B76A" />
+      <circle cx="70" cy="70" r="3" fill="#D4AF37" />
     </svg>
   ),
   numbers: (
@@ -60,21 +60,21 @@ const SVG = {
   duo: (
     <svg viewBox="0 0 160 100" width="160" height="100" aria-hidden="true">
       <ellipse cx="80" cy="50" rx="60" ry="30" fill="none"
-               stroke="rgba(216,183,106,0.35)" strokeWidth="0.6" strokeDasharray="2 3" />
-      <circle cx="40" cy="50" r="7" fill="#D8B76A" style={{filter:'drop-shadow(0 0 8px rgba(216,183,106,0.65))'}} />
-      <circle cx="120" cy="50" r="5" fill="#F4EFE6" style={{filter:'drop-shadow(0 0 8px rgba(244,239,230,0.65))'}} />
+               stroke="rgba(212,175,55,0.35)" strokeWidth="0.6" strokeDasharray="2 3" />
+      <circle cx="40" cy="50" r="7" fill="#D4AF37" style={{filter:'drop-shadow(0 0 8px rgba(212,175,55,0.25))'}} />
+      <circle cx="120" cy="50" r="5" fill="#F4EFE6" style={{filter:'drop-shadow(0 0 8px rgba(244,239,230,0.2))'}} />
     </svg>
   ),
   zodiac: (
     <svg viewBox="0 0 140 140" width="126" height="126" aria-hidden="true">
-      <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(216,183,106,0.30)" strokeWidth="0.6" />
+      <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(212,175,55,0.30)" strokeWidth="0.6" />
       {['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'].map((g,i)=>{
         const a = (i/12) * Math.PI * 2 - Math.PI/2;
         const x = 70 + Math.cos(a) * 52;
         const y = 70 + Math.sin(a) * 52 + 5;
         return (
           <text key={i} x={x} y={y} textAnchor="middle" fontSize="14"
-                fill="rgba(216,183,106,0.80)"
+                fill="rgba(212,175,55,0.88)"
                 fontFamily='"Cormorant Garamond", serif'>{g}</text>
         );
       })}
@@ -85,9 +85,9 @@ const SVG = {
       {[0.05,0.25,0.5,0.75,0.95].map((p,i)=>{
         const cx = 10 + p*120;
         const phase = Math.sin(p*Math.PI);
-        return <circle key={i} cx={cx} cy="30" r={4 + phase*4} fill="rgba(216,183,106,0.7)" />;
+        return <circle key={i} cx={cx} cy="30" r={4 + phase*4} fill="rgba(212,175,55,0.75)" />;
       })}
-      <path d="M 5 30 Q 70 5 135 30" fill="none" stroke="rgba(216,183,106,0.25)" strokeWidth="0.5" strokeDasharray="2 2" />
+      <path d="M 5 30 Q 70 5 135 30" fill="none" stroke="rgba(212,175,55,0.3)" strokeWidth="0.5" strokeDasharray="2 2" />
     </svg>
   ),
 };
@@ -145,17 +145,17 @@ function ServiceBand({ svc, index }) {
       <div style={{ flex: '0 1 480px', textAlign: index % 2 === 0 ? 'left' : 'right' }}>
         <p style={{
           fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.32em',
-          textTransform: 'uppercase', color: 'rgba(216,183,106,0.75)', margin: '0 0 14px',
+          textTransform: 'uppercase', color: 'rgba(212,175,55,0.9)', margin: '0 0 14px',
         }}>SERVICE 0{index + 1}</p>
         <h2 style={{
           fontFamily: '"Cormorant Garamond", "Playfair Display", serif',
           fontWeight: 400, fontSize: 'clamp(36px, 4.8vw, 60px)', lineHeight: 1.1,
-          margin: '0 0 14px', color: '#F4EFE6',
+          margin: '0 0 14px', color: 'var(--hex3-ivory)',
         }}>{svc.title}</h2>
         <p style={{
           fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
           fontSize: 'clamp(16px, 1.7vw, 20px)',
-          color: 'rgba(244,239,230,0.70)', lineHeight: 1.55,
+          color: 'var(--hex3-ivory-mute)', lineHeight: 1.55,
           margin: '0 0 24px', maxWidth: 460,
           marginLeft: index % 2 === 0 ? 0 : 'auto',
         }}>{svc.tagline}</p>
@@ -165,10 +165,10 @@ function ServiceBand({ svc, index }) {
           data-testid={`home-experience-service-cta-${svc.key}`}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 12,
-            padding: '13px 26px', color: '#F4EFE6', textDecoration: 'none',
+            padding: '13px 26px', color: 'var(--hex3-ivory)', textDecoration: 'none',
             fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.28em',
-            textTransform: 'uppercase', border: '1px solid rgba(216,183,106,0.55)',
-            borderRadius: 2, transition: 'letter-spacing 400ms ease, background 300ms ease',
+            textTransform: 'uppercase', border: '1px solid rgba(212,175,55,0.45)',
+            borderRadius: 6, transition: 'letter-spacing 400ms ease, background 300ms ease',
           }}
           onMouseEnter={(e) => { e.currentTarget.style.letterSpacing = '0.34em'; }}
           onMouseLeave={(e) => { e.currentTarget.style.letterSpacing = '0.28em'; }}

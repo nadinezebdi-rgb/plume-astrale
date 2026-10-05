@@ -90,7 +90,7 @@ function Constellation({ id, points, center, isActive, isHovered, isDimmed }) {
           transparent
           depthWrite={false}
           blending={THREE.AdditiveBlending}
-          color={isHovered || isActive ? '#F4EFE6' : '#D8B76A'}
+          color={isHovered || isActive ? '#26242B' : '#79570F'}
           opacity={0.72}
         />
       </points>
@@ -101,7 +101,7 @@ function Constellation({ id, points, center, isActive, isHovered, isDimmed }) {
         </bufferGeometry>
         <lineBasicMaterial
           ref={lineMatRef}
-          color="#D8B76A"
+          color="#79570F"
           transparent
           opacity={0.16}
           depthWrite={false}

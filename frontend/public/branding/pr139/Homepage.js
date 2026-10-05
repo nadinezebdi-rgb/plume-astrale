@@ -36,17 +36,17 @@ const VALUE_PILLARS = [
   {
     icon: Feather,
     title: 'Analyse personnalisée',
-    body: 'Composée à partir de vos données de naissance exactes (date, heure, lieu) — pas une variation générique par signe. Chaque lecture est unique.',
+    body: 'Composée à partir de ta date, heure et lieu de naissance exacts — pas une variation générique par signe. Chaque lecture est unique.',
   },
   {
     icon: Compass,
-    title: 'Guidance actionnable',
-    body: 'Vos cycles, vos points d\'inflexion, vos leviers de décision. Pas de prédictions — un cadre pour lire les périodes qui comptent.',
+    title: 'Guidance douce et claire',
+    body: 'Tu lis tes cycles, tes points d\'inflexion et tes talents sans rester dans le flou. Le ciel devient un miroir, pas un verdict.',
   },
   {
     icon: Heart,
-    title: 'Livraison sous 60 secondes',
-    body: 'PDF premium reçu instantanément par email dès validation du paiement. À télécharger, archiver, imprimer — vous en gardez la propriété à vie.',
+    title: 'Livraison premium instantanée',
+    body: 'Ton PDF est livré dès validation du paiement. Tu peux le conserver, le relire, l\'imprimer et le garder comme un objet de soin.',
   },
 ];
 
@@ -97,17 +97,53 @@ export default function Homepage() {
   const [flipbookBook, setFlipbookBook] = useState(null);
 
   const FEATURED_BOOKS = [
-    { slug: 'theme-natal',       title: 'Thème Natal',              tagline: '49 pages · 11 planètes décodées',   price: '39€', to: '/theme-natal' },
-    { slug: 'kabbale',           title: 'Arbre de Vie · Kabbale',   tagline: '10 Sephiroth · 22 chemins',         price: '39€',    to: '/kabbale' },
-    { slug: 'astrocartographie', title: 'Astrocartographie',        tagline: '7 lignes planétaires sur le monde', price: '49€',    to: '/astrocartographie' },
+    { slug: 'theme-natal',       title: 'Thème Natal',             tagline: '49 pages · 11 planètes décodées',                  price: '39€', to: '/theme-natal' },
+    { slug: 'voyage-karmique',   title: 'Voyage Karmique',         tagline: 'Arbre de Vie + lignée d’âme',                      price: '49€', to: '/voyage-karmique' },
+    { slug: 'astrocartographie', title: 'Astrocartographie',      tagline: '7 lignes planétaires · où vivre ta meilleure vie', price: '49€', to: '/astrocartographie' },
   ];
+
+  const PRIMARY_CTA = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '14px 22px',
+    borderRadius: 999,
+    background: 'linear-gradient(135deg, #E4C97A 0%, #C9A24B 45%, #B98B2E 100%)',
+    color: '#0F1A3C',
+    fontFamily: 'Inter, sans-serif',
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: '0.14em',
+    textTransform: 'uppercase',
+    textDecoration: 'none',
+    boxShadow: '0 18px 36px rgba(201, 162, 75, 0.22)',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+  };
+
+  const SECONDARY_CTA = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '12px 18px',
+    borderRadius: 999,
+    border: '1px solid rgba(247,245,240,0.3)',
+    color: '#F7F5F0',
+    background: 'rgba(247,245,240,0.02)',
+    fontFamily: 'Inter, sans-serif',
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    textDecoration: 'none',
+    transition: 'transform 0.2s ease, border-color 0.2s ease',
+  };
 
   return (
     <div className="ps-home" data-testid="homepage-v2">
       <SEO
         path="/"
-        title="Plume Astrale · Lectures astrologiques personnalisées en PDF"
-        description="Une lecture astrologique personnalisée, composée à partir de votre thème natal exact. PDF premium livré en 60 secondes · garantie 14 jours · paiement Stripe sécurisé."
+        title="Plume Astrale · Ton ciel, raconté avec douceur"
+        description="Découvre ton thème natal, tes cycles et les clés de ta vie avec une guidance astrologique douce, précise et personnalisée."
       />
 
       {/* ═══ SECTION 1 · HERO NOCTURNE ÉDITORIAL (Feb 2026 — refonte artistique) ═══ */}
@@ -135,16 +171,16 @@ export default function Homepage() {
       <HomepageMiniQuiz />
 
       {/* ═══ SECTION 2 · PROPOSITION DE VALEUR (CLAIRE) ═══ */}
-      <section className="ps-section ps-section-light" data-testid="ps-value">
+      <section className="ps-section ps-section-light" data-testid="ps-value" style={{ paddingTop: 96, paddingBottom: 96 }}>
         <div className="ps-container">
           <div style={{ maxWidth: 680, marginBottom: 64 }}>
-            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Trois engagements, tenus à chaque page</p>
+            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Plume Astrale · ton ciel, raconté avec douceur</p>
             <h2 className="ps-h2" style={{ color: '#0F1A3C', marginBottom: 20 }}>
-              Une lecture personnelle, <span className="ps-italic">jamais générique.</span>
+              Le ciel n’a pas de formule, <span className="ps-italic">il a une histoire.</span>
             </h2>
             <p className="ps-body" style={{ color: '#232323' }}>
-              Votre thème natal n&apos;est comparable à aucun autre — votre lecture ne l&apos;est pas non plus.
-              Chaque PDF est calculé sur vos données exactes de naissance et rédigé sur mesure.
+              Ton thème natal révèle des cycles, des talents, des tensions et des temps utiles.
+              Plume Astrale te donne une lecture précise, poétique et claire pour comprendre ce qui compte vraiment.
             </p>
           </div>
 
@@ -190,18 +226,36 @@ export default function Homepage() {
 
 
       {/* ═══ SECTION 4bis · FEUILLETAGE DES LIVRES (SOMBRE) ═══ */}
-      <section className="ps-section ps-section-dark" data-testid="ps-flipbook-teaser">
+      <section className="ps-section ps-section-dark" data-testid="ps-flipbook-teaser" style={{ paddingTop: 92, paddingBottom: 92 }}>
         <CelestialBackdrop density={90} shootingStars={false} />
         <div className="ps-container" style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ marginBottom: 56, maxWidth: 680 }}>
-            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Feuilleter avant d&apos;acheter</p>
-            <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 16 }}>
-              Un extrait, comme si tu tenais le <span className="ps-italic">livre</span> entre tes mains.
+            <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Trois lectures. Le vôtre, à choisir.</p>
+            <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 16, lineHeight: 1.08, letterSpacing: '-0.03em' }}>
+              Une lecture premium qui donne <span className="ps-italic">du sens au ciel.</span>
             </h2>
-            <p className="ps-body" style={{ color: 'rgba(247,245,240,0.78)' }}>
-              Chaque lecture est composée comme un vrai livre — couverture personnalisée, table
-              des matières, ornements dorés. Ouvre-en un pour toucher la matière.
+            <p className="ps-body" style={{ color: 'rgba(247,245,240,0.78)', lineHeight: 1.75 }}>
+              Chaque livre est composé comme un objet de soin — couverture personnalisée, narration précise,
+              synthèse symbolique et voix éditoriale qui te parle sans jargon inutile.
             </p>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 28 }}>
+            <Link
+              to="/composer?edition=reliee"
+              style={PRIMARY_CTA}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 22px 44px rgba(201, 162, 75, 0.30)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 18px 36px rgba(201, 162, 75, 0.22)';
+              }}
+            >
+              Commencer mon parcours
+              <ArrowRight style={{ width: 15, height: 15 }} strokeWidth={2} />
+            </Link>
           </div>
 
           <div style={{
@@ -209,54 +263,82 @@ export default function Homepage() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
             gap: 24,
           }}>
-            {FEATURED_BOOKS.map((b) => (
+            {FEATURED_BOOKS.map((b, index) => (
               <div key={b.slug}
                 data-testid={`home-flipbook-card-${b.slug}`}
                 style={{
-                  background: 'rgba(247,245,240,0.04)',
-                  border: '1px solid rgba(201,162,75,0.20)',
-                  borderRadius: 14,
-                  padding: 28,
-                  display: 'flex', flexDirection: 'column', gap: 16,
-                  transition: 'border-color 0.3s ease, transform 0.3s ease',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  background: 'linear-gradient(180deg, rgba(18, 25, 42, 0.95) 0%, rgba(13, 19, 31, 0.92) 100%)',
+                  border: '1px solid rgba(201,162,75,0.22)',
+                  borderRadius: 22,
+                  padding: 26,
+                  display: 'flex', flexDirection: 'column', gap: 18,
+                  minHeight: 360,
+                  transition: 'border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease',
+                  boxShadow: index === 1 ? '0 20px 40px rgba(12, 17, 32, 0.28)' : '0 10px 25px rgba(12, 17, 32, 0.16)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(201,162,75,0.55)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.borderColor = 'rgba(201,162,75,0.65)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 24px 54px rgba(12, 17, 32, 0.30)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(201,162,75,0.20)';
+                  e.currentTarget.style.borderColor = 'rgba(201,162,75,0.22)';
                   e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = index === 1 ? '0 20px 40px rgba(12, 17, 32, 0.28)' : '0 10px 25px rgba(12, 17, 32, 0.16)';
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <BookOpen style={{ width: 20, height: 20, color: '#C9A24B' }} strokeWidth={1.6} />
-                  <span style={{
-                    fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600,
-                    letterSpacing: '0.14em', textTransform: 'uppercase',
-                    color: 'rgba(247,245,240,0.55)',
-                  }}>Livre imprimé</span>
+                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top right, rgba(201,162,75,0.18), transparent 43%)', pointerEvents: 'none' }} />
+
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <BookOpen style={{ width: 18, height: 18, color: '#D7B15B' }} strokeWidth={1.6} />
+                    <span style={{
+                      fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700,
+                      letterSpacing: '0.14em', textTransform: 'uppercase',
+                      color: 'rgba(247,245,240,0.7)',
+                    }}>Livre premium</span>
+                  </div>
+                  {index === 1 && (
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      padding: '6px 10px', borderRadius: 999, background: 'rgba(201,162,75,0.12)',
+                      border: '1px solid rgba(201,162,75,0.38)', color: '#F0D58D',
+                      fontFamily: 'Inter, sans-serif', fontSize: 9, fontWeight: 700,
+                      letterSpacing: '0.12em', textTransform: 'uppercase',
+                    }}>Recommandé</span>
+                  )}
                 </div>
 
-                <div>
+                <div style={{ position: 'relative' }}>
                   <h3 style={{
                     fontFamily: 'Playfair Display, serif',
-                    fontSize: 22, fontWeight: 500, color: '#F7F5F0',
-                    margin: 0, marginBottom: 6, lineHeight: 1.25,
+                    fontSize: 26, fontWeight: 500, color: '#F7F5F0',
+                    margin: 0, marginBottom: 8, lineHeight: 1.15, letterSpacing: '-0.02em',
                   }}>{b.title}</h3>
                   <p style={{
-                    fontFamily: 'Inter, sans-serif', fontSize: 13,
-                    color: 'rgba(247,245,240,0.62)',
-                    margin: 0,
+                    fontFamily: 'Inter, sans-serif', fontSize: 14, lineHeight: 1.7,
+                    color: 'rgba(247,245,240,0.68)', margin: 0,
                   }}>{b.tagline}</p>
                 </div>
 
-                <div style={{
-                  fontFamily: 'Playfair Display, serif',
-                  fontSize: 24, color: '#C9A24B', fontStyle: 'italic',
-                }}>{b.price}</div>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: 14, paddingTop: 8 }}>
+                  <div style={{
+                    fontFamily: 'Playfair Display, serif',
+                    fontSize: 30, color: '#D7B15B', fontStyle: 'italic', lineHeight: 1,
+                  }}>{b.price}</div>
+                  <div style={{
+                    width: 54, height: 54, borderRadius: '50%',
+                    background: 'linear-gradient(135deg, rgba(201,162,75,0.18), rgba(201,162,75,0.04))',
+                    border: '1px solid rgba(201,162,75,0.35)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <ArrowRight style={{ width: 18, height: 18, color: '#F3D892' }} strokeWidth={2} />
+                  </div>
+                </div>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4 }}>
+                <div style={{ position: 'relative', display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 'auto' }}>
                   <button
                     type="button"
                     onClick={() => setFlipbookBook(b)}
@@ -264,15 +346,16 @@ export default function Homepage() {
                     style={{
                       flex: '1 1 auto',
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      padding: '11px 18px', borderRadius: 999,
-                      background: '#C9A24B', color: '#0F1A3C',
-                      fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600,
-                      letterSpacing: '0.10em', textTransform: 'uppercase',
+                      padding: '12px 18px', borderRadius: 999,
+                      background: 'linear-gradient(135deg, #E8C97B 0%, #D1A852 100%)', color: '#0F1A3C',
+                      fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700,
+                      letterSpacing: '0.12em', textTransform: 'uppercase',
                       border: 'none', cursor: 'pointer',
-                      transition: 'background 0.2s ease, transform 0.2s ease',
+                      transition: 'transform 0.2s ease, filter 0.2s ease',
+                      boxShadow: '0 12px 24px rgba(201, 162, 75, 0.22)',
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = '#B58F3F'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = '#C9A24B'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.filter = 'brightness(1.02)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.filter = 'none'; }}
                   >
                     Feuilleter
                     <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={2} />
@@ -282,10 +365,10 @@ export default function Homepage() {
                     data-testid={`home-flipbook-detail-${b.slug}`}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 6,
-                      padding: '11px 16px',
-                      color: 'rgba(247,245,240,0.85)',
-                      fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500,
-                      letterSpacing: '0.10em', textTransform: 'uppercase',
+                      padding: '12px 14px',
+                      color: 'rgba(247,245,240,0.9)',
+                      fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600,
+                      letterSpacing: '0.12em', textTransform: 'uppercase',
                       textDecoration: 'none',
                     }}
                   >
@@ -299,7 +382,7 @@ export default function Homepage() {
           <div style={{ marginTop: 40 }}>
             <Link to="/livres" className="ps-btn ps-btn-outline"
               data-testid="home-flipbook-all-cta"
-              style={{ color: '#F7F5F0', borderColor: 'rgba(247,245,240,0.4)' }}>
+              style={SECONDARY_CTA}>
               Voir toute la bibliothèque
               <ArrowRight style={{ width: 16, height: 16 }} strokeWidth={2} />
             </Link>
@@ -317,7 +400,7 @@ export default function Homepage() {
       <section
         className="ps-section ps-section-light"
         data-testid="ps-featured-articles"
-        style={{ borderTop: '1px solid #E3E1DC' }}
+        style={{ borderTop: '1px solid #E3E1DC', paddingTop: 88, paddingBottom: 88 }}
       >
         <div className="ps-container">
           <div style={{ marginBottom: 40, display: 'flex', justifyContent: 'space-between', alignItems: 'end', flexWrap: 'wrap', gap: 20 }}>
@@ -334,13 +417,10 @@ export default function Homepage() {
               to="/blog"
               data-testid="featured-articles-see-all"
               style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: 12, fontWeight: 600,
-                letterSpacing: '0.16em', textTransform: 'uppercase',
-                color: '#C9A24B', textDecoration: 'none',
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                paddingBottom: 4,
-                borderBottom: '1px solid rgba(201, 162, 75, 0.4)',
+                ...SECONDARY_CTA,
+                borderColor: 'rgba(201, 162, 75, 0.45)',
+                color: '#0F1A3C',
+                background: 'rgba(201, 162, 75, 0.05)',
               }}
             >
               Tous les articles

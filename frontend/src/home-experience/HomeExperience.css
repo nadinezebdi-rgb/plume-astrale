@@ -1,20 +1,19 @@
 /**
  * HomeExperience.css — styles /home-experience-v3
  *
- * Palette unifiée cosmique noire — cohérence visuelle totale avec les
- * scènes WebGL Actes I-IV. Tous les Actes V-VIII partagent le même
- * fond noir profond, la même topographie de titres, et sont reliés
+ * Palette claire éditoriale — cohérence visuelle totale avec la lecture
+ * du jour. Tous les Actes V-VIII partagent le même fond papier et sont reliés
  * par un fil doré vertical continu.
  */
 
 :root {
   /* Palette pivot Home Experience V3 */
-  --hex3-void:       #070713;   /* Fond canvas 3D + Actes V-VIII */
-  --hex3-void-soft:  #0B0B18;   /* Séparateur discret entre sections */
-  --hex3-gold:       #D8B76A;   /* Or éditorial (accent unique) */
-  --hex3-gold-line:  rgba(216, 183, 106, 0.35);
+  --hex3-void:       #111625;
+  --hex3-void-soft:  #1A2035;
+  --hex3-gold:       #D4AF37;
+  --hex3-gold-line:  rgba(212, 175, 55, 0.28);
   --hex3-ivory:      #F4EFE6;
-  --hex3-ivory-mute: rgba(244, 239, 230, 0.65);
+  --hex3-ivory-mute: rgba(244, 239, 230, 0.68);
 }
 
 /* Toutes les sections des Actes V-VIII partagent la même trame */

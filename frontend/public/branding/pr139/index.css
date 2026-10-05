@@ -2,18 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Google Fonts — Plume Astrale Design System v2 */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@1,400;1,500;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+/* Google Fonts — Plume Astrale Design System v3 */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap');
 
 :root {
-  /* ─── PLUME ASTRALE — Design System v2 (Feb 2026) ─── */
-  /* Palette Nuit Douce + Or Brossé — magazine de luxe */
-  --plume-night:        #111625;   /* Nuit Douce — fond principal */
+  /* ─── PLUME ASTRALE — Design System v3 (Sept 2026) ─── */
+  /* Palette nuit profonde + or doux — univers céleste et éditorial */
+  --plume-night:        #111625;   /* Nuit douce — fond principal */
   --plume-night-deep:   #0C1120;   /* Variante encore + profonde pour body */
-  --plume-night-soft:   #1A2035;   /* Nuit Profonde — surfaces cartes */
-  --plume-gold:         #D4AF37;   /* Or Brossé — accents */
+  --plume-night-soft:   #0F1A3C;   /* Nuit profonde — surfaces catalytiques */
+  --plume-gold:         #D4AF37;   /* Or brossé — accents premium */
   --plume-gold-bright:  #E8C766;   /* Or clair au hover */
-  --plume-lavender:     #E3D7FF;   /* Lavande Pâle — textes secondaires */
+  --plume-lavender:     #E3D7FF;   /* Lavande pâle — textes secondaires */
+  --plume-ivory:        #F4EFE6;   /* ivoire doux — textes clairs */
+  --plume-ink:          #171D2A;   /* texte principal sombre */
 
   /* Élements adaptifs (Aura Connectée) */
   --plume-element-fire:  #E8A855;

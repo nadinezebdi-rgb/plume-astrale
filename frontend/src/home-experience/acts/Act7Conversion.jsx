@@ -67,7 +67,7 @@ export default function Act7Conversion() {
 
   // Si utilisateur déjà connecté, redirection vers son espace
   const signupHref = user ? '/mon-compte' : buildSignupUrl();
-  const primaryLabel = user ? 'Voir mon espace' : 'Commencer mon voyage';
+  const primaryLabel = user ? 'Voir mon espace' : 'Commencer';
 
   return (
     <section
@@ -89,13 +89,13 @@ export default function Act7Conversion() {
         style={{
           position: 'absolute', top: '18%', left: '50%',
           width: 90, height: 130, opacity: 0.18,
-          filter: 'drop-shadow(0 0 30px rgba(216,183,106,0.4))',
+          filter: 'drop-shadow(0 0 30px rgba(212,175,55,0.18))',
           animation: 'hex3FeatherFloat 12s ease-in-out infinite',
         }}
       >
         <path d="M22 4 Q 21 20 22 30 Q 23 44 22 60"
-              stroke="#C4A25C" strokeWidth="1.1" fill="none" strokeLinecap="round" />
-        <g stroke="#D8B76A" strokeWidth="0.9" fill="none" strokeLinecap="round">
+                stroke="#D4AF37" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+              <g stroke="#D4AF37" strokeWidth="0.9" fill="none" strokeLinecap="round">
           {[10,16,22,28,34,40,46,52].flatMap((y) => [
             <path key={`l${y}`} d={`M22 ${y} Q 14 ${y+2} 7 ${y}`} />,
             <path key={`r${y}`} d={`M22 ${y} Q 30 ${y+2} 37 ${y}`} />,
@@ -107,12 +107,12 @@ export default function Act7Conversion() {
         <p className="hex3-eyebrow">ACTE VII · COMMENCER</p>
 
         <h2 className="hex3-h2">
-          Votre voyage <em>ne fait que commencer.</em>
+          Ta réponse <em>vous attend déjà.</em>
         </h2>
 
         <p style={{
           fontFamily: '"Inter", sans-serif', fontSize: 12, letterSpacing: '0.32em',
-          textTransform: 'uppercase', color: '#D8B76A',
+          textTransform: 'uppercase', color: 'var(--hex3-gold)',
           margin: '32px 0 12px', display: 'inline-flex', alignItems: 'center', gap: 12,
         }}>
           <span style={{ fontSize: 18 }}>✦</span> 20 crédits offerts
@@ -120,9 +120,9 @@ export default function Act7Conversion() {
         <p style={{
           fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
           fontSize: 'clamp(16px, 1.7vw, 20px)',
-          color: 'rgba(244,239,230,0.65)', lineHeight: 1.5,
+          color: 'var(--hex3-ivory-mute)', lineHeight: 1.5,
           margin: '0 0 44px',
-        }}>Pour commencer à explorer votre univers Plume Astrale.</p>
+        }}>Commence à explorer ton univers Plume Astrale, avec douceur et précision.</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
           <Link
@@ -131,21 +131,21 @@ export default function Act7Conversion() {
             data-testid="home-experience-signup-cta"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 14,
-              padding: '18px 40px', color: '#F4EFE6', textDecoration: 'none',
+              padding: '18px 40px', color: 'var(--hex3-ivory)', textDecoration: 'none',
               fontFamily: '"Inter", sans-serif', fontSize: 12, letterSpacing: '0.32em',
-              textTransform: 'uppercase', border: '1px solid rgba(216,183,106,0.7)',
-              borderRadius: 2, transition: 'letter-spacing 400ms ease, background 300ms ease',
+              textTransform: 'uppercase', border: '1px solid rgba(212,175,55,0.65)',
+              borderRadius: 6, transition: 'letter-spacing 400ms ease, background 300ms ease',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.letterSpacing = '0.38em';
-              e.currentTarget.style.background = 'rgba(216,183,106,0.08)';
+              e.currentTarget.style.background = 'rgba(212,175,55,0.08)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.letterSpacing = '0.32em';
               e.currentTarget.style.background = 'transparent';
             }}
           >
-            <span style={{ color: '#D8B76A', fontSize: 14 }}>✦</span>
+            <span style={{ color: 'var(--hex3-gold)', fontSize: 14 }}>✦</span>
             {primaryLabel}
           </Link>
           {!user && (
@@ -155,7 +155,7 @@ export default function Act7Conversion() {
               data-testid="home-experience-login-cta"
               style={{
                 fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.24em',
-                textTransform: 'uppercase', color: 'rgba(244,239,230,0.5)',
+                textTransform: 'uppercase', color: 'rgba(244,239,230,0.68)',
                 textDecoration: 'none', padding: '10px 14px',
               }}
             >

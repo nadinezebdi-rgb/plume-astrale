@@ -59,7 +59,7 @@ export default function ActThread({ heightVh = 70, testid = 'hex3-thread' }) {
       data-testid={testid}
       style={{
         position: 'relative', width: '100%', height: `${heightVh}vh`,
-        background: '#070713',
+        background: 'var(--hex3-void)',
         display: 'flex', alignItems: 'stretch', justifyContent: 'center',
         overflow: 'hidden',
       }}
@@ -94,8 +94,8 @@ export default function ActThread({ heightVh = 70, testid = 'hex3-thread' }) {
         }}
       >
         <path d="M22 4 Q 21 20 22 30 Q 23 44 22 60"
-              stroke="#C4A25C" strokeWidth="1.1" fill="none" strokeLinecap="round" />
-        <g stroke="#D8B76A" strokeWidth="0.9" fill="none" strokeLinecap="round" opacity="0.75">
+                stroke="var(--hex3-gold)" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+              <g stroke="var(--hex3-gold)" strokeWidth="0.9" fill="none" strokeLinecap="round" opacity="0.75">
           {[12, 20, 28, 36, 44, 52].flatMap((y) => [
             <path key={`l${y}`} d={`M22 ${y} Q 14 ${y+2} 8 ${y}`} />,
             <path key={`r${y}`} d={`M22 ${y} Q 30 ${y+2} 36 ${y}`} />,

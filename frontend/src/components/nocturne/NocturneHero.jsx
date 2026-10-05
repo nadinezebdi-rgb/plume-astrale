@@ -43,23 +43,42 @@ export default function NocturneHero() {
               Chez elle en cinq jours.
             </p>
 
-            <div className="ne-hero-actions ne-reveal ne-reveal-4">
+            <div className="ne-hero-actions ne-reveal ne-reveal-4" style={{ marginBottom: 12 }}>
               <Link
                 to="/composer?edition=reliee"
                 className="ne-btn ne-btn-primary ne-hero-primary"
                 data-testid="nocturne-hero-cta-primary"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '18px 28px',
+                  borderRadius: 999,
+                  background: 'linear-gradient(135deg, #f4d98e 0%, #e2bc67 35%, #c6923c 100%)',
+                  color: '#0d1731',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  textDecoration: 'none',
+                  boxShadow: '0 24px 52px rgba(194, 146, 59, 0.36)',
+                  border: '1px solid rgba(255,255,255,0.22)',
+                  transition: 'transform 200ms ease, box-shadow 200ms ease, filter 200ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 28px 60px rgba(194, 146, 59, 0.46)';
+                  e.currentTarget.style.filter = 'brightness(1.04)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 24px 52px rgba(194, 146, 59, 0.36)';
+                  e.currentTarget.style.filter = 'none';
+                }}
               >
-                Composer son livre — 119 €
+                Créer mon thème natal
                 <ArrowRight style={{ width: 17, height: 17 }} strokeWidth={1.7} />
-              </Link>
-              <Link
-                to="/livres"
-                className="ne-btn-ghost"
-                data-testid="nocturne-hero-cta-ghost"
-                style={{ color: 'var(--ne-celeste)' }}
-              >
-                <BookOpen style={{ width: 16, height: 16 }} strokeWidth={1.5} />
-                Feuilleter un exemple
               </Link>
             </div>
 
@@ -77,42 +96,6 @@ export default function NocturneHero() {
             >
               Vous lisez avant qu&rsquo;on imprime · Expédié de France
             </div>
-
-            <Link
-              to="/composer?edition=reliee"
-              className="ne-reveal ne-reveal-5"
-              data-testid="nocturne-hero-cta-edition-reliee"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 10,
-                marginTop: 18,
-                padding: '10px 18px',
-                borderRadius: 999,
-                border: '1px solid rgba(196, 162, 92, 0.45)',
-                background: 'linear-gradient(135deg, rgba(196, 162, 92, 0.14), rgba(196, 162, 92, 0.04))',
-                color: 'var(--ne-or, #C4A25C)',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: 12.5,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                textDecoration: 'none',
-                fontWeight: 500,
-                transition: 'transform 200ms ease, border-color 200ms ease, background 200ms ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.borderColor = 'rgba(196, 162, 92, 0.9)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.borderColor = 'rgba(196, 162, 92, 0.45)';
-              }}
-            >
-              <Sparkles style={{ width: 14, height: 14 }} strokeWidth={1.6} />
-              Voir l&rsquo;Édition Reliée — 119&nbsp;€
-              <ArrowRight style={{ width: 14, height: 14 }} strokeWidth={1.6} />
-            </Link>
 
             <div className="ne-hero-reassurance ne-reveal ne-reveal-5">
               <span><ShieldCheck aria-hidden="true" /> Sans carte bancaire</span>

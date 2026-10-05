@@ -84,7 +84,7 @@ export default function ZodiacInterlude({ visible, onComplete, onSkip }) {
               style={{ ...ctaPrimary, opacity: dob ? 1 : 0.4, cursor: dob ? 'pointer' : 'default' }}
               data-testid="zodiac-submit"
             >
-              <span style={{ color: '#D8B76A' }}>✦</span> RÉVÉLER MON SIGNE
+              <span style={{ color: '#79570F' }}>✦</span> RÉVÉLER MON SIGNE
             </button>
             <button
               type="button"
@@ -122,7 +122,7 @@ export default function ZodiacInterlude({ visible, onComplete, onSkip }) {
             {stars.map(([x, y], i) => (
               <circle
                 key={`s-${i}`} cx={x} cy={y} r="3.4"
-                fill="#F4EFE6"
+                fill="#26242B"
                 style={{
                   filter: 'drop-shadow(0 0 6px rgba(216, 183, 106, 0.9))',
                   animation: `starBirth ${700 + i * 180}ms ease-out both`,
@@ -162,7 +162,7 @@ export default function ZodiacInterlude({ visible, onComplete, onSkip }) {
             style={{ ...ctaPrimary, marginTop: 20, opacity: 0, animation: 'verseIn 700ms ease 4400ms forwards' }}
             data-testid="zodiac-continue"
           >
-            <span style={{ color: '#D8B76A' }}>✦</span> CONTINUER
+              <span style={{ color: '#79570F' }}>✦</span> CONTINUER
           </button>
         </div>
       )}
@@ -172,18 +172,18 @@ export default function ZodiacInterlude({ visible, onComplete, onSkip }) {
 
 const overlayStyle = {
   position: 'fixed', inset: 0, zIndex: 900,
-  background: 'radial-gradient(ellipse at 50% 42%, rgba(23, 16, 46, 0.94), rgba(7, 7, 19, 0.98))',
+  background: 'rgba(252, 251, 248, 0.98)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   padding: '24px 20px',
   animation: 'zodiacFade 700ms ease-out',
 };
 const cardStyle = {
   maxWidth: 520, width: '100%', textAlign: 'center',
-  color: '#F4EFE6', fontFamily: '"Cormorant Garamond", Georgia, serif',
+  color: '#26242B', fontFamily: '"Cormorant Garamond", Georgia, serif',
 };
 const eyebrowStyle = {
   fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.32em',
-  color: 'rgba(216, 183, 106, 0.75)', textTransform: 'uppercase',
+  color: 'rgba(121, 87, 15, 0.82)', textTransform: 'uppercase',
   margin: '0 0 20px',
 };
 const titleStyle = {
@@ -193,13 +193,13 @@ const titleStyle = {
 };
 const leadStyle = {
   fontStyle: 'italic', fontSize: 'clamp(15px, 1.6vw, 18px)',
-  color: 'rgba(244, 239, 230, 0.72)', margin: '0 0 26px', lineHeight: 1.6,
+  color: 'rgba(38, 36, 43, 0.72)', margin: '0 0 26px', lineHeight: 1.6,
 };
 const verseStyle = {
   fontFamily: '"Cormorant Garamond", "Playfair Display", Georgia, serif',
   fontStyle: 'italic',
   fontSize: 'clamp(16px, 1.7vw, 19px)',
-  color: 'rgba(244, 239, 230, 0.85)',
+  color: 'rgba(38, 36, 43, 0.85)',
   lineHeight: 1.55,
   margin: '0 auto 10px',
   maxWidth: 460,
@@ -207,24 +207,24 @@ const verseStyle = {
 };
 const inputStyle = {
   background: 'transparent',
-  border: 'none', borderBottom: '1px solid rgba(216, 183, 106, 0.4)',
-  color: '#F4EFE6',
+  border: 'none', borderBottom: '1px solid rgba(121, 87, 15, 0.5)',
+  color: '#26242B',
   fontFamily: '"Inter", sans-serif', fontSize: 14,
   letterSpacing: '0.14em',
   padding: '10px 4px', width: 240, textAlign: 'center',
-  outline: 'none', colorScheme: 'dark',
+  outline: 'none', colorScheme: 'light',
 };
 const ctaPrimary = {
   display: 'inline-flex', alignItems: 'center', gap: 12,
-  padding: '14px 30px', background: 'transparent', color: '#F4EFE6',
+  padding: '14px 30px', background: 'transparent', color: '#26242B',
   fontFamily: '"Inter", sans-serif', fontSize: 11.5, fontWeight: 400,
   letterSpacing: '0.28em', textTransform: 'uppercase',
-  border: '1px solid rgba(216, 183, 106, 0.55)', borderRadius: 2,
+  border: '1px solid rgba(121, 87, 15, 0.55)', borderRadius: 2,
   cursor: 'pointer', transition: 'letter-spacing 400ms ease',
 };
 const skipStyle = {
   background: 'transparent', border: 'none',
-  color: 'rgba(244, 239, 230, 0.4)',
+  color: 'rgba(38, 36, 43, 0.56)',
   fontFamily: '"Inter", sans-serif', fontSize: 11,
   letterSpacing: '0.22em', textTransform: 'uppercase',
   cursor: 'pointer', padding: '8px 4px',

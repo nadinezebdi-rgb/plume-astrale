@@ -32,14 +32,14 @@ const Act7Conversion      = lazy(() => import('./acts/Act7Conversion'));
 const Act8Reassurance     = lazy(() => import('./acts/Act8Reassurance'));
 
 const ACT_LABELS = {
-  1: "Acte 1 : l'appel",
+  1: 'Acte 1 : l’appel',
   2: 'Acte 2 : la question',
   3: 'Acte 3 : la révélation',
   4: 'Acte 4 : la plume',
-  5: "Acte 5 : l'univers",
-  6: 'Acte 6 : pour vous',
+  5: 'Acte 5 : l’univers',
+  6: 'Acte 6 : pour toi',
   7: 'Acte 7 : commencer',
-  8: 'Acte 8 : votre espace',
+  8: 'Acte 8 : ton espace',
 };
 
 export default function HomeExperienceRoot() {
@@ -88,7 +88,7 @@ export default function HomeExperienceRoot() {
     <>
       <ExperienceRoot />
       {loadRest && (
-        <Suspense fallback={<div style={{ minHeight: '100vh', background: '#070713' }} />}>
+        <Suspense fallback={<div style={{ minHeight: '100vh', background: 'var(--hex3-void)' }} />}>
           <ActThread heightVh={70} testid="hex3-thread-4-5" />
           <Act5Universe />
           <Act6Personalization />

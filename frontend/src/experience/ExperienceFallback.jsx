@@ -12,6 +12,7 @@ import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
 
 export default function ExperienceFallback({
   intents, cards, onIntentChoice, onCardDraw, onFinalCTA, intent, drawnCard,
+  dailyReading, dailyReadingLoading, dailyReadingError,
 }) {
   const [expanded, setExpanded] = useState(1);
   const cardBackImage = useMemo(() => getCardBackTexture(), []);
@@ -42,6 +43,33 @@ export default function ExperienceFallback({
             <span className="exp-btn__glyph">✦</span>
             Entrer dans mon univers
           </button>
+          <div className="exp-s1__daily-reading" data-testid="experience-daily-reading">
+            <img className="exp-s1__daily-card-back" src={cardBackImage} alt="Dos de la carte du jour" />
+            <div className="exp-s1__daily-copy">
+              <p className="exp-eyebrow">Humeur du jour · offerte</p>
+              {dailyReadingLoading ? (
+                <p className="exp-s1__daily-loading" role="status">Le ciel du jour se dessine…</p>
+              ) : dailyReading ? (
+                <>
+                  <h2>{dailyReading.card.nom}</h2>
+                  <p>{dailyReading.mood}</p>
+                  <span className="exp-s1__daily-source">
+                    {dailyReading.source === 'astrology-api.io' ? 'Carte du jour · Astrology API' : 'Tirage de secours'}
+                  </span>
+                </>
+              ) : (
+                <p role="status">{dailyReadingError || 'La carte du jour est momentanément indisponible.'}</p>
+              )}
+              <button
+                type="button"
+                className="exp-s1__daily-link"
+                onClick={() => setExpanded(3)}
+                disabled={!dailyReading}
+              >
+                Voir la carte tirée <span aria-hidden="true">↓</span>
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 

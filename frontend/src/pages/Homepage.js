@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Sparkles, Feather, BookOpen, Compass, Heart,
+  ArrowRight, Sparkles, BookOpen, Compass, Heart,
   Star, ShieldCheck, Clock, Mail,
 } from 'lucide-react';
 import SEO from '@/components/SEO';
@@ -37,7 +37,7 @@ import { useAuth } from '@/context/AuthContext';
 
 const VALUE_PILLARS = [
   {
-    icon: Feather,
+    icon: BookOpen,
     title: 'Analyse personnalisée',
     body: 'Composée à partir de vos données de naissance exactes (date, heure, lieu) — pas une variation générique par signe. Chaque lecture est unique.',
   },

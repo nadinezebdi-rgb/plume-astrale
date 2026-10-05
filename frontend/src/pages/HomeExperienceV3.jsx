@@ -39,11 +39,11 @@ function LoadingVoid() {
       aria-label="Chargement de l'expérience immersive"
       style={{
         minHeight: '100vh',
-        background: '#070713',
+        background: '#111625',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: 'rgba(216, 183, 106, 0.6)',
+        color: 'rgba(212, 175, 55, 0.9)',
         fontFamily: '"Inter", sans-serif',
         fontSize: 11,
         letterSpacing: '0.32em',
@@ -60,9 +60,9 @@ export default function HomeExperienceV3() {
   return (
     <>
       <SEO
-        path="/home-experience-v3"
-        title="Plume Astrale — Une question, un signe, une révélation"
-        description="Un voyage cinématographique en huit actes de la question intime à la découverte de votre univers astrologique."
+        path="/"
+        title="Plume Astrale — Ton ciel, raconté avec douceur"
+        description="Découvre ton thème natal, tes cycles et les clés de ta vie avec une lecture astrologique personnalisée, poétique et claire."
         canonical="https://plume-astrale.fr/"
         noindex
       />
@@ -76,12 +76,12 @@ export default function HomeExperienceV3() {
         href="#hex3-main"
         style={{
           position: 'absolute', top: -40, left: 12, zIndex: 1000,
-          background: '#0F1A3C', color: '#F4EFE6',
+          background: '#FFFFFF', color: '#26242B',
           padding: '10px 18px', borderRadius: 3,
           fontFamily: '"Inter", sans-serif', fontSize: 12,
           letterSpacing: '0.18em', textTransform: 'uppercase',
           textDecoration: 'none',
-          border: '1px solid rgba(216, 183, 106, 0.4)',
+          border: '1px solid rgba(121, 87, 15, 0.45)',
         }}
         onFocus={(e) => { e.currentTarget.style.top = '12px'; }}
         onBlur={(e) => { e.currentTarget.style.top = '-40px'; }}

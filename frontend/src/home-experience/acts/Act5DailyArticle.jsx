@@ -61,15 +61,15 @@ export default function Act5DailyArticle() {
         position: 'relative', zIndex: 1,
         maxWidth: 900, margin: '80px auto',
         padding: '48px 32px',
-        border: '1px solid rgba(216, 183, 106, 0.28)',
-        borderRadius: 3,
-        background: 'rgba(23, 16, 46, 0.35)',
+        border: '1px solid rgba(212, 175, 55, 0.24)',
+        borderRadius: 8,
+        background: 'rgba(26, 32, 53, 0.76)',
         backdropFilter: 'blur(6px)',
       }}
     >
       <p style={{
         fontFamily: '"Inter", sans-serif', fontSize: 10, letterSpacing: '0.32em',
-        textTransform: 'uppercase', color: 'rgba(216, 183, 106, 0.75)',
+        textTransform: 'uppercase', color: 'var(--hex3-gold)',
         margin: '0 0 20px', display: 'inline-flex', alignItems: 'center', gap: 10,
       }}>
         <span aria-hidden="true">✦</span> Article du jour · offert
@@ -82,17 +82,17 @@ export default function Act5DailyArticle() {
         <div>
           <p style={{
             fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.24em',
-            textTransform: 'uppercase', color: '#D8B76A',
+            textTransform: 'uppercase', color: 'var(--hex3-gold)',
             margin: '0 0 12px',
           }}>{article.tag}</p>
           <h3 style={{
             fontFamily: '"Cormorant Garamond", "Playfair Display", serif',
             fontWeight: 400, fontSize: 'clamp(24px, 3.2vw, 34px)',
-            lineHeight: 1.15, color: '#F4EFE6', margin: '0 0 12px',
+            lineHeight: 1.15, color: 'var(--hex3-ivory)', margin: '0 0 12px',
           }}>{article.title}</h3>
           <p style={{
             fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
-            fontSize: 16, color: 'rgba(244, 239, 230, 0.65)',
+            fontSize: 16, color: 'var(--hex3-ivory-mute)',
             lineHeight: 1.55, margin: '0 0 20px',
           }}>{article.excerpt}</p>
 
@@ -103,16 +103,16 @@ export default function Act5DailyArticle() {
               data-testid="home-experience-daily-article-open"
               style={{
                 fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.24em',
-                textTransform: 'uppercase', color: '#F4EFE6', textDecoration: 'none',
-                padding: '10px 20px', border: '1px solid rgba(216, 183, 106, 0.5)',
-                borderRadius: 2,
+                textTransform: 'uppercase', color: 'var(--hex3-ivory)', textDecoration: 'none',
+                padding: '10px 20px', border: '1px solid rgba(212, 175, 55, 0.5)',
+                borderRadius: 6,
               }}
             >
               Lire maintenant →
             </Link>
             <span style={{
               fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
-              fontSize: 14, color: 'rgba(244, 239, 230, 0.45)',
+              fontSize: 14, color: 'rgba(244, 239, 230, 0.65)',
             }}>ou</span>
             <form onSubmit={submitEmail} style={{ display: 'flex', gap: 8, flex: 1, minWidth: 240 }}>
               <input
@@ -123,10 +123,10 @@ export default function Act5DailyArticle() {
                 data-testid="home-experience-daily-article-email"
                 style={{
                   flex: 1, background: 'transparent',
-                  border: '1px solid rgba(216, 183, 106, 0.35)',
-                  padding: '10px 14px', color: '#F4EFE6',
+                  border: '1px solid rgba(212, 175, 55, 0.35)',
+                  padding: '10px 14px', color: 'var(--hex3-ivory)',
                   fontFamily: '"Inter", sans-serif', fontSize: 12,
-                  outline: 'none', borderRadius: 2,
+                  outline: 'none', borderRadius: 6,
                 }}
               />
               <button
@@ -135,9 +135,9 @@ export default function Act5DailyArticle() {
                 data-testid="home-experience-daily-article-send"
                 style={{
                   fontFamily: '"Inter", sans-serif', fontSize: 11, letterSpacing: '0.20em',
-                  textTransform: 'uppercase', color: '#D8B76A',
-                  background: 'transparent', border: '1px solid rgba(216, 183, 106, 0.6)',
-                  padding: '10px 18px', borderRadius: 2, cursor: 'pointer',
+                  textTransform: 'uppercase', color: 'var(--hex3-gold)',
+                  background: 'transparent', border: '1px solid rgba(212, 175, 55, 0.6)',
+                  padding: '10px 18px', borderRadius: 6, cursor: 'pointer',
                 }}
               >
                 {status === 'sent' ? 'Envoyé ✓' : status === 'loading' ? 'Envoi…' : 'Par email'}

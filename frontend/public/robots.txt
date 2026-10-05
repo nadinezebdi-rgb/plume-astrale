@@ -95,3 +95,6 @@ Disallow: /mon-compte
 
 # ─── Sitemap ───
 Sitemap: https://plume-astrale.fr/sitemap.xml
+
+# ─── Site public principal ───
+# Le site public est indexable, les zones privées restent bloquées.

@@ -7,7 +7,7 @@
  *  • Milieu : ~180 étoiles avec drift lent à z:-8..-2
  *  • Premier plan : 25 bokeh flous rares à z:0..4 (grosses particules floues)
  *  • Étoile centrale émissive qui respire
- *  • Fog exponentiel #070713 pour estomper naturellement la profondeur
+ *  • Fog ivoire pour estomper naturellement la profondeur sur papier blanc
  */
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -101,8 +101,8 @@ export default function Scene01Particles() {
 
   return (
     <group>
-      {/* Fog exponentiel — les étoiles lointaines se fondent dans le noir */}
-      <fogExp2 attach="fog" args={['#070713', 0.06]} />
+      {/* Fog exponentiel — les étoiles lointaines se fondent dans le crépuscule */}
+      <fogExp2 attach="fog" args={['#AAAABD', 0.06]} />
 
       {/* Étoile centrale */}
       <sprite ref={centerRef} scale={[1.4, 1.4, 1]}>
@@ -112,7 +112,7 @@ export default function Scene01Particles() {
           depthWrite={false}
           blending={THREE.AdditiveBlending}
           opacity={0.85}
-          color="#F4EFE6"
+          color="#79570F"
         />
       </sprite>
 
@@ -124,7 +124,7 @@ export default function Scene01Particles() {
         <pointsMaterial
           map={STAR_TEX} size={0.15} sizeAttenuation
           transparent depthWrite={false} blending={THREE.AdditiveBlending}
-          opacity={0.7} color="#F4EFE6"
+          opacity={0.45} color="#79570F"
         />
       </points>
 
@@ -136,7 +136,7 @@ export default function Scene01Particles() {
         <pointsMaterial
           map={STAR_TEX} size={0.28} sizeAttenuation
           transparent depthWrite={false} blending={THREE.AdditiveBlending}
-          opacity={0.85} color="#F4EFE6"
+          opacity={0.55} color="#79570F"
         />
       </points>
 
@@ -149,7 +149,7 @@ export default function Scene01Particles() {
           <pointsMaterial
             map={BOKEH_TEX} size={0.9} sizeAttenuation
             transparent depthWrite={false} blending={THREE.AdditiveBlending}
-            opacity={0.16} color="#D8B76A"
+            opacity={0.12} color="#8A6418"
           />
         </points>
       )}
