@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Loader2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
-const PROMO = 'TOUT2026';
+const PROMO = '__ADMIN_BYPASS__';
 
 // Villes de démonstration pour l'astrocartographie (3 villes exactement).
 const ASTRO_CITIES = [
@@ -36,7 +36,7 @@ const Field = ({ label, children }) => (
 );
 
 /**
- * Admin : génère un PDF de chaque lecture sans paiement (code TOUT2026, compte admin)
+ * Admin : génère un PDF de chaque lecture sans paiement (compte admin / autorisé)
  * et l'envoie par e-mail. Les PDF apparaissent aussi dans l'onglet « PDFs envoyés ».
  */
 export default function AdminGenerateReadings({ token, defaultEmail = '' }) {
@@ -116,7 +116,7 @@ export default function AdminGenerateReadings({ token, defaultEmail = '' }) {
         <Sparkles className="inline w-4 h-4 mr-2" />Générer les lectures (sans paiement)
       </h2>
       <p className="text-xs mb-6" style={{ color: 'var(--pa-muted)' }}>
-        Le code {PROMO} est appliqué avec votre session administrateur. Chaque PDF est généré en arrière-plan (quelques minutes)
+        Le bypass paiement est appliqué avec votre session administrateur. Chaque PDF est généré en arrière-plan (quelques minutes)
         puis envoyé à l&apos;e-mail ci-dessous, et listé dans l&apos;onglet « PDFs envoyés ».
       </p>
 

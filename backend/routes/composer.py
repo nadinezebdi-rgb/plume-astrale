@@ -14,7 +14,7 @@ import logging
 import uuid
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr, Field
 
 from config import get_settings
@@ -24,6 +24,10 @@ from services.book_composer_pricing import (
     load_active_chapters,
 )
 from services.supabase_client import get_admin_client
+from services.promo_bypass import (
+    ADMIN_BYPASS_SENTINEL, get_bypass_code, is_bypass_authorized, try_consume_promo,
+)
+from middleware.auth import get_optional_user
 from integrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
@@ -57,15 +61,8 @@ class CheckoutPayload(BaseModel):
     # Optionnels (uniquement pour Broché/Relié — dédicace + destinataire)
     recipient_first_name: Optional[str] = Field(default=None, max_length=80)
     dedication: Optional[str] = Field(default=None, max_length=800)
-    # Code promo (universel, dispo pour n'importe qui, pas admin only)
+    # Code promo 100% : réservé aux comptes autorisés (SEC-004)
     promo_code: Optional[str] = Field(default=None, max_length=40)
-
-
-# Codes promo actifs — TOUT2026 offre 100% de réduction (test/friends)
-# Étendable via table Supabase promo_codes plus tard.
-_PROMO_CODES = {
-    'TOUT2026': {'discount_pct': 100, 'active': True, 'label': 'Offert 2026'},
-}
 
 
 class ApplyPromoPayload(BaseModel):
@@ -75,15 +72,16 @@ class ApplyPromoPayload(BaseModel):
     no_birth_time: bool = False
 
 
-def _validate_promo(code: Optional[str]) -> Optional[dict]:
-    """Retourne le dict du promo si valide, sinon None."""
+def _validate_promo(code: Optional[str], user: Optional[dict] = None) -> Optional[dict]:
+    """Retourne le promo 100% si le code est le code bypass ET l'utilisateur est autorisé (SEC-004)."""
     if not code:
         return None
     normalized = code.strip().upper()
-    promo = _PROMO_CODES.get(normalized)
-    if promo and promo.get('active'):
-        return {'code': normalized, **promo}
-    return None
+    if normalized not in (ADMIN_BYPASS_SENTINEL, get_bypass_code()):
+        return None
+    if not is_bypass_authorized(user):
+        return None
+    return {'code': get_bypass_code(), 'discount_pct': 100, 'active': True, 'label': 'Offert 2026'}
 
 
 # ── Endpoints ───────────────────────────────────────────────────
@@ -150,11 +148,14 @@ async def composer_quote(payload: QuotePayload):
 
 
 @router.post('/apply-promo')
-async def composer_apply_promo(payload: ApplyPromoPayload):
+async def composer_apply_promo(
+    payload: ApplyPromoPayload,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
     """Valide un code promo et retourne le prix réduit — jamais 402 (le code peut juste être invalide).
     Réponse : {valid, discount_pct, label, total_eur, quote}
     """
-    promo = _validate_promo(payload.code)
+    promo = _validate_promo(payload.code, current_user)
     try:
         q = compute_quote(edition=payload.edition, chapter_slugs=payload.chapter_slugs,
                           no_birth_time=payload.no_birth_time)
@@ -165,7 +166,7 @@ async def composer_apply_promo(payload: ApplyPromoPayload):
     discounted = max(0, q.total_eur * (100 - promo['discount_pct']) // 100)
     return {
         'valid': True,
-        'code': promo['code'],
+        'code': payload.code.strip().upper(),
         'label': promo['label'],
         'discount_pct': promo['discount_pct'],
         'original_total_eur': q.total_eur,
@@ -174,7 +175,11 @@ async def composer_apply_promo(payload: ApplyPromoPayload):
 
 
 @router.post('/checkout')
-async def composer_checkout(payload: CheckoutPayload, request: Request):
+async def composer_checkout(
+    payload: CheckoutPayload,
+    request: Request,
+    current_user: Optional[dict] = Depends(get_optional_user),
+):
     """Crée la session Stripe pour la commande /composer avec pricing serveur re-vérifié.
 
     Si un `promo_code` 100% est fourni et valide, court-circuite Stripe :
@@ -228,10 +233,10 @@ async def composer_checkout(payload: CheckoutPayload, request: Request):
     }
 
     # ── Bypass Stripe pour code promo 100% ──────────────────────
-    promo = _validate_promo(payload.promo_code)
-    if promo and promo.get('discount_pct') == 100:
+    promo = _validate_promo(payload.promo_code, current_user)
+    if promo and try_consume_promo(payload.promo_code, admin_user=current_user, product='composer_book'):
         import uuid as _uuid
-        fake_session_id = f'promo_{promo["code"].lower()}_{_uuid.uuid4().hex[:16]}'
+        fake_session_id = f'promo_{_uuid.uuid4().hex[:16]}'
         origin = payload.origin_url.rstrip('/')
         # Trace transaction comme "payée" (offerte) directement
         try:
@@ -251,7 +256,6 @@ async def composer_checkout(payload: CheckoutPayload, request: Request):
                     'product': 'composer_book',
                     'edition': q.edition,
                     'chapters': pdf_ctx['chapters'],
-                    'promo_code': promo['code'],
                     'promo_label': promo['label'],
                     'quote': {
                         'edition_price_eur': q.edition_price_eur,
@@ -272,11 +276,11 @@ async def composer_checkout(payload: CheckoutPayload, request: Request):
             _asyncio.create_task(build_book_pdf_for_session(fake_session_id))
         except Exception as e:
             logger.warning(f'[composer] pipeline schedule failed: {e}')
-        logger.info(f'[composer] Promo {promo["code"]} applied for {payload.email} → session {fake_session_id}')
+        logger.info(f'[composer] Promo applied for {payload.email} → session {fake_session_id}')
         return {
             'url': f'{origin}/composer/succes?session_id={fake_session_id}&promo=1',
             'session_id': fake_session_id,
-            'promo_applied': promo['code'],
+            'promo_applied': True,
             'quote': {
                 'edition': q.edition, 'edition_label': q.edition_label,
                 'edition_price_eur': q.edition_price_eur,

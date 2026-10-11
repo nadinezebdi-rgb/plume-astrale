@@ -116,7 +116,7 @@ export default function PromoCodeField({ price, product, testIdBase = 'promo', o
               });
             }
           }}
-          placeholder="Ex: TOUT2026"
+          placeholder="Votre code"
           data-testid={`${testIdBase}-promo-input`}
           className="flex-1 px-4 py-3 rounded-xl focus:outline-none"
           style={{
