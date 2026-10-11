@@ -57,7 +57,7 @@
     "backend": "100%",
     "frontend": "80% (design system OK, mais 2 routes TabBar mobile cassees)"
   },
-  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 -- login OK, redirection vers /mon-compte apres soumission du formulaire.",
+  "test_credentials": "Admin: admin@plume-astrale.fr / [redacted] -- login OK, redirection vers /mon-compte apres soumission du formulaire.",
   "seed_data_creation": "Aucune donnee semee",
   "retest_needed": true,
   "should_main_agent_self_test": true,
