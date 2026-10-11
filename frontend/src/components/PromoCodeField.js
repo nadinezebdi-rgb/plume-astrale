@@ -17,5 +17,4 @@
   }}
   placeholder="Votre code"
   data-testid={`${testIdBase}-promo-input`}
-  ...
 />
