@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Loader2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
-const PROMO = "__ADMIN_BYPASS__"; // secret never exposed in the bundle
+const PROMO = '__ADMIN_BYPASS__'; // secret never exposed in the bundle
 
 const ASTRO_CITIES = [
   { city: 'Lisbonne', country: 'Portugal', country_code: 'PT', latitude: 38.7223, longitude: -9.1393 },
@@ -118,7 +118,62 @@ export default function AdminGenerateReadings({ token, defaultEmail = '' }) {
         Le bypass admin est appliqué via la session authentifiée. Chaque PDF est généré puis envoyé à l’e-mail sélectionné.
       </p>
 
-      {/* contenu identique */}
+      <div className="grid md:grid-cols-2 gap-4 mb-6">
+        <Field label="E-mail de réception"><input style={inputStyle} type="email" value={form.email} onChange={(e) => upd('email', e.target.value)} data-testid="gen-email" /></Field>
+        <Field label="Prénom"><input style={inputStyle} value={form.first_name} onChange={(e) => upd('first_name', e.target.value)} data-testid="gen-first-name" /></Field>
+        <Field label="Date de naissance"><input style={inputStyle} type="date" value={form.birth_date} onChange={(e) => upd('birth_date', e.target.value)} data-testid="gen-birth-date" /></Field>
+        <Field label="Heure de naissance"><input style={inputStyle} type="time" value={form.birth_time} onChange={(e) => upd('birth_time', e.target.value)} data-testid="gen-birth-time" /></Field>
+        <Field label="Ville de naissance"><input style={inputStyle} value={form.birth_city} onChange={(e) => upd('birth_city', e.target.value)} data-testid="gen-birth-city" /></Field>
+        <Field label="Pays (code)"><input style={inputStyle} value={form.birth_country} onChange={(e) => upd('birth_country', e.target.value.toUpperCase())} maxLength={2} /></Field>
+      </div>
+
+      {selected.includes('synastrie') && (
+        <div className="mb-6">
+          <p className="text-xs uppercase mb-2" style={{ color: '#D4AF37', letterSpacing: '0.1em' }}>Partenaire (synastrie)</p>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Field label="Prénom"><input style={inputStyle} value={partner.prenom} onChange={(e) => setPartner((p) => ({ ...p, prenom: e.target.value }))} /></Field>
+            <Field label="Date de naissance"><input style={inputStyle} type="date" value={partner.birth_date} onChange={(e) => setPartner((p) => ({ ...p, birth_date: e.target.value }))} data-testid="gen-partner-date" /></Field>
+            <Field label="Heure"><input style={inputStyle} type="time" value={partner.birth_time} onChange={(e) => setPartner((p) => ({ ...p, birth_time: e.target.value }))} /></Field>
+            <Field label="Ville"><input style={inputStyle} value={partner.birth_place} onChange={(e) => setPartner((p) => ({ ...p, birth_place: e.target.value }))} placeholder="Par défaut : même ville" /></Field>
+          </div>
+        </div>
+      )}
+
+      <ul className="mb-6 space-y-2">
+        {PRODUCTS.map((p) => {
+          const r = results[p.key];
+          return (
+            <li key={p.key} className="flex items-center gap-3 text-sm" style={{ color: '#F4E8D2' }} data-testid={`gen-row-${p.key}`}>
+              <input type="checkbox" checked={selected.includes(p.key)} onChange={() => toggle(p.key)} disabled={running} />
+              <span className="flex-1">{p.label}{p.key === 'astrocarto' ? ' (Lisbonne, New York, Tokyo)' : ''}</span>
+              {r?.status === 'running' && <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#D4AF37' }} />}
+              {r?.status === 'ok' && (
+                <span className="flex items-center gap-1 text-xs" style={{ color: '#4ADE80' }}>
+                  <CheckCircle2 className="w-4 h-4" /> Lancée
+                </span>
+              )}
+              {r?.status === 'error' && (
+                <span className="flex items-center gap-1 text-xs" style={{ color: '#F87171' }} data-testid={`gen-error-${p.key}`}>
+                  <AlertCircle className="w-4 h-4" /> {r.message}
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      <button
+        type="button"
+        onClick={run}
+        disabled={running || !valid || selected.length === 0}
+        data-testid="gen-run"
+        style={{
+          padding: '12px 24px', borderRadius: 999, background: '#D4AF37', color: '#0C0918', fontWeight: 600,
+          opacity: running || !valid || selected.length === 0 ? 0.5 : 1, cursor: running ? 'wait' : 'pointer',
+        }}
+      >
+        {running ? 'Génération en cours…' : 'Générer les PDF sélectionnés'}
+      </button>
     </div>
   );
 }

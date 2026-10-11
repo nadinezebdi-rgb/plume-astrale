@@ -1,16 +1,14 @@
 """
 SEC-004 — Bypass Stripe via code promo 100% remise (STRICT ADMIN + allowlist-only).
 
-Avant :
-- n'importe qui pouvant deviner un code pouvait obtenir un PDF premium gratuit via un guest checkout.
+Le bypass exige un utilisateur authentifié dont le profil est admin ou dont
+l'e-mail figure dans PROMO_BYPASS_ALLOWED_EMAILS. Le vrai code est lu dans
+PROMO_BYPASS_CODE (défaut TOUT2026), jamais exposé au frontend. La sentinelle
+__ADMIN_BYPASS__ est résolue uniquement côté backend.
 
-Après :
-1. Le bypass exige un utilisateur authentifié.
-2. L'accès est autorisé si :
-   - user.is_admin = true, ou
-   - user.email est présent dans PROMO_BYPASS_ALLOWED_EMAILS
-3. Le vrai code est lu dans PROMO_BYPASS_CODE (fallback: TOUT2026) et n'est JAMAIS exposé au front.
-4. Une sentinelle `__ADMIN_BYPASS__` peut être utilisée par le front pour déclencher le bypass côté backend.
+Le code doit être actif et son quota disponible. L'incrément de used_count
+utilise un CAS, puis la redemption est tracée (best-effort).
+Les codes % passent toujours par Stripe avec la remise appliquée, aucun bypass.
 """
 from __future__ import annotations
 
@@ -22,10 +20,11 @@ from services.supabase_client import get_admin_client
 
 logger = logging.getLogger(__name__)
 
-BYPASS_SENTINEL = "__ADMIN_BYPASS__"
+ADMIN_BYPASS_SENTINEL = "__ADMIN_BYPASS__"
 
 
-def _get_bypass_code() -> str:
+def get_bypass_code() -> str:
+    """Vrai code backend, jamais inclus dans un catalogue public."""
     return (os.getenv("PROMO_BYPASS_CODE") or "TOUT2026").strip().upper()
 
 
@@ -51,16 +50,13 @@ def _is_admin(user_id: str) -> bool:
         return False
 
 
-def _user_is_authorized(admin_user: Optional[dict]) -> bool:
-    """Autorise le bypass si l'utilisateur est admin ou dans la allowlist."""
+def is_bypass_authorized(admin_user: Optional[dict]) -> bool:
+    """Autorise le bypass si l'utilisateur authentifié est admin ou allowlisté."""
     if not admin_user or not admin_user.get("id"):
         return False
-
     if _is_admin(admin_user["id"]):
         return True
-
-    email = (admin_user.get("email") or "").strip()
-    return _is_allowed_email(email)
+    return _is_allowed_email(admin_user.get("email"))
 
 
 def try_consume_promo(
@@ -68,44 +64,28 @@ def try_consume_promo(
     admin_user: Optional[dict] = None,
     product: Optional[str] = None,
 ) -> bool:
-    """Consomme un code promo 100% remise.
-
-    Retourne True uniquement si :
-      1. Un `admin_user` authentifié est fourni.
-      2. L'utilisateur est autorisé (`is_admin=true` ou email allowlisté).
-      3. Le code existe, est actif, quota non atteint.
-      4. Le CAS a réussi en base.
-    """
+    """Consomme un code actif, sous quota, pour un compte autorisé via CAS."""
     if not code or not code.strip():
         return False
-
-    # Frontend can send sentinel instead of exposing the real code.
-    if code.strip() == BYPASS_SENTINEL:
-        normalized = _get_bypass_code()
-    else:
-        normalized = code.strip().upper()
-
     if not admin_user or not admin_user.get("id"):
-        logger.info(f"[promo_bypass] REJECT {normalized!r} — no authenticated user")
+        logger.info("[promo_bypass] REJECT — no authenticated user")
+        return False
+    if not is_bypass_authorized(admin_user):
+        logger.warning(f"[promo_bypass] REJECT — user {admin_user['id']} not authorized")
         return False
 
-    if not _user_is_authorized(admin_user):
-        logger.warning(
-            f"[promo_bypass] REJECT {normalized!r} — user {admin_user['id']} not admin / not allowlisted"
-        )
-        return False
-
+    normalized = code.strip().upper()
+    if normalized == ADMIN_BYPASS_SENTINEL:
+        normalized = get_bypass_code()
     try:
         sb = get_admin_client()
         r = sb.table("promo_codes").select("*").eq("code", normalized).eq("active", True).maybe_single().execute()
         if not r or not r.data:
             logger.info(f"[promo_bypass] REJECT {normalized} — code missing or inactive")
             return False
-
         d = r.data
         max_uses = d.get("max_uses")
         used = d.get("used_count", 0) or 0
-
         if max_uses is not None and used >= max_uses:
             logger.info(f"[promo_bypass] REJECT {normalized} — quota reached ({used}/{max_uses})")
             return False
@@ -136,7 +116,6 @@ def try_consume_promo(
             f"({used + 1}/{max_uses})"
         )
         return True
-
     except Exception as e:
-        logger.warning(f"[promo_bypass] validation failed for {code!r}: {e}")
+        logger.warning(f"[promo_bypass] validation failed: {e}")
         return False
