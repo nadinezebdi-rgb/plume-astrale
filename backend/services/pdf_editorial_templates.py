@@ -27,8 +27,9 @@ import os
 from typing import Optional, List, Dict, Any
 from reportlab.lib.units import cm
 from reportlab.platypus import (
-    Paragraph, Spacer, PageBreak, Image as RLImage, Table, TableStyle,
+    Spacer, PageBreak, Image as RLImage, Table, TableStyle,
 )
+from services.pdf_theme import SafeParagraph as Paragraph
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 from reportlab.lib.colors import HexColor
