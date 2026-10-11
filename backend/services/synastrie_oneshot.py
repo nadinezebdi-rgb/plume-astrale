@@ -18,6 +18,7 @@ from typing import Any, Dict, Optional
 import stripe
 from fastapi import HTTPException
 
+from services.origin_guard import validate_origin
 from services.supabase_client import get_admin_client
 
 logger = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ async def create_synastrie_checkout(
         raise HTTPException(status_code=503, detail='Service de paiement indisponible.')
 
     sb = get_admin_client()
-    origin = (origin_url or '').rstrip('/') or 'https://plume-astrale.fr'
+    origin = validate_origin(origin_url) if (origin_url or '').strip() else 'https://plume-astrale.fr'
 
     # Validation minimale
     for label, p in [('person1', person1_data), ('person2', person2_data)]:
@@ -171,7 +172,7 @@ async def admin_bypass_synastrie(
             raise HTTPException(status_code=400, detail=f'Donnees natales incompletes pour {label}.')
 
     sb = get_admin_client()
-    origin = (origin_url or '').rstrip('/') or 'https://plume-astrale.fr'
+    origin = validate_origin(origin_url) if (origin_url or '').strip() else 'https://plume-astrale.fr'
     fake_session_id = f'admin-synastrie-{uuid.uuid4().hex[:16]}'
 
     insert_payload = {
