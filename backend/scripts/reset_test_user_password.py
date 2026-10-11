@@ -4,7 +4,7 @@ Reset password d'un utilisateur Supabase via admin API.
 
 Usage :
   python3 backend/scripts/reset_test_user_password.py \
-      --email plume_test_863a0303@gmail.com --password TestPlume2026!
+      --email plume_test_863a0303@gmail.com --password [redacted]
 
 Utilise SUPABASE_SERVICE_ROLE_KEY depuis backend/.env.
 """

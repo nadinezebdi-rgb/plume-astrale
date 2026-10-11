@@ -33,7 +33,7 @@
     "backend": "100% (8/8 pytest cases pass)",
     "frontend": "100% (2/2 prompts rendered clean French text — no JSON leak, open questions present)"
   },
-  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 (login OK, birth_data set to 15/05/1990 12:00 Paris via PUT /api/auth/profile)",
+  "test_credentials": "Admin: admin@plume-astrale.fr / [redacted] (login OK, birth_data set to 15/05/1990 12:00 Paris via PUT /api/auth/profile)",
   "seed_data_creation": "Fixture ensure_birth_data (autouse=True) updates admin profile with birth_date=1990-05-15, birth_time=12:00, birth_place=Paris, lat=48.8566, lon=2.3522 to guarantee v3/chat has all data.",
   "retest_needed": false,
   "should_main_agent_self_test": false,
