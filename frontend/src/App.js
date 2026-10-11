@@ -190,7 +190,7 @@ function App() {
           <Route path="/lecture-complete/succes" element={<LectureCompleteSucces />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/bibliotheque" element={<Bibliotheque />} />
-          <Route path="/rencontres-astrales" element={<RencontresAstrales />} />
+        <Route path="/fenetre-rencontre-pdf" element={<Navigate to="/rencontres-astrales" replace />} />
           <Route path="/rencontres-astrales/succes" element={<RencontresUltimeSucces />} />
           <Route path="/test/cta" element={<CTATestPage />} />
           <Route path="/credits" element={<CreditsInfo />} />
