@@ -18,7 +18,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 
 from services.book_engine.pipeline import (
@@ -32,11 +32,17 @@ from services.book_engine.domain import (
 from services.book_engine_v2 import render_manuscript_to_pdf_v2
 from services.book_engine_v2.pdf_qa import run_all_checks, report
 from services.supabase_client import get_admin_client
+from routes.admin import require_admin
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix='/admin/book', tags=['admin', 'book'])
+# Toutes les routes de ce module sont réservées aux admins (génération PDF, QA, diagnostics).
+router = APIRouter(
+    prefix='/admin/book',
+    tags=['admin', 'book'],
+    dependencies=[Depends(require_admin)],
+)
 
 V2_LOCAL_DIR = PIPELINE_ASSETS_DIR / 'composer_books_v2'
 V2_LOCAL_DIR.mkdir(parents=True, exist_ok=True)
