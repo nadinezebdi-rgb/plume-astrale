@@ -103,3 +103,6 @@ backend/assets/library/manifest.json
 !backend/.env.example
 !frontend/.env.example
 frontend/yarn.lock
+
+# Identifiants de test : ne jamais committer
+memory/test_credentials.md
