@@ -3,6 +3,7 @@ Route /api/duo-completion : bundle 2 PDFs (Numérologie + Kabbale) 50€.
 Cross-sell post-Thème Natal (2026-02 Gary Vee upsell).
 """
 from __future__ import annotations
+from services.origin_guard import validate_origin
 import asyncio
 import logging
 import uuid
@@ -58,7 +59,7 @@ async def duo_completion_checkout(
     webhook_url = f'{host_url}/api/webhook/stripe'
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
 
-    origin = payload.origin_url.rstrip('/')
+    origin = validate_origin(payload.origin_url)
     success_url = f'{origin}/duo-completion/succes?session_id={{CHECKOUT_SESSION_ID}}'
     cancel_url = f'{origin}/theme-natal/succes'  # revient sur la page où le cross-sell est présenté
 

@@ -10,6 +10,7 @@ Le prix N'EST JAMAIS accepté depuis le client. Le client envoie l'édition et
 la liste de slugs — le serveur recalcule avec la règle 29/19/99.
 """
 from __future__ import annotations
+from services.origin_guard import validate_origin
 import logging
 import uuid
 from typing import List, Optional
@@ -186,6 +187,8 @@ async def composer_checkout(
     crée une transaction payée en base et retourne l'URL de succès directement.
     """
     settings = get_settings()
+    # Rejette tôt une origine non autorisée (avant tout effet de bord : promo consommée, etc.)
+    validate_origin(payload.origin_url)
 
     # Détection heure absente (voir §V audit marque Feb 2026)
     no_birth_time = (
@@ -237,7 +240,7 @@ async def composer_checkout(
     if promo and try_consume_promo(payload.promo_code, admin_user=current_user, product='composer_book'):
         import uuid as _uuid
         fake_session_id = f'promo_{_uuid.uuid4().hex[:16]}'
-        origin = payload.origin_url.rstrip('/')
+        origin = validate_origin(payload.origin_url)
         # Trace transaction comme "payée" (offerte) directement
         try:
             sb = get_admin_client()
@@ -294,7 +297,7 @@ async def composer_checkout(
     webhook_url = f'{host_url}/api/webhook/stripe'
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
 
-    origin = payload.origin_url.rstrip('/')
+    origin = validate_origin(payload.origin_url)
     success_url = f'{origin}/composer/succes?session_id={{CHECKOUT_SESSION_ID}}'
     cancel_url = f'{origin}/composer'
 

@@ -15,6 +15,8 @@ Extension 2026-02-26 : support multi-PDF par session pour Voyage Karmique
 from __future__ import annotations
 import hmac
 import logging
+import os
+import re
 import secrets
 from pathlib import Path
 from typing import Optional, Tuple
@@ -319,10 +321,18 @@ async def _download_synastrie_pdf(session_id: str, token: str, sb, print_ready: 
     if rec.get('status') and rec['status'] not in ('paid', 'completed'):
         raise HTTPException(status_code=402, detail='Paiement requis')
 
-    # Legacy : ancien flux static file → on autorise si session_id présent
-    # (le token argument est ignoré, cohérent avec l'ancienne surface d'attaque).
+    # Legacy : ancien flux static file (pdf_path avant la migration token).
+    # Le session_id Stripe tient lieu de credential : on le limite à un vrai identifiant Stripe
+    # (pas d'id fabriqué) et SYNASTRIE_LEGACY_DOWNLOAD=0 permet de couper ce chemin une fois
+    # les anciens liens migrés.
     is_legacy = pdf_path_stored.startswith('/api/assets/')
-    if not is_legacy:
+    if is_legacy:
+        if os.environ.get('SYNASTRIE_LEGACY_DOWNLOAD', '1').strip() == '0':
+            raise HTTPException(status_code=403, detail='Lien expiré, utilisez le lien reçu par e-mail.')
+        if not re.fullmatch(r'cs_(live|test)_[A-Za-z0-9]{20,}', session_id):
+            raise HTTPException(status_code=403, detail='Token invalide')
+        logger.warning(f'[pdf_download/synastrie] accès legacy sans token pour {session_id[:14]}…')
+    else:
         q = parse_qs(urlparse(pdf_path_stored).query)
         stored_token = (q.get('token') or [''])[0]
         if not stored_token:

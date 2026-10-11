@@ -1,4 +1,5 @@
 """Plume Astrale — FastAPI backend (Supabase + Stripe + Astrology API)."""
+from services.origin_guard import DEFAULT_ORIGINS, validate_origin
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Query, Body
 from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -613,7 +614,7 @@ async def legacy_checkout_create(payload: LegacyCheckoutRequest, http_request: R
     webhook_url = f'{host_url}/api/webhook/stripe'
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
 
-    origin = payload.origin_url.rstrip('/')
+    origin = validate_origin(payload.origin_url)
     success_path = product.get('success_path', '/paiement/succes')
     cancel_path = product.get('cancel_path', '/')
     success_url = f'{origin}{success_path}?session_id={{CHECKOUT_SESSION_ID}}'
@@ -669,7 +670,7 @@ async def create_checkout(
     webhook_url = f'{host_url}/api/webhook/stripe'
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
 
-    origin = payload.origin_url.rstrip('/')
+    origin = validate_origin(payload.origin_url)
     success_url = f'{origin}/credits/succes?session_id={{CHECKOUT_SESSION_ID}}'
     cancel_url = f'{origin}/acheter-credits'
 
@@ -1292,8 +1293,17 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
     # Route vers Composer Book handler si kind=composer_book (pivot livre unifié, LOT 3)
     if md.get('kind') == 'composer_book':
         from services.book_engine.pipeline import build_book_pdf_for_session
+        from services.payment_verification import verify_session_matches_transaction, session_to_dict
         try:
             session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            # Ne livre que si Stripe confirme le paiement du montant attendu (la transaction fait foi)
+            _tx_res = get_admin_client().table('payment_transactions').select('amount, currency').eq(
+                'session_id', session_id).limit(1).execute()
+            _ok, _reason = verify_session_matches_transaction(
+                session_to_dict(data_obj), (_tx_res.data or [None])[0] if _tx_res else None)
+            if not _ok:
+                logger.error(f'[composer_book] fulfilment refusé pour {session_id}: {_reason}')
+                return {'received': True, 'type': event_type, 'kind': 'composer_book', 'fulfilled': False}
             # Marque la transaction comme payée avant de lancer le pipeline
             try:
                 sb2 = get_admin_client()
@@ -1375,11 +1385,13 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
                 product_id = meta.get('product_id', '')
                 product = PRODUCT_CATALOG.get(product_id, {})
                 product_name = product.get('name', 'votre commande')
-                # email : metadata en priorite, sinon customer_details Stripe
-                email = meta.get('user_email') or (
-                    (session_data.get('customer_details') or {}).get('email')
-                )
+                # email : celui saisi par le payeur chez Stripe en priorite, sinon metadata
+                email = (session_data.get('customer_details') or {}).get('email') or meta.get('user_email')
                 montant = (session_data.get('amount_total') or 0) / 100
+                expected_amount = product.get('amount')
+                if expected_amount is not None and round(float(expected_amount) * 100) != int(session_data.get('amount_total') or 0):
+                    logger.error(f'[legacy receipt] montant inattendu pour {product_id}: {montant}')
+                    email = None
                 if email:
                     from services.resend_service import send_email
                     subject = f'Reçu de votre commande — {product_name}'
@@ -1408,6 +1420,11 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
         tx = tx_res.data
         if tx['credits_granted']:
             return {'received': True, 'already_granted': True}
+        from services.payment_verification import verify_session_matches_transaction
+        _ok, _reason = verify_session_matches_transaction(session_data, tx)
+        if not _ok:
+            logger.error(f'[credits] attribution refusée pour {session_id}: {_reason}')
+            return {'received': True, 'granted': False}
         user_id = tx['user_id'] or (session_data.get('metadata') or {}).get('user_id')
         if not user_id:
             return {'received': True}
@@ -1535,15 +1552,22 @@ class CompatibilityGenerateRequest(BaseModel):
 
 def _resolve_origin_url(request: Request, explicit_origin: str | None) -> str:
     if explicit_origin and explicit_origin.strip():
-        return explicit_origin.rstrip('/')
+        return validate_origin(explicit_origin)
+    # Origin/Referer ne sont utilisés que s'ils sont autorisés ; sinon on retombe sur base_url.
     header_origin = (request.headers.get('origin') or '').strip()
     if header_origin:
-        return header_origin.rstrip('/')
+        try:
+            return validate_origin(header_origin)
+        except HTTPException:
+            pass
     referer = (request.headers.get('referer') or '').strip()
     if referer:
         parsed = urlparse(referer)
         if parsed.scheme and parsed.netloc:
-            return f'{parsed.scheme}://{parsed.netloc}'
+            try:
+                return validate_origin(f'{parsed.scheme}://{parsed.netloc}')
+            except HTTPException:
+                pass
     return str(request.base_url).rstrip('/')
 
 
@@ -3083,18 +3107,9 @@ async def journal_history_endpoint(
 # ════════════════════════════════════════════
 app.include_router(api_router)
 
-# Build CORS origins list: env var + production domains always whitelisted
+# Origines autorisées (CORS + redirections Stripe) : liste par défaut dans services/origin_guard.py
 _cors_from_env = [o.strip() for o in os.environ.get('CORS_ORIGINS', '').split(',') if o.strip()]
-_default_origins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'https://plume-astrale.vercel.app',
-    'https://plume-astrale.fr',
-    'https://www.plume-astrale.fr',
-    'https://consultation-astro.preview.emergentagent.com',
-    'https://consultation-astro.emergent.host',
-]
-_allow_origins = list(set(_cors_from_env + _default_origins)) if _cors_from_env else _default_origins
+_allow_origins = list(set(_cors_from_env + DEFAULT_ORIGINS)) if _cors_from_env else list(DEFAULT_ORIGINS)
 
 app.add_middleware(
     CORSMiddleware,
