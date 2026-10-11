@@ -6,6 +6,7 @@ import SEO from '@/components/SEO';
 import useUtmTracking from '@/hooks/useUtmTracking';
 import { SOLENA } from '@/lib/solena';
 import { useAuth } from '@/context/AuthContext';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -536,7 +537,7 @@ export default function RencontresAstrales() {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-[9px] uppercase block mb-1" style={{ color: 'rgba(212,175,55,0.7)', letterSpacing: '0.15em' }}>Sa date de naissance *</label>
-                        <input
+                        <FrenchDateInput
                           type="date"
                           value={partnerBirthDate}
                           onChange={e => setPartnerBirthDate(e.target.value)}

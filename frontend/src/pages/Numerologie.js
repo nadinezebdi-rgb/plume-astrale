@@ -5,6 +5,7 @@ import { Loader2, ArrowLeft, ArrowRight, Coins, LogIn, Hash, Sparkles, BookOpen,
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import axios from 'axios';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -282,7 +283,7 @@ const Numerologie = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--pa-accent)', letterSpacing: '0.12em' }}>Date de naissance</label>
-                    <input type="date" value={formData.dateNaissance} onChange={e => setFormData(p => ({...p, dateNaissance: e.target.value}))}
+                    <FrenchDateInput type="date" value={formData.dateNaissance} onChange={e => setFormData(p => ({...p, dateNaissance: e.target.value}))}
                       className="w-full rounded-xl px-4 py-3 text-sm outline-none"
                       style={{ background: 'var(--pa-bg)', border: '1px solid var(--pa-divider)', color: 'var(--pa-body)' }} />
                   </div>

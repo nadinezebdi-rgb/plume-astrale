@@ -3,6 +3,7 @@ import { ArrowRight, Heart, Calendar, Sparkles, Shield, Check } from 'lucide-rea
 import { useNavigate } from 'react-router-dom';
 import SEO from '@/components/SEO';
 import PromoCodeField from '@/components/PromoCodeField';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 
@@ -230,7 +231,7 @@ const FenetreRencontrePDF = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-[#E3D7FF] mb-2 font-semibold">Date de naissance *</label>
-                  <input
+                  <FrenchDateInput
                     type="date"
                     name="birthDate"
                     value={formData.birthDate}
@@ -289,7 +290,7 @@ const FenetreRencontrePDF = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-[#E3D7FF] mb-2 font-semibold">Sa date de naissance</label>
-                        <input
+                        <FrenchDateInput
                           type="date"
                           name="partnerBirthDate"
                           value={formData.partnerBirthDate}

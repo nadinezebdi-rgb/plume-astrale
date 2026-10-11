@@ -213,6 +213,29 @@ class ProfileUpdate(BaseModel):
     tz_manual_override: Optional[bool] = None
     gender: Optional[str] = None
 
+    @field_validator('prenom', 'birth_date', 'birth_time', 'birth_place', 'birth_country', 'gender', mode='before')
+    @classmethod
+    def _blank_to_none(cls, v):
+        # Un champ vide ("" envoyé par un formulaire) ne doit pas écraser la valeur ni casser les colonnes DATE/TIME.
+        if isinstance(v, str):
+            v = v.strip()
+            return v or None
+        return v
+
+    @field_validator('birth_date')
+    @classmethod
+    def _check_birth_date(cls, v):
+        if v is not None and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', v):
+            raise ValueError('Date de naissance invalide (format AAAA-MM-JJ).')
+        return v
+
+    @field_validator('birth_time')
+    @classmethod
+    def _check_birth_time(cls, v):
+        if v is not None and not re.fullmatch(r'\d{2}:\d{2}(:\d{2})?', v):
+            raise ValueError('Heure de naissance invalide (format HH:MM).')
+        return v
+
 
 @api_router.get('/auth/me')
 async def get_me(current_user: dict = Depends(get_current_user)):
@@ -3131,6 +3154,23 @@ app.include_router(api_router)
 # Origines autorisées (CORS + redirections Stripe) : liste par défaut dans services/origin_guard.py
 _cors_from_env = [o.strip() for o in os.environ.get('CORS_ORIGINS', '').split(',') if o.strip()]
 _allow_origins = list(set(_cors_from_env + DEFAULT_ORIGINS)) if _cors_from_env else list(DEFAULT_ORIGINS)
+
+async def _catch_unhandled_exceptions(request: Request, call_next):
+    """Transforme une exception non gérée en réponse 500 JSON.
+
+    Ajouté AVANT CORSMiddleware (donc placé à l'intérieur) : la réponse repasse par le CORS et
+    garde ses en-têtes. Sans ça, une 500 brute n'a pas d'en-têtes CORS et le navigateur
+    affiche « Network Error » au lieu du vrai statut.
+    """
+    try:
+        return await call_next(request)
+    except Exception:
+        logger.exception(f'[unhandled] {request.method} {request.url.path}')
+        from starlette.responses import JSONResponse
+        return JSONResponse(status_code=500, content={'detail': 'Erreur interne du serveur.'})
+
+
+app.middleware('http')(_catch_unhandled_exceptions)
 
 app.add_middleware(
     CORSMiddleware,
