@@ -31,7 +31,8 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
-from reportlab.platypus import Paragraph, Spacer, PageBreak, Image as RLImage, KeepTogether
+from reportlab.platypus import Spacer, PageBreak, Image as RLImage, KeepTogether
+from services.pdf_theme import SafeParagraph as Paragraph, format_date_fr
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +200,6 @@ def build_colophon(
         edition_style,
     ))
     story.append(Paragraph(
-        f'<font size="7" color="#5E5A63">Généré le {datetime.now().strftime("%d %B %Y").lower()} · pour {prenom or "toi"}</font>',
+        f'<font size="7" color="#5E5A63">Généré le {format_date_fr()} · pour {prenom or "toi"}</font>',
         edition_style,
     ))

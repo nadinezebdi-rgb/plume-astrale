@@ -22,14 +22,15 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm, mm
 from reportlab.lib.colors import HexColor
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image as RLImage,
+    SimpleDocTemplate, Spacer, PageBreak, Image as RLImage,
     Table, TableStyle, KeepTogether,
 )
+from services.pdf_theme import SafeParagraph as Paragraph
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
 from services.pdf_theme import (
-    register_fonts, make_styles, font,
+    register_fonts, make_styles, font, format_date_fr,
     GOLD, GOLD_LIGHT, CREAM, LAVENDER, MUTED, NIGHT, NIGHT_SOFT, PALETTE,
 )
 
@@ -163,7 +164,7 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
 
     # Priorité : hero V3 local (garantit une belle carte prestige à chaque livre imprimé)
     from pathlib import Path as _P
-    _hero_local = _P('/app/backend/assets/pdf_covers/natal_hero.png')
+    _hero_local = _P(__file__).resolve().parent.parent / 'assets' / 'pdf_covers' / 'natal_hero.png'
     img_used = False
     if _hero_local.exists():
         try:
@@ -187,7 +188,7 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
     from services.pdf_cover_personalization import embossed_name as _embossed
     _embossed(story, prenom, size='medium')
     story.append(Spacer(1, 0.9 * cm))
-    story.append(Paragraph(datetime.now().strftime('%d %B %Y').upper(),
+    story.append(Paragraph(format_date_fr().upper(),
                            ParagraphStyle('date_cover', fontName=font('Cinzel', 'Helvetica'),
                                            fontSize=9, textColor=MUTED,
                                            alignment=TA_CENTER)))
