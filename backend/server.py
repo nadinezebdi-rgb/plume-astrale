@@ -1,5 +1,6 @@
 """Plume Astrale — FastAPI backend (Supabase + Stripe + Astrology API)."""
 from services.origin_guard import DEFAULT_ORIGINS, validate_origin
+from services.rate_limit import rate_limit
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Query, Body
 from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -11,7 +12,8 @@ import uuid
 import base64
 import json
 from pathlib import Path
-from pydantic import BaseModel
+import re
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from urllib.parse import urlparse
 from emergentintegrations.llm.chat import LlmChat, UserMessage
@@ -593,10 +595,21 @@ async def grant_free_access(payload: FreeAccessRequest, current_user: dict = Dep
 
 
 class LegacyCheckoutRequest(BaseModel):
-    product_id: str
-    origin_url: str
-    user_email: str | None = None
+    product_id: str = Field(max_length=80)
+    origin_url: str = Field(max_length=300)
+    user_email: str | None = Field(default=None, max_length=254)
     user_data: dict | None = None
+
+    @field_validator('user_email')
+    @classmethod
+    def _email_or_none(cls, v):
+        # Chaine vide -> None ; sinon adresse plausible (évite d'injecter n'importe quoi dans les metadata/reçus)
+        v = (v or '').strip()
+        if not v:
+            return None
+        if not re.fullmatch(r'[^@\s<>"]+@[^@\s<>"]+\.[^@\s<>"]+', v):
+            raise ValueError('email invalide')
+        return v.lower()
 
 
 @api_router.get('/products')
@@ -604,7 +617,7 @@ async def list_products():
     return PRODUCT_CATALOG
 
 
-@api_router.post('/checkout/create')
+@api_router.post('/checkout/create', dependencies=[Depends(rate_limit('checkout_create', 20))])
 async def legacy_checkout_create(payload: LegacyCheckoutRequest, http_request: Request):
     product = PRODUCT_CATALOG.get(payload.product_id)
     if not product:
@@ -635,10 +648,18 @@ async def legacy_checkout_create(payload: LegacyCheckoutRequest, http_request: R
     return {'url': session.url, 'session_id': session.session_id}
 
 
-@api_router.get('/checkout/status/{session_id}')
+@api_router.get('/checkout/status/{session_id}', dependencies=[Depends(rate_limit('checkout_status', 60))])
 async def legacy_checkout_status(session_id: str):
+    # Identifiant Stripe réel uniquement, et seulement les sessions créées par ce flux
+    if not re.fullmatch(r'cs_(live|test)_[A-Za-z0-9]{10,200}', session_id):
+        raise HTTPException(status_code=404, detail='Session introuvable')
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url='')
-    status = await stripe_checkout.get_checkout_status(session_id)
+    try:
+        status = await stripe_checkout.get_checkout_status(session_id)
+    except Exception:
+        raise HTTPException(status_code=404, detail='Session introuvable')
+    if (status.metadata or {}).get('flow') != 'legacy_checkout':
+        raise HTTPException(status_code=404, detail='Session introuvable')
     return {
         'status': status.status,
         'payment_status': status.payment_status,

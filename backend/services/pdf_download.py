@@ -127,6 +127,31 @@ def upload_pdf_to_reports_bucket(
         return None
 
 
+def _short_lived_url(public_url: str, ttl_s: int = 300) -> str:
+    """Remplace une URL publique du bucket `reports` par une URL signée à courte durée.
+
+    Permet de passer le bucket en privé sans changer ce flux : si la signature échoue
+    (format d'URL inattendu, erreur Supabase), on retombe sur l'URL d'origine.
+    """
+    marker = '/storage/v1/object/public/reports/'
+    if marker not in (public_url or ''):
+        return public_url
+    path = public_url.split(marker, 1)[1].split('?', 1)[0]
+    try:
+        from services.supabase_client import get_admin_client
+        res = get_admin_client().storage.from_('reports').create_signed_url(path, ttl_s)
+        signed = (res or {}).get('signedURL') or (res or {}).get('signedUrl')
+        if not signed:
+            return public_url
+        if signed.startswith('/'):
+            base = public_url.split('/storage/v1/', 1)[0]
+            signed = f'{base}/storage/v1{signed}'
+        return signed
+    except Exception as e:
+        logger.warning(f'[pdf_download] signature URL Supabase impossible: {e}')
+        return public_url
+
+
 def _resolve_pdf_file(product_kind: str, session_id: str,
                        filename_prefix: Optional[str] = None) -> Optional[Path]:
     """Retrouve le fichier PDF sur disque à partir de la clé produit + session.
@@ -238,7 +263,7 @@ async def download_pdf(session_id: str, token: str, print_ready: bool = False):
         if supabase_url:
             from fastapi.responses import RedirectResponse
             logger.info(f'[pdf_download] {session_id}/{matched_key} local manquant → redirect Supabase')
-            resp = RedirectResponse(url=supabase_url, status_code=302)
+            resp = RedirectResponse(url=_short_lived_url(supabase_url), status_code=302)
             # Empêche le navigateur de cacher le redirect (l'URL cible peut changer sur régénération)
             resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
             resp.headers['Pragma'] = 'no-cache'

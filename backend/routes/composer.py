@@ -11,6 +11,7 @@ la liste de slugs — le serveur recalcule avec la règle 29/19/99.
 """
 from __future__ import annotations
 from services.origin_guard import validate_origin
+from services.rate_limit import rate_limit
 import logging
 import uuid
 from typing import List, Optional
@@ -148,7 +149,7 @@ async def composer_quote(payload: QuotePayload):
     }
 
 
-@router.post('/apply-promo')
+@router.post('/apply-promo', dependencies=[Depends(rate_limit('composer_promo', 15))])
 async def composer_apply_promo(
     payload: ApplyPromoPayload,
     current_user: Optional[dict] = Depends(get_optional_user),
@@ -175,7 +176,7 @@ async def composer_apply_promo(
     }
 
 
-@router.post('/checkout')
+@router.post('/checkout', dependencies=[Depends(rate_limit('composer_checkout', 20))])
 async def composer_checkout(
     payload: CheckoutPayload,
     request: Request,
