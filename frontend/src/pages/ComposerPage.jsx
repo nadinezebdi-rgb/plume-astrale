@@ -15,6 +15,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 const STEPS = ['Vos données', 'Vos chapitres', 'Votre édition', 'Récapitulatif'];
@@ -331,7 +332,7 @@ function StepBirthData({ birth, setBirth }) {
       <div style={twoCols}>
         <div>
           <p style={fieldLabel}>Date de naissance</p>
-          <input type="date" required value={birth.birth_date} onChange={update('birth_date')}
+          <FrenchDateInput type="date" required value={birth.birth_date} onChange={update('birth_date')}
                  data-testid="composer-input-birthdate" style={input}/>
         </div>
         <div>
