@@ -1,6 +1,8 @@
 """Tests unitaires de services.promo_bypass.try_consume_promo (SEC-004)."""
 import os
 import sys
+import asyncio
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -290,6 +292,175 @@ def test_composer_checkout_preserves_auth_quota_and_cas(
         assert sb.redemptions[0]['product'] == 'composer_book'
         assert tx['user_email'] == 'recipient@example.com'
         assert data['session_id'].startswith('promo_')
+        composer._validate_session_id(data['session_id'])
     else:
         stripe_checkout.create_checkout_session.assert_awaited_once()
         assert data['session_id'] == 'cs_paid'
+
+
+@pytest.mark.parametrize('session_id', [
+    '', '.', '..', '../composer_books', '/etc/passwd', r'..\composer_books',
+    'cs_test_abc/../../composer_books', r'cs_live_abc\..\composer_books',
+    'cs_test_abc..', 'cs_test_abc%2f..', 'cs_test_abc\n', 'cs_test_abc\x00',
+    'cs_test_', 'cs_paid', 'promo_0123456789abcdef/..',
+    'promo_0123456789abcdeg', 'promo_0123456789abcde',
+])
+@pytest.mark.parametrize('endpoint', [
+    'status', 'pages', 'print-specs', 'regenerate', 'regenerate-wait',
+])
+def test_composer_invalid_session_has_no_side_effects(
+    composer_client, monkeypatch, session_id, endpoint,
+):
+    from fastapi import HTTPException
+    from routes import composer
+
+    def forbidden(*args, **kwargs):
+        pytest.fail('Invalid session must be rejected before any side effects')
+
+    monkeypatch.setattr(composer, 'get_admin_client', forbidden)
+    for method in ('mkdir', 'exists', 'read_bytes', 'write_bytes', 'rename'):
+        monkeypatch.setattr(Path, method, forbidden)
+    pipeline = types.ModuleType('services.book_engine.pipeline')
+    pipeline.build_book_pdf_for_session = forbidden
+    monkeypatch.setitem(sys.modules, 'services.book_engine.pipeline', pipeline)
+    monkeypatch.setattr(asyncio, 'create_task', forbidden)
+    calls = {
+        'status': lambda: composer.composer_status(session_id),
+        'pages': lambda: composer.composer_page_jpg(session_id, 1),
+        'print-specs': lambda: composer.composer_print_specs(session_id),
+        'regenerate': lambda: composer.composer_regenerate(session_id),
+        'regenerate-wait': lambda: composer.composer_regenerate(session_id, wait=True),
+    }
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(calls[endpoint]())
+    assert exc.value.status_code == 400
+    assert exc.value.detail == 'session_id invalide'
+
+
+VALID_COMPOSER_SESSION_IDS = [
+    'cs_test_a1B2C3d4E5f6G7h8I9j0',
+    'cs_live_a1B2C3d4E5f6G7h8I9j0',
+    'promo_0123456789abcdef',
+]
+
+
+@pytest.mark.parametrize('session_id', VALID_COMPOSER_SESSION_IDS)
+@pytest.mark.parametrize('status,payment_status,pdf_status', [
+    ('initiated', 'unpaid', None),
+    ('complete', 'paid', 'success'),
+    ('complete', 'paid', 'failed'),
+])
+def test_composer_valid_session_status_preserved(
+    composer_client, monkeypatch, session_id, status, payment_status, pdf_status,
+):
+    from routes import composer
+
+    sb = MagicMock()
+    sb.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value.data = [{
+        'status': status, 'payment_status': payment_status,
+        'metadata': {'pdf_status': pdf_status, 'edition': 'numerique',
+                     'pdf_supabase_url': 'https://example.com/book.pdf', 'pdf_pages': 49},
+    }]
+    monkeypatch.setattr(composer, 'get_admin_client', lambda: sb)
+    response = composer_client.get(f'/api/composer/status/{session_id}')
+    assert response.status_code == 200
+    assert response.json()['status'] == status
+    assert response.json()['payment_status'] == payment_status
+    assert response.json()['pdf_status'] == pdf_status
+    assert response.json()['pdf_ready'] is (pdf_status == 'success')
+    sb.table.return_value.select.return_value.eq.assert_called_once_with('session_id', session_id)
+
+
+@pytest.mark.parametrize('session_id', VALID_COMPOSER_SESSION_IDS)
+def test_composer_valid_session_cache_hit_preserved(composer_client, monkeypatch, session_id):
+    from routes import composer
+
+    mkdir, exists, read = MagicMock(), MagicMock(return_value=True), MagicMock(return_value=b'jpeg')
+    monkeypatch.setattr(Path, 'mkdir', mkdir)
+    monkeypatch.setattr(Path, 'exists', exists)
+    monkeypatch.setattr(Path, 'read_bytes', read)
+    response = asyncio.run(composer.composer_page_jpg(session_id, 1))
+    assert response.body == b'jpeg'
+    assert response.media_type == 'image/jpeg'
+    assert response.headers['cache-control'] == 'public, max-age=86400'
+    mkdir.assert_called_once_with(parents=True, exist_ok=True)
+    exists.assert_called_once()
+    read.assert_called_once()
+
+
+@pytest.mark.parametrize('session_id', VALID_COMPOSER_SESSION_IDS)
+def test_composer_valid_session_cache_miss_preserved(composer_client, monkeypatch, session_id):
+    import glob
+    import subprocess
+    from routes import composer
+
+    cache = Path('/app/backend/assets/book/flipbook_cache') / session_id
+    output = cache / 'p001_dpi130.jpg'
+    rendered = cache / 'render_1-01.jpg'
+    mkdir, rename, read = [], [], []
+    monkeypatch.setattr(Path, 'mkdir', lambda path, **kwargs: mkdir.append(path))
+    monkeypatch.setattr(Path, 'exists', lambda path: str(path) == '/stored/book.pdf')
+    monkeypatch.setattr(Path, 'rename', lambda path, target: rename.append((path, target)))
+    monkeypatch.setattr(Path, 'read_bytes', lambda path: read.append(path) or b'jpeg')
+    monkeypatch.setattr(glob, 'glob', lambda pattern: [str(rendered)])
+    run = MagicMock(return_value=types.SimpleNamespace(returncode=0))
+    monkeypatch.setattr(subprocess, 'run', run)
+    sb = MagicMock()
+    sb.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value.data = [{
+        'metadata': {'pdf_local_path': '/stored/book.pdf'},
+    }]
+    monkeypatch.setattr(composer, 'get_admin_client', lambda: sb)
+    response = asyncio.run(composer.composer_page_jpg(session_id, 1))
+    assert response.body == b'jpeg'
+    assert mkdir == [cache]
+    assert rename == [(rendered, output)]
+    assert read == [output]
+    assert run.call_args.args[0][-1] == str(cache / 'render_1')
+
+
+@pytest.mark.parametrize('session_id', VALID_COMPOSER_SESSION_IDS)
+def test_composer_valid_unknown_session_still_returns_404(composer_client, monkeypatch, session_id):
+    from routes import composer
+
+    sb = MagicMock()
+    sb.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value.data = []
+    monkeypatch.setattr(composer, 'get_admin_client', lambda: sb)
+    response = composer_client.get(f'/api/composer/status/{session_id}')
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'session inconnue'
+
+
+@pytest.mark.parametrize('session_id', VALID_COMPOSER_SESSION_IDS)
+def test_composer_valid_session_print_specs_preserved(composer_client, monkeypatch, session_id):
+    from routes import composer
+
+    sb = MagicMock()
+    sb.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value.data = [{
+        'metadata': {'pdf_pages': 49},
+    }]
+    monkeypatch.setattr(composer, 'get_admin_client', lambda: sb)
+    response = composer_client.get(f'/api/composer/print-specs/{session_id}')
+    assert response.status_code == 200
+    assert 'cover_spec' in response.json()
+    sb.table.return_value.select.return_value.eq.assert_called_once_with('session_id', session_id)
+
+
+@pytest.mark.parametrize('session_id', VALID_COMPOSER_SESSION_IDS)
+@pytest.mark.parametrize('wait', [False, True])
+def test_composer_valid_session_regeneration_preserved(
+    composer_client, monkeypatch, session_id, wait,
+):
+    from routes import composer
+
+    pipeline = types.ModuleType('services.book_engine.pipeline')
+    pipeline.build_book_pdf_for_session = AsyncMock(return_value={'pdf_ready': True})
+    monkeypatch.setitem(sys.modules, 'services.book_engine.pipeline', pipeline)
+
+    async def regenerate():
+        response = await composer.composer_regenerate(session_id, wait=wait)
+        await asyncio.sleep(0)
+        return response
+
+    response = asyncio.run(regenerate())
+    assert response == ({'pdf_ready': True} if wait else {'scheduled': True, 'session_id': session_id})
+    pipeline.build_book_pdf_for_session.assert_awaited_once_with(session_id, force=True)

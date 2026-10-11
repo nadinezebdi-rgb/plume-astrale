@@ -11,6 +11,7 @@ la liste de slugs — le serveur recalcule avec la règle 29/19/99.
 """
 from __future__ import annotations
 import logging
+import re
 import uuid
 from typing import List, Optional
 
@@ -37,6 +38,12 @@ router = APIRouter(prefix='/composer', tags=['composer'])
 
 # Pays de livraison acceptés pour les éditions imprimées
 PRINT_SHIPPING_COUNTRIES = ['FR', 'BE', 'LU', 'CH', 'MC']
+
+
+def _validate_session_id(session_id: str) -> None:
+    """Accept Stripe IDs and the truncated UUID hex IDs issued by promo checkout."""
+    if not re.fullmatch(r'(?:cs_(?:live|test)_[A-Za-z0-9]+|promo_[0-9a-f]{16})', session_id):
+        raise HTTPException(400, 'session_id invalide')
 
 
 # ── Schémas Pydantic ────────────────────────────────────────────
@@ -410,6 +417,7 @@ async def composer_status(session_id: str):
 
     Réponse : {status, pdf_ready, pdf_url, pdf_pages, edition}
     """
+    _validate_session_id(session_id)
     try:
         sb = get_admin_client()
         row = sb.table('payment_transactions').select('*').eq(
@@ -442,6 +450,7 @@ async def composer_regenerate(session_id: str, wait: bool = False):
     les 502 de Cloudflare sur les longs appels LLM).
     Avec `?wait=true` : bloquant, utile en local pour debug.
     """
+    _validate_session_id(session_id)
     from services.book_engine.pipeline import build_book_pdf_for_session
     if wait:
         diag = await build_book_pdf_for_session(session_id, force=True)
@@ -461,6 +470,7 @@ async def composer_page_jpg(session_id: str, page_num: int, dpi: int = 130):
     Cache local (`/app/backend/assets/book/flipbook_cache/{session_id}/pN.jpg`).
     Réponse : image/jpeg direct (Content-Type + Cache-Control 24h).
     """
+    _validate_session_id(session_id)
     from fastapi.responses import Response as FResponse
     import subprocess
     from pathlib import Path
@@ -527,6 +537,7 @@ async def composer_print_specs(session_id: str,
                                 edition: str = 'brochee',
                                 quantity: int = 1):
     """Retourne dimensions (dos, cover) + estimation prix pour l'édition demandée."""
+    _validate_session_id(session_id)
     from services.book_engine.domain import Edition
     from services.print.lulu_provider import (
         estimate_retail_price_eur,
