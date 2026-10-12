@@ -79,6 +79,7 @@ ALLOWED_EVENTS = frozenset({
     'intent_selected',
     'tarot_card_selected',
     'tarot_continue_clicked',
+    'tarot_reveal_regenerated', # Feb 2026 — bouton "Une autre lecture" Scene 3
     'feather_completed',
     # Signup
     'signup_started',
@@ -161,6 +162,7 @@ FUNNEL_STEPS: List[str] = [
     'intent_selected',
     'tarot_card_selected',
     'tarot_continue_clicked',
+    'tarot_reveal_regenerated',
     'feather_completed',
     'signup_started',
     'signup_completed',
@@ -226,6 +228,37 @@ async def admin_experience_funnel(
         purchases = data['steps'].get('credit_purchase', 0)
         data['signup_rate'] = round(signups / visits, 4) if visits else 0.0
         data['purchase_rate'] = round(purchases / visits, 4) if visits else 0.0
+
+    # ─── Feb 2026 — regenerate lift : signup rate parmi regenerators vs baseline ─
+    regen_pipeline = [
+        {'$match': {
+            'created_at': {'$gte': cutoff},
+            'event_name': {'$in': ['tarot_reveal_regenerated', 'signup_completed']},
+        }},
+        {'$group': {
+            '_id': {'variant': '$variant', 'visitor_id': '$visitor_id'},
+            'events': {'$addToSet': '$event_name'},
+        }},
+    ]
+    regen_rows = await col.aggregate(regen_pipeline).to_list(length=100_000)
+    regen_by_variant: Dict[str, Dict[str, int]] = {}
+    for row in regen_rows:
+        v = row['_id']['variant']
+        events = set(row.get('events') or [])
+        if 'tarot_reveal_regenerated' not in events:
+            continue
+        bucket = regen_by_variant.setdefault(v, {'regenerators': 0, 'regen_signups': 0})
+        bucket['regenerators'] += 1
+        if 'signup_completed' in events:
+            bucket['regen_signups'] += 1
+    for v, data in variants.items():
+        bucket = regen_by_variant.get(v, {'regenerators': 0, 'regen_signups': 0})
+        regens = bucket['regenerators']
+        regen_signup_rate = round(bucket['regen_signups'] / regens, 4) if regens else 0.0
+        baseline = data.get('signup_rate', 0.0)
+        data['regenerators'] = regens
+        data['regen_signup_rate'] = regen_signup_rate
+        data['regen_signup_lift_pp'] = round(regen_signup_rate - baseline, 4)
 
     return {
         'period_hours': hours,

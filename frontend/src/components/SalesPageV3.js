@@ -1,4 +1,4 @@
-import React, { useState } from 'react';import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, Sparkles, ShieldCheck, Clock, Mail, Star, BookOpen, Check, Gift,
 } from 'lucide-react';
@@ -12,6 +12,7 @@ import CelestialBackdrop from '@/components/CelestialBackdrop';
 import StickyMobileCta from '@/components/StickyMobileCta';
 import PromoCodeField from '@/components/PromoCodeField';
 import { useAuth } from '@/context/AuthContext';
+import { event as trackEvent, ctaClick } from '@/lib/analytics';
 
 /**
  * SalesPageV3 — Template unifié pour toutes les pages de vente PDF.
@@ -80,7 +81,40 @@ export default function SalesPageV3({
   // Parse le prix (accepte "39€", "29,99€", "89€")
   const numericPrice = parseFloat(String(priceMain).replace(/[€\s]/g, '').replace(',', '.')) || 0;
 
+  // ── GA4 e-commerce : view_item à l'entrée (1× par session) ──────────
+  useEffect(() => {
+    if (!slug) return;
+    try {
+      const key = `pa_view_item_${slug}`;
+      if (window.sessionStorage.getItem(key) === '1') return;
+      window.sessionStorage.setItem(key, '1');
+    } catch { /* noop */ }
+    trackEvent('view_item', {
+      item_id: slug,
+      item_name: seoTitle || slug,
+      item_category: 'pdf',
+      price: numericPrice,
+      currency: 'EUR',
+      items: [{
+        item_id: slug,
+        item_name: seoTitle || slug,
+        item_category: 'pdf',
+        price: numericPrice,
+        quantity: 1,
+      }],
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
+
   const handleCta = () => {
+    ctaClick(ctaLabelGuest || ctaLabelAuth || `sales-${slug}-cta`, {
+      destination: isAuthenticated ? ctaTargetAuth : ctaTargetGuest,
+      cta_location: `sales_page_${slug}`,
+      item_id: slug,
+      item_name: seoTitle || slug,
+      price: numericPrice,
+      currency: 'EUR',
+    });
     let target = isAuthenticated ? ctaTargetAuth : ctaTargetGuest;
     // Propage le code promo (admin bypass ou reduc) via URL param
     if (promoState.status === 'ok' && promoState.code) {

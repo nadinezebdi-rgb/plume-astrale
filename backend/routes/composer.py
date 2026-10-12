@@ -276,7 +276,7 @@ async def composer_checkout(
         # Déclenche le pipeline de génération PDF en arrière-plan
         try:
             import asyncio as _asyncio
-            from services.book_engine.pipeline import build_book_pdf_for_session
+            from services.book_engine_shared.pipeline import build_book_pdf_for_session
             _asyncio.create_task(build_book_pdf_for_session(fake_session_id))
         except Exception as e:
             logger.warning(f'[composer] pipeline schedule failed: {e}')
@@ -445,7 +445,7 @@ async def composer_regenerate(session_id: str, wait: bool = False):
     les 502 de Cloudflare sur les longs appels LLM).
     Avec `?wait=true` : bloquant, utile en local pour debug.
     """
-    from services.book_engine.pipeline import build_book_pdf_for_session
+    from services.book_engine_shared.pipeline import build_book_pdf_for_session
     if wait:
         diag = await build_book_pdf_for_session(session_id, force=True)
         return diag
@@ -530,7 +530,7 @@ async def composer_print_specs(session_id: str,
                                 edition: str = 'brochee',
                                 quantity: int = 1):
     """Retourne dimensions (dos, cover) + estimation prix pour l'édition demandée."""
-    from services.book_engine.domain import Edition
+    from services.book_engine_shared.domain import Edition
     from services.print.lulu_provider import (
         estimate_retail_price_eur,
         validate_manuscript_for_print,
@@ -554,7 +554,7 @@ async def composer_print_specs(session_id: str,
     pages = md.get('pdf_pages') or 32
 
     # Validation via un manuscript minimal (on n'a besoin que du nombre de chapitres)
-    from services.book_engine.domain import Manuscript, BirthData
+    from services.book_engine_shared.domain import Manuscript, BirthData
     from datetime import datetime, timezone
     m = Manuscript(
         session_id=session_id, user_email='', first_name='',

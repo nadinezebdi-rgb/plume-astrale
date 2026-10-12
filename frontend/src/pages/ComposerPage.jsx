@@ -568,7 +568,7 @@ function StepRecap({ birth, edition, recipient, setRecipient, quote, catalog, su
             type="text"
             value={promo?.code || ''}
             onChange={(e) => setPromo((p) => ({ ...p, code: e.target.value.toUpperCase(), applied: false, message: null }))}
-            placeholder="Votre code"
+            placeholder="Entrez votre code"
             data-testid="composer-input-promo"
             style={{ ...input, marginTop: 0, flex: 1, textTransform: 'uppercase' }}
           />

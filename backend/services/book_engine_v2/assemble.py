@@ -18,10 +18,10 @@ import logging
 from datetime import datetime, timezone
 from typing import Iterable, Optional
 
-from services.book_engine.domain import (
+from services.book_engine_shared.domain import (
     BirthData, BlockKind, Chapter, ChapterBlock, Edition, Manuscript,
 )
-from services.book_engine.registry import SOCLE, ADDONS, PRINT_INCLUDED_ADDONS
+from services.book_engine_shared.registry import SOCLE, ADDONS, PRINT_INCLUDED_ADDONS
 from .chapter_prompts import generate_chapter_blocks
 
 logger = logging.getLogger(__name__)

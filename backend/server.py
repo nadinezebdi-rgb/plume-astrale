@@ -51,6 +51,7 @@ from routes.experience_funnel import (
     funnel_router as experience_funnel_public_router,
     admin_funnel_router as experience_funnel_admin_router,
 )
+from routes.experience_tarot_reveal import router as experience_tarot_reveal_router
 from routes.health import router as health_router
 from routes.promo import router as promo_router
 from routes.astrology_v3 import router as astrology_v3_router
@@ -86,6 +87,8 @@ from routes.apercu_discount import router as apercu_discount_router
 from routes.gift import router as gift_router
 from routes.pdf_preview import router as pdf_preview_router
 from routes.pdf_test_admin import router as pdf_test_admin_router
+from routes.admin_preview_v3 import router as admin_preview_v3_router
+from routes.natal_lulu_bump import router as natal_lulu_bump_router
 from routes.lead_magnet import router as lead_magnet_router
 from routes.voyage_karmique import router as voyage_karmique_router
 from routes.composer import router as composer_router
@@ -125,6 +128,7 @@ api_router.include_router(admin_router)
 api_router.include_router(admin_payments_router)
 api_router.include_router(experience_funnel_public_router)
 api_router.include_router(experience_funnel_admin_router)
+api_router.include_router(experience_tarot_reveal_router)
 api_router.include_router(admin_book_router)
 api_router.include_router(health_router)
 api_router.include_router(promo_router)
@@ -177,6 +181,8 @@ api_router.include_router(apercu_discount_router)
 api_router.include_router(gift_router)
 api_router.include_router(pdf_preview_router)
 api_router.include_router(pdf_test_admin_router)
+api_router.include_router(admin_preview_v3_router)
+api_router.include_router(natal_lulu_bump_router)
 api_router.include_router(lead_magnet_router)
 api_router.include_router(voyage_karmique_router)
 api_router.include_router(composer_router)
@@ -1224,6 +1230,16 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
             logger.warning(f'[edition_reliee] post-webhook fail: {e}')
         return {'received': True, 'type': event_type, 'kind': 'edition_reliee'}
 
+    # Route vers natal_lulu_bump (livre relié 79€ dropship Lulu)
+    if md.get('kind') == 'natal_lulu_bump':
+        from services.natal_lulu_bump_service import handle_bump_webhook
+        try:
+            session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            await handle_bump_webhook(session_id)
+        except Exception as e:
+            logger.warning(f'[natal_lulu_bump] post-webhook fail: {e}')
+        return {'received': True, 'type': event_type, 'kind': 'natal_lulu_bump'}
+
     # Route vers rencontres_ultime handler si kind=rencontres_ultime (pack 29,99 EUR)
     if md.get('kind') == 'rencontres_ultime':
         from services.rencontres_ultime_service import handle_rencontres_ultime_webhook
@@ -1336,8 +1352,7 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
 
     # Route vers Composer Book handler si kind=composer_book (pivot livre unifié, LOT 3)
     if md.get('kind') == 'composer_book':
-        from services.book_engine.pipeline import build_book_pdf_for_session
-        from services.payment_verification import verify_session_matches_transaction, session_to_dict
+        from services.book_engine_shared.pipeline import build_book_pdf_for_session
         try:
             session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
             # Ne livre que si Stripe confirme le paiement du montant attendu (la transaction fait foi)
@@ -1358,7 +1373,7 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
                 }
                 # Éditions imprimées : on conserve l'adresse de livraison collectée par Stripe
                 try:
-                    from services.book_engine.fulfillment import extract_shipping
+                    from services.book_engine_shared.fulfillment import extract_shipping
                     shipping = extract_shipping(data_obj)
                     if shipping:
                         cur = sb2.table('payment_transactions').select('metadata').eq(

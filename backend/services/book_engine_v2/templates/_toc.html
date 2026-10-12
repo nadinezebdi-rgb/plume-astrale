@@ -1,0 +1,22 @@
+{# Sommaire — belle page recto, entrées romaines + titre + folio point-leaders #}
+<section class="page toc {{ side }}">
+  <img class="plume t" src="{{ asset('plume.svg') }}" alt="">
+  <div class="block">
+    <p class="chapno" style="text-align:center;letter-spacing:0.32em;color:#A8823F;font-size:9pt;text-transform:uppercase;margin:0 0 10mm;">Sommaire</p>
+    <h1 style="text-align:center;font-size:28pt;font-weight:300;margin:0 0 14mm;color:#1C1B26;">Table des matières</h1>
+    <ol class="toc-list" style="list-style:none;padding:0;margin:0;">
+      {% for entry in toc_entries %}
+      <li style="display:flex;align-items:baseline;margin:0 0 5mm;font-family:'Cormorant Garamond',Georgia,serif;font-size:11pt;line-height:1.5;">
+        <span style="color:#A8823F;font-variant:small-caps;letter-spacing:0.1em;min-width:14mm;">{{ entry.roman }}</span>
+        <span style="flex:1 1 auto;color:#1C1B26;">{{ entry.title }}</span>
+        <span style="flex:0 0 auto;color:#A8823F;border-bottom:0.5pt dotted #A8823F;flex-grow:1;margin:0 2mm;height:1px;align-self:flex-end;transform:translateY(-2pt);"></span>
+        <span style="color:#1C1B26;min-width:8mm;text-align:right;">{{ entry.folio }}</span>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+  <div class="folio">
+    <span>Le Livre Astral de {{ first_name }}</span>
+    <span>{{ folio }}</span>
+  </div>
+</section>

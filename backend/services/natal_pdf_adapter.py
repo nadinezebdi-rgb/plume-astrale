@@ -89,7 +89,10 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
                             chart_png_bytes: bytes | None = None,
                             book_data: dict = None,
                             referral_code: str = None,
-                            referral_link: str = None) -> bytes:
+                            referral_link: str = None,
+                            aspects_raw: list = None,
+                            houses_raw: list = None,
+                            house_cusps_raw: list = None) -> bytes:
     """DROP-IN REPLACEMENT du générateur legacy `generate_manuscrit_pdf`.
 
     Mode ULTRA activé si `user_data['ai_interpretations']` contient au moins
@@ -229,6 +232,103 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
         'tier': 'ultra' if is_ultra else 'legacy',
     }
 
+    # Détails positions (degré, maison, retrograde) depuis planets_data brut.
+    # Permet au builder d'enrichir les titres H2 et les maisons.
+    planets_detail: list[dict] = []
+    _PLANET_EN_TO_FR = {v: k for k, v in _PLANET_FR_TO_EN.items()}
+    if planets_data:
+        iter_src = []
+        if isinstance(planets_data, dict):
+            iter_src = list(planets_data.values())
+        elif isinstance(planets_data, list):
+            iter_src = planets_data
+        for p in iter_src:
+            if not isinstance(p, dict):
+                continue
+            name_raw = (p.get('name') or p.get('planete') or '').strip()
+            name_fr = _PLANET_EN_TO_FR.get(name_raw) or _PLANET_EN_TO_FR.get(name_raw.title()) or name_raw
+            if not name_fr:
+                continue
+            sign_src = (p.get('sign') or p.get('signe') or '').strip()
+            sign_fr = _SIGN_EN_TO_FR.get(sign_src.lower(), sign_src.title() if sign_src else '')
+            planets_detail.append({
+                'name': name_fr,
+                'sign': sign_fr,
+                'house': p.get('house') or p.get('house_number'),
+                'degree': p.get('degree') or p.get('normDegree') or p.get('norm_degree'),
+                'absolute_degree': p.get('fullDegree') or p.get('absolute_degree') or p.get('longitude'),
+                'retrograde': bool(p.get('retrograde') or p.get('is_retro')),
+            })
+    if planets_detail:
+        natal_data['planets_detail'] = planets_detail
+
+    # Aspects normalisés (format API astrology-io v3)
+    if aspects_raw:
+        natal_data['aspects'] = aspects_raw
+
+    # House cusps (format {num: {sign, degree}} ou liste 12 items)
+    if house_cusps_raw:
+        natal_data['house_cusps'] = house_cusps_raw
+    if houses_raw:
+        # Compat : certaines API retournent 'houses' avec sign+planets, pas de cuspide
+        natal_data.setdefault('houses', houses_raw)
+
+    # Feb 2026 — Nouveau pipeline unifié : book_engine_v2 Chromium print A5.
+    # L'ancien natal_pdf_v2 (dark luxury) reste en fallback silencieux pour
+    # éviter de casser la génération en cas de problème Chromium (prod sans
+    # chromium installé → fallback nécessaire).
+    try:
+        import os
+        if os.environ.get('USE_V2_NATAL_ENGINE', '1') == '1':
+            from services.natal_manuscript_builder import build_natal_manuscript
+            from services.book_engine_v2 import render_manuscript_to_pdf_v2
+            # Génère la préface AI (Claude Sonnet) ou fallback statique.
+            # On tente une boucle courte si on est en contexte sync (adapter appelé
+            # depuis asyncio.to_thread dans theme_natal_oneshot_service).
+            preface_blocks = None
+            try:
+                import asyncio
+                from services.natal_preface_generator import generate_preface_blocks
+                try:
+                    _loop = asyncio.get_event_loop()
+                    if _loop.is_running():
+                        _loop = None
+                except RuntimeError:
+                    _loop = None
+                if _loop is None:
+                    _loop = asyncio.new_event_loop()
+                    try:
+                        preface_blocks = _loop.run_until_complete(generate_preface_blocks(
+                            first_name=prenom,
+                            sun_sign=natal_data.get('sun_sign') or '',
+                            moon_sign=natal_data.get('moon_sign') or '',
+                            asc_sign=natal_data.get('ascendant_sign') or '',
+                            session_id=f'natal-preface-{prenom.lower()}',
+                        ))
+                    finally:
+                        _loop.close()
+            except Exception as _pe:
+                logger.info(f'[natal_pdf_adapter] preface AI skipped (fallback static): {_pe}')
+                preface_blocks = None
+            manuscript = build_natal_manuscript(
+                prenom=prenom, birth_date=birth_date, natal_data=natal_data,
+                chart_png_bytes=chart_png_bytes,
+                preface_blocks=preface_blocks,
+            )
+            pdf_bytes = render_manuscript_to_pdf_v2(manuscript, profile='print')
+            try:
+                from services.pipeline_metrics import track_pipeline_event
+                track_pipeline_event(
+                    'natal_pdf_generated', source='book_engine_v2_print',
+                    tier=natal_data['tier'], bytes=len(pdf_bytes),
+                    ai_planet_count=ai_planet_count,
+                )
+            except Exception:
+                pass
+            return pdf_bytes
+    except Exception as be2_err:
+        logger.warning(f'[natal_pdf_adapter] book_engine_v2 fail, fallback natal_pdf_v2: {be2_err}')
+
     try:
         pdf_bytes = build_natal_pdf_v2(prenom=prenom, birth_date=birth_date, natal_data=natal_data,
                                        chart_png_bytes=chart_png_bytes,
@@ -240,7 +340,7 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
             from services.pipeline_metrics import track_pipeline_event
             track_pipeline_event(
                 'natal_pdf_generated',
-                source=ai.get('_source') or 'none',
+                source='natal_pdf_v2_dark_fallback_' + (ai.get('_source') or 'none'),
                 tier=natal_data['tier'],
                 bytes=len(pdf_bytes),
                 ai_planet_count=ai_planet_count,

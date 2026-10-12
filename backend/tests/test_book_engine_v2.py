@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from services.book_engine.domain import (
+from services.book_engine_shared.domain import (
     BirthData, BlockKind, Chapter, ChapterBlock, Edition, Manuscript,
 )
 from services.book_engine_v2.wheel import (
@@ -162,6 +162,6 @@ def test_render_pdf_v2_qa_page_format_ok(tmp_path):
     p.write_bytes(pdf)
     assert check_page_format(p).status == 'pass'
     assert check_no_bitmap(p).status == 'pass'
-    # Roue en page 6 sur cet exemple (cover, blank, title, blank, ch1-opener, wheel)
-    wheel_check = check_wheel_geometry(p, page_num=6)
+    # Roue en page 8 (cover, blank, title, blank, toc, blank, ch1-opener, wheel)
+    wheel_check = check_wheel_geometry(p, page_num=8)
     assert wheel_check.status in ('pass', 'skip'), wheel_check.detail

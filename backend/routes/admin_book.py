@@ -22,12 +22,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi import Path as PathParam
 from fastapi.responses import FileResponse, JSONResponse
 
-from services.book_engine.pipeline import (
+from services.book_engine_shared.pipeline import (
     ASSETS_DIR as PIPELINE_ASSETS_DIR,
     _fetch_astro,
     _assemble_chapters,
 )
-from services.book_engine.domain import (
+from services.book_engine_shared.domain import (
     BirthData, Edition, Manuscript,
 )
 from services.book_engine_v2 import render_manuscript_to_pdf_v2
@@ -337,7 +337,7 @@ async def admin_regen_cover(
         COVER_CACHE_DIR, generate_cover_image, resolve_signs_fr,
         _detect_text_in_image,
     )
-    from services.book_engine.pipeline import _fetch_astro
+    from services.book_engine_shared.pipeline import _fetch_astro
     from fastapi.responses import Response as FResponse
 
     # Fetch minimal : astro data seulement (pas de LLM ni de manuscrit)

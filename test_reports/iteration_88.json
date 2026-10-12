@@ -1,0 +1,22 @@
+{
+  "summary": "Backend-only testing for Thème Natal PDF v3 (Plume Astrale). Created 9 new integration tests + ran all 32 pre-existing regression tests. 41/41 PASS. The rendered PDF (A5, book_engine_v2, profile='screen') contains 32 pages (pdfinfo) / 37 /Type /Page occurrences, 3 French parts, degrees in °/' format, ℞ retrograde marker, French planet names in aspects (grouped by Conjonctions/Oppositions/Trigones/Carrés/Sextiles), correct 'tombe en <signe>' grammar for houses, no apologetic phrases. no_birth_time correctly omits Partie II but keeps Partie III. Adapter signature accepts aspects_raw/houses_raw/house_cusps_raw kwargs and propagates them into natal_data.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_natal_pdf_v3_integration.py",
+    "/app/test_reports/pytest/natal_v3_full.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Target éditorial ~43 pages non atteint: le rendu actuel = 32 pages A5. Toutes les règles structurelles passent, mais la richesse textuelle (prose LLM) devra être augmentée côté theme_natal_oneshot_service pour atteindre 43 pages. Non bloquant pour cette itération puisque la review request accepte ≥30 pages (seuil respecté).",
+    "pdftotext extrait bien les 3 parties ; aucune mention 'Sun'/'Moon'/'Venus'/etc. détectée dans la zone aspects."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_natal_pdf_v3_integration.py (new)"
+  ],
+  "success_rate": {"backend": "100% (41/41)", "frontend": "N/A (skipped per request)"},
+  "seed_data_creation": "In-test fixtures only (10 planets, 7 aspects, 12 cusps). No DB writes.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "test_natal_pdf_v3_integration.py renders real PDFs via Chromium headless (book_engine_v2). pdftotext required (available at /usr/bin/pdftotext). Fixtures use French planet/sign names. The adapter signature verification uses inspect.signature + source grep (not monkeypatch) because build_natal_manuscript is imported locally inside the function body. If the editorial target is raised to 43 pages, update test_pdf_has_at_least_30_pages threshold."
+}

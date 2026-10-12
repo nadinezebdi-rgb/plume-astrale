@@ -26,6 +26,106 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - **Composants Nocturne** : `.ne-btn` (plats, coins 2px, sans ombre) · `.ne-card` (filet 1px, hover translate 2px + ombre 24px 8%) · `.ne-input` (filet inférieur uniquement) · `.ne-section-night` / `.ne-section-paper` (grain SVG + halos radiaux)
 
 
+### ✅ Rotation STRIPE_WEBHOOK_SECRET effectuée (2026-02-17 nuit)
+
+Confirmation user : la rotation du `STRIPE_WEBHOOK_SECRET` a été faite côté dashboard Stripe. La dette sécurité P0 héritée des forks précédents est désormais fermée.
+
+
+
+
+### 📘 LOT 4.7 — Prose enrichie + Preview admin V3 + Bump livre relié Lulu MOCK (2026-02-17 nuit)
+
+**Demandes utilisateur** :
+1. « Demande à GPT 2 paragraphes de 150 mots par planète au lieu d'un seul »
+2. « Expose un endpoint GET /api/admin/preview/theme-natal-v3 qui te sort le PDF enrichi pour relecture »
+3. « Pourquoi ne pas proposer un format livre imprimé relié via Lulu à 79€ en bump de panier »
+
+**Livré** :
+
+**1. Prose enrichie (GPT)** :
+- Prompt de `natal_ai_enrichment.py` modifié : désormais **2 paragraphes de 130-170 mots par planète** séparés par `\n\n` (soit ~300 mots/planète vs 150 avant). Le manuscript builder splitte déjà sur `\n\n` donc l'effet est automatique au prochain achat. Pas de nouveau coût LLM significatif (prompt système + user ~5-10% plus long).
+
+**2. Preview admin V3** :
+- Nouveau endpoint `GET /api/admin/preview/theme-natal-v3?prenom=X&date=YYYY-MM-DD&download=0|1` dans `routes/admin_preview_v3.py`
+- Auth : `require_admin` (JWT Supabase)
+- Génère un PDF démo avec données Amélie + préface AI réelle (Claude Sonnet via EMERGENT_LLM_KEY)
+- Retourne `application/pdf` inline par défaut, ou `attachment` si `download=1`
+
+**3. Bump livre relié Lulu (MODE MOCK)** :
+- `services/lulu_client.py` : client OAuth2 Lulu + mode mock (`LULU_MOCK=1`) avec quote déterministe par pays, create_print_job simulé, verify_webhook_signature HMAC-SHA256
+- `services/natal_cover_pdf.py` : génère la couverture PDF Lulu A5 hardcover 3-panneaux (4e couv + dos + 1re couv) via Chromium headless. **Design** : fond sable crème (#F0E6D2), typo Cormorant Garamond + Cinzel, plume dorée Plume Astrale, roue natale miniature teintée sépia, dos imprimé "THÈME NATAL" + prénom. **AUCUNE mention de Soléna** (contrainte user)
+- `services/natal_lulu_bump_service.py` : service bump 79€ avec `create_bump_checkout` (Stripe + metadata+adresse) et `handle_bump_webhook` (devis Lulu → cover PDF → Supabase upload → print job Lulu → confirmation email)
+- `routes/natal_lulu_bump.py` : POST `/api/natal-print-bump/quote` (devis live par destination), POST `/api/natal-print-bump/checkout` (Stripe), POST `/api/natal-print-bump/webhook` (Lulu status), GET `/api/natal-print-bump/admin/orders`
+- `server.py` : webhook Stripe principal route `metadata.kind='natal_lulu_bump'` → `handle_bump_webhook(session_id)`
+- `services/theme_natal_oneshot_service.py` : email de livraison enrichi avec **CTA bump "Ajouter l'exemplaire relié — 79 €"** (fond sable, pointe vers `/natal-print?token={session_id}&prenom={fn}`)
+- `frontend/src/pages/NatalPrintBump.jsx` + route `/natal-print` : formulaire adresse + devis live + Stripe checkout, design cream/sand responsive
+- `backend/.env` : `LULU_MOCK=1` ajouté
+
+**Pricing** :
+- Base : 79€ TTC pour la France (prix affiché)
+- Variable selon destination : `max(79€, coût_Lulu + 35€ marge)` arrondi euro supérieur
+- Mock FR : coût Lulu 27€ (impression 18.5 + shipping 8.5) → prix client 79€
+- Mock US : coût Lulu 40.5€ (impression 18.5 + shipping 22) → prix client 79€ (marge couvre)
+- Mock pays cher : marge 35€ garantit la rentabilité
+
+**Validation** :
+- **46/46 tests pytest pass** (10 nouveaux Lulu + 36 régression Natal/book)
+- Backend running, endpoints `/api/natal-print-bump/quote` répondent en mock
+- Cover PDF rendu : 235 KB, 1 page landscape 331×240mm, visuels validés (plume, roue, typo, pas de Soléna)
+- Frontend `/natal-print` live, formulaire + devis + CTA checkout testé en desktop + mobile
+
+**Pour passer en PRODUCTION Lulu** (quand le user est prêt) :
+1. Créer compte Lulu sandbox + prod sur developers.lulu.com
+2. Générer `LULU_CLIENT_KEY`, `LULU_CLIENT_SECRET`, `LULU_WEBHOOK_SECRET`
+3. Choisir le POD package A5 hardcover dans le Pricing Calculator et copier le `LULU_POD_PACKAGE_ID`
+4. Ajouter ces 4 variables au `backend/.env` + `LULU_BASE_URL=https://api.sandbox.lulu.com` et `LULU_TOKEN_URL=https://api.sandbox.lulu.com/auth/realms/glasstree/protocol/openid-connect/token`
+5. Changer `LULU_MOCK=0`
+6. Déclarer le webhook sur `/api/natal-print-bump/webhook` pour le topic `PRINT_JOB_STATUS_CHANGED`
+7. Faire une commande test en sandbox pour valider le flow complet avant la prod
+
+
+
+
+### 📖 LOT 4.6 — Thème Natal transformé en vrai LIVRE (préface AI + sommaire + 6 chapitres) (2026-02-17 nuit)
+
+**Demande utilisateur** : « IL FAUT UNE INTERVENTION DE L'IA pour écrire un texte attractif, pour expliquer comment utiliser le thème natal tout au long de sa vie ! En ce qui concerne la mise en page, il ne faut pas de page à moitié vide, il faut que ce soit déjà un format livre avec page de garde, sommaire, chapitres. »
+
+**Livré** :
+- 📘 **Page de garde + Sommaire** — nouveau template `_toc.html` dans book_engine_v2 : chiffres romains, titres, dot leaders, folios réels. Le renderer calcule les folios en two-pass puis patche le sommaire.
+- 📝 **Préface AI Claude Sonnet 4-6** — nouveau service `natal_preface_generator.py` : voix Soléna, 60-100 mots/paragraphe, structure H2+paragraphes, prompt système strict (JSON). Fallback statique premium si l'API échoue (~400 mots, mentionne le prénom, évoque les étapes de la vie, les relectures aux grandes transitions). Appel async-safe depuis l'adapter.
+- 🏛️ **6 chapitres distincts** (au lieu d'1 seul avec H2 internes) :
+  - I. Comment lire ce livre (préface AI)
+  - II. Le Ciel de {prenom} (synthèse + trio + roue + tableaux)
+  - III. Vos planètes (2 par page, ~5 pages)
+  - IV. Vos douze maisons (3 par page, ~4 pages)
+  - V. Vos aspects (2 groupes par page, ~2-3 pages)
+  - VI. Ce que votre ciel vous dit (synthèse Soléna)
+- 📏 **Pages densifiées** : fini les demi-pages vides. Regroupement 2 planètes/page, 3 maisons/page, 2 groupes d'aspects/page.
+- 📑 **46 pages** produites sur jeu de données test (target éditorial 43 ✅).
+
+**Fichiers créés** :
+- `/app/backend/services/natal_preface_generator.py` — générateur de préface AI Claude Sonnet + fallback statique premium
+- `/app/backend/services/book_engine_v2/templates/_toc.html` — template sommaire avec dot leaders
+
+**Fichiers modifiés** :
+- `/app/backend/services/natal_manuscript_builder.py` — refonte complète multi-chapitres (builders privés par section, renumérotation automatique des numéros romains)
+- `/app/backend/services/natal_pdf_adapter.py` — appel async au preface generator avant construction du manuscript, passe `preface_blocks` au builder
+- `/app/backend/services/book_engine_v2/renderer.py` — insertion du PageSpec sommaire + blanche après le titre, two-pass pour folios réels, trigger wheel+tables étendu au slug `natal_synthese`
+
+**Validation** :
+- 36 tests pytest pass (11 nouveaux + 25 régression)
+- PDF réel 42 pages, 286 KB, Chromium print A5
+- Visuels vérifiés : TOC Roman + dot leaders ✓, préface pleine page avec H2 ✓, planètes 2/page ✓, maisons 3/page ✓, aspects groupés 2/page ✓
+- Grammaire française correcte, noms de planètes en français partout
+- Aucune phrase apologétique ("faute d'", "manquant", "non fourni")
+
+**Dette restante** :
+- Régénérer les PDF des commandes déjà livrées via `POST /api/admin/regenerate-theme-natal/{session_id}?force=true` une fois le client valide la V3.
+- Suggestion : enrichir la prose IA par planète pour atteindre systématiquement 2 paragraphes de 150 mots (densité page).
+
+
+
+
 ### 🎯 LOT 3 P0 — Pipeline PDF end-to-end livré (2026-02-16)
 
 **Fichiers créés** :
@@ -758,3 +858,35 @@ Basé sur l'audit business complet livré par le fondateur.
 - Nébuleuse : 80 cr — 17,99€ (badge "Le plus choisi")
 - Constellation : 180 cr — 34,99€ (badge "Meilleure valeur")
 - Voie Lactée : 350 cr — 59,99€
+
+## 2026-02-27 · Cherry-pick GitHub ↔ preview — Convergence réussie
+Suite au signalement "j'ai modifié du code côté GitHub, compare" + échec deploy sur blocker package.json.
+
+### Fix deploy blocker (P0)
+- Supprimé `"packageManager": "npm@11.9.0"` de `frontend/package.json` (ligne 110). Corepack/Yarn 1.22.22 refusait l'install. Build frontend restauré.
+
+### Cherry-pick exhaustif (option C — préserver les deux)
+**Phase 1 — Fichiers nouveaux de GitHub adoptés (safe copy)** :
+- Backend : `guidance.py`, `nixpacks.toml`, `.railwayignore`, `services/numerologie_cycles.py`, `services/public_free_promo.py`, `services/signup_promo.py`, `routes/reports.py`, `book_engine_shared/fulfillment.py` (extract_shipping Stripe), 5 nouveaux tests pytest.
+- Frontend : `AuthPage.js` (consolidation Register+Login), `CartContext.js` + `CartPage.jsx` + `cartPromo.js` (système panier), `FAQ.js`, `AdminGenerateReadings.js`, `HoroscopeCosmos3D.js`, `design/ShootingStars.js`, `hooks/use3DTilt.js`.
+
+**Phase 2 — Fichiers GH only (adoption wholesale)** : ~70 fichiers src/ + ~40 fichiers backend (refontes design, nouveaux services, webhook kinds `numerologie_code` / `karma_destin_analysis` / `fenetre_rencontre_avancee`, nouvelles routes catalogue 24€, suppression ABTest au profit de HomeExperienceV3 direct sur `/`).
+
+**Phase 3 — Merge chirurgical overlap (21 fichiers)** :
+- Backend imports rename `book_engine` → `book_engine_shared` sur 10 fichiers (routes/admin_book, routes/composer, services/*_manuscript_builder, book_engine_v2/*, tests, services/print/lulu_provider, services/theme_natal_oneshot_service).
+- Backend fonctionnalités session réappliquées : v2 flag kabbale_pdf + astrocartographie_pdf, regen tracking experience_funnel (ALLOWED_EVENTS + FUNNEL_STEPS + agg KPI lift), tarot_reveal_router dans server.py, book_title support renderer+_cover.html, widow fix book.css, pipeline Composer profile='print'.
+- Backend : natal_pdf_adapter.py : réintroduction du pipeline `book_engine_v2` print en priorité (fallback silencieux sur `natal_pdf_v2` dark), tag `natal_pdf_v2_dark_fallback_*` dans pipeline_metrics.
+- Frontend fonctionnalités session réappliquées : `tarot_reveal_regenerated` dans FUNNEL_EVENTS (analytics.js), KPI card "Lift regénérer" + row dans STEPS (ExperienceFunnelWidget.jsx), `view_item` + `cta_click` GA4 e-commerce (SalesPageV3.js + VoyageKarmiqueSales.jsx), fetch Sonnet 4.6 + bouton "Une autre lecture" (ExperienceRoot.jsx) — avec affichage "LLM reveal > selectedCard > fallback statique".
+
+### Fichiers préservés (ma session uniquement)
+- `.emergent/system_deps.txt` (chromium + fonts-liberation + fonts-noto-core restauré après écrasement Phase 2)
+- `routes/experience_tarot_reveal.py`, `services/kabbale_manuscript_builder.py`, `services/astrocarto_manuscript_builder.py`
+- `tests/test_experience_tarot_reveal.py`, `test_kabbale_astrocarto_v2_migration.py`, `test_regenerate_tracking.py`
+- `services/book_engine_shared/` (renommage depuis `book_engine`, GH conservait l'ancien nom)
+
+### Résultat
+- **74/74 tests pytest verts** (13 fichiers de tests critiques couverts : tarot_reveal, natal_pdf_migration, deploy_manifest, kabbale_astrocarto_v2, regenerate_tracking, lulu_provider, book_engine_v2, book_pipeline, natal_print_chapters, numerologie_cycles, signup_promo, public_free_promo, enhanced_natal_analysis).
+- Backend + frontend démarrent sans erreur.
+- Site `/` live preview : charge l'HomeExperienceV3 immersif (version GH) avec le cookie modal.
+- 5 fichiers frontend diffèrent intentionnellement du GitHub : ce sont les enrichissements session (GA4 e-commerce, LLM Sonnet 4.6, regen button, KPI lift).
+

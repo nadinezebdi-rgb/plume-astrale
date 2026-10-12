@@ -20,8 +20,8 @@ from __future__ import annotations
 import logging
 from typing import Callable, Optional
 
-from services.book_engine.domain import ChapterBlock
-from services.book_engine.prose_generator import (
+from services.book_engine_shared.domain import ChapterBlock
+from services.book_engine_shared.prose_generator import (
     SYSTEM_PROMPT,
     _call_claude,
     _parse_json_blocks,
@@ -484,7 +484,7 @@ async def generate_chapter_blocks(
     """
     if slug == 'facon_aimer':
         # Déjà géré par le module historique — on garde la même route
-        from services.book_engine.prose_generator import generate_chapter_iv_love
+        from services.book_engine_shared.prose_generator import generate_chapter_iv_love
         return await generate_chapter_iv_love(
             first_name=first_name, astro_data=astro_data, session_id=session_id,
         )

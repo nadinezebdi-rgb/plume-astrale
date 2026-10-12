@@ -207,6 +207,7 @@ const FUNNEL_EVENTS = new Set([
   'intent_selected',
   'tarot_card_selected',
   'tarot_continue_clicked',
+  'tarot_reveal_regenerated',
   'feather_completed',
   'signup_started',
   'signup_completed',

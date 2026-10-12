@@ -151,7 +151,12 @@ class ManuscritPDFGenerator:
         c.setFillColor(GOLD)
         c.setFillAlpha(0.5)
         c.setFont("Helvetica", 9)
-        c.drawCentredString(self.width / 2, 2.5*cm, f"Généré le {datetime.now().strftime('%d/%m/%Y')}")
+        # Date FR (fix Feb 2026 : strftime('%B') locale-dépendant, mapping manuel)
+        _FR_MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+        _n = datetime.now()
+        _date_fr = f'{_n.day} {_FR_MONTHS[_n.month - 1]} {_n.year}'
+        c.drawCentredString(self.width / 2, 2.5*cm, f"Généré le {_n.strftime('%d/%m/%Y')}")
         c.drawCentredString(self.width / 2, 2*cm, "Plume Astrale © 2026")
         c.setFillAlpha(1.0)
     
