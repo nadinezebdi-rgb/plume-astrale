@@ -22,7 +22,7 @@ ASSETS_DIR = Path(__file__).resolve().parent.parent / 'assets'
 
 def _resolve_edition(md: dict):
     """Édition demandée dans les métadonnées de la transaction (numérique par défaut)."""
-    from services.book_engine.domain import Edition
+    from services.book_engine_shared.domain import Edition
     try:
         return Edition(md.get('edition') or 'numerique')
     except ValueError:
@@ -280,6 +280,14 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         p = planets_dict.get(planet_key)
         return aio.sign_to_fr(p.get('sign') or '') if p else ''
 
+    # Aspects + maisons réels (chart_data → natal_report → calcul local) : sans eux,
+    # le livre racontait « aucun aspect fourni » et les pages maisons restaient vides.
+    from services.natal_chart_extract import extract_aspects, extract_houses
+    chart_aspects = extract_aspects(chart, natal_report_data, planets_dict)
+    chart_houses = [] if no_birth_time else extract_houses(chart, planets_dict)
+    diag['aspects_count'] = len(chart_aspects)
+    diag['houses_count'] = len(chart_houses)
+
     user_data = {
         'prenom': name,
         'birth_date': birth_date_iso,
@@ -295,6 +303,7 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         'no_birth_time': no_birth_time,
         'ai_interpretations': ai_result,
         'enhanced_personal_analysis': enhanced_analysis,
+        'houses': chart_houses,
     }
 
     # 4) Chart wheel SVG → PNG (utilise le cache — 0 crédit API si déjà présent)
@@ -329,29 +338,8 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     if os.environ.get('BOOK_MODE_ENABLED', 'true').lower() == 'true':
         try:
             from services.natal_book_enrichment import enrich_book_chapters
-            aspects_for_book = []
-            houses_for_book = []
-            try:
-                if isinstance(natal_report_data, dict):
-                    aspects_raw = (natal_report_data.get('aspects')
-                                   or natal_report_data.get('data', {}).get('aspects') or [])
-                    for a in aspects_raw[:20]:
-                        aspects_for_book.append({
-                            'planet1': a.get('planet1') or a.get('p1') or a.get('body1'),
-                            'planet2': a.get('planet2') or a.get('p2') or a.get('body2'),
-                            'type': a.get('type') or a.get('aspect') or a.get('name'),
-                            'orb': a.get('orb') or a.get('orb_deg') or a.get('degree'),
-                        })
-                    houses_raw = (natal_report_data.get('houses')
-                                  or natal_report_data.get('data', {}).get('houses') or [])
-                    for i, h in enumerate(houses_raw[:12]):
-                        houses_for_book.append({
-                            'num': h.get('number') or h.get('num') or (i + 1),
-                            'sign': aio.sign_to_fr(h.get('sign', '')) if h.get('sign') else '',
-                            'planets_in_house': h.get('planets') or h.get('planets_in_house') or [],
-                        })
-            except Exception:
-                pass
+            aspects_for_book = chart_aspects
+            houses_for_book = chart_houses
             planets_book = []
             for _pfr, _en in (('Soleil', 'sun'), ('Lune', 'moon'), ('Mercure', 'mercury'),
                                ('Vénus', 'venus'), ('Mars', 'mars'), ('Jupiter', 'jupiter'),
@@ -403,7 +391,7 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     try:
         import asyncio as _asyncio
         if os.environ.get('USE_V2_ENGINE', '0') == '1':
-            from services.book_engine.domain import BirthData, Edition
+            from services.book_engine_shared.domain import BirthData, Edition
             from services.book_engine_v2 import render_manuscript_to_pdf_v2
             from services.book_engine_v2.assemble import build_full_manuscript
 
@@ -447,6 +435,54 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
             )
         else:
             from services.natal_pdf_adapter import generate_manuscrit_pdf
+            # Récupère aspects + maisons + cuspides depuis les données astro brutes
+            # pour que le manuscrit builder puisse construire les parties II (12 maisons)
+            # et III (aspects majeurs) avec données réelles.
+            aspects_adapter: list[dict] = []
+            houses_adapter: list[dict] = []
+            cusps_adapter: list[dict] = []
+            try:
+                if isinstance(natal_report_data, dict):
+                    _aspects_src = (natal_report_data.get('aspects')
+                                    or natal_report_data.get('data', {}).get('aspects') or [])
+                    for a in _aspects_src[:40]:
+                        if isinstance(a, dict):
+                            aspects_adapter.append({
+                                'aspecting_planet': a.get('planet1') or a.get('p1') or a.get('aspecting_planet'),
+                                'aspected_planet': a.get('planet2') or a.get('p2') or a.get('aspected_planet'),
+                                'type': a.get('aspect') or a.get('type') or a.get('name'),
+                                'orb': a.get('orb') or a.get('orb_deg') or a.get('degree'),
+                            })
+                    _houses_src = (natal_report_data.get('houses')
+                                   or natal_report_data.get('data', {}).get('houses') or [])
+                    for i, h in enumerate(_houses_src[:12]):
+                        if isinstance(h, dict):
+                            houses_adapter.append({
+                                'number': h.get('number') or h.get('num') or (i + 1),
+                                'sign': aio.sign_to_fr(h.get('sign') or '') if h.get('sign') else '',
+                                'planets': h.get('planets') or h.get('planets_in_house') or [],
+                            })
+                _cusps_src = ((chart or {}).get('chart_data') or {}).get('house_cusps') or []
+                for i, c in enumerate(_cusps_src[:12]):
+                    if isinstance(c, dict):
+                        cusps_adapter.append({
+                            'house': c.get('house') or (i + 1),
+                            'sign': aio.expand_sign(c.get('sign') or ''),
+                            'degree': c.get('degree') or c.get('normDegree'),
+                        })
+            except Exception as _e:
+                logger.warning(f'[theme_natal_oneshot] aspects/houses extraction failed: {_e}')
+            # Fallback aspects : si l'API report ne retourne rien, on utilise ceux
+            # de l'enhanced_analysis (format légèrement différent — on normalise).
+            if not aspects_adapter and enhanced_analysis:
+                for a in (enhanced_analysis.get('aspects') or [])[:40]:
+                    if isinstance(a, dict):
+                        aspects_adapter.append({
+                            'aspecting_planet': a.get('planet1') or a.get('aspecting_planet'),
+                            'aspected_planet': a.get('planet2') or a.get('aspected_planet'),
+                            'type': a.get('aspect') or a.get('type') or a.get('name'),
+                            'orb': a.get('orb') or a.get('orb_deg'),
+                        })
             pdf_bytes = await _asyncio.to_thread(
                 generate_manuscrit_pdf,
                 user_data=user_data,
@@ -455,6 +491,9 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
                 book_data=book_data,
                 referral_code=referral_code_book,
                 referral_link=referral_link_book,
+                aspects_raw=aspects_adapter or None,
+                houses_raw=houses_adapter or None,
+                house_cusps_raw=cusps_adapter or None,
             )
         out_dir = ASSETS_DIR / 'theme_natal'
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -549,6 +588,12 @@ async def _send_theme_natal_email(email: str, first_name: str, pdf_link: str, se
     )
     fn = (first_name or 'ami(e)').strip().title()
 
+    # URL de bump "livre relié" — pointe vers la page frontend qui pré-remplit
+    # le prénom + session source. Variable d'environnement optionnelle
+    # pour l'origin (frontend public), défaut sur l'app.
+    _origin = os.environ.get('PUBLIC_ORIGIN', 'https://plume-astrale.fr').rstrip('/')
+    bump_url = f"{_origin}/natal-print?token={session_id or ''}&prenom={fn}"
+
     html = f"""
     <div style="max-width:600px;margin:0 auto;font-family:'Cormorant Garamond',Georgia,serif;color:#F5EEE0;background:#111625;padding:40px 24px;">
       <div style="text-align:center;margin-bottom:24px;">
@@ -574,6 +619,28 @@ async def _send_theme_natal_email(email: str, first_name: str, pdf_link: str, se
         <div style="text-align:center;margin-top:8px;">
           <div style="font-size:11px;color:rgba(227,215,255,0.55);font-style:italic;">
             Ton document reste accessible à ce lien à tout moment.
+          </div>
+        </div>
+        <!-- Bump : livre relié 79€ -->
+        <div style="margin-top:36px;padding:24px 20px;background:linear-gradient(135deg,#F0E6D2 0%,#E8DBC0 100%);border:1px solid rgba(168,130,63,0.35);border-radius:14px;color:#1C1B26;">
+          <div style="font-size:10px;letter-spacing:0.32em;text-transform:uppercase;color:#A8823F;margin-bottom:10px;font-family:'Cinzel',serif;">
+            Une option, pour que ton livre dure
+          </div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:21px;line-height:1.3;color:#1C1B26;margin-bottom:10px;">
+            Reçois <em style="color:#A8823F;">l'exemplaire relié hardcover A5</em> à poser sur ton étagère.
+          </div>
+          <div style="font-size:14px;line-height:1.55;color:#3A3022;margin-bottom:16px;">
+            Impression haute qualité, couverture rigide crème, livraison à domicile.
+            Un objet qui traverse les années — à relire aux grandes étapes de ta vie.
+          </div>
+          <div style="text-align:center;">
+            <a href="{bump_url}"
+               style="display:inline-block;padding:12px 28px;background:#1C1B26;color:#F0E6D2;text-decoration:none;border-radius:999px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:500;">
+              Ajouter l'exemplaire relié — 79 €
+            </a>
+          </div>
+          <div style="font-size:10px;color:#8B7355;text-align:center;margin-top:10px;font-style:italic;">
+            Prix France ; livraison + impression incluses · Autres destinations devisées en direct.
           </div>
         </div>
         <div style="margin-top:36px;padding:20px;background:#1A2035;border:1px solid rgba(212,175,55,0.15);border-radius:12px;text-align:center;">

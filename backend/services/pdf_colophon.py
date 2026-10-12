@@ -31,7 +31,8 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
-from reportlab.platypus import Paragraph, Spacer, PageBreak, Image as RLImage, KeepTogether
+from reportlab.platypus import Spacer, PageBreak, Image as RLImage, KeepTogether
+from services.pdf_theme import SafeParagraph as Paragraph, format_date_fr
 
 logger = logging.getLogger(__name__)
 
@@ -198,7 +199,12 @@ def build_colophon(
         f'PLUME ASTRALE · {product_name.upper()} · ÉDITION NOCTURNE {year}',
         edition_style,
     ))
+    # Date FR (fix Feb 2026 : locale-safe)
+    _FR_MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+    _n = datetime.now()
+    _date_fr = f'{_n.day} {_FR_MONTHS[_n.month - 1]} {_n.year}'
     story.append(Paragraph(
-        f'<font size="7" color="#5E5A63">Généré le {datetime.now().strftime("%d %B %Y").lower()} · pour {prenom or "toi"}</font>',
+        f'<font size="7" color="#5E5A63">Généré le {_date_fr} · pour {prenom or "toi"}</font>',
         edition_style,
     ))

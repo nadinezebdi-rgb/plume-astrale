@@ -379,6 +379,32 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  /* Feb 2026 — ornement système solaire discret en background.
+     opacity 0.14 : visible mais ne concurrence jamais le texte.
+     mask radial : fade sur les bords pour fondre dans le hero. */
+  position: relative;
+  isolation: isolate;                 /* contient le ::before */
+}
+.home-gateway__hero::before {
+  content: '';
+  position: absolute;
+  inset: -8% -20%;                     /* dépasse légèrement pour éviter le hard-cut */
+  background: url('./solar-system-bg.svg') center/cover no-repeat;
+  opacity: 0.14;
+  z-index: -1;
+  pointer-events: none;
+  /* fade radial pour une transition douce vers le reste du hero */
+  -webkit-mask-image: radial-gradient(ellipse at center, black 55%, transparent 92%);
+          mask-image: radial-gradient(ellipse at center, black 55%, transparent 92%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .home-gateway__hero::before {
+    animation: solarDrift 90s ease-in-out infinite alternate;
+  }
+}
+@keyframes solarDrift {
+  from { transform: translateX(-1.2%) translateY(-0.8%) scale(1.02); }
+  to   { transform: translateX( 1.2%) translateY( 0.8%) scale(1.04); }
 }
 
 .home-gateway__eyebrow {

@@ -10,9 +10,9 @@ import requests
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://consultation-astro.preview.emergentagent.com').rstrip('/')
 ADMIN_EMAIL = "admin@plume-astrale.fr"
-ADMIN_PASSWORD = "PlumeAdmin2026"
+ADMIN_PASSWORD = os.environ.get('TEST_ADMIN_PASSWORD', '')
 USER_EMAIL = "test@plume-astrale.fr"
-USER_PASSWORD = "TestPlume2026!"
+USER_PASSWORD = os.environ.get('TEST_USER_PASSWORD', '')
 
 SUPABASE_URL = "https://ebwicqvbkwogxneipaxh.supabase.co"
 SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVid2ljcXZia3dvZ3huZWlwYXhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5ODA0MzksImV4cCI6MjA4MzU1NjQzOX0.sW7TivZAacaVEfD4NaU-u75wMtrAZJ4eYRx1duhIAWA"

@@ -22,7 +22,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Optional
 
-from services.book_engine.domain import Edition, Manuscript
+from services.book_engine_shared.domain import Edition, Manuscript
 
 logger = logging.getLogger(__name__)
 

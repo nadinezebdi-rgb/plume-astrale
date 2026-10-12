@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Plume Astrale — Système solaire décoratif (background hero).
+  Design : lignes orbitales fines or/bronze, 7 planètes points, soleil doré au centre.
+  Pensé pour être posé en background à opacity ≤ 0.18 → pas de surcharge visuelle.
+  Les ellipses imitent une vue en 3/4 (orbites inclinées, cohérent avec la perspective solar-system).
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+     role="img" aria-label="Système solaire — ornement décoratif">
+  <!-- Fond étoilé très léger -->
+  <defs>
+    <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#F4D08A" stop-opacity="0.95"/>
+      <stop offset="55%"  stop-color="#C9A24B" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#C9A24B" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Dégradé orbital : bronze qui s'estompe sur les bords -->
+    <linearGradient id="orbitStroke" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#C9A24B" stop-opacity="0"/>
+      <stop offset="12%"  stop-color="#C9A24B" stop-opacity="0.55"/>
+      <stop offset="88%"  stop-color="#C9A24B" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#C9A24B" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Petit scintillement pour planètes -->
+    <radialGradient id="planetGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#F4EFE6" stop-opacity="1"/>
+      <stop offset="60%" stop-color="#C9A24B" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#C9A24B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Étoiles d'arrière-plan (dispersées, très discrètes) -->
+  <g fill="#F4EFE6" fill-opacity="0.35">
+    <circle cx="180"  cy="140" r="1.2"/>
+    <circle cx="340"  cy="220" r="0.9"/>
+    <circle cx="520"  cy="90"  r="1.5"/>
+    <circle cx="760"  cy="180" r="1.0"/>
+    <circle cx="1050" cy="110" r="1.3"/>
+    <circle cx="1280" cy="200" r="0.9"/>
+    <circle cx="1480" cy="130" r="1.4"/>
+    <circle cx="1680" cy="240" r="1.1"/>
+    <circle cx="1820" cy="90"  r="1.0"/>
+    <circle cx="120"  cy="430" r="1.3"/>
+    <circle cx="1860" cy="560" r="1.2"/>
+    <circle cx="200"  cy="880" r="1.1"/>
+    <circle cx="420"  cy="960" r="1.4"/>
+    <circle cx="840"  cy="1000" r="0.9"/>
+    <circle cx="1240" cy="950" r="1.3"/>
+    <circle cx="1620" cy="880" r="1.0"/>
+    <circle cx="1780" cy="990" r="1.2"/>
+    <circle cx="60"   cy="640" r="0.9"/>
+    <circle cx="1900" cy="340" r="1.1"/>
+  </g>
+
+  <!-- Groupe orbital — centré, légère inclinaison 3/4 -->
+  <g transform="translate(960 540) rotate(-6)">
+    <!-- 7 ellipses concentriques (orbites), ratios inspirés des distances réelles -->
+    <g fill="none" stroke="url(#orbitStroke)" stroke-width="0.85">
+      <ellipse rx="140" ry="42"/>
+      <ellipse rx="230" ry="70"/>
+      <ellipse rx="330" ry="100"/>
+      <ellipse rx="450" ry="138"/>
+      <ellipse rx="600" ry="182"/>
+      <ellipse rx="760" ry="232"/>
+      <ellipse rx="900" ry="275"/>
+    </g>
+
+    <!-- Soleil : halo radial + disque central -->
+    <circle r="80"  fill="url(#sunGlow)"/>
+    <circle r="26"  fill="#F4D08A" fill-opacity="0.95"/>
+    <circle r="26"  fill="none" stroke="#C9A24B" stroke-opacity="0.65" stroke-width="0.6"/>
+
+    <!-- Planètes posées sur leurs orbites (positions variées, pas d'alignement -->
+    <!-- Mercure : orbite 1, haut-gauche -->
+    <g transform="rotate(-130) translate(140 0)">
+      <circle r="4.5" fill="url(#planetGlow)"/>
+    </g>
+    <!-- Vénus : orbite 2, bas-droite -->
+    <g transform="rotate(42) translate(230 0)">
+      <circle r="7"   fill="url(#planetGlow)"/>
+    </g>
+    <!-- Terre : orbite 3, bas-gauche -->
+    <g transform="rotate(195) translate(330 0)">
+      <circle r="7.5" fill="url(#planetGlow)"/>
+    </g>
+    <!-- Mars : orbite 4, haut-droite -->
+    <g transform="rotate(-55) translate(450 0)">
+      <circle r="6"   fill="url(#planetGlow)"/>
+    </g>
+    <!-- Jupiter : orbite 5, bas -->
+    <g transform="rotate(118) translate(600 0)">
+      <circle r="13"  fill="url(#planetGlow)"/>
+      <ellipse rx="18" ry="3" fill="none" stroke="#C9A24B" stroke-opacity="0.4" stroke-width="0.5"/>
+    </g>
+    <!-- Saturne : orbite 6, gauche (avec anneau) -->
+    <g transform="rotate(-170) translate(760 0)">
+      <ellipse rx="20" ry="4" fill="none" stroke="#C9A24B" stroke-opacity="0.55" stroke-width="0.7"/>
+      <circle r="11"  fill="url(#planetGlow)"/>
+    </g>
+    <!-- Uranus/Neptune (combinés visuellement) : orbite 7, droite -->
+    <g transform="rotate(-10) translate(900 0)">
+      <circle r="8"   fill="url(#planetGlow)"/>
+    </g>
+  </g>
+
+  <!-- Discret scintillement additionnel -->
+  <g fill="#F4EFE6" fill-opacity="0.45">
+    <circle cx="640"  cy="520" r="0.8"/>
+    <circle cx="1310" cy="570" r="0.9"/>
+    <circle cx="890"  cy="710" r="0.7"/>
+  </g>
+</svg>

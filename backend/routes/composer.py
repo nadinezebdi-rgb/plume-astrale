@@ -10,6 +10,8 @@ Le prix N'EST JAMAIS accepté depuis le client. Le client envoie l'édition et
 la liste de slugs — le serveur recalcule avec la règle 29/19/99.
 """
 from __future__ import annotations
+from services.origin_guard import validate_origin
+from services.rate_limit import rate_limit
 import logging
 import uuid
 from typing import List, Optional
@@ -186,6 +188,8 @@ async def composer_checkout(
     crée une transaction payée en base et retourne l'URL de succès directement.
     """
     settings = get_settings()
+    # Rejette tôt une origine non autorisée (avant tout effet de bord : promo consommée, etc.)
+    validate_origin(payload.origin_url)
 
     # Détection heure absente (voir §V audit marque Feb 2026)
     no_birth_time = (
@@ -272,7 +276,7 @@ async def composer_checkout(
         # Déclenche le pipeline de génération PDF en arrière-plan
         try:
             import asyncio as _asyncio
-            from services.book_engine.pipeline import build_book_pdf_for_session
+            from services.book_engine_shared.pipeline import build_book_pdf_for_session
             _asyncio.create_task(build_book_pdf_for_session(fake_session_id))
         except Exception as e:
             logger.warning(f'[composer] pipeline schedule failed: {e}')
@@ -294,7 +298,7 @@ async def composer_checkout(
     webhook_url = f'{host_url}/api/webhook/stripe'
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
 
-    origin = payload.origin_url.rstrip('/')
+    origin = validate_origin(payload.origin_url)
     success_url = f'{origin}/composer/succes?session_id={{CHECKOUT_SESSION_ID}}'
     cancel_url = f'{origin}/composer'
 
@@ -441,7 +445,7 @@ async def composer_regenerate(session_id: str, wait: bool = False):
     les 502 de Cloudflare sur les longs appels LLM).
     Avec `?wait=true` : bloquant, utile en local pour debug.
     """
-    from services.book_engine.pipeline import build_book_pdf_for_session
+    from services.book_engine_shared.pipeline import build_book_pdf_for_session
     if wait:
         diag = await build_book_pdf_for_session(session_id, force=True)
         return diag
@@ -526,7 +530,7 @@ async def composer_print_specs(session_id: str,
                                 edition: str = 'brochee',
                                 quantity: int = 1):
     """Retourne dimensions (dos, cover) + estimation prix pour l'édition demandée."""
-    from services.book_engine.domain import Edition
+    from services.book_engine_shared.domain import Edition
     from services.print.lulu_provider import (
         estimate_retail_price_eur,
         validate_manuscript_for_print,
@@ -550,7 +554,7 @@ async def composer_print_specs(session_id: str,
     pages = md.get('pdf_pages') or 32
 
     # Validation via un manuscript minimal (on n'a besoin que du nombre de chapitres)
-    from services.book_engine.domain import Manuscript, BirthData
+    from services.book_engine_shared.domain import Manuscript, BirthData
     from datetime import datetime, timezone
     m = Manuscript(
         session_id=session_id, user_email='', first_name='',

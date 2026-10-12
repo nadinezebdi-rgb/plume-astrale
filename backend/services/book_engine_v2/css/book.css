@@ -115,7 +115,9 @@ body {
   position: absolute;
   top: 20mm;
   width: 110mm;
-  height: 168mm;
+  /* Feb 2026 : 164mm (au lieu de 168mm) → safety 4mm avant folio. */
+  height: 164mm;
+  overflow: hidden;                 /* clip strict : jamais de bleed sur folio */
 }
 .page.recto .block { left: 20mm; }        /* impaire : dos à gauche */
 .page.verso .block { left: 18mm; }        /* paire : dos à droite */
@@ -145,7 +147,11 @@ p, li {
   text-align: justify;
   hyphens: auto;
   -webkit-hyphens: auto;
-  hyphenate-limit-chars: 6 3 3;
+  /* Feb 2026 fix widow "auttrE" p.6 : mots < 8 chars ne se césurent plus. */
+  hyphenate-limit-chars: 8 4 4;
+  hyphenate-limit-lines: 2;
+  -webkit-hyphenate-limit-lines: 2;
+  hyphenate-limit-last: always;
   orphans: 3;
   widows: 3;
 }

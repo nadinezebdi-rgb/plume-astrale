@@ -28,7 +28,7 @@ SUPABASE_ANON = (
     "sW7TivZAacaVEfD4NaU-u75wMtrAZJ4eYRx1duhIAWA"
 )
 ADMIN_EMAIL = "admin@plume-astrale.fr"
-ADMIN_PASSWORD = "PlumeAdmin2026"
+ADMIN_PASSWORD = os.environ.get('TEST_ADMIN_PASSWORD', '')
 PROMO = "TESTPLUME"
 
 TIMEOUT_S = 60

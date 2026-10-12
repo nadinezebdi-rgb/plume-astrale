@@ -449,6 +449,28 @@ def generate_astrocartographie_pdf(
         'nearby_lines': [] (empty for bonus)
     }
     """
+    # Feb 2026 : bascule optionnelle vers book_engine_v2 (fond blanc print).
+    # Activation via env `USE_V2_ASTROCARTO_ENGINE=1`. Fallback silencieux
+    # sur le legacy en cas d'erreur — jamais casser un produit payant.
+    import os
+    if os.environ.get('USE_V2_ASTROCARTO_ENGINE') == '1':
+        try:
+            from services.astrocarto_manuscript_builder import build_astrocarto_manuscript
+            from services.book_engine_v2 import render_manuscript_to_pdf_v2
+            manuscript = build_astrocarto_manuscript(
+                first_name=first_name,
+                birth_date_iso=birth_date_iso,
+                map_svg=map_svg,
+                chosen_cities=chosen_cities,
+                bonus_cities=bonus_cities,
+                synthesis_text=synthesis_text,
+                lines_data=lines_data,
+            )
+            return render_manuscript_to_pdf_v2(manuscript, profile='print')
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception('[astrocarto] v2 engine fail, fallback legacy')
+
     # Formatage date FR
     birth_fr = birth_date_iso or ""
     if birth_date_iso and len(birth_date_iso) >= 10:

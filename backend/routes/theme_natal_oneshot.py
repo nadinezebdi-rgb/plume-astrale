@@ -7,6 +7,7 @@ Endpoints :
   GET  /api/theme-natal-oneshot/status     → polling live pour la page succès
 """
 from __future__ import annotations
+from services.origin_guard import validate_origin
 import asyncio
 import logging
 import uuid
@@ -73,7 +74,7 @@ async def theme_natal_oneshot_checkout(
     webhook_url = f'{host_url}/api/webhook/stripe'
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
 
-    origin = payload.origin_url.rstrip('/')
+    origin = validate_origin(payload.origin_url)
     success_url = f'{origin}/theme-natal/succes?session_id={{CHECKOUT_SESSION_ID}}'
     cancel_url = f'{origin}/theme-natal'
 

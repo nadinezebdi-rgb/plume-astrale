@@ -331,7 +331,7 @@ function StepBirthData({ birth, setBirth }) {
       <div style={twoCols}>
         <div>
           <p style={fieldLabel}>Date de naissance</p>
-          <input type="date" required value={birth.birth_date} onChange={update('birth_date')}
+          <FrenchDateInput type="date" required value={birth.birth_date} onChange={update('birth_date')}
                  data-testid="composer-input-birthdate" style={input}/>
         </div>
         <div>

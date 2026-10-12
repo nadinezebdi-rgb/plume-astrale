@@ -1,7 +1,7 @@
 import asyncio
 
-from services.book_engine.domain import Edition
-from services.book_engine.registry import ADDONS, PRINT_INCLUDED_ADDONS
+from services.book_engine_shared.domain import Edition
+from services.book_engine_shared.registry import ADDONS, PRINT_INCLUDED_ADDONS
 from services.book_engine_v2 import assemble, chapter_prompts as cp
 
 ASTRO = {
@@ -43,11 +43,11 @@ def test_print_editions_include_chapters(monkeypatch):
 
     async def fake(spec, *a, **k):
         built.append(spec.slug)
-        from services.book_engine.domain import Chapter
+        from services.book_engine_shared.domain import Chapter
         return Chapter(slug=spec.slug, title='t', kicker='k', roman_num=None, order=spec.order)
 
     monkeypatch.setattr(assemble, '_build_one_chapter', fake)
-    from services.book_engine.domain import BirthData
+    from services.book_engine_shared.domain import BirthData
     bd = BirthData(date_iso='1990-01-01', time_hhmm=None, city='', country_code='FR')
 
     def run(ed):

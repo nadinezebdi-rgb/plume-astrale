@@ -600,6 +600,24 @@ def generate_kabbale_pdf(
     tree_of_life: Dict[str, Any],
     ai_sections: Optional[Dict[str, str]] = None,
 ) -> bytes:
+    # Feb 2026 : bascule optionnelle vers book_engine_v2 (fond blanc print).
+    # Activation via env `USE_V2_KABBALE_ENGINE=1`. Fallback silencieux
+    # sur le legacy en cas d'erreur — jamais casser un produit payant.
+    import os
+    if os.environ.get('USE_V2_KABBALE_ENGINE') == '1':
+        try:
+            from services.kabbale_manuscript_builder import build_kabbale_manuscript
+            from services.book_engine_v2 import render_manuscript_to_pdf_v2
+            manuscript = build_kabbale_manuscript(
+                first_name=first_name,
+                birth_date_iso=birth_date_iso,
+                tree_of_life=tree_of_life,
+                ai_sections=ai_sections,
+            )
+            return render_manuscript_to_pdf_v2(manuscript, profile='print')
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception('[kabbale] v2 engine fail, fallback legacy')
     return _generate_kabbale_impl(first_name, birth_date_iso, tree_of_life, ai_sections)
 
 

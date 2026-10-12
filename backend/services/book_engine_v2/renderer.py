@@ -31,7 +31,7 @@ from typing import Iterable, Optional
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from services.book_engine.domain import (
+from services.book_engine_shared.domain import (
     BlockKind, Chapter, ChapterBlock, Edition, Manuscript,
 )
 from .wheel import build_wheel_svg, extract_wheel_data, extract_tables_data
@@ -118,7 +118,10 @@ def _render_block(block: ChapterBlock) -> str:
             + (f'&nbsp;·&nbsp;{note}' if note else '')
             + '</p>'
         )
-    # PAGE_BREAK / CHAPTER_OPENING / IMAGE : gérés au niveau page-spec (pas ici)
+    # PAGE_BREAK : force une nouvelle page via CSS
+    if kind == BlockKind.PAGE_BREAK:
+        return '<div class="page-break"></div>'
+    # CHAPTER_OPENING / IMAGE : gérés au niveau page-spec (pas ici)
     return ''
 
 
@@ -138,26 +141,33 @@ class PageSpec:
 
 
 def _split_chapter_into_body_pages(chapter: Chapter) -> list[str]:
-    """Découpe le contenu d'un chapitre en pages HTML. Une page = ~2600 chars de corps.
+    """Découpe le contenu d'un chapitre en pages HTML, une page par groupe de blocs
+    séparés par un bloc `PAGE_BREAK`.
 
-    Le découpage réel est ensuite laissé au moteur de layout du navigateur (page-break),
-    mais on regroupe les blocs consécutifs dans une seule page-spec HTML pour laisser
-    Chromium gérer les orphelins/veuves.
+    Les blocs non-corps (CHAPTER_OPENING, IMAGE) sont ignorés. Chaque page HTML
+    produite est rendue dans un `_body.html` séparé par `_build_page_specs`,
+    permettant à Chromium de respecter les transitions de page voulues par le
+    builder (parties I, II, III du Thème Natal par exemple).
     """
-    # On extrait tous les blocs sauf CHAPTER_OPENING / PAGE_BREAK (gérés à part)
     body_blocks = [
         b for b in chapter.blocks
-        if b.kind not in (BlockKind.CHAPTER_OPENING, BlockKind.PAGE_BREAK,
-                          BlockKind.IMAGE)
+        if b.kind not in (BlockKind.CHAPTER_OPENING, BlockKind.IMAGE)
     ]
     if not body_blocks:
         return []
-    html_content = ''.join(_render_block(b) for b in body_blocks)
-    # Une seule page HTML — Chromium gère la pagination via `page-break-after: always`
-    # sur `.page`. Le contenu qui déborde est perdu (par design : le contrôle QA
-    # vérifie qu'aucune veuve ne subsiste). Pour un vrai split multi-page, on
-    # laisserait Chromium découper (voir LOT 4.2 : ajout de `@page` avec `break-after`).
-    return [html_content]
+    # Découpe en groupes séparés par PAGE_BREAK
+    groups: list[list] = [[]]
+    for b in body_blocks:
+        if b.kind == BlockKind.PAGE_BREAK:
+            if groups[-1]:
+                groups.append([])
+            continue
+        groups[-1].append(b)
+    # Filtre groupes vides
+    groups = [g for g in groups if g]
+    if not groups:
+        return []
+    return [''.join(_render_block(b) for b in g) for g in groups]
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -238,6 +248,9 @@ def _build_page_specs(m: Manuscript, *, cover_png_path: Optional[Path] = None) -
     cover_bg_url = None
     if cover_png_path and Path(cover_png_path).exists():
         cover_bg_url = Path(cover_png_path).resolve().as_uri()
+    # Titre configurable via `astro_data['book_title']` (Kabbale, Astrocarto)
+    # ou fallback "Le Livre Astral" (thème natal + défaut).
+    book_title = (m.astro_data or {}).get('book_title') or 'Le Livre Astral'
     specs.append(PageSpec('_cover.html', {
         'first_name': m.first_name,
         'birth_date_fr': date_fr,
@@ -245,6 +258,7 @@ def _build_page_specs(m: Manuscript, *, cover_png_path: Optional[Path] = None) -
         'birth_city': city,
         'birth_line': birth_line,
         'cover_bg_url': cover_bg_url,
+        'cover_title': book_title,
     }, counts_in_pagination=False))
     page_num += 1
 
@@ -256,7 +270,7 @@ def _build_page_specs(m: Manuscript, *, cover_png_path: Optional[Path] = None) -
     specs.append(PageSpec('_title.html', {
         'side': 'recto',
         'first_name': m.first_name,
-        'book_title': 'Le Livre Astral',
+        'book_title': book_title,
         'edition_label': _label_edition(m.edition),
         'edition_year': edition_year,
     }, counts_in_pagination=False))
@@ -266,8 +280,25 @@ def _build_page_specs(m: Manuscript, *, cover_png_path: Optional[Path] = None) -
     specs.append(PageSpec('_blank.html', {'side': 'verso'}, counts_in_pagination=False))
     page_num += 1
 
-    # Pagination folio commence maintenant (page 5 = 1er folio "Chapitre I")
+    # 4bis. Sommaire (recto) — entries remplies plus bas (two-pass)
+    toc_spec = PageSpec('_toc.html', {
+        'side': 'recto',
+        'first_name': m.first_name,
+        'folio': '',            # pas de numéro de page sur le sommaire
+        'toc_entries': [],      # patché après
+    }, counts_in_pagination=False)
+    specs.append(toc_spec)
+    toc_page_num = page_num  # mémorise pour folio
+    page_num += 1
+
+    # 4ter. Blanche verso sommaire
+    specs.append(PageSpec('_blank.html', {'side': 'verso'}, counts_in_pagination=False))
+    page_num += 1
+
+    # Pagination folio commence maintenant (page 7 = 1er folio "Chapitre I")
     folio = 1
+
+    toc_entries: list[dict] = []
 
     # 5+. Chapitres
     astro = m.astro_data or {}
@@ -278,6 +309,13 @@ def _build_page_specs(m: Manuscript, *, cover_png_path: Optional[Path] = None) -
             specs.append(PageSpec('_blank.html', {'side': 'verso'}))
             page_num += 1
             folio += 1
+
+        # Mémorise le folio du chapitre pour le sommaire
+        toc_entries.append({
+            'roman': chapter.roman_num,
+            'title': chapter.title,
+            'folio': folio,
+        })
 
         # Ouverture de chapitre
         specs.append(PageSpec('_chapter_opener.html', {
@@ -291,8 +329,8 @@ def _build_page_specs(m: Manuscript, *, cover_png_path: Optional[Path] = None) -
         page_num += 1
         folio += 1
 
-        # Chapitre I : carte du ciel + tableaux (spécifique)
-        if chapter.slug == 'ciel_naissance' and astro:
+        # Chapitre "Le Ciel" : carte du ciel + tableaux (spécifique)
+        if chapter.slug in ('ciel_naissance', 'natal_synthese') and astro:
             try:
                 wheel_data = extract_wheel_data(astro)
                 wheel_svg = build_wheel_svg(wheel_data)
@@ -353,6 +391,9 @@ def _build_page_specs(m: Manuscript, *, cover_png_path: Optional[Path] = None) -
                               counts_in_pagination=False))
         page_num += 1
         total_pages += 1
+
+    # Patch du sommaire avec les folios réels des openers
+    toc_spec.context['toc_entries'] = toc_entries
 
     logger.info(f'[book_v2] {total_pages} pages assemblées ({len(m.chapters)} chapitres)')
     return specs

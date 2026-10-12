@@ -38,7 +38,7 @@
     "backend": "100% (12/12)",
     "frontend": "95% (all UI sections render correctly; the only non-passing flow — UI flip after checkin — is documented as expected because SQL migration is pending)"
   },
-  "test_credentials": "Used /app/memory/test_credentials.md — admin@plume-astrale.fr / PlumeAdmin2026 works via Supabase password grant. Standard test user listed in file is still stale (per iteration 29) so non-premium 403-gate test was NOT live-validated end-to-end; the anonymous-no-auth gate was validated and returns 401/403 as expected.",
+  "test_credentials": "Used /app/memory/test_credentials.md — admin@plume-astrale.fr / [redacted] works via Supabase password grant. Standard test user listed in file is still stale (per iteration 29) so non-premium 403-gate test was NOT live-validated end-to-end; the anonymous-no-auth gate was validated and returns 401/403 as expected.",
   "seed_data_creation": "None.",
   "retest_needed": false,
   "should_main_agent_self_test": true,

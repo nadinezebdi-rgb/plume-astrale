@@ -1,15 +1,19 @@
-"""pipeline — Orchestrateur du BookRenderingEngine.
+"""pipeline — Orchestrateur du BookRenderingEngine (v2, book_engine_v2).
+
+Feb 2026 : la branche v1 (ReportLab dark) a été supprimée après la migration
+complète vers `book_engine_v2` (Chromium print-to-pdf). Le pipeline reste
+identique au niveau contractuel (Supabase transaction → PDF bytes) mais
+n'exécute plus qu'une seule branche moteur.
 
 Reçoit une transaction /composer complète (email, birth_data, chapters
 choisis) et produit :
 
   1. Fetch astro data via astrology-api.io (positions natales)
-  2. Fetch chart SVG + reskin bronze/ivoire (Chapitre I asset)
-  3. Génération LLM anti-slop du Chapitre IV pilote (extensible)
-  4. Assemblage Manuscript
-  5. Rendu ReportLab BookDocument A5 → bytes PDF
-  6. Upload Supabase Storage + signed URL
-  7. Marquage transaction (pdf_supabase_url, pdf_path, pdf_status)
+  2. Assemblage Manuscript v2 (12 chapitres LLM en parallèle)
+  3. Cover Nano Banana (non bloquant : fallback logo si échec)
+  4. Rendu Chromium HTML → bytes PDF (blanc print A5)
+  5. Upload Supabase Storage + signed URL
+  6. Marquage transaction (pdf_supabase_url, pdf_path, pdf_status)
 
 Ce pipeline est appelé :
   - Dans le webhook Stripe (`kind=composer_book`)
@@ -19,11 +23,9 @@ Idempotent : ne relance pas la génération si `pdf_status=success` déjà.
 """
 from __future__ import annotations
 import asyncio
-import base64
 import logging
 import os
 from datetime import datetime, timezone
-from io import BytesIO
 from pathlib import Path
 from typing import Optional
 
@@ -33,24 +35,12 @@ from .domain import (
     BirthData, Chapter, ChapterBlock, BlockKind, Edition,
     Manuscript,
 )
-from .document import render_manuscript_to_pdf
 from .prose_generator import generate_chapter_iv_love
 from .registry import SOCLE, all_chapters_for_manuscript
-from .svg_bronze import svg_bronze_to_png_bytes
 
 logger = logging.getLogger(__name__)
 
 ASSETS_DIR = Path(__file__).resolve().parent.parent.parent / 'assets'
-
-
-# ═══════════════════════════════════════════════════════════════
-# Cover — utilise le fallback existant (couverture générique)
-# ═══════════════════════════════════════════════════════════════
-def _load_cover_fallback() -> Optional[bytes]:
-    p = ASSETS_DIR / 'COUVERTURE_PLUME_masked_1400.jpg'
-    if p.exists():
-        return p.read_bytes()
-    return None
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -85,7 +75,12 @@ async def _fetch_astro(birth_data_dict: dict, name: str) -> dict:
 
 
 async def _fetch_svg_bronze_png(birth_data_dict: dict, name: str) -> Optional[bytes]:
-    """Fetch le SVG natal chez astrology-api.io + reskin bronze + rasterize PNG."""
+    """Fetch le SVG natal chez astrology-api.io + reskin bronze + rasterize PNG.
+
+    Feb 2026 : plus appelée par le pipeline v2 (la roue est un SVG vectoriel).
+    Conservée pour compat éventuelle si un admin QA veut rasteriser un chart.
+    """
+    from .svg_bronze import svg_bronze_to_png_bytes
     svg = await aio.chart_svg_render(
         birth_data=birth_data_dict, name=name,
         chart_type='natal', theme='light', language='fr',
@@ -288,90 +283,19 @@ async def build_book_pdf_for_session(session_id: str, *, force: bool = False) ->
         logger.exception('[pipeline] astro fetch failed')
         return diag
 
-    # 2. Fetch roue céleste + reskin bronze (utilisé uniquement en v1)
-    chart_png = None
-    use_v2 = os.environ.get('USE_V2_ENGINE', '0') == '1'
-    if not use_v2:
-        try:
-            chart_png = await _fetch_svg_bronze_png(birth_data, first_name)
-        except Exception as e:
-            logger.warning(f'[pipeline] chart svg bronze failed: {e}')
-
-    # 3. Assemblage — v2 (Chromium/HTML + 12 chapitres LLM en parallèle) ou v1 (ReportLab)
+    # 2. Assemblage v2 (Chromium/HTML + 12 chapitres LLM en parallèle)
     try:
         edition_enum = Edition(edition_str)
     except ValueError:
         edition_enum = Edition.NUMERIQUE
 
-    if use_v2:
-        # ─── v2 : moteur Chromium ─────────────────────────────────────────
-        from services.book_engine_v2.assemble import build_full_manuscript
-        from services.book_engine_v2 import render_manuscript_to_pdf_v2
-        from services.book_engine_v2.cover_generator import (
-            generate_cover_image, resolve_signs_fr, COVER_CACHE_DIR,
-        )
-        try:
-            manuscript = await build_full_manuscript(
-                session_id=session_id,
-                user_email=email,
-                first_name=first_name,
-                birth_data=BirthData(
-                    date_iso=pdf_ctx.get('birth_date_iso') or '1990-01-01',
-                    time_hhmm=(f"{birth_data.get('hour', 12):02d}:{birth_data.get('minute', 0):02d}"
-                               if birth_data else None),
-                    city=birth_data.get('city') or '',
-                    country_code=birth_data.get('country_code') or 'FR',
-                    latitude=birth_data.get('latitude'),
-                    longitude=birth_data.get('longitude'),
-                ),
-                astro_data=astro,
-                edition=edition_enum,
-                addon_slugs=chapters_slugs,
-            )
-        except Exception as e:
-            diag['error'] = f'v2 assembly failed: {e}'
-            logger.exception('[pipeline v2] assembly failed')
-            return diag
-
-        # Cover Nano Banana (non bloquant : fallback logo si échec)
-        cover_path = None
-        try:
-            sun, moon, asc = resolve_signs_fr(astro)
-            png = await generate_cover_image(
-                first_name=first_name, sun_sign=sun, moon_sign=moon, asc_sign=asc,
-            )
-            if png:
-                cover_path = COVER_CACHE_DIR / f'{session_id}.png'
-                cover_path.write_bytes(png)
-        except Exception as e:
-            logger.warning(f'[pipeline v2] cover gen failed: {e}')
-
-        try:
-            pdf_bytes = await asyncio.to_thread(
-                render_manuscript_to_pdf_v2, manuscript,
-                profile='print',
-                cover_png_path=cover_path,
-            )
-        except Exception as e:
-            diag['error'] = f'v2 render failed: {e}'
-            logger.exception('[pipeline v2] render failed')
-            return diag
-    else:
-        # ─── v1 : moteur ReportLab (fallback historique) ─────────────────
-        try:
-            chapters = await _assemble_chapters(
-                first_name=first_name,
-                astro_data=astro,
-                session_id=session_id,
-                chart_png_bytes=chart_png,
-                chapters_slugs=chapters_slugs,
-            )
-        except Exception as e:
-            diag['error'] = f'chapter assembly failed: {e}'
-            logger.exception('[pipeline v1] chapter assembly failed')
-            return diag
-
-        manuscript = Manuscript(
+    from services.book_engine_v2.assemble import build_full_manuscript
+    from services.book_engine_v2 import render_manuscript_to_pdf_v2
+    from services.book_engine_v2.cover_generator import (
+        generate_cover_image, resolve_signs_fr, COVER_CACHE_DIR,
+    )
+    try:
+        manuscript = await build_full_manuscript(
             session_id=session_id,
             user_email=email,
             first_name=first_name,
@@ -386,22 +310,41 @@ async def build_book_pdf_for_session(session_id: str, *, force: bool = False) ->
             ),
             astro_data=astro,
             edition=edition_enum,
-            selected_add_ons=chapters_slugs,
-            chapters=chapters,
-            created_at=datetime.now(timezone.utc),
+            addon_slugs=chapters_slugs,
         )
+    except Exception as e:
+        diag['error'] = f'v2 assembly failed: {e}'
+        logger.exception('[pipeline v2] assembly failed')
+        return diag
 
-        try:
-            import asyncio as _a
-            pdf_bytes = await _a.to_thread(render_manuscript_to_pdf, manuscript)
-        except Exception as e:
-            diag['error'] = f'render failed: {e}'
-            logger.exception('[pipeline v1] render failed')
-            return diag
+    # 3. Cover Nano Banana (non bloquant : fallback logo si échec)
+    cover_path = None
+    try:
+        sun, moon, asc = resolve_signs_fr(astro)
+        png = await generate_cover_image(
+            first_name=first_name, sun_sign=sun, moon_sign=moon, asc_sign=asc,
+        )
+        if png:
+            cover_path = COVER_CACHE_DIR / f'{session_id}.png'
+            cover_path.write_bytes(png)
+    except Exception as e:
+        logger.warning(f'[pipeline v2] cover gen failed: {e}')
+
+    # 4. Rendu Chromium HTML → bytes PDF
+    try:
+        pdf_bytes = await asyncio.to_thread(
+            render_manuscript_to_pdf_v2, manuscript,
+            profile='print',            # Feb 2026 : Composer aligné sur le natal white A5
+            cover_png_path=cover_path,
+        )
+    except Exception as e:
+        diag['error'] = f'v2 render failed: {e}'
+        logger.exception('[pipeline v2] render failed')
+        return diag
 
     diag['pdf_bytes'] = len(pdf_bytes)
     diag['pdf_pages'] = pdf_bytes.count(b'/Type /Page') or pdf_bytes.count(b'/Type/Page')
-    diag['engine'] = 'v2' if use_v2 else 'v1'
+    diag['engine'] = 'v2'
 
     # 6. Sauvegarde disque (fallback) + upload Supabase Storage
     out_dir = ASSETS_DIR / 'composer_books'
@@ -448,15 +391,6 @@ async def build_book_pdf_for_session(session_id: str, *, force: bool = False) ->
     diag['pdf_supabase_url'] = supabase_url
     diag['pdf_local_path'] = str(local_path)
     diag['pdf_signed_url'] = md.get('pdf_path')
-
-    # 7. Livraison : email PDF (numérique) ou relecture 72h + alerte admin (imprimé).
-    #    Ne doit jamais faire échouer la génération.
-    try:
-        from .fulfillment import deliver_book
-        diag['delivery'] = await deliver_book(session_id=session_id, tx=tx, md=md)
-    except Exception as e:
-        logger.warning(f'[pipeline] delivery failed for {session_id}: {e}')
-        diag['delivery_error'] = str(e)
     logger.info(
         f'[pipeline] Book PDF built for {session_id}: '
         f'{diag["pdf_pages"]} pages, {diag["pdf_bytes"]} bytes'

@@ -15,7 +15,7 @@
   ],
   "action_items": [
     "Add juliette.zebdi@hotmail.fr password to /app/memory/test_credentials.md so future agents can E2E validate the manual-grant Premium UI path.",
-    "Standard test user creds (plume_test_863a0303@gmail.com / TestPlume2026!) listed in test_credentials.md return 400 Invalid login credentials — refresh or rotate this account.",
+    "Standard test user creds (plume_test_863a0303@gmail.com / [redacted]) listed in test_credentials.md return 400 Invalid login credentials — refresh or rotate this account.",
     "Optional: in services/premium_subscription.py:get_premium_status, return premium_until as ISO datetime + a boolean for `manual_grant` (e.g. `stripe_customer_id IS NULL AND is_premium`) so the frontend doesn't have to infer manual-grant state from `!subscription_id` alone — this would be more robust if a user later subscribes via Stripe after a manual grant (customer_id set but subscription_id null between checkout & webhook)."
   ],
   "critical_code_review_comments": [
@@ -33,7 +33,7 @@
     "backend": "100% (6/6)",
     "frontend": "83% (5/6 scenarios — Juliette UI scenario blocked by missing creds, all others PASS)"
   },
-  "test_credentials": "Used /app/memory/test_credentials.md — admin@plume-astrale.fr / PlumeAdmin2026 (works). Listed std user plume_test_863a0303@gmail.com is STALE (Supabase 400 Invalid login credentials). juliette.zebdi@hotmail.fr password NOT in file.",
+  "test_credentials": "Used /app/memory/test_credentials.md — admin@plume-astrale.fr / [redacted] (works). Listed std user plume_test_863a0303@gmail.com is STALE (Supabase 400 Invalid login credentials). juliette.zebdi@hotmail.fr password NOT in file.",
   "seed_data_creation": "None.",
   "retest_needed": false,
   "should_main_agent_self_test": true,

@@ -16,7 +16,7 @@ import pytest
 # SVG BRONZE
 # ═══════════════════════════════════════════════════════════════
 def test_svg_bronze_map_color_dark_to_bronze():
-    from services.book_engine.svg_bronze import _map_color, BRONZE, INK, IVORY
+    from services.book_engine_shared.svg_bronze import _map_color, BRONZE, INK, IVORY
 
     assert _map_color('#000000') == BRONZE
     assert _map_color('#000000', is_text_like=True) == INK
@@ -30,7 +30,7 @@ def test_svg_bronze_map_color_dark_to_bronze():
 
 
 def test_svg_bronze_resolve_kerykeion_vars():
-    from services.book_engine.svg_bronze import _resolve_kerykeion_vars
+    from services.book_engine_shared.svg_bronze import _resolve_kerykeion_vars
 
     txt = 'stroke:var(--kerykeion-color-primary); fill:var(--kerykeion-chart-color-sun);'
     out = _resolve_kerykeion_vars(txt)
@@ -41,7 +41,7 @@ def test_svg_bronze_resolve_kerykeion_vars():
 
 
 def test_svg_bronze_reskin_idempotent():
-    from services.book_engine.svg_bronze import reskin_svg_bronze
+    from services.book_engine_shared.svg_bronze import reskin_svg_bronze
 
     sample = (
         "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400' "
@@ -64,7 +64,7 @@ def test_svg_bronze_reskin_idempotent():
 def test_svg_bronze_kerykeion_full_resolution():
     """Vérifie que toutes les var(--kerykeion-*) sont substituées."""
     import re
-    from services.book_engine.svg_bronze import reskin_svg_bronze
+    from services.book_engine_shared.svg_bronze import reskin_svg_bronze
 
     sample = (
         "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 550' "
@@ -83,7 +83,7 @@ def test_svg_bronze_kerykeion_full_resolution():
 # PROSE GENERATOR
 # ═══════════════════════════════════════════════════════════════
 def test_prose_contains_slop_detection():
-    from services.book_engine.prose_generator import contains_slop
+    from services.book_engine_shared.prose_generator import contains_slop
 
     assert 'il est important de noter' in contains_slop(
         'Il est important de noter que Vénus vous invite à…'
@@ -93,7 +93,7 @@ def test_prose_contains_slop_detection():
 
 
 def test_prose_extract_venus_signature_from_planets_dict():
-    from services.book_engine.prose_generator import extract_venus_signature
+    from services.book_engine_shared.prose_generator import extract_venus_signature
 
     astro = {
         'planets': {
@@ -114,7 +114,7 @@ def test_prose_extract_venus_signature_from_planets_dict():
 
 
 def test_prose_fmt_house_romans():
-    from services.book_engine.prose_generator import _fmt_house
+    from services.book_engine_shared.prose_generator import _fmt_house
 
     assert _fmt_house(5) == 'MAISON V'
     assert _fmt_house(12) == 'MAISON XII'
@@ -123,7 +123,7 @@ def test_prose_fmt_house_romans():
 
 
 def test_prose_parse_json_blocks_with_code_fence():
-    from services.book_engine.prose_generator import _parse_json_blocks
+    from services.book_engine_shared.prose_generator import _parse_json_blocks
 
     raw = '''Voici le résultat:
 ```json
@@ -143,18 +143,15 @@ Fin.'''
 # ═══════════════════════════════════════════════════════════════
 @pytest.mark.asyncio
 async def test_pipeline_render_pdf_bytes_with_fallback():
-    """Vérifie que le pipeline peut assembler un PDF même sans LLM ni réseau.
+    """Vérifie que le pipeline peut assembler un manuscrit v2 sans réseau LLM.
 
     On mock `generate_chapter_iv_love` pour éviter l'appel Claude.
-    On mock `_fetch_svg_bronze_png` pour éviter l'appel astrology-api.
+    Depuis Feb 2026 : le renderer v1 (ReportLab) est supprimé — on valide
+    uniquement l'assemblage des 12 chapitres du socle via `_assemble_chapters`.
     """
-    from unittest.mock import patch, AsyncMock
-    from datetime import datetime, timezone
-    from services.book_engine.pipeline import _assemble_chapters
-    from services.book_engine.document import render_manuscript_to_pdf
-    from services.book_engine.domain import (
-        Manuscript, BirthData, Edition, ChapterBlock, BlockKind,
-    )
+    from unittest.mock import patch
+    from services.book_engine_shared.pipeline import _assemble_chapters
+    from services.book_engine_shared.domain import ChapterBlock, BlockKind
 
     astro = {
         'planets': {
@@ -172,7 +169,7 @@ async def test_pipeline_render_pdf_bytes_with_fallback():
         ]
 
     with patch(
-        'services.book_engine.pipeline.generate_chapter_iv_love',
+        'services.book_engine_shared.pipeline.generate_chapter_iv_love',
         side_effect=_fake_prose,
     ):
         chapters = await _assemble_chapters(
@@ -184,19 +181,7 @@ async def test_pipeline_render_pdf_bytes_with_fallback():
         )
 
     assert len(chapters) == 12, 'Doit couvrir les 12 chapitres du socle'
-    m = Manuscript(
-        session_id='test_pipeline',
-        user_email='t@t.fr',
-        first_name='Amélie',
-        birth_data=BirthData(date_iso='1990-05-15', time_hhmm='12:00',
-                             city='Paris', country_code='FR',
-                             latitude=48.8, longitude=2.35),
-        astro_data=astro,
-        edition=Edition.NUMERIQUE,
-        chapters=chapters,
-        created_at=datetime.now(timezone.utc),
-    )
-    pdf = render_manuscript_to_pdf(m)
-    assert len(pdf) > 20_000
-    # PDF header
-    assert pdf.startswith(b'%PDF')
+    # Chapitre IV doit contenir la prose LLM mockée
+    ch_iv = next(c for c in chapters if c.roman_num == 'IV')
+    prose_texts = [b.data.get('text', '') for b in ch_iv.blocks if b.kind == BlockKind.PARAGRAPH]
+    assert any('paragraphe de test' in t for t in prose_texts)
