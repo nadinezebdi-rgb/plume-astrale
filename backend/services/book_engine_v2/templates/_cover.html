@@ -7,7 +7,7 @@
   {% if cover_bg_url %}<div class="cover-mask"></div>{% endif %}
   <div class="cover-inner">
     <p class="brand">Plume Astrale</p>
-    <h1 class="cover-title">Le Livre Astral</h1>
+    <h1 class="cover-title">{{ cover_title | default("Le Livre Astral") }}</h1>
     <p class="cover-firstname">de {{ first_name }}</p>
     {% if not cover_bg_url %}
       <img class="cover-logo" src="{{ asset('logo-plume.svg') }}" alt="">

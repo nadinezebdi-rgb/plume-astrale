@@ -106,6 +106,7 @@ import KarmaDestinWaiting from "./pages/KarmaDestinWaiting";
 // ThemeNatal one-shot 24€
 import ThemeNatalOneshot from "./pages/ThemeNatalOneshot";
 import ThemeNatalOneshotSucces from "./pages/ThemeNatalOneshotSucces";
+import NatalPrintBump from "./pages/NatalPrintBump";
 // Trio Découverte 79€ (Gary Vee refonte Feb 2026)
 import TrioDecouverte from "./pages/TrioDecouverte";
 import TrioDecouverteSucces from "./pages/TrioDecouverteSucces";
@@ -202,6 +203,9 @@ function App() {
           {/* Thème Natal one-shot 24€ */}
           <Route path="/theme-natal" element={<ThemeNatalOneshot />} />
           <Route path="/theme-natal/succes" element={<ThemeNatalOneshotSucces />} />
+          {/* Bump livre relié Lulu 79€ — entrée via l'email de livraison */}
+          <Route path="/natal-print" element={<NatalPrintBump />} />
+          <Route path="/natal-print/merci" element={<NatalPrintBump />} />
           {/* Trio Découverte 79€ (Gary Vee refonte Feb 2026) */}
           <Route path="/trio-decouverte" element={<TrioDecouverte />} />
           <Route path="/trio-decouverte/succes" element={<TrioDecouverteSucces />} />

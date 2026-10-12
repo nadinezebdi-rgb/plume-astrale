@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from services.book_engine.domain import BirthData, Edition, Manuscript
+from services.book_engine_shared.domain import BirthData, Edition, Manuscript
 from services.print.lulu_provider import (
     build_cover_spec, calculate_spine_mm, estimate_retail_price_eur,
     validate_manuscript_for_print,

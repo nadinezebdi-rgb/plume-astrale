@@ -2,96 +2,6 @@
   "forced_j30_variant": null,
   "alerts_history": [
     {
-      "kind": "weekly_recap",
-      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
-      "details": "Top: aucun refund",
-      "channels": [
-        "email x2"
-      ],
-      "at": "2026-08-02T12:25:33.102145+00:00"
-    },
-    {
-      "kind": "slack_test",
-      "title": "Ping Slack test (FAIL 404)",
-      "details": "Lance par admin@plume-astrale.fr · URL custom",
-      "channels": [],
-      "at": "2026-08-02T12:25:33.963726+00:00"
-    },
-    {
-      "kind": "weekly_recap",
-      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
-      "details": "Top: aucun refund",
-      "channels": [
-        "email x2"
-      ],
-      "at": "2026-08-02T12:28:21.444617+00:00"
-    },
-    {
-      "kind": "weekly_recap",
-      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
-      "details": "Top: aucun refund",
-      "channels": [
-        "email x2"
-      ],
-      "at": "2026-08-02T12:29:48.272408+00:00"
-    },
-    {
-      "kind": "hero_ab_lock",
-      "title": "Hero forcé sur variante B",
-      "details": "Par admin@plume-astrale.fr",
-      "channels": [],
-      "at": "2026-08-02T15:25:15.782244+00:00"
-    },
-    {
-      "kind": "hero_ab_lock",
-      "title": "Hero A/B débloqué (50/50)",
-      "details": "Par admin@plume-astrale.fr",
-      "channels": [],
-      "at": "2026-08-02T15:25:16.207161+00:00"
-    },
-    {
-      "kind": "hero_ab_lock",
-      "title": "Hero A/B débloqué (50/50)",
-      "details": "Par admin@plume-astrale.fr",
-      "channels": [],
-      "at": "2026-08-02T15:26:09.102760+00:00"
-    },
-    {
-      "kind": "new_testimonial",
-      "title": "Nouveau témoignage : TEST_Iter66_3a4eb6 (pending)",
-      "details": "Retour de test iter66 pour valider le log_alert Slack (TEST_Iter66_3a4eb6).",
-      "channels": [],
-      "at": "2026-08-02T16:19:42.804357+00:00"
-    },
-    {
-      "kind": "hero_ab_lock",
-      "title": "Hero A/B débloqué (50/50)",
-      "details": "Par admin@plume-astrale.fr",
-      "channels": [],
-      "at": "2026-08-02T16:19:45.370851+00:00"
-    },
-    {
-      "kind": "hero_ab_lock",
-      "title": "Hero forcé sur variante A",
-      "details": "Par admin@plume-astrale.fr",
-      "channels": [],
-      "at": "2026-08-02T16:19:45.736436+00:00"
-    },
-    {
-      "kind": "hero_ab_lock",
-      "title": "Hero forcé sur variante B",
-      "details": "Par admin@plume-astrale.fr",
-      "channels": [],
-      "at": "2026-08-02T16:19:46.087255+00:00"
-    },
-    {
-      "kind": "hero_ab_lock",
-      "title": "Hero A/B débloqué (50/50)",
-      "details": "Par admin@plume-astrale.fr",
-      "channels": [],
-      "at": "2026-08-02T16:19:47.002118+00:00"
-    },
-    {
       "kind": "chat_escalation",
       "title": "Escalade IA — session sup-90a94ac2",
       "details": "Bonjour, mon PDF n arrive pas après 24h de paiement, aidez-moi urgent",
@@ -222,10 +132,96 @@
         "email x2"
       ],
       "at": "2026-08-28T09:59:39.999714+00:00"
+    },
+    {
+      "kind": "ab_override",
+      "title": "A/B J+30 forcé sur question",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-10-11T16:25:52.361403+00:00"
+    },
+    {
+      "kind": "ab_override",
+      "title": "A/B J+30 forcé sur invitation",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-10-11T16:25:52.961095+00:00"
+    },
+    {
+      "kind": "ab_override",
+      "title": "A/B J+30 réinitialisé (50/50)",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-10-11T16:25:53.244187+00:00"
+    },
+    {
+      "kind": "weekly_recap",
+      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
+      "details": "Top: aucun refund",
+      "channels": [
+        "email x2"
+      ],
+      "at": "2026-10-11T16:26:05.647076+00:00"
+    },
+    {
+      "kind": "new_testimonial",
+      "title": "Nouveau témoignage : TEST_Iter64 (pending)",
+      "details": "Ce témoignage de test iter64 est assez long pour passer la validation min_length.",
+      "channels": [],
+      "at": "2026-10-11T16:26:31.349191+00:00"
+    },
+    {
+      "kind": "new_testimonial",
+      "title": "Nouveau témoignage : TEST_Lifecycle (pending)",
+      "details": "Cycle complet de test: soumission, approbation puis suppression.",
+      "channels": [],
+      "at": "2026-10-11T16:26:33.765788+00:00"
+    },
+    {
+      "kind": "new_testimonial",
+      "title": "Nouveau témoignage : TEST_Iter66_830d34 (pending)",
+      "details": "Retour de test iter66 pour valider le log_alert Slack (TEST_Iter66_830d34).",
+      "channels": [],
+      "at": "2026-10-11T16:26:37.584602+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero A/B débloqué (50/50)",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-10-11T16:26:40.232985+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero forcé sur variante A",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-10-11T16:26:42.177502+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero forcé sur variante B",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-10-11T16:26:42.668376+00:00"
+    },
+    {
+      "kind": "hero_ab_lock",
+      "title": "Hero A/B débloqué (50/50)",
+      "details": "Par admin@plume-astrale.fr",
+      "channels": [],
+      "at": "2026-10-11T16:26:44.946428+00:00"
+    },
+    {
+      "kind": "chat_escalation",
+      "title": "Escalade IA — session sup-6f25f0d2",
+      "details": "J'ai payé hier et je n'ai rien reçu, aucun PDF.",
+      "channels": [],
+      "at": "2026-10-11T16:26:49.306028+00:00"
     }
   ],
   "slack_test_cooldown": {
-    "b658efb3-bcf5-45ea-a406-34e0576a91d1": 1785673703.089119
+    "b658efb3-bcf5-45ea-a406-34e0576a91d1": 1791735987.596727
   },
   "landing_testimonials": [
     {
@@ -272,17 +268,47 @@
       "author_id": "6ffa92d2-8fd9-4ead-8aec-7645561864de",
       "author_email": "test@plume-astrale.fr",
       "created_at": "2026-08-02T16:19:42.803823+00:00"
+    },
+    {
+      "id": "usr-9d966d768af6",
+      "initial": "T",
+      "name": "TEST_Iter64",
+      "sign": "Verseau",
+      "city": "Paris",
+      "quote": "Ce témoignage de test iter64 est assez long pour passer la validation min_length.",
+      "transform_before": null,
+      "transform_after": null,
+      "status": "pending",
+      "stars": 5,
+      "author_id": "6ffa92d2-8fd9-4ead-8aec-7645561864de",
+      "author_email": "test@plume-astrale.fr",
+      "created_at": "2026-10-11T16:26:31.348422+00:00"
+    },
+    {
+      "id": "usr-004e2a0be837",
+      "initial": "T",
+      "name": "TEST_Iter66_830d34",
+      "sign": "Balance",
+      "city": "Lyon",
+      "quote": "Retour de test iter66 pour valider le log_alert Slack (TEST_Iter66_830d34).",
+      "transform_before": null,
+      "transform_after": null,
+      "status": "pending",
+      "stars": 5,
+      "author_id": "6ffa92d2-8fd9-4ead-8aec-7645561864de",
+      "author_email": "test@plume-astrale.fr",
+      "created_at": "2026-10-11T16:26:37.583796+00:00"
     }
   ],
   "landing_ab_hero_stats": {
     "A": {
-      "impression": 24,
+      "impression": 25,
       "cta_click": 1,
-      "signup_click": 1
+      "signup_click": 2
     },
     "B": {
       "impression": 27,
-      "cta_click": 1,
+      "cta_click": 2,
       "signup_click": 0
     }
   },
@@ -381,6 +407,24 @@
       "escalate": false,
       "helpful": null,
       "created_at": "2026-08-03T10:47:18.624802+00:00"
+    },
+    {
+      "uid": "e5f3e6153b7c",
+      "session_id": "sup-69c09cb971ad4c10",
+      "user_message": "C'est quoi la garantie ?",
+      "assistant_reply": "La garantie « Clarté ou remboursée » dure 14 jours après la livraison de ta lecture. Si tu n’y trouves pas au moins une vraie clarté utile pour toi, tu peux demander le remboursement intégral, sans avoir à te justifier.",
+      "escalate": false,
+      "helpful": null,
+      "created_at": "2026-10-11T16:26:47.668509+00:00"
+    },
+    {
+      "uid": "e587e15bef3c",
+      "session_id": "sup-6f25f0d285374544",
+      "user_message": "J'ai payé hier et je n'ai rien reçu, aucun PDF.",
+      "assistant_reply": "Je suis désolée pour ce contretemps — un humain est mieux placé pour vérifier ta commande. Envoie un mail à contact@plume-astrale.fr avec l’adresse email utilisée pour la commande, et si possible ton reçu de paiement, pour qu’on puisse vérifier rapidement.",
+      "escalate": true,
+      "helpful": null,
+      "created_at": "2026-10-11T16:26:49.303578+00:00"
     }
   ],
   "chat_admin_replies": {
@@ -417,6 +461,18 @@
       "report_ai": {
         "calls": 2,
         "tokens": 7469,
+        "units": 0.0
+      }
+    },
+    "2026-10": {
+      "chat_support": {
+        "calls": 2,
+        "tokens": 162,
+        "units": 0.0
+      },
+      "report_ai": {
+        "calls": 2,
+        "tokens": 6907,
         "units": 0.0
       }
     }

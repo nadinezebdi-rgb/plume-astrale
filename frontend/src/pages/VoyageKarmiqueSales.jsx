@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Compass, ShieldCheck, Clock, Mail } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { event as trackEvent, ctaClick } from '@/lib/analytics';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -16,6 +17,22 @@ export default function VoyageKarmiqueSales() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
 
+  // GA4 e-commerce : view_item à l'entrée (1× par session)
+  useEffect(() => {
+    try {
+      const key = 'pa_view_item_voyage-karmique';
+      if (window.sessionStorage.getItem(key) === '1') return;
+      window.sessionStorage.setItem(key, '1');
+    } catch { /* noop */ }
+    trackEvent('view_item', {
+      item_id: 'voyage-karmique',
+      item_name: 'Voyage Karmique · Arbre de Vie + Lignée d\'Âme',
+      item_category: 'pdf',
+      price: 49, currency: 'EUR',
+      items: [{ item_id: 'voyage-karmique', item_name: 'Voyage Karmique', item_category: 'pdf', price: 49, quantity: 1 }],
+    });
+  }, []);
+
   function upd(k) {
     return (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   }
@@ -26,6 +43,10 @@ export default function VoyageKarmiqueSales() {
       setErr('Prénom, date, heure et email sont nécessaires.');
       return;
     }
+    ctaClick('Recevoir mon Voyage Karmique · 49€', {
+      destination: 'stripe_checkout', cta_location: 'voyage_karmique_form_submit',
+      item_id: 'voyage-karmique', price: 49, currency: 'EUR',
+    });
     setLoading(true); setErr('');
     try {
       const r = await fetch(`${API}/api/voyage-karmique/checkout`, {

@@ -384,7 +384,7 @@ const ThemeNatalOneshot = () => {
                       // reset state si l'utilisateur re-saisit
                       if (promoState.status !== 'idle') setPromoState({ status: 'idle', message: '', discount_percent: 0, discount_amount: 0, final_amount: PACK_PRICE });
                     }}
-                    placeholder="Ex: TOUT2026"
+                    placeholder="Entrez votre code"
                     data-testid="theme-natal-oneshot-promo"
                     className="flex-1 px-4 py-3 rounded-xl bg-plume-night-soft/40 border border-plume-gold/15 text-plume-lavender focus:outline-none focus:border-plume-gold/50"
                     style={{ letterSpacing: '0.2em', fontFamily: 'Cinzel, serif', fontSize: 13 }}

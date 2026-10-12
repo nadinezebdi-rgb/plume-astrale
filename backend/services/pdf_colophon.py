@@ -198,7 +198,12 @@ def build_colophon(
         f'PLUME ASTRALE · {product_name.upper()} · ÉDITION NOCTURNE {year}',
         edition_style,
     ))
+    # Date FR (fix Feb 2026 : locale-safe)
+    _FR_MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+    _n = datetime.now()
+    _date_fr = f'{_n.day} {_FR_MONTHS[_n.month - 1]} {_n.year}'
     story.append(Paragraph(
-        f'<font size="7" color="#5E5A63">Généré le {datetime.now().strftime("%d %B %Y").lower()} · pour {prenom or "toi"}</font>',
+        f'<font size="7" color="#5E5A63">Généré le {_date_fr} · pour {prenom or "toi"}</font>',
         edition_style,
     ))

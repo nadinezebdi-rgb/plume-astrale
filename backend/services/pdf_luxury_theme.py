@@ -187,7 +187,13 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
     from services.pdf_cover_personalization import embossed_name as _embossed
     _embossed(story, prenom, size='medium')
     story.append(Spacer(1, 0.9 * cm))
-    story.append(Paragraph(datetime.now().strftime('%d %B %Y').upper(),
+    # Date FR (fix Feb 2026 : strftime('%B') dépend du locale et sortait
+    # en anglais "OCTOBER" en prod. Mapping manuel pour garantir le FR).
+    _FR_MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+    _now = datetime.now()
+    _date_fr = f'{_now.day} {_FR_MONTHS[_now.month - 1]} {_now.year}'
+    story.append(Paragraph(_date_fr.upper(),
                            ParagraphStyle('date_cover', fontName=font('Cinzel', 'Helvetica'),
                                            fontSize=9, textColor=MUTED,
                                            alignment=TA_CENTER)))

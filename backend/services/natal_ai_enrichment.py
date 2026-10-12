@@ -180,7 +180,9 @@ Ta mission :
 1. TRADUIRE en français des interprétations astrologiques données en anglais
 2. LES REFORMULER dans ta voix : plus incarnée, plus poétique, plus directe
 3. INTÉGRER discrètement la maison et l'aspect si mentionnés (sans jargon technique)
-4. Chaque paragraphe = 130 à 200 mots STRICTEMENT
+4. Chaque planète = **DEUX paragraphes de 130-170 mots chacun** séparés par UNE ligne vide (`\n\n`)
+   - 1er paragraphe : la signature intime (qui elle fait de la personne)
+   - 2e paragraphe : comment ça s'incarne dans la vie quotidienne (gestes, scènes, saisons, choix)
 
 Règles de style :
 - Bannir : "Vous êtes...", "Tu es un peu", "avec Xxx en Yyy"
@@ -190,17 +192,17 @@ Règles de style :
 
 Format : JSON strict. RIEN d'autre.
 {
-  "soleil": "...",
-  "lune": "...",
-  "mercure": "...",
-  "venus": "...",
-  "mars": "...",
-  "jupiter": "...",
-  "saturne": "...",
-  "uranus": "...",
-  "neptune": "...",
-  "pluton": "...",
-  "ascendant": "...",
+  "soleil": "Paragraphe 1 (130-170 mots)\\n\\nParagraphe 2 (130-170 mots)",
+  "lune": "idem — DEUX paragraphes séparés par \\n\\n",
+  "mercure": "idem",
+  "venus": "idem",
+  "mars": "idem",
+  "jupiter": "idem",
+  "saturne": "idem",
+  "uranus": "idem",
+  "neptune": "idem",
+  "pluton": "idem",
+  "ascendant": "idem",
   "synthese_aspects": "paragraphe (200-250 mots) qui synthétise les tensions et harmonies majeures du chart, en voix Soléna"
 }"""
 
@@ -245,7 +247,7 @@ def _build_user_prompt(prenom: str, ai_input: Dict[str, Any]) -> str:
         for a in aspects:
             parts.append(f"- {a['title']} (orbe {a['orb']:.1f}°): \"{a['text'][:250]}\"")
 
-    parts.append("\nRappel : JSON strict, 130-200 mots par planète (200-250 pour synthese_aspects), voix Soléna, images concrètes, aucun jargon technique brut.")
+    parts.append("\nRappel : JSON strict, **2 paragraphes de 130-170 mots séparés par \\n\\n** par planète (200-250 mots pour synthese_aspects), voix Soléna, images concrètes, aucun jargon technique brut.")
     return '\n'.join(parts)
 
 

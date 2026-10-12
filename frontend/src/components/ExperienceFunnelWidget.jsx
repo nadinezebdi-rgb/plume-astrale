@@ -20,14 +20,15 @@ const API = process.env.REACT_APP_BACKEND_URL;
 
 // Ordre des étapes affichées dans le tableau
 const STEPS = [
-  { key: 'experience_visit',       label: 'Visite',              gold: 'entrée' },
-  { key: 'intent_selected',        label: 'Intention',           gold: 'qualification' },
-  { key: 'tarot_card_selected',    label: 'Carte tirée',         gold: 'micro-exp.' },
-  { key: 'tarot_continue_clicked', label: 'Continue',            gold: 'engagement' },
-  { key: 'feather_completed',      label: 'Plume finale',        gold: 'signature' },
-  { key: 'signup_started',         label: 'Signup — début',      gold: 'lead' },
-  { key: 'signup_completed',       label: 'Signup — complet',    gold: 'compte créé' },
-  { key: 'credit_purchase',        label: 'Achat',               gold: 'CA' },
+  { key: 'experience_visit',        label: 'Visite',              gold: 'entrée' },
+  { key: 'intent_selected',         label: 'Intention',           gold: 'qualification' },
+  { key: 'tarot_card_selected',     label: 'Carte tirée',         gold: 'micro-exp.' },
+  { key: 'tarot_reveal_regenerated', label: 'Regénérer LLM',      gold: 'engagement LLM' },
+  { key: 'tarot_continue_clicked',  label: 'Continue',            gold: 'engagement' },
+  { key: 'feather_completed',       label: 'Plume finale',        gold: 'signature' },
+  { key: 'signup_started',          label: 'Signup — début',      gold: 'lead' },
+  { key: 'signup_completed',        label: 'Signup — complet',    gold: 'compte créé' },
+  { key: 'credit_purchase',         label: 'Achat',               gold: 'CA' },
 ];
 
 const PERIODS = [
@@ -180,6 +181,17 @@ export default function ExperienceFunnelWidget({ token }) {
           label="CA / visiteur Experience"
           value={rpvExp !== null ? formatEur(rpvExp) : '—'}
           highlight={rpvWinner === 'experience'}
+        />
+        <KpiCard
+          testid="kpi-regen-lift-exp"
+          icon={<TrendingUp className="w-4 h-4" />}
+          label="Lift regénérer (signup)"
+          value={
+            experience && experience.regenerators
+              ? `${formatPct(experience.regen_signup_lift_pp || 0)} · n=${experience.regenerators}`
+              : '—'
+          }
+          highlight={(experience?.regen_signup_lift_pp || 0) > 0}
         />
       </div>
 

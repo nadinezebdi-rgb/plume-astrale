@@ -61,6 +61,8 @@ export default function ExperienceRoot({ managedScroll = false }) {
   const [zodiacVisible, setZodiacVisible] = useState(false);
   const [experienceCards, setExperienceCards] = useState([]);
   const [cardsLoading, setCardsLoading] = useState(true);
+  const [llmReveal, setLlmReveal] = useState(null); // Feb 2026 — Sonnet reveal {revelation, tension, cta, title, source}
+  const [refreshing, setRefreshing] = useState(false);
   const sectionRefs = useRef({ 1: null, 2: null, 3: null, 4: null });
 
   // Fallback pour reduced-motion ou pas de WebGL
@@ -251,6 +253,42 @@ export default function ExperienceRoot({ managedScroll = false }) {
     // Après ~1.2s la carte est retournée → track reveal
     setTimeout(() => trackEvent(EVENTS.EXP_TAROT_REVEALED, { card: cardId }), 1200);
   }, [setDrawnCard, drawnCard]);
+
+  // ── Fetch LLM Sonnet 4.6 dès qu'on a card + intent (cache Mongo 30 min) ─
+  useEffect(() => {
+    if (!drawnCard || !intent) return;
+    const controller = new AbortController();
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
+    if (!backendUrl) return;
+    fetch(`${backendUrl}/api/experience/tarot-reveal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ card_id: drawnCard, intent_id: intent }),
+      signal: controller.signal,
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data && data.revelation && data.tension) setLlmReveal(data); })
+      .catch(() => { /* fallback statique silencieux */ });
+    return () => controller.abort();
+  }, [drawnCard, intent]);
+
+  // ── Regénérer la révélation (force_refresh=true côté backend) ───────
+  const handleRegenerate = useCallback(() => {
+    if (refreshing || !drawnCard || !intent) return;
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
+    if (!backendUrl) return;
+    setRefreshing(true);
+    trackEvent('tarot_reveal_regenerated', { card: drawnCard, intent_type: intent });
+    fetch(`${backendUrl}/api/experience/tarot-reveal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ card_id: drawnCard, intent_id: intent, force_refresh: true }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data && data.revelation && data.tension) setLlmReveal(data); })
+      .catch(() => { /* silencieux */ })
+      .finally(() => setRefreshing(false));
+  }, [refreshing, drawnCard, intent]);
 
   const handleFinalCTA = useCallback(() => {
     trackEvent(EVENTS.EXP_SIGNUP_CTA_CLICKED, { intent_type: intent || 'none', card: drawnCard || 'none' });
@@ -505,7 +543,12 @@ export default function ExperienceRoot({ managedScroll = false }) {
             {cardsLoading && <p className="exp-eyebrow">Les arcanes composent votre tirage…</p>}
 
             <div className="exp-s3__result" data-visible={drawnCard !== null}>
-              {selectedCard ? (
+              {llmReveal ? (
+                <>
+                  <p className="exp-lead" data-testid="scene-3-revelation" data-source={llmReveal.source}>{llmReveal.revelation}</p>
+                  <p className="exp-lead" style={{ opacity: 0.6, marginTop: -8 }} data-testid="scene-3-tension">{llmReveal.tension}</p>
+                </>
+              ) : selectedCard ? (
                 <div className="exp-card-reading">
                   <strong>{selectedCard.nom || selectedCard.name}</strong>
                   <span>{selectedCard.orientation_fr || selectedCard.orientation} · {(selectedCard.mots_cles || []).join(' · ')}</span>
@@ -514,6 +557,28 @@ export default function ExperienceRoot({ managedScroll = false }) {
                 </div>
               ) : (
                 <p className="exp-lead">Cette carte éclaire une partie de votre question.</p>
+              )}
+              {llmReveal && llmReveal.source !== 'fallback' && (
+                <button
+                  type="button"
+                  onClick={handleRegenerate}
+                  disabled={refreshing}
+                  data-testid="scene-3-regenerate"
+                  aria-label="Regénérer la révélation"
+                  style={{
+                    background: 'transparent', border: 'none',
+                    color: 'var(--exp-gold, #C9A24B)',
+                    fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+                    cursor: refreshing ? 'wait' : 'pointer',
+                    padding: '8px 4px', marginTop: 12,
+                    opacity: refreshing ? 0.4 : 0.55,
+                    transition: 'opacity 0.3s ease', fontFamily: 'inherit',
+                  }}
+                  onMouseEnter={(e) => { if (!refreshing) e.currentTarget.style.opacity = '0.9'; }}
+                  onMouseLeave={(e) => { if (!refreshing) e.currentTarget.style.opacity = '0.55'; }}
+                >
+                  {refreshing ? '↻ Un instant…' : '↻ Une autre lecture'}
+                </button>
               )}
               <button
                 type="button"
@@ -524,7 +589,7 @@ export default function ExperienceRoot({ managedScroll = false }) {
                 }}
                 data-testid="scene-3-continue"
               >
-                ✦ Découvrir la suite de mon tirage
+                ✦ {llmReveal?.cta || 'Découvrir la suite de mon tirage'}
                 <span className="exp-linkline__chevron">↓</span>
               </button>
             </div>
