@@ -15,7 +15,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
-import FrenchDateInput from '@/components/FrenchDateInput';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 const STEPS = ['Vos données', 'Vos chapitres', 'Votre édition', 'Récapitulatif'];
@@ -568,7 +567,7 @@ function StepRecap({ birth, edition, recipient, setRecipient, quote, catalog, su
             type="text"
             value={promo?.code || ''}
             onChange={(e) => setPromo((p) => ({ ...p, code: e.target.value.toUpperCase(), applied: false, message: null }))}
-            placeholder="Entrez votre code"
+            placeholder="Votre code"
             data-testid="composer-input-promo"
             style={{ ...input, marginTop: 0, flex: 1, textTransform: 'uppercase' }}
           />

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Loader2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
-const PROMO = "__ADMIN_BYPASS__"; // secret never exposed in the bundle
+const PROMO = '__ADMIN_BYPASS__';
 
 const ASTRO_CITIES = [
   { city: 'Lisbonne', country: 'Portugal', country_code: 'PT', latitude: 38.7223, longitude: -9.1393 },
@@ -35,9 +35,8 @@ const Field = ({ label, children }) => (
 );
 
 /**
- * Admin : génère un PDF de chaque lecture sans paiement.
- * Le bypass est déclenché via la sentinelle __ADMIN_BYPASS__.
- * Le vrai code promo ne circule jamais côté client.
+ * Admin : génère un PDF de chaque lecture sans paiement (compte admin / autorisé)
+ * et l'envoie par e-mail. Les PDF apparaissent aussi dans l'onglet « PDFs envoyés ».
  */
 export default function AdminGenerateReadings({ token, defaultEmail = '' }) {
   const [form, setForm] = useState({
@@ -115,7 +114,8 @@ export default function AdminGenerateReadings({ token, defaultEmail = '' }) {
         <Sparkles className="inline w-4 h-4 mr-2" />Générer les lectures (sans paiement)
       </h2>
       <p className="text-xs mb-6" style={{ color: 'var(--pa-muted)' }}>
-        Le bypass admin est appliqué via la session authentifiée. Chaque PDF est généré puis envoyé à l’e-mail sélectionné.
+        Le bypass paiement est appliqué avec votre session administrateur. Chaque PDF est généré en arrière-plan (quelques minutes)
+        puis envoyé à l&apos;e-mail ci-dessous, et listé dans l&apos;onglet « PDFs envoyés ».
       </p>
 
       {/* contenu identique */}

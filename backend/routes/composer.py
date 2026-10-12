@@ -149,7 +149,7 @@ async def composer_quote(payload: QuotePayload):
     }
 
 
-@router.post('/apply-promo', dependencies=[Depends(rate_limit('composer_promo', 15))])
+@router.post('/apply-promo')
 async def composer_apply_promo(
     payload: ApplyPromoPayload,
     current_user: Optional[dict] = Depends(get_optional_user),
@@ -176,7 +176,7 @@ async def composer_apply_promo(
     }
 
 
-@router.post('/checkout', dependencies=[Depends(rate_limit('composer_checkout', 20))])
+@router.post('/checkout')
 async def composer_checkout(
     payload: CheckoutPayload,
     request: Request,
@@ -241,7 +241,7 @@ async def composer_checkout(
     if promo and try_consume_promo(payload.promo_code, admin_user=current_user, product='composer_book'):
         import uuid as _uuid
         fake_session_id = f'promo_{_uuid.uuid4().hex[:16]}'
-        origin = validate_origin(payload.origin_url)
+        origin = payload.origin_url.rstrip('/')
         # Trace transaction comme "payée" (offerte) directement
         try:
             sb = get_admin_client()
