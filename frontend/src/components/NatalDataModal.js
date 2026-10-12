@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const COUNTRIES = [
   'France', 'Belgique', 'Suisse', 'Canada', 'Luxembourg', 'Monaco',
@@ -49,11 +50,17 @@ export default function NatalDataModal({ open, onClose, onSuccess }) {
     setSaving(true);
     setError(null);
     try {
-      await updateProfile(form);
+      // Les champs facultatifs vides ne sont pas envoyés (évite d'écraser ou de casser la base)
+      const payload = Object.fromEntries(Object.entries(form).filter(([, v]) => v !== ''));
+      await updateProfile(payload);
       setSuccess(true);
       setTimeout(() => { onSuccess?.(); onClose(); }, 900);
     } catch (err) {
-      setError(err?.response?.data?.detail || err.message || 'Erreur lors de la mise à jour.');
+      const detail = err?.response?.data?.detail;
+      const message = Array.isArray(detail)
+        ? detail.map((d) => d?.msg?.replace(/^Value error, /, '')).filter(Boolean).join(' ')
+        : detail;
+      setError(message || err.message || 'Erreur lors de la mise à jour.');
     } finally {
       setSaving(false);
     }
@@ -128,7 +135,7 @@ export default function NatalDataModal({ open, onClose, onSuccess }) {
 
           {/* Date naissance */}
           <Field label="Date de naissance *">
-            <input type="date" value={form.birth_date} onChange={(e) => handleChange('birth_date', e.target.value)}
+            <FrenchDateInput type="date" value={form.birth_date} onChange={(e) => handleChange('birth_date', e.target.value)}
               data-testid="natal-birth-date" style={inputStyle} required
               max={new Date().toISOString().split('T')[0]} />
           </Field>

@@ -3,7 +3,7 @@
   "backend_issues": {
     "critical": [],
     "minor": [
-      {"endpoint": "N/A (test setup)", "issue": "Standard user 'plume_test_863a0303@gmail.com / TestPlume2026!' credentials file dit ces creds mais Supabase renvoie 400 invalid_credentials. Impact: 3 tests non-admin 403 skippés (couverture réduite mais 401 tests sur endpoints admin passent). Recommandation: main agent doit soit reset le password standard user, soit mettre à jour /app/memory/test_credentials.md."}
+      {"endpoint": "N/A (test setup)", "issue": "Standard user 'plume_test_863a0303@gmail.com / [redacted]' credentials file dit ces creds mais Supabase renvoie 400 invalid_credentials. Impact: 3 tests non-admin 403 skippés (couverture réduite mais 401 tests sur endpoints admin passent). Recommandation: main agent doit soit reset le password standard user, soit mettre à jour /app/memory/test_credentials.md."}
     ]
   },
   "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
@@ -22,7 +22,7 @@
   ],
   "updated_files": ["/app/backend/tests/test_iteration62_lc_admin_settings.py"],
   "success_rate": {"backend": "100% (13/13 pytest PASS, 3 skipped setup issue)", "frontend": "100% (12/12 UI checks)"},
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 (OK). plume_test_863a0303@gmail.com / TestPlume2026! (INVALID: 400 invalid_credentials sur Supabase Auth REST).",
+  "test_credentials": "admin@plume-astrale.fr / [redacted] (OK). plume_test_863a0303@gmail.com / [redacted] (INVALID: 400 invalid_credentials sur Supabase Auth REST).",
   "seed_data_creation": "Aucune (state app_settings.json remis à forced_j30_variant=null en fin de test). alerts_history contient désormais des entrées 'slack_test' (kind normal, dumping FAIL 404 attendu).",
   "retest_needed": false,
   "main_agent_can_self_test": true,

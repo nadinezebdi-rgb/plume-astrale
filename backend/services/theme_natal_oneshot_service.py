@@ -280,6 +280,14 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         p = planets_dict.get(planet_key)
         return aio.sign_to_fr(p.get('sign') or '') if p else ''
 
+    # Aspects + maisons réels (chart_data → natal_report → calcul local) : sans eux,
+    # le livre racontait « aucun aspect fourni » et les pages maisons restaient vides.
+    from services.natal_chart_extract import extract_aspects, extract_houses
+    chart_aspects = extract_aspects(chart, natal_report_data, planets_dict)
+    chart_houses = [] if no_birth_time else extract_houses(chart, planets_dict)
+    diag['aspects_count'] = len(chart_aspects)
+    diag['houses_count'] = len(chart_houses)
+
     user_data = {
         'prenom': name,
         'birth_date': birth_date_iso,
@@ -295,6 +303,7 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         'no_birth_time': no_birth_time,
         'ai_interpretations': ai_result,
         'enhanced_personal_analysis': enhanced_analysis,
+        'houses': chart_houses,
     }
 
     # 4) Chart wheel SVG → PNG (utilise le cache — 0 crédit API si déjà présent)
@@ -329,29 +338,8 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     if os.environ.get('BOOK_MODE_ENABLED', 'true').lower() == 'true':
         try:
             from services.natal_book_enrichment import enrich_book_chapters
-            aspects_for_book = []
-            houses_for_book = []
-            try:
-                if isinstance(natal_report_data, dict):
-                    aspects_raw = (natal_report_data.get('aspects')
-                                   or natal_report_data.get('data', {}).get('aspects') or [])
-                    for a in aspects_raw[:20]:
-                        aspects_for_book.append({
-                            'planet1': a.get('planet1') or a.get('p1') or a.get('body1'),
-                            'planet2': a.get('planet2') or a.get('p2') or a.get('body2'),
-                            'type': a.get('type') or a.get('aspect') or a.get('name'),
-                            'orb': a.get('orb') or a.get('orb_deg') or a.get('degree'),
-                        })
-                    houses_raw = (natal_report_data.get('houses')
-                                  or natal_report_data.get('data', {}).get('houses') or [])
-                    for i, h in enumerate(houses_raw[:12]):
-                        houses_for_book.append({
-                            'num': h.get('number') or h.get('num') or (i + 1),
-                            'sign': aio.sign_to_fr(h.get('sign', '')) if h.get('sign') else '',
-                            'planets_in_house': h.get('planets') or h.get('planets_in_house') or [],
-                        })
-            except Exception:
-                pass
+            aspects_for_book = chart_aspects
+            houses_for_book = chart_houses
             planets_book = []
             for _pfr, _en in (('Soleil', 'sun'), ('Lune', 'moon'), ('Mercure', 'mercury'),
                                ('Vénus', 'venus'), ('Mars', 'mars'), ('Jupiter', 'jupiter'),

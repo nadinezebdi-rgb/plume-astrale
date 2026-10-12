@@ -6,6 +6,7 @@ from typing import Optional, Dict, Any
 import stripe
 from fastapi import HTTPException
 
+from services.origin_guard import validate_origin
 from services.supabase_client import get_admin_client
 
 logger = logging.getLogger(__name__)
@@ -69,7 +70,7 @@ async def create_premium_checkout(user_id: str, user_email: str, origin_url: str
         except Exception as e:
             logger.warning(f'Cannot save customer_id: {e}')
 
-    origin = origin_url.rstrip('/')
+    origin = validate_origin(origin_url)
     session = stripe.checkout.Session.create(
         mode='subscription',
         customer=customer_id,

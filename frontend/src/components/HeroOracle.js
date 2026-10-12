@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Sparkles, Loader2, Mail, MapPin, Clock, Check, ArrowRight, Lock } from 'lucide-react';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -118,7 +119,7 @@ const HeroOracle = () => {
           </div>
           <div style={{ marginBottom: 22 }}>
             <label style={labelStyle}>Ta date de naissance</label>
-            <input type="date" value={form.birthDate}
+            <FrenchDateInput type="date" value={form.birthDate}
               onChange={e => handleChange('birthDate', e.target.value)}
               style={inputStyle}
               data-testid="hero-birthdate" />
