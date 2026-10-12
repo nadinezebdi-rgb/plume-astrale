@@ -250,7 +250,7 @@ export default function ExperienceRoot({ managedScroll = false }) {
     trackEvent(EVENTS.EXP_TAROT_SELECTED, { card: cardId, intent_type: intent || 'none' });
     // Après ~1.2s la carte est retournée → track reveal
     setTimeout(() => trackEvent(EVENTS.EXP_TAROT_REVEALED, { card: cardId }), 1200);
-  }, [setDrawnCard, drawnCard]);
+  }, [setDrawnCard, drawnCard, intent]);
 
   const handleFinalCTA = useCallback(() => {
     trackEvent(EVENTS.EXP_SIGNUP_CTA_CLICKED, { intent_type: intent || 'none', card: drawnCard || 'none' });
