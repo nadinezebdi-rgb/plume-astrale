@@ -12,6 +12,7 @@
  * retourné par /api/composer/quote (source de vérité).
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import FrenchDateInput from '@/components/FrenchDateInput';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
