@@ -4,4 +4,5 @@
 # The default Nixpacks setup did not include them, which broke every
 # deployment since the dependency was added.
 [phases.setup]
+nixPkgs = ["...", "chromium"]
 aptPkgs = ["libcairo2-dev", "pkg-config", "libxcb1-dev", "libx11-dev", "ffmpeg", "fonts-freefont-ttf"]
