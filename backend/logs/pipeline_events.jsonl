@@ -68,3 +68,4 @@
 {"ts": "2026-10-20T09:35:06.292574+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 61118, "ai_planet_count": 0}
 {"ts": "2026-10-20T09:41:53.853796+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 75129, "ai_planet_count": 11}
 {"ts": "2026-10-20T09:46:02.380246+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 75187, "ai_planet_count": 11}
+{"ts": "2026-10-20T16:34:49.952984+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 467156, "ai_planet_count": 0}
