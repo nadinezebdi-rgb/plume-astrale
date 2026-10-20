@@ -156,29 +156,12 @@ def _parse_json_blocks(raw: str) -> List[Dict[str, str]]:
 
 
 async def _call_claude_sonnet(system: str, user: str, session_id: str) -> str:
-    """Appel Claude Sonnet via EMERGENT_LLM_KEY (idem book_engine_shared)."""
-    import asyncio as _a
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-
-    key = os.environ.get('EMERGENT_LLM_KEY')
-    if not key:
-        raise RuntimeError('EMERGENT_LLM_KEY absent de .env')
-
-    def _sync_call() -> str:
-        loop = _a.new_event_loop()
-        try:
-            chat = (
-                LlmChat(api_key=key, session_id=session_id, system_message=system)
-                .with_model('anthropic', 'claude-sonnet-4-6')
-            )
-            resp = loop.run_until_complete(chat.send_message(UserMessage(text=user)))
-            if isinstance(resp, str):
-                return resp.strip()
-            return (getattr(resp, 'text', None) or getattr(resp, 'content', None) or str(resp)).strip()
-        finally:
-            loop.close()
-
-    return await _a.to_thread(_sync_call)
+    """Use the same direct OpenAI client as the natal book enrichment."""
+    from services.natal_ai_enrichment import _call_gpt
+    response = await _call_gpt(system, user, session_id, timeout_s=120.0)
+    if not response:
+        raise RuntimeError('OpenAI n’a pas retourné de texte complet')
+    return response
 
 
 async def generate_preface_blocks(

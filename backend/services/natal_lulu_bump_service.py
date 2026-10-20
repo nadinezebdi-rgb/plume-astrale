@@ -74,7 +74,17 @@ async def create_bump_checkout(
     stripe.api_key = stripe_key
 
     # Devis Lulu live
-    quote = await quote_print_job(address, page_count=42)
+    source = _lookup_print_artifacts(source_session_id)
+    if not source.get('pdf_lulu_interior_url') or not source.get('pdf_lulu_page_count'):
+        raise RuntimeError('Régénérez le livre avant de commander son impression')
+    # Preflight before collecting payment, not only after checkout completion.
+    from services.lulu_client import validate_print_files
+    prepared_cover = await _generate_and_upload_cover(
+        first_name=first_name, birth_date_iso=birth_date_iso,
+        session_id=f'{source_session_id}-proof', page_count=int(source['pdf_lulu_page_count']))
+    await validate_print_files(source['pdf_lulu_interior_url'], prepared_cover,
+                               int(source['pdf_lulu_page_count']))
+    quote = await quote_print_job(address, page_count=int(source['pdf_lulu_page_count']))
     client_price_eur = compute_client_price_eur(quote)
 
     success_url = f'{origin}/natal-print/merci?session_id={{CHECKOUT_SESSION_ID}}'
@@ -182,7 +192,9 @@ async def handle_bump_webhook(session_id: str, *, force: bool = False) -> Dict[s
     client_price_eur = md.get('client_price_eur') or 79.0
 
     # 1. Récupère le PDF intérieur (déjà généré via theme_natal_oneshot)
-    interior_url = _lookup_interior_pdf_url(source_session_id)
+    source = _lookup_print_artifacts(source_session_id)
+    interior_url = source.get('pdf_lulu_interior_url')
+    page_count = int(source.get('pdf_lulu_page_count') or 0)
     if not interior_url:
         logger.error(f'[natal_lulu_bump] interior PDF URL missing for source {source_session_id}')
         return {'ok': False, 'error': 'interior_pdf_missing'}
@@ -190,11 +202,12 @@ async def handle_bump_webhook(session_id: str, *, force: bool = False) -> Dict[s
     # 2. Génère + upload la couverture PDF
     cover_url = await _generate_and_upload_cover(
         first_name=first_name, birth_date_iso=md.get('birth_date_iso') or '',
-        session_id=session_id,
+        session_id=session_id, page_count=page_count,
     )
 
     # 3. Crée le print job Lulu
-    from services.lulu_client import create_print_job
+    from services.lulu_client import create_print_job, validate_print_files
+    await validate_print_files(interior_url, cover_url, page_count)
     external_id = f'natal_bump_{session_id}'
     job = await create_print_job(
         external_id=external_id, address=address,
@@ -225,54 +238,46 @@ async def handle_bump_webhook(session_id: str, *, force: bool = False) -> Dict[s
 
 
 # ─── Helpers internes ──────────────────────────────────────────────
-def _lookup_interior_pdf_url(source_session_id: str) -> Optional[str]:
-    """Récupère l'URL Supabase du PDF intérieur déjà généré pour la commande source."""
+def _lookup_print_artifacts(source_session_id: str) -> dict:
     if not source_session_id:
-        return None
-    try:
-        sb = get_admin_client()
-        r = sb.table('payment_transactions').select('metadata, pdf_url').eq(
-            'stripe_session_id', source_session_id,
-        ).limit(1).execute()
-        rows = r.data or []
-        if not rows:
-            return None
-        row = rows[0]
-        # Candidats : colonne pdf_url ou metadata.pdf_link / metadata.pdf_public_url
-        url = row.get('pdf_url')
-        if url:
-            return url
-        md = row.get('metadata') or {}
-        return md.get('pdf_link') or md.get('pdf_public_url') or md.get('pdf_url')
-    except Exception as e:
-        logger.warning(f'[natal_lulu_bump] lookup interior failed: {e}')
-        return None
+        return {}
+    response = get_admin_client().table('payment_transactions').select('metadata').eq(
+        'session_id', source_session_id).limit(1).execute()
+    rows = response.data or []
+    return (rows[0].get('metadata') or {}) if rows else {}
 
 
 async def _generate_and_upload_cover(
-    *, first_name: str, birth_date_iso: str, session_id: str,
+    *, first_name: str, birth_date_iso: str, session_id: str, page_count: int,
 ) -> str:
     """Génère la couverture PDF et l'upload sur Supabase Storage.
 
     En mode mock Lulu, renvoie une URL fictive si l'upload échoue.
     """
-    from services.natal_cover_pdf import render_cover_pdf
+    from services.print_book_renderer import lulu_cover
+    from services.lulu_client import cover_dimensions
+    from types import SimpleNamespace
     import asyncio as _a
+    import json
 
-    # Format FR de la date
-    birth_date_fr = ''
-    if birth_date_iso:
-        try:
-            y, mo, d = birth_date_iso.split('-')[:3]
-            months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-                      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
-            birth_date_fr = f'{int(d)} {months[int(mo) - 1]} {y}'
-        except Exception:
-            birth_date_fr = birth_date_iso
-
+    # Rectangles must match the selected binding's official template. Hardcover
+    # hinges/folds cannot be inferred from page count or total width alone.
+    template = json.loads(os.environ.get('LULU_COVER_TEMPLATE_JSON') or '{}')
+    if not all(template.get(key) for key in ('front_box_mm', 'back_box_mm', 'width_mm', 'height_mm')):
+        raise RuntimeError('Gabarit Lulu exact requis : LULU_COVER_TEMPLATE_JSON (front_box_mm, back_box_mm)')
+    dimensions = await cover_dimensions(page_count)
+    if dimensions.get('unit') != 'mm':
+        raise RuntimeError('Dimensions de couverture Lulu non métriques')
+    if abs(float(template['height_mm']) - float(dimensions['height'])) > .1:
+        raise RuntimeError('Hauteur du gabarit incompatible avec le produit Lulu sélectionné')
+    # The back remains anchored left. A different page count moves the front
+    # panel right by the exact API width delta; no estimated spine thickness.
+    front = list(map(float, template['front_box_mm']))
+    front[0] += float(dimensions['width']) - float(template['width_mm'])
     pdf_bytes = await _a.to_thread(
-        render_cover_pdf,
-        first_name=first_name, birth_date_fr=birth_date_fr, page_count=42,
+        lulu_cover, SimpleNamespace(first_name=first_name, astro_data={}),
+        width_mm=float(dimensions['width']), height_mm=float(dimensions['height']),
+        front_box_mm=front, back_box_mm=list(map(float, template['back_box_mm'])),
     )
 
     # Upload Supabase Storage
@@ -291,8 +296,6 @@ async def _generate_and_upload_cover(
         return (pub or '').rstrip('?')
     except Exception as e:
         logger.warning(f'[natal_lulu_bump] cover upload failed: {e}')
-        if is_mock():
-            return f'https://mock.lulu/cover/{session_id}.pdf'
         raise
 
 

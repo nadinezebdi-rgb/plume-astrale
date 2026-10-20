@@ -22,7 +22,6 @@ import os
 import re
 from typing import Any, Optional
 
-from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 from .domain import ChapterBlock, BlockKind
 
@@ -261,34 +260,12 @@ FORMAT DE SORTIE (JSON strict, aucun texte hors du JSON) :
 
 
 async def _call_claude(system: str, user: str, session_id: str) -> str:
-    """Appel Claude Sonnet 4-6 via EMERGENT_LLM_KEY. Non-stream (JSON strict).
-
-    IMPORTANT : `emergentintegrations` utilise `litellm.completion()` synchrone
-    à l'intérieur de `send_message` async → l'appel bloque le event loop.
-    On enveloppe donc dans `asyncio.to_thread` pour libérer la boucle.
-    """
-    import asyncio as _a
-    key = os.environ.get('EMERGENT_LLM_KEY')
-    if not key:
-        raise RuntimeError('EMERGENT_LLM_KEY absent de .env')
-
-    def _sync_call() -> str:
-        # Recréer une nouvelle boucle interne pour l'appel bloquant
-        loop = _a.new_event_loop()
-        try:
-            chat = (
-                LlmChat(api_key=key, session_id=session_id, system_message=system)
-                .with_model('anthropic', 'claude-sonnet-4-6')
-            )
-            resp = loop.run_until_complete(chat.send_message(UserMessage(text=user)))
-            if isinstance(resp, str):
-                return resp.strip()
-            text = getattr(resp, 'text', None) or getattr(resp, 'content', None) or str(resp)
-            return text.strip()
-        finally:
-            loop.close()
-
-    return await _a.to_thread(_sync_call)
+    """Use the same direct OpenAI client as the natal book enrichment."""
+    from services.natal_ai_enrichment import _call_gpt
+    response = await _call_gpt(system, user, session_id, timeout_s=120.0)
+    if not response:
+        raise RuntimeError('OpenAI n’a pas retourné de texte complet')
+    return response
 
 
 def _parse_json_blocks(raw: str) -> list[dict]:

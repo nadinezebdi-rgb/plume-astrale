@@ -265,7 +265,7 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
             from services.natal_ai_enrichment import enrich_natal_ultra
             ai_result = await enrich_natal_ultra(
                 prenom=name, birth_data=bd,
-                api_interpretations=interpretations, tier='ultra',
+                api_interpretations=interpretations, tier='ultra', force_refresh=force,
             )
         except Exception as e:
             logger.warning(f"[theme_natal_oneshot] AI enrichment failed: {e}")
@@ -290,6 +290,9 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
 
     user_data = {
         'prenom': name,
+        'require_complete_book': True,
+        'birth_time': ('' if no_birth_time else f"{int(bd.get('hour') or 0):02d}:{int(bd.get('minute') or bd.get('min') or 0):02d}"),
+        'birth_city': str(bd.get('city') or bd.get('location') or ''),
         'birth_date': birth_date_iso,
         'sun_sign': _sign_fr('sun'),
         'moon_sign': _sign_fr('moon'),
@@ -331,44 +334,40 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         logger.warning(f"[theme_natal_oneshot] chart wheel unavailable: {e}")
 
     # 4.5) Enrichissement narratif LIVRE (front matter + Actes + 12 maisons + épilogue).
-    # Actif par défaut : le PDF fait 49 pages. Le poids est maîtrisé car les images de la
-    # bibliothèque sont recompressées (services/library_images._light_copy).
-    # Pour revenir au PDF court (17 pages) : BOOK_MODE_ENABLED=false.
+    # Pagination calculée sur le contenu réel; aucun nombre de pages fictif.
+    # Le manuscrit complet est obligatoire, quelle que soit l'édition achetée.
     book_data = None
-    if os.environ.get('BOOK_MODE_ENABLED', 'true').lower() == 'true':
-        try:
-            from services.natal_book_enrichment import enrich_book_chapters
-            aspects_for_book = chart_aspects
-            houses_for_book = chart_houses
-            planets_book = []
-            for _pfr, _en in (('Soleil', 'sun'), ('Lune', 'moon'), ('Mercure', 'mercury'),
-                               ('Vénus', 'venus'), ('Mars', 'mars'), ('Jupiter', 'jupiter'),
-                               ('Saturne', 'saturn'), ('Uranus', 'uranus'),
-                               ('Neptune', 'neptune'), ('Pluton', 'pluto')):
-                p = planets_dict.get(_en) or {}
-                _sign = aio.sign_to_fr(p.get('sign', '')) if p.get('sign') else ''
-                if _sign:
-                    planets_book.append({'name': _pfr, 'sign': _sign})
-            natal_data_for_book = {
-                'prenom': name,
-                'sun_sign': aio.sign_to_fr((planets_dict.get('sun') or {}).get('sign', '')),
-                'moon_sign': aio.sign_to_fr((planets_dict.get('moon') or {}).get('sign', '')),
-                'asc_sign': aio.sign_to_fr(asc_sign_en) if asc_sign_en else '',
-                'planets': planets_book,
-                'aspects': aspects_for_book,
-                'houses': houses_for_book,
-            }
-            book_data = await enrich_book_chapters(
-                prenom=name, birth_data=bd, natal_data=natal_data_for_book,
-            )
-            diag['book_source'] = book_data.get('_source')
-            diag['book_element'] = book_data.get('_em', {}).get('dominant_element')
-            diag['book_modality'] = book_data.get('_em', {}).get('dominant_modality')
-        except Exception as e:
-            logger.warning(f"[theme_natal_oneshot] book enrichment failed: {e}")
-            diag['book_error'] = str(e)[:200]
-    else:
-        diag['book_source'] = 'disabled'
+    try:
+        from services.natal_book_enrichment import enrich_book_chapters
+        aspects_for_book = chart_aspects
+        houses_for_book = chart_houses
+        planets_book = []
+        for _pfr, _en in (('Soleil', 'sun'), ('Lune', 'moon'), ('Mercure', 'mercury'),
+                           ('Vénus', 'venus'), ('Mars', 'mars'), ('Jupiter', 'jupiter'),
+                           ('Saturne', 'saturn'), ('Uranus', 'uranus'),
+                           ('Neptune', 'neptune'), ('Pluton', 'pluto')):
+            p = planets_dict.get(_en) or {}
+            _sign = aio.sign_to_fr(p.get('sign', '')) if p.get('sign') else ''
+            if _sign:
+                planets_book.append({'name': _pfr, 'sign': _sign})
+        natal_data_for_book = {
+            'prenom': name,
+            'sun_sign': aio.sign_to_fr((planets_dict.get('sun') or {}).get('sign', '')),
+            'moon_sign': aio.sign_to_fr((planets_dict.get('moon') or {}).get('sign', '')),
+            'asc_sign': aio.sign_to_fr(asc_sign_en) if asc_sign_en else '',
+            'planets': planets_book,
+            'aspects': aspects_for_book,
+            'houses': houses_for_book,
+        }
+        book_data = await enrich_book_chapters(
+            prenom=name, birth_data=bd, natal_data=natal_data_for_book, force_refresh=force,
+        )
+        diag['book_source'] = book_data.get('_source')
+        diag['book_element'] = book_data.get('_em', {}).get('dominant_element')
+        diag['book_modality'] = book_data.get('_em', {}).get('dominant_modality')
+    except Exception as e:
+        logger.warning(f"[theme_natal_oneshot] book enrichment failed: {e}")
+        diag['book_error'] = str(e)[:200]
 
     # 4.6) Récupère le code parrainage de l'utilisateur pour le colophon final
     referral_code_book = None
@@ -390,111 +389,67 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
     filename = f'theme_natal_{session_id[-16:]}.pdf'
     try:
         import asyncio as _asyncio
-        if os.environ.get('USE_V2_ENGINE', '0') == '1':
-            from services.book_engine_shared.domain import BirthData, Edition
-            from services.book_engine_v2 import render_manuscript_to_pdf_v2
-            from services.book_engine_v2.assemble import build_full_manuscript
-
-            chart_data = (chart or {}).get('chart_data') or {}
-            houses = []
-            for house in chart_data.get('house_cusps') or []:
-                if isinstance(house, dict):
-                    houses.append({
-                        'house': house.get('house'),
-                        'sign': aio.expand_sign(house.get('sign') or ''),
-                        'degree': house.get('degree'),
-                        'absolute_longitude': house.get('absolute_longitude'),
-                    })
-            hour = bd.get('hour', 12)
-            minute = bd.get('minute', 0)
-            birth_time = None if no_birth_time else f'{int(hour):02d}:{int(minute):02d}'
-            manuscript = await build_full_manuscript(
-                session_id=session_id,
-                user_email=email or '',
-                first_name=name,
-                birth_data=BirthData(
-                    date_iso=birth_date_iso or '1990-01-01',
-                    time_hhmm=birth_time,
-                    city=bd.get('city') or bd.get('location') or '',
-                    country_code=bd.get('country_code') or 'FR',
-                    latitude=bd.get('latitude'),
-                    longitude=bd.get('longitude'),
-                ),
-                astro_data={
-                    'planets': planets_dict,
-                    'houses': houses,
-                    'ascendant_sign_en': asc_sign_en,
-                    'raw_natal': chart or {},
-                    'enhanced_personal_analysis': enhanced_analysis,
-                    'fixed_stars': (enhanced_analysis or {}).get('fixed_stars') or [],
-                },
-                edition=_resolve_edition(md),
-            )
-            pdf_bytes = await _asyncio.to_thread(
-                render_manuscript_to_pdf_v2, manuscript, profile='print',
-            )
-        else:
-            from services.natal_pdf_adapter import generate_manuscrit_pdf
-            # Récupère aspects + maisons + cuspides depuis les données astro brutes
-            # pour que le manuscrit builder puisse construire les parties II (12 maisons)
-            # et III (aspects majeurs) avec données réelles.
-            aspects_adapter: list[dict] = []
-            houses_adapter: list[dict] = []
-            cusps_adapter: list[dict] = []
-            try:
-                if isinstance(natal_report_data, dict):
-                    _aspects_src = (natal_report_data.get('aspects')
-                                    or natal_report_data.get('data', {}).get('aspects') or [])
-                    for a in _aspects_src[:40]:
-                        if isinstance(a, dict):
-                            aspects_adapter.append({
-                                'aspecting_planet': a.get('planet1') or a.get('p1') or a.get('aspecting_planet'),
-                                'aspected_planet': a.get('planet2') or a.get('p2') or a.get('aspected_planet'),
-                                'type': a.get('aspect') or a.get('type') or a.get('name'),
-                                'orb': a.get('orb') or a.get('orb_deg') or a.get('degree'),
-                            })
-                    _houses_src = (natal_report_data.get('houses')
-                                   or natal_report_data.get('data', {}).get('houses') or [])
-                    for i, h in enumerate(_houses_src[:12]):
-                        if isinstance(h, dict):
-                            houses_adapter.append({
-                                'number': h.get('number') or h.get('num') or (i + 1),
-                                'sign': aio.sign_to_fr(h.get('sign') or '') if h.get('sign') else '',
-                                'planets': h.get('planets') or h.get('planets_in_house') or [],
-                            })
-                _cusps_src = ((chart or {}).get('chart_data') or {}).get('house_cusps') or []
-                for i, c in enumerate(_cusps_src[:12]):
-                    if isinstance(c, dict):
-                        cusps_adapter.append({
-                            'house': c.get('house') or (i + 1),
-                            'sign': aio.expand_sign(c.get('sign') or ''),
-                            'degree': c.get('degree') or c.get('normDegree'),
-                        })
-            except Exception as _e:
-                logger.warning(f'[theme_natal_oneshot] aspects/houses extraction failed: {_e}')
-            # Fallback aspects : si l'API report ne retourne rien, on utilise ceux
-            # de l'enhanced_analysis (format légèrement différent — on normalise).
-            if not aspects_adapter and enhanced_analysis:
-                for a in (enhanced_analysis.get('aspects') or [])[:40]:
+        from services.natal_pdf_adapter import generate_manuscrit_pdf
+        # Récupère aspects + maisons + cuspides depuis les données astro brutes
+        # pour que le manuscrit builder puisse construire les parties II (12 maisons)
+        # et III (aspects majeurs) avec données réelles.
+        aspects_adapter: list[dict] = []
+        houses_adapter: list[dict] = []
+        cusps_adapter: list[dict] = []
+        try:
+            if isinstance(natal_report_data, dict):
+                _aspects_src = (natal_report_data.get('aspects')
+                                or natal_report_data.get('data', {}).get('aspects') or [])
+                for a in _aspects_src[:40]:
                     if isinstance(a, dict):
                         aspects_adapter.append({
-                            'aspecting_planet': a.get('planet1') or a.get('aspecting_planet'),
-                            'aspected_planet': a.get('planet2') or a.get('aspected_planet'),
+                            'aspecting_planet': a.get('planet1') or a.get('p1') or a.get('aspecting_planet'),
+                            'aspected_planet': a.get('planet2') or a.get('p2') or a.get('aspected_planet'),
                             'type': a.get('aspect') or a.get('type') or a.get('name'),
-                            'orb': a.get('orb') or a.get('orb_deg'),
+                            'orb': a.get('orb') or a.get('orb_deg') or a.get('degree'),
                         })
-            pdf_bytes = await _asyncio.to_thread(
-                generate_manuscrit_pdf,
-                user_data=user_data,
-                planets_data=list(planets_dict.values()),
-                chart_png_bytes=chart_png_bytes,
-                book_data=book_data,
-                referral_code=referral_code_book,
-                referral_link=referral_link_book,
-                aspects_raw=aspects_adapter or None,
-                houses_raw=houses_adapter or None,
-                house_cusps_raw=cusps_adapter or None,
-            )
+                _houses_src = (natal_report_data.get('houses')
+                               or natal_report_data.get('data', {}).get('houses') or [])
+                for i, h in enumerate(_houses_src[:12]):
+                    if isinstance(h, dict):
+                        houses_adapter.append({
+                            'number': h.get('number') or h.get('num') or (i + 1),
+                            'sign': aio.sign_to_fr(h.get('sign') or '') if h.get('sign') else '',
+                            'planets': h.get('planets') or h.get('planets_in_house') or [],
+                        })
+            _cusps_src = ((chart or {}).get('chart_data') or {}).get('house_cusps') or []
+            for i, c in enumerate(_cusps_src[:12]):
+                if isinstance(c, dict):
+                    cusps_adapter.append({
+                        'house': c.get('house') or (i + 1),
+                        'sign': aio.expand_sign(c.get('sign') or ''),
+                        'degree': c.get('degree') or c.get('normDegree'),
+                    })
+        except Exception as _e:
+            logger.warning(f'[theme_natal_oneshot] aspects/houses extraction failed: {_e}')
+        # Fallback aspects : si l'API report ne retourne rien, on utilise ceux
+        # de l'enhanced_analysis (format légèrement différent — on normalise).
+        if not aspects_adapter and enhanced_analysis:
+            for a in (enhanced_analysis.get('aspects') or [])[:40]:
+                if isinstance(a, dict):
+                    aspects_adapter.append({
+                        'aspecting_planet': a.get('planet1') or a.get('aspecting_planet'),
+                        'aspected_planet': a.get('planet2') or a.get('aspected_planet'),
+                        'type': a.get('aspect') or a.get('type') or a.get('name'),
+                        'orb': a.get('orb') or a.get('orb_deg'),
+                    })
+        pdf_bytes = await _asyncio.to_thread(
+            generate_manuscrit_pdf,
+            user_data=user_data,
+            planets_data=list(planets_dict.values()),
+            chart_png_bytes=chart_png_bytes,
+            book_data=book_data,
+            referral_code=referral_code_book,
+            referral_link=referral_link_book,
+            aspects_raw=aspects_adapter or None,
+            houses_raw=houses_adapter or None,
+            house_cusps_raw=cusps_adapter or None,
+        )
         out_dir = ASSETS_DIR / 'theme_natal'
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / filename
@@ -513,6 +468,7 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
             pdf_bytes, session_id, 'theme_natal', filename,
             str(int(datetime.now(timezone.utc).timestamp())),
         )
+        md.pop('pdf_supabase_url', None)
         if supabase_url:
             md['pdf_supabase_url'] = supabase_url
         else:
@@ -521,6 +477,29 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
             # car le fichier local sert de fallback via `/api/pdf/download`.
             logger.warning(f'[theme_natal_oneshot] Supabase upload FAILED for {session_id} — serving local only')
             md['pdf_upload_warning'] = 'supabase_upload_failed_using_local_fallback'
+        # Persist a separate interior for every edition, including digital-only orders.
+        from services.print_book_renderer import lulu_interior, DESIGN_VERSION
+        from pypdf import PdfReader
+        import io
+        md['pdf_design_version'] = DESIGN_VERSION
+        md.pop('pdf_lulu_interior_url', None)
+        md.pop('pdf_lulu_page_count', None)
+        try:
+            interior = await _asyncio.to_thread(lulu_interior, pdf_bytes)
+            md['pdf_lulu_page_count'] = len(PdfReader(io.BytesIO(interior)).pages)
+            interior_url = await _asyncio.to_thread(
+                upload_pdf_to_reports_bucket, interior, session_id,
+                'theme_natal_lulu', filename, str(int(datetime.now(timezone.utc).timestamp())),
+            )
+            if not interior_url:
+                raise RuntimeError('Stockage intérieur Lulu indisponible')
+            md['pdf_lulu_interior_url'] = interior_url
+            md['pdf_lulu_status'] = 'ready_for_validation'
+            md.pop('pdf_lulu_error', None)
+        except Exception as exc:
+            md['pdf_lulu_status'] = 'failed'
+            md['pdf_lulu_error'] = str(exc)
+            logger.exception('[theme_natal_oneshot] Lulu export failed')
         md['pdf_generated_at'] = datetime.now(timezone.utc).isoformat()
         md['pdf_status'] = 'success'
         md.pop('pdf_error', None)

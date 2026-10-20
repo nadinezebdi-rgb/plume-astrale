@@ -235,7 +235,7 @@ def _chapter_planets(planets_narr: list, pos_by_name: dict, no_birth_time: bool)
         sign = p['sign'].strip()
         analysis = (p.get('analysis') or '').strip()
         # Toutes les 2 planètes, nouvelle page (sauf la première qui suit l'intro)
-        if i > 0 and i % 2 == 0:
+        if i > 0:
             blocks.append(ChapterBlock(BlockKind.PAGE_BREAK, {}))
         det = pos_by_name.get(name) or {}
         parts = [f'{name} en {sign}']
@@ -375,6 +375,7 @@ def build_natal_manuscript(
     user_email: str = '',
     session_id: str = '',
     preface_blocks: list[dict] | None = None,
+    book_data: dict | None = None,
 ) -> Manuscript:
     """Construit un Manuscript multi-chapitres prêt à être rendu en PDF print blanc.
 
@@ -430,6 +431,13 @@ def build_natal_manuscript(
         except Exception:
             preface_blocks = []
 
+    book_data = book_data or {}
+
+    def editorial(slug, title, text):
+        blocks = [ChapterBlock(BlockKind.PARAGRAPH, {'text': paragraph})
+                  for paragraph in str(text or '').split('\n\n') if paragraph.strip()]
+        return Chapter(slug=slug, title=title, blocks=blocks)
+
     # Construction des chapitres
     chapters: list[Chapter] = []
     chapters.append(_chapter_preface(preface_blocks or [], prenom))
@@ -438,12 +446,35 @@ def build_natal_manuscript(
         no_birth_time, aspects_norm, houses, chart_png_bytes,
     ))
 
+    for key, title in [
+        ('element_analysis', 'Votre élément dominant'),
+        ('modality_analysis', 'Votre manière de vous mettre en mouvement'),
+        ('trio_synthesis', 'Votre signature personnelle'),
+    ]:
+        if str(book_data.get(key) or '').strip():
+            chapters.append(editorial(key, title, book_data[key]))
+
     planets_narr = natal_data.get('planets') or []
     if planets_narr:
         chapters.append(_chapter_planets(planets_narr, pos_by_name, no_birth_time))
 
     if houses and not no_birth_time:
-        chapters.append(_chapter_houses(houses))
+        house_chapter = _chapter_houses(houses)
+        # Insert the actual personalised prose after its corresponding house title.
+        enriched = []
+        if book_data.get('houses_intro'):
+            enriched.append(ChapterBlock(BlockKind.PARAGRAPH, {'text': book_data['houses_intro']}))
+        house_index = 0
+        for block in house_chapter.blocks:
+            enriched.append(block)
+            if block.kind == BlockKind.H2:
+                house_index += 1
+            if block.kind == BlockKind.PARAGRAPH and house_index:
+                text = str(book_data.get(f'house_{house_index}') or '').strip()
+                if text:
+                    enriched.append(ChapterBlock(BlockKind.PARAGRAPH, {'text': text}))
+        house_chapter.blocks = enriched
+        chapters.append(house_chapter)
 
     if aspects_norm:
         chapters.append(_chapter_aspects(aspects_norm))
@@ -451,6 +482,15 @@ def build_natal_manuscript(
     synthese = (natal_data.get('synthese_aspects') or '').strip()
     if synthese:
         chapters.append(_chapter_synthese_finale(synthese))
+
+    for key, title in [
+        ('aspects_harmonieux_body', book_data.get('aspects_harmonieux_headline') or 'Vos ressources et vos harmonies'),
+        ('aspects_tensions_body', book_data.get('aspects_tensions_headline') or 'Vos tensions et vos chemins d’évolution'),
+        ('rare_aspect_body', book_data.get('rare_aspect_headline') or 'Votre note singulière'),
+        ('year_ahead', 'Mettre votre thème en perspective'),
+    ]:
+        if str(book_data.get(key) or '').strip():
+            chapters.append(editorial(key, title, book_data[key]))
 
     # Renumérote le roman_num en fonction de l'ordre réel
     _ROMAN = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII'}
@@ -466,7 +506,8 @@ def build_natal_manuscript(
         session_id=session_id or f'natal-{prenom.lower()}-{int(datetime.now(timezone.utc).timestamp())}',
         user_email=user_email,
         first_name=prenom,
-        birth_data=_parse_birth_date(birth_date),
+        birth_data=BirthData(date_iso=birth_date or '', time_hhmm=natal_data.get('birth_time'),
+                             city=natal_data.get('birth_city') or '', country_code='FR'),
         astro_data={
             'sun_sign': sun_sign,
             'moon_sign': moon_sign,
@@ -476,10 +517,14 @@ def build_natal_manuscript(
             'house_count': len(houses),
             'aspect_count': len(aspects_norm),
             'has_toc': True,
+            'planets': planet_positions,
+            'aspects': aspects_norm,
+            'houses': houses,
+            'no_birth_time': no_birth_time,
         },
         edition=Edition.NUMERIQUE,
         chapters=chapters,
-        design_version='plume-astrale-v2-print',
+        design_version='plume-book-flow-2026-10',
         created_at=datetime.now(timezone.utc),
     )
     return manuscript

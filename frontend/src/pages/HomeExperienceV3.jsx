@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Plus, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Plus } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useCart } from '@/context/CartContext';
 import { LECTURES, OUTILS } from '@/config/catalog';
 import '../home-experience/HomeExperience.css';
+import { AstralBookHero, AstralBookDiscovery, AstralPathways } from '@/components/AstralBookEditorial';
 
 const JSONLD = {
   '@context': 'https://schema.org',
@@ -74,18 +75,10 @@ export default function HomeExperienceV3() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }}
       />
-      <main className="home-gateway" data-testid="home-gateway">
-        <section className="home-gateway__hero" aria-labelledby="home-gateway-title">
-          <p className="home-gateway__eyebrow"><Sparkles size={14} aria-hidden="true" /> Lectures · Tarot · Guidances</p>
-          <h1 id="home-gateway-title">Plume Astrale</h1>
-          <p className="home-gateway__promise">Mieux vous comprendre. <em>Choisir la suite.</em></p>
-          <p className="home-gateway__description">
-            Des lectures personnalisées et des services pour éclairer ce que vous traversez et prendre vos décisions avec plus de clarté.
-          </p>
-          <a href="#home-gateway-services" className="home-gateway__primary" data-testid="home-gateway-primary-cta">
-            Voir tous les services <ArrowRight size={17} aria-hidden="true" />
-          </a>
-        </section>
+      <main className="home-gateway pa-editorial-home" data-testid="home-gateway">
+        <AstralBookHero />
+        <AstralPathways />
+        <AstralBookDiscovery />
 
         <section
           className="home-gateway__catalog"
