@@ -50,6 +50,7 @@ from routes.experience_funnel import (
 )
 from routes.experience_tarot_reveal import router as experience_tarot_reveal_router
 from routes.health import router as health_router
+from routes.astrology_io_health import router as astrology_io_health_router
 from routes.promo import router as promo_router
 from routes.astrology_v3 import router as astrology_v3_router
 from routes.oracle import router as oracle_router
@@ -128,6 +129,7 @@ api_router.include_router(experience_funnel_admin_router)
 api_router.include_router(experience_tarot_reveal_router)
 api_router.include_router(admin_book_router)
 api_router.include_router(health_router)
+api_router.include_router(astrology_io_health_router)
 api_router.include_router(promo_router)
 api_router.include_router(astrology_v3_router)
 api_router.include_router(oracle_router)
@@ -3576,6 +3578,9 @@ async def _start_cart_recovery():
     # Recovery nocturne Stripe : rejoue le batch chaque nuit sur les 24h (Feb 2026)
     from services.stripe_recovery_scheduler import stripe_recovery_nightly_loop
     _asyncio.create_task(stripe_recovery_nightly_loop())
+    # Health-check continu de la clé astrology-api.io (ping 6h + alerte Resend si 401/403)
+    from services.astrology_io_health import astrology_io_health_loop
+    _asyncio.create_task(astrology_io_health_loop())
 
 
 

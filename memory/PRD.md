@@ -1,5 +1,25 @@
 # Plume Astrale — PRD
 
+## 2026-02-20 — Lot "Explore ton univers 2.0 + Astro Health-Check"
+### Frontend — Explore section enrichie
+- **Décor constellation SVG inline** par carte (chart wheel pour Thème natal, cercles entrelacés pour Compatibilité, soleil rayonnant pour Horoscope) — rendu via `<ConstellationDecor variant="..." />` dans `ExploreUniversSection.jsx`. Chaque SVG hérite de `--card-accent` pour s'intégrer au thème coloré de la carte.
+- **PDF preview synastrie** : script `/app/backend/scripts/add_synastrie_sample_watermark.py` qui génère un extrait 3 pages (demo Lou/Noé) via `generate_synastrie_extract` + overlay filigrane `EXTRAIT` → `/app/frontend/public/demos/synastrie-sample.pdf` (1.35 MB). Nouvelle env var `REACT_APP_SYNASTRIE_PREVIEW_URL=/demos/synastrie-sample.pdf`. Bouton "Feuilleter l'extrait" (pastille rose) sur la carte Compatibilité avec event GA4 `synastrie_preview_click`.
+- **Horoscope live widget** : lecture de `localStorage.plume_astrale_data.dateNaissance` → calcul du signe zodiac → fetch `/api/daily/{sign}` (local, pas d'astrology-api.io). Si signe détecté, la carte affiche "POUR TOI · [SIGNE] [symbole]" + citation italique de la phrase du jour + badge "ÉNERGIE · X/10" + CTA "Lire tout mon horoscope". Sinon fallback statique.
+- data-testid ajoutés : `explore-univers-natal-preview`, `explore-univers-synastrie-preview`, `explore-univers-daily-text`, `explore-univers-daily-energy`.
+
+### Backend — Health-check astrology-api.io
+- **Nouveau service** `/app/backend/services/astrology_io_health.py` :
+  - `ping_astrology_api()` : POST `/api/v3/horoscope/sign/daily` avec la clé courante, retourne `{ok, status, latency_ms, error, key_fingerprint, checked_at}`.
+  - `astrology_io_health_loop()` : boucle asyncio toutes les 6h (grace period 120s au boot). Si 401/403, envoie une alerte Resend formatée à `ADMIN_ALERT_EMAIL=contact@plume-astrale.fr` avec marker cooldown 12h (`/tmp/plume_astrology_io_last_alert.txt`) pour éviter le spam.
+  - Alertes **seulement** sur 401/403/clé absente (pas sur timeout/5xx pour éviter faux positifs réseau).
+- **Nouvelle route** `GET /api/health/astrology-io` → ping à la demande. Fingerprint de clé masqué (`ask_c26230…5984 (len=68)`).
+- Loop ajoutée dans `server.py` startup event, à côté de stripe_recovery_nightly.
+
+### Résolution incident Astrology-API.io
+- Ancienne clé `ask_89e539a9...` révoquée (401 global sur tous endpoints) → remplacée par `ask_c2623009e8...` fournie par le user depuis dashboard.astrology-api.io.
+- Verif end-to-end : `/api/health/astrology-io → ok:true/200`, `/api/astrology/natal-chart → success:true, source:v3, chart_data complet`, 0 erreur 401 dans les logs.
+
+
 ## 2026-02-20 — Lot "Redesign bas de homepage + Navbar beige + Harmonisation Fraunces"
 - **Navbar** : fond `--plume-ivory` (beige) remplaçant `--plume-night`. Logo et liens passés en encre `rgba(17,22,37,0.78)` + icône mobile toggle en `--plume-night`. Résout l'effet "navbar noyée dans le hero".
 - **Section "Explore ton univers"** : nouveau composant `/app/frontend/src/components/ExploreUniversSection.jsx` (+ CSS) injecté dans `HomeExperienceV3.jsx` juste avant le footer. 3 cartes (Thème natal → `/theme-natal`, Compatibilité amoureuse → `/synastrie`, Horoscope du jour → `/quotidien`) sur fond gradient indigo/bleu nuit `#0F1A3A → #141F47 → #0C132E` avec starfield subtil. Chaque carte a son accent couleur (gold, rose, warm yellow) et hover translate -6px. data-testid `explore-univers-section` + `explore-univers-card-{key}`. Responsive : 3 colonnes → 2+1 (<960px) → 1 (<640px).
