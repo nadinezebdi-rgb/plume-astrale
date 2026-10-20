@@ -157,11 +157,18 @@ async def create_print_job(
 
 
 def verify_webhook_signature(raw_body: bytes, hmac_header: Optional[str]) -> bool:
-    """Vérifie la signature HMAC-SHA256 d'un webhook Lulu."""
-    if is_mock():
-        return True  # les webhooks mock ne sont pas signés
+    """Vérifie la signature HMAC-SHA256 d'un webhook Lulu.
+
+    Hardening SEC-003 : la vérification HMAC est toujours effectuée, même en
+    mode mock, pour empêcher qu'un attaquant poste des événements forgés
+    (actuellement log-only mais potentiellement traités plus tard).
+    Si `LULU_WEBHOOK_SECRET` est absent, le webhook est rejeté par défaut.
+    """
     secret = os.environ.get('LULU_WEBHOOK_SECRET', '')
     if not secret:
+        logger.warning('[lulu_client] LULU_WEBHOOK_SECRET absent, rejet du webhook')
+        return False
+    if not hmac_header:
         return False
     expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
     supplied = (hmac_header or '').removeprefix('sha256=').strip()

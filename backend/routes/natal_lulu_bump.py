@@ -57,8 +57,14 @@ class CheckoutRequest(BaseModel):
 
 # ─── Routes ────────────────────────────────────────────────────────
 @router.post('/quote')
-async def route_quote(req: QuoteRequest):
-    """Devis Lulu live pour une destination donnée. Retourne prix client EUR TTC."""
+async def route_quote(req: QuoteRequest, request: Request):
+    """Devis Lulu live pour une destination donnée. Retourne prix client EUR TTC.
+
+    Rate-limited (SEC-002) : max 20 devis / IP / heure pour éviter l'abus de
+    coût sur l'API Lulu réelle lorsque le mode mock est désactivé.
+    """
+    from services.rate_limiter import check_rate_limit
+    await check_rate_limit(request, key='lulu_quote', max_hits=20, window_seconds=3600)
     try:
         quote = await quote_print_job(req.address.model_dump(), page_count=req.page_count)
     except Exception as e:

@@ -26,12 +26,22 @@ def verify_supabase_token(token: str) -> dict:
         raise HTTPException(status_code=401, detail='Invalid token')
 
     alg = header.get('alg', 'HS256')
+    # SEC hardening : vérifie l'audience Supabase 'authenticated' (lève 401 si absente)
+    # et borne les algorithmes acceptés par chemin pour éviter algorithm confusion.
     try:
         if alg in ('ES256', 'RS256', 'EdDSA'):
             signing_key = _jwks_client().get_signing_key_from_jwt(token).key
-            payload = jwt.decode(token, signing_key, algorithms=[alg], options={'verify_aud': False})
+            payload = jwt.decode(
+                token, signing_key, algorithms=[alg],
+                audience='authenticated',
+                options={'verify_aud': True},
+            )
         else:
-            payload = jwt.decode(token, s.SUPABASE_JWT_SECRET, algorithms=['HS256'], options={'verify_aud': False})
+            payload = jwt.decode(
+                token, s.SUPABASE_JWT_SECRET, algorithms=['HS256'],
+                audience='authenticated',
+                options={'verify_aud': True},
+            )
         return payload
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail='Token expired')

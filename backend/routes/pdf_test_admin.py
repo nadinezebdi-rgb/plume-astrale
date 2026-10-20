@@ -8,9 +8,9 @@ Route :
       permettant de vérifier le rendu (dorure du prénom, sommaire numéroté,
       couvertures illustrées) avant d'aller en imprimerie.
 
-Aucune authentification stricte pour l'instant (le path /admin/ est déjà
-signalé — à protéger via auth si expose publique). Le PDF est régénéré
-à chaque appel (pas de cache) pour refléter les changements de code en dev.
+Protégé par `require_admin` (JWT Supabase + flag admin) — voir chaque route.
+Le PDF est régénéré à chaque appel (pas de cache) pour refléter les changements
+de code en dev.
 """
 from __future__ import annotations
 import logging

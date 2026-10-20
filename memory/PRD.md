@@ -1,5 +1,13 @@
 # Plume Astrale — PRD
 
+## 2026-02-20 — Lot "Preview PDF public" + Build:SEO
+- Généré `/app/frontend/public/demos/theme-natal-sample.pdf` (75 KB, 32 pages, "Amélie" anonymisée) via `routes.admin_preview_v3._demo_data` + `natal_pdf_adapter.generate_manuscrit_pdf` (moteur V2 forcé).
+- Ajouté `REACT_APP_NATAL_BOOK_PREVIEW_URL=/demos/theme-natal-sample.pdf` dans `frontend/.env`. Le lien "Feuilleter un extrait réel du PDF ↗" s'affiche désormais dans la section bump `AstralBookEditorial`.
+- Vérifications : `HTTP/2 200`, `content-type: application/pdf`, lien rendu dans le DOM (locator `a.pa-book-preview`, screenshot capturé).
+- `yarn build:seo` dans le pipeline Emergent : **support_agent** n'a trouvé aucune option self-serve. Il faut contacter `support@emergent.sh` avec le job ID, un screenshot et la raison du remplacement de `yarn build` → `yarn build:seo` (prérendu SEO).
+
+
+
 ## Original Problem Statement (v3, 2026-08-13 · strategic repositioning)
 Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme une **marque française de développement personnel** aidant les gens à comprendre les **grandes périodes de leur vie**. L'astrologie devient le moteur de calcul invisible. Concurrents : Headspace, Petit Bambou, The Pattern, coachs de vie, livres de développement personnel.
 
