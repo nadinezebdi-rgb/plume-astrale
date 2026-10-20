@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timezone
+from datetime import datetime, timezone
 from unittest.mock import MagicMock
 from services import signup_promo as sp
 
