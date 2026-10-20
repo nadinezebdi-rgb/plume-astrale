@@ -1,4 +1,49 @@
 # CHANGELOG - Plume Astrale
+## 2026-02 (fork) — Unification du moteur PDF Natal (Phases 1-4)
+
+**🎯 Problème initial** : Le flow 80-crédits (`/api/astrology/v3/natal/pdf` et `/api/reports/theme-natal/pdf`) produisait un PDF mince de ~24 pages, alors que le flow 24€ oneshot (`theme_natal_oneshot_service`) générait un livre riche de 50+ pages via `enrich_book_chapters`. Nadine a remonté un `theme-natal-Nadine (8).pdf` à 24 pages où il manquait les 12 maisons.
+
+**✅ Solution livrée** :
+
+**Phase 1** — Nouveau service unifié `services/natal_book_service.py` (433 lignes) :
+- Fonction publique `generate_enriched_natal_pdf(name, birth_data, *, no_birth_time, require_complete, output, force_refresh, referral_code, referral_link, birth_date_iso)`
+- Exception typée `IncompleteNatalDataError` (levée si <5 planètes core — garde anti-slop bug Nadine Feb 2026)
+- Pipeline en 10 étapes : chart v3 → anti-slop guard → enhanced analysis → `enrich_natal_ultra` (11 planètes) → `enrich_book_chapters` (élément/modalité/trio/12 maisons/aspects/année) → chart wheel SVG→PNG compressé → normalize aspects/houses/cusps → PDF luxe (ReportLab + thread pool) → variante print Lulu A5+bleed
+- Retourne `{pdf_bytes, interior_bytes?, diag}` — caller gère stockage/email/DB
+
+**Phase 2** — Refacto des 3 points d'entrée pour utiliser le service unifié :
+- `/api/astrology/v3/natal/pdf` (80cr) : refund typé via `IncompleteNatalDataError`
+- `/api/reports/theme-natal/pdf` (80cr) : fonction `_generate_pdf('theme-natal')` simplifiée
+- `theme_natal_oneshot_service.handle_theme_natal_oneshot_webhook` (24€) : passé de 676 → 454 lignes (−222 lignes dédupliquées). Produit en **une passe** le PDF digital + l'intérieur Lulu A5+bleed via `output='print'`
+
+**Phase 3** — Validation page count + dual export (fichier `tests/test_natal_book_service_integration.py`, 5 tests) :
+| Variante | Pages | Taille |
+|---|---|---|
+| 📘 Digital complet (12 maisons) | **60** | 122 KB |
+| 📗 Lulu print A5+bleed | **58** | 208 KB |
+| 📙 Sans heure de naissance (maisons omises) | **42** | 97 KB |
+
+**Phase 4** — Harmonisation frontend + validation finale :
+- 3 mentions divergentes "46 pages" → "à partir de 49 pages" (cohérent avec le messaging commercial présent partout)
+- Testing agent (iteration_89.json) : backend sain, 3 routes joignables (401 sans auth OK), **36/36 pytest passent**
+
+**Préservé** :
+- Budget LLM identique **80 crédits/user** sur le flow 80cr (cache `enrich_natal_ultra` + `enrich_book_chapters` partagé entre les 3 flows → 1 seul appel GPT par utilisateur unique)
+- Garde anti-slop (bug Nadine) : refus de PDF si <5 planètes core, avec alerte email admin
+- Gestion `no_birth_time=True` : maisons omises mais 42 pages substantielles livrées
+
+**Fichiers modifiés** :
+- `backend/services/natal_book_service.py` (nouveau, 433 lignes)
+- `backend/services/theme_natal_oneshot_service.py` (676 → 454 lignes)
+- `backend/routes/astrology_v3.py` (route natal/pdf refactorée)
+- `backend/routes/reports.py` (helper _generate_pdf refactoré)
+- `backend/tests/test_natal_book_service_integration.py` (nouveau, 5 tests)
+- `backend/tests/test_natal_pdf_adapter_no_fallback.py` + `test_no_birth_time.py` (greps adaptés au service unifié)
+- `frontend/src/components/AstralBookEditorial.jsx` + `ExploreUniversSection.jsx` (3× "46 pages" → "à partir de 49 pages")
+
+---
+
+
 
 ## 2026-02 (fork) — Régression SEO fix + tests de non-régression consolidés
 
