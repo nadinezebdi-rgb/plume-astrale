@@ -69,7 +69,9 @@ def analyze_elements_modalities(planets: List[Dict[str, Any]]) -> Dict[str, Any]
     }
 
 
-PROMPT_VERSION = 'v3'
+# v4 : prompt v3 (cohérence livre + chart_sig) + clé `ex_libris` (page Signature).
+# Les anciens caches v1/v2/v3 sont régénérés de façon transparente au premier hit.
+PROMPT_VERSION = 'v4'
 
 
 def _cache_key(prenom: str, birth_data: Dict[str, Any], natal_data: Optional[Dict[str, Any]] = None) -> str:
