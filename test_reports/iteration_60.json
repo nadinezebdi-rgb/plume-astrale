@@ -1,5 +1,5 @@
 {
-  "summary": "Retest UI iteration_60. Login admin (admin@plume-astrale.fr / PlumeAdmin2026) est maintenant fonctionnel — le POST supabase /auth/v1/token retourne 200 et l'utilisateur est redirigé vers /mon-compte. Les 2 flows UI authentifiés qui bloquaient en iteration_59 sont maintenant validés bout-en-bout : (1) /admin > onglet 'Lecture Complète' rend AdminLectureComplete avec la commande e2e-admin-lecture-001, boutons Rafraîchir + Redispatch présents, click sur Rafraîchir déclenche bien GET /api/lecture-complete/admin/orders. (2) /mon-compte affiche le badge Cercle Soléna avec 'CERCLE SOLÉNA ACTIF', J-89 (dans plage 89-90 attendue, cohérent avec achat instantané), lien 'Accéder' vers /cercle-solena. Source vérifiée: Admin.js importe AdminLectureComplete et le rend conditionnellement sur tab==='lecture-complete'; MonCompte.js appelle GET /api/lecture-complete/cercle-status au mount et rend le badge conditionnellement sur cercleStatus?.active.",
+  "summary": "Retest UI iteration_60. Login admin (admin@plume-astrale.fr / [redacted]) est maintenant fonctionnel — le POST supabase /auth/v1/token retourne 200 et l'utilisateur est redirigé vers /mon-compte. Les 2 flows UI authentifiés qui bloquaient en iteration_59 sont maintenant validés bout-en-bout : (1) /admin > onglet 'Lecture Complète' rend AdminLectureComplete avec la commande e2e-admin-lecture-001, boutons Rafraîchir + Redispatch présents, click sur Rafraîchir déclenche bien GET /api/lecture-complete/admin/orders. (2) /mon-compte affiche le badge Cercle Soléna avec 'CERCLE SOLÉNA ACTIF', J-89 (dans plage 89-90 attendue, cohérent avec achat instantané), lien 'Accéder' vers /cercle-solena. Source vérifiée: Admin.js importe AdminLectureComplete et le rend conditionnellement sur tab==='lecture-complete'; MonCompte.js appelle GET /api/lecture-complete/cercle-status au mount et rend le badge conditionnellement sur cercleStatus?.active.",
   "backend_issues": {"critical": [], "minor": []},
   "frontend_issues": {
     "ui_bugs": [],
@@ -14,7 +14,7 @@
   ],
   "updated_files": [],
   "success_rate": {"backend": "N/A (frontend-only)", "frontend": "100% (11/11 checks)"},
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026",
+  "test_credentials": "admin@plume-astrale.fr / [redacted]",
   "seed_data_creation": "N/A — commande e2e-admin-lecture-001 déjà seedée",
   "retest_needed": false,
   "main_agent_can_self_test": true,

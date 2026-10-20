@@ -228,6 +228,7 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
         'planets': planets,
         'synthese_aspects': synthese,
         'enhanced_personal_analysis': user_data.get('enhanced_personal_analysis') or {},
+        'houses': [] if no_birth_time else (user_data.get('houses') or []),
         'tier': 'ultra' if is_ultra else 'legacy',
     }
 
@@ -300,6 +301,7 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
                                  ai_planet_count=ai_planet_count)
         except Exception:
             pass
+
         return pdf_bytes
     except Exception as exc:
         logger.exception('[natal_pdf_adapter] book rendering failed')

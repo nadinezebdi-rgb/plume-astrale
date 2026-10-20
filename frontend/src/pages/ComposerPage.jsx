@@ -12,13 +12,16 @@
  * retourné par /api/composer/quote (source de vérité).
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import FrenchDateInput from '@/components/FrenchDateInput';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
+import { useAuth } from '@/context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 const STEPS = ['Vos données', 'Vos chapitres', 'Votre édition', 'Récapitulatif'];
 
 export default function ComposerPage() {
+  const { token } = useAuth();
   const [step, setStep] = useState(0);
   const [catalog, setCatalog] = useState(null);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
@@ -98,7 +101,7 @@ export default function ComposerPage() {
     try {
       const r = await fetch(`${API}/api/composer/apply-promo`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
         body: JSON.stringify({
           code: promo.code,
           edition,
@@ -121,7 +124,7 @@ export default function ComposerPage() {
     } catch {
       setPromo((p) => ({ ...p, applied: false, message: 'Erreur réseau. Réessayez.' }));
     }
-  }, [promo.code, edition, selectedChapters, noBirthTime]);
+  }, [promo.code, edition, selectedChapters, noBirthTime, token]);
 
   // Reset promo si l'utilisateur change édition/chapitres après application
   useEffect(() => {
@@ -177,7 +180,7 @@ export default function ComposerPage() {
       }
       const r = await fetch(`${API}/api/composer/checkout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
         body: JSON.stringify(payload),
       });
       if (!r.ok) {
@@ -329,7 +332,7 @@ function StepBirthData({ birth, setBirth }) {
       <div style={twoCols}>
         <div>
           <p style={fieldLabel}>Date de naissance</p>
-          <input type="date" required value={birth.birth_date} onChange={update('birth_date')}
+          <FrenchDateInput type="date" required value={birth.birth_date} onChange={update('birth_date')}
                  data-testid="composer-input-birthdate" style={input}/>
         </div>
         <div>
@@ -565,7 +568,7 @@ function StepRecap({ birth, edition, recipient, setRecipient, quote, catalog, su
             type="text"
             value={promo?.code || ''}
             onChange={(e) => setPromo((p) => ({ ...p, code: e.target.value.toUpperCase(), applied: false, message: null }))}
-            placeholder="Entrez votre code"
+            placeholder="Votre code"
             data-testid="composer-input-promo"
             style={{ ...input, marginTop: 0, flex: 1, textTransform: 'uppercase' }}
           />

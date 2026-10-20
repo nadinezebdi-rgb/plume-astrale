@@ -27,7 +27,7 @@
     "backend": "100%",
     "frontend": "not tested (backend-only request)"
   },
-  "test_credentials": "Used /app/memory/test_credentials.md — plume_test_863a0303@gmail.com / TestPlume2026! and admin@plume-astrale.fr / AdminPlume2026!. Both authenticate via Supabase /auth/v1/token.",
+  "test_credentials": "Used /app/memory/test_credentials.md — plume_test_863a0303@gmail.com / [redacted] and admin@plume-astrale.fr / AdminPlume2026!. Both authenticate via Supabase /auth/v1/token.",
   "seed_data_creation": "None. Tests only generate Stripe Checkout sessions (no actual payment). Stripe customer_id may be persisted on the test user profile by Stripe.Customer.create — this is expected by the implementation.",
   "retest_needed": false,
   "should_main_agent_self_test": false,

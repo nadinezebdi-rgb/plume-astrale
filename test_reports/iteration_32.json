@@ -47,7 +47,7 @@
     "backend": "100% (11/11 pytest cases pass — after fixing checkout URL bug in modal)",
     "frontend": "80% (paywall visual + Stripe redirect + BuyCredits + homepage pill all OK; send-button click while blocked is dead — Enter key works)"
   },
-  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 (used for backend tests). Low-balance user: paywall_test_1783103389@plume-test.fr / TestPaywall2026! (created for paywall UI test, drained to 0cr)",
+  "test_credentials": "Admin: admin@plume-astrale.fr / [redacted] (used for backend tests). Low-balance user: paywall_test_1783103389@plume-test.fr / TestPaywall2026! (created for paywall UI test, drained to 0cr)",
   "seed_data_creation": "Created 1 temp Supabase user with balance=0 to test paywall trigger (`paywall_test_1783103389@plume-test.fr`). Admin balance dropped from 9456 → 9446 (10cr used for chat regression test).",
   "retest_needed": true,
   "should_main_agent_self_test": true,
