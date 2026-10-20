@@ -1,5 +1,49 @@
 # Plume Astrale — PRD
 
+## 2026-02-20 — Lot "Checkout synastrie câblé + Weekly digest + Hero auto-lock"
+### Checkout synastrie vraiment câblé
+- Nouvelle page `/app/frontend/src/pages/SynastrieCheckout.jsx` à la route `/synastrie/checkout` : form 2 personnes (prénom/date/lieu) + email, pré-rempli depuis `localStorage.plume_astrale_data`, lit `ab_variant` (localStorage) + `ab_session_id` (sessionStorage) et POST `/api/synastrie/checkout` qui redirige vers Stripe Checkout.
+- `SynastrieSales.js` : `ctaTargetGuest`/`ctaTargetAuth` pointent désormais vers `/synastrie/checkout`.
+- `SynastrieLeadThanks.jsx` : CTA upsell pointe vers `/synastrie/checkout`.
+- `Paiement.js` : legacy redirect `?product=synastrie` → `/synastrie/checkout` (clients historiques).
+- GA4 events : `begin_checkout` au mount, `add_payment_info` avant redirect Stripe (avec `variant` dans metadata).
+- Testid : `synastrie-checkout-page`, `synastrie-checkout-form`, `synastrie-checkout-p1-prenom|date|place`, `synastrie-checkout-p2-prenom|date|place`, `synastrie-checkout-email`, `synastrie-checkout-submit`, `synastrie-checkout-error`.
+
+### Weekly digest Resend (vendredi 9h UTC)
+- Service `/app/backend/services/weekly_digest.py` : boucle qui dort jusqu'au prochain vendredi 9h UTC puis envoie un email digest à `ADMIN_ALERT_EMAIL`.
+- Métriques agrégées (7j) : A/B stats `home_hero_h1` + `synastrie_exit_intent` (variantes/shown/conversions/rate avec badge 🏆 au leader), leads générés, achats synastrie 49€, alertes système.
+- HTML premium avec style Fraunces + Cinzel, couleurs par variante gagnante.
+- Après l'envoi, déclenche `experiment_auto_lock.check_and_lock_experiment()` pour les 2 expériences.
+- Note : Search Console non intégré (requiert OAuth2 séparé) — backlog.
+
+### Variante hero auto-lock
+- **Migration** : `/app/backend/migrations/2026_02_experiment_locks.sql` — table `public.experiment_locks` (primary key `experiment`, variant, locked_at, reason).
+- **Service** : `/app/backend/services/experiment_auto_lock.py` — `check_and_lock_experiment(experiment)` qui :
+  1. Si lock existant → noop
+  2. Agrège shown/cta_click par variante
+  3. Si toutes ont `shown >= 500` ET leader lift ≥10% vs 2e → upsert lock
+  4. Retourne `{status: locked|already_locked|insufficient_data|unclear_winner|error, winner, variants}`
+- **Route publique** : `GET /api/experiments/{experiment}/variant` → `{experiment, variant, locked}` pour que le frontend bascule sur la variante verrouillée.
+- **Frontend** : `AstralBookHero` fait un fetch au mount, et si `locked: true` + variante valide → bascule immédiatement + persiste en localStorage. Fallback random si pas de lock.
+- Déclenché automatiquement chaque vendredi par le weekly_digest loop.
+
+### Tests
+- `GET /api/experiments/home_hero_h1/variant` → `{variant: null, locked: false}` (pas encore assez de données).
+- `/synastrie/checkout` HTTP 200.
+- `POST /api/synastrie/checkout` avec `ab_variant: "B", ab_session_id: "s_test"` → le code accepte les paramètres et appelle `stripe.checkout.Session.create` avec la metadata enrichie (⚠️ 500 pré-existant : clé Stripe `sk_live_...tY5fy5` expirée, à renouveler côté Stripe Dashboard).
+- Boucles actives dans logs : astro_health + syn_followup + dns_health + weekly_digest + stripe_recovery. Weekly_digest : prochain envoi dans 65h (vendredi 9h UTC confirmé).
+
+### Migration SQL additionnelle à ajouter au consolidé
+```sql
+create table if not exists public.experiment_locks (
+  experiment text primary key,
+  variant text not null,
+  locked_at timestamptz not null default now(),
+  reason text
+);
+```
+
+
 ## 2026-02-20 — Lot "Pré-rempli + A/B hero + DNS health + ab_events purchased"
 ### (a) Pré-remplissage SynastrieLeadMagnet
 - `SynastrieLeadMagnet.jsx` lit `localStorage.plume_astrale_data` au mount et pré-remplit Personne 1 (prenom, birth_date, birth_place) + email si disponibles. Préserve toute saisie déjà faite (prev state check).

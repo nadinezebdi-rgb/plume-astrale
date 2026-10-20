@@ -43,8 +43,8 @@ export default function SynastrieSales() {
         guarantee="Clarté ou remboursée — 14 jours"
         ctaLabelAuth="Générer notre Synastrie"
         ctaLabelGuest="Analyser notre lien · 49€"
-        ctaTargetAuth="/mon-compte?generate=synastry"
-        ctaTargetGuest="/paiement?product=synastrie"
+        ctaTargetAuth="/synastrie/checkout?from=auth"
+        ctaTargetGuest="/synastrie/checkout"
       />
       <SynastrieLeadMagnet />
       <SynastrieExitIntentModal />

@@ -76,6 +76,7 @@ import NotreCadre from "./pages/NotreCadre";
 import SynastrieSales from "./pages/SynastrieSales";
 import SynastrieSucces from "./pages/SynastrieSucces";
 import SynastrieLeadThanks from "./pages/SynastrieLeadThanks";
+import SynastrieCheckout from "./pages/SynastrieCheckout";
 import AstroSexo from "./pages/AstroSexo";
 import RencontresAstrales from "./pages/RencontresAstrales";
 import RencontresUltimeSucces from "./pages/RencontresUltimeSucces";
@@ -191,6 +192,7 @@ function App() {
           <Route path="/astrocartographie" element={<AstrocartographieSales />} />
           <Route path="/pack-karmique" element={<PackKarmique />} />
           <Route path="/synastrie" element={<SynastrieSales />} />
+          <Route path="/synastrie/checkout" element={<SynastrieCheckout />} />
           <Route path="/synastrie/extrait-envoye" element={<SynastrieLeadThanks />} />
           <Route path="/lecture-complete/succes" element={<LectureCompleteSucces />} />
           <Route path="/admin" element={<Admin />} />

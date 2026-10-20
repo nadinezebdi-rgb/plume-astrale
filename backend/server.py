@@ -61,6 +61,7 @@ from routes.library import router as library_router
 from routes.rencontres import router as rencontres_router
 from routes.analytics import router as analytics_router
 from routes.ab_analytics import router as ab_analytics_router
+from routes.experiments import router as experiments_router
 from routes.archetype import make_router as make_archetype_router
 from routes.kabbale import router as kabbale_router
 from routes.pack_karmique import router as pack_karmique_router
@@ -140,6 +141,7 @@ api_router.include_router(library_router)
 api_router.include_router(rencontres_router)
 api_router.include_router(analytics_router)
 api_router.include_router(ab_analytics_router)
+api_router.include_router(experiments_router)
 api_router.include_router(compatible_router)
 api_router.include_router(gift_cards_router)
 api_router.include_router(edition_reliee_router)
@@ -3589,6 +3591,9 @@ async def _start_cart_recovery():
     # Health-check du domaine canonique (SSL + HTTP), alertes Resend ciblées
     from services.dns_domain_health import dns_domain_health_loop
     _asyncio.create_task(dns_domain_health_loop())
+    # Journal hebdo vendredi 9h UTC + auto-lock variantes gagnantes
+    from services.weekly_digest import weekly_digest_loop
+    _asyncio.create_task(weekly_digest_loop())
 
 
 

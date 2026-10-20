@@ -142,7 +142,7 @@ export default function SynastrieLeadThanks() {
                 </div>
               </div>
               <Link
-                to="/paiement?product=synastrie"
+                to="/synastrie/checkout"
                 data-testid="synastrie-thanks-upsell-cta"
                 onClick={() => { try { trackEvent('upsell_click', { source: 'synastrie_thanks', product: 'synastrie' }); } catch { /* noop */ } }}
                 style={{

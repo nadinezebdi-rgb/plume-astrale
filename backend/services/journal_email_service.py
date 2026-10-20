@@ -6,6 +6,29 @@ from services.daily_content import get_daily_content
 from services.supabase_client import get_admin_client
 from services.resend_service import send_email
 
+
+def _zodiac_en_from_date(date_str: str) -> Optional[str]:
+    """Return English zodiac sign key (Aries, Taurus, ...) compatible with daily_content.get_daily_content."""
+    if not date_str:
+        return None
+    try:
+        d = datetime.strptime(str(date_str)[:10], '%Y-%m-%d')
+    except Exception:
+        return None
+    m, day = d.month, d.day
+    if (m == 3 and day >= 21) or (m == 4 and day <= 19): return 'Aries'
+    if (m == 4 and day >= 20) or (m == 5 and day <= 20): return 'Taurus'
+    if (m == 5 and day >= 21) or (m == 6 and day <= 20): return 'Gemini'
+    if (m == 6 and day >= 21) or (m == 7 and day <= 22): return 'Cancer'
+    if (m == 7 and day >= 23) or (m == 8 and day <= 22): return 'Leo'
+    if (m == 8 and day >= 23) or (m == 9 and day <= 22): return 'Virgo'
+    if (m == 9 and day >= 23) or (m == 10 and day <= 22): return 'Libra'
+    if (m == 10 and day >= 23) or (m == 11 and day <= 21): return 'Scorpio'
+    if (m == 11 and day >= 22) or (m == 12 and day <= 21): return 'Sagittarius'
+    if (m == 12 and day >= 22) or (m == 1 and day <= 19): return 'Capricorn'
+    if (m == 1 and day >= 20) or (m == 2 and day <= 18): return 'Aquarius'
+    return 'Pisces'
+
 RESEND_API_KEY = os.getenv('RESEND_API_KEY')
 # Utilise la même variable centrale que tous les autres services (contact@plume-astrale.fr, domaine vérifié)
 SENDER_EMAIL = os.getenv('SENDER_EMAIL', 'Soléna · Plume Astrale <contact@plume-astrale.fr>')
@@ -120,13 +143,25 @@ async def send_daily_journal_email(user_id: str, email: str, prenom: str, birth_
 
     try:
         # Get horoscope + advice for this user's sign
-        content = await get_daily_content(birth_date)
+        sign_en = _zodiac_en_from_date(birth_date)
+        if not sign_en:
+            print(f'[journal_email] Invalid birth_date for {user_id}: {birth_date}')
+            return False
+        content = get_daily_content(sign_en)
         if not content:
             print(f'[journal_email] No daily content for {user_id}')
             return False
 
-        horoscope_text = content.get('horoscope') or 'Les énergies du jour t\'invitent à explorer tes possibilités. Reste attentif aux synchronicités.'
-        advice_text = content.get('conseil') or 'Prends un moment aujourd\'hui pour t\'aligner avec tes intentions profondes.'
+        horoscope_dict = content.get('horoscope') or {}
+        # Compose a short horoscope narrative from the structured 4 themes
+        parts = []
+        for key, label in (('amour', 'Amour'), ('carriere', 'Carrière'), ('sante', 'Santé'), ('spirituel', 'Spirituel')):
+            block = horoscope_dict.get(key) if isinstance(horoscope_dict, dict) else None
+            texte = (block or {}).get('texte') if isinstance(block, dict) else None
+            if texte:
+                parts.append(f"<strong>{label}&nbsp;:</strong> {texte}")
+        horoscope_text = '<br/>'.join(parts) if parts else 'Les énergies du jour t\'invitent à explorer tes possibilités. Reste attentif aux synchronicités.'
+        advice_text = content.get('conseil_du_jour') or content.get('conseil') or 'Prends un moment aujourd\'hui pour t\'aligner avec tes intentions profondes.'
 
         html_body = _build_journal_html(prenom or 'Voyageur', horoscope_text, advice_text)
         subject = f'✦ Ton Horoscope du Jour — {prenom or "Voyageur"}'

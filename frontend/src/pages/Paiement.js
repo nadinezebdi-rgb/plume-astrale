@@ -16,6 +16,14 @@ const Paiement = () => {
   const [promoLoading, setPromoLoading] = useState(false);
 
   useEffect(() => {
+    // Legacy redirect : si on arrive avec ?product=synastrie, basculer sur le checkout dédié
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if ((params.get('product') || '').toLowerCase() === 'synastrie') {
+        navigate('/synastrie/checkout', { replace: true });
+        return;
+      }
+    } catch { /* noop */ }
     const data = localStorage.getItem('plume_astrale_data');
     const plan = localStorage.getItem('plume_astrale_plan');
     if (!data) { navigate('/formulaire'); return; }

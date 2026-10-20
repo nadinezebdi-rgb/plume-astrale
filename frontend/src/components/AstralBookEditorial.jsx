@@ -104,7 +104,7 @@ export function AstralBookHero({ onStart, price }) {
       lead: 'Une lecture profonde et personnelle de votre thème natal, composée en 46 pages. Pour mieux comprendre ce qui vous anime, ce qui vous lie, et où vous allez.',
     },
   }), []);
-  const variantKey = React.useMemo(() => {
+  const [variantKey, setVariantKey] = useState(() => {
     try {
       const existing = localStorage.getItem('plume_hero_variant');
       if (existing && VARIANTS[existing]) return existing;
@@ -115,7 +115,27 @@ export function AstralBookHero({ onStart, price }) {
     } catch {
       return 'A';
     }
-  }, [VARIANTS]);
+  });
+  // Au mount, demander au backend si une variante gagnante est verrouillée.
+  // Si oui → bascule immédiatement, et persist en localStorage pour next loads.
+  React.useEffect(() => {
+    const api = process.env.REACT_APP_BACKEND_URL;
+    if (!api) return;
+    let cancelled = false;
+    fetch(`${api}/api/experiments/home_hero_h1/variant`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data || !data.locked || !data.variant) return;
+        if (!VARIANTS[data.variant]) return;
+        if (data.variant !== variantKey) {
+          try { localStorage.setItem('plume_hero_variant', data.variant); } catch { /* noop */ }
+          setVariantKey(data.variant);
+        }
+      })
+      .catch(() => { /* noop */ });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const copy = VARIANTS[variantKey];
 
   // Track `shown` once on mount + `cta_click` sur bouton principal.
