@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import SynastrieLeadMagnet from './SynastrieLeadMagnet';
 import { event as trackEvent } from '../lib/analytics';
+import { trackABEvent } from '../lib/abTracking';
 
 const DISMISSED_KEY = 'plume_syn_exit_intent_dismissed';
 const SENT_KEY = 'plume_syn_lead_sent';
@@ -67,6 +68,7 @@ export default function SynastrieExitIntentModal() {
       if (triggered) return;
       triggered = true;
       try { trackEvent('exit_intent_shown', { page: 'synastrie', source, variant: variantKey }); } catch { /* noop */ }
+      trackABEvent('synastrie_exit_intent', variantKey, 'shown', { source });
       setOpen(true);
     };
 
@@ -105,6 +107,7 @@ export default function SynastrieExitIntentModal() {
   const close = () => {
     try { localStorage.setItem(DISMISSED_KEY, String(Date.now())); } catch { /* noop */ }
     try { trackEvent('exit_intent_dismissed', { page: 'synastrie', variant: variantKey }); } catch { /* noop */ }
+    trackABEvent('synastrie_exit_intent', variantKey, 'dismissed');
     setOpen(false);
   };
 

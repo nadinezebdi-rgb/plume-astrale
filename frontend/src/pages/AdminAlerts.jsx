@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AlertTriangle, RefreshCw, Loader2, CheckCircle2, Database } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
+import AdminABStatsBlock from '@/components/AdminABStatsBlock';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -105,6 +106,9 @@ export default function AdminAlerts() {
             </div>
           </div>
         )}
+
+        {/* Bloc stats A/B — section indépendante au-dessus de la liste d'alertes */}
+        <AdminABStatsBlock backend={backend} token={token} />
 
         {/* Filtres */}
         {!state.migrationNeeded && (

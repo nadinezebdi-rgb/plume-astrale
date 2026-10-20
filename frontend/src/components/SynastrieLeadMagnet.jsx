@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Sparkles, CheckCircle2, Loader2 } from 'lucide-react';
 import { event as trackEvent } from '../lib/analytics';
+import { trackABEvent } from '../lib/abTracking';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -78,6 +79,9 @@ export default function SynastrieLeadMagnet({ variant = 'section', onSuccess, co
         throw new Error(data?.detail || data?.message || 'Erreur serveur');
       }
       trackEvent('synastrie_free_extract_sent', { email_domain: email.split('@')[1] || '', variant: variantKey || null });
+      if (variantKey) {
+        trackABEvent('synastrie_exit_intent', variantKey, 'converted', { email_domain: email.split('@')[1] || '' });
+      }
       setState({ status: 'success', message: data.message || 'Extrait envoyé ! Vérifiez votre boîte email.' });
       try {
         if (typeof onSuccess === 'function') onSuccess();

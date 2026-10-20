@@ -60,6 +60,7 @@ from routes.subscriptions import router as subscriptions_router
 from routes.library import router as library_router
 from routes.rencontres import router as rencontres_router
 from routes.analytics import router as analytics_router
+from routes.ab_analytics import router as ab_analytics_router
 from routes.archetype import make_router as make_archetype_router
 from routes.kabbale import router as kabbale_router
 from routes.pack_karmique import router as pack_karmique_router
@@ -138,6 +139,7 @@ api_router.include_router(synastrie_router)
 api_router.include_router(library_router)
 api_router.include_router(rencontres_router)
 api_router.include_router(analytics_router)
+api_router.include_router(ab_analytics_router)
 api_router.include_router(compatible_router)
 api_router.include_router(gift_cards_router)
 api_router.include_router(edition_reliee_router)
@@ -3581,6 +3583,9 @@ async def _start_cart_recovery():
     # Health-check continu de la clé astrology-api.io (ping 6h + alerte Resend si 401/403)
     from services.astrology_io_health import astrology_io_health_loop
     _asyncio.create_task(astrology_io_health_loop())
+    # Relance J+2 des leads synastrie non convertis (-10% SYNEXT10)
+    from services.synastrie_lead_followup import synastrie_lead_followup_loop
+    _asyncio.create_task(synastrie_lead_followup_loop())
 
 
 

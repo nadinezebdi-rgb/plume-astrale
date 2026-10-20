@@ -1,5 +1,32 @@
 # Plume Astrale — PRD
 
+## 2026-02-20 — Lot "AB stats + Email relance J+2 + Migration consolidée"
+### A/B Stats first-party dashboard
+- **Migration** : `/app/backend/migrations/2026_02_ab_events.sql` — table `public.ab_events` (experiment, variant, event_name, session_id, metadata).
+- **Tracking lib** : `/app/frontend/src/lib/abTracking.js` — `trackABEvent(experiment, variant, event_name, metadata)` qui POST `/api/analytics/ab-event` avec un session_id anonyme en sessionStorage. Fire-and-forget + keepalive.
+- **Backend** :
+  - `POST /api/analytics/ab-event` (route publique) — toujours 200, dégrade gracieusement si table absente.
+  - `GET /api/admin/ab-stats?experiment=X&period=7d|30d|all` — agrège par variante avec `shown/dismissed/converted/conversion_rate`.
+- **Frontend** : component `AdminABStatsBlock.jsx` affiche grid des variantes avec taux de conversion gros et badge "Meilleure" sur la variante gagnante. Intégré en haut de `/admin/alerts`.
+- **Hooks** : `SynastrieExitIntentModal.jsx` call `trackABEvent('synastrie_exit_intent', variant, 'shown'|'dismissed')`, `SynastrieLeadMagnet.jsx` call `'converted'` à l'envoi réussi.
+
+### Email relance J+2 synastrie
+- **Migration** : `/app/backend/migrations/2026_02_synastrie_lead_followups.sql` — table `public.synastrie_lead_followups` (email unique, lead_id, resend_id, sent_at) pour idempotence.
+- **Service** : `/app/backend/services/synastrie_lead_followup.py` — boucle asyncio 6h qui scanne `oracle_leads` dans la fenêtre 42h–54h (J+2 ± 6h), filtre ceux déjà acheteurs (`synastrie_purchases.status = paid`) ou déjà relancés, puis envoie l'email.
+- **Email** : `send_synastrie_lead_followup_email(email, first_name)` dans `resend_service.py` — copy "chaleureuse" avec code `SYNEXT10` -10% (bouton gold stylisé) → `/synastrie?lead_followup=1`.
+- **Promo Stripe** : ⚠️ Le code `SYNEXT10` doit être créé manuellement dans Stripe Dashboard (coupon -10% off, 48h ou max_uses pour la rareté). L'email reste pertinent même sans — le visiteur peut acheter au prix normal.
+- **Hook server** : `_asyncio.create_task(synastrie_lead_followup_loop())` dans startup event.
+
+### Migration SQL consolidée
+- `/app/backend/migrations/2026_02_explore_lot_consolidated.sql` — crée les 3 tables (admin_alerts + ab_events + synastrie_lead_followups) en un seul SQL idempotent. **1 seule exécution dans le SQL Editor Supabase couvre toutes les features du lot.**
+
+### Tests
+- `POST /api/analytics/ab-event` → HTTP 200 `{ok:false, reason:"persist_failed"}` (dégrade gracieusement, log actionnable).
+- `GET /api/admin/ab-stats` → 401 unauth (sécurisé).
+- Loops démarrées dans logs : `[astro_health]` + `[syn_followup] boucle démarrée — relance J+2 toutes les 6h`.
+- Warning actionnable : `[ab_event] Table ab_events absente — exécuter 2026_02_ab_events.sql`.
+
+
 ## 2026-02-20 — Lot "Toast + A/B exit-intent + Filters admin + Migration SQL prête"
 ### Toast confirmation lead synastrie
 - `SynastrieLeadMagnet.jsx` : après `success`, affiche un toast éphémère fixe en haut d'écran ("Extrait envoyé · redirection…", pastille gold+checkmark vert, animation fade-in 320ms) pendant 1s, puis `navigate('/synastrie/extrait-envoye')`.
