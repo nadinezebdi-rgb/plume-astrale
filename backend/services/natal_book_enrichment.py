@@ -69,8 +69,10 @@ def analyze_elements_modalities(planets: List[Dict[str, Any]]) -> Dict[str, Any]
 
 
 def _cache_key(prenom: str, birth_data: Dict[str, Any]) -> str:
+    # v2 : ajout de la clé `ex_libris` au prompt (Feb 2026). Les anciens caches v1
+    # ne contiennent pas la page Signature → régénération transparente au premier hit.
     key_str = (
-        f"{(prenom or '').lower()}|{birth_data.get('year')}|{birth_data.get('month')}|"
+        f"v2|{(prenom or '').lower()}|{birth_data.get('year')}|{birth_data.get('month')}|"
         f"{birth_data.get('day')}|{birth_data.get('hour')}|{birth_data.get('minute')}|"
         f"{round(float(birth_data.get('latitude') or 0), 3)}|"
         f"{round(float(birth_data.get('longitude') or 0), 3)}|{birth_data.get('timezone') or ''}"
@@ -157,6 +159,7 @@ Chaque valeur est du HTML simple (utilise <br/> pour retours à la ligne, <i>...
   "house_11": "Analyse maison 11 (amitiés, tribu, avenir). 2 phrases.",
   "house_12": "Analyse maison 12 (invisible, inconscient, retraite). 2 phrases.",
   "year_ahead": "Message pour les 12 prochains mois de {prenom}, 3-4 paragraphes séparés par <br/><br/>. Sensible, orienté transformation intérieure et non prédiction. Se termine par une invitation concrète (un geste, une pratique).",
+  "ex_libris": "Signature astrale ex-libris pour {prenom}. UN SEUL paragraphe de 110-140 mots, écrit à la deuxième personne du singulier, qui résume en voix condensée et poétique le trio Soleil {sun} + Lune {moon} + Ascendant {asc}. Doit tenir sur une page, être découpable, offrable. Ni dédicace ni mode d'emploi : une empreinte. Finit par un verbe à l'infinitif qui ouvre vers l'avenir (ex: 'habiter', 'oser', 'se souvenir').",
   "acte3_chapters": {{
     "coeur": {{
       "citation_ouverture": "Citation littéraire ou proverbe (2 lignes max) qui ouvre le chapitre du cœur.",

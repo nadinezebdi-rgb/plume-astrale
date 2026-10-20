@@ -492,6 +492,17 @@ def build_natal_manuscript(
         if str(book_data.get(key) or '').strip():
             chapters.append(editorial(key, title, book_data[key]))
 
+    # Page Signature · Ex Libris — dernier chapitre, un seul paragraphe condensé,
+    # pensé comme une page à conserver, découper, offrir. Généré en même temps
+    # que le reste du livre (clé `ex_libris` du JSON GPT), 0 coût supplémentaire.
+    ex_libris_text = str(book_data.get('ex_libris') or '').strip()
+    if ex_libris_text:
+        chapters.append(editorial(
+            'ex_libris',
+            f'Ex Libris · Signature astrale de {prenom}',
+            ex_libris_text,
+        ))
+
     # Renumérote le roman_num en fonction de l'ordre réel
     _ROMAN = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII'}
     for i, ch in enumerate(chapters, start=1):

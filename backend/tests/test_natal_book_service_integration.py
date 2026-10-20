@@ -274,3 +274,87 @@ def test_unified_service_signature_exposes_output_mode():
     assert 'no_birth_time' in sig.parameters
     assert 'require_complete' in sig.parameters
     assert 'referral_code' in sig.parameters
+
+
+def test_ex_libris_page_rendered_at_end_of_book():
+    """La page Ex Libris est rendue en toute fin de livre (chapitre dédié).
+
+    Cette page condense le trio Soleil-Lune-Ascendant en 110-140 mots,
+    pensée comme une empreinte à conserver, découper, offrir.
+    Elle doit :
+    - apparaître avec le titre "Ex Libris · Signature astrale de {prenom}"
+    - contenir le texte GPT (clé book_data.ex_libris)
+    - se trouver dans le dernier 20% du PDF (après year_ahead)
+    - ajouter au moins +1 page au total
+    """
+    import subprocess
+    import tempfile
+    import os
+
+    ex_libris_sentinel = (
+        "Amélie, tu portes en toi une Terre fertile et un Lion qui veille au seuil. "
+        "Les années à venir ne te demandent rien d'autre que de continuer : habiter."
+    )
+    book_data = {**_BOOK_DATA, 'ex_libris': ex_libris_sentinel}
+
+    pdf_with = generate_manuscrit_pdf(
+        user_data=_user_data(False),
+        planets_data=_PLANETS_DATA_LIST,
+        book_data=book_data,
+        aspects_raw=_ASPECTS_RAW,
+        houses_raw=_HOUSES_RAW,
+        house_cusps_raw=_HOUSE_CUSPS_RAW,
+    )
+    pages_with = _count_pages(pdf_with)
+
+    pdf_without = generate_manuscrit_pdf(
+        user_data=_user_data(False),
+        planets_data=_PLANETS_DATA_LIST,
+        book_data=_BOOK_DATA,  # pas de ex_libris
+        aspects_raw=_ASPECTS_RAW,
+        houses_raw=_HOUSES_RAW,
+        house_cusps_raw=_HOUSE_CUSPS_RAW,
+    )
+    pages_without = _count_pages(pdf_without)
+
+    assert pages_with > pages_without, (
+        f'Page Ex Libris non ajoutée (avec={pages_with}, sans={pages_without}).'
+    )
+
+    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as f:
+        f.write(pdf_with)
+        path = f.name
+    try:
+        text = subprocess.run(
+            ['pdftotext', '-layout', path, '-'],
+            capture_output=True, timeout=30,
+        ).stdout.decode('utf-8', errors='ignore')
+    finally:
+        os.unlink(path)
+
+    assert 'Ex Libris' in text, 'Titre "Ex Libris" absent du PDF'
+    assert 'Signature astrale' in text, 'Sous-titre "Signature astrale" absent'
+    assert 'habiter' in text, 'Verbe final du paragraphe GPT absent'
+    # La page doit se trouver dans le dernier 20% du document
+    ex_libris_pos = text.rfind('Ex Libris')
+    assert ex_libris_pos > len(text) * 0.80, (
+        f'Page Ex Libris trop tôt dans le livre (pos={ex_libris_pos}/{len(text)}).'
+    )
+
+
+def test_ex_libris_prompt_included_in_gpt_enrichment():
+    """Le prompt GPT (enrich_book_chapters) doit demander la clé `ex_libris`."""
+    from services.natal_book_enrichment import _build_book_prompt
+    sample_natal = {
+        'prenom': 'Test', 'sun_sign': 'Vierge', 'moon_sign': 'Capricorne',
+        'asc_sign': 'Lion', 'planets': [], 'aspects': [], 'houses': [],
+    }
+    sample_em = {
+        'dominant_element': 'Terre', 'dominant_element_count': 4,
+        'dominant_modality': 'Fixe', 'dominant_modality_count': 4,
+    }
+    prompt = _build_book_prompt(sample_natal, sample_em)
+    assert '"ex_libris"' in prompt, 'Clé ex_libris absente du prompt GPT'
+    assert 'Signature astrale' in prompt or 'ex-libris' in prompt.lower(), (
+        'Instructions ex-libris absentes du prompt'
+    )
