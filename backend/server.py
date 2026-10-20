@@ -3586,6 +3586,9 @@ async def _start_cart_recovery():
     # Relance J+2 des leads synastrie non convertis (-10% SYNEXT10)
     from services.synastrie_lead_followup import synastrie_lead_followup_loop
     _asyncio.create_task(synastrie_lead_followup_loop())
+    # Health-check du domaine canonique (SSL + HTTP), alertes Resend ciblées
+    from services.dns_domain_health import dns_domain_health_loop
+    _asyncio.create_task(dns_domain_health_loop())
 
 
 

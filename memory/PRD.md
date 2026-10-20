@@ -1,5 +1,40 @@
 # Plume Astrale — PRD
 
+## 2026-02-20 — Lot "Pré-rempli + A/B hero + DNS health + ab_events purchased"
+### (a) Pré-remplissage SynastrieLeadMagnet
+- `SynastrieLeadMagnet.jsx` lit `localStorage.plume_astrale_data` au mount et pré-remplit Personne 1 (prenom, birth_date, birth_place) + email si disponibles. Préserve toute saisie déjà faite (prev state check).
+
+### (b) A/B test landing hero H1
+- `AstralBookEditorial.jsx > AstralBookHero` : 3 variantes du titre H1 (A=actuelle "Votre ciel. Votre histoire. En livre.", B="L'astrologie qui sait votre prénom.", C="Ce que votre ciel cherchait à vous dire.") persistées en `localStorage.plume_hero_variant`.
+- Chaque variante a eyebrow + titleHtml + lead copy indépendants.
+- Trackés via `trackABEvent('home_hero_h1', variant, 'shown'|'cta_click')` au mount et au click du CTA principal.
+- Attribut DOM `data-ab-variant="A|B|C"` sur la section hero pour debugging/scraping.
+
+### (c) Health-check DNS/SSL plume-astrale.fr
+- Service `/app/backend/services/dns_domain_health.py` : boucle 6h qui ping `https://plume-astrale.fr/` et inspecte le cert SSL via `ssl.create_default_context`.
+- 3 scénarios d'alerte Resend (cooldown 12h) :
+  - `ssl_broken` : cert invalide/chain cassé → alerte immédiate
+  - `ssl_expiring` : expire dans ≤14 jours → alerte avec `days_remaining`
+  - `http_fail_streak` : 3 réponses non-2xx consécutives → alerte DNS/reverse-proxy down
+- Alertes aussi persistées dans `admin_alerts` (type `dns_domain_{reason}`) pour le dashboard.
+- Route `GET /api/health/dns-domain` pour check manuel.
+- Grace period 4 min au boot pour éviter faux positifs réseau.
+- **Résultat live** : `plume-astrale.fr` → `ok:true, HTTP 200, SSL expire 2027-01-08 (dans 80j)`. Le support avait une info périmée OU le DNS a été fixé entre temps.
+
+### (d) ab_events `purchased` depuis Stripe webhook
+- `services/synastrie_oneshot.create_synastrie_checkout()` accepte 2 nouveaux paramètres optionnels : `ab_variant` + `ab_session_id`, propagés dans Stripe `metadata`.
+- `handle_synastrie_webhook()` : à chaque `checkout.session.completed` avec `payment_status=paid`, lit `ab_variant`/`ab_session_id` depuis la metadata et insert `{experiment: synastrie_exit_intent, variant, event_name: purchased, metadata: {stripe_session_id, amount_eur: 49}}` dans `ab_events`.
+- Route `POST /api/synastrie/checkout` enrichie : `SynastrieCheckoutRequest` accepte `ab_variant` + `ab_session_id`.
+- Dégrade gracieusement si table `ab_events` absente (warning actionnable).
+- ⚠️ Note : actuellement le flow frontend `/paiement?product=synastrie` ne transite pas par cette route (passe par Paiement.js qui gère un autre produit). L'infra backend est prête pour le jour où le flow sera câblé — ou pour le flow lead-magnet → checkout direct.
+
+### Tests
+- `/api/health/dns-domain` → `ok:true, HTTP 200, SSL 80j`.
+- `/api/health/astrology-io` (régression) → `ok:true, latency 757ms`.
+- 4 loops actives dans logs : astro_health + syn_followup + dns_health + stripe_recovery_nightly.
+- Visual screenshot : Variante B hero "L'astrologie qui sait votre prénom." rendue en Fraunces avec eyebrow + lead copy adaptée.
+
+
 ## 2026-02-20 — Lot "AB stats + Email relance J+2 + Migration consolidée"
 ### A/B Stats first-party dashboard
 - **Migration** : `/app/backend/migrations/2026_02_ab_events.sql` — table `public.ab_events` (experiment, variant, event_name, session_id, metadata).

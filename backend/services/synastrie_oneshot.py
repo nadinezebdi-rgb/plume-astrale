@@ -33,6 +33,8 @@ async def create_synastrie_checkout(
     person1_data: Dict[str, Any],
     person2_data: Dict[str, Any],
     origin_url: str,
+    ab_variant: Optional[str] = None,
+    ab_session_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Cree une session Stripe one-shot 49€ et enregistre l'achat en pending."""
     stripe.api_key = os.environ.get('STRIPE_API_KEY')
@@ -70,6 +72,10 @@ async def create_synastrie_checkout(
         'user_id': user_id or '',
         'purchase_id': purchase_id or '',
     }
+    if ab_variant:
+        metadata['ab_variant'] = str(ab_variant)[:20]
+    if ab_session_id:
+        metadata['ab_session_id'] = str(ab_session_id)[:120]
 
     session = stripe.checkout.Session.create(
         mode='payment',
@@ -135,6 +141,29 @@ def handle_synastrie_webhook(event: Any) -> None:
         logger.info(f'[synastrie] purchase paid: {session_id}')
     except Exception as e:
         logger.error(f'[synastrie] webhook update: {e}')
+
+    # Log purchased event dans ab_events si on avait un variant à la source
+    ab_variant = metadata.get('ab_variant')
+    ab_session_id = metadata.get('ab_session_id')
+    if ab_variant:
+        try:
+            sb.table('ab_events').insert({
+                'experiment': 'synastrie_exit_intent',
+                'variant': ab_variant,
+                'event_name': 'purchased',
+                'session_id': ab_session_id,
+                'metadata': {
+                    'stripe_session_id': session_id,
+                    'amount_eur': 49.0,
+                },
+            }).execute()
+            logger.info(f'[synastrie] ab_event purchased · variant={ab_variant}')
+        except Exception as e:
+            msg = str(e)
+            if 'ab_events' in msg and ('schema cache' in msg or 'does not exist' in msg):
+                logger.warning('[synastrie] Table ab_events absente — exécuter la migration consolidée Supabase.')
+            else:
+                logger.warning(f'[synastrie] ab_event purchased failed: {msg[:200]}')
 
 
 def get_synastrie_status(session_id: str) -> Dict[str, Any]:

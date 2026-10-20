@@ -45,6 +45,25 @@ export default function SynastrieLeadMagnet({ variant = 'section', onSuccess, co
   const [consent, setConsent] = useState(true);
   const [state, setState] = useState({ status: 'idle', message: '' });
 
+  // Pré-remplir Personne 1 et l'email depuis localStorage.plume_astrale_data
+  // si l'utilisateur a déjà saisi son profil ailleurs sur le site (home, composer…).
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem('plume_astrale_data');
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data?.prenom || data?.dateNaissance || data?.email) {
+        setP1((prev) => ({
+          ...prev,
+          prenom: prev.prenom || data?.prenom || '',
+          birth_date: prev.birth_date || data?.dateNaissance || '',
+          birth_place: prev.birth_place || data?.lieuNaissance || data?.birth_place || prev.birth_place,
+        }));
+        if (data?.email) setEmail((prev) => prev || data.email);
+      }
+    } catch { /* noop */ }
+  }, []);
+
   const update1 = (k, v) => setP1((prev) => ({ ...prev, [k]: v }));
   const update2 = (k, v) => setP2((prev) => ({ ...prev, [k]: v }));
 

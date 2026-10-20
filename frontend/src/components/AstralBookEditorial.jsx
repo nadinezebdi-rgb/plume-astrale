@@ -85,13 +85,64 @@ export function AstralBookVideo() {
 }
 
 export function AstralBookHero({ onStart, price }) {
-  return <section className="pa-book-hero" aria-labelledby="pa-book-title">
+  // A/B expérience sur le titre H1 — pick 50/50 persisté en localStorage.
+  // Variantes : A (actuelle) · B (astrologie-nommée) · C (preuve-émotion)
+  const VARIANTS = React.useMemo(() => ({
+    A: {
+      eyebrow: 'PLUME ASTRALE · VOTRE LIVRE PERSONNEL',
+      titleHtml: 'Votre ciel.<br /><em>Votre histoire.</em><br />En livre.',
+      lead: 'Explorez vos élans, vos liens et vos possibilités dans une lecture de votre ciel de naissance. Un livre à parcourir, à garder et à retrouver au fil de votre vie.',
+    },
+    B: {
+      eyebrow: 'ASTROLOGIE QUI SAIT VOTRE PRÉNOM',
+      titleHtml: 'L’astrologie<br /><em>qui sait</em><br />votre prénom.',
+      lead: 'Un livre entièrement composé pour vous à partir de votre carte du ciel : vos besoins, vos liens, vos cycles. 46 pages à retrouver tout au long de votre vie.',
+    },
+    C: {
+      eyebrow: 'LE LIVRE DE VOTRE CIEL DE NAISSANCE',
+      titleHtml: 'Ce que votre ciel<br /><em>cherchait à vous dire.</em>',
+      lead: 'Une lecture profonde et personnelle de votre thème natal, composée en 46 pages. Pour mieux comprendre ce qui vous anime, ce qui vous lie, et où vous allez.',
+    },
+  }), []);
+  const variantKey = React.useMemo(() => {
+    try {
+      const existing = localStorage.getItem('plume_hero_variant');
+      if (existing && VARIANTS[existing]) return existing;
+      const keys = Object.keys(VARIANTS);
+      const picked = keys[Math.floor(Math.random() * keys.length)];
+      localStorage.setItem('plume_hero_variant', picked);
+      return picked;
+    } catch {
+      return 'A';
+    }
+  }, [VARIANTS]);
+  const copy = VARIANTS[variantKey];
+
+  // Track `shown` once on mount + `cta_click` sur bouton principal.
+  React.useEffect(() => {
+    try {
+      import('../lib/abTracking').then(({ trackABEvent }) => {
+        trackABEvent('home_hero_h1', variantKey, 'shown');
+      });
+    } catch { /* noop */ }
+  }, [variantKey]);
+
+  const onPrimaryClick = () => {
+    try {
+      import('../lib/abTracking').then(({ trackABEvent }) => {
+        trackABEvent('home_hero_h1', variantKey, 'cta_click', { destination: 'theme-natal' });
+      });
+    } catch { /* noop */ }
+    if (onStart) onStart();
+  };
+
+  return <section className="pa-book-hero" aria-labelledby="pa-book-title" data-ab-variant={variantKey}>
     <div className="pa-book-hero__copy">
-      <p className="pa-book-eyebrow"><span aria-hidden="true">✦</span> PLUME ASTRALE · VOTRE LIVRE PERSONNEL</p>
-      <h1 id="pa-book-title">Votre ciel.<br /><em>Votre histoire.</em><br />En livre.</h1>
-      <p className="pa-book-lead">Explorez vos élans, vos liens et vos possibilités dans une lecture de votre ciel de naissance. Un livre à parcourir, à garder et à retrouver au fil de votre vie.</p>
+      <p className="pa-book-eyebrow"><span aria-hidden="true">✦</span> {copy.eyebrow}</p>
+      <h1 id="pa-book-title" dangerouslySetInnerHTML={{ __html: copy.titleHtml }} />
+      <p className="pa-book-lead">{copy.lead}</p>
       <div className="pa-book-actions">
-        {onStart ? <button type="button" className="pa-book-button" onClick={onStart}>Créer mon livre astral{price ? ` — ${price} €` : ''}<span aria-hidden="true">↗</span></button> : <Link className="pa-book-button" to="/theme-natal" data-testid="home-gateway-primary-cta">Créer mon livre astral <span aria-hidden="true">↗</span></Link>}
+        {onStart ? <button type="button" className="pa-book-button" onClick={onPrimaryClick}>Créer mon livre astral{price ? ` — ${price} €` : ''}<span aria-hidden="true">↗</span></button> : <Link className="pa-book-button" to="/theme-natal" data-testid="home-gateway-primary-cta" onClick={onPrimaryClick}>Créer mon livre astral <span aria-hidden="true">↗</span></Link>}
         <a className="pa-book-text-link" href={onStart ? '#pa-book-discover' : '#home-gateway-services'}>{onStart ? 'Explorer les éditions' : 'Explorer les services'} <span aria-hidden="true">↓</span></a>
       </div>
       <ul className="pa-book-details" aria-label="Votre expérience"><li>Une lecture personnelle</li><li>PDF et éditions papier à découvrir</li></ul>

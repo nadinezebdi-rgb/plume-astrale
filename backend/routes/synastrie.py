@@ -35,6 +35,8 @@ class SynastrieCheckoutRequest(BaseModel):
     origin_url: str
     email: Optional[str] = None  # pour les invites (achat sans compte)
     promo_code: Optional[str] = None
+    ab_variant: Optional[str] = None       # tracking A/B exit-intent → purchased
+    ab_session_id: Optional[str] = None
 
 
 @router.post('/checkout')
@@ -70,6 +72,8 @@ async def synastrie_checkout(
         person1_data=payload.person1.model_dump(),
         person2_data=payload.person2.model_dump(),
         origin_url=payload.origin_url,
+        ab_variant=payload.ab_variant,
+        ab_session_id=payload.ab_session_id,
     )
 
 

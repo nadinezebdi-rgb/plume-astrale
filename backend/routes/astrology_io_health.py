@@ -6,6 +6,7 @@ GET /api/health/astrology-io
 from fastapi import APIRouter
 
 from services.astrology_io_health import ping_astrology_api
+from services.dns_domain_health import ping_domain
 
 router = APIRouter(prefix='/health', tags=['health'])
 
@@ -13,4 +14,11 @@ router = APIRouter(prefix='/health', tags=['health'])
 @router.get('/astrology-io')
 async def astrology_io_health():
     result = await ping_astrology_api()
+    return result
+
+
+@router.get('/dns-domain')
+async def dns_domain_health():
+    """Ping à la demande du domaine canonique (SSL + HTTP)."""
+    result = await ping_domain()
     return result
