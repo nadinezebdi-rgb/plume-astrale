@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, EmailStr
 
+from routes.admin import require_admin
 from services.lulu_client import quote_print_job, verify_webhook_signature
 from services.natal_lulu_bump_service import (
     BASE_PRICE_FR_EUR, compute_client_price_eur, create_bump_checkout,
@@ -117,18 +118,52 @@ async def route_lulu_webhook(request: Request):
 
 
 @router.get('/admin/orders')
-async def route_admin_orders(limit: int = 50):
-    """Liste simplifiée des commandes bump pour l'admin.
+async def route_admin_orders(
+    limit: int = 100,
+    status: Optional[str] = None,
+    _admin: dict = Depends(require_admin),
+):
+    """Liste des commandes bump pour l admin, filtre optionnel par status.
 
-    Pas de require_admin ici pour simplifier le mock — à ajouter avant la prod.
+    status attendus : 'initiated' (payé en attente), 'fulfilled' (print job envoyé),
+    'cancelled', 'failed'. Sans filtre : toutes les commandes.
     """
     from services.supabase_client import get_admin_client
     sb = get_admin_client()
     try:
-        r = sb.table('payment_transactions').select(
+        q = sb.table('payment_transactions').select(
             'stripe_session_id, email, amount_cents, status, fulfilled_at, created_at, metadata'
-        ).eq('kind', 'natal_lulu_bump').order('created_at', desc=True).limit(limit).execute()
-        return {'orders': r.data or []}
+        ).eq('kind', 'natal_lulu_bump')
+        if status:
+            q = q.eq('status', status)
+        r = q.order('created_at', desc=True).limit(max(1, min(limit, 500))).execute()
+        rows = r.data or []
+        # Normalise pour le frontend : extrait tracking + lulu_job + address si présent
+        orders = []
+        for row in rows:
+            md = row.get('metadata') or {}
+            lulu_job = (md.get('lulu_job') or {}) if isinstance(md.get('lulu_job'), dict) else {}
+            lulu_status = ((lulu_job.get('status') or {}).get('name')
+                           if isinstance(lulu_job.get('status'), dict) else lulu_job.get('status'))
+            addr = md.get('address') or {}
+            tracking_urls = []
+            for li in (lulu_job.get('line_items') or []):
+                tracking_urls += (li.get('tracking_urls') or [])
+            orders.append({
+                'session_id': row.get('stripe_session_id'),
+                'email': row.get('email'),
+                'amount_eur': round((row.get('amount_cents') or 0) / 100.0, 2),
+                'status': row.get('status'),
+                'lulu_status': lulu_status,
+                'tracking_urls': tracking_urls,
+                'first_name': md.get('first_name'),
+                'country': addr.get('country_code'),
+                'city': addr.get('city'),
+                'quote_mocked': md.get('quote', {}).get('mock') if isinstance(md.get('quote'), dict) else None,
+                'created_at': row.get('created_at'),
+                'fulfilled_at': row.get('fulfilled_at'),
+            })
+        return {'orders': orders, 'count': len(orders), 'filter_status': status or 'all'}
     except Exception as e:
         logger.exception('[natal_lulu_bump] admin list failed')
         raise HTTPException(status_code=500, detail=str(e))

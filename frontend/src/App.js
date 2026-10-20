@@ -89,6 +89,7 @@ import CreditsInfo from "./pages/CreditsInfo";
 import LivresLanding from "./pages/LivresLanding";
 import AdminPdfTest from "./pages/AdminPdfTest";
 import AdminQrStats from "./pages/AdminQrStats";
+import AdminLuluOrders from "./pages/AdminLuluOrders";
 import GiftCardPurchase from "./pages/GiftCardPurchase";
 import GiftCardRedeem from "./pages/GiftCardRedeem";
 import EditionRelieeMerci from "./pages/EditionRelieeMerci";
@@ -249,6 +250,7 @@ function App() {
                 <Route path="/admin/analytics" element={<AnalyticsAdmin />} />
                 <Route path="/admin/pdf-test" element={<AdminPdfTest />} />
                 <Route path="/admin/qr-stats" element={<AdminQrStats />} />
+                <Route path="/admin/lulu-orders" element={<AdminLuluOrders />} />
                 <Route path="/admin/payments-health" element={<AdminPaymentsHealth />} />
                 <Route path="/carte-cadeau" element={<GiftCardPurchase />} />
                 <Route path="/carte-cadeau/redeem/:code" element={<GiftCardRedeem />} />
