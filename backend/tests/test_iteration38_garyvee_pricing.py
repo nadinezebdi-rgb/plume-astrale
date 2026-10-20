@@ -34,7 +34,7 @@ BASE_URL = (
 API = f"{BASE_URL}/api"
 
 ADMIN_EMAIL = 'admin@plume-astrale.fr'
-ADMIN_PASSWORD = 'PlumeAdmin2026'
+ADMIN_PASSWORD = os.getenv('TEST_ADMIN_PASSWORD', 'PlumeAdmin2026')
 
 EXPECTED_PACK_IDS = {'initiation', 'astro_amour', 'flammes_jumelles', 'rencontres_ultime'}
 EXPECTED_SERVICE_COSTS = {

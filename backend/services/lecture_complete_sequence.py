@@ -242,7 +242,7 @@ async def _process_transaction(tx: Dict[str, Any]) -> int:
             variant = forced
         else:
             import hashlib
-            h = int(hashlib.md5((session_id or '').encode('utf-8')).hexdigest(), 16)
+            h = int(hashlib.blake2b((session_id or '').encode('utf-8'), digest_size=16).hexdigest(), 16)
             variant = 'invitation' if (h % 2 == 0) else 'question'
         subject, body = _email_j30(prenom, variant=variant)
         cta_label = 'Rejoindre le Cercle · 19€/mois'

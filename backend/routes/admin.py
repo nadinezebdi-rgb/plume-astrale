@@ -69,6 +69,55 @@ def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
 
 
 @router.get('/stats')
+def _stats_user_counters(sb, now: datetime) -> dict:
+    today_iso = now.date().isoformat()
+    week_ago = (now - timedelta(days=7)).isoformat()
+    month_ago = (now - timedelta(days=30)).isoformat()
+    total = sb.table('profiles').select('id', count='exact').execute().count or 0
+    today = sb.table('profiles').select('id', count='exact').gte('created_at', today_iso + 'T00:00:00').execute().count or 0
+    d7 = sb.table('profiles').select('id', count='exact').gte('created_at', week_ago).execute().count or 0
+    d30 = sb.table('profiles').select('id', count='exact').gte('created_at', month_ago).execute().count or 0
+    return {'total': total, 'today': today, 'd7': d7, 'd30': d30}
+
+
+def _stats_revenue_counters(sb, now: datetime) -> dict:
+    week_ago = (now - timedelta(days=7)).isoformat()
+    month_ago = (now - timedelta(days=30)).isoformat()
+    raw_paid = sb.table('payment_transactions').select('*').in_(
+        'payment_status', ['paid', 'completed'],
+    ).execute().data or []
+    paid = [t for t in raw_paid if not _is_internal_email(t.get('user_email'))]
+    total_rev = sum(float(t.get('amount') or 0) for t in paid)
+    rev_7d = sum(float(t.get('amount') or 0) for t in paid if t.get('created_at', '') >= week_ago)
+    rev_30d = sum(float(t.get('amount') or 0) for t in paid if t.get('created_at', '') >= month_ago)
+    paying_users = len({t['user_id'] for t in paid if t.get('user_id')})
+    raw_pending = sb.table('payment_transactions').select('user_email').in_(
+        'payment_status', ['unpaid', 'pending'],
+    ).execute().data or []
+    pending = sum(1 for t in raw_pending if not _is_internal_email(t.get('user_email')))
+    return {
+        'total_eur': round(total_rev, 2),
+        'last_7d_eur': round(rev_7d, 2),
+        'last_30d_eur': round(rev_30d, 2),
+        'total_paid_count': len(paid),
+        'pending_count': pending,
+        'internal_txs_excluded': len(raw_paid) - len(paid),
+        'paying_users': paying_users,
+    }
+
+
+def _stats_engagement_counters(sb) -> dict:
+    wallets = sb.table('wallets').select('credit_balance').execute().data or []
+    credits = sum(int(w['credit_balance']) for w in wallets)
+    chat = sb.table('plume_chat_messages').select('id', count='exact').eq('role', 'user').execute().count or 0
+    promo = sb.table('promo_code_redemptions').select('id', count='exact').execute().count or 0
+    return {
+        'credits_in_wallets': credits,
+        'chat_messages_sent': chat,
+        'promo_redemptions': promo,
+    }
+
+
 async def admin_stats(_admin: dict = Depends(require_admin)):
     """KPIs principaux du dashboard.
 
@@ -79,71 +128,67 @@ async def admin_stats(_admin: dict = Depends(require_admin)):
     """
     sb = get_admin_client()
     now = datetime.now(timezone.utc)
-    today = now.date().isoformat()
-    week_ago = (now - timedelta(days=7)).isoformat()
-    month_ago = (now - timedelta(days=30)).isoformat()
 
-    # Total utilisateurs
-    total_users = sb.table('profiles').select('id', count='exact').execute().count or 0
+    u = _stats_user_counters(sb, now)
+    r = _stats_revenue_counters(sb, now)
+    e = _stats_engagement_counters(sb)
 
-    # Signups aujourd'hui / 7j / 30j (via created_at)
-    signups_today = sb.table('profiles').select('id', count='exact').gte('created_at', today + 'T00:00:00').execute().count or 0
-    signups_7d = sb.table('profiles').select('id', count='exact').gte('created_at', week_ago).execute().count or 0
-    signups_30d = sb.table('profiles').select('id', count='exact').gte('created_at', month_ago).execute().count or 0
-
-    # Paiements RÉELS uniquement — payment_status paid|completed + email non-interne
-    raw_paid_txs = sb.table('payment_transactions').select('*').in_(
-        'payment_status', ['paid', 'completed'],
-    ).execute().data or []
-    paid_txs = [t for t in raw_paid_txs if not _is_internal_email(t.get('user_email'))]
-    internal_excluded = len(raw_paid_txs) - len(paid_txs)
-    total_revenue = sum(float(t.get('amount') or 0) for t in paid_txs)
-    revenue_7d = sum(float(t.get('amount') or 0) for t in paid_txs if t.get('created_at', '') >= week_ago)
-    revenue_30d = sum(float(t.get('amount') or 0) for t in paid_txs if t.get('created_at', '') >= month_ago)
-    total_paid_count = len(paid_txs)
-    paying_users = len({t['user_id'] for t in paid_txs if t.get('user_id')})
-
-    # Stripe sessions initiees mais pas payees (= abandons / en attente) — hors tests
-    raw_pending = sb.table('payment_transactions').select('user_email').in_(
-        'payment_status', ['unpaid', 'pending'],
-    ).execute().data or []
-    pending = sum(1 for t in raw_pending if not _is_internal_email(t.get('user_email')))
-
-    # Credits en circulation
-    wallets = sb.table('wallets').select('credit_balance').execute().data or []
-    credits_in_wallets = sum(int(w['credit_balance']) for w in wallets)
-
-    # Messages chat envoyes
-    chat_msgs = sb.table('plume_chat_messages').select('id', count='exact').eq('role', 'user').execute().count or 0
-
-    # Codes promo utilises
-    promo_redemptions = sb.table('promo_code_redemptions').select('id', count='exact').execute().count or 0
-
-    conversion_rate = round((paying_users / total_users * 100), 2) if total_users else 0.0
+    conversion = round((r['paying_users'] / u['total'] * 100), 2) if u['total'] else 0.0
 
     return {
         'users': {
-            'total': total_users,
-            'signups_today': signups_today,
-            'signups_7d': signups_7d,
-            'signups_30d': signups_30d,
-            'paying_users': paying_users,
-            'conversion_rate_pct': conversion_rate,
+            'total': u['total'],
+            'signups_today': u['today'],
+            'signups_7d': u['d7'],
+            'signups_30d': u['d30'],
+            'paying_users': r['paying_users'],
+            'conversion_rate_pct': conversion,
         },
         'revenue': {
-            'total_eur': round(total_revenue, 2),
-            'last_7d_eur': round(revenue_7d, 2),
-            'last_30d_eur': round(revenue_30d, 2),
-            'total_paid_count': total_paid_count,
-            'pending_count': pending,
-            'internal_txs_excluded': internal_excluded,
+            'total_eur': r['total_eur'],
+            'last_7d_eur': r['last_7d_eur'],
+            'last_30d_eur': r['last_30d_eur'],
+            'total_paid_count': r['total_paid_count'],
+            'pending_count': r['pending_count'],
+            'internal_txs_excluded': r['internal_txs_excluded'],
         },
-        'engagement': {
-            'credits_in_wallets': credits_in_wallets,
-            'chat_messages_sent': chat_msgs,
-            'promo_redemptions': promo_redemptions,
-        },
+        'engagement': e,
         'updated_at': now.isoformat(),
+    }
+
+
+def _users_fetch_wallets(sb, user_ids: list) -> dict:
+    if not user_ids:
+        return {}
+    w_res = sb.table('wallets').select('user_id,credit_balance,free_tarot_used').in_('user_id', user_ids).execute()
+    return {w['user_id']: w for w in (w_res.data or [])}
+
+
+def _users_fetch_spent(sb, user_ids: list) -> dict:
+    if not user_ids:
+        return {}
+    spent = {}
+    p_res = sb.table('payment_transactions').select('user_id,amount').eq('credits_granted', True).in_('user_id', user_ids).execute()
+    for p in (p_res.data or []):
+        spent[p['user_id']] = spent.get(p['user_id'], 0) + float(p.get('amount') or 0)
+    return spent
+
+
+def _format_admin_user(p: dict, wallets_map: dict, spent_map: dict) -> dict:
+    w = wallets_map.get(p['id'], {})
+    return {
+        'id': p['id'],
+        'email': p.get('email'),
+        'prenom': p.get('prenom'),
+        'birth_date': p.get('birth_date'),
+        'birth_place': p.get('birth_place'),
+        'is_admin': p.get('is_admin', False),
+        'premium_status': p.get('premium_status', 'free'),
+        'premium_until': p.get('premium_until'),
+        'created_at': p.get('created_at'),
+        'credit_balance': w.get('credit_balance', 0),
+        'free_tarot_used': w.get('free_tarot_used', False),
+        'total_spent_eur': round(spent_map.get(p['id'], 0), 2),
     }
 
 
@@ -166,37 +211,11 @@ async def admin_users(
     profiles = res.data or []
     total = res.count or 0
 
-    # Recuperer wallets en batch
     user_ids = [p['id'] for p in profiles]
-    wallets_map = {}
-    if user_ids:
-        w_res = sb.table('wallets').select('user_id,credit_balance,free_tarot_used').in_('user_id', user_ids).execute()
-        wallets_map = {w['user_id']: w for w in (w_res.data or [])}
+    wallets_map = _users_fetch_wallets(sb, user_ids)
+    spent_map = _users_fetch_spent(sb, user_ids)
 
-    # Recuperer total depense en batch
-    spent_map = {}
-    if user_ids:
-        p_res = sb.table('payment_transactions').select('user_id,amount').eq('credits_granted', True).in_('user_id', user_ids).execute()
-        for p in (p_res.data or []):
-            spent_map[p['user_id']] = spent_map.get(p['user_id'], 0) + float(p.get('amount') or 0)
-
-    users = []
-    for p in profiles:
-        w = wallets_map.get(p['id'], {})
-        users.append({
-            'id': p['id'],
-            'email': p.get('email'),
-            'prenom': p.get('prenom'),
-            'birth_date': p.get('birth_date'),
-            'birth_place': p.get('birth_place'),
-            'is_admin': p.get('is_admin', False),
-            'premium_status': p.get('premium_status', 'free'),
-            'premium_until': p.get('premium_until'),
-            'created_at': p.get('created_at'),
-            'credit_balance': w.get('credit_balance', 0),
-            'free_tarot_used': w.get('free_tarot_used', False),
-            'total_spent_eur': round(spent_map.get(p['id'], 0), 2),
-        })
+    users = [_format_admin_user(p, wallets_map, spent_map) for p in profiles]
 
     return {'users': users, 'total': total, 'page': page, 'page_size': page_size}
 
@@ -593,6 +612,38 @@ async def admin_pdfs_sent(
 
 
 
+def _tn_row_matches(q_clean: str, row: dict) -> bool:
+    md = row.get('metadata') or {}
+    if md.get('kind') != 'theme_natal_pdf_oneshot':
+        return False
+    pdf_ctx = md.get('pdf_ctx') or {}
+    haystack = ' '.join([
+        str(row.get('user_email') or ''),
+        str(pdf_ctx.get('email') or ''),
+        str(pdf_ctx.get('first_name') or ''),
+        str(pdf_ctx.get('last_name') or ''),
+        str(row.get('session_id') or ''),
+    ]).lower()
+    return q_clean in haystack
+
+
+def _tn_format_search_item(row: dict) -> dict:
+    md = row.get('metadata') or {}
+    pdf_ctx = md.get('pdf_ctx') or {}
+    return {
+        'session_id': row.get('session_id'),
+        'user_email': row.get('user_email') or pdf_ctx.get('email') or '',
+        'first_name': pdf_ctx.get('first_name') or '',
+        'birth_date': pdf_ctx.get('birth_date') or '',
+        'birth_city': pdf_ctx.get('birth_city') or '',
+        'created_at': row.get('created_at'),
+        'status': row.get('status'),
+        'pdf_status': md.get('pdf_status') or 'ok',
+        'pdf_error': (md.get('pdf_error') or '')[:200],
+        'has_pdf_url': bool(md.get('pdf_url') or md.get('pdf_signed_url')),
+    }
+
+
 @router.get('/theme-natal/search')
 async def admin_search_theme_natal(
     q: str,
@@ -617,35 +668,55 @@ async def admin_search_theme_natal(
         logger.exception(f'[admin] search theme_natal fail: {e}')
         return {'items': [], 'error': str(e)[:200]}
 
+    cap = max(1, min(limit, 50))
     items = []
     for row in (res.data or []):
-        md = row.get('metadata') or {}
-        if md.get('kind') != 'theme_natal_pdf_oneshot':
-            continue
-        pdf_ctx = md.get('pdf_ctx') or {}
-        haystack = ' '.join([
-            str(row.get('user_email') or ''),
-            str(pdf_ctx.get('email') or ''),
-            str(pdf_ctx.get('first_name') or ''),
-            str(pdf_ctx.get('last_name') or ''),
-            str(row.get('session_id') or ''),
-        ]).lower()
-        if q_clean in haystack:
-            items.append({
-                'session_id': row.get('session_id'),
-                'user_email': row.get('user_email') or pdf_ctx.get('email') or '',
-                'first_name': pdf_ctx.get('first_name') or '',
-                'birth_date': pdf_ctx.get('birth_date') or '',
-                'birth_city': pdf_ctx.get('birth_city') or '',
-                'created_at': row.get('created_at'),
-                'status': row.get('status'),
-                'pdf_status': md.get('pdf_status') or 'ok',
-                'pdf_error': (md.get('pdf_error') or '')[:200],
-                'has_pdf_url': bool(md.get('pdf_url') or md.get('pdf_signed_url')),
-            })
-        if len(items) >= max(1, min(limit, 50)):
-            break
+        if _tn_row_matches(q_clean, row):
+            items.append(_tn_format_search_item(row))
+            if len(items) >= cap:
+                break
     return {'items': items, 'total': len(items), 'query': q_clean}
+
+
+async def _regen_fetch_and_validate(sb, session_id: str) -> Optional[dict]:
+    """Récupère la tx et vérifie que c'est bien un theme_natal one-shot. Retourne metadata ou None."""
+    try:
+        r = sb.table('payment_transactions').select('metadata, status').eq('session_id', session_id).maybe_single().execute()
+    except Exception:
+        logger.exception(f'[admin] regenerate: fetch tx fail {session_id}')
+        return None
+    if not r or not r.data:
+        logger.error(f'[admin] regenerate: session {session_id} introuvable')
+        return None
+    md = r.data.get('metadata') or {}
+    if md.get('kind') != 'theme_natal_pdf_oneshot':
+        logger.error(f'[admin] regenerate: {session_id} n\'est pas un theme_natal one-shot (kind={md.get("kind")})')
+        return None
+    return md
+
+
+def _regen_mark_started(sb, session_id: str, md: dict) -> None:
+    try:
+        md['regenerate_started_at'] = datetime.now(timezone.utc).isoformat()
+        md.pop('regenerate_diag', None)
+        md.pop('regenerate_error', None)
+        sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
+    except Exception as e:
+        logger.warning(f'[admin] regenerate: mark started fail {session_id}: {e}')
+
+
+def _regen_persist_result(sb, session_id: str, *, diag: Optional[dict] = None, error: Optional[str] = None) -> None:
+    try:
+        r2 = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
+        md2 = (r2.data or {}).get('metadata') or {}
+        if diag is not None:
+            md2['regenerate_diag'] = diag
+        if error is not None:
+            md2['regenerate_error'] = error[:500]
+        md2['regenerate_finished_at'] = datetime.now(timezone.utc).isoformat()
+        sb.table('payment_transactions').update({'metadata': md2}).eq('session_id', session_id).execute()
+    except Exception:
+        pass
 
 
 @router.post('/theme-natal/regenerate/{session_id}')
@@ -662,51 +733,21 @@ async def admin_regenerate_theme_natal(session_id: str, _admin: dict = Depends(r
     - regenerate_error (str) si plantage
     """
     import asyncio
-    from datetime import datetime, timezone
     from services.theme_natal_oneshot_service import handle_theme_natal_oneshot_webhook
 
     async def _worker():
         sb = get_admin_client()
-        # 1) Fetch + validation
-        try:
-            r = sb.table('payment_transactions').select('metadata, status').eq('session_id', session_id).maybe_single().execute()
-            if not r or not r.data:
-                logger.error(f'[admin] regenerate: session {session_id} introuvable')
-                return
-            md = r.data.get('metadata') or {}
-            if md.get('kind') != 'theme_natal_pdf_oneshot':
-                logger.error(f'[admin] regenerate: {session_id} n\'est pas un theme_natal one-shot (kind={md.get("kind")})')
-                return
-        except Exception as e:
-            logger.exception(f'[admin] regenerate: fetch tx fail {session_id}')
+        md = await _regen_fetch_and_validate(sb, session_id)
+        if md is None:
             return
-        # 2) Marque started + clear diag précédent
-        try:
-            md['regenerate_started_at'] = datetime.now(timezone.utc).isoformat()
-            md.pop('regenerate_diag', None)
-            md.pop('regenerate_error', None)
-            sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
-        except Exception as e:
-            logger.warning(f'[admin] regenerate: mark started fail {session_id}: {e}')
-        # 3) Pipeline complet (30-90s attendu)
+        _regen_mark_started(sb, session_id, md)
         try:
             diag = await handle_theme_natal_oneshot_webhook(session_id, force=True)
-            r2 = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
-            md2 = (r2.data or {}).get('metadata') or {}
-            md2['regenerate_diag'] = diag
-            md2['regenerate_finished_at'] = datetime.now(timezone.utc).isoformat()
-            sb.table('payment_transactions').update({'metadata': md2}).eq('session_id', session_id).execute()
+            _regen_persist_result(sb, session_id, diag=diag)
             logger.info(f'[admin] regenerate DONE {session_id} diag={diag}')
         except Exception as e:
             logger.exception(f'[admin] regenerate theme_natal fail {session_id}')
-            try:
-                r2 = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
-                md2 = (r2.data or {}).get('metadata') or {}
-                md2['regenerate_error'] = str(e)[:500]
-                md2['regenerate_finished_at'] = datetime.now(timezone.utc).isoformat()
-                sb.table('payment_transactions').update({'metadata': md2}).eq('session_id', session_id).execute()
-            except Exception:
-                pass
+            _regen_persist_result(sb, session_id, error=str(e))
 
     # Lance le worker et retourne IMMÉDIATEMENT
     asyncio.create_task(_worker())
@@ -788,6 +829,53 @@ class BirthDataPatch(_PMB):
     timezone: str | None = None
 
 
+async def _geocode_city_osm(query: str) -> dict:
+    """Géocode une ville via Nominatim + timezone via timeapi.io. Retourne bd-ready dict."""
+    import httpx
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        r_geo = await client.get(
+            'https://nominatim.openstreetmap.org/search',
+            params={'q': query, 'format': 'json', 'limit': 1, 'addressdetails': 1},
+            headers={'User-Agent': 'PlumeAstrale-Admin/1.0 (contact@plume-astrale.fr)'},
+        )
+        geo_results = r_geo.json() if r_geo.status_code == 200 else []
+        if not geo_results:
+            raise HTTPException(status_code=422, detail=f'Ville "{query}" introuvable — précise "Ville, Pays"')
+        g = geo_results[0]
+        lat = float(g['lat'])
+        lon = float(g['lon'])
+        display_name = g.get('display_name', query)
+        # Timezone : timeapi.io, fallback Europe/Paris pour la FR sinon UTC
+        tz = None
+        try:
+            r_tz = await client.get(
+                'https://timeapi.io/api/TimeZone/coordinate',
+                params={'latitude': lat, 'longitude': lon},
+            )
+            if r_tz.status_code == 200:
+                tz = r_tz.json().get('timeZone')
+        except Exception:
+            tz = None
+        if not tz:
+            country = (g.get('address', {}).get('country_code') or '').lower()
+            tz = 'Europe/Paris' if country == 'fr' else 'UTC'
+        return {
+            'display_name': display_name, 'lat': lat, 'lon': lon, 'tz': tz,
+        }
+
+
+def _apply_birth_data_manual(bd: dict, payload: 'BirthDataPatch') -> None:
+    if payload.city is not None:
+        bd['city'] = payload.city
+        bd['location'] = payload.city
+    if payload.latitude is not None:
+        bd['latitude'] = float(payload.latitude)
+    if payload.longitude is not None:
+        bd['longitude'] = float(payload.longitude)
+    if payload.timezone is not None:
+        bd['timezone'] = payload.timezone
+
+
 @router.patch('/theme-natal/{session_id}/birth-data')
 async def admin_patch_birth_data(session_id: str, payload: BirthDataPatch, _admin: dict = Depends(require_admin)):
     """Met à jour les données de naissance stockées dans metadata.pdf_ctx.birth_data.
@@ -800,7 +888,6 @@ async def admin_patch_birth_data(session_id: str, payload: BirthDataPatch, _admi
     Après update, l'admin doit appeler /regenerate/{session_id} pour produire un
     nouveau PDF avec les bonnes coordonnées.
     """
-    import httpx
     sb = get_admin_client()
     r = sb.table('payment_transactions').select('metadata').eq('session_id', session_id).maybe_single().execute()
     if not r or not r.data:
@@ -812,59 +899,24 @@ async def admin_patch_birth_data(session_id: str, payload: BirthDataPatch, _admi
     pdf_ctx = md.get('pdf_ctx') or {}
     bd = dict(pdf_ctx.get('birth_data') or {})
 
-    resolved = {'source': 'manual'}
-    # Cas 1 : géocodage automatique par nom de ville
+    # Cas 1 : géocodage auto si on a juste la ville (sans lat/lon)
     if payload.city and not (payload.latitude and payload.longitude):
-        query = payload.city.strip()
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                # Nominatim (OpenStreetMap) — gratuit, requiert un User-Agent
-                r_geo = await client.get(
-                    'https://nominatim.openstreetmap.org/search',
-                    params={'q': query, 'format': 'json', 'limit': 1, 'addressdetails': 1},
-                    headers={'User-Agent': 'PlumeAstrale-Admin/1.0 (contact@plume-astrale.fr)'},
-                )
-                geo_results = r_geo.json() if r_geo.status_code == 200 else []
-                if not geo_results:
-                    raise HTTPException(status_code=422, detail=f'Ville "{query}" introuvable — précise "Ville, Pays"')
-                g = geo_results[0]
-                lat = float(g['lat'])
-                lon = float(g['lon'])
-                display_name = g.get('display_name', query)
-                # Timezone via API TimezoneDB alternative gratuite : timeapi.io
-                try:
-                    r_tz = await client.get(
-                        'https://timeapi.io/api/TimeZone/coordinate',
-                        params={'latitude': lat, 'longitude': lon},
-                    )
-                    tz = r_tz.json().get('timeZone') if r_tz.status_code == 200 else None
-                except Exception:
-                    tz = None
-                if not tz:
-                    # Fallback simple : Europe/Paris pour la France, sinon UTC
-                    country = (g.get('address', {}).get('country_code') or '').lower()
-                    tz = 'Europe/Paris' if country == 'fr' else 'UTC'
-                bd['city'] = display_name
-                bd['location'] = display_name
-                bd['latitude'] = lat
-                bd['longitude'] = lon
-                bd['timezone'] = tz
-                resolved = {'source': 'geocode', 'display_name': display_name, 'lat': lat, 'lon': lon, 'tz': tz}
+            geo = await _geocode_city_osm(payload.city.strip())
         except HTTPException:
             raise
         except Exception as e:
             raise HTTPException(status_code=502, detail=f'Géocodage échoué : {e}')
+        bd['city'] = geo['display_name']
+        bd['location'] = geo['display_name']
+        bd['latitude'] = geo['lat']
+        bd['longitude'] = geo['lon']
+        bd['timezone'] = geo['tz']
+        resolved = {'source': 'geocode', **geo}
     # Cas 2 : override manuel des coords + tz
     else:
-        if payload.city is not None:
-            bd['city'] = payload.city
-            bd['location'] = payload.city
-        if payload.latitude is not None:
-            bd['latitude'] = float(payload.latitude)
-        if payload.longitude is not None:
-            bd['longitude'] = float(payload.longitude)
-        if payload.timezone is not None:
-            bd['timezone'] = payload.timezone
+        _apply_birth_data_manual(bd, payload)
+        resolved = {'source': 'manual'}
 
     pdf_ctx['birth_data'] = bd
     md['pdf_ctx'] = pdf_ctx

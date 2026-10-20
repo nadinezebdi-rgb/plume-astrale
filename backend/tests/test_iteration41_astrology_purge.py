@@ -23,7 +23,7 @@ SUPABASE_ANON_KEY = (
     'MjA4MzU1NjQzOX0.sW7TivZAacaVEfD4NaU-u75wMtrAZJ4eYRx1duhIAWA'
 )
 ADMIN_EMAIL = 'admin@plume-astrale.fr'
-ADMIN_PASSWORD = 'PlumeAdmin2026'
+ADMIN_PASSWORD = os.getenv('TEST_ADMIN_PASSWORD', 'PlumeAdmin2026')
 STD_EMAIL = 'plume_test_863a0303@gmail.com'
 STD_PASSWORD = 'TestPlume2026!'
 

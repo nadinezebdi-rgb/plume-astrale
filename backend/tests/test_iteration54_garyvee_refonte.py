@@ -44,7 +44,7 @@ BASE_URL = (os.environ.get('REACT_APP_BACKEND_URL') or _read_front_env('REACT_AP
 API = f"{BASE_URL}/api"
 
 ADMIN_EMAIL = 'admin@plume-astrale.fr'
-ADMIN_PASSWORD = 'PlumeAdmin2026'
+ADMIN_PASSWORD = os.getenv('TEST_ADMIN_PASSWORD', 'PlumeAdmin2026')
 
 
 @pytest.fixture(scope='module')
