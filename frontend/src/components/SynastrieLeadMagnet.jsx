@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mail, Sparkles, CheckCircle2, Loader2 } from 'lucide-react';
 import { event as trackEvent } from '../lib/analytics';
 
@@ -30,8 +31,13 @@ const LABEL_STYLE = {
 /**
  * SynastrieLeadMagnet — formulaire email qui déclenche l'envoi
  * d'un extrait synastrie 3 pages personnalisé (via /api/synastrie/free-extract).
+ *
+ * Props:
+ *  - variant: 'section' (default) | 'modal' — adapte le padding/background pour s'intégrer dans une modal
+ *  - onSuccess: callback optionnel (ex: fermer la modal avant redirection)
  */
-export default function SynastrieLeadMagnet() {
+export default function SynastrieLeadMagnet({ variant = 'section', onSuccess } = {}) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [p1, setP1] = useState({ prenom: '', birth_date: '', birth_place: 'Paris, France' });
   const [p2, setP2] = useState({ prenom: '', birth_date: '', birth_place: 'Paris, France' });
@@ -73,6 +79,11 @@ export default function SynastrieLeadMagnet() {
       }
       trackEvent('synastrie_free_extract_sent', { email_domain: email.split('@')[1] || '' });
       setState({ status: 'success', message: data.message || 'Extrait envoyé ! Vérifiez votre boîte email.' });
+      try {
+        if (typeof onSuccess === 'function') onSuccess();
+      } catch { /* noop */ }
+      // Redirect vers thanks page (upsell 49€). Petit délai pour laisser React render l'état.
+      setTimeout(() => navigate('/synastrie/extrait-envoye'), 300);
     } catch (err) {
       setState({ status: 'error', message: err.message || "Impossible d'envoyer l'extrait, réessayez." });
     }
@@ -103,9 +114,9 @@ export default function SynastrieLeadMagnet() {
     <section
       aria-labelledby="synastrie-lead-title"
       data-testid="synastrie-lead-magnet"
-      style={outerStyle}
+      style={variant === 'modal' ? modalInlineStyle : outerStyle}
     >
-      <div style={innerStyle}>
+      <div style={variant === 'modal' ? modalInnerStyle : innerStyle}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <p style={{ fontFamily: '"Cinzel", serif', fontSize: 11, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#D4AF37', margin: '0 0 10px' }}>
             <Sparkles size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }} strokeWidth={1.5} />
@@ -298,4 +309,19 @@ const cardStyle = {
   background: 'rgba(255,255,255,0.03)',
   border: '1px solid rgba(212,175,55,0.18)',
   borderRadius: 6,
+};
+
+const modalInlineStyle = {
+  padding: 0,
+  background: 'transparent',
+  color: '#F5EEE0',
+};
+
+const modalInnerStyle = {
+  maxWidth: 720,
+  margin: 0,
+  padding: '28px 24px 24px',
+  background: 'transparent',
+  border: 'none',
+  borderRadius: 0,
 };

@@ -1,5 +1,40 @@
 # Plume Astrale — PRD
 
+## 2026-02-20 — Lot "Thanks page + Admin alerts + Hover popup + Exit-intent"
+### Thanks page synastrie
+- Nouvelle route `/synastrie/extrait-envoye` (`SynastrieLeadThanks.jsx`) : hero "merci" avec check vert + upsell "La synastrie complète 25 pages · 49€" (6 bénéfices listés + CTA `/paiement?product=synastrie`).
+- `SynastrieLeadMagnet` redirige maintenant vers cette page après succès (`setTimeout(() => navigate('/synastrie/extrait-envoye'), 300)`) et set `localStorage.plume_syn_lead_sent` pour supprimer les futures modales.
+- Events GA4 : `view_lead_thanks` au mount, `upsell_click` au click CTA.
+- Testids : `synastrie-thanks-page`, `synastrie-thanks-hero`, `synastrie-thanks-upsell`, `synastrie-thanks-upsell-cta`.
+
+### Dashboard admin alertes
+- **Migration SQL** : `/app/backend/migrations/2026_02_admin_alerts.sql` — table `public.admin_alerts` avec colonnes `alert_type, severity, subject, reason, http_status, error_detail, payload (jsonb), resend_id, recipient, resolved_at, created_at` + indexes sur created_at/type/resolved. ⚠️ **À exécuter dans le SQL Editor Supabase pour activer la persistance.**
+- **Persistance** : `_persist_alert()` ajouté dans `astrology_io_health.py` — insert non-bloquant après chaque `send_email` réussi. Log WARNING actionnable si table absente ("Exécuter 2026_02_admin_alerts.sql").
+- **Routes admin** : `GET /api/admin/alerts?limit=100` (liste desc par date, retourne `migration_needed: true` si table manquante) + `POST /api/admin/alerts/{id}/resolve` (marque `resolved_at = now()`).
+- **Page admin** : `/admin/alerts` (`AdminAlerts.jsx`) — stats "N alertes ouvertes / N total", liste cards avec type-pill coloré par état (ouvert rouge / résolu vert), bouton "Marquer résolu" par alerte, hint migration si table absente.
+- Testids : `admin-alerts-page`, `admin-alerts-refresh`, `admin-alerts-migration-hint`, `admin-alerts-empty`, `admin-alerts-list`, `admin-alert-{id}`, `admin-alert-resolve-{id}`.
+
+### Pastille signe interactive (hover popup)
+- `VisitorSignBadge.jsx` enrichi : au premier hover, fetch `/api/daily/{sign}` et affiche un popup 288px sous la pastille (gradient indigo + bordure gold) avec symbole + "Ton horoscope du jour · [Signe]" + citation italique + badge "Énergie X/10" + CTA "Lire tout mon horoscope →".
+- Cache en session (fetch 1 fois seulement), close delay 180ms (évite flash quand on bouge la souris entre pastille et popup).
+- Testids : `navbar-visitor-sign-popup`, `navbar-visitor-sign-popup-phrase`, `navbar-visitor-sign-popup-energy`, `navbar-visitor-sign-popup-cta`.
+
+### Exit-intent modal synastrie
+- `SynastrieExitIntentModal.jsx` : s'ouvre quand la souris sort par le haut (`mouseout` + `clientY <= 10` + `!relatedTarget`) sur `/synastrie`. Grace period 8s au mount pour éviter faux positifs juste après page load.
+- Mobile fallback : trigger quand le visiteur a scrollé ≥ 70% de la page (double passage pour "armement").
+- Suppression auto si lead déjà envoyé (`plume_syn_lead_sent`) OU déjà fermé il y a <24h (`plume_syn_exit_intent_dismissed`).
+- Close via X / Esc / click overlay. Body scroll locked pendant ouverture.
+- Monte `<SynastrieLeadMagnet variant="modal" />` à l'intérieur (padding/background adaptés via prop `variant`).
+- Events GA4 : `exit_intent_shown` (avec source `mouseout_top` ou `mobile_scroll_70`), `exit_intent_dismissed`.
+- Testids : `synastrie-exit-intent-modal`, `synastrie-exit-intent-close`.
+
+### Vérifications end-to-end
+- Thanks page : hero rendu + CTA upsell href=`/paiement?product=synastrie` ✓
+- Admin alerts endpoint : 401 non-auth ✓, loop astro_health run OK 785ms ✓
+- Hover popup : 288px, phrase + énergie 9/10 affichés depuis /api/daily/Cancer ✓
+- Exit-intent : déclenchement après 9s + simulation mouseout haut, close via X fonctionne, localStorage marker posé ✓
+
+
 ## 2026-02-20 — Lot "Mobile verif + Lead magnet synastrie + Health 5xx + Sign badge"
 ### Vérification mobile réelle
 - Screenshot 390×844 (iPhone-like) : `VIEWPORT_W=390 OVERFLOW=[]` → aucun débordement. Section Explore empile correctement en 1 colonne (<640px), badges "Feuilleter l'extrait" lisibles sur fond card.

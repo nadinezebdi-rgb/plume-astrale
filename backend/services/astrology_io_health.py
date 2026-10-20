@@ -200,12 +200,64 @@ async def send_astrology_alert(result: dict, reason: str = 'auth') -> bool:
         if eid:
             _mark_alert_sent()
             logger.warning(f'[astro_health] alerte ({reason}) envoyée à {ADMIN_ALERT_EMAIL} (resend_id={eid})')
+            # Persist en base pour dashboard admin (non-bloquant si table absente)
+            _persist_alert(
+                alert_type=f'astrology_io_{reason}',
+                severity='high',
+                subject=subject,
+                reason=reason,
+                result=result,
+                resend_id=eid,
+            )
             return True
         logger.error('[astro_health] envoi alerte Resend échoué (eid=None)')
         return False
     except Exception as e:
         logger.exception(f'[astro_health] send_astrology_alert failed: {e}')
         return False
+
+
+def _persist_alert(
+    alert_type: str,
+    severity: str,
+    subject: str,
+    reason: str,
+    result: dict,
+    resend_id: Optional[str],
+) -> None:
+    """Insère l'alerte dans Supabase `admin_alerts`. Log WARNING actionnable si table manquante.
+
+    Ne lève jamais : si la persistance échoue, l'alerte email a déjà été envoyée.
+    """
+    try:
+        from services.supabase_client import get_admin_client
+        sb = get_admin_client()
+        sb.table('admin_alerts').insert({
+            'alert_type': alert_type,
+            'severity': severity,
+            'subject': subject,
+            'reason': reason,
+            'http_status': result.get('status'),
+            'error_detail': (result.get('error') or '')[:500],
+            'payload': {
+                'key_fingerprint': result.get('key_fingerprint'),
+                'latency_ms': result.get('latency_ms'),
+                'checked_at': result.get('checked_at'),
+            },
+            'resend_id': resend_id,
+            'recipient': ADMIN_ALERT_EMAIL,
+        }).execute()
+        logger.info(f'[astro_health] alert persisted ({alert_type})')
+    except Exception as e:
+        msg = str(e)
+        if 'admin_alerts' in msg and ('schema cache' in msg or 'does not exist' in msg):
+            logger.warning(
+                '[astro_health] Table `admin_alerts` absente. Exécuter '
+                '/app/backend/migrations/2026_02_admin_alerts.sql dans le SQL Editor Supabase '
+                'pour activer le dashboard /admin/alerts.'
+            )
+        else:
+            logger.warning(f'[astro_health] persist alert failed: {msg[:200]}')
 
 
 async def astrology_io_health_loop() -> None:

@@ -978,3 +978,49 @@ async def admin_pdf_failures_last_24h(
         'window_hours': hours,
         'since': cutoff,
     }
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# Admin alerts (health-checks tiers / incidents prod)
+# ═══════════════════════════════════════════════════════════════
+@router.get('/alerts')
+async def admin_alerts_list(
+    limit: int = Query(50, ge=1, le=200),
+    _admin: dict = Depends(require_admin),
+):
+    """Liste des alertes système envoyées (astrology-api.io health-check, etc.).
+
+    Retourne les plus récentes d'abord. Si la table `admin_alerts` est absente,
+    renvoie une liste vide + un flag `migration_needed` pour afficher un hint UI.
+    """
+    sb = get_admin_client()
+    try:
+        r = sb.table('admin_alerts').select(
+            'id, alert_type, severity, subject, reason, http_status, '
+            'error_detail, payload, resend_id, recipient, resolved_at, created_at'
+        ).order('created_at', desc=True).limit(limit).execute()
+        items = r.data or []
+        return {'items': items, 'total': len(items), 'migration_needed': False}
+    except Exception as e:
+        msg = str(e)
+        if 'admin_alerts' in msg and ('schema cache' in msg or 'does not exist' in msg):
+            logger.warning('[admin/alerts] table absente — exécuter 2026_02_admin_alerts.sql')
+            return {'items': [], 'total': 0, 'migration_needed': True}
+        raise HTTPException(status_code=500, detail=f'alerts fetch failed: {msg[:200]}')
+
+
+@router.post('/alerts/{alert_id}/resolve')
+async def admin_alert_resolve(
+    alert_id: str,
+    _admin: dict = Depends(require_admin),
+):
+    """Marque une alerte comme résolue (resolved_at = now())."""
+    sb = get_admin_client()
+    try:
+        r = sb.table('admin_alerts').update({
+            'resolved_at': datetime.now(timezone.utc).isoformat(),
+        }).eq('id', alert_id).execute()
+        return {'success': True, 'updated': len(r.data or [])}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'resolve failed: {str(e)[:200]}')
