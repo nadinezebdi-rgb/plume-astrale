@@ -1190,14 +1190,14 @@ const MonCompte = () => {
           {activeTab === 'rapports' && (
             <div className="space-y-4" data-testid="rapports-tab">
               <div className="mb-2">
-                <div className="flex items-center justify-between gap-3 mb-2">
+                <div className="flex items-start sm:items-center justify-between gap-3 mb-2 flex-wrap">
                   <h2
                     className="text-2xl"
                     style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400 }}
                   >
                     Vos rapports astrologiques
                   </h2>
-                  <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+                  <div className="flex items-center gap-2 flex-wrap justify-end w-full sm:w-auto">
                   <button
                     onClick={handlePdfDownload}
                     disabled={pdfLoading || !profil?.birth_date}
@@ -1222,13 +1222,16 @@ const MonCompte = () => {
                     title="Variante offerte · PNG découpable à offrir à un proche"
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '8px 16px', borderRadius: 999, flexShrink: 0,
+                      padding: '8px 16px', borderRadius: 999,
                       background: profil?.birth_date ? 'rgba(212,175,55,0.12)' : 'rgba(148,163,184,0.12)',
                       border: profil?.birth_date ? '1px solid rgba(212,175,55,0.4)' : '1px solid rgba(148,163,184,0.3)',
                       color: profil?.birth_date ? 'var(--pa-accent)' : '#94A3B8',
                       fontSize: 11,
                       letterSpacing: '0.08em', textTransform: 'uppercase',
                       cursor: (exLibrisLoading || !profil?.birth_date) ? 'not-allowed' : 'pointer',
+                      maxWidth: '100%',
+                      whiteSpace: 'normal',
+                      textAlign: 'left',
                     }}
                   >
                     {exLibrisLoading ? '⏳ Composition…' : "✦ Télécharger l'Ex Libris à offrir"}

@@ -45,6 +45,39 @@ def _font(name: str, size: int) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(str(path), size)
 
 
+_SYMBOL_V1_CODEPOINTS = {
+    0x263D,  # ☽ Lune (First Quarter Moon)
+    0x263E,  # ☾ Last Quarter Moon
+    0x2191,  # ↑ Flèche vers le haut
+    0x2192, 0x2193, 0x2190,
+    0x2605,  # ★ étoile pleine
+}
+# Tous les autres glyphes (☉, ✁, ✦, …) vont dans Symbols-2 qui offre un design
+# plus détaillé et harmonieux avec la palette Plume Astrale.
+
+
+def _symbol_font(size: int, codepoint: str = '') -> ImageFont.FreeTypeFont:
+    """Police dédiée aux glyphes Unicode (ciseaux, soleil, lune, flèche…).
+
+    Cormorant Garamond ne contient pas les symboles astrologiques, ils
+    s'affichaient comme des rectangles vides (tofu). Les deux fichiers Noto
+    Sans Symbols sont **complémentaires** (pas superposés) : chaque glyphe
+    n'existe que dans l'un des deux. On route explicitement.
+    """
+    code = ord(codepoint[0]) if codepoint else 0
+    use_v1 = code in _SYMBOL_V1_CODEPOINTS
+    fname = 'NotoSansSymbols-Regular.ttf' if use_v1 else 'NotoSansSymbols2-Regular.ttf'
+    path = FONTS_DIR / fname
+    if not path.is_file():
+        other = FONTS_DIR / (
+            'NotoSansSymbols2-Regular.ttf' if use_v1 else 'NotoSansSymbols-Regular.ttf'
+        )
+        path = other if other.is_file() else path
+    if not path.is_file():
+        raise RuntimeError(f'Police symboles introuvable : {path.name}')
+    return ImageFont.truetype(str(path), size)
+
+
 def _plain(text: str) -> str:
     """Nettoie le HTML éventuel (<b>, <i>, <br/>) pour obtenir du texte pur."""
     s = (text or '').replace('<br/>', '\n').replace('<br>', '\n')
@@ -166,8 +199,12 @@ def render_ex_libris_png(
 
     # Pictogramme ciseaux + libellé discret, hors cadre, en haut-gauche
     tip_font = _font('Italic', 22)
-    draw.text((margin + 6, margin - 42),
-              '\u2701  à découper · à offrir · à conserver',
+    scissors_glyph = '\u2701'
+    tip_sym = _symbol_font(22, scissors_glyph)
+    sym_w = tip_sym.getbbox(scissors_glyph)[2]
+    draw.text((margin + 6, margin - 42), scissors_glyph, fill=MUTED, font=tip_sym)
+    draw.text((margin + 6 + sym_w + 10, margin - 42),
+              'à découper · à offrir · à conserver',
               fill=MUTED, font=tip_font)
 
     # ─── Titre centré ────────────────────────────────────────────
@@ -195,18 +232,39 @@ def render_ex_libris_png(
               fill=GOLD, width=2)
     y = hr_y + 44
 
-    # Trio Soleil · Lune · Ascendant (si fourni)
-    trio_parts = []
+    # Trio Soleil · Lune · Ascendant (si fourni) — glyphes rendus avec la police
+    # symbole, texte avec la police italique pour un rendu cohérent.
+    trio_items: list[tuple[str, str]] = []
     if sun_sign:
-        trio_parts.append(f'\u2609  Soleil {sun_sign}')
+        trio_items.append(('\u2609', f'Soleil {sun_sign}'))
     if moon_sign:
-        trio_parts.append(f'\u263D  Lune {moon_sign}')
+        trio_items.append(('\u263D', f'Lune {moon_sign}'))
     if asc_sign:
-        trio_parts.append(f'\u2191  Ascendant {asc_sign}')
-    if trio_parts:
-        trio_text = '   ·   '.join(trio_parts)
-        tw = small_font.getbbox(trio_text)[2]
-        draw.text(((WIDTH - tw) // 2, y), trio_text, fill=GOLD, font=small_font)
+        trio_items.append(('\u2191', f'Ascendant {asc_sign}'))
+    if trio_items:
+        trio_txt = _font('Italic', 22)
+        sep = '   ·   '
+        sep_w = trio_txt.getbbox(sep)[2]
+        # Mesure totale (chaque glyphe utilise son propre fichier de police)
+        total_w = 0
+        parts_sized: list[tuple[str, int, str, int, ImageFont.FreeTypeFont]] = []
+        for i, (glyph, label) in enumerate(trio_items):
+            trio_sym_i = _symbol_font(22, glyph)
+            gw = trio_sym_i.getbbox(glyph)[2]
+            lw = trio_txt.getbbox('  ' + label)[2]
+            total_w += gw + lw
+            parts_sized.append((glyph, gw, '  ' + label, lw, trio_sym_i))
+            if i < len(trio_items) - 1:
+                total_w += sep_w
+        cursor_x = (WIDTH - total_w) // 2
+        for i, (glyph, gw, label, lw, trio_sym_i) in enumerate(parts_sized):
+            draw.text((cursor_x, y), glyph, fill=GOLD, font=trio_sym_i)
+            cursor_x += gw
+            draw.text((cursor_x, y), label, fill=GOLD, font=trio_txt)
+            cursor_x += lw
+            if i < len(parts_sized) - 1:
+                draw.text((cursor_x, y), sep, fill=GOLD, font=trio_txt)
+                cursor_x += sep_w
         y += 56
 
     # ─── Corps : paragraphe GPT justifié (approximation) ─────────

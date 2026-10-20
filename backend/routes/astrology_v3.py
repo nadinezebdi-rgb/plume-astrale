@@ -815,23 +815,18 @@ async def natal_ex_libris_png(
     moon_sign = _sign_fr('moon')
     asc_sign = aio.sign_to_fr(asc_sign_en) if asc_sign_en else ''
 
-    # 2) Enrichissement livre (contient la clé `ex_libris`, cache si déjà généré)
-    from services.natal_book_service import _build_book_data
+    # 2) Signature Ex Libris — chemin rapide dédié (~5-15s au lieu de ~90-144s
+    #    pour le full-book), avec réutilisation du cache full-book s'il existe.
+    from services.natal_book_enrichment import enrich_ex_libris_only
 
-    try:
-        natal_report_data = await aio.natal_report(bd, name=name, language='fr')
-    except Exception:
-        natal_report_data = {}
-
-    book_data = await _build_book_data(
-        name=name,
-        bd=bd,
-        planets_dict=planets_dict,
-        asc_sign_en=asc_sign_en,
-        natal_report_data=natal_report_data,
+    ex_libris_text = await enrich_ex_libris_only(
+        prenom=name,
+        birth_data=bd,
+        sun_sign_fr=sun_sign,
+        moon_sign_fr=moon_sign,
+        asc_sign_fr=asc_sign,
         force_refresh=False,
     )
-    ex_libris_text = str((book_data or {}).get('ex_libris') or '').strip()
     if not ex_libris_text:
         raise HTTPException(
             status_code=502,
