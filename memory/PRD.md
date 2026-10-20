@@ -26,6 +26,53 @@ Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme
 - **Composants Nocturne** : `.ne-btn` (plats, coins 2px, sans ombre) · `.ne-card` (filet 1px, hover translate 2px + ombre 24px 8%) · `.ne-input` (filet inférieur uniquement) · `.ne-section-night` / `.ne-section-paper` (grain SVG + halos radiaux)
 
 
+### 📚 LOT 4.8 — Patch "livre imprimable" appliqué (2026-02-17 nuit)
+
+**Contexte** : L'utilisatrice a uploadé `plume-livre-imprimable.patch` (1552 lignes, 14 fichiers) via Codex pour unifier le pipeline PDF + Lulu print.
+
+**Appliqué proprement** (14 fichiers) :
+- Nouveau renderer unifié `services/print_book_renderer.py` (381 lignes) — reportlab + pypdf, dimensions A5 148×210mm exactes, pagination fluide 42→150+ pages, TOC avec outline PDF, couverture **BLEUE nominative** (`NAVY #142342`, roue céleste gravée, prénom en gros, "ÉDITION PERSONNELLE", pas de Soléna).
+- `services/natal_pdf_adapter.py` — pipeline simplifié : un seul `render_book_pdf(manuscript)`. Suppression des triples fallbacks `book_engine_v2 → natal_pdf_v2 → legacy`. Guard `require_complete_book` qui refuse de livrer un PDF partiel.
+- `services/theme_natal_oneshot_service.py` — enrichissement livre **toujours actif** (plus de gate `BOOK_MODE_ENABLED`). Ajoute `force_refresh=force` pour les régénérations admin.
+- `services/book_engine_shared/prose_generator.py`, `services/book_engine_v2/assemble.py`, `services/natal_ai_enrichment.py`, `services/natal_manuscript_builder.py`, `services/natal_preface_generator.py` — ajustements mineurs cohérents.
+- `services/natal_lulu_bump_service.py`, `services/lulu_client.py` — Lulu passe en **production par défaut** (`LULU_MOCK` default `'0'`), exportation séparée intérieur + couverture via `lulu_interior()` + `lulu_cover()`.
+- `services/pdf_download.py` — fichier produit = livre unifié uniquement.
+- `backend/tests/test_print_book_renderer.py` (5 tests), `backend/tests/test_lulu_preflight.py` (4 tests) — nouveaux tests livrés avec le patch.
+- `backend/services/PRINT_EXPORT.md` — documentation technique.
+
+**Conflits résolus manuellement** (2 hunks) :
+- `natal_pdf_adapter.py:275-384` : remplacement complet par le nouveau flow unifié.
+- `theme_natal_oneshot_service.py:331-387` : retrait du gate `BOOK_MODE_ENABLED`, ajout `force_refresh=force`, conservation de l'extraction locale `aspects_for_book`/`houses_for_book` (le patch amont assumait `chart_aspects`/`chart_houses` qui n'existaient pas dans notre base).
+
+**Tests legacy mis à jour** : `test_natal_pdf_migration_v2_print.py` (3 tests) ré-aligné sur le nouveau flow `render_book_pdf` au lieu de `render_manuscript_to_pdf_v2`.
+
+**Résultats de validation** :
+- ✅ **45/45 tests pytest pass** (9 nouveaux + 36 régression)
+- ✅ **PDF démo généré** : `/tmp/book_demo.pdf` — 30 pages, 69 KB, A5 148×210mm
+- ✅ **Couverture bleue nominative "Amélie" + roue céleste** validée visuellement
+- ✅ **Sommaire** avec TOC outline + flow réel
+- ✅ **Chapitre "Vos planètes"** avec intro + H2 (Soleil en Vierge · 22°30' · maison 2) + prose justifiée + folio
+- ✅ **AUCUNE mention Soléna** sur la couverture (contrainte user respectée)
+- ✅ **Preflight Lulu** validé : `lulu_interior()` refuse les PDF < 32 pages (garde-fou brochure)
+- ✅ Backend redémarré, routes `/api/health`, `/api/auth/me`, `/api/natal-print-bump/*` toutes OK
+
+**Paramètres Lulu encore MANQUANTS pour passer en prod** (6 variables à ajouter dans `backend/.env` quand l'utilisateur est prête) :
+1. `LULU_BASE_URL=https://api.sandbox.lulu.com` (sandbox) ou `https://api.lulu.com` (prod)
+2. `LULU_TOKEN_URL=https://api.sandbox.lulu.com/auth/realms/glasstree/protocol/openid-connect/token` (sandbox) ou prod
+3. `LULU_CLIENT_KEY` — API key générée sur developers.lulu.com
+4. `LULU_CLIENT_SECRET` — API secret générée en même temps que la key
+5. `LULU_WEBHOOK_SECRET` — secret HMAC-SHA256 pour vérifier les webhooks Lulu
+6. `LULU_POD_PACKAGE_ID` — SKU du produit A5 hardcover (24-plus pages) depuis le Pricing Calculator Lulu (ex: `0583X0827FCPRECW060UW444MXX`)
+
+Note : la variable `LULU_MOCK=1` reste présente dans `backend/.env` tant que les 6 variables ci-dessus ne sont pas renseignées — sinon le backend tentera des appels réels sans credentials et crashera les quotes.
+
+**Push GitHub `nadinezebdi-rgb/plume-astrale` branche main** : **à faire par l'utilisatrice via le bouton "Save to GitHub"** du chat Emergent (l'agent n'a pas accès aux writes git externes depuis le pod). Le dépôt local `/app` n'a pas de remote configuré.
+
+**Backup** : état pré-patch sauvegardé dans `/tmp/backup_pre_patch/` (services + routes + frontend/src, 11 MB) en cas de rollback.
+
+
+
+
 ### ✅ Rotation STRIPE_WEBHOOK_SECRET effectuée (2026-02-17 nuit)
 
 Confirmation user : la rotation du `STRIPE_WEBHOOK_SECRET` a été faite côté dashboard Stripe. La dette sécurité P0 héritée des forks précédents est désormais fermée.

@@ -233,6 +233,10 @@ async def download_pdf(session_id: str, token: str, print_ready: bool = False):
     if not pdf_file or not pdf_file.exists():
         # Fallback : si le PDF est stocké sur Supabase Storage (survit aux redeploys),
         # redirige vers l'URL publique persistante au lieu de renvoyer une 404 brute.
+        if print_ready and product_kind in ('theme_natal', 'natal', 'theme_natal_pdf', 'theme_natal_pdf_oneshot'):
+            supabase_url = md.get('pdf_lulu_interior_url')
+            if not supabase_url:
+                raise HTTPException(status_code=422, detail='Régénérez le livre pour obtenir son intérieur Lulu.')
         if supabase_url:
             from fastapi.responses import RedirectResponse
             logger.info(f'[pdf_download] {session_id}/{matched_key} local manquant → redirect Supabase')
@@ -272,7 +276,16 @@ def _stream_pdf_file(pdf_file: Path, print_ready: bool = False) -> FileResponse:
     try:
         from services.pdf_luxury_helpers import add_print_boxes
         raw = pdf_file.read_bytes()
-        processed = add_print_boxes(raw, bleed_mm=3.0)
+        from pypdf import PdfReader
+        import io
+        version = (PdfReader(io.BytesIO(raw)).metadata or {}).get('/PlumeDesignVersion')
+        if version:
+            from services.print_book_renderer import lulu_interior
+            processed = lulu_interior(raw)
+        elif pdf_file.name.startswith('theme_natal'):
+            raise ValueError('Ancien thème natal : régénération nécessaire avant export Lulu')
+        else:
+            processed = add_print_boxes(raw, bleed_mm=3.0)
         from fastapi.responses import Response
         out_name = pdf_file.stem + '-print-ready.pdf'
         return Response(
@@ -281,12 +294,8 @@ def _stream_pdf_file(pdf_file: Path, print_ready: bool = False) -> FileResponse:
             headers={'Content-Disposition': f'attachment; filename="{out_name}"'},
         )
     except Exception as e:
-        logger.warning(f'[pdf_download] print_ready transform failed: {e} — fallback plain')
-        return FileResponse(
-            path=str(pdf_file),
-            media_type='application/pdf',
-            filename=pdf_file.name,
-        )
+        logger.warning(f'[pdf_download] print_ready transform failed: {e}')
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
 
 async def _download_synastrie_pdf(session_id: str, token: str, sb, print_ready: bool = False):

@@ -63,3 +63,5 @@
 {"ts": "2026-10-11T16:49:39.549427+00:00", "event": "natal_pdf_generated", "source": "book_engine_v2_print", "tier": "legacy", "bytes": 216228, "ai_planet_count": 0}
 {"ts": "2026-10-11T16:57:22.782954+00:00", "event": "natal_pdf_generated", "source": "book_engine_v2_print", "tier": "legacy", "bytes": 216228, "ai_planet_count": 0}
 {"ts": "2026-10-11T17:26:35.859302+00:00", "event": "natal_pdf_generated", "source": "book_engine_v2_print", "tier": "legacy", "bytes": 216228, "ai_planet_count": 0}
+{"ts": "2026-10-20T07:18:13.528875+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 61158, "ai_planet_count": 0}
+{"ts": "2026-10-20T07:18:48.559427+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 61170, "ai_planet_count": 0}

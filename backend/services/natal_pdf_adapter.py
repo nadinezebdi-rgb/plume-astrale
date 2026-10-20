@@ -272,112 +272,35 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
         # Compat : certaines API retournent 'houses' avec sign+planets, pas de cuspide
         natal_data.setdefault('houses', houses_raw)
 
-    # Feb 2026 — Nouveau pipeline unifié : book_engine_v2 Chromium print A5.
-    # L'ancien natal_pdf_v2 (dark luxury) reste en fallback silencieux pour
-    # éviter de casser la génération en cas de problème Chromium (prod sans
-    # chromium installé → fallback nécessaire).
-    try:
-        import os
-        if os.environ.get('USE_V2_NATAL_ENGINE', '1') == '1':
-            from services.natal_manuscript_builder import build_natal_manuscript
-            from services.book_engine_v2 import render_manuscript_to_pdf_v2
-            # Génère la préface AI (Claude Sonnet) ou fallback statique.
-            # On tente une boucle courte si on est en contexte sync (adapter appelé
-            # depuis asyncio.to_thread dans theme_natal_oneshot_service).
-            preface_blocks = None
-            try:
-                import asyncio
-                from services.natal_preface_generator import generate_preface_blocks
-                try:
-                    _loop = asyncio.get_event_loop()
-                    if _loop.is_running():
-                        _loop = None
-                except RuntimeError:
-                    _loop = None
-                if _loop is None:
-                    _loop = asyncio.new_event_loop()
-                    try:
-                        preface_blocks = _loop.run_until_complete(generate_preface_blocks(
-                            first_name=prenom,
-                            sun_sign=natal_data.get('sun_sign') or '',
-                            moon_sign=natal_data.get('moon_sign') or '',
-                            asc_sign=natal_data.get('ascendant_sign') or '',
-                            session_id=f'natal-preface-{prenom.lower()}',
-                        ))
-                    finally:
-                        _loop.close()
-            except Exception as _pe:
-                logger.info(f'[natal_pdf_adapter] preface AI skipped (fallback static): {_pe}')
-                preface_blocks = None
-            manuscript = build_natal_manuscript(
-                prenom=prenom, birth_date=birth_date, natal_data=natal_data,
-                chart_png_bytes=chart_png_bytes,
-                preface_blocks=preface_blocks,
-            )
-            pdf_bytes = render_manuscript_to_pdf_v2(manuscript, profile='print')
-            try:
-                from services.pipeline_metrics import track_pipeline_event
-                track_pipeline_event(
-                    'natal_pdf_generated', source='book_engine_v2_print',
-                    tier=natal_data['tier'], bytes=len(pdf_bytes),
-                    ai_planet_count=ai_planet_count,
-                )
-            except Exception:
-                pass
-            return pdf_bytes
-    except Exception as be2_err:
-        logger.warning(f'[natal_pdf_adapter] book_engine_v2 fail, fallback natal_pdf_v2: {be2_err}')
+    if user_data.get('require_complete_book'):
+        required = ['element_analysis', 'modality_analysis', 'trio_synthesis',
+                    'aspects_harmonieux_body', 'aspects_tensions_body', 'year_ahead']
+        if not no_birth_time:
+            required += [f'house_{number}' for number in range(1, 13)]
+        missing = [key for key in required if not str((book_data or {}).get(key) or '').strip()]
+        absent_planets = [name for name in planet_list if not str(ai.get(_AI_KEY[name]) or '').strip()]
+        if missing or absent_planets or not is_ultra:
+            raise RuntimeError(f'Livre enrichi incomplet : sections={missing}, planètes={absent_planets}. Régénération nécessaire.')
 
+    # One manuscript and one book renderer for PDF-only and printed editions.
+    from services.natal_manuscript_builder import build_natal_manuscript
+    from services.print_book_renderer import render_book_pdf
+    natal_data['birth_time'] = user_data.get('birth_time') or user_data.get('heureNaissance')
+    natal_data['birth_city'] = user_data.get('birth_city') or user_data.get('villeNaissance') or ''
     try:
-        pdf_bytes = build_natal_pdf_v2(prenom=prenom, birth_date=birth_date, natal_data=natal_data,
-                                       chart_png_bytes=chart_png_bytes,
-                                       book_data=book_data,
-                                       referral_code=referral_code,
-                                       referral_link=referral_link)
-        # Track pipeline health : source (gpt/gpt_partial/api_v3_only/none) + tier + taille
+        manuscript = build_natal_manuscript(
+            prenom=prenom, birth_date=birth_date, natal_data=natal_data,
+            chart_png_bytes=chart_png_bytes, book_data=book_data,
+        )
+        pdf_bytes = render_book_pdf(manuscript)
         try:
             from services.pipeline_metrics import track_pipeline_event
-            track_pipeline_event(
-                'natal_pdf_generated',
-                source='natal_pdf_v2_dark_fallback_' + (ai.get('_source') or 'none'),
-                tier=natal_data['tier'],
-                bytes=len(pdf_bytes),
-                ai_planet_count=ai_planet_count,
-            )
+            track_pipeline_event('natal_pdf_generated', source='book_flow',
+                                 tier=natal_data['tier'], bytes=len(pdf_bytes),
+                                 ai_planet_count=ai_planet_count)
         except Exception:
             pass
         return pdf_bytes
-    except Exception as e:
-        logger.exception(f'[natal_pdf_v2] fallback to legacy: {e}')
-        from services.pdf_generator import generate_manuscrit_pdf as legacy
-        legacy_bytes = legacy(user_data=user_data, planets_data=planets_data, horoscope_data=horoscope_data)
-        # Wrap luxe même sur le fallback legacy — jamais servir un PDF nu
-        try:
-            from services.pdf_luxury_wrap import apply_luxury_wrap
-            wrapped = apply_luxury_wrap(
-                legacy_bytes,
-                prenom=prenom,
-                subtitle='Ton ciel de naissance, dévoilé.',
-                product='synastry',  # utilise slugs génériques valides
-            )
-            try:
-                from services.pipeline_metrics import track_pipeline_event
-                track_pipeline_event(
-                    'natal_pdf_generated',
-                    source='legacy_wrapped',
-                    tier='legacy',
-                    bytes=len(wrapped),
-                    error=str(e)[:120],
-                )
-            except Exception:
-                pass
-            return wrapped
-        except Exception as we:
-            logger.warning(f'[natal_pdf_adapter] luxe wrap on legacy failed: {we}')
-            try:
-                from services.pipeline_metrics import track_pipeline_event
-                track_pipeline_event('natal_pdf_generated', source='legacy_nu',
-                                      tier='legacy', error=str(we)[:120])
-            except Exception:
-                pass
-            return legacy_bytes
+    except Exception as exc:
+        logger.exception('[natal_pdf_adapter] book rendering failed')
+        raise RuntimeError('Le livre complet n’a pas pu être composé. Aucun PDF simplifié ne sera livré.') from exc

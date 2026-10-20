@@ -59,6 +59,8 @@ PLANET_NAME_FR = {
 def _cache_key(prenom: str, birth_data: Dict[str, Any], tier: str = 'ultra') -> str:
     bd_str = json.dumps({
         't': tier,
+        'renderer': 'book-flow-2026-10',
+        'model': os.environ.get('NATAL_OPENAI_MODEL', 'gpt-4.1'),
         'p': (prenom or '').lower().strip(),
         'd': birth_data.get('day'), 'm': birth_data.get('month'), 'y': birth_data.get('year'),
         'h': birth_data.get('hour'), 'mn': birth_data.get('minute') or birth_data.get('min'),
@@ -318,6 +320,7 @@ async def enrich_natal_ultra(
     birth_data: Dict[str, Any],
     api_interpretations: List[Dict],
     tier: str = 'ultra',
+    force_refresh: bool = False,
 ) -> Dict[str, Any]:
     """Retourne un dict enrichi Soléna à partir des 73 interprétations API.
 
@@ -333,7 +336,7 @@ async def enrich_natal_ultra(
     Retourne un dict vide si GPT et cache indisponibles → appelant utilise fallback.
     """
     key = _cache_key(prenom, birth_data, tier=tier)
-    cached = _cache_read(key)
+    cached = None if force_refresh else _cache_read(key)
     if cached:
         logger.info(f'[natal_ai] cache hit for {prenom} (key {key}, {len(cached)} keys)')
         cached['_source'] = 'cache'

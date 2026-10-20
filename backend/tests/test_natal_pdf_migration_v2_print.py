@@ -31,37 +31,29 @@ def test_builder_exists():
 
 
 def test_adapter_uses_book_engine_v2_first():
-    """L'adaptateur DOIT tenter book_engine_v2 en premier."""
+    """L'adaptateur DOIT utiliser le flow unifié print_book_renderer."""
     src = ADAPTER.read_text()
-    # Import du nouveau builder + renderer
     assert 'from services.natal_manuscript_builder import build_natal_manuscript' in src, (
         'Import build_natal_manuscript manquant'
     )
-    assert 'from services.book_engine_v2 import render_manuscript_to_pdf_v2' in src, (
-        'Import render_manuscript_to_pdf_v2 manquant'
+    assert 'from services.print_book_renderer import render_book_pdf' in src, (
+        'Import render_book_pdf manquant (nouveau pipeline unifié)'
     )
-    # Profile print (fond blanc)
-    assert "profile='print'" in src, "profile='print' manquant — le PDF sortirait en dark"
-    # Fallback safety natal_pdf_v2 conservé
-    assert 'build_natal_pdf_v2' in src, 'Fallback natal_pdf_v2 supprimé — danger prod'
 
 
 def test_adapter_book_engine_v2_call_precedes_fallback():
-    """book_engine_v2 DOIT être appelé AVANT le fallback natal_pdf_v2."""
+    """build_natal_manuscript DOIT précéder l'appel render_book_pdf."""
     src = ADAPTER.read_text()
-    idx_new = src.find('render_manuscript_to_pdf_v2(manuscript')
-    idx_fallback = src.find('build_natal_pdf_v2(')
-    assert idx_new > 0
-    assert idx_fallback > idx_new, (
-        'natal_pdf_v2 appelé AVANT book_engine_v2 — ordre inversé'
-    )
+    idx_build = src.find('build_natal_manuscript(')
+    idx_render = src.find('render_book_pdf(')
+    assert idx_build > 0 and idx_render > 0
+    assert idx_render > idx_build, 'render_book_pdf doit être appelé APRÈS build_natal_manuscript'
 
 
 def test_pipeline_metrics_tracks_engine():
-    """Le tracking doit indiquer quel moteur a répondu (visibilité prod)."""
+    """Le tracking doit indiquer la source du pipeline (visibilité prod)."""
     src = ADAPTER.read_text()
-    assert 'book_engine_v2_print' in src, "tag 'book_engine_v2_print' absent du tracking"
-    assert 'natal_pdf_v2_dark_fallback' in src, "tag 'natal_pdf_v2_dark_fallback' absent"
+    assert "source='book_flow'" in src, "tag 'book_flow' absent du tracking pipeline"
 
 
 def test_end_to_end_generation_returns_white_bg_pdf():

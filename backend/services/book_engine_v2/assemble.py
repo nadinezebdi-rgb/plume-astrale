@@ -48,10 +48,7 @@ async def _build_one_chapter(spec, first_name: str, astro: dict, session_id: str
         session_id=session_id,
     )
     if not blocks:
-        # Fallback : bloc respiration signalant chapitre à écrire
-        blocks = [ChapterBlock(BlockKind.QUOTE_BREATH, {
-            'text': "Ce chapitre s'écrit encore. Il rejoindra votre livre à la prochaine édition."
-        })]
+        raise RuntimeError(f'Chapitre obligatoire non généré : {spec.slug}')
     ch.blocks.extend(blocks)
     _add_opener(ch)
     return ch

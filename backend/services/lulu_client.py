@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 def is_mock() -> bool:
-    return os.environ.get('LULU_MOCK', '1') == '1'
+    return os.environ.get('LULU_MOCK', '0') == '1'
 
 
 # Prix de référence mock (en EUR TTC, livraison + impression + marge).
@@ -170,3 +170,51 @@ def verify_webhook_signature(raw_body: bytes, hmac_header: Optional[str]) -> boo
 
 __all__ = ['is_mock', 'mock_quote', 'quote_print_job', 'create_print_job',
             'verify_webhook_signature']
+
+
+async def cover_dimensions(page_count: int) -> Dict[str, Any]:
+    """Use Lulu's selected binding and actual interior count, never an estimated spine."""
+    if is_mock():
+        raise RuntimeError('Les dimensions de couverture exigent Lulu réel ou son gabarit exact')
+    base = os.environ.get('LULU_BASE_URL', '').rstrip('/')
+    pod = os.environ.get('LULU_POD_PACKAGE_ID', '')
+    if not base or not pod:
+        raise RuntimeError('Configuration Lulu manquante')
+    token = await _get_token()
+    async with httpx.AsyncClient(timeout=45) as client:
+        response = await client.post(f'{base}/cover-dimensions/',
+            headers={'Authorization': f'Bearer {token}'},
+            json={'pod_package_id': pod, 'interior_page_count': page_count, 'unit': 'mm'})
+        response.raise_for_status()
+        return response.json()
+
+
+async def validate_print_files(interior_url: str, cover_url: str, page_count: int):
+    """Lulu preflight only; this does not place or charge an order."""
+    import asyncio
+    if is_mock():
+        raise RuntimeError('Validation réelle Lulu requise avant impression')
+    base = os.environ.get('LULU_BASE_URL', '').rstrip('/')
+    pod = os.environ.get('LULU_POD_PACKAGE_ID', '')
+    token = await _get_token()
+    async with httpx.AsyncClient(timeout=45, headers={'Authorization': f'Bearer {token}'}) as client:
+        for kind, url, accepted in [('interior', interior_url, 'VALIDATED'), ('cover', cover_url, 'NORMALIZED')]:
+            payload = {'source_url': url, 'pod_package_id': pod}
+            if kind == 'cover':
+                payload['interior_page_count'] = page_count
+            response = await client.post(f'{base}/validate-{kind}/', json=payload)
+            response.raise_for_status()
+            result = response.json()
+            for attempt in range(25):
+                if result.get('status') == accepted:
+                    break
+                if result.get('status') == 'ERROR':
+                    raise RuntimeError(f'Lulu {kind}: {result.get("errors")}')
+                await asyncio.sleep(2)
+                response = await client.get(f'{base}/validate-{kind}/{result["id"]}/')
+                response.raise_for_status()
+                result = response.json()
+            else:
+                raise RuntimeError(f'Validation Lulu {kind} toujours en cours; réessayer avant commande')
+            if kind == 'interior' and int(result.get('page_count') or page_count) != page_count:
+                raise RuntimeError('Nombre de pages Lulu incohérent')
