@@ -105,5 +105,18 @@ export function AstralPathways() {
 }
 
 export function AstralBookDiscovery() {
-  return <section id="pa-book-discover" className="pa-book-discover" aria-labelledby="pa-book-discover-title"><header><p className="pa-book-eyebrow">À CHAQUE LECTURE, SA PLACE</p><h2 id="pa-book-discover-title">À lire aujourd’hui.<br /><em>À retrouver demain.</em></h2><p>Découvrez les options et le contenu de chaque édition avant de choisir.</p></header><div className="pa-book-editions"><article><span>01 / LIRE</span><h3>L’édition numérique</h3><p>Votre lecture personnelle en PDF, à parcourir sur votre ordinateur ou votre tablette.</p><Link to="/theme-natal">Découvrir le PDF ↗</Link></article><article><span>02 / CONSERVER</span><h3>Le livre imprimé</h3><p>Le plaisir du papier et d’une couverture à votre prénom. Découvrez les éditions brochée et reliée.</p><Link to="/composer?edition=brochee">Explorer les éditions papier ↗</Link></article></div>{previewPdf && <a className="pa-book-text-link pa-book-preview" href={previewPdf} target="_blank" rel="noopener noreferrer">Feuilleter un extrait réel du PDF ↗</a>}<ol className="pa-book-process"><li><h3>Votre naissance</h3><p>Renseignez vos informations et choisissez votre édition.</p></li><li><h3>Votre lecture</h3><p>Explorez votre ciel dans une démarche symbolique et personnelle.</p></li><li><h3>Votre chemin</h3><p>Revenez aux chapitres à votre rythme, avec votre liberté d’interprétation.</p></li></ol></section>;
+  return <section id="pa-book-discover" className="pa-book-discover" aria-labelledby="pa-book-discover-title"><header><p className="pa-book-eyebrow">À CHAQUE LECTURE, SA PLACE</p><h2 id="pa-book-discover-title">À lire aujourd’hui.<br /><em>À retrouver demain.</em></h2><p>Découvrez les options et le contenu de chaque édition avant de choisir.</p></header><div className="pa-book-editions"><article><span>01 / LIRE</span><h3>L’édition numérique</h3><p>Votre lecture personnelle en PDF, à parcourir sur votre ordinateur ou votre tablette.</p><Link to="/theme-natal">Découvrir le PDF ↗</Link></article><article><span>02 / CONSERVER</span><h3>Le livre imprimé</h3><p>Le plaisir du papier et d’une couverture à votre prénom. Découvrez les éditions brochée et reliée.</p><Link to="/composer?edition=brochee">Explorer les éditions papier ↗</Link></article></div>{previewPdf && <a className="pa-book-preview-cta" href={previewPdf} target="_blank" rel="noopener noreferrer" data-testid="natal-book-preview-cta">
+  <span className="pa-book-preview-cta__icon" aria-hidden="true">
+    <svg width="22" height="26" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 1h11l6 6v16a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+      <path d="M14 1v6h6" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+      <text x="11" y="20" textAnchor="middle" fontSize="6.4" fontWeight="700" fontFamily="Inter, Arial, sans-serif" fill="currentColor" letterSpacing="0.3">PDF</text>
+    </svg>
+  </span>
+  <span className="pa-book-preview-cta__body">
+    <span className="pa-book-preview-cta__title">Feuilleter un extrait du livre</span>
+    <span className="pa-book-preview-cta__meta">Aperçu PDF · 32 pages · lecture dans votre navigateur</span>
+  </span>
+  <span className="pa-book-preview-cta__arrow" aria-hidden="true">↗</span>
+</a>}<ol className="pa-book-process"><li><h3>Votre naissance</h3><p>Renseignez vos informations et choisissez votre édition.</p></li><li><h3>Votre lecture</h3><p>Explorez votre ciel dans une démarche symbolique et personnelle.</p></li><li><h3>Votre chemin</h3><p>Revenez aux chapitres à votre rythme, avec votre liberté d’interprétation.</p></li></ol></section>;
 }
