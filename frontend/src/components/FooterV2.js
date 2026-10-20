@@ -43,8 +43,10 @@ export default function FooterV2() {
           {/* Brand */}
           <div>
             <div style={{
-              fontFamily: 'Playfair Display, serif',
-              fontSize: 24, fontWeight: 500,
+              fontFamily: "'Fraunces', 'Playfair Display', serif",
+              fontSize: 26, fontWeight: 400,
+              letterSpacing: '-0.015em',
+              fontVariationSettings: "'opsz' 144, 'SOFT' 50",
               color: 'var(--plume-ivory)', marginBottom: 12,
             }}>
               Plume <span style={{ color: 'var(--plume-gold)' }}>Astrale</span>
