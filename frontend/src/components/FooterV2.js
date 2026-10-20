@@ -1,192 +1,162 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Instagram, Mail, Facebook, Twitter } from 'lucide-react';
-import CelestialBackdrop from './CelestialBackdrop';
 
-// Configuration des réseaux sociaux — URLs à mettre à jour quand les comptes
-// sont créés. Passer une chaîne vide pour masquer une icône.
+// Configuration des réseaux sociaux
 const SOCIAL_LINKS = {
   instagram: 'https://instagram.com/plumeastrale.fr',
-  facebook: 'https://www.facebook.com/plumeastrale',  // à créer/vérifier
-  x:        'https://x.com/plumeastrale',              // à créer/vérifier
-  // linkedin retiré — pas de compte Plume Astrale sur LinkedIn.
+  facebook: 'https://www.facebook.com/plumeastrale',
+  x:        'https://x.com/plumeastrale',
 };
 
 /**
- * Footer V3 — refonte identité visuelle Feb 2026
- * Fond nuit Plume Astrale, liens secondaires + mentions légales + réseaux
+ * Footer V3 — version simplifiée Feb 2026
+ * Fond bleu nuit uni, uniquement logo + mentions légales + réseaux sociaux.
+ * La navigation commerciale/éditoriale est désormais gérée par la section
+ * "Explore ton univers" juste au-dessus du footer sur la home.
  */
 export default function FooterV2() {
   const { pathname } = useLocation();
-  // Prototype /experience uniquement : l'accueil affiche le footer légal (CGV, RGPD).
   if (pathname === '/experience' || pathname.startsWith('/experience/')) {
     return null;
   }
   const year = new Date().getFullYear();
 
   return (
-    <footer data-testid="footer-v2" style={{
-      background: 'var(--plume-night)',
-      color: 'var(--pa-muted)',
-      borderTop: '1px solid rgba(212,175,55,0.15)',
-      fontFamily: 'Inter, sans-serif',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      <CelestialBackdrop density={50} shootingStars={false} />
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 24px 32px', position: 'relative', zIndex: 1 }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: 48,
-        }}>
+    <footer
+      data-testid="footer-v2"
+      style={{
+        background: '#0A1130',
+        color: 'rgba(244,239,230,0.72)',
+        borderTop: '1px solid rgba(212,175,55,0.18)',
+        fontFamily: 'Inter, sans-serif',
+      }}
+    >
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 24px 28px' }}>
+        <div
+          className="footer-v2__row"
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 32,
+          }}
+        >
           {/* Brand */}
-          <div>
-            <div style={{
+          <Link
+            to="/"
+            data-testid="footer-v2-brand"
+            style={{
               fontFamily: "'Fraunces', 'Playfair Display', serif",
-              fontSize: 26, fontWeight: 400,
+              fontSize: 24,
+              fontWeight: 400,
               letterSpacing: '-0.015em',
               fontVariationSettings: "'opsz' 144, 'SOFT' 50",
-              color: 'var(--plume-ivory)', marginBottom: 12,
-            }}>
-              Plume <span style={{ color: 'var(--plume-gold)' }}>Astrale</span>
-            </div>
-            <p style={{
-              fontSize: 14, lineHeight: 1.6, margin: 0,
-              color: 'rgba(244,239,230,0.60)', maxWidth: 260,
-            }}>
-              L&apos;astrologie qui sait ton prénom.<br />
-              Personnalisée à partir de ton ciel.
-            </p>
-          </div>
+              color: 'var(--plume-ivory)',
+              textDecoration: 'none',
+            }}
+          >
+            Plume <span style={{ color: 'var(--plume-gold)' }}>Astrale</span>
+          </Link>
 
-          {/* Explorer */}
-          <div>
-            <FooterHeading>Explorer</FooterHeading>
-            <FooterLink to="/">Accueil</FooterLink>
-            <FooterLink to="/livres">Livres imprimés</FooterLink>
-            <FooterLink to="/blog">Blog</FooterLink>
-            <FooterLink to="/temoignages">Témoignages</FooterLink>
-            <FooterLink to="/theme-natal" testid="footer-v2-theme-natal">Thème natal</FooterLink>
-            <FooterLink to="/synastrie" testid="footer-v2-synastrie">Compatibilité amoureuse</FooterLink>
-            <FooterLink to="/voyage-karmique" testid="footer-v2-voyage-karmique">Voyage karmique</FooterLink>
-            <FooterLink to="/astrocartographie" testid="footer-v2-astrocarto">Astrocartographie</FooterLink>
-          </div>
-
-          {/* Horoscope — silo SEO ouvert (audit Feb 2026) */}
-          <div>
-            <FooterHeading>Horoscope</FooterHeading>
-            <FooterLink to="/horoscope" testid="footer-v2-horoscope-hub">Tous les signes</FooterLink>
-            <FooterLink to="/quotidien" testid="footer-v2-horoscope-jour">Horoscope du jour</FooterLink>
-            <FooterLink to="/horoscope/belier" testid="footer-v2-horo-belier">Bélier</FooterLink>
-            <FooterLink to="/horoscope/taureau" testid="footer-v2-horo-taureau">Taureau</FooterLink>
-            <FooterLink to="/horoscope/gemeaux" testid="footer-v2-horo-gemeaux">Gémeaux</FooterLink>
-            <FooterLink to="/horoscope/cancer" testid="footer-v2-horo-cancer">Cancer</FooterLink>
-            <FooterLink to="/horoscope/lion" testid="footer-v2-horo-lion">Lion</FooterLink>
-            <FooterLink to="/horoscope/vierge" testid="footer-v2-horo-vierge">Vierge</FooterLink>
-            <FooterLink to="/horoscope/balance" testid="footer-v2-horo-balance">Balance</FooterLink>
-            <FooterLink to="/horoscope/scorpion" testid="footer-v2-horo-scorpion">Scorpion</FooterLink>
-            <FooterLink to="/horoscope/sagittaire" testid="footer-v2-horo-sagittaire">Sagittaire</FooterLink>
-            <FooterLink to="/horoscope/capricorne" testid="footer-v2-horo-capricorne">Capricorne</FooterLink>
-            <FooterLink to="/horoscope/verseau" testid="footer-v2-horo-verseau">Verseau</FooterLink>
-            <FooterLink to="/horoscope/poissons" testid="footer-v2-horo-poissons">Poissons</FooterLink>
-          </div>
-
-          {/* Le journal — 3 articles remplaçant l'ancien bloc home 5.5 (audit 2026-02-26) */}
-          <div>
-            <FooterHeading>Le journal</FooterHeading>
-            <FooterLink to="/blog/comprendre-le-retour-de-saturne" testid="footer-v2-blog-saturne">
-              Le retour de Saturne
-            </FooterLink>
-            <FooterLink to="/blog/calculer-son-chemin-de-vie-avec-precision" testid="footer-v2-blog-chemin">
-              Calculer son chemin de vie
-            </FooterLink>
-            <FooterLink to="/blog/theme-natal-vocation-professionnelle" testid="footer-v2-blog-vocation">
-              Thème natal et vocation
-            </FooterLink>
-          </div>
-
-          {/* Aide */}
-          <div>
-            <FooterHeading>Aide</FooterHeading>
-            <FooterLink to="/contact" testid="footer-v2-contact-link">Contact</FooterLink>
-            <FooterLink to="/inscription">Créer un compte</FooterLink>
-            <FooterLink to="/connexion">Se connecter</FooterLink>
-            <FooterLink to="/mon-compte">Mon espace</FooterLink>
-            <FooterLink to="/credits" testid="footer-v2-credits-link">Comprendre les crédits</FooterLink>
-            <a href="mailto:contact@plume-astrale.fr" style={footerLinkStyle} data-testid="footer-v2-contact">
-              contact@plume-astrale.fr
-            </a>
-          </div>
-
-          {/* Légal */}
-          <div>
-            <FooterHeading>Légal</FooterHeading>
+          {/* Legal links */}
+          <nav
+            aria-label="Liens légaux"
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: 24,
+            }}
+          >
             <FooterLink to="/mentions-legales" testid="footer-v2-mentions">Mentions légales</FooterLink>
-            <FooterLink to="/cgv" testid="footer-v2-cgv">Conditions générales</FooterLink>
+            <FooterLink to="/cgv" testid="footer-v2-cgv">CGV</FooterLink>
             <FooterLink to="/confidentialite" testid="footer-v2-confidentialite">Confidentialité</FooterLink>
+            <FooterLink to="/contact" testid="footer-v2-contact-link">Contact</FooterLink>
             <button
               type="button"
               onClick={() => window.dispatchEvent(new Event('open-cookie-preferences'))}
-              style={{
-                background: 'transparent', border: 'none', padding: 0,
-                color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left',
-              }}
               data-testid="footer-v2-cookies"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                margin: 0,
+                color: 'rgba(244,239,230,0.72)',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                cursor: 'pointer',
+                letterSpacing: '0.02em',
+              }}
             >
-              Gérer les cookies
+              Cookies
             </button>
-            <div style={{
-              fontSize: 12, color: 'rgba(244,239,230,0.4)',
-              marginTop: 14, letterSpacing: '0.04em',
-            }}>
-              RGPD · CNIL · Stripe PCI-DSS
-            </div>
+          </nav>
 
-            {/* Réseaux sociaux */}
-            <div style={{ display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
-              {SOCIAL_LINKS.instagram && (
-                <a href={SOCIAL_LINKS.instagram} aria-label="Instagram · @plumeastrale.fr"
-                  target="_blank" rel="noopener noreferrer"
-                  data-testid="footer-v2-instagram"
-                  style={socialIcon}>
-                  <Instagram style={{ width: 18, height: 18 }} strokeWidth={1.6} />
-                </a>
-              )}
-              {SOCIAL_LINKS.facebook && (
-                <a href={SOCIAL_LINKS.facebook} aria-label="Facebook"
-                  target="_blank" rel="noopener noreferrer"
-                  data-testid="footer-v2-facebook"
-                  style={socialIcon}>
-                  <Facebook style={{ width: 18, height: 18 }} strokeWidth={1.6} />
-                </a>
-              )}
-              {SOCIAL_LINKS.x && (
-                <a href={SOCIAL_LINKS.x} aria-label="X (Twitter)"
-                  target="_blank" rel="noopener noreferrer"
-                  data-testid="footer-v2-x"
-                  style={socialIcon}>
-                  <Twitter style={{ width: 18, height: 18 }} strokeWidth={1.6} />
-                </a>
-              )}
-              <a href="mailto:contact@plume-astrale.fr" aria-label="Email"
-                data-testid="footer-v2-email-icon"
-                style={socialIcon}>
-                <Mail style={{ width: 18, height: 18 }} strokeWidth={1.6} />
+          {/* Socials */}
+          <div
+            style={{ display: 'flex', gap: 10, alignItems: 'center' }}
+            data-testid="footer-v2-socials"
+          >
+            {SOCIAL_LINKS.instagram && (
+              <a
+                href={SOCIAL_LINKS.instagram}
+                aria-label="Instagram · @plumeastrale.fr"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="footer-v2-instagram"
+                style={socialIcon}
+              >
+                <Instagram style={{ width: 16, height: 16 }} strokeWidth={1.6} />
               </a>
-            </div>
+            )}
+            {SOCIAL_LINKS.facebook && (
+              <a
+                href={SOCIAL_LINKS.facebook}
+                aria-label="Facebook"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="footer-v2-facebook"
+                style={socialIcon}
+              >
+                <Facebook style={{ width: 16, height: 16 }} strokeWidth={1.6} />
+              </a>
+            )}
+            {SOCIAL_LINKS.x && (
+              <a
+                href={SOCIAL_LINKS.x}
+                aria-label="X (Twitter)"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="footer-v2-x"
+                style={socialIcon}
+              >
+                <Twitter style={{ width: 16, height: 16 }} strokeWidth={1.6} />
+              </a>
+            )}
+            <a
+              href="mailto:contact@plume-astrale.fr"
+              aria-label="Email"
+              data-testid="footer-v2-email-icon"
+              style={socialIcon}
+            >
+              <Mail style={{ width: 16, height: 16 }} strokeWidth={1.6} />
+            </a>
           </div>
         </div>
 
-        <div style={{
-          marginTop: 48,
-          paddingTop: 24,
-          borderTop: '1px solid rgba(244,239,230,0.08)',
-          fontSize: 12,
-          color: 'rgba(244,239,230,0.42)',
-          textAlign: 'center',
-          letterSpacing: '0.06em',
-        }}>
+        <div
+          style={{
+            marginTop: 32,
+            paddingTop: 20,
+            borderTop: '1px solid rgba(244,239,230,0.08)',
+            fontSize: 12,
+            color: 'rgba(244,239,230,0.45)',
+            textAlign: 'center',
+            letterSpacing: '0.06em',
+          }}
+        >
           © {year} Plume Astrale · Tous droits réservés · Fait avec soin en France
         </div>
       </div>
@@ -195,19 +165,20 @@ export default function FooterV2() {
 }
 
 const footerLinkStyle = {
-  display: 'block',
-  padding: '5px 0',
-  fontSize: 14,
+  fontSize: 13,
   color: 'rgba(244,239,230,0.72)',
   textDecoration: 'none',
   transition: 'color 200ms ease',
   fontFamily: 'Inter, sans-serif',
+  letterSpacing: '0.02em',
 };
 
 const socialIcon = {
   display: 'inline-flex',
-  alignItems: 'center', justifyContent: 'center',
-  width: 40, height: 40,
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 34,
+  height: 34,
   borderRadius: 999,
   border: '1px solid rgba(212,175,55,0.35)',
   color: 'var(--plume-gold)',
@@ -215,26 +186,15 @@ const socialIcon = {
   textDecoration: 'none',
 };
 
-function FooterHeading({ children }) {
-  return (
-    <div style={{
-      fontFamily: 'Inter, sans-serif',
-      fontSize: 12, fontWeight: 600,
-      letterSpacing: '0.14em',
-      textTransform: 'uppercase',
-      color: 'var(--plume-gold)',
-      marginBottom: 16,
-    }}>
-      {children}
-    </div>
-  );
-}
-
 function FooterLink({ to, children, testid }) {
   return (
-    <Link to={to} data-testid={testid} style={footerLinkStyle}
+    <Link
+      to={to}
+      data-testid={testid}
+      style={footerLinkStyle}
       onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--plume-gold)')}
-      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(244,239,230,0.72)')}>
+      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(244,239,230,0.72)')}
+    >
       {children}
     </Link>
   );

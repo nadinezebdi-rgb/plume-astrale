@@ -1,5 +1,13 @@
 # Plume Astrale — PRD
 
+## 2026-02-20 — Lot "Redesign bas de homepage + Navbar beige + Harmonisation Fraunces"
+- **Navbar** : fond `--plume-ivory` (beige) remplaçant `--plume-night`. Logo et liens passés en encre `rgba(17,22,37,0.78)` + icône mobile toggle en `--plume-night`. Résout l'effet "navbar noyée dans le hero".
+- **Section "Explore ton univers"** : nouveau composant `/app/frontend/src/components/ExploreUniversSection.jsx` (+ CSS) injecté dans `HomeExperienceV3.jsx` juste avant le footer. 3 cartes (Thème natal → `/theme-natal`, Compatibilité amoureuse → `/synastrie`, Horoscope du jour → `/quotidien`) sur fond gradient indigo/bleu nuit `#0F1A3A → #141F47 → #0C132E` avec starfield subtil. Chaque carte a son accent couleur (gold, rose, warm yellow) et hover translate -6px. data-testid `explore-univers-section` + `explore-univers-card-{key}`. Responsive : 3 colonnes → 2+1 (<960px) → 1 (<640px).
+- **Footer simplifié** : `FooterV2.js` entièrement réécrit. Supprimé : `CelestialBackdrop` (étoiles), colonnes Explorer/Horoscope/Journal/Aide. Conservé : logo "Plume Astrale" (Fraunces), nav légale inline (Mentions légales, CGV, Confidentialité, Contact, Cookies), icônes sociales (Instagram, Facebook, X, Email) + copyright. Fond `#0A1130` solide.
+- **Harmonisation Fraunces (pages commerciales)** : `pages/ThemeNatalOneshot.js` — tous les `Cormorant Garamond` remplacés par `'Fraunces', 'Playfair Display', serif` (Cinzel conservé pour eyebrows mystiques). `pages/ComposerPage.jsx` — `"Playfair Display", serif` et `"Cormorant Garamond", serif` remplacés par `"Fraunces", ...` (Cinzel conservé).
+- Testing : screenshots desktop (1920) sur `/`, `/theme-natal`, `/composer` — rendu validé. Pas d'overflow horizontal.
+
+
 ## 2026-02-20 — Lot "Preview PDF public" + Build:SEO
 - Généré `/app/frontend/public/demos/theme-natal-sample.pdf` (75 KB, 32 pages, "Amélie" anonymisée) via `routes.admin_preview_v3._demo_data` + `natal_pdf_adapter.generate_manuscrit_pdf` (moteur V2 forcé).
 - Ajouté `REACT_APP_NATAL_BOOK_PREVIEW_URL=/demos/theme-natal-sample.pdf` dans `frontend/.env`. Le lien "Feuilleter un extrait réel du PDF ↗" s'affiche désormais dans la section bump `AstralBookEditorial`.
