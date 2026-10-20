@@ -1,5 +1,231 @@
 # Plume Astrale — PRD
 
+## 2026-02-20 — Lot "Checkout synastrie câblé + Weekly digest + Hero auto-lock"
+### Checkout synastrie vraiment câblé
+- Nouvelle page `/app/frontend/src/pages/SynastrieCheckout.jsx` à la route `/synastrie/checkout` : form 2 personnes (prénom/date/lieu) + email, pré-rempli depuis `localStorage.plume_astrale_data`, lit `ab_variant` (localStorage) + `ab_session_id` (sessionStorage) et POST `/api/synastrie/checkout` qui redirige vers Stripe Checkout.
+- `SynastrieSales.js` : `ctaTargetGuest`/`ctaTargetAuth` pointent désormais vers `/synastrie/checkout`.
+- `SynastrieLeadThanks.jsx` : CTA upsell pointe vers `/synastrie/checkout`.
+- `Paiement.js` : legacy redirect `?product=synastrie` → `/synastrie/checkout` (clients historiques).
+- GA4 events : `begin_checkout` au mount, `add_payment_info` avant redirect Stripe (avec `variant` dans metadata).
+- Testid : `synastrie-checkout-page`, `synastrie-checkout-form`, `synastrie-checkout-p1-prenom|date|place`, `synastrie-checkout-p2-prenom|date|place`, `synastrie-checkout-email`, `synastrie-checkout-submit`, `synastrie-checkout-error`.
+
+### Weekly digest Resend (vendredi 9h UTC)
+- Service `/app/backend/services/weekly_digest.py` : boucle qui dort jusqu'au prochain vendredi 9h UTC puis envoie un email digest à `ADMIN_ALERT_EMAIL`.
+- Métriques agrégées (7j) : A/B stats `home_hero_h1` + `synastrie_exit_intent` (variantes/shown/conversions/rate avec badge 🏆 au leader), leads générés, achats synastrie 49€, alertes système.
+- HTML premium avec style Fraunces + Cinzel, couleurs par variante gagnante.
+- Après l'envoi, déclenche `experiment_auto_lock.check_and_lock_experiment()` pour les 2 expériences.
+- Note : Search Console non intégré (requiert OAuth2 séparé) — backlog.
+
+### Variante hero auto-lock
+- **Migration** : `/app/backend/migrations/2026_02_experiment_locks.sql` — table `public.experiment_locks` (primary key `experiment`, variant, locked_at, reason).
+- **Service** : `/app/backend/services/experiment_auto_lock.py` — `check_and_lock_experiment(experiment)` qui :
+  1. Si lock existant → noop
+  2. Agrège shown/cta_click par variante
+  3. Si toutes ont `shown >= 500` ET leader lift ≥10% vs 2e → upsert lock
+  4. Retourne `{status: locked|already_locked|insufficient_data|unclear_winner|error, winner, variants}`
+- **Route publique** : `GET /api/experiments/{experiment}/variant` → `{experiment, variant, locked}` pour que le frontend bascule sur la variante verrouillée.
+- **Frontend** : `AstralBookHero` fait un fetch au mount, et si `locked: true` + variante valide → bascule immédiatement + persiste en localStorage. Fallback random si pas de lock.
+- Déclenché automatiquement chaque vendredi par le weekly_digest loop.
+
+### Tests
+- `GET /api/experiments/home_hero_h1/variant` → `{variant: null, locked: false}` (pas encore assez de données).
+- `/synastrie/checkout` HTTP 200.
+- `POST /api/synastrie/checkout` avec `ab_variant: "B", ab_session_id: "s_test"` → le code accepte les paramètres et appelle `stripe.checkout.Session.create` avec la metadata enrichie (⚠️ 500 pré-existant : clé Stripe `sk_live_...tY5fy5` expirée, à renouveler côté Stripe Dashboard).
+- Boucles actives dans logs : astro_health + syn_followup + dns_health + weekly_digest + stripe_recovery. Weekly_digest : prochain envoi dans 65h (vendredi 9h UTC confirmé).
+
+### Migration SQL additionnelle à ajouter au consolidé
+```sql
+create table if not exists public.experiment_locks (
+  experiment text primary key,
+  variant text not null,
+  locked_at timestamptz not null default now(),
+  reason text
+);
+```
+
+
+## 2026-02-20 — Lot "Pré-rempli + A/B hero + DNS health + ab_events purchased"
+### (a) Pré-remplissage SynastrieLeadMagnet
+- `SynastrieLeadMagnet.jsx` lit `localStorage.plume_astrale_data` au mount et pré-remplit Personne 1 (prenom, birth_date, birth_place) + email si disponibles. Préserve toute saisie déjà faite (prev state check).
+
+### (b) A/B test landing hero H1
+- `AstralBookEditorial.jsx > AstralBookHero` : 3 variantes du titre H1 (A=actuelle "Votre ciel. Votre histoire. En livre.", B="L'astrologie qui sait votre prénom.", C="Ce que votre ciel cherchait à vous dire.") persistées en `localStorage.plume_hero_variant`.
+- Chaque variante a eyebrow + titleHtml + lead copy indépendants.
+- Trackés via `trackABEvent('home_hero_h1', variant, 'shown'|'cta_click')` au mount et au click du CTA principal.
+- Attribut DOM `data-ab-variant="A|B|C"` sur la section hero pour debugging/scraping.
+
+### (c) Health-check DNS/SSL plume-astrale.fr
+- Service `/app/backend/services/dns_domain_health.py` : boucle 6h qui ping `https://plume-astrale.fr/` et inspecte le cert SSL via `ssl.create_default_context`.
+- 3 scénarios d'alerte Resend (cooldown 12h) :
+  - `ssl_broken` : cert invalide/chain cassé → alerte immédiate
+  - `ssl_expiring` : expire dans ≤14 jours → alerte avec `days_remaining`
+  - `http_fail_streak` : 3 réponses non-2xx consécutives → alerte DNS/reverse-proxy down
+- Alertes aussi persistées dans `admin_alerts` (type `dns_domain_{reason}`) pour le dashboard.
+- Route `GET /api/health/dns-domain` pour check manuel.
+- Grace period 4 min au boot pour éviter faux positifs réseau.
+- **Résultat live** : `plume-astrale.fr` → `ok:true, HTTP 200, SSL expire 2027-01-08 (dans 80j)`. Le support avait une info périmée OU le DNS a été fixé entre temps.
+
+### (d) ab_events `purchased` depuis Stripe webhook
+- `services/synastrie_oneshot.create_synastrie_checkout()` accepte 2 nouveaux paramètres optionnels : `ab_variant` + `ab_session_id`, propagés dans Stripe `metadata`.
+- `handle_synastrie_webhook()` : à chaque `checkout.session.completed` avec `payment_status=paid`, lit `ab_variant`/`ab_session_id` depuis la metadata et insert `{experiment: synastrie_exit_intent, variant, event_name: purchased, metadata: {stripe_session_id, amount_eur: 49}}` dans `ab_events`.
+- Route `POST /api/synastrie/checkout` enrichie : `SynastrieCheckoutRequest` accepte `ab_variant` + `ab_session_id`.
+- Dégrade gracieusement si table `ab_events` absente (warning actionnable).
+- ⚠️ Note : actuellement le flow frontend `/paiement?product=synastrie` ne transite pas par cette route (passe par Paiement.js qui gère un autre produit). L'infra backend est prête pour le jour où le flow sera câblé — ou pour le flow lead-magnet → checkout direct.
+
+### Tests
+- `/api/health/dns-domain` → `ok:true, HTTP 200, SSL 80j`.
+- `/api/health/astrology-io` (régression) → `ok:true, latency 757ms`.
+- 4 loops actives dans logs : astro_health + syn_followup + dns_health + stripe_recovery_nightly.
+- Visual screenshot : Variante B hero "L'astrologie qui sait votre prénom." rendue en Fraunces avec eyebrow + lead copy adaptée.
+
+
+## 2026-02-20 — Lot "AB stats + Email relance J+2 + Migration consolidée"
+### A/B Stats first-party dashboard
+- **Migration** : `/app/backend/migrations/2026_02_ab_events.sql` — table `public.ab_events` (experiment, variant, event_name, session_id, metadata).
+- **Tracking lib** : `/app/frontend/src/lib/abTracking.js` — `trackABEvent(experiment, variant, event_name, metadata)` qui POST `/api/analytics/ab-event` avec un session_id anonyme en sessionStorage. Fire-and-forget + keepalive.
+- **Backend** :
+  - `POST /api/analytics/ab-event` (route publique) — toujours 200, dégrade gracieusement si table absente.
+  - `GET /api/admin/ab-stats?experiment=X&period=7d|30d|all` — agrège par variante avec `shown/dismissed/converted/conversion_rate`.
+- **Frontend** : component `AdminABStatsBlock.jsx` affiche grid des variantes avec taux de conversion gros et badge "Meilleure" sur la variante gagnante. Intégré en haut de `/admin/alerts`.
+- **Hooks** : `SynastrieExitIntentModal.jsx` call `trackABEvent('synastrie_exit_intent', variant, 'shown'|'dismissed')`, `SynastrieLeadMagnet.jsx` call `'converted'` à l'envoi réussi.
+
+### Email relance J+2 synastrie
+- **Migration** : `/app/backend/migrations/2026_02_synastrie_lead_followups.sql` — table `public.synastrie_lead_followups` (email unique, lead_id, resend_id, sent_at) pour idempotence.
+- **Service** : `/app/backend/services/synastrie_lead_followup.py` — boucle asyncio 6h qui scanne `oracle_leads` dans la fenêtre 42h–54h (J+2 ± 6h), filtre ceux déjà acheteurs (`synastrie_purchases.status = paid`) ou déjà relancés, puis envoie l'email.
+- **Email** : `send_synastrie_lead_followup_email(email, first_name)` dans `resend_service.py` — copy "chaleureuse" avec code `SYNEXT10` -10% (bouton gold stylisé) → `/synastrie?lead_followup=1`.
+- **Promo Stripe** : ⚠️ Le code `SYNEXT10` doit être créé manuellement dans Stripe Dashboard (coupon -10% off, 48h ou max_uses pour la rareté). L'email reste pertinent même sans — le visiteur peut acheter au prix normal.
+- **Hook server** : `_asyncio.create_task(synastrie_lead_followup_loop())` dans startup event.
+
+### Migration SQL consolidée
+- `/app/backend/migrations/2026_02_explore_lot_consolidated.sql` — crée les 3 tables (admin_alerts + ab_events + synastrie_lead_followups) en un seul SQL idempotent. **1 seule exécution dans le SQL Editor Supabase couvre toutes les features du lot.**
+
+### Tests
+- `POST /api/analytics/ab-event` → HTTP 200 `{ok:false, reason:"persist_failed"}` (dégrade gracieusement, log actionnable).
+- `GET /api/admin/ab-stats` → 401 unauth (sécurisé).
+- Loops démarrées dans logs : `[astro_health]` + `[syn_followup] boucle démarrée — relance J+2 toutes les 6h`.
+- Warning actionnable : `[ab_event] Table ab_events absente — exécuter 2026_02_ab_events.sql`.
+
+
+## 2026-02-20 — Lot "Toast + A/B exit-intent + Filters admin + Migration SQL prête"
+### Toast confirmation lead synastrie
+- `SynastrieLeadMagnet.jsx` : après `success`, affiche un toast éphémère fixe en haut d'écran ("Extrait envoyé · redirection…", pastille gold+checkmark vert, animation fade-in 320ms) pendant 1s, puis `navigate('/synastrie/extrait-envoye')`.
+- data-testid : `synastrie-lead-toast`.
+
+### A/B test exit-intent copy
+- `SynastrieExitIntentModal.jsx` : 2 variantes `A` (titre neutre "Un aperçu de votre lien, offert") et `B` (titre urgence "Avant de partir / On vous offre un extrait de 3 pages"). Pick 50/50 au premier mount, persisté dans `localStorage.plume_syn_exit_intent_variant`.
+- Variante propagée au `SynastrieLeadMagnet` via nouvelles props `copy` + `variantKey`. Les events GA4 `exit_intent_shown`, `exit_intent_dismissed`, `synastrie_free_extract_sent` incluent la clé `variant` pour l'analyse.
+- Testid ajouté : `synastrie-lead-title`.
+
+### Admin alerts filters
+- Backend `GET /api/admin/alerts` enrichi : query params `alert_type` (exact), `period` (`7d` | `30d` | `all`), `status` (`open` | `resolved`). Validation regex côté FastAPI. Retourne les filtres appliqués dans la réponse.
+- Frontend `AdminAlerts.jsx` : barre de filtres (3 selects + bouton "Réinitialiser") qui re-fetchent à chaque changement via useCallback dependency. Testids : `admin-alerts-filters`, `admin-alerts-filter-type`, `admin-alerts-filter-period`, `admin-alerts-filter-status`, `admin-alerts-filter-reset`.
+
+### Migration SQL admin_alerts
+- Fichier prêt : `/app/backend/migrations/2026_02_admin_alerts.sql` (table + 3 indexes + comment).
+- Je ne peux pas exécuter du DDL via supabase-py → **action user requise** dans le SQL Editor Supabase.
+
+### Tests
+- `/api/synastrie/free-extract` → 200 success avec PDF URL.
+- `/api/admin/alerts?period=7d&status=open` → 401 unauth (route sécurisée).
+- Screenshot exit-intent variante B → copy "AVANT DE PARTIR / On vous offre un extrait de 3 pages" rendu correctement.
+
+
+## 2026-02-20 — Lot "Thanks page + Admin alerts + Hover popup + Exit-intent"
+### Thanks page synastrie
+- Nouvelle route `/synastrie/extrait-envoye` (`SynastrieLeadThanks.jsx`) : hero "merci" avec check vert + upsell "La synastrie complète 25 pages · 49€" (6 bénéfices listés + CTA `/paiement?product=synastrie`).
+- `SynastrieLeadMagnet` redirige maintenant vers cette page après succès (`setTimeout(() => navigate('/synastrie/extrait-envoye'), 300)`) et set `localStorage.plume_syn_lead_sent` pour supprimer les futures modales.
+- Events GA4 : `view_lead_thanks` au mount, `upsell_click` au click CTA.
+- Testids : `synastrie-thanks-page`, `synastrie-thanks-hero`, `synastrie-thanks-upsell`, `synastrie-thanks-upsell-cta`.
+
+### Dashboard admin alertes
+- **Migration SQL** : `/app/backend/migrations/2026_02_admin_alerts.sql` — table `public.admin_alerts` avec colonnes `alert_type, severity, subject, reason, http_status, error_detail, payload (jsonb), resend_id, recipient, resolved_at, created_at` + indexes sur created_at/type/resolved. ⚠️ **À exécuter dans le SQL Editor Supabase pour activer la persistance.**
+- **Persistance** : `_persist_alert()` ajouté dans `astrology_io_health.py` — insert non-bloquant après chaque `send_email` réussi. Log WARNING actionnable si table absente ("Exécuter 2026_02_admin_alerts.sql").
+- **Routes admin** : `GET /api/admin/alerts?limit=100` (liste desc par date, retourne `migration_needed: true` si table manquante) + `POST /api/admin/alerts/{id}/resolve` (marque `resolved_at = now()`).
+- **Page admin** : `/admin/alerts` (`AdminAlerts.jsx`) — stats "N alertes ouvertes / N total", liste cards avec type-pill coloré par état (ouvert rouge / résolu vert), bouton "Marquer résolu" par alerte, hint migration si table absente.
+- Testids : `admin-alerts-page`, `admin-alerts-refresh`, `admin-alerts-migration-hint`, `admin-alerts-empty`, `admin-alerts-list`, `admin-alert-{id}`, `admin-alert-resolve-{id}`.
+
+### Pastille signe interactive (hover popup)
+- `VisitorSignBadge.jsx` enrichi : au premier hover, fetch `/api/daily/{sign}` et affiche un popup 288px sous la pastille (gradient indigo + bordure gold) avec symbole + "Ton horoscope du jour · [Signe]" + citation italique + badge "Énergie X/10" + CTA "Lire tout mon horoscope →".
+- Cache en session (fetch 1 fois seulement), close delay 180ms (évite flash quand on bouge la souris entre pastille et popup).
+- Testids : `navbar-visitor-sign-popup`, `navbar-visitor-sign-popup-phrase`, `navbar-visitor-sign-popup-energy`, `navbar-visitor-sign-popup-cta`.
+
+### Exit-intent modal synastrie
+- `SynastrieExitIntentModal.jsx` : s'ouvre quand la souris sort par le haut (`mouseout` + `clientY <= 10` + `!relatedTarget`) sur `/synastrie`. Grace period 8s au mount pour éviter faux positifs juste après page load.
+- Mobile fallback : trigger quand le visiteur a scrollé ≥ 70% de la page (double passage pour "armement").
+- Suppression auto si lead déjà envoyé (`plume_syn_lead_sent`) OU déjà fermé il y a <24h (`plume_syn_exit_intent_dismissed`).
+- Close via X / Esc / click overlay. Body scroll locked pendant ouverture.
+- Monte `<SynastrieLeadMagnet variant="modal" />` à l'intérieur (padding/background adaptés via prop `variant`).
+- Events GA4 : `exit_intent_shown` (avec source `mouseout_top` ou `mobile_scroll_70`), `exit_intent_dismissed`.
+- Testids : `synastrie-exit-intent-modal`, `synastrie-exit-intent-close`.
+
+### Vérifications end-to-end
+- Thanks page : hero rendu + CTA upsell href=`/paiement?product=synastrie` ✓
+- Admin alerts endpoint : 401 non-auth ✓, loop astro_health run OK 785ms ✓
+- Hover popup : 288px, phrase + énergie 9/10 affichés depuis /api/daily/Cancer ✓
+- Exit-intent : déclenchement après 9s + simulation mouseout haut, close via X fonctionne, localStorage marker posé ✓
+
+
+## 2026-02-20 — Lot "Mobile verif + Lead magnet synastrie + Health 5xx + Sign badge"
+### Vérification mobile réelle
+- Screenshot 390×844 (iPhone-like) : `VIEWPORT_W=390 OVERFLOW=[]` → aucun débordement. Section Explore empile correctement en 1 colonne (<640px), badges "Feuilleter l'extrait" lisibles sur fond card.
+
+### Pastille signe sur navbar — `/app/frontend/src/components/VisitorSignBadge.jsx`
+- Lit `localStorage.plume_astrale_data.dateNaissance`, calcule le signe zodiac et affiche une pastille gold discrète (`♌ Lion`) à côté du logo "Plume Astrale" dans la navbar beige.
+- Clic → `/quotidien` (horoscope personnalisé). Écoute l'event custom `plume-sign-updated` + storage event pour live-refresh cross-tab.
+- Testid : `navbar-visitor-sign-badge`.
+- Intégration : navbar restructurée en flex-container `{logo + VisitorSignBadge}` dans `NavbarV2.js`.
+
+### Lead magnet synastrie — `/app/frontend/src/components/SynastrieLeadMagnet.jsx`
+- Section plein-écran sous `SalesPageV3` sur `/synastrie`. Formulaire 2 personnes (prénom + date de naissance) + email + consentement RGPD.
+- Appelle `POST /api/synastrie/free-extract` (endpoint existant qui génère l'extrait 3 pages via `generate_synastrie_extract` + envoie l'email Resend `send_synastrie_extract_email` + persiste le lead dans `oracle_leads`).
+- Events GA4 : `generate_lead` (click) + `synastrie_free_extract_sent` (success).
+- Testids : `synastrie-lead-magnet`, `synastrie-lead-form`, `synastrie-lead-p1-prenom|date`, `synastrie-lead-p2-prenom|date`, `synastrie-lead-email`, `synastrie-lead-consent`, `synastrie-lead-submit`, `synastrie-lead-success`, `synastrie-lead-error`.
+- Smoke test : POST `/api/synastrie/free-extract` → `HTTP 200, success:true, pdf_url:/api/assets/synastrie_extracts/extract_6745beb3....pdf`.
+
+### Health-check 5xx — extension `astrology_io_health.py`
+- Nouveau compteur `_consecutive_5xx` + seuil `CONSECUTIVE_5XX_THRESHOLD = 3`.
+- Si `500 <= status < 600`, le compteur s'incrémente. Au 3e 5xx d'affilée, alerte Resend avec `reason='5xx_streak'` et email dédié ("dégradation progressive" + lien status page).
+- Si réponse OK (200), le compteur se reset.
+- Si auth error (401/403), reset du streak 5xx avant d'envoyer alerte `reason='auth'` (pour éviter double alerte).
+- Cooldown 12h commun aux 2 types d'alertes (marker `/tmp/plume_astrology_io_last_alert.txt`).
+
+
+## 2026-02-20 — Lot "Explore ton univers 2.0 + Astro Health-Check"
+### Frontend — Explore section enrichie
+- **Décor constellation SVG inline** par carte (chart wheel pour Thème natal, cercles entrelacés pour Compatibilité, soleil rayonnant pour Horoscope) — rendu via `<ConstellationDecor variant="..." />` dans `ExploreUniversSection.jsx`. Chaque SVG hérite de `--card-accent` pour s'intégrer au thème coloré de la carte.
+- **PDF preview synastrie** : script `/app/backend/scripts/add_synastrie_sample_watermark.py` qui génère un extrait 3 pages (demo Lou/Noé) via `generate_synastrie_extract` + overlay filigrane `EXTRAIT` → `/app/frontend/public/demos/synastrie-sample.pdf` (1.35 MB). Nouvelle env var `REACT_APP_SYNASTRIE_PREVIEW_URL=/demos/synastrie-sample.pdf`. Bouton "Feuilleter l'extrait" (pastille rose) sur la carte Compatibilité avec event GA4 `synastrie_preview_click`.
+- **Horoscope live widget** : lecture de `localStorage.plume_astrale_data.dateNaissance` → calcul du signe zodiac → fetch `/api/daily/{sign}` (local, pas d'astrology-api.io). Si signe détecté, la carte affiche "POUR TOI · [SIGNE] [symbole]" + citation italique de la phrase du jour + badge "ÉNERGIE · X/10" + CTA "Lire tout mon horoscope". Sinon fallback statique.
+- data-testid ajoutés : `explore-univers-natal-preview`, `explore-univers-synastrie-preview`, `explore-univers-daily-text`, `explore-univers-daily-energy`.
+
+### Backend — Health-check astrology-api.io
+- **Nouveau service** `/app/backend/services/astrology_io_health.py` :
+  - `ping_astrology_api()` : POST `/api/v3/horoscope/sign/daily` avec la clé courante, retourne `{ok, status, latency_ms, error, key_fingerprint, checked_at}`.
+  - `astrology_io_health_loop()` : boucle asyncio toutes les 6h (grace period 120s au boot). Si 401/403, envoie une alerte Resend formatée à `ADMIN_ALERT_EMAIL=contact@plume-astrale.fr` avec marker cooldown 12h (`/tmp/plume_astrology_io_last_alert.txt`) pour éviter le spam.
+  - Alertes **seulement** sur 401/403/clé absente (pas sur timeout/5xx pour éviter faux positifs réseau).
+- **Nouvelle route** `GET /api/health/astrology-io` → ping à la demande. Fingerprint de clé masqué (`ask_c26230…5984 (len=68)`).
+- Loop ajoutée dans `server.py` startup event, à côté de stripe_recovery_nightly.
+
+### Résolution incident Astrology-API.io
+- Ancienne clé `ask_89e539a9...` révoquée (401 global sur tous endpoints) → remplacée par `ask_c2623009e8...` fournie par le user depuis dashboard.astrology-api.io.
+- Verif end-to-end : `/api/health/astrology-io → ok:true/200`, `/api/astrology/natal-chart → success:true, source:v3, chart_data complet`, 0 erreur 401 dans les logs.
+
+
+## 2026-02-20 — Lot "Redesign bas de homepage + Navbar beige + Harmonisation Fraunces"
+- **Navbar** : fond `--plume-ivory` (beige) remplaçant `--plume-night`. Logo et liens passés en encre `rgba(17,22,37,0.78)` + icône mobile toggle en `--plume-night`. Résout l'effet "navbar noyée dans le hero".
+- **Section "Explore ton univers"** : nouveau composant `/app/frontend/src/components/ExploreUniversSection.jsx` (+ CSS) injecté dans `HomeExperienceV3.jsx` juste avant le footer. 3 cartes (Thème natal → `/theme-natal`, Compatibilité amoureuse → `/synastrie`, Horoscope du jour → `/quotidien`) sur fond gradient indigo/bleu nuit `#0F1A3A → #141F47 → #0C132E` avec starfield subtil. Chaque carte a son accent couleur (gold, rose, warm yellow) et hover translate -6px. data-testid `explore-univers-section` + `explore-univers-card-{key}`. Responsive : 3 colonnes → 2+1 (<960px) → 1 (<640px).
+- **Footer simplifié** : `FooterV2.js` entièrement réécrit. Supprimé : `CelestialBackdrop` (étoiles), colonnes Explorer/Horoscope/Journal/Aide. Conservé : logo "Plume Astrale" (Fraunces), nav légale inline (Mentions légales, CGV, Confidentialité, Contact, Cookies), icônes sociales (Instagram, Facebook, X, Email) + copyright. Fond `#0A1130` solide.
+- **Harmonisation Fraunces (pages commerciales)** : `pages/ThemeNatalOneshot.js` — tous les `Cormorant Garamond` remplacés par `'Fraunces', 'Playfair Display', serif` (Cinzel conservé pour eyebrows mystiques). `pages/ComposerPage.jsx` — `"Playfair Display", serif` et `"Cormorant Garamond", serif` remplacés par `"Fraunces", ...` (Cinzel conservé).
+- Testing : screenshots desktop (1920) sur `/`, `/theme-natal`, `/composer` — rendu validé. Pas d'overflow horizontal.
+
+
+## 2026-02-20 — Lot "Preview PDF public" + Build:SEO
+- Généré `/app/frontend/public/demos/theme-natal-sample.pdf` (75 KB, 32 pages, "Amélie" anonymisée) via `routes.admin_preview_v3._demo_data` + `natal_pdf_adapter.generate_manuscrit_pdf` (moteur V2 forcé).
+- Ajouté `REACT_APP_NATAL_BOOK_PREVIEW_URL=/demos/theme-natal-sample.pdf` dans `frontend/.env`. Le lien "Feuilleter un extrait réel du PDF ↗" s'affiche désormais dans la section bump `AstralBookEditorial`.
+- Vérifications : `HTTP/2 200`, `content-type: application/pdf`, lien rendu dans le DOM (locator `a.pa-book-preview`, screenshot capturé).
+- `yarn build:seo` dans le pipeline Emergent : **support_agent** n'a trouvé aucune option self-serve. Il faut contacter `support@emergent.sh` avec le job ID, un screenshot et la raison du remplacement de `yarn build` → `yarn build:seo` (prérendu SEO).
+
+
+
 ## Original Problem Statement (v3, 2026-08-13 · strategic repositioning)
 Plume Astrale n'est plus positionné comme un « site d'astrologie » mais comme une **marque française de développement personnel** aidant les gens à comprendre les **grandes périodes de leur vie**. L'astrologie devient le moteur de calcul invisible. Concurrents : Headspace, Petit Bambou, The Pattern, coachs de vie, livres de développement personnel.
 

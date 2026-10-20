@@ -107,6 +107,20 @@ const productJsonLd = (slug, name, description, priceEur, pages, reviews) => ({
   ],
 });
 
+/* ──────────────────────────────────────────────────────────────────
+   BreadcrumbList — ajouté par page produit pour les rich snippets
+   Rend l'arborescence visible dans la SERP sous le titre.
+   ────────────────────────────────────────────────────────────────── */
+const breadcrumbJsonLd = (pageName, pagePath) => ({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Accueil', item: DOMAIN },
+    { '@type': 'ListItem', position: 2, name: 'Livres', item: `${DOMAIN}/livres` },
+    { '@type': 'ListItem', position: 3, name: pageName, item: `${DOMAIN}${pagePath}` },
+  ],
+});
+
 const FAQ_CREDITS_JSONLD = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -154,6 +168,14 @@ const SEO_DATA = {
     title: 'Plume Astrale · Ta lecture astrologique unique',
     description: "Une lecture personnelle de ton thème natal composée par Soléna. Livre imprimé prestige, livraison en 48h.",
     keywords: 'astrologie personnalisée, thème natal, livre astrologique, plume astrale',
+    ogType: 'website',
+  },
+
+  /* ─── Composer — l'atelier d'édition des livres ─── */
+  '/composer': {
+    title: "L'Atelier · Composer votre livre Plume Astrale",
+    description: "Composez votre livre à partir de votre ciel : six chapitres au choix, trois éditions. Signature éditoriale.",
+    keywords: 'composer livre astrologie, atelier plume astrale, livre personnalisé',
     ogType: 'website',
   },
 
@@ -504,6 +526,10 @@ const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp, ca
         data.productPrice,
         data.productPages,
         liveReviews,
+      ));
+      schemas.push(breadcrumbJsonLd(
+        pageTitle.replace(' · Plume Astrale', '').replace(' · Plume', ''),
+        canonicalPath,
       ));
     }
     if (data.faq) schemas.push(FAQ_CREDITS_JSONLD);

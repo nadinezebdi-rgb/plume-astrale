@@ -986,3 +986,139 @@ async def admin_pdf_failures_last_24h(
         'window_hours': hours,
         'since': cutoff,
     }
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# Admin alerts (health-checks tiers / incidents prod)
+# ═══════════════════════════════════════════════════════════════
+@router.get('/alerts')
+async def admin_alerts_list(
+    limit: int = Query(50, ge=1, le=200),
+    alert_type: Optional[str] = Query(None, description='Filtre par alert_type exact'),
+    period: Optional[str] = Query(None, regex='^(7d|30d|all)$', description='Fenêtre temporelle'),
+    status: Optional[str] = Query(None, regex='^(open|resolved)$', description='Statut'),
+    _admin: dict = Depends(require_admin),
+):
+    """Liste des alertes système envoyées (astrology-api.io health-check, etc.).
+
+    Filtres optionnels :
+      - alert_type : match exact (ex: 'astrology_io_auth')
+      - period : '7d' | '30d' | 'all' (défaut : all)
+      - status : 'open' (resolved_at IS NULL) | 'resolved'
+
+    Si la table `admin_alerts` est absente, renvoie une liste vide + un flag
+    `migration_needed` pour afficher un hint UI.
+    """
+    sb = get_admin_client()
+    try:
+        q = sb.table('admin_alerts').select(
+            'id, alert_type, severity, subject, reason, http_status, '
+            'error_detail, payload, resend_id, recipient, resolved_at, created_at'
+        )
+        if alert_type:
+            q = q.eq('alert_type', alert_type)
+        if period in ('7d', '30d'):
+            days = 7 if period == '7d' else 30
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+            q = q.gte('created_at', cutoff)
+        if status == 'open':
+            q = q.is_('resolved_at', 'null')
+        elif status == 'resolved':
+            q = q.not_.is_('resolved_at', 'null')
+        r = q.order('created_at', desc=True).limit(limit).execute()
+        items = r.data or []
+        return {
+            'items': items,
+            'total': len(items),
+            'migration_needed': False,
+            'filters': {'alert_type': alert_type, 'period': period or 'all', 'status': status or 'all'},
+        }
+    except Exception as e:
+        msg = str(e)
+        if 'admin_alerts' in msg and ('schema cache' in msg or 'does not exist' in msg):
+            logger.warning('[admin/alerts] table absente — exécuter 2026_02_admin_alerts.sql')
+            return {'items': [], 'total': 0, 'migration_needed': True, 'filters': {}}
+        raise HTTPException(status_code=500, detail=f'alerts fetch failed: {msg[:200]}')
+
+
+@router.post('/alerts/{alert_id}/resolve')
+async def admin_alert_resolve(
+    alert_id: str,
+    _admin: dict = Depends(require_admin),
+):
+    """Marque une alerte comme résolue (resolved_at = now())."""
+    sb = get_admin_client()
+    try:
+        r = sb.table('admin_alerts').update({
+            'resolved_at': datetime.now(timezone.utc).isoformat(),
+        }).eq('id', alert_id).execute()
+        return {'success': True, 'updated': len(r.data or [])}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'resolve failed: {str(e)[:200]}')
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# A/B stats dashboard (first-party tracking table ab_events)
+# ═══════════════════════════════════════════════════════════════
+@router.get('/ab-stats')
+async def admin_ab_stats(
+    experiment: str = Query(..., min_length=1, max_length=80),
+    period: Optional[str] = Query('30d', regex='^(7d|30d|all)$'),
+    _admin: dict = Depends(require_admin),
+):
+    """Agrège les évènements A/B pour un `experiment` donné.
+
+    Retourne par variante : {shown, dismissed, converted, dismiss_rate, conversion_rate}.
+    Si la table ab_events est absente → `migration_needed: true`.
+    """
+    sb = get_admin_client()
+    try:
+        q = sb.table('ab_events').select('variant, event_name').eq('experiment', experiment)
+        if period in ('7d', '30d'):
+            days = 7 if period == '7d' else 30
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+            q = q.gte('created_at', cutoff)
+        r = q.limit(50000).execute()
+        rows = r.data or []
+        agg: dict[str, dict[str, int]] = {}
+        for row in rows:
+            v = row.get('variant')
+            e = row.get('event_name')
+            if not v or not e:
+                continue
+            agg.setdefault(v, {}).setdefault(e, 0)
+            agg[v][e] += 1
+        variants = []
+        for v, counts in sorted(agg.items()):
+            shown = counts.get('shown', 0)
+            dismissed = counts.get('dismissed', 0)
+            converted = counts.get('converted', 0)
+            variants.append({
+                'variant': v,
+                'shown': shown,
+                'dismissed': dismissed,
+                'converted': converted,
+                'dismiss_rate': round(100.0 * dismissed / shown, 2) if shown else 0.0,
+                'conversion_rate': round(100.0 * converted / shown, 2) if shown else 0.0,
+                'all_events': counts,
+            })
+        return {
+            'experiment': experiment,
+            'period': period,
+            'variants': variants,
+            'total_events': len(rows),
+            'migration_needed': False,
+        }
+    except Exception as e:
+        msg = str(e)
+        if 'ab_events' in msg and ('schema cache' in msg or 'does not exist' in msg):
+            return {
+                'experiment': experiment,
+                'period': period,
+                'variants': [],
+                'total_events': 0,
+                'migration_needed': True,
+            }
+        raise HTTPException(status_code=500, detail=f'ab_stats failed: {msg[:200]}')

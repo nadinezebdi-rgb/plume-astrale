@@ -373,6 +373,43 @@ async def send_synastrie_extract_email(to_email: str, prenom1: str, prenom2: str
     return await send_email(to_email, subject, html, text)
 
 
+async def send_synastrie_lead_followup_email(to_email: str, first_name: str = 'Voyageur') -> Optional[str]:
+    """Relance J+2 : lead qui a téléchargé l'extrait gratuit mais pas encore acheté.
+
+    Mentionne un code promo SYNEXT10 (-10%) à utiliser au checkout Stripe
+    (le code doit être créé côté Stripe Dashboard par l'admin).
+    """
+    base = os.environ.get('PUBLIC_APP_URL', 'https://plume-astrale.fr').rstrip('/')
+    synastrie_full_url = f"{base}/synastrie?lead_followup=1"
+    subject = f"{first_name}, votre -10% sur le rapport complet vous attend ✦"
+    inner = (
+        _h2(f"{first_name}, l'autre moitié de votre histoire vous attend") +
+        _p("Vous avez reçu votre extrait il y a quelques jours — un premier regard sur vos deux Soleils en miroir. "
+           "Mais ce n'est qu'une page sur vingt-cinq.") +
+        _p("Le rapport complet dévoile ce que l'extrait ne pouvait pas montrer : "
+           "<strong>vos Lunes, Vénus × Mars, aspects croisés majeurs, karma relationnel, "
+           "composite, et un rituel du couple</strong> à faire chaque samedi pour cultiver l'harmonie.") +
+        _h2('Un cadeau pour cette semaine') +
+        _p("Pour vous remercier d'avoir pris le temps de lire l'extrait, voici un code "
+           "<strong style=\"font-family: monospace; letter-spacing: 2px; background: #F7F5F0; "
+           "color: #0F1A3C; padding: 3px 10px; border-radius: 4px;\">SYNEXT10</strong> "
+           "qui vous offre <strong>-10% sur le rapport complet</strong>, à utiliser dans les 48h.") +
+        _btn('Composer notre rapport complet', synastrie_full_url) +
+        _p("Pas d'engagement, pas d'abonnement. Un paiement unique, et le rapport arrive dans votre boîte "
+           "mail en moins de 10 minutes.") +
+        _p("<em>Avec douceur,<br>Plume</em>")
+    )
+    html = _wrap(inner, preview=f'{first_name}, -10% sur votre rapport complet (48h)')
+    text = (
+        f"{first_name}, voici votre code -10% sur le rapport complet synastrie : SYNEXT10\n"
+        f"Composer le rapport : {synastrie_full_url}\n\n"
+        f"Avec douceur,\nPlume"
+    )
+    return await send_email(to_email, subject, html, text)
+
+
+
+
 def _extract_sign_from_birth_date(value: str) -> str:
     """Convertit YYYY-MM-DD en signe zodiacal occidental (EN)."""
     y, m, d = [int(x) for x in str(value).split('-')]

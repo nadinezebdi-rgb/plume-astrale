@@ -173,7 +173,7 @@ const ThemeNatalOneshot = () => {
           </p>
           <h1
             style={{
-              fontFamily: 'Cormorant Garamond, serif',
+              fontFamily: "'Fraunces', 'Playfair Display', serif",
               fontWeight: 300,
               lineHeight: 1.05,
               fontSize: 'clamp(38px, 6vw, 66px)',
@@ -190,7 +190,7 @@ const ThemeNatalOneshot = () => {
             className="text-base md:text-lg max-w-2xl mx-auto mb-8"
             style={{
               color: 'rgba(227,215,255,0.85)',
-              fontFamily: 'Cormorant Garamond, serif',
+              fontFamily: "'Fraunces', 'Playfair Display', serif",
               fontStyle: 'italic',
               lineHeight: 1.6,
             }}
@@ -200,7 +200,7 @@ const ThemeNatalOneshot = () => {
           </p>
           <div className="inline-flex items-baseline gap-2 mb-2" data-testid="theme-natal-oneshot-price">
             <span
-              style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 48, fontWeight: 300, color: '#D4AF37' }}
+              style={{ fontFamily: "'Fraunces', 'Playfair Display', serif", fontSize: 48, fontWeight: 300, color: '#D4AF37' }}
             >
               24€
             </span>
@@ -224,7 +224,7 @@ const ThemeNatalOneshot = () => {
               <Icon className="w-7 h-7 mb-3" style={{ color: '#D4AF37' }} strokeWidth={1.2} />
               <h3
                 className="text-lg mb-2"
-                style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}
+                style={{ fontFamily: "'Fraunces', 'Playfair Display', serif", color: '#F5EEE0', fontWeight: 400 }}
               >
                 {title}
               </h3>
@@ -247,7 +247,7 @@ const ThemeNatalOneshot = () => {
         </div>
 
         <div className="plume-glass p-6 max-w-xl mx-auto mb-10 text-center" data-testid="theme-natal-oneshot-print-offer">
-          <h3 className="text-lg mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}>
+          <h3 className="text-lg mb-2" style={{ fontFamily: "'Fraunces', 'Playfair Display', serif", color: '#F5EEE0', fontWeight: 400 }}>
             Envie du livre imprimé ?
           </h3>
           <p className="text-sm mb-4" style={{ color: 'rgba(227,215,255,0.72)', lineHeight: 1.6 }}>
@@ -284,7 +284,7 @@ const ThemeNatalOneshot = () => {
           <div className="plume-glass p-8 md:p-10 max-w-xl mx-auto" data-testid="theme-natal-oneshot-form">
             <h2
               className="text-2xl mb-6 text-center"
-              style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0', fontWeight: 400 }}
+              style={{ fontFamily: "'Fraunces', 'Playfair Display', serif", color: '#F5EEE0', fontWeight: 400 }}
             >
               Tes coordonnées astrales
             </h2>
@@ -425,14 +425,14 @@ const ThemeNatalOneshot = () => {
                       <div style={{ color: '#4ADE80', fontFamily: 'Cinzel, serif', letterSpacing: '0.1em', marginBottom: 4 }}>
                         CODE APPLIQUÉ
                       </div>
-                      <div style={{ color: 'rgba(227,215,255,0.85)', lineHeight: 1.5, fontFamily: 'Cormorant Garamond, serif' }}>
+                      <div style={{ color: 'rgba(227,215,255,0.85)', lineHeight: 1.5, fontFamily: "'Fraunces', 'Playfair Display', serif" }}>
                         {promoState.message}
                       </div>
                       <div className="mt-2 flex items-baseline gap-2">
                         <span style={{ color: 'rgba(227,215,255,0.5)', textDecoration: 'line-through', fontSize: 14 }}>
                           {PACK_PRICE.toFixed(2)}€
                         </span>
-                        <span style={{ color: '#D4AF37', fontSize: 22, fontFamily: 'Cormorant Garamond, serif', fontWeight: 400 }}>
+                        <span style={{ color: '#D4AF37', fontSize: 22, fontFamily: "'Fraunces', 'Playfair Display', serif", fontWeight: 400 }}>
                           {promoState.final_amount === 0 ? 'Gratuit' : `${promoState.final_amount.toFixed(2)}€`}
                         </span>
                       </div>
@@ -451,7 +451,7 @@ const ThemeNatalOneshot = () => {
                     style={{ background: 'rgba(248,113,113,0.10)', border: '1px solid rgba(248,113,113,0.35)' }}
                   >
                     <X className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#F87171' }} strokeWidth={2} />
-                    <div className="text-xs" style={{ color: '#F87171', fontFamily: 'Cormorant Garamond, serif' }}>
+                    <div className="text-xs" style={{ color: '#F87171', fontFamily: "'Fraunces', 'Playfair Display', serif" }}>
                       {promoState.message}
                     </div>
                   </div>

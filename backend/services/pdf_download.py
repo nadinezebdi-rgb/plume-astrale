@@ -115,12 +115,34 @@ def upload_pdf_to_reports_bucket(
                 {'content-type': 'application/pdf', 'cache-control': cache_ctrl},
             )
 
-        # Génère l'URL publique (bucket doit être public sur Supabase)
+        # SEC-004 hardening : préfère une URL SIGNÉE time-boxed (90 jours) à une
+        # URL publique permanente. Si un lien fuite (logs, referer, partage),
+        # il expire naturellement — les clients continuent d'accéder via le
+        # token-URL /api/pdf/download qui reste valide.
+        SIGNED_URL_TTL_SEC = 90 * 24 * 3600  # 90 jours = couvre la rétention produit
+        signed_url: Optional[str] = None
+        try:
+            signed = sb.storage.from_('reports').create_signed_url(path, SIGNED_URL_TTL_SEC)
+            if isinstance(signed, dict):
+                signed_url = (signed.get('signedURL') or signed.get('signed_url')
+                              or signed.get('signedUrl'))
+                # supabase-py v2 retourne parfois une URL relative /storage/v1/...
+                if signed_url and signed_url.startswith('/'):
+                    base = os.environ.get('SUPABASE_URL', '').rstrip('/')
+                    if base:
+                        signed_url = f'{base}{signed_url}'
+        except Exception as e:
+            logger.info(f'[pdf_upload] signed URL unavailable, fallback public: {e}')
+
+        if signed_url:
+            logger.info(f'[pdf_upload] {clean_kind}/{clean_sid}{suffix} → signed (90d)')
+            return signed_url.rstrip('?')
+
+        # Fallback : URL publique (ancien comportement, moins sûr)
         public_url = sb.storage.from_('reports').get_public_url(path)
-        # supabase-py retourne parfois avec un trailing '?', normalise
         if isinstance(public_url, str):
             public_url = public_url.rstrip('?')
-        logger.info(f'[pdf_upload] {clean_kind}/{clean_sid}{suffix} → {public_url}')
+        logger.info(f'[pdf_upload] {clean_kind}/{clean_sid}{suffix} → public (fallback)')
         return public_url
     except Exception as e:
         logger.warning(f'[pdf_upload] échec upload Supabase pour {product_kind}/{session_id}: {e}')

@@ -77,6 +77,8 @@ import ReinitialiserMotDePasse from "./pages/ReinitialiserMotDePasse";
 import NotreCadre from "./pages/NotreCadre";
 import SynastrieSales from "./pages/SynastrieSales";
 import SynastrieSucces from "./pages/SynastrieSucces";
+import SynastrieLeadThanks from "./pages/SynastrieLeadThanks";
+import SynastrieCheckout from "./pages/SynastrieCheckout";
 import AstroSexo from "./pages/AstroSexo";
 import RencontresAstrales from "./pages/RencontresAstrales";
 import RencontresUltimeSucces from "./pages/RencontresUltimeSucces";
@@ -92,6 +94,7 @@ import LivresLanding from "./pages/LivresLanding";
 import AdminPdfTest from "./pages/AdminPdfTest";
 import AdminQrStats from "./pages/AdminQrStats";
 import AdminLuluOrders from "./pages/AdminLuluOrders";
+import AdminAlerts from "./pages/AdminAlerts";
 import GiftCardPurchase from "./pages/GiftCardPurchase";
 import GiftCardRedeem from "./pages/GiftCardRedeem";
 import EditionRelieeMerci from "./pages/EditionRelieeMerci";
@@ -226,6 +229,8 @@ function App() {
                 element={<PackKarmiqueSucces />}
               />
               <Route path="/synastrie" element={<SynastrieSales />} />
+              <Route path="/synastrie/checkout" element={<SynastrieCheckout />} />
+              <Route path="/synastrie/extrait-envoye" element={<SynastrieLeadThanks />} />
               <Route
                 path="/synastrie/succes"
                 element={<SynastrieSucces />}
@@ -358,6 +363,7 @@ function App() {
               <Route path="/admin/pdf-test" element={<AdminPdfTest />} />
               <Route path="/admin/qr-stats" element={<AdminQrStats />} />
               <Route path="/admin/lulu-orders" element={<AdminLuluOrders />} />
+              <Route path="/admin/alerts" element={<AdminAlerts />} />
               <Route
                 path="/admin/payments-health"
                 element={<AdminPaymentsHealth />}

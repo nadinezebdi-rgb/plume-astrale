@@ -74,9 +74,7 @@
   "scripts": {
     "start": "craco start",
     "build": "craco build",
-    "test": "craco test",
-    "prerender": "node scripts/prerender.js",
-    "build:seo": "yarn build && yarn prerender"
+    "test": "craco test"
   },
   "browserslist": {
     "production": [

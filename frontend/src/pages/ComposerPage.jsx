@@ -663,11 +663,11 @@ function NavBar({ step, totalSteps, canGoNext, onPrev, onNext }) {
 // ═══════════════════════════════════════════════════════════════
 // Styles (inline pour cohérence avec EditionReliee.js)
 // ═══════════════════════════════════════════════════════════════
-const pageWrap = { maxWidth: 860, margin: '0 auto', padding: '72px 24px 160px', color: '#F5EEE0', fontFamily: '"Cormorant Garamond", serif', lineHeight: 1.65 };
+const pageWrap = { maxWidth: 860, margin: '0 auto', padding: '72px 24px 160px', color: '#F5EEE0', fontFamily: '"Fraunces", "Cormorant Garamond", serif', lineHeight: 1.65 };
 const headerStyle = { textAlign: 'center', marginBottom: 40 };
 const eyebrow = { fontFamily: '"Cinzel", serif', fontSize: '0.72rem', letterSpacing: 3, color: '#D4AF37', margin: 0 };
-const h1Style = { fontFamily: '"Playfair Display", serif', fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#F5EEE0', margin: '10px 0 32px', fontWeight: 400, lineHeight: 1.2 };
-const h2Style = { fontFamily: '"Playfair Display", serif', fontSize: '1.75rem', color: '#F5EEE0', margin: '0 0 14px', fontWeight: 400, lineHeight: 1.25 };
+const h1Style = { fontFamily: '"Fraunces", "Playfair Display", serif', fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#F5EEE0', margin: '10px 0 32px', fontWeight: 400, lineHeight: 1.2 };
+const h2Style = { fontFamily: '"Fraunces", "Playfair Display", serif', fontSize: '1.75rem', color: '#F5EEE0', margin: '0 0 14px', fontWeight: 400, lineHeight: 1.25 };
 const bodyStyle = { fontSize: '1.05rem', color: '#F5EEE0', margin: '10px 0' };
 const optional = { color: '#B9B0D5', fontSize: '0.8em' };
 const reassure = { color: '#B9B0D5', fontSize: '0.88rem', margin: '14px 0 0', letterSpacing: 0.3, textAlign: 'center' };
@@ -690,13 +690,13 @@ const chaptersGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 
 const formulasGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12, marginTop: 10 };
 const formulaCard = { position: 'relative', padding: '16px 18px', background: 'rgba(11,26,46,0.7)', border: '1px solid rgba(212,175,55,0.22)', borderRadius: 6, color: '#F5EEE0', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.18s', display: 'flex', flexDirection: 'column', gap: 6 };
 const formulaCardActive = { borderColor: '#D4AF37', background: 'rgba(212,175,55,0.10)', boxShadow: '0 0 20px rgba(212,175,55,0.14)' };
-const formulaLabel = { fontFamily: '"Playfair Display", serif', fontSize: '1.05rem', color: '#F5EEE0' };
+const formulaLabel = { fontFamily: '"Fraunces", "Playfair Display", serif', fontSize: '1.05rem', color: '#F5EEE0' };
 const formulaTagline = { fontSize: '0.85rem', color: '#B9B0D5', fontStyle: 'italic', lineHeight: 1.4 };
 const formulaCheck = { position: 'absolute', top: 8, right: 10, width: 22, height: 22, borderRadius: '50%', background: '#D4AF37', color: '#0F1A3C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: '0.75rem' };
 const chapterCard = { position: 'relative', padding: '20px 18px', background: 'rgba(11,26,46,0.7)', border: '1px solid rgba(212,175,55,0.25)', borderRadius: 6, color: '#F5EEE0', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.18s' };
 const chapterCardSelected = { borderColor: '#D4AF37', background: 'rgba(212,175,55,0.10)', boxShadow: '0 0 24px rgba(212,175,55,0.15)' };
 const chapterHead = { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 };
-const chapterName = { fontFamily: '"Playfair Display", serif', fontSize: '1.15rem', color: '#F5EEE0' };
+const chapterName = { fontFamily: '"Fraunces", "Playfair Display", serif', fontSize: '1.15rem', color: '#F5EEE0' };
 const chapterPrice = { fontFamily: '"Cinzel", serif', fontSize: '0.78rem', letterSpacing: 1.5, color: '#E8C766' };
 const chapterSubtitle = { fontSize: '0.92rem', color: '#B9B0D5', margin: '4px 0 8px', fontStyle: 'italic' };
 const chapterTagline = { fontSize: '0.9rem', color: 'rgba(245,238,224,0.75)', margin: '4px 0 10px', lineHeight: 1.45 };
@@ -708,22 +708,22 @@ const editionsList = { display: 'grid', gridTemplateColumns: '1fr', gap: 14, mar
 const editionCard = { position: 'relative', padding: '22px 22px 20px', background: 'rgba(11,26,46,0.7)', border: '1px solid rgba(212,175,55,0.25)', borderRadius: 6, color: '#F5EEE0', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.18s' };
 const editionCardSelected = { borderColor: '#D4AF37', background: 'rgba(212,175,55,0.10)', boxShadow: '0 0 24px rgba(212,175,55,0.15)' };
 const editionHead = { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' };
-const editionName = { fontFamily: '"Playfair Display", serif', fontSize: '1.35rem' };
+const editionName = { fontFamily: '"Fraunces", "Playfair Display", serif', fontSize: '1.35rem' };
 const editionPrice = { fontFamily: '"Cinzel", serif', fontSize: '1.05rem', letterSpacing: 2, color: '#E8C766' };
 const editionDelivery = { fontSize: '0.95rem', color: '#B9B0D5', margin: '8px 0 4px' };
 const editionBase = { fontFamily: '"Cinzel", serif', fontSize: '0.66rem', letterSpacing: 1.5, color: 'rgba(212,175,55,0.65)', margin: 0, textTransform: 'uppercase' };
-const runningTotal = { marginTop: 24, padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.28)', borderRadius: 4, fontFamily: '"Playfair Display", serif', fontSize: '1.2rem' };
+const runningTotal = { marginTop: 24, padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.28)', borderRadius: 4, fontFamily: '"Fraunces", "Playfair Display", serif', fontSize: '1.2rem' };
 
 const recapBlock = { marginTop: 12, padding: '10px 0' };
 const recapLine = { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '10px 0', borderBottom: '1px solid rgba(212,175,55,0.14)', margin: 0 };
 const totalBox = { marginTop: 26, padding: '18px 20px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', background: 'rgba(212,175,55,0.08)', border: '1px solid #D4AF37', borderRadius: 4 };
 const totalLabel = { fontFamily: '"Cinzel", serif', fontSize: '0.85rem', letterSpacing: 2, color: '#F5EEE0' };
-const totalValue = { fontFamily: '"Playfair Display", serif', fontSize: '2rem', color: '#E8C766', fontWeight: 500 };
+const totalValue = { fontFamily: '"Fraunces", "Playfair Display", serif', fontSize: '2rem', color: '#E8C766', fontWeight: 500 };
 const errorBox = { marginTop: 16, padding: '12px 14px', background: 'rgba(232,144,107,0.14)', border: '1px solid rgba(232,144,107,0.35)', borderRadius: 4, color: '#F5EEE0' };
 
 const priceRail = { position: 'sticky', bottom: 96, marginTop: 24, padding: '14px 20px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, background: 'rgba(15,26,60,0.9)', border: '1px solid rgba(212,175,55,0.28)', borderRadius: 4, backdropFilter: 'blur(6px)' };
 const priceRailLabel = { fontFamily: '"Cinzel", serif', fontSize: '0.7rem', letterSpacing: 2, color: '#D4AF37', textTransform: 'uppercase' };
-const priceRailValue = { fontFamily: '"Playfair Display", serif', fontSize: '1.75rem', color: '#F5EEE0' };
+const priceRailValue = { fontFamily: '"Fraunces", "Playfair Display", serif', fontSize: '1.75rem', color: '#F5EEE0' };
 const priceRailChapters = { fontSize: '0.85rem', color: '#B9B0D5', textAlign: 'right', flex: '1 1 auto' };
 
 const navBar = { display: 'flex', justifyContent: 'space-between', gap: 12, marginTop: 20 };

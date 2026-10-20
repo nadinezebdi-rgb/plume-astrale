@@ -6,6 +6,7 @@ import { useCart } from '@/context/CartContext';
 import { LECTURES, OUTILS } from '@/config/catalog';
 import '../home-experience/HomeExperience.css';
 import { AstralBookHero, AstralBookDiscovery, AstralPathways } from '@/components/AstralBookEditorial';
+import ExploreUniversSection from '@/components/ExploreUniversSection';
 
 const JSONLD = {
   '@context': 'https://schema.org',
@@ -96,6 +97,7 @@ export default function HomeExperienceV3() {
           </div>
         </section>
       </main>
+      <ExploreUniversSection />
     </>
   );
 }

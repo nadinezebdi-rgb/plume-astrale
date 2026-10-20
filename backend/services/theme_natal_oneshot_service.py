@@ -565,13 +565,19 @@ async def _send_theme_natal_email(email: str, first_name: str, pdf_link: str, se
         to_email=email, subject=subject, product='theme_natal_oneshot',
         from_email=sender, session_id=session_id,
     )
-    fn = (first_name or 'ami(e)').strip().title()
+    # SEC-005 hardening : échappe strictement les champs utilisateur dans le HTML
+    # (prevent stored XSS via first_name manipulé par le client).
+    import html as _html
+    from urllib.parse import quote as _url_quote
+    fn_raw = (first_name or 'ami(e)').strip().title()
+    fn = _html.escape(fn_raw)
 
     # URL de bump "livre relié" — pointe vers la page frontend qui pré-remplit
     # le prénom + session source. Variable d'environnement optionnelle
     # pour l'origin (frontend public), défaut sur l'app.
     _origin = os.environ.get('PUBLIC_ORIGIN', 'https://plume-astrale.fr').rstrip('/')
-    bump_url = f"{_origin}/natal-print?token={session_id or ''}&prenom={fn}"
+    # URL-encode le prénom pour la query string (sécurité + encodage correct).
+    bump_url = f"{_origin}/natal-print?token={_url_quote(session_id or '', safe='')}&prenom={_url_quote(fn_raw, safe='')}"
 
     html = f"""
     <div style="max-width:600px;margin:0 auto;font-family:'Cormorant Garamond',Georgia,serif;color:#F5EEE0;background:#111625;padding:40px 24px;">

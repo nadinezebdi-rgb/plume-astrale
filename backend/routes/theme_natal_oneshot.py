@@ -102,8 +102,15 @@ async def theme_natal_oneshot_checkout(
     }
 
     # Promo publique (Thème Natal offert) : ouverte à tous, encadrée par date/plafond/e-mail
+    # Hardening SEC-001 : rate-limit par IP sur le flow promo pour prévenir
+    # l'épuisement du cap global via emails jetables rotatifs.
     public_free = False
     if payload.promo_code and public_free_promo.is_active_code(payload.promo_code):
+        from services.rate_limiter import check_rate_limit
+        # Max 3 tentatives par IP par heure (le cap global reste 500 lifetime)
+        await check_rate_limit(
+            request, key='theme_natal_promo', max_hits=3, window_seconds=3600,
+        )
         ok, msg = public_free_promo.check_redeemable(payload.promo_code, payload.email)
         if not ok:
             raise HTTPException(400, msg)

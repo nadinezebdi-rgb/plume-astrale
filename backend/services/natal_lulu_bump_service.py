@@ -303,11 +303,14 @@ async def _send_bump_confirmation_email(
     *, email: str, first_name: str, price_eur: float, country: str,
 ) -> None:
     """Email de confirmation après achat bump — statut 'en production'."""
+    import html as _html
     api_key = os.environ.get('RESEND_API_KEY', '').strip()
     sender = os.environ.get('SENDER_EMAIL', 'Plume Astrale <contact@plume-astrale.fr>')
     if not (api_key and email):
         return
-    fn = (first_name or 'ami(e)').strip().title()
+    # SEC-005 hardening : échappe strictement les champs utilisateur dans le HTML.
+    fn = _html.escape((first_name or 'ami(e)').strip().title())
+    country_safe = _html.escape((country or 'FR').upper())
     subject = f"Votre livre relié est en route, {fn} ✦"
     html = f"""
     <div style="max-width:600px;margin:0 auto;font-family:'Cormorant Garamond',Georgia,serif;color:#1C1B26;background:#F0E6D2;padding:40px 24px;">
@@ -325,7 +328,7 @@ async def _send_bump_confirmation_email(
           imprimé en haute qualité — vient d'entrer en production chez notre partenaire d'impression.
         </p>
         <p style="color:#3A3022;line-height:1.65;font-size:15px;">
-          <strong>Délai estimé :</strong> impression 3-5 jours + livraison vers {country}.<br/>
+          <strong>Délai estimé :</strong> impression 3-5 jours + livraison vers {country_safe}.<br/>
           Nous vous enverrons le numéro de suivi dès l'expédition.
         </p>
         <div style="margin-top:28px;padding:16px;background:#F0E6D2;border-radius:12px;">

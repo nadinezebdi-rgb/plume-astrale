@@ -53,6 +53,7 @@ from routes.experience_funnel import (
 )
 from routes.experience_tarot_reveal import router as experience_tarot_reveal_router
 from routes.health import router as health_router
+from routes.astrology_io_health import router as astrology_io_health_router
 from routes.promo import router as promo_router
 from routes.astrology_v3 import router as astrology_v3_router
 from routes.oracle import router as oracle_router
@@ -62,6 +63,8 @@ from routes.subscriptions import router as subscriptions_router
 from routes.library import router as library_router
 from routes.rencontres import router as rencontres_router
 from routes.analytics import router as analytics_router
+from routes.ab_analytics import router as ab_analytics_router
+from routes.experiments import router as experiments_router
 from routes.archetype import make_router as make_archetype_router
 from routes.kabbale import router as kabbale_router
 from routes.pack_karmique import router as pack_karmique_router
@@ -131,6 +134,7 @@ api_router.include_router(experience_funnel_admin_router)
 api_router.include_router(experience_tarot_reveal_router)
 api_router.include_router(admin_book_router)
 api_router.include_router(health_router)
+api_router.include_router(astrology_io_health_router)
 api_router.include_router(promo_router)
 api_router.include_router(astrology_v3_router)
 api_router.include_router(oracle_router)
@@ -139,6 +143,8 @@ api_router.include_router(synastrie_router)
 api_router.include_router(library_router)
 api_router.include_router(rencontres_router)
 api_router.include_router(analytics_router)
+api_router.include_router(ab_analytics_router)
+api_router.include_router(experiments_router)
 api_router.include_router(compatible_router)
 api_router.include_router(gift_cards_router)
 api_router.include_router(edition_reliee_router)
@@ -3651,6 +3657,18 @@ async def _start_cart_recovery():
     # Recovery nocturne Stripe : rejoue le batch chaque nuit sur les 24h (Feb 2026)
     from services.stripe_recovery_scheduler import stripe_recovery_nightly_loop
     _asyncio.create_task(stripe_recovery_nightly_loop())
+    # Health-check continu de la clé astrology-api.io (ping 6h + alerte Resend si 401/403)
+    from services.astrology_io_health import astrology_io_health_loop
+    _asyncio.create_task(astrology_io_health_loop())
+    # Relance J+2 des leads synastrie non convertis (-10% SYNEXT10)
+    from services.synastrie_lead_followup import synastrie_lead_followup_loop
+    _asyncio.create_task(synastrie_lead_followup_loop())
+    # Health-check du domaine canonique (SSL + HTTP), alertes Resend ciblées
+    from services.dns_domain_health import dns_domain_health_loop
+    _asyncio.create_task(dns_domain_health_loop())
+    # Journal hebdo vendredi 9h UTC + auto-lock variantes gagnantes
+    from services.weekly_digest import weekly_digest_loop
+    _asyncio.create_task(weekly_digest_loop())
 
 
 

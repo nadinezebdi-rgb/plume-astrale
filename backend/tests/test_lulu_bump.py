@@ -44,10 +44,30 @@ def test_compute_client_price_above_base_for_expensive_destinations():
     assert price >= 115.0
 
 
-def test_verify_webhook_signature_mock_mode_passes():
+def test_verify_webhook_signature_rejects_unsigned_requests(monkeypatch):
+    """SEC-003 hardening : webhook sans signature est TOUJOURS rejeté,
+    même en mode mock, pour empêcher les événements forgés."""
     from services.lulu_client import verify_webhook_signature
-    # En mode mock, tous les webhooks sont acceptés
-    assert verify_webhook_signature(b'{"foo":1}', None) is True
+    monkeypatch.setenv('LULU_WEBHOOK_SECRET', 'test-secret')
+    assert verify_webhook_signature(b'{"foo":1}', None) is False
+
+
+def test_verify_webhook_signature_accepts_valid_hmac(monkeypatch):
+    """SEC-003 : webhook signé correctement est accepté."""
+    import hmac as _hmac
+    import hashlib as _hashlib
+    from services.lulu_client import verify_webhook_signature
+    monkeypatch.setenv('LULU_WEBHOOK_SECRET', 'test-secret')
+    body = b'{"foo":1}'
+    sig = _hmac.new(b'test-secret', body, _hashlib.sha256).hexdigest()
+    assert verify_webhook_signature(body, f'sha256={sig}') is True
+
+
+def test_verify_webhook_signature_rejects_missing_secret(monkeypatch):
+    """SEC-003 : si LULU_WEBHOOK_SECRET absent, tous les webhooks sont rejetés."""
+    from services.lulu_client import verify_webhook_signature
+    monkeypatch.delenv('LULU_WEBHOOK_SECRET', raising=False)
+    assert verify_webhook_signature(b'{"foo":1}', 'sha256=abcd') is False
 
 
 def test_cover_pdf_renders_single_landscape_page(tmp_path):

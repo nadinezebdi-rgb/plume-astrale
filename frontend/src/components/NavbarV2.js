@@ -4,6 +4,7 @@ import { Menu, X, LogIn, LogOut, User, ChevronDown, ArrowRight, ChevronRight, Sh
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { LECTURES, OUTILS } from '@/config/catalog';
+import VisitorSignBadge from '@/components/VisitorSignBadge';
 
 /**
  * Navbar V3 — refonte Feb 2026 + mega menu Services.
@@ -25,7 +26,7 @@ const linkBase = {
   fontFamily: 'Inter, sans-serif',
   fontSize: 13,
   fontWeight: 500,
-  color: 'rgba(244,239,230,0.78)',
+  color: 'rgba(17,22,37,0.78)',
   textDecoration: 'none',
   padding: '6px 4px',
   transition: 'color 200ms ease, border-color 200ms ease',
@@ -81,8 +82,9 @@ export default function NavbarV2() {
 
   const navStyle = {
     position: 'sticky', top: 0, zIndex: 100,
-    background: 'var(--plume-night)',
-    borderBottom: '1px solid rgba(212,175,55,0.18)',
+    background: 'var(--plume-ivory)',
+    borderBottom: '1px solid rgba(17,22,37,0.08)',
+    boxShadow: '0 1px 2px rgba(17,22,37,0.04)',
     width: '100%',
   };
 
@@ -91,16 +93,18 @@ export default function NavbarV2() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
 
-          <Link to="/" data-testid="navbar-logo-v2" style={{
-            fontFamily: 'Playfair Display, serif',
-            fontWeight: 500, fontSize: 22, letterSpacing: '0.02em',
-            color: 'var(--plume-ivory)', textDecoration: 'none',
-            display: 'flex', alignItems: 'baseline', gap: 6,
-            flexShrink: 0,  // évite compression du logo sur écrans étroits
-            whiteSpace: 'nowrap',
-          }}>
-            Plume <span style={{ color: 'var(--plume-gold)' }}>Astrale</span>
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <Link to="/" data-testid="navbar-logo-v2" style={{
+              fontFamily: 'Playfair Display, serif',
+              fontWeight: 500, fontSize: 22, letterSpacing: '0.02em',
+              color: 'var(--plume-night)', textDecoration: 'none',
+              display: 'flex', alignItems: 'baseline', gap: 6,
+              whiteSpace: 'nowrap',
+            }}>
+              Plume <span style={{ color: 'var(--plume-gold)' }}>Astrale</span>
+            </Link>
+            <VisitorSignBadge />
+          </div>
 
           {/* Desktop links */}
           <div className="ps-desktop-nav" style={{ display: 'none', alignItems: 'center', gap: 18 }}>
@@ -134,7 +138,7 @@ export default function NavbarV2() {
                   aria-label={l.cart && cartCount ? `Panier, ${cartCount} article${cartCount > 1 ? 's' : ''}` : undefined}
                   style={{ ...(active ? { ...linkBase, ...linkActive } : linkBase), display: 'inline-flex', alignItems: 'center', gap: 6 }}
                   onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = 'var(--plume-gold)'; }}
-                  onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = 'rgba(244,239,230,0.78)'; }}>
+                  onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = 'rgba(17,22,37,0.78)'; }}>
                   {l.cart && <ShoppingCart size={15} strokeWidth={1.8} aria-hidden="true" />}
                   {l.label}{l.cart && cartCount > 0 && <span data-testid="nav-cart-count" style={{ color: 'var(--plume-gold)', fontSize: 12 }}>{cartCount}</span>}
                 </Link>
@@ -150,7 +154,7 @@ export default function NavbarV2() {
               <Link to="/connexion" data-testid="nav-v2-login"
                 style={{ ...linkBase, display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--plume-gold)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(244,239,230,0.78)'; }}>
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(17,22,37,0.78)'; }}>
                 <LogIn style={{ width: 15, height: 15 }} strokeWidth={1.8} />
                 Connexion
               </Link>
@@ -166,7 +170,7 @@ export default function NavbarV2() {
             onClick={() => setOpen(!open)}
             data-testid="nav-v2-mobile-toggle"
             aria-label="Menu"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--plume-ivory)', padding: 4 }}>
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--plume-night)', padding: 4 }}>
             {open ? <X strokeWidth={1.5} /> : <Menu strokeWidth={1.5} />}
           </button>
         </div>
@@ -431,7 +435,7 @@ function AccountMenu({ user, onLogout }) {
       <button data-testid="nav-v2-account-btn" style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
         background: 'transparent', border: 'none', cursor: 'pointer',
-        color: 'rgba(244,239,230,0.85)',
+        color: 'rgba(17,22,37,0.85)',
         fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500,
         padding: '6px 4px',
       }}>
