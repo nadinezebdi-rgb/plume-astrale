@@ -317,24 +317,30 @@ async def synastry_share_card(payload: SynastryCardRequest):
 
 @router.post('/natal/pdf')
 async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_current_user)):
-    """Génère le PDF Thème Natal Plume Astrale (livre de luxe, style Cartier/Dior).
+    """Génère le PDF Thème Natal Plume Astrale (Livre Astral enrichi 45-50 pages).
 
-    Tarif : 20 crédits (offert si Premium actif). Si `person` n'est pas fourni,
+    Tarif : 80 crédits (offert si Premium actif). Si `person` n'est pas fourni,
     utilise le profil de l'utilisatrice.
 
-    Pipeline :
-      1. `/charts/natal` (astrology-api.io v3) — récupère positions planétaires
-      2. `natal_pdf_v2` (Plume Astrale) — génère le PDF luxe (couverture nuit,
-         médaillon doré, dorures Cinzel, signature Soléna en fin de rapport)
+    Pipeline unifié avec le flux 24 € via `services.natal_book_service` :
+      1. `/charts/natal` + `/analysis/natal-report` (astrology-api.io v3)
+      2. anti-slop guard : refus si <5 planètes core
+      3. `enrich_natal_ultra` (11 planètes, voix Soléna — cache)
+      4. `enrich_book_chapters` (élément/modalité/trio/12 maisons/aspects/année — cache)
+      5. carte du ciel SVG → PNG → JPEG compressé
+      6. `natal_manuscript_builder` + `print_book_renderer` → PDF luxe A5
     """
     bd = None
     name = 'Voyageur'
     birth_date_iso = ''
+    no_birth_time = False
     if payload.person:
         bd = payload.person.to_birth_data()
         name = payload.person.name or name
         try:
-            birth_date_iso = f'{payload.person.year:04d}-{payload.person.month:02d}-{payload.person.day:02d}'
+            birth_date_iso = (
+                f'{payload.person.year:04d}-{payload.person.month:02d}-{payload.person.day:02d}'
+            )
         except Exception:
             birth_date_iso = ''
     else:
@@ -342,101 +348,65 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
         bd = aio.parse_profile(profile)
         name = profile.get('prenom') or name
         birth_date_iso = profile.get('birth_date') or profile.get('dateNaissance') or ''
+        no_birth_time = bool(profile.get('no_birth_time') or profile.get('heure_inconnue'))
     if not bd:
-        raise HTTPException(status_code=400, detail='Donnees natales incompletes (date, heure et lieu requis).')
+        raise HTTPException(
+            status_code=400,
+            detail='Donnees natales incompletes (date, heure et lieu requis).',
+        )
 
-    # Paywall : Thème Natal Ultra = 80 crédits (49 pages · GPT-5.4 voix Soléna · offert si Premium)
+    # Paywall : Thème Natal Ultra = 80 crédits (livre 45-50 pages · offert si Premium)
     await wallet_service.charge_or_premium(
         current_user['id'], 'theme_natal_pdf', 80, 'Thème Natal Ultra PDF',
     )
 
+    from services.natal_book_service import (
+        generate_enriched_natal_pdf, IncompleteNatalDataError,
+    )
     try:
-        # 1) Positions planétaires + rapport natal complet + aspects (API v3)
-        chart = await aio.natal_chart(bd, name=name, language='fr')
-        planets_dict = aio.extract_planets(chart)
-        asc_sign_en = aio.extract_ascendant_sign_en(chart)
-        # Rapport complet : 73 interprétations (planètes en signes, planètes en maisons, aspects)
-        # Note : l'API renvoie tout en anglais malgré language='fr' (limitation prestataire) —
-        # GPT-5.4 se charge de la traduction + reformulation en voix Soléna.
-        natal_report_data = await aio.natal_report(bd, name=name, language='fr')
-        interpretations = []
-        if isinstance(natal_report_data, dict):
-            interpretations = (
-                natal_report_data.get('interpretations')
-                or natal_report_data.get('data', {}).get('interpretations')
-                or []
-            )
-
-        # 2) Enrichissement GPT-5.4 ULTRA (voix Soléna, 11 paragraphes + synthèse aspects)
-        ai_result: dict = {}
-        if interpretations:
-            from services.natal_ai_enrichment import enrich_natal_ultra
-            ai_result = await enrich_natal_ultra(
-                prenom=name,
-                birth_data=bd,
-                api_interpretations=interpretations,
-                tier='ultra',
-            )
-            if ai_result.get('_source'):
-                import logging as _lg
-                _lg.getLogger(__name__).info(
-                    f'[natal_pdf] enrichissement AI = {ai_result.get("_source")} pour {name}'
-                )
-
-        # 3) Adapte au format attendu par le générateur luxe
-        def _sign_fr(planet_key: str) -> str:
-            p = planets_dict.get(planet_key)
-            if not p:
-                return ''
-            return aio.sign_to_fr(p.get('sign') or '') or ''
-
-        # Passe l'AI complet (11 planètes + synthèse) via user_data.ai_interpretations
-        # L'adaptateur pick ce qui est présent, fallback statique pour le reste
-        user_data = {
-            'prenom': name,
-            'birth_date': birth_date_iso,
-            'sun_sign': _sign_fr('sun'),
-            'moon_sign': _sign_fr('moon'),
-            'venus_sign': _sign_fr('venus'),
-            'mars_sign': _sign_fr('mars'),
-            'ascendant_sign': aio.sign_to_fr(asc_sign_en) if asc_sign_en else '',
-            'ai_interpretations': ai_result,
-        }
-
-        # 4) Génération PDF luxe (Ultra : 11 planètes si AI a répondu, sinon 5 legacy)
-        # 4a) Carte du ciel réelle — SVG astrology-api.io v3 → PNG (best-effort, ne bloque pas)
-        chart_png_bytes: bytes | None = None
-        try:
-            svg_str = await aio.chart_svg_render(bd, name=name, theme='dark', language='fr')
-            if svg_str:
-                # Kerykeion utilise des CSS variables, CairoSVG ne les résout pas.
-                from services.svg_utils import resolve_svg_css_vars
-                import cairosvg
-                svg_resolved = resolve_svg_css_vars(svg_str)
-                chart_png_bytes = cairosvg.svg2png(
-                    bytestring=svg_resolved.encode('utf-8'),
-                    output_width=1600,
-                )
-        except Exception as _wheel_e:
-            import logging as _lg
-            _lg.getLogger(__name__).warning(f'[natal_pdf] chart wheel indisponible: {_wheel_e}')
-
-        from services.natal_pdf_adapter import generate_manuscrit_pdf
-        pdf = generate_manuscrit_pdf(
-            user_data=user_data, planets_data=list(planets_dict.values()),
-            chart_png_bytes=chart_png_bytes,
+        result = await generate_enriched_natal_pdf(
+            name=name,
+            birth_data=bd,
+            no_birth_time=no_birth_time,
+            require_complete=True,
+            output='digital',
+            birth_date_iso=birth_date_iso,
         )
-    except Exception as e:
-        # Refund si échec
+        pdf = result['pdf_bytes']
+    except IncompleteNatalDataError as e:
         try:
-            await wallet_service.add_credits(current_user['id'], 80, 'Remboursement Theme Natal PDF (echec)', tx_type='refund')
+            await wallet_service.add_credits(
+                current_user['id'], 80,
+                'Remboursement Theme Natal PDF (donnees astro incompletes)',
+                tx_type='refund',
+            )
         except Exception:
             pass
-        raise HTTPException(status_code=502, detail=f'Service astrologique indisponible (PDF): {e}')
+        raise HTTPException(
+            status_code=502,
+            detail=f'Données astrologiques incomplètes : {e}',
+        )
+    except Exception as e:
+        try:
+            await wallet_service.add_credits(
+                current_user['id'], 80,
+                'Remboursement Theme Natal PDF (echec)',
+                tx_type='refund',
+            )
+        except Exception:
+            pass
+        raise HTTPException(
+            status_code=502,
+            detail=f'Service astrologique indisponible (PDF): {e}',
+        )
 
     if not pdf:
         try:
-            await wallet_service.add_credits(current_user['id'], 80, 'Remboursement Theme Natal PDF (echec)', tx_type='refund')
+            await wallet_service.add_credits(
+                current_user['id'], 80,
+                'Remboursement Theme Natal PDF (echec)',
+                tx_type='refund',
+            )
         except Exception:
             pass
         raise HTTPException(status_code=502, detail='Génération PDF échouée.')

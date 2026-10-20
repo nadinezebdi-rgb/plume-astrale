@@ -258,31 +258,25 @@ async def _generate_pdf(
 
     if report_type == 'theme-natal':
         from services import astrology_io_service as aio
-        from services.natal_pdf_adapter import generate_manuscrit_pdf
+        from services.natal_book_service import (
+            generate_enriched_natal_pdf, IncompleteNatalDataError,
+        )
         bd = aio.parse_profile(profile)
         if not bd:
             raise ValueError('Données natales incomplètes.')
-        chart = await aio.natal_chart(bd, name=name, language='fr')
-        planets_dict = aio.extract_planets(chart)
-        asc_sign_en = aio.extract_ascendant_sign_en(chart)
-
-        def _sign_fr(planet_key: str) -> str:
-            p = planets_dict.get(planet_key)
-            return aio.sign_to_fr(p.get('sign') or '') if p else ''
-
-        user_data = {
-            'prenom': name,
-            'birth_date': birth_date_iso,
-            'sun_sign': _sign_fr('sun'),
-            'moon_sign': _sign_fr('moon'),
-            'venus_sign': _sign_fr('venus'),
-            'mars_sign': _sign_fr('mars'),
-            'ascendant_sign': aio.sign_to_fr(asc_sign_en) if asc_sign_en else '',
-        }
-        return generate_manuscrit_pdf(
-            user_data=user_data,
-            planets_data=list(planets_dict.values()),
-        )
+        no_birth_time = bool(profile.get('no_birth_time') or profile.get('heure_inconnue'))
+        try:
+            result = await generate_enriched_natal_pdf(
+                name=name,
+                birth_data=bd,
+                no_birth_time=no_birth_time,
+                require_complete=True,
+                output='digital',
+                birth_date_iso=birth_date_iso,
+            )
+        except IncompleteNatalDataError as e:
+            raise ValueError(f'Données astrologiques incomplètes : {e}')
+        return result['pdf_bytes']
 
     if report_type == 'revolution-solaire':
         from services import astrology_io_service as aio

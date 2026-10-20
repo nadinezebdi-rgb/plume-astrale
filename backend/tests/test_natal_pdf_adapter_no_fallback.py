@@ -75,14 +75,21 @@ def test_no_hardcoded_fallback_signs_in_source():
 
 def test_theme_natal_oneshot_guards_planets_dict():
     """
-    Vérifie que theme_natal_oneshot_service refuse de générer un PDF si
-    astrology-api.io ne renvoie pas au moins 5 planètes core.
+    Vérifie que le pipeline Natal (service unifié + oneshot) refuse de générer
+    un PDF si astrology-api.io ne renvoie pas au moins 5 planètes core.
+    La garde a été extraite dans services/natal_book_service.py (Phase 1 refacto).
     """
-    src = open('/app/backend/services/theme_natal_oneshot_service.py').read()
-    # Marqueurs de la garde ajoutée pour le bug Nadine
-    assert '_CORE_PLANETS' in src, 'Garde _CORE_PLANETS absente'
-    assert '_alert_empty_planets' in src, 'Alerte email admin absente'
-    assert 'planets_core_missing' in src or "core manquantes" in src, (
+    service_src = open('/app/backend/services/natal_book_service.py').read()
+    oneshot_src = open('/app/backend/services/theme_natal_oneshot_service.py').read()
+    # Garde centralisée dans le service unifié
+    assert '_CORE_PLANETS' in service_src, 'Garde _CORE_PLANETS absente du service unifié'
+    assert 'IncompleteNatalDataError' in service_src, 'Exception typée absente'
+    # Oneshot utilise la garde + l'alerte admin
+    assert 'IncompleteNatalDataError' in oneshot_src, (
+        'Oneshot doit catcher IncompleteNatalDataError pour alerter admin'
+    )
+    assert '_alert_empty_planets' in oneshot_src, 'Alerte email admin absente du oneshot'
+    assert 'planets_core_missing' in oneshot_src or "core manquantes" in oneshot_src, (
         'Diag core_missing manquant'
     )
 
