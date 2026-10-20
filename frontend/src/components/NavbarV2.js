@@ -4,6 +4,7 @@ import { Menu, X, LogIn, LogOut, User, ChevronDown, ArrowRight, ChevronRight, Sh
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { LECTURES, OUTILS } from '@/config/catalog';
+import VisitorSignBadge from '@/components/VisitorSignBadge';
 
 /**
  * Navbar V3 — refonte Feb 2026 + mega menu Services.
@@ -92,16 +93,18 @@ export default function NavbarV2() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
 
-          <Link to="/" data-testid="navbar-logo-v2" style={{
-            fontFamily: 'Playfair Display, serif',
-            fontWeight: 500, fontSize: 22, letterSpacing: '0.02em',
-            color: 'var(--plume-night)', textDecoration: 'none',
-            display: 'flex', alignItems: 'baseline', gap: 6,
-            flexShrink: 0,  // évite compression du logo sur écrans étroits
-            whiteSpace: 'nowrap',
-          }}>
-            Plume <span style={{ color: 'var(--plume-gold)' }}>Astrale</span>
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <Link to="/" data-testid="navbar-logo-v2" style={{
+              fontFamily: 'Playfair Display, serif',
+              fontWeight: 500, fontSize: 22, letterSpacing: '0.02em',
+              color: 'var(--plume-night)', textDecoration: 'none',
+              display: 'flex', alignItems: 'baseline', gap: 6,
+              whiteSpace: 'nowrap',
+            }}>
+              Plume <span style={{ color: 'var(--plume-gold)' }}>Astrale</span>
+            </Link>
+            <VisitorSignBadge />
+          </div>
 
           {/* Desktop links */}
           <div className="ps-desktop-nav" style={{ display: 'none', alignItems: 'center', gap: 18 }}>

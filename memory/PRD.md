@@ -1,5 +1,30 @@
 # Plume Astrale — PRD
 
+## 2026-02-20 — Lot "Mobile verif + Lead magnet synastrie + Health 5xx + Sign badge"
+### Vérification mobile réelle
+- Screenshot 390×844 (iPhone-like) : `VIEWPORT_W=390 OVERFLOW=[]` → aucun débordement. Section Explore empile correctement en 1 colonne (<640px), badges "Feuilleter l'extrait" lisibles sur fond card.
+
+### Pastille signe sur navbar — `/app/frontend/src/components/VisitorSignBadge.jsx`
+- Lit `localStorage.plume_astrale_data.dateNaissance`, calcule le signe zodiac et affiche une pastille gold discrète (`♌ Lion`) à côté du logo "Plume Astrale" dans la navbar beige.
+- Clic → `/quotidien` (horoscope personnalisé). Écoute l'event custom `plume-sign-updated` + storage event pour live-refresh cross-tab.
+- Testid : `navbar-visitor-sign-badge`.
+- Intégration : navbar restructurée en flex-container `{logo + VisitorSignBadge}` dans `NavbarV2.js`.
+
+### Lead magnet synastrie — `/app/frontend/src/components/SynastrieLeadMagnet.jsx`
+- Section plein-écran sous `SalesPageV3` sur `/synastrie`. Formulaire 2 personnes (prénom + date de naissance) + email + consentement RGPD.
+- Appelle `POST /api/synastrie/free-extract` (endpoint existant qui génère l'extrait 3 pages via `generate_synastrie_extract` + envoie l'email Resend `send_synastrie_extract_email` + persiste le lead dans `oracle_leads`).
+- Events GA4 : `generate_lead` (click) + `synastrie_free_extract_sent` (success).
+- Testids : `synastrie-lead-magnet`, `synastrie-lead-form`, `synastrie-lead-p1-prenom|date`, `synastrie-lead-p2-prenom|date`, `synastrie-lead-email`, `synastrie-lead-consent`, `synastrie-lead-submit`, `synastrie-lead-success`, `synastrie-lead-error`.
+- Smoke test : POST `/api/synastrie/free-extract` → `HTTP 200, success:true, pdf_url:/api/assets/synastrie_extracts/extract_6745beb3....pdf`.
+
+### Health-check 5xx — extension `astrology_io_health.py`
+- Nouveau compteur `_consecutive_5xx` + seuil `CONSECUTIVE_5XX_THRESHOLD = 3`.
+- Si `500 <= status < 600`, le compteur s'incrémente. Au 3e 5xx d'affilée, alerte Resend avec `reason='5xx_streak'` et email dédié ("dégradation progressive" + lien status page).
+- Si réponse OK (200), le compteur se reset.
+- Si auth error (401/403), reset du streak 5xx avant d'envoyer alerte `reason='auth'` (pour éviter double alerte).
+- Cooldown 12h commun aux 2 types d'alertes (marker `/tmp/plume_astrology_io_last_alert.txt`).
+
+
 ## 2026-02-20 — Lot "Explore ton univers 2.0 + Astro Health-Check"
 ### Frontend — Explore section enrichie
 - **Décor constellation SVG inline** par carte (chart wheel pour Thème natal, cercles entrelacés pour Compatibilité, soleil rayonnant pour Horoscope) — rendu via `<ConstellationDecor variant="..." />` dans `ExploreUniversSection.jsx`. Chaque SVG hérite de `--card-accent` pour s'intégrer au thème coloré de la carte.
