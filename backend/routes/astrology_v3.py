@@ -761,3 +761,101 @@ def _extract_reply(response) -> str:
     except Exception:
         pass
     return ''
+
+
+
+# ─── EX LIBRIS PNG (Variante offerte à partager) ──────────────────────────
+#
+# Permet à toute personne ayant généré un Thème Natal de télécharger la page
+# « Ex Libris · Signature astrale » sous forme de PNG découpable à offrir.
+# Aucun coût crédit : variante offerte (viralité / référral).
+
+
+@router.post('/natal/ex-libris/png')
+async def natal_ex_libris_png(
+    payload: NatalRequest, current_user: dict = Depends(get_current_user),
+):
+    """Rend la page Ex Libris en PNG (1200×1700, A5 portrait).
+
+    Le texte est généré par GPT via `enrich_book_chapters` (cache filesystem).
+    Première génération : ~15 s. Appels suivants (même personne) : instantané.
+    Variante offerte : aucun débit crédit, accessible à tous les comptes avec
+    date de naissance renseignée.
+    """
+    bd = None
+    name = 'Voyageuse'
+    if payload.person:
+        bd = payload.person.to_birth_data()
+        name = payload.person.name or name
+    else:
+        profile = await wallet_service.get_profile(current_user['id'])
+        bd = aio.parse_profile(profile)
+        name = profile.get('prenom') or name
+    if not bd:
+        raise HTTPException(
+            status_code=400,
+            detail='Données natales incomplètes. Renseignez votre date de naissance dans votre profil.',
+        )
+
+    # 1) Positions planétaires (nécessaires pour le trio Soleil/Lune/Asc affiché)
+    try:
+        chart = await aio.natal_chart(bd, name=name, language='fr')
+    except Exception as e:
+        raise HTTPException(
+            status_code=502, detail=f'Service astrologique indisponible : {e}',
+        )
+    planets_dict = aio.extract_planets(chart) or {}
+    asc_sign_en = aio.extract_ascendant_sign_en(chart)
+
+    def _sign_fr(key: str) -> str:
+        p = planets_dict.get(key)
+        return aio.sign_to_fr(p.get('sign') or '') if p else ''
+
+    sun_sign = _sign_fr('sun')
+    moon_sign = _sign_fr('moon')
+    asc_sign = aio.sign_to_fr(asc_sign_en) if asc_sign_en else ''
+
+    # 2) Enrichissement livre (contient la clé `ex_libris`, cache si déjà généré)
+    from services.natal_book_service import _build_book_data
+
+    try:
+        natal_report_data = await aio.natal_report(bd, name=name, language='fr')
+    except Exception:
+        natal_report_data = {}
+
+    book_data = await _build_book_data(
+        name=name,
+        bd=bd,
+        planets_dict=planets_dict,
+        asc_sign_en=asc_sign_en,
+        natal_report_data=natal_report_data,
+        force_refresh=False,
+    )
+    ex_libris_text = str((book_data or {}).get('ex_libris') or '').strip()
+    if not ex_libris_text:
+        raise HTTPException(
+            status_code=502,
+            detail='Impossible de composer votre signature Ex Libris. Réessayez dans un instant.',
+        )
+
+    # 3) Rendu PNG (CPU-bound → thread pool pour ne pas bloquer la boucle async)
+    import asyncio
+    from services.ex_libris_png_renderer import render_ex_libris_png
+
+    png_bytes = await asyncio.to_thread(
+        render_ex_libris_png,
+        prenom=name,
+        ex_libris_text=ex_libris_text,
+        sun_sign=sun_sign,
+        moon_sign=moon_sign,
+        asc_sign=asc_sign,
+    )
+    safe_name = re.sub(r'[^A-Za-z0-9_-]+', '-', name).strip('-') or 'ex-libris'
+    return Response(
+        content=png_bytes,
+        media_type='image/png',
+        headers={
+            'Content-Disposition': f'attachment; filename="ex-libris-{safe_name}.png"',
+            'Cache-Control': 'no-store',
+        },
+    )

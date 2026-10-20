@@ -379,6 +379,7 @@ const MonCompte = () => {
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoMsg, setPromoMsg]         = useState(null); // {type:'success'|'error', text}
   const [pdfLoading, setPdfLoading]     = useState(false);
+  const [exLibrisLoading, setExLibrisLoading] = useState(false);
   const [cercleStatus, setCercleStatus] = useState(null);
   const [creditsInfoOpen, setCreditsInfoOpen] = useState(false);
   const [archivedReports, setArchivedReports] = useState(null); // null = pas encore chargé
@@ -608,6 +609,33 @@ const MonCompte = () => {
       alert('Erreur lors de la génération du PDF. Réessayez dans quelques instants.');
     }
     setPdfLoading(false);
+  };
+
+  /* ─── Télécharger l'Ex Libris (PNG à offrir) ─── */
+  const handleExLibrisDownload = async () => {
+    if (!profil?.birth_date) {
+      alert('Ajoutez votre date de naissance dans votre profil pour générer votre Ex Libris.');
+      return;
+    }
+    setExLibrisLoading(true);
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/astrology/v3/natal/ex-libris/png`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` }, responseType: 'blob' }
+      );
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'image/png' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `ex-libris-${profil?.prenom || 'plume'}.png`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      alert("Erreur lors de la génération de l'Ex Libris. Réessayez dans quelques instants.");
+    }
+    setExLibrisLoading(false);
   };
 
   /* ─── Re-télécharger un rapport archivé ─── */
@@ -1027,6 +1055,70 @@ const MonCompte = () => {
                 </button>
               </div>
 
+              {/* ✦ Carte Signature Ex Libris — Variante offerte (PNG découpable à offrir) */}
+              {profil?.birth_date && (
+                <div
+                  data-testid="ex-libris-gift-card"
+                  className="rounded-2xl p-6 md:p-7 mt-6"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(212,175,55,0.14) 0%, rgba(167,139,250,0.06) 100%)',
+                    border: '1px solid rgba(212,175,55,0.38)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div style={{
+                    position: 'absolute', top: -40, right: -40,
+                    width: 180, height: 180,
+                    background: 'radial-gradient(circle, rgba(212,175,55,0.22) 0%, transparent 70%)',
+                    pointerEvents: 'none',
+                  }} aria-hidden="true" />
+                  <div style={{ position: 'relative', display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: 48, height: 48, borderRadius: '50%',
+                      background: 'rgba(212,175,55,0.18)',
+                      border: '1px solid rgba(212,175,55,0.4)',
+                      flexShrink: 0,
+                    }}>
+                      <Sparkles size={22} strokeWidth={1.5} style={{ color: 'var(--pa-accent)' }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 240 }}>
+                      <p className="text-[10px] tracking-widest uppercase mb-2" style={{ color: 'var(--pa-accent)', letterSpacing: '0.22em', fontFamily: 'Cinzel, serif', fontWeight: 500 }}>
+                        Variante offerte · PNG découpable
+                      </p>
+                      <h3 className="text-lg md:text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--pa-heading)', fontWeight: 400, fontStyle: 'italic' }}>
+                        Votre Signature Ex Libris
+                      </h3>
+                      <p className="text-sm" style={{ color: 'var(--pa-body)', lineHeight: 1.6, margin: 0 }}>
+                        Composée par Plume d&apos;après votre thème natal — une page élégante à télécharger, imprimer et offrir à un proche.
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleExLibrisDownload}
+                      disabled={exLibrisLoading}
+                      data-testid="btn-ex-libris-png-card"
+                      style={{
+                        padding: '12px 24px', borderRadius: 999,
+                        background: 'var(--pa-accent)', color: '#0A1128',
+                        fontFamily: 'Cinzel, serif', fontWeight: 500,
+                        fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
+                        border: 'none',
+                        cursor: exLibrisLoading ? 'wait' : 'pointer',
+                        opacity: exLibrisLoading ? 0.7 : 1,
+                        transition: 'all 0.3s cubic-bezier(.22,.61,.36,1)',
+                        display: 'inline-flex', alignItems: 'center', gap: 8,
+                      }}
+                      onMouseEnter={(e) => { if (!exLibrisLoading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(212,175,55,0.4)'; } }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                    >
+                      {exLibrisLoading ? 'Composition…' : "Télécharger l'Ex Libris à offrir"}
+                      <ChevronRight className="w-3 h-3" strokeWidth={2.5} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Post-lecture Testimonial CTA — visible si l'utilisateur a
                   déjà consommé au moins une lecture (transaction de type deduction).
                   But : accélérer la collecte de vrais témoignages. */}
@@ -1105,6 +1197,7 @@ const MonCompte = () => {
                   >
                     Vos rapports astrologiques
                   </h2>
+                  <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
                   <button
                     onClick={handlePdfDownload}
                     disabled={pdfLoading || !profil?.birth_date}
@@ -1122,6 +1215,25 @@ const MonCompte = () => {
                   >
                     {!profil?.birth_date ? '✶ Données incomplètes' : (pdfLoading ? '⏳ Génération…' : '✶ Télécharger PDF')}
                   </button>
+                  <button
+                    onClick={handleExLibrisDownload}
+                    disabled={exLibrisLoading || !profil?.birth_date}
+                    data-testid="btn-ex-libris-png"
+                    title="Variante offerte · PNG découpable à offrir à un proche"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      padding: '8px 16px', borderRadius: 999, flexShrink: 0,
+                      background: profil?.birth_date ? 'rgba(212,175,55,0.12)' : 'rgba(148,163,184,0.12)',
+                      border: profil?.birth_date ? '1px solid rgba(212,175,55,0.4)' : '1px solid rgba(148,163,184,0.3)',
+                      color: profil?.birth_date ? 'var(--pa-accent)' : '#94A3B8',
+                      fontSize: 11,
+                      letterSpacing: '0.08em', textTransform: 'uppercase',
+                      cursor: (exLibrisLoading || !profil?.birth_date) ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {exLibrisLoading ? '⏳ Composition…' : "✦ Télécharger l'Ex Libris à offrir"}
+                  </button>
+                  </div>
                 </div>
                 <p className="text-sm" style={{ color: 'var(--pa-muted)' }}>
                   Chaque rapport est calcule avec les ephemerides Swiss Ephemeris.
