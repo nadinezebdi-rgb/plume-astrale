@@ -1,0 +1,38 @@
+{
+  "summary": "Retested the 3 Ex Libris PNG fixes. All 3 now pass. FIX#1 cold cache: a new person payload (random birth data, name TESTCold) returned 200 image/png in 8.2s, well under the 45s target. The short cache file /app/backend/cache/natal_ex_libris/{key}.txt was created (123 words). The warm call took 1.8s. FIX#2 glyphs: fontTools confirms ☽ and ↑ are only in NotoSansSymbols-1 and ☉ and ✁ only in NotoSansSymbols-2, matching the routing. Visual check of the rendered PNG: all 4 glyphs show, no empty boxes. FIX#3 mobile 390x844: document.documentElement.scrollWidth = 390. btn-pdf-natal and btn-ex-libris-png wrap below the H2 and stay inside the viewport. Regressions: the Rapports button (on mobile) and the Aperçu card button (on desktop) both download ex-libris-Camille.png (376584 bytes, PNG signature OK). The no-birth_date account: the card is hidden, and btn-ex-libris-png is disabled with cursor not-allowed. Pytest: 6/6 pass (401 x2, 405, 400 no birth_date, 200 + cache, new cold-cache test).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "services/natal_book_enrichment.py enrich_ex_libris_only", "issue": "The prompt forces the text to end on an infinitive, so the paragraph ends with no final punctuation (e.g. '...apprend à durer, bâtir'). In the PNG it looks truncated. Add a final period or ellipsis in post-processing if the text has no closing punctuation."},
+      {"endpoint": "services/ex_libris_png_renderer.py", "issue": "The ☽ and ↑ glyphs (NotoSansSymbols-1) sit lower than the italic text baseline. Their vertical metrics differ from Symbols2 and Cormorant. Apply a per-font y-offset, or align with font.getbbox/anchor='ls'."},
+      {"endpoint": "services/ex_libris_png_renderer.py", "issue": "The justification splits the French non-breaking space before ':', so a line starts with ':' ('posture / : ton cœur'). Join ' :' / ' ;' / ' ?' / ' !' to the previous word (or use NBSP) before wrapping."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Mon compte Rapports (no birth_date)", "issues": ["btn-ex-libris-png keeps the label 'Télécharger l'Ex Libris à offrir' while disabled; btn-pdf-natal shows 'Données incomplètes' (inconsistent, carried over from iteration 90)."]},
+      {"screen": "Mon compte header (desktop, logged in as Nora)", "issues": ["The navbar shows 'Créer un compte' even though the user is logged in (out of scope, to check).", "The subtitle of the 'Cercle Soléna' banner is nearly invisible (very low contrast)."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_ex_libris_png.py", "/app/test_reports/pytest/pytest_ex_libris_iter91.xml"],
+  "action_items": [
+    "Minor: add final punctuation to the ex_libris text when it has none.",
+    "Minor: align the vertical offset of the ☽ / ↑ glyphs in the Soleil/Lune/Ascendant line.",
+    "Minor: keep ' :' / ' ;' attached to the previous word when wrapping the paragraph.",
+    "Minor: label 'Données incomplètes' on btn-ex-libris-png when birth_date is missing."
+  ],
+  "critical_code_review_comments": [
+    "The docstring of natal_ex_libris_png still says 'enrich_book_chapters ... ~15 s': update it to describe enrich_ex_libris_only.",
+    "enrich_ex_libris_only: the timeout_s=45 plus natal_chart plus rendering can get close to the ~60s ingress window if the astrology API is slow. Acceptable, but keep an eye on it.",
+    "There is no lock or dedup on concurrent cold calls for the same key: a double click triggers 2 GPT calls (the button is disabled during loading, which limits this)."
+  ],
+  "updated_files": ["/app/backend/tests/test_ex_libris_png.py"],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% (mobile overflow, 2 downloads, no-birth_date case)"},
+  "test_credentials": "/app/memory/test_credentials.md: test_exlibris_full@plumetest.com and test_exlibris_nobd@plumetest.com / TestExLibris#2026. The login page /connexion has no data-testid on the email/password inputs (login-email-input does not exist there); use input[type=email] / input[type=password].",
+  "seed_data_creation": "Each run of the cold-cache test writes a new cache file (name TESTCold, random birth data) to cache/natal_ex_libris.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "The cold-cache test sends a person payload with random birth data, so every run is a real cold call (~8s). Camille's cache is warm. A cookie banner ('Accepter') shows on /connexion."
+}

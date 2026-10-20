@@ -73,3 +73,38 @@ def test_png_generation_and_cache(full_token):
     print(f'second call {t2:.1f}s')
     assert r2.status_code == 200
     assert r2.content[:4] == b'\x89PNG'
+
+
+# Iteration 91 — cold-cache fast path (enrich_ex_libris_only) via explicit person payload
+import random, glob
+CACHE_DIR = '/app/backend/cache/natal_ex_libris'
+
+
+def test_cold_cache_under_45s_and_short_cache_created(full_token):
+    h = {'Authorization': f'Bearer {full_token}'}
+    before = set(glob.glob(f'{CACHE_DIR}/*.txt'))
+    person = {'name': 'TESTCold', 'year': random.randint(1950, 2005), 'month': random.randint(1, 12),
+              'day': random.randint(1, 28), 'hour': random.randint(0, 23), 'minute': random.randint(0, 59),
+              'latitude': 45.764, 'longitude': 4.8357, 'city': 'Lyon', 'country_code': 'FR'}
+    t0 = time.time()
+    r = requests.post(EP, json={'person': person}, headers=h, timeout=120)
+    dt = time.time() - t0
+    print(f'cold call {dt:.1f}s status {r.status_code}')
+    assert r.status_code == 200, r.text[:300]
+    assert dt < 45, f'cold call too slow: {dt:.1f}s'
+    assert r.content[:4] == b'\x89PNG'
+    assert len(r.content) > 50 * 1024
+    assert 'ex-libris-TESTCold.png' in r.headers.get('content-disposition', '')
+    with open('/tmp/ex_libris_cold.png', 'wb') as f:
+        f.write(r.content)
+    after = set(glob.glob(f'{CACHE_DIR}/*.txt'))
+    new = after - before
+    assert len(new) == 1, f'expected 1 new short cache file, got {new}'
+    txt = open(new.pop(), encoding='utf-8').read().strip()
+    print('words', len(txt.split()), repr(txt[-80:]))
+    assert len(txt.split()) >= 60
+    # warm call
+    t0 = time.time()
+    r2 = requests.post(EP, json={'person': person}, headers=h, timeout=60)
+    print(f'warm call {time.time()-t0:.1f}s')
+    assert r2.status_code == 200 and time.time() - t0 < 15
