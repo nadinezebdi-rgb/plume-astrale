@@ -934,7 +934,7 @@ async def astro_chat(
 
 def _cache_key(*parts) -> str:
     raw = '|'.join(str(p) for p in parts)
-    return hashlib.md5(raw.encode(), usedforsecurity=False).hexdigest()
+    return hashlib.blake2b(raw.encode(), digest_size=16).hexdigest()
 
 
 async def get_cached_or_fetch(key: str, fetch_fn, ttl_hours: int = 24) -> Optional[Dict]:

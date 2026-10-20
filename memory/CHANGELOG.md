@@ -1,5 +1,67 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02 (fork) — Variante Offerte « Ex Libris PNG » (CRO viralité)
+
+**🎯 Problème** : L'acheteur·se d'un Thème Natal n'avait aucun moyen simple d'offrir sa signature astrale à un proche. Pas de boucle virale sortante depuis l'espace client.
+
+**✅ Livré** :
+- Backend endpoint `POST /api/astrology/v3/natal/ex-libris/png` (`routes/astrology_v3.py`) → PNG A5 1200×1700 avec cadre pointillé or, trio Soleil/Lune/Ascendant et paragraphe GPT (110-140 mots).
+- Nouveau rendu PIL `services/ex_libris_png_renderer.py` avec watermark floral (bibliothèque Plume) et routage de glyphes Unicode via `NotoSansSymbols-Regular.ttf` + `NotoSansSymbols2-Regular.ttf` (fonts complémentaires, mappées par codepoint explicitement — ☉ U+2609 ↔ v2, ☽ U+263D ↔ v1, ↑ U+2191 ↔ v1, ✁ U+2701 ↔ v2).
+- Chemin rapide `enrich_ex_libris_only()` dans `services/natal_book_enrichment.py` : prompt court dédié, timeout 45s, cache `.txt` dans `cache/natal_ex_libris/`, réutilise le cache full-book quand il existe → **cold ~8s, warm ~instant** (au lieu de 144s avant fix).
+- Frontend `pages/MonCompte.js` : (a) carte CTA dédiée « Signature Ex Libris » dans l'onglet Aperçu (`data-testid=ex-libris-gift-card`), (b) bouton compact à côté du PDF Natal dans l'onglet Rapports (`data-testid=btn-ex-libris-png`), libellé validé par le user : « Télécharger l'Ex Libris à offrir ».
+- Layout mobile 390px corrigé (flex-wrap + items-start), plus d'overflow horizontal.
+- Tests : iteration_91.json — 6/6 pytest backend + flow end-to-end desktop + mobile.
+
+**🧪 Test credentials créés** : `test_exlibris_full@plumetest.com` (Camille, cache chaud) et `test_exlibris_nobd@plumetest.com` (Nora, sans date de naissance). Pwd commun : `TestExLibris#2026`.
+
+**🔗 Fichiers** : `routes/astrology_v3.py`, `services/ex_libris_png_renderer.py`, `services/natal_book_enrichment.py`, `assets/book/fonts/NotoSansSymbols-Regular.ttf`, `pages/MonCompte.js`.
+
+## 2026-02 (fork) — Unification du moteur PDF Natal (Phases 1-4)
+
+**🎯 Problème initial** : Le flow 80-crédits (`/api/astrology/v3/natal/pdf` et `/api/reports/theme-natal/pdf`) produisait un PDF mince de ~24 pages, alors que le flow 24€ oneshot (`theme_natal_oneshot_service`) générait un livre riche de 50+ pages via `enrich_book_chapters`. Nadine a remonté un `theme-natal-Nadine (8).pdf` à 24 pages où il manquait les 12 maisons.
+
+**✅ Solution livrée** :
+
+**Phase 1** — Nouveau service unifié `services/natal_book_service.py` (433 lignes) :
+- Fonction publique `generate_enriched_natal_pdf(name, birth_data, *, no_birth_time, require_complete, output, force_refresh, referral_code, referral_link, birth_date_iso)`
+- Exception typée `IncompleteNatalDataError` (levée si <5 planètes core — garde anti-slop bug Nadine Feb 2026)
+- Pipeline en 10 étapes : chart v3 → anti-slop guard → enhanced analysis → `enrich_natal_ultra` (11 planètes) → `enrich_book_chapters` (élément/modalité/trio/12 maisons/aspects/année) → chart wheel SVG→PNG compressé → normalize aspects/houses/cusps → PDF luxe (ReportLab + thread pool) → variante print Lulu A5+bleed
+- Retourne `{pdf_bytes, interior_bytes?, diag}` — caller gère stockage/email/DB
+
+**Phase 2** — Refacto des 3 points d'entrée pour utiliser le service unifié :
+- `/api/astrology/v3/natal/pdf` (80cr) : refund typé via `IncompleteNatalDataError`
+- `/api/reports/theme-natal/pdf` (80cr) : fonction `_generate_pdf('theme-natal')` simplifiée
+- `theme_natal_oneshot_service.handle_theme_natal_oneshot_webhook` (24€) : passé de 676 → 454 lignes (−222 lignes dédupliquées). Produit en **une passe** le PDF digital + l'intérieur Lulu A5+bleed via `output='print'`
+
+**Phase 3** — Validation page count + dual export (fichier `tests/test_natal_book_service_integration.py`, 5 tests) :
+| Variante | Pages | Taille |
+|---|---|---|
+| 📘 Digital complet (12 maisons) | **60** | 122 KB |
+| 📗 Lulu print A5+bleed | **58** | 208 KB |
+| 📙 Sans heure de naissance (maisons omises) | **42** | 97 KB |
+
+**Phase 4** — Harmonisation frontend + validation finale :
+- 3 mentions divergentes "46 pages" → "à partir de 49 pages" (cohérent avec le messaging commercial présent partout)
+- Testing agent (iteration_89.json) : backend sain, 3 routes joignables (401 sans auth OK), **36/36 pytest passent**
+
+**Préservé** :
+- Budget LLM identique **80 crédits/user** sur le flow 80cr (cache `enrich_natal_ultra` + `enrich_book_chapters` partagé entre les 3 flows → 1 seul appel GPT par utilisateur unique)
+- Garde anti-slop (bug Nadine) : refus de PDF si <5 planètes core, avec alerte email admin
+- Gestion `no_birth_time=True` : maisons omises mais 42 pages substantielles livrées
+
+**Fichiers modifiés** :
+- `backend/services/natal_book_service.py` (nouveau, 433 lignes)
+- `backend/services/theme_natal_oneshot_service.py` (676 → 454 lignes)
+- `backend/routes/astrology_v3.py` (route natal/pdf refactorée)
+- `backend/routes/reports.py` (helper _generate_pdf refactoré)
+- `backend/tests/test_natal_book_service_integration.py` (nouveau, 5 tests)
+- `backend/tests/test_natal_pdf_adapter_no_fallback.py` + `test_no_birth_time.py` (greps adaptés au service unifié)
+- `frontend/src/components/AstralBookEditorial.jsx` + `ExploreUniversSection.jsx` (3× "46 pages" → "à partir de 49 pages")
+
+---
+
+
+
 ## 2026-02 (fork) — Régression SEO fix + tests de non-régression consolidés
 
 **🔴 Régression SEO trouvée en preview** : le sitemap `/api/sitemap.xml` exposait encore `/nos-livres` et `/theme-natal-luxe` (paths 301-redirigés vers `/livres` et `/theme-natal`). Ces snapshots résiduels traînaient dans `seo_content` MongoDB et provoquaient du duplicate content côté Google.

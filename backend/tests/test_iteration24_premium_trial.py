@@ -23,7 +23,7 @@ SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 USER_EMAIL = 'plume_test_863a0303@gmail.com'
 USER_PASSWORD = os.environ.get('TEST_USER_PASSWORD', '')
 ADMIN_EMAIL = 'admin@plume-astrale.fr'
-ADMIN_PASSWORD = 'AdminPlume2026!'
+ADMIN_PASSWORD = os.getenv('TEST_ADMIN_PASSWORD', 'AdminPlume2026!')
 
 
 def _login(email: str, password: str) -> str:

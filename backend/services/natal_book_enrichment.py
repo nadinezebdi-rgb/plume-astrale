@@ -19,6 +19,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -68,7 +69,9 @@ def analyze_elements_modalities(planets: List[Dict[str, Any]]) -> Dict[str, Any]
     }
 
 
-PROMPT_VERSION = 'v3'
+# v4 : prompt v3 (cohérence livre + chart_sig) + clé `ex_libris` (page Signature).
+# Les anciens caches v1/v2/v3 sont régénérés de façon transparente au premier hit.
+PROMPT_VERSION = 'v4'
 
 
 def _cache_key(prenom: str, birth_data: Dict[str, Any], natal_data: Optional[Dict[str, Any]] = None) -> str:
@@ -177,6 +180,7 @@ Chaque valeur est du HTML simple (utilise <br/> pour retours à la ligne, <i>...
   "house_11": "Analyse maison 11 (amitiés, tribu, avenir). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
   "house_12": "Analyse maison 12 (invisible, inconscient, retraite). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
   "year_ahead": "Message pour les 12 prochains mois de {prenom}, 3-4 paragraphes séparés par <br/><br/>. Sensible, orienté transformation intérieure et non prédiction. Se termine par une invitation concrète (un geste, une pratique).",
+  "ex_libris": "Signature astrale ex-libris pour {prenom}. UN SEUL paragraphe de 110-140 mots, écrit à la deuxième personne du singulier, qui résume en voix condensée et poétique le trio Soleil {sun} + Lune {moon} + Ascendant {asc}. Doit tenir sur une page, être découpable, offrable. Ni dédicace ni mode d'emploi : une empreinte. Finit par un verbe à l'infinitif qui ouvre vers l'avenir (ex: 'habiter', 'oser', 'se souvenir').",
   "acte3_chapters": {{
     "coeur": {{
       "citation_ouverture": "Citation littéraire ou proverbe (2 lignes max) qui ouvre le chapitre du cœur.",
@@ -322,3 +326,105 @@ async def enrich_book_chapters(
     except Exception as e:
         logger.warning(f'[natal_book] cache write fail: {e}')
     return parsed
+
+
+# ─── Ex Libris — génération rapide isolée ───────────────────────────────────
+#
+# Utilisée par la variante offerte PNG (`/api/astrology/v3/natal/ex-libris/png`)
+# pour éviter de payer les ~90-144s du full book quand le cache est froid.
+# Génère uniquement le paragraphe « Ex Libris » (~110-140 mots) → ~5-15s.
+# Si le cache full-book existe déjà, on réutilise sa clé `ex_libris` sans
+# ré-appeler GPT.
+
+EX_LIBRIS_CACHE_DIR = Path(__file__).resolve().parent.parent / 'cache' / 'natal_ex_libris'
+EX_LIBRIS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+_EX_LIBRIS_SYSTEM = (
+    "Tu es Plume, voix astrale confidentielle. Tu composes UNE signature "
+    "ex-libris : un paragraphe condensé et poétique, écrit à la deuxième "
+    "personne du singulier, qui tient sur une page découpable à offrir."
+)
+
+
+def _ex_libris_user_prompt(prenom: str, sun: str, moon: str, asc: str) -> str:
+    return (
+        f"Compose la signature astrale ex-libris de {prenom or 'cette personne'}. "
+        f"Trio : Soleil {sun or '—'}, Lune {moon or '—'}, Ascendant {asc or '—'}.\n\n"
+        "Contraintes STRICTES :\n"
+        "- UN SEUL paragraphe de 110 à 140 mots.\n"
+        "- Deuxième personne du singulier (tu).\n"
+        "- Pas de dédicace, pas de mode d'emploi : une empreinte.\n"
+        "- Ni « cher·e lecteur·rice », ni « voici ».\n"
+        "- Se termine par un verbe à l'infinitif qui ouvre vers l'avenir "
+        "(exemples : habiter, oser, se souvenir, traverser).\n"
+        "- Pas de HTML, pas de guillemets, pas de titre, uniquement le paragraphe nu.\n\n"
+        "Réponds UNIQUEMENT par le paragraphe, rien d'autre."
+    )
+
+
+async def enrich_ex_libris_only(
+    prenom: str,
+    birth_data: Dict[str, Any],
+    sun_sign_fr: str,
+    moon_sign_fr: str,
+    asc_sign_fr: str,
+    force_refresh: bool = False,
+) -> Optional[str]:
+    """Génère (ou lit en cache) la signature Ex Libris seule.
+
+    Trois chemins possibles :
+      1. Cache dédié ex_libris (fichier .txt court).
+      2. Cache full-book existe et contient `ex_libris` → on recopie et on
+         persiste dans le cache dédié pour un hit instantané ensuite.
+      3. Appel GPT isolé avec prompt focalisé (~5-15s au lieu de ~90-144s).
+    """
+    key = _cache_key(prenom, birth_data)
+    short_cache = EX_LIBRIS_CACHE_DIR / f'{key}.txt'
+
+    # 1) Cache dédié
+    if not force_refresh and short_cache.exists():
+        try:
+            txt = short_cache.read_text('utf-8').strip()
+            if txt:
+                logger.info(f'[ex_libris] cache HIT short {key}')
+                return txt
+        except Exception:
+            pass
+
+    # 2) Cache full-book
+    full_cache = CACHE_DIR / f'{key}.json'
+    if not force_refresh and full_cache.exists():
+        try:
+            data = json.loads(full_cache.read_text('utf-8'))
+            txt = str((data or {}).get('ex_libris') or '').strip()
+            if txt:
+                try:
+                    short_cache.write_text(txt, 'utf-8')
+                except Exception:
+                    pass
+                logger.info(f'[ex_libris] cache HIT full-book {key}')
+                return txt
+        except Exception:
+            pass
+
+    # 3) Génération ciblée (prompt court → latence basse)
+    user_prompt = _ex_libris_user_prompt(prenom, sun_sign_fr, moon_sign_fr, asc_sign_fr)
+    # Timeout un peu plus permissif que la fenêtre d'ingress (~60s) mais court.
+    resp = await _call_gpt(
+        _EX_LIBRIS_SYSTEM, user_prompt,
+        session_id=f'ex-libris-{key}', timeout_s=45.0,
+    )
+    if not resp:
+        logger.warning(f'[ex_libris] GPT no response for {prenom}')
+        return None
+    # Nettoyage : garde une seule ligne de paragraphe.
+    txt = resp.strip()
+    # Retire les éventuels backticks ou guillemets d'ouverture/fermeture.
+    txt = re.sub(r'^```[a-z]*\s*', '', txt, flags=re.IGNORECASE)
+    txt = re.sub(r'\s*```$', '', txt)
+    txt = txt.strip('"\u201c\u201d \n\t')
+    try:
+        short_cache.write_text(txt, 'utf-8')
+    except Exception as e:
+        logger.warning(f'[ex_libris] cache write fail: {e}')
+    return txt

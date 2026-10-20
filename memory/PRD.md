@@ -1,5 +1,21 @@
 # Plume Astrale — PRD
 
+## 2026-02-21 — Variante offerte Ex Libris PNG (CRO boucle virale)
+
+**🎯 Objectif** : donner à l'acheteur·se d'un Thème Natal un artefact simple à offrir à un proche (téléchargement PNG local, impression A5, prêt à offrir).
+
+**✅ Livré** :
+- `POST /api/astrology/v3/natal/ex-libris/png` → PNG 1200×1700 avec cadre pointillé or, trio Soleil/Lune/Ascendant, paragraphe GPT dédié (110-140 mots) et watermark floral de la bibliothèque Plume.
+- Chemin rapide `enrich_ex_libris_only` : prompt court + cache dédié `cache/natal_ex_libris/` → cold ~8s, warm instant (vs 144s avant fix).
+- Glyphes Unicode routés explicitement entre NotoSansSymbols-1 (☽, ↑) et NotoSansSymbols-2 (☉, ✁) — plus de carrés vides.
+- UI `/mon-compte` : carte CTA dédiée dans Aperçu (`ex-libris-gift-card`) + bouton compact à côté du PDF dans Rapports (`btn-ex-libris-png`). Libellé : « Télécharger l'Ex Libris à offrir ».
+- Mobile 390px : flex-wrap, zéro overflow horizontal.
+
+**🧪 Tests** : iteration_91.json — 6/6 pytest + flow end-to-end desktop + mobile OK.
+
+**🔑 Credentials test** : voir `/app/memory/test_credentials.md`.
+
+
 ## 2026-02-20 — Lot "Checkout synastrie câblé + Weekly digest + Hero auto-lock"
 ### Checkout synastrie vraiment câblé
 - Nouvelle page `/app/frontend/src/pages/SynastrieCheckout.jsx` à la route `/synastrie/checkout` : form 2 personnes (prénom/date/lieu) + email, pré-rempli depuis `localStorage.plume_astrale_data`, lit `ab_variant` (localStorage) + `ab_session_id` (sessionStorage) et POST `/api/synastrie/checkout` qui redirige vers Stripe Checkout.

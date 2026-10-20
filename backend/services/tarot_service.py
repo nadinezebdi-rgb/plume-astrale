@@ -241,7 +241,7 @@ TAROT_IMAGE_MAP = {
 
 def tirage_oui_non(question: str) -> dict:
     """Tirage de tarot Oui/Non - tire une carte des arcanes majeurs"""
-    seed = int(hashlib.md5(f"{question}-{datetime.now().isoformat()}".encode(), usedforsecurity=False).hexdigest(), 16)
+    seed = int(hashlib.blake2b(f"{question}-{datetime.now().isoformat()}".encode(), digest_size=16).hexdigest(), 16)
     carte = ARCANES_TAROT[seed % len(ARCANES_TAROT)]
 
     # Determine answer type based on seed
@@ -296,7 +296,7 @@ def _reversed_wrap(base_message: str, orientation: str) -> str:
 
 def tirage_mediumnite_complet(prenom: str, date_naissance: str) -> dict:
     """Tirage de tarologie symbolique complet - 7 cartes + lecture symbolique"""
-    seed = int(hashlib.md5(f"{prenom}-{date_naissance}-{datetime.now().date().isoformat()}".encode(), usedforsecurity=False).hexdigest(), 16)
+    seed = int(hashlib.blake2b(f"{prenom}-{date_naissance}-{datetime.now().date().isoformat()}".encode(), digest_size=16).hexdigest(), 16)
     rng = random.Random(seed)
 
     # Tirer 7 cartes uniques
@@ -349,7 +349,7 @@ def tirage_en_croix(prenom: str, date_naissance: str) -> dict:
     """Tirage en croix - 5 cartes avec interprétations selon la position"""
     from services.tarot_interpretations import INTERPRETATIONS_CROIX
 
-    seed = int(hashlib.md5(f"{prenom}-{date_naissance}-croix-{datetime.now().date().isoformat()}".encode(), usedforsecurity=False).hexdigest(), 16)
+    seed = int(hashlib.blake2b(f"{prenom}-{date_naissance}-croix-{datetime.now().date().isoformat()}".encode(), digest_size=16).hexdigest(), 16)
     rng = random.Random(seed)
 
     # Tirer 5 cartes uniques
@@ -430,7 +430,7 @@ def tirage_croix_celtique(question: str, prenom: str = "") -> dict:
     from services.tarot_interpretations import INTERPRETATIONS_CROIX
 
     seed_str = f"{prenom or 'anon'}-{question}-celtique-{datetime.now().date().isoformat()}"
-    seed = int(hashlib.md5(seed_str.encode(), usedforsecurity=False).hexdigest(), 16)
+    seed = int(hashlib.blake2b(seed_str.encode(), digest_size=16).hexdigest(), 16)
     rng = random.Random(seed)
 
     # 10 cartes uniques
@@ -532,7 +532,7 @@ def tirage_amour(question: str, prenom: str = "") -> dict:
     35% de chance de retournement par carte. Coût : 3 crédits.
     """
     seed_str = f"{prenom or 'anon'}-{question}-amour-{datetime.now().date().isoformat()}"
-    seed = int(hashlib.md5(seed_str.encode(), usedforsecurity=False).hexdigest(), 16)
+    seed = int(hashlib.blake2b(seed_str.encode(), digest_size=16).hexdigest(), 16)
     rng = random.Random(seed)
 
     indices = rng.sample(range(len(ARCANES_TAROT)), 3)

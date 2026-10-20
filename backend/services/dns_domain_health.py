@@ -27,9 +27,13 @@ CHECK_INTERVAL_SECONDS = 6 * 60 * 60  # 6h
 ALERT_COOLDOWN_SECONDS = 12 * 60 * 60  # 12h
 SSL_EXPIRY_WARN_DAYS = 14
 HTTP_FAIL_STREAK_THRESHOLD = 3
+# Même logique côté SSL : on exige N checks consécutifs KO avant d'alerter
+# pour éviter les faux positifs (propagation DNS, reissue en cours, flapping edge).
+SSL_FAIL_STREAK_THRESHOLD = 3
 
 ALERT_MARKER = Path('/tmp/plume_dns_last_alert.txt')
 _http_fail_streak = 0
+_ssl_fail_streak = 0
 
 
 def _hostname(url: str) -> str:
@@ -199,8 +203,8 @@ def _persist_alert(reason: str, subject: str, result: dict, resend_id: Optional[
 
 async def dns_domain_health_loop() -> None:
     """Boucle 6h : ping + alerte SSL/HTTP."""
-    global _http_fail_streak
-    logger.info(f'[dns_health] boucle démarrée — ping {CANONICAL_URL} toutes les 6h')
+    global _http_fail_streak, _ssl_fail_streak
+    logger.info(f'[dns_health] boucle démarrée — ping {CANONICAL_URL} toutes les 6h (seuil SSL {SSL_FAIL_STREAK_THRESHOLD}× / HTTP {HTTP_FAIL_STREAK_THRESHOLD}×)')
     try:
         await asyncio.sleep(240)  # grace 4 min pour laisser l'app booter avant pings externes
     except asyncio.CancelledError:
@@ -214,25 +218,32 @@ async def dns_domain_health_loop() -> None:
                 http_status = result.get('http_status')
                 ssl_ok = ssl_info.get('ok')
                 days = ssl_info.get('days_remaining')
-                # 1. SSL cassé = alerte immédiate
+                # 1. SSL cassé = incrémente streak, alerte après N consécutifs
                 if not ssl_ok and ssl_info.get('error'):
+                    _ssl_fail_streak += 1
+                    logger.warning(f'[dns_health] SSL streak = {_ssl_fail_streak}/{SSL_FAIL_STREAK_THRESHOLD} · {ssl_info.get("error")[:120]}')
                     _http_fail_streak = 0
-                    await send_dns_alert(result, 'ssl_broken')
-                # 2. SSL expire bientôt
+                    if _ssl_fail_streak >= SSL_FAIL_STREAK_THRESHOLD:
+                        await send_dns_alert(result, 'ssl_broken')
+                        _ssl_fail_streak = 0
+                # 2. SSL expire bientôt (pas de streak — expiration est stable, pas flappy)
                 elif days is not None and days <= SSL_EXPIRY_WARN_DAYS:
+                    _ssl_fail_streak = 0
                     _http_fail_streak = 0
                     await send_dns_alert(result, 'ssl_expiring')
                 # 3. HTTP KO = incrémente streak
                 elif http_err or (isinstance(http_status, int) and http_status >= 400):
+                    _ssl_fail_streak = 0
                     _http_fail_streak += 1
                     logger.warning(f'[dns_health] HTTP streak = {_http_fail_streak}/{HTTP_FAIL_STREAK_THRESHOLD}')
                     if _http_fail_streak >= HTTP_FAIL_STREAK_THRESHOLD:
                         await send_dns_alert(result, 'http_fail_streak')
                         _http_fail_streak = 0
             else:
-                if _http_fail_streak:
-                    logger.info(f'[dns_health] HTTP streak reset (était à {_http_fail_streak})')
+                if _http_fail_streak or _ssl_fail_streak:
+                    logger.info(f'[dns_health] streaks reset (HTTP={_http_fail_streak}, SSL={_ssl_fail_streak})')
                 _http_fail_streak = 0
+                _ssl_fail_streak = 0
                 logger.info(f'[dns_health] ✓ OK · HTTP {result["http_status"]} · SSL expire dans {ssl_info.get("days_remaining")}j')
         except Exception as e:
             logger.exception(f'[dns_health] loop failed: {e}')

@@ -68,20 +68,26 @@ def test_natal_pdf_v2_passes_edition_des_planetes_to_colophon():
 
 
 def test_theme_natal_service_reads_flag_from_pdf_ctx():
-    """theme_natal_oneshot_service doit lire pdf_ctx.no_birth_time et le propager."""
-    from services import theme_natal_oneshot_service
+    """theme_natal_oneshot doit lire pdf_ctx.no_birth_time et le passer au service unifié."""
+    from services import theme_natal_oneshot_service, natal_book_service
     src = inspect.getsource(theme_natal_oneshot_service)
     assert "pdf_ctx.get('no_birth_time')" in src
-    # Propage dans user_data + ascendant_sign vide
-    assert "'no_birth_time': no_birth_time" in src
+    # Le flag est propagé au service unifié
+    assert 'no_birth_time=no_birth_time' in src
+    # Le service unifié injecte le flag dans user_data pour l'adapter
+    src_svc = inspect.getsource(natal_book_service)
+    assert "'no_birth_time': no_birth_time" in src_svc
 
 
 def test_theme_natal_service_zeros_ascendant_when_no_birth_time():
-    """Quand no_birth_time, ascendant_sign doit être '' dans user_data (pas la valeur API)."""
-    from services import theme_natal_oneshot_service
-    src = inspect.getsource(theme_natal_oneshot_service)
-    # Test conditionnel sur no_birth_time
-    assert "'' if no_birth_time else" in src
+    """Quand no_birth_time, ascendant_sign doit être '' dans user_data (pas la valeur API).
+
+    Depuis la refacto Phase 1-2, cette logique vit dans natal_book_service.py
+    (service unifié partagé entre le flux 24€ et les flux 80cr).
+    """
+    from services import natal_book_service
+    src = inspect.getsource(natal_book_service)
+    assert "'' if no_birth_time" in src or "'' if no_birth_time else" in src
 
 
 def test_natal_pdf_v2_disables_book_mode_when_no_birth_time():

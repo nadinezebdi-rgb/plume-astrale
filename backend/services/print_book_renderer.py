@@ -141,12 +141,28 @@ class _Cover(Flowable):
         c.restoreState()
 
 
+class _CutoutMark(Flowable):
+    """Marker invisible : signale au _BookDoc que la page courante doit être
+    rendue en « page à découper » (bordure pointillée, pas de folio ni d'entête).
+    """
+    _cutout_marker = True
+    width = 0
+    height = 0
+
+    def wrap(self, aw, ah):
+        return (0, 0)
+
+    def draw(self):
+        pass
+
+
 class _BookDoc(BaseDocTemplate):
     def __init__(self, stream, name):
         super().__init__(stream, pagesize=(WIDTH, HEIGHT), leftMargin=21*mm,
             rightMargin=17*mm, topMargin=20*mm, bottomMargin=23*mm,
             title=f'Le Livre Astral de {name}', author='Plume Astrale')
         self.person_name = name
+        self._cutout_pages: set[int] = set()
         self.addPageTemplates(PageTemplate('book',
             frames=[Frame(21*mm,23*mm,110*mm,167*mm,id='text',
                           leftPadding=0,rightPadding=0,topPadding=0,bottomPadding=0)],
@@ -158,6 +174,22 @@ class _BookDoc(BaseDocTemplate):
         self.pageTemplate.frames[0]._geom()
         if doc.page <= 2:
             return
+        # Ex Libris : page « à découper » (pas de folio, bordure pointillée)
+        if doc.page in self._cutout_pages:
+            canvas.saveState()
+            canvas.setStrokeColor(GOLD)
+            canvas.setLineWidth(.45)
+            canvas.setDash([2.4, 2.4])
+            margin = 11*mm
+            canvas.rect(margin, margin, WIDTH-2*margin, HEIGHT-2*margin)
+            canvas.setDash()  # reset
+            # Pictogramme ciseaux + libellé discret, en haut à gauche hors cadre
+            canvas.setFillColor(MUTED)
+            canvas.setFont('PlumeBook-Italic', 7.5)
+            canvas.drawString(margin + 1.5*mm, margin - 3.2*mm,
+                              '✁  à découper · à offrir · à conserver')
+            canvas.restoreState()
+            return
         canvas.saveState()
         canvas.setFillColor(MUTED)
         canvas.setFont('PlumeBook', 9)
@@ -166,6 +198,9 @@ class _BookDoc(BaseDocTemplate):
         canvas.restoreState()
 
     def afterFlowable(self, flowable):
+        if getattr(flowable, '_cutout_marker', False):
+            self._cutout_pages.add(self.page)
+            return
         if getattr(flowable, '_toc_key', None):
             key = flowable._toc_key
             self.canv.bookmarkPage(key)
@@ -278,11 +313,28 @@ def render_book_pdf(manuscript, *, cover_png_path=None):
     chapters = intro + other
     for index,chapter in enumerate(chapters):
         story.append(PageBreak())
+        is_ex_libris = chapter.slug == 'ex_libris'
+        if is_ex_libris:
+            # Page découpable : marque la page courante + marges verticales généreuses.
+            story.append(_CutoutMark())
+            story.append(Spacer(1, 18*mm))
         title = 'Introduction — Comment lire votre thème' if chapter in intro else chapter.title
         story.append(_heading(title,styles,f'chapter-{index}'))
         if chapter.kicker:
             story.append(Paragraph(html.escape(chapter.kicker),styles['kicker']))
+        if is_ex_libris:
+            # Petit filet or sous le titre + espace pour aérer le paragraphe signature
+            story.append(HRFlowable(width='35%',thickness=.4,color=GOLD,
+                                     spaceBefore=0,spaceAfter=14))
         _append_blocks(story,chapter,styles)
+        if is_ex_libris:
+            # Signature discrète en bas de page découpable
+            story.append(Spacer(1, 12*mm))
+            story.append(Paragraph(
+                '<i>— Plume Astrale, écrit pour toi</i>',
+                ParagraphStyle('CutoutSig', parent=styles['small'],
+                               alignment=TA_CENTER, textColor=GOLD),
+            ))
         while isinstance(story[-1],PageBreak):
             story.pop()
     story += [PageBreak(),_heading('Pour poursuivre votre lecture',styles)]

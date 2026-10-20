@@ -1,0 +1,45 @@
+{
+  "summary": "Ex Libris PNG feature tested end-to-end. Backend: 5/5 pytest (401 with no token or a bad token, 405 on GET, 400 with no birth_date, 200 image/png 375KB with the PNG signature, filename ex-libris-Camille.png, cache works on the 2nd call in ~3s). Frontend: the Aperçu card and its button, the Rapports button next to the PDF button, the authenticated POST, the 'Composition…' label with the button disabled during generation, the ex-libris-Camille.png download from both places, and the no-birth_date case (card hidden, button disabled with cursor not-allowed) all pass on desktop. Problems found: (1) on a cold cache the first generation takes ~144s (GPT gpt-5.4), above the ~60s ingress timeout, so the user gets a 502 on the first click; (2) glyphs render as empty boxes in the PNG; (3) the Rapports buttons overflow on mobile.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST /api/astrology/v3/natal/ex-libris/png", "issue": "First generation (no cache) took 144s (LiteLLM gpt-5.4 call 18:52:23 → 18:54:47 via enrich_book_chapters), not the ~15s announced. The ingress cuts at ~60s → Cloudflare 502 HTML for the client, and the backend logs 'RuntimeError: No response returned' (meta_attribution_middleware). The result is still cached, so a retry works (3s). In the UI a new user sees the alert 'Erreur lors de la génération' on the first click.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "services/ex_libris_png_renderer.py", "issue": "The glyphs \\u2609 (☉), \\u263D (☽) and \\u2701 (✁) are missing from the Cormorant/EB Garamond fonts in assets/book/fonts → they render as empty boxes (tofu) in the PNG (Soleil/Lune trio line and the 'à découper' tip at the top). Use a fallback font (DejaVuSans / Noto Symbols) for these glyphs, or replace them with ASCII/ornaments."},
+      {"endpoint": "natal_book_enrichment prompt ex_libris", "issue": "The text ends with a bare infinitive with no punctuation ('...une forme délicate de courage. Habiter'), which looks truncated in the PNG. Consider adding a final period or ellipsis on the renderer side."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "MonCompte Rapports header (mobile 390px)", "issue": "The two buttons btn-pdf-natal and btn-ex-libris-png (flexShrink:0, text on one line, ~271px) overflow the container next to the title 'Vos rapports astrologiques' → horizontal page scroll on mobile, content shifted. Stack them below the title on mobile (flex-col / w-full) or allow wrapping.", "selector": "[data-testid='btn-ex-libris-png']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "First Ex Libris download (cold cache)", "issue": "Because of the 144s backend latency vs the 60s ingress timeout, the first click fails (generic alert). Suggestion: an async job + polling, pre-warming on profile save, or reusing the book cache.", "affected_selectors": ["[data-testid='btn-ex-libris-png-card']", "[data-testid='btn-ex-libris-png']"]}
+    ],
+    "design_issues": [
+      {"screen": "Aperçu - ex-libris-gift-card", "issues": ["Kicker 'VARIANTE OFFERTE · PNG DÉCOUPABLE' at 10px gold on a light gold gradient background: low contrast."]},
+      {"screen": "Rapports - no birth_date", "issues": ["btn-pdf-natal shows 'Données incomplètes' but btn-ex-libris-png keeps the label 'Télécharger l'Ex Libris à offrir' while disabled: inconsistent, and there is no hint to complete the profile."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_ex_libris_png.py", "/app/backend/tests/_ex_libris_seed_user.py", "/app/test_reports/pytest/pytest_ex_libris.xml"],
+  "action_items": [
+    "HIGH: fix the cold-start latency of the Ex Libris endpoint (144s > 60s ingress timeout → 502 on the first click). Options: background job + polling, generating only the short ex_libris text (dedicated prompt) instead of the whole book enrichment, or pre-warming after the profile is saved.",
+    "Add a fallback font for ☉ ☽ ✁ in ex_libris_png_renderer (tofu boxes in the PNG).",
+    "Mobile: fix the overflow of the Rapports buttons (btn-pdf-natal + btn-ex-libris-png).",
+    "Minor: label 'Données incomplètes' on btn-ex-libris-png when birth_date is missing; contrast of the card's gold kicker."
+  ],
+  "critical_code_review_comments": [
+    "handleExLibrisDownload has a generic catch: with responseType blob, the 400/502 messages from the backend are never shown to the user (read blob.text() to show the detail).",
+    "handleExLibrisDownload duplicates ~20 lines of handlePdfDownload (blob → link → click): extract a downloadBlob(url, filename, mime) helper.",
+    "MonCompte.js is 1676 lines: split it into one component per tab.",
+    "The endpoint runs natal_chart, natal_report and the whole book enrichment just to get one paragraph: expensive in GPT calls for a free feature."
+  ],
+  "updated_files": ["/app/backend/tests/test_ex_libris_png.py", "/app/backend/tests/_ex_libris_seed_user.py"],
+  "success_rate": {"backend": "100% (5/5 pytest; HIGH latency issue on cold cache seen on the 1st run, which got a 502)", "frontend": "100% functional on desktop (5/5 scenarios); 1 mobile layout bug"},
+  "test_credentials": "/app/memory/test_credentials.md is MISSING. Supabase users created: test_exlibris_full@plumetest.com / TestExLibris#2026 (Camille, 1990-06-15 14:30 Paris, cache already warm) and test_exlibris_nobd@plumetest.com / TestExLibris#2026 (Nora, no birth_date). Login via /connexion.",
+  "seed_data_creation": "2 Supabase users created via the admin API (script /app/backend/tests/_ex_libris_seed_user.py, idempotent apart from the 'already registered' error on create).",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Endpoint is POST only. Camille's cache is warm (calls take ~3s). To test the cold start, use a new user or a different birth_date. Note: writing files in /app/backend/tests triggers a hot-reload of the backend.",
+  "rca of the issue": "502 on the first call: natal_ex_libris_png → _build_book_data → enrich_book_chapters (a single gpt-5.4 call generating every book chapter plus ex_libris) = 144s. The K8s/Cloudflare ingress closes at ~60s → 502 HTML; the backend keeps running and writes the cache, hence a retry succeeds. Reproduce: new user with birth_date → POST endpoint → 502 after 60s. Mitigation: async job or a dedicated short prompt for ex_libris."
+}
