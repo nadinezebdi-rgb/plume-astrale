@@ -3,8 +3,8 @@
 .pa-book-hero{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,.83fr) minmax(0,1.17fr);gap:clamp(28px,4vw,72px);align-items:center;min-height:700px;padding:clamp(44px,6vw,90px) clamp(24px,5vw,80px);background:radial-gradient(ellipse at 80% 30%,#29284e70,transparent 60%),#10182d;color:#f7f3ea;overflow:hidden}
 .pa-book-eyebrow{color:#dfc79f;font:600 10px/1.7 Inter,Arial,sans-serif;letter-spacing:.16em;margin:0 0 26px}
 .pa-book-eyebrow>span{margin-right:10px}
-.pa-book-hero h1{font:500 clamp(46px,5vw,78px)/1.02 Inter,Arial,sans-serif;letter-spacing:-.055em;margin:0 0 28px;color:#f7f3ea}
-.pa-book-hero h1 em{font:italic 400 1.1em/1.02 'Cormorant Garamond',Georgia,serif;letter-spacing:-.04em;color:#e7ca9f}
+.pa-book-hero h1{font:400 clamp(52px,5.6vw,88px)/0.98 'Fraunces',Georgia,serif;letter-spacing:-.025em;margin:0 0 28px;color:#f7f3ea;font-variation-settings:'opsz' 144,'SOFT' 50;text-wrap:balance}
+.pa-book-hero h1 em{font:italic 400 1em/0.98 'Fraunces',Georgia,serif;letter-spacing:-.015em;color:#e7ca9f;font-variation-settings:'opsz' 144,'SOFT' 100}
 .pa-book-lead{font-size:14px;line-height:1.95;max-width:430px;color:#cfd3e1;margin:0 0 30px}
 .pa-book-actions{display:flex;flex-wrap:wrap;gap:24px;align-items:center}
 .pa-book-button{display:inline-flex;align-items:center;justify-content:space-between;gap:28px;padding:17px 22px;min-height:52px;background:#e8cfaa;border:1px solid #e8cfaa;color:#14213b!important;border-radius:4px;font:600 12px/1.5 Inter,Arial,sans-serif;text-decoration:none;cursor:pointer;transition:background .2s}
