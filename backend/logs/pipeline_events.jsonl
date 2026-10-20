@@ -71,3 +71,12 @@
 {"ts": "2026-10-20T16:34:49.952984+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 467156, "ai_planet_count": 0}
 {"ts": "2026-10-20T17:23:47.915795+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 61164, "ai_planet_count": 0}
 {"ts": "2026-10-20T17:24:04.847178+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 61118, "ai_planet_count": 0}
+{"ts": "2026-10-20T17:29:21.837655+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 125344, "ai_planet_count": 11}
+{"ts": "2026-10-20T17:29:22.384448+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 98933, "ai_planet_count": 11}
+{"ts": "2026-10-20T17:29:32.972491+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 125390, "ai_planet_count": 11}
+{"ts": "2026-10-20T17:29:33.460691+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 98951, "ai_planet_count": 11}
+{"ts": "2026-10-20T17:30:26.548871+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 125408, "ai_planet_count": 11}
+{"ts": "2026-10-20T17:30:27.079809+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 98899, "ai_planet_count": 11}
+{"ts": "2026-10-20T17:30:27.158680+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 61164, "ai_planet_count": 0}
+{"ts": "2026-10-20T17:49:54.590656+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 125378, "ai_planet_count": 11}
+{"ts": "2026-10-20T17:49:55.152502+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 98939, "ai_planet_count": 11}
