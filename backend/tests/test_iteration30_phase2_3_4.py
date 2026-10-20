@@ -5,7 +5,7 @@ import requests
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://consultation-astro.preview.emergentagent.com').rstrip('/')
 ADMIN_EMAIL = 'admin@plume-astrale.fr'
-ADMIN_PASSWORD = 'PlumeAdmin2026'
+ADMIN_PASSWORD = os.environ.get('TEST_ADMIN_PASSWORD', '')
 
 
 SUPABASE_URL = 'https://ebwicqvbkwogxneipaxh.supabase.co'

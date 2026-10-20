@@ -23,9 +23,9 @@ SUPABASE_ANON_KEY = (
 )
 
 ADMIN_EMAIL = 'admin@plume-astrale.fr'
-ADMIN_PWD = 'PlumeAdmin2026'
+ADMIN_PWD = os.environ.get('TEST_ADMIN_PASSWORD', '')
 USER_EMAIL = 'test@plume-astrale.fr'
-USER_PWD = 'TestPlume2026!'
+USER_PWD = os.environ.get('TEST_USER_PASSWORD', '')
 
 
 def _login(email: str, pwd: str) -> str:

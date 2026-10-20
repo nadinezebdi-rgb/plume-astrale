@@ -3,6 +3,7 @@ import { Sparkles, ArrowRight, Loader2, Check, Star, Moon, Sun, Zap } from 'luci
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import { useAuth } from '@/context/AuthContext';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -230,7 +231,7 @@ const TrioDecouverte = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>Date naiss.</label>
-                  <input type="date" value={form.birth_date} onChange={(e) => upd('birth_date', e.target.value)} data-testid="trio-decouverte-birthdate"
+                  <FrenchDateInput type="date" value={form.birth_date} onChange={(e) => upd('birth_date', e.target.value)} data-testid="trio-decouverte-birthdate"
                     className="w-full mt-2 px-4 py-3 rounded-xl bg-plume-night-soft/60 border border-plume-gold/20 text-plume-lavender focus:outline-none focus:border-plume-gold/60" />
                 </div>
                 <div>

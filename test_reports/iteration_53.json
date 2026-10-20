@@ -45,7 +45,7 @@
     "backend": "100% (6/6 PASS, 1 skip attendu)",
     "frontend": "95% (toutes les data-testid présentes + hrefs Plausible corrects + admin-gate OK ; SEUL le badge '✦ Cockpit Analytics ✦' du PageHero manque car prop non supportée)"
   },
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 (via /app/memory/test_credentials.md) — login OK, redirect /mon-compte, accès /admin/analytics validé.",
+  "test_credentials": "admin@plume-astrale.fr / [redacted] (via /app/memory/test_credentials.md) — login OK, redirect /mon-compte, accès /admin/analytics validé.",
   "seed_data_creation": "Aucune",
   "retest_needed": false,
   "should_main_agent_self_test": true,

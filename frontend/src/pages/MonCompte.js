@@ -487,7 +487,7 @@ const MonCompte = () => {
     if (activeTab === 'rapports' && archivedReports === null) {
       fetchArchivedReports();
     }
-  }, [activeTab, fetchArchivedReports]);
+  }, [activeTab, archivedReports, fetchArchivedReports]);
 
   /* ── Check-in quotidien ── */
   const handleCheckin = async () => {

@@ -22,7 +22,7 @@
   ],
   "updated_files": ["/app/backend/tests/test_iteration66_batch_final.py"],
   "success_rate": { "backend": "100% (22/22)", "frontend": "100% (chat + photo rotator + Ken Burns + /temoignages)" },
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 ; test@plume-astrale.fr / TestPlume2026!",
+  "test_credentials": "admin@plume-astrale.fr / [redacted] ; test@plume-astrale.fr / [redacted]",
   "seed_data_creation": "1 témoignage pending 'TEST_Iter66_<uuid>' créé pour valider log_alert new_testimonial (reste en pending dans app_settings, non visible côté public). 2 échanges chat créés dans chat_analytics (garantie + escalate). Forced hero variant remis à null en fin de tests.",
   "retest_needed": false,
   "should_main_agent_self_test": false,
