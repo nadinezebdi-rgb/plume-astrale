@@ -23,6 +23,7 @@ export default function AdminAlerts() {
     loading: true,
     error: null,
   });
+  const [filters, setFilters] = useState({ alert_type: '', period: 'all', status: 'all' });
   const [resolvingId, setResolvingId] = useState(null);
   const backend = process.env.REACT_APP_BACKEND_URL;
   const token = session?.access_token || null;
@@ -30,7 +31,11 @@ export default function AdminAlerts() {
   const load = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
-      const res = await fetch(`${backend}/api/admin/alerts?limit=100`, {
+      const params = new URLSearchParams({ limit: '100' });
+      if (filters.alert_type) params.set('alert_type', filters.alert_type);
+      if (filters.period && filters.period !== 'all') params.set('period', filters.period);
+      if (filters.status && filters.status !== 'all') params.set('status', filters.status);
+      const res = await fetch(`${backend}/api/admin/alerts?${params.toString()}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       const data = await res.json();
@@ -43,7 +48,7 @@ export default function AdminAlerts() {
     } catch (e) {
       setState({ items: [], migrationNeeded: false, loading: false, error: e.message });
     }
-  }, [backend, token]);
+  }, [backend, token, filters]);
 
   const resolve = async (id) => {
     setResolvingId(id);
@@ -98,6 +103,74 @@ export default function AdminAlerts() {
               Exécute <code>/app/backend/migrations/2026_02_admin_alerts.sql</code> dans le SQL Editor Supabase
               pour activer l&apos;historisation des alertes.
             </div>
+          </div>
+        )}
+
+        {/* Filtres */}
+        {!state.migrationNeeded && (
+          <div
+            data-testid="admin-alerts-filters"
+            style={{
+              display: 'flex', flexWrap: 'wrap', gap: 10,
+              padding: '14px 16px', marginBottom: 20,
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(244,239,230,0.1)',
+              borderRadius: 6,
+              fontFamily: 'Inter, sans-serif', fontSize: 12,
+            }}
+          >
+            <FilterGroup label="Type">
+              <select
+                value={filters.alert_type}
+                onChange={(e) => setFilters((f) => ({ ...f, alert_type: e.target.value }))}
+                data-testid="admin-alerts-filter-type"
+                style={selectStyle}
+              >
+                <option value="">Tous</option>
+                <option value="astrology_io_auth">astrology_io_auth</option>
+                <option value="astrology_io_5xx_streak">astrology_io_5xx_streak</option>
+              </select>
+            </FilterGroup>
+            <FilterGroup label="Période">
+              <select
+                value={filters.period}
+                onChange={(e) => setFilters((f) => ({ ...f, period: e.target.value }))}
+                data-testid="admin-alerts-filter-period"
+                style={selectStyle}
+              >
+                <option value="all">Toutes</option>
+                <option value="7d">7 derniers jours</option>
+                <option value="30d">30 derniers jours</option>
+              </select>
+            </FilterGroup>
+            <FilterGroup label="Statut">
+              <select
+                value={filters.status}
+                onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
+                data-testid="admin-alerts-filter-status"
+                style={selectStyle}
+              >
+                <option value="all">Tous</option>
+                <option value="open">Ouvertes</option>
+                <option value="resolved">Résolues</option>
+              </select>
+            </FilterGroup>
+            {(filters.alert_type || filters.period !== 'all' || filters.status !== 'all') && (
+              <button
+                type="button"
+                onClick={() => setFilters({ alert_type: '', period: 'all', status: 'all' })}
+                data-testid="admin-alerts-filter-reset"
+                style={{
+                  background: 'transparent', border: '1px solid rgba(212,175,55,0.4)',
+                  color: 'var(--plume-gold)', borderRadius: 4,
+                  padding: '6px 12px', cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif', fontSize: 11,
+                  letterSpacing: '0.06em', textTransform: 'uppercase',
+                }}
+              >
+                Réinitialiser
+              </button>
+            )}
           </div>
         )}
 
@@ -222,3 +295,25 @@ const resolveBtn = {
   fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
   fontFamily: 'Inter, sans-serif', cursor: 'pointer', whiteSpace: 'nowrap',
 };
+
+const selectStyle = {
+  padding: '6px 10px',
+  background: 'rgba(15,26,60,0.65)',
+  border: '1px solid rgba(212,175,55,0.3)',
+  color: 'var(--plume-ivory)',
+  borderRadius: 4,
+  fontFamily: 'Inter, sans-serif',
+  fontSize: 12.5,
+  cursor: 'pointer',
+};
+
+function FilterGroup({ label, children }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <span style={{ color: 'rgba(244,239,230,0.55)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}

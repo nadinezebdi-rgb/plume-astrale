@@ -36,7 +36,7 @@ const LABEL_STYLE = {
  *  - variant: 'section' (default) | 'modal' — adapte le padding/background pour s'intégrer dans une modal
  *  - onSuccess: callback optionnel (ex: fermer la modal avant redirection)
  */
-export default function SynastrieLeadMagnet({ variant = 'section', onSuccess } = {}) {
+export default function SynastrieLeadMagnet({ variant = 'section', onSuccess, copy, variantKey } = {}) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [p1, setP1] = useState({ prenom: '', birth_date: '', birth_place: 'Paris, France' });
@@ -77,13 +77,13 @@ export default function SynastrieLeadMagnet({ variant = 'section', onSuccess } =
       if (!res.ok || data.success === false) {
         throw new Error(data?.detail || data?.message || 'Erreur serveur');
       }
-      trackEvent('synastrie_free_extract_sent', { email_domain: email.split('@')[1] || '' });
+      trackEvent('synastrie_free_extract_sent', { email_domain: email.split('@')[1] || '', variant: variantKey || null });
       setState({ status: 'success', message: data.message || 'Extrait envoyé ! Vérifiez votre boîte email.' });
       try {
         if (typeof onSuccess === 'function') onSuccess();
       } catch { /* noop */ }
-      // Redirect vers thanks page (upsell 49€). Petit délai pour laisser React render l'état.
-      setTimeout(() => navigate('/synastrie/extrait-envoye'), 300);
+      // Petit délai 1s pour laisser le toast "Extrait envoyé · redirection…" s'afficher avant redirect.
+      setTimeout(() => navigate('/synastrie/extrait-envoye'), 1000);
     } catch (err) {
       setState({ status: 'error', message: err.message || "Impossible d'envoyer l'extrait, réessayez." });
     }
@@ -91,22 +91,59 @@ export default function SynastrieLeadMagnet({ variant = 'section', onSuccess } =
 
   if (state.status === 'success') {
     return (
-      <section
-        aria-label="Extrait synastrie envoyé"
-        data-testid="synastrie-lead-success"
-        style={outerStyle}
-      >
-        <div style={innerStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-            <CheckCircle2 size={22} style={{ color: '#4ADE80' }} strokeWidth={1.5} />
-            <h2 style={h2Style}>Votre extrait est en route</h2>
+      <>
+        <section
+          aria-label="Extrait synastrie envoyé"
+          data-testid="synastrie-lead-success"
+          style={variant === 'modal' ? modalInlineStyle : outerStyle}
+        >
+          <div style={variant === 'modal' ? modalInnerStyle : innerStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+              <CheckCircle2 size={22} style={{ color: '#4ADE80' }} strokeWidth={1.5} />
+              <h2 style={h2Style}>Votre extrait est en route</h2>
+            </div>
+            <p style={copyStyle}>{state.message}</p>
+            <p style={{ ...copyStyle, marginTop: 10, fontSize: 13, opacity: 0.72 }}>
+              Un email avec le lien vers votre extrait 3 pages vient d&apos;être envoyé à <strong>{email}</strong>. Pensez à vérifier vos spams si rien n&apos;arrive sous 5 minutes.
+            </p>
           </div>
-          <p style={copyStyle}>{state.message}</p>
-          <p style={{ ...copyStyle, marginTop: 10, fontSize: 13, opacity: 0.72 }}>
-            Un email avec le lien vers votre extrait 3 pages vient d&apos;être envoyé à <strong>{email}</strong>. Pensez à vérifier vos spams si rien n&apos;arrive sous 5 minutes.
-          </p>
+        </section>
+        {/* Toast de confirmation éphémère pendant la redirection vers la thanks page */}
+        <div
+          role="status"
+          aria-live="polite"
+          data-testid="synastrie-lead-toast"
+          style={{
+            position: 'fixed',
+            top: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 10000,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '12px 20px',
+            background: 'linear-gradient(135deg, #0F1A3A, #0C132E)',
+            border: '1px solid rgba(74,222,128,0.4)',
+            borderRadius: 999,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.35)',
+            color: '#F5EEE0',
+            fontFamily: 'Inter, sans-serif',
+            fontSize: 13.5,
+            letterSpacing: '0.02em',
+            animation: 'synLeadToast 320ms cubic-bezier(0.16, 1, 0.3, 1) both',
+          }}
+        >
+          <CheckCircle2 size={16} style={{ color: '#4ADE80' }} strokeWidth={1.8} />
+          <span>Extrait envoyé · redirection…</span>
+          <style>{`
+            @keyframes synLeadToast {
+              from { opacity: 0; transform: translate(-50%, -8px); }
+              to   { opacity: 1; transform: translate(-50%, 0); }
+            }
+          `}</style>
         </div>
-      </section>
+      </>
     );
   }
 
@@ -120,14 +157,13 @@ export default function SynastrieLeadMagnet({ variant = 'section', onSuccess } =
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <p style={{ fontFamily: '"Cinzel", serif', fontSize: 11, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#D4AF37', margin: '0 0 10px' }}>
             <Sparkles size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }} strokeWidth={1.5} />
-            Extrait gratuit · 3 pages
+            {copy?.eyebrow || 'Extrait gratuit · 3 pages'}
           </p>
-          <h2 id="synastrie-lead-title" style={h2Style}>
-            Un aperçu de votre lien, offert.
+          <h2 id="synastrie-lead-title" style={h2Style} data-testid="synastrie-lead-title">
+            {copy?.title || 'Un aperçu de votre lien, offert.'}
           </h2>
           <p style={copyStyle}>
-            Entrez vos deux prénoms et dates de naissance : nous générons un extrait de 3 pages de votre synastrie
-            (Soleils croisés + ouverture de rapport), envoyé par email dans la minute.
+            {copy?.subtitle || 'Entrez vos deux prénoms et dates de naissance : nous générons un extrait de 3 pages de votre synastrie (Soleils croisés + ouverture de rapport), envoyé par email dans la minute.'}
           </p>
         </div>
 

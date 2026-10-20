@@ -1,5 +1,29 @@
 # Plume Astrale — PRD
 
+## 2026-02-20 — Lot "Toast + A/B exit-intent + Filters admin + Migration SQL prête"
+### Toast confirmation lead synastrie
+- `SynastrieLeadMagnet.jsx` : après `success`, affiche un toast éphémère fixe en haut d'écran ("Extrait envoyé · redirection…", pastille gold+checkmark vert, animation fade-in 320ms) pendant 1s, puis `navigate('/synastrie/extrait-envoye')`.
+- data-testid : `synastrie-lead-toast`.
+
+### A/B test exit-intent copy
+- `SynastrieExitIntentModal.jsx` : 2 variantes `A` (titre neutre "Un aperçu de votre lien, offert") et `B` (titre urgence "Avant de partir / On vous offre un extrait de 3 pages"). Pick 50/50 au premier mount, persisté dans `localStorage.plume_syn_exit_intent_variant`.
+- Variante propagée au `SynastrieLeadMagnet` via nouvelles props `copy` + `variantKey`. Les events GA4 `exit_intent_shown`, `exit_intent_dismissed`, `synastrie_free_extract_sent` incluent la clé `variant` pour l'analyse.
+- Testid ajouté : `synastrie-lead-title`.
+
+### Admin alerts filters
+- Backend `GET /api/admin/alerts` enrichi : query params `alert_type` (exact), `period` (`7d` | `30d` | `all`), `status` (`open` | `resolved`). Validation regex côté FastAPI. Retourne les filtres appliqués dans la réponse.
+- Frontend `AdminAlerts.jsx` : barre de filtres (3 selects + bouton "Réinitialiser") qui re-fetchent à chaque changement via useCallback dependency. Testids : `admin-alerts-filters`, `admin-alerts-filter-type`, `admin-alerts-filter-period`, `admin-alerts-filter-status`, `admin-alerts-filter-reset`.
+
+### Migration SQL admin_alerts
+- Fichier prêt : `/app/backend/migrations/2026_02_admin_alerts.sql` (table + 3 indexes + comment).
+- Je ne peux pas exécuter du DDL via supabase-py → **action user requise** dans le SQL Editor Supabase.
+
+### Tests
+- `/api/synastrie/free-extract` → 200 success avec PDF URL.
+- `/api/admin/alerts?period=7d&status=open` → 401 unauth (route sécurisée).
+- Screenshot exit-intent variante B → copy "AVANT DE PARTIR / On vous offre un extrait de 3 pages" rendu correctement.
+
+
 ## 2026-02-20 — Lot "Thanks page + Admin alerts + Hover popup + Exit-intent"
 ### Thanks page synastrie
 - Nouvelle route `/synastrie/extrait-envoye` (`SynastrieLeadThanks.jsx`) : hero "merci" avec check vert + upsell "La synastrie complète 25 pages · 49€" (6 bénéfices listés + CTA `/paiement?product=synastrie`).

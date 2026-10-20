@@ -987,26 +987,50 @@ async def admin_pdf_failures_last_24h(
 @router.get('/alerts')
 async def admin_alerts_list(
     limit: int = Query(50, ge=1, le=200),
+    alert_type: Optional[str] = Query(None, description='Filtre par alert_type exact'),
+    period: Optional[str] = Query(None, regex='^(7d|30d|all)$', description='Fenêtre temporelle'),
+    status: Optional[str] = Query(None, regex='^(open|resolved)$', description='Statut'),
     _admin: dict = Depends(require_admin),
 ):
     """Liste des alertes système envoyées (astrology-api.io health-check, etc.).
 
-    Retourne les plus récentes d'abord. Si la table `admin_alerts` est absente,
-    renvoie une liste vide + un flag `migration_needed` pour afficher un hint UI.
+    Filtres optionnels :
+      - alert_type : match exact (ex: 'astrology_io_auth')
+      - period : '7d' | '30d' | 'all' (défaut : all)
+      - status : 'open' (resolved_at IS NULL) | 'resolved'
+
+    Si la table `admin_alerts` est absente, renvoie une liste vide + un flag
+    `migration_needed` pour afficher un hint UI.
     """
     sb = get_admin_client()
     try:
-        r = sb.table('admin_alerts').select(
+        q = sb.table('admin_alerts').select(
             'id, alert_type, severity, subject, reason, http_status, '
             'error_detail, payload, resend_id, recipient, resolved_at, created_at'
-        ).order('created_at', desc=True).limit(limit).execute()
+        )
+        if alert_type:
+            q = q.eq('alert_type', alert_type)
+        if period in ('7d', '30d'):
+            days = 7 if period == '7d' else 30
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+            q = q.gte('created_at', cutoff)
+        if status == 'open':
+            q = q.is_('resolved_at', 'null')
+        elif status == 'resolved':
+            q = q.not_.is_('resolved_at', 'null')
+        r = q.order('created_at', desc=True).limit(limit).execute()
         items = r.data or []
-        return {'items': items, 'total': len(items), 'migration_needed': False}
+        return {
+            'items': items,
+            'total': len(items),
+            'migration_needed': False,
+            'filters': {'alert_type': alert_type, 'period': period or 'all', 'status': status or 'all'},
+        }
     except Exception as e:
         msg = str(e)
         if 'admin_alerts' in msg and ('schema cache' in msg or 'does not exist' in msg):
             logger.warning('[admin/alerts] table absente — exécuter 2026_02_admin_alerts.sql')
-            return {'items': [], 'total': 0, 'migration_needed': True}
+            return {'items': [], 'total': 0, 'migration_needed': True, 'filters': {}}
         raise HTTPException(status_code=500, detail=f'alerts fetch failed: {msg[:200]}')
 
 

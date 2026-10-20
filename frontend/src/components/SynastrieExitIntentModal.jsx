@@ -1,11 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import SynastrieLeadMagnet from './SynastrieLeadMagnet';
 import { event as trackEvent } from '../lib/analytics';
 
 const DISMISSED_KEY = 'plume_syn_exit_intent_dismissed';
 const SENT_KEY = 'plume_syn_lead_sent';
+const VARIANT_KEY = 'plume_syn_exit_intent_variant';
 const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24h
+
+// A/B copies : persistées en localStorage pour conserver la variante entre pages.
+const VARIANTS = {
+  A: {
+    eyebrow: 'Extrait gratuit · 3 pages',
+    title: 'Un aperçu de votre lien, offert.',
+    subtitle:
+      'Entrez vos deux prénoms et dates de naissance : nous générons un extrait de 3 pages de votre synastrie, envoyé par email dans la minute.',
+  },
+  B: {
+    eyebrow: 'Avant de partir',
+    title: 'On vous offre un extrait de 3 pages.',
+    subtitle:
+      'Les 3 premières pages de votre synastrie — Soleils croisés + ouverture de rapport — sans engagement, dans votre boîte mail en une minute.',
+  },
+};
+
+function _pickVariant() {
+  try {
+    const existing = localStorage.getItem(VARIANT_KEY);
+    if (existing && VARIANTS[existing]) return existing;
+    const picked = Math.random() < 0.5 ? 'A' : 'B';
+    localStorage.setItem(VARIANT_KEY, picked);
+    return picked;
+  } catch {
+    return Math.random() < 0.5 ? 'A' : 'B';
+  }
+}
 
 function _shouldSkip() {
   try {
@@ -27,6 +56,8 @@ function _shouldSkip() {
  */
 export default function SynastrieExitIntentModal() {
   const [open, setOpen] = useState(false);
+  const variantKey = useMemo(() => _pickVariant(), []);
+  const copy = VARIANTS[variantKey];
 
   useEffect(() => {
     if (_shouldSkip()) return undefined;
@@ -35,7 +66,7 @@ export default function SynastrieExitIntentModal() {
     const trigger = (source) => {
       if (triggered) return;
       triggered = true;
-      try { trackEvent('exit_intent_shown', { page: 'synastrie', source }); } catch { /* noop */ }
+      try { trackEvent('exit_intent_shown', { page: 'synastrie', source, variant: variantKey }); } catch { /* noop */ }
       setOpen(true);
     };
 
@@ -73,7 +104,7 @@ export default function SynastrieExitIntentModal() {
 
   const close = () => {
     try { localStorage.setItem(DISMISSED_KEY, String(Date.now())); } catch { /* noop */ }
-    try { trackEvent('exit_intent_dismissed', { page: 'synastrie' }); } catch { /* noop */ }
+    try { trackEvent('exit_intent_dismissed', { page: 'synastrie', variant: variantKey }); } catch { /* noop */ }
     setOpen(false);
   };
 
@@ -150,7 +181,7 @@ export default function SynastrieExitIntentModal() {
         >
           <X size={16} strokeWidth={1.8} />
         </button>
-        <SynastrieLeadMagnet variant="modal" onSuccess={() => setOpen(false)} />
+        <SynastrieLeadMagnet variant="modal" onSuccess={() => setOpen(false)} copy={copy} variantKey={variantKey} />
       </div>
     </div>
   );
