@@ -96,12 +96,12 @@ export function AstralBookHero({ onStart, price }) {
     B: {
       eyebrow: 'ASTROLOGIE QUI SAIT VOTRE PRÉNOM',
       titleHtml: 'L’astrologie<br /><em>qui sait</em><br />votre prénom.',
-      lead: 'Un livre entièrement composé pour vous à partir de votre carte du ciel : vos besoins, vos liens, vos cycles. 46 pages à retrouver tout au long de votre vie.',
+      lead: 'Un livre entièrement composé pour vous à partir de votre carte du ciel : vos besoins, vos liens, vos cycles. À partir de 49 pages à retrouver tout au long de votre vie.',
     },
     C: {
       eyebrow: 'LE LIVRE DE VOTRE CIEL DE NAISSANCE',
       titleHtml: 'Ce que votre ciel<br /><em>cherchait à vous dire.</em>',
-      lead: 'Une lecture profonde et personnelle de votre thème natal, composée en 46 pages. Pour mieux comprendre ce qui vous anime, ce qui vous lie, et où vous allez.',
+      lead: 'Une lecture profonde et personnelle de votre thème natal, composée à partir de 49 pages. Pour mieux comprendre ce qui vous anime, ce qui vous lie, et où vous allez.',
     },
   }), []);
   const [variantKey, setVariantKey] = useState(() => {

@@ -212,7 +212,7 @@ export default function ExploreUniversSection() {
             <p className="explore-univers__card-eyebrow">Lecture signature</p>
             <h3 className="explore-univers__card-title">Thème natal</h3>
             <p className="explore-univers__card-desc">
-              Ta carte du ciel décodée : personnalité, forces, défis et chemin de vie, dans un livre imprimable de 46 pages.
+              Ta carte du ciel décodée : personnalité, forces, défis et chemin de vie, dans un livre imprimable à partir de 49 pages.
             </p>
             <div className="explore-univers__card-footer">
               <span className="explore-univers__card-cta" aria-hidden="true">Découvrir</span>
