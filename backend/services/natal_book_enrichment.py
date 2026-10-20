@@ -69,14 +69,21 @@ def analyze_elements_modalities(planets: List[Dict[str, Any]]) -> Dict[str, Any]
     }
 
 
-def _cache_key(prenom: str, birth_data: Dict[str, Any]) -> str:
-    # v2 : ajout de la clé `ex_libris` au prompt (Feb 2026). Les anciens caches v1
-    # ne contiennent pas la page Signature → régénération transparente au premier hit.
+PROMPT_VERSION = 'v3'
+
+
+def _cache_key(prenom: str, birth_data: Dict[str, Any], natal_data: Optional[Dict[str, Any]] = None) -> str:
+    natal_data = natal_data or {}
+    chart_sig = json.dumps(
+        [natal_data.get('aspects') or [], natal_data.get('houses') or []],
+        sort_keys=True, ensure_ascii=False, default=str,
+    )
     key_str = (
-        f"v2|{(prenom or '').lower()}|{birth_data.get('year')}|{birth_data.get('month')}|"
+        f"{PROMPT_VERSION}|{(prenom or '').lower()}|{birth_data.get('year')}|{birth_data.get('month')}|"
         f"{birth_data.get('day')}|{birth_data.get('hour')}|{birth_data.get('minute')}|"
         f"{round(float(birth_data.get('latitude') or 0), 3)}|"
-        f"{round(float(birth_data.get('longitude') or 0), 3)}|{birth_data.get('timezone') or ''}"
+        f"{round(float(birth_data.get('longitude') or 0), 3)}|{birth_data.get('timezone') or ''}|"
+        f"{hashlib.sha256(chart_sig.encode()).hexdigest()[:12]}"
     )
     return hashlib.sha256(key_str.encode()).hexdigest()[:24]
 
@@ -92,6 +99,16 @@ Contraintes de forme :
 - Prose au présent, phrases courtes ou moyennes, images sensorielles précises.
 - Pas de listes à puces. Pas de titres H2. Uniquement des paragraphes.
 - Interdit : "en tant que", "il est important de", "n'oublie pas que", émojis.
+
+Cohérence du livre (les chapitres se lisent à la suite, comme un seul ouvrage) :
+- Écriture épicène : on ne connaît pas le genre de la personne. Jamais d'accord genré
+  (« née », « prête », « seule », « une femme / un homme ») — reformule (« venu au monde »
+  → « arrivé·e » est interdit aussi ; préfère une tournure sans accord).
+- Ne mentionne JAMAIS l'absence ou le manque de données (« faute d'aspects fournis »,
+  « données non fournies », « sans le détail précis ») : appuie-toi uniquement sur ce qui est donné.
+- Un fil rouge unique : les mêmes images et le même vocabulaire d'un chapitre à l'autre,
+  sans te contredire ni répéter les mêmes phrases d'ouverture.
+- Cite toujours des positions réelles (planète, signe, maison, aspect) issues des données fournies.
 """
 
 
@@ -109,7 +126,8 @@ def _build_book_prompt(natal_data: Dict[str, Any], em: Dict[str, Any]) -> str:
     planet_lines = [f"- {p.get('name')} en {p.get('sign')}" for p in planets if p.get('name')]
     aspects_top = aspects[:12] if aspects else []
     aspect_lines = [
-        f"- {a.get('planet1')} {a.get('type')} {a.get('planet2')} (orbe {a.get('orb', '?')}°)"
+        f"- {a.get('planet1')} {a.get('type')} {a.get('planet2')} (orbe {a.get('orb', '?')}°"
+        + (f", {a.get('nature')}" if a.get('nature') else '') + ')'
         for a in aspects_top
     ]
     house_lines = [
@@ -127,10 +145,10 @@ Planètes en signes :
 {chr(10).join(planet_lines)}
 
 Aspects majeurs (top 12) :
-{chr(10).join(aspect_lines) if aspect_lines else '(aucun aspect fourni)'}
+{chr(10).join(aspect_lines) if aspect_lines else '(non disponible : ne parle pas des aspects détaillés, reste sur les positions en signes)'}
 
 Cuspides des 12 maisons :
-{chr(10).join(house_lines) if house_lines else '(non fourni)'}
+{chr(10).join(house_lines) if house_lines else '(non disponible : écris chaque maison à partir du thème de la maison et des signes des planètes personnelles, sans mentionner ce manque)'}
 
 Tu dois produire STRICTEMENT un objet JSON valide (aucun texte hors JSON, pas de fence markdown) avec les clés suivantes.
 Chaque valeur est du HTML simple (utilise <br/> pour retours à la ligne, <i>...</i> pour italique, <b>...</b> pour gras). Pas de balise <p> — on gère les paragraphes en séparant par <br/><br/>.
@@ -147,18 +165,18 @@ Chaque valeur est du HTML simple (utilise <br/> pour retours à la ligne, <i>...
   "rare_aspect_headline": "Titre courant pour l'aspect le plus rare ou signature (2-5 mots).",
   "rare_aspect_body": "Analyse de l'aspect le plus rare ou marquant du thème (yod, quinconce serré, conjonction lune-neptune, etc.), 2-3 paragraphes séparés par <br/><br/>. Si aucun aspect rare, décris l'aspect le plus serré en orbe.",
   "houses_intro": "Introduction poétique aux 12 maisons pour {prenom}, 2 paragraphes séparés par <br/><br/>. Métaphore filée : les maisons comme les pièces d'une demeure intérieure.",
-  "house_1": "Analyse de la maison 1 (Ascendant, incarnation) pour {prenom}. 2 phrases nuancées.",
-  "house_2": "Analyse de la maison 2 (ressources, valeur de soi). 2 phrases.",
-  "house_3": "Analyse maison 3 (parole, mental, fratrie). 2 phrases.",
-  "house_4": "Analyse maison 4 (foyer, racines). 2 phrases.",
-  "house_5": "Analyse maison 5 (création, plaisir, enfants). 2 phrases.",
-  "house_6": "Analyse maison 6 (quotidien, santé, service). 2 phrases.",
-  "house_7": "Analyse maison 7 (partenariats, mariage). 2 phrases.",
-  "house_8": "Analyse maison 8 (transformation, sexualité, ressources partagées). 2 phrases.",
-  "house_9": "Analyse maison 9 (voyage, sens, philosophie). 2 phrases.",
-  "house_10": "Analyse maison 10 (accomplissement, carrière, réputation). 2 phrases.",
-  "house_11": "Analyse maison 11 (amitiés, tribu, avenir). 2 phrases.",
-  "house_12": "Analyse maison 12 (invisible, inconscient, retraite). 2 phrases.",
+  "house_1": "Analyse de la maison 1 (Ascendant, incarnation) pour {prenom}. 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
+  "house_2": "Analyse de la maison 2 (ressources, valeur de soi). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
+  "house_3": "Analyse maison 3 (parole, mental, fratrie). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
+  "house_4": "Analyse maison 4 (foyer, racines). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
+  "house_5": "Analyse maison 5 (création, plaisir, enfants). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
+  "house_6": "Analyse maison 6 (quotidien, santé, service). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
+  "house_7": "Analyse maison 7 (partenariats, mariage). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
+  "house_8": "Analyse maison 8 (transformation, sexualité, ressources partagées). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
+  "house_9": "Analyse maison 9 (voyage, sens, philosophie). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
+  "house_10": "Analyse maison 10 (accomplissement, carrière, réputation). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
+  "house_11": "Analyse maison 11 (amitiés, tribu, avenir). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
+  "house_12": "Analyse maison 12 (invisible, inconscient, retraite). 4 à 5 phrases : signe de la cuspide, planètes présentes dans cette maison (si indiquées), et un conseil concret.",
   "year_ahead": "Message pour les 12 prochains mois de {prenom}, 3-4 paragraphes séparés par <br/><br/>. Sensible, orienté transformation intérieure et non prédiction. Se termine par une invitation concrète (un geste, une pratique).",
   "ex_libris": "Signature astrale ex-libris pour {prenom}. UN SEUL paragraphe de 110-140 mots, écrit à la deuxième personne du singulier, qui résume en voix condensée et poétique le trio Soleil {sun} + Lune {moon} + Ascendant {asc}. Doit tenir sur une page, être découpable, offrable. Ni dédicace ni mode d'emploi : une empreinte. Finit par un verbe à l'infinitif qui ouvre vers l'avenir (ex: 'habiter', 'oser', 'se souvenir').",
   "acte3_chapters": {{
@@ -270,7 +288,7 @@ async def enrich_book_chapters(
     }
     Retourne un dict avec toutes les sections + em (elements/modalities counts).
     """
-    key = _cache_key(prenom, birth_data)
+    key = _cache_key(prenom, birth_data, natal_data)
     cache_file = CACHE_DIR / f'{key}.json'
 
     # Analyse déterministe éléments/modalités (pas de GPT)
@@ -289,7 +307,7 @@ async def enrich_book_chapters(
 
     # Appel GPT
     user_prompt = _build_book_prompt(natal_data, em)
-    resp = await _call_gpt(BOOK_SYSTEM_PROMPT, user_prompt, session_id=f'natal-book-{key}')
+    resp = await _call_gpt(BOOK_SYSTEM_PROMPT, user_prompt, session_id=f'natal-book-{key}', timeout_s=240.0)
     if not resp:
         logger.warning(f'[natal_book] GPT no response for {prenom}')
         return {'_em': em, '_source': 'none'}

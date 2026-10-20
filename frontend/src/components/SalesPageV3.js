@@ -203,7 +203,7 @@ export default function SalesPageV3({
               </button>
             </div>
 
-            {/* Champ Code promo compact — F500 2026-02 · TOUT2026 admin bypass */}
+            {/* Champ Code promo compact — F500 2026-02 */}
             <details
               data-testid={`sales-${slug}-promo-details`}
               style={{
