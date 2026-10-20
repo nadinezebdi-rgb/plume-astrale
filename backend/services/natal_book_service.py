@@ -1,0 +1,433 @@
+"""natal_book_service — Pipeline unifié de génération du PDF Thème Natal.
+
+Produit un PDF « Livre Astral » de 45 à 50 pages, de qualité identique quel que
+soit le point d'entrée commercial :
+
+- 24 € oneshot (`services.theme_natal_oneshot_service`)
+- 80 cr `/api/astrology/v3/natal/pdf`
+- 80 cr `/api/reports/theme-natal/pdf`
+
+Ce service se charge uniquement de PRODUIRE les octets du PDF. Le caller
+(route ou webhook) gère la persistance Supabase, les transactions wallet,
+l'envoi email, et les métriques métier.
+
+Pipeline :
+    1. normalize_birth_data + fetch /charts/natal + /analysis/natal-report
+    2. anti-slop guard : refuser si <5 planètes core
+    3. enhanced_personal_analysis (aspects/fixed stars, best-effort)
+    4. enrich_natal_ultra (11 planètes + synthèse aspects, voix Soléna)
+    5. enrich_book_chapters (élément/modalité/trio/12 maisons/aspects/année)
+    6. chart wheel SVG → PNG compressé (optionnel)
+    7. generate_manuscrit_pdf (ReportLab) via thread pool
+    8. output='print' → lulu_interior A5 + bleed 3.175mm
+"""
+from __future__ import annotations
+
+import asyncio
+import logging
+from typing import Any
+
+from services import astrology_io_service as aio
+
+logger = logging.getLogger(__name__)
+
+# Planètes minimales exigées pour qu'un PDF soit livrable sans fallbacks
+# trompeurs (bug Nadine Feb 2026 : Lune Poissons alors que réelle en Bélier).
+_CORE_PLANETS = ('sun', 'moon', 'mercury', 'venus', 'mars')
+
+_AI_PLANET_KEYS = (
+    'soleil', 'lune', 'mercure', 'venus', 'mars',
+    'jupiter', 'saturne', 'uranus', 'neptune', 'pluton', 'ascendant',
+)
+
+_BOOK_PLANETS_FR_EN = (
+    ('Soleil', 'sun'), ('Lune', 'moon'), ('Mercure', 'mercury'),
+    ('Vénus', 'venus'), ('Mars', 'mars'), ('Jupiter', 'jupiter'),
+    ('Saturne', 'saturn'), ('Uranus', 'uranus'),
+    ('Neptune', 'neptune'), ('Pluton', 'pluto'),
+)
+
+
+class IncompleteNatalDataError(RuntimeError):
+    """Levée quand astrology-api.io renvoie trop peu de planètes pour générer un PDF honnête."""
+
+    def __init__(
+        self,
+        msg: str,
+        *,
+        planets_count: int = 0,
+        core_missing: list[str] | None = None,
+    ) -> None:
+        super().__init__(msg)
+        self.planets_count = planets_count
+        self.core_missing = core_missing or []
+
+
+async def generate_enriched_natal_pdf(
+    name: str,
+    birth_data: dict,
+    *,
+    no_birth_time: bool = False,
+    require_complete: bool = True,
+    output: str = 'digital',
+    force_refresh: bool = False,
+    referral_code: str | None = None,
+    referral_link: str | None = None,
+    birth_date_iso: str = '',
+) -> dict:
+    """Génère le PDF Thème Natal enrichi (45-50 pages).
+
+    Args:
+        name: Prénom de l'utilisateur·rice.
+        birth_data: Dict compatible `astrology_io_service.normalize_birth_data`.
+        no_birth_time: True si l'heure de naissance est inconnue — l'ascendant
+            et les 12 maisons seront omis (faux 11 fois sur 12).
+        require_complete: True → échec explicite si le livre est incomplet
+            (défaut, cohérent avec le flux 24 €). False → best-effort.
+        output: 'digital' ou 'print'. 'print' ajoute l'intérieur Lulu A5+bleed.
+        force_refresh: Bypass les caches AI + livre (admin regenerate).
+        referral_code / referral_link: Insérés dans le colophon final.
+        birth_date_iso: Date au format YYYY-MM-DD pour le colophon.
+
+    Returns:
+        dict avec :
+            - pdf_bytes (bytes) : PDF digital, toujours présent
+            - interior_bytes (bytes) : intérieur Lulu A5+bleed si output='print'
+            - diag (dict) : métriques (page_count, ai_source, book_source…)
+
+    Raises:
+        IncompleteNatalDataError: Si <5 planètes core retournées par l'API.
+        RuntimeError: Si le livre complet ne peut être composé.
+    """
+    if output not in ('digital', 'print'):
+        raise ValueError(f"output must be 'digital' or 'print', got {output!r}")
+
+    bd = aio.normalize_birth_data(birth_data)
+    diag: dict[str, Any] = {
+        'name': name,
+        'no_birth_time': no_birth_time,
+        'output': output,
+    }
+
+    # 1) Positions planétaires + rapport natal + interprétations
+    chart = await aio.natal_chart(bd, name=name, language='fr')
+    planets_dict = aio.extract_planets(chart) or {}
+    asc_sign_en = aio.extract_ascendant_sign_en(chart)
+    natal_report_data = await aio.natal_report(bd, name=name, language='fr')
+    interpretations: list = []
+    if isinstance(natal_report_data, dict):
+        interpretations = (
+            natal_report_data.get('interpretations')
+            or natal_report_data.get('data', {}).get('interpretations')
+            or []
+        )
+    diag['planets_from_chart'] = len(planets_dict)
+    diag['interpretations_count'] = len(interpretations)
+
+    # 2) Anti-slop guard : refuser si <5 planètes core
+    core_ok = sum(1 for k in _CORE_PLANETS if k in planets_dict)
+    core_missing = [k for k in _CORE_PLANETS if k not in planets_dict]
+    diag['planets_core_ok'] = core_ok
+    diag['planets_core_missing'] = core_missing
+    if core_ok < 5:
+        raise IncompleteNatalDataError(
+            f'astrology-api.io a retourné {len(planets_dict)} planètes '
+            f'(core manquantes: {core_missing}). '
+            f'Refus de générer un PDF avec fallbacks trompeurs.',
+            planets_count=len(planets_dict),
+            core_missing=core_missing,
+        )
+
+    # 3) Enhanced analysis (aspects + fixed stars) — best-effort
+    enhanced_analysis = await _fetch_enhanced_analysis(bd, name)
+    diag['enhanced_aspects_count'] = len((enhanced_analysis or {}).get('aspects') or [])
+    diag['enhanced_fixed_stars_count'] = len((enhanced_analysis or {}).get('fixed_stars') or [])
+
+    # 4) Enrichissement AI planétaire (11 planètes + synthèse aspects, Soléna)
+    ai_result = await _enrich_ai_ultra(name, bd, interpretations, force_refresh)
+    diag['ai_source'] = ai_result.get('_source', 'none')
+    diag['ai_planet_count'] = sum(1 for k in _AI_PLANET_KEYS if ai_result.get(k))
+    diag['v3_raw_count'] = len(ai_result.get('_raw_v3_by_planet') or {})
+    diag['is_ultra'] = diag['ai_planet_count'] >= 7 or diag['v3_raw_count'] >= 7
+
+    # 5) Enrichissement livre (élément/modalité/trio/12 maisons/aspects/année)
+    book_data = await _build_book_data(
+        name, bd, planets_dict, asc_sign_en, natal_report_data, force_refresh,
+    )
+    diag['book_source'] = (book_data or {}).get('_source', 'none')
+    diag['book_element'] = (book_data or {}).get('_em', {}).get('dominant_element')
+    diag['book_modality'] = (book_data or {}).get('_em', {}).get('dominant_modality')
+
+    # 6) Chart wheel SVG → PNG compressé — best-effort
+    chart_png_bytes = await _render_chart_png(bd, name)
+    diag['chart_png_bytes'] = len(chart_png_bytes) if chart_png_bytes else 0
+
+    # 7) Normalisation aspects/houses/cusps pour le manuscript builder
+    aspects_adapter, houses_adapter, cusps_adapter = _normalize_report_data(
+        natal_report_data, chart, enhanced_analysis,
+    )
+    diag['aspects_count'] = len(aspects_adapter)
+    diag['houses_count'] = len(houses_adapter)
+    diag['cusps_count'] = len(cusps_adapter)
+
+    # 8) Construction user_data pour l'adaptateur
+    def _sign_fr(key: str) -> str:
+        p = planets_dict.get(key)
+        return aio.sign_to_fr(p.get('sign') or '') if p else ''
+
+    hour = int(bd.get('hour') or 0)
+    minute = int(bd.get('minute') or bd.get('min') or 0)
+    user_data = {
+        'prenom': name,
+        'require_complete_book': require_complete,
+        'birth_time': '' if no_birth_time else f'{hour:02d}:{minute:02d}',
+        'birth_city': str(bd.get('city') or bd.get('location') or ''),
+        'birth_date': birth_date_iso,
+        'sun_sign': _sign_fr('sun'),
+        'moon_sign': _sign_fr('moon'),
+        'venus_sign': _sign_fr('venus'),
+        'mars_sign': _sign_fr('mars'),
+        'ascendant_sign': ''
+            if no_birth_time
+            else (aio.sign_to_fr(asc_sign_en) if asc_sign_en else ''),
+        'no_birth_time': no_birth_time,
+        'ai_interpretations': ai_result,
+        'enhanced_personal_analysis': enhanced_analysis,
+    }
+
+    # 9) Génération PDF luxe (ReportLab CPU-bound → thread pool)
+    from services.natal_pdf_adapter import generate_manuscrit_pdf
+    pdf_bytes = await asyncio.to_thread(
+        generate_manuscrit_pdf,
+        user_data=user_data,
+        planets_data=list(planets_dict.values()),
+        chart_png_bytes=chart_png_bytes,
+        book_data=book_data,
+        referral_code=referral_code,
+        referral_link=referral_link,
+        aspects_raw=aspects_adapter or None,
+        houses_raw=houses_adapter or None,
+        house_cusps_raw=cusps_adapter or None,
+    )
+
+    diag['pdf_bytes'] = len(pdf_bytes)
+    try:
+        # Pattern reconnu par ReportLab pour compter les pages sans parser le PDF.
+        diag['pdf_pages'] = (
+            pdf_bytes.count(b'/Type /Page') or pdf_bytes.count(b'/Type/Page')
+        )
+    except Exception:
+        diag['pdf_pages'] = None
+
+    result: dict[str, Any] = {'pdf_bytes': pdf_bytes, 'diag': diag}
+
+    # 10) Variante print (Lulu A5 avec bleed) si demandée
+    if output == 'print':
+        from services.print_book_renderer import lulu_interior
+        interior_bytes = await asyncio.to_thread(lulu_interior, pdf_bytes)
+        result['interior_bytes'] = interior_bytes
+        diag['interior_bytes'] = len(interior_bytes)
+        try:
+            from pypdf import PdfReader
+            import io
+            diag['interior_pages'] = len(PdfReader(io.BytesIO(interior_bytes)).pages)
+        except Exception:
+            diag['interior_pages'] = None
+
+    return result
+
+
+# ─── Helpers internes ─────────────────────────────────────────────────────────
+
+
+async def _fetch_enhanced_analysis(bd: dict, name: str) -> dict | None:
+    """Récupère l'analyse enrichie (aspects + fixed stars) — best-effort."""
+    try:
+        res = await aio.enhanced_personal_analysis(bd, name=name)
+        return res if isinstance(res, dict) else None
+    except Exception as e:
+        logger.warning(f'[natal_book] enhanced analysis unavailable: {e}')
+        return None
+
+
+async def _enrich_ai_ultra(
+    name: str, bd: dict, interpretations: list, force_refresh: bool,
+) -> dict:
+    """Appel GPT ULTRA (11 planètes + synthèse aspects) — fallback texte v3 brut si GPT échoue."""
+    if not interpretations:
+        return {}
+    try:
+        from services.natal_ai_enrichment import enrich_natal_ultra
+        result = await enrich_natal_ultra(
+            prenom=name,
+            birth_data=bd,
+            api_interpretations=interpretations,
+            tier='ultra',
+            force_refresh=force_refresh,
+        )
+        return result or {}
+    except Exception as e:
+        logger.warning(f'[natal_book] AI ultra enrichment failed: {e}')
+        return {}
+
+
+async def _build_book_data(
+    name: str,
+    bd: dict,
+    planets_dict: dict,
+    asc_sign_en: str,
+    natal_report_data: Any,
+    force_refresh: bool,
+) -> dict | None:
+    """Enrichit avec `enrich_book_chapters` : élément/modalité/trio/12 maisons/aspects/année."""
+    try:
+        from services.natal_book_enrichment import enrich_book_chapters
+
+        aspects_for_book: list[dict] = []
+        houses_for_book: list[dict] = []
+        if isinstance(natal_report_data, dict):
+            aspects_raw = (
+                natal_report_data.get('aspects')
+                or natal_report_data.get('data', {}).get('aspects')
+                or []
+            )
+            for a in aspects_raw[:20]:
+                aspects_for_book.append({
+                    'planet1': a.get('planet1') or a.get('p1') or a.get('body1'),
+                    'planet2': a.get('planet2') or a.get('p2') or a.get('body2'),
+                    'type': a.get('type') or a.get('aspect') or a.get('name'),
+                    'orb': a.get('orb') or a.get('orb_deg') or a.get('degree'),
+                })
+            houses_raw = (
+                natal_report_data.get('houses')
+                or natal_report_data.get('data', {}).get('houses')
+                or []
+            )
+            for i, h in enumerate(houses_raw[:12]):
+                houses_for_book.append({
+                    'num': h.get('number') or h.get('num') or (i + 1),
+                    'sign': aio.sign_to_fr(h.get('sign', '')) if h.get('sign') else '',
+                    'planets_in_house': h.get('planets') or h.get('planets_in_house') or [],
+                })
+
+        planets_book: list[dict] = []
+        for pfr, pen in _BOOK_PLANETS_FR_EN:
+            p = planets_dict.get(pen) or {}
+            sign = aio.sign_to_fr(p.get('sign', '')) if p.get('sign') else ''
+            if sign:
+                planets_book.append({'name': pfr, 'sign': sign})
+
+        natal_data_for_book = {
+            'prenom': name,
+            'sun_sign': aio.sign_to_fr((planets_dict.get('sun') or {}).get('sign', '')),
+            'moon_sign': aio.sign_to_fr((planets_dict.get('moon') or {}).get('sign', '')),
+            'asc_sign': aio.sign_to_fr(asc_sign_en) if asc_sign_en else '',
+            'planets': planets_book,
+            'aspects': aspects_for_book,
+            'houses': houses_for_book,
+        }
+        return await enrich_book_chapters(
+            prenom=name,
+            birth_data=bd,
+            natal_data=natal_data_for_book,
+            force_refresh=force_refresh,
+        )
+    except Exception as e:
+        logger.warning(f'[natal_book] book enrichment failed: {e}')
+        return None
+
+
+async def _render_chart_png(bd: dict, name: str) -> bytes | None:
+    """Rend la carte du ciel SVG → PNG → JPEG compressé (via thread, CPU-bound)."""
+    try:
+        svg_str = await aio.chart_svg_render(bd, name=name, theme='light', language='fr')
+        if not svg_str:
+            return None
+        from services.svg_utils import resolve_svg_css_vars
+        import cairosvg
+        svg_resolved = resolve_svg_css_vars(svg_str)
+        png_bytes = await asyncio.to_thread(
+            cairosvg.svg2png,
+            bytestring=svg_resolved.encode('utf-8'),
+            output_width=1600,
+        )
+        if png_bytes:
+            from services.pdf_luxury_helpers import compress_image_bytes
+            png_bytes = await asyncio.to_thread(
+                compress_image_bytes, png_bytes, 1400, 90, True,
+            )
+        return png_bytes
+    except Exception as e:
+        logger.warning(f'[natal_book] chart wheel unavailable: {e}')
+        return None
+
+
+def _normalize_report_data(
+    natal_report_data: Any,
+    chart: Any,
+    enhanced_analysis: dict | None,
+) -> tuple[list, list, list]:
+    """Normalise aspects/houses/cusps pour le manuscript builder.
+
+    Garantit :
+      - aspects : clés `aspecting_planet`, `aspected_planet`, `type`, `orb`
+      - houses : clés `number`, `sign` (FR), `planets`
+      - cusps : clés `house`, `sign` (nom long FR), `degree`
+    """
+    aspects_adapter: list[dict] = []
+    houses_adapter: list[dict] = []
+    cusps_adapter: list[dict] = []
+    try:
+        if isinstance(natal_report_data, dict):
+            aspects_src = (
+                natal_report_data.get('aspects')
+                or natal_report_data.get('data', {}).get('aspects')
+                or []
+            )
+            for a in aspects_src[:40]:
+                if isinstance(a, dict):
+                    aspects_adapter.append({
+                        'aspecting_planet': (
+                            a.get('planet1') or a.get('p1') or a.get('aspecting_planet')
+                        ),
+                        'aspected_planet': (
+                            a.get('planet2') or a.get('p2') or a.get('aspected_planet')
+                        ),
+                        'type': a.get('aspect') or a.get('type') or a.get('name'),
+                        'orb': a.get('orb') or a.get('orb_deg') or a.get('degree'),
+                    })
+            houses_src = (
+                natal_report_data.get('houses')
+                or natal_report_data.get('data', {}).get('houses')
+                or []
+            )
+            for i, h in enumerate(houses_src[:12]):
+                if isinstance(h, dict):
+                    houses_adapter.append({
+                        'number': h.get('number') or h.get('num') or (i + 1),
+                        'sign': aio.sign_to_fr(h.get('sign') or '') if h.get('sign') else '',
+                        'planets': h.get('planets') or h.get('planets_in_house') or [],
+                    })
+        cusps_src = ((chart or {}).get('chart_data') or {}).get('house_cusps') or []
+        for i, c in enumerate(cusps_src[:12]):
+            if isinstance(c, dict):
+                cusps_adapter.append({
+                    'house': c.get('house') or (i + 1),
+                    'sign': aio.expand_sign(c.get('sign') or ''),
+                    'degree': c.get('degree') or c.get('normDegree'),
+                })
+    except Exception as e:
+        logger.warning(f'[natal_book] normalize report data failed: {e}')
+
+    # Fallback aspects via enhanced_analysis si l'API report ne renvoie rien
+    if not aspects_adapter and enhanced_analysis:
+        for a in (enhanced_analysis.get('aspects') or [])[:40]:
+            if isinstance(a, dict):
+                aspects_adapter.append({
+                    'aspecting_planet': a.get('planet1') or a.get('aspecting_planet'),
+                    'aspected_planet': a.get('planet2') or a.get('aspected_planet'),
+                    'type': a.get('aspect') or a.get('type') or a.get('name'),
+                    'orb': a.get('orb') or a.get('orb_deg'),
+                })
+
+    return aspects_adapter, houses_adapter, cusps_adapter
