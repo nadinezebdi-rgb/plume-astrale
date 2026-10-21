@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { event as trackEvent } from '../lib/analytics';
+import CelestialBackdrop from './CelestialBackdrop';
 import './AstralBookEditorial.css';
 
 const publicPath = process.env.PUBLIC_URL || '';
@@ -85,95 +86,137 @@ export function AstralBookVideo() {
 }
 
 export function AstralBookHero({ onStart, price }) {
-  // A/B expérience sur le titre H1 — pick 50/50 persisté en localStorage.
-  // Variantes : A (actuelle) · B (astrologie-nommée) · C (preuve-émotion)
-  const VARIANTS = React.useMemo(() => ({
-    A: {
-      eyebrow: 'PLUME ASTRALE · VOTRE LIVRE PERSONNEL',
-      titleHtml: 'Votre ciel.<br /><em>Votre histoire.</em><br />En livre.',
-      lead: 'Explorez vos élans, vos liens et vos possibilités dans une lecture de votre ciel de naissance. Un livre à parcourir, à garder et à retrouver au fil de votre vie.',
-    },
-    B: {
-      eyebrow: 'ASTROLOGIE QUI SAIT VOTRE PRÉNOM',
-      titleHtml: 'L’astrologie<br /><em>qui sait</em><br />votre prénom.',
-      lead: 'Un livre entièrement composé pour vous à partir de votre carte du ciel : vos besoins, vos liens, vos cycles. À partir de 49 pages à retrouver tout au long de votre vie.',
-    },
-    C: {
-      eyebrow: 'LE LIVRE DE VOTRE CIEL DE NAISSANCE',
-      titleHtml: 'Ce que votre ciel<br /><em>cherchait à vous dire.</em>',
-      lead: 'Une lecture profonde et personnelle de votre thème natal, composée à partir de 49 pages. Pour mieux comprendre ce qui vous anime, ce qui vous lie, et où vous allez.',
-    },
-  }), []);
-  const [variantKey, setVariantKey] = useState(() => {
-    try {
-      const existing = localStorage.getItem('plume_hero_variant');
-      if (existing && VARIANTS[existing]) return existing;
-      const keys = Object.keys(VARIANTS);
-      const picked = keys[Math.floor(Math.random() * keys.length)];
-      localStorage.setItem('plume_hero_variant', picked);
-      return picked;
-    } catch {
-      return 'A';
+  // Scroll vers la section « Par où commencer » (AstralPathways) qui liste les
+  // services par besoin. ScrollIntoView natif + scroll-margin-top CSS gèrent le
+  // décalage du menu fixe.
+  const scrollToPathways = useCallback(() => {
+    const target = document.getElementById('pa-book-pathways');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Focus accessible : donne la main au titre pour les lecteurs d'écran
+      const h2 = target.querySelector('h2');
+      if (h2) {
+        h2.setAttribute('tabindex', '-1');
+        setTimeout(() => h2.focus({ preventScroll: true }), 400);
+      }
     }
-  });
-  // Au mount, demander au backend si une variante gagnante est verrouillée.
-  // Si oui → bascule immédiatement, et persist en localStorage pour next loads.
-  React.useEffect(() => {
-    const api = process.env.REACT_APP_BACKEND_URL;
-    if (!api) return;
-    let cancelled = false;
-    fetch(`${api}/api/experiments/home_hero_h1/variant`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (cancelled || !data || !data.locked || !data.variant) return;
-        if (!VARIANTS[data.variant]) return;
-        if (data.variant !== variantKey) {
-          try { localStorage.setItem('plume_hero_variant', data.variant); } catch { /* noop */ }
-          setVariantKey(data.variant);
-        }
-      })
-      .catch(() => { /* noop */ });
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    try {
+      import('../lib/abTracking').then(({ trackABEvent }) => {
+        trackABEvent('home_hero_h1', 'reset', 'cta_click', { destination: 'pathways' });
+      });
+    } catch { /* noop */ }
   }, []);
-  const copy = VARIANTS[variantKey];
 
-  // Track `shown` once on mount + `cta_click` sur bouton principal.
-  React.useEffect(() => {
+  // « Découvrir un exemple » → ouvre le PDF démo réel (anonymisé, service Thème
+  // Natal). URL fournie par REACT_APP_NATAL_BOOK_PREVIEW_URL, par défaut un
+  // extrait local servi par le front.
+  const samplePdfUrl = process.env.REACT_APP_NATAL_BOOK_PREVIEW_URL
+    || '/demos/theme-natal-sample.pdf';
+  const onSampleClick = useCallback(() => {
     try {
-      import('../lib/abTracking').then(({ trackABEvent }) => {
-        trackABEvent('home_hero_h1', variantKey, 'shown');
+      trackEvent('pdf_preview_click', {
+        cta_location: 'hero_v4',
+        pdf_url: samplePdfUrl,
+        destination: 'natal_book_sample',
       });
     } catch { /* noop */ }
-  }, [variantKey]);
+  }, [samplePdfUrl]);
 
-  const onPrimaryClick = () => {
-    try {
-      import('../lib/abTracking').then(({ trackABEvent }) => {
-        trackABEvent('home_hero_h1', variantKey, 'cta_click', { destination: 'theme-natal' });
-      });
-    } catch { /* noop */ }
+  // Variante « offer » (bouton livre payant) conservée pour les pages où
+  // AstralBookHero est réutilisé avec onStart (checkout direct).
+  const onPrimaryClick = useCallback(() => {
     if (onStart) onStart();
-  };
+    else scrollToPathways();
+  }, [onStart, scrollToPathways]);
 
-  return <section className="pa-book-hero" aria-labelledby="pa-book-title" data-ab-variant={variantKey}>
-    <div className="pa-book-hero__copy">
-      <p className="pa-book-eyebrow"><span aria-hidden="true">✦</span> {copy.eyebrow}</p>
-      <h1 id="pa-book-title" dangerouslySetInnerHTML={{ __html: copy.titleHtml }} />
-      <p className="pa-book-lead">{copy.lead}</p>
-      <div className="pa-book-actions">
-        {onStart ? <button type="button" className="pa-book-button" onClick={onPrimaryClick}>Créer mon livre astral{price ? ` — ${price} €` : ''}<span aria-hidden="true">↗</span></button> : <Link className="pa-book-button" to="/theme-natal" data-testid="home-gateway-primary-cta" onClick={onPrimaryClick}>Créer mon livre astral <span aria-hidden="true">↗</span></Link>}
-        <a className="pa-book-text-link" href={onStart ? '#pa-book-discover' : '#home-gateway-services'}>{onStart ? 'Explorer les éditions' : 'Explorer les services'} <span aria-hidden="true">↓</span></a>
+  return (
+    <section className="pa-book-hero" aria-labelledby="pa-book-title" data-testid="pa-book-hero-v4">
+      <CelestialBackdrop density={70} shootingStars interval={14000} />
+      <div className="pa-book-hero__copy">
+        <p className="pa-book-eyebrow" data-testid="hero-eyebrow">
+          <span aria-hidden="true">✦</span> ASTROLOGIE · TAROT · NUMÉROLOGIE
+        </p>
+        <h1 id="pa-book-title" data-testid="hero-h1">
+          <span className="pa-book-h1__line">Mieux te comprendre.</span>
+          <span className="pa-book-h1__line">Savoir ce que tu veux.</span>
+          <span className="pa-book-h1__line pa-book-h1__line--accent">Choisir ta direction.</span>
+        </h1>
+        <p className="pa-book-lead" data-testid="hero-lead">
+          Ton thème astral, tes nombres et les cartes deviennent des supports
+          de réflexion pour explorer tes forces, tes relations et les questions
+          qui comptent aujourd&apos;hui.
+        </p>
+        <div className="pa-book-actions">
+          {onStart ? (
+            <button
+              type="button"
+              className="pa-book-button"
+              onClick={onPrimaryClick}
+              data-testid="hero-primary-cta"
+            >
+              Créer mon livre astral{price ? ` — ${price} €` : ''}
+              <span aria-hidden="true">↗</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="pa-book-button"
+              onClick={scrollToPathways}
+              data-testid="hero-primary-cta"
+            >
+              Trouver ma lecture
+              <span aria-hidden="true">↓</span>
+            </button>
+          )}
+          <a
+            className="pa-book-text-link pa-book-text-link--secondary"
+            href={samplePdfUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onSampleClick}
+            data-testid="hero-secondary-cta"
+            aria-label="Découvrir un exemple de lecture Thème Natal anonymisé (PDF)"
+          >
+            Découvrir un exemple <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <p className="pa-book-hint" data-testid="hero-hint">
+          Pour mieux te connaître · Comprendre tes liens · Explorer une nouvelle direction
+        </p>
       </div>
-      <ul className="pa-book-details" aria-label="Votre expérience"><li>Une lecture personnelle</li><li>PDF et éditions papier à découvrir</li></ul>
-    </div>
-    <AstralBookVideo />
-  </section>;
+      <AstralBookVideo />
+    </section>
+  );
 }
 
 export function AstralPathways() {
-  const paths = [['01', 'Me comprendre', 'Explorer mes besoins, mes élans et ma façon d’avancer.', '/theme-natal'], ['02', 'Comprendre mes relations', 'Mettre en perspective la rencontre de deux ciels.', '/synastrie'], ['03', 'Explorer mes cycles', 'Découvrir une autre lecture de mon chemin et de mes rythmes.', '/numerologie-pdf']];
-  return <section className="pa-book-pathways" aria-labelledby="pa-pathways-title"><p className="pa-book-eyebrow">PAR OÙ COMMENCER ?</p><h2 id="pa-pathways-title">Ce qui vous amène ici.</h2><div>{paths.map(([number,title,description,to]) => <Link key={number} to={to}><span>{number}</span><h3>{title}</h3><p>{description}</p><span className="pa-pathways-arrow" aria-hidden="true">↗</span></Link>)}</div></section>;
+  const paths = [
+    ['01', 'Mieux me connaître', 'Thème natal et numérologie pour explorer tes forces et tes élans.', '/theme-natal'],
+    ['02', 'Comprendre mes relations', 'Compatibilité et synastrie pour éclairer la rencontre de deux ciels.', '/synastrie'],
+    ['03', 'Explorer une question', 'Le tarot pour mettre une question en lumière, simplement.', '/services/tarot/oui-non'],
+    ['04', 'Prendre du recul sur ma période', 'Révolution solaire et lectures de cycles pour relire tes mois à venir.', '/services/revolution-solaire'],
+  ];
+  return (
+    <section
+      id="pa-book-pathways"
+      className="pa-book-pathways"
+      aria-labelledby="pa-pathways-title"
+      data-testid="pa-book-pathways"
+    >
+      <p className="pa-book-eyebrow">PAR OÙ COMMENCER ?</p>
+      <h2 id="pa-pathways-title">Choisis ta lecture.</h2>
+      <div>
+        {paths.map(([number, title, description, to]) => (
+          <Link key={number} to={to} data-testid={`pathway-${number}`}>
+            <span>{number}</span>
+            <h3>{title}</h3>
+            <p>{description}</p>
+            <span className="pa-pathways-arrow" aria-hidden="true">↗</span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export function AstralBookDiscovery() {
