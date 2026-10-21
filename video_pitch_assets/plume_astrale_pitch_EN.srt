@@ -26,14 +26,14 @@ Each reading becomes a personal book —
 a 49-page edition of your birth chart.
 
 7
-00:00:29,100 --> 00:00:34,000
+00:00:29,100 --> 00:00:33,500
 GPT-powered interpretations,
-printed-book quality PDF, delivered by email.
+printed-book quality PDF.
 
 8
-00:00:34,100 --> 00:00:38,000
-Synastry at 49€, natal theme at 24€ —
-plus tarot, numerology and solar return.
+00:00:33,600 --> 00:00:38,000
+Natal theme at 24€, synastry at 49€,
+plus tarot, numerology, solar return.
 
 9
 00:00:38,100 --> 00:00:44,000
@@ -41,17 +41,17 @@ And on the last page, something unique:
 a signature designed to be gifted.
 
 10
-00:00:44,100 --> 00:00:49,500
+00:00:44,100 --> 00:00:48,500
 Your Ex Libris — a cut-out astral card
-to print, keep or offer to a loved one.
+to print, keep, or offer.
 
 11
-00:00:50,000 --> 00:00:54,500
-104 payments. 39 books delivered. 15 active users.
+00:00:49,000 --> 00:00:53,500
+183 € in Facebook Ads · 104 payments · 13× ROAS.
 
 12
-00:00:54,600 --> 00:00:57,500
-Stripe live. Full admin. A/B tests running.
+00:00:53,600 --> 00:00:57,500
+Stripe live. Real users. Validated by the market.
 
 13
 00:00:57,600 --> 00:01:00,000
