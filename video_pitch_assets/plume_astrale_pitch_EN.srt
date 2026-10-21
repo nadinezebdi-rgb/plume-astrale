@@ -1,0 +1,58 @@
+1
+00:00:00,500 --> 00:00:05,000
+What if astrology wasn't about predicting your future…
+
+2
+00:00:05,100 --> 00:00:09,500
+but about understanding yourself better, today?
+
+3
+00:00:10,000 --> 00:00:14,500
+Meet Plume Astrale — literary astrology,
+tarot and numerology.
+
+4
+00:00:14,600 --> 00:00:19,000
+Four reading paths tailored to real-life questions:
+
+5
+00:00:19,100 --> 00:00:23,500
+know yourself · understand your relationships ·
+explore a question · reflect on your cycle.
+
+6
+00:00:24,000 --> 00:00:29,000
+Each reading becomes a personal book —
+a 49-page edition of your birth chart.
+
+7
+00:00:29,100 --> 00:00:34,000
+GPT-powered interpretations,
+printed-book quality PDF, delivered by email.
+
+8
+00:00:34,100 --> 00:00:38,000
+Synastry at 49€, natal theme at 24€ —
+plus tarot, numerology and solar return.
+
+9
+00:00:38,100 --> 00:00:44,000
+And on the last page, something unique:
+a signature designed to be gifted.
+
+10
+00:00:44,100 --> 00:00:49,500
+Your Ex Libris — a cut-out astral card
+to print, keep or offer to a loved one.
+
+11
+00:00:50,000 --> 00:00:53,500
+Fully operational: Stripe live payments,
+
+12
+00:00:53,600 --> 00:00:57,000
+continuous A/B testing, real admin dashboard.
+
+13
+00:00:57,500 --> 00:01:00,000
+Plume Astrale — understand yourself, today.
