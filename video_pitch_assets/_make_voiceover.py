@@ -19,7 +19,7 @@ SCRIPT = (
     "Each reading becomes a personal book — "
     "a forty-nine page edition of your birth chart. "
     "Precise charts, powered by Astrology-API. "
-    "Poetic chapters, composed by GPT. "
+    "Poetic chapters, composed just for you. "
     "A printed-book quality PDF, delivered by email. "
     "Natal theme at twenty-four euros. "
     "Synastry at forty-nine. "
