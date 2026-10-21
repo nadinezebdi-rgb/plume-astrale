@@ -1,5 +1,5 @@
 [Script Info]
-Title: Plume Astrale pitch
+Title: Plume Astrale pitch (v2)
 ScriptType: v4.00+
 PlayResX: 1920
 PlayResY: 1080
@@ -8,28 +8,29 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Pill,DejaVu Sans,26,&H00EAF3F7,&H00EAF3F7,&H00000000,&HA0101818,0,0,0,0,100,100,0,0,4,14,0,2,120,120,45,0
+Style: Pill,DejaVu Sans,34,&H00EAF3F7,&H00EAF3F7,&H00101820,&H00000000,0,0,0,0,100,100,0,0,1,5,0,2,120,120,52,0
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-Dialogue: 0,0:00:00.00,0:00:02.50,Pill,,0,0,0,,What if astrology wasn't about predicting your future
-Dialogue: 0,0:00:02.50,0:00:05.10,Pill,,0,0,0,,but about understanding yourself, today?
-Dialogue: 0,0:00:06.40,0:00:08.10,Pill,,0,0,0,,Meet Plume Astrale
-Dialogue: 0,0:00:08.40,0:00:11.10,Pill,,0,0,0,,Literary astrology · tarot · numerology
-Dialogue: 0,0:00:11.40,0:00:14.10,Pill,,0,0,0,,Four reading paths for real-life questions
-Dialogue: 0,0:00:14.20,0:00:18.90,Pill,,0,0,0,,Know yourself · Relationships · One question · Your cycle
-Dialogue: 0,0:00:19.00,0:00:21.10,Pill,,0,0,0,,Each reading becomes a personal book
-Dialogue: 0,0:00:21.10,0:00:23.70,Pill,,0,0,0,,A 49-page edition of your birth chart
-Dialogue: 0,0:00:24.00,0:00:25.90,Pill,,0,0,0,,GPT-powered interpretations
-Dialogue: 0,0:00:26.00,0:00:28.80,Pill,,0,0,0,,Printed-book quality PDF, delivered by email
-Dialogue: 0,0:00:28.80,0:00:30.70,Pill,,0,0,0,,Natal theme at 24 €
-Dialogue: 0,0:00:30.90,0:00:32.20,Pill,,0,0,0,,Synastry at 49 €
-Dialogue: 0,0:00:32.40,0:00:34.60,Pill,,0,0,0,,And on the last page, something unique
-Dialogue: 0,0:00:34.60,0:00:36.80,Pill,,0,0,0,,A signature designed to be gifted
-Dialogue: 0,0:00:37.00,0:00:40.90,Pill,,0,0,0,,Your Ex Libris — a cut-out card to print, keep, or offer
-Dialogue: 0,0:00:41.80,0:00:44.00,Pill,,0,0,0,,183 € in Facebook Ads
-Dialogue: 0,0:00:44.00,0:00:45.30,Pill,,0,0,0,,104 payments
-Dialogue: 0,0:00:45.40,0:00:47.20,Pill,,0,0,0,,13× return on ad spend
-Dialogue: 0,0:00:47.60,0:00:49.20,Pill,,0,0,0,,Stripe live · real users
-Dialogue: 0,0:00:49.40,0:00:50.80,Pill,,0,0,0,,Validated by the market
-Dialogue: 0,0:00:51.00,0:00:53.50,Pill,,0,0,0,,Plume Astrale — understand yourself, today
+Dialogue: 0,0:00:00.00,0:00:03.00,Pill,,0,0,0,,What if astrology wasn't about predicting your future
+Dialogue: 0,0:00:03.00,0:00:06.00,Pill,,0,0,0,,but about understanding yourself, today?
+Dialogue: 0,0:00:06.90,0:00:07.90,Pill,,0,0,0,,Meet Plume Astrale
+Dialogue: 0,0:00:08.30,0:00:11.00,Pill,,0,0,0,,Literary astrology · tarot · numerology
+Dialogue: 0,0:00:11.70,0:00:14.20,Pill,,0,0,0,,Four reading paths for real-life questions
+Dialogue: 0,0:00:15.00,0:00:20.30,Pill,,0,0,0,,Know yourself · Relationships · One question · Your cycle
+Dialogue: 0,0:00:21.00,0:00:23.10,Pill,,0,0,0,,Each reading becomes a personal book
+Dialogue: 0,0:00:23.30,0:00:25.70,Pill,,0,0,0,,A 49-page edition of your birth chart
+Dialogue: 0,0:00:25.70,0:00:28.80,Pill,,0,0,0,,Precise charts · powered by Astrology-API
+Dialogue: 0,0:00:29.80,0:00:31.80,Pill,,0,0,0,,Poetic chapters · composed by GPT
+Dialogue: 0,0:00:32.60,0:00:35.60,Pill,,0,0,0,,Printed-book quality PDF, delivered by email
+Dialogue: 0,0:00:35.80,0:00:37.20,Pill,,0,0,0,,Natal theme at 24 €
+Dialogue: 0,0:00:37.80,0:00:38.90,Pill,,0,0,0,,Synastry at 49 €
+Dialogue: 0,0:00:39.90,0:00:42.30,Pill,,0,0,0,,And on the last page, something unique
+Dialogue: 0,0:00:42.40,0:00:44.80,Pill,,0,0,0,,A signature designed to be gifted
+Dialogue: 0,0:00:44.80,0:00:50.20,Pill,,0,0,0,,Your Ex Libris — a cut-out astral card to print, keep, or offer
+Dialogue: 0,0:00:50.70,0:00:53.20,Pill,,0,0,0,,183 € in Facebook Ads
+Dialogue: 0,0:00:53.30,0:00:54.70,Pill,,0,0,0,,104 payments
+Dialogue: 0,0:00:55.20,0:00:57.40,Pill,,0,0,0,,13× return on ad spend
+Dialogue: 0,0:00:57.90,0:00:59.40,Pill,,0,0,0,,Stripe live · real users
+Dialogue: 0,0:00:59.90,0:01:01.10,Pill,,0,0,0,,Validated by the market
+Dialogue: 0,0:01:01.80,0:01:04.30,Pill,,0,0,0,,Plume Astrale — understand yourself, today

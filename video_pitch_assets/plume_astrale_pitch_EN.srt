@@ -1,83 +1,67 @@
 1
-00:00:00,000 --> 00:00:02,500
+00:00:00,000 --> 00:00:02,930
 What if astrology wasn't about predicting your future
 
 2
-00:00:02,500 --> 00:00:05,100
-but about understanding yourself, today?
+00:00:03,100 --> 00:00:07,450
+but about understanding yourself better today Meet Plume
 
 3
-00:00:06,400 --> 00:00:08,100
-Meet Plume Astrale
+00:00:07,300 --> 00:00:12,350
+Astrale Literary Astrology Tarot and Numerology Four reading
 
 4
-00:00:08,400 --> 00:00:11,100
-Literary astrology · tarot · numerology
+00:00:12,200 --> 00:00:15,810
+paths tailored to real life questions Know yourself
 
 5
-00:00:11,400 --> 00:00:14,100
-Four reading paths for real-life questions
+00:00:16,360 --> 00:00:19,770
+understand your relationships explore a question reflect on
 
 6
-00:00:14,200 --> 00:00:18,900
-Know yourself · Relationships · One question · Your cycle
+00:00:19,620 --> 00:00:23,130
+your cycle Each reading becomes a personal book
 
 7
-00:00:19,000 --> 00:00:21,100
-Each reading becomes a personal book
+00:00:23,320 --> 00:00:25,770
+a 49 page edition of your birth chart
 
 8
-00:00:21,100 --> 00:00:23,700
-A 49-page edition of your birth chart
+00:00:25,620 --> 00:00:30,590
+Precise charts powered by Astrology API Poetic chapters
 
 9
-00:00:24,000 --> 00:00:25,900
-GPT-powered interpretations
+00:00:30,900 --> 00:00:34,490
+composed by GPT A printed book quality PDF
 
 10
-00:00:26,000 --> 00:00:28,800
-Printed-book quality PDF, delivered by email
+00:00:34,520 --> 00:00:38,410
+delivered by email Natal theme at €24 Sinistri
 
 11
-00:00:28,800 --> 00:00:30,700
-Natal theme at 24 €
+00:00:38,260 --> 00:00:41,850
+at €49 And on the last page something
 
 12
-00:00:30,900 --> 00:00:32,200
-Synastry at 49 €
+00:00:41,700 --> 00:00:45,410
+unique a signature designed to be gifted Your
 
 13
-00:00:32,400 --> 00:00:34,600
-And on the last page, something unique
+00:00:45,260 --> 00:00:48,010
+Ex Libris a cut out astral card to
 
 14
-00:00:34,600 --> 00:00:36,800
-A signature designed to be gifted
+00:00:47,860 --> 00:00:52,330
+print to keep or to offer €183 in
 
 15
-00:00:37,000 --> 00:00:40,900
-Your Ex Libris — a cut-out card to print, keep, or offer
+00:00:52,180 --> 00:00:54,500
+Facebook ads 104 payments 13 times return on
 
 16
-00:00:41,800 --> 00:00:44,000
-183 € in Facebook Ads
+00:00:56,680 --> 00:00:54,500
+ad spend Stripe Live real users validated by
 
 17
-00:00:44,000 --> 00:00:45,300
-104 payments
-
-18
-00:00:45,400 --> 00:00:47,200
-13× return on ad spend
-
-19
-00:00:47,600 --> 00:00:49,200
-Stripe live · real users
-
-20
-00:00:49,400 --> 00:00:50,800
-Validated by the market
-
-21
-00:00:51,000 --> 00:00:53,500
-Plume Astrale — understand yourself, today
+00:01:00,520 --> 00:00:54,500
+the market Plume Astrale Understand yourself today
