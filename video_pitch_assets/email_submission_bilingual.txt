@@ -1,0 +1,112 @@
+═══════════════════════════════════════════════════════════════
+EMAIL DE SOUMISSION — CONCOURS EMERGENT (version française)
+═══════════════════════════════════════════════════════════════
+
+À : [contest@emergent.sh ou l'adresse officielle du concours]
+Objet : Soumission concours — Plume Astrale, l'astrologie littéraire
+
+Bonjour l'équipe Emergent,
+
+Je vous soumets Plume Astrale, candidat au concours Emergent 2026.
+
+Ce que c'est en une phrase
+Plume Astrale est une plateforme d'astrologie littéraire qui transforme
+ton thème natal en un livre personnel de 49 pages — composé par IA,
+mis en page comme un vrai livre, livré en PDF, et offrable grâce à
+une signature Ex Libris à découper.
+
+Pourquoi Emergent
+J'ai construit Plume Astrale en 90 jours avec Emergent, en solo.
+L'écosystème (hot reload, intégrations Stripe/Supabase/LLM clé en main,
+preview URL) m'a permis d'itérer entre le design éditorial, les prompts
+GPT, le moteur de rendu PDF (ReportLab + PIL) et les tests A/B sans
+jamais quitter l'IDE. Zéro ligne de code jetée pour cause de stack.
+
+Ce qui est LIVE aujourd'hui
+• Site + checkout : plume-astrale.fr
+• Thème Natal (24 €) · Synastrie (49 €) · Tarot · Numérologie · Révolution Solaire
+• Génération IA : GPT 5.4 + Claude Sonnet 5.5 (Emergent LLM Key)
+• Rendu PDF 49 pages (ReportLab) + variante offerte Ex Libris PNG (PIL)
+• Paiement Stripe en production
+• Admin complète : KPI, funnel A/B, santé Stripe webhook
+• 15 utilisateurs actifs, data réelle sur le dashboard
+
+Preuves techniques
+• Code sous Emergent (fork continu, pas de dépôt externe)
+• Testing agent E2E utilisé après chaque feature majeure
+• Backend FastAPI + MongoDB + Supabase · Frontend React/Shadcn
+
+Pièces jointes
+• [plume_astrale_pitch_60s.mp4] — vidéo de présentation 60 s (sous-titres EN)
+• [Plume-Astrale-Finale-EN-v2.pptx] — deck 7 slides
+• Lien démo live : https://plume-astrale.fr
+• Exemple de rendu : https://plume-astrale.fr/demos/theme-natal-sample.pdf
+
+À disposition pour toute démo live.
+
+Nadine Zebdi
+Fondatrice — Plume Astrale
+[Email] · [Téléphone] · [LinkedIn]
+
+
+═══════════════════════════════════════════════════════════════
+EMAIL DE SOUMISSION — EMERGENT CONTEST (English version)
+═══════════════════════════════════════════════════════════════
+
+To: [contest@emergent.sh or official contest address]
+Subject: Contest submission — Plume Astrale, literary astrology
+
+Hi Emergent team,
+
+Submitting Plume Astrale for the Emergent 2026 contest.
+
+What it is, in one line
+Plume Astrale turns your birth chart into a 49-page personal book —
+AI-written, typeset like a real book, delivered as PDF, with a cut-out
+Ex Libris signature designed to be gifted.
+
+Why Emergent
+I built Plume Astrale in 90 days on Emergent, solo. The ecosystem
+(hot reload, built-in Stripe / Supabase / LLM key, preview URL) let me
+iterate across editorial design, GPT prompts, PDF rendering (ReportLab + PIL),
+and A/B testing without ever leaving the IDE. Zero code thrown away
+due to stack choices.
+
+What's LIVE today
+• Site + checkout: plume-astrale.fr
+• Natal Theme (24 €) · Synastry (49 €) · Tarot · Numerology · Solar Return
+• AI generation: GPT 5.4 + Claude Sonnet 5.5 via Emergent LLM Key
+• 49-page PDF (ReportLab) + giftable Ex Libris PNG (PIL)
+• Stripe live payments
+• Full admin dashboard: KPI, A/B funnel, Stripe webhook health
+• 15 active users, real data on the dashboard
+
+Technical proof
+• Codebase hosted on Emergent (continuous forks, no external repo)
+• E2E testing agent run after every major feature
+• FastAPI + MongoDB + Supabase · React/Shadcn front
+
+Attachments
+• [plume_astrale_pitch_60s.mp4] — 60s presentation video (EN subtitles)
+• [Plume-Astrale-Finale-EN-v2.pptx] — 7-slide deck
+• Live demo: https://plume-astrale.fr
+• Sample output: https://plume-astrale.fr/demos/theme-natal-sample.pdf
+
+Happy to run a live demo anytime.
+
+Nadine Zebdi
+Founder — Plume Astrale
+[Email] · [Phone] · [LinkedIn]
+
+═══════════════════════════════════════════════════════════════
+NOTES POUR ADAPTATION
+═══════════════════════════════════════════════════════════════
+
+→ Remplace les 15 utilisateurs par le chiffre réel si différent
+  (va dans /admin → Utilisateurs → compte le total aujourd'hui)
+→ Si tu as déjà des ventes réelles, ajoute UNE LIGNE avant "Preuves techniques" :
+  "Chiffre d'affaires de X € sur Y commandes depuis le lancement."
+→ Ne t'excuse de rien. Pas de "malgré quelques bugs connus",
+  pas de "en développement". Le produit EST live.
+→ Garde l'email COURT. Les juges reçoivent 100+ candidatures.
+  La vidéo doit porter l'émotion, l'email la crédibilité factuelle.
