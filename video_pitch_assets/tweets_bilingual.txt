@@ -1,95 +1,83 @@
 ┌───────────────────────────────────────────────────────────┐
-│  TWEET 1 — INTIMISTE / ÉDITORIAL (FR)  — recommandée       │
+│  TWEETS v2 avec TRACTION RÉELLE (après vérif admin)        │
 └───────────────────────────────────────────────────────────┘
 
-J'ai construit Plume Astrale en 90 jours avec Emergent.
 
-Pas une appli de voyance. Un espace littéraire pour mieux
-te comprendre : thème natal en 49 pages, synastrie, tarot,
-et une signature Ex Libris à offrir ✦
+┌───── TWEET WINNER (FR) ─ chiffres + storytelling ─────────┐
 
-Ma candidature au concours @emergent_sh ↓
+90 jours, solo, sur @emergent_sh.
 
-→ plume-astrale.fr
-[vidéo 60s]
+Résultat : Plume Astrale, l'astrologie littéraire.
+→ 104 paiements · 39 livres livrés · 15 users actifs
+→ Thème natal en 49 pages · Signature Ex Libris à offrir ✦
+→ Stripe LIVE · admin complète · A/B tests continus
 
-#BuiltWithEmergent #AstrologieLittéraire
+Ma soumission concours ↓
 
-────────────────────────────────────────────────── 273 chars
+🔗 plume-astrale.fr
+[vidéo 60 s]
+
+#BuiltWithEmergent
+───────────────────────────────────────── 272 chars
 
 
-┌───────────────────────────────────────────────────────────┐
-│  TWEET 1 — INTIMATE / EDITORIAL (EN) — recommended         │
-└───────────────────────────────────────────────────────────┘
+┌───── TWEET WINNER (EN) ─ numbers + story ─────────────────┐
 
-I built Plume Astrale in 90 days on Emergent.
+90 days, solo, on @emergent_sh.
 
-Not a fortune-telling app. A literary space to understand
-yourself better: 49-page natal book, synastry, tarot,
-and an Ex Libris signature to gift ✦
+Shipped Plume Astrale — literary astrology.
+→ 104 payments · 39 books delivered · 15 active users
+→ 49-page natal book · Giftable Ex Libris signature ✦
+→ Stripe LIVE · full admin · continuous A/B tests
 
-My submission to the @emergent_sh contest ↓
+My contest submission ↓
 
-→ plume-astrale.fr
+🔗 plume-astrale.fr
 [60s video]
 
-#BuiltWithEmergent #LiteraryAstrology
-
-────────────────────────────────────────────────── 268 chars
-
-
-┌───────────────────────────────────────────────────────────┐
-│  TWEET 2 — PROOF-DRIVEN / BUILDER TONE (FR)                │
-└───────────────────────────────────────────────────────────┘
-
-90 jours pour construire Plume Astrale avec Emergent :
-
-✓ Thème natal 49 pages (GPT + ReportLab)
-✓ Stripe LIVE · 15 utilisateurs · A/B tests actifs
-✓ Admin complète + webhooks opérationnels
-✓ Variante offerte Ex Libris PNG (viralité CRO)
-
-Ma soumission @emergent_sh 🎬
-
-→ plume-astrale.fr
-
-────────────────────────────────────────────────── 276 chars
+#BuiltWithEmergent
+───────────────────────────────────────── 272 chars
 
 
-┌───────────────────────────────────────────────────────────┐
-│  TWEET 2 — PROOF-DRIVEN / BUILDER TONE (EN)                │
-└───────────────────────────────────────────────────────────┘
+┌───── TWEET ALTERNATIF (FR) ─ émotionnel + chiffres ───────┐
 
-90 days building Plume Astrale on Emergent:
+Il y a 90 jours, je commençais Plume Astrale sur @emergent_sh
+avec une intuition : l'astrologie peut être littéraire, pas prédictive.
 
-✓ 49-page natal book (GPT + ReportLab)
-✓ Stripe LIVE · 15 users · running A/B tests
-✓ Full admin dashboard + webhooks healthy
-✓ Giftable Ex Libris PNG (viral CRO loop)
+Aujourd'hui : 104 paiements, 39 livres de 49 pages livrés,
+une signature Ex Libris à offrir ✦
 
-My @emergent_sh contest entry 🎬
+Ma soumission ↓
 
-→ plume-astrale.fr
+🔗 plume-astrale.fr
 
-────────────────────────────────────────────────── 271 chars
+#BuiltWithEmergent
+───────────────────────────────────────── 268 chars
+
+
+┌───── TWEET ALTERNATIF (EN) ─ emotional + numbers ─────────┐
+
+90 days ago I started Plume Astrale on @emergent_sh
+with one intuition: astrology can be literary, not predictive.
+
+Today: 104 payments, 39 of my 49-page books delivered,
+and a giftable Ex Libris signature ✦
+
+Submission ↓
+
+🔗 plume-astrale.fr
+
+#BuiltWithEmergent
+───────────────────────────────────────── 264 chars
 
 
 ┌───────────────────────────────────────────────────────────┐
-│  HASHTAGS SUGGESTED (ajouter 2-3 maxi)                     │
+│  CONSEIL DE PUBLICATION                                    │
 └───────────────────────────────────────────────────────────┘
 
-#BuiltWithEmergent (OBLIGATOIRE si le concours le demande)
-#AstrologyApp #SaaS #AIproduct #FrenchTech
-#AstrologieLittéraire #Astrology2026
-
-
-┌───────────────────────────────────────────────────────────┐
-│  CONSEIL FINAL                                             │
-└───────────────────────────────────────────────────────────┘
-
-→ Poste le tweet avec la vidéo en PIÈCE JOINTE (pas en lien)
-  pour maximiser l'autoplay et la portée.
-→ Épingle le tweet pendant 7 jours sur ton profil.
-→ Reply à toi-même avec un screenshot de l'Ex Libris PNG
-  pour booster l'engagement (threads = 3x reach).
-→ Tag @emergent_sh pour qu'ils voient ta soumission.
+→ Poste la vidéo en PIÈCE JOINTE (pas en lien)
+→ Épingle 7 jours sur ton profil
+→ En reply à toi-même, poste le PNG Ex Libris + le screenshot
+   admin "104 paiements" (ça crée un thread 3× plus engagé)
+→ Tag @emergent_sh dans le tweet principal
+→ Heure optimale : 11h-13h ou 18h-20h (France)

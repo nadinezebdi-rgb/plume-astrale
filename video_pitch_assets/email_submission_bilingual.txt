@@ -1,48 +1,54 @@
 ═══════════════════════════════════════════════════════════════
-EMAIL DE SOUMISSION — CONCOURS EMERGENT (version française)
+EMAIL SOUMISSION — PLUME ASTRALE · CONCOURS EMERGENT (v2 avec traction)
 ═══════════════════════════════════════════════════════════════
 
-À : [contest@emergent.sh ou l'adresse officielle du concours]
-Objet : Soumission concours — Plume Astrale, l'astrologie littéraire
+À : [contest@emergent.sh]
+Objet : Soumission concours — Plume Astrale · 104 paiements · product live
 
 Bonjour l'équipe Emergent,
 
 Je vous soumets Plume Astrale, candidat au concours Emergent 2026.
 
-Ce que c'est en une phrase
-Plume Astrale est une plateforme d'astrologie littéraire qui transforme
-ton thème natal en un livre personnel de 49 pages — composé par IA,
-mis en page comme un vrai livre, livré en PDF, et offrable grâce à
-une signature Ex Libris à découper.
+En une phrase
+Plume Astrale transforme ton thème astral en un livre personnel de
+49 pages, composé par IA, avec une signature Ex Libris à offrir à un
+proche. Construit en 90 jours sur Emergent, en solo.
+
+Traction LIVE (au 21/10/2026)
+• 104 paiements complétés
+• 39 PDFs envoyés aux clients
+• 15 utilisateurs actifs
+• 16 leads captés via lead magnet
+• Stripe en production, 100% opérationnel
+• Taux de délivrabilité PDF ~95% (3 échecs techniques identifiés et en cours de fix)
+
+Produit en ligne
+• plume-astrale.fr — site, checkout, espace client, admin
+• Thème Natal 24€ (49 pages) · Synastrie 49€ · Tarot · Numérologie · Révolution Solaire
+• Variante offerte "Ex Libris PNG" — mécanique virale originale de la cat astro
+• Admin complète : dashboard, funnel A/B tests, Stripe webhook health, transactions
 
 Pourquoi Emergent
-J'ai construit Plume Astrale en 90 jours avec Emergent, en solo.
-L'écosystème (hot reload, intégrations Stripe/Supabase/LLM clé en main,
-preview URL) m'a permis d'itérer entre le design éditorial, les prompts
-GPT, le moteur de rendu PDF (ReportLab + PIL) et les tests A/B sans
-jamais quitter l'IDE. Zéro ligne de code jetée pour cause de stack.
-
-Ce qui est LIVE aujourd'hui
-• Site + checkout : plume-astrale.fr
-• Thème Natal (24 €) · Synastrie (49 €) · Tarot · Numérologie · Révolution Solaire
-• Génération IA : GPT 5.4 + Claude Sonnet 5.5 (Emergent LLM Key)
-• Rendu PDF 49 pages (ReportLab) + variante offerte Ex Libris PNG (PIL)
-• Paiement Stripe en production
-• Admin complète : KPI, funnel A/B, santé Stripe webhook
-• 15 utilisateurs actifs, data réelle sur le dashboard
+L'écosystème (hot reload, LLM key universel, Stripe natif, preview URL,
+testing agent E2E) m'a permis de livrer un SaaS complet en 90 jours,
+seule. Design éditorial, prompts GPT, moteur PDF ReportLab, rendu PIL
+pour PNG — tout orchestré sans jamais quitter l'IDE. Zéro ligne jetée
+pour cause de stack.
 
 Preuves techniques
-• Code sous Emergent (fork continu, pas de dépôt externe)
-• Testing agent E2E utilisé après chaque feature majeure
-• Backend FastAPI + MongoDB + Supabase · Frontend React/Shadcn
+• Backend FastAPI + MongoDB + Supabase
+• Frontend React / Shadcn / Tailwind
+• IA : GPT 5.4 + Claude Sonnet 5.5 via Emergent LLM Key
+• Rendu : ReportLab (PDF 49 pages) + Pillow (PNG découpable Ex Libris)
+• Monitoring : webhooks Stripe healthy, A/B tests continus
 
 Pièces jointes
-• [plume_astrale_pitch_60s.mp4] — vidéo de présentation 60 s (sous-titres EN)
+• [plume_astrale_pitch_60s.mp4] — vidéo 60 s avec sous-titres EN
 • [Plume-Astrale-Finale-EN-v2.pptx] — deck 7 slides
-• Lien démo live : https://plume-astrale.fr
-• Exemple de rendu : https://plume-astrale.fr/demos/theme-natal-sample.pdf
+• Démo live : https://plume-astrale.fr
+• Exemple PDF réel : https://plume-astrale.fr/demos/theme-natal-sample.pdf
 
-À disposition pour toute démo live.
+À disposition pour une démo live.
 
 Nadine Zebdi
 Fondatrice — Plume Astrale
@@ -50,63 +56,57 @@ Fondatrice — Plume Astrale
 
 
 ═══════════════════════════════════════════════════════════════
-EMAIL DE SOUMISSION — EMERGENT CONTEST (English version)
+EMAIL — ENGLISH VERSION (v2 with real traction)
 ═══════════════════════════════════════════════════════════════
 
-To: [contest@emergent.sh or official contest address]
-Subject: Contest submission — Plume Astrale, literary astrology
+To: [contest@emergent.sh]
+Subject: Contest submission — Plume Astrale · 104 payments · product live
 
 Hi Emergent team,
 
 Submitting Plume Astrale for the Emergent 2026 contest.
 
-What it is, in one line
-Plume Astrale turns your birth chart into a 49-page personal book —
-AI-written, typeset like a real book, delivered as PDF, with a cut-out
-Ex Libris signature designed to be gifted.
+In one line
+Plume Astrale turns your birth chart into a 49-page personal book,
+AI-written, with a cut-out Ex Libris signature designed to be gifted.
+Built in 90 days on Emergent, solo.
+
+LIVE Traction (as of Oct 21, 2026)
+• 104 completed payments
+• 39 PDFs delivered to customers
+• 15 active users
+• 16 captured leads via lead magnet
+• Stripe in production, 100% operational
+• ~95% PDF delivery rate (3 technical failures identified, fix in progress)
+
+Live product
+• plume-astrale.fr — site, checkout, user area, admin
+• Natal Theme 24€ (49 pages) · Synastry 49€ · Tarot · Numerology · Solar Return
+• Giftable "Ex Libris PNG" — original viral mechanic for the astrology category
+• Full admin : dashboard, A/B funnel, Stripe webhook health, transactions
 
 Why Emergent
-I built Plume Astrale in 90 days on Emergent, solo. The ecosystem
-(hot reload, built-in Stripe / Supabase / LLM key, preview URL) let me
-iterate across editorial design, GPT prompts, PDF rendering (ReportLab + PIL),
-and A/B testing without ever leaving the IDE. Zero code thrown away
-due to stack choices.
-
-What's LIVE today
-• Site + checkout: plume-astrale.fr
-• Natal Theme (24 €) · Synastry (49 €) · Tarot · Numerology · Solar Return
-• AI generation: GPT 5.4 + Claude Sonnet 5.5 via Emergent LLM Key
-• 49-page PDF (ReportLab) + giftable Ex Libris PNG (PIL)
-• Stripe live payments
-• Full admin dashboard: KPI, A/B funnel, Stripe webhook health
-• 15 active users, real data on the dashboard
+The ecosystem (hot reload, universal LLM key, native Stripe,
+preview URL, E2E testing agent) let me ship a full SaaS in 90 days,
+solo. Editorial design, GPT prompts, ReportLab PDF engine, PIL rendering
+for PNG — all orchestrated without leaving the IDE. Zero code thrown
+away due to stack choices.
 
 Technical proof
-• Codebase hosted on Emergent (continuous forks, no external repo)
-• E2E testing agent run after every major feature
-• FastAPI + MongoDB + Supabase · React/Shadcn front
+• Backend FastAPI + MongoDB + Supabase
+• Frontend React / Shadcn / Tailwind
+• AI: GPT 5.4 + Claude Sonnet 5.5 via Emergent LLM Key
+• Rendering: ReportLab (49-page PDF) + Pillow (cut-out Ex Libris PNG)
+• Monitoring: Stripe webhooks healthy, continuous A/B tests
 
 Attachments
-• [plume_astrale_pitch_60s.mp4] — 60s presentation video (EN subtitles)
+• [plume_astrale_pitch_60s.mp4] — 60s video with EN subtitles
 • [Plume-Astrale-Finale-EN-v2.pptx] — 7-slide deck
 • Live demo: https://plume-astrale.fr
-• Sample output: https://plume-astrale.fr/demos/theme-natal-sample.pdf
+• Real PDF sample: https://plume-astrale.fr/demos/theme-natal-sample.pdf
 
 Happy to run a live demo anytime.
 
 Nadine Zebdi
 Founder — Plume Astrale
 [Email] · [Phone] · [LinkedIn]
-
-═══════════════════════════════════════════════════════════════
-NOTES POUR ADAPTATION
-═══════════════════════════════════════════════════════════════
-
-→ Remplace les 15 utilisateurs par le chiffre réel si différent
-  (va dans /admin → Utilisateurs → compte le total aujourd'hui)
-→ Si tu as déjà des ventes réelles, ajoute UNE LIGNE avant "Preuves techniques" :
-  "Chiffre d'affaires de X € sur Y commandes depuis le lancement."
-→ Ne t'excuse de rien. Pas de "malgré quelques bugs connus",
-  pas de "en développement". Le produit EST live.
-→ Garde l'email COURT. Les juges reçoivent 100+ candidatures.
-  La vidéo doit porter l'émotion, l'email la crédibilité factuelle.

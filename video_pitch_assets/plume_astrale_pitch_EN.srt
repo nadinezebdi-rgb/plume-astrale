@@ -46,13 +46,13 @@ Your Ex Libris — a cut-out astral card
 to print, keep or offer to a loved one.
 
 11
-00:00:50,000 --> 00:00:53,500
-Fully operational: Stripe live payments,
+00:00:50,000 --> 00:00:54,500
+104 payments. 39 books delivered. 15 active users.
 
 12
-00:00:53,600 --> 00:00:57,000
-continuous A/B testing, real admin dashboard.
+00:00:54,600 --> 00:00:57,500
+Stripe live. Full admin. A/B tests running.
 
 13
-00:00:57,500 --> 00:01:00,000
+00:00:57,600 --> 00:01:00,000
 Plume Astrale — understand yourself, today.
