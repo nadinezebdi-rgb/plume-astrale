@@ -69,7 +69,6 @@ def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
     return current_user
 
 
-@router.get('/stats')
 def _stats_user_counters(sb, now: datetime) -> dict:
     today_iso = now.date().isoformat()
     week_ago = (now - timedelta(days=7)).isoformat()
@@ -119,6 +118,7 @@ def _stats_engagement_counters(sb) -> dict:
     }
 
 
+@router.get('/stats')
 async def admin_stats(_admin: dict = Depends(require_admin)):
     """KPIs principaux du dashboard.
 
