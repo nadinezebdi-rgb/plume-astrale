@@ -5,7 +5,7 @@
 
 Tous les endpoints sont prefixes /api/astrology/v3 pour ne pas casser les anciens.
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import Response
 from pydantic import BaseModel
 from typing import Optional, List
@@ -17,6 +17,10 @@ from middleware.auth import get_current_user
 from services import astrology_io_service as aio
 from services import wallet_service
 from services.share_card_generator import generate_synastry_card
+import asyncio
+import logging
+
+_log = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix='/astrology/v3', tags=['astrology-v3'])
@@ -316,7 +320,7 @@ async def synastry_share_card(payload: SynastryCardRequest):
 
 
 @router.post('/natal/pdf')
-async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_current_user)):
+async def natal_pdf_v3(payload: NatalRequest, request: Request, current_user: dict = Depends(get_current_user)):
     """Génère le PDF Thème Natal Plume Astrale (Livre Astral enrichi 45-50 pages).
 
     Tarif : 80 crédits (offert si Premium actif). Si `person` n'est pas fourni,
@@ -329,6 +333,9 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
       4. `enrich_book_chapters` (élément/modalité/trio/12 maisons/aspects/année — cache)
       5. carte du ciel SVG → PNG → JPEG compressé
       6. `natal_manuscript_builder` + `print_book_renderer` → PDF luxe A5
+
+    Sécurité : si le client se déconnecte en cours de génération (timeout proxy,
+    abandon utilisateur), la tâche est annulée et les 80 crédits sont remboursés.
     """
     bd = None
     name = 'Voyageur'
@@ -363,52 +370,60 @@ async def natal_pdf_v3(payload: NatalRequest, current_user: dict = Depends(get_c
     from services.natal_book_service import (
         generate_enriched_natal_pdf, IncompleteNatalDataError,
     )
-    try:
-        result = await generate_enriched_natal_pdf(
-            name=name,
-            birth_data=bd,
-            no_birth_time=no_birth_time,
-            require_complete=True,
-            output='digital',
-            birth_date_iso=birth_date_iso,
-        )
-        pdf = result['pdf_bytes']
-    except IncompleteNatalDataError as e:
+
+    async def _refund(reason: str) -> None:
         try:
             await wallet_service.add_credits(
                 current_user['id'], 80,
-                'Remboursement Theme Natal PDF (donnees astro incompletes)',
+                f'Remboursement Theme Natal PDF ({reason})',
                 tx_type='refund',
             )
-        except Exception:
-            pass
+            _log.info(f'[natal_pdf_v3] refund 80 credits user={current_user["id"]} reason={reason}')
+        except Exception as e:
+            _log.warning(f'[natal_pdf_v3] refund failed user={current_user["id"]}: {e}')
+
+    # Lance la génération en tâche de fond pour pouvoir détecter la déconnexion
+    gen_task = asyncio.create_task(generate_enriched_natal_pdf(
+        name=name,
+        birth_data=bd,
+        no_birth_time=no_birth_time,
+        require_complete=True,
+        output='digital',
+        birth_date_iso=birth_date_iso,
+    ))
+
+    try:
+        # Poll toutes les 2s : si le client se déconnecte, on annule et on rembourse
+        while not gen_task.done():
+            if await request.is_disconnected():
+                gen_task.cancel()
+                await _refund('client déconnecté')
+                _log.warning(f'[natal_pdf_v3] client disconnected during generation, task cancelled')
+                raise HTTPException(status_code=499, detail='Client déconnecté — crédits remboursés')
+            await asyncio.sleep(2)
+
+        result = gen_task.result()
+        pdf = result['pdf_bytes']
+    except asyncio.CancelledError:
+        await _refund('tâche annulée')
+        raise HTTPException(status_code=499, detail='Génération annulée — crédits remboursés')
+    except IncompleteNatalDataError as e:
+        await _refund('donnees astro incompletes')
         raise HTTPException(
             status_code=502,
             detail=f'Données astrologiques incomplètes : {e}',
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        try:
-            await wallet_service.add_credits(
-                current_user['id'], 80,
-                'Remboursement Theme Natal PDF (echec)',
-                tx_type='refund',
-            )
-        except Exception:
-            pass
+        await _refund('echec')
         raise HTTPException(
             status_code=502,
             detail=f'Service astrologique indisponible (PDF): {e}',
         )
 
     if not pdf:
-        try:
-            await wallet_service.add_credits(
-                current_user['id'], 80,
-                'Remboursement Theme Natal PDF (echec)',
-                tx_type='refund',
-            )
-        except Exception:
-            pass
+        await _refund('echec')
         raise HTTPException(status_code=502, detail='Génération PDF échouée.')
 
     return Response(
@@ -834,7 +849,6 @@ async def natal_ex_libris_png(
         )
 
     # 3) Rendu PNG (CPU-bound → thread pool pour ne pas bloquer la boucle async)
-    import asyncio
     from services.ex_libris_png_renderer import render_ex_libris_png
 
     png_bytes = await asyncio.to_thread(
