@@ -86,6 +86,7 @@ WIDTH, HEIGHT = 148 * mm, 210 * mm
 NAVY = colors.HexColor('#142342')
 INK = colors.HexColor('#243047')
 GOLD = colors.HexColor('#A78140')
+GOLD_BRIGHT = colors.HexColor('#D4AF37')   # or doré brillant pour la couverture
 MUTED = colors.HexColor('#526077')
 CREAM = colors.HexColor('#F5EEE0')  # fond papier parchemin (matching site hero)
 DESIGN_VERSION = 'plume-book-flow-2026-10'
@@ -153,10 +154,11 @@ class _Cover(Flowable):
     width = WIDTH - 40 * mm
     height = HEIGHT - 44 * mm
 
-    def __init__(self, manuscript, image_path=None):
+    def __init__(self, manuscript, image_path=None, lang='fr'):
         super().__init__()
         self.m = manuscript
         self.image_path = image_path
+        self.lang = lang
 
     def draw(self):
         c = self.canv
@@ -173,31 +175,54 @@ class _Cover(Flowable):
             c.setFillAlpha(.85)
             c.rect(9*mm, 35*mm, WIDTH-18*mm, HEIGHT-70*mm, fill=1, stroke=0)
             c.setFillAlpha(1)
-        c.setStrokeColor(GOLD)
+        # Double cadre or (fin extérieur, filet intérieur plus épais)
+        c.setStrokeColor(GOLD_BRIGHT)
         c.setLineWidth(.6)
-        c.rect(9*mm, 9*mm, WIDTH-18*mm, HEIGHT-18*mm)
-        # Celestial engraving: no feathers, no simulated natal positions.
-        cx, cy, radius = WIDTH/2, 86*mm, 26*mm
-        for r in (radius, radius-2*mm, radius*.7):
+        c.rect(8*mm, 8*mm, WIDTH-16*mm, HEIGHT-16*mm)
+        c.setLineWidth(1.4)
+        c.rect(11*mm, 11*mm, WIDTH-22*mm, HEIGHT-22*mm)
+        # Ornements d'angle (petits soleils dans les 4 coins)
+        for cx_o, cy_o in [(14*mm,14*mm),(WIDTH-14*mm,14*mm),
+                            (14*mm,HEIGHT-14*mm),(WIDTH-14*mm,HEIGHT-14*mm)]:
+            c.circle(cx_o, cy_o, 1.2*mm, stroke=1, fill=0)
+            for ang in range(0,360,45):
+                a = ang*math.pi/180
+                c.line(cx_o+1.8*mm*math.cos(a), cy_o+1.8*mm*math.sin(a),
+                       cx_o+2.6*mm*math.cos(a), cy_o+2.6*mm*math.sin(a))
+        # Celestial engraving : roue céleste 12 signes centrée
+        cx, cy, radius = WIDTH/2, 88*mm, 24*mm
+        c.setStrokeColor(GOLD_BRIGHT)
+        c.setLineWidth(.7)
+        for r in (radius, radius-2.5*mm, radius*.65):
             c.circle(cx, cy, r, stroke=1, fill=0)
         for i in range(12):
             angle = i*math.pi/6
             c.line(cx+radius*.85*math.cos(angle), cy+radius*.85*math.sin(angle),
                    cx+radius*math.cos(angle), cy+radius*math.sin(angle))
-        c.circle(cx, cy, 6*mm, stroke=1, fill=0)
-        for dx,dy,size in [(-34,22,1),(36,-18,.7),(-27,-29,.6),(31,33,.7)]:
+        c.circle(cx, cy, 5.5*mm, stroke=1, fill=0)
+        # Petites étoiles autour
+        for dx,dy,size in [(-32,22,1.1),(34,-18,.8),(-26,-28,.7),(29,32,.8),
+                            (-38,-8,.6),(38,8,.6)]:
             c.circle(cx+dx*mm, cy+dy*mm, size, fill=1, stroke=0)
-        c.setFillColor(colors.HexColor('#F6EAD2'))
+        # ── TOP : "PLUME ASTRALE" en or léger ──
+        c.setFillColor(GOLD_BRIGHT)
         c.setFont('PlumeBook', 11)
-        c.drawCentredString(WIDTH/2, 177*mm, 'P L U M E   A S T R A L E')
-        title = (self.m.astro_data or {}).get('book_title') or 'Le Livre Astral'
-        style = ParagraphStyle('CoverTitle', fontName='PlumeBook', fontSize=29,
-            leading=32, alignment=TA_CENTER, textColor=colors.HexColor('#F6EAD2'))
+        c.drawCentredString(WIDTH/2, 182*mm, 'P L U M E   A S T R A L E')
+        # Filet or sous le logo
+        c.setStrokeColor(GOLD_BRIGHT)
+        c.setLineWidth(.4)
+        c.line(WIDTH/2-18*mm, 178*mm, WIDTH/2+18*mm, 178*mm)
+        # ── TITRE EN OR BRILLANT ──
+        title = (self.m.astro_data or {}).get('book_title') or _t(self.lang, 'book_title_default')
+        style = ParagraphStyle('CoverTitle', fontName='PlumeBook', fontSize=32,
+            leading=36, alignment=TA_CENTER, textColor=GOLD_BRIGHT)
         title_p = Paragraph(html.escape(title), style)
         _, h = title_p.wrap(WIDTH-28*mm, 80*mm)
-        title_p.drawOn(c, 14*mm, 148*mm-h)
-        name_style = ParagraphStyle('CoverName', parent=style, fontSize=23, leading=26)
-        for font_size in (23, 21, 19, 17, 15, 13):
+        title_p.drawOn(c, 14*mm, 160*mm-h)
+        # ── NOM EN OR aussi (plus clair ivoire si l'écho de contraste) ──
+        name_style = ParagraphStyle('CoverName', parent=style, fontSize=24, leading=28,
+            fontName='PlumeBook-Italic', textColor=GOLD_BRIGHT)
+        for font_size in (24, 22, 20, 18, 16, 14):
             name_style.fontSize = font_size
             name_style.leading = font_size + 2
             name_p = Paragraph(html.escape(self.m.first_name), name_style)
@@ -206,11 +231,16 @@ class _Cover(Flowable):
                 break
         if h > 42:
             raise ValueError('Nom trop long pour la couverture : utiliser le prénom de lecture')
-        name_p.drawOn(c, 14*mm, 132*mm-h)
+        name_p.drawOn(c, 14*mm, 142*mm-h)
+        # ── Filet or après le nom ──
+        c.setLineWidth(.4)
+        c.line(WIDTH/2-14*mm, 128*mm, WIDTH/2+14*mm, 128*mm)
+        # ── BOTTOM : subtitle + edition en or ──
+        c.setFillColor(GOLD_BRIGHT)
         c.setFont('PlumeBook-Italic', 12)
-        c.drawCentredString(WIDTH/2, 40*mm, 'Une lecture personnelle de votre ciel de naissance')
-        c.setFont('PlumeBook', 10)
-        c.drawCentredString(WIDTH/2, 25*mm, 'ÉDITION PERSONNELLE')
+        c.drawCentredString(WIDTH/2, 42*mm, _t(self.lang, 'cover_subtitle'))
+        c.setFont('PlumeBook', 9.5)
+        c.drawCentredString(WIDTH/2, 24*mm, _t(self.lang, 'cover_edition'))
         c.restoreState()
 
 
@@ -409,29 +439,27 @@ def _embed_only_fonts(writer):
                     fonts[key] = embedded
 
 
-def render_book_pdf(manuscript, *, cover_png_path=None):
+def render_book_pdf(manuscript, *, cover_png_path=None, language=None):
     """Full reading edition; print export removes only explicitly marked cover leaves."""
     validate_manuscript(manuscript)
     _fonts()
     styles = _styles()
+    # Détection de la langue : priorité au paramètre, sinon astro_data.language, défaut fr
+    lang = language or (manuscript.astro_data or {}).get('language') or 'fr'
+    if lang not in _I18N:
+        lang = 'fr'
     stream = io.BytesIO()
     doc = _BookDoc(stream,manuscript.first_name)
-    story = [_Cover(manuscript,cover_png_path),PageBreak(),Spacer(1,5*mm),PageBreak()]
-    story += [Spacer(1,22*mm),_heading('Le Livre Astral',styles),
+    story = [_Cover(manuscript,cover_png_path,lang=lang),PageBreak(),Spacer(1,5*mm),PageBreak()]
+    story += [Spacer(1,22*mm),_heading(_t(lang,'book_title_default'),styles),
               _heading(manuscript.first_name,styles),Spacer(1,20*mm)]
-    for text in _paragraphs('Ce livre est composé à partir de votre ciel de naissance. '
-        'Il propose une lecture symbolique et personnelle, à confronter à votre expérience. '
-        'Il ne prédit pas un avenir certain et ne remplace pas votre liberté de choix.'):
+    for text in _paragraphs(_t(lang,'intro_para')):
         story.append(Paragraph(text,styles['body']))
-    story += [PageBreak(),_heading('Préface',styles)]
-    preface = [
-        f"{manuscript.first_name}, ce livre vous invite à faire une pause et à regarder votre histoire sous un autre angle. Votre thème de naissance en est le point de départ : une carte singulière, composée pour un lieu et un instant précis.",
-        "Les pages qui suivent mettent en mots des contrastes, des élans et des besoins. Vous pourrez vous reconnaître dans certaines lectures, en discuter d’autres et laisser de côté ce qui ne vous parle pas. Vous restez la personne la mieux placée pour donner du sens à votre vécu.",
-        "Prenez le temps de lire, de noter vos réactions et de revenir sur un passage lorsque votre situation évolue. L’intention de ce livre est de soutenir cette attention à vous-même, avec nuance, curiosité et bienveillance.",
-    ]
+    story += [PageBreak(),_heading(_t(lang,'preface_title'),styles)]
+    preface = [tpl.format(name=manuscript.first_name) for tpl in _t(lang,'preface_paras_tpl')]
     for text in preface:
         story.append(Paragraph(html.escape(text),styles['body']))
-    story += [PageBreak(),_heading('Sommaire',styles)]
+    story += [PageBreak(),_heading(_t(lang,'toc_title'),styles)]
     toc = TableOfContents()
     toc.levelStyles = [styles['toc']]
     toc.dotsMinLevel = 0
@@ -446,7 +474,7 @@ def render_book_pdf(manuscript, *, cover_png_path=None):
             # Page découpable : marque la page courante + marges verticales généreuses.
             story.append(_CutoutMark())
             story.append(Spacer(1, 18*mm))
-        title = 'Introduction — Comment lire votre thème' if chapter in intro else chapter.title
+        title = _t(lang,'intro_chapter_title') if chapter in intro else chapter.title
         # Illustration d'ouverture de chapitre (fond crème + icône centrale 50mm)
         illust = _chapter_illust_for_slug(chapter.slug) if not is_ex_libris else None
         if illust:
@@ -467,21 +495,16 @@ def render_book_pdf(manuscript, *, cover_png_path=None):
                                      spaceBefore=0,spaceAfter=14))
         _append_blocks(story,chapter,styles)
         if is_ex_libris:
-            # Signature discrète en bas de page découpable
             story.append(Spacer(1, 12*mm))
             story.append(Paragraph(
-                '<i>— Plume Astrale, écrit pour toi</i>',
+                f'<i>{_t(lang,"cutout_sig")}</i>',
                 ParagraphStyle('CutoutSig', parent=styles['small'],
                                alignment=TA_CENTER, textColor=GOLD),
             ))
         while isinstance(story[-1],PageBreak):
             story.pop()
-    story += [PageBreak(),_heading('Pour poursuivre votre lecture',styles)]
-    for text in [
-        "Choisissez une idée qui vous a touché et reliez-la à une situation concrète de votre vie. Qu’est-ce qu’elle vous aide à nommer ? Quelle autre explication pourriez-vous envisager ?",
-        "Notez une action simple à essayer cette semaine. Revenez ensuite à votre livre pour observer ce qui s’est éclairci, ce qui a changé et ce qui demande encore du temps.",
-        "Plume Astrale — Édition personnelle. Les interprétations relèvent d’une démarche symbolique de connaissance de soi.",
-    ]:
+    story += [PageBreak(),_heading(_t(lang,'closing_title'),styles)]
+    for text in _t(lang,'closing_paras'):
         story.append(Paragraph(html.escape(text),styles['body']))
     from functools import partial
     from reportlab.pdfgen.canvas import Canvas
