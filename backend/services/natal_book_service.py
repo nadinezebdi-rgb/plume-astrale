@@ -74,46 +74,35 @@ async def generate_enriched_natal_pdf(
     referral_code: str | None = None,
     referral_link: str | None = None,
     birth_date_iso: str = '',
+    language: str = 'fr',
 ) -> dict:
     """Génère le PDF Thème Natal enrichi (45-50 pages).
 
-    Args:
-        name: Prénom de l'utilisateur·rice.
-        birth_data: Dict compatible `astrology_io_service.normalize_birth_data`.
-        no_birth_time: True si l'heure de naissance est inconnue — l'ascendant
-            et les 12 maisons seront omis (faux 11 fois sur 12).
-        require_complete: True → échec explicite si le livre est incomplet
-            (défaut, cohérent avec le flux 24 €). False → best-effort.
-        output: 'digital' ou 'print'. 'print' ajoute l'intérieur Lulu A5+bleed.
-        force_refresh: Bypass les caches AI + livre (admin regenerate).
-        referral_code / referral_link: Insérés dans le colophon final.
-        birth_date_iso: Date au format YYYY-MM-DD pour le colophon.
-
-    Returns:
-        dict avec :
-            - pdf_bytes (bytes) : PDF digital, toujours présent
-            - interior_bytes (bytes) : intérieur Lulu A5+bleed si output='print'
-            - diag (dict) : métriques (page_count, ai_source, book_source…)
-
-    Raises:
-        IncompleteNatalDataError: Si <5 planètes core retournées par l'API.
-        RuntimeError: Si le livre complet ne peut être composé.
+    `language`: 'fr' (défaut) ou 'en'. Propagé à astrology-api.io, aux prompts
+    GPT (natal_ai_enrichment + natal_book_enrichment) et au renderer.
     """
     if output not in ('digital', 'print'):
         raise ValueError(f"output must be 'digital' or 'print', got {output!r}")
+
+    lang = (language or 'fr').lower()
+    if not lang.startswith('en'):
+        lang = 'fr'
+    else:
+        lang = 'en'
 
     bd = aio.normalize_birth_data(birth_data)
     diag: dict[str, Any] = {
         'name': name,
         'no_birth_time': no_birth_time,
         'output': output,
+        'language': lang,
     }
 
     # 1) Positions planétaires + rapport natal + interprétations
-    chart = await aio.natal_chart(bd, name=name, language='fr')
+    chart = await aio.natal_chart(bd, name=name, language=lang)
     planets_dict = aio.extract_planets(chart) or {}
     asc_sign_en = aio.extract_ascendant_sign_en(chart)
-    natal_report_data = await aio.natal_report(bd, name=name, language='fr')
+    natal_report_data = await aio.natal_report(bd, name=name, language=lang)
     interpretations: list = []
     if isinstance(natal_report_data, dict):
         interpretations = (
@@ -144,7 +133,7 @@ async def generate_enriched_natal_pdf(
     diag['enhanced_fixed_stars_count'] = len((enhanced_analysis or {}).get('fixed_stars') or [])
 
     # 4) Enrichissement AI planétaire (11 planètes + synthèse aspects, Soléna)
-    ai_result = await _enrich_ai_ultra(name, bd, interpretations, force_refresh)
+    ai_result = await _enrich_ai_ultra(name, bd, interpretations, force_refresh, lang)
     diag['ai_source'] = ai_result.get('_source', 'none')
     diag['ai_planet_count'] = sum(1 for k in _AI_PLANET_KEYS if ai_result.get(k))
     diag['v3_raw_count'] = len(ai_result.get('_raw_v3_by_planet') or {})
@@ -152,7 +141,7 @@ async def generate_enriched_natal_pdf(
 
     # 5) Enrichissement livre (élément/modalité/trio/12 maisons/aspects/année)
     book_data = await _build_book_data(
-        name, bd, planets_dict, asc_sign_en, natal_report_data, force_refresh,
+        name, bd, planets_dict, asc_sign_en, natal_report_data, force_refresh, lang,
     )
     diag['book_source'] = (book_data or {}).get('_source', 'none')
     diag['book_element'] = (book_data or {}).get('_em', {}).get('dominant_element')
@@ -193,6 +182,7 @@ async def generate_enriched_natal_pdf(
         'no_birth_time': no_birth_time,
         'ai_interpretations': ai_result,
         'enhanced_personal_analysis': enhanced_analysis,
+        'language': lang,
     }
 
     # 9) Génération PDF luxe (ReportLab CPU-bound → thread pool)
@@ -252,6 +242,7 @@ async def _fetch_enhanced_analysis(bd: dict, name: str) -> dict | None:
 
 async def _enrich_ai_ultra(
     name: str, bd: dict, interpretations: list, force_refresh: bool,
+    language: str = 'fr',
 ) -> dict:
     """Appel GPT ULTRA (11 planètes + synthèse aspects) — fallback texte v3 brut si GPT échoue."""
     if not interpretations:
@@ -264,6 +255,7 @@ async def _enrich_ai_ultra(
             api_interpretations=interpretations,
             tier='ultra',
             force_refresh=force_refresh,
+            language=language,
         )
         return result or {}
     except Exception as e:
@@ -278,6 +270,7 @@ async def _build_book_data(
     asc_sign_en: str,
     natal_report_data: Any,
     force_refresh: bool,
+    language: str = 'fr',
 ) -> dict | None:
     """Enrichit avec `enrich_book_chapters` : élément/modalité/trio/12 maisons/aspects/année."""
     try:
@@ -331,6 +324,7 @@ async def _build_book_data(
             birth_data=bd,
             natal_data=natal_data_for_book,
             force_refresh=force_refresh,
+            language=language,
         )
     except Exception as e:
         logger.warning(f'[natal_book] book enrichment failed: {e}')

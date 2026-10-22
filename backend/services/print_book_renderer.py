@@ -450,7 +450,13 @@ def render_book_pdf(manuscript, *, cover_png_path=None, language=None):
         lang = 'fr'
     stream = io.BytesIO()
     doc = _BookDoc(stream,manuscript.first_name)
-    story = [_Cover(manuscript,cover_png_path,lang=lang),PageBreak(),Spacer(1,5*mm),PageBreak()]
+    # Édition imprimée : page blanche traditionnelle après la couverture.
+    # Édition numérique : enchaîner directement sur la page de titre (évite une page vide).
+    is_digital = str(getattr(manuscript.edition, 'value', manuscript.edition) or '').lower() in ('numerique', 'digital', '')
+    if is_digital:
+        story = [_Cover(manuscript, cover_png_path, lang=lang), PageBreak()]
+    else:
+        story = [_Cover(manuscript, cover_png_path, lang=lang), PageBreak(), Spacer(1, 5*mm), PageBreak()]
     story += [Spacer(1,22*mm),_heading(_t(lang,'book_title_default'),styles),
               _heading(manuscript.first_name,styles),Spacer(1,20*mm)]
     for text in _paragraphs(_t(lang,'intro_para')):
