@@ -24,13 +24,86 @@ from reportlab.platypus import (
 )
 from reportlab.platypus.tableofcontents import TableOfContents
 
+# Textes structurels : i18n minimale FR/EN pour la couverture, préface, sommaire…
+_I18N = {
+    'fr': {
+        'book_title_default': 'Le Livre Astral',
+        'cover_subtitle': 'Une lecture personnelle de votre ciel de naissance',
+        'cover_edition': 'ÉDITION PERSONNELLE',
+        'intro_para': ('Ce livre est composé à partir de votre ciel de naissance. '
+                       'Il propose une lecture symbolique et personnelle, à confronter à votre expérience. '
+                       'Il ne prédit pas un avenir certain et ne remplace pas votre liberté de choix.'),
+        'preface_title': 'Préface',
+        'preface_paras_tpl': [
+            '{name}, ce livre vous invite à faire une pause et à regarder votre histoire sous un autre angle. Votre thème de naissance en est le point de départ : une carte singulière, composée pour un lieu et un instant précis.',
+            'Les pages qui suivent mettent en mots des contrastes, des élans et des besoins. Vous pourrez vous reconnaître dans certaines lectures, en discuter d’autres et laisser de côté ce qui ne vous parle pas. Vous restez la personne la mieux placée pour donner du sens à votre vécu.',
+            'Prenez le temps de lire, de noter vos réactions et de revenir sur un passage lorsque votre situation évolue. L’intention de ce livre est de soutenir cette attention à vous-même, avec nuance, curiosité et bienveillance.',
+        ],
+        'toc_title': 'Sommaire',
+        'intro_chapter_title': 'Introduction — Comment lire votre thème',
+        'closing_title': 'Pour poursuivre votre lecture',
+        'closing_paras': [
+            "Choisissez une idée qui vous a touché et reliez-la à une situation concrète de votre vie. Qu’est-ce qu’elle vous aide à nommer ? Quelle autre explication pourriez-vous envisager ?",
+            "Notez une action simple à essayer cette semaine. Revenez ensuite à votre livre pour observer ce qui s’est éclairci, ce qui a changé et ce qui demande encore du temps.",
+            "Plume Astrale — Édition personnelle. Les interprétations relèvent d’une démarche symbolique de connaissance de soi.",
+        ],
+        'cutout_hint': '✁  à découper · à offrir · à conserver',
+        'cutout_sig': '— Plume Astrale, écrit pour toi',
+    },
+    'en': {
+        'book_title_default': 'The Astral Book',
+        'cover_subtitle': 'A personal reading of your birth sky',
+        'cover_edition': 'PERSONAL EDITION',
+        'intro_para': ('This book is composed from your birth chart. It offers a symbolic '
+                       'and personal reading, to be checked against your experience. It does not '
+                       'predict a certain future and does not replace your freedom to choose.'),
+        'preface_title': 'Preface',
+        'preface_paras_tpl': [
+            '{name}, this book invites you to pause and look at your story from another angle. Your birth chart is its starting point: a singular map, composed for one precise place and moment.',
+            'The pages that follow put into words contrasts, impulses and needs. You will recognize yourself in some readings, debate others, and set aside what does not speak to you. You remain the person best placed to make sense of your lived experience.',
+            'Take time to read, to note your reactions, and to return to a passage when your situation evolves. The intention of this book is to support that attention to yourself — with nuance, curiosity and care.',
+        ],
+        'toc_title': 'Contents',
+        'intro_chapter_title': 'Introduction — How to read your chart',
+        'closing_title': 'To continue your reading',
+        'closing_paras': [
+            "Choose an idea that moved you and tie it to a concrete situation in your life. What does it help you name? What other explanation might you consider?",
+            "Note one simple action to try this week. Then return to your book to observe what has cleared, what has changed, and what still needs time.",
+            "Plume Astrale — Personal Edition. These interpretations are a symbolic practice of self-knowledge.",
+        ],
+        'cutout_hint': '✁  cut · gift · keep',
+        'cutout_sig': '— Plume Astrale, written for you',
+    },
+}
+
+
+def _t(language, key):
+    return _I18N.get(language, _I18N['fr']).get(key, _I18N['fr'][key])
+
+
 ROOT = Path(__file__).resolve().parent.parent
 WIDTH, HEIGHT = 148 * mm, 210 * mm
 NAVY = colors.HexColor('#142342')
 INK = colors.HexColor('#243047')
 GOLD = colors.HexColor('#A78140')
 MUTED = colors.HexColor('#526077')
+CREAM = colors.HexColor('#F5EEE0')  # fond papier parchemin (matching site hero)
 DESIGN_VERSION = 'plume-book-flow-2026-10'
+
+# Mapping planète / maison → asset illustration (bibliothèque)
+_PLANET_ASSET = {
+    'Soleil': 'planets/sun_512.png',    'Sun': 'planets/sun_512.png',
+    'Lune': 'planets/moon_512.png',     'Moon': 'planets/moon_512.png',
+    'Mercure': 'planets/mercury_512.png','Mercury': 'planets/mercury_512.png',
+    'Vénus': 'planets/venus_512.png',   'Venus': 'planets/venus_512.png',
+    'Mars': 'planets/mars_512.png',
+    'Jupiter': 'planets/jupiter_512.png',
+    'Saturne': 'planets/saturn_512.png','Saturn': 'planets/saturn_512.png',
+    'Uranus': 'planets/uranus_512.png',
+    'Neptune': 'planets/neptune_512.png',
+    'Pluton': 'planets/pluto_512.png',  'Pluto': 'planets/pluto_512.png',
+}
+_LIB_ROOT = ROOT / 'assets' / 'library'
 
 
 def _fonts():
@@ -172,6 +245,12 @@ class _BookDoc(BaseDocTemplate):
         # Mirrored gutter, identical usable width on recto and verso.
         self.pageTemplate.frames[0]._x1 = (21 if doc.page % 2 else 17)*mm
         self.pageTemplate.frames[0]._geom()
+        # Fond crème parchemin sur toutes les pages intérieures (hors couverture p.1-2)
+        if doc.page > 2:
+            canvas.saveState()
+            canvas.setFillColor(CREAM)
+            canvas.rect(0, 0, WIDTH, HEIGHT, fill=1, stroke=0)
+            canvas.restoreState()
         if doc.page <= 2:
             return
         # Ex Libris : page « à découper » (pas de folio, bordure pointillée)
@@ -228,17 +307,66 @@ def validate_manuscript(manuscript):
             raise ValueError(f'Chapitre vide : {chapter.slug}')
 
 
+def _chapter_illust_for_slug(slug: str):
+    """Renvoie le path d'illustration (string) pour un chapitre, selon son slug."""
+    slug = (slug or '').lower()
+    if 'planet' in slug:
+        path = _LIB_ROOT / 'planets' / 'sun_1080.png'
+    elif 'house' in slug or 'maison' in slug:
+        path = _LIB_ROOT / 'houses' / 'house1_1080.png'
+    elif 'synthese' in slug or 'ciel' in slug:
+        path = _LIB_ROOT / 'tarot' / '17_l_etoile_1080.png'
+    elif 'aspect' in slug:
+        path = _LIB_ROOT / 'tarot' / '08_la_force_1080.png'
+    elif 'preface' in slug or 'introduction' in slug:
+        path = _LIB_ROOT / 'tarot' / '01_le_bateleur_512.png'
+    else:
+        path = None
+    return str(path) if path and path.is_file() else None
+
+
+def _planet_image_for_h2(text):
+    """Si le H2 commence par un nom de planète, renvoie le path image, sinon None."""
+    plain = _plain(text).strip()
+    first_word = plain.split()[0] if plain else ''
+    # Essayer avec et sans accents (Vénus, Pluton, etc.)
+    for key, asset in _PLANET_ASSET.items():
+        if first_word.lower().startswith(key.lower()):
+            path = _LIB_ROOT / asset
+            if path.is_file():
+                return str(path)
+    return None
+
+
 def _append_blocks(story, chapter, styles):
     for block in chapter.blocks:
         kind = getattr(block.kind,'value',block.kind)
         data = block.data or {}
-        if kind in ('chapter_opening','feather'):
+        if kind == 'chapter_opening':
+            # Illustration de chapitre déjà injectée dans le flux principal (avant _heading).
+            # Ce bloc reste un marqueur pour la hiérarchie — pas de rendu additionnel.
+            continue
+        if kind == 'feather':
             continue
         if kind == 'page_break':
             if story and not isinstance(story[-1],PageBreak):
                 story.append(PageBreak())
         elif kind == 'h2':
-            story.extend([CondPageBreak(35*mm),Paragraph(html.escape(_plain(data.get('text'))),styles['h2'])])
+            # Si H2 planète, ajoute l'icône planète à gauche
+            img_path = _planet_image_for_h2(data.get('text'))
+            if img_path:
+                story.append(CondPageBreak(45*mm))
+                try:
+                    img = Image(img_path, width=18*mm, height=18*mm, mask='auto')
+                    img.hAlign = 'CENTER'
+                    story.append(Spacer(1, 2*mm))
+                    story.append(img)
+                    story.append(Spacer(1, 2*mm))
+                except Exception:
+                    pass
+                story.append(Paragraph(html.escape(_plain(data.get('text'))), styles['h2']))
+            else:
+                story.extend([CondPageBreak(35*mm),Paragraph(html.escape(_plain(data.get('text'))),styles['h2'])])
         elif kind == 'trio_cards':
             text = ' · '.join(f"{i.get('label','')} : {i.get('sign','')}" for i in data.get('items',[]))
             story.append(Paragraph(html.escape(text),styles['kicker']))
@@ -319,6 +447,17 @@ def render_book_pdf(manuscript, *, cover_png_path=None):
             story.append(_CutoutMark())
             story.append(Spacer(1, 18*mm))
         title = 'Introduction — Comment lire votre thème' if chapter in intro else chapter.title
+        # Illustration d'ouverture de chapitre (fond crème + icône centrale 50mm)
+        illust = _chapter_illust_for_slug(chapter.slug) if not is_ex_libris else None
+        if illust:
+            try:
+                opener_img = Image(illust, width=50*mm, height=50*mm, mask='auto')
+                opener_img.hAlign = 'CENTER'
+                story.append(Spacer(1, 15*mm))
+                story.append(opener_img)
+                story.append(Spacer(1, 8*mm))
+            except Exception:
+                story.append(Spacer(1, 25*mm))
         story.append(_heading(title,styles,f'chapter-{index}'))
         if chapter.kicker:
             story.append(Paragraph(html.escape(chapter.kicker),styles['kicker']))
