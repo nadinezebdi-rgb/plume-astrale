@@ -235,7 +235,37 @@ add_text(s6, Inches(0.9), Inches(6.4), W - Inches(1.8), Inches(0.4),
          font='Garamond', size=11, italic=True, color=GOLD_DIM, align=PP_ALIGN.LEFT)
 add_page_footer(s6, 6, 8)
 
-# ─── Slide 7 — BUSINESS MODEL + ROADMAP ─────────────────────────
+# ─── Slide 7 — LIVE ACQUISITION ─────────────────────────────────
+s_live = prs.slides.add_slide(blank)
+set_slide_bg(s_live, NAVY)
+add_gold_frame(s_live)
+add_slide_title(s_live, 'Live acquisition — running now',
+                'A Facebook campaign is active while you read this slide.')
+
+# Visual : 3 big KPIs du jour
+live_kpis = [
+    ('1 142', 'impressions', 'in the first 24 hours of today\'s wave.'),
+    ('1 071', 'people reached', 'in a Scorpio-sign zodiac segment.'),
+    ('10,34 €', 'spent today', 'campaign runs until Oct 27 — scaling live.'),
+]
+for i, (big, label, note) in enumerate(live_kpis):
+    x = Inches(0.9) + col_w * i + Inches(0.3) * i
+    add_text(s_live, x, Inches(3.0), col_w, Inches(1.0),
+             big, font='Garamond', size=48, bold=True, color=GOLD, align=PP_ALIGN.LEFT)
+    add_text(s_live, x, Inches(4.3), col_w, Inches(0.4),
+             label, font='Garamond', size=16, italic=True, color=CREAM, align=PP_ALIGN.LEFT)
+    add_text(s_live, x, Inches(4.8), col_w, Inches(1.1),
+             note, font='Garamond', size=12, color=MUTED, align=PP_ALIGN.LEFT)
+
+# Ad snippet en bas, mis en valeur
+add_text(s_live, Inches(0.9), Inches(6.1), W - Inches(1.8), Inches(0.3),
+         'Ad currently running:', font='Garamond', size=10, color=MUTED, align=PP_ALIGN.LEFT)
+add_text(s_live, Inches(0.9), Inches(6.4), W - Inches(1.8), Inches(0.4),
+         '« ♏ Scorpion… cette semaine, quelque chose est en… »',
+         font='Garamond', size=14, italic=True, color=GOLD, align=PP_ALIGN.LEFT)
+add_page_footer(s_live, 7, 9)
+
+# ─── Slide 8 — BUSINESS MODEL + ROADMAP ─────────────────────────
 s7 = prs.slides.add_slide(blank)
 set_slide_bg(s7, NAVY)
 add_gold_frame(s7)
@@ -263,9 +293,9 @@ for i, (col_title, bullets) in enumerate(columns):
              col_title, font='Garamond', size=20, bold=True, color=GOLD, align=PP_ALIGN.LEFT)
     add_text(s7, x, Inches(3.6), col_w, Inches(3.0),
              '\n'.join(bullets), font='Garamond', size=14, color=CREAM, align=PP_ALIGN.LEFT)
-add_page_footer(s7, 7, 8)
+add_page_footer(s7, 8, 9)
 
-# ─── Slide 8 — FOUNDER ──────────────────────────────────────────
+# ─── Slide 9 — FOUNDER ──────────────────────────────────────────
 s8 = prs.slides.add_slide(blank)
 set_slide_bg(s8, NAVY)
 add_gold_frame(s8)
@@ -280,7 +310,7 @@ add_text(s8, Inches(0.9), Inches(4.9), W - Inches(1.8), Inches(0.5),
          'Digital product designer and developer', font='Garamond', size=14, color=MUTED, align=PP_ALIGN.LEFT)
 add_text(s8, Inches(0.9), Inches(5.8), W - Inches(1.8), Inches(0.5),
          'plume-astrale.fr', font='Garamond', size=16, italic=True, color=GOLD, align=PP_ALIGN.LEFT)
-add_page_footer(s8, 8, 8)
+add_page_footer(s8, 9, 9)
 
 
 # ─── Speaker notes ──────────────────────────────────────────────
@@ -291,15 +321,16 @@ NOTES = {
     4: "The journey is three steps: Enter birth details · Explore the chart with its interpretation · Keep the 32-page PDF, elegantly composed.",
     5: "Built end-to-end with Emergent: React UI, astrology data + GPT-5.4 for the voice, Stripe for payment, automated PDF delivery.",
     6: "This is not a prototype. 104 paid orders have been made. 13× ROAS on 183 € of Facebook Ads. Each report is 32 pages, delivered automatically. The market has already answered yes.",
-    7: "Today: paid individual readings, credit system, 100% self-serve. Next 90 days: consistent print sample, luxurious printed edition, holiday gift pilot. Horizon: synastry at scale, English market, and a subscription box combining book and ritual.",
-    8: "Thank you. I'm Nadine Zebdi, founder of Plume Astrale, digital product designer and developer. plume-astrale.fr",
+    7: "And distribution is active TODAY. A Facebook campaign targeting Scorpio-sign users is live right now, 1,142 impressions in the first 24 hours, running until October 27. We're not showing you historical data — we're showing you a product in motion.",
+    8: "Today: paid individual readings, credit system, 100% self-serve. Next 90 days: consistent print sample, luxurious printed edition, holiday gift pilot. Horizon: synastry at scale, English market, and a subscription box combining book and ritual.",
+    9: "Thank you. I'm Nadine Zebdi, founder of Plume Astrale, digital product designer and developer. plume-astrale.fr",
 }
 for i, slide in enumerate(prs.slides, 1):
     tf = slide.notes_slide.notes_text_frame
     tf.text = NOTES.get(i, '')
 
 
-OUT = '/app/video_pitch_assets/Plume-Astrale-Contest-FINAL-8slides.pptx'
+OUT = '/app/video_pitch_assets/Plume-Astrale-Contest-FINAL-9slides.pptx'
 prs.save(OUT)
 print(f'✅ Deck 8 slides sauvegardé : {OUT}')
 print(f'   Slides : {len(prs.slides)}')
