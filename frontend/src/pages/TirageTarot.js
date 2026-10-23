@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Sparkles, Moon, Heart, Briefcase, Coins, Leaf,
   Sun, RefreshCw, ArrowRight, ChevronDown, Eye, Wand2,
-  CircleDot, HelpCircle, LogIn, Download, ArrowUp,
+  CircleDot, HelpCircle, LogIn, Download, ArrowUp, Share2,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
@@ -58,6 +58,9 @@ const TirageTarot = () => {
   const [showDomaines, setShowDomaines] = useState(false);
   const [creditUnlocked, setCreditUnlocked] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [shareCopied, setShareCopied] = useState(false);
   const syntheseRef = useRef(null);
 
   // ─── Credit unlock ──────────────────────────────────────
@@ -203,6 +206,55 @@ const TirageTarot = () => {
       alert("Impossible de générer le PDF pour le moment. Réessayez dans un instant.");
     } finally {
       setPdfLoading(false);
+    }
+  };
+
+  // ─── Partager mon tirage (bouche-à-oreille entrant) ─────────────
+  const partagerTirage = async () => {
+    if (shareUrl) {
+      // Déjà généré → juste copier
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2200);
+      } catch (_) {}
+      return;
+    }
+    setShareLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/tarot/share`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: typeTirage === 'complet' ? 'complet' : typeTirage,
+          question,
+          domaine,
+          first_name: user?.prenom || user?.email?.split('@')[0] || 'Voyageur',
+          data: tirageData,
+        }),
+      });
+      if (!res.ok) throw new Error('Impossible de créer le lien');
+      const json = await res.json();
+      if (!json.success || !json.share_url) throw new Error(json.message || 'Erreur');
+      // Si PUBLIC_APP_URL pointe sur prod et qu'on est en preview, remplacer l'origine
+      let url = json.share_url;
+      try {
+        const u = new URL(url);
+        if (window.location.origin && window.location.origin !== u.origin) {
+          url = `${window.location.origin}${u.pathname}`;
+        }
+      } catch (_) {}
+      setShareUrl(url);
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2200);
+      } catch (_) {}
+    } catch (e) {
+      console.error(e);
+      alert("Impossible de créer le lien de partage. Réessayez dans un instant.");
+    } finally {
+      setShareLoading(false);
     }
   };
 
@@ -919,7 +971,7 @@ const TirageTarot = () => {
                 )}
 
                 {/* Actions finales */}
-                <div className="flex flex-col md:flex-row gap-4 justify-center mt-12">
+                <div className="flex flex-col md:flex-row gap-4 justify-center mt-12 flex-wrap">
                   <button
                     onClick={telechargerPDF}
                     disabled={pdfLoading}
@@ -939,20 +991,54 @@ const TirageTarot = () => {
                     )}
                   </button>
                   <button
+                    onClick={partagerTirage}
+                    disabled={shareLoading}
+                    className="btn-mystical rounded-xl py-3 px-6 flex items-center justify-center gap-2"
+                    data-testid="btn-share-tirage"
+                  >
+                    {shareLoading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-[#C9A24B] border-t-transparent rounded-full animate-spin" />
+                        Création du lien…
+                      </>
+                    ) : shareCopied ? (
+                      <>
+                        <Share2 className="w-5 h-5" strokeWidth={1.5} />
+                        Lien copié ✓
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-5 h-5" strokeWidth={1.5} />
+                        {shareUrl ? 'Copier le lien' : 'Partager mon tirage'}
+                      </>
+                    )}
+                  </button>
+                  <button
                     onClick={recommencer}
-                    className="btn-mystical rounded-xl py-3 px-8 flex items-center justify-center gap-2"
+                    className="btn-mystical rounded-xl py-3 px-6 flex items-center justify-center gap-2"
                     data-testid="btn-nouveau-tirage"
                   >
                     <RefreshCw className="w-5 h-5" strokeWidth={1.5} /> Nouveau tirage
                   </button>
                   <button
                     onClick={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    className="btn-mystical rounded-xl py-3 px-8 flex items-center justify-center gap-2"
+                    className="btn-mystical rounded-xl py-3 px-6 flex items-center justify-center gap-2"
                     data-testid="btn-scroll-top"
                   >
                     <ArrowUp className="w-5 h-5" strokeWidth={1.5} /> Revoir les cartes
                   </button>
                 </div>
+
+                {shareUrl && (
+                  <div className="mt-6 max-w-xl mx-auto text-center" data-testid="share-url-box">
+                    <p className="text-xs uppercase tracking-widest text-[#C9A24B] mb-2 font-semibold">
+                      Lien de partage · valable 90 jours
+                    </p>
+                    <code className="block px-4 py-2 rounded-md bg-white/70 border border-[#C9A24B]/30 text-xs text-[#0F1A3C] break-all">
+                      {shareUrl}
+                    </code>
+                  </div>
+                )}
               </div>
             )}
           </div>

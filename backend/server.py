@@ -2892,6 +2892,108 @@ async def tirage_croix_endpoint(request: Request):
     return tirage_en_croix(body.get('prenom', 'Ami'), '1990-01-01')
 
 
+# ────────────────────────────────────────────────────────────────────
+# Partage de tirage — Lien public read-only (bouche-à-oreille entrant)
+# ────────────────────────────────────────────────────────────────────
+
+@api_router.post('/tarot/share')
+async def tarot_share_endpoint(request: Request):
+    """Enregistre un tirage pour le partager via un lien public.
+
+    Body: { type: 'marseille'|'celtique'|'complet', question, domaine, data, first_name }
+    Retourne: { success, share_id, share_url, expires_at }
+
+    Le tirage est stocké dans MongoDB (collection `shared_tirages`) avec un
+    `share_id` 12-char hex. Expiration : 90 jours (TTL index).
+    Lecture via GET `/api/tarot/shared/{share_id}` (public, pas d'auth).
+    """
+    from services.ssr_snapshot import _get_mongo
+    import secrets
+    from datetime import datetime, timezone, timedelta
+
+    body = await request.json()
+    tirage_type = (body.get('type') or 'marseille').lower()
+    if tirage_type not in ('marseille', 'celtique', 'complet'):
+        return {'success': False, 'message': 'Type de tirage invalide.'}
+    data = body.get('data') or {}
+    if not isinstance(data.get('cartes'), list) or not data['cartes']:
+        return {'success': False, 'message': 'Données du tirage manquantes.'}
+
+    share_id = secrets.token_hex(6)  # 12 hex chars
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(days=90)
+    doc = {
+        'share_id': share_id,
+        'type': tirage_type,
+        'question': (body.get('question') or '').strip()[:500],
+        'domaine': (body.get('domaine') or 'general').strip()[:40],
+        'first_name': (body.get('first_name') or body.get('prenom') or 'Voyageur').strip()[:60] or 'Voyageur',
+        'data': data,
+        'created_at': now,
+        'expires_at': expires_at,
+        'view_count': 0,
+    }
+    try:
+        db = _get_mongo()
+        await db.shared_tirages.create_index('share_id', unique=True)
+        await db.shared_tirages.create_index('expires_at', expireAfterSeconds=0)
+        await db.shared_tirages.insert_one(doc)
+    except Exception as e:
+        logger.exception(f'[tarot/share] insert failed: {e}')
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail='Impossible de créer le lien de partage.')
+
+    # Build the public URL from PUBLIC_APP_URL (fallback: use the request origin)
+    public_base = os.environ.get('PUBLIC_APP_URL', '').rstrip('/') or 'https://plume-astrale.fr'
+    share_url = f'{public_base}/tirage-partage/{share_id}'
+    return {
+        'success': True,
+        'share_id': share_id,
+        'share_url': share_url,
+        'expires_at': expires_at.isoformat(),
+    }
+
+
+@api_router.get('/tarot/shared/{share_id}')
+async def tarot_shared_fetch_endpoint(share_id: str):
+    """Récupère un tirage partagé par son `share_id` (public, pas d'auth).
+
+    Incrémente le compteur de vues. Retourne 404 si expiré/inexistant.
+    """
+    from services.ssr_snapshot import _get_mongo
+    from fastapi import HTTPException
+
+    share_id = (share_id or '').strip().lower()
+    if not share_id or len(share_id) != 12 or not all(c in '0123456789abcdef' for c in share_id):
+        raise HTTPException(status_code=400, detail='share_id invalide')
+    try:
+        db = _get_mongo()
+        doc = await db.shared_tirages.find_one_and_update(
+            {'share_id': share_id},
+            {'$inc': {'view_count': 1}},
+            return_document=True,
+        )
+    except Exception as e:
+        logger.exception(f'[tarot/shared] fetch failed: {e}')
+        raise HTTPException(status_code=500, detail='Lecture indisponible.')
+
+    if not doc:
+        raise HTTPException(status_code=404, detail='Tirage introuvable ou expiré.')
+
+    # Sanitize : on retire les champs internes avant de renvoyer au client
+    return {
+        'success': True,
+        'share_id': doc['share_id'],
+        'type': doc.get('type'),
+        'question': doc.get('question'),
+        'domaine': doc.get('domaine'),
+        'first_name': doc.get('first_name'),
+        'data': doc.get('data'),
+        'created_at': doc['created_at'].isoformat() if doc.get('created_at') else None,
+        'view_count': doc.get('view_count', 1),
+    }
+
+
 @api_router.post('/tarot/complet')
 async def tarot_complet_endpoint(request: Request):
     """Tirage Complet 78 cartes (22 Majeurs + 56 Mineurs).

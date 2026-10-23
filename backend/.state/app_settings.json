@@ -3,13 +3,6 @@
   "alerts_history": [
     {
       "kind": "chat_escalation",
-      "title": "Escalade IA — session sup-90a94ac2",
-      "details": "Bonjour, mon PDF n arrive pas après 24h de paiement, aidez-moi urgent",
-      "channels": [],
-      "at": "2026-08-02T16:53:22.072471+00:00"
-    },
-    {
-      "kind": "chat_escalation",
       "title": "Escalade IA — session sup-8d3e9fb4",
       "details": "Bonjour, mon paiement ne passe plus depuis ce matin, help !",
       "channels": [],
@@ -218,6 +211,15 @@
       "details": "J'ai payé hier et je n'ai rien reçu, aucun PDF.",
       "channels": [],
       "at": "2026-10-11T16:26:49.306028+00:00"
+    },
+    {
+      "kind": "weekly_recap",
+      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
+      "details": "Top: aucun refund",
+      "channels": [
+        "email x2"
+      ],
+      "at": "2026-10-23T09:43:46.588495+00:00"
     }
   ],
   "slack_test_cooldown": {
@@ -478,5 +480,5 @@
     }
   },
   "llm_budget_eur": 30.0,
-  "weekly_recap_last_date": "2026-08-28"
+  "weekly_recap_last_date": "2026-10-23"
 }

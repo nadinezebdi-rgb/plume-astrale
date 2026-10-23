@@ -16,6 +16,7 @@ import Apercu from "./pages/Apercu";
 import Paiement from "./pages/Paiement";
 import PaiementSucces from "./pages/PaiementSucces";import Resultats from "./pages/Resultats";
 import TirageTarot from "./pages/TirageTarot";
+import TiragePartage from "./pages/TiragePartage";
 import TarotOuiNon from "./pages/TarotOuiNon";
 import TarotCroixCeltique from "./pages/TarotCroixCeltique";
 import TarotAmour from "./pages/TarotAmour";
@@ -287,6 +288,7 @@ function App() {
 
                 {/* ─── Backward compatibility redirects ─── */}
                 <Route path="/tirage-tarot" element={<Navigate to="/services/tarot" replace />} />
+                <Route path="/tirage-partage/:shareId" element={<TiragePartage />} />
                 <Route path="/tarot-oui-non" element={<Navigate to="/services/tarot/oui-non" replace />} />
                 <Route path="/tarot" element={<Navigate to="/services/tarot" replace />} />
                 <Route path="/compatibilite-amoureuse" element={<Navigate to="/services/compatibilite" replace />} />

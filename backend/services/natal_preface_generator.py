@@ -74,7 +74,54 @@ def _user_prompt(first_name: str, sun_sign: str, moon_sign: str, asc_sign: str) 
 
 
 # ─── Fallback statique de haute qualité ─────────────────────────────
-def _static_fallback(first_name: str) -> List[Dict[str, str]]:
+def _static_fallback(first_name: str, language: str = 'fr') -> List[Dict[str, str]]:
+    language = (language or 'fr').lower()
+    if language == 'en':
+        return [
+            {'kind': 'paragraph', 'text': (
+                f"{first_name}, this book is not a book like any other. "
+                "It has been written only once, and only for you. "
+                "It carries the map of a precise sky — yours — as it shone at your first breath. "
+                "You won't read it in one go, and that is as it should be: it is made to live by your side, "
+                "not to be swallowed in a single evening."
+            )},
+            {'kind': 'h2', 'text': 'A book to consult, not to read in one go'},
+            {'kind': 'paragraph', 'text': (
+                "Read it in small touches. A paragraph at waking, a page on Sunday evening, "
+                "a chapter when a question crosses your mind. Words need to breathe, "
+                "and so do you. This book resists bingeing — it prefers slowness."
+            )},
+            {'kind': 'paragraph', 'text': (
+                "Return to it at life's turning points: a breakup, a birth, a move, a mourning, "
+                "a start. Each time, the same pages will speak to you differently. "
+                "That's because it isn't the book that changes — it's you. And that is precisely "
+                "what it helps you see."
+            )},
+            {'kind': 'h2', 'text': 'How to read each part'},
+            {'kind': 'paragraph', 'text': (
+                "You will find three movements. First <b>your planets</b>: who you are, "
+                "what the ten forces of your inner palette are. "
+                "Then <b>your twelve houses</b>: the scenes of your life, the territories the sky "
+                "has lit particularly brightly for you. Finally <b>your aspects</b>: the way these "
+                "forces speak to each other — in harmony, in friction, in silent complicity."
+            )},
+            {'kind': 'h2', 'text': 'A companion for the years to come'},
+            {'kind': 'paragraph', 'text': (
+                "Your birth sky doesn't move anymore — it is your fixed score, drawn at your birth. "
+                "But you, you change. At thirty, a paragraph on Saturn might bore you; "
+                "at forty, it will become luminous. At fifty, the chapter on houses will take on "
+                "fresh meaning. The planets of the current sky activate zones of your chart in turn: "
+                "this book helps you decode those calls."
+            )},
+            {'kind': 'paragraph', 'text': (
+                "So take your time. Set it on a shelf, come back to it, underline, annotate, "
+                "give yourself the right not to understand everything at once. "
+                "May this book accompany you — for a long time."
+            )},
+            {'kind': 'paragraph', 'text': (
+                '<i>— Soléna, for Plume Astrale.</i>'
+            )},
+        ]
     return [
         {'kind': 'paragraph', 'text': (
             f"{first_name}, ce livre n'est pas un livre comme les autres. "

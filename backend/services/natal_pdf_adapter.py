@@ -288,19 +288,24 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
     natal_data['birth_time'] = user_data.get('birth_time') or user_data.get('heureNaissance')
     natal_data['birth_city'] = user_data.get('birth_city') or user_data.get('villeNaissance') or ''
     try:
+        lang = (user_data.get('language') or 'fr').lower()
+        if not lang.startswith('en'):
+            lang = 'fr'
+        else:
+            lang = 'en'
         manuscript = build_natal_manuscript(
             prenom=prenom, birth_date=birth_date, natal_data=natal_data,
             chart_png_bytes=chart_png_bytes, book_data=book_data,
+            language=lang,
         )
-        # Propage la langue (fr/en) vers l'astro_data pour que le renderer l'applique
-        lang = (user_data.get('language') or 'fr').lower()
-        if lang.startswith('en'):
+        # Propage la langue vers l'astro_data pour que le renderer l'applique
+        if lang == 'en':
             if manuscript.astro_data is None:
                 manuscript.astro_data = {}
             manuscript.astro_data['language'] = 'en'
             if not manuscript.astro_data.get('book_title'):
                 manuscript.astro_data['book_title'] = 'The Astral Book'
-        pdf_bytes = render_book_pdf(manuscript, language=lang if lang.startswith('en') else 'fr')
+        pdf_bytes = render_book_pdf(manuscript, language=lang)
         try:
             from services.pipeline_metrics import track_pipeline_event
             track_pipeline_event('natal_pdf_generated', source='book_flow',
