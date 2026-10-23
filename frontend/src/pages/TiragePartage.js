@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Sparkles, Moon, Sun, ArrowRight, Eye, Heart, Share2, Download } from 'lucide-react';
+import { Sparkles, Moon, Sun, ArrowRight, Eye, Heart, Share2, Download, Mail, Smartphone } from 'lucide-react';
 import { asset } from '../lib/assets';
 import LibraryImage from '@/components/LibraryImage';
 import PsPageShell from '@/components/PsPageShell';
@@ -54,23 +54,29 @@ export default function TiragePartage() {
   }, [shareId]);
 
   const copyLink = async () => {
+    // On copie l'URL OG (/api/og/tirage/{id}) plutôt que /tirage-partage/{id}
+    // directement : les crawlers WhatsApp/iMessage/Discord liront les meta OG
+    // et afficheront la carte PNG en grand dans le preview, puis les humains
+    // seront redirigés vers la page React normale.
+    const ogUrl = `${window.location.origin}/api/og/tirage/${shareId}`;
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(ogUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
     } catch (_) { /* clipboard denied */ }
   };
 
-  const downloadCard = async () => {
+  const downloadCard = async (fmt = 'post') => {
     setPngLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/tarot/shared/${shareId}/card.png`);
+      const res = await fetch(`${API_URL}/api/tarot/shared/${shareId}/card.png?format=${fmt}`);
       if (!res.ok) throw new Error('PNG unavailable');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `tirage-${(tirage?.first_name || 'plume').toLowerCase()}.png`;
+      const suffix = fmt === 'story' ? '-story' : '';
+      a.download = `tirage-${(tirage?.first_name || 'plume').toLowerCase()}${suffix}.png`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -81,6 +87,21 @@ export default function TiragePartage() {
     } finally {
       setPngLoading(false);
     }
+  };
+
+  const sendByEmail = () => {
+    const firstName = tirage?.first_name || 'un(e) ami(e)';
+    const typeLabel = TYPE_LABELS[tirage?.type] || 'tirage de tarot';
+    const q = tirage?.question ? `\n\n« ${tirage.question} »` : '';
+    const ogUrl = `${window.location.origin}/api/og/tirage/${shareId}`;
+    const subject = encodeURIComponent(`Le tirage de ${firstName} · Plume Astrale`);
+    const body = encodeURIComponent(
+      `Je t'envoie mon ${typeLabel.toLowerCase()} :` +
+      `${q}\n\n` +
+      `Les arcanes ont parlé — regarde ce qu'ils m'ont dit :\n${ogUrl}\n\n` +
+      `✦ Plume Astrale`
+    );
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
   if (loading) {
@@ -256,39 +277,53 @@ export default function TiragePartage() {
                 Posez une question, choisissez un tirage, et laissez les 78 arcanes dessiner votre réponse.
                 Chaque tirage est personnel, enrichi par l'IA, et exportable en PDF signature.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
                 <button
                   onClick={() => navigate('/services/tarot')}
-                  className="btn-mystical-filled rounded-xl py-3 px-8 flex items-center gap-2 justify-center mx-auto sm:mx-0"
+                  className="btn-mystical-filled rounded-xl py-3 px-6 flex items-center gap-2 justify-center"
                   data-testid="shared-cta-tirage"
                 >
                   Faire mon tirage <ArrowRight className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={downloadCard}
+                  onClick={() => downloadCard('post')}
                   disabled={pngLoading}
-                  className="rounded-xl py-3 px-6 flex items-center gap-2 justify-center mx-auto sm:mx-0 border border-[#C9A24B]/50 text-[#C9A24B] hover:bg-[#C9A24B]/10 transition-colors"
+                  className="rounded-xl py-3 px-5 flex items-center gap-2 justify-center border border-[#C9A24B]/50 text-[#C9A24B] hover:bg-[#C9A24B]/10 transition-colors disabled:opacity-50"
                   data-testid="shared-cta-download-png"
+                  title="Format feed Instagram, WhatsApp, iMessage"
                 >
                   {pngLoading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-[#C9A24B] border-t-transparent rounded-full animate-spin" />
-                      Préparation…
-                    </>
+                    <div className="w-4 h-4 border-2 border-[#C9A24B] border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <>
-                      <Download className="w-4 h-4" />
-                      Offrir cette carte
-                    </>
+                    <Download className="w-4 h-4" />
                   )}
+                  Offrir cette carte
+                </button>
+                <button
+                  onClick={() => downloadCard('story')}
+                  disabled={pngLoading}
+                  className="rounded-xl py-3 px-5 flex items-center gap-2 justify-center border border-[#C9A24B]/50 text-[#C9A24B] hover:bg-[#C9A24B]/10 transition-colors disabled:opacity-50"
+                  data-testid="shared-cta-download-story"
+                  title="Format 9:16 pour Stories Instagram / TikTok"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  En Story IG
+                </button>
+                <button
+                  onClick={sendByEmail}
+                  className="rounded-xl py-3 px-5 flex items-center gap-2 justify-center border border-[#C9A24B]/50 text-[#C9A24B] hover:bg-[#C9A24B]/10 transition-colors"
+                  data-testid="shared-cta-email"
+                >
+                  <Mail className="w-4 h-4" />
+                  Envoyer par email
                 </button>
                 <button
                   onClick={copyLink}
-                  className="rounded-xl py-3 px-6 flex items-center gap-2 justify-center mx-auto sm:mx-0 border border-[#C9A24B]/50 text-[#C9A24B] hover:bg-[#C9A24B]/10 transition-colors"
+                  className="rounded-xl py-3 px-5 flex items-center gap-2 justify-center border border-[#C9A24B]/50 text-[#C9A24B] hover:bg-[#C9A24B]/10 transition-colors"
                   data-testid="shared-cta-copy"
                 >
                   <Share2 className="w-4 h-4" />
-                  {copied ? 'Lien copié ✓' : 'Partager le lien'}
+                  {copied ? 'Lien copié ✓' : 'Copier le lien'}
                 </button>
               </div>
             </div>

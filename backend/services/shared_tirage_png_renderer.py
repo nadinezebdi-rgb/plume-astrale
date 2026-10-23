@@ -16,9 +16,16 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parent.parent
 FONTS_DIR = ROOT / 'assets' / 'book' / 'fonts'
 
-# Dimensions : Instagram portrait 4:5 (1080×1350), aussi utilisable
-# en Story 9:16 avec recadrage haut/bas automatique.
-WIDTH, HEIGHT = 1080, 1350
+# Dimensions supportées :
+# - 'post' (défaut) : 1080×1350 (Instagram feed 4:5), aussi WhatsApp/Twitter.
+# - 'story'          : 1080×1920 (Instagram Story 9:16, TikTok, Snap).
+_FORMATS = {
+    'post':  {'w': 1080, 'h': 1350},
+    'story': {'w': 1080, 'h': 1920},
+}
+
+# (Legacy — anciennes refs externes)
+WIDTH, HEIGHT = _FORMATS['post']['w'], _FORMATS['post']['h']
 
 # Palette alignée sur la charte Plume Astrale (navy + or).
 NAVY = (15, 26, 60)         # #0F1A3C
@@ -215,25 +222,35 @@ def _hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
         return GOLD
 
 
-def render_shared_tirage_png(tirage: dict, share_url: str = '') -> bytes:
-    """Génère un PNG 1080×1350 partageable depuis un tirage.
+def render_shared_tirage_png(tirage: dict, share_url: str = '', fmt: str = 'post') -> bytes:
+    """Génère un PNG partageable depuis un tirage.
 
-    `tirage` = structure stockée dans `shared_tirages` (type, question, domaine,
-    first_name, data{cartes[], synthese{}, conseil_final}).
+    `fmt` : 'post' (1080×1350, feed Instagram 4:5) ou 'story' (1080×1920, Story 9:16).
+    `tirage` = structure stockée dans `shared_tirages`.
     """
-    img = Image.new('RGB', (WIDTH, HEIGHT), NAVY)
+    size = _FORMATS.get(fmt) or _FORMATS['post']
+    WIDTH_LOCAL, HEIGHT_LOCAL = size['w'], size['h']
+    is_story = fmt == 'story'
+
+    # Positions verticales : échelle depuis le layout 'post' (1350) vers la hauteur demandée.
+    # Le ratio h/1350 permet de garder le même design en Story (plus d'air en haut/bas).
+    scale_y = HEIGHT_LOCAL / 1350
+    # Pour Story, on ajoute de l'air supplémentaire autour du contenu principal.
+    y_offset = int((HEIGHT_LOCAL - 1350) / 2) if is_story else 0
+
+    img = Image.new('RGB', (WIDTH_LOCAL, HEIGHT_LOCAL), NAVY)
     draw = ImageDraw.Draw(img)
 
     # ────────── Fond dégradé navy ──────────
-    for y in range(HEIGHT):
-        t = y / HEIGHT
+    for y in range(HEIGHT_LOCAL):
+        t = y / HEIGHT_LOCAL
         r = int(NAVY[0] + (NAVY_DEEP[0] - NAVY[0]) * t)
         g = int(NAVY[1] + (NAVY_DEEP[1] - NAVY[1]) * t)
         b = int(NAVY[2] + (NAVY_DEEP[2] - NAVY[2]) * t)
-        draw.line([(0, y), (WIDTH, y)], fill=(r, g, b))
+        draw.line([(0, y), (WIDTH_LOCAL, y)], fill=(r, g, b))
 
     # ────────── Cadre pointillé or ──────────
-    _draw_dotted_border(draw, (40, 40, WIDTH - 40, HEIGHT - 40), GOLD, step=10, radius=2)
+    _draw_dotted_border(draw, (40, 40, WIDTH_LOCAL - 40, HEIGHT_LOCAL - 40), GOLD, step=10, radius=2)
 
     # ────────── Header ──────────
     try:
@@ -243,7 +260,6 @@ def render_shared_tirage_png(tirage: dict, share_url: str = '') -> bytes:
         header_font = kicker_font = ImageFont.load_default()
     sym_small_font = _symbol_font_for_glyph('✦', 22)
 
-    # Header : symboles + mot "PLUME ASTRALE"
     label = 'PLUME ASTRALE'
     bbox_label = draw.textbbox((0, 0), label, font=kicker_font)
     lw = bbox_label[2] - bbox_label[0]
@@ -251,8 +267,8 @@ def render_shared_tirage_png(tirage: dict, share_url: str = '') -> bytes:
     sw = bbox_sym[2] - bbox_sym[0]
     gap = 18
     total_w = sw + gap + lw + gap + sw
-    start_x = (WIDTH - total_w) // 2
-    y_header = 90
+    start_x = (WIDTH_LOCAL - total_w) // 2
+    y_header = 90 + y_offset
     draw.text((start_x - bbox_sym[0], y_header - bbox_sym[1]), '✦', font=sym_small_font, fill=GOLD)
     draw.text((start_x + sw + gap - bbox_label[0], y_header - bbox_label[1]),
               label, font=kicker_font, fill=GOLD)
@@ -263,7 +279,7 @@ def render_shared_tirage_png(tirage: dict, share_url: str = '') -> bytes:
     type_label = TYPE_LABELS.get(tirage_type, 'Tirage de Tarot')
     bbox = draw.textbbox((0, 0), type_label, font=header_font)
     tw = bbox[2] - bbox[0]
-    draw.text(((WIDTH - tw) // 2 - bbox[0], 140 - bbox[1]), type_label,
+    draw.text(((WIDTH_LOCAL - tw) // 2 - bbox[0], 140 + y_offset - bbox[1]), type_label,
               font=header_font, fill=PARCHMENT)
 
     # ────────── Titre principal ──────────
@@ -275,15 +291,14 @@ def render_shared_tirage_png(tirage: dict, share_url: str = '') -> bytes:
     title = f'Le tirage de {prenom}'
     bbox = draw.textbbox((0, 0), title, font=title_font)
     tw = bbox[2] - bbox[0]
-    if tw > WIDTH - 100:
-        # Si le prénom déborde, on tronque
+    if tw > WIDTH_LOCAL - 100:
         title = f'Le tirage de {prenom[:14]}'
         bbox = draw.textbbox((0, 0), title, font=title_font)
         tw = bbox[2] - bbox[0]
-    draw.text(((WIDTH - tw) // 2 - bbox[0], 210 - bbox[1]), title, font=title_font, fill=INK)
+    draw.text(((WIDTH_LOCAL - tw) // 2 - bbox[0], 210 + y_offset - bbox[1]), title, font=title_font, fill=INK)
 
     # Filet or sous le titre
-    draw.rectangle((WIDTH // 2 - 60, 310, WIDTH // 2 + 60, 313), fill=GOLD)
+    draw.rectangle((WIDTH_LOCAL // 2 - 60, 310 + y_offset, WIDTH_LOCAL // 2 + 60, 313 + y_offset), fill=GOLD)
 
     # ────────── Question ──────────
     try:
@@ -293,12 +308,12 @@ def render_shared_tirage_png(tirage: dict, share_url: str = '') -> bytes:
     question = (tirage.get('question') or '').strip()
     if question:
         q_text = f'« {question} »'
-        q_lines = _wrap_text(q_text, q_font, WIDTH - 180, draw)[:2]
-        q_y = 340
+        q_lines = _wrap_text(q_text, q_font, WIDTH_LOCAL - 180, draw)[:2]
+        q_y = 340 + y_offset
         for ln in q_lines:
             bbox = draw.textbbox((0, 0), ln, font=q_font)
             lw = bbox[2] - bbox[0]
-            draw.text(((WIDTH - lw) // 2 - bbox[0], q_y - bbox[1]),
+            draw.text(((WIDTH_LOCAL - lw) // 2 - bbox[0], q_y - bbox[1]),
                       ln, font=q_font, fill=PARCHMENT)
             q_y += 42
 
@@ -310,11 +325,10 @@ def render_shared_tirage_png(tirage: dict, share_url: str = '') -> bytes:
         card_w, card_h = 220, 320
         gap = 28
         total_w = n * card_w + (n - 1) * gap
-        start_x = (WIDTH - total_w) // 2
-        card_y = 460
+        start_x = (WIDTH_LOCAL - total_w) // 2
+        card_y = 460 + y_offset
         for i, c in enumerate(display_cartes):
             x = start_x + i * (card_w + gap)
-            # Position tag au-dessus
             pos = (c.get('position') or '').strip()
             if pos:
                 try:
@@ -337,21 +351,20 @@ def render_shared_tirage_png(tirage: dict, share_url: str = '') -> bytes:
               (tirage.get('data') or {}).get('conseil_final') or '')
     teaser = teaser.strip().replace('\n', ' ')
     if teaser:
-        # Max 220 chars pour tenir en ~4 lignes
         if len(teaser) > 220:
             teaser = teaser[:217].rsplit(' ', 1)[0] + '…'
-        teaser_lines = _wrap_text(teaser, teaser_font, WIDTH - 180, draw)[:4]
-        teaser_y = 830
+        teaser_lines = _wrap_text(teaser, teaser_font, WIDTH_LOCAL - 180, draw)[:4]
+        teaser_y = 830 + y_offset
         for ln in teaser_lines:
             bbox = draw.textbbox((0, 0), ln, font=teaser_font)
             lw = bbox[2] - bbox[0]
-            draw.text(((WIDTH - lw) // 2 - bbox[0], teaser_y - bbox[1]),
+            draw.text(((WIDTH_LOCAL - lw) // 2 - bbox[0], teaser_y - bbox[1]),
                       ln, font=teaser_font, fill=PARCHMENT)
             teaser_y += 36
 
     # ────────── Footer / CTA ──────────
-    # Filet or
-    draw.rectangle((WIDTH // 2 - 100, HEIGHT - 230, WIDTH // 2 + 100, HEIGHT - 227), fill=GOLD)
+    footer_y_base = HEIGHT_LOCAL - 230
+    draw.rectangle((WIDTH_LOCAL // 2 - 100, footer_y_base, WIDTH_LOCAL // 2 + 100, footer_y_base + 3), fill=GOLD)
 
     try:
         cta_font = _font('Italic', 24)
@@ -363,25 +376,23 @@ def render_shared_tirage_png(tirage: dict, share_url: str = '') -> bytes:
     cta1 = 'Et vous, qu\'est-ce que les arcanes vous diraient ?'
     bbox = draw.textbbox((0, 0), cta1, font=cta_font)
     lw = bbox[2] - bbox[0]
-    draw.text(((WIDTH - lw) // 2 - bbox[0], HEIGHT - 195 - bbox[1]), cta1,
+    draw.text(((WIDTH_LOCAL - lw) // 2 - bbox[0], HEIGHT_LOCAL - 195 - bbox[1]), cta1,
               font=cta_font, fill=PARCHMENT)
 
     cta2 = 'plume-astrale.fr'
     bbox = draw.textbbox((0, 0), cta2, font=cta_main)
     lw = bbox[2] - bbox[0]
-    draw.text(((WIDTH - lw) // 2 - bbox[0], HEIGHT - 140 - bbox[1]), cta2,
+    draw.text(((WIDTH_LOCAL - lw) // 2 - bbox[0], HEIGHT_LOCAL - 140 - bbox[1]), cta2,
               font=cta_main, fill=GOLD)
 
     if share_url:
-        # URL courte (affiche jusqu'au short id)
         short = share_url.split('/tirage-partage/', 1)
         display_url = f'/tirage-partage/{short[1][:12]}' if len(short) == 2 else share_url[:40]
         bbox = draw.textbbox((0, 0), display_url, font=url_font)
         lw = bbox[2] - bbox[0]
-        draw.text(((WIDTH - lw) // 2 - bbox[0], HEIGHT - 85 - bbox[1]),
+        draw.text(((WIDTH_LOCAL - lw) // 2 - bbox[0], HEIGHT_LOCAL - 85 - bbox[1]),
                   display_url, font=url_font, fill=MUTED)
 
-    # Export PNG optimisé
     buf = io.BytesIO()
     img.save(buf, format='PNG', optimize=True)
     buf.seek(0)

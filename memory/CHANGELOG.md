@@ -1,5 +1,32 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02 (fork) — Story 9:16 + Open Graph + Email de partage
+
+**🎯 Objectif** : Maximiser la viralité du bouton Partage ajouté précédemment. (1) Format Story IG dédié. (2) Preview WhatsApp/iMessage/Discord affiche la carte en grand. (3) Partage par email natif.
+
+**✅ Livré** :
+
+### Carte Story 9:16
+- Renderer `shared_tirage_png_renderer.py` refactorisé avec paramètre `fmt='post'|'story'` — `post` = 1080×1350 (feed Instagram), `story` = 1080×1920 (IG Story / TikTok / Snap).
+- Endpoint étendu : `GET /api/tarot/shared/{id}/card.png?format=story` → PNG 1080×1920.
+- Bouton `[data-testid=shared-cta-download-story]` "En Story IG" (icône Smartphone) ajouté dans `/tirage-partage/:shareId`.
+
+### Open Graph wrapper
+- Nouvel endpoint `GET /api/og/tirage/{share_id}` qui sert du HTML lite avec meta tags og:*/twitter:card=summary_large_image, canonical, et redirection meta-refresh + JS vers `/tirage-partage/{share_id}` pour les humains.
+- `POST /api/tarot/share` renvoie désormais `share_url` (OG wrapper, pour partage) + `web_url` (lien direct). Le `copyLink` du frontend copie l'OG URL — ça fait que WhatsApp/iMessage/Discord/Slack/Telegram/Facebook afficheront la carte PNG 1080×1350 en grand dans le preview, puis l'humain tombe sur la vraie page React.
+- Validé avec User-Agent WhatsApp : tous les tags og:url, og:title, og:description, og:image (1080×1350), og:site_name, twitter:card sont correctement injectés.
+
+### Partage par email
+- Bouton `[data-testid=shared-cta-email]` ouvre `mailto:` avec subject + body pré-remplis (prénom, question, type de tirage, lien OG). Fonctionne sur tous les clients email natifs (iOS, Android, Gmail, Outlook, Thunderbird).
+
+### UX refactor du bloc CTA
+- Grille horizontale sur desktop (5 boutons : Faire mon tirage · Offrir cette carte · En Story IG · Envoyer par email · Copier le lien), verticale sur mobile. Icônes Lucide (ArrowRight, Download, Smartphone, Mail, Share2).
+
+**🧪 Tests** : 26/26 pytest (incluant test_tarot_share.py mis à jour pour la nouvelle structure share_url/web_url). Screenshots desktop + mobile validés.
+
+**🔗 Fichiers** : `backend/services/shared_tirage_png_renderer.py` (param `fmt`), `backend/server.py` (endpoint `/api/og/tirage` + swap share_url), `backend/tests/test_tarot_share.py` (fix regression), `frontend/src/pages/TiragePartage.js` (3 nouveaux boutons + swap mailto + swap copyLink vers OG URL).
+
+
 ## 2026-02 (fork) — Dashboard admin Viralité + Carte PNG "Offrir ce tirage"
 
 **🎯 Objectif** : Transformer chaque tirage partagé en vecteur d'acquisition. (1) Permettre aux utilisateurs de télécharger leur tirage sous forme d'une carte PNG stylée pour partage WhatsApp/Instagram. (2) Donner à l'admin une vue en temps réel des tirages qui buzzent.

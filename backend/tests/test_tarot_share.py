@@ -27,7 +27,10 @@ def created():
 def test_create_share(created):
     assert created['success'] is True
     assert re.fullmatch(r'[0-9a-f]{12}', created['share_id'])
-    assert created['share_url'].endswith(f"/tirage-partage/{created['share_id']}")
+    # share_url pointe sur le wrapper OG (meilleures previews WhatsApp/Discord),
+    # web_url pointe sur la page React directe.
+    assert created['share_url'].endswith(f"/api/og/tirage/{created['share_id']}")
+    assert created['web_url'].endswith(f"/tirage-partage/{created['share_id']}")
     assert 'expires_at' in created and created['expires_at']
 
 

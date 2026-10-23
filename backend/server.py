@@ -1,6 +1,6 @@
 """Plume Astrale — FastAPI backend (Supabase + Stripe + Astrology API)."""
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Query, Body
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import Response, StreamingResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 import os
@@ -2945,11 +2945,15 @@ async def tarot_share_endpoint(request: Request):
 
     # Build the public URL from PUBLIC_APP_URL (fallback: use the request origin)
     public_base = os.environ.get('PUBLIC_APP_URL', '').rstrip('/') or 'https://plume-astrale.fr'
-    share_url = f'{public_base}/tirage-partage/{share_id}'
+    web_url = f'{public_base}/tirage-partage/{share_id}'
+    # share_url pointe sur le wrapper OG : previews WhatsApp/iMessage/Discord
+    # affichent la carte PNG en grand, puis l'humain est redirigé vers web_url.
+    share_url = f'{public_base}/api/og/tirage/{share_id}'
     return {
         'success': True,
         'share_id': share_id,
         'share_url': share_url,
+        'web_url': web_url,
         'expires_at': expires_at.isoformat(),
     }
 
@@ -2995,9 +2999,11 @@ async def tarot_shared_fetch_endpoint(share_id: str):
 
 
 @api_router.get('/tarot/shared/{share_id}/card.png')
-async def tarot_shared_card_png_endpoint(share_id: str, request: Request):
-    """Génère une carte PNG partageable (1080×1350, format Instagram portrait)
-    à partir d'un tirage partagé. Public, pas d'auth. Prête pour WhatsApp/IG/Story.
+async def tarot_shared_card_png_endpoint(share_id: str, request: Request, format: str = 'post'):
+    """Génère une carte PNG partageable à partir d'un tirage partagé.
+
+    Query ?format=post (défaut, 1080×1350 feed) ou ?format=story (1080×1920 IG Story).
+    Public, pas d'auth. Prête pour WhatsApp/IG/Story/Discord.
     """
     from services.ssr_snapshot import _get_mongo
     from services.shared_tirage_png_renderer import render_shared_tirage_png
@@ -3005,6 +3011,9 @@ async def tarot_shared_card_png_endpoint(share_id: str, request: Request):
     from fastapi.responses import Response
 
     share_id = (share_id or '').strip().lower()
+    fmt = (format or 'post').lower()
+    if fmt not in ('post', 'story'):
+        fmt = 'post'
     if not share_id or len(share_id) != 12 or not all(c in '0123456789abcdef' for c in share_id):
         raise HTTPException(status_code=400, detail='share_id invalide')
     try:
@@ -3016,7 +3025,6 @@ async def tarot_shared_card_png_endpoint(share_id: str, request: Request):
     if not doc:
         raise HTTPException(status_code=404, detail='Tirage introuvable ou expiré.')
 
-    # Reconstruit l'URL publique (utilise l'origine du request si pas de PUBLIC_APP_URL)
     public_base = os.environ.get('PUBLIC_APP_URL', '').rstrip('/')
     if not public_base:
         public_base = str(request.base_url).rstrip('/').replace('/api', '')
@@ -3024,7 +3032,7 @@ async def tarot_shared_card_png_endpoint(share_id: str, request: Request):
 
     try:
         from starlette.concurrency import run_in_threadpool
-        png_bytes = await run_in_threadpool(render_shared_tirage_png, doc, share_url)
+        png_bytes = await run_in_threadpool(render_shared_tirage_png, doc, share_url, fmt)
     except Exception as e:
         logger.exception(f'[tarot/shared/card] render failed: {e}')
         raise HTTPException(status_code=500, detail='Impossible de générer la carte.')
@@ -3035,18 +3043,115 @@ async def tarot_shared_card_png_endpoint(share_id: str, request: Request):
     import urllib.parse
     raw_name = (doc.get('first_name') or 'plume').lower()
     ascii_name = re.sub(r'[^a-z0-9_-]+', '-', raw_name).strip('-') or 'plume'
-    utf8_name = urllib.parse.quote(f'tirage-{raw_name}-{share_id}.png')
+    fmt_suffix = '-story' if fmt == 'story' else ''
+    utf8_name = urllib.parse.quote(f'tirage-{raw_name}{fmt_suffix}-{share_id}.png')
     return Response(
         content=png_bytes,
         media_type='image/png',
         headers={
             'Content-Disposition': (
-                f'attachment; filename="tirage-{ascii_name}-{share_id}.png"; '
+                f'attachment; filename="tirage-{ascii_name}{fmt_suffix}-{share_id}.png"; '
                 f"filename*=UTF-8''{utf8_name}"
             ),
             'Cache-Control': 'public, max-age=86400',
         },
     )
+
+
+@api_router.get('/og/tirage/{share_id}', response_class=HTMLResponse, include_in_schema=False)
+async def tarot_og_wrapper(share_id: str, request: Request):
+    """Page HTML lite qui expose les tags Open Graph pour les crawlers
+    (WhatsApp, iMessage, Discord, Slack, Telegram, Twitter, Facebook).
+
+    Comportement :
+    - Crawlers : lisent les meta tags og:*/twitter:* et montrent la carte PNG en preview.
+    - Humains : redirigés instantanément vers /tirage-partage/{share_id} via <meta refresh>
+      (fallback <a> cliquable + <script> redirect).
+
+    Pourquoi un endpoint séparé ? Le SPA React ne peut pas injecter des OG tags
+    *per-shareId* parce que les crawlers ne lancent pas le JS. Ce wrapper
+    sert du HTML statique avec les bons tags, qui pointent vers la carte PNG.
+    """
+    from services.ssr_snapshot import _get_mongo
+    from fastapi.responses import HTMLResponse as _HTML
+    import html as _html
+    share_id = (share_id or '').strip().lower()
+    if not share_id or len(share_id) != 12 or not all(c in '0123456789abcdef' for c in share_id):
+        return _HTML('<h1>Lien invalide</h1>', status_code=400)
+    try:
+        db = _get_mongo()
+        doc = await db.shared_tirages.find_one({'share_id': share_id})
+    except Exception as e:
+        logger.exception(f'[og/tirage] fetch failed: {e}')
+        return _HTML('<h1>Service momentanément indisponible</h1>', status_code=500)
+    if not doc:
+        return _HTML(
+            '<!doctype html><html><head><meta charset="utf-8"><title>Tirage introuvable</title>'
+            '<meta http-equiv="refresh" content="0; url=/services/tarot"></head>'
+            '<body>Lien expiré. <a href="/services/tarot">Faire mon tirage</a></body></html>',
+            status_code=404,
+        )
+
+    public_base = os.environ.get('PUBLIC_APP_URL', '').rstrip('/')
+    if not public_base:
+        public_base = str(request.base_url).rstrip('/').replace('/api', '')
+    target = f'{public_base}/tirage-partage/{share_id}'
+    og_image = f'{public_base}/api/tarot/shared/{share_id}/card.png'
+
+    prenom = _html.escape((doc.get('first_name') or 'un(e) ami(e)')[:40])
+    question = _html.escape((doc.get('question') or '').strip()[:160])
+    type_label = {
+        'marseille': 'Tirage Marseille · 3 cartes',
+        'celtique': 'Croix Celtique · 10 cartes',
+        'complet': 'Tirage Complet · 78 arcanes',
+    }.get(doc.get('type'), 'Tirage de Tarot')
+
+    title = f'Le tirage de {prenom}'
+    description = (f'« {question} » — {type_label}, enrichi par Soléna.'
+                   if question else f'{type_label}, enrichi par Soléna.')
+
+    body = f'''<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{_html.escape(title)} · Plume Astrale</title>
+  <meta name="description" content="{_html.escape(description)}" />
+  <link rel="canonical" href="{_html.escape(target)}" />
+  <meta name="robots" content="noindex,follow" />
+
+  <!-- Open Graph (Facebook, WhatsApp, iMessage, LinkedIn, Discord, Slack, Telegram) -->
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="{_html.escape(target)}" />
+  <meta property="og:title" content="{_html.escape(title)}" />
+  <meta property="og:description" content="{_html.escape(description)}" />
+  <meta property="og:image" content="{_html.escape(og_image)}" />
+  <meta property="og:image:width" content="1080" />
+  <meta property="og:image:height" content="1350" />
+  <meta property="og:image:alt" content="Carte signature du tirage de {_html.escape(prenom)}" />
+  <meta property="og:site_name" content="Plume Astrale" />
+  <meta property="og:locale" content="fr_FR" />
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{_html.escape(title)}" />
+  <meta name="twitter:description" content="{_html.escape(description)}" />
+  <meta name="twitter:image" content="{_html.escape(og_image)}" />
+
+  <!-- Redirection humaine (crawlers n'exécutent pas JS, ils ne redirigeront pas) -->
+  <meta http-equiv="refresh" content="0; url={_html.escape(target)}" />
+  <style>
+    body {{ background: #0F1A3C; color: #F8F1E3; font-family: serif; text-align: center; padding: 20vh 2rem; }}
+    a {{ color: #C9A24B; }}
+  </style>
+</head>
+<body>
+  <p>Redirection vers le tirage…</p>
+  <p><a href="{_html.escape(target)}">Cliquez ici si rien ne se passe</a></p>
+  <script>location.replace({target!r});</script>
+</body>
+</html>'''
+    return _HTML(body, headers={'Cache-Control': 'public, max-age=3600'})
 
 
 @api_router.post('/tarot/complet')
