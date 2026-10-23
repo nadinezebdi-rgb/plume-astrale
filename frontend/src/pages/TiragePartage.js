@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Sparkles, Moon, Sun, ArrowRight, Eye, Heart, Share2 } from 'lucide-react';
+import { Sparkles, Moon, Sun, ArrowRight, Eye, Heart, Share2, Download } from 'lucide-react';
 import { asset } from '../lib/assets';
 import LibraryImage from '@/components/LibraryImage';
 import PsPageShell from '@/components/PsPageShell';
@@ -31,6 +31,7 @@ export default function TiragePartage() {
   const [error, setError] = useState(null);
   const [tirage, setTirage] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [pngLoading, setPngLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,6 +59,28 @@ export default function TiragePartage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
     } catch (_) { /* clipboard denied */ }
+  };
+
+  const downloadCard = async () => {
+    setPngLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/tarot/shared/${shareId}/card.png`);
+      if (!res.ok) throw new Error('PNG unavailable');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tirage-${(tirage?.first_name || 'plume').toLowerCase()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      alert("Impossible de générer la carte pour le moment. Réessayez.");
+    } finally {
+      setPngLoading(false);
+    }
   };
 
   if (loading) {
@@ -233,7 +256,7 @@ export default function TiragePartage() {
                 Posez une question, choisissez un tirage, et laissez les 78 arcanes dessiner votre réponse.
                 Chaque tirage est personnel, enrichi par l'IA, et exportable en PDF signature.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
                 <button
                   onClick={() => navigate('/services/tarot')}
                   className="btn-mystical-filled rounded-xl py-3 px-8 flex items-center gap-2 justify-center mx-auto sm:mx-0"
@@ -242,12 +265,30 @@ export default function TiragePartage() {
                   Faire mon tirage <ArrowRight className="w-4 h-4" />
                 </button>
                 <button
+                  onClick={downloadCard}
+                  disabled={pngLoading}
+                  className="rounded-xl py-3 px-6 flex items-center gap-2 justify-center mx-auto sm:mx-0 border border-[#C9A24B]/50 text-[#C9A24B] hover:bg-[#C9A24B]/10 transition-colors"
+                  data-testid="shared-cta-download-png"
+                >
+                  {pngLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-[#C9A24B] border-t-transparent rounded-full animate-spin" />
+                      Préparation…
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      Offrir cette carte
+                    </>
+                  )}
+                </button>
+                <button
                   onClick={copyLink}
                   className="rounded-xl py-3 px-6 flex items-center gap-2 justify-center mx-auto sm:mx-0 border border-[#C9A24B]/50 text-[#C9A24B] hover:bg-[#C9A24B]/10 transition-colors"
                   data-testid="shared-cta-copy"
                 >
                   <Share2 className="w-4 h-4" />
-                  {copied ? 'Lien copié ✓' : 'Partager ce tirage'}
+                  {copied ? 'Lien copié ✓' : 'Partager le lien'}
                 </button>
               </div>
             </div>

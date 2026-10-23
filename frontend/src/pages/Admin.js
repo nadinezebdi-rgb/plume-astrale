@@ -100,6 +100,7 @@ export default function Admin() {
   const [leadsTotal, setLeadsTotal] = useState(0);
   const [pdfsSent, setPdfsSent] = useState(null);
   const [paymentsHealth, setPaymentsHealth] = useState(null);
+  const [viralite, setViralite] = useState(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -168,6 +169,15 @@ export default function Admin() {
     finally { setLoading(false); }
   }, [token]);
 
+  const loadViralite = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await axios.get(`${API}/api/admin/tarot-share/top?limit=50`, { headers: { Authorization: `Bearer ${token}` } });
+      setViralite(r.data);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  }, [token]);
+
   useEffect(() => {
     if (!token || !user?.is_admin) return;
     // Poll léger de la santé paiements pour piloter le badge d'alerte du tab
@@ -185,6 +195,7 @@ export default function Admin() {
     else if (tab === 'leads') loadLeads();
     else if (tab === 'promo') loadPromo();
     else if (tab === 'pdfs-sent') loadPdfsSent();
+    else if (tab === 'viralite') loadViralite();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, token, user?.is_admin]);
 
@@ -195,6 +206,7 @@ export default function Admin() {
     else if (tab === 'transactions') loadTransactions();
     else if (tab === 'leads') loadLeads();
     else if (tab === 'pdfs-sent') loadPdfsSent();
+    else if (tab === 'viralite') loadViralite();
     else loadPromo();
   };
 
@@ -253,6 +265,7 @@ export default function Admin() {
           <Tab label="Leads" active={tab === 'leads'} onClick={() => setTab('leads')} count={tab === 'leads' ? leadsTotal : undefined} />
           <Tab label="Codes promo" active={tab === 'promo'} onClick={() => setTab('promo')} />
           <Tab label="PDFs envoyés" active={tab === 'pdfs-sent'} onClick={() => setTab('pdfs-sent')} count={pdfsSent?.total_with_supabase_url} />
+          <Tab label="Viralité Tarot" active={tab === 'viralite'} onClick={() => setTab('viralite')} count={viralite?.total_shares} />
           <Tab label="Fix Thème Natal" active={tab === 'fix-natal'} onClick={() => setTab('fix-natal')} />
           <Tab label="Lecture Complète" active={tab === 'lecture-complete'} onClick={() => setTab('lecture-complete')} />
           <Tab label="Générer les lectures" active={tab === 'generate'} onClick={() => setTab('generate')} />
@@ -441,10 +454,119 @@ export default function Admin() {
           <PdfsSentSection data={pdfsSent} loading={loading} reload={loadPdfsSent} />
         )}
 
+        {tab === 'viralite' && (
+          <ViraliteSection data={viralite} loading={loading} reload={loadViralite} />
+        )}
+
       </div>
     </div>
   );
 }
+
+// ═══════ Viralité Tarot — Top des tirages partagés les plus vus ═══════
+function ViraliteSection({ data, loading, reload }) {
+  const items = data?.items || [];
+  const totalShares = data?.total_shares || 0;
+  const totalViews = data?.total_views || 0;
+  const avg = data?.avg_views_per_share || 0;
+
+  const typeLabels = {
+    marseille: 'Marseille · 3',
+    celtique: 'Celtique · 10',
+    complet: 'Complet · 78',
+  };
+
+  return (
+    <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,175,55,0.15)' }} data-testid="admin-viralite-section">
+      <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+        <div>
+          <h3 className="text-base font-semibold" style={{ color: '#D4AF37', fontFamily: 'Cormorant Garamond, serif', letterSpacing: '0.08em' }}>
+            Viralité des tirages partagés
+          </h3>
+          <p className="text-xs mt-1" style={{ color: 'var(--pa-muted)' }}>
+            Les tirages de tarot que les utilisateurs partagent le plus. Un buzz = un contenu qui mérite d'être repris en campagne.
+          </p>
+        </div>
+        <button
+          onClick={reload}
+          className="px-4 py-2 text-xs uppercase tracking-widest rounded-full"
+          style={{ border: '1px solid rgba(212,175,55,0.3)', color: '#D4AF37' }}
+          data-testid="admin-viralite-refresh"
+        >
+          {loading ? 'Chargement…' : 'Rafraîchir'}
+        </button>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(212,175,55,0.07)', border: '1px solid rgba(212,175,55,0.15)' }} data-testid="viralite-kpi-shares">
+          <div className="text-xs uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>Tirages partagés</div>
+          <div className="text-3xl font-bold mt-2" style={{ color: '#D4AF37', fontFamily: 'Cormorant Garamond, serif' }}>{totalShares}</div>
+        </div>
+        <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(212,175,55,0.07)', border: '1px solid rgba(212,175,55,0.15)' }} data-testid="viralite-kpi-views">
+          <div className="text-xs uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>Vues totales</div>
+          <div className="text-3xl font-bold mt-2" style={{ color: '#D4AF37', fontFamily: 'Cormorant Garamond, serif' }}>{totalViews}</div>
+        </div>
+        <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(212,175,55,0.07)', border: '1px solid rgba(212,175,55,0.15)' }} data-testid="viralite-kpi-avg">
+          <div className="text-xs uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>Moy. vues / tirage</div>
+          <div className="text-3xl font-bold mt-2" style={{ color: '#D4AF37', fontFamily: 'Cormorant Garamond, serif' }}>{avg}</div>
+        </div>
+      </div>
+
+      {items.length === 0 ? (
+        <div className="text-center py-12" style={{ color: 'var(--pa-muted)', fontStyle: 'italic', fontFamily: 'Cormorant Garamond, serif' }} data-testid="admin-viralite-empty">
+          Aucun tirage partagé pour l'instant. Dès qu'un utilisateur clique sur « Partager mon tirage », il apparaîtra ici.
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm" data-testid="admin-viralite-table">
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(212,175,55,0.2)', color: 'var(--pa-muted)' }}>
+                <th className="text-left py-2 px-3 text-xs uppercase tracking-wider">#</th>
+                <th className="text-left py-2 px-3 text-xs uppercase tracking-wider">Vues</th>
+                <th className="text-left py-2 px-3 text-xs uppercase tracking-wider">Prénom</th>
+                <th className="text-left py-2 px-3 text-xs uppercase tracking-wider">Type</th>
+                <th className="text-left py-2 px-3 text-xs uppercase tracking-wider">Domaine</th>
+                <th className="text-left py-2 px-3 text-xs uppercase tracking-wider">Question</th>
+                <th className="text-left py-2 px-3 text-xs uppercase tracking-wider">Date</th>
+                <th className="text-left py-2 px-3 text-xs uppercase tracking-wider">Lien</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((it, i) => (
+                <tr key={it.share_id} style={{ borderBottom: '1px solid rgba(212,175,55,0.08)' }} data-testid={`viralite-row-${it.share_id}`}>
+                  <td className="py-2 px-3" style={{ color: 'var(--pa-muted)' }}>{i + 1}</td>
+                  <td className="py-2 px-3 font-semibold" style={{ color: '#D4AF37' }}>{it.view_count || 0}</td>
+                  <td className="py-2 px-3" style={{ color: 'var(--pa-body)' }}>{it.first_name || '—'}</td>
+                  <td className="py-2 px-3" style={{ color: 'var(--pa-body)' }}>{typeLabels[it.type] || it.type}</td>
+                  <td className="py-2 px-3" style={{ color: 'var(--pa-muted)' }}>{it.domaine || '—'}</td>
+                  <td className="py-2 px-3" style={{ color: 'var(--pa-body)', maxWidth: 280 }}>
+                    <span className="line-clamp-1 italic">« {it.question || '—'} »</span>
+                  </td>
+                  <td className="py-2 px-3 text-xs" style={{ color: 'var(--pa-muted)' }}>
+                    {it.created_at ? new Date(it.created_at).toLocaleDateString('fr-FR') : '—'}
+                  </td>
+                  <td className="py-2 px-3">
+                    <a
+                      href={`/tirage-partage/${it.share_id}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="text-xs underline"
+                      style={{ color: '#D4AF37' }}
+                      data-testid={`viralite-link-${it.share_id}`}
+                    >
+                      Ouvrir
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 // ═══════ PDFs Sent Section (Supabase Storage only) ═══════
 function PdfsSentSection({ data, loading, reload }) {

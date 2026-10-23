@@ -2994,6 +2994,50 @@ async def tarot_shared_fetch_endpoint(share_id: str):
     }
 
 
+@api_router.get('/tarot/shared/{share_id}/card.png')
+async def tarot_shared_card_png_endpoint(share_id: str, request: Request):
+    """Génère une carte PNG partageable (1080×1350, format Instagram portrait)
+    à partir d'un tirage partagé. Public, pas d'auth. Prête pour WhatsApp/IG/Story.
+    """
+    from services.ssr_snapshot import _get_mongo
+    from services.shared_tirage_png_renderer import render_shared_tirage_png
+    from fastapi import HTTPException
+    from fastapi.responses import Response
+
+    share_id = (share_id or '').strip().lower()
+    if not share_id or len(share_id) != 12 or not all(c in '0123456789abcdef' for c in share_id):
+        raise HTTPException(status_code=400, detail='share_id invalide')
+    try:
+        db = _get_mongo()
+        doc = await db.shared_tirages.find_one({'share_id': share_id})
+    except Exception as e:
+        logger.exception(f'[tarot/shared/card] fetch failed: {e}')
+        raise HTTPException(status_code=500, detail='Lecture indisponible.')
+    if not doc:
+        raise HTTPException(status_code=404, detail='Tirage introuvable ou expiré.')
+
+    # Reconstruit l'URL publique (utilise l'origine du request si pas de PUBLIC_APP_URL)
+    public_base = os.environ.get('PUBLIC_APP_URL', '').rstrip('/')
+    if not public_base:
+        public_base = str(request.base_url).rstrip('/').replace('/api', '')
+    share_url = f'{public_base}/tirage-partage/{share_id}'
+
+    try:
+        png_bytes = render_shared_tirage_png(doc, share_url=share_url)
+    except Exception as e:
+        logger.exception(f'[tarot/shared/card] render failed: {e}')
+        raise HTTPException(status_code=500, detail='Impossible de générer la carte.')
+
+    return Response(
+        content=png_bytes,
+        media_type='image/png',
+        headers={
+            'Content-Disposition': f'attachment; filename="tirage-{doc.get("first_name", "plume")}-{share_id}.png"',
+            'Cache-Control': 'public, max-age=86400',
+        },
+    )
+
+
 @api_router.post('/tarot/complet')
 async def tarot_complet_endpoint(request: Request):
     """Tirage Complet 78 cartes (22 Majeurs + 56 Mineurs).

@@ -1032,6 +1032,61 @@ async def admin_pdf_failures_last_24h(
     }
 
 
+# ═══════════════════════════════════════════════════════════════
+# Admin — Viralité tirages (top des tirages partagés les plus vus)
+# ═══════════════════════════════════════════════════════════════
+@router.get('/tarot-share/top')
+async def admin_top_shared_tirages(
+    limit: int = Query(20, ge=1, le=100),
+    _admin: dict = Depends(require_admin),
+):
+    """Top N des tirages partagés par nombre de vues (collection `shared_tirages`).
+
+    Utile pour identifier les tirages qui buzzent (bouche-à-oreille, viralité
+    IG/WhatsApp). Chaque entrée : share_id, type, question, first_name,
+    view_count, created_at.
+    """
+    import os as _os
+    from motor.motor_asyncio import AsyncIOMotorClient
+
+    try:
+        mongo_url = _os.environ.get('MONGO_URL')
+        db_name = _os.environ.get('DB_NAME')
+        if not mongo_url or not db_name:
+            raise RuntimeError('MONGO_URL/DB_NAME manquants')
+        db = AsyncIOMotorClient(mongo_url)[db_name]
+        cursor = db.shared_tirages.find(
+            {},
+            projection={
+                '_id': 0, 'share_id': 1, 'type': 1, 'question': 1,
+                'domaine': 1, 'first_name': 1, 'view_count': 1,
+                'created_at': 1,
+            },
+        ).sort('view_count', -1).limit(limit)
+        items = []
+        async for doc in cursor:
+            # Normalise created_at en str ISO
+            if doc.get('created_at') and hasattr(doc['created_at'], 'isoformat'):
+                doc['created_at'] = doc['created_at'].isoformat()
+            items.append(doc)
+        total_shares = await db.shared_tirages.count_documents({})
+        total_views_cursor = db.shared_tirages.aggregate([
+            {'$group': {'_id': None, 'total': {'$sum': '$view_count'}}}
+        ])
+        total_views = 0
+        async for row in total_views_cursor:
+            total_views = row.get('total') or 0
+        return {
+            'items': items,
+            'total_shares': total_shares,
+            'total_views': total_views,
+            'avg_views_per_share': round(total_views / total_shares, 1) if total_shares else 0,
+        }
+    except Exception as e:
+        logger.exception(f'[admin] top-shared-tirages failed: {e}')
+        return {'items': [], 'total_shares': 0, 'total_views': 0, 'error': str(e)[:200]}
+
+
 
 # ═══════════════════════════════════════════════════════════════
 # Admin alerts (health-checks tiers / incidents prod)
