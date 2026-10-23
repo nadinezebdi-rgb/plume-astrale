@@ -9,6 +9,7 @@ from __future__ import annotations
 import io
 import os
 import re
+from xml.sax.saxutils import escape as xml_escape
 from typing import Any, Dict, List, Optional
 
 from reportlab.lib.units import cm
@@ -120,7 +121,10 @@ def _domaine_label(domaine: str) -> str:
 def _clean(text: str) -> str:
     if not text:
         return ''
-    return (text or '').replace('**', '').replace('*', '').strip()
+    cleaned = (text or '').replace('**', '').replace('*', '').strip()
+    # Reportlab Paragraph interprète les balises XML — on échappe le texte user
+    # (question, interprétations IA, conseils) pour éviter toute injection ou crash.
+    return xml_escape(cleaned)
 
 
 def _card_block(story: list, styles: dict, carte: Dict[str, Any], position_label: str):
@@ -181,23 +185,31 @@ def build_tarot_pdf(
     par les endpoints /api/tarot/marseille ou /api/tarot/celtique."""
     buf = io.BytesIO()
     is_celtique = tirage_type == 'celtique'
-    title = 'Croix Celtique' if is_celtique else 'Tarot de Marseille'
-    doc = build_luxury_doc(buf, title=f'{title} — {prenom}')
+    is_complet = tirage_type == 'complet'
+    if is_complet:
+        title = 'Tirage Complet 78 Arcanes'
+    elif is_celtique:
+        title = 'Croix Celtique'
+    else:
+        title = 'Tarot de Marseille'
+    # Protection XML (prenom et question peuvent contenir des caractères spéciaux)
+    safe_prenom = xml_escape(prenom or 'Voyageur')
+    doc = build_luxury_doc(buf, title=f'{title} — {safe_prenom}')
     styles = luxury_styles()
     story: list = []
 
     # Couverture
-    cover_page(story, styles, prenom=prenom,
+    cover_page(story, styles, prenom=safe_prenom,
                subtitle=f'{title} — Synthèse personnelle',
                illustration_slug='astral_mandala')
 
     # Ouverture
-    opening_page(story, styles, prenom=prenom,
+    opening_page(story, styles, prenom=safe_prenom,
                  first_line='Les Arcanes ont parlé.')
 
-    # Teaser avec la question
+    # Teaser avec la question (échappée XML — c'est de l'input user)
     if question:
-        teaser_page(story, styles, f'« {question} »')
+        teaser_page(story, styles, f'« {xml_escape(question)} »')
 
     # Domaine
     story.append(Paragraph(_domaine_label(domaine).upper(), styles['section_tag']))
@@ -213,6 +225,8 @@ def build_tarot_pdf(
         'Espoirs et Craintes', 'Le Résultat Final',
     ]
     positions = positions_celtique if is_celtique else positions_marseille
+    # Pour le tirage complet 78 cartes, on utilise les positions renvoyées
+    # dans chaque carte (`carte['position']`) — spreads 3/5/7 variables.
 
     for i, carte in enumerate(cartes):
         pos_label = carte.get('position') or (positions[i] if i < len(positions) else f'Position {i+1}')
@@ -234,6 +248,25 @@ def build_tarot_pdf(
         _add_bloc(story, styles, 'Résultat Probable', analyse.get('resultat_probable'))
         _add_section(story, styles, 'Synthèse Finale', analyse.get('synthese_finale'))
         _add_section(story, styles, "Conseil d'Action", analyse.get('conseil_action'))
+    elif is_complet:
+        synth = data.get('synthese') or {}
+        if synth.get('tendance_generale'):
+            _add_section(story, styles, f"Tendance Générale : {synth['tendance_generale']}",
+                         synth.get('fil_conducteur'))
+        # Récap statistique du tirage 78
+        details = []
+        if isinstance(synth.get('nb_majeurs'), int):
+            details.append(f"{synth['nb_majeurs']} Arcanes Majeurs")
+        if isinstance(synth.get('nb_mineurs'), int):
+            details.append(f"{synth['nb_mineurs']} Arcanes Mineurs")
+        if synth.get('element_dominant'):
+            details.append(f"Élément dominant : {synth['element_dominant']}")
+        if synth.get('suite_dominante'):
+            details.append(f"Couleur dominante : {synth['suite_dominante']}")
+        if details:
+            _add_section(story, styles, 'Composition du tirage', ' · '.join(details))
+        if data.get('conseil_final'):
+            _add_section(story, styles, 'Conseil des Arcanes', data['conseil_final'])
     else:
         synth = data.get('synthese') or {}
         if synth.get('tendance_generale'):
@@ -249,7 +282,7 @@ def build_tarot_pdf(
             _add_section(story, styles, 'Conseil des Arcanes', data['conseil_final'])
 
     story.append(PageBreak())
-    emotional_ending(story, styles, prenom=prenom)
+    emotional_ending(story, styles, prenom=safe_prenom)
 
     doc.build(story, onFirstPage=luxury_bg, onLaterPages=luxury_bg)
     return buf.getvalue()

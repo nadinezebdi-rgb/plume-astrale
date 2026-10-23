@@ -619,6 +619,7 @@ def tirage_marseille_question(question: str, domaine: str = "general", seed: Opt
             "orientation_fr": "Droit" if orient == "droit" else "Renversé",
             "mots_cles": arcane["mots_cles"],
             "element": arcane["element"],
+            "planete": arcane.get("planete", ""),
             "interpretation": interpretation.get(domaine_key, interpretation.get("general", "")),
             "conseil": interpretation.get("conseil", ""),
             "description_arcane": arcane["description"]

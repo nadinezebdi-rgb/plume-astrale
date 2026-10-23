@@ -43,12 +43,13 @@ const ALL_ARCANES = [
 
 const TirageTarot = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, token, creditBalance, refreshBalance } = useAuth();
+  const { isAuthenticated, user, token, creditBalance, refreshBalance } = useAuth();
 
   const [step, setStep] = useState(0);
   const [question, setQuestion] = useState('');
   const [domaine, setDomaine] = useState('general');
   const [typeTirage, setTypeTirage] = useState('marseille');
+  const [nbCartes78, setNbCartes78] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
   const [tirageData, setTirageData] = useState(null);
   const [revealedCards, setRevealedCards] = useState([]);
@@ -88,14 +89,24 @@ const TirageTarot = () => {
     }
     setIsLoading(true);
     try {
-      const endpoint = typeTirage === 'marseille'
-        ? `${API_URL}/api/tarot/marseille`
-        : `${API_URL}/api/tarot/celtique`;
+      let endpoint;
+      let payload = { question, domaine, first_name: user?.email?.split('@')[0] };
+      if (typeTirage === 'marseille') endpoint = `${API_URL}/api/tarot/marseille`;
+      else if (typeTirage === 'celtique') endpoint = `${API_URL}/api/tarot/celtique`;
+      else {
+        endpoint = `${API_URL}/api/tarot/complet`;
+        payload.nb_cartes = nbCartes78;
+      }
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, domaine }),
+        body: JSON.stringify(payload),
       });
+      // Protection contre les réponses non-JSON (504 HTML du proxy, par ex.)
+      const ct = res.headers.get('content-type') || '';
+      if (!res.ok || !ct.includes('application/json')) {
+        throw new Error(`Serveur indisponible (${res.status}). Vos crédits ne sont pas perdus — réessayez dans un instant.`);
+      }
       const data = await res.json();
       if (data.success) {
         setTirageData(data.data);
@@ -107,7 +118,7 @@ const TirageTarot = () => {
       }
     } catch (e) {
       console.error(e);
-      alert('Erreur de connexion. Veuillez réessayer.');
+      alert(e.message || 'Erreur de connexion. Veuillez réessayer.');
     } finally {
       setIsLoading(false);
     }
@@ -121,10 +132,9 @@ const TirageTarot = () => {
 
   useEffect(() => {
     if (!isRevealing || currentRevealIndex < 0 || !tirageData) return;
-    const maxCards = typeTirage === 'marseille' ? 3 : 10;
+    const maxCards = typeTirage === 'marseille' ? 3 : typeTirage === 'celtique' ? 10 : nbCartes78;
     if (currentRevealIndex >= maxCards) {
       setIsRevealing(false);
-      setTimeout(() => setStep(3), 900);
       return;
     }
     const t = setTimeout(() => {
@@ -132,20 +142,27 @@ const TirageTarot = () => {
       setCurrentRevealIndex(prev => prev + 1);
     }, 1100);
     return () => clearTimeout(t);
-  }, [currentRevealIndex, isRevealing, tirageData, typeTirage]);
+  }, [currentRevealIndex, isRevealing, tirageData, typeTirage, nbCartes78]);
 
   const revealCard = (i) => {
     if (!revealedCards.includes(i)) setRevealedCards(prev => [...prev, i]);
   };
 
+  // Toggle "lire la suite" par carte
+  const [expandedCards, setExpandedCards] = useState({});
+  const toggleExpand = (i) => setExpandedCards(prev => ({ ...prev, [i]: !prev[i] }));
+
   const recommencer = () => {
+    // Un paiement = tirages illimités dans la session : on conserve
+    // `creditUnlocked` pour permettre de relancer un tirage sans repayer
+    // tant que la session en cours est active.
     setStep(creditUnlocked ? 1 : 0);
     setQuestion('');
     setTirageData(null);
     setRevealedCards([]);
     setCurrentRevealIndex(-1);
     setIsRevealing(false);
-    if (!creditUnlocked) setCreditUnlocked(false);
+    setExpandedCards({});
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -160,10 +177,11 @@ const TirageTarot = () => {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          type: typeTirage,
+          type: typeTirage === 'complet' ? 'complet' : typeTirage,
           question,
           domaine,
           data: tirageData,
+          prenom: user?.email ? user.email.split('@')[0] : 'Voyageur',
         }),
       });
       if (!res.ok) throw new Error('PDF generation failed');
@@ -171,7 +189,9 @@ const TirageTarot = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const name = typeTirage === 'marseille' ? 'tarot-marseille' : 'croix-celtique';
+      const name = typeTirage === 'marseille'
+        ? 'tarot-marseille'
+        : typeTirage === 'celtique' ? 'croix-celtique' : 'tirage-complet-78';
       a.download = `${name}-plume-astrale.pdf`;
       document.body.appendChild(a);
       a.click();
@@ -187,9 +207,8 @@ const TirageTarot = () => {
 
   // ─── Rendu d'une carte (étape 2) avec vraie image ───────
   const renderCard = (carte, index, isRevealed) => {
-    const positionLabel = typeTirage === 'marseille'
-      ? POSITIONS_MARSEILLE[index]
-      : POSITIONS_CELTIQUE[index];
+    const positionLabel = carte.position
+      || (typeTirage === 'marseille' ? POSITIONS_MARSEILLE[index] : POSITIONS_CELTIQUE[index]);
     const isReversed = (carte.orientation || '').toLowerCase() === 'renverse';
 
     return (
@@ -258,11 +277,29 @@ const TirageTarot = () => {
               </div>
             )}
 
-            {carte.interpretation && (
-              <p className="text-[#232323]/85 text-xs leading-relaxed text-center px-1 mb-3 font-light">
-                {carte.interpretation.length > 180 ? `${carte.interpretation.slice(0, 180)}…` : carte.interpretation}
-              </p>
-            )}
+            {carte.interpretation && (() => {
+              const txt = carte.interpretation;
+              const isLong = txt.length > 220;
+              const expanded = !!expandedCards[index];
+              const display = (isLong && !expanded) ? `${txt.slice(0, 220)}…` : txt;
+              return (
+                <div className="mb-3 px-1">
+                  <p className="text-[#232323]/85 text-xs leading-relaxed text-center font-light whitespace-pre-line">
+                    {display}
+                  </p>
+                  {isLong && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); toggleExpand(index); }}
+                      className="mt-1 w-full text-center text-[11px] text-[#C9A24B] hover:text-[#8B6914] underline underline-offset-2 transition-colors"
+                      data-testid={`btn-expand-card-${index}`}
+                    >
+                      {expanded ? 'Replier' : 'Lire la suite'}
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
 
             {carte.conseil && (
               <div className="w-full bg-gradient-to-r from-[#C9A24B]/5 via-[#C9A24B]/15 to-[#C9A24B]/5 rounded-md p-2 border border-[#C9A24B]/20 mt-auto">
@@ -393,7 +430,7 @@ const TirageTarot = () => {
                   <p className="text-lg text-[#232323]/70 font-light">Choisissez votre tirage et confiez-nous ce qui vous habite</p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4 mb-8">
+                <div className="grid md:grid-cols-3 gap-4 mb-8">
                   <div onClick={() => setTypeTirage('marseille')} data-testid="select-marseille"
                        className={`rounded-xl p-5 border cursor-pointer transition-all ${
                          typeTirage === 'marseille'
@@ -429,7 +466,60 @@ const TirageTarot = () => {
                       <p className="text-[#C9A24B] text-lg font-semibold mt-2">Inclus</p>
                     </div>
                   </div>
+
+                  <div onClick={() => setTypeTirage('complet')} data-testid="select-complet"
+                       className={`rounded-xl p-5 border cursor-pointer transition-all relative overflow-hidden ${
+                         typeTirage === 'complet'
+                           ? 'bg-gradient-to-br from-[#C9A24B]/20 to-[#B8A9E8]/15 border-[#C9A24B] shadow-md'
+                           : 'bg-white/70 border-[#C9A24B]/25 hover:border-[#C9A24B]/60'
+                       }`}>
+                    <div className="absolute top-2 right-2 bg-[#C9A24B] text-[#1C1735] text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                      Nouveau
+                    </div>
+                    <div className="text-center py-2">
+                      <div className="flex justify-center gap-0.5 mb-3 flex-wrap mx-auto" style={{ maxWidth: 130 }}>
+                        {Array.from({ length: 12 }).map((_, i) => (
+                          <div key={i} className="w-3 h-5 rounded bg-gradient-to-b from-[#B8A9E8] to-[#2D1F4B] border border-[#C9A24B]/40" />
+                        ))}
+                      </div>
+                      <h3 className="text-lg mb-1" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>Tirage Complet 78</h3>
+                      <p className="text-[#232323]/65 text-sm">22 Majeurs + 56 Mineurs</p>
+                      <p className="text-[#C9A24B] text-lg font-semibold mt-2">Inclus</p>
+                    </div>
+                  </div>
                 </div>
+
+                {typeTirage === 'complet' && (
+                  <div className="mb-6" data-testid="nb-cartes-selector">
+                    <label className="block text-[#232323]/80 text-sm mb-2 font-light">
+                      Nombre de cartes à tirer
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { n: 3, label: 'Passé · Présent · Futur' },
+                        { n: 5, label: 'Analyse approfondie' },
+                        { n: 7, label: 'Lecture complète' },
+                      ].map(({ n, label }) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setNbCartes78(n)}
+                          data-testid={`nb-cartes-${n}`}
+                          className={`rounded-xl py-3 px-2 border transition-all text-center ${
+                            nbCartes78 === n
+                              ? 'bg-[#C9A24B]/15 border-[#C9A24B] shadow-sm'
+                              : 'bg-white/70 border-[#C9A24B]/25 hover:border-[#C9A24B]/60'
+                          }`}
+                        >
+                          <div className="text-xl font-bold text-[#0F1A3C]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                            {n} cartes
+                          </div>
+                          <div className="text-[#232323]/65 text-xs mt-1">{label}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="mb-6">
                   <label className="block text-[#232323]/80 text-sm mb-2 font-light">Domaine de votre question</label>
@@ -501,7 +591,11 @@ const TirageTarot = () => {
               <div>
                 <div className="text-center mb-10">
                   <p className="text-[#C9A24B] uppercase tracking-[0.3em] text-sm mb-4 font-light">
-                    {typeTirage === 'marseille' ? 'Tirage Marseille' : 'Croix Celtique'}
+                    {typeTirage === 'marseille'
+                      ? 'Tirage Marseille'
+                      : typeTirage === 'celtique'
+                        ? 'Croix Celtique'
+                        : `Tirage Complet · ${nbCartes78} cartes`}
                   </p>
                   <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
                     Les cartes sont tirées
@@ -525,14 +619,22 @@ const TirageTarot = () => {
                     <div className="inline-flex items-center gap-3 bg-[#C9A24B]/20 px-6 py-3 rounded-full">
                       <div className="w-4 h-4 border-2 border-[#C9A24B] border-t-transparent rounded-full animate-spin" />
                       <span className="text-[#8B6914]">
-                        Révélation en cours… Carte {revealedCards.length + 1} / {typeTirage === 'marseille' ? 3 : 10}
+                        Révélation en cours… Carte {revealedCards.length + 1} / {typeTirage === 'marseille' ? 3 : typeTirage === 'celtique' ? 10 : nbCartes78}
                       </span>
                     </div>
                   </div>
                 )}
 
                 <div className={`grid gap-5 ${
-                  typeTirage === 'marseille' ? 'md:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5'
+                  typeTirage === 'marseille'
+                    ? 'md:grid-cols-3'
+                    : typeTirage === 'celtique'
+                      ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5'
+                      : nbCartes78 === 3
+                        ? 'md:grid-cols-3'
+                        : nbCartes78 === 5
+                          ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5'
+                          : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7'
                 }`}>
                   {tirageData.cartes.map((carte, index) =>
                     renderCard(carte, index, revealedCards.includes(index)),
@@ -575,7 +677,9 @@ const TirageTarot = () => {
                   {tirageData.cartes.slice(0, 3).map((carte, i) => {
                     const posLabels = typeTirage === 'marseille'
                       ? POSITIONS_MARSEILLE
-                      : ['Situation', 'Défi', 'Fondement'];
+                      : typeTirage === 'celtique'
+                        ? ['Situation', 'Défi', 'Fondement']
+                        : (tirageData.cartes.slice(0, 3).map(c => c.position || ''));
                     const isReversed = (carte.orientation || '').toLowerCase() === 'renverse';
                     return (
                       <div key={i} className="text-center" data-testid={`synth-key-${i}`}>
@@ -642,6 +746,70 @@ const TirageTarot = () => {
                               Conseil des Arcanes
                             </h4>
                             <p className="text-[#0F1A3C] italic leading-relaxed">{tirageData.conseil_final}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Synthèse Tirage Complet 78 */}
+                {typeTirage === 'complet' && tirageData.synthese && (
+                  <div className="space-y-6">
+                    {tirageData.synthese.tendance_generale && (
+                      <div className="rounded-xl p-6 bg-white/80 border border-[#C9A24B]/20 shadow-sm">
+                        <h3 className="text-xl mb-3 text-[#C9A24B]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                          Tendance Générale : {tirageData.synthese.tendance_generale}
+                        </h3>
+                        {tirageData.synthese.fil_conducteur && (
+                          <p className="text-[#232323]/80 leading-relaxed whitespace-pre-line">
+                            {tirageData.synthese.fil_conducteur}
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-4 text-sm mt-4 pt-4 border-t border-[#C9A24B]/15">
+                          <span className="text-[#B58F3F]">◆ {tirageData.synthese.nb_majeurs} Majeur{tirageData.synthese.nb_majeurs > 1 ? 's' : ''}</span>
+                          <span className="text-[#B58F3F]">◆ {tirageData.synthese.nb_mineurs} Mineur{tirageData.synthese.nb_mineurs > 1 ? 's' : ''}</span>
+                          {tirageData.synthese.element_dominant && (
+                            <span className="text-[#B58F3F]">✦ Élément dominant : {tirageData.synthese.element_dominant}</span>
+                          )}
+                          {tirageData.synthese.suite_dominante && tirageData.synthese.suite_dominante !== 'équilibrée' && (
+                            <span className="text-[#B58F3F]">✦ Couleur dominante : {tirageData.synthese.suite_dominante}</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Interprétation détaillée carte par carte */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {tirageData.cartes.map((carte, i) => (
+                        <div key={i} className="rounded-xl p-5 bg-white/80 border border-[#C9A24B]/20" data-testid={`synth-complet-carte-${i}`}>
+                          <h4 className="text-[#C9A24B] mb-1 font-semibold text-sm uppercase tracking-wider" style={{ fontFamily: 'Cinzel, serif' }}>
+                            {carte.position}
+                          </h4>
+                          <p className="text-[#0F1A3C] font-semibold mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                            {carte.nom}
+                            {(carte.orientation || '').toLowerCase() === 'renverse' && (
+                              <span className="text-[#B8A9E8] italic text-sm font-normal"> (renversée)</span>
+                            )}
+                          </p>
+                          <p className="text-[#232323]/80 text-sm leading-relaxed whitespace-pre-line">
+                            {carte.interpretation}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {tirageData.conseil_final && (
+                      <div className="rounded-xl p-6 bg-gradient-to-br from-[#C9A24B]/15 to-[#C9A24B]/5 border border-[#C9A24B]/40">
+                        <div className="flex items-start gap-4">
+                          <Sparkles className="w-8 h-8 text-[#C9A24B] flex-shrink-0 mt-1" strokeWidth={1} />
+                          <div>
+                            <h4 className="text-[#8B6914] text-lg mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                              Conseil des Arcanes
+                            </h4>
+                            <p className="text-[#0F1A3C] whitespace-pre-line leading-relaxed">
+                              {tirageData.conseil_final}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -739,7 +907,7 @@ const TirageTarot = () => {
                     <RefreshCw className="w-5 h-5" strokeWidth={1.5} /> Nouveau tirage
                   </button>
                   <button
-                    onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    onClick={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                     className="btn-mystical rounded-xl py-3 px-8 flex items-center justify-center gap-2"
                     data-testid="btn-scroll-top"
                   >

@@ -2805,27 +2805,40 @@ async def tarot_marseille_endpoint(request: Request):
     body = await request.json()
     first_name = (body.get('first_name') or body.get('prenom') or 'toi').strip()
     result = tirage_marseille_question(body.get('question', ''), body.get('domaine', 'general'))
-    # Enrichir les interprétations de chaque carte + la synthèse
+    # Enrichir en parallèle (asyncio.gather + timeout par appel) pour rester sous
+    # les 60s de l'ingress Kubernetes. Fallback : texte source brut si l'IA échoue.
+    import asyncio as _asyncio
     try:
         from services.enrich_narrative import enrich_and_ask
-        for k in ('interpretation', 'synthese', 'conseil', 'message'):
-            if isinstance(result.get(k), str) and len(result[k]) > 30:
-                result[k] = await enrich_and_ask(
-                    result[k],
-                    context=f"tarot_marseille.{k}",
-                    first_name=first_name,
-                    target_length='long',
+
+        async def _safe(text, ctx, length):
+            try:
+                return await _asyncio.wait_for(
+                    enrich_and_ask(text, context=ctx, first_name=first_name, target_length=length),
+                    timeout=25.0,
                 )
-        # Enrichir aussi les cartes individuelles
+            except Exception as _e:
+                logger.warning(f'[tarot/marseille] enrich skipped ({ctx}): {_e}')
+                return text
+
+        synth_keys = [k for k in ('interpretation', 'synthese', 'conseil', 'message')
+                      if isinstance(result.get(k), str) and len(result[k]) > 30]
+        card_items = []
         if isinstance(result.get('cartes'), list):
             for carte in result['cartes']:
                 if isinstance(carte, dict) and isinstance(carte.get('interpretation'), str):
-                    carte['interpretation'] = await enrich_and_ask(
-                        carte['interpretation'],
-                        context=f"tarot_marseille.carte.{carte.get('nom', '')}",
-                        first_name=first_name,
-                        target_length='medium',
-                    )
+                    card_items.append(carte)
+
+        tasks = (
+            [_safe(result[k], f'tarot_marseille.{k}', 'long') for k in synth_keys] +
+            [_safe(c['interpretation'], f"tarot_marseille.carte.{c.get('nom', '')}", 'medium')
+             for c in card_items]
+        )
+        enriched = await _asyncio.gather(*tasks, return_exceptions=False)
+        for k, val in zip(synth_keys, enriched[: len(synth_keys)]):
+            result[k] = val
+        for c, val in zip(card_items, enriched[len(synth_keys):]):
+            c['interpretation'] = val
     except Exception as e:
         logger.warning(f'[tarot/marseille] enrich failed: {e}')
     return {'success': True, 'data': result}
@@ -2836,25 +2849,38 @@ async def tarot_celtique_endpoint(request: Request):
     body = await request.json()
     first_name = (body.get('first_name') or body.get('prenom') or 'toi').strip()
     result = tirage_croix_celtique(body.get('question', ''), body.get('domaine', 'general'))
+    import asyncio as _asyncio
     try:
         from services.enrich_narrative import enrich_and_ask
-        for k in ('interpretation', 'synthese', 'conseil', 'message'):
-            if isinstance(result.get(k), str) and len(result[k]) > 30:
-                result[k] = await enrich_and_ask(
-                    result[k],
-                    context=f"tarot_celtique.{k}",
-                    first_name=first_name,
-                    target_length='long',
+
+        async def _safe(text, ctx, length):
+            try:
+                return await _asyncio.wait_for(
+                    enrich_and_ask(text, context=ctx, first_name=first_name, target_length=length),
+                    timeout=25.0,
                 )
+            except Exception as _e:
+                logger.warning(f'[tarot/celtique] enrich skipped ({ctx}): {_e}')
+                return text
+
+        synth_keys = [k for k in ('interpretation', 'synthese', 'conseil', 'message')
+                      if isinstance(result.get(k), str) and len(result[k]) > 30]
+        card_items = []
         if isinstance(result.get('cartes'), list):
             for carte in result['cartes']:
                 if isinstance(carte, dict) and isinstance(carte.get('interpretation'), str):
-                    carte['interpretation'] = await enrich_and_ask(
-                        carte['interpretation'],
-                        context=f"tarot_celtique.carte.{carte.get('position', '')}",
-                        first_name=first_name,
-                        target_length='medium',
-                    )
+                    card_items.append(carte)
+
+        tasks = (
+            [_safe(result[k], f'tarot_celtique.{k}', 'long') for k in synth_keys] +
+            [_safe(c['interpretation'], f"tarot_celtique.carte.{c.get('position', '')}", 'medium')
+             for c in card_items]
+        )
+        enriched = await _asyncio.gather(*tasks, return_exceptions=False)
+        for k, val in zip(synth_keys, enriched[: len(synth_keys)]):
+            result[k] = val
+        for c, val in zip(card_items, enriched[len(synth_keys):]):
+            c['interpretation'] = val
     except Exception as e:
         logger.warning(f'[tarot/celtique] enrich failed: {e}')
     return {'success': True, 'data': result}
@@ -2864,6 +2890,81 @@ async def tarot_celtique_endpoint(request: Request):
 async def tirage_croix_endpoint(request: Request):
     body = await request.json()
     return tirage_en_croix(body.get('prenom', 'Ami'), '1990-01-01')
+
+
+@api_router.post('/tarot/complet')
+async def tarot_complet_endpoint(request: Request):
+    """Tirage Complet 78 cartes (22 Majeurs + 56 Mineurs).
+
+    Body: { question, domaine, nb_cartes (3/5/7), first_name }
+    Pas de débit de crédit ici — le crédit a déjà été prélevé via `/credits/use`
+    côté frontend (lecture_tarot). Un paiement = tirages illimités dans la session.
+    """
+    from services.tarot_78_service import tirage_complet_78
+    body = await request.json()
+    first_name = (body.get('first_name') or body.get('prenom') or 'toi').strip()
+    try:
+        nb_cartes = int(body.get('nb_cartes') or 5)
+    except (TypeError, ValueError):
+        nb_cartes = 5
+    result = tirage_complet_78(
+        question=body.get('question', ''),
+        domaine=body.get('domaine', 'general'),
+        nb_cartes=nb_cartes,
+    )
+
+    # Enrichissement IA en parallèle (asyncio.gather) pour rester sous les 60s
+    # du Kubernetes Ingress. Fallback : texte source si l'IA échoue.
+    import asyncio as _asyncio
+    try:
+        from services.enrich_narrative import enrich_and_ask
+
+        async def _safe(text, ctx, length):
+            try:
+                return await _asyncio.wait_for(
+                    enrich_and_ask(text, context=ctx, first_name=first_name, target_length=length),
+                    timeout=25.0,
+                )
+            except Exception as _e:
+                logger.warning(f'[tarot/complet] enrich skipped ({ctx}): {_e}')
+                return text
+
+        # Synthèse (fil conducteur) + conseil final
+        synth = result.get('synthese') or {}
+        synth_fil = synth.get('fil_conducteur') if isinstance(synth, dict) else None
+        conseil = result.get('conseil_final')
+
+        # Interprétations par carte
+        card_items = []
+        if isinstance(result.get('cartes'), list):
+            for carte in result['cartes']:
+                if isinstance(carte, dict) and isinstance(carte.get('interpretation'), str) and carte['interpretation']:
+                    card_items.append(carte)
+
+        tasks = []
+        task_meta = []  # ('synth' | 'conseil' | 'card', ref)
+        if isinstance(synth_fil, str) and len(synth_fil) > 30:
+            tasks.append(_safe(synth_fil, 'tarot_complet.fil_conducteur', 'long'))
+            task_meta.append(('synth', None))
+        if isinstance(conseil, str) and len(conseil) > 30:
+            tasks.append(_safe(conseil, 'tarot_complet.conseil_final', 'medium'))
+            task_meta.append(('conseil', None))
+        for c in card_items:
+            tasks.append(_safe(c['interpretation'], f"tarot_complet.carte.{c.get('nom', '')}", 'medium'))
+            task_meta.append(('card', c))
+
+        if tasks:
+            enriched = await _asyncio.gather(*tasks, return_exceptions=False)
+            for (kind, ref), val in zip(task_meta, enriched):
+                if kind == 'synth':
+                    result['synthese']['fil_conducteur'] = val
+                elif kind == 'conseil':
+                    result['conseil_final'] = val
+                elif kind == 'card' and ref is not None:
+                    ref['interpretation'] = val
+    except Exception as e:
+        logger.warning(f'[tarot/complet] enrich failed: {e}')
+    return {'success': True, 'data': result}
 
 
 @api_router.post('/tarot/pdf')
@@ -2879,7 +2980,7 @@ async def tarot_pdf_endpoint(request: Request):
 
     body = await request.json()
     tirage_type = (body.get('type') or 'marseille').lower()
-    if tirage_type not in ('marseille', 'celtique'):
+    if tirage_type not in ('marseille', 'celtique', 'complet'):
         tirage_type = 'marseille'
     question = (body.get('question') or '').strip()
     domaine = (body.get('domaine') or 'general').strip()
@@ -2903,7 +3004,12 @@ async def tarot_pdf_endpoint(request: Request):
         from fastapi import HTTPException
         raise HTTPException(status_code=500, detail="Impossible de générer le PDF")
 
-    filename = ('croix-celtique' if tirage_type == 'celtique' else 'tarot-marseille') + '-plume-astrale.pdf'
+    filename_map = {
+        'celtique': 'croix-celtique',
+        'marseille': 'tarot-marseille',
+        'complet': 'tirage-complet-78',
+    }
+    filename = filename_map.get(tirage_type, 'tarot') + '-plume-astrale.pdf'
     return Response(
         content=pdf_bytes,
         media_type='application/pdf',

@@ -1,0 +1,54 @@
+{
+  "summary": "Refonte /services/tarot testée de bout en bout (backend + frontend, admin). Les 4 bugs signalés sont CORRIGÉS : vraies images Supabase pour les cartes révélées, plus de paywall 4,99€, sections vides masquées, TarotCardBack utilisé. Le PDF fonctionne (Marseille 3,7 Mo / Celtique 4,1 Mo, commence par %PDF-1.4, 400 quand les données sont vides). Problèmes restants : l'auto-révélation saute directement à la synthèse au bout de 0,9 s, risque de timeout du proxy à 60 s sur Celtique quand le cache LLM est froid, et 'planete' absent des cartes Marseille.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST /api/tarot/celtique", "issue": "Les 10 enrichissements LLM (enrich_and_ask) sont exécutés L'UN APRÈS L'AUTRE. Quand les textes ne sont pas en cache, la requête a dépassé les 60 s du proxy : reproduit 1 fois (1m00s, le proxy a renvoyé du HTML au lieu de JSON). Le front fait alors res.json(), qui échoue, et affiche 'Erreur de connexion' alors que les 10 crédits sont DÉJÀ débités. Marseille a mis 38,5 s à froid. Correctif : asyncio.gather sur les cartes avec un asyncio.wait_for par carte (repli sur le texte brut).", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "POST /api/tarot/marseille", "issue": "Les cartes Marseille n'ont pas de champ 'planete' (Celtique l'a). Le front n'affiche donc que l'élément."},
+      {"endpoint": "POST /api/tarot/marseille", "issue": "Les messages de synthèse ont une grammaire cassée : 'Le L'Arcane sans Nom (Droit)', 'Le L'Étoile', 'Le L'Impératrice (Renversé)'. Le préfixe 'Le ' est ajouté en dur devant un nom qui contient déjà l'article."},
+      {"endpoint": "POST /api/tarot/pdf", "issue": "build_tarot_pdf est synchrone (téléchargement d'images + ReportLab, 2 à 4 s) et appelé directement dans un endpoint async : il bloque l'event loop. À exécuter via starlette.concurrency.run_in_threadpool."},
+      {"endpoint": "POST /api/tarot/marseille|celtique|pdf", "issue": "Aucune authentification et aucune vérification de crédits côté serveur : n'importe qui peut appeler les endpoints tirage et PDF gratuitement. Le débit n'a lieu que côté front via /api/credits/use."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "TirageTarot step 2 (auto-révélation)", "issue": "Après btn-reveal-all, le useEffect fait setTimeout(() => setStep(3), 900) quand la dernière carte est révélée. Les cartes révélées (image, interprétation, conseil) ne restent donc visibles que ~0,9 s, et btn-voir-synthese n'apparaît jamais dans ce parcours (seulement en révélation manuelle). Correctif : retirer l'avancement automatique et laisser l'utilisateur cliquer sur btn-voir-synthese.", "selector": "[data-testid='btn-reveal-all']", "priority": "HIGH"},
+      {"component": "TirageTarot step 3", "issue": "btn-scroll-top ('Revoir les cartes') ne fait que remonter en haut de la synthèse et ne ramène pas à l'étape 2 : l'utilisateur ne peut plus revoir les cartes détaillées. Soit renommer le bouton, soit faire setStep(2) (les cartes sont déjà dans revealedCards).", "selector": "[data-testid='btn-scroll-top']", "priority": "MEDIUM"},
+      {"component": "renderCard", "issue": "L'interprétation enrichie (~1700 caractères) est coupée à 180 caractères sans 'Lire la suite', et l'étape 3 ne montre pas les interprétations par carte. L'essentiel du texte long n'est visible que dans le PDF.", "selector": "[data-testid^='tarot-card-']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "Nouveau tirage", "issue": "recommencer() laisse creditUnlocked à true et renvoie à l'étape 1. Avec 10 crédits payés une fois, l'utilisateur peut faire un nombre illimité de tirages dans la même session (vérifié : btn-nouveau-tirage mène à l'étape 1 sans nouveau débit). La ligne 'if (!creditUnlocked) setCreditUnlocked(false)' ne fait rien. Décision métier à confirmer.", "affected_selectors": ["[data-testid='btn-nouveau-tirage']"]},
+      {"flow": "PDF", "issue": "Le front n'envoie pas 'prenom' à /api/tarot/pdf : le PDF s'adresse toujours à 'Voyageur' au lieu du prénom de l'utilisateur connecté.", "affected_selectors": ["[data-testid='btn-download-pdf']"]}
+    ],
+    "design_issues": [
+      {"screen": "Synthèse Marseille", "issues": ["Le titre 'Tendance Générale : favorable' est en minuscule (valeur brute de l'API)"]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_tarot_refonte_pdf.py", "/app/test_reports/pytest/pytest_tarot_refonte.xml"],
+  "action_items": [
+    "Paralléliser l'enrichissement LLM des cartes dans /api/tarot/celtique et /api/tarot/marseille (asyncio.gather + timeout par carte) pour rester sous les 60 s du proxy",
+    "Côté front, gérer une réponse non-JSON ou 5xx dans lancerTirage, sans perdre le crédit (le débiter après un tirage réussi, ou permettre de réessayer)",
+    "Supprimer setTimeout(setStep(3), 900) dans le useEffect de révélation pour que les cartes révélées restent visibles et que btn-voir-synthese s'affiche",
+    "Faire revenir btn-scroll-top ('Revoir les cartes') à l'étape 2, ou le renommer",
+    "Ajouter 'planete' aux cartes Marseille et corriger la grammaire 'Le L'…' dans les messages de synthèse",
+    "Exécuter build_tarot_pdf dans run_in_threadpool",
+    "Envoyer le prénom de l'utilisateur dans le body de /api/tarot/pdf",
+    "Décider si 'Nouveau tirage' doit redemander 10 crédits"
+  ],
+  "critical_code_review_comments": [
+    "server.py tarot endpoints : enrichissement séquentiel dans des boucles for, la latence croît linéairement (10 x LLM)",
+    "Aucune vérification d'auth ni de crédits côté serveur sur /api/tarot/* : le paywall n'est appliqué que côté client",
+    "TirageTarot.js recommencer() : instruction morte 'if (!creditUnlocked) setCreditUnlocked(false)'",
+    "TirageTarot.js utilise alert() pour les erreurs : préférer un toast (sonner)",
+    "tarot_synthese_pdf.py : le texte utilisateur passe dans Paragraph sans échappement XML. Testé avec '&' et '<vraiment>' dans la question : pas de crash, mais les balises peuvent être interprétées. Utiliser xml.sax.saxutils.escape"
+  ],
+  "updated_files": ["/app/backend/tests/test_tarot_refonte_pdf.py"],
+  "success_rate": {"backend": "86% (6/7 pytest ; seul échec : 'planete' absent des cartes Marseille) + timeout intermittent sur Celtique à froid", "frontend": "90% : toutes les étapes, testids, images Supabase (22/22 en étape 0, 3/3 cartes révélées, 3/3 synth-key), absence de paywall, téléchargement PDF Marseille et Celtique OK ; le parcours d'auto-révélation est défaillant côté UX"},
+  "seed_data_creation": "Aucune. Environ 30 crédits du compte admin dépensés (3 déblocages). Solde avant : 7353.",
+  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 (fonctionne, fourni dans la demande ; absent de /app/memory/test_credentials.md : à y ajouter)",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Connexion via /connexion avec input[type=email] et input[type=password], puis button[type=submit]. Testids vérifiés : gate-unlock-btn, select-marseille, select-celtique, input-question, btn-lancer-tirage, btn-reveal-all, tarot-card-N, tarot-back-N, tarot-card-img-N, btn-voir-synthese (n'apparaît qu'en révélation manuelle), synth-key-N, btn-download-pdf, btn-nouveau-tirage, btn-scroll-top, deck-preview-0..21. Les URLs Supabase sont résolues en *_512.png via srcset. Lors du re-test, vérifier qu'après btn-reveal-all les cartes restent visibles et que la latence de Celtique à froid reste sous 60 s (prendre une question/domaine inédits n'aide pas : le cache dépend du texte de la carte).",
+  "rca of the issue": "Auto-skip : TirageTarot.js, useEffect de révélation, branche currentRevealIndex >= maxCards, qui appelle setTimeout(() => setStep(3), 900). Timeout Celtique : server.py (~l.2849), boucle for séquentielle avec 'await enrich_and_ask' par carte ; 10 appels LLM non cachés d'environ 6-10 s chacun dépassent les 60 s de l'ingress, qui renvoie une page HTML, et res.json() lève une exception côté front."
+}

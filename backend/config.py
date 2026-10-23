@@ -242,6 +242,7 @@ class Settings:
         # Services approfondis (F500: 30→15)
         'tarot_marseille': 15,       # Lecture Tarot approfondie
         'tarot_celtique': 15,
+        'tarot_complet_78': 15,      # Tirage Complet 78 cartes (Majeurs + Mineurs)
         'tarologie': 15,
         'numerologie': 15,           # Année perso / Chemin de vie
         'lecture_astrologique': 20,  # Cycle actuel : transits, Mercure retrograde
