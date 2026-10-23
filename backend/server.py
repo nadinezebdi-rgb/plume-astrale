@@ -2866,6 +2866,51 @@ async def tirage_croix_endpoint(request: Request):
     return tirage_en_croix(body.get('prenom', 'Ami'), '1990-01-01')
 
 
+@api_router.post('/tarot/pdf')
+async def tarot_pdf_endpoint(request: Request):
+    """Génère un PDF de la synthèse d'un tirage de tarot (Marseille ou Celtique).
+
+    Le crédit a déjà été débité lors de l'appel initial à `/api/tarot/{marseille|celtique}`.
+    Ce endpoint ne débite rien supplémentaire — il reconstruit juste le PDF à partir
+    des données déjà envoyées au front-end.
+    """
+    from fastapi.responses import Response
+    from services.tarot_synthese_pdf import build_tarot_pdf
+
+    body = await request.json()
+    tirage_type = (body.get('type') or 'marseille').lower()
+    if tirage_type not in ('marseille', 'celtique'):
+        tirage_type = 'marseille'
+    question = (body.get('question') or '').strip()
+    domaine = (body.get('domaine') or 'general').strip()
+    data = body.get('data') or {}
+    prenom = (body.get('prenom') or body.get('first_name') or 'Voyageur').strip() or 'Voyageur'
+
+    if not isinstance(data.get('cartes'), list) or not data['cartes']:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Données du tirage manquantes")
+
+    try:
+        pdf_bytes = build_tarot_pdf(
+            tirage_type=tirage_type,
+            question=question,
+            domaine=domaine,
+            data=data,
+            prenom=prenom,
+        )
+    except Exception as e:
+        logger.exception(f'[tarot/pdf] generation failed: {e}')
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail="Impossible de générer le PDF")
+
+    filename = ('croix-celtique' if tirage_type == 'celtique' else 'tarot-marseille') + '-plume-astrale.pdf'
+    return Response(
+        content=pdf_bytes,
+        media_type='application/pdf',
+        headers={'Content-Disposition': f'attachment; filename="{filename}"'},
+    )
+
+
 # ════════════════════════════════════════════
 # DAILY HOROSCOPE
 # ════════════════════════════════════════════

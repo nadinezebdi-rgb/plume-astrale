@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Sparkles, Star, Moon, Heart, Briefcase, Coins, Leaf, 
+import {
+  Sparkles, Moon, Heart, Briefcase, Coins, Leaf,
   Sun, RefreshCw, ArrowRight, ChevronDown, Eye, Wand2,
-  CircleDot, HelpCircle, LogIn
+  CircleDot, HelpCircle, LogIn, Download, ArrowUp,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
@@ -16,124 +16,56 @@ import SEOServiceEnrich from '@/components/SEOServiceEnrich';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
+const DOMAINES = {
+  amour:     { nom: 'Amour & Relations',       icone: Heart,      couleur: 'text-rose-600' },
+  travail:   { nom: 'Carrière & Travail',      icone: Briefcase,  couleur: 'text-blue-700' },
+  argent:    { nom: 'Finances & Abondance',    icone: Coins,      couleur: 'text-amber-700' },
+  sante:     { nom: 'Santé & Bien-être',       icone: Leaf,       couleur: 'text-emerald-700' },
+  spirituel: { nom: 'Spiritualité',             icone: Sun,        couleur: 'text-purple-700' },
+  general:   { nom: 'Question Générale',        icone: CircleDot,  couleur: 'text-[#B58F3F]' },
+};
+
+const POSITIONS_MARSEILLE = ['Passé', 'Présent', 'Futur'];
+const POSITIONS_CELTIQUE = [
+  "La Situation Présente", "L'Obstacle ou le Défi", "Le Fondement",
+  "Le Passé Récent", "La Couronne — Le Meilleur Possible",
+  "Le Futur Proche", "Votre Attitude", "L'Environnement",
+  "Espoirs et Craintes", "Le Résultat Final",
+];
+
+const ALL_ARCANES = [
+  'Le Mat','Le Bateleur','La Papesse',"L'Impératrice","L'Empereur",
+  'Le Pape','Les Amoureux','Le Chariot','La Justice',"L'Hermite",
+  'La Roue de Fortune','La Force','Le Pendu',"L'Arcane sans Nom",
+  'La Tempérance','Le Diable','La Maison Dieu',"L'Étoile",'La Lune',
+  'Le Soleil','Le Jugement','Le Monde',
+];
+
 const TirageTarot = () => {
   const navigate = useNavigate();
   const { isAuthenticated, token, creditBalance, refreshBalance } = useAuth();
-  
-  // États
-  const [step, setStep] = useState(0); // 0: credit gate, 1: question, 2: tirage, 3: révélation
+
+  const [step, setStep] = useState(0);
   const [question, setQuestion] = useState('');
   const [domaine, setDomaine] = useState('general');
-  const [typeTirage, setTypeTirage] = useState('marseille'); // marseille ou celtique
+  const [typeTirage, setTypeTirage] = useState('marseille');
   const [isLoading, setIsLoading] = useState(false);
   const [tirageData, setTirageData] = useState(null);
   const [revealedCards, setRevealedCards] = useState([]);
   const [currentRevealIndex, setCurrentRevealIndex] = useState(-1);
   const [isRevealing, setIsRevealing] = useState(false);
   const [showDomaines, setShowDomaines] = useState(false);
-  const [syntheseUnlocked, setSyntheseUnlocked] = useState(false);
   const [creditUnlocked, setCreditUnlocked] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const syntheseRef = useRef(null);
 
-  // Domaines avec icônes (couleurs adaptées pour fond clair)
-  const domaines = {
-    amour: { nom: "Amour & Relations", icone: Heart, couleur: "text-rose-600" },
-    travail: { nom: "Carrière & Travail", icone: Briefcase, couleur: "text-blue-700" },
-    argent: { nom: "Finances & Abondance", icone: Coins, couleur: "text-amber-700" },
-    sante: { nom: "Santé & Bien-être", icone: Leaf, couleur: "text-emerald-700" },
-    spirituel: { nom: "Spiritualité & Développement", icone: Sun, couleur: "text-purple-700" },
-    general: { nom: "Question Générale", icone: CircleDot, couleur: "text-[#B58F3F]" }
-  };
-
-  // Positions pour le tirage celtique
-  const positionsCeltique = [
-    "La Situation Présente",
-    "L'Obstacle ou le Défi", 
-    "Le Fondement",
-    "Le Passé Récent",
-    "La Couronne - Le Meilleur Possible",
-    "Le Futur Proche",
-    "Votre Attitude",
-    "L'Environnement",
-    "Espoirs et Craintes",
-    "Le Résultat Final"
-  ];
-
-  // Lancer le tirage
-  const lancerTirage = async () => {
-    if (question.length < 5) {
-      alert("Veuillez formuler une question d'au moins 5 caractères");
-      return;
-    }
-
-    setIsLoading(true);
-    
-    try {
-      const endpoint = typeTirage === 'marseille' 
-        ? `${API_URL}/api/tarot/marseille`
-        : `${API_URL}/api/tarot/celtique`;
-      
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, domaine })
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setTirageData(data.data);
-        setStep(2);
-        setRevealedCards([]);
-        setCurrentRevealIndex(-1);
-      } else {
-        alert("Erreur lors du tirage. Veuillez réessayer.");
-      }
-    } catch (error) {
-      console.error('Erreur:', error);
-      alert("Erreur de connexion. Veuillez réessayer.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Révéler les cartes une par une
-  const startReveal = () => {
-    setIsRevealing(true);
-    setCurrentRevealIndex(0);
-  };
-
-  // Animation de révélation
-  useEffect(() => {
-    if (isRevealing && currentRevealIndex >= 0 && tirageData) {
-      const maxCards = typeTirage === 'marseille' ? 3 : 10;
-      
-      if (currentRevealIndex < maxCards) {
-        const timer = setTimeout(() => {
-          setRevealedCards(prev => [...prev, currentRevealIndex]);
-          setCurrentRevealIndex(prev => prev + 1);
-        }, 1500); // 1.5 secondes entre chaque carte
-        
-        return () => clearTimeout(timer);
-      } else {
-        setIsRevealing(false);
-        setStep(3);
-      }
-    }
-  }, [currentRevealIndex, isRevealing, tirageData, typeTirage]);
-
-  // Révéler une carte manuellement
-  const revealCard = (index) => {
-    if (!revealedCards.includes(index)) {
-      setRevealedCards(prev => [...prev, index]);
-    }
-  };
-
-  // Credit unlock handler
+  // ─── Credit unlock ──────────────────────────────────────
   const handleCreditUnlock = async () => {
     try {
-      await axios.post(`${API_URL}/api/credits/use`,
+      await axios.post(
+        `${API_URL}/api/credits/use`,
         { service_id: 'lecture_tarot' },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       await refreshBalance();
       setCreditUnlocked(true);
@@ -148,7 +80,64 @@ const TirageTarot = () => {
     }
   };
 
-  // Recommencer
+  // ─── Lancer le tirage ───────────────────────────────────
+  const lancerTirage = async () => {
+    if (question.length < 5) {
+      alert("Veuillez formuler une question d'au moins 5 caractères");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const endpoint = typeTirage === 'marseille'
+        ? `${API_URL}/api/tarot/marseille`
+        : `${API_URL}/api/tarot/celtique`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, domaine }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTirageData(data.data);
+        setStep(2);
+        setRevealedCards([]);
+        setCurrentRevealIndex(-1);
+      } else {
+        alert('Erreur lors du tirage. Veuillez réessayer.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Erreur de connexion. Veuillez réessayer.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ─── Révélation progressive ─────────────────────────────
+  const startReveal = () => {
+    setIsRevealing(true);
+    setCurrentRevealIndex(0);
+  };
+
+  useEffect(() => {
+    if (!isRevealing || currentRevealIndex < 0 || !tirageData) return;
+    const maxCards = typeTirage === 'marseille' ? 3 : 10;
+    if (currentRevealIndex >= maxCards) {
+      setIsRevealing(false);
+      setTimeout(() => setStep(3), 900);
+      return;
+    }
+    const t = setTimeout(() => {
+      setRevealedCards(prev => [...prev, currentRevealIndex]);
+      setCurrentRevealIndex(prev => prev + 1);
+    }, 1100);
+    return () => clearTimeout(t);
+  }, [currentRevealIndex, isRevealing, tirageData, typeTirage]);
+
+  const revealCard = (i) => {
+    if (!revealedCards.includes(i)) setRevealedCards(prev => [...prev, i]);
+  };
+
   const recommencer = () => {
     setStep(creditUnlocked ? 1 : 0);
     setQuestion('');
@@ -156,152 +145,143 @@ const TirageTarot = () => {
     setRevealedCards([]);
     setCurrentRevealIndex(-1);
     setIsRevealing(false);
-    if (!creditUnlocked) {
-      setCreditUnlocked(false);
+    if (!creditUnlocked) setCreditUnlocked(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ─── Téléchargement PDF de la synthèse ──────────────────
+  const telechargerPDF = async () => {
+    setPdfLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/tarot/pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          type: typeTirage,
+          question,
+          domaine,
+          data: tirageData,
+        }),
+      });
+      if (!res.ok) throw new Error('PDF generation failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const name = typeTirage === 'marseille' ? 'tarot-marseille' : 'croix-celtique';
+      a.download = `${name}-plume-astrale.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      alert("Impossible de générer le PDF pour le moment. Réessayez dans un instant.");
+    } finally {
+      setPdfLoading(false);
     }
   };
 
-  // Rendu de la carte avec les vraies images
+  // ─── Rendu d'une carte (étape 2) avec vraie image ───────
   const renderCard = (carte, index, isRevealed) => {
-    // URLs des images de tarot
-    const tarotImages = {
-      default: asset('images/tarot/tarot_cards_2.png')
-    };
-    
+    const positionLabel = typeTirage === 'marseille'
+      ? POSITIONS_MARSEILLE[index]
+      : POSITIONS_CELTIQUE[index];
+    const isReversed = (carte.orientation || '').toLowerCase() === 'renverse';
+
     return (
-      <div 
+      <div
         key={index}
-        className={`relative transition-all duration-700 transform-gpu ${
-          isRevealed ? 'scale-100' : 'scale-95 hover:scale-100'
+        onClick={() => !isRevealing && revealCard(index)}
+        data-testid={`tarot-card-${index}`}
+        className={`relative rounded-xl p-4 border transition-all duration-500 cursor-pointer ${
+          isRevealed
+            ? 'bg-white/90 border-[#C9A24B]/40 shadow-xl shadow-[#C9A24B]/15'
+            : 'bg-gradient-to-b from-[#f8f1e3] to-[#f0e5cc] border-[#C9A24B]/25 hover:border-[#C9A24B] hover:-translate-y-1 shadow-md'
         }`}
-        style={{ perspective: '1000px' }}
       >
-        <div 
-          className={`relative w-full transition-all duration-700 transform-style-preserve-3d ${
-            isRevealed ? 'rotate-y-0' : ''
-          }`}
-          onClick={() => !isRevealing && revealCard(index)}
-        >
-          {/* Face cachée - Dos de carte mystique */}
-          <div className={`card-mystical cursor-pointer transition-all duration-500 ${
-            isRevealed ? 'opacity-0 absolute inset-0 pointer-events-none' : 'opacity-100'
-          }`}>
-            <div className="py-8 text-center">
-              <div className="w-28 h-44 mx-auto rounded-xl bg-gradient-to-b from-[#2D1F4B] via-[#1C1735] to-[#111625] border-2 border-[#C9A24B]/50 flex flex-col items-center justify-center shadow-xl shadow-[#C9A24B]/20 relative overflow-hidden group hover:border-[#C9A24B] hover:shadow-[#C9A24B]/40 transition-all">
-                {/* Motif décoratif élaboré */}
-                <div className="absolute inset-0 opacity-30">
-                  <div className="absolute top-2 left-2 w-6 h-6 border-2 border-[#C9A24B] rounded-full"></div>
-                  <div className="absolute top-2 right-2 w-6 h-6 border-2 border-[#C9A24B] rounded-full"></div>
-                  <div className="absolute bottom-2 left-2 w-6 h-6 border-2 border-[#C9A24B] rounded-full"></div>
-                  <div className="absolute bottom-2 right-2 w-6 h-6 border-2 border-[#C9A24B] rounded-full"></div>
-                  {/* Croix centrale */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-px h-full bg-gradient-to-b from-transparent via-[#C9A24B]/50 to-transparent"></div>
-                    <div className="absolute w-full h-px bg-gradient-to-r from-transparent via-[#C9A24B]/50 to-transparent"></div>
-                  </div>
-                </div>
-                {/* Étoile centrale */}
-                <div className="relative z-10">
-                  <Star className="w-12 h-12 text-[#C9A24B]/70 group-hover:text-[#C9A24B] transition-colors" strokeWidth={1} />
-                  <Moon className="w-6 h-6 text-[#C9A24B]/50 absolute -top-1 -right-1" strokeWidth={1} />
-                </div>
-                {/* Reflet */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#C9A24B]/5 to-transparent"></div>
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </div>
-              <p className="text-[#232323]/65 text-sm mt-4 font-light">
-                {typeTirage === 'marseille' 
-                  ? ['Passé', 'Présent', 'Futur'][index]
-                  : positionsCeltique[index]
-                }
-              </p>
-              {!isRevealing && (
-                <p className="text-[#C9A24B]/60 text-xs mt-2 animate-pulse">Cliquez pour révéler</p>
-              )}
+        {/* Position */}
+        <p className="text-[#C9A24B] uppercase tracking-[0.22em] text-[10px] mb-3 font-semibold text-center" style={{ fontFamily: 'Cinzel, serif' }}>
+          {positionLabel}
+        </p>
+
+        {isRevealed ? (
+          <div className="flex flex-col items-center">
+            <div
+              className="relative mx-auto mb-3 overflow-hidden rounded-lg"
+              style={{
+                width: 150, height: 230,
+                border: `2px solid ${isReversed ? 'rgba(184,169,232,0.6)' : 'rgba(201,162,75,0.6)'}`,
+                boxShadow: '0 8px 24px rgba(201,162,75,0.2)',
+                transform: isReversed ? 'rotate(180deg)' : 'none',
+              }}
+            >
+              <LibraryImage
+                type="tarot"
+                name={carte.nom}
+                size={230}
+                alt={carte.nom}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                data-testid={`tarot-card-img-${index}`}
+              />
             </div>
-          </div>
-          
-          {/* Face révélée - Carte avec image */}
-          <div className={`card-mystical transition-all duration-500 ${
-            isRevealed ? 'opacity-100' : 'opacity-0 absolute inset-0 pointer-events-none'
-          } ${carte.orientation === 'renverse' ? 'border-[#B8A9E8]/50' : 'border-[#C9A24B]/40'}`}>
-            <div className="py-4 text-center">
-              {/* Position */}
-              <p className="text-[#C9A24B] uppercase tracking-[0.2em] text-xs mb-3 font-light">
-                {typeTirage === 'marseille' 
-                  ? ['Passé', 'Présent', 'Futur'][index]
-                  : positionsCeltique[index]
-                }
-              </p>
-              
-              {/* Image de la carte */}
-              <div className={`relative w-24 h-40 mx-auto mb-3 rounded-lg overflow-hidden border-2 ${
-                carte.orientation === 'droit' 
-                  ? 'border-[#C9A24B]/60' 
-                  : 'border-[#B8A9E8]/60 rotate-180'
-              } shadow-lg`}>
-                <div className="absolute inset-0 bg-gradient-to-b from-[#2D1F4B] to-[#1C1735]">
-                  {/* Placeholder avec icône stylisée */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <Sparkles className={`w-10 h-10 mx-auto mb-1 ${
-                        carte.orientation === 'droit' ? 'text-[#C9A24B]' : 'text-[#B8A9E8]'
-                      }`} strokeWidth={1} />
-                      <span className="text-[#C9A24B] text-2xl font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>
-                        {carte.numero}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Nom de la carte */}
-              <h3 className="text-lg mb-1" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
-                {carte.nom}
-              </h3>
-              
-              {/* Orientation avec badge stylisé */}
-              <span className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full ${
-                carte.orientation === 'droit' 
-                  ? 'bg-[#C9A24B]/20 text-[#C9A24B] border border-[#C9A24B]/30' 
-                  : 'bg-[#B8A9E8]/20 text-[#E3D7FF] border border-[#B8A9E8]/30'
-              }`}>
-                {carte.orientation === 'droit' ? (
-                  <><Sun className="w-3 h-3" /> Droit</>
-                ) : (
-                  <><Moon className="w-3 h-3" /> Renversé</>
-                )}
-              </span>
-              
-              {/* Mots-clés */}
-              <div className="flex flex-wrap justify-center gap-1 mt-3 mb-3">
-                {carte.mots_cles?.slice(0, 3).map((mot, i) => (
-                  <span key={i} className="text-xs text-[#232323]/70 bg-[#1C1735]/80 px-2 py-0.5 rounded-full border border-[#C9A24B]/10">
-                    {mot}
+
+            <h3 className="text-lg mb-2 text-center" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+              {carte.nom}
+            </h3>
+
+            <span className={`inline-flex items-center gap-1 text-[10px] px-3 py-0.5 rounded-full mb-3 ${
+              isReversed
+                ? 'bg-[#B8A9E8]/15 text-[#8878C8] border border-[#B8A9E8]/40'
+                : 'bg-[#C9A24B]/15 text-[#8B6914] border border-[#C9A24B]/40'
+            }`}>
+              {isReversed ? <><Moon className="w-3 h-3" /> Renversée</> : <><Sun className="w-3 h-3" /> Droite</>}
+            </span>
+
+            {carte.mots_cles?.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-1 mb-3">
+                {carte.mots_cles.slice(0, 3).map((m, i) => (
+                  <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-[#0F1A3C]/5 text-[#0F1A3C]/75 border border-[#0F1A3C]/10">
+                    {m}
                   </span>
                 ))}
               </div>
-              
-              {/* Élément et Planète */}
-              <div className="flex justify-center gap-3 mb-3 text-xs text-[#0F1A3C]/55">
-                <span>◆ {carte.element}</span>
-                <span>☆ {carte.planete}</span>
+            )}
+
+            {(carte.element || carte.planete) && (
+              <div className="flex justify-center gap-3 text-[10px] text-[#0F1A3C]/60 mb-3">
+                {carte.element && <span>◆ {carte.element}</span>}
+                {carte.planete && <span>☆ {carte.planete}</span>}
               </div>
-              
-              {/* Interprétation */}
-              <p className="text-[#232323]/80 text-sm font-light leading-relaxed mb-3 px-2">
-                {carte.interpretation?.slice(0, 120)}...
+            )}
+
+            {carte.interpretation && (
+              <p className="text-[#232323]/85 text-xs leading-relaxed text-center px-1 mb-3 font-light">
+                {carte.interpretation.length > 180 ? `${carte.interpretation.slice(0, 180)}…` : carte.interpretation}
               </p>
-              
-              {/* Conseil */}
-              <div className="bg-gradient-to-r from-[#C9A24B]/10 via-[#C9A24B]/20 to-[#C9A24B]/10 rounded-lg p-3 border border-[#C9A24B]/20 mx-2">
-                <p className="text-[#C9A24B] text-xs italic leading-relaxed">
-                  "{carte.conseil}"
+            )}
+
+            {carte.conseil && (
+              <div className="w-full bg-gradient-to-r from-[#C9A24B]/5 via-[#C9A24B]/15 to-[#C9A24B]/5 rounded-md p-2 border border-[#C9A24B]/20 mt-auto">
+                <p className="text-[#8B6914] text-[11px] italic text-center leading-snug">
+                  « {carte.conseil} »
                 </p>
               </div>
-            </div>
+            )}
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-col items-center py-4">
+            <TarotCardBack size={{ width: 130, height: 200 }} testId={`tarot-back-${index}`} />
+            {!isRevealing && (
+              <p className="text-[#C9A24B]/80 text-[11px] mt-3 animate-pulse" style={{ fontFamily: 'Cinzel, serif', letterSpacing: '0.1em' }}>
+                Cliquez pour révéler
+              </p>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -309,546 +289,469 @@ const TirageTarot = () => {
   return (
     <PsPageShell background="light">
       <SEO path="/services/tarot" />
-    <div className="min-h-screen relative">
-      {/* Background image décoratif */}
-      <div 
-        className="fixed inset-0 opacity-5 pointer-events-none"
-        style={{
-          backgroundImage: `url('${asset('images/tarot/tarot_cards_2.png')}')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      />
-      
-      <div className="px-6 md:px-8 py-20 md:py-28 relative z-10">
-        <div className="max-w-6xl mx-auto">
-          
-          {/* ÉTAPE 0: Credit Gate */}
-          {step === 0 && (
-            <div className="max-w-4xl mx-auto">
-              <div className="text-center mb-10">
-                <p className="text-[#C9A24B] uppercase tracking-[0.3em] text-sm mb-4 font-light">
-                  Tirage de Tarot
-                </p>
-                <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
-                  Consultez les Arcanes
-                </h1>
-                <p className="text-lg text-[#232323]/70 font-light">
-                  Lecture Tarot approfondie
-                </p>
-              </div>
+      <div className="min-h-screen relative">
+        <div
+          className="fixed inset-0 opacity-5 pointer-events-none"
+          style={{
+            backgroundImage: `url('${asset('images/tarot/tarot_cards_2.png')}')`,
+            backgroundSize: 'cover', backgroundPosition: 'center',
+          }}
+        />
 
-              {/* 3 dos de carte décoratifs — teasing du jeu */}
-              <div className="flex justify-center gap-4 mb-10" data-testid="tarot-teaser-backs">
-                <div style={{ transform: 'rotate(-6deg)' }}>
-                  <TarotCardBack size={{ width: 110, height: 160 }} />
-                </div>
-                <div style={{ transform: 'translateY(-8px)' }}>
-                  <TarotCardBack size={{ width: 120, height: 175 }} />
-                </div>
-                <div style={{ transform: 'rotate(6deg)' }}>
-                  <TarotCardBack size={{ width: 110, height: 160 }} />
-                </div>
-              </div>
+        <div className="px-6 md:px-8 py-20 md:py-28 relative z-10">
+          <div className="max-w-6xl mx-auto">
 
-              {!isAuthenticated ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-login">
-                  <LogIn className="w-8 h-8 mb-4" style={{ color: '#C9A24B' }} strokeWidth={1.5} />
-                  <h2 className="text-xl mb-2" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>
-                    Connexion requise
-                  </h2>
-                  <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
-                    Connectez-vous pour accéder au tirage de Tarot.
-                    <br /><span style={{ color: '#C9A24B' }}>10 crédits &middot; 20 crédits offerts à l'inscription</span>
-                  </p>
-                  <div className="flex gap-3">
-                    <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(201,162,75,0.5)', color: '#C9A24B', letterSpacing: '0.1em' }} data-testid="gate-login-btn">Se connecter</button>
-                    <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid rgba(201,162,75,0.3)', color: '#C9A24B', background: 'rgba(201,162,75,0.08)', letterSpacing: '0.1em' }} data-testid="gate-register-btn">Créer un compte</button>
+            {/* ═══════ ÉTAPE 0 : credit gate ═══════ */}
+            {step === 0 && (
+              <div className="max-w-4xl mx-auto">
+                <div className="text-center mb-10">
+                  <p className="text-[#C9A24B] uppercase tracking-[0.3em] text-sm mb-4 font-light">Tirage de Tarot</p>
+                  <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+                    Consultez les Arcanes
+                  </h1>
+                  <p className="text-lg text-[#232323]/70 font-light">Lecture Tarot approfondie</p>
+                </div>
+
+                <div className="flex justify-center gap-4 mb-10" data-testid="tarot-teaser-backs">
+                  <div style={{ transform: 'rotate(-6deg)' }}><TarotCardBack size={{ width: 110, height: 160 }} /></div>
+                  <div style={{ transform: 'translateY(-8px)' }}><TarotCardBack size={{ width: 120, height: 175 }} /></div>
+                  <div style={{ transform: 'rotate(6deg)' }}><TarotCardBack size={{ width: 110, height: 160 }} /></div>
+                </div>
+
+                {!isAuthenticated ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center" data-testid="credit-gate-login">
+                    <LogIn className="w-8 h-8 mb-4 text-[#C9A24B]" strokeWidth={1.5} />
+                    <h2 className="text-xl mb-2" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--pa-heading)' }}>
+                      Connexion requise
+                    </h2>
+                    <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
+                      Connectez-vous pour accéder au tirage de Tarot.<br />
+                      <span className="text-[#C9A24B]">10 crédits · 20 crédits offerts à l'inscription</span>
+                    </p>
+                    <div className="flex gap-3">
+                      <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full border border-[#C9A24B]/50 text-[#C9A24B]" data-testid="gate-login-btn">Se connecter</button>
+                      <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full border border-[#C9A24B]/30 text-[#C9A24B] bg-[#C9A24B]/10" data-testid="gate-register-btn">Créer un compte</button>
+                    </div>
                   </div>
-                </div>
-              ) : creditBalance < 10 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-insufficient">
-                  <Coins className="w-8 h-8 mb-4" style={{ color: '#C9A24B' }} strokeWidth={1.5} />
-                  <h2 className="text-xl mb-2" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--pa-heading)', fontWeight: 400 }}>Crédits insuffisants</h2>
-                  <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>
-                    Le tirage coûte <span style={{ color: '#C9A24B', fontWeight: 600 }}>10 crédits</span>.
-                  </p>
-                  <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span style={{ color: '#C9A24B' }}>{creditBalance} crédits</span></p>
-                  <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full" style={{ border: '1px solid #C9A24B', color: '#111625', background: '#C9A24B', letterSpacing: '0.1em', fontWeight: 600 }} data-testid="gate-buy-credits-btn">
-                    Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="credit-gate-unlock">
-                  <Coins className="w-7 h-7 mb-3" style={{ color: '#C9A24B' }} strokeWidth={1.5} />
-                  <p className="text-sm mb-1" style={{ color: 'var(--pa-body)' }}>Lecture Tarot approfondie</p>
-                  <p className="text-xs mb-5" style={{ color: 'var(--pa-muted)' }}>
-                    Coût : <span style={{ color: '#C9A24B' }}>10 crédits</span> &middot; Solde : <span style={{ color: '#C9A24B' }}>{creditBalance} crédits</span>
-                  </p>
-                  <button onClick={handleCreditUnlock} className="text-xs uppercase tracking-widest px-8 py-2.5 rounded-full" style={{ border: '1px solid rgba(201,162,75,0.5)', color: '#C9A24B', letterSpacing: '0.1em' }} data-testid="gate-unlock-btn">
-                    Utiliser 10 crédits
-                  </button>
-                </div>
-              )}
+                ) : creditBalance < 10 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center" data-testid="credit-gate-insufficient">
+                    <Coins className="w-8 h-8 mb-4 text-[#C9A24B]" strokeWidth={1.5} />
+                    <h2 className="text-xl mb-2" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--pa-heading)' }}>Crédits insuffisants</h2>
+                    <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>Le tirage coûte <span className="text-[#C9A24B] font-semibold">10 crédits</span>.</p>
+                    <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span className="text-[#C9A24B]">{creditBalance} crédits</span></p>
+                    <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full bg-[#C9A24B] text-[#111625] font-semibold" data-testid="gate-buy-credits-btn">
+                      Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-10 text-center" data-testid="credit-gate-unlock">
+                    <Coins className="w-7 h-7 mb-3 text-[#C9A24B]" strokeWidth={1.5} />
+                    <p className="text-sm mb-1" style={{ color: 'var(--pa-body)' }}>Lecture Tarot approfondie</p>
+                    <p className="text-xs mb-5" style={{ color: 'var(--pa-muted)' }}>
+                      Coût : <span className="text-[#C9A24B]">10 crédits</span> · Solde : <span className="text-[#C9A24B]">{creditBalance} crédits</span>
+                    </p>
+                    <button onClick={handleCreditUnlock} className="text-xs uppercase tracking-widest px-8 py-2.5 rounded-full border border-[#C9A24B]/50 text-[#C9A24B]" data-testid="gate-unlock-btn">
+                      Utiliser 10 crédits
+                    </button>
+                  </div>
+                )}
 
-              {/* Vitrine des 22 arcanes majeurs peints à la main pour Plume Astrale */}
-              <div className="mt-16 text-center" data-testid="tarot-deck-preview">
-                <p
-                  className="text-[#C9A24B] uppercase tracking-[0.28em] text-[11px] mb-3"
-                  style={{ fontFamily: 'Cinzel, serif' }}
-                >
-                  ✦ Les 22 arcanes peints à la main ✦
-                </p>
-                <h3
-                  className="mb-2"
-                  style={{
-                    fontFamily: 'Playfair Display, serif',
-                    fontSize: 'clamp(1.3rem, 2.6vw, 1.8rem)',
-                    color: '#0F1A3C',
-                    lineHeight: 1.15,
-                  }}
-                >
-                  Un jeu unique, dessiné pour Plume Astrale
-                </h3>
-                <p className="text-[#232323]/70 text-sm max-w-xl mx-auto mb-7 font-light">
-                  Chaque arcane a été composé à la main dans l&apos;esprit du Tarot de Marseille — or profond
-                  sur nuit d&apos;encre, aucun visuel standard IA.
-                </p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {[
-                    'Le Mat', 'Le Bateleur', 'La Papesse', "L'Impératrice", "L'Empereur",
-                    'Le Pape', 'Les Amoureux', 'Le Chariot', 'La Justice', "L'Hermite",
-                    'La Roue de Fortune', 'La Force', 'Le Pendu', "L'Arcane sans Nom",
-                    'La Tempérance', 'Le Diable', 'La Maison Dieu', "L'Étoile", 'La Lune',
-                    'Le Soleil', 'Le Jugement', 'Le Monde',
-                  ].map((cardName, idx) => (
-                    <div
-                      key={cardName}
-                      title={cardName}
-                      data-testid={`deck-preview-${idx}`}
-                      style={{
-                        width: 58, height: 87,
-                        borderRadius: 4,
-                        overflow: 'hidden',
+                {/* Vitrine 22 arcanes */}
+                <div className="mt-14 text-center" data-testid="tarot-deck-preview">
+                  <p className="text-[#C9A24B] uppercase tracking-[0.28em] text-[11px] mb-3" style={{ fontFamily: 'Cinzel, serif' }}>
+                    ✦ Les 22 arcanes peints à la main ✦
+                  </p>
+                  <h3 className="mb-2" style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(1.3rem, 2.6vw, 1.8rem)', color: '#0F1A3C' }}>
+                    Un jeu unique, dessiné pour Plume Astrale
+                  </h3>
+                  <p className="text-[#232323]/70 text-sm max-w-xl mx-auto mb-7 font-light">
+                    Chaque arcane a été composé à la main dans l'esprit du Tarot de Marseille — or profond sur nuit d'encre, aucun visuel standard IA.
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {ALL_ARCANES.map((name, idx) => (
+                      <div key={name} title={name} data-testid={`deck-preview-${idx}`} style={{
+                        width: 58, height: 87, borderRadius: 4, overflow: 'hidden',
                         border: '1px solid rgba(201,162,75,0.35)',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.45)',
-                        background: '#0e0a24',
-                      }}
-                    >
-                      <LibraryImage
-                        type="tarot"
-                        name={cardName}
-                        size={87}
-                        alt={cardName}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ÉTAPE 1: Formulaire de question */}
-          {step === 1 && (
-            <div className="max-w-2xl mx-auto">
-              {/* Header */}
-              <div className="text-center mb-10">
-                <p className="text-[#C9A24B] uppercase tracking-[0.3em] text-sm mb-4 font-light">
-                  Tirage de Tarot
-                </p>
-                <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
-                  Consultez les Arcanes
-                </h1>
-                <p className="text-lg text-[#232323]/70 font-light">
-                  Formulez votre question et laissez les cartes vous guider
-                </p>
-              </div>
-
-              {/* Choix du type de tirage */}
-              <div className="grid md:grid-cols-2 gap-4 mb-8">
-                <div 
-                  className={`card-mystical cursor-pointer transition-all ${
-                    typeTirage === 'marseille' ? 'border-[#C9A24B] bg-[#C9A24B]/10' : 'hover:border-[#C9A24B]/50'
-                  }`}
-                  onClick={() => setTypeTirage('marseille')}
-                  data-testid="select-marseille"
-                >
-                  <div className="text-center py-4">
-                    <div className="flex justify-center gap-2 mb-3">
-                      {[1,2,3].map(i => (
-                        <div key={i} className="w-8 h-12 rounded bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border border-[#C9A24B]/30"></div>
-                      ))}
-                    </div>
-                    <h3 className="text-lg mb-1" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
-                      Tirage Marseille
-                    </h3>
-                    <p className="text-[#232323]/65 text-sm">3 cartes • Passé, Présent, Futur</p>
-                    <p className="text-[#C9A24B] text-lg font-semibold mt-2">10 crédits</p>
-                  </div>
-                </div>
-
-                <div 
-                  className={`card-mystical cursor-pointer transition-all ${
-                    typeTirage === 'celtique' ? 'border-[#C9A24B] bg-[#C9A24B]/10' : 'hover:border-[#C9A24B]/50'
-                  }`}
-                  onClick={() => setTypeTirage('celtique')}
-                  data-testid="select-celtique"
-                >
-                  <div className="text-center py-4">
-                    <div className="flex justify-center gap-1 mb-3 flex-wrap" style={{ maxWidth: '120px', margin: '0 auto' }}>
-                      {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                        <div key={i} className="w-4 h-6 rounded bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border border-[#C9A24B]/30"></div>
-                      ))}
-                    </div>
-                    <h3 className="text-lg mb-1" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
-                      Croix Celtique
-                    </h3>
-                    <p className="text-[#232323]/65 text-sm">10 cartes • Analyse complète</p>
-                    <p className="text-[#C9A24B] text-lg font-semibold mt-2">10 crédits</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Choix du domaine */}
-              <div className="mb-6">
-                <label className="block text-[#232323]/80 text-sm mb-2 font-light">
-                  Domaine de votre question
-                </label>
-                <div 
-                  className="card-mystical cursor-pointer"
-                  onClick={() => setShowDomaines(!showDomaines)}
-                >
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-3">
-                      {React.createElement(domaines[domaine].icone, { 
-                        className: `w-5 h-5 ${domaines[domaine].couleur}`, 
-                        strokeWidth: 1.5 
-                      })}
-                      <span className="text-[#0F1A3C] font-medium">{domaines[domaine].nom}</span>
-                    </div>
-                    <ChevronDown className={`w-5 h-5 text-[#C9A24B] transition-transform ${showDomaines ? 'rotate-180' : ''}`} />
-                  </div>
-                </div>
-                
-                {showDomaines && (
-                  <div className="mt-2 card-mystical divide-y divide-[#C9A24B]/10">
-                    {Object.entries(domaines).map(([key, value]) => (
-                      <div 
-                        key={key}
-                        className={`flex items-center gap-3 py-3 px-4 cursor-pointer hover:bg-[#C9A24B]/10 transition-colors ${
-                          domaine === key ? 'bg-[#C9A24B]/10' : ''
-                        }`}
-                        onClick={() => { setDomaine(key); setShowDomaines(false); }}
-                      >
-                        {React.createElement(value.icone, { 
-                          className: `w-5 h-5 ${value.couleur}`, 
-                          strokeWidth: 1.5 
-                        })}
-                        <span className="text-[#0F1A3C]">{value.nom}</span>
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.45)', background: '#0e0a24',
+                      }}>
+                        <LibraryImage type="tarot" name={name} size={87} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
-
-              {/* Champ de question */}
-              <div className="mb-8">
-                <label className="block text-[#232323]/80 text-sm mb-2 font-light">
-                  Votre question
-                </label>
-                <div className="relative">
-                  <HelpCircle className="absolute left-4 top-4 w-5 h-5 text-[#C9A24B]/50" strokeWidth={1.5} />
-                  <textarea
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="Formulez votre question avec clarté et sincérité..."
-                    className="w-full bg-white border border-[#0F1A3C]/25 rounded-xl py-4 pl-12 pr-4 text-[#0F1A3C] placeholder-[#0F1A3C]/40 focus:outline-none focus:border-[#C9A24B] transition-colors resize-none"
-                    rows={4}
-                    data-testid="input-question"
-                  />
                 </div>
-                <p className="text-[#232323]/70 text-xs mt-2">
-                  Exemples : "Vais-je trouver l'amour cette année ?" • "Mon projet professionnel va-t-il aboutir ?"
-                </p>
               </div>
+            )}
 
-              {/* Bouton de tirage */}
-              <button
-                onClick={lancerTirage}
-                disabled={isLoading || question.length < 5}
-                className={`w-full btn-mystical-filled rounded-xl py-4 flex items-center justify-center gap-3 text-lg ${
-                  question.length < 5 ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                data-testid="btn-lancer-tirage"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-[#1C1735] border-t-transparent rounded-full animate-spin"></div>
-                    Préparation du tirage...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="w-5 h-5" strokeWidth={1.5} />
-                    Consulter les Arcanes
-                    <ArrowRight className="w-5 h-5" strokeWidth={1.5} />
-                  </>
-                )}
-              </button>
-            </div>
-          )}
+            {/* ═══════ ÉTAPE 1 : question ═══════ */}
+            {step === 1 && (
+              <div className="max-w-2xl mx-auto">
+                <div className="text-center mb-10">
+                  <p className="text-[#C9A24B] uppercase tracking-[0.3em] text-sm mb-4 font-light">Tirage de Tarot</p>
+                  <h1 className="text-3xl md:text-5xl mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+                    Formulez votre question
+                  </h1>
+                  <p className="text-lg text-[#232323]/70 font-light">Choisissez votre tirage et confiez-nous ce qui vous habite</p>
+                </div>
 
-          {/* ÉTAPE 2: Révélation des cartes */}
-          {step === 2 && tirageData && (
-            <div>
-              {/* Header */}
-              <div className="text-center mb-10">
-                <p className="text-[#C9A24B] uppercase tracking-[0.3em] text-sm mb-4 font-light">
-                  {typeTirage === 'marseille' ? 'Tirage Marseille' : 'Croix Celtique'}
-                </p>
-                <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
-                  Les Cartes Sont Tirées
-                </h1>
-                <p className="text-[#232323]/70 font-light max-w-xl mx-auto">
-                  "{question}"
-                </p>
-              </div>
+                <div className="grid md:grid-cols-2 gap-4 mb-8">
+                  <div onClick={() => setTypeTirage('marseille')} data-testid="select-marseille"
+                       className={`rounded-xl p-5 border cursor-pointer transition-all ${
+                         typeTirage === 'marseille'
+                           ? 'bg-[#C9A24B]/10 border-[#C9A24B] shadow-md'
+                           : 'bg-white/70 border-[#C9A24B]/25 hover:border-[#C9A24B]/60'
+                       }`}>
+                    <div className="text-center py-2">
+                      <div className="flex justify-center gap-2 mb-3">
+                        {[1,2,3].map(i => (
+                          <div key={i} className="w-8 h-12 rounded bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border border-[#C9A24B]/40" />
+                        ))}
+                      </div>
+                      <h3 className="text-lg mb-1" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>Tirage Marseille</h3>
+                      <p className="text-[#232323]/65 text-sm">3 cartes · Passé, Présent, Futur</p>
+                      <p className="text-[#C9A24B] text-lg font-semibold mt-2">Inclus</p>
+                    </div>
+                  </div>
 
-              {/* Bouton révéler tout */}
-              {!isRevealing && revealedCards.length === 0 && (
-                <div className="text-center mb-8">
-                  <button
-                    onClick={startReveal}
-                    className="btn-mystical-filled rounded-xl py-4 px-8 flex items-center gap-3 mx-auto text-lg"
-                    data-testid="btn-reveal-all"
-                  >
-                    <Eye className="w-5 h-5" strokeWidth={1.5} />
-                    Révéler les cartes une par une
-                    <Sparkles className="w-5 h-5" strokeWidth={1.5} />
-                  </button>
-                  <p className="text-[#0F1A3C]/55 text-sm mt-3">
-                    Ou cliquez sur chaque carte pour la révéler manuellement
+                  <div onClick={() => setTypeTirage('celtique')} data-testid="select-celtique"
+                       className={`rounded-xl p-5 border cursor-pointer transition-all ${
+                         typeTirage === 'celtique'
+                           ? 'bg-[#C9A24B]/10 border-[#C9A24B] shadow-md'
+                           : 'bg-white/70 border-[#C9A24B]/25 hover:border-[#C9A24B]/60'
+                       }`}>
+                    <div className="text-center py-2">
+                      <div className="flex justify-center gap-1 mb-3 flex-wrap mx-auto" style={{ maxWidth: 120 }}>
+                        {[1,2,3,4,5,6,7,8,9,10].map(i => (
+                          <div key={i} className="w-4 h-6 rounded bg-gradient-to-b from-[#2D1F4B] to-[#1C1735] border border-[#C9A24B]/40" />
+                        ))}
+                      </div>
+                      <h3 className="text-lg mb-1" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>Croix Celtique</h3>
+                      <p className="text-[#232323]/65 text-sm">10 cartes · Analyse complète</p>
+                      <p className="text-[#C9A24B] text-lg font-semibold mt-2">Inclus</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-[#232323]/80 text-sm mb-2 font-light">Domaine de votre question</label>
+                  <div className="rounded-xl p-3 border border-[#C9A24B]/25 bg-white/70 cursor-pointer" onClick={() => setShowDomaines(!showDomaines)}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {React.createElement(DOMAINES[domaine].icone, { className: `w-5 h-5 ${DOMAINES[domaine].couleur}`, strokeWidth: 1.5 })}
+                        <span className="text-[#0F1A3C] font-medium">{DOMAINES[domaine].nom}</span>
+                      </div>
+                      <ChevronDown className={`w-5 h-5 text-[#C9A24B] transition-transform ${showDomaines ? 'rotate-180' : ''}`} />
+                    </div>
+                  </div>
+                  {showDomaines && (
+                    <div className="mt-2 rounded-xl border border-[#C9A24B]/25 bg-white/90 divide-y divide-[#C9A24B]/10">
+                      {Object.entries(DOMAINES).map(([key, value]) => (
+                        <div key={key}
+                          className={`flex items-center gap-3 py-3 px-4 cursor-pointer hover:bg-[#C9A24B]/10 transition-colors ${domaine === key ? 'bg-[#C9A24B]/10' : ''}`}
+                          onClick={() => { setDomaine(key); setShowDomaines(false); }}>
+                          {React.createElement(value.icone, { className: `w-5 h-5 ${value.couleur}`, strokeWidth: 1.5 })}
+                          <span className="text-[#0F1A3C]">{value.nom}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-8">
+                  <label className="block text-[#232323]/80 text-sm mb-2 font-light">Votre question</label>
+                  <div className="relative">
+                    <HelpCircle className="absolute left-4 top-4 w-5 h-5 text-[#C9A24B]/50" strokeWidth={1.5} />
+                    <textarea
+                      value={question}
+                      onChange={(e) => setQuestion(e.target.value)}
+                      placeholder="Formulez votre question avec clarté et sincérité…"
+                      className="w-full bg-white border border-[#0F1A3C]/25 rounded-xl py-4 pl-12 pr-4 text-[#0F1A3C] placeholder-[#0F1A3C]/40 focus:outline-none focus:border-[#C9A24B] transition-colors resize-none"
+                      rows={4}
+                      data-testid="input-question"
+                    />
+                  </div>
+                  <p className="text-[#232323]/70 text-xs mt-2">
+                    Exemples : « Vais-je trouver l'amour cette année ? » · « Mon projet professionnel va-t-il aboutir ? »
                   </p>
                 </div>
-              )}
 
-              {/* Animation en cours */}
-              {isRevealing && (
-                <div className="text-center mb-8">
-                  <div className="inline-flex items-center gap-3 bg-[#C9A24B]/20 px-6 py-3 rounded-full">
-                    <div className="w-4 h-4 border-2 border-[#C9A24B] border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-[#C9A24B]">
-                      Révélation en cours... Carte {revealedCards.length + 1} sur {typeTirage === 'marseille' ? 3 : 10}
-                    </span>
-                  </div>
+                <button
+                  onClick={lancerTirage}
+                  disabled={isLoading || question.length < 5}
+                  className={`w-full btn-mystical-filled rounded-xl py-4 flex items-center justify-center gap-3 text-lg ${question.length < 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  data-testid="btn-lancer-tirage"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-[#1C1735] border-t-transparent rounded-full animate-spin" />
+                      Préparation du tirage…
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="w-5 h-5" strokeWidth={1.5} />
+                      Consulter les Arcanes
+                      <ArrowRight className="w-5 h-5" strokeWidth={1.5} />
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* ═══════ ÉTAPE 2 : révélation ═══════ */}
+            {step === 2 && tirageData && (
+              <div>
+                <div className="text-center mb-10">
+                  <p className="text-[#C9A24B] uppercase tracking-[0.3em] text-sm mb-4 font-light">
+                    {typeTirage === 'marseille' ? 'Tirage Marseille' : 'Croix Celtique'}
+                  </p>
+                  <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+                    Les cartes sont tirées
+                  </h1>
+                  <p className="text-[#232323]/70 font-light max-w-xl mx-auto italic">« {question} »</p>
                 </div>
-              )}
 
-              {/* Grille des cartes */}
-              <div className={`grid gap-6 ${
-                typeTirage === 'marseille' 
-                  ? 'md:grid-cols-3' 
-                  : 'md:grid-cols-5'
-              }`}>
-                {tirageData.cartes.map((carte, index) => 
-                  renderCard(carte, index, revealedCards.includes(index))
+                {!isRevealing && revealedCards.length === 0 && (
+                  <div className="text-center mb-8">
+                    <button onClick={startReveal} className="btn-mystical-filled rounded-xl py-4 px-8 flex items-center gap-3 mx-auto text-lg" data-testid="btn-reveal-all">
+                      <Eye className="w-5 h-5" strokeWidth={1.5} />
+                      Révéler les cartes une par une
+                      <Sparkles className="w-5 h-5" strokeWidth={1.5} />
+                    </button>
+                    <p className="text-[#0F1A3C]/55 text-sm mt-3">Ou cliquez sur chaque carte pour la révéler manuellement</p>
+                  </div>
                 )}
-              </div>
 
-              {/* Boutons d'action */}
-              <div className="text-center mt-10">
+                {isRevealing && (
+                  <div className="text-center mb-8">
+                    <div className="inline-flex items-center gap-3 bg-[#C9A24B]/20 px-6 py-3 rounded-full">
+                      <div className="w-4 h-4 border-2 border-[#C9A24B] border-t-transparent rounded-full animate-spin" />
+                      <span className="text-[#8B6914]">
+                        Révélation en cours… Carte {revealedCards.length + 1} / {typeTirage === 'marseille' ? 3 : 10}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className={`grid gap-5 ${
+                  typeTirage === 'marseille' ? 'md:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5'
+                }`}>
+                  {tirageData.cartes.map((carte, index) =>
+                    renderCard(carte, index, revealedCards.includes(index)),
+                  )}
+                </div>
+
                 {revealedCards.length === tirageData.cartes.length && !isRevealing && (
-                  <button
-                    onClick={() => setStep(3)}
-                    className="btn-mystical-filled rounded-xl py-4 px-8 flex items-center gap-3 mx-auto text-lg"
-                    data-testid="btn-voir-synthese"
-                  >
-                    Voir la synthèse complète
-                    <ArrowRight className="w-5 h-5" strokeWidth={1.5} />
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ÉTAPE 3: Synthèse */}
-          {step === 3 && tirageData && (
-            <div className="max-w-4xl mx-auto">
-              {/* Header */}
-              <div className="text-center mb-10">
-                <p className="text-[#C9A24B] uppercase tracking-[0.3em] text-sm mb-4 font-light">
-                  Synthèse de votre tirage
-                </p>
-                <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
-                  L'Interprétation des Arcanes
-                </h1>
-              </div>
-
-              {/* Question rappel */}
-              <div className="card-mystical bg-[#C9A24B]/10 mb-8">
-                <p className="text-center">
-                  <span className="text-[#232323]/65 text-sm">Votre question : </span>
-                  <span className="text-[#0F1A3C] italic">"{question}"</span>
-                </p>
-              </div>
-
-              {/* Bouton Voir la Synthèse / Synthèse payante */}
-              {!syntheseUnlocked ? (
-                <div className="text-center py-8" data-testid="synthese-paywall">
-                  <div className="card-mystical glow-gold max-w-md mx-auto py-8">
-                    <Sparkles className="w-10 h-10 text-[#C9A24B] mx-auto mb-4" strokeWidth={1} />
-                    <h3 className="text-xl mb-2" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
-                      Synth&egrave;se Compl&egrave;te
-                    </h3>
-                    <p className="text-[#232323]/65 text-sm mb-6 px-4">
-                      D&eacute;couvrez l'analyse d&eacute;taill&eacute;e de votre tirage : tendance g&eacute;n&eacute;rale, messages pass&eacute;/pr&eacute;sent/futur et conseil des Arcanes
-                    </p>
-                    <p className="text-3xl font-bold mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#C9A24B' }}>
-                      4,99 &euro;
-                    </p>
+                  <div className="text-center mt-10">
                     <button
-                      onClick={() => setSyntheseUnlocked(true)}
-                      className="btn-mystical-filled rounded-full px-8 py-3 inline-flex items-center gap-2"
-                      data-testid="btn-unlock-synthese"
+                      onClick={() => { setStep(3); setTimeout(() => syntheseRef.current?.scrollIntoView({ behavior: 'smooth' }), 100); }}
+                      className="btn-mystical-filled rounded-xl py-4 px-8 flex items-center gap-3 mx-auto text-lg"
+                      data-testid="btn-voir-synthese"
                     >
-                      <Eye className="w-5 h-5" /> Voir la synth&egrave;se
+                      Voir la synthèse complète <ArrowRight className="w-5 h-5" strokeWidth={1.5} />
                     </button>
                   </div>
-                </div>
-              ) : (
-                <>
-              {/* Synthèse pour Marseille */}
-              {typeTirage === 'marseille' && tirageData.synthese && (
-                <div className="space-y-6">
-                  {/* Tendance générale */}
-                  <div className="card-mystical">
-                    <h3 className="text-xl mb-4 text-[#C9A24B]" style={{ fontFamily: 'Playfair Display, serif' }}>
-                      Tendance Générale : {tirageData.synthese.tendance_generale}
-                    </h3>
-                    <p className="text-[#232323]/70">{tirageData.synthese.fil_conducteur}</p>
-                  </div>
-
-                  {/* Messages par position */}
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="card-mystical">
-                      <h4 className="text-[#C9A24B] mb-2">Passé</h4>
-                      <p className="text-[#232323]/70 text-sm">{tirageData.synthese.message_passe}</p>
-                    </div>
-                    <div className="card-mystical">
-                      <h4 className="text-[#C9A24B] mb-2">Présent</h4>
-                      <p className="text-[#232323]/70 text-sm">{tirageData.synthese.message_present}</p>
-                    </div>
-                    <div className="card-mystical">
-                      <h4 className="text-[#C9A24B] mb-2">Futur</h4>
-                      <p className="text-[#232323]/70 text-sm">{tirageData.synthese.message_futur}</p>
-                    </div>
-                  </div>
-
-                  {/* Conseil final */}
-                  <div className="card-mystical bg-[#C9A24B]/10 border-[#C9A24B]/40">
-                    <div className="flex items-start gap-4">
-                      <Sparkles className="w-8 h-8 text-[#C9A24B] flex-shrink-0 mt-1" strokeWidth={1} />
-                      <div>
-                        <h4 className="text-[#C9A24B] text-lg mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
-                          Conseil des Arcanes
-                        </h4>
-                        <p className="text-[#0F1A3C] italic">{tirageData.conseil_final}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Synthèse pour Celtique */}
-              {typeTirage === 'celtique' && tirageData.analyse && (
-                <div className="space-y-6">
-                  {/* Énergie globale */}
-                  <div className="card-mystical">
-                    <h3 className="text-xl mb-4 text-[#C9A24B]" style={{ fontFamily: 'Playfair Display, serif' }}>
-                      Énergie Globale
-                    </h3>
-                    <p className="text-[#0F1A3C] mb-4">{tirageData.analyse.energie_globale}</p>
-                    <div className="flex gap-4 text-sm">
-                      <span className="text-emerald-700">✓ {tirageData.analyse.cartes_droites} cartes droites</span>
-                      <span className="text-rose-700">↻ {tirageData.analyse.cartes_renversees} cartes renversées</span>
-                      <span className="text-[#B58F3F]">◆ Élément dominant : {tirageData.analyse.element_dominant}</span>
-                    </div>
-                  </div>
-
-                  {/* Points clés */}
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="card-mystical">
-                      <h4 className="text-[#C9A24B] mb-2">Situation Actuelle</h4>
-                      <p className="text-[#0F1A3C] font-semibold mb-1">{tirageData.analyse.situation_actuelle?.carte}</p>
-                      <p className="text-[#232323]/70 text-sm">{tirageData.analyse.situation_actuelle?.message}</p>
-                    </div>
-                    <div className="card-mystical">
-                      <h4 className="text-[#C9A24B] mb-2">Obstacle Principal</h4>
-                      <p className="text-[#0F1A3C] font-semibold mb-1">{tirageData.analyse.obstacle_principal?.carte}</p>
-                      <p className="text-[#232323]/70 text-sm">{tirageData.analyse.obstacle_principal?.message}</p>
-                    </div>
-                    <div className="card-mystical">
-                      <h4 className="text-[#C9A24B] mb-2">Fondement</h4>
-                      <p className="text-[#0F1A3C] font-semibold mb-1">{tirageData.analyse.fondement?.carte}</p>
-                      <p className="text-[#232323]/70 text-sm">{tirageData.analyse.fondement?.message}</p>
-                    </div>
-                    <div className="card-mystical">
-                      <h4 className="text-[#C9A24B] mb-2">Résultat Probable</h4>
-                      <p className="text-[#0F1A3C] font-semibold mb-1">{tirageData.analyse.resultat_probable?.carte}</p>
-                      <p className="text-[#232323]/70 text-sm">{tirageData.analyse.resultat_probable?.message}</p>
-                    </div>
-                  </div>
-
-                  {/* Synthèse finale */}
-                  <div className="card-mystical">
-                    <h4 className="text-[#C9A24B] text-lg mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
-                      Synthèse Finale
-                    </h4>
-                    <p className="text-[#232323]/80 whitespace-pre-line">{tirageData.analyse.synthese_finale}</p>
-                  </div>
-
-                  {/* Conseil d'action */}
-                  <div className="card-mystical bg-[#C9A24B]/10 border-[#C9A24B]/40">
-                    <div className="flex items-start gap-4">
-                      <Sparkles className="w-8 h-8 text-[#C9A24B] flex-shrink-0 mt-1" strokeWidth={1} />
-                      <div>
-                        <h4 className="text-[#C9A24B] text-lg mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
-                          Conseil d'Action
-                        </h4>
-                        <p className="text-[#0F1A3C] whitespace-pre-line">{tirageData.analyse.conseil_action}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-                </>
-              )}
-
-              {/* Actions finales */}
-              <div className="flex flex-col md:flex-row gap-4 justify-center mt-10">
-                <button
-                  onClick={recommencer}
-                  className="btn-mystical rounded-xl py-3 px-8 flex items-center justify-center gap-2"
-                  data-testid="btn-nouveau-tirage"
-                >
-                  <RefreshCw className="w-5 h-5" strokeWidth={1.5} />
-                  Nouveau tirage
-                </button>
-                <button
-                  onClick={() => navigate('/')}
-                  className="btn-mystical-filled rounded-xl py-3 px-8 flex items-center justify-center gap-2"
-                >
-                  Retour à l'accueil
-                </button>
+                )}
               </div>
-            </div>
-          )}
+            )}
+
+            {/* ═══════ ÉTAPE 3 : synthèse ═══════ */}
+            {step === 3 && tirageData && (
+              <div className="max-w-4xl mx-auto" ref={syntheseRef}>
+                <div className="text-center mb-10">
+                  <p className="text-[#C9A24B] uppercase tracking-[0.3em] text-sm mb-4 font-light">Synthèse de votre tirage</p>
+                  <h1 className="text-2xl md:text-4xl mb-4" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+                    L'interprétation des Arcanes
+                  </h1>
+                </div>
+
+                <div className="rounded-xl p-5 bg-[#C9A24B]/10 border border-[#C9A24B]/30 mb-8">
+                  <p className="text-center">
+                    <span className="text-[#232323]/65 text-sm">Votre question : </span>
+                    <span className="text-[#0F1A3C] italic">« {question} »</span>
+                  </p>
+                </div>
+
+                {/* Résumé visuel : 3 cartes clés */}
+                <div className="grid grid-cols-3 gap-3 mb-10">
+                  {tirageData.cartes.slice(0, 3).map((carte, i) => {
+                    const posLabels = typeTirage === 'marseille'
+                      ? POSITIONS_MARSEILLE
+                      : ['Situation', 'Défi', 'Fondement'];
+                    const isReversed = (carte.orientation || '').toLowerCase() === 'renverse';
+                    return (
+                      <div key={i} className="text-center" data-testid={`synth-key-${i}`}>
+                        <p className="text-[#C9A24B] uppercase tracking-[0.2em] text-[10px] mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
+                          {posLabels[i]}
+                        </p>
+                        <div
+                          className="mx-auto overflow-hidden rounded-md"
+                          style={{
+                            width: 90, height: 140,
+                            border: `1.5px solid ${isReversed ? 'rgba(184,169,232,0.5)' : 'rgba(201,162,75,0.5)'}`,
+                            transform: isReversed ? 'rotate(180deg)' : 'none',
+                          }}
+                        >
+                          <LibraryImage
+                            type="tarot" name={carte.nom} size={140}
+                            alt={carte.nom}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
+                        <p className="text-[#0F1A3C] text-xs mt-2 font-medium" style={{ fontFamily: 'Playfair Display, serif' }}>
+                          {carte.nom}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Synthèse Marseille */}
+                {typeTirage === 'marseille' && tirageData.synthese && (
+                  <div className="space-y-6">
+                    {tirageData.synthese.tendance_generale && (
+                      <div className="rounded-xl p-6 bg-white/80 border border-[#C9A24B]/20 shadow-sm">
+                        <h3 className="text-xl mb-3 text-[#C9A24B]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                          Tendance Générale : {tirageData.synthese.tendance_generale}
+                        </h3>
+                        {tirageData.synthese.fil_conducteur && (
+                          <p className="text-[#232323]/80 leading-relaxed">{tirageData.synthese.fil_conducteur}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {(tirageData.synthese.message_passe || tirageData.synthese.message_present || tirageData.synthese.message_futur) && (
+                      <div className="grid md:grid-cols-3 gap-4">
+                        {['message_passe', 'message_present', 'message_futur'].map((k, i) => (
+                          tirageData.synthese[k] ? (
+                            <div key={k} className="rounded-xl p-5 bg-white/80 border border-[#C9A24B]/20">
+                              <h4 className="text-[#C9A24B] mb-2 font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>
+                                {POSITIONS_MARSEILLE[i]}
+                              </h4>
+                              <p className="text-[#232323]/80 text-sm leading-relaxed">{tirageData.synthese[k]}</p>
+                            </div>
+                          ) : null
+                        ))}
+                      </div>
+                    )}
+
+                    {tirageData.conseil_final && (
+                      <div className="rounded-xl p-6 bg-gradient-to-br from-[#C9A24B]/15 to-[#C9A24B]/5 border border-[#C9A24B]/40">
+                        <div className="flex items-start gap-4">
+                          <Sparkles className="w-8 h-8 text-[#C9A24B] flex-shrink-0 mt-1" strokeWidth={1} />
+                          <div>
+                            <h4 className="text-[#8B6914] text-lg mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                              Conseil des Arcanes
+                            </h4>
+                            <p className="text-[#0F1A3C] italic leading-relaxed">{tirageData.conseil_final}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Synthèse Celtique */}
+                {typeTirage === 'celtique' && tirageData.analyse && (
+                  <div className="space-y-6">
+                    {tirageData.analyse.energie_globale && (
+                      <div className="rounded-xl p-6 bg-white/80 border border-[#C9A24B]/20 shadow-sm">
+                        <h3 className="text-xl mb-4 text-[#C9A24B]" style={{ fontFamily: 'Playfair Display, serif' }}>Énergie Globale</h3>
+                        <p className="text-[#0F1A3C] mb-4 leading-relaxed">{tirageData.analyse.energie_globale}</p>
+                        <div className="flex flex-wrap gap-4 text-sm">
+                          {typeof tirageData.analyse.cartes_droites === 'number' && (
+                            <span className="text-emerald-700">✓ {tirageData.analyse.cartes_droites} droites</span>
+                          )}
+                          {typeof tirageData.analyse.cartes_renversees === 'number' && (
+                            <span className="text-rose-700">↻ {tirageData.analyse.cartes_renversees} renversées</span>
+                          )}
+                          {tirageData.analyse.element_dominant && (
+                            <span className="text-[#B58F3F]">◆ Élément dominant : {tirageData.analyse.element_dominant}</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {['situation_actuelle', 'obstacle_principal', 'fondement', 'resultat_probable'].map(k => {
+                        const bloc = tirageData.analyse[k];
+                        if (!bloc?.carte && !bloc?.message) return null;
+                        const titles = {
+                          situation_actuelle: 'Situation Actuelle',
+                          obstacle_principal: 'Obstacle Principal',
+                          fondement: 'Fondement',
+                          resultat_probable: 'Résultat Probable',
+                        };
+                        return (
+                          <div key={k} className="rounded-xl p-5 bg-white/80 border border-[#C9A24B]/20">
+                            <h4 className="text-[#C9A24B] mb-2 font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>{titles[k]}</h4>
+                            {bloc.carte && <p className="text-[#0F1A3C] font-semibold mb-1">{bloc.carte}</p>}
+                            {bloc.message && <p className="text-[#232323]/80 text-sm leading-relaxed">{bloc.message}</p>}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {tirageData.analyse.synthese_finale && (
+                      <div className="rounded-xl p-6 bg-white/80 border border-[#C9A24B]/20">
+                        <h4 className="text-[#C9A24B] text-lg mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>Synthèse Finale</h4>
+                        <p className="text-[#232323]/85 whitespace-pre-line leading-relaxed">{tirageData.analyse.synthese_finale}</p>
+                      </div>
+                    )}
+
+                    {tirageData.analyse.conseil_action && (
+                      <div className="rounded-xl p-6 bg-gradient-to-br from-[#C9A24B]/15 to-[#C9A24B]/5 border border-[#C9A24B]/40">
+                        <div className="flex items-start gap-4">
+                          <Sparkles className="w-8 h-8 text-[#C9A24B] flex-shrink-0 mt-1" strokeWidth={1} />
+                          <div>
+                            <h4 className="text-[#8B6914] text-lg mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Conseil d'Action</h4>
+                            <p className="text-[#0F1A3C] whitespace-pre-line leading-relaxed">{tirageData.analyse.conseil_action}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Actions finales */}
+                <div className="flex flex-col md:flex-row gap-4 justify-center mt-12">
+                  <button
+                    onClick={telechargerPDF}
+                    disabled={pdfLoading}
+                    className="btn-mystical-filled rounded-xl py-3 px-8 flex items-center justify-center gap-2"
+                    data-testid="btn-download-pdf"
+                  >
+                    {pdfLoading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-[#1C1735] border-t-transparent rounded-full animate-spin" />
+                        Préparation du PDF…
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-5 h-5" strokeWidth={1.5} />
+                        Télécharger ma synthèse PDF
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={recommencer}
+                    className="btn-mystical rounded-xl py-3 px-8 flex items-center justify-center gap-2"
+                    data-testid="btn-nouveau-tirage"
+                  >
+                    <RefreshCw className="w-5 h-5" strokeWidth={1.5} /> Nouveau tirage
+                  </button>
+                  <button
+                    onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className="btn-mystical rounded-xl py-3 px-8 flex items-center justify-center gap-2"
+                    data-testid="btn-scroll-top"
+                  >
+                    <ArrowUp className="w-5 h-5" strokeWidth={1.5} /> Revoir les cartes
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-    {/* SEO enrichment — audit Feb 2026 */}
-    <SEOServiceEnrich slug="tarot" />
+      <SEOServiceEnrich slug="tarot" />
     </PsPageShell>
   );
 };
