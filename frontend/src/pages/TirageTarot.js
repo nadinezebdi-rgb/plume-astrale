@@ -90,7 +90,8 @@ const TirageTarot = () => {
     setIsLoading(true);
     try {
       let endpoint;
-      let payload = { question, domaine, first_name: user?.email?.split('@')[0] };
+      const firstName = user?.prenom || user?.email?.split('@')[0] || 'Voyageur';
+      let payload = { question, domaine, first_name: firstName };
       if (typeTirage === 'marseille') endpoint = `${API_URL}/api/tarot/marseille`;
       else if (typeTirage === 'celtique') endpoint = `${API_URL}/api/tarot/celtique`;
       else {
@@ -181,7 +182,7 @@ const TirageTarot = () => {
           question,
           domaine,
           data: tirageData,
-          prenom: user?.email ? user.email.split('@')[0] : 'Voyageur',
+          prenom: user?.prenom || (user?.email ? user.email.split('@')[0] : 'Voyageur'),
         }),
       });
       if (!res.ok) throw new Error('PDF generation failed');
@@ -230,22 +231,39 @@ const TirageTarot = () => {
         {isRevealed ? (
           <div className="flex flex-col items-center">
             <div
-              className="relative mx-auto mb-3 overflow-hidden rounded-lg"
+              className="relative mx-auto mb-3 overflow-hidden rounded-lg flex items-center justify-center"
               style={{
                 width: 150, height: 230,
                 border: `2px solid ${isReversed ? 'rgba(184,169,232,0.6)' : 'rgba(201,162,75,0.6)'}`,
                 boxShadow: '0 8px 24px rgba(201,162,75,0.2)',
                 transform: isReversed ? 'rotate(180deg)' : 'none',
+                background: carte.is_major === false
+                  ? `linear-gradient(135deg, ${carte.couleur || '#C9A24B'}22, ${carte.couleur || '#C9A24B'}08)`
+                  : '#0e0a24',
               }}
             >
-              <LibraryImage
-                type="tarot"
-                name={carte.nom}
-                size={230}
-                alt={carte.nom}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                data-testid={`tarot-card-img-${index}`}
-              />
+              {carte.is_major === false ? (
+                <div className="text-center px-2" data-testid={`tarot-card-img-${index}`}>
+                  <div className="text-6xl mb-2" style={{ color: carte.couleur || '#C9A24B' }}>
+                    {carte.symbole || '✦'}
+                  </div>
+                  <div className="text-[11px] uppercase tracking-widest text-[#0F1A3C] font-bold" style={{ fontFamily: 'Cinzel, serif' }}>
+                    {carte.rang}
+                  </div>
+                  <div className="text-[10px] text-[#232323]/70 mt-0.5">
+                    de {carte.suite}
+                  </div>
+                </div>
+              ) : (
+                <LibraryImage
+                  type="tarot"
+                  name={carte.nom}
+                  size={230}
+                  alt={carte.nom}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  data-testid={`tarot-card-img-${index}`}
+                />
+              )}
             </div>
 
             <h3 className="text-lg mb-2 text-center" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
@@ -363,18 +381,18 @@ const TirageTarot = () => {
                     </h2>
                     <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>
                       Connectez-vous pour accéder au tirage de Tarot.<br />
-                      <span className="text-[#C9A24B]">10 crédits · 20 crédits offerts à l'inscription</span>
+                      <span className="text-[#C9A24B]">5 crédits · 20 crédits offerts à l'inscription</span>
                     </p>
                     <div className="flex gap-3">
                       <button onClick={() => navigate('/connexion')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full border border-[#C9A24B]/50 text-[#C9A24B]" data-testid="gate-login-btn">Se connecter</button>
                       <button onClick={() => navigate('/inscription')} className="text-xs uppercase tracking-widest px-6 py-2.5 rounded-full border border-[#C9A24B]/30 text-[#C9A24B] bg-[#C9A24B]/10" data-testid="gate-register-btn">Créer un compte</button>
                     </div>
                   </div>
-                ) : creditBalance < 10 ? (
+                ) : creditBalance < 5 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-center" data-testid="credit-gate-insufficient">
                     <Coins className="w-8 h-8 mb-4 text-[#C9A24B]" strokeWidth={1.5} />
                     <h2 className="text-xl mb-2" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--pa-heading)' }}>Crédits insuffisants</h2>
-                    <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>Le tirage coûte <span className="text-[#C9A24B] font-semibold">10 crédits</span>.</p>
+                    <p className="text-sm mb-2" style={{ color: 'var(--pa-muted)' }}>Le tirage coûte <span className="text-[#C9A24B] font-semibold">5 crédits</span>.</p>
                     <p className="text-sm mb-6" style={{ color: 'var(--pa-muted)' }}>Solde : <span className="text-[#C9A24B]">{creditBalance} crédits</span></p>
                     <button onClick={() => navigate('/acheter-credits')} className="flex items-center gap-2 text-xs uppercase tracking-widest px-6 py-2.5 rounded-full bg-[#C9A24B] text-[#111625] font-semibold" data-testid="gate-buy-credits-btn">
                       Acheter des crédits <ArrowRight className="w-3.5 h-3.5" />
@@ -384,11 +402,14 @@ const TirageTarot = () => {
                   <div className="flex flex-col items-center justify-center py-10 text-center" data-testid="credit-gate-unlock">
                     <Coins className="w-7 h-7 mb-3 text-[#C9A24B]" strokeWidth={1.5} />
                     <p className="text-sm mb-1" style={{ color: 'var(--pa-body)' }}>Lecture Tarot approfondie</p>
-                    <p className="text-xs mb-5" style={{ color: 'var(--pa-muted)' }}>
-                      Coût : <span className="text-[#C9A24B]">10 crédits</span> · Solde : <span className="text-[#C9A24B]">{creditBalance} crédits</span>
+                    <p className="text-xs mb-2" style={{ color: 'var(--pa-muted)' }}>
+                      Coût : <span className="text-[#C9A24B]">5 crédits</span> · Solde : <span className="text-[#C9A24B]">{creditBalance} crédits</span>
+                    </p>
+                    <p className="text-[11px] mb-5 italic" style={{ color: 'var(--pa-muted)' }}>
+                      ✦ Un paiement = tirages illimités dans cette session ✦
                     </p>
                     <button onClick={handleCreditUnlock} className="text-xs uppercase tracking-widest px-8 py-2.5 rounded-full border border-[#C9A24B]/50 text-[#C9A24B]" data-testid="gate-unlock-btn">
-                      Utiliser 10 crédits
+                      Utiliser 5 crédits
                     </button>
                   </div>
                 )}
@@ -687,18 +708,36 @@ const TirageTarot = () => {
                           {posLabels[i]}
                         </p>
                         <div
-                          className="mx-auto overflow-hidden rounded-md"
+                          className="mx-auto overflow-hidden rounded-md flex items-center justify-center"
                           style={{
                             width: 90, height: 140,
                             border: `1.5px solid ${isReversed ? 'rgba(184,169,232,0.5)' : 'rgba(201,162,75,0.5)'}`,
                             transform: isReversed ? 'rotate(180deg)' : 'none',
+                            background: carte.is_major === false
+                              ? `linear-gradient(135deg, ${carte.couleur || '#C9A24B'}22, ${carte.couleur || '#C9A24B'}08)`
+                              : '#0e0a24',
                           }}
                         >
-                          <LibraryImage
-                            type="tarot" name={carte.nom} size={140}
-                            alt={carte.nom}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
+                          {carte.is_major === false ? (
+                            // Carte mineure : pas d'image Supabase → fallback stylé
+                            <div className="text-center px-1">
+                              <div className="text-3xl mb-1" style={{ color: carte.couleur || '#C9A24B' }}>
+                                {carte.symbole || '✦'}
+                              </div>
+                              <div className="text-[9px] uppercase tracking-wider text-[#0F1A3C] font-semibold" style={{ fontFamily: 'Cinzel, serif' }}>
+                                {carte.rang}
+                              </div>
+                              <div className="text-[9px] text-[#232323]/70">
+                                de {carte.suite}
+                              </div>
+                            </div>
+                          ) : (
+                            <LibraryImage
+                              type="tarot" name={carte.nom} size={140}
+                              alt={carte.nom}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          )}
                         </div>
                         <p className="text-[#0F1A3C] text-xs mt-2 font-medium" style={{ fontFamily: 'Playfair Display, serif' }}>
                           {carte.nom}

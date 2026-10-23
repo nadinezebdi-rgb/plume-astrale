@@ -1,5 +1,26 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02 (fork) — Tirage Complet 78 cartes + session illimitée
+
+**🎯 Problème** : Les deux tirages existants (Marseille 3 cartes, Croix Celtique 10) ne couvraient que les 22 Arcanes Majeurs peints à la main. Pas de tirage « deck complet » (Majeurs + Mineurs). Et le user devait repayer 5 crédits à chaque nouveau tirage.
+
+**✅ Livré** :
+- Backend : nouveau endpoint `POST /api/tarot/complet` (`server.py`) propulsé par `services/tarot_78_service.py` + `services/deck_78_mineurs.py` (56 Mineurs : As→Roi × 4 suites, interprétations droit/renversé par domaine).
+- Spreads 3/5/7 cartes avec positions thématiques (Passé/Présent/Futur · Fondement/Passé/Présent/Futur proche/Résultat · Vous aujourd'hui/Bloqué/Soutien/Racines/Chemin/Avenir/Conseil).
+- Enrichissement IA en parallèle (`asyncio.gather` + timeout 25s/carte) → réponse 19-24s pour 7 appels (bien sous les 60s du Kubernetes Ingress).
+- Interprétations courtes des Mineurs étoffées côté service (mots-clés + position) avant envoi IA (évite skip `len<20`).
+- PDF : extension de `services/tarot_synthese_pdf.py` pour `type='complet'` (positions dynamiques + bloc stats Majeurs/Mineurs/élément dominant).
+- Frontend `pages/TirageTarot.js` : 3ème carte sélecteur `select-complet` avec badge NOUVEAU, sous-sélecteur 3/5/7 cartes (`nb-cartes-N`), rendu adaptatif en grille + fallback visuel stylé pour les Mineurs sans image (symbole · couleur de suite · rang en Cinzel).
+- Synthèse dédiée (type complet) : tendance, fil conducteur, 1 carte/bloc, conseil final, stats du deck.
+- UX "Un paiement = tirages illimités dans la session" : `recommencer()` conserve `creditUnlocked` → retour à l'étape 1 (sans repayer) tant que la session est active.
+- Alignement grille tarif : UI corrigée de 10→5 crédits (conforme à `SERVICE_COSTS['lecture_tarot'] = 5` dans `config.py`).
+- `first_name` IA/PDF : utilise `user.prenom` du profil (plus l'email prefix) → l'IA s'adresse à "Camille" plutôt que "concours".
+
+**🧪 Tests** : iteration_93.json — 6/6 pytest backend (nb_cartes 3/5/7, is_major, uniqueness, timing, PDF 3.55MB), flow Playwright complet OK avec le compte démo.
+
+**🔗 Fichiers** : `backend/server.py` (endpoint `/api/tarot/complet` + extension PDF), `backend/services/tarot_78_service.py`, `backend/services/deck_78_mineurs.py`, `backend/services/tarot_synthese_pdf.py`, `backend/config.py` (ajout `tarot_complet_78: 15`), `frontend/src/pages/TirageTarot.js`.
+
+
 ## 2026-02 (fork) — Variante Offerte « Ex Libris PNG » (CRO viralité)
 
 **🎯 Problème** : L'acheteur·se d'un Thème Natal n'avait aucun moyen simple d'offrir sa signature astrale à un proche. Pas de boucle virale sortante depuis l'espace client.
