@@ -295,6 +295,61 @@ def _tr_house_name(name: str, language: str) -> str:
     return _I18N['en'].get('house_names_fr_to_local', {}).get(name, name)
 
 
+# Signes zodiacaux FR→EN (ne couvre pas les variantes avec accents multiples)
+_SIGN_FR_TO_EN = {
+    'Bélier': 'Aries', 'Taureau': 'Taurus', 'Gémeaux': 'Gemini',
+    'Cancer': 'Cancer', 'Lion': 'Leo', 'Vierge': 'Virgo',
+    'Balance': 'Libra', 'Scorpion': 'Scorpio', 'Sagittaire': 'Sagittarius',
+    'Capricorne': 'Capricorn', 'Verseau': 'Aquarius', 'Poissons': 'Pisces',
+}
+
+
+def _tr_sign(sign: str, language: str) -> str:
+    """Traduit un signe FR vers la locale."""
+    if not sign or language == 'fr':
+        return sign
+    return _SIGN_FR_TO_EN.get(sign, sign)
+
+
+# Templates d'interprétation d'aspect EN (miroir de _ASPECT_INTERP_TEMPLATES)
+_ASPECT_INTERP_EN = {
+    'Conjonction': 'Fusion. {a} and {b} play the same note. You feel their qualities as one and the same energy — amplified.',
+    'Opposition':  'Tension. {a} and {b} face each other. You swing between the two poles — balance lies at the centre, not in one or the other.',
+    'Trigone':     'Harmony. {a} and {b} get on effortlessly. This talent flows, sometimes too easily — it is yours to engage.',
+    'Carré':       'Friction. {a} and {b} each want to impose their rhythm. It is uncomfortable, but it is your engine — nothing propels you more than this rubbing.',
+    'Sextile':     'Opportunity. {a} and {b} signal to each other. Seize the moment and the energy opens — it never forces anything.',
+}
+
+
+def _interpret_aspect_i18n(aspect: dict, language: str) -> str:
+    """Même rôle que nce.interpret_aspect, mais localisé."""
+    if language == 'en':
+        tmpl = _ASPECT_INTERP_EN.get(aspect.get('type_fr', ''), '')
+        if tmpl:
+            a = _tr_planet(aspect.get('planet_a', '?'), 'en')
+            b = _tr_planet(aspect.get('planet_b', '?'), 'en')
+            return tmpl.format(a=a, b=b)
+    return nce.interpret_aspect(aspect) or ''
+
+
+# Thèmes des 12 maisons en anglais : nom court + description « ce que la maison gouverne ».
+# Clé = nom FR tel qu'il arrive de HOUSE_THEMES dans natal_chart_extract.
+_HOUSE_THEME_EN = {
+    'Le Soi':              ('The Self',           'your appearance, your vital drive, your mask'),
+    'Les Ressources':      ('Resources',          'your values, your money, your relationship to the body'),
+    'La Pensée':           ('The Mind',           'the mind, siblings, short-form learning'),
+    'Les Racines':         ('Roots',              'home, origins, family memory'),
+    'La Créativité':       ('Creativity',         'love affairs, children, play, creation'),
+    'Le Quotidien':        ('Daily Life',         'work, health, service to others'),
+    'Les Partenariats':    ('Partnerships',       'the other, contracts, marriage'),
+    'Les Transformations': ('Transformations',    'death, sex, regenerative crises'),
+    'Les Horizons':        ('Horizons',           'far travels, philosophy, faith'),
+    'La Vocation':         ('Vocation',           'career, public recognition'),
+    'Les Amitiés':         ('Friendships',        'the collective, projects, causes'),
+    "L'Inconscient":       ('The Unconscious',    'secrets, retreat, karma'),
+}
+
+
 def _parse_birth_date(birth_date: str) -> BirthData:
     return BirthData(
         date_iso=birth_date or '',
@@ -311,10 +366,23 @@ def _parse_birth_date(birth_date: str) -> BirthData:
 def _house_sentence(house: dict, language: str = 'fr') -> str:
     """Phrase courte pour une maison : cuspide + occupants + thème."""
     name = _tr_house_name(house['name'], language)
-    sign = house.get('sign') or ''
+    sign_raw = house.get('sign') or ''
+    sign = _tr_sign(sign_raw, language)
     cusp = house.get('cusp_degree_str') or ''
     theme = house.get('theme') or ''
     desc = house.get('theme_desc') or ''
+    # Pour l'EN, on remplace le theme/desc par la version localisée si disponible
+    if language == 'en':
+        en_pair = _HOUSE_THEME_EN.get(theme)
+        if en_pair:
+            theme = en_pair[0]
+            desc = en_pair[1]
+        else:
+            # Essai par matching d'un desc_fr vers son equivalent EN via lookup inversé
+            for en_key, (en_theme, en_desc) in _HOUSE_THEME_EN.items():
+                if desc and (desc in en_key or en_desc in desc):
+                    theme, desc = en_theme, en_desc
+                    break
     planets = house.get('planets') or []
 
     parts = []
@@ -351,8 +419,8 @@ def _aspect_group_paragraphs(aspects: list, nature_hint: str, language: str = 'f
             labels = _I18N['en'].get('aspect_group_labels') or {}
             canonical = a.get('type_fr', '')
             type_label = labels.get(canonical, canonical).lower()
-        interp = nce.interpret_aspect(a) or _T(language, 'aspect_fallback',
-                                               a=a_name, b=b_name, type=type_label)
+        interp = _interpret_aspect_i18n(a, language) or _T(language, 'aspect_fallback',
+                                                           a=a_name, b=b_name, type=type_label)
         orb = a.get('orb_degrees')
         orb_part = ''
         if isinstance(orb, (int, float)):
@@ -414,11 +482,11 @@ def _chapter_synthese(
     # Trio cards (labels localisés)
     trio: list[dict] = []
     if sun_sign:
-        trio.append({'label': _T(language, 'sun_label'), 'sign': sun_sign})
+        trio.append({'label': _T(language, 'sun_label'), 'sign': _tr_sign(sun_sign, language)})
     if moon_sign:
-        trio.append({'label': _T(language, 'moon_label'), 'sign': moon_sign})
+        trio.append({'label': _T(language, 'moon_label'), 'sign': _tr_sign(moon_sign, language)})
     if asc_sign and not no_birth_time:
-        trio.append({'label': _T(language, 'asc_label'), 'sign': asc_sign})
+        trio.append({'label': _T(language, 'asc_label'), 'sign': _tr_sign(asc_sign, language)})
     if trio:
         blocks.append(ChapterBlock(BlockKind.TRIO_CARDS, {'items': trio}))
 
@@ -438,17 +506,17 @@ def _chapter_synthese(
     blocks.append(ChapterBlock(BlockKind.H2, {'text': _T(language, 'ch_synthese_glance')}))
     if sun_sign:
         blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-            'text': _T(language, 'sun_para', sign=sun_sign),
+            'text': _T(language, 'sun_para', sign=_tr_sign(sun_sign, language)),
             'raw': True,
         }))
     if moon_sign:
         blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-            'text': _T(language, 'moon_para', sign=moon_sign),
+            'text': _T(language, 'moon_para', sign=_tr_sign(moon_sign, language)),
             'raw': True,
         }))
     if asc_sign and not no_birth_time:
         blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-            'text': _T(language, 'asc_para', sign=asc_sign),
+            'text': _T(language, 'asc_para', sign=_tr_sign(asc_sign, language)),
             'raw': True,
         }))
     nb_aspects = len(aspects_norm)
@@ -492,7 +560,8 @@ def _chapter_planets(planets_narr: list, pos_by_name: dict, no_birth_time: bool,
     for i, p in enumerate(valid_planets):
         name_fr = p['name'].strip()
         name_display = _tr_planet(name_fr, language)
-        sign = p['sign'].strip()
+        sign_raw = p['sign'].strip()
+        sign = _tr_sign(sign_raw, language)
         analysis = (p.get('analysis') or '').strip()
         # Toutes les 2 planètes, nouvelle page (sauf la première qui suit l'intro)
         if i > 0:
@@ -546,7 +615,7 @@ def _chapter_houses(houses: list, language: str = 'fr') -> Chapter:
             blocks.append(ChapterBlock(BlockKind.PAGE_BREAK, {}))
         h2 = _tr_house_name(h['name'], language)
         if h.get('sign'):
-            h2 += f" · {h['sign']}"
+            h2 += f" · {_tr_sign(h['sign'], language)}"
         if h.get('planets'):
             n = len(h['planets'])
             word_singular = _T(language, 'house_planet_singular')
@@ -590,8 +659,7 @@ def _chapter_aspects(aspects_norm: list, language: str = 'fr') -> Chapter:
             blocks.append(ChapterBlock(BlockKind.PAGE_BREAK, {}))
         rendered_groups += 1
         type_label = labels_map.get(type_fr, type_fr)
-        suffix = 's' if language == 'en' else 's'
-        blocks.append(ChapterBlock(BlockKind.H2, {'text': f'{type_label}{suffix} — {len(sub)}'}))
+        blocks.append(ChapterBlock(BlockKind.H2, {'text': f'{type_label}s — {len(sub)}'}))
         for para in _aspect_group_paragraphs(sub, hint, language=language):
             blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {'text': para, 'raw': True}))
     blocks.append(ChapterBlock(BlockKind.FEATHER, {}))

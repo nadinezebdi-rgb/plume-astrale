@@ -1,5 +1,33 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02 (fork) — Localisation PDF Natal 100% EN + Partage de Tirage + RCA PDFs
+
+**🎯 Problème** : (1) PDF Natal EN affichait encore des titres de chapitres, noms de signes, maisons, aspects et préface en français. (2) Aucun moyen pour l'utilisateur de partager son tirage → zéro bouche-à-oreille entrant. (3) 3 PDFs Thème Natal avaient échoué en prod sans RCA documentée.
+
+**✅ Livré** :
+
+### PDF Natal 100% EN
+- Table `_I18N` FR/EN complète dans `natal_manuscript_builder.py` : titres de 6 chapitres, kickers, intros, labels Soleil/Lune/Ascendant, formatage de date (`June 15, 1990` vs `15 juin 1990`), suffixes `planete(s)`, `maison X / house X`, mots-clés `retrograde ℞`.
+- Helpers `_tr_planet`, `_tr_sign`, `_tr_house_name` + table `_HOUSE_THEME_EN` (12 maisons avec thèmes/descriptions EN).
+- Templates d'aspects EN (`_ASPECT_INTERP_EN`) : Fusion/Tension/Harmony/Friction/Opportunity.
+- `natal_preface_generator._static_fallback(language='en')` : préface 7 blocs entièrement traduite.
+- `natal_pdf_adapter.generate_manuscrit_pdf` propage désormais `language` à `build_natal_manuscript`.
+- Tests : iteration_94.json → 15/15 pytest i18n (0 fuite FR dans la sortie EN sauf noms EN = FR légitimes comme "Mars"/"Jupiter").
+
+### Partage de Tirage (viralité entrante)
+- Backend : `POST /api/tarot/share` (crée un `share_id` 12-hex, stocke dans MongoDB `shared_tirages` avec TTL 90 jours) + `GET /api/tarot/shared/{share_id}` (public, no-auth, compteur de vues).
+- Frontend : nouvelle page publique `pages/TiragePartage.js` montée sur `/tirage-partage/:shareId` — rendu read-only identique à la synthèse (positions, cartes avec fallback Mineurs, synthèse, conseil final), compteur de vues, CTA "Faire mon propre tirage".
+- Bouton `[data-testid=btn-share-tirage]` ajouté à l'étape 3 de `TirageTarot.js` : création du lien + copie clipboard + badge "Lien copié ✓" + encart URL permanent.
+- URL origin automatiquement swappée vers l'origine courante (preview = preview, prod = plume-astrale.fr).
+- Tests : 7/7 pytest + E2E Playwright validé (login → tirage → partage → lecture publique en session fraîche → CTA → page 404 pour ID expiré).
+
+### RCA 3 PDFs échoués
+- Document créé : `/app/memory/RCA_PDF_FAILURES_2026-10.md` — 3 échecs mi-octobre 2026 sur un seul user (nadine.zebdi@gmail.com), tous causés par **clé `ASTROLOGY_API_IO_KEY` expirée** (mise à jour par Emergent le 2026-10-22). Les gardes anti-slop ont correctement refusé de livrer des PDFs incomplets.
+- Reproduction aujourd'hui = succès (12 planètes retournées en ~2s avec la même birth_data). Simple rejeu via `POST /api/admin/regenerate/{session_id}?force=true` suffit à les corriger.
+
+**🔗 Fichiers** : `backend/services/natal_manuscript_builder.py`, `backend/services/natal_preface_generator.py`, `backend/services/natal_pdf_adapter.py`, `backend/server.py` (endpoints share), `frontend/src/pages/TiragePartage.js` (nouveau), `frontend/src/pages/TirageTarot.js`, `frontend/src/App.js`, `memory/RCA_PDF_FAILURES_2026-10.md`.
+
+
 ## 2026-02 (fork) — Tirage Complet 78 cartes + session illimitée
 
 **🎯 Problème** : Les deux tirages existants (Marseille 3 cartes, Croix Celtique 10) ne couvraient que les 22 Arcanes Majeurs peints à la main. Pas de tirage « deck complet » (Majeurs + Mineurs). Et le user devait repayer 5 crédits à chaque nouveau tirage.

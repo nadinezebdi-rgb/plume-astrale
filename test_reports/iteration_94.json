@@ -1,0 +1,55 @@
+{
+  "summary": "Iteration 94: tested natal manuscript EN/FR i18n (builder + static preface fallback), Tarot share API (POST /api/tarot/share, GET /api/tarot/shared/{id}) and the full share UI flow (login demo -> Marseille tirage -> Partager -> public page in fresh session -> CTA -> 404 page). Share feature 100% working. Natal EN: all chapter titles/kickers translated, but French content still leaks into EN body (aspect interpretations, zodiac sign names, house themes). Stripe NOT tested as requested.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "services/natal_manuscript_builder.py::_aspect_group_paragraphs (EN)", "issue": "Calls nce.interpret_aspect(a), which ALWAYS returns French templates (natal_chart_extract._ASPECT_INTERP_TEMPLATES) with French planet names. EN PDF shows e.g. '<b>Sun — Mercury</b> (orb 7.3°). Fusion. Soleil et Mercure jouent la même note. Vous ressentez...'. Every aspect paragraph in the EN Aspects chapter is French.", "priority": "HIGH"},
+      {"endpoint": "services/natal_manuscript_builder.py (EN): planets/houses chapters + trio_cards", "issue": "Zodiac sign names are not translated. natal_pdf_adapter always converts signs to French (_SIGN_EN_TO_FR), and the builder has _tr_planet but no sign translator. EN output: 'Mars in Scorpion', 'Uranus in Verseau', 'Jupiter in Taureau', 'Third house · Balance', 'Ninth house · Bélier', 'Eleventh house · Gémeaux', trio_cards sign 'Vierge'/'Capricorne'.", "priority": "HIGH"},
+      {"endpoint": "services/natal_manuscript_builder.py::_chapter_houses (EN)", "issue": "House theme text comes from French HOUSE_THEMES: 'This house governs votre apparence, votre élan vital, votre masque', 'This house governs l'esprit, la fratrie, les apprentissages courts'.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "POST /api/tarot/share", "issue": "No auth, no rate limit, and no size cap on `data` (any JSON is stored as-is). This lets anyone spam the shared_tirages collection or store arbitrary/oversized content. Suggest capping payload size, whitelisting fields in data/cartes, and adding a light rate limit."},
+      {"endpoint": "POST /api/tarot/share", "issue": "create_index is called on every request. Move it to startup."},
+      {"endpoint": "GET /api/tarot/shared/{id}", "issue": "view_count goes up on every GET, including the sharer's own view, bots and link-preview crawlers. In preview, React StrictMode double-fires the effect, so the first view shows '2 lectures'. Prod builds are not affected."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "TirageTarot synthesis step (Passé/Présent/Futur cards)", "issue": "Duplicated article in the copy: 'Le Le Bateleur (Droit) montre...', 'Le L'Amoureux (Renversé) suggère...'. Pre-existing, from the template that builds the synthesis text.", "selector": "step 3 synthesis cards", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_tarot_share.py",
+    "/app/backend/tests/test_natal_manuscript_i18n.py",
+    "/app/backend/tests/test_natal_manuscript_enriched.py",
+    "/app/test_reports/pytest/pytest_iter94.xml"
+  ],
+  "action_items": [
+    "Localize aspect interpretations for EN: add EN templates for the 5 aspect types and pass translated planet names (do not call nce.interpret_aspect when language=='en').",
+    "Add a _tr_sign(sign, language) helper (Vierge->Virgo, Balance->Libra, Bélier->Aries, Gémeaux->Gemini, Verseau->Aquarius, Poissons->Pisces, Taureau->Taurus, Scorpion->Scorpio, Sagittaire->Sagittarius, Capricorne->Capricorn, Lion->Leo, Cancer->Cancer). Apply it in the planets H2, houses H2, house paragraphs and trio_cards when language=='en'.",
+    "Add EN HOUSE_THEMES used by _chapter_houses when language=='en'.",
+    "Re-run tests/test_natal_manuscript_i18n.py::test_en_no_french_leaks. Its FR_LEAKS list checks for 'Soleil', 'Lune', 'maison ', etc.",
+    "(Optional) Harden POST /api/tarot/share: cap payload size, whitelist fields, rate limit, create indexes at startup.",
+    "(Optional) Fix the 'Le Le Bateleur' / 'Le L'Amoureux' duplicated article in the tarot synthesis copy."
+  ],
+  "critical_code_review_comments": [
+    "natal_manuscript_builder: line `suffix = 's' if language == 'en' else 's'` has identical branches, so it is dead logic.",
+    "tarot_share_endpoint stores the client-provided `data` without validation. Frontend TiragePartage renders it publicly, so field values must not be rendered as raw HTML (they currently look safe as plain JSX text).",
+    "Share GET returns no `_id` (good); share_id hex validation and lowercase normalization work."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_tarot_share.py (new)",
+    "/app/backend/tests/test_natal_manuscript_i18n.py (new)"
+  ],
+  "success_rate": {
+    "backend": "21/22 pytest (95%): share API 7/7, enriched 11/11, i18n 3/4. The i18n failure is the EN French-leak check; the manual scan also found sign and house-theme leaks.",
+    "frontend": "100% (8/8 requested UI steps passed)"
+  },
+  "test_credentials": "concours@plume-astrale.fr / ConcoursPlume2026! (from /app/memory/test_credentials.md). Login page /connexion uses AuthPage, which has no data-testid on its email/password inputs; tests used input[type=email]/[type=password] inside [data-testid=auth-page].",
+  "seed_data_creation": "Created shared_tirages docs: TEST_Camille (pytest) and 245b58cd1b2b (UI run, first_name Camille). They expire via the 90-day TTL.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Share flow fully validated, including clipboard (share URL origin swapped to the preview origin) and the 404 page for unknown and malformed ids. For the natal EN fix, run `cd /app/backend && python -m pytest tests/test_natal_manuscript_i18n.py -q`. Also scan the EN dump for French sign names and HOUSE_THEMES text, which the FR_LEAKS list does not fully cover yet: add 'Vierge', 'Verseau', 'Balance', 'votre'.",
+  "rca of the issue": "The EN leaks come from shared helpers that are French-only. natal_chart_extract.interpret_aspect and HOUSE_THEMES have no language parameter, and natal_pdf_adapter normalizes all signs to French before building. The builder's _I18N dict covers only structural strings (titles, kickers, intros) plus planet names via _tr_planet."
+}
