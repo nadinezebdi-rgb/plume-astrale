@@ -1084,7 +1084,8 @@ async def admin_top_shared_tirages(
         }
     except Exception as e:
         logger.exception(f'[admin] top-shared-tirages failed: {e}')
-        return {'items': [], 'total_shares': 0, 'total_views': 0, 'error': str(e)[:200]}
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail='Lecture viralité indisponible.')
 
 
 

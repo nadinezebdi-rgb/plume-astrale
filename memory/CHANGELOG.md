@@ -1,5 +1,32 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02 (fork) — Dashboard admin Viralité + Carte PNG "Offrir ce tirage"
+
+**🎯 Objectif** : Transformer chaque tirage partagé en vecteur d'acquisition. (1) Permettre aux utilisateurs de télécharger leur tirage sous forme d'une carte PNG stylée pour partage WhatsApp/Instagram. (2) Donner à l'admin une vue en temps réel des tirages qui buzzent.
+
+**✅ Livré** :
+
+### Carte PNG partageable (format Instagram 4:5)
+- Nouveau service `backend/services/shared_tirage_png_renderer.py` — rendu PIL 1080×1350 avec fond navy dégradé, cadre pointillé or, header "✦ PLUME ASTRALE ✦" (NotoSansSymbols2), titre Cormorant Garamond 68pt "Le tirage de {prénom}", question en italique, 3 cartes à placeholder stylisé (symboles spécifiques par arcane : La Lune → ☽, Le Soleil → ☉, L'Étoile → ✧, L'Amoureux → ♥, La Justice → ⚖…), teaser `fil_conducteur` tronqué, footer "plume-astrale.fr" + short URL.
+- Table `_MAJOR_SYMBOLS` de 24 arcanes majeurs ; fallback ☉ si inconnu.
+- Nouvel endpoint `GET /api/tarot/shared/{share_id}/card.png` — public (pas d'auth), wrapped avec `starlette.concurrency.run_in_threadpool` pour ne pas bloquer l'event loop pendant les ~100ms de rendu PIL, Content-Disposition sanitizé (ASCII filename + `filename*=UTF-8''`), Cache-Control 24h.
+- Bouton `[data-testid=shared-cta-download-png]` "Offrir cette carte" ajouté dans `/tirage-partage/:shareId` à côté de "Partager le lien".
+
+### Dashboard admin Viralité Tarot
+- Nouvel endpoint `GET /api/admin/tarot-share/top?limit=50` (protégé `require_admin`) — retourne top shared_tirages triés par `view_count` desc + totaux (`total_shares`, `total_views`, `avg_views_per_share`). Raise HTTPException(500) sur erreur (pas de swallow).
+- Nouvel onglet `[data-testid=admin-viralite-section]` dans `/admin` avec 3 KPIs (shares/views/avg) + table triée par vues (lien "Ouvrir" vers `/tirage-partage/{id}` en nouvel onglet).
+
+### Diagnostic Stripe
+- La clé `STRIPE_API_KEY=sk_test_emergent` est un **sentinel Emergent** qui route via le proxy Emergent vers Stripe LIVE. Pas d'expiration. Checkout Session de test créé avec succès (`cs_test_a1X1v3E9SVQAOYGUeCL9Yt63...`). Le diagnostic du handoff « clé expirée » était inexact.
+
+### Secrets orphelins
+- Grep confirmé : `STRIPE_LIVE_SECRET_KEY`, `ASTROLOGY_API_KEY`, `ASTROLOGY_API_USER_ID`, `ASTROLOGY_API_ACCESS_TOKEN` = 0 référence code. 2/4 déjà blanchis via UI (slots live/test=false). Les 2 restants (STRIPE_LIVE_SECRET_KEY, ASTROLOGY_API_ACCESS_TOKEN) sont inoffensifs mais à nettoyer plus tard via UI Emergent + ticket support@emergent.sh.
+
+**🧪 Tests** : iteration_95.json → 9/9 pytest backend (PNG rendering, admin endpoint 401/403/200, filename sanitize), 100% frontend Playwright (download PNG, admin KPI, table, open link). 26/26 pytest regression (share + i18n + complet78 + png+viralité).
+
+**🔗 Fichiers** : `backend/services/shared_tirage_png_renderer.py` (nouveau), `backend/server.py` (endpoint card.png + sanitize), `backend/routes/admin.py` (endpoint tarot-share/top), `frontend/src/pages/TiragePartage.js` (bouton + fonction downloadCard), `frontend/src/pages/Admin.js` (ViraliteSection + loadViralite + tab trigger), `memory/RCA_PDF_FAILURES_2026-10.md` (ex-session).
+
+
 ## 2026-02 (fork) — Localisation PDF Natal 100% EN + Partage de Tirage + RCA PDFs
 
 **🎯 Problème** : (1) PDF Natal EN affichait encore des titres de chapitres, noms de signes, maisons, aspects et préface en français. (2) Aucun moyen pour l'utilisateur de partager son tirage → zéro bouche-à-oreille entrant. (3) 3 PDFs Thème Natal avaient échoué en prod sans RCA documentée.

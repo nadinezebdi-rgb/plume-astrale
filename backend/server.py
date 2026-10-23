@@ -3023,16 +3023,27 @@ async def tarot_shared_card_png_endpoint(share_id: str, request: Request):
     share_url = f'{public_base}/tirage-partage/{share_id}'
 
     try:
-        png_bytes = render_shared_tirage_png(doc, share_url=share_url)
+        from starlette.concurrency import run_in_threadpool
+        png_bytes = await run_in_threadpool(render_shared_tirage_png, doc, share_url)
     except Exception as e:
         logger.exception(f'[tarot/shared/card] render failed: {e}')
         raise HTTPException(status_code=500, detail='Impossible de générer la carte.')
 
+    # Sanitize first_name pour l'entête Content-Disposition (ASCII-safe +
+    # filename* UTF-8 pour les clients modernes).
+    import re
+    import urllib.parse
+    raw_name = (doc.get('first_name') or 'plume').lower()
+    ascii_name = re.sub(r'[^a-z0-9_-]+', '-', raw_name).strip('-') or 'plume'
+    utf8_name = urllib.parse.quote(f'tirage-{raw_name}-{share_id}.png')
     return Response(
         content=png_bytes,
         media_type='image/png',
         headers={
-            'Content-Disposition': f'attachment; filename="tirage-{doc.get("first_name", "plume")}-{share_id}.png"',
+            'Content-Disposition': (
+                f'attachment; filename="tirage-{ascii_name}-{share_id}.png"; '
+                f"filename*=UTF-8''{utf8_name}"
+            ),
             'Cache-Control': 'public, max-age=86400',
         },
     )

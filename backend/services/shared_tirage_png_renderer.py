@@ -36,6 +36,37 @@ TYPE_LABELS = {
 }
 
 
+# Symboles par arcane majeur (clé = nom tel qu'il arrive du deck).
+# Fallback : ☉ (Soleil universel). Permet d'éviter que toutes les cartes
+# majeures affichent le même glyphe par défaut.
+_MAJOR_SYMBOLS = {
+    'Le Mat': '✦',
+    'Le Bateleur': '⚚',
+    'La Papesse': '☽',
+    "L'Impératrice": '♀',
+    "L'Empereur": '♂',
+    'Le Pape': '✝',
+    "L'Amoureux": '♥',
+    'Le Chariot': '✪',
+    'La Justice': '⚖',
+    "L'Hermite": '✧',
+    'La Roue de Fortune': '☸',
+    'La Force': '∞',
+    'Le Pendu': '⌛',
+    "La Mort": '☠',
+    "L'Arcane sans Nom": '☠',
+    'Tempérance': '♒',
+    'Le Diable': '⚡',
+    'La Maison Dieu': '⚡',
+    'La Tour': '⚡',
+    "L'Étoile": '✧',
+    'La Lune': '☽',
+    'Le Soleil': '☉',
+    'Le Jugement': '✠',
+    'Le Monde': '◉',
+}
+
+
 def _font(name: str, size: int) -> ImageFont.FreeTypeFont:
     path = FONTS_DIR / f'CormorantGaramond-{name}.ttf'
     if path.is_file():
@@ -132,11 +163,13 @@ def _draw_card_placeholder(img: Image.Image, draw: ImageDraw.ImageDraw,
                             outline=GOLD, width=3)
 
     # Symbole central
-    symbol = carte.get('symbole') or ('✦' if is_minor else '☉')
+    if is_minor:
+        symbol = carte.get('symbole') or '✦'
+    else:
+        # Carte majeure : symbole spécifique si connu, sinon ☉ par défaut
+        symbol = _MAJOR_SYMBOLS.get((carte.get('nom') or '').strip(), '☉')
     sym_font = _symbol_font_for_glyph(symbol, 72)
-    sym_color = GOLD if not is_minor else (
-        _hex_to_rgb(carte.get('couleur') or '#C9A24B')
-    )
+    sym_color = GOLD if not is_minor else GOLD  # Gold or sur navy + or doux sur crème
     bbox = draw.textbbox((0, 0), symbol, font=sym_font)
     sw, sh = bbox[2] - bbox[0], bbox[3] - bbox[1]
     draw.text((x + (w - sw) // 2 - bbox[0], y + h // 3 - sh // 2 - bbox[1]),
@@ -156,9 +189,14 @@ def _draw_card_placeholder(img: Image.Image, draw: ImageDraw.ImageDraw,
                       ln, font=name_font, fill=text_color)
             line_y += (bbox[3] - bbox[1]) + 4
 
-    # Indicateur orientation (petit pavé en bas)
+    # Indicateur orientation (petit pavé en bas) — contrast fort sur chaque fond
     label = 'Renversée' if is_reversed else 'Droite'
-    label_color = MUTED if is_reversed else GOLD
+    if is_minor:
+        # Fond crème → encre navy pour contraste max
+        label_color = NAVY if not is_reversed else (90, 60, 140)
+    else:
+        # Fond navy → or pour droit, violet pâle pour renversé
+        label_color = GOLD if not is_reversed else MUTED
     try:
         label_font = _font('Italic', 16)
     except Exception:
