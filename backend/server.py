@@ -3141,13 +3141,16 @@ log_startup_stripe_status()
 
 @app.get('/health')
 async def health_check():
-    return {'status': 'healthy', 'service': 'plume-astrale'}
+    # Endpoint ultra-léger pour les probes K8s/nginx : AUCUNE I/O, aucune dépendance.
+    # DOIT répondre en <5ms même si l'event loop est sous charge, sinon le pod
+    # est tué par le kubelet avant d'être marqué healthy (déploiement échoue).
+    return Response(content='{"status":"healthy"}', media_type='application/json')
 
 
 @app.get('/api/health')
 async def api_health_check():
     """Mirror of /health under /api for Kubernetes ingress probes."""
-    return {'status': 'healthy', 'service': 'plume-astrale'}
+    return Response(content='{"status":"healthy"}', media_type='application/json')
 
 
 if ASSETS_DIR.exists():
@@ -3552,6 +3555,33 @@ async def _start_cart_recovery():
     from services.promo_bootstrap import ensure_permanent_promo_codes
     from services.qr_referral_tracker import ensure_referral_scan_tables
     from services.ssr_snapshot import ssr_refresh_loop
+
+    # ─────────────────────────────────────────────────────────────────
+    # DEPLOY FIX (2026-10) : fenêtre de warmup pour les probes K8s/nginx.
+    # Les background loops saturent l'event loop (appels GPT, HTTP sortants)
+    # et faisaient timeout les probes /health → le pod était tué avant d'être
+    # déclaré healthy. On délaie leur démarrage de BACKGROUND_LOOPS_WARMUP_SEC
+    # secondes pour laisser passer les probes initiales.
+    # On peut aussi désactiver complètement via BACKGROUND_LOOPS_ENABLED=0.
+    # ─────────────────────────────────────────────────────────────────
+    _bg_enabled = os.environ.get('BACKGROUND_LOOPS_ENABLED', '1') != '0'
+    _warmup_sec = int(os.environ.get('BACKGROUND_LOOPS_WARMUP_SEC', '90'))
+
+    async def _delayed_start(coro, warmup=_warmup_sec):
+        try:
+            await _asyncio.sleep(warmup)
+            await coro
+        except Exception as _e:
+            logging.getLogger(__name__).warning(
+                f'background loop crashed: {type(_e).__name__}: {_e}'
+            )
+
+    if not _bg_enabled:
+        logging.getLogger(__name__).warning(
+            'BACKGROUND_LOOPS_ENABLED=0 → tous les loops de fond sont DÉSACTIVÉS'
+        )
+        return
+
     # Bootstrap idempotent des codes promo permanents (TOUT2026)
     try:
         ensure_permanent_promo_codes()
@@ -3562,38 +3592,39 @@ async def _start_cart_recovery():
         ensure_referral_scan_tables()
     except Exception as _e:
         logging.getLogger(__name__).warning(f'qr referral bootstrap skipped: {_e}')
-    _asyncio.create_task(cart_recovery_loop())
-    _asyncio.create_task(lead_nurture_loop())
-    _asyncio.create_task(astrocarto_followup_loop())
-    _asyncio.create_task(crosssell_astrocarto_loop())
-    _asyncio.create_task(daily_horoscope_scheduler_loop())
-    _asyncio.create_task(lecture_complete_sequence_loop())
-    _asyncio.create_task(daily_journal_scheduler_loop())
-    _asyncio.create_task(refund_alert_loop())
-    _asyncio.create_task(ab_ctr_refresh_loop())
-    _asyncio.create_task(weekly_insights_loop())
-    _asyncio.create_task(cercle_monthly_report_loop())
-    _asyncio.create_task(ig_weekly_post_loop())
-    _asyncio.create_task(ig_token_refresh_loop())
-    _asyncio.create_task(ssr_refresh_loop())
+    # Tous les loops démarrent après BACKGROUND_LOOPS_WARMUP_SEC (90s par défaut)
+    _asyncio.create_task(_delayed_start(cart_recovery_loop()))
+    _asyncio.create_task(_delayed_start(lead_nurture_loop()))
+    _asyncio.create_task(_delayed_start(astrocarto_followup_loop()))
+    _asyncio.create_task(_delayed_start(crosssell_astrocarto_loop()))
+    _asyncio.create_task(_delayed_start(daily_horoscope_scheduler_loop()))
+    _asyncio.create_task(_delayed_start(lecture_complete_sequence_loop()))
+    _asyncio.create_task(_delayed_start(daily_journal_scheduler_loop()))
+    _asyncio.create_task(_delayed_start(refund_alert_loop()))
+    _asyncio.create_task(_delayed_start(ab_ctr_refresh_loop()))
+    _asyncio.create_task(_delayed_start(weekly_insights_loop()))
+    _asyncio.create_task(_delayed_start(cercle_monthly_report_loop()))
+    _asyncio.create_task(_delayed_start(ig_weekly_post_loop()))
+    _asyncio.create_task(_delayed_start(ig_token_refresh_loop()))
+    _asyncio.create_task(_delayed_start(ssr_refresh_loop()))
     # Flow d'approbation 72h "Vous lisez avant qu'on imprime" (Édition Reliée)
     from services.print_approval_service import print_approval_loop
-    _asyncio.create_task(print_approval_loop())
+    _asyncio.create_task(_delayed_start(print_approval_loop()))
     # Recovery nocturne Stripe : rejoue le batch chaque nuit sur les 24h (Feb 2026)
     from services.stripe_recovery_scheduler import stripe_recovery_nightly_loop
-    _asyncio.create_task(stripe_recovery_nightly_loop())
+    _asyncio.create_task(_delayed_start(stripe_recovery_nightly_loop()))
     # Health-check continu de la clé astrology-api.io (ping 6h + alerte Resend si 401/403)
     from services.astrology_io_health import astrology_io_health_loop
-    _asyncio.create_task(astrology_io_health_loop())
+    _asyncio.create_task(_delayed_start(astrology_io_health_loop()))
     # Relance J+2 des leads synastrie non convertis (-10% SYNEXT10)
     from services.synastrie_lead_followup import synastrie_lead_followup_loop
-    _asyncio.create_task(synastrie_lead_followup_loop())
+    _asyncio.create_task(_delayed_start(synastrie_lead_followup_loop()))
     # Health-check du domaine canonique (SSL + HTTP), alertes Resend ciblées
     from services.dns_domain_health import dns_domain_health_loop
-    _asyncio.create_task(dns_domain_health_loop())
+    _asyncio.create_task(_delayed_start(dns_domain_health_loop()))
     # Journal hebdo vendredi 9h UTC + auto-lock variantes gagnantes
     from services.weekly_digest import weekly_digest_loop
-    _asyncio.create_task(weekly_digest_loop())
+    _asyncio.create_task(_delayed_start(weekly_digest_loop()))
 
 
 
