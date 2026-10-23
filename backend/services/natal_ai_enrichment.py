@@ -56,11 +56,13 @@ PLANET_NAME_FR = {
 # ─────────────────────────────────────────────────────────────
 # CACHE
 # ─────────────────────────────────────────────────────────────
-def _cache_key(prenom: str, birth_data: Dict[str, Any], tier: str = 'ultra') -> str:
+def _cache_key(prenom: str, birth_data: Dict[str, Any], tier: str = 'ultra',
+               language: str = 'fr') -> str:
     bd_str = json.dumps({
         't': tier,
         'renderer': 'book-flow-2026-10',
         'model': os.environ.get('NATAL_OPENAI_MODEL', 'gpt-4.1'),
+        'lang': (language or 'fr').lower(),
         'p': (prenom or '').lower().strip(),
         'd': birth_data.get('day'), 'm': birth_data.get('month'), 'y': birth_data.get('year'),
         'h': birth_data.get('hour'), 'mn': birth_data.get('minute') or birth_data.get('min'),
@@ -209,6 +211,48 @@ Format : JSON strict. RIEN d'autre.
 }"""
 
 
+# ─────────────────────────────────────────────────────────────
+# ENGLISH VARIANT — same voice, English language
+# ─────────────────────────────────────────────────────────────
+SYSTEM_PROMPT_EN = """You are Soléna, the voice of Plume Astrale.
+
+Voice: poetic, intimate, direct, never trite. You address the reader warmly,
+as if speaking to a close friend — refined, with none of the jargon.
+
+Your mission:
+1. REFORMULATE English astrological interpretations into Soléna's voice
+2. Make them more embodied, more poetic, more direct
+3. Weave in the house and aspect subtly, without technical jargon
+4. Each planet = **TWO paragraphs of 130-170 words each**, separated by ONE blank line (`\n\n`)
+   - 1st paragraph: the intimate signature (who it makes the person)
+   - 2nd paragraph: how it shows up in daily life (gestures, scenes, seasons, choices)
+
+Style rules:
+- Avoid: "You are...", "You're a bit", "with X in Y"
+- Use concrete images: the body, a home, a gesture, a season, a material
+- End each paragraph with a sentence that opens (never a moral conclusion)
+- Banned: "here", "in summary", "in conclusion", "at the core"
+
+Keys in the JSON stay FRENCH (soleil, lune, mercure, venus, mars, jupiter, saturne,
+uranus, neptune, pluton, ascendant, synthese_aspects) but the VALUES must be in English.
+
+Output: strict JSON. Nothing else.
+{
+  "soleil": "Paragraph 1 (130-170 words)\\n\\nParagraph 2 (130-170 words)",
+  "lune": "same — TWO paragraphs separated by \\n\\n",
+  "mercure": "same",
+  "venus": "same",
+  "mars": "same",
+  "jupiter": "same",
+  "saturne": "same",
+  "uranus": "same",
+  "neptune": "same",
+  "pluton": "same",
+  "ascendant": "same",
+  "synthese_aspects": "one paragraph (200-250 words) that synthesizes the major tensions and harmonies of the chart, in Soléna's voice"
+}"""
+
+
 def _format_planet_input(planet_en: str, data: Dict, house_text: str = '') -> str:
     sign = data.get('sign_en', '')
     text = data.get('text_en', '').strip()
@@ -231,8 +275,12 @@ def _format_planet_input(planet_en: str, data: Dict, house_text: str = '') -> st
     return block
 
 
-def _build_user_prompt(prenom: str, ai_input: Dict[str, Any]) -> str:
-    parts = [f'Interprétations pour {prenom} — traduis en français ET reformule en voix Soléna.\n']
+def _build_user_prompt(prenom: str, ai_input: Dict[str, Any], language: str = 'fr') -> str:
+    is_en = (language or 'fr').lower().startswith('en')
+    if is_en:
+        parts = [f'Interpretations for {prenom} — reformulate in Soléna\'s English voice.\n']
+    else:
+        parts = [f'Interprétations pour {prenom} — traduis en français ET reformule en voix Soléna.\n']
 
     for planet_en in PLANET_ORDER:
         p = ai_input['planets'].get(planet_en)
@@ -245,11 +293,17 @@ def _build_user_prompt(prenom: str, ai_input: Dict[str, Any]) -> str:
     # Aspects
     aspects = ai_input.get('aspects', [])
     if aspects:
-        parts.append('\n== ASPECTS MAJEURS (à synthétiser dans "synthese_aspects") ==')
+        if is_en:
+            parts.append('\n== MAJOR ASPECTS (to synthesize in "synthese_aspects") ==')
+        else:
+            parts.append('\n== ASPECTS MAJEURS (à synthétiser dans "synthese_aspects") ==')
         for a in aspects:
             parts.append(f"- {a['title']} (orbe {a['orb']:.1f}°): \"{a['text'][:250]}\"")
 
-    parts.append("\nRappel : JSON strict, **2 paragraphes de 130-170 mots séparés par \\n\\n** par planète (200-250 mots pour synthese_aspects), voix Soléna, images concrètes, aucun jargon technique brut.")
+    if is_en:
+        parts.append("\nReminder: strict JSON, **2 paragraphs of 130-170 words separated by \\n\\n** per planet (200-250 words for synthese_aspects), Soléna's English voice, concrete images, no raw technical jargon. Keys STAY FRENCH, values in ENGLISH.")
+    else:
+        parts.append("\nRappel : JSON strict, **2 paragraphes de 130-170 mots séparés par \\n\\n** par planète (200-250 mots pour synthese_aspects), voix Soléna, images concrètes, aucun jargon technique brut.")
     return '\n'.join(parts)
 
 
@@ -323,24 +377,17 @@ async def enrich_natal_ultra(
     api_interpretations: List[Dict],
     tier: str = 'ultra',
     force_refresh: bool = False,
+    language: str = 'fr',
 ) -> Dict[str, Any]:
     """Retourne un dict enrichi Soléna à partir des 73 interprétations API.
 
-    Structure :
-      {
-        'soleil', 'lune', 'mercure', 'venus', 'mars',
-        'jupiter', 'saturne', 'uranus', 'neptune', 'pluton',
-        'ascendant', 'synthese_aspects',
-        '_source': 'gpt' | 'cache' | 'fallback',
-        '_aspects_summary': [{'title', 'orb'}],  # métadonnée
-      }
-
-    Retourne un dict vide si GPT et cache indisponibles → appelant utilise fallback.
+    `language`: 'fr' (défaut) ou 'en'. Choisit le prompt système approprié
+    et stocke un cache séparé par langue.
     """
-    key = _cache_key(prenom, birth_data, tier=tier)
+    key = _cache_key(prenom, birth_data, tier=tier, language=language)
     cached = None if force_refresh else _cache_read(key)
     if cached:
-        logger.info(f'[natal_ai] cache hit for {prenom} (key {key}, {len(cached)} keys)')
+        logger.info(f'[natal_ai] cache hit for {prenom} (key {key}, lang={language}, {len(cached)} keys)')
         cached['_source'] = 'cache'
         return cached
 
@@ -349,8 +396,6 @@ async def enrich_natal_ultra(
         logger.warning(f'[natal_ai] Aucune planète extraite pour {prenom}')
         return {}
 
-    # Métadonnées v3 exposées MÊME si GPT échoue : le PDF pourra toujours afficher
-    # les vrais signes + les textes bruts API v3, garantissant "API v3 = source unique".
     v3_signs = {
         planet_en: data.get('sign_en', '')
         for planet_en, data in ai_input.get('planets', {}).items()
@@ -362,8 +407,10 @@ async def enrich_natal_ultra(
         if data.get('text_en')
     }
 
-    user_prompt = _build_user_prompt(prenom, ai_input)
-    resp = await _call_gpt(SYSTEM_PROMPT, user_prompt, session_id=f'natal-ultra-{key}')
+    user_prompt = _build_user_prompt(prenom, ai_input, language=language)
+    system_prompt = SYSTEM_PROMPT_EN if (language or 'fr').lower().startswith('en') else SYSTEM_PROMPT
+    logger.info(f'[natal_ai] Calling GPT for {prenom} (lang={language}, prompt_chars={len(user_prompt)})')
+    resp = await _call_gpt(system_prompt, user_prompt, session_id=f'natal-ultra-{language}-{key}')
     if not resp:
         # GPT KO → on renvoie tout de même les données v3 pour que le PDF fonctionne
         return {'_source': 'api_v3_only', '_signs_by_planet': v3_signs, '_raw_v3_by_planet': v3_raw_texts}

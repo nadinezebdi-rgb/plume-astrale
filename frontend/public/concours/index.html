@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Plume Astrale — Dossier Concours Emergent</title>
+<style>
+  :root {
+    --navy: #142342;
+    --cream: #f5eee0;
+    --gold: #d4af37;
+    --gold-dim: #a78140;
+    --ink: #243047;
+    --muted: #8a95ad;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Cormorant Garamond', 'Garamond', Georgia, serif;
+    background: var(--navy);
+    color: var(--cream);
+    min-height: 100vh;
+    padding: 2.5rem 1.5rem;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 3rem; padding-bottom: 2rem;
+           border-bottom: 1px solid rgba(212,175,55,.3); }
+  .brand {
+    font-size: .7rem; letter-spacing: .4em; color: var(--gold);
+    margin-bottom: 1.2rem;
+  }
+  h1 {
+    font-size: 2.6rem; font-weight: 400; letter-spacing: -.01em;
+    line-height: 1.15; margin-bottom: .8rem;
+  }
+  .subtitle { font-style: italic; color: var(--gold); font-size: 1.1rem; }
+  .meta { color: var(--muted); font-size: .95rem; margin-top: .8rem; }
+
+  section { margin-bottom: 3rem; }
+  h2 {
+    font-size: 1.5rem; font-weight: 400; color: var(--cream);
+    padding-bottom: .5rem; margin-bottom: 1.2rem;
+    border-bottom: 1px solid rgba(212,175,55,.25);
+  }
+  h2 .num { color: var(--gold); margin-right: .5rem; font-style: italic; }
+
+  .cards { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 720px) { .cards.two { grid-template-columns: 1fr 1fr; } }
+
+  .card {
+    background: rgba(245,238,224,.04);
+    border: 1px solid rgba(212,175,55,.25);
+    border-radius: 2px;
+    padding: 1.4rem 1.6rem;
+    transition: all .3s ease;
+    text-decoration: none;
+    color: var(--cream);
+    display: block;
+  }
+  .card:hover {
+    background: rgba(245,238,224,.08);
+    border-color: var(--gold);
+    transform: translateY(-2px);
+  }
+  .card-title {
+    font-size: 1.25rem; color: var(--gold); margin-bottom: .3rem;
+  }
+  .card-desc { color: var(--cream); opacity: .85; font-size: .95rem; line-height: 1.5; }
+  .card-meta {
+    font-size: .8rem; color: var(--muted); margin-top: .8rem; letter-spacing: .02em;
+    font-family: Monaco, monospace;
+  }
+  .card-cta {
+    display: inline-block; margin-top: .9rem;
+    color: var(--gold); font-size: .9rem; font-style: italic;
+  }
+  .card-cta::after { content: ' →'; }
+
+  .kpis {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+    text-align: center; padding: 1.6rem; margin-bottom: 2rem;
+    border: 1px solid var(--gold-dim); background: rgba(0,0,0,.2);
+  }
+  .kpi-big { font-size: 2.2rem; color: var(--gold); font-weight: 500; }
+  .kpi-label { font-size: .85rem; color: var(--cream); opacity: .8; font-style: italic; }
+
+  footer {
+    text-align: center; margin-top: 4rem; padding-top: 2rem;
+    border-top: 1px solid rgba(212,175,55,.2); color: var(--muted);
+    font-size: .85rem;
+  }
+  footer a { color: var(--gold); text-decoration: none; }
+
+  .pill {
+    display: inline-block; padding: .1rem .5rem;
+    background: var(--gold); color: var(--navy); border-radius: 2px;
+    font-size: .7rem; letter-spacing: .1em; margin-left: .5rem;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">P L U M E   A S T R A L E</div>
+    <h1>Dossier Concours Emergent</h1>
+    <div class="subtitle">All resources in one place.</div>
+    <div class="meta">Updated · October 22, 2026</div>
+  </header>
+
+  <section class="kpis">
+    <div><div class="kpi-big">104</div><div class="kpi-label">paid orders</div></div>
+    <div><div class="kpi-big">13×</div><div class="kpi-label">ROAS on 183 € FB Ads</div></div>
+    <div><div class="kpi-big">LIVE</div><div class="kpi-label">plume-astrale.fr</div></div>
+  </section>
+
+  <!-- ─── PITCH DECK ─── -->
+  <section>
+    <h2><span class="num">01</span>Pitch deck</h2>
+    <div class="cards two">
+      <a class="card" href="/demos/contest-deck-with-music.mp4" target="_blank" rel="noopener">
+        <div class="card-title">Deck vidéo + musique <span class="pill">MP4</span></div>
+        <div class="card-desc">Défilement automatique de 70 s avec musique de fond douce (fade in/out). Idéal pour partage d'écran live.</div>
+        <div class="card-meta">1920×1080 · 70 s · 3,6 MB · H.264 + AAC</div>
+        <span class="card-cta">Télécharger / Prévisualiser</span>
+      </a>
+      <a class="card" href="/demos/contest-deck-auto.mp4" target="_blank" rel="noopener">
+        <div class="card-title">Deck vidéo (muet) <span class="pill">MP4</span></div>
+        <div class="card-desc">Même deck sans musique — pour overlay audio custom ou présentation parlée.</div>
+        <div class="card-meta">1920×1080 · 70 s · 1,9 MB</div>
+        <span class="card-cta">Télécharger / Prévisualiser</span>
+      </a>
+      <a class="card" href="/demos/contest-deck-auto.pptx">
+        <div class="card-title">Deck PowerPoint <span class="pill">PPTX</span></div>
+        <div class="card-desc">Timings auto 10 s/slide + boucle infinie. Éditable dans PowerPoint ou Keynote.</div>
+        <div class="card-meta">7 slides · 7,5 MB</div>
+        <span class="card-cta">Télécharger</span>
+      </a>
+      <a class="card" href="/demos/contest-deck-final.pdf" target="_blank" rel="noopener">
+        <div class="card-title">Deck PDF <span class="pill">PDF</span></div>
+        <div class="card-desc">Version PDF prête à partager ou imprimer. 9 slides avec slide Market Validation + Live Acquisition.</div>
+        <div class="card-meta">9 slides · PDF A4 paysage</div>
+        <span class="card-cta">Prévisualiser</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ─── PRODUCT DEMO ─── -->
+  <section>
+    <h2><span class="num">02</span>Product demo</h2>
+    <div class="cards two">
+      <a class="card" href="/demos/contest-natal-english.pdf" target="_blank" rel="noopener">
+        <div class="card-title">Thème Natal — Camille (EN) <span class="pill">PDF</span></div>
+        <div class="card-desc">PDF 57 pages généré par le vrai pipeline IA (GPT-5.4 + astrology-api.io). Démontre la qualité du produit.</div>
+        <div class="card-meta">57 pages · 5,6 MB · Anglais · IA GPT-5.4 confirmée</div>
+        <span class="card-cta">Télécharger / Prévisualiser</span>
+      </a>
+      <a class="card" href="/demos/concours-theme-natal-solena.pdf" target="_blank" rel="noopener">
+        <div class="card-title">Thème Natal — Soléna (FR) <span class="pill">PDF</span></div>
+        <div class="card-desc">Version française du produit livré en production (40 pages, voix Soléna).</div>
+        <div class="card-meta">40 pages · 19,3 MB · Français</div>
+        <span class="card-cta">Télécharger / Prévisualiser</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ─── LINKS EXTÉRIEURS ─── -->
+  <section>
+    <h2><span class="num">03</span>Liens externes</h2>
+    <div class="cards two">
+      <a class="card" href="https://www.youtube.com/watch?v=12y2jor786M" target="_blank" rel="noopener">
+        <div class="card-title">Vidéo YouTube <span class="pill">YT</span></div>
+        <div class="card-desc">Version hébergée sur YouTube (publique ou unlisted selon ton réglage).</div>
+        <div class="card-meta">youtube.com/watch?v=12y2jor786M</div>
+        <span class="card-cta">Ouvrir sur YouTube</span>
+      </a>
+      <a class="card" href="https://plume-astrale.fr" target="_blank" rel="noopener">
+        <div class="card-title">Produit live <span class="pill">WEB</span></div>
+        <div class="card-desc">L'application en production. Le jury peut tester avec une adresse e-mail.</div>
+        <div class="card-meta">plume-astrale.fr</div>
+        <span class="card-cta">Visiter le site</span>
+      </a>
+      <a class="card" href="https://claude.ai/artifact/5GiUHbLHNoY1an2bFza2vo" target="_blank" rel="noopener">
+        <div class="card-title">Artefact Claude <span class="pill">EXT</span></div>
+        <div class="card-desc">Ressource complémentaire hébergée sur Claude.</div>
+        <div class="card-meta">claude.ai/artifact/5GiUHbLHNoY1an2bFza2vo</div>
+        <span class="card-cta">Ouvrir sur Claude</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ─── CREDENTIALS DÉMO ─── -->
+  <section>
+    <h2><span class="num">04</span>Compte démo pour le jury</h2>
+    <div class="card" style="max-width:none">
+      <div class="card-title">Compte test livré pour le concours</div>
+      <div class="card-desc" style="margin-top:1rem;line-height:1.9">
+        <strong style="color:var(--gold)">Email :</strong>
+        <code style="background:rgba(0,0,0,.3);padding:.1rem .4rem;color:var(--cream)">concours@plume-astrale.fr</code><br>
+        <strong style="color:var(--gold)">Mot de passe :</strong>
+        <code style="background:rgba(0,0,0,.3);padding:.1rem .4rem;color:var(--cream)">ConcoursPlume2026!</code><br>
+        <strong style="color:var(--gold)">Profil :</strong> Camille · née le 23/04/1992 à 09h15 Lyon · 500 crédits<br>
+        <strong style="color:var(--gold)">URL :</strong>
+        <a href="https://plume-astrale.fr/connexion" style="color:var(--gold)" target="_blank">plume-astrale.fr/connexion</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <strong>Nadine Zebdi</strong> · Founder of Plume Astrale<br>
+    Digital product designer &amp; developer · <a href="https://plume-astrale.fr">plume-astrale.fr</a>
+  </footer>
+
+</div>
+</body>
+</html>

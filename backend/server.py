@@ -2,7 +2,7 @@
 from services.origin_guard import DEFAULT_ORIGINS, validate_origin
 from services.rate_limit import rate_limit
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Query, Body
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import Response, StreamingResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 import os
@@ -2872,27 +2872,40 @@ async def tarot_marseille_endpoint(request: Request):
     body = await request.json()
     first_name = (body.get('first_name') or body.get('prenom') or 'toi').strip()
     result = tirage_marseille_question(body.get('question', ''), body.get('domaine', 'general'))
-    # Enrichir les interprétations de chaque carte + la synthèse
+    # Enrichir en parallèle (asyncio.gather + timeout par appel) pour rester sous
+    # les 60s de l'ingress Kubernetes. Fallback : texte source brut si l'IA échoue.
+    import asyncio as _asyncio
     try:
         from services.enrich_narrative import enrich_and_ask
-        for k in ('interpretation', 'synthese', 'conseil', 'message'):
-            if isinstance(result.get(k), str) and len(result[k]) > 30:
-                result[k] = await enrich_and_ask(
-                    result[k],
-                    context=f"tarot_marseille.{k}",
-                    first_name=first_name,
-                    target_length='long',
+
+        async def _safe(text, ctx, length):
+            try:
+                return await _asyncio.wait_for(
+                    enrich_and_ask(text, context=ctx, first_name=first_name, target_length=length),
+                    timeout=25.0,
                 )
-        # Enrichir aussi les cartes individuelles
+            except Exception as _e:
+                logger.warning(f'[tarot/marseille] enrich skipped ({ctx}): {_e}')
+                return text
+
+        synth_keys = [k for k in ('interpretation', 'synthese', 'conseil', 'message')
+                      if isinstance(result.get(k), str) and len(result[k]) > 30]
+        card_items = []
         if isinstance(result.get('cartes'), list):
             for carte in result['cartes']:
                 if isinstance(carte, dict) and isinstance(carte.get('interpretation'), str):
-                    carte['interpretation'] = await enrich_and_ask(
-                        carte['interpretation'],
-                        context=f"tarot_marseille.carte.{carte.get('nom', '')}",
-                        first_name=first_name,
-                        target_length='medium',
-                    )
+                    card_items.append(carte)
+
+        tasks = (
+            [_safe(result[k], f'tarot_marseille.{k}', 'long') for k in synth_keys] +
+            [_safe(c['interpretation'], f"tarot_marseille.carte.{c.get('nom', '')}", 'medium')
+             for c in card_items]
+        )
+        enriched = await _asyncio.gather(*tasks, return_exceptions=False)
+        for k, val in zip(synth_keys, enriched[: len(synth_keys)]):
+            result[k] = val
+        for c, val in zip(card_items, enriched[len(synth_keys):]):
+            c['interpretation'] = val
     except Exception as e:
         logger.warning(f'[tarot/marseille] enrich failed: {e}')
     return {'success': True, 'data': result}
@@ -2903,25 +2916,38 @@ async def tarot_celtique_endpoint(request: Request):
     body = await request.json()
     first_name = (body.get('first_name') or body.get('prenom') or 'toi').strip()
     result = tirage_croix_celtique(body.get('question', ''), body.get('domaine', 'general'))
+    import asyncio as _asyncio
     try:
         from services.enrich_narrative import enrich_and_ask
-        for k in ('interpretation', 'synthese', 'conseil', 'message'):
-            if isinstance(result.get(k), str) and len(result[k]) > 30:
-                result[k] = await enrich_and_ask(
-                    result[k],
-                    context=f"tarot_celtique.{k}",
-                    first_name=first_name,
-                    target_length='long',
+
+        async def _safe(text, ctx, length):
+            try:
+                return await _asyncio.wait_for(
+                    enrich_and_ask(text, context=ctx, first_name=first_name, target_length=length),
+                    timeout=25.0,
                 )
+            except Exception as _e:
+                logger.warning(f'[tarot/celtique] enrich skipped ({ctx}): {_e}')
+                return text
+
+        synth_keys = [k for k in ('interpretation', 'synthese', 'conseil', 'message')
+                      if isinstance(result.get(k), str) and len(result[k]) > 30]
+        card_items = []
         if isinstance(result.get('cartes'), list):
             for carte in result['cartes']:
                 if isinstance(carte, dict) and isinstance(carte.get('interpretation'), str):
-                    carte['interpretation'] = await enrich_and_ask(
-                        carte['interpretation'],
-                        context=f"tarot_celtique.carte.{carte.get('position', '')}",
-                        first_name=first_name,
-                        target_length='medium',
-                    )
+                    card_items.append(carte)
+
+        tasks = (
+            [_safe(result[k], f'tarot_celtique.{k}', 'long') for k in synth_keys] +
+            [_safe(c['interpretation'], f"tarot_celtique.carte.{c.get('position', '')}", 'medium')
+             for c in card_items]
+        )
+        enriched = await _asyncio.gather(*tasks, return_exceptions=False)
+        for k, val in zip(synth_keys, enriched[: len(synth_keys)]):
+            result[k] = val
+        for c, val in zip(card_items, enriched[len(synth_keys):]):
+            c['interpretation'] = val
     except Exception as e:
         logger.warning(f'[tarot/celtique] enrich failed: {e}')
     return {'success': True, 'data': result}
@@ -2931,6 +2957,393 @@ async def tarot_celtique_endpoint(request: Request):
 async def tirage_croix_endpoint(request: Request):
     body = await request.json()
     return tirage_en_croix(body.get('prenom', 'Ami'), '1990-01-01')
+
+
+# ────────────────────────────────────────────────────────────────────
+# Partage de tirage — Lien public read-only (bouche-à-oreille entrant)
+# ────────────────────────────────────────────────────────────────────
+
+@api_router.post('/tarot/share')
+async def tarot_share_endpoint(request: Request):
+    """Enregistre un tirage pour le partager via un lien public.
+
+    Body: { type: 'marseille'|'celtique'|'complet', question, domaine, data, first_name }
+    Retourne: { success, share_id, share_url, expires_at }
+
+    Le tirage est stocké dans MongoDB (collection `shared_tirages`) avec un
+    `share_id` 12-char hex. Expiration : 90 jours (TTL index).
+    Lecture via GET `/api/tarot/shared/{share_id}` (public, pas d'auth).
+    """
+    from services.ssr_snapshot import _get_mongo
+    import secrets
+    from datetime import datetime, timezone, timedelta
+
+    body = await request.json()
+    tirage_type = (body.get('type') or 'marseille').lower()
+    if tirage_type not in ('marseille', 'celtique', 'complet'):
+        return {'success': False, 'message': 'Type de tirage invalide.'}
+    data = body.get('data') or {}
+    if not isinstance(data.get('cartes'), list) or not data['cartes']:
+        return {'success': False, 'message': 'Données du tirage manquantes.'}
+
+    share_id = secrets.token_hex(6)  # 12 hex chars
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(days=90)
+    doc = {
+        'share_id': share_id,
+        'type': tirage_type,
+        'question': (body.get('question') or '').strip()[:500],
+        'domaine': (body.get('domaine') or 'general').strip()[:40],
+        'first_name': (body.get('first_name') or body.get('prenom') or 'Voyageur').strip()[:60] or 'Voyageur',
+        'data': data,
+        'created_at': now,
+        'expires_at': expires_at,
+        'view_count': 0,
+    }
+    try:
+        db = _get_mongo()
+        await db.shared_tirages.create_index('share_id', unique=True)
+        await db.shared_tirages.create_index('expires_at', expireAfterSeconds=0)
+        await db.shared_tirages.insert_one(doc)
+    except Exception as e:
+        logger.exception(f'[tarot/share] insert failed: {e}')
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail='Impossible de créer le lien de partage.')
+
+    # Build the public URL from PUBLIC_APP_URL (fallback: use the request origin)
+    public_base = os.environ.get('PUBLIC_APP_URL', '').rstrip('/') or 'https://plume-astrale.fr'
+    web_url = f'{public_base}/tirage-partage/{share_id}'
+    # share_url pointe sur le wrapper OG : previews WhatsApp/iMessage/Discord
+    # affichent la carte PNG en grand, puis l'humain est redirigé vers web_url.
+    share_url = f'{public_base}/api/og/tirage/{share_id}'
+    return {
+        'success': True,
+        'share_id': share_id,
+        'share_url': share_url,
+        'web_url': web_url,
+        'expires_at': expires_at.isoformat(),
+    }
+
+
+@api_router.get('/tarot/shared/{share_id}')
+async def tarot_shared_fetch_endpoint(share_id: str):
+    """Récupère un tirage partagé par son `share_id` (public, pas d'auth).
+
+    Incrémente le compteur de vues. Retourne 404 si expiré/inexistant.
+    """
+    from services.ssr_snapshot import _get_mongo
+    from fastapi import HTTPException
+
+    share_id = (share_id or '').strip().lower()
+    if not share_id or len(share_id) != 12 or not all(c in '0123456789abcdef' for c in share_id):
+        raise HTTPException(status_code=400, detail='share_id invalide')
+    try:
+        db = _get_mongo()
+        doc = await db.shared_tirages.find_one_and_update(
+            {'share_id': share_id},
+            {'$inc': {'view_count': 1}},
+            return_document=True,
+        )
+    except Exception as e:
+        logger.exception(f'[tarot/shared] fetch failed: {e}')
+        raise HTTPException(status_code=500, detail='Lecture indisponible.')
+
+    if not doc:
+        raise HTTPException(status_code=404, detail='Tirage introuvable ou expiré.')
+
+    # Sanitize : on retire les champs internes avant de renvoyer au client
+    return {
+        'success': True,
+        'share_id': doc['share_id'],
+        'type': doc.get('type'),
+        'question': doc.get('question'),
+        'domaine': doc.get('domaine'),
+        'first_name': doc.get('first_name'),
+        'data': doc.get('data'),
+        'created_at': doc['created_at'].isoformat() if doc.get('created_at') else None,
+        'view_count': doc.get('view_count', 1),
+    }
+
+
+@api_router.get('/tarot/shared/{share_id}/card.png')
+async def tarot_shared_card_png_endpoint(share_id: str, request: Request, format: str = 'post'):
+    """Génère une carte PNG partageable à partir d'un tirage partagé.
+
+    Query ?format=post (défaut, 1080×1350 feed) ou ?format=story (1080×1920 IG Story).
+    Public, pas d'auth. Prête pour WhatsApp/IG/Story/Discord.
+    """
+    from services.ssr_snapshot import _get_mongo
+    from services.shared_tirage_png_renderer import render_shared_tirage_png
+    from fastapi import HTTPException
+    from fastapi.responses import Response
+
+    share_id = (share_id or '').strip().lower()
+    fmt = (format or 'post').lower()
+    if fmt not in ('post', 'story'):
+        fmt = 'post'
+    if not share_id or len(share_id) != 12 or not all(c in '0123456789abcdef' for c in share_id):
+        raise HTTPException(status_code=400, detail='share_id invalide')
+    try:
+        db = _get_mongo()
+        doc = await db.shared_tirages.find_one({'share_id': share_id})
+    except Exception as e:
+        logger.exception(f'[tarot/shared/card] fetch failed: {e}')
+        raise HTTPException(status_code=500, detail='Lecture indisponible.')
+    if not doc:
+        raise HTTPException(status_code=404, detail='Tirage introuvable ou expiré.')
+
+    public_base = os.environ.get('PUBLIC_APP_URL', '').rstrip('/')
+    if not public_base:
+        public_base = str(request.base_url).rstrip('/').replace('/api', '')
+    share_url = f'{public_base}/tirage-partage/{share_id}'
+
+    try:
+        from starlette.concurrency import run_in_threadpool
+        png_bytes = await run_in_threadpool(render_shared_tirage_png, doc, share_url, fmt)
+    except Exception as e:
+        logger.exception(f'[tarot/shared/card] render failed: {e}')
+        raise HTTPException(status_code=500, detail='Impossible de générer la carte.')
+
+    # Sanitize first_name pour l'entête Content-Disposition (ASCII-safe +
+    # filename* UTF-8 pour les clients modernes).
+    import re
+    import urllib.parse
+    raw_name = (doc.get('first_name') or 'plume').lower()
+    ascii_name = re.sub(r'[^a-z0-9_-]+', '-', raw_name).strip('-') or 'plume'
+    fmt_suffix = '-story' if fmt == 'story' else ''
+    utf8_name = urllib.parse.quote(f'tirage-{raw_name}{fmt_suffix}-{share_id}.png')
+    return Response(
+        content=png_bytes,
+        media_type='image/png',
+        headers={
+            'Content-Disposition': (
+                f'attachment; filename="tirage-{ascii_name}{fmt_suffix}-{share_id}.png"; '
+                f"filename*=UTF-8''{utf8_name}"
+            ),
+            'Cache-Control': 'public, max-age=86400',
+        },
+    )
+
+
+@api_router.get('/og/tirage/{share_id}', response_class=HTMLResponse, include_in_schema=False)
+async def tarot_og_wrapper(share_id: str, request: Request):
+    """Page HTML lite qui expose les tags Open Graph pour les crawlers
+    (WhatsApp, iMessage, Discord, Slack, Telegram, Twitter, Facebook).
+
+    Comportement :
+    - Crawlers : lisent les meta tags og:*/twitter:* et montrent la carte PNG en preview.
+    - Humains : redirigés instantanément vers /tirage-partage/{share_id} via <meta refresh>
+      (fallback <a> cliquable + <script> redirect).
+
+    Pourquoi un endpoint séparé ? Le SPA React ne peut pas injecter des OG tags
+    *per-shareId* parce que les crawlers ne lancent pas le JS. Ce wrapper
+    sert du HTML statique avec les bons tags, qui pointent vers la carte PNG.
+    """
+    from services.ssr_snapshot import _get_mongo
+    from fastapi.responses import HTMLResponse as _HTML
+    import html as _html
+    share_id = (share_id or '').strip().lower()
+    if not share_id or len(share_id) != 12 or not all(c in '0123456789abcdef' for c in share_id):
+        return _HTML('<h1>Lien invalide</h1>', status_code=400)
+    try:
+        db = _get_mongo()
+        doc = await db.shared_tirages.find_one({'share_id': share_id})
+    except Exception as e:
+        logger.exception(f'[og/tirage] fetch failed: {e}')
+        return _HTML('<h1>Service momentanément indisponible</h1>', status_code=500)
+    if not doc:
+        return _HTML(
+            '<!doctype html><html><head><meta charset="utf-8"><title>Tirage introuvable</title>'
+            '<meta http-equiv="refresh" content="0; url=/services/tarot"></head>'
+            '<body>Lien expiré. <a href="/services/tarot">Faire mon tirage</a></body></html>',
+            status_code=404,
+        )
+
+    public_base = os.environ.get('PUBLIC_APP_URL', '').rstrip('/')
+    if not public_base:
+        public_base = str(request.base_url).rstrip('/').replace('/api', '')
+    target = f'{public_base}/tirage-partage/{share_id}'
+    og_image = f'{public_base}/api/tarot/shared/{share_id}/card.png'
+
+    prenom = _html.escape((doc.get('first_name') or 'un(e) ami(e)')[:40])
+    question = _html.escape((doc.get('question') or '').strip()[:160])
+    type_label = {
+        'marseille': 'Tirage Marseille · 3 cartes',
+        'celtique': 'Croix Celtique · 10 cartes',
+        'complet': 'Tirage Complet · 78 arcanes',
+    }.get(doc.get('type'), 'Tirage de Tarot')
+
+    title = f'Le tirage de {prenom}'
+    description = (f'« {question} » — {type_label}, enrichi par Soléna.'
+                   if question else f'{type_label}, enrichi par Soléna.')
+
+    body = f'''<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{_html.escape(title)} · Plume Astrale</title>
+  <meta name="description" content="{_html.escape(description)}" />
+  <link rel="canonical" href="{_html.escape(target)}" />
+  <meta name="robots" content="noindex,follow" />
+
+  <!-- Open Graph (Facebook, WhatsApp, iMessage, LinkedIn, Discord, Slack, Telegram) -->
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="{_html.escape(target)}" />
+  <meta property="og:title" content="{_html.escape(title)}" />
+  <meta property="og:description" content="{_html.escape(description)}" />
+  <meta property="og:image" content="{_html.escape(og_image)}" />
+  <meta property="og:image:width" content="1080" />
+  <meta property="og:image:height" content="1350" />
+  <meta property="og:image:alt" content="Carte signature du tirage de {_html.escape(prenom)}" />
+  <meta property="og:site_name" content="Plume Astrale" />
+  <meta property="og:locale" content="fr_FR" />
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{_html.escape(title)}" />
+  <meta name="twitter:description" content="{_html.escape(description)}" />
+  <meta name="twitter:image" content="{_html.escape(og_image)}" />
+
+  <!-- Redirection humaine (crawlers n'exécutent pas JS, ils ne redirigeront pas) -->
+  <meta http-equiv="refresh" content="0; url={_html.escape(target)}" />
+  <style>
+    body {{ background: #0F1A3C; color: #F8F1E3; font-family: serif; text-align: center; padding: 20vh 2rem; }}
+    a {{ color: #C9A24B; }}
+  </style>
+</head>
+<body>
+  <p>Redirection vers le tirage…</p>
+  <p><a href="{_html.escape(target)}">Cliquez ici si rien ne se passe</a></p>
+  <script>location.replace({target!r});</script>
+</body>
+</html>'''
+    return _HTML(body, headers={'Cache-Control': 'public, max-age=3600'})
+
+
+@api_router.post('/tarot/complet')
+async def tarot_complet_endpoint(request: Request):
+    """Tirage Complet 78 cartes (22 Majeurs + 56 Mineurs).
+
+    Body: { question, domaine, nb_cartes (3/5/7), first_name }
+    Pas de débit de crédit ici — le crédit a déjà été prélevé via `/credits/use`
+    côté frontend (lecture_tarot). Un paiement = tirages illimités dans la session.
+    """
+    from services.tarot_78_service import tirage_complet_78
+    body = await request.json()
+    first_name = (body.get('first_name') or body.get('prenom') or 'toi').strip()
+    try:
+        nb_cartes = int(body.get('nb_cartes') or 5)
+    except (TypeError, ValueError):
+        nb_cartes = 5
+    result = tirage_complet_78(
+        question=body.get('question', ''),
+        domaine=body.get('domaine', 'general'),
+        nb_cartes=nb_cartes,
+    )
+
+    # Enrichissement IA en parallèle (asyncio.gather) pour rester sous les 60s
+    # du Kubernetes Ingress. Fallback : texte source si l'IA échoue.
+    import asyncio as _asyncio
+    try:
+        from services.enrich_narrative import enrich_and_ask
+
+        async def _safe(text, ctx, length):
+            try:
+                return await _asyncio.wait_for(
+                    enrich_and_ask(text, context=ctx, first_name=first_name, target_length=length),
+                    timeout=25.0,
+                )
+            except Exception as _e:
+                logger.warning(f'[tarot/complet] enrich skipped ({ctx}): {_e}')
+                return text
+
+        # Synthèse (fil conducteur) + conseil final
+        synth = result.get('synthese') or {}
+        synth_fil = synth.get('fil_conducteur') if isinstance(synth, dict) else None
+        conseil = result.get('conseil_final')
+
+        # Interprétations par carte
+        card_items = []
+        if isinstance(result.get('cartes'), list):
+            for carte in result['cartes']:
+                if isinstance(carte, dict) and isinstance(carte.get('interpretation'), str) and carte['interpretation']:
+                    card_items.append(carte)
+
+        tasks = []
+        task_meta = []  # ('synth' | 'conseil' | 'card', ref)
+        if isinstance(synth_fil, str) and len(synth_fil) > 30:
+            tasks.append(_safe(synth_fil, 'tarot_complet.fil_conducteur', 'long'))
+            task_meta.append(('synth', None))
+        if isinstance(conseil, str) and len(conseil) > 30:
+            tasks.append(_safe(conseil, 'tarot_complet.conseil_final', 'medium'))
+            task_meta.append(('conseil', None))
+        for c in card_items:
+            tasks.append(_safe(c['interpretation'], f"tarot_complet.carte.{c.get('nom', '')}", 'medium'))
+            task_meta.append(('card', c))
+
+        if tasks:
+            enriched = await _asyncio.gather(*tasks, return_exceptions=False)
+            for (kind, ref), val in zip(task_meta, enriched):
+                if kind == 'synth':
+                    result['synthese']['fil_conducteur'] = val
+                elif kind == 'conseil':
+                    result['conseil_final'] = val
+                elif kind == 'card' and ref is not None:
+                    ref['interpretation'] = val
+    except Exception as e:
+        logger.warning(f'[tarot/complet] enrich failed: {e}')
+    return {'success': True, 'data': result}
+
+
+@api_router.post('/tarot/pdf')
+async def tarot_pdf_endpoint(request: Request):
+    """Génère un PDF de la synthèse d'un tirage de tarot (Marseille ou Celtique).
+
+    Le crédit a déjà été débité lors de l'appel initial à `/api/tarot/{marseille|celtique}`.
+    Ce endpoint ne débite rien supplémentaire — il reconstruit juste le PDF à partir
+    des données déjà envoyées au front-end.
+    """
+    from fastapi.responses import Response
+    from services.tarot_synthese_pdf import build_tarot_pdf
+
+    body = await request.json()
+    tirage_type = (body.get('type') or 'marseille').lower()
+    if tirage_type not in ('marseille', 'celtique', 'complet'):
+        tirage_type = 'marseille'
+    question = (body.get('question') or '').strip()
+    domaine = (body.get('domaine') or 'general').strip()
+    data = body.get('data') or {}
+    prenom = (body.get('prenom') or body.get('first_name') or 'Voyageur').strip() or 'Voyageur'
+
+    if not isinstance(data.get('cartes'), list) or not data['cartes']:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Données du tirage manquantes")
+
+    try:
+        pdf_bytes = build_tarot_pdf(
+            tirage_type=tirage_type,
+            question=question,
+            domaine=domaine,
+            data=data,
+            prenom=prenom,
+        )
+    except Exception as e:
+        logger.exception(f'[tarot/pdf] generation failed: {e}')
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail="Impossible de générer le PDF")
+
+    filename_map = {
+        'celtique': 'croix-celtique',
+        'marseille': 'tarot-marseille',
+        'complet': 'tirage-complet-78',
+    }
+    filename = filename_map.get(tirage_type, 'tarot') + '-plume-astrale.pdf'
+    return Response(
+        content=pdf_bytes,
+        media_type='application/pdf',
+        headers={'Content-Disposition': f'attachment; filename="{filename}"'},
+    )
 
 
 # ════════════════════════════════════════════
@@ -3216,13 +3629,16 @@ log_startup_stripe_status()
 
 @app.get('/health')
 async def health_check():
-    return {'status': 'healthy', 'service': 'plume-astrale'}
+    # Endpoint ultra-léger pour les probes K8s/nginx : AUCUNE I/O, aucune dépendance.
+    # DOIT répondre en <5ms même si l'event loop est sous charge, sinon le pod
+    # est tué par le kubelet avant d'être marqué healthy (déploiement échoue).
+    return Response(content='{"status":"healthy"}', media_type='application/json')
 
 
 @app.get('/api/health')
 async def api_health_check():
     """Mirror of /health under /api for Kubernetes ingress probes."""
-    return {'status': 'healthy', 'service': 'plume-astrale'}
+    return Response(content='{"status":"healthy"}', media_type='application/json')
 
 
 if ASSETS_DIR.exists():
@@ -3627,6 +4043,33 @@ async def _start_cart_recovery():
     from services.promo_bootstrap import ensure_permanent_promo_codes
     from services.qr_referral_tracker import ensure_referral_scan_tables
     from services.ssr_snapshot import ssr_refresh_loop
+
+    # ─────────────────────────────────────────────────────────────────
+    # DEPLOY FIX (2026-10) : fenêtre de warmup pour les probes K8s/nginx.
+    # Les background loops saturent l'event loop (appels GPT, HTTP sortants)
+    # et faisaient timeout les probes /health → le pod était tué avant d'être
+    # déclaré healthy. On délaie leur démarrage de BACKGROUND_LOOPS_WARMUP_SEC
+    # secondes pour laisser passer les probes initiales.
+    # On peut aussi désactiver complètement via BACKGROUND_LOOPS_ENABLED=0.
+    # ─────────────────────────────────────────────────────────────────
+    _bg_enabled = os.environ.get('BACKGROUND_LOOPS_ENABLED', '1') != '0'
+    _warmup_sec = int(os.environ.get('BACKGROUND_LOOPS_WARMUP_SEC', '90'))
+
+    async def _delayed_start(coro, warmup=_warmup_sec):
+        try:
+            await _asyncio.sleep(warmup)
+            await coro
+        except Exception as _e:
+            logging.getLogger(__name__).warning(
+                f'background loop crashed: {type(_e).__name__}: {_e}'
+            )
+
+    if not _bg_enabled:
+        logging.getLogger(__name__).warning(
+            'BACKGROUND_LOOPS_ENABLED=0 → tous les loops de fond sont DÉSACTIVÉS'
+        )
+        return
+
     # Bootstrap idempotent des codes promo permanents (TOUT2026)
     try:
         ensure_permanent_promo_codes()
@@ -3637,38 +4080,39 @@ async def _start_cart_recovery():
         ensure_referral_scan_tables()
     except Exception as _e:
         logging.getLogger(__name__).warning(f'qr referral bootstrap skipped: {_e}')
-    _asyncio.create_task(cart_recovery_loop())
-    _asyncio.create_task(lead_nurture_loop())
-    _asyncio.create_task(astrocarto_followup_loop())
-    _asyncio.create_task(crosssell_astrocarto_loop())
-    _asyncio.create_task(daily_horoscope_scheduler_loop())
-    _asyncio.create_task(lecture_complete_sequence_loop())
-    _asyncio.create_task(daily_journal_scheduler_loop())
-    _asyncio.create_task(refund_alert_loop())
-    _asyncio.create_task(ab_ctr_refresh_loop())
-    _asyncio.create_task(weekly_insights_loop())
-    _asyncio.create_task(cercle_monthly_report_loop())
-    _asyncio.create_task(ig_weekly_post_loop())
-    _asyncio.create_task(ig_token_refresh_loop())
-    _asyncio.create_task(ssr_refresh_loop())
+    # Tous les loops démarrent après BACKGROUND_LOOPS_WARMUP_SEC (90s par défaut)
+    _asyncio.create_task(_delayed_start(cart_recovery_loop()))
+    _asyncio.create_task(_delayed_start(lead_nurture_loop()))
+    _asyncio.create_task(_delayed_start(astrocarto_followup_loop()))
+    _asyncio.create_task(_delayed_start(crosssell_astrocarto_loop()))
+    _asyncio.create_task(_delayed_start(daily_horoscope_scheduler_loop()))
+    _asyncio.create_task(_delayed_start(lecture_complete_sequence_loop()))
+    _asyncio.create_task(_delayed_start(daily_journal_scheduler_loop()))
+    _asyncio.create_task(_delayed_start(refund_alert_loop()))
+    _asyncio.create_task(_delayed_start(ab_ctr_refresh_loop()))
+    _asyncio.create_task(_delayed_start(weekly_insights_loop()))
+    _asyncio.create_task(_delayed_start(cercle_monthly_report_loop()))
+    _asyncio.create_task(_delayed_start(ig_weekly_post_loop()))
+    _asyncio.create_task(_delayed_start(ig_token_refresh_loop()))
+    _asyncio.create_task(_delayed_start(ssr_refresh_loop()))
     # Flow d'approbation 72h "Vous lisez avant qu'on imprime" (Édition Reliée)
     from services.print_approval_service import print_approval_loop
-    _asyncio.create_task(print_approval_loop())
+    _asyncio.create_task(_delayed_start(print_approval_loop()))
     # Recovery nocturne Stripe : rejoue le batch chaque nuit sur les 24h (Feb 2026)
     from services.stripe_recovery_scheduler import stripe_recovery_nightly_loop
-    _asyncio.create_task(stripe_recovery_nightly_loop())
+    _asyncio.create_task(_delayed_start(stripe_recovery_nightly_loop()))
     # Health-check continu de la clé astrology-api.io (ping 6h + alerte Resend si 401/403)
     from services.astrology_io_health import astrology_io_health_loop
-    _asyncio.create_task(astrology_io_health_loop())
+    _asyncio.create_task(_delayed_start(astrology_io_health_loop()))
     # Relance J+2 des leads synastrie non convertis (-10% SYNEXT10)
     from services.synastrie_lead_followup import synastrie_lead_followup_loop
-    _asyncio.create_task(synastrie_lead_followup_loop())
+    _asyncio.create_task(_delayed_start(synastrie_lead_followup_loop()))
     # Health-check du domaine canonique (SSL + HTTP), alertes Resend ciblées
     from services.dns_domain_health import dns_domain_health_loop
-    _asyncio.create_task(dns_domain_health_loop())
+    _asyncio.create_task(_delayed_start(dns_domain_health_loop()))
     # Journal hebdo vendredi 9h UTC + auto-lock variantes gagnantes
     from services.weekly_digest import weekly_digest_loop
-    _asyncio.create_task(weekly_digest_loop())
+    _asyncio.create_task(_delayed_start(weekly_digest_loop()))
 
 
 

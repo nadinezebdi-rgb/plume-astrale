@@ -1,5 +1,108 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02 (fork) — Story 9:16 + Open Graph + Email de partage
+
+**🎯 Objectif** : Maximiser la viralité du bouton Partage ajouté précédemment. (1) Format Story IG dédié. (2) Preview WhatsApp/iMessage/Discord affiche la carte en grand. (3) Partage par email natif.
+
+**✅ Livré** :
+
+### Carte Story 9:16
+- Renderer `shared_tirage_png_renderer.py` refactorisé avec paramètre `fmt='post'|'story'` — `post` = 1080×1350 (feed Instagram), `story` = 1080×1920 (IG Story / TikTok / Snap).
+- Endpoint étendu : `GET /api/tarot/shared/{id}/card.png?format=story` → PNG 1080×1920.
+- Bouton `[data-testid=shared-cta-download-story]` "En Story IG" (icône Smartphone) ajouté dans `/tirage-partage/:shareId`.
+
+### Open Graph wrapper
+- Nouvel endpoint `GET /api/og/tirage/{share_id}` qui sert du HTML lite avec meta tags og:*/twitter:card=summary_large_image, canonical, et redirection meta-refresh + JS vers `/tirage-partage/{share_id}` pour les humains.
+- `POST /api/tarot/share` renvoie désormais `share_url` (OG wrapper, pour partage) + `web_url` (lien direct). Le `copyLink` du frontend copie l'OG URL — ça fait que WhatsApp/iMessage/Discord/Slack/Telegram/Facebook afficheront la carte PNG 1080×1350 en grand dans le preview, puis l'humain tombe sur la vraie page React.
+- Validé avec User-Agent WhatsApp : tous les tags og:url, og:title, og:description, og:image (1080×1350), og:site_name, twitter:card sont correctement injectés.
+
+### Partage par email
+- Bouton `[data-testid=shared-cta-email]` ouvre `mailto:` avec subject + body pré-remplis (prénom, question, type de tirage, lien OG). Fonctionne sur tous les clients email natifs (iOS, Android, Gmail, Outlook, Thunderbird).
+
+### UX refactor du bloc CTA
+- Grille horizontale sur desktop (5 boutons : Faire mon tirage · Offrir cette carte · En Story IG · Envoyer par email · Copier le lien), verticale sur mobile. Icônes Lucide (ArrowRight, Download, Smartphone, Mail, Share2).
+
+**🧪 Tests** : 26/26 pytest (incluant test_tarot_share.py mis à jour pour la nouvelle structure share_url/web_url). Screenshots desktop + mobile validés.
+
+**🔗 Fichiers** : `backend/services/shared_tirage_png_renderer.py` (param `fmt`), `backend/server.py` (endpoint `/api/og/tirage` + swap share_url), `backend/tests/test_tarot_share.py` (fix regression), `frontend/src/pages/TiragePartage.js` (3 nouveaux boutons + swap mailto + swap copyLink vers OG URL).
+
+
+## 2026-02 (fork) — Dashboard admin Viralité + Carte PNG "Offrir ce tirage"
+
+**🎯 Objectif** : Transformer chaque tirage partagé en vecteur d'acquisition. (1) Permettre aux utilisateurs de télécharger leur tirage sous forme d'une carte PNG stylée pour partage WhatsApp/Instagram. (2) Donner à l'admin une vue en temps réel des tirages qui buzzent.
+
+**✅ Livré** :
+
+### Carte PNG partageable (format Instagram 4:5)
+- Nouveau service `backend/services/shared_tirage_png_renderer.py` — rendu PIL 1080×1350 avec fond navy dégradé, cadre pointillé or, header "✦ PLUME ASTRALE ✦" (NotoSansSymbols2), titre Cormorant Garamond 68pt "Le tirage de {prénom}", question en italique, 3 cartes à placeholder stylisé (symboles spécifiques par arcane : La Lune → ☽, Le Soleil → ☉, L'Étoile → ✧, L'Amoureux → ♥, La Justice → ⚖…), teaser `fil_conducteur` tronqué, footer "plume-astrale.fr" + short URL.
+- Table `_MAJOR_SYMBOLS` de 24 arcanes majeurs ; fallback ☉ si inconnu.
+- Nouvel endpoint `GET /api/tarot/shared/{share_id}/card.png` — public (pas d'auth), wrapped avec `starlette.concurrency.run_in_threadpool` pour ne pas bloquer l'event loop pendant les ~100ms de rendu PIL, Content-Disposition sanitizé (ASCII filename + `filename*=UTF-8''`), Cache-Control 24h.
+- Bouton `[data-testid=shared-cta-download-png]` "Offrir cette carte" ajouté dans `/tirage-partage/:shareId` à côté de "Partager le lien".
+
+### Dashboard admin Viralité Tarot
+- Nouvel endpoint `GET /api/admin/tarot-share/top?limit=50` (protégé `require_admin`) — retourne top shared_tirages triés par `view_count` desc + totaux (`total_shares`, `total_views`, `avg_views_per_share`). Raise HTTPException(500) sur erreur (pas de swallow).
+- Nouvel onglet `[data-testid=admin-viralite-section]` dans `/admin` avec 3 KPIs (shares/views/avg) + table triée par vues (lien "Ouvrir" vers `/tirage-partage/{id}` en nouvel onglet).
+
+### Diagnostic Stripe
+- La clé `STRIPE_API_KEY=sk_test_emergent` est un **sentinel Emergent** qui route via le proxy Emergent vers Stripe LIVE. Pas d'expiration. Checkout Session de test créé avec succès (`cs_test_a1X1v3E9SVQAOYGUeCL9Yt63...`). Le diagnostic du handoff « clé expirée » était inexact.
+
+### Secrets orphelins
+- Grep confirmé : `STRIPE_LIVE_SECRET_KEY`, `ASTROLOGY_API_KEY`, `ASTROLOGY_API_USER_ID`, `ASTROLOGY_API_ACCESS_TOKEN` = 0 référence code. 2/4 déjà blanchis via UI (slots live/test=false). Les 2 restants (STRIPE_LIVE_SECRET_KEY, ASTROLOGY_API_ACCESS_TOKEN) sont inoffensifs mais à nettoyer plus tard via UI Emergent + ticket support@emergent.sh.
+
+**🧪 Tests** : iteration_95.json → 9/9 pytest backend (PNG rendering, admin endpoint 401/403/200, filename sanitize), 100% frontend Playwright (download PNG, admin KPI, table, open link). 26/26 pytest regression (share + i18n + complet78 + png+viralité).
+
+**🔗 Fichiers** : `backend/services/shared_tirage_png_renderer.py` (nouveau), `backend/server.py` (endpoint card.png + sanitize), `backend/routes/admin.py` (endpoint tarot-share/top), `frontend/src/pages/TiragePartage.js` (bouton + fonction downloadCard), `frontend/src/pages/Admin.js` (ViraliteSection + loadViralite + tab trigger), `memory/RCA_PDF_FAILURES_2026-10.md` (ex-session).
+
+
+## 2026-02 (fork) — Localisation PDF Natal 100% EN + Partage de Tirage + RCA PDFs
+
+**🎯 Problème** : (1) PDF Natal EN affichait encore des titres de chapitres, noms de signes, maisons, aspects et préface en français. (2) Aucun moyen pour l'utilisateur de partager son tirage → zéro bouche-à-oreille entrant. (3) 3 PDFs Thème Natal avaient échoué en prod sans RCA documentée.
+
+**✅ Livré** :
+
+### PDF Natal 100% EN
+- Table `_I18N` FR/EN complète dans `natal_manuscript_builder.py` : titres de 6 chapitres, kickers, intros, labels Soleil/Lune/Ascendant, formatage de date (`June 15, 1990` vs `15 juin 1990`), suffixes `planete(s)`, `maison X / house X`, mots-clés `retrograde ℞`.
+- Helpers `_tr_planet`, `_tr_sign`, `_tr_house_name` + table `_HOUSE_THEME_EN` (12 maisons avec thèmes/descriptions EN).
+- Templates d'aspects EN (`_ASPECT_INTERP_EN`) : Fusion/Tension/Harmony/Friction/Opportunity.
+- `natal_preface_generator._static_fallback(language='en')` : préface 7 blocs entièrement traduite.
+- `natal_pdf_adapter.generate_manuscrit_pdf` propage désormais `language` à `build_natal_manuscript`.
+- Tests : iteration_94.json → 15/15 pytest i18n (0 fuite FR dans la sortie EN sauf noms EN = FR légitimes comme "Mars"/"Jupiter").
+
+### Partage de Tirage (viralité entrante)
+- Backend : `POST /api/tarot/share` (crée un `share_id` 12-hex, stocke dans MongoDB `shared_tirages` avec TTL 90 jours) + `GET /api/tarot/shared/{share_id}` (public, no-auth, compteur de vues).
+- Frontend : nouvelle page publique `pages/TiragePartage.js` montée sur `/tirage-partage/:shareId` — rendu read-only identique à la synthèse (positions, cartes avec fallback Mineurs, synthèse, conseil final), compteur de vues, CTA "Faire mon propre tirage".
+- Bouton `[data-testid=btn-share-tirage]` ajouté à l'étape 3 de `TirageTarot.js` : création du lien + copie clipboard + badge "Lien copié ✓" + encart URL permanent.
+- URL origin automatiquement swappée vers l'origine courante (preview = preview, prod = plume-astrale.fr).
+- Tests : 7/7 pytest + E2E Playwright validé (login → tirage → partage → lecture publique en session fraîche → CTA → page 404 pour ID expiré).
+
+### RCA 3 PDFs échoués
+- Document créé : `/app/memory/RCA_PDF_FAILURES_2026-10.md` — 3 échecs mi-octobre 2026 sur un seul user (nadine.zebdi@gmail.com), tous causés par **clé `ASTROLOGY_API_IO_KEY` expirée** (mise à jour par Emergent le 2026-10-22). Les gardes anti-slop ont correctement refusé de livrer des PDFs incomplets.
+- Reproduction aujourd'hui = succès (12 planètes retournées en ~2s avec la même birth_data). Simple rejeu via `POST /api/admin/regenerate/{session_id}?force=true` suffit à les corriger.
+
+**🔗 Fichiers** : `backend/services/natal_manuscript_builder.py`, `backend/services/natal_preface_generator.py`, `backend/services/natal_pdf_adapter.py`, `backend/server.py` (endpoints share), `frontend/src/pages/TiragePartage.js` (nouveau), `frontend/src/pages/TirageTarot.js`, `frontend/src/App.js`, `memory/RCA_PDF_FAILURES_2026-10.md`.
+
+
+## 2026-02 (fork) — Tirage Complet 78 cartes + session illimitée
+
+**🎯 Problème** : Les deux tirages existants (Marseille 3 cartes, Croix Celtique 10) ne couvraient que les 22 Arcanes Majeurs peints à la main. Pas de tirage « deck complet » (Majeurs + Mineurs). Et le user devait repayer 5 crédits à chaque nouveau tirage.
+
+**✅ Livré** :
+- Backend : nouveau endpoint `POST /api/tarot/complet` (`server.py`) propulsé par `services/tarot_78_service.py` + `services/deck_78_mineurs.py` (56 Mineurs : As→Roi × 4 suites, interprétations droit/renversé par domaine).
+- Spreads 3/5/7 cartes avec positions thématiques (Passé/Présent/Futur · Fondement/Passé/Présent/Futur proche/Résultat · Vous aujourd'hui/Bloqué/Soutien/Racines/Chemin/Avenir/Conseil).
+- Enrichissement IA en parallèle (`asyncio.gather` + timeout 25s/carte) → réponse 19-24s pour 7 appels (bien sous les 60s du Kubernetes Ingress).
+- Interprétations courtes des Mineurs étoffées côté service (mots-clés + position) avant envoi IA (évite skip `len<20`).
+- PDF : extension de `services/tarot_synthese_pdf.py` pour `type='complet'` (positions dynamiques + bloc stats Majeurs/Mineurs/élément dominant).
+- Frontend `pages/TirageTarot.js` : 3ème carte sélecteur `select-complet` avec badge NOUVEAU, sous-sélecteur 3/5/7 cartes (`nb-cartes-N`), rendu adaptatif en grille + fallback visuel stylé pour les Mineurs sans image (symbole · couleur de suite · rang en Cinzel).
+- Synthèse dédiée (type complet) : tendance, fil conducteur, 1 carte/bloc, conseil final, stats du deck.
+- UX "Un paiement = tirages illimités dans la session" : `recommencer()` conserve `creditUnlocked` → retour à l'étape 1 (sans repayer) tant que la session est active.
+- Alignement grille tarif : UI corrigée de 10→5 crédits (conforme à `SERVICE_COSTS['lecture_tarot'] = 5` dans `config.py`).
+- `first_name` IA/PDF : utilise `user.prenom` du profil (plus l'email prefix) → l'IA s'adresse à "Camille" plutôt que "concours".
+
+**🧪 Tests** : iteration_93.json — 6/6 pytest backend (nb_cartes 3/5/7, is_major, uniqueness, timing, PDF 3.55MB), flow Playwright complet OK avec le compte démo.
+
+**🔗 Fichiers** : `backend/server.py` (endpoint `/api/tarot/complet` + extension PDF), `backend/services/tarot_78_service.py`, `backend/services/deck_78_mineurs.py`, `backend/services/tarot_synthese_pdf.py`, `backend/config.py` (ajout `tarot_complet_78: 15`), `frontend/src/pages/TirageTarot.js`.
+
+
 ## 2026-02 (fork) — Variante Offerte « Ex Libris PNG » (CRO viralité)
 
 **🎯 Problème** : L'acheteur·se d'un Thème Natal n'avait aucun moyen simple d'offrir sa signature astrale à un proche. Pas de boucle virale sortante depuis l'espace client.

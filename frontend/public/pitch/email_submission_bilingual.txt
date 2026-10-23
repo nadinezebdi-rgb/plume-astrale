@@ -1,0 +1,136 @@
+═══════════════════════════════════════════════════════════════
+EMAIL SOUMISSION v3 — PLUME ASTRALE · AVEC TRACTION FACEBOOK ADS
+═══════════════════════════════════════════════════════════════
+
+À : [contest@emergent.sh]
+Objet : Soumission concours — Plume Astrale · ROAS 13× sur Facebook Ads
+
+Bonjour l'équipe Emergent,
+
+Je vous soumets Plume Astrale, candidat au concours Emergent 2026.
+
+En une phrase
+Plume Astrale est une plateforme d'astrologie littéraire que j'ai
+construite seule en 90 jours sur Emergent — et validée en live avec
+104 paiements générés via Facebook Ads à un ROAS estimé de 13×.
+
+Traction LIVE (au 21/10/2026, 90 jours de lancement)
+
+Produit
+• 104 paiements complétés
+• 39 livres PDF effectivement livrés
+• 15 utilisateurs actifs
+• 16 leads captés via lead magnet
+• Stripe en production, 100% opérationnel
+
+Acquisition payée (Facebook Ads · 24 juillet → 21 octobre)
+• 183 € dépensés au total
+• 60 378 vues publicitaires
+• 2 456 clics sur lien
+• CPC moyen 0,01 € (vs 0,50-2 € moyenne industrie FR = 50-200× moins cher)
+• CTR 4,06 % (vs 0,9 % moyenne Facebook = 4,5× au-dessus)
+• CAC estimé : 1,76 € pour un produit à 24 € → ROAS ~13×
+
+Signal product-market-fit
+• Meilleure créative : pub signe Scorpion, 2 456 clics, CPC 0,01 €
+• Taux de conversion ad → paiement : 4,2 % (excellent sur trafic froid)
+
+Produit en ligne
+• plume-astrale.fr — site, checkout, espace client, admin complète
+• Thème Natal 24€ (49 pages) · Synastrie 49€ · Tarot · Numérologie · Révolution Solaire
+• Variante offerte "Ex Libris PNG" — mécanique virale originale de la cat astro
+• Admin : dashboard, funnel A/B, Stripe webhook health, transactions
+
+Pourquoi Emergent
+L'écosystème (hot reload, LLM key universel, Stripe natif, preview URL,
+testing agent E2E) m'a permis de livrer un SaaS complet en 90 jours
+et d'itérer sur les créatives publicitaires en continu — sans jamais
+quitter l'IDE. Zéro code jeté pour cause de stack.
+
+Preuves techniques
+• Backend FastAPI + MongoDB + Supabase
+• Frontend React / Shadcn / Tailwind
+• IA : GPT 5.4 + Claude Sonnet 5.5 via Emergent LLM Key
+• Rendu : ReportLab (PDF 49 pages) + Pillow (PNG découpable Ex Libris)
+• Monitoring : webhooks Stripe healthy, A/B tests continus
+
+Pièces jointes
+• [plume_astrale_pitch_60s.mp4] — vidéo 60 s avec sous-titres EN
+• [Plume-Astrale-Finale-EN-v2.pptx] — deck 7 slides
+• Démo live : https://plume-astrale.fr
+• Exemple PDF réel : https://plume-astrale.fr/demos/theme-natal-sample.pdf
+
+À disposition pour une démo live.
+
+Nadine Zebdi
+Fondatrice — Plume Astrale
+[Email] · [Téléphone] · [LinkedIn]
+
+
+═══════════════════════════════════════════════════════════════
+EMAIL v3 — ENGLISH VERSION
+═══════════════════════════════════════════════════════════════
+
+To: [contest@emergent.sh]
+Subject: Contest submission — Plume Astrale · 13× ROAS on Facebook Ads
+
+Hi Emergent team,
+
+Submitting Plume Astrale for the Emergent 2026 contest.
+
+In one line
+Plume Astrale is a literary astrology platform I built solo in 90 days
+on Emergent — and validated live with 104 payments generated through
+Facebook Ads at an estimated 13× ROAS.
+
+LIVE Traction (as of Oct 21, 2026 · 90 days post-launch)
+
+Product
+• 104 completed payments
+• 39 PDF books actually delivered
+• 15 active users
+• 16 captured leads via lead magnet
+• Stripe in production, 100% operational
+
+Paid acquisition (Facebook Ads · Jul 24 → Oct 21)
+• 183 € total spend
+• 60 378 ad impressions
+• 2 456 link clicks
+• Average CPC: 0.01 € (vs 0.50-2 € FR industry avg = 50-200× lower)
+• CTR: 4.06 % (vs 0.9 % Facebook avg = 4.5× above)
+• Estimated CAC: 1.76 € for a 24 € product → ~13× ROAS
+
+Product-market-fit signal
+• Best creative: Scorpio sign ad — 2 456 clicks, 0.01 € CPC
+• Ad → payment conversion: 4.2 % (excellent on cold traffic)
+
+Live product
+• plume-astrale.fr — site, checkout, user area, full admin
+• Natal Theme 24€ (49 pages) · Synastry 49€ · Tarot · Numerology · Solar Return
+• Giftable "Ex Libris PNG" — original viral mechanic for the astrology cat
+• Admin: dashboard, A/B funnel, Stripe webhook health, transactions
+
+Why Emergent
+Hot reload, universal LLM key, native Stripe, preview URL,
+E2E testing agent — all let me ship a full SaaS in 90 days and
+iterate ad creatives in parallel, without ever leaving the IDE.
+Zero code thrown away due to stack choices.
+
+Technical proof
+• Backend FastAPI + MongoDB + Supabase
+• Frontend React / Shadcn / Tailwind
+• AI: GPT 5.4 + Claude Sonnet 5.5 via Emergent LLM Key
+• Rendering: ReportLab (49-page PDF) + Pillow (cut-out Ex Libris PNG)
+• Monitoring: Stripe webhooks healthy, continuous A/B tests
+
+Attachments
+• [plume_astrale_pitch_60s.mp4] — 60s video with EN subtitles
+• [Plume-Astrale-Finale-EN-v2.pptx] — 7-slide deck
+• Live demo: https://plume-astrale.fr
+• Real PDF sample: https://plume-astrale.fr/demos/theme-natal-sample.pdf
+
+Happy to run a live demo anytime.
+
+Nadine Zebdi
+Founder — Plume Astrale
+[Email] · [Phone] · [LinkedIn]

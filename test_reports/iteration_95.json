@@ -1,0 +1,44 @@
+{
+  "summary": "Iteration 95: tested the PNG share card (GET /api/tarot/shared/{id}/card.png plus the 'Offrir cette carte' button) and the admin 'Viralité Tarot' dashboard (GET /api/admin/tarot-share/top plus the admin tab). Backend: 9/9 pytest passed. Frontend: the public download works, and the admin tab works when logged in as admin with a real Supabase session (nadine.zebdi@gmail.com, created through service-role generate_link + verify, then put into localStorage). Both features work. Only minor PNG design issues were found.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/tarot/shared/{id}/card.png", "issue": "Major arcana have no 'symbole' in the stored data, so every major card falls back to ☉ (La Lune shows a sun). Use a per-arcana symbol map (e.g. ☽ for La Lune) or a neutral glyph."},
+      {"endpoint": "/api/tarot/shared/{id}/card.png", "issue": "HEAD request returns 405. Some link-preview crawlers send HEAD first. Consider adding a HEAD route."},
+      {"endpoint": "/api/tarot/shared/{id}/card.png", "issue": "Content-Disposition puts the raw first_name in the filename with no sanitisation. A name with quotes or non-ASCII characters (é) can break the header or the latin-1 encoding. Sanitise or use filename*=UTF-8''."},
+      {"endpoint": "/api/admin/tarot-share/top", "issue": "On an exception it returns 200 with an 'error' key instead of a 5xx. It also creates a new AsyncIOMotorClient on every call; reuse the shared client."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "PNG card (1080x1350)", "issues": [
+        "Minor-arcana symbol uses the suit colour from the data (#7DD3FC light blue heart), which is off-palette against the navy/gold/cream design.",
+        "The 'Droite' label in gold (GOLD) on the cream (PARCHMENT) minor card has low contrast. 'Renversée' in MUTED on navy is also faint.",
+        "Large empty band (~250px) between the teaser and the footer when fil_conducteur is short. Consider vertical centring or showing conseil_final."
+      ]},
+      {"screen": "/admin Viralité table", "issues": ["Leftover test row 'TEST_Camille' (from iteration 94) shows in the production-facing ranking. Clean up TEST_ shared_tirages."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_tarot_share_png_viralite.py", "/app/test_reports/pytest/pytest_results_iter95.xml"],
+  "action_items": [
+    "Optional: map major-arcana symbols in the PNG renderer (La Lune shows ☉)",
+    "Optional: improve the 'Droite' label contrast on cream minor cards and keep the symbol colour in the gold/navy palette",
+    "Optional: sanitise first_name in the Content-Disposition filename",
+    "Optional: delete the TEST_ shared_tirages from MongoDB"
+  ],
+  "critical_code_review_comments": [
+    "admin.py tarot-share/top: swallowing exceptions into a 200 response hides failures. Raise HTTPException(500) instead.",
+    "admin.py: new Motor client on every request. Reuse the shared db connection.",
+    "card.png: the PNG render is synchronous PIL work inside an async endpoint, so it blocks the event loop (~100ms+). Wrap it in run_in_threadpool. Cache-Control 24h is fine.",
+    "TiragePartage.downloadCard uses alert() for errors. A toast would match the design system."
+  ],
+  "updated_files": ["/app/backend/tests/test_tarot_share_png_viralite.py", "/app/backend/tests/_admin_token_helper.py"],
+  "success_rate": {"backend": "100% (9/9)", "frontend": "100%"},
+  "test_credentials": "Admin login: run `python /app/backend/tests/_admin_token_helper.py nadine.zebdi@gmail.com`. It writes a real Supabase session to /tmp/admin_session.json. For the UI, put it in localStorage key 'sb-ebwicqvbkwogxneipaxh-auth-token'. Demo non-admin concours@plume-astrale.fr / ConcoursPlume2026! returns 403 on the admin endpoint (verified).",
+  "seed_data_creation": "None. view_count on 6b4205ccbd85 went up by about 2 from the test visits.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Verified: the PNG is 1080x1350 RGB, ~57KB, filename tirage-Camille-6b4205ccbd85.png. The frontend download is named tirage-camille.png. The button shows 'Préparation…' and is disabled while loading. Admin tab: KPIs 8 shares / 16 views / avg 2, 8 rows sorted by views desc. 'Ouvrir' opens /tirage-partage/{id} in a new tab (target=_blank)."
+}

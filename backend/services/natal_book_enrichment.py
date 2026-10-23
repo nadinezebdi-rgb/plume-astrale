@@ -114,6 +114,25 @@ Cohérence du livre (les chapitres se lisent à la suite, comme un seul ouvrage)
 """
 
 
+BOOK_SYSTEM_PROMPT_EN = """You are Soléna, the voice of Plume Astrale.
+Style: between Christiane Singer, Fabienne Verdier, and Anne Dufourmantelle.
+Voice: intimate, sensory, never moralizing, never new-age caricatural.
+Register: literary English — no astro jargon.
+You always address the reader warmly, by their first name or in direct second person.
+
+Form constraints:
+- Impeccable English prose, present tense, short to medium sentences, precise sensory images.
+- No bullet lists. No H2 titles. Only paragraphs.
+- Banned: "as a", "it's important to", "don't forget to", emojis.
+
+JSON KEYS remain in French (dedication, element_analysis, modality_analysis, trio_synthesis,
+aspects_harmonieux_headline, aspects_harmonieux_body, aspects_tensions_headline,
+aspects_tensions_body, rare_aspect_headline, rare_aspect_body, houses_intro,
+house_1 ... house_12, year_ahead, ex_libris, acte3_chapters) — but all VALUES must be
+written in English.
+"""
+
+
 def _build_book_prompt(natal_data: Dict[str, Any], em: Dict[str, Any]) -> str:
     """Construit le prompt-livre unique. natal_data et em (elements/modalities) fournis."""
     prenom = natal_data.get('prenom', 'toi')
@@ -279,18 +298,16 @@ async def enrich_book_chapters(
     birth_data: Dict[str, Any],
     natal_data: Dict[str, Any],
     force_refresh: bool = False,
+    language: str = 'fr',
 ) -> Dict[str, Any]:
     """Génère toutes les sections livre en un seul appel GPT.
 
-    natal_data : {
-      'prenom', 'sun_sign', 'moon_sign', 'asc_sign',
-      'planets': [{'name', 'sign'}, ...],
-      'aspects': [{'planet1', 'planet2', 'type', 'orb'}, ...],
-      'houses': [{'num', 'sign', 'planets_in_house'}, ...],
-    }
-    Retourne un dict avec toutes les sections + em (elements/modalities counts).
+    `language`: 'fr' (défaut) ou 'en' — choisit le système prompt et le cache dédié.
     """
-    key = _cache_key(prenom, birth_data, natal_data)
+    # Clé cache inclut la langue
+    is_en = (language or 'fr').lower().startswith('en')
+    lang_tag = 'en' if is_en else 'fr'
+    key = f'{_cache_key(prenom, birth_data, natal_data)}-{lang_tag}'
     cache_file = CACHE_DIR / f'{key}.json'
 
     # Analyse déterministe éléments/modalités (pas de GPT)
@@ -302,14 +319,16 @@ async def enrich_book_chapters(
             data = json.loads(cache_file.read_text('utf-8'))
             data['_em'] = em
             data['_source'] = 'cache'
-            logger.info(f'[natal_book] cache HIT {key}')
+            logger.info(f'[natal_book] cache HIT {key} (lang={lang_tag})')
             return data
         except Exception:
             pass
 
     # Appel GPT
     user_prompt = _build_book_prompt(natal_data, em)
-    resp = await _call_gpt(BOOK_SYSTEM_PROMPT, user_prompt, session_id=f'natal-book-{key}', timeout_s=240.0)
+    system_prompt = BOOK_SYSTEM_PROMPT_EN if is_en else BOOK_SYSTEM_PROMPT
+    logger.info(f'[natal_book] Calling GPT for {prenom} (lang={lang_tag}, prompt_chars={len(user_prompt)})')
+    resp = await _call_gpt(system_prompt, user_prompt, session_id=f'natal-book-{lang_tag}-{key}', timeout_s=240.0)
     if not resp:
         logger.warning(f'[natal_book] GPT no response for {prenom}')
         return {'_em': em, '_source': 'none'}

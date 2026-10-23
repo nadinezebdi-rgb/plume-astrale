@@ -1,0 +1,41 @@
+{
+  "summary": "E2E test of new 'Tirage Complet 78 cartes'. Backend: 6/6 pytest pass (nb_cartes 3/5/7 -> exact length, is_major bool, majors+minors==nb, unique cards, interpretations >50 chars, AI enrichment applied (0 'enrich skipped' logs), response 19-24s < 55s, invalid nb falls back to 5, PDF type=complet 200 3.55MB %PDF with filename tirage-complet-78-plume-astrale.pdf, empty data -> 400). Frontend (Playwright, demo account): login OK, /tirage-tarot -> /services/tarot, gate unlock, select-marseille/celtique/complet visible, nb-cartes-3/5/7 sub-selector appears, 5-card draw displayed in 20.9s, reveal-all + voir-synthese OK, 5 synth-complet-carte-* blocks, Tendance générale + conseil rendered, PDF download filename tirage-complet-78-plume-astrale.pdf, btn-nouveau-tirage returns to step 1 (no gate, question empty, selectors visible), second Marseille draw OK with only 1 /api/credits/use call in the whole session (session-unlimited works).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/tarot/complet (and marseille/celtique)", "issue": "No auth/credit check server-side: endpoint is fully public, credit gate is client-side only. Anyone can call it (and burn LLM budget) without paying."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "TirageTarot credit gate", "issue": "Gate shows 'Coût : 10 crédits' / 'Utiliser 10 crédits' and blocks if balance < 10, but backend config lecture_tarot = 5 credits (review says 5). Price display/threshold inconsistent with real debit.", "selector": "[data-testid='credit-gate-unlock']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "AI personalisation", "issue": "first_name sent is user.email.split('@')[0] -> AI text addresses user as 'Concours' instead of profile first name 'Camille'. Same for PDF prenom.", "affected_selectors": ["[data-testid^='synth-complet-carte-']"]}
+    ],
+    "design_issues": [
+      {"screen": "Synthèse (complet)", "issues": ["Minor-arcana thumbnails in the synthesis recap row render as empty gold frames (no image, no fallback symbol) — looks broken; add a fallback (symbole/suite/couleur) for minors."]},
+      {"screen": "Header", "issues": ["'Créer un compte' CTA still shown while logged in as Camille."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_tarot_complet_78.py", "/app/test_reports/pytest/pytest_tarot_complet.xml"],
+  "action_items": [
+    "Align credit gate cost text/threshold (10) with backend lecture_tarot cost (5) in TirageTarot.js",
+    "Send profile first name (not email prefix) as first_name/prenom to /api/tarot/complet and /api/tarot/pdf",
+    "Add visual fallback for minor cards without images in synthesis recap (and step 2 reveal)",
+    "Consider server-side verification (token + session unlock) on /api/tarot/* to prevent unpaid usage",
+    "Hide 'Créer un compte' header CTA for authenticated users"
+  ],
+  "critical_code_review_comments": [
+    "TirageTarot.js reveal loop uses nbCartes78 state for maxCards instead of tirageData.cartes.length — safer to derive from response",
+    "TirageTarot.js is 928 lines (>700) — split into components (selector, reveal grid, synthesis)",
+    "Credit unlock is purely React state: page refresh loses paid session (by design but worth noting); backend endpoints trust client"
+  ],
+  "updated_files": ["/app/backend/tests/test_tarot_complet_78.py"],
+  "success_rate": {"backend": "100%", "frontend": "100% (core flow); 4 minor/design issues"},
+  "test_credentials": "concours@plume-astrale.fr / ConcoursPlume2026! (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "None. One 'lecture_tarot' credit debit on demo account during UI test.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run pytest tests/test_tarot_complet_78.py (≈85s). Login page /connexion uses input[type=email]/[type=password]/button[type=submit] (no testids). /tirage-tarot redirects to /services/tarot. Cookie banner overlays bottom of page but doesn't block clicks."
+}

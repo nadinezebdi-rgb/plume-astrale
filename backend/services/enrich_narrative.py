@@ -17,13 +17,16 @@ Usage :
     )
 """
 from __future__ import annotations
+import asyncio
 import hashlib
 import json
 import logging
 import os
 from typing import Any
 
+import litellm
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+from emergentintegrations.llm.utils import get_integration_proxy_url
 from services.supabase_client import get_admin_client
 
 logger = logging.getLogger(__name__)
@@ -109,12 +112,29 @@ Consignes strictes :
 Réponds en JSON strict : {{"text": "ton texte enrichi FR se terminant par une question"}}"""
 
     try:
-        chat = LlmChat(
-            api_key=api_key,
-            session_id=f"enrich-{context}-{h}",
-            system_message=SYSTEM_MSG,
-        ).with_model("openai", "gpt-5.4")
-        resp = await chat.send_message(UserMessage(text=prompt))
+        # Appel LLM via litellm.acompletion (vraiment async) — critique pour
+        # asyncio.gather qui parallélise N enrichissements. LlmChat utilise
+        # litellm.completion (sync) qui bloque le event loop.
+        is_emergent = api_key.startswith("sk-emergent-")
+        params: dict[str, Any] = {
+            "model": "openai/gpt-5.4",
+            "messages": [
+                {"role": "system", "content": SYSTEM_MSG},
+                {"role": "user", "content": prompt},
+            ],
+            "api_key": api_key,
+        }
+        if is_emergent:
+            params["api_base"] = get_integration_proxy_url() + "/llm"
+            params["custom_llm_provider"] = "openai"
+            params["model"] = "gpt-5.4"
+        response = await litellm.acompletion(**params)
+        resp = ""
+        try:
+            if response and response.choices and response.choices[0].message:
+                resp = response.choices[0].message.content or ""
+        except Exception:
+            resp = ""
         parsed = _parse_json(resp) or {}
         enriched = (parsed.get("text") or "").strip()
         if not enriched:

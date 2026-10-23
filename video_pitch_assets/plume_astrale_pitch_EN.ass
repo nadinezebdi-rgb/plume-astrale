@@ -1,0 +1,36 @@
+[Script Info]
+Title: Plume Astrale pitch (final — 1s intro silence)
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Pill,DejaVu Sans,34,&H00EAF3F7,&H00EAF3F7,&H00101820,&H00000000,0,0,0,0,100,100,0,0,1,5,0,2,120,120,52,0
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:01.00,0:00:04.00,Pill,,0,0,0,,What if astrology wasn't about predicting your future
+Dialogue: 0,0:00:04.00,0:00:07.00,Pill,,0,0,0,,but about understanding yourself, today?
+Dialogue: 0,0:00:07.90,0:00:08.90,Pill,,0,0,0,,Meet Plume Astrale
+Dialogue: 0,0:00:09.30,0:00:12.00,Pill,,0,0,0,,Literary astrology · tarot · numerology
+Dialogue: 0,0:00:12.70,0:00:15.20,Pill,,0,0,0,,Four reading paths for real-life questions
+Dialogue: 0,0:00:16.00,0:00:21.30,Pill,,0,0,0,,Know yourself · Relationships · One question · Your cycle
+Dialogue: 0,0:00:22.00,0:00:24.10,Pill,,0,0,0,,Each reading becomes a personal book
+Dialogue: 0,0:00:24.30,0:00:26.70,Pill,,0,0,0,,A 49-page edition of your birth chart
+Dialogue: 0,0:00:26.70,0:00:29.80,Pill,,0,0,0,,Precise charts · powered by Astrology-API
+Dialogue: 0,0:00:30.80,0:00:32.80,Pill,,0,0,0,,Poetic chapters · composed for you
+Dialogue: 0,0:00:33.60,0:00:36.60,Pill,,0,0,0,,Printed-book quality PDF, delivered by email
+Dialogue: 0,0:00:36.80,0:00:38.20,Pill,,0,0,0,,Natal theme at 24 €
+Dialogue: 0,0:00:38.80,0:00:39.90,Pill,,0,0,0,,Synastry at 49 €
+Dialogue: 0,0:00:40.90,0:00:43.30,Pill,,0,0,0,,And on the last page, something unique
+Dialogue: 0,0:00:43.40,0:00:45.80,Pill,,0,0,0,,A signature designed to be gifted
+Dialogue: 0,0:00:45.80,0:00:51.20,Pill,,0,0,0,,Your Ex Libris — a cut-out astral card to print, keep, or offer
+Dialogue: 0,0:00:51.70,0:00:54.20,Pill,,0,0,0,,183 € in Facebook Ads
+Dialogue: 0,0:00:54.30,0:00:55.70,Pill,,0,0,0,,104 payments
+Dialogue: 0,0:00:56.20,0:00:58.40,Pill,,0,0,0,,13× return on ad spend
+Dialogue: 0,0:00:58.90,0:01:00.40,Pill,,0,0,0,,Stripe live · real users
+Dialogue: 0,0:01:00.90,0:01:02.10,Pill,,0,0,0,,Validated by the market
+Dialogue: 0,0:01:02.80,0:01:05.30,Pill,,0,0,0,,Plume Astrale — understand yourself, today

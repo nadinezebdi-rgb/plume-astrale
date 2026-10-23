@@ -34,6 +34,322 @@ from services import natal_manuscript_extract as nce
 logger = logging.getLogger(__name__)
 
 
+# ─── i18n FR/EN pour TOUS les titres de chapitres, kickers, intros ──
+# Ces strings étaient hardcodés en français ; la table ci-dessous permet au
+# renderer anglais (print_book_renderer, language='en') d'avoir un livre 100%
+# EN même quand l'IA de contenu génère déjà de l'anglais.
+_I18N: dict[str, dict[str, str | list | dict]] = {
+    'fr': {
+        'months': ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                   'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+        'born_on': 'Né·e le {date}.',
+        # Chapitres principaux
+        'ch_preface_title': "Comment lire ce livre",
+        'ch_preface_kicker': "Un mode d'emploi tendre, pour les années à venir.",
+        'ch_preface_short_kicker': "Un mode d'emploi tendre.",
+        'ch_synthese_title': 'Le Ciel de {name}',
+        'ch_synthese_kicker': 'Trois signatures qui composent votre identité céleste.',
+        'ch_synthese_short_kicker': 'Vos trois signatures.',
+        'ch_synthese_glance': "Synthèse en un coup d'œil",
+        'sun_label': 'Soleil', 'moon_label': 'Lune', 'asc_label': 'Ascendant',
+        'natal_chart_alt': 'Roue du ciel de {name}',
+        'sun_para': ("Votre Soleil brille en <b>{sign}</b> — c'est le cœur de votre identité, "
+                     "ce que vous rayonnez quand vous êtes pleinement vous-même."),
+        'moon_para': ("Votre Lune se love en <b>{sign}</b> — c'est votre monde intérieur, "
+                      "la façon dont vous vous apaisez, dont vous aimez, dont vous ressentez."),
+        'asc_para': ("Votre Ascendant lève en <b>{sign}</b> — c'est le masque que votre âme "
+                     "a choisi, la première note que vous donnez au monde."),
+        'aspects_count': ("Votre thème compte <b>{n} aspects majeurs</b> entre vos planètes — "
+                          "autant de dialogues célestes qui composent votre nuance unique."),
+        'houses_count': ("<b>{n} des douze maisons</b> accueillent au moins une planète — "
+                         "ce sont vos domaines de vie les plus actifs, ceux où le ciel vous appelle à vivre."),
+        # Planètes
+        'ch_planets_title': 'Vos planètes',
+        'ch_planets_kicker': 'Dix forces qui composent votre palette intérieure.',
+        'ch_planets_short_kicker': 'Dix forces, dix couleurs.',
+        'ch_planets_intro': ("Dix forces habitent votre ciel. Chacune vit dans un signe, à un degré précis, "
+                             "et occupe un territoire de votre vie — une maison. Ce chapitre les présente une à une, "
+                             "dans l'ordre où elles tissent votre complexité."),
+        'house_prefix': 'maison',
+        'retrograde': 'rétrograde ℞',
+        'planet_fallback': ("{planet} en {sign} parle de {hint}. "
+                             "C'est une couleur à part entière de votre palette intérieure."),
+        # Maisons
+        'ch_houses_title': 'Vos douze maisons',
+        'ch_houses_kicker': 'Les scènes de votre vie, telles que le ciel les éclaire.',
+        'ch_houses_short_kicker': 'Douze scènes, douze théâtres.',
+        'ch_houses_intro': ("Si les planètes sont vos acteurs intérieurs, les maisons sont les scènes où ils se produisent. "
+                            "Douze territoires, douze théâtres de vie. Chaque maison tient un domaine : votre apparence, "
+                            "votre foyer, vos liens, votre travail, vos rêves — et davantage. Celles où séjournent une "
+                            "ou plusieurs planètes sont vos foyers actifs ; les autres, vous les habitez plus discrètement."),
+        'house_planet_singular': 'planète',
+        'house_planet_plural': 'planètes',
+        'house_cusp_full': 'La cuspide de la <b>{name}</b> tombe en <b>{sign}</b> à {cusp}.',
+        'house_cusp_no_deg': 'La cuspide de la <b>{name}</b> tombe en <b>{sign}</b>.',
+        'house_no_sign': '<b>{name}</b> — {theme}.',
+        'house_governs': 'Cette maison gouverne {desc}.',
+        'house_one_planet': "Une planète y séjourne : <b>{planet}</b>. Elle colore ce domaine de son énergie propre.",
+        'house_many_planets': "Plusieurs planètes y séjournent — {planets}. Ce secteur est un foyer actif de votre thème.",
+        'house_empty': "Aucune planète n'y séjourne : vous l'habitez à votre rythme, sans projecteur astral permanent.",
+        'conj_and': ' et ',
+        # Aspects
+        'ch_aspects_title': 'Vos aspects',
+        'ch_aspects_kicker': 'La danse invisible entre vos planètes.',
+        'ch_aspects_short_kicker': 'Vos planètes se parlent.',
+        'ch_aspects_intro': ("Les planètes se parlent. Certaines se renforcent (<i>conjonction</i>, <i>trigone</i>, "
+                             "<i>sextile</i>), d'autres se frottent (<i>opposition</i>, <i>carré</i>). Chaque dialogue "
+                             "laisse une empreinte dans votre caractère. Voici les plus marquants, groupés par nature."),
+        'aspect_fallback': "<b>{a} {type} {b}</b> — ce dialogue planétaire laisse sa marque dans votre thème.",
+        'aspect_orb': 'orbe {orb:.1f}°',
+        'aspect_groups': [
+            ('Conjonction', "Les conjonctions fusionnent deux forces en une seule note — elles amplifient."),
+            ('Opposition', "Les oppositions mettent deux pôles face à face — elles cherchent l'équilibre."),
+            ('Trigone', "Les trigones font circuler l'énergie en douceur — ce sont vos talents naturels."),
+            ('Carré', "Les carrés provoquent la friction nécessaire au mouvement — ce sont vos moteurs."),
+            ('Sextile', "Les sextiles sont des opportunités discrètes — elles s'ouvrent si vous les saisissez."),
+        ],
+        # Chapitre final + sections éditoriales
+        'ch_closing_title': 'Ce que votre ciel vous dit',
+        'ch_closing_kicker': 'Synthèse — à relire en période de doute.',
+        'ch_closing_short_kicker': 'Soléna vous parle.',
+        'editorial_titles': {
+            'element_analysis': 'Votre élément dominant',
+            'modality_analysis': 'Votre manière de vous mettre en mouvement',
+            'trio_synthesis': 'Votre signature personnelle',
+            'aspects_harmonieux_body': 'Vos ressources et vos harmonies',
+            'aspects_tensions_body': 'Vos tensions et vos chemins d\u2019évolution',
+            'rare_aspect_body': 'Votre note singulière',
+            'year_ahead': 'Mettre votre thème en perspective',
+        },
+        'ex_libris_title': 'Ex Libris · Signature astrale de {name}',
+        # Hints courts par planète (fallback si l'IA n'a pas de prose)
+        'planet_hints': {
+            'Soleil':   "le cœur de votre identité, ce que vous rayonnez quand vous êtes vous-même",
+            'Lune':     "votre monde intérieur, vos réflexes émotionnels, vos tendresses secrètes",
+            'Mercure':  "votre façon de penser, de parler, d'apprendre",
+            'Vénus':    "votre manière d'aimer, de goûter, d'embellir",
+            'Mars':     "votre élan, votre colère, ce qui vous met en mouvement",
+            'Jupiter':  "votre zone d'expansion, ce qui vous fait grandir et avoir confiance",
+            'Saturne':  "votre colonne vertébrale, les leçons qui bâtissent votre souveraineté",
+            'Uranus':   "votre liberté, vos coups de pied dans la table, vos éclats visionnaires",
+            'Neptune':  "vos rêves, votre spiritualité, ce qui dissout vos contours",
+            'Pluton':   "votre pouvoir, ce qui vous transforme en profondeur, votre part de nuit",
+            'Ascendant': "le masque que votre âme a choisi — ce que les autres voient en premier",
+        },
+        # Table de traduction nom-planète FR→EN (utilisée par la version EN)
+        'planet_names_fr_to_local': {},  # identité en FR
+    },
+    'en': {
+        'months': ['January', 'February', 'March', 'April', 'May', 'June',
+                   'July', 'August', 'September', 'October', 'November', 'December'],
+        'born_on': 'Born on {date}.',
+        'ch_preface_title': 'How to read this book',
+        'ch_preface_kicker': 'A tender user guide, for the years ahead.',
+        'ch_preface_short_kicker': 'A tender user guide.',
+        'ch_synthese_title': "{name}'s Sky",
+        'ch_synthese_kicker': 'Three signatures that compose your celestial identity.',
+        'ch_synthese_short_kicker': 'Your three signatures.',
+        'ch_synthese_glance': 'Synthesis at a glance',
+        'sun_label': 'Sun', 'moon_label': 'Moon', 'asc_label': 'Ascendant',
+        'natal_chart_alt': "{name}'s sky wheel",
+        'sun_para': ('Your Sun shines in <b>{sign}</b> — it is the heart of your identity, '
+                     'what you radiate when you are fully yourself.'),
+        'moon_para': ('Your Moon rests in <b>{sign}</b> — it is your inner world, '
+                      'how you soothe yourself, how you love, how you feel.'),
+        'asc_para': ('Your Ascendant rises in <b>{sign}</b> — it is the mask your soul has chosen, '
+                     'the first note you give to the world.'),
+        'aspects_count': ('Your chart holds <b>{n} major aspects</b> between your planets — '
+                          'as many celestial dialogues as there are nuances in you.'),
+        'houses_count': ('<b>{n} of the twelve houses</b> host at least one planet — '
+                         'these are your most active life areas, where the sky calls you to live.'),
+        'ch_planets_title': 'Your planets',
+        'ch_planets_kicker': 'Ten forces that compose your inner palette.',
+        'ch_planets_short_kicker': 'Ten forces, ten colours.',
+        'ch_planets_intro': ('Ten forces inhabit your sky. Each lives in a sign, at a precise degree, '
+                             'and occupies a territory of your life — a house. This chapter introduces them one by one, '
+                             'in the order they weave your complexity.'),
+        'house_prefix': 'house',
+        'retrograde': 'retrograde ℞',
+        'planet_fallback': ('{planet} in {sign} speaks of {hint}. '
+                             'It is a full colour of your inner palette.'),
+        'ch_houses_title': 'Your twelve houses',
+        'ch_houses_kicker': 'The scenes of your life, lit by the sky.',
+        'ch_houses_short_kicker': 'Twelve scenes, twelve theatres.',
+        'ch_houses_intro': ('If planets are your inner actors, houses are the stages they perform on. '
+                            'Twelve territories, twelve theatres of life. Each house holds a domain: your appearance, '
+                            'your home, your bonds, your work, your dreams — and more. Those where one or more planets '
+                            'reside are your active hearths; the others, you inhabit more quietly.'),
+        'house_planet_singular': 'planet',
+        'house_planet_plural': 'planets',
+        'house_cusp_full': 'The cusp of the <b>{name}</b> falls in <b>{sign}</b> at {cusp}.',
+        'house_cusp_no_deg': 'The cusp of the <b>{name}</b> falls in <b>{sign}</b>.',
+        'house_no_sign': '<b>{name}</b> — {theme}.',
+        'house_governs': 'This house governs {desc}.',
+        'house_one_planet': 'One planet dwells here: <b>{planet}</b>. It colours this domain with its own energy.',
+        'house_many_planets': 'Several planets dwell here — {planets}. This sector is an active hearth of your chart.',
+        'house_empty': 'No planet dwells here: you inhabit it at your own pace, without a permanent astral spotlight.',
+        'conj_and': ' and ',
+        'ch_aspects_title': 'Your aspects',
+        'ch_aspects_kicker': 'The invisible dance between your planets.',
+        'ch_aspects_short_kicker': 'Your planets speak to each other.',
+        'ch_aspects_intro': ('Planets speak to each other. Some reinforce one another (<i>conjunction</i>, <i>trine</i>, '
+                             '<i>sextile</i>), others rub against each other (<i>opposition</i>, <i>square</i>). Each dialogue '
+                             'leaves an imprint in your character. Here are the most striking, grouped by nature.'),
+        'aspect_fallback': '<b>{a} {type} {b}</b> — this planetary dialogue leaves its mark on your chart.',
+        'aspect_orb': 'orb {orb:.1f}°',
+        'aspect_groups': [
+            ('Conjonction', 'Conjunctions merge two forces into a single note — they amplify.'),
+            ('Opposition', 'Oppositions place two poles face to face — they seek balance.'),
+            ('Trigone', 'Trines let energy flow gently — these are your natural talents.'),
+            ('Carré', 'Squares provoke the friction needed for movement — these are your engines.'),
+            ('Sextile', 'Sextiles are discreet opportunities — they open if you seize them.'),
+        ],
+        'aspect_group_labels': {
+            'Conjonction': 'Conjunction',
+            'Opposition': 'Opposition',
+            'Trigone': 'Trine',
+            'Carré': 'Square',
+            'Sextile': 'Sextile',
+        },
+        'ch_closing_title': 'What your sky tells you',
+        'ch_closing_kicker': 'Synthesis — to reread in times of doubt.',
+        'ch_closing_short_kicker': 'Soléna speaks to you.',
+        'editorial_titles': {
+            'element_analysis': 'Your dominant element',
+            'modality_analysis': 'Your way of setting things in motion',
+            'trio_synthesis': 'Your personal signature',
+            'aspects_harmonieux_body': 'Your resources and harmonies',
+            'aspects_tensions_body': 'Your tensions and paths of growth',
+            'rare_aspect_body': 'Your singular note',
+            'year_ahead': 'Putting your chart into perspective',
+        },
+        'ex_libris_title': 'Ex Libris · Astral signature of {name}',
+        'planet_hints': {
+            'Soleil':   'the core of your identity, what you radiate when you are yourself',
+            'Lune':     'your inner world, your emotional reflexes, your secret tendernesses',
+            'Mercure':  'your way of thinking, speaking, learning',
+            'Vénus':    'your way of loving, savouring, beautifying',
+            'Mars':     'your drive, your anger, what sets you in motion',
+            'Jupiter':  'your zone of expansion, what helps you grow and trust',
+            'Saturne':  'your backbone, the lessons that build your sovereignty',
+            'Uranus':   'your freedom, your daring moves, your visionary flashes',
+            'Neptune':  'your dreams, your spirituality, what dissolves your contours',
+            'Pluton':   'your power, what transforms you deeply, your night-side',
+            'Ascendant': 'the mask your soul has chosen — what others see first',
+        },
+        'planet_names_fr_to_local': {
+            'Soleil': 'Sun', 'Lune': 'Moon', 'Mercure': 'Mercury',
+            'Vénus': 'Venus', 'Mars': 'Mars', 'Jupiter': 'Jupiter',
+            'Saturne': 'Saturn', 'Uranus': 'Uranus',
+            'Neptune': 'Neptune', 'Pluton': 'Pluto',
+            'Ascendant': 'Ascendant',
+        },
+        'house_names_fr_to_local': {
+            'Première maison': 'First house', 'Deuxième maison': 'Second house',
+            'Troisième maison': 'Third house', 'Quatrième maison': 'Fourth house',
+            'Cinquième maison': 'Fifth house', 'Sixième maison': 'Sixth house',
+            'Septième maison': 'Seventh house', 'Huitième maison': 'Eighth house',
+            'Neuvième maison': 'Ninth house', 'Dixième maison': 'Tenth house',
+            'Onzième maison': 'Eleventh house', 'Douzième maison': 'Twelfth house',
+        },
+        'house_themes_fr_to_local': {
+            'Le Soi': 'The Self', 'Les Ressources': 'Resources',
+            'La Pensée': 'The Mind', 'Les Racines': 'Roots',
+            'La Créativité': 'Creativity', 'Le Quotidien': 'Daily Life',
+            'Les Partenariats': 'Partnerships', 'Les Transformations': 'Transformations',
+            'Les Horizons': 'Horizons', 'La Vocation': 'Vocation',
+            'Les Amitiés': 'Friendships', "L'Inconscient": 'The Unconscious',
+        },
+    },
+}
+
+
+def _T(language: str, key: str, **kwargs):
+    """Récupère une string i18n, formate si kwargs, fallback FR en dernier recours."""
+    language = (language or 'fr').lower()
+    if language not in _I18N:
+        language = 'fr'
+    bundle = _I18N[language]
+    val = bundle.get(key)
+    if val is None:
+        val = _I18N['fr'].get(key, '')
+    if isinstance(val, str) and kwargs:
+        try:
+            return val.format(**kwargs)
+        except (KeyError, IndexError):
+            return val
+    return val
+
+
+def _tr_planet(name: str, language: str) -> str:
+    """Traduit un nom de planète FR vers la locale (identité en FR)."""
+    if language == 'fr':
+        return name
+    return _I18N['en']['planet_names_fr_to_local'].get(name, name)
+
+
+def _tr_house_name(name: str, language: str) -> str:
+    """Traduit un nom de maison FR vers la locale."""
+    if language == 'fr':
+        return name
+    return _I18N['en'].get('house_names_fr_to_local', {}).get(name, name)
+
+
+# Signes zodiacaux FR→EN (ne couvre pas les variantes avec accents multiples)
+_SIGN_FR_TO_EN = {
+    'Bélier': 'Aries', 'Taureau': 'Taurus', 'Gémeaux': 'Gemini',
+    'Cancer': 'Cancer', 'Lion': 'Leo', 'Vierge': 'Virgo',
+    'Balance': 'Libra', 'Scorpion': 'Scorpio', 'Sagittaire': 'Sagittarius',
+    'Capricorne': 'Capricorn', 'Verseau': 'Aquarius', 'Poissons': 'Pisces',
+}
+
+
+def _tr_sign(sign: str, language: str) -> str:
+    """Traduit un signe FR vers la locale."""
+    if not sign or language == 'fr':
+        return sign
+    return _SIGN_FR_TO_EN.get(sign, sign)
+
+
+# Templates d'interprétation d'aspect EN (miroir de _ASPECT_INTERP_TEMPLATES)
+_ASPECT_INTERP_EN = {
+    'Conjonction': 'Fusion. {a} and {b} play the same note. You feel their qualities as one and the same energy — amplified.',
+    'Opposition':  'Tension. {a} and {b} face each other. You swing between the two poles — balance lies at the centre, not in one or the other.',
+    'Trigone':     'Harmony. {a} and {b} get on effortlessly. This talent flows, sometimes too easily — it is yours to engage.',
+    'Carré':       'Friction. {a} and {b} each want to impose their rhythm. It is uncomfortable, but it is your engine — nothing propels you more than this rubbing.',
+    'Sextile':     'Opportunity. {a} and {b} signal to each other. Seize the moment and the energy opens — it never forces anything.',
+}
+
+
+def _interpret_aspect_i18n(aspect: dict, language: str) -> str:
+    """Même rôle que nce.interpret_aspect, mais localisé."""
+    if language == 'en':
+        tmpl = _ASPECT_INTERP_EN.get(aspect.get('type_fr', ''), '')
+        if tmpl:
+            a = _tr_planet(aspect.get('planet_a', '?'), 'en')
+            b = _tr_planet(aspect.get('planet_b', '?'), 'en')
+            return tmpl.format(a=a, b=b)
+    return nce.interpret_aspect(aspect) or ''
+
+
+# Thèmes des 12 maisons en anglais : nom court + description « ce que la maison gouverne ».
+# Clé = nom FR tel qu'il arrive de HOUSE_THEMES dans natal_chart_extract.
+_HOUSE_THEME_EN = {
+    'Le Soi':              ('The Self',           'your appearance, your vital drive, your mask'),
+    'Les Ressources':      ('Resources',          'your values, your money, your relationship to the body'),
+    'La Pensée':           ('The Mind',           'the mind, siblings, short-form learning'),
+    'Les Racines':         ('Roots',              'home, origins, family memory'),
+    'La Créativité':       ('Creativity',         'love affairs, children, play, creation'),
+    'Le Quotidien':        ('Daily Life',         'work, health, service to others'),
+    'Les Partenariats':    ('Partnerships',       'the other, contracts, marriage'),
+    'Les Transformations': ('Transformations',    'death, sex, regenerative crises'),
+    'Les Horizons':        ('Horizons',           'far travels, philosophy, faith'),
+    'La Vocation':         ('Vocation',           'career, public recognition'),
+    'Les Amitiés':         ('Friendships',        'the collective, projects, causes'),
+    "L'Inconscient":       ('The Unconscious',    'secrets, retreat, karma'),
+}
+
+
 def _parse_birth_date(birth_date: str) -> BirthData:
     return BirthData(
         date_iso=birth_date or '',
@@ -43,74 +359,87 @@ def _parse_birth_date(birth_date: str) -> BirthData:
     )
 
 
-# ─── Templates courts (fallback neutre, jamais d'excuse) ─────────────
-_PLANET_HINT = {
-    'Soleil':   "le cœur de votre identité, ce que vous rayonnez quand vous êtes vous-même",
-    'Lune':     "votre monde intérieur, vos réflexes émotionnels, vos tendresses secrètes",
-    'Mercure':  "votre façon de penser, de parler, d'apprendre",
-    'Vénus':    "votre manière d'aimer, de goûter, d'embellir",
-    'Mars':     "votre élan, votre colère, ce qui vous met en mouvement",
-    'Jupiter':  "votre zone d'expansion, ce qui vous fait grandir et avoir confiance",
-    'Saturne':  "votre colonne vertébrale, les leçons qui bâtissent votre souveraineté",
-    'Uranus':   "votre liberté, vos coups de pied dans la table, vos éclats visionnaires",
-    'Neptune':  "vos rêves, votre spiritualité, ce qui dissout vos contours",
-    'Pluton':   "votre pouvoir, ce qui vous transforme en profondeur, votre part de nuit",
-    'Ascendant': "le masque que votre âme a choisi — ce que les autres voient en premier",
-}
+# ─── Templates courts : les hints par planète sont désormais dans _I18N ─
+# (voir _I18N['fr']['planet_hints'] et _I18N['en']['planet_hints']).
 
 
-def _house_sentence(house: dict) -> str:
+def _house_sentence(house: dict, language: str = 'fr') -> str:
     """Phrase courte pour une maison : cuspide + occupants + thème."""
-    name = house['name']
-    sign = house.get('sign') or ''
+    name = _tr_house_name(house['name'], language)
+    sign_raw = house.get('sign') or ''
+    sign = _tr_sign(sign_raw, language)
     cusp = house.get('cusp_degree_str') or ''
     theme = house.get('theme') or ''
     desc = house.get('theme_desc') or ''
+    # Pour l'EN, on remplace le theme/desc par la version localisée si disponible
+    if language == 'en':
+        en_pair = _HOUSE_THEME_EN.get(theme)
+        if en_pair:
+            theme = en_pair[0]
+            desc = en_pair[1]
+        else:
+            # Essai par matching d'un desc_fr vers son equivalent EN via lookup inversé
+            for en_key, (en_theme, en_desc) in _HOUSE_THEME_EN.items():
+                if desc and (desc in en_key or en_desc in desc):
+                    theme, desc = en_theme, en_desc
+                    break
     planets = house.get('planets') or []
 
     parts = []
     if sign and cusp:
-        parts.append(f"La cuspide de la <b>{name.lower()}</b> tombe en <b>{sign}</b> à {cusp}.")
+        parts.append(_T(language, 'house_cusp_full', name=name.lower(), sign=sign, cusp=cusp))
     elif sign:
-        parts.append(f"La cuspide de la <b>{name.lower()}</b> tombe en <b>{sign}</b>.")
+        parts.append(_T(language, 'house_cusp_no_deg', name=name.lower(), sign=sign))
     else:
-        parts.append(f"<b>{name}</b> — {theme.lower()}.")
+        parts.append(_T(language, 'house_no_sign', name=name, theme=theme.lower()))
 
-    parts.append(f"Cette maison gouverne {desc}.")
+    parts.append(_T(language, 'house_governs', desc=desc))
 
     if planets:
-        if len(planets) == 1:
-            parts.append(f"Une planète y séjourne : <b>{planets[0]}</b>. Elle colore ce domaine de son énergie propre.")
+        tr_planets = [_tr_planet(p, language) for p in planets]
+        if len(tr_planets) == 1:
+            parts.append(_T(language, 'house_one_planet', planet=tr_planets[0]))
         else:
-            noms = ', '.join(f'<b>{p}</b>' for p in planets[:-1]) + f' et <b>{planets[-1]}</b>'
-            parts.append(f"Plusieurs planètes y séjournent — {noms}. Ce secteur est un foyer actif de votre thème.")
+            noms = ', '.join(f'<b>{p}</b>' for p in tr_planets[:-1]) + f'{_T(language, "conj_and")}<b>{tr_planets[-1]}</b>'
+            parts.append(_T(language, 'house_many_planets', planets=noms))
     else:
-        parts.append("Aucune planète n'y séjourne : vous l'habitez à votre rythme, sans projecteur astral permanent.")
+        parts.append(_T(language, 'house_empty'))
 
     return ' '.join(parts)
 
 
-def _aspect_group_paragraphs(aspects: list, nature_hint: str) -> list[str]:
+def _aspect_group_paragraphs(aspects: list, nature_hint: str, language: str = 'fr') -> list[str]:
     paras: list[str] = [nature_hint]
     for a in aspects:
-        interp = nce.interpret_aspect(a) or (
-            f"<b>{a.get('planet_a', '?')} {a.get('type_fr', '').lower()} {a.get('planet_b', '?')}</b> — "
-            "ce dialogue planétaire laisse sa marque dans votre thème."
-        )
+        a_name = _tr_planet(a.get('planet_a', '?'), language)
+        b_name = _tr_planet(a.get('planet_b', '?'), language)
+        # type_fr est toujours en FR ; on le traduit en EN si demandé
+        type_label = a.get('type_fr', '').lower()
+        if language == 'en':
+            labels = _I18N['en'].get('aspect_group_labels') or {}
+            canonical = a.get('type_fr', '')
+            type_label = labels.get(canonical, canonical).lower()
+        interp = _interpret_aspect_i18n(a, language) or _T(language, 'aspect_fallback',
+                                                           a=a_name, b=b_name, type=type_label)
         orb = a.get('orb_degrees')
-        orb_part = f' <i>(orbe {orb:.1f}°)</i>' if isinstance(orb, (int, float)) else ''
-        paras.append(f"<b>{a.get('planet_a', '?')} — {a.get('planet_b', '?')}</b>{orb_part}. {interp}")
+        orb_part = ''
+        if isinstance(orb, (int, float)):
+            orb_part = f' <i>({_T(language, "aspect_orb", orb=orb)})</i>'
+        paras.append(f"<b>{a_name} — {b_name}</b>{orb_part}. {interp}")
     return paras
 
 
 # ─── Builders de chapitres individuels ──────────────────────────────
-def _chapter_preface(preface_blocks: list[dict], prenom: str) -> Chapter:
+def _chapter_preface(preface_blocks: list[dict], prenom: str, language: str = 'fr') -> Chapter:
     """Chapitre I — Comment lire ce livre (préface AI-générée ou statique)."""
+    title = _T(language, 'ch_preface_title')
+    kicker = _T(language, 'ch_preface_kicker')
+    short_k = _T(language, 'ch_preface_short_kicker')
     blocks: list[ChapterBlock] = []
     blocks.append(ChapterBlock(BlockKind.CHAPTER_OPENING, {
         'roman_num': 'I',
-        'title': "Comment lire ce livre",
-        'kicker': 'Un mode d\'emploi tendre, pour les années à venir.',
+        'title': title,
+        'kicker': kicker,
     }))
     for b in preface_blocks:
         kind = (b.get('kind') or '').lower()
@@ -123,38 +452,41 @@ def _chapter_preface(preface_blocks: list[dict], prenom: str) -> Chapter:
             blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {'text': text, 'raw': True}))
     blocks.append(ChapterBlock(BlockKind.FEATHER, {}))
     return Chapter(
-        slug='natal_preface', title="Comment lire ce livre",
-        kicker='Un mode d\'emploi tendre.', roman_num='I', order=1, blocks=blocks,
+        slug='natal_preface', title=title,
+        kicker=short_k, roman_num='I', order=1, blocks=blocks,
     )
 
 
 def _chapter_synthese(
     prenom: str, birth_date_fr: str, sun_sign: str, moon_sign: str,
     asc_sign: str, no_birth_time: bool, aspects_norm: list, houses: list,
-    chart_png_bytes: bytes | None,
+    chart_png_bytes: bytes | None, language: str = 'fr',
 ) -> Chapter:
     """Chapitre II — Votre ciel en synthèse (trio + roue + highlights)."""
+    title = _T(language, 'ch_synthese_title', name=prenom)
+    kicker = _T(language, 'ch_synthese_kicker')
+    short_k = _T(language, 'ch_synthese_short_kicker')
     blocks: list[ChapterBlock] = []
     blocks.append(ChapterBlock(BlockKind.CHAPTER_OPENING, {
         'roman_num': 'II',
-        'title': f"Le Ciel de {prenom}",
-        'kicker': 'Trois signatures qui composent votre identité céleste.',
+        'title': title,
+        'kicker': kicker,
     }))
 
     if birth_date_fr:
         blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-            'text': f'<span class="lede-date">Né·e le {birth_date_fr}.</span>',
+            'text': f'<span class="lede-date">{_T(language, "born_on", date=birth_date_fr)}</span>',
             'raw': True,
         }))
 
-    # Trio cards
+    # Trio cards (labels localisés)
     trio: list[dict] = []
     if sun_sign:
-        trio.append({'label': 'Soleil', 'sign': sun_sign})
+        trio.append({'label': _T(language, 'sun_label'), 'sign': _tr_sign(sun_sign, language)})
     if moon_sign:
-        trio.append({'label': 'Lune', 'sign': moon_sign})
+        trio.append({'label': _T(language, 'moon_label'), 'sign': _tr_sign(moon_sign, language)})
     if asc_sign and not no_birth_time:
-        trio.append({'label': 'Ascendant', 'sign': asc_sign})
+        trio.append({'label': _T(language, 'asc_label'), 'sign': _tr_sign(asc_sign, language)})
     if trio:
         blocks.append(ChapterBlock(BlockKind.TRIO_CARDS, {'items': trio}))
 
@@ -164,97 +496,93 @@ def _chapter_synthese(
             b64 = base64.b64encode(chart_png_bytes).decode('ascii')
             blocks.append(ChapterBlock(BlockKind.NATAL_CHART, {
                 'src': f'data:image/png;base64,{b64}',
-                'alt': f'Roue du ciel de {prenom}',
+                'alt': _T(language, 'natal_chart_alt', name=prenom),
             }))
         except Exception as e:
             logger.warning(f'[natal_manuscript] chart encoding failed: {e}')
 
     # Synthèse exécutive sur page suivante
     blocks.append(ChapterBlock(BlockKind.PAGE_BREAK, {}))
-    blocks.append(ChapterBlock(BlockKind.H2, {'text': "Synthèse en un coup d'œil"}))
+    blocks.append(ChapterBlock(BlockKind.H2, {'text': _T(language, 'ch_synthese_glance')}))
     if sun_sign:
         blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-            'text': (f"Votre Soleil brille en <b>{sun_sign}</b> — c'est le cœur de votre identité, "
-                     f"ce que vous rayonnez quand vous êtes pleinement vous-même."),
+            'text': _T(language, 'sun_para', sign=_tr_sign(sun_sign, language)),
             'raw': True,
         }))
     if moon_sign:
         blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-            'text': (f"Votre Lune se love en <b>{moon_sign}</b> — c'est votre monde intérieur, "
-                     f"la façon dont vous vous apaisez, dont vous aimez, dont vous ressentez."),
+            'text': _T(language, 'moon_para', sign=_tr_sign(moon_sign, language)),
             'raw': True,
         }))
     if asc_sign and not no_birth_time:
         blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-            'text': (f"Votre Ascendant lève en <b>{asc_sign}</b> — c'est le masque que votre âme "
-                     f"a choisi, la première note que vous donnez au monde."),
+            'text': _T(language, 'asc_para', sign=_tr_sign(asc_sign, language)),
             'raw': True,
         }))
     nb_aspects = len(aspects_norm)
     nb_houses = sum(1 for h in houses if h.get('planets'))
     if nb_aspects:
         blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-            'text': (f"Votre thème compte <b>{nb_aspects} aspects majeurs</b> entre vos planètes — "
-                     f"autant de dialogues célestes qui composent votre nuance unique."),
+            'text': _T(language, 'aspects_count', n=nb_aspects),
             'raw': True,
         }))
     if nb_houses:
         blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-            'text': (f"<b>{nb_houses} des douze maisons</b> accueillent au moins une planète — "
-                     f"ce sont vos domaines de vie les plus actifs, ceux où le ciel vous appelle à vivre."),
+            'text': _T(language, 'houses_count', n=nb_houses),
             'raw': True,
         }))
     blocks.append(ChapterBlock(BlockKind.FEATHER, {}))
     return Chapter(
-        slug='natal_synthese', title=f"Le Ciel de {prenom}",
-        kicker='Vos trois signatures.', roman_num='II', order=2, blocks=blocks,
+        slug='natal_synthese', title=title,
+        kicker=short_k, roman_num='II', order=2, blocks=blocks,
     )
 
 
-def _chapter_planets(planets_narr: list, pos_by_name: dict, no_birth_time: bool) -> Chapter:
+def _chapter_planets(planets_narr: list, pos_by_name: dict, no_birth_time: bool, language: str = 'fr') -> Chapter:
     """Chapitre III — Vos planètes (2 planètes par page = 5 pages pleines)."""
+    title = _T(language, 'ch_planets_title')
+    kicker = _T(language, 'ch_planets_kicker')
+    short_k = _T(language, 'ch_planets_short_kicker')
     blocks: list[ChapterBlock] = []
     blocks.append(ChapterBlock(BlockKind.CHAPTER_OPENING, {
         'roman_num': 'III',
-        'title': "Vos planètes",
-        'kicker': 'Dix forces qui composent votre palette intérieure.',
+        'title': title,
+        'kicker': kicker,
     }))
     blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-        'text': (
-            "Dix forces habitent votre ciel. Chacune vit dans un signe, à un degré précis, "
-            "et occupe un territoire de votre vie — une maison. Ce chapitre les présente une à une, "
-            "dans l'ordre où elles tissent votre complexité."
-        ),
+        'text': _T(language, 'ch_planets_intro'),
     }))
 
+    hints_bundle = _I18N.get(language, _I18N['fr']).get('planet_hints', {}) or {}
     # 2 planètes par page — chaque H2 planète suit un petit texte paragraphe
     valid_planets = [p for p in planets_narr
                      if (p.get('name') or '').strip() and (p.get('sign') or '').strip()]
     for i, p in enumerate(valid_planets):
-        name = p['name'].strip()
-        sign = p['sign'].strip()
+        name_fr = p['name'].strip()
+        name_display = _tr_planet(name_fr, language)
+        sign_raw = p['sign'].strip()
+        sign = _tr_sign(sign_raw, language)
         analysis = (p.get('analysis') or '').strip()
         # Toutes les 2 planètes, nouvelle page (sauf la première qui suit l'intro)
         if i > 0:
             blocks.append(ChapterBlock(BlockKind.PAGE_BREAK, {}))
-        det = pos_by_name.get(name) or {}
-        parts = [f'{name} en {sign}']
+        det = pos_by_name.get(name_fr) or {}
+        in_word = 'in' if language == 'en' else 'en'
+        parts = [f'{name_display} {in_word} {sign}']
         deg_str = det.get('degree_in_sign_str') or ''
         if deg_str:
             parts.append(deg_str)
         house_num = det.get('house')
         if isinstance(house_num, int) and 1 <= house_num <= 12 and not no_birth_time:
-            parts.append(f'maison {house_num}')
+            parts.append(f'{_T(language, "house_prefix")} {house_num}')
         if det.get('retrograde'):
-            parts.append('rétrograde ℞')
+            parts.append(_T(language, 'retrograde'))
         blocks.append(ChapterBlock(BlockKind.H2, {'text': ' · '.join(parts)}))
         if not analysis:
-            hint = _PLANET_HINT.get(name, '')
+            hint = hints_bundle.get(name_fr, '')
             if hint:
-                analysis = (
-                    f"{name} en {sign} parle de {hint}. "
-                    f"C'est une couleur à part entière de votre palette intérieure."
-                )
+                analysis = _T(language, 'planet_fallback',
+                               planet=name_display, sign=sign, hint=hint)
         if analysis:
             paras = [pp.strip() for pp in analysis.split('\n\n') if pp.strip()] or [analysis]
             for para in paras:
@@ -262,106 +590,103 @@ def _chapter_planets(planets_narr: list, pos_by_name: dict, no_birth_time: bool)
 
     blocks.append(ChapterBlock(BlockKind.FEATHER, {}))
     return Chapter(
-        slug='natal_planets', title="Vos planètes",
-        kicker='Dix forces, dix couleurs.', roman_num='III', order=3, blocks=blocks,
+        slug='natal_planets', title=title,
+        kicker=short_k, roman_num='III', order=3, blocks=blocks,
     )
 
 
-def _chapter_houses(houses: list) -> Chapter:
+def _chapter_houses(houses: list, language: str = 'fr') -> Chapter:
     """Chapitre IV — Vos douze maisons (3 par page = 4 pages pleines)."""
+    title = _T(language, 'ch_houses_title')
+    kicker = _T(language, 'ch_houses_kicker')
+    short_k = _T(language, 'ch_houses_short_kicker')
     blocks: list[ChapterBlock] = []
     blocks.append(ChapterBlock(BlockKind.CHAPTER_OPENING, {
         'roman_num': 'IV',
-        'title': "Vos douze maisons",
-        'kicker': 'Les scènes de votre vie, telles que le ciel les éclaire.',
+        'title': title,
+        'kicker': kicker,
     }))
     blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-        'text': (
-            "Si les planètes sont vos acteurs intérieurs, les maisons sont les scènes où ils se produisent. "
-            "Douze territoires, douze théâtres de vie. Chaque maison tient un domaine : votre apparence, "
-            "votre foyer, vos liens, votre travail, vos rêves — et davantage. Celles où séjournent une "
-            "ou plusieurs planètes sont vos foyers actifs ; les autres, vous les habitez plus discrètement."
-        ),
+        'text': _T(language, 'ch_houses_intro'),
     }))
     for idx, h in enumerate(houses):
         # 3 maisons par page (après l'intro)
         if idx > 0 and idx % 3 == 0:
             blocks.append(ChapterBlock(BlockKind.PAGE_BREAK, {}))
-        h2 = f"{h['name']}"
+        h2 = _tr_house_name(h['name'], language)
         if h.get('sign'):
-            h2 += f" · {h['sign']}"
+            h2 += f" · {_tr_sign(h['sign'], language)}"
         if h.get('planets'):
             n = len(h['planets'])
-            h2 += f" ({n} planète{'s' if n > 1 else ''})"
+            word_singular = _T(language, 'house_planet_singular')
+            word_plural = _T(language, 'house_planet_plural')
+            h2 += f" ({n} {word_plural if n > 1 else word_singular})"
         blocks.append(ChapterBlock(BlockKind.H2, {'text': h2}))
         blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-            'text': _house_sentence(h), 'raw': True,
+            'text': _house_sentence(h, language=language), 'raw': True,
         }))
     blocks.append(ChapterBlock(BlockKind.FEATHER, {}))
     return Chapter(
-        slug='natal_houses', title="Vos douze maisons",
-        kicker='Douze scènes, douze théâtres.', roman_num='IV', order=4, blocks=blocks,
+        slug='natal_houses', title=title,
+        kicker=short_k, roman_num='IV', order=4, blocks=blocks,
     )
 
 
-def _chapter_aspects(aspects_norm: list) -> Chapter:
+def _chapter_aspects(aspects_norm: list, language: str = 'fr') -> Chapter:
     """Chapitre V — Vos aspects (5 groupes = 5 pages ou moins si certains vides)."""
+    title = _T(language, 'ch_aspects_title')
+    kicker = _T(language, 'ch_aspects_kicker')
+    short_k = _T(language, 'ch_aspects_short_kicker')
     blocks: list[ChapterBlock] = []
     blocks.append(ChapterBlock(BlockKind.CHAPTER_OPENING, {
         'roman_num': 'V',
-        'title': "Vos aspects",
-        'kicker': 'La danse invisible entre vos planètes.',
+        'title': title,
+        'kicker': kicker,
     }))
     blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {
-        'text': (
-            "Les planètes se parlent. Certaines se renforcent (<i>conjonction</i>, <i>trigone</i>, "
-            "<i>sextile</i>), d'autres se frottent (<i>opposition</i>, <i>carré</i>). Chaque dialogue "
-            "laisse une empreinte dans votre caractère. Voici les plus marquants, groupés par nature."
-        ),
+        'text': _T(language, 'ch_aspects_intro'),
         'raw': True,
     }))
-    groups = [
-        ('Conjonction', "Les conjonctions fusionnent deux forces en une seule note — elles amplifient."),
-        ('Opposition', "Les oppositions mettent deux pôles face à face — elles cherchent l'équilibre."),
-        ('Trigone', "Les trigones font circuler l'énergie en douceur — ce sont vos talents naturels."),
-        ('Carré', "Les carrés provoquent la friction nécessaire au mouvement — ce sont vos moteurs."),
-        ('Sextile', "Les sextiles sont des opportunités discrètes — elles s'ouvrent si vous les saisissez."),
-    ]
+    groups = _T(language, 'aspect_groups')
+    labels_map = _I18N.get(language, _I18N['fr']).get('aspect_group_labels') or {}
     # 2 types par page — place un PAGE_BREAK entre groupes impairs
     rendered_groups = 0
     for type_fr, hint in groups:
         sub = [a for a in aspects_norm if a.get('type_fr') == type_fr]
         if not sub:
             continue
-        # Nouveau "folio" tous les 2 groupes (après intro + 2 groupes)
         if rendered_groups > 0 and rendered_groups % 2 == 0:
             blocks.append(ChapterBlock(BlockKind.PAGE_BREAK, {}))
         rendered_groups += 1
-        blocks.append(ChapterBlock(BlockKind.H2, {'text': f'{type_fr}s — {len(sub)}'}))
-        for para in _aspect_group_paragraphs(sub, hint):
+        type_label = labels_map.get(type_fr, type_fr)
+        blocks.append(ChapterBlock(BlockKind.H2, {'text': f'{type_label}s — {len(sub)}'}))
+        for para in _aspect_group_paragraphs(sub, hint, language=language):
             blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {'text': para, 'raw': True}))
     blocks.append(ChapterBlock(BlockKind.FEATHER, {}))
     return Chapter(
-        slug='natal_aspects', title="Vos aspects",
-        kicker='Vos planètes se parlent.', roman_num='V', order=5, blocks=blocks,
+        slug='natal_aspects', title=title,
+        kicker=short_k, roman_num='V', order=5, blocks=blocks,
     )
 
 
-def _chapter_synthese_finale(synthese_text: str) -> Chapter:
+def _chapter_synthese_finale(synthese_text: str, language: str = 'fr') -> Chapter:
     """Chapitre VI — Synthèse finale voix Soléna."""
+    title = _T(language, 'ch_closing_title')
+    kicker = _T(language, 'ch_closing_kicker')
+    short_k = _T(language, 'ch_closing_short_kicker')
     blocks: list[ChapterBlock] = []
     blocks.append(ChapterBlock(BlockKind.CHAPTER_OPENING, {
         'roman_num': 'VI',
-        'title': "Ce que votre ciel vous dit",
-        'kicker': 'Synthèse — à relire en période de doute.',
+        'title': title,
+        'kicker': kicker,
     }))
     paras = [p.strip() for p in synthese_text.split('\n\n') if p.strip()] or [synthese_text]
     for para in paras:
         blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {'text': para}))
     blocks.append(ChapterBlock(BlockKind.FEATHER, {}))
     return Chapter(
-        slug='natal_closing', title="Ce que votre ciel vous dit",
-        kicker='Soléna vous parle.', roman_num='VI', order=6, blocks=blocks,
+        slug='natal_closing', title=title,
+        kicker=short_k, roman_num='VI', order=6, blocks=blocks,
     )
 
 
@@ -376,11 +701,15 @@ def build_natal_manuscript(
     session_id: str = '',
     preface_blocks: list[dict] | None = None,
     book_data: dict | None = None,
+    language: str = 'fr',
 ) -> Manuscript:
     """Construit un Manuscript multi-chapitres prêt à être rendu en PDF print blanc.
 
     `preface_blocks` optionnel : blocs AI-générés (list of {'kind', 'text'}).
     Si absent, un fallback statique de qualité est utilisé.
+
+    `language` : 'fr' (défaut) ou 'en' — tous les titres de chapitres, kickers,
+    intros structurels et dates sont alors localisés.
 
     `natal_data` attendus :
       sun_sign, moon_sign, ascendant_sign, no_birth_time
@@ -392,18 +721,22 @@ def build_natal_manuscript(
       tier             — 'ultra' ou 'legacy'
     """
     prenom = (prenom or 'Voyageuse').strip() or 'Voyageuse'
+    language = (language or 'fr').lower()
+    if language not in _I18N:
+        language = 'fr'
 
-    def _fmt_date_fr(date_iso: str) -> str:
+    def _fmt_date_local(date_iso: str) -> str:
         if not date_iso:
             return ''
         try:
             y, mo, d = date_iso.split('-')[:3]
-            months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-                      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+            months = _T(language, 'months') or _I18N['fr']['months']
+            if language == 'en':
+                return f'{months[int(mo) - 1]} {int(d)}, {y}'
             return f'{int(d)} {months[int(mo) - 1]} {y}'
         except Exception:
             return date_iso or ''
-    birth_date_fr = _fmt_date_fr(birth_date)
+    birth_date_fr = _fmt_date_local(birth_date)
 
     no_birth_time = bool(natal_data.get('no_birth_time'))
 
@@ -427,7 +760,7 @@ def build_natal_manuscript(
         # Import local pour permettre un stub des tests sans réseau
         try:
             from services.natal_preface_generator import _static_fallback
-            preface_blocks = _static_fallback(prenom)
+            preface_blocks = _static_fallback(prenom, language=language)
         except Exception:
             preface_blocks = []
 
@@ -440,26 +773,24 @@ def build_natal_manuscript(
 
     # Construction des chapitres
     chapters: list[Chapter] = []
-    chapters.append(_chapter_preface(preface_blocks or [], prenom))
+    chapters.append(_chapter_preface(preface_blocks or [], prenom, language=language))
     chapters.append(_chapter_synthese(
         prenom, birth_date_fr, sun_sign, moon_sign, asc_sign,
-        no_birth_time, aspects_norm, houses, chart_png_bytes,
+        no_birth_time, aspects_norm, houses, chart_png_bytes, language=language,
     ))
 
-    for key, title in [
-        ('element_analysis', 'Votre élément dominant'),
-        ('modality_analysis', 'Votre manière de vous mettre en mouvement'),
-        ('trio_synthesis', 'Votre signature personnelle'),
-    ]:
+    editorial_titles = _I18N.get(language, _I18N['fr']).get('editorial_titles') or {}
+    for key in ('element_analysis', 'modality_analysis', 'trio_synthesis'):
         if str(book_data.get(key) or '').strip():
+            title = editorial_titles.get(key) or key
             chapters.append(editorial(key, title, book_data[key]))
 
     planets_narr = natal_data.get('planets') or []
     if planets_narr:
-        chapters.append(_chapter_planets(planets_narr, pos_by_name, no_birth_time))
+        chapters.append(_chapter_planets(planets_narr, pos_by_name, no_birth_time, language=language))
 
     if houses and not no_birth_time:
-        house_chapter = _chapter_houses(houses)
+        house_chapter = _chapter_houses(houses, language=language)
         # Insert the actual personalised prose after its corresponding house title.
         enriched = []
         if book_data.get('houses_intro'):
@@ -477,29 +808,31 @@ def build_natal_manuscript(
         chapters.append(house_chapter)
 
     if aspects_norm:
-        chapters.append(_chapter_aspects(aspects_norm))
+        chapters.append(_chapter_aspects(aspects_norm, language=language))
 
     synthese = (natal_data.get('synthese_aspects') or '').strip()
     if synthese:
-        chapters.append(_chapter_synthese_finale(synthese))
+        chapters.append(_chapter_synthese_finale(synthese, language=language))
 
-    for key, title in [
-        ('aspects_harmonieux_body', book_data.get('aspects_harmonieux_headline') or 'Vos ressources et vos harmonies'),
-        ('aspects_tensions_body', book_data.get('aspects_tensions_headline') or 'Vos tensions et vos chemins d’évolution'),
-        ('rare_aspect_body', book_data.get('rare_aspect_headline') or 'Votre note singulière'),
-        ('year_ahead', 'Mettre votre thème en perspective'),
-    ]:
-        if str(book_data.get(key) or '').strip():
-            chapters.append(editorial(key, title, book_data[key]))
+    # Sections éditoriales de fin (headlines personnalisables côté book_data,
+    # sinon fallback localisé).
+    for key in ('aspects_harmonieux_body', 'aspects_tensions_body', 'rare_aspect_body', 'year_ahead'):
+        if not str(book_data.get(key) or '').strip():
+            continue
+        headline_key = {
+            'aspects_harmonieux_body': 'aspects_harmonieux_headline',
+            'aspects_tensions_body': 'aspects_tensions_headline',
+            'rare_aspect_body': 'rare_aspect_headline',
+        }.get(key)
+        title = (book_data.get(headline_key) if headline_key else None) or editorial_titles.get(key) or key
+        chapters.append(editorial(key, title, book_data[key]))
 
-    # Page Signature · Ex Libris — dernier chapitre, un seul paragraphe condensé,
-    # pensé comme une page à conserver, découper, offrir. Généré en même temps
-    # que le reste du livre (clé `ex_libris` du JSON GPT), 0 coût supplémentaire.
+    # Page Signature · Ex Libris
     ex_libris_text = str(book_data.get('ex_libris') or '').strip()
     if ex_libris_text:
         chapters.append(editorial(
             'ex_libris',
-            f'Ex Libris · Signature astrale de {prenom}',
+            _T(language, 'ex_libris_title', name=prenom),
             ex_libris_text,
         ))
 
