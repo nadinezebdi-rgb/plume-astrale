@@ -1,338 +1,341 @@
-"""natal_chart_extract — Extraction aspects + maisons + degrés depuis le thème natal.
-================================================================================
+"""Extraction des aspects et maisons depuis les données réelles du thème natal."""
 
-Pour tenir la promesse éditoriale "Thème Natal 43 pages", le PDF a besoin de 3
-blocs de données que l'API `astrology-api.io` fournit :
-
-  1. **Positions** : chaque planète avec signe + maison + degré exact
-     → `/api/v3/data/positions`
-  2. **Aspects** : trine, carré, opposition, etc. entre planètes
-     → `/api/v3/data/aspects`
-  3. **House cusps** : cuspides des 12 maisons avec leur signe
-     → `/api/v3/data/house-cusps`
-
-Ce module normalise la sortie API → format uniforme consommé par
-`natal_manuscript_builder.py`. Si l'API ne renvoie pas tout (ex. tier Essential
-sans aspects), on calcule un fallback à partir des positions brutes.
-
-Pas d'appel IA ici — c'est du calcul géométrique + mapping. L'enrichissement
-littéraire (interprétation de chaque aspect / maison) est fait en amont par
-`enhanced_natal_analysis.py` ou par le prompt GPT du book builder.
-"""
 from __future__ import annotations
-import logging
-from typing import Any, Dict, List, Optional, Tuple
 
-logger = logging.getLogger(__name__)
+import re
+from typing import Any, Dict, List, Optional
+
+from services import astrology_io_service as aio
 
 
-# ─── Constantes astro ────────────────────────────────────────────────
-# Signes dans l'ordre du zodiaque (0 = Bélier, 11 = Poissons)
-ZODIAC_SIGNS_EN = (
-    'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-    'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
-)
-ZODIAC_SIGNS_FR = (
-    'Bélier', 'Taureau', 'Gémeaux', 'Cancer', 'Lion', 'Vierge',
-    'Balance', 'Scorpion', 'Sagittaire', 'Capricorne', 'Verseau', 'Poissons',
-)
-SIGN_EN_TO_FR = dict(zip(ZODIAC_SIGNS_EN, ZODIAC_SIGNS_FR))
-SIGN_FR_TO_EN = dict(zip(ZODIAC_SIGNS_FR, ZODIAC_SIGNS_EN))
+PLANETS_FR = {
+    "sun": "Soleil",
+    "moon": "Lune",
+    "mercury": "Mercure",
+    "venus": "Vénus",
+    "mars": "Mars",
+    "jupiter": "Jupiter",
+    "saturn": "Saturne",
+    "uranus": "Uranus",
+    "neptune": "Neptune",
+    "pluto": "Pluton",
+    "ascendant": "Ascendant",
+    "asc": "Ascendant",
+}
 
-# Aspects majeurs avec orbes (degrés de tolérance) et nature (harmonique/dissonant)
-MAJOR_ASPECTS = [
-    ('conjunction', 0,   8, 'puissant', 'Conjonction'),
-    ('opposition',  180, 8, 'dissonant', 'Opposition'),
-    ('trine',       120, 6, 'harmonique', 'Trigone'),
-    ('square',      90,  6, 'dissonant', 'Carré'),
-    ('sextile',     60,  4, 'harmonique', 'Sextile'),
+_SIGN_ORDER = [
+    "Aries", "Taurus", "Gemini", "Cancer",
+    "Leo", "Virgo", "Libra", "Scorpio",
+    "Sagittarius", "Capricorn", "Aquarius", "Pisces",
 ]
 
-# Les 12 maisons (noms + thèmes classiques)
-HOUSE_THEMES = {
-    1:  ('Première maison',      'Le Soi',               'votre apparence, votre élan vital, votre masque'),
-    2:  ('Deuxième maison',      'Les Ressources',       'vos valeurs, votre argent, votre rapport au corps'),
-    3:  ('Troisième maison',     'La Pensée',            "l'esprit, la fratrie, les apprentissages courts"),
-    4:  ('Quatrième maison',     'Les Racines',          'le foyer, les origines, la mémoire familiale'),
-    5:  ('Cinquième maison',     'La Créativité',        'les amours, les enfants, le jeu, la création'),
-    6:  ('Sixième maison',       'Le Quotidien',         'le travail, la santé, le service aux autres'),
-    7:  ('Septième maison',      'Les Partenariats',     "l'autre, les contrats, le mariage"),
-    8:  ('Huitième maison',      'Les Transformations',  'la mort, le sexe, les crises régénératrices'),
-    9:  ('Neuvième maison',      'Les Horizons',         'les voyages lointains, la philosophie, la foi'),
-    10: ('Dixième maison',       'La Vocation',          'la carrière, la reconnaissance publique'),
-    11: ('Onzième maison',       'Les Amitiés',          'le collectif, les projets, les causes'),
-    12: ('Douzième maison',      "L'Inconscient",        'le secret, le retrait, le karma'),
+# Angle, nom français, orbe maximal, nature.
+_ASPECTS = [
+    (0, "conjonction", 8, "neutre"),
+    (60, "sextile", 4, "harmonieux"),
+    (90, "carré", 7, "tension"),
+    (120, "trigone", 7, "harmonieux"),
+    (180, "opposition", 8, "tension"),
+]
+
+_NATURE = {name: nature for _, name, _, nature in _ASPECTS}
+_NATURE["quinconce"] = "tension"
+
+_HOUSE_WORDS = {
+    "first": 1,
+    "second": 2,
+    "third": 3,
+    "fourth": 4,
+    "fifth": 5,
+    "sixth": 6,
+    "seventh": 7,
+    "eighth": 8,
+    "ninth": 9,
+    "tenth": 10,
+    "eleventh": 11,
+    "twelfth": 12,
 }
 
 
-# Mapping noms de planètes EN → FR (pour normalisation des aspects API v3)
-PLANET_EN_TO_FR = {
-    'Sun': 'Soleil', 'Moon': 'Lune', 'Mercury': 'Mercure', 'Venus': 'Vénus',
-    'Mars': 'Mars', 'Jupiter': 'Jupiter', 'Saturn': 'Saturne',
-    'Uranus': 'Uranus', 'Neptune': 'Neptune', 'Pluto': 'Pluton',
-    'Ascendant': 'Ascendant', 'ASC': 'Ascendant', 'Asc': 'Ascendant',
-    'MC': 'Milieu du Ciel', 'Midheaven': 'Milieu du Ciel',
-    'North Node': 'Nœud Nord', 'South Node': 'Nœud Sud', 'Chiron': 'Chiron',
-}
+def _planet_fr(value: Any) -> Optional[str]:
+    if isinstance(value, dict):
+        value = value.get("name") or value.get("point")
+    if not value:
+        return None
+    key = str(value).strip().lower().replace(" ", "_")
+    return PLANETS_FR.get(key)
 
 
-def _to_fr_planet(name: str) -> str:
-    """Accepte 'Sun' / 'Soleil' / 'sun' → 'Soleil'. Si inconnu, retourne tel quel."""
-    if not name:
-        return ''
-    s = name.strip()
-    if s in PLANET_EN_TO_FR:
-        return PLANET_EN_TO_FR[s]
-    s_cap = s.capitalize()
-    if s_cap in PLANET_EN_TO_FR:
-        return PLANET_EN_TO_FR[s_cap]
-    return s
-
-
-# ─── Normalizers ─────────────────────────────────────────────────────
-def _to_fr_sign(sign: str) -> str:
-    """Accepte 'Aries' / 'Bélier' / 'aries' → 'Bélier'."""
-    if not sign:
-        return ''
-    s = sign.strip()
-    if s in SIGN_EN_TO_FR:
-        return SIGN_EN_TO_FR[s]
-    s_cap = s.capitalize()
-    if s_cap in SIGN_EN_TO_FR:
-        return SIGN_EN_TO_FR[s_cap]
-    if s in SIGN_FR_TO_EN:
-        return s
-    return s_cap
-
-
-def _get_absolute_degree(planet: Dict[str, Any]) -> Optional[float]:
-    """Récupère la longitude absolue (0-360°) depuis un dict planète.
-
-    L'API peut retourner `fullDegree`, `absoluteDegree`, `normDegree + sign`,
-    ou juste `degree` dans un signe. On tente dans l'ordre.
-    """
-    # Format 1 : fullDegree direct
-    for key in ('fullDegree', 'full_degree', 'absoluteDegree', 'absolute_degree', 'longitude'):
-        v = planet.get(key)
-        if isinstance(v, (int, float)):
-            return float(v) % 360
-    # Format 2 : normDegree (dans le signe) + sign_name → calcul absolu
-    norm = planet.get('normDegree', planet.get('norm_degree', planet.get('degree')))
-    sign = planet.get('sign') or planet.get('sign_name')
-    if isinstance(norm, (int, float)) and sign:
-        sign_fr = _to_fr_sign(sign)
-        if sign_fr in ZODIAC_SIGNS_FR:
-            sign_idx = ZODIAC_SIGNS_FR.index(sign_fr)
-            return (sign_idx * 30 + float(norm)) % 360
+def _aspect_fr(value: Any) -> Optional[str]:
+    value = str(value or "").strip().lower()
+    if value.startswith("conj"):
+        return "conjonction"
+    if value.startswith("opp"):
+        return "opposition"
+    if value.startswith("tri"):
+        return "trigone"
+    if value.startswith("squ") or value.startswith("car"):
+        return "carré"
+    if value.startswith("sext"):
+        return "sextile"
+    if value.startswith("quinc") or value.startswith("inconj"):
+        return "quinconce"
     return None
 
 
-def _get_in_sign_degree(planet: Dict[str, Any]) -> Optional[float]:
-    """Récupère le degré DANS LE SIGNE (0-30)."""
-    for key in ('normDegree', 'norm_degree', 'degree'):
-        v = planet.get(key)
-        if isinstance(v, (int, float)):
-            return float(v) % 30
-    full = _get_absolute_degree(planet)
-    return full % 30 if full is not None else None
+def _orb(value: Any) -> Optional[float]:
+    try:
+        return round(abs(float(value)), 1)
+    except (TypeError, ValueError):
+        return None
 
 
-def _fmt_degree(deg: Optional[float]) -> str:
-    """15.5 → '15°30'' (degrés et minutes d'arc)."""
-    if deg is None:
-        return ''
-    whole = int(deg)
-    mins = int((deg - whole) * 60)
-    return f'{whole}°{mins:02d}\''
+def _longitude(point: Dict[str, Any]) -> Optional[float]:
+    longitude = point.get("absolute_longitude")
+    try:
+        if longitude is not None:
+            return float(longitude) % 360
+    except (TypeError, ValueError):
+        pass
+
+    sign = point.get("sign")
+    degree = point.get("degree")
+    try:
+        degree = float(degree)
+    except (TypeError, ValueError):
+        return None
+
+    if sign in _SIGN_ORDER and 0 <= degree < 30:
+        return _SIGN_ORDER.index(sign) * 30 + degree
+    if degree >= 30:
+        return degree % 360
+    return None
 
 
-# ─── Extraction : positions enrichies ────────────────────────────────
-def extract_planet_positions(natal_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Normalise la liste des planètes du natal_data.
-
-    Retourne : [{name, sign, house, degree_in_sign_str, abs_degree, retrograde}]
-    """
-    planets_raw = natal_data.get('planets') or []
-    # Accepte soit liste de dicts, soit dict {name: dict}
-    if isinstance(planets_raw, dict):
-        planets_iter = [{**v, 'name': k, **({'name_fr': v.get('name_fr', k)} if not v.get('name_fr') else {})}
-                        for k, v in planets_raw.items()]
-    else:
-        planets_iter = planets_raw
-
+def _normalize_api_aspects(raw: Any) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
-    for p in planets_iter:
-        if not isinstance(p, dict):
-            continue
-        name_raw = (p.get('name_fr') or p.get('name') or '').strip()
-        if not name_raw:
-            continue
-        name = _to_fr_planet(name_raw)
-        sign = _to_fr_sign(p.get('sign') or p.get('sign_name') or '')
-        in_sign = _get_in_sign_degree(p)
-        abs_deg = _get_absolute_degree(p)
-        house = p.get('house') or p.get('house_number')
-        retrograde = bool(p.get('retrograde') or p.get('is_retro'))
-        out.append({
-            'name': name,
-            'sign': sign,
-            'house': int(house) if isinstance(house, (int, float)) and 1 <= house <= 12 else None,
-            'degree_in_sign': in_sign,
-            'degree_in_sign_str': _fmt_degree(in_sign),
-            'absolute_degree': abs_deg,
-            'retrograde': retrograde,
-            # Analyse préservée pour la section planète/signe
-            'analysis': p.get('analysis', ''),
-        })
-    return out
-
-
-# ─── Extraction : maisons avec planètes dedans ──────────────────────
-def extract_houses(natal_data: Dict[str, Any],
-                   planets: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
-    """Retourne 12 maisons : [{num, name, sign, cusp_degree_str, planets:[name,...], theme}].
-
-    Lit `house_cusps` depuis natal_data si présent, sinon utilise seulement les
-    planètes (maisons sans signe cuspide mais avec habitants).
-    """
-    planets = planets or extract_planet_positions(natal_data)
-
-    # Group planets by house
-    planets_by_house: Dict[int, List[str]] = {h: [] for h in range(1, 13)}
-    for p in planets:
-        h = p.get('house')
-        if isinstance(h, int) and 1 <= h <= 12:
-            name = p['name']
-            if p.get('retrograde'):
-                name += ' ℞'
-            planets_by_house[h].append(name)
-
-    # House cusps : {house_number: {sign, degree}}
-    cusps_raw = natal_data.get('house_cusps') or natal_data.get('houses') or {}
-    cusps: Dict[int, Dict[str, Any]] = {}
-    if isinstance(cusps_raw, list):
-        for i, c in enumerate(cusps_raw, start=1):
-            if isinstance(c, dict):
-                cusps[i] = c
-    elif isinstance(cusps_raw, dict):
-        for k, v in cusps_raw.items():
-            try:
-                n = int(k)
-                if 1 <= n <= 12 and isinstance(v, dict):
-                    cusps[n] = v
-            except (TypeError, ValueError):
-                continue
-
-    out: List[Dict[str, Any]] = []
-    for h in range(1, 13):
-        name, _, theme_desc = HOUSE_THEMES[h]
-        cusp = cusps.get(h, {})
-        cusp_sign = _to_fr_sign(cusp.get('sign') or cusp.get('sign_name') or '')
-        cusp_deg = cusp.get('degree') or cusp.get('normDegree') or cusp.get('full_degree')
-        cusp_deg_str = _fmt_degree(float(cusp_deg) % 30 if isinstance(cusp_deg, (int, float)) else None)
-        out.append({
-            'num': h,
-            'name': name,
-            'theme': HOUSE_THEMES[h][1],
-            'theme_desc': theme_desc,
-            'sign': cusp_sign,
-            'cusp_degree_str': cusp_deg_str,
-            'planets': planets_by_house[h],
-        })
-    return out
-
-
-# ─── Extraction : aspects ────────────────────────────────────────────
-def extract_aspects(natal_data: Dict[str, Any],
-                    planets: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
-    """Retourne la liste des aspects majeurs : [{planet_a, planet_b, type_fr,
-    orb_degrees, nature}].
-
-    Lit `aspects` depuis natal_data si fourni (API), sinon calcule depuis les
-    positions absolues des planètes (fallback).
-    """
-    raw = natal_data.get('aspects') or []
-    out: List[Dict[str, Any]] = []
-    PLANET_SET = {'Soleil', 'Lune', 'Mercure', 'Vénus', 'Mars', 'Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton'}
-
-    if isinstance(raw, list) and raw:
-        # Format API attendu : liste de {aspecting_planet, aspected_planet, type, orb}
-        for a in raw:
-            if not isinstance(a, dict):
-                continue
-            # Noms possibles API
-            pa = (a.get('aspecting_planet') or a.get('planet_a') or a.get('first')
-                  or a.get('planet_1') or '').strip()
-            pb = (a.get('aspected_planet') or a.get('planet_b') or a.get('second')
-                  or a.get('planet_2') or '').strip()
-            atype = (a.get('type') or a.get('aspect_name') or a.get('aspect') or '').strip().lower()
-            orb = a.get('orb') or a.get('orb_degrees')
-            # Normalize type → FR
-            type_fr = {
-                'conjunction': 'Conjonction', 'opposition': 'Opposition',
-                'trine': 'Trigone', 'square': 'Carré', 'sextile': 'Sextile',
-                'conjonction': 'Conjonction', 'trigone': 'Trigone', 'carré': 'Carré',
-            }.get(atype, atype.title() if atype else '')
-            nature = {
-                'Conjonction': 'puissant', 'Opposition': 'dissonant',
-                'Trigone': 'harmonique', 'Carré': 'dissonant', 'Sextile': 'harmonique',
-            }.get(type_fr, 'neutre')
-            if pa and pb and type_fr:
-                out.append({
-                    'planet_a': _to_fr_planet(pa), 'planet_b': _to_fr_planet(pb), 'type_fr': type_fr,
-                    'orb_degrees': float(orb) if isinstance(orb, (int, float)) else None,
-                    'nature': nature,
-                })
+    if not isinstance(raw, list):
         return out
 
-    # Fallback : calcul géométrique depuis les positions planètes.
-    planets = planets or extract_planet_positions(natal_data)
-    pos_by_name = {p['name']: p['absolute_degree'] for p in planets
-                   if p['absolute_degree'] is not None and p['name'] in PLANET_SET}
+    for aspect in raw:
+        if not isinstance(aspect, dict):
+            continue
 
-    names = sorted(pos_by_name.keys())
-    for i in range(len(names)):
-        for j in range(i + 1, len(names)):
-            a_name, b_name = names[i], names[j]
-            a_deg = pos_by_name[a_name]
-            b_deg = pos_by_name[b_name]
-            diff = abs(a_deg - b_deg)
-            if diff > 180:
-                diff = 360 - diff
-            for _, target, orb_max, nature, type_fr in MAJOR_ASPECTS:
-                if abs(diff - target) <= orb_max:
-                    out.append({
-                        'planet_a': a_name, 'planet_b': b_name, 'type_fr': type_fr,
-                        'orb_degrees': round(abs(diff - target), 2),
-                        'nature': nature,
-                    })
-                    break  # un seul aspect par paire
-    # Trie : conjonctions et oppositions d'abord (plus intenses)
-    priority = {'Conjonction': 0, 'Opposition': 1, 'Carré': 2, 'Trigone': 3, 'Sextile': 4}
-    out.sort(key=lambda a: (priority.get(a['type_fr'], 5), a.get('orb_degrees') or 99))
+        planet1 = _planet_fr(
+            aspect.get("planet1")
+            or aspect.get("p1")
+            or aspect.get("body1")
+            or aspect.get("point1")
+        )
+        planet2 = _planet_fr(
+            aspect.get("planet2")
+            or aspect.get("p2")
+            or aspect.get("body2")
+            or aspect.get("point2")
+        )
+        kind = _aspect_fr(
+            aspect.get("type")
+            or aspect.get("aspect")
+            or aspect.get("aspect_type")
+            or aspect.get("name")
+        )
+
+        if not (planet1 and planet2 and kind) or planet1 == planet2:
+            continue
+
+        orb = (
+            aspect.get("orb")
+            if aspect.get("orb") is not None
+            else aspect.get("orb_deg")
+        )
+
+        out.append({
+            "planet1": planet1,
+            "planet2": planet2,
+            "type": kind,
+            "orb": _orb(orb),
+            "nature": _NATURE.get(kind, "neutre"),
+        })
+
     return out
 
 
-# ─── Interprétation minimale d'un aspect (template) ──────────────────
-_ASPECT_INTERP_TEMPLATES = {
-    'Conjonction': "Fusion. {a} et {b} jouent la même note. Vous ressentez leurs qualités comme une seule et même énergie — amplifiée.",
-    'Opposition':  "Tension. {a} et {b} se font face. Vous oscillez entre leurs deux pôles — l'équilibre se trouve au centre, pas dans l'un ou l'autre.",
-    'Trigone':     "Harmonie. {a} et {b} s'entendent sans effort. Ce talent circule, parfois trop facilement — à vous de l'engager.",
-    'Carré':       "Friction. {a} et {b} veulent chacun imposer leur rythme. C'est inconfortable, mais c'est votre moteur — rien ne pousse plus que ce frottement.",
-    'Sextile':     "Opportunité. {a} et {b} se font signe. Si vous saisissez l'occasion, l'énergie s'ouvre — mais elle ne force rien.",
-}
+def compute_aspects(
+    planets_dict: Dict[str, Dict[str, Any]],
+    include_ascendant: bool = False,
+) -> List[Dict[str, Any]]:
+    """Calcule les aspects majeurs depuis les longitudes des planètes."""
+    points = []
+    for key, point in (planets_dict or {}).items():
+        name = PLANETS_FR.get(key)
+        if not name or (name == "Ascendant" and not include_ascendant):
+            continue
+
+        longitude = _longitude(point)
+        if longitude is not None:
+            points.append((name, longitude))
+
+    out: List[Dict[str, Any]] = []
+    for i in range(len(points)):
+        for j in range(i + 1, len(points)):
+            (name1, longitude1), (name2, longitude2) = points[i], points[j]
+            difference = abs(longitude1 - longitude2) % 360
+            if difference > 180:
+                difference = 360 - difference
+
+            for angle, name, max_orb, nature in _ASPECTS:
+                orb = abs(difference - angle)
+                if orb <= max_orb:
+                    out.append({
+                        "planet1": name1,
+                        "planet2": name2,
+                        "type": name,
+                        "orb": round(orb, 1),
+                        "nature": nature,
+                    })
+                    break
+
+    return out
 
 
-def interpret_aspect(aspect: Dict[str, Any]) -> str:
-    """Retourne une phrase courte pour un aspect donné."""
-    tmpl = _ASPECT_INTERP_TEMPLATES.get(aspect.get('type_fr', ''), '')
-    if not tmpl:
-        return ''
-    return tmpl.format(a=aspect.get('planet_a', '?'), b=aspect.get('planet_b', '?'))
+def extract_aspects(
+    chart: Optional[dict],
+    report: Optional[dict],
+    planets_dict: Dict[str, Dict[str, Any]],
+    include_ascendant: bool = False,
+    limit: int = 20,
+) -> List[Dict[str, Any]]:
+    """Lit les aspects API ou les calcule depuis les positions réelles."""
+    candidates: List[Any] = []
+
+    if isinstance(chart, dict):
+        chart_data = chart.get("chart_data")
+        if isinstance(chart_data, dict):
+            candidates.append(chart_data.get("aspects"))
+        candidates.append(chart.get("aspects"))
+
+    if isinstance(report, dict):
+        candidates.append(report.get("aspects"))
+        data = report.get("data")
+        if isinstance(data, dict):
+            candidates.append(data.get("aspects"))
+
+    aspects: List[Dict[str, Any]] = []
+    for raw in candidates:
+        aspects = _normalize_api_aspects(raw)
+        if aspects:
+            break
+
+    if not aspects:
+        aspects = compute_aspects(
+            planets_dict,
+            include_ascendant=include_ascendant,
+        )
+
+    if not include_ascendant:
+        aspects = [
+            aspect for aspect in aspects
+            if "Ascendant" not in (aspect["planet1"], aspect["planet2"])
+        ]
+
+    aspects.sort(
+        key=lambda aspect: (
+            aspect["orb"] if aspect["orb"] is not None else 99
+        )
+    )
+    return aspects[:limit]
 
 
-__all__ = [
-    'extract_planet_positions', 'extract_houses', 'extract_aspects',
-    'interpret_aspect', 'HOUSE_THEMES', 'ZODIAC_SIGNS_FR', 'SIGN_EN_TO_FR',
-    'PLANET_EN_TO_FR', '_to_fr_sign', '_to_fr_planet', '_fmt_degree',
-]
+def _house_number(value: Any) -> Optional[int]:
+    if isinstance(value, int) and 1 <= value <= 12:
+        return value
+
+    if isinstance(value, str):
+        value = value.strip().lower()
+        if value.isdigit() and 1 <= int(value) <= 12:
+            return int(value)
+
+        match = re.match(
+            r"([a-z]+)_?house",
+            value.replace(" ", "_"),
+        )
+        if match and match.group(1) in _HOUSE_WORDS:
+            return _HOUSE_WORDS[match.group(1)]
+
+    return None
+
+
+def extract_houses(
+    chart: Optional[dict],
+    planets_dict: Dict[str, Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Extrait les 12 maisons et y place les planètes."""
+    chart_data = (
+        (chart or {}).get("chart_data")
+        if isinstance(chart, dict)
+        else None
+    )
+    cusps = (chart_data or {}).get("house_cusps") or []
+    houses: Dict[int, Dict[str, Any]] = {}
+
+    for cusp in cusps:
+        if not isinstance(cusp, dict):
+            continue
+
+        number = _house_number(
+            cusp.get("house")
+            if cusp.get("house") is not None
+            else cusp.get("index")
+        )
+        if not number:
+            continue
+
+        sign = aio.expand_sign(cusp.get("sign") or "")
+        houses[number] = {
+            "num": number,
+            "sign": aio.sign_to_fr(sign),
+            "planets_in_house": [],
+            "_lon": _longitude({
+                "absolute_longitude": cusp.get("absolute_longitude"),
+                "sign": sign,
+                "degree": cusp.get("degree"),
+            }),
+        }
+
+    if len(houses) < 12:
+        return []
+
+    bounds = [houses[number]["_lon"] for number in range(1, 13)]
+    can_place_by_longitude = all(bound is not None for bound in bounds)
+
+    for key, point in (planets_dict or {}).items():
+        name = PLANETS_FR.get(key)
+        if not name or name == "Ascendant":
+            continue
+
+        number = None
+        longitude = _longitude(point)
+        if can_place_by_longitude and longitude is not None:
+            for house_number in range(1, 13):
+                start = bounds[house_number - 1]
+                end = bounds[house_number % 12]
+                span = (end - start) % 360
+
+                if span and (longitude - start) % 360 < span:
+                    number = house_number
+                    break
+
+        if number is None:
+            number = _house_number(point.get("house"))
+
+        if number:
+            houses[number]["planets_in_house"].append(name)
+
+    return [
+        {
+            key: value
+            for key, value in houses[number].items()
+            if key != "_lon"
+        }
+        for number in range(1, 13)
+    ]

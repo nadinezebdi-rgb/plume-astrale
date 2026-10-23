@@ -9,6 +9,7 @@ Flow:
 6. Horoscope du jour
 7. Tools accessible after login (numérologie, tarot, etc.)
 """
+import os
 import asyncio
 from pathlib import Path
 from playwright.async_api import async_playwright
@@ -18,7 +19,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 BASE = 'https://consultation-astro.preview.emergentagent.com'
 EMAIL = 'test@plume-astrale.fr'
-PWD = 'TestPlume2026!'
+PWD = os.environ.get('TEST_USER_PASSWORD', '')
 
 
 async def main():

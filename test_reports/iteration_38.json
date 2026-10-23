@@ -24,7 +24,7 @@
     "backend": "100% (34/34)",
     "frontend": "not tested (backend only per request)"
   },
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 (9999 cr) — used to test /api/credits/use deductions across all 4 cost tiers.",
+  "test_credentials": "admin@plume-astrale.fr / [redacted] (9999 cr) — used to test /api/credits/use deductions across all 4 cost tiers.",
   "seed_data_creation": "None. Tests only deducted ~140 credits from the admin account (10 + 30 + 40 + 60) — admin still has plenty (>9000 remaining).",
   "retest_needed": false,
   "main_agent_can_self_test": true,
