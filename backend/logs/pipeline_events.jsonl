@@ -95,3 +95,4 @@
 {"ts": "2026-10-22T10:04:19.515631+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 5798162, "ai_planet_count": 5}
 {"ts": "2026-10-22T10:06:05.676255+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "legacy", "bytes": 19747596, "ai_planet_count": 5}
 {"ts": "2026-10-22T10:39:08.783850+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 24799570, "ai_planet_count": 11}
+{"ts": "2026-10-24T10:36:59.389882+00:00", "event": "natal_pdf_generated", "source": "book_flow", "tier": "ultra", "bytes": 24802214, "ai_planet_count": 11}
