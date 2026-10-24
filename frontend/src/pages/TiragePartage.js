@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Sparkles, Moon, Sun, ArrowRight, Eye, Heart, Share2, Download, Mail, Smartphone, Link2 } from 'lucide-react';
+import { Sparkles, Moon, Sun, ArrowRight, Eye, Heart, Share2, Download, Mail, Smartphone, Link2, Film } from 'lucide-react';
 import { asset } from '../lib/assets';
 import LibraryImage from '@/components/LibraryImage';
 import PsPageShell from '@/components/PsPageShell';
@@ -32,6 +32,7 @@ export default function TiragePartage() {
   const [tirage, setTirage] = useState(null);
   const [copied, setCopied] = useState(false);
   const [pngLoading, setPngLoading] = useState(false);
+  const [reelsLoading, setReelsLoading] = useState(null); // 'vertical' | 'square' | null
   const [canShare, setCanShare] = useState(false);
 
   useEffect(() => {
@@ -95,6 +96,31 @@ export default function TiragePartage() {
       alert("Impossible de générer la carte pour le moment. Réessayez.");
     } finally {
       setPngLoading(false);
+    }
+  };
+
+  const downloadReels = async (fmt = 'vertical') => {
+    // Génère un MP4 15s de la révélation (TikTok/Reels/Shorts). Le backend
+    // lance Playwright headless + ffmpeg : compter ~20-30s de rendu.
+    setReelsLoading(fmt);
+    try {
+      const res = await fetch(`${API_URL}/api/tarot/shared/${shareId}/reels.mp4?format=${fmt}`);
+      if (!res.ok) throw new Error('MP4 unavailable');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const suffix = fmt === 'square' ? '-square' : '';
+      a.download = `tirage-${(tirage?.first_name || 'plume').toLowerCase()}${suffix}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      alert("La vidéo n'est pas disponible pour le moment. Réessayez dans un instant.");
+    } finally {
+      setReelsLoading(null);
     }
   };
 
@@ -354,6 +380,34 @@ export default function TiragePartage() {
                 >
                   <Smartphone className="w-4 h-4" />
                   En Story IG
+                </button>
+                <button
+                  onClick={() => downloadReels('vertical')}
+                  disabled={reelsLoading !== null}
+                  className="rounded-xl py-3 px-5 flex items-center gap-2 justify-center border border-[#C9A24B]/50 text-[#C9A24B] hover:bg-[#C9A24B]/10 transition-colors disabled:opacity-50"
+                  data-testid="shared-cta-reels-vertical"
+                  title="Vidéo 15s format 9:16 pour TikTok / Reels / Shorts"
+                >
+                  {reelsLoading === 'vertical' ? (
+                    <div className="w-4 h-4 border-2 border-[#C9A24B] border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Film className="w-4 h-4" />
+                  )}
+                  {reelsLoading === 'vertical' ? 'Rendu vidéo…' : 'Reels 15s'}
+                </button>
+                <button
+                  onClick={() => downloadReels('square')}
+                  disabled={reelsLoading !== null}
+                  className="rounded-xl py-3 px-5 flex items-center gap-2 justify-center border border-[#C9A24B]/50 text-[#C9A24B] hover:bg-[#C9A24B]/10 transition-colors disabled:opacity-50"
+                  data-testid="shared-cta-reels-square"
+                  title="Vidéo 15s format 1:1 pour Instagram Feed"
+                >
+                  {reelsLoading === 'square' ? (
+                    <div className="w-4 h-4 border-2 border-[#C9A24B] border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Film className="w-4 h-4" />
+                  )}
+                  {reelsLoading === 'square' ? 'Rendu vidéo…' : 'Vidéo carrée'}
                 </button>
                 <button
                   onClick={sendByEmail}

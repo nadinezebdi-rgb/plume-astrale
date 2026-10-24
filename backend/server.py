@@ -3070,6 +3070,58 @@ async def tarot_shared_card_png_endpoint(share_id: str, request: Request, format
     )
 
 
+@api_router.get('/tarot/shared/{share_id}/reels.mp4')
+async def tarot_shared_reels_mp4_endpoint(share_id: str, format: str = 'vertical'):
+    """Génère un MP4 15 s de la révélation du tirage (TikTok/Reels/Shorts).
+
+    Query ?format=vertical (1080×1920, défaut) ou ?format=square (1080×1080).
+    Public, pas d'auth. Rendu via Playwright headless + FFmpeg transcode.
+    """
+    from services.ssr_snapshot import _get_mongo
+    from services.reels_video_renderer import render_reels_video
+    from fastapi import HTTPException
+    from fastapi.responses import Response
+
+    share_id = (share_id or '').strip().lower()
+    fmt = (format or 'vertical').lower()
+    if fmt not in ('vertical', 'square'):
+        fmt = 'vertical'
+    if not share_id or len(share_id) != 12 or not all(c in '0123456789abcdef' for c in share_id):
+        raise HTTPException(status_code=400, detail='share_id invalide')
+    try:
+        db = _get_mongo()
+        doc = await db.shared_tirages.find_one({'share_id': share_id})
+    except Exception as e:
+        logger.exception(f'[tarot/shared/reels] fetch failed: {e}')
+        raise HTTPException(status_code=500, detail='Lecture indisponible.')
+    if not doc:
+        raise HTTPException(status_code=404, detail='Tirage introuvable ou expiré.')
+
+    try:
+        mp4_bytes = await render_reels_video(doc, fmt)
+    except Exception as e:
+        logger.exception(f'[tarot/shared/reels] render failed: {e}')
+        raise HTTPException(status_code=500, detail='Impossible de générer la vidéo.')
+
+    import re
+    import urllib.parse
+    raw_name = (doc.get('first_name') or 'plume').lower()
+    ascii_name = re.sub(r'[^a-z0-9_-]+', '-', raw_name).strip('-') or 'plume'
+    fmt_suffix = '-square' if fmt == 'square' else ''
+    utf8_name = urllib.parse.quote(f'tirage-{raw_name}{fmt_suffix}-{share_id}.mp4')
+    return Response(
+        content=mp4_bytes,
+        media_type='video/mp4',
+        headers={
+            'Content-Disposition': (
+                f'attachment; filename="tirage-{ascii_name}{fmt_suffix}-{share_id}.mp4"; '
+                f"filename*=UTF-8''{utf8_name}"
+            ),
+            'Cache-Control': 'public, max-age=86400',
+        },
+    )
+
+
 @api_router.get('/og/tirage/{share_id}', response_class=HTMLResponse, include_in_schema=False)
 async def tarot_og_wrapper(share_id: str, request: Request):
     """Page HTML lite qui expose les tags Open Graph pour les crawlers
