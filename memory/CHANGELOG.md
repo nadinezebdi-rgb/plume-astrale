@@ -1,5 +1,36 @@
 # CHANGELOG - Plume Astrale
 
+## 2026-02 (fork) — Refacto admin.py + Pool Mongo singleton + tests régression
+
+**🎯 Objectif** : réduire la dette technique après 1174 lignes dans `routes/admin.py`, consolider le pool de connexions Mongo, et poser un filet de régression.
+
+**✅ Livré** :
+
+### Refacto admin.py (199 lignes vs 1174 avant — objectif <300 ✅)
+- Sous-routers créés et montés sur `/api/admin/*` dans `server.py` :
+  - `admin_users.py` — users list, credits, premium, delete, grant-credits
+  - `admin_promo.py` — CRUD codes promo
+  - `admin_pdfs.py` — payments, transactions, leads, pdfs-sent, theme-natal (search/regenerate/inspect/patch), cron journal, regenerate-horoscopes
+  - `admin_monitoring.py` — cache SVG, pdf-failures, alerts, A/B stats
+  - `admin_viralite.py` (déjà présent) — tarot-share/top
+  - `admin_illustrations.py` (déjà présent) — audit Ex Libris
+- `admin.py` ne garde que `require_admin`, allowlist internes, `/stats` et `/chat-sessions`.
+
+### Pool Mongo partagé via `/app/backend/db.py`
+- Supprimé les `AsyncIOMotorClient` ad-hoc dans `routes/experience_funnel.py` et `routes/experience_tarot_reveal.py` → remplacés par `from db import get_db`.
+- `admin_viralite.py` et `admin_illustrations.py` utilisent le singleton.
+- `close_db()` branché sur l'event `shutdown` FastAPI pour fermer proprement le client.
+
+### Tests de régression (`tests/test_admin_refactor_regression.py`)
+- **49/49 PASS** (23 s)
+- Couvre : auth guards (14 routes × anonyme/non-admin), payloads admin OK (15 routes), validation 422 (3 cas), métriques structurelles (admin.py < 300 lignes, aucune route dupliquée entre sous-routers, singleton Mongo utilisé).
+
+**🧪 Tests** : 49/49 nouveaux + 13/13 regressions illustrations existantes toujours vertes. Backend redémarre proprement, aucune route cassée.
+
+**🔗 Fichiers** : `backend/routes/{admin,admin_users,admin_promo,admin_pdfs,admin_monitoring,admin_viralite,admin_illustrations}.py`, `backend/db.py`, `backend/server.py` (shutdown + imports/includes), `backend/tests/test_admin_refactor_regression.py`.
+
+
+
 ## 2026-02 (fork) — Story 9:16 + Open Graph + Email de partage
 
 **🎯 Objectif** : Maximiser la viralité du bouton Partage ajouté précédemment. (1) Format Story IG dédié. (2) Preview WhatsApp/iMessage/Discord affiche la carte en grand. (3) Partage par email natif.

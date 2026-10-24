@@ -14,9 +14,7 @@ Endpoints :
 """
 from __future__ import annotations
 import logging
-import os
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
-from motor.motor_asyncio import AsyncIOMotorClient
 
 from routes.admin import require_admin
 from services.natal_book_illustrations import (
@@ -31,11 +29,8 @@ logger = logging.getLogger(__name__)
 
 
 def _db():
-    mongo_url = os.environ.get('MONGO_URL')
-    db_name = os.environ.get('DB_NAME')
-    if not mongo_url or not db_name:
-        raise HTTPException(status_code=500, detail='MONGO_URL/DB_NAME manquants')
-    return AsyncIOMotorClient(mongo_url)[db_name]
+    from db import get_db
+    return get_db()
 
 
 @router.get('')

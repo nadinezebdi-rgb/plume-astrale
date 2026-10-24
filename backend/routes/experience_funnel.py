@@ -34,22 +34,10 @@ from typing import Optional, Any, Dict, List
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from motor.motor_asyncio import AsyncIOMotorClient
+from db import get_db as _get_db
 from routes.admin import require_admin
 
 logger = logging.getLogger(__name__)
-
-
-# ─── MongoDB accessor ─────────────────────────────────────────────────
-_client: Optional[AsyncIOMotorClient] = None
-
-
-def _get_db():
-    global _client
-    if _client is None:
-        _client = AsyncIOMotorClient(os.environ['MONGO_URL'])
-    return _client[os.environ['DB_NAME']]
-
 
 async def _ensure_indexes():
     """Idempotent — crée les indexes au démarrage / premier appel."""

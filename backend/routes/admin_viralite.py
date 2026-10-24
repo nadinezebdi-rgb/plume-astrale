@@ -5,10 +5,9 @@ Monté sur le même préfixe `/admin` pour conserver les URLs existantes.
 """
 from __future__ import annotations
 import logging
-import os
 from fastapi import APIRouter, Depends, HTTPException, Query
-from motor.motor_asyncio import AsyncIOMotorClient
 
+from db import get_db
 from routes.admin import require_admin
 
 router = APIRouter(prefix='/admin', tags=['admin', 'viralite'])
@@ -27,11 +26,7 @@ async def admin_top_shared_tirages(
     view_count, created_at.
     """
     try:
-        mongo_url = os.environ.get('MONGO_URL')
-        db_name = os.environ.get('DB_NAME')
-        if not mongo_url or not db_name:
-            raise RuntimeError('MONGO_URL/DB_NAME manquants')
-        db = AsyncIOMotorClient(mongo_url)[db_name]
+        db = get_db()
         cursor = db.shared_tirages.find(
             {},
             projection={

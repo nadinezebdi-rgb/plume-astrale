@@ -42,6 +42,10 @@ from services import astrology_io_service as aio
 from services.energy_service import get_energy_today
 from services import premium_subscription
 from routes.admin import router as admin_router
+from routes.admin_users import router as admin_users_router
+from routes.admin_promo import router as admin_promo_router
+from routes.admin_pdfs import router as admin_pdfs_router
+from routes.admin_monitoring import router as admin_monitoring_router
 from routes.admin_viralite import router as admin_viralite_router
 from routes.admin_illustrations import router as admin_illustrations_router
 from routes.admin_payments import router as admin_payments_router
@@ -127,6 +131,10 @@ STREAK_MILESTONES = {7: 3, 14: 5, 30: 10, 60: 15, 100: 25}
 app = FastAPI(title='Plume Astrale API')
 api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
+api_router.include_router(admin_users_router)
+api_router.include_router(admin_promo_router)
+api_router.include_router(admin_pdfs_router)
+api_router.include_router(admin_monitoring_router)
 api_router.include_router(admin_viralite_router)
 api_router.include_router(admin_illustrations_router)
 api_router.include_router(admin_payments_router)
@@ -4075,12 +4083,19 @@ async def _drain_stripe_webhook_background_tasks():
     Limite le nombre de lignes bloquées en `processing` lors d'un redéploiement.
     """
     if not _BG_TASKS:
-        return
-    logger.info(f'[stripe_webhook] shutdown : attente de {len(_BG_TASKS)} traitement(s)')
+        pass
+    else:
+        logger.info(f'[stripe_webhook] shutdown : attente de {len(_BG_TASKS)} traitement(s)')
+        try:
+            await asyncio.wait(set(_BG_TASKS), timeout=20)
+        except Exception as _e:
+            logger.warning(f'[stripe_webhook] drain shutdown: {_e}')
+    # Ferme proprement le pool Mongo partagé (évite les socket warnings).
     try:
-        await asyncio.wait(set(_BG_TASKS), timeout=20)
+        from db import close_db
+        await close_db()
     except Exception as _e:
-        logger.warning(f'[stripe_webhook] drain shutdown: {_e}')
+        logger.warning(f'[shutdown] close_db warning: {_e}')
 
 
 async def replay_pending_events(limit: int = 100, dry_run: bool = True) -> dict:

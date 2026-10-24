@@ -217,13 +217,10 @@ async def _log_ex_libris(*, user_id: str, signature_hash: str, prenom: str,
     Ne bloque jamais la génération si Mongo indisponible.
     """
     try:
-        from motor.motor_asyncio import AsyncIOMotorClient
+        from motor.motor_asyncio import AsyncIOMotorClient  # noqa: F401 (gardé pour compat)
         from datetime import datetime, timezone
-        mongo_url = os.environ.get('MONGO_URL')
-        db_name = os.environ.get('DB_NAME')
-        if not mongo_url or not db_name:
-            return
-        db = AsyncIOMotorClient(mongo_url)[db_name]
+        from db import get_db
+        db = get_db()
         now = datetime.now(timezone.utc)
         await db.natal_illustrations_log.update_one(
             {'signature_hash': signature_hash},
