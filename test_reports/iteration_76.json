@@ -25,7 +25,7 @@
     "/app/backend/tests/test_iteration76_cercle_monthly_report.py (nouveau fichier)"
   ],
   "success_rate": {"backend": "100% (5/5 nouveaux + 3/3 SEC-002 régression)", "frontend": "100% (Manifesto page + mini-quiz + step-skip + see-all)"},
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 · test@plume-astrale.fr / TestPlume2026!",
+  "test_credentials": "admin@plume-astrale.fr / [redacted] · test@plume-astrale.fr / [redacted]",
   "seed_data_creation": "Aucune",
   "retest_needed": false,
   "main_agent_can_self_test": true,

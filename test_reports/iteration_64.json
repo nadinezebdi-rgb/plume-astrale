@@ -21,7 +21,7 @@
   ],
   "updated_files": ["/app/backend/tests/test_iteration64_landing_v3_batch.py"],
   "success_rate": { "backend": "100% (28/28)", "frontend": "100% (7/7)" },
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 ; test@plume-astrale.fr / TestPlume2026!",
+  "test_credentials": "admin@plume-astrale.fr / [redacted] ; test@plume-astrale.fr / [redacted]",
   "seed_data_creation": "3 seeds automatiques via GET /api/landing/testimonials au premier appel (Léa M / Sarah T / Manon D). Tests créent aussi des témoignages TEST_Iter64 / TEST_Lifecycle (le second est supprimé en fin de test lifecycle). Les TEST_Iter64 (status pending) restent dans app_settings — non visibles sur le public mais listés dans /admin.",
   "retest_needed": false,
   "should_main_agent_self_test": false,

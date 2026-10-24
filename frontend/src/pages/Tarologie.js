@@ -4,6 +4,7 @@ import { Star, Loader2, ArrowLeft, Sparkles, Download, Lock, Eye, Tag, Heart, Br
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import axios from 'axios';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -406,7 +407,7 @@ const Tarologie = () => {
               </div>
               <div>
                 <label className="block text-[#D4AF37] text-xs uppercase tracking-widest mb-2">Date de naissance</label>
-                <input
+                <FrenchDateInput
                   type="date"
                   value={dateNaissance}
                   onChange={(e) => setDateNaissance(e.target.value)}

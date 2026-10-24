@@ -15,8 +15,9 @@ import os
 from typing import Optional, List, Dict, Any
 from reportlab.lib.units import cm
 from reportlab.platypus import (
-    Paragraph, Spacer, PageBreak, Image as RLImage, Table, TableStyle,
+    Spacer, PageBreak, Image as RLImage, Table, TableStyle, KeepTogether,
 )
+from services.pdf_theme import SafeParagraph as Paragraph
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.colors import HexColor
@@ -62,7 +63,7 @@ def copyright_page(story, styles, prenom: str, birth_date_fr: str) -> None:
     """Page copyright + éphéméride personnelle. Petit texte centré en bas."""
     story.append(Spacer(1, 20 * cm))
     story.append(Paragraph(
-        f'Écrit sous les étoiles pour {prenom}, née le {birth_date_fr}.',
+        f'Écrit sous les étoiles pour {prenom}, dont le ciel s\'est dessiné le {birth_date_fr}.',
         ParagraphStyle('cr_line', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
                        fontSize=12, textColor=LAVENDER, alignment=TA_CENTER,
                        leading=18, spaceAfter=30),
@@ -119,26 +120,26 @@ def table_of_contents_page(story, styles, entries: List[Dict[str, Any]]) -> None
     Les 'part' sont en Cinzel doré, les 'chapter' en Cormorant crème.
     Si 'page' est présent, un feuillet de points menant au numéro de page est ajouté.
     """
-    story.append(Spacer(1, 1.5 * cm))
+    story.append(Spacer(1, 0.2 * cm))
     story.append(Paragraph(
         f'<font color="{GOLD_HEX}">✦</font>  TABLE DES MATIÈRES  <font color="{GOLD_HEX}">✦</font>',
         ParagraphStyle('toc_h', fontName=font('Cinzel', 'Helvetica'),
                        fontSize=14, textColor=CREAM, alignment=TA_CENTER,
-                       spaceAfter=30, letterSpacing=2),
+                       spaceAfter=14, letterSpacing=2),
     ))
     for e in entries:
         etype = e.get('type', 'chapter')
         label = e.get('label', '')
         page = e.get('page')
         if etype == 'part':
-            story.append(Spacer(1, 0.5 * cm))
+            story.append(Spacer(1, 0.25 * cm))
             page_html = (f'&nbsp;&nbsp;<font color="{GOLD_HEX}">{page}</font>'
                          if page is not None else '')
             story.append(Paragraph(
                 f'<font color="{GOLD_HEX}">{label.upper()}</font>{page_html}',
                 ParagraphStyle(f'toc_p_{label}', fontName=font('Cinzel', 'Helvetica'),
-                               fontSize=11, alignment=TA_LEFT, leading=18,
-                               leftIndent=1.5 * cm, spaceAfter=6),
+                               fontSize=11, alignment=TA_LEFT, leading=16,
+                               leftIndent=1.5 * cm, spaceAfter=3),
             ))
         else:
             if page is not None:
@@ -153,8 +154,8 @@ def table_of_contents_page(story, styles, entries: List[Dict[str, Any]]) -> None
             story.append(Paragraph(
                 inner,
                 ParagraphStyle(f'toc_c_{label}', fontName=font('Cormorant Garamond', 'Times-Roman'),
-                               fontSize=12, alignment=TA_LEFT, leading=18,
-                               leftIndent=2.5 * cm, spaceAfter=4),
+                               fontSize=11.5, alignment=TA_LEFT, leading=15,
+                               leftIndent=2.5 * cm, spaceAfter=1),
             ))
     story.append(PageBreak())
 
@@ -411,26 +412,30 @@ _HOUSE_THEMES = {
 
 
 def house_detail_page(story, styles, house_num: int, sign: str,
-                       planets_in_house: List[str], body_html: str) -> None:
+                       planets_in_house: List[str], body_html: str,
+                       end_page: bool = True, image_cm: float = 4.2) -> None:
     """Une maison astrologique — signe qui l'occupe + planètes présentes + analyse.
 
     Cite l'image de la maison (libimg.house(n)) si disponible.
+    Le bloc reste insécable (KeepTogether) : une maison n'est jamais coupée en deux.
+    end_page est conservé pour compatibilité d'appel mais n'impose plus de
+    PageBreak : les maisons s'enchaînent en flux continu, séparées par un ornement.
     """
     theme = _HOUSE_THEMES.get(house_num, '')
-    story.append(Spacer(1, 0.7 * cm))
-    story.append(Paragraph(
+    block = [Spacer(1, 0.7 * cm)]
+    block.append(Paragraph(
         f'<font color="{GOLD_HEX}">MAISON {house_num}</font>',
         ParagraphStyle('h_num', fontName=font('Cinzel', 'Helvetica'),
                        fontSize=11, alignment=TA_CENTER, spaceAfter=6, letterSpacing=4),
     ))
-    story.append(Paragraph(
+    block.append(Paragraph(
         theme,
         ParagraphStyle('h_theme', fontName=font('Cormorant Garamond', 'Times-Roman'),
                        fontSize=18, textColor=CREAM, alignment=TA_CENTER,
                        leading=24, spaceAfter=10),
     ))
     if sign:
-        story.append(Paragraph(
+        block.append(Paragraph(
             f'<font color="{GOLD_HEX}">Cuspide en {sign}</font>' + (
                 f' · {", ".join(planets_in_house)}' if planets_in_house else ''),
             ParagraphStyle('h_cusp', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
@@ -439,18 +444,20 @@ def house_detail_page(story, styles, house_num: int, sign: str,
     img = libimg.house(house_num, size=512)
     if img and os.path.exists(img):
         try:
-            story.append(RLImage(img, width=4.2 * cm, height=4.2 * cm, mask='auto'))
-            story.append(Spacer(1, 0.4 * cm))
+            block.append(RLImage(img, width=image_cm * cm, height=image_cm * cm, mask='auto'))
+            block.append(Spacer(1, 0.4 * cm))
         except Exception:
             pass
-    story.append(Paragraph(
+    block.append(Paragraph(
         body_html,
         ParagraphStyle('h_body', fontName=font('Cormorant Garamond', 'Times-Roman'),
                        fontSize=11.5, textColor=CREAM, alignment=TA_LEFT,
                        leading=17, leftIndent=1.5 * cm, rightIndent=1.5 * cm),
     ))
+    story.append(KeepTogether(block))
     # Refactor 2026-02-26 : plus de PageBreak forcé → les 12 maisons s'enchaînent
-    # comme un chapitre de livre, séparées par un ornement.
+    # comme un chapitre de livre, séparées par un ornement (chaque maison reste
+    # insécable grâce à KeepTogether).
     from services.pdf_luxury_theme import _append_section_ornament
     _append_section_ornament(story, f'house_{house_num}')
 
