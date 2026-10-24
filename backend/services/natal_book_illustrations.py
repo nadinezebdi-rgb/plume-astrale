@@ -200,7 +200,55 @@ async def get_or_generate_ex_libris_illustration(
     if not png:
         return None
     await _write_cached(cache_file, remote_path, png)
+    # Trace l'Ex Libris généré en Mongo (collection d'audit admin).
+    await _log_ex_libris(
+        user_id=user_id, signature_hash=key, prenom=prenom,
+        sun=sun_sign, moon=moon_sign, asc=asc_sign,
+        storage_path=remote_path, size=len(png),
+    )
     return png
+
+
+async def _log_ex_libris(*, user_id: str, signature_hash: str, prenom: str,
+                         sun: str, moon: str, asc: str,
+                         storage_path: str, size: int) -> None:
+    """Insert/upsert d'une trace Ex Libris pour l'audit admin.
+
+    Ne bloque jamais la génération si Mongo indisponible.
+    """
+    try:
+        from motor.motor_asyncio import AsyncIOMotorClient
+        from datetime import datetime, timezone
+        mongo_url = os.environ.get('MONGO_URL')
+        db_name = os.environ.get('DB_NAME')
+        if not mongo_url or not db_name:
+            return
+        db = AsyncIOMotorClient(mongo_url)[db_name]
+        now = datetime.now(timezone.utc)
+        await db.natal_illustrations_log.update_one(
+            {'signature_hash': signature_hash},
+            {
+                '$set': {
+                    'user_id': user_id or '',
+                    'prenom': prenom or '',
+                    'sun_sign': sun or '',
+                    'moon_sign': moon or '',
+                    'asc_sign': asc or '',
+                    'storage_path': storage_path,
+                    'size_bytes': size,
+                    'last_generated_at': now.isoformat(),
+                },
+                '$inc': {'generation_count': 1},
+                '$setOnInsert': {
+                    'signature_hash': signature_hash,
+                    'first_generated_at': now.isoformat(),
+                    'kind': 'ex_libris',
+                },
+            },
+            upsert=True,
+        )
+    except Exception as e:
+        logger.warning(f'[ex_libris_illust] mongo log skipped: {e}')
 
 
 # ─── Vignettes de fin de chapitre planétaire ───────────────────────────────

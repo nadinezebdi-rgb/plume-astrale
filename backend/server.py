@@ -42,6 +42,8 @@ from services import astrology_io_service as aio
 from services.energy_service import get_energy_today
 from services import premium_subscription
 from routes.admin import router as admin_router
+from routes.admin_viralite import router as admin_viralite_router
+from routes.admin_illustrations import router as admin_illustrations_router
 from routes.admin_payments import router as admin_payments_router
 from routes.admin_book import router as admin_book_router
 from routes.experience_funnel import (
@@ -125,6 +127,8 @@ STREAK_MILESTONES = {7: 3, 14: 5, 30: 10, 60: 15, 100: 25}
 app = FastAPI(title='Plume Astrale API')
 api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
+api_router.include_router(admin_viralite_router)
+api_router.include_router(admin_illustrations_router)
 api_router.include_router(admin_payments_router)
 api_router.include_router(experience_funnel_public_router)
 api_router.include_router(experience_funnel_admin_router)
@@ -4038,6 +4042,29 @@ async def _start_cart_recovery():
     # Journal hebdo vendredi 9h UTC + auto-lock variantes gagnantes
     from services.weekly_digest import weekly_digest_loop
     _asyncio.create_task(_delayed_start(weekly_digest_loop()))
+
+    # Prewarm des illustrations Nano Banana partagées (10 planètes + clôture).
+    # Au premier démarrage de la prod le cache local est vide ; sans prewarm,
+    # le premier utilisateur à générer un livre déclenche 11 appels Nano Banana
+    # séquentiels (~90s). Avec prewarm, les 11 vignettes sont servies depuis
+    # Emergent Storage ou pré-générées pendant la fenêtre de warmup, et toutes
+    # les générations suivantes sont instantanées. L'Ex Libris reste à la
+    # demande (unique par signature astrale).
+    async def _prewarm_illustrations():
+        try:
+            from services.natal_book_illustrations import (
+                get_all_planet_illustrations,
+                get_or_generate_closing_illustration,
+            )
+            planets = await get_all_planet_illustrations()
+            closing = await get_or_generate_closing_illustration()
+            logging.getLogger(__name__).info(
+                f'[prewarm_illust] planets ready: {len(planets)}/10, closing: {bool(closing)}'
+            )
+        except Exception as _e:
+            logging.getLogger(__name__).warning(f'[prewarm_illust] failed: {_e}')
+
+    _asyncio.create_task(_delayed_start(_prewarm_illustrations()))
 
 
 

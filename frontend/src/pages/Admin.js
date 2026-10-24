@@ -101,6 +101,7 @@ export default function Admin() {
   const [pdfsSent, setPdfsSent] = useState(null);
   const [paymentsHealth, setPaymentsHealth] = useState(null);
   const [viralite, setViralite] = useState(null);
+  const [illustrations, setIllustrations] = useState(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -178,6 +179,15 @@ export default function Admin() {
     finally { setLoading(false); }
   }, [token]);
 
+  const loadIllustrations = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await axios.get(`${API}/api/admin/natal-illustrations?limit=100`, { headers: { Authorization: `Bearer ${token}` } });
+      setIllustrations(r.data);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  }, [token]);
+
   useEffect(() => {
     if (!token || !user?.is_admin) return;
     // Poll léger de la santé paiements pour piloter le badge d'alerte du tab
@@ -196,6 +206,7 @@ export default function Admin() {
     else if (tab === 'promo') loadPromo();
     else if (tab === 'pdfs-sent') loadPdfsSent();
     else if (tab === 'viralite') loadViralite();
+    else if (tab === 'illustrations') loadIllustrations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, token, user?.is_admin]);
 
@@ -207,6 +218,7 @@ export default function Admin() {
     else if (tab === 'leads') loadLeads();
     else if (tab === 'pdfs-sent') loadPdfsSent();
     else if (tab === 'viralite') loadViralite();
+    else if (tab === 'illustrations') loadIllustrations();
     else loadPromo();
   };
 
@@ -266,6 +278,7 @@ export default function Admin() {
           <Tab label="Codes promo" active={tab === 'promo'} onClick={() => setTab('promo')} />
           <Tab label="PDFs envoyés" active={tab === 'pdfs-sent'} onClick={() => setTab('pdfs-sent')} count={pdfsSent?.total_with_supabase_url} />
           <Tab label="Viralité Tarot" active={tab === 'viralite'} onClick={() => setTab('viralite')} count={viralite?.total_shares} />
+          <Tab label="Illustrations IA" active={tab === 'illustrations'} onClick={() => setTab('illustrations')} count={illustrations?.total} />
           <Tab label="Fix Thème Natal" active={tab === 'fix-natal'} onClick={() => setTab('fix-natal')} />
           <Tab label="Lecture Complète" active={tab === 'lecture-complete'} onClick={() => setTab('lecture-complete')} />
           <Tab label="Générer les lectures" active={tab === 'generate'} onClick={() => setTab('generate')} />
@@ -458,6 +471,10 @@ export default function Admin() {
           <ViraliteSection data={viralite} loading={loading} reload={loadViralite} />
         )}
 
+        {tab === 'illustrations' && (
+          <IllustrationsSection data={illustrations} loading={loading} token={token} reload={loadIllustrations} />
+        )}
+
       </div>
     </div>
   );
@@ -566,6 +583,159 @@ function ViraliteSection({ data, loading, reload }) {
     </div>
   );
 }
+
+
+// ═══════ Illustrations IA (Nano Banana Ex Libris) — audit admin ═══════
+function IllustrationsSection({ data, loading, token, reload }) {
+  const items = data?.items || [];
+  const total = data?.total || 0;
+  const [regenerating, setRegenerating] = React.useState(null);
+  const [msg, setMsg] = React.useState(null);
+
+  const regenerate = async (hash) => {
+    if (!window.confirm('Régénérer cette illustration ? Un nouvel appel Nano Banana sera facturé (~0.02€).')) return;
+    setRegenerating(hash);
+    setMsg(null);
+    try {
+      const r = await axios.post(
+        `${API}/api/admin/natal-illustrations/${hash}/regenerate`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setMsg({ type: 'ok', text: `Régénérée (${(r.data.size_bytes / 1024).toFixed(0)} Ko)` });
+      reload();
+    } catch (e) {
+      setMsg({ type: 'err', text: e.response?.data?.detail || 'Erreur régénération' });
+    } finally {
+      setRegenerating(null);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(212,175,55,0.15)' }} data-testid="admin-illustrations-section">
+      <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+        <div>
+          <h3 className="text-base font-semibold" style={{ color: '#D4AF37', fontFamily: 'Cormorant Garamond, serif', letterSpacing: '0.08em' }}>
+            Illustrations IA · Ex Libris
+          </h3>
+          <p className="text-xs mt-1" style={{ color: 'var(--pa-muted)' }}>
+            Chaque Ex Libris généré par Nano Banana pour un livre natal. Persisté sur Emergent Object Storage, régénérable à la demande si une illustration déçoit.
+          </p>
+        </div>
+        <button
+          onClick={reload}
+          className="px-4 py-2 text-xs uppercase tracking-widest rounded-full"
+          style={{ border: '1px solid rgba(212,175,55,0.3)', color: '#D4AF37' }}
+          data-testid="admin-illustrations-refresh"
+        >
+          {loading ? 'Chargement…' : 'Rafraîchir'}
+        </button>
+      </div>
+
+      <p className="text-xs mb-4" style={{ color: 'var(--pa-muted)' }}>
+        {total} illustration{total > 1 ? 's' : ''} au total · {items.length} affichée{items.length > 1 ? 's' : ''}
+      </p>
+
+      {msg && (
+        <div className="mb-4 px-3 py-2 rounded-lg text-xs" style={{
+          background: msg.type === 'ok' ? 'rgba(74,222,128,0.12)' : 'rgba(239,68,68,0.12)',
+          border: `1px solid ${msg.type === 'ok' ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`,
+          color: msg.type === 'ok' ? '#4ADE80' : '#fca5a5',
+        }} data-testid="admin-illustrations-msg">
+          {msg.text}
+        </div>
+      )}
+
+      {items.length === 0 ? (
+        <div className="text-center py-12" style={{ color: 'var(--pa-muted)', fontStyle: 'italic', fontFamily: 'Cormorant Garamond, serif' }} data-testid="admin-illustrations-empty">
+          Aucun Ex Libris généré pour l'instant. Dès qu'une utilisatrice reçoit son livre natal, son illustration unique apparaîtra ici.
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="admin-illustrations-grid">
+          {items.map((it) => (
+            <IllustrationCard
+              key={it.signature_hash}
+              item={it}
+              token={token}
+              onRegenerate={() => regenerate(it.signature_hash)}
+              regenerating={regenerating === it.signature_hash}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IllustrationCard({ item, token, onRegenerate, regenerating }) {
+  const [imgSrc, setImgSrc] = React.useState(null);
+  const [err, setErr] = React.useState(false);
+
+  React.useEffect(() => {
+    let revoked = false;
+    let url = null;
+    (async () => {
+      try {
+        const r = await axios.get(
+          `${API}/api/admin/natal-illustrations/${item.signature_hash}/image`,
+          { headers: { Authorization: `Bearer ${token}` }, responseType: 'blob' },
+        );
+        if (revoked) return;
+        url = URL.createObjectURL(r.data);
+        setImgSrc(url);
+      } catch (e) {
+        if (!revoked) setErr(true);
+      }
+    })();
+    return () => { revoked = true; if (url) URL.revokeObjectURL(url); };
+  }, [item.signature_hash, token]);
+
+  const date = item.last_generated_at
+    ? new Date(item.last_generated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '—';
+
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(212,175,55,0.15)', background: 'rgba(0,0,0,0.2)' }} data-testid={`illust-card-${item.signature_hash}`}>
+      <div style={{ aspectRatio: '3/4', background: '#F7F2E6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {err ? (
+          <span className="text-xs" style={{ color: '#fca5a5', padding: 8, textAlign: 'center' }}>
+            Image indisponible
+          </span>
+        ) : imgSrc ? (
+          <img src={imgSrc} alt={`Ex Libris ${item.prenom || ''}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} data-testid={`illust-img-${item.signature_hash}`} />
+        ) : (
+          <Loader2 className="w-5 h-5 animate-spin" style={{ color: '#D4AF37' }} />
+        )}
+      </div>
+      <div className="p-3">
+        <div className="text-sm font-semibold mb-1" style={{ color: 'var(--pa-heading)', fontFamily: 'Cormorant Garamond, serif' }}>
+          {item.prenom || '—'}
+        </div>
+        <div className="text-[10px] mb-1" style={{ color: 'var(--pa-muted)' }}>
+          ☉ {item.sun_sign || '?'} · ☽ {item.moon_sign || '?'} · ↑ {item.asc_sign || '?'}
+        </div>
+        <div className="text-[10px] mb-3" style={{ color: 'var(--pa-muted)' }}>
+          {date} · {Math.round((item.size_bytes || 0) / 1024)} Ko · gen x{item.generation_count || 1}
+        </div>
+        <button
+          onClick={onRegenerate}
+          disabled={regenerating}
+          className="w-full px-3 py-1.5 text-[10px] uppercase tracking-widest rounded-full"
+          style={{
+            border: '1px solid rgba(212,175,55,0.4)',
+            color: regenerating ? 'var(--pa-muted)' : '#D4AF37',
+            opacity: regenerating ? 0.6 : 1,
+            cursor: regenerating ? 'not-allowed' : 'pointer',
+          }}
+          data-testid={`illust-regen-${item.signature_hash}`}
+        >
+          {regenerating ? 'Régénération…' : 'Régénérer'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 
 // ═══════ PDFs Sent Section (Supabase Storage only) ═══════
