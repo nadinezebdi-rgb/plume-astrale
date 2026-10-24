@@ -92,7 +92,8 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
                             referral_link: str = None,
                             aspects_raw: list = None,
                             houses_raw: list = None,
-                            house_cusps_raw: list = None) -> bytes:
+                            house_cusps_raw: list = None,
+                            illustrations: dict | None = None) -> bytes:
     """DROP-IN REPLACEMENT du générateur legacy `generate_manuscrit_pdf`.
 
     Mode ULTRA activé si `user_data['ai_interpretations']` contient au moins
@@ -297,7 +298,7 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
         manuscript = build_natal_manuscript(
             prenom=prenom, birth_date=birth_date, natal_data=natal_data,
             chart_png_bytes=chart_png_bytes, book_data=book_data,
-            language=lang,
+            language=lang, illustrations=illustrations,
         )
         # Propage la langue vers l'astro_data pour que le renderer l'applique
         if lang == 'en':

@@ -45,6 +45,12 @@ from services import astrology_io_service as aio
 from services.energy_service import get_energy_today
 from services import premium_subscription
 from routes.admin import router as admin_router
+from routes.admin_users import router as admin_users_router
+from routes.admin_promo import router as admin_promo_router
+from routes.admin_pdfs import router as admin_pdfs_router
+from routes.admin_monitoring import router as admin_monitoring_router
+from routes.admin_viralite import router as admin_viralite_router
+from routes.admin_illustrations import router as admin_illustrations_router
 from routes.admin_payments import router as admin_payments_router
 from routes.admin_book import router as admin_book_router
 from routes.experience_funnel import (
@@ -128,6 +134,12 @@ STREAK_MILESTONES = {7: 3, 14: 5, 30: 10, 60: 15, 100: 25}
 app = FastAPI(title='Plume Astrale API')
 api_router = APIRouter(prefix='/api')
 api_router.include_router(admin_router)
+api_router.include_router(admin_users_router)
+api_router.include_router(admin_promo_router)
+api_router.include_router(admin_pdfs_router)
+api_router.include_router(admin_monitoring_router)
+api_router.include_router(admin_viralite_router)
+api_router.include_router(admin_illustrations_router)
 api_router.include_router(admin_payments_router)
 api_router.include_router(experience_funnel_public_router)
 api_router.include_router(experience_funnel_admin_router)
@@ -3125,6 +3137,58 @@ async def tarot_shared_card_png_endpoint(share_id: str, request: Request, format
     )
 
 
+@api_router.get('/tarot/shared/{share_id}/reels.mp4')
+async def tarot_shared_reels_mp4_endpoint(share_id: str, format: str = 'vertical'):
+    """Génère un MP4 15 s de la révélation du tirage (TikTok/Reels/Shorts).
+
+    Query ?format=vertical (1080×1920, défaut) ou ?format=square (1080×1080).
+    Public, pas d'auth. Rendu via Playwright headless + FFmpeg transcode.
+    """
+    from services.ssr_snapshot import _get_mongo
+    from services.reels_video_renderer import render_reels_video
+    from fastapi import HTTPException
+    from fastapi.responses import Response
+
+    share_id = (share_id or '').strip().lower()
+    fmt = (format or 'vertical').lower()
+    if fmt not in ('vertical', 'square'):
+        fmt = 'vertical'
+    if not share_id or len(share_id) != 12 or not all(c in '0123456789abcdef' for c in share_id):
+        raise HTTPException(status_code=400, detail='share_id invalide')
+    try:
+        db = _get_mongo()
+        doc = await db.shared_tirages.find_one({'share_id': share_id})
+    except Exception as e:
+        logger.exception(f'[tarot/shared/reels] fetch failed: {e}')
+        raise HTTPException(status_code=500, detail='Lecture indisponible.')
+    if not doc:
+        raise HTTPException(status_code=404, detail='Tirage introuvable ou expiré.')
+
+    try:
+        mp4_bytes = await render_reels_video(doc, fmt)
+    except Exception as e:
+        logger.exception(f'[tarot/shared/reels] render failed: {e}')
+        raise HTTPException(status_code=500, detail='Impossible de générer la vidéo.')
+
+    import re
+    import urllib.parse
+    raw_name = (doc.get('first_name') or 'plume').lower()
+    ascii_name = re.sub(r'[^a-z0-9_-]+', '-', raw_name).strip('-') or 'plume'
+    fmt_suffix = '-square' if fmt == 'square' else ''
+    utf8_name = urllib.parse.quote(f'tirage-{raw_name}{fmt_suffix}-{share_id}.mp4')
+    return Response(
+        content=mp4_bytes,
+        media_type='video/mp4',
+        headers={
+            'Content-Disposition': (
+                f'attachment; filename="tirage-{ascii_name}{fmt_suffix}-{share_id}.mp4"; '
+                f"filename*=UTF-8''{utf8_name}"
+            ),
+            'Cache-Control': 'public, max-age=86400',
+        },
+    )
+
+
 @api_router.get('/og/tirage/{share_id}', response_class=HTMLResponse, include_in_schema=False)
 async def tarot_og_wrapper(share_id: str, request: Request):
     """Page HTML lite qui expose les tags Open Graph pour les crawlers
@@ -4114,6 +4178,29 @@ async def _start_cart_recovery():
     from services.weekly_digest import weekly_digest_loop
     _asyncio.create_task(_delayed_start(weekly_digest_loop()))
 
+    # Prewarm des illustrations Nano Banana partagées (10 planètes + clôture).
+    # Au premier démarrage de la prod le cache local est vide ; sans prewarm,
+    # le premier utilisateur à générer un livre déclenche 11 appels Nano Banana
+    # séquentiels (~90s). Avec prewarm, les 11 vignettes sont servies depuis
+    # Emergent Storage ou pré-générées pendant la fenêtre de warmup, et toutes
+    # les générations suivantes sont instantanées. L'Ex Libris reste à la
+    # demande (unique par signature astrale).
+    async def _prewarm_illustrations():
+        try:
+            from services.natal_book_illustrations import (
+                get_all_planet_illustrations,
+                get_or_generate_closing_illustration,
+            )
+            planets = await get_all_planet_illustrations()
+            closing = await get_or_generate_closing_illustration()
+            logging.getLogger(__name__).info(
+                f'[prewarm_illust] planets ready: {len(planets)}/10, closing: {bool(closing)}'
+            )
+        except Exception as _e:
+            logging.getLogger(__name__).warning(f'[prewarm_illust] failed: {_e}')
+
+    _asyncio.create_task(_delayed_start(_prewarm_illustrations()))
+
 
 
 @app.on_event('shutdown')
@@ -4123,12 +4210,19 @@ async def _drain_stripe_webhook_background_tasks():
     Limite le nombre de lignes bloquées en `processing` lors d'un redéploiement.
     """
     if not _BG_TASKS:
-        return
-    logger.info(f'[stripe_webhook] shutdown : attente de {len(_BG_TASKS)} traitement(s)')
+        pass
+    else:
+        logger.info(f'[stripe_webhook] shutdown : attente de {len(_BG_TASKS)} traitement(s)')
+        try:
+            await asyncio.wait(set(_BG_TASKS), timeout=20)
+        except Exception as _e:
+            logger.warning(f'[stripe_webhook] drain shutdown: {_e}')
+    # Ferme proprement le pool Mongo partagé (évite les socket warnings).
     try:
-        await asyncio.wait(set(_BG_TASKS), timeout=20)
+        from db import close_db
+        await close_db()
     except Exception as _e:
-        logger.warning(f'[stripe_webhook] drain shutdown: {_e}')
+        logger.warning(f'[shutdown] close_db warning: {_e}')
 
 
 async def replay_pending_events(limit: int = 100, dry_run: bool = True) -> dict:

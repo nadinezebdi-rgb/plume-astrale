@@ -385,7 +385,10 @@ def aspects_group_page(story, styles, category: str, headline: str,
                        fontSize=12, textColor=CREAM, alignment=TA_LEFT,
                        leading=18, leftIndent=1.5 * cm, rightIndent=1.5 * cm),
     ))
-    story.append(PageBreak())
+    # Refactor 2026-02-26 : plus de PageBreak forcé → les 3 groupes d'aspects
+    # s'enchaînent comme un chapitre de livre, séparés par un ornement.
+    from services.pdf_luxury_theme import _append_section_ornament
+    _append_section_ornament(story, f'aspects_{category}')
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -414,8 +417,9 @@ def house_detail_page(story, styles, house_num: int, sign: str,
     """Une maison astrologique — signe qui l'occupe + planètes présentes + analyse.
 
     Cite l'image de la maison (libimg.house(n)) si disponible.
-    end_page=False permet d'enchaîner deux maisons sur la même page
-    (le bloc reste insécable : une maison n'est jamais coupée en deux).
+    Le bloc reste insécable (KeepTogether) : une maison n'est jamais coupée en deux.
+    end_page est conservé pour compatibilité d'appel mais n'impose plus de
+    PageBreak : les maisons s'enchaînent en flux continu, séparées par un ornement.
     """
     theme = _HOUSE_THEMES.get(house_num, '')
     block = [Spacer(1, 0.7 * cm)]
@@ -451,7 +455,11 @@ def house_detail_page(story, styles, house_num: int, sign: str,
                        leading=17, leftIndent=1.5 * cm, rightIndent=1.5 * cm),
     ))
     story.append(KeepTogether(block))
-    story.append(PageBreak() if end_page else Spacer(1, 0.6 * cm))
+    # Refactor 2026-02-26 : plus de PageBreak forcé → les 12 maisons s'enchaînent
+    # comme un chapitre de livre, séparées par un ornement (chaque maison reste
+    # insécable grâce à KeepTogether).
+    from services.pdf_luxury_theme import _append_section_ornament
+    _append_section_ornament(story, f'house_{house_num}')
 
 
 # ═══════════════════════════════════════════════════════════════════

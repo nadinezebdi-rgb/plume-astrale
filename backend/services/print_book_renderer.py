@@ -27,7 +27,9 @@ from reportlab.platypus.tableofcontents import TableOfContents
 # Textes structurels : i18n minimale FR/EN pour la couverture, préface, sommaire…
 _I18N = {
     'fr': {
-        'book_title_default': 'Le Livre Astral',
+        'book_title_default': 'Thème Natal',
+        'book_subtitle_default': 'Complet',
+        'cover_eyebrow': '✦  TON PORTRAIT CÉLESTE  ✦',
         'cover_subtitle': 'Une lecture personnelle de votre ciel de naissance',
         'cover_edition': 'ÉDITION PERSONNELLE',
         'intro_para': ('Ce livre est composé à partir de votre ciel de naissance. '
@@ -51,7 +53,9 @@ _I18N = {
         'cutout_sig': '— Plume Astrale, écrit pour toi',
     },
     'en': {
-        'book_title_default': 'The Astral Book',
+        'book_title_default': 'Natal Chart',
+        'book_subtitle_default': 'Complete',
+        'cover_eyebrow': '✦  YOUR CELESTIAL PORTRAIT  ✦',
         'cover_subtitle': 'A personal reading of your birth sky',
         'cover_edition': 'PERSONAL EDITION',
         'intro_para': ('This book is composed from your birth chart. It offers a symbolic '
@@ -160,28 +164,59 @@ class _Cover(Flowable):
         self.image_path = image_path
         self.lang = lang
 
+    def _draw_stars(self, c):
+        """Champ d'étoiles doré, deterministe, inspiré de la hero du site Thème Natal."""
+        import random
+        rng = random.Random(42)  # seed stable → même étoile à chaque export
+        c.setFillColor(GOLD_BRIGHT)
+        # Petites étoiles pâles un peu partout
+        for _ in range(140):
+            x = rng.uniform(6*mm, WIDTH-6*mm)
+            y = rng.uniform(6*mm, HEIGHT-6*mm)
+            r = rng.choice([.18, .22, .28, .35, .5]) * mm
+            c.setFillAlpha(rng.uniform(.25, .85))
+            c.circle(x, y, r, stroke=0, fill=1)
+        # Quelques « étoiles filantes » discrètes (petits traits)
+        c.setStrokeColor(GOLD_BRIGHT)
+        c.setLineWidth(.25)
+        for _ in range(5):
+            x = rng.uniform(15*mm, WIDTH-15*mm)
+            y = rng.uniform(15*mm, HEIGHT-15*mm)
+            dx = rng.choice([-1,1]) * rng.uniform(2.5*mm, 4*mm)
+            dy = rng.choice([-1,1]) * rng.uniform(1*mm, 2*mm)
+            c.setStrokeAlpha(rng.uniform(.15, .35))
+            c.line(x, y, x+dx, y+dy)
+        c.setStrokeAlpha(1)
+        c.setFillAlpha(1)
+
     def draw(self):
         c = self.canv
         c.saveState()
         c.resetTransforms()
+        # ── 1) Fond navy profond (identique à la hero section de /theme-natal-luxe)
         c.setFillColor(NAVY)
         c.rect(0, 0, WIDTH, HEIGHT, fill=1, stroke=0)
+        # ── 2) Champ d'étoiles dorées
+        self._draw_stars(c)
+        # ── 3) Illustration (optionnelle) : discrete overlay, pas plein cadre
         if self.image_path:
             path = Path(self.image_path)
             if not path.is_file():
                 raise ValueError('Illustration de couverture introuvable')
-            c.drawImage(str(path), 0, 0, WIDTH, HEIGHT, mask='auto', preserveAspectRatio=False)
-            c.setFillColor(NAVY)
-            c.setFillAlpha(.85)
-            c.rect(9*mm, 35*mm, WIDTH-18*mm, HEIGHT-70*mm, fill=1, stroke=0)
+            # Vignette circulaire discrète, non pleine page, pour ne pas étouffer le titre
+            c.saveState()
+            c.setFillAlpha(.22)
+            c.drawImage(str(path), WIDTH/2-30*mm, 112*mm, 60*mm, 60*mm,
+                        mask='auto', preserveAspectRatio=True)
             c.setFillAlpha(1)
-        # Double cadre or (fin extérieur, filet intérieur plus épais)
+            c.restoreState()
+        # ── 4) Double cadre or (fin extérieur, filet intérieur plus épais)
         c.setStrokeColor(GOLD_BRIGHT)
         c.setLineWidth(.6)
         c.rect(8*mm, 8*mm, WIDTH-16*mm, HEIGHT-16*mm)
         c.setLineWidth(1.4)
         c.rect(11*mm, 11*mm, WIDTH-22*mm, HEIGHT-22*mm)
-        # Ornements d'angle (petits soleils dans les 4 coins)
+        # ── 5) Ornements d'angle (petits soleils dans les 4 coins)
         for cx_o, cy_o in [(14*mm,14*mm),(WIDTH-14*mm,14*mm),
                             (14*mm,HEIGHT-14*mm),(WIDTH-14*mm,HEIGHT-14*mm)]:
             c.circle(cx_o, cy_o, 1.2*mm, stroke=1, fill=0)
@@ -189,57 +224,51 @@ class _Cover(Flowable):
                 a = ang*math.pi/180
                 c.line(cx_o+1.8*mm*math.cos(a), cy_o+1.8*mm*math.sin(a),
                        cx_o+2.6*mm*math.cos(a), cy_o+2.6*mm*math.sin(a))
-        # Celestial engraving : roue céleste 12 signes centrée
-        cx, cy, radius = WIDTH/2, 88*mm, 24*mm
-        c.setStrokeColor(GOLD_BRIGHT)
-        c.setLineWidth(.7)
-        for r in (radius, radius-2.5*mm, radius*.65):
-            c.circle(cx, cy, r, stroke=1, fill=0)
-        for i in range(12):
-            angle = i*math.pi/6
-            c.line(cx+radius*.85*math.cos(angle), cy+radius*.85*math.sin(angle),
-                   cx+radius*math.cos(angle), cy+radius*math.sin(angle))
-        c.circle(cx, cy, 5.5*mm, stroke=1, fill=0)
-        # Petites étoiles autour
-        for dx,dy,size in [(-32,22,1.1),(34,-18,.8),(-26,-28,.7),(29,32,.8),
-                            (-38,-8,.6),(38,8,.6)]:
-            c.circle(cx+dx*mm, cy+dy*mm, size, fill=1, stroke=0)
-        # ── TOP : "PLUME ASTRALE" en or léger ──
+        # ── 6) TOP : « P L U M E   A S T R A L E » en or léger (logo texte)
         c.setFillColor(GOLD_BRIGHT)
-        c.setFont('PlumeBook', 11)
-        c.drawCentredString(WIDTH/2, 182*mm, 'P L U M E   A S T R A L E')
+        c.setFont('PlumeBook', 10)
+        c.drawCentredString(WIDTH/2, 188*mm, 'P L U M E   A S T R A L E')
         # Filet or sous le logo
+        c.setLineWidth(.4)
+        c.line(WIDTH/2-16*mm, 184*mm, WIDTH/2+16*mm, 184*mm)
+        # ── 7) EYEBROW : « ✦  TON PORTRAIT CÉLESTE  ✦ » (petit, or, lettres espacées)
+        c.setFillColor(GOLD_BRIGHT)
+        c.setFont('PlumeBook', 8.5)
+        c.drawCentredString(WIDTH/2, 172*mm, _t(self.lang, 'cover_eyebrow'))
+        # ── 8) TITRE : « Thème Natal » en italique dorée brillante (hero style)
+        title = (self.m.astro_data or {}).get('book_title') or _t(self.lang, 'book_title_default')
+        subtitle_word = _t(self.lang, 'book_subtitle_default')
+        style_title = ParagraphStyle('CoverTitle', fontName='PlumeBook-Italic',
+            fontSize=42, leading=46, alignment=TA_CENTER, textColor=GOLD_BRIGHT)
+        title_p = Paragraph(html.escape(title), style_title)
+        _, th = title_p.wrap(WIDTH-28*mm, 56*mm)
+        title_p.drawOn(c, 14*mm, 158*mm-th)
+        # ── 9) MOT COMPLÉMENTAIRE : « Complet » en roman cream (hiérarchie subtile)
+        c.setFillColor(colors.HexColor('#F5EEE0'))
+        c.setFont('PlumeBook', 24)
+        c.drawCentredString(WIDTH/2, 142*mm, subtitle_word)
+        # ── 10) Filet or sous le titre
         c.setStrokeColor(GOLD_BRIGHT)
         c.setLineWidth(.4)
-        c.line(WIDTH/2-18*mm, 178*mm, WIDTH/2+18*mm, 178*mm)
-        # ── TITRE EN OR BRILLANT ──
-        title = (self.m.astro_data or {}).get('book_title') or _t(self.lang, 'book_title_default')
-        style = ParagraphStyle('CoverTitle', fontName='PlumeBook', fontSize=32,
-            leading=36, alignment=TA_CENTER, textColor=GOLD_BRIGHT)
-        title_p = Paragraph(html.escape(title), style)
-        _, h = title_p.wrap(WIDTH-28*mm, 80*mm)
-        title_p.drawOn(c, 14*mm, 160*mm-h)
-        # ── NOM EN OR aussi (plus clair ivoire si l'écho de contraste) ──
-        name_style = ParagraphStyle('CoverName', parent=style, fontSize=24, leading=28,
-            fontName='PlumeBook-Italic', textColor=GOLD_BRIGHT)
-        for font_size in (24, 22, 20, 18, 16, 14):
+        c.line(WIDTH/2-20*mm, 132*mm, WIDTH/2+20*mm, 132*mm)
+        # ── 11) PRÉNOM : « Pour Nadine » en italique or clair
+        name_style = ParagraphStyle('CoverName', fontName='PlumeBook-Italic',
+            fontSize=20, leading=24, alignment=TA_CENTER, textColor=GOLD_BRIGHT)
+        for font_size in (20, 18, 16, 14, 12):
             name_style.fontSize = font_size
-            name_style.leading = font_size + 2
-            name_p = Paragraph(html.escape(self.m.first_name), name_style)
-            _, h = name_p.wrap(WIDTH-28*mm, 45*mm)
-            if h <= 42:
+            name_style.leading = font_size + 4
+            name_p = Paragraph(html.escape(f'Pour {self.m.first_name}'), name_style)
+            _, h = name_p.wrap(WIDTH-28*mm, 30*mm)
+            if h <= 28:
                 break
-        if h > 42:
+        if h > 28:
             raise ValueError('Nom trop long pour la couverture : utiliser le prénom de lecture')
-        name_p.drawOn(c, 14*mm, 142*mm-h)
-        # ── Filet or après le nom ──
-        c.setLineWidth(.4)
-        c.line(WIDTH/2-14*mm, 128*mm, WIDTH/2+14*mm, 128*mm)
-        # ── BOTTOM : subtitle + edition en or ──
+        name_p.drawOn(c, 14*mm, 118*mm-h)
+        # ── 12) BOTTOM : subtitle + edition en or
         c.setFillColor(GOLD_BRIGHT)
-        c.setFont('PlumeBook-Italic', 12)
+        c.setFont('PlumeBook-Italic', 11.5)
         c.drawCentredString(WIDTH/2, 42*mm, _t(self.lang, 'cover_subtitle'))
-        c.setFont('PlumeBook', 9.5)
+        c.setFont('PlumeBook', 9)
         c.drawCentredString(WIDTH/2, 24*mm, _t(self.lang, 'cover_edition'))
         c.restoreState()
 
@@ -260,11 +289,12 @@ class _CutoutMark(Flowable):
 
 
 class _BookDoc(BaseDocTemplate):
-    def __init__(self, stream, name):
+    def __init__(self, stream, name, cover_pages=2):
         super().__init__(stream, pagesize=(WIDTH, HEIGHT), leftMargin=21*mm,
             rightMargin=17*mm, topMargin=20*mm, bottomMargin=23*mm,
             title=f'Le Livre Astral de {name}', author='Plume Astrale')
         self.person_name = name
+        self.cover_pages = cover_pages
         self._cutout_pages: set[int] = set()
         self.addPageTemplates(PageTemplate('book',
             frames=[Frame(21*mm,23*mm,110*mm,167*mm,id='text',
@@ -275,13 +305,13 @@ class _BookDoc(BaseDocTemplate):
         # Mirrored gutter, identical usable width on recto and verso.
         self.pageTemplate.frames[0]._x1 = (21 if doc.page % 2 else 17)*mm
         self.pageTemplate.frames[0]._geom()
-        # Fond crème parchemin sur toutes les pages intérieures (hors couverture p.1-2)
-        if doc.page > 2:
+        # Fond crème parchemin sur toutes les pages intérieures (hors couverture)
+        if doc.page > self.cover_pages:
             canvas.saveState()
             canvas.setFillColor(CREAM)
             canvas.rect(0, 0, WIDTH, HEIGHT, fill=1, stroke=0)
             canvas.restoreState()
-        if doc.page <= 2:
+        if doc.page <= self.cover_pages:
             return
         # Ex Libris : page « à découper » (pas de folio, bordure pointillée)
         if doc.page in self._cutout_pages:
@@ -303,7 +333,7 @@ class _BookDoc(BaseDocTemplate):
         canvas.setFillColor(MUTED)
         canvas.setFont('PlumeBook', 9)
         canvas.drawString(17*mm, 12*mm, 'PLUME ASTRALE')
-        canvas.drawRightString(WIDTH-17*mm,12*mm,str(doc.page-2))
+        canvas.drawRightString(WIDTH-17*mm,12*mm,str(doc.page-self.cover_pages))
         canvas.restoreState()
 
     def afterFlowable(self, flowable):
@@ -314,7 +344,7 @@ class _BookDoc(BaseDocTemplate):
             key = flowable._toc_key
             self.canv.bookmarkPage(key)
             self.canv.addOutlineEntry(flowable.getPlainText(),key,level=0,closed=False)
-            self.notify('TOCEntry',(0,flowable.getPlainText(),self.page-2,key))
+            self.notify('TOCEntry',(0,flowable.getPlainText(),self.page-self.cover_pages,key))
 
 
 def _heading(text, styles, key=None):
@@ -341,17 +371,41 @@ def _chapter_illust_for_slug(slug: str):
     """Renvoie le path d'illustration (string) pour un chapitre, selon son slug."""
     slug = (slug or '').lower()
     if 'planet' in slug:
-        path = _LIB_ROOT / 'planets' / 'sun_1080.png'
+        path = _LIB_ROOT / 'planets' / 'sun_512.png'
     elif 'house' in slug or 'maison' in slug:
-        path = _LIB_ROOT / 'houses' / 'house1_1080.png'
+        path = _LIB_ROOT / 'houses' / 'house1_512.png'
     elif 'synthese' in slug or 'ciel' in slug:
-        path = _LIB_ROOT / 'tarot' / '17_l_etoile_1080.png'
+        path = _LIB_ROOT / 'tarot' / '17_l_etoile_512.png'
     elif 'aspect' in slug:
-        path = _LIB_ROOT / 'tarot' / '08_la_force_1080.png'
+        path = _LIB_ROOT / 'tarot' / '08_la_force_512.png'
     elif 'preface' in slug or 'introduction' in slug:
         path = _LIB_ROOT / 'tarot' / '01_le_bateleur_512.png'
+    elif 'closing' in slug:
+        path = _LIB_ROOT / 'tarot' / '19_le_soleil_512.png'
     else:
         path = None
+    return str(path) if path and path.is_file() else None
+
+
+def _chapter_tail_illust_for_slug(slug: str):
+    """Illustration d'ornement de fin de chapitre : vignette thématique différente
+    de l'ouverture, pour combler l'espace blanc en fin de section comme dans
+    un vrai livre de collection."""
+    slug = (slug or '').lower()
+    if 'planet' in slug:
+        path = _LIB_ROOT / 'tarot' / '18_la_lune_512.png'
+    elif 'house' in slug or 'maison' in slug:
+        path = _LIB_ROOT / 'tarot' / '03_l_imperatrice_512.png'
+    elif 'synthese' in slug or 'ciel' in slug:
+        path = _LIB_ROOT / 'tarot' / '07_le_chariot_512.png'
+    elif 'aspect' in slug:
+        path = _LIB_ROOT / 'tarot' / '06_les_amoureux_512.png'
+    elif 'preface' in slug or 'introduction' in slug:
+        path = _LIB_ROOT / 'tarot' / '17_l_etoile_512.png'
+    elif 'closing' in slug or 'ex_libris' in slug:
+        path = _LIB_ROOT / 'tarot' / '12_le_pendu_512.png'
+    else:
+        path = _LIB_ROOT / 'tarot' / '17_l_etoile_512.png'
     return str(path) if path and path.is_file() else None
 
 
@@ -377,6 +431,16 @@ def _append_blocks(story, chapter, styles):
             # Ce bloc reste un marqueur pour la hiérarchie — pas de rendu additionnel.
             continue
         if kind == 'feather':
+            # Ornement de clôture discret au cœur du chapitre : un filet or
+            # fin + une petite étoile centrale, pour aérer sans laisser de blanc.
+            story.append(Spacer(1, 6*mm))
+            story.append(HRFlowable(width='28%', thickness=.5, color=GOLD,
+                                     hAlign='CENTER', spaceAfter=4))
+            star_style = ParagraphStyle('Feather', fontName='PlumeBook',
+                fontSize=11, leading=14, alignment=TA_CENTER, textColor=GOLD)
+            story.append(Paragraph('✦', star_style))
+            story.append(HRFlowable(width='28%', thickness=.5, color=GOLD,
+                                     hAlign='CENTER', spaceBefore=4, spaceAfter=4))
             continue
         if kind == 'page_break':
             if story and not isinstance(story[-1],PageBreak):
@@ -404,13 +468,67 @@ def _append_blocks(story, chapter, styles):
             src = data.get('src') or ''
             if src.startswith('data:image/png;base64,'):
                 image = Image(io.BytesIO(base64.b64decode(src.split(',',1)[1])))
-                image._restrictSize(104*mm,104*mm)
-                story.append(image)
+                if data.get('full_page'):
+                    # Carte du ciel en **affiche pleine page A5** : la roue
+                    # occupe seule la page, centrée, avec juste la légende
+                    # discrète en pied. Cadre de texte A5 utile = 110×167 mm,
+                    # on vise 108×145 mm pour garder une respiration or.
+                    story.append(PageBreak())
+                    image._restrictSize(108*mm, 148*mm)
+                    image.hAlign = 'CENTER'
+                    story.append(Spacer(1, 4*mm))
+                    story.append(image)
+                    story.append(Spacer(1, 6*mm))
+                    legend_style = ParagraphStyle('ChartLegend', fontName='PlumeBook-Italic',
+                        fontSize=10, leading=14, alignment=TA_CENTER, textColor=MUTED)
+                    story.append(Paragraph(html.escape(_plain(data.get('alt') or '')), legend_style))
+                    story.append(PageBreak())
+                else:
+                    image._restrictSize(104*mm, 104*mm)
+                    story.append(image)
         elif kind == 'image':
-            # Unknown image identifiers are not silently turned into invented images.
-            raise ValueError('Illustration sans fichier résolu dans le manuscrit')
+            # Illustration IA (Nano Banana) ou fichier résolu. Payload accepté :
+            #   - data.src = 'data:image/png;base64,...' (préféré, portable)
+            #   - data.path = chemin disque local
+            # Dimensions : full_page=True → page poster A5 (108×148 mm),
+            # sinon vignette dimensionnée par max_width_mm / max_height_mm
+            # (défauts 70×70 mm — fin de section planétaire).
+            src = data.get('src') or ''
+            path = data.get('path')
+            image_obj = None
+            try:
+                if src.startswith('data:image/') and ';base64,' in src:
+                    image_obj = Image(io.BytesIO(base64.b64decode(src.split(',', 1)[1])))
+                elif path:
+                    image_obj = Image(path)
+            except Exception:
+                image_obj = None
+            if image_obj is None:
+                raise ValueError('Illustration sans fichier résolu dans le manuscrit')
+            if data.get('full_page'):
+                story.append(PageBreak())
+                image_obj._restrictSize(108*mm, 148*mm)
+                image_obj.hAlign = 'CENTER'
+                story.append(Spacer(1, 6*mm))
+                story.append(image_obj)
+                caption = _plain(data.get('caption') or '')
+                if caption:
+                    cap_style = ParagraphStyle('IllustCap', fontName='PlumeBook-Italic',
+                        fontSize=10, leading=14, alignment=TA_CENTER, textColor=MUTED)
+                    story.append(Spacer(1, 4*mm))
+                    story.append(Paragraph(html.escape(caption), cap_style))
+                story.append(PageBreak())
+            else:
+                w_mm = float(data.get('max_width_mm') or 70)
+                h_mm = float(data.get('max_height_mm') or 70)
+                image_obj._restrictSize(w_mm*mm, h_mm*mm)
+                image_obj.hAlign = 'CENTER'
+                story.append(Spacer(1, 4*mm))
+                story.append(image_obj)
+                story.append(Spacer(1, 4*mm))
         elif kind == 'hairline':
-            story.append(HRFlowable(width='45%',thickness=.5,color=GOLD,spaceAfter=12))
+            story.append(HRFlowable(width='45%',thickness=.5,color=GOLD,
+                                     hAlign='CENTER',spaceBefore=6,spaceAfter=12))
         elif kind == 'natal_meta':
             text = ' · '.join(str(data.get(k) or '') for k in ('sign','house','degree','note') if data.get(k))
             story.append(Paragraph(html.escape(text),styles['small']))
@@ -449,19 +567,22 @@ def render_book_pdf(manuscript, *, cover_png_path=None, language=None):
     if lang not in _I18N:
         lang = 'fr'
     stream = io.BytesIO()
-    doc = _BookDoc(stream,manuscript.first_name)
     # Édition imprimée : page blanche traditionnelle après la couverture.
-    # Édition numérique : enchaîner directement sur la page de titre (évite une page vide).
-    is_digital = str(getattr(manuscript.edition, 'value', manuscript.edition) or '').lower() in ('numerique', 'digital', '')
+    # Édition numérique : enchaîner directement sur la préface (évite deux pages de titre vides).
+    edition_raw = getattr(manuscript, 'edition', None)
+    is_digital = str(getattr(edition_raw, 'value', edition_raw) or '').lower() in ('numerique', 'digital')
+    cover_pages = 1 if is_digital else 2
+    doc = _BookDoc(stream, manuscript.first_name, cover_pages=cover_pages)
     if is_digital:
         story = [_Cover(manuscript, cover_png_path, lang=lang), PageBreak()]
     else:
-        story = [_Cover(manuscript, cover_png_path, lang=lang), PageBreak(), Spacer(1, 5*mm), PageBreak()]
-    story += [Spacer(1,22*mm),_heading(_t(lang,'book_title_default'),styles),
-              _heading(manuscript.first_name,styles),Spacer(1,20*mm)]
-    for text in _paragraphs(_t(lang,'intro_para')):
-        story.append(Paragraph(text,styles['body']))
-    story += [PageBreak(),_heading(_t(lang,'preface_title'),styles)]
+        story = [_Cover(manuscript, cover_png_path, lang=lang), PageBreak(), Spacer(1, 5*mm), PageBreak(),
+                 Spacer(1,22*mm),_heading(_t(lang,'book_title_default'),styles),
+                 _heading(manuscript.first_name,styles),Spacer(1,20*mm)]
+        for text in _paragraphs(_t(lang,'intro_para')):
+            story.append(Paragraph(text,styles['body']))
+        story.append(PageBreak())
+    story += [_heading(_t(lang,'preface_title'),styles)]
     preface = [tpl.format(name=manuscript.first_name) for tpl in _t(lang,'preface_paras_tpl')]
     for text in preface:
         story.append(Paragraph(html.escape(text),styles['body']))
@@ -519,12 +640,13 @@ def render_book_pdf(manuscript, *, cover_png_path=None, language=None):
     writer = PdfWriter()
     writer.clone_document_from_reader(reader)
     _embed_only_fonts(writer)
-    # Interior is even; never invent pages to reach an advertised length.
-    if (len(reader.pages)-2)%2:
+    # Édition imprimée : parité stricte des pages intérieures (reliure brochée).
+    # Édition numérique : jamais de page blanche de fin.
+    if not is_digital and (len(reader.pages)-cover_pages)%2:
         writer.add_blank_page(width=WIDTH,height=HEIGHT)
     writer.add_metadata({'/Title':f'Le Livre Astral de {manuscript.first_name}',
         '/Author':'Plume Astrale','/PlumeDesignVersion':DESIGN_VERSION,
-        '/PlumeInteriorStart':'2'})
+        '/PlumeInteriorStart':str(cover_pages)})
     out=io.BytesIO(); writer.write(out)
     return out.getvalue()
 

@@ -1,0 +1,31 @@
+{
+  "summary": "Iteration 96 (backend only): tested the Admin 'Illustrations IA' endpoints (list, image, regenerate), the extraction of /api/admin/tarot-share/top into admin_viralite.py, the two-tier illustration cache (local disk, then Emergent Storage, then Nano Banana) and the startup prewarm. Admin auth used a real Supabase session for nadine.zebdi@gmail.com, created with tests/_admin_token_helper.py (service-role generate_link + verify). 22/22 pytest passed, including 9 regression tests from iteration 95. The real Nano Banana regeneration of the seeded Alix Ex Libris worked: generation_count went from 1 to 2, last_generated_at moved forward, first_generated_at stayed the same, the bytes changed (21677 to 28830), and the remote Emergent Storage object was overwritten (it matches the local copy). The two-tier cache was verified: with soleil.png deleted and Nano Banana mocked to fail, the JPEG came back from storage with no generation call, and the local file was rewritten. Backend log shows '[prewarm_illust] planets ready: 10/10, closing: True'.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "routes/admin_illustrations.py _db(), routes/admin_viralite.py, natal_book_illustrations._log_ex_libris", "issue": "A new AsyncIOMotorClient is created on every request or log call and never closed. This leaks connection pools under load. Reuse the shared db client from server.py or a module-level singleton."},
+      {"endpoint": "server.py _delayed_start(_prewarm_illustrations())", "issue": "On hot reload or shutdown during the warmup sleep, the log shows a RuntimeWarning: 'coroutine _prewarm_illustrations was never awaited'. This is harmless, because the coroutine object is created before the sleep. Passing a factory (lambda: coro()) would silence it. The same pattern applies to all the other loops."},
+      {"endpoint": "GET /api/admin/natal-illustrations/{hash}/image", "issue": "media_type is always image/jpeg. Old local cache files written before the JPEG migration (.png extension, PNG bytes) would be served with the wrong content-type. Low impact, since current files are JPEG."},
+      {"endpoint": "services/emergent_storage.py", "issue": "_init_storage_sync is called from to_thread workers without a lock (ensure_storage_key is never used by put/get), so concurrent first calls can init several times. Harmless but redundant. The storage_key is also never refreshed if it expires, so later get/put calls will keep failing silently and return None until the backend restarts."},
+      {"endpoint": "POST /api/admin/natal-illustrations/{hash}/regenerate", "issue": "The regenerate call does not check that the hash recomputed from the doc fields equals the path signature_hash. They match today, but if the slug/hash formula changes, the regenerate would write to a different key. Also, there is no rate limit or confirmation on a paid action (~0.02€ per call)."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_admin_illustrations.py", "/app/backend/tests/test_tarot_share_png_viralite.py", "/app/test_reports/pytest/pytest_iteration96.xml"],
+  "action_items": [
+    "Optional: replace the per-request AsyncIOMotorClient in admin_illustrations/admin_viralite/_log_ex_libris with the shared client",
+    "Optional: handle storage_key expiry in emergent_storage (reset _storage_key on 401/403 and retry once)"
+  ],
+  "critical_code_review_comments": [
+    "Per-request Mongo client instantiation (connection-pool leak)",
+    "Storage key is never invalidated, so expiry means silent permanent storage failures until restart",
+    "admin.py is still 1174 lines (>700); keep splitting it"
+  ],
+  "updated_files": ["/app/backend/tests/test_admin_illustrations.py"],
+  "success_rate": {"backend": "100% (22/22)", "frontend": "not tested (backend only requested)"},
+  "test_credentials": "Admin: run `python /app/backend/tests/_admin_token_helper.py` (defaults to nadine.zebdi@gmail.com) to write /tmp/admin_session.json. Non-admin: concours@plume-astrale.fr / ConcoursPlume2026!",
+  "seed_data_creation": "No new seed data. The regenerate test changed the seeded Alix row: generation_count is now 2, and new image bytes are in local cache and Emergent Storage.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Admin tests need /tmp/admin_session.json from tests/_admin_token_helper.py. test_regenerate_seed_changes_content calls the real Nano Banana (~10s, ~0.02€) each run. The two-tier cache test monkeypatches _generate_image_bytes and deletes and restores planets/soleil.png. The frontend Admin 'Illustrations IA' tab was NOT tested."
+}

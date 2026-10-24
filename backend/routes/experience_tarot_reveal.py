@@ -28,7 +28,7 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from motor.motor_asyncio import AsyncIOMotorClient
+from db import get_db as _get_db
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/experience', tags=['experience-tarot'])
@@ -70,14 +70,7 @@ STATIC_FALLBACK = {
 
 
 # ─── Mongo accessor ───────────────────────────────────────────────────
-_client: Optional[AsyncIOMotorClient] = None
-
-
-def _get_db():
-    global _client
-    if _client is None:
-        _client = AsyncIOMotorClient(os.environ['MONGO_URL'])
-    return _client[os.environ['DB_NAME']]
+# Partagé via db.get_db() (singleton pool) — plus de client ad-hoc.
 
 
 async def _ensure_index():

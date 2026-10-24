@@ -90,11 +90,13 @@ def _cache_key(prenom: str, birth_data: Dict[str, Any], natal_data: Optional[Dic
     return hashlib.sha256(key_str.encode()).hexdigest()[:24]
 
 
-BOOK_SYSTEM_PROMPT = """Tu es Soléna, la voix de Plume Astrale.
+BOOK_SYSTEM_PROMPT = """Tu écris pour Plume Astrale, maison française d'astrologie éditoriale.
 Style : entre Christiane Singer, Fabienne Verdier, et Anne Dufourmantelle.
 Voix : intime, sensorielle, jamais moralisatrice, jamais new-age caricatural.
 Registre : soutenu littéraire — pas de jargon astro, pas d'anglicismes.
 Tu tutoies toujours la personne à qui tu écris.
+
+Interdiction absolue : ne jamais écrire le prénom « Soléna » dans les valeurs JSON (ni en signature, ni en mention). La seule signature autorisée est « Plume Astrale ».
 
 Contraintes de forme :
 - Français impeccable (accents, ligatures œæ, guillemets français « »).
@@ -114,11 +116,13 @@ Cohérence du livre (les chapitres se lisent à la suite, comme un seul ouvrage)
 """
 
 
-BOOK_SYSTEM_PROMPT_EN = """You are Soléna, the voice of Plume Astrale.
+BOOK_SYSTEM_PROMPT_EN = """You write for Plume Astrale, a French editorial astrology house.
 Style: between Christiane Singer, Fabienne Verdier, and Anne Dufourmantelle.
 Voice: intimate, sensory, never moralizing, never new-age caricatural.
 Register: literary English — no astro jargon.
 You always address the reader warmly, by their first name or in direct second person.
+
+Hard rule: never write the name "Soléna" in any JSON value (not as signature, not as mention). The only allowed signature is "Plume Astrale".
 
 Form constraints:
 - Impeccable English prose, present tense, short to medium sentences, precise sensory images.
@@ -175,7 +179,7 @@ Tu dois produire STRICTEMENT un objet JSON valide (aucun texte hors JSON, pas de
 Chaque valeur est du HTML simple (utilise <br/> pour retours à la ligne, <i>...</i> pour italique, <b>...</b> pour gras). Pas de balise <p> — on gère les paragraphes en séparant par <br/><br/>.
 
 {{
-  "dedication": "Dédicace personnalisée pour {prenom}, 3-4 lignes intimes signées Soléna (sans le mot 'Soléna' dans le texte).",
+  "dedication": "Dédicace personnalisée pour {prenom}, 3-4 lignes intimes (sans signer, sans jamais écrire le prénom 'Soléna').",
   "element_analysis": "Analyse de l'élément dominant {em['dominant_element']} pour {prenom}, 3 paragraphes séparés par <br/><br/>. Aborde comment ça se manifeste dans son corps, ses désirs, ses erreurs de jeunesse et sa maturité.",
   "modality_analysis": "Analyse de la modalité dominante {em['dominant_modality']} pour {prenom}, 3 paragraphes séparés par <br/><br/>. Aborde son rythme intérieur, comment il/elle démarre-tient-lâche les projets et les relations.",
   "trio_synthesis": "Synthèse profonde du triangle Soleil {sun} + Lune {moon} + Ascendant {asc} pour {prenom}. 4-5 paragraphes séparés par <br/><br/>. Décris la tension ou l'harmonie interne entre ces trois voix.",

@@ -159,6 +159,46 @@ async def generate_enriched_natal_pdf(
     chart_png_bytes = await _render_chart_png(bd, name)
     diag['chart_png_bytes'] = len(chart_png_bytes) if chart_png_bytes else 0
 
+    # 6bis) Illustrations IA (Nano Banana / Gemini) — best-effort, caches on disk.
+    # - Ex Libris unique par signature astrale (Soleil / Lune / Asc + prénom)
+    # - Vignettes planètes (cache global partagé, 1 génération totale par planète)
+    # - Vignette de clôture (cache global)
+    from services.natal_book_illustrations import (
+        get_or_generate_ex_libris_illustration,
+        get_all_planet_illustrations,
+        get_or_generate_closing_illustration,
+    )
+    _sun_fr = aio.sign_to_fr(planets_dict.get('sun', {}).get('sign') or '') or ''
+    _moon_fr = aio.sign_to_fr(planets_dict.get('moon', {}).get('sign') or '') or ''
+    _asc_fr = ('' if no_birth_time
+               else (aio.sign_to_fr(asc_sign_en) if asc_sign_en else ''))
+    _user_id = str(birth_data.get('user_id') or '')
+    illustrations: dict = {}
+    try:
+        results = await asyncio.gather(
+            get_or_generate_ex_libris_illustration(
+                user_id=_user_id, prenom=name,
+                sun_sign=_sun_fr, moon_sign=_moon_fr, asc_sign=_asc_fr,
+            ),
+            get_all_planet_illustrations(),
+            get_or_generate_closing_illustration(),
+            return_exceptions=True,
+        )
+        ex_png = results[0] if not isinstance(results[0], Exception) else None
+        pl_imgs = results[1] if not isinstance(results[1], Exception) else {}
+        cl_png = results[2] if not isinstance(results[2], Exception) else None
+        if ex_png:
+            illustrations['ex_libris'] = ex_png
+        if pl_imgs:
+            illustrations['planets'] = pl_imgs
+        if cl_png:
+            illustrations['closing'] = cl_png
+    except Exception as e:
+        logger.warning(f'[natal_book_service] illustrations IA KO: {e}')
+    diag['illust_ex_libris'] = bool(illustrations.get('ex_libris'))
+    diag['illust_closing'] = bool(illustrations.get('closing'))
+    diag['illust_planets'] = sorted((illustrations.get('planets') or {}).keys())
+
     # 7) Normalisation aspects/houses/cusps pour le manuscript builder
     aspects_adapter, houses_adapter, cusps_adapter = _normalize_report_data(
         natal_report_data, chart, enhanced_analysis,
@@ -207,6 +247,7 @@ async def generate_enriched_natal_pdf(
         aspects_raw=aspects_adapter or None,
         houses_raw=houses_adapter or None,
         house_cusps_raw=cusps_adapter or None,
+        illustrations=illustrations or None,
     )
 
     diag['pdf_bytes'] = len(pdf_bytes)
@@ -323,9 +364,12 @@ async def _render_chart_png(bd: dict, name: str) -> bytes | None:
         svg_str = await aio.chart_svg_render(bd, name=name, theme='light', language='fr')
         if not svg_str:
             return None
-        from services.svg_utils import resolve_svg_css_vars
+        from services.svg_utils import resolve_svg_css_vars, force_parchment_background
         import cairosvg
-        svg_resolved = resolve_svg_css_vars(svg_str)
+        # Ordre critique : force_parchment_background doit s'exécuter AVANT
+        # resolve_svg_css_vars (sinon les variables Kerykeion ont déjà été
+        # inlined et il n'y a plus rien à ré-écrire).
+        svg_resolved = resolve_svg_css_vars(force_parchment_background(svg_str))
         png_bytes = await asyncio.to_thread(
             cairosvg.svg2png,
             bytestring=svg_resolved.encode('utf-8'),

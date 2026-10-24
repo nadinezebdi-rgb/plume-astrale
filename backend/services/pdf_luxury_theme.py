@@ -23,7 +23,7 @@ from reportlab.lib.units import cm, mm
 from reportlab.lib.colors import HexColor
 from reportlab.platypus import (
     SimpleDocTemplate, Spacer, PageBreak, Image as RLImage,
-    Table, TableStyle, KeepTogether,
+    Table, TableStyle, KeepTogether, CondPageBreak,
 )
 from services.pdf_theme import SafeParagraph as Paragraph
 from reportlab.lib.styles import ParagraphStyle
@@ -249,33 +249,41 @@ def chart_wheel_page(
     prenom: str, birth_date_fr: str, sun_sign: str, moon_sign: str, asc_sign: str,
 ):
     """
-    Page dédiée à la carte du ciel personnalisée (Ultra premium).
+    Page STANDALONE dédiée à la carte du ciel — format "poster".
+
+    La carte est agrandie au maximum (17 × 17 cm) pour permettre
+    une impression poster future. Elle occupe toute la page A4 à elle seule.
 
     wheel_png_bytes : le SVG astrology-api.io v3 déjà converti en PNG
     (usage : `cairosvg.svg2png(bytestring=svg_str.encode(), output_width=1200)`).
     """
     from io import BytesIO
 
-    # Chapter tag + titre — compact pour que tout tienne sur UNE page
-    story.append(Spacer(1, 0.5 * cm))
+    # Page STANDALONE : la carte occupe une page entière à elle seule.
+    # Le PageBreak final garantit l'isolement. On ne force PAS de PageBreak
+    # en entrée car les appelants (natal_pdf_v2) viennent systématiquement
+    # d'une opening_page qui finit déjà par un PageBreak.
+    # Header compact (prend ~3 cm en haut)
+    story.append(Spacer(1, 0.3 * cm))
     story.append(Paragraph('<font name="OrnamentSerif">✦</font> TA CARTE DU CIEL <font name="OrnamentSerif">✦</font>', styles['section_tag']))
     story.append(Paragraph(f'La signature astrale de {prenom}', styles['cover_title']))
     story.append(Paragraph(
         f'Née le {birth_date_fr}',
         ParagraphStyle('birth_line', fontName=font('Cormorant-Italic', 'Helvetica-Oblique'),
-                       fontSize=12, textColor=CREAM, alignment=TA_CENTER, spaceAfter=10),
+                       fontSize=12, textColor=CREAM, alignment=TA_CENTER, spaceAfter=8),
     ))
 
-    # Wheel image (14 cm max pour laisser place au trio en pied)
+    # Wheel image AGRANDIE au maximum pour impression poster (17 × 17 cm,
+    # soit toute la largeur utile moins quelques millimètres de marge).
     try:
-        img = RLImage(BytesIO(wheel_png_bytes), width=14 * cm, height=14 * cm, mask='auto')
+        img = RLImage(BytesIO(wheel_png_bytes), width=17 * cm, height=17 * cm, mask='auto')
         story.append(img)
     except Exception:
         img_bytes = _dl_image(illustration_url('roue_zodiaque', 800))
         if img_bytes:
-            story.append(RLImage(img_bytes, width=11 * cm, height=11 * cm, mask='auto'))
+            story.append(RLImage(img_bytes, width=15 * cm, height=15 * cm, mask='auto'))
 
-    story.append(Spacer(1, 0.3 * cm))
+    story.append(Spacer(1, 0.4 * cm))
 
     # Trio identitaire en pied de page (rendu compact)
     trio = (
@@ -289,6 +297,7 @@ def chart_wheel_page(
         alignment=TA_CENTER, spaceAfter=6,
     )))
 
+    # Saut de page final : la carte reste SEULE sur sa page.
     story.append(PageBreak())
 
 
@@ -373,51 +382,118 @@ def planet_dense_page(
     image_local_path: Optional[str] = None,
     dialogue_question: Optional[str] = None,
     glyph: Optional[str] = None,
+    is_first_in_chapter: bool = False,
 ):
-    """Page dense pour une planète : header ornemental + petite image + analyse + dialogue.
+    """Section d'une planète — flux continu type livre (plus de saut de page forcé).
 
-    Layout :
-      - Ligne 1 : "SOLEIL — CANCER" (Cinzel doré, centré)
-      - Ligne 2 : image de la planète 4×4 cm centrée (si fournie)
-      - Ligne 3 : dialogue psychologique (italique doré, centré)
-      - Bloc corps : 2–4 paragraphes d'analyse (Cormorant)
-      - PageBreak à la fin
+    Layout (refactor 2026-02-26) :
+      - Header "SOLEIL — CANCER" (Cinzel doré, centré) — gardé solidaire du bloc
+      - Petite image planète 3,8 × 3,8 cm centrée
+      - Dialogue psychologique (italique doré)
+      - Corps 2–4 paragraphes
+      - Séparateur ornemental final (filet or + étoile) qui tient compagnie au
+        texte suivant au lieu de forcer un PageBreak.
 
-    Une SEULE page par planète — plus de glyph_page ni de waouh séparée.
-    Le glyphe Unicode astro (♆ ☉…) est INTENTIONNELLEMENT omis du header :
-    la police Cinzel ne le supporte pas et produit un rectangle vide (tofu).
-    L'image de la planète en dessous fournit déjà l'identité visuelle.
+    Le flux planète-après-planète se déroule maintenant comme un chapitre de
+    livre, les sections s'enchaînant naturellement avec un simple filet
+    ornemental pour marquer la transition. ReportLab gère automatiquement le
+    saut de page si le contenu dépasse.
     """
     from reportlab.platypus import Image as RLImage
-    story.append(Spacer(1, 0.8 * cm))
+
+    # Header + image + dialogue tenus ensemble pour éviter qu'un titre reste
+    # orphelin en bas de page.
+    header_block = []
+    header_block.append(Spacer(1, 0.9 * cm))
     header_str = f'{planet_name.upper()} — <font color="{GOLD_HEX}">{sign}</font>'
-    story.append(Paragraph(
+    header_block.append(Paragraph(
         header_str,
         ParagraphStyle('planet_dense_h', fontName=font('Cinzel', 'Helvetica'),
                        fontSize=16, textColor=CREAM,
                        alignment=TA_CENTER, spaceAfter=14),
     ))
-    # Image planète — taille modérée pour laisser la place au texte
     if image_local_path and os.path.exists(image_local_path):
         try:
-            story.append(RLImage(image_local_path, width=4.2 * cm, height=4.2 * cm, mask='auto'))
-            story.append(Spacer(1, 0.5 * cm))
+            header_block.append(RLImage(image_local_path, width=3.8 * cm, height=3.8 * cm, mask='auto'))
+            header_block.append(Spacer(1, 0.4 * cm))
         except Exception:
             pass
     if dialogue_question:
-        story.append(Paragraph(
+        header_block.append(Paragraph(
             f'<i>{dialogue_question}</i>',
             ParagraphStyle('dialogue_dense', fontName=font('Cormorant-Italic', 'Helvetica-Oblique'),
                            fontSize=13, leading=20, textColor=GOLD_LIGHT,
                            alignment=TA_CENTER, leftIndent=1 * cm, rightIndent=1 * cm,
-                           spaceAfter=16),
+                           spaceAfter=14),
         ))
-    # Corps : split \n\n pour paragraphes
-    for para in (body_html or '').split('\n\n'):
-        para = para.strip()
-        if para:
-            story.append(Paragraph(para, styles['body_luxe']))
-    story.append(PageBreak())
+    # On garde ensemble le header + le début du corps pour éviter un titre
+    # orphelin : premier paragraphe collé au titre.
+    paragraphs = [p.strip() for p in (body_html or '').split('\n\n') if p.strip()]
+    if paragraphs:
+        header_block.append(Paragraph(paragraphs[0], styles['body_luxe']))
+    story.append(KeepTogether(header_block))
+
+    # Reste du corps : flux libre (ReportLab coupe aux pages si besoin)
+    for para in paragraphs[1:]:
+        story.append(Paragraph(para, styles['body_luxe']))
+
+    # Séparateur ornemental final — pas de PageBreak. Chaque séparateur varie
+    # (petite illustration IA ou filet typographique) pour un rythme de livre.
+    _append_section_ornament(story, planet_name)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Ornements de séparation entre sections (planètes, maisons, aspects)
+# ─────────────────────────────────────────────────────────────────────
+
+_ORNAMENTS_DIR = '/app/backend/assets/pdf_ornaments'
+_ORNAMENT_SLUGS = (
+    'ornament_stars', 'ornament_moon_flowers', 'ornament_sun_rays',
+    'ornament_planets_line', 'ornament_zodiac_wreath', 'ornament_butterfly',
+)
+
+
+def _available_ornaments() -> list[str]:
+    """Retourne la liste des ornements IA disponibles sur disque."""
+    out = []
+    for slug in _ORNAMENT_SLUGS:
+        p = os.path.join(_ORNAMENTS_DIR, f'{slug}.png')
+        if os.path.exists(p) and os.path.getsize(p) > 10_000:
+            out.append(p)
+    return out
+
+
+def _append_section_ornament(story: list, section_key: str = ''):
+    """Insère un petit ornement de séparation entre deux sections consécutives.
+
+    Alterne entre :
+      - une illustration IA (bandeau 7 × 2 cm, générée via Nano Banana)
+      - un filet typographique or ✦ · ❋ · ✦ (fallback systématique)
+
+    Pas de PageBreak : laisse le flux continu. Un petit Spacer entoure
+    l'ornement pour qu'il respire.
+    """
+    story.append(Spacer(1, 0.7 * cm))
+    available = _available_ornaments()
+    if available:
+        # Alterne de façon déterministe sur la clé de section
+        idx = (sum(ord(c) for c in section_key)) % len(available)
+        img_path = available[idx]
+        try:
+            story.append(RLImage(img_path, width=7 * cm, height=2.1 * cm, mask='auto',
+                                 hAlign='CENTER'))
+            story.append(Spacer(1, 0.7 * cm))
+            return
+        except Exception:
+            pass
+    # Fallback : filet typographique or (toujours présent)
+    story.append(Paragraph(
+        f'<font color="{GOLD_HEX}" size="14"><font name="OrnamentSerif">✦ · ❋ · ✦</font></font>',
+        ParagraphStyle('section_sep', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=14, textColor=GOLD, alignment=TA_CENTER,
+                       leading=18, spaceAfter=14),
+    ))
+    story.append(Spacer(1, 0.3 * cm))
 
 
 def photos_grid_2x2(
@@ -429,8 +505,17 @@ def photos_grid_2x2(
 
     cells : liste de 4 dicts { 'image': str_path, 'label': 'Soleil', 'sublabel': 'Cancer' }.
     Les cellules manquantes affichent une puce or décorative comme placeholder.
+
+    Refactor 2026-02-26 : saut de page EXPLICITE au début pour que la grille,
+    qui est une section visuelle de type "chapitre", démarre toujours sur une
+    page vierge (sinon elle écraserait le flux planète qui la précède).
     """
     from reportlab.platypus import Image as RLImage
+    # CondPageBreak : saut de page uniquement si l'espace restant est insuffisant.
+    # Évite une page blanche quand on vient juste de part_divider_page (qui finit
+    # déjà par un PageBreak), tout en garantissant que la grille 2×2 ne soit
+    # pas écrasée en pied de page.
+    story.append(CondPageBreak(18 * cm))
     story.append(Spacer(1, 1.2 * cm))
     story.append(Paragraph(chapter_tag.upper(), styles['section_tag']))
     story.append(Paragraph(

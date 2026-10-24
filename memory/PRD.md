@@ -1,5 +1,90 @@
 # Plume Astrale — PRD
 
+## 2026-02-24 — Reels Preview : vidéo 15 s MP4 pour TikTok / Reels / Shorts
+
+**🎯 Objectif** : auto-exporter une vidéo de 15 s de la révélation d'un tirage depuis la fenêtre de partage, pour booster la viralité TikTok / Instagram Reels / YouTube Shorts.
+
+**✅ Livré** :
+- **Pipeline rendu serveur** `services/reels_video_renderer.py` :
+  - HTML autonome (fonts Cormorant embarquées en base64) scénarisé en 4 phases keyframes CSS : intro (0-2.5 s) → révélation séquentielle des cartes (2.8-11 s, flip 3D + fade staggered) → Conseil des Arcanes (11-13.3 s) → CTA « plume-astrale.fr » (13.3-15 s).
+  - Playwright headless Chromium + `record_video_dir` capture un WebM au viewport cible.
+  - FFmpeg transcode WebM → MP4 h264 30 fps, forçant dimensions exactes + pad centré pour conformer au ratio demandé.
+  - Deux formats : `vertical` 1080×1920 (TikTok/Reels/Shorts) et `square` 1080×1080 (Instagram feed). Rendu ~20-25 s par vidéo.
+- **Endpoint public** `GET /api/tarot/shared/{share_id}/reels.mp4?format=vertical|square` (dans `server.py`) : identique au pattern `card.png`, 400/404/500 propres, `Content-Disposition` ASCII+UTF-8, cache 24 h.
+- **UI partage** (`frontend/src/pages/TiragePartage.js`) : 2 nouveaux boutons dans le bloc CTA (`shared-cta-reels-vertical`, `shared-cta-reels-square`) avec icône `Film`, spinner pendant le rendu, et libellé « Rendu vidéo… » (feedback 20 s obligatoire).
+- **Fix prod runtime** : `PLAYWRIGHT_BROWSERS_PATH=/pw-browsers` est setté automatiquement dans `_record_webm` si absent (le supervisor backend ne hérite pas de l'env shell).
+
+**🧪 Tests** :
+- `tests/test_reels_video_renderer.py` : 13 unit tests (contrats durée/fps/format, HTML sections, arcanes mineurs/renversés, timing staggered des cartes, échappement XSS, fallback format inconnu, fallback question vide) **+ 2 tests e2e `@slow`** qui lancent le pipeline Playwright+ffmpeg réel. **13/13 passent, admin regression toujours 49/49**.
+- Validation réelle : `curl /api/tarot/shared/6b4205ccbd85/reels.mp4?format=vertical` → HTTP 200, 1.1 MB, h264 1080×1920 15 s. `?format=square` → 553 kB, h264 1080×1080 15 s. ffprobe conforme.
+- Screenshot mobile 390×844 : les deux boutons « Reels 15s » et « Vidéo carrée » apparaissent bien dans le CTA.
+
+**📁 Fichiers touchés** :
+- `services/reels_video_renderer.py` (nouveau, 450 lignes autonome)
+- `server.py` (endpoint `/api/tarot/shared/{share_id}/reels.mp4` ajouté juste avant `/og/tirage/`)
+- `frontend/src/pages/TiragePartage.js` (icone Film, state `reelsLoading`, fonction `downloadReels`, 2 nouveaux boutons)
+- `tests/test_reels_video_renderer.py` (nouveau, 13+2 tests)
+
+**🔎 Déploiement prod validé** avant Reels : tous les routes refactorisés répondent 401 (auth requise) sur `plume-astrale.fr` → routers correctement enregistrés en prod (natal-illustrations, tarot-share/top, cache/svg/stats, promo-codes).
+
+---
+
+
+## 2026-02-22 — Lot post-déploiement : Prewarm + Admin Panel Illustrations + Refactor admin.py
+
+**🎯 Objectif** : fermer le lot « Illustrations IA Nano Banana » par 3 chantiers de production.
+
+**✅ Livré** :
+- **Prewarm au boot** : `server.py:_prewarm_illustrations` démarre après la fenêtre `BACKGROUND_LOOPS_WARMUP_SEC` (90s par défaut) et pré-remplit le cache local pour les 10 planètes + closing. Testing agent a confirmé `[prewarm_illust] planets ready: 10/10, closing: True`. Premier utilisateur en prod n'attend plus 90s.
+- **Admin Panel « Illustrations IA »** :
+  - 3 endpoints dans `/app/backend/routes/admin_illustrations.py` (nouveau router, prefix `/admin/natal-illustrations`) : `GET` liste paginée, `GET /{hash}/image` sert les bytes JPEG (fetch-as-blob côté front), `POST /{hash}/regenerate` wipe cache + relance Nano Banana + écrase le remote.
+  - Chaque génération Ex Libris est désormais tracée dans `natal_illustrations_log` (Mongo) : user_id, prenom, triade astrale, storage_path, size_bytes, generation_count, first_generated_at, last_generated_at.
+  - Section frontend dans `Admin.js` (tab « Illustrations IA ») : grid responsive de miniatures (aspect 3:4), bouton « Régénérer » par ligne avec confirmation + feedback inline, badges triade astrale `☉ Taureau · ☽ Vierge · ↑ Capricorne`, info compteur de générations.
+- **Refactor admin.py (démarré)** : extraction de l'endpoint `/admin/tarot-share/top` vers `routes/admin_viralite.py` (63 lignes, self-contained). admin.py passe de 1225 à 1174 lignes. Reste à extraire : stats, users, promo, pdfs (à faire lors d'un prochain lot ciblé).
+- **Résilience Emergent Storage** : `services/emergent_storage.py` reset automatiquement le `_storage_key` sur 401/403 et retente une fois, pour survivre à une expiration de session sans redémarrage backend (recommandation testing agent iter 96).
+
+**🧪 Tests** :
+- iteration_96.json : 22/22 pytest OK, dont les 9 tests régression iteration 95.
+- Validation réelle : Nano Banana a bien régénéré l'Ex Libris seed `Alix / Taureau / Vierge / Capricorne` (bytes différents 21677→28830, generation_count 1→2, first_generated_at inchangé, remote storage écrasé).
+- Deploy en prod déclenché (job 5fbcfc48-9d10-4d91-b09e-69308ca1a950).
+
+**📁 Fichiers touchés** :
+- `routes/admin_illustrations.py` (nouveau)
+- `routes/admin_viralite.py` (nouveau, extrait de admin.py)
+- `services/natal_book_illustrations.py` (ajout de `_log_ex_libris` Mongo audit)
+- `services/emergent_storage.py` (gestion expiry 401/403)
+- `server.py` (prewarm task + 2 nouveaux routers)
+- `routes/admin.py` (suppression du bloc viralité)
+- `pages/Admin.js` (nouveau tab « Illustrations IA » + IllustrationsSection + IllustrationCard)
+
+
+
+## 2026-02-22 — Illustrations IA Nano Banana + migration Emergent Object Storage
+
+**🎯 Objectif** : finir le lot aesthetics du livre natal A5 (49 pages) → illustrations IA uniques (Ex Libris par signature astrale + 10 vignettes planétaires + page de clôture) persistées sur Emergent Object Storage, et plus seulement sur le disque local éphémère.
+
+**✅ Livré** :
+- Génération Nano Banana (`gemini-3.1-flash-image-preview`) câblée dans `natal_book_service.py` : Ex Libris unique par hash(prenom|Soleil|Lune|Ascendant), 10 vignettes planètes partagées, 1 clôture partagée.
+- Compression Pillow : max 600×600, JPEG qualité 85 progressive → livre complet ~13 Mo (vs ~25 Mo avant).
+- **Migration Emergent Object Storage** (`/app/backend/services/emergent_storage.py`) : init paresseux de la session, async wrapper, bucket préfixé `plume-astrale/natal-illustrations/{ex_libris,planets}/*.jpg`.
+- **Cache 2 niveaux** dans `natal_book_illustrations.py` : disque local (hot, instantané) → Emergent Storage (persistent, survit aux redéploiements) → génération Nano Banana en dernier recours. Les hits distants backfillent le disque automatiquement.
+- Script one-shot `scripts/seed_illust_storage.py` qui a seedé les 12 illustrations existantes (1 Ex Libris + 10 planètes + closing) vers Emergent Storage avec round-trip confirmé.
+
+**🧪 Tests** :
+- 12 fichiers persistés sur Emergent Storage, round-trip read confirmé (24 394 bytes identiques).
+- Wipe du cache local → tous les 11 assets non-utilisateur rechargés depuis Emergent Storage en 13s (vs 90s+ de régénération Nano Banana).
+- ReportLab rend correctement les blocs `image` injectés par `natal_manuscript_builder.py` → PDF A5 complet avec Ex Libris + fin de chapitres planétaires + clôture visible.
+
+**🔑 Secrets utilisés** :
+- `EMERGENT_LLM_KEY` (déjà présent) → sert à la fois pour Nano Banana ET pour auth Emergent Storage via `INTEGRATION_PROXY_URL`.
+
+**📁 Fichiers touchés** :
+- `services/emergent_storage.py` (nouveau)
+- `services/natal_book_illustrations.py` (cache 2-niveaux via `_read_cached` / `_write_cached`)
+- `scripts/seed_illust_storage.py` (nouveau, one-shot de backfill)
+
+
+
 ## 2026-02-21 — Variante offerte Ex Libris PNG (CRO boucle virale)
 
 **🎯 Objectif** : donner à l'acheteur·se d'un Thème Natal un artefact simple à offrir à un proche (téléchargement PNG local, impression A5, prêt à offrir).

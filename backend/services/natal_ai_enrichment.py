@@ -93,26 +93,33 @@ def _cache_write(key: str, data: Dict) -> None:
 # EXTRACTION depuis la réponse API v3 (73 interprétations)
 # ─────────────────────────────────────────────────────────────
 def _find_planet_interp(interps: List[Dict], planet_en: str) -> Optional[Dict]:
-    """Trouve l'interprétation planète-en-signe (ex: 'Sun — Gemini')."""
+    """Trouve l'interprétation planète-en-signe (ex: 'Sun — Gemini').
+
+    L'API retourne des titres LOCALISÉS selon `language` (ex: 'Soleil — Cancer'
+    en FR, 'Sun — Cancer' en EN). On ne peut donc PAS matcher sur le titre.
+    On utilise `components.primary.id` qui est l'identifiant anglais stable
+    (`Sun`, `Moon`, `Mercury`...), indépendant de la langue de rendu.
+    """
     for it in interps or []:
-        title = (it.get('title') or '').strip()
-        # Format API : "Sun — Gemini" ou "Ascendant — Libra"
-        if title.startswith(f'{planet_en} —') or title.startswith(f'{planet_en}—'):
-            # On préfère les interps planète-signe, pas planète-maison
-            comps = it.get('components', {})
-            secondary = comps.get('secondary', {}) if isinstance(comps, dict) else {}
+        comps = it.get('components', {}) if isinstance(it.get('components'), dict) else {}
+        primary = comps.get('primary', {}) or {}
+        secondary = comps.get('secondary', {}) or {}
+        # Primary doit être une planète dont l'id EN matche
+        if primary.get('type') == 'planet' and primary.get('id') == planet_en:
             if secondary.get('type') == 'sign':
                 return it
     return None
 
 
 def _find_house_placement(interps: List[Dict], planet_en: str) -> Optional[Dict]:
-    """Trouve l'interprétation planète-en-maison (ex: 'Sun in House 10')."""
+    """Trouve l'interprétation planète-en-maison. Même approche que
+    `_find_planet_interp` — matching stable via components.primary.id.
+    """
     for it in interps or []:
-        title = (it.get('title') or '').lower()
-        if planet_en.lower() in title and ('house' in title or 'maison' in title):
-            comps = it.get('components', {})
-            secondary = comps.get('secondary', {}) if isinstance(comps, dict) else {}
+        comps = it.get('components', {}) if isinstance(it.get('components'), dict) else {}
+        primary = comps.get('primary', {}) or {}
+        secondary = comps.get('secondary', {}) or {}
+        if primary.get('type') == 'planet' and primary.get('id') == planet_en:
             if secondary.get('type') == 'house':
                 return it
     return None
@@ -175,10 +182,12 @@ def build_ai_input(interps: List[Dict]) -> Dict[str, Any]:
 # ─────────────────────────────────────────────────────────────
 # PROMPT SOLÉNA — Traduction + reformulation
 # ─────────────────────────────────────────────────────────────
-SYSTEM_PROMPT = """Tu es Soléna, la voix de Plume Astrale.
+SYSTEM_PROMPT = """Tu écris pour Plume Astrale, maison française d'astrologie éditoriale.
 
 Style : poétique, intime, direct, jamais banal. Tu tutoies. Tu écris comme
 si tu parlais à ton amie la plus proche — l'élégance en plus, le jargon en moins.
+
+Interdiction absolue : ne jamais écrire le prénom « Soléna » dans les valeurs JSON. Jamais de signature textuelle à l'intérieur du contenu (pas de « — Soléna », pas de « Signé Soléna », pas de « Soléna vous parle »). La seule signature autorisée, si signature il y a, est « Plume Astrale ».
 
 Ta mission :
 1. TRADUIRE en français des interprétations astrologiques données en anglais
@@ -207,17 +216,19 @@ Format : JSON strict. RIEN d'autre.
   "neptune": "idem",
   "pluton": "idem",
   "ascendant": "idem",
-  "synthese_aspects": "paragraphe (200-250 mots) qui synthétise les tensions et harmonies majeures du chart, en voix Soléna"
+  "synthese_aspects": "paragraphe (200-250 mots) qui synthétise les tensions et harmonies majeures du chart (ne jamais signer, ne jamais mentionner le prénom 'Soléna')"
 }"""
 
 
 # ─────────────────────────────────────────────────────────────
 # ENGLISH VARIANT — same voice, English language
 # ─────────────────────────────────────────────────────────────
-SYSTEM_PROMPT_EN = """You are Soléna, the voice of Plume Astrale.
+SYSTEM_PROMPT_EN = """You write for Plume Astrale, a French editorial astrology house.
 
 Voice: poetic, intimate, direct, never trite. You address the reader warmly,
 as if speaking to a close friend — refined, with none of the jargon.
+
+Hard rule: never write the name "Soléna" in any JSON value. No in-content signature at all ("— Soléna", "Signed Soléna", "Soléna speaks"). The only allowed signature, if any, is "Plume Astrale".
 
 Your mission:
 1. REFORMULATE English astrological interpretations into Soléna's voice
@@ -437,14 +448,47 @@ async def enrich_natal_ultra(
                 out[out_k] = parsed[k].strip()
                 break
 
-    if len(out) >= 5:  # au moins la moitié pour cacher
-        out['_source'] = 'gpt'
+    # GPT a souvent la fâcheuse habitude de renvoyer un JSON tronqué (5-7
+    # planètes au lieu de 11) quand le contexte est long. On comble les trous
+    # avec le texte brut v3 (l'API a déjà fourni les 62 interprétations).
+    # Mapping planète FR → clé EN pour chercher dans v3_raw_texts.
+    _FR_TO_EN = {
+        'soleil': 'Sun', 'lune': 'Moon', 'mercure': 'Mercury',
+        'venus': 'Venus', 'mars': 'Mars', 'jupiter': 'Jupiter',
+        'saturne': 'Saturn', 'uranus': 'Uranus',
+        'neptune': 'Neptune', 'pluton': 'Pluto', 'ascendant': 'Ascendant',
+    }
+    core_planets_fr = ('soleil', 'lune', 'mercure', 'venus', 'mars',
+                       'jupiter', 'saturne', 'uranus', 'neptune', 'pluton', 'ascendant')
+    filled_from_v3 = []
+    for pfr in core_planets_fr:
+        if out.get(pfr):
+            continue
+        en_name = _FR_TO_EN.get(pfr)
+        raw_v3 = (v3_raw_texts.get(en_name) or '').strip()
+        if raw_v3:
+            out[pfr] = raw_v3
+            filled_from_v3.append(pfr)
+    if filled_from_v3:
+        logger.info(f'[natal_ai] {prenom} GPT partiel — {len(filled_from_v3)} planètes '
+                     f'comblées depuis v3: {filled_from_v3}')
+
+    # Nombre de planètes réelles désormais remplies (hors synthese_aspects)
+    planet_filled = sum(1 for p in core_planets_fr if out.get(p))
+
+    if planet_filled >= 7:
+        # Au moins 7 planètes → bon pour cacher. Marque gpt_hybrid si on a dû
+        # combler, gpt sinon.
+        out['_source'] = 'gpt_hybrid' if filled_from_v3 else 'gpt'
         out['_aspects_summary'] = [{'title': a['title'], 'orb': a['orb']} for a in ai_input.get('aspects', [])]
         out['_signs_by_planet'] = v3_signs
         out['_raw_v3_by_planet'] = v3_raw_texts
-        _cache_write(key, out)
+        # On ne cache pas les hybrides pour pouvoir retry sur un cache miss
+        # suivant et récupérer la version full-GPT.
+        if not filled_from_v3:
+            _cache_write(key, out)
         return out
-    # GPT partiel → renvoie ce qu'il a rendu + les données v3 pour compléter les trous
+    # Vraiment peu de contenu — renvoie partiel + marker
     out['_source'] = 'gpt_partial'
     out['_signs_by_planet'] = v3_signs
     out['_raw_v3_by_planet'] = v3_raw_texts

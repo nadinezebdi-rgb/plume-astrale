@@ -21,9 +21,11 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger(__name__)
 
 
-_SYSTEM_PROMPT = """Tu es Soléna, éditrice de Plume Astrale — maison française d'astrologie éditoriale.
+_SYSTEM_PROMPT = """Tu rédiges pour Plume Astrale — maison française d'astrologie éditoriale.
 Tu rédiges une **préface** pour le Thème Natal personnalisé d'un lecteur.
 Objectif : lui expliquer comment utiliser ce livre **tout au long de sa vie**, pas d'une traite.
+
+INTERDICTION ABSOLUE : ne jamais signer ni mentionner « Soléna » dans la préface finale. La signature est Plume Astrale.
 
 RÈGLES DE VOIX :
 - Tu : chaleureuse, directe, sans mièvrerie
@@ -45,7 +47,7 @@ STRUCTURE DEMANDÉE (JSON strict) :
     {"kind": "paragraph", "text": "Paragraphe (90 mots) : expliquer concrètement les 3 parties — vos planètes (qui vous êtes), vos maisons (où vous jouez votre vie), vos aspects (comment vos forces dialoguent)."},
     {"kind": "h2", "text": "Un compagnon pour vos années à venir"},
     {"kind": "paragraph", "text": "Paragraphe (90 mots) : le ciel natal ne change pas, mais vous changez. Le même paragraphe prendra un sens différent à 30, 40, 50 ans. Les cycles planétaires activent tour à tour des pans de votre thème."},
-    {"kind": "paragraph", "text": "Paragraphe (70 mots) : clôture tendre — « que ce livre vous accompagne ». Signé Soléna · Plume Astrale."}
+    {"kind": "paragraph", "text": "Paragraphe (70 mots) : clôture tendre — « que ce livre vous accompagne ». Signé Plume Astrale (jamais le prénom Soléna)."}
   ]
 }
 
@@ -119,7 +121,7 @@ def _static_fallback(first_name: str, language: str = 'fr') -> List[Dict[str, st
                 "May this book accompany you — for a long time."
             )},
             {'kind': 'paragraph', 'text': (
-                '<i>— Soléna, for Plume Astrale.</i>'
+                '<i>— Plume Astrale</i>'
             )},
         ]
     return [
@@ -164,7 +166,7 @@ def _static_fallback(first_name: str, language: str = 'fr') -> List[Dict[str, st
             "Que ce livre vous accompagne — longtemps."
         )},
         {'kind': 'paragraph', 'text': (
-            '<i>— Soléna, pour Plume Astrale.</i>'
+            '<i>— Plume Astrale</i>'
         )},
     ]
 
