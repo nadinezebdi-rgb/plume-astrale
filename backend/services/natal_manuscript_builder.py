@@ -24,6 +24,8 @@ viennent de `natal_chart_extract.py`.
 from __future__ import annotations
 import base64
 import logging
+import re
+import unicodedata
 from datetime import datetime, timezone
 
 from services.book_engine_shared.domain import (
@@ -32,6 +34,36 @@ from services.book_engine_shared.domain import (
 from services import natal_chart_extract as nce
 
 logger = logging.getLogger(__name__)
+
+
+# Supprime toute signature résiduelle « Soléna » issue d'anciens caches ou
+# de prompts legacy. La seule signature autorisée dans le PDF visible est
+# « Plume Astrale ».
+_SOLENA_SIG_RE = re.compile(
+    r'''(
+            [—\-–]\s*Sol[eé]na[^.\n<]*     # « — Soléna, pour Plume Astrale. »
+            |Sol[eé]na\s+vous\s+parle[^.\n<]*\.?     # « Soléna vous parle. »
+            |Sol[eé]na\s+speaks[^.\n<]*\.?           # EN
+            |Signé[\s:]+Sol[eé]na[^.\n<]*\.?         # « Signé Soléna »
+            |Signed[\s:]+Sol[eé]na[^.\n<]*\.?        # EN
+        )
+    ''',
+    re.VERBOSE | re.IGNORECASE,
+)
+_SOLENA_WORD_RE = re.compile(r'Sol[eé]na', re.IGNORECASE)
+
+
+def _strip_solena(text: str) -> str:
+    """Nettoie toute mention visible de « Soléna » (défense de dernier recours
+    pour les textes IA issus d'anciens caches)."""
+    if not text or 'olen' not in text.lower() and 'oléna' not in text.lower():
+        return text
+    cleaned = _SOLENA_SIG_RE.sub('', text)
+    cleaned = _SOLENA_WORD_RE.sub('Plume Astrale', cleaned)
+    # Nettoie les doublons de ponctuation / espaces créés par les suppressions.
+    cleaned = re.sub(r'\s{2,}', ' ', cleaned)
+    cleaned = re.sub(r'\s+([,.;:!?])', r'\1', cleaned)
+    return cleaned.strip()
 
 
 # ─── i18n FR/EN pour TOUS les titres de chapitres, kickers, intros ──
@@ -111,7 +143,7 @@ _I18N: dict[str, dict[str, str | list | dict]] = {
         # Chapitre final + sections éditoriales
         'ch_closing_title': 'Ce que votre ciel vous dit',
         'ch_closing_kicker': 'Synthèse — à relire en période de doute.',
-        'ch_closing_short_kicker': 'Soléna vous parle.',
+        'ch_closing_short_kicker': 'Plume Astrale vous parle.',
         'editorial_titles': {
             'element_analysis': 'Votre élément dominant',
             'modality_analysis': 'Votre manière de vous mettre en mouvement',
@@ -213,7 +245,7 @@ _I18N: dict[str, dict[str, str | list | dict]] = {
         },
         'ch_closing_title': 'What your sky tells you',
         'ch_closing_kicker': 'Synthesis — to reread in times of doubt.',
-        'ch_closing_short_kicker': 'Soléna speaks to you.',
+        'ch_closing_short_kicker': 'Plume Astrale speaks to you.',
         'editorial_titles': {
             'element_analysis': 'Your dominant element',
             'modality_analysis': 'Your way of setting things in motion',
@@ -490,13 +522,16 @@ def _chapter_synthese(
     if trio:
         blocks.append(ChapterBlock(BlockKind.TRIO_CARDS, {'items': trio}))
 
-    # Chart wheel
+    # Chart wheel — toujours sur sa propre page, pleine, sans texte autour
+    # (reproductible comme affiche téléchargeable / vendue séparément).
     if chart_png_bytes:
         try:
             b64 = base64.b64encode(chart_png_bytes).decode('ascii')
+            blocks.append(ChapterBlock(BlockKind.PAGE_BREAK, {}))
             blocks.append(ChapterBlock(BlockKind.NATAL_CHART, {
                 'src': f'data:image/png;base64,{b64}',
                 'alt': _T(language, 'natal_chart_alt', name=prenom),
+                'full_page': True,
             }))
         except Exception as e:
             logger.warning(f'[natal_manuscript] chart encoding failed: {e}')
@@ -538,7 +573,28 @@ def _chapter_synthese(
     )
 
 
-def _chapter_planets(planets_narr: list, pos_by_name: dict, no_birth_time: bool, language: str = 'fr') -> Chapter:
+def _planet_illust_block(planet_name_fr: str, illustrations: dict | None) -> ChapterBlock | None:
+    """Retourne un bloc IMAGE vignette pour une planète si l'illustration existe."""
+    if not illustrations:
+        return None
+    planets_imgs = illustrations.get('planets') or {}
+    key = unicodedata.normalize('NFKD', str(planet_name_fr or ''))\
+        .encode('ascii', 'ignore').decode('ascii')
+    key = re.sub(r'[^a-z0-9]+', '', key.lower())
+    png = planets_imgs.get(key)
+    if not png:
+        return None
+    b64 = base64.b64encode(png).decode('ascii')
+    return ChapterBlock(BlockKind.IMAGE, {
+        'src': f'data:image/png;base64,{b64}',
+        'max_width_mm': 65,
+        'max_height_mm': 65,
+        'alt': f'Vignette {planet_name_fr}',
+    })
+
+
+def _chapter_planets(planets_narr: list, pos_by_name: dict, no_birth_time: bool, language: str = 'fr',
+                     illustrations: dict | None = None) -> Chapter:
     """Chapitre III — Vos planètes (2 planètes par page = 5 pages pleines)."""
     title = _T(language, 'ch_planets_title')
     kicker = _T(language, 'ch_planets_kicker')
@@ -554,7 +610,9 @@ def _chapter_planets(planets_narr: list, pos_by_name: dict, no_birth_time: bool,
     }))
 
     hints_bundle = _I18N.get(language, _I18N['fr']).get('planet_hints', {}) or {}
-    # 2 planètes par page — chaque H2 planète suit un petit texte paragraphe
+    # Flux continu type livre : les planètes s'enchaînent naturellement avec
+    # séparateur (ornement/hairline) entre chaque bloc. ReportLab gère les
+    # sauts de page sans laisser de blancs forcés.
     valid_planets = [p for p in planets_narr
                      if (p.get('name') or '').strip() and (p.get('sign') or '').strip()]
     for i, p in enumerate(valid_planets):
@@ -563,9 +621,9 @@ def _chapter_planets(planets_narr: list, pos_by_name: dict, no_birth_time: bool,
         sign_raw = p['sign'].strip()
         sign = _tr_sign(sign_raw, language)
         analysis = (p.get('analysis') or '').strip()
-        # Toutes les 2 planètes, nouvelle page (sauf la première qui suit l'intro)
+        # Séparateur décoratif entre deux planètes (pas de PAGE_BREAK forcé)
         if i > 0:
-            blocks.append(ChapterBlock(BlockKind.PAGE_BREAK, {}))
+            blocks.append(ChapterBlock(BlockKind.HAIRLINE, {}))
         det = pos_by_name.get(name_fr) or {}
         in_word = 'in' if language == 'en' else 'en'
         parts = [f'{name_display} {in_word} {sign}']
@@ -587,6 +645,10 @@ def _chapter_planets(planets_narr: list, pos_by_name: dict, no_birth_time: bool,
             paras = [pp.strip() for pp in analysis.split('\n\n') if pp.strip()] or [analysis]
             for para in paras:
                 blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {'text': para}))
+        # Vignette IA de fin de section planétaire (cache générique partagé)
+        illust_block = _planet_illust_block(name_fr, illustrations)
+        if illust_block is not None:
+            blocks.append(illust_block)
 
     blocks.append(ChapterBlock(BlockKind.FEATHER, {}))
     return Chapter(
@@ -610,9 +672,9 @@ def _chapter_houses(houses: list, language: str = 'fr') -> Chapter:
         'text': _T(language, 'ch_houses_intro'),
     }))
     for idx, h in enumerate(houses):
-        # 3 maisons par page (après l'intro)
-        if idx > 0 and idx % 3 == 0:
-            blocks.append(ChapterBlock(BlockKind.PAGE_BREAK, {}))
+        # Flux continu : séparateur discret entre maisons, ReportLab gère les pages.
+        if idx > 0:
+            blocks.append(ChapterBlock(BlockKind.HAIRLINE, {}))
         h2 = _tr_house_name(h['name'], language)
         if h.get('sign'):
             h2 += f" · {_tr_sign(h['sign'], language)}"
@@ -649,14 +711,14 @@ def _chapter_aspects(aspects_norm: list, language: str = 'fr') -> Chapter:
     }))
     groups = _T(language, 'aspect_groups')
     labels_map = _I18N.get(language, _I18N['fr']).get('aspect_group_labels') or {}
-    # 2 types par page — place un PAGE_BREAK entre groupes impairs
+    # Flux continu entre familles d'aspects ; séparateur ornemental entre blocs.
     rendered_groups = 0
     for type_fr, hint in groups:
         sub = [a for a in aspects_norm if a.get('type_fr') == type_fr]
         if not sub:
             continue
-        if rendered_groups > 0 and rendered_groups % 2 == 0:
-            blocks.append(ChapterBlock(BlockKind.PAGE_BREAK, {}))
+        if rendered_groups > 0:
+            blocks.append(ChapterBlock(BlockKind.HAIRLINE, {}))
         rendered_groups += 1
         type_label = labels_map.get(type_fr, type_fr)
         blocks.append(ChapterBlock(BlockKind.H2, {'text': f'{type_label}s — {len(sub)}'}))
@@ -669,7 +731,8 @@ def _chapter_aspects(aspects_norm: list, language: str = 'fr') -> Chapter:
     )
 
 
-def _chapter_synthese_finale(synthese_text: str, language: str = 'fr') -> Chapter:
+def _chapter_synthese_finale(synthese_text: str, language: str = 'fr',
+                              closing_png: bytes | None = None) -> Chapter:
     """Chapitre VI — Synthèse finale voix Soléna."""
     title = _T(language, 'ch_closing_title')
     kicker = _T(language, 'ch_closing_kicker')
@@ -683,6 +746,15 @@ def _chapter_synthese_finale(synthese_text: str, language: str = 'fr') -> Chapte
     paras = [p.strip() for p in synthese_text.split('\n\n') if p.strip()] or [synthese_text]
     for para in paras:
         blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {'text': para}))
+    # Vignette de clôture IA — remplit la demi-page vide en fin de chapitre
+    if closing_png:
+        b64 = base64.b64encode(closing_png).decode('ascii')
+        blocks.append(ChapterBlock(BlockKind.IMAGE, {
+            'src': f'data:image/png;base64,{b64}',
+            'max_width_mm': 90,
+            'max_height_mm': 90,
+            'alt': 'Illustration de clôture',
+        }))
     blocks.append(ChapterBlock(BlockKind.FEATHER, {}))
     return Chapter(
         slug='natal_closing', title=title,
@@ -702,6 +774,7 @@ def build_natal_manuscript(
     preface_blocks: list[dict] | None = None,
     book_data: dict | None = None,
     language: str = 'fr',
+    illustrations: dict | None = None,
 ) -> Manuscript:
     """Construit un Manuscript multi-chapitres prêt à être rendu en PDF print blanc.
 
@@ -787,7 +860,8 @@ def build_natal_manuscript(
 
     planets_narr = natal_data.get('planets') or []
     if planets_narr:
-        chapters.append(_chapter_planets(planets_narr, pos_by_name, no_birth_time, language=language))
+        chapters.append(_chapter_planets(planets_narr, pos_by_name, no_birth_time,
+                                         language=language, illustrations=illustrations))
 
     if houses and not no_birth_time:
         house_chapter = _chapter_houses(houses, language=language)
@@ -811,8 +885,10 @@ def build_natal_manuscript(
         chapters.append(_chapter_aspects(aspects_norm, language=language))
 
     synthese = (natal_data.get('synthese_aspects') or '').strip()
+    closing_png = (illustrations or {}).get('closing')
     if synthese:
-        chapters.append(_chapter_synthese_finale(synthese, language=language))
+        chapters.append(_chapter_synthese_finale(synthese, language=language,
+                                                 closing_png=closing_png))
 
     # Sections éditoriales de fin (headlines personnalisables côté book_data,
     # sinon fallback localisé).
@@ -829,11 +905,27 @@ def build_natal_manuscript(
 
     # Page Signature · Ex Libris
     ex_libris_text = str(book_data.get('ex_libris') or '').strip()
-    if ex_libris_text:
-        chapters.append(editorial(
-            'ex_libris',
-            _T(language, 'ex_libris_title', name=prenom),
-            ex_libris_text,
+    ex_libris_png = (illustrations or {}).get('ex_libris')
+    if ex_libris_text or ex_libris_png:
+        ex_blocks: list[ChapterBlock] = []
+        if ex_libris_png:
+            # Illustration dominante sur la page Ex Libris (découpable).
+            # Pas de full_page : on garde le titre, l'illustration et la
+            # signature calligraphique sur la même page A5.
+            b64 = base64.b64encode(ex_libris_png).decode('ascii')
+            ex_blocks.append(ChapterBlock(BlockKind.IMAGE, {
+                'src': f'data:image/png;base64,{b64}',
+                'max_width_mm': 95,
+                'max_height_mm': 95,
+                'alt': _T(language, 'ex_libris_title', name=prenom),
+            }))
+        for paragraph in str(ex_libris_text or '').split('\n\n'):
+            if paragraph.strip():
+                ex_blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {'text': paragraph}))
+        chapters.append(Chapter(
+            slug='ex_libris',
+            title=_T(language, 'ex_libris_title', name=prenom),
+            blocks=ex_blocks,
         ))
 
     # Renumérote le roman_num en fonction de l'ordre réel

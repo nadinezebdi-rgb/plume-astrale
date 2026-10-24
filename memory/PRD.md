@@ -1,5 +1,31 @@
 # Plume Astrale — PRD
 
+## 2026-02-22 — Illustrations IA Nano Banana + migration Emergent Object Storage
+
+**🎯 Objectif** : finir le lot aesthetics du livre natal A5 (49 pages) → illustrations IA uniques (Ex Libris par signature astrale + 10 vignettes planétaires + page de clôture) persistées sur Emergent Object Storage, et plus seulement sur le disque local éphémère.
+
+**✅ Livré** :
+- Génération Nano Banana (`gemini-3.1-flash-image-preview`) câblée dans `natal_book_service.py` : Ex Libris unique par hash(prenom|Soleil|Lune|Ascendant), 10 vignettes planètes partagées, 1 clôture partagée.
+- Compression Pillow : max 600×600, JPEG qualité 85 progressive → livre complet ~13 Mo (vs ~25 Mo avant).
+- **Migration Emergent Object Storage** (`/app/backend/services/emergent_storage.py`) : init paresseux de la session, async wrapper, bucket préfixé `plume-astrale/natal-illustrations/{ex_libris,planets}/*.jpg`.
+- **Cache 2 niveaux** dans `natal_book_illustrations.py` : disque local (hot, instantané) → Emergent Storage (persistent, survit aux redéploiements) → génération Nano Banana en dernier recours. Les hits distants backfillent le disque automatiquement.
+- Script one-shot `scripts/seed_illust_storage.py` qui a seedé les 12 illustrations existantes (1 Ex Libris + 10 planètes + closing) vers Emergent Storage avec round-trip confirmé.
+
+**🧪 Tests** :
+- 12 fichiers persistés sur Emergent Storage, round-trip read confirmé (24 394 bytes identiques).
+- Wipe du cache local → tous les 11 assets non-utilisateur rechargés depuis Emergent Storage en 13s (vs 90s+ de régénération Nano Banana).
+- ReportLab rend correctement les blocs `image` injectés par `natal_manuscript_builder.py` → PDF A5 complet avec Ex Libris + fin de chapitres planétaires + clôture visible.
+
+**🔑 Secrets utilisés** :
+- `EMERGENT_LLM_KEY` (déjà présent) → sert à la fois pour Nano Banana ET pour auth Emergent Storage via `INTEGRATION_PROXY_URL`.
+
+**📁 Fichiers touchés** :
+- `services/emergent_storage.py` (nouveau)
+- `services/natal_book_illustrations.py` (cache 2-niveaux via `_read_cached` / `_write_cached`)
+- `scripts/seed_illust_storage.py` (nouveau, one-shot de backfill)
+
+
+
 ## 2026-02-21 — Variante offerte Ex Libris PNG (CRO boucle virale)
 
 **🎯 Objectif** : donner à l'acheteur·se d'un Thème Natal un artefact simple à offrir à un proche (téléchargement PNG local, impression A5, prêt à offrir).

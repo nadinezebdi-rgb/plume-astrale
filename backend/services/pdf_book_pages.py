@@ -384,7 +384,10 @@ def aspects_group_page(story, styles, category: str, headline: str,
                        fontSize=12, textColor=CREAM, alignment=TA_LEFT,
                        leading=18, leftIndent=1.5 * cm, rightIndent=1.5 * cm),
     ))
-    story.append(PageBreak())
+    # Refactor 2026-02-26 : plus de PageBreak forcé → les 3 groupes d'aspects
+    # s'enchaînent comme un chapitre de livre, séparés par un ornement.
+    from services.pdf_luxury_theme import _append_section_ornament
+    _append_section_ornament(story, f'aspects_{category}')
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -446,7 +449,10 @@ def house_detail_page(story, styles, house_num: int, sign: str,
                        fontSize=11.5, textColor=CREAM, alignment=TA_LEFT,
                        leading=17, leftIndent=1.5 * cm, rightIndent=1.5 * cm),
     ))
-    story.append(PageBreak())
+    # Refactor 2026-02-26 : plus de PageBreak forcé → les 12 maisons s'enchaînent
+    # comme un chapitre de livre, séparées par un ornement.
+    from services.pdf_luxury_theme import _append_section_ornament
+    _append_section_ornament(story, f'house_{house_num}')
 
 
 # ═══════════════════════════════════════════════════════════════════
