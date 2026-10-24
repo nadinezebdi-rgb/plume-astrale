@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Sparkles, Moon, Sun, ArrowRight, Eye, Heart, Share2, Download, Mail, Smartphone } from 'lucide-react';
+import { Sparkles, Moon, Sun, ArrowRight, Eye, Heart, Share2, Download, Mail, Smartphone, Link2 } from 'lucide-react';
 import { asset } from '../lib/assets';
 import LibraryImage from '@/components/LibraryImage';
 import PsPageShell from '@/components/PsPageShell';
@@ -32,6 +32,15 @@ export default function TiragePartage() {
   const [tirage, setTirage] = useState(null);
   const [copied, setCopied] = useState(false);
   const [pngLoading, setPngLoading] = useState(false);
+  const [canShare, setCanShare] = useState(false);
+
+  useEffect(() => {
+    // Détecte le Web Share API (iOS Safari, Chrome Android, Edge mobile).
+    // Masque le bouton sur desktop Firefox / navigateurs non-supportés.
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      setCanShare(true);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,6 +111,32 @@ export default function TiragePartage() {
       `✦ Plume Astrale`
     );
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
+  const nativeShare = async () => {
+    // Web Share API : ouvre la share sheet native iOS/Android.
+    // Tente d'attacher le PNG post (1080×1350) pour que WhatsApp/Messages
+    // affichent la carte en inline ; fallback texte+URL sinon.
+    const firstName = tirage?.first_name || 'un(e) ami(e)';
+    const typeLabel = TYPE_LABELS[tirage?.type] || 'tirage de tarot';
+    const ogUrl = `${window.location.origin}/api/og/tirage/${shareId}`;
+    const title = `Le tirage de ${firstName} · Plume Astrale`;
+    const text = `${typeLabel} — regarde ce que les arcanes m'ont dit :`;
+
+    try {
+      const res = await fetch(`${API_URL}/api/tarot/shared/${shareId}/card.png?format=post`);
+      if (res.ok) {
+        const blob = await res.blob();
+        const file = new File([blob], `tirage-${firstName.toLowerCase()}.png`, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ title, text, url: ogUrl, files: [file] });
+          return;
+        }
+      }
+    } catch (_) { /* image fetch/canShare failed — fallback */ }
+    try {
+      await navigator.share({ title, text, url: ogUrl });
+    } catch (_) { /* user cancelled share sheet */ }
   };
 
   if (loading) {
@@ -285,6 +320,17 @@ export default function TiragePartage() {
                 >
                   Faire mon tirage <ArrowRight className="w-4 h-4" />
                 </button>
+                {canShare && (
+                  <button
+                    onClick={nativeShare}
+                    className="rounded-xl py-3 px-5 flex items-center gap-2 justify-center border border-[#C9A24B]/50 text-[#C9A24B] hover:bg-[#C9A24B]/10 transition-colors"
+                    data-testid="shared-cta-native-share"
+                    title="Partager via la fenêtre native iOS/Android"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Partager
+                  </button>
+                )}
                 <button
                   onClick={() => downloadCard('post')}
                   disabled={pngLoading}
@@ -322,7 +368,7 @@ export default function TiragePartage() {
                   className="rounded-xl py-3 px-5 flex items-center gap-2 justify-center border border-[#C9A24B]/50 text-[#C9A24B] hover:bg-[#C9A24B]/10 transition-colors"
                   data-testid="shared-cta-copy"
                 >
-                  <Share2 className="w-4 h-4" />
+                  <Link2 className="w-4 h-4" />
                   {copied ? 'Lien copié ✓' : 'Copier le lien'}
                 </button>
               </div>
