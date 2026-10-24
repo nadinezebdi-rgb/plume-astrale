@@ -68,6 +68,7 @@ async def ensure_storage_key() -> Optional[str]:
 
 
 def _put_sync(path: str, data: bytes, content_type: str) -> bool:
+    global _storage_key
     key = _init_storage_sync()
     if not key:
         return False
@@ -78,6 +79,18 @@ def _put_sync(path: str, data: bytes, content_type: str) -> bool:
             data=data,
             timeout=120,
         )
+        if resp.status_code in (401, 403, 404):
+            # storage_key invalide / expiré → on reset et on retente une fois
+            _storage_key = None
+            key2 = _init_storage_sync()
+            if not key2:
+                return False
+            resp = requests.put(
+                f'{_STORAGE_URL}/objects/{path}',
+                headers={'X-Storage-Key': key2, 'Content-Type': content_type},
+                data=data,
+                timeout=120,
+            )
         resp.raise_for_status()
         return True
     except Exception as e:
@@ -86,6 +99,7 @@ def _put_sync(path: str, data: bytes, content_type: str) -> bool:
 
 
 def _get_sync(path: str) -> Optional[bytes]:
+    global _storage_key
     key = _init_storage_sync()
     if not key:
         return None
@@ -97,6 +111,19 @@ def _get_sync(path: str) -> Optional[bytes]:
         )
         if resp.status_code == 404:
             return None
+        if resp.status_code in (401, 403):
+            # storage_key invalide / expiré → reset + retry une fois
+            _storage_key = None
+            key2 = _init_storage_sync()
+            if not key2:
+                return None
+            resp = requests.get(
+                f'{_STORAGE_URL}/objects/{path}',
+                headers={'X-Storage-Key': key2},
+                timeout=60,
+            )
+            if resp.status_code == 404:
+                return None
         resp.raise_for_status()
         return resp.content
     except Exception as e:

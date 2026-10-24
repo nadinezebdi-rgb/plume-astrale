@@ -1,5 +1,34 @@
 # Plume Astrale — PRD
 
+## 2026-02-22 — Lot post-déploiement : Prewarm + Admin Panel Illustrations + Refactor admin.py
+
+**🎯 Objectif** : fermer le lot « Illustrations IA Nano Banana » par 3 chantiers de production.
+
+**✅ Livré** :
+- **Prewarm au boot** : `server.py:_prewarm_illustrations` démarre après la fenêtre `BACKGROUND_LOOPS_WARMUP_SEC` (90s par défaut) et pré-remplit le cache local pour les 10 planètes + closing. Testing agent a confirmé `[prewarm_illust] planets ready: 10/10, closing: True`. Premier utilisateur en prod n'attend plus 90s.
+- **Admin Panel « Illustrations IA »** :
+  - 3 endpoints dans `/app/backend/routes/admin_illustrations.py` (nouveau router, prefix `/admin/natal-illustrations`) : `GET` liste paginée, `GET /{hash}/image` sert les bytes JPEG (fetch-as-blob côté front), `POST /{hash}/regenerate` wipe cache + relance Nano Banana + écrase le remote.
+  - Chaque génération Ex Libris est désormais tracée dans `natal_illustrations_log` (Mongo) : user_id, prenom, triade astrale, storage_path, size_bytes, generation_count, first_generated_at, last_generated_at.
+  - Section frontend dans `Admin.js` (tab « Illustrations IA ») : grid responsive de miniatures (aspect 3:4), bouton « Régénérer » par ligne avec confirmation + feedback inline, badges triade astrale `☉ Taureau · ☽ Vierge · ↑ Capricorne`, info compteur de générations.
+- **Refactor admin.py (démarré)** : extraction de l'endpoint `/admin/tarot-share/top` vers `routes/admin_viralite.py` (63 lignes, self-contained). admin.py passe de 1225 à 1174 lignes. Reste à extraire : stats, users, promo, pdfs (à faire lors d'un prochain lot ciblé).
+- **Résilience Emergent Storage** : `services/emergent_storage.py` reset automatiquement le `_storage_key` sur 401/403 et retente une fois, pour survivre à une expiration de session sans redémarrage backend (recommandation testing agent iter 96).
+
+**🧪 Tests** :
+- iteration_96.json : 22/22 pytest OK, dont les 9 tests régression iteration 95.
+- Validation réelle : Nano Banana a bien régénéré l'Ex Libris seed `Alix / Taureau / Vierge / Capricorne` (bytes différents 21677→28830, generation_count 1→2, first_generated_at inchangé, remote storage écrasé).
+- Deploy en prod déclenché (job 5fbcfc48-9d10-4d91-b09e-69308ca1a950).
+
+**📁 Fichiers touchés** :
+- `routes/admin_illustrations.py` (nouveau)
+- `routes/admin_viralite.py` (nouveau, extrait de admin.py)
+- `services/natal_book_illustrations.py` (ajout de `_log_ex_libris` Mongo audit)
+- `services/emergent_storage.py` (gestion expiry 401/403)
+- `server.py` (prewarm task + 2 nouveaux routers)
+- `routes/admin.py` (suppression du bloc viralité)
+- `pages/Admin.js` (nouveau tab « Illustrations IA » + IllustrationsSection + IllustrationCard)
+
+
+
 ## 2026-02-22 — Illustrations IA Nano Banana + migration Emergent Object Storage
 
 **🎯 Objectif** : finir le lot aesthetics du livre natal A5 (49 pages) → illustrations IA uniques (Ex Libris par signature astrale + 10 vignettes planétaires + page de clôture) persistées sur Emergent Object Storage, et plus seulement sur le disque local éphémère.
