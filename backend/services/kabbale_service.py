@@ -97,18 +97,12 @@ async def handle_kabbale_webhook(session_id: str) -> None:
             tree_of_life=tree_data,
             ai_sections=ai_sections,
         )
-        out_dir = ASSETS_DIR / 'kabbale'
-        out_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_dir / filename
-        with open(out_path, 'wb') as f:
-            f.write(pdf_bytes)
-        pdf_path = f'/api/assets/kabbale/{filename}'
-        # SEC-003 : token opaque + URL signée pour le download
+        # SEC-003 (2026-02) : plus d'écriture disque locale ni d'URL /api/assets/ —
+        # tout vit dans Supabase Storage, download via token opaque.
         from services.pdf_download import new_pdf_token, build_signed_pdf_url, upload_pdf_to_reports_bucket
         pdf_token = new_pdf_token()
         md['pdf_token'] = pdf_token
         md['pdf_path'] = build_signed_pdf_url(session_id, pdf_token)
-        md['pdf_static_path_legacy'] = pdf_path
         # Upload persistant Supabase Storage (survit aux redeploys)
         supabase_url = upload_pdf_to_reports_bucket(pdf_bytes, session_id, 'kabbale', filename)
         if supabase_url:

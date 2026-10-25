@@ -184,17 +184,13 @@ async def handle_pack_karmique_webhook(session_id: str) -> None:
             synthesis=synthesis,
             ai_sections=ai_sections,
         )
-        out_dir = ASSETS_DIR / 'pack_karmique'
-        out_dir.mkdir(parents=True, exist_ok=True)
-        with open(out_dir / filename, 'wb') as f:
-            f.write(pdf_bytes)
-        pdf_path = f'/api/assets/pack_karmique/{filename}'
-        # SEC-003 : token opaque + URL signée
+        # SEC-003 (2026-02) : les PDFs personnels ne sont PLUS écrits sur disque
+        # ni servis via /api/assets/ (fuite d'URLs voisines). Ils vivent dans
+        # Supabase Storage + téléchargement via /api/pdf/download?token=...
         from services.pdf_download import new_pdf_token, build_signed_pdf_url, upload_pdf_to_reports_bucket
         pdf_token = new_pdf_token()
         md['pdf_token'] = pdf_token
         md['pdf_path'] = build_signed_pdf_url(session_id, pdf_token)
-        md['pdf_static_path_legacy'] = pdf_path
         supabase_url = upload_pdf_to_reports_bucket(pdf_bytes, session_id, 'pack_karmique', filename)
         if supabase_url:
             md['pdf_supabase_url'] = supabase_url

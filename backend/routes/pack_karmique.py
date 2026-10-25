@@ -209,13 +209,25 @@ async def pack_karmique_extrait(payload: ExtraitPayload):
 
     from services.pack_karmique_pdf import generate_extrait_pdf
     pdf_bytes = generate_extrait_pdf(first_name, items)
-    from services.pack_karmique_service import ASSETS_DIR
-    out_dir = ASSETS_DIR / 'pack_karmique'
-    out_dir.mkdir(parents=True, exist_ok=True)
+    # SEC-003 (2026-02) : lead magnet public → upload Supabase Storage bucket
+    # `public-assets` (URL publique signée). Plus d'écriture disque locale,
+    # /api/assets/pack_karmique/ n'est plus monté en statique.
     filename = f'extrait_{uuid.uuid4().hex[:12]}.pdf'
-    with open(out_dir / filename, 'wb') as f:
-        f.write(pdf_bytes)
-    pdf_url = f'/api/assets/pack_karmique/{filename}'
+    pdf_url = ''
+    try:
+        sb_up = get_admin_client()
+        storage_path = f'pack_karmique_extracts/{filename}'
+        sb_up.storage.from_('public-assets').upload(
+            storage_path, pdf_bytes,
+            {'content-type': 'application/pdf', 'cache-control': 'public, max-age=604800'},
+        )
+        pdf_url = sb_up.storage.from_('public-assets').get_public_url(storage_path)
+    except Exception as e:
+        logger.warning(f'[pack_karmique_extrait] Supabase upload failed: {e}')
+        # Fallback mémoire : on sert le PDF directement en bytes via un endpoint
+        # dédié ne serait possible qu'avec un cache ; on log et on retourne vide
+        # — le client affichera l'erreur et pourra relancer.
+        pdf_url = ''
 
     # Lead best-effort dans oracle_leads (table existante des lead magnets)
     try:
