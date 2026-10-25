@@ -1234,6 +1234,17 @@ body:has(.ps-home)::after { display: none !important; }
   animation: none !important;
   box-shadow: 0 12px 28px -12px rgba(17,22,37,0.14);
 }
+/* Adoucissement du cadre « Transits du jour » : parchemin translucide
+   au lieu du blanc pur, pour fondre dans le fond crème horoscope. */
+[data-shell="light"] [data-testid="transits-today"].card-mystical {
+  background: rgba(248, 241, 227, 0.55) !important;
+  border: 1px solid rgba(201, 162, 75, 0.22) !important;
+  box-shadow: 0 2px 18px -8px rgba(15, 26, 60, 0.08);
+}
+[data-shell="light"] [data-testid="transits-today"].card-mystical:hover {
+  border-color: rgba(201, 162, 75, 0.35) !important;
+  box-shadow: 0 4px 22px -8px rgba(15, 26, 60, 0.12);
+}
 [data-shell="light"] .btn-mystical {
   color: var(--plume-night);
   background: transparent;
