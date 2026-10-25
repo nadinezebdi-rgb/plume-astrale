@@ -30,7 +30,7 @@
     "/app/backend/routes/pdf_test_admin.py (added '_source':'gpt' to tier=ultra mock — partial fix, still needs more fields)"
   ],
   "success_rate": {"backend": "100% (14/14)", "frontend": "100% (5/5 functional; Test5 page.goto networkidle timed out but denied screen rendered correctly per screenshot)"},
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 (is_admin=true) ; test@plume-astrale.fr / TestPlume2026! (is_admin=false)",
+  "test_credentials": "admin@plume-astrale.fr / [redacted] (is_admin=true) ; test@plume-astrale.fr / [redacted] (is_admin=false)",
   "seed_data_creation": "None — Mongo logs auto-populated by generation tests (14 entries observed in /_logs/recent).",
   "retest_needed": false,
   "main_agent_can_self_test": true,

@@ -16,6 +16,7 @@ Captions overlay (via ffmpeg drawtext) synchronisés :
   49.5-52s : "Un rendez-vous mensuel"
   55-60s   : "plume-astrale.fr · 20 crédits offerts"
 """
+import os
 import asyncio
 import subprocess
 from pathlib import Path
@@ -25,7 +26,7 @@ OUT_DIR = Path("/app/tmp_video")
 OUT_DIR.mkdir(exist_ok=True, parents=True)
 BASE_URL = "https://consultation-astro.preview.emergentagent.com"
 TEST_EMAIL = "test@plume-astrale.fr"
-TEST_PASSWORD = "TestPlume2026!"
+TEST_PASSWORD = os.environ.get('TEST_USER_PASSWORD', '')
 
 VIEWPORT = {"width": 390, "height": 844}
 RECORD_SIZE = {"width": 390, "height": 844}

@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const CTA_PRICE = 119;
 const API = process.env.REACT_APP_BACKEND_URL || '';
@@ -236,7 +237,7 @@ export default function EditionReliee() {
           </p>
           <label style={{ display: 'block', marginTop: 20 }}>
             <small style={{ color: '#B9B0D5', letterSpacing: 1 }}>Sa date d'anniversaire</small>
-            <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)}
+            <FrenchDateInput type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)}
                    data-testid="er-anniversary-input" style={input} />
           </label>
           {deadline && (
@@ -393,7 +394,7 @@ function CheckoutModal({ onClose }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 6 }}>
             <div>
               <p style={formGroupLabel}>Sa date de naissance</p>
-              <input type="date" required value={form.birth_date} onChange={update('birth_date')}
+              <FrenchDateInput type="date" required value={form.birth_date} onChange={update('birth_date')}
                      data-testid="er-form-birth-date" style={input}/>
             </div>
             <div>

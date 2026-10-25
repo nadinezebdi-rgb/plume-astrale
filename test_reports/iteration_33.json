@@ -43,7 +43,7 @@
     "backend": "71% (5/7 pytest cases — happy paths all pass, invalid-input validation returns 502 instead of 400)",
     "frontend": "100% (full 3-step Rencontres flow + Stripe redirect + Chat paywall click fix all verified end-to-end)"
   },
-  "test_credentials": "Low-balance user (unchanged from iteration 32): paywall_test_1783103389@plume-test.fr / TestPaywall2026! (balance=0). Admin: admin@plume-astrale.fr / PlumeAdmin2026 (unused this iteration).",
+  "test_credentials": "Low-balance user (unchanged from iteration 32): paywall_test_1783103389@plume-test.fr / TestPaywall2026! (balance=0). Admin: admin@plume-astrale.fr / [redacted] (unused this iteration).",
   "seed_data_creation": "No new seed data. Reused low-balance test user from iteration 32. Stripe test session created via checkout but not paid.",
   "retest_needed": false,
   "main_agent_can_self_test": true,

@@ -39,7 +39,7 @@
     "backend": "100%",
     "frontend": "N/A (skipped per request)"
   },
-  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 (Supabase login OK, token JWT ES256 verifie via JWKS)",
+  "test_credentials": "Admin: admin@plume-astrale.fr / [redacted] (Supabase login OK, token JWT ES256 verifie via JWKS)",
   "seed_data_creation": "Aucune donnee semee (tests read-only sur endpoints existants + admin profile)",
   "retest_needed": false,
   "should_main_agent_self_test": true,

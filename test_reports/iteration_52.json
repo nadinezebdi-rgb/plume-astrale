@@ -39,7 +39,7 @@
     "backend": "100% (4/4 tests PASS + 1 skip attendu — migration DB pending)",
     "frontend": "100% (mockup step 0 + step 1 hidden + landing pricing/benefits/faq + redirect non-auth + CTA auth + 503 UI + teaser mon-compte)"
   },
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 — login OK, redirect ?redirect=/cercle-solena fonctionne.",
+  "test_credentials": "admin@plume-astrale.fr / [redacted] — login OK, redirect ?redirect=/cercle-solena fonctionne.",
   "seed_data_creation": "Aucune",
   "retest_needed": false,
   "should_main_agent_self_test": false,

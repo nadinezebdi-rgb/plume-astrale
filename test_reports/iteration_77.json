@@ -23,7 +23,7 @@
     "/app/backend/tests/test_iteration77_admin_capi_ig_token.py (nouveau)"
   ],
   "success_rate": {"backend": "100% (8/8)", "frontend": "100% (19/19 routes + hero CTA + cookie CSS)"},
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 · test@plume-astrale.fr / TestPlume2026!",
+  "test_credentials": "admin@plume-astrale.fr / [redacted] · test@plume-astrale.fr / [redacted]",
   "seed_data_creation": "Aucune",
   "retest_needed": false,
   "main_agent_can_self_test": true,

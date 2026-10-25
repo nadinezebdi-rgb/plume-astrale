@@ -52,17 +52,17 @@ const TransitsToday = () => {
     <section className="card-mystical mb-8" data-testid="transits-today">
       <div className="flex items-center gap-2 mb-4">
         <Compass className="w-5 h-5 text-[#C9A24B]" strokeWidth={1.5} />
-        <h2 className="text-xl" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+        <h2 className="text-xl" style={{ fontFamily: 'Playfair Display, serif', color: '#F5EEE0' }}>
           Transits du jour sur votre thème
         </h2>
       </div>
-      <p className="text-[#232323]/70 text-sm mb-5 font-light">
+      <p className="text-[#DCE3EF] text-sm mb-5 font-light">
         Comment les planètes actuelles activent votre carte natale, en temps réel.
       </p>
 
 
       {loading && (
-        <div className="flex items-center gap-2 text-[#C9A24B]/70 text-sm" data-testid="transits-loading">
+        <div className="flex items-center gap-2 text-[#D8B96A] text-sm" data-testid="transits-loading">
           <Loader2 className="w-4 h-4 animate-spin" /> Calcul des transits...
         </div>
       )}
@@ -78,17 +78,17 @@ const TransitsToday = () => {
                   <Sparkles className="w-4 h-4 text-[#C9A24B] mt-1 flex-shrink-0" strokeWidth={1.5} />
                   <div>
                     {ev.title && (
-                      <p className="text-[#0F1A3C] text-sm mb-1" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, letterSpacing: '0.05em' }}>
+                      <p className="text-[#F5EEE0] text-sm mb-1" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, letterSpacing: '0.05em' }}>
                         {ev.title}
                       </p>
                     )}
                     {ev.interpretation && (
-                      <p className="text-[#232323]/80 text-sm leading-relaxed" style={{ fontFamily: 'Playfair Display, serif' }}>
+                      <p className="text-[#DCE3EF] text-sm leading-relaxed" style={{ fontFamily: 'Playfair Display, serif' }}>
                         {ev.interpretation}
                       </p>
                     )}
                     {ev.date && (
-                      <p className="text-[#C9A24B]/60 text-xs mt-1" style={{ letterSpacing: '0.15em' }}>
+                      <p className="text-[#D8B96A] text-xs mt-1" style={{ letterSpacing: '0.15em' }}>
                         {ev.date}
                       </p>
                     )}
@@ -98,7 +98,7 @@ const TransitsToday = () => {
             </ul>
           )}
           {reportText && (
-            <p className="text-[#232323] leading-relaxed" style={{ fontFamily: 'Playfair Display, serif', fontSize: '16px', lineHeight: '1.85' }} data-testid="transits-report">
+            <p className="text-[#DCE3EF] leading-relaxed" style={{ fontFamily: 'Playfair Display, serif', fontSize: '16px', lineHeight: '1.85' }} data-testid="transits-report">
               {reportText}
             </p>
           )}
@@ -181,10 +181,10 @@ const RevolutionSolaire = () => {
           <p className="text-[#C9A24B] uppercase tracking-[0.3em] text-sm mb-3 font-light">
             Rituel Annuel · Swiss Ephemeris
           </p>
-          <h1 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+          <h1 className="text-3xl md:text-5xl mb-3" style={{ fontFamily: 'Playfair Display, serif', color: '#F5EEE0' }}>
             Votre Révolution Solaire
           </h1>
-          <p className="text-base text-[#232323]/70 font-light">
+          <p className="text-base text-[#DCE3EF] font-light">
             La carte précise des énergies qui vous accompagnent de votre prochain anniversaire au suivant.
           </p>
         </div>
@@ -202,7 +202,7 @@ const RevolutionSolaire = () => {
             <h2 className="text-xl mb-2" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#F5EEE0' }}>
               Découvrez votre prochaine année
             </h2>
-            <p className="text-[#232323]/60 text-sm mb-5 max-w-md mx-auto">
+            <p className="text-[#DCE3EF] text-sm mb-5 max-w-md mx-auto">
               Rapport complet basé sur la position exacte du Soleil au moment de votre prochain anniversaire — 20 crédits.
             </p>
             {error && <p className="text-amber-300 text-sm mb-4" data-testid="revolution-error">{error}</p>}
@@ -232,12 +232,12 @@ const RevolutionSolaire = () => {
             <div className="card-mystical">
               <div className="flex items-center gap-3 mb-3">
                 <Sun className="w-6 h-6 text-[#C9A24B]" strokeWidth={1.4} />
-                <h2 className="text-xl" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+                <h2 className="text-xl" style={{ fontFamily: 'Playfair Display, serif', color: '#F5EEE0' }}>
                   Année {result.return_year} · {result.name}
                 </h2>
               </div>
               {overview && (
-                <p className="text-[#232323] leading-relaxed" style={{ fontFamily: 'Playfair Display, serif', fontSize: '16px', lineHeight: '1.9' }} data-testid="revolution-overview">
+                <p className="text-[#DCE3EF] leading-relaxed" style={{ fontFamily: 'Playfair Display, serif', fontSize: '16px', lineHeight: '1.9' }} data-testid="revolution-overview">
                   {overview}
                 </p>
               )}
@@ -246,7 +246,7 @@ const RevolutionSolaire = () => {
 
             {interpretations.length > 0 && (
               <div className="card-mystical" data-testid="revolution-interpretations">
-                <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+                <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Playfair Display, serif', color: '#F5EEE0' }}>
                   <Star className="w-5 h-5 text-[#C9A24B]" strokeWidth={1.5} /> Thèmes majeurs de l&apos;année
                 </h3>
                 <div className="space-y-5">
@@ -257,7 +257,7 @@ const RevolutionSolaire = () => {
                           {it.title}
                         </p>
                       )}
-                      <p className="text-sm md:text-base text-[#232323] leading-relaxed" style={{ fontFamily: 'Playfair Display, serif' }}>
+                      <p className="text-sm md:text-base text-[#DCE3EF] leading-relaxed" style={{ fontFamily: 'Playfair Display, serif' }}>
                         {it.text || it.interpretation || it.description}
                       </p>
                     </div>
@@ -274,7 +274,7 @@ const RevolutionSolaire = () => {
                     <p className="text-[#C9A24B] uppercase tracking-widest text-xs mb-2" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
                       {la.theme || (la.area_key || '').replace(/_/g, ' ')}
                     </p>
-                    <p className="text-sm text-[#0F1A3C]/85 leading-relaxed" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    <p className="text-sm text-[#DCE3EF] leading-relaxed" style={{ fontFamily: 'Playfair Display, serif' }}>
                       {la.prediction || la.text || la.description || ''}
                     </p>
                   </div>
@@ -285,17 +285,17 @@ const RevolutionSolaire = () => {
 
             {srAspects.length > 0 && (
               <div className="card-mystical" data-testid="revolution-sr-aspects">
-                <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Playfair Display, serif', color: '#0F1A3C' }}>
+                <h3 className="text-lg mb-4 flex items-center gap-2" style={{ fontFamily: 'Playfair Display, serif', color: '#F5EEE0' }}>
                   <Compass className="w-5 h-5 text-[#C9A24B]" strokeWidth={1.5} /> Résonances avec votre thème natal
                 </h3>
                 <ul className="space-y-3">
                   {srAspects.slice(0, 6).map((a, i) => (
                     <li key={i} className="text-sm">
-                      <span className="text-[#0F1A3C]">
+                      <span className="text-[#F5EEE0]">
                         {(a.point_1 || a.planet_1 || '')} {(a.aspect_name || a.aspect || '')} {(a.point_2 || a.planet_2 || '')}
                       </span>
                       {a.interpretation && (
-                        <p className="text-[#232323]/75 mt-1 text-xs md:text-sm leading-relaxed" style={{ fontFamily: 'Playfair Display, serif' }}>
+                        <p className="text-[#DCE3EF] mt-1 text-xs md:text-sm leading-relaxed" style={{ fontFamily: 'Playfair Display, serif' }}>
                           {a.interpretation}
                         </p>
                       )}

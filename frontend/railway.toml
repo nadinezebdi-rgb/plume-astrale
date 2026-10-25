@@ -6,4 +6,4 @@ buildCommand = "yarn install && yarn build"
 startCommand = "npx serve -s build -l $PORT"
 
 [env]
-NODE_VERSION = "18"
+NODE_VERSION = "20"

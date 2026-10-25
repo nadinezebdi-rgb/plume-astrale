@@ -4,8 +4,8 @@
 
 ```
 Project URL : https://ebwicqvbkwogxneipaxh.supabase.co
-Email Admin : admin@plume-astrale.fr
-Password   : PlumeAdmin2026
+Compte      : ton compte administrateur Supabase
+(mot de passe : dans ton gestionnaire de mots de passe)
 ```
 
 ---
@@ -15,7 +15,7 @@ Password   : PlumeAdmin2026
 ### 1. Accéder à Supabase SQL Editor
 
 1. Va sur [app.supabase.com](https://app.supabase.com)
-2. Connecte-toi avec `admin@plume-astrale.fr` / `PlumeAdmin2026`
+2. Connecte-toi avec ton compte administrateur Supabase
 3. Sélectionne le projet **plume-astrale**
 4. Clique sur **"SQL Editor"** (à gauche)
 
