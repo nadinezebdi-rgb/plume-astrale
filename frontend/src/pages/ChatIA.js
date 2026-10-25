@@ -745,7 +745,7 @@ const ChatIA = () => {
                           borderRadius: 6,
                           fontSize: 12,
                           lineHeight: 1.5,
-                          color: 'rgba(247, 245, 240, 0.72)',
+                          color: 'rgba(35,35,35,0.72)',
                           fontStyle: 'italic',
                           fontFamily: 'Inter, sans-serif',
                         }}
