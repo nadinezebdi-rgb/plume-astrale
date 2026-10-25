@@ -12,6 +12,7 @@ import httpx
 
 from services.supabase_client import get_admin_client
 from services.rencontres_ultime_pdf import generate_rencontres_ultime_pdf
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -292,4 +293,4 @@ async def _send_ultime_email(email: str, first_name: str, pdf_bytes: bytes, file
         if r.status_code >= 400:
             logger.warning(f"[rencontres_ultime] Resend error {r.status_code}: {r.text[:300]}")
         else:
-            logger.info(f"[rencontres_ultime] Email sent to {email}")
+            logger.info(f"[rencontres_ultime] Email sent to {redact_email(email)}")

@@ -27,6 +27,7 @@ import os
 from fastapi import APIRouter, Header, HTTPException, Request
 
 from services.supabase_client import get_admin_client
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/webhook', tags=['webhook'])
@@ -104,7 +105,7 @@ async def resend_webhook(
     elif event_type == 'email.delivery_delayed':
         error_message = (data.get('reason') or 'delayed')
 
-    logger.info(f'[resend_webhook] {event_type} → {to_email} ({resend_id})')
+    logger.info(f'[resend_webhook] {event_type} → {redact_email(to_email)} ({resend_id})')
 
     try:
         sb = get_admin_client()

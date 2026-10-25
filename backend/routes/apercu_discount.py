@@ -26,6 +26,7 @@ from pydantic import BaseModel, EmailStr, Field
 load_dotenv(dotenv_path='/app/backend/.env')
 
 from services.resend_service import send_email
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/apercu', tags=['apercu'])
@@ -169,7 +170,7 @@ async def request_discount(payload: ApercuDiscountRequest, request: Request):
         from_email=SENDER_EMAIL,
     )
     if not eid:
-        logger.error(f'[apercu-discount] Resend échec pour {payload.email}')
+        logger.error(f'[apercu-discount] Resend échec pour {redact_email(payload.email)}')
         # On ne casse pas l'UX : on affiche succès quand même, le log serveur permet retry manuel.
 
     await _log_lead(payload.email, payload.product_slug, ip)

@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 from middleware.auth import get_optional_user
 from services.supabase_client import get_admin_client
 from services.app_settings import get_setting, set_setting
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/landing', tags=['landing'])
@@ -404,7 +405,7 @@ async def _notify_winner_locked(winner: str, loser: str,
             if eid:
                 sent += 1
         except Exception as e:
-            logger.warning(f'[hero autolock] send fail to {admin_email}: {e}')
+            logger.warning(f'[hero autolock] send fail to {redact_email(admin_email)}: {e}')
 
     slack_ok = False
     webhook = _os.environ.get('SLACK_WEBHOOK_URL', '').strip()

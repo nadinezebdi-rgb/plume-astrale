@@ -11,6 +11,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 import httpx
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ async def send_webhook_alert(reason: str, details: str = '', *, dedup_key: Optio
             logger.warning(f'[webhook_alert] Resend {r.status_code}: {r.text[:200]}')
             return False
         _last_alert_at[dedup_key] = now
-        logger.info(f'[webhook_alert] envoyée à {admin_email} (reason={reason})')
+        logger.info(f'[webhook_alert] envoyée à {redact_email(admin_email)} (reason={reason})')
         return True
     except Exception as e:
         logger.warning(f'[webhook_alert] envoi fail: {e}')

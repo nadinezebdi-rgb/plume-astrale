@@ -18,6 +18,7 @@ import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ async def _already_purchased(sb, email: str) -> bool:
             if (row.get('status') or '').lower() in ('paid', 'completed', 'success'):
                 return True
     except Exception as e:
-        logger.warning(f'[syn_followup] purchase check failed for {email}: {e}')
+        logger.warning(f'[syn_followup] purchase check failed for {redact_email(email)}: {e}')
     return False
 
 
@@ -49,7 +50,7 @@ async def _already_followed_up(sb, email: str) -> bool:
         if 'synastrie_lead_followups' in msg and ('schema cache' in msg or 'does not exist' in msg):
             # Table absente → treat as not-yet-followed-up (but will fail to persist later).
             return False
-        logger.warning(f'[syn_followup] followup check failed for {email}: {e}')
+        logger.warning(f'[syn_followup] followup check failed for {redact_email(email)}: {e}')
         # Prudent : on considère qu'on a déjà envoyé pour éviter spam en cas d'erreur transitoire.
         return True
 
@@ -69,7 +70,7 @@ async def _mark_followup_sent(sb, email: str, lead_id: Optional[str], resend_id:
                 '/app/backend/migrations/2026_02_synastrie_lead_followups.sql dans le SQL Editor Supabase.'
             )
         else:
-            logger.warning(f'[syn_followup] mark sent failed for {email}: {msg[:200]}')
+            logger.warning(f'[syn_followup] mark sent failed for {redact_email(email)}: {msg[:200]}')
 
 
 async def _run_once() -> None:
@@ -112,7 +113,7 @@ async def _run_once() -> None:
         try:
             eid = await send_synastrie_lead_followup_email(email, first_name)
         except Exception as e:
-            logger.warning(f'[syn_followup] send failed for {email}: {e}')
+            logger.warning(f'[syn_followup] send failed for {redact_email(email)}: {e}')
             continue
         await _mark_followup_sent(sb, email, lead.get('id'), eid)
         sent_count += 1

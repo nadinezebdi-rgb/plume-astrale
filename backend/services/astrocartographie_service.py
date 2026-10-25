@@ -16,6 +16,7 @@ from services.supabase_client import get_admin_client
 from services import astrology_io_service as aio
 from services import astrocartographie_ai as aiai
 from services.pdf_luxury_wrap import generate_astrocartographie_pdf_luxury as generate_astrocartographie_pdf
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 ASSETS_DIR = Path(__file__).resolve().parent.parent / 'assets'
@@ -292,4 +293,4 @@ async def _send_astrocarto_email(email: str, first_name: str, pdf_bytes: bytes, 
     if r.status_code >= 400:
         logger.warning(f"[astrocarto] Resend error {r.status_code}: {r.text[:300]}")
     else:
-        logger.info(f"[astrocarto] Email sent to {email}")
+        logger.info(f"[astrocarto] Email sent to {redact_email(email)}")

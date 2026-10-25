@@ -21,6 +21,7 @@ import resend
 from dotenv import load_dotenv
 
 from services.supabase_client import get_admin_client
+from services.log_redact import redact_email
 
 load_dotenv(dotenv_path='/app/backend/.env')
 logger = logging.getLogger(__name__)
@@ -235,10 +236,10 @@ async def send_email(
     try:
         result = await asyncio.to_thread(resend.Emails.send, params)
         eid = result.get('id') if isinstance(result, dict) else None
-        logger.info(f'[resend] sent to {to_email} subject="{subject[:50]}" id={eid}')
+        logger.info(f'[resend] sent to {redact_email(to_email)} subject="{subject[:50]}" id={eid}')
         return eid
     except Exception as e:
-        logger.error(f'[resend] FAIL to={to_email} subject="{subject[:50]}" err={e}')
+        logger.error(f'[resend] FAIL to={redact_email(to_email)} subject="{subject[:50]}" err={e}')
         return None
 
 

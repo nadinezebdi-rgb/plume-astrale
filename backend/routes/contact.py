@@ -26,6 +26,7 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 load_dotenv(dotenv_path='/app/backend/.env')
 
 from services.resend_service import send_email
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/contact', tags=['contact'])
@@ -106,9 +107,9 @@ async def submit_contact(payload: ContactRequest, request: Request):
         from_email=SENDER_EMAIL,
     )
     if not eid:
-        logger.error(f'[contact] Resend échec pour {payload.email}')
+        logger.error(f'[contact] Resend échec pour {redact_email(payload.email)}')
         # On ne bloque pas l'utilisatrice — le message est loggé côté serveur au minimum
-        logger.info(f'[contact-fallback] from={payload.email} subject={payload.subject!r}')
+        logger.info(f'[contact-fallback] from={redact_email(payload.email)} subject={payload.subject!r}')
 
     return {
         'success': True,

@@ -10,6 +10,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 from services.supabase_client import get_admin_client
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +103,7 @@ async def handle_trio_decouverte_webhook(session_id: str) -> None:
             from services.kabbale_service import handle_kabbale_webhook
             asyncio.create_task(handle_kabbale_webhook(child_sid))
 
-    logger.info(f"[trio] {len(dispatched)}/3 PDFs dispatchés pour {email} (session {session_id})")
+    logger.info(f"[trio] {len(dispatched)}/3 PDFs dispatchés pour {redact_email(email)} (session {session_id})")
 
 
 async def get_trio_status(session_id: str) -> dict:

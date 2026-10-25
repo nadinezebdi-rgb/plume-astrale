@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 import httpx
 
 from services.supabase_client import get_admin_client
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -100,11 +101,11 @@ async def _send(email: str, subject: str, html: str) -> bool:
                 json={'from': sender, 'to': [email], 'subject': subject, 'html': html},
             )
             if r.status_code >= 400:
-                logger.warning(f'[lead_nurture] Resend {r.status_code} pour {email}: {r.text[:150]}')
+                logger.warning(f'[lead_nurture] Resend {r.status_code} pour {redact_email(email)}: {r.text[:150]}')
                 return False
             return True
     except Exception as e:
-        logger.warning(f'[lead_nurture] envoi échoué pour {email}: {e}')
+        logger.warning(f'[lead_nurture] envoi échoué pour {redact_email(email)}: {e}')
         return False
 
 
@@ -164,7 +165,7 @@ async def _run_once() -> int:
         }).eq('id', lead['id']).execute()
         if ok:
             sent += 1
-            logger.info(f'[lead_nurture] email J+{2 if new_step == 1 else 5} envoyé à {email}')
+            logger.info(f'[lead_nurture] email J+{2 if new_step == 1 else 5} envoyé à {redact_email(email)}')
     return sent
 
 

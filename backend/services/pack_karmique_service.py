@@ -16,6 +16,7 @@ from services.supabase_client import get_admin_client
 from services import astrology_io_service as aio
 from services.pack_karmique_pdf import generate_pack_karmique_pdf as _legacy_pack_karmique_pdf
 from services.pdf_luxury_wrap import generate_pack_karmique_pdf_luxury as generate_pack_karmique_pdf  # noqa: F401 SEC-luxe
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -293,4 +294,4 @@ async def _send_email(email: str, first_name: str, pdf_bytes: bytes, filename: s
         if r.status_code >= 400:
             logger.warning(f'[pack_karmique] Resend error {r.status_code}: {r.text[:300]}')
         else:
-            logger.info(f'[pack_karmique] Email sent to {email}')
+            logger.info(f'[pack_karmique] Email sent to {redact_email(email)}')

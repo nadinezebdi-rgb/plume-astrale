@@ -22,6 +22,7 @@ from typing import Any, Dict, List
 
 from services.supabase_client import get_admin_client
 from services.resend_service import send_email
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -267,7 +268,7 @@ async def _process_transaction(tx: Dict[str, Any]) -> int:
     except Exception as e:
         logger.warning(f'[lecture_complete_seq] metadata update fail {session_id}: {e}')
 
-    logger.info(f'[lecture_complete_seq] {stage} envoye a {email} (session {session_id})')
+    logger.info(f'[lecture_complete_seq] {stage} envoye a {redact_email(email)} (session {session_id})')
     return 1
 
 

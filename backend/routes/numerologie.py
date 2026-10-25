@@ -22,6 +22,7 @@ from services.pdf_delivery import update_tx_pdf_metadata, send_pdf_email
 from integrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/numerologie', tags=['numerologie'])
@@ -259,6 +260,6 @@ async def _generate_and_email_pdf(email: str, pdf_ctx: dict, session_id: str = '
             'numerologie',
         )
         
-        logger.info(f'PDF numérologie envoyé à {email}')
+        logger.info(f'PDF numérologie envoyé à {redact_email(email)}')
     except Exception as e:
         logger.exception(f'Erreur génération PDF numerologie : {e}')
