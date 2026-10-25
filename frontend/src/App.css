@@ -236,6 +236,18 @@
   box-shadow: 0 12px 28px -12px rgba(17,22,37,0.14);
 }
 
+/* Adoucissement du cadre « Transits du jour » : moins blanc clinique,
+   plus parchemin pour fondre dans le fond crème de la page horoscope. */
+[data-shell="light"] [data-testid="transits-today"].card-mystical {
+  background: rgba(248, 241, 227, 0.55);
+  border: 1px solid rgba(201, 162, 75, 0.22);
+  box-shadow: 0 2px 18px -8px rgba(15, 26, 60, 0.08);
+}
+[data-shell="light"] [data-testid="transits-today"].card-mystical:hover {
+  border-color: rgba(201, 162, 75, 0.35);
+  box-shadow: 0 4px 22px -8px rgba(15, 26, 60, 0.12);
+}
+
 [data-shell="light"] .btn-mystical {
   color: var(--plume-night);
   background: transparent;

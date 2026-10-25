@@ -3165,7 +3165,11 @@ async def tarot_shared_reels_mp4_endpoint(share_id: str, format: str = 'vertical
         raise HTTPException(status_code=404, detail='Tirage introuvable ou expiré.')
 
     try:
-        mp4_bytes = await render_reels_video(doc, fmt)
+        public_base = os.environ.get('PUBLIC_APP_URL', '').rstrip('/')
+        if not public_base:
+            public_base = 'https://plume-astrale.fr'
+        share_url = f'{public_base}/api/og/tirage/{share_id}'
+        mp4_bytes = await render_reels_video(doc, fmt, share_url=share_url)
     except Exception as e:
         logger.exception(f'[tarot/shared/reels] render failed: {e}')
         raise HTTPException(status_code=500, detail='Impossible de générer la vidéo.')

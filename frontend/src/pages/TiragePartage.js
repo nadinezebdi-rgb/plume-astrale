@@ -102,16 +102,42 @@ export default function TiragePartage() {
   const downloadReels = async (fmt = 'vertical') => {
     // Génère un MP4 15s de la révélation (TikTok/Reels/Shorts). Le backend
     // lance Playwright headless + ffmpeg : compter ~20-30s de rendu.
+    // Sur iOS/Android, on tente le Web Share natif avec le fichier attaché
+    // (partage TikTok/Instagram en un seul tap). Sinon fallback téléchargement.
     setReelsLoading(fmt);
     try {
       const res = await fetch(`${API_URL}/api/tarot/shared/${shareId}/reels.mp4?format=${fmt}`);
       if (!res.ok) throw new Error('MP4 unavailable');
       const blob = await res.blob();
+      const firstName = tirage?.first_name || 'plume';
+      const suffix = fmt === 'square' ? '-square' : '';
+      const fileName = `tirage-${firstName.toLowerCase()}${suffix}.mp4`;
+      const typeLabel = TYPE_LABELS[tirage?.type] || 'tirage de tarot';
+      const ogUrl = `${window.location.origin}/api/og/tirage/${shareId}`;
+
+      // Tentative Web Share natif avec le fichier (iOS Safari, Chrome Android)
+      try {
+        const file = new File([blob], fileName, { type: 'video/mp4' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: `Le tirage de ${firstName} · Plume Astrale`,
+            text: `${typeLabel} — regarde ce que les arcanes m'ont dit :`,
+            url: ogUrl,
+            files: [file],
+          });
+          return;
+        }
+      } catch (shareErr) {
+        // AbortError = utilisateur a fermé la share sheet, on n'enchaîne pas
+        // sur le download pour ne pas spammer. Autres erreurs → fallback.
+        if (shareErr && shareErr.name === 'AbortError') return;
+      }
+
+      // Fallback : téléchargement classique (desktop, Firefox mobile)
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const suffix = fmt === 'square' ? '-square' : '';
-      a.download = `tirage-${(tirage?.first_name || 'plume').toLowerCase()}${suffix}.mp4`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       a.remove();

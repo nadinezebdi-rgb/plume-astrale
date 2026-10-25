@@ -63,6 +63,9 @@ DOMAINE_LABELS = {
 }
 
 
+LOGO_SVG_PATH = ROOT / 'assets' / 'book' / 'assets' / 'logo-plume.svg'
+
+
 # ─── Fonts (embedded base64) ────────────────────────────────────────────
 
 def _font_b64(name: str) -> str:
@@ -75,6 +78,49 @@ def _font_b64(name: str) -> str:
     except Exception as e:  # pragma: no cover
         logger.warning(f'[reels] font load failed {name}: {e}')
         return ''
+
+
+def _logo_svg() -> str:
+    """Retourne le SVG de la plume (contenu inliné), ou '' si absent."""
+    if not LOGO_SVG_PATH.is_file():
+        return ''
+    try:
+        return LOGO_SVG_PATH.read_text(encoding='utf-8')
+    except Exception as e:  # pragma: no cover
+        logger.warning(f'[reels] logo load failed: {e}')
+        return ''
+
+
+def _qr_png_b64(url: str) -> str:
+    """Génère un QR code PNG en base64 (fond parchemin, motifs navy)."""
+    try:
+        import qrcode
+        from qrcode.constants import ERROR_CORRECT_M
+    except Exception as e:  # pragma: no cover
+        logger.warning(f'[reels] qrcode lib unavailable: {e}')
+        return ''
+    try:
+        qr = qrcode.QRCode(
+            version=None,
+            error_correction=ERROR_CORRECT_M,
+            box_size=10,
+            border=2,
+        )
+        qr.add_data(url)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color='#0F1A3C', back_color='#F8F1E3')
+        buf = io_module_bytesio()
+        img.save(buf, format='PNG')
+        return base64.b64encode(buf.getvalue()).decode('ascii')
+    except Exception as e:  # pragma: no cover
+        logger.warning(f'[reels] qr render failed: {e}')
+        return ''
+
+
+def io_module_bytesio():
+    """Lazy BytesIO (évite un import en haut pour un seul usage)."""
+    import io as _io
+    return _io.BytesIO()
 
 
 # ─── HTML template ─────────────────────────────────────────────────────
@@ -132,8 +178,13 @@ def _card_block_html(card: dict[str, Any], idx: int, total: int, start_s: float,
     '''
 
 
-def _build_html(doc: dict[str, Any], fmt: str) -> str:
-    """Construit le HTML autonome prêt à être enregistré par Playwright."""
+def _build_html(doc: dict[str, Any], fmt: str, share_url: str = '') -> str:
+    """Construit le HTML autonome prêt à être enregistré par Playwright.
+
+    `share_url` est optionnel : si fourni, on affiche un QR code en bas à
+    droite qui pointe vers l'URL OG du tirage, pour que les Reels partagés
+    hors-contexte restent attribuables à la marque.
+    """
     dims = _FORMATS.get(fmt, _FORMATS['vertical'])
     W, H = dims['w'], dims['h']
     vertical = (fmt == 'vertical')
@@ -239,6 +290,30 @@ def _build_html(doc: dict[str, Any], fmt: str) -> str:
             <div class="conseil-text">{escape(tendance_or_fil)}</div>
           </div>
         '''
+
+    # Watermark : logo plume (bottom-left) + QR code (bottom-right).
+    # Les deux restent persistants pendant 15s, à faible opacité au départ
+    # puis pleine opacité pendant la phase CTA.
+    logo_svg = _logo_svg()
+    watermark_logo_html = ''
+    if logo_svg:
+        watermark_logo_html = f'''
+    <div class="watermark watermark-logo">
+      {logo_svg}
+      <div class="watermark-logo-text">Plume<br/><em>Astrale</em></div>
+    </div>
+    '''
+
+    watermark_qr_html = ''
+    if share_url:
+        qr_b64 = _qr_png_b64(share_url)
+        if qr_b64:
+            watermark_qr_html = f'''
+    <div class="watermark watermark-qr">
+      <img src="data:image/png;base64,{qr_b64}" alt="QR code" />
+      <div class="watermark-qr-caption">Scannez</div>
+    </div>
+    '''
 
     html = f'''<!DOCTYPE html>
 <html lang="fr">
@@ -573,6 +648,67 @@ body {{
   font-weight: 700;
   margin-top: 12px;
 }}
+
+/* ─── WATERMARK persistant : logo plume (BL) + QR code (BR) ─── */
+.watermark {{
+  position: absolute;
+  bottom: {int(H * 0.025)}px;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+  opacity: 0.55;
+  animation: wmSettle {_DURATION_S}s linear forwards;
+}}
+@keyframes wmSettle {{
+  0%, 72% {{ opacity: 0.55; }}
+  88%     {{ opacity: 1; }}
+  100%    {{ opacity: 1; }}
+}}
+.watermark-logo {{
+  left: {int(W * 0.04)}px;
+  gap: 10px;
+}}
+.watermark-logo svg {{
+  width: {int(W * 0.055)}px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 0 8px rgba(201,162,75,0.35));
+}}
+.watermark-logo-text {{
+  color: #F8F1E3;
+  font-family: 'Cormorant', serif;
+  font-size: {int(sub_fs * 0.75)}px;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+}}
+.watermark-logo-text em {{
+  color: #C9A24B;
+  font-style: italic;
+  font-weight: 600;
+}}
+.watermark-qr {{
+  right: {int(W * 0.04)}px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}}
+.watermark-qr img {{
+  width: {int(W * 0.11)}px;
+  height: {int(W * 0.11)}px;
+  display: block;
+  border-radius: 10px;
+  padding: 6px;
+  background: rgba(248,241,227,0.95);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}}
+.watermark-qr-caption {{
+  color: #C9A24B;
+  font-family: 'Cormorant', serif;
+  font-size: {int(sub_fs * 0.55)}px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 700;
+}}
 </style>
 </head>
 <body>
@@ -603,6 +739,10 @@ body {{
       <h2 class="cta-title">Et vous, <em>que diraient<br/>vos arcanes&nbsp;?</em></h2>
       <div class="cta-url">plume-astrale.fr</div>
     </div>
+
+    <!-- WATERMARK (persistant tout au long de la vidéo) -->
+    {watermark_logo_html}
+    {watermark_qr_html}
   </div>
 </body>
 </html>
@@ -689,12 +829,20 @@ def _transcode_mp4(webm_path: Path, mp4_path: Path, width: int, height: int) -> 
         raise RuntimeError(f'ffmpeg failed ({proc.returncode}): {err}')
 
 
-async def render_reels_video(doc: dict[str, Any], fmt: str = 'vertical') -> bytes:
+async def render_reels_video(doc: dict[str, Any], fmt: str = 'vertical',
+                             share_url: str = '') -> bytes:
     """Génère un MP4 15 s de la révélation du tirage.
+
+    Cache Emergent Object Storage : clé `tirage-reels/{share_id}-{fmt}.mp4`.
+    Les tirages partagés sont immuables → cache sans TTL côté app, le remote
+    gère sa propre GC. Si le cache répond, on retourne les bytes sans lancer
+    Playwright/ffmpeg (économise ~25 s).
 
     Args:
         doc: document `shared_tirages` (dict) tel que lu dans MongoDB.
         fmt: 'vertical' (1080×1920, défaut) ou 'square' (1080×1080).
+        share_url: URL complète à encoder dans le QR (bottom-right). Omis
+                   → pas de QR affiché.
 
     Returns:
         Bytes MP4 h264 15 s @ 30 fps, prêts à être renvoyés comme StreamingResponse.
@@ -705,7 +853,21 @@ async def render_reels_video(doc: dict[str, Any], fmt: str = 'vertical') -> byte
     dims = _FORMATS[fmt]
     W, H = dims['w'], dims['h']
 
-    html = _build_html(doc, fmt)
+    share_id = str(doc.get('share_id') or '').strip().lower()
+
+    # ─── Cache remote (Emergent Object Storage) ───────────────────────
+    cache_path = f'tirage-reels/{share_id}-{fmt}.mp4' if share_id else ''
+    if cache_path:
+        try:
+            from services.emergent_storage import get_object as _get_obj
+            cached = await _get_obj(cache_path)
+            if cached and len(cached) > 10_000:  # garde-fou contre blobs vides
+                logger.info(f'[reels] cache hit {cache_path} ({len(cached)} B)')
+                return cached
+        except Exception as e:  # pragma: no cover
+            logger.warning(f'[reels] cache read skipped: {e}')
+
+    html = _build_html(doc, fmt, share_url=share_url)
     job_id = uuid.uuid4().hex[:10]
 
     with tempfile.TemporaryDirectory(prefix=f'plume-reels-{job_id}-') as tmp:
@@ -725,7 +887,19 @@ async def render_reels_video(doc: dict[str, Any], fmt: str = 'vertical') -> byte
             logger.exception(f'[reels] ffmpeg transcode failed: {e}')
             raise
 
-        return mp4.read_bytes()
+        mp4_bytes = mp4.read_bytes()
+
+    # ─── Push cache (fire-and-forget, pas bloquant pour le user) ──────
+    if cache_path and mp4_bytes:
+        try:
+            from services.emergent_storage import put_object as _put_obj
+            # On lance en arrière-plan pour que l'utilisateur reçoive la
+            # réponse immédiatement et ne paie pas l'upload (~1-3 s).
+            asyncio.create_task(_put_obj(cache_path, mp4_bytes, 'video/mp4'))
+        except Exception as e:  # pragma: no cover
+            logger.warning(f'[reels] cache write skipped: {e}')
+
+    return mp4_bytes
 
 
 __all__ = ['render_reels_video']

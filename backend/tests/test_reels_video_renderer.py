@@ -139,6 +139,31 @@ def test_build_html_no_question_safe():
     assert 'arcanes vont parler' in html.lower()
 
 
+def test_build_html_includes_watermark_logo():
+    """Le logo plume doit être inliné en SVG dans le HTML."""
+    html = _build_html(SAMPLE_DOC, 'vertical')
+    assert 'watermark-logo' in html
+    assert '<svg' in html
+    assert 'Plume' in html
+
+
+def test_build_html_qr_included_when_share_url_present():
+    """Si share_url est fourni, un QR code PNG base64 doit être injecté."""
+    html = _build_html(SAMPLE_DOC, 'vertical',
+                       share_url='https://plume-astrale.fr/api/og/tirage/abc123')
+    assert 'watermark-qr' in html
+    assert 'data:image/png;base64,' in html
+    assert 'SCANNEZ' in html.upper() or 'Scannez' in html
+
+
+def test_build_html_no_qr_when_share_url_empty():
+    """Sans share_url, pas de bloc QR rendu (hors CSS)."""
+    html = _build_html(SAMPLE_DOC, 'vertical', share_url='')
+    # On vérifie l'ABSENCE de l'image data URL + du caption 'SCANNEZ' rendu
+    assert 'data:image/png;base64,' not in html
+    assert '<div class="watermark watermark-qr">' not in html
+
+
 def test_build_html_escapes_user_input():
     """Les champs utilisateurs doivent être échappés (XSS protection).
 
