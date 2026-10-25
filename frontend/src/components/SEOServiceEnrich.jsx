@@ -69,7 +69,7 @@ export default function SEOServiceEnrich({ slug }) {
         {/* Intro (400 mots) */}
         <p
           className="mb-12"
-          style={{ fontSize: 17, lineHeight: 1.75, color: 'rgba(247,245,240,0.85)' }}
+          style={{ fontSize: 17, lineHeight: 1.75, color: 'var(--pa-body, rgba(247,245,240,0.85))' }}
           data-testid={`seo-enrich-intro-${slug}`}
         >
           {content.intro}
@@ -87,7 +87,7 @@ export default function SEOServiceEnrich({ slug }) {
           >
             {content.how_it_works.title}
           </h3>
-          <p style={{ fontSize: 16, lineHeight: 1.75, color: 'rgba(247,245,240,0.80)' }}>
+          <p style={{ fontSize: 16, lineHeight: 1.75, color: 'var(--pa-body, rgba(247,245,240,0.80))' }}>
             {content.how_it_works.body}
           </p>
         </div>
@@ -109,7 +109,7 @@ export default function SEOServiceEnrich({ slug }) {
               <li
                 key={i}
                 className="flex items-start gap-3"
-                style={{ fontSize: 16, lineHeight: 1.65, color: 'rgba(247,245,240,0.85)' }}
+                style={{ fontSize: 16, lineHeight: 1.65, color: 'var(--pa-body, rgba(247,245,240,0.85))' }}
               >
                 <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#D4AF37' }} strokeWidth={1.6} />
                 <span>{item}</span>
@@ -130,7 +130,7 @@ export default function SEOServiceEnrich({ slug }) {
           >
             {content.who_for.title}
           </h3>
-          <p style={{ fontSize: 16, lineHeight: 1.75, color: 'rgba(247,245,240,0.80)' }}>
+          <p style={{ fontSize: 16, lineHeight: 1.75, color: 'var(--pa-body, rgba(247,245,240,0.80))' }}>
             {content.who_for.body}
           </p>
         </div>
@@ -156,8 +156,8 @@ export default function SEOServiceEnrich({ slug }) {
                   key={i}
                   className="rounded-xl overflow-hidden"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(212,175,55,0.15)',
+                    background: 'var(--pa-surface, rgba(255,255,255,0.03))',
+                    border: '1px solid rgba(212,175,55,0.25)',
                   }}
                   data-testid={`seo-enrich-faq-${slug}-${i}`}
                 >
@@ -180,7 +180,7 @@ export default function SEOServiceEnrich({ slug }) {
                   {isOpen && (
                     <div
                       className="px-6 pb-5"
-                      style={{ fontSize: 15, lineHeight: 1.7, color: 'rgba(247,245,240,0.78)' }}
+                      style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--pa-body, rgba(247,245,240,0.78))' }}
                     >
                       {item.a}
                     </div>
