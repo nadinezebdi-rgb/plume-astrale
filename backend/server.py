@@ -4043,9 +4043,13 @@ async def _start_cart_recovery():
     # et faisaient timeout les probes /health → le pod était tué avant d'être
     # déclaré healthy. On délaie leur démarrage de BACKGROUND_LOOPS_WARMUP_SEC
     # secondes pour laisser passer les probes initiales.
-    # On peut aussi désactiver complètement via BACKGROUND_LOOPS_ENABLED=0.
+    # On peut aussi désactiver complètement via BACKGROUND_LOOPS_ENABLED=0
+    # ou son alias plus parlant DISABLE_BACKGROUND_TASKS=true (2026-02) :
+    # indispensable quand plusieurs déploiements tournent sur la même base
+    # (Railway + Emergent) pour éviter les doublons d'emails/rappels.
     # ─────────────────────────────────────────────────────────────────
-    _bg_enabled = os.environ.get('BACKGROUND_LOOPS_ENABLED', '1') != '0'
+    _bg_disabled_alias = os.environ.get('DISABLE_BACKGROUND_TASKS', '').lower() in ('1', 'true', 'yes', 'on')
+    _bg_enabled = (not _bg_disabled_alias) and os.environ.get('BACKGROUND_LOOPS_ENABLED', '1') != '0'
     _warmup_sec = int(os.environ.get('BACKGROUND_LOOPS_WARMUP_SEC', '90'))
 
     async def _delayed_start(coro, warmup=_warmup_sec):
@@ -4059,9 +4063,19 @@ async def _start_cart_recovery():
 
     if not _bg_enabled:
         logging.getLogger(__name__).warning(
-            'BACKGROUND_LOOPS_ENABLED=0 → tous les loops de fond sont DÉSACTIVÉS'
+            'BACKGROUND LOOPS DÉSACTIVÉS (DISABLE_BACKGROUND_TASKS/BACKGROUND_LOOPS_ENABLED) — '
+            'aucune tâche de fond ne va démarrer sur ce pod.'
         )
+        # On marque l'état pour l'endpoint /api/admin/background-loops/status
+        try:
+            app.state.background_loops_running = False  # noqa: F841
+        except Exception:
+            pass
         return
+    try:
+        app.state.background_loops_running = True  # noqa: F841
+    except Exception:
+        pass
 
     # Bootstrap idempotent des codes promo permanents (TOUT2026)
     try:

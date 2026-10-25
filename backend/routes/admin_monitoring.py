@@ -227,3 +227,54 @@ async def admin_ab_stats(
                 'migration_needed': True,
             }
         raise HTTPException(status_code=500, detail=f'ab_stats failed: {msg[:200]}')
+
+
+# ─────────────────────────────────────────────────────────────────
+# Background loops kill-switch — observabilité multi-déploiement
+# ─────────────────────────────────────────────────────────────────
+@router.get('/background-loops/status')
+async def admin_background_loops_status(_admin: dict = Depends(require_admin)):
+    """Diagnostic du pod courant pour piloter les kill-switches sur plusieurs
+    déploiements (Emergent + Railway + staging) qui pointent la même base.
+
+    Permet, en appelant la même URL publique depuis des contextes différents,
+    de confirmer que la variable d'env a bien pris effet sur chaque pod.
+    Expose :
+      - `running` : True si les loops sont actifs (set au startup)
+      - `env_disable_alias` : valeur brute de DISABLE_BACKGROUND_TASKS
+      - `env_bg_enabled`    : valeur brute de BACKGROUND_LOOPS_ENABLED
+      - `hostname`          : nom DNS du conteneur (différencie Emergent/Railway)
+      - `deploy_target`     : indice RAILWAY_* / EMERGENT_* / autre si posé
+      - `warmup_sec`        : fenêtre de warmup appliquée
+    """
+    import os as _os
+    import socket as _socket
+    from fastapi import Request as _Req  # local pour garder la signature propre
+
+    # On accède à l'état posé au startup
+    from server import app as _app  # type: ignore
+    running = bool(getattr(_app.state, 'background_loops_running', False))
+
+    # Indice sur la plateforme : Railway et Emergent set des env différentes
+    deploy_target = 'unknown'
+    if _os.environ.get('RAILWAY_ENVIRONMENT') or _os.environ.get('RAILWAY_PROJECT_ID'):
+        deploy_target = 'railway'
+    elif _os.environ.get('K_SERVICE') or _os.environ.get('EMERGENT_DEPLOYMENT_ID') or _os.environ.get('EMERGENT_APP_ID'):
+        deploy_target = 'emergent'
+    elif _os.environ.get('KUBERNETES_SERVICE_HOST'):
+        deploy_target = 'kubernetes'
+
+    try:
+        hostname = _socket.gethostname()
+    except Exception:
+        hostname = ''
+
+    return {
+        'running': running,
+        'env_disable_alias': _os.environ.get('DISABLE_BACKGROUND_TASKS', ''),
+        'env_bg_enabled': _os.environ.get('BACKGROUND_LOOPS_ENABLED', '1'),
+        'warmup_sec': int(_os.environ.get('BACKGROUND_LOOPS_WARMUP_SEC', '90')),
+        'hostname': hostname,
+        'deploy_target': deploy_target,
+    }
+
