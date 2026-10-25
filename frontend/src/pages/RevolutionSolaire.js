@@ -42,13 +42,6 @@ const TransitsToday = () => {
   if (!isAuthenticated || !user?.birth_date) return null;
 
 
-  const aspects = (() => {
-    const chart = data?.chart || {};
-    const arr = chart.aspects || chart.synastry_aspects || (chart.chart_data || {}).aspects || [];
-    return (Array.isArray(arr) ? arr : []).slice(0, 5);
-  })();
-
-
   const report = data?.report || {};
   // Vrai schéma astrology-api.io v3 : report.events est une liste d'événements interprétés
   const events = Array.isArray(report.events) ? report.events : [];
@@ -78,26 +71,6 @@ const TransitsToday = () => {
 
       {data && (
         <div>
-          {aspects.length > 0 && (
-            <ul className="space-y-3 mb-5" data-testid="transits-aspects">
-              {aspects.map((a, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm">
-                  <Sparkles className="w-4 h-4 text-[#C9A24B] mt-0.5" strokeWidth={1.5} />
-                  <div>
-                    <span className="text-[#0F1A3C]">
-                      {(a.point_1 || a.planet_1 || a.first_planet || '')} {(a.aspect_name || a.aspect || a.type || '')} {(a.point_2 || a.planet_2 || a.second_planet || '')}
-                    </span>
-                    {(a.orb !== undefined || a.orb_value !== undefined) && (
-                      <span className="text-[#0F1A3C]/50 ml-2 text-xs">
-                        orbe {Number(a.orb || a.orb_value).toFixed(2)}°
-                      </span>
-                    )}
-                    {a.description && <p className="text-[#232323]/70 mt-0.5 text-xs">{a.description}</p>}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
           {events.length > 0 && (
             <ul className="space-y-3 mb-5" data-testid="transits-events">
               {events.slice(0, 6).map((ev, i) => (
