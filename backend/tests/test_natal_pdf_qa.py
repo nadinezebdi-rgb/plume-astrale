@@ -94,7 +94,7 @@ def test_qa_passes_on_well_formed_pdf():
     pages = [f'Thème Natal\nClara\n{heavy}']
     for i in range(2, 20):
         pages.append(f'Page {i}\n{heavy}')
-    pages.append(f'EX LIBRIS\nClara\nP-ASTRAL-00042\nPlume Astrale')
+    pages.append(f'EX LIBRIS\nClara\nP-ASTRAL-00042\nComposé sous le ciel du 14 juillet 1992\nPlume Astrale')
     pages.append(f'Fin\nPlume Astrale\n{heavy}')
     pdf = _make_minimal_pdf(pages)
     r = qa_check_natal_pdf(pdf, prenom='Clara', mode='rich')
@@ -166,3 +166,62 @@ def test_qa_on_real_natal_pdf():
     assert r.sections_found['cover']
     assert r.sections_found['ex_libris']
     assert r.sections_found['plume_astrale_signature']
+
+
+
+# ─── Spec Feb 2026 : règles éditoriales strictes ───────────────────
+
+def test_qa_rejects_forbidden_complet_in_cover():
+    """Le mot « complet » doit être banni du titre de couverture."""
+    heavy = 'contenu riche ' * 200
+    pages = [f'Thème Natal Complet\nClara\n{heavy}']
+    for i in range(2, 22):
+        pages.append(f'Page {i}\n{heavy}')
+    pages.append('EX LIBRIS\nClara\nP-ASTRAL-00042\n14 juillet 1992\nPlume Astrale')
+    pdf = _make_minimal_pdf(pages)
+    r = qa_check_natal_pdf(pdf, prenom='Clara', mode='rich')
+    assert not r.passed
+    assert any('complet' in i.lower() for i in r.blocking_issues)
+
+
+def test_qa_rejects_interior_page_below_40_words():
+    """Une page intérieure non-structurelle sous 40 mots doit faire échouer la QA."""
+    heavy = 'contenu riche ' * 200
+    pages = [f'Thème Natal\nClara\n{heavy}']
+    for i in range(2, 20):
+        pages.append(f'Page {i}\n{heavy}')
+    # Insertion d'une page très clairsemée (10 mots) au milieu
+    pages[10] = 'Un titre bref sans contenu suffisant pour la zone utile'  # 10 mots
+    pages.append('EX LIBRIS\nClara\nP-ASTRAL-00042\n14 juillet 1992\nPlume Astrale')
+    pdf = _make_minimal_pdf(pages)
+    r = qa_check_natal_pdf(pdf, prenom='Clara', mode='rich')
+    assert not r.passed
+    assert any('sous-remplie' in i for i in r.blocking_issues)
+    assert len(r.low_density_pages) >= 1
+
+
+def test_qa_exempts_structural_page_divider_from_density_check():
+    """Une page part-divider « Partie I — » est exemptée du check densité."""
+    heavy = 'contenu riche ' * 200
+    pages = [f'Thème Natal\nClara\n{heavy}']
+    # Insère un part divider très court
+    pages.append('Partie I — Fondations')
+    for i in range(3, 22):
+        pages.append(f'Page {i}\n{heavy}')
+    pages.append('EX LIBRIS\nClara\nP-ASTRAL-00042\n14 juillet 1992\nPlume Astrale')
+    pdf = _make_minimal_pdf(pages)
+    r = qa_check_natal_pdf(pdf, prenom='Clara', mode='rich')
+    assert r.passed, f'Un part-divider ne doit pas déclencher le check densité : {r.blocking_issues}'
+
+
+def test_qa_ex_libris_requires_birth_year():
+    """L'ex-libris doit contenir une année de naissance (4 chiffres)."""
+    heavy = 'contenu riche ' * 200
+    pages = [f'Thème Natal\nClara\n{heavy}']
+    for i in range(2, 20):
+        pages.append(f'Page {i}\n{heavy}')
+    pages.append('EX LIBRIS\nClara\nP-ASTRAL-00042\nPlume Astrale')  # pas d'année
+    pdf = _make_minimal_pdf(pages)
+    r = qa_check_natal_pdf(pdf, prenom='Clara', mode='rich')
+    assert not r.passed
+    assert any('date de naissance' in i for i in r.blocking_issues)

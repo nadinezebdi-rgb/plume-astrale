@@ -66,7 +66,9 @@ class _ExLibrisFlowable(Flowable):
                  edition_date_fr: str,
                  copy_number: str,
                  citation: str,
-                 no_birth_time: bool = False):
+                 no_birth_time: bool = False,
+                 birth_time_fr: Optional[str] = None,
+                 birth_place: Optional[str] = None):
         super().__init__()
         self.prenom = (prenom or 'Lecteur').strip() or 'Lecteur'
         self.sun_sign = sun_sign or ''
@@ -76,6 +78,8 @@ class _ExLibrisFlowable(Flowable):
         self.copy_number = copy_number
         self.citation = citation
         self.no_birth_time = no_birth_time
+        self.birth_time_fr = (birth_time_fr or '').strip() or None
+        self.birth_place = (birth_place or '').strip() or None
 
     def wrap(self, availWidth, availHeight):
         self._avail_w = availWidth
@@ -250,11 +254,15 @@ class _ExLibrisFlowable(Flowable):
         c.line(cx - 2.0 * cm, band_y + 1.65 * cm, cx - 0.5 * cm, band_y + 1.65 * cm)
         c.line(cx + 0.5 * cm, band_y + 1.65 * cm, cx + 2.0 * cm, band_y + 1.65 * cm)
 
-        # « Composé sous le ciel du … »
+        # « Composé sous le ciel du … [, à Xh YY], [à <lieu>] »
         c.setFillColor(INK_SOFT)
         c.setFont(serif_font, 10)
-        c.drawCentredString(cx, band_y + 1.15 * cm,
-                            f'Composé sous le ciel du {self.edition_date_fr}')
+        composed_line = f'Composé sous le ciel du {self.edition_date_fr}'
+        if self.birth_time_fr:
+            composed_line += f', à {self.birth_time_fr}'
+        if self.birth_place:
+            composed_line += f', à {self.birth_place}'
+        c.drawCentredString(cx, band_y + 1.15 * cm, composed_line)
 
         # Numéro de copie
         c.setFillColor(GOLD_DEEP)
@@ -295,8 +303,15 @@ def ex_libris_page(story: list,
                    asc_sign: Optional[str] = None,
                    edition_date_fr: Optional[str] = None,
                    no_birth_time: bool = False,
-                   citation: Optional[str] = None) -> None:
-    """Insère une page ex-libris pleine après la dédicace, avant la TOC."""
+                   citation: Optional[str] = None,
+                   birth_time_fr: Optional[str] = None,
+                   birth_place: Optional[str] = None) -> None:
+    """Insère une page ex-libris pleine après la dédicace, avant la TOC.
+
+    `birth_time_fr` (ex. "14h30") et `birth_place` (ex. "Paris") sont ajoutés
+    sur la ligne « Composé sous le ciel du … » pour enrichir le caractère
+    pièce-unique (spec Feb 2026, §4).
+    """
     register_fonts()
 
     if not edition_date_fr:
@@ -322,6 +337,8 @@ def ex_libris_page(story: list,
         copy_number=copy_number,
         citation=citation,
         no_birth_time=no_birth_time,
+        birth_time_fr=birth_time_fr,
+        birth_place=birth_place,
     ))
     story.append(PageBreak())
 

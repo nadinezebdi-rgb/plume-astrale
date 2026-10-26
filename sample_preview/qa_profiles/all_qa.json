@@ -1,0 +1,72 @@
+[
+  {
+    "id": "profile_1_avec_heure",
+    "passed": true,
+    "mode": "rich",
+    "page_count": 42,
+    "word_count": 2517,
+    "blocking_issues": [],
+    "warnings": [],
+    "blank_pages": [],
+    "low_density_pages": [],
+    "sections_found": {
+      "cover": true,
+      "prenom_on_cover": true,
+      "ex_libris": true,
+      "ex_libris_valid": true,
+      "plume_astrale_signature": true
+    }
+  },
+  {
+    "id": "profile_2_sans_heure",
+    "passed": true,
+    "mode": "planets",
+    "page_count": 16,
+    "word_count": 1080,
+    "blocking_issues": [],
+    "warnings": [],
+    "blank_pages": [],
+    "low_density_pages": [],
+    "sections_found": {
+      "cover": true,
+      "prenom_on_cover": true,
+      "plume_astrale_signature": true
+    }
+  },
+  {
+    "id": "profile_3_prenom_long",
+    "passed": true,
+    "mode": "rich",
+    "page_count": 42,
+    "word_count": 2533,
+    "blocking_issues": [],
+    "warnings": [],
+    "blank_pages": [],
+    "low_density_pages": [],
+    "sections_found": {
+      "cover": true,
+      "prenom_on_cover": true,
+      "ex_libris": true,
+      "ex_libris_valid": true,
+      "plume_astrale_signature": true
+    }
+  },
+  {
+    "id": "profile_4_tier_ultra_enrichi",
+    "passed": true,
+    "mode": "rich",
+    "page_count": 42,
+    "word_count": 2537,
+    "blocking_issues": [],
+    "warnings": [],
+    "blank_pages": [],
+    "low_density_pages": [],
+    "sections_found": {
+      "cover": true,
+      "prenom_on_cover": true,
+      "ex_libris": true,
+      "ex_libris_valid": true,
+      "plume_astrale_signature": true
+    }
+  }
+]

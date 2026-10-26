@@ -1,5 +1,53 @@
 # Plume Astrale — PRD
 
+## 2026-02-27 — Refonte PDF Livre Astral : QA stricte + Ex-libris enrichi + 4 profils de test (Lot 6)
+
+**🎯 Objectif** : appliquer la spec Feb 2026 « Refonte Livre Astral » aux deux moteurs PDF (ReportLab + Chromium v2) : interdiction du mot « complet » sur la couverture, pas de page intérieure sous 40 mots ni sous 60 % de remplissage, aucune page sans texte, ex-libris complet (prénom + N° + date), 4 profils de test joints au livrable.
+
+**✅ Livré** :
+- **QA stricte renforcée (ReportLab, `services/natal_pdf_qa.py`)** :
+  - Nouveau check mot interdit sur couverture : « complet » est désormais bloquant.
+  - Nouveau check densité par page : chaque page intérieure non-structurelle doit atteindre ≥ 40 mots (mode rich) ou ≥ 25 mots (mode planets) ET ≥ 60 % de remplissage de la zone utile.
+  - Nouveau check ex-libris complet : prénom + numéro d'exemplaire (P-ASTRAL-xxxxx) + année de naissance (4 chiffres) doivent tous les trois être présents, sinon blocage.
+  - Détection intelligente des pages structurelles (demi-titre, TOC, part divider, copyright, dédicace, colophon, frontispice, éphéméride) via regex → exemptées du check densité pour respecter la respiration éditoriale.
+  - Normalisation du check prénom couverture : les prénoms composés (ex. « Marie-Alexandrine du Chastelier ») coupés sur 2 lignes sont désormais correctement détectés via `' '.join(cover_text.split())`.
+  - `QAReport.low_density_pages` : nouveau champ listant chaque page sous-remplie avec `page`, `words`, `fill`, `reason` pour debug.
+- **Chapter openers enrichis d'intros 60-80 mots** (`services/pdf_luxury_theme.py`, `services/natal_pdf_v2.py`) :
+  - `opening_page()` et `chapter_illustration()` acceptent un paramètre `intro_text` optionnel pour poser un paragraphe sous le titre.
+  - `natal_pdf_v2.py` alimente les intros pour les deux premiers chapter openers (ouverture + roue céleste) afin de respecter la règle spec « chapter opener ≥ 60-120 mots d'intro ».
+- **Ex-libris enrichi avec heure + lieu de naissance** (`services/natal_ex_libris.py`) :
+  - Nouveaux paramètres `birth_time_fr` et `birth_place` propagés depuis `natal_data`.
+  - La ligne « Composé sous le ciel du … » affiche désormais : date + « , à 14h30 » + « , à Paris » (si disponibles).
+- **QA v2 Chromium étendue (`services/book_engine_v2/pdf_qa.py`)** :
+  - 4 nouveaux checks QA (12 à 15) ajoutés à `run_all_checks()` : mots interdits couverture, densité par page, aucune page sans texte, ex-libris complet.
+  - Reste rétro-compatible (signatures de l'appelant `admin_book.py` inchangées : `prenom` est optionnel).
+- **4 profils de test automatisés** (`tests/_gen_sample_natal_profiles.py`) :
+  - Profil 1 — Clara, Cancer, avec heure (Paris 14h30) → 42 pages, 2517 mots ✓.
+  - Profil 2 — Marie, Bélier, sans heure → 16 pages, 1080 mots ✓ (mode planets).
+  - Profil 3 — Marie-Alexandrine du Chastelier (prénom composé long), Scorpion → 42 pages, 2533 mots ✓.
+  - Profil 4 — Alix, Taureau, ultra enrichi (phase lunaire incluse) → 42 pages, 2537 mots ✓.
+  - **4/4 passent la QA stricte** avec rapports JSON + captures couverture + ex-libris stockés dans `/app/sample_preview/qa_profiles/`.
+
+**🧪 Tests** :
+- `tests/test_natal_pdf_qa.py` : 4 nouveaux tests spec Feb 2026 :
+  - `test_qa_rejects_forbidden_complet_in_cover`
+  - `test_qa_rejects_interior_page_below_40_words`
+  - `test_qa_exempts_structural_page_divider_from_density_check`
+  - `test_qa_ex_libris_requires_birth_year`
+- **50/50 passent** (13 QA + 4 ex-libris + 33 planet renderer).
+
+**📁 Fichiers touchés** :
+- `services/natal_pdf_qa.py` *(QA stricte + 4 nouvelles règles + détection structurelle)*
+- `services/pdf_luxury_theme.py` *(intros chapter openers)*
+- `services/natal_pdf_v2.py` *(propagation birth_time/birth_place, intros ouverture + roue)*
+- `services/natal_ex_libris.py` *(heure + lieu dans « Composé sous le ciel du … »)*
+- `services/book_engine_v2/pdf_qa.py` *(4 checks éditoriaux ajoutés)*
+- `tests/test_natal_pdf_qa.py` *(4 tests ajoutés)*
+- `tests/_gen_sample_natal_profiles.py` *(nouveau, 4 profils joints)*
+
+---
+
+
 ## 2026-02-27 — Édition Saisonnière + Badge CI (Lot 5)
 
 **🎯 Objectif** : effet « collection » visuelle — chaque mois de naissance teinte la couverture d'une couleur de saison, pour que les clientes nées à la même saison se reconnaissent sur les réseaux. En parallèle, afficher le statut de la CI sur le README GitHub.

@@ -334,6 +334,12 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                             signature='Plume Astrale')
             # ── 4b. Ex-Libris bibliophile (Lot 3 — Feb 2026-02-27) ──
             from services.natal_ex_libris import ex_libris_page as _ex_libris
+            # Heure + lieu de naissance pour la ligne « Composé sous le ciel du... »
+            # (spec Feb 2026, §4). Lues depuis natal_data si disponibles.
+            _bt = natal_data.get('birth_time') or natal_data.get('birth_hour')
+            _bp = (natal_data.get('birth_place')
+                   or natal_data.get('birth_city')
+                   or natal_data.get('location'))
             _ex_libris(
                 story,
                 prenom=prenom,
@@ -342,6 +348,8 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                 moon_sign=moon_sign,
                 asc_sign=asc_sign,
                 no_birth_time=no_birth_time,
+                birth_time_fr=_bt,
+                birth_place=_bp,
             )
             # ── 5. Table des matières ──
             toc_entries = [
@@ -382,8 +390,16 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
         # PARTIE I — FONDATIONS
         # ══════════════════════════════════════════════════════════════
         # Ouverture
+        _opening_intro = (
+            f"{prenom}, ce livre est une conversation entre toi et le ciel qui "
+            f"t'a vu naître. Nous allons parcourir les grandes lignes de ta carte, "
+            f"lire ce qu'elle murmure sur ta sensibilité, tes forces, les mouvements "
+            f"qui te traversent. Prends ton temps : chaque page a été écrite pour "
+            f"être relue, soulignée, méditée."
+        )
         opening_page(story, styles, prenom=prenom,
-                     first_line="Ton ciel n'a jamais été aussi clair.")
+                     first_line="Ton ciel n'a jamais été aussi clair.",
+                     intro_text=_opening_intro)
 
         # Roue céleste
         if chart_png_bytes:
@@ -391,10 +407,20 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                               prenom=prenom, birth_date_fr=date_fr,
                               sun_sign=sun_sign, moon_sign=moon_sign, asc_sign=asc_sign)
         else:
+            _wheel_intro = (
+                "La roue de ton ciel est la cartographie de l'instant exact "
+                "où tu es née. Chaque secteur, chaque placement y est "
+                "irremplaçable. Les prochaines pages vont décoder cette "
+                "roue signe après signe, planète après planète, pour que "
+                "tu puisses t'y retrouver comme dans un plan de maison "
+                "familier. Ne cherche pas à tout comprendre d'un coup : "
+                "laisse les correspondances s'imposer d'elles-mêmes."
+            )
             chapter_illustration(story, styles,
                                   chapter_tag='✦ La roue de ton ciel ✦',
                                   title='Ton empreinte céleste',
-                                  illustration_slug='roue_zodiaque')
+                                  illustration_slug='roue_zodiaque',
+                                  intro_text=_wheel_intro)
 
         # Grille identité 2×2
         id_cells = [

@@ -255,13 +255,29 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
     story.append(PageBreak())
 
 
-def opening_page(story: list, styles: dict, prenom: str, first_line: str = "Ton ciel n'a jamais été aussi clair."):
-    """Page 2 — l'accueil spectaculaire : prénom + ligne d'ouverture pleine page."""
+def opening_page(story: list, styles: dict, prenom: str,
+                 first_line: str = "Ton ciel n'a jamais été aussi clair.",
+                 intro_text: Optional[str] = None):
+    """Page 2 — l'accueil spectaculaire : prénom + ligne d'ouverture pleine page.
+
+    Si `intro_text` est fourni, un paragraphe d'ouverture (60-120 mots) est
+    posé sous la ligne « waouh » pour satisfaire la règle QA d'une page
+    intérieure ≥ 40 mots (spec Feb 2026, §2).
+    """
     story.append(Spacer(1, 8 * cm))
     story.append(Paragraph(f'<font color="{GOLD_HEX}"><font name="OrnamentSerif">✦</font></font>', styles['planet_glyph']))
     story.append(Spacer(1, 0.5 * cm))
     story.append(Paragraph(prenom, styles['cover_title']))
     story.append(Paragraph(first_line, styles['waouh']))
+    if intro_text:
+        story.append(Spacer(1, 1.2 * cm))
+        story.append(Paragraph(
+            intro_text,
+            ParagraphStyle('opening_intro', fontName=font('Cormorant', 'Helvetica'),
+                           fontSize=12, leading=18, textColor=CREAM,
+                           alignment=TA_CENTER, spaceAfter=12,
+                           leftIndent=1.5 * cm, rightIndent=1.5 * cm),
+        ))
     story.append(PageBreak())
 
 
@@ -286,8 +302,13 @@ def waouh_quote_page(story: list, styles: dict, quote: str, illustration_slug: O
     story.append(PageBreak())
 
 
-def chapter_illustration(story: list, styles: dict, chapter_tag: str, title: str, illustration_slug: str):
-    """Page séparation de chapitre — tag + titre + illustration pleine page."""
+def chapter_illustration(story: list, styles: dict, chapter_tag: str, title: str,
+                         illustration_slug: str, intro_text: Optional[str] = None):
+    """Page séparation de chapitre — tag + titre + illustration pleine page.
+
+    Si `intro_text` est fourni (60-120 mots), il est posé sous l'illustration
+    pour satisfaire la règle QA d'un chapter opener ≥ 40 mots (spec Feb 2026).
+    """
     story.append(Spacer(1, 2 * cm))
     # Enveloppe les ✦ dans OrnamentSerif pour éviter les glyphes manquants (tofu) sur Cinzel.
     tag_html = chapter_tag.upper().replace(
@@ -299,6 +320,15 @@ def chapter_illustration(story: list, styles: dict, chapter_tag: str, title: str
     img_bytes = _dl_image(illustration_url(illustration_slug, 800))
     if img_bytes:
         story.append(RLImage(img_bytes, width=12 * cm, height=12 * cm, mask='auto'))
+    if intro_text:
+        story.append(Spacer(1, 0.8 * cm))
+        story.append(Paragraph(
+            intro_text,
+            ParagraphStyle('chapter_intro', fontName=font('Cormorant', 'Helvetica'),
+                           fontSize=11, leading=16, textColor=CREAM,
+                           alignment=TA_CENTER, spaceAfter=10,
+                           leftIndent=1.5 * cm, rightIndent=1.5 * cm),
+        ))
     story.append(PageBreak())
 
 

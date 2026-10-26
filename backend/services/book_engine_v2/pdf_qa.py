@@ -309,10 +309,151 @@ def check_pages_count(pdf: Path, min_pages: int = 8) -> QACheck:
 
 
 # ═══════════════════════════════════════════════════════════════════
+# Contrôles éditoriaux Feb 2026 (spec livre luxe)
+# ═══════════════════════════════════════════════════════════════════
+# Mots interdits sur la couverture (spec Feb 2026)
+_FORBIDDEN_COVER_WORDS = ('complet',)
+
+# Patterns regex identifiant une page structurelle légitime (demi-titre,
+# diviseur de partie, dédicace, copyright, colophon, TOC).
+_V2_STRUCTURAL_PAGE_PATTERNS = (
+    r'TABLE\s+DES\s+MATIÈRES',
+    r'Partie\s+[IVX]+\s*—',
+    r'©\s*Plume\s*Astrale',
+    r'puisse-t-il devenir compagnon',
+    r'^\s*Thème\s+Natal\s*$',
+    r'Plume\s*Astrale\s*·\s*Atelier',
+    r'Écrit\s+sous\s+les\s+étoiles',
+    r'^\s*Colophon\s*$',
+    r'EX\s*LIBRIS',
+)
+
+
+def check_cover_forbidden_words(pdf: Path) -> QACheck:
+    """Contrôle 12 : aucun mot interdit (p.ex. « complet ») en couverture."""
+    rc, out, _ = _run(['pdftotext', '-f', '1', '-l', '1', '-layout', str(pdf), '-'])
+    if rc != 0:
+        return QACheck('12', 'Mots interdits couverture', 'skip', 'pdftotext indisponible')
+    cover_lower = out.lower()
+    found = [w for w in _FORBIDDEN_COVER_WORDS if w in cover_lower]
+    if found:
+        return QACheck('12', 'Mots interdits couverture', 'fail',
+                       f'Mot(s) interdit(s) détecté(s) : {", ".join(found)}')
+    return QACheck('12', 'Mots interdits couverture', 'pass', 'Couverture propre')
+
+
+def check_page_density(pdf: Path, *, min_words_interior: int = 40,
+                       min_fill: float = 0.60) -> QACheck:
+    """Contrôle 13 : chaque page intérieure contient ≥ `min_words_interior` mots
+    (hors pages structurelles comme demi-titre, dédicace, part divider, colophon)."""
+    try:
+        import pymupdf  # type: ignore
+    except ImportError:
+        return QACheck('13', 'Densité pages', 'skip', 'pymupdf indisponible')
+    import re as _re
+    try:
+        doc = pymupdf.open(str(pdf))
+    except Exception as e:
+        return QACheck('13', 'Densité pages', 'fail', f'pymupdf open: {e}')
+    try:
+        structural_regex = _re.compile(
+            '|'.join(_V2_STRUCTURAL_PAGE_PATTERNS), _re.IGNORECASE | _re.MULTILINE)
+        sparse: list = []
+        n_pages = len(doc)
+        for i, page in enumerate(doc):
+            if i == 0 or i == n_pages - 1:  # cover + last page exempt
+                continue
+            txt = page.get_text() or ''
+            if structural_regex.search(txt):
+                continue
+            n_words = len(txt.split())
+            has_images = len(page.get_images()) > 0
+            if n_words < min_words_interior and not has_images:
+                sparse.append({'page': i + 1, 'words': n_words})
+        if not sparse:
+            return QACheck('13', 'Densité pages', 'pass',
+                           f'{n_pages} pages, aucune sous-remplie')
+        return QACheck('13', 'Densité pages', 'fail',
+                       f'{len(sparse)} page(s) < {min_words_interior} mots : '
+                       f'{[p["page"] for p in sparse[:10]]}')
+    finally:
+        doc.close()
+
+
+def check_no_empty_text_pages(pdf: Path) -> QACheck:
+    """Contrôle 14 : aucune page intérieure sans texte (hors ex-libris + 4e de couv)."""
+    try:
+        import pymupdf  # type: ignore
+    except ImportError:
+        return QACheck('14', 'Aucune page sans texte', 'skip', 'pymupdf indisponible')
+    try:
+        doc = pymupdf.open(str(pdf))
+    except Exception as e:
+        return QACheck('14', 'Aucune page sans texte', 'fail', f'pymupdf open: {e}')
+    try:
+        empty: list = []
+        n_pages = len(doc)
+        for i, page in enumerate(doc):
+            if i == 0 or i == n_pages - 1:  # cover + 4e de couv autorisées
+                continue
+            txt = page.get_text() or ''
+            if len(txt.strip()) < 5 and len(page.get_images()) == 0:
+                empty.append(i + 1)
+        if not empty:
+            return QACheck('14', 'Aucune page sans texte', 'pass',
+                           f'{n_pages} pages, aucune vide')
+        return QACheck('14', 'Aucune page sans texte', 'fail',
+                       f'{len(empty)} page(s) sans texte : {empty[:10]}')
+    finally:
+        doc.close()
+
+
+def check_ex_libris_complete(pdf: Path, prenom: Optional[str] = None) -> QACheck:
+    """Contrôle 15 : si une page ex-libris est présente, elle doit contenir
+    prénom + numéro d'exemplaire + une année de naissance (4 chiffres)."""
+    try:
+        import pymupdf  # type: ignore
+    except ImportError:
+        return QACheck('15', 'Ex-libris complet', 'skip', 'pymupdf indisponible')
+    import re as _re
+    try:
+        doc = pymupdf.open(str(pdf))
+    except Exception as e:
+        return QACheck('15', 'Ex-libris complet', 'fail', f'pymupdf open: {e}')
+    try:
+        for page in doc:
+            txt = page.get_text() or ''
+            if 'EX LIBRIS' in txt.upper() or 'E X   L I B R I S' in txt:
+                missing = []
+                if prenom and prenom not in txt:
+                    missing.append('prénom')
+                if 'P-ASTRAL-' not in txt and 'Exemplaire' not in txt:
+                    missing.append("numéro d'exemplaire")
+                if not _re.search(r'\b(19|20)\d{2}\b', txt):
+                    missing.append('date de naissance')
+                if not missing:
+                    return QACheck('15', 'Ex-libris complet', 'pass',
+                                   'prénom + N° + date présents')
+                return QACheck('15', 'Ex-libris complet', 'fail',
+                               f'Manque : {", ".join(missing)}')
+        # Pas de page ex-libris → acceptable (certains produits n'en ont pas)
+        return QACheck('15', 'Ex-libris complet', 'skip', 'Pas de page ex-libris')
+    finally:
+        doc.close()
+
+
+# ═══════════════════════════════════════════════════════════════════
 # Orchestrateur
 # ═══════════════════════════════════════════════════════════════════
-def run_all_checks(pdf: Path, *, wheel_page: int = 6) -> list[QACheck]:
-    """Lance tous les contrôles disponibles. Ordonnés du plus léger au plus lourd."""
+def run_all_checks(pdf: Path, *, wheel_page: int = 6,
+                   prenom: Optional[str] = None,
+                   min_words_interior: int = 40,
+                   min_fill: float = 0.60) -> list[QACheck]:
+    """Lance tous les contrôles disponibles. Ordonnés du plus léger au plus lourd.
+
+    `prenom` + `min_words_interior` + `min_fill` : paramètres pour les
+    contrôles éditoriaux Feb 2026 (ex-libris, densité par page).
+    """
     checks = [
         check_page_format(pdf),
         check_pages_count(pdf),
@@ -320,6 +461,11 @@ def run_all_checks(pdf: Path, *, wheel_page: int = 6) -> list[QACheck]:
         check_no_bitmap(pdf),
         check_no_placeholder_chapters(pdf),
         check_wheel_geometry(pdf, page_num=wheel_page),
+        # Checks éditoriaux Feb 2026
+        check_cover_forbidden_words(pdf),
+        check_page_density(pdf, min_words_interior=min_words_interior, min_fill=min_fill),
+        check_no_empty_text_pages(pdf),
+        check_ex_libris_complete(pdf, prenom=prenom),
     ]
     return checks
 
