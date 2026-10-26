@@ -159,7 +159,16 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
     """
     story.append(Spacer(1, 2 * cm))
     story.append(Paragraph('<font name="OrnamentSerif">✦</font> PLUME ASTRALE <font name="OrnamentSerif">✦</font>', styles['section_tag']))
-    story.append(Spacer(1, 0.6 * cm))
+    # Titre « Thème Natal » (sans « complet » — c'était le titre marketing
+    # externe, pas le titre éditorial du livre). Placé au-dessus du hero
+    # pour établir d'emblée la nature du document.
+    _book_title_style = styles.get('book_title_cover') or ParagraphStyle(
+        'book_title_cover', fontName=font('Cormorant', 'Helvetica'),
+        fontSize=36, leading=42, textColor=GOLD, alignment=TA_CENTER,
+        spaceAfter=18,
+    )
+    story.append(Paragraph('Thème Natal', _book_title_style))
+    story.append(Spacer(1, 0.4 * cm))
 
     # Priorité : hero V3 local (garantit une belle carte prestige à chaque livre imprimé)
     from pathlib import Path as _P
