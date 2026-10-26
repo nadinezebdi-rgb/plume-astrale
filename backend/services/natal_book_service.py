@@ -242,6 +242,19 @@ async def generate_enriched_natal_pdf(
     )
 
     diag['pdf_bytes'] = len(pdf_bytes)
+    pdf_bytes_print = pdf_bytes  # conserve la version avec respirations recto/verso
+
+    # 9.b) Nettoyage des pages vides (pattern "page recto obligatoire" en
+    # typographie livre, inutile et laid en export numérique). Appliqué
+    # UNIQUEMENT à la version numérique — la version print Lulu garde
+    # les pages de respiration nécessaires à l'impression recto/verso.
+    try:
+        from services.pdf_strip_blanks import strip_blank_pages
+        pdf_bytes = await asyncio.to_thread(strip_blank_pages, pdf_bytes)
+        diag['pdf_bytes_stripped'] = len(pdf_bytes)
+    except Exception as _e:
+        logger.warning(f'[natal_book_service] strip_blank_pages skipped: {_e}')
+
     try:
         # Pattern reconnu par ReportLab pour compter les pages sans parser le PDF.
         diag['pdf_pages'] = (
@@ -252,10 +265,11 @@ async def generate_enriched_natal_pdf(
 
     result: dict[str, Any] = {'pdf_bytes': pdf_bytes, 'diag': diag}
 
-    # 10) Variante print (Lulu A5 avec bleed) si demandée
+    # 10) Variante print (Lulu A5 avec bleed) si demandée — part de la
+    # version AVEC pages de respiration (nécessaires au recto/verso Lulu).
     if output == 'print':
         from services.print_book_renderer import lulu_interior
-        interior_bytes = await asyncio.to_thread(lulu_interior, pdf_bytes)
+        interior_bytes = await asyncio.to_thread(lulu_interior, pdf_bytes_print)
         result['interior_bytes'] = interior_bytes
         diag['interior_bytes'] = len(interior_bytes)
         try:
