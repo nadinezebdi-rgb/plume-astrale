@@ -3,7 +3,7 @@
 Contexte : chaque livre contient ~20 sections rédigées par GPT. Si une
 génération échoue ou renvoie une chaîne vide, la page du PDF devenait
 blanche. Ce module fournit un texte éditorial neutre mais signifiant,
-rédigé dans la voix Soléna, pour chaque section — jamais de "Lorem ipsum"
+rédigé dans la voix éditoriale Plume Astrale, pour chaque section — jamais de "Lorem ipsum"
 ni de placeholder visible.
 
 Usage :

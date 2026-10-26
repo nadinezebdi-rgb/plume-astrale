@@ -9,7 +9,7 @@ Structure éditoriale :
   Chapitre III — Vos planètes (10 planètes, 2 par page = 5 pages)
   Chapitre IV  — Vos douze maisons (12 maisons, 3 par page = 4 pages)
   Chapitre V   — Vos aspects (5 groupes = 5 pages)
-  Chapitre VI  — Synthèse — ce que votre ciel vous dit (voix Soléna, 1-2 pages)
+  Chapitre VI  — Synthèse — ce que votre ciel vous dit (voix Plume Astrale, 1-2 pages)
 
 Chaque chapitre a sa belle page recto. Le renderer book_engine_v2 ajoute :
   - Couverture, blanche, titre, blanche
@@ -733,7 +733,7 @@ def _chapter_aspects(aspects_norm: list, language: str = 'fr') -> Chapter:
 
 def _chapter_synthese_finale(synthese_text: str, language: str = 'fr',
                               closing_png: bytes | None = None) -> Chapter:
-    """Chapitre VI — Synthèse finale voix Soléna."""
+    """Chapitre VI — Synthèse finale, voix éditoriale Plume Astrale."""
     title = _T(language, 'ch_closing_title')
     kicker = _T(language, 'ch_closing_kicker')
     short_k = _T(language, 'ch_closing_short_kicker')
@@ -790,7 +790,7 @@ def build_natal_manuscript(
       planets_detail[] — [{name, sign, degree_in_sign, house, retrograde}]  (facultatif)
       aspects[]        — [{planet_a, planet_b, type, orb}]  (facultatif, format API)
       house_cusps      — {num: {sign, degree}}  (facultatif)
-      synthese_aspects — paragraphe Soléna optionnel
+      synthese_aspects — paragraphe de synthèse optionnel (voix Plume Astrale)
       tier             — 'ultra' ou 'legacy'
     """
     prenom = (prenom or 'Voyageuse').strip() or 'Voyageuse'

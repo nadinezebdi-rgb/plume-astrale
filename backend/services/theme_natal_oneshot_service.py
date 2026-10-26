@@ -347,7 +347,15 @@ async def _send_theme_natal_email(email: str, first_name: str, pdf_link: str, se
     """
     from services.email_journal import log_send_attempt, log_send_response
     api_key = os.environ.get('RESEND_API_KEY', '').strip()
-    sender = os.environ.get('SENDER_EMAIL', 'Solena · Plume Astrale <contact@plume-astrale.fr>')
+    # 2026-02-27 : expéditeur spécifique au Thème Natal (sans "Solena"). Les autres
+    # produits conservent SENDER_EMAIL de l'env (voix Soléna). Ici on force la marque.
+    _env_sender = os.environ.get('SENDER_EMAIL', 'Plume Astrale <contact@plume-astrale.fr>')
+    # Si l'env contient "Solena/Soléna", on le neutralise pour cet email natal.
+    import re as _re
+    if _re.search(r'sol[eé]na', _env_sender, flags=_re.IGNORECASE):
+        sender = 'Plume Astrale <contact@plume-astrale.fr>'
+    else:
+        sender = _env_sender
     subject = "Ton Thème Natal Complet est prêt ✦"
     if not api_key:
         logger.warning("[theme_natal_oneshot] RESEND_API_KEY missing")
@@ -430,7 +438,7 @@ async def _send_theme_natal_email(email: str, first_name: str, pdf_link: str, se
           </div>
         </div>
         <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(212,175,55,0.15);text-align:center;">
-          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;color:#F5EEE0;font-size:20px;">— Solena</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;color:#F5EEE0;font-size:20px;">— Plume Astrale</div>
         </div>
       </div>
     </div>

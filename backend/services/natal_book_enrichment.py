@@ -9,7 +9,7 @@ Complète natal_ai_enrichment.py avec les sections nécessaires à la version li
 - Aspect rare / signature — 2-3 paragraphes
 - Introduction aux 12 maisons — 2 paragraphes
 - 12 analyses de maison (2 phrases chacune)
-- Année à venir (Soléna) — 3-4 paragraphes
+- Année à venir (voix Plume Astrale) — 3-4 paragraphes
 
 TOUT est généré en UN SEUL appel GPT-5.4 qui retourne un JSON structuré,
 pour éviter d'exploser le pipeline (temps + coût).

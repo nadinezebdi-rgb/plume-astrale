@@ -1,5 +1,56 @@
 # Plume Astrale — PRD
 
+## 2026-02-27 — Refactor PDF Thème Natal : Lots 1-4 (couverture 3D + Ex-Libris IA + QA auto)
+
+**🎯 Objectif** : hisser le PDF Thème Natal au standard « Dior × Cartier × Harry Potter × Astrologie » demandé par la fondatrice — couverture personnalisée, Ex-Libris bibliophile, contrôle qualité automatisé bloquant avant envoi.
+
+**✅ Livré** :
+- **Lot 1 — Fondations typographiques** (livré lors d'un lot antérieur) : système d'ornements OrnamentSerif (FreeSerif) pour les glyphes `✦ ❖ ⚜ ◆`, polices Cinzel + Cormorant Garamond + Allura embarquées en TTF, styles de paragraphe luxe.
+- **Lot 2 — Couverture 3D personnalisée** (`services/planet_renderer.py`, 350 lignes) :
+  - Rendu PIL vectoriel d'une planète 3D personnalisée selon le signe solaire (ou l'élément dominant), appliquée dynamiquement sur la couverture `build_natal_pdf_v2`.
+  - Mapping des 12 signes → planète maîtresse (Soleil pour Lion, Lune pour Cancer, Mars pour Bélier/Scorpion, etc.) avec palettes de couleurs cohérentes par signe.
+  - Anneaux Saturne rendus pour Capricorne/Verseau, atmosphères gazeuses pour Jupiter/Neptune, cratères lunaires pour Cancer.
+  - Déterministe : même entrée → même sortie (évite les régénérations IA runtime, coût 0).
+- **Lot 3 — Ex-Libris bibliophile IA** (`services/natal_ex_libris.py` + asset `assets/ex_libris_bibliotheque.png`) :
+  - Visuel « Nuit étoilée + reliures dorées » généré via Nano Banana (Emergent LLM Key), style grimoire-bibliothèque personnelle avec paons héraldiques, échelle de lecture, constellations.
+  - Encart cartouche crème superposé avec prénom, triade astrale (☉☽⇑), citation personnalisée, numéro d'exemplaire déterministe (`P-ASTRAL-xxxxx`).
+- **Lot 4 — Contrôle qualité automatisé** (`services/natal_pdf_qa.py`, 220 lignes) :
+  - Analyse structurelle PyMuPDF du PDF produit : extraction texte full, détection pages blanches, décompte de mots.
+  - Checks bloquants : couverture présente, prénom sur couverture, Ex-Libris valide (en mode `rich`), signature `Plume Astrale`, ≥ 2500 mots en mode rich / ≥ 1200 en mode planets, 0 page blanche, 0 contamination « Soléna ».
+  - API : `qa_check_natal_pdf(bytes, prenom, mode) → QAReport` (rapport structuré) + `assert_natal_pdf_quality(...)` (helper strict qui raise `NatalPdfQAError`).
+  - Intégré dans `natal_book_service.generate_natal_book_pdf` : le PDF n'est jamais stocké/envoyé si QA échoue, l'incident est loggué pour investigation.
+- **Correctif tofu glyphes ✦** (découvert pendant la validation visuelle) :
+  - 11 pages du PDF affichaient des carrés vides (U+0000) au lieu de `✦` car certains Paragraph rendaient les ornements avec `Cinzel` (police qui n'a pas ces glyphes).
+  - Fix : helper `_star()` dans `pdf_book_pages.py` + traduction automatique `✦ → <font name="OrnamentSerif">✦</font>` dans `chapter_illustration` et `chapter_illustration_grid` (`pdf_luxury_theme.py`).
+  - Résultat : 0 glyphe manquant sur les 42 pages de l'échantillon.
+
+**🧪 Tests** :
+- `tests/test_natal_pdf_qa.py` (9 tests) : couverture complète du QA — défauts simulés (titre manquant, prénom manquant, contamination Soléna, Ex-Libris manquant), seuils de mots en mode `planets` vs `rich`, assertion stricte, PDF réel.
+- `tests/test_planet_renderer.py` (17 tests) : 12 signes zodiacaux → rendu PNG valide, Saturne a bien ses anneaux, fallback déterministe sur signe inconnu.
+- `tests/test_natal_ex_libris.py` (4 tests) : page Ex-Libris générée, prénom imprimé, numéro d'exemplaire déterministe, image bibliothèque chargée.
+- **30/30 passent** après correctif tofu.
+- Validation visuelle : échantillon PDF 42 pages / 2804 mots / 0 page blanche / QA passed=true / 0 glyphe manquant. Screenshots couverture, faux-titre, Ex-Libris, pages chapitres, maisons vérifiés OK.
+
+**📁 Fichiers touchés** :
+- `services/planet_renderer.py` *(nouveau, Lot 2)*
+- `services/natal_pdf_qa.py` *(nouveau, Lot 4)*
+- `services/natal_ex_libris.py` *(mis à jour pour utiliser l'asset bibliothèque IA — Lot 3)*
+- `services/natal_pdf_v2.py` *(intégration planet_renderer sur couverture + appel ex_libris)*
+- `services/natal_book_service.py` *(exécution pipeline QA avant stockage)*
+- `services/pdf_book_pages.py` *(helper `_star()` + remplacements ✦)*
+- `services/pdf_luxury_theme.py` *(traduction ✦→OrnamentSerif dans chapter_illustration et chapter_illustration_grid)*
+- `tests/test_natal_pdf_qa.py`, `tests/test_planet_renderer.py` *(nouveaux)*
+- `tests/_gen_sample_natal_pdf.py` *(mock enrichi pour atteindre le seuil QA 2500 mots)*
+- `assets/ex_libris_bibliotheque.png` *(image IA Nano Banana, nuit étoilée + reliures dorées)*
+
+**🧱 Prochains chantiers (déjà planifiés dans la roadmap)** :
+- QR code sharing pour événements physiques (P3).
+- Tracking par canal d'acquisition des tirages partagés (P3).
+- CI GitHub Actions `pytest + yarn build` sur chaque push (P3).
+
+---
+
+
 ## 2026-02-24 — Reels Preview : vidéo 15 s MP4 pour TikTok / Reels / Shorts
 
 **🎯 Objectif** : auto-exporter une vidéo de 15 s de la révélation d'un tirage depuis la fenêtre de partage, pour booster la viralité TikTok / Instagram Reels / YouTube Shorts.

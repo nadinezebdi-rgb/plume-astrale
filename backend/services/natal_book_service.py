@@ -15,7 +15,7 @@ Pipeline :
     1. normalize_birth_data + fetch /charts/natal + /analysis/natal-report
     2. anti-slop guard : refuser si <5 planètes core
     3. enhanced_personal_analysis (aspects/fixed stars, best-effort)
-    4. enrich_natal_ultra (11 planètes + synthèse aspects, voix Soléna)
+    4. enrich_natal_ultra (11 planètes + synthèse aspects, voix Plume Astrale)
     5. enrich_book_chapters (élément/modalité/trio/12 maisons/aspects/année)
     6. chart wheel SVG → PNG compressé (optionnel)
     7. generate_manuscrit_pdf (ReportLab) via thread pool
@@ -132,7 +132,7 @@ async def generate_enriched_natal_pdf(
     diag['enhanced_aspects_count'] = len((enhanced_analysis or {}).get('aspects') or [])
     diag['enhanced_fixed_stars_count'] = len((enhanced_analysis or {}).get('fixed_stars') or [])
 
-    # 4) Enrichissement AI planétaire (11 planètes + synthèse aspects, Soléna)
+    # 4) Enrichissement AI planétaire (11 planètes + synthèse aspects, voix Plume Astrale)
     ai_result = await _enrich_ai_ultra(name, bd, interpretations, force_refresh, lang)
     diag['ai_source'] = ai_result.get('_source', 'none')
     diag['ai_planet_count'] = sum(1 for k in _AI_PLANET_KEYS if ai_result.get(k))
@@ -254,6 +254,32 @@ async def generate_enriched_natal_pdf(
         diag['pdf_bytes_stripped'] = len(pdf_bytes)
     except Exception as _e:
         logger.warning(f'[natal_book_service] strip_blank_pages skipped: {_e}')
+
+    # 9.c) Contrôle qualité automatique (Lot 4 — Feb 2026) :
+    # On vérifie structure, pages vides, prénom en couverture, Ex-Libris
+    # et compteur de mots avant envoi. Les échecs bloquants sont loggés
+    # en ERROR mais le PDF part quand même — c'est un filet de sécurité,
+    # pas un hard-block (évite de rendre le livre indisponible pour un
+    # faux positif de QA). Le diag[`qa`] permet aux admins de monitorer.
+    try:
+        from services.natal_pdf_qa import qa_check_natal_pdf
+        qa_mode = 'rich' if book_data and book_data.get('_source') in ('gpt', 'cache') and not no_birth_time else 'planets'
+        qa_report = await asyncio.to_thread(
+            qa_check_natal_pdf, pdf_bytes, prenom=name, mode=qa_mode,
+        )
+        diag['qa'] = qa_report.to_dict()
+        if not qa_report.passed:
+            logger.error(
+                f'[natal_book_service] QA FAIL (mode={qa_mode}) '
+                f'blocking={qa_report.blocking_issues} warnings={qa_report.warnings}'
+            )
+        elif qa_report.warnings:
+            logger.warning(
+                f'[natal_book_service] QA warnings (mode={qa_mode}): {qa_report.warnings}'
+            )
+    except Exception as _e:
+        logger.warning(f'[natal_book_service] qa_check skipped: {_e}')
+        diag['qa'] = {'error': str(_e)}
 
     try:
         # Pattern reconnu par ReportLab pour compter les pages sans parser le PDF.

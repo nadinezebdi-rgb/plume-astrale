@@ -30,6 +30,12 @@ from services import library_images as libimg
 MUTED_HEX      = '#9E9AA8'
 
 
+def _star(color_hex: str = GOLD_HEX) -> str:
+    """Retourne un glyphe ✦ rendu avec la police OrnamentSerif (évite les tofu).
+    À utiliser dans tout Paragraph dont le fontName est Cinzel/Cormorant."""
+    return f'<font name="{font("OrnamentSerif", "Helvetica")}" color="{color_hex}">✦</font>'
+
+
 # ═══════════════════════════════════════════════════════════════════
 # FRONT MATTER
 # ═══════════════════════════════════════════════════════════════════
@@ -39,7 +45,7 @@ def half_title_page(story, styles, book_title: str = 'Thème Natal') -> None:
     Convention édition : deuxième feuillet après la couverture."""
     story.append(Spacer(1, 8 * cm))
     story.append(Paragraph(
-        f'<font color="{GOLD_HEX}">✦</font>',
+        _star(),
         ParagraphStyle('ht_star', fontName=font('Cinzel', 'Helvetica'),
                        fontSize=28, alignment=TA_CENTER, spaceAfter=30),
     ))
@@ -87,8 +93,9 @@ def copyright_page(story, styles, prenom: str, birth_date_fr: str) -> None:
     story.append(PageBreak())
 
 
-def dedication_page(story, styles, prenom: str, dedication_text: Optional[str] = None) -> None:
-    """Dédicace personnalisée signée Soléna."""
+def dedication_page(story, styles, prenom: str, dedication_text: Optional[str] = None,
+                    signature: str = 'Soléna') -> None:
+    """Dédicace personnalisée — signature paramétrable (Thème Natal → Plume Astrale)."""
     text = dedication_text or (
         f'Pour toi, {prenom} —<br/>'
         f'qui as ouvert ce grimoire ce soir<br/>'
@@ -104,7 +111,7 @@ def dedication_page(story, styles, prenom: str, dedication_text: Optional[str] =
                        leading=28, spaceAfter=40),
     ))
     story.append(Paragraph(
-        '— Soléna',
+        f'— {signature}',
         ParagraphStyle('ded_sign', fontName=font('Cinzel', 'Helvetica'),
                        fontSize=11, textColor=GOLD, alignment=TA_CENTER),
     ))
@@ -121,7 +128,7 @@ def table_of_contents_page(story, styles, entries: List[Dict[str, Any]]) -> None
     """
     story.append(Spacer(1, 1.5 * cm))
     story.append(Paragraph(
-        f'<font color="{GOLD_HEX}">✦</font>  TABLE DES MATIÈRES  <font color="{GOLD_HEX}">✦</font>',
+        f'<font name="{font("OrnamentSerif", "Helvetica")}" color="{GOLD_HEX}">✦</font>  TABLE DES MATIÈRES  <font name="{font("OrnamentSerif", "Helvetica")}" color="{GOLD_HEX}">✦</font>',
         ParagraphStyle('toc_h', fontName=font('Cinzel', 'Helvetica'),
                        fontSize=14, textColor=CREAM, alignment=TA_CENTER,
                        spaceAfter=30, letterSpacing=2),
@@ -222,7 +229,7 @@ def element_dominant_page(story, styles, dominant_element: str, planet_count: in
     meta = _ELEMENT_META.get(dominant_element, _ELEMENT_META['Feu'])
     story.append(Spacer(1, 1 * cm))
     story.append(Paragraph(
-        f'<font color="{GOLD_HEX}">✦ TON ÉLÉMENT DOMINANT ✦</font>',
+        f'{_star()} TON ÉLÉMENT DOMINANT {_star()}',
         ParagraphStyle('el_tag', fontName=font('Cinzel', 'Helvetica'),
                        fontSize=10, alignment=TA_CENTER, spaceAfter=14, letterSpacing=3),
     ))
@@ -259,7 +266,7 @@ def modality_dominant_page(story, styles, dominant_modality: str, planet_count: 
     meta = _MODALITY_META.get(dominant_modality, _MODALITY_META['Cardinal'])
     story.append(Spacer(1, 1 * cm))
     story.append(Paragraph(
-        f'<font color="{GOLD_HEX}">✦ TA MODALITÉ DOMINANTE ✦</font>',
+        f'{_star()} TA MODALITÉ DOMINANTE {_star()}',
         ParagraphStyle('md_tag', fontName=font('Cinzel', 'Helvetica'),
                        fontSize=10, alignment=TA_CENTER, spaceAfter=14, letterSpacing=3),
     ))
@@ -300,7 +307,7 @@ def trio_cross_analysis_page(story, styles, sun_sign: str, moon_sign: str,
     Trois mini-images alignées en haut, texte d'analyse profonde en dessous."""
     story.append(Spacer(1, 0.8 * cm))
     story.append(Paragraph(
-        f'<font color="{GOLD_HEX}">✦ TON TRIANGLE INTIME ✦</font>',
+        f'{_star()} TON TRIANGLE INTIME {_star()}',
         ParagraphStyle('tc_tag', fontName=font('Cinzel', 'Helvetica'),
                        fontSize=10, alignment=TA_CENTER, spaceAfter=10, letterSpacing=3),
     ))
@@ -361,7 +368,7 @@ def aspects_group_page(story, styles, category: str, headline: str,
     """
     story.append(Spacer(1, 1 * cm))
     story.append(Paragraph(
-        f'<font color="{GOLD_HEX}">✦ {category.upper()} ✦</font>',
+        f'{_star()} {category.upper()} {_star()}',
         ParagraphStyle('ag_tag', fontName=font('Cinzel', 'Helvetica'),
                        fontSize=10, alignment=TA_CENTER, spaceAfter=12, letterSpacing=3),
     ))
@@ -463,7 +470,7 @@ def year_ahead_page(story, styles, prenom: str, body_html: str) -> None:
     """Épilogue orienté 12 prochains mois — transits majeurs à venir."""
     story.append(Spacer(1, 1.2 * cm))
     story.append(Paragraph(
-        f'<font color="{GOLD_HEX}">✦ TON ANNÉE À VENIR ✦</font>',
+        f'{_star()} TON ANNÉE À VENIR {_star()}',
         ParagraphStyle('ya_tag', fontName=font('Cinzel', 'Helvetica'),
                        fontSize=10, alignment=TA_CENTER, spaceAfter=14, letterSpacing=3),
     ))
@@ -490,8 +497,9 @@ def year_ahead_page(story, styles, prenom: str, body_html: str) -> None:
 
 
 def colophon_page(story, styles, prenom: str, referral_code: Optional[str] = None,
-                   referral_link: Optional[str] = None, product_name: str = 'Ton Thème Natal') -> None:
-    """Dernier feuillet : délègue au colophon Nocturne partagé (QR code + citation Soléna).
+                   referral_link: Optional[str] = None, product_name: str = 'Ton Thème Natal',
+                   signature: str = 'Soléna') -> None:
+    """Dernier feuillet : délègue au colophon Nocturne partagé (QR code + citation).
 
     Historique 2026-02 → 2026-02-26 : remplacement de l'ancien colophon texte-only
     par le module `pdf_colophon` unifié (avec QR code, code letter-spaced, kicker
@@ -499,6 +507,9 @@ def colophon_page(story, styles, prenom: str, referral_code: Optional[str] = Non
 
     Feb 2026 (§V audit marque) : `product_name` paramétrable pour distinguer
     l'édition standard de l'"Édition des Planètes" (sans ascendant, sans maisons).
+
+    Feb 2026-02-27 : `signature` paramétrable — le Thème Natal passe
+    "Plume Astrale" (la voix Soléna reste sur les autres produits).
     """
     from services.pdf_colophon import build_colophon
     # `styles` du natal book n'a pas les mêmes clés que celui de pdf_prestige,
@@ -506,5 +517,5 @@ def colophon_page(story, styles, prenom: str, referral_code: Optional[str] = Non
     build_colophon(
         story, {}, prenom=prenom,
         referral_code=referral_code, referral_link=referral_link,
-        product_name=product_name,
+        product_name=product_name, signature=signature,
     )

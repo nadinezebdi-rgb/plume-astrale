@@ -13,7 +13,7 @@ Spec A5 hardcover (casewrap/casebound) :
       via le template calculator. Pour le mock, on utilise une approximation.
 
 Design : couleur sable crème (#F0E6D2), typo Cormorant Garamond, aucune mention
-de Soléna, visuel Plume Astrale (plume dorée + roue natale discrète).
+de Plume Astrale, visuel maison (plume dorée + roue natale discrète).
 """
 from __future__ import annotations
 import base64

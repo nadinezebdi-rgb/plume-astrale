@@ -72,11 +72,15 @@ def build_colophon(
     referral_code: Optional[str] = None,
     referral_link: Optional[str] = None,
     product_name: str = 'Plume Astrale',
+    signature: str = 'Soléna',
 ) -> None:
     """Ajoute au `story` reportlab une page colophon Nocturne complète.
 
     Sans effet cassant : si `referral_code` est absent, la page se réduit à
-    la citation Soléna + signature (pas de QR ni de bloc partenariat).
+    la citation + signature (pas de QR ni de bloc partenariat).
+
+    `signature` : voix éditoriale affichée (défaut "Soléna" pour tous les
+    produits ; Thème Natal passe "Plume Astrale" — demande user 2026-02-27).
     """
     from services.pdf_theme import (
         register_fonts, font, GOLD, GOLD_LIGHT, CREAM, MUTED, LAVENDER,
@@ -115,7 +119,7 @@ def build_colophon(
         fontSize=13, textColor=GOLD, alignment=TA_CENTER, leading=16,
     )
     story.append(Paragraph(
-        '— Soléna,<br/>'
+        f'— {signature},<br/>'
         '<font size="10" color="#5E5A63">voix éditoriale de Plume Astrale</font>',
         signature_style,
     ))

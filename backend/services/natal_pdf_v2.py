@@ -318,7 +318,8 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
         # ── 1. COUVERTURE ──────────────────────────────────────────────
         cover_page(story, styles, prenom=prenom,
                    subtitle='Ton ciel de naissance, dévoilé.',
-                   illustration_slug='ciel_zodiaque')
+                   illustration_slug='ciel_zodiaque',
+                   sun_sign=sun_sign)
 
         if bd:
             # ── 2. Faux-titre ──
@@ -326,7 +327,19 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
             # ── 3. Copyright + éphéméride ──
             copyright_page(story, styles, prenom, date_fr)
             # ── 4. Dédicace personnalisée (GPT) ──
-            dedication_page(story, styles, prenom, book_data.get('dedication'))
+            dedication_page(story, styles, prenom, book_data.get('dedication'),
+                            signature='Plume Astrale')
+            # ── 4b. Ex-Libris bibliophile (Lot 3 — Feb 2026-02-27) ──
+            from services.natal_ex_libris import ex_libris_page as _ex_libris
+            _ex_libris(
+                story,
+                prenom=prenom,
+                birth_date=birth_date,
+                sun_sign=sun_sign,
+                moon_sign=moon_sign,
+                asc_sign=asc_sign,
+                no_birth_time=no_birth_time,
+            )
             # ── 5. Table des matières ──
             toc_entries = [
                 {'type': 'part',    'label': 'Partie I — Fondations',                                        'page': _pg('part1')},
@@ -467,7 +480,7 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                 #  8. synthesis (forces / défis / mission)
                 if planet_img:
                     t_double_illustration(story, planet_img, caption=chapter_title)
-                t_quote(story, c.get('citation_ouverture', ''), attribution='Soléna')
+                t_quote(story, c.get('citation_ouverture', ''), attribution='Plume Astrale')
                 t_portrait(story,
                            chapter_tag=chapter_title,
                            title=chapter_title,
@@ -654,15 +667,16 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                             body_html=_wf(book_data.get('year_ahead'),
                                           'year_ahead', prenom=prenom))
 
-        # Fin émotionnelle Soléna (existante)
-        emotional_ending(story, styles, prenom=prenom)
+        # Fin émotionnelle (signée Plume Astrale pour le Thème Natal)
+        emotional_ending(story, styles, prenom=prenom, signature='Plume Astrale')
 
         # Colophon final avec code parrainage
         # §V audit marque : mention "Édition des Planètes" si sans heure
         # (colophon appelé aussi en no_birth_time bien que bd=False)
         _product_name = 'Thème Natal — Édition des Planètes' if no_birth_time else 'Thème Natal'
         if bd or no_birth_time:
-            colophon_page(story, styles, prenom, referral_code, referral_link, product_name=_product_name)
+            colophon_page(story, styles, prenom, referral_code, referral_link,
+                          product_name=_product_name, signature='Plume Astrale')
 
         return story
 
