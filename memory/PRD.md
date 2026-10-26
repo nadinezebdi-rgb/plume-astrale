@@ -1349,8 +1349,8 @@ Basé sur l'audit business complet livré par le fondateur.
 - Resend (transactional emails)
 
 ## Credentials (test)
-- Admin : `admin@plume-astrale.fr` / `PlumeAdmin2026`
-- Test user : `test@plume-astrale.fr` / `TestPlume2026!`
+- Admin : `admin@plume-astrale.fr` / `[redacted]`
+- Test user : `test@plume-astrale.fr` / `[redacted]`
 
 ## Credits Pricing (backend/config.py)
 - `chat_astral` : 10 cr / question

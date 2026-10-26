@@ -20,12 +20,12 @@ def _supabase_login(email, password):
 
 @pytest.fixture(scope="module")
 def user_token():
-    return _supabase_login("test@plume-astrale.fr", "TestPlume2026!")
+    return _supabase_login("test@plume-astrale.fr", os.environ.get('TEST_USER_PASSWORD', ''))
 
 
 @pytest.fixture(scope="module")
 def admin_token():
-    return _supabase_login("admin@plume-astrale.fr", "PlumeAdmin2026")
+    return _supabase_login("admin@plume-astrale.fr", os.environ.get('TEST_ADMIN_PASSWORD', ''))
 
 
 # Regression: auth login returns JWT

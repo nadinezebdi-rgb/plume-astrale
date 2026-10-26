@@ -50,7 +50,7 @@
     "backend": "100% (9/9 tests passed in 81.79s)",
     "frontend": "100% (all critical flows PASS, 0 console errors on the tested new pages, 1 cosmetic hydration warning on homepage inherited from previous iterations)"
   },
-  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 (validated). Promo TESTPLUME confirmed working (bypass triggers admin_bypass=true) both on /api/pack-karmique/checkout, /api/rencontres/checkout and /api/kabbale/checkout.",
+  "test_credentials": "Admin: admin@plume-astrale.fr / [redacted] (validated). Promo TESTPLUME confirmed working (bypass triggers admin_bypass=true) both on /api/pack-karmique/checkout, /api/rencontres/checkout and /api/kabbale/checkout.",
   "seed_data_creation": "3 payment_transactions rows inserted in Supabase (TEST_ prefixed emails: TEST_pack@, TEST_ultime@, TEST_kab@plume-astrale.fr). Two Stripe-URL-only transactions may remain 'initiated' in the DB. No user data touched.",
   "retest_needed": false,
   "should_main_agent_self_test": false,

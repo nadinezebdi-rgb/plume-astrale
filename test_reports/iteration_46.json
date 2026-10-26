@@ -70,7 +70,7 @@
   ],
   "updated_files": ["/app/backend/tests/test_iteration46_products_regression.py"],
   "success_rate": {"backend": "100% (15/15 endpoints OK)", "frontend": "70% (7/10 pages OK, 1 page affiche du vide malgré API 200, 1 warning hydration, 1 page CTA end-to-end broken visuel)"},
-  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 (fonctionnel, 9206 crédits restants après tests). test_credentials.md est complet.",
+  "test_credentials": "Admin: admin@plume-astrale.fr / [redacted] (fonctionnel, 9206 crédits restants après tests). test_credentials.md est complet.",
   "seed_data_creation": "Aucune. Tests réutilisent le profil natal existant de l'admin.",
   "retest_needed": true,
   "should_main_agent_self_test": true,

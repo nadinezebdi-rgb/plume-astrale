@@ -31,7 +31,7 @@ from datetime import datetime, timezone
 from services.book_engine_shared.domain import (
     BirthData, BlockKind, Chapter, ChapterBlock, Edition, Manuscript,
 )
-from services import natal_chart_extract as nce
+from services import natal_manuscript_extract as nce
 
 logger = logging.getLogger(__name__)
 

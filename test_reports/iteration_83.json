@@ -16,7 +16,7 @@
   ],
   "updated_files": [],
   "success_rate": { "backend": "n/a", "frontend": "100% (14/14)" },
-  "test_credentials": "test@plume-astrale.fr / TestPlume2026! (used for /mon-accueil auth). Login redirected to /mon-compte then /mon-accueil reachable.",
+  "test_credentials": "test@plume-astrale.fr / [redacted] (used for /mon-accueil auth). Login redirected to /mon-compte then /mon-accueil reachable.",
   "seed_data_creation": "sessionStorage set manually for welcome zodiac test: exp_intent=self_discovery, exp_zodiac=vierge.",
   "retest_needed": false,
   "should_main_agent_self_test": false,

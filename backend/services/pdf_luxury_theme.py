@@ -22,14 +22,15 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm, mm
 from reportlab.lib.colors import HexColor
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image as RLImage,
+    SimpleDocTemplate, Spacer, PageBreak, Image as RLImage,
     Table, TableStyle, KeepTogether, CondPageBreak,
 )
+from services.pdf_theme import SafeParagraph as Paragraph
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
 from services.pdf_theme import (
-    register_fonts, make_styles, font,
+    register_fonts, make_styles, font, format_date_fr,
     GOLD, GOLD_LIGHT, CREAM, LAVENDER, MUTED, NIGHT, NIGHT_SOFT, PALETTE,
 )
 

@@ -41,8 +41,8 @@ PLANET_META = {
     'Saturne':   {'glyph': '♄', 'dialogue': "Ce que tu prends pour un plafond, c'est en réalité une fondation."},
     'Uranus':    {'glyph': '♅', 'dialogue': "Ce que tu appelles instabilité, tes ancêtres l'appelaient génie. C'est ta manière de mettre le monde à jour."},
     'Neptune':   {'glyph': '♆', 'dialogue': "Tu as cette sensibilité : sentir avant de voir. Ce n'est pas de la fuite — c'est une intuition qui n'a pas encore trouvé ses mots."},
-    'Pluton':    {'glyph': '♇', 'dialogue': "Ce que tu as traversé de plus dur t'a préparée à voir ce que personne ne veut regarder. C'est ta force silencieuse."},
-    'Ascendant': {'glyph': '⇑', 'dialogue': "Les autres te trouvent parfois plus forte que tu ne te sens. Et cette impression n'est pas fausse."},
+    'Pluton':    {'glyph': '♇', 'dialogue': "Ce que tu as traversé de plus dur t'a appris à voir ce que personne ne veut regarder. C'est ta force silencieuse."},
+    'Ascendant': {'glyph': '⇑', 'dialogue': "Les autres te trouvent parfois plus solide que tu ne le ressens. Et cette impression n'est pas fausse."},
 }
 
 _PLANET_NAMES_FR = {
@@ -370,10 +370,9 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                 {'type': 'chapter', 'label': 'Tes aspects harmonieux'},
                 {'type': 'chapter', 'label': 'Tes aspects de tension'},
                 {'type': 'chapter', 'label': 'Ton aspect signature'},
-                {'type': 'chapter', 'label': 'Synthèse psychologique globale'},
-                {'type': 'part',    'label': 'Partie V — Les douze maisons',                                 'page': _pg('part5')},
+                                {'type': 'part',    'label': 'Partie V — Les douze maisons',                                 'page': _pg('part5')},
                 {'type': 'chapter', 'label': 'Introduction aux maisons'},
-                {'type': 'chapter', 'label': 'Maisons I à XII (une par une)'},
+                {'type': 'chapter', 'label': 'Maisons I à XII'},
                 {'type': 'part',    'label': 'Épilogue',                                                     'page': _pg('part6')},
                 {'type': 'chapter', 'label': 'Ton année à venir'},
                 {'type': 'chapter', 'label': 'Fin émotionnelle'},
@@ -544,9 +543,11 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                             closing_quote=c.get('phrase_memorable'))
 
         # ══════════════════════════════════════════════════════════════
-        # PARTIE II — PLANÈTES (denses, 1 page par planète)
+        # PLANÈTES (denses, 1 page par planète)
+        # Mode livre : Partie II = planètes personnelles, Partie III = Jupiter → Pluton
+        # (le diviseur de la Partie III s'insère AVANT ses planètes, comme annoncé au sommaire).
         # ══════════════════════════════════════════════════════════════
-        for planet in planets:
+        def _planet_page(planet):
             name = planet.get('name', '')
             sign = planet.get('sign', '')
             analysis = (planet.get('analysis') or '').strip() or (
@@ -563,40 +564,44 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                 glyph=meta.get('glyph'),
             )
 
-        # Grille 2×2 planètes sociales (mode Ultra ≥ 7 planètes)
-        if len(planets) >= 7:
-            social_names = ('Mercure', 'Vénus', 'Mars', 'Jupiter')
-            social_planets = [p for p in planets if p.get('name') in social_names]
-            if len(social_planets) >= 3:
+        def _grid(chapter_tag, title, names, min_count=3):
+            picked = [p for p in planets if p.get('name') in names]
+            if len(picked) >= min_count:
                 photos_grid_2x2(story, styles,
-                                chapter_tag='✦ Tes énergies quotidiennes ✦',
-                                title='Comment tu penses, aimes, agis, grandis',
+                                chapter_tag=chapter_tag, title=title,
                                 cells=[{
                                     'image': _planet_image_path(p.get('name', '')),
                                     'label': p.get('name', ''),
                                     'sublabel': p.get('sign', ''),
-                                } for p in social_planets[:4]])
+                                } for p in picked[:4]])
 
-        # ── DIVISEUR PARTIE III ──
         if bd:
+            personal_order = ('Soleil', 'Lune', 'Mercure', 'Vénus', 'Mars', 'Ascendant')
+            personal = sorted((p for p in planets if p.get('name') in personal_order),
+                              key=lambda p: personal_order.index(p['name']))
+            generational = [p for p in planets if p.get('name') not in personal_order]
+            for planet in personal:
+                _planet_page(planet)
+            _grid('✦ Tes énergies quotidiennes ✦', 'Comment tu penses, aimes, agis',
+                  ('Mercure', 'Vénus', 'Mars'))
+
             story.append(chapter_marker('part3'))
             part_divider_page(story, styles, 'III', 'Planètes générationnelles',
                               subtitle='Ce qui te structure au long cours.',
                               illustration_local_path=libimg.planet('Saturne', size=512))
-
-        # Grille 2×2 planètes générationnelles (mode Ultra ≥ 10 planètes)
-        if len(planets) >= 10:
-            gen_names = ('Saturne', 'Uranus', 'Neptune', 'Pluton')
-            gen_planets = [p for p in planets if p.get('name') in gen_names]
-            if len(gen_planets) >= 3:
-                photos_grid_2x2(story, styles,
-                                chapter_tag='✦ Tes strates profondes ✦',
-                                title='Ce qui te structure au long cours',
-                                cells=[{
-                                    'image': _planet_image_path(p.get('name', '')),
-                                    'label': p.get('name', ''),
-                                    'sublabel': p.get('sign', ''),
-                                } for p in gen_planets[:4]])
+            for planet in generational:
+                _planet_page(planet)
+            _grid('✦ Tes strates profondes ✦', 'Ce qui te structure au long cours',
+                  ('Jupiter', 'Saturne', 'Uranus', 'Neptune', 'Pluton'), min_count=4)
+        else:
+            for planet in planets:
+                _planet_page(planet)
+            if len(planets) >= 7:
+                _grid('✦ Tes énergies quotidiennes ✦', 'Comment tu penses, aimes, agis, grandis',
+                      ('Mercure', 'Vénus', 'Mars', 'Jupiter'))
+            if len(planets) >= 10:
+                _grid('✦ Tes strates profondes ✦', 'Ce qui te structure au long cours',
+                      ('Saturne', 'Uranus', 'Neptune', 'Pluton'))
 
         # ══════════════════════════════════════════════════════════════
         # PARTIE IV — ASPECTS
@@ -631,7 +636,7 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
 
         # Synthèse aspects (existante)
         synthese = (natal_data.get('synthese_aspects') or '').strip()
-        if synthese:
+        if synthese and not bd:
             planet_dense_page(
                 story, styles,
                 planet_name='Aspects',
@@ -672,17 +677,18 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                                image_local_path=libimg.style_ref('wheel_ref'),
                                dialogue_question=None,
                                glyph=None)
-            # 12 pages — une par maison
             # NB : on n'a pas toujours les données cuspide/planètes, on affiche quand même l'analyse
             houses_data = natal_data.get('houses') or []
             houses_by_num = {h.get('num'): h for h in houses_data if h.get('num')}
             for n in range(1, 13):
                 h = houses_by_num.get(n, {})
+                # Deux maisons par page : 6 pages denses plutôt que 12 pages à moitié vides.
                 house_detail_page(story, styles,
                                    house_num=n,
                                    sign=h.get('sign', ''),
                                    planets_in_house=h.get('planets_in_house') or [],
-                                   body_html=book_data.get(f'house_{n}') or '')
+                                   body_html=book_data.get(f'house_{n}') or '',
+                                   end_page=(n % 2 == 0), image_cm=2.8)
 
         # ══════════════════════════════════════════════════════════════
         # ÉPILOGUE

@@ -36,7 +36,7 @@
     "backend": "100% (6/6 pytest)",
     "frontend": "100% design system v2 + 3 produits (tous data-testid présents, aura-earth OK, navigation OK)"
   },
-  "test_credentials": "Admin: admin@plume-astrale.fr / PlumeAdmin2026 — login OK sur /connexion (pas /login) → /mon-compte, solde 9211 crédits, aura=earth (Taureau).",
+  "test_credentials": "Admin: admin@plume-astrale.fr / [redacted] — login OK sur /connexion (pas /login) → /mon-compte, solde 9211 crédits, aura=earth (Taureau).",
   "seed_data_creation": "Aucune donnée seed — kabbale checkout crée une session Stripe TEST_ mais la transaction reste en 'initiated' (pas payée).",
   "retest_needed": false,
   "should_main_agent_self_test": false,

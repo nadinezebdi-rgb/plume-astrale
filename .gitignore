@@ -6,40 +6,44 @@
 
 # Dependencies
 node_modules/
-/node_modules
-/.pnp
+.pnp
 .pnp.js
-.yarn/install-state.gz
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+.yarn/install-state.gz
 
 # Testing
-/coverage
+coverage/
 
 # Next.js
-/.next/
-/out/
+.next/
+out/
 next-env.d.ts
 *.tsbuildinfo
 
 # Production builds
-/build
+build/
 dist/
-dist
 
-# Environment files
+# Environment files & secrets
+.env
+.env.*
 *.env
 *.env.*
-.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 *token.json*
 *credentials.json*
+credentials.json
+.credentials
+*.key
+.gitconfig
+.pem
 
 # Logs and debug files
 npm-debug.log*
@@ -50,21 +54,23 @@ dump.rdb
 
 # System files
 .DS_Store
-*.pem
 
 # Python
 __pycache__/
-*pyc*
+*.pyc
 venv/
 .venv/
+.ipynb_checkpoints/
 
 # Development tools
 chainlit.md
 .chainlit
-.ipynb_checkpoints/
 
-# Deployment
+# Deployment / tooling
 .vercel
+.wrangler
+.dev.vars*
+!.dev.vars.example
 
 # Data and databases
 agenthub/agents/youtube/db
@@ -83,16 +89,6 @@ agenthub/agents/youtube/db
 
 # Mobile development
 android-sdk/
-
-# wrangler files
-.wrangler
-.dev.vars*
-!.dev.vars.example
-.env.*
-credentials.json
-*.key
-.credentials
-.gitconfig
 
 # Library HQ + mid-res assets (regenerated on demand, kept only in preview for admin use)
 backend/assets/library/**/*_1080.png
@@ -125,9 +121,12 @@ tmp_video/
 tmp_video/**
 
 
+# Keep env examples tracked
 !.env.example
 !backend/.env.example
 !frontend/.env.example
+
+# Keep lockfile tracked
 frontend/yarn.lock
 
 # Credentials — ne jamais committer d'identifiants
