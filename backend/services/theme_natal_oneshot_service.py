@@ -248,13 +248,11 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         interior = book_result.get('interior_bytes')
         diag.update(book_result.get('diag') or {})
 
-        # Persist digital PDF (local + Supabase signed URL)
+        # Persist digital PDF — SEC-003 (2026-02) : plus d'écriture disque locale.
+        # Les PDFs vivent exclusivement dans Supabase Storage (bucket `reports`)
+        # et sont téléchargés via /api/pdf/download?token=... (token opaque).
+        # L'ancien chemin /api/assets/theme_natal/*.pdf n'est plus monté.
         filename = f'theme_natal_{session_id[-16:]}.pdf'
-        out_dir = ASSETS_DIR / 'theme_natal'
-        out_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_dir / filename
-        with open(out_path, 'wb') as f:
-            f.write(pdf_bytes)
         from services.pdf_download import (
             new_pdf_token, build_signed_pdf_url, upload_pdf_to_reports_bucket,
         )
@@ -262,18 +260,24 @@ async def _impl_handle_theme_natal_oneshot(session_id: str, force: bool = False)
         pdf_token = new_pdf_token()
         md['pdf_token'] = pdf_token
         md['pdf_path'] = build_signed_pdf_url(session_id, pdf_token)
-        md['pdf_static_path_legacy'] = f'/api/assets/theme_natal/{filename}'
         supabase_url = await _asyncio.to_thread(
             upload_pdf_to_reports_bucket,
             pdf_bytes, session_id, 'theme_natal', filename,
             str(int(datetime.now(timezone.utc).timestamp())),
         )
         md.pop('pdf_supabase_url', None)
+        md.pop('pdf_static_path_legacy', None)
+        md.pop('pdf_upload_warning', None)
         if supabase_url:
             md['pdf_supabase_url'] = supabase_url
         else:
-            logger.warning(f'[theme_natal_oneshot] Supabase upload FAILED for {session_id} — serving local only')
-            md['pdf_upload_warning'] = 'supabase_upload_failed_using_local_fallback'
+            # Pas de fallback disque : SEC-003 a retiré le mount statique.
+            # Le client peut re-déclencher la génération via sa session.
+            logger.error(
+                f'[theme_natal_oneshot] Supabase upload FAILED for {session_id} — '
+                f'aucun fallback disque disponible, le client devra retenter.'
+            )
+            md['pdf_upload_warning'] = 'supabase_upload_failed_no_fallback'
 
         # Persist Lulu interior (A5 + 3.175mm bleed, prêt impression)
         from services.print_book_renderer import DESIGN_VERSION
@@ -343,7 +347,15 @@ async def _send_theme_natal_email(email: str, first_name: str, pdf_link: str, se
     """
     from services.email_journal import log_send_attempt, log_send_response
     api_key = os.environ.get('RESEND_API_KEY', '').strip()
-    sender = os.environ.get('SENDER_EMAIL', 'Solena · Plume Astrale <contact@plume-astrale.fr>')
+    # 2026-02-27 : expéditeur spécifique au Thème Natal (sans "Solena"). Les autres
+    # produits conservent SENDER_EMAIL de l'env (voix Soléna). Ici on force la marque.
+    _env_sender = os.environ.get('SENDER_EMAIL', 'Plume Astrale <contact@plume-astrale.fr>')
+    # Si l'env contient "Solena/Soléna", on le neutralise pour cet email natal.
+    import re as _re
+    if _re.search(r'sol[eé]na', _env_sender, flags=_re.IGNORECASE):
+        sender = 'Plume Astrale <contact@plume-astrale.fr>'
+    else:
+        sender = _env_sender
     subject = "Ton Thème Natal Complet est prêt ✦"
     if not api_key:
         logger.warning("[theme_natal_oneshot] RESEND_API_KEY missing")
@@ -426,7 +438,7 @@ async def _send_theme_natal_email(email: str, first_name: str, pdf_link: str, se
           </div>
         </div>
         <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(212,175,55,0.15);text-align:center;">
-          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;color:#F5EEE0;font-size:20px;">— Solena</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;color:#F5EEE0;font-size:20px;">— Plume Astrale</div>
         </div>
       </div>
     </div>

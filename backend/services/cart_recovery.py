@@ -13,6 +13,7 @@ from datetime import datetime, timedelta, timezone
 import httpx
 
 from services.supabase_client import get_admin_client
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -110,9 +111,9 @@ async def _run_once() -> int:
             sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
             if resp.status_code < 400:
                 sent += 1
-                logger.info(f'[cart_recovery] relance envoyée à {email} ({product_name})')
+                logger.info(f'[cart_recovery] relance envoyée à {redact_email(email)} ({product_name})')
             else:
-                logger.warning(f'[cart_recovery] Resend {resp.status_code} pour {email}: {resp.text[:150]}')
+                logger.warning(f'[cart_recovery] Resend {resp.status_code} pour {redact_email(email)}: {resp.text[:150]}')
         except Exception as e:
             logger.warning(f'[cart_recovery] échec pour {session_id}: {e}')
     return sent

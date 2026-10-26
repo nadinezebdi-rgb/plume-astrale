@@ -95,6 +95,32 @@ backend/assets/library/**/*_1080.png
 backend/assets/library/**/*_2048.png
 backend/assets/library/manifest.json
 
+# ─── Audit 2026-02 : alléger le repo + RGPD ───────────────────────────────
+# PDFs clients générés à la volée. Ils sont servis via /api/assets/* et
+# envoyés par email aux clients, donc on les GARDE SUR DISQUE PROD, mais
+# plus jamais dans git (RGPD + poids).
+# Pattern : fichiers générés = contiennent un uuid/hex ; templates/demos
+# sont tracked séparément si besoin via `!backend/assets/<dir>/README.md`.
+backend/assets/theme_natal/*.pdf
+backend/assets/kabbale/*.pdf
+backend/assets/pack_karmique/*.pdf
+backend/assets/theme_natal_oneshot/*.pdf
+backend/assets/synastrie/*.pdf
+backend/assets/revolution_solaire/*.pdf
+backend/assets/retour_lunaire/*.pdf
+
+# Caches regénérables au premier accès (natal_ai, natal_book, natal_ex_libris,
+# natal_illustrations, pexels_stock, marketing_videos, music, demo_final).
+# Aucun n'est référencé par chemin disque ; tous sont servis via Supabase
+# Storage ou generés à la demande.
+backend/cache/
+backend/cache/**
+
+# Tmp workspace vidéos (concat FFmpeg, hooks WIP). N'a jamais eu sa place dans git.
+tmp_video/
+tmp_video/**
+
+
 # Keep env examples tracked
 !.env.example
 !backend/.env.example

@@ -28,6 +28,7 @@ from services.pdf_book_pages import (
     year_ahead_page, colophon_page,
 )
 from services import library_images as libimg
+from services.natal_fallback_texts import with_fallback as _wf, headline_with_fallback as _hf
 
 # Métadonnées visuelles par planète : glyphe + dialogue psychologique + slug image
 PLANET_META = {
@@ -298,8 +299,10 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
         try:
             _y, _m, _d = birth_date.split('-')
             date_fr = f"{int(_d)} {_MOIS_FR[int(_m) - 1]} {_y}"
+            _birth_month = int(_m)
         except Exception:
             date_fr = birth_date
+            _birth_month = None
 
         bd = bool(book_data and book_data.get('_source') in ('gpt', 'cache'))
 
@@ -317,7 +320,9 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
         # ── 1. COUVERTURE ──────────────────────────────────────────────
         cover_page(story, styles, prenom=prenom,
                    subtitle='Ton ciel de naissance, dévoilé.',
-                   illustration_slug='ciel_zodiaque')
+                   illustration_slug='ciel_zodiaque',
+                   sun_sign=sun_sign,
+                   birth_month=_birth_month)
 
         if bd:
             # ── 2. Faux-titre ──
@@ -325,7 +330,27 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
             # ── 3. Copyright + éphéméride ──
             copyright_page(story, styles, prenom, date_fr)
             # ── 4. Dédicace personnalisée (GPT) ──
-            dedication_page(story, styles, prenom, book_data.get('dedication'))
+            dedication_page(story, styles, prenom, book_data.get('dedication'),
+                            signature='Plume Astrale')
+            # ── 4b. Ex-Libris bibliophile (Lot 3 — Feb 2026-02-27) ──
+            from services.natal_ex_libris import ex_libris_page as _ex_libris
+            # Heure + lieu de naissance pour la ligne « Composé sous le ciel du... »
+            # (spec Feb 2026, §4). Lues depuis natal_data si disponibles.
+            _bt = natal_data.get('birth_time') or natal_data.get('birth_hour')
+            _bp = (natal_data.get('birth_place')
+                   or natal_data.get('birth_city')
+                   or natal_data.get('location'))
+            _ex_libris(
+                story,
+                prenom=prenom,
+                birth_date=birth_date,
+                sun_sign=sun_sign,
+                moon_sign=moon_sign,
+                asc_sign=asc_sign,
+                no_birth_time=no_birth_time,
+                birth_time_fr=_bt,
+                birth_place=_bp,
+            )
             # ── 5. Table des matières ──
             toc_entries = [
                 {'type': 'part',    'label': 'Partie I — Fondations',                                        'page': _pg('part1')},
@@ -364,8 +389,16 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
         # PARTIE I — FONDATIONS
         # ══════════════════════════════════════════════════════════════
         # Ouverture
+        _opening_intro = (
+            f"{prenom}, ce livre est une conversation entre toi et le ciel qui "
+            f"t'a vu naître. Nous allons parcourir les grandes lignes de ta carte, "
+            f"lire ce qu'elle murmure sur ta sensibilité, tes forces, les mouvements "
+            f"qui te traversent. Prends ton temps : chaque page a été écrite pour "
+            f"être relue, soulignée, méditée."
+        )
         opening_page(story, styles, prenom=prenom,
-                     first_line="Ton ciel n'a jamais été aussi clair.")
+                     first_line="Ton ciel n'a jamais été aussi clair.",
+                     intro_text=_opening_intro)
 
         # Roue céleste
         if chart_png_bytes:
@@ -373,10 +406,20 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                               prenom=prenom, birth_date_fr=date_fr,
                               sun_sign=sun_sign, moon_sign=moon_sign, asc_sign=asc_sign)
         else:
+            _wheel_intro = (
+                "La roue de ton ciel est la cartographie de l'instant exact "
+                "où tu es née. Chaque secteur, chaque placement y est "
+                "irremplaçable. Les prochaines pages vont décoder cette "
+                "roue signe après signe, planète après planète, pour que "
+                "tu puisses t'y retrouver comme dans un plan de maison "
+                "familier. Ne cherche pas à tout comprendre d'un coup : "
+                "laisse les correspondances s'imposer d'elles-mêmes."
+            )
             chapter_illustration(story, styles,
                                   chapter_tag='✦ La roue de ton ciel ✦',
                                   title='Ton empreinte céleste',
-                                  illustration_slug='roue_zodiaque')
+                                  illustration_slug='roue_zodiaque',
+                                  intro_text=_wheel_intro)
 
         # Grille identité 2×2
         id_cells = [
@@ -405,11 +448,15 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
             element_dominant_page(story, styles,
                                   dominant_element=em['dominant_element'],
                                   planet_count=em['dominant_element_count'],
-                                  body_html=book_data.get('element_analysis') or '')
+                                  body_html=_wf(book_data.get('element_analysis'),
+                                                'element_analysis', prenom=prenom,
+                                                element=em['dominant_element']))
             modality_dominant_page(story, styles,
                                     dominant_modality=em['dominant_modality'],
                                     planet_count=em['dominant_modality_count'],
-                                    body_html=book_data.get('modality_analysis') or '')
+                                    body_html=_wf(book_data.get('modality_analysis'),
+                                                  'modality_analysis', prenom=prenom,
+                                                  modality=em['dominant_modality']))
 
             # ── DIVISEUR PARTIE II ──
             story.append(chapter_marker('part2'))
@@ -420,7 +467,8 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
             # Trio synthèse Soleil × Lune × Ascendant
             trio_cross_analysis_page(story, styles,
                                       sun_sign=sun_sign, moon_sign=moon_sign, asc_sign=asc_sign,
-                                      body_html=book_data.get('trio_synthesis') or '')
+                                      body_html=_wf(book_data.get('trio_synthesis'),
+                                                    'trio_synthesis', prenom=prenom))
 
         # ══════════════════════════════════════════════════════════════
         # ACTE III PILOTE — Ton âme (5 chapitres éditoriaux : cœur / esprit
@@ -460,7 +508,7 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                 #  8. synthesis (forces / défis / mission)
                 if planet_img:
                     t_double_illustration(story, planet_img, caption=chapter_title)
-                t_quote(story, c.get('citation_ouverture', ''), attribution='Soléna')
+                t_quote(story, c.get('citation_ouverture', ''), attribution='Plume Astrale')
                 t_portrait(story,
                            chapter_tag=chapter_title,
                            title=chapter_title,
@@ -566,18 +614,24 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
 
             aspects_group_page(story, styles,
                                 category='Aspects harmonieux',
-                                headline=book_data.get('aspects_harmonieux_headline') or 'La grâce en toi',
-                                body_html=book_data.get('aspects_harmonieux_body') or '',
+                                headline=_hf(book_data.get('aspects_harmonieux_headline'),
+                                             'aspects_harmonieux_headline'),
+                                body_html=_wf(book_data.get('aspects_harmonieux_body'),
+                                              'aspects_harmonieux_body', prenom=prenom),
                                 tarot_slug='soleil')
             aspects_group_page(story, styles,
                                 category='Aspects de tension',
-                                headline=book_data.get('aspects_tensions_headline') or 'Le nœud qui te forge',
-                                body_html=book_data.get('aspects_tensions_body') or '',
+                                headline=_hf(book_data.get('aspects_tensions_headline'),
+                                             'aspects_tensions_headline'),
+                                body_html=_wf(book_data.get('aspects_tensions_body'),
+                                              'aspects_tensions_body', prenom=prenom),
                                 tarot_slug='force')
             aspects_group_page(story, styles,
                                 category='Aspect signature',
-                                headline=book_data.get('rare_aspect_headline') or 'Ta note rare',
-                                body_html=book_data.get('rare_aspect_body') or '',
+                                headline=_hf(book_data.get('rare_aspect_headline'),
+                                             'rare_aspect_headline'),
+                                body_html=_wf(book_data.get('rare_aspect_body'),
+                                              'rare_aspect_body', prenom=prenom),
                                 tarot_slug='etoile')
 
         # Synthèse aspects (existante)
@@ -618,7 +672,8 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
             planet_dense_page(story, styles,
                                planet_name='Les maisons',
                                sign='Ta demeure intérieure',
-                               body_html=book_data.get('houses_intro') or '',
+                               body_html=_wf(book_data.get('houses_intro'),
+                                             'houses_intro', prenom=prenom),
                                image_local_path=libimg.style_ref('wheel_ref'),
                                dialogue_question=None,
                                glyph=None)
@@ -644,17 +699,19 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                               subtitle='Ce que le ciel murmure pour la suite.',
                               illustration_local_path=libimg.tarot('etoile', size=512))
             year_ahead_page(story, styles, prenom,
-                            body_html=book_data.get('year_ahead') or '')
+                            body_html=_wf(book_data.get('year_ahead'),
+                                          'year_ahead', prenom=prenom))
 
-        # Fin émotionnelle Soléna (existante)
-        emotional_ending(story, styles, prenom=prenom)
+        # Fin émotionnelle (signée Plume Astrale pour le Thème Natal)
+        emotional_ending(story, styles, prenom=prenom, signature='Plume Astrale')
 
         # Colophon final avec code parrainage
         # §V audit marque : mention "Édition des Planètes" si sans heure
         # (colophon appelé aussi en no_birth_time bien que bd=False)
         _product_name = 'Thème Natal — Édition des Planètes' if no_birth_time else 'Thème Natal'
         if bd or no_birth_time:
-            colophon_page(story, styles, prenom, referral_code, referral_link, product_name=_product_name)
+            colophon_page(story, styles, prenom, referral_code, referral_link,
+                          product_name=_product_name, signature='Plume Astrale')
 
         return story
 

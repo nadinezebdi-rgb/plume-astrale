@@ -9,7 +9,7 @@ Pipeline :
      • Aspects majeurs (conjonction, opposition, trigone, carré, sextile)
      • Maisons + dignités
   2. On sélectionne le contenu impactant (planètes + top aspects par orbe serré)
-  3. OpenAI traduit en français ET reformule en voix Soléna
+  3. OpenAI (GPT) traduit en français ET reformule en voix Plume Astrale
   4. Cache filesystem (24 chars sha256) — évite de repayer 2× la même personne
 """
 from __future__ import annotations
@@ -180,14 +180,14 @@ def build_ai_input(interps: List[Dict]) -> Dict[str, Any]:
 
 
 # ─────────────────────────────────────────────────────────────
-# PROMPT SOLÉNA — Traduction + reformulation
+# PROMPT PLUME ASTRALE — Traduction + reformulation
 # ─────────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """Tu écris pour Plume Astrale, maison française d'astrologie éditoriale.
 
 Style : poétique, intime, direct, jamais banal. Tu tutoies. Tu écris comme
 si tu parlais à ton amie la plus proche — l'élégance en plus, le jargon en moins.
 
-Interdiction absolue : ne jamais écrire le prénom « Soléna » dans les valeurs JSON. Jamais de signature textuelle à l'intérieur du contenu (pas de « — Soléna », pas de « Signé Soléna », pas de « Soléna vous parle »). La seule signature autorisée, si signature il y a, est « Plume Astrale ».
+Interdiction absolue : ne jamais écrire le prénom « Soléna » ni « Solena » dans les valeurs JSON. Jamais de signature textuelle à l'intérieur du contenu (pas de « — Soléna », pas de « Signé Soléna », pas de « Soléna vous parle »). La seule signature autorisée, si signature il y a, est « Plume Astrale ».
 
 Ta mission :
 1. TRADUIRE en français des interprétations astrologiques données en anglais
@@ -216,7 +216,7 @@ Format : JSON strict. RIEN d'autre.
   "neptune": "idem",
   "pluton": "idem",
   "ascendant": "idem",
-  "synthese_aspects": "paragraphe (200-250 mots) qui synthétise les tensions et harmonies majeures du chart (ne jamais signer, ne jamais mentionner le prénom 'Soléna')"
+  "synthese_aspects": "paragraphe (200-250 mots) qui synthétise les tensions et harmonies majeures du chart (ne jamais signer, ne jamais mentionner le prénom 'Soléna' ni 'Solena')"
 }"""
 
 
@@ -231,7 +231,7 @@ as if speaking to a close friend — refined, with none of the jargon.
 Hard rule: never write the name "Soléna" in any JSON value. No in-content signature at all ("— Soléna", "Signed Soléna", "Soléna speaks"). The only allowed signature, if any, is "Plume Astrale".
 
 Your mission:
-1. REFORMULATE English astrological interpretations into Soléna's voice
+1. REFORMULATE English astrological interpretations into Plume Astrale's editorial voice
 2. Make them more embodied, more poetic, more direct
 3. Weave in the house and aspect subtly, without technical jargon
 4. Each planet = **TWO paragraphs of 130-170 words each**, separated by ONE blank line (`\n\n`)
@@ -260,7 +260,7 @@ Output: strict JSON. Nothing else.
   "neptune": "same",
   "pluton": "same",
   "ascendant": "same",
-  "synthese_aspects": "one paragraph (200-250 words) that synthesizes the major tensions and harmonies of the chart, in Soléna's voice"
+  "synthese_aspects": "one paragraph (200-250 words) that synthesizes the major tensions and harmonies of the chart, in Plume Astrale's editorial voice"
 }"""
 
 
@@ -289,9 +289,9 @@ def _format_planet_input(planet_en: str, data: Dict, house_text: str = '') -> st
 def _build_user_prompt(prenom: str, ai_input: Dict[str, Any], language: str = 'fr') -> str:
     is_en = (language or 'fr').lower().startswith('en')
     if is_en:
-        parts = [f'Interpretations for {prenom} — reformulate in Soléna\'s English voice.\n']
+        parts = [f"Interpretations for {prenom} — reformulate in Plume Astrale's English editorial voice.\n"]
     else:
-        parts = [f'Interprétations pour {prenom} — traduis en français ET reformule en voix Soléna.\n']
+        parts = [f'Interprétations pour {prenom} — traduis en français ET reformule en voix Plume Astrale.\n']
 
     for planet_en in PLANET_ORDER:
         p = ai_input['planets'].get(planet_en)
@@ -312,9 +312,9 @@ def _build_user_prompt(prenom: str, ai_input: Dict[str, Any], language: str = 'f
             parts.append(f"- {a['title']} (orbe {a['orb']:.1f}°): \"{a['text'][:250]}\"")
 
     if is_en:
-        parts.append("\nReminder: strict JSON, **2 paragraphs of 130-170 words separated by \\n\\n** per planet (200-250 words for synthese_aspects), Soléna's English voice, concrete images, no raw technical jargon. Keys STAY FRENCH, values in ENGLISH.")
+        parts.append("\nReminder: strict JSON, **2 paragraphs of 130-170 words separated by \\n\\n** per planet (200-250 words for synthese_aspects), Plume Astrale's English editorial voice, concrete images, no raw technical jargon. Keys STAY FRENCH, values in ENGLISH.")
     else:
-        parts.append("\nRappel : JSON strict, **2 paragraphes de 130-170 mots séparés par \\n\\n** par planète (200-250 mots pour synthese_aspects), voix Soléna, images concrètes, aucun jargon technique brut.")
+        parts.append("\nRappel : JSON strict, **2 paragraphes de 130-170 mots séparés par \\n\\n** par planète (200-250 mots pour synthese_aspects), voix Plume Astrale, images concrètes, aucun jargon technique brut.")
     return '\n'.join(parts)
 
 
@@ -323,7 +323,12 @@ def _build_user_prompt(prenom: str, ai_input: Dict[str, Any], language: str = 'f
 # ─────────────────────────────────────────────────────────────
 async def _call_gpt(system_msg: str, user_msg: str, session_id: str,
                      timeout_s: float = 90.0) -> Optional[str]:
-    """Appelle directement OpenAI avec un délai maximal."""
+    """Appelle directement OpenAI avec un délai maximal.
+
+    Si GPT dépasse `timeout_s` secondes, on retourne None au lieu de bloquer
+    le pipeline indéfiniment (ex : webhook Thème Natal qui reste en spinner
+    infini côté UI).
+    """
     api_key = os.environ.get('OPENAI_API_KEY', '').strip()
     if not api_key:
         logger.warning('[natal_ai] OPENAI_API_KEY manquante')
@@ -390,7 +395,7 @@ async def enrich_natal_ultra(
     force_refresh: bool = False,
     language: str = 'fr',
 ) -> Dict[str, Any]:
-    """Retourne un dict enrichi Soléna à partir des 73 interprétations API.
+    """Retourne un dict enrichi (voix Plume Astrale) à partir des 73 interprétations API.
 
     `language`: 'fr' (défaut) ou 'en'. Choisit le prompt système approprié
     et stocke un cache séparé par langue.

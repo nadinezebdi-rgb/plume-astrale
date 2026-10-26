@@ -25,6 +25,7 @@ from middleware.auth import get_optional_user
 from integrations.payments.stripe.checkout import (
     StripeCheckout, CheckoutSessionRequest,
 )
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/consultation-ultime', tags=['consultation-ultime'])
@@ -134,7 +135,7 @@ async def handle_consultation_ultime_webhook(session_id: str) -> None:
     md['consultation_dispatched_at'] = datetime.now(timezone.utc).isoformat()
     md['consultation_child_natal_sid'] = child_sid
     sb.table('payment_transactions').update({'metadata': md}).eq('session_id', session_id).execute()
-    logger.info(f"[consultation_ultime] dispatched pour {email} (session {session_id})")
+    logger.info(f"[consultation_ultime] dispatched pour {redact_email(email)} (session {session_id})")
 
 
 @router.post('/checkout')

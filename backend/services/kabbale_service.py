@@ -14,6 +14,7 @@ import httpx
 from services.supabase_client import get_admin_client
 from services import astrology_io_service as aio
 from services.pdf_luxury_wrap import generate_kabbale_pdf_luxury as generate_kabbale_pdf
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -97,18 +98,12 @@ async def handle_kabbale_webhook(session_id: str) -> None:
             tree_of_life=tree_data,
             ai_sections=ai_sections,
         )
-        out_dir = ASSETS_DIR / 'kabbale'
-        out_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_dir / filename
-        with open(out_path, 'wb') as f:
-            f.write(pdf_bytes)
-        pdf_path = f'/api/assets/kabbale/{filename}'
-        # SEC-003 : token opaque + URL signée pour le download
+        # SEC-003 (2026-02) : plus d'écriture disque locale ni d'URL /api/assets/ —
+        # tout vit dans Supabase Storage, download via token opaque.
         from services.pdf_download import new_pdf_token, build_signed_pdf_url, upload_pdf_to_reports_bucket
         pdf_token = new_pdf_token()
         md['pdf_token'] = pdf_token
         md['pdf_path'] = build_signed_pdf_url(session_id, pdf_token)
-        md['pdf_static_path_legacy'] = pdf_path
         # Upload persistant Supabase Storage (survit aux redeploys)
         supabase_url = upload_pdf_to_reports_bucket(pdf_bytes, session_id, 'kabbale', filename)
         if supabase_url:
@@ -230,4 +225,4 @@ async def _send_kabbale_email(email: str, first_name: str, pdf_bytes: bytes, fil
         if r.status_code >= 400:
             logger.warning(f"[kabbale] Resend error {r.status_code}: {r.text[:300]}")
         else:
-            logger.info(f"[kabbale] Email sent to {email}")
+            logger.info(f"[kabbale] Email sent to {redact_email(email)}")

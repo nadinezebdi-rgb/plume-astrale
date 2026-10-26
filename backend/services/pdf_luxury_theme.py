@@ -152,21 +152,74 @@ def luxury_styles() -> dict:
 #   BUILDING BLOCKS — pages standardisées
 # ═══════════════════════════════════════════════════════════
 
-def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustration_slug: str = 'ciel_zodiaque'):
+def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustration_slug: str = 'ciel_zodiaque',
+               sun_sign: str = None, birth_month: int = None):
     """Couverture pleine page : illustration cosmique + prénom + titre.
 
-    Priorité au hero local /app/backend/assets/pdf_covers/natal_hero.png
-    (palette V3 unifiée). Fallback : illustration cosmique distante par slug.
+    Priorité (du plus personnel au plus générique) :
+      1. sun_sign fourni → planète 3D personnalisée (planète maîtresse du signe)
+         rendue dynamiquement (Lot 2 — Feb 2026).
+      2. hero local /app/backend/assets/pdf_covers/natal_hero.png (palette V3 unifiée).
+      3. Illustration cosmique distante par slug.
+
+    Si `birth_month` est fourni (1-12), le fond étoilé de la planète est teinté
+    selon la saison (hiver / printemps / été / automne) et une mention
+    « ÉDITION {SAISON} » est ajoutée sous la planète (Lot 5 — Feb 2026).
     """
     story.append(Spacer(1, 2 * cm))
     story.append(Paragraph('<font name="OrnamentSerif">✦</font> PLUME ASTRALE <font name="OrnamentSerif">✦</font>', styles['section_tag']))
-    story.append(Spacer(1, 0.6 * cm))
+    # Titre « Thème Natal » (sans « complet » — c'était le titre marketing
+    # externe, pas le titre éditorial du livre). Placé au-dessus du hero
+    # pour établir d'emblée la nature du document.
+    _book_title_style = styles.get('book_title_cover') or ParagraphStyle(
+        'book_title_cover', fontName=font('Cormorant', 'Helvetica'),
+        fontSize=36, leading=42, textColor=GOLD, alignment=TA_CENTER,
+        spaceAfter=18,
+    )
+    story.append(Paragraph('Thème Natal', _book_title_style))
+    story.append(Spacer(1, 0.4 * cm))
 
-    # Priorité : hero V3 local (garantit une belle carte prestige à chaque livre imprimé)
+    img_used = False
+
+    # Priorité 1 : planète 3D personnalisée (Lot 2 — Feb 2026)
+    if sun_sign:
+        try:
+            from services.planet_renderer import (
+                generate_planet_png, SIGN_TO_RULER,
+                month_to_season, SEASON_LABELS_FR,
+            )
+            png_bytes = generate_planet_png(sun_sign, size=1200, birth_month=birth_month)
+            img = RLImage(io.BytesIO(png_bytes), width=10 * cm, height=10 * cm, mask='auto')
+            story.append(img)
+            # Petite légende de la planète maîtresse (micro-personnalisation)
+            ruler = SIGN_TO_RULER.get(sun_sign, 'Soleil')
+            story.append(Spacer(1, 0.3 * cm))
+            story.append(Paragraph(
+                f'<font name="OrnamentSerif">✦</font> {ruler.upper()} — ta planète maîtresse <font name="OrnamentSerif">✦</font>',
+                ParagraphStyle('planet_caption', fontName=font('Cinzel', 'Helvetica'),
+                               fontSize=9, textColor=GOLD, alignment=TA_CENTER,
+                               spaceAfter=2),
+            ))
+            # Mention « Édition {Saison} » pour l'effet collection (Lot 5)
+            if birth_month:
+                season_key = month_to_season(birth_month)
+                season_fr = SEASON_LABELS_FR.get(season_key, '').upper()
+                if season_fr:
+                    story.append(Paragraph(
+                        f'ÉDITION {season_fr}',
+                        ParagraphStyle('season_caption', fontName=font('Cinzel', 'Helvetica'),
+                                       fontSize=7, textColor=MUTED, alignment=TA_CENTER,
+                                       spaceAfter=2, letterSpacing=3),
+                    ))
+            story.append(Spacer(1, 0.6 * cm))
+            img_used = True
+        except Exception:
+            img_used = False
+
+    # Priorité 2 : hero V3 local
     from pathlib import Path as _P
     _hero_local = _P(__file__).resolve().parent.parent / 'assets' / 'pdf_covers' / 'natal_hero.png'
-    img_used = False
-    if _hero_local.exists():
+    if not img_used and _hero_local.exists():
         try:
             img = RLImage(str(_hero_local), width=10 * cm, height=10 * cm, mask='auto')
             story.append(img)
@@ -174,6 +227,8 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
             img_used = True
         except Exception:
             img_used = False
+
+    # Priorité 3 : illustration distante
     if not img_used:
         img_bytes = _dl_image(illustration_url(illustration_slug, 800))
         if img_bytes:
@@ -201,13 +256,29 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
     story.append(PageBreak())
 
 
-def opening_page(story: list, styles: dict, prenom: str, first_line: str = "Ton ciel n'a jamais été aussi clair."):
-    """Page 2 — l'accueil spectaculaire : prénom + ligne d'ouverture pleine page."""
+def opening_page(story: list, styles: dict, prenom: str,
+                 first_line: str = "Ton ciel n'a jamais été aussi clair.",
+                 intro_text: Optional[str] = None):
+    """Page 2 — l'accueil spectaculaire : prénom + ligne d'ouverture pleine page.
+
+    Si `intro_text` est fourni, un paragraphe d'ouverture (60-120 mots) est
+    posé sous la ligne « waouh » pour satisfaire la règle QA d'une page
+    intérieure ≥ 40 mots (spec Feb 2026, §2).
+    """
     story.append(Spacer(1, 8 * cm))
     story.append(Paragraph(f'<font color="{GOLD_HEX}"><font name="OrnamentSerif">✦</font></font>', styles['planet_glyph']))
     story.append(Spacer(1, 0.5 * cm))
     story.append(Paragraph(prenom, styles['cover_title']))
     story.append(Paragraph(first_line, styles['waouh']))
+    if intro_text:
+        story.append(Spacer(1, 1.2 * cm))
+        story.append(Paragraph(
+            intro_text,
+            ParagraphStyle('opening_intro', fontName=font('Cormorant', 'Helvetica'),
+                           fontSize=12, leading=18, textColor=CREAM,
+                           alignment=TA_CENTER, spaceAfter=12,
+                           leftIndent=1.5 * cm, rightIndent=1.5 * cm),
+        ))
     story.append(PageBreak())
 
 
@@ -232,15 +303,33 @@ def waouh_quote_page(story: list, styles: dict, quote: str, illustration_slug: O
     story.append(PageBreak())
 
 
-def chapter_illustration(story: list, styles: dict, chapter_tag: str, title: str, illustration_slug: str):
-    """Page séparation de chapitre — tag + titre + illustration pleine page."""
+def chapter_illustration(story: list, styles: dict, chapter_tag: str, title: str,
+                         illustration_slug: str, intro_text: Optional[str] = None):
+    """Page séparation de chapitre — tag + titre + illustration pleine page.
+
+    Si `intro_text` est fourni (60-120 mots), il est posé sous l'illustration
+    pour satisfaire la règle QA d'un chapter opener ≥ 40 mots (spec Feb 2026).
+    """
     story.append(Spacer(1, 2 * cm))
-    story.append(Paragraph(chapter_tag.upper(), styles['section_tag']))
+    # Enveloppe les ✦ dans OrnamentSerif pour éviter les glyphes manquants (tofu) sur Cinzel.
+    tag_html = chapter_tag.upper().replace(
+        '✦', f'<font name="{font("OrnamentSerif", "Helvetica")}">✦</font>'
+    )
+    story.append(Paragraph(tag_html, styles['section_tag']))
     story.append(Paragraph(title, styles['cover_title']))
     story.append(Spacer(1, 1 * cm))
     img_bytes = _dl_image(illustration_url(illustration_slug, 800))
     if img_bytes:
         story.append(RLImage(img_bytes, width=12 * cm, height=12 * cm, mask='auto'))
+    if intro_text:
+        story.append(Spacer(1, 0.8 * cm))
+        story.append(Paragraph(
+            intro_text,
+            ParagraphStyle('chapter_intro', fontName=font('Cormorant', 'Helvetica'),
+                           fontSize=11, leading=16, textColor=CREAM,
+                           alignment=TA_CENTER, spaceAfter=10,
+                           leftIndent=1.5 * cm, rightIndent=1.5 * cm),
+        ))
     story.append(PageBreak())
 
 
@@ -331,12 +420,16 @@ def planet_analysis_page(story: list, styles: dict, planet_name: str, sign: str,
     story.append(PageBreak())
 
 
-def emotional_ending(story: list, styles: dict, prenom: str):
-    """Fin très émotionnelle — signée Soléna.
+def emotional_ending(story: list, styles: dict, prenom: str, signature: str = 'Soléna'):
+    """Fin très émotionnelle — signature paramétrable.
 
     Refactor 2026-02-23 : tout tient sur UNE seule page (spacers ajustés) +
     ajout d'une petite illustration finale décorative sous la signature pour
     éviter la citation orpheline sur une page vide.
+
+    Refactor 2026-02-27 : paramètre ``signature`` pour permettre au Thème Natal
+    de signer « — Plume Astrale » (la voix Soléna est réservée aux autres
+    produits : Cercle, chat, numérologie, karma, rencontres, astrocarto).
     """
     story.append(Spacer(1, 1.8 * cm))
     img_bytes = _dl_image(illustration_url("astral_silhouette", 800))
@@ -358,7 +451,7 @@ def emotional_ending(story: list, styles: dict, prenom: str):
             'Elles éclairent simplement le chemin<br/>que tu es libre d\'emprunter.',
             styles['waouh']),
         Spacer(1, 0.9 * cm),
-        Paragraph('— Soléna', styles['signature']),
+        Paragraph(f'— {signature}', styles['signature']),
         Spacer(1, 0.7 * cm),
         Paragraph(
             f'<font color="{GOLD_HEX}"><font name="OrnamentSerif">✦ ⁘ ✦</font></font>',
@@ -517,7 +610,10 @@ def photos_grid_2x2(
     # pas écrasée en pied de page.
     story.append(CondPageBreak(18 * cm))
     story.append(Spacer(1, 1.2 * cm))
-    story.append(Paragraph(chapter_tag.upper(), styles['section_tag']))
+    tag_html = chapter_tag.upper().replace(
+        '✦', f'<font name="{font("OrnamentSerif", "Helvetica")}">✦</font>'
+    )
+    story.append(Paragraph(tag_html, styles['section_tag']))
     story.append(Paragraph(
         title,
         ParagraphStyle('grid_title', fontName=font('Cormorant', 'Helvetica'),

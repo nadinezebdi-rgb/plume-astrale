@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "mode": "planets",
+  "page_count": 16,
+  "word_count": 1080,
+  "blocking_issues": [],
+  "warnings": [],
+  "blank_pages": [],
+  "low_density_pages": [],
+  "sections_found": {
+    "cover": true,
+    "prenom_on_cover": true,
+    "plume_astrale_signature": true
+  }
+}

@@ -18,6 +18,7 @@ import httpx
 
 from services.supabase_client import get_admin_client
 from services.email_journal import log_send_attempt, log_send_response
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +111,7 @@ async def _send(email: str, subject: str, html: str, session_id: str | None) -> 
                 return False
             return True
     except Exception as e:
-        logger.warning(f'[astrocarto_followup] envoi échoué pour {email}: {e}')
+        logger.warning(f'[astrocarto_followup] envoi échoué pour {redact_email(email)}: {e}')
         return False
 
 
@@ -164,7 +165,7 @@ async def _run_once() -> int:
             logger.warning(f'[astrocarto_followup] mark sent failed for {session_id}: {e}')
         if ok:
             sent += 1
-            logger.info(f'[astrocarto_followup] J+3 envoyé à {email} ({session_id})')
+            logger.info(f'[astrocarto_followup] J+3 envoyé à {redact_email(email)} ({session_id})')
     return sent
 
 

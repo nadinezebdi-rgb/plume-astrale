@@ -97,7 +97,7 @@ def generate_manuscrit_pdf(user_data: dict, planets_data=None, horoscope_data: d
     """DROP-IN REPLACEMENT du générateur legacy `generate_manuscrit_pdf`.
 
     Mode ULTRA activé si `user_data['ai_interpretations']` contient au moins
-    7 planètes remplies (Soléna a répondu). Sinon fallback 5 planètes classiques.
+    7 planètes remplies (enrichissement Plume Astrale réussi). Sinon fallback 5 planètes classiques.
     """
     prenom = user_data.get('prenom') or user_data.get('first_name') or user_data.get('name') or 'Voyageuse'
     birth_date = user_data.get('dateNaissance') or user_data.get('birth_date') or ''

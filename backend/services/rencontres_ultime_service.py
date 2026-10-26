@@ -12,6 +12,7 @@ import httpx
 
 from services.supabase_client import get_admin_client
 from services.rencontres_ultime_pdf import generate_rencontres_ultime_pdf
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -185,20 +186,12 @@ async def handle_rencontres_ultime_webhook(session_id: str) -> None:
             partner_name=partner_name,
             synastry=synastry,
         )
-        out_dir = ASSETS_DIR / 'rencontres_ultime'
-        out_dir.mkdir(parents=True, exist_ok=True)
+        # SEC-003 (2026-02) : plus d'écriture disque — Supabase Storage uniquement.
         filename = f'ultime_{session_id[-16:]}.pdf'
-        out_path = out_dir / filename
-        with open(out_path, 'wb') as f:
-            f.write(pdf_bytes)
-        pdf_path = f'/api/assets/rencontres_ultime/{filename}'
-
-        # SEC-003 : token opaque + URL signée
         from services.pdf_download import new_pdf_token, build_signed_pdf_url, upload_pdf_to_reports_bucket
         pdf_token = new_pdf_token()
         md['pdf_token'] = pdf_token
         md['pdf_path'] = build_signed_pdf_url(session_id, pdf_token)
-        md['pdf_static_path_legacy'] = pdf_path
         supabase_url = upload_pdf_to_reports_bucket(pdf_bytes, session_id, 'rencontres_ultime', filename)
         if supabase_url:
             md['pdf_supabase_url'] = supabase_url
@@ -300,4 +293,4 @@ async def _send_ultime_email(email: str, first_name: str, pdf_bytes: bytes, file
         if r.status_code >= 400:
             logger.warning(f"[rencontres_ultime] Resend error {r.status_code}: {r.text[:300]}")
         else:
-            logger.info(f"[rencontres_ultime] Email sent to {email}")
+            logger.info(f"[rencontres_ultime] Email sent to {redact_email(email)}")

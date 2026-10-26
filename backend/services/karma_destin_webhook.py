@@ -4,6 +4,7 @@ import logging
 from config import get_settings
 from services.supabase_client import get_admin_client
 from routes.karma_destin import _generate_and_email_pdf
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ async def handle_karma_destin_webhook(session_id: str):
             logger.warning(f'[karma_destin] No email in transaction: {session_id}')
             return
         
-        logger.info(f'[karma_destin] Payment completed for {user_email}, generating PDF in background...')
+        logger.info(f'[karma_destin] Payment completed for {redact_email(user_email)}, generating PDF in background...')
         
         # Inicia PDF generation assincronamente
         asyncio.create_task(_generate_and_email_pdf(user_email, pdf_ctx, session_id))

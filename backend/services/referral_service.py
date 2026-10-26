@@ -14,6 +14,7 @@ from typing import Optional, Dict, Any
 from datetime import datetime, timezone
 
 from services.supabase_client import get_admin_client
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -254,4 +255,4 @@ async def _send_reward_email(referrer_id: str, referral_row_id: Optional[str]) -
             }).eq('id', referral_row_id).execute()
         except Exception as e:
             logger.warning(f'[referral] mark rewarded fail: {e}')
-    logger.info(f'[referral] reward email → parrain {referrer_id} ({email}) sign={sign_key} eid={eid}')
+    logger.info(f'[referral] reward email → parrain {referrer_id} ({redact_email(email)}) sign={sign_key} eid={eid}')

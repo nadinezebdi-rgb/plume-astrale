@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 import httpx
 
 from services.supabase_client import get_admin_client
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,6 @@ async def send_pdf_email(email: str, subject: str, html: str, log_tag: str) -> N
             if r.status_code >= 400:
                 logger.warning(f'[{log_tag}] Resend error {r.status_code}: {r.text[:200]}')
             else:
-                logger.info(f'[{log_tag}] Email envoye a {email}')
+                logger.info(f'[{log_tag}] Email envoye a {redact_email(email)}')
     except Exception as e:
         logger.warning(f'[{log_tag}] email failed: {e}')

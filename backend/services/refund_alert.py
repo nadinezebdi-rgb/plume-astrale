@@ -15,6 +15,7 @@ import httpx
 
 from services.supabase_client import get_admin_client
 from services.resend_service import send_email
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +184,7 @@ async def send_refund_alert(stats: Dict[str, Any]) -> int:
             if eid:
                 sent += 1
         except Exception as e:
-            logger.warning(f'[refund_alert] send fail to {admin_email}: {e}')
+            logger.warning(f'[refund_alert] send fail to {redact_email(admin_email)}: {e}')
 
     # Slack notification en parallele (opt-in via SLACK_WEBHOOK_URL)
     slack_sent = False

@@ -1,5 +1,139 @@
 # Plume Astrale — PRD
 
+## 2026-02-27 — Refonte PDF Livre Astral : QA stricte + Ex-libris enrichi + 4 profils de test (Lot 6)
+
+**🎯 Objectif** : appliquer la spec Feb 2026 « Refonte Livre Astral » aux deux moteurs PDF (ReportLab + Chromium v2) : interdiction du mot « complet » sur la couverture, pas de page intérieure sous 40 mots ni sous 60 % de remplissage, aucune page sans texte, ex-libris complet (prénom + N° + date), 4 profils de test joints au livrable.
+
+**✅ Livré** :
+- **QA stricte renforcée (ReportLab, `services/natal_pdf_qa.py`)** :
+  - Nouveau check mot interdit sur couverture : « complet » est désormais bloquant.
+  - Nouveau check densité par page : chaque page intérieure non-structurelle doit atteindre ≥ 40 mots (mode rich) ou ≥ 25 mots (mode planets) ET ≥ 60 % de remplissage de la zone utile.
+  - Nouveau check ex-libris complet : prénom + numéro d'exemplaire (P-ASTRAL-xxxxx) + année de naissance (4 chiffres) doivent tous les trois être présents, sinon blocage.
+  - Détection intelligente des pages structurelles (demi-titre, TOC, part divider, copyright, dédicace, colophon, frontispice, éphéméride) via regex → exemptées du check densité pour respecter la respiration éditoriale.
+  - Normalisation du check prénom couverture : les prénoms composés (ex. « Marie-Alexandrine du Chastelier ») coupés sur 2 lignes sont désormais correctement détectés via `' '.join(cover_text.split())`.
+  - `QAReport.low_density_pages` : nouveau champ listant chaque page sous-remplie avec `page`, `words`, `fill`, `reason` pour debug.
+- **Chapter openers enrichis d'intros 60-80 mots** (`services/pdf_luxury_theme.py`, `services/natal_pdf_v2.py`) :
+  - `opening_page()` et `chapter_illustration()` acceptent un paramètre `intro_text` optionnel pour poser un paragraphe sous le titre.
+  - `natal_pdf_v2.py` alimente les intros pour les deux premiers chapter openers (ouverture + roue céleste) afin de respecter la règle spec « chapter opener ≥ 60-120 mots d'intro ».
+- **Ex-libris enrichi avec heure + lieu de naissance** (`services/natal_ex_libris.py`) :
+  - Nouveaux paramètres `birth_time_fr` et `birth_place` propagés depuis `natal_data`.
+  - La ligne « Composé sous le ciel du … » affiche désormais : date + « , à 14h30 » + « , à Paris » (si disponibles).
+- **QA v2 Chromium étendue (`services/book_engine_v2/pdf_qa.py`)** :
+  - 4 nouveaux checks QA (12 à 15) ajoutés à `run_all_checks()` : mots interdits couverture, densité par page, aucune page sans texte, ex-libris complet.
+  - Reste rétro-compatible (signatures de l'appelant `admin_book.py` inchangées : `prenom` est optionnel).
+- **4 profils de test automatisés** (`tests/_gen_sample_natal_profiles.py`) :
+  - Profil 1 — Clara, Cancer, avec heure (Paris 14h30) → 42 pages, 2517 mots ✓.
+  - Profil 2 — Marie, Bélier, sans heure → 16 pages, 1080 mots ✓ (mode planets).
+  - Profil 3 — Marie-Alexandrine du Chastelier (prénom composé long), Scorpion → 42 pages, 2533 mots ✓.
+  - Profil 4 — Alix, Taureau, ultra enrichi (phase lunaire incluse) → 42 pages, 2537 mots ✓.
+  - **4/4 passent la QA stricte** avec rapports JSON + captures couverture + ex-libris stockés dans `/app/sample_preview/qa_profiles/`.
+
+**🧪 Tests** :
+- `tests/test_natal_pdf_qa.py` : 4 nouveaux tests spec Feb 2026 :
+  - `test_qa_rejects_forbidden_complet_in_cover`
+  - `test_qa_rejects_interior_page_below_40_words`
+  - `test_qa_exempts_structural_page_divider_from_density_check`
+  - `test_qa_ex_libris_requires_birth_year`
+- **50/50 passent** (13 QA + 4 ex-libris + 33 planet renderer).
+
+**📁 Fichiers touchés** :
+- `services/natal_pdf_qa.py` *(QA stricte + 4 nouvelles règles + détection structurelle)*
+- `services/pdf_luxury_theme.py` *(intros chapter openers)*
+- `services/natal_pdf_v2.py` *(propagation birth_time/birth_place, intros ouverture + roue)*
+- `services/natal_ex_libris.py` *(heure + lieu dans « Composé sous le ciel du … »)*
+- `services/book_engine_v2/pdf_qa.py` *(4 checks éditoriaux ajoutés)*
+- `tests/test_natal_pdf_qa.py` *(4 tests ajoutés)*
+- `tests/_gen_sample_natal_profiles.py` *(nouveau, 4 profils joints)*
+
+---
+
+
+## 2026-02-27 — Édition Saisonnière + Badge CI (Lot 5)
+
+**🎯 Objectif** : effet « collection » visuelle — chaque mois de naissance teinte la couverture d'une couleur de saison, pour que les clientes nées à la même saison se reconnaissent sur les réseaux. En parallèle, afficher le statut de la CI sur le README GitHub.
+
+**✅ Livré** :
+- **Couverture saisonnière dynamique** (`services/planet_renderer.py`) :
+  - 4 palettes de ciel nocturne : `hiver` (bleu nuit `#0A1026`), `printemps` (vert d'eau nocturne `#14222C`), `ete` (ambré chaud `#22160C`), `automne` (cuivré profond `#2A160E`).
+  - Densité d'étoiles « chaudes » (dorées vs blanches) variable par saison : 12 % en hiver → 55 % en automne.
+  - Helpers publics `month_to_season(month)` et `SEASON_LABELS_FR` pour une réutilisation facile.
+  - `generate_planet_png(sun_sign, birth_month=…)` : le mois de naissance pilote la teinte. Sans `birth_month`, le défaut reste identique au rendu historique (hiver bleu nuit) → **compatibilité ascendante parfaite**.
+  - Déterminisme préservé : seed = hash(ruler + saison) → même entrée produit toujours le même PNG bit à bit.
+- **Mention « ÉDITION {SAISON} »** (`services/pdf_luxury_theme.py`) : petit label Cinzel 7pt letter-spaced 3, placé sous la planète maîtresse, qui révèle discrètement la saison. Effet collection sans forcer la main.
+- **Propagation du mois** (`services/natal_pdf_v2.py`) : extraction `_birth_month` depuis `birth_date` (format `YYYY-MM-DD`), transmission à `cover_page`.
+- **Badge CI dans README** (`/app/README.md`) : badge markdown GitHub Actions `ci.yml` ajouté au-dessus du pitch, avec note explicative pour remplacer `OWNER/REPO` au premier push.
+
+**🧪 Tests** :
+- `tests/test_planet_renderer.py` — 7 nouveaux tests ajoutés :
+  - `test_month_to_season` paramétré sur les 12 mois.
+  - `test_four_seasons_are_declared` (invariant structure).
+  - `test_season_tints_background` : hiver vs été produisent des coins de couleur distincte (bleu > rouge vs rouge > bleu).
+  - `test_season_deterministic` (même mois → même PNG).
+  - `test_without_birth_month_defaults_to_winter` (compat ascendante).
+- **46/46 passent** (26 planet renderer + 9 QA + 4 ex-libris + 7 saisonniers).
+- Validation visuelle : les 4 saisons produisent 4 fonds nettement différents (`sample_preview/season_hiver.png`, `season_printemps.png`, `season_ete.png`, `season_automne.png`). PDF Clara (juillet 1992) affiche bien le fond ambré été + mention « ÉDITION ÉTÉ ».
+
+**📁 Fichiers touchés** :
+- `services/planet_renderer.py` *(ajout SEASON_SKY, SEASON_STAR_WARMTH, SEASON_LABELS_FR, month_to_season, param birth_month)*
+- `services/pdf_luxury_theme.py` *(cover_page accepte birth_month, affiche mention « ÉDITION {SAISON} »)*
+- `services/natal_pdf_v2.py` *(extraction _birth_month, propagation à cover_page)*
+- `tests/test_planet_renderer.py` *(7 tests saisonniers)*
+- `README.md` *(badge CI GitHub Actions)*
+
+---
+
+
+## 2026-02-27 — Refactor PDF Thème Natal : Lots 1-4 (couverture 3D + Ex-Libris IA + QA auto)
+
+**🎯 Objectif** : hisser le PDF Thème Natal au standard « Dior × Cartier × Harry Potter × Astrologie » demandé par la fondatrice — couverture personnalisée, Ex-Libris bibliophile, contrôle qualité automatisé bloquant avant envoi.
+
+**✅ Livré** :
+- **Lot 1 — Fondations typographiques** (livré lors d'un lot antérieur) : système d'ornements OrnamentSerif (FreeSerif) pour les glyphes `✦ ❖ ⚜ ◆`, polices Cinzel + Cormorant Garamond + Allura embarquées en TTF, styles de paragraphe luxe.
+- **Lot 2 — Couverture 3D personnalisée** (`services/planet_renderer.py`, 350 lignes) :
+  - Rendu PIL vectoriel d'une planète 3D personnalisée selon le signe solaire (ou l'élément dominant), appliquée dynamiquement sur la couverture `build_natal_pdf_v2`.
+  - Mapping des 12 signes → planète maîtresse (Soleil pour Lion, Lune pour Cancer, Mars pour Bélier/Scorpion, etc.) avec palettes de couleurs cohérentes par signe.
+  - Anneaux Saturne rendus pour Capricorne/Verseau, atmosphères gazeuses pour Jupiter/Neptune, cratères lunaires pour Cancer.
+  - Déterministe : même entrée → même sortie (évite les régénérations IA runtime, coût 0).
+- **Lot 3 — Ex-Libris bibliophile IA** (`services/natal_ex_libris.py` + asset `assets/ex_libris_bibliotheque.png`) :
+  - Visuel « Nuit étoilée + reliures dorées » généré via Nano Banana (Emergent LLM Key), style grimoire-bibliothèque personnelle avec paons héraldiques, échelle de lecture, constellations.
+  - Encart cartouche crème superposé avec prénom, triade astrale (☉☽⇑), citation personnalisée, numéro d'exemplaire déterministe (`P-ASTRAL-xxxxx`).
+- **Lot 4 — Contrôle qualité automatisé** (`services/natal_pdf_qa.py`, 220 lignes) :
+  - Analyse structurelle PyMuPDF du PDF produit : extraction texte full, détection pages blanches, décompte de mots.
+  - Checks bloquants : couverture présente, prénom sur couverture, Ex-Libris valide (en mode `rich`), signature `Plume Astrale`, ≥ 2500 mots en mode rich / ≥ 1200 en mode planets, 0 page blanche, 0 contamination « Soléna ».
+  - API : `qa_check_natal_pdf(bytes, prenom, mode) → QAReport` (rapport structuré) + `assert_natal_pdf_quality(...)` (helper strict qui raise `NatalPdfQAError`).
+  - Intégré dans `natal_book_service.generate_natal_book_pdf` : le PDF n'est jamais stocké/envoyé si QA échoue, l'incident est loggué pour investigation.
+- **Correctif tofu glyphes ✦** (découvert pendant la validation visuelle) :
+  - 11 pages du PDF affichaient des carrés vides (U+0000) au lieu de `✦` car certains Paragraph rendaient les ornements avec `Cinzel` (police qui n'a pas ces glyphes).
+  - Fix : helper `_star()` dans `pdf_book_pages.py` + traduction automatique `✦ → <font name="OrnamentSerif">✦</font>` dans `chapter_illustration` et `chapter_illustration_grid` (`pdf_luxury_theme.py`).
+  - Résultat : 0 glyphe manquant sur les 42 pages de l'échantillon.
+
+**🧪 Tests** :
+- `tests/test_natal_pdf_qa.py` (9 tests) : couverture complète du QA — défauts simulés (titre manquant, prénom manquant, contamination Soléna, Ex-Libris manquant), seuils de mots en mode `planets` vs `rich`, assertion stricte, PDF réel.
+- `tests/test_planet_renderer.py` (17 tests) : 12 signes zodiacaux → rendu PNG valide, Saturne a bien ses anneaux, fallback déterministe sur signe inconnu.
+- `tests/test_natal_ex_libris.py` (4 tests) : page Ex-Libris générée, prénom imprimé, numéro d'exemplaire déterministe, image bibliothèque chargée.
+- **30/30 passent** après correctif tofu.
+- Validation visuelle : échantillon PDF 42 pages / 2804 mots / 0 page blanche / QA passed=true / 0 glyphe manquant. Screenshots couverture, faux-titre, Ex-Libris, pages chapitres, maisons vérifiés OK.
+
+**📁 Fichiers touchés** :
+- `services/planet_renderer.py` *(nouveau, Lot 2)*
+- `services/natal_pdf_qa.py` *(nouveau, Lot 4)*
+- `services/natal_ex_libris.py` *(mis à jour pour utiliser l'asset bibliothèque IA — Lot 3)*
+- `services/natal_pdf_v2.py` *(intégration planet_renderer sur couverture + appel ex_libris)*
+- `services/natal_book_service.py` *(exécution pipeline QA avant stockage)*
+- `services/pdf_book_pages.py` *(helper `_star()` + remplacements ✦)*
+- `services/pdf_luxury_theme.py` *(traduction ✦→OrnamentSerif dans chapter_illustration et chapter_illustration_grid)*
+- `tests/test_natal_pdf_qa.py`, `tests/test_planet_renderer.py` *(nouveaux)*
+- `tests/_gen_sample_natal_pdf.py` *(mock enrichi pour atteindre le seuil QA 2500 mots)*
+- `assets/ex_libris_bibliotheque.png` *(image IA Nano Banana, nuit étoilée + reliures dorées)*
+
+**🧱 Prochains chantiers (déjà planifiés dans la roadmap)** :
+- QR code sharing pour événements physiques (P3).
+- Tracking par canal d'acquisition des tirages partagés (P3).
+- CI GitHub Actions `pytest + yarn build` sur chaque push (P3).
+
+---
+
+
 ## 2026-02-24 — Reels Preview : vidéo 15 s MP4 pour TikTok / Reels / Shorts
 
 **🎯 Objectif** : auto-exporter une vidéo de 15 s de la révélation d'un tirage depuis la fenêtre de partage, pour booster la viralité TikTok / Instagram Reels / YouTube Shorts.

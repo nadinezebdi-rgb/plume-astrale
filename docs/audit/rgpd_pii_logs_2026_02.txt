@@ -1,0 +1,35 @@
+============================================================
+
+### EMAIL (45 occurrences) ###
+  backend/routes/apercu_discount.py:172 → logger.error(f'[apercu-discount] Resend échec pour {payload.email}')
+  backend/routes/contact.py:109 → logger.error(f'[contact] Resend échec pour {payload.email}')
+  backend/routes/contact.py:111 → logger.info(f'[contact-fallback] from={payload.email} subject={payload.subject!r}')
+  backend/routes/fenetre_rencontre.py:336 → logger.info(f'PDF fenêtres envoyé à {email}')
+  backend/routes/composer.py:275 → logger.info(f'[composer] Promo {promo["code"]} applied for {payload.email} → session {fake_session_id}')
+  backend/routes/numerologie.py:262 → logger.info(f'PDF numérologie envoyé à {email}')
+  backend/routes/landing.py:407 → logger.warning(f'[hero autolock] send fail to {admin_email}: {e}')
+  backend/routes/consultation_ultime.py:136 → logger.info(f"[consultation_ultime] dispatched pour {email} (session {session_id})")
+  backend/routes/resend_webhook.py:107 → logger.info(f'[resend_webhook] {event_type} → {to_email} ({resend_id})')
+  backend/routes/karma_destin.py:235 → logger.info(f'PDF karma envoyé à {email}')
+  backend/services/astrocarto_followup.py:113 → logger.warning(f'[astrocarto_followup] envoi échoué pour {email}: {e}')
+  backend/services/astrocarto_followup.py:167 → logger.info(f'[astrocarto_followup] J+3 envoyé à {email} ({session_id})')
+  backend/services/kabbale_service.py:227 → logger.info(f"[kabbale] Email sent to {email}")
+  backend/services/crosssell_astrocarto.py:130 → logger.warning(f'[crosssell_astrocarto] envoi échoué pour {email}: {e}')
+  backend/services/crosssell_astrocarto.py:206 → logger.info(f'[crosssell_astrocarto] J+7 envoyé à {email} ({pack_id})')
+  backend/services/refund_alert.py:186 → logger.warning(f'[refund_alert] send fail to {admin_email}: {e}')
+  backend/services/referral_service.py:257 → logger.info(f'[referral] reward email → parrain {referrer_id} ({email}) sign={sign_key} eid={eid}')
+  backend/services/trio_decouverte_service.py:105 → logger.info(f"[trio] {len(dispatched)}/3 PDFs dispatchés pour {email} (session {session_id})")
+  backend/services/astrocartographie_service.py:295 → logger.info(f"[astrocarto] Email sent to {email}")
+  backend/services/pdf_delivery.py:60 → logger.info(f'[{log_tag}] Email envoye a {email}')
+  ...et 25 de plus
+
+### FIRST_NAME (0 occurrences) ###
+
+### BIRTH_DATE (0 occurrences) ###
+
+### PHONE (0 occurrences) ###
+
+### ADDRESS (1 occurrences) ###
+  backend/services/lulu_client.py:93 → logger.info(f'[lulu_mock] quote country={address.get("country_code")} → mocked')
+
+=== TOTAL : 46 loggers avec PII ===

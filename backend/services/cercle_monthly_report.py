@@ -27,6 +27,7 @@ from services.monthly_mood_content import (
     get_sign_from_birthdate, get_monthly_mood, MONTH_NAMES_FR,
 )
 from services.supabase_client import get_admin_client
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -401,7 +402,7 @@ async def _send_report_email(email: str, first_name: str, sign_name: str, month_
             except Exception:
                 return None
     except Exception as e:
-        logger.error(f'[cercle_monthly] send failure for {email}: {e}')
+        logger.error(f'[cercle_monthly] send failure for {redact_email(email)}: {e}')
         return None
 
 
@@ -482,7 +483,7 @@ async def send_monthly_reports_to_all() -> dict:
         sign_info = get_sign_from_birthdate(sub['birth_date'])
         if not sign_info:
             skipped += 1
-            logger.warning(f'[cercle_monthly] birth_date invalide pour {email}, skip')
+            logger.warning(f'[cercle_monthly] birth_date invalide pour {redact_email(email)}, skip')
             continue
         sign_name, sign_element = sign_info
         try:
@@ -499,16 +500,16 @@ async def send_monthly_reports_to_all() -> dict:
                     generate_ig_visual, sign_name, month_name, mood_accent,
                 )
             except Exception as e:
-                logger.warning(f'[cercle_monthly] IG visual generation failed for {email}: {e}')
+                logger.warning(f'[cercle_monthly] IG visual generation failed for {redact_email(email)}: {e}')
             eid = await _send_report_email(email, first_name, sign_name, month_name, pdf_bytes, ig_bytes)
             if eid:
                 sent += 1
-                logger.info(f'[cercle_monthly] ✓ envoyé à {email} (id={eid}, {sign_name}/{sign_element})')
+                logger.info(f'[cercle_monthly] ✓ envoyé à {redact_email(email)} (id={eid}, {sign_name}/{sign_element})')
             else:
                 failed += 1
         except Exception as e:
             failed += 1
-            logger.exception(f'[cercle_monthly] échec pour {email}: {e}')
+            logger.exception(f'[cercle_monthly] échec pour {redact_email(email)}: {e}')
         # Petit throttle pour ne pas saturer Resend
         await asyncio.sleep(0.3)
 

@@ -18,6 +18,7 @@ from typing import Dict, Any, List
 from services.supabase_client import get_admin_client
 from services.resend_service import send_email
 from services.app_settings import get_setting, set_setting, log_alert
+from services.log_redact import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -178,7 +179,7 @@ async def _send_weekly_recap() -> int:
             if eid:
                 sent += 1
         except Exception as e:
-            logger.warning(f'[weekly_insights] send fail to {admin_email}: {e}')
+            logger.warning(f'[weekly_insights] send fail to {redact_email(admin_email)}: {e}')
     if sent:
         try:
             log_alert(
