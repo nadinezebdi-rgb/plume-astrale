@@ -1,5 +1,62 @@
 # Plume Astrale — PRD
 
+## 2026-02-27 — Refonte SEO Google Search Console : Lot 1 complet (nginx 301/404 + sitemap auto)
+
+**🎯 Objectif** : Corriger les problèmes SEO détectés par Google Search Console sur plume-astrale.fr : URLs parasites `?post=`, soft-404 systématiques, redirections JavaScript, signaux canonical contradictoires.
+
+**📍 Architecture tranchée** : les 301/404 vivent dans **`/app/deploy/nginx-frontend.conf`** (production). Le CRA dev server (preview) ne les gère pas — les tests curl se font après déploiement. React Navigate reste comme filet de sécurité côté client.
+
+**✅ Lot 1 livré** :
+- **1. Blog `?post=` → 301 serveur** (`deploy/nginx-frontend.conf`) :
+  - `/blog?post=X` → **301** `/blog/X`
+  - `/blog/n'importe-quoi?post=X` → **301** `/blog/X`
+  - Robots.txt audité : aucun `Disallow: *post=` → Google verra les 301.
+  - Aucun `?post=` hardcodé dans le code React (vérifié par grep ; les liens parasites viennent du widget Soro externe, capturés par le 301 nginx).
+- **2. Vraies erreurs 404** :
+  - Toute URL inconnue (`/page-qui-nexiste-pas-xyz`) renvoie **404 HTTP réel** (plus de soft-404).
+  - Slug blog inconnu (`/blog/article-inexistant`) → **404** (nginx valide contre liste explicite des 9 slugs, auto-générée).
+  - Signe horoscope inconnu (`/horoscope/zorglub`) → **404** (regex nginx stricte sur les 12 signes).
+  - Page 404 stylée Nocturne Éditorial créée à `/app/frontend/public/404.html` (noindex, liens Accueil/Blog/Livres/Horoscope/Contact).
+- **3. JS redirects → 301 serveur** : 46 redirections 301 explicites remplacent les `<Navigate />` React pour toutes les URLs legacy et doublons (`/temoignage`, `/home-experience-v3`, `/compatibilite-amoureuse`, `/kabbale`, `/karma-destin*`, `/premium*`, `/outils/*`, `/politique-de-confidentialite`, `/tirage-tarot`, `/mon-rituel`, `/chat-astral`, etc.).
+- **4. Canoniques horoscopes** : les 24 URLs `/horoscope/<signe>/<semaine|mois>` **301** vers `/horoscope/<signe>` (contenu identique vérifié dans `HoroscopeSign.js` : `:period` est ignoré par le composant). Également retirées du sitemap.
+- **5. Sitemap.xml auto-généré** (`scripts/generate_sitemap.py`) :
+  - **65 URLs** canoniques (vs 88 avant) : accueil, éditoriales, produits phares, 16 services canoniques, outils, 12 horoscopes, hub blog, 9 articles.
+  - **Aucune URL** qui redirige, aucune noindex, aucune privée, aucune `?param=`.
+  - `<lastmod>` dérivé de la vraie mtime du fichier React associé.
+  - **Branché à `yarn build`** via `"prebuild": "cd .. && python scripts/generate_sitemap.py"` dans `package.json` → régénéré automatiquement à chaque déploiement.
+  - Fragment nginx `/app/deploy/nginx-blog-slugs.conf` auto-généré aussi (liste explicite des slugs blog valides pour que `/blog/<slug>` renvoie 200 vs 404 selon existence).
+- **6. Robots.txt audité** : aucune règle `Disallow` ne bloque les 301 serveur. Les `/succes`, `/paiement/`, `/commande/`, `/admin` restent correctement bloqués.
+
+**🧪 Tests** :
+- `backend/tests/test_sitemap_generator.py` — **7/7 passent** (homepage présente, 9 articles présents, 12 signes horoscope présents sans semaine/mois, pages privées exclues, redirections exclues, canoniques `/services/*` présentes).
+- **15/15 redirections testées** avec nginx local (`nginx -t` + run) : chaque 301 renvoie le bon Location header.
+- `/blog?post=xyz` → 301 ✓
+- `/blog/a?post=b` → 301 /blog/b ✓
+- `/page-inconnue-xyz` → 404 ✓
+- `/blog/article-inexistant` → 404 ✓
+- `/temoignage` → 301 /temoignages ✓
+- `/home-experience-v3` → 301 / ✓
+- `/compatibilite-amoureuse` → 301 /services/compatibilite ✓
+- `/outils/numerologie` → 301 /services/numerologie ✓
+- `/horoscope/belier/semaine` → 301 /horoscope/belier ✓
+- `/horoscope/zorglub` → 404 ✓
+
+**📁 Fichiers touchés** :
+- `deploy/nginx-frontend.conf` *(réécrit : 264 lignes, 46 règles 301, 103 routes connues, 2 regex dynamiques validées, catch-all 404)*
+- `deploy/nginx-blog-slugs.conf` *(nouveau, auto-généré)*
+- `deploy/Dockerfile.frontend` *(ajout du COPY de nginx-blog-slugs.conf)*
+- `frontend/src/config/seoRoutes.js` *(nouveau — source unique VALID_ROUTES + REDIRECT_MAP + HOROSCOPE_SIGNS)*
+- `frontend/public/404.html` *(nouveau — page 404 stylée, noindex)*
+- `frontend/public/sitemap.xml` *(regénéré : 65 URLs canoniques, lastmod dynamique)*
+- `frontend/package.json` *(ajout script `prebuild`)*
+- `scripts/generate_sitemap.py` *(nouveau — régénérateur auto)*
+- `backend/tests/test_sitemap_generator.py` *(nouveau — 7 tests de régression)*
+
+**❗ Note** : LOT 2 (pre-rendering des pages pour que Google voie title/canonical/H1 sans JavaScript) est explicitement différé "seulement après validation du lot 1" selon la spec. À attaquer après validation du présent livrable.
+
+---
+
+
 ## 2026-02-27 — Refonte PDF Livre Astral : QA stricte + Ex-libris enrichi + 4 profils de test (Lot 6)
 
 **🎯 Objectif** : appliquer la spec Feb 2026 « Refonte Livre Astral » aux deux moteurs PDF (ReportLab + Chromium v2) : interdiction du mot « complet » sur la couverture, pas de page intérieure sous 40 mots ni sous 60 % de remplissage, aucune page sans texte, ex-libris complet (prénom + N° + date), 4 profils de test joints au livrable.
