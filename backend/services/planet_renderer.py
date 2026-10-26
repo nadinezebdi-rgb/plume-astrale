@@ -35,7 +35,51 @@ PLANET_PALETTES: Dict[str, Dict[str, Tuple[int, int, int]]] = {
 }
 
 
-def _add_starfield(img: Image.Image, rng: random.Random, density: int = 180) -> None:
+# ═══════════════════════════════════════════════════════════════════
+# ÉDITION SAISONNIÈRE (Lot 5 — Feb 2026)
+# Teinte le fond "ciel nuit" de la planète selon la saison de naissance,
+# pour créer un effet "collection" : hiver bleu nuit, printemps vert tendre,
+# été ambré, automne cuivré. L'hémisphère référent est le Nord (France).
+# ═══════════════════════════════════════════════════════════════════
+
+SEASON_LABELS_FR: Dict[str, str] = {
+    'hiver': 'Hiver', 'printemps': 'Printemps', 'ete': 'Été', 'automne': 'Automne',
+}
+
+SEASON_SKY: Dict[str, Tuple[int, int, int]] = {
+    # Ciel de fond RGB — tons profonds pour rester lisible derrière les étoiles.
+    'hiver':    ( 10,  16,  38),  # bleu nuit profond (défaut historique)
+    'printemps': ( 20,  34,  44),  # vert d'eau nocturne
+    'ete':      ( 34,  22,  12),  # ambré/brun chaud
+    'automne':  ( 42,  22,  14),  # cuivré profond
+}
+
+SEASON_STAR_WARMTH: Dict[str, float] = {
+    # Proportion d'étoiles "chaudes" (dorées) vs "froides" (blanches).
+    'hiver':    0.12,
+    'printemps': 0.20,
+    'ete':      0.40,
+    'automne':  0.55,
+}
+
+
+def month_to_season(month: int) -> str:
+    """Mappe un mois (1-12, hémisphère Nord) à sa saison astronomique.
+
+    Approximation calendaire simple : les équinoxes/solstices sont
+    arrondis au premier du mois concerné. Suffisant pour l'effet édition.
+    """
+    if month in (12, 1, 2):
+        return 'hiver'
+    if month in (3, 4, 5):
+        return 'printemps'
+    if month in (6, 7, 8):
+        return 'ete'
+    return 'automne'
+
+
+def _add_starfield(img: Image.Image, rng: random.Random, density: int = 180,
+                   warmth: float = 0.15) -> None:
     draw = ImageDraw.Draw(img)
     w, h = img.size
     for _ in range(density):
@@ -43,7 +87,7 @@ def _add_starfield(img: Image.Image, rng: random.Random, density: int = 180) -> 
         y = rng.randint(0, h - 1)
         size = rng.choice([1, 1, 1, 2, 2, 3])
         brightness = rng.randint(140, 255)
-        if rng.random() < 0.15:
+        if rng.random() < warmth:
             c = (brightness, int(brightness * 0.82), int(brightness * 0.4), 255)
         else:
             c = (brightness, brightness, brightness, 255)
@@ -156,16 +200,28 @@ def _draw_sun_halo(base_img: Image.Image, cx: int, cy: int, radius: int) -> None
 
 
 def generate_planet_png(sun_sign: str, size: int = 1200,
-                        with_rings: bool = None) -> bytes:
-    """Génère la planète maîtresse du signe solaire au format PNG."""
+                        with_rings: bool = None,
+                        birth_month: int = None) -> bytes:
+    """Génère la planète maîtresse du signe solaire au format PNG.
+
+    Si `birth_month` est fourni (1-12), le fond "ciel nuit" est teinté selon
+    la saison correspondante (hiver bleu, printemps vert, été ambré, automne
+    cuivré) pour l'effet « édition saisonnière » / collection.
+    """
     ruler = SIGN_TO_RULER.get(sun_sign, 'Soleil')
     palette = PLANET_PALETTES[ruler]
     if with_rings is None:
         with_rings = (ruler == 'Saturne')
 
-    rng = random.Random(hash(ruler) & 0xFFFFFFFF)
-    img = Image.new('RGBA', (size, size), (10, 16, 38, 255))
-    _add_starfield(img, rng, density=max(80, size // 7))
+    # Fond + chaleur des étoiles selon la saison (défaut hiver = historique).
+    season = month_to_season(birth_month) if birth_month else 'hiver'
+    sky_rgb = SEASON_SKY[season]
+    star_warmth = SEASON_STAR_WARMTH[season]
+
+    # Seed déterministe inclut la saison → signatures distinctes par édition.
+    rng = random.Random(hash((ruler, season)) & 0xFFFFFFFF)
+    img = Image.new('RGBA', (size, size), (*sky_rgb, 255))
+    _add_starfield(img, rng, density=max(80, size // 7), warmth=star_warmth)
 
     cx, cy = size // 2, size // 2
     radius = int(size * 0.36)
@@ -192,4 +248,5 @@ def generate_planet_png(sun_sign: str, size: int = 1200,
     return buf.getvalue()
 
 
-__all__ = ['generate_planet_png', 'SIGN_TO_RULER', 'PLANET_PALETTES']
+__all__ = ['generate_planet_png', 'SIGN_TO_RULER', 'PLANET_PALETTES',
+           'month_to_season', 'SEASON_LABELS_FR', 'SEASON_SKY']

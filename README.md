@@ -1,5 +1,9 @@
 # 🌙 Plume Astrale
 
+[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+
+> _⚠ Remplacer `OWNER/REPO` par le chemin GitHub du dépôt (ex. `plumeastrale/plume-astrale`) après le premier push via « Save to GitHub » pour activer le badge._
+
 Application web d'astrologie et de tarot — thème astral, tirage tarot, horoscope, numérologie, compatibilité amoureuse.
 
 ## Stack technique

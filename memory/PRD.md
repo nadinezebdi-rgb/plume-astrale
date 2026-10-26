@@ -1,5 +1,40 @@
 # Plume Astrale — PRD
 
+## 2026-02-27 — Édition Saisonnière + Badge CI (Lot 5)
+
+**🎯 Objectif** : effet « collection » visuelle — chaque mois de naissance teinte la couverture d'une couleur de saison, pour que les clientes nées à la même saison se reconnaissent sur les réseaux. En parallèle, afficher le statut de la CI sur le README GitHub.
+
+**✅ Livré** :
+- **Couverture saisonnière dynamique** (`services/planet_renderer.py`) :
+  - 4 palettes de ciel nocturne : `hiver` (bleu nuit `#0A1026`), `printemps` (vert d'eau nocturne `#14222C`), `ete` (ambré chaud `#22160C`), `automne` (cuivré profond `#2A160E`).
+  - Densité d'étoiles « chaudes » (dorées vs blanches) variable par saison : 12 % en hiver → 55 % en automne.
+  - Helpers publics `month_to_season(month)` et `SEASON_LABELS_FR` pour une réutilisation facile.
+  - `generate_planet_png(sun_sign, birth_month=…)` : le mois de naissance pilote la teinte. Sans `birth_month`, le défaut reste identique au rendu historique (hiver bleu nuit) → **compatibilité ascendante parfaite**.
+  - Déterminisme préservé : seed = hash(ruler + saison) → même entrée produit toujours le même PNG bit à bit.
+- **Mention « ÉDITION {SAISON} »** (`services/pdf_luxury_theme.py`) : petit label Cinzel 7pt letter-spaced 3, placé sous la planète maîtresse, qui révèle discrètement la saison. Effet collection sans forcer la main.
+- **Propagation du mois** (`services/natal_pdf_v2.py`) : extraction `_birth_month` depuis `birth_date` (format `YYYY-MM-DD`), transmission à `cover_page`.
+- **Badge CI dans README** (`/app/README.md`) : badge markdown GitHub Actions `ci.yml` ajouté au-dessus du pitch, avec note explicative pour remplacer `OWNER/REPO` au premier push.
+
+**🧪 Tests** :
+- `tests/test_planet_renderer.py` — 7 nouveaux tests ajoutés :
+  - `test_month_to_season` paramétré sur les 12 mois.
+  - `test_four_seasons_are_declared` (invariant structure).
+  - `test_season_tints_background` : hiver vs été produisent des coins de couleur distincte (bleu > rouge vs rouge > bleu).
+  - `test_season_deterministic` (même mois → même PNG).
+  - `test_without_birth_month_defaults_to_winter` (compat ascendante).
+- **46/46 passent** (26 planet renderer + 9 QA + 4 ex-libris + 7 saisonniers).
+- Validation visuelle : les 4 saisons produisent 4 fonds nettement différents (`sample_preview/season_hiver.png`, `season_printemps.png`, `season_ete.png`, `season_automne.png`). PDF Clara (juillet 1992) affiche bien le fond ambré été + mention « ÉDITION ÉTÉ ».
+
+**📁 Fichiers touchés** :
+- `services/planet_renderer.py` *(ajout SEASON_SKY, SEASON_STAR_WARMTH, SEASON_LABELS_FR, month_to_season, param birth_month)*
+- `services/pdf_luxury_theme.py` *(cover_page accepte birth_month, affiche mention « ÉDITION {SAISON} »)*
+- `services/natal_pdf_v2.py` *(extraction _birth_month, propagation à cover_page)*
+- `tests/test_planet_renderer.py` *(7 tests saisonniers)*
+- `README.md` *(badge CI GitHub Actions)*
+
+---
+
+
 ## 2026-02-27 — Refactor PDF Thème Natal : Lots 1-4 (couverture 3D + Ex-Libris IA + QA auto)
 
 **🎯 Objectif** : hisser le PDF Thème Natal au standard « Dior × Cartier × Harry Potter × Astrologie » demandé par la fondatrice — couverture personnalisée, Ex-Libris bibliophile, contrôle qualité automatisé bloquant avant envoi.

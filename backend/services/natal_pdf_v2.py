@@ -299,8 +299,10 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
         try:
             _y, _m, _d = birth_date.split('-')
             date_fr = f"{int(_d)} {_MOIS_FR[int(_m) - 1]} {_y}"
+            _birth_month = int(_m)
         except Exception:
             date_fr = birth_date
+            _birth_month = None
 
         bd = bool(book_data and book_data.get('_source') in ('gpt', 'cache'))
 
@@ -319,7 +321,8 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
         cover_page(story, styles, prenom=prenom,
                    subtitle='Ton ciel de naissance, dévoilé.',
                    illustration_slug='ciel_zodiaque',
-                   sun_sign=sun_sign)
+                   sun_sign=sun_sign,
+                   birth_month=_birth_month)
 
         if bd:
             # ── 2. Faux-titre ──

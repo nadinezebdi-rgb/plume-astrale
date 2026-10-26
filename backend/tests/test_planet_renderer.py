@@ -60,3 +60,52 @@ def test_deterministic_output():
     a = generate_planet_png('Scorpion', size=200)
     b = generate_planet_png('Scorpion', size=200)
     assert a == b
+
+
+
+# ─── Lot 5 — Édition saisonnière ────────────────────────────────
+
+from services.planet_renderer import month_to_season, SEASON_SKY, SEASON_LABELS_FR
+
+
+@pytest.mark.parametrize('month,expected', [
+    (1, 'hiver'), (2, 'hiver'), (12, 'hiver'),
+    (3, 'printemps'), (4, 'printemps'), (5, 'printemps'),
+    (6, 'ete'), (7, 'ete'), (8, 'ete'),
+    (9, 'automne'), (10, 'automne'), (11, 'automne'),
+])
+def test_month_to_season(month, expected):
+    assert month_to_season(month) == expected
+
+
+def test_four_seasons_are_declared():
+    assert set(SEASON_SKY.keys()) == {'hiver', 'printemps', 'ete', 'automne'}
+    assert set(SEASON_LABELS_FR.keys()) == {'hiver', 'printemps', 'ete', 'automne'}
+
+
+def test_season_tints_background():
+    """Deux saisons différentes doivent produire des coins (fond) de couleur distincte."""
+    png_winter = generate_planet_png('Lion', size=200, birth_month=1)  # hiver
+    png_summer = generate_planet_png('Lion', size=200, birth_month=7)  # été
+    assert png_winter != png_summer, 'Hiver et été doivent différer visuellement'
+    # Pixel de coin : hiver bleu nuit, été ambré
+    img_w = Image.open(io.BytesIO(png_winter)).convert('RGB')
+    img_s = Image.open(io.BytesIO(png_summer)).convert('RGB')
+    # Coin haut-gauche : hiver R faible, été R élevé
+    assert img_w.getpixel((5, 5))[2] > img_w.getpixel((5, 5))[0], 'Hiver : bleu > rouge'
+    assert img_s.getpixel((5, 5))[0] > img_s.getpixel((5, 5))[2], 'Été : rouge > bleu'
+
+
+def test_season_deterministic():
+    """Même signe + même mois → PNG identique bit à bit."""
+    a = generate_planet_png('Cancer', size=200, birth_month=10)
+    b = generate_planet_png('Cancer', size=200, birth_month=10)
+    assert a == b
+
+
+def test_without_birth_month_defaults_to_winter():
+    """Sans birth_month, le rendu doit être identique à un rendu `hiver`
+    (compat ascendante : la couverture historique est teinte hiver)."""
+    historical = generate_planet_png('Lion', size=200)
+    winter = generate_planet_png('Lion', size=200, birth_month=1)
+    assert historical == winter

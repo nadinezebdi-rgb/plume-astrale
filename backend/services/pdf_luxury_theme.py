@@ -152,7 +152,7 @@ def luxury_styles() -> dict:
 # ═══════════════════════════════════════════════════════════
 
 def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustration_slug: str = 'ciel_zodiaque',
-               sun_sign: str = None):
+               sun_sign: str = None, birth_month: int = None):
     """Couverture pleine page : illustration cosmique + prénom + titre.
 
     Priorité (du plus personnel au plus générique) :
@@ -160,6 +160,10 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
          rendue dynamiquement (Lot 2 — Feb 2026).
       2. hero local /app/backend/assets/pdf_covers/natal_hero.png (palette V3 unifiée).
       3. Illustration cosmique distante par slug.
+
+    Si `birth_month` est fourni (1-12), le fond étoilé de la planète est teinté
+    selon la saison (hiver / printemps / été / automne) et une mention
+    « ÉDITION {SAISON} » est ajoutée sous la planète (Lot 5 — Feb 2026).
     """
     story.append(Spacer(1, 2 * cm))
     story.append(Paragraph('<font name="OrnamentSerif">✦</font> PLUME ASTRALE <font name="OrnamentSerif">✦</font>', styles['section_tag']))
@@ -179,8 +183,11 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
     # Priorité 1 : planète 3D personnalisée (Lot 2 — Feb 2026)
     if sun_sign:
         try:
-            from services.planet_renderer import generate_planet_png, SIGN_TO_RULER
-            png_bytes = generate_planet_png(sun_sign, size=1200)
+            from services.planet_renderer import (
+                generate_planet_png, SIGN_TO_RULER,
+                month_to_season, SEASON_LABELS_FR,
+            )
+            png_bytes = generate_planet_png(sun_sign, size=1200, birth_month=birth_month)
             img = RLImage(io.BytesIO(png_bytes), width=10 * cm, height=10 * cm, mask='auto')
             story.append(img)
             # Petite légende de la planète maîtresse (micro-personnalisation)
@@ -192,6 +199,17 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
                                fontSize=9, textColor=GOLD, alignment=TA_CENTER,
                                spaceAfter=2),
             ))
+            # Mention « Édition {Saison} » pour l'effet collection (Lot 5)
+            if birth_month:
+                season_key = month_to_season(birth_month)
+                season_fr = SEASON_LABELS_FR.get(season_key, '').upper()
+                if season_fr:
+                    story.append(Paragraph(
+                        f'ÉDITION {season_fr}',
+                        ParagraphStyle('season_caption', fontName=font('Cinzel', 'Helvetica'),
+                                       fontSize=7, textColor=MUTED, alignment=TA_CENTER,
+                                       spaceAfter=2, letterSpacing=3),
+                    ))
             story.append(Spacer(1, 0.6 * cm))
             img_used = True
         except Exception:
