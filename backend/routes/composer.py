@@ -273,7 +273,7 @@ async def composer_checkout(payload: CheckoutPayload, request: Request):
             _asyncio.create_task(build_book_pdf_for_session(fake_session_id))
         except Exception as e:
             logger.warning(f'[composer] pipeline schedule failed: {e}')
-        logger.info(f'[composer] Promo {promo["code"]} applied for {redact_email(payload.email)} → session {fake_session_id}')
+        logger.info(f'[composer] Promo applied for {redact_email(payload.email)} → session {fake_session_id}')
         return {
             'url': f'{origin}/composer/succes?session_id={fake_session_id}&promo=1',
             'session_id': fake_session_id,

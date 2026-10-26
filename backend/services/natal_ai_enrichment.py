@@ -9,7 +9,7 @@ Pipeline :
      • Aspects majeurs (conjonction, opposition, trigone, carré, sextile)
      • Maisons + dignités
   2. On sélectionne le contenu impactant (planètes + top aspects par orbe serré)
-  3. GPT-5.4 traduit en français ET reformule en voix Plume Astrale
+  3. OpenAI (GPT) traduit en français ET reformule en voix Plume Astrale
   4. Cache filesystem (24 chars sha256) — évite de repayer 2× la même personne
 """
 from __future__ import annotations
@@ -323,28 +323,35 @@ def _build_user_prompt(prenom: str, ai_input: Dict[str, Any], language: str = 'f
 # ─────────────────────────────────────────────────────────────
 async def _call_gpt(system_msg: str, user_msg: str, session_id: str,
                      timeout_s: float = 90.0) -> Optional[str]:
-    """Appelle GPT via emergentintegrations avec timeout dur.
+    """Appelle directement OpenAI avec un délai maximal.
 
     Si GPT dépasse `timeout_s` secondes, on retourne None au lieu de bloquer
     le pipeline indéfiniment (ex : webhook Thème Natal qui reste en spinner
     infini côté UI).
     """
-    api_key = os.environ.get('EMERGENT_LLM_KEY', '').strip()
+    api_key = os.environ.get('OPENAI_API_KEY', '').strip()
     if not api_key:
-        logger.warning('[natal_ai] EMERGENT_LLM_KEY manquante')
+        logger.warning('[natal_ai] OPENAI_API_KEY manquante')
         return None
     import asyncio as _asyncio
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        chat = LlmChat(
-            api_key=api_key,
-            session_id=session_id,
-            system_message=system_msg,
-        ).with_model('openai', 'gpt-5.4')
-        return await _asyncio.wait_for(
-            chat.send_message(UserMessage(text=user_msg)),
-            timeout=timeout_s,
-        )
+        from openai import AsyncOpenAI
+        async with AsyncOpenAI(api_key=api_key, timeout=timeout_s, max_retries=0) as client:
+            response = await _asyncio.wait_for(
+                client.chat.completions.create(
+                    model=os.environ.get('NATAL_OPENAI_MODEL', 'gpt-4.1').strip() or 'gpt-4.1',
+                    messages=[
+                        {'role': 'system', 'content': system_msg},
+                        {'role': 'user', 'content': user_msg},
+                    ],
+                    response_format={'type': 'json_object'},
+                ),
+                timeout=timeout_s,
+            )
+            if not response.choices or response.choices[0].finish_reason != 'stop':
+                logger.error('[natal_ai] Réponse OpenAI absente ou incomplète')
+                return None
+            return response.choices[0].message.content
     except _asyncio.TimeoutError:
         logger.error(f'[natal_ai] LLM TIMEOUT après {timeout_s}s (session={session_id})')
         return None

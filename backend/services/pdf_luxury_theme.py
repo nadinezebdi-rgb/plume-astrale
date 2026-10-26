@@ -217,7 +217,7 @@ def cover_page(story: list, styles: dict, prenom: str, subtitle: str, illustrati
 
     # Priorité 2 : hero V3 local
     from pathlib import Path as _P
-    _hero_local = _P('/app/backend/assets/pdf_covers/natal_hero.png')
+    _hero_local = _P(__file__).resolve().parent.parent / 'assets' / 'pdf_covers' / 'natal_hero.png'
     if not img_used and _hero_local.exists():
         try:
             img = RLImage(str(_hero_local), width=10 * cm, height=10 * cm, mask='auto')
