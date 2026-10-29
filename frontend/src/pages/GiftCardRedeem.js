@@ -132,7 +132,7 @@ export default function GiftCardRedeem() {
                 </blockquote>
               )}
               <p style={{ color: '#B9B0D5', fontSize: '0.95rem' }}>
-                Complétez vos données de naissance ci-dessous — le livre est composé en quelques minutes.
+                Complétez vos données de naissance ci-dessous — le livre est composé sous 15 minutes.
               </p>
             </div>
 

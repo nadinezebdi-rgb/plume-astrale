@@ -1,5 +1,37 @@
 # Plume Astrale — PRD
 
+## 2026-02-27 — Correctifs post-paiement : dashboard admin + communication délais
+
+**📍 Contexte** : la fondatrice a testé le flux de paiement et constaté deux problèmes de contrôle :
+1. `/admin/payments-health` affichait « 2 payées / 48 € » pour un seul paiement Stripe réel de 24 €.
+2. Les sessions en cours de génération (10 min normal) étaient marquées « bloquées » et déclenchaient un bandeau « Incident ».
+3. Les communications utilisateur disaient « quelques minutes » / « sous 5 min » alors que la vraie durée est 10-15 min.
+
+**✅ Correctifs livrés** :
+- **Dashboard admin `/admin/payments-health`** (`backend/routes/admin_payments.py`) :
+  - **Déduplication par session_id** : chaque session Stripe ne compte qu'une fois, même si plusieurs lignes `payment_transactions` existent (retries, double-insert). Préférence `paid` > `stuck`.
+  - **Seuil 15 min paramétrable** (`stuck_after_minutes` query param) : une session n'est marquée bloquée qu'après 15 min depuis sa création. Les commandes en cours de génération n'alertent plus faussement.
+  - **Exclusion emails de test** : `contact@plume-astrale.fr`, `admin@plume-astrale.fr`, `test@*`, `@test.*`, `@example.*`, alias Gmail `+test` / `+debug` sont filtrés automatiquement des KPIs.
+  - **Seuils feu tricolore ajustés** : `red` demande désormais au moins 10 sessions dans la fenêtre pour éviter les fausses alertes sur petit volume.
+- **Communications utilisateur** (10 fichiers mis à jour) : passage de « quelques minutes » / « sous 5 min » / « en une minute » à **« sous 15 minutes »** partout :
+  - `ThemeNatalOneshotSucces.js`, `ComposerSucces.jsx`, `NosLivres.js` (2 occurrences), `PackKarmiqueSucces.js`, `DuoCompletionSucces.js`, `GiftCardRedeem.js`, `GiftCardPurchase.js`, `TrioDecouverteSucces.js`, `HeroOracle.js`, `SynastrieExitIntentModal.jsx`, `LectureCompleteSucces.js`.
+  - Remplacement complémentaire : « Soléna trace » → « Plume Astrale trace » dans `ThemeNatalOneshotSucces.js`.
+
+**🧪 Tests** : `backend/tests/test_admin_payments_health.py` (nouveau) — **7/7 passent** incluant un test de scénario réaliste reproduisant exactement le cas de la fondatrice :
+- Dédup même session 2 lignes → 1 comptée
+- Session créée il y a 5 min → PAS marquée bloquée
+- Session créée il y a 20 min + unpaid → marquée bloquée
+- Emails `contact@plume-astrale.fr`, `test@*`, `+test`, `@example.*` exclus
+- 24 € une seule fois au lieu de 48 € dédoublés
+
+**📁 Fichiers touchés** :
+- `backend/routes/admin_payments.py` *(dédup + seuil 15 min + exclusion test emails)*
+- 10 fichiers `frontend/src/pages/*` et `components/*` *(messaging 15 min)*
+- `backend/tests/test_admin_payments_health.py` *(nouveau)*
+
+---
+
+
 ## 2026-02-27 — PDF échantillon propre + Facture FR auto après Stripe
 
 **🎯 Deux chantiers livrés en 1 session** :

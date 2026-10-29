@@ -51,7 +51,7 @@ const DuoCompletionSucces = () => {
             Ton <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>Duo</em> se compose
           </h1>
           <p className="mt-4" style={{ color: 'rgba(227,215,255,0.75)', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>
-            Ta Numérologie et ta Kabbale sont en cours de rédaction — livraison par email dans quelques minutes.
+            Ta Numérologie et ta Kabbale sont en cours de rédaction — livraison par email sous 15 minutes.
           </p>
         </div>
 

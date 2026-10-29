@@ -72,7 +72,7 @@ export default function GiftCardPurchase() {
           </h1>
           <p style={{ color: '#B9B0D5', maxWidth: 560, margin: '0 auto', lineHeight: 1.6 }}>
             Pas besoin de son heure de naissance. Tu paies aujourd&apos;hui, elle reçoit un code par
-            email et complète ses données à son rythme. Le livre arrive quelques minutes après.
+            email et complète ses données à son rythme. Le livre arrive sous 15 minutes après.
           </p>
         </div>
 

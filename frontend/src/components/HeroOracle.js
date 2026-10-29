@@ -268,7 +268,7 @@ const HeroOracle = () => {
         Ta lecture affinée arrive...
       </h2>
       <p style={{ color: 'rgba(184,176,200,0.85)', fontSize: 14, marginBottom: 28 }}>
-        Tu vas recevoir d&apos;ici quelques minutes ton thème complet avec ascendant, maisons et aspects.
+        Tu vas recevoir ton thème complet avec ascendant, maisons et aspects sous 15 minutes.
       </p>
       <PremiumBridge onCTA={() => navigate('/premium')} />
     </section>

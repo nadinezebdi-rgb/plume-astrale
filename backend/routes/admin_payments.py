@@ -29,22 +29,34 @@ router = APIRouter(prefix='/admin', tags=['admin-payments'])
 @router.get('/payments-health')
 async def payments_health(
     days: int = Query(default=30, ge=1, le=365),
+    stuck_after_minutes: int = Query(default=15, ge=1, le=120,
+                                     description="Nombre de minutes après `created_at` avant de considérer une session comme bloquée (défaut 15 min — temps de génération normale)"),
     _admin: dict = Depends(require_admin),
 ) -> Dict[str, Any]:
     """Retourne les KPIs de santé des paiements Stripe.
 
+    Règles ajustées Feb 2026 suite feedback fondatrice :
+      • Déduplication par session_id : chaque session Stripe ne compte qu'UNE fois,
+        même si plusieurs lignes `payment_transactions` existent (retries, double-insert).
+        Préférence : paid > stuck > autres.
+      • Seuil « bloquée » : une session n'est marquée bloquée qu'après `stuck_after_minutes`
+        depuis sa création (défaut : 15 min, temps de génération normal).
+      • Exclusion des e-mails de test (contact@, admin@, test@, @plume-astrale.fr, @test.*,
+        @example.*).
+
     Réponse :
     - overall_status : 'green' | 'orange' | 'red'
     - webhook_secret_configured : bool
-    - conversion_rate_pct : float (paid / (initiated+paid) sur X jours, hors admin bypass)
-    - stuck_sessions_count : nb de sessions RÉELLES `initiated/unpaid` sur X jours
+    - conversion_rate_pct : float (paid / (paid+stuck) sur X jours, hors admin bypass)
+    - stuck_sessions_count : nb de sessions RÉELLES encore `initiated/unpaid` après le seuil
     - stuck_sessions_amount_eur : montant total potentiellement perdu
-    - paid_sessions_count : nb de vraies conversions payées Stripe
+    - paid_sessions_count : nb de vraies conversions payées Stripe (uniques)
     - by_pack : détail par pack_id
     - latest_stuck : 20 dernières sessions bloquées
     """
     sb = get_admin_client()
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    stuck_threshold = datetime.now(timezone.utc) - timedelta(minutes=stuck_after_minutes)
 
     # Toutes les tx sur la fenêtre
     r = (
@@ -60,14 +72,62 @@ async def payments_health(
     # Filtre : uniquement sessions Stripe RÉELLES (exclut admin bypass)
     real = [row for row in rows if (row.get('session_id') or '').startswith('cs_')]
 
+    # ─── Exclusion e-mails de test (fondatrice, admin, testeurs internes) ──
+    def _is_test_email(email: Optional[str]) -> bool:
+        if not email:
+            return False
+        e = email.lower().strip()
+        if '@plume-astrale.fr' in e:          # emails internes
+            return True
+        if e.startswith('contact@') or e.startswith('admin@') or e.startswith('test@'):
+            return True
+        if '@test.' in e or '@example.' in e:  # TLDs de test standards
+            return True
+        if '+test' in e or '+debug' in e:      # alias gmail "+test"
+            return True
+        return False
+
+    real = [row for row in real if not _is_test_email(row.get('user_email'))]
+
+    # ─── Déduplication par session_id (bug fix : évite les 2× la même session) ──
+    def _row_priority(row) -> int:
+        """paid=0 (prio max) > stuck=1 > autres=2 — l'ordre pour `min()`."""
+        if row.get('payment_status') == 'paid':
+            return 0
+        if row.get('status') == 'initiated' and row.get('payment_status') == 'unpaid':
+            return 1
+        return 2
+
+    by_session: Dict[str, dict] = {}
+    for row in real:
+        sid = row.get('session_id')
+        if not sid:
+            continue
+        if sid not in by_session or _row_priority(row) < _row_priority(by_session[sid]):
+            by_session[sid] = row
+    dedup_real = list(by_session.values())
+
     def _tx_ok(row) -> bool:
         return row.get('payment_status') == 'paid'
 
-    def _tx_stuck(row) -> bool:
-        return row.get('status') == 'initiated' and row.get('payment_status') == 'unpaid'
+    def _tx_stuck_after_threshold(row) -> bool:
+        """Session bloquée uniquement si assez vieille (> stuck_after_minutes)."""
+        if row.get('status') != 'initiated' or row.get('payment_status') != 'unpaid':
+            return False
+        created = row.get('created_at')
+        if not created:
+            return True
+        try:
+            # Supabase renvoie '2026-02-27T17:34:12.345+00:00' ou similaire
+            created_dt = datetime.fromisoformat(created.replace('Z', '+00:00'))
+            if created_dt.tzinfo is None:
+                created_dt = created_dt.replace(tzinfo=timezone.utc)
+            return created_dt < stuck_threshold
+        except Exception:
+            return True  # fail-open : si on ne parse pas, on la compte comme bloquée
 
-    paid = [row for row in real if _tx_ok(row)]
-    stuck = [row for row in real if _tx_stuck(row)]
+    paid = [row for row in dedup_real if _tx_ok(row)]
+    stuck = [row for row in dedup_real if _tx_stuck_after_threshold(row)]
 
     total = len(paid) + len(stuck)
     conv_pct = round(100.0 * len(paid) / total, 2) if total else 0.0
@@ -77,11 +137,11 @@ async def payments_health(
     # Par pack
     from collections import defaultdict
     by_pack: Dict[str, Dict[str, Any]] = defaultdict(lambda: {'paid': 0, 'stuck': 0, 'stuck_amount': 0.0})
-    for row in real:
+    for row in dedup_real:
         pack = row.get('pack_id') or 'unknown'
         if _tx_ok(row):
             by_pack[pack]['paid'] += 1
-        elif _tx_stuck(row):
+        elif _tx_stuck_after_threshold(row):
             by_pack[pack]['stuck'] += 1
             by_pack[pack]['stuck_amount'] += float(row.get('amount') or 0)
     by_pack_list = [
@@ -92,10 +152,12 @@ async def payments_health(
     # Webhook secret
     webhook_ok = bool(os.environ.get('STRIPE_WEBHOOK_SECRET', '').strip())
 
-    # Feu tricolore
-    if not webhook_ok or conv_pct < 5:
+    # Feu tricolore — seuils ajustés : « red » exige maintenant des sessions
+    # réellement bloquées (après le seuil 15 min), pas des sessions en cours
+    # de génération.
+    if not webhook_ok or (total >= 10 and conv_pct < 5):
         overall = 'red'
-    elif conv_pct < 15 or len(stuck) > 20:
+    elif (total >= 10 and conv_pct < 15) or len(stuck) > 20:
         overall = 'orange'
     else:
         overall = 'green'
@@ -103,6 +165,7 @@ async def payments_health(
     return {
         'overall_status': overall,
         'window_days': days,
+        'stuck_after_minutes': stuck_after_minutes,
         'webhook_secret_configured': webhook_ok,
         'conversion_rate_pct': conv_pct,
         'stuck_sessions_count': len(stuck),

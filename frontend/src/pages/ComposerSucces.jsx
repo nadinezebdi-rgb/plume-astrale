@@ -90,7 +90,7 @@ export default function ComposerSucces() {
       <SEO
         path="/composer/succes"
         title="Merci · Votre livre est en composition"
-        description="Merci pour votre commande. Nous composons votre livre astral personnalisé — vous le recevrez dans quelques minutes."
+        description="Merci pour votre commande. Nous composons votre livre astral personnalisé — vous le recevrez par email sous 15 minutes."
         noindex
       />
       <div data-testid="composer-succes" style={styles.wrap}>

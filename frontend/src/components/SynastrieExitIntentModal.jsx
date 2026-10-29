@@ -21,7 +21,7 @@ const VARIANTS = {
     eyebrow: 'Avant de partir',
     title: 'On vous offre un extrait de 3 pages.',
     subtitle:
-      'Les 3 premières pages de votre synastrie — Soleils croisés + ouverture de rapport — sans engagement, dans votre boîte mail en une minute.',
+      'Les 3 premières pages de votre synastrie — Soleils croisés + ouverture de rapport — sans engagement, dans votre boîte mail sous 15 minutes.',
   },
 };
 

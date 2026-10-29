@@ -147,7 +147,7 @@ const ThemeNatalOneshotSucces = () => {
             Ton <em style={{ color: '#D4AF37', fontStyle: 'italic' }}>Thème Natal</em> se compose
           </h1>
           <p className="mt-4" style={{ color: 'rgba(227,215,255,0.75)', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>
-            Soléna trace les 49 pages de ton portrait céleste. Livraison par email dans quelques minutes.
+            Plume Astrale trace les 49 pages de ton portrait céleste. Livraison par email sous 15 minutes.
           </p>
         </div>
 

@@ -76,7 +76,7 @@ export default function LectureCompleteSucces() {
           )}
           {status === 'timeout' && (
             <p style={{ color: '#f87171' }}>
-              La confirmation prend plus de temps que prévu. Vérifie tes emails dans quelques minutes.
+              La confirmation prend plus de temps que prévu. Vérifie tes emails sous 15 minutes.
               Si tu vois un débit sur ta carte mais rien ne bouge, contacte le support Plume Astrale.
             </p>
           )}

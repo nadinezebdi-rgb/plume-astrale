@@ -25,7 +25,7 @@ const DETAILS = {
 
 const BENEFITS = [
   { icon: Download, title: 'PDF premium à télécharger', body: 'Livré par email après paiement. Aucun envoi physique — tu conserves ta lecture indéfiniment.' },
-  { icon: Mail, title: 'Réponse en quelques minutes', body: 'Le PDF arrive sous 5 minutes après validation. En cas de retard, écris-nous, on retrouve ton dossier.' },
+  { icon: Mail, title: 'Livraison par email sous 15 minutes', body: 'Le PDF arrive dans votre boîte en moins de 15 minutes après validation. En cas de retard, écris-nous, on retrouve ton dossier.' },
   { icon: ShieldCheck, title: 'Paiement sécurisé Stripe', body: 'Carte bancaire, 3-D Secure, PCI-DSS. Aucune donnée bancaire stockée chez nous.' },
 ];
 
@@ -142,7 +142,7 @@ export default function NosLivres() {
           <div style={{ maxWidth: 720, marginBottom: 56 }}>
             <p className="ps-eyebrow" style={{ marginBottom: 16 }}>Comment ça marche</p>
             <h2 className="ps-h2" style={{ color: '#F7F5F0', marginBottom: 20 }}>
-              Ton PDF <span className="ps-italic">t&apos;attend dans ta boîte mail</span> en quelques minutes.
+              Ton PDF <span className="ps-italic">t&apos;attend dans ta boîte mail</span> sous 15 minutes.
             </h2>
           </div>
           <div style={{

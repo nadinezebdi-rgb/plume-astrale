@@ -62,7 +62,7 @@ const PackKarmiqueSucces = () => {
             Ton <em style={{ color: 'var(--pa-accent)', fontStyle: 'italic' }}>Pack Karmique</em><br />se compose
           </h1>
           <p className="text-base max-w-lg mx-auto" style={{ color: 'var(--pa-body)', fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic', lineHeight: 1.6 }}>
-            ~40 pages en cours de génération. Ton PDF sera envoyé par email dans quelques minutes.
+            ~40 pages en cours de génération. Ton PDF sera envoyé par email sous 15 minutes.
           </p>
         </div>
 
