@@ -31,6 +31,7 @@ from services.pdf_book_pages import (
     transversal_synthesis_page, conclusion_page, glossary_technical_page,
     aspects_opening_page, section_divider_page,
 )
+from services.natal_ex_libris import ex_libris_page
 from services import library_images as libimg
 from services.natal_fallback_texts import with_fallback as _wf, headline_with_fallback as _hf
 
@@ -263,7 +264,10 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                         chart_png_bytes: bytes | None = None,
                         book_data: Optional[dict] = None,
                         referral_code: Optional[str] = None,
-                        referral_link: Optional[str] = None) -> bytes:
+                        referral_link: Optional[str] = None,
+                        ex_libris_citation: Optional[str] = None,
+                        birth_time_fr: Optional[str] = None,
+                        birth_place: Optional[str] = None) -> bytes:
     """Génère le Thème Natal Plume Astrale — VERSION LIVRE (38-46 pages).
 
     natal_data attend :
@@ -355,7 +359,23 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
             # ── Section 1 — Page 2 : Mentions légales + éphéméride ───
             copyright_page(story, styles, prenom, date_fr)
 
-            # ── Section 1 — Page 3 : Sommaire dynamique (1 page) ────
+            # ── Section 1 — Page 3 : Ex-Libris (signature bibliophile) ─
+            # Citation GPT-6 Luna (~60 mots) + illustration bibliothèque.
+            # Fallback vers citation statique si la citation Luna est absente.
+            ex_libris_page(
+                story,
+                prenom=prenom,
+                birth_date=birth_date,
+                sun_sign=sun_sign,
+                moon_sign=moon_sign,
+                asc_sign=None if no_birth_time else asc_sign,
+                no_birth_time=no_birth_time,
+                citation=ex_libris_citation or None,
+                birth_time_fr=birth_time_fr,
+                birth_place=birth_place,
+            )
+
+            # ── Section 1 — Page 4 : Sommaire dynamique (1 page) ────
             toc_entries = [
                 {'type': 'part', 'label': 'Section 1 — Ouverture',                 'page': _pg('sec1', 1)},
                 {'type': 'part', 'label': 'Section 2 — Ton ciel en ouverture',     'page': _pg('sec2')},

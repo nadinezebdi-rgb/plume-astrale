@@ -211,7 +211,7 @@ class _ExLibrisFlowable(Flowable):
                              display_font, display_bold,
                              italic_font, serif_font, glyph_font):
         """Bandeau crème semi-opaque en bas : citation + copy # + date + signature."""
-        band_h = 4.8 * cm
+        band_h = 5.6 * cm
         band_y = 1.4 * cm
         band_margin_x = 1.6 * cm
 
@@ -236,14 +236,14 @@ class _ExLibrisFlowable(Flowable):
 
         cx = w / 2
 
-        # Citation (centrée, italique sépia, max 3 lignes)
+        # Citation (centrée, italique sépia, jusqu'à 5 lignes pour tenir ~60 mots)
         c.setFillColor(INK_SEPIA)
-        c.setFont(italic_font, 11)
-        quote_lines = self._wrap_quote(self.citation, max_width_cm=14)
+        c.setFont(italic_font, 10.5)
+        quote_lines = self._wrap_quote(self.citation, max_width_cm=15)
         y_quote = band_y + band_h - 0.9 * cm
         for line in quote_lines:
             c.drawCentredString(cx, y_quote, line)
-            y_quote -= 0.45 * cm
+            y_quote -= 0.42 * cm
 
         # Petit séparateur ornemental
         c.setFillColor(GOLD_DEEP)
@@ -292,7 +292,7 @@ class _ExLibrisFlowable(Flowable):
                 current = word
         if current:
             lines.append(current)
-        return lines[:3]
+        return lines[:5]
 
 
 def ex_libris_page(story: list,

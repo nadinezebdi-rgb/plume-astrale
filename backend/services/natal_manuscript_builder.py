@@ -775,6 +775,7 @@ def build_natal_manuscript(
     book_data: dict | None = None,
     language: str = 'fr',
     illustrations: dict | None = None,
+    ex_libris_citation: str | None = None,
 ) -> Manuscript:
     """Construit un Manuscript multi-chapitres prêt à être rendu en PDF print blanc.
 
@@ -904,8 +905,27 @@ def build_natal_manuscript(
         chapters.append(editorial(key, title, book_data[key]))
 
     # Page Signature · Ex Libris
-    ex_libris_text = str(book_data.get('ex_libris') or '').strip()
+    # Alignement Feb 2026 : priorité à la citation GPT-6 Luna 60 mots (passée
+    # en kwarg par le service async) ; fallback vers le paragraphe long
+    # `book_data['ex_libris']` (110-140 mots) si Luna n'a pas répondu.
+    ex_libris_text = (
+        (ex_libris_citation or '').strip()
+        or str(book_data.get('ex_libris') or '').strip()
+    )
     ex_libris_png = (illustrations or {}).get('ex_libris')
+    # Fallback : asset local bibliothèque (identique à la version digitale)
+    # UNIQUEMENT quand on a du contenu texte Ex-Libris mais que Nano Banana
+    # n'a pas livré d'illustration sur-mesure. Évite d'ajouter une page
+    # Ex-Libris parasite quand book_data est totalement vide (ex. tests unitaires).
+    if ex_libris_text and not ex_libris_png:
+        try:
+            from pathlib import Path as _Path
+            _lib_asset = (_Path(__file__).resolve().parents[1]
+                          / 'assets' / 'library' / 'ex_libris_bibliotheque.png')
+            if _lib_asset.exists():
+                ex_libris_png = _lib_asset.read_bytes()
+        except Exception as _e:  # pragma: no cover
+            logger.warning(f'[natal_manuscript] ex_libris fallback asset KO: {_e}')
     if ex_libris_text or ex_libris_png:
         ex_blocks: list[ChapterBlock] = []
         if ex_libris_png:

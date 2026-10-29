@@ -147,6 +147,27 @@ async def generate_enriched_natal_pdf(
     diag['book_element'] = (book_data or {}).get('_em', {}).get('dominant_element')
     diag['book_modality'] = (book_data or {}).get('_em', {}).get('dominant_modality')
 
+    # 5bis) Citation Ex-Libris 60 mots via GPT-6 Luna — alignement digital/print
+    # (fallback silencieux vers book_data['ex_libris'] si Luna ne répond pas).
+    ex_libris_citation: str | None = None
+    try:
+        if lang == 'fr':  # Luna prompt FR uniquement — pour EN on garde le paragraphe long
+            from services.natal_book_enrichment import enrich_ex_libris_citation
+            _sun_fr_tmp = aio.sign_to_fr(planets_dict.get('sun', {}).get('sign') or '') or ''
+            _moon_fr_tmp = aio.sign_to_fr(planets_dict.get('moon', {}).get('sign') or '') or ''
+            _asc_fr_tmp = ('' if no_birth_time
+                           else (aio.sign_to_fr(asc_sign_en) if asc_sign_en else ''))
+            ex_libris_citation = await enrich_ex_libris_citation(
+                prenom=name, birth_data=bd,
+                sun_sign_fr=_sun_fr_tmp,
+                moon_sign_fr=_moon_fr_tmp,
+                asc_sign_fr=_asc_fr_tmp,
+                force_refresh=force_refresh,
+            )
+    except Exception as _e:  # pragma: no cover — Luna best-effort
+        logger.warning(f'[natal_book_service] ex_libris_citation Luna KO: {_e}')
+    diag['ex_libris_luna'] = bool(ex_libris_citation)
+
     # 6) Chart wheel SVG → PNG compressé — best-effort
     chart_png_bytes = await _render_chart_png(bd, name)
     diag['chart_png_bytes'] = len(chart_png_bytes) if chart_png_bytes else 0
@@ -239,6 +260,7 @@ async def generate_enriched_natal_pdf(
         houses_raw=houses_adapter or None,
         house_cusps_raw=cusps_adapter or None,
         illustrations=illustrations or None,
+        ex_libris_citation=ex_libris_citation,
     )
 
     diag['pdf_bytes'] = len(pdf_bytes)

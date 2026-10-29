@@ -32,7 +32,7 @@ except Exception:
     pass
 
 from services.natal_pdf_v2 import build_natal_pdf_v2
-from services.natal_book_enrichment import enrich_book_chapters
+from services.natal_book_enrichment import enrich_book_chapters, enrich_ex_libris_citation
 from services.natal_ai_enrichment import _call_gpt, _parse_json_response
 
 
@@ -195,7 +195,19 @@ async def main() -> int:
     planet_texts = await _gen_planet_analyses(force=force)
     print(f'   {len(planet_texts)} analyses générées : {sorted(planet_texts.keys())}')
 
-    # ── 3) construction du natal_data pour le PDF
+    # ── 3) narratif Ex-Libris 60 mots via GPT-6 Luna
+    print(f'→ enrich_ex_libris_citation (GPT-6 Luna, force={force})…')
+    ex_libris_text = await enrich_ex_libris_citation(
+        prenom=PRENOM, birth_data=BIRTH_DATA,
+        sun_sign_fr='Cancer', moon_sign_fr='Poissons', asc_sign_fr='Vierge',
+        force_refresh=force,
+    )
+    if ex_libris_text:
+        print(f'   ex_libris_text = {ex_libris_text[:80]}…')
+    else:
+        print(f'   ⚠️  Luna n\'a pas répondu — fallback citation statique.')
+
+    # ── 4) construction du natal_data pour le PDF
     planets_with_analysis = []
     for p in PLANETS:
         key = _FR_KEY[p['name']]
@@ -220,7 +232,7 @@ async def main() -> int:
         'enhanced_personal_analysis': {},
     }
 
-    # ── 4) rendu PDF
+    # ── 5) rendu PDF
     print('→ build_natal_pdf_v2…')
     pdf_bytes = build_natal_pdf_v2(
         prenom=PRENOM,
@@ -230,6 +242,9 @@ async def main() -> int:
         book_data=book_data,
         referral_code='PLUME-CLARA-25',
         referral_link='https://plume-astrale.fr/parrainage/PLUME-CLARA-25',
+        ex_libris_citation=ex_libris_text,
+        birth_time_fr=f"{BIRTH_DATA['hour']}h{BIRTH_DATA['minute']:02d}",
+        birth_place=BIRTH_DATA.get('city'),
     )
     out_dir = ROOT / 'assets' / 'theme_natal'
     out_dir.mkdir(parents=True, exist_ok=True)
