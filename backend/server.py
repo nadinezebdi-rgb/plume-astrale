@@ -1145,6 +1145,18 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
     except Exception as e:
         logger.warning(f'[capi_purchase] webhook hook fail: {e}')
 
+    # ─── Facture PDF FR automatique (SIRET + franchise TVA) ──────────────
+    # Envoyée à chaque paiement réussi, tous produits confondus, en PJ email.
+    # Idempotent via la table `invoices_sent`. Non bloquant : les erreurs
+    # d'envoi facture ne doivent jamais bloquer la livraison du produit.
+    try:
+        _sd = data_obj if isinstance(data_obj, dict) else data_obj.to_dict()
+        if event_type == 'checkout.session.completed' and _sd.get('payment_status') == 'paid':
+            from services.invoice_delivery import send_invoice_for_session
+            await send_invoice_for_session(_sd)
+    except Exception as e:
+        logger.warning(f'[invoice_delivery] webhook hook fail: {e}')
+
     # ─── Route Cercle Soléna (abonnement 19€/mois) EN PREMIER ───────────────
     # Consume : customer.subscription.* + invoice.payment_succeeded (mensuel)
     if event_type in (

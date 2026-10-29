@@ -1,5 +1,57 @@
 # Plume Astrale — PRD
 
+## 2026-02-27 — PDF échantillon propre + Facture FR auto après Stripe
+
+**🎯 Deux chantiers livrés en 1 session** :
+
+### Partie 1 — PDF échantillon public (`/demos/theme-natal-sample.pdf`)
+
+**Problèmes constatés** par la fondatrice :
+- Grand filigrane diagonal « APERCU EXTRAIT » sur chaque page.
+- Bandeau « Extrait non commercialisable · ~46 pages » en pied.
+- Mot « Complet » blanc en superposition visible derrière « Thème Natal » doré.
+- Mention « Soléna vous parle » résiduelle (persona retirée).
+- Glyphes `✦` et `℞` rendus en tofu (carrés vides) sur de nombreuses pages.
+
+**Correctifs** :
+- `backend/scripts/add_sample_watermark.py` → simplifié : ne pose plus ni filigrane, ni bandeau légal. Produit le PDF natal tel que configuré.
+- `backend/services/print_book_renderer.py` → suppression du mot « Complet » sur la couverture (lignes 246-253). Enregistrement d'une police `PlumeOrnament` (FreeSerif) pour les glyphes ornementaux. Fonctions `_plain()` et `_paragraphs()` filtrent les caractères qui provoquent du tofu en Cormorant Garamond (`℞♃♀♂☉✦❖⚜◆` + contrôles U+0000-1F).
+- `backend/services/natal_chart_extract.py` → `℞` remplacé par `(R)` dans les noms de planètes rétrogrades.
+- `backend/services/natal_manuscript_builder.py` → libellé rétrograde FR/EN sans symbole `℞`.
+- **Résultat** : 26 pages, 0 tofu, 0 « Complet », 0 « Soléna », 8 ✦ correctement rendus.
+
+### Partie 2 — Facture FR automatique après paiement Stripe
+
+**Problème** : Stripe envoie un reçu HTML/MHTML en anglais, inutilisable comme facture légale française.
+
+**Solution livrée** :
+- `backend/services/invoice_pdf.py` *(nouveau)* : générateur de facture PDF A4 FR, charte Nocturne Éditorial, Cormorant Garamond, mentions légales complètes.
+- `backend/services/invoice_delivery.py` *(nouveau)* : hook universel qui écoute `checkout.session.completed` + `payment_status=paid`, génère la facture PDF, envoie via Resend en pièce jointe du mail de confirmation. Mapping produit→libellé pour les 20+ produits (natal, synastrie, kabbale, numérologie, astrocarto, pack karmique, cercle Soléna, crédits, carte cadeau…).
+- `backend/server.py` → hook branché dans `_process_stripe_event` juste après Meta CAPI, non bloquant.
+- **Identité légale** utilisée (fournie par la fondatrice) :
+  - SIRET : `87860206900022`
+  - N° TVA intracommunautaire : `FR96878602069`
+  - Mention OBLIGATOIRE : « TVA non applicable, art. 293 B du CGI » (franchise de TVA)
+- **Idempotence** via table `invoices_sent` (session_id unique) → aucun double envoi en cas de replay webhook.
+- **Numérotation** `AAMM-XXXX` : préfixe année/mois + 4 derniers caractères du session Stripe. Ex : `2602-0838`.
+- **Moyen de paiement** reconstruit depuis Stripe PaymentIntent (ex : « Carte Visa …4242 »).
+
+**🧪 Tests** : `backend/tests/test_invoice_pdf.py` — **13/13 passent** (SIRET présent, N° TVA, mention franchise, infos client, montant 49,00 €, moyen de paiement, produit, date FR, référence transaction, 1 page A4 portrait, numérotation).
+
+**📁 Fichiers touchés** :
+- `backend/scripts/add_sample_watermark.py` *(réécrit : plus de filigrane)*
+- `backend/services/print_book_renderer.py` *(suppression « Complet », police OrnamentSerif, sanitize glyphes)*
+- `backend/services/natal_chart_extract.py` *(℞ → (R))*
+- `backend/services/natal_manuscript_builder.py` *(retrograde FR/EN sans ℞)*
+- `backend/services/invoice_pdf.py` *(nouveau)*
+- `backend/services/invoice_delivery.py` *(nouveau)*
+- `backend/server.py` *(hook invoice_delivery dans webhook Stripe)*
+- `backend/tests/test_invoice_pdf.py` *(nouveau)*
+- `frontend/public/demos/theme-natal-sample.pdf` *(régénéré)*
+
+---
+
+
 ## 2026-02-27 — Refonte SEO Google Search Console : Lot 1 complet (nginx 301/404 + sitemap auto)
 
 **🎯 Objectif** : Corriger les problèmes SEO détectés par Google Search Console sur plume-astrale.fr : URLs parasites `?post=`, soft-404 systématiques, redirections JavaScript, signaux canonical contradictoires.

@@ -123,10 +123,32 @@ def _fonts():
     pdfmetrics.registerFontFamily('PlumeBook', normal='PlumeBook',
                                  bold='PlumeBook-Bold', italic='PlumeBook-Italic',
                                  boldItalic='PlumeBook-Bold')
+    # Ornament font pour ✦ ❖ ⚜ ◆ — Cormorant Garamond n'a pas ces glyphes
+    # (ils sont rendus en .notdef = tofu). FreeSerif les couvre.
+    if 'PlumeOrnament' not in pdfmetrics.getRegisteredFontNames():
+        for candidate in (
+            Path('/usr/share/fonts/truetype/freefont/FreeSerif.ttf'),
+            Path('/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf'),
+        ):
+            if candidate.exists():
+                pdfmetrics.registerFont(TTFont('PlumeOrnament', str(candidate)))
+                break
 
 
 def _plain(value):
-    return re.sub(r'<[^>]+>', '', html.unescape(str(value or ''))).strip()
+    # Strip HTML tags, then supprime les caractères unicode qui n'existent pas dans
+    # Cormorant Garamond (sinon rendu en .notdef = tofu). Liste : symboles
+    # astrologiques (℞ ♃ ♀ ♂ ☉ ☽), ornements (✦ ❖ ⚜ ◆) — ces derniers doivent être
+    # posés via la police PlumeOrnament ailleurs, pas dans le texte courant.
+    text = re.sub(r'<[^>]+>', '', html.unescape(str(value or ''))).strip()
+    # Supprime les glyphes astrologiques et ornements orphelins susceptibles
+    # de rendre en tofu dans un Paragraph Cormorant.
+    FORBIDDEN_IN_BODY = '℞♃♀♂☉☽☿♁♄♅♆♇✦❖⚜◆'
+    for ch in FORBIDDEN_IN_BODY:
+        text = text.replace(ch, '')
+    # Supprime aussi le NUL (U+0000) et les caractères de contrôle non imprimables
+    text = re.sub(r'[\x00-\x08\x0b-\x1f\x7f]', '', text)
+    return text.strip()
 
 
 def _paragraphs(value):
@@ -134,6 +156,10 @@ def _paragraphs(value):
     text = str(value or '').replace('\r\n', '\n')
     text = re.sub(r'</p\s*>|<br\s*/?>', '\n\n', text, flags=re.I)
     text = re.sub(r'<[^>]+>', '', text)
+    # Supprime les glyphes qui provoquent un tofu en Cormorant Garamond.
+    for ch in '℞♃♀♂☉☽☿♁♄♅♆♇✦❖⚜◆':
+        text = text.replace(ch, '')
+    text = re.sub(r'[\x00-\x08\x0b-\x1f\x7f]', '', text)
     return [html.escape(html.unescape(p.strip())) for p in re.split(r'\n\s*\n', text) if p.strip()]
 
 
@@ -232,22 +258,44 @@ class _Cover(Flowable):
         c.setLineWidth(.4)
         c.line(WIDTH/2-16*mm, 184*mm, WIDTH/2+16*mm, 184*mm)
         # ── 7) EYEBROW : « ✦  TON PORTRAIT CÉLESTE  ✦ » (petit, or, lettres espacées)
+        # Les ✦ sont rendus avec PlumeOrnament (FreeSerif) car Cormorant Garamond
+        # n'a pas ce glyphe → sinon tofu.
         c.setFillColor(GOLD_BRIGHT)
-        c.setFont('PlumeBook', 8.5)
-        c.drawCentredString(WIDTH/2, 172*mm, _t(self.lang, 'cover_eyebrow'))
+        eyebrow = _t(self.lang, 'cover_eyebrow')
+        # Séparer les ✦ du texte principal pour alterner les polices.
+        eyebrow_center_y = 172 * mm
+        if 'PlumeOrnament' in pdfmetrics.getRegisteredFontNames() and '✦' in eyebrow:
+            inner = eyebrow.replace('✦', '').strip()  # « TON PORTRAIT CÉLESTE »
+            # Mesure manuelle des composants pour centrage
+            c.setFont('PlumeOrnament', 8.5)
+            star_w = c.stringWidth('✦', 'PlumeOrnament', 8.5)
+            c.setFont('PlumeBook', 8.5)
+            inner_w = c.stringWidth(inner, 'PlumeBook', 8.5)
+            gap = 3 * mm
+            total_w = star_w + gap + inner_w + gap + star_w
+            x = (WIDTH - total_w) / 2
+            # ✦ gauche
+            c.setFont('PlumeOrnament', 8.5)
+            c.drawString(x, eyebrow_center_y, '✦')
+            # Texte
+            c.setFont('PlumeBook', 8.5)
+            c.drawString(x + star_w + gap, eyebrow_center_y, inner)
+            # ✦ droite
+            c.setFont('PlumeOrnament', 8.5)
+            c.drawString(x + star_w + gap + inner_w + gap, eyebrow_center_y, '✦')
+        else:
+            c.setFont('PlumeBook', 8.5)
+            c.drawCentredString(WIDTH / 2, eyebrow_center_y, eyebrow)
         # ── 8) TITRE : « Thème Natal » en italique dorée brillante (hero style)
         title = (self.m.astro_data or {}).get('book_title') or _t(self.lang, 'book_title_default')
-        subtitle_word = _t(self.lang, 'book_subtitle_default')
         style_title = ParagraphStyle('CoverTitle', fontName='PlumeBook-Italic',
             fontSize=42, leading=46, alignment=TA_CENTER, textColor=GOLD_BRIGHT)
         title_p = Paragraph(html.escape(title), style_title)
         _, th = title_p.wrap(WIDTH-28*mm, 56*mm)
         title_p.drawOn(c, 14*mm, 158*mm-th)
-        # ── 9) MOT COMPLÉMENTAIRE : « Complet » en roman cream (hiérarchie subtile)
-        c.setFillColor(colors.HexColor('#F5EEE0'))
-        c.setFont('PlumeBook', 24)
-        c.drawCentredString(WIDTH/2, 142*mm, subtitle_word)
-        # ── 10) Filet or sous le titre
+        # ── 9) Filet or sous le titre
+        # (le mot « Complet » historiquement posé ici a été retiré Feb 2026 :
+        # il créait une superposition visuelle disgracieuse sous le titre.)
         c.setStrokeColor(GOLD_BRIGHT)
         c.setLineWidth(.4)
         c.line(WIDTH/2-20*mm, 132*mm, WIDTH/2+20*mm, 132*mm)
@@ -436,7 +484,7 @@ def _append_blocks(story, chapter, styles):
             story.append(Spacer(1, 6*mm))
             story.append(HRFlowable(width='28%', thickness=.5, color=GOLD,
                                      hAlign='CENTER', spaceAfter=4))
-            star_style = ParagraphStyle('Feather', fontName='PlumeBook',
+            star_style = ParagraphStyle('Feather', fontName='PlumeOrnament' if 'PlumeOrnament' in pdfmetrics.getRegisteredFontNames() else 'PlumeBook',
                 fontSize=11, leading=14, alignment=TA_CENTER, textColor=GOLD)
             story.append(Paragraph('✦', star_style))
             story.append(HRFlowable(width='28%', thickness=.5, color=GOLD,

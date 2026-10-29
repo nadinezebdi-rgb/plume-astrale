@@ -103,7 +103,7 @@ _I18N: dict[str, dict[str, str | list | dict]] = {
                              "et occupe un territoire de votre vie — une maison. Ce chapitre les présente une à une, "
                              "dans l'ordre où elles tissent votre complexité."),
         'house_prefix': 'maison',
-        'retrograde': 'rétrograde ℞',
+        'retrograde': 'rétrograde',
         'planet_fallback': ("{planet} en {sign} parle de {hint}. "
                              "C'est une couleur à part entière de votre palette intérieure."),
         # Maisons
@@ -201,7 +201,7 @@ _I18N: dict[str, dict[str, str | list | dict]] = {
                              'and occupies a territory of your life — a house. This chapter introduces them one by one, '
                              'in the order they weave your complexity.'),
         'house_prefix': 'house',
-        'retrograde': 'retrograde ℞',
+        'retrograde': 'retrograde',
         'planet_fallback': ('{planet} in {sign} speaks of {hint}. '
                              'It is a full colour of your inner palette.'),
         'ch_houses_title': 'Your twelve houses',

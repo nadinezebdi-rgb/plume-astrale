@@ -204,7 +204,7 @@ def extract_houses(natal_data: Dict[str, Any],
         if isinstance(h, int) and 1 <= h <= 12:
             name = p['name']
             if p.get('retrograde'):
-                name += ' ℞'
+                name += ' (R)'
             planets_by_house[h].append(name)
 
     # House cusps : {house_number: {sign, degree}}
