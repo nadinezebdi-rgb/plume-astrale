@@ -30,23 +30,23 @@ _I18N = {
         'book_title_default': 'Thème Natal',
         'book_subtitle_default': 'Complet',
         'cover_eyebrow': '✦  TON PORTRAIT CÉLESTE  ✦',
-        'cover_subtitle': 'Une lecture personnelle de votre ciel de naissance',
+        'cover_subtitle': 'Une lecture personnelle de ton ciel de naissance',
         'cover_edition': 'ÉDITION PERSONNELLE',
-        'intro_para': ('Ce livre est composé à partir de votre ciel de naissance. '
-                       'Il propose une lecture symbolique et personnelle, à confronter à votre expérience. '
-                       'Il ne prédit pas un avenir certain et ne remplace pas votre liberté de choix.'),
+        'intro_para': ('Ce livre est composé à partir de ton ciel de naissance. '
+                       'Il propose une lecture symbolique et personnelle, à confronter à ton expérience. '
+                       'Il ne prédit pas un avenir certain et ne remplace pas ta liberté de choix.'),
         'preface_title': 'Préface',
         'preface_paras_tpl': [
-            '{name}, ce livre vous invite à faire une pause et à regarder votre histoire sous un autre angle. Votre thème de naissance en est le point de départ : une carte singulière, composée pour un lieu et un instant précis.',
-            'Les pages qui suivent mettent en mots des contrastes, des élans et des besoins. Vous pourrez vous reconnaître dans certaines lectures, en discuter d’autres et laisser de côté ce qui ne vous parle pas. Vous restez la personne la mieux placée pour donner du sens à votre vécu.',
-            'Prenez le temps de lire, de noter vos réactions et de revenir sur un passage lorsque votre situation évolue. L’intention de ce livre est de soutenir cette attention à vous-même, avec nuance, curiosité et bienveillance.',
+            '{name}, ce livre t’invite à faire une pause et à regarder ton histoire sous un autre angle. Ton thème de naissance en est le point de départ : une carte singulière, composée pour un lieu et un instant précis.',
+            'Les pages qui suivent mettent en mots des contrastes, des élans et des besoins. Tu pourras te reconnaître dans certaines lectures, en discuter d’autres et laisser de côté ce qui ne te parle pas. Tu restes la personne la mieux placée pour donner du sens à ton vécu.',
+            'Prends le temps de lire, de noter tes réactions et de revenir sur un passage lorsque ta situation évolue. L’intention de ce livre est de soutenir cette attention à toi-même, avec nuance, curiosité et bienveillance.',
         ],
         'toc_title': 'Sommaire',
-        'intro_chapter_title': 'Introduction — Comment lire votre thème',
-        'closing_title': 'Pour poursuivre votre lecture',
+        'intro_chapter_title': 'Introduction — Comment lire ton thème',
+        'closing_title': 'Pour poursuivre ta lecture',
         'closing_paras': [
-            "Choisissez une idée qui vous a touché et reliez-la à une situation concrète de votre vie. Qu’est-ce qu’elle vous aide à nommer ? Quelle autre explication pourriez-vous envisager ?",
-            "Notez une action simple à essayer cette semaine. Revenez ensuite à votre livre pour observer ce qui s’est éclairci, ce qui a changé et ce qui demande encore du temps.",
+            "Choisis une idée qui t’a touché et relie-la à une situation concrète de ta vie. Qu’est-ce qu’elle t’aide à nommer ? Quelle autre explication pourrais-tu envisager ?",
+            "Note une action simple à essayer cette semaine. Reviens ensuite à ton livre pour observer ce qui s’est éclairci, ce qui a changé et ce qui demande encore du temps.",
             "Plume Astrale — Édition personnelle. Les interprétations relèvent d’une démarche symbolique de connaissance de soi.",
         ],
         'cutout_hint': '✁  à découper · à offrir · à conserver',

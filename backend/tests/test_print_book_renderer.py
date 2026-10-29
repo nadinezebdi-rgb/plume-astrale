@@ -26,7 +26,7 @@ def test_all_paragraph_ends_survive_and_sections_are_ordered(reading):
     text='\n'.join(page.extract_text() for page in reader.pages)
     for i in range(44):
         assert text.count(f'FIN{i:03d}') == 1
-    assert text.index('Préface') < text.index('Sommaire') < text.index('Comment lire votre thème')
+    assert text.index('Préface') < text.index('Sommaire') < text.index('Comment lire ton thème')
     assert (len(reader.pages)-2)%2 == 0
 
 

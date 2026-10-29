@@ -50,8 +50,8 @@ MAJOR_ASPECTS = [
 
 # Les 12 maisons (noms + thèmes classiques)
 HOUSE_THEMES = {
-    1:  ('Première maison',      'Le Soi',               'votre apparence, votre élan vital, votre masque'),
-    2:  ('Deuxième maison',      'Les Ressources',       'vos valeurs, votre argent, votre rapport au corps'),
+    1:  ('Première maison',      'Le Soi',               'ton apparence, ton élan vital, ton masque'),
+    2:  ('Deuxième maison',      'Les Ressources',       'tes valeurs, ton argent, ton rapport au corps'),
     3:  ('Troisième maison',     'La Pensée',            "l'esprit, la fratrie, les apprentissages courts"),
     4:  ('Quatrième maison',     'Les Racines',          'le foyer, les origines, la mémoire familiale'),
     5:  ('Cinquième maison',     'La Créativité',        'les amours, les enfants, le jeu, la création'),
@@ -315,11 +315,11 @@ def extract_aspects(natal_data: Dict[str, Any],
 
 # ─── Interprétation minimale d'un aspect (template) ──────────────────
 _ASPECT_INTERP_TEMPLATES = {
-    'Conjonction': "Fusion. {a} et {b} jouent la même note. Vous ressentez leurs qualités comme une seule et même énergie — amplifiée.",
-    'Opposition':  "Tension. {a} et {b} se font face. Vous oscillez entre leurs deux pôles — l'équilibre se trouve au centre, pas dans l'un ou l'autre.",
-    'Trigone':     "Harmonie. {a} et {b} s'entendent sans effort. Ce talent circule, parfois trop facilement — à vous de l'engager.",
-    'Carré':       "Friction. {a} et {b} veulent chacun imposer leur rythme. C'est inconfortable, mais c'est votre moteur — rien ne pousse plus que ce frottement.",
-    'Sextile':     "Opportunité. {a} et {b} se font signe. Si vous saisissez l'occasion, l'énergie s'ouvre — mais elle ne force rien.",
+    'Conjonction': "Fusion. {a} et {b} jouent la même note. Tu ressens leurs qualités comme une seule et même énergie — amplifiée.",
+    'Opposition':  "Tension. {a} et {b} se font face. Tu oscilles entre leurs deux pôles — l'équilibre se trouve au centre, pas dans l'un ou l'autre.",
+    'Trigone':     "Harmonie. {a} et {b} s'entendent sans effort. Ce talent circule, parfois trop facilement — à toi de l'engager.",
+    'Carré':       "Friction. {a} et {b} veulent chacun imposer leur rythme. C'est inconfortable, mais c'est ton moteur — rien ne pousse plus que ce frottement.",
+    'Sextile':     "Opportunité. {a} et {b} se font signe. Si tu saisis l'occasion, l'énergie s'ouvre — mais elle ne force rien.",
 }
 
 

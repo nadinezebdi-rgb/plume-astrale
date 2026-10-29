@@ -80,40 +80,40 @@ _I18N: dict[str, dict[str, str | list | dict]] = {
         'ch_preface_kicker': "Un mode d'emploi tendre, pour les années à venir.",
         'ch_preface_short_kicker': "Un mode d'emploi tendre.",
         'ch_synthese_title': 'Le Ciel de {name}',
-        'ch_synthese_kicker': 'Trois signatures qui composent votre identité céleste.',
-        'ch_synthese_short_kicker': 'Vos trois signatures.',
+        'ch_synthese_kicker': 'Trois signatures qui composent ton identité céleste.',
+        'ch_synthese_short_kicker': 'Tes trois signatures.',
         'ch_synthese_glance': "Synthèse en un coup d'œil",
         'sun_label': 'Soleil', 'moon_label': 'Lune', 'asc_label': 'Ascendant',
         'natal_chart_alt': 'Roue du ciel de {name}',
-        'sun_para': ("Votre Soleil brille en <b>{sign}</b> — c'est le cœur de votre identité, "
-                     "ce que vous rayonnez quand vous êtes pleinement vous-même."),
-        'moon_para': ("Votre Lune se love en <b>{sign}</b> — c'est votre monde intérieur, "
-                      "la façon dont vous vous apaisez, dont vous aimez, dont vous ressentez."),
-        'asc_para': ("Votre Ascendant lève en <b>{sign}</b> — c'est le masque que votre âme "
-                     "a choisi, la première note que vous donnez au monde."),
-        'aspects_count': ("Votre thème compte <b>{n} aspects majeurs</b> entre vos planètes — "
-                          "autant de dialogues célestes qui composent votre nuance unique."),
+        'sun_para': ("Ton Soleil brille en <b>{sign}</b> — c'est le cœur de ton identité, "
+                     "ce que tu rayonnes quand tu es pleinement toi-même."),
+        'moon_para': ("Ta Lune se love en <b>{sign}</b> — c'est ton monde intérieur, "
+                      "la façon dont tu t'apaises, dont tu aimes, dont tu ressens."),
+        'asc_para': ("Ton Ascendant lève en <b>{sign}</b> — c'est le masque que ton âme "
+                     "a choisi, la première note que tu donnes au monde."),
+        'aspects_count': ("Ton thème compte <b>{n} aspects majeurs</b> entre tes planètes — "
+                          "autant de dialogues célestes qui composent ta nuance unique."),
         'houses_count': ("<b>{n} des douze maisons</b> accueillent au moins une planète — "
-                         "ce sont vos domaines de vie les plus actifs, ceux où le ciel vous appelle à vivre."),
+                         "ce sont tes domaines de vie les plus actifs, ceux où le ciel t'appelle à vivre."),
         # Planètes
-        'ch_planets_title': 'Vos planètes',
-        'ch_planets_kicker': 'Dix forces qui composent votre palette intérieure.',
+        'ch_planets_title': 'Tes planètes',
+        'ch_planets_kicker': 'Dix forces qui composent ta palette intérieure.',
         'ch_planets_short_kicker': 'Dix forces, dix couleurs.',
-        'ch_planets_intro': ("Dix forces habitent votre ciel. Chacune vit dans un signe, à un degré précis, "
-                             "et occupe un territoire de votre vie — une maison. Ce chapitre les présente une à une, "
-                             "dans l'ordre où elles tissent votre complexité."),
+        'ch_planets_intro': ("Dix forces habitent ton ciel. Chacune vit dans un signe, à un degré précis, "
+                             "et occupe un territoire de ta vie — une maison. Ce chapitre les présente une à une, "
+                             "dans l'ordre où elles tissent ta complexité."),
         'house_prefix': 'maison',
         'retrograde': 'rétrograde',
         'planet_fallback': ("{planet} en {sign} parle de {hint}. "
-                             "C'est une couleur à part entière de votre palette intérieure."),
+                             "C'est une couleur à part entière de ta palette intérieure."),
         # Maisons
-        'ch_houses_title': 'Vos douze maisons',
-        'ch_houses_kicker': 'Les scènes de votre vie, telles que le ciel les éclaire.',
+        'ch_houses_title': 'Tes douze maisons',
+        'ch_houses_kicker': 'Les scènes de ta vie, telles que le ciel les éclaire.',
         'ch_houses_short_kicker': 'Douze scènes, douze théâtres.',
-        'ch_houses_intro': ("Si les planètes sont vos acteurs intérieurs, les maisons sont les scènes où ils se produisent. "
-                            "Douze territoires, douze théâtres de vie. Chaque maison tient un domaine : votre apparence, "
-                            "votre foyer, vos liens, votre travail, vos rêves — et davantage. Celles où séjournent une "
-                            "ou plusieurs planètes sont vos foyers actifs ; les autres, vous les habitez plus discrètement."),
+        'ch_houses_intro': ("Si les planètes sont tes acteurs intérieurs, les maisons sont les scènes où ils se produisent. "
+                            "Douze territoires, douze théâtres de vie. Chaque maison tient un domaine : ton apparence, "
+                            "ton foyer, tes liens, ton travail, tes rêves — et davantage. Celles où séjournent une "
+                            "ou plusieurs planètes sont tes foyers actifs ; les autres, tu les habites plus discrètement."),
         'house_planet_singular': 'planète',
         'house_planet_plural': 'planètes',
         'house_cusp_full': 'La cuspide de la <b>{name}</b> tombe en <b>{sign}</b> à {cusp}.',
@@ -121,52 +121,52 @@ _I18N: dict[str, dict[str, str | list | dict]] = {
         'house_no_sign': '<b>{name}</b> — {theme}.',
         'house_governs': 'Cette maison gouverne {desc}.',
         'house_one_planet': "Une planète y séjourne : <b>{planet}</b>. Elle colore ce domaine de son énergie propre.",
-        'house_many_planets': "Plusieurs planètes y séjournent — {planets}. Ce secteur est un foyer actif de votre thème.",
-        'house_empty': "Aucune planète n'y séjourne : vous l'habitez à votre rythme, sans projecteur astral permanent.",
+        'house_many_planets': "Plusieurs planètes y séjournent — {planets}. Ce secteur est un foyer actif de ton thème.",
+        'house_empty': "Aucune planète n'y séjourne : tu l'habites à ton rythme, sans projecteur astral permanent.",
         'conj_and': ' et ',
         # Aspects
-        'ch_aspects_title': 'Vos aspects',
-        'ch_aspects_kicker': 'La danse invisible entre vos planètes.',
-        'ch_aspects_short_kicker': 'Vos planètes se parlent.',
+        'ch_aspects_title': 'Tes aspects',
+        'ch_aspects_kicker': 'La danse invisible entre tes planètes.',
+        'ch_aspects_short_kicker': 'Tes planètes se parlent.',
         'ch_aspects_intro': ("Les planètes se parlent. Certaines se renforcent (<i>conjonction</i>, <i>trigone</i>, "
                              "<i>sextile</i>), d'autres se frottent (<i>opposition</i>, <i>carré</i>). Chaque dialogue "
-                             "laisse une empreinte dans votre caractère. Voici les plus marquants, groupés par nature."),
-        'aspect_fallback': "<b>{a} {type} {b}</b> — ce dialogue planétaire laisse sa marque dans votre thème.",
+                             "laisse une empreinte dans ton caractère. Voici les plus marquants, groupés par nature."),
+        'aspect_fallback': "<b>{a} {type} {b}</b> — ce dialogue planétaire laisse sa marque dans ton thème.",
         'aspect_orb': 'orbe {orb:.1f}°',
         'aspect_groups': [
             ('Conjonction', "Les conjonctions fusionnent deux forces en une seule note — elles amplifient."),
             ('Opposition', "Les oppositions mettent deux pôles face à face — elles cherchent l'équilibre."),
-            ('Trigone', "Les trigones font circuler l'énergie en douceur — ce sont vos talents naturels."),
-            ('Carré', "Les carrés provoquent la friction nécessaire au mouvement — ce sont vos moteurs."),
-            ('Sextile', "Les sextiles sont des opportunités discrètes — elles s'ouvrent si vous les saisissez."),
+            ('Trigone', "Les trigones font circuler l'énergie en douceur — ce sont tes talents naturels."),
+            ('Carré', "Les carrés provoquent la friction nécessaire au mouvement — ce sont tes moteurs."),
+            ('Sextile', "Les sextiles sont des opportunités discrètes — elles s'ouvrent si tu les saisis."),
         ],
         # Chapitre final + sections éditoriales
-        'ch_closing_title': 'Ce que votre ciel vous dit',
+        'ch_closing_title': 'Ce que ton ciel te dit',
         'ch_closing_kicker': 'Synthèse — à relire en période de doute.',
-        'ch_closing_short_kicker': 'Plume Astrale vous parle.',
+        'ch_closing_short_kicker': 'Plume Astrale te parle.',
         'editorial_titles': {
-            'element_analysis': 'Votre élément dominant',
-            'modality_analysis': 'Votre manière de vous mettre en mouvement',
-            'trio_synthesis': 'Votre signature personnelle',
-            'aspects_harmonieux_body': 'Vos ressources et vos harmonies',
-            'aspects_tensions_body': 'Vos tensions et vos chemins d\u2019évolution',
-            'rare_aspect_body': 'Votre note singulière',
-            'year_ahead': 'Mettre votre thème en perspective',
+            'element_analysis': 'Ton élément dominant',
+            'modality_analysis': 'Ta manière de te mettre en mouvement',
+            'trio_synthesis': 'Ta signature personnelle',
+            'aspects_harmonieux_body': 'Tes ressources et tes harmonies',
+            'aspects_tensions_body': 'Tes tensions et tes chemins d\u2019évolution',
+            'rare_aspect_body': 'Ta note singulière',
+            'year_ahead': 'Mettre ton thème en perspective',
         },
         'ex_libris_title': 'Ex Libris · Signature astrale de {name}',
         # Hints courts par planète (fallback si l'IA n'a pas de prose)
         'planet_hints': {
-            'Soleil':   "le cœur de votre identité, ce que vous rayonnez quand vous êtes vous-même",
-            'Lune':     "votre monde intérieur, vos réflexes émotionnels, vos tendresses secrètes",
-            'Mercure':  "votre façon de penser, de parler, d'apprendre",
-            'Vénus':    "votre manière d'aimer, de goûter, d'embellir",
-            'Mars':     "votre élan, votre colère, ce qui vous met en mouvement",
-            'Jupiter':  "votre zone d'expansion, ce qui vous fait grandir et avoir confiance",
-            'Saturne':  "votre colonne vertébrale, les leçons qui bâtissent votre souveraineté",
-            'Uranus':   "votre liberté, vos coups de pied dans la table, vos éclats visionnaires",
-            'Neptune':  "vos rêves, votre spiritualité, ce qui dissout vos contours",
-            'Pluton':   "votre pouvoir, ce qui vous transforme en profondeur, votre part de nuit",
-            'Ascendant': "le masque que votre âme a choisi — ce que les autres voient en premier",
+            'Soleil':   "le cœur de ton identité, ce que tu rayonnes quand tu es toi-même",
+            'Lune':     "ton monde intérieur, tes réflexes émotionnels, tes tendresses secrètes",
+            'Mercure':  "ta façon de penser, de parler, d'apprendre",
+            'Vénus':    "ta manière d'aimer, de goûter, d'embellir",
+            'Mars':     "ton élan, ta colère, ce qui te met en mouvement",
+            'Jupiter':  "ta zone d'expansion, ce qui te fait grandir et avoir confiance",
+            'Saturne':  "ta colonne vertébrale, les leçons qui bâtissent ta souveraineté",
+            'Uranus':   "ta liberté, tes coups de pied dans la table, tes éclats visionnaires",
+            'Neptune':  "tes rêves, ta spiritualité, ce qui dissout tes contours",
+            'Pluton':   "ton pouvoir, ce qui te transforme en profondeur, ta part de nuit",
+            'Ascendant': "le masque que ton âme a choisi — ce que les autres voient en premier",
         },
         # Table de traduction nom-planète FR→EN (utilisée par la version EN)
         'planet_names_fr_to_local': {},  # identité en FR
@@ -645,10 +645,10 @@ def _chapter_planets(planets_narr: list, pos_by_name: dict, no_birth_time: bool,
             paras = [pp.strip() for pp in analysis.split('\n\n') if pp.strip()] or [analysis]
             for para in paras:
                 blocks.append(ChapterBlock(BlockKind.PARAGRAPH, {'text': para}))
-        # Vignette IA de fin de section planétaire (cache générique partagé)
-        illust_block = _planet_illust_block(name_fr, illustrations)
-        if illust_block is not None:
-            blocks.append(illust_block)
+        # Note : la vignette IA par planète est volontairement omise ici — elle
+        # créait des blancs forcés en fin de page (ReportLab reportait l'image
+        # à la page suivante quand elle ne tenait pas). Les planètes s'enchaînent
+        # désormais en flux continu, séparées par un simple HAIRLINE doré.
 
     blocks.append(ChapterBlock(BlockKind.FEATHER, {}))
     return Chapter(
