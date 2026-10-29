@@ -3653,7 +3653,7 @@ if ASSETS_DIR.exists():
     # des URLs de commandes voisines).
     # `synastrie_extracts` reste public (lead magnet, UUID 48 bits = token).
     for _pub in (
-        'library', 'fonts', 'synastrie_extracts', 'pdf_covers',
+        'library', 'fonts', 'synastrie_extracts', 'pdf_covers', 'theme_natal',
     ):
         _p = ASSETS_DIR / _pub
         # Créer le dossier s'il n'existe pas — nécessaire pour que le mount soit

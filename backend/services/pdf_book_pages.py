@@ -391,10 +391,12 @@ def aspects_group_page(story, styles, category: str, headline: str,
                        fontSize=12, textColor=CREAM, alignment=TA_LEFT,
                        leading=18, leftIndent=1.5 * cm, rightIndent=1.5 * cm),
     ))
-    # Refactor 2026-02-26 : plus de PageBreak forcé → les 3 groupes d'aspects
-    # s'enchaînent comme un chapitre de livre, séparés par un ornement.
+    # Refonte Feb 2026 — colonne vertébrale 50 pages : chaque groupe d'aspects
+    # occupe sa propre page, pour une numérotation stable et des titres jamais
+    # orphelins. L'ornement reste comme signature visuelle de fin de bloc.
     from services.pdf_luxury_theme import _append_section_ornament
     _append_section_ornament(story, f'aspects_{category}')
+    story.append(PageBreak())
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -460,6 +462,8 @@ def house_detail_page(story, styles, house_num: int, sign: str,
     # comme un chapitre de livre, séparées par un ornement.
     from services.pdf_luxury_theme import _append_section_ornament
     _append_section_ornament(story, f'house_{house_num}')
+    # Refonte Feb 2026 — chaque maison occupe sa propre page (p.27–36).
+    story.append(PageBreak())
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -494,6 +498,444 @@ def year_ahead_page(story, styles, prenom: str, body_html: str) -> None:
                        leading=18, leftIndent=1.5 * cm, rightIndent=1.5 * cm),
     ))
     story.append(PageBreak())
+
+
+# ═══════════════════════════════════════════════════════════════════
+# NOUVELLES PAGES — Refonte "Thème Natal 50 pages" (Lot 2 — Feb 2026)
+# ═══════════════════════════════════════════════════════════════════
+
+_SIGN_ELEMENT = {
+    'Bélier': 'Feu', 'Lion': 'Feu', 'Sagittaire': 'Feu',
+    'Taureau': 'Terre', 'Vierge': 'Terre', 'Capricorne': 'Terre',
+    'Gémeaux': 'Air', 'Balance': 'Air', 'Verseau': 'Air',
+    'Cancer': 'Eau', 'Scorpion': 'Eau', 'Poissons': 'Eau',
+}
+
+
+def method_intro_page(story, styles, prenom: str) -> None:
+    """Page 4 — Comment lire ce livre (méthode courte + intro).
+
+    Tient sur une page avec le sommaire généré via `table_of_contents_page`
+    appelé AVANT. C'est la page qui ouvre la lecture avant le vrai contenu.
+    """
+    story.append(Spacer(1, 1.4 * cm))
+    story.append(Paragraph(
+        f'{_star()} COMMENT LIRE CE LIVRE {_star()}',
+        ParagraphStyle('mi_tag', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=10, alignment=TA_CENTER, spaceAfter=18, letterSpacing=3),
+    ))
+    story.append(Paragraph(
+        f'Un mode d\'emploi tendre, {prenom}.',
+        ParagraphStyle('mi_h', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
+                       fontSize=18, textColor=LAVENDER, alignment=TA_CENTER,
+                       leading=24, spaceAfter=22),
+    ))
+    for para in (
+        "Ce livre est composé à partir de ton ciel de naissance. "
+        "Il propose une lecture symbolique et personnelle, à confronter à ton expérience. "
+        "Il ne prédit pas un avenir certain et ne remplace pas ta liberté de choix.",
+        "La structure se lit comme un vrai livre : d'abord les fondations (ta roue, ton trio Soleil-Lune-Ascendant, "
+        "ton élément et ta modalité dominants), puis le détail planète par planète, maison par maison, aspect par aspect. "
+        "Prends le temps : chaque page a été écrite pour être relue, soulignée, méditée.",
+        "Si une interprétation ne te parle pas, laisse-la. "
+        "Tu restes la personne la mieux placée pour donner du sens à ton vécu.",
+    ):
+        story.append(Paragraph(
+            para,
+            ParagraphStyle('mi_body', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                           fontSize=11.5, textColor=CREAM, alignment=TA_LEFT,
+                           leading=17, leftIndent=1.5 * cm, rightIndent=1.5 * cm,
+                           spaceAfter=10),
+        ))
+    story.append(PageBreak())
+
+
+def birth_data_page(story, styles, prenom: str, birth_date_fr: str,
+                     birth_time_fr: Optional[str], birth_place: Optional[str],
+                     sun_sign: str, moon_sign: str, asc_sign: str,
+                     planet_count: int, aspect_count: int, house_count: int,
+                     dominant_element: Optional[str] = None,
+                     dominant_modality: Optional[str] = None) -> None:
+    """Page 5 — Données de naissance (date, heure, lieu + signatures + stats)."""
+    story.append(Spacer(1, 1.3 * cm))
+    story.append(Paragraph(
+        f'{_star()} TES DONNÉES DE NAISSANCE {_star()}',
+        ParagraphStyle('bd_tag', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=10, alignment=TA_CENTER, spaceAfter=18, letterSpacing=3),
+    ))
+    story.append(Paragraph(
+        prenom,
+        ParagraphStyle('bd_name', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                       fontSize=28, textColor=CREAM, alignment=TA_CENTER,
+                       leading=34, spaceAfter=24),
+    ))
+    rows: list[list[str]] = []
+    if birth_date_fr:
+        rows.append(['Date', birth_date_fr])
+    if birth_time_fr:
+        rows.append(['Heure', birth_time_fr])
+    if birth_place:
+        rows.append(['Lieu', birth_place])
+    if sun_sign:
+        rows.append(['Soleil', sun_sign])
+    if moon_sign:
+        rows.append(['Lune', moon_sign])
+    if asc_sign:
+        rows.append(['Ascendant', asc_sign])
+    if dominant_element:
+        rows.append(['Élément dominant', dominant_element])
+    if dominant_modality:
+        rows.append(['Modalité dominante', dominant_modality])
+    rows.append(['Planètes commentées', str(planet_count)])
+    if aspect_count:
+        rows.append(['Aspects majeurs', str(aspect_count)])
+    if house_count:
+        rows.append(['Maisons actives', str(house_count)])
+
+    label_style = ParagraphStyle('bd_lab', fontName=font('Cinzel', 'Helvetica'),
+                                  fontSize=9, textColor=GOLD, alignment=TA_LEFT, letterSpacing=2)
+    value_style = ParagraphStyle('bd_val', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                                  fontSize=12, textColor=CREAM, alignment=TA_LEFT, leading=16)
+    cells = [[Paragraph(lab.upper(), label_style), Paragraph(val, value_style)] for lab, val in rows]
+    tbl = Table(cells, colWidths=[4.8 * cm, 9 * cm], hAlign='CENTER')
+    tbl.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        ('TOPPADDING', (0, 0), (-1, -1), 7),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+        ('LINEBELOW', (0, 0), (-1, -2), 0.3, HexColor('#5c4e26')),
+    ]))
+    story.append(tbl)
+    story.append(PageBreak())
+
+
+def chart_legend_page(story, styles) -> None:
+    """Page 7 — Légende de la roue : symboles planétaires, signes, aspects.
+
+    Permet au lecteur de décoder la carte du ciel qui précède.
+    """
+    story.append(Spacer(1, 1 * cm))
+    story.append(Paragraph(
+        f'{_star()} LA LÉGENDE DE TA ROUE {_star()}',
+        ParagraphStyle('cl_tag', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=10, alignment=TA_CENTER, spaceAfter=14, letterSpacing=3),
+    ))
+    story.append(Paragraph(
+        'Les symboles qui dansent sur ta carte',
+        ParagraphStyle('cl_h', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
+                       fontSize=15, textColor=LAVENDER, alignment=TA_CENTER,
+                       leading=20, spaceAfter=18),
+    ))
+    sym_style = ParagraphStyle('cl_sym', fontName=font('OrnamentSerif', 'Helvetica'),
+                                fontSize=14, textColor=GOLD, alignment=TA_CENTER)
+    lab_style = ParagraphStyle('cl_lab', fontName=font('Cinzel', 'Helvetica'),
+                                fontSize=9, textColor=CREAM, alignment=TA_LEFT, letterSpacing=1)
+    desc_style = ParagraphStyle('cl_desc', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                                 fontSize=10, textColor=CREAM, alignment=TA_LEFT, leading=14)
+    sections = [
+        ('Les planètes', [
+            ('☉', 'Soleil', 'ton identité, ta volonté'),
+            ('☽', 'Lune', 'tes émotions, ta sensibilité'),
+            ('☿', 'Mercure', 'ta pensée, ta parole'),
+            ('♀', 'Vénus', 'tes amours, tes goûts'),
+            ('♂', 'Mars', 'ton action, tes désirs'),
+            ('♃', 'Jupiter', 'ton expansion, ta chance'),
+            ('♄', 'Saturne', 'ta discipline, tes limites'),
+            ('♅', 'Uranus', 'tes ruptures, tes libérations'),
+            ('♆', 'Neptune', 'tes rêves, ton inspiration'),
+            ('♇', 'Pluton', 'tes transformations profondes'),
+        ]),
+        ('Les aspects', [
+            ('☌', 'Conjonction', 'fusion — deux planètes jouent la même note'),
+            ('☍', 'Opposition', 'tension — polarité à équilibrer'),
+            ('△', 'Trigone', 'harmonie — talent qui circule sans effort'),
+            ('□', 'Carré', 'friction — moteur de croissance'),
+            ('⚹', 'Sextile', 'opportunité — à saisir sans forcer'),
+        ]),
+    ]
+    for title, items in sections:
+        story.append(Paragraph(
+            title,
+            ParagraphStyle(f'cl_s_{title}', fontName=font('Cinzel', 'Helvetica'),
+                           fontSize=11, textColor=GOLD, alignment=TA_LEFT,
+                           letterSpacing=2, leftIndent=1.2 * cm, spaceBefore=8, spaceAfter=6),
+        ))
+        rows = []
+        for sym, label, desc in items:
+            rows.append([
+                Paragraph(sym, sym_style),
+                Paragraph(label.upper(), lab_style),
+                Paragraph(desc, desc_style),
+            ])
+        tbl = Table(rows, colWidths=[1.2 * cm, 3.2 * cm, 9.2 * cm], hAlign='CENTER')
+        tbl.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 2),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+            ('LEFTPADDING', (0, 0), (-1, -1), 2),
+        ]))
+        story.append(tbl)
+    story.append(PageBreak())
+
+
+def personal_synthesis_page(story, styles, prenom: str, sun_sign: str,
+                             moon_sign: str, asc_sign: str,
+                             dominant_element: Optional[str],
+                             dominant_modality: Optional[str],
+                             aspect_count: int, active_house_count: int,
+                             synthese_text: Optional[str] = None) -> None:
+    """Page 8 — Synthèse personnelle courte : les grandes signatures en un regard."""
+    story.append(Spacer(1, 1 * cm))
+    story.append(Paragraph(
+        f'{_star()} TA SYNTHÈSE PERSONNELLE {_star()}',
+        ParagraphStyle('ps_tag', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=10, alignment=TA_CENTER, spaceAfter=14, letterSpacing=3),
+    ))
+    story.append(Paragraph(
+        f'{prenom}, en un seul regard',
+        ParagraphStyle('ps_h', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                       fontSize=22, textColor=CREAM, alignment=TA_CENTER,
+                       leading=28, spaceAfter=16),
+    ))
+    phrases: list[str] = []
+    if sun_sign:
+        phrases.append(f'Soleil en <font color="{GOLD_HEX}">{sun_sign}</font> — ton identité.')
+    if moon_sign:
+        phrases.append(f'Lune en <font color="{GOLD_HEX}">{moon_sign}</font> — ton monde intérieur.')
+    if asc_sign:
+        phrases.append(f'Ascendant en <font color="{GOLD_HEX}">{asc_sign}</font> — ton masque.')
+    if dominant_element:
+        phrases.append(f'Élément dominant : <font color="{GOLD_HEX}">{dominant_element}</font>.')
+    if dominant_modality:
+        phrases.append(f'Modalité dominante : <font color="{GOLD_HEX}">{dominant_modality}</font>.')
+    if aspect_count:
+        phrases.append(f'<font color="{GOLD_HEX}">{aspect_count}</font> aspects majeurs entre tes planètes.')
+    if active_house_count:
+        phrases.append(f'<font color="{GOLD_HEX}">{active_house_count}</font> des douze maisons accueillent au moins une planète.')
+    for p in phrases:
+        story.append(Paragraph(
+            p,
+            ParagraphStyle(f'ps_line_{len(story)}', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                           fontSize=12.5, textColor=CREAM, alignment=TA_LEFT,
+                           leading=18, leftIndent=1.5 * cm, rightIndent=1.5 * cm, spaceAfter=4),
+        ))
+    if synthese_text:
+        story.append(Spacer(1, 0.5 * cm))
+        story.append(Paragraph(
+            synthese_text,
+            ParagraphStyle('ps_body', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
+                           fontSize=11, textColor=LAVENDER, alignment=TA_LEFT,
+                           leading=16, leftIndent=1.5 * cm, rightIndent=1.5 * cm),
+        ))
+    story.append(PageBreak())
+
+
+def transversal_synthesis_page(story, styles, title: str, kicker: str,
+                                body_html: str, tarot_slug: str = 'etoile') -> None:
+    """Pages 45-48 — synthèse transversale (4 axes : relations/activité/ressources/tensions)."""
+    story.append(Spacer(1, 0.8 * cm))
+    story.append(Paragraph(
+        f'{_star()} SYNTHÈSE TRANSVERSALE {_star()}',
+        ParagraphStyle('ts_tag', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=10, alignment=TA_CENTER, spaceAfter=10, letterSpacing=3),
+    ))
+    story.append(Paragraph(
+        title,
+        ParagraphStyle('ts_h', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                       fontSize=22, textColor=CREAM, alignment=TA_CENTER,
+                       leading=28, spaceAfter=6),
+    ))
+    if kicker:
+        story.append(Paragraph(
+            kicker,
+            ParagraphStyle('ts_s', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
+                           fontSize=12, textColor=LAVENDER, alignment=TA_CENTER, spaceAfter=16),
+        ))
+    img = libimg.tarot(tarot_slug, size=512)
+    if img and os.path.exists(img):
+        try:
+            story.append(RLImage(img, width=4 * cm, height=4 * cm, mask='auto'))
+            story.append(Spacer(1, 0.4 * cm))
+        except Exception:
+            pass
+    story.append(Paragraph(
+        body_html,
+        ParagraphStyle('ts_body', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                       fontSize=12, textColor=CREAM, alignment=TA_LEFT,
+                       leading=18, leftIndent=1.5 * cm, rightIndent=1.5 * cm),
+    ))
+    story.append(PageBreak())
+
+
+def conclusion_page(story, styles, prenom: str, body_html: str) -> None:
+    """Page 49 — Conclusion complète (fin émotionnelle développée)."""
+    story.append(Spacer(1, 1.3 * cm))
+    story.append(Paragraph(
+        f'{_star()} CONCLUSION {_star()}',
+        ParagraphStyle('cc_tag', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=10, alignment=TA_CENTER, spaceAfter=14, letterSpacing=3),
+    ))
+    story.append(Paragraph(
+        f'{prenom}, ton livre te laisse sur ce seuil',
+        ParagraphStyle('cc_h', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                       fontSize=20, textColor=CREAM, alignment=TA_CENTER,
+                       leading=26, spaceAfter=20),
+    ))
+    story.append(Paragraph(
+        body_html,
+        ParagraphStyle('cc_body', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                       fontSize=12, textColor=CREAM, alignment=TA_LEFT,
+                       leading=18, leftIndent=1.5 * cm, rightIndent=1.5 * cm),
+    ))
+    story.append(PageBreak())
+
+
+def glossary_technical_page(story, styles) -> None:
+    """Page 50 — Glossaire court + repères techniques (orbes, maisons, aspects)."""
+    story.append(Spacer(1, 1 * cm))
+    story.append(Paragraph(
+        f'{_star()} GLOSSAIRE & REPÈRES TECHNIQUES {_star()}',
+        ParagraphStyle('gl_tag', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=10, alignment=TA_CENTER, spaceAfter=14, letterSpacing=3),
+    ))
+    term_style = ParagraphStyle('gl_term', fontName=font('Cinzel', 'Helvetica'),
+                                 fontSize=9, textColor=GOLD, alignment=TA_LEFT, letterSpacing=1)
+    def_style = ParagraphStyle('gl_def', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                                fontSize=10, textColor=CREAM, alignment=TA_LEFT, leading=14)
+    story.append(Paragraph(
+        'Glossaire',
+        ParagraphStyle('gl_s1', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=11, textColor=CREAM, alignment=TA_LEFT,
+                       letterSpacing=2, leftIndent=1.2 * cm, spaceAfter=6),
+    ))
+    glossary = [
+        ('ASCENDANT', 'signe qui se levait à l\'horizon est à l\'instant de ta naissance ; ton masque social.'),
+        ('CUSPIDE', 'frontière entre deux maisons astrologiques.'),
+        ('MAISON', 'secteur de 30° (en moyenne) qui situe où une planète s\'incarne dans ta vie.'),
+        ('ORBE', 'tolérance en degrés dans la mesure d\'un aspect ; plus l\'orbe est faible, plus l\'aspect est net.'),
+        ('RÉTROGRADE', 'planète en mouvement apparent inversé ; son énergie se tourne vers l\'intérieur.'),
+        ('TRANSIT', 'passage d\'une planète actuelle devant un point de ta carte natale.'),
+    ]
+    rows = [[Paragraph(t, term_style), Paragraph(d, def_style)] for t, d in glossary]
+    tbl = Table(rows, colWidths=[3.5 * cm, 10.5 * cm], hAlign='CENTER')
+    tbl.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+    ]))
+    story.append(tbl)
+    story.append(Spacer(1, 0.6 * cm))
+    story.append(Paragraph(
+        'Repères techniques',
+        ParagraphStyle('gl_s2', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=11, textColor=CREAM, alignment=TA_LEFT,
+                       letterSpacing=2, leftIndent=1.2 * cm, spaceAfter=6),
+    ))
+    tech_lines = (
+        'Les positions planétaires sont calculées à partir de l\'heure et du lieu que tu as fournis, '
+        'avec les éphémérides suisses. Les maisons sont tracées selon le système Placidus. '
+        'Les aspects majeurs sont retenus dans leur orbe classique : 8° pour la conjonction et l\'opposition, '
+        '6° pour le trigone et le carré, 4° pour le sextile. '
+        'Les signes du zodiaque sont tropicaux (relatifs aux saisons terrestres, non aux constellations).'
+    )
+    story.append(Paragraph(
+        tech_lines,
+        ParagraphStyle('gl_tech', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                       fontSize=10.5, textColor=CREAM, alignment=TA_LEFT,
+                       leading=15, leftIndent=1.5 * cm, rightIndent=1.5 * cm),
+    ))
+    story.append(PageBreak())
+
+
+def aspects_opening_page(story, styles, aspects: List[Dict[str, Any]]) -> None:
+    """Page d'ouverture de la Section 6 — table dense des aspects calculés.
+
+    Rend la liste complète (planète A — type — planète B — orbe) comme table
+    de référence avant les 3 pages d'interprétation thématique.
+    """
+    story.append(Spacer(1, 0.8 * cm))
+    story.append(Paragraph(
+        f'{_star()} TES ASPECTS CALCULÉS {_star()}',
+        ParagraphStyle('ao_tag', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=10, alignment=TA_CENTER, spaceAfter=10, letterSpacing=3),
+    ))
+    story.append(Paragraph(
+        'La table de tes dialogues célestes',
+        ParagraphStyle('ao_h', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
+                       fontSize=15, textColor=LAVENDER, alignment=TA_CENTER,
+                       leading=20, spaceAfter=14),
+    ))
+    if not aspects:
+        story.append(Paragraph(
+            'Aucun aspect majeur n\'a été calculé pour cette carte.',
+            ParagraphStyle('ao_empty', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
+                           fontSize=11, textColor=MUTED, alignment=TA_CENTER),
+        ))
+        story.append(PageBreak())
+        return
+    header_style = ParagraphStyle('ao_hdr', fontName=font('Cinzel', 'Helvetica'),
+                                   fontSize=8, textColor=GOLD, alignment=TA_LEFT, letterSpacing=1)
+    cell_style = ParagraphStyle('ao_cell', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                                 fontSize=10, textColor=CREAM, alignment=TA_LEFT, leading=14)
+    rows = [[Paragraph('PLANÈTE A', header_style),
+             Paragraph('ASPECT', header_style),
+             Paragraph('PLANÈTE B', header_style),
+             Paragraph('ORBE', header_style)]]
+    for a in aspects[:40]:  # cap at ~40 aspects to fit on page
+        orb = a.get('orb_degrees')
+        orb_txt = f'{orb:.2f}°'.replace('.', ',') if isinstance(orb, (int, float)) else '—'
+        rows.append([
+            Paragraph(a.get('planet_a', '—'), cell_style),
+            Paragraph(a.get('type_fr', '—'), cell_style),
+            Paragraph(a.get('planet_b', '—'), cell_style),
+            Paragraph(orb_txt, cell_style),
+        ])
+    tbl = Table(rows, colWidths=[3.4 * cm, 3 * cm, 3.4 * cm, 2 * cm], hAlign='CENTER',
+                 repeatRows=1)
+    tbl.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ('LINEBELOW', (0, 0), (-1, 0), 0.4, HexColor(GOLD_HEX)),
+        ('LINEBELOW', (0, 1), (-1, -2), 0.2, HexColor('#5c4e26')),
+    ]))
+    story.append(tbl)
+    story.append(PageBreak())
+
+
+def section_divider_page(story, styles, section_num: str, title: str,
+                          subtitle: Optional[str] = None,
+                          illustration_local_path: Optional[str] = None) -> None:
+    """Diviseur de section (remplace part_divider_page) adapté à la nouvelle structure 8 sections."""
+    story.append(Spacer(1, 3.5 * cm))
+    story.append(Paragraph(
+        f'<font color="{GOLD_HEX}">SECTION {section_num}</font>',
+        ParagraphStyle('sd_num', fontName=font('Cinzel', 'Helvetica'),
+                       fontSize=12, alignment=TA_CENTER, spaceAfter=18, letterSpacing=4),
+    ))
+    story.append(Paragraph(
+        title,
+        ParagraphStyle('sd_t', fontName=font('Cormorant Garamond', 'Times-Roman'),
+                       fontSize=32, textColor=CREAM, alignment=TA_CENTER,
+                       leading=38, spaceAfter=14),
+    ))
+    if subtitle:
+        story.append(Paragraph(
+            subtitle,
+            ParagraphStyle('sd_s', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
+                           fontSize=13, textColor=LAVENDER, alignment=TA_CENTER,
+                           leading=20, spaceAfter=28),
+        ))
+    if illustration_local_path and os.path.exists(illustration_local_path):
+        try:
+            story.append(RLImage(illustration_local_path, width=6 * cm, height=6 * cm, mask='auto'))
+        except Exception:
+            pass
+    story.append(PageBreak())
+
+
+# ═══════════════════════════════════════════════════════════════════
 
 
 def colophon_page(story, styles, prenom: str, referral_code: Optional[str] = None,

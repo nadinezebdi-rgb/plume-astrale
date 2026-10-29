@@ -1,89 +1,243 @@
-"""Génère un échantillon PDF Thème Natal pour inspection visuelle.
+"""Génère un échantillon PDF Thème Natal avec enrichissement AI RÉEL.
 
 Usage :
     cd /app/backend && python tests/_gen_sample_natal_pdf.py
-Produit /app/sample_natal_lot1.pdf (à inspecter côté user).
+    cd /app/backend && python tests/_gen_sample_natal_pdf.py --force   # invalide le cache GPT
+
+Produit :
+    /app/backend/assets/theme_natal/sample_lot1_50pages.pdf
+
+Pipeline :
+    1. Profil fictif (Clara, 14/07/1992, Paris)
+    2. enrich_book_chapters (GPT-5.4) → dédicace, trio, maisons, année, ex-libris
+    3. _gen_planet_analyses (GPT-5.4) → 11 narratifs planète-en-signe
+    4. build_natal_pdf_v2 → PDF luxe
 """
+from __future__ import annotations
+import asyncio
+import json
 import os
+import re
 import sys
-sys.path.insert(0, '/app/backend')
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+# Charge .env comme le backend (uvicorn le fait automatiquement, pas python standalone)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / '.env')
+except Exception:
+    pass
 
 from services.natal_pdf_v2 import build_natal_pdf_v2
+from services.natal_book_enrichment import enrich_book_chapters
+from services.natal_ai_enrichment import _call_gpt, _parse_json_response
 
-# Dataset réaliste pour un rendu "mode livre riche" (bd=True)
-NATAL_DATA = {
-    'sun_sign': 'Cancer',
-    'moon_sign': 'Poissons',
-    'ascendant_sign': 'Vierge',
-    'no_birth_time': False,
-    'tier': 'ultra',
-    'planets': [
-        {'name': 'Soleil',    'sign': 'Cancer',    'analysis': 'Tu portes la sensibilité du Cancer avec une profondeur rare. Ton rapport au foyer et à la mémoire est viscéral.\n\nCe qui te distingue : une capacité à sentir ce que les autres n’osent dire. Tu es un refuge sans le savoir.'},
-        {'name': 'Lune',      'sign': 'Poissons',  'analysis': 'Lune en Poissons : tes émotions circulent sans frontière. Tu absorbes ce qui t’entoure comme une éponge sensible.\n\nTon besoin fondamental : des espaces de silence pour redevenir toi, loin du bruit du monde.'},
-        {'name': 'Mercure',   'sign': 'Cancer',    'analysis': 'Mercure en Cancer : tu penses avec le cœur avant la raison. Ton langage est teinté d’affect et d’intuition.\n\nTu te souviens des mots que les autres oublient — chaque phrase est une empreinte.'},
-        {'name': 'Vénus',     'sign': 'Lion',      'analysis': 'Vénus en Lion : tu aimes avec panache, générosité, et un besoin de reconnaissance.\n\nTon amour est théâtral mais sincère — tu veux être vue et choisie, pas simplement acceptée.'},
-        {'name': 'Mars',      'sign': 'Taureau',   'analysis': 'Mars en Taureau : ton action est lente mais inarrêtable. Tu construis dans la patience.\n\nTa colère est rare mais, quand elle vient, elle dure. Tu ne pardonnes pas facilement.'},
-        {'name': 'Jupiter',   'sign': 'Scorpion',  'analysis': 'Jupiter en Scorpion : tu grandis dans l’intensité et les transformations profondes.\n\nTes plus grandes chances arrivent après des crises qui t’obligent à muer.'},
-        {'name': 'Saturne',   'sign': 'Verseau',   'analysis': 'Saturne en Verseau : ta discipline s’apprend par l’indépendance. Tu structures ta vie contre les conventions.\n\nTa maturité se construit en osant ne pas appartenir.'},
-        {'name': 'Uranus',    'sign': 'Capricorne','analysis': 'Uranus en Capricorne : tu portes une rébellion méthodique, un besoin de refonder les structures.\n\nTon génie est pragmatique, pas chaotique.'},
-        {'name': 'Neptune',   'sign': 'Capricorne','analysis': 'Neptune en Capricorne : ton imaginaire s’ancre dans le concret. Tu rêves pour bâtir.\n\nAttention à la désillusion quand la réalité ne suit pas ton idéal strict.'},
-        {'name': 'Pluton',    'sign': 'Scorpion',  'analysis': 'Pluton en Scorpion : tu traverses des morts symboliques pour renaître plus forte.\n\nTa puissance intérieure est magnétique — les gens le sentent sans comprendre pourquoi.'},
-        {'name': 'Ascendant', 'sign': 'Vierge',    'analysis': 'Ascendant Vierge : tu abordes le monde avec clarté, précision, discernement.\n\nTon aura est modeste mais ta lucidité est redoutable.'},
-    ],
-    'synthese_aspects': 'Tes aspects dessinent un portrait de profondeur et de réserve. Le trigone Lune-Jupiter ouvre une veine de chance émotionnelle, pendant que le carré Soleil-Saturne te demande un effort permanent de légitimité.',
-    'houses': [
-        {'num': i, 'sign': ['Vierge','Balance','Scorpion','Sagittaire','Capricorne','Verseau','Poissons','Bélier','Taureau','Gémeaux','Cancer','Lion'][i-1], 'planets_in_house': []}
-        for i in range(1, 13)
-    ],
-    'enhanced_personal_analysis': {},
+
+# ────────────────────────────────────────────────────────────────────────
+# Profil fictif réaliste
+# ────────────────────────────────────────────────────────────────────────
+PRENOM = 'Clara'
+BIRTH_DATE_ISO = '1992-07-14'
+BIRTH_DATA = {
+    'year': 1992, 'month': 7, 'day': 14,
+    'hour': 15, 'minute': 42,
+    'latitude': 48.8566, 'longitude': 2.3522,
+    'timezone': 'Europe/Paris', 'city': 'Paris',
 }
 
-BOOK_DATA = {
-    '_source': 'cache',
-    '_em': {
-        'dominant_element': 'Eau',
-        'dominant_element_count': 5,
-        'dominant_modality': 'Fixe',
-        'dominant_modality_count': 4,
-    },
-    'dedication': 'À toi qui ouvres ce livre, puisse-t-il devenir compagnon des heures claires et des heures troubles.',
-    'element_analysis': "Ton eau domine : tu te meus dans un monde d’impressions avant les mots. C’est une richesse rare — et une invitation à poser des berges autour de ta sensibilité pour ne pas te laisser submerger. Cette prédominance aquatique t’offre une mémoire émotionnelle longue, où chaque rencontre laisse une empreinte. Tu perçois les atmosphères avant que les paroles ne soient prononcées, tu lis entre les lignes des silences, tu devines les secrets que les autres n’osent nommer. Mais cette porosité demande un art : celui de rentrer en toi régulièrement pour trier ce qui t’appartient de ce que tu as absorbé.",
-    'modality_analysis': "Ta modalité fixe te donne une colonne vertébrale. Tu tiens là où d’autres plient, tu reviens là où d’autres s’éparpillent. C’est ta force : une loyauté viscérale envers tes engagements, tes amours, tes convictions. Attention cependant au prix de l’obstination — parfois, ce que tu nommes fidélité est en réalité une peur du changement déguisée. Apprends à distinguer les terres sacrées à défendre des sables mouvants dont il faut sortir. Ton pouvoir réside dans ce discernement patient.",
-    'trio_synthesis': "Ton Soleil Cancer, ta Lune Poissons et ton Ascendant Vierge forment un dialogue subtil entre la mer et la rive. L’émotion fluide des deux premiers trouve dans la Vierge sa structure, sa clarté, son discernement. Tu ne te noies jamais complètement parce qu’une part de toi observe, analyse, trie. Ce triangle intérieur te donne une rare capacité d’empathie précise : tu sens profondément et tu nommes justement. C’est le propre des grandes consolatrices et des grandes thérapeutes — tu portes cette signature.",
-    'aspects_harmonieux_headline': 'La grâce en toi',
-    'aspects_harmonieux_body': "Tes trigones et sextiles ouvrent des zones de fluidité où tout circule sans effort. Ce sont les talents que tu n’as pas eu besoin d’apprendre : la justesse émotionnelle, le sens du soin, l’intuition créative. Ces dons sont si naturels que tu risques de les sous-estimer. Rappelle-toi : ce qui te coûte peu peut valoir immensément pour ceux qui en manquent. N’hésite pas à offrir ces dons comme des cadeaux délibérés plutôt que des évidences discrètes.",
-    'aspects_tensions_headline': 'Le nœud qui te forge',
-    'aspects_tensions_body': "Tes carrés et oppositions te confrontent — ils sont tes meilleurs maîtres, même si ce sont les plus exigeants. Chaque friction intérieure t’oblige à inventer, à créer un troisième chemin que ni l’une ni l’autre polarité n’offrait seule. C’est ainsi que ta profondeur se construit : non pas en évitant la tension mais en la transformant en architecture intérieure. Les plus belles œuvres naissent de ce travail d’alchimiste.",
-    'rare_aspect_headline': 'Ta note rare',
-    'rare_aspect_body': "Il existe dans ton ciel une signature peu commune, qui te singularise. Elle ne te rend pas supérieure, elle te rend reconnaissable. Cette note rare est le filigrane de ton œuvre, cette qualité étrange que tu portes depuis l’enfance et que les autres remarquent sans toujours savoir la nommer. Apprends à la revendiquer plutôt qu’à la cacher — c’est elle qui te mènera aux lieux et aux êtres qui t’attendent.",
-    'houses_intro': "Les douze maisons sont les terrains où tes planètes s’incarnent dans ta vie quotidienne. Elles traduisent l’énergie céleste en expérience vécue : le corps, l’argent, les mots, le foyer, la création, le travail, l’amour, la transformation, le sens, la vocation, la tribu, le sanctuaire. Chaque maison est une pièce de ta maison intérieure, et chaque planète y pose sa lumière particulière.",
-    'house_1': "Maison I — Ta présence dans le monde. C’est l’enveloppe que tu offres aux autres, la première impression que tu laisses, la silhouette que ton corps dessine dans l’espace. Cultive-la comme un vêtement choisi, pas comme un uniforme imposé.",
-    'house_2': "Maison II — Tes ressources matérielles et ton rapport à la valeur. Argent, biens, talents monnayables : tout cela te parle moins du compte en banque que de l’estime que tu te portes. Enrichis-toi d’abord intérieurement, le reste suit.",
-    'house_3': "Maison III — Ton esprit vif, tes mots, tes trajets quotidiens, tes frères et sœurs d’âme. C’est le royaume de la curiosité et des échanges courts. Nourris-le de lectures, de conversations, de petits voyages qui aèrent ton mental.",
-    'house_4': "Maison IV — Ton foyer intérieur, tes racines, ta lignée. C’est la fondation invisible sur laquelle tout le reste s’élève. Les blessures y résident, mais aussi les forces ancestrales dont tu es héritière sans le savoir.",
-    'house_5': "Maison V — Tes créations, tes amours, tes enfants intérieurs. C’est le lieu du jeu sacré, de la joie non négociable. Si tu l’abandonnes, tout le reste pâlit. Rends-lui ses droits régulièrement.",
-    'house_6': "Maison VI — Ton quotidien et ton artisanat de soi. Santé, routines, service rendu : ici se forge l’art discret de prendre soin. Ta rigueur ici est la condition de ta liberté ailleurs.",
-    'house_7': "Maison VII — Les autres, le miroir, les partenariats. Ce que tu rencontres chez l’autre te révèle ce que tu portes toi-même. Chaque relation significative est un enseignement déguisé.",
-    'house_8': "Maison VIII — Les transformations profondes, les tabous, l’intimité, les ressources partagées. C’est la chambre des métamorphoses — on n’en sort jamais tout à fait pareille à celle qui y est entrée.",
-    'house_9': "Maison IX — L’horizon et le sens, les grands voyages, la philosophie, la foi. Ici tu cherches le pourquoi derrière le comment, l’infini derrière le fini. C’est ta boussole intérieure.",
-    'house_10': "Maison X — Ta vocation publique, ta signature professionnelle, la place que tu occupes dans la cité. Ce n’est pas forcément un métier : c’est la couleur que tu laisses dans la mémoire collective.",
-    'house_11': "Maison XI — La tribu choisie, les amitiés électives, les projets collectifs. C’est le cercle de celles et ceux qui marchent dans la même direction que toi, même par des chemins différents.",
-    'house_12': "Maison XII — Le sanctuaire intérieur, l’invisible, les rêves, les retraites. Ici réside la part de toi qui n’appartient qu’à toi — et parfois pas même à toi mais à plus grand que toi.",
-    'year_ahead': "L’année qui vient ouvre un cycle de Jupiter nouveau pour toi — la porte s’entrouvre là où tu insistes depuis des mois. C’est une saison d’expansion mesurée : non pas une explosion mais un épanouissement patient. Tu récolteras ce que tu as semé en silence durant les saisons précédentes. Attends-toi à des rencontres déterminantes, à des propositions qui te feront douter tant elles dépassent ce que tu croyais mériter — accepte-les tout de même. Les transits de Saturne, en parallèle, te demanderont de choisir : certaines fidélités anciennes devront être revisitées, certains engagements renouvelés plus consciemment. Ce n’est pas une année facile mais une année juste — celle où ta vérité intérieure et ta vie extérieure commencent enfin à s’aligner. Garde une pratique régulière de retour à toi : journal, marche, silence. Elle sera ta boussole dans les décisions importantes qui ponctueront les douze mois.",
-    'cloture_body': "Ce livre n’est pas une fin, c’est un seuil. Tu peux y revenir à toute saison, aux heures claires comme aux heures troubles. Les planètes ne cessent de parler — à toi désormais d’écouter avec l’oreille affûtée qui s’est aiguisée page après page. Souviens-toi : ton ciel n’est pas un destin fixé, c’est une partition. Et la musicienne, c’est toi.",
+PLANETS = [
+    {'name': 'Soleil',   'sign': 'Cancer'},
+    {'name': 'Lune',     'sign': 'Poissons'},
+    {'name': 'Mercure',  'sign': 'Cancer'},
+    {'name': 'Vénus',    'sign': 'Lion'},
+    {'name': 'Mars',     'sign': 'Taureau'},
+    {'name': 'Jupiter',  'sign': 'Scorpion'},
+    {'name': 'Saturne',  'sign': 'Verseau'},
+    {'name': 'Uranus',   'sign': 'Capricorne'},
+    {'name': 'Neptune',  'sign': 'Capricorne'},
+    {'name': 'Pluton',   'sign': 'Scorpion'},
+    {'name': 'Ascendant','sign': 'Vierge'},
+]
+
+ASPECTS = [
+    {'planet1': 'Lune',    'planet2': 'Jupiter',  'type': 'trigone',     'orb': 2.4},
+    {'planet1': 'Soleil',  'planet2': 'Saturne',  'type': 'carré',       'orb': 1.8},
+    {'planet1': 'Vénus',   'planet2': 'Neptune',  'type': 'sextile',     'orb': 3.1},
+    {'planet1': 'Mars',    'planet2': 'Pluton',   'type': 'trigone',     'orb': 2.0},
+    {'planet1': 'Mercure', 'planet2': 'Uranus',   'type': 'opposition',  'orb': 4.2},
+]
+
+HOUSES_SIGNS = ['Vierge','Balance','Scorpion','Sagittaire','Capricorne','Verseau',
+                'Poissons','Bélier','Taureau','Gémeaux','Cancer','Lion']
+
+
+# ────────────────────────────────────────────────────────────────────────
+# Génération des narratifs planète-en-signe via GPT (une seule requête)
+# ────────────────────────────────────────────────────────────────────────
+_PLANET_SYSTEM = """Tu écris pour Plume Astrale, maison française d'astrologie éditoriale.
+Style : entre Christiane Singer, Fabienne Verdier, et Anne Dufourmantelle.
+Voix : intime, sensorielle, jamais moralisatrice, jamais new-age caricatural.
+Registre : soutenu littéraire — pas de jargon astro, pas d'anglicismes.
+Tu tutoies toujours la personne.
+Interdits : « en tant que », « il est important de », « n'oublie pas que », émojis.
+"""
+
+_PLANET_CACHE = ROOT / 'cache' / 'natal_sample_planets'
+_PLANET_CACHE.mkdir(parents=True, exist_ok=True)
+
+
+def _planet_cache_key() -> str:
+    import hashlib
+    sig = PRENOM + '|' + '|'.join(f"{p['name']}:{p['sign']}" for p in PLANETS)
+    return 'sample-' + hashlib.sha256(sig.encode()).hexdigest()[:16]
+
+
+async def _gen_planet_analyses(force: bool = False) -> dict[str, str]:
+    """Un seul appel GPT retournant JSON {clef_fr: narratif_html}."""
+    key = _planet_cache_key()
+    cache_file = _PLANET_CACHE / f'{key}.json'
+    if not force and cache_file.exists():
+        try:
+            return json.loads(cache_file.read_text('utf-8'))
+        except Exception:
+            pass
+
+    planet_lines = '\n'.join(f"- {p['name']} en {p['sign']}" for p in PLANETS)
+    prompt = f"""Personne : {PRENOM}
+Trio : Soleil Cancer · Lune Poissons · Ascendant Vierge
+Planètes à analyser :
+{planet_lines}
+
+Pour chaque planète ci-dessus, écris une analyse personnalisée en voix Plume Astrale.
+Chaque analyse comprend EXACTEMENT 2 paragraphes séparés par <br/><br/>.
+Longueur par analyse : 90 à 130 mots au total.
+Ancre les images dans le réel (sensations, gestes, saisons, mémoire).
+Pas de listes, pas de titres. Prose directe au tutoiement.
+
+Retourne STRICTEMENT un JSON valide (aucun texte hors JSON, pas de fence markdown) avec exactement ces clés :
+
+{{
+  "soleil":    "...",
+  "lune":      "...",
+  "mercure":   "...",
+  "venus":     "...",
+  "mars":      "...",
+  "jupiter":   "...",
+  "saturne":   "...",
+  "uranus":    "...",
+  "neptune":   "...",
+  "pluton":    "...",
+  "ascendant": "..."
+}}
+"""
+    resp = await _call_gpt(_PLANET_SYSTEM, prompt,
+                            session_id=f'sample-planets-{key}', timeout_s=120.0)
+    if not resp:
+        raise RuntimeError('GPT ne répond pas pour les narratifs planétaires')
+    parsed = _parse_json_response(resp)
+    if not parsed:
+        raise RuntimeError(f'JSON invalide (raw: {resp[:200]!r})')
+    # Nettoyage : les analyses dans natal_pdf_v2 attendent du \n\n (pas de <br/>)
+    cleaned = {}
+    for k, v in parsed.items():
+        if not isinstance(v, str):
+            continue
+        txt = v.strip()
+        txt = re.sub(r'<br\s*/?>\s*<br\s*/?>', '\n\n', txt, flags=re.IGNORECASE)
+        txt = re.sub(r'<br\s*/?>', '\n', txt, flags=re.IGNORECASE)
+        txt = re.sub(r'</?p>', '\n\n', txt, flags=re.IGNORECASE)
+        txt = re.sub(r'</?[a-z][^>]*>', '', txt, flags=re.IGNORECASE)  # strip html
+        txt = re.sub(r'\n{3,}', '\n\n', txt).strip()
+        cleaned[k.lower()] = txt
+    cache_file.write_text(json.dumps(cleaned, ensure_ascii=False, indent=2), 'utf-8')
+    return cleaned
+
+
+# ────────────────────────────────────────────────────────────────────────
+# Main
+# ────────────────────────────────────────────────────────────────────────
+_FR_KEY = {
+    'Soleil': 'soleil', 'Lune': 'lune', 'Mercure': 'mercure',
+    'Vénus': 'venus', 'Mars': 'mars', 'Jupiter': 'jupiter',
+    'Saturne': 'saturne', 'Uranus': 'uranus',
+    'Neptune': 'neptune', 'Pluton': 'pluton', 'Ascendant': 'ascendant',
 }
 
-if __name__ == '__main__':
+
+async def main() -> int:
+    force = '--force' in sys.argv
+
+    # ── 1) book_data (dédicace + élément + modalité + trio + maisons + année + ex-libris)
+    print(f'→ enrich_book_chapters({PRENOM}, force={force})… (peut prendre 60-120s au premier run)')
+    natal_data_for_book = {
+        'prenom': PRENOM,
+        'sun_sign': 'Cancer', 'moon_sign': 'Poissons', 'asc_sign': 'Vierge',
+        'planets': [{'name': p['name'], 'sign': p['sign']} for p in PLANETS],
+        'aspects': ASPECTS,
+        'houses': [{'num': i + 1, 'sign': HOUSES_SIGNS[i], 'planets_in_house': []}
+                   for i in range(12)],
+    }
+    book_data = await enrich_book_chapters(
+        prenom=PRENOM, birth_data=BIRTH_DATA,
+        natal_data=natal_data_for_book,
+        force_refresh=force, language='fr',
+    )
+    src = book_data.get('_source', 'none')
+    print(f'   book_data._source = {src}')
+    if src not in ('gpt', 'cache'):
+        print(f'   ⚠️  enrichissement livre incomplet (_source={src}) — rendu dégradé.')
+
+    # ── 2) narratifs planète-en-signe
+    print(f'→ _gen_planet_analyses(force={force})… (peut prendre 30-60s au premier run)')
+    planet_texts = await _gen_planet_analyses(force=force)
+    print(f'   {len(planet_texts)} analyses générées : {sorted(planet_texts.keys())}')
+
+    # ── 3) construction du natal_data pour le PDF
+    planets_with_analysis = []
+    for p in PLANETS:
+        key = _FR_KEY[p['name']]
+        planets_with_analysis.append({
+            'name': p['name'], 'sign': p['sign'],
+            'analysis': planet_texts.get(key, ''),
+        })
+
+    natal_data = {
+        'sun_sign': 'Cancer',
+        'moon_sign': 'Poissons',
+        'ascendant_sign': 'Vierge',
+        'no_birth_time': False,
+        'tier': 'ultra',
+        'planets': planets_with_analysis,
+        'synthese_aspects': (
+            book_data.get('aspects_harmonieux_body', '')
+            + '\n\n' + book_data.get('aspects_tensions_body', '')
+        ).strip(),
+        'houses': [{'num': i + 1, 'sign': HOUSES_SIGNS[i], 'planets_in_house': []}
+                   for i in range(12)],
+        'enhanced_personal_analysis': {},
+    }
+
+    # ── 4) rendu PDF
+    print('→ build_natal_pdf_v2…')
     pdf_bytes = build_natal_pdf_v2(
-        prenom='Clara',
-        birth_date='1992-07-14',
-        natal_data=NATAL_DATA,
+        prenom=PRENOM,
+        birth_date=BIRTH_DATE_ISO,
+        natal_data=natal_data,
         chart_png_bytes=None,
-        book_data=BOOK_DATA,
+        book_data=book_data,
         referral_code='PLUME-CLARA-25',
         referral_link='https://plume-astrale.fr/parrainage/PLUME-CLARA-25',
     )
-    out = '/app/sample_natal_lot1.pdf'
-    with open(out, 'wb') as f:
-        f.write(pdf_bytes)
-    print(f'OK ({len(pdf_bytes)/1024:.1f} KB) → {out}')
+    out_dir = ROOT / 'assets' / 'theme_natal'
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / 'sample_lot1_50pages.pdf'
+    out.write_bytes(pdf_bytes)
+    print(f'OK ({len(pdf_bytes) / 1024:.1f} KB) → {out}')
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(asyncio.run(main()))
