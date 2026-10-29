@@ -15,7 +15,8 @@ import os
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, Query
+import stripe
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from routes.admin import require_admin
@@ -334,4 +335,176 @@ async def admin_stripe_webhook_health(_admin: dict = Depends(require_admin)) -> 
         'webhook_events': webhook_stats,
         'hints': hints,
         'checked_at': datetime.now(timezone.utc).isoformat(),
+    }
+
+
+# ───────────────────────────────────────────────────────────────────────
+# Remboursement Stripe (one-shot, ciblé — pour tests internes / incidents)
+# ───────────────────────────────────────────────────────────────────────
+
+class RefundPayload(BaseModel):
+    session_id: Optional[str] = None       # cs_... (recommandé)
+    payment_intent: Optional[str] = None    # pi_... (alternative directe)
+    reason: Optional[str] = 'requested_by_customer'   # ou 'duplicate' | 'fraudulent'
+    dry_run: bool = True
+    note: Optional[str] = None              # ajouté en metadata du refund
+
+
+@router.post('/stripe-refund')
+async def stripe_refund(payload: RefundPayload, _admin: dict = Depends(require_admin)) -> Dict[str, Any]:
+    """Rembourse 100 % d'un paiement Stripe (ciblé par session_id ou payment_intent).
+
+    - `dry_run=True` (défaut) : retourne les infos du charge sans rembourser.
+    - `dry_run=False` : exécute `stripe.Refund.create(payment_intent=...)`.
+    - `reason` doit être parmi : `requested_by_customer`, `duplicate`, `fraudulent`.
+    - Marque la ligne `payment_transactions` associée avec `metadata.refunded_at`
+      pour cohérence avec le dashboard refund_alert.
+
+    Idempotent côté Stripe : si un refund existe déjà pour le PaymentIntent,
+    Stripe retourne 400 — on le remonte proprement.
+    """
+    api_key = os.environ.get('STRIPE_API_KEY', '').strip()
+    if not api_key:
+        raise HTTPException(500, 'STRIPE_API_KEY non configuré')
+    stripe.api_key = api_key
+
+    allowed_reasons = {'requested_by_customer', 'duplicate', 'fraudulent'}
+    reason = (payload.reason or 'requested_by_customer').strip()
+    if reason not in allowed_reasons:
+        raise HTTPException(400, f'reason invalide — valeurs permises : {sorted(allowed_reasons)}')
+
+    pi_id = (payload.payment_intent or '').strip() or None
+
+    # Résolution : session_id → payment_intent
+    session_dict: Optional[Dict[str, Any]] = None
+    if payload.session_id:
+        try:
+            sess = stripe.checkout.Session.retrieve(payload.session_id.strip())
+            session_dict = sess.to_dict() if hasattr(sess, 'to_dict') else dict(sess)
+            pi_id = pi_id or session_dict.get('payment_intent')
+        except Exception as e:
+            raise HTTPException(404, f'session Stripe introuvable : {e}')
+
+    if not pi_id:
+        raise HTTPException(400, 'session_id OU payment_intent est obligatoire')
+
+    # Infos sur le charge pour le dry-run / confirmation
+    charge_info: Dict[str, Any] = {}
+    try:
+        pi = stripe.PaymentIntent.retrieve(pi_id, expand=['latest_charge'])
+        pi_dict = pi.to_dict() if hasattr(pi, 'to_dict') else dict(pi)
+        latest = pi_dict.get('latest_charge') or {}
+        if hasattr(latest, 'to_dict'):
+            latest = latest.to_dict()
+        charge_info = {
+            'payment_intent': pi_id,
+            'amount': (pi_dict.get('amount') or 0) / 100,
+            'currency': pi_dict.get('currency'),
+            'status': pi_dict.get('status'),
+            'already_refunded': bool(latest.get('refunded')) if isinstance(latest, dict) else False,
+            'charge_id': latest.get('id') if isinstance(latest, dict) else None,
+            'customer_email': (pi_dict.get('receipt_email')
+                               or ((latest or {}).get('billing_details') or {}).get('email')),
+            'card_last4': (((latest or {}).get('payment_method_details') or {}).get('card') or {}).get('last4'),
+        }
+    except Exception as e:
+        raise HTTPException(404, f'PaymentIntent introuvable : {e}')
+
+    if payload.dry_run:
+        return {
+            'dry_run': True,
+            'would_refund': True,
+            'session_id': payload.session_id,
+            'reason': reason,
+            'charge': charge_info,
+            'hint': 'Rappeler ce même endpoint avec `dry_run=false` pour exécuter.',
+        }
+
+    if charge_info.get('already_refunded'):
+        return {
+            'dry_run': False,
+            'refunded': False,
+            'reason_skipped': 'charge déjà remboursé',
+            'charge': charge_info,
+        }
+
+    # Exécution du remboursement
+    try:
+        refund = stripe.Refund.create(
+            payment_intent=pi_id,
+            reason=reason,
+            metadata={
+                'admin_initiated': 'true',
+                'note': (payload.note or '')[:200],
+                'triggered_at': datetime.now(timezone.utc).isoformat(),
+            },
+        )
+        refund_dict = refund.to_dict() if hasattr(refund, 'to_dict') else dict(refund)
+    except stripe.error.StripeError as e:  # type: ignore[attr-defined]
+        logger.warning(f'[stripe_refund] fail pi={pi_id}: {e}')
+        raise HTTPException(400, f'Stripe refund rejeté : {e.user_message or str(e)}')
+
+    # Marque la ligne payment_transactions associée (best-effort)
+    try:
+        sb = get_admin_client()
+        sid = payload.session_id or (session_dict or {}).get('id')
+        if sid:
+            now_iso = datetime.now(timezone.utc).isoformat()
+            r = sb.table('payment_transactions').select('metadata, session_id').eq('session_id', sid).limit(1).execute()
+            if r.data:
+                md = (r.data[0] or {}).get('metadata') or {}
+                md['refunded_at'] = now_iso
+                md['refund_reason'] = reason
+                md['refund_id'] = refund_dict.get('id')
+                sb.table('payment_transactions').update({'metadata': md}).eq('session_id', sid).execute()
+    except Exception as e:
+        logger.info(f'[stripe_refund] marquage DB skip: {e}')
+
+    return {
+        'dry_run': False,
+        'refunded': True,
+        'refund_id': refund_dict.get('id'),
+        'amount_refunded': (refund_dict.get('amount') or 0) / 100,
+        'currency': refund_dict.get('currency'),
+        'status': refund_dict.get('status'),
+        'charge': charge_info,
+    }
+
+
+@router.get('/stripe-refund/find-test-payments')
+async def find_test_payments(
+    amount_eur: float = Query(default=24.0, description='Montant TTC à chercher'),
+    days: int = Query(default=30, ge=1, le=90),
+    _admin: dict = Depends(require_admin),
+) -> Dict[str, Any]:
+    """Liste les paiements correspondant à un montant donné (helper pour trouver
+    la session à rembourser quand on n'a que « j'ai testé pour 24 € »)."""
+    sb = get_admin_client()
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    r = (
+        sb.table('payment_transactions')
+        .select('session_id, user_email, pack_id, amount, currency, status, payment_status, created_at, metadata')
+        .eq('payment_status', 'paid')
+        .gte('created_at', cutoff)
+        .order('created_at', desc=True)
+        .limit(100)
+        .execute()
+    )
+    rows = r.data or []
+    matches = [row for row in rows if abs(float(row.get('amount') or 0) - amount_eur) < 0.01]
+    return {
+        'amount_eur': amount_eur,
+        'window_days': days,
+        'count': len(matches),
+        'matches': [
+            {
+                'session_id': row.get('session_id'),
+                'user_email': row.get('user_email'),
+                'pack_id': row.get('pack_id'),
+                'amount': row.get('amount'),
+                'created_at': row.get('created_at'),
+                'already_refunded': bool((row.get('metadata') or {}).get('refunded_at')),
+            }
+            for row in matches
+        ],
     }

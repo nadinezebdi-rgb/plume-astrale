@@ -1,3 +1,42 @@
+## 2026-02-29 — Compteur facture séquentiel FR + Alertes stuck sessions + Endpoint refund API
+
+### 🎯 Objectifs
+Lever le dernier risque comptable sur les factures PDF Stripe, surveiller proactivement les sessions bloquées > 1h, et pouvoir rembourser depuis le backend.
+
+### ✅ Compteur facture `FACT-AAAA-NNNNNN` (strictement croissant, reset annuel)
+- Nouveau service `services/invoice_counter.py` — compteur Mongo atomique via `find_one_and_update $inc + upsert`.
+- Collections : `invoice_counters` (par année) + `invoice_numbers` (mapping `session_id → number`, unique index).
+- Idempotent sur replay webhook : même `session_id` ⇒ même numéro (jamais de double facture).
+- Format : `FACT-2026-000001`, zéro-paddé 6 chiffres, conforme à l'exigence comptable française.
+- Fallback automatique sur l'ancien format `AAMM-XXXX` si Mongo indisponible → livraison jamais bloquée.
+- Branché dans `services/invoice_delivery.py` AVANT la génération du PDF.
+- 6 tests pytest (`tests/test_invoice_counter.py`) : alloc monotone, idempotence replay, reset annuel, fallback.
+
+### ✅ Alerte email admin : sessions Stripe bloquées > 1h
+- Nouveau service `services/stuck_sessions_alert.py` — boucle background toutes les 15 min.
+- Scan `payment_transactions` sur 72h, filtre `initiated/unpaid` plus vieux que `STUCK_ALERT_THRESHOLD_MIN=60`.
+- Déduplication par `session_id`, exclusion emails de test (contact@, admin@, test@, @plume-astrale.fr, @example.*, @test.*, +test, +debug).
+- Si une ligne `paid` existe pour la même session dans la fenêtre → considérée résolue, pas d'alerte.
+- Set in-memory `_alerted` évite les re-alertes jusqu'au prochain restart du pod.
+- Email HTML groupé avec table (session_id, email, pack, montant, âge) envoyé via Resend à `ADMIN_ALERT_EMAIL`.
+- Enregistrement dans la liste des loops dans `server.py` (après warmup 90s).
+- 7 tests pytest (`tests/test_stuck_sessions_alert.py`) : seuil 1h, filtres email, dédup, e2e send_email mock.
+
+### ✅ Remboursement API Stripe depuis le backend
+- Nouveau endpoint `POST /api/admin/stripe-refund` (`routes/admin_payments.py`), auth admin.
+- Entrée : `{session_id | payment_intent, reason, dry_run, note}` — `dry_run=true` par défaut.
+- Résout `session_id → payment_intent` via Stripe, retrouve le charge, vérifie `already_refunded`.
+- Exécute `stripe.Refund.create(payment_intent=..., reason=...)` et renvoie `refund_id + amount_refunded`.
+- Marque `payment_transactions.metadata.refunded_at` + `refund_reason` + `refund_id` pour cohérence avec `refund_alert_loop`.
+- Endpoint helper `GET /api/admin/stripe-refund/find-test-payments?amount_eur=24&days=30` pour retrouver la session à rembourser quand on n'a que « j'ai testé 24 € ».
+- Protégé par `require_admin` (JWT admin).
+
+### Résultat
+- 37/37 tests pytest verts (invoice_counter + stuck_sessions_alert + existing invoice_pdf + payments_health).
+- Backend démarre OK (service `/api/health` 200).
+- Endpoint `/api/admin/stripe-refund` répond 401 Authentication required (routing OK).
+
+
 # CHANGELOG - Plume Astrale
 
 ## 2026-02 (fork) — Refacto admin.py + Pool Mongo singleton + tests régression

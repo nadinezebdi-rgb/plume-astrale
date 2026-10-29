@@ -1,3 +1,18 @@
+# PRD — Plume Astrale (dernière MAJ 2026-02-29)
+
+## Avancement récent (voir CHANGELOG.md pour détails)
+- ✅ Compteur facture séquentiel strict `FACT-AAAA-NNNNNN` (Mongo atomique) — conformité comptable FR.
+- ✅ Alertes email admin pour sessions Stripe bloquées > 1h (scan 15 min, dédup, exclusion emails test).
+- ✅ Endpoint `POST /api/admin/stripe-refund` + helper `find-test-payments` (API refund depuis backend).
+
+## Backlog priorisé
+- 🟠 P0 — SEO Lot 2 : pré-rendering CRA pour chaque URL du sitemap (toujours en attente).
+- 🟢 P2 — QR code sharing pour événements physiques.
+- 🟢 P2 — Tracking par canal d'acquisition sur partages.
+
+---
+
+
 # Plume Astrale — PRD
 
 ## 2026-02-27 — Correctifs post-paiement : dashboard admin + communication délais

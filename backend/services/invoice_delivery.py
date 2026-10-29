@@ -17,6 +17,7 @@ from typing import Optional
 import httpx
 import stripe
 
+from services.invoice_counter import allocate_or_get as allocate_invoice_number
 from services.invoice_pdf import build_invoice_pdf, make_invoice_number
 
 logger = logging.getLogger(__name__)
@@ -155,8 +156,11 @@ async def send_invoice_for_session(session_data: dict) -> bool:
     created_ts = session_data.get('created')
     paid_at = datetime.fromtimestamp(created_ts, tz=timezone.utc) if created_ts else datetime.now(timezone.utc)
 
-    # Numéro de facture lisible
-    invoice_number = make_invoice_number(session_id, paid_at)
+    # Numéro de facture : séquentiel strict (FACT-AAAA-NNNNNN, exigence
+    # comptable FR), avec fallback AAMM-XXXX si Mongo est down.
+    invoice_number = await allocate_invoice_number(session_id, paid_at)
+    if not invoice_number:
+        invoice_number = make_invoice_number(session_id, paid_at)
 
     # Moyen de paiement (Carte …4242)
     pay_label = _payment_method_label(session_data)

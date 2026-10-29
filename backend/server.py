@@ -4132,6 +4132,9 @@ async def _start_cart_recovery():
     # Journal hebdo vendredi 9h UTC + auto-lock variantes gagnantes
     from services.weekly_digest import weekly_digest_loop
     _asyncio.create_task(_delayed_start(weekly_digest_loop()))
+    # Alerte admin : sessions Stripe bloquées > 1h (scan toutes les 15 min)
+    from services.stuck_sessions_alert import stuck_sessions_alert_loop
+    _asyncio.create_task(_delayed_start(stuck_sessions_alert_loop()))
 
     # Prewarm des illustrations Nano Banana partagées (10 planètes + clôture).
     # Au premier démarrage de la prod le cache local est vide ; sans prewarm,
