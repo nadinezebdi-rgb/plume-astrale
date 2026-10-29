@@ -236,13 +236,13 @@ def element_dominant_page(story, styles, dominant_element: str, planet_count: in
     story.append(Paragraph(
         dominant_element.upper(),
         ParagraphStyle('el_h', fontName=font('Cinzel', 'Helvetica'),
-                       fontSize=32, textColor=CREAM, alignment=TA_CENTER,
-                       spaceAfter=8, letterSpacing=4),
+                       fontSize=32, leading=40, textColor=CREAM, alignment=TA_CENTER,
+                       spaceAfter=18, letterSpacing=4),
     ))
     story.append(Paragraph(
         f'{planet_count} planètes en signe de {dominant_element.lower()}',
         ParagraphStyle('el_s', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
-                       fontSize=12, textColor=LAVENDER, alignment=TA_CENTER, spaceAfter=20),
+                       fontSize=12, leading=15, textColor=LAVENDER, alignment=TA_CENTER, spaceAfter=20),
     ))
     img = libimg.tarot(meta['tarot'], size=512)
     if img and os.path.exists(img):
@@ -273,13 +273,13 @@ def modality_dominant_page(story, styles, dominant_modality: str, planet_count: 
     story.append(Paragraph(
         dominant_modality.upper(),
         ParagraphStyle('md_h', fontName=font('Cinzel', 'Helvetica'),
-                       fontSize=32, textColor=CREAM, alignment=TA_CENTER,
-                       spaceAfter=8, letterSpacing=4),
+                       fontSize=32, leading=40, textColor=CREAM, alignment=TA_CENTER,
+                       spaceAfter=18, letterSpacing=4),
     ))
     story.append(Paragraph(
         meta['accent'],
         ParagraphStyle('md_s', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
-                       fontSize=13, textColor=LAVENDER, alignment=TA_CENTER, spaceAfter=20),
+                       fontSize=13, leading=16, textColor=LAVENDER, alignment=TA_CENTER, spaceAfter=20),
     ))
     img = libimg.tarot(meta['tarot'], size=512)
     if img and os.path.exists(img):
@@ -305,16 +305,16 @@ def trio_cross_analysis_page(story, styles, sun_sign: str, moon_sign: str,
                               asc_sign: str, body_html: str) -> None:
     """Analyse croisée Soleil-Lune-Ascendant : la trinité identitaire.
     Trois mini-images alignées en haut, texte d'analyse profonde en dessous."""
-    story.append(Spacer(1, 0.8 * cm))
+    story.append(Spacer(1, 0.4 * cm))
     story.append(Paragraph(
         f'{_star()} TON TRIANGLE INTIME {_star()}',
         ParagraphStyle('tc_tag', fontName=font('Cinzel', 'Helvetica'),
-                       fontSize=10, alignment=TA_CENTER, spaceAfter=10, letterSpacing=3),
+                       fontSize=10, alignment=TA_CENTER, spaceAfter=8, letterSpacing=3),
     ))
     story.append(Paragraph(
         'Soleil × Lune × Ascendant',
         ParagraphStyle('tc_h', fontName=font('Cormorant Garamond Italic', 'Times-Italic'),
-                       fontSize=22, textColor=CREAM, alignment=TA_CENTER, spaceAfter=20),
+                       fontSize=20, leading=24, textColor=CREAM, alignment=TA_CENTER, spaceAfter=14),
     ))
     # Grille de 3 mini-images en ligne
     sun_img = libimg.planet('Soleil', size=512)
@@ -329,7 +329,7 @@ def trio_cross_analysis_page(story, styles, sun_sign: str, moon_sign: str,
         content = []
         if img and os.path.exists(img):
             try:
-                content.append(RLImage(img, width=3.5 * cm, height=3.5 * cm, mask='auto'))
+                content.append(RLImage(img, width=3 * cm, height=3 * cm, mask='auto'))
             except Exception:
                 pass
         content.append(Paragraph(label,
@@ -345,12 +345,12 @@ def trio_cross_analysis_page(story, styles, sun_sign: str, moon_sign: str,
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
     ]))
     story.append(tbl)
-    story.append(Spacer(1, 0.6 * cm))
+    story.append(Spacer(1, 0.35 * cm))
     story.append(Paragraph(
         body_html,
         ParagraphStyle('tc_body', fontName=font('Cormorant Garamond', 'Times-Roman'),
-                       fontSize=11.5, textColor=CREAM, alignment=TA_LEFT,
-                       leading=17, leftIndent=1.5 * cm, rightIndent=1.5 * cm),
+                       fontSize=11, textColor=CREAM, alignment=TA_LEFT,
+                       leading=15, leftIndent=1.2 * cm, rightIndent=1.2 * cm, spaceAfter=4),
     ))
     story.append(PageBreak())
 
