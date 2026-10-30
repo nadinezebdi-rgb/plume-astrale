@@ -508,3 +508,38 @@ async def find_test_payments(
             for row in matches
         ],
     }
+
+
+
+# ───────────────────────────────────────────────────────────────────────
+# Compteur de facture séquentiel — lecture seule, pour dashboard admin
+# AUDIT (2026-10-30 · Nao) : exposer le numéro courant côté UI.
+# ───────────────────────────────────────────────────────────────────────
+
+@router.get('/invoice-counter')
+async def admin_invoice_counter(_admin: dict = Depends(require_admin)) -> Dict[str, Any]:
+    """Retourne le dernier numéro de facture alloué pour l'année en cours.
+
+    - `year` : année civile courante (UTC)
+    - `last_seq` : dernier `seq` alloué, 0 si aucun
+    - `last_number` : au format FACT-AAAA-NNNNNN, null si last_seq=0
+    - `next_number` : prochain numéro qui sera attribué à la prochaine vente
+    - `backend` : 'mongo' ou 'fallback' (si Mongo indispo, format AAMM-XXXX utilisé)
+
+    Exigence comptable FR : séquence chronologique sans trou volontaire.
+    L'allocation réelle se fait via `services.invoice_counter.allocate_or_get`.
+    """
+    from services.invoice_counter import peek_current_seq, format_number
+    from services.mongo import get_db
+
+    year = datetime.now(timezone.utc).year
+    seq = await peek_current_seq(year)
+    db_ok = get_db() is not None
+    return {
+        'year': year,
+        'last_seq': seq,
+        'last_number': format_number(year, seq) if seq > 0 else None,
+        'next_number': format_number(year, seq + 1) if db_ok else '— (fallback AAMM-XXXX)',
+        'backend': 'mongo' if db_ok else 'fallback',
+        'checked_at': datetime.now(timezone.utc).isoformat(),
+    }

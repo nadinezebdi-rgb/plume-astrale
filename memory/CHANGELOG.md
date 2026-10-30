@@ -1,3 +1,66 @@
+## 2026-10-30 (nuit) — Admin Dashboard + Slack + CSP Reports
+
+### 🎯 Objectifs
+Compléter les tâches en file depuis la pause du 29/10 : bouton Rembourser Stripe dans l'admin, affichage du compteur facture séquentiel, alertes Slack sur sessions bloquées, endpoint de collecte des violations CSP.
+
+### ✅ Backend
+
+**services/slack_notify.py (nouveau)**
+Service générique de notification Slack via Incoming Webhook. Format Block Kit (header, section, fields, button). Fail-silent : si `SLACK_WEBHOOK_URL` absent ou webhook down, retourne False sans exception. Timeout 5s par défaut.
+
+**services/stuck_sessions_alert.py (modifié)**
+`check_once()` envoie désormais un ping Slack en plus de l'email Resend (cumul : email + Slack). Fail-silent : si Slack échoue, l'email reste la source de vérité. Dédup par `session_id` partagée avec l'email.
+
+**routes/admin_payments.py (ajout `GET /api/admin/invoice-counter`)**
+Expose le compteur de facture séquentiel annuel :
+- `year`, `last_seq`, `last_number` (FACT-AAAA-NNNNNN)
+- `next_number` (prochain à attribuer)
+- `backend` : 'mongo' ou 'fallback'
+
+**routes/csp_reports.py (nouveau)**
+- `POST /api/csp-reports` : ingestion publique des violations CSP (navigateur). Parse les 2 formats (legacy `csp-report` + Reporting API `body`). Stocke dans Mongo `csp_reports`.
+- `GET /api/admin/csp-reports?hours=24` : agrégation admin par (directive, blocked_uri)
+- Dédup Slack in-memory : au-delà de `CSP_SLACK_THRESHOLD=50` violations identiques dans 24h, ping Slack UNE fois par (directive, blocked_uri) et par cycle de vie du pod
+
+**deploy/nginx-frontend.conf**
+Ajout de `report-uri /api/csp-reports` et `Reporting-Endpoints: csp-endpoint` dans la CSP Report-Only → les navigateurs POSTent les violations à notre endpoint.
+
+### ✅ Frontend
+
+**pages/AdminPaymentsHealth.jsx**
+- Banner `Compteur facture {year}` : affiche FACT-AAAA-NNNNNN courant + prochain, badge backend (mongo/fallback)
+- Nouvelle section `Remboursement Stripe one-shot` avec sous-composant `RefundFinder` :
+  - Recherche par montant (défaut 24 €, fenêtre 7-90 j) via `GET /api/admin/stripe-refund/find-test-payments`
+  - Table résultats avec bouton `Rembourser` par ligne (ou badge "déjà remboursé")
+  - 2 étapes : dry-run → confirmation détaillée → refund réel
+- Rapport refund affiché en bannière (vert/rouge) avec refund_id, amount, status
+- Icônes Receipt + Undo2 depuis lucide-react
+
+### 🧪 Tests
+- `tests/test_slack_notify.py` (nouveau, 6 tests) : is_configured, fail-silent sans webhook, success 200, timeout, non-2xx
+- `tests/test_stuck_sessions_alert.py` (13 tests existants) : tous passent avec l'import Slack ajouté
+- `tests/test_invoice_counter.py` (6 tests existants) : passent
+- Allocation réelle testée en local : premier `FACT-2026-000001` attribué ✓
+- Endpoints HTTP vérifiés : `POST /api/csp-reports` → `{ok:true, count:1}`, `GET /api/admin/invoice-counter` → 401 sans auth
+
+### 🗂️ Fichiers touchés (ce lot)
+- `backend/services/slack_notify.py` (nouveau)
+- `backend/services/stuck_sessions_alert.py` (modifié)
+- `backend/routes/admin_payments.py` (ajout invoice-counter)
+- `backend/routes/csp_reports.py` (nouveau)
+- `backend/server.py` (wire csp_reports router)
+- `backend/tests/test_slack_notify.py` (nouveau)
+- `frontend/src/pages/AdminPaymentsHealth.jsx` (invoice counter + refund finder)
+- `deploy/nginx-frontend.conf` (report-uri CSP)
+
+### 📋 Env vars
+- `SLACK_WEBHOOK_URL` (backend, requis pour pings) — collecté via secrets_request
+- `CSP_SLACK_THRESHOLD` (défaut 50) — nb violations identiques /24h avant Slack
+- `CSP_SLACK_WINDOW_H` (défaut 24) — fenêtre d'agrégation
+
+---
+
+
 ## 2026-10-30 (soir) — Code Splitting + SEO Lot 2 pré-rendu statique
 
 ### 🎯 Objectifs

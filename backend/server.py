@@ -49,6 +49,7 @@ from routes.admin_monitoring import router as admin_monitoring_router
 from routes.admin_viralite import router as admin_viralite_router
 from routes.admin_illustrations import router as admin_illustrations_router
 from routes.admin_payments import router as admin_payments_router
+from routes.csp_reports import router as csp_reports_router
 from routes.admin_book import router as admin_book_router
 from routes.experience_funnel import (
     funnel_router as experience_funnel_public_router,
@@ -138,6 +139,7 @@ api_router.include_router(admin_monitoring_router)
 api_router.include_router(admin_viralite_router)
 api_router.include_router(admin_illustrations_router)
 api_router.include_router(admin_payments_router)
+api_router.include_router(csp_reports_router)
 api_router.include_router(experience_funnel_public_router)
 api_router.include_router(experience_funnel_admin_router)
 api_router.include_router(experience_tarot_reveal_router)

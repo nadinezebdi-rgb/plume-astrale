@@ -24,6 +24,7 @@ from typing import Dict, List, Optional
 
 from services.log_redact import redact_email
 from services.resend_service import send_email
+from services.slack_notify import send_slack_alert
 from services.supabase_client import get_admin_client
 
 logger = logging.getLogger(__name__)
@@ -175,6 +176,34 @@ async def check_once() -> int:
 
     subject, html = _build_email(stuck)
     eid = await send_email(admin_email, subject, html)
+
+    # AUDIT (2026-10-30 · Nao) : ping Slack en plus de l'email, si webhook configurée.
+    # Fail-silent — si Slack est down, l'email reste la source de vérité.
+    try:
+        n = len(stuck)
+        total_eur = sum(float(r.get('amount') or 0) for r in stuck)
+        fields = []
+        for r in stuck[:5]:  # cap à 5 pour la lisibilité Slack
+            age = r.get('_age_min', 0)
+            hours, mins = divmod(age, 60)
+            age_label = f'{hours}h{mins:02d}' if hours else f'{mins} min'
+            fields.append((
+                r.get('user_email') or 'inconnu',
+                f"{r.get('pack_id') or '—'} · {float(r.get('amount') or 0):.2f} € · {age_label}",
+            ))
+        if n > 5:
+            fields.append(('…', f'et {n - 5} session(s) supplémentaires'))
+        await send_slack_alert(
+            title=f"{n} session{'s' if n > 1 else ''} Stripe bloquée{'s' if n > 1 else ''} > {STUCK_THRESHOLD_MIN} min",
+            summary=f'*Montant total potentiellement perdu* : {total_eur:.2f} €\nFenêtre {LOOKBACK_HOURS}h.',
+            fields=fields,
+            url='https://plume-astrale.fr/admin/payments-health',
+            url_label='Ouvrir /admin/payments-health',
+            emoji=':rotating_light:',
+        )
+    except Exception as e:
+        logger.info(f'[stuck_sessions_alert] slack ping skip: {e}')
+
     if eid:
         for row in stuck:
             _alerted.add(row.get('session_id'))
