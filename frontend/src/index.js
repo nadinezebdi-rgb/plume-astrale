@@ -77,8 +77,12 @@ class RootErrorBoundary extends React.Component {
   }
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
+// AUDIT P0-2 SEO Lot 2 (2026-10-30 · Nao) : si le HTML est pré-rendu
+// par scripts/prerender_frontend.js (postbuild), on utilise `hydrateRoot`
+// pour préserver le DOM côté serveur. Sinon rendu client classique.
+const rootEl = document.getElementById('root');
+const isPrerendered = rootEl && rootEl.innerHTML.trim().length > 0;
+const tree = (
   <React.StrictMode>
     <RootErrorBoundary>
       <HelmetProvider>
@@ -87,6 +91,11 @@ root.render(
     </RootErrorBoundary>
   </React.StrictMode>
 );
+if (isPrerendered) {
+  ReactDOM.hydrateRoot(rootEl, tree);
+} else {
+  ReactDOM.createRoot(rootEl).render(tree);
+}
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals

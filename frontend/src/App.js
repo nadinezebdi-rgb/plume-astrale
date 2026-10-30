@@ -6,117 +6,124 @@ import { CartProvider, CartCheckoutBridge } from "./context/CartContext";
 import Navbar from "./components/NavbarV2";
 import TrialBanner from "./components/TrialBanner";
 
-import Index from "./pages/Homepage";
-import ABTestHome from "./components/ABTestHome";
-import LectureCompleteSucces from "./pages/LectureCompleteSucces";
-import AuthPage from "./pages/AuthPage";
-import Tarot from "./pages/Tarot";
-import Formulaire from "./pages/Formulaire";
-import Apercu from "./pages/Apercu";
-import Paiement from "./pages/Paiement";
-import PaiementSucces from "./pages/PaiementSucces";import Resultats from "./pages/Resultats";
-import TirageTarot from "./pages/TirageTarot";
-import TiragePartage from "./pages/TiragePartage";
-import TarotOuiNon from "./pages/TarotOuiNon";
-import TarotCroixCeltique from "./pages/TarotCroixCeltique";
-import TarotAmour from "./pages/TarotAmour";
-import Tarologie from "./pages/Tarologie";
-import Numerologie from "./pages/Numerologie";
-import Archetype from "./pages/Archetype";
-import KabbaleSales from "./pages/KabbaleSales";
-import VoyageKarmiqueSales from "./pages/VoyageKarmiqueSales";
-import VoyageKarmiqueSucces from "./pages/VoyageKarmiqueSucces";
-import NotFound from "./pages/NotFound";
-import ThemeNatalLuxe from "./pages/ThemeNatalLuxe";
-import NosLivres from "./pages/NosLivres";
-import Blog from "./pages/Blog";
-import BlogArticle from "./pages/BlogArticle";
-import Decouvrir from "./pages/Decouvrir";
-import FAQ from "./pages/FAQ";
-import CartPage from "./pages/CartPage";
-import Manifesto from "./pages/Manifesto";
-import Barometre2026 from "./pages/Barometre2026";
-import HoroscopeSign from "./pages/HoroscopeSign";
-import RouteTracker from "./components/RouteTracker";
-import Contact from "./pages/Contact";
-import MentionsLegales from "./pages/MentionsLegales";
-import CGV from "./pages/CGV";
-import Confidentialite from "./pages/Confidentialite";
-import Footer from "./components/FooterV2";
-import KabbaleSucces from "./pages/KabbaleSucces";
-import AstrocartographieSales from "./pages/AstrocartographieSales";
-import AstrocartographieSucces from "./pages/AstrocartographieSucces";
-import PackKarmique from "./pages/PackKarmique";
-import PackKarmiqueSucces from "./pages/PackKarmiqueSucces";
-import KarmaDestin from "./pages/KarmaDestin";
-import Horoscope from "./pages/Horoscope";
-import Compatibilite from "./pages/Compatibilite";
-import Compatibilite2 from "./pages/Compatibilite2";
-import Cercle from "./pages/Cercle";import Quotidien from "./pages/Quotidien";
-import CercleSolena from "./pages/CercleSolena";
-import AnalyticsAdmin from "./pages/AnalyticsAdmin";
-import AdminPaymentsHealth from "./pages/AdminPaymentsHealth";
-import BuyCredits from "./pages/BuyCredits";
-import CreditSuccess from "./pages/CreditSuccess";
-import Choix from "./pages/Choix";
-import CharteConfiance from "./pages/CharteConfiance";
-import MonCompte from "./pages/MonCompte";
-import Temoignage from "./pages/Temoignage";
-import TemoignagesPublic from "./pages/TemoignagesPublic";
-import SupportChat from "./components/SupportChat";
-import Admin from "./pages/Admin";
-import Energie from "./pages/Energie";
-import ChatIA from "./pages/ChatIA";
-import Oracle from "./pages/Oracle";
-import MonRituel from "./pages/MonRituel";
-import RevolutionSolaire from "./pages/RevolutionSolaire";
-import LoveLanguages from "./pages/LoveLanguages";
-import MotDePasseOublie from "./pages/MotDePasseOublie";
-import ReinitialiserMotDePasse from "./pages/ReinitialiserMotDePasse";
-import NotreCadre from "./pages/NotreCadre";
-import SynastrieSales from "./pages/SynastrieSales";
-import SynastrieSucces from "./pages/SynastrieSucces";
-import SynastrieLeadThanks from "./pages/SynastrieLeadThanks";
-import SynastrieCheckout from "./pages/SynastrieCheckout";
-import AstroSexo from "./pages/AstroSexo";
-import RencontresAstrales from "./pages/RencontresAstrales";
-import RencontresUltimeSucces from "./pages/RencontresUltimeSucces";
-import Bibliotheque from "./pages/Bibliotheque";
-import Desabonnement from "./pages/Desabonnement";
-import ComposerPage from "./pages/ComposerPage";
-import ComposerSucces from "./pages/ComposerSucces";
-import MonLivrePage from "./pages/MonLivrePage";
-import AuthenticatedHome from "./pages/AuthenticatedHome";
-import CTATestPage from "./pages/CTATestPage";
-import CreditsInfo from "./pages/CreditsInfo";
-import LivresLanding from "./pages/LivresLanding";
-import AdminPdfTest from "./pages/AdminPdfTest";
-import AdminQrStats from "./pages/AdminQrStats";
-import AdminLuluOrders from "./pages/AdminLuluOrders";
-import AdminAlerts from "./pages/AdminAlerts";
-import GiftCardPurchase from "./pages/GiftCardPurchase";
-import GiftCardRedeem from "./pages/GiftCardRedeem";
-import EditionRelieeMerci from "./pages/EditionRelieeMerci";
-import RelectureRefus from "./pages/RelectureRefus";
-import ExperiencePage from "./pages/Experience";
+// AUDIT P2 (2026-10-30 · Nao) : Code splitting pour LCP mobile <2.5s
+// Seules la home immersive + le catch-all 404 restent eager (99 % des landings).
+// Toutes les autres pages sont chargées à la demande (React.lazy).
 import HomeExperienceV3 from "./pages/HomeExperienceV3";
-import ScrollToTop from "./components/ScrollToTop";
-import CookieConsent from "./components/CookieConsent";
+import NotFound from "./pages/NotFound";
+
+const Index = React.lazy(() => import("./pages/Homepage"));
+const ABTestHome = React.lazy(() => import("./components/ABTestHome"));
+const LectureCompleteSucces = React.lazy(() => import("./pages/LectureCompleteSucces"));
+const AuthPage = React.lazy(() => import("./pages/AuthPage"));
+const Tarot = React.lazy(() => import("./pages/Tarot"));
+const Formulaire = React.lazy(() => import("./pages/Formulaire"));
+const Apercu = React.lazy(() => import("./pages/Apercu"));
+const Paiement = React.lazy(() => import("./pages/Paiement"));
+const PaiementSucces = React.lazy(() => import("./pages/PaiementSucces"));
+const Resultats = React.lazy(() => import("./pages/Resultats"));
+const TirageTarot = React.lazy(() => import("./pages/TirageTarot"));
+const TiragePartage = React.lazy(() => import("./pages/TiragePartage"));
+const TarotOuiNon = React.lazy(() => import("./pages/TarotOuiNon"));
+const TarotCroixCeltique = React.lazy(() => import("./pages/TarotCroixCeltique"));
+const TarotAmour = React.lazy(() => import("./pages/TarotAmour"));
+const Tarologie = React.lazy(() => import("./pages/Tarologie"));
+const Numerologie = React.lazy(() => import("./pages/Numerologie"));
+const Archetype = React.lazy(() => import("./pages/Archetype"));
+const KabbaleSales = React.lazy(() => import("./pages/KabbaleSales"));
+const VoyageKarmiqueSales = React.lazy(() => import("./pages/VoyageKarmiqueSales"));
+const VoyageKarmiqueSucces = React.lazy(() => import("./pages/VoyageKarmiqueSucces"));
+const ThemeNatalLuxe = React.lazy(() => import("./pages/ThemeNatalLuxe"));
+const NosLivres = React.lazy(() => import("./pages/NosLivres"));
+const Blog = React.lazy(() => import("./pages/Blog"));
+const BlogArticle = React.lazy(() => import("./pages/BlogArticle"));
+const Decouvrir = React.lazy(() => import("./pages/Decouvrir"));
+const FAQ = React.lazy(() => import("./pages/FAQ"));
+const CartPage = React.lazy(() => import("./pages/CartPage"));
+const Manifesto = React.lazy(() => import("./pages/Manifesto"));
+const Barometre2026 = React.lazy(() => import("./pages/Barometre2026"));
+const HoroscopeSign = React.lazy(() => import("./pages/HoroscopeSign"));
+const Contact = React.lazy(() => import("./pages/Contact"));
+const MentionsLegales = React.lazy(() => import("./pages/MentionsLegales"));
+const CGV = React.lazy(() => import("./pages/CGV"));
+const Confidentialite = React.lazy(() => import("./pages/Confidentialite"));
+const KabbaleSucces = React.lazy(() => import("./pages/KabbaleSucces"));
+const AstrocartographieSales = React.lazy(() => import("./pages/AstrocartographieSales"));
+const AstrocartographieSucces = React.lazy(() => import("./pages/AstrocartographieSucces"));
+const PackKarmique = React.lazy(() => import("./pages/PackKarmique"));
+const PackKarmiqueSucces = React.lazy(() => import("./pages/PackKarmiqueSucces"));
+const KarmaDestin = React.lazy(() => import("./pages/KarmaDestin"));
+const Horoscope = React.lazy(() => import("./pages/Horoscope"));
+const Compatibilite = React.lazy(() => import("./pages/Compatibilite"));
+const Compatibilite2 = React.lazy(() => import("./pages/Compatibilite2"));
+const Cercle = React.lazy(() => import("./pages/Cercle"));
+const Quotidien = React.lazy(() => import("./pages/Quotidien"));
+const CercleSolena = React.lazy(() => import("./pages/CercleSolena"));
+const AnalyticsAdmin = React.lazy(() => import("./pages/AnalyticsAdmin"));
+const AdminPaymentsHealth = React.lazy(() => import("./pages/AdminPaymentsHealth"));
+const BuyCredits = React.lazy(() => import("./pages/BuyCredits"));
+const CreditSuccess = React.lazy(() => import("./pages/CreditSuccess"));
+const Choix = React.lazy(() => import("./pages/Choix"));
+const CharteConfiance = React.lazy(() => import("./pages/CharteConfiance"));
+const MonCompte = React.lazy(() => import("./pages/MonCompte"));
+const Temoignage = React.lazy(() => import("./pages/Temoignage"));
+const TemoignagesPublic = React.lazy(() => import("./pages/TemoignagesPublic"));
+const Admin = React.lazy(() => import("./pages/Admin"));
+const Energie = React.lazy(() => import("./pages/Energie"));
+const ChatIA = React.lazy(() => import("./pages/ChatIA"));
+const Oracle = React.lazy(() => import("./pages/Oracle"));
+const MonRituel = React.lazy(() => import("./pages/MonRituel"));
+const RevolutionSolaire = React.lazy(() => import("./pages/RevolutionSolaire"));
+const LoveLanguages = React.lazy(() => import("./pages/LoveLanguages"));
+const MotDePasseOublie = React.lazy(() => import("./pages/MotDePasseOublie"));
+const ReinitialiserMotDePasse = React.lazy(() => import("./pages/ReinitialiserMotDePasse"));
+const NotreCadre = React.lazy(() => import("./pages/NotreCadre"));
+const SynastrieSales = React.lazy(() => import("./pages/SynastrieSales"));
+const SynastrieSucces = React.lazy(() => import("./pages/SynastrieSucces"));
+const SynastrieLeadThanks = React.lazy(() => import("./pages/SynastrieLeadThanks"));
+const SynastrieCheckout = React.lazy(() => import("./pages/SynastrieCheckout"));
+const AstroSexo = React.lazy(() => import("./pages/AstroSexo"));
+const RencontresAstrales = React.lazy(() => import("./pages/RencontresAstrales"));
+const RencontresUltimeSucces = React.lazy(() => import("./pages/RencontresUltimeSucces"));
+const Bibliotheque = React.lazy(() => import("./pages/Bibliotheque"));
+const Desabonnement = React.lazy(() => import("./pages/Desabonnement"));
+const ComposerPage = React.lazy(() => import("./pages/ComposerPage"));
+const ComposerSucces = React.lazy(() => import("./pages/ComposerSucces"));
+const MonLivrePage = React.lazy(() => import("./pages/MonLivrePage"));
+const AuthenticatedHome = React.lazy(() => import("./pages/AuthenticatedHome"));
+const CTATestPage = React.lazy(() => import("./pages/CTATestPage"));
+const CreditsInfo = React.lazy(() => import("./pages/CreditsInfo"));
+const LivresLanding = React.lazy(() => import("./pages/LivresLanding"));
+const AdminPdfTest = React.lazy(() => import("./pages/AdminPdfTest"));
+const AdminQrStats = React.lazy(() => import("./pages/AdminQrStats"));
+const AdminLuluOrders = React.lazy(() => import("./pages/AdminLuluOrders"));
+const AdminAlerts = React.lazy(() => import("./pages/AdminAlerts"));
+const GiftCardPurchase = React.lazy(() => import("./pages/GiftCardPurchase"));
+const GiftCardRedeem = React.lazy(() => import("./pages/GiftCardRedeem"));
+const EditionRelieeMerci = React.lazy(() => import("./pages/EditionRelieeMerci"));
+const RelectureRefus = React.lazy(() => import("./pages/RelectureRefus"));
+const ExperiencePage = React.lazy(() => import("./pages/Experience"));
 
 // ─── Advanced PDF Products ────────────────────────────
-import NumerologiePDF from "./pages/NumerologiePDF";
-import NumerologieWaiting from "./pages/NumerologieWaiting";
-import KarmaDestinPDF from "./pages/KarmaDestinPDF";
-import KarmaDestinWaiting from "./pages/KarmaDestinWaiting";
+const NumerologiePDF = React.lazy(() => import("./pages/NumerologiePDF"));
+const NumerologieWaiting = React.lazy(() => import("./pages/NumerologieWaiting"));
+const KarmaDestinPDF = React.lazy(() => import("./pages/KarmaDestinPDF"));
+const KarmaDestinWaiting = React.lazy(() => import("./pages/KarmaDestinWaiting"));
 // ThemeNatal one-shot 24€
-import ThemeNatalOneshot from "./pages/ThemeNatalOneshot";
-import ThemeNatalOneshotSucces from "./pages/ThemeNatalOneshotSucces";
-import NatalPrintBump from "./pages/NatalPrintBump";
-// Trio Découverte 79€ (Gary Vee refonte Feb 2026)
-import TrioDecouverte from "./pages/TrioDecouverte";
-import TrioDecouverteSucces from "./pages/TrioDecouverteSucces";
-// Duo Complémentaire 50€ (cross-sell post-Thème Natal, Gary Vee Feb 2026)
-import DuoCompletionSucces from "./pages/DuoCompletionSucces";
+const ThemeNatalOneshot = React.lazy(() => import("./pages/ThemeNatalOneshot"));
+const ThemeNatalOneshotSucces = React.lazy(() => import("./pages/ThemeNatalOneshotSucces"));
+const NatalPrintBump = React.lazy(() => import("./pages/NatalPrintBump"));
+// Trio Découverte 79€
+const TrioDecouverte = React.lazy(() => import("./pages/TrioDecouverte"));
+const TrioDecouverteSucces = React.lazy(() => import("./pages/TrioDecouverteSucces"));
+// Duo Complémentaire 50€
+const DuoCompletionSucces = React.lazy(() => import("./pages/DuoCompletionSucces"));
+
+import RouteTracker from "./components/RouteTracker";
+import Footer from "./components/FooterV2";
+import SupportChat from "./components/SupportChat";
+import ScrollToTop from "./components/ScrollToTop";
+import CookieConsent from "./components/CookieConsent";
 
 // ─── Plume Design System v2 (Feb 2026) ────────────────────────────
 import NoiseOverlay from "./components/design/NoiseOverlay";
@@ -161,6 +168,15 @@ function App() {
         <Navbar />
         <CookieConsent />
         <main id="main-content" tabIndex="-1" style={{ outline: 'none' }}>
+        <React.Suspense fallback={
+          <div style={{
+            minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: 'Cormorant Garamond, serif', color: 'rgba(240,230,211,0.6)', fontSize: 15,
+            letterSpacing: '0.08em',
+          }} aria-live="polite" data-testid="route-suspense-fallback">
+            <span style={{ opacity: 0.75 }}>Chargement…</span>
+          </div>
+        }>
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<HomeExperienceV3 />} />
@@ -345,6 +361,7 @@ function App() {
             </>
           } />
         </Routes>
+        </React.Suspense>
         </main>
         <CartCheckoutBridge />
         <Footer />

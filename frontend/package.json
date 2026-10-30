@@ -75,6 +75,7 @@
     "start": "craco start",
     "prebuild": "cd .. && python scripts/generate_sitemap.py || true",
     "build": "craco build",
+    "postbuild": "cd .. && node scripts/prerender_frontend.js || true",
     "test": "craco test"
   },
   "browserslist": {

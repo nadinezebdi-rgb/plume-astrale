@@ -1,3 +1,44 @@
+## 2026-10-30 (soir) — Code Splitting + SEO Lot 2 pré-rendu statique
+
+### 🎯 Objectifs
+Suite de l'audit Nao : attaquer les 2 gros manques structurels — bundle initial trop lourd (579 KB gzip) et aucun HTML pré-rendu pour Google.
+
+### ✅ Code Splitting (bundle initial -66 %)
+- `App.js` : 90+ imports de pages convertis en `React.lazy(() => import(...))`
+- Seules `HomeExperienceV3` (99 % des landings) et `NotFound` (catch-all) restent eager
+- `<Routes>` wrappé dans `<React.Suspense>` avec fallback accessible "Chargement…"
+- **Résultat mesuré** : `main.js` passe de **579 KB → 191 KB gzip** (-66 %)
+- 90+ chunks créés, chargés à la demande selon la route
+
+### ✅ SEO Lot 2 — Pré-rendu statique Puppeteer
+- `scripts/prerender_frontend.js` : script Node qui démarre un serveur statique local, visite les 46 routes de VALID_ROUTES avec Chromium headless, et écrit le HTML pré-rendu dans `build/<route>/index.html`
+- `frontend/package.json` : hook `postbuild` → le pré-rendu s'exécute automatiquement après `yarn build`
+- `src/index.js` : bascule `ReactDOM.createRoot().render()` → `ReactDOM.hydrateRoot()` quand le DOM est pré-rempli (évite double-render)
+- `deploy/nginx-frontend.conf` : chaque route sert son HTML pré-rendu si présent, fallback SPA sinon
+- **Résultat mesuré** : `index.html` passe de **9.9 KB vide → 112 KB avec H1, canonical, meta, contenu complet**. Toutes les 46 routes ont leur propre HTML sémantique (H1 personnalisé, canonical correcte, meta description).
+
+### ✅ Bug hydratation React 19 — `<a>` imbriqué
+- `components/ExploreUniversSection.jsx` : 2 cartes transformées en `<article>` + stretched Link overlay + PreviewLink sibling positionné (z-index 2)
+- Supprime le warning "In HTML, <a> cannot be a descendant of <a>" qui aurait causé un flash d'hydratation en prod
+
+### 📸 Preuves (preview)
+- Pre-render : 46/46 routes réussies, aucune en échec
+- Smoke test sur 8 routes clés (/, /cercle-solena, /contact, /notre-cadre, /services/tarot/amour, /services/rituel, /bibliotheque, /services/tarot/croix-celtique) : 0 erreur JS, 0 erreur hydratation, 3 cartes de la section Explore rendues
+
+### 🗂️ Fichiers touchés (ce lot)
+- `frontend/src/App.js` (code splitting + Suspense)
+- `frontend/src/index.js` (hydrateRoot)
+- `frontend/src/components/ExploreUniversSection.jsx` (fix nested <a>)
+- `frontend/package.json` (hook postbuild)
+- `scripts/prerender_frontend.js` (nouveau)
+- `deploy/nginx-frontend.conf` (routes servent pré-rendu)
+
+### ⚠️ Note production
+Le pré-rendu nécessite Chromium disponible dans l'environnement de build. Si absent, le script skip gracieusement (`|| true`) et le site retombe en SPA classique. L'env preview dispose de `/usr/bin/google-chrome`.
+
+---
+
+
 ## 2026-10-30 — Audit qualité Nao : P0+P1+P2 appliqués
 
 ### 🎯 Objectif
