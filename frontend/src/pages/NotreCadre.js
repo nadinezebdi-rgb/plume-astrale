@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, Shield, Heart, BookOpen, ArrowLeft } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const Section = ({ icon: Icon, title, children, testid }) => (
   <section
@@ -25,6 +26,7 @@ const Section = ({ icon: Icon, title, children, testid }) => (
 
 const NotreCadre = () => (
   <div style={{ minHeight: '100vh', padding: '120px 20px 100px', maxWidth: 760, margin: '0 auto' }} data-testid="notre-cadre-page">
+    <SEO path="/notre-cadre" />
     <Link to="/"
       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(184,176,200,0.7)', textDecoration: 'none', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 28 }}>
       <ArrowLeft style={{ width: 13, height: 13 }} /> Retour

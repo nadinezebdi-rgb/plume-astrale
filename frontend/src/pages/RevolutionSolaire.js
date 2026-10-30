@@ -319,6 +319,7 @@ const RevolutionSolaire = () => {
           </div>
         )}
       </div>
+      <SEO path="/services/revolution-solaire" />
       <SEOServiceEnrich slug="revolution-solaire" />
     </div>
   );

@@ -290,11 +290,14 @@ const ThemeNatalOneshot = () => {
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
+                <label htmlFor="tn-email" className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
                   E-mail pour la livraison
                 </label>
                 <input
+                  id="tn-email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   value={form.email}
                   onChange={(e) => upd('email', e.target.value)}
                   data-testid="theme-natal-oneshot-email"
@@ -302,11 +305,14 @@ const ThemeNatalOneshot = () => {
                 />
               </div>
               <div>
-                <label className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
+                <label htmlFor="tn-firstname" className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
                   Prénom
                 </label>
                 <input
+                  id="tn-firstname"
+                  name="first_name"
                   type="text"
+                  autoComplete="given-name"
                   value={form.first_name}
                   onChange={(e) => upd('first_name', e.target.value)}
                   data-testid="theme-natal-oneshot-firstname"
@@ -315,12 +321,15 @@ const ThemeNatalOneshot = () => {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
+                  <label htmlFor="tn-birthdate" className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
                     Date naiss. (JJ/MM/AAAA)
                   </label>
                   <input
+                    id="tn-birthdate"
+                    name="birth_date"
                     type="text"
                     inputMode="numeric"
+                    autoComplete="bday"
                     placeholder="JJ/MM/AAAA"
                     maxLength={10}
                     value={form.birth_date_fr}
@@ -334,10 +343,12 @@ const ThemeNatalOneshot = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
+                  <label htmlFor="tn-birthtime" className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
                     Heure naiss. (HH:MM, 24h) — optionnel
                   </label>
                   <input
+                    id="tn-birthtime"
+                    name="birth_time"
                     type="text"
                     inputMode="numeric"
                     placeholder="HH:MM"
@@ -357,11 +368,14 @@ const ThemeNatalOneshot = () => {
                 </div>
               </div>
               <div>
-                <label className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
+                <label htmlFor="tn-city" className="text-xs uppercase" style={{ color: '#D4AF37', letterSpacing: '0.2em' }}>
                   Ville de naissance
                 </label>
                 <input
+                  id="tn-city"
+                  name="birth_city"
                   type="text"
+                  autoComplete="address-level2"
                   value={form.birth_city}
                   onChange={(e) => upd('birth_city', e.target.value)}
                   data-testid="theme-natal-oneshot-city"

@@ -2,13 +2,6 @@
   "forced_j30_variant": null,
   "alerts_history": [
     {
-      "kind": "chat_escalation",
-      "title": "Escalade IA — session sup-8d3e9fb4",
-      "details": "Bonjour, mon paiement ne passe plus depuis ce matin, help !",
-      "channels": [],
-      "at": "2026-08-02T16:58:39.157148+00:00"
-    },
-    {
       "kind": "chat_admin_reply",
       "title": "Reponse humaine envoyee (session sup-8d3e9fb4)",
       "details": "Coucou, je vois ton message, je verifie ton paiement immediatement. Un instant.",
@@ -220,6 +213,15 @@
         "email x2"
       ],
       "at": "2026-10-23T09:43:46.588495+00:00"
+    },
+    {
+      "kind": "weekly_recap",
+      "title": "Recap hebdo envoyé (0 paiements, 0.0% refund)",
+      "details": "Top: aucun refund",
+      "channels": [
+        "email x2"
+      ],
+      "at": "2026-10-30T09:55:13.474940+00:00"
     }
   ],
   "slack_test_cooldown": {
@@ -480,5 +482,5 @@
     }
   },
   "llm_budget_eur": 30.0,
-  "weekly_recap_last_date": "2026-10-23"
+  "weekly_recap_last_date": "2026-10-30"
 }

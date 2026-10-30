@@ -179,7 +179,7 @@ export default function Bibliotheque() {
 
   return (
     <div style={{ background: 'linear-gradient(180deg,#111625,#12082A)', color: '#F5EEE0', minHeight: '100vh' }}>
-      <SEO title="Bibliothèque visuelle — Plume Astrale" description="Studio de génération d'assets astrologiques" />
+      <SEO path="/bibliotheque" title="Bibliothèque visuelle — Plume Astrale" description="Studio de génération d'assets astrologiques" />
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-10">
 

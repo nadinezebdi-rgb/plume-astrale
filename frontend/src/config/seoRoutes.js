@@ -39,6 +39,14 @@ export const REDIRECT_MAP = {
   '/cercle-quotidien': '/communaute',
   '/cercle-dashboard': '/communaute',
 
+  // ── AUDIT P1-3 (2026-10-30 · Nao) : tarot oui/non URL unique /tarot-oui-non ──
+  // Avant : /tarot-oui-non 301 → /services/tarot/oui-non, mais SEO_DATA canonical renvoyait
+  // vers /tarot-oui-non → boucle. On choisit /tarot-oui-non comme canonique.
+  '/services/tarot/oui-non': '/tarot-oui-non',
+
+  // ── AUDIT P1-2 : URL dans sitemap pointant 404 → redirect vers version active ──
+  '/theme-natal-pdf': '/theme-natal',
+
   // ── Produits renommés ──
   '/kabbale': '/voyage-karmique',
   '/karma-destin': '/voyage-karmique',
@@ -64,7 +72,7 @@ export const REDIRECT_MAP = {
   // ── /outils/* → /services/* ──
   '/outils/theme-natal': '/services/theme-natal',
   '/outils/tarot': '/services/tarot',
-  '/outils/tarot/oui-non': '/services/tarot/oui-non',
+  '/outils/tarot/oui-non': '/tarot-oui-non',
   '/outils/tarot/croix-celtique': '/services/tarot/croix-celtique',
   '/outils/tarot/amour': '/services/tarot/amour',
   '/outils/horoscope': '/services/horoscope',
@@ -91,7 +99,8 @@ export const VALID_ROUTES = [
   { path: '/manifesto', priority: 0.75, changefreq: 'monthly' },
   { path: '/cercle-solena', priority: 0.95, changefreq: 'weekly' },
   { path: '/barometre-2026', priority: 0.8, changefreq: 'monthly' },
-  { path: '/communaute', priority: 0.7, changefreq: 'weekly' },
+  // AUDIT P1-2 (2026-10-30 · Nao) : /communaute retiré (noindex + canonique /cercle,
+  // page personnalisée au compte connecté → à ne pas indexer).
   { path: '/faq', priority: 0.6, changefreq: 'monthly' },
   { path: '/contact', priority: 0.5, changefreq: 'yearly' },
   { path: '/charte-de-confiance', priority: 0.5, changefreq: 'yearly' },
@@ -100,8 +109,7 @@ export const VALID_ROUTES = [
   // ─── Produits phares (sales pages) ───
   { path: '/livres', priority: 0.9, changefreq: 'weekly' },
   { path: '/theme-natal', priority: 0.95, changefreq: 'weekly' },
-  { path: '/theme-natal-pdf', priority: 0.85, changefreq: 'weekly' },
-  { path: '/edition-reliee', priority: 0.9, changefreq: 'weekly' },
+  // AUDIT P1-2 : /theme-natal-pdf retiré (404) + /edition-reliee retiré (redirige vers /composer).
   { path: '/composer', priority: 0.9, changefreq: 'weekly' },
   { path: '/synastrie', priority: 0.85, changefreq: 'weekly' },
   { path: '/voyage-karmique', priority: 0.85, changefreq: 'weekly' },
@@ -111,27 +119,28 @@ export const VALID_ROUTES = [
   { path: '/numerologie-pdf', priority: 0.8, changefreq: 'monthly' },
 
   // ─── Services canoniques (/services/*) ───
-  { path: '/services/theme-natal', priority: 0.85, changefreq: 'weekly' },
+  // AUDIT P1-2 : retrait des entrées dont la canonique vit ailleurs
+  //   /services/theme-natal         → redirige vers /mon-compte, noindex
+  //   /services/numerologie         → canonique /numerologie-pdf
+  //   /services/archetype           → canonique /archetype
+  //   /services/consultation        → canonique /consultation
+  //   /services/astrosexo           → canonique /astrosexo
+  //   /services/tarot/oui-non       → canonique /tarot-oui-non (voir P1-3)
   { path: '/services/tarot', priority: 0.8, changefreq: 'weekly' },
-  { path: '/services/tarot/oui-non', priority: 0.75, changefreq: 'weekly' },
   { path: '/services/tarot/croix-celtique', priority: 0.7, changefreq: 'weekly' },
   { path: '/services/tarot/amour', priority: 0.7, changefreq: 'weekly' },
-  { path: '/services/numerologie', priority: 0.8, changefreq: 'weekly' },
   { path: '/services/compatibilite', priority: 0.8, changefreq: 'weekly' },
-  { path: '/services/archetype', priority: 0.75, changefreq: 'monthly' },
   { path: '/services/revolution-solaire', priority: 0.75, changefreq: 'monthly' },
   { path: '/services/oracle', priority: 0.75, changefreq: 'weekly' },
   { path: '/services/energie', priority: 0.75, changefreq: 'monthly' },
   { path: '/services/rituel', priority: 0.75, changefreq: 'weekly' },
-  { path: '/services/consultation', priority: 0.75, changefreq: 'weekly' },
-  { path: '/services/astrosexo', priority: 0.7, changefreq: 'monthly' },
   { path: '/services/love-languages', priority: 0.7, changefreq: 'monthly' },
 
   // ─── Outils éditoriaux ───
   { path: '/tarologie', priority: 0.8, changefreq: 'weekly' },
   { path: '/tarot-oui-non', priority: 0.75, changefreq: 'weekly' },
   { path: '/quotidien', priority: 0.7, changefreq: 'daily' },
-  { path: '/experience', priority: 0.7, changefreq: 'weekly' },
+  // AUDIT P1-2 : /experience retiré du sitemap (noindex).
   { path: '/temoignages', priority: 0.7, changefreq: 'monthly' },
   { path: '/bibliotheque', priority: 0.65, changefreq: 'monthly' },
 
@@ -175,5 +184,16 @@ export const EXCLUDED_FROM_SITEMAP = [
   '/relecture',
   '/credits',
   '/credits/succes',
+  // AUDIT P1-2 (2026-10-30 · Nao) : exclus car noindex ou doublons canoniques.
+  '/communaute',
+  '/experience',
+  '/services/theme-natal',
+  '/services/numerologie',
+  '/services/archetype',
+  '/services/consultation',
+  '/services/astrosexo',
+  '/services/tarot/oui-non',
+  '/theme-natal-pdf',
+  '/edition-reliee',
   // Toute route contenant '/succes' est automatiquement exclue.
 ];

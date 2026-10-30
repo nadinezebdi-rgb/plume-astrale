@@ -212,6 +212,7 @@ const CercleSolena = () => {
   return (
     <>
       <SEO
+        path="/cercle-solena"
         title="Cercle Soléna — Abonnement mensuel Plume Astrale"
         description="Rejoins le Cercle Soléna. Deux tiers : 100 crédits/mois à 14,99€ ou 250 crédits + priorité à 29€. Résiliable à tout moment."
       />

@@ -101,6 +101,7 @@ const TarotCroixCeltique = () => {
   return (
     <>
       <SEO
+        path="/services/tarot/croix-celtique"
         title="Croix Celtique — Tarot 10 cartes | Plume Astrale"
         description="Tirage traditionnel de la Croix Celtique. 10 cartes lues par Soléna pour les questions profondes."
       />

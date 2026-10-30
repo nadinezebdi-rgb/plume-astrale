@@ -334,7 +334,7 @@ const MonRituel = () => {
 
   return (
     <>
-      <SEO title="Mon Rituel — Plume Astrale" description="Ton rituel quotidien : humeur, scores cosmiques, journal personnalisé. Ton compagnon emotionnel." />
+      <SEO path="/services/rituel" title="Mon Rituel — Plume Astrale" description="Ton rituel quotidien : humeur, scores cosmiques, journal personnalisé. Ton compagnon emotionnel." />
 
       <div className="min-h-screen pt-24 pb-16 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">

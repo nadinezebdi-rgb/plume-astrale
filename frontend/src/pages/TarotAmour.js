@@ -66,6 +66,7 @@ const TarotAmour = () => {
   return (
     <>
       <SEO
+        path="/services/tarot/amour"
         title="Tirage Amoureux — Tarot 3 cartes | Plume Astrale"
         description="Tirage 3 cartes spécial couple : Toi, L'Autre, Le Lien. Une lecture de compatibilité claire pour 3 crédits."
       />

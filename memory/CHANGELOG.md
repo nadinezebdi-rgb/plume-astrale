@@ -1,3 +1,83 @@
+## 2026-10-30 — Audit qualité Nao : P0+P1+P2 appliqués
+
+### 🎯 Objectif
+Fix immédiat du crash JS prod qui cassait 5 pages (dont /cercle-solena = 19€/mois), + nettoyage SEO complet (sitemap, canoniques, tutoiement, a11y, headers).
+
+### ✅ P0-1 — Crash JS SEO component (5 pages réparées)
+- `frontend/src/components/SEO.js` : `safePath` fallback `window.location.pathname` quand `path` undefined
+- Ajout prop `path` explicite sur `/cercle-solena`, `/bibliotheque`, `/services/tarot/amour`, `/services/tarot/croix-celtique`, `/services/rituel`
+
+### ✅ P1-2 — Sitemap nettoyé (65 → 55 URLs canoniques)
+- Retirés : `/theme-natal-pdf`, `/communaute`, `/experience`, `/edition-reliee`, `/services/theme-natal`, `/services/numerologie`, `/services/archetype`, `/services/consultation`, `/services/astrosexo`, `/services/tarot/oui-non`
+- `frontend/src/config/seoRoutes.js` : VALID_ROUTES, REDIRECT_MAP, EXCLUDED_FROM_SITEMAP mis à jour
+
+### ✅ P1-3 — Tarot oui/non URL unique
+- Canonique : `/tarot-oui-non` (self-referencing)
+- 301 nginx : `/services/tarot/oui-non` → `/tarot-oui-non`
+- Boucle canonique/redirect éliminée
+
+### ✅ P1-4 — Canoniques explicites ajoutées
+- Entrées SEO_DATA pour `/contact` et `/notre-cadre`
+- `<SEO path="…" />` ajouté sur Contact.js, NotreCadre.js, RevolutionSolaire.js, LoveLanguages.js
+
+### ✅ P1-5 — Blog `/blog?post=slug` → `/blog/slug`
+- `pages/Blog.js` : MutationObserver qui réécrit à la volée les hrefs du widget Soro embarqué
+
+### ✅ P1-6 — Formulaire Thème Natal accessibilité
+- `pages/ThemeNatalOneshot.js` : `htmlFor`/`id`, `name`, `autoComplete="email"|"given-name"|"bday"|"address-level2"` sur les 5 champs
+
+### ✅ P1-7 — Tutoiement uniforme accueil
+- Title accueil : « éclairer tes choix »
+- `HomeExperienceV3.jsx` : « Choisis ton éclairage »
+- `AstralBookEditorial.jsx` : « Ta naissance / Ta lecture / Ton chemin »
+- `NavbarV2.js` : phrases services au tutoiement
+
+### ✅ P2-8 — Menu burger a11y + skip link
+- `NavbarV2.js` : `aria-expanded`, `aria-controls`, `role="dialog"`, `aria-modal`, fermeture Échap, retour focus au bouton
+- `App.js` + `App.css` : lien d'évitement RGAA 12.7 « Aller au contenu »
+- `<main id="main-content" tabIndex="-1">` wrap tout le routing
+
+### ✅ P2-9 — En-têtes HTTP sécurité
+- `deploy/nginx-frontend.conf` : `X-Frame-Options: DENY`, `Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()`, `Content-Security-Policy-Report-Only` (phase 1 observation)
+
+### 📸 Preuves (preview env)
+- /cercle-solena : status PASS, H1 « Un rendez-vous mensuel avec ton étoile », canonical OK, 0 page errors
+- /services/tarot/amour, /services/tarot/croix-celtique, /bibliotheque, /services/rituel : 0 erreur JS
+- /contact, /notre-cadre : canonical explicite présent
+- Accueil : H1 « Mieux te comprendre. Savoir ce que tu veux. Choisir ta direction. » (tutoiement)
+- Sitemap : 55 URLs canoniques, aucune des 10 URLs retirées n'y figure
+
+### 🗂️ Fichiers touchés
+- `frontend/src/components/SEO.js`
+- `frontend/src/components/NavbarV2.js`
+- `frontend/src/components/AstralBookEditorial.jsx`
+- `frontend/src/config/seoRoutes.js`
+- `frontend/src/pages/CercleSolena.js`
+- `frontend/src/pages/Bibliotheque.js`
+- `frontend/src/pages/TarotAmour.js`
+- `frontend/src/pages/TarotCroixCeltique.js`
+- `frontend/src/pages/MonRituel.js`
+- `frontend/src/pages/Contact.js`
+- `frontend/src/pages/NotreCadre.js`
+- `frontend/src/pages/RevolutionSolaire.js`
+- `frontend/src/pages/LoveLanguages.js`
+- `frontend/src/pages/ThemeNatalOneshot.js`
+- `frontend/src/pages/HomeExperienceV3.jsx`
+- `frontend/src/pages/Blog.js`
+- `frontend/src/App.js`
+- `frontend/src/App.css`
+- `deploy/nginx-frontend.conf`
+- `frontend/public/sitemap.xml` (régénéré)
+- `backend/tests/_gen_sample_natal_manuscript.py` (sample PDF production)
+
+### ⏭️ Reste à faire
+- Validation visuelle du PDF manuscrit production (URL fournie)
+- SEO Lot 2 pré-rendu (react-snap / Puppeteer) — P0 selon audit, nécessite build setup
+- Audit retest des 65 URLs après déploiement production
+
+---
+
+
 ## 2026-02-29 — Compteur facture séquentiel FR + Alertes stuck sessions + Endpoint refund API
 
 ### 🎯 Objectifs

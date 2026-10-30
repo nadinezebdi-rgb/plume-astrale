@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Send, Mail, Instagram, CheckCircle2, AlertCircle } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
+import SEO from '@/components/SEO';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -42,6 +43,7 @@ export default function Contact() {
 
   return (
     <PsPageShell background="light">
+      <SEO path="/contact" />
       <section className="ps-section ps-section-light" data-testid="contact-page">
         <div className="ps-container">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 64 }} className="ps-contact-grid">

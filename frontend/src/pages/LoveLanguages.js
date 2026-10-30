@@ -169,6 +169,7 @@ const LoveLanguages = () => {
           </div>
         )}
       </div>
+      <SEO path="/services/love-languages" />
       <SEOServiceEnrich slug="love-languages" />
     </div>
   );

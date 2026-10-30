@@ -43,6 +43,7 @@ export default function NavbarV2() {
   const [megaOpen, setMegaOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const megaTimer = useRef(null);
+  const toggleRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuth();
@@ -53,6 +54,20 @@ export default function NavbarV2() {
     setMegaOpen(false);
     setMobileServicesOpen(false);
   }, [location.pathname]);
+
+  // AUDIT P2-8 (2026-10-30 · Nao) : fermeture au clavier (Échap) + retour focus
+  // au bouton toggle. Rend la navigation accessible lecteurs d'écran.
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        if (toggleRef.current) toggleRef.current.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
 
   // Pages immersives sans navbar (prototype /experience + /home-experience-v3).
   const isImmersive = (p) =>
@@ -167,9 +182,12 @@ export default function NavbarV2() {
 
           {/* Mobile toggle */}
           <button className="ps-mobile-toggle"
+            ref={toggleRef}
             onClick={() => setOpen(!open)}
             data-testid="nav-v2-mobile-toggle"
-            aria-label="Menu"
+            aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-expanded={open}
+            aria-controls="nav-v2-mobile-panel"
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--plume-night)', padding: 4 }}>
             {open ? <X strokeWidth={1.5} /> : <Menu strokeWidth={1.5} />}
           </button>
@@ -198,7 +216,7 @@ export default function NavbarV2() {
               fontSize: 15,
               lineHeight: 1.6,
             }}>
-              Des lectures et des outils pour éclairer vos choix et prendre des décisions en confiance.
+              Des lectures et des outils pour éclairer tes choix et prendre tes décisions en confiance.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 48 }}>
 
@@ -232,11 +250,16 @@ export default function NavbarV2() {
 
       {/* ══════ MOBILE PANEL ══════ */}
       {open && (
-        <div style={{
-          position: 'fixed', top: 64, left: 0, right: 0, bottom: 0,
-          background: 'var(--plume-night)', zIndex: 99, overflowY: 'auto',
-          padding: '24px', display: 'flex', flexDirection: 'column', gap: 8,
-        }} data-testid="nav-v2-mobile-panel">
+        <div
+          id="nav-v2-mobile-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu principal"
+          style={{
+            position: 'fixed', top: 64, left: 0, right: 0, bottom: 0,
+            background: 'var(--plume-night)', zIndex: 99, overflowY: 'auto',
+            padding: '24px', display: 'flex', flexDirection: 'column', gap: 8,
+          }} data-testid="nav-v2-mobile-panel">
           {NAV_LINKS.map((l) => {
             if (l.hasMega) {
               return (
@@ -261,7 +284,7 @@ export default function NavbarV2() {
                         fontSize: 14,
                         lineHeight: 1.55,
                       }}>
-                        Des lectures et des outils pour éclairer vos choix et prendre des décisions en confiance.
+                        Des lectures et des outils pour éclairer tes choix et prendre tes décisions en confiance.
                       </p>
                       <div style={mobileSubHeading}>Lectures personnalisées</div>
                       {LECTURES.map((it) => (

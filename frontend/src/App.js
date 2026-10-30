@@ -152,12 +152,15 @@ function App() {
       <CartProvider>
       <AuraProvider>
       <BrowserRouter>
+        {/* AUDIT P2-8 (2026-10-30 · Nao) : lien d'évitement RGAA 12.7 */}
+        <a href="#main-content" className="skip-link" data-testid="skip-link">Aller au contenu</a>
         {/* ─── Overlays globaux Plume Design System v2 ─── */}
         <ScrollToTop />
         <GlobalOverlays />
         <RouteTracker />
         <Navbar />
         <CookieConsent />
+        <main id="main-content" tabIndex="-1" style={{ outline: 'none' }}>
         <Routes>
           {/* Pages sans Navbar (home immersive, admin, funnel dédiés) */}
           <Route path="/" element={<HomeExperienceV3 />} />
@@ -342,6 +345,7 @@ function App() {
             </>
           } />
         </Routes>
+        </main>
         <CartCheckoutBridge />
         <Footer />
       </BrowserRouter>
