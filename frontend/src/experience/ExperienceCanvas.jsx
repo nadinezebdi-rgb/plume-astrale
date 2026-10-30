@@ -9,7 +9,7 @@
  * • Aucun postprocessing (bundle plus léger, meilleure compat mobile).
  *   Le bloom est faux : sprites additifs sur les particules.
  */
-import React, { useRef, useState } from 'react';
+import {useRef, useState} from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { PerformanceMonitor } from '@react-three/drei';
 import * as THREE from 'three';

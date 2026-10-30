@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import { X } from 'lucide-react';
 import SynastrieLeadMagnet from './SynastrieLeadMagnet';
 import { event as trackEvent } from '../lib/analytics';

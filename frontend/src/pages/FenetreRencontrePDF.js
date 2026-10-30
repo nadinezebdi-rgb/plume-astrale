@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import {useState} from 'react';
 import { ArrowRight, Heart, Calendar, Sparkles, Shield, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SEO from '@/components/SEO';
@@ -79,7 +79,7 @@ const FenetreRencontrePDF = () => {
       if (data.windows) {
         alert(`Aperçu de tes fenêtres:\n\n${data.windows.map(w => `${w.kind}\n${w.period}`).join('\n\n')}`);
       }
-    } catch (err) {
+    } catch (_err) {
       alert('Erreur lors du calcul');
     }
   };

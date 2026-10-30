@@ -11,7 +11,7 @@
  * Le sweep cinématique est un sprite additif discret qui traverse le texte,
  * comme un rayon de lumière sur du velours — pas un flash, une caresse.
  */
-import React, { useEffect, useMemo, useRef } from 'react';
+import {useEffect, useMemo, useRef} from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useExperienceStore } from '../useExperienceStore';

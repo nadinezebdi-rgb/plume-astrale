@@ -9,7 +9,7 @@
  *  - Un cartouche discret "8 minutes environ", un compteur MM:SS.
  *  - Le tout dans la palette bronze / ivoire du livre, ambiance nuit étoilée sobre.
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';

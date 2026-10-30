@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-
+import {useEffect, useRef, useState} from 'react';
 /**
  * Curseur custom desktop — cercle dore 8px avec effet aura.
  * S'agrandit sur les elements `[data-cursor="hover"]`, boutons, links.

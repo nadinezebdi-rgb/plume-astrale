@@ -8,7 +8,7 @@
  * Le hover/clic UI est géré au niveau HTML (overlay), pas dans le canvas.
  * Ici on écoute juste `intent` pour illuminer la constellation choisie.
  */
-import React, { useMemo, useRef } from 'react';
+import {useMemo, useRef} from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useExperienceStore } from '../useExperienceStore';

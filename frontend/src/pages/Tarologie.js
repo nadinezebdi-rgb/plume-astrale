@@ -91,7 +91,7 @@ const Tarologie = () => {
         const parsed = JSON.parse(data);
         if (parsed.prenom) setPrenom(parsed.prenom);
         if (parsed.dateNaissance) setDateNaissance(parsed.dateNaissance);
-      } catch (e) { /* ignore */ }
+      } catch (_e) { /* ignore */ }
     }
     const paid = localStorage.getItem('plume_tarologie_paid');
     if (paid === 'true') setHasPaid(true);
@@ -105,7 +105,7 @@ const Tarologie = () => {
       const res = await fetch(`${API_URL}/api/tarot/predictions`);
       const data = await res.json();
       if (data.success) setPredictions(data.predictions);
-    } catch (e) { /* silent fail */ }
+    } catch (_e) { /* silent fail */ }
     setPredLoading(false);
   };
 
@@ -172,7 +172,7 @@ const Tarologie = () => {
       } else {
         setPromoError(data.message || 'Code invalide');
       }
-    } catch (e) {
+    } catch (_e) {
       setPromoError('Erreur de connexion');
     }
     setPromoLoading(false);

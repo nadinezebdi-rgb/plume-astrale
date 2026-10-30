@@ -1,4 +1,3 @@
-import React from 'react';
 import SalesPageV3 from '@/components/SalesPageV3';
 import AstroCartoHero from '@/components/AstroCartoHero';
 import { APERCUS } from '@/config/apercus';

@@ -8,7 +8,7 @@
  * pour tout le monde le même jour → partageable, cache-friendly).
  * Style aligné sur --hex3-* (noir cosmique + or + Cormorant italic).
  */
-import React, { useMemo, useState } from 'react';
+import {useMemo, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { BLOG_ARTICLES } from '@/config/blogArticles';
 import { event as trackEvent } from '@/lib/analytics';

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import {useEffect, useState, useCallback} from 'react';
 import { Navigate } from 'react-router-dom';
 import { QrCode, RefreshCw, Loader2, TrendingUp, ExternalLink } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';

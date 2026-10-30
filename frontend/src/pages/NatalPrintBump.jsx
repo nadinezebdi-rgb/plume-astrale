@@ -3,7 +3,7 @@
  * Entrée via l'email de livraison du Thème Natal :
  *   /natal-print?token={session_id}&prenom={prenom}
  */
-import React, { useState, useMemo } from 'react';
+import {useState, useMemo} from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 const API = (process.env.REACT_APP_BACKEND_URL || '').replace(/\/+$/, '') + '/api';

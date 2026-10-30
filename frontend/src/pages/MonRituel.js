@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import {useState, useEffect, useCallback, useMemo} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import SEO from '@/components/SEO';
@@ -163,10 +163,10 @@ const MonRituel = () => {
   const userId = useMemo(() => {
     if (isAuthenticated && user?.id) return user.id;
     let sid = null;
-    try { sid = localStorage.getItem(USER_ID_KEY); } catch (e) { /* ignore */ }
+    try { sid = localStorage.getItem(USER_ID_KEY); } catch (_e) { /* ignore */ }
     if (!sid) {
       sid = `anon-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      try { localStorage.setItem(USER_ID_KEY, sid); } catch (e) { /* ignore */ }
+      try { localStorage.setItem(USER_ID_KEY, sid); } catch (_e) { /* ignore */ }
     }
     return sid;
   }, [isAuthenticated, user]);
@@ -195,7 +195,7 @@ const MonRituel = () => {
       if (f.latitude) params.lat = parseFloat(f.latitude);
       if (f.longitude) params.lon = parseFloat(f.longitude);
       return params;
-    } catch (e) { return {}; }
+    } catch (_e) { return {}; }
   }, []);
 
   // Load today's ritual
@@ -229,7 +229,7 @@ const MonRituel = () => {
       try {
         const res = await axios.get(`${API}/api/ritual/moods`, { timeout: 10000 });
         if (mounted) setMoods(res.data.moods || []);
-      } catch (e) { /* ignore */ }
+      } catch (_e) { /* ignore */ }
     })();
     loadToday();
     return () => { mounted = false; };
@@ -263,7 +263,7 @@ const MonRituel = () => {
       }, { headers: authHeader() });
       setIntentionSaved(true);
       setTimeout(() => setIntentionSaved(false), 2500);
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
   };
 
   // Submit journal
@@ -289,7 +289,7 @@ const MonRituel = () => {
       } else {
         setJournalResponse(res.data.message || "Une perturbation cosmique. Reessaie.");
       }
-    } catch (e) {
+    } catch (_e) {
       setJournalResponse("Le journal est momentanément silencieux. Vérifie ta connexion et réessaie.");
     }
     setJournalLoading(false);
@@ -303,7 +303,7 @@ const MonRituel = () => {
         headers: authHeader(),
       });
       setHistory(res.data.entries || []);
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
   };
 
   useEffect(() => {

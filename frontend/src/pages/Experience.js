@@ -4,7 +4,7 @@
  * Route ISOLÉE. Ne remplace pas la home. Charge les libs 3D en lazy
  * pour n'impacter aucune autre page du site.
  */
-import React, { Suspense, lazy, useEffect } from 'react';
+import {Suspense, lazy, useEffect} from 'react';
 import SEO from '@/components/SEO';
 
 const ExperienceRoot = lazy(() => import('@/experience/ExperienceRoot'));

@@ -11,7 +11,7 @@
  * Le prix est TOUJOURS recalculé côté serveur — le front affiche `total_eur`
  * retourné par /api/composer/quote (source de vérité).
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
 

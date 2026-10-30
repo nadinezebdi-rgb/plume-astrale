@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, Tag } from 'lucide-react';
 
@@ -60,7 +60,7 @@ const Paiement = () => {
       } else {
         setPromoError(data.message || 'Code invalide');
       }
-    } catch (e) { setPromoError('Erreur de connexion'); }
+    } catch (_e) { setPromoError('Erreur de connexion'); }
     setPromoLoading(false);
   };
 

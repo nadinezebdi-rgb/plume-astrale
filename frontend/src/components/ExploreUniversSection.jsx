@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Sparkles, Heart, Sun, FileText } from 'lucide-react';
 import { event as trackEvent } from '../lib/analytics';

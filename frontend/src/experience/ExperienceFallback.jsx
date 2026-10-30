@@ -7,7 +7,7 @@
  * animation JS/GL, seulement des fondus CSS courts + un dégradé radial
  * de fond figé qui rappelle l'atmosphère cosmique.
  */
-import React, { useState, useMemo } from 'react';
+import {useState, useMemo} from 'react';
 import { getCardBackTexture, getCardFaceTexture } from './scenes/cardTextures';
 import { getScene3Revelation } from './scene3Revelations';
 

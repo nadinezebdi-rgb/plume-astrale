@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import {useState, useEffect, useCallback, useMemo} from 'react';
 import axios from 'axios';
 import { RefreshCw, Loader2, TrendingUp, TrendingDown, Users, Coins, MousePointerClick } from 'lucide-react';
 

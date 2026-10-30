@@ -1,4 +1,3 @@
-import React from 'react';
 import { HelpCircle, Layers, TrendingUp, Sparkles, Compass, Star } from 'lucide-react';
 
 /**

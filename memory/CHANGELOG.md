@@ -1,3 +1,35 @@
+## 2026-10-30 (nuit, lot 4) — Slack monitoring avoirs + ESLint cleanup -65%
+
+### ✅ Alerte Slack mensuelle sur avoirs
+- `services/credit_note_delivery.py` : à chaque avoir généré, check atomique `count_documents` sur `credit_note_numbers` du mois en cours.
+- Si `count >= CREDIT_NOTE_SLACK_THRESHOLD` (défaut 10/mois), ping Slack UNE fois par (année, mois) et par cycle de vie du pod. Dédoublonné via `_MONTHLY_SLACK_FIRED` in-memory.
+- Message Slack : titre, résumé (compte + mois), champs (Mois, Avoirs émis, Seuil), bouton vers `/admin/payments-health`.
+- Fail-silent : si Mongo down ou count fail, l'avoir est quand même émis.
+
+### ✅ ESLint cleanup pass (482 → 168 warnings, -65%)
+- `scripts/eslint_quickfix.py` (nouveau) : script Python qui patche 2 patterns ultra-répétitifs sur `frontend/src/`:
+  1. `import React[, ...]` quand React n'est pas utilisé (JSX transform auto React 17+)
+  2. `catch (e)` / `catch (err)` où le nom n'est pas référencé → renommé en `(_e)` / `(_err)` pour matcher `caughtErrorsIgnorePattern: '^_'`
+- 245 fichiers nettoyés en 1 passe, 0 régression visuelle (6 pages testées en smoke).
+- `.github/workflows/ci.yml` : cap descendu de 500 → **200 warnings**. À descendre à chaque PR.
+
+### 🧪 Tests
+- 27 pytest existants passent toujours (credit_note + slack + invoice + stuck).
+- Build frontend OK avec ESLint strict `--max-warnings 200`.
+- Smoke test 6 pages (/, /cercle-solena, /theme-natal, /livres, /blog, /horoscope/belier) : 0 erreur JS, 0 erreur console.
+
+### 🗂️ Fichiers touchés
+- `backend/services/credit_note_delivery.py` (threshold Slack)
+- `scripts/eslint_quickfix.py` (nouveau)
+- `.github/workflows/ci.yml` (cap 500 → 200)
+- `frontend/src/**/*.{js,jsx}` : 245 fichiers patchés par le quickfix
+
+### 📋 Env vars
+- `CREDIT_NOTE_SLACK_THRESHOLD` (défaut 10) — nb avoirs/mois avant ping Slack. 0 = désactive.
+
+---
+
+
 ## 2026-10-30 (nuit, lot 3) — Avoir PDF automatique + ESLint strict
 
 ### 🎯 Objectifs

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Shield, Compass, BookOpen, Sparkles, Eye, Heart, ArrowLeft } from 'lucide-react';
 import SEO from '@/components/SEO';

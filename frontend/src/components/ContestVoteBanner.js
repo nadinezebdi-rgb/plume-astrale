@@ -7,7 +7,7 @@
  *
  * Design : bulle fixe bottom-right, mobile-safe (respect safe-area), animation slide-up.
  */
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { Trophy, X, ExternalLink } from 'lucide-react';
 
 const CONTEST_URL = 'https://app.emergent.sh/showcase/building-france/984cc6e3-63c5-40e6-9b25-b4704912a70d?ref=nadi762374';

@@ -1,5 +1,4 @@
-import React, { useMemo } from 'react';
-
+import {useMemo} from 'react';
 /**
  * LiveConstellation — SVG constellation vivante des 12 signes du zodiaque.
  *

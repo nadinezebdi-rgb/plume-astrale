@@ -10,7 +10,7 @@
  *
  * data-testid: nocturne-faq, nocturne-faq-item-{index}
  */
-import React, { useState } from 'react';
+import {useState} from 'react';
 import { ChevronDown } from 'lucide-react';
 
 const FAQ_ITEMS = [

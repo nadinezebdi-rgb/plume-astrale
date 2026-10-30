@@ -188,7 +188,72 @@ async def send_credit_note_for_refund(
     except Exception as e:
         logger.error(f'[credit_note] send fail refund={refund_id}: {e}')
         report['reason'] = f'send_fail: {e}'
+
+    # AUDIT (2026-10-30 · Nao) : alerte Slack si trop d'avoirs sur le mois.
+    # Signal d'anomalie côté produit (incidents de livraison, qualité, SAV).
+    # Seuil configurable via CREDIT_NOTE_SLACK_THRESHOLD (défaut 10/mois).
+    # Dédup : un ping unique quand on franchit le seuil (pas à chaque avoir au-dessus).
+    try:
+        await _maybe_slack_alert_threshold(refunded_at)
+    except Exception as e:
+        logger.info(f'[credit_note] slack threshold check skip: {e}')
+
     return report
+
+
+# ─── Alerte Slack monthly threshold ─────────────────────────────────
+_MONTHLY_SLACK_FIRED: set = set()  # 'YYYY-MM' déjà alertés ce run
+
+
+async def _maybe_slack_alert_threshold(refunded_at: datetime) -> None:
+    """Si on dépasse CREDIT_NOTE_SLACK_THRESHOLD avoirs sur le mois en cours
+    (UTC), ping Slack UNE fois par (année, mois) et par cycle de vie du pod.
+    """
+    threshold = int(os.environ.get('CREDIT_NOTE_SLACK_THRESHOLD', '10'))
+    if threshold <= 0:
+        return
+    from services.mongo import get_db
+    db = get_db()
+    if db is None:
+        return
+    year, month = refunded_at.year, refunded_at.month
+    key = f'{year:04d}-{month:02d}'
+    if key in _MONTHLY_SLACK_FIRED:
+        return
+
+    # Compte les avoirs du mois en cours (année + mois sur allocated_at)
+    from datetime import timedelta
+    start = refunded_at.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    try:
+        count = await db['credit_note_numbers'].count_documents({
+            'allocated_at': {'$gte': start},
+        })
+    except Exception as e:
+        logger.info(f'[credit_note] threshold count fail: {e}')
+        return
+
+    if count < threshold:
+        return
+
+    _MONTHLY_SLACK_FIRED.add(key)
+    from services.slack_notify import send_slack_alert
+    await send_slack_alert(
+        title=f'Seuil mensuel d\'avoirs atteint : {count}',
+        summary=(
+            f'*{count} avoirs émis depuis le 1er {start:%B %Y}* '
+            f'(seuil configuré : {threshold}).\n'
+            f'Vérifier si c\'est un pic réel (incident livraison, campagne pub, '
+            f'bug produit) ou un comportement normal selon le volume de ventes.'
+        ),
+        fields=[
+            ('Mois', f'{start:%B %Y}'),
+            ('Avoirs émis', str(count)),
+            ('Seuil', str(threshold)),
+        ],
+        url='https://plume-astrale.fr/admin/payments-health',
+        url_label='Ouvrir le dashboard',
+        emoji=':warning:',
+    )
 
 
 __all__ = ['send_credit_note_for_refund']

@@ -1,4 +1,3 @@
-import React from 'react';
 import EnergyToday from '@/components/EnergyToday';
 import SEO from '@/components/SEO';
 import SEOServiceEnrich from '@/components/SEOServiceEnrich';

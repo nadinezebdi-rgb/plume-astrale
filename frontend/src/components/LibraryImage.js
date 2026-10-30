@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * LibraryImage — Image responsive tirée du bucket public Supabase `library`.
  *

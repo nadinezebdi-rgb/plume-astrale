@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import {useState} from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Flame, Waves, Wind, Mountain, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import axios from 'axios';

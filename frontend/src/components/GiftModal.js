@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import { X, Gift, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;

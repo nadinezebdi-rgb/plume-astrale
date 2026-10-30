@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
-
+import {useState, useRef, useEffect} from 'react';
 const ZODIAC = [
   { symbol: '\u2648', name: 'Belier', color: '#E879F9' },
   { symbol: '\u2649', name: 'Taureau', color: '#F4C542' },

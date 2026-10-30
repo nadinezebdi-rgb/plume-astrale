@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import {createContext, useContext, useEffect, useState} from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getCartPromo, setCartPromo, getPendingCartItem, setPendingCartItem } from '@/lib/cartPromo';
 

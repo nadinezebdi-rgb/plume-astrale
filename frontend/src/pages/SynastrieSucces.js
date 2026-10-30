@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { Download, Loader2, Mail, CheckCircle2 } from 'lucide-react';
@@ -27,7 +27,7 @@ export default function SynastrieSucces() {
         if (!mounted) return;
         setStatus(r.data);
         if (r.data.status === 'paid' && r.data.pdf_ready) { trackEvent('synastrie_purchase_success'); return; }
-      } catch (e) {
+      } catch (_e) {
         if (mounted) setErr('Impossible de verifier le statut.');
       }
       attempts++;

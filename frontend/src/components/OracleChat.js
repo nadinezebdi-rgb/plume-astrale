@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-
+import {useState} from 'react';
 const OracleChat = ({ userData }) => {
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState([

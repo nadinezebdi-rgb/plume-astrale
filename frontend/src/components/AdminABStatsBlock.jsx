@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import { TrendingUp, Loader2 } from 'lucide-react';
 
 const EXPERIMENT = 'synastrie_exit_intent';

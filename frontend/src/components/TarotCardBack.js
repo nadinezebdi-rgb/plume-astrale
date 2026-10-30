@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * TarotCardBack — Dos de carte élégant (CSS uniquement, aucune image externe).
  * Motif célèste or sur fond midnight blue, monogramme central "P" (Plume Astrale).

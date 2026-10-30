@@ -1,5 +1,4 @@
-import React, { useRef, useCallback } from 'react';
-
+import {useRef, useCallback} from 'react';
 /**
  * Bannière visuelle en haut de chaque page — image + overlay + titre
  * Props:

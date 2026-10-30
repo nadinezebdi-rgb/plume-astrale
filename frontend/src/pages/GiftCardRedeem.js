@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import { useParams } from 'react-router-dom';
 import { Gift, Loader2, Download } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
@@ -59,7 +59,7 @@ export default function GiftCardRedeem() {
       }
       setResult(data);
       setSubmitting(false);
-    } catch (err) {
+    } catch (_err) {
       setError('Connexion interrompue. Réessayez.');
       setSubmitting(false);
     }

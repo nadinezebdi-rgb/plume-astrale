@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Loader2, ArrowLeft, Sparkles, Download, Star, Users, Tag, MessageCircle, Coins, LogIn, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -188,7 +188,7 @@ const Compatibilite2 = () => {
       } else {
         setPromoError(data.message || 'Code invalide');
       }
-    } catch (e) {
+    } catch (_e) {
       setPromoError('Erreur de connexion');
     }
     setPromoLoading(false);
@@ -234,7 +234,7 @@ const Compatibilite2 = () => {
       } else {
         setError(data.detail || 'Erreur lors de la g\u00e9n\u00e9ration');
       }
-    } catch (e) {
+    } catch (_e) {
       setError('Erreur de connexion');
     }
     setLoading(false);

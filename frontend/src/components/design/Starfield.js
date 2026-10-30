@@ -1,5 +1,4 @@
-import React, { useMemo } from 'react';
-
+import {useMemo} from 'react';
 /**
  * Ciel étoilé global — étoiles dorées scintillantes, fixed derrière le contenu.
  * A monter une seule fois dans App.js (comme NoiseOverlay).

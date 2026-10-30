@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import {useMemo} from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, TrendingUp, Users, ShoppingCart, Sparkles, DollarSign } from 'lucide-react';

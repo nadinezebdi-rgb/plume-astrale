@@ -1,4 +1,3 @@
-import React from 'react';
 import { HelpCircle, Sparkles, Shield, Clock } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';

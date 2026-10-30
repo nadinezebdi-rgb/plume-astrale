@@ -1,5 +1,4 @@
-import React, { useMemo } from 'react';
-
+import {useMemo} from 'react';
 const StarField = ({ count = 320 }) => {
   const stars = useMemo(() => {
     return Array.from({ length: count }, (_, i) => {

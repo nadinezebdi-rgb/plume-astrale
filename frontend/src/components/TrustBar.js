@@ -1,4 +1,3 @@
-import React from 'react';
 import { Shield, Lock, Zap, FileText, Mail, HelpCircle } from 'lucide-react';
 
 /**

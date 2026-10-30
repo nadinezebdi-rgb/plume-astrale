@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useMemo, useState } from 'react';
+import {useMemo, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, MailCheck } from 'lucide-react';
 import { BLOG_ARTICLES } from '@/config/blogArticles';

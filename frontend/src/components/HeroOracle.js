@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Sparkles, Loader2, Mail, MapPin, Clock, Check, ArrowRight, Lock } from 'lucide-react';
@@ -70,7 +70,7 @@ const HeroOracle = () => {
         first_name: form.firstName,
         birth_date: form.birthDate,
       }).catch(() => {});  // silencieux — on continue meme si la sauvegarde echoue
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
     setState(STATES.EMAIL);
   };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -128,7 +128,7 @@ const Compatibilite = () => {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-    } catch (e) {
+    } catch (_e) {
       setError("Impossible de generer la carte pour l'instant.");
     }
     setSharing(false);

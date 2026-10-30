@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, TreePine, Globe2 } from 'lucide-react';
 import { event as track, EVENTS } from '@/lib/analytics';

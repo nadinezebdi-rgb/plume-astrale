@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Crown, Sparkles, Shield, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
 import axios from 'axios';

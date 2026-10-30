@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import {useState} from 'react';
 import axios from 'axios';
 import { Loader2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 

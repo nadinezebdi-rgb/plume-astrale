@@ -72,7 +72,7 @@ const Numerologie = () => {
           heureNaissance: data.heureNaissance || prev.heureNaissance,
           ville: data.ville || prev.ville,
         }));
-      } catch(e) {}
+      } catch(_e) {}
     }
   }, []);
 

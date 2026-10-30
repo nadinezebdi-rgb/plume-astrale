@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Moon, Heart, Zap, Download, Mail, Share2, Sparkles, Sun, Eye, CheckCircle, Loader2, Tag, Instagram, MessageCircle, Copy, Check } from 'lucide-react';
 
@@ -173,7 +173,7 @@ const Resultats = () => {
       } else {
         setPromoError(data.message || 'Code invalide');
       }
-    } catch (e) {
+    } catch (_e) {
       setPromoError('Erreur de connexion');
     }
     setPromoLoading(false);

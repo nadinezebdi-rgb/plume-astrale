@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-
+import {useEffect, useRef, useState} from 'react';
 /**
  * SolenaGuideCard — Présentation discrète de Soléna, apparaît au scroll.
  *

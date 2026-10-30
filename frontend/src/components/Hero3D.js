@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import {lazy, Suspense} from 'react';
 import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';

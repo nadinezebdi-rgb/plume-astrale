@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import {useState, useEffect, useRef} from 'react';
 import axios from 'axios';
 import { Loader2, MapPin, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -122,7 +122,7 @@ const AdminThemeNatalFixer = ({ token }) => {
             return;
           }
           pollTimeoutRef.current = setTimeout(poll, 5000);
-        } catch (e) {
+        } catch (_e) {
           if (!mountedRef.current) return;
           consecutiveErrors++;
           if (consecutiveErrors >= 12) {

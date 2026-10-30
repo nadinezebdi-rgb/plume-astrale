@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import SEO from '@/components/SEO';
@@ -52,7 +52,7 @@ const Quotidien = () => {
           setShowSignPicker(false);
           fetchContent(sign);
         }
-      } catch (e) {}
+      } catch (_e) {}
     }
   }, []);
 

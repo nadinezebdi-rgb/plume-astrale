@@ -9,7 +9,7 @@
  *
  * Non-breaking : si la flag est OFF ou absente → toujours la homepage.
  */
-import React, { useEffect, useMemo } from 'react';
+import {useEffect, useMemo} from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import Homepage from '@/pages/Homepage';
 import { event as trackEvent } from '@/lib/analytics';

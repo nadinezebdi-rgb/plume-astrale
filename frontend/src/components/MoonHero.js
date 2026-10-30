@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import {useState, useRef, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { SOLENA } from '../lib/solena';
@@ -19,7 +19,7 @@ export default function MoonHero() {
     try {
       const saved = JSON.parse(localStorage.getItem(BIRTH_KEY) || 'null');
       if (saved) return saved;
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
     return { day: '', month: '', year: '', hour: '12', minute: '00', place: '' };
   });
 
@@ -44,7 +44,7 @@ export default function MoonHero() {
       min: parseInt(birth.minute, 10),
       place: birth.place.trim(),
     };
-    try { localStorage.setItem(BIRTH_KEY, JSON.stringify(data)); } catch (e) { /* ignore */ }
+    try { localStorage.setItem(BIRTH_KEY, JSON.stringify(data)); } catch (_e) { /* ignore */ }
     // Redirection vers la page de discussion avec Soléna (le formulaire est prérempli via BIRTH_KEY)
     navigate('/services/consultation');
   };

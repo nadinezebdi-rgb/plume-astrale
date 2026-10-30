@@ -8,7 +8,7 @@
  * Desktop uniquement (masqué < 900px via CSS). Aucun impact SEO
  * (aria-label, elements bien nommés).
  */
-import React, { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ACTS = [

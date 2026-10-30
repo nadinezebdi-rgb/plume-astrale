@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import {useState} from 'react';
 import { Download, Share2, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
@@ -36,7 +36,7 @@ const ShareableCard = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch (_err) {
       setError('Impossible de generer la carte. Reessayez.');
     } finally {
       setLoading(false);

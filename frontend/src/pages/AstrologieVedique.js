@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowLeft, Loader2, Star, Moon, Sun, BookOpen, Clock, Layers } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -113,7 +113,7 @@ export default function AstrologieVedique() {
     try {
       const res = await axios.post(`${API_URL}/api/astrology/v3/${endpoint}`, {}, { headers: authHeaders });
       setResults(prev => ({ ...prev, [key]: res.data }));
-    } catch (e) {
+    } catch (_e) {
       setErrors(prev => ({ ...prev, [key]: 'Données temporairement indisponibles.' }));
     } finally {
       setLoading(prev => ({ ...prev, [key]: false }));

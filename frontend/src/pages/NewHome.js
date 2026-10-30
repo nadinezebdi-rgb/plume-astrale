@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import {useState, useEffect, useRef, lazy, Suspense} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, User, Calendar, Clock, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -35,7 +35,7 @@ export default function NewHome() {
         minute: String(saved.min ?? saved.minute ?? '00'),
         place: saved.place || '',
       };
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
     return { day: '', month: '', year: '', hour: '12', minute: '00', place: '' };
   });
   const [vibrate, setVibrate] = useState(false);
@@ -73,7 +73,7 @@ export default function NewHome() {
       min: parseInt(birth.minute, 10),
       place: birth.place.trim(),
     };
-    try { localStorage.setItem(BIRTH_KEY, JSON.stringify(data)); } catch (e) { /* ignore */ }
+    try { localStorage.setItem(BIRTH_KEY, JSON.stringify(data)); } catch (_e) { /* ignore */ }
     // Redirection vers la page de discussion avec Soléna (form prérempli via BIRTH_KEY)
     navigate('/services/consultation');
   };
@@ -91,7 +91,7 @@ export default function NewHome() {
         document.fonts.ready.then(() => {
           setIsLoading(false);
         });
-      } catch (e) {
+      } catch (_e) {
         setIsLoading(false);
       }
     };

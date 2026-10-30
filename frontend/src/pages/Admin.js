@@ -683,7 +683,7 @@ function IllustrationCard({ item, token, onRegenerate, regenerating }) {
         if (revoked) return;
         url = URL.createObjectURL(r.data);
         setImgSrc(url);
-      } catch (e) {
+      } catch (_e) {
         if (!revoked) setErr(true);
       }
     })();

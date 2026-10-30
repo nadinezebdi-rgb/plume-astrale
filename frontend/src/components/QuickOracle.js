@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { Sparkles, ArrowRight, X } from 'lucide-react';
 import axios from 'axios';
 

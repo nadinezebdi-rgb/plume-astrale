@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import SEO from '@/components/SEO';
 
@@ -30,7 +30,7 @@ export default function LectureCompleteSucces() {
         tries += 1;
         if (tries < 30) setTimeout(poll, 3000);
         else setStatus('timeout');
-      } catch (e) {
+      } catch (_e) {
         if (!cancel) setStatus('error');
       }
     };

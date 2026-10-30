@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import {useState} from 'react';
 import { Sparkles, ArrowRight, Loader2, Check, Star, Moon, Sun, Zap } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';

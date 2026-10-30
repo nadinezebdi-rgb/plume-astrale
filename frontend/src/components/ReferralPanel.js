@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import axios from 'axios';
 import { Link2, Copy, Check, Users, Gift, Share2, Loader2 } from 'lucide-react';
 
@@ -26,7 +26,7 @@ const ReferralPanel = ({ token }) => {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (mounted) setData(r.data);
-      } catch (e) {
+      } catch (_e) {
         if (mounted) setError('Impossible de charger le programme de parrainage.');
       } finally {
         if (mounted) setLoading(false);

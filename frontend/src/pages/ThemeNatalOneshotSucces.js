@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import {useEffect, useState, useCallback, useMemo} from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Download, ArrowRight, Loader2, Mail, Star, Moon, Sparkles, Zap, Hourglass } from 'lucide-react';
 import axios from 'axios';
@@ -39,7 +39,7 @@ const ThemeNatalOneshotSucces = () => {
       // Arrête le polling dès qu'on atteint un état terminal (succès OU échec)
       if (r.data?.pdf_ready) setPolling(false);
       else if (r.data?.pdf_status === 'failed') setPolling(false);
-    } catch (e) {
+    } catch (_e) {
       /* silent */
     }
   }, [sessionId]);

@@ -5,7 +5,7 @@
  * Audit Nao (2026-10-30 P2-9) : surveiller 7 jours en Report-Only
  * avant de passer la CSP en Enforce.
  */
-import React, { useEffect, useState, useCallback } from 'react';
+import {useEffect, useState, useCallback} from 'react';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import {useEffect, useState, useCallback} from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Star, Moon, Loader2, Mail, Download } from 'lucide-react';
 import axios from 'axios';
@@ -23,7 +23,7 @@ const DuoCompletionSucces = () => {
       const r = await axios.get(`${API}/api/duo-completion/status?session_id=${sessionId}`);
       setStatus(r.data || { children: [] });
       if (r.data?.all_ready) setPolling(false);
-    } catch (e) { /* silent */ }
+    } catch (_e) { /* silent */ }
   }, [sessionId]);
 
   useEffect(() => {

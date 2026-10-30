@@ -73,12 +73,13 @@ jobs:
         working-directory: frontend
         run: yarn install --frozen-lockfile
 
-      - name: ESLint (strict sur errors, warnings tolérés < 500)
+      - name: ESLint (strict sur errors, warnings tolérés < 200)
         working-directory: frontend
-        # AUDIT phase 2 (2026-10-30 · Nao) : 0 erreur tolérée (bloquant),
-        # warnings max 500 (482 actuels, cap légèrement supérieur pour laisser respirer).
-        # Prochaine étape : descendre le cap par 50 à chaque PR.
-        run: npx eslint "src/**/*.{js,jsx}" --max-warnings 500
+        # AUDIT phase 2 (2026-10-30 · Nao) : 0 erreur tolérée (bloquant).
+        # Lot 3 (soir) : cap descendu de 500 → 200 après quickfix pattern
+        # (import React superflu, catch (e)/catch (err) unused). 168 warnings
+        # restants, à descendre à chaque PR.
+        run: npx eslint "src/**/*.{js,jsx}" --max-warnings 200
 
       - name: Build (SKIP_PRERENDER car pas de Chrome en CI)
         working-directory: frontend

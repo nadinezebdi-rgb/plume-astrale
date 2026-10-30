@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Compass, ShieldCheck, Clock, Mail } from 'lucide-react';
 import SEO from '@/components/SEO';

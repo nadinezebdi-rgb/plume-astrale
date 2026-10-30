@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, Loader2, Star, Moon, Sun, Check, X } from 'lucide-react';
 import axios from 'axios';
@@ -70,7 +70,7 @@ const ThemeNatalOneshot = () => {
           latitude: u.latitude ?? f.latitude,
           longitude: u.longitude ?? f.longitude,
         }));
-      } catch (e) {
+      } catch (_e) {
         // profil non chargeable — laisse champs vides pour saisie manuelle
       }
     })();

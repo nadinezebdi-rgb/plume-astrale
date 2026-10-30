@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import {useEffect, useState, useCallback} from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Download, ArrowRight, Loader2, Mail } from 'lucide-react';
 import axios from 'axios';

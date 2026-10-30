@@ -2,7 +2,6 @@
  * Tests pour la nouvelle page d'accueil NewHome
  */
 
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import NewHome from './NewHome';

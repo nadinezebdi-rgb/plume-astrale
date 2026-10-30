@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import {useState} from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, Check, Loader2 } from 'lucide-react';
 import SEO from '../components/SEO';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, Download, Mail, ArrowLeft } from 'lucide-react';
 
@@ -34,7 +34,7 @@ const NumerologieWaiting = () => {
           setStatus('waiting');
           setTimeout(pollStatus, 2000);
         }
-      } catch (err) {
+      } catch (_err) {
         setError('Erreur de connexion');
         setStatus('error');
       }

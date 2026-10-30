@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import { Gift, Heart, Loader2 } from 'lucide-react';
 import PsPageShell from '@/components/PsPageShell';
 import SEO from '@/components/SEO';
@@ -48,7 +48,7 @@ export default function GiftCardPurchase() {
       if (data.checkout_url) {
         window.location.href = data.checkout_url;
       }
-    } catch (err) {
+    } catch (_err) {
       setStatus('error');
       setError('Connexion interrompue. Réessayez dans un instant.');
     }

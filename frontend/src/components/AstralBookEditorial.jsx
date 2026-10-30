@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { event as trackEvent } from '../lib/analytics';
 import CelestialBackdrop from './CelestialBackdrop';
