@@ -155,15 +155,18 @@ export default function RetentionCTA({ type, onNext, onDismiss, creditsNeeded = 
 export function NotificationBadge({ message, action, onDismiss, autoClose = true }) {
   const [show, setShow] = useState(true);
 
-  if (!show) return null;
-
   // Auto-dismiss après 8 secondes
+  // AUDIT (2026-10-30 · Nao) : useEffect doit être appelé AVANT tout return
+  // conditionnel sinon violation de react-hooks/rules-of-hooks.
   React.useEffect(() => {
     if (autoClose) {
       const timer = setTimeout(() => setShow(false), 8000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [autoClose]);
+
+  if (!show) return null;
 
   return (
     <div

@@ -460,6 +460,45 @@ async def stripe_refund(payload: RefundPayload, _admin: dict = Depends(require_a
     except Exception as e:
         logger.info(f'[stripe_refund] marquage DB skip: {e}')
 
+    # ─── AUDIT (2026-10-30 · Nao) ───────────────────────────────────
+    # Génère l'avoir PDF + envoie au client par email (best-effort).
+    # Idempotent par refund_id : rejouer n'alloue pas un nouveau numéro.
+    credit_note_report: Dict[str, Any] = {'ok': False, 'reason': 'not_attempted'}
+    try:
+        from services.credit_note_delivery import send_credit_note_for_refund
+        # Résolution produit depuis payment_transactions / session Stripe
+        product_label = 'Produit Plume Astrale'
+        pack_id: Optional[str] = None
+        try:
+            if sid:
+                r2 = sb.table('payment_transactions').select('pack_id, metadata').eq('session_id', sid).limit(1).execute()
+                if r2.data:
+                    pack_id = (r2.data[0] or {}).get('pack_id')
+                    md2 = (r2.data[0] or {}).get('metadata') or {}
+                    product_label = md2.get('product_label') or md2.get('kind') or pack_id or product_label
+        except Exception:
+            pass
+
+        customer_email = charge_info.get('customer_email') or (session_dict or {}).get('customer_email')
+        if customer_email:
+            credit_note_report = await send_credit_note_for_refund(
+                refund_id=refund_dict.get('id'),
+                session_id=sid,
+                customer_email=customer_email,
+                customer_name=(session_dict or {}).get('customer_details', {}).get('name') if session_dict else None,
+                amount_cents=int((refund_dict.get('amount') or 0)),
+                currency=(refund_dict.get('currency') or 'eur').upper(),
+                product_label=product_label,
+                reason=reason,
+                note=payload.note,
+                refunded_at=datetime.now(timezone.utc),
+            )
+        else:
+            credit_note_report = {'ok': False, 'reason': 'no_customer_email'}
+    except Exception as e:
+        logger.warning(f'[stripe_refund] credit note skip: {e}')
+        credit_note_report = {'ok': False, 'reason': f'exception: {e}'}
+
     return {
         'dry_run': False,
         'refunded': True,
@@ -468,6 +507,7 @@ async def stripe_refund(payload: RefundPayload, _admin: dict = Depends(require_a
         'currency': refund_dict.get('currency'),
         'status': refund_dict.get('status'),
         'charge': charge_info,
+        'credit_note': credit_note_report,
     }
 
 
@@ -540,6 +580,30 @@ async def admin_invoice_counter(_admin: dict = Depends(require_admin)) -> Dict[s
         'last_seq': seq,
         'last_number': format_number(year, seq) if seq > 0 else None,
         'next_number': format_number(year, seq + 1) if db_ok else '— (fallback AAMM-XXXX)',
+        'backend': 'mongo' if db_ok else 'fallback',
+        'checked_at': datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@router.get('/credit-note-counter')
+async def admin_credit_note_counter(_admin: dict = Depends(require_admin)) -> Dict[str, Any]:
+    """Même structure que `/invoice-counter`, mais pour les avoirs (format AVOIR-AAAA-NNNNNN).
+
+    Les avoirs sont séquencés INDÉPENDAMMENT des factures (exigence comptable
+    FR : les 2 registres ne se mélangent pas). Mise à jour automatique à
+    chaque POST /admin/stripe-refund (dry_run=false) qui réussit.
+    """
+    from services.credit_note_counter import peek_current_seq, format_number
+    from services.mongo import get_db
+
+    year = datetime.now(timezone.utc).year
+    seq = await peek_current_seq(year)
+    db_ok = get_db() is not None
+    return {
+        'year': year,
+        'last_seq': seq,
+        'last_number': format_number(year, seq) if seq > 0 else None,
+        'next_number': format_number(year, seq + 1) if db_ok else '— (fallback)',
         'backend': 'mongo' if db_ok else 'fallback',
         'checked_at': datetime.now(timezone.utc).isoformat(),
     }

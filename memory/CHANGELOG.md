@@ -1,3 +1,68 @@
+## 2026-10-30 (nuit, lot 3) — Avoir PDF automatique + ESLint strict
+
+### 🎯 Objectifs
+Enhancement spark de la session précédente : à chaque refund Stripe, générer automatiquement un avoir PDF conforme FR + l'envoyer par email au client. Numérotation séparée AVOIR-AAAA-NNNNNN. Et durcir le CI ESLint.
+
+### ✅ Backend — Avoir PDF
+- `services/credit_note_counter.py` (nouveau) : compteur séquentiel annuel `AVOIR-AAAA-NNNNNN`, idempotent par `refund_id`, index Mongo unique.
+- `services/credit_note_pdf.py` (nouveau) : builder ReportLab A4, miroir de `invoice_pdf.py`. Référence la facture d'origine (si trouvée), motif libellé (requested_by_customer / duplicate / fraudulent), mention franchise TVA.
+- `services/credit_note_delivery.py` (nouveau) : orchestration allocation + lookup facture d'origine (`invoice_numbers.session_id`) + build PDF + envoi Resend. Fail-silent, retourne un rapport `{ok, credit_note_number, email_sent, invoice_ref, reason}`.
+- `routes/admin_payments.py` :
+  - Hook `send_credit_note_for_refund` dans `/stripe-refund` après `stripe.Refund.create` réussi
+  - Ajout `GET /api/admin/credit-note-counter` (même structure que `/invoice-counter`)
+- Les 2 compteurs sont strictement indépendants (exigence comptable FR).
+
+### ✅ Frontend
+- `AdminPaymentsHealth.jsx` :
+  - Charge en parallèle `/invoice-counter` + `/credit-note-counter`
+  - Grille 2 colonnes : facture (icône Receipt, or) + avoir (icône Undo2, rouge)
+  - Rapport refund enrichi : encart « Avoir généré » avec numéro, référence facture d'origine, statut email envoyé
+
+### ✅ ESLint strict (phase 2)
+- `frontend/eslint.config.js` (nouveau) : flat config ESLint v9 ciblée sur les VRAIS bugs (hooks rules, no-undef, no-unused-vars). Pas de règles stylistiques.
+- 3 erreurs critiques fixées :
+  - `CreditGate.js` : `useCredits` du context AuthProvider alias en `spendCredits` (évite fausse alerte `react-hooks/rules-of-hooks`)
+  - `RetentionCTA.js` NotificationBadge : `useEffect` déplacé AVANT le return conditionnel (vrai bug hooks order)
+  - `KarmaDestin.js` : import `Infinity` renommé `InfinityIcon` (shadow de global, inutilisé de toute façon)
+- `.github/workflows/ci.yml` : job ESLint passe de `continue-on-error: true` à **BLOQUANT** avec `--max-warnings 500`. 482 warnings actuels → cap juste au-dessus pour laisser respirer, à descendre à chaque PR.
+
+### 🧪 Tests
+- `tests/test_credit_note.py` (nouveau, 8 tests) :
+  - format_number
+  - allocate_or_get sans Mongo → None
+  - build_credit_note_pdf standard (avec facture d'origine)
+  - build_credit_note_pdf sans facture d'origine (recovery)
+  - REASON_LABELS couvre 3 motifs
+  - send_credit_note_for_refund : no RESEND_API_KEY, success 200, Resend 403
+- 29 tests passent au total (8 credit note + 6 slack + 6 invoice + 3 stuck + 6 sitemap filter)
+- Génération réelle locale : `AVOIR-2026-000001` + PDF 38 KB avec header or, mentions SIRET/TVA/franchise
+
+### 🗂️ Fichiers touchés
+- `backend/services/credit_note_counter.py` (nouveau)
+- `backend/services/credit_note_pdf.py` (nouveau)
+- `backend/services/credit_note_delivery.py` (nouveau)
+- `backend/routes/admin_payments.py` (hook + endpoint)
+- `backend/tests/test_credit_note.py` (nouveau)
+- `frontend/eslint.config.js` (nouveau)
+- `frontend/src/pages/AdminPaymentsHealth.jsx` (2 compteurs + encart avoir)
+- `frontend/src/components/CreditGate.js` (fix hook rule)
+- `frontend/src/components/RetentionCTA.js` (fix hook order)
+- `frontend/src/pages/KarmaDestin.js` (fix shadow Infinity)
+- `.github/workflows/ci.yml` (ESLint bloquant)
+
+### 📋 Prod flow
+À chaque `POST /api/admin/stripe-refund` (dry_run=false) qui réussit :
+1. Stripe refund créé
+2. metadata DB mise à jour (refunded_at, refund_id)
+3. Numéro avoir alloué atomiquement (AVOIR-AAAA-NNNNNN)
+4. Facture d'origine retrouvée par session_id (si Mongo dispo)
+5. PDF avoir généré (A4, 38 KB)
+6. Email Resend au client avec PDF en pièce jointe + mention « remboursement en route sur votre moyen de paiement d'origine »
+7. Rapport renvoyé à l'admin UI avec statut
+
+---
+
+
 ## 2026-10-30 (nuit, lot 2) — Slack test ping + Dashboard CSP admin + CI amélioré
 
 ### ✅ Backend

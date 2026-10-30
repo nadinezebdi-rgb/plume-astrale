@@ -140,6 +140,7 @@ export default function AdminPaymentsHealth() {
   const [error, setError] = useState(null);
   // AUDIT (2026-10-30 · Nao) : compteur facture + remboursement
   const [invoiceCounter, setInvoiceCounter] = useState(null);
+  const [creditNoteCounter, setCreditNoteCounter] = useState(null);
   const [refundingId, setRefundingId] = useState(null);
   const [refundReport, setRefundReport] = useState(null);
   // AUDIT : test ping Slack manuel
@@ -160,14 +161,17 @@ export default function AdminPaymentsHealth() {
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const [h, inv] = await Promise.all([
+      const [h, inv, cn] = await Promise.all([
         axios.get(`${API}/api/admin/payments-health?days=${days}`,
           { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/api/admin/invoice-counter`,
           { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: null })),
+        axios.get(`${API}/api/admin/credit-note-counter`,
+          { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: null })),
       ]);
       setHealth(h.data);
       setInvoiceCounter(inv.data);
+      setCreditNoteCounter(cn.data);
     } catch (e) {
       setError(e.response?.data?.detail || 'Erreur lors du chargement.');
     } finally { setLoading(false); }
@@ -352,33 +356,47 @@ export default function AdminPaymentsHealth() {
               />
             </div>
 
-            {/* AUDIT (2026-10-30 · Nao) : Compteur facture séquentiel annuel FR */}
-            {invoiceCounter && (
-              <div className="rounded-2xl p-5 mb-8 flex items-center gap-5 flex-wrap" style={{
-                background: 'rgba(212,175,55,0.06)',
-                border: '1px solid rgba(212,175,55,0.22)',
-              }} data-testid="invoice-counter-banner">
-                <Receipt className="w-10 h-10 flex-shrink-0" style={{ color: '#D4AF37' }} strokeWidth={1.4}/>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[10px] uppercase tracking-widest mb-1" style={{ color: 'var(--pa-muted)', letterSpacing: '0.12em' }}>
-                    Compteur facture {invoiceCounter.year} — exigence comptable FR
+            {/* AUDIT (2026-10-30 · Nao) : Compteurs facture + avoir séquentiels annuels FR */}
+            {(invoiceCounter || creditNoteCounter) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                {invoiceCounter && (
+                  <div className="rounded-2xl p-5 flex items-center gap-5" style={{
+                    background: 'rgba(212,175,55,0.06)',
+                    border: '1px solid rgba(212,175,55,0.22)',
+                  }} data-testid="invoice-counter-banner">
+                    <Receipt className="w-10 h-10 flex-shrink-0" style={{ color: '#D4AF37' }} strokeWidth={1.4}/>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] uppercase tracking-widest mb-1" style={{ color: 'var(--pa-muted)', letterSpacing: '0.12em' }}>
+                        Factures {invoiceCounter.year}
+                      </div>
+                      <div className="text-xl truncate" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#D4AF37' }}>
+                        {invoiceCounter.last_number || <em style={{ color: 'var(--pa-muted)' }}>aucune</em>}
+                      </div>
+                      <div className="text-[11px] mt-0.5" style={{ color: 'var(--pa-muted)' }}>
+                        prochaine → {invoiceCounter.next_number}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-baseline gap-4 flex-wrap">
-                    <span className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#D4AF37' }}>
-                      {invoiceCounter.last_number || <em style={{ color: 'var(--pa-muted)' }}>aucune facture émise</em>}
-                    </span>
-                    <span className="text-xs" style={{ color: 'var(--pa-muted)' }}>
-                      · prochaine → <span style={{ color: '#F5EEE0' }}>{invoiceCounter.next_number}</span>
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full"
-                      style={{
-                        background: invoiceCounter.backend === 'mongo' ? 'rgba(74,222,128,0.12)' : 'rgba(239,68,68,0.12)',
-                        color: invoiceCounter.backend === 'mongo' ? '#4ADE80' : '#FCA5A5',
-                      }}>
-                      backend : {invoiceCounter.backend}
-                    </span>
+                )}
+                {creditNoteCounter && (
+                  <div className="rounded-2xl p-5 flex items-center gap-5" style={{
+                    background: 'rgba(239,68,68,0.06)',
+                    border: '1px solid rgba(239,68,68,0.22)',
+                  }} data-testid="credit-note-counter-banner">
+                    <Undo2 className="w-10 h-10 flex-shrink-0" style={{ color: '#FCA5A5' }} strokeWidth={1.4}/>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] uppercase tracking-widest mb-1" style={{ color: 'var(--pa-muted)', letterSpacing: '0.12em' }}>
+                        Avoirs {creditNoteCounter.year}
+                      </div>
+                      <div className="text-xl truncate" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#FCA5A5' }}>
+                        {creditNoteCounter.last_number || <em style={{ color: 'var(--pa-muted)' }}>aucun</em>}
+                      </div>
+                      <div className="text-[11px] mt-0.5" style={{ color: 'var(--pa-muted)' }}>
+                        prochain → {creditNoteCounter.next_number}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
@@ -391,13 +409,30 @@ export default function AdminPaymentsHealth() {
                 <div className="text-sm mb-1" style={{ color: refundReport.refunded ? '#4ADE80' : '#FCA5A5' }}>
                   {refundReport.refunded ? '✓ Remboursement Stripe exécuté' : '✗ Remboursement non exécuté'}
                 </div>
-                <div className="text-xs" style={{ color: 'var(--pa-muted)' }}>
+                <div className="text-xs mb-2" style={{ color: 'var(--pa-muted)' }}>
                   Session {refundReport.sessionId}
                   {refundReport.refund_id && <> · Refund <code>{refundReport.refund_id}</code></>}
                   {refundReport.amount_refunded != null && <> · <strong>{refundReport.amount_refunded} {(refundReport.currency || '').toUpperCase()}</strong></>}
                   {refundReport.status && <> · statut {refundReport.status}</>}
                   {refundReport.reason_skipped && <> · {refundReport.reason_skipped}</>}
                 </div>
+                {refundReport.credit_note && (
+                  <div className="text-xs rounded-lg p-3" style={{ background: 'rgba(0,0,0,0.25)', borderLeft: '2px solid rgba(212,175,55,0.5)' }}>
+                    <div className="text-[10px] uppercase tracking-widest mb-1" style={{ color: 'var(--pa-muted)' }}>Avoir généré</div>
+                    {refundReport.credit_note.ok ? (
+                      <span style={{ color: '#4ADE80' }}>
+                        ✓ Avoir <strong>{refundReport.credit_note.credit_note_number}</strong> émis
+                        {refundReport.credit_note.invoice_ref && <> (réf. {refundReport.credit_note.invoice_ref})</>}
+                        {refundReport.credit_note.email_sent && <> — email client envoyé</>}
+                      </span>
+                    ) : (
+                      <span style={{ color: '#FCA5A5' }}>
+                        ⚠︎ Avoir non généré : {refundReport.credit_note.reason}
+                        {refundReport.credit_note.credit_note_number && <> (numéro alloué : {refundReport.credit_note.credit_note_number})</>}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <button onClick={() => setRefundReport(null)} className="mt-2 text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>
                   fermer
                 </button>
