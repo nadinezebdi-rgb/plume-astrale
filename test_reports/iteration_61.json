@@ -21,7 +21,7 @@
   ],
   "updated_files": ["/app/backend/tests/test_iteration61_bundle_complementaires.py"],
   "success_rate": {"backend": "100% (15/15 pytest)", "frontend": "100% (10/10 UI checks)"},
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 (deja dans /app/memory/test_credentials.md)",
+  "test_credentials": "admin@plume-astrale.fr / [redacted] (deja dans /app/memory/test_credentials.md)",
   "seed_data_creation": "Aucune (utilise e2e-admin-lecture-001 pre-existant). Nettoyage metadata refunded_at applique en fin de test — verifie via script direct Supabase (refunded_at=None, refund_reason=None, refunded_by=None).",
   "retest_needed": false,
   "main_agent_can_self_test": true,

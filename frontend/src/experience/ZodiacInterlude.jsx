@@ -10,6 +10,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import { computeZodiac, ZODIAC_STARS } from './zodiacUtils';
 import { event as trackEvent } from '@/lib/analytics';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 export default function ZodiacInterlude({ visible, onComplete, onSkip }) {
   const [step, setStep] = useState('input'); // 'input' | 'reveal'
@@ -66,7 +67,7 @@ export default function ZodiacInterlude({ visible, onComplete, onSkip }) {
             Le ciel n&apos;était pas le même le jour où vous êtes venu au monde.<br />
             <em style={{ opacity: 0.75 }}>Confiez-nous cette date, un instant.</em>
           </p>
-          <input
+          <FrenchDateInput
             type="date"
             value={dob}
             onChange={(e) => setDob(e.target.value)}

@@ -30,7 +30,7 @@
     "/app/backend/tests/test_iteration54_garyvee_refonte.py (new)"
   ],
   "success_rate": {"backend": "89% (17/19)", "frontend": "not tested (backend only)"},
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026",
+  "test_credentials": "admin@plume-astrale.fr / [redacted]",
   "seed_data_creation": "TEST_iter54@example.com — 1 payment_transactions row initiated/unpaid (session_id Stripe LIVE créée mais non payée, expire dans 24h)",
   "retest_needed": true,
   "main_agent_can_self_test": true,

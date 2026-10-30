@@ -51,7 +51,7 @@
     "/app/backend/tests/test_iteration48_github_resync.py"
   ],
   "success_rate": {"backend": "100% (12/12 pytest en 73s)", "frontend": "100% (12 routes + 2 e2e critiques PASS)"},
-  "test_credentials": "Admin admin@plume-astrale.fr / PlumeAdmin2026 (validé). Promo TESTPLUME opérationnelle sur /api/pack-karmique, /api/rencontres, /api/kabbale, /api/numerologie, /api/karma-destin, /api/fenetre-rencontre-avancee.",
+  "test_credentials": "Admin admin@plume-astrale.fr / [redacted] (validé). Promo TESTPLUME opérationnelle sur /api/pack-karmique, /api/rencontres, /api/kabbale, /api/numerologie, /api/karma-destin, /api/fenetre-rencontre-avancee.",
   "seed_data_creation": "~15 lignes payment_transactions insérées en Supabase (préfixe TEST_ dans les emails, sessions admin-* + quelques Stripe pending). Aucun profile touché.",
   "retest_needed": false,
   "should_main_agent_self_test": false,

@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 /**
@@ -62,7 +62,7 @@ export default function PdfFlipbook({ product, title, onClose, testid = 'pdf-fli
     });
   }, [backend, product, currentPage, totalPages]);
 
-  const goTo = (direction) => {
+  const goTo = useCallback((direction) => {
     if (flipping) return;
     const next = direction === 'next' ? currentPage + 1 : currentPage - 1;
     if (next < 0 || next >= totalPages) return;
@@ -71,7 +71,7 @@ export default function PdfFlipbook({ product, title, onClose, testid = 'pdf-fli
       setCurrentPage(next);
       setFlipping(null);
     }, 620);
-  };
+  }, [currentPage, flipping, totalPages]);
 
   // Clavier : ← → esc
   useEffect(() => {
@@ -82,8 +82,7 @@ export default function PdfFlipbook({ product, title, onClose, testid = 'pdf-fli
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, totalPages, flipping, onClose]);
+  }, [goTo, onClose]);
 
   const pageUrl = useMemo(
     () => (idx) => `${backend}/api/pdf-preview/${product}/page/${idx}.jpg`,

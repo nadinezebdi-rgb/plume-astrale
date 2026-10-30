@@ -14,10 +14,21 @@ jobs:
   backend-tests:
     name: Backend · pytest
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+
+    services:
+      # MongoDB éphémère : certains tests unitaires (alert cooldown, tarot reveal)
+      # utilisent un vrai client Mongo sur localhost:27017.
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Lier /app au dépôt (chemins absolus hérités de l'environnement Emergent)
+        run: sudo ln -sfn "$GITHUB_WORKSPACE" /app
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
@@ -41,6 +52,8 @@ jobs:
           DB_NAME: plume_ci
           SUPABASE_URL: https://ci.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ci-fake-key
+          SUPABASE_ANON_KEY: ci-fake-key
+          SUPABASE_JWT_SECRET: ci-fake-jwt-secret-0123456789abcdef0123456789abcdef0123
           EMERGENT_LLM_KEY: ci-fake-key
           STRIPE_API_KEY: sk_test_ci
           STRIPE_ALLOW_TEST_MODE: 'true'
@@ -66,12 +79,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'yarn'
-          cache-dependency-path: frontend/yarn.lock
+          # Pas de cache yarn : le dépôt ne versionne pas de yarn.lock
+          # (même installation que Vercel : `yarn install` sans lockfile).
 
       - name: Install deps
         working-directory: frontend
-        run: yarn install --frozen-lockfile
+        run: yarn install --non-interactive --network-timeout 600000
 
       - name: ESLint (strict · 0 erreur, 0 warning)
         working-directory: frontend
@@ -98,8 +111,19 @@ jobs:
     timeout-minutes: 5
     needs: [backend-tests]
 
+    services:
+      # MongoDB éphémère : certains tests unitaires (alert cooldown, tarot reveal)
+      # utilisent un vrai client Mongo sur localhost:27017.
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Lier /app au dépôt (chemins absolus hérités de l'environnement Emergent)
+        run: sudo ln -sfn "$GITHUB_WORKSPACE" /app
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
@@ -121,6 +145,8 @@ jobs:
           DB_NAME: plume_ci
           SUPABASE_URL: https://ci.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ci-fake-key
+          SUPABASE_ANON_KEY: ci-fake-key
+          SUPABASE_JWT_SECRET: ci-fake-jwt-secret-0123456789abcdef0123456789abcdef0123
           EMERGENT_LLM_KEY: ci-fake-key
           STRIPE_API_KEY: sk_test_ci
           STRIPE_ALLOW_TEST_MODE: 'true'

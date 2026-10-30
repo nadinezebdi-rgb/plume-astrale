@@ -5,13 +5,14 @@ Monté sur le même préfixe `/admin`.
 """
 from __future__ import annotations
 import asyncio
+import hmac
 import logging
 import os
 from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel
 
 from routes.admin import require_admin
@@ -79,7 +80,10 @@ async def admin_leads(
 # Daily journal cron + regenerate horoscopes
 # ─────────────────────────────────────────────────────────────────
 @router.post('/cron/send-daily-journal')
-async def cron_send_daily_journal(cron_secret: Optional[str] = Query(None)):
+async def cron_send_daily_journal(
+    cron_secret: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None),
+):
     """Envoyer le journal quotidien à tous les utilisateurs (cron task).
 
     SEC-hardening : CRON_SECRET est OBLIGATOIRE. Sans lui, refus explicite
@@ -89,7 +93,11 @@ async def cron_send_daily_journal(cron_secret: Optional[str] = Query(None)):
     if not env_secret:
         logger.error('[cron] CRON_SECRET manquant en env — refus.')
         raise HTTPException(status_code=503, detail='CRON_SECRET not configured on server')
-    if not cron_secret or cron_secret != env_secret:
+    # Secret accepté via "Authorization: Bearer <secret>" (préféré, hors logs d'URL) ou ?cron_secret=
+    provided = cron_secret
+    if authorization and authorization.lower().startswith('bearer '):
+        provided = authorization[7:].strip()
+    if not provided or not hmac.compare_digest(provided.encode(), env_secret.encode()):
         raise HTTPException(status_code=403, detail='Invalid cron secret')
 
     from services.journal_email_service import send_daily_journal_batch

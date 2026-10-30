@@ -152,8 +152,7 @@ export default function Blog() {
       if (ld.parentNode) document.head.removeChild(ld);
       if (observer) observer.disconnect();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [knownSlug]);
 
   // SEO P2 : redirection /blog?post=slug → /blog/slug (URL propre)
   // Placée APRÈS useEffect pour respecter rules-of-hooks — le return
