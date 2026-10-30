@@ -46,8 +46,8 @@ PLANET_META = {
     'Saturne':   {'glyph': '♄', 'dialogue': "Ce que tu prends pour un plafond, c'est en réalité une fondation."},
     'Uranus':    {'glyph': '♅', 'dialogue': "Ce que tu appelles instabilité, tes ancêtres l'appelaient génie. C'est ta manière de mettre le monde à jour."},
     'Neptune':   {'glyph': '♆', 'dialogue': "Tu as cette sensibilité : sentir avant de voir. Ce n'est pas de la fuite — c'est une intuition qui n'a pas encore trouvé ses mots."},
-    'Pluton':    {'glyph': '♇', 'dialogue': "Ce que tu as traversé de plus dur t'a préparée à voir ce que personne ne veut regarder. C'est ta force silencieuse."},
-    'Ascendant': {'glyph': '⇑', 'dialogue': "Les autres te trouvent parfois plus forte que tu ne te sens. Et cette impression n'est pas fausse."},
+    'Pluton':    {'glyph': '♇', 'dialogue': "Ce que tu as traversé de plus dur te prépare à voir ce que personne ne veut regarder. C'est ta force silencieuse."},
+    'Ascendant': {'glyph': '⇑', 'dialogue': "Les autres perçoivent en toi une force plus grande que celle que tu ressens. Et cette impression n'est pas fausse."},
 }
 
 _PLANET_NAMES_FR = {
@@ -607,7 +607,7 @@ def build_natal_pdf_v2(prenom: str, birth_date: str, natal_data: dict,
                     f"dessinent ta signature relationnelle. "
                     f"<br/><br/>Tu abordes l'autre avec une sensibilité particulière, où la fidélité, "
                     f"la tendresse et la lucidité se croisent. Tes relations majeures ne sont jamais "
-                    f"anodines : chacune te révèle une facette de toi que tu ne voyais pas seule. "
+                    f"anodines : chacune te révèle une facette de toi que tu ne voyais pas en solitaire. "
                     f"Dans l'intimité, tu cherches moins la facilité qu'une forme de vérité partagée.",
                  'amoureux'),
                 ('Activité & vocation', 'où tu déposes ton énergie dans le monde',

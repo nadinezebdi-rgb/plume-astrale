@@ -504,7 +504,7 @@ class FenetreRencontrePDFGenerator:
             'Ces fenêtres ne sont pas des promesses, ce sont des invitations. '
             'L\'univers t\'ouvre des portes ; à toi d\'y marcher avec confiance et rayonnement.<br/><br/>'
             
-            'N\'oublie pas : tu n\'es jamais seule. Les étoiles veillent sur toi.<br/><br/>'
+            'N\'oublie pas : tu n\'es jamais tout(e) seul(e). Les étoiles veillent sur toi.<br/><br/>'
             
             '<i>Avec tout mon amour cosmique,</i><br/>'
             '<i>Solena — La voix de Plume Astrale</i>',
