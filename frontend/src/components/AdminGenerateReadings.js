@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import axios from 'axios';
-import { Loader2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const PROMO = '__ADMIN_BYPASS__';
