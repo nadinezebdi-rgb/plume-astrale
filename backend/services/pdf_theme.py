@@ -200,7 +200,7 @@ def ornament_safe(text: str) -> str:
     out = []
     has_ornament_font = _is_registered('OrnamentSerif')
     in_ornament_font = False
-    for part in re.split(r'(<[^>]+>)', text):
+    for part in re.split(r'(<[^<>]+>)', text):
         if part.startswith('<'):
             low = part.lower()
             if 'name="ornamentserif"' in low or "name='ornamentserif'" in low:
