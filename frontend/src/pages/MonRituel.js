@@ -1,5 +1,5 @@
 import {useState, useEffect, useCallback, useMemo} from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import SEOServiceEnrich from '@/components/SEOServiceEnrich';
@@ -157,7 +157,8 @@ const MonRituel = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState([]);
 
-  // Stable user_id (anonyme OU auth)
+  // Stable user_id (anonyme OU auth) — conservé pour futur usage analytics.
+  // eslint-disable-next-line no-unused-vars
   const userId = useMemo(() => {
     if (isAuthenticated && user?.id) return user.id;
     let sid = null;

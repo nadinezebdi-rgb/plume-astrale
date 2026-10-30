@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Loader2, ArrowLeft, Sparkles, Download, Lock, Eye, Tag, Heart, Briefcase, Coins, BookOpen } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -22,7 +22,7 @@ const PREDICTION_CATS = [
   { key: 'finance', label: 'Finances', icon: Coins, color: '#D4AF37' },
 ];
 
-const CrossCard = ({ item, index, isLocked, onPurchase }) => {
+const CrossCard = ({ item, index: _index, isLocked, onPurchase: _onPurchase }) => {
   if (!item) return null;
   const posInfo = POSITION_LABELS[item.position_id] || {};
 
@@ -75,7 +75,7 @@ const Tarologie = () => {
   const [tirage, setTirage] = useState(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [hasPaid, setHasPaid] = useState(false);
-  const [selectedCard, setSelectedCard] = useState(null);
+  const [, setSelectedCard] = useState(null);
   const [showPromo, setShowPromo] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoError, setPromoError] = useState('');

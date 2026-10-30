@@ -1079,7 +1079,7 @@ function UserActions({ user, token, onChange }) {
   const [premiumDays, setPremiumDays] = useState('');
   const [msg, setMsg] = useState('');
 
-  const flash = (text, ok = true) => {
+  const flash = (text, _ok = true) => {
     setMsg(text);
     setTimeout(() => setMsg(''), 2500);
   };

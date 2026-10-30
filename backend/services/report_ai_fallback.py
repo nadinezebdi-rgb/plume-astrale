@@ -40,7 +40,7 @@ _FALLBACKS: Dict[str, Dict[str, str]] = {
             "<br/><br/>"
             "Cette destinée ne se conquiert pas par la performance. Elle s'apprivoise par "
             "des gestes concrets et minuscules, répétés jusqu'à ce qu'ils cessent d'être "
-            "inconfortables. Tu vas devoir désapprendre ce qui t'a rendu(e) forte pour "
+            "inconfortables. Tu vas devoir désapprendre ce qui t'a solidifié(e) pour "
             "apprendre ce qui va te rendre libre."
             "<br/><br/>"
             "Attends-toi à un signe : chaque fois qu'une opportunité te terrifie <i>et</i> "

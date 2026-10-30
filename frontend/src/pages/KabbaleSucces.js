@@ -67,7 +67,7 @@ const KabbaleSucces = () => {
 
         <div className="plume-glass p-8 mb-8">
           <ul className="space-y-4">
-            {STEPS.map((s, i) => {
+            {STEPS.map((s) => {
               const st = stepState(s.key);
               return (
                 <li key={s.key} className="flex items-center gap-3" data-testid={`kabbale-step-${s.key}-${st}`}>

@@ -1,4 +1,4 @@
-/* eslint-disable react/no-unescaped-entities */
+ 
 /**
  * MonLivrePage.jsx — Lecteur flipbook du Livre Astral (LOT 4.4).
  *

@@ -30,11 +30,6 @@ const Compatibilite = () => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showPromo, setShowPromo] = useState(false);
-  const [promoCode, setPromoCode] = useState('');
-  const [promoLoading, setPromoLoading] = useState(false);
-  const [promoError, setPromoError] = useState('');
-  const [promoOk, setPromoOk] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [shareLinkCopied, setShareLinkCopied] = useState(false);
 
@@ -91,22 +86,6 @@ const Compatibilite = () => {
       setError(e.response?.data?.detail || 'Erreur lors de la connexion au service astrologique.');
     }
     setLoading(false);
-  };
-
-  const handleApplyPromo = async () => {
-    if (!promoCode.trim()) return;
-    setPromoLoading(true); setPromoError('');
-    try {
-      const res = await axios.post(`${API_URL}/api/discount/validate`, { code: promoCode });
-      if (res.data.valid && res.data.discount_percent === 100) {
-        setPromoOk(true);
-      } else {
-        setPromoError(res.data.message || 'Code invalide');
-      }
-    } catch {
-      setPromoError('Erreur de connexion');
-    }
-    setPromoLoading(false);
   };
 
   const downloadCard = async () => {

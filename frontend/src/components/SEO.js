@@ -584,6 +584,7 @@ const SEO = ({ path, title, description, image, jsonLd, noindex: noindexProp, ca
 
     // JSON-LD dynamiques (remplace les précédents dynamic; garde les statiques d'index.html)
     replaceJsonLd(schemas);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [safePath, pageTitle, pageDesc, pageImage, canonical, data, jsonLd, shouldNoindex, liveReviews]);
 
   return null;

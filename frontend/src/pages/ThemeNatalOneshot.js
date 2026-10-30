@@ -37,7 +37,7 @@ const applyTimeMask = (v) => {
 };
 
 const ThemeNatalOneshot = () => {
-  const { user, token, isAuthenticated } = useAuth();
+  const { token, isAuthenticated } = useAuth();
   const nav = useNavigate();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({

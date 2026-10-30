@@ -45,7 +45,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const AssetCard = ({ item, entry, onRegen, busy, token }) => {
+const AssetCard = ({ item, entry, onRegen, busy, token: _token }) => {
   const status = entry?.status || 'pending';
   const url = entry?.files?.web ? `${API}${entry.files.web}` : null;
   const hqUrl = entry?.files?.hq ? `${API}${entry.files.hq}` : null;

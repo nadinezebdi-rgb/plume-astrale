@@ -1,4 +1,4 @@
-/* eslint-disable react/no-unescaped-entities */
+ 
 /**
  * ComposerSucces.jsx — Scène cinématographique d'attente pendant la génération du livre.
  *

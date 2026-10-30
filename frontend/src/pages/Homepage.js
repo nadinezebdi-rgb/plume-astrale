@@ -1,28 +1,19 @@
 import {useState} from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, BookOpen, Compass, Heart,
+  ArrowRight, BookOpen,
 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { ctaClick } from '@/lib/analytics';
 import CelestialBackdrop from '@/components/CelestialBackdrop';
-import LiveConstellation from '@/components/LiveConstellation';
 import PdfFlipbook from '@/components/PdfFlipbook';
 // Note : CinematicHero retiré — utilisé uniquement sur /manifesto (dead import ici).
-import PremiumPillars from '@/components/PremiumPillars';
-import SolenaGuideCard from '@/components/SolenaGuideCard';
-import HomepageMiniQuiz from '@/components/HomepageMiniQuiz';
 import TrustBar from '@/components/TrustBar';
-import HowItWorks3Tiers from '@/components/HowItWorks3Tiers';
 // Nocturne Éditorial — Feb 2026
 import NocturneHero from '@/components/nocturne/NocturneHero';
 import NocturneManifest from '@/components/nocturne/NocturneManifest';
-import NocturneServices from '@/components/nocturne/NocturneServices';
 import NocturneClosing from '@/components/nocturne/NocturneClosing';
-import NocturneLeadMagnet from '@/components/nocturne/NocturneLeadMagnet';
 import NocturneFAQ from '@/components/nocturne/NocturneFAQ';
-import NocturneDailyArticle from '@/components/nocturne/NocturneDailyArticle';
-import CinematicBookShowcase from '@/components/nocturne/CinematicBookShowcase';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -33,65 +24,6 @@ import { useAuth } from '@/context/AuthContext';
  * Playfair Display pour les titres, Inter pour le corps.
  * Un seul CTA doré par section. Grille 12 colonnes, max 1200px.
  */
-
-const VALUE_PILLARS = [
-  {
-    icon: BookOpen,
-    title: 'Analyse personnalisée',
-    body: 'Composée à partir de vos données de naissance exactes (date, heure, lieu) — pas une variation générique par signe. Chaque lecture est unique.',
-  },
-  {
-    icon: Compass,
-    title: 'Guidance actionnable',
-    body: 'Vos cycles, vos points d\'inflexion, vos leviers de décision. Pas de prédictions — un cadre pour lire les périodes qui comptent.',
-  },
-  {
-    icon: Heart,
-    title: 'Livraison sous 60 secondes',
-    body: 'PDF premium reçu instantanément par email dès validation du paiement. À télécharger, archiver, imprimer — vous en gardez la propriété à vie.',
-  },
-];
-
-const SERVICES = [
-  {
-    title: 'Thème Natal',
-    desc: 'Onze planètes qui racontent qui tu es vraiment.',
-    price: '24€',
-    to: '/theme-natal',
-  },
-  {
-    title: 'Arbre de Vie · Kabbale',
-    desc: 'Tes dix Sephiroth posées sur ta cartographie d\'âme.',
-    price: '39€',
-    to: '/kabbale',
-  },
-  {
-    title: 'Astrocartographie',
-    desc: 'Où vivre ta meilleure vie — sept lignes planétaires.',
-    price: '49€',
-    to: '/astrocartographie',
-  },
-  {
-    title: 'Karma & Destin',
-    desc: 'Ta lignée karmique, Nœud Nord et mission de vie.',
-    price: '29€',
-    to: '/karma-destin',
-  },
-  {
-    title: 'Compatibilité amoureuse',
-    desc: 'Vos deux ciels comparés — affinités, tensions, karma.',
-    price: '49€',
-    to: '/compatibilite-amoureuse',
-  },
-  {
-    title: 'Numérologie',
-    desc: 'Chemin de vie, expression, âme, année personnelle.',
-    price: '29€',
-    to: '/numerologie',
-  },
-];
-
-const TESTIMONIALS = [];  // Concours 2026 : aucun témoignage codé en dur.
 
 export default function Homepage() {
   const { user } = useAuth();

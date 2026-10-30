@@ -281,7 +281,6 @@ export default function EnhancedMoon3D({ step = 1, isLoading = false }) {
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    
     const state = stateRef.current;
     state.disposed = false;
 
@@ -489,6 +488,7 @@ export default function EnhancedMoon3D({ step = 1, isLoading = false }) {
       auraMat.dispose();
       renderer.dispose();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

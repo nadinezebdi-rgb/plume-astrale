@@ -150,25 +150,7 @@ const Compatibilite2 = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handlePurchase = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/checkout/create`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product_id: 'compatibilite',
-          origin_url: window.location.origin,
-          user_data: { person1, person2, question }
-        }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (e) {
-      console.error('Payment error:', e);
-    }
-  };
+  // handlePurchase retiré — remplacé par handleGenerateFree (flux crédits).
 
   const handleApplyPromo = async () => {
     if (!promoCode.trim()) return;

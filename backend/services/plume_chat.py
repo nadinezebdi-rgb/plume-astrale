@@ -179,7 +179,7 @@ Utilisateur démarre avec 20 crédits offerts (2 questions).
 Chaque question coûte 10 crédits.
 
 Si crédits insuffisants, invitation CHALEUREUSE (jamais forcée) :
-« Ce que révèle ton tirage est riche et nécessite un peu plus de profondeur. Recharge quand tu es prête, et on continue là où on s'est arrêtées ? »
+« Ce que révèle ton tirage est riche et nécessite un peu plus de profondeur. Recharge quand tu veux, et on continue là où on s'est arrêté(e)s ? »
 
 Packs tarifaires (à mentionner naturellement si besoin) :
 — Initiation : 4,99€

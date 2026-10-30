@@ -3006,3 +3006,15 @@ Sur **73 paiements confirmés en base, ZÉRO n'était tracké dans Meta**. Le tu
 2. **Vérifier** : `SELECT * FROM public.checkout_attribution LIMIT 1;` (doit renvoyer 0 ligne, pas d'erreur)
 3. **Rollout ordre** : Migration → Backend → Frontend (sinon le middleware log un warning inoffensif)
 4. **Vérifier après déploiement** : Business Manager → Events Manager → Test Events, faire un vrai achat, confirmer 1 seul Purchase reçu (pas 2 → dédup OK)
+
+## 2026-02 · ESLint Lot 6 — Zéro warning
+
+- Nettoyage complet des 92 warnings ESLint restants :
+  - Suppression de 10 imports lazy morts dans `src/App.js` (ABTestHome, Tarot, KabbaleSales, ThemeNatalLuxe, NosLivres, KarmaDestin, Compatibilite, KarmaDestinPDF, KarmaDestinWaiting, TrialBanner)
+  - Nettoyage de ~20 imports Lucide-react / composants inutilisés (Homepage, Compatibilite, AstrologieChinoise, KarmaDestin, Horoscope, HumanDesign, MonRituel, NewHome, ThemeNatalOneshotSucces, QuickOracle, SalesPageV3, SolenaVideoHero, StarfieldBackdrop, etc.)
+  - Suppression du state mort (promo, user, zodiacSign, horoscopeData, showShareMenu, unlocked, isPlaying, selectedCard, debugInfo, writeThresholds, writeProgress, tx…)
+  - Hook deps intentionnelles annotées avec `// eslint-disable-next-line react-hooks/exhaustive-deps` (SEO, Blog, MonCompte, PdfFlipbook, EnhancedMoon3D, SynastrieExitIntentModal, ExperienceRoot)
+  - Suppression des shaders Moon3D legacy inutilisés (moonVertex/Fragment — remplacé par MeshStandardMaterial)
+- `.github/workflows/ci.yml` : `--max-warnings 100` → **`--max-warnings 0`**
+- Résultat : `npx eslint src` passe en **0 erreur, 0 warning**
+- Smoke test home desktop OK, aucun régression visuelle

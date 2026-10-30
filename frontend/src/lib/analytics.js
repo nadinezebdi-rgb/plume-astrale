@@ -51,7 +51,7 @@ export function setConsent(value) {
 
 function pushConsentGranted() {
   if (typeof window === 'undefined' || !window.dataLayer) return;
-  // eslint-disable-next-line no-inner-declarations
+   
   function gtag() { window.dataLayer.push(arguments); }
   gtag('consent', 'update', {
     ad_storage: 'granted',

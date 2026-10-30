@@ -1,8 +1,5 @@
 import {useState} from 'react';
 import { Sparkles, ArrowRight, X } from 'lucide-react';
-import axios from 'axios';
-
-const API = process.env.REACT_APP_BACKEND_URL;
 
 const ZODIACS = [
   'Bélier', 'Taureau', 'Gémeaux', 'Cancer',

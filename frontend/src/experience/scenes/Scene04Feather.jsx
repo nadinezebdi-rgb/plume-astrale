@@ -225,7 +225,7 @@ export default function Scene04Feather() {
   // Positions cibles : plume + texte (générées une fois)
   const {
     startPositions, featherTargets, textTargets,
-    offsets, currentPositions, writeThresholds,
+    offsets, currentPositions,
     chaosOffsets,
   } = useMemo(() => {
     const startPositions = new Float32Array(count * 3);
@@ -236,6 +236,7 @@ export default function Scene04Feather() {
     // writeThreshold[i] = position X du texte normalisée sur [0..1]
     //   → détermine QUAND cette particule commence à se placer pendant l'écriture
     const writeThresholds = new Float32Array(count);
+    void writeThresholds;
     // Chaos : bruit local propre à chaque particule
     const chaosOffsets = new Float32Array(count * 2);
 
@@ -267,7 +268,7 @@ export default function Scene04Feather() {
     }
     return {
       startPositions, featherTargets, textTargets, offsets,
-      currentPositions, writeThresholds, chaosOffsets,
+      currentPositions, chaosOffsets,
     };
   }, [count]);
 
@@ -320,7 +321,6 @@ export default function Scene04Feather() {
     }
 
     const posAttr = geoRef.current.attributes.position;
-    const activeTextTargets = textTargetsRef.current;
 
     // Détermine la phase courante
     // Phase A CHAOS         [0, T_END_CHAOS]         particules oscillent en place à leur position de départ
@@ -330,10 +330,9 @@ export default function Scene04Feather() {
     // Phase E WRITING       [T_END_PAUSE, T_END_WRITING]     écriture synchronisée gauche→droite
     // Phase F STABLE        [T_END_WRITING, ∞)             texte stable + sweep
 
-    // writeProgress (0..1) sur toute la phase E
-    let writeProgress = 0;
+    // writeProgress calculé en interne pour un futur hook — pas encore utilisé.
     if (elapsed >= T_END_PAUSE) {
-      writeProgress = Math.min(1, (elapsed - T_END_PAUSE) / T_WRITING);
+      // placeholder phase E
     }
 
     for (let i = 0; i < count; i++) {
@@ -343,7 +342,6 @@ export default function Scene04Feather() {
       const fx = featherTargets[i * 3 + 0];
       const fy = featherTargets[i * 3 + 1];
       const fz = featherTargets[i * 3 + 2];
-      const tx = activeTextTargets[i * 3 + 0];
       let x, y, z;
 
       if (elapsed < T_END_CHAOS) {

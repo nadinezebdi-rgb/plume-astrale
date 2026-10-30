@@ -240,7 +240,7 @@ export const ZODIAC_SIGNS = [
     traits: ['Originalité', 'Vision', 'Indépendance', 'Fraternité'],
     challenges: [
       "Laisser entrer l'émotion sans la trouver menaçante.",
-      "Accepter d\'appartenir sans avoir l\'impression de se perdre.",
+      "Accepter d'appartenir sans avoir l'impression de se perdre.",
     ],
     keyPeriods: [
       { when: 'Janvier — février', what: 'Anniversaire solaire : moment idéal pour se réinventer, changer de cadre.' },

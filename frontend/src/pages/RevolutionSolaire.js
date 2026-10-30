@@ -117,7 +117,7 @@ const RevolutionSolaire = () => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [unlocked, setUnlocked] = useState(false);
+  const [, setUnlocked] = useState(false);
   const revTilt = use3DTilt({ max: 9, scale: 1.03 });
 
 

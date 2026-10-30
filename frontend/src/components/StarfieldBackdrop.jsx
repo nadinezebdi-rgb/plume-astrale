@@ -60,7 +60,7 @@ export default function StarfieldBackdrop({
       }
     };
 
-    const draw = (t) => {
+    const draw = () => {
       ctx.clearRect(0, 0, w, h);
       for (let i = 0; i < stars.length; i += 1) {
         const s = stars[i];

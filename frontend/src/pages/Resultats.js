@@ -12,8 +12,8 @@ const Resultats = () => {
   const [anneePersonnelle, setAnneePersonnelle] = useState(0);
   const [ascendant, setAscendant] = useState('');
   const [planetsData, setPlanetsData] = useState(null);
-  const [horoscopeData, setHoroscopeData] = useState(null);
-  const [zodiacSign, setZodiacSign] = useState('');
+  const [, setHoroscopeData] = useState(null);
+  const [, setZodiacSign] = useState('');
   const [zodiacFrench, setZodiacFrench] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -25,7 +25,6 @@ const Resultats = () => {
   const [promoLoading, setPromoLoading] = useState(false);
   const [hasFreeAccess, setHasFreeAccess] = useState(false);
   const [isGeneratingCard, setIsGeneratingCard] = useState(false);
-  const [showShareMenu, setShowShareMenu] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
 
   const generateShareCard = async () => {

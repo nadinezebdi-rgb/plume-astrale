@@ -4,7 +4,6 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider, CartCheckoutBridge } from "./context/CartContext";
 
 import Navbar from "./components/NavbarV2";
-import TrialBanner from "./components/TrialBanner";
 
 // AUDIT P2 (2026-10-30 · Nao) : Code splitting pour LCP mobile <2.5s
 // Seules la home immersive + le catch-all 404 restent eager (99 % des landings).
@@ -12,10 +11,8 @@ import TrialBanner from "./components/TrialBanner";
 import HomeExperienceV3 from "./pages/HomeExperienceV3";
 import NotFound from "./pages/NotFound";
 
-const ABTestHome = React.lazy(() => import("./components/ABTestHome"));
 const LectureCompleteSucces = React.lazy(() => import("./pages/LectureCompleteSucces"));
 const AuthPage = React.lazy(() => import("./pages/AuthPage"));
-const Tarot = React.lazy(() => import("./pages/Tarot"));
 const Formulaire = React.lazy(() => import("./pages/Formulaire"));
 const Apercu = React.lazy(() => import("./pages/Apercu"));
 const Paiement = React.lazy(() => import("./pages/Paiement"));
@@ -29,11 +26,8 @@ const TarotAmour = React.lazy(() => import("./pages/TarotAmour"));
 const Tarologie = React.lazy(() => import("./pages/Tarologie"));
 const Numerologie = React.lazy(() => import("./pages/Numerologie"));
 const Archetype = React.lazy(() => import("./pages/Archetype"));
-const KabbaleSales = React.lazy(() => import("./pages/KabbaleSales"));
 const VoyageKarmiqueSales = React.lazy(() => import("./pages/VoyageKarmiqueSales"));
 const VoyageKarmiqueSucces = React.lazy(() => import("./pages/VoyageKarmiqueSucces"));
-const ThemeNatalLuxe = React.lazy(() => import("./pages/ThemeNatalLuxe"));
-const NosLivres = React.lazy(() => import("./pages/NosLivres"));
 const Blog = React.lazy(() => import("./pages/Blog"));
 const BlogArticle = React.lazy(() => import("./pages/BlogArticle"));
 const Decouvrir = React.lazy(() => import("./pages/Decouvrir"));
@@ -51,9 +45,7 @@ const AstrocartographieSales = React.lazy(() => import("./pages/Astrocartographi
 const AstrocartographieSucces = React.lazy(() => import("./pages/AstrocartographieSucces"));
 const PackKarmique = React.lazy(() => import("./pages/PackKarmique"));
 const PackKarmiqueSucces = React.lazy(() => import("./pages/PackKarmiqueSucces"));
-const KarmaDestin = React.lazy(() => import("./pages/KarmaDestin"));
 const Horoscope = React.lazy(() => import("./pages/Horoscope"));
-const Compatibilite = React.lazy(() => import("./pages/Compatibilite"));
 const Compatibilite2 = React.lazy(() => import("./pages/Compatibilite2"));
 const Cercle = React.lazy(() => import("./pages/Cercle"));
 const Quotidien = React.lazy(() => import("./pages/Quotidien"));
@@ -107,8 +99,6 @@ const ExperiencePage = React.lazy(() => import("./pages/Experience"));
 // ─── Advanced PDF Products ────────────────────────────
 const NumerologiePDF = React.lazy(() => import("./pages/NumerologiePDF"));
 const NumerologieWaiting = React.lazy(() => import("./pages/NumerologieWaiting"));
-const KarmaDestinPDF = React.lazy(() => import("./pages/KarmaDestinPDF"));
-const KarmaDestinWaiting = React.lazy(() => import("./pages/KarmaDestinWaiting"));
 // ThemeNatal one-shot 24€
 const ThemeNatalOneshot = React.lazy(() => import("./pages/ThemeNatalOneshot"));
 const ThemeNatalOneshotSucces = React.lazy(() => import("./pages/ThemeNatalOneshotSucces"));
