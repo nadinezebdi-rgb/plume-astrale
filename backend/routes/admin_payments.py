@@ -212,10 +212,13 @@ async def admin_stripe_webhook_health(_admin: dict = Depends(require_admin)) -> 
         import hashlib
         fingerprint = hashlib.sha256(secret.encode()).hexdigest()[:8]
 
+    # Retire d'éventuels guillemets collés autour de la valeur dans l'env
+    api_key = api_key.strip('"\'')
     api_key_mode = None
-    if api_key.startswith('sk_live_'):
+    # sk_ = clé secrète standard, rk_ = clé restreinte (recommandée par Stripe)
+    if api_key.startswith(('sk_live_', 'rk_live_')):
         api_key_mode = 'live'
-    elif api_key.startswith('sk_test_'):
+    elif api_key.startswith(('sk_test_', 'rk_test_')):
         api_key_mode = 'test'
     elif api_key:
         api_key_mode = 'unknown'
