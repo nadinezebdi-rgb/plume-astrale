@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Loader2, ArrowLeft, Sparkles, Download, Lock, Eye, Tag, Heart, Briefcase, Coins, LogIn, ArrowRight, BookOpen } from 'lucide-react';
+import { Star, Loader2, ArrowLeft, Sparkles, Download, Lock, Eye, Tag, Heart, Briefcase, Coins, BookOpen } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import axios from 'axios';
@@ -67,7 +67,7 @@ const CrossCard = ({ item, index, isLocked, onPurchase }) => {
 
 const Tarologie = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, token, creditBalance, refreshBalance } = useAuth();
+  const { isAuthenticated, token, refreshBalance } = useAuth();
   const [prenom, setPrenom] = useState('');
   const [dateNaissance, setDateNaissance] = useState('');
   const [loading, setLoading] = useState(false);

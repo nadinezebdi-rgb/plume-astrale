@@ -12,7 +12,6 @@ import TrialBanner from "./components/TrialBanner";
 import HomeExperienceV3 from "./pages/HomeExperienceV3";
 import NotFound from "./pages/NotFound";
 
-const Index = React.lazy(() => import("./pages/Homepage"));
 const ABTestHome = React.lazy(() => import("./components/ABTestHome"));
 const LectureCompleteSucces = React.lazy(() => import("./pages/LectureCompleteSucces"));
 const AuthPage = React.lazy(() => import("./pages/AuthPage"));

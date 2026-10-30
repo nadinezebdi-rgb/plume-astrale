@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import { Download, FileText, Loader2, BookOpen } from 'lucide-react';
+import { Loader2, BookOpen } from 'lucide-react';
 
 /**
  * PdfPreviewButton — bouton de téléchargement d'un aperçu 3 pages du PDF prestige

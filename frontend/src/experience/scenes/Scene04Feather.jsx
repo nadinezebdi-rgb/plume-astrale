@@ -344,9 +344,6 @@ export default function Scene04Feather() {
       const fy = featherTargets[i * 3 + 1];
       const fz = featherTargets[i * 3 + 2];
       const tx = activeTextTargets[i * 3 + 0];
-      const ty = activeTextTargets[i * 3 + 1];
-      const tz = activeTextTargets[i * 3 + 2];
-
       let x, y, z;
 
       if (elapsed < T_END_CHAOS) {

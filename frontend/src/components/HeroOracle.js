@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Sparkles, Loader2, Mail, MapPin, Clock, Check, ArrowRight, Lock } from 'lucide-react';
+import { Sparkles, Loader2, MapPin, Clock, Check, ArrowRight, Lock } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 

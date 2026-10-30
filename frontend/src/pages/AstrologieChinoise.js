@@ -1,13 +1,11 @@
 import {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowLeft, Loader2, Wind, Flame, Droplets, Mountain, TreePine } from 'lucide-react';
+import { ArrowLeft, Loader2, Flame, Droplets, Mountain, TreePine } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import PageHero from '@/components/PageHero';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
-
-const ELEMENT_ICONS = { Bois: TreePine, Feu: Flame, Terre: Mountain, Métal: Mountain, Eau: Droplets };
 const ELEMENT_COLORS = { Bois: '#4ade80', Feu: '#f87171', Terre: '#fbbf24', Métal: '#94a3b8', Eau: '#60a5fa', Wood: '#4ade80', Fire: '#f87171', Earth: '#fbbf24', Metal: '#94a3b8', Water: '#60a5fa' };
 
 const Section = ({ title, icon, children, testId }) => (

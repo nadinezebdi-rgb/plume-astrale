@@ -1,7 +1,7 @@
 import {useState, useEffect} from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Coins, Sparkles, Star, Zap, ArrowRight, Shield, Tag, Loader2, MessageCircle, Moon } from 'lucide-react';
+import { Coins, Sparkles, Star, Zap, ArrowRight, Shield, Tag, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import LibraryImage, { signFromDate } from '@/components/LibraryImage';
 import SEO from '@/components/SEO';

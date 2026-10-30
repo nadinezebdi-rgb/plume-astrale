@@ -1,3 +1,84 @@
+## 2026-10-30 (nuit, lot 6) — ESLint 168 → 92 (-45 %, cap CI 200→100)
+
+### ✅ Cleanup ESLint pass 2
+- Script Python one-shot : lit la sortie `eslint --format=json`, pour chaque `no-unused-vars` identifié vérifie que le symbole n'apparaît qu'une seule fois (word-boundary) dans le fichier, puis applique un des patterns suivants :
+  - `, Name` ou `Name,` dans `import { … }`
+  - `import Name from '…'`
+  - `const/let/var Name = …;` sur une ligne
+  - Lignes `import { } from '…';` (vides après nettoyage) → supprimées
+- **83 références inutilisées supprimées dans 49 fichiers.**
+- Cas typiques nettoyés :
+  - App.js : `Index`, `ABTestHome`, `Tarot`, `KabbaleSales`, `ThemeNatalLuxe`, `NosLivres`, `KarmaDestin`, `KarmaDestinPDF`, `KarmaDestinWaiting`, `LectureCompleteSucces`, `LivresLanding`, `DuoCompletionSucces` — lazy-imports de pages renommées/retirées
+  - Icônes lucide-react importées mais pas utilisées (Sparkles, Mail, Star, Share2, Download, ArrowRight, Clock, BookOpen)
+  - Hooks React (useMemo, useEffect) importés mais pas utilisés
+- `.github/workflows/ci.yml` : cap descendu de **200 → 100 warnings**.
+
+### 🧪 Tests
+- Build frontend OK avec cap `--max-warnings 100`.
+- Smoke 5 pages (/, /theme-natal, /cercle-solena, /blog, /livres) : 0 erreur JS, 0 erreur console.
+
+### 🗂️ Fichiers touchés
+- 49 fichiers `frontend/src/**/*.{js,jsx}` (imports nettoyés)
+- `.github/workflows/ci.yml` (cap 100)
+
+### 📈 Progression ESLint sur la soirée
+- Lot 3 : 482 → 168 (-65 %) via `eslint_quickfix.py`
+- Lot 6 : 168 → 92 (-45 %) via JSON-driven cleanup
+- **Total soirée : 482 → 92 (-81 %)**, cap CI 500 → 100
+
+---
+
+
+## 2026-10-30 (nuit, lot 5) — Rapport comptable PDF mensuel + Cooldown Mongo + CSP suggestions
+
+### ✅ Rapport comptable PDF mensuel
+- `services/monthly_accounting_report.py` (nouveau) : agrège factures (`invoice_numbers`) + avoirs (`credit_note_numbers`) du mois civil UTC, enrichit via `payment_transactions` (email, pack, montant, motif), génère un PDF A4 FR en 1 passe.
+- 4 blocs résumé (Factures / CA brut / Avoirs / CA net) + 2 tables détaillées + mention franchise TVA.
+- `routes/admin_payments.py` : 2 endpoints
+  - `GET /api/admin/monthly-accounting-report?year=&month=&inline=` → télécharge le PDF
+  - `GET /api/admin/monthly-accounting-report/summary` → résumé JSON (preview sans régénérer tout)
+- Headers HTTP exposent les totaux (X-Report-Period, X-Invoices-Count, X-Net-EUR, …).
+- Pas de cache : re-généré à chaque appel (le mois peut évoluer avec refunds tardifs).
+
+### ✅ Frontend `MonthlyReportLauncher`
+Sous-composant dans `/admin/payments-health` : sélecteur mois + année + bouton Aperçu (summary JSON) + bouton Télécharger PDF. Résumé 5 colonnes affiché avant téléchargement.
+
+### ✅ Cooldown Mongo-backed (#4)
+- `services/alert_cooldown.py` (nouveau) : lock atomique `channel:key` → Mongo collection `alert_cooldowns` avec index TTL. Fail-open si Mongo down.
+- Remplace les 3 `set()` in-memory par du `try_acquire` persistant (survit aux restarts pod) :
+  - `stuck_sessions_alert._alerted` → `channel="stuck_session"`, TTL = LOOKBACK_HOURS
+  - `csp_reports._alerted_slack` → `channel="csp_violation"`, TTL = CSP_SLACK_WINDOW_H
+  - `credit_note_delivery._MONTHLY_SLACK_FIRED` → `channel="credit_note_monthly"`, TTL = 35j
+- Bug corrigé : BSON stocke les datetimes offset-naive → re-attache `tzinfo=UTC` à la lecture pour comparaison correcte.
+
+### ✅ CSP auto-patch suggestions (#3)
+`AdminCspReports.jsx` : nouvelle colonne "Suggestion CSP" dans la table. Bouton `Copy` qui copie dans le presse-papier la directive à ajouter à `deploy/nginx-frontend.conf` (ex. `script-src https://trusted-cdn.com;`). Logique `buildCspSuggestion` gère les 3 cas : URL (origine), schémas (`data:`, `blob:`), inline/eval (`'unsafe-inline'` / `'unsafe-eval'`). Feedback visuel vert pendant 2s après copie.
+
+### 🧪 Tests
+- `tests/test_alert_cooldown.py` (nouveau, 5 tests) : fail-open, first_acquire, dup, expired, independent channels
+- `tests/test_stuck_sessions_alert.py` : 2 tests mis à jour pour le nouveau cooldown Mongo + 1 nouveau test `test_check_once_cooldown_blocks`
+- 35 pytest passent au total.
+- Build frontend OK avec ESLint strict `--max-warnings 200`.
+- PDF rapport local : 37 KB, summary `{period, invoices_count, credit_notes_count, totals}`.
+
+### 🗂️ Fichiers touchés
+- `backend/services/alert_cooldown.py` (nouveau)
+- `backend/services/monthly_accounting_report.py` (nouveau)
+- `backend/services/credit_note_delivery.py` (cooldown Mongo)
+- `backend/services/stuck_sessions_alert.py` (cooldown Mongo)
+- `backend/routes/csp_reports.py` (cooldown Mongo)
+- `backend/routes/admin_payments.py` (2 endpoints monthly report)
+- `backend/tests/test_alert_cooldown.py` (nouveau)
+- `backend/tests/test_stuck_sessions_alert.py` (mise à jour)
+- `frontend/src/pages/AdminPaymentsHealth.jsx` (MonthlyReportLauncher)
+- `frontend/src/pages/AdminCspReports.jsx` (CspSuggestion + colonne)
+
+### 📋 Env vars
+Pas de nouveau secret. Mongo collection auto-créée au premier appel (`alert_cooldowns`).
+
+---
+
+
 ## 2026-10-30 (nuit, lot 4) — Slack monitoring avoirs + ESLint cleanup -65%
 
 ### ✅ Alerte Slack mensuelle sur avoirs

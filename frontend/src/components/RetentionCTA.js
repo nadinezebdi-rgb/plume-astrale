@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, X, Sparkles } from 'lucide-react';
+import { ArrowRight, X } from 'lucide-react';
 
 /**
  * RetentionCTA — Boucle de rétention ininterrompue

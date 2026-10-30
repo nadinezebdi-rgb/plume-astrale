@@ -1,6 +1,6 @@
 import {useState, useRef, useEffect, useCallback} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Send, Loader2, Sparkles, Trash2, Coins, LogIn, ShoppingBag, HelpCircle } from 'lucide-react';
+import { Send, Sparkles, Trash2, Coins, LogIn, ShoppingBag, HelpCircle } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import SEOServiceEnrich from '@/components/SEOServiceEnrich';

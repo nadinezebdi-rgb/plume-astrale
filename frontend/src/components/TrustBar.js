@@ -1,4 +1,4 @@
-import { Shield, Lock, Zap, FileText, Mail, HelpCircle } from 'lucide-react';
+import { Shield, Lock, Zap, FileText, Mail } from 'lucide-react';
 
 /**
  * TrustBar — bandeau de confiance placé juste sous le hero.

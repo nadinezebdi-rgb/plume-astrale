@@ -142,8 +142,6 @@ const StreakFlame = ({ current, longest }) => (
 ═══════════════════════════════════════════════════════════ */
 const MonRituel = () => {
   const { user, isAuthenticated, authHeader } = useAuth();
-  const navigate = useNavigate();
-
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [moods, setMoods] = useState([]);

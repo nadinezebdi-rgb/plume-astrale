@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Moon, Heart, Zap, Download, Mail, Share2, Sparkles, Sun, Eye, CheckCircle, Loader2, Tag, Instagram, MessageCircle, Copy, Check } from 'lucide-react';
+import { Star, Moon, Heart, Zap, Download, Sparkles, Sun, Eye, CheckCircle, Loader2, Tag, Instagram, MessageCircle, Copy, Check } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -388,16 +388,9 @@ const Resultats = () => {
   // Get planet data for display
   const sunPlanet = planetsData?.find(p => p.name === 'Sun');
   const moonPlanet = planetsData?.find(p => p.name === 'Moon');
-  const venusPlanet = planetsData?.find(p => p.name === 'Venus');
-  const marsPlanet = planetsData?.find(p => p.name === 'Mars');
-  const mercuryPlanet = planetsData?.find(p => p.name === 'Mercury');
-  const jupiterPlanet = planetsData?.find(p => p.name === 'Jupiter');
-  const saturnPlanet = planetsData?.find(p => p.name === 'Saturn');
   const ascendantPlanet = planetsData?.find(p => p.name === 'Ascendant');
   
   // Build aspects from horoscope data
-  const realAspects = horoscopeData?.aspects?.slice(0, 6) || aspectsPlanetaires;
-
   return (
     <div className="min-h-screen">
       

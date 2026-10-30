@@ -4,9 +4,6 @@
  */
 import {useState, useEffect} from 'react';
 import { Sparkles, ArrowRight, X } from 'lucide-react';
-
-const API = process.env.REACT_APP_BACKEND_URL;
-
 const ZODIACS = [
   'Bélier', 'Taureau', 'Gémeaux', 'Cancer',
   'Lion', 'Vierge', 'Balance', 'Scorpion',

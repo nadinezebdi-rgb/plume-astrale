@@ -28,8 +28,6 @@ const NatalWheel = ({ className = '' }) => {
   const [rotation, setRotation] = useState(0);
   const [hovered, setHovered] = useState(null);
   const [scale, setScale] = useState(1);
-  const animRef = useRef(null);
-
   useEffect(() => {
     let frame;
     const animate = () => {

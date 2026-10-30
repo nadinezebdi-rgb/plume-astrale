@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
-import { Loader2, RefreshCw, AlertTriangle, CheckCircle2, XCircle, Play, Eye, Receipt, Undo2, Bell, Shield } from 'lucide-react';
+import { Loader2, RefreshCw, AlertTriangle, CheckCircle2, XCircle, Play, Eye, Receipt, Undo2, Bell, Shield, FileText } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -24,6 +24,108 @@ const KpiBadge = ({ label, value, sub, color = '#D4AF37', testid }) => (
     {sub && <div className="text-xs" style={{ color: 'var(--pa-muted)' }}>{sub}</div>}
   </div>
 );
+
+/**
+ * MonthlyReportLauncher — choix mois/année + preview + bouton télécharger
+ * le rapport comptable PDF (factures + avoirs du mois).
+ * Audit (2026-10-30 · Nao) : 1 clic pour l'expert-comptable.
+ */
+function MonthlyReportLauncher({ token, apiBase }) {
+  const now = new Date();
+  const [year, setYear] = useState(now.getUTCFullYear());
+  const [month, setMonth] = useState(now.getUTCMonth() + 1);
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [err, setErr] = useState(null);
+
+  const loadSummary = async () => {
+    setLoading(true); setErr(null); setSummary(null);
+    try {
+      const r = await axios.get(`${apiBase}/api/admin/monthly-accounting-report/summary`, {
+        params: { year, month },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSummary(r.data);
+    } catch (e) {
+      setErr(e.response?.data?.detail || 'Erreur résumé.');
+    } finally { setLoading(false); }
+  };
+
+  const downloadPdf = async () => {
+    setDownloading(true); setErr(null);
+    try {
+      const r = await axios.get(`${apiBase}/api/admin/monthly-accounting-report`, {
+        params: { year, month },
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob',
+      });
+      const url = URL.createObjectURL(r.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rapport-comptable-plume-astrale-${year}-${String(month).padStart(2, '0')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setErr('Erreur téléchargement.');
+    } finally { setDownloading(false); }
+  };
+
+  const monthsFr = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const years = [now.getUTCFullYear(), now.getUTCFullYear() - 1, now.getUTCFullYear() - 2];
+
+  return (
+    <div className="rounded-2xl p-5 mb-8" style={{
+      background: 'rgba(255,255,255,0.03)',
+      border: '1px solid rgba(212,175,55,0.18)',
+    }} data-testid="monthly-report-launcher">
+      <div className="flex items-center gap-3 mb-3 flex-wrap">
+        <FileText className="w-6 h-6 flex-shrink-0" style={{ color: '#D4AF37' }} strokeWidth={1.4}/>
+        <h3 className="text-xl flex-1" style={{ fontFamily: 'Cormorant Garamond, serif', color: '#D4AF37' }}>
+          Rapport comptable mensuel
+        </h3>
+        <select value={month} onChange={(e) => { setMonth(parseInt(e.target.value, 10)); setSummary(null); }}
+                className="px-3 py-2 rounded-lg text-sm"
+                style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(212,175,55,0.25)', color: '#F5EEE0' }}
+                data-testid="monthly-report-month">
+          {monthsFr.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+        </select>
+        <select value={year} onChange={(e) => { setYear(parseInt(e.target.value, 10)); setSummary(null); }}
+                className="px-3 py-2 rounded-lg text-sm"
+                style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(212,175,55,0.25)', color: '#F5EEE0' }}
+                data-testid="monthly-report-year">
+          {years.map((y) => <option key={y} value={y}>{y}</option>)}
+        </select>
+        <button onClick={loadSummary} disabled={loading}
+                className="text-xs uppercase tracking-widest px-3 py-2 rounded-full flex items-center gap-2"
+                style={{ border: '1px solid rgba(212,175,55,0.35)', color: '#D4AF37' }}
+                data-testid="monthly-report-preview">
+          {loading ? <Loader2 className="w-3 h-3 animate-spin"/> : <Eye className="w-3 h-3"/>}
+          Aperçu
+        </button>
+        <button onClick={downloadPdf} disabled={downloading}
+                className="text-xs uppercase tracking-widest px-4 py-2 rounded-full flex items-center gap-2"
+                style={{ background: '#D4AF37', color: '#111625', fontWeight: 600 }}
+                data-testid="monthly-report-download">
+          {downloading ? <Loader2 className="w-3 h-3 animate-spin"/> : <FileText className="w-3 h-3"/>}
+          Télécharger PDF
+        </button>
+      </div>
+      {err && <div className="text-xs mb-2" style={{ color: '#FCA5A5' }}>{err}</div>}
+      {summary && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs" data-testid="monthly-report-summary">
+          <div><div className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>Période</div><div style={{ color: '#F5EEE0' }}>{summary.period}</div></div>
+          <div><div className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>Factures</div><div style={{ color: '#D4AF37', fontSize: 18 }}>{summary.invoices_count}</div></div>
+          <div><div className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>Avoirs</div><div style={{ color: '#FCA5A5', fontSize: 18 }}>{summary.credit_notes_count}</div></div>
+          <div><div className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>CA brut</div><div style={{ color: '#4ADE80' }}>{summary.total_in_eur.toFixed(2)} €</div></div>
+          <div><div className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>CA net</div><div style={{ color: '#D4AF37', fontSize: 18 }}>{summary.net_eur.toFixed(2)} €</div></div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /**
  * Mini-composant : recherche de paiements par montant + liste + bouton Rembourser.
@@ -358,7 +460,8 @@ export default function AdminPaymentsHealth() {
 
             {/* AUDIT (2026-10-30 · Nao) : Compteurs facture + avoir séquentiels annuels FR */}
             {(invoiceCounter || creditNoteCounter) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {invoiceCounter && (
                   <div className="rounded-2xl p-5 flex items-center gap-5" style={{
                     background: 'rgba(212,175,55,0.06)',
@@ -398,6 +501,8 @@ export default function AdminPaymentsHealth() {
                   </div>
                 )}
               </div>
+              <MonthlyReportLauncher token={token} apiBase={API}/>
+              </>
             )}
 
             {/* AUDIT (2026-10-30 · Nao) : rapport remboursement one-shot */}

@@ -202,12 +202,10 @@ async def send_credit_note_for_refund(
 
 
 # ─── Alerte Slack monthly threshold ─────────────────────────────────
-_MONTHLY_SLACK_FIRED: set = set()  # 'YYYY-MM' déjà alertés ce run
-
-
 async def _maybe_slack_alert_threshold(refunded_at: datetime) -> None:
     """Si on dépasse CREDIT_NOTE_SLACK_THRESHOLD avoirs sur le mois en cours
-    (UTC), ping Slack UNE fois par (année, mois) et par cycle de vie du pod.
+    (UTC), ping Slack UNE fois par (année, mois). Dédup Mongo-backed via
+    services.alert_cooldown (survit aux restarts pod).
     """
     threshold = int(os.environ.get('CREDIT_NOTE_SLACK_THRESHOLD', '10'))
     if threshold <= 0:
@@ -218,11 +216,9 @@ async def _maybe_slack_alert_threshold(refunded_at: datetime) -> None:
         return
     year, month = refunded_at.year, refunded_at.month
     key = f'{year:04d}-{month:02d}'
-    if key in _MONTHLY_SLACK_FIRED:
-        return
 
-    # Compte les avoirs du mois en cours (année + mois sur allocated_at)
-    from datetime import timedelta
+    # Compte avant d'acquérir le lock — si on n'a pas atteint le seuil,
+    # on ne consomme pas le lock (il reste utilisable au prochain franchissement).
     start = refunded_at.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     try:
         count = await db['credit_note_numbers'].count_documents({
@@ -235,7 +231,11 @@ async def _maybe_slack_alert_threshold(refunded_at: datetime) -> None:
     if count < threshold:
         return
 
-    _MONTHLY_SLACK_FIRED.add(key)
+    from services.alert_cooldown import try_acquire
+    # TTL 35 jours — couvre tout mois civil + marge
+    if not await try_acquire('credit_note_monthly', key, ttl_hours=24 * 35):
+        return  # déjà alerté ce mois-ci
+
     from services.slack_notify import send_slack_alert
     await send_slack_alert(
         title=f'Seuil mensuel d\'avoirs atteint : {count}',

@@ -1,6 +1,6 @@
 import {useEffect, useState, useCallback, useMemo} from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Download, ArrowRight, Loader2, Mail, Star, Moon, Sparkles, Zap, Hourglass } from 'lucide-react';
+import { CheckCircle2, Download, Loader2, Mail, Star, Moon, Sparkles, Zap, Hourglass } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import CercleSolenaInvite from '@/components/CercleSolenaInvite';

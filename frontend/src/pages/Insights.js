@@ -372,7 +372,6 @@ export default function Insights() {
               : results.energy ? (() => {
                 const d = results.energy;
                 const peak = d.peak_times || d.energy_peaks || [];
-                const low = d.low_times || d.energy_lows || [];
                 return (
                   <div>
                     {d.overall_energy !== undefined && (

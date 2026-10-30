@@ -83,27 +83,33 @@ def test_paid_sessions_not_flagged():
 
 
 def test_already_alerted_sessions_filtered():
-    """Après avoir alerté, on ne la ré-alerte pas au scan suivant."""
+    """Après avoir alerté, le cooldown Mongo filtre au scan suivant.
+    Note : le filtre a été déplacé dans `check_once` (async), donc
+    `_collect_stuck_sessions` renvoie désormais TOUS les candidats bloqués ;
+    la dédup se fait côté `check_once` via `services.alert_cooldown`.
+    """
     rows = [_row('cs_live_old', 'initiated', 'unpaid', created_minutes_ago=90)]
-    stuck_sessions_alert._alerted.clear()
-    stuck_sessions_alert._alerted.add('cs_live_old')
     with _patch_sb(rows):
         stuck = stuck_sessions_alert._collect_stuck_sessions(threshold_min=60)
-    assert stuck == []
+    # Candidat renvoyé — le filtrage se fait maintenant au niveau cooldown
+    assert len(stuck) == 1
+    assert stuck[0]['session_id'] == 'cs_live_old'
 
 
 @pytest.mark.asyncio
 async def test_check_once_sends_email(monkeypatch):
-    """Scenario e2e : 2 sessions bloquées → 1 email envoyé, 2 ids marqués."""
+    """Scenario e2e : 2 sessions bloquées → 1 email envoyé, cooldown mocké True."""
     rows = [
         _row('cs_live_a', 'initiated', 'unpaid', created_minutes_ago=90, amount=29.0),
         _row('cs_live_b', 'initiated', 'unpaid', created_minutes_ago=120, amount=49.0,
              email='autre@gmail.com'),
     ]
-    stuck_sessions_alert._alerted.clear()
     monkeypatch.setenv('ADMIN_ALERT_EMAIL', 'admin@test.local')
     mock_send = AsyncMock(return_value='resend_fake_id')
-    with _patch_sb(rows), patch('services.stuck_sessions_alert.send_email', mock_send):
+    mock_acquire = AsyncMock(return_value=True)  # cooldown ouvert
+    with _patch_sb(rows), \
+         patch('services.stuck_sessions_alert.send_email', mock_send), \
+         patch('services.alert_cooldown.try_acquire', mock_acquire):
         n = await stuck_sessions_alert.check_once()
     assert n == 2
     mock_send.assert_awaited_once()
@@ -113,13 +119,27 @@ async def test_check_once_sends_email(monkeypatch):
     assert '2 sessions' in subject.lower() or '2 session' in subject.lower()
     assert 'cs_live_a' in html
     assert 'cs_live_b' in html
-    assert 'cs_live_a' in stuck_sessions_alert._alerted
-    assert 'cs_live_b' in stuck_sessions_alert._alerted
+    # Les 2 sessions ont acquis le lock
+    assert mock_acquire.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_check_once_cooldown_blocks(monkeypatch):
+    """Si le cooldown bloque toutes les sessions, aucun email ne part."""
+    rows = [_row('cs_live_locked', 'initiated', 'unpaid', created_minutes_ago=90)]
+    monkeypatch.setenv('ADMIN_ALERT_EMAIL', 'admin@test.local')
+    mock_send = AsyncMock(return_value='x')
+    mock_acquire = AsyncMock(return_value=False)
+    with _patch_sb(rows), \
+         patch('services.stuck_sessions_alert.send_email', mock_send), \
+         patch('services.alert_cooldown.try_acquire', mock_acquire):
+        n = await stuck_sessions_alert.check_once()
+    assert n == 0
+    mock_send.assert_not_awaited()
 
 
 @pytest.mark.asyncio
 async def test_check_once_empty_no_email(monkeypatch):
-    stuck_sessions_alert._alerted.clear()
     monkeypatch.setenv('ADMIN_ALERT_EMAIL', 'admin@test.local')
     mock_send = AsyncMock(return_value='x')
     with _patch_sb([]), patch('services.stuck_sessions_alert.send_email', mock_send):

@@ -34,8 +34,8 @@ _CSP_COLL = 'csp_reports'
 _SLACK_THRESHOLD = int(os.environ.get('CSP_SLACK_THRESHOLD', '50'))
 _SLACK_WINDOW_H = int(os.environ.get('CSP_SLACK_WINDOW_H', '24'))
 
-# Dédup Slack in-memory : (directive, blocked_uri) déjà alertés ce run.
-_alerted_slack: set = set()
+# Dédup Slack déplacé dans services.alert_cooldown (Mongo-backed) — plus de
+# `set()` in-memory qui se vide à chaque restart pod.
 
 
 class CspReportBody(BaseModel):
@@ -117,7 +117,11 @@ async def ingest_csp_report(request: Request) -> Dict[str, Any]:
 
 
 async def _maybe_slack_alert(db, now: datetime) -> None:
-    """Si une violation récurrente dépasse le seuil, ping Slack une fois."""
+    """Si une violation récurrente dépasse le seuil, ping Slack une fois.
+
+    Dédup Mongo-backed via services.alert_cooldown : TTL 24h → couvre la
+    fenêtre d'agrégation (CSP_SLACK_WINDOW_H).
+    """
     cutoff = now - timedelta(hours=_SLACK_WINDOW_H)
     pipeline = [
         {'$match': {'reported_at': {'$gte': cutoff}}},
@@ -135,11 +139,11 @@ async def _maybe_slack_alert(db, now: datetime) -> None:
         {'$limit': 5},
     ]
     cursor = db[_CSP_COLL].aggregate(pipeline)
+    from services.alert_cooldown import try_acquire
     async for group in cursor:
         key = f"{group['_id']['directive']}|{group['_id']['blocked_uri']}"
-        if key in _alerted_slack:
+        if not await try_acquire('csp_violation', key, ttl_hours=_SLACK_WINDOW_H):
             continue
-        _alerted_slack.add(key)
         await send_slack_alert(
             title='CSP violation récurrente',
             summary=(

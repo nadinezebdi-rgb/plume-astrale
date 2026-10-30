@@ -76,9 +76,6 @@ const MERCHANT_RETURN_POLICY = {
   returnMethod: 'https://schema.org/ReturnByMail',
   returnFees: 'https://schema.org/FreeReturn',
 };
-
-const PRODUCT_REVIEWS_FALLBACK = [];
-
 const productJsonLd = (slug, name, description, priceEur, pages, reviews) => ({
   '@context': 'https://schema.org',
   '@type': 'Product',

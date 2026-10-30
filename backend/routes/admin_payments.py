@@ -646,3 +646,71 @@ async def admin_slack_test_ping(_admin: dict = Depends(require_admin)) -> Dict[s
                   else "Appel HTTP vers Slack non-2xx — webhook invalide, canal archivé ou réseau bloqué.",
     }
 
+
+
+# ───────────────────────────────────────────────────────────────────────
+# Rapport comptable mensuel PDF — factures + avoirs agrégés
+# AUDIT (2026-10-30 · Nao, spark previous session) : 1 clic pour expert-comptable.
+# ───────────────────────────────────────────────────────────────────────
+
+@router.get('/monthly-accounting-report')
+async def admin_monthly_accounting_report(
+    year: int = Query(..., ge=2024, le=2100),
+    month: int = Query(..., ge=1, le=12),
+    inline: bool = Query(False, description="affichage inline navigateur plutôt que download"),
+    _admin: dict = Depends(require_admin),
+):
+    """Génère et renvoie le PDF rapport comptable du mois (année+mois UTC).
+
+    Agrège les factures + avoirs émis dans le mois civil. Totaux calculés
+    à partir de `payment_transactions.amount` joint par session_id / refund_id.
+
+    Toujours re-généré à la demande (pas de cache) — les montants peuvent
+    évoluer tant que le mois n'est pas clos (ex. refund tardif).
+    """
+    from fastapi.responses import Response
+    from services.monthly_accounting_report import build_monthly_report_pdf
+    pdf_bytes, summary = await build_monthly_report_pdf(year, month)
+    filename = f'rapport-comptable-plume-astrale-{year:04d}-{month:02d}.pdf'
+    dispo = 'inline' if inline else 'attachment'
+    return Response(
+        content=pdf_bytes,
+        media_type='application/pdf',
+        headers={
+            'Content-Disposition': f'{dispo}; filename="{filename}"',
+            'X-Report-Period': summary['period'],
+            'X-Invoices-Count': str(summary['invoices_count']),
+            'X-Credit-Notes-Count': str(summary['credit_notes_count']),
+            'X-Total-In-EUR': str(summary['total_in_eur']),
+            'X-Total-Out-EUR': str(summary['total_out_eur']),
+            'X-Net-EUR': str(summary['net_eur']),
+        },
+    )
+
+
+@router.get('/monthly-accounting-report/summary')
+async def admin_monthly_accounting_summary(
+    year: int = Query(..., ge=2024, le=2100),
+    month: int = Query(..., ge=1, le=12),
+    _admin: dict = Depends(require_admin),
+) -> Dict[str, Any]:
+    """Résumé seul (pour afficher les totaux avant de générer le PDF complet)."""
+    from services.monthly_accounting_report import (
+        _fetch_invoices_for_month, _fetch_credit_notes_for_month, _enrich_from_supabase,
+        FR_MONTHS,
+    )
+    invoices = await _fetch_invoices_for_month(year, month)
+    credit_notes = await _fetch_credit_notes_for_month(year, month)
+    _enrich_from_supabase(invoices, credit_notes)
+    total_in = sum(float(r.get('amount') or 0) for r in invoices)
+    total_out = sum(float(r.get('amount') or 0) for r in credit_notes)
+    return {
+        'period': f'{FR_MONTHS[month].capitalize()} {year}',
+        'year': year, 'month': month,
+        'invoices_count': len(invoices),
+        'credit_notes_count': len(credit_notes),
+        'total_in_eur': round(total_in, 2),
+        'total_out_eur': round(total_out, 2),
+        'net_eur': round(total_in - total_out, 2),
+    }
+

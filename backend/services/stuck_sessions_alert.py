@@ -35,7 +35,7 @@ LOOKBACK_HOURS = int(os.environ.get('STUCK_ALERT_LOOKBACK_H', '72'))
 
 # État in-memory : session_ids déjà alertés. Reset au restart (acceptable :
 # si une session reste bloquée après restart, elle sera réalertée une fois).
-_alerted: set = set()
+_alerted: set = set()  # legacy — conservé pour compat tests, non utilisé.
 
 
 def _is_test_email(email: Optional[str]) -> bool:
@@ -107,7 +107,8 @@ def _collect_stuck_sessions(threshold_min: int = STUCK_THRESHOLD_MIN,
                     stuck_candidates[sid] = row
 
     stuck = [row for sid, row in stuck_candidates.items() if sid not in paid_sessions]
-    return [row for row in stuck if row.get('session_id') not in _alerted]
+    # Dédup déplacé dans check_once (via services.alert_cooldown Mongo-backed).
+    return stuck
 
 
 def _build_email(stuck_rows: List[Dict]) -> tuple[str, str]:
@@ -165,7 +166,20 @@ def _build_email(stuck_rows: List[Dict]) -> tuple[str, str]:
 
 async def check_once() -> int:
     """Un passage de scan ; renvoie le nombre de sessions nouvellement alertées."""
-    stuck = _collect_stuck_sessions()
+    candidates = _collect_stuck_sessions()
+    if not candidates:
+        return 0
+
+    # Dédup Mongo-backed (TTL = LOOKBACK_HOURS) : ne pas re-alerter sur la même
+    # session dans la fenêtre. Survit aux restarts pod. Fail-open si Mongo down.
+    from services.alert_cooldown import try_acquire
+    stuck: List[Dict] = []
+    for row in candidates:
+        sid = row.get('session_id')
+        if not sid:
+            continue
+        if await try_acquire('stuck_session', sid, ttl_hours=LOOKBACK_HOURS):
+            stuck.append(row)
     if not stuck:
         return 0
 
@@ -205,14 +219,12 @@ async def check_once() -> int:
         logger.info(f'[stuck_sessions_alert] slack ping skip: {e}')
 
     if eid:
-        for row in stuck:
-            _alerted.add(row.get('session_id'))
         logger.info(
             f'[stuck_sessions_alert] alerté {len(stuck)} session(s) à '
             f'{redact_email(admin_email)} (resend_id={eid})'
         )
         return len(stuck)
-    logger.warning('[stuck_sessions_alert] send_email a échoué, pas de marquage')
+    logger.warning('[stuck_sessions_alert] send_email a échoué, cooldown à revalider manuellement')
     return 0
 
 

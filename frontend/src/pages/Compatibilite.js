@@ -2,7 +2,7 @@ import {useState, useEffect} from 'react';
 import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Heart, Sparkles, Star, Users, Briefcase, Home, Loader2, LogIn, ArrowRight, Tag, Share2, Download, Copy, Check } from 'lucide-react';
+import { Heart, Sparkles, Star, Users, Briefcase, Home, Loader2, LogIn, ArrowRight, Share2, Download, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SafeEmptyState from '@/components/design/SafeEmptyState';
 

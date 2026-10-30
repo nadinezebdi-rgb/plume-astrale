@@ -1,6 +1,6 @@
 import {useState, useEffect, useCallback, useMemo} from 'react';
 import axios from 'axios';
-import { RefreshCw, Loader2, TrendingUp, TrendingDown, Users, Coins, MousePointerClick } from 'lucide-react';
+import { RefreshCw, Loader2, TrendingUp, TrendingDown, Users, Coins } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 

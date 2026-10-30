@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Clock3, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, Clock3, ShieldCheck, Sparkles } from 'lucide-react';
 import StarfieldBackdrop from '@/components/StarfieldBackdrop';
 
 const PROOFS = [

@@ -12,7 +12,7 @@ const COST = 15;
 
 const Archetype = () => {
   const nav = useNavigate();
-  const { token, user, creditBalance, refreshBalance, isAuthenticated } = useAuth();
+  const { token, creditBalance, refreshBalance, isAuthenticated } = useAuth();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

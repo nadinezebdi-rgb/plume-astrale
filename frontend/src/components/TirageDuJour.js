@@ -1,7 +1,7 @@
 import {useState, useEffect} from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Sparkles, Star, Moon, Sun, RefreshCw, 
+  Sparkles, Star, Moon, Sun, 
   ArrowRight, Heart, Briefcase, Eye, ChevronDown,
   Flame, Droplets, Wind, Mountain
 } from 'lucide-react';

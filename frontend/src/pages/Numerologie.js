@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, ArrowLeft, ArrowRight, Coins, LogIn, Hash, Sparkles, BookOpen, Star, Heart, Shield, Zap, Target } from 'lucide-react';
+import { Loader2, ArrowLeft, Coins, LogIn, Hash, Sparkles, BookOpen, Star, Heart, Shield, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import axios from 'axios';

@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Coins, Sparkles, Edit3, ArrowRight, LogOut } from 'lucide-react';
+import { Coins, Edit3, ArrowRight, LogOut } from 'lucide-react';
 import SEO from '@/components/SEO';
 import BundleCard from '@/components/BundleCard';
 import WelcomeSplash from '@/experience/WelcomeSplash';

@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import { Download, Share2, Loader2 } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 

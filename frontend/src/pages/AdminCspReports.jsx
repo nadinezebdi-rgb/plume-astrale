@@ -9,7 +9,7 @@ import {useEffect, useState, useCallback} from 'react';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
-import { Loader2, RefreshCw, Shield, AlertTriangle } from 'lucide-react';
+import { Loader2, RefreshCw, Shield, AlertTriangle, Copy, Check } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -19,6 +19,61 @@ const SEVERITY = (count, threshold) => {
   if (count >= Math.max(5, threshold / 5)) return { color: '#F59E0B', label: 'À surveiller' };
   return { color: '#4ADE80', label: 'OK' };
 };
+
+/**
+ * Construit une directive CSP qui autoriserait la source bloquée.
+ * Audit (2026-10-30 · Nao) : accélère le passage Report-Only → Enforce.
+ */
+function buildCspSuggestion(directive, blockedUri) {
+  if (!directive) return null;
+  // Normalise la directive (ex. "script-src-elem" → "script-src")
+  const base = directive.split(' ')[0].replace(/-elem$|-attr$/, '');
+  if (!blockedUri || blockedUri === 'inline' || blockedUri === 'eval') {
+    const kw = blockedUri === 'eval' ? "'unsafe-eval'" : "'unsafe-inline'";
+    return `${base} ${kw};`;
+  }
+  try {
+    const u = new URL(blockedUri);
+    const origin = `${u.protocol}//${u.hostname}`;
+    return `${base} ${origin};`;
+  } catch {
+    // Schemes "data:" / "blob:" / "wasm-eval"
+    const m = blockedUri.match(/^([a-z]+):/);
+    if (m) return `${base} ${m[1]}:;`;
+    return `${base} ${blockedUri};`;
+  }
+}
+
+function CspSuggestion({ directive, blockedUri }) {
+  const [copied, setCopied] = useState(false);
+  const suggestion = buildCspSuggestion(directive, blockedUri);
+  if (!suggestion) return <span style={{ color: 'var(--pa-muted)' }}>—</span>;
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(suggestion);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* clipboard refusé — pas critique */ }
+  };
+  return (
+    <button
+      onClick={copy}
+      title="Copier cette directive à ajouter à la CSP nginx"
+      className="flex items-center gap-2 px-2 py-1 rounded text-xs"
+      style={{
+        background: copied ? 'rgba(74,222,128,0.15)' : 'rgba(212,175,55,0.08)',
+        border: `1px solid ${copied ? 'rgba(74,222,128,0.4)' : 'rgba(212,175,55,0.3)'}`,
+        color: copied ? '#4ADE80' : '#D4AF37',
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+        maxWidth: 280,
+      }}
+      data-testid={`csp-suggest-${directive}-${(blockedUri || '').slice(0, 40)}`}
+    >
+      {copied ? <Check className="w-3 h-3 flex-shrink-0"/> : <Copy className="w-3 h-3 flex-shrink-0"/>}
+      <code className="truncate">{suggestion}</code>
+    </button>
+  );
+}
 
 export default function AdminCspReports() {
   const { user, token, loading: authLoading } = useAuth();
@@ -132,6 +187,7 @@ export default function AdminCspReports() {
                       <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>Blocked URI</th>
                       <th className="text-right px-4 py-3 text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>Count</th>
                       <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>Sévérité</th>
+                      <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>Suggestion CSP</th>
                       <th className="text-left px-4 py-3 text-[10px] uppercase tracking-widest" style={{ color: 'var(--pa-muted)' }}>Dernière</th>
                     </tr>
                   </thead>
@@ -141,13 +197,16 @@ export default function AdminCspReports() {
                       return (
                         <tr key={`${g.directive}:${g.blocked_uri}:${i}`} style={{ borderTop: '1px solid rgba(212,175,55,0.08)' }}>
                           <td className="px-4 py-3"><code className="text-xs" style={{ color: '#E8A5B9' }}>{g.directive || '—'}</code></td>
-                          <td className="px-4 py-3 text-xs truncate" style={{ maxWidth: 420 }}>{g.blocked_uri || <em style={{ color: 'var(--pa-muted)' }}>(inline/eval)</em>}</td>
+                          <td className="px-4 py-3 text-xs truncate" style={{ maxWidth: 300 }}>{g.blocked_uri || <em style={{ color: 'var(--pa-muted)' }}>(inline/eval)</em>}</td>
                           <td className="px-4 py-3 text-right" style={{ color: sev.color, fontFamily: 'Cormorant Garamond, serif', fontSize: 18 }}>{g.count}</td>
                           <td className="px-4 py-3">
                             <span className="text-[10px] uppercase tracking-widest px-2 py-1 rounded-full" style={{ background: `${sev.color}20`, color: sev.color }}>
                               {g.count >= threshold && <AlertTriangle className="w-3 h-3 inline mr-1"/>}
                               {sev.label}
                             </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <CspSuggestion directive={g.directive} blockedUri={g.blocked_uri}/>
                           </td>
                           <td className="px-4 py-3 text-xs" style={{ color: 'var(--pa-muted)' }}>
                             {g.last_seen?.slice(0, 16).replace('T', ' ')}

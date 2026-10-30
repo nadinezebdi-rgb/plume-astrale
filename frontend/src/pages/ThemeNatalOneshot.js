@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Loader2, Star, Moon, Sun, Check, X } from 'lucide-react';
+import { ArrowRight, Loader2, Star, Moon, Sun, Check, X } from 'lucide-react';
 import axios from 'axios';
 import SEO from '@/components/SEO';
 import SalesTrustBlock from '@/components/SalesTrustBlock';

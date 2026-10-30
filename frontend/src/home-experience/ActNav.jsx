@@ -38,8 +38,6 @@ export default function ActNav({ currentAct = 1, onJump, actsAvailable = 8, hidd
 
   if (hidden) return null;
   const activeAct = Math.min(Math.max(currentAct, 1), actsAvailable);
-  const activeLabel = ACTS[activeAct - 1]?.label || ACTS[0].label;
-
   return (
     <>
       <nav
