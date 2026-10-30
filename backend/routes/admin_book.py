@@ -183,13 +183,18 @@ async def admin_preview_pdf(session_id: str = Query(..., pattern=_SID_PATTERN)):
 async def admin_pdf_engine_health():
     """Diagnostic complet de l'infra PDF v2 sur l'environnement courant.
 
-    Retourne un JSON avec l'état des 6 dépendances critiques :
-      1. USE_V2_ENGINE lu depuis l'env
+    Retourne un JSON avec l'état des dépendances critiques :
+      1. Flags Chromium par produit (Kabbale, Astrocarto) — lus par leurs générateurs
       2. Chromium binaire trouvé + version
       3. Fichiers de polices Cormorant + NotoSansSymbols2
       4. EMERGENT_LLM_KEY présent (booléen, jamais la valeur)
       5. Table Supabase book_manuscripts accessible
       6. Cache directories accessibles en écriture
+
+    Note (Feb 2026) : `USE_V2_ENGINE` historique a été retiré — il n'était lu
+    par aucun code. Les flags qui comptent sont `USE_V2_KABBALE_ENGINE` et
+    `USE_V2_ASTROCARTO_ENGINE` (par-produit). Le Composer et le renderer
+    partagent toujours book_engine_v2 sans flag.
 
     Usage prod : `curl https://plume-astrale.fr/api/admin/book/pdf-engine-health | jq`
     """
@@ -201,14 +206,16 @@ async def admin_pdf_engine_health():
 
     checks: dict = {}
 
-    # 1. USE_V2_ENGINE
-    v2_env = os.environ.get('USE_V2_ENGINE')
-    checks['use_v2_engine'] = {
-        'value': v2_env,
-        'v2_active': v2_env == '1',
-        'ok': v2_env == '1',
-        'hint': '' if v2_env == '1' else
-                'Ajouter USE_V2_ENGINE=1 dans les env vars prod puis redéployer.',
+    # 1. Flags Chromium par produit (les seuls réellement lus par le code)
+    kabbale_flag = os.environ.get('USE_V2_KABBALE_ENGINE')
+    astrocarto_flag = os.environ.get('USE_V2_ASTROCARTO_ENGINE')
+    checks['chromium_flags'] = {
+        'kabbale_v2_active': kabbale_flag == '1',
+        'astrocarto_v2_active': astrocarto_flag == '1',
+        'composer_v2_active': True,  # toujours actif (hardcodé dans pipeline.py)
+        'ok': kabbale_flag == '1' and astrocarto_flag == '1',
+        'hint': '' if (kabbale_flag == '1' and astrocarto_flag == '1') else
+                'Vérifier USE_V2_KABBALE_ENGINE=1 et USE_V2_ASTROCARTO_ENGINE=1 en env prod.',
     }
 
     # 2. Chromium
@@ -312,7 +319,7 @@ async def admin_pdf_engine_health():
     return {
         'ok': all(v.get('ok', False) for v in checks.values()),
         'timestamp': datetime.now(timezone.utc).isoformat(),
-        'engine_active': 'v2' if checks['use_v2_engine']['v2_active'] else 'v1',
+        'engine_active': 'chromium' if checks['chromium']['ok'] else 'reportlab-fallback',
         'checks': checks,
         'summary': {
             'passing': sum(1 for v in checks.values() if v.get('ok')),
