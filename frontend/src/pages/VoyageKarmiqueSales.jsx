@@ -2,6 +2,7 @@ import {useState, useEffect} from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Compass, ShieldCheck, Clock, Mail } from 'lucide-react';
 import SEO from '@/components/SEO';
+import FrenchDateInput from '@/components/FrenchDateInput';
 import { event as trackEvent, ctaClick } from '@/lib/analytics';
 
 const API = process.env.REACT_APP_BACKEND_URL;

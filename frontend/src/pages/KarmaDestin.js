@@ -1,7 +1,7 @@
 import {useState, useEffect} from 'react';
 import PageHero from '@/components/PageHero';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, ArrowLeft, Sparkles, Moon, Infinity as InfinityIcon, Coins, LogIn } from 'lucide-react';
+import { Loader2, ArrowLeft, Sparkles, Moon, Coins, LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SEO from '@/components/SEO';
 import axios from 'axios';
