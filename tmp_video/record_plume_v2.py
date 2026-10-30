@@ -8,6 +8,7 @@ Séquence :
   33-46s  → Espace personnel /mon-compte (avec login test)
   46-60s  → Cercle Soléna (offre abonnement)
 """
+import os
 import asyncio
 import subprocess
 from pathlib import Path
@@ -20,7 +21,7 @@ OUT_DIR.mkdir(exist_ok=True, parents=True)
 BASE_URL = "https://consultation-astro.preview.emergentagent.com"
 
 TEST_EMAIL = "test@plume-astrale.fr"
-TEST_PASSWORD = "TestPlume2026!"
+TEST_PASSWORD = os.environ.get('TEST_USER_PASSWORD', '')
 
 VIEWPORT = {"width": 390, "height": 844}
 RECORD_SIZE = {"width": 390, "height": 844}

@@ -16,6 +16,7 @@ from __future__ import annotations
 import hmac
 import logging
 import os
+import re
 import secrets
 from pathlib import Path
 from typing import Optional, Tuple
@@ -148,6 +149,31 @@ def upload_pdf_to_reports_bucket(
         return None
 
 
+def _short_lived_url(public_url: str, ttl_s: int = 300) -> str:
+    """Remplace une URL publique du bucket `reports` par une URL signée à courte durée.
+
+    Permet de passer le bucket en privé sans changer ce flux : si la signature échoue
+    (format d'URL inattendu, erreur Supabase), on retombe sur l'URL d'origine.
+    """
+    marker = '/storage/v1/object/public/reports/'
+    if marker not in (public_url or ''):
+        return public_url
+    path = public_url.split(marker, 1)[1].split('?', 1)[0]
+    try:
+        from services.supabase_client import get_admin_client
+        res = get_admin_client().storage.from_('reports').create_signed_url(path, ttl_s)
+        signed = (res or {}).get('signedURL') or (res or {}).get('signedUrl')
+        if not signed:
+            return public_url
+        if signed.startswith('/'):
+            base = public_url.split('/storage/v1/', 1)[0]
+            signed = f'{base}/storage/v1{signed}'
+        return signed
+    except Exception as e:
+        logger.warning(f'[pdf_download] signature URL Supabase impossible: {e}')
+        return public_url
+
+
 def _resolve_pdf_file(product_kind: str, session_id: str,
                        filename_prefix: Optional[str] = None) -> Optional[Path]:
     """Retrouve le fichier PDF sur disque à partir de la clé produit + session.
@@ -263,7 +289,7 @@ async def download_pdf(session_id: str, token: str, print_ready: bool = False):
         if supabase_url:
             from fastapi.responses import RedirectResponse
             logger.info(f'[pdf_download] {session_id}/{matched_key} local manquant → redirect Supabase')
-            resp = RedirectResponse(url=supabase_url, status_code=302)
+            resp = RedirectResponse(url=_short_lived_url(supabase_url), status_code=302)
             # Empêche le navigateur de cacher le redirect (l'URL cible peut changer sur régénération)
             resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
             resp.headers['Pragma'] = 'no-cache'
@@ -351,10 +377,18 @@ async def _download_synastrie_pdf(session_id: str, token: str, sb, print_ready: 
     if rec.get('status') and rec['status'] not in ('paid', 'completed'):
         raise HTTPException(status_code=402, detail='Paiement requis')
 
-    # Legacy : ancien flux static file → on autorise si session_id présent
-    # (le token argument est ignoré, cohérent avec l'ancienne surface d'attaque).
+    # Legacy : ancien flux static file (pdf_path avant la migration token).
+    # Le session_id Stripe tient lieu de credential : on le limite à un vrai identifiant Stripe
+    # (pas d'id fabriqué) et SYNASTRIE_LEGACY_DOWNLOAD=0 permet de couper ce chemin une fois
+    # les anciens liens migrés.
     is_legacy = pdf_path_stored.startswith('/api/assets/')
-    if not is_legacy:
+    if is_legacy:
+        if os.environ.get('SYNASTRIE_LEGACY_DOWNLOAD', '1').strip() == '0':
+            raise HTTPException(status_code=403, detail='Lien expiré, utilisez le lien reçu par e-mail.')
+        if not re.fullmatch(r'cs_(live|test)_[A-Za-z0-9]{20,}', session_id):
+            raise HTTPException(status_code=403, detail='Token invalide')
+        logger.warning(f'[pdf_download/synastrie] accès legacy sans token pour {session_id[:14]}…')
+    else:
         q = parse_qs(urlparse(pdf_path_stored).query)
         stored_token = (q.get('token') or [''])[0]
         if not stored_token:

@@ -31,7 +31,7 @@
     "backend": "100% (16/16)",
     "frontend": "N/A (backend-only request)"
   },
-  "test_credentials": "Used /app/memory/test_credentials.md — admin@plume-astrale.fr / PlumeAdmin2026 (Supabase grant_type=password).",
+  "test_credentials": "Used /app/memory/test_credentials.md — admin@plume-astrale.fr / [redacted] (Supabase grant_type=password).",
   "seed_data_creation": "None. capture-email test data uses prefix TEST_ but Supabase oracle_leads insert is best-effort (will simply log warning if table is absent).",
   "retest_needed": false,
   "should_main_agent_self_test": false,

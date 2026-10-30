@@ -488,8 +488,7 @@ const MonCompte = () => {
     if (activeTab === 'rapports' && archivedReports === null) {
       fetchArchivedReports();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, fetchArchivedReports]);
+  }, [activeTab, archivedReports, fetchArchivedReports]);
 
   /* ── Check-in quotidien ── */
   const handleCheckin = async () => {

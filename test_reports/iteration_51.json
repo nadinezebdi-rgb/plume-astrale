@@ -43,7 +43,7 @@
     "backend": "100% (4/4 pytest)",
     "frontend": "75% (3/4 : countdown OK, hero rotation OK, KABBALE20 banner OK, BundleCard bloqué par race condition)"
   },
-  "test_credentials": "admin@plume-astrale.fr / PlumeAdmin2026 — login réussit (redirect vers /mon-compte OK), mais /mon-accueil reste inaccessible.",
+  "test_credentials": "admin@plume-astrale.fr / [redacted] — login réussit (redirect vers /mon-compte OK), mais /mon-accueil reste inaccessible.",
   "seed_data_creation": "Aucune",
   "retest_needed": true,
   "should_main_agent_self_test": true,

@@ -1,7 +1,8 @@
-import {useState} from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Sparkles, Loader2, MapPin, Clock, Check, ArrowRight, Lock } from 'lucide-react';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -70,7 +71,7 @@ const HeroOracle = () => {
         first_name: form.firstName,
         birth_date: form.birthDate,
       }).catch(() => {});  // silencieux — on continue meme si la sauvegarde echoue
-    } catch (_e) { /* ignore */ }
+    } catch (e) { /* ignore */ }
     setState(STATES.EMAIL);
   };
 
@@ -118,7 +119,7 @@ const HeroOracle = () => {
           </div>
           <div style={{ marginBottom: 22 }}>
             <label style={labelStyle}>Ta date de naissance</label>
-            <input type="date" value={form.birthDate}
+            <FrenchDateInput type="date" value={form.birthDate}
               onChange={e => handleChange('birthDate', e.target.value)}
               style={inputStyle}
               data-testid="hero-birthdate" />
@@ -268,7 +269,7 @@ const HeroOracle = () => {
         Ta lecture affinée arrive...
       </h2>
       <p style={{ color: 'rgba(184,176,200,0.85)', fontSize: 14, marginBottom: 28 }}>
-        Tu vas recevoir ton thème complet avec ascendant, maisons et aspects sous 15 minutes.
+        Tu vas recevoir d&apos;ici quelques minutes ton thème complet avec ascendant, maisons et aspects.
       </p>
       <PremiumBridge onCTA={() => navigate('/premium')} />
     </section>

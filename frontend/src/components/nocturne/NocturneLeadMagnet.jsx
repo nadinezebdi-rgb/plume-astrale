@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import { ArrowRight, Check, Loader2 } from 'lucide-react';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -127,7 +128,7 @@ export default function NocturneLeadMagnet() {
 
               <div className="ne-field">
                 <label className="ne-label" htmlFor="lm-birthdate">Date de naissance</label>
-                <input
+                <FrenchDateInput
                   id="lm-birthdate"
                   className="ne-input"
                   type="date"

@@ -29,7 +29,7 @@
   ],
   "updated_files": [],
   "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100%"},
-  "test_credentials": "test@plume-astrale.fr / TestPlume2026! (used successfully — note: /connexion does not auto-redirect after successful login, session is set but user stays on /connexion until manual navigation; likely pre-existing behavior, not V3-related)",
+  "test_credentials": "test@plume-astrale.fr / [redacted] (used successfully — note: /connexion does not auto-redirect after successful login, session is set but user stays on /connexion until manual navigation; likely pre-existing behavior, not V3-related)",
   "seed_data_creation": "localStorage.plume_astrale_data seeded with {prenom:'TestUser', dateNaissance:'1990-05-15', heureNaissance:'12:00', lieuNaissance:'Paris', signe:'Taureau'} for /choix and /outils/horoscope",
   "retest_needed": false,
   "main_agent_can_self_test": true,

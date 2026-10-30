@@ -137,6 +137,18 @@ def test_qa_on_real_natal_pdf():
                      'Saturne', 'Uranus', 'Neptune', 'Pluton', 'Ascendant']
         ],
         'synthese_aspects': 'Synthèse. ' * 80,
+        # Aspects calculés : alimente la table de la Section 6 (refonte 50 pages)
+        'aspects': [
+            {'planet_a': a, 'type_fr': t, 'planet_b': b, 'orb_degrees': o}
+            for a, t, b, o in [
+                ('Soleil', 'Trigone', 'Lune', 2.1), ('Soleil', 'Conjonction', 'Mercure', 7.3),
+                ('Vénus', 'Carré', 'Mars', 1.2), ('Jupiter', 'Opposition', 'Saturne', 3.5),
+                ('Mars', 'Conjonction', 'Pluton', 4.0), ('Lune', 'Conjonction', 'Saturne', 2.2),
+                ('Mercure', 'Sextile', 'Vénus', 3.1), ('Uranus', 'Trigone', 'Neptune', 1.8),
+                ('Soleil', 'Carré', 'Uranus', 5.0), ('Lune', 'Sextile', 'Jupiter', 2.7),
+                ('Vénus', 'Trigone', 'Neptune', 3.3), ('Mars', 'Opposition', 'Uranus', 4.4),
+            ]
+        ],
         'houses': [{'num': i, 'sign': 'Vierge', 'planets_in_house': []} for i in range(1, 13)],
         'enhanced_personal_analysis': {},
     }

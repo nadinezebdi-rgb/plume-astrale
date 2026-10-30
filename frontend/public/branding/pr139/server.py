@@ -2751,7 +2751,7 @@ async def _start_cart_recovery():
     from services.instagram_token_refresh import ig_token_refresh_loop
     from services.promo_bootstrap import ensure_permanent_promo_codes
     from services.ssr_snapshot import ssr_refresh_loop
-    # Bootstrap idempotent des codes promo permanents (TOUT2026)
+    # Bootstrap idempotent des codes promo permanents (code bypass)
     try:
         ensure_permanent_promo_codes()
     except Exception as _e:
