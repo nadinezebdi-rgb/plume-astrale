@@ -5,11 +5,13 @@ Insère/met à jour au démarrage backend les codes que l'admin utilise
 partout sur le site pour tester l'accès complet aux PDF sans passer
 par Stripe.
 
-TOUT2026 : bypass 100% sur TOUS les produits, réservé admin (SEC-004).
+TOUT2026 : bypass 100% sur TOUS les produits, réservé aux comptes autorisés (SEC-004).
+Le code réel est lu dans PROMO_BYPASS_CODE (défaut TOUT2026).
 """
 from __future__ import annotations
 import logging
 from services.supabase_client import get_admin_client
+from services.promo_bypass import get_bypass_code
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,7 @@ def ensure_permanent_promo_codes() -> None:
     """Idempotent : garantit la présence des codes permanents en base."""
     permanent_codes = [
         {
-            'code': 'TOUT2026',
+            'code': get_bypass_code(),
             'active': True,
             'max_uses': None,     # illimité
             'used_count': 0,

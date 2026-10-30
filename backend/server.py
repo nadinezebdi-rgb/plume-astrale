@@ -1,4 +1,6 @@
 """Plume Astrale — FastAPI backend (Supabase + Stripe + Astrology API)."""
+from services.origin_guard import DEFAULT_ORIGINS, validate_origin
+from services.rate_limit import rate_limit
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Query, Body
 from fastapi.responses import Response, StreamingResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -10,7 +12,8 @@ import uuid
 import base64
 import json
 from pathlib import Path
-from pydantic import BaseModel
+import re
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from urllib.parse import urlparse
 from emergentintegrations.llm.chat import LlmChat, UserMessage
@@ -235,6 +238,29 @@ class ProfileUpdate(BaseModel):
     tzone: Optional[float] = None
     tz_manual_override: Optional[bool] = None
     gender: Optional[str] = None
+
+    @field_validator('prenom', 'birth_date', 'birth_time', 'birth_place', 'birth_country', 'gender', mode='before')
+    @classmethod
+    def _blank_to_none(cls, v):
+        # Un champ vide ("" envoyé par un formulaire) ne doit pas écraser la valeur ni casser les colonnes DATE/TIME.
+        if isinstance(v, str):
+            v = v.strip()
+            return v or None
+        return v
+
+    @field_validator('birth_date')
+    @classmethod
+    def _check_birth_date(cls, v):
+        if v is not None and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', v):
+            raise ValueError('Date de naissance invalide (format AAAA-MM-JJ).')
+        return v
+
+    @field_validator('birth_time')
+    @classmethod
+    def _check_birth_time(cls, v):
+        if v is not None and not re.fullmatch(r'\d{2}:\d{2}(:\d{2})?', v):
+            raise ValueError('Heure de naissance invalide (format HH:MM).')
+        return v
 
 
 @api_router.get('/auth/me')
@@ -618,10 +644,21 @@ async def grant_free_access(payload: FreeAccessRequest, current_user: dict = Dep
 
 
 class LegacyCheckoutRequest(BaseModel):
-    product_id: str
-    origin_url: str
-    user_email: str | None = None
+    product_id: str = Field(max_length=80)
+    origin_url: str = Field(max_length=300)
+    user_email: str | None = Field(default=None, max_length=254)
     user_data: dict | None = None
+
+    @field_validator('user_email')
+    @classmethod
+    def _email_or_none(cls, v):
+        # Chaine vide -> None ; sinon adresse plausible (évite d'injecter n'importe quoi dans les metadata/reçus)
+        v = (v or '').strip()
+        if not v:
+            return None
+        if not re.fullmatch(r'[^@\s<>"]+@[^@\s<>"]+\.[^@\s<>"]+', v):
+            raise ValueError('email invalide')
+        return v.lower()
 
 
 @api_router.get('/products')
@@ -629,7 +666,7 @@ async def list_products():
     return PRODUCT_CATALOG
 
 
-@api_router.post('/checkout/create')
+@api_router.post('/checkout/create', dependencies=[Depends(rate_limit('checkout_create', 20))])
 async def legacy_checkout_create(payload: LegacyCheckoutRequest, http_request: Request):
     product = PRODUCT_CATALOG.get(payload.product_id)
     if not product:
@@ -639,7 +676,7 @@ async def legacy_checkout_create(payload: LegacyCheckoutRequest, http_request: R
     webhook_url = f'{host_url}/api/webhook/stripe'
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
 
-    origin = payload.origin_url.rstrip('/')
+    origin = validate_origin(payload.origin_url)
     success_path = product.get('success_path', '/paiement/succes')
     cancel_path = product.get('cancel_path', '/')
     success_url = f'{origin}{success_path}?session_id={{CHECKOUT_SESSION_ID}}'
@@ -660,10 +697,18 @@ async def legacy_checkout_create(payload: LegacyCheckoutRequest, http_request: R
     return {'url': session.url, 'session_id': session.session_id}
 
 
-@api_router.get('/checkout/status/{session_id}')
+@api_router.get('/checkout/status/{session_id}', dependencies=[Depends(rate_limit('checkout_status', 60))])
 async def legacy_checkout_status(session_id: str):
+    # Identifiant Stripe réel uniquement, et seulement les sessions créées par ce flux
+    if not re.fullmatch(r'cs_(live|test)_[A-Za-z0-9]{10,200}', session_id):
+        raise HTTPException(status_code=404, detail='Session introuvable')
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url='')
-    status = await stripe_checkout.get_checkout_status(session_id)
+    try:
+        status = await stripe_checkout.get_checkout_status(session_id)
+    except Exception:
+        raise HTTPException(status_code=404, detail='Session introuvable')
+    if (status.metadata or {}).get('flow') != 'legacy_checkout':
+        raise HTTPException(status_code=404, detail='Session introuvable')
     return {
         'status': status.status,
         'payment_status': status.payment_status,
@@ -695,7 +740,7 @@ async def create_checkout(
     webhook_url = f'{host_url}/api/webhook/stripe'
     stripe_checkout = StripeCheckout(api_key=settings.STRIPE_API_KEY, webhook_url=webhook_url)
 
-    origin = payload.origin_url.rstrip('/')
+    origin = validate_origin(payload.origin_url)
     success_url = f'{origin}/credits/succes?session_id={{CHECKOUT_SESSION_ID}}'
     cancel_url = f'{origin}/acheter-credits'
 
@@ -1342,6 +1387,14 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
         from services.book_engine_shared.pipeline import build_book_pdf_for_session
         try:
             session_id = data_obj.get('id') if isinstance(data_obj, dict) else data_obj.id
+            # Ne livre que si Stripe confirme le paiement du montant attendu (la transaction fait foi)
+            _tx_res = get_admin_client().table('payment_transactions').select('amount, currency').eq(
+                'session_id', session_id).limit(1).execute()
+            _ok, _reason = verify_session_matches_transaction(
+                session_to_dict(data_obj), (_tx_res.data or [None])[0] if _tx_res else None)
+            if not _ok:
+                logger.error(f'[composer_book] fulfilment refusé pour {session_id}: {_reason}')
+                return {'received': True, 'type': event_type, 'kind': 'composer_book', 'fulfilled': False}
             # Marque la transaction comme payée avant de lancer le pipeline
             try:
                 sb2 = get_admin_client()
@@ -1423,11 +1476,13 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
                 product_id = meta.get('product_id', '')
                 product = PRODUCT_CATALOG.get(product_id, {})
                 product_name = product.get('name', 'votre commande')
-                # email : metadata en priorite, sinon customer_details Stripe
-                email = meta.get('user_email') or (
-                    (session_data.get('customer_details') or {}).get('email')
-                )
+                # email : celui saisi par le payeur chez Stripe en priorite, sinon metadata
+                email = (session_data.get('customer_details') or {}).get('email') or meta.get('user_email')
                 montant = (session_data.get('amount_total') or 0) / 100
+                expected_amount = product.get('amount')
+                if expected_amount is not None and round(float(expected_amount) * 100) != int(session_data.get('amount_total') or 0):
+                    logger.error(f'[legacy receipt] montant inattendu pour {product_id}: {montant}')
+                    email = None
                 if email:
                     from services.resend_service import send_email
                     subject = f'Reçu de votre commande — {product_name}'
@@ -1456,6 +1511,11 @@ async def _process_stripe_event(event, event_type, data_obj, event_id=None):
         tx = tx_res.data
         if tx['credits_granted']:
             return {'received': True, 'already_granted': True}
+        from services.payment_verification import verify_session_matches_transaction
+        _ok, _reason = verify_session_matches_transaction(session_data, tx)
+        if not _ok:
+            logger.error(f'[credits] attribution refusée pour {session_id}: {_reason}')
+            return {'received': True, 'granted': False}
         user_id = tx['user_id'] or (session_data.get('metadata') or {}).get('user_id')
         if not user_id:
             return {'received': True}
@@ -1583,15 +1643,22 @@ class CompatibilityGenerateRequest(BaseModel):
 
 def _resolve_origin_url(request: Request, explicit_origin: str | None) -> str:
     if explicit_origin and explicit_origin.strip():
-        return explicit_origin.rstrip('/')
+        return validate_origin(explicit_origin)
+    # Origin/Referer ne sont utilisés que s'ils sont autorisés ; sinon on retombe sur base_url.
     header_origin = (request.headers.get('origin') or '').strip()
     if header_origin:
-        return header_origin.rstrip('/')
+        try:
+            return validate_origin(header_origin)
+        except HTTPException:
+            pass
     referer = (request.headers.get('referer') or '').strip()
     if referer:
         parsed = urlparse(referer)
         if parsed.scheme and parsed.netloc:
-            return f'{parsed.scheme}://{parsed.netloc}'
+            try:
+                return validate_origin(f'{parsed.scheme}://{parsed.netloc}')
+            except HTTPException:
+                pass
     return str(request.base_url).rstrip('/')
 
 
@@ -3600,18 +3667,26 @@ async def journal_history_endpoint(
 # ════════════════════════════════════════════
 app.include_router(api_router)
 
-# Build CORS origins list: env var + production domains always whitelisted
+# Origines autorisées (CORS + redirections Stripe) : liste par défaut dans services/origin_guard.py
 _cors_from_env = [o.strip() for o in os.environ.get('CORS_ORIGINS', '').split(',') if o.strip()]
-_default_origins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'https://plume-astrale.vercel.app',
-    'https://plume-astrale.fr',
-    'https://www.plume-astrale.fr',
-    'https://consultation-astro.preview.emergentagent.com',
-    'https://consultation-astro.emergent.host',
-]
-_allow_origins = list(set(_cors_from_env + _default_origins)) if _cors_from_env else _default_origins
+_allow_origins = list(set(_cors_from_env + DEFAULT_ORIGINS)) if _cors_from_env else list(DEFAULT_ORIGINS)
+
+async def _catch_unhandled_exceptions(request: Request, call_next):
+    """Transforme une exception non gérée en réponse 500 JSON.
+
+    Ajouté AVANT CORSMiddleware (donc placé à l'intérieur) : la réponse repasse par le CORS et
+    garde ses en-têtes. Sans ça, une 500 brute n'a pas d'en-têtes CORS et le navigateur
+    affiche « Network Error » au lieu du vrai statut.
+    """
+    try:
+        return await call_next(request)
+    except Exception:
+        logger.exception(f'[unhandled] {request.method} {request.url.path}')
+        from starlette.responses import JSONResponse
+        return JSONResponse(status_code=500, content={'detail': 'Erreur interne du serveur.'})
+
+
+app.middleware('http')(_catch_unhandled_exceptions)
 
 app.add_middleware(
     CORSMiddleware,

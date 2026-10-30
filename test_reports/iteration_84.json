@@ -17,7 +17,7 @@
   ],
   "updated_files": [],
   "success_rate": { "backend": "n/a", "frontend": "100% (23/23)" },
-  "test_credentials": "test@plume-astrale.fr / TestPlume2026! (used for /mon-accueil non-regression).",
+  "test_credentials": "test@plume-astrale.fr / [redacted] (used for /mon-accueil non-regression).",
   "seed_data_creation": "sessionStorage exp_intent=self_discovery, exp_zodiac=vierge set for welcome splash test.",
   "retest_needed": false,
   "should_main_agent_self_test": false,

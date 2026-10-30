@@ -252,7 +252,7 @@ export default function ExperienceRoot({ managedScroll = false }) {
     trackEvent(EVENTS.EXP_TAROT_SELECTED, { card: cardId, intent_type: intent || 'none' });
     // Après ~1.2s la carte est retournée → track reveal
     setTimeout(() => trackEvent(EVENTS.EXP_TAROT_REVEALED, { card: cardId }), 1200);
-  }, [setDrawnCard, drawnCard]);
+  }, [setDrawnCard, drawnCard, intent]);
 
   // ── Fetch LLM Sonnet 4.6 dès qu'on a card + intent (cache Mongo 30 min) ─
   useEffect(() => {

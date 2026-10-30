@@ -152,7 +152,7 @@ export default function Blog() {
       if (ld.parentNode) document.head.removeChild(ld);
       if (observer) observer.disconnect();
     };
-  }, []);
+  }, [knownSlug]);
 
   // SEO P2 : redirection /blog?post=slug → /blog/slug (URL propre)
   // Placée APRÈS useEffect pour respecter rules-of-hooks — le return

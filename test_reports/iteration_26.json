@@ -42,7 +42,7 @@
     "backend": "100% (25/25)",
     "frontend": "N/A (frontend testing not requested)"
   },
-  "test_credentials": "Used /app/memory/test_credentials.md — admin@plume-astrale.fr / PlumeAdmin2026 — Supabase grant_type=password token used for all auth-required v3 endpoint calls.",
+  "test_credentials": "Used /app/memory/test_credentials.md — admin@plume-astrale.fr / [redacted] — Supabase grant_type=password token used for all auth-required v3 endpoint calls.",
   "seed_data_creation": "None. Admin profile (Paris, 1990-05-15, 12:00) used as-is to validate `person not provided -> resolve from profile` path.",
   "retest_needed": false,
   "should_main_agent_self_test": false,

@@ -13,7 +13,7 @@ BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://consultation-astro.p
 API = f"{BASE_URL}/api"
 
 ADMIN_EMAIL = 'admin@plume-astrale.fr'
-ADMIN_PASSWORD = os.getenv('TEST_ADMIN_PASSWORD', 'PlumeAdmin2026')
+ADMIN_PASSWORD = os.environ.get('TEST_ADMIN_PASSWORD', '')
 
 NEW_PACK_IDS = {'initiation', 'astro_amour', 'flammes_jumelles'}
 OLD_PACK_IDS = {'starter', 'popular', 'premium', 'chat_lueur', 'chat_constellation', 'chat_voie_lactee'}

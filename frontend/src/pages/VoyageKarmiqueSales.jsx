@@ -210,7 +210,7 @@ export default function VoyageKarmiqueSales() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 32 }}>
                 <div className="ne-field">
                   <label className="ne-label" htmlFor="v-date">Date de naissance</label>
-                  <input id="v-date" className="ne-input" type="date" value={form.birth_date}
+                  <FrenchDateInput id="v-date" className="ne-input" type="date" value={form.birth_date}
                     onChange={upd('birth_date')} required data-testid="voyage-birthdate" />
                 </div>
                 <div className="ne-field">

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import LazyVideo from '@/components/LazyVideo';
 import SEO from '@/components/SEO';
+import FrenchDateInput from '@/components/FrenchDateInput';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -429,7 +430,7 @@ const CheckoutForm = ({ onSubmit, loading, error }) => {
       <div className="pa-row">
         <div>
           <span className="pa-label">Date de naissance</span>
-          <input className="pa-input" type="date" value={form.birth_date}
+          <FrenchDateInput className="pa-input" type="date" value={form.birth_date}
             onChange={(e) => upd('birth_date', e.target.value)} required
             data-testid="lecture-birth-date" />
         </div>
